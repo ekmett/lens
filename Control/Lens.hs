@@ -11,6 +11,18 @@
 --
 -- A self-contained lens library with lenses that are compatible with other
 -- van Laarhoven lens libraries.
+--
+-- Lenses produced by this library are compatible with other van Laarhoven
+-- lens family libraries, such as lens-family, lens-family-core and
+-- lens-family-th, but the API is simpler.
+--
+-- Note: If you merely want your library to provide lenses you may not have
+-- to actually import _any_ lens library, for a "Lens Bar Foo", just export
+-- a function with the signature:
+--
+-- > foo :: Functor f => (Foo -> f Foo) -> Bar -> f Bar
+--
+-- and then you can compose it with other lenses using (.).
 ----------------------------------------------------------------------------
 module Control.Lens
   (

@@ -3,7 +3,7 @@ lens
 
 [![Build Status](https://secure.travis-ci.org/ekmett/lens.png?branch=master)](http://travis-ci.org/ekmett/lens)
 
-This package provides lenses and lens families.
+This package provides lenses and lens families without any nonsense or complicated imports.
 
 Contact Information
 -------------------
