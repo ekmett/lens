@@ -1,0 +1,32 @@
+name:          lens
+category:      Lenses
+version:       0.1
+license:       BSD3
+cabal-version: >= 1.6
+license-file:  LICENSE
+author:        Edward A. Kmett
+maintainer:    Edward A. Kmett <ekmett@gmail.com>
+stability:     provisional
+homepage:      http://github.com/ekmett/lens/
+bug-reports:   http://github.com/ekmett/lens/issues
+copyright:     Copyright (C) 2012 Edward A. Kmett
+synopsis:      Lenses and Lens Families
+description:   Lenses and Lens Families
+build-type:    Simple
+extra-source-files: .travis.yml
+
+source-repository head
+  type: git
+  location: git://github.com/ekmett/lens.git
+
+library
+  exposed-modules: Control.Lens
+  ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap
+  build-depends:
+    base             == 4.*,
+    containers       >= 0.3     && < 0.6,
+    mtl              >= 2.1.1   && < 2.2,
+    template-haskell >= 2.4     && < 2.8,
+    transformers     >= 0.2     && < 0.4
+
+
