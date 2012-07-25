@@ -20,7 +20,9 @@ source-repository head
   location: git://github.com/ekmett/lens.git
 
 library
-  exposed-modules: Control.Lens
+  exposed-modules:
+    Control.Lens
+    Control.Lens.Multi
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap
   build-depends:
     base             == 4.*,
@@ -28,5 +30,3 @@ library
     mtl              >= 2.1.1   && < 2.2,
     template-haskell >= 2.4     && < 2.8,
     transformers     >= 0.2     && < 0.4
-
-
