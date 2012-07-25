@@ -75,6 +75,7 @@ import           Control.Monad (liftM)
 import           Control.Monad.State.Class
 import qualified Control.Monad.Trans.State.Lazy as Lazy
 import qualified Control.Monad.Trans.State.Strict as Strict
+import           Control.Monad.Trans.Reader
 import           Data.Char (toLower)
 import           Data.Functor.Identity
 import           Data.IntMap as IntMap
@@ -232,10 +233,13 @@ class Focus st where
   focus :: Monad m => ((b -> Focusing m c b) -> a -> Focusing m c a) -> st b m c -> st a m c
 
 instance Focus Strict.StateT where
-  focus l (Strict.StateT m) = Strict.StateT $ unfocusing . l (Focusing . m)
+  focus l (Strict.StateT m) = Strict.StateT $ \a -> unfocusing (l (Focusing . m) a)
 
 instance Focus Lazy.StateT where
-  focus l (Lazy.StateT m) = Lazy.StateT $ unfocusing . l (Focusing . m)
+  focus l (Lazy.StateT m) = Lazy.StateT $ \a -> unfocusing (l (Focusing . m) a)
+
+instance Focus ReaderT where
+  focus l (ReaderT m) = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` m b) a
 
 (~=) :: MonadState a m => Setter a b -> b -> m ()
 l ~= b = modify (l ^= b)
@@ -297,7 +301,7 @@ type ConstructorFieldInfo = (Name, Strict, Type)
 --
 -- Example usage:
 --
--- > $(makeLensesBy (\n -> Just (n ++ "L")) ''Foo)
+-- > makeLensesBy (\n -> Just (n ++ "L")) ''Foo
 makeLensesBy ::
      (String -> Maybe String) -- ^ the name transformer
   -> Name -> Q [Dec]
@@ -367,7 +371,7 @@ deriveLensBody lensName fieldName = funD lensName [defLine]
 --
 -- Example usage:
 --
--- $(makeLenses ''Foo)
+-- > makeLenses ''Foo
 makeLenses :: Name -> Q [Dec]
 makeLenses = makeLensesBy defaultNameTransform
 
@@ -375,6 +379,6 @@ makeLenses = makeLensesBy defaultNameTransform
 --
 -- Example usage:
 --
--- > $(makeLensesFor [("_foo", "fooLens"), ("bar", "lbar")] ''Foo)
+-- > makeLensesFor [("_foo", "fooLens"), ("bar", "lbar")] ''Foo
 makeLensesFor :: [(String, String)] -> Name -> Q [Dec]
 makeLensesFor fields = makeLensesBy (`Prelude.lookup` fields)
