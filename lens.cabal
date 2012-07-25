@@ -23,7 +23,8 @@ library
   exposed-modules:
     Control.Lens
     Control.Lens.Multi
-  ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap
+  ghc-options:    -Wall -fwarn-tabs -O2 -fdicts-cheap
+  hs-source-dirs: src
   build-depends:
     base             == 4.*,
     containers       >= 0.3     && < 0.6,
