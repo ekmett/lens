@@ -15,11 +15,11 @@
 -- characterized by assigning values to these paths, then the functor is
 -- representable.
 --
--- Consider,
+-- Consider the following example.
 --
--- import Control.Lens
--- import Control.Lens.Rep
--- import Data.Distributive
+-- > import Control.Lens
+-- > import Control.Lens.Rep
+-- > import Data.Distributive
 --
 -- > data Pair a = Pair { _x :: a, _y :: a }
 --
@@ -28,7 +28,7 @@
 -- > instance Representable Pair where
 -- >   rep f = Pair (f x) (f y)
 --
--- From there, you can get definitions for a number of classes for free.
+-- From there, you can get definitions for a number of instances for free.
 --
 -- > instance Applicative Pair where
 -- >   pure  = pureRep
@@ -79,7 +79,7 @@ import Data.Traversable      as Traversable
 -- | The representation of a 'Representable' 'Functor' as Lenses
 type Rep f = forall a. Lens (f a) a
 
--- | Representable Functors. 
+-- | Representable Functors.
 --
 -- A 'Functor' @f@ is 'Representable' if it is isomorphic to @(x -> a)@
 -- for some x. All such functors can be represented by choosing @x@ to be
@@ -92,7 +92,7 @@ type Rep f = forall a. Lens (f a) a
 -- contravariant functors (those are isomorphic to @(a -> x)@ for some @x@).
 --
 -- As the covariant case is vastly more common, and both are often referred to
--- as representable functors, we choose to call these functors 'Representable' 
+-- as representable functors, we choose to call these functors 'Representable'
 -- here.
 
 class Functor f => Representable f where
@@ -101,37 +101,77 @@ class Functor f => Representable f where
 instance Representable Identity where
   rep f = Identity (f identityL)
 
--- | A default definition for 'fmap' for a 'Representable' 'Functor'
+instance Eq e => Representable ((->) e) where
+  rep f e = f (funL e)
+
+-- | 'fmapRep' is a valid default definition for 'fmap' for a representable
+-- functor.
 --
 -- > fmapRep f m = rep $ \i -> f (m^.i)
+--
+-- Usage for a representable functor @Foo@:
+--
+-- > instance Functor Foo where
+-- >   fmap = fmapRep
+
 fmapRep :: Representable f => (a -> b) -> f a -> f b
 fmapRep f m = rep $ \i -> f (m^.i)
 {-# INLINE fmapRep #-}
 
--- | A default definition for 'pure' for a 'Representable' 'Functor'
+-- | 'pureRep' is a valid default definition for 'pure' and 'return' for a
+-- representable functor.
 --
 -- > pureRep = rep . const
+--
+-- Usage for a representable functor @Foo@:
+--
+-- > instance Applicative Foo where
+-- >    pure = pureRep
+-- >    (<*>) = apRep
+--
+-- > instance Monad Foo where
+-- >   return = pureRep
+-- >   (>>=) = bindRep
 pureRep :: Representable f => a -> f a
 pureRep = rep . const
 {-# INLINE pureRep #-}
 
--- | A default definition for '(<*>)' for a 'Representable' 'Functor'
+-- | 'apRep' is a valid default definition for '(<*>)' for a representable
+-- functor.
 --
 -- > apRep mf ma = rep $ \i -> mf^.i $ ma^.i
+--
+-- Usage for a representable functor @Foo@:
+--
+-- > instance Applicative Foo where
+-- >    pure = pureRep
+-- >   (<*>) = apRep
 apRep :: Representable f => f (a -> b) -> f a -> f b
 apRep mf ma = rep $ \i -> mf^.i $ ma^.i
 {-# INLINE apRep #-}
 
--- | A default definition for '(>>=)' for a 'Representable' 'Functor'
+-- | 'bindRep' is a valid default default definition for '(>>=)' for a
+-- representable functor.
 --
 -- > bindRep m f = rep $ \i -> f(m^.i)^.i
+--
+-- Usage for a representable functor @Foo@:
+--
+-- > instance Monad ... where
+-- >   return = pureRep
+-- >   (>>=) = bindRep
 bindRep :: Representable f => f a -> (a -> f b) -> f b
 bindRep m f = rep $ \i -> f(m^.i)^.i
 {-# INLINE bindRep #-}
 
--- | A default definition for 'distribute' from Data.Distributive for a 'Representable' 'Functor'
+-- | A default definition for 'Data.Distributive.distribute' for a 'Representable' 'Functor'
 --
 -- > distributeRep wf = rep $ \i -> fmap (^.i) wf
+--
+-- Typical Usage:
+--
+-- > instance Distributive ... where
+-- >   distribute = distributeRep
 distributeRep :: (Representable f, Functor w) => w (f a) -> f (w a)
 distributeRep wf = rep $ \i -> fmap (^.i) wf
 {-# INLINE distributeRep #-}
@@ -146,7 +186,8 @@ distributeRep wf = rep $ \i -> fmap (^.i) wf
 -- This type provides a way to, say, store a list of polymorphic lenses.
 newtype Key f = Key { turn :: Rep f }
 
--- | A 'Representable' 'Functor' has a fixed shape. This fills each hole in it with a 'Key'
+-- | A 'Representable' 'Functor' has a fixed shape. This fills each position 
+-- in it with a 'Key'
 keys :: Representable f => f (Key f)
 keys = rep Key
 {-# INLINE keys #-}
