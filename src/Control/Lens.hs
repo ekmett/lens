@@ -143,7 +143,7 @@ infix  4 ~=, %=, %%=, +=, -=, *=, //=, &&=, ||=
 infixr 0 ^$
 
 -- |
--- A Lens is a purely functional reference to part of a data structure, it can be used to read or write to that part of the whole.
+-- A Lens is a purely functional reference to part of a data structure. It can be used to read or write to that part of the whole.
 --
 -- With great power comes great responsibility, and a 'Lens' is subject to the lens laws:
 --
@@ -158,7 +158,7 @@ infixr 0 ^$
 --
 type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
 
--- | A LensFamily is a more general form of a Lens that permits polymorphic field updates
+-- | A 'LensFamily' is a more general form of a 'Lens' that permits polymorphic field updates
 --
 -- With great power comes great responsibility, and a 'LensFamily' is subject to the lens laws:
 --
@@ -166,7 +166,7 @@ type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
 -- > writing l (reading l a) a   = a
 -- > writing l c (writing l b a) = writing l c a
 --
--- These laws are strong enough that the 4 type parameters of a LensFamily cannot vary fully independently. For more on
+-- These laws are strong enough that the 4 type parameters of a 'LensFamily' cannot vary fully independently. For more on
 -- how they interact, read the "Why is it a Lens Family?" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
 -- Every 'LensFamily' can be used as a 'GetterFamily', a 'SetterFamily' or a 'MultiLensFamily', which transitively means it can be
@@ -189,7 +189,7 @@ type LensFamily a b c d        = forall f. Functor f => (c -> f d) -> a -> f b
 --
 -- > writing l c (writing l b a) = writing l c a
 --
--- since 'reading' a SetterFamily doesn't work, so the other two laws can never be invoked.
+-- 'reading' a 'SetterFamily' doesn't work, so the other two laws can never be invoked.
 type SetterFamily a b c d           = (c -> Identity d) -> a -> Identity b
 
 -- | Every 'Setter' can be used directly as a 'SetterFamily'.
