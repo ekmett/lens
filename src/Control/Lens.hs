@@ -244,38 +244,54 @@ sndL :: LensFamily (c,a) (c,b) a b
 sndL f (c,a) = (,) c <$> f a
 {-# INLINE sndL #-}
 
--- | This lens an be used to read, write or delete a field of a Map.
+-- | This lens can be used to read, write or delete a member of a 'Map'.
 --
 -- > ghci> Map.fromList [("hello",12)]  ^. keyL "hello"
--- > Just "hello"
+-- > Just 12
 keyL :: Ord k => k -> Lens (Map k v) (Maybe v)
 keyL k f m = go <$> f (Map.lookup k m) where
   go Nothing   = Map.delete k m
   go (Just v') = Map.insert k v' m
 {-# INLINE keyL #-}
 
+-- | This lens can be used to read, write or delete a member of an 'IntMap'.
+--
+-- > ghci> IntMap.fromList [(1,"hello")]  ^. keyL 1
+-- > Just "hello"
 intKeyL :: Int -> Lens (IntMap v) (Maybe v)
 intKeyL k f m = go <$> f (IntMap.lookup k m) where
   go Nothing   = IntMap.delete k m
   go (Just v') = IntMap.insert k v' m
 {-# INLINE intKeyL #-}
 
+
+-- | This lens can be used to read, write or delete a member of a 'Set'
+--
+-- > ghci> memberL 3 ^= False $ Set.fromList [1,2,3,4]
+-- > fromList [1,2,4]
 memberL :: Ord k => k -> Lens (Set k) Bool
 memberL k f s = go <$> f (Set.member k s) where
   go False = Set.delete k s
   go True  = Set.insert k s
 {-# INLINE memberL #-}
 
+-- | This lens can be used to read, write or delete a member of an 'IntSet'
+--
+-- > ghci> intMemberL 3 ^= False $ IntSet.fromList [1,2,3,4]
+-- > fromList [1,2,4]
 intMemberL :: Int -> Lens IntSet Bool
 intMemberL k f s = go <$> f (IntSet.member k s) where
   go False = IntSet.delete k s
   go True  = IntSet.insert k s
 {-# INLINE intMemberL #-}
 
+-- | This lens can be used to access the contents of the Identity monad
 identityL :: Functor f => (a -> f b) -> Identity a -> f (Identity b)
 identityL f (Identity a) = Identity <$> f a
 {-# INLINE identityL #-}
 
+-- | This lens can be used to change the result of a function but only where
+-- the arguments match the key given.
 funL :: (Functor f, Eq e) => e -> (a -> f a) -> (e -> a) -> f (e -> a)
 funL e afa ea = go <$> afa a where
   a = ea e
@@ -287,6 +303,7 @@ funL e afa ea = go <$> afa a where
 -- State
 ------------------------------------------------------------------------------
 
+-- | Access a field of a state monad
 access :: MonadState a m => ((c -> Const c d) -> a -> Const c b) -> m c
 access l = gets (^. l)
 {-# INLINE access #-}
@@ -297,6 +314,7 @@ instance Monad m => Functor (Focusing m c) where
   fmap f (Focusing m) = Focusing (liftM (fmap f) m)
 
 class Focus st where
+  -- | Use a lens to lift an operation with simpler state into a larger context
   focus :: Monad m => ((b -> Focusing m c b) -> a -> Focusing m c a) -> st b m c -> st a m c
 
 instance Focus Strict.StateT where
@@ -305,6 +323,7 @@ instance Focus Strict.StateT where
 instance Focus Lazy.StateT where
   focus l (Lazy.StateT m) = Lazy.StateT $ \a -> unfocusing (l (Focusing . m) a)
 
+-- | We can focus Reader environments, too!
 instance Focus ReaderT where
   focus l (ReaderT m) = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` m b) a
 
