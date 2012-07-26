@@ -76,7 +76,13 @@ import Data.Traversable
 -- | The representation of a 'Representable' 'Functor' as Lenses
 type Rep f = forall a. Lens (f a) a
 
--- | Representable Functors, using the
+-- | Representable Functors. 
+--
+-- A Functor @f@ is representable if it is
+-- isomorphic to @(x -> a)@ for some x. All such functors can be represented
+-- by choosing @x@ to be the set of lenses that are polymorphic in the contents
+-- of the 'Functor', that is to say @x = Rep f@ is a valid choice of 'x' for
+-- every 'Representable' 'Functor'.
 class Functor f => Representable f where
   rep :: (Rep f -> a) -> f a
 

@@ -286,13 +286,13 @@ intMemberL k f s = go <$> f (IntSet.member k s) where
 {-# INLINE intMemberL #-}
 
 -- | This lens can be used to access the contents of the Identity monad
-identityL :: Functor f => (a -> f b) -> Identity a -> f (Identity b)
+identityL :: LensFamily (Identity a) (Identity b) a b
 identityL f (Identity a) = Identity <$> f a
 {-# INLINE identityL #-}
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
-funL :: (Functor f, Eq e) => e -> (a -> f a) -> (e -> a) -> f (e -> a)
+funL :: Eq e => e -> Lens (e -> a) a
 funL e afa ea = go <$> afa a where
   a = ea e
   go a' e' | e == e'   = a'
@@ -327,14 +327,17 @@ instance Focus Lazy.StateT where
 instance Focus ReaderT where
   focus l (ReaderT m) = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` m b) a
 
+-- | Set the value of a field in our monadic state
 (~=) :: MonadState a m => Setter a b -> b -> m ()
 l ~= b = modify (l ^= b)
 {-# INLINE (~=) #-}
 
+-- | Modify the value of a field in our monadic state
 (%=) :: MonadState a m => Setter a b -> (b -> b) -> m ()
 l %= f = modify (l ^%= f)
 {-# INLINE (%=) #-}
 
+-- | Modify the value of a field in our monadic state and return some information about it
 (%%=) :: MonadState a m => ((b -> (c,b)) -> a -> (c,a)) -> (b -> (c, b)) -> m c
 l %%= f = state (l f)
 {-# INLINE (%%=) #-}
