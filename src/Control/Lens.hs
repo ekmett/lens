@@ -548,6 +548,7 @@ concatMapOf l ces a = getConst  (l (Const . ces) a)
 
 concatOf :: (([e] -> Const [e] d) -> a -> Const [e] b) -> a -> [e]
 concatOf = reading
+{-# INLINE concatOf #-}
 
 --------------------------
 -- Multilens combinators
@@ -575,6 +576,7 @@ sequenceOf l = unwrapMonad . l pure
 
 folded :: Foldable f => MultiGetter (f a) a
 folded = gettingMany id
+{-# INLINE folded #-}
 
 --------------------------
 -- Multilenses
@@ -583,6 +585,7 @@ folded = gettingMany id
 -- | This is the partial lens that never succeeds at returning any values
 constML :: Applicative f => (c -> f d) -> a -> f a
 constML = const pure
+{-# INLINST constML #-}
 
 headML :: Applicative f => (a -> f a) -> [a] -> f [a]
 headML _ [] = pure []
