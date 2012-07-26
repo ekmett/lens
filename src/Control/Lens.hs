@@ -269,20 +269,26 @@ setting f g a = Identity (f (runIdentity . g) a)
 -- | Get the value of a 'Getter', 'Lens' or 'LensFamily' or the fold of a
 -- 'MultiGetter', 'MultiLens' or 'MultiLensFamily' that points at monoidal
 -- values.
+--
+-- > reading :: GetterFamily a b c d -> a -> c
 reading :: ((c -> Const c d) -> a -> Const c b) -> a -> c
 reading l a = getConst (l Const a)
 {-# INLINE reading #-}
 
 -- | Modify the target of a 'Lens', 'LensFamily' or all the targets of a
 -- 'Multilens', 'MultiLensFamily', 'Setter' or 'SetterFamily'
-mapOf, modifying :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
+--
+-- > mapOf, modifying :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
+mapOf, modifying :: SetterFamily a b c d -> (c -> d) -> a -> b
 mapOf l f a = runIdentity (l (Identity . f) a)
 modifying = mapOf
 {-# INLINE mapOf #-}
 {-# INLINE modifying #-}
 
 -- | Replace the target of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'
-writing :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
+--
+-- writing :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
+writing :: SetterFamily a b c d -> d -> a -> b
 writing l d a = runIdentity (l (\_ -> Identity d) a)
 {-# INLINE writing #-}
 
