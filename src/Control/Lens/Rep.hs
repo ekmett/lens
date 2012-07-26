@@ -46,10 +46,8 @@ module Control.Lens.Rep
   (
   -- * Representable Functors
     Representable(..)
-
   -- * Using Lenses as Representations
   , Rep
-
   -- * Default definitions
   , fmapRep
   , pureRep
@@ -57,10 +55,12 @@ module Control.Lens.Rep
   , bindRep
   , distributeRep
   , mapWithRep
-  , traverseWithRep
-  , traverseWithRep_
   , foldMapWithRep
   , foldrWithRep
+  , traverseWithRep
+  , traverseWithRep_
+  , mapMWithRep
+  , mapMWithRep_
   -- * Wrapped Representations
   , Key(..)
   , keys
@@ -68,10 +68,10 @@ module Control.Lens.Rep
 
 import Control.Applicative
 import Control.Lens
-import Data.Foldable as Foldable
+import Data.Foldable         as Foldable
 import Data.Functor.Identity
 import Data.Monoid
-import Data.Traversable
+import Data.Traversable      as Traversable
 
 -- | The representation of a 'Representable' 'Functor' as Lenses
 type Rep f = forall a. Lens (f a) a
@@ -144,6 +144,19 @@ traverseWithRep_ :: (Representable f, Foldable f, Applicative g)
 traverseWithRep_ f m = sequenceA_ (mapWithRep f m)
 {-# INLINE traverseWithRep_ #-}
 
+-- | 'mapM' over a 'Representable' 'Functor' with access to the current path
+mapMWithRep :: (Representable f, Traversable f, Monad m)
+                => (Rep f -> a -> m b) -> f a -> m (f b)
+mapMWithRep f m = Traversable.sequence (mapWithRep f m)
+{-# INLINE traverseWithRep #-}
+
+-- | 'mapM' over a 'Representable' 'Functor' with access to the current path as a lens,
+-- discarding the result
+mapMWithRep_ :: (Representable f, Foldable f, Monad m)
+                 => (Rep f -> a -> m b) -> f a -> m ()
+mapMWithRep_ f m = Foldable.sequence_ (mapWithRep f m)
+{-# INLINE traverseWithRep_ #-}
+
 -- | Fold over a a 'Representable' 'Functor' with access to the current path as a lens,
 --  yielding a 'Monoid'
 foldMapWithRep :: (Representable f, Foldable f, Monoid m)
@@ -156,7 +169,7 @@ foldrWithRep :: (Representable f, Foldable f) => (Rep f -> a -> b -> b) -> b -> 
 foldrWithRep f b m = Foldable.foldr id b (mapWithRep f m)
 {-# INLINE foldrWithRep #-}
 
--- | Sometimes you need to store a path lens into a container, but
+-- | Sometimes you need to store a path lens into a container, but at least
 -- at this time, impredicative polymorphism in GHC is somewhat lacking.
 --
 -- This type provides a way to, say, store a list of polymorphic lenses.
