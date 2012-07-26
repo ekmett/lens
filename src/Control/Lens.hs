@@ -58,7 +58,7 @@ module Control.Lens
   , memberL
   , intMemberL
   , identityL
-  , funL
+  , atL
 
   -- ** Getters
   , Getter
@@ -292,12 +292,13 @@ identityL f (Identity a) = Identity <$> f a
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
-funL :: Eq e => e -> Lens (e -> a) a
-funL e afa ea = go <$> afa a where
+--
+atL :: Eq e => e -> Lens (e -> a) a
+atL e afa ea = go <$> afa a where
   a = ea e
   go a' e' | e == e'   = a'
            | otherwise = a
-{-# INLINE funL #-}
+{-# INLINE atL #-}
 
 ------------------------------------------------------------------------------
 -- State
