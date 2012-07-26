@@ -7,7 +7,7 @@
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
--- Portability :  non-portable (Rank-N, TH)
+-- Portability :  RankNTypes, TemplateHaskell
 --
 -- This package provides lenses that are compatible with other van
 -- Laarhoven lens libraries, while reducing the complexty of the imports.

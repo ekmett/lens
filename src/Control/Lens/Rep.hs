@@ -6,7 +6,7 @@
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
--- Portability :  portable
+-- Portability :  RankNTypes
 --
 -- Corepresentable endofunctors represented by their polymorphic lenses
 --
