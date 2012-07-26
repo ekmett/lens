@@ -41,7 +41,7 @@ module Control.Lens
   , MultiLens
   , MultiLensFamily
 
-  -- * Constructing lenses
+  -- * Constructing Lenses
   , makeLenses
   , makeLensesBy
   , makeLensesFor
@@ -77,7 +77,7 @@ module Control.Lens
   -- * MultiGetters
   , folded
 
-  -- ** MultiGetterFamily combinators
+  -- ** MultiGetterFamily Combinators
   , mapOf
   , foldMapOf
   , foldrOf
@@ -108,7 +108,7 @@ module Control.Lens
   , rightML
   , elementML
 
-  -- ** MultiLens combinators
+  -- ** MultiLens Combinators
   , traverseOf
   , mapMOf
   , sequenceAOf
