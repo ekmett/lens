@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       0.1
+version:       0.2
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -23,6 +23,7 @@ library
   exposed-modules:
     Control.Lens
     Control.Lens.Multi
+    Control.Lens.Rep
   ghc-options:    -Wall -fwarn-tabs -O2 -fdicts-cheap
   hs-source-dirs: src
   build-depends:

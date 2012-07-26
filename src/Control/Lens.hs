@@ -39,7 +39,9 @@ module Control.Lens
   , clone
 
   -- * Reading from lenses
-  , getL, modL, setL
+  , getL
+  , modL
+  , setL
   , (^.), (^$)
   , (^%=), (^=), (^+=), (^-=), (^*=), (^/=), (^||=), (^&&=)
 
@@ -49,12 +51,14 @@ module Control.Lens
   , (%=), (~=), (%%=), (+=), (-=), (*=), (//=), (||=), (&&=)
 
   -- * Common lenses
-  , fstLens
-  , sndLens
-  , mapLens
-  , intMapLens
-  , setLens
-  , intSetLens
+  , fstL
+  , sndL
+  , keyL
+  , intKeyL
+  , memberL
+  , intMemberL
+  , identityL
+  , funL
 
   -- ** Getters
   , Getter
@@ -95,19 +99,23 @@ type Getter a b               = forall x y z. (b -> Const z x) -> a -> Const z y
 type Setter a b               = (b -> Identity b) -> a -> Identity a
 type SetterFamily a b c d     = (c -> Identity d) -> a -> Identity b
 
+-- | Build a lens from a getter and a setter
 lens :: Functor f => (a -> c) -> (d -> a -> b) -> (c -> f d) -> a -> f b
 lens ac dab cfd a = (`dab` a) <$> cfd (ac a)
 {-# INLINE lens #-}
 
+-- | Built a lens from an isomorphism or an isomorphism family
 iso :: Functor f => (a -> c) -> (d -> b) -> (c -> f d) -> a -> f b
 iso f g h a = g <$> h (f a )
 {-# INLINE iso #-}
 
-getting :: (a -> c) -> (c -> Const r d) -> a -> Const r b
+-- | Build a getter
+getting :: (a -> b) -> Getter a b
 getting f g a = Const (getConst (g (f a)))
 {-# INLINE getting #-}
 
-setting :: ((c -> d) -> a -> b) -> (c -> Identity d) -> a -> Identity b
+-- | Build a setter
+setting :: ((c -> d) -> a -> b) -> SetterFamily a b c d
 setting f g a = Identity (f (runIdentity . g) a)
 {-# INLINE setting #-}
 
@@ -115,53 +123,85 @@ setting f g a = Identity (f (runIdentity . g) a)
 -- Using Lenses
 ------------------------------------------------------------------------------
 
+-- | Get the value of a 'Getter', 'Lens' or 'LensFamily'
 getL :: ((c -> Const c d) -> a -> Const c b) -> a -> c
 getL l a = getConst (l Const a)
 {-# INLINE getL #-}
 
+-- | Modify the target of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'
 modL :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
 modL l f a = runIdentity (l (Identity . f) a)
 {-# INLINE modL #-}
 
+-- | Replace the target of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'
 setL :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
 setL l d a = runIdentity (l (\_ -> Identity d) a)
 {-# INLINE setL #-}
 
+-- | Read the value of a 'Getter', 'Lens' or 'LensFamily'.
+-- This is the same operation as 'getL'.
 (^$) :: ((c -> Const c d) -> a -> Const c b) -> a -> c
 l ^$ a = getConst (l Const a)
 {-# INLINE (^$) #-}
 
+-- | Read a field from a 'Getter', 'Lens' or 'LensFamily'.
+-- The fixity and semantics are such that subsequent field accesses can be
+-- performed with (Prelude..) This is the same operation as flip getL
+--
+-- > ghci> ((0, 1 :+ 2), 3)^.fstL.sndL.getting magnitude
+-- > 2.23606797749979
 (^.) :: a -> ((c -> Const c d) -> a -> Const c b) -> c
 a ^. l = getConst (l Const a)
 {-# INLINE (^.) #-}
 
+-- | Modifies the target of a 'Lens', 'LensFamily', 'Setter', or 'SetterFamily'.
+--
+-- This is an infix version of 'modL'
 (^%=) :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
 l ^%= f = runIdentity . l (Identity . f)
 {-# INLINE (^%=) #-}
 
+-- | Replaces the target(s) of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'.
+--
+-- This is an infix version of 'setL'
 (^=) :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
 l ^= v = runIdentity . l (Identity . const v)
 {-# INLINE (^=) #-}
 
+-- | Increment the target(s) of a numerically valued 'Lens' or Setter'
+--
+-- > ghci> fstL ^+= 1 $ (1,2)
+-- > (2,2)
 (^+=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
 l ^+= n = modL l (+ n)
 {-# INLINE (^+=) #-}
 
+-- | Multiply the target(s) of a numerically valued 'Lens' or Setter'
+--
+-- > ghci> sndL ^*= 4 $ (1,2) 
+-- > (1,8)
 (^*=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
 l ^-= n = modL l (`subtract` n)
 {-# INLINE (^-=) #-}
 
+-- | Decrement the target(s) of a numerically valued 'Lens' or 'Setter'
+--
+-- > ghci> fstL ^-= 2 $ (1,2)
+-- > (-1,2)
 (^-=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
 l ^*= n = modL l (* n)
 {-# INLINE (^*=) #-}
 
+-- | Divide the target(s) of a numerically valued 'Lens' or 'Setter'
 (^/=) :: Fractional c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
 l ^/= n = modL l (/ n)
 
+-- | Logically '||' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 (^||=):: ((Bool -> Identity Bool) -> a -> Identity a) -> Bool -> a -> a
 l ^||= n = modL l (|| n)
 {-# INLINE (^||=) #-}
 
+-- | Logically '&&' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 (^&&=) :: ((Bool -> Identity Bool) -> a -> Identity a) -> Bool -> a -> a
 l ^&&= n = modL l (&& n)
 {-# INLINE (^&&=) #-}
@@ -175,6 +215,9 @@ data IndexedStore c d a = IndexedStore (d -> a) c
 instance Functor (IndexedStore c d) where
   fmap f (IndexedStore g c) = IndexedStore (f . g) c
 
+-- | Cloning a 'Lens' or 'LensFamily' is one way to make sure you arent given
+-- something weaker, such as a 'MultiLens' or 'MultiLensFamily', and can be used
+-- as a way to pass around lenses that have to be monomorphic in 'f'.
 clone :: Functor f => ((c -> IndexedStore c d d) -> a -> IndexedStore c d b) -> (c -> f d) -> a -> f b
 clone f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
@@ -184,37 +227,61 @@ clone f cfd a = case f (IndexedStore id) a of
 -- Common Lenses
 ------------------------------------------------------------------------------
 
-fstLens :: LensFamily (a,c) (b,c) a b
-fstLens f (a,c) = (\b -> (b,c)) <$> f a
-{-# INLINE fstLens #-}
+-- | This is a lens family that can change the value (and type) of the first field of
+-- a pair.
 
-sndLens :: LensFamily (c,a) (c,b) a b
-sndLens f (c,a) = (,) c <$> f a
-{-# INLINE sndLens #-}
+-- > ghci> (1,2)^.fstL
+-- > 1
+--
+-- > ghci> fstL ^= "hello" $ (1,2)
+-- > ("hello",2)
+fstL :: LensFamily (a,c) (b,c) a b
+fstL f (a,c) = (\b -> (b,c)) <$> f a
+{-# INLINE fstL #-}
 
-mapLens :: Ord k => k -> Lens (Map k v) (Maybe v)
-mapLens k f m = go <$> f (Map.lookup k m) where
+-- | As 'fstL', but for the second field of a pair.
+sndL :: LensFamily (c,a) (c,b) a b
+sndL f (c,a) = (,) c <$> f a
+{-# INLINE sndL #-}
+
+-- | This lens an be used to read, write or delete a field of a Map.
+--
+-- > ghci> Map.fromList [("hello",12)]  ^. keyL "hello"
+-- > Just "hello"
+keyL :: Ord k => k -> Lens (Map k v) (Maybe v)
+keyL k f m = go <$> f (Map.lookup k m) where
   go Nothing   = Map.delete k m
   go (Just v') = Map.insert k v' m
-{-# INLINE mapLens #-}
+{-# INLINE keyL #-}
 
-intMapLens :: Int -> Lens (IntMap v) (Maybe v)
-intMapLens k f m = go <$> f (IntMap.lookup k m) where
+intKeyL :: Int -> Lens (IntMap v) (Maybe v)
+intKeyL k f m = go <$> f (IntMap.lookup k m) where
   go Nothing   = IntMap.delete k m
   go (Just v') = IntMap.insert k v' m
-{-# INLINE intMapLens #-}
+{-# INLINE intKeyL #-}
 
-setLens :: Ord k => k -> Lens (Set k) Bool
-setLens k f s = go <$> f (Set.member k s) where
+memberL :: Ord k => k -> Lens (Set k) Bool
+memberL k f s = go <$> f (Set.member k s) where
   go False = Set.delete k s
   go True  = Set.insert k s
-{-# INLINE setLens #-}
+{-# INLINE memberL #-}
 
-intSetLens :: Int -> Lens IntSet Bool
-intSetLens k f s = go <$> f (IntSet.member k s) where
+intMemberL :: Int -> Lens IntSet Bool
+intMemberL k f s = go <$> f (IntSet.member k s) where
   go False = IntSet.delete k s
   go True  = IntSet.insert k s
-{-# INLINE intSetLens #-}
+{-# INLINE intMemberL #-}
+
+identityL :: Functor f => (a -> f b) -> Identity a -> f (Identity b)
+identityL f (Identity a) = Identity <$> f a
+{-# INLINE identityL #-}
+
+funL :: (Functor f, Eq e) => e -> (a -> f a) -> (e -> a) -> f (e -> a)
+funL e afa ea = go <$> afa a where
+  a = ea e
+  go a' e' | e == e'   = a'
+           | otherwise = a
+{-# INLINE funL #-}
 
 ------------------------------------------------------------------------------
 -- State
