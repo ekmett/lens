@@ -75,6 +75,8 @@ module Control.Lens
 
   -- ** MultiGetter combinators
   , foldMapOf
+  , foldrOf
+  , foldOf
   , toListOf
   , anyOf, allOf
   , traverseOf_
