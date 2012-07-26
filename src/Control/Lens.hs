@@ -1,4 +1,5 @@
 {-# LANGUAGE RankNTypes, TemplateHaskell #-}
+{-# OPTIONS_GHC -Wall #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens
@@ -16,18 +17,17 @@
 -- lens family libraries, such as lens-family, lens-family-core and
 -- lens-family-th, but the API is simpler.
 --
--- Note: If you merely want your library to provide lenses you may not have
--- to actually import _any_ lens library, for a "Lens Bar Foo", just export
+-- Note: If you merely want your library to _provide_ lenses you may not have
+-- to actually import _any_ lens library, for a @'Lens' Bar Foo@, just export
 -- a function with the signature:
 --
 -- > foo :: Functor f => (Foo -> f Foo) -> Bar -> f Bar
 --
--- and then you can compose it with other lenses using (.).
+-- and then you can compose it with other lenses using @(.)@.
 --
 -- This package provides lenses, lens families, setters, setter families,
 -- getters, multilenses, multi-getters, and multi-lens families in such
--- a way that they can all be composed automatically with (.).
---
+-- a way that they can all be composed automatically with @(.)@.
 --
 ----------------------------------------------------------------------------
 module Control.Lens
@@ -77,7 +77,7 @@ module Control.Lens
   -- * MultiGetters
   , folded
 
-  -- ** MultiGetter combinators
+  -- ** MultiGetterFamily combinators
   , mapOf
   , foldMapOf
   , foldrOf
@@ -105,6 +105,7 @@ module Control.Lens
   , headML
   , tailML
   , leftML
+  , rightML
   , elementML
 
   -- ** MultiLens combinators
@@ -155,7 +156,6 @@ infixr 0 ^$
 --
 -- > type Lens a b             = LensFamily a a b b
 --
---
 type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
 
 -- | A LensFamily is a more general form of a Lens that permits polymorphic field updates
@@ -185,7 +185,7 @@ type LensFamily a b c d        = forall f. Functor f => (c -> f d) -> a -> f b
 -- The typical way to obtain a 'SetterFamily' is to build one with 'setting' or to compose some other lens-like construction
 -- with a 'SetterFamily'.
 --
--- Note: the only lens law that applies to a SetterFamily is
+-- Note: the only lens law that applies to a 'SetterFamily' is
 --
 -- > writing l c (writing l b a) = writing l c a
 --
@@ -199,9 +199,14 @@ type Setter a b                     = (b -> Identity b) -> a -> Identity a
 
 -- | A 'MultiGetterFamily' describes how to retrieve multiple values in a way that can be composed
 -- with other lens-like constructions.
+--
+-- A 'MultiGetterFamily a b c d' provides a structure with operations very similar to those of the 'Foldable'
+-- typeclass, see 'foldMapOf' and the other MultiGetterFamily combinators.
+--
 type MultiGetterFamily a b c d      = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
 
 -- | Every 'MultiGetter' can be used directly as a 'MultiGetterFamily'.
+--
 --
 -- > type MultiGetter a b           = MultiGetterFamily a b c d
 type MultiGetter a b                = forall m. Monoid m => (b -> Const m b)-> a -> Const m a
@@ -222,32 +227,37 @@ type Getter a b                = forall z. (b -> Const z b) -> a -> Const z a
 -- the ability to both read and update multiple fields, subject to the (relatively weak) MultiLensFamily laws.
 type MultiLensFamily a b c d        = forall f. Applicative f => (c -> f d) -> a -> f b
 
--- | Every MultiLens can be used as a MultiLensFamily or a Setter or MultiGetter, so it can transitively be used as a 
--- MultiGetterFamily or SetterFamily as well.
+-- | Every 'MultiLens' can be used as a 'MultiLensFamily' or a 'Setter' or 'MultiGetter', so it can transitively be used as a
+-- 'MultiGetterFamily' or 'SetterFamily' as well.
 --
 -- > type MultiLens a b             = MultiLensFamily a a b b
 type MultiLens a b                  = forall f. Applicative f => (b -> f b) -> a -> f a
 
--- | Build a lens from a getter and a setter
-lens :: Functor f => (a -> c) -> (d -> a -> b) -> (c -> f d) -> a -> f b
+-- | Build a 'Lens' or 'LensFamily' from a getter and a setter
+--
+-- > lens :: Functor f => (a -> c) -> (d -> a -> b) -> (c -> f d) -> a -> f b
+lens :: (a -> c) -> (d -> a -> b) -> LensFamily a b c d
 lens ac dab cfd a = (`dab` a) <$> cfd (ac a)
 {-# INLINE lens #-}
 
--- | Built a lens from an isomorphism or an isomorphism family
-iso :: Functor f => (a -> c) -> (d -> b) -> (c -> f d) -> a -> f b
+-- | Built a 'Lens' or 'LensFamily' from an isomorphism or an isomorphism family
+--
+-- > iso :: Functor f => (a -> c) -> (d -> b) -> (c -> f d) -> a -> f b
+iso :: (a -> c) -> (d -> b) -> LensFamily a b c d
 iso f g h a = g <$> h (f a )
 {-# INLINE iso #-}
 
--- | Build a getter
-getting :: (a -> b) -> Getter a b
+-- | Build a Getter or GetterFamily
+getting :: (a -> c) -> GetterFamily a b c d
 getting f g a = Const (getConst (g (f a)))
 {-# INLINE getting #-}
 
--- | Building a multigetter
-gettingMany :: Foldable f => (a -> f b) -> MultiGetter a b
+-- | Building a MultiGetter or MultiGetterFamily
+gettingMany :: Foldable f => (a -> f c) -> MultiGetterFamily a b c d
 gettingMany f g a = Const (foldMap (getConst . g) (f a))
+{-# INLINE gettingMany #-}
 
--- | Build a setter
+-- | Build a Setter or SetterFamily
 setting :: ((c -> d) -> a -> b) -> SetterFamily a b c d
 setting f g a = Identity (f (runIdentity . g) a)
 {-# INLINE setting #-}
@@ -469,13 +479,16 @@ class Focus st where
 
 instance Focus Strict.StateT where
   focus l (Strict.StateT m) = Strict.StateT $ \a -> unfocusing (l (Focusing . m) a)
+  {-# INLINE focus #-}
 
 instance Focus Lazy.StateT where
   focus l (Lazy.StateT m) = Lazy.StateT $ \a -> unfocusing (l (Focusing . m) a)
+  {-# INLINE focus #-}
 
 -- | We can focus Reader environments, too!
 instance Focus ReaderT where
   focus l (ReaderT m) = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` m b) a
+  {-# INLINE focus #-}
 
 -- | Set the value of a field in our monadic state
 (~=) :: MonadState a m => Setter a b -> b -> m ()
@@ -526,101 +539,111 @@ l ||= b = modify $ l ^||= b
 -- Multigetter combinators
 --------------------------
 
--- | > foldMapOf :: Monoid m => MultiGetter a b -> (b -> m) -> a -> m
+-- | > foldMapOf :: Monoid m => MultiGetterFamily a b c d -> (c -> m) -> a -> m
 foldMapOf :: Monoid m => ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
 foldMapOf l f = getConst . l (Const . f)
 {-# INLINE foldMapOf #-}
 
--- | > foldOf :: Monoid m => MultiGetter a m -> a -> m
-foldOf :: Monoid m => ((m -> Const m n) -> a -> Const m b) -> a -> m
+-- | > foldOf :: Monoid m => MultiGetterFamily a b m d -> a -> m
+foldOf :: Monoid m => ((m -> Const m d) -> a -> Const m b) -> a -> m
 foldOf l = getConst . l Const
 {-# INLINE foldOf #-}
 
--- | > foldrOf :: MultiGetter a b -> (b -> c -> c) -> c -> a -> c
+-- | > foldrOf :: MultiGetterFamily a b c d -> (c -> e -> e) -> e -> a -> e
 foldrOf :: ((c -> Const (Endo e) d) -> a -> Const (Endo e) b) -> (c -> e -> e) -> e -> a -> e
 foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 {-# INLINE foldrOf #-}
 
--- | > toListOf :: MultiGetter a b -> a -> [b]
+-- | > toListOf :: MultiGetterFamily a b c d -> a -> [c]
 toListOf :: ((c -> Const [c] d) -> a -> Const [c] b) -> a -> [c]
 toListOf l = foldMapOf l return
 {-# INLINE toListOf #-}
 
+-- | > andOf :: MultiGetterFamily a b Bool d -> a -> Bool
 andOf :: ((Bool -> Const All d) -> a -> Const All b) -> a -> Bool
 andOf l = getAll . foldMapOf l All
 {-# INLINE andOf #-}
 
+-- | > orOf :: MultiGetterFamily a b Bool d -> a -> Bool
 orOf :: ((Bool -> Const Any d) -> a -> Const Any b) -> a -> Bool
 orOf l = getAny . foldMapOf l Any
 {-# INLINE orOf #-}
 
--- | > anyOf :: MultiGetter a b -> (b -> Bool) -> a -> Bool
+-- | > anyOf :: MultiGetterFamily a b c d -> (c -> Bool) -> a -> Bool
 anyOf :: ((c -> Const Any d) -> a -> Const Any b) -> (c -> Bool) -> a -> Bool
 anyOf l f = getAny . foldMapOf l (Any . f)
 {-# INLINE anyOf #-}
 
--- | > allOf :: MultiGetter a b -> (b -> Bool) -> a -> Bool
+-- | > allOf :: MultiGetterFamily a b c d -> (c -> Bool) -> a -> Bool
 allOf :: ((c -> Const All d) -> a -> Const All b) -> (c -> Bool) -> a -> Bool
 allOf l f = getAll . foldMapOf l (All . f)
 {-# INLINE allOf #-}
 
+-- | > productOf ::  Num c => MultiGetterFamily a b c d -> a -> c
 productOf :: Num c => ((c -> Const (Product c) d) -> a -> Const (Product c) b) -> a -> c
 productOf l = getProduct . foldMapOf l Product
 {-# INLINE productOf #-}
 
+-- | > sumOf ::  Num c => MultiGetterFamily a b c d -> a -> c
 sumOf ::  Num c => ((c -> Const (Sum c) d) -> a -> Const (Sum c) b) -> a -> c
 sumOf l = getSum . foldMapOf l Sum
 {-# INLINE sumOf #-}
 
--- | > traverseOf_ :: Applicative f => MultiGetter a b -> (b -> f c) -> a -> f ()
+-- | > traverseOf_ :: Applicative f => MultiGetterFamily a b c d -> (c -> f e) -> a -> f ()
 traverseOf_ :: Applicative f => ((c -> Const (Traversal f) d) -> a -> Const (Traversal f) b) -> (c -> f e) -> a -> f ()
 traverseOf_ l f = getTraversal . foldMapOf l (Traversal . (() <$) . f)
 {-# INLINE traverseOf_ #-}
 
--- | > forOf_ :: Applicative f => MultiGetter a b -> a -> (b -> f c) -> f ()
+-- | > forOf_ :: Applicative f => MultiGetterFamily a b c d -> a -> (c -> f e) -> f ()
 forOf_ :: Applicative f => ((c -> Const (Traversal f) d) -> a -> Const (Traversal f) b) -> a -> (c -> f e) -> f ()
 forOf_ l a f = traverseOf_ l f a
 {-# INLINE forOf_ #-}
 
--- | > sequenceAOf_ :: Applicative f => MultiGetter a (f ()) -> a -> f ()
-sequenceAOf_ :: Applicative f => ((f () -> Const (Traversal f) d) -> a -> Const (Traversal f) e) -> a -> f ()
+-- | > sequenceAOf_ :: Applicative f => MultiGetterFamily a b (f ()) d -> a -> f ()
+sequenceAOf_ :: Applicative f => ((f () -> Const (Traversal f) d) -> a -> Const (Traversal f) b) -> a -> f ()
 sequenceAOf_ l = getTraversal . foldMapOf l (Traversal . (() <$))
 {-# INLINE sequenceAOf_ #-}
 
--- | > mapMOf_ :: Monad m => MultiGetter a b -> (b -> m c) -> a -> m ()
+-- | > mapMOf_ :: Monad m => MultiGetterFamily a b c d -> (c -> m e) -> a -> m ()
 mapMOf_ :: Monad m => ((c -> Const (Traversal (WrappedMonad m)) d) -> a -> Const (Traversal (WrappedMonad m)) b) -> (c -> m e) -> a -> m ()
 mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
 {-# INLINE mapMOf_ #-}
 
--- | > forMOf_ :: Monad m => MultiGetter a b -> a -> (b -> m c) -> m ()
+-- | > forMOf_ :: Monad m => MultiGetterFamily a b c d -> a -> (c -> m e) -> m ()
 forMOf_ :: Monad m => ((c -> Const (Traversal (WrappedMonad m)) d) -> a -> Const (Traversal (WrappedMonad m)) b) -> a -> (c -> m e) -> m ()
 forMOf_ l a f = mapMOf_ l f a
 {-# INLINE forMOf_ #-}
 
--- | > sequenceOf_ :: Monad m => MultiGetter a (m b) -> a -> m ()
+-- | > sequenceOf_ :: Monad m => MultiGetterFamily a b (m b) d -> a -> m ()
 sequenceOf_ :: Monad m => ((m c -> Const (Traversal (WrappedMonad m)) d) -> a -> Const (Traversal (WrappedMonad m)) b) -> a -> m ()
 sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
 {-# INLINE sequenceOf_ #-}
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
+--
+-- > asumOf :: Alternative f => MultiGetterFamily a b c d -> a -> f c
 asumOf :: Alternative f => ((f c -> Const (Endo (f c)) d) -> a -> Const (Endo (f c)) b) -> a -> f c
 asumOf l = foldrOf l (<|>) Applicative.empty
 {-# INLINE asumOf #-}
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
+--
+-- > msumOf :: MonadPlus m => MultiGetterFamily a b c d -> a -> m c
 msumOf :: MonadPlus m => ((m c -> Const (Endo (m c)) d) -> a -> Const (Endo (m c)) b) -> a -> m c
 msumOf l = foldrOf l mplus mzero
 {-# INLINE msumOf #-}
 
+-- | > elemOf :: Eq c => MultiGetterFamily a b c d -> c -> a -> Bool
 elemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
 elemOf l = anyOf l . (==)
 {-# INLINE elemOf #-}
 
+-- | > notElemOf :: Eq c => MultiGetterFamily a b c d -> c -> a -> Bool
 notElemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
 notElemOf l c = not . elemOf l c
 {-# INLINE notElemOf #-}
 
--- | concatMapOf :: MultiGetter a c -> (c -> [e]) -> a -> [e]
+-- | > concatMapOf :: MultiGetterFamily a b c d -> (c -> [e]) -> a -> [e]
 concatMapOf :: ((c -> Const [e] d) -> a -> Const [e] b) -> (c -> [e]) -> a -> [e]
 concatMapOf l ces a = getConst  (l (Const . ces) a)
 {-# INLINE concatMapOf #-}
@@ -653,7 +676,7 @@ sequenceOf l = unwrapMonad . l pure
 -- Multigetters
 --------------------------
 
-folded :: Foldable f => MultiGetter (f a) a
+folded :: Foldable f => MultiGetterFamily (f c) b c d
 folded = gettingMany id
 {-# INLINE folded #-}
 
@@ -662,34 +685,64 @@ folded = gettingMany id
 --------------------------
 
 -- | This is the partial lens that never succeeds at returning any values
-constML :: Applicative f => (c -> f d) -> a -> f a
+--
+-- > constML :: Applicative f => (c -> f d) -> a -> f a
+constML :: MultiLensFamily a a c d
 constML = const pure
 {-# INLINE constML #-}
 
-headML :: Applicative f => (a -> f a) -> [a] -> f [a]
+-- The multilens for reading and writing to the head of a list
+--
+-- | > headML :: Applicative f => (a -> f a) -> [a] -> f [a]
+headML :: MultiLens [a] a
 headML _ [] = pure []
 headML f (a:as) = (:as) <$> f a
 {-# INLINE headML #-}
 
-tailML :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
+-- The multilens for reading and writing to the tail of a list
+--
+-- | > tailML :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
+tailML :: MultiLens [a] [a]
 tailML _ [] = pure []
 tailML f (a:as) = (a:) <$> f as
 {-# INLINE tailML #-}
 
-leftML :: Applicative f => (a -> f b) -> Either a c -> f (Either b c)
+-- | A multilens for tweaking the left-hand value in an Either:
+--
+-- > leftML :: Applicative f => (a -> f b) -> Either a c -> f (Either b c)
+leftML :: MultiLensFamily (Either a c) (Either b c) a b
 leftML f (Left a)  = Left <$> f a
 leftML _ (Right c) = pure $ Right c
 {-# INLINE leftML #-}
 
-keyML :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
+-- | A multilens for tweaking the right-hand value in an Either:
+--
+-- > rightML :: Applicative f => (a -> f b) -> Either c a -> f (Either c a)
+-- > rightML = traverse
+--
+-- Unfortunately the instance for 'Traversable (Either c)' is still missing from
+-- base.
+rightML :: MultiLensFamily (Either c a) (Either c b) a b
+rightML _ (Left c) = pure $ Left c
+rightML f (Right a) = Right <$> f a
+{-# INLINE rightML #-}
+
+-- |
+-- > keyML :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
+-- > keyML k = keyL k . traverse
+keyML :: Ord k => k -> MultiLens (Map k v) v
 keyML k = keyL k . traverse
 {-# INLINE keyML #-}
 
-intKeyML :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
+-- |
+-- > intKeyML :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
+-- > intKeyML k = intKeyL k . traverse
+intKeyML :: Int -> MultiLens (IntMap v) v
 intKeyML k = intKeyL k . traverse
 {-# INLINE intKeyML #-}
 
-elementML :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
+-- | > elementML :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
+elementML :: Traversable t => Int -> MultiLens (t a) a
 elementML j f ta = fst (runSA (traverse go ta) 0) where
   go a = SA $ \i -> (if i == j then f a else pure a, i + 1)
 {-# INLINE elementML #-}
