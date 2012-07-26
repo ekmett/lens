@@ -1,4 +1,4 @@
-{-# LANGUAGE Rank2Types, TemplateHaskell #-}
+{-# LANGUAGE RankNTypes, TemplateHaskell #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens
