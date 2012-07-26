@@ -48,7 +48,7 @@ module Control.Lens
   , iso
   , clone
   , getting
- -- , gettingMany
+  , gettingMany
   , setting
 
   -- * Reading
@@ -61,7 +61,7 @@ module Control.Lens
   , Focus(..)
   , (%=), (~=), (%%=), (+=), (-=), (*=), (//=), (||=), (&&=)
 
-  -- * Common lenses
+  -- * Lenses and LensFamilies
   , fstL
   , sndL
   , keyL
@@ -71,7 +71,8 @@ module Control.Lens
   , identityL
   , atL
 
-  -- * MultiGetters
+  -- * MultiGetter
+  , folded
 
   -- ** MultiGetter combinators
   , foldMapOf
@@ -85,13 +86,8 @@ module Control.Lens
   , mapMOf_
   , forMOf_
   , sequenceOf_
-  , traverseOf
-  , mapMOf
-  , sequenceAOf
-  , sequenceOf
 
-  -- ** multilenses and multigetters
---  , folded
+  -- * MultiLens
   , constML
   , mapML
   , intMapML
@@ -99,6 +95,12 @@ module Control.Lens
   , tailML
   , leftML
   , elementML
+
+  -- ** MultiLens combinators
+  , traverseOf
+  , mapMOf
+  , sequenceAOf
+  , sequenceOf
 
   -- * Implementation details
   , IndexedStore(..)
@@ -112,6 +114,7 @@ import qualified Control.Monad.Trans.State.Lazy   as Lazy
 import qualified Control.Monad.Trans.State.Strict as Strict
 import           Control.Monad.Trans.Reader
 import           Data.Char (toLower)
+import           Data.Foldable                    as Foldable
 import           Data.Functor.Identity
 import           Data.IntMap                      as IntMap
 import           Data.IntSet                      as IntSet
@@ -151,9 +154,8 @@ getting f g a = Const (getConst (g (f a)))
 {-# INLINE getting #-}
 
 -- | Building a multigetter
--- gettingMany :: Foldable f => (a -> f b) -> (f b -> Const m x) -> a -> Const m y
--- gettingMany :: Foldable f => (a -> f b) -> MultiGetter a b
--- gettingMany f g a = Const (getConst (foldMap g (f a)))
+gettingMany :: Foldable f => (a -> f b) -> MultiGetter a b
+gettingMany f g a = Const (foldMap (getConst . g) (f a))
 
 -- | Build a setter
 setting :: ((c -> d) -> a -> b) -> SetterFamily a b c d
@@ -510,8 +512,8 @@ sequenceOf l = unwrapMonad . l pure
 -- Multigetters
 --------------------------
 
--- folded :: Foldable f => MultiGetter (f a) a
--- folded = gettingMany id
+folded :: Foldable f => MultiGetter (f a) a
+folded = gettingMany id
 
 --------------------------
 -- Multilenses
