@@ -99,8 +99,8 @@ module Control.Lens
 
   -- * MultiLenses
   , constML
-  , mapML
-  , intMapML
+  , keyML
+  , intKeyML
   , headML
   , tailML
   , leftML
@@ -580,7 +580,7 @@ folded = gettingMany id
 -- Multilenses
 --------------------------
 
--- | This is the partial lens that never succeeds are returning any values
+-- | This is the partial lens that never succeeds at returning any values
 constML :: Applicative f => (c -> f d) -> a -> f a
 constML = const pure
 
@@ -599,17 +599,13 @@ leftML f (Left a)  = Left <$> f a
 leftML _ (Right c) = pure $ Right c
 {-# INLINE leftML #-}
 
-mapML :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
-mapML k f m = case Map.lookup k m of
-  Nothing -> pure m
-  Just v -> (\v' -> Map.insert k v' m) <$> f v
-{-# INLINE mapML #-}
+keyML :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
+keyML k = keyL k . traverse
+{-# INLINE keyML #-}
 
-intMapML :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
-intMapML k f m = case IntMap.lookup k m of
-  Nothing -> pure m
-  Just v -> (\v' -> IntMap.insert k v' m) <$> f v
-{-# INLINE intMapML #-}
+intKeyML :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
+intKeyML k = intKeyL k . traverse
+{-# INLINE intKeyML #-}
 
 elementML :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
 elementML j f ta = fst (runSA (traverse go ta) 0) where
