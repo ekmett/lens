@@ -7,7 +7,7 @@
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
--- Portability :  portable
+-- Portability :  non-portable (Rank-N, TH)
 --
 -- This package provides lenses that are compatible with other van
 -- Laarhoven lens libraries, while reducing the complexty of the imports.
@@ -585,7 +585,7 @@ folded = gettingMany id
 -- | This is the partial lens that never succeeds at returning any values
 constML :: Applicative f => (c -> f d) -> a -> f a
 constML = const pure
-{-# INLINST constML #-}
+{-# INLINE constML #-}
 
 headML :: Applicative f => (a -> f a) -> [a] -> f [a]
 headML _ [] = pure []
