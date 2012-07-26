@@ -24,7 +24,7 @@ library
     Control.Lens
     Control.Lens.Multi
     Control.Lens.Rep
-  ghc-options:    -Wall -fwarn-tabs -O2 -fdicts-cheap
+  ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: src
   build-depends:
     base             == 4.*,
@@ -32,3 +32,4 @@ library
     mtl              >= 2.1.1   && < 2.2,
     template-haskell >= 2.4     && < 2.8,
     transformers     >= 0.2     && < 0.4
+  other-extensions: RankNTypes TemplateHaskell
