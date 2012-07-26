@@ -51,8 +51,10 @@ module Control.Lens
   , gettingMany
   , setting
 
-  -- * Reading
-  , getLens, mapOf, setLens
+  -- * Manipulating Values
+  , reading
+  , modifying
+  , writing
   , (^.), (^$)
   , (^%=), (^=), (^+=), (^-=), (^*=), (^/=), (^||=), (^&&=)
 
@@ -71,23 +73,31 @@ module Control.Lens
   , identityL
   , atL
 
-  -- * MultiGetter
+  -- * MultiGetters
   , folded
 
   -- ** MultiGetter combinators
+  , mapOf
   , foldMapOf
   , foldrOf
   , foldOf
   , toListOf
   , anyOf, allOf
+  , andOf, orOf
+  , productOf, sumOf
   , traverseOf_
   , forOf_
   , sequenceAOf_
   , mapMOf_
   , forMOf_
   , sequenceOf_
+  , asumOf, msumOf
+  , concatMapOf
+  , concatOf
+  , elemOf
+  , notElemOf
 
-  -- * MultiLens
+  -- * MultiLenses
   , constML
   , mapML
   , intMapML
@@ -103,12 +113,13 @@ module Control.Lens
   , sequenceOf
 
   -- * Implementation details
-  , IndexedStore(..)
-  , Focusing(..)
+  , IndexedStore
+  , Focusing
+  , Traversal
   ) where
 
-import           Control.Applicative
-import           Control.Monad (liftM)
+import           Control.Applicative              as Applicative
+import           Control.Monad (liftM, MonadPlus(..))
 import           Control.Monad.State.Class
 import qualified Control.Monad.Trans.State.Lazy   as Lazy
 import qualified Control.Monad.Trans.State.Strict as Strict
@@ -119,7 +130,7 @@ import           Data.Functor.Identity
 import           Data.IntMap                      as IntMap
 import           Data.IntSet                      as IntSet
 import           Data.Map                         as Map
-import           Data.Monoid (Monoid(..), Any(..), All(..), Endo(..))
+import           Data.Monoid
 import           Data.Set                         as Set
 import           Data.Traversable
 import           Language.Haskell.TH
@@ -169,30 +180,32 @@ setting f g a = Identity (f (runIdentity . g) a)
 -- | Get the value of a 'Getter', 'Lens' or 'LensFamily' or the fold of a
 -- 'MultiGetter', 'MultiLens' or 'MultiLensFamily' that points at monoidal
 -- values.
-getLens :: ((c -> Const c d) -> a -> Const c b) -> a -> c
-getLens l a = getConst (l Const a)
-{-# INLINE getLens #-}
+reading :: ((c -> Const c d) -> a -> Const c b) -> a -> c
+reading l a = getConst (l Const a)
+{-# INLINE reading #-}
 
 -- | Modify the target of a 'Lens', 'LensFamily' or all the targets of a
 -- 'Multilens', 'MultiLensFamily', 'Setter' or 'SetterFamily'
-mapOf :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
+mapOf, modifying :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
 mapOf l f a = runIdentity (l (Identity . f) a)
+modifying = mapOf
 {-# INLINE mapOf #-}
+{-# INLINE modifying #-}
 
 -- | Replace the target of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'
-setLens :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
-setLens l d a = runIdentity (l (\_ -> Identity d) a)
-{-# INLINE setLens #-}
+writing :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
+writing l d a = runIdentity (l (\_ -> Identity d) a)
+{-# INLINE writing #-}
 
 -- | Read the value of a 'Getter', 'Lens' or 'LensFamily'.
--- This is the same operation as 'getLens'.
+-- This is the same operation as 'reading'.
 (^$) :: ((c -> Const c d) -> a -> Const c b) -> a -> c
 l ^$ a = getConst (l Const a)
 {-# INLINE (^$) #-}
 
 -- | Read a field from a 'Getter', 'Lens' or 'LensFamily'.
 -- The fixity and semantics are such that subsequent field accesses can be
--- performed with (Prelude..) This is the same operation as 'flip getLens'
+-- performed with (Prelude..) This is the same operation as 'flip reading'
 --
 -- > ghci> ((0, 1 :+ 2), 3)^.fstL.sndL.getting magnitude
 -- > 2.23606797749979
@@ -209,7 +222,7 @@ l ^%= f = runIdentity . l (Identity . f)
 
 -- | Replaces the target(s) of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'.
 --
--- This is an infix version of 'setLens'
+-- This is an infix version of 'writing'
 (^=) :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
 l ^= v = runIdentity . l (Identity . const v)
 {-# INLINE (^=) #-}
@@ -437,26 +450,48 @@ l ||= b = modify $ l ^||= b
 -- | > foldMapOf :: Monoid m => MultiGetter a b -> (b -> m) -> a -> m
 foldMapOf :: Monoid m => ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
 foldMapOf l f = getConst . l (Const . f)
+{-# INLINE foldMapOf #-}
 
 -- | > foldOf :: Monoid m => MultiGetter a m -> a -> m
 foldOf :: Monoid m => ((m -> Const m n) -> a -> Const m b) -> a -> m
 foldOf l = getConst . l Const
+{-# INLINE foldOf #-}
 
 -- | > foldrOf :: MultiGetter a b -> (b -> c -> c) -> c -> a -> c
 foldrOf :: ((c -> Const (Endo e) d) -> a -> Const (Endo e) b) -> (c -> e -> e) -> e -> a -> e
 foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
+{-# INLINE foldrOf #-}
 
 -- | > toListOf :: MultiGetter a b -> a -> [b]
 toListOf :: ((c -> Const [c] d) -> a -> Const [c] b) -> a -> [c]
 toListOf l = foldMapOf l return
+{-# INLINE toListOf #-}
+
+andOf :: ((Bool -> Const All d) -> a -> Const All b) -> a -> Bool
+andOf l = getAll . foldMapOf l All
+{-# INLINE andOf #-}
+
+orOf :: ((Bool -> Const Any d) -> a -> Const Any b) -> a -> Bool
+orOf l = getAny . foldMapOf l Any
+{-# INLINE orOf #-}
 
 -- | > anyOf :: MultiGetter a b -> (b -> Bool) -> a -> Bool
 anyOf :: ((c -> Const Any d) -> a -> Const Any b) -> (c -> Bool) -> a -> Bool
 anyOf l f = getAny . foldMapOf l (Any . f)
+{-# INLINE anyOf #-}
 
 -- | > allOf :: MultiGetter a b -> (b -> Bool) -> a -> Bool
 allOf :: ((c -> Const All d) -> a -> Const All b) -> (c -> Bool) -> a -> Bool
 allOf l f = getAll . foldMapOf l (All . f)
+{-# INLINE allOf #-}
+
+productOf :: Num c => ((c -> Const (Product c) d) -> a -> Const (Product c) b) -> a -> c
+productOf l = getProduct . foldMapOf l Product
+{-# INLINE productOf #-}
+
+sumOf ::  Num c => ((c -> Const (Sum c) d) -> a -> Const (Sum c) b) -> a -> c
+sumOf l = getSum . foldMapOf l Sum
+{-# INLINE sumOf #-}
 
 -- | > traverseOf_ :: Applicative f => MultiGetter a b -> (b -> f c) -> a -> f ()
 traverseOf_ :: Applicative f => ((c -> Const (Traversal f) d) -> a -> Const (Traversal f) b) -> (c -> f e) -> a -> f ()
@@ -487,6 +522,32 @@ forMOf_ l a f = mapMOf_ l f a
 sequenceOf_ :: Monad m => ((m c -> Const (Traversal (WrappedMonad m)) d) -> a -> Const (Traversal (WrappedMonad m)) b) -> a -> m ()
 sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
 {-# INLINE sequenceOf_ #-}
+
+-- | The sum of a collection of actions, generalizing 'concatOf'.
+asumOf :: Alternative f => ((f c -> Const (Endo (f c)) d) -> a -> Const (Endo (f c)) b) -> a -> f c
+asumOf l = foldrOf l (<|>) Applicative.empty
+{-# INLINE asumOf #-}
+
+-- | The sum of a collection of actions, generalizing 'concatOf'.
+msumOf :: MonadPlus m => ((m c -> Const (Endo (m c)) d) -> a -> Const (Endo (m c)) b) -> a -> m c
+msumOf l = foldrOf l mplus mzero
+{-# INLINE msumOf #-}
+
+elemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
+elemOf l = anyOf l . (==)
+{-# INLINE elemOf #-}
+
+notElemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
+notElemOf l c = not . elemOf l c
+{-# INLINE notElemOf #-}
+
+-- | concatMapOf :: MultiGetter a c -> (c -> [e]) -> a -> [e]
+concatMapOf :: ((c -> Const [e] d) -> a -> Const [e] b) -> (c -> [e]) -> a -> [e]
+concatMapOf l ces a = getConst  (l (Const . ces) a)
+{-# INLINE concatMapOf #-}
+
+concatOf :: (([e] -> Const [e] d) -> a -> Const [e] b) -> a -> [e]
+concatOf = reading
 
 --------------------------
 -- Multilens combinators
@@ -520,7 +581,7 @@ folded = gettingMany id
 --------------------------
 
 -- | This is the partial lens that never succeeds are returning any values
-constML :: Applicative f => (a -> f a) -> b -> f b
+constML :: Applicative f => (c -> f d) -> a -> f a
 constML = const pure
 
 headML :: Applicative f => (a -> f a) -> [a] -> f [a]
