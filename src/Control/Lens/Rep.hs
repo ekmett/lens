@@ -101,9 +101,8 @@ class Functor f => Representable f where
 instance Representable Identity where
   rep f = Identity (f identityL)
 
--- | NB: The Eq requirement on this instance is a consequence of using lenses
--- as a representation. If we could choose 'e' as the representation for this
--- case then we wouldn't need to be able to compare for equality at all!
+-- | NB: The Eq requirement on this instance is a consequence of a lens
+-- rather than 'e' as the representation.
 instance Eq e => Representable ((->) e) where
   rep f e = f (atL e)
 

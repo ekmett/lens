@@ -9,8 +9,8 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- A self-contained lens library with lenses that are compatible with other
--- van Laarhoven lens libraries.
+-- This package provides lenses that are compatible with other van
+-- Laarhoven lens libraries, while reducing the complexty of the imports.
 --
 -- Lenses produced by this library are compatible with other van Laarhoven
 -- lens family libraries, such as lens-family, lens-family-core and
@@ -23,12 +23,22 @@
 -- > foo :: Functor f => (Foo -> f Foo) -> Bar -> f Bar
 --
 -- and then you can compose it with other lenses using (.).
+--
+-- This package provides lenses, lens families, setters, setter families,
+-- getters, multilenses, multi-getters, and multi-lens families in such
+-- a way that they can all be composed automatically with (.).
+--
 ----------------------------------------------------------------------------
 module Control.Lens
   (
   -- * Lenses
     Lens
   , LensFamily
+  , Getter
+  , Setter
+  , SetterFamily
+  , MultiLens
+  , MultiLensFamily
 
   -- * Constructing lenses
   , makeLenses
@@ -37,15 +47,16 @@ module Control.Lens
   , lens
   , iso
   , clone
+  , getting
+ -- , gettingMany
+  , setting
 
-  -- * Reading from lenses
-  , getL
-  , modL
-  , setL
+  -- * Reading
+  , getLens, mapOf, setLens
   , (^.), (^$)
   , (^%=), (^=), (^+=), (^-=), (^*=), (^/=), (^||=), (^&&=)
 
-  -- * Manipulating state
+  -- * Manipulating State
   , access
   , Focus(..)
   , (%=), (~=), (%%=), (+=), (-=), (*=), (//=), (||=), (&&=)
@@ -60,14 +71,32 @@ module Control.Lens
   , identityL
   , atL
 
-  -- ** Getters
-  , Getter
-  , getting
+  -- * MultiGetters
 
-  -- ** Setters
-  , Setter
-  , SetterFamily
-  , setting
+  -- ** MultiGetter combinators
+  , foldMapOf
+  , toListOf
+  , anyOf, allOf
+  , traverseOf_
+  , forOf_
+  , sequenceAOf_
+  , mapMOf_
+  , forMOf_
+  , sequenceOf_
+  , traverseOf
+  , mapMOf
+  , sequenceAOf
+  , sequenceOf
+
+  -- ** multilenses and multigetters
+--  , folded
+  , constML
+  , mapML
+  , intMapML
+  , headML
+  , tailML
+  , leftML
+  , elementML
 
   -- * Implementation details
   , IndexedStore(..)
@@ -77,15 +106,17 @@ module Control.Lens
 import           Control.Applicative
 import           Control.Monad (liftM)
 import           Control.Monad.State.Class
-import qualified Control.Monad.Trans.State.Lazy as Lazy
+import qualified Control.Monad.Trans.State.Lazy   as Lazy
 import qualified Control.Monad.Trans.State.Strict as Strict
 import           Control.Monad.Trans.Reader
 import           Data.Char (toLower)
 import           Data.Functor.Identity
-import           Data.IntMap as IntMap
-import           Data.IntSet as IntSet
-import           Data.Map as Map
-import           Data.Set as Set
+import           Data.IntMap                      as IntMap
+import           Data.IntSet                      as IntSet
+import           Data.Map                         as Map
+import           Data.Monoid (Monoid(..), Any(..), All(..), Endo(..))
+import           Data.Set                         as Set
+import           Data.Traversable
 import           Language.Haskell.TH
 
 infixl 8 ^.
@@ -93,11 +124,14 @@ infixr 4 ^%=, ^=, ^+=, ^*=, ^-=, ^/=, ^&&=, ^||=
 infix  4 ~=, %=, %%=, +=, -=, *=, //=, &&=, ||=
 infixr 0 ^$
 
-type Lens a b                 = forall f. Functor f => (b -> f b) -> a -> f a
-type LensFamily a b c d       = forall f. Functor f => (c -> f d) -> a -> f b
-type Getter a b               = forall x y z. (b -> Const z x) -> a -> Const z y
-type Setter a b               = (b -> Identity b) -> a -> Identity a
-type SetterFamily a b c d     = (c -> Identity d) -> a -> Identity b
+type Lens a b                = forall f. Functor f => (b -> f b) -> a -> f a
+type LensFamily a b c d      = forall f. Functor f => (c -> f d) -> a -> f b
+type Getter a b              = forall x y z. (b -> Const z x) -> a -> Const z y
+type Setter a b              = (b -> Identity b) -> a -> Identity a
+type SetterFamily a b c d    = (c -> Identity d) -> a -> Identity b
+type MultiGetter a c         = forall x y m. Monoid m => (c -> Const m x) -> a -> Const m y
+type MultiLens a b           = forall f. Applicative f => (b -> f b) -> a -> f a
+type MultiLensFamily a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 
 -- | Build a lens from a getter and a setter
 lens :: Functor f => (a -> c) -> (d -> a -> b) -> (c -> f d) -> a -> f b
@@ -114,6 +148,11 @@ getting :: (a -> b) -> Getter a b
 getting f g a = Const (getConst (g (f a)))
 {-# INLINE getting #-}
 
+-- | Building a multigetter
+-- gettingMany :: Foldable f => (a -> f b) -> (f b -> Const m x) -> a -> Const m y
+-- gettingMany :: Foldable f => (a -> f b) -> MultiGetter a b
+-- gettingMany f g a = Const (getConst (foldMap g (f a)))
+
 -- | Build a setter
 setting :: ((c -> d) -> a -> b) -> SetterFamily a b c d
 setting f g a = Identity (f (runIdentity . g) a)
@@ -123,30 +162,33 @@ setting f g a = Identity (f (runIdentity . g) a)
 -- Using Lenses
 ------------------------------------------------------------------------------
 
--- | Get the value of a 'Getter', 'Lens' or 'LensFamily'
-getL :: ((c -> Const c d) -> a -> Const c b) -> a -> c
-getL l a = getConst (l Const a)
-{-# INLINE getL #-}
+-- | Get the value of a 'Getter', 'Lens' or 'LensFamily' or the fold of a
+-- 'MultiGetter', 'MultiLens' or 'MultiLensFamily' that points at monoidal
+-- values.
+getLens :: ((c -> Const c d) -> a -> Const c b) -> a -> c
+getLens l a = getConst (l Const a)
+{-# INLINE getLens #-}
 
--- | Modify the target of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'
-modL :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
-modL l f a = runIdentity (l (Identity . f) a)
-{-# INLINE modL #-}
+-- | Modify the target of a 'Lens', 'LensFamily' or all the targets of a
+-- 'Multilens', 'MultiLensFamily', 'Setter' or 'SetterFamily'
+mapOf :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
+mapOf l f a = runIdentity (l (Identity . f) a)
+{-# INLINE mapOf #-}
 
 -- | Replace the target of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'
-setL :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
-setL l d a = runIdentity (l (\_ -> Identity d) a)
-{-# INLINE setL #-}
+setLens :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
+setLens l d a = runIdentity (l (\_ -> Identity d) a)
+{-# INLINE setLens #-}
 
 -- | Read the value of a 'Getter', 'Lens' or 'LensFamily'.
--- This is the same operation as 'getL'.
+-- This is the same operation as 'getLens'.
 (^$) :: ((c -> Const c d) -> a -> Const c b) -> a -> c
 l ^$ a = getConst (l Const a)
 {-# INLINE (^$) #-}
 
 -- | Read a field from a 'Getter', 'Lens' or 'LensFamily'.
 -- The fixity and semantics are such that subsequent field accesses can be
--- performed with (Prelude..) This is the same operation as flip getL
+-- performed with (Prelude..) This is the same operation as 'flip getLens'
 --
 -- > ghci> ((0, 1 :+ 2), 3)^.fstL.sndL.getting magnitude
 -- > 2.23606797749979
@@ -156,14 +198,14 @@ a ^. l = getConst (l Const a)
 
 -- | Modifies the target of a 'Lens', 'LensFamily', 'Setter', or 'SetterFamily'.
 --
--- This is an infix version of 'modL'
+-- This is an infix version of 'mapOf'
 (^%=) :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
 l ^%= f = runIdentity . l (Identity . f)
 {-# INLINE (^%=) #-}
 
 -- | Replaces the target(s) of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'.
 --
--- This is an infix version of 'setL'
+-- This is an infix version of 'setLens'
 (^=) :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
 l ^= v = runIdentity . l (Identity . const v)
 {-# INLINE (^=) #-}
@@ -173,15 +215,15 @@ l ^= v = runIdentity . l (Identity . const v)
 -- > ghci> fstL ^+= 1 $ (1,2)
 -- > (2,2)
 (^+=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-l ^+= n = modL l (+ n)
+l ^+= n = mapOf l (+ n)
 {-# INLINE (^+=) #-}
 
 -- | Multiply the target(s) of a numerically valued 'Lens' or Setter'
 --
--- > ghci> sndL ^*= 4 $ (1,2) 
+-- > ghci> sndL ^*= 4 $ (1,2)
 -- > (1,8)
 (^*=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-l ^-= n = modL l (`subtract` n)
+l ^-= n = mapOf l (`subtract` n)
 {-# INLINE (^-=) #-}
 
 -- | Decrement the target(s) of a numerically valued 'Lens' or 'Setter'
@@ -189,21 +231,21 @@ l ^-= n = modL l (`subtract` n)
 -- > ghci> fstL ^-= 2 $ (1,2)
 -- > (-1,2)
 (^-=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-l ^*= n = modL l (* n)
+l ^*= n = mapOf l (* n)
 {-# INLINE (^*=) #-}
 
 -- | Divide the target(s) of a numerically valued 'Lens' or 'Setter'
 (^/=) :: Fractional c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-l ^/= n = modL l (/ n)
+l ^/= n = mapOf l (/ n)
 
 -- | Logically '||' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 (^||=):: ((Bool -> Identity Bool) -> a -> Identity a) -> Bool -> a -> a
-l ^||= n = modL l (|| n)
+l ^||= n = mapOf l (|| n)
 {-# INLINE (^||=) #-}
 
 -- | Logically '&&' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 (^&&=) :: ((Bool -> Identity Bool) -> a -> Identity a) -> Bool -> a -> a
-l ^&&= n = modL l (&& n)
+l ^&&= n = mapOf l (&& n)
 {-# INLINE (^&&=) #-}
 
 ------------------------------------------------------------------------------
@@ -246,7 +288,7 @@ sndL f (c,a) = (,) c <$> f a
 
 -- | This lens can be used to read, write or delete a member of a 'Map'.
 --
--- > ghci> Map.fromList [("hello",12)]  ^. keyL "hello"
+-- > ghci> Map.fromList [("hello",12)] ^. keyL "hello"
 -- > Just 12
 keyL :: Ord k => k -> Lens (Map k v) (Maybe v)
 keyL k f m = go <$> f (Map.lookup k m) where
@@ -258,6 +300,9 @@ keyL k f m = go <$> f (Map.lookup k m) where
 --
 -- > ghci> IntMap.fromList [(1,"hello")]  ^. keyL 1
 -- > Just "hello"
+--
+-- > ghci> keyL 2 ^= "goodbye" $ IntMap.fromList [(1,"hello")]
+-- > fromList [(1,"hello"),(2,"goodbye")]
 intKeyL :: Int -> Lens (IntMap v) (Maybe v)
 intKeyL k f m = go <$> f (IntMap.lookup k m) where
   go Nothing   = IntMap.delete k m
@@ -314,8 +359,16 @@ newtype Focusing m c a = Focusing { unfocusing :: m (c, a) }
 instance Monad m => Functor (Focusing m c) where
   fmap f (Focusing m) = Focusing (liftM (fmap f) m)
 
+instance (Monad m, Monoid c) => Applicative (Focusing m c) where
+  pure a = Focusing (return (mempty, a))
+  Focusing mf <*> Focusing ma = Focusing $ do
+    (c, f) <- mf
+    (d, a) <- ma
+    return (mappend c d, f a)
+
+-- | This class allows us to use 'focus' on a number of different monad transformers.
 class Focus st where
-  -- | Use a lens to lift an operation with simpler state into a larger context
+  -- | Use a lens to lift an operation with simpler context into a larger context
   focus :: Monad m => ((b -> Focusing m c b) -> a -> Focusing m c a) -> st b m c -> st a m c
 
 instance Focus Strict.StateT where
@@ -343,29 +396,185 @@ l %= f = modify (l ^%= f)
 l %%= f = state (l f)
 {-# INLINE (%%=) #-}
 
+-- | Modify a numeric field in our monadic state by adding to it
 (+=) :: (MonadState a m, Num b) => Setter a b -> b -> m ()
 l += b = modify $ l ^+= b
 {-# INLINE (+=) #-}
 
+-- | Modify a numeric field in our monadic state by subtracting from it
 (-=) :: (MonadState a m, Num b) => Setter a b -> b -> m ()
 l -= b = modify $ l ^-= b
 {-# INLINE (-=) #-}
 
+-- | Modify a numeric field in our monadic state by multiplying it
 (*=) :: (MonadState a m, Num b) => Setter a b -> b -> m ()
 l *= b = modify $ l ^*= b
 {-# INLINE (*=) #-}
 
+-- | Modify a numeric field in our monadic state by dividing it
 (//=) ::  (MonadState a m, Fractional b) => Setter a b -> b -> m ()
 l //= b = modify $ l ^/= b
 {-# INLINE (//=) #-}
 
+-- | Modify a boolean field in our monadic state by computing its logical '&&' with another value.
 (&&=):: MonadState a m => Setter a Bool -> Bool -> m ()
 l &&= b = modify $ l ^&&= b
 {-# INLINE (&&=) #-}
 
+-- | Modify a boolean field in our monadic state by computing its logical '||' with another value.
 (||=) :: MonadState a m => Setter a Bool -> Bool -> m ()
 l ||= b = modify $ l ^||= b
 {-# INLINE (||=) #-}
+
+--------------------------
+-- Multigetter combinators
+--------------------------
+
+-- | > foldMapOf :: Monoid m => MultiGetter a b -> (b -> m) -> a -> m
+foldMapOf :: Monoid m => ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
+foldMapOf l f = getConst . l (Const . f)
+
+-- | > foldOf :: Monoid m => MultiGetter a m -> a -> m
+foldOf :: Monoid m => ((m -> Const m n) -> a -> Const m b) -> a -> m
+foldOf l = getConst . l Const
+
+-- | > foldrOf :: MultiGetter a b -> (b -> c -> c) -> c -> a -> c
+foldrOf :: ((c -> Const (Endo e) d) -> a -> Const (Endo e) b) -> (c -> e -> e) -> e -> a -> e
+foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
+
+-- | > toListOf :: MultiGetter a b -> a -> [b]
+toListOf :: ((c -> Const [c] d) -> a -> Const [c] b) -> a -> [c]
+toListOf l = foldMapOf l return
+
+-- | > anyOf :: MultiGetter a b -> (b -> Bool) -> a -> Bool
+anyOf :: ((c -> Const Any d) -> a -> Const Any b) -> (c -> Bool) -> a -> Bool
+anyOf l f = getAny . foldMapOf l (Any . f)
+
+-- | > allOf :: MultiGetter a b -> (b -> Bool) -> a -> Bool
+allOf :: ((c -> Const All d) -> a -> Const All b) -> (c -> Bool) -> a -> Bool
+allOf l f = getAll . foldMapOf l (All . f)
+
+-- | > traverseOf_ :: Applicative f => MultiGetter a b -> (b -> f c) -> a -> f ()
+traverseOf_ :: Applicative f => ((c -> Const (Traversal f) d) -> a -> Const (Traversal f) b) -> (c -> f e) -> a -> f ()
+traverseOf_ l f = getTraversal . foldMapOf l (Traversal . (() <$) . f)
+{-# INLINE traverseOf_ #-}
+
+-- | > forOf_ :: Applicative f => MultiGetter a b -> a -> (b -> f c) -> f ()
+forOf_ :: Applicative f => ((c -> Const (Traversal f) d) -> a -> Const (Traversal f) b) -> a -> (c -> f e) -> f ()
+forOf_ l a f = traverseOf_ l f a
+{-# INLINE forOf_ #-}
+
+-- | > sequenceAOf_ :: Applicative f => MultiGetter a (f ()) -> a -> f ()
+sequenceAOf_ :: Applicative f => ((f () -> Const (Traversal f) d) -> a -> Const (Traversal f) e) -> a -> f ()
+sequenceAOf_ l = getTraversal . foldMapOf l (Traversal . (() <$))
+{-# INLINE sequenceAOf_ #-}
+
+-- | > mapMOf_ :: Monad m => MultiGetter a b -> (b -> m c) -> a -> m ()
+mapMOf_ :: Monad m => ((c -> Const (Traversal (WrappedMonad m)) d) -> a -> Const (Traversal (WrappedMonad m)) b) -> (c -> m e) -> a -> m ()
+mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
+{-# INLINE mapMOf_ #-}
+
+-- | > forMOf_ :: Monad m => MultiGetter a b -> a -> (b -> m c) -> m ()
+forMOf_ :: Monad m => ((c -> Const (Traversal (WrappedMonad m)) d) -> a -> Const (Traversal (WrappedMonad m)) b) -> a -> (c -> m e) -> m ()
+forMOf_ l a f = mapMOf_ l f a
+{-# INLINE forMOf_ #-}
+
+-- | > sequenceOf_ :: Monad m => MultiGetter a (m b) -> a -> m ()
+sequenceOf_ :: Monad m => ((m c -> Const (Traversal (WrappedMonad m)) d) -> a -> Const (Traversal (WrappedMonad m)) b) -> a -> m ()
+sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
+{-# INLINE sequenceOf_ #-}
+
+--------------------------
+-- Multilens combinators
+--------------------------
+
+traverseOf :: Applicative f => ((c -> f d) -> a -> f b) -> (c -> f d) -> a -> f b
+traverseOf = id
+{-# INLINE traverseOf #-}
+
+mapMOf :: Monad m => ((c -> WrappedMonad m d) -> a -> WrappedMonad m b) -> (c -> m d) -> a -> m b
+mapMOf l cmd a = unwrapMonad (l (WrapMonad . cmd) a)
+{-# INLINE mapMOf #-}
+
+sequenceAOf :: Applicative f => ((f b -> f (f b)) -> a -> f b) -> a -> f b
+sequenceAOf l = l pure
+{-# INLINE sequenceAOf #-}
+
+sequenceOf :: Monad m => ((m b -> WrappedMonad m (m b)) -> a -> WrappedMonad m b) -> a -> m b
+sequenceOf l = unwrapMonad . l pure
+{-# INLINE sequenceOf #-}
+
+--------------------------
+-- Multigetters
+--------------------------
+
+-- folded :: Foldable f => MultiGetter (f a) a
+-- folded = gettingMany id
+
+--------------------------
+-- Multilenses
+--------------------------
+
+-- | This is the partial lens that never succeeds are returning any values
+constML :: Applicative f => (a -> f a) -> b -> f b
+constML = const pure
+
+headML :: Applicative f => (a -> f a) -> [a] -> f [a]
+headML _ [] = pure []
+headML f (a:as) = (:as) <$> f a
+{-# INLINE headML #-}
+
+tailML :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
+tailML _ [] = pure []
+tailML f (a:as) = (a:) <$> f as
+{-# INLINE tailML #-}
+
+leftML :: Applicative f => (a -> f b) -> Either a c -> f (Either b c)
+leftML f (Left a)  = Left <$> f a
+leftML _ (Right c) = pure $ Right c
+{-# INLINE leftML #-}
+
+mapML :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
+mapML k f m = case Map.lookup k m of
+  Nothing -> pure m
+  Just v -> (\v' -> Map.insert k v' m) <$> f v
+{-# INLINE mapML #-}
+
+intMapML :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
+intMapML k f m = case IntMap.lookup k m of
+  Nothing -> pure m
+  Just v -> (\v' -> IntMap.insert k v' m) <$> f v
+{-# INLINE intMapML #-}
+
+elementML :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
+elementML j f ta = fst (runSA (traverse go ta) 0) where
+  go a = SA $ \i -> (if i == j then f a else pure a, i + 1)
+{-# INLINE elementML #-}
+
+------------------------------------------------------------------------------
+-- Implementation details
+------------------------------------------------------------------------------
+
+newtype SA f a = SA { runSA :: Int -> (f a, Int) }
+
+instance Functor f => Functor (SA f) where
+  fmap f (SA m) = SA $ \i -> case m i of
+    (fa, j) -> (fmap f fa, j)
+
+instance Applicative f => Applicative (SA f) where
+  pure a = SA (\i -> (pure a, i))
+  SA mf <*> SA ma = SA $ \i -> case mf i of
+    (ff, j) -> case ma j of
+       (fa, k) -> (ff <*> fa, k)
+
+newtype Traversal f = Traversal { getTraversal :: f () }
+
+instance Applicative f => Monoid (Traversal f) where
+  mempty = Traversal (pure ())
+  Traversal ma `mappend` Traversal mb = Traversal (ma *> mb)
+
+-- wrapMonadL :: Functor f => (m a -> f (n b)) -> WrappedMonad m a -> f (WrappedMonad n b)
+-- wrapMonadL f (WrapMonad ma) = WrapMonad <$> f ma
 
 ------------------------------------------------------------------------------
 -- Template Haskell
@@ -399,7 +608,7 @@ makeLensesBy nameTransform datatype = do
   typeInfo          <- extractLensTypeInfo datatype
   let derive1 = deriveLens nameTransform typeInfo
   constructorFields <- extractConstructorFields datatype
-  concat <$> mapM derive1 constructorFields
+  Prelude.concat <$> Prelude.mapM derive1 constructorFields
 
 extractLensTypeInfo :: Name -> Q LensTypeInfo
 extractLensTypeInfo datatype = do
@@ -434,7 +643,7 @@ deriveLens nameTransform ty field = case nameTransform (nameBase fieldName) of
   Just lensNameStr -> do
     body <- deriveLensBody (mkName lensNameStr) fieldName
     return [body]
-  where 
+  where
     (fieldName, _fieldStrict, _fieldType) = field
     (_tyName, _tyVars) = ty  -- just to clarify what's here
 

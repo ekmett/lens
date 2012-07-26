@@ -22,7 +22,6 @@ source-repository head
 library
   exposed-modules:
     Control.Lens
-    Control.Lens.Multi
     Control.Lens.Rep
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: src
