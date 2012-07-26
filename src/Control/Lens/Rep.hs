@@ -54,16 +54,19 @@ module Control.Lens.Rep
   , apRep
   , bindRep
   , distributeRep
+  -- * Wrapped Representations
+  , Key(..)
+  , keys
+  -- * Traversal with representation
   , mapWithRep
   , foldMapWithRep
   , foldrWithRep
   , traverseWithRep
   , traverseWithRep_
+  , forWithRep
   , mapMWithRep
   , mapMWithRep_
-  -- * Wrapped Representations
-  , Key(..)
-  , keys
+  , forMWithRep
   ) where
 
 import Control.Applicative
@@ -78,11 +81,20 @@ type Rep f = forall a. Lens (f a) a
 
 -- | Representable Functors. 
 --
--- A Functor @f@ is representable if it is
--- isomorphic to @(x -> a)@ for some x. All such functors can be represented
--- by choosing @x@ to be the set of lenses that are polymorphic in the contents
--- of the 'Functor', that is to say @x = Rep f@ is a valid choice of 'x' for
--- every 'Representable' 'Functor'.
+-- A 'Functor' @f@ is 'Representable' if it is isomorphic to @(x -> a)@
+-- for some x. All such functors can be represented by choosing @x@ to be
+-- the set of lenses that are polymorphic in the contents of the 'Functor',
+-- that is to say @x = Rep f@ is a valid choice of 'x' for every 
+-- 'Representable' 'Functor'.
+--
+-- Note: Some sources refer to covariant representable functors as
+-- corepresentable functors, and leave the \"representable\" name to
+-- contravariant functors (those are isomorphic to @(a -> x)@ for some @x@).
+--
+-- As the covariant case is vastly more common, and both are often referred to
+-- as representable functors, we choose to call these functors 'Representable' 
+-- here.
+
 class Functor f => Representable f where
   rep :: (Rep f -> a) -> f a
 
@@ -124,7 +136,28 @@ distributeRep :: (Representable f, Functor w) => w (f a) -> f (w a)
 distributeRep wf = rep $ \i -> fmap (^.i) wf
 {-# INLINE distributeRep #-}
 
--- | Map over a 'Representable' 'Functor' with access to the lens for the current position
+-----------------------------------------------------------------------------
+-- Keys
+-----------------------------------------------------------------------------
+
+-- | Sometimes you need to store a path lens into a container, but at least
+-- at this time, impredicative polymorphism in GHC is somewhat lacking.
+--
+-- This type provides a way to, say, store a list of polymorphic lenses.
+newtype Key f = Key { turn :: Rep f }
+
+-- | A 'Representable' 'Functor' has a fixed shape. This fills each hole in it with a 'Key'
+keys :: Representable f => f (Key f)
+keys = rep Key
+{-# INLINE keys #-}
+
+-----------------------------------------------------------------------------
+-- Traversal
+-----------------------------------------------------------------------------
+
+
+-- | Map over a 'Representable' 'Functor' with access to the lens for the 
+-- current position
 --
 -- > mapWithKey f m = rep $ \i -> f i (m^.i)
 mapWithRep :: Representable f => (Rep f -> a -> b) -> f a -> f b
@@ -137,44 +170,51 @@ traverseWithRep :: (Representable f, Traversable f, Applicative g)
 traverseWithRep f m = sequenceA (mapWithRep f m)
 {-# INLINE traverseWithRep #-}
 
--- | Traverse a 'Representable' 'Functor' with access to the current path as a lens,
--- discarding the result
+-- | Traverse a 'Representable' 'Functor' with access to the current path
+-- as a lens, discarding the result
 traverseWithRep_ :: (Representable f, Foldable f, Applicative g)
                  => (Rep f -> a -> g b) -> f a -> g ()
 traverseWithRep_ f m = sequenceA_ (mapWithRep f m)
 {-# INLINE traverseWithRep_ #-}
 
+-- | Traverse a 'Representable' 'Functor' with access to the current path
+-- and a lens (and the arguments flipped)
+forWithRep :: (Representable f, Traversable f, Applicative g)
+                => f a -> (Rep f -> a -> g b) -> g (f b)
+forWithRep m f = sequenceA (mapWithRep f m)
+{-# INLINE forWithRep #-}
+
 -- | 'mapM' over a 'Representable' 'Functor' with access to the current path
+-- as a lens
 mapMWithRep :: (Representable f, Traversable f, Monad m)
                 => (Rep f -> a -> m b) -> f a -> m (f b)
 mapMWithRep f m = Traversable.sequence (mapWithRep f m)
-{-# INLINE traverseWithRep #-}
+{-# INLINE mapMWithRep #-}
 
--- | 'mapM' over a 'Representable' 'Functor' with access to the current path as a lens,
--- discarding the result
+-- | 'mapM' over a 'Representable' 'Functor' with access to the current path
+-- as a lens, discarding the result
 mapMWithRep_ :: (Representable f, Foldable f, Monad m)
                  => (Rep f -> a -> m b) -> f a -> m ()
 mapMWithRep_ f m = Foldable.sequence_ (mapWithRep f m)
-{-# INLINE traverseWithRep_ #-}
+{-# INLINE mapMWithRep_ #-}
 
--- | Fold over a a 'Representable' 'Functor' with access to the current path as a lens,
---  yielding a 'Monoid'
+-- | 'mapM' over a 'Representable' 'Functor' with access to the current path
+-- as a lens (with the arguments flipped)
+forMWithRep :: (Representable f, Traversable f, Monad m)
+                => f a -> (Rep f -> a -> m b) -> m (f b)
+forMWithRep m f = Traversable.sequence (mapWithRep f m)
+{-# INLINE forMWithRep #-}
+
+-- | Fold over a 'Representable' 'Functor' with access to the current path
+-- as a lens, yielding a 'Monoid'
 foldMapWithRep :: (Representable f, Foldable f, Monoid m)
                => (Rep f -> a -> m) -> f a -> m
 foldMapWithRep f m = fold (mapWithRep f m)
 {-# INLINE foldMapWithRep #-}
 
--- | Fold over a a 'Representable' 'Functor' with access to the current path as a lens.
+-- | Fold over a 'Representable' 'Functor' with access to the current path
+-- as a lens.
 foldrWithRep :: (Representable f, Foldable f) => (Rep f -> a -> b -> b) -> b -> f a -> b
 foldrWithRep f b m = Foldable.foldr id b (mapWithRep f m)
 {-# INLINE foldrWithRep #-}
 
--- | Sometimes you need to store a path lens into a container, but at least
--- at this time, impredicative polymorphism in GHC is somewhat lacking.
---
--- This type provides a way to, say, store a list of polymorphic lenses.
-newtype Key f = Key { turn :: Rep f }
-
-keys :: Representable f => f (Key f)
-keys = rep Key
-{-# INLINE keys #-}
