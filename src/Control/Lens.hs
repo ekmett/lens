@@ -28,6 +28,7 @@
 -- getters, multilenses, multi-getters, and multi-lens families in such
 -- a way that they can all be composed automatically with (.).
 --
+--
 ----------------------------------------------------------------------------
 module Control.Lens
   (
@@ -140,14 +141,92 @@ infixr 4 ^%=, ^=, ^+=, ^*=, ^-=, ^/=, ^&&=, ^||=
 infix  4 ~=, %=, %%=, +=, -=, *=, //=, &&=, ||=
 infixr 0 ^$
 
-type Lens a b                = forall f. Functor f => (b -> f b) -> a -> f a
-type LensFamily a b c d      = forall f. Functor f => (c -> f d) -> a -> f b
-type Getter a b              = forall x y z. (b -> Const z x) -> a -> Const z y
-type Setter a b              = (b -> Identity b) -> a -> Identity a
-type SetterFamily a b c d    = (c -> Identity d) -> a -> Identity b
-type MultiGetter a c         = forall x y m. Monoid m => (c -> Const m x) -> a -> Const m y
-type MultiLens a b           = forall f. Applicative f => (b -> f b) -> a -> f a
-type MultiLensFamily a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
+-- |
+-- A Lens is a purely functional reference to part of a data structure, it can be used to read or write to that part of the whole.
+--
+-- With great power comes great responsibility, and a 'Lens' is subject to the lens laws:
+--
+-- > reading l (writing l b a)   = b
+-- > writing l (reading l a) a   = a
+-- > writing l c (writing l b a) = writing l c a
+--
+-- Every 'Lens' can be used directly as a 'LensFamily' or as a 'Getter', 'Setter', or 'MultiLens', which transitively mens it can be used as
+-- almost anything! Such as a 'MultiLensFamily', a 'GetterFamily', a 'MultiGetterFamily', a 'MultiGetter', or a 'SetterFamily'.
+--
+-- > type Lens a b             = LensFamily a a b b
+--
+--
+type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
+
+-- | A LensFamily is a more general form of a Lens that permits polymorphic field updates
+--
+-- With great power comes great responsibility, and a 'LensFamily' is subject to the lens laws:
+--
+-- > reading l (writing l b a)   = b
+-- > writing l (reading l a) a   = a
+-- > writing l c (writing l b a) = writing l c a
+--
+-- These laws are strong enough that the 4 type parameters of a LensFamily cannot vary fully independently. For more on
+-- how they interact, read the "Why is it a Lens Family?" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
+--
+-- Every 'LensFamily' can be used as a 'GetterFamily', a 'SetterFamily' or a 'MultiLensFamily', which transitively means it can be
+-- used as a 'MultiGetterFamily'.
+--
+-- Despite the complicated signature the pattern for implementing a 'LensFamily' is the same as a Lens.
+-- in fact the implementation doesn't change, the type signature merely generalizes.
+--
+-- > sndL :: LensFamily (c,a) (c,b) a b
+-- > sndL f (a,c) = (,) a <$> f c
+type LensFamily a b c d        = forall f. Functor f => (c -> f d) -> a -> f b
+
+-- | A 'SetterFamily' describes a way to perform polymorphic update to potentially multiple fields in a way that can be
+-- composed with other lens-like constructions that can be used as a 'SetterFamily'.
+--
+-- The typical way to obtain a 'SetterFamily' is to build one with 'setting' or to compose some other lens-like construction
+-- with a 'SetterFamily'.
+--
+-- Note: the only lens law that applies to a SetterFamily is
+--
+-- > writing l c (writing l b a) = writing l c a
+--
+-- since 'reading' a SetterFamily doesn't work, so the other two laws can never be invoked.
+type SetterFamily a b c d           = (c -> Identity d) -> a -> Identity b
+
+-- | Every 'Setter' can be used directly as a 'SetterFamily'.
+--
+-- > type Setter a b                = SetterFamily a a b b
+type Setter a b                     = (b -> Identity b) -> a -> Identity a
+
+-- | A 'MultiGetterFamily' describes how to retrieve multiple values in a way that can be composed
+-- with other lens-like constructions.
+type MultiGetterFamily a b c d      = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
+
+-- | Every 'MultiGetter' can be used directly as a 'MultiGetterFamily'.
+--
+-- > type MultiGetter a b           = MultiGetterFamily a b c d
+type MultiGetter a b                = forall m. Monoid m => (b -> Const m b)-> a -> Const m a
+
+-- | A 'GetterFamily' describes how to retrieve a single value in a way that can be composed with
+-- other lens-like constructions. It can be used directly as a 'MultiGetterFamily', since it just
+-- ignores the 'Monoid'.
+type GetterFamily a b c d      = forall z. (c -> Const z d) -> a -> Const z b
+
+-- | A 'Getter' can be used directly as a 'GetterFamily' or as a 'MultiGetter', and hence it can be as a 'MutliGetterFamily'.
+--
+-- In general while your combinators may produce a 'Getter' it is better to consume any 'GetterFamily'.
+--
+-- > type Getter a b           = GetterFamily a a b b
+type Getter a b                = forall z. (b -> Const z b) -> a -> Const z a
+
+-- | A 'MultiLensFamily' can be used directly as a 'SetterFamily' or a 'MultiGetterFamily' and provides
+-- the ability to both read and update multiple fields, subject to the (relatively weak) MultiLensFamily laws.
+type MultiLensFamily a b c d        = forall f. Applicative f => (c -> f d) -> a -> f b
+
+-- | Every MultiLens can be used as a MultiLensFamily or a Setter or MultiGetter, so it can transitively be used as a 
+-- MultiGetterFamily or SetterFamily as well.
+--
+-- > type MultiLens a b             = MultiLensFamily a a b b
+type MultiLens a b                  = forall f. Applicative f => (b -> f b) -> a -> f a
 
 -- | Build a lens from a getter and a setter
 lens :: Functor f => (a -> c) -> (d -> a -> b) -> (c -> f d) -> a -> f b
