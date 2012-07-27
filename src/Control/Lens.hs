@@ -291,7 +291,7 @@ reading l a = getConst (l Const a)
 -- > modifying = mapOf
 modifying :: SetterFamily a b c d -> (c -> d) -> a -> b
 modifying l f a = runIdentity (l (Identity . f) a)
-{-# INLINE mapOf #-}
+{-# INLINE modifying #-}
 
 -- | Modify the target of a 'Lens', 'LensFamily' or all the targets of a
 -- 'Multilens', 'TraversalFamily', 'Setter' or 'SetterFamily'
@@ -300,7 +300,7 @@ modifying l f a = runIdentity (l (Identity . f) a)
 -- > mapOf = modifying
 mapOf :: SetterFamily a b c d -> (c -> d) -> a -> b
 mapOf l f a = runIdentity (l (Identity . f) a)
-{-# INLINE modifying #-}
+{-# INLINE mapOf #-}
 
 -- | Replace the target of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'
 --
@@ -327,7 +327,7 @@ a ^. l = getConst (l Const a)
 
 -- | Modifies the target of a 'Lens', 'LensFamily', 'Setter', or 'SetterFamily'.
 --
--- This is an infix version of 'mapOf'
+-- This is an infix version of 'modifying'
 (^%=) :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
 l ^%= f = runIdentity . l (Identity . f)
 {-# INLINE (^%=) #-}
@@ -344,7 +344,7 @@ l ^= v = runIdentity . l (Identity . const v)
 -- > ghci> _1 ^+= 1 $ (1,2)
 -- > (2,2)
 (^+=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-l ^+= n = mapOf l (+ n)
+l ^+= n = modifying l (+ n)
 {-# INLINE (^+=) #-}
 
 -- | Multiply the target(s) of a numerically valued 'Lens' or Setter'
@@ -352,29 +352,29 @@ l ^+= n = mapOf l (+ n)
 -- > ghci> _2 ^*= 4 $ (1,2)
 -- > (1,8)
 (^*=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-l ^-= n = mapOf l (`subtract` n)
-{-# INLINE (^-=) #-}
+l ^*= n = modifying l (* n)
+{-# INLINE (^*=) #-}
 
 -- | Decrement the target(s) of a numerically valued 'Lens' or 'Setter'
 --
 -- > ghci> _1 ^-= 2 $ (1,2)
 -- > (-1,2)
 (^-=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-l ^*= n = mapOf l (* n)
-{-# INLINE (^*=) #-}
+l ^-= n = modifying l (subtract n)
+{-# INLINE (^-=) #-}
 
 -- | Divide the target(s) of a numerically valued 'Lens' or 'Setter'
 (^/=) :: Fractional c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-l ^/= n = mapOf l (/ n)
+l ^/= n = modifying l (/ n)
 
 -- | Logically '||' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 (^||=):: ((Bool -> Identity Bool) -> a -> Identity a) -> Bool -> a -> a
-l ^||= n = mapOf l (|| n)
+l ^||= n = modifying l (|| n)
 {-# INLINE (^||=) #-}
 
 -- | Logically '&&' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 (^&&=) :: ((Bool -> Identity Bool) -> a -> Identity a) -> Bool -> a -> a
-l ^&&= n = mapOf l (&& n)
+l ^&&= n = modifying l (&& n)
 {-# INLINE (^&&=) #-}
 
 ------------------------------------------------------------------------------
