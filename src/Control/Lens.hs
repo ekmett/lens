@@ -38,10 +38,7 @@ module Control.Lens
   , lens
   , iso
   , clone
-  -- ** Constructing Lenses Automatically
-  , makeLenses
-  , makeLensesBy
-  , makeLensesFor
+
 
   -- * Common Lenses
   , _1
@@ -123,6 +120,11 @@ module Control.Lens
   , mapMOf
   , sequenceAOf
   , sequenceOf
+
+  -- * Constructing Lenses Automatically
+  , makeLenses
+  , makeLensesBy
+  , makeLensesFor
 
   -- * Implementation details
   , IndexedStore
