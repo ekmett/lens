@@ -155,8 +155,15 @@ infixr 0 ^$
 -- Every 'Lens' can be used directly as a 'LensFamily' or as a 'Getter', 'Setter', or 'Traversal', which transitively mens it can be used as
 -- almost anything! Such as a 'TraversalFamily', a 'GetterFamily', a 'FoldFamily', a 'Fold', or a 'SetterFamily'.
 --
--- > type Lens a b             = LensFamily a a b b
 --
+-- Example:
+--
+-- > import Data.Complex
+-- > imaginary :: Lens (Complex a) a
+-- > imaginary f (e :+ i) = (e :+) <$> f i
+--
+-- > type Lens a b             = LensFamily a a b b
+
 type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
 
 -- | A 'LensFamily' is a more general form of a 'Lens' that permits polymorphic field updates
@@ -173,7 +180,7 @@ type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
 -- Every 'LensFamily' can be used as a 'GetterFamily', a 'SetterFamily' or a 'TraversalFamily', which transitively means it can be
 -- used as a 'FoldFamily'.
 --
--- Despite the complicated signature the pattern for implementing a 'LensFamily' is the same as a Lens.
+-- Despite the complicated signature the pattern for implementing a 'LensFamily' is the same as a 'Lens'.
 -- in fact the implementation doesn't change, the type signature merely generalizes.
 --
 -- > -- _2 :: LensFamily (c,a) (c,b) a b
@@ -184,7 +191,7 @@ type LensFamily a b c d        = forall f. Functor f => (c -> f d) -> a -> f b
 -- | A 'SetterFamily' describes a way to perform polymorphic update to potentially multiple fields in a way that can be
 -- composed with other lens-like constructions that can be used as a 'SetterFamily'.
 --
--- The typical way to obtain a 'SetterFamily' is to build one with 'setting' or to compose some other lens-like construction
+-- The typical way to obtain a 'SetterFamily' is to build one with 'setting' or to compose some other 'Lens'-like construction
 -- with a 'SetterFamily'.
 --
 -- Note: the only lens law that applies to a 'SetterFamily' is
