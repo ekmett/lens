@@ -27,6 +27,7 @@ library
   hs-source-dirs: src
   build-depends:
     base             == 4.*,
+    bytestring       == 0.9.*,
     containers       >= 0.3   && < 0.6,
     mtl              >= 2.1.1 && < 2.2,
     template-haskell >= 2.4   && < 2.8,

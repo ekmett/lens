@@ -99,12 +99,12 @@ class Functor f => Representable f where
   rep :: (Rep f -> a) -> f a
 
 instance Representable Identity where
-  rep f = Identity (f identityL)
+  rep f = Identity (f identity)
 
 -- | NB: The Eq requirement on this instance is a consequence of a lens
 -- rather than 'e' as the representation.
 instance Eq e => Representable ((->) e) where
-  rep f e = f (atL e)
+  rep f e = f (resultAt e)
 
 -- | 'fmapRep' is a valid default definition for 'fmap' for a representable
 -- functor.

@@ -3,8 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens
--- Copyright   :  (C) 2012 Edward Kmett
---                (C) 2012 Dan Burton
+-- Copyright   :  (C) 2012 Edward Kmett, Dan Burton
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
@@ -47,7 +46,7 @@ module Control.Lens
   , iso
   , clone
   , getting
-  , gettingMany
+  , folding
   , setting
 
   -- * Manipulating Values
@@ -63,14 +62,14 @@ module Control.Lens
   , (%=), (~=), (%%=), (+=), (-=), (*=), (//=), (||=), (&&=)
 
   -- * Lenses and LensFamilies
-  , fstL
-  , sndL
-  , keyL
-  , intKeyL
-  , memberL
-  , intMemberL
-  , identityL
-  , atL
+  , _1
+  , _2
+  , valueAt
+  , valueAtInt
+  , contains
+  , containsInt
+  , identity
+  , resultAt
 
   -- * Folds
   , folded
@@ -96,7 +95,7 @@ module Control.Lens
   , elemOf
   , notElemOf
 
-  -- * Traversales
+  -- * Traversals
   , traverseNothing
   , traverseKey
   , traverseIntKey
@@ -105,6 +104,7 @@ module Control.Lens
   , traverseLeft
   , traverseRight
   , traverseElement
+  , TraverseByteString(..)
 
   -- ** Traversal Combinators
   , traverseOf
@@ -124,6 +124,8 @@ import           Control.Monad.State.Class
 import qualified Control.Monad.Trans.State.Lazy   as Lazy
 import qualified Control.Monad.Trans.State.Strict as Strict
 import           Control.Monad.Trans.Reader
+import           Data.ByteString.Lazy             as Lazy
+import           Data.ByteString                  as Strict
 import           Data.Char (toLower)
 import           Data.Foldable                    as Foldable
 import           Data.Functor.Identity
@@ -133,6 +135,7 @@ import           Data.Map                         as Map
 import           Data.Monoid
 import           Data.Set                         as Set
 import           Data.Traversable
+import           Data.Word (Word8)
 import           Language.Haskell.TH
 
 infixl 8 ^.
@@ -173,8 +176,8 @@ type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
 -- Despite the complicated signature the pattern for implementing a 'LensFamily' is the same as a Lens.
 -- in fact the implementation doesn't change, the type signature merely generalizes.
 --
--- > sndL :: LensFamily (c,a) (c,b) a b
--- > sndL f (a,c) = (,) a <$> f c
+-- > _2 :: LensFamily (c,a) (c,b) a b
+-- > _2 f (a,c) = (,) a <$> f c
 type LensFamily a b c d        = forall f. Functor f => (c -> f d) -> a -> f b
 
 -- | A 'SetterFamily' describes a way to perform polymorphic update to potentially multiple fields in a way that can be
@@ -259,9 +262,9 @@ getting f g a = Const (getConst (g (f a)))
 {-# INLINE getting #-}
 
 -- | Building a Fold or FoldFamily
-gettingMany :: Foldable f => (a -> f c) -> FoldFamily a b c d
-gettingMany f g a = Const (foldMap (getConst . g) (f a))
-{-# INLINE gettingMany #-}
+folding :: Foldable f => (a -> f c) -> FoldFamily a b c d
+folding f g a = Const (foldMap (getConst . g) (f a))
+{-# INLINE folding #-}
 
 -- | Build a Setter or SetterFamily
 setting :: ((c -> d) -> a -> b) -> SetterFamily a b c d
@@ -316,7 +319,7 @@ l ^$ a = getConst (l Const a)
 -- The fixity and semantics are such that subsequent field accesses can be
 -- performed with (Prelude..) This is the same operation as 'flip reading'
 --
--- > ghci> ((0, 1 :+ 2), 3)^.fstL.sndL.getting magnitude
+-- > ghci> ((0, 1 :+ 2), 3)^._1._2.getting magnitude
 -- > 2.23606797749979
 (^.) :: a -> ((c -> Const c d) -> a -> Const c b) -> c
 a ^. l = getConst (l Const a)
@@ -338,7 +341,7 @@ l ^= v = runIdentity . l (Identity . const v)
 
 -- | Increment the target(s) of a numerically valued 'Lens' or Setter'
 --
--- > ghci> fstL ^+= 1 $ (1,2)
+-- > ghci> _1 ^+= 1 $ (1,2)
 -- > (2,2)
 (^+=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
 l ^+= n = mapOf l (+ n)
@@ -346,7 +349,7 @@ l ^+= n = mapOf l (+ n)
 
 -- | Multiply the target(s) of a numerically valued 'Lens' or Setter'
 --
--- > ghci> sndL ^*= 4 $ (1,2)
+-- > ghci> _2 ^*= 4 $ (1,2)
 -- > (1,8)
 (^*=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
 l ^-= n = mapOf l (`subtract` n)
@@ -354,7 +357,7 @@ l ^-= n = mapOf l (`subtract` n)
 
 -- | Decrement the target(s) of a numerically valued 'Lens' or 'Setter'
 --
--- > ghci> fstL ^-= 2 $ (1,2)
+-- > ghci> _1 ^-= 2 $ (1,2)
 -- > (-1,2)
 (^-=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
 l ^*= n = mapOf l (* n)
@@ -398,78 +401,82 @@ clone f cfd a = case f (IndexedStore id) a of
 -- | This is a lens family that can change the value (and type) of the first field of
 -- a pair.
 
--- > ghci> (1,2)^.fstL
+-- > ghci> (1,2)^._1
 -- > 1
 --
--- > ghci> fstL ^= "hello" $ (1,2)
+-- > ghci> _1 ^= "hello" $ (1,2)
 -- > ("hello",2)
-fstL :: LensFamily (a,c) (b,c) a b
-fstL f (a,c) = (\b -> (b,c)) <$> f a
-{-# INLINE fstL #-}
+--
+-- > anyOf _2 :: (c -> Bool) -> (a, c) -> Bool
+-- > traverse._2 :: (Applicative f, Traversable t) => (a -> f b) -> t (c, a) -> f (t (c, b))
+-- > foldMapOf (traverse._2) :: (Traversable t, Monoid m) => (c -> m) -> t (b, c) -> m
+_1 :: LensFamily (a,c) (b,c) a b
+_1 f (a,c) = (\b -> (b,c)) <$> f a
+{-# INLINE _1 #-}
 
--- | As 'fstL', but for the second field of a pair.
-sndL :: LensFamily (c,a) (c,b) a b
-sndL f (c,a) = (,) c <$> f a
-{-# INLINE sndL #-}
+-- | As '_1', but for the second field of a pair.
+_2 :: LensFamily (c,a) (c,b) a b
+_2 f (c,a) = (,) c <$> f a
+{-# INLINE _2 #-}
 
 -- | This lens can be used to read, write or delete a member of a 'Map'.
 --
--- > ghci> Map.fromList [("hello",12)] ^. keyL "hello"
+-- > ghci> Map.fromList [("hello",12)] ^. valueAt "hello"
 -- > Just 12
-keyL :: Ord k => k -> Lens (Map k v) (Maybe v)
-keyL k f m = go <$> f (Map.lookup k m) where
+valueAt :: Ord k => k -> Lens (Map k v) (Maybe v)
+valueAt k f m = go <$> f (Map.lookup k m) where
   go Nothing   = Map.delete k m
   go (Just v') = Map.insert k v' m
-{-# INLINE keyL #-}
+{-# INLINE valueAt #-}
 
 -- | This lens can be used to read, write or delete a member of an 'IntMap'.
 --
--- > ghci> IntMap.fromList [(1,"hello")]  ^. keyL 1
+-- > ghci> IntMap.fromList [(1,"hello")]  ^. valueAt 1
 -- > Just "hello"
 --
--- > ghci> keyL 2 ^= "goodbye" $ IntMap.fromList [(1,"hello")]
+-- > ghci> valueAt 2 ^= "goodbye" $ IntMap.fromList [(1,"hello")]
 -- > fromList [(1,"hello"),(2,"goodbye")]
-intKeyL :: Int -> Lens (IntMap v) (Maybe v)
-intKeyL k f m = go <$> f (IntMap.lookup k m) where
+valueAtInt :: Int -> Lens (IntMap v) (Maybe v)
+valueAtInt k f m = go <$> f (IntMap.lookup k m) where
   go Nothing   = IntMap.delete k m
   go (Just v') = IntMap.insert k v' m
-{-# INLINE intKeyL #-}
+{-# INLINE valueAtInt #-}
 
 
 -- | This lens can be used to read, write or delete a member of a 'Set'
 --
--- > ghci> memberL 3 ^= False $ Set.fromList [1,2,3,4]
+-- > ghci> contains 3 ^= False $ Set.fromList [1,2,3,4]
 -- > fromList [1,2,4]
-memberL :: Ord k => k -> Lens (Set k) Bool
-memberL k f s = go <$> f (Set.member k s) where
+contains :: Ord k => k -> Lens (Set k) Bool
+contains k f s = go <$> f (Set.member k s) where
   go False = Set.delete k s
   go True  = Set.insert k s
-{-# INLINE memberL #-}
+{-# INLINE contains #-}
 
 -- | This lens can be used to read, write or delete a member of an 'IntSet'
 --
--- > ghci> intMemberL 3 ^= False $ IntSet.fromList [1,2,3,4]
+-- > ghci> containsInt 3 ^= False $ IntSet.fromList [1,2,3,4]
 -- > fromList [1,2,4]
-intMemberL :: Int -> Lens IntSet Bool
-intMemberL k f s = go <$> f (IntSet.member k s) where
+containsInt :: Int -> Lens IntSet Bool
+containsInt k f s = go <$> f (IntSet.member k s) where
   go False = IntSet.delete k s
   go True  = IntSet.insert k s
-{-# INLINE intMemberL #-}
+{-# INLINE containsInt #-}
 
 -- | This lens can be used to access the contents of the Identity monad
-identityL :: LensFamily (Identity a) (Identity b) a b
-identityL f (Identity a) = Identity <$> f a
-{-# INLINE identityL #-}
+identity :: LensFamily (Identity a) (Identity b) a b
+identity f (Identity a) = Identity <$> f a
+{-# INLINE identity #-}
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
 --
-atL :: Eq e => e -> Lens (e -> a) a
-atL e afa ea = go <$> afa a where
+resultAt :: Eq e => e -> Lens (e -> a) a
+resultAt e afa ea = go <$> afa a where
   a = ea e
   go a' e' | e == e'   = a'
            | otherwise = a
-{-# INLINE atL #-}
+{-# INLINE resultAt #-}
 
 ------------------------------------------------------------------------------
 -- State
@@ -512,12 +519,12 @@ instance Focus ReaderT where
 
 -- | Set the value of a field in our monadic state
 (~=) :: MonadState a m => Setter a b -> b -> m ()
-l ~= b = modify (l ^= b)
+l ~= b = modify $ l ^= b
 {-# INLINE (~=) #-}
 
 -- | Modify the value of a field in our monadic state
 (%=) :: MonadState a m => Setter a b -> (b -> b) -> m ()
-l %= f = modify (l ^%= f)
+l %= f = modify $ l ^%= f
 {-# INLINE (%=) #-}
 
 -- | Modify the value of a field in our monadic state and return some information about it
@@ -559,87 +566,137 @@ l ||= b = modify $ l ^||= b
 -- Fold combinators
 --------------------------
 
--- | > foldMapOf :: Monoid m => FoldFamily a b c d -> (c -> m) -> a -> m
+-- |
+-- > foldMap = foldMapOf folded
+--
+-- > foldMapOf :: Monoid m => FoldFamily a b c d -> (c -> m) -> a -> m
 foldMapOf :: Monoid m => ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
 foldMapOf l f = getConst . l (Const . f)
 {-# INLINE foldMapOf #-}
 
--- | > foldOf :: Monoid m => FoldFamily a b m d -> a -> m
+-- |
+-- > fold = foldOf folded
+--
+-- > foldOf :: Monoid m => FoldFamily a b m d -> a -> m
 foldOf :: Monoid m => ((m -> Const m d) -> a -> Const m b) -> a -> m
 foldOf l = getConst . l Const
 {-# INLINE foldOf #-}
 
--- | > foldrOf :: FoldFamily a b c d -> (c -> e -> e) -> e -> a -> e
+-- |
+-- > foldr = foldrOf folded
+--
+-- > foldrOf :: FoldFamily a b c d -> (c -> e -> e) -> e -> a -> e
 foldrOf :: ((c -> Const (Endo e) d) -> a -> Const (Endo e) b) -> (c -> e -> e) -> e -> a -> e
 foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 {-# INLINE foldrOf #-}
 
--- | > toListOf :: FoldFamily a b c d -> a -> [c]
+-- |
+-- > toList = toListOf folded
+--
+-- > toListOf :: FoldFamily a b c d -> a -> [c]
 toListOf :: ((c -> Const [c] d) -> a -> Const [c] b) -> a -> [c]
 toListOf l = foldMapOf l return
 {-# INLINE toListOf #-}
 
--- | > andOf :: FoldFamily a b Bool d -> a -> Bool
+-- |
+-- > and = andOf folded
+--
+-- > andOf :: FoldFamily a b Bool d -> a -> Bool
 andOf :: ((Bool -> Const All d) -> a -> Const All b) -> a -> Bool
 andOf l = getAll . foldMapOf l All
 {-# INLINE andOf #-}
 
--- | > orOf :: FoldFamily a b Bool d -> a -> Bool
+-- |
+-- > or = orOf folded
+--
+-- > orOf :: FoldFamily a b Bool d -> a -> Bool
 orOf :: ((Bool -> Const Any d) -> a -> Const Any b) -> a -> Bool
 orOf l = getAny . foldMapOf l Any
 {-# INLINE orOf #-}
 
--- | > anyOf :: FoldFamily a b c d -> (c -> Bool) -> a -> Bool
+-- |
+-- > any = anyOf folded
+--
+-- > anyOf :: FoldFamily a b c d -> (c -> Bool) -> a -> Bool
 anyOf :: ((c -> Const Any d) -> a -> Const Any b) -> (c -> Bool) -> a -> Bool
 anyOf l f = getAny . foldMapOf l (Any . f)
 {-# INLINE anyOf #-}
 
--- | > allOf :: FoldFamily a b c d -> (c -> Bool) -> a -> Bool
+-- |
+-- > all = allOf folded
+--
+-- > allOf :: FoldFamily a b c d -> (c -> Bool) -> a -> Bool
 allOf :: ((c -> Const All d) -> a -> Const All b) -> (c -> Bool) -> a -> Bool
 allOf l f = getAll . foldMapOf l (All . f)
 {-# INLINE allOf #-}
 
--- | > productOf ::  Num c => FoldFamily a b c d -> a -> c
+-- |
+-- > product = productOf folded
+--
+-- > productOf ::  Num c => FoldFamily a b c d -> a -> c
 productOf :: Num c => ((c -> Const (Product c) d) -> a -> Const (Product c) b) -> a -> c
 productOf l = getProduct . foldMapOf l Product
 {-# INLINE productOf #-}
 
--- | > sumOf ::  Num c => FoldFamily a b c d -> a -> c
+-- |
+-- > sum = sumOf folded
+--
+-- > sumOf ::  Num c => FoldFamily a b c d -> a -> c
 sumOf ::  Num c => ((c -> Const (Sum c) d) -> a -> Const (Sum c) b) -> a -> c
 sumOf l = getSum . foldMapOf l Sum
 {-# INLINE sumOf #-}
 
--- | > traverseOf_ :: Applicative f => FoldFamily a b c d -> (c -> f e) -> a -> f ()
+-- |
+-- > traverse_ = traverseOf_ folded
+--
+-- > traverseOf_ :: Applicative f => FoldFamily a b c d -> (c -> f e) -> a -> f ()
 traverseOf_ :: Applicative f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> (c -> f e) -> a -> f ()
 traverseOf_ l f = getTraversed . foldMapOf l (Traversed . (() <$) . f)
 {-# INLINE traverseOf_ #-}
 
--- | > forOf_ :: Applicative f => FoldFamily a b c d -> a -> (c -> f e) -> f ()
+-- |
+-- > for_ = forOf_ folded
+--
+-- > forOf_ :: Applicative f => FoldFamily a b c d -> a -> (c -> f e) -> f ()
 forOf_ :: Applicative f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> (c -> f e) -> f ()
 forOf_ l a f = traverseOf_ l f a
 {-# INLINE forOf_ #-}
 
--- | > sequenceAOf_ :: Applicative f => FoldFamily a b (f ()) d -> a -> f ()
+-- |
+-- > sequenceA_ = sequenceAOf_ folded
+--
+-- > sequenceAOf_ :: Applicative f => FoldFamily a b (f ()) d -> a -> f ()
 sequenceAOf_ :: Applicative f => ((f () -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> f ()
 sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . (() <$))
 {-# INLINE sequenceAOf_ #-}
 
--- | > mapMOf_ :: Monad m => FoldFamily a b c d -> (c -> m e) -> a -> m ()
+-- |
+-- > mapM_ = mapMOf_ folded
+--
+-- > mapMOf_ :: Monad m => FoldFamily a b c d -> (c -> m e) -> a -> m ()
 mapMOf_ :: Monad m => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> (c -> m e) -> a -> m ()
 mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
 {-# INLINE mapMOf_ #-}
 
--- | > forMOf_ :: Monad m => FoldFamily a b c d -> a -> (c -> m e) -> m ()
+-- |
+-- > forM_ = forMOf_ folded
+--
+-- > forMOf_ :: Monad m => FoldFamily a b c d -> a -> (c -> m e) -> m ()
 forMOf_ :: Monad m => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> a -> (c -> m e) -> m ()
 forMOf_ l a f = mapMOf_ l f a
 {-# INLINE forMOf_ #-}
 
--- | > sequenceOf_ :: Monad m => FoldFamily a b (m b) d -> a -> m ()
+-- |
+-- > sequence_ = sequenceOf_ folded
+--
+-- > sequenceOf_ :: Monad m => FoldFamily a b (m b) d -> a -> m ()
 sequenceOf_ :: Monad m => ((m c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> a -> m ()
 sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
 {-# INLINE sequenceOf_ #-}
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
+--
+-- > asum = asumOf folded
 --
 -- > asumOf :: Alternative f => FoldFamily a b c d -> a -> f c
 asumOf :: Alternative f => ((f c -> Const (Endo (f c)) d) -> a -> Const (Endo (f c)) b) -> a -> f c
@@ -648,26 +705,41 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
 --
+-- > msum = msumOf folded
+--
 -- > msumOf :: MonadPlus m => FoldFamily a b c d -> a -> m c
 msumOf :: MonadPlus m => ((m c -> Const (Endo (m c)) d) -> a -> Const (Endo (m c)) b) -> a -> m c
 msumOf l = foldrOf l mplus mzero
 {-# INLINE msumOf #-}
 
--- | > elemOf :: Eq c => FoldFamily a b c d -> c -> a -> Bool
+-- |
+-- > elem = elemOf folded
+--
+-- > elemOf :: Eq c => FoldFamily a b c d -> c -> a -> Bool
 elemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
 elemOf l = anyOf l . (==)
 {-# INLINE elemOf #-}
 
--- | > notElemOf :: Eq c => FoldFamily a b c d -> c -> a -> Bool
+-- |
+-- > notElem = notElemOf folded
+--
+-- > notElemOf :: Eq c => FoldFamily a b c d -> c -> a -> Bool
 notElemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
 notElemOf l c = not . elemOf l c
 {-# INLINE notElemOf #-}
 
--- | > concatMapOf :: FoldFamily a b c d -> (c -> [e]) -> a -> [e]
+-- |
+-- > concatMap = concatMapOf folded
+--
+-- > concatMapOf :: FoldFamily a b c d -> (c -> [e]) -> a -> [e]
 concatMapOf :: ((c -> Const [e] d) -> a -> Const [e] b) -> (c -> [e]) -> a -> [e]
 concatMapOf l ces a = getConst  (l (Const . ces) a)
 {-# INLINE concatMapOf #-}
 
+-- |
+-- > concat = concatOf folded
+--
+-- > concatOf :: FoldFamily a b [e] d -> a -> [e]
 concatOf :: (([e] -> Const [e] d) -> a -> Const [e] b) -> a -> [e]
 concatOf = reading
 {-# INLINE concatOf #-}
@@ -676,19 +748,36 @@ concatOf = reading
 -- Multilens combinators
 --------------------------
 
+-- |
+-- > traverseOf = id
+-- > traverse = traverseOf traverse
+--
+-- > traverseOf :: Applicative f => TraversalFamily a b c d -> (c -> f d) -> a -> f b
 traverseOf :: Applicative f => ((c -> f d) -> a -> f b) -> (c -> f d) -> a -> f b
 traverseOf = id
 {-# INLINE traverseOf #-}
 
+-- |
+-- > mapM = mapMOf traverse
+--
+-- > mapM :: Monad m => TraversalFamily a b c d -> (c -> m d) -> a -> m b
 mapMOf :: Monad m => ((c -> WrappedMonad m d) -> a -> WrappedMonad m b) -> (c -> m d) -> a -> m b
 mapMOf l cmd a = unwrapMonad (l (WrapMonad . cmd) a)
 {-# INLINE mapMOf #-}
 
-sequenceAOf :: Applicative f => ((f b -> f (f b)) -> a -> f b) -> a -> f b
+-- |
+-- > sequenceA = sequenceAOf traverse
+--
+-- > sequenceA :: Applicative f => TraversalFamily a b (f c) (f c) -> a -> f b
+sequenceAOf :: Applicative f => ((f c -> f (f c)) -> a -> f b) -> a -> f b
 sequenceAOf l = l pure
 {-# INLINE sequenceAOf #-}
 
-sequenceOf :: Monad m => ((m b -> WrappedMonad m (m b)) -> a -> WrappedMonad m b) -> a -> m b
+-- |
+-- > sequence = sequenceOf traverse
+--
+-- > sequence :: Monad m => TraversalFamily a b (m c) (m c) -> a -> m b
+sequenceOf :: Monad m => ((m c -> WrappedMonad m (m c)) -> a -> WrappedMonad m b) -> a -> m b
 sequenceOf l = unwrapMonad . l pure
 {-# INLINE sequenceOf #-}
 
@@ -697,21 +786,21 @@ sequenceOf l = unwrapMonad . l pure
 --------------------------
 
 folded :: Foldable f => FoldFamily (f c) b c d
-folded = gettingMany id
+folded = folding id
 {-# INLINE folded #-}
 
 --------------------------
 -- Traversals
 --------------------------
 
--- | This is the partial lens that never succeeds at returning any values
+-- | This is the traversal that never succeeds at returning any values
 --
 -- > traverseNothing :: Applicative f => (c -> f d) -> a -> f a
 traverseNothing :: TraversalFamily a a c d
 traverseNothing = const pure
 {-# INLINE traverseNothing #-}
 
--- The multilens for reading and writing to the head of a list
+-- The traversal for reading and writing to the head of a list
 --
 -- | > traverseHead :: Applicative f => (a -> f a) -> [a] -> f [a]
 traverseHead :: Traversal [a] a
@@ -719,7 +808,7 @@ traverseHead _ [] = pure []
 traverseHead f (a:as) = (:as) <$> f a
 {-# INLINE traverseHead #-}
 
--- The multilens for reading and writing to the tail of a list
+-- The traversal for reading and writing to the tail of a list
 --
 -- | > traverseTail :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
 traverseTail :: Traversal [a] [a]
@@ -727,7 +816,7 @@ traverseTail _ [] = pure []
 traverseTail f (a:as) = (a:) <$> f as
 {-# INLINE traverseTail #-}
 
--- | A multilens for tweaking the left-hand value in an Either:
+-- | A traversal for tweaking the left-hand value in an Either:
 --
 -- > traverseLeft :: Applicative f => (a -> f b) -> Either a c -> f (Either b c)
 traverseLeft :: TraversalFamily (Either a c) (Either b c) a b
@@ -735,40 +824,55 @@ traverseLeft f (Left a)  = Left <$> f a
 traverseLeft _ (Right c) = pure $ Right c
 {-# INLINE traverseLeft #-}
 
--- | A multilens for tweaking the right-hand value in an Either:
+-- | traverse the right-hand value in an Either:
 --
 -- > traverseRight :: Applicative f => (a -> f b) -> Either c a -> f (Either c a)
 -- > traverseRight = traverse
 --
 -- Unfortunately the instance for 'Traversable (Either c)' is still missing from
--- base.
+-- base, so this can't just be 'traverse'
 traverseRight :: TraversalFamily (Either c a) (Either c b) a b
 traverseRight _ (Left c) = pure $ Left c
 traverseRight f (Right a) = Right <$> f a
 {-# INLINE traverseRight #-}
 
--- |
+-- | Traverse the value at a given key in a Map
+--
 -- > traverseKey :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
--- > traverseKey k = keyL k . traverse
+-- > traverseKey k = valueAt k . traverse
 traverseKey :: Ord k => k -> Traversal (Map k v) v
-traverseKey k = keyL k . traverse
+traverseKey k = valueAt k . traverse
 {-# INLINE traverseKey #-}
 
--- |
+-- | Traverse the value at a given key in an IntMap
+--
 -- > traverseIntKey :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
--- > traverseIntKey k = intKeyL k . traverse
+-- > traverseIntKey k = valueAtInt k . traverse
 traverseIntKey :: Int -> Traversal (IntMap v) v
-traverseIntKey k = intKeyL k . traverse
+traverseIntKey k = valueAtInt k . traverse
 {-# INLINE traverseIntKey #-}
 
--- | > traverseElement :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
+-- | Traverse a single element in a traversable container.
+--
+-- > traverseElement :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
 traverseElement :: Traversable t => Int -> Traversal (t a) a
 traverseElement j f ta = fst (runSA (traverse go ta) 0) where
   go a = SA $ \i -> (if i == j then f a else pure a, i + 1)
 {-# INLINE traverseElement #-}
 
--- traverseByteString     :: Traversal Strict.ByteString Word8
--- traverseLazyByteString :: Traversal Lazy.ByteString Word8
+class TraverseByteString t where
+  -- | Traverse the individual bytes in a ByteString
+  --
+  -- > ghci> :t anyOf traverseByteString
+  -- anyOf traverseByteString
+  --   :: TraverseByteString b => (GHC.Word.Word8 -> Bool) -> b -> Bool
+  traverseByteString :: Traversal t Word8
+
+instance TraverseByteString Strict.ByteString where
+  traverseByteString f = fmap Strict.pack . traverse f . Strict.unpack
+
+instance TraverseByteString Lazy.ByteString where
+  traverseByteString f = fmap Lazy.pack . traverse f . Lazy.unpack
 
 ------------------------------------------------------------------------------
 -- Implementation details
