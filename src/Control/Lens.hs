@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, Safe #-}
+{-# LANGUAGE Rank2Types, Safe #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens
@@ -6,7 +6,7 @@
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
--- Portability :  RankNTypes, TemplateHaskell
+-- Portability :  Rank2Types
 --
 -- This package provides lenses that are compatible with other van
 -- Laarhoven lens libraries, while reducing the complexty of the imports.
@@ -61,6 +61,7 @@ module Control.Lens
   -- * Setters
   , Setter, SetterFamily
   , setting
+  , mapped
 
   -- ** Setting Values
   , modifying
@@ -317,6 +318,12 @@ type SetterFamily a b c d           = (c -> Identity d) -> a -> Identity b
 setting :: ((c -> d) -> a -> b) -> SetterFamily a b c d
 setting f g a = Identity (f (runIdentity . g) a)
 {-# INLINE setting #-}
+
+-- | This setter will replace all of the values in a container.
+mapped :: Functor f => SetterFamily (f a) (f b) a b
+mapped = setting fmap
+{-# INLINE mapped #-}
+
 
 -- | Modify the target of a 'Lens', 'LensFamily' or all the targets of a
 -- 'Traversal', 'TraversalFamily', 'Setter' or 'SetterFamily'

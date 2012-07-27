@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       0.4
+version:       0.5
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -34,4 +34,8 @@ library
     template-haskell >= 2.4   && < 2.8,
     transformers     >= 0.2   && < 0.4
   other-extensions:
-    RankNTypes TemplateHaskell Safe Trustworthy
+    Rank2Types
+    RankNTypes
+    Safe
+    TemplateHaskell
+    Trustworthy
