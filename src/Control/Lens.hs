@@ -27,6 +27,17 @@
 -- getters, traversals, folds, and traversal families in such
 -- a way that they can all be composed automatically with @(.)@.
 --
+-- You can derive lenses automatically for many data types:
+--
+-- > import Control.Lens.TH
+-- > data Foo a = Foo { _fooArgs :: [String], _fooValue :: a }
+-- > makeLenses ''Foo
+--
+-- This defines the following lenses:
+--
+-- > fooArgs :: Lens (Foo a) [String]
+-- > fooValue :: LensFamily (Foo a) (Foo b) a b
+--
 ----------------------------------------------------------------------------
 module Control.Lens
   (
@@ -198,9 +209,8 @@ type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
 -- Despite the complicated signature the pattern for implementing a 'LensFamily' is the same as a 'Lens'.
 -- in fact the implementation doesn't change, the type signature merely generalizes.
 --
--- > -- _2 :: LensFamily (c,a) (c,b) a b
--- > _2 :: Functor f => (a -> f b) -> (c,a) -> f (c, b)
--- > _2 f (c,a) = (,) a <$> f c
+-- > identity :: LensFamily (Identity a) (Identity b) a b
+-- > identity f (Identity a) = Identity <$> f a
 type LensFamily a b c d        = forall f. Functor f => (c -> f d) -> a -> f b
 
 --------------------------
@@ -400,26 +410,6 @@ l ^||= n = modifying l (|| n)
 (^&&=) :: Setter a Bool -> Bool -> a -> a
 l ^&&= n = modifying l (&& n)
 {-# INLINE (^&&=) #-}
-
-
-
-
-------------------------------------------------------------------------------
--- Cloning Lenses
-------------------------------------------------------------------------------
-
-data IndexedStore c d a = IndexedStore (d -> a) c
-
-instance Functor (IndexedStore c d) where
-  fmap f (IndexedStore g c) = IndexedStore (f . g) c
-
--- | Cloning a 'Lens' or 'LensFamily' is one way to make sure you arent given
--- something weaker, such as a 'Traversal' or 'TraversalFamily', and can be used
--- as a way to pass around lenses that have to be monomorphic in 'f'.
-clone :: Functor f => ((c -> IndexedStore c d d) -> a -> IndexedStore c d b) -> (c -> f d) -> a -> f b
-clone f cfd a = case f (IndexedStore id) a of
-  IndexedStore db c -> db <$> cfd c
-{-# INLINE clone #-}
 
 ------------------------------------------------------------------------------
 -- Common Lenses
@@ -943,8 +933,27 @@ instance TraverseByteString Lazy.ByteString where
   traverseByteString f = fmap Lazy.pack . traverse f . Lazy.unpack
 
 ------------------------------------------------------------------------------
+-- Cloning Lenses
+------------------------------------------------------------------------------
+
+-- | Cloning a 'Lens' or 'LensFamily' is one way to make sure you arent given
+-- something weaker, such as a 'Traversal' or 'TraversalFamily', and can be used
+-- as a way to pass around lenses that have to be monomorphic in 'f'.
+clone :: Functor f => 
+   ((c -> IndexedStore c d d) -> a -> IndexedStore c d b) ->
+  (c -> f d) -> a -> f b
+clone f cfd a = case f (IndexedStore id) a of
+  IndexedStore db c -> db <$> cfd c
+{-# INLINE clone #-}
+
+------------------------------------------------------------------------------
 -- Implementation details
 ------------------------------------------------------------------------------
+
+data IndexedStore c d a = IndexedStore (d -> a) c
+
+instance Functor (IndexedStore c d) where
+  fmap f (IndexedStore g c) = IndexedStore (f . g) c
 
 newtype SA f a = SA { runSA :: Int -> (f a, Int) }
 

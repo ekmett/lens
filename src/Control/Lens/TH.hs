@@ -5,8 +5,8 @@
 -- Copyright   :  (C) 2012 Edward Kmett, Dan Burton
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
--- Stability   :  provisional
--- Portability :  RankNTypes, TemplateHaskell
+-- Stability   :  experimental
+-- Portability :  TemplateHaskell
 --
 ----------------------------------------------------------------------------
 module Control.Lens.TH
