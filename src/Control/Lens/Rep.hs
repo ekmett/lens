@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes, Safe #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Rep

@@ -23,6 +23,7 @@ library
   exposed-modules:
     Control.Lens
     Control.Lens.Rep
+    Control.Lens.TH
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: src
   build-depends:
@@ -33,4 +34,4 @@ library
     template-haskell >= 2.4   && < 2.8,
     transformers     >= 0.2   && < 0.4
   other-extensions:
-    RankNTypes TemplateHaskell
+    RankNTypes TemplateHaskell Safe Trustworthy
