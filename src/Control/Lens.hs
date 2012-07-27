@@ -97,8 +97,8 @@ module Control.Lens
 
   -- * Traversals
   , traverseNothing
-  , traverseKey
-  , traverseIntKey
+  , traverseValueAt
+  , traverseValueAtInt
   , traverseHead
   , traverseTail
   , traverseLeft
@@ -838,19 +838,19 @@ traverseRight f (Right a) = Right <$> f a
 
 -- | Traverse the value at a given key in a Map
 --
--- > traverseKey :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
--- > traverseKey k = valueAt k . traverse
-traverseKey :: Ord k => k -> Traversal (Map k v) v
-traverseKey k = valueAt k . traverse
-{-# INLINE traverseKey #-}
+-- > traverseValueAt :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
+-- > traverseValueAt k = valueAt k . traverse
+traverseValueAt :: Ord k => k -> Traversal (Map k v) v
+traverseValueAt k = valueAt k . traverse
+{-# INLINE traverseValueAt #-}
 
 -- | Traverse the value at a given key in an IntMap
 --
--- > traverseIntKey :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
--- > traverseIntKey k = valueAtInt k . traverse
-traverseIntKey :: Int -> Traversal (IntMap v) v
-traverseIntKey k = valueAtInt k . traverse
-{-# INLINE traverseIntKey #-}
+-- > traverseValueAtInt :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
+-- > traverseValueAtInt k = valueAtInt k . traverse
+traverseValueAtInt :: Int -> Traversal (IntMap v) v
+traverseValueAtInt k = valueAtInt k . traverse
+{-# INLINE traverseValueAtInt #-}
 
 -- | Traverse a single element in a traversable container.
 --
