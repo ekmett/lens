@@ -34,8 +34,10 @@ library
     template-haskell >= 2.4   && < 2.8,
     transformers     >= 0.2   && < 0.4
   other-extensions:
+    CPP
     Rank2Types
     RankNTypes
-    Safe
     TemplateHaskell
-    Trustworthy
+  if (impl(ghc>=7.4))
+    other-extensions:
+      Safe Trustworthy
