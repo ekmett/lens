@@ -134,6 +134,8 @@ module Control.Lens
   , mapMOf
   , sequenceAOf
   , sequenceOf
+  , elementOf
+  , elementsOf
 
   -- ** Common Lenses
   , _1
@@ -905,6 +907,19 @@ sequenceOf :: Monad m => ((m c -> WrappedMonad m (m c)) -> a -> WrappedMonad m b
 sequenceOf l = unwrapMonad . l pure
 {-# INLINE sequenceOf #-}
 
+-- | A Traversal of the nth element of a Traversal
+--
+-- > traverseHead = elementOf traverse 0
+elementOf :: Applicative f => ((c -> SA f c) -> a -> SA f b) -> Int -> (c -> f c) -> a -> f b
+elementOf l = elementsOf l . (==)
+
+-- | A Traversal of the elements at positions in a Traversal where the positions satisfy a predicate
+--
+-- > traverseTail = elementsOf traverse (>0)
+elementsOf :: Applicative f => ((c -> SA f c) -> a -> SA f b) -> (Int -> Bool) -> (c -> f c) -> a -> f b
+elementsOf l p f ta = fst (runSA (l go ta) 0) where
+  go a = SA $ \i -> (if p i then f a else pure a, i + 1)
+
 --------------------------
 -- Traversals
 --------------------------
@@ -918,19 +933,26 @@ traverseNothing = const pure
 
 -- The traversal for reading and writing to the head of a list
 --
+-- > traverseHead = traverseValueAtMin
+-- > traverseHead = traverseElementAt 0 -- but is more efficient
+--
 -- | > traverseHead :: Applicative f => (a -> f a) -> [a] -> f [a]
 traverseHead :: Traversal [a] a
 traverseHead _ [] = pure []
 traverseHead f (a:as) = (:as) <$> f a
 {-# INLINE traverseHead #-}
 
---
 -- | > traverseTail :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
 traverseTail :: Traversal [a] [a]
 traverseTail _ [] = pure []
 traverseTail f (a:as) = (a:) <$> f as
 {-# INLINE traverseTail #-}
 
+-- | Traverse the last element in a list.
+--
+-- > traverseLast = traverseValueAtMax
+--
+-- > traverseLast :: Applicative f => (a -> f a) -> [a] -> f [a]
 traverseLast :: Traversal [a] a
 traverseLast _ []     = pure []
 traverseLast f [a]    = return <$> f a
@@ -987,9 +1009,17 @@ traverseValueAtInt k = valueAtInt k . traverse
 --
 -- > traverseElement :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
 traverseElement :: Traversable t => Int -> Traversal (t a) a
-traverseElement j f ta = fst (runSA (traverse go ta) 0) where
-  go a = SA $ \i -> (if i == j then f a else pure a, i + 1)
+traverseElement = traverseElements . (==)
 {-# INLINE traverseElement #-}
+
+-- | Traverse elements where a predicate holds on their position in a traversable container
+--
+-- > traverseElements :: Applicative f, Traversable t) => (Int -> Bool) -> (a -> f a) -> t a -> f (t a)
+traverseElements :: Traversable t => (Int -> Bool) -> Traversal (t a) a
+traverseElements p f ta = fst (runSA (traverse go ta) 0) where
+  go a = SA $ \i -> (if p i then f a else pure a, i + 1)
+{-# INLINE traverseElements #-}
+
 
 class TraverseByteString t where
   -- | Traverse the individual bytes in a ByteString
