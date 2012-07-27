@@ -26,20 +26,18 @@
 -- and then you can compose it with other lenses using @(.)@.
 --
 -- This package provides lenses, lens families, setters, setter families,
--- getters, multilenses, multi-getters, and multi-lens families in such
+-- getters, traversals, folds, and traversal families in such
 -- a way that they can all be composed automatically with @(.)@.
 --
 ----------------------------------------------------------------------------
 module Control.Lens
   (
   -- * Lenses
-    Lens
-  , LensFamily
-  , Getter
-  , Setter
-  , SetterFamily
-  , MultiLens
-  , MultiLensFamily
+    Lens, LensFamily
+  , Getter, GetterFamily
+  , Setter, SetterFamily
+  , Fold, FoldFamily
+  , Traversal, TraversalFamily
 
   -- * Constructing Lenses
   , makeLenses
@@ -74,10 +72,10 @@ module Control.Lens
   , identityL
   , atL
 
-  -- * MultiGetters
+  -- * Folds
   , folded
 
-  -- ** MultiGetterFamily Combinators
+  -- ** Fold Combinators
   , mapOf
   , foldMapOf
   , foldrOf
@@ -98,17 +96,17 @@ module Control.Lens
   , elemOf
   , notElemOf
 
-  -- * MultiLenses
-  , constML
-  , keyML
-  , intKeyML
-  , headML
-  , tailML
-  , leftML
-  , rightML
-  , elementML
+  -- * Traversales
+  , traverseNothing
+  , traverseKey
+  , traverseIntKey
+  , traverseHead
+  , traverseTail
+  , traverseLeft
+  , traverseRight
+  , traverseElement
 
-  -- ** MultiLens Combinators
+  -- ** Traversal Combinators
   , traverseOf
   , mapMOf
   , sequenceAOf
@@ -117,7 +115,7 @@ module Control.Lens
   -- * Implementation details
   , IndexedStore
   , Focusing
-  , Traversal
+  , Traversed
   ) where
 
 import           Control.Applicative              as Applicative
@@ -151,8 +149,8 @@ infixr 0 ^$
 -- > writing l (reading l a) a   = a
 -- > writing l c (writing l b a) = writing l c a
 --
--- Every 'Lens' can be used directly as a 'LensFamily' or as a 'Getter', 'Setter', or 'MultiLens', which transitively mens it can be used as
--- almost anything! Such as a 'MultiLensFamily', a 'GetterFamily', a 'MultiGetterFamily', a 'MultiGetter', or a 'SetterFamily'.
+-- Every 'Lens' can be used directly as a 'LensFamily' or as a 'Getter', 'Setter', or 'Traversal', which transitively mens it can be used as
+-- almost anything! Such as a 'TraversalFamily', a 'GetterFamily', a 'FoldFamily', a 'Fold', or a 'SetterFamily'.
 --
 -- > type Lens a b             = LensFamily a a b b
 --
@@ -169,8 +167,8 @@ type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
 -- These laws are strong enough that the 4 type parameters of a 'LensFamily' cannot vary fully independently. For more on
 -- how they interact, read the "Why is it a Lens Family?" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
--- Every 'LensFamily' can be used as a 'GetterFamily', a 'SetterFamily' or a 'MultiLensFamily', which transitively means it can be
--- used as a 'MultiGetterFamily'.
+-- Every 'LensFamily' can be used as a 'GetterFamily', a 'SetterFamily' or a 'TraversalFamily', which transitively means it can be
+-- used as a 'FoldFamily'.
 --
 -- Despite the complicated signature the pattern for implementing a 'LensFamily' is the same as a Lens.
 -- in fact the implementation doesn't change, the type signature merely generalizes.
@@ -197,43 +195,51 @@ type SetterFamily a b c d           = (c -> Identity d) -> a -> Identity b
 -- > type Setter a b                = SetterFamily a a b b
 type Setter a b                     = (b -> Identity b) -> a -> Identity a
 
--- | A 'MultiGetterFamily' describes how to retrieve multiple values in a way that can be composed
+-- | A 'FoldFamily' describes how to retrieve multiple values in a way that can be composed
 -- with other lens-like constructions.
 --
--- A 'MultiGetterFamily a b c d' provides a structure with operations very similar to those of the 'Foldable'
--- typeclass, see 'foldMapOf' and the other MultiGetterFamily combinators.
+-- A 'FoldFamily a b c d' provides a structure with operations very similar to those of the 'Foldable'
+-- typeclass, see 'foldMapOf' and the other FoldFamily combinators.
 --
-type MultiGetterFamily a b c d      = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
+-- By convention, if there exists a 'foo' method that expects a @'Foldable' (f c)@, then there should be a
+-- 'fooOf' method that takes a @'FoldFamily' a b c d@ and a value of type @a@.
+--
+type FoldFamily a b c d      = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
 
--- | Every 'MultiGetter' can be used directly as a 'MultiGetterFamily'.
+-- | Every 'Fold' can be used directly as a 'FoldFamily'.
 --
---
--- > type MultiGetter a b           = MultiGetterFamily a b c d
-type MultiGetter a b                = forall m. Monoid m => (b -> Const m b)-> a -> Const m a
+-- > type Fold a b           = FoldFamily a b c d
+type Fold a b                = forall m. Monoid m => (b -> Const m b)-> a -> Const m a
 
 -- | A 'GetterFamily' describes how to retrieve a single value in a way that can be composed with
--- other lens-like constructions. It can be used directly as a 'MultiGetterFamily', since it just
+-- other lens-like constructions. It can be used directly as a 'FoldFamily', since it just
 -- ignores the 'Monoid'.
 type GetterFamily a b c d      = forall z. (c -> Const z d) -> a -> Const z b
 
--- | A 'Getter' can be used directly as a 'GetterFamily' or as a 'MultiGetter', and hence it can be as a 'MutliGetterFamily'.
+-- | A 'Getter' can be used directly as a 'GetterFamily' or as a 'Fold', and hence it can be as a 'MutliGetterFamily'.
 --
 -- In general while your combinators may produce a 'Getter' it is better to consume any 'GetterFamily'.
 --
 -- > type Getter a b           = GetterFamily a a b b
 type Getter a b                = forall z. (b -> Const z b) -> a -> Const z a
 
--- | A 'MultiLensFamily' can be used directly as a 'SetterFamily' or a 'MultiGetterFamily' and provides
--- the ability to both read and update multiple fields, subject to the (relatively weak) MultiLensFamily laws.
-type MultiLensFamily a b c d        = forall f. Applicative f => (c -> f d) -> a -> f b
-
--- | Every 'MultiLens' can be used as a 'MultiLensFamily' or a 'Setter' or 'MultiGetter', so it can transitively be used as a
--- 'MultiGetterFamily' or 'SetterFamily' as well.
+-- | A 'TraversalFamily' can be used directly as a 'SetterFamily' or a 'FoldFamily' and provides
+-- the ability to both read and update multiple fields, subject to the (relatively weak) 'TraversalFamily' laws.
 --
--- > type MultiLens a b             = MultiLensFamily a a b b
-type MultiLens a b                  = forall f. Applicative f => (b -> f b) -> a -> f a
+-- These are also known as @MultiLens@ families, but they have the signature and spirit of
+--
+-- > traverse :: Traversable f => TraversalFamiy (f a) (f b) a b
+--
+-- and the more evocative name suggests their application.
+type TraversalFamily a b c d        = forall f. Applicative f => (c -> f d) -> a -> f b
 
--- | Build a 'Lens' or 'LensFamily' from a getter and a setter
+-- | Every 'Traversal' can be used as a 'TraversalFamily' or a 'Setter' or 'Fold', so it can transitively be used as a
+-- 'FoldFamily' or 'SetterFamily' as well.
+--
+-- > type Traversal a b             = TraversalFamily a a b b
+type Traversal a b                  = forall f. Applicative f => (b -> f b) -> a -> f a
+
+-- | Build a 'Lens' or 'LensFamily' from a getter and a setter.
 --
 -- > lens :: Functor f => (a -> c) -> (d -> a -> b) -> (c -> f d) -> a -> f b
 lens :: (a -> c) -> (d -> a -> b) -> LensFamily a b c d
@@ -252,8 +258,8 @@ getting :: (a -> c) -> GetterFamily a b c d
 getting f g a = Const (getConst (g (f a)))
 {-# INLINE getting #-}
 
--- | Building a MultiGetter or MultiGetterFamily
-gettingMany :: Foldable f => (a -> f c) -> MultiGetterFamily a b c d
+-- | Building a Fold or FoldFamily
+gettingMany :: Foldable f => (a -> f c) -> FoldFamily a b c d
 gettingMany f g a = Const (foldMap (getConst . g) (f a))
 {-# INLINE gettingMany #-}
 
@@ -267,7 +273,7 @@ setting f g a = Identity (f (runIdentity . g) a)
 ------------------------------------------------------------------------------
 
 -- | Get the value of a 'Getter', 'Lens' or 'LensFamily' or the fold of a
--- 'MultiGetter', 'MultiLens' or 'MultiLensFamily' that points at monoidal
+-- 'Fold', 'Traversal' or 'TraversalFamily' that points at monoidal
 -- values.
 --
 -- > reading :: GetterFamily a b c d -> a -> c
@@ -276,13 +282,21 @@ reading l a = getConst (l Const a)
 {-# INLINE reading #-}
 
 -- | Modify the target of a 'Lens', 'LensFamily' or all the targets of a
--- 'Multilens', 'MultiLensFamily', 'Setter' or 'SetterFamily'
+-- 'Multilens', 'TraversalFamily', 'Setter' or 'SetterFamily'
 --
--- > mapOf, modifying :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
-mapOf, modifying :: SetterFamily a b c d -> (c -> d) -> a -> b
-mapOf l f a = runIdentity (l (Identity . f) a)
-modifying = mapOf
+-- > modifying :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
+-- > modifying = mapOf
+modifying :: SetterFamily a b c d -> (c -> d) -> a -> b
+modifying l f a = runIdentity (l (Identity . f) a)
 {-# INLINE mapOf #-}
+
+-- | Modify the target of a 'Lens', 'LensFamily' or all the targets of a
+-- 'Multilens', 'TraversalFamily', 'Setter' or 'SetterFamily'
+--
+-- > mapOf :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
+-- > mapOf = modifying
+mapOf :: SetterFamily a b c d -> (c -> d) -> a -> b
+mapOf l f a = runIdentity (l (Identity . f) a)
 {-# INLINE modifying #-}
 
 -- | Replace the target of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'
@@ -370,7 +384,7 @@ instance Functor (IndexedStore c d) where
   fmap f (IndexedStore g c) = IndexedStore (f . g) c
 
 -- | Cloning a 'Lens' or 'LensFamily' is one way to make sure you arent given
--- something weaker, such as a 'MultiLens' or 'MultiLensFamily', and can be used
+-- something weaker, such as a 'Traversal' or 'TraversalFamily', and can be used
 -- as a way to pass around lenses that have to be monomorphic in 'f'.
 clone :: Functor f => ((c -> IndexedStore c d d) -> a -> IndexedStore c d b) -> (c -> f d) -> a -> f b
 clone f cfd a = case f (IndexedStore id) a of
@@ -542,114 +556,114 @@ l ||= b = modify $ l ^||= b
 {-# INLINE (||=) #-}
 
 --------------------------
--- Multigetter combinators
+-- Fold combinators
 --------------------------
 
--- | > foldMapOf :: Monoid m => MultiGetterFamily a b c d -> (c -> m) -> a -> m
+-- | > foldMapOf :: Monoid m => FoldFamily a b c d -> (c -> m) -> a -> m
 foldMapOf :: Monoid m => ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
 foldMapOf l f = getConst . l (Const . f)
 {-# INLINE foldMapOf #-}
 
--- | > foldOf :: Monoid m => MultiGetterFamily a b m d -> a -> m
+-- | > foldOf :: Monoid m => FoldFamily a b m d -> a -> m
 foldOf :: Monoid m => ((m -> Const m d) -> a -> Const m b) -> a -> m
 foldOf l = getConst . l Const
 {-# INLINE foldOf #-}
 
--- | > foldrOf :: MultiGetterFamily a b c d -> (c -> e -> e) -> e -> a -> e
+-- | > foldrOf :: FoldFamily a b c d -> (c -> e -> e) -> e -> a -> e
 foldrOf :: ((c -> Const (Endo e) d) -> a -> Const (Endo e) b) -> (c -> e -> e) -> e -> a -> e
 foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 {-# INLINE foldrOf #-}
 
--- | > toListOf :: MultiGetterFamily a b c d -> a -> [c]
+-- | > toListOf :: FoldFamily a b c d -> a -> [c]
 toListOf :: ((c -> Const [c] d) -> a -> Const [c] b) -> a -> [c]
 toListOf l = foldMapOf l return
 {-# INLINE toListOf #-}
 
--- | > andOf :: MultiGetterFamily a b Bool d -> a -> Bool
+-- | > andOf :: FoldFamily a b Bool d -> a -> Bool
 andOf :: ((Bool -> Const All d) -> a -> Const All b) -> a -> Bool
 andOf l = getAll . foldMapOf l All
 {-# INLINE andOf #-}
 
--- | > orOf :: MultiGetterFamily a b Bool d -> a -> Bool
+-- | > orOf :: FoldFamily a b Bool d -> a -> Bool
 orOf :: ((Bool -> Const Any d) -> a -> Const Any b) -> a -> Bool
 orOf l = getAny . foldMapOf l Any
 {-# INLINE orOf #-}
 
--- | > anyOf :: MultiGetterFamily a b c d -> (c -> Bool) -> a -> Bool
+-- | > anyOf :: FoldFamily a b c d -> (c -> Bool) -> a -> Bool
 anyOf :: ((c -> Const Any d) -> a -> Const Any b) -> (c -> Bool) -> a -> Bool
 anyOf l f = getAny . foldMapOf l (Any . f)
 {-# INLINE anyOf #-}
 
--- | > allOf :: MultiGetterFamily a b c d -> (c -> Bool) -> a -> Bool
+-- | > allOf :: FoldFamily a b c d -> (c -> Bool) -> a -> Bool
 allOf :: ((c -> Const All d) -> a -> Const All b) -> (c -> Bool) -> a -> Bool
 allOf l f = getAll . foldMapOf l (All . f)
 {-# INLINE allOf #-}
 
--- | > productOf ::  Num c => MultiGetterFamily a b c d -> a -> c
+-- | > productOf ::  Num c => FoldFamily a b c d -> a -> c
 productOf :: Num c => ((c -> Const (Product c) d) -> a -> Const (Product c) b) -> a -> c
 productOf l = getProduct . foldMapOf l Product
 {-# INLINE productOf #-}
 
--- | > sumOf ::  Num c => MultiGetterFamily a b c d -> a -> c
+-- | > sumOf ::  Num c => FoldFamily a b c d -> a -> c
 sumOf ::  Num c => ((c -> Const (Sum c) d) -> a -> Const (Sum c) b) -> a -> c
 sumOf l = getSum . foldMapOf l Sum
 {-# INLINE sumOf #-}
 
--- | > traverseOf_ :: Applicative f => MultiGetterFamily a b c d -> (c -> f e) -> a -> f ()
-traverseOf_ :: Applicative f => ((c -> Const (Traversal f) d) -> a -> Const (Traversal f) b) -> (c -> f e) -> a -> f ()
-traverseOf_ l f = getTraversal . foldMapOf l (Traversal . (() <$) . f)
+-- | > traverseOf_ :: Applicative f => FoldFamily a b c d -> (c -> f e) -> a -> f ()
+traverseOf_ :: Applicative f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> (c -> f e) -> a -> f ()
+traverseOf_ l f = getTraversed . foldMapOf l (Traversed . (() <$) . f)
 {-# INLINE traverseOf_ #-}
 
--- | > forOf_ :: Applicative f => MultiGetterFamily a b c d -> a -> (c -> f e) -> f ()
-forOf_ :: Applicative f => ((c -> Const (Traversal f) d) -> a -> Const (Traversal f) b) -> a -> (c -> f e) -> f ()
+-- | > forOf_ :: Applicative f => FoldFamily a b c d -> a -> (c -> f e) -> f ()
+forOf_ :: Applicative f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> (c -> f e) -> f ()
 forOf_ l a f = traverseOf_ l f a
 {-# INLINE forOf_ #-}
 
--- | > sequenceAOf_ :: Applicative f => MultiGetterFamily a b (f ()) d -> a -> f ()
-sequenceAOf_ :: Applicative f => ((f () -> Const (Traversal f) d) -> a -> Const (Traversal f) b) -> a -> f ()
-sequenceAOf_ l = getTraversal . foldMapOf l (Traversal . (() <$))
+-- | > sequenceAOf_ :: Applicative f => FoldFamily a b (f ()) d -> a -> f ()
+sequenceAOf_ :: Applicative f => ((f () -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> f ()
+sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . (() <$))
 {-# INLINE sequenceAOf_ #-}
 
--- | > mapMOf_ :: Monad m => MultiGetterFamily a b c d -> (c -> m e) -> a -> m ()
-mapMOf_ :: Monad m => ((c -> Const (Traversal (WrappedMonad m)) d) -> a -> Const (Traversal (WrappedMonad m)) b) -> (c -> m e) -> a -> m ()
+-- | > mapMOf_ :: Monad m => FoldFamily a b c d -> (c -> m e) -> a -> m ()
+mapMOf_ :: Monad m => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> (c -> m e) -> a -> m ()
 mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
 {-# INLINE mapMOf_ #-}
 
--- | > forMOf_ :: Monad m => MultiGetterFamily a b c d -> a -> (c -> m e) -> m ()
-forMOf_ :: Monad m => ((c -> Const (Traversal (WrappedMonad m)) d) -> a -> Const (Traversal (WrappedMonad m)) b) -> a -> (c -> m e) -> m ()
+-- | > forMOf_ :: Monad m => FoldFamily a b c d -> a -> (c -> m e) -> m ()
+forMOf_ :: Monad m => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> a -> (c -> m e) -> m ()
 forMOf_ l a f = mapMOf_ l f a
 {-# INLINE forMOf_ #-}
 
--- | > sequenceOf_ :: Monad m => MultiGetterFamily a b (m b) d -> a -> m ()
-sequenceOf_ :: Monad m => ((m c -> Const (Traversal (WrappedMonad m)) d) -> a -> Const (Traversal (WrappedMonad m)) b) -> a -> m ()
+-- | > sequenceOf_ :: Monad m => FoldFamily a b (m b) d -> a -> m ()
+sequenceOf_ :: Monad m => ((m c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> a -> m ()
 sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
 {-# INLINE sequenceOf_ #-}
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
 --
--- > asumOf :: Alternative f => MultiGetterFamily a b c d -> a -> f c
+-- > asumOf :: Alternative f => FoldFamily a b c d -> a -> f c
 asumOf :: Alternative f => ((f c -> Const (Endo (f c)) d) -> a -> Const (Endo (f c)) b) -> a -> f c
 asumOf l = foldrOf l (<|>) Applicative.empty
 {-# INLINE asumOf #-}
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
 --
--- > msumOf :: MonadPlus m => MultiGetterFamily a b c d -> a -> m c
+-- > msumOf :: MonadPlus m => FoldFamily a b c d -> a -> m c
 msumOf :: MonadPlus m => ((m c -> Const (Endo (m c)) d) -> a -> Const (Endo (m c)) b) -> a -> m c
 msumOf l = foldrOf l mplus mzero
 {-# INLINE msumOf #-}
 
--- | > elemOf :: Eq c => MultiGetterFamily a b c d -> c -> a -> Bool
+-- | > elemOf :: Eq c => FoldFamily a b c d -> c -> a -> Bool
 elemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
 elemOf l = anyOf l . (==)
 {-# INLINE elemOf #-}
 
--- | > notElemOf :: Eq c => MultiGetterFamily a b c d -> c -> a -> Bool
+-- | > notElemOf :: Eq c => FoldFamily a b c d -> c -> a -> Bool
 notElemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
 notElemOf l c = not . elemOf l c
 {-# INLINE notElemOf #-}
 
--- | > concatMapOf :: MultiGetterFamily a b c d -> (c -> [e]) -> a -> [e]
+-- | > concatMapOf :: FoldFamily a b c d -> (c -> [e]) -> a -> [e]
 concatMapOf :: ((c -> Const [e] d) -> a -> Const [e] b) -> (c -> [e]) -> a -> [e]
 concatMapOf l ces a = getConst  (l (Const . ces) a)
 {-# INLINE concatMapOf #-}
@@ -679,79 +693,82 @@ sequenceOf l = unwrapMonad . l pure
 {-# INLINE sequenceOf #-}
 
 --------------------------
--- Multigetters
+-- Folds
 --------------------------
 
-folded :: Foldable f => MultiGetterFamily (f c) b c d
+folded :: Foldable f => FoldFamily (f c) b c d
 folded = gettingMany id
 {-# INLINE folded #-}
 
 --------------------------
--- Multilenses
+-- Traversals
 --------------------------
 
 -- | This is the partial lens that never succeeds at returning any values
 --
--- > constML :: Applicative f => (c -> f d) -> a -> f a
-constML :: MultiLensFamily a a c d
-constML = const pure
-{-# INLINE constML #-}
+-- > traverseNothing :: Applicative f => (c -> f d) -> a -> f a
+traverseNothing :: TraversalFamily a a c d
+traverseNothing = const pure
+{-# INLINE traverseNothing #-}
 
 -- The multilens for reading and writing to the head of a list
 --
--- | > headML :: Applicative f => (a -> f a) -> [a] -> f [a]
-headML :: MultiLens [a] a
-headML _ [] = pure []
-headML f (a:as) = (:as) <$> f a
-{-# INLINE headML #-}
+-- | > traverseHead :: Applicative f => (a -> f a) -> [a] -> f [a]
+traverseHead :: Traversal [a] a
+traverseHead _ [] = pure []
+traverseHead f (a:as) = (:as) <$> f a
+{-# INLINE traverseHead #-}
 
 -- The multilens for reading and writing to the tail of a list
 --
--- | > tailML :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
-tailML :: MultiLens [a] [a]
-tailML _ [] = pure []
-tailML f (a:as) = (a:) <$> f as
-{-# INLINE tailML #-}
+-- | > traverseTail :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
+traverseTail :: Traversal [a] [a]
+traverseTail _ [] = pure []
+traverseTail f (a:as) = (a:) <$> f as
+{-# INLINE traverseTail #-}
 
 -- | A multilens for tweaking the left-hand value in an Either:
 --
--- > leftML :: Applicative f => (a -> f b) -> Either a c -> f (Either b c)
-leftML :: MultiLensFamily (Either a c) (Either b c) a b
-leftML f (Left a)  = Left <$> f a
-leftML _ (Right c) = pure $ Right c
-{-# INLINE leftML #-}
+-- > traverseLeft :: Applicative f => (a -> f b) -> Either a c -> f (Either b c)
+traverseLeft :: TraversalFamily (Either a c) (Either b c) a b
+traverseLeft f (Left a)  = Left <$> f a
+traverseLeft _ (Right c) = pure $ Right c
+{-# INLINE traverseLeft #-}
 
 -- | A multilens for tweaking the right-hand value in an Either:
 --
--- > rightML :: Applicative f => (a -> f b) -> Either c a -> f (Either c a)
--- > rightML = traverse
+-- > traverseRight :: Applicative f => (a -> f b) -> Either c a -> f (Either c a)
+-- > traverseRight = traverse
 --
 -- Unfortunately the instance for 'Traversable (Either c)' is still missing from
 -- base.
-rightML :: MultiLensFamily (Either c a) (Either c b) a b
-rightML _ (Left c) = pure $ Left c
-rightML f (Right a) = Right <$> f a
-{-# INLINE rightML #-}
+traverseRight :: TraversalFamily (Either c a) (Either c b) a b
+traverseRight _ (Left c) = pure $ Left c
+traverseRight f (Right a) = Right <$> f a
+{-# INLINE traverseRight #-}
 
 -- |
--- > keyML :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
--- > keyML k = keyL k . traverse
-keyML :: Ord k => k -> MultiLens (Map k v) v
-keyML k = keyL k . traverse
-{-# INLINE keyML #-}
+-- > traverseKey :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
+-- > traverseKey k = keyL k . traverse
+traverseKey :: Ord k => k -> Traversal (Map k v) v
+traverseKey k = keyL k . traverse
+{-# INLINE traverseKey #-}
 
 -- |
--- > intKeyML :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
--- > intKeyML k = intKeyL k . traverse
-intKeyML :: Int -> MultiLens (IntMap v) v
-intKeyML k = intKeyL k . traverse
-{-# INLINE intKeyML #-}
+-- > traverseIntKey :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
+-- > traverseIntKey k = intKeyL k . traverse
+traverseIntKey :: Int -> Traversal (IntMap v) v
+traverseIntKey k = intKeyL k . traverse
+{-# INLINE traverseIntKey #-}
 
--- | > elementML :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
-elementML :: Traversable t => Int -> MultiLens (t a) a
-elementML j f ta = fst (runSA (traverse go ta) 0) where
+-- | > traverseElement :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
+traverseElement :: Traversable t => Int -> Traversal (t a) a
+traverseElement j f ta = fst (runSA (traverse go ta) 0) where
   go a = SA $ \i -> (if i == j then f a else pure a, i + 1)
-{-# INLINE elementML #-}
+{-# INLINE traverseElement #-}
+
+-- traverseByteString     :: Traversal Strict.ByteString Word8
+-- traverseLazyByteString :: Traversal Lazy.ByteString Word8
 
 ------------------------------------------------------------------------------
 -- Implementation details
@@ -769,11 +786,11 @@ instance Applicative f => Applicative (SA f) where
     (ff, j) -> case ma j of
        (fa, k) -> (ff <*> fa, k)
 
-newtype Traversal f = Traversal { getTraversal :: f () }
+newtype Traversed f = Traversed { getTraversed :: f () }
 
-instance Applicative f => Monoid (Traversal f) where
-  mempty = Traversal (pure ())
-  Traversal ma `mappend` Traversal mb = Traversal (ma *> mb)
+instance Applicative f => Monoid (Traversed f) where
+  mempty = Traversed (pure ())
+  Traversed ma `mappend` Traversed mb = Traversed (ma *> mb)
 
 -- wrapMonadL :: Functor f => (m a -> f (n b)) -> WrappedMonad m a -> f (WrappedMonad n b)
 -- wrapMonadL f (WrapMonad ma) = WrapMonad <$> f ma
