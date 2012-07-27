@@ -276,7 +276,7 @@ reading l a = getConst (l Const a)
 {-# INLINE reading #-}
 
 -- | Modify the target of a 'Lens', 'LensFamily' or all the targets of a
--- 'Multilens', 'MultiLensFamily', 'Setter' or 'SetterFamily'
+-- 'MultiLens', 'MultiLensFamily', 'Setter' or 'SetterFamily'
 --
 -- > mapOf, modifying :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
 mapOf, modifying :: SetterFamily a b c d -> (c -> d) -> a -> b
