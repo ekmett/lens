@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 704
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE Trustworthy #-}
 #endif
 -----------------------------------------------------------------------------
