@@ -13,6 +13,7 @@ copyright:     Copyright (C) 2012 Edward A. Kmett
 synopsis:      Lenses and Lens Families
 description:   Lenses and Lens Families
 build-type:    Simple
+tested-with:   GHC == 7.4.1
 extra-source-files: .travis.yml
 
 source-repository head
