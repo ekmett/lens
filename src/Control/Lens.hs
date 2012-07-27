@@ -57,6 +57,7 @@ module Control.Lens
 
   -- ** Getting Values
   , reading
+  , readings
   , (^.), (^$)
 
   -- * Setters
@@ -115,15 +116,17 @@ module Control.Lens
   , traverseNothing
   , traverseValueAt
   , traverseValueAtInt
-  , traverseHead
-  , traverseTail
+  , traverseHead, traverseTail
+  , traverseLast, traverseInit
   , traverseLeft
   , traverseRight
   , traverseElement
   , TraverseByteString(..)
+  , TraverseValueAtMin(..)
+  , TraverseValueAtMax(..)
 
   -- ** Traversal Combinators
-  , traverseOf
+  -- , traverseOf = id
   , mapMOf
   , sequenceAOf
   , sequenceOf
@@ -158,6 +161,7 @@ import           Data.IntMap                      as IntMap
 import           Data.IntSet                      as IntSet
 import           Data.Map                         as Map
 import           Data.Monoid
+import           Data.Sequence                    as Seq
 import           Data.Set                         as Set
 import           Data.Traversable
 import           Data.Word (Word8)
@@ -267,6 +271,13 @@ reading :: ((c -> Const c d) -> a -> Const c b) -> a -> c
 reading l a = getConst (l Const a)
 {-# INLINE reading #-}
 
+-- | Get the value of a 'Getter', 'Lens' or 'LensFamily' or the fold of a
+-- 'Fold', 'Traversal' or 'TraversalFamily' that points to something you want
+-- to map to a monoidal value
+readings :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
+readings l f = getConst . l (Const . f)
+{-# INLINE readings #-}
+
 -- | Read the value of a 'Getter', 'Lens' or 'LensFamily'.
 -- This is the same operation as 'reading'.
 (^$) :: ((c -> Const c d) -> a -> Const c b) -> a -> c
@@ -324,7 +335,6 @@ setting f g a = Identity (f (runIdentity . g) a)
 mapped :: Functor f => SetterFamily (f a) (f b) a b
 mapped = setting fmap
 {-# INLINE mapped #-}
-
 
 -- | Modify the target of a 'Lens', 'LensFamily' or all the targets of a
 -- 'Traversal', 'TraversalFamily', 'Setter' or 'SetterFamily'
@@ -619,13 +629,16 @@ folding f g a = Const (foldMap (getConst . g) (f a))
 {-# INLINE folding #-}
 
 --------------------------
--- Fold combinators
+-- Fold/Getter combinators
 --------------------------
 
 -- |
 -- > foldMap = foldMapOf folded
 --
--- > foldMapOf :: FoldFamily a b c d -> (c -> m) -> a -> m
+-- > foldMapOf = readings
+--
+-- > foldMapOf :: GetterFamily a b c d -> (c -> m) -> a -> m
+-- > foldMapOf :: Monoid m => FoldFamily a b c d -> (c -> m) -> a -> m
 foldMapOf :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
 foldMapOf l f = getConst . l (Const . f)
 {-# INLINE foldMapOf #-}
@@ -633,6 +646,9 @@ foldMapOf l f = getConst . l (Const . f)
 -- |
 -- > fold = foldOf folded
 --
+-- > foldOf = reading
+--
+-- > foldOf :: GetterFamily a b m d -> a -> m
 -- > foldOf :: Monoid m => FoldFamily a b m d -> a -> m
 foldOf :: ((m -> Const m d) -> a -> Const m b) -> a -> m
 foldOf l = getConst . l Const
@@ -641,6 +657,7 @@ foldOf l = getConst . l Const
 -- |
 -- > foldr = foldrOf folded
 --
+-- > foldrOf :: GetterFamily a b c d -> (c -> e -> e) -> e -> a -> e
 -- > foldrOf :: FoldFamily a b c d -> (c -> e -> e) -> e -> a -> e
 foldrOf :: ((c -> Const (Endo e) d) -> a -> Const (Endo e) b) -> (c -> e -> e) -> e -> a -> e
 foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
@@ -649,6 +666,7 @@ foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 -- |
 -- > toList = toListOf folded
 --
+-- > toListOf :: GetterFamily a b c d -> a -> [c]
 -- > toListOf :: FoldFamily a b c d -> a -> [c]
 toListOf :: ((c -> Const [c] d) -> a -> Const [c] b) -> a -> [c]
 toListOf l = foldMapOf l return
@@ -657,6 +675,7 @@ toListOf l = foldMapOf l return
 -- |
 -- > and = andOf folded
 --
+-- > andOf :: GetterFamily a b Bool d -> a -> Bool
 -- > andOf :: FoldFamily a b Bool d -> a -> Bool
 andOf :: ((Bool -> Const All d) -> a -> Const All b) -> a -> Bool
 andOf l = getAll . foldMapOf l All
@@ -665,6 +684,7 @@ andOf l = getAll . foldMapOf l All
 -- |
 -- > or = orOf folded
 --
+-- > orOf :: GetterFamily a b Bool d -> a -> Bool
 -- > orOf :: FoldFamily a b Bool d -> a -> Bool
 orOf :: ((Bool -> Const Any d) -> a -> Const Any b) -> a -> Bool
 orOf l = getAny . foldMapOf l Any
@@ -673,6 +693,7 @@ orOf l = getAny . foldMapOf l Any
 -- |
 -- > any = anyOf folded
 --
+-- > anyOf :: GetterFamily a b c d -> (c -> Bool) -> a -> Bool
 -- > anyOf :: FoldFamily a b c d -> (c -> Bool) -> a -> Bool
 anyOf :: ((c -> Const Any d) -> a -> Const Any b) -> (c -> Bool) -> a -> Bool
 anyOf l f = getAny . foldMapOf l (Any . f)
@@ -681,6 +702,7 @@ anyOf l f = getAny . foldMapOf l (Any . f)
 -- |
 -- > all = allOf folded
 --
+-- > allOf :: GetterFamily a b c d -> (c -> Bool) -> a -> Bool
 -- > allOf :: FoldFamily a b c d -> (c -> Bool) -> a -> Bool
 allOf :: ((c -> Const All d) -> a -> Const All b) -> (c -> Bool) -> a -> Bool
 allOf l f = getAll . foldMapOf l (All . f)
@@ -689,7 +711,8 @@ allOf l f = getAll . foldMapOf l (All . f)
 -- |
 -- > product = productOf folded
 --
--- > productOf :: FoldFamily a b c d -> a -> c
+-- > productOf :: GetterFamily a b c d -> a -> c
+-- > productOf :: Num c => FoldFamily a b c d -> a -> c
 productOf :: ((c -> Const (Product c) d) -> a -> Const (Product c) b) -> a -> c
 productOf l = getProduct . foldMapOf l Product
 {-# INLINE productOf #-}
@@ -697,15 +720,30 @@ productOf l = getProduct . foldMapOf l Product
 -- |
 -- > sum = sumOf folded
 --
--- > sumOf :: FoldFamily a b c d -> a -> c
+-- > sumOf _1 :: (a, b) -> a
+-- > sumOf (folded._1) :: (Foldable f, Num a) => f (a, b) -> a
+--
+-- > sumOf :: GetterFamily a b c d -> a -> c
+-- > sumOf :: Num c => FoldFamily a b c d -> a -> c
 sumOf ::  ((c -> Const (Sum c) d) -> a -> Const (Sum c) b) -> a -> c
 sumOf l = getSum . foldMapOf l Sum
 {-# INLINE sumOf #-}
 
 -- |
--- > traverse_ = traverseOf_ folded
 --
--- > traverseOf_ :: Functor f => FoldFamily a b c d -> (c -> f e) -> a -> f ()
+-- When passed a 'Getter', 'traverseOf_' can work over a 'Functor'.
+--
+-- When passed a 'FoldFamily', 'traverseOf_' requires an 'Applicative'.
+--
+-- > traverse_ = traverseOf_ folded
+
+-- > traverseOf_ _2 :: Functor f => (c -> f e) -> (c1, c) -> f ()
+-- > traverseOf_ traverseLeft :: Applicative f => (a -> f b) -> Either a c -> f ()
+--
+-- The rather specific signature of traverseOf_ allows it to be used as if the signature was either:
+--
+-- > traverseOf_ :: Functor f => GetterFamily a b c d -> (c -> f e) -> a -> f ()
+-- > traverseOf_ :: Applicative f => FoldFamily a b c d -> (c -> f e) -> a -> f ()
 traverseOf_ :: Functor f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> (c -> f e) -> a -> f ()
 traverseOf_ l f = getTraversed . foldMapOf l (Traversed . (() <$) . f)
 {-# INLINE traverseOf_ #-}
@@ -713,7 +751,8 @@ traverseOf_ l f = getTraversed . foldMapOf l (Traversed . (() <$) . f)
 -- |
 -- > for_ = forOf_ folded
 --
--- > forOf_ :: Functor f => FoldFamily a b c d -> a -> (c -> f e) -> f ()
+-- > forOf_ :: Functor f => GetterFamily a b c d -> a -> (c -> f e) -> f ()
+-- > forOf_ :: Applicative f => FoldFamily a b c d -> a -> (c -> f e) -> f ()
 forOf_ :: Functor f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> (c -> f e) -> f ()
 forOf_ l a f = traverseOf_ l f a
 {-# INLINE forOf_ #-}
@@ -721,6 +760,7 @@ forOf_ l a f = traverseOf_ l f a
 -- |
 -- > sequenceA_ = sequenceAOf_ folded
 --
+-- > sequenceAOf_ :: Functor f => GetterFamily a b (f ()) d -> a -> f ()
 -- > sequenceAOf_ :: Applicative f => FoldFamily a b (f ()) d -> a -> f ()
 sequenceAOf_ :: Functor f => ((f () -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> f ()
 sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . (() <$))
@@ -729,6 +769,7 @@ sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . (() <$))
 -- |
 -- > mapM_ = mapMOf_ folded
 --
+-- > mapMOf_ :: Monad m => GetterFamily a b c d -> (c -> m e) -> a -> m ()
 -- > mapMOf_ :: Monad m => FoldFamily a b c d -> (c -> m e) -> a -> m ()
 mapMOf_ :: Monad m => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> (c -> m e) -> a -> m ()
 mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
@@ -737,6 +778,7 @@ mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
 -- |
 -- > forM_ = forMOf_ folded
 --
+-- > forMOf_ :: Monad m => GetterFamily a b c d -> a -> (c -> m e) -> m ()
 -- > forMOf_ :: Monad m => FoldFamily a b c d -> a -> (c -> m e) -> m ()
 forMOf_ :: Monad m => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> a -> (c -> m e) -> m ()
 forMOf_ l a f = mapMOf_ l f a
@@ -745,6 +787,7 @@ forMOf_ l a f = mapMOf_ l f a
 -- |
 -- > sequence_ = sequenceOf_ folded
 --
+-- > sequenceOf_ :: Monad m => GetterFamily a b (m b) d -> a -> m ()
 -- > sequenceOf_ :: Monad m => FoldFamily a b (m b) d -> a -> m ()
 sequenceOf_ :: Monad m => ((m c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> a -> m ()
 sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
@@ -754,6 +797,7 @@ sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
 --
 -- > asum = asumOf folded
 --
+-- > asumOf :: Alternative f => GetterFamily a b c d -> a -> f c
 -- > asumOf :: Alternative f => FoldFamily a b c d -> a -> f c
 asumOf :: Alternative f => ((f c -> Const (Endo (f c)) d) -> a -> Const (Endo (f c)) b) -> a -> f c
 asumOf l = foldrOf l (<|>) Applicative.empty
@@ -763,6 +807,7 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 --
 -- > msum = msumOf folded
 --
+-- > msumOf :: MonadPlus m => GetterFamily a b c d -> a -> m c
 -- > msumOf :: MonadPlus m => FoldFamily a b c d -> a -> m c
 msumOf :: MonadPlus m => ((m c -> Const (Endo (m c)) d) -> a -> Const (Endo (m c)) b) -> a -> m c
 msumOf l = foldrOf l mplus mzero
@@ -771,6 +816,7 @@ msumOf l = foldrOf l mplus mzero
 -- |
 -- > elem = elemOf folded
 --
+-- > elemOf :: Eq c => GetterFamily a b c d -> c -> a -> Bool
 -- > elemOf :: Eq c => FoldFamily a b c d -> c -> a -> Bool
 elemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
 elemOf l = anyOf l . (==)
@@ -779,6 +825,7 @@ elemOf l = anyOf l . (==)
 -- |
 -- > notElem = notElemOf folded
 --
+-- > notElemOf :: Eq c => GetterFamily a b c d -> c -> a -> Bool
 -- > notElemOf :: Eq c => FoldFamily a b c d -> c -> a -> Bool
 notElemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
 notElemOf l c = not . elemOf l c
@@ -787,6 +834,7 @@ notElemOf l c = not . elemOf l c
 -- |
 -- > concatMap = concatMapOf folded
 --
+-- > concatMapOf :: GetterFamily a b c d -> (c -> [e]) -> a -> [e]
 -- > concatMapOf :: FoldFamily a b c d -> (c -> [e]) -> a -> [e]
 concatMapOf :: ((c -> Const [e] d) -> a -> Const [e] b) -> (c -> [e]) -> a -> [e]
 concatMapOf l ces a = getConst  (l (Const . ces) a)
@@ -795,6 +843,7 @@ concatMapOf l ces a = getConst  (l (Const . ces) a)
 -- |
 -- > concat = concatOf folded
 --
+-- > concatOf :: GetterFamily a b [e] d -> a -> [e]
 -- > concatOf :: FoldFamily a b [e] d -> a -> [e]
 concatOf :: (([e] -> Const [e] d) -> a -> Const [e] b) -> a -> [e]
 concatOf = reading
@@ -826,17 +875,9 @@ type TraversalFamily a b c d        = forall f. Applicative f => (c -> f d) -> a
 --------------------------
 
 -- |
--- > traverseOf = id
--- > traverse = traverseOf traverse
---
--- > traverseOf :: Applicative f => TraversalFamily a b c d -> (c -> f d) -> a -> f b
-traverseOf :: ((c -> f d) -> a -> f b) -> (c -> f d) -> a -> f b
-traverseOf = id
-{-# INLINE traverseOf #-}
-
--- |
 -- > mapM = mapMOf traverse
 --
+-- > mapMOf :: Monad m => LensFamily a b c d -> (c -> m d) -> a -> m b
 -- > mapMOf :: Monad m => TraversalFamily a b c d -> (c -> m d) -> a -> m b
 mapMOf :: ((c -> WrappedMonad m d) -> a -> WrappedMonad m b) -> (c -> m d) -> a -> m b
 mapMOf l cmd a = unwrapMonad (l (WrapMonad . cmd) a)
@@ -845,6 +886,7 @@ mapMOf l cmd a = unwrapMonad (l (WrapMonad . cmd) a)
 -- |
 -- > sequenceA = sequenceAOf traverse
 --
+-- > sequenceAOf :: Applicative f => LensFamily a b (f c) (f c) -> a -> f b
 -- > sequenceAOf :: Applicative f => TraversalFamily a b (f c) (f c) -> a -> f b
 sequenceAOf :: Applicative f => ((f c -> f (f c)) -> a -> f b) -> a -> f b
 sequenceAOf l = l pure
@@ -853,6 +895,7 @@ sequenceAOf l = l pure
 -- |
 -- > sequence = sequenceOf traverse
 --
+-- > sequenceOf :: Monad m => LensFamily a b (m c) (m c) -> a -> m b
 -- > sequenceOf :: Monad m => TraversalFamily a b (m c) (m c) -> a -> m b
 sequenceOf :: Monad m => ((m c -> WrappedMonad m (m c)) -> a -> WrappedMonad m b) -> a -> m b
 sequenceOf l = unwrapMonad . l pure
@@ -877,13 +920,28 @@ traverseHead _ [] = pure []
 traverseHead f (a:as) = (:as) <$> f a
 {-# INLINE traverseHead #-}
 
--- The traversal for reading and writing to the tail of a list
 --
 -- | > traverseTail :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
 traverseTail :: Traversal [a] [a]
 traverseTail _ [] = pure []
 traverseTail f (a:as) = (a:) <$> f as
 {-# INLINE traverseTail #-}
+
+traverseLast :: Traversal [a] a
+traverseLast _ []     = pure []
+traverseLast f [a]    = return <$> f a
+traverseLast f (a:as) = (a:) <$> traverseLast f as
+{-# INLINE traverseLast #-}
+
+-- The traversal for reading and writing to the tail of a list
+
+-- | Traverse all but the last element of a list
+--
+-- > traverseInit :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
+traverseInit :: Traversal [a] [a]
+traverseInit _ [] = pure []
+traverseInit f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
+{-# INLINE traverseInit #-}
 
 -- | A traversal for tweaking the left-hand value in an Either:
 --
@@ -940,6 +998,50 @@ instance TraverseByteString Strict.ByteString where
 
 instance TraverseByteString Lazy.ByteString where
   traverseByteString f = fmap Lazy.pack . traverse f . Lazy.unpack
+
+class TraverseValueAtMin t where
+  traverseValueAtMin :: Traversal (t v) v
+  -- default traverseValueAtMin :: Traversable t => Traversal (t v) v
+  -- traverseValueAtMin = traverseElement 0
+
+instance TraverseValueAtMin (Map k) where
+  traverseValueAtMin f m = case Map.minView m of
+    Just (a, _) -> (\v -> Map.updateMin (const (Just v)) m) <$> f a
+    Nothing     -> pure m
+
+instance TraverseValueAtMin IntMap where
+  traverseValueAtMin f m = case IntMap.minView m of
+    Just (a, _) -> (\v -> IntMap.updateMin (const v) m) <$> f a
+    Nothing     -> pure m
+
+instance TraverseValueAtMin [] where
+  traverseValueAtMin = traverseHead
+
+instance TraverseValueAtMin Seq where
+  traverseValueAtMin f m = case Seq.viewl m of
+    a :< as -> (<| as) <$> f a
+    EmptyL -> pure m
+
+class TraverseValueAtMax t where
+  traverseValueAtMax :: Traversal (t v) v
+
+instance TraverseValueAtMax (Map k) where
+  traverseValueAtMax f m = case Map.maxView m of
+    Just (a, _) -> (\v -> Map.updateMax (const (Just v)) m) <$> f a
+    Nothing     -> pure m
+
+instance TraverseValueAtMax IntMap where
+  traverseValueAtMax f m = case IntMap.maxView m of
+    Just (a, _) -> (\v -> IntMap.updateMax (const v) m) <$> f a
+    Nothing     -> pure m
+
+instance TraverseValueAtMax [] where
+  traverseValueAtMax = traverseLast
+
+instance TraverseValueAtMax Seq where
+  traverseValueAtMax f m = case Seq.viewr m of
+    as :> a -> (as |>) <$> f a
+    EmptyR  -> pure m
 
 ------------------------------------------------------------------------------
 -- Cloning Lenses
