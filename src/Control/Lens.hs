@@ -25,7 +25,8 @@
 --
 -- This package provides lenses, lens families, setters, setter families,
 -- getters, traversals, folds, and traversal families in such
--- a way that they can all be composed automatically with @(.)@.
+-- a way that they can all be composed automatically with @(.)@ from
+-- Prelude.
 --
 -- You can derive lenses automatically for many data types:
 --
@@ -424,21 +425,22 @@ l ^&&= n = modifying l (&& n)
 
 -- | This is a lens family that can change the value (and type) of the first field of
 -- a pair.
-
+--
 -- > ghci> (1,2)^._1
 -- > 1
 --
 -- > ghci> _1 ^= "hello" $ (1,2)
 -- > ("hello",2)
 --
--- > anyOf _2 :: (c -> Bool) -> (a, c) -> Bool
--- > traverse._2 :: (Applicative f, Traversable t) => (a -> f b) -> t (c, a) -> f (t (c, b))
--- > foldMapOf (traverse._2) :: (Traversable t, Monoid m) => (c -> m) -> t (b, c) -> m
 _1 :: LensFamily (a,c) (b,c) a b
 _1 f (a,c) = (\b -> (b,c)) <$> f a
 {-# INLINE _1 #-}
 
 -- | As '_1', but for the second field of a pair.
+--
+-- > anyOf _2 :: (c -> Bool) -> (a, c) -> Bool
+-- > traverse._2 :: (Applicative f, Traversable t) => (a -> f b) -> t (c, a) -> f (t (c, b))
+-- > foldMapOf (traverse._2) :: (Traversable t, Monoid m) => (c -> m) -> t (b, c) -> m
 _2 :: LensFamily (c,a) (c,b) a b
 _2 f (c,a) = (,) c <$> f a
 {-# INLINE _2 #-}
@@ -623,8 +625,8 @@ folding f g a = Const (foldMap (getConst . g) (f a))
 -- |
 -- > foldMap = foldMapOf folded
 --
--- > foldMapOf :: Monoid m => FoldFamily a b c d -> (c -> m) -> a -> m
-foldMapOf :: Monoid m => ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
+-- > foldMapOf :: FoldFamily a b c d -> (c -> m) -> a -> m
+foldMapOf :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
 foldMapOf l f = getConst . l (Const . f)
 {-# INLINE foldMapOf #-}
 
@@ -632,7 +634,7 @@ foldMapOf l f = getConst . l (Const . f)
 -- > fold = foldOf folded
 --
 -- > foldOf :: Monoid m => FoldFamily a b m d -> a -> m
-foldOf :: Monoid m => ((m -> Const m d) -> a -> Const m b) -> a -> m
+foldOf :: ((m -> Const m d) -> a -> Const m b) -> a -> m
 foldOf l = getConst . l Const
 {-# INLINE foldOf #-}
 
@@ -687,32 +689,32 @@ allOf l f = getAll . foldMapOf l (All . f)
 -- |
 -- > product = productOf folded
 --
--- > productOf ::  Num c => FoldFamily a b c d -> a -> c
-productOf :: Num c => ((c -> Const (Product c) d) -> a -> Const (Product c) b) -> a -> c
+-- > productOf :: FoldFamily a b c d -> a -> c
+productOf :: ((c -> Const (Product c) d) -> a -> Const (Product c) b) -> a -> c
 productOf l = getProduct . foldMapOf l Product
 {-# INLINE productOf #-}
 
 -- |
 -- > sum = sumOf folded
 --
--- > sumOf ::  Num c => FoldFamily a b c d -> a -> c
-sumOf ::  Num c => ((c -> Const (Sum c) d) -> a -> Const (Sum c) b) -> a -> c
+-- > sumOf :: FoldFamily a b c d -> a -> c
+sumOf ::  ((c -> Const (Sum c) d) -> a -> Const (Sum c) b) -> a -> c
 sumOf l = getSum . foldMapOf l Sum
 {-# INLINE sumOf #-}
 
 -- |
 -- > traverse_ = traverseOf_ folded
 --
--- > traverseOf_ :: Applicative f => FoldFamily a b c d -> (c -> f e) -> a -> f ()
-traverseOf_ :: Applicative f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> (c -> f e) -> a -> f ()
+-- > traverseOf_ :: Functor f => FoldFamily a b c d -> (c -> f e) -> a -> f ()
+traverseOf_ :: Functor f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> (c -> f e) -> a -> f ()
 traverseOf_ l f = getTraversed . foldMapOf l (Traversed . (() <$) . f)
 {-# INLINE traverseOf_ #-}
 
 -- |
 -- > for_ = forOf_ folded
 --
--- > forOf_ :: Applicative f => FoldFamily a b c d -> a -> (c -> f e) -> f ()
-forOf_ :: Applicative f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> (c -> f e) -> f ()
+-- > forOf_ :: Functor f => FoldFamily a b c d -> a -> (c -> f e) -> f ()
+forOf_ :: Functor f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> (c -> f e) -> f ()
 forOf_ l a f = traverseOf_ l f a
 {-# INLINE forOf_ #-}
 
@@ -720,7 +722,7 @@ forOf_ l a f = traverseOf_ l f a
 -- > sequenceA_ = sequenceAOf_ folded
 --
 -- > sequenceAOf_ :: Applicative f => FoldFamily a b (f ()) d -> a -> f ()
-sequenceAOf_ :: Applicative f => ((f () -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> f ()
+sequenceAOf_ :: Functor f => ((f () -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> f ()
 sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . (() <$))
 {-# INLINE sequenceAOf_ #-}
 
@@ -828,7 +830,7 @@ type TraversalFamily a b c d        = forall f. Applicative f => (c -> f d) -> a
 -- > traverse = traverseOf traverse
 --
 -- > traverseOf :: Applicative f => TraversalFamily a b c d -> (c -> f d) -> a -> f b
-traverseOf :: Applicative f => ((c -> f d) -> a -> f b) -> (c -> f d) -> a -> f b
+traverseOf :: ((c -> f d) -> a -> f b) -> (c -> f d) -> a -> f b
 traverseOf = id
 {-# INLINE traverseOf #-}
 
@@ -836,7 +838,7 @@ traverseOf = id
 -- > mapM = mapMOf traverse
 --
 -- > mapMOf :: Monad m => TraversalFamily a b c d -> (c -> m d) -> a -> m b
-mapMOf :: Monad m => ((c -> WrappedMonad m d) -> a -> WrappedMonad m b) -> (c -> m d) -> a -> m b
+mapMOf :: ((c -> WrappedMonad m d) -> a -> WrappedMonad m b) -> (c -> m d) -> a -> m b
 mapMOf l cmd a = unwrapMonad (l (WrapMonad . cmd) a)
 {-# INLINE mapMOf #-}
 
