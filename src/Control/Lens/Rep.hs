@@ -19,6 +19,7 @@
 --
 -- > import Control.Lens
 -- > import Control.Lens.Rep
+-- > import Control.Lens.TH
 -- > import Data.Distributive
 --
 -- > data Pair a = Pair { _x :: a, _y :: a }
