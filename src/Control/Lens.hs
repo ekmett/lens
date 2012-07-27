@@ -1,5 +1,5 @@
 {-# LANGUAGE RankNTypes, TemplateHaskell #-}
-{-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -Wall -fwarn-unused-binds -fwarn-unused-matches #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens
@@ -33,21 +33,25 @@ module Control.Lens
   (
   -- * Lenses
     Lens, LensFamily
-  , Getter, GetterFamily
-  , Setter, SetterFamily
-  , Fold, FoldFamily
-  , Traversal, TraversalFamily
 
   -- * Constructing Lenses
-  , makeLenses
-  , makeLensesBy
-  , makeLensesFor
   , lens
   , iso
   , clone
-  , getting
-  , folding
-  , setting
+  -- ** Constructing Lenses Automatically
+  , makeLenses
+  , makeLensesBy
+  , makeLensesFor
+
+  -- * Common Lenses
+  , _1
+  , _2
+  , valueAt
+  , valueAtInt
+  , contains
+  , containsInt
+  , identity
+  , resultAt
 
   -- * Manipulating Values
   , reading
@@ -61,18 +65,21 @@ module Control.Lens
   , Focus(..)
   , (%=), (~=), (%%=), (+=), (-=), (*=), (//=), (||=), (&&=)
 
-  -- * Lenses and LensFamilies
-  , _1
-  , _2
-  , valueAt
-  , valueAtInt
-  , contains
-  , containsInt
-  , identity
-  , resultAt
+  -- ** Getters
+  , Getter, GetterFamily
+  , getting
+
+  -- ** Setters
+  , Setter, SetterFamily
+  , setting
 
   -- * Folds
+  , Fold
+  , FoldFamily
+
+  -- ** Common Folds
   , folded
+  , folding
 
   -- ** Fold Combinators
   , mapOf
@@ -96,6 +103,11 @@ module Control.Lens
   , notElemOf
 
   -- * Traversals
+  , Traversal
+  , TraversalFamily
+
+  -- ** Common Traversals
+
   , traverseNothing
   , traverseValueAt
   , traverseValueAtInt
@@ -871,9 +883,7 @@ traverseElement j f ta = fst (runSA (traverse go ta) 0) where
 class TraverseByteString t where
   -- | Traverse the individual bytes in a ByteString
   --
-  -- > ghci> :t anyOf traverseByteString
-  -- anyOf traverseByteString
-  --   :: TraverseByteString b => (GHC.Word.Word8 -> Bool) -> b -> Bool
+  -- > anyOf traverseByteString (==0x80) :: TraverseByteString b => b -> Bool
   traverseByteString :: Traversal t Word8
 
 instance TraverseByteString Strict.ByteString where
