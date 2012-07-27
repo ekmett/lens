@@ -72,11 +72,11 @@ module Control.Lens
   -- ** Setting Values
   , modifying
   , writing
-  , (^%=), (^=), (^+=), (^-=), (^*=), (^/=), (^||=), (^&&=)
+  , (^%=), (^=), (^+=), (^-=), (^*=), (^/=), (^||=), (^&&=), (^|=), (^&=)
 
   -- * Manipulating State
   , access
-  , (%=), (~=), (+=), (-=), (*=), (//=), (||=), (&&=)
+  , (%=), (~=), (+=), (-=), (*=), (//=), (||=), (&&=), (|=), (&=)
   , (%%=)
   , Focus(..)
 
@@ -118,16 +118,25 @@ module Control.Lens
 
   -- ** Common Traversals
   , traverseNothing
+
   , traverseValueAt
   , traverseValueAtInt
+
   , traverseHead, traverseTail
   , traverseLast, traverseInit
+
   , traverseLeft
   , traverseRight
+
   , traverseElement
+  , traverseElements
+
   , TraverseByteString(..)
+
   , TraverseValueAtMin(..)
   , TraverseValueAtMax(..)
+
+  , traverseBits
 
   -- ** Traversal Combinators
   -- , traverseOf = id
@@ -136,16 +145,20 @@ module Control.Lens
   , sequenceOf
   , elementOf
   , elementsOf
+  , transposeOf
 
   -- ** Common Lenses
   , _1
   , _2
   , valueAt
   , valueAtInt
+  , bitAt
   , contains
   , containsInt
   , identity
   , resultAt
+
+  -- , indexOf
 
   -- * Implementation details
   , IndexedStore
@@ -159,6 +172,7 @@ import           Control.Monad.State.Class
 import qualified Control.Monad.Trans.State.Lazy   as Lazy
 import qualified Control.Monad.Trans.State.Strict as Strict
 import           Control.Monad.Trans.Reader
+import           Data.Bits
 import           Data.ByteString.Lazy             as Lazy
 import           Data.ByteString                  as Strict
 import           Data.Foldable                    as Foldable
@@ -173,8 +187,8 @@ import           Data.Traversable
 import           Data.Word (Word8)
 
 infixl 8 ^.
-infixr 4 ^%=, ^=, ^+=, ^*=, ^-=, ^/=, ^&&=, ^||=
-infix  4 ~=, %=, %%=, +=, -=, *=, //=, &&=, ||=
+infixr 4 ^%=, ^=, ^+=, ^*=, ^-=, ^/=, ^&&=, ^||=, ^&=, ^|=
+infix  4 ~=, %=, %%=, +=, -=, *=, //=, &&=, ||=, &=, |=
 infixr 0 ^$
 
 --------------------------
@@ -192,7 +206,6 @@ infixr 0 ^$
 --
 -- Every 'Lens' can be used directly as a 'LensFamily' or as a 'Getter', 'Setter', or 'Traversal', which transitively mens it can be used as
 -- almost anything! Such as a 'TraversalFamily', a 'GetterFamily', a 'FoldFamily', a 'Fold', or a 'SetterFamily'.
---
 --
 -- Example:
 --
@@ -255,8 +268,9 @@ iso f g h a = g <$> h (f a )
 type Getter a b                = forall z. (b -> Const z b) -> a -> Const z a
 
 -- | A 'GetterFamily' describes how to retrieve a single value in a way that can be composed with
--- other lens-like constructions. It can be used directly as a 'FoldFamily', since it just
--- ignores the 'Monoid'.
+-- other lens-like constructions.
+--
+-- A 'GetterFamily' can be used directly as a 'FoldFamily', since it just ignores the 'Monoid'.
 type GetterFamily a b c d      = forall z. (c -> Const z d) -> a -> Const z b
 
 -- | Build a 'Getter' or 'GetterFamily'
@@ -435,6 +449,19 @@ l ^||= n = modifying l (|| n)
 l ^&&= n = modifying l (&& n)
 {-# INLINE (^&&=) #-}
 
+-- | Bitwise '.|.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+--
+-- > (^|=):: Bits b => ((b -> Identity b) -> a -> Identity a) -> Bool -> a -> a
+(^|=):: Bits b => Setter a b -> b -> a -> a
+l ^|= n = modifying l (.|. n)
+{-# INLINE (^|=) #-}
+
+-- | Bitwise '.&.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+-- (^&=) :: Bits b => ((b -> Identity b) -> a -> Identity a) -> b -> a -> a
+(^&=) :: Bits b => Setter a b -> b -> a -> a
+l ^&= n = modifying l (.&. n)
+{-# INLINE (^&=) #-}
+
 ------------------------------------------------------------------------------
 -- Common Lenses
 ------------------------------------------------------------------------------
@@ -484,7 +511,6 @@ valueAtInt k f m = go <$> f (IntMap.lookup k m) where
   go (Just v') = IntMap.insert k v' m
 {-# INLINE valueAtInt #-}
 
-
 -- | This lens can be used to read, write or delete a member of a 'Set'
 --
 -- > ghci> contains 3 ^= False $ Set.fromList [1,2,3,4]
@@ -509,6 +535,10 @@ containsInt k f s = go <$> f (IntSet.member k s) where
 identity :: LensFamily (Identity a) (Identity b) a b
 identity f (Identity a) = Identity <$> f a
 {-# INLINE identity #-}
+
+bitAt :: Bits b => Int -> Lens b Bool
+bitAt n f b = (\x -> if x then setBit b n else clearBit b n) <$> f (testBit b n)
+{-# INLINE bitAt #-}
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
@@ -603,6 +633,16 @@ l &&= b = modify $ l ^&&= b
 (||=) :: MonadState a m => Setter a Bool -> Bool -> m ()
 l ||= b = modify $ l ^||= b
 {-# INLINE (||=) #-}
+
+-- | Modify a numeric field in our monadic state by computing its bitwise '.&.' with another value.
+(&=):: (MonadState a m, Bits b) => Setter a b -> b -> m ()
+l &= b = modify $ l ^&= b
+{-# INLINE (&=) #-}
+
+-- | Modify a boolean field in our monadic state by computing its bitwise '.|.' with another value.
+(|=) :: (MonadState a m, Bits b) => Setter a b -> b -> m ()
+l |= b = modify $ l ^|= b
+{-# INLINE (|=) #-}
 
 --------------------------
 -- Folds
@@ -920,6 +960,16 @@ elementsOf :: Applicative f => ((c -> SA f c) -> a -> SA f b) -> (Int -> Bool) -
 elementsOf l p f ta = fst (runSA (l go ta) 0) where
   go a = SA $ \i -> (if p i then f a else pure a, i + 1)
 
+-- |
+--
+-- > transpose = transposeOf traverse -- (for not ragged arrays)
+--
+--
+-- > transposeOf _2 :: (b, [a]) -> [(b, a)]
+
+transposeOf :: (([c] -> ZipList c) -> a -> ZipList b) -> a -> [b]
+transposeOf l = getZipList . l ZipList
+
 --------------------------
 -- Traversals
 --------------------------
@@ -1077,6 +1127,22 @@ instance TraverseValueAtMax Seq where
     as :> a -> (as |>) <$> f a
     EmptyR  -> pure m
 
+traverseBits :: Bits b => Traversal b Bool
+traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
+  where
+    g n      = (,) n <$> f (testBit b n)
+    bits     = Prelude.takeWhile hasBit [0..]
+    hasBit n = complementBit b n /= b -- test to make sure that complementing this bit actually changes the value
+    step (n,True) r = setBit r n
+    step _        r = r
+
+-- this version requires a legal bitSize
+--
+--traverseBits :: Bits b => Traversal b Bool
+--traverseBits f b = snd . Prelude.foldr step (bitSize b - 1,0) <$> traverse (f . testBit b) [0 .. bitSize b - 1] where
+--  step True (n,r) = (n - 1, setBit r n)
+--  step _    (n,r) = (n - 1, r)
+
 ------------------------------------------------------------------------------
 -- Cloning Lenses
 ------------------------------------------------------------------------------
@@ -1090,6 +1156,12 @@ clone :: Functor f =>
 clone f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
 {-# INLINE clone #-}
+
+--indexOf :: ((c -> ((e -> Const e d) -> c -> Const e b) -> e) ->
+--            a -> ((e -> Const e d) -> c -> Const e b) -> e) ->
+--            a -> ((e -> Const e d) -> c -> Const e b) -> e
+--indexOf l = l (^.)
+--{-# INLINE indexOf #-}
 
 ------------------------------------------------------------------------------
 -- Implementation details
