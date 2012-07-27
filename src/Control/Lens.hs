@@ -176,7 +176,8 @@ type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
 -- Despite the complicated signature the pattern for implementing a 'LensFamily' is the same as a Lens.
 -- in fact the implementation doesn't change, the type signature merely generalizes.
 --
--- > _2 :: LensFamily (c,a) (c,b) a b
+-- > -- _2 :: LensFamily (c,a) (c,b) a b
+-- > _2 :: Functor f => (a -> f b) -> (c,a) -> f (c, b)
 -- > _2 f (c,a) = (,) a <$> f c
 type LensFamily a b c d        = forall f. Functor f => (c -> f d) -> a -> f b
 
