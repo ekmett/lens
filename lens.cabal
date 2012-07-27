@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       0.5
+version:       0.6
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -25,8 +25,8 @@ library
     Control.Lens
     Control.Lens.Rep
     Control.Lens.TH
-  ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: src
+    Control.Lens.Internal
+
   build-depends:
     base             == 4.*,
     bytestring       == 0.9.*,
@@ -34,11 +34,16 @@ library
     mtl              >= 2.1.1 && < 2.2,
     template-haskell >= 2.4   && < 2.8,
     transformers     >= 0.2   && < 0.4
+
   other-extensions:
     CPP
     Rank2Types
     RankNTypes
     TemplateHaskell
+
   if (impl(ghc>=7.4))
     other-extensions:
       Safe Trustworthy
+
+  ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs: src

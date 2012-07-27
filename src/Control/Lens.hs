@@ -160,13 +160,10 @@ module Control.Lens
 
   -- , indexOf
 
-  -- * Implementation details
-  , IndexedStore
-  , Focusing
-  , Traversed
   ) where
 
 import           Control.Applicative              as Applicative
+import           Control.Lens.Internal
 import           Control.Monad (liftM, MonadPlus(..))
 import           Control.Monad.State.Class
 import qualified Control.Monad.Trans.State.Lazy   as Lazy
@@ -559,18 +556,6 @@ access :: MonadState a m => ((c -> Const c d) -> a -> Const c b) -> m c
 access l = gets (^. l)
 {-# INLINE access #-}
 
-newtype Focusing m c a = Focusing { unfocusing :: m (c, a) }
-
-instance Monad m => Functor (Focusing m c) where
-  fmap f (Focusing m) = Focusing (liftM (fmap f) m)
-
-instance (Monad m, Monoid c) => Applicative (Focusing m c) where
-  pure a = Focusing (return (mempty, a))
-  Focusing mf <*> Focusing ma = Focusing $ do
-    (c, f) <- mf
-    (d, a) <- ma
-    return (mappend c d, f a)
-
 -- | This class allows us to use 'focus' on a number of different monad transformers.
 class Focus st where
   -- | Use a lens to lift an operation with simpler context into a larger context
@@ -950,15 +935,15 @@ sequenceOf l = unwrapMonad . l pure
 -- | A Traversal of the nth element of a Traversal
 --
 -- > traverseHead = elementOf traverse 0
-elementOf :: Applicative f => ((c -> SA f c) -> a -> SA f b) -> Int -> (c -> f c) -> a -> f b
+elementOf :: Applicative f => ((c -> AppliedState f c) -> a -> AppliedState f b) -> Int -> (c -> f c) -> a -> f b
 elementOf l = elementsOf l . (==)
 
 -- | A Traversal of the elements at positions in a Traversal where the positions satisfy a predicate
 --
 -- > traverseTail = elementsOf traverse (>0)
-elementsOf :: Applicative f => ((c -> SA f c) -> a -> SA f b) -> (Int -> Bool) -> (c -> f c) -> a -> f b
-elementsOf l p f ta = fst (runSA (l go ta) 0) where
-  go a = SA $ \i -> (if p i then f a else pure a, i + 1)
+elementsOf :: Applicative f => ((c -> AppliedState f c) -> a -> AppliedState f b) -> (Int -> Bool) -> (c -> f c) -> a -> f b
+elementsOf l p f ta = fst (runAppliedState (l go ta) 0) where
+  go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
 
 -- |
 --
@@ -1066,8 +1051,8 @@ traverseElement = traverseElements . (==)
 --
 -- > traverseElements :: Applicative f, Traversable t) => (Int -> Bool) -> (a -> f a) -> t a -> f (t a)
 traverseElements :: Traversable t => (Int -> Bool) -> Traversal (t a) a
-traverseElements p f ta = fst (runSA (traverse go ta) 0) where
-  go a = SA $ \i -> (if p i then f a else pure a, i + 1)
+traverseElements p f ta = fst (runAppliedState (traverse go ta) 0) where
+  go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
 {-# INLINE traverseElements #-}
 
 
@@ -1163,29 +1148,3 @@ clone f cfd a = case f (IndexedStore id) a of
 --indexOf l = l (^.)
 --{-# INLINE indexOf #-}
 
-------------------------------------------------------------------------------
--- Implementation details
-------------------------------------------------------------------------------
-
-data IndexedStore c d a = IndexedStore (d -> a) c
-
-instance Functor (IndexedStore c d) where
-  fmap f (IndexedStore g c) = IndexedStore (f . g) c
-
-newtype SA f a = SA { runSA :: Int -> (f a, Int) }
-
-instance Functor f => Functor (SA f) where
-  fmap f (SA m) = SA $ \i -> case m i of
-    (fa, j) -> (fmap f fa, j)
-
-instance Applicative f => Applicative (SA f) where
-  pure a = SA (\i -> (pure a, i))
-  SA mf <*> SA ma = SA $ \i -> case mf i of
-    (ff, j) -> case ma j of
-       (fa, k) -> (ff <*> fa, k)
-
-newtype Traversed f = Traversed { getTraversed :: f () }
-
-instance Applicative f => Monoid (Traversed f) where
-  mempty = Traversed (pure ())
-  Traversed ma `mappend` Traversed mb = Traversed (ma *> mb)
