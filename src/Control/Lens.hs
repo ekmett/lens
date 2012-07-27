@@ -177,7 +177,7 @@ type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
 -- in fact the implementation doesn't change, the type signature merely generalizes.
 --
 -- > _2 :: LensFamily (c,a) (c,b) a b
--- > _2 f (a,c) = (,) a <$> f c
+-- > _2 f (c,a) = (,) a <$> f c
 type LensFamily a b c d        = forall f. Functor f => (c -> f d) -> a -> f b
 
 -- | A 'SetterFamily' describes a way to perform polymorphic update to potentially multiple fields in a way that can be
