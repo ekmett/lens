@@ -97,6 +97,7 @@ module Control.Lens
   , containsInt
   , identity
   , resultAt
+  , real, imaginary, polarize
 
   -- * Folds
   , Fold
@@ -148,11 +149,14 @@ module Control.Lens
   , traverseElements
 
   , TraverseByteString(..)
+--, TraverseText(..)
 
   , TraverseValueAtMin(..)
   , TraverseValueAtMax(..)
 
   , traverseBits
+  , traverseDynamic
+  , traverseException
 
   -- ** Traversal Combinators
   -- , traverseOf
@@ -165,6 +169,7 @@ module Control.Lens
   ) where
 
 import           Control.Applicative              as Applicative
+import           Control.Exception                as Exception
 import           Control.Lens.Internal
 import           Control.Monad (liftM, MonadPlus(..))
 import           Control.Monad.State.Class
@@ -174,6 +179,8 @@ import           Control.Monad.Trans.Reader
 import           Data.Bits
 import           Data.ByteString.Lazy             as Lazy
 import           Data.ByteString                  as Strict
+import           Data.Complex
+import           Data.Dynamic
 import           Data.Foldable                    as Foldable
 import           Data.Functor.Identity
 import           Data.IntMap                      as IntMap hiding (adjust)
@@ -182,7 +189,10 @@ import           Data.Map                         as Map    hiding (adjust)
 import           Data.Monoid
 import           Data.Sequence                    as Seq    hiding (adjust)
 import           Data.Set                         as Set
+-- import        Data.Text                        as StrictText
+-- import        Data.Text.Lazy                   as LazyText
 import           Data.Traversable
+import           Data.Tree
 import           Data.Word (Word8)
 
 infixl 8 ^.
@@ -565,6 +575,28 @@ resultAt e afa ea = go <$> afa a where
   go a' e' | e == e'   = a'
            | otherwise = a
 {-# INLINE resultAt #-}
+
+-- | Access the real part of a complex number
+--
+-- > real :: Functor f => (a -> f a) -> Complex a -> f (Complex a)
+real :: Simple Lens (Complex a) a
+real f (a :+ b) = (:+ b) <$> f a
+
+-- | Access the imaginary part of a complex number
+--
+-- > imaginary :: Functor f => (a -> f a) -> Complex a -> f (Complex a)
+imaginary :: Simple Lens (Complex a) a
+imaginary f (a :+ b) = (a :+) <$> f b
+
+-- | This isn't /quite/ a legal lens. Notably the @view l (set l b a) = b@ law
+-- is violated when you set a polar value with 0 magnitude and non-zero phase
+-- as the phase information is lost.
+--
+-- So don't do that. Otherwise this is a perfectly convenient lens.
+--
+-- polarize :: Functor f => ((a,a) -> f (a,a)) -> Complex a -> f (Complex a)
+polarize :: RealFloat a => Simple Lens (Complex a) (a,a)
+polarize f c = uncurry mkPolar <$> f (polar c)
 
 ------------------------------------------------------------------------------
 -- State
@@ -1147,6 +1179,26 @@ traverseElements p f ta = fst (runAppliedState (traverse go ta) 0) where
   go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
 {-# INLINE traverseElements #-}
 
+-- |
+-- Traverse the typed value contained in a 'Dynamic' where the type required by your function matches that
+-- of the contents of the 'Dynamic'.
+--
+-- > traverseDynamic :: (Applicative f, Typeable a, Typeable b) => (a -> f b) -> Dynamic -> f Dynamic
+traverseDynamic :: (Typeable a, Typeable b) => Traversal Dynamic Dynamic a b
+traverseDynamic f dyn = case fromDynamic dyn of
+  Just a  -> toDyn <$> f a
+  Nothing -> pure dyn
+
+-- |
+-- Traverse the strongly typed 'Exception' contained in 'SomeException' where the type of your function matches
+-- the desired 'Exception'.
+--
+-- > traverseException :: (Applicative f, Exception a, Exception b) => (a -> f b) -> SomeException -> f SomeException
+traverseException :: (Exception a, Exception b) => Traversal SomeException SomeException a b
+traverseException f e = case fromException e of
+  Just a -> toException <$> f a
+  Nothing -> pure e
+
 -- | Provides ad hoc overloading for 'traverseByteString'
 class TraverseByteString t where
   -- | Traverse the individual bytes in a ByteString
@@ -1159,6 +1211,18 @@ instance TraverseByteString Strict.ByteString where
 
 instance TraverseByteString Lazy.ByteString where
   traverseByteString f = fmap Lazy.pack . traverse f . Lazy.unpack
+
+{-
+-- | Provides ad hoc overloading for 'traverseText'
+class TraverseText t where
+  traverseText :: Simple Traversal t Char
+
+instance TraverseText StrictText.Text where
+  traverseText f = fmap StrictText.pack . traverse f . StrictText.unpack
+
+instance TraverseText LazyText.Text where
+  traverseText f = fmap LazyText.pack . traverse f . LazyText.unpack
+-}
 
 -- | Types that support traversal of the value of the minimal key
 --
@@ -1187,6 +1251,9 @@ instance TraverseValueAtMin Seq where
   traverseValueAtMin f m = case Seq.viewl m of
     a :< as -> (<| as) <$> f a
     EmptyL -> pure m
+
+instance TraverseValueAtMin Tree where
+  traverseValueAtMin f (Node a as) = (`Node` as) <$> f a
 
 -- | Types that support traversal of the value of the maximal key
 --
