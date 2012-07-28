@@ -1,7 +1,3 @@
-{-# LANGUAGE CPP #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
-{-# LANGUAGE Safe #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal
@@ -24,6 +20,10 @@ module Control.Lens.Internal
   , Focusing(..)
   , Traversed(..)
   , AppliedState(..)
+  , Min(..)
+  , getMin
+  , Max(..)
+  , getMax
   ) where
 
 import Control.Applicative
@@ -75,3 +75,31 @@ newtype Traversed f = Traversed { getTraversed :: f () }
 instance Applicative f => Monoid (Traversed f) where
   mempty = Traversed (pure ())
   Traversed ma `mappend` Traversed mb = Traversed (ma *> mb)
+
+-- | Used for 'minimumOf'
+data Min a = NoMin | Min a
+
+instance Ord a => Monoid (Min a) where
+  mempty = NoMin
+  mappend NoMin m = m
+  mappend m NoMin = m
+  mappend (Min a) (Min b) = Min (min a b)
+
+-- | Obtain the minimum
+getMin :: Min a -> Maybe a
+getMin NoMin   = Nothing
+getMin (Min a) = Just a
+
+-- | Used for 'maximumOf'
+data Max a = NoMax | Max a
+
+instance Ord a => Monoid (Max a) where
+  mempty = NoMax
+  mappend NoMax m = m
+  mappend m NoMax = m
+  mappend (Max a) (Max b) = Max (max a b)
+
+-- | Obtain the maximum
+getMax :: Max a -> Maybe a
+getMax NoMax   = Nothing
+getMax (Max a) = Just a

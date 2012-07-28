@@ -1,9 +1,5 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
-{-# LANGUAGE Safe #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens
@@ -53,6 +49,7 @@ module Control.Lens
   (
   -- * Lenses
     Lens
+  , LensLike
 
   -- * "Simple" Lenses
   , Simple
@@ -64,6 +61,7 @@ module Control.Lens
 
   -- * Getters
   , Getter
+  , Getting
   , to
 
   -- ** Getting Values
@@ -104,12 +102,14 @@ module Control.Lens
 
   -- ** Common Folds
   , folded
-  , folding
+  , filtered
+  , reversed
 
   -- ** Fold Combinators
   , foldMapOf
-  , foldrOf
   , foldOf
+  , foldrOf
+  , foldlOf
   , toListOf
   , anyOf
   , allOf
@@ -129,6 +129,13 @@ module Control.Lens
   , concatOf
   , elemOf
   , notElemOf
+  , lengthOf
+  , nullOf
+  , maximumOf
+  , minimumOf
+  , maximumByOf
+  , minimumByOf
+  , findOf
 
   -- * Traversals
   , Traversal
@@ -149,7 +156,7 @@ module Control.Lens
   , traverseElements
 
   , TraverseByteString(..)
---, TraverseText(..)
+  , TraverseText(..)
 
   , TraverseValueAtMin(..)
   , TraverseValueAtMax(..)
@@ -159,7 +166,7 @@ module Control.Lens
   , traverseException
 
   -- ** Traversal Combinators
-  -- , traverseOf
+  , traverseOf
   , mapMOf
   , sequenceAOf
   , sequenceOf
@@ -189,8 +196,8 @@ import           Data.Map                         as Map    hiding (adjust)
 import           Data.Monoid
 import           Data.Sequence                    as Seq    hiding (adjust)
 import           Data.Set                         as Set
--- import        Data.Text                        as StrictText
--- import        Data.Text.Lazy                   as LazyText
+import           Data.Text                        as StrictText
+import           Data.Text.Lazy                   as LazyText
 import           Data.Traversable
 import           Data.Tree
 import           Data.Word (Word8)
@@ -219,6 +226,8 @@ infixr 0 ^$
 --
 -- > identity :: Lens (Identity a) (Identity b) a b
 -- > identity f (Identity a) = Identity <$> f a
+
+-- > type Lens = forall f. Functor f => Traversing f a b c d
 type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 
 -- | A @'Simple' 'Lens'@, @'Simple' 'Setter'@, or @'Simple' 'Traversal'@ can be used instead of a 'Lens' 'Setter' or 'Traversal' 
@@ -229,6 +238,16 @@ type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 --
 -- > traverseHead :: Simple Traversal [a] a
 type Simple f a b = f a a b b
+
+-- |
+-- Many combinators that accept a 'Lens' can also accept a 'Traversal' in limited situations.
+--
+-- They do so by specializing the type of 'Functor' that they require of the caller.
+--
+-- If a function accepts a @'LensLike' f a b c d@ for some 'Functor' @f@, then they may be passed a 'Lens'.
+--
+-- Further, if @f@ is an 'Applicative', they may also be passed a 'Traversal'.
+type LensLike f a b c d = (c -> f d) -> a -> f b
 
 --------------------------
 -- Constructing Lenses
@@ -262,6 +281,8 @@ iso f g h a = g <$> h (f a )
 --
 -- In practice the @b@ and @d@ are left dangling and unused, and as such is no real point in
 -- using a @'Simple' 'Getter'@.
+--
+-- type Getter a b c d = forall z. LensLike (Const z) a b c d
 type Getter a b c d = forall z. (c -> Const z d) -> a -> Const z b
 
 -- | Build a 'Getter'
@@ -270,6 +291,17 @@ type Getter a b c d = forall z. (c -> Const z d) -> a -> Const z b
 to :: (a -> c) -> Getter a b c d
 to f g a = Const (getConst (g (f a)))
 {-# INLINE to #-}
+
+-- |
+-- Most 'Getter' combinators are able to be used with both a 'Getter' or a 'Fold' in
+-- limited situations, to do so, they need to be monomorphic in what we are going to
+-- extract with 'Const'.
+--
+-- If a function accepts a @Getting r a b c d@, then when @r@ is a Monoid, you can
+-- pass a 'Fold' (or 'Traversal'), otherwise you can only pass this a 'Getter' or 'Lens'.
+--
+-- > type Getting r a b c d = LensLike (Const r) a b c d
+type Getting r a b c d = (c -> Const r d) -> a -> Const r b
 
 -------------------------------
 -- Getting Values
@@ -284,7 +316,9 @@ to f g a = Const (getConst (g (f a)))
 -- > view ::             Getter a b c d    -> a -> c
 -- > view :: Monoid m => Fold a b m d      -> a -> m
 -- > view :: Monoid m => Traversal a b m d -> a -> m
-view :: ((c -> Const c d) -> a -> Const c b) -> a -> c
+--
+-- > view :: ((c -> Const c d) -> a -> Const c b) -> a -> c
+view :: Getting c a b c d -> a -> c
 view l a = getConst (l Const a)
 {-# INLINE view #-}
 
@@ -297,7 +331,9 @@ view l a = getConst (l Const a)
 -- > views ::             Lens a b c d      -> (c -> d) -> a -> d
 -- > views :: Monoid m => Fold a b c d      -> (c -> m) -> a -> m
 -- > views :: Monoid m => Traversal a b c d -> (c -> m) -> a -> m
-views :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
+--
+-- > views :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
+views :: Getting m a b c d -> (c -> m) -> a -> m
 views l f = getConst . l (Const . f)
 {-# INLINE views #-}
 
@@ -310,7 +346,9 @@ views l f = getConst . l (Const . f)
 -- > (^$) ::             Getter a b c d    -> a -> c
 -- > (^$) :: Monoid m => Fold a b m d      -> a -> m
 -- > (^$) :: Monoid m => Traversal a b m d -> a -> m
-(^$) :: ((c -> Const c d) -> a -> Const c b) -> a -> c
+--
+-- > (^$) :: ((c -> Const c d) -> a -> Const c b) -> a -> c
+(^$) :: Getting c a b c d -> a -> c
 l ^$ a = getConst (l Const a)
 {-# INLINE (^$) #-}
 
@@ -325,11 +363,13 @@ l ^$ a = getConst (l Const a)
 -- > ghci> ((0, 1 :+ 2), 3)^._1._2.to magnitude
 -- > 2.23606797749979
 --
--- > (^$) ::             a -> Lens a b c d      -> c
--- > (^$) ::             a -> Getter a b c d    -> c
--- > (^$) :: Monoid m => a -> Fold a b m d      -> m
--- > (^$) :: Monoid m => a -> Traversal a b m d -> m
-(^.) :: a -> ((c -> Const c d) -> a -> Const c b) -> c
+-- > (^.) ::             a -> Lens a b c d      -> c
+-- > (^.) ::             a -> Getter a b c d    -> c
+-- > (^.) :: Monoid m => a -> Fold a b m d      -> m
+-- > (^.) :: Monoid m => a -> Traversal a b m d -> m
+--
+-- > (^.) :: a -> ((c -> Const c d) -> a -> Const c b) -> c
+(^.) :: a -> Getting c a b c d -> c
 a ^. l = getConst (l Const a)
 {-# INLINE (^.) #-}
 
@@ -352,6 +392,7 @@ type Setter a b c d = (c -> Identity d) -> a -> Identity b
 mapped :: Functor f => Setter (f a) (f b) a b
 mapped = sets fmap
 {-# INLINE mapped #-}
+
 
 -- | Build a Setter
 --
@@ -610,7 +651,9 @@ polarize f c = uncurry mkPolar <$> f (polar c)
 -- > access :: MonadState a m             => Lens a b c d      -> m c
 -- > access :: (MonadState a m, Monoid c) => Fold a b c d      -> m c
 -- > access :: (MonadState a m, Monoid c) => Traversal a b c d -> m c
-access :: MonadState a m => ((c -> Const c d) -> a -> Const c b) -> m c
+--
+-- > access :: MonadState a m => ((c -> Const c d) -> a -> Const c b) -> m c
+access :: MonadState a m => Getting c a b c d -> m c
 access l = gets (^. l)
 {-# INLINE access #-}
 
@@ -625,12 +668,19 @@ class Focus st where
   -- and a monoidal summary
   -- of the result is given.
   --
-  -- > focus :: Monad m => Simple Lens a b -> st b m c -> st a m c
+  -- > focus :: Monad m             => Simple Lens a b      -> st b m c -> st a m c
   -- > focus :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m c
-  focus :: Monad m => ((b -> Focusing m c b) -> a -> Focusing m c a) -> st b m c -> st a m c
+  --
+  -- > focus :: Monad m => ((b -> Focusing m c b) -> a -> Focusing m c a) -> st b m c -> st a m c
+  focus :: Monad m => LensLike (Focusing m c) a a b b -> st b m c -> st a m c
 
-  -- | 'focus', discarding any accumulated results as you go.
-  focus_ :: Monad m => ((b -> Focusing m () b) -> a -> Focusing m () a) -> st b m c -> st a m ()
+  -- | Like 'focus', but discarding any accumulated results as you go.
+  --
+  -- > focus_ :: Monad m             => Simple Lens a b      -> st b m c -> st a m ()
+  -- > focus_ :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m ()
+  --
+  -- > focus_ :: Monad m => ((b -> Focusing m () b) -> a -> Focusing m () a) -> st b m c -> st a m ()
+  focus_ :: Monad m => LensLike (Focusing m ()) a a b b -> st b m c -> st a m ()
 
 skip :: a -> ()
 skip _ = ()
@@ -661,9 +711,11 @@ instance Focus ReaderT where
 -- It may be useful to think of '(%%=)', instead, as having either of the following more restricted
 -- type signatures:
 --
--- > (%%=) :: MonadState a m => Simple Lens a b -> (b -> (c, b) -> m c
+-- > (%%=) :: MonadState a m             => Simple Lens a b      -> (b -> (c, b) -> m c
 -- > (%%=) :: (MonadState a m, Monoid c) => Simple Traversal a b -> (b -> (c, b) -> m c
-(%%=) :: MonadState a m => ((b -> (c,b)) -> a -> (c,a)) -> (b -> (c, b)) -> m c
+--
+-- > (%%=) :: MonadState a m => ((b -> (c,b)) -> a -> (c,a)) -> (b -> (c, b)) -> m c
+(%%=) :: MonadState a m => LensLike ((,) c) a a b b -> (b -> (c, b)) -> m c
 l %%= f = state (l f)
 {-# INLINE (%%=) #-}
 
@@ -736,17 +788,32 @@ l |= b = modify $ l =|= b
 -- there are no lens laws that can be applied to it.
 --
 -- In practice the @b@ and @d@ are left dangling and unused, and as such is no real point in a @'Simple' 'Fold'@.
+--
+-- > type Fold a b c d = forall m. Monoid m => Getting m a b c d
 type Fold a b c d      = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
-
--- | Building a Fold
-folding :: Foldable f => (a -> f c) -> Fold a b c d
-folding f g a = Const (foldMap (getConst . g) (f a))
-{-# INLINE folding #-}
 
 -- | Obtain a 'Fold' from any 'Foldable'
 folded :: Foldable f => Fold (f c) b c d
-folded = folding id
+folded g = Const . foldMap (getConst . g)
 {-# INLINE folded #-}
+
+-- | Obtain a 'Fold' by filtering a 'Lens', 'Getter, 'Fold' or 'Traversal'.
+--
+-- > filtered :: Monoid m
+-- >          => (c -> Bool)
+-- >          -> ((c -> Const m d) -> a -> Const m b)
+-- >          -> (c -> Const m d) -> a -> Const m b
+filtered :: Monoid m => (c -> Bool) -> Getting m a b c d -> Getting m a b c d
+filtered p l f = l (\c -> if p c then f c else Const mempty)
+
+-- | Obtain a 'Fold' by reversing the order of traversal for a 'Lens', 'Getter', 'Fold' or 'Traversal'.
+--
+-- Note: reversing a 'Fold' or 'Getter' has no effect.
+--
+-- > reversed :: ((c -> Const (Dual m) d) -> a -> Const (Dual m) b)
+--            -> (c -> Const m d) -> a -> Const m b
+reversed :: Getting (Dual m) a b c d -> Getting m a b c d
+reversed l f = Const . getDual . getConst . l (Const .  Dual . getConst . f)
 
 --------------------------
 -- Fold/Getter combinators
@@ -761,7 +828,9 @@ folded = folding id
 -- > foldMapOf ::             Lens a b c d      -> (c -> m) -> a -> m
 -- > foldMapOf :: Monoid m => Fold a b c d      -> (c -> m) -> a -> m
 -- > foldMapOf :: Monoid m => Traversal a b c d -> (c -> m) -> a -> m
-foldMapOf :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
+--
+-- > foldMapOf :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
+foldMapOf :: Getting m a b c d -> (c -> m) -> a -> m
 foldMapOf l f = getConst . l (Const . f)
 {-# INLINE foldMapOf #-}
 
@@ -774,20 +843,40 @@ foldMapOf l f = getConst . l (Const . f)
 -- > foldOf ::             Lens a b m d      -> a -> m
 -- > foldOf :: Monoid m => Fold a b m d      -> a -> m
 -- > foldOf :: Monoid m => Traversal a b m d -> a -> m
-foldOf :: ((m -> Const m d) -> a -> Const m b) -> a -> m
+--
+-- > foldOf :: ((m -> Const m d) -> a -> Const m b) -> a -> m
+foldOf :: Getting m a b m d -> a -> m
 foldOf l = getConst . l Const
 {-# INLINE foldOf #-}
 
 -- |
+-- Right-associative fold of parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
+--
 -- > foldr = foldrOf folded
 --
 -- > foldrOf :: Getter a b c d    -> (c -> e -> e) -> e -> a -> e
 -- > foldrOf :: Lens a b c d      -> (c -> e -> e) -> e -> a -> e
 -- > foldrOf :: Fold a b c d      -> (c -> e -> e) -> e -> a -> e
 -- > foldrOf :: Traversal a b c d -> (c -> e -> e) -> e -> a -> e
-foldrOf :: ((c -> Const (Endo e) d) -> a -> Const (Endo e) b) -> (c -> e -> e) -> e -> a -> e
+--
+-- > foldrOf :: ((c -> Const (Endo e) d) -> a -> Const (Endo e) b) -> (c -> e -> e) -> e -> a -> e
+foldrOf :: Getting (Endo e) a b c d -> (c -> e -> e) -> e -> a -> e
 foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 {-# INLINE foldrOf #-}
+
+-- |
+-- Left-associative fold of the parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
+--
+-- > foldl = foldlOf folded
+--
+-- > foldlOf :: Getter a b c d    -> (e -> c -> e) -> e -> a -> e
+-- > foldlOf :: Lens a b c d      -> (e -> c -> e) -> e -> a -> e
+-- > foldlOf :: Fold a b c d      -> (e -> c -> e) -> e -> a -> e
+-- > foldlOf :: Traversal a b c d -> (e -> c -> e) -> e -> a -> e
+--
+-- > foldlOf :: ((c -> Const (Dual (Endo e)) d) -> a -> Const (Dual (Endo e)) b) -> (e -> c -> e) -> e -> a -> e
+foldlOf :: Getting (Dual (Endo e)) a b c d -> (e -> c -> e) -> e -> a -> e
+foldlOf l f z t = appEndo (getDual (foldMapOf l (Dual . Endo . flip f) t)) z
 
 -- |
 -- > toList = toListOf folded
@@ -796,7 +885,9 @@ foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 -- > toListOf :: Lens a b c d      -> a -> [c]
 -- > toListOf :: Fold a b c d      -> a -> [c]
 -- > toListOf :: Traversal a b c d -> a -> [c]
-toListOf :: ((c -> Const [c] d) -> a -> Const [c] b) -> a -> [c]
+--
+-- > toListOf :: ((c -> Const [c] d) -> a -> Const [c] b) -> a -> [c]
+toListOf :: Getting [c] a b c d -> a -> [c]
 toListOf l = foldMapOf l return
 {-# INLINE toListOf #-}
 
@@ -807,7 +898,9 @@ toListOf l = foldMapOf l return
 -- > andOf :: Lens a b Bool d     -> a -> Bool
 -- > andOf :: Fold a b Bool d     -> a -> Bool
 -- > andOf :: Traversl a b Bool d -> a -> Bool
-andOf :: ((Bool -> Const All d) -> a -> Const All b) -> a -> Bool
+--
+-- > andOf :: ((Bool -> Const All d) -> a -> Const All b) -> a -> Bool
+andOf :: Getting All a b Bool d -> a -> Bool
 andOf l = getAll . foldMapOf l All
 {-# INLINE andOf #-}
 
@@ -818,7 +911,9 @@ andOf l = getAll . foldMapOf l All
 -- > orOf :: Lens a b Bool d      -> a -> Bool
 -- > orOf :: Fold a b Bool d      -> a -> Bool
 -- > orOf :: Traversal a b Bool d -> a -> Bool
-orOf :: ((Bool -> Const Any d) -> a -> Const Any b) -> a -> Bool
+--
+-- > orOf :: ((Bool -> Const Any d) -> a -> Const Any b) -> a -> Bool
+orOf :: Getting Any a b Bool d -> a -> Bool
 orOf l = getAny . foldMapOf l Any
 {-# INLINE orOf #-}
 
@@ -829,7 +924,9 @@ orOf l = getAny . foldMapOf l Any
 -- > anyOf :: Lens a b c d      -> (c -> Bool) -> a -> Bool
 -- > anyOf :: Fold a b c d      -> (c -> Bool) -> a -> Bool
 -- > anyOf :: Traversal a b c d -> (c -> Bool) -> a -> Bool
-anyOf :: ((c -> Const Any d) -> a -> Const Any b) -> (c -> Bool) -> a -> Bool
+--
+-- > anyOf :: ((c -> Const Any d) -> a -> Const Any b) -> (c -> Bool) -> a -> Bool
+anyOf :: Getting Any a b c d -> (c -> Bool) -> a -> Bool
 anyOf l f = getAny . foldMapOf l (Any . f)
 {-# INLINE anyOf #-}
 
@@ -840,7 +937,9 @@ anyOf l f = getAny . foldMapOf l (Any . f)
 -- > allOf :: Lens a b c d      -> (c -> Bool) -> a -> Bool
 -- > allOf :: Fold a b c d      -> (c -> Bool) -> a -> Bool
 -- > allOf :: Traversal a b c d -> (c -> Bool) -> a -> Bool
-allOf :: ((c -> Const All d) -> a -> Const All b) -> (c -> Bool) -> a -> Bool
+--
+-- > allOf :: ((c -> Const All d) -> a -> Const All b) -> (c -> Bool) -> a -> Bool
+allOf :: Getting All a b c d -> (c -> Bool) -> a -> Bool
 allOf l f = getAll . foldMapOf l (All . f)
 {-# INLINE allOf #-}
 
@@ -851,7 +950,9 @@ allOf l f = getAll . foldMapOf l (All . f)
 -- > productOf ::          Lens a b c d      -> a -> c
 -- > productOf :: Num c => Fold a b c d      -> a -> c
 -- > productOf :: Num c => Traversal a b c d -> a -> c
-productOf :: ((c -> Const (Product c) d) -> a -> Const (Product c) b) -> a -> c
+--
+-- > productOf :: ((c -> Const (Product c) d) -> a -> Const (Product c) b) -> a -> c
+productOf :: Getting (Product c) a b c d -> a -> c
 productOf l = getProduct . foldMapOf l Product
 {-# INLINE productOf #-}
 
@@ -865,7 +966,9 @@ productOf l = getProduct . foldMapOf l Product
 -- > sumOf ::          Lens a b c d      -> a -> c
 -- > sumOf :: Num c => Fold a b c d      -> a -> c
 -- > sumOf :: Num c => Traversal a b c d -> a -> c
-sumOf ::  ((c -> Const (Sum c) d) -> a -> Const (Sum c) b) -> a -> c
+--
+-- > sumOf ::  ((c -> Const (Sum c) d) -> a -> Const (Sum c) b) -> a -> c
+sumOf :: Getting (Sum c) a b c d -> a -> c
 sumOf l = getSum . foldMapOf l Sum
 {-# INLINE sumOf #-}
 
@@ -886,7 +989,9 @@ sumOf l = getSum . foldMapOf l Sum
 -- > traverseOf_ :: Functor f     => Lens a b c d      -> (c -> f e) -> a -> f ()
 -- > traverseOf_ :: Applicative f => Fold a b c d      -> (c -> f e) -> a -> f ()
 -- > traverseOf_ :: Applicative f => Traversal a b c d -> (c -> f e) -> a -> f ()
-traverseOf_ :: Functor f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> (c -> f e) -> a -> f ()
+--
+-- > traverseOf_ :: Functor f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> (c -> f e) -> a -> f ()
+traverseOf_ :: Functor f => Getting (Traversed f) a b c d -> (c -> f e) -> a -> f ()
 traverseOf_ l f = getTraversed . foldMapOf l (Traversed . (() <$) . f)
 {-# INLINE traverseOf_ #-}
 
@@ -897,7 +1002,9 @@ traverseOf_ l f = getTraversed . foldMapOf l (Traversed . (() <$) . f)
 -- > forOf_ :: Functor f     => Lens a b c d      -> a -> (c -> f e) -> f ()
 -- > forOf_ :: Applicative f => Fold a b c d      -> a -> (c -> f e) -> f ()
 -- > forOf_ :: Applicative f => Traversal a b c d -> a -> (c -> f e) -> f ()
-forOf_ :: Functor f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> (c -> f e) -> f ()
+--
+-- > forOf_ :: Functor f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> (c -> f e) -> f ()
+forOf_ :: Functor f => Getting (Traversed f) a b c d -> a -> (c -> f e) -> f ()
 forOf_ l a f = traverseOf_ l f a
 {-# INLINE forOf_ #-}
 
@@ -908,7 +1015,9 @@ forOf_ l a f = traverseOf_ l f a
 -- > sequenceAOf_ :: Functor f     => Lens a b (f ()) d      -> a -> f ()
 -- > sequenceAOf_ :: Applicative f => Fold a b (f ()) d      -> a -> f ()
 -- > sequenceAOf_ :: Applicative f => Traversal a b (f ()) d -> a -> f ()
-sequenceAOf_ :: Functor f => ((f () -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> f ()
+--
+-- > sequenceAOf_ :: Functor f => ((f () -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> f ()
+sequenceAOf_ :: Functor f => Getting (Traversed f) a b (f ()) d -> a -> f ()
 sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . (() <$))
 {-# INLINE sequenceAOf_ #-}
 
@@ -919,7 +1028,11 @@ sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . (() <$))
 -- > mapMOf_ :: Monad m => Lens a b c d      -> (c -> m e) -> a -> m ()
 -- > mapMOf_ :: Monad m => Fold a b c d      -> (c -> m e) -> a -> m ()
 -- > mapMOf_ :: Monad m => Traversal a b c d -> (c -> m e) -> a -> m ()
-mapMOf_ :: Monad m => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> (c -> m e) -> a -> m ()
+--
+-- > mapMOf_ :: Monad m
+-- >         => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b)
+-- >         -> (c -> m e) -> a -> m ()
+mapMOf_ :: Monad m => Getting (Traversed (WrappedMonad m)) a b c d -> (c -> m e) -> a -> m ()
 mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
 {-# INLINE mapMOf_ #-}
 
@@ -930,7 +1043,10 @@ mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
 -- > forMOf_ :: Monad m => Lens a b c d      -> a -> (c -> m e) -> m ()
 -- > forMOf_ :: Monad m => Fold a b c d      -> a -> (c -> m e) -> m ()
 -- > forMOf_ :: Monad m => Traversal a b c d -> a -> (c -> m e) -> m ()
-forMOf_ :: Monad m => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> a -> (c -> m e) -> m ()
+--
+-- > forMOf_ :: Monad m => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b)
+-- >                    -> a -> (c -> m e) -> m ()
+forMOf_ :: Monad m => Getting (Traversed (WrappedMonad m)) a b c d -> a -> (c -> m e) -> m ()
 forMOf_ l a f = mapMOf_ l f a
 {-# INLINE forMOf_ #-}
 
@@ -941,7 +1057,9 @@ forMOf_ l a f = mapMOf_ l f a
 -- > sequenceOf_ :: Monad m => Lens a b (m b) d      -> a -> m ()
 -- > sequenceOf_ :: Monad m => Fold a b (m b) d      -> a -> m ()
 -- > sequenceOf_ :: Monad m => Traversal a b (m b) d -> a -> m ()
-sequenceOf_ :: Monad m => ((m c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> a -> m ()
+--
+-- > sequenceOf_ :: Monad m => ((m c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> a -> m ()
+sequenceOf_ :: Monad m => Getting (Traversed (WrappedMonad m)) a b (m c) d -> a -> m ()
 sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
 {-# INLINE sequenceOf_ #-}
 
@@ -953,7 +1071,9 @@ sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
 -- > asumOf :: Alternative f => Lens a b c d      -> a -> f c
 -- > asumOf :: Alternative f => Fold a b c d      -> a -> f c
 -- > asumOf :: Alternative f => Traversal a b c d -> a -> f c
-asumOf :: Alternative f => ((f c -> Const (Endo (f c)) d) -> a -> Const (Endo (f c)) b) -> a -> f c
+--
+-- > asumOf :: Alternative f => ((f c -> Const (Endo (f c)) d) -> a -> Const (Endo (f c)) b) -> a -> f c
+asumOf :: Alternative f => Getting (Endo (f c)) a b (f c) d -> a -> f c
 asumOf l = foldrOf l (<|>) Applicative.empty
 {-# INLINE asumOf #-}
 
@@ -965,7 +1085,9 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 -- > msumOf :: MonadPlus m => Lens a b c d      -> a -> m c
 -- > msumOf :: MonadPlus m => Fold a b c d      -> a -> m c
 -- > msumOf :: MonadPlus m => Traversal a b c d -> a -> m c
-msumOf :: MonadPlus m => ((m c -> Const (Endo (m c)) d) -> a -> Const (Endo (m c)) b) -> a -> m c
+--
+-- > msumOf :: MonadPlus m => ((m c -> Const (Endo (m c)) d) -> a -> Const (Endo (m c)) b) -> a -> m c
+msumOf :: MonadPlus m => Getting (Endo (m c)) a b (m c) d -> a -> m c
 msumOf l = foldrOf l mplus mzero
 {-# INLINE msumOf #-}
 
@@ -976,7 +1098,9 @@ msumOf l = foldrOf l mplus mzero
 -- > elemOf :: Eq c => Lens a b c d      -> c -> a -> Bool
 -- > elemOf :: Eq c => Fold a b c d      -> c -> a -> Bool
 -- > elemOf :: Eq c => Traversal a b c d -> c -> a -> Bool
-elemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
+--
+-- > elemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
+elemOf :: Eq c => Getting Any a b c d -> c -> a -> Bool
 elemOf l = anyOf l . (==)
 {-# INLINE elemOf #-}
 
@@ -987,8 +1111,10 @@ elemOf l = anyOf l . (==)
 -- > notElemOf :: Eq c => Fold a b c d      -> c -> a -> Bool
 -- > notElemOf :: Eq c => Lens a b c d      -> c -> a -> Bool
 -- > notElemOf :: Eq c => Traversal a b c d -> c -> a -> Bool
-notElemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
-notElemOf l c = not . elemOf l c
+--
+-- > notElemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
+notElemOf :: Eq c => Getting All a b c d -> c -> a -> Bool
+notElemOf l = allOf l . (/=)
 {-# INLINE notElemOf #-}
 
 -- |
@@ -998,7 +1124,9 @@ notElemOf l c = not . elemOf l c
 -- > concatMapOf :: Lens a b c d      -> (c -> [e]) -> a -> [e]
 -- > concatMapOf :: Fold a b c d      -> (c -> [e]) -> a -> [e]
 -- > concatMapOf :: Traversal a b c d -> (c -> [e]) -> a -> [e]
-concatMapOf :: ((c -> Const [e] d) -> a -> Const [e] b) -> (c -> [e]) -> a -> [e]
+--
+-- > concatMapOf :: ((c -> Const [e] d) -> a -> Const [e] b) -> (c -> [e]) -> a -> [e]
+concatMapOf :: Getting [e] a b c d -> (c -> [e]) -> a -> [e]
 concatMapOf l ces a = getConst  (l (Const . ces) a)
 {-# INLINE concatMapOf #-}
 
@@ -1009,9 +1137,130 @@ concatMapOf l ces a = getConst  (l (Const . ces) a)
 -- > concatOf :: Lens a b [e] d -> a -> [e]
 -- > concatOf :: Fold a b [e] d -> a -> [e]
 -- > concatOf :: a b [e] d -> a -> [e]
-concatOf :: (([e] -> Const [e] d) -> a -> Const [e] b) -> a -> [e]
+--
+-- > concatOf :: (([e] -> Const [e] d) -> a -> Const [e] b) -> a -> [e]
+concatOf :: Getting [e] a b [e] d -> a -> [e]
 concatOf = view
 {-# INLINE concatOf #-}
+
+-- |
+-- Note: this can be rather inefficient for large containers.
+--
+-- > length = lengthOf folded
+--
+-- > lengthOf _1 :: (a, b) -> Int
+-- > lengthOf _1 = 1
+-- > lengthOf (folded.folded) :: Foldable f => f (g a) -> Int
+--
+-- > lengthOf :: Getter a b c d    -> a -> Int
+-- > lengthOf :: Lens a b c d      -> a -> Int
+-- > lengthOf :: Fold a b c d      -> a -> Int
+-- > lengthOf :: Traversal a b c d -> a -> Int
+--
+-- > lengthOf ::  ((c -> Const (Sum Int) d) -> a -> Const (Sum Int) b) -> a -> Int
+lengthOf :: Getting (Sum Int) a b c d -> a -> Int
+lengthOf l = getSum . foldMapOf l (\_ -> Sum 1)
+{-# INLINE lengthOf #-}
+
+-- |
+-- Returns 'True' if this 'Fold' or 'Traversal' has no targets in the given container.
+--
+--
+-- Note: nullOf on a valid 'Lens' or 'Getter' will always return 'False'
+--
+-- > null = nullOf folded
+--
+-- This may be rather inefficient compared to the 'null' check of many containers.
+--
+-- > nullOf _1 :: (a, b) -> Int
+-- > nullOf _1 = False
+-- > nullOf (folded._1.folded) :: Foldable f => f (g a, b) -> Bool
+--
+-- > nullOf :: Getter a b c d    -> a -> Bool
+-- > nullOf :: Lens a b c d      -> a -> Bool
+-- > nullOf :: Fold a b c d      -> a -> Bool
+-- > nullOf :: Traversal a b c d -> a -> Bool
+--
+-- > nullOf ::  ((c -> Const All d) -> a -> Const All b) -> a -> Bool
+nullOf :: Getting All a b c d -> a -> Bool
+nullOf l = getAll . foldMapOf l (\_ -> All False)
+{-# INLINE nullOf #-}
+
+-- |
+-- Obtain the maximum element (if any) targeted by a 'Fold' or 'Traversal'
+--
+-- Note: maximumOf on a valid 'Lens' or 'Getter' will always return 'Just' a value.
+--
+-- > maximum = fromMaybe (error "empty") . maximumOf folded
+--
+-- > maximumOf ::          Getter a b c d    -> a -> Maybe c
+-- > maximumOf ::          Lens a b c d      -> a -> Maybe c
+-- > maximumOf :: Ord c => Fold a b c d      -> a -> Maybe c
+-- > maximumOf :: Ord c => Traversal a b c d -> a -> Maybe c
+--
+-- > maximumOf :: ((c -> Const (Max c) d) -> a -> Const (Max c) b) -> a -> Maybe c
+maximumOf :: Getting (Max c) a b c d -> a -> Maybe c
+maximumOf l = getMax . foldMapOf l Max
+{-# INLINE maximumOf #-}
+
+
+-- |
+-- Obtain the minimum element (if any) targeted by a 'Fold' or 'Traversal'
+--
+-- Note: minimumOf on a valid 'Lens' or 'Getter' will always return 'Just' a value.
+--
+-- > minimum = fromMaybe (error "empty") . minimumOf folded
+--
+-- > minimumOf ::          Getter a b c d    -> a -> Maybe c
+-- > minimumOf ::          Lens a b c d      -> a -> Maybe c
+-- > minimumOf :: Ord c => Fold a b c d      -> a -> Maybe c
+-- > minimumOf :: Ord c => Traversal a b c d -> a -> Maybe c
+--
+-- > minimumOf :: ((c -> Const (Min c) d) -> a -> Const (Min c) b) -> a -> Maybe c
+minimumOf :: Getting (Min c) a b c d -> a -> Maybe c
+minimumOf l = getMin . foldMapOf l Min
+{-# INLINE minimumOf #-}
+
+-- |
+-- Obtain the maximum element (if any) targeted by a 'Fold', 'Traversal', 'Lens'
+-- or 'Getter' according to a user supplied ordering.
+--
+-- > maximumBy cmp = fromMaybe (error "empty") . maximumByOf folded cmp
+--
+-- > maximumByOf :: Getter a b c d    -> (c -> c -> Ordering) -> a -> Maybe c
+-- > maximumByOf :: Lens a b c d      -> (c -> c -> Ordering) -> a -> Maybe c
+-- > maximumByOf :: Fold a b c d      -> (c -> c -> Ordering) -> a -> Maybe c
+-- > maximumByOf :: Traversal a b c d -> (c -> c -> Ordering) -> a -> Maybe c
+--
+-- > maximumByOf :: ((c -> Const (Endo (Maybe c)) d) -> a -> Const (Endo (Maybe c)) b) -> a -> Maybe c
+maximumByOf :: Getting (Endo (Maybe c)) a b c d -> (c -> c -> Ordering) -> a -> Maybe c
+maximumByOf l cmp = foldrOf l step Nothing where
+  step a Nothing  = Just a
+  step a (Just b) = Just (if cmp a b == GT then a else b)
+
+-- |
+-- Obtain the minimum element (if any) targeted by a 'Fold', 'Traversal', 'Lens'
+-- or 'Getter' according to a user supplied ordering.
+--
+-- > minimumBy cmp = fromMaybe (error "empty") . minimumByOf folded cmp
+--
+-- > minimumByOf :: Getter a b c d    -> (c -> c -> Ordering) -> a -> Maybe c
+-- > minimumByOf :: Lens a b c d      -> (c -> c -> Ordering) -> a -> Maybe c
+-- > minimumByOf :: Fold a b c d      -> (c -> c -> Ordering) -> a -> Maybe c
+-- > minimumByOf :: Traversal a b c d -> (c -> c -> Ordering) -> a -> Maybe c
+--
+-- > minimumByOf :: ((c -> Const (Endo (Maybe c)) d) -> a -> Const (Endo (Maybe c)) b) -> a -> Maybe c
+minimumByOf :: Getting (Endo (Maybe c)) a b c d -> (c -> c -> Ordering) -> a -> Maybe c
+minimumByOf l cmp = foldrOf l step Nothing where
+  step a Nothing  = Just a
+  step a (Just b) = Just (if cmp a b == GT then b else a)
+
+
+-- | The 'findOf' function takes a lens, a predicate and a structure and returns
+-- the leftmost element of the structure matching the predicate, or
+-- 'Nothing' if there is no such element.
+findOf :: Getting (First c) a b c d -> (c -> Bool) -> a -> Maybe c
+findOf l p = getFirst . foldMapOf l (\c -> if p c then First (Just c) else First Nothing)
 
 ------------------------------------------------------------------------------
 -- Traversals
@@ -1031,12 +1280,21 @@ type Traversal a b c d        = forall f. Applicative f => (c -> f d) -> a -> f 
 -- Traversal combinators
 --------------------------
 
+-- | Provided for completeness, but this is just the identity function.
+--
+-- > traverseOf = id
+-- > traverse = traverseOf traverse
+traverseOf :: LensLike f a b c d -> (c -> f d) -> a -> f b
+traverseOf = id
+
 -- |
 -- > mapM = mapMOf traverse
 --
 -- > mapMOf :: Monad m => Lens a b c d      -> (c -> m d) -> a -> m b
 -- > mapMOf :: Monad m => Traversal a b c d -> (c -> m d) -> a -> m b
-mapMOf :: ((c -> WrappedMonad m d) -> a -> WrappedMonad m b) -> (c -> m d) -> a -> m b
+--
+-- > mapMOf :: ((c -> WrappedMonad m d) -> a -> WrappedMonad m b) -> (c -> m d) -> a -> m b
+mapMOf :: LensLike (WrappedMonad m) a b c d -> (c -> m d) -> a -> m b
 mapMOf l cmd a = unwrapMonad (l (WrapMonad . cmd) a)
 {-# INLINE mapMOf #-}
 
@@ -1045,7 +1303,9 @@ mapMOf l cmd a = unwrapMonad (l (WrapMonad . cmd) a)
 --
 -- > sequenceAOf :: Applicative f => Lens a b (f c) (f c)      -> a -> f b
 -- > sequenceAOf :: Applicative f => Traversal a b (f c) (f c) -> a -> f b
-sequenceAOf :: Applicative f => ((f c -> f (f c)) -> a -> f b) -> a -> f b
+--
+-- > sequenceAOf :: Applicative f => ((f c -> f (f c)) -> a -> f b) -> a -> f b
+sequenceAOf :: Applicative f => LensLike f a b (f c) (f c) -> a -> f b
 sequenceAOf l = l pure
 {-# INLINE sequenceAOf #-}
 
@@ -1054,20 +1314,26 @@ sequenceAOf l = l pure
 --
 -- > sequenceOf :: Monad m => Lens a b (m c) (m c)      -> a -> m b
 -- > sequenceOf :: Monad m => Traversal a b (m c) (m c) -> a -> m b
-sequenceOf :: Monad m => ((m c -> WrappedMonad m (m c)) -> a -> WrappedMonad m b) -> a -> m b
+--
+-- > sequenceOf :: Monad m => ((m c -> WrappedMonad m (m c)) -> a -> WrappedMonad m b) -> a -> m b
+sequenceOf :: Monad m => LensLike (WrappedMonad m) a b (m c) (m c) -> a -> m b
 sequenceOf l = unwrapMonad . l pure
 {-# INLINE sequenceOf #-}
 
--- | A 'Traversal' of the nth element of another 'Traversal'
+-- | Yields a 'Traversal' of the nth element of another 'Traversal'
 --
 -- > traverseHead = elementOf traverse 0
-elementOf :: Applicative f => ((c -> AppliedState f c) -> a -> AppliedState f b) -> Int -> (c -> f c) -> a -> f b
+--
+-- > elementOf :: Applicative f => ((c -> AppliedState f c) -> a -> AppliedState f b) -> Int -> (c -> f c) -> a -> f b
+elementOf :: Applicative f => LensLike (AppliedState f) a b c c -> Int -> (c -> f c) -> a -> f b
 elementOf l = elementsOf l . (==)
 
 -- | A 'Traversal' of the elements in another 'Traversal' where their positions in that 'Traversal' satisfy a predicate
 --
 -- > traverseTail = elementsOf traverse (>0)
-elementsOf :: Applicative f => ((c -> AppliedState f c) -> a -> AppliedState f b) -> (Int -> Bool) -> (c -> f c) -> a -> f b
+--
+-- > elementsOf :: Applicative f => ((c -> AppliedState f c) -> a -> AppliedState f b) -> (Int -> Bool) -> (c -> f c) -> a -> f b
+elementsOf :: Applicative f => LensLike (AppliedState f) a b c c -> (Int -> Bool) -> (c -> f c) -> a -> f b
 elementsOf l p f ta = fst (runAppliedState (l go ta) 0) where
   go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
 
@@ -1075,8 +1341,9 @@ elementsOf l p f ta = fst (runAppliedState (l go ta) 0) where
 -- > transpose = transposeOf traverse -- modulo the ragged arrays support
 --
 -- > transposeOf _2 :: (b, [a]) -> [(b, a)]
-
-transposeOf :: (([c] -> ZipList c) -> a -> ZipList b) -> a -> [b]
+--
+-- > transposeOf :: (([c] -> ZipList c) -> a -> ZipList b) -> a -> [b]
+transposeOf :: LensLike ZipList a b [c] c -> a -> [b]
 transposeOf l = getZipList . l ZipList
 
 --------------------------
@@ -1201,7 +1468,7 @@ traverseException f e = case fromException e of
 
 -- | Provides ad hoc overloading for 'traverseByteString'
 class TraverseByteString t where
-  -- | Traverse the individual bytes in a ByteString
+  -- | Traverse the individual bytes in a 'ByteString'
   --
   -- > anyOf traverseByteString (==0x80) :: TraverseByteString b => b -> Bool
   traverseByteString :: Simple Traversal t Word8
@@ -1212,9 +1479,11 @@ instance TraverseByteString Strict.ByteString where
 instance TraverseByteString Lazy.ByteString where
   traverseByteString f = fmap Lazy.pack . traverse f . Lazy.unpack
 
-{-
 -- | Provides ad hoc overloading for 'traverseText'
 class TraverseText t where
+  -- | Traverse the individual characters in a 'Text'
+  --
+  -- > anyOf traverseText (=='c') :: TraverseText b => b -> Bool
   traverseText :: Simple Traversal t Char
 
 instance TraverseText StrictText.Text where
@@ -1222,7 +1491,6 @@ instance TraverseText StrictText.Text where
 
 instance TraverseText LazyText.Text where
   traverseText f = fmap LazyText.pack . traverse f . LazyText.unpack
--}
 
 -- | Types that support traversal of the value of the minimal key
 --
@@ -1316,9 +1584,14 @@ traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
 -- | Cloning a 'Lens' is one way to make sure you arent given
 -- something weaker, such as a 'Traversal' and can be used
 -- as a way to pass around lenses that have to be monomorphic in 'f'.
-clone :: Functor f =>
-   ((c -> IndexedStore c d d) -> a -> IndexedStore c d b) ->
-  (c -> f d) -> a -> f b
+--
+-- Note: This only accepts a proper 'Lens', because 'IndexedStore' lacks its
+-- (admissable) Applicative instance.
+--
+-- > clone :: Functor f
+-- >       => ((c -> IndexedStore c d d) -> a -> IndexedStore c d b)
+-- >       -> (c -> f d) -> a -> f b
+clone :: Functor f => LensLike (IndexedStore c d) a b c d -> (c -> f d) -> a -> f b
 clone f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
 {-# INLINE clone #-}
