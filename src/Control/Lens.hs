@@ -67,7 +67,7 @@ module Control.Lens
   -- * Setters
   , Setter, SetterFamily
   , setting
-  , mapped
+  , mapping
 
   -- ** Setting Values
   , modifying
@@ -349,9 +349,9 @@ setting f g a = Identity (f (runIdentity . g) a)
 {-# INLINE setting #-}
 
 -- | This setter will replace all of the values in a container.
-mapped :: Functor f => SetterFamily (f a) (f b) a b
-mapped = setting fmap
-{-# INLINE mapped #-}
+mapping :: Functor f => SetterFamily (f a) (f b) a b
+mapping = setting fmap
+{-# INLINE mapping #-}
 
 -- | Modify the target of a 'Lens', 'LensFamily' or all the targets of a
 -- 'Traversal', 'TraversalFamily', 'Setter' or 'SetterFamily'
@@ -543,7 +543,6 @@ bitAt n f b = (\x -> if x then setBit b n else clearBit b n) <$> f (testBit b n)
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
---
 resultAt :: Eq e => e -> Lens (e -> a) a
 resultAt e afa ea = go <$> afa a where
   a = ea e
