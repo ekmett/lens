@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE LiberalTypeSynonyms #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE Safe #-}
 #endif
@@ -48,7 +49,9 @@ module Control.Lens
   (
   -- * Lenses
     Lens
-  , LensFamily
+
+  -- * "Simple" Lenses
+  , Simple
 
   -- ** Constructing Lenses
   , lens
@@ -56,22 +59,22 @@ module Control.Lens
   , clone
 
   -- * Getters
-  , Getter, GetterFamily
+  , Getter
   , to
 
   -- ** Getting Values
-  , reading
-  , readings
+  , view
+  , views
   , (^.), (^$)
 
   -- * Setters
-  , Setter, SetterFamily
-  , setting
-  , mapping
+  , Setter
+  , sets
+  , mapped
 
   -- ** Setting Values
-  , modifying
-  , writing
+  , adjust
+  , set
   , (^%=), (^=), (^+=), (^-=), (^*=), (^/=), (^||=), (^&&=), (^|=), (^&=)
 
   -- * Manipulating State
@@ -80,9 +83,19 @@ module Control.Lens
   , (%%=)
   , Focus(..)
 
+  -- ** Common Lenses
+  , _1
+  , _2
+  , valueAt
+  , valueAtInt
+  , bitAt
+  , contains
+  , containsInt
+  , identity
+  , resultAt
+
   -- * Folds
   , Fold
-  , FoldFamily
 
   -- ** Common Folds
   , folded
@@ -114,7 +127,6 @@ module Control.Lens
 
   -- * Traversals
   , Traversal
-  , TraversalFamily
 
   -- ** Common Traversals
   , traverseNothing
@@ -139,27 +151,13 @@ module Control.Lens
   , traverseBits
 
   -- ** Traversal Combinators
-  -- , traverseOf = id
+  -- , traverseOf
   , mapMOf
   , sequenceAOf
   , sequenceOf
   , elementOf
   , elementsOf
   , transposeOf
-
-  -- ** Common Lenses
-  , _1
-  , _2
-  , valueAt
-  , valueAtInt
-  , bitAt
-  , contains
-  , containsInt
-  , identity
-  , resultAt
-
-  -- , indexOf
-
   ) where
 
 import           Control.Applicative              as Applicative
@@ -174,11 +172,11 @@ import           Data.ByteString.Lazy             as Lazy
 import           Data.ByteString                  as Strict
 import           Data.Foldable                    as Foldable
 import           Data.Functor.Identity
-import           Data.IntMap                      as IntMap
+import           Data.IntMap                      as IntMap hiding (adjust)
 import           Data.IntSet                      as IntSet
-import           Data.Map                         as Map
+import           Data.Map                         as Map    hiding (adjust)
 import           Data.Monoid
-import           Data.Sequence                    as Seq
+import           Data.Sequence                    as Seq    hiding (adjust)
 import           Data.Set                         as Set
 import           Data.Traversable
 import           Data.Word (Word8)
@@ -192,64 +190,47 @@ infixr 0 ^$
 -- Lenses
 --------------------------
 
--- |
--- A Lens is a purely functional reference to part of a data structure. It can be used to read or write to that part of the whole.
+-- | A 'Lens' is a lens family.
 --
 -- With great power comes great responsibility, and a 'Lens' is subject to the lens laws:
 --
--- > reading l (writing l b a)   = b
--- > writing l (reading l a) a   = a
--- > writing l c (writing l b a) = writing l c a
+-- > view l (set l b a)  = b
+-- > set l (view l a) a  = a
+-- > set l c (set l b a) = set l c a
 --
--- Every 'Lens' can be used directly as a 'LensFamily' or as a 'Getter', 'Setter', or 'Traversal', which transitively mens it can be used as
--- almost anything! Such as a 'TraversalFamily', a 'GetterFamily', a 'FoldFamily', a 'Fold', or a 'SetterFamily'.
---
--- Example:
---
--- > import Data.Complex
--- > imaginary :: Lens (Complex a) a
--- > imaginary f (e :+ i) = (e :+) <$> f i
---
--- > type Lens a b             = LensFamily a a b b
-
-type Lens a b                  = forall f. Functor f => (b -> f b) -> a -> f a
-
--- | A 'LensFamily' is a more general form of a 'Lens' that permits polymorphic field updates
---
--- With great power comes great responsibility, and a 'LensFamily' is subject to the lens laws:
---
--- > reading l (writing l b a)   = b
--- > writing l (reading l a) a   = a
--- > writing l c (writing l b a) = writing l c a
---
--- These laws are strong enough that the 4 type parameters of a 'LensFamily' cannot vary fully independently. For more on
+-- These laws are strong enough that the 4 type parameters of a 'Lens' cannot vary fully independently. For more on
 -- how they interact, read the "Why is it a Lens Family?" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
--- Every 'LensFamily' can be used as a 'GetterFamily', a 'SetterFamily' or a 'TraversalFamily', which transitively means it can be
--- used as a 'FoldFamily'.
+-- Every 'Lens' can be used directly as a 'Getter', 'Setter', 'Fold' or 'Traversal'.
 --
--- Despite the complicated signature the pattern for implementing a 'LensFamily' is the same as a 'Lens'.
--- in fact the implementation doesn't change, the type signature merely generalizes.
---
--- > identity :: LensFamily (Identity a) (Identity b) a b
+-- > identity :: Lens (Identity a) (Identity b) a b
 -- > identity f (Identity a) = Identity <$> f a
-type LensFamily a b c d        = forall f. Functor f => (c -> f d) -> a -> f b
+type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
+
+-- | A 'Simple Lens', 'Simple Setter', or 'Simple Traversal' can be used when the type variables don't change
+-- upon sets a value.
+--
+-- > imaginary :: Simple Lens (Complex a) a
+-- > imaginary f (e :+ i) = (e :+) <$> f i
+--
+-- > traverseHead :: Simple Traversal [a] a
+type Simple f a b = f a a b b
 
 --------------------------
 -- Constructing Lenses
 --------------------------
 
--- | Build a 'Lens' or 'LensFamily' from a getter and a setter.
+-- | Build a 'Lens' from a getter and a setter.
 --
 -- > lens :: Functor f => (a -> c) -> (d -> a -> b) -> (c -> f d) -> a -> f b
-lens :: (a -> c) -> (d -> a -> b) -> LensFamily a b c d
+lens :: (a -> c) -> (d -> a -> b) -> Lens a b c d
 lens ac dab cfd a = (`dab` a) <$> cfd (ac a)
 {-# INLINE lens #-}
 
--- | Built a 'Lens' or 'LensFamily' from an isomorphism or an isomorphism family
+-- | Built a 'Lens' from an isomorphism family
 --
 -- > iso :: Functor f => (a -> c) -> (d -> b) -> (c -> f d) -> a -> f b
-iso :: (a -> c) -> (d -> b) -> LensFamily a b c d
+iso :: (a -> c) -> (d -> b) -> Lens a b c d
 iso f g h a = g <$> h (f a )
 {-# INLINE iso #-}
 
@@ -257,21 +238,20 @@ iso f g h a = g <$> h (f a )
 -- Getters
 ---------------
 
--- | A 'Getter' can be used directly as a 'GetterFamily' or as a 'Fold', and hence it can be as a 'FoldFamily'.
---
--- In general while your combinators may produce a 'Getter' it is better to consume any 'GetterFamily'.
---
--- > type Getter a b           = GetterFamily a a b b
-type Getter a b                = forall z. (b -> Const z b) -> a -> Const z a
-
--- | A 'GetterFamily' describes how to retrieve a single value in a way that can be composed with
+-- | A 'Getter' describes how to retrieve a single value in a way that can be composed with
 -- other lens-like constructions.
 --
--- A 'GetterFamily' can be used directly as a 'FoldFamily', since it just ignores the 'Monoid'.
-type GetterFamily a b c d      = forall z. (c -> Const z d) -> a -> Const z b
+-- Unlike a 'Lens' a 'Getter' is read-only. Since a 'Getter' cannot be used to write back
+-- there are no lens laws that can be applied to it.
+--
+-- Moreover, a 'Getter' can be used directly as a 'Fold', since it just ignores the 'Monoid'.
+--
+-- In practice the @b@ and @d@ are left dangling and unused, and as such is no real point in
+-- using a 'Simple Getter'.
+type Getter a b c d = forall z. (c -> Const z d) -> a -> Const z b
 
--- | Build a 'Getter' or 'GetterFamily'
-to :: (a -> c) -> GetterFamily a b c d
+-- | Build a 'Getter'
+to :: (a -> c) -> Getter a b c d
 to f g a = Const (getConst (g (f a)))
 {-# INLINE to #-}
 
@@ -279,31 +259,47 @@ to f g a = Const (getConst (g (f a)))
 -- Getting Values
 -------------------------------
 
--- | Get the value of a 'Getter', 'Lens' or 'LensFamily' or the fold of a
--- 'Fold', 'Traversal' or 'TraversalFamily' that points at monoidal
--- values.
+-- | View the value pointed to by a 'Getter' or 'Lens' or the result of folding over
+-- all the results of a 'Fold' or 'Traversal' that points at a monoidal values.
 --
--- > reading :: GetterFamily a b c d -> a -> c
-reading :: ((c -> Const c d) -> a -> Const c b) -> a -> c
-reading l a = getConst (l Const a)
-{-# INLINE reading #-}
+-- It may be useful to think of 'view' as having these more restrictive signatures:
+--
+-- > view :: Lens a b c d -> a -> c
+-- > view :: Getter a b c d -> a -> c
+-- > view :: Monoid m => Fold a b m d -> a -> m
+-- > view :: Monoid m => Traversal a b m d -> a -> m
+view :: ((c -> Const c d) -> a -> Const c b) -> a -> c
+view l a = getConst (l Const a)
+{-# INLINE view #-}
 
--- | Get the value of a 'Getter', 'Lens' or 'LensFamily' or the fold of a
--- 'Fold', 'Traversal' or 'TraversalFamily' that points to something you want
--- to map to a monoidal value
-readings :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
-readings l f = getConst . l (Const . f)
-{-# INLINE readings #-}
+-- | View the value of a 'Getter', 'Lens' or the result of folding over the
+-- result of mapping the targets of a 'Fold' or 'Traversal'.
+--
+-- It may be useful to think of 'views' as having these more restrictive signatures:
+--
+-- > views :: Getter a b c d -> (c -> d) -> a -> d
+-- > views :: Lens a b c d -> (c -> d) -> a -> d
+-- > views :: Monoid m => Fold a b c d -> (c -> m) -> a -> m
+-- > views :: Monoid m => Traversal a b c d -> (c -> m) -> a -> m
+views :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
+views l f = getConst . l (Const . f)
+{-# INLINE views #-}
 
--- | Read the value of a 'Getter', 'Lens' or 'LensFamily'.
--- This is the same operation as 'reading'.
+-- | View the value pointed to by a 'Getter' or 'Lens' or the result of folding over
+-- all the results of a 'Fold' or 'Traversal' that points at a monoidal values.
+--
+-- This is the same operation as 'view', only infix.
 (^$) :: ((c -> Const c d) -> a -> Const c b) -> a -> c
 l ^$ a = getConst (l Const a)
 {-# INLINE (^$) #-}
 
--- | Read a field from a 'Getter', 'Lens' or 'LensFamily'.
+-- | View the value pointed to by a 'Getter' or 'Lens' or the result of folding over
+-- all the results of a 'Fold' or 'Traversal' that points at a monoidal values.
+--
+-- This is the same operation as 'view' with the arguments flipped.
+--
 -- The fixity and semantics are such that subsequent field accesses can be
--- performed with (Prelude..) This is the same operation as 'flip reading'
+-- performed with (Prelude..)
 --
 -- > ghci> ((0, 1 :+ 2), 3)^._1._2.to magnitude
 -- > 2.23606797749979
@@ -315,155 +311,147 @@ a ^. l = getConst (l Const a)
 -- Setters
 ------------------------------------------------------------------------------
 
--- | Every 'Setter' can be used directly as a 'SetterFamily'.
+-- |
+-- The only 'Lens'-like law that applies to a 'Setter' @l@ is that
 --
--- Note: the only lens law that applies to a 'Setter' is
+-- > set l c (set l b a) = set l c a
 --
--- > writing l c (writing l b a) = writing l c a
+-- You can't 'view' a 'Setter' in general, so the other two laws do not apply.
 --
--- 'reading' a 'Setter' doesn't work in general, so the other two laws can never be invoked.
---
--- > type Setter a b                = SetterFamily a a b b
-type Setter a b                     = (b -> Identity b) -> a -> Identity a
+-- You can compose a 'Setter' with a 'Lens' or a 'Traversal' using (.) from the Prelude
+-- but the result is always only a 'Setter'.
+type Setter a b c d = (c -> Identity d) -> a -> Identity b
 
--- | A 'SetterFamily' describes a way to perform polymorphic update to potentially multiple fields in a way that can be
--- composed with other lens-like constructions that can be used as a 'SetterFamily'.
---
--- The typical way to obtain a 'SetterFamily' is to build one with 'setting' or to compose some other 'Lens'-like construction
--- with a 'SetterFamily'.
---
--- Note: the only lens law that applies to a 'SetterFamily' is
---
--- > writing l c (writing l b a) = writing l c a
---
--- 'reading' a 'SetterFamily' doesn't work in general, so the other two laws can never be invoked.
-type SetterFamily a b c d           = (c -> Identity d) -> a -> Identity b
+-- | This setter can be used to map over all of the values in a container.
+mapped :: Functor f => Setter (f a) (f b) a b
+mapped = sets fmap
+{-# INLINE mapped #-}
 
--- | Build a Setter or SetterFamily
+-- | Build a Setter
 --
--- > setting . modifying = id
--- > modifying . setting = id
---
-setting :: ((c -> d) -> a -> b) -> SetterFamily a b c d
-setting f g a = Identity (f (runIdentity . g) a)
-{-# INLINE setting #-}
+-- > sets . adjust = id
+-- > adjust . sets = id
+sets :: ((c -> d) -> a -> b) -> Setter a b c d
+sets f g a = Identity (f (runIdentity . g) a)
+{-# INLINE sets #-}
 
--- | This setter will replace all of the values in a container.
-mapping :: Functor f => SetterFamily (f a) (f b) a b
-mapping = setting fmap
-{-# INLINE mapping #-}
 
--- | Modify the target of a 'Lens', 'LensFamily' or all the targets of a
--- 'Traversal', 'TraversalFamily', 'Setter' or 'SetterFamily'
+-- | Modify the target of a 'Lens' or all the targets of a 'Setter' or 'Traversal'
+-- with a function.
 --
--- > fmap = modifying traverse
--- > setting . modifying = id
--- > modifying . setting = id
+-- > fmap = adjust traverse
 --
--- > modifying :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
+-- Two useful free theorems hold for this type:
+--
+-- > sets . adjust = id
+-- > adjust . sets = id
+--
+-- > adjust :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
+adjust :: Setter a b c d -> (c -> d) -> a -> b
+adjust l f a = runIdentity (l (Identity . f) a)
+{-# INLINE adjust #-}
 
-modifying :: SetterFamily a b c d -> (c -> d) -> a -> b
-modifying l f a = runIdentity (l (Identity . f) a)
-{-# INLINE modifying #-}
+-- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
+-- or 'Traversal' with a constant value.
+--
+-- > (<$) = set traverse
+--
+-- > set :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
+set :: Setter a b c d -> d -> a -> b
+set l d a = runIdentity (l (\_ -> Identity d) a)
+{-# INLINE set #-}
 
--- | Replace the target of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'
+-- | Modifies the target of a 'Lens' or all of the targets of a 'Setter' or
+-- 'Traversal' with a user supplied function.
 --
--- > (<$) = writing traverse
---
--- > writing :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
-writing :: SetterFamily a b c d -> d -> a -> b
-writing l d a = runIdentity (l (\_ -> Identity d) a)
-{-# INLINE writing #-}
-
--- | Modifies the target of a 'Lens', 'LensFamily', 'Setter', or 'SetterFamily'.
---
--- This is an infix version of 'modifying'
+-- This is an infix version of 'adjust'
 --
 -- > fmap f = traverse ^%= f
 --
 -- > (^%=) :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
-(^%=) :: SetterFamily a b c d -> (c -> d) -> a -> b
+(^%=) :: Setter a b c d -> (c -> d) -> a -> b
 l ^%= f = runIdentity . l (Identity . f)
 {-# INLINE (^%=) #-}
 
--- | Replaces the target(s) of a 'Lens', 'LensFamily', 'Setter' or 'SetterFamily'.
+-- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
+-- or 'Traversal' with a constant value.
 --
--- This is an infix version of 'writing'
+-- This is an infix version of 'set'
 --
 -- > f <$ a = traverse ^= f $ a
 --
 -- > (^=) :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
-(^=) :: SetterFamily a b c d -> d -> a -> b
+(^=) :: Setter a b c d -> d -> a -> b
 l ^= v = runIdentity . l (Identity . const v)
 {-# INLINE (^=) #-}
 
--- | Increment the target(s) of a numerically valued 'Lens' or Setter'
+-- | Increment the target(s) of a numerically valued 'Lens', Setter' or 'Traversal'
 --
 -- > ghci> _1 ^+= 1 $ (1,2)
 -- > (2,2)
 --
--- > (^+=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-(^+=) :: Num c => Setter a c -> c -> a -> a
-l ^+= n = modifying l (+ n)
+-- > (^+=) :: Num c => ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
+(^+=) :: Num c => Setter a b c c -> c -> a -> b
+l ^+= n = adjust l (+ n)
 {-# INLINE (^+=) #-}
 
--- | Multiply the target(s) of a numerically valued 'Lens' or Setter'
+-- | Multiply the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
 --
 -- > ghci> _2 ^*= 4 $ (1,2)
 -- > (1,8)
 --
--- > (^*=) :: Num c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-(^*=) :: Num c => Setter a c -> c -> a -> a
-l ^*= n = modifying l (* n)
+-- > (^*=) :: Num c => ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
+(^*=) :: Num c => Setter a b c c -> c -> a -> b
+l ^*= n = adjust l (* n)
 {-# INLINE (^*=) #-}
 
--- | Decrement the target(s) of a numerically valued 'Lens' or 'Setter'
+-- | Decrement the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
 --
 -- > ghci> _1 ^-= 2 $ (1,2)
 -- > (-1,2)
 --
--- > (^-=) :: ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-(^-=) :: Num c => Setter a c -> c -> a -> a
-l ^-= n = modifying l (subtract n)
+-- > (^-=) :: ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
+(^-=) :: Num c => Setter a b c c -> c -> a -> b
+l ^-= n = adjust l (subtract n)
 {-# INLINE (^-=) #-}
 
--- | Divide the target(s) of a numerically valued 'Setter'
+-- | Divide the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
 --
--- > (^/=) :: Fractional c => ((c -> Identity c) -> a -> Identity a) -> c -> a -> a
-(^/=) :: Fractional b => Setter a b -> b -> a -> a
-l ^/= n = modifying l (/ n)
+-- > (^/=) :: Fractional c => ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
+(^/=) :: Fractional c => Setter a b c c -> c -> a -> b
+l ^/= n = adjust l (/ n)
 
 -- | Logically '||' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 --
--- > (^||=):: ((Bool -> Identity Bool) -> a -> Identity a) -> Bool -> a -> a
-(^||=):: Setter a Bool -> Bool -> a -> a
-l ^||= n = modifying l (|| n)
+-- > (^||=):: ((Bool -> Identity Bool) -> a -> Identity b) -> Bool -> a -> b
+(^||=):: Setter a b Bool Bool -> Bool -> a -> b
+l ^||= n = adjust l (|| n)
 {-# INLINE (^||=) #-}
 
 -- | Logically '&&' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
--- (^&&=) :: ((Bool -> Identity Bool) -> a -> Identity a) -> Bool -> a -> a
-(^&&=) :: Setter a Bool -> Bool -> a -> a
-l ^&&= n = modifying l (&& n)
+-- (^&&=) :: ((Bool -> Identity Bool) -> a -> Identity b) -> Bool -> a -> b
+(^&&=) :: Setter a b Bool Bool -> Bool -> a -> b
+l ^&&= n = adjust l (&& n)
 {-# INLINE (^&&=) #-}
 
 -- | Bitwise '.|.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 --
--- > (^|=):: Bits b => ((b -> Identity b) -> a -> Identity a) -> Bool -> a -> a
-(^|=):: Bits b => Setter a b -> b -> a -> a
-l ^|= n = modifying l (.|. n)
+-- > (^|=):: Bits c => ((c -> Identity c) -> a -> Identity b) -> Bool -> a -> b
+(^|=):: Bits c => Setter a b c c -> c -> a -> b
+l ^|= n = adjust l (.|. n)
 {-# INLINE (^|=) #-}
 
 -- | Bitwise '.&.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
--- (^&=) :: Bits b => ((b -> Identity b) -> a -> Identity a) -> b -> a -> a
-(^&=) :: Bits b => Setter a b -> b -> a -> a
-l ^&= n = modifying l (.&. n)
+-- (^&=) :: Bits c => ((b -> Identity b) -> a -> Identity a) -> c -> a -> b
+(^&=) :: Bits c => Setter a b c c -> c -> a -> b
+l ^&= n = adjust l (.&. n)
 {-# INLINE (^&=) #-}
 
 ------------------------------------------------------------------------------
 -- Common Lenses
 ------------------------------------------------------------------------------
 
--- | This is a lens family that can change the value (and type) of the first field of
+-- | This is a lens that can change the value (and type) of the first field of
 -- a pair.
 --
 -- > ghci> (1,2)^._1
@@ -472,7 +460,8 @@ l ^&= n = modifying l (.&. n)
 -- > ghci> _1 ^= "hello" $ (1,2)
 -- > ("hello",2)
 --
-_1 :: LensFamily (a,c) (b,c) a b
+-- > _1 :: Functor f => (a -> f b) -> (a,c) -> f (a,c)
+_1 :: Lens (a,c) (b,c) a b
 _1 f (a,c) = (\b -> (b,c)) <$> f a
 {-# INLINE _1 #-}
 
@@ -481,55 +470,65 @@ _1 f (a,c) = (\b -> (b,c)) <$> f a
 -- > anyOf _2 :: (c -> Bool) -> (a, c) -> Bool
 -- > traverse._2 :: (Applicative f, Traversable t) => (a -> f b) -> t (c, a) -> f (t (c, b))
 -- > foldMapOf (traverse._2) :: (Traversable t, Monoid m) => (c -> m) -> t (b, c) -> m
-_2 :: LensFamily (c,a) (c,b) a b
+--
+-- > _2 :: Functor f => (a -> f b) -> (c,a) -> f (c,b)
+_2 :: Lens (c,a) (c,b) a b
 _2 f (c,a) = (,) c <$> f a
 {-# INLINE _2 #-}
 
--- | This lens can be used to read, write or delete a member of a 'Map'.
+-- | This 'Lens' can be used to read, write or delete the value associated with a key in a 'Map'.
 --
 -- > ghci> Map.fromList [("hello",12)] ^. valueAt "hello"
 -- > Just 12
-valueAt :: Ord k => k -> Lens (Map k v) (Maybe v)
+--
+-- > valueAt :: Ord k => k -> (Maybe v -> f (Maybe v)) -> Map k v -> f (Map k v)
+valueAt :: Ord k => k -> Simple Lens (Map k v) (Maybe v)
 valueAt k f m = go <$> f (Map.lookup k m) where
   go Nothing   = Map.delete k m
   go (Just v') = Map.insert k v' m
 {-# INLINE valueAt #-}
 
--- | This lens can be used to read, write or delete a member of an 'IntMap'.
+-- | This 'Lens' can be used to read, write or delete a member of an 'IntMap'.
 --
--- > ghci> IntMap.fromList [(1,"hello")]  ^. valueAt 1
+-- > ghci> IntMap.fromList [(1,"hello")]  ^. valueAtInt 1
 -- > Just "hello"
 --
--- > ghci> valueAt 2 ^= "goodbye" $ IntMap.fromList [(1,"hello")]
+-- > ghci> valueAtInt 2 ^= "goodbye" $ IntMap.fromList [(1,"hello")]
 -- > fromList [(1,"hello"),(2,"goodbye")]
-valueAtInt :: Int -> Lens (IntMap v) (Maybe v)
+--
+-- > valueAtInt :: Int -> (Maybe v -> f (Maybe v)) -> IntMap v -> f (IntMap v)
+valueAtInt :: Int -> Simple Lens (IntMap v) (Maybe v)
 valueAtInt k f m = go <$> f (IntMap.lookup k m) where
   go Nothing   = IntMap.delete k m
   go (Just v') = IntMap.insert k v' m
 {-# INLINE valueAtInt #-}
 
--- | This lens can be used to read, write or delete a member of a 'Set'
+-- | This 'Lens' can be used to read, write or delete a member of a 'Set'
 --
 -- > ghci> contains 3 ^= False $ Set.fromList [1,2,3,4]
 -- > fromList [1,2,4]
-contains :: Ord k => k -> Lens (Set k) Bool
+--
+-- > contains :: Ord k => k -> (Bool -> f Bool) -> Set k -> f (Set k)
+contains :: Ord k => k -> Simple Lens (Set k) Bool
 contains k f s = go <$> f (Set.member k s) where
   go False = Set.delete k s
   go True  = Set.insert k s
 {-# INLINE contains #-}
 
--- | This lens can be used to read, write or delete a member of an 'IntSet'
+-- | This 'Lens' can be used to read, write or delete a member of an 'IntSet'
 --
 -- > ghci> containsInt 3 ^= False $ IntSet.fromList [1,2,3,4]
 -- > fromList [1,2,4]
-containsInt :: Int -> Lens IntSet Bool
+--
+-- > containsInt :: Int -> (Bool -> f Bool) -> IntSet -> f IntSet
+containsInt :: Int -> Simple Lens IntSet Bool
 containsInt k f s = go <$> f (IntSet.member k s) where
   go False = IntSet.delete k s
   go True  = IntSet.insert k s
 {-# INLINE containsInt #-}
 
 -- | This lens can be used to access the contents of the Identity monad
-identity :: LensFamily (Identity a) (Identity b) a b
+identity :: Lens (Identity a) (Identity b) a b
 identity f (Identity a) = Identity <$> f a
 {-# INLINE identity #-}
 
@@ -537,13 +536,13 @@ identity f (Identity a) = Identity <$> f a
 --
 -- @bitsAt n@ is only a legal 'Lens' into @b@ if @0 <= n < bitSize (undefined :: b)@
 
-bitAt :: Bits b => Int -> Lens b Bool
+bitAt :: Bits b => Int -> Simple Lens b Bool
 bitAt n f b = (\x -> if x then setBit b n else clearBit b n) <$> f (testBit b n)
 {-# INLINE bitAt #-}
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
-resultAt :: Eq e => e -> Lens (e -> a) a
+resultAt :: Eq e => e -> Simple Lens (e -> a) a
 resultAt e afa ea = go <$> afa a where
   a = ea e
   go a' e' | e == e'   = a'
@@ -554,7 +553,10 @@ resultAt e afa ea = go <$> afa a where
 -- State
 ------------------------------------------------------------------------------
 
--- | Access a field of a state monad
+-- |
+-- Access the target of a 'Lens' or 'Getter' in the current state, or access a
+-- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
+--
 access :: MonadState a m => ((c -> Const c d) -> a -> Const c b) -> m c
 access l = gets (^. l)
 {-# INLINE access #-}
@@ -562,6 +564,8 @@ access l = gets (^. l)
 -- | This class allows us to use 'focus' on a number of different monad transformers.
 class Focus st where
   -- | Use a lens to lift an operation with simpler context into a larger context
+  --
+  -- This is commonly used to lift actions in a simpler state monad into a state monad with a larger state type.
   focus :: Monad m => ((b -> Focusing m c b) -> a -> Focusing m c a) -> st b m c -> st a m c
 
 instance Focus Strict.StateT where
@@ -577,90 +581,99 @@ instance Focus ReaderT where
   focus l (ReaderT m) = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` m b) a
   {-# INLINE focus #-}
 
--- | Modify the value of a field in our monadic state and return some information about it
+-- | Modify the target of a 'Lens' in the current state returning some extra information of @c@ or
+-- modify all targets of a 'Traversal' in the current state, extracting extra information of type @c@
+-- and return a monoidal summary of the changes.
+--
+-- It may be useful to think of '(%%=)', instead, as having either of the following more restricted
+-- type signatures:
+--
+-- > (%%=) :: MonadState a m => Simple Lens a b -> (b -> (c, b) -> m c
+-- > (%%=) :: (MonadState a m, Monoid c) => Simple Traversal a b -> (b -> (c, b) -> m c
 (%%=) :: MonadState a m => ((b -> (c,b)) -> a -> (c,a)) -> (b -> (c, b)) -> m c
 l %%= f = state (l f)
 {-# INLINE (%%=) #-}
 
--- | Set the value of a field in our monadic state
-(~=) :: MonadState a m => Setter a b -> b -> m ()
+-- | Replace the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal' in our monadic
+-- state with a new value, irrespective of the old.
+(~=) :: MonadState a m => Setter a a c d -> d -> m ()
 l ~= b = modify $ l ^= b
 {-# INLINE (~=) #-}
 
--- | Modify the value of a field in our monadic state
-(%=) :: MonadState a m => Setter a b -> (b -> b) -> m ()
+-- | Map over the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal in our monadic state.
+(%=) :: MonadState a m => Setter a a c d -> (c -> d) -> m ()
 l %= f = modify $ l ^%= f
 {-# INLINE (%=) #-}
 
--- | Modify a numeric field in our monadic state by adding to it
-(+=) :: (MonadState a m, Num b) => Setter a b -> b -> m ()
+-- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by adding a value
+(+=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
 l += b = modify $ l ^+= b
 {-# INLINE (+=) #-}
 
--- | Modify a numeric field in our monadic state by subtracting from it
-(-=) :: (MonadState a m, Num b) => Setter a b -> b -> m ()
+-- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by subtracting a value
+(-=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
 l -= b = modify $ l ^-= b
 {-# INLINE (-=) #-}
 
--- | Modify a numeric field in our monadic state by multiplying it
-(*=) :: (MonadState a m, Num b) => Setter a b -> b -> m ()
+-- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by multiplying by value
+(*=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
 l *= b = modify $ l ^*= b
 {-# INLINE (*=) #-}
 
--- | Modify a numeric field in our monadic state by dividing it
-(//=) ::  (MonadState a m, Fractional b) => Setter a b -> b -> m ()
+-- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by dividing by a value
+(//=) ::  (MonadState a m, Fractional b) => Simple Setter a b -> b -> m ()
 l //= b = modify $ l ^/= b
 {-# INLINE (//=) #-}
 
--- | Modify a boolean field in our monadic state by computing its logical '&&' with another value.
-(&&=):: MonadState a m => Setter a Bool -> Bool -> m ()
+-- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by taking their logical '&&' with a value
+(&&=):: MonadState a m => Simple Setter a Bool -> Bool -> m ()
 l &&= b = modify $ l ^&&= b
 {-# INLINE (&&=) #-}
 
--- | Modify a boolean field in our monadic state by computing its logical '||' with another value.
-(||=) :: MonadState a m => Setter a Bool -> Bool -> m ()
+-- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by taking their logical '||' with a value
+(||=) :: MonadState a m => Simple Setter a Bool -> Bool -> m ()
 l ||= b = modify $ l ^||= b
 {-# INLINE (||=) #-}
 
--- | Modify a numeric field in our monadic state by computing its bitwise '.&.' with another value.
-(&=):: (MonadState a m, Bits b) => Setter a b -> b -> m ()
+-- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.&.' with another value.
+(&=):: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
 l &= b = modify $ l ^&= b
 {-# INLINE (&=) #-}
 
--- | Modify a boolean field in our monadic state by computing its bitwise '.|.' with another value.
-(|=) :: (MonadState a m, Bits b) => Setter a b -> b -> m ()
+-- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.|.' with another value.
+(|=) :: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
 l |= b = modify $ l ^|= b
 {-# INLINE (|=) #-}
 
 --------------------------
 -- Folds
 --------------------------
--- | Every 'Fold' can be used directly as a 'FoldFamily' (and you should probably be using a 'FoldFamily'
--- instead.)
---
--- > type Fold a b           = FoldFamily a b c d
-type Fold a b                = forall m. Monoid m => (b -> Const m b)-> a -> Const m a
-
--- | A 'FoldFamily' describes how to retrieve multiple values in a way that can be composed
+-- | A 'Fold' describes how to retrieve multiple values in a way that can be composed
 -- with other lens-like constructions.
 --
--- A @'FoldFamily' a b c d@ provides a structure with operations very similar to those of the 'Foldable'
--- typeclass, see 'foldMapOf' and the other 'FoldFamily' combinators.
+-- A @'Fold' a b c d@ provides a structure with operations very similar to those of the 'Foldable'
+-- typeclass, see 'foldMapOf' and the other 'Fold' combinators.
 --
 -- By convention, if there exists a 'foo' method that expects a @'Foldable' (f c)@, then there should be a
 -- 'fooOf' method that takes a @'FoldFamily' a b c d@ and a value of type @a@.
 --
-type FoldFamily a b c d      = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
+-- A 'Getter' is a legal 'Fold' that just ignores the supplied 'Monoid'
+--
+-- Unlike a 'Traversal' a 'Fold' is read-only. Since a 'Fold' cannot be used to write back
+-- there are no lens laws that can be applied to it.
+--
+-- In practice the @b@ and @d@ are left dangling and unused, and as such is no real point in a 'Simple Fold'.
+type Fold a b c d      = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
 
--- | Obtain a 'FoldFamily' from any 'Foldable'
-folded :: Foldable f => FoldFamily (f c) b c d
-folded = folding id
-{-# INLINE folded #-}
-
--- | Building a FoldFamily
-folding :: Foldable f => (a -> f c) -> FoldFamily a b c d
+-- | Building a Fold
+folding :: Foldable f => (a -> f c) -> Fold a b c d
 folding f g a = Const (foldMap (getConst . g) (f a))
 {-# INLINE folding #-}
+
+-- | Obtain a 'Fold' from any 'Foldable'
+folded :: Foldable f => Fold (f c) b c d
+folded = folding id
+{-# INLINE folded #-}
 
 --------------------------
 -- Fold/Getter combinators
@@ -669,10 +682,12 @@ folding f g a = Const (foldMap (getConst . g) (f a))
 -- |
 -- > foldMap = foldMapOf folded
 --
--- > foldMapOf = readings
+-- > foldMapOf = views
 --
--- > foldMapOf :: GetterFamily a b c d -> (c -> m) -> a -> m
--- > foldMapOf :: Monoid m => FoldFamily a b c d -> (c -> m) -> a -> m
+-- > foldMapOf ::             Getter a b c d    -> (c -> m) -> a -> m
+-- > foldMapOf ::             Lens a b c d      -> (c -> m) -> a -> m
+-- > foldMapOf :: Monoid m => Fold a b c d      -> (c -> m) -> a -> m
+-- > foldMapOf :: Monoid m => Traversal a b c d -> (c -> m) -> a -> m
 foldMapOf :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
 foldMapOf l f = getConst . l (Const . f)
 {-# INLINE foldMapOf #-}
@@ -680,10 +695,12 @@ foldMapOf l f = getConst . l (Const . f)
 -- |
 -- > fold = foldOf folded
 --
--- > foldOf = reading
+-- > foldOf = view
 --
--- > foldOf :: GetterFamily a b m d -> a -> m
--- > foldOf :: Monoid m => FoldFamily a b m d -> a -> m
+-- > foldOf ::             Getter a b m d    -> a -> m
+-- > foldOf ::             Lens a b m d      -> a -> m
+-- > foldOf :: Monoid m => Fold a b m d      -> a -> m
+-- > foldOf :: Monoid m => Traversal a b m d -> a -> m
 foldOf :: ((m -> Const m d) -> a -> Const m b) -> a -> m
 foldOf l = getConst . l Const
 {-# INLINE foldOf #-}
@@ -691,8 +708,10 @@ foldOf l = getConst . l Const
 -- |
 -- > foldr = foldrOf folded
 --
--- > foldrOf :: GetterFamily a b c d -> (c -> e -> e) -> e -> a -> e
--- > foldrOf :: FoldFamily a b c d -> (c -> e -> e) -> e -> a -> e
+-- > foldrOf :: Getter a b c d    -> (c -> e -> e) -> e -> a -> e
+-- > foldrOf :: Lens a b c d      -> (c -> e -> e) -> e -> a -> e
+-- > foldrOf :: Fold a b c d      -> (c -> e -> e) -> e -> a -> e
+-- > foldrOf :: Traversal a b c d -> (c -> e -> e) -> e -> a -> e
 foldrOf :: ((c -> Const (Endo e) d) -> a -> Const (Endo e) b) -> (c -> e -> e) -> e -> a -> e
 foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 {-# INLINE foldrOf #-}
@@ -700,8 +719,10 @@ foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 -- |
 -- > toList = toListOf folded
 --
--- > toListOf :: GetterFamily a b c d -> a -> [c]
--- > toListOf :: FoldFamily a b c d -> a -> [c]
+-- > toListOf :: Getter a b c d    -> a -> [c]
+-- > toListOf :: Lens a b c d      -> a -> [c]
+-- > toListOf :: Fold a b c d      -> a -> [c]
+-- > toListOf :: Traversal a b c d -> a -> [c]
 toListOf :: ((c -> Const [c] d) -> a -> Const [c] b) -> a -> [c]
 toListOf l = foldMapOf l return
 {-# INLINE toListOf #-}
@@ -709,8 +730,10 @@ toListOf l = foldMapOf l return
 -- |
 -- > and = andOf folded
 --
--- > andOf :: GetterFamily a b Bool d -> a -> Bool
--- > andOf :: FoldFamily a b Bool d -> a -> Bool
+-- > andOf :: Getter a b Bool d   -> a -> Bool
+-- > andOf :: Lens a b Bool d     -> a -> Bool
+-- > andOf :: Fold a b Bool d     -> a -> Bool
+-- > andOf :: Traversl a b Bool d -> a -> Bool
 andOf :: ((Bool -> Const All d) -> a -> Const All b) -> a -> Bool
 andOf l = getAll . foldMapOf l All
 {-# INLINE andOf #-}
@@ -718,8 +741,10 @@ andOf l = getAll . foldMapOf l All
 -- |
 -- > or = orOf folded
 --
--- > orOf :: GetterFamily a b Bool d -> a -> Bool
--- > orOf :: FoldFamily a b Bool d -> a -> Bool
+-- > orOf :: Getter a b Bool d    -> a -> Bool
+-- > orOf :: Lens a b Bool d      -> a -> Bool
+-- > orOf :: Fold a b Bool d      -> a -> Bool
+-- > orOf :: Traversal a b Bool d -> a -> Bool
 orOf :: ((Bool -> Const Any d) -> a -> Const Any b) -> a -> Bool
 orOf l = getAny . foldMapOf l Any
 {-# INLINE orOf #-}
@@ -727,8 +752,10 @@ orOf l = getAny . foldMapOf l Any
 -- |
 -- > any = anyOf folded
 --
--- > anyOf :: GetterFamily a b c d -> (c -> Bool) -> a -> Bool
--- > anyOf :: FoldFamily a b c d -> (c -> Bool) -> a -> Bool
+-- > anyOf :: Getter a b c d    -> (c -> Bool) -> a -> Bool
+-- > anyOf :: Lens a b c d      -> (c -> Bool) -> a -> Bool
+-- > anyOf :: Fold a b c d      -> (c -> Bool) -> a -> Bool
+-- > anyOf :: Traversal a b c d -> (c -> Bool) -> a -> Bool
 anyOf :: ((c -> Const Any d) -> a -> Const Any b) -> (c -> Bool) -> a -> Bool
 anyOf l f = getAny . foldMapOf l (Any . f)
 {-# INLINE anyOf #-}
@@ -736,8 +763,10 @@ anyOf l f = getAny . foldMapOf l (Any . f)
 -- |
 -- > all = allOf folded
 --
--- > allOf :: GetterFamily a b c d -> (c -> Bool) -> a -> Bool
--- > allOf :: FoldFamily a b c d -> (c -> Bool) -> a -> Bool
+-- > allOf :: Getter a b c d    -> (c -> Bool) -> a -> Bool
+-- > allOf :: Lens a b c d      -> (c -> Bool) -> a -> Bool
+-- > allOf :: Fold a b c d      -> (c -> Bool) -> a -> Bool
+-- > allOf :: Traversal a b c d -> (c -> Bool) -> a -> Bool
 allOf :: ((c -> Const All d) -> a -> Const All b) -> (c -> Bool) -> a -> Bool
 allOf l f = getAll . foldMapOf l (All . f)
 {-# INLINE allOf #-}
@@ -745,8 +774,10 @@ allOf l f = getAll . foldMapOf l (All . f)
 -- |
 -- > product = productOf folded
 --
--- > productOf :: GetterFamily a b c d -> a -> c
--- > productOf :: Num c => FoldFamily a b c d -> a -> c
+-- > productOf ::          Getter a b c d    -> a -> c
+-- > productOf ::          Lens a b c d      -> a -> c
+-- > productOf :: Num c => Fold a b c d      -> a -> c
+-- > productOf :: Num c => Traversal a b c d -> a -> c
 productOf :: ((c -> Const (Product c) d) -> a -> Const (Product c) b) -> a -> c
 productOf l = getProduct . foldMapOf l Product
 {-# INLINE productOf #-}
@@ -757,8 +788,10 @@ productOf l = getProduct . foldMapOf l Product
 -- > sumOf _1 :: (a, b) -> a
 -- > sumOf (folded._1) :: (Foldable f, Num a) => f (a, b) -> a
 --
--- > sumOf :: GetterFamily a b c d -> a -> c
--- > sumOf :: Num c => FoldFamily a b c d -> a -> c
+-- > sumOf ::          Getter a b c d    -> a -> c
+-- > sumOf ::          Lens a b c d      -> a -> c
+-- > sumOf :: Num c => Fold a b c d      -> a -> c
+-- > sumOf :: Num c => Traversal a b c d -> a -> c
 sumOf ::  ((c -> Const (Sum c) d) -> a -> Const (Sum c) b) -> a -> c
 sumOf l = getSum . foldMapOf l Sum
 {-# INLINE sumOf #-}
@@ -767,17 +800,19 @@ sumOf l = getSum . foldMapOf l Sum
 --
 -- When passed a 'Getter', 'traverseOf_' can work over a 'Functor'.
 --
--- When passed a 'FoldFamily', 'traverseOf_' requires an 'Applicative'.
+-- When passed a 'Fold', 'traverseOf_' requires an 'Applicative'.
 --
 -- > traverse_ = traverseOf_ folded
-
+--
 -- > traverseOf_ _2 :: Functor f => (c -> f e) -> (c1, c) -> f ()
 -- > traverseOf_ traverseLeft :: Applicative f => (a -> f b) -> Either a c -> f ()
 --
 -- The rather specific signature of traverseOf_ allows it to be used as if the signature was either:
 --
--- > traverseOf_ :: Functor f => GetterFamily a b c d -> (c -> f e) -> a -> f ()
--- > traverseOf_ :: Applicative f => FoldFamily a b c d -> (c -> f e) -> a -> f ()
+-- > traverseOf_ :: Functor f     => Getter a b c d    -> (c -> f e) -> a -> f ()
+-- > traverseOf_ :: Functor f     => Lens a b c d      -> (c -> f e) -> a -> f ()
+-- > traverseOf_ :: Applicative f => Fold a b c d      -> (c -> f e) -> a -> f ()
+-- > traverseOf_ :: Applicative f => Traversal a b c d -> (c -> f e) -> a -> f ()
 traverseOf_ :: Functor f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> (c -> f e) -> a -> f ()
 traverseOf_ l f = getTraversed . foldMapOf l (Traversed . (() <$) . f)
 {-# INLINE traverseOf_ #-}
@@ -785,8 +820,10 @@ traverseOf_ l f = getTraversed . foldMapOf l (Traversed . (() <$) . f)
 -- |
 -- > for_ = forOf_ folded
 --
--- > forOf_ :: Functor f => GetterFamily a b c d -> a -> (c -> f e) -> f ()
--- > forOf_ :: Applicative f => FoldFamily a b c d -> a -> (c -> f e) -> f ()
+-- > forOf_ :: Functor f     => Getter a b c d    -> a -> (c -> f e) -> f ()
+-- > forOf_ :: Functor f     => Lens a b c d      -> a -> (c -> f e) -> f ()
+-- > forOf_ :: Applicative f => Fold a b c d      -> a -> (c -> f e) -> f ()
+-- > forOf_ :: Applicative f => Traversal a b c d -> a -> (c -> f e) -> f ()
 forOf_ :: Functor f => ((c -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> (c -> f e) -> f ()
 forOf_ l a f = traverseOf_ l f a
 {-# INLINE forOf_ #-}
@@ -794,8 +831,10 @@ forOf_ l a f = traverseOf_ l f a
 -- |
 -- > sequenceA_ = sequenceAOf_ folded
 --
--- > sequenceAOf_ :: Functor f => GetterFamily a b (f ()) d -> a -> f ()
--- > sequenceAOf_ :: Applicative f => FoldFamily a b (f ()) d -> a -> f ()
+-- > sequenceAOf_ :: Functor f     => Getter a b (f ()) d    -> a -> f ()
+-- > sequenceAOf_ :: Functor f     => Lens a b (f ()) d      -> a -> f ()
+-- > sequenceAOf_ :: Applicative f => Fold a b (f ()) d      -> a -> f ()
+-- > sequenceAOf_ :: Applicative f => Traversal a b (f ()) d -> a -> f ()
 sequenceAOf_ :: Functor f => ((f () -> Const (Traversed f) d) -> a -> Const (Traversed f) b) -> a -> f ()
 sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . (() <$))
 {-# INLINE sequenceAOf_ #-}
@@ -803,8 +842,10 @@ sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . (() <$))
 -- |
 -- > mapM_ = mapMOf_ folded
 --
--- > mapMOf_ :: Monad m => GetterFamily a b c d -> (c -> m e) -> a -> m ()
--- > mapMOf_ :: Monad m => FoldFamily a b c d -> (c -> m e) -> a -> m ()
+-- > mapMOf_ :: Monad m => Getter a b c d    -> (c -> m e) -> a -> m ()
+-- > mapMOf_ :: Monad m => Lens a b c d      -> (c -> m e) -> a -> m ()
+-- > mapMOf_ :: Monad m => Fold a b c d      -> (c -> m e) -> a -> m ()
+-- > mapMOf_ :: Monad m => Traversal a b c d -> (c -> m e) -> a -> m ()
 mapMOf_ :: Monad m => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> (c -> m e) -> a -> m ()
 mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
 {-# INLINE mapMOf_ #-}
@@ -812,8 +853,10 @@ mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
 -- |
 -- > forM_ = forMOf_ folded
 --
--- > forMOf_ :: Monad m => GetterFamily a b c d -> a -> (c -> m e) -> m ()
--- > forMOf_ :: Monad m => FoldFamily a b c d -> a -> (c -> m e) -> m ()
+-- > forMOf_ :: Monad m => Getter a b c d    -> a -> (c -> m e) -> m ()
+-- > forMOf_ :: Monad m => Lens a b c d      -> a -> (c -> m e) -> m ()
+-- > forMOf_ :: Monad m => Fold a b c d      -> a -> (c -> m e) -> m ()
+-- > forMOf_ :: Monad m => Traversal a b c d -> a -> (c -> m e) -> m ()
 forMOf_ :: Monad m => ((c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> a -> (c -> m e) -> m ()
 forMOf_ l a f = mapMOf_ l f a
 {-# INLINE forMOf_ #-}
@@ -821,8 +864,10 @@ forMOf_ l a f = mapMOf_ l f a
 -- |
 -- > sequence_ = sequenceOf_ folded
 --
--- > sequenceOf_ :: Monad m => GetterFamily a b (m b) d -> a -> m ()
--- > sequenceOf_ :: Monad m => FoldFamily a b (m b) d -> a -> m ()
+-- > sequenceOf_ :: Monad m => Getter a b (m b) d    -> a -> m ()
+-- > sequenceOf_ :: Monad m => Lens a b (m b) d      -> a -> m ()
+-- > sequenceOf_ :: Monad m => Fold a b (m b) d      -> a -> m ()
+-- > sequenceOf_ :: Monad m => Traversal a b (m b) d -> a -> m ()
 sequenceOf_ :: Monad m => ((m c -> Const (Traversed (WrappedMonad m)) d) -> a -> Const (Traversed (WrappedMonad m)) b) -> a -> m ()
 sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
 {-# INLINE sequenceOf_ #-}
@@ -831,8 +876,10 @@ sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
 --
 -- > asum = asumOf folded
 --
--- > asumOf :: Alternative f => GetterFamily a b c d -> a -> f c
--- > asumOf :: Alternative f => FoldFamily a b c d -> a -> f c
+-- > asumOf :: Alternative f => Getter a b c d    -> a -> f c
+-- > asumOf :: Alternative f => Lens a b c d      -> a -> f c
+-- > asumOf :: Alternative f => Fold a b c d      -> a -> f c
+-- > asumOf :: Alternative f => Traversal a b c d -> a -> f c
 asumOf :: Alternative f => ((f c -> Const (Endo (f c)) d) -> a -> Const (Endo (f c)) b) -> a -> f c
 asumOf l = foldrOf l (<|>) Applicative.empty
 {-# INLINE asumOf #-}
@@ -841,8 +888,10 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 --
 -- > msum = msumOf folded
 --
--- > msumOf :: MonadPlus m => GetterFamily a b c d -> a -> m c
--- > msumOf :: MonadPlus m => FoldFamily a b c d -> a -> m c
+-- > msumOf :: MonadPlus m => Getter a b c d    -> a -> m c
+-- > msumOf :: MonadPlus m => Lens a b c d      -> a -> m c
+-- > msumOf :: MonadPlus m => Fold a b c d      -> a -> m c
+-- > msumOf :: MonadPlus m => Traversal a b c d -> a -> m c
 msumOf :: MonadPlus m => ((m c -> Const (Endo (m c)) d) -> a -> Const (Endo (m c)) b) -> a -> m c
 msumOf l = foldrOf l mplus mzero
 {-# INLINE msumOf #-}
@@ -850,8 +899,10 @@ msumOf l = foldrOf l mplus mzero
 -- |
 -- > elem = elemOf folded
 --
--- > elemOf :: Eq c => GetterFamily a b c d -> c -> a -> Bool
--- > elemOf :: Eq c => FoldFamily a b c d -> c -> a -> Bool
+-- > elemOf :: Eq c => Getter a b c d    -> c -> a -> Bool
+-- > elemOf :: Eq c => Lens a b c d      -> c -> a -> Bool
+-- > elemOf :: Eq c => Fold a b c d      -> c -> a -> Bool
+-- > elemOf :: Eq c => Traversal a b c d -> c -> a -> Bool
 elemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
 elemOf l = anyOf l . (==)
 {-# INLINE elemOf #-}
@@ -859,8 +910,10 @@ elemOf l = anyOf l . (==)
 -- |
 -- > notElem = notElemOf folded
 --
--- > notElemOf :: Eq c => GetterFamily a b c d -> c -> a -> Bool
--- > notElemOf :: Eq c => FoldFamily a b c d -> c -> a -> Bool
+-- > notElemOf :: Eq c => Getter a b c d    -> c -> a -> Bool
+-- > notElemOf :: Eq c => Fold a b c d      -> c -> a -> Bool
+-- > notElemOf :: Eq c => Lens a b c d      -> c -> a -> Bool
+-- > notElemOf :: Eq c => Traversal a b c d -> c -> a -> Bool
 notElemOf :: Eq c => ((c -> Const Any d) -> a -> Const Any b) -> c -> a -> Bool
 notElemOf l c = not . elemOf l c
 {-# INLINE notElemOf #-}
@@ -868,8 +921,10 @@ notElemOf l c = not . elemOf l c
 -- |
 -- > concatMap = concatMapOf folded
 --
--- > concatMapOf :: GetterFamily a b c d -> (c -> [e]) -> a -> [e]
--- > concatMapOf :: FoldFamily a b c d -> (c -> [e]) -> a -> [e]
+-- > concatMapOf :: Getter a b c d     -> (c -> [e]) -> a -> [e]
+-- > concatMapOf :: Lens a b c d      -> (c -> [e]) -> a -> [e]
+-- > concatMapOf :: Fold a b c d      -> (c -> [e]) -> a -> [e]
+-- > concatMapOf :: Traversal a b c d -> (c -> [e]) -> a -> [e]
 concatMapOf :: ((c -> Const [e] d) -> a -> Const [e] b) -> (c -> [e]) -> a -> [e]
 concatMapOf l ces a = getConst  (l (Const . ces) a)
 {-# INLINE concatMapOf #-}
@@ -877,32 +932,27 @@ concatMapOf l ces a = getConst  (l (Const . ces) a)
 -- |
 -- > concat = concatOf folded
 --
--- > concatOf :: GetterFamily a b [e] d -> a -> [e]
--- > concatOf :: FoldFamily a b [e] d -> a -> [e]
+-- > concatOf :: Getter a b [e] d -> a -> [e]
+-- > concatOf :: Lens a b [e] d -> a -> [e]
+-- > concatOf :: Fold a b [e] d -> a -> [e]
+-- > concatOf :: a b [e] d -> a -> [e]
 concatOf :: (([e] -> Const [e] d) -> a -> Const [e] b) -> a -> [e]
-concatOf = reading
+concatOf = view
 {-# INLINE concatOf #-}
 
 ------------------------------------------------------------------------------
 -- Traversals
 ------------------------------------------------------------------------------
 
--- | Every 'Traversal' can be used as a 'TraversalFamily' or a 'Setter' or 'Fold', so it can transitively be used as a
--- 'FoldFamily' or 'SetterFamily' as well.
---
--- > type Traversal a b             = TraversalFamily a a b b
-type Traversal a b                  = forall f. Applicative f => (b -> f b) -> a -> f a
-
-
--- | A 'TraversalFamily' can be used directly as a 'SetterFamily' or a 'FoldFamily' and provides
--- the ability to both read and update multiple fields, subject to the (relatively weak) 'TraversalFamily' laws.
+-- | A 'Traversal' can be used directly as a 'Setter' or a 'Fold' (but not as a 'Lens') and provides
+-- the ability to both read and update multiple fields, subject to some relatively weak 'Traversal' laws.
 --
 -- These are also known as @MultiLens@ families, but they have the signature and spirit of
 --
--- > traverse :: Traversable f => TraversalFamiy (f a) (f b) a b
+-- > traverse :: Traversable f => Traversal (f a) (f b) a b
 --
 -- and the more evocative name suggests their application.
-type TraversalFamily a b c d        = forall f. Applicative f => (c -> f d) -> a -> f b
+type Traversal a b c d        = forall f. Applicative f => (c -> f d) -> a -> f b
 
 --------------------------
 -- Traversal combinators
@@ -911,8 +961,8 @@ type TraversalFamily a b c d        = forall f. Applicative f => (c -> f d) -> a
 -- |
 -- > mapM = mapMOf traverse
 --
--- > mapMOf :: Monad m => LensFamily a b c d -> (c -> m d) -> a -> m b
--- > mapMOf :: Monad m => TraversalFamily a b c d -> (c -> m d) -> a -> m b
+-- > mapMOf :: Monad m => Lens a b c d      -> (c -> m d) -> a -> m b
+-- > mapMOf :: Monad m => Traversal a b c d -> (c -> m d) -> a -> m b
 mapMOf :: ((c -> WrappedMonad m d) -> a -> WrappedMonad m b) -> (c -> m d) -> a -> m b
 mapMOf l cmd a = unwrapMonad (l (WrapMonad . cmd) a)
 {-# INLINE mapMOf #-}
@@ -920,8 +970,8 @@ mapMOf l cmd a = unwrapMonad (l (WrapMonad . cmd) a)
 -- |
 -- > sequenceA = sequenceAOf traverse
 --
--- > sequenceAOf :: Applicative f => LensFamily a b (f c) (f c) -> a -> f b
--- > sequenceAOf :: Applicative f => TraversalFamily a b (f c) (f c) -> a -> f b
+-- > sequenceAOf :: Applicative f => Lens a b (f c) (f c)      -> a -> f b
+-- > sequenceAOf :: Applicative f => Traversal a b (f c) (f c) -> a -> f b
 sequenceAOf :: Applicative f => ((f c -> f (f c)) -> a -> f b) -> a -> f b
 sequenceAOf l = l pure
 {-# INLINE sequenceAOf #-}
@@ -929,19 +979,19 @@ sequenceAOf l = l pure
 -- |
 -- > sequence = sequenceOf traverse
 --
--- > sequenceOf :: Monad m => LensFamily a b (m c) (m c) -> a -> m b
--- > sequenceOf :: Monad m => TraversalFamily a b (m c) (m c) -> a -> m b
+-- > sequenceOf :: Monad m => Lens a b (m c) (m c)      -> a -> m b
+-- > sequenceOf :: Monad m => Traversal a b (m c) (m c) -> a -> m b
 sequenceOf :: Monad m => ((m c -> WrappedMonad m (m c)) -> a -> WrappedMonad m b) -> a -> m b
 sequenceOf l = unwrapMonad . l pure
 {-# INLINE sequenceOf #-}
 
--- | A Traversal of the nth element of a Traversal
+-- | A 'Traversal' of the nth element of another 'Traversal'
 --
 -- > traverseHead = elementOf traverse 0
 elementOf :: Applicative f => ((c -> AppliedState f c) -> a -> AppliedState f b) -> Int -> (c -> f c) -> a -> f b
 elementOf l = elementsOf l . (==)
 
--- | A Traversal of the elements at positions in a Traversal where the positions satisfy a predicate
+-- | A 'Traversal' of the elements in another 'Traversal' where their positions in that 'Traversal' satisfy a predicate
 --
 -- > traverseTail = elementsOf traverse (>0)
 elementsOf :: Applicative f => ((c -> AppliedState f c) -> a -> AppliedState f b) -> (Int -> Bool) -> (c -> f c) -> a -> f b
@@ -949,9 +999,7 @@ elementsOf l p f ta = fst (runAppliedState (l go ta) 0) where
   go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
 
 -- |
---
--- > transpose = transposeOf traverse -- (for not ragged arrays)
---
+-- > transpose = transposeOf traverse -- modulo the ragged arrays support
 --
 -- > transposeOf _2 :: (b, [a]) -> [(b, a)]
 
@@ -965,7 +1013,7 @@ transposeOf l = getZipList . l ZipList
 -- | This is the traversal that never succeeds at returning any values
 --
 -- > traverseNothing :: Applicative f => (c -> f d) -> a -> f a
-traverseNothing :: TraversalFamily a a c d
+traverseNothing :: Traversal a a c d
 traverseNothing = const pure
 {-# INLINE traverseNothing #-}
 
@@ -975,13 +1023,13 @@ traverseNothing = const pure
 -- > traverseHead = traverseElementAt 0 -- but is more efficient
 --
 -- | > traverseHead :: Applicative f => (a -> f a) -> [a] -> f [a]
-traverseHead :: Traversal [a] a
+traverseHead :: Simple Traversal [a] a
 traverseHead _ [] = pure []
 traverseHead f (a:as) = (:as) <$> f a
 {-# INLINE traverseHead #-}
 
 -- | > traverseTail :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
-traverseTail :: Traversal [a] [a]
+traverseTail :: Simple Traversal [a] [a]
 traverseTail _ [] = pure []
 traverseTail f (a:as) = (a:) <$> f as
 {-# INLINE traverseTail #-}
@@ -991,7 +1039,7 @@ traverseTail f (a:as) = (a:) <$> f as
 -- > traverseLast = traverseValueAtMax
 --
 -- > traverseLast :: Applicative f => (a -> f a) -> [a] -> f [a]
-traverseLast :: Traversal [a] a
+traverseLast :: Simple Traversal [a] a
 traverseLast _ []     = pure []
 traverseLast f [a]    = return <$> f a
 traverseLast f (a:as) = (a:) <$> traverseLast f as
@@ -1002,7 +1050,7 @@ traverseLast f (a:as) = (a:) <$> traverseLast f as
 -- | Traverse all but the last element of a list
 --
 -- > traverseInit :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
-traverseInit :: Traversal [a] [a]
+traverseInit :: Simple Traversal [a] [a]
 traverseInit _ [] = pure []
 traverseInit f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
 {-# INLINE traverseInit #-}
@@ -1010,7 +1058,7 @@ traverseInit f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
 -- | A traversal for tweaking the left-hand value in an Either:
 --
 -- > traverseLeft :: Applicative f => (a -> f b) -> Either a c -> f (Either b c)
-traverseLeft :: TraversalFamily (Either a c) (Either b c) a b
+traverseLeft :: Traversal (Either a c) (Either b c) a b
 traverseLeft f (Left a)  = Left <$> f a
 traverseLeft _ (Right c) = pure $ Right c
 {-# INLINE traverseLeft #-}
@@ -1022,7 +1070,7 @@ traverseLeft _ (Right c) = pure $ Right c
 --
 -- Unfortunately the instance for 'Traversable (Either c)' is still missing from
 -- base, so this can't just be 'traverse'
-traverseRight :: TraversalFamily (Either c a) (Either c b) a b
+traverseRight :: Traversal (Either c a) (Either c b) a b
 traverseRight _ (Left c) = pure $ Left c
 traverseRight f (Right a) = Right <$> f a
 {-# INLINE traverseRight #-}
@@ -1031,7 +1079,7 @@ traverseRight f (Right a) = Right <$> f a
 --
 -- > traverseValueAt :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
 -- > traverseValueAt k = valueAt k . traverse
-traverseValueAt :: Ord k => k -> Traversal (Map k v) v
+traverseValueAt :: Ord k => k -> Simple Traversal (Map k v) v
 traverseValueAt k = valueAt k . traverse
 {-# INLINE traverseValueAt #-}
 
@@ -1039,21 +1087,21 @@ traverseValueAt k = valueAt k . traverse
 --
 -- > traverseValueAtInt :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
 -- > traverseValueAtInt k = valueAtInt k . traverse
-traverseValueAtInt :: Int -> Traversal (IntMap v) v
+traverseValueAtInt :: Int -> Simple Traversal (IntMap v) v
 traverseValueAtInt k = valueAtInt k . traverse
 {-# INLINE traverseValueAtInt #-}
 
 -- | Traverse a single element in a traversable container.
 --
 -- > traverseElement :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
-traverseElement :: Traversable t => Int -> Traversal (t a) a
+traverseElement :: Traversable t => Int -> Simple Traversal (t a) a
 traverseElement = traverseElements . (==)
 {-# INLINE traverseElement #-}
 
 -- | Traverse elements where a predicate holds on their position in a traversable container
 --
 -- > traverseElements :: Applicative f, Traversable t) => (Int -> Bool) -> (a -> f a) -> t a -> f (t a)
-traverseElements :: Traversable t => (Int -> Bool) -> Traversal (t a) a
+traverseElements :: Traversable t => (Int -> Bool) -> Simple Traversal (t a) a
 traverseElements p f ta = fst (runAppliedState (traverse go ta) 0) where
   go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
 {-# INLINE traverseElements #-}
@@ -1063,7 +1111,7 @@ class TraverseByteString t where
   -- | Traverse the individual bytes in a ByteString
   --
   -- > anyOf traverseByteString (==0x80) :: TraverseByteString b => b -> Bool
-  traverseByteString :: Traversal t Word8
+  traverseByteString :: Simple Traversal t Word8
 
 instance TraverseByteString Strict.ByteString where
   traverseByteString f = fmap Strict.pack . traverse f . Strict.unpack
@@ -1077,7 +1125,7 @@ instance TraverseByteString Lazy.ByteString where
 -- or max-heap may be able to support one, but not the other.
 class TraverseValueAtMin t where
   -- | Traverse the value for the minimal key
-  traverseValueAtMin :: Traversal (t v) v
+  traverseValueAtMin :: Simple Traversal (t v) v
   -- default traverseValueAtMin :: Traversable t => Traversal (t v) v
   -- traverseValueAtMin = traverseElement 0
 
@@ -1101,11 +1149,11 @@ instance TraverseValueAtMin Seq where
 
 -- | Types that support traversal of the value of the maximal key
 --
--- This is separate from 'TraverseValueAtMn' because a min-heap
+-- This is separate from 'TraverseValueAtMin' because a min-heap
 -- or max-heap may be able to support one, but not the other.
 class TraverseValueAtMax t where
   -- | Traverse the value for the maximal key
-  traverseValueAtMax :: Traversal (t v) v
+  traverseValueAtMax :: Simple Traversal (t v) v
 
 instance TraverseValueAtMax (Map k) where
   traverseValueAtMax f m = case Map.maxView m of
@@ -1136,7 +1184,7 @@ instance TraverseValueAtMax Seq where
 -- > ghci> toListOf traverseBits 5
 -- > [True,False,True,False,False,False,False,False,False,False,False,False...
 
-traverseBits :: Bits b => Traversal b Bool
+traverseBits :: Bits b => Simple Traversal b Bool
 traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
   where
     g n      = (,) n <$> f (testBit b n)
@@ -1147,7 +1195,7 @@ traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
 
 -- this version requires a legal bitSize
 --
---traverseBits :: Bits b => Traversal b Bool
+--traverseBits :: Bits b => Simple Traversal b Bool
 --traverseBits f b = snd . Prelude.foldr step (bitSize b - 1,0) <$> traverse (f . testBit b) [0 .. bitSize b - 1] where
 --  step True (n,r) = (n - 1, setBit r n)
 --  step _    (n,r) = (n - 1, r)
@@ -1156,19 +1204,12 @@ traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
 -- Cloning Lenses
 ------------------------------------------------------------------------------
 
--- | Cloning a 'Lens' or 'LensFamily' is one way to make sure you arent given
--- something weaker, such as a 'Traversal' or 'TraversalFamily', and can be used
+-- | Cloning a 'Lens' is one way to make sure you arent given
+-- something weaker, such as a 'Traversal' and can be used
 -- as a way to pass around lenses that have to be monomorphic in 'f'.
-clone :: Functor f => 
+clone :: Functor f =>
    ((c -> IndexedStore c d d) -> a -> IndexedStore c d b) ->
   (c -> f d) -> a -> f b
 clone f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
 {-# INLINE clone #-}
-
---indexOf :: ((c -> ((e -> Const e d) -> c -> Const e b) -> e) ->
---            a -> ((e -> Const e d) -> c -> Const e b) -> e) ->
---            a -> ((e -> Const e d) -> c -> Const e b) -> e
---indexOf l = l (^.)
---{-# INLINE indexOf #-}
-

@@ -47,7 +47,7 @@
 -- >   distribute = distributeRep
 --
 ----------------------------------------------------------------------------
-module Control.Lens.Rep
+module Control.Lens.Representable
   (
   -- * Representable Functors
     Representable(..)
@@ -82,7 +82,7 @@ import Data.Monoid
 import Data.Traversable      as Traversable
 
 -- | The representation of a 'Representable' 'Functor' as Lenses
-type Rep f = forall a. Lens (f a) a
+type Rep f = forall a. Simple Lens (f a) a
 
 -- | Representable Functors.
 --
