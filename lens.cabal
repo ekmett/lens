@@ -10,8 +10,8 @@ stability:     provisional
 homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012 Edward A. Kmett
-synopsis:      Lenses, Folds and Traversals
-description:   Lenses, Folds and Traversals
+synopsis:      Families of Lenses, Folds and Traversals
+description:   Families of Lenses, Folds and Traversals
 build-type:    Simple
 tested-with:   GHC == 7.4.1
 extra-source-files: .travis.yml
