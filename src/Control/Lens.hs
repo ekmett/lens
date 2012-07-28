@@ -9,7 +9,6 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
---
 -- This package provides lens families, setters, getters, traversals and folds that
 -- can all be composed automatically with each other (and other lenses from
 -- other van Laarhoven lens libraries) using @(.)@ from Prelude, while
@@ -95,7 +94,9 @@ module Control.Lens
   , containsInt
   , identity
   , resultAt
-  , real, imaginary, polarize
+  , real
+  , imaginary
+  , polarize
 
   -- * Folds
   , Fold
@@ -108,10 +109,14 @@ module Control.Lens
   -- ** Fold Combinators
   , foldMapOf
   , foldOf
-  , foldrOf, foldlOf
-  , foldrOf', foldlOf'
-  , foldr1Of, foldl1Of
-  , foldrMOf, foldlMOf
+  , foldrOf
+  , foldlOf
+  , foldrOf'
+  , foldlOf'
+  , foldr1Of
+  , foldl1Of
+  , foldrMOf
+  , foldlMOf
   , toListOf
   , anyOf
   , allOf
