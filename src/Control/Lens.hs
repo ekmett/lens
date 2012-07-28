@@ -14,10 +14,13 @@
 -- Portability :  Rank2Types
 --
 --
--- This package provides lenses, setters, getters, traversals and folds that
--- can all be composed automatically with each other (and other lenses from 
+-- This package provides lens families, setters, getters, traversals and folds that
+-- can all be composed automatically with each other (and other lenses from
 -- other van Laarhoven lens libraries) using @(.)@ from Prelude, while
 -- reducing the complexity of the API.
+
+-- For a longer description and motivation of why you should care about lens families,
+-- see <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
 -- Note: If you merely want your library to /provide/ lenses you may not
 -- have to actually import /any/ lens library. For, say, a
