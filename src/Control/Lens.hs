@@ -191,9 +191,9 @@ infixr 0 ^$
 -- Lenses
 --------------------------
 
--- | A 'Lens' is actually a lens family.
+-- | A 'Lens' is actually a lens family as described in <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
--- With great power comes great responsibility, and a 'Lens' is subject to the lens laws:
+-- With great power comes great responsibility and a 'Lens' is subject to the lens laws:
 --
 -- > view l (set l b a)  = b
 -- > set l (view l a) a  = a
@@ -208,7 +208,7 @@ infixr 0 ^$
 -- > identity f (Identity a) = Identity <$> f a
 type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 
--- | A 'Simple Lens', 'Simple Setter', or 'Simple Traversal' can be used instead of a 'Lens' 'Setter' or 'Traversal' 
+-- | A @'Simple' 'Lens'@, @'Simple' 'Setter'@, or @'Simple' 'Traversal'@ can be used instead of a 'Lens' 'Setter' or 'Traversal' 
 -- whenever the type variables don't change upon setting a value.
 --
 -- > imaginary :: Simple Lens (Complex a) a
