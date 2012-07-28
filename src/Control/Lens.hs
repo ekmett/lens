@@ -38,8 +38,8 @@
 --
 -- This defines the following lenses:
 --
--- > fooArgs :: Lens (Foo a) [String]
--- > fooValue :: LensFamily (Foo a) (Foo b) a b
+-- > fooArgs :: Simple Lens (Foo a) [String]
+-- > fooValue :: Lens (Foo a) (Foo b) a b
 --
 -- The combinators here have unusually specific type signatures, so for
 -- particularly tricky ones, I've tried to list the simpler type signatures
@@ -658,7 +658,7 @@ l |= b = modify $ l ^|= b
 -- typeclass, see 'foldMapOf' and the other 'Fold' combinators.
 --
 -- By convention, if there exists a 'foo' method that expects a @'Foldable' (f c)@, then there should be a
--- 'fooOf' method that takes a @'FoldFamily' a b c d@ and a value of type @a@.
+-- 'fooOf' method that takes a @'Fold' a b c d@ and a value of type @a@.
 --
 -- A 'Getter' is a legal 'Fold' that just ignores the supplied 'Monoid'
 --
