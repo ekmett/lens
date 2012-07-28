@@ -429,6 +429,7 @@ l ^||= n = adjust l (|| n)
 {-# INLINE (^||=) #-}
 
 -- | Logically '&&' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+--
 -- (^&&=) :: ((Bool -> Identity Bool) -> a -> Identity b) -> Bool -> a -> b
 (^&&=) :: Setter a b Bool Bool -> Bool -> a -> b
 l ^&&= n = adjust l (&& n)
@@ -442,7 +443,8 @@ l ^|= n = adjust l (.|. n)
 {-# INLINE (^|=) #-}
 
 -- | Bitwise '.&.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
--- (^&=) :: Bits c => ((b -> Identity b) -> a -> Identity a) -> c -> a -> b
+--
+-- > (^&=) :: Bits c => ((b -> Identity b) -> a -> Identity a) -> c -> a -> b
 (^&=) :: Bits c => Setter a b c c -> c -> a -> b
 l ^&= n = adjust l (.&. n)
 {-# INLINE (^&=) #-}
