@@ -5,7 +5,7 @@
 #endif
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Control.Lens.Rep
+-- Module      :  Control.Lens.Representable
 -- Copyright   :  (C) 2012 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
@@ -22,7 +22,7 @@
 -- Consider the following example.
 --
 -- > import Control.Lens
--- > import Control.Lens.Rep
+-- > import Control.Lens.Representable
 -- > import Control.Lens.TH
 -- > import Data.Distributive
 --

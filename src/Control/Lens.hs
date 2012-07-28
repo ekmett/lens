@@ -57,7 +57,7 @@ module Control.Lens
 
   -- * Getters
   , Getter, GetterFamily
-  , getting
+  , to
 
   -- ** Getting Values
   , reading
@@ -271,9 +271,9 @@ type Getter a b                = forall z. (b -> Const z b) -> a -> Const z a
 type GetterFamily a b c d      = forall z. (c -> Const z d) -> a -> Const z b
 
 -- | Build a 'Getter' or 'GetterFamily'
-getting :: (a -> c) -> GetterFamily a b c d
-getting f g a = Const (getConst (g (f a)))
-{-# INLINE getting #-}
+to :: (a -> c) -> GetterFamily a b c d
+to f g a = Const (getConst (g (f a)))
+{-# INLINE to #-}
 
 -------------------------------
 -- Getting Values
@@ -305,7 +305,7 @@ l ^$ a = getConst (l Const a)
 -- The fixity and semantics are such that subsequent field accesses can be
 -- performed with (Prelude..) This is the same operation as 'flip reading'
 --
--- > ghci> ((0, 1 :+ 2), 3)^._1._2.getting magnitude
+-- > ghci> ((0, 1 :+ 2), 3)^._1._2.to magnitude
 -- > 2.23606797749979
 (^.) :: a -> ((c -> Const c d) -> a -> Const c b) -> c
 a ^. l = getConst (l Const a)
