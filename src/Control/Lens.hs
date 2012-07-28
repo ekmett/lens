@@ -79,7 +79,7 @@ module Control.Lens
   -- ** Setting Values
   , adjust
   , set
-  , (^%=), (^=), (^+=), (^-=), (^*=), (^/=), (^||=), (^&&=), (^|=), (^&=)
+  , (=%=), (=~=), (=+=), (=-=), (=*=), (=/=), (=||=), (=&&=), (=|=), (=&=)
 
   -- * Manipulating State
   , access
@@ -186,7 +186,7 @@ import           Data.Traversable
 import           Data.Word (Word8)
 
 infixl 8 ^.
-infixr 4 ^%=, ^=, ^+=, ^*=, ^-=, ^/=, ^&&=, ^||=, ^&=, ^|=
+infixr 4 =~=, =%=, =+=, =*=, =-=, =/=, =&&=, =||=, =&=, =|=
 infix  4 ~=, %=, %%=, +=, -=, *=, //=, &&=, ||=, &=, |=
 infixr 0 ^$
 
@@ -370,88 +370,88 @@ set l d a = runIdentity (l (\_ -> Identity d) a)
 --
 -- This is an infix version of 'adjust'
 --
--- > fmap f = traverse ^%= f
+-- > fmap f = traverse =%= f
 --
--- > (^%=) :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
-(^%=) :: Setter a b c d -> (c -> d) -> a -> b
-l ^%= f = runIdentity . l (Identity . f)
-{-# INLINE (^%=) #-}
+-- > (=%=) :: ((c -> Identity d) -> a -> Identity b) -> (c -> d) -> a -> b
+(=%=) :: Setter a b c d -> (c -> d) -> a -> b
+l =%= f = runIdentity . l (Identity . f)
+{-# INLINE (=%=) #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
 -- or 'Traversal' with a constant value.
 --
 -- This is an infix version of 'set'
 --
--- > f <$ a = traverse ^= f $ a
+-- > f <$ a = traverse =~= f $ a
 --
--- > (^=) :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
-(^=) :: Setter a b c d -> d -> a -> b
-l ^= v = runIdentity . l (Identity . const v)
-{-# INLINE (^=) #-}
+-- > (=~=) :: ((c -> Identity d) -> a -> Identity b) -> d -> a -> b
+(=~=) :: Setter a b c d -> d -> a -> b
+l =~= v = runIdentity . l (Identity . const v)
+{-# INLINE (=~=) #-}
 
 -- | Increment the target(s) of a numerically valued 'Lens', Setter' or 'Traversal'
 --
--- > ghci> _1 ^+= 1 $ (1,2)
+-- > ghci> _1 =+= 1 $ (1,2)
 -- > (2,2)
 --
--- > (^+=) :: Num c => ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
-(^+=) :: Num c => Setter a b c c -> c -> a -> b
-l ^+= n = adjust l (+ n)
-{-# INLINE (^+=) #-}
+-- > (=+=) :: Num c => ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
+(=+=) :: Num c => Setter a b c c -> c -> a -> b
+l =+= n = adjust l (+ n)
+{-# INLINE (=+=) #-}
 
 -- | Multiply the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
 --
--- > ghci> _2 ^*= 4 $ (1,2)
+-- > ghci> _2 =*= 4 $ (1,2)
 -- > (1,8)
 --
--- > (^*=) :: Num c => ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
-(^*=) :: Num c => Setter a b c c -> c -> a -> b
-l ^*= n = adjust l (* n)
-{-# INLINE (^*=) #-}
+-- > (=*=) :: Num c => ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
+(=*=) :: Num c => Setter a b c c -> c -> a -> b
+l =*= n = adjust l (* n)
+{-# INLINE (=*=) #-}
 
 -- | Decrement the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
 --
--- > ghci> _1 ^-= 2 $ (1,2)
+-- > ghci> _1 =-= 2 $ (1,2)
 -- > (-1,2)
 --
--- > (^-=) :: ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
-(^-=) :: Num c => Setter a b c c -> c -> a -> b
-l ^-= n = adjust l (subtract n)
-{-# INLINE (^-=) #-}
+-- > (=-=) :: ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
+(=-=) :: Num c => Setter a b c c -> c -> a -> b
+l =-= n = adjust l (subtract n)
+{-# INLINE (=-=) #-}
 
 -- | Divide the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
 --
--- > (^/=) :: Fractional c => ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
-(^/=) :: Fractional c => Setter a b c c -> c -> a -> b
-l ^/= n = adjust l (/ n)
+-- > (=/=) :: Fractional c => ((c -> Identity c) -> a -> Identity b) -> c -> a -> b
+(=/=) :: Fractional c => Setter a b c c -> c -> a -> b
+l =/= n = adjust l (/ n)
 
 -- | Logically '||' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 --
--- > (^||=):: ((Bool -> Identity Bool) -> a -> Identity b) -> Bool -> a -> b
-(^||=):: Setter a b Bool Bool -> Bool -> a -> b
-l ^||= n = adjust l (|| n)
-{-# INLINE (^||=) #-}
+-- > (=||=):: ((Bool -> Identity Bool) -> a -> Identity b) -> Bool -> a -> b
+(=||=):: Setter a b Bool Bool -> Bool -> a -> b
+l =||= n = adjust l (|| n)
+{-# INLINE (=||=) #-}
 
 -- | Logically '&&' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 --
--- (^&&=) :: ((Bool -> Identity Bool) -> a -> Identity b) -> Bool -> a -> b
-(^&&=) :: Setter a b Bool Bool -> Bool -> a -> b
-l ^&&= n = adjust l (&& n)
-{-# INLINE (^&&=) #-}
+-- (=&&=) :: ((Bool -> Identity Bool) -> a -> Identity b) -> Bool -> a -> b
+(=&&=) :: Setter a b Bool Bool -> Bool -> a -> b
+l =&&= n = adjust l (&& n)
+{-# INLINE (=&&=) #-}
 
 -- | Bitwise '.|.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 --
--- > (^|=):: Bits c => ((c -> Identity c) -> a -> Identity b) -> Bool -> a -> b
-(^|=):: Bits c => Setter a b c c -> c -> a -> b
-l ^|= n = adjust l (.|. n)
-{-# INLINE (^|=) #-}
+-- > (=|=):: Bits c => ((c -> Identity c) -> a -> Identity b) -> Bool -> a -> b
+(=|=):: Bits c => Setter a b c c -> c -> a -> b
+l =|= n = adjust l (.|. n)
+{-# INLINE (=|=) #-}
 
 -- | Bitwise '.&.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 --
--- > (^&=) :: Bits c => ((b -> Identity b) -> a -> Identity a) -> c -> a -> b
-(^&=) :: Bits c => Setter a b c c -> c -> a -> b
-l ^&= n = adjust l (.&. n)
-{-# INLINE (^&=) #-}
+-- > (=&=) :: Bits c => ((b -> Identity b) -> a -> Identity a) -> c -> a -> b
+(=&=) :: Bits c => Setter a b c c -> c -> a -> b
+l =&= n = adjust l (.&. n)
+{-# INLINE (=&=) #-}
 
 ------------------------------------------------------------------------------
 -- Common Lenses
@@ -463,7 +463,7 @@ l ^&= n = adjust l (.&. n)
 -- > ghci> (1,2)^._1
 -- > 1
 --
--- > ghci> _1 ^= "hello" $ (1,2)
+-- > ghci> _1 =+= "hello" $ (1,2)
 -- > ("hello",2)
 --
 -- > _1 :: Functor f => (a -> f b) -> (a,c) -> f (a,c)
@@ -499,7 +499,7 @@ valueAt k f m = go <$> f (Map.lookup k m) where
 -- > ghci> IntMap.fromList [(1,"hello")]  ^. valueAtInt 1
 -- > Just "hello"
 --
--- > ghci> valueAtInt 2 ^= "goodbye" $ IntMap.fromList [(1,"hello")]
+-- > ghci> valueAtInt 2 =+= "goodbye" $ IntMap.fromList [(1,"hello")]
 -- > fromList [(1,"hello"),(2,"goodbye")]
 --
 -- > valueAtInt :: Int -> (Maybe v -> f (Maybe v)) -> IntMap v -> f (IntMap v)
@@ -511,7 +511,7 @@ valueAtInt k f m = go <$> f (IntMap.lookup k m) where
 
 -- | This 'Lens' can be used to read, write or delete a member of a 'Set'
 --
--- > ghci> contains 3 ^= False $ Set.fromList [1,2,3,4]
+-- > ghci> contains 3 =+= False $ Set.fromList [1,2,3,4]
 -- > fromList [1,2,4]
 --
 -- > contains :: Ord k => k -> (Bool -> f Bool) -> Set k -> f (Set k)
@@ -523,7 +523,7 @@ contains k f s = go <$> f (Set.member k s) where
 
 -- | This 'Lens' can be used to read, write or delete a member of an 'IntSet'
 --
--- > ghci> containsInt 3 ^= False $ IntSet.fromList [1,2,3,4]
+-- > ghci> containsInt 3 =+= False $ IntSet.fromList [1,2,3,4]
 -- > fromList [1,2,4]
 --
 -- > containsInt :: Int -> (Bool -> f Bool) -> IntSet -> f IntSet
@@ -603,52 +603,52 @@ l %%= f = state (l f)
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal' in our monadic
 -- state with a new value, irrespective of the old.
 (~=) :: MonadState a m => Setter a a c d -> d -> m ()
-l ~= b = modify $ l ^= b
+l ~= b = modify $ l =~= b
 {-# INLINE (~=) #-}
 
 -- | Map over the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal in our monadic state.
 (%=) :: MonadState a m => Setter a a c d -> (c -> d) -> m ()
-l %= f = modify $ l ^%= f
+l %= f = modify $ l =%= f
 {-# INLINE (%=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by adding a value
 (+=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l += b = modify $ l ^+= b
+l += b = modify $ l =+= b
 {-# INLINE (+=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by subtracting a value
 (-=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l -= b = modify $ l ^-= b
+l -= b = modify $ l =-= b
 {-# INLINE (-=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by multiplying by value
 (*=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l *= b = modify $ l ^*= b
+l *= b = modify $ l =*= b
 {-# INLINE (*=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by dividing by a value
 (//=) ::  (MonadState a m, Fractional b) => Simple Setter a b -> b -> m ()
-l //= b = modify $ l ^/= b
+l //= b = modify $ l =/= b
 {-# INLINE (//=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by taking their logical '&&' with a value
 (&&=):: MonadState a m => Simple Setter a Bool -> Bool -> m ()
-l &&= b = modify $ l ^&&= b
+l &&= b = modify $ l =&&= b
 {-# INLINE (&&=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by taking their logical '||' with a value
 (||=) :: MonadState a m => Simple Setter a Bool -> Bool -> m ()
-l ||= b = modify $ l ^||= b
+l ||= b = modify $ l =||= b
 {-# INLINE (||=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.&.' with another value.
 (&=):: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
-l &= b = modify $ l ^&= b
+l &= b = modify $ l =&= b
 {-# INLINE (&=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.|.' with another value.
 (|=) :: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
-l |= b = modify $ l ^|= b
+l |= b = modify $ l =|= b
 {-# INLINE (|=) #-}
 
 --------------------------
