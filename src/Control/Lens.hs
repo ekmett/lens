@@ -255,6 +255,8 @@ iso f g h a = g <$> h (f a )
 type Getter a b c d = forall z. (c -> Const z d) -> a -> Const z b
 
 -- | Build a 'Getter'
+--
+-- > to f . to g = to (g . f)
 to :: (a -> c) -> Getter a b c d
 to f g a = Const (getConst (g (f a)))
 {-# INLINE to #-}
@@ -268,9 +270,9 @@ to f g a = Const (getConst (g (f a)))
 --
 -- It may be useful to think of 'view' as having these more restrictive signatures:
 --
--- > view :: Lens a b c d -> a -> c
--- > view :: Getter a b c d -> a -> c
--- > view :: Monoid m => Fold a b m d -> a -> m
+-- > view ::             Lens a b c d      -> a -> c
+-- > view ::             Getter a b c d    -> a -> c
+-- > view :: Monoid m => Fold a b m d      -> a -> m
 -- > view :: Monoid m => Traversal a b m d -> a -> m
 view :: ((c -> Const c d) -> a -> Const c b) -> a -> c
 view l a = getConst (l Const a)
@@ -281,9 +283,9 @@ view l a = getConst (l Const a)
 --
 -- It may be useful to think of 'views' as having these more restrictive signatures:
 --
--- > views :: Getter a b c d -> (c -> d) -> a -> d
--- > views :: Lens a b c d -> (c -> d) -> a -> d
--- > views :: Monoid m => Fold a b c d -> (c -> m) -> a -> m
+-- > views ::             Getter a b c d    -> (c -> d) -> a -> d
+-- > views ::             Lens a b c d      -> (c -> d) -> a -> d
+-- > views :: Monoid m => Fold a b c d      -> (c -> m) -> a -> m
 -- > views :: Monoid m => Traversal a b c d -> (c -> m) -> a -> m
 views :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
 views l f = getConst . l (Const . f)
@@ -293,6 +295,11 @@ views l f = getConst . l (Const . f)
 -- all the results of a 'Fold' or 'Traversal' that points at a monoidal values.
 --
 -- This is the same operation as 'view', only infix.
+--
+-- > (^$) ::             Lens a b c d      -> a -> c
+-- > (^$) ::             Getter a b c d    -> a -> c
+-- > (^$) :: Monoid m => Fold a b m d      -> a -> m
+-- > (^$) :: Monoid m => Traversal a b m d -> a -> m
 (^$) :: ((c -> Const c d) -> a -> Const c b) -> a -> c
 l ^$ a = getConst (l Const a)
 {-# INLINE (^$) #-}
@@ -307,6 +314,11 @@ l ^$ a = getConst (l Const a)
 --
 -- > ghci> ((0, 1 :+ 2), 3)^._1._2.to magnitude
 -- > 2.23606797749979
+--
+-- > (^$) ::             a -> Lens a b c d      -> c
+-- > (^$) ::             a -> Getter a b c d    -> c
+-- > (^$) :: Monoid m => a -> Fold a b m d      -> m
+-- > (^$) :: Monoid m => a -> Traversal a b m d -> m
 (^.) :: a -> ((c -> Const c d) -> a -> Const c b) -> c
 a ^. l = getConst (l Const a)
 {-# INLINE (^.) #-}
@@ -338,7 +350,6 @@ mapped = sets fmap
 sets :: ((c -> d) -> a -> b) -> Setter a b c d
 sets f g a = Identity (f (runIdentity . g) a)
 {-# INLINE sets #-}
-
 
 -- | Modify the target of a 'Lens' or all the targets of a 'Setter' or 'Traversal'
 -- with a function.
@@ -563,29 +574,53 @@ resultAt e afa ea = go <$> afa a where
 -- Access the target of a 'Lens' or 'Getter' in the current state, or access a
 -- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
 --
+-- > access :: MonadState a m             => Getter a b c d    -> m c
+-- > access :: MonadState a m             => Lens a b c d      -> m c
+-- > access :: (MonadState a m, Monoid c) => Fold a b c d      -> m c
+-- > access :: (MonadState a m, Monoid c) => Traversal a b c d -> m c
 access :: MonadState a m => ((c -> Const c d) -> a -> Const c b) -> m c
 access l = gets (^. l)
 {-# INLINE access #-}
 
 -- | This class allows us to use 'focus' on a number of different monad transformers.
 class Focus st where
-  -- | Use a lens to lift an operation with simpler context into a larger context
+  -- | Run a monadic action in a larger context than it was defined in, using a 'Simple' 'Lens' or 'Simple Traversal'.
   --
   -- This is commonly used to lift actions in a simpler state monad into a state monad with a larger state type.
+  --
+  -- When applied to a 'Simple 'Traversal' over multiple values, the actions for each target are executed sequentially
+  -- and the results are aggregated monoidally
+  -- and a monoidal summary
+  -- of the result is given.
+  --
+  -- > focus :: Monad m => Simple Lens a b -> st b m c -> st a m c
+  -- > focus :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m c
   focus :: Monad m => ((b -> Focusing m c b) -> a -> Focusing m c a) -> st b m c -> st a m c
 
+  -- | 'focus', discarding any accumulated results as you go.
+  focus_ :: Monad m => ((b -> Focusing m () b) -> a -> Focusing m () a) -> st b m c -> st a m ()
+
+skip :: a -> ()
+skip _ = ()
+
 instance Focus Strict.StateT where
-  focus l (Strict.StateT m) = Strict.StateT $ \a -> unfocusing (l (Focusing . m) a)
+  focus l m = Strict.StateT $ \a -> unfocusing (l (Focusing . Strict.runStateT m) a)
   {-# INLINE focus #-}
+  focus_ l m = Strict.StateT $ \a -> unfocusing (l (Focusing . Strict.runStateT (liftM skip m)) a)
+  {-# INLINE focus_ #-}
 
 instance Focus Lazy.StateT where
-  focus l (Lazy.StateT m) = Lazy.StateT $ \a -> unfocusing (l (Focusing . m) a)
+  focus l m = Lazy.StateT $ \a -> unfocusing (l (Focusing . Lazy.runStateT m) a)
   {-# INLINE focus #-}
+  focus_ l m = Lazy.StateT $ \a -> unfocusing (l (Focusing . Lazy.runStateT (liftM skip m)) a)
+  {-# INLINE focus_ #-}
 
 -- | We can focus Reader environments, too!
 instance Focus ReaderT where
-  focus l (ReaderT m) = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` m b) a
+  focus l m = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` runReaderT m b) a
   {-# INLINE focus #-}
+  focus_ l m = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\_ -> ((),b)) `liftM` runReaderT m b) a
+  {-# INLINE focus_ #-}
 
 -- | Modify the target of a 'Lens' in the current state returning some extra information of @c@ or
 -- modify all targets of a 'Traversal' in the current state, extracting extra information of type @c@
