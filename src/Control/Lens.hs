@@ -19,13 +19,13 @@
 -- other van Laarhoven lens libraries) using @(.)@ from Prelude, while
 -- reducing the complexity of the API.
 --
--- Note: If you merely want your library to _provide_ lenses you may not 
--- have to actually import _any_ lens library, for a 
+-- Note: If you merely want your library to /provide/ lenses you may not
+-- have to actually import /any/ lens library. For, say, a
 -- @'Simple' 'Lens' Bar Foo@, just export a function with the signature:
 --
 -- > foo :: Functor f => (Foo -> f Foo) -> Bar -> f Bar
 --
--- and then you can compose it with other lenses with (.) without needing
+-- and then you can compose it with other lenses with @(.)@ without needing
 -- anything from this library at all.
 --
 -- Usage:
@@ -40,7 +40,6 @@
 --
 -- > fooArgs :: Lens (Foo a) [String]
 -- > fooValue :: LensFamily (Foo a) (Foo b) a b
---
 --
 -- The combinators here have unusually specific type signatures, so for
 -- particularly tricky ones, I've tried to list the simpler type signatures
@@ -192,7 +191,7 @@ infixr 0 ^$
 -- Lenses
 --------------------------
 
--- | A 'Lens' is a lens family.
+-- | A 'Lens' is actually a lens family.
 --
 -- With great power comes great responsibility, and a 'Lens' is subject to the lens laws:
 --
@@ -209,8 +208,8 @@ infixr 0 ^$
 -- > identity f (Identity a) = Identity <$> f a
 type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 
--- | A 'Simple Lens', 'Simple Setter', or 'Simple Traversal' can be used when the type variables don't change
--- upon setting a value.
+-- | A 'Simple Lens', 'Simple Setter', or 'Simple Traversal' can be used instead of a 'Lens' 'Setter' or 'Traversal' 
+-- whenever the type variables don't change upon setting a value.
 --
 -- > imaginary :: Simple Lens (Complex a) a
 -- > imaginary f (e :+ i) = (e :+) <$> f i
@@ -249,7 +248,7 @@ iso f g h a = g <$> h (f a )
 -- Moreover, a 'Getter' can be used directly as a 'Fold', since it just ignores the 'Monoid'.
 --
 -- In practice the @b@ and @d@ are left dangling and unused, and as such is no real point in
--- using a 'Simple Getter'.
+-- using a @'Simple' 'Getter'@.
 type Getter a b c d = forall z. (c -> Const z d) -> a -> Const z b
 
 -- | Build a 'Getter'
@@ -666,7 +665,7 @@ l |= b = modify $ l ^|= b
 -- Unlike a 'Traversal' a 'Fold' is read-only. Since a 'Fold' cannot be used to write back
 -- there are no lens laws that can be applied to it.
 --
--- In practice the @b@ and @d@ are left dangling and unused, and as such is no real point in a 'Simple Fold'.
+-- In practice the @b@ and @d@ are left dangling and unused, and as such is no real point in a @'Simple' 'Fold'@.
 type Fold a b c d      = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
 
 -- | Building a Fold
@@ -1197,7 +1196,8 @@ traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
     step (n,True) r = setBit r n
     step _        r = r
 
--- this version requires a legal bitSize
+-- this version requires a legal bitSize, and bitSize (undefined :: Integer) will just blow up in our face, 
+-- so, I use the version above instead.
 --
 --traverseBits :: Bits b => Simple Traversal b Bool
 --traverseBits f b = snd . Prelude.foldr step (bitSize b - 1,0) <$> traverse (f . testBit b) [0 .. bitSize b - 1] where
