@@ -208,7 +208,7 @@ infixr 0 ^$
 type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 
 -- | A 'Simple Lens', 'Simple Setter', or 'Simple Traversal' can be used when the type variables don't change
--- upon sets a value.
+-- upon setting a value.
 --
 -- > imaginary :: Simple Lens (Complex a) a
 -- > imaginary f (e :+ i) = (e :+) <$> f i
