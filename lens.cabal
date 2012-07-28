@@ -38,6 +38,7 @@ library
 
   other-extensions:
     CPP
+    LiberalTypeSynonyms
     Rank2Types
     RankNTypes
     TemplateHaskell
