@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       0.7
+version:       0.8
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -10,8 +10,8 @@ stability:     provisional
 homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012 Edward A. Kmett
-synopsis:      Lenses and Lens Families
-description:   Lenses and Lens Families
+synopsis:      Lenses, Folds and Traversals
+description:   Lenses, Folds and Traversals
 build-type:    Simple
 tested-with:   GHC == 7.4.1
 extra-source-files: .travis.yml
