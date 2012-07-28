@@ -13,25 +13,22 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
--- This package provides lenses that are compatible with other van
--- Laarhoven lens libraries, while reducing the complexty of the imports.
 --
--- Lenses produced by this library are compatible with other van Laarhoven
--- lens family libraries, such as lens-family, lens-family-core and
--- lens-family-th, but the API is simpler.
+-- This package provides lenses, setters, getters, traversals and folds that
+-- can all be composed automatically with each other (and other lenses from 
+-- other van Laarhoven lens libraries) using @(.)@ from Prelude, while
+-- reducing the complexity of the API.
 --
--- Note: If you merely want your library to _provide_ lenses you may not have
--- to actually import _any_ lens library, for a @'Lens' Bar Foo@, just export
--- a function with the signature:
+-- Note: If you merely want your library to _provide_ lenses you may not 
+-- have to actually import _any_ lens library, for a 
+-- @'Simple' 'Lens' Bar Foo@, just export a function with the signature:
 --
 -- > foo :: Functor f => (Foo -> f Foo) -> Bar -> f Bar
 --
--- and then you can compose it with other lenses using @(.)@.
+-- and then you can compose it with other lenses with (.) without needing
+-- anything from this library at all.
 --
--- This package provides lenses, lens families, setters, setter families,
--- getters, traversals, folds, and traversal families in such
--- a way that they can all be composed automatically with @(.)@ from
--- Prelude.
+-- Usage:
 --
 -- You can derive lenses automatically for many data types:
 --
