@@ -334,8 +334,8 @@ a ^. l = getConst (l Const a)
 --
 -- You can't 'view' a 'Setter' in general, so the other two laws do not apply.
 --
--- You can compose a 'Setter' with a 'Lens' or a 'Traversal' using (.) from the Prelude
--- but the result is always only a 'Setter'.
+-- You can compose a 'Setter' with a 'Lens' or a 'Traversal' using @(.)@ from the Prelude
+-- and the result is always only a 'Setter' and nothing more.
 type Setter a b c d = (c -> Identity d) -> a -> Identity b
 
 -- | This setter can be used to map over all of the values in a container.
