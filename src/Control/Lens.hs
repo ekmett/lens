@@ -533,6 +533,10 @@ identity :: LensFamily (Identity a) (Identity b) a b
 identity f (Identity a) = Identity <$> f a
 {-# INLINE identity #-}
 
+-- | This lens can be used to access the value of the nth bit in a number.
+--
+-- @bitsAt n@ is only a legal 'Lens' into @b@ if @0 <= n < bitSize (undefined :: b)@
+
 bitAt :: Bits b => Int -> Lens b Bool
 bitAt n f b = (\x -> if x then setBit b n else clearBit b n) <$> f (testBit b n)
 {-# INLINE bitAt #-}
@@ -1055,7 +1059,7 @@ traverseElements p f ta = fst (runAppliedState (traverse go ta) 0) where
   go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
 {-# INLINE traverseElements #-}
 
-
+-- | Provides ad hoc overloading for 'traverseByteString'
 class TraverseByteString t where
   -- | Traverse the individual bytes in a ByteString
   --
@@ -1068,7 +1072,12 @@ instance TraverseByteString Strict.ByteString where
 instance TraverseByteString Lazy.ByteString where
   traverseByteString f = fmap Lazy.pack . traverse f . Lazy.unpack
 
+-- | Types that support traversal of the value of the minimal key
+--
+-- This is separate from 'TraverseValueAtMax' because a min-heap
+-- or max-heap may be able to support one, but not the other.
 class TraverseValueAtMin t where
+  -- | Traverse the value for the minimal key
   traverseValueAtMin :: Traversal (t v) v
   -- default traverseValueAtMin :: Traversable t => Traversal (t v) v
   -- traverseValueAtMin = traverseElement 0
@@ -1091,7 +1100,12 @@ instance TraverseValueAtMin Seq where
     a :< as -> (<| as) <$> f a
     EmptyL -> pure m
 
+-- | Types that support traversal of the value of the maximal key
+--
+-- This is separate from 'TraverseValueAtMn' because a min-heap
+-- or max-heap may be able to support one, but not the other.
 class TraverseValueAtMax t where
+  -- | Traverse the value for the maximal key
   traverseValueAtMax :: Traversal (t v) v
 
 instance TraverseValueAtMax (Map k) where
@@ -1111,6 +1125,17 @@ instance TraverseValueAtMax Seq where
   traverseValueAtMax f m = case Seq.viewr m of
     as :> a -> (as |>) <$> f a
     EmptyR  -> pure m
+
+-- | Traverse over all bits in a numeric type.
+--
+-- > ghci> toListOf traverseBits (5 :: Word8)
+-- > [True,False,True,False,False,False,False,False]
+--
+-- If you supply this an Integer, it won't crash, but the result will
+-- be an infinite traversal that can be productively consumed.
+--
+-- > ghci> toListOf traverseBits 5
+-- > [True,False,True,False,False,False,False,False,False,False,False,False...
 
 traverseBits :: Bits b => Traversal b Bool
 traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
