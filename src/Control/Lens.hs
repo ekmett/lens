@@ -282,9 +282,9 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 --
 -- > (%%=) = (state.)
 --
--- > (%%=) :: MonadState a m             => Simple Lens a b      -> (b -> (c, b) -> m c
--- > (%%=) :: (MonadState a m, Monoid c) => Simple Traversal a b -> (b -> (c, b) -> m c
-(%%=) :: MonadState a m => LensLike ((,) c) a a b b -> (b -> (c, b)) -> m c
+-- > (%%=) :: MonadState a m             => Lens a a c d      -> (c -> (e, d) -> m e
+-- > (%%=) :: (MonadState a m, Monoid e) => Traversal a a c d -> (c -> (e, d) -> m e
+(%%=) :: MonadState a m => LensLike ((,) e) a a c d -> (c -> (e, d)) -> m e
 l %%= f = state (l f)
 {-# INLINE (%%=) #-}
 
