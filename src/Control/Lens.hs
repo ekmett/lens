@@ -332,7 +332,8 @@ instance Focus Lazy.StateT where
   setFocus l m = Lazy.state $ (,) () . runIdentity . l (Identity . snd . Lazy.runState m)
 
 instance Focus ReaderT where
-  focus l m = ReaderT $ \a -> liftM fst $ unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` runReaderT m b) a
+  --focus l m = ReaderT $ \a -> liftM fst $ unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` runReaderT m b) a
+  focus l m = ReaderT $ liftM fst . unfocusing . l (\b -> Focusing $ (\c -> (c,b)) `liftM` runReaderT m b)
   {-# INLINE focus #-}
   focus_ l m = ReaderT $ \a -> liftM skip $ unfocusing $ l (\b -> Focusing $ (\_ -> ((),b)) `liftM` runReaderT m b) a
   {-# INLINE focus_ #-}
