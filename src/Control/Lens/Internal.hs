@@ -21,6 +21,7 @@ module Control.Lens.Internal
   , Traversed(..)
   , Action(..)
   , AppliedState(..)
+  , Backwards(..)
   , Min(..)
   , getMin
   , Max(..)
@@ -111,3 +112,12 @@ instance Ord a => Monoid (Max a) where
 getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
+
+newtype Backwards f a = Backwards { getBackwards :: f a }
+
+instance Functor f => Functor (Backwards f) where
+  fmap f (Backwards as) = Backwards (fmap f as)
+
+instance Applicative f => Applicative (Backwards f) where
+  pure = Backwards . pure
+  Backwards f <*> Backwards a = Backwards (flip id <$> a <*> f)

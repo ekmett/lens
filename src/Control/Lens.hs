@@ -140,6 +140,7 @@ module Control.Lens
   -- * Transforming Traversals
   , elementOf
   , elementsOf
+  , backwards
 
   -- * Cloning Lenses
   , clone
@@ -415,7 +416,7 @@ sequenceOf :: LensLike (WrappedMonad m) a b (m c) c -> a -> m b
 sequenceOf l = unwrapMonad . l WrapMonad
 {-# INLINE sequenceOf #-}
 
--- | This generalizes 'transpose' to an arbitrary 'Traversal'.
+-- | This generalizes 'Data.List.transpose' to an arbitrary 'Traversal'.
 --
 -- > transpose = transposeOf traverse
 --
@@ -1502,6 +1503,7 @@ traverseDynamic :: (Typeable a, Typeable b) => Traversal Dynamic Dynamic a b
 traverseDynamic f dyn = case fromDynamic dyn of
   Just a  -> toDyn <$> f a
   Nothing -> pure dyn
+{-# INLINE traverseDynamic #-}
 
 -- |
 -- Traverse the strongly typed 'Exception' contained in 'SomeException' where the type of your function matches
@@ -1512,6 +1514,7 @@ traverseException :: (Exception a, Exception b) => Traversal SomeException SomeE
 traverseException f e = case fromException e of
   Just a -> toException <$> f a
   Nothing -> pure e
+{-# INLINE traverseException #-}
 
 -- | Provides ad hoc overloading for 'traverseByteString'
 class TraverseByteString t where
@@ -1614,6 +1617,7 @@ traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
     hasBit n = complementBit b n /= b -- test to make sure that complementing this bit actually changes the value
     step (n,True) r = setBit r n
     step _        r = r
+{-# INLINE traverseBits #-}
 
 ------------------------------------------------------------------------------
 -- Cloning Lenses
@@ -1640,6 +1644,7 @@ clone f cfd a = case f (IndexedStore id) a of
 -- > traverseHead = elementOf traverse 0
 elementOf :: Applicative f => LensLike (AppliedState f) a b c c -> Int -> LensLike f a b c c
 elementOf l = elementsOf l . (==)
+{-# INLINE elementOf #-}
 
 -- | A 'Traversal' of the elements in another 'Traversal' where their positions in that 'Traversal' satisfy a predicate
 --
@@ -1647,3 +1652,13 @@ elementOf l = elementsOf l . (==)
 elementsOf :: Applicative f => LensLike (AppliedState f) a b c c -> (Int -> Bool) -> LensLike f a b c c
 elementsOf l p f ta = fst (runAppliedState (l go ta) 0) where
   go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
+{-# INLINE elementsOf #-}
+
+-- | Traverse the elements of a 'traversal' in the opposite order.
+--
+-- Note: 'reversed' is similar, but is able to accept a 'Fold' and produce a 'Fold'
+--
+-- This requires at least a 'Traversal' or 'Lens' and can produce a 'Traversal' or 'Lens' in turn.
+backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d
+backwards l f = getBackwards . l (Backwards . f)
+{-# INLINE backwards #-}
