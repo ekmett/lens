@@ -220,6 +220,10 @@ type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 --
 -- > imaginary :: Simple Lens (Complex a) a
 -- > traverseHead :: Simple Traversal [a] a
+--
+-- Note: If you plan to use this alias in your code, you may have to turn on
+--
+-- > {-# LANGUAGE LiberalTypeSynonyms #-}
 type Simple f a b = f a a b b
 
 --------------------------
