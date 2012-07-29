@@ -771,7 +771,7 @@ imaginary f (a :+ b) = (a :+) <$> f b
 --
 -- Otherwise, this is a perfectly convenient lens.
 --
--- polarize :: Functor f => ((a,a) -> f (a,a)) -> Complex a -> f (Complex a)
+-- > polarize :: Functor f => ((a,a) -> f (a,a)) -> Complex a -> f (Complex a)
 polarize :: RealFloat a => Simple Lens (Complex a) (a,a)
 polarize f c = uncurry mkPolar <$> f (polar c)
 
