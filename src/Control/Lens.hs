@@ -310,7 +310,7 @@ class Focus st where
   -- > focus_ :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m ()
   focus_ :: Monad m => LensLike (Focusing m ()) a a b b -> st b m c -> st a m ()
 
-  -- | A version of 'focus' that works with a 'Setter'.
+  -- | A much more limited version of 'focus' that can work with a 'Setter'.
   setFocus :: Simple Setter a b -> st b Identity c -> st a Identity ()
 
 skip :: a -> ()
