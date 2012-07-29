@@ -98,6 +98,7 @@ module Control.Lens
 
   , to
 
+  , folding
   , folded
   , filtered
   , reversed
@@ -149,6 +150,8 @@ module Control.Lens
   , elementOf
   , elementsOf
   , backwards
+  , taking
+  , dropping
 
   -- * Cloning Lenses
   , clone
@@ -980,7 +983,16 @@ l |= b = modify (l |~ b)
 -- > type Fold a b c d = forall m. Monoid m => Getting m a b c d
 type Fold a b c d      = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
 
+-- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
+--
+-- This can be useful to lift operations from @Data.List@ and elsewhere into a 'Fold'.
+folding :: Foldable f => (a -> f c) -> Fold a b c d
+folding f g = Const . foldMap (getConst . g) . f
+{-# INLINE folding #-}
+
 -- | Obtain a 'Fold' from any 'Foldable'
+--
+-- > folded = folding id
 folded :: Foldable f => Fold (f c) b c d
 folded g = Const . foldMap (getConst . g)
 {-# INLINE folded #-}
@@ -1009,6 +1021,16 @@ reversed l f = Const . getDual . getConst . l (Const .  Dual . getConst . f)
 takingWhile :: Monoid m => (c -> Bool) -> Getting (Endo m) a b c d -> Getting m a b c d
 takingWhile p l f = Const . foldrOf l (\a r -> if p a then getConst (f a) `mappend` r else mempty) mempty
 {-# INLINE takingWhile #-}
+
+{-
+taking :: Monoid m => Int -> Getting [c] a b c d -> Getting m a b c d
+taking n l f = foldMap (getConst . f) . take n . toListOf l
+{-# INLINE taking #-}
+
+dropping :: Monoid m => Int -> Getting [c] a b c d -> Getting m a b c d
+dropping n l f = foldMap (getConst . f) . drop n . toListOf l
+{-# INLINE dropping #-}
+-}
 
 -- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Getter' or 'Traversal' while a predicate holds.
 --
@@ -1790,3 +1812,21 @@ elementsOf l p f ta = fst (runAppliedState (l go ta) 0) where
 backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d
 backwards l f = getBackwards . l (Backwards . f)
 {-# INLINE backwards #-}
+
+-- | Build a 'Traversal' that traverses the first @n@ elements of another 'Traversal'.
+--
+-- > take n  = toListOf (taking n traverse)
+--
+-- To 'take' from something that is merely a 'Fold', compose with @'folding' ('take' n)@ instead.
+taking :: Applicative f => Int -> LensLike (AppliedState f) a b c c -> LensLike f a b c c
+taking n l = elementsOf l (<n)
+{-# INLINE taking #-}
+
+-- | Build a 'Traversal' that skips over the first @n@ elements of another 'Traversal', returning the rest.
+--
+-- > drop n = toListOf (dropping n traverse)
+--
+-- To 'drop' from something that is merely a 'Fold', compose with @'folding' ('drop' n)@ instead.
+dropping :: Applicative f => Int -> LensLike (AppliedState f) a b c c -> LensLike f a b c c
+dropping n l = elementsOf l (>=n)
+{-# INLINE dropping #-}
