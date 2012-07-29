@@ -65,6 +65,8 @@ module Control.Lens
   , traverseOf, forOf, sequenceAOf
   , mapMOf, forMOf, sequenceOf
   , transposeOf
+  , mapAccumLOf
+  , mapAccumROf
 
   -- ** Common Lenses
   , valueAt, valueAtInt
@@ -99,6 +101,8 @@ module Control.Lens
   , folded
   , filtered
   , reversed
+  , takingWhile
+  , droppingWhile
 
   -- ** Getting and Folding
   , Getting
@@ -116,6 +120,8 @@ module Control.Lens
   , concatMapOf, concatOf
   , elemOf, notElemOf
   , lengthOf
+  , headOf
+  , lastOf
   , nullOf
   , maximumOf, minimumOf
   , maximumByOf, minimumByOf
@@ -448,6 +454,35 @@ sequenceOf l = unwrapMonad . l WrapMonad
 -- > transposeOf _2 :: (b, [a]) -> [(b, a)]
 transposeOf :: LensLike ZipList a b [c] c -> a -> [b]
 transposeOf l = getZipList . l ZipList
+{-# INLINE transposeOf #-}
+
+-- | Generalizes 'Data.Traversable.mapAccumR' to an arbitrary 'Traversal'.
+--
+-- > mapAccumR = mapAccumROf traverse
+--
+-- 'mapAccumROf' accumulates state from right to left.
+--
+-- > mapAccumROf :: Lens a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- > mapAccumROf :: Traversal a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+mapAccumROf :: LensLike (Lazy.State s) a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> state (\s -> swap (f s c))) a) s0)
+{-# INLINE mapAccumROf #-}
+
+-- | Generalized 'Data.Traversable.mapAccumL' to an arbitrary 'Traversal'.
+--
+-- > mapAccumL = mapAccumLOf traverse
+--
+-- 'mapAccumLOf' accumulates state from left to right.
+--
+-- > mapAccumLOf :: Lens a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- > mapAccumLOf :: Traversal a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+mapAccumLOf :: LensLike (Backwards (Lazy.State s)) a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+mapAccumLOf l = mapAccumROf (backwards l)
+{-# INLINE mapAccumLOf #-}
+
+swap :: (a,b) -> (b,a)
+swap (a,b) = (b,a)
+{-# INLINE swap #-}
 
 ------------------------------------------------------------------------------
 -- Setters
@@ -940,6 +975,29 @@ reversed :: Getting (Dual m) a b c d -> Getting m a b c d
 reversed l f = Const . getDual . getConst . l (Const .  Dual . getConst . f)
 {-# INLINE reversed #-}
 
+--taking :: Int -> Getting (Taking m) a b c d -> Getting m a b c d
+--dropping :: Int -> Getting (Dropping m) a b c d -> Getting m a b c d
+
+-- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Getter' or 'Traversal' while a predicate holds.
+--
+-- > takeWhile p = toListOf (takingWhile p folded)
+--
+-- > ghci> toList (takingWhile (<=3) folded) [1..]
+-- > [1,2,3]
+takingWhile :: Monoid m => (c -> Bool) -> Getting (Endo m) a b c d -> Getting m a b c d
+takingWhile p l f = Const . foldrOf l (\a r -> if p a then getConst (f a) `mappend` r else mempty) mempty
+{-# INLINE takingWhile #-}
+
+-- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Getter' or 'Traversal' while a predicate holds.
+--
+-- > dropWhile p = toListOf (droppingWhile p folded)
+--
+-- > ghci> toList (dropWhile (<=3) folded) [1..6]
+-- > [4,5,6]
+droppingWhile :: Monoid m => (c -> Bool) -> Getting (Endo m) a b c d -> Getting m a b c d
+droppingWhile p l f = Const . foldrOf l (\a r -> if p a then mempty else mappend r (getConst (f a))) mempty
+{-# INLINE droppingWhile #-}
+
 --------------------------
 -- Fold/Getter combinators
 --------------------------
@@ -1236,6 +1294,30 @@ concatOf = view
 lengthOf :: Getting (Sum Int) a b c d -> a -> Int
 lengthOf l = getSum . foldMapOf l (\_ -> Sum 1)
 {-# INLINE lengthOf #-}
+
+-- | Perform a safe 'head' of a 'Fold' or 'Traversal' or retrieve 'Just' the result 
+-- from a 'Getter' or 'Lens'.
+--
+-- > listToMaybe . toList = headOf folded
+--
+-- > headOf :: Getter a b c d    -> a -> Maybe c
+-- > headOf :: Lens a b c d      -> a -> Maybe c
+-- > headOf :: Fold a b c d      -> a -> Maybe c
+-- > headOf :: Traversal a b c d -> a -> Maybe c
+headOf :: Getting (First c) a b c d -> a -> Maybe c
+headOf l = getFirst . foldMapOf l (First . Just)
+{-# INLINE headOf #-}
+
+-- | Perform a safe 'last' of a 'Fold' or 'Traversal' or retrieve 'Just' the result
+-- from a 'Getter' or 'Lens'.
+--
+-- > lastOf :: Getter a b c d    -> a -> Maybe c
+-- > lastOf :: Lens a b c d      -> a -> Maybe c
+-- > lastOf :: Fold a b c d      -> a -> Maybe c
+-- > lastOf :: Traversal a b c d -> a -> Maybe c
+lastOf :: Getting (Last c) a b c d -> a -> Maybe c
+lastOf l = getLast . foldMapOf l (Last . Just)
+{-# INLINE lastOf #-}
 
 -- |
 -- Returns 'True' if this 'Fold' or 'Traversal' has no targets in the given container.
