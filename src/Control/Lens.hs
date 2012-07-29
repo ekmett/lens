@@ -100,7 +100,6 @@ module Control.Lens
   , Getting
   , view, views
   , (^.), (^$)
-  , use, uses
   , foldMapOf, foldOf
   , foldrOf,   foldlOf
   , toListOf
@@ -120,6 +119,8 @@ module Control.Lens
   , foldrOf',  foldlOf'
   , foldr1Of,  foldl1Of
   , foldrMOf,  foldlMOf
+  -- ** Getting and Folding State
+  , use, uses
 
   -- * Common Traversals
   , traverseNothing
@@ -309,27 +310,33 @@ class Focus st where
   -- > focus_ :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m ()
   focus_ :: Monad m => LensLike (Focusing m ()) a a b b -> st b m c -> st a m ()
 
+  -- | A version of 'focus' that works with a 'Setter'.
+  setFocus :: Simple Setter a b -> st b Identity c -> st a Identity ()
+
 skip :: a -> ()
 skip _ = ()
 {-# INLINE skip #-}
 
 instance Focus Strict.StateT where
-  focus l m = Strict.StateT $ \a -> unfocusing (l (Focusing . Strict.runStateT m) a)
+  focus l m = Strict.StateT $ unfocusing . l (Focusing . Strict.runStateT m)
   {-# INLINE focus #-}
-  focus_ l m = Strict.StateT $ \a -> unfocusing (l (Focusing . Strict.runStateT (liftM skip m)) a)
+  focus_ l m = Strict.StateT $ unfocusing . l (Focusing . Strict.runStateT (liftM skip m))
   {-# INLINE focus_ #-}
+  setFocus l m = Strict.state $ (,) () . runIdentity . l (Identity . snd . Strict.runState m)
 
 instance Focus Lazy.StateT where
-  focus l m = Lazy.StateT $ \a -> unfocusing (l (Focusing . Lazy.runStateT m) a)
+  focus l m = Lazy.StateT $ unfocusing . l (Focusing . Lazy.runStateT m)
   {-# INLINE focus #-}
-  focus_ l m = Lazy.StateT $ \a -> unfocusing (l (Focusing . Lazy.runStateT (liftM skip m)) a)
+  focus_ l m = Lazy.StateT $ unfocusing . l (Focusing . Lazy.runStateT (liftM skip m))
   {-# INLINE focus_ #-}
+  setFocus l m = Lazy.state $ (,) () . runIdentity . l (Identity . snd . Lazy.runState m)
 
 instance Focus ReaderT where
-  focus l m = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` runReaderT m b) a
+  focus l m = ReaderT $ \a -> liftM fst $ unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` runReaderT m b) a
   {-# INLINE focus #-}
-  focus_ l m = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\_ -> ((),b)) `liftM` runReaderT m b) a
+  focus_ l m = ReaderT $ \a -> liftM skip $ unfocusing $ l (\b -> Focusing $ (\_ -> ((),b)) `liftM` runReaderT m b) a
   {-# INLINE focus_ #-}
+  setFocus _ _ = return () -- BOOORING
 
 --------------------------
 -- Traversal Combinators
