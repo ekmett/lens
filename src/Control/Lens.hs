@@ -1040,16 +1040,6 @@ takingWhile :: Monoid m => (c -> Bool) -> Getting (Endo m) a b c d -> Getting m 
 takingWhile p l f = Const . foldrOf l (\a r -> if p a then getConst (f a) `mappend` r else mempty) mempty
 {-# INLINE takingWhile #-}
 
-{-
-taking :: Monoid m => Int -> Getting [c] a b c d -> Getting m a b c d
-taking n l f = foldMap (getConst . f) . take n . toListOf l
-{-# INLINE taking #-}
-
-dropping :: Monoid m => Int -> Getting [c] a b c d -> Getting m a b c d
-dropping n l f = foldMap (getConst . f) . drop n . toListOf l
-{-# INLINE dropping #-}
--}
-
 -- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Getter' or 'Traversal' while a predicate holds.
 --
 -- > dropWhile p = toListOf (droppingWhile p folded)
@@ -1787,7 +1777,7 @@ traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
     step _        r = r
 {-# INLINE traverseBits #-}
 
--- | A 'Traversal' that checks a predicate on a key before allowing you to traverse into a value.
+-- | This provides a 'Traversal' that checks a predicate on a key before allowing you to traverse into a value.
 traverseValue :: (k -> Bool) -> Simple Traversal (k, v) v
 traverseValue p f kv@(k,v)
   | p k       = (,) k <$> f v
