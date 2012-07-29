@@ -86,10 +86,10 @@ module Control.Lens
   -- ** Setting Values
   , adjust
   , set
-  , (^~), (+~), (-~), (*~), (//~), (||~), (&&~), (|~), (&~), (%~)
+  , (^~), (+~), (-~), (*~), (//~), (||~), (&&~), (|~), (&~), (%~), (<>~)
 
   -- ** Setting State
-  , (^=), (+=), (-=), (*=), (//=), (||=), (&&=), (|=), (&=), (%=)
+  , (^=), (+=), (-=), (*=), (//=), (||=), (&&=), (|=), (&=), (%=), (<>=)
 
   -- * Getters and Folds
   , Getter
@@ -187,8 +187,8 @@ import           Data.Tree
 import           Data.Word (Word8)
 
 infixl 8 ^.
-infixr 4 ^~, +~, *~, -~, //~, &&~, ||~, &~, |~, %~, %%~
-infix  4 ^=, +=, *=, -=, //=, &&=, ||=, &=, |=, %=, %%=
+infixr 4 ^~, +~, *~, -~, //~, &&~, ||~, &~, |~, %~, <>~, %%~
+infix  4 ^=, +=, *=, -=, //=, &&=, ||=, &=, |=, %=, <>=, %%=
 infixr 0 ^$
 
 --------------------------
@@ -652,6 +652,10 @@ l |~ n = adjust l (.|. n)
 l &~ n = adjust l (.&. n)
 {-# INLINE (&~) #-}
 
+(<>~) :: Monoid c => Setter a b c c -> c -> a -> b
+l <>~ n = adjust l (<> n)
+{-# INLINE (<>~) #-}
+
 ---------------
 -- Getters
 ---------------
@@ -924,6 +928,7 @@ l ^= b = modify (l ^~ b)
 l %= f = modify (l %~ f)
 {-# INLINE (%=) #-}
 
+
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by adding a value
 --
 -- Example:
@@ -969,6 +974,10 @@ l &= b = modify (l &~ b)
 (|=) :: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
 l |= b = modify (l |~ b)
 {-# INLINE (|=) #-}
+
+(<>=) :: (MonadState a m, Monoid b) => Simple Setter a b -> b -> m ()
+l <>= b = modify (l <>~ b)
+{-# INLINE (<>=) #-}
 
 --------------------------
 -- Folds
