@@ -253,7 +253,7 @@ iso ac db cfd a = db <$> cfd (ac a)
 -- Further, if @f@ is an 'Applicative', they may also be passed a 'Traversal'.
 type LensLike f a b c d = (c -> f d) -> a -> f b
 
--- | '(%%~)' can be used in one of two scenarios:
+-- | ('%%~') can be used in one of two scenarios:
 --
 -- When applied to a 'Lens', it can edit the target of the 'Lens' in a structure, extracting a
 -- supplemental result, and the new structure.
@@ -277,10 +277,10 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- modify all targets of a 'Traversal' in the current state, extracting extra information of type @c@
 -- and return a monoidal summary of the changes.
 --
--- It may be useful to think of '(%%=)', instead, as having either of the following more restricted
--- type signatures:
---
 -- > (%%=) = (state.)
+--
+-- It may be useful to think of ('%%='), instead, as having either of the following more restricted
+-- type signatures:
 --
 -- > (%%=) :: MonadState a m             => Lens a a c d      -> (c -> (e, d) -> m e
 -- > (%%=) :: (MonadState a m, Monoid e) => Traversal a a c d -> (c -> (e, d) -> m e
