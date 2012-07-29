@@ -196,10 +196,18 @@ infixr 0 ^$
 
 -- | A 'Lens' is actually a lens family as described in <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
--- With great power comes great responsibility and a 'Lens' is subject to the lens laws:
+-- With great power comes great responsibility and a 'Lens' is subject to the three common sense lens laws:
+--
+-- 1) You get back what you put in:
 --
 -- > view l (set l b a)  = b
+--
+-- 2) Putting back what you got doesn't change anything:
+--
 -- > set l (view l a) a  = a
+--
+-- 3) Setting twice is the same as setting once:
+--
 -- > set l c (set l b a) = set l c a
 --
 -- These laws are strong enough that the 4 type parameters of a 'Lens' cannot vary fully independently. For more on
