@@ -103,9 +103,6 @@ module Control.Lens
   , access
   , foldMapOf, foldOf
   , foldrOf,   foldlOf
-  , foldrOf',  foldlOf'
-  , foldr1Of,  foldl1Of
-  , foldrMOf,  foldlMOf
   , toListOf
   , anyOf, allOf
   , andOf, orOf
@@ -120,6 +117,9 @@ module Control.Lens
   , maximumOf, minimumOf
   , maximumByOf, minimumByOf
   , findOf
+  , foldrOf',  foldlOf'
+  , foldr1Of,  foldl1Of
+  , foldrMOf,  foldlMOf
 
   -- * Common Traversals
   , traverseNothing
