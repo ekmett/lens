@@ -65,8 +65,8 @@ module Control.Lens
   , traverseOf, forOf, sequenceAOf
   , mapMOf, forMOf, sequenceOf
   , transposeOf
-  , mapAccumLOf
-  , mapAccumROf
+  , mapAccumLOf, mapAccumROf
+  , scanr1Of, scanl1Of
 
   -- ** Common Lenses
   , valueAt, valueAtInt
@@ -92,24 +92,25 @@ module Control.Lens
   , (^=), (+=), (-=), (*=), (//=), (||=), (&&=), (|=), (&=), (%=)
 
   -- * Getters and Folds
-
-  -- ** Getters
-  , Getter, to
-
-  -- ** Folds
+  , Getter
   , Fold
+  , Getting
+
+  , to
+
   , folded
   , filtered
   , reversed
   , takingWhile
   , droppingWhile
 
-  -- ** Getting and Folding
-  , Getting
   , view, views
   , (^.), (^$)
+  , use, uses
+
+  -- ** Getting and Folding
   , foldMapOf, foldOf
-  , foldrOf,   foldlOf
+  , foldrOf, foldlOf
   , toListOf
   , anyOf, allOf
   , andOf, orOf
@@ -120,17 +121,14 @@ module Control.Lens
   , concatMapOf, concatOf
   , elemOf, notElemOf
   , lengthOf
-  , headOf
-  , lastOf
   , nullOf
+  , headOf, lastOf
   , maximumOf, minimumOf
   , maximumByOf, minimumByOf
   , findOf
-  , foldrOf',  foldlOf'
-  , foldr1Of,  foldl1Of
-  , foldrMOf,  foldlMOf
-  -- ** Getting and Folding State
-  , use, uses
+  , foldrOf', foldlOf'
+  , foldr1Of, foldl1Of
+  , foldrMOf, foldlMOf
 
   -- * Common Traversals
   , traverseNothing
@@ -483,6 +481,30 @@ mapAccumLOf l = mapAccumROf (backwards l)
 swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
 {-# INLINE swap #-}
+
+-- | Permit the use of 'scanr1' over an arbitrary 'Traversal' or 'Lens'.
+--
+-- > scanr1 = scanr1Of traverse
+--
+-- > scanr1Of :: Lens a b c c      -> (c -> c -> c) -> a -> b
+-- > scanr1Of :: Traversal a b c c -> (c -> c -> c) -> a -> b
+scanr1Of :: LensLike (Lazy.State (Maybe c)) a b c c -> (c -> c -> c) -> a -> b
+scanr1Of l f = snd . mapAccumROf l step Nothing where
+  step Nothing c  = (Just c, c)
+  step (Just s) c = (Just r, r) where r = f c s
+{-# INLINE scanr1Of #-}
+
+-- | Permit the use of 'scanl1' over an arbitrary 'Traversal' or 'Lens'.
+--
+-- > scanl1 = scanl1Of traverse
+--
+-- > scanr1Of :: Lens a b c c      -> (c -> c -> c) -> a -> b
+-- > scanr1Of :: Traversal a b c c -> (c -> c -> c) -> a -> b
+scanl1Of :: LensLike (Backwards (Lazy.State (Maybe c))) a b c c -> (c -> c -> c) -> a -> b
+scanl1Of l f = snd . mapAccumLOf l step Nothing where
+  step Nothing c  = (Just c, c)
+  step (Just s) c = (Just r, r) where r = f s c
+{-# INLINE scanl1Of #-}
 
 ------------------------------------------------------------------------------
 -- Setters
