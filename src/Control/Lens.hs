@@ -145,6 +145,7 @@ module Control.Lens
   , traverseDynamic
   , traverseException
   , traverseElement, traverseElements
+  , traverseValue
 
   -- * Transforming Traversals
   , elementOf
@@ -1777,6 +1778,13 @@ traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
     step _        r = r
 {-# INLINE traverseBits #-}
 
+-- | A 'Traversal' that checks a predicate on a key before allowing you to traverse into a value.
+traverseValue :: (k -> Bool) -> Simple Traversal (k, v) v
+traverseValue p f kv@(k,v)
+  | p k       = (,) k <$> f v
+  | otherwise = pure kv
+{-# INLINE traverseValue #-}
+
 ------------------------------------------------------------------------------
 -- Cloning Lenses
 ------------------------------------------------------------------------------
@@ -1796,6 +1804,7 @@ clone f cfd a = case f (IndexedStore id) a of
 ---------------------------
 -- Constructing Traversals
 ---------------------------
+
 
 -- | Yields a 'Traversal' of the nth element of another 'Traversal'
 --
