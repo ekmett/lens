@@ -51,6 +51,9 @@ module Control.Lens
   , LensLike
   , Traversal
   , Simple
+  , SimpleLens
+  , SimpleTraversal
+  , SimpleLensLike
 
   -- ** Constructing Lenses
   , lens
@@ -74,6 +77,7 @@ module Control.Lens
 
   -- * Setters
   , Setter
+  , SimpleSetter
   , sets
   , mapped
 
@@ -226,6 +230,21 @@ type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 --
 -- > {-# LANGUAGE LiberalTypeSynonyms #-}
 type Simple f a b = f a a b b
+
+-- | This alias is supplied for those who don't want to use @{-# LANGUAGE LiberalTypeSynonyms #-}@ and 'Simple'
+--
+-- > 'SimpleTraversal' = 'Simple' 'Traversal'
+type SimpleTraversal a b = Traversal a a b b
+
+-- | This alias is supplied for those who don't want to use @{-# LANGUAGE LiberalTypeSynonyms #-}@ and 'Simple'
+--
+-- > 'SimpleLens' = 'Simple' 'Lens'
+type SimpleLens a b = Lens a a b b
+
+-- | This alias is supplied for those who don't want to use @{-# LANGUAGE LiberalTypeSynonyms #-}@ and 'Simple'
+--
+-- > 'SimpleLensLike' f = 'Simple' ('LensLike' f)
+type SimpleLensLike f a b = LensLike f a a b b
 
 --------------------------
 -- Constructing Lenses
@@ -446,6 +465,11 @@ transposeOf l = getZipList . l ZipList
 --
 -- > type Setter a b c d = LensLike Identity a b c d
 type Setter a b c d = (c -> Identity d) -> a -> Identity b
+
+-- | This alias is supplied for those who don't want to bother using {-# LANGUAGE LiberalTypeSynonyms #-} and 'Simple'.
+--
+-- > 'SimpleSetter ' = 'Simple' 'Setter'
+type SimpleSetter a b = Lens a a b b
 
 -- | This setter can be used to map over all of the values in a 'Functor'.
 --
@@ -1654,11 +1678,11 @@ elementsOf l p f ta = fst (runAppliedState (l go ta) 0) where
   go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
 {-# INLINE elementsOf #-}
 
--- | Traverse the elements of a 'traversal' in the opposite order.
+-- | This allows you to 'traverse' the elements of a 'Traversal' in the opposite order.
 --
--- Note: 'reversed' is similar, but is able to accept a 'Fold' and produce a 'Fold'
+-- Note: 'reversed' is similar, but is able to accept a 'Fold' (or 'Getter') and produce a 'Fold' (or 'Getter').
 --
--- This requires at least a 'Traversal' or 'Lens' and can produce a 'Traversal' or 'Lens' in turn.
+-- This requires at least a 'Traversal' (or 'Lens') and can produce a 'Traversal' (or 'Lens') in turn.
 backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d
 backwards l f = getBackwards . l (Backwards . f)
 {-# INLINE backwards #-}
