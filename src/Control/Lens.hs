@@ -49,143 +49,106 @@ module Control.Lens
   -- * Lenses
     Lens
   , LensLike
-
-  -- * "Simple" Lenses
+  , Traversal
   , Simple
 
   -- ** Constructing Lenses
   , lens
   , iso
-  , clone
 
-  -- * Getters
-  , Getter
-  , Getting
-  , to
-
-  -- ** Getting Values
-  , view
-  , views
-  , (^.), (^$)
+  -- ** Common Lenses
+  , valueAt, valueAtInt
+  , contains, containsInt
+  , bitAt
+  , resultAt
+  , identity
+  , real, imaginary, polarize
+  , _1, _2
 
   -- * Setters
   , Setter
   , sets
   , mapped
 
-  -- ** Setting Values
+  -- ** Setting
   , adjust
   , set
-  , (=%=), (=~=), (=+=), (=-=), (=*=), (=/=), (=||=), (=&&=), (=|=), (=&=)
 
-  -- * Manipulating State
-  , access
-  , (%=), (~=), (+=), (-=), (*=), (//=), (||=), (&&=), (|=), (&=)
-  , (%%=)
-  , Focus(..)
+  -- *** Setting Values
+  , (^~), (+~), (-~), (*~), (//~), (||~), (&&~), (|~), (&~), (%~)
+  -- *** Setting State
+  , (^=), (+=), (-=), (*=), (//=), (||=), (&&=), (|=), (&=), (%=)
 
-  -- ** Common Lenses
-  , _1
-  , _2
-  , valueAt
-  , valueAtInt
-  , bitAt
-  , contains
-  , containsInt
-  , identity
-  , resultAt
-  , real
-  , imaginary
-  , polarize
+  -- * Getters and Folds
 
-  -- * Folds
+  -- ** Getters
+  , Getter, to
+
+  -- ** Folds
   , Fold
-
-  -- ** Common Folds
   , folded
   , filtered
   , reversed
 
-  -- ** Fold Combinators
-  , foldMapOf
-  , foldOf
-  , foldrOf
-  , foldlOf
-  , foldrOf'
-  , foldlOf'
-  , foldr1Of
-  , foldl1Of
-  , foldrMOf
-  , foldlMOf
+  -- ** Getting and Folding
+  , Getting
+  , view, views
+  , (^.), (^$)
+  , access
+  , foldMapOf, foldOf
+  , foldrOf,   foldlOf
+  , foldrOf',  foldlOf'
+  , foldr1Of,  foldl1Of
+  , foldrMOf,  foldlMOf
   , toListOf
-  , anyOf
-  , allOf
-  , andOf
-  , orOf
-  , productOf
-  , sumOf
-  , traverseOf_
-  , forOf_
-  , sequenceAOf_
-  , mapMOf_
-  , forMOf_
-  , sequenceOf_
-  , asumOf
-  , msumOf
-  , concatMapOf
-  , concatOf
-  , elemOf
-  , notElemOf
+  , anyOf, allOf
+  , andOf, orOf
+  , productOf, sumOf
+  , traverseOf_, forOf_, sequenceAOf_
+  , mapMOf_, forMOf_, sequenceOf_
+  , asumOf, msumOf
+  , concatMapOf, concatOf
+  , elemOf, notElemOf
   , lengthOf
   , nullOf
-  , maximumOf
-  , minimumOf
-  , maximumByOf
-  , minimumByOf
+  , maximumOf, minimumOf
+  , maximumByOf, minimumByOf
   , findOf
 
-  -- * Traversals
-  , Traversal
+  -- * Traversing and Lensing
+  , (%%~), (%%=)
+  , Focus(..)
+  , traverseOf, forOf, sequenceAOf
+  , mapMOf, forMOf, sequenceOf
+  , transposeOf
 
-  -- ** Common Traversals
+  -- * Common Traversals
   , traverseNothing
-
-  , traverseValueAt
-  , traverseValueAtInt
-
+  , traverseLeft, traverseRight
+  , traverseValueAt, traverseValueAtInt
   , traverseHead, traverseTail
   , traverseLast, traverseInit
-
-  , traverseLeft
-  , traverseRight
-
-  , traverseElement
-  , traverseElements
-
   , TraverseByteString(..)
   , TraverseText(..)
-
   , TraverseValueAtMin(..)
   , TraverseValueAtMax(..)
-
   , traverseBits
   , traverseDynamic
   , traverseException
+  , traverseElement, traverseElements
 
-  -- ** Traversal Combinators
-  , traverseOf
-  , mapMOf
-  , sequenceAOf
-  , sequenceOf
+  -- * Transforming Traversals
   , elementOf
   , elementsOf
-  , transposeOf
+
+  -- * Cloning Lenses
+  , clone
   ) where
 
 import           Control.Applicative              as Applicative
 import           Control.Exception                as Exception
 import           Control.Lens.Internal
-import           Control.Monad (liftM, MonadPlus(..))
+import           Control.Monad (liftM, MonadPlus(..), void)
 import           Control.Monad.State.Class
 import qualified Control.Monad.Trans.State.Lazy   as Lazy
 import qualified Control.Monad.Trans.State.Strict as Strict
@@ -211,8 +174,8 @@ import           Data.Tree
 import           Data.Word (Word8)
 
 infixl 8 ^.
-infixr 4 =~=, =%=, =+=, =*=, =-=, =/=, =&&=, =||=, =&=, =|=
-infix  4 ~=, %=, %%=, +=, -=, *=, //=, &&=, ||=, &=, |=
+infixr 4 ^~, +~, *~, -~, //~, &&~, ||~, &~, |~, %~, %%~
+infix  4 ^=, +=, *=, -=, //=, &&=, ||=, &=, |=, %=, %%=
 infixr 0 ^$
 
 --------------------------
@@ -238,14 +201,48 @@ infixr 0 ^$
 -- > type Lens = forall f. Functor f => Traversing f a b c d
 type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 
--- | A @'Simple' 'Lens'@, @'Simple' 'Setter'@, or @'Simple' 'Traversal'@ can be used instead of a 'Lens' 'Setter' or 'Traversal' 
+------------------------------------------------------------------------------
+-- Traversals
+------------------------------------------------------------------------------
+
+-- | A 'Traversal' can be used directly as a 'Setter' or a 'Fold' (but not as a 'Lens') and provides
+-- the ability to both read and update multiple fields, subject to some relatively weak 'Traversal' laws.
+--
+-- These have also been known as multilenses, but they have the signature and spirit of
+--
+-- > traverse :: Traversable f => Traversal (f a) (f b) a b
+--
+-- and the more evocative name suggests their application.
+type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
+
+-- | A @'Simple' 'Lens'@, @'Simple' 'Traversal'@, ... can be used instead of a 'Lens','Traversal', ...
 -- whenever the type variables don't change upon setting a value.
 --
 -- > imaginary :: Simple Lens (Complex a) a
--- > imaginary f (e :+ i) = (e :+) <$> f i
---
 -- > traverseHead :: Simple Traversal [a] a
 type Simple f a b = f a a b b
+
+--------------------------
+-- Constructing Lenses
+--------------------------
+
+-- | Build a 'Lens' from a getter and a setter.
+--
+-- > lens :: Functor f => (a -> c) -> (a -> d -> b) -> (c -> f d) -> a -> f b
+lens :: (a -> c) -> (a -> d -> b) -> Lens a b c d
+lens ac adb cfd a = adb a <$> cfd (ac a)
+{-# INLINE lens #-}
+
+-- | Built a 'Lens' from an isomorphism family
+--
+-- > iso :: Functor f => (a -> c) -> (d -> b) -> (c -> f d) -> a -> f b
+iso :: (a -> c) -> (d -> b) -> Lens a b c d
+iso ac db cfd a = db <$> cfd (ac a)
+{-# INLINE iso #-}
+
+--------------------------
+-- LensLike
+--------------------------
 
 -- |
 -- Many combinators that accept a 'Lens' can also accept a 'Traversal' in limited situations.
@@ -257,23 +254,298 @@ type Simple f a b = f a a b b
 -- Further, if @f@ is an 'Applicative', they may also be passed a 'Traversal'.
 type LensLike f a b c d = (c -> f d) -> a -> f b
 
+-- | (%%~) can be used in one of two scenarios.
+--
+-- When applied to a 'Lens', it can edit the target of the 'Lens' in a structure, extracting a
+-- supplemental result, and the new structure.
+--
+-- When applied to a 'Traversal', it can edit the targets of the 'Traversals', extracting a
+-- supplemental monoidal summary of its actions.
+--
+-- For all that the definition of this combinator is just:
+--
+-- > (%%~) = id
+--
+-- It may be beneficial to think about it as if it had these more restrictive types, however:
+--
+-- > (%%~) ::             Lens a b c d      -> (c -> (e, d)) -> a -> (e, b)
+-- > (%%~) :: Monoid m => Traversal a b c d -> (c -> (m, d)) -> a -> (m, b)
+(%%~) :: LensLike ((,) e) a b c d -> (c -> (e, d)) -> a -> (e, b)
+(%%~) = id
+{-# INLINE (%%~) #-}
+
+-- | Modify the target of a 'Lens' in the current state returning some extra information of @c@ or
+-- modify all targets of a 'Traversal' in the current state, extracting extra information of type @c@
+-- and return a monoidal summary of the changes.
+--
+-- It may be useful to think of '(%%=)', instead, as having either of the following more restricted
+-- type signatures:
+--
+-- > (%%=) = (state.)
+--
+-- > (%%=) :: MonadState a m             => Simple Lens a b      -> (b -> (c, b) -> m c
+-- > (%%=) :: (MonadState a m, Monoid c) => Simple Traversal a b -> (b -> (c, b) -> m c
+(%%=) :: MonadState a m => LensLike ((,) c) a a b b -> (b -> (c, b)) -> m c
+l %%= f = state (l f)
+{-# INLINE (%%=) #-}
+
+-- | This class allows us to use 'focus' on a number of different monad transformers.
+class Focus st where
+  -- | Run a monadic action in a larger context than it was defined in, using a 'Simple' 'Lens' or 'Simple' 'Traversal'.
+  --
+  -- This is commonly used to lift actions in a simpler state monad into a state monad with a larger state type.
+  --
+  -- When applied to a 'Simple 'Traversal' over multiple values, the actions for each target are executed sequentially
+  -- and the results are aggregated monoidally
+  -- and a monoidal summary
+  -- of the result is given.
+  --
+  -- > focus :: Monad m             => Simple Lens a b      -> st b m c -> st a m c
+  -- > focus :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m c
+  focus :: Monad m => LensLike (Focusing m c) a a b b -> st b m c -> st a m c
+
+  -- | Like 'focus', but discarding any accumulated results as you go.
+  --
+  -- > focus_ :: Monad m             => Simple Lens a b      -> st b m c -> st a m ()
+  -- > focus_ :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m ()
+  focus_ :: Monad m => LensLike (Focusing m ()) a a b b -> st b m c -> st a m ()
+
+skip :: a -> ()
+skip _ = ()
+{-# INLINE skip #-}
+
+instance Focus Strict.StateT where
+  focus l m = Strict.StateT $ \a -> unfocusing (l (Focusing . Strict.runStateT m) a)
+  {-# INLINE focus #-}
+  focus_ l m = Strict.StateT $ \a -> unfocusing (l (Focusing . Strict.runStateT (liftM skip m)) a)
+  {-# INLINE focus_ #-}
+
+instance Focus Lazy.StateT where
+  focus l m = Lazy.StateT $ \a -> unfocusing (l (Focusing . Lazy.runStateT m) a)
+  {-# INLINE focus #-}
+  focus_ l m = Lazy.StateT $ \a -> unfocusing (l (Focusing . Lazy.runStateT (liftM skip m)) a)
+  {-# INLINE focus_ #-}
+
+instance Focus ReaderT where
+  focus l m = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` runReaderT m b) a
+  {-# INLINE focus #-}
+  focus_ l m = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\_ -> ((),b)) `liftM` runReaderT m b) a
+  {-# INLINE focus_ #-}
+
 --------------------------
--- Constructing Lenses
+-- Traversal Combinators
 --------------------------
 
--- | Build a 'Lens' from a getter and a setter.
+-- |
+-- Map each element of a structure targeted by a Lens or Traversal,
+-- evaluate these actions from left to right, and collect the results.
 --
--- > lens :: Functor f => (a -> c) -> (d -> a -> b) -> (c -> f d) -> a -> f b
-lens :: (a -> c) -> (d -> a -> b) -> Lens a b c d
-lens ac dab cfd a = (`dab` a) <$> cfd (ac a)
-{-# INLINE lens #-}
+-- > traverseOf = id
+--
+-- > traverse = traverseOf traverse
+--
+-- > traverseOf :: Lens a b c d      -> (c -> f d) -> a -> f b
+-- > traverseOf :: Traversal a b c d -> (c -> f d) -> a -> f b
+traverseOf :: LensLike f a b c d -> (c -> f d) -> a -> f b
+traverseOf = id
 
--- | Built a 'Lens' from an isomorphism family
+-- |
 --
--- > iso :: Functor f => (a -> c) -> (d -> b) -> (c -> f d) -> a -> f b
-iso :: (a -> c) -> (d -> b) -> Lens a b c d
-iso f g h a = g <$> h (f a )
-{-# INLINE iso #-}
+-- > forOf = flip
+-- > forOf l = flip (traverseOf l)
+--
+-- > for = forOf traverse
+forOf :: LensLike f a b c d -> a -> (c -> f d) -> f b
+forOf = flip
+
+-- |
+-- Evaluate each action in the structure from left to right, and collect
+-- the results.
+--
+-- > sequenceA = sequenceAOf traverse
+-- > sequenceAOf l = traverseOf l id
+-- > sequenceAOf l = l id
+--
+-- > sequenceAOf ::                  Lens a b (f c) c -> a -> f b
+-- > sequenceAOf :: Applicative f => Traversal a b (f c) c -> a -> f b
+sequenceAOf :: LensLike f a b (f c) c -> a -> f b
+sequenceAOf l = l id
+{-# INLINE sequenceAOf #-}
+
+-- | Map each element of a structure targeted by a lens to a monadic action,
+-- evaluate these actions from left to right, and collect the results.
+--
+-- > mapM = mapMOf traverse
+--
+-- > mapMOf ::            Lens a b c d      -> (c -> m d) -> a -> m b
+-- > mapMOf :: Monad m => Traversal a b c d -> (c -> m d) -> a -> m b
+mapMOf :: LensLike (WrappedMonad m) a b c d -> (c -> m d) -> a -> m b
+mapMOf l cmd = unwrapMonad . l (WrapMonad . cmd)
+{-# INLINE mapMOf #-}
+
+-- |
+-- > forM = forMOf traverse
+-- > forMOf l = flip (mapMOf l)
+--
+-- > forMOf ::            Lens a b c d -> a -> (c -> m d) -> m b
+-- > forMOf :: Monad m => Lens a b c d -> a -> (c -> m d) -> m b
+forMOf :: LensLike (WrappedMonad m) a b c d -> a -> (c -> m d) -> m b
+forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
+{-# INLINE forMOf #-}
+
+-- |
+-- > sequence = sequenceOf traverse
+-- > sequenceOf l = mapMOf l id
+-- > sequenceOf l = unwrapMonad . l WrapMonad
+--
+-- > sequenceOf ::            Lens a b (m c) c      -> a -> m b
+-- > sequenceOf :: Monad m => Traversal a b (m c) c -> a -> m b
+sequenceOf :: LensLike (WrappedMonad m) a b (m c) c -> a -> m b
+sequenceOf l = unwrapMonad . l WrapMonad
+{-# INLINE sequenceOf #-}
+
+-- | This generalizes 'transpose' to an arbitrary 'Traversal'.
+--
+-- > transpose = transposeOf traverse
+--
+-- > ghci> transposeOf traverse [[1,2,3],[4,5,6]]
+-- > [[1,4],[2,5],[3,6]]
+--
+-- Since every 'Lens' is a Traversal, we can use this as a form of
+-- monadic strength.
+--
+-- > transposeOf _2 :: (b, [a]) -> [(b, a)]
+transposeOf :: LensLike ZipList a b [c] c -> a -> [b]
+transposeOf l = getZipList . l ZipList
+
+------------------------------------------------------------------------------
+-- Setters
+------------------------------------------------------------------------------
+
+-- |
+-- The only 'Lens'-like law that can apply to a 'Setter' @l@ is that
+--
+-- > set l c (set l b a) = set l c a
+--
+-- You can't 'view' a 'Setter' in general, so the other two laws are irrelevant.
+--
+-- You can compose a 'Setter' with a 'Lens' or a 'Traversal' using @(.)@ from the Prelude
+-- and the result is always only a 'Setter' and nothing more.
+--
+-- > type Setter a b c d = LensLike Identity a b c d
+type Setter a b c d = (c -> Identity d) -> a -> Identity b
+
+-- | This setter can be used to map over all of the values in a 'Functor'.
+--
+-- > fmap        = adjust mapped
+-- > fmapDefault = adjust traverse
+-- > (<$)        = set mapped
+mapped :: Functor f => Setter (f a) (f b) a b
+mapped = sets fmap
+{-# INLINE mapped #-}
+
+-- | Build a Setter.
+--
+-- > sets . adjust = id
+-- > adjust . sets = id
+sets :: ((c -> d) -> a -> b) -> Setter a b c d
+sets f g a = Identity (f (runIdentity . g) a)
+{-# INLINE sets #-}
+
+-- | Modify the target of a 'Lens' or all the targets of a 'Setter' or 'Traversal'
+-- with a function.
+--
+-- > fmap        = adjust mapped
+-- > fmapDefault = adjust traverse
+--
+-- > sets . adjust = id
+-- > adjust . sets = id
+adjust :: Setter a b c d -> (c -> d) -> a -> b
+adjust l f = runIdentity . l (Identity . f)
+{-# INLINE adjust #-}
+
+-- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
+-- or 'Traversal' with a constant value.
+--
+-- > (<$) = set mapped
+set :: Setter a b c d -> d -> a -> b
+set l d = runIdentity . l (\_ -> Identity d)
+{-# INLINE set #-}
+
+-- | Modifies the target of a 'Lens' or all of the targets of a 'Setter' or
+-- 'Traversal' with a user supplied function.
+--
+-- This is an infix version of 'adjust'
+--
+-- > fmap f = mapped %~ f
+-- > fmapDefault f = traverse %~ f
+--
+-- > ghci> _2 %~ length $ (1,"hello")
+-- > (1,5)
+(%~) :: Setter a b c d -> (c -> d) -> a -> b
+l %~ f = runIdentity . l (Identity . f)
+{-# INLINE (%~) #-}
+
+-- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
+-- or 'Traversal' with a constant value.
+--
+-- This is an infix version of 'set'
+--
+-- > f <$ a = mapped ^~ f $ a
+--
+-- > ghci> bitAt 0 ^~ True $ 0
+-- > 1
+(^~) :: Setter a b c d -> d -> a -> b
+l ^~ v = runIdentity . l (Identity . const v)
+{-# INLINE (^~) #-}
+
+-- | Increment the target(s) of a numerically valued 'Lens', Setter' or 'Traversal'
+--
+-- > ghci> _1 +~ 1 $ (1,2)
+-- > (2,2)
+(+~) :: Num c => Setter a b c c -> c -> a -> b
+l +~ n = adjust l (+ n)
+{-# INLINE (+~) #-}
+
+-- | Multiply the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
+--
+-- > ghci> _2 *~ 4 $ (1,2)
+-- > (1,8)
+(*~) :: Num c => Setter a b c c -> c -> a -> b
+l *~ n = adjust l (* n)
+{-# INLINE (*~) #-}
+
+-- | Decrement the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
+--
+-- > ghci> _1 -~ 2 $ (1,2)
+-- > (-1,2)
+(-~) :: Num c => Setter a b c c -> c -> a -> b
+l -~ n = adjust l (subtract n)
+{-# INLINE (-~) #-}
+
+-- | Divide the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
+(//~) :: Fractional c => Setter a b c c -> c -> a -> b
+l //~ n = adjust l (/ n)
+
+-- | Logically '||' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+(||~):: Setter a b Bool Bool -> Bool -> a -> b
+l ||~ n = adjust l (|| n)
+{-# INLINE (||~) #-}
+
+-- | Logically '&&' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+(&&~) :: Setter a b Bool Bool -> Bool -> a -> b
+l &&~ n = adjust l (&& n)
+{-# INLINE (&&~) #-}
+
+-- | Bitwise '.|.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+(|~):: Bits c => Setter a b c c -> c -> a -> b
+l |~ n = adjust l (.|. n)
+{-# INLINE (|~) #-}
+
+-- | Bitwise '.&.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+(&~) :: Bits c => Setter a b c c -> c -> a -> b
+l &~ n = adjust l (.&. n)
+{-# INLINE (&~) #-}
 
 ---------------
 -- Getters
@@ -293,7 +565,7 @@ iso f g h a = g <$> h (f a )
 -- type Getter a b c d = forall z. LensLike (Const z) a b c d
 type Getter a b c d = forall z. (c -> Const z d) -> a -> Const z b
 
--- | Build a 'Getter'
+-- | Build a 'Getter' from an arbitrary Haskell function.
 --
 -- > to f . to g = to (g . f)
 to :: (a -> c) -> Getter a b c d
@@ -382,126 +654,6 @@ a ^. l = getConst (l Const a)
 {-# INLINE (^.) #-}
 
 ------------------------------------------------------------------------------
--- Setters
-------------------------------------------------------------------------------
-
--- |
--- The only 'Lens'-like law that applies to a 'Setter' @l@ is that
---
--- > set l c (set l b a) = set l c a
---
--- You can't 'view' a 'Setter' in general, so the other two laws do not apply.
---
--- You can compose a 'Setter' with a 'Lens' or a 'Traversal' using @(.)@ from the Prelude
--- and the result is always only a 'Setter' and nothing more.
---
--- > type Setter a b c d = LensLike Identity a b c d
-type Setter a b c d = (c -> Identity d) -> a -> Identity b
-
--- | This setter can be used to map over all of the values in a container.
-mapped :: Functor f => Setter (f a) (f b) a b
-mapped = sets fmap
-{-# INLINE mapped #-}
-
-
--- | Build a Setter
---
--- > sets . adjust = id
--- > adjust . sets = id
-sets :: ((c -> d) -> a -> b) -> Setter a b c d
-sets f g a = Identity (f (runIdentity . g) a)
-{-# INLINE sets #-}
-
--- | Modify the target of a 'Lens' or all the targets of a 'Setter' or 'Traversal'
--- with a function.
---
--- > fmap = adjust traverse
---
--- Two useful free theorems hold for this type:
---
--- > sets . adjust = id
--- > adjust . sets = id
-adjust :: Setter a b c d -> (c -> d) -> a -> b
-adjust l f a = runIdentity (l (Identity . f) a)
-{-# INLINE adjust #-}
-
--- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
--- or 'Traversal' with a constant value.
---
--- > (<$) = set traverse
-set :: Setter a b c d -> d -> a -> b
-set l d a = runIdentity (l (\_ -> Identity d) a)
-{-# INLINE set #-}
-
--- | Modifies the target of a 'Lens' or all of the targets of a 'Setter' or
--- 'Traversal' with a user supplied function.
---
--- This is an infix version of 'adjust'
---
--- > fmap f = traverse =%= f
-(=%=) :: Setter a b c d -> (c -> d) -> a -> b
-l =%= f = runIdentity . l (Identity . f)
-{-# INLINE (=%=) #-}
-
--- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
--- or 'Traversal' with a constant value.
---
--- This is an infix version of 'set'
---
--- > f <$ a = traverse =~= f $ a
-(=~=) :: Setter a b c d -> d -> a -> b
-l =~= v = runIdentity . l (Identity . const v)
-{-# INLINE (=~=) #-}
-
--- | Increment the target(s) of a numerically valued 'Lens', Setter' or 'Traversal'
---
--- > ghci> _1 =+= 1 $ (1,2)
--- > (2,2)
-(=+=) :: Num c => Setter a b c c -> c -> a -> b
-l =+= n = adjust l (+ n)
-{-# INLINE (=+=) #-}
-
--- | Multiply the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
---
--- > ghci> _2 =*= 4 $ (1,2)
--- > (1,8)
-(=*=) :: Num c => Setter a b c c -> c -> a -> b
-l =*= n = adjust l (* n)
-{-# INLINE (=*=) #-}
-
--- | Decrement the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
---
--- > ghci> _1 =-= 2 $ (1,2)
--- > (-1,2)
-(=-=) :: Num c => Setter a b c c -> c -> a -> b
-l =-= n = adjust l (subtract n)
-{-# INLINE (=-=) #-}
-
--- | Divide the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
-(=/=) :: Fractional c => Setter a b c c -> c -> a -> b
-l =/= n = adjust l (/ n)
-
--- | Logically '||' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
-(=||=):: Setter a b Bool Bool -> Bool -> a -> b
-l =||= n = adjust l (|| n)
-{-# INLINE (=||=) #-}
-
--- | Logically '&&' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
-(=&&=) :: Setter a b Bool Bool -> Bool -> a -> b
-l =&&= n = adjust l (&& n)
-{-# INLINE (=&&=) #-}
-
--- | Bitwise '.|.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
-(=|=):: Bits c => Setter a b c c -> c -> a -> b
-l =|= n = adjust l (.|. n)
-{-# INLINE (=|=) #-}
-
--- | Bitwise '.&.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
-(=&=) :: Bits c => Setter a b c c -> c -> a -> b
-l =&= n = adjust l (.&. n)
-{-# INLINE (=&=) #-}
-
-------------------------------------------------------------------------------
 -- Common Lenses
 ------------------------------------------------------------------------------
 
@@ -511,7 +663,7 @@ l =&= n = adjust l (.&. n)
 -- > ghci> (1,2)^._1
 -- > 1
 --
--- > ghci> _1 =+= "hello" $ (1,2)
+-- > ghci> _1 +~ "hello" $ (1,2)
 -- > ("hello",2)
 --
 -- > _1 :: Functor f => (a -> f b) -> (a,c) -> f (a,c)
@@ -547,7 +699,7 @@ valueAt k f m = go <$> f (Map.lookup k m) where
 -- > ghci> IntMap.fromList [(1,"hello")]  ^. valueAtInt 1
 -- > Just "hello"
 --
--- > ghci> valueAtInt 2 =+= "goodbye" $ IntMap.fromList [(1,"hello")]
+-- > ghci> valueAtInt 2 +~ "goodbye" $ IntMap.fromList [(1,"hello")]
 -- > fromList [(1,"hello"),(2,"goodbye")]
 --
 -- > valueAtInt :: Int -> (Maybe v -> f (Maybe v)) -> IntMap v -> f (IntMap v)
@@ -559,7 +711,7 @@ valueAtInt k f m = go <$> f (IntMap.lookup k m) where
 
 -- | This 'Lens' can be used to read, write or delete a member of a 'Set'
 --
--- > ghci> contains 3 =+= False $ Set.fromList [1,2,3,4]
+-- > ghci> contains 3 +~ False $ Set.fromList [1,2,3,4]
 -- > fromList [1,2,4]
 --
 -- > contains :: Ord k => k -> (Bool -> f Bool) -> Set k -> f (Set k)
@@ -571,7 +723,7 @@ contains k f s = go <$> f (Set.member k s) where
 
 -- | This 'Lens' can be used to read, write or delete a member of an 'IntSet'
 --
--- > ghci> containsInt 3 =+= False $ IntSet.fromList [1,2,3,4]
+-- > ghci> containsInt 3 +~ False $ IntSet.fromList [1,2,3,4]
 -- > fromList [1,2,4]
 --
 -- > containsInt :: Int -> (Bool -> f Bool) -> IntSet -> f IntSet
@@ -589,7 +741,6 @@ identity f (Identity a) = Identity <$> f a
 -- | This lens can be used to access the value of the nth bit in a number.
 --
 -- @bitsAt n@ is only a legal 'Lens' into @b@ if @0 <= n < bitSize (undefined :: b)@
-
 bitAt :: Bits b => Int -> Simple Lens b Bool
 bitAt n f b = (\x -> if x then setBit b n else clearBit b n) <$> f (testBit b n)
 {-# INLINE bitAt #-}
@@ -617,9 +768,9 @@ imaginary f (a :+ b) = (a :+) <$> f b
 
 -- | This isn't /quite/ a legal lens. Notably the @view l (set l b a) = b@ law
 -- is violated when you set a polar value with 0 magnitude and non-zero phase
--- as the phase information is lost.
+-- as the phase information is lost. So don't do that!
 --
--- So don't do that. Otherwise this is a perfectly convenient lens.
+-- Otherwise, this is a perfectly convenient lens.
 --
 -- polarize :: Functor f => ((a,a) -> f (a,a)) -> Complex a -> f (Complex a)
 polarize :: RealFloat a => Simple Lens (Complex a) (a,a)
@@ -643,113 +794,57 @@ access :: MonadState a m => Getting c a b c d -> m c
 access l = gets (^. l)
 {-# INLINE access #-}
 
--- | This class allows us to use 'focus' on a number of different monad transformers.
-class Focus st where
-  -- | Run a monadic action in a larger context than it was defined in, using a 'Simple' 'Lens' or 'Simple Traversal'.
-  --
-  -- This is commonly used to lift actions in a simpler state monad into a state monad with a larger state type.
-  --
-  -- When applied to a 'Simple 'Traversal' over multiple values, the actions for each target are executed sequentially
-  -- and the results are aggregated monoidally
-  -- and a monoidal summary
-  -- of the result is given.
-  --
-  -- > focus :: Monad m             => Simple Lens a b      -> st b m c -> st a m c
-  -- > focus :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m c
-  focus :: Monad m => LensLike (Focusing m c) a a b b -> st b m c -> st a m c
 
-  -- | Like 'focus', but discarding any accumulated results as you go.
-  --
-  -- > focus_ :: Monad m             => Simple Lens a b      -> st b m c -> st a m ()
-  -- > focus_ :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m ()
-  focus_ :: Monad m => LensLike (Focusing m ()) a a b b -> st b m c -> st a m ()
-
-skip :: a -> ()
-skip _ = ()
-
-instance Focus Strict.StateT where
-  focus l m = Strict.StateT $ \a -> unfocusing (l (Focusing . Strict.runStateT m) a)
-  {-# INLINE focus #-}
-  focus_ l m = Strict.StateT $ \a -> unfocusing (l (Focusing . Strict.runStateT (liftM skip m)) a)
-  {-# INLINE focus_ #-}
-
-instance Focus Lazy.StateT where
-  focus l m = Lazy.StateT $ \a -> unfocusing (l (Focusing . Lazy.runStateT m) a)
-  {-# INLINE focus #-}
-  focus_ l m = Lazy.StateT $ \a -> unfocusing (l (Focusing . Lazy.runStateT (liftM skip m)) a)
-  {-# INLINE focus_ #-}
-
--- | We can focus Reader environments, too!
-instance Focus ReaderT where
-  focus l m = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` runReaderT m b) a
-  {-# INLINE focus #-}
-  focus_ l m = ReaderT $ \a -> liftM undefined $  unfocusing $ l (\b -> Focusing $ (\_ -> ((),b)) `liftM` runReaderT m b) a
-  {-# INLINE focus_ #-}
-
--- | Modify the target of a 'Lens' in the current state returning some extra information of @c@ or
--- modify all targets of a 'Traversal' in the current state, extracting extra information of type @c@
--- and return a monoidal summary of the changes.
---
--- It may be useful to think of '(%%=)', instead, as having either of the following more restricted
--- type signatures:
---
--- > (%%=) :: MonadState a m             => Simple Lens a b      -> (b -> (c, b) -> m c
--- > (%%=) :: (MonadState a m, Monoid c) => Simple Traversal a b -> (b -> (c, b) -> m c
---
--- > (%%=) :: MonadState a m => ((b -> (c,b)) -> a -> (c,a)) -> (b -> (c, b)) -> m c
-(%%=) :: MonadState a m => LensLike ((,) c) a a b b -> (b -> (c, b)) -> m c
-l %%= f = state (l f)
-{-# INLINE (%%=) #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal' in our monadic
 -- state with a new value, irrespective of the old.
-(~=) :: MonadState a m => Setter a a c d -> d -> m ()
-l ~= b = modify $ l =~= b
-{-# INLINE (~=) #-}
+(^=) :: MonadState a m => Setter a a c d -> d -> m ()
+l ^= b = modify $ l ^~ b
+{-# INLINE (^=) #-}
 
 -- | Map over the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal in our monadic state.
 (%=) :: MonadState a m => Setter a a c d -> (c -> d) -> m ()
-l %= f = modify $ l =%= f
+l %= f = modify $ l %~ f
 {-# INLINE (%=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by adding a value
 (+=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l += b = modify $ l =+= b
+l += b = modify $ l +~ b
 {-# INLINE (+=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by subtracting a value
 (-=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l -= b = modify $ l =-= b
+l -= b = modify $ l -~ b
 {-# INLINE (-=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by multiplying by value
 (*=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l *= b = modify $ l =*= b
+l *= b = modify $ l *~ b
 {-# INLINE (*=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by dividing by a value
 (//=) ::  (MonadState a m, Fractional b) => Simple Setter a b -> b -> m ()
-l //= b = modify $ l =/= b
+l //= b = modify $ l //~ b
 {-# INLINE (//=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by taking their logical '&&' with a value
 (&&=):: MonadState a m => Simple Setter a Bool -> Bool -> m ()
-l &&= b = modify $ l =&&= b
+l &&= b = modify $ l &&~ b
 {-# INLINE (&&=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by taking their logical '||' with a value
 (||=) :: MonadState a m => Simple Setter a Bool -> Bool -> m ()
-l ||= b = modify $ l =||= b
+l ||= b = modify $ l ||~ b
 {-# INLINE (||=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.&.' with another value.
 (&=):: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
-l &= b = modify $ l =&= b
+l &= b = modify $ l &~ b
 {-# INLINE (&=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.|.' with another value.
 (|=) :: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
-l |= b = modify $ l =|= b
+l |= b = modify $ l |~ b
 {-# INLINE (|=) #-}
 
 --------------------------
@@ -782,12 +877,14 @@ folded g = Const . foldMap (getConst . g)
 -- | Obtain a 'Fold' by filtering a 'Lens', 'Getter, 'Fold' or 'Traversal'.
 filtered :: Monoid m => (c -> Bool) -> Getting m a b c d -> Getting m a b c d
 filtered p l f = l (\c -> if p c then f c else Const mempty)
+{-# INLINE filtered #-}
 
 -- | Obtain a 'Fold' by reversing the order of traversal for a 'Lens', 'Getter', 'Fold' or 'Traversal'.
 --
 -- Of course, reversing a 'Fold' or 'Getter' has no effect.
 reversed :: Getting (Dual m) a b c d -> Getting m a b c d
 reversed l f = Const . getDual . getConst . l (Const .  Dual . getConst . f)
+{-# INLINE reversed #-}
 
 --------------------------
 -- Fold/Getter combinators
@@ -1030,7 +1127,7 @@ sumOf l = getSum . foldMapOf l Sum
 -- > traverseOf_ :: Applicative f => Fold a b c d      -> (c -> f e) -> a -> f ()
 -- > traverseOf_ :: Applicative f => Traversal a b c d -> (c -> f e) -> a -> f ()
 traverseOf_ :: Functor f => Getting (Traversed f) a b c d -> (c -> f e) -> a -> f ()
-traverseOf_ l f = getTraversed . foldMapOf l (Traversed . (() <$) . f)
+traverseOf_ l f = getTraversed . foldMapOf l (Traversed . void . f)
 {-# INLINE traverseOf_ #-}
 
 -- |
@@ -1052,7 +1149,7 @@ forOf_ l a f = traverseOf_ l f a
 -- > sequenceAOf_ :: Applicative f => Fold a b (f ()) d      -> a -> f ()
 -- > sequenceAOf_ :: Applicative f => Traversal a b (f ()) d -> a -> f ()
 sequenceAOf_ :: Functor f => Getting (Traversed f) a b (f ()) d -> a -> f ()
-sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . (() <$))
+sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . void)
 {-# INLINE sequenceAOf_ #-}
 
 -- |
@@ -1062,8 +1159,8 @@ sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . (() <$))
 -- > mapMOf_ :: Monad m => Lens a b c d      -> (c -> m e) -> a -> m ()
 -- > mapMOf_ :: Monad m => Fold a b c d      -> (c -> m e) -> a -> m ()
 -- > mapMOf_ :: Monad m => Traversal a b c d -> (c -> m e) -> a -> m ()
-mapMOf_ :: Monad m => Getting (Traversed (WrappedMonad m)) a b c d -> (c -> m e) -> a -> m ()
-mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
+mapMOf_ :: Monad m => Getting (Action m) a b c d -> (c -> m e) -> a -> m ()
+mapMOf_ l f = getAction . foldMapOf l (Action . liftM skip . f)
 {-# INLINE mapMOf_ #-}
 
 -- |
@@ -1073,7 +1170,7 @@ mapMOf_ l f = unwrapMonad . traverseOf_ l (WrapMonad . f)
 -- > forMOf_ :: Monad m => Lens a b c d      -> a -> (c -> m e) -> m ()
 -- > forMOf_ :: Monad m => Fold a b c d      -> a -> (c -> m e) -> m ()
 -- > forMOf_ :: Monad m => Traversal a b c d -> a -> (c -> m e) -> m ()
-forMOf_ :: Monad m => Getting (Traversed (WrappedMonad m)) a b c d -> a -> (c -> m e) -> m ()
+forMOf_ :: Monad m => Getting (Action m) a b c d -> a -> (c -> m e) -> m ()
 forMOf_ l a f = mapMOf_ l f a
 {-# INLINE forMOf_ #-}
 
@@ -1084,8 +1181,8 @@ forMOf_ l a f = mapMOf_ l f a
 -- > sequenceOf_ :: Monad m => Lens a b (m b) d      -> a -> m ()
 -- > sequenceOf_ :: Monad m => Fold a b (m b) d      -> a -> m ()
 -- > sequenceOf_ :: Monad m => Traversal a b (m b) d -> a -> m ()
-sequenceOf_ :: Monad m => Getting (Traversed (WrappedMonad m)) a b (m c) d -> a -> m ()
-sequenceOf_ l = unwrapMonad . traverseOf_ l WrapMonad
+sequenceOf_ :: Monad m => Getting (Action m) a b (m c) d -> a -> m ()
+sequenceOf_ l = getAction . foldMapOf l (Action . liftM skip)
 {-# INLINE sequenceOf_ #-}
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
@@ -1210,7 +1307,6 @@ maximumOf :: Getting (Max c) a b c d -> a -> Maybe c
 maximumOf l = getMax . foldMapOf l Max
 {-# INLINE maximumOf #-}
 
-
 -- |
 -- Obtain the minimum element (if any) targeted by a 'Fold' or 'Traversal'
 --
@@ -1240,6 +1336,7 @@ maximumByOf :: Getting (Endo (Maybe c)) a b c d -> (c -> c -> Ordering) -> a -> 
 maximumByOf l cmp = foldrOf l step Nothing where
   step a Nothing  = Just a
   step a (Just b) = Just (if cmp a b == GT then a else b)
+{-# INLINE maximumByOf #-}
 
 -- |
 -- Obtain the minimum element (if any) targeted by a 'Fold', 'Traversal', 'Lens'
@@ -1255,85 +1352,14 @@ minimumByOf :: Getting (Endo (Maybe c)) a b c d -> (c -> c -> Ordering) -> a -> 
 minimumByOf l cmp = foldrOf l step Nothing where
   step a Nothing  = Just a
   step a (Just b) = Just (if cmp a b == GT then b else a)
-
+{-# INLINE minimumByOf #-}
 
 -- | The 'findOf' function takes a lens, a predicate and a structure and returns
 -- the leftmost element of the structure matching the predicate, or
 -- 'Nothing' if there is no such element.
 findOf :: Getting (First c) a b c d -> (c -> Bool) -> a -> Maybe c
 findOf l p = getFirst . foldMapOf l (\c -> if p c then First (Just c) else First Nothing)
-
-------------------------------------------------------------------------------
--- Traversals
-------------------------------------------------------------------------------
-
--- | A 'Traversal' can be used directly as a 'Setter' or a 'Fold' (but not as a 'Lens') and provides
--- the ability to both read and update multiple fields, subject to some relatively weak 'Traversal' laws.
---
--- These are also known as @MultiLens@ families, but they have the signature and spirit of
---
--- > traverse :: Traversable f => Traversal (f a) (f b) a b
---
--- and the more evocative name suggests their application.
-type Traversal a b c d        = forall f. Applicative f => (c -> f d) -> a -> f b
-
---------------------------
--- Traversal combinators
---------------------------
-
--- | Provided for completeness, but this is just the identity function.
---
--- > traverseOf = id
--- > traverse = traverseOf traverse
-traverseOf :: LensLike f a b c d -> (c -> f d) -> a -> f b
-traverseOf = id
-
--- |
--- > mapM = mapMOf traverse
---
--- > mapMOf :: Monad m => Lens a b c d      -> (c -> m d) -> a -> m b
--- > mapMOf :: Monad m => Traversal a b c d -> (c -> m d) -> a -> m b
-mapMOf :: LensLike (WrappedMonad m) a b c d -> (c -> m d) -> a -> m b
-mapMOf l cmd a = unwrapMonad (l (WrapMonad . cmd) a)
-{-# INLINE mapMOf #-}
-
--- |
--- > sequenceA = sequenceAOf traverse
---
--- > sequenceAOf :: Applicative f => Lens a b (f c) (f c)      -> a -> f b
--- > sequenceAOf :: Applicative f => Traversal a b (f c) (f c) -> a -> f b
-sequenceAOf :: Applicative f => LensLike f a b (f c) (f c) -> a -> f b
-sequenceAOf l = l pure
-{-# INLINE sequenceAOf #-}
-
--- |
--- > sequence = sequenceOf traverse
---
--- > sequenceOf :: Monad m => Lens a b (m c) (m c)      -> a -> m b
--- > sequenceOf :: Monad m => Traversal a b (m c) (m c) -> a -> m b
-sequenceOf :: Monad m => LensLike (WrappedMonad m) a b (m c) (m c) -> a -> m b
-sequenceOf l = unwrapMonad . l pure
-{-# INLINE sequenceOf #-}
-
--- | Yields a 'Traversal' of the nth element of another 'Traversal'
---
--- > traverseHead = elementOf traverse 0
-elementOf :: Applicative f => LensLike (AppliedState f) a b c c -> Int -> (c -> f c) -> a -> f b
-elementOf l = elementsOf l . (==)
-
--- | A 'Traversal' of the elements in another 'Traversal' where their positions in that 'Traversal' satisfy a predicate
---
--- > traverseTail = elementsOf traverse (>0)
-elementsOf :: Applicative f => LensLike (AppliedState f) a b c c -> (Int -> Bool) -> (c -> f c) -> a -> f b
-elementsOf l p f ta = fst (runAppliedState (l go ta) 0) where
-  go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
-
--- |
--- > transpose = transposeOf traverse -- modulo the ragged arrays support
---
--- > transposeOf _2 :: (b, [a]) -> [(b, a)]
-transposeOf :: LensLike ZipList a b [c] c -> a -> [b]
-transposeOf l = getZipList . l ZipList
+{-# INLINE findOf #-}
 
 --------------------------
 -- Traversals
@@ -1559,14 +1585,6 @@ traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
     step (n,True) r = setBit r n
     step _        r = r
 
--- this version requires a legal bitSize, and bitSize (undefined :: Integer) will just blow up in our face, 
--- so, I use the version above instead.
---
---traverseBits :: Bits b => Simple Traversal b Bool
---traverseBits f b = snd . Prelude.foldr step (bitSize b - 1,0) <$> traverse (f . testBit b) [0 .. bitSize b - 1] where
---  step True (n,r) = (n - 1, setBit r n)
---  step _    (n,r) = (n - 1, r)
-
 ------------------------------------------------------------------------------
 -- Cloning Lenses
 ------------------------------------------------------------------------------
@@ -1581,3 +1599,21 @@ clone :: Functor f => LensLike (IndexedStore c d) a b c d -> (c -> f d) -> a -> 
 clone f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
 {-# INLINE clone #-}
+
+
+---------------------------
+-- Constructing Traversals
+---------------------------
+
+-- | Yields a 'Traversal' of the nth element of another 'Traversal'
+--
+-- > traverseHead = elementOf traverse 0
+elementOf :: Applicative f => LensLike (AppliedState f) a b c c -> Int -> LensLike f a b c c
+elementOf l = elementsOf l . (==)
+
+-- | A 'Traversal' of the elements in another 'Traversal' where their positions in that 'Traversal' satisfy a predicate
+--
+-- > traverseTail = elementsOf traverse (>0)
+elementsOf :: Applicative f => LensLike (AppliedState f) a b c c -> (Int -> Bool) -> LensLike f a b c c
+elementsOf l p f ta = fst (runAppliedState (l go ta) 0) where
+  go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)

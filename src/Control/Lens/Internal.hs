@@ -19,6 +19,7 @@ module Control.Lens.Internal
     IndexedStore(..)
   , Focusing(..)
   , Traversed(..)
+  , Action(..)
   , AppliedState(..)
   , Min(..)
   , getMin
@@ -75,6 +76,13 @@ newtype Traversed f = Traversed { getTraversed :: f () }
 instance Applicative f => Monoid (Traversed f) where
   mempty = Traversed (pure ())
   Traversed ma `mappend` Traversed mb = Traversed (ma *> mb)
+
+-- | Used internally by 'mapM_' and the like.
+newtype Action m = Action { getAction :: m () }
+
+instance Monad m => Monoid (Action m) where
+  mempty = Action (return ())
+  Action ma `mappend` Action mb = Action (ma >> mb)
 
 -- | Used for 'minimumOf'
 data Min a = NoMin | Min a
