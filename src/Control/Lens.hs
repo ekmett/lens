@@ -100,7 +100,7 @@ module Control.Lens
   , Getting
   , view, views
   , (^.), (^$)
-  , access
+  , use, uses
   , foldMapOf, foldOf
   , foldrOf,   foldlOf
   , toListOf
@@ -780,70 +780,88 @@ polarize f c = uncurry mkPolar <$> f (polar c)
 ------------------------------------------------------------------------------
 
 -- |
--- Access the target of a 'Lens' or 'Getter' in the current state, or access a
+-- Use the target of a 'Lens' or 'Getter' in the current state, or use a
 -- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
 --
--- > access :: MonadState a m             => Getter a b c d    -> m c
--- > access :: MonadState a m             => Lens a b c d      -> m c
--- > access :: (MonadState a m, Monoid c) => Fold a b c d      -> m c
--- > access :: (MonadState a m, Monoid c) => Traversal a b c d -> m c
+-- > use :: MonadState a m             => Getter a b c d    -> m c
+-- > use :: MonadState a m             => Lens a b c d      -> m c
+-- > use :: (MonadState a m, Monoid c) => Fold a b c d      -> m c
+-- > use :: (MonadState a m, Monoid c) => Traversal a b c d -> m c
 --
--- > access :: MonadState a m => ((c -> Const c d) -> a -> Const c b) -> m c
-access :: MonadState a m => Getting c a b c d -> m c
-access l = gets (^. l)
-{-# INLINE access #-}
+-- > use :: MonadState a m => ((c -> Const c d) -> a -> Const c b) -> m c
+use :: MonadState a m => Getting c a b c d -> m c
+use l = gets (^.l)
+{-# INLINE use #-}
 
-
+-- |
+-- Use the target of a 'Lens' or 'Getter' in the current state, or use a
+-- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
+--
+-- > uses :: MonadState a m             => Getter a b c d    -> (c -> e) -> m e
+-- > uses :: MonadState a m             => Lens a b c d      -> (c -> e) -> m e
+-- > uses :: (MonadState a m, Monoid c) => Fold a b c d      -> (c -> e) -> m e
+-- > uses :: (MonadState a m, Monoid c) => Traversal a b c d -> (c -> e) -> m e
+--
+-- > uses :: MonadState a m => ((c -> Const e d) -> a -> Const e b) -> (c -> e) -> m e
+uses :: MonadState a m => Getting e a b c d -> (c -> e) -> m e
+uses l f = gets (views l f)
+{-# INLINE uses #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal' in our monadic
 -- state with a new value, irrespective of the old.
 (^=) :: MonadState a m => Setter a a c d -> d -> m ()
-l ^= b = modify $ l ^~ b
+l ^= b = modify (l ^~ b)
 {-# INLINE (^=) #-}
 
 -- | Map over the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal in our monadic state.
 (%=) :: MonadState a m => Setter a a c d -> (c -> d) -> m ()
-l %= f = modify $ l %~ f
+l %= f = modify (l %~ f)
 {-# INLINE (%=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by adding a value
+--
+-- Example:
+--
+-- > fresh = do
+-- >   id += 1
+-- >   access id
 (+=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l += b = modify $ l +~ b
+l += b = modify (l +~ b)
 {-# INLINE (+=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by subtracting a value
 (-=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l -= b = modify $ l -~ b
+l -= b = modify (l -~ b)
 {-# INLINE (-=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by multiplying by value
 (*=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l *= b = modify $ l *~ b
+l *= b = modify (l *~ b)
 {-# INLINE (*=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by dividing by a value
 (//=) ::  (MonadState a m, Fractional b) => Simple Setter a b -> b -> m ()
-l //= b = modify $ l //~ b
+l //= b = modify (l //~ b)
 {-# INLINE (//=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by taking their logical '&&' with a value
 (&&=):: MonadState a m => Simple Setter a Bool -> Bool -> m ()
-l &&= b = modify $ l &&~ b
+l &&= b = modify (l &&~ b)
 {-# INLINE (&&=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by taking their logical '||' with a value
 (||=) :: MonadState a m => Simple Setter a Bool -> Bool -> m ()
-l ||= b = modify $ l ||~ b
+l ||= b = modify (l ||~ b)
 {-# INLINE (||=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.&.' with another value.
 (&=):: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
-l &= b = modify $ l &~ b
+l &= b = modify (l &~ b)
 {-# INLINE (&=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.|.' with another value.
 (|=) :: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
-l |= b = modify $ l |~ b
+l |= b = modify (l |~ b)
 {-# INLINE (|=) #-}
 
 --------------------------
@@ -940,93 +958,6 @@ foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 foldlOf :: Getting (Dual (Endo e)) a b c d -> (e -> c -> e) -> e -> a -> e
 foldlOf l f z t = appEndo (getDual (foldMapOf l (Dual . Endo . flip f) t)) z
 {-# INLINE foldlOf #-}
-
--- |
--- A variant of 'foldrOf' that has no base case and thus may only be applied to lenses and structures 
--- such that the lens views at least one element of the structure.
---
--- > foldr1Of l f = Prelude.foldr1 f . toListOf l
---
--- > foldr1 = foldr1Of folded
---
--- > foldr1Of :: Getter a b c d    -> (c -> c -> c) -> a -> c
--- > foldr1Of :: Lens a b c d      -> (c -> c -> c) -> a -> c
--- > foldr1Of :: Fold a b c d      -> (c -> c -> c) -> a -> c
--- > foldr1Of :: Traversal a b c d -> (c -> c -> c) -> a -> c
-foldr1Of :: Getting (Endo (Maybe c)) a b c d -> (c -> c -> c) -> a -> c
-foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure") (foldrOf l mf Nothing xs) where
-  mf x Nothing = Just x
-  mf x (Just y) = Just (f x y)
-{-# INLINE foldr1Of #-}
-
--- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and strutures such
--- that the lens views at least one element of the structure.
---
--- > foldl1Of l f = Prelude.foldl1Of l f . toList
---
--- > foldl1 = foldl1Of folded
---
--- > foldl1Of :: Getter a b c d    -> (c -> c -> c) -> a -> c
--- > foldl1Of :: Lens a b c d      -> (c -> c -> c) -> a -> c
--- > foldl1Of :: Fold a b c d      -> (c -> c -> c) -> a -> c
--- > foldl1Of :: Traversal a b c d -> (c -> c -> c) -> a -> c
-foldl1Of :: Getting (Dual (Endo (Maybe c))) a b c d -> (c -> c -> c) -> a -> c
-foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf Nothing xs) where
-  mf Nothing y = Just y
-  mf (Just x) y = Just (f x y)
-{-# INLINE foldl1Of #-}
-
--- | Strictly fold right over the elements of a structure.
---
--- > foldr' = foldrOf' folded
---
--- > foldrOf' :: Getter a b c d    -> (c -> e -> e) -> e -> a -> e
--- > foldrOf' :: Lens a b c d      -> (c -> e -> e) -> e -> a -> e
--- > foldrOf' :: Fold a b c d      -> (c -> e -> e) -> e -> a -> e
--- > foldrOf' :: Traversal a b c d -> (c -> e -> e) -> e -> a -> e
-foldrOf' :: Getting (Dual (Endo (e -> e))) a b c d -> (c -> e -> e) -> e -> a -> e
-foldrOf' l f z0 xs = foldlOf l f' id xs z0
-  where f' k x z = k $! f x z
-{-# INLINE foldrOf' #-}
-
--- | Fold over the elements of a structure, associating to the left, but strictly.
---
--- > foldl' = foldlOf' folded
---
--- > foldlOf' :: Getter a b c d    -> (e -> c -> e) -> e -> a -> e
--- > foldlOf' :: Lens a b c d      -> (e -> c -> e) -> e -> a -> e
--- > foldlOf' :: Fold a b c d      -> (e -> c -> e) -> e -> a -> e
--- > foldlOf' :: Traversal a b c d -> (e -> c -> e) -> e -> a -> e
-foldlOf' :: Getting (Endo (e -> e)) a b c d -> (e -> c -> e) -> e -> a -> e
-foldlOf' l f z0 xs = foldrOf l f' id xs z0
-  where f' x k z = k $! f z x
-{-# INLINE foldlOf' #-}
-
--- | Monadic fold over the elements of a structure, associating to the right, i.e. from right to left.
---
--- > foldrM = foldrMOf folded
---
--- > foldrMOf :: Monad m => Getter a b c d    -> (c -> e -> m e) -> e -> a -> m e
--- > foldrMOf :: Monad m => Lens a b c d      -> (c -> e -> m e) -> e -> a -> m e
--- > foldrMOf :: Monad m => Fold a b c d      -> (c -> e -> m e) -> e -> a -> m e
--- > foldrMOf :: Monad m => Traversal a b c d -> (c -> e -> m e) -> e -> a -> m e
-foldrMOf :: Monad m => Getting (Dual (Endo (e -> m e))) a b c d -> (c -> e -> m e) -> e -> a -> m e
-foldrMOf l f z0 xs = foldlOf l f' return xs z0
-  where f' k x z = f x z >>= k
-{-# INLINE foldrMOf #-}
-
--- | Monadic fold over the elements of a structure, associating to the left, i.e. from left to right.
---
--- > foldlM = foldlMOf folded
---
--- > foldlMOf :: Monad m => Getter a b c d    -> (e -> c -> m e) -> e -> a -> m e
--- > foldlMOf :: Monad m => Lens a b c d      -> (e -> c -> m e) -> e -> a -> m e
--- > foldlMOf :: Monad m => Fold a b c d      -> (e -> c -> m e) -> e -> a -> m e
--- > foldlMOf :: Monad m => Traversal a b c d -> (e -> c -> m e) -> e -> a -> m e
-foldlMOf :: Monad m => Getting (Endo (e -> m e)) a b c d -> (e -> c -> m e) -> e -> a -> m e
-foldlMOf l f z0 xs = foldrOf l f' return xs z0
-  where f' x k z = f z x >>= k
-{-# INLINE foldlMOf #-}
 
 -- |
 -- > toList = toListOf folded
@@ -1359,6 +1290,94 @@ minimumByOf l cmp = foldrOf l step Nothing where
 findOf :: Getting (First c) a b c d -> (c -> Bool) -> a -> Maybe c
 findOf l p = getFirst . foldMapOf l (\c -> if p c then First (Just c) else First Nothing)
 {-# INLINE findOf #-}
+
+-- |
+-- A variant of 'foldrOf' that has no base case and thus may only be applied to lenses and structures 
+-- such that the lens views at least one element of the structure.
+--
+-- > foldr1Of l f = Prelude.foldr1 f . toListOf l
+--
+-- > foldr1 = foldr1Of folded
+--
+-- > foldr1Of :: Getter a b c d    -> (c -> c -> c) -> a -> c
+-- > foldr1Of :: Lens a b c d      -> (c -> c -> c) -> a -> c
+-- > foldr1Of :: Fold a b c d      -> (c -> c -> c) -> a -> c
+-- > foldr1Of :: Traversal a b c d -> (c -> c -> c) -> a -> c
+foldr1Of :: Getting (Endo (Maybe c)) a b c d -> (c -> c -> c) -> a -> c
+foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure") (foldrOf l mf Nothing xs) where
+  mf x Nothing = Just x
+  mf x (Just y) = Just (f x y)
+{-# INLINE foldr1Of #-}
+
+-- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and strutures such
+-- that the lens views at least one element of the structure.
+--
+-- > foldl1Of l f = Prelude.foldl1Of l f . toList
+--
+-- > foldl1 = foldl1Of folded
+--
+-- > foldl1Of :: Getter a b c d    -> (c -> c -> c) -> a -> c
+-- > foldl1Of :: Lens a b c d      -> (c -> c -> c) -> a -> c
+-- > foldl1Of :: Fold a b c d      -> (c -> c -> c) -> a -> c
+-- > foldl1Of :: Traversal a b c d -> (c -> c -> c) -> a -> c
+foldl1Of :: Getting (Dual (Endo (Maybe c))) a b c d -> (c -> c -> c) -> a -> c
+foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf Nothing xs) where
+  mf Nothing y = Just y
+  mf (Just x) y = Just (f x y)
+{-# INLINE foldl1Of #-}
+
+-- | Strictly fold right over the elements of a structure.
+--
+-- > foldr' = foldrOf' folded
+--
+-- > foldrOf' :: Getter a b c d    -> (c -> e -> e) -> e -> a -> e
+-- > foldrOf' :: Lens a b c d      -> (c -> e -> e) -> e -> a -> e
+-- > foldrOf' :: Fold a b c d      -> (c -> e -> e) -> e -> a -> e
+-- > foldrOf' :: Traversal a b c d -> (c -> e -> e) -> e -> a -> e
+foldrOf' :: Getting (Dual (Endo (e -> e))) a b c d -> (c -> e -> e) -> e -> a -> e
+foldrOf' l f z0 xs = foldlOf l f' id xs z0
+  where f' k x z = k $! f x z
+{-# INLINE foldrOf' #-}
+
+-- | Fold over the elements of a structure, associating to the left, but strictly.
+--
+-- > foldl' = foldlOf' folded
+--
+-- > foldlOf' :: Getter a b c d    -> (e -> c -> e) -> e -> a -> e
+-- > foldlOf' :: Lens a b c d      -> (e -> c -> e) -> e -> a -> e
+-- > foldlOf' :: Fold a b c d      -> (e -> c -> e) -> e -> a -> e
+-- > foldlOf' :: Traversal a b c d -> (e -> c -> e) -> e -> a -> e
+foldlOf' :: Getting (Endo (e -> e)) a b c d -> (e -> c -> e) -> e -> a -> e
+foldlOf' l f z0 xs = foldrOf l f' id xs z0
+  where f' x k z = k $! f z x
+{-# INLINE foldlOf' #-}
+
+-- | Monadic fold over the elements of a structure, associating to the right, i.e. from right to left.
+--
+-- > foldrM = foldrMOf folded
+--
+-- > foldrMOf :: Monad m => Getter a b c d    -> (c -> e -> m e) -> e -> a -> m e
+-- > foldrMOf :: Monad m => Lens a b c d      -> (c -> e -> m e) -> e -> a -> m e
+-- > foldrMOf :: Monad m => Fold a b c d      -> (c -> e -> m e) -> e -> a -> m e
+-- > foldrMOf :: Monad m => Traversal a b c d -> (c -> e -> m e) -> e -> a -> m e
+foldrMOf :: Monad m => Getting (Dual (Endo (e -> m e))) a b c d -> (c -> e -> m e) -> e -> a -> m e
+foldrMOf l f z0 xs = foldlOf l f' return xs z0
+  where f' k x z = f x z >>= k
+{-# INLINE foldrMOf #-}
+
+-- | Monadic fold over the elements of a structure, associating to the left, i.e. from left to right.
+--
+-- > foldlM = foldlMOf folded
+--
+-- > foldlMOf :: Monad m => Getter a b c d    -> (e -> c -> m e) -> e -> a -> m e
+-- > foldlMOf :: Monad m => Lens a b c d      -> (e -> c -> m e) -> e -> a -> m e
+-- > foldlMOf :: Monad m => Fold a b c d      -> (e -> c -> m e) -> e -> a -> m e
+-- > foldlMOf :: Monad m => Traversal a b c d -> (e -> c -> m e) -> e -> a -> m e
+foldlMOf :: Monad m => Getting (Endo (e -> m e)) a b c d -> (e -> c -> m e) -> e -> a -> m e
+foldlMOf l f z0 xs = foldrOf l f' return xs z0
+  where f' x k z = f z x >>= k
+{-# INLINE foldlMOf #-}
+
 
 --------------------------
 -- Traversals
