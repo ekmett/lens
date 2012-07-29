@@ -56,6 +56,13 @@ module Control.Lens
   , lens
   , iso
 
+  -- * Traversing and Lensing
+  , (%%~), (%%=)
+  , Focus(..)
+  , traverseOf, forOf, sequenceAOf
+  , mapMOf, forMOf, sequenceOf
+  , transposeOf
+
   -- ** Common Lenses
   , valueAt, valueAtInt
   , contains, containsInt
@@ -70,13 +77,12 @@ module Control.Lens
   , sets
   , mapped
 
-  -- ** Setting
+  -- ** Setting Values
   , adjust
   , set
-
-  -- *** Setting Values
   , (^~), (+~), (-~), (*~), (//~), (||~), (&&~), (|~), (&~), (%~)
-  -- *** Setting State
+
+  -- ** Setting State
   , (^=), (+=), (-=), (*=), (//=), (||=), (&&=), (|=), (&=), (%=)
 
   -- * Getters and Folds
@@ -114,13 +120,6 @@ module Control.Lens
   , maximumOf, minimumOf
   , maximumByOf, minimumByOf
   , findOf
-
-  -- * Traversing and Lensing
-  , (%%~), (%%=)
-  , Focus(..)
-  , traverseOf, forOf, sequenceAOf
-  , mapMOf, forMOf, sequenceOf
-  , transposeOf
 
   -- * Common Traversals
   , traverseNothing
