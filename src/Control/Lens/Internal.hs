@@ -113,6 +113,7 @@ getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
 
+-- | Run an Applicative backwards
 newtype Backwards f a = Backwards { getBackwards :: f a }
 
 instance Functor f => Functor (Backwards f) where
