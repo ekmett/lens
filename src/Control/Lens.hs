@@ -253,7 +253,7 @@ iso ac db cfd a = db <$> cfd (ac a)
 -- Further, if @f@ is an 'Applicative', they may also be passed a 'Traversal'.
 type LensLike f a b c d = (c -> f d) -> a -> f b
 
--- | (%%~) can be used in one of two scenarios.
+-- | '(%%~)' can be used in one of two scenarios:
 --
 -- When applied to a 'Lens', it can edit the target of the 'Lens' in a structure, extracting a
 -- supplemental result, and the new structure.
