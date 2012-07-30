@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
@@ -15,7 +16,6 @@ module Data.IntMap.Lens
   , traverseAt
   , traverseAtMin
   , traverseAtMax
-  , setmapped
   ) where
 
 import Control.Applicative as Applicative
@@ -48,16 +48,21 @@ traverseAt k = at k . traverse
 -- | Traverse the value at the minimum key in a Map
 traverseAtMin :: Simple Traversal (IntMap v) v
 traverseAtMin f m = case IntMap.minView m of
+#if MIN_VERSION_containers(0,5,0)
+  Just (a, _) -> (\v -> IntMap.updateMin (const (Just v)) m) <$> f a
+#else
   Just (a, _) -> (\v -> IntMap.updateMin (const v) m) <$> f a
+#endif
   Nothing     -> pure m
 {-# INLINE traverseAtMin #-}
 
 -- | Traverse the value at the maximum key in a Map
 traverseAtMax :: Simple Traversal (IntMap v) v
 traverseAtMax f m = case IntMap.maxView m of
+#if MIN_VERSION_containers(0,5,0)
+    Just (a, _) -> (\v -> IntMap.updateMax (const (Just v)) m) <$> f a
+#else
     Just (a, _) -> (\v -> IntMap.updateMax (const v) m) <$> f a
+#endif
     Nothing     -> pure m
 {-# INLINE traverseAtMax #-}
-
-setmapped :: Simple Setter IntMap Int
-setmapped = sets IntSet.map

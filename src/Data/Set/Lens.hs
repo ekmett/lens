@@ -10,7 +10,7 @@
 ----------------------------------------------------------------------------
 module Data.Set.Lens
   ( contains
-  , setmapped
+  , members
   ) where
 
 import Control.Lens
