@@ -15,6 +15,7 @@ module Data.IntMap.Lens
   , traverseAt
   , traverseAtMin
   , traverseAtMax
+  , setmapped
   ) where
 
 import Control.Applicative as Applicative
@@ -57,3 +58,6 @@ traverseAtMax f m = case IntMap.maxView m of
     Just (a, _) -> (\v -> IntMap.updateMax (const v) m) <$> f a
     Nothing     -> pure m
 {-# INLINE traverseAtMax #-}
+
+setmapped :: Simple Setter IntMap Int
+setmapped = sets IntSet.map

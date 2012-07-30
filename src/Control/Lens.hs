@@ -90,6 +90,7 @@ module Control.Lens
   , Fold
   , Getting
   , to
+  , folds
   , folding
   , folded
   , filtered
@@ -260,20 +261,26 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- | ('%%~') can be used in one of two scenarios:
 --
 -- When applied to a 'Lens', it can edit the target of the 'Lens' in a structure, extracting a
--- supplemental result, and the new structure.
+-- functorial result.
 --
--- When applied to a 'Traversal', it can edit the targets of the 'Traversals', extracting a
--- supplemental monoidal summary of its actions.
+-- When applied to a 'Traversal', it can edit the targets of the 'Traversals', extracting an
+-- applicative summary of its actions.
 --
 -- For all that the definition of this combinator is just:
 --
 -- > (%%~) = id
 --
--- It may be beneficial to think about it as if it had these more restrictive types, however:
+-- > (%%~) :: Functor f =>     Lens a b c d      -> (c -> f d) -> a -> f b
+-- > (%%~) :: Applicative f => Traversal a b c d -> (c -> f d) -> a -> f b
+--
+-- It may be beneficial to think about it as if it had these even more restrictive types, however:
+--
+-- When applied to a 'Traversal', it can edit the targets of the 'Traversals', extracting a
+-- supplemental monoidal summary of its actions, by choosing f = ((,) m)
 --
 -- > (%%~) ::             Lens a b c d      -> (c -> (e, d)) -> a -> (e, b)
 -- > (%%~) :: Monoid m => Traversal a b c d -> (c -> (m, d)) -> a -> (m, b)
-(%%~) :: LensLike ((,) e) a b c d -> (c -> (e, d)) -> a -> (e, b)
+(%%~) :: LensLike f a b c d -> (c -> f d) -> a -> f b
 (%%~) = id
 {-# INLINE (%%~) #-}
 
@@ -635,6 +642,7 @@ to :: (a -> c) -> Getter a b c d
 to f g a = Const (getConst (g (f a)))
 {-# INLINE to #-}
 
+
 -- |
 -- Most 'Getter' combinators are able to be used with both a 'Getter' or a 'Fold' in
 -- limited situations, to do so, they need to be monomorphic in what we are going to
@@ -917,6 +925,12 @@ l <>= b = State.modify (l <>~ b)
 -- > type Fold a b c d = forall m. Monoid m => Getting m a b c d
 type Fold a b c d      = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
 
+-- | Build a 'Getter' or 'Fold' from a 'foldMap'-like function.
+--
+-- > folds :: ((c -> m) -> a -> m) -> (c -> Const m d) -> a -> Const m b
+folds :: ((c -> m) -> a -> m) -> Getting m a b c d
+folds l f = Const . l (getConst . f)
+
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
 --
 -- This can be useful to lift operations from @Data.List@ and elsewhere into a 'Fold'.
@@ -926,9 +940,9 @@ folding f g = Const . foldMap (getConst . g) . f
 
 -- | Obtain a 'Fold' from any 'Foldable'
 --
--- > folded = folding id
+-- > folded = folds foldMap
 folded :: Foldable f => Fold (f c) b c d
-folded g = Const . foldMap (getConst . g)
+folded = folds foldMap
 {-# INLINE folded #-}
 
 -- | Obtain a 'Fold' by filtering a 'Lens', 'Getter, 'Fold' or 'Traversal'.
