@@ -84,6 +84,8 @@ module Control.Lens
   , SimpleSetter
   , sets
   , mapped
+  , amapped
+  , ixmapped
 
   -- ** Setting Values
   , adjust
@@ -551,6 +553,21 @@ type SimpleSetter a b = Lens a a b b
 mapped :: Functor f => Setter (f a) (f b) a b
 mapped = sets fmap
 {-# INLINE mapped #-}
+
+-- | This setter can be used to map over all of the values in an array.
+--
+-- > amap = adjust amapped
+-- > amapped = sets amap
+amapped :: (IArray a c, IArray a d, Ix i) => Setter (a i c) (a i d) c d
+amapped = sets amap
+
+-- | This setter can be used to derive a new array from an old array by
+-- applying a function to each of the indices.
+--
+-- > ixmap = adjust . ixmapped
+-- > ixmapped = sets . ixmap
+ixmapped :: (IArray a e, Ix i, Ix j) => (i,i) -> Setter (a j e) (a i e) i j
+ixmapped = sets . ixmap
 
 -- | Build a Setter.
 --
