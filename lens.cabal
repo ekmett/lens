@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       1.0.5
+version:       1.1
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -22,11 +22,24 @@ source-repository head
 
 library
   exposed-modules:
+    Control.Exception.Lens
     Control.Lens
     Control.Lens.Internal
     Control.Lens.Representable
-    Control.Lens.Strategies
     Control.Lens.TH
+    Control.Parallel.Strategies.Lens
+    Data.Array.Lens
+    Data.Bits.Lens
+    Data.ByteString.Lens
+    Data.Complex.Lens
+    Data.Dynamic.Lens
+    Data.Map.Lens
+    Data.IntMap.Lens
+    Data.IntSet.Lens
+    Data.Sequence.Lens
+    Data.Set.Lens
+    Data.Text.Lens
+    Data.Tree.Lens
 
   build-depends:
     array            == 0.4.*,
@@ -42,6 +55,7 @@ library
   other-extensions:
     CPP
     LiberalTypeSynonyms
+    MultiParamTypeClasses
     Rank2Types
     RankNTypes
     TemplateHaskell

@@ -70,45 +70,35 @@ module Control.Lens
   , scanr1Of, scanl1Of
 
   -- ** Common Lenses
-  , valueAt, valueAtInt
-  , ix
-  , contains, containsInt
-  , bitAt
-  , resultAt
-  , identity
-  , real, imaginary, polarize
   , _1, _2
+  , identity
+  , resultAt
 
   -- * Setters
   , Setter
   , SimpleSetter
   , sets
   , mapped
-  , amapped
-  , ixmapped
 
   -- ** Setting Values
   , adjust
   , set
-  , (^~), (+~), (-~), (*~), (//~), (||~), (&&~), (|~), (&~), (%~), (<>~)
+  , (^~), (+~), (-~), (*~), (//~), (||~), (&&~), (%~), (<>~)
 
   -- ** Setting State
-  , (^=), (+=), (-=), (*=), (//=), (||=), (&&=), (|=), (&=), (%=), (<>=)
+  , (^=), (+=), (-=), (*=), (//=), (||=), (&&=), (%=), (<>=)
 
   -- * Getters and Folds
   , Getter
   , Fold
   , Getting
-
   , to
-
   , folding
   , folded
   , filtered
   , reversed
   , takingWhile
   , droppingWhile
-
   , view, views
   , (^.), (^$)
   , use, uses
@@ -136,19 +126,10 @@ module Control.Lens
   , foldrMOf, foldlMOf
 
   -- * Common Traversals
+  , Traversable(..)
   , traverseNothing
-  , traverseLeft, traverseRight
-  , traverseValueAt, traverseValueAtInt
-  , traverseHead, traverseTail
-  , traverseLast, traverseInit
-  , TraverseByteString(..)
-  , TraverseText(..)
-  , TraverseValueAtMin(..)
-  , TraverseValueAtMax(..)
-  , traverseBits
-  , traverseDynamic
-  , traverseException
-  , traverseElement, traverseElements
+  , traverseElement
+  , traverseElements
   , traverseValue
 
   -- * Transforming Traversals
@@ -162,38 +143,22 @@ module Control.Lens
   , clone
   ) where
 
-import           Control.Applicative              as Applicative
-import           Control.Exception                as Exception
-import           Control.Lens.Internal
-import           Control.Monad (liftM, MonadPlus(..), void)
-import           Control.Monad.State.Class
-import qualified Control.Monad.Trans.State.Lazy   as Lazy
-import qualified Control.Monad.Trans.State.Strict as Strict
-import           Control.Monad.Trans.Reader
-import           Data.Array.IArray
-import           Data.Bits
-import           Data.ByteString.Lazy             as Lazy
-import           Data.ByteString                  as Strict
-import           Data.Complex
-import           Data.Dynamic
-import           Data.Foldable                    as Foldable
-import           Data.Functor.Identity
-import           Data.IntMap                      as IntMap hiding (adjust, (!))
-import           Data.IntSet                      as IntSet
-import           Data.Map                         as Map    hiding (adjust, (!))
-import           Data.Maybe
-import           Data.Monoid
-import           Data.Sequence                    as Seq    hiding (adjust)
-import           Data.Set                         as Set
-import           Data.Text                        as StrictText
-import           Data.Text.Lazy                   as LazyText
-import           Data.Traversable
-import           Data.Tree
-import           Data.Word (Word8)
+import Control.Applicative              as Applicative
+import Control.Lens.Internal
+import Control.Monad (liftM, MonadPlus(..), void)
+import Control.Monad.State.Class        as State
+import Control.Monad.Trans.State.Lazy   as Lazy
+import Control.Monad.Trans.State.Strict as Strict
+import Control.Monad.Trans.Reader
+import Data.Foldable                    as Foldable
+import Data.Functor.Identity
+import Data.Maybe
+import Data.Monoid
+import Data.Traversable
 
 infixl 8 ^.
-infixr 4 ^~, +~, *~, -~, //~, &&~, ||~, &~, |~, %~, <>~, %%~
-infix  4 ^=, +=, *=, -=, //=, &&=, ||=, &=, |=, %=, <>=, %%=
+infixr 4 ^~, +~, *~, -~, //~, &&~, ||~, %~, <>~, %%~
+infix  4 ^=, +=, *=, -=, //=, &&=, ||=, %=, <>=, %%=
 infixr 0 ^$
 
 --------------------------
@@ -239,6 +204,11 @@ type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 -- > traverse :: Traversable f => Traversal (f a) (f b) a b
 --
 -- and the more evocative name suggests their application.
+--
+-- Most of the time the 'Traversal' you will want to use is just 'traverse', but you can also pass any
+-- 'Lens' -- as a Traversal, and composition of a 'Traversal' (or 'Lens') with a 'Traversal' (or 'Lens')
+-- using (.) forms a 'Traversal'.
+--
 type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 
 -- | A @'Simple' 'Lens'@, @'Simple' 'Traversal'@, ... can be used instead of a 'Lens','Traversal', ...
@@ -247,22 +217,20 @@ type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 -- > imaginary :: Simple Lens (Complex a) a
 -- > traverseHead :: Simple Traversal [a] a
 --
--- Note: If you plan to use this alias in your code, you may have to turn on
---
--- > {-# LANGUAGE LiberalTypeSynonyms #-}
+-- Note: If you plan to use this alias in your own code, you may have to turn on @LiberalTypeSynonyms@.
 type Simple f a b = f a a b b
 
--- | This alias is supplied for those who don't want to use @{-# LANGUAGE LiberalTypeSynonyms #-}@ and 'Simple'
+-- | This alias is supplied for those who don't want to use @LiberalTypeSynonyms@ and 'Simple'
 --
 -- > 'SimpleTraversal' = 'Simple' 'Traversal'
 type SimpleTraversal a b = Traversal a a b b
 
--- | This alias is supplied for those who don't want to use @{-# LANGUAGE LiberalTypeSynonyms #-}@ and 'Simple'
+-- | This alias is supplied for those who don't want to use @LiberalTypeSynonyms@ and 'Simple'
 --
 -- > 'SimpleLens' = 'Simple' 'Lens'
 type SimpleLens a b = Lens a a b b
 
--- | This alias is supplied for those who don't want to use @{-# LANGUAGE LiberalTypeSynonyms #-}@ and 'Simple'
+-- | This alias is supplied for those who don't want to use @LiberalTypeSynonyms@ and 'Simple'
 --
 -- > 'SimpleLensLike' f = 'Simple' ('LensLike' f)
 type SimpleLensLike f a b = LensLike f a a b b
@@ -331,7 +299,7 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- > (%%=) :: MonadState a m             => Lens a a c d      -> (c -> (e, d) -> m e
 -- > (%%=) :: (MonadState a m, Monoid e) => Traversal a a c d -> (c -> (e, d) -> m e
 (%%=) :: MonadState a m => LensLike ((,) e) a a c d -> (c -> (e, d)) -> m e
-l %%= f = state (l f)
+l %%= f = State.state (l f)
 {-# INLINE (%%=) #-}
 
 -- | This class allows us to use 'focus' on a number of different monad transformers.
@@ -480,7 +448,7 @@ transposeOf l = getZipList . l ZipList
 -- > mapAccumROf :: Lens a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- > mapAccumROf :: Traversal a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 mapAccumROf :: LensLike (Lazy.State s) a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
-mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> state (\s -> swap (f s c))) a) s0)
+mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f s c))) a) s0)
 {-# INLINE mapAccumROf #-}
 
 -- | Generalized 'Data.Traversable.mapAccumL' to an arbitrary 'Traversal'.
@@ -553,21 +521,6 @@ type SimpleSetter a b = Lens a a b b
 mapped :: Functor f => Setter (f a) (f b) a b
 mapped = sets fmap
 {-# INLINE mapped #-}
-
--- | This setter can be used to map over all of the values in an array.
---
--- > amap = adjust amapped
--- > amapped = sets amap
-amapped :: (IArray a c, IArray a d, Ix i) => Setter (a i c) (a i d) c d
-amapped = sets amap
-
--- | This setter can be used to derive a new array from an old array by
--- applying a function to each of the indices.
---
--- > ixmap = adjust . ixmapped
--- > ixmapped = sets . ixmap
-ixmapped :: (IArray a e, Ix i, Ix j) => (i,i) -> Setter (a j e) (a i e) i j
-ixmapped = sets . ixmap
 
 -- | Build a Setter.
 --
@@ -661,16 +614,6 @@ l ||~ n = adjust l (|| n)
 (&&~) :: Setter a b Bool Bool -> Bool -> a -> b
 l &&~ n = adjust l (&& n)
 {-# INLINE (&&~) #-}
-
--- | Bitwise '.|.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
-(|~):: Bits c => Setter a b c c -> c -> a -> b
-l |~ n = adjust l (.|. n)
-{-# INLINE (|~) #-}
-
--- | Bitwise '.&.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
-(&~) :: Bits c => Setter a b c c -> c -> a -> b
-l &~ n = adjust l (.&. n)
-{-# INLINE (&~) #-}
 
 (<>~) :: Monoid c => Setter a b c c -> c -> a -> b
 l <>~ n = adjust l (<> n)
@@ -811,77 +754,10 @@ _2 :: Lens (c,a) (c,b) a b
 _2 f (c,a) = (,) c <$> f a
 {-# INLINE _2 #-}
 
--- | Access an element of an array.
---
--- Note: The indexed element is assumed to exist in the target array.
---
--- > arr ! i = arr^.ix i
---
-ix :: (IArray a e, Ix i) => i -> Simple Lens (a i e) e
-ix i f arr = (\e -> arr // [(i,e)]) <$> f (arr ! i)
-
--- | This 'Lens' can be used to read, write or delete the value associated with a key in a 'Map'.
---
--- > ghci> Map.fromList [("hello",12)] ^. valueAt "hello"
--- > Just 12
---
--- > valueAt :: Ord k => k -> (Maybe v -> f (Maybe v)) -> Map k v -> f (Map k v)
-valueAt :: Ord k => k -> Simple Lens (Map k v) (Maybe v)
-valueAt k f m = go <$> f (Map.lookup k m) where
-  go Nothing   = Map.delete k m
-  go (Just v') = Map.insert k v' m
-{-# INLINE valueAt #-}
-
--- | This 'Lens' can be used to read, write or delete a member of an 'IntMap'.
---
--- > ghci> IntMap.fromList [(1,"hello")]  ^. valueAtInt 1
--- > Just "hello"
---
--- > ghci> valueAtInt 2 +~ "goodbye" $ IntMap.fromList [(1,"hello")]
--- > fromList [(1,"hello"),(2,"goodbye")]
---
--- > valueAtInt :: Int -> (Maybe v -> f (Maybe v)) -> IntMap v -> f (IntMap v)
-valueAtInt :: Int -> Simple Lens (IntMap v) (Maybe v)
-valueAtInt k f m = go <$> f (IntMap.lookup k m) where
-  go Nothing   = IntMap.delete k m
-  go (Just v') = IntMap.insert k v' m
-{-# INLINE valueAtInt #-}
-
--- | This 'Lens' can be used to read, write or delete a member of a 'Set'
---
--- > ghci> contains 3 +~ False $ Set.fromList [1,2,3,4]
--- > fromList [1,2,4]
---
--- > contains :: Ord k => k -> (Bool -> f Bool) -> Set k -> f (Set k)
-contains :: Ord k => k -> Simple Lens (Set k) Bool
-contains k f s = go <$> f (Set.member k s) where
-  go False = Set.delete k s
-  go True  = Set.insert k s
-{-# INLINE contains #-}
-
--- | This 'Lens' can be used to read, write or delete a member of an 'IntSet'
---
--- > ghci> containsInt 3 +~ False $ IntSet.fromList [1,2,3,4]
--- > fromList [1,2,4]
---
--- > containsInt :: Int -> (Bool -> f Bool) -> IntSet -> f IntSet
-containsInt :: Int -> Simple Lens IntSet Bool
-containsInt k f s = go <$> f (IntSet.member k s) where
-  go False = IntSet.delete k s
-  go True  = IntSet.insert k s
-{-# INLINE containsInt #-}
-
 -- | This lens can be used to access the contents of the Identity monad
 identity :: Lens (Identity a) (Identity b) a b
 identity f (Identity a) = Identity <$> f a
 {-# INLINE identity #-}
-
--- | This lens can be used to access the value of the nth bit in a number.
---
--- @bitsAt n@ is only a legal 'Lens' into @b@ if @0 <= n < bitSize (undefined :: b)@
-bitAt :: Bits b => Int -> Simple Lens b Bool
-bitAt n f b = (\x -> if x then setBit b n else clearBit b n) <$> f (testBit b n)
-{-# INLINE bitAt #-}
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
@@ -891,28 +767,6 @@ resultAt e afa ea = go <$> afa a where
   go a' e' | e == e'   = a'
            | otherwise = a
 {-# INLINE resultAt #-}
-
--- | Access the real part of a complex number
---
--- > real :: Functor f => (a -> f a) -> Complex a -> f (Complex a)
-real :: Simple Lens (Complex a) a
-real f (a :+ b) = (:+ b) <$> f a
-
--- | Access the imaginary part of a complex number
---
--- > imaginary :: Functor f => (a -> f a) -> Complex a -> f (Complex a)
-imaginary :: Simple Lens (Complex a) a
-imaginary f (a :+ b) = (a :+) <$> f b
-
--- | This isn't /quite/ a legal lens. Notably the @view l (set l b a) = b@ law
--- is violated when you set a polar value with 0 magnitude and non-zero phase
--- as the phase information is lost. So don't do that!
---
--- Otherwise, this is a perfectly convenient lens.
---
--- > polarize :: Functor f => ((a,a) -> f (a,a)) -> Complex a -> f (Complex a)
-polarize :: RealFloat a => Simple Lens (Complex a) (a,a)
-polarize f c = uncurry mkPolar <$> f (polar c)
 
 ------------------------------------------------------------------------------
 -- State
@@ -929,7 +783,7 @@ polarize f c = uncurry mkPolar <$> f (polar c)
 --
 -- > use :: MonadState a m => ((c -> Const c d) -> a -> Const c b) -> m c
 use :: MonadState a m => Getting c a b c d -> m c
-use l = gets (^.l)
+use l = State.gets (^.l)
 {-# INLINE use #-}
 
 -- |
@@ -943,20 +797,19 @@ use l = gets (^.l)
 --
 -- > uses :: MonadState a m => ((c -> Const e d) -> a -> Const e b) -> (c -> e) -> m e
 uses :: MonadState a m => Getting e a b c d -> (c -> e) -> m e
-uses l f = gets (views l f)
+uses l f = State.gets (views l f)
 {-# INLINE uses #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal' in our monadic
 -- state with a new value, irrespective of the old.
 (^=) :: MonadState a m => Setter a a c d -> d -> m ()
-l ^= b = modify (l ^~ b)
+l ^= b = State.modify (l ^~ b)
 {-# INLINE (^=) #-}
 
 -- | Map over the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal in our monadic state.
 (%=) :: MonadState a m => Setter a a c d -> (c -> d) -> m ()
-l %= f = modify (l %~ f)
+l %= f = State.modify (l %~ f)
 {-# INLINE (%=) #-}
-
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by adding a value
 --
@@ -966,46 +819,36 @@ l %= f = modify (l %~ f)
 -- >   id += 1
 -- >   access id
 (+=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l += b = modify (l +~ b)
+l += b = State.modify (l +~ b)
 {-# INLINE (+=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by subtracting a value
 (-=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l -= b = modify (l -~ b)
+l -= b = State.modify (l -~ b)
 {-# INLINE (-=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by multiplying by value
 (*=) :: (MonadState a m, Num b) => Simple Setter a b -> b -> m ()
-l *= b = modify (l *~ b)
+l *= b = State.modify (l *~ b)
 {-# INLINE (*=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by dividing by a value
 (//=) ::  (MonadState a m, Fractional b) => Simple Setter a b -> b -> m ()
-l //= b = modify (l //~ b)
+l //= b = State.modify (l //~ b)
 {-# INLINE (//=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by taking their logical '&&' with a value
 (&&=):: MonadState a m => Simple Setter a Bool -> Bool -> m ()
-l &&= b = modify (l &&~ b)
+l &&= b = State.modify (l &&~ b)
 {-# INLINE (&&=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by taking their logical '||' with a value
 (||=) :: MonadState a m => Simple Setter a Bool -> Bool -> m ()
-l ||= b = modify (l ||~ b)
+l ||= b = State.modify (l ||~ b)
 {-# INLINE (||=) #-}
 
--- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.&.' with another value.
-(&=):: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
-l &= b = modify (l &~ b)
-{-# INLINE (&=) #-}
-
--- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.|.' with another value.
-(|=) :: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
-l |= b = modify (l |~ b)
-{-# INLINE (|=) #-}
-
 (<>=) :: (MonadState a m, Monoid b) => Simple Setter a b -> b -> m ()
-l <>= b = modify (l <>~ b)
+l <>= b = State.modify (l <>~ b)
 {-# INLINE (<>=) #-}
 
 --------------------------
@@ -1589,82 +1432,6 @@ traverseNothing :: Traversal a a c d
 traverseNothing = const pure
 {-# INLINE traverseNothing #-}
 
--- The traversal for reading and writing to the head of a list
---
--- > traverseHead = traverseValueAtMin
--- > traverseHead = traverseElementAt 0 -- but is more efficient
---
--- | > traverseHead :: Applicative f => (a -> f a) -> [a] -> f [a]
-traverseHead :: Simple Traversal [a] a
-traverseHead _ [] = pure []
-traverseHead f (a:as) = (:as) <$> f a
-{-# INLINE traverseHead #-}
-
--- | Traversal for editing the tail of a list.
---
--- > traverseTail :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
-traverseTail :: Simple Traversal [a] [a]
-traverseTail _ [] = pure []
-traverseTail f (a:as) = (a:) <$> f as
-{-# INLINE traverseTail #-}
-
--- | Traverse the last element in a list.
---
--- > traverseLast = traverseValueAtMax
---
--- > traverseLast :: Applicative f => (a -> f a) -> [a] -> f [a]
-traverseLast :: Simple Traversal [a] a
-traverseLast _ []     = pure []
-traverseLast f [a]    = return <$> f a
-traverseLast f (a:as) = (a:) <$> traverseLast f as
-{-# INLINE traverseLast #-}
-
--- The traversal for reading and writing to the tail of a list
-
--- | Traverse all but the last element of a list
---
--- > traverseInit :: Applicative f => ([a] -> f [a]) -> [a] -> f [a]
-traverseInit :: Simple Traversal [a] [a]
-traverseInit _ [] = pure []
-traverseInit f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
-{-# INLINE traverseInit #-}
-
--- | A traversal for tweaking the left-hand value in an Either:
---
--- > traverseLeft :: Applicative f => (a -> f b) -> Either a c -> f (Either b c)
-traverseLeft :: Traversal (Either a c) (Either b c) a b
-traverseLeft f (Left a)  = Left <$> f a
-traverseLeft _ (Right c) = pure $ Right c
-{-# INLINE traverseLeft #-}
-
--- | traverse the right-hand value in an Either:
---
--- > traverseRight :: Applicative f => (a -> f b) -> Either c a -> f (Either c a)
--- > traverseRight = traverse
---
--- Unfortunately the instance for 'Traversable (Either c)' is still missing from
--- base, so this can't just be 'traverse'
-traverseRight :: Traversal (Either c a) (Either c b) a b
-traverseRight _ (Left c) = pure $ Left c
-traverseRight f (Right a) = Right <$> f a
-{-# INLINE traverseRight #-}
-
--- | Traverse the value at a given key in a Map
---
--- > traverseValueAt :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
--- > traverseValueAt k = valueAt k . traverse
-traverseValueAt :: Ord k => k -> Simple Traversal (Map k v) v
-traverseValueAt k = valueAt k . traverse
-{-# INLINE traverseValueAt #-}
-
--- | Traverse the value at a given key in an IntMap
---
--- > traverseValueAtInt :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
--- > traverseValueAtInt k = valueAtInt k . traverse
-traverseValueAtInt :: Int -> Simple Traversal (IntMap v) v
-traverseValueAtInt k = valueAtInt k . traverse
-{-# INLINE traverseValueAtInt #-}
-
 -- | Traverse a single element in a traversable container.
 --
 -- > traverseElement :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
@@ -1679,131 +1446,6 @@ traverseElements :: Traversable t => (Int -> Bool) -> Simple Traversal (t a) a
 traverseElements p f ta = fst (runAppliedState (traverse go ta) 0) where
   go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
 {-# INLINE traverseElements #-}
-
--- |
--- Traverse the typed value contained in a 'Dynamic' where the type required by your function matches that
--- of the contents of the 'Dynamic'.
---
--- > traverseDynamic :: (Applicative f, Typeable a, Typeable b) => (a -> f b) -> Dynamic -> f Dynamic
-traverseDynamic :: (Typeable a, Typeable b) => Traversal Dynamic Dynamic a b
-traverseDynamic f dyn = case fromDynamic dyn of
-  Just a  -> toDyn <$> f a
-  Nothing -> pure dyn
-{-# INLINE traverseDynamic #-}
-
--- |
--- Traverse the strongly typed 'Exception' contained in 'SomeException' where the type of your function matches
--- the desired 'Exception'.
---
--- > traverseException :: (Applicative f, Exception a, Exception b) => (a -> f b) -> SomeException -> f SomeException
-traverseException :: (Exception a, Exception b) => Traversal SomeException SomeException a b
-traverseException f e = case fromException e of
-  Just a -> toException <$> f a
-  Nothing -> pure e
-{-# INLINE traverseException #-}
-
--- | Provides ad hoc overloading for 'traverseByteString'
-class TraverseByteString t where
-  -- | Traverse the individual bytes in a 'ByteString'
-  --
-  -- > anyOf traverseByteString (==0x80) :: TraverseByteString b => b -> Bool
-  traverseByteString :: Simple Traversal t Word8
-
-instance TraverseByteString Strict.ByteString where
-  traverseByteString f = fmap Strict.pack . traverse f . Strict.unpack
-
-instance TraverseByteString Lazy.ByteString where
-  traverseByteString f = fmap Lazy.pack . traverse f . Lazy.unpack
-
--- | Provides ad hoc overloading for 'traverseText'
-class TraverseText t where
-  -- | Traverse the individual characters in a 'Text'
-  --
-  -- > anyOf traverseText (=='c') :: TraverseText b => b -> Bool
-  traverseText :: Simple Traversal t Char
-
-instance TraverseText StrictText.Text where
-  traverseText f = fmap StrictText.pack . traverse f . StrictText.unpack
-
-instance TraverseText LazyText.Text where
-  traverseText f = fmap LazyText.pack . traverse f . LazyText.unpack
-
--- | Types that support traversal of the value of the minimal key
---
--- This is separate from 'TraverseValueAtMax' because a min-heap
--- or max-heap may be able to support one, but not the other.
-class TraverseValueAtMin t where
-  -- | Traverse the value for the minimal key
-  traverseValueAtMin :: Simple Traversal (t v) v
-  -- default traverseValueAtMin :: Traversable t => Traversal (t v) v
-  -- traverseValueAtMin = traverseElement 0
-
-instance TraverseValueAtMin (Map k) where
-  traverseValueAtMin f m = case Map.minView m of
-    Just (a, _) -> (\v -> Map.updateMin (const (Just v)) m) <$> f a
-    Nothing     -> pure m
-
-instance TraverseValueAtMin IntMap where
-  traverseValueAtMin f m = case IntMap.minView m of
-    Just (a, _) -> (\v -> IntMap.updateMin (const v) m) <$> f a
-    Nothing     -> pure m
-
-instance TraverseValueAtMin [] where
-  traverseValueAtMin = traverseHead
-
-instance TraverseValueAtMin Seq where
-  traverseValueAtMin f m = case Seq.viewl m of
-    a :< as -> (<| as) <$> f a
-    EmptyL -> pure m
-
-instance TraverseValueAtMin Tree where
-  traverseValueAtMin f (Node a as) = (`Node` as) <$> f a
-
--- | Types that support traversal of the value of the maximal key
---
--- This is separate from 'TraverseValueAtMin' because a min-heap
--- or max-heap may be able to support one, but not the other.
-class TraverseValueAtMax t where
-  -- | Traverse the value for the maximal key
-  traverseValueAtMax :: Simple Traversal (t v) v
-
-instance TraverseValueAtMax (Map k) where
-  traverseValueAtMax f m = case Map.maxView m of
-    Just (a, _) -> (\v -> Map.updateMax (const (Just v)) m) <$> f a
-    Nothing     -> pure m
-
-instance TraverseValueAtMax IntMap where
-  traverseValueAtMax f m = case IntMap.maxView m of
-    Just (a, _) -> (\v -> IntMap.updateMax (const v) m) <$> f a
-    Nothing     -> pure m
-
-instance TraverseValueAtMax [] where
-  traverseValueAtMax = traverseLast
-
-instance TraverseValueAtMax Seq where
-  traverseValueAtMax f m = case Seq.viewr m of
-    as :> a -> (as |>) <$> f a
-    EmptyR  -> pure m
-
--- | Traverse over all bits in a numeric type.
---
--- > ghci> toListOf traverseBits (5 :: Word8)
--- > [True,False,True,False,False,False,False,False]
---
--- If you supply this an Integer, it won't crash, but the result will
--- be an infinite traversal that can be productively consumed.
---
--- > ghci> toListOf traverseBits 5
--- > [True,False,True,False,False,False,False,False,False,False,False,False...
-traverseBits :: Bits b => Simple Traversal b Bool
-traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
-  where
-    g n      = (,) n <$> f (testBit b n)
-    bits     = Prelude.takeWhile hasBit [0..]
-    hasBit n = complementBit b n /= b -- test to make sure that complementing this bit actually changes the value
-    step (n,True) r = setBit r n
-    step _        r = r
-{-# INLINE traverseBits #-}
 
 -- | This provides a 'Traversal' that checks a predicate on a key before allowing you to traverse into a value.
 traverseValue :: (k -> Bool) -> Simple Traversal (k, v) v
@@ -1827,11 +1469,9 @@ clone f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
 {-# INLINE clone #-}
 
-
 ---------------------------
 -- Constructing Traversals
 ---------------------------
-
 
 -- | Yields a 'Traversal' of the nth element of another 'Traversal'
 --
@@ -1874,4 +1514,3 @@ taking n l = elementsOf l (<n)
 dropping :: Applicative f => Int -> LensLike (AppliedState f) a b c c -> LensLike f a b c c
 dropping n l = elementsOf l (>=n)
 {-# INLINE dropping #-}
-
