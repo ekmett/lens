@@ -1,5 +1,3 @@
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Complex.Lens
@@ -7,7 +5,7 @@
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
--- Portability :  Rank2Types
+-- Portability :  Haskell2010
 --
 ----------------------------------------------------------------------------
 module Data.Complex.Lens
@@ -33,9 +31,8 @@ imaginary f (a :+ b) = (a :+) <$> f b
 
 -- | This isn't /quite/ a legal lens. Notably the @view l (set l b a) = b@ law
 -- is violated when you set a polar value with 0 magnitude and non-zero phase
--- as the phase information is lost. So don't do that!
---
--- Otherwise, this is a perfectly convenient lens.
+-- as the phase information is lost. So don't do that! Otherwise, this is a 
+-- perfectly cromulent lens.
 --
 -- > polarize :: (RealFloat a, RealFloat b, Functor f)
 -- >           => ((a,a) -> f (b,b)) -> Complex a -> f (Complex b)

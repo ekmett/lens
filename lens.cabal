@@ -17,7 +17,7 @@ description:
   .
   /Getter/
   .
-  A @'Getter' a b c d@ is just any function @(a -> r)@, which we've flipped into continuation
+  A @'Getter' a b c d@ is just any function @(a -> c)@, which we've flipped into continuation
   passing style, @forall r. (c -> r) -> a -> r@ and decorated with 'Const' to obtain
   .
   > type Getter a b c d = forall r. (c -> Const r d) -> a -> Const r b
@@ -32,12 +32,12 @@ description:
   A @'Fold' a b c d@ is a generalization of something 'Foldable'. It allows you to
   extract multiple results from a container. A 'Foldable' container can be
   characterized by the behavior of @foldMap :: (Foldable t, Monoid m) => (c -> m) -> t c -> m@.
-  Since we want to be able to work with monomorphic containers, so we generalize this signature to
+  Since we want to be able to work with monomorphic containers, we generalize this signature to
   @forall m. 'Monoid' m => (c -> m) -> a -> m@, and then decorate it with 'Const' to obtain
   .
   > type Fold a b c d = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
   .
-  So, every 'Getter' is a valid 'Fold' that simply doesn't use the 'Monoid' it is passed.
+  Every 'Getter' is a valid 'Fold' that simply doesn't use the 'Monoid' it is passed.
   .
   Moreover, everything you can do with a 'Foldable' container, you can with with a 'Fold'.
   .
@@ -75,20 +75,22 @@ description:
   While a 'Traversal' was a valid 'Fold', it wasn't a valid 'Getter'. To make the 'Applicative'
   for 'Const' it required a 'Monoid' for the argument we passed it, which a 'Getter' doesn't recieve.
   .
-  However, the instance of 'Functor' for 'Const' requires no such thing, so if we weaken the type
+  However, the instance of 'Functor' for 'Const' requires no such thing. If we weaken the type
   requirement from 'Applicative' to 'Functor' for 'Traversal', we obtain 
   .
   > type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
   .
-  Every 'Lens' is a valid 'Setter', it just chooses @f@ = 'Identity'.
+  Every 'Lens' is a valid 'Setter', choosing @f@ = 'Identity'.
   .
-  Every 'Lens' is a valid 'Fold', it just chooses not to use the 'Monoid' it is passed.
+  Every 'Lens' is a valid 'Fold' that doesn't use the 'Monoid' it is passed.
   .
-  Every 'Lens' is a valid 'Traversal', it just limits itself to using the 'Functor' part of the 'Applicative' instance it is supplied.
+  Every 'Lens' is a valid 'Traversal' that only uses the 'Functor' part of the 'Applicative' it is supplied.
   .
   Every 'Lens' is a valid 'Getter', choosing @f@ = 'Const' @r@ for an appropriate @r@
   .
   Since every 'Lens' is a valid 'Getter' it follows that it must view exactly one element in the structure.
+  .
+  The lens laws follow from this property and the desire for it to act like a 'Functor' when used as a 'Setter'.
   .
   /Composition/
   .
@@ -103,7 +105,7 @@ description:
   For a longer description of why you should care about lenses, and an overview of why we use 4
   parameters a, b, c, and d instead of just 2, see <http://comonad.com/reader/2012/mirrored-lenses/>.
   .
-  Sometimes you won't need the flexibility those extra parameters afford you and so you can use
+  Sometimes you won't need the flexibility those extra parameters afford you and you can use
   .
   > type Simple f a b = f a a b b
   .
@@ -123,7 +125,7 @@ description:
   .
   You can derive lenses automatically for many data types using 'Control.Lens.TH', and if a
   container is fully characterized by its lenses, you can use 'Control.Lens.Representable' to
-  automatically derive 'Functor, 'Applicative', 'Monad', and 'Derivable'.
+  automatically derive 'Functor', 'Applicative', 'Monad', and 'Derivable'.
 
 build-type:    Simple
 tested-with:   GHC == 7.4.1

@@ -1,4 +1,3 @@
-{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
 -- |
@@ -7,7 +6,7 @@
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
--- Portability :  Rank2Types, LiberalTypeSynonyms
+-- Portability :  LiberalTypeSynonyms
 --
 ----------------------------------------------------------------------------
 module Data.Bits.Lens

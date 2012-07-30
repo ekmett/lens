@@ -184,8 +184,8 @@ infixr 0 ^$
 --
 -- > identity :: Lens (Identity a) (Identity b) a b
 -- > identity f (Identity a) = Identity <$> f a
-
--- > type Lens = forall f. Functor f => Traversing f a b c d
+--
+-- > type Lens = forall f. Functor f => LensLike f a b c d
 type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 
 ------------------------------------------------------------------------------
@@ -204,7 +204,6 @@ type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 -- Most of the time the 'Traversal' you will want to use is just 'traverse', but you can also pass any
 -- 'Lens' -- as a Traversal, and composition of a 'Traversal' (or 'Lens') with a 'Traversal' (or 'Lens')
 -- using (.) forms a 'Traversal'.
---
 type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 
 -- | A @'Simple' 'Lens'@, @'Simple' 'Traversal'@, ... can be used instead of a 'Lens','Traversal', ...
@@ -213,22 +212,17 @@ type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 -- > imaginary :: Simple Lens (Complex a) a
 -- > traverseHead :: Simple Traversal [a] a
 --
--- Note: If you plan to use this alias in your own code, you may have to turn on @LiberalTypeSynonyms@.
+-- Note: To use this alias in your own code with @'LensLike' f@ or @Setter@, you may have to turn on
+-- @LiberalTypeSynonyms@.
 type Simple f a b = f a a b b
 
--- | This alias is supplied for those who don't want to use @LiberalTypeSynonyms@ and 'Simple'
---
--- > 'SimpleTraversal' = 'Simple' 'Traversal'
+-- | > type SimpleTraversal = Simple Traversal
 type SimpleTraversal a b = Traversal a a b b
 
--- | This alias is supplied for those who don't want to use @LiberalTypeSynonyms@ and 'Simple'
---
--- > 'SimpleLens' = 'Simple' 'Lens'
+-- | > type SimpleLens = Simple Lens
 type SimpleLens a b = Lens a a b b
 
--- | This alias is supplied for those who don't want to use @LiberalTypeSynonyms@ and 'Simple'
---
--- > 'SimpleLensLike' f = 'Simple' ('LensLike' f)
+-- | > type SimpleLensLike f = Simple (LensLike f)
 type SimpleLensLike f a b = LensLike f a a b b
 
 --------------------------
@@ -611,6 +605,7 @@ l ||~ n = adjust l (|| n)
 l &&~ n = adjust l (&& n)
 {-# INLINE (&&~) #-}
 
+-- | Modify the target of a monoidally valued by 'mappend'ing another value.
 (<>~) :: Monoid c => Setter a b c c -> c -> a -> b
 l <>~ n = adjust l (<> n)
 {-# INLINE (<>~) #-}
@@ -843,6 +838,7 @@ l &&= b = State.modify (l &&~ b)
 l ||= b = State.modify (l ||~ b)
 {-# INLINE (||=) #-}
 
+-- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by 'mappend'ing a value.
 (<>=) :: (MonadState a m, Monoid b) => Simple Setter a b -> b -> m ()
 l <>= b = State.modify (l <>~ b)
 {-# INLINE (<>=) #-}

@@ -1,3 +1,15 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Data.List.Lens
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  provisional
+-- Portability :  portable
+--
+-- Traversals for manipulating parts of a list.
+--
+----------------------------------------------------------------------------
 module Data.List.Lens
   ( traverseHead
   , traverseTail
