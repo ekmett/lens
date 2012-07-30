@@ -22,9 +22,10 @@ description:
   .
   > type Getter a b c d = forall r. (c -> Const r d) -> a -> Const r b
   .
-  Everything you can do with a function, you can do with a 'Getter'.
+  Everything you can do with a function, you can do with a 'Getter', but note that because of the
+  continuation passing style (.) composes them in the opposite order.
   .
-  Since it is only a function, every 'Getter', obviously only retrieves a single value for a given
+  Since it is only a function, every 'Getter' obviously only retrieves a single value for a given
   input.
   .
   /Fold/
@@ -39,7 +40,8 @@ description:
   .
   Every 'Getter' is a valid 'Fold' that simply doesn't use the 'Monoid' it is passed.
   .
-  Moreover, everything you can do with a 'Foldable' container, you can with with a 'Fold'.
+  Everything you can do with a 'Foldable' container, you can with with a 'Fold' and there are
+  combinators that generalize the usual 'Foldable' operations in @Control.Lens@.
   .
   /Traversal/
   .
@@ -53,7 +55,8 @@ description:
   .
   Every 'Traversal' can be used as a valid 'Fold', because given a 'Monoid' @m@, we have an 'Applicative' for @('Const' m)@.
 
-  Everything you can do with a 'Traversable' container, you can with with a 'Traversal'.
+  Everything you can do with a 'Traversable' container, you can with with a 'Traversal', and there
+  are combinators that generalize the usual 'Traversable' operations in @Control.Lens@.
   .
   /Setter/
   .
@@ -66,7 +69,8 @@ description:
   .
   Every 'Traversal' is a valid 'Setter', since 'Identity' is 'Applicative'.
   .
-  Everything you can do with a 'Functor', you can do with a 'Setter'.
+  Everything you can do with a 'Functor', you can do with a 'Setter', and there are combinators that
+  generalize the usual 'Functor' operations in @Control.Lens@.
   .
   /Lens/
   .

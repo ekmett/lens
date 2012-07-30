@@ -79,14 +79,11 @@ module Control.Lens
   , SimpleSetter
   , sets
   , mapped
-
-  -- ** Setting Values
   , adjust
   , set
   , (^~), (+~), (-~), (*~), (//~), (||~), (&&~), (%~), (<>~)
-
-  -- ** Setting State
   , (^=), (+=), (-=), (*=), (//=), (||=), (&&=), (%=), (<>=)
+  , whisper
 
   -- * Getters and Folds
   , Getter
@@ -102,6 +99,7 @@ module Control.Lens
   , view, views
   , (^.), (^$)
   , use, uses
+  , query, queries
 
   -- ** Getting and Folding
   , foldMapOf, foldOf
@@ -142,10 +140,12 @@ module Control.Lens
 import Control.Applicative              as Applicative
 import Control.Lens.Internal
 import Control.Monad
+import Control.Monad.Reader.Class       as Reader
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
 import Control.Monad.Trans.State.Strict as Strict
 import Control.Monad.Trans.Reader
+import Control.Monad.Writer.Class       as Writer
 import Data.Foldable                    as Foldable
 import Data.Functor.Identity
 import Data.Maybe
@@ -760,7 +760,56 @@ resultAt e afa ea = go <$> afa a where
 {-# INLINE resultAt #-}
 
 ------------------------------------------------------------------------------
--- State
+-- MonadWriter
+------------------------------------------------------------------------------
+
+-- | Tell a part of a value to a 'MonadWriter', filling in the rest from 'mempty'
+--
+-- > whisper l d = tell (set l d mempty)
+
+-- > whisper :: (MonadWriter b m, Monoid a) => Lens a b c d      -> d -> m ()
+-- > whisper :: (MonadWriter b m, Monoid a) => Setter a b c d    -> d -> m ()
+-- > whisper :: (MonadWriter b m, Monoid a) => Traversal a b c d -> d -> m ()
+--
+-- > whisper :: (MonadWriter b m, Monoid a) => ((c -> Identity d) -> a -> Identity b) -> d -> m ()
+whisper :: (MonadWriter b m, Monoid a) => Setter a b c d -> d -> m ()
+whisper l d = tell (set l d mempty)
+{-# INLINE whisper #-}
+
+------------------------------------------------------------------------------
+-- MonadReader
+------------------------------------------------------------------------------
+
+-- |
+-- Query the target of a 'Lens' or 'Getter' in the current state, or use a
+-- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
+--
+-- > query :: MonadReader a m             => Getter a b c d    -> m c
+-- > query :: MonadReader a m             => Lens a b c d      -> m c
+-- > query :: (MonadReader a m, Monoid c) => Fold a b c d      -> m c
+-- > query :: (MonadReader a m, Monoid c) => Traversal a b c d -> m c
+--
+-- > query :: MonadReader a m => ((c -> Const c d) -> a -> Const c b) -> m c
+query :: MonadReader a m => Getting c a b c d -> m c
+query l = Reader.asks (^.l)
+{-# INLINE query #-}
+
+-- |
+-- Use the target of a 'Lens' or 'Getter' in the current state, or use a
+-- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
+--
+-- > queries :: MonadReader a m             => Getter a b c d    -> (c -> e) -> m e
+-- > queries :: MonadReader a m             => Lens a b c d      -> (c -> e) -> m e
+-- > queries :: (MonadReader a m, Monoid c) => Fold a b c d      -> (c -> e) -> m e
+-- > queries :: (MonadReader a m, Monoid c) => Traversal a b c d -> (c -> e) -> m e
+--
+-- > queries :: MonadReader a m => ((c -> Const e d) -> a -> Const e b) -> (c -> e) -> m e
+queries :: MonadReader a m => Getting e a b c d -> (c -> e) -> m e
+queries l f = Reader.asks (views l f)
+{-# INLINE queries #-}
+
+------------------------------------------------------------------------------
+-- MonadState
 ------------------------------------------------------------------------------
 
 -- |
@@ -790,6 +839,7 @@ use l = State.gets (^.l)
 uses :: MonadState a m => Getting e a b c d -> (c -> e) -> m e
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}
+
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal' in our monadic
 -- state with a new value, irrespective of the old.
@@ -842,6 +892,8 @@ l ||= b = State.modify (l ||~ b)
 (<>=) :: (MonadState a m, Monoid b) => Simple Setter a b -> b -> m ()
 l <>= b = State.modify (l <>~ b)
 {-# INLINE (<>=) #-}
+
+
 
 --------------------------
 -- Folds
