@@ -15,8 +15,6 @@ description:
   The combinators in @Control.Lens@ provide a highly generic toolbox for composing
   families of getters, folds, traversals, setters and lenses.
   .
-  So what are they?
-  .
   /Getter/
   .
   A @'Getter' a b c d@ is just any function @(a -> r)@, which we've flipped into continuation
@@ -102,12 +100,10 @@ description:
   .
   /Lens Families/
   .
-  For a longer description and motivation of why you should care about lens families, and why we use 4
-  parameters a, b, c, and d instead of just 2, see <http://comonad.com/reader/2012/mirrored-lenses/>,
-  but ultimately, the extra flexibility is required by our desire to be able to subsume the functionality
-  of all of the types of structures above.
+  For a longer description of why you should care about lenses, and an overview of why we use 4
+  parameters a, b, c, and d instead of just 2, see <http://comonad.com/reader/2012/mirrored-lenses/>.
   .
-  Sometimes you won't need that flexibility, and so you can use
+  Sometimes you won't need the flexibility those extra parameters afford you and so you can use
   .
   > type Simple f a b = f a a b b
   .
