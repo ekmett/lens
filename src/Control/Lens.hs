@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
@@ -70,6 +71,7 @@ module Control.Lens
 
   -- ** Common Lenses
   , valueAt, valueAtInt
+  , ix
   , contains, containsInt
   , bitAt
   , resultAt
@@ -166,6 +168,7 @@ import           Control.Monad.State.Class
 import qualified Control.Monad.Trans.State.Lazy   as Lazy
 import qualified Control.Monad.Trans.State.Strict as Strict
 import           Control.Monad.Trans.Reader
+import           Data.Array.IArray
 import           Data.Bits
 import           Data.ByteString.Lazy             as Lazy
 import           Data.ByteString                  as Strict
@@ -173,9 +176,9 @@ import           Data.Complex
 import           Data.Dynamic
 import           Data.Foldable                    as Foldable
 import           Data.Functor.Identity
-import           Data.IntMap                      as IntMap hiding (adjust)
+import           Data.IntMap                      as IntMap hiding (adjust, (!))
 import           Data.IntSet                      as IntSet
-import           Data.Map                         as Map    hiding (adjust)
+import           Data.Map                         as Map    hiding (adjust, (!))
 import           Data.Maybe
 import           Data.Monoid
 import           Data.Sequence                    as Seq    hiding (adjust)
@@ -790,6 +793,15 @@ _1 f (a,c) = (\b -> (b,c)) <$> f a
 _2 :: Lens (c,a) (c,b) a b
 _2 f (c,a) = (,) c <$> f a
 {-# INLINE _2 #-}
+
+-- | Access an element of an array.
+--
+-- Note: The indexed element is assumed to exist in the target array.
+--
+-- > arr ! i = arr^.ix i
+--
+ix :: (IArray a e, Ix i) => i -> Simple Lens (a i e) e
+ix i f arr = (\e -> arr // [(i,e)]) <$> f (arr ! i)
 
 -- | This 'Lens' can be used to read, write or delete the value associated with a key in a 'Map'.
 --
@@ -1549,7 +1561,6 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
   where f' x k z = f z x >>= k
 {-# INLINE foldlMOf #-}
 
-
 --------------------------
 -- Traversals
 --------------------------
@@ -1846,3 +1857,4 @@ taking n l = elementsOf l (<n)
 dropping :: Applicative f => Int -> LensLike (AppliedState f) a b c c -> LensLike f a b c c
 dropping n l = elementsOf l (>=n)
 {-# INLINE dropping #-}
+

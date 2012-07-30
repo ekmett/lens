@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       1.0.3
+version:       1.0.4
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -25,13 +25,16 @@ library
     Control.Lens
     Control.Lens.Internal
     Control.Lens.Representable
+    Control.Lens.Strategies
     Control.Lens.TH
 
   build-depends:
+    array            == 0.4.*,
     base             == 4.*,
     bytestring       == 0.9.*,
     containers       >= 0.3   && < 0.6,
     mtl              >= 2.1.1 && < 2.2,
+    parallel         == 3.2.*,
     template-haskell >= 2.4   && < 2.8,
     text             == 0.11.*,
     transformers     >= 0.2   && < 0.4
