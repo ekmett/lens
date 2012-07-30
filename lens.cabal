@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       1.0.4
+version:       1.0.5
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
