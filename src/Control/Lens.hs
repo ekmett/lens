@@ -128,16 +128,12 @@ module Control.Lens
   -- * Common Traversals
   , Traversable(..)
   , traverseNothing
-  , traverseElement
-  , traverseElements
+  , traverseLeft
+  , traverseRight
   , traverseValue
 
   -- * Transforming Traversals
-  , elementOf
-  , elementsOf
   , backwards
-  , taking
-  , dropping
 
   -- * Cloning Lenses
   , clone
@@ -145,7 +141,7 @@ module Control.Lens
 
 import Control.Applicative              as Applicative
 import Control.Lens.Internal
-import Control.Monad (liftM, MonadPlus(..), void)
+import Control.Monad
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
 import Control.Monad.Trans.State.Strict as Strict
@@ -1219,7 +1215,7 @@ lengthOf :: Getting (Sum Int) a b c d -> a -> Int
 lengthOf l = getSum . foldMapOf l (\_ -> Sum 1)
 {-# INLINE lengthOf #-}
 
--- | Perform a safe 'head' of a 'Fold' or 'Traversal' or retrieve 'Just' the result 
+-- | Perform a safe 'head' of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
 --
 -- > listToMaybe . toList = headOf folded
@@ -1246,8 +1242,7 @@ lastOf l = getLast . foldMapOf l (Last . Just)
 -- |
 -- Returns 'True' if this 'Fold' or 'Traversal' has no targets in the given container.
 --
---
--- Note: nullOf on a valid 'Lens' or 'Getter' will always return 'False'
+-- Note: nullOf on a valid 'Lens' or 'Getter' should always return 'False'
 --
 -- > null = nullOf folded
 --
@@ -1331,12 +1326,16 @@ minimumByOf l cmp = foldrOf l step Nothing where
 -- the leftmost element of the structure matching the predicate, or
 -- 'Nothing' if there is no such element.
 findOf :: Getting (First c) a b c d -> (c -> Bool) -> a -> Maybe c
-findOf l p = getFirst . foldMapOf l (\c -> if p c then First (Just c) else First Nothing)
+findOf l p = getFirst . foldMapOf l step where
+  step c
+    | p c       = First (Just c)
+    | otherwise = First Nothing
 {-# INLINE findOf #-}
 
 -- |
--- A variant of 'foldrOf' that has no base case and thus may only be applied to lenses and structures 
--- such that the lens views at least one element of the structure.
+-- A variant of 'foldrOf' that has no base case and thus may only be applied
+-- to lenses and structures such that the lens views at least one element of
+-- the structure.
 --
 -- > foldr1Of l f = Prelude.foldr1 f . toListOf l
 --
@@ -1347,7 +1346,8 @@ findOf l p = getFirst . foldMapOf l (\c -> if p c then First (Just c) else First
 -- > foldr1Of :: Fold a b c d      -> (c -> c -> c) -> a -> c
 -- > foldr1Of :: Traversal a b c d -> (c -> c -> c) -> a -> c
 foldr1Of :: Getting (Endo (Maybe c)) a b c d -> (c -> c -> c) -> a -> c
-foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure") (foldrOf l mf Nothing xs) where
+foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
+                            (foldrOf l mf Nothing xs) where
   mf x Nothing = Just x
   mf x (Just y) = Just (f x y)
 {-# INLINE foldr1Of #-}
@@ -1395,7 +1395,8 @@ foldlOf' l f z0 xs = foldrOf l f' id xs z0
   where f' x k z = k $! f z x
 {-# INLINE foldlOf' #-}
 
--- | Monadic fold over the elements of a structure, associating to the right, i.e. from right to left.
+-- | Monadic fold over the elements of a structure, associating to the right,
+-- i.e. from right to left.
 --
 -- > foldrM = foldrMOf folded
 --
@@ -1403,12 +1404,15 @@ foldlOf' l f z0 xs = foldrOf l f' id xs z0
 -- > foldrMOf :: Monad m => Lens a b c d      -> (c -> e -> m e) -> e -> a -> m e
 -- > foldrMOf :: Monad m => Fold a b c d      -> (c -> e -> m e) -> e -> a -> m e
 -- > foldrMOf :: Monad m => Traversal a b c d -> (c -> e -> m e) -> e -> a -> m e
-foldrMOf :: Monad m => Getting (Dual (Endo (e -> m e))) a b c d -> (c -> e -> m e) -> e -> a -> m e
+foldrMOf :: Monad m
+         => Getting (Dual (Endo (e -> m e))) a b c d
+         -> (c -> e -> m e) -> e -> a -> m e
 foldrMOf l f z0 xs = foldlOf l f' return xs z0
   where f' k x z = f x z >>= k
 {-# INLINE foldrMOf #-}
 
--- | Monadic fold over the elements of a structure, associating to the left, i.e. from left to right.
+-- | Monadic fold over the elements of a structure, associating to the left,
+-- i.e. from left to right.
 --
 -- > foldlM = foldlMOf folded
 --
@@ -1416,14 +1420,16 @@ foldrMOf l f z0 xs = foldlOf l f' return xs z0
 -- > foldlMOf :: Monad m => Lens a b c d      -> (e -> c -> m e) -> e -> a -> m e
 -- > foldlMOf :: Monad m => Fold a b c d      -> (e -> c -> m e) -> e -> a -> m e
 -- > foldlMOf :: Monad m => Traversal a b c d -> (e -> c -> m e) -> e -> a -> m e
-foldlMOf :: Monad m => Getting (Endo (e -> m e)) a b c d -> (e -> c -> m e) -> e -> a -> m e
+foldlMOf :: Monad m
+         => Getting (Endo (e -> m e)) a b c d
+         -> (e -> c -> m e) -> e -> a -> m e
 foldlMOf l f z0 xs = foldrOf l f' return xs z0
   where f' x k z = f z x >>= k
 {-# INLINE foldlMOf #-}
 
---------------------------
+------------------------------------------------------------------------------
 -- Traversals
---------------------------
+------------------------------------------------------------------------------
 
 -- | This is the traversal that never succeeds at returning any values
 --
@@ -1432,22 +1438,30 @@ traverseNothing :: Traversal a a c d
 traverseNothing = const pure
 {-# INLINE traverseNothing #-}
 
--- | Traverse a single element in a traversable container.
+-- | A traversal for tweaking the left-hand value in an Either:
 --
--- > traverseElement :: (Applicative f, Traversable t) => Int -> (a -> f a) -> t a -> f (t a)
-traverseElement :: Traversable t => Int -> Simple Traversal (t a) a
-traverseElement = traverseElements . (==)
-{-# INLINE traverseElement #-}
+-- > traverseLeft :: Applicative f
+-- >              => (a -> f b) -> Either a c -> f (Either b c)
+traverseLeft :: Traversal (Either a c) (Either b c) a b
+traverseLeft f (Left a)  = Left <$> f a
+traverseLeft _ (Right c) = pure $ Right c
+{-# INLINE traverseLeft #-}
 
--- | Traverse elements where a predicate holds on their position in a traversable container
+-- | traverse the right-hand value in an Either:
 --
--- > traverseElements :: Applicative f, Traversable t) => (Int -> Bool) -> (a -> f a) -> t a -> f (t a)
-traverseElements :: Traversable t => (Int -> Bool) -> Simple Traversal (t a) a
-traverseElements p f ta = fst (runAppliedState (traverse go ta) 0) where
-  go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
-{-# INLINE traverseElements #-}
+-- > traverseRight :: Applicative f
+-- >               => (a -> f b) -> Either c a -> f (Either c a)
+-- > traverseRight = traverse
+--
+-- Unfortunately the instance for 'Traversable (Either c)' is still missing
+-- from base, so this can't just be 'traverse'
+traverseRight :: Traversal (Either c a) (Either c b) a b
+traverseRight _ (Left c) = pure $ Left c
+traverseRight f (Right a) = Right <$> f a
+{-# INLINE traverseRight #-}
 
--- | This provides a 'Traversal' that checks a predicate on a key before allowing you to traverse into a value.
+-- | This provides a 'Traversal' that checks a predicate on a key before
+-- allowing you to traverse into a value.
 traverseValue :: (k -> Bool) -> Simple Traversal (k, v) v
 traverseValue p f kv@(k,v)
   | p k       = (,) k <$> f v
@@ -1464,53 +1478,25 @@ traverseValue p f kv@(k,v)
 --
 -- Note: This only accepts a proper 'Lens', because 'IndexedStore' lacks its
 -- (admissable) Applicative instance.
-clone :: Functor f => LensLike (IndexedStore c d) a b c d -> (c -> f d) -> a -> f b
+clone :: Functor f
+      => LensLike (IndexedStore c d) a b c d
+      -> (c -> f d) -> a -> f b
 clone f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
 {-# INLINE clone #-}
 
----------------------------
--- Constructing Traversals
----------------------------
+------------------------------------------------------------------------------
+-- Transforming Traversals
+------------------------------------------------------------------------------
 
--- | Yields a 'Traversal' of the nth element of another 'Traversal'
+-- | This allows you to 'traverse' the elements of a 'Traversal' in the
+-- opposite order.
 --
--- > traverseHead = elementOf traverse 0
-elementOf :: Applicative f => LensLike (AppliedState f) a b c c -> Int -> LensLike f a b c c
-elementOf l = elementsOf l . (==)
-{-# INLINE elementOf #-}
-
--- | A 'Traversal' of the elements in another 'Traversal' where their positions in that 'Traversal' satisfy a predicate
+-- Note: 'reversed' is similar, but is able to accept a 'Fold' (or 'Getter')
+-- and produce a 'Fold' (or 'Getter').
 --
--- > traverseTail = elementsOf traverse (>0)
-elementsOf :: Applicative f => LensLike (AppliedState f) a b c c -> (Int -> Bool) -> LensLike f a b c c
-elementsOf l p f ta = fst (runAppliedState (l go ta) 0) where
-  go a = AppliedState $ \i -> (if p i then f a else pure a, i + 1)
-{-# INLINE elementsOf #-}
-
--- | This allows you to 'traverse' the elements of a 'Traversal' in the opposite order.
---
--- Note: 'reversed' is similar, but is able to accept a 'Fold' (or 'Getter') and produce a 'Fold' (or 'Getter').
---
--- This requires at least a 'Traversal' (or 'Lens') and can produce a 'Traversal' (or 'Lens') in turn.
+-- This requires at least a 'Traversal' (or 'Lens') and can produce a
+-- 'Traversal' (or 'Lens') in turn.
 backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d
 backwards l f = getBackwards . l (Backwards . f)
 {-# INLINE backwards #-}
-
--- | Build a 'Traversal' that traverses the first @n@ elements of another 'Traversal'.
---
--- > take n  = toListOf (taking n traverse)
---
--- To 'take' from something that is merely a 'Fold', compose with @'folding' ('take' n)@ instead.
-taking :: Applicative f => Int -> LensLike (AppliedState f) a b c c -> LensLike f a b c c
-taking n l = elementsOf l (<n)
-{-# INLINE taking #-}
-
--- | Build a 'Traversal' that skips over the first @n@ elements of another 'Traversal', returning the rest.
---
--- > drop n = toListOf (dropping n traverse)
---
--- To 'drop' from something that is merely a 'Fold', compose with @'folding' ('drop' n)@ instead.
-dropping :: Applicative f => Int -> LensLike (AppliedState f) a b c c -> LensLike f a b c c
-dropping n l = elementsOf l (>=n)
-{-# INLINE dropping #-}
