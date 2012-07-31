@@ -145,8 +145,8 @@ module Control.Lens
   , iso
   , isos
 
-  -- ** Control.Morphism
-  , Morphism(..)
+  -- ** Control.Isomorphic
+  , Isomorphic(..)
   , from
 
   -- ** Common Isomorphisms
@@ -157,7 +157,7 @@ module Control.Lens
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
 import Control.Category
-import Control.Morphism
+import Control.Isomorphic
 import Control.Lens.Internal
 import Control.Monad
 import Control.Monad.Reader.Class       as Reader
@@ -394,8 +394,8 @@ traverseOf = id
 -- > forOf = morphism flip flip
 --
 -- > forOf :: Lens a b c d -> a -> (c -> f d) -> f b
-forOf :: Morphism k => k (LensLike f a b c d) (a -> (c -> f d) -> f b)
-forOf = morphism flip flip
+forOf :: Isomorphic k => k (LensLike f a b c d) (a -> (c -> f d) -> f b)
+forOf = isomorphic flip flip
 {-# INLINE forOf #-}
 {-# SPECIALIZE forOf :: LensLike f a b c d -> a -> (c -> f d) -> f b #-}
 
@@ -564,9 +564,9 @@ mapped = sets fmap
 -- > adjust = from sets
 --
 -- > sets :: ((c -> d) -> a -> b) -> Setter a b c d
-sets :: Morphism k => k ((c -> d) -> a -> b) (Setter a b c d)
-sets = morphism (\f g -> Identity . f (runIdentity . g))
-                (\l f -> runIdentity . l (Identity . f))
+sets :: Isomorphic k => k ((c -> d) -> a -> b) (Setter a b c d)
+sets = isomorphic (\f g -> Identity . f (runIdentity . g))
+                  (\l f -> runIdentity . l (Identity . f))
 {-# INLINE sets #-}
 {-# SPECIALIZE sets :: ((c -> d) -> a -> b) -> Setter a b c d #-}
 
@@ -580,9 +580,9 @@ sets = morphism (\f g -> Identity . f (runIdentity . g))
 -- > adjust . sets = id
 --
 -- > adjust :: Setter a b c d -> (c -> d) -> a -> b
-adjust :: Morphism k => k (Setter a b c d) ((c -> d) -> a -> b)
-adjust = morphism (\l f -> runIdentity . l (Identity . f))
-                  (\f g -> Identity . f (runIdentity . g))
+adjust :: Isomorphic k => k (Setter a b c d) ((c -> d) -> a -> b)
+adjust = isomorphic (\l f -> runIdentity . l (Identity . f))
+                    (\f g -> Identity . f (runIdentity . g))
 {-# INLINE adjust #-}
 {-# SPECIALIZE adjust :: Setter a b c d -> (c -> d) -> a -> b #-}
 
@@ -601,7 +601,7 @@ adjust = morphism (\l f -> runIdentity . l (Identity . f))
 -- > mapOf :: Iso a b c d       -> (c -> d) -> a -> b
 -- > mapOf :: Lens a b c d      -> (c -> d) -> a -> b
 -- > mapOf :: Traversal a b c d -> (c -> d) -> a -> b
-mapOf :: Morphism k => k (Setter a b c d) ((c -> d) -> a -> b)
+mapOf :: Isomorphic k => k (Setter a b c d) ((c -> d) -> a -> b)
 mapOf = adjust
 {-# INLINE mapOf #-}
 {-# SPECIALIZE mapOf :: Setter a b c d -> (c -> d) -> a -> b #-}
@@ -768,8 +768,8 @@ view l = getConst . l Const
 -- > views :: Monoid m => Traversal a b c d -> (c -> m) -> a -> m
 --
 -- > views :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
-views :: Morphism k => k (Getting m a b c d) ((c -> m) -> a -> m)
-views = morphism (\l f -> getConst . l (Const . f)) (\l f -> Const . l (getConst . f))
+views :: Isomorphic k => k (Getting m a b c d) ((c -> m) -> a -> m)
+views = isomorphic (\l f -> getConst . l (Const . f)) (\l f -> Const . l (getConst . f))
 {-# INLINE views #-}
 {-# SPECIALIZE views :: Getting m a b c d -> (c -> m) -> a -> m #-}
 {-# SPECIALIZE views :: Isomorphism (Getting m a b c d) ((c -> m) -> a -> m) #-}
@@ -1024,9 +1024,9 @@ type Fold a c = forall m b d. Monoid m => (c -> Const m d) -> a -> Const m b
 --
 -- > folds :: ((c -> m) -> a -> m) -> (c -> Const m d) -> a -> Const m b
 -- > folds :: ((c -> m) -> a -> m) -> Getting m a b c d
-folds :: Morphism k => k ((c -> m) -> a -> m) (Getting m a b c d)
-folds = morphism (\l f -> Const . l (getConst . f))
-                 (\l f -> getConst . l (Const . f))
+folds :: Isomorphic k => k ((c -> m) -> a -> m) (Getting m a b c d)
+folds = isomorphic (\l f -> Const . l (getConst . f))
+                   (\l f -> getConst . l (Const . f))
 {-# INLINE folds #-}
 {-# SPECIALIZE folds :: ((c -> m) -> a -> m) -> Getting m a b c d #-}
 {-# SPECIALIZE folds :: Isomorphism ((c -> m) -> a -> m) (Getting m a b c d) #-}
@@ -1097,9 +1097,9 @@ droppingWhile p l f = Const . foldrOf l (\a r -> if p a then mempty else mappend
 -- > foldMapOf :: Monoid m => Traversal a b c d -> (c -> m) -> a -> m
 --
 -- > foldMapOf :: Getting m a b c d -> (c -> m) -> a -> m
-foldMapOf :: Morphism k => k (Getting m a b c d) ((c -> m) -> a -> m)
-foldMapOf = morphism (\l f -> getConst . l (Const . f))
-                     (\l f -> Const . l (getConst . f))
+foldMapOf :: Isomorphic k => k (Getting m a b c d) ((c -> m) -> a -> m)
+foldMapOf = isomorphic (\l f -> getConst . l (Const . f))
+                       (\l f -> Const . l (getConst . f))
 {-# INLINE foldMapOf #-}
 {-# SPECIALIZE foldMapOf :: Getting m a b c d -> (c -> m) -> a -> m #-}
 
@@ -1692,8 +1692,10 @@ traverseValue p f kv@(k,v)
 --
 -- A backwards 'Iso' is the same 'Iso'. If you reverse the direction of
 -- the isomorphism use 'from' instead.
-backwards :: Morphism k => IsoLike k (Backwards f) a b c d -> IsoLike k f a b c d
-backwards = isomap (\l f -> forwards . l (Backwards . f)) (\l f -> forwards . l (Backwards . f))
+backwards :: Isomorphic k => IsoLike k (Backwards f) a b c d -> IsoLike k f a b c d
+backwards = isomap
+  (\l f -> forwards . l (Backwards . f))
+  (\l f -> forwards . l (Backwards . f))
 {-# INLINE backwards #-}
 {-# SPECIALIZE backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d #-}
 {-# SPECIALIZE backwards :: IsoLike Isomorphism (Backwards f) a b c d -> IsoLike Isomorphism f a b c d #-}
@@ -1724,8 +1726,8 @@ bifocal l r f (a, a') = case l (IndexedStore id) a of
 -- > import Control.Category
 -- > import Prelude hiding ((.),id)
 --
--- > type Iso a b c d = forall k f. (Morphism k, Functor f) => IsoLike k f a b c d
-type Iso a b c d = forall k f. (Morphism k, Functor f) => k (c -> f d) (a -> f b)
+-- > type Iso a b c d = forall k f. (Isomorphic k, Functor f) => IsoLike k f a b c d
+type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
 
 -- | > type SimpleIso a b = Simple Iso a b
 type SimpleIso a b = Iso a a b b
@@ -1739,8 +1741,10 @@ type SimpleIsoLike k f a b = IsoLike k f a a b b
 -- | Build an isomorphism family from two pairs of inverse functions
 --
 -- > isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Iso a b c d
-isos :: (Morphism k, Functor f) => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> IsoLike k f a b c d
-isos ac ca bd db = morphism (\cfd a -> db <$> cfd (ac a)) (\afb c -> bd <$> afb (ca c))
+isos :: (Isomorphic k, Functor f) => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> IsoLike k f a b c d
+isos ac ca bd db = isomorphic
+  (\cfd a -> db <$> cfd (ac a))
+  (\afb c -> bd <$> afb (ca c))
 {-# INLINE isos #-}
 {-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> LensLike f a b c d #-}
 {-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> IsoLike Isomorphism f a b c d #-}
@@ -1748,7 +1752,7 @@ isos ac ca bd db = morphism (\cfd a -> db <$> cfd (ac a)) (\afb c -> bd <$> afb 
 -- | Build a simple isomorphism from a pair of inverse functions
 --
 -- > iso :: (a -> b) -> (b -> a) -> Simple Iso a b
-iso :: (Morphism k, Functor f) => (a -> b) -> (b -> a) -> SimpleIsoLike k f a b
+iso :: (Isomorphic k, Functor f) => (a -> b) -> (b -> a) -> SimpleIsoLike k f a b
 iso ab ba = isos ab ba ab ba
 {-# INLINE iso #-}
 {-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> SimpleLensLike f a b #-}

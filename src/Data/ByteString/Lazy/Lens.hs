@@ -1,21 +1,22 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.ByteString.Lens
+-- Module      :  Data.ByteString.Lazy.Lens
 -- Copyright   :  (C) 2012 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
 -- Portability :  portable
 --
+-- Lenses for lazy bytestrings
 ----------------------------------------------------------------------------
-module Data.ByteString.Lens
+module Data.ByteString.Lazy.Lens
   ( packedBytes, bytes
   , packedChars, chars
   ) where
 
 import Control.Lens
-import Data.ByteString as Words
-import Data.ByteString.Char8 as Char8
+import Data.ByteString.Lazy as Words
+import Data.ByteString.Lazy.Char8 as Char8
 import Data.Word (Word8)
 
 -- | Pack (or unpack) a list of bytes into a 'ByteString'

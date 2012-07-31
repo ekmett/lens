@@ -104,11 +104,11 @@ description:
   .
   /Isomorphisms and Iso/
   .
-  Control.Morphism provides overloading of function application for isomorphisms  and @Iso a b a d@ uses it
-  to form isomorphism families. It is represented in such a way that you can directly compose it with with 
-  other isomorphisms and with lenses, setters, folds, traversals and getters.
+  Control.Isomorphic provides easy overloading of function application for isomorphisms and @Iso a b a d@ uses it
+  to form isomorphism families that can be composed with other isomorphisms and with lenses, setters, folds, 
+  traversals and getters.
   .
-  > type Iso a b c d = forall f. (Morphism k, Functor f) => k (c -> f d) (a -> f b)
+  > type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
   .
   /Composition/
   .
@@ -156,16 +156,17 @@ source-repository head
 library
   exposed-modules:
     Control.Exception.Lens
+    Control.Isomorphic
     Control.Lens
     Control.Lens.Internal
     Control.Lens.Representable
     Control.Lens.TH
-    Control.Morphism
     Control.Parallel.Strategies.Lens
     Control.Seq.Lens
     Data.Array.Lens
     Data.Bits.Lens
     Data.ByteString.Lens
+    Data.ByteString.Lazy.Lens
     Data.Complex.Lens
     Data.Dynamic.Lens
     Data.Map.Lens
@@ -174,6 +175,7 @@ library
     Data.Sequence.Lens
     Data.Set.Lens
     Data.Text.Lens
+    Data.Text.Lazy.Lens
     Data.Time.Calendar.Lens
     Data.Tree.Lens
 
@@ -192,6 +194,7 @@ library
 
   other-extensions:
     CPP
+    DeriveDataTypeable
     LiberalTypeSynonyms
     MultiParamTypeClasses
     Rank2Types

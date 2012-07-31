@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
 -- |
@@ -36,6 +37,7 @@ module Data.Time.Calendar.Lens
 
 import Control.Applicative
 import Control.Lens
+import Data.Data
 import Data.Time.Calendar
 import Data.Time.Calendar.Julian
 import Data.Time.Calendar.WeekDate
@@ -81,7 +83,7 @@ data Gregorian = Gregorian
   { gregorianYear :: !Integer -- ^ year
   , gregorianMonth :: !Int    -- ^ month (1-12)
   , gregorianDay :: !Int      -- ^ day   (1-31)
-  } deriving (Eq,Ord,Show,Read)
+  } deriving (Eq,Ord,Show,Read,Typeable,Data)
 
 uncurry3 :: (a -> b -> c -> d) -> (a,b,c) -> d
 uncurry3 f (a,b,c) = f a b c
@@ -109,7 +111,7 @@ instance HasDay Gregorian where
 data JulianYearAndDay = JulianYearAndDay
   { julianYearAndDayYear :: !Integer -- ^ year (in the proleptic Julian calendar)
   , julianYearAndDayDay  :: !Int     -- ^ day of the year, with 1 for Jan 1, and 365 (or 366 in leap years) for Dec 31.
-  } deriving (Eq,Ord,Show,Read)
+  } deriving (Eq,Ord,Show,Read,Typeable,Data)
 
 -- | Convert to/from a /valid/ proleptic Julian year and day.
 julianYearAndDay :: Simple Iso Day JulianYearAndDay
@@ -134,7 +136,7 @@ data WeekDate = WeekDate
   { weekDateYear :: !Integer -- ^ year. Note: that "Week" years are not quite the same as Gregorian years, as the first day of the year is always a Monday.
   , weekDateWeek :: !Int -- ^ week number (1-53)
   , weekDateDay  :: !Int -- ^ day of week (1 for Monday to 7 for Sunday).
-  } deriving (Eq,Ord,Show,Read)
+  } deriving (Eq,Ord,Show,Read,Typeable,Data)
 
 -- | Convert to/from a valid WeekDate
 weekDate :: Simple Iso Day WeekDate
@@ -159,7 +161,7 @@ instance HasDay WeekDate where
 data OrdinalDate = OrdinalDate
   { ordinalDateYear :: !Integer -- ^ year (proleptic Gregorian calendar)
   , ordinalDateDay  :: !Int     -- ^ day of the year, with 1 for Jan 1, and 365 (or 366 in leap years) for Dec 31.
-  } deriving (Eq,Ord,Show,Read)
+  } deriving (Eq,Ord,Show,Read,Typeable,Data)
 
 -- | Convert to/from a valid ISO 8601 Ordinal Date format.
 ordinalDate :: Simple Iso Day OrdinalDate
