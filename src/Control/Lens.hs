@@ -1,6 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE ImpredicativeTypes #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens
@@ -122,7 +123,6 @@ module Control.Lens
   , foldr1Of, foldl1Of
   , foldrMOf, foldlMOf
 
-
   -- * Common Traversals
   , Traversable(traverse)
   , traverseNothing
@@ -141,9 +141,15 @@ module Control.Lens
   -- * Isomorphisms
   , Iso
   , SimpleIso
+  , IsoLike
+  , SimpleIsoLike
   , iso
   , isos
   , from
+
+  -- * Isomorphism Implementation
+  , Isomorphic(..)
+  , Isomorphism(..)
 
   -- ** Common Isomorphisms
   , identity
@@ -152,6 +158,7 @@ module Control.Lens
 
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
+import Control.Category
 import Control.Lens.Internal
 import Control.Monad
 import Control.Monad.Reader.Class       as Reader
@@ -165,6 +172,7 @@ import Data.Functor.Identity
 import Data.Maybe
 import Data.Monoid
 import Data.Traversable
+import Prelude hiding ((.),id)
 
 infixl 8 ^.
 infixr 4 ^~, +~, *~, -~, //~, &&~, ||~, %~, <>~, %%~
@@ -215,8 +223,8 @@ type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 -- and the more evocative name suggests their application.
 --
 -- Most of the time the 'Traversal' you will want to use is just 'traverse', but you can also pass any
--- 'Lens' -- as a Traversal, and composition of a 'Traversal' (or 'Lens') with a 'Traversal' (or 'Lens')
--- using (.) forms a 'Traversal'.
+-- 'Lens' or 'Iso' as a Traversal, and composition of a 'Traversal' (or 'Lens' or 'Iso') with a 'Traversal' (or 'Lens' or 'Iso')
+-- using (.) forms a valid 'Traversal'.
 type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 
 -- | A @'Simple' 'Lens'@, @'Simple' 'Traversal'@, ... can be used instead of a 'Lens','Traversal', ...
@@ -275,6 +283,7 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 --
 -- > (%%~) = id
 --
+-- > (%%~) :: Functor f =>     Iso a b c d       -> (c -> f d) -> a -> f b
 -- > (%%~) :: Functor f =>     Lens a b c d      -> (c -> f d) -> a -> f b
 -- > (%%~) :: Applicative f => Traversal a b c d -> (c -> f d) -> a -> f b
 --
@@ -283,6 +292,7 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- When applied to a 'Traversal', it can edit the targets of the 'Traversals', extracting a
 -- supplemental monoidal summary of its actions, by choosing f = ((,) m)
 --
+-- > (%%~) ::             Iso a b c d       -> (c -> (e, d)) -> a -> (e, b)
 -- > (%%~) ::             Lens a b c d      -> (c -> (e, d)) -> a -> (e, b)
 -- > (%%~) :: Monoid m => Traversal a b c d -> (c -> (m, d)) -> a -> (m, b)
 (%%~) :: LensLike f a b c d -> (c -> f d) -> a -> f b
@@ -298,6 +308,7 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- It may be useful to think of ('%%='), instead, as having either of the following more restricted
 -- type signatures:
 --
+-- > (%%=) :: MonadState a m             => Iso a a c d       -> (c -> (e, d) -> m e
 -- > (%%=) :: MonadState a m             => Lens a a c d      -> (c -> (e, d) -> m e
 -- > (%%=) :: (MonadState a m, Monoid e) => Traversal a a c d -> (c -> (e, d) -> m e
 (%%=) :: MonadState a m => LensLike ((,) e) a a c d -> (c -> (e, d)) -> m e
@@ -315,12 +326,14 @@ class Focus st where
   -- and a monoidal summary
   -- of the result is given.
   --
+  -- > focus :: Monad m             => Simple Iso a b       -> st b m c -> st a m c
   -- > focus :: Monad m             => Simple Lens a b      -> st b m c -> st a m c
   -- > focus :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m c
   focus :: Monad m => LensLike (Focusing m c) a a b b -> st b m c -> st a m c
 
   -- | Like 'focus', but discarding any accumulated results as you go.
   --
+  -- > focus_ :: Monad m             => Simple Iso a b       -> st b m c -> st a m ()
   -- > focus_ :: Monad m             => Simple Lens a b      -> st b m c -> st a m ()
   -- > focus_ :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m ()
   focus_ :: Monad m => LensLike (Focusing m ()) a a b b -> st b m c -> st a m ()
@@ -366,19 +379,26 @@ instance Focus ReaderT where
 --
 -- > traverse = traverseOf traverse
 --
+-- > traverseOf :: Iso a b c d       -> (c -> f d) -> a -> f b
 -- > traverseOf :: Lens a b c d      -> (c -> f d) -> a -> f b
 -- > traverseOf :: Traversal a b c d -> (c -> f d) -> a -> f b
-traverseOf :: LensLike f a b c d -> (c -> f d) -> a -> f b
+traverseOf :: Category k => k (LensLike f a b c d) ((c -> f d) -> a -> f b)
 traverseOf = id
+{-# INLINE traverseOf #-}
+{-# SPECIALIZE traverseOf :: LensLike f a b c d -> (c -> f d) -> a -> f b #-}
 
 -- |
 --
--- > forOf = flip
 -- > forOf l = flip (traverseOf l)
 --
 -- > for = forOf traverse
-forOf :: LensLike f a b c d -> a -> (c -> f d) -> f b
-forOf = flip
+-- > forOf = morphism flip flip
+--
+-- > forOf :: Lens a b c d -> a -> (c -> f d) -> f b
+forOf :: Isomorphic k => k (LensLike f a b c d) (a -> (c -> f d) -> f b)
+forOf = morphism flip flip
+{-# INLINE forOf #-}
+{-# SPECIALIZE forOf :: LensLike f a b c d -> a -> (c -> f d) -> f b #-}
 
 -- |
 -- Evaluate each action in the structure from left to right, and collect
@@ -388,7 +408,8 @@ forOf = flip
 -- > sequenceAOf l = traverseOf l id
 -- > sequenceAOf l = l id
 --
--- > sequenceAOf ::                  Lens a b (f c) c -> a -> f b
+-- > sequenceAOf ::                  Iso a b (f c) c       -> a -> f b
+-- > sequenceAOf ::                  Lens a b (f c) c      -> a -> f b
 -- > sequenceAOf :: Applicative f => Traversal a b (f c) c -> a -> f b
 sequenceAOf :: LensLike f a b (f c) c -> a -> f b
 sequenceAOf l = l id
@@ -399,6 +420,7 @@ sequenceAOf l = l id
 --
 -- > mapM = mapMOf traverse
 --
+-- > mapMOf ::            Iso a b c d       -> (c -> m d) -> a -> m b
 -- > mapMOf ::            Lens a b c d      -> (c -> m d) -> a -> m b
 -- > mapMOf :: Monad m => Traversal a b c d -> (c -> m d) -> a -> m b
 mapMOf :: LensLike (WrappedMonad m) a b c d -> (c -> m d) -> a -> m b
@@ -409,8 +431,9 @@ mapMOf l cmd = unwrapMonad . l (WrapMonad . cmd)
 -- > forM = forMOf traverse
 -- > forMOf l = flip (mapMOf l)
 --
--- > forMOf ::            Lens a b c d -> a -> (c -> m d) -> m b
--- > forMOf :: Monad m => Lens a b c d -> a -> (c -> m d) -> m b
+-- > forMOf ::            Iso a b c d       -> a -> (c -> m d) -> m b
+-- > forMOf ::            Lens a b c d      -> a -> (c -> m d) -> m b
+-- > forMOf :: Monad m => Traversal a b c d -> a -> (c -> m d) -> m b
 forMOf :: LensLike (WrappedMonad m) a b c d -> a -> (c -> m d) -> m b
 forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
 {-# INLINE forMOf #-}
@@ -420,6 +443,7 @@ forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
 -- > sequenceOf l = mapMOf l id
 -- > sequenceOf l = unwrapMonad . l WrapMonad
 --
+-- > sequenceOf ::            Iso a b (m c) c       -> a -> m b
 -- > sequenceOf ::            Lens a b (m c) c      -> a -> m b
 -- > sequenceOf :: Monad m => Traversal a b (m c) c -> a -> m b
 sequenceOf :: LensLike (WrappedMonad m) a b (m c) c -> a -> m b
@@ -447,6 +471,7 @@ transposeOf l = getZipList . l ZipList
 --
 -- 'mapAccumROf' accumulates state from right to left.
 --
+-- > mapAccumROf :: Iso a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- > mapAccumROf :: Lens a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- > mapAccumROf :: Traversal a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 mapAccumROf :: LensLike (Lazy.State s) a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
@@ -459,6 +484,7 @@ mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f 
 --
 -- 'mapAccumLOf' accumulates state from left to right.
 --
+-- > mapAccumLOf :: Iso a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- > mapAccumLOf :: Lens a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- > mapAccumLOf :: Traversal a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 mapAccumLOf :: LensLike (Backwards (Lazy.State s)) a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
@@ -473,6 +499,7 @@ swap (a,b) = (b,a)
 --
 -- > scanr1 = scanr1Of traverse
 --
+-- > scanr1Of :: Iso a b c c       -> (c -> c -> c) -> a -> b
 -- > scanr1Of :: Lens a b c c      -> (c -> c -> c) -> a -> b
 -- > scanr1Of :: Traversal a b c c -> (c -> c -> c) -> a -> b
 scanr1Of :: LensLike (Lazy.State (Maybe c)) a b c c -> (c -> c -> c) -> a -> b
@@ -485,6 +512,7 @@ scanr1Of l f = snd . mapAccumROf l step Nothing where
 --
 -- > scanl1 = scanl1Of traverse
 --
+-- > scanr1Of :: Iso a b c c       -> (c -> c -> c) -> a -> b
 -- > scanr1Of :: Lens a b c c      -> (c -> c -> c) -> a -> b
 -- > scanr1Of :: Traversal a b c c -> (c -> c -> c) -> a -> b
 scanl1Of :: LensLike (Backwards (Lazy.State (Maybe c))) a b c c -> (c -> c -> c) -> a -> b
@@ -533,9 +561,15 @@ mapped = sets fmap
 --
 -- > sets . adjust = id
 -- > adjust . sets = id
-sets :: ((c -> d) -> a -> b) -> Setter a b c d
-sets f g a = Identity (f (runIdentity . g) a)
+--
+-- > sets = from adjust
+--
+-- > sets :: ((c -> d) -> a -> b) -> Setter a b c d
+sets :: Isomorphic k => k ((c -> d) -> a -> b) (Setter a b c d)
+sets = morphism (\f g -> Identity . f (runIdentity . g))
+                (\l f -> runIdentity . l (Identity . f))
 {-# INLINE sets #-}
+{-# SPECIALIZE sets :: ((c -> d) -> a -> b) -> Setter a b c d #-}
 
 -- | Modify the target of a 'Lens' or all the targets of a 'Setter' or 'Traversal'
 -- with a function.
@@ -545,9 +579,13 @@ sets f g a = Identity (f (runIdentity . g) a)
 --
 -- > sets . adjust = id
 -- > adjust . sets = id
-adjust :: Setter a b c d -> (c -> d) -> a -> b
-adjust l f = runIdentity . l (Identity . f)
+--
+-- > adjust :: Setter a b c d -> (c -> d) -> a -> b
+adjust :: Isomorphic k => k (Setter a b c d) ((c -> d) -> a -> b)
+adjust = morphism (\l f -> runIdentity . l (Identity . f))
+                  (\f g -> Identity . f (runIdentity . g))
 {-# INLINE adjust #-}
+{-# SPECIALIZE adjust :: Setter a b c d -> (c -> d) -> a -> b #-}
 
 -- | Modify the target of a 'Lens' or all the targets of a 'Setter' or 'Traversal'
 -- with a function. This is an alias for adjust that is provided for consistency.
@@ -561,11 +599,13 @@ adjust l f = runIdentity . l (Identity . f)
 -- > mapOf . sets = id
 --
 -- > mapOf :: Setter a b c d    -> (c -> d) -> a -> b
+-- > mapOf :: Iso a b c d       -> (c -> d) -> a -> b
 -- > mapOf :: Lens a b c d      -> (c -> d) -> a -> b
 -- > mapOf :: Traversal a b c d -> (c -> d) -> a -> b
-mapOf :: Setter a b c d -> (c -> d) -> a -> b
-mapOf l f = runIdentity . l (Identity . f)
+mapOf :: Isomorphic k => k (Setter a b c d) ((c -> d) -> a -> b)
+mapOf = adjust
 {-# INLINE mapOf #-}
+{-# SPECIALIZE mapOf :: Setter a b c d -> (c -> d) -> a -> b #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
 -- or 'Traversal' with a constant value.
@@ -573,6 +613,7 @@ mapOf l f = runIdentity . l (Identity . f)
 -- > (<$) = set mapped
 --
 -- > set :: Setter a b c d    -> d -> a -> b
+-- > set :: Iso a b c d       -> d -> a -> b
 -- > set :: Lens a b c d      -> d -> a -> b
 -- > set :: Traversal a b c d -> d -> a -> b
 set :: Setter a b c d -> d -> a -> b
@@ -589,8 +630,13 @@ set l d = runIdentity . l (\_ -> Identity d)
 --
 -- > ghci> _2 %~ length $ (1,"hello")
 -- > (1,5)
+--
+-- > (%~) :: Setter a b c d    -> (c -> d) -> a -> b
+-- > (%~) :: Iso a b c d       -> (c -> d) -> a -> b
+-- > (%~) :: Lens a b c d      -> (c -> d) -> a -> b
+-- > (%~) :: Traversal a b c d -> (c -> d) -> a -> b
 (%~) :: Setter a b c d -> (c -> d) -> a -> b
-l %~ f = runIdentity . l (Identity . f)
+(%~) = adjust
 {-# INLINE (%~) #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
@@ -602,8 +648,13 @@ l %~ f = runIdentity . l (Identity . f)
 --
 -- > ghci> bitAt 0 ^~ True $ 0
 -- > 1
+--
+-- > (^~) :: Setter a b c d    -> d -> a -> b
+-- > (^~) :: Iso a b c d       -> d -> a -> b
+-- > (^~) :: Lens a b c d      -> d -> a -> b
+-- > (^~) :: Traversal a b c d -> d -> a -> b
 (^~) :: Setter a b c d -> d -> a -> b
-l ^~ v = runIdentity . l (Identity . const v)
+(^~) = set
 {-# INLINE (^~) #-}
 
 -- | Increment the target(s) of a numerically valued 'Lens', Setter' or 'Traversal'
@@ -670,8 +721,11 @@ type Getter a c = forall r b d. (c -> Const r d) -> a -> Const r b
 -- | Build a 'Getter' from an arbitrary Haskell function.
 --
 -- > to f . to g = to (g . f)
+-- > to = from view
+--
+-- > to . from = id
 to :: (a -> c) -> Getter a c
-to f g a = Const (getConst (g (f a)))
+to f g = Const . getConst . g . f
 {-# INLINE to #-}
 
 -- |
@@ -695,42 +749,41 @@ type Getting r a b c d = (c -> Const r d) -> a -> Const r b
 --
 -- It may be useful to think of 'view' as having these more restrictive signatures:
 --
--- > view ::             Iso a b c d       -> a -> c
--- > view ::             Lens a b c d      -> a -> c
 -- > view ::             Getter a c        -> a -> c
 -- > view :: Monoid m => Fold a m          -> a -> m
+-- > view ::             Iso a b c d       -> a -> c
+-- > view ::             Lens a b c d      -> a -> c
 -- > view :: Monoid m => Traversal a b m d -> a -> m
---
--- > view :: ((c -> Const c d) -> a -> Const c b) -> a -> c
 view :: Getting c a b c d -> a -> c
-view l a = getConst (l Const a)
-{-# INLINE view #-}
+view l = getConst . l Const
 
 -- | View the value of a 'Getter', 'Iso', 'Lens' or the result of folding over the
 -- result of mapping the targets of a 'Fold' or 'Traversal'.
 --
 -- It may be useful to think of 'views' as having these more restrictive signatures:
 --
--- > views ::             Iso a b c d    -> (c -> d) -> a -> d
--- > views ::             Getter a b c d    -> (c -> d) -> a -> d
+-- > views ::             Getter a c        -> (c -> d) -> a -> d
+-- > views :: Monoid m => Fold a c          -> (c -> m) -> a -> m
+-- > views ::             Iso a b c d       -> (c -> d) -> a -> d
 -- > views ::             Lens a b c d      -> (c -> d) -> a -> d
--- > views :: Monoid m => Fold a b c d      -> (c -> m) -> a -> m
 -- > views :: Monoid m => Traversal a b c d -> (c -> m) -> a -> m
 --
 -- > views :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
-views :: Getting m a b c d -> (c -> m) -> a -> m
-views l f = getConst . l (Const . f)
+views :: Isomorphic k => k (Getting m a b c d) ((c -> m) -> a -> m)
+views = morphism (\l f -> getConst . l (Const . f)) (\l f -> Const . l (getConst . f))
 {-# INLINE views #-}
+{-# SPECIALIZE views :: Getting m a b c d -> (c -> m) -> a -> m #-}
+{-# SPECIALIZE views :: Isomorphism (Getting m a b c d) ((c -> m) -> a -> m) #-}
 
 -- | View the value pointed to by a 'Getter', 'Iso' or 'Lens' or the result of folding over
 -- all the results of a 'Fold' or 'Traversal' that points at a monoidal values.
 --
 -- This is the same operation as 'view', only infix.
 --
+-- > (^$) ::             Getter a c        -> a -> c
+-- > (^$) :: Monoid m => Fold a m          -> a -> m
 -- > (^$) ::             Iso a b c d       -> a -> c
 -- > (^$) ::             Lens a b c d      -> a -> c
--- > (^$) ::             Getter a b c d    -> a -> c
--- > (^$) :: Monoid m => Fold a b m d      -> a -> m
 -- > (^$) :: Monoid m => Traversal a b m d -> a -> m
 --
 -- > (^$) :: ((c -> Const c d) -> a -> Const c b) -> a -> c
@@ -749,10 +802,10 @@ l ^$ a = getConst (l Const a)
 -- > ghci> ((0, 1 :+ 2), 3)^._1._2.to magnitude
 -- > 2.23606797749979
 --
+-- > (^.) ::             a -> Getter a c        -> c
+-- > (^.) :: Monoid m => a -> Fold a m          -> m
 -- > (^.) ::             a -> Iso a b c d       -> c
 -- > (^.) ::             a -> Lens a b c d      -> c
--- > (^.) ::             a -> Getter a b c d    -> c
--- > (^.) :: Monoid m => a -> Fold a b m d      -> m
 -- > (^.) :: Monoid m => a -> Traversal a b m d -> m
 --
 -- > (^.) :: a -> ((c -> Const c d) -> a -> Const c b) -> c
@@ -807,10 +860,10 @@ resultAt e afa ea = go <$> afa a where
 --
 -- > whisper l d = tell (set l d mempty)
 
--- > whisper :: (MonadWriter b m, Monoid a) => Lens a b c d      -> d -> m ()
 -- > whisper :: (MonadWriter b m, Monoid a) => Iso a b c d       -> d -> m ()
--- > whisper :: (MonadWriter b m, Monoid a) => Setter a b c d    -> d -> m ()
+-- > whisper :: (MonadWriter b m, Monoid a) => Lens a b c d      -> d -> m ()
 -- > whisper :: (MonadWriter b m, Monoid a) => Traversal a b c d -> d -> m ()
+-- > whisper :: (MonadWriter b m, Monoid a) => Setter a b c d    -> d -> m ()
 --
 -- > whisper :: (MonadWriter b m, Monoid a) => ((c -> Identity d) -> a -> Identity b) -> d -> m ()
 whisper :: (MonadWriter b m, Monoid a) => Setter a b c d -> d -> m ()
@@ -825,10 +878,10 @@ whisper l d = tell (set l d mempty)
 -- Query the target of a 'Lens', 'Iso' or 'Getter' in the current state, or use a
 -- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
 --
--- > query :: MonadReader a m             => Getter a b c d    -> m c
+-- > query :: MonadReader a m             => Getter a c        -> m c
+-- > query :: (MonadReader a m, Monoid c) => Fold a c          -> m c
+-- > query :: MonadReader a m             => Iso a b c d       -> m c
 -- > query :: MonadReader a m             => Lens a b c d      -> m c
--- > query :: MonadReader a m             => Iso a b c d      -> m c
--- > query :: (MonadReader a m, Monoid c) => Fold a b c d      -> m c
 -- > query :: (MonadReader a m, Monoid c) => Traversal a b c d -> m c
 --
 -- > query :: MonadReader a m => ((c -> Const c d) -> a -> Const c b) -> m c
@@ -840,10 +893,10 @@ query l = Reader.asks (^.l)
 -- Use the target of a 'Lens', 'Iso' or 'Getter' in the current state, or use a
 -- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
 --
--- > queries :: MonadReader a m             => Getter a b c d    -> (c -> e) -> m e
--- > queries :: MonadReader a m             => Lens a b c d      -> (c -> e) -> m e
+-- > queries :: MonadReader a m             => Getter a c        -> (c -> e) -> m e
+-- > queries :: (MonadReader a m, Monoid c) => Fold a c          -> (c -> e) -> m e
 -- > queries :: MonadReader a m             => Iso a b c d       -> (c -> e) -> m e
--- > queries :: (MonadReader a m, Monoid c) => Fold a b c d      -> (c -> e) -> m e
+-- > queries :: MonadReader a m             => Lens a b c d      -> (c -> e) -> m e
 -- > queries :: (MonadReader a m, Monoid c) => Traversal a b c d -> (c -> e) -> m e
 --
 -- > queries :: MonadReader a m => ((c -> Const e d) -> a -> Const e b) -> (c -> e) -> m e
@@ -859,11 +912,11 @@ queries l f = Reader.asks (views l f)
 -- Use the target of a 'Lens', 'Iso', or 'Getter' in the current state, or use a
 -- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
 --
--- > use :: MonadState a m             => Getter a b c d    -> m c
--- > use :: MonadState a m             => Lens a b c d      -> m c
+-- > use :: MonadState a m             => Getter a c        -> m c
+-- > use :: (MonadState a m, Monoid r) => Fold a r          -> m r
 -- > use :: MonadState a m             => Iso a b c d       -> m c
--- > use :: (MonadState a m, Monoid c) => Fold a b c d      -> m c
--- > use :: (MonadState a m, Monoid c) => Traversal a b c d -> m c
+-- > use :: MonadState a m             => Lens a b c d      -> m c
+-- > use :: (MonadState a m, Monoid r) => Traversal a b r d -> m r
 --
 -- > use :: MonadState a m => ((c -> Const c d) -> a -> Const c b) -> m c
 use :: MonadState a m => Getting c a b c d -> m c
@@ -874,11 +927,11 @@ use l = State.gets (^.l)
 -- Use the target of a 'Lens', 'Iso' or 'Getter' in the current state, or use a
 -- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
 --
--- > uses :: MonadState a m             => Getter a b c d    -> (c -> e) -> m e
+-- > uses :: MonadState a m             => Getter a c        -> (c -> e) -> m e
+-- > uses :: (MonadState a m, Monoid r) => Fold a c          -> (c -> r) -> m r
 -- > uses :: MonadState a m             => Lens a b c d      -> (c -> e) -> m e
 -- > uses :: MonadState a m             => Iso a b c d       -> (c -> e) -> m e
--- > uses :: (MonadState a m, Monoid c) => Fold a b c d      -> (c -> e) -> m e
--- > uses :: (MonadState a m, Monoid c) => Traversal a b c d -> (c -> e) -> m e
+-- > uses :: (MonadState a m, Monoid r) => Traversal a b c d -> (c -> r) -> m r
 --
 -- > uses :: MonadState a m => ((c -> Const e d) -> a -> Const e b) -> (c -> e) -> m e
 uses :: MonadState a m => Getting e a b c d -> (c -> e) -> m e
@@ -888,11 +941,21 @@ uses l f = State.gets (views l f)
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal' in our monadic
 -- state with a new value, irrespective of the old.
+--
+-- > (^=) :: MonadState a m => Iso a a c d       -> d -> m ()
+-- > (^=) :: MonadState a m => Lens a a c d      -> d -> m ()
+-- > (^=) :: MonadState a m => Traversal a a c d -> d -> m ()
+-- > (^=) :: MonadState a m => Setter a a c d    -> d -> m ()
 (^=) :: MonadState a m => Setter a a c d -> d -> m ()
 l ^= b = State.modify (l ^~ b)
 {-# INLINE (^=) #-}
 
 -- | Map over the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal in our monadic state.
+--
+-- > (%=) :: MonadState a m => Iso a a c d       -> (c -> d) -> m ()
+-- > (%=) :: MonadState a m => Lens a a c d      -> (c -> d) -> m ()
+-- > (%=) :: MonadState a m => Traversal a a c d -> (c -> d) -> m ()
+-- > (%=) :: MonadState a m => Setter a a c d    -> (c -> d) -> m ()
 (%=) :: MonadState a m => Setter a a c d -> (c -> d) -> m ()
 l %= f = State.modify (l %~ f)
 {-# INLINE (%=) #-}
@@ -961,8 +1024,13 @@ type Fold a c = forall m b d. Monoid m => (c -> Const m d) -> a -> Const m b
 -- | Build a 'Getter' or 'Fold' from a 'foldMap'-like function.
 --
 -- > folds :: ((c -> m) -> a -> m) -> (c -> Const m d) -> a -> Const m b
-folds :: ((c -> m) -> a -> m) -> Getting m a b c d
-folds l f = Const . l (getConst . f)
+-- > folds :: ((c -> m) -> a -> m) -> Getting m a b c d
+folds :: Isomorphic k => k ((c -> m) -> a -> m) (Getting m a b c d)
+folds = morphism (\l f -> Const . l (getConst . f))
+                 (\l f -> getConst . l (Const . f))
+{-# INLINE folds #-}
+{-# SPECIALIZE folds :: ((c -> m) -> a -> m) -> Getting m a b c d #-}
+{-# SPECIALIZE folds :: Isomorphism ((c -> m) -> a -> m) (Getting m a b c d) #-}
 
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
 --
@@ -1021,15 +1089,20 @@ droppingWhile p l f = Const . foldrOf l (\a r -> if p a then mempty else mappend
 -- > foldMap = foldMapOf folded
 --
 -- > foldMapOf = views
+-- > foldMapOf = from folds
 --
 -- > foldMapOf ::             Getter a c        -> (c -> m) -> a -> m
 -- > foldMapOf :: Monoid m => Fold a c          -> (c -> m) -> a -> m
 -- > foldMapOf ::             Lens a b c d      -> (c -> m) -> a -> m
 -- > foldMapOf ::             Iso a b c d       -> (c -> m) -> a -> m
 -- > foldMapOf :: Monoid m => Traversal a b c d -> (c -> m) -> a -> m
-foldMapOf :: Getting m a b c d -> (c -> m) -> a -> m
-foldMapOf l f = getConst . l (Const . f)
+--
+-- > foldMapOf :: Getting m a b c d -> (c -> m) -> a -> m
+foldMapOf :: Isomorphic k => k (Getting m a b c d) ((c -> m) -> a -> m)
+foldMapOf = morphism (\l f -> getConst . l (Const . f))
+                     (\l f -> Const . l (getConst . f))
 {-# INLINE foldMapOf #-}
+{-# SPECIALIZE foldMapOf :: Getting m a b c d -> (c -> m) -> a -> m #-}
 
 -- |
 -- > fold = foldOf folded
@@ -1606,23 +1679,6 @@ traverseValue p f kv@(k,v)
 {-# INLINE traverseValue #-}
 
 ------------------------------------------------------------------------------
--- Cloning Lenses
-------------------------------------------------------------------------------
-
--- | Cloning a 'Lens' is one way to make sure you arent given
--- something weaker, such as a 'Traversal' and can be used
--- as a way to pass around lenses that have to be monomorphic in 'f'.
---
--- Note: This only accepts a proper 'Lens', because 'IndexedStore' lacks its
--- (admissable) Applicative instance.
-clone :: Functor f
-      => LensLike (IndexedStore c d) a b c d
-      -> (c -> f d) -> a -> f b
-clone f cfd a = case f (IndexedStore id) a of
-  IndexedStore db c -> db <$> cfd c
-{-# INLINE clone #-}
-
-------------------------------------------------------------------------------
 -- Transforming Traversals
 ------------------------------------------------------------------------------
 
@@ -1634,9 +1690,14 @@ clone f cfd a = case f (IndexedStore id) a of
 --
 -- This requires at least a 'Traversal' (or 'Lens') and can produce a
 -- 'Traversal' (or 'Lens') in turn.
-backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d
-backwards l f = forwards . l (Backwards . f)
+--
+-- A backwards 'Iso' is the same 'Iso'. If you reverse the direction of
+-- the isomorphism use 'from' instead.
+backwards :: Isomorphic k => IsoLike k (Backwards f) a b c d -> IsoLike k f a b c d
+backwards = isomap (\l f -> forwards . l (Backwards . f)) (\l f -> forwards . l (Backwards . f))
 {-# INLINE backwards #-}
+{-# SPECIALIZE backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d #-}
+{-# SPECIALIZE backwards :: IsoLike Isomorphism (Backwards f) a b c d -> IsoLike Isomorphism f a b c d #-}
 
 -- | Merge two lenses, getters, setters, folds or traversals.
 merged :: Functor f => LensLike f a b c c -> LensLike f a' b' c c -> LensLike f (Either a a') (Either b b') c c
@@ -1663,18 +1724,36 @@ bifocal l r f (a, a') = case l (IndexedStore id) a of
 --
 -- > import Control.Category
 -- > import Prelude hiding ((.),id)
+--
+-- > type Iso a b c d = forall k f. (Isomorphic k, Functor f) => IsoLike k f a b c d
 type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
 
--- > type SimpleIso a b = Simple Iso a b
+-- | > type SimpleIso a b = Simple Iso a b
 type SimpleIso a b = Iso a a b b
 
+-- | > type LensLike f a b c d = IsoLike (->) f a b c d
+type IsoLike k f a b c d = k (c -> f d) (a -> f b)
+
+-- | > type SimpleIsoLike k f a b = Simple (IsoLike k f) a b
+type SimpleIsoLike k f a b = IsoLike k f a a b b
+
 -- | Build an isomorphism family from two pairs of inverse functions
-isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Iso a b c d
+--
+-- > isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Iso a b c d
+isos :: (Isomorphic k, Functor f) => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> IsoLike k f a b c d
 isos ac ca bd db = morphism (\cfd a -> db <$> cfd (ac a)) (\afb c -> bd <$> afb (ca c))
+{-# INLINE isos #-}
+{-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> LensLike f a b c d #-}
+{-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> IsoLike Isomorphism f a b c d #-}
 
 -- | Build a simple isomorphism from a pair of inverse functions
-iso :: (a -> b) -> (b -> a) -> Simple Iso a b
+--
+-- > iso :: (a -> b) -> (b -> a) -> Simple Iso a b
+iso :: (Isomorphic k, Functor f) => (a -> b) -> (b -> a) -> SimpleIsoLike k f a b
 iso ab ba = isos ab ba ab ba
+{-# INLINE iso #-}
+{-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> SimpleLensLike f a b #-}
+{-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> SimpleIsoLike Isomorphism f a b #-}
 
 -- | Invert an isomorphism.
 --
@@ -1686,8 +1765,41 @@ iso ab ba = isos ab ba ab ba
 -- If you imported 'Control.Category.(.)', then:
 --
 -- > from l . from r = from (r . l)
-from :: Iso a b c d -> Iso c d a b
+from :: Isomorphic k => Isomorphism a b -> k b a
 from (Isomorphism a b) = morphism b a
+{-# SPECIALIZE from :: Isomorphism a b -> b -> a #-}
+{-# SPECIALIZE from :: Isomorphism a b -> Isomorphism b a #-}
+
+-----------------------------------------------------------------------------
+-- Isomorphism Implementation Details
+-----------------------------------------------------------------------------
+
+-- | Used to provide overloading of isomorphism application
+class Category k => Isomorphic k where
+  -- | Build this morphism out of an isomorphism
+  --
+  -- The intention is that by using 'morphism', you can supply both halves of an
+  -- isomorphism, but k can be isntantiated to (->), so you can freely use
+  -- the resulting isomorphism as a function.
+  morphism :: (a -> b) -> (b -> a) -> k a b
+
+  -- | Map a morphism using an isomorphism between morphisms
+  isomap :: ((a -> b) -> c -> d) -> ((b -> a) -> d -> c) -> k a b -> k c d
+
+instance Isomorphic (->) where
+  morphism = const
+  isomap = const
+
+-- | Exposed because under some circumstances you may need to manually employ hither and yon.
+data Isomorphism a b = Isomorphism { hither :: a -> b, yon :: b -> a }
+
+instance Category Isomorphism where
+  id = Isomorphism id id
+  Isomorphism bc cb . Isomorphism ab ba = Isomorphism (bc . ab) (ba . cb)
+
+instance Isomorphic Isomorphism where
+  morphism = Isomorphism
+  isomap abcd badc (Isomorphism ab ba) = Isomorphism (abcd ab) (badc ba)
 
 -----------------------------------------------------------------------------
 -- Isomorphism
@@ -1708,3 +1820,23 @@ identity = isos Identity runIdentity Identity runIdentity
 konst :: Iso a b (Const a c) (Const b d)
 konst = isos Const getConst Const getConst
 {-# INLINE konst #-}
+
+------------------------------------------------------------------------------
+-- Cloning Lenses
+------------------------------------------------------------------------------
+
+-- |
+--
+-- Cloning a 'Lens' is one way to make sure you arent given
+-- something weaker, such as a 'Traversal' and can be used
+-- as a way to pass around lenses that have to be monomorphic in 'f'.
+--
+-- Note: This only accepts a proper 'Lens', because 'IndexedStore' lacks its
+-- (admissable) Applicative instance.
+--
+clone :: Functor f
+      => LensLike (IndexedStore c d) a b c d
+      -> (c -> f d) -> a -> f b
+clone f cfd a = case f (IndexedStore id) a of
+  IndexedStore db c -> db <$> cfd c
+{-# INLINE clone #-}

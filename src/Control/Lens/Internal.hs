@@ -25,8 +25,6 @@ module Control.Lens.Internal
   , getMin
   , Max(..)
   , getMax
-  , Isomorphism(..)
-  , Isomorphic(..)
   ) where
 
 import Control.Applicative
@@ -120,24 +118,3 @@ getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
 
------------------------------------------------------------------------------
--- Isomorphism Implementation Details
------------------------------------------------------------------------------
-
--- | Used by the iso smart constructor to overload function application.
-class Category k => Isomorphic k where
-  -- | Build this morphism out of an isomorphism
-  morphism :: (a -> b) -> (b -> a) -> k a b
-
-instance Isomorphic (->) where
-  morphism = const
-
--- | Exposed because under some circumstances you may need to manually employ hither and yon.
-data Isomorphism a b = Isomorphism { hither :: a -> b, yon :: b -> a }
-
-instance Category Isomorphism where
-  id = Isomorphism id id
-  Isomorphism bc cb . Isomorphism ab ba = Isomorphism (bc . ab) (ba . cb)
-
-instance Isomorphic Isomorphism where
-  morphism = Isomorphism
