@@ -10,10 +10,10 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
--- This package provides lens families, setters, getters, traversals, isomorphisms, and folds that
--- can all be composed automatically with each other (and other lenses from
--- other van Laarhoven lens libraries) using @(.)@ from Prelude, while
--- reducing the complexity of the API.
+-- This package provides lens families, setters, getters, traversals,
+-- isomorphisms, and folds that can all be composed automatically with
+-- each other (and other lenses from other van Laarhoven lens libraries)
+-- using @(.)@ from Prelude, while reducing the complexity of the API.
 --
 -- For a longer description and motivation of why you should care about lens families,
 -- see <http://comonad.com/reader/2012/mirrored-lenses/>.
@@ -560,8 +560,8 @@ mapped = sets fmap
 --
 -- > sets . adjust = id
 -- > adjust . sets = id
---
 -- > sets = from adjust
+-- > adjust = from sets
 --
 -- > sets :: ((c -> d) -> a -> b) -> Setter a b c d
 sets :: Isomorphic k => k ((c -> d) -> a -> b) (Setter a b c d)

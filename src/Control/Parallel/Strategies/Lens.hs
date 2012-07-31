@@ -47,18 +47,16 @@ evalOf l = l
 parOf :: LensLike Eval a a b b -> Strategy b -> Strategy a
 parOf l s = l (rparWith s)
 
--- |
--- > after rdeepseq traverse
---
--- Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
+-- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
 -- first evaluates its argument according to a given strategy, before proceeding.
+--
+-- > after rdeepseq traverse
 after :: Strategy a -> LensLike f a b c d -> LensLike f a b c d
 after s l f = l f $| s
 
--- |
--- > meanwhile rdeepseq traverse
---
--- Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
+-- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
 -- evaluate its argument according to a given strategy in parallel with evaluating.
+--
+-- > meanwhile rdeepseq traverse
 meanwhile :: Strategy a -> LensLike f a b c d -> LensLike f a b c d
 meanwhile s l f = l f $|| s
