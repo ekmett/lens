@@ -31,13 +31,11 @@ imaginary f (a :+ b) = (a :+) <$> f b
 
 -- | This isn't /quite/ a legal lens. Notably the @view l (set l b a) = b@ law
 -- is violated when you set a polar value with 0 magnitude and non-zero phase
--- as the phase information is lost. So don't do that! Otherwise, this is a 
+-- as the phase information is lost. So don't do that! Otherwise, this is a
 -- perfectly cromulent lens.
---
--- > polarize :: (RealFloat a, RealFloat b, Functor f)
--- >           => ((a,a) -> f (b,b)) -> Complex a -> f (Complex b)
-polarize :: (RealFloat a, RealFloat b) => Lens (Complex a) (Complex b) (a,a) (b,b)
-polarize f c = uncurry mkPolar <$> f (polar c)
+
+polarize :: RealFloat a => Iso (Complex a) (a,a)
+polarize = iso polar (uncurry mkPolar)
 
 -- | Traverse both the real and imaginary parts of a complex number.
 --

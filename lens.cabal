@@ -96,6 +96,11 @@ description:
   .
   The lens laws follow from this property and the desire for it to act like a 'Functor' when used as a 'Setter'.
   .
+  /Iso/
+  .
+  Finally, @Iso a b@ is an isomorphism between two types. It is represented in such a way that you can directly
+  compose it with with other isomorphisms and with lenses, setters, folds, traversals and getters.
+  .
   /Composition/
   .
   Note that all of these types are type aliases, and you can compose these lenses with mere function compositon.

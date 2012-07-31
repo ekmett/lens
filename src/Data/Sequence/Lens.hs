@@ -33,8 +33,8 @@ at i f m = (\a -> update i a m) <$> f (index m i)
 -- | A 'Seq' is isomorphic to a 'ViewL'
 --
 -- > viewl m = m^.viewL
-viewL :: Simple Lens (Seq a) (ViewL a)
-viewL f m = go <$> f (viewl m) where
+viewL :: Iso (Seq a) (ViewL a)
+viewL = iso viewl go where
   go EmptyL = mempty
   go (a :< as) = a <| as
 {-# INLINE viewL #-}
@@ -42,8 +42,8 @@ viewL f m = go <$> f (viewl m) where
 -- | A 'Seq' is isomorphic to a 'ViewR'
 --
 -- > viewr m = m^.viewR
-viewR :: Simple Lens (Seq a) (ViewR a)
-viewR f m = go <$> f (viewr m) where
+viewR :: Iso (Seq a) (ViewR a)
+viewR = iso viewr go where
   go EmptyR = mempty
   go (as :> a) = as |> a
 {-# INLINE viewR #-}
