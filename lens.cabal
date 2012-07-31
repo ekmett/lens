@@ -17,10 +17,14 @@ description:
   .
   /Getter/
   .
-  A @'Getter' a b c d@ is just any function @(a -> c)@, which we've flipped into continuation
-  passing style, @forall r. (c -> r) -> a -> r@ and decorated with 'Const' to obtain
+  A @'Getter' a c@ is just any function @(a -> c)@, which we've flipped into continuation
+  passing style, @(c -> r) -> a -> r@ and decorated with 'Const' to obtain
   .
-  > type Getter a b c d = forall r. (c -> Const r d) -> a -> Const r b
+  > type Getting r a b c d = (c -> Const r d) -> a -> Const r b
+  .
+  If we restrict access to knowledge about the type 'r' and can work for any d and b, we get:
+  .
+  > type Getter a c = forall r b d. Getting r a b c d
   .
   Everything you can do with a function, you can do with a 'Getter', but note that because of the
   continuation passing style (.) composes them in the opposite order.
@@ -30,13 +34,13 @@ description:
   .
   /Fold/
   .
-  A @'Fold' a b c d@ is a generalization of something 'Foldable'. It allows you to
+  A @'Fold' a c@ is a generalization of something 'Foldable'. It allows you to
   extract multiple results from a container. A 'Foldable' container can be
   characterized by the behavior of @foldMap :: (Foldable t, Monoid m) => (c -> m) -> t c -> m@.
   Since we want to be able to work with monomorphic containers, we generalize this signature to
   @forall m. 'Monoid' m => (c -> m) -> a -> m@, and then decorate it with 'Const' to obtain
   .
-  > type Fold a b c d = forall m. Monoid m => (c -> Const m d) -> a -> Const m b
+  > type Fold a c = forall m b d. Monoid m => Getting m a b c d
   .
   Every 'Getter' is a valid 'Fold' that simply doesn't use the 'Monoid' it is passed.
   .
@@ -53,8 +57,9 @@ description:
   .
   > type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
   .
-  Every 'Traversal' can be used as a valid 'Fold', because given a 'Monoid' @m@, we have an 'Applicative' for @('Const' m)@.
-
+  While a 'Traversal' isn't quite a 'Fold', it _can_ be used for 'Getting' like a 'Fold', because 
+  given a 'Monoid' @m@, we have an 'Applicative' for @('Const' m)@.
+  .
   Everything you can do with a 'Traversable' container, you can with with a 'Traversal', and there
   are combinators that generalize the usual 'Traversable' operations in @Control.Lens@.
   .
@@ -86,13 +91,14 @@ description:
   .
   Every 'Lens' is a valid 'Setter', choosing @f@ = 'Identity'.
   .
-  Every 'Lens' is a valid 'Fold' that doesn't use the 'Monoid' it is passed.
+  Every 'Lens' can be used for 'Getting' like a 'Fold' that doesn't use the 'Monoid' it is passed.
   .
   Every 'Lens' is a valid 'Traversal' that only uses the 'Functor' part of the 'Applicative' it is supplied.
   .
-  Every 'Lens' is a valid 'Getter', choosing @f@ = 'Const' @r@ for an appropriate @r@
+  Every 'Lens' can be used for 'Getting' like a valid 'Getter', choosing @f@ = 'Const' @r@ for an appropriate @r@
   .
-  Since every 'Lens' is a valid 'Getter' it follows that it must view exactly one element in the structure.
+  Since every 'Lens' can be used for 'Getting' like a valid 'Getter' it follows that it must view exactly one
+  element in the structure.
   .
   The lens laws follow from this property and the desire for it to act like a 'Functor' when used as a 'Setter'.
   .
@@ -118,7 +124,7 @@ description:
   .
   > type Simple f a b = f a a b b
   .
-  to describe a 'Simple' 'Lens', 'Simple' 'Traversal' or 'Simple' 'Setter'.
+  to describe a 'Simple' 'Setter', 'Simple' 'Traversal', 'Simple' 'Lens' or 'Simple' 'Iso'.
   .
   /Avoiding Dependencies/
   .

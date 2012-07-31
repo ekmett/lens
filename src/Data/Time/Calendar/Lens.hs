@@ -76,9 +76,12 @@ class HasDay t where
   -- | Get the day of a date
   day :: Simple Lens t Int
 
--- | Date in the proleptic Gregorian calendar. First element of result is year, second month number (1-12), third day (1-31).
-data Gregorian = Gregorian !Integer !Int !Int
-  deriving (Eq,Ord,Show,Read)
+-- | Date in the proleptic Gregorian calendar.
+data Gregorian = Gregorian
+  { gregorianYear :: !Integer -- ^ year
+  , gregorianMonth :: !Int    -- ^ month (1-12)
+  , gregorianDay :: !Int      -- ^ day   (1-31)
+  } deriving (Eq,Ord,Show,Read)
 
 uncurry3 :: (a -> b -> c -> d) -> (a,b,c) -> d
 uncurry3 f (a,b,c) = f a b c
@@ -103,9 +106,10 @@ instance HasDay Gregorian where
   day f (Gregorian y m d) = Gregorian y m <$> f d
 
 -- | Proleptic Julian year and day format.
--- First element of result is year (proleptic Julian calendar), second is the day of the year, with 1 for Jan 1, and 365 (or 366 in leap years) for Dec 31.
-data JulianYearAndDay = JulianYearAndDay !Integer !Int
-  deriving (Eq,Ord,Show,Read)
+data JulianYearAndDay = JulianYearAndDay
+  { julianYearAndDayYear :: !Integer -- ^ year (in the proleptic Julian calendar)
+  , julianYearAndDayDay  :: !Int     -- ^ day of the year, with 1 for Jan 1, and 365 (or 366 in leap years) for Dec 31.
+  } deriving (Eq,Ord,Show,Read)
 
 -- | Convert to/from a /valid/ proleptic Julian year and day.
 julianYearAndDay :: Simple Iso Day JulianYearAndDay
@@ -123,13 +127,14 @@ instance HasYear JulianYearAndDay where
 instance HasDay JulianYearAndDay where
   day f (JulianYearAndDay y d) = JulianYearAndDay y <$> f d
 
--- | ISO 8601 Week Date format. First element of result is year, second week number (1-53), third day of week (1 for Monday to 7 for Sunday).
---
--- Note that "Week" years are not quite the same as Gregorian years, as the first day of the year is always a Monday.
+-- | ISO 8601 Week Date format.
 --
 -- The first week of a year is the first week to contain at least four days in the corresponding Gregorian year.
-data WeekDate = WeekDate !Integer !Int !Int
-  deriving (Eq,Ord,Show,Read)
+data WeekDate = WeekDate 
+  { weekDateYear :: !Integer -- ^ year. Note: that "Week" years are not quite the same as Gregorian years, as the first day of the year is always a Monday.
+  , weekDateWeek :: !Int -- ^ week number (1-53)
+  , weekDateDay  :: !Int -- ^ day of week (1 for Monday to 7 for Sunday).
+  } deriving (Eq,Ord,Show,Read)
 
 -- | Convert to/from a valid WeekDate
 weekDate :: Simple Iso Day WeekDate
@@ -150,8 +155,11 @@ instance HasWeek WeekDate where
 instance HasDay WeekDate where
   day f (WeekDate y w d) = WeekDate y w <$> f d
 
--- ISO 8601 Ordinal Date format. First element of result is year (proleptic Gregoran calendar), second is the day of the year, with 1 for Jan 1, and 365 (or 366 in leap years) for Dec 31.
-data OrdinalDate = OrdinalDate !Integer Int
+-- | ISO 8601 Ordinal Date format
+data OrdinalDate = OrdinalDate
+  { ordinalDateYear :: !Integer -- ^ year (proleptic Gregorian calendar)
+  , ordinalDateDay  :: !Int     -- ^ day of the year, with 1 for Jan 1, and 365 (or 366 in leap years) for Dec 31.
+  } deriving (Eq,Ord,Show,Read)
 
 -- | Convert to/from a valid ISO 8601 Ordinal Date format.
 ordinalDate :: Simple Iso Day OrdinalDate

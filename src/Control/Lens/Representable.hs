@@ -100,7 +100,7 @@ class Functor f => Representable f where
   rep :: (Rep f -> a) -> f a
 
 instance Representable Identity where
-  rep f = Identity (f identity)
+  rep f = Identity (f (from identity))
 
 -- | NB: The Eq requirement on this instance is a consequence of a lens
 -- rather than 'e' as the representation.
