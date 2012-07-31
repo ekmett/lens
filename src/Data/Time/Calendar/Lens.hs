@@ -41,6 +41,7 @@ import Data.Time.Calendar.Julian
 import Data.Time.Calendar.WeekDate
 import Data.Time.Calendar.OrdinalDate
 
+-- | Provide ad hoc overloading for traversing the modified Julian day
 class TraverseDay t where
   -- | Convert the type to a modified Julian day if possible and traverse it.
   --
@@ -57,18 +58,22 @@ instance TraverseDay Day where
 
 -- | Ad hoc overloading for accessing the year
 class HasYear t where
+  -- | Get the year of a date
   year :: Simple Lens t Integer
 
 -- | Ad hoc overloading for accessing the month
 class HasMonth t where
+  -- | Get the month of a date
   month :: Simple Lens t Int
 
 -- | Ad hoc overloading for accessing the week (what it is relative to may vary from type to type)
 class HasWeek t where
+  -- | Get the week of a date
   week :: Simple Lens t Int
 
 -- | Ad hoc overloading for accessing the day (what it is relative to may vary from type to type)
 class HasDay t where
+  -- | Get the day of a date
   day :: Simple Lens t Int
 
 -- | Date in the proleptic Gregorian calendar. First element of result is year, second month number (1-12), third day (1-31).

@@ -98,7 +98,7 @@ description:
   .
   /Iso/
   .
-  Finally, @Iso a b@ is an isomorphism between two types. It is represented in such a way that you can directly
+  Finally, @Iso a b a d@ is an isomorphism family. It is represented in such a way that you can directly
   compose it with with other isomorphisms and with lenses, setters, folds, traversals and getters.
   .
   /Composition/
