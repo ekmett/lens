@@ -1,7 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
-{-# LANGUAGE ImpredicativeTypes #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens

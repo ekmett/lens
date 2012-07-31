@@ -3,7 +3,7 @@ lens
 
 [![Build Status](https://secure.travis-ci.org/ekmett/lens.png?branch=master)](http://travis-ci.org/ekmett/lens)
 
-This package provides families of lenses, folds, traversals, getters and setters.
+This package provides families of lenses, isomorphisms, folds, traversals, getters and setters.
 
 These lenses are compatible with those from lens-family, lens-family-core, lens-family-th and from polylens, but
 provide additional flexibility in their composition.
