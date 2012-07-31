@@ -126,11 +126,11 @@ getMax (Max a) = Just a
 
 -- | Used by the iso smart constructor to overload function application.
 class Category k => Isomorphic k where
-  -- |
-  morphism :: Functor f => (a -> b) -> (b -> a) -> k (b -> f b) (a -> f a)
+  -- | Build this morphism out of an isomorphism
+  morphism :: (a -> b) -> (b -> a) -> k a b
 
 instance Isomorphic (->) where
-  morphism ab ba bfb a = ba <$> bfb (ab a)
+  morphism = const
 
 -- | Exposed because under some circumstances you may need to manually employ hither and yon.
 data Isomorphism a b = Isomorphism { hither :: a -> b, yon :: b -> a }
@@ -140,4 +140,4 @@ instance Category Isomorphism where
   Isomorphism bc cb . Isomorphism ab ba = Isomorphism (bc . ab) (ba . cb)
 
 instance Isomorphic Isomorphism where
-  morphism ab ba = Isomorphism (\bfb a -> ba <$> bfb (ab a)) (\afa b -> ab <$> afa (ba b))
+  morphism = Isomorphism

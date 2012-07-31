@@ -143,7 +143,6 @@ module Control.Lens
   , Iso
   , iso
   , from
-  -- , (...)
   ) where
 
 import Control.Applicative              as Applicative
@@ -162,7 +161,6 @@ import Data.Maybe
 import Data.Monoid
 import Data.Traversable
 
--- infixr 9 ...
 infixl 8 ^.
 infixr 4 ^~, +~, *~, -~, //~, &&~, ||~, %~, <>~, %%~
 infix  4 ^=, +=, *=, -=, //=, &&=, ||=, %=, <>=, %%=
@@ -1630,7 +1628,7 @@ type Iso a b = forall k f. (Isomorphic k, Functor f) => k (b -> f b) (a -> f a)
 
 -- | Build an isomorphism from a pair of inverse functions.
 iso :: (a -> b) -> (b -> a) -> Iso a b
-iso = morphism
+iso ab ba = morphism (\bfb a -> ba <$> bfb (ab a)) (\afa b -> ab <$> afa (ba b))
 
 -- | Invert an isomorphism.
 --
@@ -1643,14 +1641,4 @@ iso = morphism
 --
 -- > from l . from r = from (r . l)
 from :: Iso a b -> Iso b a
-from l = morphism (getConst . yon l Const) (getConst . hither l Const)
-
-{-
--- | Compose isomorphisms
---
--- This has the same behavior as 'Control.Category.(.)' from @Control.Category@ when
--- applied to an isomorphism, but lets you avoid having to qualify the import from Prelude.
---
-(...) :: Iso b c -> Iso a b -> Iso a c
-f ... g  = morphism (getConst . yon f . yon g Const) (getConst . hither g . hither f Const)
--}
+from (Isomorphism a b) = morphism b a
