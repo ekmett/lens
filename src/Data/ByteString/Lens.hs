@@ -9,7 +9,8 @@
 --
 ----------------------------------------------------------------------------
 module Data.ByteString.Lens
-  ( TraverseByteString(..)
+  ( IsByteString(..)
+  , traverseByteString
   ) where
 
 import Control.Lens
@@ -17,15 +18,26 @@ import Data.ByteString as Strict
 import Data.ByteString.Lazy as Lazy
 import Data.Word (Word8)
 
--- | Provides ad hoc overloading for 'traverseByteString'
-class TraverseByteString t where
-  -- | Traverse the individual bytes in a 'ByteString'
+-- | Provides ad hoc overloading for 'packedByteString'
+class IsByteString t where
+  -- | Pack or unpack a ByteString
   --
-  -- > anyOf traverseByteString (==0x80) :: TraverseByteString b => b -> Bool
-  traverseByteString :: Simple Traversal t Word8
+  -- > pack x = x^.packedByteString
+  -- > unpack x = x^.from packedByteString
+  packedByteString :: Simple Iso [Word8] t
 
-instance TraverseByteString Strict.ByteString where
-  traverseByteString f = fmap Strict.pack . traverse f . Strict.unpack
+instance IsByteString Strict.ByteString where
+  packedByteString = iso Strict.pack Strict.unpack
+  {-# INLINE packedByteString #-}
 
-instance TraverseByteString Lazy.ByteString where
-  traverseByteString f = fmap Lazy.pack . traverse f . Lazy.unpack
+instance IsByteString Lazy.ByteString where
+  packedByteString = iso Lazy.pack Lazy.unpack
+  {-# INLINE packedByteString #-}
+
+-- | Traverse the individual bytes in a 'ByteString'
+--
+-- > anyOf traverseByteString (==0x80) :: TraverseByteString b => b -> Bool
+traverseByteString :: IsByteString t => Simple Traversal t Word8
+traverseByteString = from packedByteString . traverse
+{-# INLINE traverseByteString #-}
+
