@@ -144,11 +144,10 @@ module Control.Lens
   , SimpleIsoLike
   , iso
   , isos
-  , from
 
-  -- * Isomorphism Implementation
-  , Isomorphic(..)
-  , Isomorphism(..)
+  -- ** Control.Morphism
+  , Morphism(..)
+  , from
 
   -- ** Common Isomorphisms
   , identity
@@ -158,6 +157,7 @@ module Control.Lens
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
 import Control.Category
+import Control.Morphism
 import Control.Lens.Internal
 import Control.Monad
 import Control.Monad.Reader.Class       as Reader
@@ -394,7 +394,7 @@ traverseOf = id
 -- > forOf = morphism flip flip
 --
 -- > forOf :: Lens a b c d -> a -> (c -> f d) -> f b
-forOf :: Isomorphic k => k (LensLike f a b c d) (a -> (c -> f d) -> f b)
+forOf :: Morphism k => k (LensLike f a b c d) (a -> (c -> f d) -> f b)
 forOf = morphism flip flip
 {-# INLINE forOf #-}
 {-# SPECIALIZE forOf :: LensLike f a b c d -> a -> (c -> f d) -> f b #-}
@@ -564,7 +564,7 @@ mapped = sets fmap
 -- > adjust = from sets
 --
 -- > sets :: ((c -> d) -> a -> b) -> Setter a b c d
-sets :: Isomorphic k => k ((c -> d) -> a -> b) (Setter a b c d)
+sets :: Morphism k => k ((c -> d) -> a -> b) (Setter a b c d)
 sets = morphism (\f g -> Identity . f (runIdentity . g))
                 (\l f -> runIdentity . l (Identity . f))
 {-# INLINE sets #-}
@@ -580,7 +580,7 @@ sets = morphism (\f g -> Identity . f (runIdentity . g))
 -- > adjust . sets = id
 --
 -- > adjust :: Setter a b c d -> (c -> d) -> a -> b
-adjust :: Isomorphic k => k (Setter a b c d) ((c -> d) -> a -> b)
+adjust :: Morphism k => k (Setter a b c d) ((c -> d) -> a -> b)
 adjust = morphism (\l f -> runIdentity . l (Identity . f))
                   (\f g -> Identity . f (runIdentity . g))
 {-# INLINE adjust #-}
@@ -601,7 +601,7 @@ adjust = morphism (\l f -> runIdentity . l (Identity . f))
 -- > mapOf :: Iso a b c d       -> (c -> d) -> a -> b
 -- > mapOf :: Lens a b c d      -> (c -> d) -> a -> b
 -- > mapOf :: Traversal a b c d -> (c -> d) -> a -> b
-mapOf :: Isomorphic k => k (Setter a b c d) ((c -> d) -> a -> b)
+mapOf :: Morphism k => k (Setter a b c d) ((c -> d) -> a -> b)
 mapOf = adjust
 {-# INLINE mapOf #-}
 {-# SPECIALIZE mapOf :: Setter a b c d -> (c -> d) -> a -> b #-}
@@ -768,7 +768,7 @@ view l = getConst . l Const
 -- > views :: Monoid m => Traversal a b c d -> (c -> m) -> a -> m
 --
 -- > views :: ((c -> Const m d) -> a -> Const m b) -> (c -> m) -> a -> m
-views :: Isomorphic k => k (Getting m a b c d) ((c -> m) -> a -> m)
+views :: Morphism k => k (Getting m a b c d) ((c -> m) -> a -> m)
 views = morphism (\l f -> getConst . l (Const . f)) (\l f -> Const . l (getConst . f))
 {-# INLINE views #-}
 {-# SPECIALIZE views :: Getting m a b c d -> (c -> m) -> a -> m #-}
@@ -1024,7 +1024,7 @@ type Fold a c = forall m b d. Monoid m => (c -> Const m d) -> a -> Const m b
 --
 -- > folds :: ((c -> m) -> a -> m) -> (c -> Const m d) -> a -> Const m b
 -- > folds :: ((c -> m) -> a -> m) -> Getting m a b c d
-folds :: Isomorphic k => k ((c -> m) -> a -> m) (Getting m a b c d)
+folds :: Morphism k => k ((c -> m) -> a -> m) (Getting m a b c d)
 folds = morphism (\l f -> Const . l (getConst . f))
                  (\l f -> getConst . l (Const . f))
 {-# INLINE folds #-}
@@ -1097,7 +1097,7 @@ droppingWhile p l f = Const . foldrOf l (\a r -> if p a then mempty else mappend
 -- > foldMapOf :: Monoid m => Traversal a b c d -> (c -> m) -> a -> m
 --
 -- > foldMapOf :: Getting m a b c d -> (c -> m) -> a -> m
-foldMapOf :: Isomorphic k => k (Getting m a b c d) ((c -> m) -> a -> m)
+foldMapOf :: Morphism k => k (Getting m a b c d) ((c -> m) -> a -> m)
 foldMapOf = morphism (\l f -> getConst . l (Const . f))
                      (\l f -> Const . l (getConst . f))
 {-# INLINE foldMapOf #-}
@@ -1692,7 +1692,7 @@ traverseValue p f kv@(k,v)
 --
 -- A backwards 'Iso' is the same 'Iso'. If you reverse the direction of
 -- the isomorphism use 'from' instead.
-backwards :: Isomorphic k => IsoLike k (Backwards f) a b c d -> IsoLike k f a b c d
+backwards :: Morphism k => IsoLike k (Backwards f) a b c d -> IsoLike k f a b c d
 backwards = isomap (\l f -> forwards . l (Backwards . f)) (\l f -> forwards . l (Backwards . f))
 {-# INLINE backwards #-}
 {-# SPECIALIZE backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d #-}
@@ -1724,8 +1724,8 @@ bifocal l r f (a, a') = case l (IndexedStore id) a of
 -- > import Control.Category
 -- > import Prelude hiding ((.),id)
 --
--- > type Iso a b c d = forall k f. (Isomorphic k, Functor f) => IsoLike k f a b c d
-type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
+-- > type Iso a b c d = forall k f. (Morphism k, Functor f) => IsoLike k f a b c d
+type Iso a b c d = forall k f. (Morphism k, Functor f) => k (c -> f d) (a -> f b)
 
 -- | > type SimpleIso a b = Simple Iso a b
 type SimpleIso a b = Iso a a b b
@@ -1739,7 +1739,7 @@ type SimpleIsoLike k f a b = IsoLike k f a a b b
 -- | Build an isomorphism family from two pairs of inverse functions
 --
 -- > isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Iso a b c d
-isos :: (Isomorphic k, Functor f) => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> IsoLike k f a b c d
+isos :: (Morphism k, Functor f) => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> IsoLike k f a b c d
 isos ac ca bd db = morphism (\cfd a -> db <$> cfd (ac a)) (\afb c -> bd <$> afb (ca c))
 {-# INLINE isos #-}
 {-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> LensLike f a b c d #-}
@@ -1748,57 +1748,11 @@ isos ac ca bd db = morphism (\cfd a -> db <$> cfd (ac a)) (\afb c -> bd <$> afb 
 -- | Build a simple isomorphism from a pair of inverse functions
 --
 -- > iso :: (a -> b) -> (b -> a) -> Simple Iso a b
-iso :: (Isomorphic k, Functor f) => (a -> b) -> (b -> a) -> SimpleIsoLike k f a b
+iso :: (Morphism k, Functor f) => (a -> b) -> (b -> a) -> SimpleIsoLike k f a b
 iso ab ba = isos ab ba ab ba
 {-# INLINE iso #-}
 {-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> SimpleLensLike f a b #-}
 {-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> SimpleIsoLike Isomorphism f a b #-}
-
--- | Invert an isomorphism.
---
--- Note to compose an isomorphism and receive an isomorphism in turn you'll need to use
--- 'Control.Category.Category'
---
--- > from (from l) = l
---
--- If you imported 'Control.Category.(.)', then:
---
--- > from l . from r = from (r . l)
-from :: Isomorphic k => Isomorphism a b -> k b a
-from (Isomorphism a b) = morphism b a
-{-# SPECIALIZE from :: Isomorphism a b -> b -> a #-}
-{-# SPECIALIZE from :: Isomorphism a b -> Isomorphism b a #-}
-
------------------------------------------------------------------------------
--- Isomorphism Implementation Details
------------------------------------------------------------------------------
-
--- | Used to provide overloading of isomorphism application
-class Category k => Isomorphic k where
-  -- | Build this morphism out of an isomorphism
-  --
-  -- The intention is that by using 'morphism', you can supply both halves of an
-  -- isomorphism, but k can be isntantiated to (->), so you can freely use
-  -- the resulting isomorphism as a function.
-  morphism :: (a -> b) -> (b -> a) -> k a b
-
-  -- | Map a morphism using an isomorphism between morphisms
-  isomap :: ((a -> b) -> c -> d) -> ((b -> a) -> d -> c) -> k a b -> k c d
-
-instance Isomorphic (->) where
-  morphism = const
-  isomap = const
-
--- | Exposed because under some circumstances you may need to manually employ hither and yon.
-data Isomorphism a b = Isomorphism { hither :: a -> b, yon :: b -> a }
-
-instance Category Isomorphism where
-  id = Isomorphism id id
-  Isomorphism bc cb . Isomorphism ab ba = Isomorphism (bc . ab) (ba . cb)
-
-instance Isomorphic Isomorphism where
-  morphism = Isomorphism
-  isomap abcd badc (Isomorphism ab ba) = Isomorphism (abcd ab) (badc ba)
 
 -----------------------------------------------------------------------------
 -- Isomorphism

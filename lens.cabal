@@ -102,10 +102,13 @@ description:
   .
   The lens laws follow from this property and the desire for it to act like a 'Functor' when used as a 'Setter'.
   .
-  /Iso/
+  /Isomorphisms and Iso/
   .
-  Finally, @Iso a b a d@ is an isomorphism family. It is represented in such a way that you can directly
-  compose it with with other isomorphisms and with lenses, setters, folds, traversals and getters.
+  Control.Morphism provides overloading of function application for isomorphisms  and @Iso a b a d@ uses it
+  to form isomorphism families. It is represented in such a way that you can directly compose it with with 
+  other isomorphisms and with lenses, setters, folds, traversals and getters.
+  .
+  > type Iso a b c d = forall f. (Morphism k, Functor f) => k (c -> f d) (a -> f b)
   .
   /Composition/
   .
@@ -157,6 +160,7 @@ library
     Control.Lens.Internal
     Control.Lens.Representable
     Control.Lens.TH
+    Control.Morphism
     Control.Parallel.Strategies.Lens
     Control.Seq.Lens
     Data.Array.Lens
