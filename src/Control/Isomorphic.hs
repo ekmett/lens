@@ -29,7 +29,7 @@ import Data.Typeable
 
 -- | An isomorphism from a to b, overloaded to permit its use directly as a function.
 --
--- You can use a :~ b as if it were (a -> b) or Isomorphism a b
+-- You can use a value of type @(a :~ b)@ as if it were @(a -> b)@ or @Isomorphism a b@.
 infixr 0 :~
 type a :~ b = forall k. Isomorphic k => k a b
 

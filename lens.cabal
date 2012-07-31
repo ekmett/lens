@@ -200,6 +200,7 @@ library
     Rank2Types
     RankNTypes
     TemplateHaskell
+    TypeOperators
 
   if (impl(ghc>=7.4))
     other-extensions:
