@@ -16,7 +16,7 @@ module Control.Isomorphic
   , Isomorphism(..)
   , from
   , via
-  , (:~)
+  , (:~>)
   ) where
 
 import Control.Category
@@ -30,8 +30,8 @@ import Data.Typeable
 -- | An isomorphism from a to b, overloaded to permit its use directly as a function.
 --
 -- You can use a value of type @(a :~ b)@ as if it were @(a -> b)@ or @Isomorphism a b@.
-infixr 0 :~
-type a :~ b = forall k. Isomorphic k => k a b
+infixr 0 :~>
+type a :~> b = forall k. Isomorphic k => k a b
 
 -- | Used to provide overloading of isomorphism application
 --
@@ -84,7 +84,7 @@ instance Isomorphic Isomorphism where
 --
 -- > from l . from r = from (r . l)
 --
--- > from :: (a :~ b) -> (b :~ a)
+-- > from :: (a :~> b) -> (b :~> a)
 from :: Isomorphic k => Isomorphism a b -> k b a
 from (Isomorphism a b) = isomorphic b a
 {-# INLINE from #-}
@@ -92,7 +92,7 @@ from (Isomorphism a b) = isomorphic b a
 {-# SPECIALIZE from :: Isomorphism a b -> Isomorphism b a #-}
 
 -- |
--- > via :: Isomorphism a b -> (a :~ b)
+-- > via :: Isomorphism a b -> (a :~> b)
 via :: Isomorphic k => Isomorphism a b -> k a b
 via (Isomorphism a b) = isomorphic a b
 {-# INLINE via #-}

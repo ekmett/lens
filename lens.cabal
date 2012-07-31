@@ -81,8 +81,9 @@ description:
   .
   A @'Lens' a b c d@ is a purely functional reference.
   .
-  While a 'Traversal' was a valid 'Fold', it wasn't a valid 'Getter'. To make the 'Applicative'
-  for 'Const' it required a 'Monoid' for the argument we passed it, which a 'Getter' doesn't recieve.
+  While a 'Traversal' could be used for 'Getting' like a valid 'Fold', it wasn't a valid 'Getter'.
+  To make the 'Applicative' for 'Const' it required a 'Monoid' for the argument we passed it, which
+  a 'Getter' doesn't recieve.
   .
   However, the instance of 'Functor' for 'Const' requires no such thing. If we weaken the type
   requirement from 'Applicative' to 'Functor' for 'Traversal', we obtain 

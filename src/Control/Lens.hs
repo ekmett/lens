@@ -55,22 +55,22 @@ module Control.Lens
   , SimpleLens
   , SimpleTraversal
   , SimpleLensLike
-
-  -- ** Constructing Lenses
-  , lens
-
-  -- * Traversing and Lensing
   , (%%~), (%%=)
-  , Focus(..)
-  , traverseOf, forOf, sequenceAOf
-  , mapMOf, forMOf, sequenceOf
-  , transposeOf
-  , mapAccumLOf, mapAccumROf
-  , scanr1Of, scanl1Of
+  , lens
 
   -- ** Common Lenses
   , _1, _2
   , resultAt
+
+  -- * Isomorphisms
+  , Iso
+  , SimpleIso
+  , IsoLike
+  , SimpleIsoLike
+  , iso
+  , isos
+  , Isomorphic(..)
+  , from
 
   -- * Setters
   , Setter
@@ -79,9 +79,9 @@ module Control.Lens
   , mapped
   , adjust, mapOf
   , set
-  , (^~), (+~), (-~), (*~), (//~), (||~), (&&~), (%~), (<>~)
-  , (^=), (+=), (-=), (*=), (//=), (||=), (&&=), (%=), (<>=)
   , whisper
+  , (^~), (%~)
+  , (^=), (%=)
 
   -- * Getters and Folds
   , Getter
@@ -122,6 +122,18 @@ module Control.Lens
   , foldr1Of, foldl1Of
   , foldrMOf, foldlMOf
 
+  -- * Setting
+  , (+~), (-~), (*~), (//~), (||~), (&&~), (<>~)
+  , (+=), (-=), (*=), (//=), (||=), (&&=), (<>=)
+
+  -- * Traversing and Lensing
+  , Focus(..)
+  , traverseOf, forOf, sequenceAOf
+  , mapMOf, forMOf, sequenceOf
+  , transposeOf
+  , mapAccumLOf, mapAccumROf
+  , scanr1Of, scanl1Of
+
   -- * Common Traversals
   , Traversable(traverse)
   , traverseNothing
@@ -135,19 +147,7 @@ module Control.Lens
   -- * Cloning Lenses
   , clone
   , merged
-  , bifocal
-
-  -- * Isomorphisms
-  , Iso
-  , SimpleIso
-  , IsoLike
-  , SimpleIsoLike
-  , iso
-  , isos
-
-  -- ** Control.Isomorphic
-  , Isomorphic(..)
-  , from
+  , bothLenses
 
   -- ** Common Isomorphisms
   , identity
@@ -1706,13 +1706,12 @@ merged l _ f (Left a)   = Left <$> l f a
 merged _ r f (Right a') = Right <$> r f a'
 {-# INLINE merged #-}
 
--- | 'bifocal' makes a lens from two other lenses (or isomorphisms)
-bifocal :: Lens a b c d -> Lens a' b' c' d' -> Lens (a,a') (b,b') (c,c') (d,d')
-bifocal l r f (a, a') = case l (IndexedStore id) a of
+-- | 'bothLenses' makes a lens from two other lenses (or isomorphisms)
+bothLenses :: Lens a b c d -> Lens a' b' c' d' -> Lens (a,a') (b,b') (c,c') (d,d')
+bothLenses l r f (a, a') = case l (IndexedStore id) a of
   IndexedStore db c -> case r (IndexedStore id) a' of
     IndexedStore db' c' -> (\(d,d') -> (db d, db' d')) <$> f (c,c')
-{-# INLINE bifocal #-}
-
+{-# INLINE bothLenses #-}
 
 -----------------------------------------------------------------------------
 -- Isomorphisms families as Lenses
