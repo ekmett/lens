@@ -12,8 +12,10 @@
 -- monomorphic containers.
 ----------------------------------------------------------------------------
 module Control.Parallel.Strategies.Lens
-  ( evalTraversal
-  , parTraversal
+  ( evalOf
+  , parOf
+  , after
+  , meanwhile
   ) where
 
 import Control.Lens
@@ -30,19 +32,33 @@ import Control.Parallel.Strategies
 -- > evalTraversal :: Simple Traversal a b -> Strategy b -> Strategy a
 --
 -- > evalTraversal :: (b -> Eval b) -> a -> Eval a) -> Strategy b -> Strategy a
-evalTraversal :: LensLike Eval a a b b -> Strategy b -> Strategy a
-evalTraversal l = l
+evalOf :: LensLike Eval a a b b -> Strategy b -> Strategy a
+evalOf l = l
 
 -- | Evaluate the targets of a 'Lens' or 'Traversal' according into a
 -- data structure according to a given 'Strategy' in parallel.
 --
 -- > parTraversable = parTraversal traverse
 --
--- > parTraversal l s = l (rparWith s)
---
 -- > parTraversal :: Simple Lens a b -> Strategy b -> Strategy a
 -- > parTraversal :: Simple Traversal a b -> Strategy b -> Strategy a
 --
 -- > parTraversal :: ((b -> Eval b) -> a -> Eval a) -> Strategy b -> Strategy a
-parTraversal :: LensLike Eval a a b b -> Strategy b -> Strategy a
-parTraversal l s = l (rparWith s)
+parOf :: LensLike Eval a a b b -> Strategy b -> Strategy a
+parOf l s = l (rparWith s)
+
+-- |
+-- > after rdeepseq traverse
+--
+-- Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
+-- first evaluates its argument according to a given strategy, before proceeding.
+after :: Strategy a -> LensLike f a b c d -> LensLike f a b c d
+after s l f = l f $| s
+
+-- |
+-- > meanwhile rdeepseq traverse
+--
+-- Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
+-- evaluate its argument according to a given strategy in parallel with evaluating.
+meanwhile :: Strategy a -> LensLike f a b c d -> LensLike f a b c d
+meanwhile s l f = l f $|| s

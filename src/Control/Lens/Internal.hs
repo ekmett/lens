@@ -21,15 +21,22 @@ module Control.Lens.Internal
   , Traversed(..)
   , Action(..)
   , AppliedState(..)
-  , Backwards(..)
   , Min(..)
   , getMin
   , Max(..)
   , getMax
+  , Isomorphism(..)
+  , Isomorphic(..)
   ) where
 
 import Control.Applicative
+import Control.Category
+import Prelude hiding ((.),id)
 import Data.Monoid
+
+-----------------------------------------------------------------------------
+-- Functors
+-----------------------------------------------------------------------------
 
 -- | Used by 'Focus'
 
@@ -113,12 +120,24 @@ getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
 
--- | Run an Applicative backwards
-newtype Backwards f a = Backwards { getBackwards :: f a }
+-----------------------------------------------------------------------------
+-- Isomorphism Implementation Details
+-----------------------------------------------------------------------------
 
-instance Functor f => Functor (Backwards f) where
-  fmap f (Backwards as) = Backwards (fmap f as)
+-- | Used by the iso smart constructor to overload function application.
+class Category k => Isomorphic k where
+  -- |
+  morphism :: Functor f => (a -> b) -> (b -> a) -> k (b -> f b) (a -> f a)
 
-instance Applicative f => Applicative (Backwards f) where
-  pure = Backwards . pure
-  Backwards f <*> Backwards a = Backwards (flip id <$> a <*> f)
+instance Isomorphic (->) where
+  morphism ab ba bfb a = ba <$> bfb (ab a)
+
+-- | Exposed because under some circumstances you may need to manually employ hither and yon.
+data Isomorphism a b = Isomorphism { hither :: a -> b, yon :: b -> a }
+
+instance Category Isomorphism where
+  id = Isomorphism id id
+  Isomorphism bc cb . Isomorphism ab ba = Isomorphism (bc . ab) (ba . cb)
+
+instance Isomorphic Isomorphism where
+  morphism ab ba = Isomorphism (\bfb a -> ba <$> bfb (ab a)) (\afa b -> ab <$> afa (ba b))

@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       1.1.1
+version:       1.2
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -147,6 +147,7 @@ library
     Control.Lens.Representable
     Control.Lens.TH
     Control.Parallel.Strategies.Lens
+    Control.Seq.Lens
     Data.Array.Lens
     Data.Bits.Lens
     Data.ByteString.Lens
@@ -158,8 +159,10 @@ library
     Data.Sequence.Lens
     Data.Set.Lens
     Data.Text.Lens
+    Data.Time.Calendar.Lens
     Data.Tree.Lens
 
+  -- All dependencies are in the Haskell Platform
   build-depends:
     array            == 0.4.*,
     base             == 4.*,
@@ -169,6 +172,7 @@ library
     parallel         == 3.2.*,
     template-haskell >= 2.4   && < 2.8,
     text             == 0.11.*,
+    time             == 1.4.*,
     transformers     >= 0.2   && < 0.4
 
   other-extensions:

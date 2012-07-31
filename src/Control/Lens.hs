@@ -10,7 +10,7 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
--- This package provides lens families, setters, getters, traversals and folds that
+-- This package provides lens families, setters, getters, traversals, isomorphisms, and folds that
 -- can all be composed automatically with each other (and other lenses from
 -- other van Laarhoven lens libraries) using @(.)@ from Prelude, while
 -- reducing the complexity of the API.
@@ -58,7 +58,6 @@ module Control.Lens
 
   -- ** Constructing Lenses
   , lens
-  , iso
 
   -- * Traversing and Lensing
   , (%%~), (%%=)
@@ -79,7 +78,7 @@ module Control.Lens
   , SimpleSetter
   , sets
   , mapped
-  , adjust
+  , adjust, mapOf
   , set
   , (^~), (+~), (-~), (*~), (//~), (||~), (&&~), (%~), (<>~)
   , (^=), (+=), (-=), (*=), (//=), (||=), (&&=), (%=), (<>=)
@@ -124,8 +123,9 @@ module Control.Lens
   , foldr1Of, foldl1Of
   , foldrMOf, foldlMOf
 
+
   -- * Common Traversals
-  , Traversable(..)
+  , Traversable(traverse)
   , traverseNothing
   , traverseLeft
   , traverseRight
@@ -136,9 +136,18 @@ module Control.Lens
 
   -- * Cloning Lenses
   , clone
+  , merged
+  , bifocal
+
+  -- ** Isomorphisms
+  , Iso
+  , iso
+  , from
+  -- , (...)
   ) where
 
 import Control.Applicative              as Applicative
+import Control.Applicative.Backwards
 import Control.Lens.Internal
 import Control.Monad
 import Control.Monad.Reader.Class       as Reader
@@ -153,6 +162,7 @@ import Data.Maybe
 import Data.Monoid
 import Data.Traversable
 
+-- infixr 9 ...
 infixl 8 ^.
 infixr 4 ^~, +~, *~, -~, //~, &&~, ||~, %~, <>~, %%~
 infix  4 ^=, +=, *=, -=, //=, &&=, ||=, %=, <>=, %%=
@@ -236,13 +246,6 @@ type SimpleLensLike f a b = LensLike f a a b b
 lens :: (a -> c) -> (a -> d -> b) -> Lens a b c d
 lens ac adb cfd a = adb a <$> cfd (ac a)
 {-# INLINE lens #-}
-
--- | Built a 'Lens' from an isomorphism family
---
--- > iso :: Functor f => (a -> c) -> (d -> b) -> (c -> f d) -> a -> f b
-iso :: (a -> c) -> (d -> b) -> Lens a b c d
-iso ac db cfd a = db <$> cfd (ac a)
-{-# INLINE iso #-}
 
 --------------------------
 -- LensLike
@@ -499,6 +502,11 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 --
 -- You can't 'view' a 'Setter' in general, so the other two laws are irrelevant.
 --
+-- However, two Functor laws apply to a 'Setter'
+--
+-- > adjust l id = id
+-- > adjust l f . adjust l g = adjust l (f . g)
+--
 -- You can compose a 'Setter' with a 'Lens' or a 'Traversal' using @(.)@ from the Prelude
 -- and the result is always only a 'Setter' and nothing more.
 --
@@ -539,10 +547,32 @@ adjust :: Setter a b c d -> (c -> d) -> a -> b
 adjust l f = runIdentity . l (Identity . f)
 {-# INLINE adjust #-}
 
+-- | Modify the target of a 'Lens' or all the targets of a 'Setter' or 'Traversal'
+-- with a function. This is an alias for adjust that is provided for consistency.
+--
+-- > mapOf = adjust
+--
+-- > fmap        = mapOf mapped
+-- > fmapDefault = mapOf traverse
+--
+-- > sets . mapOf = id
+-- > mapOf . sets = id
+--
+-- > mapOf :: Setter a b c d    -> (c -> d) -> a -> b
+-- > mapOf :: Lens a b c d      -> (c -> d) -> a -> b
+-- > mapOf :: Traversal a b c d -> (c -> d) -> a -> b
+mapOf :: Setter a b c d -> (c -> d) -> a -> b
+mapOf l f = runIdentity . l (Identity . f)
+{-# INLINE mapOf #-}
+
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
 -- or 'Traversal' with a constant value.
 --
 -- > (<$) = set mapped
+--
+-- > set :: Setter a b c d    -> d -> a -> b
+-- > set :: Lens a b c d      -> d -> a -> b
+-- > set :: Traversal a b c d -> d -> a -> b
 set :: Setter a b c d -> d -> a -> b
 set l d = runIdentity . l (\_ -> Identity d)
 {-# INLINE set #-}
@@ -641,7 +671,6 @@ type Getter a b c d = forall z. (c -> Const z d) -> a -> Const z b
 to :: (a -> c) -> Getter a b c d
 to f g a = Const (getConst (g (f a)))
 {-# INLINE to #-}
-
 
 -- |
 -- Most 'Getter' combinators are able to be used with both a 'Getter' or a 'Fold' in
@@ -1345,8 +1374,9 @@ maximumOf l = getMax . foldMapOf l Max
 -- > minimum = fromMaybe (error "empty") . minimumOf folded
 --
 -- > minimumOf ::          Getter a b c d    -> a -> Maybe c
--- > minimumOf ::          Lens a b c d      -> a -> Maybe c
 -- > minimumOf :: Ord c => Fold a b c d      -> a -> Maybe c
+-- > minimumOf ::          Iso a c           -> a -> Maybe c
+-- > minimumOf ::          Lens a b c d      -> a -> Maybe c
 -- > minimumOf :: Ord c => Traversal a b c d -> a -> Maybe c
 minimumOf :: Getting (Min c) a b c d -> a -> Maybe c
 minimumOf l = getMin . foldMapOf l Min
@@ -1359,8 +1389,9 @@ minimumOf l = getMin . foldMapOf l Min
 -- > maximumBy cmp = fromMaybe (error "empty") . maximumByOf folded cmp
 --
 -- > maximumByOf :: Getter a b c d    -> (c -> c -> Ordering) -> a -> Maybe c
--- > maximumByOf :: Lens a b c d      -> (c -> c -> Ordering) -> a -> Maybe c
 -- > maximumByOf :: Fold a b c d      -> (c -> c -> Ordering) -> a -> Maybe c
+-- > maximumByOf :: Iso a c           -> (c -> c -> Ordering) -> a -> Maybe c
+-- > maximumByOf :: Lens a b c d      -> (c -> c -> Ordering) -> a -> Maybe c
 -- > maximumByOf :: Traversal a b c d -> (c -> c -> Ordering) -> a -> Maybe c
 maximumByOf :: Getting (Endo (Maybe c)) a b c d -> (c -> c -> Ordering) -> a -> Maybe c
 maximumByOf l cmp = foldrOf l step Nothing where
@@ -1375,8 +1406,9 @@ maximumByOf l cmp = foldrOf l step Nothing where
 -- > minimumBy cmp = fromMaybe (error "empty") . minimumByOf folded cmp
 --
 -- > minimumByOf :: Getter a b c d    -> (c -> c -> Ordering) -> a -> Maybe c
--- > minimumByOf :: Lens a b c d      -> (c -> c -> Ordering) -> a -> Maybe c
 -- > minimumByOf :: Fold a b c d      -> (c -> c -> Ordering) -> a -> Maybe c
+-- > minimumByOf :: Iso a c           -> (c -> c -> Ordering) -> a -> Maybe c
+-- > minimumByOf :: Lens a b c d      -> (c -> c -> Ordering) -> a -> Maybe c
 -- > minimumByOf :: Traversal a b c d -> (c -> c -> Ordering) -> a -> Maybe c
 minimumByOf :: Getting (Endo (Maybe c)) a b c d -> (c -> c -> Ordering) -> a -> Maybe c
 minimumByOf l cmp = foldrOf l step Nothing where
@@ -1404,8 +1436,9 @@ findOf l p = getFirst . foldMapOf l step where
 -- > foldr1 = foldr1Of folded
 --
 -- > foldr1Of :: Getter a b c d    -> (c -> c -> c) -> a -> c
--- > foldr1Of :: Lens a b c d      -> (c -> c -> c) -> a -> c
 -- > foldr1Of :: Fold a b c d      -> (c -> c -> c) -> a -> c
+-- > foldr1Of :: Iso a c           -> (c -> c -> c) -> a -> c
+-- > foldr1Of :: Lens a b c d      -> (c -> c -> c) -> a -> c
 -- > foldr1Of :: Traversal a b c d -> (c -> c -> c) -> a -> c
 foldr1Of :: Getting (Endo (Maybe c)) a b c d -> (c -> c -> c) -> a -> c
 foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
@@ -1422,8 +1455,9 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
 -- > foldl1 = foldl1Of folded
 --
 -- > foldl1Of :: Getter a b c d    -> (c -> c -> c) -> a -> c
--- > foldl1Of :: Lens a b c d      -> (c -> c -> c) -> a -> c
 -- > foldl1Of :: Fold a b c d      -> (c -> c -> c) -> a -> c
+-- > foldl1Of :: Iso a c           -> (c -> c -> c) -> a -> c
+-- > foldl1Of :: Lens a b c d      -> (c -> c -> c) -> a -> c
 -- > foldl1Of :: Traversal a b c d -> (c -> c -> c) -> a -> c
 foldl1Of :: Getting (Dual (Endo (Maybe c))) a b c d -> (c -> c -> c) -> a -> c
 foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf Nothing xs) where
@@ -1436,8 +1470,9 @@ foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf No
 -- > foldr' = foldrOf' folded
 --
 -- > foldrOf' :: Getter a b c d    -> (c -> e -> e) -> e -> a -> e
--- > foldrOf' :: Lens a b c d      -> (c -> e -> e) -> e -> a -> e
 -- > foldrOf' :: Fold a b c d      -> (c -> e -> e) -> e -> a -> e
+-- > foldrOf' :: Iso a c           -> (c -> e -> e) -> e -> a -> e
+-- > foldrOf' :: Lens a b c d      -> (c -> e -> e) -> e -> a -> e
 -- > foldrOf' :: Traversal a b c d -> (c -> e -> e) -> e -> a -> e
 foldrOf' :: Getting (Dual (Endo (e -> e))) a b c d -> (c -> e -> e) -> e -> a -> e
 foldrOf' l f z0 xs = foldlOf l f' id xs z0
@@ -1448,10 +1483,11 @@ foldrOf' l f z0 xs = foldlOf l f' id xs z0
 --
 -- > foldl' = foldlOf' folded
 --
--- > foldlOf' :: Getter a b c d    -> (e -> c -> e) -> e -> a -> e
--- > foldlOf' :: Lens a b c d      -> (e -> c -> e) -> e -> a -> e
--- > foldlOf' :: Fold a b c d      -> (e -> c -> e) -> e -> a -> e
--- > foldlOf' :: Traversal a b c d -> (e -> c -> e) -> e -> a -> e
+-- > foldlOf' :: Getter a b c d      -> (e -> c -> e) -> e -> a -> e
+-- > foldlOf' :: Fold a b c d        -> (e -> c -> e) -> e -> a -> e
+-- > foldlOf' :: Iso a c             -> (e -> c -> e) -> e -> a -> e
+-- > foldlOf' :: Lens a b c d        -> (e -> c -> e) -> e -> a -> e
+-- > foldlOf' :: Traversal a b c d   -> (e -> c -> e) -> e -> a -> e
 foldlOf' :: Getting (Endo (e -> e)) a b c d -> (e -> c -> e) -> e -> a -> e
 foldlOf' l f z0 xs = foldrOf l f' id xs z0
   where f' x k z = k $! f z x
@@ -1463,8 +1499,9 @@ foldlOf' l f z0 xs = foldrOf l f' id xs z0
 -- > foldrM = foldrMOf folded
 --
 -- > foldrMOf :: Monad m => Getter a b c d    -> (c -> e -> m e) -> e -> a -> m e
--- > foldrMOf :: Monad m => Lens a b c d      -> (c -> e -> m e) -> e -> a -> m e
 -- > foldrMOf :: Monad m => Fold a b c d      -> (c -> e -> m e) -> e -> a -> m e
+-- > foldrMOf :: Monad m => Iso a c           -> (c -> e -> m e) -> e -> a -> m e
+-- > foldrMOf :: Monad m => Lens a b c d      -> (c -> e -> m e) -> e -> a -> m e
 -- > foldrMOf :: Monad m => Traversal a b c d -> (c -> e -> m e) -> e -> a -> m e
 foldrMOf :: Monad m
          => Getting (Dual (Endo (e -> m e))) a b c d
@@ -1479,8 +1516,9 @@ foldrMOf l f z0 xs = foldlOf l f' return xs z0
 -- > foldlM = foldlMOf folded
 --
 -- > foldlMOf :: Monad m => Getter a b c d    -> (e -> c -> m e) -> e -> a -> m e
--- > foldlMOf :: Monad m => Lens a b c d      -> (e -> c -> m e) -> e -> a -> m e
 -- > foldlMOf :: Monad m => Fold a b c d      -> (e -> c -> m e) -> e -> a -> m e
+-- > foldlMOf :: Monad m => Iso a c           -> (e -> c -> m e) -> e -> a -> m e
+-- > foldlMOf :: Monad m => Lens a b c d      -> (e -> c -> m e) -> e -> a -> m e
 -- > foldlMOf :: Monad m => Traversal a b c d -> (e -> c -> m e) -> e -> a -> m e
 foldlMOf :: Monad m
          => Getting (Endo (e -> m e)) a b c d
@@ -1560,5 +1598,59 @@ clone f cfd a = case f (IndexedStore id) a of
 -- This requires at least a 'Traversal' (or 'Lens') and can produce a
 -- 'Traversal' (or 'Lens') in turn.
 backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d
-backwards l f = getBackwards . l (Backwards . f)
+backwards l f = forwards . l (Backwards . f)
 {-# INLINE backwards #-}
+
+-- | Merge two lenses, getters, setters, folds or traversals.
+merged :: Functor f => LensLike f a b c c -> LensLike f a' b' c c -> LensLike f (Either a a') (Either b b') c c
+merged l _ f (Left a)   = Left <$> l f a
+merged _ r f (Right a') = Right <$> r f a'
+{-# INLINE merged #-}
+
+-- | 'bifocal' makes a lens from two other lenses.
+bifocal :: Lens a b c d -> Lens a' b' c' d' -> Lens (a,a') (b,b') (c,c') (d,d')
+bifocal l r f (a, a') = case l (IndexedStore id) a of
+  IndexedStore db c -> case r (IndexedStore id) a' of
+    IndexedStore db' c' -> (\(d,d') -> (db d, db' d')) <$> f (c,c')
+{-# INLINE bifocal #-}
+
+
+-----------------------------------------------------------------------------
+-- Isomorphisms as Lenses
+-----------------------------------------------------------------------------
+
+-- | Isomorphims can be composed with other lenses using either' (.)' and 'id'
+-- from the Prelude or from Control.Category. However, if you compose them
+-- with each other using '(.)' from the Prelude, they will be dumbed down to a
+-- mere 'Lens'.
+--
+-- > import Control.Category
+-- > import Prelude hiding ((.),id)
+type Iso a b = forall k f. (Isomorphic k, Functor f) => k (b -> f b) (a -> f a)
+
+-- | Build an isomorphism from a pair of inverse functions.
+iso :: (a -> b) -> (b -> a) -> Iso a b
+iso = morphism
+
+-- | Invert an isomorphism.
+--
+-- Note to compose an isomorphism and receive an isomorphism in turn you'll need to use
+-- 'Control.Category.Category'
+--
+-- > from (from l) = l
+--
+-- If you imported 'Control.Category.(.)', then:
+--
+-- > from l . from r = from (r . l)
+from :: Iso a b -> Iso b a
+from l = morphism (getConst . yon l Const) (getConst . hither l Const)
+
+{-
+-- | Compose isomorphisms
+--
+-- This has the same behavior as 'Control.Category.(.)' from @Control.Category@ when
+-- applied to an isomorphism, but lets you avoid having to qualify the import from Prelude.
+--
+(...) :: Iso b c -> Iso a b -> Iso a c
+f ... g  = morphism (getConst . yon f . yon g Const) (getConst . hither g . hither f Const)
+-}
