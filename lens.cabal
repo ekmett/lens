@@ -10,7 +10,7 @@ stability:     provisional
 homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012 Edward A. Kmett
-synopsis:      Families of Lenses, Folds and Traversals
+synopsis:      Lenses, Folds and Traversals
 description:
   The combinators in @Control.Lens@ provide a highly generic toolbox for composing
   families of getters, folds, traversals, setters and lenses.
@@ -203,8 +203,7 @@ library
     TypeOperators
 
   if (impl(ghc>=7.4))
-    other-extensions:
-      Trustworthy
+    other-extensions: Trustworthy
 
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: src

@@ -5,8 +5,15 @@ lens
 
 This package provides families of lenses, isomorphisms, folds, traversals, getters and setters.
 
-These lenses are compatible with those from lens-family, lens-family-core, lens-family-th and from polylens, but
-provide additional flexibility in their composition.
+These lenses are compatible with those from lens-family, lens-family-core and lens-family-th,
+but they provide a great deal of additional flexibility in their composition.
+
+Example
+-------
+
+> ghci> :m + Control.Lens Data.Text.Lens
+> ghci> anyOf text (=='e') $ packed ^$ "hello"
+> True
 
 Contact Information
 -------------------
