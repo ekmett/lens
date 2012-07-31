@@ -1553,8 +1553,8 @@ foldrMOf l f z0 xs = foldlOf l f' return xs z0
 --
 -- > foldlM = foldlMOf folded
 --
--- > foldlMOf :: Monad m => Getter a b c d    -> (e -> c -> m e) -> e -> a -> m e
--- > foldlMOf :: Monad m => Fold a b c d      -> (e -> c -> m e) -> e -> a -> m e
+-- > foldlMOf :: Monad m => Getter a c        -> (e -> c -> m e) -> e -> a -> m e
+-- > foldlMOf :: Monad m => Fold a c          -> (e -> c -> m e) -> e -> a -> m e
 -- > foldlMOf :: Monad m => Iso a b c d       -> (e -> c -> m e) -> e -> a -> m e
 -- > foldlMOf :: Monad m => Lens a b c d      -> (e -> c -> m e) -> e -> a -> m e
 -- > foldlMOf :: Monad m => Traversal a b c d -> (e -> c -> m e) -> e -> a -> m e
