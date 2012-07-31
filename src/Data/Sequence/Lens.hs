@@ -33,20 +33,24 @@ at i f m = (\a -> update i a m) <$> f (index m i)
 -- | A 'Seq' is isomorphic to a 'ViewL'
 --
 -- > viewl m = m^.viewL
-viewL :: Iso (Seq a) (ViewL a)
-viewL = iso viewl go where
-  go EmptyL = mempty
-  go (a :< as) = a <| as
+viewL :: Iso (Seq a) (Seq b) (ViewL a) (ViewL b)
+viewL = isos viewl unviewl viewl unviewl where
+
+unviewl :: ViewL a -> Seq a
+unviewl EmptyL = mempty
+unviewl (a :< as) = a <| as
 {-# INLINE viewL #-}
 
 -- | A 'Seq' is isomorphic to a 'ViewR'
 --
 -- > viewr m = m^.viewR
-viewR :: Iso (Seq a) (ViewR a)
-viewR = iso viewr go where
-  go EmptyR = mempty
-  go (as :> a) = as |> a
+viewR :: Iso (Seq a) (Seq b) (ViewR a) (ViewR b)
+viewR = isos viewr unviewr viewr unviewr where
 {-# INLINE viewR #-}
+
+unviewr :: ViewR a -> Seq a
+unviewr EmptyR = mempty
+unviewr (as :> a) = as |> a
 
 -- * Traversals
 

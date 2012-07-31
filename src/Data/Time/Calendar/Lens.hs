@@ -49,7 +49,7 @@ class TraverseDay t where
 
 -- | Returns the modified Julian Day as a standard count of days,
 -- with zero being the day 1858-11-17.
-modifiedJulianDay :: Iso Day Integer
+modifiedJulianDay :: Simple Iso Day Integer
 modifiedJulianDay = iso toModifiedJulianDay ModifiedJulianDay
 
 instance TraverseDay Day where
@@ -79,7 +79,7 @@ uncurry3 :: (a -> b -> c -> d) -> (a,b,c) -> d
 uncurry3 f (a,b,c) = f a b c
 
 -- | Convert to/from a /valid/ date in the proleptic Gregorian calendar
-gregorian :: Iso Day Gregorian
+gregorian :: Simple Iso Day Gregorian
 gregorian = iso (uncurry3 Gregorian . toGregorian) $ \(Gregorian y m d) -> fromGregorian y m d
 
 instance TraverseDay Gregorian where
@@ -103,7 +103,7 @@ data JulianYearAndDay = JulianYearAndDay !Integer !Int
   deriving (Eq,Ord,Show,Read)
 
 -- | Convert to/from a /valid/ proleptic Julian year and day.
-julianYearAndDay :: Iso Day JulianYearAndDay
+julianYearAndDay :: Simple Iso Day JulianYearAndDay
 julianYearAndDay = iso (uncurry JulianYearAndDay . toJulianYearAndDay) $ \(JulianYearAndDay y d) -> fromJulianYearAndDay y d
 
 instance TraverseDay JulianYearAndDay where
@@ -127,7 +127,7 @@ data WeekDate = WeekDate !Integer !Int !Int
   deriving (Eq,Ord,Show,Read)
 
 -- | Convert to/from a valid WeekDate
-weekDate :: Iso Day WeekDate
+weekDate :: Simple Iso Day WeekDate
 weekDate = iso (uncurry3 WeekDate . toWeekDate) $ \(WeekDate y w d) -> fromWeekDate y w d
 
 instance TraverseDay WeekDate where
@@ -149,7 +149,7 @@ instance HasDay WeekDate where
 data OrdinalDate = OrdinalDate !Integer Int
 
 -- | Convert to/from a valid ISO 8601 Ordinal Date format.
-ordinalDate :: Iso Day OrdinalDate
+ordinalDate :: Simple Iso Day OrdinalDate
 ordinalDate = iso (uncurry OrdinalDate . toOrdinalDate) $ \(OrdinalDate y d) -> fromOrdinalDate y d
 
 instance TraverseDay OrdinalDate where

@@ -23,9 +23,9 @@ import Data.Time.Clock.POSIX
 import Data.Time.Clock.TAI
 
 -- | POSIX time
-posix :: Simple Lens UTCTime POSIXTime
+posix :: Simple Iso UTCTime POSIXTime
 posix = iso posixSecondsToUTCTime utcTimeToPOSIXSeconds
 
 -- | TAI absolute time
-absoluteTime :: LeapSecondTable -> Simple Lens UTCTime AbsoluteTime
+absoluteTime :: LeapSecondTable -> Simple Iso UTCTime AbsoluteTime
 absoluteTime t = iso (utcToTAITime t) (taiToUTCTime t)

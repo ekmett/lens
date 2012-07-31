@@ -142,6 +142,7 @@ module Control.Lens
   -- ** Isomorphisms
   , Iso
   , iso
+  , isos
   , from
   ) where
 
@@ -1614,7 +1615,7 @@ bifocal l r f (a, a') = case l (IndexedStore id) a of
 
 
 -----------------------------------------------------------------------------
--- Isomorphisms as Lenses
+-- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
 
 -- | Isomorphims can be composed with other lenses using either' (.)' and 'id'
@@ -1624,11 +1625,15 @@ bifocal l r f (a, a') = case l (IndexedStore id) a of
 --
 -- > import Control.Category
 -- > import Prelude hiding ((.),id)
-type Iso a b = forall k f. (Isomorphic k, Functor f) => k (b -> f b) (a -> f a)
+type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
 
--- | Build an isomorphism from a pair of inverse functions.
-iso :: (a -> b) -> (b -> a) -> Iso a b
-iso ab ba = morphism (\bfb a -> ba <$> bfb (ab a)) (\afa b -> ab <$> afa (ba b))
+-- | Build an isomorphism family from two pairs of inverse functions
+isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Iso a b c d
+isos ac ca bd db = morphism (\cfd a -> db <$> cfd (ac a)) (\afb c -> bd <$> afb (ca c))
+
+-- | Build a simple isomorphism from a pair of inverse functions
+iso :: (a -> b) -> (b -> a) -> Simple Iso a b
+iso ab ba = isos ab ba ab ba
 
 -- | Invert an isomorphism.
 --
@@ -1640,5 +1645,5 @@ iso ab ba = morphism (\bfb a -> ba <$> bfb (ab a)) (\afa b -> ab <$> afa (ba b))
 -- If you imported 'Control.Category.(.)', then:
 --
 -- > from l . from r = from (r . l)
-from :: Iso a b -> Iso b a
+from :: Iso a b c d -> Iso c d a b
 from (Isomorphism a b) = morphism b a

@@ -34,8 +34,9 @@ imaginary f (a :+ b) = (a :+) <$> f b
 -- as the phase information is lost. So don't do that! Otherwise, this is a
 -- perfectly cromulent lens.
 
-polarize :: RealFloat a => Iso (Complex a) (a,a)
-polarize = iso polar (uncurry mkPolar)
+polarize :: (RealFloat a, RealFloat b) => Iso (Complex a) (Complex b) (a,a) (b,b)
+polarize = isos polar (uncurry mkPolar)
+                polar (uncurry mkPolar)
 
 -- | Traverse both the real and imaginary parts of a complex number.
 --
