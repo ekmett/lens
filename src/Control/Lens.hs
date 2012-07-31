@@ -1045,14 +1045,14 @@ folded :: Foldable f => Fold (f c) c
 folded = folds foldMap
 {-# INLINE folded #-}
 
--- | Obtain a 'Fold' by filtering a 'Lens', 'Iso', 'Getter, 'Fold' or 'Traversal'.
+-- | Obtain a 'Fold' by filtering a 'Lens', 'Iso', 'Getter', 'Fold' or 'Traversal'.
 filtered :: Monoid m => (c -> Bool) -> Getting m a b c d -> Getting m a b c d
 filtered p l f = l (\c -> if p c then f c else Const mempty)
 {-# INLINE filtered #-}
 
 -- | Obtain a 'Fold' by reversing the order of traversal for a 'Lens', 'Iso', 'Getter', 'Fold' or 'Traversal'.
 --
--- Of course, reversing a 'Fold' or 'Getter' has no effect.
+-- Of course, reversing a 'Lens', 'Iso' or 'Getter' has no effect.
 reversed :: Getting (Dual m) a b c d -> Getting m a b c d
 reversed l f = Const . getDual . getConst . l (Const .  Dual . getConst . f)
 {-# INLINE reversed #-}
