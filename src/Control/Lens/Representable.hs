@@ -1,4 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeOperators #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Representable
@@ -58,6 +59,7 @@ module Control.Lens.Representable
   -- * Wrapped Representations
   , Key(..)
   , keys
+  , tabulated
   -- * Traversal with representation
   , mapWithRep
   , foldMapWithRep
@@ -71,6 +73,7 @@ module Control.Lens.Representable
   ) where
 
 import Control.Applicative
+import Control.Isomorphic
 import Control.Lens
 import Data.Foldable         as Foldable
 import Data.Functor.Identity
@@ -98,6 +101,7 @@ type Rep f = forall a. Simple Lens (f a) a
 
 class Functor f => Representable f where
   rep :: (Rep f -> a) -> f a
+
 
 instance Representable Identity where
   rep f = Identity (f (from identity))
@@ -189,11 +193,15 @@ distributeRep wf = rep $ \i -> fmap (^.i) wf
 -- This type provides a way to, say, store a list of polymorphic lenses.
 newtype Key f = Key { turn :: Rep f }
 
--- | A 'Representable' 'Functor' has a fixed shape. This fills each position 
+-- | A 'Representable' 'Functor' has a fixed shape. This fills each position
 -- in it with a 'Key'
 keys :: Representable f => f (Key f)
 keys = rep Key
 {-# INLINE keys #-}
+
+tabulated :: Representable f => (Key f -> a) :~> f a
+tabulated = isomorphic (\f -> rep (f . Key)) (\fa key -> view (turn key) fa)
+{-# INLINE tabulated #-}
 
 -----------------------------------------------------------------------------
 -- Traversal
