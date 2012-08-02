@@ -29,7 +29,7 @@ import Control.Applicative
 import Control.Lens
 import Data.List
 
--- | A lens reading and writing to the head of a _non-empty_ list
+-- | A lens reading and writing to the head of a /non-empty/ list
 --
 -- > ghci> [1,2,3]^._head
 -- > 1
@@ -38,17 +38,23 @@ _head _ [] = error "_head: empty list"
 _head f (a:as) = (:as) <$> f a
 {-# INLINE _head #-}
 
+-- | A lens reading and writing to the tail of a /non-empty/ list
+--
+-- > ghci> _tail <~ [3,4,5] $ [1,2]
+-- > [1,3,4,5]
 _tail :: Simple Lens [a] [a]
 _tail _ [] = error "_tail: empty list"
 _tail f (a:as) = (a:) <$> f as
 {-# INLINE _tail #-}
 
+-- | A lens reading and writing to the last element of a /non-empty/ list
 _last :: Simple Lens [a] a
 _last _ []     = error "_last: empty list"
 _last f [a]    = return <$> f a
 _last f (a:as) = (a:) <$> _last f as
 {-# INLINE _last #-}
 
+-- | A lens reading and replacing all but the a last element of a /non-empty/ list
 _init :: Simple Lens [a] [a]
 _init _ [] = error "_init: empty list"
 _init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
@@ -71,9 +77,6 @@ intercalated = to . intercalate
 
 -- | The traversal for reading and writing to the head of a list
 --
--- > traverseHead = traverseValueAtMin
--- > traverseHead = traverseElementAt 0 -- but is more efficient
---
 -- > traverseHead :: Applicative f => (a -> f a) -> [a] -> f [a]
 traverseHead :: SimpleTraversal [a] a
 traverseHead _ [] = pure []
@@ -90,16 +93,12 @@ traverseTail f (a:as) = (a:) <$> traverse f as
 
 -- | Traverse the last element in a list.
 --
--- > traverseLast = traverseValueAtMax
---
 -- > traverseLast :: Applicative f => (a -> f a) -> [a] -> f [a]
 traverseLast :: SimpleTraversal [a] a
 traverseLast _ []     = pure []
 traverseLast f [a]    = return <$> f a
 traverseLast f (a:as) = (a:) <$> traverseLast f as
 {-# INLINE traverseLast #-}
-
--- The traversal for reading and writing to the tail of a list
 
 -- | Traverse all but the last element of a list
 --
