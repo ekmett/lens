@@ -198,9 +198,6 @@ library
   build-depends:   parallel == 3.2.*
   exposed-modules: Control.Parallel.Strategies.Lens Control.Seq.Lens
 
-  -- build-depends:   time == 1.4.*
-  -- exposed-modules: Data.Time.Calendar.Lens Data.Time.Clock.Lens
-
   other-extensions:
     CPP
     DeriveDataTypeable
