@@ -1,3 +1,5 @@
+{-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE Rank2Types #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.List.Lens
@@ -15,6 +17,8 @@ module Data.List.Lens
   , _tail
   , _last
   , _init
+  , interspersed
+  , intercalated
   , traverseHead
   , traverseTail
   , traverseInit
@@ -23,6 +27,7 @@ module Data.List.Lens
 
 import Control.Applicative
 import Control.Lens
+import Data.List
 
 -- | A lens reading and writing to the head of a _non-empty_ list
 --
@@ -48,6 +53,21 @@ _init :: Simple Lens [a] [a]
 _init _ [] = error "_init: empty list"
 _init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
 {-# INLINE _init #-}
+
+-- | Obtain a version of the list with the supplied value interspersed.
+--
+-- > ghci> "abcde"^.interspersed ','
+-- > "a,b,c,d,e"
+--
+-- > xs^.interspersed a = intersperse a xs
+interspersed :: a -> Getter [a] [a]
+interspersed = to . intersperse
+{-# INLINE interspersed #-}
+
+-- | Obtain a version of the list with the supplied value intercalated
+intercalated :: [a] -> Getter [[a]] [a]
+intercalated = to . intercalate
+{-# INLINE intercalated #-}
 
 -- | The traversal for reading and writing to the head of a list
 --

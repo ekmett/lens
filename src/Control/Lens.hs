@@ -93,8 +93,13 @@ module Control.Lens
   , folds
   , folding
   , folded
+  , unfolded
+  , iterated
   , filtered
   , reversed
+  , repeated
+  , replicated
+  , cycled
   , takingWhile
   , droppingWhile
   , view, views
@@ -1109,6 +1114,48 @@ folding f g = Const . foldMap (getConst . g) . f
 folded :: Foldable f => Fold (f c) c
 folded = folds foldMap
 {-# INLINE folded #-}
+
+-- | Fold by repeating the input forever.
+--
+-- > repeat = toListOf repeated
+repeated :: Fold a a
+repeated f a = Const as where as = getConst (f a) <> as
+
+-- | A fold that replicates its input @n@ times.
+--
+-- > replicate n = toListOf (replicated n)
+replicated :: Int -> Fold a a
+replicated n0 f a = Const (go n0) where
+  m = getConst (f a)
+  go 0 = mempty
+  go n = m <> go (n - 1)
+{-# INLINE replicated #-}
+
+-- | Transform a fold into a fold that loops over its elements over and over.
+--
+-- > ghci> toListOf (cycled traverse) [1,2,3]
+-- > [1,2,3,1,2,3,..]
+cycled :: Monoid m => Getting m a b c d -> Getting m a b c d
+cycled l f a = Const as where as = getConst (l f a) <> as
+
+-- | Build a fold that unfolds its values from a seed.
+--
+-- > ghci> unfoldr = toListOf . unfolded
+unfolded :: (b -> Maybe (a, b)) -> Fold b a
+unfolded f g b0 = go b0 where
+  go b = case f b of
+    Just (a, b') -> g a *> go b'
+    Nothing      -> Const mempty
+{-# INLINE unfolded #-}
+
+
+-- | @x ^. 'iterated' f@ Return an infinite fold of repeated applications of @f@ to @x@.
+--
+-- > toListOf (iterated f) a = iterate f a
+iterated :: (a -> a) -> Fold a a
+iterated f g a0 = go a0 where
+  go a = g a *> go (f a)
+{-# INLINE iterated #-}
 
 -- | Obtain a 'Fold' by filtering a 'Lens', 'Iso', 'Getter', 'Fold' or 'Traversal'.
 filtered :: Monoid m => (c -> Bool) -> Getting m a b c d -> Getting m a b c d
