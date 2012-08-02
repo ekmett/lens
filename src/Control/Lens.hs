@@ -239,18 +239,18 @@ type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 --
 -- The laws for a Traversal @t@ follow from the laws for Traversable as stated in \"The Essence of the Iterator Pattern\".
 --
--- 1.) Idiomatic naturality:
+-- 1) Idiomatic naturality:
 --
 -- > t pure = pure
 --
--- 2.) Sequential composition:
+-- 2) Sequential composition:
 --
 -- > fmap (t f) . t g = getCompose . t (Compose . fmap f . g)
 --
 -- One consequence of this requirement is that a traversal needs to leave the same number of elements as a candidate for 
 -- subsequent traversal as it started with.
 --
--- 3.) No duplication of elements (as defined in \"The Essence of the Iterator Pattern\" section 5.5), which states
+-- 3) No duplication of elements (as defined in \"The Essence of the Iterator Pattern\" section 5.5), which states
 -- that you should incur no effect caused by visiting the same element of the container twice.
 type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 
@@ -756,7 +756,7 @@ l <>~ n = adjust l (<> n)
 -- In practice the @b@ and @d@ are left dangling and unused, and as such is no real point in
 -- using a @'Simple' 'Getter'@.
 --
--- type Getter a c = forall r. LensLike (Const r) a b c d
+-- > type Getter a c = forall r. LensLike (Const r) a b c d
 type Getter a c = forall r b d. (c -> Const r d) -> a -> Const r b
 
 -- | Build a 'Getter' from an arbitrary Haskell function.
