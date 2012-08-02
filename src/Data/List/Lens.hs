@@ -11,20 +11,50 @@
 --
 ----------------------------------------------------------------------------
 module Data.List.Lens
-  ( traverseHead
+  ( _head
+  , _tail
+  , _last
+  , _init
+  , traverseHead
   , traverseTail
   , traverseInit
   , traverseLast
   ) where
 
+import Control.Applicative
 import Control.Lens
 
--- The traversal for reading and writing to the head of a list
+-- | A lens reading and writing to the head of a _non-empty_ list
+--
+-- > ghci> [1,2,3]^._head
+-- > 1
+_head :: Simple Lens [a] a
+_head _ [] = error "_head: empty list"
+_head f (a:as) = (:as) <$> f a
+{-# INLINE _head #-}
+
+_tail :: Simple Lens [a] [a]
+_tail _ [] = error "_tail: empty list"
+_tail f (a:as) = (a:) <$> f as
+{-# INLINE _tail #-}
+
+_last :: Simple Lens [a] a
+_last _ []     = error "_last: empty list"
+_last f [a]    = return <$> f a
+_last f (a:as) = (a:) <$> _last f as
+{-# INLINE _last #-}
+
+_init :: Simple Lens [a] [a]
+_init _ [] = error "_init: empty list"
+_init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
+{-# INLINE _init #-}
+
+-- | The traversal for reading and writing to the head of a list
 --
 -- > traverseHead = traverseValueAtMin
 -- > traverseHead = traverseElementAt 0 -- but is more efficient
 --
--- | > traverseHead :: Applicative f => (a -> f a) -> [a] -> f [a]
+-- > traverseHead :: Applicative f => (a -> f a) -> [a] -> f [a]
 traverseHead :: SimpleTraversal [a] a
 traverseHead _ [] = pure []
 traverseHead f (a:as) = (:as) <$> f a
