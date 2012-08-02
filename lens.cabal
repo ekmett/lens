@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       1.2
+version:       1.3
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -105,8 +105,8 @@ description:
   .
   /Isomorphisms and Iso/
   .
-  Control.Isomorphic provides easy overloading of function application for isomorphisms and @Iso a b a d@ uses it
-  to form isomorphism families that can be composed with other isomorphisms and with lenses, setters, folds, 
+  Control.Isomorphic provides easy overloading of function application for isomorphisms and @Iso a b c d@ uses it
+  to form isomorphism families that can be composed with other isomorphisms and with lenses, setters, folds,
   traversals and getters.
   .
   > type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
@@ -155,43 +155,50 @@ source-repository head
   location: git://github.com/ekmett/lens.git
 
 library
-  exposed-modules:
-    Control.Exception.Lens
-    Control.Isomorphic
-    Control.Lens
-    Control.Lens.Internal
-    Control.Lens.Representable
-    Control.Lens.TH
-    Control.Parallel.Strategies.Lens
-    Control.Seq.Lens
-    Data.Array.Lens
-    Data.Bits.Lens
-    Data.ByteString.Lens
-    Data.ByteString.Lazy.Lens
-    Data.Complex.Lens
-    Data.Dynamic.Lens
-    Data.Map.Lens
-    Data.IntMap.Lens
-    Data.IntSet.Lens
-    Data.Sequence.Lens
-    Data.Set.Lens
-    Data.Text.Lens
-    Data.Text.Lazy.Lens
-    Data.Time.Calendar.Lens
-    Data.Tree.Lens
-
-  -- All dependencies are in the Haskell Platform
   build-depends:
-    array            == 0.4.*,
-    base             == 4.*,
-    bytestring       == 0.9.*,
-    containers       >= 0.3   && < 0.6,
-    mtl              >= 2.1.1 && < 2.2,
-    parallel         == 3.2.*,
-    template-haskell >= 2.4   && < 2.8,
-    text             == 0.11.*,
-    time             == 1.4.*,
-    transformers     >= 0.2   && < 0.4
+    base         == 4.*,
+    containers   >= 0.3   && < 0.6,
+    mtl          >= 2.1.1 && < 2.2,
+    transformers >= 0.2   && < 0.4
+
+  exposed-modules: Control.Isomorphic
+                   Control.Lens
+                   Control.Lens.Internal
+                   Control.Lens.Representable
+
+  -- base
+  exposed-modules: Control.Exception.Lens
+                   Data.Bits.Lens
+                   Data.Complex.Lens
+                   Data.Dynamic.Lens
+
+  -- containers
+  exposed-modules: Data.IntMap.Lens
+                   Data.IntSet.Lens
+                   Data.Map.Lens
+                   Data.Sequence.Lens
+                   Data.Set.Lens
+                   Data.Tree.Lens
+
+  build-depends:   template-haskell >= 2.4 && < 2.8
+  exposed-modules: Language.Haskell.TH.Lens
+                   Control.Lens.TH
+
+  -- platform
+  build-depends:   array == 0.4.*
+  exposed-modules: Data.Array.Lens
+
+  build-depends:   bytestring == 0.9.*
+  exposed-modules: Data.ByteString.Lens Data.ByteString.Lazy.Lens
+
+  build-depends:   text == 0.11.*
+  exposed-modules: Data.Text.Lens Data.Text.Lazy.Lens
+
+  build-depends:   parallel == 3.2.*
+  exposed-modules: Control.Parallel.Strategies.Lens Control.Seq.Lens
+
+  -- build-depends:   time == 1.4.*
+  -- exposed-modules: Data.Time.Calendar.Lens Data.Time.Clock.Lens
 
   other-extensions:
     CPP
@@ -205,6 +212,8 @@ library
 
   if (impl(ghc>=7.4))
     other-extensions: Trustworthy
+    build-depends: ghc-prim
+    exposed-modules: GHC.Generics.Lens
 
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: src

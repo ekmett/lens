@@ -52,8 +52,13 @@ amapped = sets amap
 -- | This setter can be used to derive a new array from an old array by
 -- applying a function to each of the indices.
 --
+-- This is a /contravariant/ Setter.
+--
 -- > ixmap = adjust . ixmapped
 -- > ixmapped = sets . ixmap
+--
+-- > adjust (ixmapped b) f arr ! i = arr ! f i
+-- > bounds (adjust (ixmapped b) f arr) = b
 ixmapped :: (IArray a e, Ix i, Ix j) => (i,i) -> Setter (a j e) (a i e) i j
 ixmapped = sets . ixmap
 {-# INLINE ixmapped #-}

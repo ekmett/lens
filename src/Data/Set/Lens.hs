@@ -11,11 +11,12 @@
 module Data.Set.Lens
   ( contains
   , members
+  , setOf
   ) where
 
+import Control.Applicative
 import Control.Lens
 import Data.Set as Set
-import Data.Functor
 
 -- | This 'Lens' can be used to read, write or delete a member of a 'Set'
 --
@@ -39,3 +40,13 @@ contains k f s = go <$> f (Set.member k s) where
 -- > fromList [2,3,4,5]
 members :: (Ord i, Ord j) => Setter (Set i) (Set j) i j
 members = sets Set.map
+
+-- | Construct a set from a 'Getter', 'Fold', 'Traversal', 'Lens' or 'Iso'.
+--
+-- > setOf ::          Getter a c        -> a -> Set c
+-- > setOf :: Ord c => Fold a c          -> a -> Set c
+-- > setOf ::          Iso a b c d       -> a -> Set c
+-- > setOf ::          Lens a b c d      -> a -> Set c
+-- > setOf :: Ord c => Traversal a b c d -> a -> Set c
+setOf :: Getting (Set c) a b c d -> a -> Set c
+setOf l = getConst . l (Const . Set.singleton)

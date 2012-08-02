@@ -61,6 +61,8 @@ module Control.Lens
   -- ** Common Lenses
   , _1, _2
   , resultAt
+  , element
+  , elementOf
 
   -- * Isomorphisms
   , Iso
@@ -80,7 +82,7 @@ module Control.Lens
   , adjust, mapOf
   , set
   , whisper
-  , (^~), (%~)
+  , (^~), (%~), (<~)
   , (^=), (%=)
 
   -- * Getters and Folds
@@ -174,7 +176,7 @@ import Data.Traversable
 import Prelude hiding ((.),id)
 
 infixl 8 ^.
-infixr 4 ^~, +~, *~, -~, //~, &&~, ||~, %~, <>~, %%~
+infixr 4 ^~, +~, *~, -~, //~, &&~, ||~, %~, <>~, %%~, <~
 infix  4 ^=, +=, *=, -=, //=, &&=, ||=, %=, <>=, %%=
 infixr 0 ^$
 
@@ -205,6 +207,16 @@ infixr 0 ^$
 --
 -- You can also use a 'Lens' for 'Getting' as if it were a 'Fold' or 'Getter'.
 --
+-- Since every lens is a valid 'Traversal', the traversal laws should also apply to any lenses you create.
+--
+-- 1.) Idiomatic naturality:
+--
+-- > l pure = pure
+--
+-- 2.) Sequential composition:
+--
+-- > fmap (l f) . l g = getCompose . l (Compose . fmap f . g)
+--
 -- > type Lens = forall f. Functor f => LensLike f a b c d
 type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 
@@ -224,6 +236,22 @@ type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 -- Most of the time the 'Traversal' you will want to use is just 'traverse', but you can also pass any
 -- 'Lens' or 'Iso' as a Traversal, and composition of a 'Traversal' (or 'Lens' or 'Iso') with a 'Traversal' (or 'Lens' or 'Iso')
 -- using (.) forms a valid 'Traversal'.
+--
+-- The laws for a Traversal @t@ follow from the laws for Traversable as stated in \"The Essence of the Iterator Pattern\".
+--
+-- 1.) Idiomatic naturality:
+--
+-- > t pure = pure
+--
+-- 2.) Sequential composition:
+--
+-- > fmap (t f) . t g = getCompose . t (Compose . fmap f . g)
+--
+-- One consequence of this requirement is that a traversal needs to leave the same number of elements as a candidate for 
+-- subsequent traversal as it started with.
+--
+-- 3.) No duplication of elements (as defined in \"The Essence of the Iterator Pattern\" section 5.5), which states
+-- that you should incur no effect caused by visiting the same element of the container twice.
 type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 
 -- | A @'Simple' 'Lens'@, @'Simple' 'Traversal'@, ... can be used instead of a 'Lens','Traversal', ...
@@ -531,10 +559,15 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 --
 -- You can't 'view' a 'Setter' in general, so the other two laws are irrelevant.
 --
--- However, two Functor laws apply to a 'Setter'
+-- However, two functor laws apply to a 'Setter'
 --
 -- > adjust l id = id
 -- > adjust l f . adjust l g = adjust l (f . g)
+--
+-- These an be stated more directly:
+--
+-- > l Identity = Identity
+-- > l f . runIdentity . l g = l (f . runIdentity . g)
 --
 -- You can compose a 'Setter' with a 'Lens' or a 'Traversal' using @(.)@ from the Prelude
 -- and the result is always only a 'Setter' and nothing more.
@@ -542,10 +575,11 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 -- > type Setter a b c d = LensLike Identity a b c d
 type Setter a b c d = (c -> Identity d) -> a -> Identity b
 
--- | This alias is supplied for those who don't want to use @LiberalTypeSynonyms@ with 'Simple'.
+-- | This alias is supplied for those who don't want to use @LiberalTypeSynonyms@ with
+-- 'Simple'.
 --
 -- > 'SimpleSetter ' = 'Simple' 'Setter'
-type SimpleSetter a b = Lens a a b b
+type SimpleSetter a b = Setter a a b b
 
 -- | This setter can be used to map over all of the values in a 'Functor'.
 --
@@ -641,20 +675,28 @@ set l d = runIdentity . l (\_ -> Identity d)
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
 -- or 'Traversal' with a constant value.
 --
--- This is an infix version of 'set'
---
--- > f <$ a = mapped ^~ f $ a
---
--- > ghci> bitAt 0 ^~ True $ 0
--- > 1
---
--- > (^~) :: Setter a b c d    -> d -> a -> b
--- > (^~) :: Iso a b c d       -> d -> a -> b
--- > (^~) :: Lens a b c d      -> d -> a -> b
--- > (^~) :: Traversal a b c d -> d -> a -> b
+-- This is an infix version of 'set', provided for consistency with '(^=)'
 (^~) :: Setter a b c d -> d -> a -> b
 (^~) = set
 {-# INLINE (^~) #-}
+
+-- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
+-- or 'Traversal' with a constant value.
+--
+-- This is an infix version of 'set'
+--
+-- > f <$ a = mapped <~ f $ a
+--
+-- > ghci> bitAt 0 <~ True $ 0
+-- > 1
+--
+-- > (<~) :: Setter a b c d    -> d -> a -> b
+-- > (<~) :: Iso a b c d       -> d -> a -> b
+-- > (<~) :: Lens a b c d      -> d -> a -> b
+-- > (<~) :: Traversal a b c d -> d -> a -> b
+(<~) :: Setter a b c d -> d -> a -> b
+(<~) = set
+{-# INLINE (<~) #-}
 
 -- | Increment the target(s) of a numerically valued 'Lens', Setter' or 'Traversal'
 --
@@ -841,6 +883,26 @@ _2 :: Lens (c,a) (c,b) a b
 _2 f (c,a) = (,) c <$> f a
 {-# INLINE _2 #-}
 
+-- | A 'Lens' to view/edit the nth element 'elementOf' a 'Traversal', 'Lens' or 'Iso'.
+--
+-- Attempts to access beyond the range of the 'Traversal' will cause an error.
+--
+-- > ghci> [[1],[3,4]]^.elementOf (traverse.traverse) 1
+-- > 3
+elementOf :: Functor f => LensLike (ElementOf f) a b c c -> Int -> LensLike f a b c c
+elementOf l i f a = case getElementOf (l go a) 0 of
+    Found _ fb -> fb
+    Searching _ _ -> error "elementOf: index out of range"
+  where
+    go c = ElementOf $ \j -> if i == j then Found (j + 1) (f c) else Searching (j + 1) c
+
+-- | Access the nth element of a 'Traversable' container.
+--
+-- Attempts to access beyond the range of the 'Traversal' will cause an error.
+--
+-- > element = elementOf traverse
+element :: Traversable t => Int -> Simple Lens (t a) a
+element = elementOf traverse
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
@@ -945,6 +1007,9 @@ uses l f = State.gets (views l f)
 -- > (^=) :: MonadState a m => Lens a a c d      -> d -> m ()
 -- > (^=) :: MonadState a m => Traversal a a c d -> d -> m ()
 -- > (^=) :: MonadState a m => Setter a a c d    -> d -> m ()
+--
+
+-- "It puts the state in the monad or it gets the hose again."
 (^=) :: MonadState a m => Setter a a c d -> d -> m ()
 l ^= b = State.modify (l ^~ b)
 {-# INLINE (^=) #-}
@@ -1796,3 +1861,4 @@ clone :: Functor f
 clone f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
 {-# INLINE clone #-}
+

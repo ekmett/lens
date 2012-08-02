@@ -25,6 +25,8 @@ module Control.Lens.Internal
   , getMin
   , Max(..)
   , getMax
+  , ElementOf(..)
+  , ElementOfResult(..)
   ) where
 
 import Control.Applicative
@@ -117,4 +119,31 @@ instance Ord a => Monoid (Max a) where
 getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
+
+-- | The result of trying to find the nth element of a 'Traversal'.
+data ElementOfResult f a
+  = Searching {-# UNPACK #-} !Int a
+  | Found {-# UNPACK #-} !Int (f a)
+
+instance Functor f => Functor (ElementOfResult f) where
+  fmap f (Searching i a) = Searching i (f a)
+  fmap f (Found i as) = Found i (fmap f as)
+
+-- | Used to find the nth element of a 'Traversal'.
+data ElementOf f a = ElementOf { getElementOf :: Int -> ElementOfResult f a }
+
+instance Functor f => Functor (ElementOf f) where
+  fmap f (ElementOf m) = ElementOf $ \i -> case m i of
+    Searching j a -> Searching j (f a)
+    Found j as -> Found j (fmap f as)
+
+instance Functor f => Applicative (ElementOf f) where
+  pure a = ElementOf $ \i -> Searching i a
+  ElementOf mf <*> ElementOf ma = ElementOf $ \i -> case mf i of
+    Found j ff -> case ma j of
+      Found _ _ -> error "elementOf: found multiple results"
+      Searching k a -> Found k (fmap ($a) ff)
+    Searching j f -> case ma j of
+      Found k as -> Found k (fmap f as)
+      Searching k a -> Searching k (f a)
 
