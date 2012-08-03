@@ -3,6 +3,16 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Control.Indexed
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  provisional
+-- Portability :  rank 2 types, MPTCs, TFs, flexible
+--
+----------------------------------------------------------------------------
 module Control.Indexed
   (
   -- * Overloading indexed functions

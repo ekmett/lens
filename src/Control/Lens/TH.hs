@@ -26,6 +26,7 @@ module Control.Lens.TH
   , makeIso
   , makeLenses, makeLensesFor
   , makeLensesWith
+  , defaultRules
   ) where
 
 import Control.Applicative
@@ -44,6 +45,7 @@ import Data.Traversable
 import Language.Haskell.TH
 import Language.Haskell.TH.Lens
 
+-- | Flags for lens construction
 data LensFlag
   = SimpleLenses
 

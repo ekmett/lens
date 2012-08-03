@@ -12,7 +12,7 @@ Example
 -------
 
 > ghci> :m + Control.Lens Data.Text.Lens
-> ghci> anyOf text (=='e') $ packed ^$ "hello"
+> ghci> anyOf (traverse.text) (=='y') ["hello"^.packed, "goodbye"^.packed]
 > True
 
 Contact Information
