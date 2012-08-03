@@ -45,7 +45,7 @@ module Control.Lens.TH
 
 import Control.Applicative
 import Control.Lens
-import Control.Monad (guard)
+import Control.Monad
 import Data.Char (toLower)
 import Data.Foldable
 import Data.List as List
