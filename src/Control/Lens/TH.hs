@@ -14,33 +14,18 @@
 --
 ----------------------------------------------------------------------------
 module Control.Lens.TH
-  (
+  ( LensRules(LensRules)
+  , lensIso
+  , lensField
+  , lensClass
+  , lensFlags
+  , LensFlag(..)
+  , simpleLenses, handleSingletons, singletonIso, singletonRequired, createClass, createInstance, classRequired
   -- * Constructing Lenses Automatically
-    makeLenses
-  , makeLensesFor
+  , makeClassy, makeClassyFor
+  , makeIso
+  , makeLenses, makeLensesFor
   , makeLensesWith
-  -- ** Common configurations
-  , defaultLensRules
-  , classyClasses
-  , mixedClasses
-  , noClasses
-  -- * Lenses for configuring lenses
-  , LensRules(LensRules)
-  , isoLensRule
-  , fieldLensRule
-  , addBothLensRule
-  , noIsoLensRule
-  , simpleLensRule
-  -- ** Manual class configuration
-  , classLensRule
-  , classyClassLensRule
-  , mixedClassLensRule
-  , noClassLensRule
-  , LensClass(LensClass)
-  , lensClassName
-  , lensClassCreateClass
-  , lensClassCreateInstance
-  , lensClassMember
   ) where
 
 import Control.Applicative
@@ -59,136 +44,89 @@ import Data.Traversable
 import Language.Haskell.TH
 import Language.Haskell.TH.Lens
 
-#if !(MIN_VERSION_template_haskell(2,7,0))
-instance Applicative Q where
-  pure = return
-  (<*>) = ap
-#endif
+data LensFlag
+  = SimpleLenses
 
-data LensClass = LensClass
-  { _lensClassName           :: String
-  , _lensClassCreateClass    :: Bool
-  , _lensClassCreateInstance :: Bool
-  , _lensClassMember         :: String
-  } deriving (Eq,Ord,Show,Read)
+  | SingletonAndField
+  | SingletonIso
+  | HandleSingletons
+  | SingletonRequired
 
--- | What class name should we use?
---
--- (Typically something like HasFoo)
-lensClassName :: Simple Lens LensClass String
-lensClassName f (LensClass n cc ci m) = (\n' -> LensClass n' cc ci m) <$> f n
+  | CreateClass
+  | CreateInstance
+  | ClassRequired
+  deriving (Eq,Ord,Show,Read)
 
--- | Should we create the class?
---
--- > class HasFoo t where
--- >   foo :: Lens t t Foo Foo
-lensClassCreateClass :: Simple Lens LensClass Bool
-lensClassCreateClass f (LensClass n cc ci m) = (\cc' -> LensClass n cc' ci m) <$> f cc
+-- | Only Generate valid 'Simple' 'Lens' lenses
+simpleLenses      :: Simple Lens LensRules Bool
+simpleLenses       = lensFlags.contains SimpleLenses
 
--- | Should we create the self-instance?
--- > instance HasFoo Foo where
--- >   foo = id
-lensClassCreateInstance :: Simple Lens LensClass Bool
-lensClassCreateInstance f (LensClass n cc ci m) = (\ci' -> LensClass n cc ci' m) <$> f ci
+-- | Handle singleton constructors specially
+handleSingletons :: Simple Lens LensRules Bool
+handleSingletons = lensFlags.contains HandleSingletons
 
--- | Choose the member of the class to precompose with
---
--- (Usually something like the name of the data type lowercased.)
-lensClassMember :: Simple Lens LensClass String
-lensClassMember f (LensClass n cc ci m) = (\m' -> LensClass n cc ci m') <$> f m
+-- | When building an singleton iso (or lens) for a record constructor, build both
+singletonAndField :: Simple Lens LensRules Bool
+singletonAndField  = lensFlags.contains SingletonAndField
+
+-- | Use Iso for singleton constructors
+singletonIso :: Simple Lens LensRules Bool
+singletonIso = lensFlags.contains SingletonIso
+
+-- | Expect a single constructor, single field newtype or data type.
+singletonRequired  :: Simple Lens LensRules Bool
+singletonRequired   = lensFlags.contains SingletonRequired
+
+-- | Create the class if the constructor is simple and the 'lensClass' rule matches
+createClass       :: Simple Lens LensRules Bool
+createClass        = lensFlags.contains CreateClass
+
+-- | Create the instance if the constructor is simple and the 'lensClass' rule matches
+createInstance    :: Simple Lens LensRules Bool
+createInstance     = lensFlags.contains CreateInstance
+
+-- | Die if the 'lensClass' fails to match
+classRequired     :: Simple Lens LensRules Bool
+classRequired      = lensFlags.contains ClassRequired
 
 -- | This configuration describes the options we'll be using to make isomorphisms or lenses
 data LensRules = LensRules
-  { _isoLensRule        :: String -> Maybe String
-  , _fieldLensRule      :: String -> Maybe String
-  , _classLensRule      :: Bool -> String -> Maybe LensClass
-  , _addBothLensRule    :: Bool
-  , _useNoIsoLensRule   :: Bool
-  , _useSimpleLensRule  :: Bool
---  , _traversalLensRule  :: Bool
+  { _lensIso   :: String -> Maybe String
+  , _lensField :: String -> Maybe String
+  , _lensClass :: String -> Maybe (String, String)
+  , _lensFlags :: Set LensFlag
   }
 
 -- | Lens to access the convention for naming top level isomorphisms in our lens rules
 --
 -- Defaults to lowercasing the first letter of the constructor.
-isoLensRule :: Simple Lens LensRules (String -> Maybe String)
-isoLensRule f (LensRules i n c b lni sl) = (\i' -> LensRules i' n c b lni sl) <$> f i
+lensIso :: Simple Lens LensRules (String -> Maybe String)
+lensIso f (LensRules i n c o) = (\i' -> LensRules i' n c o) <$> f i
 
 -- | Lens to access the convention for naming fields in our lens rules
 --
 -- Defaults to stripping the _ off of the field name and lowercasing the name and
 -- rejecting the field if it doesn't start with an '_'.
-fieldLensRule :: Simple Lens LensRules (String -> Maybe String)
-fieldLensRule f (LensRules i n c b lni sl) = (\n' -> LensRules i n' c b lni sl) <$> f n
+lensField :: Simple Lens LensRules (String -> Maybe String)
+lensField f (LensRules i n c o) = (\n' -> LensRules i n' c o) <$> f n
 
 -- | Retrieve options such as the name of the class and method to put in it to build a class around monomorphic data types.
-classLensRule :: Simple Lens LensRules (Bool -> String -> Maybe LensClass)
-classLensRule f (LensRules i n c b lni sl) = (\c' -> LensRules i n c' b lni sl) <$> f c
+lensClass :: Simple Lens LensRules (String -> Maybe (String, String))
+lensClass f (LensRules i n c o) = (\c' -> LensRules i n c' o) <$> f c
 
--- | This flag indicates whether or not we should attempt to add both an isomorphism lens and a top level accessor
---
--- Defaults to 'True'
-addBothLensRule :: Simple Lens LensRules Bool
-addBothLensRule f (LensRules i n c b lni sl) = (\b' -> LensRules i n c b' lni sl) <$> f b
-
--- | Sometimes you know that you'll be refactoring your code, so you may want to avoid generating isomorphisms
--- even when they are available.
---
--- Defaults to 'True'
-noIsoLensRule :: Simple Lens LensRules Bool
-noIsoLensRule f (LensRules i n c b lni sl) = (\lni' -> LensRules i n c b lni' sl) <$> f lni
-
--- | Never use lens families, always return a 'Simple' 'Lens' or 'Simple' 'Iso'
---
--- Defaults to 'False'
-simpleLensRule :: Simple Lens LensRules Bool
-simpleLensRule f (LensRules i n c b lni sl) = LensRules i n c b lni <$> f sl
-
--- | Always make a class when the data type is monomorphic.
---
--- No isomorphism lens will be created for monomorphic types that have a 
--- singular single-argument data constructor
---
--- > makeLensesWith $ classLensRule <~ classyClassLensRule $ defaultConfig
-classyClassLensRule :: Bool -> String -> Maybe LensClass
-classyClassLensRule _ n@(a:as) = Just $ LensClass ("Has" ++ n) True True (toLower a:as)
-classyClassLensRule _ _ = Nothing
-
--- | Useful classLensRule when you want isomorphisms when possible
---   then classes wherever monomorphic and will accept normal
---   lenses otherwise. This is the default definition.
---
--- > makeLensesWith $ classLensRule <~ mixedClassLensRule $ defaultConfig
-mixedClassLensRule :: Bool -> String -> Maybe LensClass
-mixedClassLensRule True _ = Nothing
-mixedClassLensRule _ n@(a:as) = Just $ LensClass ("Has" ++ n) True True (toLower a:as)
-mixedClassLensRule _ _ = Nothing
-
--- | Use this if you want to have no class.
---
--- > makeLensesWith $ classLensRule <~ noClassLensRule $ defaultConfig
-noClassLensRule :: Bool -> String -> Maybe LensClass
-noClassLensRule _ _ = Nothing
+-- | Retrieve options such as the name of the class and method to put in it to build a class around monomorphic data types.
+lensFlags :: Simple Lens LensRules (Set LensFlag)
+lensFlags f (LensRules i n c o) = LensRules i n c <$> f o
 
 -- | Default lens rules
-defaultLensRules :: LensRules
-defaultLensRules = LensRules top field mixedClassLensRule True False False where
-  top (c:cs) = Just (toLower c:cs)
-  top _      = Nothing
-  field ('_':c:cs) = Just (toLower c:cs)
-  field _          = Nothing
-
--- | Reconfigure to precompose classes wherever possible, rather than use isomorphisms
-classyClasses :: LensRules -> LensRules
-classyClasses = classLensRule <~ classyClassLensRule
-
--- | Prefer isomorphisms to classes.
-mixedClasses :: LensRules -> LensRules
-mixedClasses = classLensRule <~ mixedClassLensRule
-
--- | Never prefix our lenses with a class.
-noClasses :: LensRules -> LensRules
-noClasses = classLensRule <~ noClassLensRule
+defaultRules :: LensRules
+defaultRules = LensRules top field (const Nothing) $
+    Set.fromList [SingletonIso, SingletonAndField, CreateClass, CreateInstance]
+  where
+    top (c:cs) = Just (toLower c:cs)
+    top _      = Nothing
+    field ('_':c:cs) = Just (toLower c:cs)
+    field _          = Nothing
 
 -- | Given a set of names, build a map from those names to a set of fresh names based on them.
 freshMap :: Set Name -> Q (Map Name Name)
@@ -260,24 +198,24 @@ makeIsoLenses cfg ctx tyConName tyArgs dataConName maybeFieldName partTy = do
       cty = appArgs (ConT tyConName) tyArgs
       dty = substTypeVars m cty
       quantified = ForallT (tyArgs ++ substTypeVars m tyArgs) (ctx ++ substTypeVars m ctx)
-      maybeIsoName = mkName <$> view isoLensRule cfg (nameBase dataConName)
-      lensOnly = cfg^.noIsoLensRule
+      maybeIsoName = mkName <$> view lensIso cfg (nameBase dataConName)
+      lensOnly = not $ cfg^.singletonIso
       isoCon   | lensOnly  = ConT (mkName "Control.Lens.Body")
                | otherwise = ConT (mkName "Control.Lens.Iso")
       makeBody | lensOnly  = makeLensBody
                | otherwise = makeIsoBody
   isoDecls <- flip (maybe (return [])) maybeIsoName $ \isoName -> do
     let decl = SigD isoName $ quantified $ isoCon `apps`
-          if cfg^.simpleLensRule then [aty,aty,cty,cty] else [aty,bty,cty,dty]
+          if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
     body <- makeBody isoName dataConName makeIsoFrom makeIsoTo
     inlining <- pragInlD isoName $ inlineSpecNoPhase True False
     return [decl, body, inlining]
-  accessorDecls <- case mkName <$> (maybeFieldName >>= view fieldLensRule cfg . nameBase) of
+  accessorDecls <- case mkName <$> (maybeFieldName >>= view lensField cfg . nameBase) of
     jfn@(Just lensName)
-      | (jfn /= maybeIsoName) && (isNothing maybeIsoName || cfg^.addBothLensRule) -> do
+      | (jfn /= maybeIsoName) && (isNothing maybeIsoName || cfg^.singletonAndField) -> do
       let decl = SigD lensName $ quantified $ isoCon `apps`
-                   if cfg^.simpleLensRule then [cty,cty,aty,aty]
-                                          else [cty,dty,aty,bty]
+                   if cfg^.simpleLenses then [cty,cty,aty,aty]
+                                        else [cty,dty,aty,bty]
       body <- makeBody lensName dataConName makeIsoTo makeIsoFrom
       inlining <- pragInlD lensName $ inlineSpecNoPhase True False
       return [decl, body, inlining]
@@ -351,29 +289,29 @@ makeFieldLenses cfg ctx tyConName tyArgs cons = do
   x <- newName "x"
   let maybeLensClass = do
         guard $ tyArgs == []
-        view classLensRule cfg False (nameBase tyConName)
-      maybeClassName = fmap (^.lensClassName.to mkName) maybeLensClass
+        view lensClass cfg (nameBase tyConName)
+      maybeClassName = fmap (^._1.to mkName) maybeLensClass
       aty | isJust maybeClassName = VarT x
           | otherwise             = appArgs (ConT tyConName) tyArgs
       vs = setOf typeVars tyArgs
       fieldMap = commonFieldDescs cons
   classDecls <- case maybeLensClass of
     Nothing -> return []
-    Just (LensClass clsNameString mkCls mkIns methodNameString) -> do
+    Just (clsNameString, methodNameString) -> do
       let clsName    = mkName clsNameString
           methodName = mkName methodNameString
       t <- newName "t"
       a <- newName "a"
       Prelude.sequence $
-        filter (const mkCls)
+        filter (\_ -> cfg^.createClass)
           [ classD (return []) clsName [PlainTV t] []
             [ sigD methodName $ conT (mkName "Control.Lens.Lens") `appsT` [varT t,varT t, conT tyConName, conT tyConName]]]
-        ++ filter (const mkIns)
+        ++ filter (\_ -> cfg^.createInstance)
           [ instanceD (return []) (conT clsName `appT` conT tyConName)
             [ funD methodName [clause [varP a] (normalB (varE a)) []]
             , pragInlD methodName $ inlineSpecNoPhase True False ]]
   bodies <- for (toList fieldMap) $ \ (FieldDesc nm cty bds) ->
-     case mkName <$> view fieldLensRule cfg (nameBase nm) of
+     case mkName <$> view lensField cfg (nameBase nm) of
        Nothing -> return []
        Just lensName -> do
          m <- freshMap $ Set.difference vs bds
@@ -390,9 +328,9 @@ makeFieldLenses cfg ctx tyConName tyArgs cons = do
              tvs' | isJust maybeClassName = PlainTV x : tvs
                   | otherwise             = tvs
          let decl = SigD lensName $ ForallT tvs' qs $ ConT (mkName "Control.Lens.Lens") `apps`
-                      if cfg^.simpleLensRule then [aty,aty,cty,cty]
-                                             else [aty,bty,cty,dty]
-         body <- makeFieldLensBody lensName nm cons $ fmap (mkName . view lensClassMember) maybeLensClass
+                      if cfg^.simpleLenses then [aty,aty,cty,cty]
+                                           else [aty,bty,cty,dty]
+         body <- makeFieldLensBody lensName nm cons $ fmap (mkName . view _2) maybeLensClass
          inlining <- pragInlD lensName $ inlineSpecNoPhase True False
          return [decl, body, inlining]
   return $ classDecls ++ Prelude.concat bodies
@@ -401,23 +339,49 @@ makeFieldLenses cfg ctx tyConName tyArgs cons = do
 makeLensesWith :: LensRules -> Name -> Q [Dec]
 makeLensesWith cfg nm = reify nm >>= \inf -> case inf of
   TyConI dt -> case dt of
-    NewtypeD ctx tyConName args (NormalC dataConName [(_,ty)])  _ | isoWanted tyConName ->
+    NewtypeD ctx tyConName args (NormalC dataConName [(_,ty)])  _ | cfg^.handleSingletons ->
       makeIsoLenses cfg ctx tyConName args dataConName Nothing ty
-    DataD ctx tyConName args [NormalC dataConName [(_,ty)]]  _    | isoWanted tyConName ->
+    DataD ctx tyConName args [NormalC dataConName [(_,ty)]]  _    | cfg^.handleSingletons ->
       makeIsoLenses cfg ctx tyConName args dataConName Nothing ty
-    NewtypeD ctx tyConName args (RecC dataConName [(fld,_,ty)]) _ | isoWanted tyConName ->
+    NewtypeD ctx tyConName args (RecC dataConName [(fld,_,ty)]) _ | cfg^.handleSingletons ->
       makeIsoLenses cfg ctx tyConName args dataConName (Just fld) ty
-    DataD ctx tyConName args [RecC dataConName [(fld,_,ty)]] _    | isoWanted tyConName ->
+    DataD ctx tyConName args [RecC dataConName [(fld,_,ty)]] _    | cfg^.handleSingletons ->
       makeIsoLenses cfg ctx tyConName args dataConName (Just fld) ty
+    _ | cfg^.singletonRequired -> fail "makeLensesWith: A single-constructor single-argument data type is required"
     DataD ctx tyConName args dataCons _ ->
       makeFieldLenses cfg ctx tyConName args dataCons
-    _ -> error "Unsupported data type"
-  _ -> error "Expected the name of a data type or newtype"
-  where isoWanted = isNothing . view classLensRule cfg True . nameBase
+    _ -> fail "Unsupported data type"
+  _ -> fail "Expected the name of a data type or newtype"
 
 -- | Build lenses with a sensible default configuration
 makeLenses :: Name -> Q [Dec]
-makeLenses = makeLensesWith defaultLensRules
+makeLenses = makeLensesWith
+  $ lensIso   <~ const Nothing
+  $ lensClass <~ const Nothing
+  $ handleSingletons <~ True    -- generate an Iso for the field if its the only one
+  $ defaultRules
+
+-- | Make a top level isomorphism injecting _into_ the type
+--
+-- The supplied name is required to be for a type with a single constructor that has a single argument
+makeIso :: Name -> Q [Dec]
+makeIso = makeLensesWith
+  $ singletonRequired <~ True
+  $ singletonAndField <~ True
+  $ defaultRules
+
+-- | Make 'classy lenses' for a type
+makeClassy :: Name -> Q [Dec]
+makeClassy = makeLensesWith
+  $ lensIso <~ const Nothing
+  $ handleSingletons <~ False
+  $ lensClass <~ classy
+  $ classRequired <~ True
+  $ defaultRules
+
+classy :: String -> Maybe (String, String)
+classy n@(a:as) = Just ("Has" ++ n, toLower a:as)
+classy _ = Nothing
 
 -- | Derive lenses, specifying explicit pairings of @(fieldName, lensName)@.
 --
@@ -425,6 +389,30 @@ makeLenses = makeLensesWith defaultLensRules
 --
 -- > makeLensesFor [("_foo", "fooLens"), ("bar", "lbar")] ''Foo
 makeLensesFor :: [(String, String)] -> Name -> Q [Dec]
-makeLensesFor fields = makeLensesWith $ fieldLensRule <~ (`Prelude.lookup` fields)
-                                      $ isoLensRule <~ const Nothing
-                                      $ defaultLensRules
+makeLensesFor fields = makeLensesWith
+  $ lensField <~ (`Prelude.lookup` fields)
+  $ lensIso   <~ const Nothing
+  $ lensClass <~ const Nothing
+  $ handleSingletons <~ True
+  $ defaultRules
+
+-- | Derive lenses, specifying explicit pairings of @(fieldName, lensName)@
+-- using a wrapper class.
+--
+-- Example usage:
+--
+-- > makeClassyFor "HasFoo" "foo" [("_foo", "fooLens"), ("bar", "lbar")] ''Foo
+makeClassyFor :: String -> String -> [(String, String)] -> Name -> Q [Dec]
+makeClassyFor clsName funName fields = makeLensesWith
+  $ lensField <~ (`Prelude.lookup` fields)
+  $ lensIso <~ const Nothing
+  $ lensClass <~ const (Just (clsName,funName))
+  $ handleSingletons <~ False
+  $ defaultRules
+
+-- The orphan instance for old versions is bad, but programing without Applicative is worse.
+#if !(MIN_VERSION_template_haskell(2,7,0))
+instance Applicative Q where
+  pure = return
+  (<*>) = ap
+#endif

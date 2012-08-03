@@ -22,10 +22,10 @@ data LensCrafted a = Still { _still :: a }
 makeLenses ''LensCrafted
 
 data Mono = Mono { _monoFoo :: Int, _monoBar :: Int }
-makeLenses ''Mono
+makeClassy ''Mono
 
 data Nucleosis = Nucleosis { _nuclear :: Mono }
-makeLenses ''Nucleosis
+makeClassy ''Nucleosis
 
 instance HasMono Nucleosis where
   mono = nuclear
