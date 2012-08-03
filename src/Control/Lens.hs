@@ -144,9 +144,6 @@ module Control.Lens
   -- * Common Traversals
   , Traversable(traverse)
   , traverseNothing
-  , traverseLeft
-  , traverseRight
-  , traverseValue
 
   -- * Transforming Traversals
   , backwards
@@ -1753,41 +1750,12 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 -- Traversals
 ------------------------------------------------------------------------------
 
--- | This is the traversal that never succeeds at returning any values
+-- | This is the traversal that just doesn't return anything
 --
 -- > traverseNothing :: Applicative f => (c -> f d) -> a -> f a
 traverseNothing :: Traversal a a c d
 traverseNothing = const pure
 {-# INLINE traverseNothing #-}
-
--- | A traversal for tweaking the left-hand value in an Either:
---
--- > traverseLeft :: Applicative f => (a -> f b) -> Either a c -> f (Either b c)
-traverseLeft :: Traversal (Either a c) (Either b c) a b
-traverseLeft f (Left a)  = Left <$> f a
-traverseLeft _ (Right c) = pure $ Right c
-{-# INLINE traverseLeft #-}
-
--- | traverse the right-hand value in an Either:
---
--- > traverseRight = traverse
---
--- Unfortunately the instance for 'Traversable (Either c)' is still missing
--- from base, so this can't just be 'traverse'
---
--- > traverseRight :: Applicative f => (a -> f b) -> Either c a -> f (Either c a)
-traverseRight :: Traversal (Either c a) (Either c b) a b
-traverseRight _ (Left c) = pure $ Left c
-traverseRight f (Right a) = Right <$> f a
-{-# INLINE traverseRight #-}
-
--- | This provides a 'Traversal' that checks a predicate on a key before
--- allowing you to traverse into a value.
-traverseValue :: (k -> Bool) -> Simple Traversal (k, v) v
-traverseValue p f kv@(k,v)
-  | p k       = (,) k <$> f v
-  | otherwise = pure kv
-{-# INLINE traverseValue #-}
 
 ------------------------------------------------------------------------------
 -- Transforming Traversals

@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       1.3.1
+version:       1.4
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -148,7 +148,7 @@ description:
 
 build-type:    Simple
 tested-with:   GHC == 7.4.1
-extra-source-files: .travis.yml
+extra-source-files: .travis.yml examples/Pong.hs
 
 source-repository head
   type: git
@@ -166,12 +166,15 @@ library
                    Control.Lens.Internal
                    Control.Lens.Representable
 
+  --               Control.Lens.Indexed
   -- base
   exposed-modules: Control.Exception.Lens
                    Data.Bits.Lens
                    Data.Complex.Lens
                    Data.Dynamic.Lens
+                   Data.Either.Lens
                    Data.List.Lens
+                   Data.Pair.Lens
 
   -- containers
   exposed-modules: Data.IntMap.Lens
