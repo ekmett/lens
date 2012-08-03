@@ -157,7 +157,7 @@ source-repository head
 library
   build-depends:
     base         == 4.*,
-    containers   >= 0.3   && < 0.6,
+    containers   >= 0.4.2 && < 0.6,
     mtl          >= 2.1.1 && < 2.2,
     transformers >= 0.2   && < 0.4
 
@@ -189,16 +189,16 @@ library
                    Control.Lens.TH
 
   -- platform
-  build-depends:   array == 0.4.*
+  build-depends:   array >= 0.3.0.2 && < 0.5
   exposed-modules: Data.Array.Lens
 
-  build-depends:   bytestring == 0.9.*
+  build-depends:   bytestring >= 0.9.1.10 && < 0.10
   exposed-modules: Data.ByteString.Lens Data.ByteString.Lazy.Lens
 
-  build-depends:   text == 0.11.*
+  build-depends:   text >= 0.11.1.5 && < 0.12
   exposed-modules: Data.Text.Lens Data.Text.Lazy.Lens
 
-  build-depends:   parallel == 3.2.*
+  build-depends:   parallel >= 3.1.0.1 && < 3.3
   exposed-modules: Control.Parallel.Strategies.Lens Control.Seq.Lens
 
   other-extensions:

@@ -24,5 +24,8 @@ makeLenses ''LensCrafted
 data Mono = Mono { _monoFoo :: Int, _monoBar :: Int }
 makeLenses ''Mono
 
---data Nucleosis = Nucleosis { _nuclear :: Mono }
---makeLenses ''Nucleosis
+data Nucleosis = Nucleosis { _nuclear :: Mono }
+makeLenses ''Nucleosis
+
+instance HasMono Nucleosis where
+  mono = nuclear
