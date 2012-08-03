@@ -59,6 +59,12 @@ import Data.Traversable
 import Language.Haskell.TH
 import Language.Haskell.TH.Lens
 
+#if !(MIN_VERSION_template_haskell(2,7,0))
+instance Applicative Q where
+  pure = return
+  (<*>) = ap
+#endif
+
 data LensClass = LensClass
   { _lensClassName           :: String
   , _lensClassCreateClass    :: Bool
