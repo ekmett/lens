@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
@@ -341,7 +342,14 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- > (%%=) :: MonadState a m             => Lens a a c d      -> (c -> (e, d) -> m e
 -- > (%%=) :: (MonadState a m, Monoid e) => Traversal a a c d -> (c -> (e, d) -> m e
 (%%=) :: MonadState a m => LensLike ((,) e) a a c d -> (c -> (e, d)) -> m e
+#if MIN_VERSION_mtl(2,1,1)
 l %%= f = State.state (l f)
+#else
+l %%= f = do
+  (e, b) <- State.gets (l f)
+  State.put b
+  return e
+#endif
 {-# INLINE (%%=) #-}
 
 -- | This class allows us to use 'focus' on a number of different monad transformers.

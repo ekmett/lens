@@ -158,8 +158,8 @@ library
   build-depends:
     base         >= 4.3   && < 5,
     containers   >= 0.4.2 && < 0.6,
-    mtl          >= 2.1.1 && < 2.2,
-    transformers >= 0.2   && < 0.4
+    mtl          >= 2.0.1 && < 2.2,
+    transformers >= 0.2.2 && < 0.4
 
   exposed-modules: Control.Isomorphic
                    Control.Lens
