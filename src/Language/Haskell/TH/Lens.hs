@@ -68,7 +68,7 @@ instance HasTypeVars Type where
   typeVarsEx s f (AppT l r)          = AppT <$> typeVarsEx s f l <*> typeVarsEx s f r
   typeVarsEx s f (SigT t k)          = (`SigT` k) <$> typeVarsEx s f t
   typeVarsEx s f (ForallT bs ctx ty) = ForallT bs <$> typeVarsEx s' f ctx <*> typeVarsEx s' f ty
-       where s' = s <> foldMapOf typeVars Set.singleton bs
+       where s' = s `Set.union` setOf typeVars bs
   typeVarsEx _ _ t                   = pure t
 
 instance HasTypeVars Pred where

@@ -740,7 +740,7 @@ l &&~ n = adjust l (&& n)
 
 -- | Modify the target of a monoidally valued by 'mappend'ing another value.
 (<>~) :: Monoid c => Setter a b c c -> c -> a -> b
-l <>~ n = adjust l (<> n)
+l <>~ n = adjust l (mappend n)
 {-# INLINE (<>~) #-}
 
 ---------------
@@ -1116,7 +1116,7 @@ folded = folds foldMap
 --
 -- > repeat = toListOf repeated
 repeated :: Fold a a
-repeated f a = Const as where as = getConst (f a) <> as
+repeated f a = Const as where as = getConst (f a) `mappend` as
 
 -- | A fold that replicates its input @n@ times.
 --
@@ -1125,7 +1125,7 @@ replicated :: Int -> Fold a a
 replicated n0 f a = Const (go n0) where
   m = getConst (f a)
   go 0 = mempty
-  go n = m <> go (n - 1)
+  go n = m `mappend` go (n - 1)
 {-# INLINE replicated #-}
 
 -- | Transform a fold into a fold that loops over its elements over and over.
@@ -1133,7 +1133,7 @@ replicated n0 f a = Const (go n0) where
 -- > ghci> toListOf (cycled traverse) [1,2,3]
 -- > [1,2,3,1,2,3,..]
 cycled :: Monoid m => Getting m a b c d -> Getting m a b c d
-cycled l f a = Const as where as = getConst (l f a) <> as
+cycled l f a = Const as where as = getConst (l f a) `mappend` as
 
 -- | Build a fold that unfolds its values from a seed.
 --

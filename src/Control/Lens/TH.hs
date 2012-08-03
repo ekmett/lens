@@ -289,8 +289,8 @@ thd (_,_,c) = c
 
 fieldDescs :: Set Name -> [(Name,Strict,Type)] -> [FieldDesc]
 fieldDescs acc ((nm,_,ty):rest) =
-  FieldDesc nm ty (acc <> setOf typeVars (map thd rest)) :
-  fieldDescs (acc <> setOf typeVars ty) rest
+  FieldDesc nm ty (acc `Set.union` setOf typeVars (map thd rest)) :
+  fieldDescs (acc `Set.union` setOf typeVars ty) rest
 fieldDescs _ [] = []
 
 conFieldDescs :: Con -> [FieldDesc]
@@ -301,8 +301,8 @@ commonFieldDescs :: [Con] -> [FieldDesc]
 commonFieldDescs = toList . Prelude.foldr walk mempty where
   walk con m = Prelude.foldr step m (conFieldDescs con)
   step d@(FieldDesc nm ty bds) m = case m^.at nm of
-    Just (FieldDesc _ _ bds') -> at nm <~ Just (FieldDesc nm ty (bds <> bds')) $ m
-    Nothing                   -> at nm <~ Just d                               $ m
+    Just (FieldDesc _ _ bds') -> at nm <~ Just (FieldDesc nm ty (bds `Set.union` bds')) $ m
+    Nothing                   -> at nm <~ Just d                                        $ m
 
 errorClause :: Name -> Name -> Name -> ClauseQ
 errorClause lensName fieldName conName
