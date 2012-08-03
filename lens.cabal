@@ -148,7 +148,7 @@ description:
 
 build-type:    Simple
 tested-with:   GHC == 7.4.1
-extra-source-files: .travis.yml examples/Pong.hs
+extra-source-files: .travis.yml examples/Pong.hs examples/Test.hs examples/Pong2.hs
 
 source-repository head
   type: git
