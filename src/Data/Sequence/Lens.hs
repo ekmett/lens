@@ -26,7 +26,7 @@ import Data.Sequence as Seq
 -- Note: This is only a legal lens if there is such an element!
 --
 at :: Int -> Simple Lens (Seq a) a
-at i f m = (\a -> update i a m) <$> f (index m i)
+at i f m = (\a -> update i a m) <$> f (Seq.index m i)
 
 -- * Sequence isomorphisms
 

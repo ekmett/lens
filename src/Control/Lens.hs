@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens
@@ -68,8 +69,8 @@ module Control.Lens
   -- * Isomorphisms
   , Iso
   , SimpleIso
-  , IsoLike
-  , SimpleIsoLike
+  , Overloaded
+  , SimpleOverloaded
   , iso
   , isos
   , Isomorphic(..)
@@ -157,11 +158,25 @@ module Control.Lens
   -- ** Common Isomorphisms
   , identity
   , konst
+
+  -- * Indexed Folds
+  , Index(..)
+  , Indexed(..)
+  , IndexedFold
+  , foldMapWithIndexOf
+  , foldrWithIndexOf
+
+  -- * Indexed Traversals
+  , IndexedTraversal
+  , SimpleIndexedTraversal
+  , traverseWithIndexOf
+  , mapMWithIndexOf
   ) where
 
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
 import Control.Category
+import Control.Indexed
 import Control.Isomorphic
 import Control.Lens.Internal
 import Control.Monad
@@ -182,6 +197,8 @@ infixl 8 ^.
 infixr 4 ^~, +~, *~, -~, //~, &&~, ||~, %~, <>~, %%~, <~
 infix  4 ^=, +=, *=, -=, //=, &&=, ||=, %=, <>=, %%=
 infixr 0 ^$
+
+
 
 --------------------------
 -- Lenses
@@ -1780,13 +1797,13 @@ traverseNothing = const pure
 --
 -- A backwards 'Iso' is the same 'Iso'. If you reverse the direction of
 -- the isomorphism use 'from' instead.
-backwards :: Isomorphic k => IsoLike k (Backwards f) a b c d -> IsoLike k f a b c d
+backwards :: Isomorphic k => Overloaded k (Backwards f) a b c d -> Overloaded k f a b c d
 backwards = isomap
   (\l f -> forwards . l (Backwards . f))
   (\l f -> forwards . l (Backwards . f))
 {-# INLINE backwards #-}
 {-# SPECIALIZE backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d #-}
-{-# SPECIALIZE backwards :: IsoLike Isomorphism (Backwards f) a b c d -> IsoLike Isomorphism f a b c d #-}
+{-# SPECIALIZE backwards :: Overloaded Isomorphism (Backwards f) a b c d -> Overloaded Isomorphism f a b c d #-}
 
 -- | Merge two lenses, getters, setters, folds or traversals.
 merged :: Functor f => LensLike f a b c c -> LensLike f a' b' c c -> LensLike f (Either a a') (Either b b') c c
@@ -1802,6 +1819,16 @@ bothLenses l r f (a, a') = case l (IndexedStore id) a of
 {-# INLINE bothLenses #-}
 
 -----------------------------------------------------------------------------
+-- Overloading function application
+-----------------------------------------------------------------------------
+
+-- | > type LensLike f a b c d = Overloaded (->) f a b c d
+type Overloaded k f a b c d = k (c -> f d) (a -> f b)
+
+-- | > type SimpleOverloaded k f a b = Simple (Overloaded k f) a b
+type SimpleOverloaded k f a b = Overloaded k f a a b b
+
+-----------------------------------------------------------------------------
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
 
@@ -1813,37 +1840,31 @@ bothLenses l r f (a, a') = case l (IndexedStore id) a of
 -- > import Control.Category
 -- > import Prelude hiding ((.),id)
 --
--- > type Iso a b c d = forall k f. (Isomorphic k, Functor f) => IsoLike k f a b c d
+-- > type Iso a b c d = forall k f. (Isomorphic k, Functor f) => Overloaded k f a b c d
 type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
 
 -- | > type SimpleIso a b = Simple Iso a b
 type SimpleIso a b = Iso a a b b
 
--- | > type LensLike f a b c d = IsoLike (->) f a b c d
-type IsoLike k f a b c d = k (c -> f d) (a -> f b)
-
--- | > type SimpleIsoLike k f a b = Simple (IsoLike k f) a b
-type SimpleIsoLike k f a b = IsoLike k f a a b b
-
 -- | Build an isomorphism family from two pairs of inverse functions
 --
 -- > isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Iso a b c d
-isos :: (Isomorphic k, Functor f) => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> IsoLike k f a b c d
+isos :: (Isomorphic k, Functor f) => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Overloaded k f a b c d
 isos ac ca bd db = isomorphic
   (\cfd a -> db <$> cfd (ac a))
   (\afb c -> bd <$> afb (ca c))
 {-# INLINE isos #-}
 {-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> LensLike f a b c d #-}
-{-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> IsoLike Isomorphism f a b c d #-}
+{-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Overloaded Isomorphism f a b c d #-}
 
 -- | Build a simple isomorphism from a pair of inverse functions
 --
 -- > iso :: (a -> b) -> (b -> a) -> Simple Iso a b
-iso :: (Isomorphic k, Functor f) => (a -> b) -> (b -> a) -> SimpleIsoLike k f a b
+iso :: (Isomorphic k, Functor f) => (a -> b) -> (b -> a) -> SimpleOverloaded k f a b
 iso ab ba = isos ab ba ab ba
 {-# INLINE iso #-}
 {-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> SimpleLensLike f a b #-}
-{-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> SimpleIsoLike Isomorphism f a b #-}
+{-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> SimpleOverloaded Isomorphism f a b #-}
 
 -----------------------------------------------------------------------------
 -- Isomorphism
@@ -1885,3 +1906,64 @@ clone f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
 {-# INLINE clone #-}
 
+------------------------------------------------------------------------------
+-- Indexed Folds
+------------------------------------------------------------------------------
+
+-- | Every 'IndexedFold' is a valid 'Fold'
+type IndexedFold i a c = forall k m b d. (Indexed i k, Monoid m) => k (c -> Const m d) (a -> Const m b)
+
+type IndexedFolding i m a b c d = Index i (c -> Const m d) (a -> Const m b)
+
+-- |
+--
+-- > foldMapWithIndexOf :: Monoid m => IndexedFold i a c          -> (i -> c -> m) -> a -> m
+-- > foldMapWithIndexOf :: Monoid m => IndexedTraversal i a b c d -> (i -> c -> m) -> a -> m
+foldMapWithIndexOf :: IndexedFolding i m a b c d -> (i -> c -> m) -> a -> m
+foldMapWithIndexOf l f = getConst . withIndex l (\i -> Const . f i)
+{-# INLINE foldMapWithIndexOf #-}
+
+-- |
+-- Right-associative fold of parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
+--
+-- > foldrWithIndexOf :: IndexedFold i a c          -> (i -> c -> e -> e) -> e -> a -> e
+-- > foldrWithIndexOf :: IndexedTraversal i a b c d -> (i -> c -> e -> e) -> e -> a -> e
+foldrWithIndexOf :: IndexedFolding i (Endo e) a b c d -> (i -> c -> e -> e) -> e -> a -> e
+foldrWithIndexOf l f z t = appEndo (foldMapWithIndexOf l (\i -> Endo . f i) t) z
+{-# INLINE foldrWithIndexOf #-}
+
+------------------------------------------------------------------------------
+-- Indexed Traversals
+------------------------------------------------------------------------------
+
+
+-- | Every indexed traversal is a valid Traversal or indexed fold.
+--
+-- The Traversal laws are still required to hold. Moreover, each index should be distinct.
+type IndexedTraversal i a b c d = forall f k. (Indexed i k, Applicative f) => k (c -> f d) (a -> f b)
+
+-- | @type 'SimpleIdexedTraversal i = 'Simple' ('IndexedTraversal' i)@
+type SimpleIndexedTraversal i a b = IndexedTraversal i a a b b
+
+-- |
+-- > traverseWithIndexOf :: IndexedTraversal i a b c d -> (i -> c -> f d) -> a -> f b
+traverseWithIndexOf :: Overloaded (Index i) f a b c d -> (i -> c -> f d) -> a -> f b
+traverseWithIndexOf = withIndex
+{-# INLINE traverseWithIndexOf #-}
+
+-- | Map each element of a structure targeted by a lens to a monadic action,
+-- evaluate these actions from left to right, and collect the results, with access
+-- its position.
+--
+-- > mapMWithIndexOf :: Monad m => IndexedTraversal a b c d -> (i -> c -> m d) -> a -> m b
+mapMWithIndexOf :: Overloaded (Index i) (WrappedMonad m) a b c d -> (i -> c -> m d) -> a -> m b
+mapMWithIndexOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
+{-# INLINE mapMWithIndexOf #-}
+
+{-
+traverseList :: IndexedTraversal Int [a] [b] a b
+traverseList = index $ go (0::Int) where
+  go n f (x:xs) = (:) <$> f n x <*> go (n + 1) f xs
+  go _ _ [] = pure []
+ {-# INLINE traverseList #-}
+-}

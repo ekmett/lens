@@ -161,12 +161,11 @@ library
     mtl          >= 2.0.1 && < 2.2,
     transformers >= 0.2.2 && < 0.4
 
-  exposed-modules: Control.Isomorphic
+  exposed-modules: Control.Indexed
+                   Control.Isomorphic
                    Control.Lens
                    Control.Lens.Internal
                    Control.Lens.Representable
-
-  --               Control.Lens.Indexed
   -- base
   exposed-modules: Control.Exception.Lens
                    Data.Bits.Lens
@@ -204,11 +203,14 @@ library
   other-extensions:
     CPP
     DeriveDataTypeable
+    FlexibleContexts
+    FlexibleInstances
     LiberalTypeSynonyms
     MultiParamTypeClasses
     Rank2Types
     RankNTypes
     TemplateHaskell
+    TypeFamilies
     TypeOperators
 
   if (impl(ghc>=7.4))
