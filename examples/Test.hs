@@ -21,8 +21,8 @@ data LensCrafted a = Still { _still :: a }
                    | Works { _still :: a }
 makeLenses ''LensCrafted
 
---data Mono = Mono { _monoFoo :: Int, _monoBar :: Int }
---makeLenses ''Mono
+data Mono = Mono { _monoFoo :: Int, _monoBar :: Int }
+makeLenses ''Mono
 
 --data Nucleosis = Nucleosis { _nuclear :: Mono }
 --makeLenses ''Nucleosis

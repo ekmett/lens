@@ -323,7 +323,7 @@ makeFieldLensBody lensName fieldName cons maybeMethodName = case maybeMethodName
       Just i -> do
         names <- for fields $ \(n,_,_) -> newName (nameBase n)
         f     <- newName "f"
-        x     <- newName "x"
+        x     <- newName "y"
         clause [varP f, conP conName $ map varP names] (normalB
                (appsE [ varE (mkName "fmap")
                       , lamE [varP x] $ appsE $ conE conName : map varE (element i <~ x $ names)
@@ -348,7 +348,7 @@ makeFieldLenses cfg ctx tyConName tyArgs cons = do
         view classLensRule cfg False (nameBase tyConName)
       maybeClassName = fmap (^.lensClassName.to mkName) maybeLensClass
       aty | isJust maybeClassName = VarT x
-          | otherwise = appArgs (ConT tyConName) tyArgs
+          | otherwise             = appArgs (ConT tyConName) tyArgs
       vs = setOf typeVars tyArgs
       fieldMap = commonFieldDescs cons
   classDecls <- case maybeLensClass of
@@ -379,9 +379,11 @@ makeFieldLenses cfg ctx tyConName tyArgs cons = do
              tvs = tyArgs ++ filter relevantBndr (substTypeVars m tyArgs)
              ps = ctx ++ filter relevantCtx (substTypeVars m ctx)
              qs = case maybeClassName of
-                Just n -> ClassP n [ConT tyConName] : ps
+                Just n -> ClassP n [VarT x] : ps
                 _      -> ps
-         let decl = SigD lensName $ ForallT tvs qs $ ConT (mkName "Control.Lens.Lens") `apps`
+             tvs' | isJust maybeClassName = PlainTV x : tvs
+                  | otherwise             = tvs
+         let decl = SigD lensName $ ForallT tvs' qs $ ConT (mkName "Control.Lens.Lens") `apps`
                       if cfg^.simpleLensRule then [aty,aty,cty,cty]
                                              else [aty,bty,cty,dty]
          body <- makeFieldLensBody lensName nm cons $ fmap (mkName . view lensClassMember) maybeLensClass
