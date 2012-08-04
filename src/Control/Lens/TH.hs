@@ -330,14 +330,13 @@ makeFieldLenses cfg ctx tyConName tyArgs cons = do
              tvs' | isJust maybeClassName = PlainTV x : tvs
                   | otherwise             = tvs
 
-         let [t0, t1, t2, t3] =
-               map return $
+         let (t0, t1, t2, t3) =
                if cfg^.simpleLenses
-               then [aty,aty,cty,cty]
-               else [aty,bty,cty,dty]
+               then (aty,aty,cty,cty)
+               else (aty,bty,cty,dty)
 
          decl <- sigD lensName $ forallT tvs' (return qs) $
-                 [t| Lens $t0 $t1 $t2 $t3 |]
+                 [t| Lens $(return t0) $(return t1) $(return t2) $(return t3) |]
          body <- makeFieldLensBody lensName nm cons $ fmap (mkName . view _2) maybeLensClass
          inlining <- pragInlD lensName $ inlineSpecNoPhase True False
          return [decl, body, inlining]
