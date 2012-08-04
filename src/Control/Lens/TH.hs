@@ -307,7 +307,7 @@ makeFieldLenses cfg ctx tyConName tyArgs cons = do
       Prelude.sequence $
         filter (\_ -> cfg^.createClass)
           [ classD (return []) clsName [PlainTV t] []
-            [ sigD methodName $ conT (mkName "Control.Lens.Lens") `appsT` [varT t,varT t, conT tyConName, conT tyConName]]]
+            [ sigD methodName $ [t| Lens $(varT t) $(varT t) $(conT tyConName) $(conT tyConName) |] ]]
         ++ filter (\_ -> cfg^.createInstance)
           [ instanceD (return []) (conT clsName `appT` conT tyConName)
             [ funD methodName [clause [varP a] (normalB (varE a)) []]
@@ -329,9 +329,15 @@ makeFieldLenses cfg ctx tyConName tyArgs cons = do
                 _      -> ps
              tvs' | isJust maybeClassName = PlainTV x : tvs
                   | otherwise             = tvs
-         let decl = SigD lensName $ ForallT tvs' qs $ ConT (mkName "Control.Lens.Lens") `apps`
-                      if cfg^.simpleLenses then [aty,aty,cty,cty]
-                                           else [aty,bty,cty,dty]
+
+         let [t0, t1, t2, t3] =
+               map return $
+               if cfg^.simpleLenses
+               then [aty,aty,cty,cty]
+               else [aty,bty,cty,dty]
+
+         decl <- sigD lensName $ forallT tvs' (return qs) $
+                 [t| Lens $t0 $t1 $t2 $t3 |]
          body <- makeFieldLensBody lensName nm cons $ fmap (mkName . view _2) maybeLensClass
          inlining <- pragInlD lensName $ inlineSpecNoPhase True False
          return [decl, body, inlining]
