@@ -37,8 +37,8 @@ contains k f s = go <$> f (IntSet.member k s) where
 -- elements might change but you can manipulate it by reading using 'folded' and
 -- reindexing it via 'setmap'.
 --
--- > ghci> adjust members (+1) (fromList [1,2,3,4])
--- > fromList [2,3,4,5]
+-- >>> adjust members (+1) (fromList [1,2,3,4])
+-- fromList [2,3,4,5]
 members :: Setter IntSet IntSet Int Int
 members = sets IntSet.map
 

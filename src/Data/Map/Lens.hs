@@ -23,8 +23,8 @@ import Data.Map as Map
 
 -- | This 'Lens' can be used to read, write or delete the value associated with a key in a 'Map'.
 --
--- > ghci> Map.fromList [("hello",12)] ^.at "hello"
--- > Just 12
+-- >>> Map.fromList [("hello",12)] ^.at "hello"
+-- Just 12
 --
 -- > at :: Ord k => k -> (Maybe v -> f (Maybe v)) -> Map k v -> f (Map k v)
 at :: Ord k => k -> SimpleLens (Map k v) (Maybe v)

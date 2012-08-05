@@ -508,8 +508,8 @@ sequenceOf l = unwrapMonad . l WrapMonad
 --
 -- > transpose = transposeOf traverse
 --
--- > ghci> transposeOf traverse [[1,2,3],[4,5,6]]
--- > [[1,4],[2,5],[3,6]]
+-- >>> transposeOf traverse [[1,2,3],[4,5,6]]
+-- [[1,4],[2,5],[3,6]]
 --
 -- Since every 'Lens' is a Traversal, we can use this as a form of
 -- monadic strength.
@@ -688,8 +688,8 @@ set l d = runIdentity . l (\_ -> Identity d)
 -- > fmap f = mapped %~ f
 -- > fmapDefault f = traverse %~ f
 --
--- > ghci> _2 %~ length $ (1,"hello")
--- > (1,5)
+-- >>> _2 %~ length $ (1,"hello")
+-- (1,5)
 --
 -- > (%~) :: Setter a b c d    -> (c -> d) -> a -> b
 -- > (%~) :: Iso a b c d       -> (c -> d) -> a -> b
@@ -727,24 +727,24 @@ set l d = runIdentity . l (\_ -> Identity d)
 
 -- | Increment the target(s) of a numerically valued 'Lens', Setter' or 'Traversal'
 --
--- > ghci> _1 +~ 1 $ (1,2)
--- > (2,2)
+-- >>> _1 +~ 1 $ (1,2)
+-- (2,2)
 (+~) :: Num c => Setter a b c c -> c -> a -> b
 l +~ n = adjust l (+ n)
 {-# INLINE (+~) #-}
 
 -- | Multiply the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'
 --
--- > ghci> _2 *~ 4 $ (1,2)
--- > (1,8)
+-- >>> _2 *~ 4 $ (1,2)
+-- (1,8)
 (*~) :: Num c => Setter a b c c -> c -> a -> b
 l *~ n = adjust l (* n)
 {-# INLINE (*~) #-}
 
 -- | Decrement the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'
 --
--- > ghci> _1 -~ 2 $ (1,2)
--- > (-1,2)
+-- >>> _1 -~ 2 $ (1,2)
+-- (-1,2)
 (-~) :: Num c => Setter a b c c -> c -> a -> b
 l -~ n = adjust l (subtract n)
 {-# INLINE (-~) #-}
@@ -888,8 +888,8 @@ a ^. l = getConst (l Const a)
 -- | This is a lens that can change the value (and type) of the first field of
 -- a pair.
 --
--- > ghci> (1,2)^._1
--- > 1
+-- >>> (1,2)^._1
+-- 1
 --
 -- > ghci> _1 +~ "hello" $ (1,2)
 -- > ("hello",2)
@@ -914,8 +914,8 @@ _2 f (c,a) = (,) c <$> f a
 --
 -- Attempts to access beyond the range of the 'Traversal' will cause an error.
 --
--- > ghci> [[1],[3,4]]^.elementOf (traverse.traverse) 1
--- > 3
+-- >>> [[1],[3,4]]^.elementOf (traverse.traverse) 1
+-- 3
 elementOf :: Functor f => LensLike (ElementOf f) a b c c -> Int -> LensLike f a b c c
 elementOf l i f a = case getElementOf (l go a) 0 of
     Found _ fb -> fb
