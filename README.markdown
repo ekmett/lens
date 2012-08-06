@@ -11,9 +11,9 @@ but they provide a great deal of additional flexibility in their composition.
 Example
 -------
 
-> ghci> :m + Control.Lens Data.Text.Lens
-> ghci> anyOf (traverse.text) (=='y') ["hello"^.packed, "goodbye"^.packed]
-> True
+    ghci> :m + Control.Lens Data.Text.Lens
+    ghci> anyOf (traverse.text) (=='y') ["hello"^.packed, "goodbye"^.packed]
+    True
 
 Contact Information
 -------------------
