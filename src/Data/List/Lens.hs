@@ -1,4 +1,6 @@
 {-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE Rank2Types #-}
 -----------------------------------------------------------------------------
 -- |
@@ -19,6 +21,8 @@ module Data.List.Lens
   , _init
   , interspersed
   , intercalated
+  -- * Traversals
+  , traverseList
   , traverseHead
   , traverseTail
   , traverseInit
@@ -81,47 +85,66 @@ intercalated :: [a] -> Getter [[a]] [a]
 intercalated = to . intercalate
 {-# INLINE intercalated #-}
 
+traverseList :: IndexedTraversal Int [a] [b] a b
+traverseList = index $ go (0::Int) where
+  go !n f (x:xs) = (:) <$> f n x <*> go (n + 1) f xs
+  go _ _ [] = pure []
+{-# INLINE traverseList #-}
+
 -- | The traversal for reading and writing to the head of a list
+--
+-- The position of the head in the original list (0) is available as the index.
 --
 -- >>> traverseHead +~ 1 $ [1,2,3]
 -- [2,2,3]
 --
 -- > traverseHead :: Applicative f => (a -> f a) -> [a] -> f [a]
-traverseHead :: SimpleTraversal [a] a
-traverseHead _ [] = pure []
-traverseHead f (a:as) = (:as) <$> f a
+traverseHead :: SimpleIndexedTraversal Int [a] a
+traverseHead = index $ \f aas -> case aas of
+  []     -> pure []
+  (a:as) -> (:as) <$> f (0::Int) a
 {-# INLINE traverseHead #-}
 
 -- | Traversal for editing the tail of a list.
+--
+-- The position of each element /in the original list/ is available as the index.
 --
 -- >>> traverseTail +~ 1 $ [1,2,3]
 -- [1,3,4]
 --
 -- > traverseTail :: Applicative f => (a -> f a) -> [a] -> f [a]
-traverseTail :: SimpleTraversal [a] a
-traverseTail _ [] = pure []
-traverseTail f (a:as) = (a:) <$> traverse f as
+traverseTail :: SimpleIndexedTraversal Int [a] a
+traverseTail = index $ \f aas -> case aas of
+  []     -> pure []
+  (a:as) -> (a:) <$> traverseWithIndexOf traverseList (f . (+1)) as
 {-# INLINE traverseTail #-}
 
 -- | Traverse the last element in a list.
+--
+-- The position of the last element in the original list is available as the index.
 --
 -- >>> traverseLast +~ 1 $ [1,2,3]
 -- [1,2,4]
 --
 -- > traverseLast :: Applicative f => (a -> f a) -> [a] -> f [a]
-traverseLast :: SimpleTraversal [a] a
-traverseLast _ []     = pure []
-traverseLast f [a]    = return <$> f a
-traverseLast f (a:as) = (a:) <$> traverseLast f as
+traverseLast :: SimpleIndexedTraversal Int [a] a
+traverseLast = index $ \f xs0 -> let
+    go [a]    n = return <$> f n a
+    go (a:as) n = (a:) <$> (go as $! n + 1)
+    go []     _ = pure []
+  in go xs0 (0::Int) where
 {-# INLINE traverseLast #-}
 
 -- | Traverse all but the last element of a list
+--
+-- The position of each element is available as the index.
 --
 -- >>> traverseInit +~ 1 $ [1,2,3]
 -- [2,3,3]
 --
 -- > traverseInit :: Applicative f => (a -> f a) -> [a] -> f [a]
-traverseInit :: SimpleTraversal [a] a
-traverseInit _ [] = pure []
-traverseInit f as = (++ [Prelude.last as]) <$> traverse f (Prelude.init as)
+traverseInit :: SimpleIndexedTraversal Int [a] a
+traverseInit = index $ \f aas -> case aas of
+  [] -> pure []
+  as -> (++ [Prelude.last as]) <$> traverseWithIndexOf traverseList f (Prelude.init as)
 {-# INLINE traverseInit #-}

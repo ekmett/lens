@@ -1,4 +1,5 @@
 {-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Bits.Lens
@@ -65,17 +66,19 @@ bitAt n f b = (\x -> if x then setBit b n else clearBit b n) <$> f (testBit b n)
 
 -- | Traverse over all bits in a numeric type.
 --
+-- The bit position is available as the index.
+--
 -- >>> toListOf traverseBits (5 :: Word8)
 -- [True,False,True,False,False,False,False,False]
 --
 -- If you supply this an Integer, it won't crash, but the result will
 -- be an infinite traversal that can be productively consumed.
-traverseBits :: Bits b => Simple Traversal b Bool
-traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
-  where
-    g n      = (,) n <$> f (testBit b n)
+traverseBits :: Bits b => SimpleIndexedTraversal Int b Bool
+traverseBits = index $ \f b -> let
+    g n      = (,) n <$> f n (testBit b n)
     bits     = Prelude.takeWhile hasBit [0..]
     hasBit n = complementBit b n /= b -- test to make sure that complementing this bit actually changes the value
     step (n,True) r = setBit r n
     step _        r = r
+  in Prelude.foldr step 0 <$> traverse g bits
 {-# INLINE traverseBits #-}

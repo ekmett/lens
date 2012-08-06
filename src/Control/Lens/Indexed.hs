@@ -166,11 +166,3 @@ infixr 4 %@
 (%@) :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
 l %@ f = runMutator . withIndex l (\i -> Mutator . f i)
 
-{-
-traverseList :: IndexedTraversal Int [a] [b] a b
-traverseList = index $ go (0::Int) where
-  go n f (x:xs) = (:) <$> f n x <*> go (n + 1) f xs
-  go _ _ [] = pure []
- {-# INLINE traverseList #-}
--}
-

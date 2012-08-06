@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Tree.Lens
@@ -5,7 +6,7 @@
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
--- Portability :  portable
+-- Portability :  MTPCs
 --
 ----------------------------------------------------------------------------
 
@@ -16,12 +17,16 @@ module Data.Tree.Lens
 
 import Control.Lens
 import Data.Functor
+import Data.List.Lens
 import Data.Tree
 
 -- | A 'Lens' that focuses on the root of a 'Tree'.
 root :: Simple Lens (Tree a) a
 root f (Node a as) = (`Node` as) <$> f a
+{-# INLINE root #-}
 
--- | A 'Traversal' of the direct descendants of the root of a 'Tree'.
-children :: Simple Traversal (Tree a) (Tree a)
-children f (Node a as) = Node a <$> traverse f as
+-- | A 'Traversal' of the direct descendants of the root of a 'Tree'
+-- indexed by its position in the list of children
+children :: SimpleIndexedTraversal Int (Tree a) (Tree a)
+children = index $ \ f (Node a as) -> Node a <$> traverseWithIndexOf traverseList f as
+{-# INLINE children #-}

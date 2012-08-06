@@ -98,6 +98,7 @@ library
   exposed-modules: Control.Parallel.Strategies.Lens Control.Seq.Lens
 
   other-extensions:
+    BangPatterns
     CPP
     DeriveDataTypeable
     FlexibleContexts
