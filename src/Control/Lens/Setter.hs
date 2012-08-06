@@ -38,10 +38,10 @@ module Control.Lens.Setter
   , mapOf
   , set
   , (.~), (%~)
-  , (+~), (-~), (*~), (//~), (||~), (&&~), (<>~)
+  , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (&&~), (<>~)
   -- * State Combinators
   , (.=), (%=)
-  , (+=), (-=), (*=), (//=), (||=), (&&=), (<>=)
+  , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (&&=), (<>=)
   , (<~)
   -- * MonadWriter
   , whisper
@@ -58,8 +58,8 @@ import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Monoid
 
-infixr 4 .~, +~, *~, -~, //~, &&~, ||~, %~, <>~
-infix  4 .=, +=, *=, -=, //=, &&=, ||=, %=, <>=
+infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <>~
+infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <>=
 
 infixr 2 <~
 
@@ -265,16 +265,16 @@ l +~ n = adjust l (+ n)
 
 -- | Multiply the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'
 --
--- > ghci> _2 *~ 4 $ (1,2)
--- > (1,8)
+-- >>> _2 *~ 4 $ (1,2)
+-- (1,8)
 (*~) :: Num c => Setting a b c c -> c -> a -> b
 l *~ n = adjust l (* n)
 {-# INLINE (*~) #-}
 
 -- | Decrement the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'
 --
--- > ghci> _1 -~ 2 $ (1,2)
--- > (-1,2)
+-- >>> _1 -~ 2 $ (1,2)
+-- (-1,2)
 (-~) :: Num c => Setting a b c c -> c -> a -> b
 l -~ n = adjust l (subtract n)
 {-# INLINE (-~) #-}
@@ -282,6 +282,30 @@ l -~ n = adjust l (subtract n)
 -- | Divide the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'
 (//~) :: Fractional c => Setting a b c c -> c -> a -> b
 l //~ n = adjust l (/ n)
+
+-- | Raise the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal' to a non-negative integral power
+--
+-- >>> _2 ^~ 2 $ (1,3)
+-- (1,9)
+(^~) :: (Num c, Integral e) => Setting a b c c -> e -> a -> b
+l ^~ n = adjust l (^ n)
+{-# INLINE (^~) #-}
+
+-- | Raise the target(s) of a fractionally valued 'Lens', 'Setter' or 'Traversal' to an integral power
+--
+-- >>> _2 ^^~ (-1) $ (1,2)
+-- (0,0.5)
+(^^~) :: (Fractional c, Integral e) => Setting a b c c -> e -> a -> b
+l ^^~ n = adjust l (^^ n)
+{-# INLINE (^^~) #-}
+
+-- | Raise the target(s) of a floating-point valued 'Lens', 'Setter' or 'Traversal' to an arbitrary power.
+--
+-- >>> _2 **~ pi $ (1,3)
+-- (1,31.54428070019754)
+(**~) :: Floating c => Setting a b c c -> c -> a -> b
+l **~ n = adjust l (** n)
+{-# INLINE (**~) #-}
 
 -- | Logically '||' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
 (||~):: Setting a b Bool Bool -> Bool -> a -> b
@@ -297,7 +321,6 @@ l &&~ n = adjust l (&& n)
 (<>~) :: Monoid c => Setting a b c c -> c -> a -> b
 l <>~ n = adjust l (mappend n)
 {-# INLINE (<>~) #-}
-
 
 ------------------------------------------------------------------------------
 -- Using Setters with State
@@ -351,6 +374,21 @@ l *= b = State.modify (l *~ b)
 (//=) ::  (MonadState a m, Fractional b) => SimpleSetting a b -> b -> m ()
 l //= b = State.modify (l //~ b)
 {-# INLINE (//=) #-}
+
+-- | Raise the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal' to a non-negative integral power
+(^=) ::  (MonadState a m, Fractional b, Integral c) => SimpleSetting a b -> c -> m ()
+l ^= c = State.modify (l ^~ c)
+{-# INLINE (^=) #-}
+
+-- | Raise the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal' to an integral power
+(^^=) ::  (MonadState a m, Fractional b, Integral c) => SimpleSetting a b -> c -> m ()
+l ^^= c = State.modify (l ^^~ c)
+{-# INLINE (^^=) #-}
+
+-- | Raise the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal' to an arbitrary power
+(**=) ::  (MonadState a m, Floating b) => SimpleSetting a b -> b -> m ()
+l **= b = State.modify (l **~ b)
+{-# INLINE (**=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by taking their logical '&&' with a value
 (&&=):: MonadState a m => SimpleSetting a Bool -> Bool -> m ()
