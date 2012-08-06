@@ -6,6 +6,7 @@ import Control.Lens.TH (makeLenses)
 import Control.Monad.State
 
 import Data.Set (Set, member, empty, insert, delete)
+import Data.Set.Lens (contains)
 import Data.Pair.Lens (both)
 
 import Graphics.Gloss
@@ -88,7 +89,7 @@ updatePaddles time = do
   p <- get
 
   let paddleMovement = time * paddleSpeed
-  let keyPressed key = SpecialKey key `member` (p^.keys)
+  let keyPressed key = p^.keys.contains (SpecialKey key)
 
   -- Update the player's paddle based on keys
   when (keyPressed KeyUp)   $ paddle1 += paddleMovement
@@ -144,14 +145,14 @@ checkBounds = do
 -- Reset the game
 reset :: State Pong ()
 reset = do
-  ballPos ^= (0, 0)
-  (ballSpeed ^=) =<< nextSpeed
+  ballPos .= (0, 0)
+  (ballSpeed .=) =<< nextSpeed
 
 -- Retrieve a speed from the list, dropping it in the process
 nextSpeed :: State Pong Vector
 nextSpeed = do
   v:vs <- use vectors
-  vectors ^= vs
+  vectors .= vs
   return v
 
 -- Drawing a pong state to the screen
@@ -182,15 +183,14 @@ drawScore (x, y) = scale textSize textSize . text $ show x ++ " " ++ show y
 -- Handle input by simply updating the keys set
 
 handle :: Event -> Pong -> Pong
-handle (EventKey k Down _ _) = keys %~ insert k
-handle (EventKey k Up   _ _) = keys %~ delete k
+handle (EventKey k s _ _) = keys.contains k .~ (s == Down)
 handle _ = id
 
 -- The main program action
 
 main = do
   v:vs <- startingSpeeds
-  let world = ballSpeed <~ v $ vectors <~ vs $ initial
+  let world = ballSpeed .~ v $ vectors .~ vs $ initial
   play display backColor fps world draw handle update
 
   where
