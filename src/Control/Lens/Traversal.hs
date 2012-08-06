@@ -1,8 +1,5 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
-{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Traversal
@@ -12,6 +9,21 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
+-- A @'Traversal' a b c d@ is a generalization of 'traverse' from
+-- 'Traversable'. It allows you to traverse over a structure and change out
+-- its contents with monadic or applicative side-effects. Starting from
+--
+-- @'traverse' :: ('Traversable' t, 'Applicative' f) => (c -> f d) -> t c -> f (t d)@,
+--
+-- we monomorphize the contents and result to obtain
+--
+--  > type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
+--
+-- While a 'Traversal' isn't quite a 'Fold', it _can_ be used for 'Getting'
+-- like a 'Fold', because given a 'Monoid' @m@, we have an 'Applicative'
+-- for @('Const' m)@. Everything you know how to do with a 'Traversable'
+-- container, you can with with a 'Traversal', and here we provide
+-- combinators that generalize the usual 'Traversable' operations.
 ----------------------------------------------------------------------------
 module Control.Lens.Traversal
   (

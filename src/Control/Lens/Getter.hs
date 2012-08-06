@@ -11,6 +11,26 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
+--
+-- A @'Getter' a c@ is just any function @(a -> c)@, which we've flipped into continuation
+-- passing style, @(c -> r) -> a -> r@ and decorated with 'Accessor' to obtain
+--
+-- > type Getting r a b c d = (c -> Accessor r d) -> a -> Accessor r b
+--
+-- If we restrict access to knowledge about the type 'r' and can work for any d and b, we could get:
+--
+-- > type Getter a c = forall r b d. Getting r a b c d
+--
+-- But we actually hide the use of 'Accessor' behind a class 'Gettable' to error messages from
+-- type class resolution rather than at unification time, where they are much uglier.
+-- type Getter a c = forall f b d. Gettable f => (c -> f d) -> a -> f b
+--
+-- Everything you can do with a function, you can do with a 'Getter', but note that because of the
+-- continuation passing style @(.)@ composes them in the opposite order.
+--
+-- Since it is only a function, every 'Getter' obviously only retrieves a single value for a given
+-- input.
+--
 ----------------------------------------------------------------------------
 module Control.Lens.Getter
   (
