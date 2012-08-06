@@ -77,7 +77,7 @@ updatePaddles time = do
   when (p^.keys.contains (SpecialKey KeyUp)) $
     paddle1 += paddleSpeed * time
 
-  when (p^.keys.contains (SpecialKey KeyUp)) $
+  when (p^.keys.contains (SpecialKey KeyDown)) $
     paddle1 -= paddleSpeed * time
 
   -- Update the CPU's paddle based on the ball's relative position
@@ -164,8 +164,8 @@ drawBall = circleSolid ballRadius
 -- Handle input by simply updating the keys set
 
 handle :: Event -> Pong -> Pong
-handle (EventKey k Down _ _) = contains k .~ True  $ keys
-handle (EventKey k Up   _ _) = contains k .~ False $ keys
+handle (EventKey k Down _ _) = keys.contains k .~ True
+handle (EventKey k Up   _ _) = keys.contains k .~ False
 handle _ = id
 
 -- The main program action
