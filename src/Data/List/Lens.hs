@@ -40,7 +40,7 @@ _head f (a:as) = (:as) <$> f a
 
 -- | A lens reading and writing to the tail of a /non-empty/ list
 --
--- >>> _tail <~ [3,4,5] $ [1,2]
+-- >>> _tail .~ [3,4,5] $ [1,2]
 -- [1,3,4,5]
 _tail :: Simple Lens [a] [a]
 _tail _ [] = error "_tail: empty list"
@@ -48,6 +48,9 @@ _tail f (a:as) = (a:) <$> f as
 {-# INLINE _tail #-}
 
 -- | A lens reading and writing to the last element of a /non-empty/ list
+--
+-- >>> [1,2]^._last
+-- 2
 _last :: Simple Lens [a] a
 _last _ []     = error "_last: empty list"
 _last f [a]    = return <$> f a
@@ -55,6 +58,9 @@ _last f (a:as) = (a:) <$> _last f as
 {-# INLINE _last #-}
 
 -- | A lens reading and replacing all but the a last element of a /non-empty/ list
+--
+-- >>> [1,2,3,4]^._init
+-- [1,2,3]
 _init :: Simple Lens [a] [a]
 _init _ [] = error "_init: empty list"
 _init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
@@ -77,6 +83,9 @@ intercalated = to . intercalate
 
 -- | The traversal for reading and writing to the head of a list
 --
+-- >>> traverseHead +~ 1 $ [1,2,3]
+-- [2,2,3]
+--
 -- > traverseHead :: Applicative f => (a -> f a) -> [a] -> f [a]
 traverseHead :: SimpleTraversal [a] a
 traverseHead _ [] = pure []
@@ -84,6 +93,9 @@ traverseHead f (a:as) = (:as) <$> f a
 {-# INLINE traverseHead #-}
 
 -- | Traversal for editing the tail of a list.
+--
+-- >>> traverseTail +~ 1 $ [1,2,3]
+-- [1,3,4]
 --
 -- > traverseTail :: Applicative f => (a -> f a) -> [a] -> f [a]
 traverseTail :: SimpleTraversal [a] a
@@ -93,6 +105,9 @@ traverseTail f (a:as) = (a:) <$> traverse f as
 
 -- | Traverse the last element in a list.
 --
+-- >>> traverseLast +~ 1 $ [1,2,3]
+-- [1,2,4]
+--
 -- > traverseLast :: Applicative f => (a -> f a) -> [a] -> f [a]
 traverseLast :: SimpleTraversal [a] a
 traverseLast _ []     = pure []
@@ -101,6 +116,9 @@ traverseLast f (a:as) = (a:) <$> traverseLast f as
 {-# INLINE traverseLast #-}
 
 -- | Traverse all but the last element of a list
+--
+-- >>> traverseInit +~ 1 $ [1,2,3]
+-- [2,3,3]
 --
 -- > traverseInit :: Applicative f => (a -> f a) -> [a] -> f [a]
 traverseInit :: SimpleTraversal [a] a

@@ -16,7 +16,7 @@ module Control.Seq.Lens
 import Control.Lens
 import Control.Seq
 
--- | Evaluate the elements targeted by a 'Lens', 'Traversal', 'Iso', 
+-- | Evaluate the elements targeted by a 'Lens', 'Traversal', 'Iso',
 -- 'Getter' or 'Fold' according to the given strategy.
 --
 -- > seqFoldable = seqOf folded

@@ -25,11 +25,17 @@ infixr 4 |~, &~
 infix 4 |=, &=
 
 -- | Bitwise '.|.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+--
+-- >>> _2 |~ 6 $ ("hello",3)
+-- ("hello",7)
 (|~):: Bits c => Setting a b c c -> c -> a -> b
 l |~ n = adjust l (.|. n)
 {-# INLINE (|~) #-}
 
 -- | Bitwise '.&.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+--
+-- >>> _2 &~ 7 $ ("hello",254)
+-- ("hello",6)
 (&~) :: Bits c => Setting a b c c -> c -> a -> b
 l &~ n = adjust l (.&. n)
 {-# INLINE (&~) #-}
@@ -46,21 +52,24 @@ l |= b = modify (l |~ b)
 
 -- | This lens can be used to access the value of the nth bit in a number.
 --
--- @bitsAt n@ is only a legal 'Lens' into @b@ if @0 <= n < bitSize (undefined :: b)@
+-- @bitAt n@ is only a legal 'Lens' into @b@ if @0 <= n < bitSize (undefined :: b)@
+--
+-- >>> 16^.bitAt 4
+-- True
+--
+-- >>> 15^.bitAt 4
+-- False
 bitAt :: Bits b => Int -> Simple Lens b Bool
 bitAt n f b = (\x -> if x then setBit b n else clearBit b n) <$> f (testBit b n)
 {-# INLINE bitAt #-}
 
 -- | Traverse over all bits in a numeric type.
 --
--- > ghci> toListOf traverseBits (5 :: Word8)
--- > [True,False,True,False,False,False,False,False]
+-- >>> toListOf traverseBits (5 :: Word8)
+-- [True,False,True,False,False,False,False,False]
 --
 -- If you supply this an Integer, it won't crash, but the result will
 -- be an infinite traversal that can be productively consumed.
---
--- > ghci> toListOf traverseBits 5
--- > [True,False,True,False,False,False,False,False,False,False,False,False...
 traverseBits :: Bits b => Simple Traversal b Bool
 traverseBits f b = Prelude.foldr step 0 <$> traverse g bits
   where

@@ -1,4 +1,5 @@
 {-# LANGUAGE Rank2Types #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Getter
@@ -53,8 +54,10 @@ import Control.Applicative.Backwards
 import Control.Lens.Internal
 import Control.Monad.Reader.Class       as Reader
 import Control.Monad.State.Class        as State
+import Data.Complex -- for tests
 import Data.Functor.Compose
 import Data.Monoid
+import Control.Lens.Type -- for tests
 
 infixl 8 ^.
 infixr 0 ^$
@@ -75,9 +78,10 @@ type Getter a c = forall f b d. Gettable f => (c -> f d) -> a -> f b
 -- | Build a 'Getter' from an arbitrary Haskell function.
 --
 -- > to f . to g = to (g . f)
--- > to = from view
+-- > a^.to f = f a
 --
--- > to . from = id
+-- >>> (0, -5)^._2.to abs
+-- 5
 to :: (a -> c) -> Getter a c
 to f g = coerce . g . f
 {-# INLINE to #-}
@@ -140,6 +144,11 @@ instance Monoid r => Applicative (Accessor r) where
 --
 -- It may be useful to think of 'view' as having these more restrictive signatures:
 --
+-- > view . to = id
+--
+-- >>> view _2 (1,"hello")
+-- "hello"
+--
 -- > view ::             Getter a c          -> a -> c
 -- > view :: Monoid m => Fold a m            -> a -> m
 -- > view ::             Iso a b c d         -> a -> c
@@ -154,6 +163,9 @@ view l = runAccessor . l Accessor
 --
 -- It may be useful to think of 'views' as having these more restrictive signatures:
 --
+-- >>> views _2 length (1,"hello")
+-- 5
+--
 -- > views ::             Getter a c          -> (c -> d) -> a -> d
 -- > views :: Monoid m => Fold a c            -> (c -> m) -> a -> m
 -- > views ::             Iso a b c d         -> (c -> d) -> a -> d
@@ -167,6 +179,9 @@ views l f = runAccessor . l (Accessor . f)
 -- all the results of a 'Fold' or 'Traversal' that points at a monoidal values.
 --
 -- This is the same operation as 'view', only infix.
+--
+-- >>> _2 ^$ (1, "hello")
+-- "hello"
 --
 -- > (^$) ::             Getter a c          -> a -> c
 -- > (^$) :: Monoid m => Fold a m            -> a -> m
@@ -185,8 +200,8 @@ l ^$ a = runAccessor (l Accessor a)
 -- The fixity and semantics are such that subsequent field accesses can be
 -- performed with (Prelude..)
 --
--- > ghci> ((0, 1 :+ 2), 3)^._1._2.to magnitude
--- > 2.23606797749979
+-- >>> ((0, 1 :+ 2), 3)^._1._2.to magnitude
+-- 2.23606797749979
 --
 -- > (^.) ::             a -> Getter a c          -> c
 -- > (^.) :: Monoid m => a -> Fold a m            -> m

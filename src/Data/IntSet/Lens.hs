@@ -11,6 +11,7 @@
 module Data.IntSet.Lens
   ( contains
   , members
+  , setmapped
   , setOf
   ) where
 
@@ -30,6 +31,13 @@ contains k f s = go <$> f (IntSet.member k s) where
   go True  = IntSet.insert k s
 {-# INLINE contains #-}
 
+-- | IntSet isn't Foldable, but this 'Fold' can be used to access the members of an 'IntSet'.
+--
+-- >>> sumOf members $ setOf folded [1,2,3,4]
+-- 10
+members :: Fold IntSet Int
+members = folding IntSet.toAscList
+
 -- | This 'Setter' can be used to change the contents of an 'IntSet' by mapping
 -- the elements to new values.
 --
@@ -37,10 +45,10 @@ contains k f s = go <$> f (IntSet.member k s) where
 -- elements might change but you can manipulate it by reading using 'folded' and
 -- reindexing it via 'setmap'.
 --
--- >>> adjust members (+1) (fromList [1,2,3,4])
+-- >>> adjust setmapped (+1) (fromList [1,2,3,4])
 -- fromList [2,3,4,5]
-members :: Setter IntSet IntSet Int Int
-members = sets IntSet.map
+setmapped :: Setter IntSet IntSet Int Int
+setmapped = sets IntSet.map
 
 -- | Construct an 'IntSet' from a 'Getter', 'Fold', 'Traversal', 'Lens' or 'Iso'.
 --

@@ -1,5 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Map.Lens
@@ -20,12 +21,17 @@ module Data.Map.Lens
 import Control.Applicative as Applicative
 import Control.Lens.Type
 import Control.Lens.Traversal
+import Control.Lens.Getter -- used by tests
+import Control.Lens.Setter -- used by tests
 import Data.Map as Map
 
 -- | This 'Lens' can be used to read, write or delete the value associated with a key in a 'Map'.
 --
 -- >>> Map.fromList [("hello",12)] ^.at "hello"
 -- Just 12
+--
+-- >>> at 10 .~ Just "hello" $ Map.empty
+-- fromList [(10,"hello")]
 --
 -- > at :: Ord k => k -> (Maybe v -> f (Maybe v)) -> Map k v -> f (Map k v)
 at :: Ord k => k -> SimpleLens (Map k v) (Maybe v)

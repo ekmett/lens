@@ -30,6 +30,10 @@ import Data.Typeable
 import GHC.Generics
 
 -- | Convert from the data type to its representation (or back)
+--
+-- >>> "hello"^.generic.from generic
+-- "hello"
+--
 generic :: (Generic a, Generic b) => Iso a b (Rep a x) (Rep b y)
 generic = isos from to from to
 
@@ -39,16 +43,16 @@ generic1 = isos from1 to1 from1 to1
 
 -- | Traverse using GHC.Generics.
 --
--- > ghci> allOf every (=="Hello") (1::Int,2::Double,(),"Hello",["Hello"])
--- > True
+-- >>> allOf every (=="Hello") (1::Int,2::Double,(),"Hello",["Hello"])
+-- True
 --
--- > ghci> mapMOf_ every putStrLn ("hello",[(2 :: Int, "world!")])
--- > hello
--- > world!
+-- >>> mapMOf_ every putStrLn ("hello",[(2 :: Int, "world!")])
+-- hello
+-- world!
 every :: (Generic a, GTraversal (Rep a), Typeable b) => Simple Traversal a b
 every = generic . everyr True
 
--- | Traversable generic data types.
+-- | Traversable generic data types. Used by 'every'.
 class GTraversal f where
   everyr :: Typeable b => Bool -> Simple Traversal (f a) b
 
