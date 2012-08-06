@@ -21,6 +21,9 @@
 -- > import Control.Lens
 -- > import Control.Lens.Representable
 -- > import Control.Lens.TH
+-- > import Control.Applicative
+-- > import Data.Foldable
+-- > import Data.Traversable
 -- > import Data.Distributive
 --
 -- > data Pair a = Pair { _x :: a, _y :: a }
@@ -28,7 +31,7 @@
 -- > makeLenses ''Pair
 --
 -- > instance Representable Pair where
--- >   rep f = Pair (f x) (f y)
+-- >   rep f = Pair <$> f x <*> f y
 --
 -- From there, you can get definitions for a number of instances for free.
 --
@@ -39,6 +42,12 @@
 -- > instance Monad Pair where
 -- >   return = pureRep
 -- >   (>>=) = bindRep
+--
+-- > instance Foldable Pair where
+-- >   foldMap = foldMapRep
+--
+-- > instance Traversable Pair where
+-- >   traverse = traverseRep
 --
 -- > instance Distributive Pair where
 -- >   distribute = distributeRep
@@ -55,6 +64,8 @@ module Control.Lens.Representable
   , pureRep
   , apRep
   , bindRep
+  , foldMapRep
+  , traverseRep
   , distributeRep
   -- * Wrapped Representations
   , Key(..)
@@ -65,20 +76,16 @@ module Control.Lens.Representable
   , foldMapWithRep
   , foldrWithRep
   , traverseWithRep
-  , traverseWithRep_
   , forWithRep
   , mapMWithRep
-  , mapMWithRep_
   , forMWithRep
   ) where
 
 import Control.Applicative
 import Control.Isomorphic
 import Control.Lens
-import Data.Foldable         as Foldable
 import Data.Functor.Identity
 import Data.Monoid
-import Data.Traversable      as Traversable
 
 -- | The representation of a 'Representable' 'Functor' as Lenses
 type Rep f = forall a. Simple Lens (f a) a
@@ -100,16 +107,14 @@ type Rep f = forall a. Simple Lens (f a) a
 -- here.
 
 class Functor f => Representable f where
+  repA :: Applicative g => (Rep f -> g a) -> g (f a)
+  
   rep :: (Rep f -> a) -> f a
+  rep f = runIdentity $ repA (Identity . f)
 
 
 instance Representable Identity where
-  rep f = Identity (f (from identity))
-
--- | NB: The Eq requirement on this instance is a consequence of a lens
--- rather than 'e' as the representation.
-instance Eq e => Representable ((->) e) where
-  rep f e = f (resultAt e)
+  repA f = Identity <$> f (from identity)
 
 -- | 'fmapRep' is a valid default definition for 'fmap' for a representable
 -- functor.
@@ -171,6 +176,28 @@ bindRep :: Representable f => f a -> (a -> f b) -> f b
 bindRep m f = rep $ \i -> f(m^.i)^.i
 {-# INLINE bindRep #-}
 
+-- | A default definition for 'Data.Foldable.foldMap' for a 'Representable' 'Functor'
+--
+-- Typical Usage:
+--
+-- > instance Foldable ... where
+-- >   foldMap = foldMapRep
+foldMapRep :: (Representable f, Monoid m) => (a -> m) -> f a -> m
+foldMapRep f = getConst . traverseRep (Const . f)
+{-# INLINE foldMapRep #-}
+
+-- | A default definition for 'Data.Traversable.traverse' for a 'Representable' 'Functor'
+--
+-- > traverseRep f m = repA $ \i -> f (m^.i)
+--
+-- Typical Usage:
+--
+-- > instance Traversable ... where
+-- >   traverse = traverseRep
+traverseRep :: (Representable f, Applicative g) => (a -> g b) -> f a -> g (f b)
+traverseRep f m = repA $ \i -> f (m^.i)
+{-# INLINE traverseRep #-}
+
 -- | A default definition for 'Data.Distributive.distribute' for a 'Representable' 'Functor'
 --
 -- > distributeRep wf = rep $ \i -> fmap (^.i) wf
@@ -219,56 +246,42 @@ mapWithRep f m = rep $ \i -> f i (m^.i)
 {-# INLINE mapWithRep #-}
 
 -- | Traverse a 'Representable' 'Functor' with access to the current path
-traverseWithRep :: (Representable f, Traversable f, Applicative g)
+traverseWithRep :: (Representable f, Applicative g)
                 => (Rep f -> a -> g b) -> f a -> g (f b)
-traverseWithRep f m = sequenceA (mapWithRep f m)
+traverseWithRep f m = repA $ \i -> f i (m^.i)
 {-# INLINE traverseWithRep #-}
 
 -- | Traverse a 'Representable' 'Functor' with access to the current path
--- as a lens, discarding the result
-traverseWithRep_ :: (Representable f, Foldable f, Applicative g)
-                 => (Rep f -> a -> g b) -> f a -> g ()
-traverseWithRep_ f m = sequenceA_ (mapWithRep f m)
-{-# INLINE traverseWithRep_ #-}
-
--- | Traverse a 'Representable' 'Functor' with access to the current path
 -- and a lens (and the arguments flipped)
-forWithRep :: (Representable f, Traversable f, Applicative g)
+forWithRep :: (Representable f, Applicative g)
                 => f a -> (Rep f -> a -> g b) -> g (f b)
-forWithRep m f = sequenceA (mapWithRep f m)
+forWithRep = flip traverseWithRep
 {-# INLINE forWithRep #-}
 
 -- | 'mapM' over a 'Representable' 'Functor' with access to the current path
 -- as a lens
-mapMWithRep :: (Representable f, Traversable f, Monad m)
+mapMWithRep :: (Representable f, Monad m)
                 => (Rep f -> a -> m b) -> f a -> m (f b)
-mapMWithRep f m = Traversable.sequence (mapWithRep f m)
+mapMWithRep f = unwrapMonad . traverseWithRep (\i -> WrapMonad . f i)
 {-# INLINE mapMWithRep #-}
 
 -- | 'mapM' over a 'Representable' 'Functor' with access to the current path
--- as a lens, discarding the result
-mapMWithRep_ :: (Representable f, Foldable f, Monad m)
-                 => (Rep f -> a -> m b) -> f a -> m ()
-mapMWithRep_ f m = Foldable.sequence_ (mapWithRep f m)
-{-# INLINE mapMWithRep_ #-}
-
--- | 'mapM' over a 'Representable' 'Functor' with access to the current path
 -- as a lens (with the arguments flipped)
-forMWithRep :: (Representable f, Traversable f, Monad m)
+forMWithRep :: (Representable f, Monad m)
                 => f a -> (Rep f -> a -> m b) -> m (f b)
-forMWithRep m f = Traversable.sequence (mapWithRep f m)
+forMWithRep = flip mapMWithRep
 {-# INLINE forMWithRep #-}
 
 -- | Fold over a 'Representable' 'Functor' with access to the current path
 -- as a lens, yielding a 'Monoid'
-foldMapWithRep :: (Representable f, Foldable f, Monoid m)
+foldMapWithRep :: (Representable f, Monoid m)
                => (Rep f -> a -> m) -> f a -> m
-foldMapWithRep f m = fold (mapWithRep f m)
+foldMapWithRep f = getConst . traverseWithRep (\i -> Const . f i)
 {-# INLINE foldMapWithRep #-}
 
 -- | Fold over a 'Representable' 'Functor' with access to the current path
 -- as a lens.
-foldrWithRep :: (Representable f, Foldable f) => (Rep f -> a -> b -> b) -> b -> f a -> b
-foldrWithRep f b m = Foldable.foldr id b (mapWithRep f m)
+foldrWithRep :: Representable f => (Rep f -> a -> b -> b) -> b -> f a -> b
+foldrWithRep f z t = appEndo (foldMapWithRep (\i -> Endo . f i) t) z
 {-# INLINE foldrWithRep #-}
 
