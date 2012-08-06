@@ -85,6 +85,7 @@ intercalated :: [a] -> Getter [[a]] [a]
 intercalated = to . intercalate
 {-# INLINE intercalated #-}
 
+-- | Indexed traversal of a list. The position in the list is available as the index.
 traverseList :: IndexedTraversal Int [a] [b] a b
 traverseList = index $ go (0::Int) where
   go !n f (x:xs) = (:) <$> f n x <*> go (n + 1) f xs
