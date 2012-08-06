@@ -1,37 +1,39 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE TypeOperators #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Control.Isomorphic
+-- Module      :  Control.Lens.Iso
 -- Copyright   :  (C) 2012 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
--- Portability :  rank 2 types
+-- Portability :  Rank2Types
 --
 ----------------------------------------------------------------------------
-module Control.Isomorphic
-  ( Isomorphic(..)
+module Control.Lens.Iso
+  (
+  -- * Isomorphisms
+    Isomorphic(..)
   , Isomorphism(..)
+  , iso
+  , isos
   , from
   , via
-  , (:~>)
+  , Iso
+  , SimpleIso
+  , _const
+  , identity
   ) where
 
+import Control.Applicative
 import Control.Category
-import Prelude hiding ((.),id)
+import Data.Functor.Identity
 import Data.Typeable
+import Prelude hiding ((.),id)
 
 ----------------------------------------------------------------------------
 -- Isomorphism Implementation Details
 -----------------------------------------------------------------------------
-
--- | An isomorphism from a to b, overloaded to permit its use directly as a function.
---
--- You can use a value of type @(a :~ b)@ as if it were @(a -> b)@ or @Isomorphism a b@.
-infixr 0 :~>
-type a :~> b = forall k. Isomorphic k => k a b
 
 -- | Used to provide overloading of isomorphism application
 --
@@ -59,7 +61,7 @@ instance Isomorphic (->) where
 --
 -- This lets you place an isomorphism inside a container without using @ImpredicativeTypes@.
 data Isomorphism a b = Isomorphism (a -> b) (b -> a)
-  deriving (Typeable)
+  deriving Typeable
 
 instance Category Isomorphism where
   id = Isomorphism id id
@@ -98,3 +100,61 @@ via (Isomorphism a b) = isomorphic a b
 {-# INLINE via #-}
 {-# SPECIALIZE via :: Isomorphism a b -> a -> b #-}
 {-# SPECIALIZE via :: Isomorphism a b -> Isomorphism a b #-}
+
+-----------------------------------------------------------------------------
+-- Isomorphisms families as Lenses
+-----------------------------------------------------------------------------
+
+-- | Isomorphim families can be composed with other lenses using either' (.)' and 'id'
+-- from the Prelude or from Control.Category. However, if you compose them
+-- with each other using '(.)' from the Prelude, they will be dumbed down to a
+-- mere 'Lens'.
+--
+-- > import Control.Category
+-- > import Prelude hiding ((.),id)
+--
+-- > type Iso a b c d = forall k f. (Isomorphic k, Functor f) => Overloaded k f a b c d
+type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
+
+-- | > type SimpleIso a b = Simple Iso a b
+type SimpleIso a b = Iso a a b b
+
+-- | Build an isomorphism family from two pairs of inverse functions
+--
+-- > isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Iso a b c d
+isos :: (Isomorphic k, Functor f) => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> k (c -> f d) (a -> f b)
+isos ac ca bd db = isomorphic
+  (\cfd a -> db <$> cfd (ac a))
+  (\afb c -> bd <$> afb (ca c))
+{-# INLINE isos #-}
+{-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> (c -> f d) -> a -> f b #-}
+{-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Isomorphism (c -> f d) (a -> f b) #-}
+
+-- | Build a simple isomorphism from a pair of inverse functions
+--
+-- > iso :: (a -> b) -> (b -> a) -> Simple Iso a b
+iso :: (Isomorphic k, Functor f) => (a -> b) -> (b -> a) -> k (b -> f b) (a -> f a)
+iso ab ba = isos ab ba ab ba
+{-# INLINE iso #-}
+{-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> (b -> f b) -> a -> f a #-}
+{-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> Isomorphism (b -> f b) (a -> f a) #-}
+
+-----------------------------------------------------------------------------
+-- Isomorphisms
+-----------------------------------------------------------------------------
+
+-- | This isomorphism can be used to wrap or unwrap a value in 'Identity'.
+--
+-- > x^.identity = Identity x
+-- > Identity x^.from identity = x
+identity :: Iso a b (Identity a) (Identity b)
+identity = isos Identity runIdentity Identity runIdentity
+{-# INLINE identity #-}
+
+-- | This isomorphism can be used to wrap or unwrap a value in 'Const'
+--
+-- > x^._const = Const x
+-- > Const x^.from _const = x
+_const :: Iso a b (Const a c) (Const b d)
+_const = isos Const getConst Const getConst
+{-# INLINE _const #-}

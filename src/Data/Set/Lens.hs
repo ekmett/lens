@@ -16,6 +16,7 @@ module Data.Set.Lens
 
 import Control.Applicative
 import Control.Lens
+import Control.Lens.Internal
 import Data.Set as Set
 
 -- | This 'Lens' can be used to read, write or delete a member of a 'Set'
@@ -49,4 +50,4 @@ members = sets Set.map
 -- > setOf ::          Lens a b c d      -> a -> Set c
 -- > setOf :: Ord c => Traversal a b c d -> a -> Set c
 setOf :: Getting (Set c) a b c d -> a -> Set c
-setOf l = getConst . l (Const . Set.singleton)
+setOf l = runAccessor . l (Accessor . Set.singleton)

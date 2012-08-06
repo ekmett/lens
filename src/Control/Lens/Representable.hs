@@ -73,7 +73,7 @@ module Control.Lens.Representable
   ) where
 
 import Control.Applicative
-import Control.Isomorphic
+import Control.Lens.Iso
 import Control.Lens
 import Data.Foldable         as Foldable
 import Data.Functor.Identity
@@ -201,7 +201,7 @@ keys = rep Key
 
 -- | A version of 'rep' that is an isomorphism. Predicativity requires that
 -- we wrap the 'Rep' as a 'Key', however.
-tabulated :: Representable f => (Key f -> a) :~> f a
+tabulated :: (Isomorphic k, Representable f) => k (Key f -> a) (f a)
 tabulated = isomorphic (\f -> rep (f . Key)) (\fa key -> view (turn key) fa)
 {-# INLINE tabulated #-}
 

@@ -25,22 +25,22 @@ infixr 4 |~, &~
 infix 4 |=, &=
 
 -- | Bitwise '.|.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
-(|~):: Bits c => Setter a b c c -> c -> a -> b
+(|~):: Bits c => Setting a b c c -> c -> a -> b
 l |~ n = adjust l (.|. n)
 {-# INLINE (|~) #-}
 
 -- | Bitwise '.&.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
-(&~) :: Bits c => Setter a b c c -> c -> a -> b
+(&~) :: Bits c => Setting a b c c -> c -> a -> b
 l &~ n = adjust l (.&. n)
 {-# INLINE (&~) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.&.' with another value.
-(&=):: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
+(&=):: (MonadState a m, Bits b) => Simple Setting a b -> b -> m ()
 l &= b = modify (l &~ b)
 {-# INLINE (&=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.|.' with another value.
-(|=) :: (MonadState a m, Bits b) => Simple Setter a b -> b -> m ()
+(|=) :: (MonadState a m, Bits b) => Simple Setting a b -> b -> m ()
 l |= b = modify (l |~ b)
 {-# INLINE (|=) #-}
 

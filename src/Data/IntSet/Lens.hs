@@ -16,6 +16,7 @@ module Data.IntSet.Lens
 
 import Control.Applicative
 import Control.Lens
+import Control.Lens.Internal
 import Data.IntSet as IntSet
 
 -- | This 'Lens' can be used to read, write or delete a member of an 'IntSet'
@@ -50,4 +51,4 @@ members = sets IntSet.map
 -- > setOf :: Lens a b Int d      -> a -> IntSet
 -- > setOf :: Traversal a b Int d -> a -> IntSet
 setOf :: Getting IntSet a b Int d -> a -> IntSet
-setOf l = getConst . l (Const . IntSet.singleton)
+setOf l = runAccessor . l (Accessor . IntSet.singleton)

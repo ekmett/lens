@@ -245,8 +245,8 @@ commonFieldDescs :: [Con] -> [FieldDesc]
 commonFieldDescs = toList . Prelude.foldr walk mempty where
   walk con m = Prelude.foldr step m (conFieldDescs con)
   step d@(FieldDesc nm ty bds) m = case m^.at nm of
-    Just (FieldDesc _ _ bds') -> at nm <~ Just (FieldDesc nm ty (bds `Set.union` bds')) $ m
-    Nothing                   -> at nm <~ Just d                                        $ m
+    Just (FieldDesc _ _ bds') -> at nm .~ Just (FieldDesc nm ty (bds `Set.union` bds')) $ m
+    Nothing                   -> at nm .~ Just d                                        $ m
 
 errorClause :: Name -> Name -> Name -> ClauseQ
 errorClause lensName fieldName conName
@@ -270,7 +270,7 @@ makeFieldLensBody lensName fieldName cons maybeMethodName = case maybeMethodName
         x     <- newName "y"
         clause [varP f, conP conName $ map varP names] (normalB
                (appsE [ varE (mkName "fmap")
-                      , lamE [varP x] $ appsE $ conE conName : map varE (element i <~ x $ names)
+                      , lamE [varP x] $ appsE $ conE conName : map varE (element i .~ x $ names)
                       , varE (mkName "f") `appE` varE (names^.element i)
                       ])) []
       Nothing -> errorClause lensName fieldName conName
@@ -359,9 +359,9 @@ makeLensesWith cfg nm = reify nm >>= \inf -> case inf of
 -- | Build lenses with a sensible default configuration
 makeLenses :: Name -> Q [Dec]
 makeLenses = makeLensesWith
-  $ lensIso   <~ const Nothing
-  $ lensClass <~ const Nothing
-  $ handleSingletons <~ True    -- generate an Iso for the field if its the only one
+  $ lensIso   .~ const Nothing
+  $ lensClass .~ const Nothing
+  $ handleSingletons .~ True    -- generate an Iso for the field if its the only one
   $ defaultRules
 
 -- | Make a top level isomorphism injecting _into_ the type
@@ -369,17 +369,17 @@ makeLenses = makeLensesWith
 -- The supplied name is required to be for a type with a single constructor that has a single argument
 makeIso :: Name -> Q [Dec]
 makeIso = makeLensesWith
-  $ singletonRequired <~ True
-  $ singletonAndField <~ True
+  $ singletonRequired .~ True
+  $ singletonAndField .~ True
   $ defaultRules
 
 -- | Make 'classy lenses' for a type
 makeClassy :: Name -> Q [Dec]
 makeClassy = makeLensesWith
-  $ lensIso <~ const Nothing
-  $ handleSingletons <~ False
-  $ lensClass <~ classy
-  $ classRequired <~ True
+  $ lensIso .~ const Nothing
+  $ handleSingletons .~ False
+  $ lensClass .~ classy
+  $ classRequired .~ True
   $ defaultRules
 
 classy :: String -> Maybe (String, String)
@@ -393,10 +393,10 @@ classy _ = Nothing
 -- > makeLensesFor [("_foo", "fooLens"), ("bar", "lbar")] ''Foo
 makeLensesFor :: [(String, String)] -> Name -> Q [Dec]
 makeLensesFor fields = makeLensesWith
-  $ lensField <~ (`Prelude.lookup` fields)
-  $ lensIso   <~ const Nothing
-  $ lensClass <~ const Nothing
-  $ handleSingletons <~ True
+  $ lensField .~ (`Prelude.lookup` fields)
+  $ lensIso   .~ const Nothing
+  $ lensClass .~ const Nothing
+  $ handleSingletons .~ True
   $ defaultRules
 
 -- | Derive lenses, specifying explicit pairings of @(fieldName, lensName)@
@@ -407,10 +407,10 @@ makeLensesFor fields = makeLensesWith
 -- > makeClassyFor "HasFoo" "foo" [("_foo", "fooLens"), ("bar", "lbar")] ''Foo
 makeClassyFor :: String -> String -> [(String, String)] -> Name -> Q [Dec]
 makeClassyFor clsName funName fields = makeLensesWith
-  $ lensField <~ (`Prelude.lookup` fields)
-  $ lensIso <~ const Nothing
-  $ lensClass <~ const (Just (clsName,funName))
-  $ handleSingletons <~ False
+  $ lensField .~ (`Prelude.lookup` fields)
+  $ lensIso .~ const Nothing
+  $ lensClass .~ const (Just (clsName,funName))
+  $ handleSingletons .~ False
   $ defaultRules
 
 -- The orphan instance for old versions is bad, but programing without Applicative is worse.

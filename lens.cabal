@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       1.4.1
+version:       1.5
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -27,7 +27,7 @@ description:
   > type Getter a c = forall r b d. Getting r a b c d
   .
   Everything you can do with a function, you can do with a 'Getter', but note that because of the
-  continuation passing style (.) composes them in the opposite order.
+  continuation passing style @(.)@ composes them in the opposite order.
   .
   Since it is only a function, every 'Getter' obviously only retrieves a single value for a given
   input.
@@ -86,7 +86,7 @@ description:
   a 'Getter' doesn't recieve.
   .
   However, the instance of 'Functor' for 'Const' requires no such thing. If we weaken the type
-  requirement from 'Applicative' to 'Functor' for 'Traversal', we obtain 
+  requirement from 'Applicative' to 'Functor' for 'Traversal', we obtain
   .
   > type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
   .
@@ -159,13 +159,21 @@ library
     base         >= 4.3   && < 5,
     containers   >= 0.4.2 && < 0.6,
     mtl          >= 2.0.1 && < 2.2,
-    transformers >= 0.2.2 && < 0.4
+    transformers >= 0.3   && < 0.4
 
-  exposed-modules: Control.Indexed
-                   Control.Isomorphic
+  exposed-modules:
                    Control.Lens
                    Control.Lens.Internal
                    Control.Lens.Representable
+
+  other-modules:   Control.Lens.Fold
+                   Control.Lens.Getter
+                   Control.Lens.Indexed
+                   Control.Lens.Iso
+                   Control.Lens.Setter
+                   Control.Lens.Traversal
+                   Control.Lens.Type
+
   -- base
   exposed-modules: Control.Exception.Lens
                    Data.Bits.Lens
