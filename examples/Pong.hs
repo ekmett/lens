@@ -3,10 +3,11 @@
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Lens
-import Control.Lens.TH
 import Control.Monad.State
 
+import Data.Pair.Lens
 import Data.Set (Set, member, empty, insert, delete)
+import Data.Set.Lens
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
@@ -46,10 +47,6 @@ makeLenses ''Pong
 _x = _1
 _y = _2
 
--- This will be in Data.Pair.Lens soon
-both :: Traversal (a,a) (b,b) a b
-both f (x,y) = (,) <$> f x <*> f y
-
 -- Game update logic
 
 update :: Float -> Pong -> Pong
@@ -77,10 +74,10 @@ updatePaddles time = do
   p <- get
 
   -- Update the player's paddle based on keys
-  when (SpecialKey KeyUp `isIn` p^.keys) $
+  when (p^.keys.contains (SpecialKey KeyUp)) $
     paddle1 += paddleSpeed * time
 
-  when (SpecialKey KeyDown `isIn` p^.keys) $
+  when (p^.keys.contains (SpecialKey KeyUp)) $
     paddle1 -= paddleSpeed * time
 
   -- Update the CPU's paddle based on the ball's relative position
@@ -95,8 +92,6 @@ updatePaddles time = do
 
  where
    clamp = clampPad (paddleHeight/2)
-   isIn  = member
-   infixl 7 `isIn`
 
 -- Clamp to the region (-1, 1) but with padding
 clampPad :: Float -> Float -> Float
@@ -140,8 +135,8 @@ checkBounds = do
 -- Reset the game
 reset :: State Pong ()
 reset = do
-  ballPos   ^= initial^.ballPos
-  ballSpeed ^= initial^.ballSpeed
+  ballPos   .= initial^.ballPos
+  ballSpeed .= initial^.ballSpeed
 
 -- Drawing a pong state to the screen
 
@@ -156,7 +151,6 @@ draw p = scale gameSize gameSize $ Pictures
   , rectangleWire 2 2
   ]
   where
-    -- Pretty printing lens
     pretty = to (\(x,y) -> show x ++ " " ++ show y)
     p `at` (x,y) = translate x y p
     infixr 1 `at`
@@ -170,8 +164,8 @@ drawBall = circleSolid ballRadius
 -- Handle input by simply updating the keys set
 
 handle :: Event -> Pong -> Pong
-handle (EventKey k Down _ _) = keys %~ insert k
-handle (EventKey k Up   _ _) = keys %~ delete k
+handle (EventKey k Down _ _) = contains k .~ True  $ keys
+handle (EventKey k Up   _ _) = contains k .~ False $ keys
 handle _ = id
 
 -- The main program action

@@ -54,8 +54,8 @@ module Control.Lens.Representable
   , bindRep
   , distributeRep
   -- * Wrapped Representations
-  , Key(..)
-  , keys
+  , Path(..)
+  , paths
   , tabulated
   -- * Traversal with representation
   , mapWithRep
@@ -182,25 +182,25 @@ distributeRep wf = rep $ \i -> fmap (^.i) wf
 {-# INLINE distributeRep #-}
 
 -----------------------------------------------------------------------------
--- Keys
+-- Paths
 -----------------------------------------------------------------------------
 
 -- | Sometimes you need to store a path lens into a container, but at least
 -- at this time, impredicative polymorphism in GHC is somewhat lacking.
 --
 -- This type provides a way to, say, store a list of polymorphic lenses.
-newtype Key f = Key { turn :: Rep f }
+newtype Path f = Path { walk :: Rep f }
 
 -- | A 'Representable' 'Functor' has a fixed shape. This fills each position
--- in it with a 'Key'
-keys :: Representable f => f (Key f)
-keys = rep Key
-{-# INLINE keys #-}
+-- in it with a 'Path'
+paths :: Representable f => f (Path f)
+paths = rep Path
+{-# INLINE paths #-}
 
 -- | A version of 'rep' that is an isomorphism. Predicativity requires that
 -- we wrap the 'Rep' as a 'Key', however.
-tabulated :: (Isomorphic k, Representable f) => k (Key f -> a) (f a)
-tabulated = isomorphic (\f -> rep (f . Key)) (\fa key -> view (turn key) fa)
+tabulated :: (Isomorphic k, Representable f) => k (Path f -> a) (f a)
+tabulated = isomorphic (\f -> rep (f . Path)) (\fa path -> view (walk path) fa)
 {-# INLINE tabulated #-}
 
 -----------------------------------------------------------------------------
