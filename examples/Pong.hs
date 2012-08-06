@@ -164,8 +164,7 @@ drawBall = circleSolid ballRadius
 -- Handle input by simply updating the keys set
 
 handle :: Event -> Pong -> Pong
-handle (EventKey k Down _ _) = keys.contains k .~ True
-handle (EventKey k Up   _ _) = keys.contains k .~ False
+handle (EventKey k s _ _) = keys.contains k .~ (s == Down)
 handle _ = id
 
 -- The main program action
