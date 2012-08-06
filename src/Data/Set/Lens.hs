@@ -38,8 +38,8 @@ contains k f s = go <$> f (Set.member k s) where
 -- Sadly, you can't create a valid 'Traversal' for a 'Set', but you can
 -- manipulate it by reading using 'folded' and reindexing it via 'setmap'.
 --
--- > ghci> adjust members (+1) (fromList [1,2,3,4]
--- > fromList [2,3,4,5]
+-- >>> adjust members (+1) (fromList [1,2,3,4])
+-- fromList [2,3,4,5]
 members :: (Ord i, Ord j) => Setter (Set i) (Set j) i j
 members = sets Set.map
 

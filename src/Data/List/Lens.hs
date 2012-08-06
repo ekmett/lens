@@ -31,8 +31,8 @@ import Data.List
 
 -- | A lens reading and writing to the head of a /non-empty/ list
 --
--- > ghci> [1,2,3]^._head
--- > 1
+-- >>> [1,2,3]^._head
+-- 1
 _head :: Simple Lens [a] a
 _head _ [] = error "_head: empty list"
 _head f (a:as) = (:as) <$> f a
@@ -40,8 +40,8 @@ _head f (a:as) = (:as) <$> f a
 
 -- | A lens reading and writing to the tail of a /non-empty/ list
 --
--- > ghci> _tail <~ [3,4,5] $ [1,2]
--- > [1,3,4,5]
+-- >>> _tail <~ [3,4,5] $ [1,2]
+-- [1,3,4,5]
 _tail :: Simple Lens [a] [a]
 _tail _ [] = error "_tail: empty list"
 _tail f (a:as) = (a:) <$> f as
@@ -62,8 +62,8 @@ _init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
 
 -- | Obtain a version of the list with the supplied value interspersed.
 --
--- > ghci> "abcde"^.interspersed ','
--- > "a,b,c,d,e"
+-- >>> "abcde"^.interspersed ','
+-- "a,b,c,d,e"
 --
 -- > xs^.interspersed a = intersperse a xs
 interspersed :: a -> Getter [a] [a]

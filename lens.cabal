@@ -228,3 +228,10 @@ library
 
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: src
+
+test-suite doctests
+  main-is:         doctests.hs
+  type:            exitcode-stdio-1.0
+  ghc-options:     -Wall -Werror -threaded
+  hs-source-dirs:  test
+  build-depends:   base, doctest >= 0.8
