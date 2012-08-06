@@ -124,10 +124,12 @@ getMax (Max a) = Just a
 data ElementOfResult f a
   = Searching {-# UNPACK #-} !Int a
   | Found {-# UNPACK #-} !Int (f a)
+  | NotFound String
 
 instance Functor f => Functor (ElementOfResult f) where
   fmap f (Searching i a) = Searching i (f a)
   fmap f (Found i as) = Found i (fmap f as)
+  fmap _ (NotFound e) = NotFound e
 
 -- | Used to find the nth element of a 'Traversal'.
 data ElementOf f a = ElementOf { getElementOf :: Int -> ElementOfResult f a }
@@ -135,15 +137,18 @@ data ElementOf f a = ElementOf { getElementOf :: Int -> ElementOfResult f a }
 instance Functor f => Functor (ElementOf f) where
   fmap f (ElementOf m) = ElementOf $ \i -> case m i of
     Searching j a -> Searching j (f a)
-    Found j as -> Found j (fmap f as)
+    Found j as    -> Found j (fmap f as)
+    NotFound e    -> NotFound e
 
 instance Functor f => Applicative (ElementOf f) where
   pure a = ElementOf $ \i -> Searching i a
   ElementOf mf <*> ElementOf ma = ElementOf $ \i -> case mf i of
     Found j ff -> case ma j of
-      Found _ _ -> error "elementOf: found multiple results"
+      Found _ _     -> NotFound "multiple results"
       Searching k a -> Found k (fmap ($a) ff)
+      NotFound e    -> NotFound e
     Searching j f -> case ma j of
-      Found k as -> Found k (fmap f as)
+      Found k as    -> Found k (fmap f as)
       Searching k a -> Searching k (f a)
-
+      NotFound e    -> NotFound e
+    NotFound e -> NotFound e

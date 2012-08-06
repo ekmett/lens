@@ -29,7 +29,6 @@ module Control.Lens.Traversal
   (
   -- * Lenses
     Traversal
-  , SimpleTraversal
 
   -- ** Lensing Traversals
   , element
@@ -46,12 +45,13 @@ module Control.Lens.Traversal
   , Traversable(traverse)
   , traverseNothing
 
-  -- * Transforming Traversals
-  , backwards
+  -- * Simple
+  , SimpleTraversal
   ) where
 
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
+import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
@@ -214,7 +214,7 @@ mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f 
 -- > mapAccumLOf :: Lens a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- > mapAccumLOf :: Traversal a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 mapAccumLOf :: LensLike (Backwards (Lazy.State s)) a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
-mapAccumLOf l = mapAccumROf (backwards l)
+mapAccumLOf = mapAccumROf . reversed
 {-# INLINE mapAccumLOf #-}
 
 swap :: (a,b) -> (b,a)
@@ -259,8 +259,9 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 -- > 3
 elementOf :: Functor f => LensLike (ElementOf f) a b c c -> Int -> LensLike f a b c c
 elementOf l i f a = case getElementOf (l go a) 0 of
-    Found _ fb -> fb
+    Found _ fb    -> fb
     Searching _ _ -> error "elementOf: index out of range"
+    NotFound e    -> error $ "elementOf: " ++ e
   where
     go c = ElementOf $ \j -> if i == j then Found (j + 1) (f c) else Searching (j + 1) c
 
@@ -283,23 +284,3 @@ traverseNothing :: Traversal a a c d
 traverseNothing = const pure
 {-# INLINE traverseNothing #-}
 
-------------------------------------------------------------------------------
--- Transforming Traversals
-------------------------------------------------------------------------------
-
--- | This allows you to 'traverse' the elements of a 'Traversal' in the
--- opposite order.
---
--- Note: 'reversed' is similar, but is able to accept a 'Fold' (or 'Getter')
--- and produce a 'Fold' (or 'Getter').
---
--- This requires at least a 'Traversal' (or 'Lens') and can produce a
--- 'Traversal' (or 'Lens') in turn.
---
--- A backwards 'Iso' is the same 'Iso'. If you reverse the direction of
--- the isomorphism use 'from' instead.
-
--- TODO: extend Act with another parameter so we can invert it?
-backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d
-backwards l f = forwards . l (Backwards . f)
-{-# INLINE backwards #-}

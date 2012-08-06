@@ -1,5 +1,4 @@
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TypeOperators #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Representable
@@ -19,8 +18,6 @@
 -- Consider the following example.
 --
 -- > import Control.Lens
--- > import Control.Lens.Representable
--- > import Control.Lens.TH
 -- > import Data.Distributive
 --
 -- > data Pair a = Pair { _x :: a, _y :: a }

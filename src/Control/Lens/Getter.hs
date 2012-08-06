@@ -1,7 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE LiberalTypeSynonyms #-}
-{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Getter
@@ -53,6 +50,7 @@ module Control.Lens.Getter
 
 import Control.Applicative
 import Control.Applicative.Backwards
+import Control.Lens.Internal
 import Control.Monad.Reader.Class       as Reader
 import Control.Monad.State.Class        as State
 import Data.Functor.Compose
@@ -72,17 +70,6 @@ infixr 0 ^$
 -- there are no lens laws that can be applied to it.
 --
 -- Moreover, a 'Getter' can be used directly as a 'Fold', since it just ignores the 'Monoid'.
---
--- In practice the @b@ and @d@ are left dangling and unused, and as such is no real point in
--- using a @'Simple' 'Getter'@.
---
--- > type Getter a c = forall r. Applicative m => LensLike f a b c d
---
--- A simpler version of this type would be
---
--- > type BadGetter a c = LensLike (Const r) a b c d
---
--- but then a 'Getter' would not be able to compose with many combinators.
 type Getter a c = forall f b d. Gettable f => (c -> f d) -> a -> f b
 
 -- | Build a 'Getter' from an arbitrary Haskell function.
@@ -123,6 +110,12 @@ instance Gettable f => Gettable (Backwards f) where
 
 instance (Functor f, Gettable g) => Gettable (Compose f g) where
   coerce = Compose . fmap coerce . getCompose
+
+instance Gettable f => Gettable (ElementOf f) where
+  coerce (ElementOf m) = ElementOf $ \i -> case m i of
+    Searching _ _ -> NotFound "coerced while searching"
+    Found j as    -> Found j (coerce as)
+    NotFound s    -> NotFound s
 
 -- | Used instead of Const to report 'no instance of (Settable Accessor)' when
 -- attempting to misuse a 'Setter' as a 'Getter'.

@@ -1,8 +1,5 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
-{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Fold
@@ -12,12 +9,23 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
+-- A @'Fold' a c@ is a generalization of something 'Foldable'. It allows you to
+-- extract multiple results from a container. A 'Foldable' container can be
+-- characterized by the behavior of @foldMap :: (Foldable t, Monoid m) => (c -> m) -> t c -> m@.
+-- Since we want to be able to work with monomorphic containers, we generalize this signature to
+-- @forall m. 'Monoid' m => (c -> m) -> a -> m@, and then decorate it with 'Const' to obtain
+--
+-- > type Fold a c = forall m b d. Monoid m => Getting m a b c d
+--
+-- Every 'Getter' is a valid 'Fold' that simply doesn't use the 'Monoid' it is passed.
+--
+-- Everything you can do with a 'Foldable' container, you can with with a 'Fold' and there are
+-- combinators that generalize the usual 'Foldable' operations in @Control.Lens@.
 ----------------------------------------------------------------------------
 module Control.Lens.Fold
   (
   -- * Folds
     Fold
-
   -- ** Building Folds
   , folds
   , folding
@@ -25,13 +33,12 @@ module Control.Lens.Fold
   , unfolded
   , iterated
   , filtered
-  -- , reversed
+  , reversed
   , repeated
   , replicated
   , cycled
   , takingWhile
   , droppingWhile
-
   -- ** Folding
   , foldMapOf, foldOf
   , foldrOf, foldlOf
@@ -56,8 +63,10 @@ module Control.Lens.Fold
   ) where
 
 import Control.Applicative as Applicative
+import Control.Applicative.Backwards
 import Control.Lens.Getter
 import Control.Lens.Internal
+import Control.Lens.Type
 import Control.Monad
 import Data.Foldable as Foldable
 import Data.Maybe
@@ -151,17 +160,21 @@ filtered :: Monoid r => (c -> Bool) -> Getting r a b c d -> Getting r a b c d
 filtered p l f = l $ \c -> if p c then f c else Accessor mempty
 {-# INLINE filtered #-}
 
-{-
--- | Obtain a 'Fold' by reversing the order of traversal for a 'Lens', 'Iso', 'Getter', 'Fold' or 'Traversal'.
+-- | This allows you to 'traverse' the elements of a 'Traversal' in the
+-- opposite order.
 --
--- Of course, reversing a 'Lens', 'Iso' or 'Getter' has no effect.
-reversed :: Getting (Dual r) a b c d -> Getting r a b c d
-reversed l f = Accessor . getDual . runAccessor . l (Accesor . Dual . runAccessor . f)
+-- It can also be used to reverse a 'Fold' (or 'Getter') and produce a 'Fold'
+-- (or 'Getter').
+--
+-- This requires at least a 'Traversal' (or 'Lens') and can produce a
+-- 'Traversal' (or 'Lens') in turn.
+--
+-- A 'reversed' 'Iso' is the same 'Iso'. If you reverse the direction of
+-- the isomorphism use 'from' instead.
+reversed :: LensLike (Backwards f) a b c d -> LensLike f a b c d
+reversed l f = forwards . l (Backwards . f)
+-- reversed l f = Accessor . getDual . runAccessor . l (Accesor . Dual . runAccessor . f)
 {-# INLINE reversed #-}
--}
-
---taking :: Int -> Getting (Taking m) a b c d -> Getting m a b c d
---dropping :: Int -> Getting (Dropping m) a b c d -> Getting m a b c d
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
 --

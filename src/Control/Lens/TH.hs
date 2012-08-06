@@ -53,12 +53,10 @@ import Language.Haskell.TH.Lens
 -- | Flags for lens construction
 data LensFlag
   = SimpleLenses
-
   | SingletonAndField
   | SingletonIso
   | HandleSingletons
   | SingletonRequired
-
   | CreateClass
   | CreateInstance
   | ClassRequired

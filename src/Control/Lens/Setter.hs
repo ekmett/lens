@@ -1,8 +1,5 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
-{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Setter
@@ -12,6 +9,17 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
+-- A @'Setter' a b c d@ is a generalization of 'fmap' from 'Functor'. It allows you to map into a
+--  structure and change out the contents, but it isn't strong enough to allow you to
+--  enumerate those contents. Starting with @fmap :: 'Functor' f => (c -> d) -> f c -> f d@
+--  we monomorphize the type to obtain @(c -> d) -> a -> b@ and then decorate it with 'Identity' to obtain
+--
+-- > type Setter a b c d = (c -> Identity d) -> a -> Identity b
+--
+--  Every 'Traversal' is a valid 'Setter', since 'Identity' is 'Applicative'.
+--
+-- Everything you can do with a 'Functor', you can do with a 'Setter'. There
+-- are combinators that generalize 'fmap' and '(<$)'.
 ----------------------------------------------------------------------------
 module Control.Lens.Setter
   (
@@ -34,6 +42,7 @@ module Control.Lens.Setter
   -- * State Combinators
   , (.=), (%=)
   , (+=), (-=), (*=), (//=), (||=), (&&=), (<>=)
+  , (<~)
   -- * MonadWriter
   , whisper
   -- * Simplicity
@@ -51,6 +60,8 @@ import Data.Monoid
 
 infixr 4 .~, +~, *~, -~, //~, &&~, ||~, %~, <>~
 infix  4 .=, +=, *=, -=, //=, &&=, ||=, %=, <>=
+
+infixr 2 <~
 
 ------------------------------------------------------------------------------
 -- Setters
@@ -95,6 +106,7 @@ type SimpleSetting a b = Setting a a b b
 -- Settables & Mutators
 -----------------------------------------------------------------------------
 
+-- | Anything Settable must be isomorphic to the Identity Functor.
 class Applicative f => Settable f where
   run :: f a -> a
 
@@ -107,6 +119,8 @@ instance Settable f => Settable (Backwards f) where
 instance (Settable f, Settable g) => Settable (Compose f g) where
   run = run . run . getCompose
 
+-- | 'Mutator' is just a renamed 'Identity' functor to give better error
+-- messages when someone attempts to use a getter as a setter.
 newtype Mutator a = Mutator { runMutator :: a }
 
 instance Functor Mutator where
@@ -122,7 +136,6 @@ instance Settable Mutator where
 -----------------------------------------------------------------------------
 -- Setters
 -----------------------------------------------------------------------------
-
 
 -- | This setter can be used to map over all of the values in a 'Functor'.
 --
@@ -353,6 +366,29 @@ l ||= b = State.modify (l ||~ b)
 (<>=) :: (MonadState a m, Monoid b) => SimpleSetting a b -> b -> m ()
 l <>= b = State.modify (l <>~ b)
 {-# INLINE (<>=) #-}
+
+-- | Run a monadic action, and set all of the targets of a 'Lens', 'Setter' or 'Traversal' to its result.
+--
+-- > (<~) :: MonadState a m => Iso a a c d       -> m d -> m ()
+-- > (<~) :: MonadState a m => Lens a a c d      -> m d -> m ()
+-- > (<~) :: MonadState a m => Traversal a a c d -> m d -> m ()
+-- > (<~) :: MonadState a m => Setter a a c d    -> m d -> m ()
+--
+-- As a reasonable mnemonic, this lets you store the result of a monadic action in a lens rather than
+-- in a local variable.
+--
+-- > do foo <- bar
+-- >    ...
+--
+-- will store the result in a variable, while
+--
+-- > do foo <~ bar
+-- >    ...
+--
+-- will store the result in a lens/setter/traversal.
+(<~) :: MonadState a m => Setting a a c d -> m d -> m ()
+l <~ md = md >>= (l .=)
+{-# INLINE (<~) #-}
 
 ------------------------------------------------------------------------------
 -- MonadWriter

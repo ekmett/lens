@@ -48,6 +48,7 @@ generic1 = isos from1 to1 from1 to1
 every :: (Generic a, GTraversal (Rep a), Typeable b) => Simple Traversal a b
 every = generic . everyr True
 
+-- | Traversable generic data types.
 class GTraversal f where
   everyr :: Typeable b => Bool -> Simple Traversal (f a) b
 

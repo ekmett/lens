@@ -12,6 +12,32 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
+-- A @'Lens' a b c d@ is a purely functional reference.
+--
+-- While a 'Traversal' could be used for 'Getting' like a valid 'Fold',
+-- it wasn't a valid 'Getter' as Applicative isn't a superclass of 
+-- 'Gettable'.
+--
+-- 'Functor', however is the superclass of both.
+--
+-- > type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
+--
+-- Every 'Lens' is a valid 'Setter', choosing @f@ = 'Identity'.
+--
+-- Every 'Lens' can be used for 'Getting' like a 'Fold' that doesn't use
+-- the 'Monoid'.
+--
+-- Every 'Lens' is a valid 'Traversal' that only uses the 'Functor' part
+-- of the 'Applicative' it is supplied.
+--
+-- Every 'Lens' can be used for 'Getting' like a valid 'Getter', choosing
+-- @f@ = 'Accessor' @r@ for an appropriate @r@
+--
+-- Since every 'Lens' can be used for 'Getting' like a valid 'Getter' it
+-- follows that it must view exactly one element in the structure.
+--
+-- The lens laws follow from this property and the desire for it to act like
+-- a 'Traversable' when used as a 'Traversal'.
 ----------------------------------------------------------------------------
 module Control.Lens.Type
   (
