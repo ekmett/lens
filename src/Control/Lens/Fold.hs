@@ -1,5 +1,9 @@
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Fold
@@ -26,6 +30,7 @@ module Control.Lens.Fold
   (
   -- * Folds
     Fold
+  , Furled(..)
   -- ** Building Folds
   , folds
   , folding
@@ -33,7 +38,7 @@ module Control.Lens.Fold
   , unfolded
   , iterated
   , filtered
-  , reversed
+  , backwards
   , repeated
   , replicated
   , cycled
@@ -72,6 +77,7 @@ import Data.Foldable as Foldable
 import Data.Maybe
 import Data.Monoid
 
+
 --------------------------
 -- Folds
 --------------------------
@@ -89,22 +95,33 @@ import Data.Monoid
 --
 -- Unlike a 'Traversal' a 'Fold' is read-only. Since a 'Fold' cannot be used to write back
 -- there are no lens laws that apply.
---
--- > type Fold a c = forall m b d. Monoid m => Getting m a b c d
-type Fold a c = forall m b d. Monoid m => (c -> Accessor m d) -> a -> Accessor m b
+type Fold a c = forall r f b d. (Applicative f, Monoid r, Furled r f) => (c -> f d) -> a -> f b
+
+-- | Something we can fold.
+class Gettable f => Furled r f | f -> r where
+  furled :: r -> f a
+  unfurled :: f a -> r
+
+instance Furled r (Accessor r) where
+  furled = Accessor
+  unfurled = runAccessor
+
+instance Furled r f => Furled (Dual r) (Backwards f) where
+  furled = Backwards . furled . getDual
+  unfurled = Dual . unfurled . forwards
 
 -- | Build a 'Getter' or 'Fold' from a 'foldMap'-like function.
 --
 -- > folds :: ((c -> r) -> a -> r) -> (c -> Accessor m d) -> a -> Const m b
-folds :: ((c -> r) -> a -> r) -> Getting r a b c d
-folds l f = Accessor . l (runAccessor . f)
+folds :: Furled r f => ((c -> r) -> a -> r) -> LensLike f a b c d
+folds l f = furled . l (unfurled . f)
 {-# INLINE folds #-}
 
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
 --
 -- This can be useful to lift operations from @Data.List@ and elsewhere into a 'Fold'.
-folding :: Foldable f => (a -> f c) -> Fold a c
-folding f g = Accessor . foldMap (runAccessor . g) . f
+folding :: (Foldable f, Applicative g, Gettable g) => (a -> f c) -> LensLike g a b c d
+folding afc cgd = coerce . traverse_ cgd . afc
 {-# INLINE folding #-}
 
 -- | Obtain a 'Fold' from any 'Foldable'.
@@ -118,14 +135,14 @@ folded = folds foldMap
 --
 -- > repeat = toListOf repeated
 repeated :: Fold a a
-repeated f a = Accessor as where as = runAccessor (f a) `mappend` as
+repeated f a = furled as where as = unfurled (f a) `mappend` as
 
 -- | A fold that replicates its input @n@ times.
 --
 -- > replicate n = toListOf (replicated n)
 replicated :: Int -> Fold a a
-replicated n0 f a = Accessor (go n0) where
-  m = runAccessor (f a)
+replicated n0 f a = furled (go n0) where
+  m = unfurled (f a)
   go 0 = mempty
   go n = m `mappend` go (n - 1)
 {-# INLINE replicated #-}
@@ -134,8 +151,8 @@ replicated n0 f a = Accessor (go n0) where
 --
 -- > ghci> toListOf (cycled traverse) [1,2,3]
 -- > [1,2,3,1,2,3,..]
-cycled :: Monoid m => Getting m a b c d -> Getting m a b c d
-cycled l f a = Accessor as where as = runAccessor (l f a) `mappend` as
+cycled :: (Furled r f, Monoid r) => LensLike f a b c d -> LensLike f a b c d
+cycled l f a = furled as where as = unfurled (l f a) `mappend` as
 
 -- | Build a fold that unfolds its values from a seed.
 --
@@ -144,7 +161,7 @@ unfolded :: (b -> Maybe (a, b)) -> Fold b a
 unfolded f g b0 = go b0 where
   go b = case f b of
     Just (a, b') -> g a *> go b'
-    Nothing      -> Accessor mempty
+    Nothing      -> furled mempty
 {-# INLINE unfolded #-}
 
 -- | @x ^. 'iterated' f@ Return an infinite fold of repeated applications of @f@ to @x@.
@@ -156,25 +173,18 @@ iterated f g a0 = go a0 where
 {-# INLINE iterated #-}
 
 -- | Obtain a 'Fold' by filtering a 'Lens', 'Iso', 'Getter', 'Fold' or 'Traversal'.
-filtered :: Monoid r => (c -> Bool) -> Getting r a b c d -> Getting r a b c d
-filtered p l f = l $ \c -> if p c then f c else Accessor mempty
+filtered :: (Furled r f, Monoid r) => (c -> Bool) -> LensLike f a b c d -> LensLike f a b c d
+filtered p l f = l $ \c -> furled (if p c then unfurled (f c) else mempty)
 {-# INLINE filtered #-}
 
--- | This allows you to 'traverse' the elements of a 'Traversal' in the
--- opposite order.
+-- | This allows you to traverse the elements of a 'Traversal' or 'Fold' in the opposite order.
 --
--- It can also be used to reverse a 'Fold' (or 'Getter') and produce a 'Fold'
--- (or 'Getter').
+-- Note: 'backwards' should have no impact on a 'Getter' 'Setter', 'Lens' or 'Iso'.
 --
--- This requires at least a 'Traversal' (or 'Lens') and can produce a
--- 'Traversal' (or 'Lens') in turn.
---
--- A 'reversed' 'Iso' is the same 'Iso'. If you reverse the direction of
--- the isomorphism use 'from' instead.
-reversed :: LensLike (Backwards f) a b c d -> LensLike f a b c d
-reversed l f = forwards . l (Backwards . f)
--- reversed l f = Accessor . getDual . runAccessor . l (Accesor . Dual . runAccessor . f)
-{-# INLINE reversed #-}
+-- To change the direction of an 'Iso', use 'from'.
+backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d
+backwards l f = forwards . l (Backwards . f)
+{-# INLINE backwards #-}
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
 --
@@ -182,8 +192,8 @@ reversed l f = forwards . l (Backwards . f)
 --
 -- > ghci> toList (takingWhile (<=3) folded) [1..]
 -- > [1,2,3]
-takingWhile :: Monoid r => (c -> Bool) -> Getting (Endo r) a b c d -> Getting r a b c d
-takingWhile p l f = Accessor . foldrOf l (\a r -> if p a then runAccessor (f a) `mappend` r else mempty) mempty
+takingWhile :: (Monoid r, Furled r f) => (c -> Bool) -> Getting (Endo r) a b c d -> LensLike f a b c d
+takingWhile p l f = furled . foldrOf l (\a r -> if p a then unfurled (f a) `mappend` r else mempty) mempty
 {-# INLINE takingWhile #-}
 
 -- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
@@ -192,8 +202,8 @@ takingWhile p l f = Accessor . foldrOf l (\a r -> if p a then runAccessor (f a) 
 --
 -- > ghci> toList (dropWhile (<=3) folded) [1..6]
 -- > [4,5,6]
-droppingWhile :: Monoid m => (c -> Bool) -> Getting (Endo m) a b c d -> Getting m a b c d
-droppingWhile p l f = Accessor . foldrOf l (\a r -> if p a then mempty else mappend r (runAccessor (f a))) mempty
+droppingWhile :: (Monoid r, Furled r f) => (c -> Bool) -> Getting (Endo r) a b c d -> LensLike f a b c d
+droppingWhile p l f = furled . foldrOf l (\a r -> if p a then mempty else mappend r (unfurled (f a))) mempty
 {-# INLINE droppingWhile #-}
 
 --------------------------

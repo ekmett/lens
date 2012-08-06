@@ -214,7 +214,7 @@ mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f 
 -- > mapAccumLOf :: Lens a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- > mapAccumLOf :: Traversal a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 mapAccumLOf :: LensLike (Backwards (Lazy.State s)) a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
-mapAccumLOf = mapAccumROf . reversed
+mapAccumLOf = mapAccumROf . backwards
 {-# INLINE mapAccumLOf #-}
 
 swap :: (a,b) -> (b,a)

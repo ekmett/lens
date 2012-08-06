@@ -102,6 +102,7 @@ library
     DeriveDataTypeable
     FlexibleContexts
     FlexibleInstances
+    FunctionalDependencies
     LiberalTypeSynonyms
     MultiParamTypeClasses
     Rank2Types
@@ -109,6 +110,7 @@ library
     TemplateHaskell
     TypeFamilies
     TypeOperators
+    UndecidableInstances
 
   if (impl(ghc>=7.4))
     other-extensions: Trustworthy
