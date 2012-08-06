@@ -19,7 +19,10 @@ module Language.Haskell.TH.Lens
   ) where
 
 import Control.Applicative
-import Control.Lens
+import Control.Lens.Getter
+import Control.Lens.Setter
+import Control.Lens.Type
+import Control.Lens.Traversal
 import Data.Map as Map hiding (toList,map)
 import Data.Map.Lens
 import Data.Maybe (fromMaybe)

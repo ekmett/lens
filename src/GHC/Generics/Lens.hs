@@ -22,7 +22,9 @@ module GHC.Generics.Lens
   ) where
 
 import Control.Applicative
-import Control.Lens hiding (from, to)
+import Control.Lens.Iso hiding (from)
+import Control.Lens.Traversal
+import Control.Lens.Type
 import Data.Maybe (fromJust)
 import Data.Typeable
 import GHC.Generics
@@ -38,7 +40,8 @@ generic1 = isos from1 to1 from1 to1
 -- | Traverse using GHC.Generics.
 --
 -- > ghci> allOf every (=="Hello") (1::Int,2::Double,(),"Hello",["Hello"])
--- True
+-- > True
+--
 -- > ghci> mapMOf_ every putStrLn ("hello",[(2 :: Int, "world!")])
 -- > hello
 -- > world!

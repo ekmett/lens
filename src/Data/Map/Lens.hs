@@ -18,7 +18,8 @@ module Data.Map.Lens
   ) where
 
 import Control.Applicative as Applicative
-import Control.Lens
+import Control.Lens.Type
+import Control.Lens.Traversal
 import Data.Map as Map
 
 -- | This 'Lens' can be used to read, write or delete the value associated with a key in a 'Map'.

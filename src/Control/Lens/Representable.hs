@@ -74,7 +74,8 @@ module Control.Lens.Representable
 
 import Control.Applicative
 import Control.Lens.Iso
-import Control.Lens
+import Control.Lens.Type
+import Control.Lens.Getter
 import Data.Foldable         as Foldable
 import Data.Functor.Identity
 import Data.Monoid

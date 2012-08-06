@@ -15,12 +15,8 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal
   (
-    Gettable(..)
-  , Accessor(..)
-  , Settable(..)
-  , Mutator(..)
   -- * Implementation details
-  , IndexedStore(..)
+    IndexedStore(..)
   , Focusing(..)
   , Traversed(..)
   , Sequenced(..)
@@ -34,68 +30,9 @@ module Control.Lens.Internal
   ) where
 
 import Control.Applicative
-import Control.Applicative.Backwards
-import Data.Functor.Compose
-import Data.Functor.Identity
 import Control.Category
 import Prelude hiding ((.),id)
 import Data.Monoid
-
------------------------------------------------------------------------------
--- Gettables & Accessors
------------------------------------------------------------------------------
--- this requires a phantom type
-class Functor f => Gettable f where
-  coerce :: f a -> f b
-
-instance Gettable (Const r) where
-  coerce (Const m) = Const m
-
-instance Gettable f => Gettable (Backwards f) where
-  coerce = Backwards . coerce . forwards
-
-instance (Functor f, Gettable g) => Gettable (Compose f g) where
-  coerce = Compose . fmap coerce . getCompose
-
-newtype Accessor r a = Accessor { runAccessor :: r }
-
-instance Functor (Accessor r) where
-  fmap _ (Accessor m) = Accessor m
-
-instance Gettable (Accessor r) where
-  coerce (Accessor m) = Accessor m
-
-instance Monoid r => Applicative (Accessor r) where
-  pure _ = Accessor mempty
-  Accessor a <*> Accessor b = Accessor (mappend a b)
-
------------------------------------------------------------------------------
--- Settables & Mutators
------------------------------------------------------------------------------
-
-class Applicative f => Settable f where
-  run :: f a -> a
-
-instance Settable Identity where
-  run = runIdentity
-
-instance Settable f => Settable (Backwards f) where
-  run = run . forwards
-
-instance (Settable f, Settable g) => Settable (Compose f g) where
-  run = run . run . getCompose
-
-newtype Mutator a = Mutator { runMutator :: a }
-
-instance Functor Mutator where
-  fmap f (Mutator a) = Mutator (f a)
-
-instance Applicative Mutator where
-  pure = Mutator
-  Mutator f <*> Mutator a = Mutator (f a)
-
-instance Settable Mutator where
-  run = runMutator
 
 -----------------------------------------------------------------------------
 -- Functors

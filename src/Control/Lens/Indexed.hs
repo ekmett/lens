@@ -45,7 +45,8 @@ module Control.Lens.Indexed
 
 import Control.Applicative
 import Control.Lens.Type
-import Control.Lens.Internal
+import Control.Lens.Getter
+import Control.Lens.Setter
 import Data.Monoid
 
 -- | Permit overloading of function application for things that also admit a notion of a key or index.

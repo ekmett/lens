@@ -30,7 +30,12 @@ module Control.Lens.TH
   ) where
 
 import Control.Applicative
-import Control.Lens
+import Control.Lens.Fold
+import Control.Lens.Getter
+import Control.Lens.Iso
+import Control.Lens.Setter
+import Control.Lens.Type
+import Control.Lens.Traversal
 import Control.Monad
 import Data.Char (toLower)
 import Data.Foldable

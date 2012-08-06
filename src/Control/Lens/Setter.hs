@@ -17,8 +17,10 @@ module Control.Lens.Setter
   (
   -- * Setters
     Setter
+  , Settable(..)
   -- * Consuming Setters
   , Setting
+  , Mutator(..)
   -- * Building Setters
   , sets
   -- * Common Setters
@@ -40,9 +42,11 @@ module Control.Lens.Setter
   ) where
 
 import Control.Applicative
-import Control.Lens.Internal
+import Control.Applicative.Backwards
 import Control.Monad.State.Class        as State
 import Control.Monad.Writer.Class       as Writer
+import Data.Functor.Compose
+import Data.Functor.Identity
 import Data.Monoid
 
 infixr 4 .~, +~, *~, -~, //~, &&~, ||~, %~, <>~
@@ -87,6 +91,39 @@ type SimpleSetter a b = Setter a a b b
 -- > 'SimpleSetting' m = 'Simple' 'Setting'
 type SimpleSetting a b = Setting a a b b
 
+-----------------------------------------------------------------------------
+-- Settables & Mutators
+-----------------------------------------------------------------------------
+
+class Applicative f => Settable f where
+  run :: f a -> a
+
+instance Settable Identity where
+  run = runIdentity
+
+instance Settable f => Settable (Backwards f) where
+  run = run . forwards
+
+instance (Settable f, Settable g) => Settable (Compose f g) where
+  run = run . run . getCompose
+
+newtype Mutator a = Mutator { runMutator :: a }
+
+instance Functor Mutator where
+  fmap f (Mutator a) = Mutator (f a)
+
+instance Applicative Mutator where
+  pure = Mutator
+  Mutator f <*> Mutator a = Mutator (f a)
+
+instance Settable Mutator where
+  run = runMutator
+
+-----------------------------------------------------------------------------
+-- Setters
+-----------------------------------------------------------------------------
+
+
 -- | This setter can be used to map over all of the values in a 'Functor'.
 --
 -- > fmap        = adjust mapped
@@ -113,6 +150,10 @@ mapped = sets fmap
 sets :: ((c -> d) -> a -> b) -> Setter a b c d
 sets f g = pure . f (run . g)
 {-# INLINE sets #-}
+
+-----------------------------------------------------------------------------
+-- Using Setters
+-----------------------------------------------------------------------------
 
 -- | Modify the target of a 'Lens' or all the targets of a 'Setter' or 'Traversal'
 -- with a function.
@@ -244,23 +285,10 @@ l &&~ n = adjust l (&& n)
 l <>~ n = adjust l (mappend n)
 {-# INLINE (<>~) #-}
 
-------------------------------------------------------------------------------
--- MonadWriter
-------------------------------------------------------------------------------
 
--- | Tell a part of a value to a 'MonadWriter', filling in the rest from 'mempty'
---
--- > whisper l d = tell (set l d mempty)
-
--- > whisper :: (MonadWriter b m, Monoid a) => Iso a b c d       -> d -> m ()
--- > whisper :: (MonadWriter b m, Monoid a) => Lens a b c d      -> d -> m ()
--- > whisper :: (MonadWriter b m, Monoid a) => Traversal a b c d -> d -> m ()
--- > whisper :: (MonadWriter b m, Monoid a) => Setter a b c d    -> d -> m ()
---
--- > whisper :: (MonadWriter b m, Monoid a) => ((c -> Identity d) -> a -> Identity b) -> d -> m ()
-whisper :: (MonadWriter b m, Monoid a) => Setting a b c d -> d -> m ()
-whisper l d = tell (set l d mempty)
-{-# INLINE whisper #-}
+------------------------------------------------------------------------------
+-- Using Setters with State
+------------------------------------------------------------------------------
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal' in our monadic
 -- state with a new value, irrespective of the old.
@@ -326,3 +354,20 @@ l ||= b = State.modify (l ||~ b)
 l <>= b = State.modify (l <>~ b)
 {-# INLINE (<>=) #-}
 
+------------------------------------------------------------------------------
+-- MonadWriter
+------------------------------------------------------------------------------
+
+-- | Tell a part of a value to a 'MonadWriter', filling in the rest from 'mempty'
+--
+-- > whisper l d = tell (set l d mempty)
+
+-- > whisper :: (MonadWriter b m, Monoid a) => Iso a b c d       -> d -> m ()
+-- > whisper :: (MonadWriter b m, Monoid a) => Lens a b c d      -> d -> m ()
+-- > whisper :: (MonadWriter b m, Monoid a) => Traversal a b c d -> d -> m ()
+-- > whisper :: (MonadWriter b m, Monoid a) => Setter a b c d    -> d -> m ()
+--
+-- > whisper :: (MonadWriter b m, Monoid a) => ((c -> Identity d) -> a -> Identity b) -> d -> m ()
+whisper :: (MonadWriter b m, Monoid a) => Setting a b c d -> d -> m ()
+whisper l d = tell (set l d mempty)
+{-# INLINE whisper #-}

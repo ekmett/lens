@@ -15,8 +15,9 @@ module Data.Set.Lens
   ) where
 
 import Control.Applicative
-import Control.Lens
-import Control.Lens.Internal
+import Control.Lens.Type
+import Control.Lens.Setter
+import Control.Lens.Getter
 import Data.Set as Set
 
 -- | This 'Lens' can be used to read, write or delete a member of a 'Set'

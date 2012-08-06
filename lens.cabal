@@ -166,7 +166,7 @@ library
                    Control.Lens.Internal
                    Control.Lens.Representable
 
-  other-modules:   Control.Lens.Fold
+                   Control.Lens.Fold
                    Control.Lens.Getter
                    Control.Lens.Indexed
                    Control.Lens.Iso

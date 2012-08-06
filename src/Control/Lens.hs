@@ -33,7 +33,7 @@
 --
 -- You can derive lenses automatically for many data types:
 --
--- > import Control.Lens.TH
+-- > import Control.Lens
 -- > data Foo a = Foo { _fooArgs :: [String], _fooValue :: a }
 -- > makeLenses ''Foo
 --
@@ -47,149 +47,23 @@
 -- you might want to pretend the combinators have.
 ----------------------------------------------------------------------------
 module Control.Lens
-  (
-  -- * Lenses
-    Lens
-  , LensLike
-  , Traversal
-  , Simple
-  , (%%~), (%%=)
-  , lens
-
-  -- ** Common Lenses
-  , _1, _2
-  , resultAt
-  , element
-  , elementOf
-
-  -- * Isomorphisms
-  , Isomorphic(..)
-  , Isomorphism(..)
-  , from
-  , via
-
-  , Iso
-  , iso
-  , isos
-  , Overloaded
-
-  -- * Setters
-  , Setter
-  , Setting
-  , sets
-  , mapped
-  , adjust, mapOf
-  , set
-  , whisper
-  , (.~), (%~), (+~), (-~), (*~), (//~), (||~), (&&~), (<>~)
-  , (.=), (%=), (+=), (-=), (*=), (//=), (||=), (&&=), (<>=)
-
-  -- * Getters
-  , Getter
-  , Getting
-  , to
-  , view, views
-  , (^.), (^$)
-  , use, uses
-  , query, queries
-
-  -- * Folds
-  , Fold
-  , folds
-  , folding
-  , folded
-  , unfolded
-  , iterated
-  , filtered
-  -- , reversed
-  , repeated
-  , replicated
-  , cycled
-  , takingWhile
-  , droppingWhile
-
-  -- ** Getting and Folding
-  , foldMapOf, foldOf
-  , foldrOf, foldlOf
-  , toListOf
-  , anyOf, allOf
-  , andOf, orOf
-  , productOf, sumOf
-  , traverseOf_, forOf_, sequenceAOf_
-  , mapMOf_, forMOf_, sequenceOf_
-  , asumOf, msumOf
-  , concatMapOf, concatOf
-  , elemOf, notElemOf
-  , lengthOf
-  , nullOf
-  , headOf, lastOf
-  , maximumOf, minimumOf
-  , maximumByOf, minimumByOf
-  , findOf
-  , foldrOf', foldlOf'
-  , foldr1Of, foldl1Of
-  , foldrMOf, foldlMOf
-
-  -- * Traversing and Lensing
-  , Focus(..)
-  , traverseOf, forOf, sequenceAOf
-  , mapMOf, forMOf, sequenceOf
-  , transposeOf
-  , mapAccumLOf, mapAccumROf
-  , scanr1Of, scanl1Of
-
-  -- * Common Traversals
-  , Traversable(traverse)
-  , traverseNothing
-
-  -- * Transforming Traversals
-  , backwards
-
-  -- * Cloning Lenses
-  , clone
-  , merged
-  , bothLenses
-
-  -- ** Common Isomorphisms
-  , identity
-  , _const
-
-  -- * Indexed Functions
-  , Index(..)
-  , Indexed(..)
-
-  -- * Indexed Folds
-  , IndexedFold
-  , foldMapWithIndexOf
-  , foldrWithIndexOf
-
-  -- * Indexed Traversals
-  , IndexedTraversal
-  , traverseWithIndexOf
-  , mapMWithIndexOf
-
-  -- * Indexed Setter
-  , IndexedSetter
-  , mapWithIndexOf
-  , (%@)
-
-  -- * Simple
-  , SimpleSetter
-  , SimpleSetting
-  , SimpleIndexedTraversal
-  , SimpleIndexedSetter
-  , SimpleIso
-  , SimpleOverloaded
-  , SimpleLens
-  , SimpleTraversal
-  , SimpleLensLike
+  ( module Control.Lens.Type
+  , module Control.Lens.Traversal
+  , module Control.Lens.Getter
+  , module Control.Lens.Setter
+  , module Control.Lens.Fold
+  , module Control.Lens.Iso
+  , module Control.Lens.Indexed
+  , module Control.Lens.Representable
+  , module Control.Lens.TH
   ) where
 
-import Control.Lens.Fold
-import Control.Lens.Getter
-import Control.Lens.Indexed
-import Control.Lens.Iso
-import Control.Lens.Setter
-import Control.Lens.Traversal
 import Control.Lens.Type
-
+import Control.Lens.Traversal
+import Control.Lens.Getter
+import Control.Lens.Setter
+import Control.Lens.Fold
+import Control.Lens.Iso
+import Control.Lens.Indexed
+import Control.Lens.Representable
+import Control.Lens.TH

@@ -16,7 +16,6 @@ module Data.IntSet.Lens
 
 import Control.Applicative
 import Control.Lens
-import Control.Lens.Internal
 import Data.IntSet as IntSet
 
 -- | This 'Lens' can be used to read, write or delete a member of an 'IntSet'

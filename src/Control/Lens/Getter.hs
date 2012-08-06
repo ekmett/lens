@@ -14,10 +14,14 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Getter
   (
-  -- * Getters and Folds
+  -- * Getters
     Getter
   , Getting
+  , Gettable(..)
+  , Accessor(..)
+  -- * Building Getters
   , to
+  -- * Combinators for Getters and Folds
   , (^.), (^$)
   , view
   , views
@@ -27,9 +31,12 @@ module Control.Lens.Getter
   , queries
   ) where
 
-import Control.Lens.Internal
+import Control.Applicative
+import Control.Applicative.Backwards
 import Control.Monad.Reader.Class       as Reader
 import Control.Monad.State.Class        as State
+import Data.Functor.Compose
+import Data.Monoid
 
 infixl 8 ^.
 infixr 0 ^$
@@ -78,6 +85,38 @@ to f g = coerce . g . f
 -- 'Monad' you can pass a 'Fold' (or 'Traversal'), otherwise you can only pass this a
 -- 'Getter' or 'Lens'.
 type Getting r a b c d = (c -> Accessor r d) -> a -> Accessor r b
+
+-----------------------------------------------------------------------------
+-- Gettables & Accessors
+-----------------------------------------------------------------------------
+
+-- | Generalizing Const so we can apply simple Applicative transformations to it
+-- and so we can get nicer error messages
+class Functor f => Gettable f where
+  coerce :: f a -> f b
+
+instance Gettable (Const r) where
+  coerce (Const m) = Const m
+
+instance Gettable f => Gettable (Backwards f) where
+  coerce = Backwards . coerce . forwards
+
+instance (Functor f, Gettable g) => Gettable (Compose f g) where
+  coerce = Compose . fmap coerce . getCompose
+
+-- | Used instead of Const to report 'no instance of (Settable Accessor)' when
+-- attempting to misuse a 'Setter' as a 'Getter'.
+newtype Accessor r a = Accessor { runAccessor :: r }
+
+instance Functor (Accessor r) where
+  fmap _ (Accessor m) = Accessor m
+
+instance Gettable (Accessor r) where
+  coerce (Accessor m) = Accessor m
+
+instance Monoid r => Applicative (Accessor r) where
+  pure _ = Accessor mempty
+  Accessor a <*> Accessor b = Accessor (mappend a b)
 
 -------------------------------
 -- Getting Values
