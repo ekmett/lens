@@ -163,12 +163,10 @@ appArgs t [] = t
 appArgs t (x:xs) = appArgs (AppT t (VarT (x^.name))) xs
 
 apps :: Type -> [Type] -> Type
-apps t [] = t
-apps t (x:xs) = apps (t `AppT` x) xs
+apps = Prelude.foldl AppT
 
 appsT :: TypeQ -> [TypeQ] -> TypeQ
-appsT t [] = t
-appsT t (x:xs) = appsT (t `appT` x) xs
+appsT = Prelude.foldl appT
 
 -- | Given
 --
