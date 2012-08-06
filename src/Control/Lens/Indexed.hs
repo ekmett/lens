@@ -97,7 +97,7 @@ composeWithIndex ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ 
 -- Indexed Folds
 ------------------------------------------------------------------------------
 
--- | Every 'IndexedFold' is a valid 'Fold'
+-- | Every 'IndexedFold' is a valid 'Fold'.
 type IndexedFold i a c = forall k f b d. (Indexed i k, Applicative f, Gettable f) => k (c -> f d) (a -> f b)
 
 type IndexedFolding i m a b c d = Index i (c -> Accessor m d) (a -> Accessor m b)
@@ -125,7 +125,7 @@ foldrWithIndexOf l f z t = appEndo (foldMapWithIndexOf l (\i -> Endo . f i) t) z
 
 -- | Every indexed traversal is a valid Traversal or indexed fold.
 --
--- The Traversal laws are still required to hold. Moreover, each index should be distinct.
+-- The Traversal laws are still required to hold.
 type IndexedTraversal i a b c d = forall f k. (Indexed i k, Applicative f) => k (c -> f d) (a -> f b)
 
 -- | @type 'SimpleIdexedTraversal i = 'Simple' ('IndexedTraversal' i)@
@@ -148,7 +148,7 @@ mapMWithIndexOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
 
 -- | Every indexed Setter is a valid Setter
 --
--- The Setter laws are still required to hold. Moreover, each index should be distinct.
+-- The Setter laws are still required to hold.
 type IndexedSetter i a b c d = forall f k. (Indexed i k, Settable f) => k (c -> f d) (a -> f b)
 
 -- | @type 'SimpleIdexedTraversal i = 'Simple' ('IndexedTraversal' i)@
