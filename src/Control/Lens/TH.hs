@@ -200,8 +200,8 @@ makeIsoLenses cfg ctx tyConName tyArgs dataConName maybeFieldName partTy = do
       quantified = ForallT (tyArgs ++ substTypeVars m tyArgs) (ctx ++ substTypeVars m ctx)
       maybeIsoName = mkName <$> view lensIso cfg (nameBase dataConName)
       lensOnly = not $ cfg^.singletonIso
-      isoCon   | lensOnly  = ConT (mkName "Control.Lens.Body")
-               | otherwise = ConT (mkName "Control.Lens.Iso")
+      isoCon   | lensOnly  = ConT ''Lens
+               | otherwise = ConT ''Iso
       makeBody | lensOnly  = makeLensBody
                | otherwise = makeIsoBody
   isoDecls <- flip (maybe (return [])) maybeIsoName $ \isoName -> do
