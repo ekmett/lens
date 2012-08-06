@@ -146,7 +146,7 @@ checkBounds = do
 reset :: State Pong ()
 reset = do
   ballPos .= (0, 0)
-  (ballSpeed .=) =<< nextSpeed
+  ballSpeed <~ nextSpeed
 
 -- Retrieve a speed from the list, dropping it in the process
 nextSpeed :: State Pong Vector
