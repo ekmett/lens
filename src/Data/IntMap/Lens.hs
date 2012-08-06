@@ -24,8 +24,8 @@ import Data.IntMap as IntMap
 
 -- | This 'Lens' can be used to read, write or delete the value associated with a key in an 'IntMap'.
 --
--- > ghci> fromList [(1,"hello")] ^.at 1
--- > Just "hello"
+-- >>> fromList [(1,"hello")] ^.at 1
+-- Just "hello"
 --
 -- > ghci> at 1 ^~ Just "hello" $ mempty
 -- > fromList [(1,"hello")]
