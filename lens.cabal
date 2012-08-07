@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       1.6
+version:       1.7
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -60,12 +60,13 @@ library
 
   exposed-modules: Control.Exception.Lens
                    Control.Lens
-                   Control.Lens.Internal
-                   Control.Lens.Representable
+                   Control.Lens.Action
                    Control.Lens.Fold
                    Control.Lens.Getter
                    Control.Lens.Indexed
+                   Control.Lens.Internal
                    Control.Lens.Iso
+                   Control.Lens.Representable
                    Control.Lens.Setter
                    Control.Lens.TH
                    Control.Lens.Traversal
@@ -104,6 +105,7 @@ library
     FlexibleContexts
     FlexibleInstances
     FunctionalDependencies
+    KindSignatures
     LiberalTypeSynonyms
     MultiParamTypeClasses
     Rank2Types

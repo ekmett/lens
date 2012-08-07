@@ -51,6 +51,7 @@ module Control.Lens
   , module Control.Lens.Traversal
   , module Control.Lens.Getter
   , module Control.Lens.Setter
+  , module Control.Lens.Action
   , module Control.Lens.Fold
   , module Control.Lens.Iso
   , module Control.Lens.Indexed
@@ -62,6 +63,7 @@ import Control.Lens.Type
 import Control.Lens.Traversal
 import Control.Lens.Getter
 import Control.Lens.Setter
+import Control.Lens.Action
 import Control.Lens.Fold
 import Control.Lens.Iso
 import Control.Lens.Indexed

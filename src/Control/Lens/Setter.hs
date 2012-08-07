@@ -258,8 +258,8 @@ set l d = runMutator . l (\_ -> Mutator d)
 --
 -- @f '<$' a = 'mapped' '.~' f '$' a@
 --
--- >>> bitAt 0 .~ True $ 0
--- 1
+-- >>> _1 .~ "hello" $ (42,"world")
+-- ("hello","world")
 --
 -- > (.~) :: Setter a b c d    -> d -> a -> b
 -- > (.~) :: Iso a b c d       -> d -> a -> b

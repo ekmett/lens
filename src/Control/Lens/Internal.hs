@@ -31,6 +31,7 @@ module Control.Lens.Internal
 
 import Control.Applicative
 import Control.Category
+import Control.Monad
 import Prelude hiding ((.),id)
 import Data.Monoid
 
@@ -132,7 +133,7 @@ instance Functor f => Functor (ElementOfResult f) where
   fmap _ (NotFound e) = NotFound e
 
 -- | Used to find the nth element of a 'Traversal'.
-data ElementOf f a = ElementOf { getElementOf :: Int -> ElementOfResult f a }
+newtype ElementOf f a = ElementOf { getElementOf :: Int -> ElementOfResult f a }
 
 instance Functor f => Functor (ElementOf f) where
   fmap f (ElementOf m) = ElementOf $ \i -> case m i of
