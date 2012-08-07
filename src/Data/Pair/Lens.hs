@@ -27,8 +27,6 @@ both f (a,a') = (,) <$> f a <*> f a'
 
 -- | This provides a 'Traversal' that checks a predicate on a key before
 -- allowing you to traverse into a value.
-value :: (k -> Bool) -> Simple Traversal (k, v) v
-value p f kv@(k,v)
-  | p k       = (,) k <$> f v
-  | otherwise = pure kv
+value :: (k -> Bool) -> SimpleIndexedTraversal k (k, v) v
+value p = index $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
 {-# INLINE value #-}
