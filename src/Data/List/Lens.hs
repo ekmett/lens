@@ -117,7 +117,7 @@ traverseHead = index $ \f aas -> case aas of
 traverseTail :: SimpleIndexedTraversal Int [a] a
 traverseTail = index $ \f aas -> case aas of
   []     -> pure []
-  (a:as) -> (a:) <$> traverseWithIndexOf traverseList (f . (+1)) as
+  (a:as) -> (a:) <$> withIndex traverseList (f . (+1)) as
 {-# INLINE traverseTail #-}
 
 -- | Traverse the last element in a list.
@@ -147,5 +147,5 @@ traverseLast = index $ \f xs0 -> let
 traverseInit :: SimpleIndexedTraversal Int [a] a
 traverseInit = index $ \f aas -> case aas of
   [] -> pure []
-  as -> (++ [Prelude.last as]) <$> traverseWithIndexOf traverseList f (Prelude.init as)
+  as -> (++ [Prelude.last as]) <$> withIndex traverseList f (Prelude.init as)
 {-# INLINE traverseInit #-}

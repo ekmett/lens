@@ -39,10 +39,10 @@ module Control.Lens.Setter
   , mapOf
   , set
   , (.~), (%~)
-  , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (&&~), (<>~)
+  , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (&&~), (<>~), (<.~)
   -- * State Combinators
   , (.=), (%=)
-  , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (&&=), (<>=)
+  , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (&&=), (<>=), (<.=)
   , (<~)
   -- * MonadWriter
   , whisper
@@ -59,9 +59,8 @@ import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Monoid
 
-infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <>~
-infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <>=
-
+infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <>~, <.~
+infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <>=, <.=
 infixr 2 <~
 
 
@@ -257,6 +256,15 @@ set l d = runMutator . l (\_ -> Mutator d)
 (.~) = set
 {-# INLINE (.~) #-}
 
+-- | Set with pass-through
+--
+-- This is mostly present for consistency, but may be useful for for chaining assignments
+--
+-- If you do not need a copy of the intermediate result, then using @l .~ d@ directly is a good idea.
+(<.~) :: Setting a b c d -> d -> a -> (d, b)
+l <.~ d = \a -> (d, l .~ d $ a)
+{-# INLINE (<.~) #-}
+
 -- | Increment the target(s) of a numerically valued 'Lens', Setter' or 'Traversal'
 --
 -- > ghci> _1 +~ 1 $ (1,2)
@@ -429,6 +437,19 @@ l <>= b = State.modify (l <>~ b)
 (<~) :: MonadState a m => Setting a a c d -> m d -> m ()
 l <~ md = md >>= (l .=)
 {-# INLINE (<~) #-}
+
+-- | Set with pass-through
+--
+-- This is useful for chaining assignment
+--
+-- > do x <- _2 <.= (an expensive expression)
+--
+-- If you do not need a copy of the intermediate result, then using @l .= d@ will avoid unused binding warnings
+(<.=) :: MonadState a m => Setting a a c d -> d -> m d
+l <.= d = do
+  l .= d
+  return d
+{-# INLINE (<.=) #-}
 
 ------------------------------------------------------------------------------
 -- MonadWriter

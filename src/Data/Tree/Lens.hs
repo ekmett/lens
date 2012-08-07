@@ -28,5 +28,5 @@ root f (Node a as) = (`Node` as) <$> f a
 -- | A 'Traversal' of the direct descendants of the root of a 'Tree'
 -- indexed by its position in the list of children
 children :: SimpleIndexedTraversal Int (Tree a) (Tree a)
-children = index $ \ f (Node a as) -> Node a <$> traverseWithIndexOf traverseList f as
+children = index $ \ f (Node a as) -> Node a <$> withIndex traverseList f as
 {-# INLINE children #-}

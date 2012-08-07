@@ -20,22 +20,26 @@ module Control.Lens.Indexed
   , Indexable
   , Index(..)
   , (.@)
-  , composeWithIndex
+  , icompose
   , reindex
 
   -- * Indexed Folds
   , IndexedFold
-  , foldMapWithIndexOf
-  , foldrWithIndexOf
+  , ifoldMapOf
+  , ifoldrOf
 
   -- * Indexed Traversals
   , IndexedTraversal
-  , traverseWithIndexOf
-  , mapMWithIndexOf
+  , itraverseOf
+  , iforOf
+  , imapMOf
+  , iforMOf
+  , imapAccumROf
+  , imapAccumLOf
 
   -- * Indexed Setter
   , IndexedSetter
-  , mapWithIndexOf
+  , imapOf
   , (%@)
 
   -- * Simple
@@ -44,9 +48,12 @@ module Control.Lens.Indexed
   ) where
 
 import Control.Applicative
+import Control.Applicative.Backwards
 import Control.Lens.Type
 import Control.Lens.Getter
 import Control.Lens.Setter
+import Control.Monad.State.Class as State
+import Control.Monad.Trans.State.Lazy as Lazy
 import Data.Monoid
 
 -- | Permit overloading of function application for things that also admit a notion of a key or index.
@@ -82,16 +89,16 @@ reindex ij (Index iab) = index $ \ ja -> iab $ \i -> ja (ij i)
 infixr 9 .@
 -- | Composition of indexed functions
 (.@) :: Indexed (i, j) k => Index i b c -> Index j a b -> k a c
-f .@ g = composeWithIndex (,) f g
+f .@ g = icompose (,) f g
 {-# INLINE (.@) #-}
 {-# SPECIALIZE (.@) :: Index i b c -> Index j a b -> Index (i,j) a c #-}
 {-# SPECIALIZE (.@) :: Index i b c -> Index j a b -> a -> c #-}
 
 -- | Composition of indexed functions with a user supplied function for combining indexs
-composeWithIndex :: Indexed k r => (i -> j -> k) -> Index i b c -> Index j a b -> r a c
-composeWithIndex ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ \j -> ka (ijk i j)
-{-# INLINE composeWithIndex #-}
-{-# SPECIALIZE composeWithIndex :: (i -> j -> k) -> Index i b c -> Index j a b -> a -> c #-}
+icompose :: Indexed k r => (i -> j -> k) -> Index i b c -> Index j a b -> r a c
+icompose ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ \j -> ka (ijk i j)
+{-# INLINE icompose #-}
+{-# SPECIALIZE icompose :: (i -> j -> k) -> Index i b c -> Index j a b -> a -> c #-}
 
 ------------------------------------------------------------------------------
 -- Indexed Folds
@@ -104,20 +111,20 @@ type IndexedFolding i m a b c d = Index i (c -> Accessor m d) (a -> Accessor m b
 
 -- |
 --
--- > foldMapWithIndexOf :: Monoid m => IndexedFold i a c          -> (i -> c -> m) -> a -> m
--- > foldMapWithIndexOf :: Monoid m => IndexedTraversal i a b c d -> (i -> c -> m) -> a -> m
-foldMapWithIndexOf :: IndexedFolding i m a b c d -> (i -> c -> m) -> a -> m
-foldMapWithIndexOf l f = runAccessor . withIndex l (\i -> Accessor . f i)
-{-# INLINE foldMapWithIndexOf #-}
+-- > ifoldMapOf :: Monoid m => IndexedFold i a c          -> (i -> c -> m) -> a -> m
+-- > ifoldMapOf :: Monoid m => IndexedTraversal i a b c d -> (i -> c -> m) -> a -> m
+ifoldMapOf :: IndexedFolding i m a b c d -> (i -> c -> m) -> a -> m
+ifoldMapOf l f = runAccessor . withIndex l (\i -> Accessor . f i)
+{-# INLINE ifoldMapOf #-}
 
 -- |
 -- Right-associative fold of parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
 --
--- > foldrWithIndexOf :: IndexedFold i a c          -> (i -> c -> e -> e) -> e -> a -> e
--- > foldrWithIndexOf :: IndexedTraversal i a b c d -> (i -> c -> e -> e) -> e -> a -> e
-foldrWithIndexOf :: IndexedFolding i (Endo e) a b c d -> (i -> c -> e -> e) -> e -> a -> e
-foldrWithIndexOf l f z t = appEndo (foldMapWithIndexOf l (\i -> Endo . f i) t) z
-{-# INLINE foldrWithIndexOf #-}
+-- > ifoldrOf :: IndexedFold i a c          -> (i -> c -> e -> e) -> e -> a -> e
+-- > ifoldrOf :: IndexedTraversal i a b c d -> (i -> c -> e -> e) -> e -> a -> e
+ifoldrOf :: IndexedFolding i (Endo e) a b c d -> (i -> c -> e -> e) -> e -> a -> e
+ifoldrOf l f z t = appEndo (ifoldMapOf l (\i -> Endo . f i) t) z
+{-# INLINE ifoldrOf #-}
 
 ------------------------------------------------------------------------------
 -- Indexed Traversals
@@ -131,20 +138,54 @@ type IndexedTraversal i a b c d = forall f k. (Indexed i k, Applicative f) => k 
 -- | @type 'SimpleIdexedTraversal i = 'Simple' ('IndexedTraversal' i)@
 type SimpleIndexedTraversal i a b = IndexedTraversal i a a b b
 
+-- | Traversal with an index.
+--
+-- > itraverseOf = withIndex
+--
+-- > itraverseOf :: IndexedTraversal i a b c d -> (i -> c -> f d) -> a -> f b
+itraverseOf :: Overloaded (Index i) f a b c d -> (i -> c -> f d) -> a -> f b
+itraverseOf = withIndex
+{-# INLINE itraverseOf #-}
+
 -- |
--- > traverseWithIndexOf :: IndexedTraversal i a b c d -> (i -> c -> f d) -> a -> f b
-traverseWithIndexOf :: Overloaded (Index i) f a b c d -> (i -> c -> f d) -> a -> f b
-traverseWithIndexOf = withIndex
-{-# INLINE traverseWithIndexOf #-}
+-- > iforOf = flip . itraverseOf
+iforOf :: Overloaded (Index i) f a b c d -> a -> (i -> c -> f d) -> f b
+iforOf = flip . withIndex
+{-# INLINE iforOf #-}
 
 -- | Map each element of a structure targeted by a lens to a monadic action,
 -- evaluate these actions from left to right, and collect the results, with access
 -- its position.
 --
--- > mapMWithIndexOf :: Monad m => IndexedTraversal a b c d -> (i -> c -> m d) -> a -> m b
-mapMWithIndexOf :: Overloaded (Index i) (WrappedMonad m) a b c d -> (i -> c -> m d) -> a -> m b
-mapMWithIndexOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
-{-# INLINE mapMWithIndexOf #-}
+-- > imapMOf :: Monad m => IndexedTraversal a b c d -> (i -> c -> m d) -> a -> m b
+imapMOf :: Overloaded (Index i) (WrappedMonad m) a b c d -> (i -> c -> m d) -> a -> m b
+imapMOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
+{-# INLINE imapMOf #-}
+
+-- |
+-- > iforMOf = flip . imapMOf
+iforMOf :: Overloaded (Index i) (WrappedMonad m) a b c d -> a -> (i -> c -> m d) -> m b
+iforMOf = flip . imapMOf
+{-# INLINE iforMOf #-}
+
+-- | Generalizes 'Data.Traversable.mapAccumR' to an arbitrary 'IndexedTraversal'.
+--
+-- 'imapAccumROf' accumulates state from right to left.
+--
+imapAccumROf :: Overloaded (Index i) (Lazy.State s) a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> State.state (\s -> swap (f i s c))) a) s0)
+{-# INLINE imapAccumROf #-}
+
+-- | Generalized 'Data.Traversable.mapAccumL' to an arbitrary 'IndexedTraversal'.
+--
+-- 'imapAccumLOf' accumulates state from left to right.
+imapAccumLOf :: Overloaded (Index i) (Backwards (Lazy.State s)) a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (withIndex l (\i c -> Backwards (State.state (\s -> swap (f i s c)))) a)) s0)
+{-# INLINE imapAccumLOf #-}
+
+swap :: (a,b) -> (b,a)
+swap (a,b) = (b,a)
+{-# INLINE swap #-}
 
 -- | Every indexed Setter is a valid Setter
 --
@@ -156,13 +197,13 @@ type SimpleIndexedSetter i a b = IndexedSetter i a a b b
 
 -- | Map with index
 --
--- > mapWithIndexOf :: IndexedSetter i a b c d -> (i -> c -> d) -> a -> b
-mapWithIndexOf :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
-mapWithIndexOf l f = runMutator . withIndex l (\i -> Mutator . f i)
+-- > imapOf :: IndexedSetter i a b c d -> (i -> c -> d) -> a -> b
+imapOf :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
+imapOf l f = runMutator . withIndex l (\i -> Mutator . f i)
 
 infixr 4 %@
 
--- | > (%@) = mapWithIndexOf
+-- | > (%@) = imapOf
 (%@) :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
 l %@ f = runMutator . withIndex l (\i -> Mutator . f i)
 
