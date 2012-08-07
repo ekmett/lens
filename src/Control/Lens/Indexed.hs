@@ -39,6 +39,7 @@ module Control.Lens.Indexed
 
   -- * Indexed Folds
   , IndexedFold
+  , IndexedFolding
   , ifoldMapOf
   , ifoldrOf
   , ifoldlOf
@@ -290,7 +291,7 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 -- The Traversal laws are still required to hold.
 type IndexedTraversal i a b c d = forall f k. (Indexed i k, Applicative f) => k (c -> f d) (a -> f b)
 
--- | @type 'SimpleIdexedTraversal i = 'Simple' ('IndexedTraversal' i)@
+-- | @type 'SimpleIdexedTraversal' i = 'Simple' ('IndexedTraversal' i)@
 type SimpleIndexedTraversal i a b = IndexedTraversal i a a b b
 
 -- | Traversal with an index.
