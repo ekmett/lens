@@ -11,13 +11,13 @@
 -- Portability :  Rank2Types
 --
 -- A @'Setter' a b c d@ is a generalization of 'fmap' from 'Functor'. It allows you to map into a
---  structure and change out the contents, but it isn't strong enough to allow you to
---  enumerate those contents. Starting with @fmap :: 'Functor' f => (c -> d) -> f c -> f d@
---  we monomorphize the type to obtain @(c -> d) -> a -> b@ and then decorate it with 'Identity' to obtain
+-- structure and change out the contents, but it isn't strong enough to allow you to
+-- enumerate those contents. Starting with @fmap :: 'Functor' f => (c -> d) -> f c -> f d@
+-- we monomorphize the type to obtain @(c -> d) -> a -> b@ and then decorate it with 'Identity' to obtain
 --
--- > type Setter a b c d = (c -> Identity d) -> a -> Identity b
+-- @type 'Setter' a b c d = (c -> 'Identity' d) -> a -> 'Identity' b@
 --
---  Every 'Control.Lens.Traversal.Traversal' is a valid 'Setter', since 'Identity' is 'Applicative'.
+-- Every 'Control.Lens.Traversal.Traversal' is a valid 'Setter', since 'Identity' is 'Applicative'.
 --
 -- Everything you can do with a 'Functor', you can do with a 'Setter'. There
 -- are combinators that generalize 'fmap' and ('<$').
@@ -75,17 +75,19 @@ infixr 2 <~
 --
 -- You can't 'view' a 'Setter' in general, so the other two laws are irrelevant.
 --
--- However, two functor laws apply to a 'Setter'
+-- However, two functor laws apply to a 'Setter':
 --
--- > adjust l id = id
--- > adjust l f . adjust l g = adjust l (f . g)
+-- 1. @'adjust' l id = id@
+--
+-- 2. @'adjust' l f . 'adjust' l g = 'adjust' l (f . g)@
 --
 -- These an be stated more directly:
 --
--- > l pure = pure
--- > l f . run . l g = l (f . run . g)
+-- 1. @l 'pure' = 'pure'@
 --
--- You can compose a 'Setter' with a 'Control.Lens.Type.Lens' or a 'Control.Lens.Traversal.Traversal' using @(.)@ from the Prelude
+-- 2. @l f . 'run' . l g = l (f . 'run' . g)@
+--
+-- You can compose a 'Setter' with a 'Control.Lens.Type.Lens' or a 'Control.Lens.Traversal.Traversal' using ('.') from the Prelude
 -- and the result is always only a 'Setter' and nothing more.
 type Setter a b c d = forall f. Settable f => (c -> f d) -> a -> f b
 
@@ -140,9 +142,11 @@ instance Settable Mutator where
 
 -- | This setter can be used to map over all of the values in a 'Functor'.
 --
--- > fmap        = adjust mapped
--- > fmapDefault = adjust traverse
--- > (<$)        = set mapped
+-- @'fmap'        = 'adjust' 'mapped'@
+--
+-- @'Data.Traversable.fmapDefault' = 'adjust' 'Data.Traversable.traverse'@
+--
+-- @('<$')        = 'set' 'mapped'@
 mapped :: Functor f => Setter (f a) (f b) a b
 mapped = sets fmap
 {-# INLINE mapped #-}
@@ -151,15 +155,16 @@ mapped = sets fmap
 --
 -- Your supplied function @f@ is required to satisfy:
 --
--- > f id = id
--- > f g . f h = f (g . h)
+-- @f 'id' = 'id'@
+-- @f g '.' f h = f (g '.' h)@
 --
 -- Equational reasoning:
 --
--- > sets . adjust = id
--- > adjust . sets = id
+-- @'sets' . 'adjust' = 'id'@
 --
--- Another way to view 'sets' is that it takes a 'semantic editor combinator'
+-- @'adjust' . 'sets' = 'id'@
+--
+-- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
 sets :: ((c -> d) -> a -> b) -> Setter a b c d
 sets f g = pure . f (run . g)
@@ -172,16 +177,20 @@ sets f g = pure . f (run . g)
 -- | Modify the target of a 'Control.Lens.Type.Lens' or all the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal'
 -- with a function.
 --
--- > fmap        = adjust mapped
--- > fmapDefault = adjust traverse
+-- @'fmap'        = 'adjust' 'mapped'@
 --
--- > sets . adjust = id
--- > adjust . sets = id
+-- @'Data.Traversable.fmapDefault' = 'adjust' 'Data.Traversable.traverse'@
 --
--- > adjust :: Setter a b c d -> (c -> d) -> a -> b
+-- Free Theorems:
+--
+-- 1. @'sets' . 'adjust' = 'id'@
+--
+-- 2. @'adjust' . 'sets' = 'id'@
 --
 -- Another way to view 'adjust' is to say that it transformers a 'Setter' into a
 -- \"semantic editor combinator\".
+--
+-- @'adjust' :: 'Setter' a b c d -> (c -> d) -> a -> b@
 adjust :: Setting a b c d -> (c -> d) -> a -> b
 adjust l f = runMutator . l (Mutator . f)
 {-# INLINE adjust #-}
@@ -189,13 +198,17 @@ adjust l f = runMutator . l (Mutator . f)
 -- | Modify the target of a 'Control.Lens.Type.Lens' or all the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal'
 -- with a function. This is an alias for adjust that is provided for consistency.
 --
--- > mapOf = adjust
+-- @'mapOf'       = 'adjust'@
 --
--- > fmap        = mapOf mapped
--- > fmapDefault = mapOf traverse
+-- @'fmap'        = 'mapOf' 'mapped'@
 --
--- > sets . mapOf = id
--- > mapOf . sets = id
+-- @'fmapDefault' = 'mapOf' 'traverse'@
+--
+-- Free Theorems:
+--
+-- 1. @'sets' . 'mapOf' = 'id'@
+--
+-- 2. @'mapOf' . 'sets' = 'id'@
 --
 -- > mapOf :: Setter a b c d      -> (c -> d) -> a -> b
 -- > mapOf :: Iso a b c d         -> (c -> d) -> a -> b
@@ -208,7 +221,7 @@ mapOf = adjust
 -- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter'
 -- or 'Control.Lens.Traversal.Traversal' with a constant value.
 --
--- > (<$) = set mapped
+-- @('<$') = 'set' 'mapped'@
 --
 -- > set :: Setter a b c d    -> d -> a -> b
 -- > set :: Iso a b c d       -> d -> a -> b
@@ -223,11 +236,12 @@ set l d = runMutator . l (\_ -> Mutator d)
 --
 -- This is an infix version of 'adjust'
 --
--- > fmap f = mapped %~ f
--- > fmapDefault f = traverse %~ f
+-- @'fmap' f = 'mapped' '%~' f@
 --
--- > ghci> _2 %~ length $ (1,"hello")
--- > (1,5)
+-- @'Data.Traversable.fmapDefault' f = 'traverse' '%~' f@
+--
+-- >>> _2 %~ length $ (1,"hello")
+-- (1,5)
 --
 -- > (%~) :: Setter a b c d    -> (c -> d) -> a -> b
 -- > (%~) :: Iso a b c d       -> (c -> d) -> a -> b
@@ -242,11 +256,10 @@ set l d = runMutator . l (\_ -> Mutator d)
 --
 -- This is an infix version of 'set', provided for consistency with ('.=')
 --
+-- @f '<$' a = 'mapped' '.~' f '$' a@
 --
--- > f <$ a = mapped .~ f $ a
---
--- > ghci> bitAt 0 .~ True $ 0
--- > 1
+-- >>> bitAt 0 .~ True $ 0
+-- 1
 --
 -- > (.~) :: Setter a b c d    -> d -> a -> b
 -- > (.~) :: Iso a b c d       -> d -> a -> b
@@ -349,7 +362,7 @@ l <>~ n = adjust l (mappend n)
 l .= b = State.modify (l .~ b)
 {-# INLINE (.=) #-}
 
--- | Map over the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or 'Traversal in our monadic state.
+-- | Map over the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal' in our monadic state.
 --
 -- > (%=) :: MonadState a m => Iso a a c d             -> (c -> d) -> m ()
 -- > (%=) :: MonadState a m => Lens a a c d            -> (c -> d) -> m ()

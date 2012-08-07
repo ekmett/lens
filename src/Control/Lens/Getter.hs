@@ -13,18 +13,19 @@
 -- A @'Getter' a c@ is just any function @(a -> c)@, which we've flipped into continuation
 -- passing style, @(c -> r) -> a -> r@ and decorated with 'Accessor' to obtain
 --
--- > type Getting r a b c d = (c -> Accessor r d) -> a -> Accessor r b
+-- @type 'Getting' r a b c d = (c -> 'Accessor' r d) -> a -> 'Accessor' r b@
 --
 -- If we restrict access to knowledge about the type 'r' and can work for any d and b, we could get:
 --
--- > type Getter a c = forall r b d. Getting r a b c d
+-- @type 'Getter' a c = forall r b d. 'Getting' r a b c d@
 --
 -- But we actually hide the use of 'Accessor' behind a class 'Gettable' to error messages from
 -- type class resolution rather than at unification time, where they are much uglier.
--- type Getter a c = forall f b d. Gettable f => (c -> f d) -> a -> f b
+--
+-- @type 'Getter' a c = forall f b d. 'Gettable' f => (c -> f d) -> a -> f b@
 --
 -- Everything you can do with a function, you can do with a 'Getter', but note that because of the
--- continuation passing style @(.)@ composes them in the opposite order.
+-- continuation passing style ('.') composes them in the opposite order.
 --
 -- Since it is only a function, every 'Getter' obviously only retrieves a single value for a given
 -- input.
@@ -69,10 +70,10 @@ infixr 0 ^$
 -- | A 'Getter' describes how to retrieve a single value in a way that can be composed with
 -- other lens-like constructions.
 --
--- Unlike a 'Lens' a 'Getter' is read-only. Since a 'Getter' cannot be used to write back
+-- Unlike a 'Control.Lens.Type.Lens' a 'Getter' is read-only. Since a 'Getter' cannot be used to write back
 -- there are no lens laws that can be applied to it.
 --
--- Moreover, a 'Getter' can be used directly as a 'Fold', since it just ignores the 'Monoid'.
+-- Moreover, a 'Getter' can be used directly as a 'Control.Lens.Fold.Fold', since it just ignores the 'Monoid'.
 type Getter a c = forall f b d. Gettable f => (c -> f d) -> a -> f b
 
 -- | Build a 'Getter' from an arbitrary Haskell function.
@@ -87,21 +88,21 @@ to f g = coerce . g . f
 {-# INLINE to #-}
 
 -- |
--- Most 'Getter' combinators are able to be used with both a 'Getter' or a 'Fold' in
+-- Most 'Getter' combinators are able to be used with both a 'Getter' or a 'Control.Lens.Fold.Fold' in
 -- limited situations, to do so, they need to be monomorphic in what we are going to
--- extract with 'Const'. To be compatible with 'Lens', 'Traversal' and 'Iso' we also
+-- extract with 'Const'. To be compatible with 'Control.Lens.Type.Lens', 'Control.Lens.Traversal.Traversal' and 'Control.Lens.Iso.Iso' we also
 -- restricted choices of the irrelevant b and d parameters.
 --
--- If a function accepts a @Getting m r a b c d@, then when @r@ is a Monoid, and @m@ is a
--- 'Monad' you can pass a 'Fold' (or 'Traversal'), otherwise you can only pass this a
--- 'Getter' or 'Lens'.
+-- If a function accepts a @'Getting' m r a b c d@, then when @r@ is a 'Monoid', and @m@ is a
+-- 'Monad' you can pass a 'Control.Lens.Fold.Fold' (or 'Control.Lens.Traversal.Traversal'), otherwise you can only pass this a
+-- 'Getter' or 'Control.Lens.Type.Lens'.
 type Getting r a b c d = (c -> Accessor r d) -> a -> Accessor r b
 
 -----------------------------------------------------------------------------
 -- Gettables & Accessors
 -----------------------------------------------------------------------------
 
--- | Generalizing Const so we can apply simple Applicative transformations to it
+-- | Generalizing 'Const' so we can apply simple 'Applicative' transformations to it
 -- and so we can get nicer error messages
 class Functor f => Gettable f where
   coerce :: f a -> f b
@@ -121,8 +122,8 @@ instance Gettable f => Gettable (ElementOf f) where
     Found j as    -> Found j (coerce as)
     NotFound s    -> NotFound s
 
--- | Used instead of Const to report 'no instance of (Settable Accessor)' when
--- attempting to misuse a 'Setter' as a 'Getter'.
+-- | Used instead of Const to report \"No instance of ('Control.Lens.Setter.Settable' 'Accessor')\" when
+-- attempting to misuse a 'Control.Lens.Setter.Setter' as a 'Getter'.
 newtype Accessor r a = Accessor { runAccessor :: r }
 
 instance Functor (Accessor r) where
@@ -139,8 +140,8 @@ instance Monoid r => Applicative (Accessor r) where
 -- Getting Values
 -------------------------------
 
--- | View the value pointed to by a 'Getter', 'Iso' or 'Lens' or the result of folding over
--- all the results of a 'Fold' or 'Traversal' that points at a monoidal values.
+-- | View the value pointed to by a 'Getter', 'Control.Lens.Iso.Iso' or 'Control.Lens.Type.Lens' or the result of folding over
+-- all the results of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points at a monoidal values.
 --
 -- It may be useful to think of 'view' as having these more restrictive signatures:
 --
@@ -158,8 +159,8 @@ view :: Getting c a b c d -> a -> c
 view l = runAccessor . l Accessor
 {-# INLINE view #-}
 
--- | View the value of a 'Getter', 'Iso', 'Lens' or the result of folding over the
--- result of mapping the targets of a 'Fold' or 'Traversal'.
+-- | View the value of a 'Getter', 'Control.Lens.Iso.Iso', 'Control.Lens.Type.Lens' or the result of folding over the
+-- result of mapping the targets of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal'.
 --
 -- It may be useful to think of 'views' as having these more restrictive signatures:
 --
@@ -175,8 +176,8 @@ views :: Getting m a b c d -> (c -> m) -> a -> m
 views l f = runAccessor . l (Accessor . f)
 {-# INLINE views #-}
 
--- | View the value pointed to by a 'Getter', 'Iso' or 'Lens' or the result of folding over
--- all the results of a 'Fold' or 'Traversal' that points at a monoidal values.
+-- | View the value pointed to by a 'Getter', 'Control.Lens.Iso.Iso' or 'Control.Lens.Type.Lens' or the result of folding over
+-- all the results of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points at a monoidal values.
 --
 -- This is the same operation as 'view', only infix.
 --
@@ -192,13 +193,13 @@ views l f = runAccessor . l (Accessor . f)
 l ^$ a = runAccessor (l Accessor a)
 {-# INLINE (^$) #-}
 
--- | View the value pointed to by a 'Getter' or 'Lens' or the result of folding over
--- all the results of a 'Fold' or 'Traversal' that points at a monoidal values.
+-- | View the value pointed to by a 'Getter' or 'Control.Lens.Type.Lens' or the result of folding over
+-- all the results of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points at a monoidal values.
 --
 -- This is the same operation as 'view' with the arguments flipped.
 --
 -- The fixity and semantics are such that subsequent field accesses can be
--- performed with (Prelude..)
+-- performed with ('Prelude..')
 --
 -- >>> ((0, 1 :+ 2), 3)^._1._2.to magnitude
 -- 2.23606797749979
@@ -217,8 +218,8 @@ a ^. l = runAccessor (l Accessor a)
 ------------------------------------------------------------------------------
 
 -- |
--- Query the target of a 'Lens', 'Iso' or 'Getter' in the current state, or use a
--- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
+-- Query the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso' or 'Getter' in the current state, or use a
+-- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
 -- > query :: MonadReader a m             => Getter a c        -> m c
 -- > query :: (MonadReader a m, Monoid c) => Fold a c          -> m c
@@ -232,8 +233,8 @@ query l = Reader.asks (^.l)
 {-# INLINE query #-}
 
 -- |
--- Use the target of a 'Lens', 'Iso' or 'Getter' in the current state, or use a
--- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
+-- Use the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso' or 'Getter' in the current state, or use a
+-- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
 -- > queries :: MonadReader a m             => Getter a c        -> (c -> e) -> m e
 -- > queries :: (MonadReader a m, Monoid c) => Fold a c          -> (c -> e) -> m e
@@ -251,8 +252,8 @@ queries l f = Reader.asks (views l f)
 ------------------------------------------------------------------------------
 
 -- |
--- Use the target of a 'Lens', 'Iso', or 'Getter' in the current state, or use a
--- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
+-- Use the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', or 'Getter' in the current state, or use a
+-- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
 -- > use :: MonadState a m             => Action m a b      -> m b
 -- > use :: MonadState a m             => Getter a c        -> m c
@@ -265,8 +266,8 @@ use l = State.gets (view l)
 {-# INLINE use #-}
 
 -- |
--- Use the target of a 'Lens', 'Iso' or 'Getter' in the current state, or use a
--- summary of a 'Fold' or 'Traversal' that points to a monoidal value.
+-- Use the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso' or 'Getter' in the current state, or use a
+-- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
 -- > uses :: MonadState a m             => Action m a c      -> (c -> e) -> m e
 -- > uses :: MonadState a m             => Getter a c        -> (c -> e) -> m e

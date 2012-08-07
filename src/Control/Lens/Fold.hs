@@ -16,15 +16,15 @@
 -- A @'Fold' a c@ is a generalization of something 'Foldable'. It allows you to
 -- extract multiple results from a container. A 'Foldable' container can be
 -- characterized by the behavior of @foldMap :: ('Foldable' t, 'Monoid' m) => (c -> m) -> t c -> m@.
--- Since we want to be able to work with monomorphic containers, we generalize this signature to
--- @forall m. 'Monoid' m => (c -> m) -> a -> m@, and then decorate it with 'Const' to obtain
+-- Since we want to be able to work with monomorphic containers, we could generalize this signature to
+-- @forall m. 'Monoid' m => (c -> m) -> a -> m@, and then decorate it with 'Accessor' to obtain
 --
 -- @type 'Fold' a c = forall m b d. 'Monoid' m => 'Getting' m a b c d@
 --
--- In practice the type we use is slightly more complicated to allow for better error messages and
--- for it to be transformed by certain 'Applicative' transformers.
---
 -- Every 'Getter' is a valid 'Fold' that simply doesn't use the 'Monoid' it is passed.
+--
+-- But in practice the type we use is slightly more complicated to allow for better error messages 
+-- and for it to be transformed by certain 'Applicative' transformers.
 --
 -- Everything you can do with a 'Foldable' container, you can with with a 'Fold' and there are
 -- combinators that generalize the usual 'Foldable' operations here.
@@ -96,7 +96,7 @@ import Data.Monoid
 --
 -- A 'Getter' is a legal 'Fold' that just ignores the supplied 'Monoid'
 --
--- Unlike a 'Traversal' a 'Fold' is read-only. Since a 'Fold' cannot be used to write back
+-- Unlike a 'Control.Lens.Traversal.Traversal' a 'Fold' is read-only. Since a 'Fold' cannot be used to write back
 -- there are no lens laws that apply.
 type Fold a c = forall r f b d. (Applicative f, Monoid r, Furled r f) => (c -> f d) -> a -> f b
 
@@ -115,7 +115,9 @@ instance Furled r f => Furled (Dual r) (Backwards f) where
 
 -- | Build a 'Getter' or 'Fold' from a 'foldMap'-like function.
 --
--- > folds :: ((c -> r) -> a -> r) -> (c -> Accessor m d) -> a -> Const m b
+-- @folds :: (forall r. (c -> r) -> a -> r) -> 'Getter' a c@
+--
+-- @folds :: (forall r. 'Monoid' r => (c -> r) -> a -> r) -> 'Fold' a c@
 folds :: Furled r f => ((c -> r) -> a -> r) -> LensLike f a b c d
 folds l f = furled . l (unfurled . f)
 {-# INLINE folds #-}
@@ -175,21 +177,21 @@ iterated f g a0 = go a0 where
   go a = g a *> go (f a)
 {-# INLINE iterated #-}
 
--- | Obtain a 'Fold' by filtering a 'Lens', 'Iso', 'Getter', 'Fold' or 'Traversal'.
+-- | Obtain a 'Fold' by filtering a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Getter', 'Fold' or 'Control.Lens.Traversal.Traversal'.
 filtered :: (Furled r f, Monoid r) => (c -> Bool) -> LensLike f a b c d -> LensLike f a b c d
 filtered p l f = l $ \c -> furled (if p c then unfurled (f c) else mempty)
 {-# INLINE filtered #-}
 
--- | This allows you to traverse the elements of a 'Traversal' or 'Fold' in the opposite order.
+-- | This allows you to traverse the elements of a 'Control.Lens.Traversal.Traversal' or 'Fold' in the opposite order.
 --
--- Note: 'backwards' should have no impact on a 'Getter' 'Setter', 'Lens' or 'Iso'.
+-- Note: 'backwards' should have no impact on a 'Getter' 'Setter', 'Control.Lens.Type.Lens' or 'Control.Lens.Iso.Iso'.
 --
--- To change the direction of an 'Iso', use 'from'.
+-- To change the direction of an 'Control.Lens.Iso.Iso', use 'from'.
 backwards :: LensLike (Backwards f) a b c d -> LensLike f a b c d
 backwards l f = forwards . l (Backwards . f)
 {-# INLINE backwards #-}
 
--- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
+-- | Obtain a 'Fold' by taking elements from another 'Fold', 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Getter' or 'Control.Lens.Traversal.Traversal' while a predicate holds.
 --
 -- > takeWhile p = toListOf (takingWhile p folded)
 --
@@ -199,7 +201,7 @@ takingWhile :: (Monoid r, Furled r f) => (c -> Bool) -> Getting (Endo r) a b c d
 takingWhile p l f = furled . foldrOf l (\a r -> if p a then unfurled (f a) `mappend` r else mempty) mempty
 {-# INLINE takingWhile #-}
 
--- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
+-- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Getter' or 'Control.Lens.Traversal.Traversal' while a predicate holds.
 --
 -- > dropWhile p = toListOf (droppingWhile p folded)
 --
@@ -242,7 +244,7 @@ foldOf l = runAccessor . l Accessor
 {-# INLINE foldOf #-}
 
 -- |
--- Right-associative fold of parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
+-- Right-associative fold of parts of a structure that are viewed through a 'Control.Lens.Type.Lens', 'Getter', 'Fold' or 'Control.Lens.Traversal.Traversal'.
 --
 -- > foldr = foldrOf folded
 --
@@ -256,7 +258,7 @@ foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 {-# INLINE foldrOf #-}
 
 -- |
--- Left-associative fold of the parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
+-- Left-associative fold of the parts of a structure that are viewed through a 'Control.Lens.Type.Lens', 'Getter', 'Fold' or 'Control.Lens.Traversal.Traversal'.
 --
 -- > foldl = foldlOf folded
 --
@@ -534,8 +536,8 @@ lengthOf :: Getting (Sum Int) a b c d -> a -> Int
 lengthOf l = getSum . foldMapOf l (\_ -> Sum 1)
 {-# INLINE lengthOf #-}
 
--- | Perform a safe 'head' of a 'Fold' or 'Traversal' or retrieve 'Just' the result
--- from a 'Getter' or 'Lens'.
+-- | Perform a safe 'head' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
+-- from a 'Getter' or 'Control.Lens.Type.Lens'.
 --
 -- > listToMaybe . toList = headOf folded
 --
@@ -548,8 +550,8 @@ headOf :: Getting (First c) a b c d -> a -> Maybe c
 headOf l = getFirst . foldMapOf l (First . Just)
 {-# INLINE headOf #-}
 
--- | Perform a safe 'last' of a 'Fold' or 'Traversal' or retrieve 'Just' the result
--- from a 'Getter' or 'Lens'.
+-- | Perform a safe 'last' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
+-- from a 'Getter' or 'Control.Lens.Type.Lens'.
 --
 -- > lastOf :: Getter a c        -> a -> Maybe c
 -- > lastOf :: Fold a c          -> a -> Maybe c
@@ -561,9 +563,9 @@ lastOf l = getLast . foldMapOf l (Last . Just)
 {-# INLINE lastOf #-}
 
 -- |
--- Returns 'True' if this 'Fold' or 'Traversal' has no targets in the given container.
+-- Returns 'True' if this 'Fold' or 'Control.Lens.Traversal.Traversal' has no targets in the given container.
 --
--- Note: nullOf on a valid 'Iso', 'Lens' or 'Getter' should always return 'False'
+-- Note: nullOf on a valid 'Control.Lens.Iso.Iso', 'Control.Lens.Type.Lens' or 'Getter' should always return 'False'
 --
 -- > null = nullOf folded
 --
@@ -583,9 +585,9 @@ nullOf l = getAll . foldMapOf l (\_ -> All False)
 {-# INLINE nullOf #-}
 
 -- |
--- Obtain the maximum element (if any) targeted by a 'Fold' or 'Traversal'
+-- Obtain the maximum element (if any) targeted by a 'Fold' or 'Control.Lens.Traversal.Traversal'
 --
--- Note: maximumOf on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
+-- Note: maximumOf on a valid 'Control.Lens.Iso.Iso', 'Control.Lens.Type.Lens' or 'Getter' will always return 'Just' a value.
 --
 -- > maximum = fromMaybe (error "empty") . maximumOf folded
 --
@@ -599,9 +601,9 @@ maximumOf l = getMax . foldMapOf l Max
 {-# INLINE maximumOf #-}
 
 -- |
--- Obtain the minimum element (if any) targeted by a 'Fold' or 'Traversal'
+-- Obtain the minimum element (if any) targeted by a 'Fold' or 'Control.Lens.Traversal.Traversal'
 --
--- Note: minimumOf on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
+-- Note: minimumOf on a valid 'Control.Lens.Iso.Iso', 'Control.Lens.Type.Lens' or 'Getter' will always return 'Just' a value.
 --
 -- > minimum = fromMaybe (error "empty") . minimumOf folded
 --
@@ -615,7 +617,7 @@ minimumOf l = getMin . foldMapOf l Min
 {-# INLINE minimumOf #-}
 
 -- |
--- Obtain the maximum element (if any) targeted by a 'Fold', 'Traversal', 'Lens', 'Iso',
+-- Obtain the maximum element (if any) targeted by a 'Fold', 'Control.Lens.Traversal.Traversal', 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso',
 -- or 'Getter' according to a user supplied ordering.
 --
 -- > maximumBy cmp = fromMaybe (error "empty") . maximumByOf folded cmp
@@ -632,7 +634,7 @@ maximumByOf l cmp = foldrOf l step Nothing where
 {-# INLINE maximumByOf #-}
 
 -- |
--- Obtain the minimum element (if any) targeted by a 'Fold', 'Traversal', 'Lens', 'Iso'
+-- Obtain the minimum element (if any) targeted by a 'Fold', 'Control.Lens.Traversal.Traversal', 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso'
 -- or 'Getter' according to a user supplied ordering.
 --
 -- > minimumBy cmp = fromMaybe (error "empty") . minimumByOf folded cmp
@@ -648,7 +650,7 @@ minimumByOf l cmp = foldrOf l step Nothing where
   step a (Just b) = Just (if cmp a b == GT then b else a)
 {-# INLINE minimumByOf #-}
 
--- | The 'findOf' function takes a lens (or , getter, iso, fold, or traversal),
+-- | The 'findOf' function takes a 'Control.Lens.Type.Lens' (or 'Control.Lens.Getter.Getter', 'Control.Lens.Iso.Iso', 'Control.Lens.Fold.Fold', or 'Control.Lens.Traversal.Traversal'),
 -- a predicate and a structure and returns the leftmost element of the structure
 -- matching the predicate, or 'Nothing' if there is no such element.
 --
@@ -669,9 +671,9 @@ findOf l p = getFirst . foldMapOf l step where
 -- to lenses and structures such that the lens views at least one element of
 -- the structure.
 --
--- > foldr1Of l f = Prelude.foldr1 f . toListOf l
+-- @'foldr1Of' l f = 'Prelude.foldr1' f . 'toListOf' l@
 --
--- > foldr1 = foldr1Of folded
+-- @'Data.Foldable.foldr1' = 'foldr1Of' 'folded'@
 --
 -- > foldr1Of :: Getter a c        -> (c -> c -> c) -> a -> c
 -- > foldr1Of :: Fold a c          -> (c -> c -> c) -> a -> c
@@ -688,9 +690,9 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
 -- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and strutures such
 -- that the lens views at least one element of the structure.
 --
--- > foldl1Of l f = Prelude.foldl1Of l f . toList
+-- @'foldl1Of' l f = 'Prelude.foldl1Of' l f . 'toList'@
 --
--- > foldl1 = foldl1Of folded
+-- @'Data.Foldable.foldl1' = 'foldl1Of' 'folded'@
 --
 -- > foldl1Of :: Getter a c        -> (c -> c -> c) -> a -> c
 -- > foldl1Of :: Fold a c          -> (c -> c -> c) -> a -> c
@@ -705,7 +707,7 @@ foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf No
 
 -- | Strictly fold right over the elements of a structure.
 --
--- > foldr' = foldrOf' folded
+-- @'Foldable.foldr\'' = 'foldrOf\'' 'folded'@
 --
 -- > foldrOf' :: Getter a c        -> (c -> e -> e) -> e -> a -> e
 -- > foldrOf' :: Fold a c          -> (c -> e -> e) -> e -> a -> e
