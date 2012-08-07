@@ -385,9 +385,9 @@ l <+~ c = l <%~ (+ c)
 l <-~ c = l <%~ subtract c
 {-# INLINE (<-~) #-}
 
--- | Decrement the target of a numerically valued 'Lens' and return the result
+-- | Multiply the target of a numerically valued 'Lens' and return the result
 --
--- When you do not need the result of the subtraction, ('*~') is more flexible.
+-- When you do not need the result of the multiplication, ('*~') is more flexible.
 (<*~) :: Num c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <*~ c = l <%~ (* c)
 {-# INLINE (<*~) #-}

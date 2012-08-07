@@ -446,7 +446,7 @@ l <>= b = State.modify (l <>~ b)
 -- > do foo <~ bar
 -- >    ...
 --
--- will store the result in a lens/setter/traversal.
+-- will store the result in a 'Control.Lens.Type.Lens', 'Setter', or 'Control.Lens.Traversal.Traversal'.
 (<~) :: MonadState a m => Setting a a c d -> m d -> m ()
 l <~ md = md >>= (l .=)
 {-# INLINE (<~) #-}
