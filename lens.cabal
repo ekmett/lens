@@ -2,7 +2,7 @@ name:          lens
 category:      Data, Lenses
 version:       1.5
 license:       BSD3
-cabal-version: >= 1.6
+cabal-version: >= 1.8
 license-file:  LICENSE
 author:        Edward A. Kmett
 maintainer:    Edward A. Kmett <ekmett@gmail.com>
