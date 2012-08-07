@@ -1,5 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Setter
@@ -62,6 +63,7 @@ infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <>~
 infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <>=
 
 infixr 2 <~
+
 
 ------------------------------------------------------------------------------
 -- Setters
@@ -294,7 +296,7 @@ l ^~ n = adjust l (^ n)
 -- | Raise the target(s) of a fractionally valued 'Lens', 'Setter' or 'Traversal' to an integral power
 --
 -- >>> _2 ^^~ (-1) $ (1,2)
--- (0,0.5)
+-- (1,0.5)
 (^^~) :: (Fractional c, Integral e) => Setting a b c c -> e -> a -> b
 l ^^~ n = adjust l (^^ n)
 {-# INLINE (^^~) #-}
@@ -445,3 +447,11 @@ l <~ md = md >>= (l .=)
 whisper :: (MonadWriter b m, Monoid a) => Setting a b c d -> d -> m ()
 whisper l d = tell (set l d mempty)
 {-# INLINE whisper #-}
+
+-- Local definition for doctests to avoid cycles
+
+_1 :: Functor f => (b -> f c) -> (b, a) -> f (c, a)
+_1 f (a,b) = (\c -> (c,b)) <$> f a
+
+_2 :: Functor f => (b -> f c) -> (a, b) -> f (a, c)
+_2 f (a,b) = (,) a <$> f b
