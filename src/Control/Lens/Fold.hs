@@ -131,20 +131,20 @@ folding afc cgd = coerce . traverse_ cgd . afc
 
 -- | Obtain a 'Fold' from any 'Foldable'.
 --
--- > folded = folds foldMap
+-- @'folded' = 'folds' 'foldMap'@
 folded :: Foldable f => Fold (f c) c
 folded = folds foldMap
 {-# INLINE folded #-}
 
 -- | Fold by repeating the input forever.
 --
--- > repeat = toListOf repeated
+-- @'repeat' = 'toListOf' 'repeated'@
 repeated :: Fold a a
 repeated f a = furled as where as = unfurled (f a) `mappend` as
 
 -- | A fold that replicates its input @n@ times.
 --
--- > replicate n = toListOf (replicated n)
+-- @'replicate' n = 'toListOf' ('replicated' n)@
 replicated :: Int -> Fold a a
 replicated n0 f a = furled (go n0) where
   m = unfurled (f a)
@@ -154,14 +154,14 @@ replicated n0 f a = furled (go n0) where
 
 -- | Transform a fold into a fold that loops over its elements over and over.
 --
--- > ghci> toListOf (cycled traverse) [1,2,3]
--- > [1,2,3,1,2,3,..]
+-- >>> take 6 $ toListOf (cycled traverse) [1,2,3]
+-- [1,2,3,1,2,3]
 cycled :: (Furled r f, Monoid r) => LensLike f a b c d -> LensLike f a b c d
 cycled l f a = furled as where as = unfurled (l f a) `mappend` as
 
 -- | Build a fold that unfolds its values from a seed.
 --
--- > ghci> unfoldr = toListOf . unfolded
+-- @'Prelude.unfoldr' = 'toListOf' . 'unfolded'@
 unfolded :: (b -> Maybe (a, b)) -> Fold b a
 unfolded f g b0 = go b0 where
   go b = case f b of
@@ -203,10 +203,10 @@ takingWhile p l f = furled . foldrOf l (\a r -> if p a then unfurled (f a) `mapp
 
 -- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Getter' or 'Control.Lens.Traversal.Traversal' while a predicate holds.
 --
--- > dropWhile p = toListOf (droppingWhile p folded)
+-- @'dropWhile' p = 'toListOf' ('droppingWhile' p 'folded')@
 --
--- > ghci> toList (dropWhile (<=3) folded) [1..6]
--- > [4,5,6]
+-- >>> toList (dropWhile (<=3) folded) [1..6]
+-- [4,5,6]
 droppingWhile :: (Monoid r, Furled r f) => (c -> Bool) -> Getting (Endo r) a b c d -> LensLike f a b c d
 droppingWhile p l f = furled . foldrOf l (\a r -> if p a then mempty else mappend r (unfurled (f a))) mempty
 {-# INLINE droppingWhile #-}
@@ -216,9 +216,9 @@ droppingWhile p l f = furled . foldrOf l (\a r -> if p a then mempty else mappen
 --------------------------
 
 -- |
--- > foldMap = foldMapOf folded
+-- @'foldMap' = 'foldMapOf' 'folded'@
 --
--- > foldMapOf = views
+-- @'foldMapOf' = 'views'@
 --
 -- > foldMapOf ::             Getter a c        -> (c -> r) -> a -> r
 -- > foldMapOf :: Monoid r => Fold a c          -> (c -> r) -> a -> r
@@ -230,9 +230,9 @@ foldMapOf l f = runAccessor . l (Accessor . f)
 {-# INLINE foldMapOf #-}
 
 -- |
--- > fold = foldOf folded
+-- @'fold' = 'foldOf' 'folded'@
 --
--- > foldOf = view
+-- @'foldOf' = 'view'@
 --
 -- > foldOf ::             Getter a m        -> a -> m
 -- > foldOf :: Monoid m => Fold a m          -> a -> m
@@ -246,7 +246,7 @@ foldOf l = runAccessor . l Accessor
 -- |
 -- Right-associative fold of parts of a structure that are viewed through a 'Control.Lens.Type.Lens', 'Getter', 'Fold' or 'Control.Lens.Traversal.Traversal'.
 --
--- > foldr = foldrOf folded
+-- @'Data.Foldable.foldr' = 'foldrOf' 'folded'@
 --
 -- > foldrOf :: Getter a c        -> (c -> e -> e) -> e -> a -> e
 -- > foldrOf :: Fold a c          -> (c -> e -> e) -> e -> a -> e
@@ -260,7 +260,7 @@ foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 -- |
 -- Left-associative fold of the parts of a structure that are viewed through a 'Control.Lens.Type.Lens', 'Getter', 'Fold' or 'Control.Lens.Traversal.Traversal'.
 --
--- > foldl = foldlOf folded
+-- @'Data.Foldable.foldl' = 'foldlOf' 'folded'@
 --
 -- > foldlOf :: Getter a c        -> (e -> c -> e) -> e -> a -> e
 -- > foldlOf :: Fold a c          -> (e -> c -> e) -> e -> a -> e
@@ -272,7 +272,7 @@ foldlOf l f z t = appEndo (getDual (foldMapOf l (Dual . Endo . flip f) t)) z
 {-# INLINE foldlOf #-}
 
 -- |
--- > toList = toListOf folded
+-- @'Data.Foldable.toList' = 'toListOf' 'folded'@
 --
 -- > toListOf :: Getter a c        -> a -> [c]
 -- > toListOf :: Fold a c          -> a -> [c]
@@ -284,7 +284,7 @@ toListOf l = foldMapOf l return
 {-# INLINE toListOf #-}
 
 -- |
--- > and = andOf folded
+-- @'Data.Foldable.and' = 'andOf' 'folded'@
 --
 -- > andOf :: Getter a Bool       -> a -> Bool
 -- > andOf :: Fold a Bool         -> a -> Bool
@@ -296,7 +296,7 @@ andOf l = getAll . foldMapOf l All
 {-# INLINE andOf #-}
 
 -- |
--- > or = orOf folded
+-- @'Data.Foldable.or' = 'orOf' 'folded'@
 --
 -- > orOf :: Getter a Bool        -> a -> Bool
 -- > orOf :: Fold a Bool          -> a -> Bool
@@ -308,7 +308,7 @@ orOf l = getAny . foldMapOf l Any
 {-# INLINE orOf #-}
 
 -- |
--- > any = anyOf folded
+-- @'Data.Foldable.any' = 'anyOf' 'folded'@
 --
 -- > anyOf :: Getter a c        -> (c -> Bool) -> a -> Bool
 -- > anyOf :: Fold a c          -> (c -> Bool) -> a -> Bool
@@ -320,7 +320,7 @@ anyOf l f = getAny . foldMapOf l (Any . f)
 {-# INLINE anyOf #-}
 
 -- |
--- > all = allOf folded
+-- @'Data.Foldable.all' = 'allOf' 'folded'@
 --
 -- > allOf :: Getter a c        -> (c -> Bool) -> a -> Bool
 -- > allOf :: Fold a c          -> (c -> Bool) -> a -> Bool
@@ -332,7 +332,7 @@ allOf l f = getAll . foldMapOf l (All . f)
 {-# INLINE allOf #-}
 
 -- |
--- > product = productOf folded
+-- @'Data.Foldable.product' = 'productOf' 'folded'@
 --
 -- > productOf ::          Getter a c        -> a -> c
 -- > productOf :: Num c => Fold a c          -> a -> c
@@ -344,10 +344,11 @@ productOf l = getProduct . foldMapOf l Product
 {-# INLINE productOf #-}
 
 -- |
--- > sum = sumOf folded
+-- @'Data.Foldable.sum' = 'sumOf' 'folded'@
 --
--- > sumOf _1 :: (a, b) -> a
--- > sumOf (folded._1) :: (Foldable f, Num a) => f (a, b) -> a
+-- @'sumOf' '_1' :: (a, b) -> a@
+--
+-- @'sumOf' ('folded' . '_1') :: ('Foldable' f, 'Num' a) => f (a, b) -> a@
 --
 -- > sumOf ::          Getter a c        -> a -> c
 -- > sumOf :: Num c => Fold a c          -> a -> c
@@ -364,10 +365,11 @@ sumOf l = getSum . foldMapOf l Sum
 --
 -- When passed a 'Fold', 'traverseOf_' requires an 'Applicative'.
 --
--- > traverse_ = traverseOf_ folded
+-- @'Data.Foldable.traverse_' = 'traverseOf_' 'folded'@
 --
--- > traverseOf_ _2 :: Functor f => (c -> f e) -> (c1, c) -> f ()
--- > traverseOf_ traverseLeft :: Applicative f => (a -> f b) -> Either a c -> f ()
+-- @'traverseOf_' '_2' :: 'Functor' f => (c -> f e) -> (c1, c) -> f ()@
+--
+-- @'traverseOf_' 'Data.Either.Lens.traverseLeft' :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ()@
 --
 -- The rather specific signature of traverseOf_ allows it to be used as if the signature was either:
 --
@@ -381,7 +383,7 @@ traverseOf_ l f = getTraversed . foldMapOf l (Traversed . void . f)
 {-# INLINE traverseOf_ #-}
 
 -- |
--- > for_ = forOf_ folded
+-- @'for_' = 'forOf_' 'folded'@
 --
 -- > forOf_ :: Functor f     => Getter a c        -> a -> (c -> f e) -> f ()
 -- > forOf_ :: Applicative f => Fold a c          -> a -> (c -> f e) -> f ()
@@ -393,7 +395,7 @@ forOf_ = flip . traverseOf_
 {-# INLINE forOf_ #-}
 
 -- |
--- > sequenceA_ = sequenceAOf_ folded
+-- @'sequenceA_' = 'sequenceAOf_' 'folded'@
 --
 -- > sequenceAOf_ :: Functor f     => Getter a (f ())        -> a -> f ()
 -- > sequenceAOf_ :: Applicative f => Fold a (f ())          -> a -> f ()
@@ -405,7 +407,7 @@ sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . void)
 {-# INLINE sequenceAOf_ #-}
 
 -- |
--- > mapM_ = mapMOf_ folded
+-- @'Data.Foldable.mapM_' = 'mapMOf_' 'folded'@
 --
 -- > mapMOf_ :: Monad m => Getter a c        -> (c -> m e) -> a -> m ()
 -- > mapMOf_ :: Monad m => Fold a c          -> (c -> m e) -> a -> m ()
@@ -421,7 +423,7 @@ skip _ = ()
 {-# INLINE skip #-}
 
 -- |
--- > forM_ = forMOf_ folded
+-- @'Data.Foldable.forM_' = 'forMOf_' 'folded'@
 --
 -- > forMOf_ :: Monad m => Getter a c        -> a -> (c -> m e) -> m ()
 -- > forMOf_ :: Monad m => Fold a c          -> a -> (c -> m e) -> m ()
@@ -433,7 +435,7 @@ forMOf_ = flip . mapMOf_
 {-# INLINE forMOf_ #-}
 
 -- |
--- > sequence_ = sequenceOf_ folded
+-- @'Data.Foldable.sequence_' = 'sequenceOf_' 'folded'@
 --
 -- > sequenceOf_ :: Monad m => Getter a (m b)        -> a -> m ()
 -- > sequenceOf_ :: Monad m => Fold a (m b)          -> a -> m ()
@@ -446,7 +448,7 @@ sequenceOf_ l = getSequenced . foldMapOf l (Sequenced . liftM skip)
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
 --
--- > asum = asumOf folded
+-- @'asum' = 'asumOf' 'folded'@
 --
 -- > asumOf :: Alternative f => Getter a c        -> a -> f c
 -- > asumOf :: Alternative f => Fold a c          -> a -> f c
@@ -459,7 +461,7 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
 --
--- > msum = msumOf folded
+-- @'msum' = 'msumOf' 'folded'@
 --
 -- > msumOf :: MonadPlus m => Getter a c        -> a -> m c
 -- > msumOf :: MonadPlus m => Fold a c          -> a -> m c
@@ -471,7 +473,7 @@ msumOf l = foldrOf l mplus mzero
 {-# INLINE msumOf #-}
 
 -- |
--- > elem = elemOf folded
+-- @'elem' = 'elemOf' 'folded'@
 --
 -- > elemOf :: Eq c => Getter a c        -> c -> a -> Bool
 -- > elemOf :: Eq c => Fold a c          -> c -> a -> Bool
@@ -483,7 +485,7 @@ elemOf l = anyOf l . (==)
 {-# INLINE elemOf #-}
 
 -- |
--- > notElem = notElemOf folded
+-- @'notElem' = 'notElemOf' 'folded'@
 --
 -- > notElemOf :: Eq c => Getter a c        -> c -> a -> Bool
 -- > notElemOf :: Eq c => Fold a c          -> c -> a -> Bool
@@ -495,7 +497,7 @@ notElemOf l = allOf l . (/=)
 {-# INLINE notElemOf #-}
 
 -- |
--- > concatMap = concatMapOf folded
+-- @'concatMap' = 'concatMapOf' 'folded'@
 --
 -- > concatMapOf :: Getter a c        -> (c -> [e]) -> a -> [e]
 -- > concatMapOf :: Fold a c          -> (c -> [e]) -> a -> [e]
@@ -507,7 +509,7 @@ concatMapOf l ces = runAccessor . l (Accessor . ces)
 {-# INLINE concatMapOf #-}
 
 -- |
--- > concat = concatOf folded
+-- @'concat' = 'concatOf' 'folded'@
 --
 -- > concatOf :: Getter a [e]        -> a -> [e]
 -- > concatOf :: Fold a [e]          -> a -> [e]
@@ -521,11 +523,12 @@ concatOf = view
 -- |
 -- Note: this can be rather inefficient for large containers.
 --
--- > length = lengthOf folded
+-- @'length' = 'lengthOf' 'folded'@
 --
--- > lengthOf _1 :: (a, b) -> Int
--- > lengthOf _1 = 1
--- > lengthOf (folded.folded) :: Foldable f => f (g a) -> Int
+-- >>> lengthOf _1 ("hello",())
+-- 1
+--
+-- @'lengthOf' ('folded' . 'folded') :: 'Foldable' f => f (g a) -> 'Int'@
 --
 -- > lengthOf :: Getter a c        -> a -> Int
 -- > lengthOf :: Fold a c          -> a -> Int
@@ -539,7 +542,7 @@ lengthOf l = getSum . foldMapOf l (\_ -> Sum 1)
 -- | Perform a safe 'head' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Control.Lens.Type.Lens'.
 --
--- > listToMaybe . toList = headOf folded
+-- @'Data.Maybe.listToMaybe' . 'toList' = 'headOf' 'folded'@
 --
 -- > headOf :: Getter a c        -> a -> Maybe c
 -- > headOf :: Fold a c          -> a -> Maybe c
@@ -565,15 +568,16 @@ lastOf l = getLast . foldMapOf l (Last . Just)
 -- |
 -- Returns 'True' if this 'Fold' or 'Control.Lens.Traversal.Traversal' has no targets in the given container.
 --
--- Note: nullOf on a valid 'Control.Lens.Iso.Iso', 'Control.Lens.Type.Lens' or 'Getter' should always return 'False'
+-- Note: 'nullOf' on a valid 'Control.Lens.Iso.Iso', 'Control.Lens.Type.Lens' or 'Getter' should always return 'False'
 --
--- > null = nullOf folded
+-- @'null' = 'nullOf' 'folded'@
 --
 -- This may be rather inefficient compared to the 'null' check of many containers.
 --
--- > nullOf _1 :: (a, b) -> Int
--- > nullOf _1 = False
--- > nullOf (folded._1.folded) :: Foldable f => f (g a, b) -> Bool
+-- >>> nullOf' _1 (1,2)
+-- False
+--
+-- @'nullOf' ('folded' . '_1' . 'folded') :: 'Foldable' f => f (g a, b) -> 'Bool'@
 --
 -- > nullOf :: Getter a c        -> a -> Bool
 -- > nullOf :: Fold a c          -> a -> Bool
@@ -589,7 +593,7 @@ nullOf l = getAll . foldMapOf l (\_ -> All False)
 --
 -- Note: maximumOf on a valid 'Control.Lens.Iso.Iso', 'Control.Lens.Type.Lens' or 'Getter' will always return 'Just' a value.
 --
--- > maximum = fromMaybe (error "empty") . maximumOf folded
+-- @'maximum' = 'fromMaybe' ('error' "empty") . 'maximumOf' 'folded'@
 --
 -- > maximumOf ::          Getter a c        -> a -> Maybe c
 -- > maximumOf :: Ord c => Fold a c          -> a -> Maybe c
@@ -605,7 +609,7 @@ maximumOf l = getMax . foldMapOf l Max
 --
 -- Note: minimumOf on a valid 'Control.Lens.Iso.Iso', 'Control.Lens.Type.Lens' or 'Getter' will always return 'Just' a value.
 --
--- > minimum = fromMaybe (error "empty") . minimumOf folded
+-- @'minimum' = 'Data.Maybe.fromMaybe' ('error' "empty") . 'minimumOf' 'folded'@
 --
 -- > minimumOf ::          Getter a c        -> a -> Maybe c
 -- > minimumOf :: Ord c => Fold a c          -> a -> Maybe c
@@ -620,7 +624,7 @@ minimumOf l = getMin . foldMapOf l Min
 -- Obtain the maximum element (if any) targeted by a 'Fold', 'Control.Lens.Traversal.Traversal', 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso',
 -- or 'Getter' according to a user supplied ordering.
 --
--- > maximumBy cmp = fromMaybe (error "empty") . maximumByOf folded cmp
+-- @'Data.Foldable.maximumBy' cmp = 'Data.Maybe.fromMaybe' ('error' "empty") . 'maximumByOf' 'folded' cmp@
 --
 -- > maximumByOf :: Getter a c        -> (c -> c -> Ordering) -> a -> Maybe c
 -- > maximumByOf :: Fold a c          -> (c -> c -> Ordering) -> a -> Maybe c
@@ -707,7 +711,7 @@ foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf No
 
 -- | Strictly fold right over the elements of a structure.
 --
--- @'Foldable.foldr\'' = 'foldrOf\'' 'folded'@
+-- @'Data.Foldable.foldr'' = 'foldrOf'' 'folded'@
 --
 -- > foldrOf' :: Getter a c        -> (c -> e -> e) -> e -> a -> e
 -- > foldrOf' :: Fold a c          -> (c -> e -> e) -> e -> a -> e
@@ -721,7 +725,7 @@ foldrOf' l f z0 xs = foldlOf l f' id xs z0
 
 -- | Fold over the elements of a structure, associating to the left, but strictly.
 --
--- > foldl' = foldlOf' folded
+-- @'Data.Foldable.foldl'' = 'foldlOf'' 'folded'@
 --
 -- > foldlOf' :: Getter a c          -> (e -> c -> e) -> e -> a -> e
 -- > foldlOf' :: Fold a c            -> (e -> c -> e) -> e -> a -> e
@@ -736,7 +740,7 @@ foldlOf' l f z0 xs = foldrOf l f' id xs z0
 -- | Monadic fold over the elements of a structure, associating to the right,
 -- i.e. from right to left.
 --
--- > foldrM = foldrMOf folded
+-- @'Data.Foldable.foldrM' = 'foldrMOf' 'folded'@
 --
 -- > foldrMOf :: Monad m => Getter a c        -> (c -> e -> m e) -> e -> a -> m e
 -- > foldrMOf :: Monad m => Fold a c          -> (c -> e -> m e) -> e -> a -> m e
@@ -753,7 +757,7 @@ foldrMOf l f z0 xs = foldlOf l f' return xs z0
 -- | Monadic fold over the elements of a structure, associating to the left,
 -- i.e. from left to right.
 --
--- > foldlM = foldlMOf folded
+-- @'Data.Foldable.foldlM' = 'foldlMOf' 'folded'@
 --
 -- > foldlMOf :: Monad m => Getter a c        -> (e -> c -> m e) -> e -> a -> m e
 -- > foldlMOf :: Monad m => Fold a c          -> (e -> c -> m e) -> e -> a -> m e
