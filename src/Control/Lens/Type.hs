@@ -366,77 +366,77 @@ type SimpleOverloaded k f a b = Overloaded k f a a b b
 
 -- | Modify the target of a 'Lens' and return the result
 --
--- When you do not need the result of the addition, '(+~)' is more flexible.
+-- When you do not need the result of the addition, ('+~') is more flexible.
 (<%~) :: LensLike ((,)d) a b c d -> (c -> d) -> a -> (d, b)
 l <%~ f = l $ \c -> let d = f c in (d, d)
 {-# INLINE (<%~) #-}
 
 -- | Increment the target of a numerically valued 'Lens' and return the result
 --
--- When you do not need the result of the addition, '(+~)' is more flexible.
+-- When you do not need the result of the addition, ('+~') is more flexible.
 (<+~) :: Num c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <+~ c = l <%~ (+ c)
 {-# INLINE (<+~) #-}
 
 -- | Decrement the target of a numerically valued 'Lens' and return the result
 --
--- When you do not need the result of the subtraction, '(-~)' is more flexible.
+-- When you do not need the result of the subtraction, ('-~') is more flexible.
 (<-~) :: Num c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <-~ c = l <%~ subtract c
 {-# INLINE (<-~) #-}
 
 -- | Decrement the target of a numerically valued 'Lens' and return the result
 --
--- When you do not need the result of the subtraction, '(*~)' is more flexible.
+-- When you do not need the result of the subtraction, ('*~') is more flexible.
 (<*~) :: Num c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <*~ c = l <%~ (* c)
 {-# INLINE (<*~) #-}
 
 -- | Divide the target of a fractionally valued 'Lens' and return the result.
 --
--- When you do not need the result of the division, '(//~)' is more flexible.
+-- When you do not need the result of the division, ('//~') is more flexible.
 (<//~) :: Fractional c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <//~ c = l <%~ (/ c)
 {-# INLINE (<//~) #-}
 
 -- | Raise the target of a numerically valued 'Lens' to a non-negative 'Integral' power and return the result
 --
--- When you do not need the result of the division, '(^~)' is more flexible.
+-- When you do not need the result of the division, ('^~') is more flexible.
 (<^~) :: (Num c, Integral d) => LensLike ((,)c) a b c c -> d -> a -> (c, b)
 l <^~ d = l <%~ (^ d)
 {-# INLINE (<^~) #-}
 
 -- | Raise the target of a fractionally valued 'Lens' to an 'Integral' power and return the result
 --
--- When you do not need the result of the division, '(^^~)' is more flexible.
+-- When you do not need the result of the division, ('^^~') is more flexible.
 (<^^~) :: (Fractional c, Integral d) => LensLike ((,)c) a b c c -> d -> a -> (c, b)
 l <^^~ d = l <%~ (^^ d)
 {-# INLINE (<^^~) #-}
 
 -- | Raise the target of a floating-point valued 'Lens' to an arbitrary power and return the result
 --
--- When you do not need the result of the division, '(**~)' is more flexible.
+-- When you do not need the result of the division, ('**~') is more flexible.
 (<**~) :: Floating c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <**~ c = l <%~ (** c)
 {-# INLINE (<**~) #-}
 
 -- | Logically '||' a Boolean valued 'Lens' and return the result
 --
--- When you do not need the result of the operation, '(||~)' is more flexible.
+-- When you do not need the result of the operation, ('||~') is more flexible.
 (<||~) :: LensLike ((,)Bool) a b Bool Bool -> Bool -> a -> (Bool, b)
 l <||~ c = l <%~ (|| c)
 {-# INLINE (<||~) #-}
 
 -- | Logically '&&' a Boolean valued 'Lens' and return the result
 --
--- When you do not need the result of the operation, '(&&~)' is more flexible.
+-- When you do not need the result of the operation, ('&&~') is more flexible.
 (<&&~) :: LensLike ((,)Bool) a b Bool Bool -> Bool -> a -> (Bool, b)
 l <&&~ c = l <%~ (&& c)
 {-# INLINE (<&&~) #-}
 
 -- | 'mappend' a monoidal value onto the end of the target of a 'Lens' and return the result
 --
--- When you do not need the result of the operation, '(<>~)' is more flexible.
+-- When you do not need the result of the operation, ('<>~') is more flexible.
 (<<>~) :: Monoid m => LensLike ((,)m) a b m m -> m -> a -> (m, b)
 l <<>~ m = l <%~ (`mappend` m)
 {-# INLINE (<<>~) #-}
@@ -447,77 +447,77 @@ l <<>~ m = l <%~ (`mappend` m)
 
 -- | Modify the target of a ' into your monad's state by a user supplied function and return the result.
 --
--- When you do not need the result of the operation, '(%=)' is more flexible.
+-- When you do not need the result of the operation, ('%=') is more flexible.
 (<%=) :: MonadState a m => LensLike ((,)d) a a c d -> (c -> d) -> m d
 l <%= f = l %%= (\c -> let d = f c in (d,d))
 {-# INLINE (<%=) #-}
 
 -- | Add to the target of a numerically valued 'Lens' into your monad's state and return the result.
 --
--- When you do not need the result of the multiplication, '(+=)' is more flexible.
+-- When you do not need the result of the multiplication, ('+=') is more flexible.
 (<+=) :: (MonadState a m, Num b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <+= b = l <%= (+ b)
 {-# INLINE (<+=) #-}
 
 -- | Subtract from the target of a numerically valued 'Lens' into your monad's state and return the result.
 --
--- When you do not need the result of the multiplication, '(-=)' is more flexible.
+-- When you do not need the result of the multiplication, ('-=') is more flexible.
 (<-=) :: (MonadState a m, Num b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <-= b = l <%= subtract b
 {-# INLINE (<-=) #-}
 
 -- | Multiply the target of a numerically valued 'Lens' into your monad's state and return the result.
 --
--- When you do not need the result of the multiplication, '(*=)' is more flexible.
+-- When you do not need the result of the multiplication, ('*=') is more flexible.
 (<*=) :: (MonadState a m, Num b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <*= b = l <%= (* b)
 {-# INLINE (<*=) #-}
 
 -- | Divide the target of a fractionally valued 'Lens' into your monad's state and return the result.
 --
--- When you do not need the result of the division, '(//=)' is more flexible.
+-- When you do not need the result of the division, ('//=') is more flexible.
 (<//=) :: (MonadState a m, Fractional b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <//= b = l <%= (/ b)
 {-# INLINE (<//=) #-}
 
 -- | Raise the target of a numerically valued 'Lens' into your monad's state to a non-negative 'Integral' power and return the result
 --
--- When you do not need the result of the operation, '(**=)' is more flexible.
+-- When you do not need the result of the operation, ('**=') is more flexible.
 (<^=) :: (MonadState a m, Num b, Integral c) => SimpleLensLike ((,)b) a b -> c -> m b
 l <^= c = l <%= (^ c)
 {-# INLINE (<^=) #-}
 
 -- | Raise the target of a fractionally valued 'Lens' into your monad's state to an 'Integral' power and return the result
 --
--- When you do not need the result of the operation, '(^^=)' is more flexible.
+-- When you do not need the result of the operation, ('^^=') is more flexible.
 (<^^=) :: (MonadState a m, Fractional b, Integral c) => SimpleLensLike ((,)b) a b -> c -> m b
 l <^^= c = l <%= (^^ c)
 {-# INLINE (<^^=) #-}
 
 -- | Raise the target of a floating-point valued 'Lens' into your monad's state to an arbitrary power and return the result
 --
--- When you do not need the result of the operation, '(**=)' is more flexible.
+-- When you do not need the result of the operation, ('**=') is more flexible.
 (<**=) :: (MonadState a m, Floating b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <**= b = l <%= (** b)
 {-# INLINE (<**=) #-}
 
 -- | Logically '||' a Boolean valued 'Lens' into your monad's state and return the result
 --
--- When you do not need the result of the operation, '(||=)' is more flexible.
+-- When you do not need the result of the operation, ('||=') is more flexible.
 (<||=) :: MonadState a m => SimpleLensLike ((,)Bool) a Bool -> Bool -> m Bool
 l <||= b = l <%= (|| b)
 {-# INLINE (<||=) #-}
 
 -- | Logically '&&' a Boolean valued 'Lens' into your monad's state and return the result
 --
--- When you do not need the result of the operation, '(&&=)' is more flexible.
+-- When you do not need the result of the operation, ('&&=') is more flexible.
 (<&&=) :: MonadState a m => SimpleLensLike ((,)Bool) a Bool -> Bool -> m Bool
 l <&&= b = l <%= (&& b)
 {-# INLINE (<&&=) #-}
 
 -- | 'mappend' a monoidal value onto the end of the target of a 'Lens' into your monad's state and return the result
 --
--- When you do not need the result of the operation, '(<>=)' is more flexible.
+-- When you do not need the result of the operation, ('<>=') is more flexible.
 (<<>=) :: (MonadState a m, Monoid r) => SimpleLensLike ((,)r) a r -> r -> m r
 l <<>= r = l <%= (`mappend` r)
 {-# INLINE (<<>=) #-}

@@ -23,10 +23,10 @@ module Control.Lens.Indexed
   , icompose
   , reindex
 
-  -- * Indexed Folds
-  , IndexedFold
-  , ifoldMapOf
-  , ifoldrOf
+  -- * Indexed Setter
+  , IndexedSetter
+  , imapOf
+  , (%@)
 
   -- * Indexed Traversals
   , IndexedTraversal
@@ -37,10 +37,23 @@ module Control.Lens.Indexed
   , imapAccumROf
   , imapAccumLOf
 
-  -- * Indexed Setter
-  , IndexedSetter
-  , imapOf
-  , (%@)
+  -- * Indexed Folds
+  , IndexedFold
+  , ifoldMapOf
+  , ifoldrOf
+  , ifoldlOf
+  , ianyOf
+  , iallOf
+  , itraverseOf_
+  , iforOf_
+  , imapMOf_
+  , iforMOf_
+  , iconcatMapOf
+  -- , imaximumByOf , iminimumByOf , ifindOf
+  , ifoldrOf'
+  , ifoldlOf'
+  , ifoldrMOf
+  , ifoldlMOf
 
   -- * Simple
   , SimpleIndexedTraversal
@@ -49,9 +62,11 @@ module Control.Lens.Indexed
 
 import Control.Applicative
 import Control.Applicative.Backwards
-import Control.Lens.Type
 import Control.Lens.Getter
+import Control.Lens.Internal
 import Control.Lens.Setter
+import Control.Lens.Type
+import Control.Monad
 import Control.Monad.State.Class as State
 import Control.Monad.Trans.State.Lazy as Lazy
 import Data.Monoid
@@ -126,6 +141,146 @@ ifoldrOf :: IndexedFolding i (Endo e) a b c d -> (i -> c -> e -> e) -> e -> a ->
 ifoldrOf l f z t = appEndo (ifoldMapOf l (\i -> Endo . f i) t) z
 {-# INLINE ifoldrOf #-}
 
+-- |
+-- Left-associative fold of the parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
+--
+-- > foldl = foldlOf folded
+--
+-- > ifoldlOf :: IndexedFold i a c          -> (i -> e -> c -> e) -> e -> a -> e
+-- > ifoldlOf :: IndexedTraversal i a b c d -> (i -> e -> c -> e) -> e -> a -> e
+ifoldlOf :: IndexedFolding i (Dual (Endo e)) a b c d -> (i -> e -> c -> e) -> e -> a -> e
+ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> Dual . Endo . flip (f i)) t)) z
+{-# INLINE ifoldlOf #-}
+
+
+-- |
+-- > ianyOf :: IndexedFold i a c          -> (i -> c -> Bool) -> a -> Bool
+-- > ianyOf :: IndexedTraversal i a b c d -> (i -> c -> Bool) -> a -> Bool
+ianyOf :: IndexedFolding i Any a b c d -> (i -> c -> Bool) -> a -> Bool
+ianyOf l f = getAny . ifoldMapOf l (\i -> Any . f i)
+{-# INLINE ianyOf #-}
+
+-- |
+-- > iallOf :: IndexedFold i a c          -> (i -> c -> Bool) -> a -> Bool
+-- > iallOf :: IndexedTraversal i a b c d -> (i -> c -> Bool) -> a -> Bool
+iallOf :: IndexedFolding i All a b c d -> (i -> c -> Bool) -> a -> Bool
+iallOf l f = getAll . ifoldMapOf l (\i -> All . f i)
+{-# INLINE iallOf #-}
+
+-- |
+-- > itraverseOf_ :: Applicative f => IndexedFold i a c          -> (i -> c -> f e) -> a -> f ()
+-- > itraverseOf_ :: Applicative f => IndexedTraversal i a b c d -> (i -> c -> f e) -> a -> f ()
+itraverseOf_ :: Functor f => IndexedFolding i (Traversed f) a b c d -> (i -> c -> f e) -> a -> f ()
+itraverseOf_ l f = getTraversed . ifoldMapOf l (\i -> Traversed . void . f i)
+{-# INLINE itraverseOf_ #-}
+
+-- |
+-- > iforOf_ :: Applicative f => IndexedFold i a c          -> a -> (i -> c -> f e) -> f ()
+-- > iforOf_ :: Applicative f => IndexedTraversal i a b c d -> a -> (i -> c -> f e) -> f ()
+iforOf_ :: Functor f => IndexedFolding i (Traversed f) a b c d -> a -> (i -> c -> f e) -> f ()
+iforOf_ = flip . itraverseOf_
+{-# INLINE iforOf_ #-}
+
+-- |
+-- > imapMOf_ :: Monad m => IndexedFold i a c          -> (i -> c -> m e) -> a -> m ()
+-- > imapMOf_ :: Monad m => IndexedTraversal i a b c d -> (i -> c -> m e) -> a -> m ()
+imapMOf_ :: Monad m => IndexedFolding i (Sequenced m) a b c d -> (i -> c -> m e) -> a -> m ()
+imapMOf_ l f = getSequenced . ifoldMapOf l (\i -> Sequenced . liftM skip . f i)
+{-# INLINE imapMOf_ #-}
+
+skip :: a -> ()
+skip _ = ()
+{-# INLINE skip #-}
+
+-- |
+-- > iforMOf_ :: Monad m => IndexedFold i a c          -> a -> (i -> c -> m e) -> m ()
+-- > iforMOf_ :: Monad m => IndexedTraversal i a b c d -> a -> (i -> c -> m e) -> m ()
+iforMOf_ :: Monad m => IndexedFolding i (Sequenced m) a b c d -> a -> (i -> c -> m e) -> m ()
+iforMOf_ = flip . imapMOf_
+{-# INLINE iforMOf_ #-}
+
+-- |
+-- > iconcatMapOf :: IndexedFold i a c          -> (i -> c -> [e]) -> a -> [e]
+-- > iconcatMapOf :: IndexedTraversal i a b c d -> (i -> c -> [e]) -> a -> [e]
+iconcatMapOf :: IndexedFolding i [e] a b c d -> (i -> c -> [e]) -> a -> [e]
+iconcatMapOf l ices = runAccessor . withIndex l (\i -> Accessor . ices i)
+{-# INLINE iconcatMapOf #-}
+
+{-
+-- |
+-- Obtain the maximum element (if any) targeted by an 'IndexedFold' or 'IndexedTraversal'
+-- according to a user supplied ordering with access to the indices, returning the index and result of the winning entry
+--
+-- > imaximumByOf :: IndexedFold a c          -> (i -> i -> c -> c -> Ordering) -> a -> Maybe (i, c)
+-- > imaximumByOf :: IndexedTraversal a b c d -> (i -> i -> c -> c -> Ordering) -> a -> Maybe (i, c)
+imaximumByOf :: IndexedFolding i (Endo (Maybe c)) a b c d -> (i -> i -> c -> c -> Ordering) -> a -> Maybe (i, c)
+imaximumByOf l cmp = ifoldrOf l step Nothing where
+  step i a Nothing  = Just (i, a)
+  step i a (Just (j, b)) = Just $! if cmp i j a b == GT then (i, a) else (j, b)
+{-# INLINE imaximumByOf #-}
+
+-- |
+-- Obtain the minimum element (if any) targeted by an 'IndexedFold' or 'IndexedTraversal'
+-- according to a user supplied ordering with access to the indices, returning the index and result of the winning entry
+--
+-- > iminimumByOf :: IndexedFold a c          -> (i -> i -> c -> c -> Ordering) -> a -> Maybe (i, c)
+-- > iminimumByOf :: IndexedTraversal a b c d -> (i -> i -> c -> c -> Ordering) -> a -> Maybe (i, c)
+iminimumByOf :: IndexedFolding i (Endo (Maybe c)) a b c d -> (i -> i -> c -> c -> Ordering) -> a -> Maybe (i, c)
+iminimumByOf l cmp = ifoldrOf l step Nothing where
+  step i a Nothing  = Just (i, a)
+  step i a (Just (j, b)) = Just $! if cmp i j a b == GT then (j, b) else (i, a)
+{-# INLINE iminimumByOf #-}
+
+-- | The 'findOf' function takes an IndexedFold or IndexedTraversal, a predicate,
+-- a structure and returns the leftmost element of the structure
+-- matching the predicate, or 'Nothing' if there is no such element.
+--
+-- > ifindOf :: IndexedFold a c          -> (i -> c -> Bool) -> a -> Maybe (i, c)
+-- > ifindOf :: IndexedTraversal a b c d -> (i -> c -> Bool) -> a -> Maybe (i, c)
+ifindOf :: IndexedFolding i (First c) a b c d -> (i -> c -> Bool) -> a -> Maybe (i, c)
+ifindOf l p = getFirst . ifoldMapOf l step where
+  step i c
+    | p i c     = First (Just (i, c))
+    | otherwise = First Nothing
+{-# INLINE ifindOf #-}
+-}
+
+-- | Strictly fold right over the elements of a structure with an index.
+--
+-- > ifoldrOf' :: IndexedFold i a c          -> (i -> c -> e -> e) -> e -> a -> e
+-- > ifoldrOf' :: IndexedTraversal i a b c d -> (i -> c -> e -> e) -> e -> a -> e
+ifoldrOf' :: IndexedFolding i (Dual (Endo (e -> e))) a b c d -> (i -> c -> e -> e) -> e -> a -> e
+ifoldrOf' l f z0 xs = ifoldlOf l f' id xs z0
+  where f' i k x z = k $! f i x z
+{-# INLINE ifoldrOf' #-}
+
+-- | Fold over the elements of a structure with an index, associating to the left, but strictly.
+--
+-- > ifoldlOf' :: IndexedFold i a c            -> (i -> e -> c -> e) -> e -> a -> e
+-- > ifoldlOf' :: IndexedTraversal i a b c d   -> (i -> e -> c -> e) -> e -> a -> e
+ifoldlOf' :: IndexedFolding i (Endo (e -> e)) a b c d -> (i -> e -> c -> e) -> e -> a -> e
+ifoldlOf' l f z0 xs = ifoldrOf l f' id xs z0
+  where f' i x k z = k $! f i z x
+{-# INLINE ifoldlOf' #-}
+
+-- | Monadic fold right over the elements of a structure with an index.
+--
+-- > ifoldrMOf :: Monad m => IndexedFold i a c          -> (i -> c -> e -> m e) -> e -> a -> e
+-- > ifoldrMOf :: Monad m => IndexedTraversal i a b c d -> (i -> c -> e -> m e) -> e -> a -> e
+ifoldrMOf :: Monad m => IndexedFolding i (Dual (Endo (e -> m e))) a b c d -> (i -> c -> e -> m e) -> e -> a -> m e
+ifoldrMOf l f z0 xs = ifoldlOf l f' return xs z0
+  where f' i k x z = f i x z >>= k
+{-# INLINE ifoldrMOf #-}
+
+-- | Monadic fold over the elements of a structure with an index, associating to the left.
+--
+-- > ifoldlOf' :: Monad m => IndexedFold i a c            -> (i -> e -> c -> m e) -> e -> a -> e
+-- > ifoldlOf' :: Monad m => IndexedTraversal i a b c d   -> (i -> e -> c -> m e) -> e -> a -> e
+ifoldlMOf :: Monad m => IndexedFolding i (Endo (e -> m e)) a b c d -> (i -> e -> c -> m e) -> e -> a -> m e
+ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
+  where f' i x k z = f i z x >>= k
+{-# INLINE ifoldlMOf #-}
+
 ------------------------------------------------------------------------------
 -- Indexed Traversals
 ------------------------------------------------------------------------------
@@ -187,9 +342,9 @@ swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
 {-# INLINE swap #-}
 
--- | Every indexed Setter is a valid Setter
+-- | Every 'IndexedSetter' is a valid 'Setter'
 --
--- The Setter laws are still required to hold.
+-- The 'Setter' laws are still required to hold.
 type IndexedSetter i a b c d = forall f k. (Indexed i k, Settable f) => k (c -> f d) (a -> f b)
 
 -- | @type 'SimpleIdexedTraversal i = 'Simple' ('IndexedTraversal' i)@
@@ -197,13 +352,15 @@ type SimpleIndexedSetter i a b = IndexedSetter i a a b b
 
 -- | Map with index
 --
+-- > imapOf :: IndexedTraversal i a b c d -> (i -> c -> d) -> a -> b
 -- > imapOf :: IndexedSetter i a b c d -> (i -> c -> d) -> a -> b
 imapOf :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
 imapOf l f = runMutator . withIndex l (\i -> Mutator . f i)
+{-# INLINE imapOf #-}
 
 infixr 4 %@
 
 -- | > (%@) = imapOf
 (%@) :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
 l %@ f = runMutator . withIndex l (\i -> Mutator . f i)
-
+{-# INLINE (%@) #-}

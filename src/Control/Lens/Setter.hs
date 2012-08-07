@@ -17,10 +17,10 @@
 --
 -- > type Setter a b c d = (c -> Identity d) -> a -> Identity b
 --
---  Every 'Traversal' is a valid 'Setter', since 'Identity' is 'Applicative'.
+--  Every 'Control.Lens.Traversal.Traversal' is a valid 'Setter', since 'Identity' is 'Applicative'.
 --
 -- Everything you can do with a 'Functor', you can do with a 'Setter'. There
--- are combinators that generalize 'fmap' and '(<$)'.
+-- are combinators that generalize 'fmap' and ('<$').
 ----------------------------------------------------------------------------
 module Control.Lens.Setter
   (
@@ -69,7 +69,7 @@ infixr 2 <~
 ------------------------------------------------------------------------------
 
 -- |
--- The only 'Lens'-like law that can apply to a 'Setter' @l@ is that
+-- The only 'Control.Lens.Type.Lens'-like law that can apply to a 'Setter' @l@ is that
 --
 -- > set l c (set l b a) = set l c a
 --
@@ -85,7 +85,7 @@ infixr 2 <~
 -- > l pure = pure
 -- > l f . run . l g = l (f . run . g)
 --
--- You can compose a 'Setter' with a 'Lens' or a 'Traversal' using @(.)@ from the Prelude
+-- You can compose a 'Setter' with a 'Control.Lens.Type.Lens' or a 'Control.Lens.Traversal.Traversal' using @(.)@ from the Prelude
 -- and the result is always only a 'Setter' and nothing more.
 type Setter a b c d = forall f. Settable f => (c -> f d) -> a -> f b
 
@@ -169,7 +169,7 @@ sets f g = pure . f (run . g)
 -- Using Setters
 -----------------------------------------------------------------------------
 
--- | Modify the target of a 'Lens' or all the targets of a 'Setter' or 'Traversal'
+-- | Modify the target of a 'Control.Lens.Type.Lens' or all the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal'
 -- with a function.
 --
 -- > fmap        = adjust mapped
@@ -186,7 +186,7 @@ adjust :: Setting a b c d -> (c -> d) -> a -> b
 adjust l f = runMutator . l (Mutator . f)
 {-# INLINE adjust #-}
 
--- | Modify the target of a 'Lens' or all the targets of a 'Setter' or 'Traversal'
+-- | Modify the target of a 'Control.Lens.Type.Lens' or all the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal'
 -- with a function. This is an alias for adjust that is provided for consistency.
 --
 -- > mapOf = adjust
@@ -205,8 +205,8 @@ mapOf :: Setting a b c d -> (c -> d) -> a -> b
 mapOf = adjust
 {-# INLINE mapOf #-}
 
--- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
--- or 'Traversal' with a constant value.
+-- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter'
+-- or 'Control.Lens.Traversal.Traversal' with a constant value.
 --
 -- > (<$) = set mapped
 --
@@ -218,8 +218,8 @@ set :: Setting a b c d -> d -> a -> b
 set l d = runMutator . l (\_ -> Mutator d)
 {-# INLINE set #-}
 
--- | Modifies the target of a 'Lens' or all of the targets of a 'Setter' or
--- 'Traversal' with a user supplied function.
+-- | Modifies the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or
+-- 'Control.Lens.Traversal.Traversal' with a user supplied function.
 --
 -- This is an infix version of 'adjust'
 --
@@ -237,10 +237,10 @@ set l d = runMutator . l (\_ -> Mutator d)
 (%~) = adjust
 {-# INLINE (%~) #-}
 
--- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
--- or 'Traversal' with a constant value.
+-- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter'
+-- or 'Control.Lens.Traversal.Traversal' with a constant value.
 --
--- This is an infix version of 'set', provided for consistency with '(.=)'
+-- This is an infix version of 'set', provided for consistency with ('.=')
 --
 --
 -- > f <$ a = mapped .~ f $ a
@@ -265,7 +265,7 @@ set l d = runMutator . l (\_ -> Mutator d)
 l <.~ d = \a -> (d, l .~ d $ a)
 {-# INLINE (<.~) #-}
 
--- | Increment the target(s) of a numerically valued 'Lens', Setter' or 'Traversal'
+-- | Increment the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
 -- > ghci> _1 +~ 1 $ (1,2)
 -- > (2,2)
@@ -273,7 +273,7 @@ l <.~ d = \a -> (d, l .~ d $ a)
 l +~ n = adjust l (+ n)
 {-# INLINE (+~) #-}
 
--- | Multiply the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'
+-- | Multiply the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
 -- >>> _2 *~ 4 $ (1,2)
 -- (1,8)
@@ -281,7 +281,7 @@ l +~ n = adjust l (+ n)
 l *~ n = adjust l (* n)
 {-# INLINE (*~) #-}
 
--- | Decrement the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'
+-- | Decrement the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
 -- >>> _1 -~ 2 $ (1,2)
 -- (-1,2)
@@ -289,11 +289,11 @@ l *~ n = adjust l (* n)
 l -~ n = adjust l (subtract n)
 {-# INLINE (-~) #-}
 
--- | Divide the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'
+-- | Divide the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
 (//~) :: Fractional c => Setting a b c c -> c -> a -> b
 l //~ n = adjust l (/ n)
 
--- | Raise the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal' to a non-negative integral power
+-- | Raise the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to a non-negative integral power
 --
 -- >>> _2 ^~ 2 $ (1,3)
 -- (1,9)
@@ -301,7 +301,7 @@ l //~ n = adjust l (/ n)
 l ^~ n = adjust l (^ n)
 {-# INLINE (^~) #-}
 
--- | Raise the target(s) of a fractionally valued 'Lens', 'Setter' or 'Traversal' to an integral power
+-- | Raise the target(s) of a fractionally valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an integral power
 --
 -- >>> _2 ^^~ (-1) $ (1,2)
 -- (1,0.5)
@@ -309,7 +309,7 @@ l ^~ n = adjust l (^ n)
 l ^^~ n = adjust l (^^ n)
 {-# INLINE (^^~) #-}
 
--- | Raise the target(s) of a floating-point valued 'Lens', 'Setter' or 'Traversal' to an arbitrary power.
+-- | Raise the target(s) of a floating-point valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an arbitrary power.
 --
 -- >>> _2 **~ pi $ (1,3)
 -- (1,31.54428070019754)
@@ -317,12 +317,12 @@ l ^^~ n = adjust l (^^ n)
 l **~ n = adjust l (** n)
 {-# INLINE (**~) #-}
 
--- | Logically '||' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+-- | Logically '||' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'
 (||~):: Setting a b Bool Bool -> Bool -> a -> b
 l ||~ n = adjust l (|| n)
 {-# INLINE (||~) #-}
 
--- | Logically '&&' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+-- | Logically '&&' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'
 (&&~) :: Setting a b Bool Bool -> Bool -> a -> b
 l &&~ n = adjust l (&& n)
 {-# INLINE (&&~) #-}
@@ -336,7 +336,7 @@ l <>~ n = adjust l (mappend n)
 -- Using Setters with State
 ------------------------------------------------------------------------------
 
--- | Replace the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal' in our monadic
+-- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal' in our monadic
 -- state with a new value, irrespective of the old.
 --
 -- > (.=) :: MonadState a m => Iso a a c d             -> d -> m ()
@@ -349,7 +349,7 @@ l <>~ n = adjust l (mappend n)
 l .= b = State.modify (l .~ b)
 {-# INLINE (.=) #-}
 
--- | Map over the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal in our monadic state.
+-- | Map over the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or 'Traversal in our monadic state.
 --
 -- > (%=) :: MonadState a m => Iso a a c d             -> (c -> d) -> m ()
 -- > (%=) :: MonadState a m => Lens a a c d            -> (c -> d) -> m ()
@@ -359,7 +359,7 @@ l .= b = State.modify (l .~ b)
 l %= f = State.modify (l %~ f)
 {-# INLINE (%=) #-}
 
--- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by adding a value
+-- | Modify the target(s) of a 'Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by adding a value
 --
 -- Example:
 --
@@ -370,52 +370,52 @@ l %= f = State.modify (l %~ f)
 l += b = State.modify (l +~ b)
 {-# INLINE (+=) #-}
 
--- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by subtracting a value
+-- | Modify the target(s) of a 'Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by subtracting a value
 (-=) :: (MonadState a m, Num b) => SimpleSetting a b -> b -> m ()
 l -= b = State.modify (l -~ b)
 {-# INLINE (-=) #-}
 
--- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by multiplying by value
+-- | Modify the target(s) of a 'Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by multiplying by value
 (*=) :: (MonadState a m, Num b) => SimpleSetting a b -> b -> m ()
 l *= b = State.modify (l *~ b)
 {-# INLINE (*=) #-}
 
--- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by dividing by a value
+-- | Modify the target(s) of a 'Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by dividing by a value
 (//=) ::  (MonadState a m, Fractional b) => SimpleSetting a b -> b -> m ()
 l //= b = State.modify (l //~ b)
 {-# INLINE (//=) #-}
 
--- | Raise the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal' to a non-negative integral power
+-- | Raise the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to a non-negative integral power
 (^=) ::  (MonadState a m, Fractional b, Integral c) => SimpleSetting a b -> c -> m ()
 l ^= c = State.modify (l ^~ c)
 {-# INLINE (^=) #-}
 
--- | Raise the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal' to an integral power
+-- | Raise the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an integral power
 (^^=) ::  (MonadState a m, Fractional b, Integral c) => SimpleSetting a b -> c -> m ()
 l ^^= c = State.modify (l ^^~ c)
 {-# INLINE (^^=) #-}
 
--- | Raise the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal' to an arbitrary power
+-- | Raise the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an arbitrary power
 (**=) ::  (MonadState a m, Floating b) => SimpleSetting a b -> b -> m ()
 l **= b = State.modify (l **~ b)
 {-# INLINE (**=) #-}
 
--- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by taking their logical '&&' with a value
+-- | Modify the target(s) of a 'Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by taking their logical '&&' with a value
 (&&=):: MonadState a m => SimpleSetting a Bool -> Bool -> m ()
 l &&= b = State.modify (l &&~ b)
 {-# INLINE (&&=) #-}
 
--- | Modify the target(s) of a 'Simple' 'Lens', 'Iso, 'Setter' or 'Traversal' by taking their logical '||' with a value
+-- | Modify the target(s) of a 'Simple' 'Control.Lens.Type.Lens', 'Iso, 'Setter' or 'Control.Lens.Traversal.Traversal' by taking their logical '||' with a value
 (||=) :: MonadState a m => SimpleSetting a Bool -> Bool -> m ()
 l ||= b = State.modify (l ||~ b)
 {-# INLINE (||=) #-}
 
--- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by 'mappend'ing a value.
+-- | Modify the target(s) of a 'Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by 'mappend'ing a value.
 (<>=) :: (MonadState a m, Monoid b) => SimpleSetting a b -> b -> m ()
 l <>= b = State.modify (l <>~ b)
 {-# INLINE (<>=) #-}
 
--- | Run a monadic action, and set all of the targets of a 'Lens', 'Setter' or 'Traversal' to its result.
+-- | Run a monadic action, and set all of the targets of a 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to its result.
 --
 -- > (<~) :: MonadState a m => Iso a a c d       -> m d -> m ()
 -- > (<~) :: MonadState a m => Lens a a c d      -> m d -> m ()

@@ -15,16 +15,19 @@
 --
 -- A @'Fold' a c@ is a generalization of something 'Foldable'. It allows you to
 -- extract multiple results from a container. A 'Foldable' container can be
--- characterized by the behavior of @foldMap :: (Foldable t, Monoid m) => (c -> m) -> t c -> m@.
+-- characterized by the behavior of @foldMap :: ('Foldable' t, 'Monoid' m) => (c -> m) -> t c -> m@.
 -- Since we want to be able to work with monomorphic containers, we generalize this signature to
 -- @forall m. 'Monoid' m => (c -> m) -> a -> m@, and then decorate it with 'Const' to obtain
 --
--- > type Fold a c = forall m b d. Monoid m => Getting m a b c d
+-- @type 'Fold' a c = forall m b d. 'Monoid' m => 'Getting' m a b c d@
+--
+-- In practice the type we use is slightly more complicated to allow for better error messages and
+-- for it to be transformed by certain 'Applicative' transformers.
 --
 -- Every 'Getter' is a valid 'Fold' that simply doesn't use the 'Monoid' it is passed.
 --
 -- Everything you can do with a 'Foldable' container, you can with with a 'Fold' and there are
--- combinators that generalize the usual 'Foldable' operations in @Control.Lens@.
+-- combinators that generalize the usual 'Foldable' operations here.
 ----------------------------------------------------------------------------
 module Control.Lens.Fold
   (
@@ -89,7 +92,7 @@ import Data.Monoid
 -- typeclass, see 'foldMapOf' and the other 'Fold' combinators.
 --
 -- By convention, if there exists a 'foo' method that expects a @'Foldable' (f c)@, then there should be a
--- 'fooOf' method that takes a @'Fold' a c@ and a value of type @a@.
+-- @fooOf@ method that takes a @'Fold' a c@ and a value of type @a@.
 --
 -- A 'Getter' is a legal 'Fold' that just ignores the supplied 'Monoid'
 --
@@ -384,7 +387,7 @@ traverseOf_ l f = getTraversed . foldMapOf l (Traversed . void . f)
 -- > forOf_ :: Functor f     => Iso a b c d       -> a -> (c -> f e) -> f ()
 -- > forOf_ :: Applicative f => Traversal a b c d -> a -> (c -> f e) -> f ()
 forOf_ :: Functor f => Getting (Traversed f) a b c d -> a -> (c -> f e) -> f ()
-forOf_ l a f = traverseOf_ l f a
+forOf_ = flip . traverseOf_
 {-# INLINE forOf_ #-}
 
 -- |
@@ -424,7 +427,7 @@ skip _ = ()
 -- > forMOf_ :: Monad m => Iso a b c d       -> a -> (c -> m e) -> m ()
 -- > forMOf_ :: Monad m => Traversal a b c d -> a -> (c -> m e) -> m ()
 forMOf_ :: Monad m => Getting (Sequenced m) a b c d -> a -> (c -> m e) -> m ()
-forMOf_ l a f = mapMOf_ l f a
+forMOf_ = flip . mapMOf_
 {-# INLINE forMOf_ #-}
 
 -- |
@@ -498,7 +501,7 @@ notElemOf l = allOf l . (/=)
 -- > concatMapOf :: Iso a b c d       -> (c -> [e]) -> a -> [e]
 -- > concatMapOf :: Traversal a b c d -> (c -> [e]) -> a -> [e]
 concatMapOf :: Getting [e] a b c d -> (c -> [e]) -> a -> [e]
-concatMapOf l ces a = runAccessor (l (Accessor . ces) a)
+concatMapOf l ces = runAccessor . l (Accessor . ces)
 {-# INLINE concatMapOf #-}
 
 -- |

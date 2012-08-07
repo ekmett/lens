@@ -43,7 +43,7 @@ class Category k => Isomorphic k where
   -- | Build this morphism out of an isomorphism
   --
   -- The intention is that by using 'isomorphic', you can supply both halves of an
-  -- isomorphism, but k can be instantiated to (->), so you can freely use
+  -- isomorphism, but k can be instantiated to @(->)@, so you can freely use
   -- the resulting isomorphism as a function.
   isomorphic :: (a -> b) -> (b -> a) -> k a b
 
@@ -82,19 +82,19 @@ instance Isomorphic Isomorphism where
 --
 -- > from (from l) = l
 --
--- If you imported 'Control.Category.(.)', then:
+-- If you imported 'Control.Category..' from @Control.Category@, then:
 --
 -- > from l . from r = from (r . l)
---
--- > from :: (a :~> b) -> (b :~> a)
 from :: Isomorphic k => Isomorphism a b -> k b a
 from (Isomorphism a b) = isomorphic b a
 {-# INLINE from #-}
 {-# SPECIALIZE from :: Isomorphism a b -> b -> a #-}
 {-# SPECIALIZE from :: Isomorphism a b -> Isomorphism b a #-}
 
--- |
--- > via :: Isomorphism a b -> (a :~> b)
+-- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.
+--
+-- This is useful when you need to store an isomoprhism as a data type inside a container
+-- and later reconstitute it as an overloaded function.
 via :: Isomorphic k => Isomorphism a b -> k a b
 via (Isomorphism a b) = isomorphic a b
 {-# INLINE via #-}
@@ -105,23 +105,24 @@ via (Isomorphism a b) = isomorphic a b
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
 
--- | Isomorphim families can be composed with other lenses using either' (.)' and 'id'
+-- | Isomorphim families can be composed with other lenses using either ('.') and 'id'
 -- from the Prelude or from Control.Category. However, if you compose them
--- with each other using '(.)' from the Prelude, they will be dumbed down to a
+-- with each other using ('.') from the Prelude, they will be dumbed down to a
 -- mere 'Lens'.
 --
 -- > import Control.Category
 -- > import Prelude hiding ((.),id)
 --
--- > type Iso a b c d = forall k f. (Isomorphic k, Functor f) => Overloaded k f a b c d
+-- @type Iso a b c d = forall k f. ('Isomorphic' k, 'Functor' f) => 'Overloaded' k f a b c d@
 type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
 
--- | > type SimpleIso a b = Simple Iso a b
+-- |
+-- @type SimpleIso = 'Control.Lens.Type.Simple' 'Iso'@
 type SimpleIso a b = Iso a a b b
 
 -- | Build an isomorphism family from two pairs of inverse functions
 --
--- > isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Iso a b c d
+-- @isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> 'Iso' a b c d@
 isos :: (Isomorphic k, Functor f) => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> k (c -> f d) (a -> f b)
 isos ac ca bd db = isomorphic
   (\cfd a -> db <$> cfd (ac a))
@@ -132,7 +133,7 @@ isos ac ca bd db = isomorphic
 
 -- | Build a simple isomorphism from a pair of inverse functions
 --
--- > iso :: (a -> b) -> (b -> a) -> Simple Iso a b
+-- @iso :: (a -> b) -> (b -> a) -> 'Control.Lens.Type.Simple' 'Iso' a b@
 iso :: (Isomorphic k, Functor f) => (a -> b) -> (b -> a) -> k (b -> f b) (a -> f a)
 iso ab ba = isos ab ba ab ba
 {-# INLINE iso #-}
@@ -145,16 +146,18 @@ iso ab ba = isos ab ba ab ba
 
 -- | This isomorphism can be used to wrap or unwrap a value in 'Identity'.
 --
--- > x^.identity = Identity x
--- > Identity x^.from identity = x
+-- @x^.identity = 'Identity' x@
+--
+-- @'Identity' x^.from identity = x@
 identity :: Iso a b (Identity a) (Identity b)
 identity = isos Identity runIdentity Identity runIdentity
 {-# INLINE identity #-}
 
 -- | This isomorphism can be used to wrap or unwrap a value in 'Const'
 --
--- > x^._const = Const x
--- > Const x^.from _const = x
+-- @x^._const = 'Const' x@
+--
+-- @'Const' x^.from _const = x@
 _const :: Iso a b (Const a c) (Const b d)
 _const = isos Const getConst Const getConst
 {-# INLINE _const #-}
