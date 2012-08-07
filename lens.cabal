@@ -44,7 +44,11 @@ description:
 
 build-type:    Simple
 tested-with:   GHC == 7.4.1
-extra-source-files: .travis.yml examples/Pong.hs examples/Test.hs
+extra-source-files:
+  .travis.yml
+  examples/Pong.hs
+  examples/Test.hs
+  README.markdown
 
 source-repository head
   type: git
@@ -105,7 +109,6 @@ library
     FlexibleContexts
     FlexibleInstances
     FunctionalDependencies
-    KindSignatures
     LiberalTypeSynonyms
     MultiParamTypeClasses
     Rank2Types
@@ -124,11 +127,16 @@ library
   hs-source-dirs: src
 
 test-suite doctests
-  type:            exitcode-stdio-1.0
-  main-is:         doctests.hs
+  type:    exitcode-stdio-1.0
+  main-is: doctests.hs
+  build-depends:  base == 4.*,
+                  doctest >= 0.8 && <= 0.9
+  ghc-options:    -Wall -Werror -threaded
+  hs-source-dirs: test
 
-  build-depends:   base == 4.*,
-                   doctest >= 0.8 && <= 0.9
-
-  ghc-options:     -Wall -Werror -threaded
-  hs-source-dirs:  test
+test-suite templates
+  type: exitcode-stdio-1.0
+  main-is: templates.hs
+  build-depends: base == 4.*, lens == 1.7
+  ghc-options: -Wall -Werror -threaded
+  hs-source-dirs: test

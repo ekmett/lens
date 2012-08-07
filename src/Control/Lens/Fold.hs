@@ -1,5 +1,4 @@
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -114,17 +113,17 @@ folding afc cgd = coerce . traverse_ cgd . afc
 {-# INLINE folding #-}
 
 -- | A monoid in a monad as a monoid
-newtype Eff (m :: * -> *) r f a = Eff { getEff :: f a }
+newtype GA f a = GA { getGA :: f a }
 
-instance (Gettable f, Applicative f) => Monoid (Eff m r f a) where
-  mempty = Eff noEffect
+instance (Gettable f, Applicative f) => Monoid (GA f a) where
+  mempty = GA noEffect
   {-# INLINE mempty #-}
-  Eff fr `mappend` Eff fs = Eff (fr *> fs)
+  GA fr `mappend` GA fs = GA (fr *> fs)
   {-# INLINE mappend #-}
 
 -- | Obtain a 'Fold' from any 'Foldable'.
 folded :: Foldable f => Fold (f c) c
-folded f = coerce . getEff . foldMap (Eff . f)
+folded f = coerce . getGA . foldMap (GA . f)
 {-# INLINE folded #-}
 
 -- | Fold by repeating the input forever.
