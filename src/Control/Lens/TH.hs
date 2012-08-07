@@ -26,6 +26,9 @@ module Control.Lens.TH
   , makeIso
   , makeLenses, makeLensesFor
   , makeLensesWith
+  , lensRules
+  , classyRules
+  , isoRules
   , defaultRules
   ) where
 
@@ -360,30 +363,39 @@ makeLensesWith cfg nm = reify nm >>= \inf -> case inf of
   _ -> fail "Expected the name of a data type or newtype"
 
 -- | Build lenses with a sensible default configuration
+--
+-- > makeLenses = makeLensesWith lensRules
 makeLenses :: Name -> Q [Dec]
-makeLenses = makeLensesWith
-  $ lensIso   .~ const Nothing
-  $ lensClass .~ const Nothing
-  $ handleSingletons .~ True    -- generate an Iso for the field if its the only one
-  $ defaultRules
+makeLenses = makeLensesWith lensRules
 
 -- | Make a top level isomorphism injecting _into_ the type
 --
 -- The supplied name is required to be for a type with a single constructor that has a single argument
+--
+-- > makeIso = makeLensesWith isoRules
 makeIso :: Name -> Q [Dec]
-makeIso = makeLensesWith
-  $ singletonRequired .~ True
+makeIso = makeLensesWith isoRules
+
+-- | Rules for making an isomorphism from a data type
+isoRules :: LensRules
+isoRules
+  = singletonRequired .~ True
   $ singletonAndField .~ True
   $ defaultRules
 
 -- | Make 'classy lenses' for a type
+--
+-- > makeClassy = makeLensesWith classyRules
 makeClassy :: Name -> Q [Dec]
-makeClassy = makeLensesWith
-  $ lensIso .~ const Nothing
-  $ handleSingletons .~ False
-  $ lensClass .~ classy
-  $ classRequired .~ True
-  $ defaultRules
+makeClassy = makeLensesWith classyRules
+
+-- | Rules for making lenses that precompose another lens.
+classyRules :: LensRules
+classyRules = lensIso .~ const Nothing
+            $ handleSingletons .~ False
+            $ lensClass .~ classy
+            $ classRequired .~ True
+            $ defaultRules
 
 classy :: String -> Maybe (String, String)
 classy n@(a:as) = Just ("Has" ++ n, toLower a:as)
@@ -397,7 +409,12 @@ classy _ = Nothing
 makeLensesFor :: [(String, String)] -> Name -> Q [Dec]
 makeLensesFor fields = makeLensesWith
   $ lensField .~ (`Prelude.lookup` fields)
-  $ lensIso   .~ const Nothing
+  $ lensRules
+
+-- | Rules for making fairly simple lenses, ignoring the special cases for isomorphisms, and not making any classes.
+lensRules :: LensRules
+lensRules
+  = lensIso   .~ const Nothing
   $ lensClass .~ const Nothing
   $ handleSingletons .~ True
   $ defaultRules
@@ -410,11 +427,9 @@ makeLensesFor fields = makeLensesWith
 -- > makeClassyFor "HasFoo" "foo" [("_foo", "fooLens"), ("bar", "lbar")] ''Foo
 makeClassyFor :: String -> String -> [(String, String)] -> Name -> Q [Dec]
 makeClassyFor clsName funName fields = makeLensesWith
-  $ lensField .~ (`Prelude.lookup` fields)
-  $ lensIso .~ const Nothing
   $ lensClass .~ const (Just (clsName,funName))
-  $ handleSingletons .~ False
-  $ defaultRules
+  $ lensField .~ (`Prelude.lookup` fields)
+  $ classyRules
 
 -- The orphan instance for old versions is bad, but programing without Applicative is worse.
 #if !(MIN_VERSION_template_haskell(2,7,0))
