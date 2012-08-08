@@ -55,6 +55,11 @@ module Control.Lens
   , module Control.Lens.Fold
   , module Control.Lens.Iso
   , module Control.Lens.Indexed
+  , module Control.Lens.IndexedFold
+  , module Control.Lens.IndexedGetter
+  , module Control.Lens.IndexedLens
+  , module Control.Lens.IndexedTraversal
+  , module Control.Lens.IndexedSetter
   , module Control.Lens.Representable
   , module Control.Lens.TH
   ) where
@@ -67,5 +72,10 @@ import Control.Lens.Action
 import Control.Lens.Fold
 import Control.Lens.Iso
 import Control.Lens.Indexed
+import Control.Lens.IndexedFold
+import Control.Lens.IndexedGetter
+import Control.Lens.IndexedLens
+import Control.Lens.IndexedTraversal
+import Control.Lens.IndexedSetter
 import Control.Lens.Representable
 import Control.Lens.TH

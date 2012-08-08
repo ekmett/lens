@@ -68,6 +68,11 @@ library
                    Control.Lens.Fold
                    Control.Lens.Getter
                    Control.Lens.Indexed
+                   Control.Lens.IndexedGetter
+                   Control.Lens.IndexedFold
+                   Control.Lens.IndexedLens
+                   Control.Lens.IndexedSetter
+                   Control.Lens.IndexedTraversal
                    Control.Lens.Internal
                    Control.Lens.Iso
                    Control.Lens.Representable
@@ -126,24 +131,34 @@ library
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: src
 
+-- Verify the results of the '>>>'s distributed throughout
 test-suite doctests
   type:    exitcode-stdio-1.0
   main-is: doctests.hs
-  build-depends:  base == 4.*,
-                  doctest >= 0.8 && <= 0.9
-  ghc-options:    -Wall -Werror -threaded
-  hs-source-dirs: test
-
-test-suite templates
-  type: exitcode-stdio-1.0
-  main-is: templates.hs
-  build-depends: base == 4.*, lens == 1.7
+  build-depends:
+    base == 4.*,
+    doctest >= 0.8 && <= 0.9
   ghc-options: -Wall -Werror -threaded
   hs-source-dirs: test
 
+-- Verify that Template Haskell expansion works
+test-suite templates
+  type: exitcode-stdio-1.0
+  main-is: templates.hs
+  build-depends:
+    base == 4.*,
+    lens == 1.7
+  ghc-options: -Wall -Werror -threaded
+  hs-source-dirs: test
+
+-- Verify the properties of lenses with QuickCheck
 test-suite properties
   type: exitcode-stdio-1.0
   main-is: properties.hs
-  build-depends: base == 4.*, lens == 1.7, QuickCheck, transformers
+  build-depends:
+    base         == 4.*,
+    lens         == 1.7,
+    QuickCheck   >= 2.4 && < 2.6,
+    transformers >= 0.3 && < 0.5
   ghc-options: -w -threaded
   hs-source-dirs: test

@@ -71,15 +71,16 @@ infixr 0 ^$
 -- other lens-like constructions.
 --
 -- Unlike a 'Control.Lens.Type.Lens' a 'Getter' is read-only. Since a 'Getter' cannot be used to write back
--- there are no lens laws that can be applied to it.
+-- there are no lens laws that can be applied to it. In fact, it is isomorphic to an arbitrary function from @(a -> c)@.
 --
--- Moreover, a 'Getter' can be used directly as a 'Control.Lens.Fold.Fold', since it just ignores the 'Monoid'.
+-- Moreover, a 'Getter' can be used directly as a 'Control.Lens.Fold.Fold', since it just ignores the 'Applicative'.
 type Getter a c = forall f b d. Gettable f => (c -> f d) -> a -> f b
 
 -- | Build a 'Getter' from an arbitrary Haskell function.
 --
--- > to f . to g = to (g . f)
--- > a^.to f = f a
+-- @'to' f . 'to' g = 'to' (g . f)@
+--
+-- @a '^.' 'to' f = f a@
 --
 -- >>> (0, -5)^._2.to abs
 -- 5
@@ -104,7 +105,15 @@ type Getting r a b c d = (c -> Accessor r d) -> a -> Accessor r b
 
 -- | Generalizing 'Const' so we can apply simple 'Applicative' transformations to it
 -- and so we can get nicer error messages
+--
+-- A 'Gettable' 'Functor' ignores its argument, which it carries solely as a phantom
+-- type parameter.
+--
+-- To ensure this, it is required to satisfy:
+--
+-- > id = fmap f = coerce
 class Functor f => Gettable f where
+  -- | Replace the phantom type argument.
   coerce :: f a -> f b
 
 instance Gettable (Const r) where
@@ -116,9 +125,10 @@ instance Gettable f => Gettable (Backwards f) where
 instance (Functor f, Gettable g) => Gettable (Compose f g) where
   coerce = Compose . fmap coerce . getCompose
 
+-- | This instance is a lie, but it is a useful lie.
 instance Gettable f => Gettable (ElementOf f) where
   coerce (ElementOf m) = ElementOf $ \i -> case m i of
-    Searching _ _ -> NotFound "coerced while searching"
+    Searching _ _ -> NotFound "coerced while searching" -- er...
     Found j as    -> Found j (coerce as)
     NotFound s    -> NotFound s
 
@@ -145,7 +155,7 @@ instance Monoid r => Applicative (Accessor r) where
 --
 -- It may be useful to think of 'view' as having these more restrictive signatures:
 --
--- > view . to = id
+-- @'view' . 'to' = 'id'@
 --
 -- >>> view _2 (1,"hello")
 -- "hello"
@@ -226,8 +236,6 @@ a ^. l = runAccessor (l Accessor a)
 -- > query :: MonadReader a m             => Iso a b c d       -> m c
 -- > query :: MonadReader a m             => Lens a b c d      -> m c
 -- > query :: (MonadReader a m, Monoid c) => Traversal a b c d -> m c
---
--- > query :: MonadReader a m => ((c -> Const c d) -> a -> Const c b) -> m c
 query :: MonadReader a m => Getting c a b c d -> m c
 query l = Reader.asks (^.l)
 {-# INLINE query #-}
@@ -241,8 +249,6 @@ query l = Reader.asks (^.l)
 -- > queries :: MonadReader a m             => Iso a b c d       -> (c -> e) -> m e
 -- > queries :: MonadReader a m             => Lens a b c d      -> (c -> e) -> m e
 -- > queries :: (MonadReader a m, Monoid c) => Traversal a b c d -> (c -> e) -> m e
---
--- > queries :: MonadReader a m => ((c -> Const e d) -> a -> Const e b) -> (c -> e) -> m e
 queries :: MonadReader a m => Getting e a b c d -> (c -> e) -> m e
 queries l f = Reader.asks (views l f)
 {-# INLINE queries #-}

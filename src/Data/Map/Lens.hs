@@ -24,6 +24,7 @@ import Control.Applicative as Applicative
 import Control.Lens.Type
 import Control.Lens.Traversal
 import Control.Lens.Indexed
+import Control.Lens.IndexedTraversal
 import Control.Lens.Getter -- used by tests
 import Control.Lens.Setter -- used by tests
 import Data.Map as Map
