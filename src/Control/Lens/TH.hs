@@ -164,6 +164,10 @@ makeIsoBody lensName conName f g = funD lensName [clause [] (normalB body) []] w
 makeLensBody :: Name -> Name -> (Name -> ExpQ) -> (Name -> ExpQ) -> DecQ
 makeLensBody lensName conName f _ = funD lensName [clause [] (normalB (f conName)) []]
 
+plain :: TyVarBndr -> TyVarBndr
+plain (KindedTV t _) = PlainTV t
+plain (PlainTV t) = PlainTV t
+
 appArgs :: Type -> [TyVarBndr] -> Type
 appArgs t [] = t
 appArgs t (x:xs) = appArgs (AppT t (VarT (x^.name))) xs
@@ -197,7 +201,8 @@ makeIsoLenses :: LensRules
               -> Maybe Name
               -> Type
               -> Q [Dec]
-makeIsoLenses cfg ctx tyConName tyArgs dataConName maybeFieldName partTy = do
+makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
+  let tyArgs = map plain tyArgs0
   m <- freshMap $ setOf typeVars tyArgs
   let aty = partTy
       bty = substTypeVars m aty
@@ -291,7 +296,8 @@ makeFieldLenses :: LensRules
                 -> [TyVarBndr] -- ^ args
                 -> [Con]
                 -> Q [Dec]
-makeFieldLenses cfg ctx tyConName tyArgs cons = do
+makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
+  let tyArgs = map plain tyArgs0
   x <- newName "x"
   let maybeLensClass = do
         guard $ tyArgs == []
