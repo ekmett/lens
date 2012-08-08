@@ -1,6 +1,5 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
-{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Setter
@@ -240,6 +239,7 @@ set l d = runMutator . l (\_ -> Mutator d)
 --
 -- @'Data.Traversable.fmapDefault' f = 'traverse' '%~' f@
 --
+-- >>> import Control.Lens
 -- >>> _2 %~ length $ (1,"hello")
 -- (1,5)
 --
@@ -258,6 +258,7 @@ set l d = runMutator . l (\_ -> Mutator d)
 --
 -- @f '<$' a = 'mapped' '.~' f '$' a@
 --
+-- >>> import Control.Lens
 -- >>> _1 .~ "hello" $ (42,"world")
 -- ("hello","world")
 --
@@ -280,14 +281,16 @@ l <.~ d = \a -> (d, l .~ d $ a)
 
 -- | Increment the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
--- > ghci> _1 +~ 1 $ (1,2)
--- > (2,2)
+-- >>> import Control.Lens
+-- >>> _1 +~ 1 $ (1,2)
+-- (2,2)
 (+~) :: Num c => Setting a b c c -> c -> a -> b
 l +~ n = adjust l (+ n)
 {-# INLINE (+~) #-}
 
 -- | Multiply the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
+-- >>> import Control.Lens
 -- >>> _2 *~ 4 $ (1,2)
 -- (1,8)
 (*~) :: Num c => Setting a b c c -> c -> a -> b
@@ -296,6 +299,7 @@ l *~ n = adjust l (* n)
 
 -- | Decrement the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
+-- >>> import Control.Lens
 -- >>> _1 -~ 2 $ (1,2)
 -- (-1,2)
 (-~) :: Num c => Setting a b c c -> c -> a -> b
@@ -308,6 +312,7 @@ l //~ n = adjust l (/ n)
 
 -- | Raise the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to a non-negative integral power
 --
+-- >>> import Control.Lens
 -- >>> _2 ^~ 2 $ (1,3)
 -- (1,9)
 (^~) :: (Num c, Integral e) => Setting a b c c -> e -> a -> b
@@ -316,6 +321,7 @@ l ^~ n = adjust l (^ n)
 
 -- | Raise the target(s) of a fractionally valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an integral power
 --
+-- >>> import Control.Lens
 -- >>> _2 ^^~ (-1) $ (1,2)
 -- (1,0.5)
 (^^~) :: (Fractional c, Integral e) => Setting a b c c -> e -> a -> b
@@ -324,6 +330,7 @@ l ^^~ n = adjust l (^^ n)
 
 -- | Raise the target(s) of a floating-point valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an arbitrary power.
 --
+-- >>> import Control.Lens
 -- >>> _2 **~ pi $ (1,3)
 -- (1,31.54428070019754)
 (**~) :: Floating c => Setting a b c c -> c -> a -> b
@@ -481,11 +488,3 @@ l <.= d = do
 whisper :: (MonadWriter b m, Monoid a) => Setting a b c d -> d -> m ()
 whisper l d = tell (set l d mempty)
 {-# INLINE whisper #-}
-
--- Local definition for doctests to avoid cycles
-
-_1 :: Functor f => (b -> f c) -> (b, a) -> f (c, a)
-_1 f (a,b) = (\c -> (c,b)) <$> f a
-
-_2 :: Functor f => (b -> f c) -> (a, b) -> f (a, c)
-_2 f (a,b) = (,) a <$> f b

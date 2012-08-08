@@ -1,7 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Map.Lens
@@ -21,17 +20,16 @@ module Data.Map.Lens
   ) where
 
 import Control.Applicative as Applicative
-import Control.Lens.Type
 import Control.Lens.Traversal
 import Control.Lens.Indexed
 import Control.Lens.IndexedLens
 import Control.Lens.IndexedTraversal
-import Control.Lens.Getter -- used by tests
-import Control.Lens.Setter -- used by tests
 import Data.Map as Map
 import Data.Traversable
 
 -- | This 'Lens' can be used to read, write or delete the value associated with a key in a 'Map'.
+--
+-- >>> :m + Control.Lens Data.Map.Lens
 --
 -- >>> Map.fromList [("hello",12)] ^.at "hello"
 -- Just 12

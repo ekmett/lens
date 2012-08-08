@@ -3,7 +3,6 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Action
@@ -37,8 +36,6 @@ module Control.Lens.Action
 import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Getter
-import Control.Lens.Fold -- for tests
-import Control.Lens.Type -- for tests
 import Control.Lens.Iso
 import Control.Monad
 import Control.Monad.Trans.Class
@@ -116,6 +113,8 @@ perform l = getEffect . l (Effect . return)
 
 -- | Perform an 'Action'
 --
+-- >>> import Control.Lens
+--
 -- >>> ["hello","world"]^!folded.act putStrLn
 -- hello
 -- world
@@ -132,6 +131,8 @@ act amc cfd a = effective (amc a >>= from effective . cfd)
 -- | A self-running 'Action', analogous to 'Control.Monad.join'.
 --
 -- @'acts' = 'act' 'id'@
+--
+-- >>> import Control.Lens
 --
 -- >>> (1,"hello")^!_2.acts.to succ
 -- "ifmmp"

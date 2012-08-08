@@ -5,7 +5,7 @@
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
--- Portability :  portable
+-- Portability :  Control.Exception
 --
 ----------------------------------------------------------------------------
 module Control.Exception.Lens
@@ -20,8 +20,10 @@ import Control.Lens
 -- Traverse the strongly typed 'Exception' contained in 'SomeException' where the type of your function matches
 -- the desired 'Exception'.
 --
--- > traverseException :: (Applicative f, Exception a, Exception b)
--- >                   => (a -> f b) -> SomeException -> f SomeException
+-- @
+-- traverseException :: ('Applicative' f, 'Exception' a, 'Exception' b)
+--                   => (a -> f b) -> 'SomeException' -> f 'SomeException'
+-- @
 traverseException :: (Exception a, Exception b) => Traversal SomeException SomeException a b
 traverseException f e = case fromException e of
   Just a -> toException <$> f a

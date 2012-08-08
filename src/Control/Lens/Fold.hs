@@ -4,7 +4,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Fold
@@ -79,7 +78,6 @@ import Control.Monad
 import Data.Foldable as Foldable
 import Data.Maybe
 import Data.Monoid
-import Data.Traversable -- for testing
 
 
 --------------------------
@@ -144,6 +142,7 @@ replicated n0 f a = go n0 where
 
 -- | Transform a fold into a fold that loops over its elements over and over.
 --
+-- >>> import Control.Lens
 -- >>> take 6 $ toListOf (cycled traverse) [1,2,3]
 -- [1,2,3,1,2,3]
 cycled :: (Applicative f, Gettable f) => LensLike f a b c d -> LensLike f a b c d

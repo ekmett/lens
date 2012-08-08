@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Set.Lens
@@ -19,11 +18,11 @@ import Control.Applicative
 import Control.Lens.Type
 import Control.Lens.Setter
 import Control.Lens.Getter
-import Control.Lens.Fold -- For tests
 import Data.Set as Set
 
 -- | This 'Lens' can be used to read, write or delete a member of a 'Set'
 --
+-- >>> :m + Data.Set.Lens Control.Lens
 -- >>> contains 3 .~ False $ Set.fromList [1,2,3,4]
 -- fromList [1,2,4]
 --
@@ -40,6 +39,7 @@ contains k f s = go <$> f (Set.member k s) where
 -- Sadly, you can't create a valid 'Traversal' for a 'Set', but you can
 -- manipulate it by reading using 'folded' and reindexing it via 'setmap'.
 --
+-- >>> :m + Data.Set.Lens Control.Lens
 -- >>> adjust setmapped (+1) (fromList [1,2,3,4])
 -- fromList [2,3,4,5]
 setmapped :: (Ord i, Ord j) => Setter (Set i) (Set j) i j
@@ -47,6 +47,7 @@ setmapped = sets Set.map
 
 -- | Construct a set from a 'Getter', 'Fold', 'Traversal', 'Lens' or 'Iso'.
 --
+-- >>> :m + Data.Set.Lens Control.Lens
 -- >>> setOf (folded._2) [("hello",1),("world",2),("!!!",3)]
 -- fromList [1,2,3]
 --

@@ -1,6 +1,5 @@
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Bits.Lens
@@ -22,7 +21,6 @@ import Control.Lens
 import Control.Monad.State.Class
 import Data.Bits
 import Data.Functor
-import Data.Word (Word8) -- for tests
 
 infixr 4 |~, &~
 infix 4 |=, &=
@@ -70,6 +68,7 @@ bitAt n = index $ \f b -> (\x -> if x then setBit b n else clearBit b n) <$> f n
 --
 -- The bit position is available as the index.
 --
+-- >>> import Data.Word
 -- >>> toListOf traverseBits (5 :: Word8)
 -- [True,False,True,False,False,False,False,False]
 --

@@ -1,5 +1,4 @@
 {-# LANGUAGE Rank2Types #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Getter
@@ -55,10 +54,8 @@ import Control.Applicative.Backwards
 import Control.Lens.Internal
 import Control.Monad.Reader.Class       as Reader
 import Control.Monad.State.Class        as State
-import Data.Complex -- for tests
 import Data.Functor.Compose
 import Data.Monoid
-import Control.Lens.Type -- for tests
 
 infixl 8 ^.
 infixr 0 ^$
@@ -82,6 +79,7 @@ type Getter a c = forall f b d. Gettable f => (c -> f d) -> a -> f b
 --
 -- @a '^.' 'to' f = f a@
 --
+-- >>> import Control.Lens
 -- >>> (0, -5)^._2.to abs
 -- 5
 to :: (a -> c) -> Getter a c
@@ -161,6 +159,7 @@ instance Monoid r => Applicative (Accessor r) where
 --
 -- @'view' . 'to' = 'id'@
 --
+-- >>> import Control.Lens
 -- >>> view _2 (1,"hello")
 -- "hello"
 --
@@ -180,6 +179,7 @@ view l = runAccessor . l Accessor
 --
 -- It may be useful to think of 'views' as having these more restrictive signatures:
 --
+-- >>> import Control.Lens
 -- >>> views _2 length (1,"hello")
 -- 5
 --
@@ -199,6 +199,7 @@ views l f = runAccessor . l (Accessor . f)
 --
 -- This is the same operation as 'view', only infix.
 --
+-- >>> import Control.Lens
 -- >>> _2 ^$ (1, "hello")
 -- "hello"
 --
@@ -221,6 +222,7 @@ l ^$ a = runAccessor (l Accessor a)
 -- The fixity and semantics are such that subsequent field accesses can be
 -- performed with ('Prelude..')
 --
+-- >>> :m + Data.Complex Control.Lens
 -- >>> ((0, 1 :+ 2), 3)^._1._2.to magnitude
 -- 2.23606797749979
 --
