@@ -34,10 +34,10 @@ import Data.Traversable
 -- fromList [(1,"hello")]
 --
 -- > at :: Int -> (Maybe v -> f (Maybe v)) -> IntMap v -> f (IntMap v)
-at :: Int -> Simple Lens (IntMap v) (Maybe v)
-at k f m = go <$> f (IntMap.lookup k m) where
-  go Nothing   = IntMap.delete k m
-  go (Just v') = IntMap.insert k v' m
+at :: Int -> SimpleIndexedLens Int (IntMap v) (Maybe v)
+at k = index $ \ f m -> (`go` m) <$> f k (IntMap.lookup k m) where
+  go Nothing   = IntMap.delete k
+  go (Just v') = IntMap.insert k v'
 {-# INLINE at #-}
 
 -- | Traversal of an 'IntMap' indexed by the key.
@@ -49,8 +49,8 @@ traverseIntMap = index $ \f -> sequenceA . mapWithKey f
 --
 -- > traverseAt :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
 -- > traverseAt k = at k . traverse
-traverseAt :: Int -> Simple Traversal (IntMap v) v
-traverseAt k = at k . traverse
+traverseAt :: Int -> SimpleIndexedTraversal Int (IntMap v) v
+traverseAt k = at k <. traverse
 {-# INLINE traverseAt #-}
 
 -- | Traverse the value at the minimum key in a Map

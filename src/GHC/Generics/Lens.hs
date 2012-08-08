@@ -10,38 +10,49 @@
 -- Stability   :  experimental
 -- Portability :  GHC
 --
+-- Note: @GHC.Generics@ exports a number of names that collide with @Control.Lens@.
+--
+-- You can use hiding or imports to mitigate this to an extent, and the following imports,
+-- represent a fair compromise for user code:
+--
+-- > import Control.Lens hiding (Rep)
+-- > import GHC.Generics hiding (from, to)
+--
+-- You can use 'generic' to replace 'GHC.Generics.from' and 'GHC.Generics.to' from @GHC.Generics@,
+-- and probably won't be explicitly referencing 'Control.Lens.Representable.Rep' from @Control.Lens@
+-- in code that uses generics.
 ----------------------------------------------------------------------------
 module GHC.Generics.Lens
   (
-  -- * Conversion to/from generic
+  -- * Isomorphisms for @GHC.Generics@
     generic
   , generic1
-  -- * Generic Traversal
+  -- * 'Generic' 'Traversal'
   , every
   , GTraversal
   ) where
 
-import Control.Applicative
-import Control.Lens.Iso hiding (from)
-import Control.Lens.Traversal
-import Control.Lens.Type
-import Data.Maybe (fromJust)
-import Data.Typeable
-import GHC.Generics
+import           Control.Applicative
+import           Control.Lens hiding (Rep)
+import           Data.Maybe (fromJust)
+import           Data.Typeable
+import qualified GHC.Generics as Generic
+import           GHC.Generics                     hiding (from, to)
 
 -- | Convert from the data type to its representation (or back)
 --
--- >>> "hello"^.generic.from generic
+-- >>> "hello"^.generic.from generic :: String
 -- "hello"
 --
-generic :: (Generic a, Generic b) => Iso a b (Rep a x) (Rep b y)
-generic = isos from to from to
+generic :: Generic a => Simple Iso a (Rep a b)
+generic = iso Generic.from Generic.to
 
 -- | Convert from the data type to its representation (or back)
-generic1 :: (Generic1 f, Generic1 g) => Iso (f a) (g b) (Rep1 f a) (Rep1 g b)
-generic1 = isos from1 to1 from1 to1
+generic1 :: Generic1 f => Simple Iso (f a) (Rep1 f a)
+generic1 = iso from1 to1
 
--- | Traverse using GHC.Generics.
+-- | A 'GHC.Generics.Generic' 'Traversal' that visits every occurence
+-- of something 'Typeable' anywhere in a container.
 --
 -- >>> allOf every (=="Hello") (1::Int,2::Double,(),"Hello",["Hello"])
 -- True
@@ -52,7 +63,7 @@ generic1 = isos from1 to1 from1 to1
 every :: (Generic a, GTraversal (Rep a), Typeable b) => Simple Traversal a b
 every = generic . everyr True
 
--- | Traversable generic data types. Used by 'every'.
+-- | Used to traverse 'Generic' data by 'every'.
 class GTraversal f where
   everyr :: Typeable b => Bool -> Simple Traversal (f a) b
 

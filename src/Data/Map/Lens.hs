@@ -24,6 +24,7 @@ import Control.Applicative as Applicative
 import Control.Lens.Type
 import Control.Lens.Traversal
 import Control.Lens.Indexed
+import Control.Lens.IndexedLens
 import Control.Lens.IndexedTraversal
 import Control.Lens.Getter -- used by tests
 import Control.Lens.Setter -- used by tests
@@ -39,10 +40,10 @@ import Data.Traversable
 -- fromList [(10,"hello")]
 --
 -- > at :: Ord k => k -> (Maybe v -> f (Maybe v)) -> Map k v -> f (Map k v)
-at :: Ord k => k -> SimpleLens (Map k v) (Maybe v)
-at k f m = go <$> f (Map.lookup k m) where
-  go Nothing   = Map.delete k m
-  go (Just v') = Map.insert k v' m
+at :: Ord k => k -> SimpleIndexedLens k (Map k v) (Maybe v)
+at k = index $ \f m -> (`go` m) <$> f k (Map.lookup k m) where
+  go Nothing   = Map.delete k
+  go (Just v') = Map.insert k v'
 {-# INLINE at #-}
 
 -- | Traversal of a 'Map' indexed by the key.
@@ -53,8 +54,8 @@ traverseMap = index $ \f -> sequenceA . mapWithKey f
 --
 -- > traverseAt :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
 -- > traverseAt k = valueAt k . traverse
-traverseAt :: Ord k => k -> SimpleTraversal (Map k v) v
-traverseAt k = at k . traverse
+traverseAt :: Ord k => k -> SimpleIndexedTraversal k (Map k v) v
+traverseAt k = at k <. traverse
 {-# INLINE traverseAt #-}
 
 -- | Traverse the value at the minimum key in a Map.

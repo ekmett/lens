@@ -1,12 +1,13 @@
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Bits.Lens
 -- Copyright   :  (C) 2012 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
--- Stability   :  provisional
+-- Stability   :  experimental
 -- Portability :  LiberalTypeSynonyms
 --
 ----------------------------------------------------------------------------
@@ -21,6 +22,7 @@ import Control.Lens
 import Control.Monad.State.Class
 import Data.Bits
 import Data.Functor
+import Data.Word (Word8) -- for tests
 
 infixr 4 |~, &~
 infix 4 |=, &=
@@ -53,15 +55,15 @@ l |= b = modify (l |~ b)
 
 -- | This lens can be used to access the value of the nth bit in a number.
 --
--- @bitAt n@ is only a legal 'Lens' into @b@ if @0 <= n < bitSize (undefined :: b)@
+-- @'bitAt' n@ is only a legal 'Lens' into @b@ if @0 <= n < 'bitSize' ('undefined' :: b)@
 --
 -- >>> 16^.bitAt 4
 -- True
 --
 -- >>> 15^.bitAt 4
 -- False
-bitAt :: Bits b => Int -> Simple Lens b Bool
-bitAt n f b = (\x -> if x then setBit b n else clearBit b n) <$> f (testBit b n)
+bitAt :: Bits b => Int -> SimpleIndexedLens Int b Bool
+bitAt n = index $ \f b -> (\x -> if x then setBit b n else clearBit b n) <$> f n (testBit b n)
 {-# INLINE bitAt #-}
 
 -- | Traverse over all bits in a numeric type.
@@ -71,8 +73,8 @@ bitAt n f b = (\x -> if x then setBit b n else clearBit b n) <$> f (testBit b n)
 -- >>> toListOf traverseBits (5 :: Word8)
 -- [True,False,True,False,False,False,False,False]
 --
--- If you supply this an Integer, it won't crash, but the result will
--- be an infinite traversal that can be productively consumed.
+-- If you supply this an 'Integer', the result will
+-- be an infinite 'Traversal' that can be productively consumed.
 traverseBits :: Bits b => SimpleIndexedTraversal Int b Bool
 traverseBits = index $ \f b -> let
     g n      = (,) n <$> f n (testBit b n)

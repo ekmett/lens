@@ -19,7 +19,7 @@
 --
 -- A @'Lens' a b c d@ is a purely functional reference.
 --
--- While a 'Traversal' could be used for 'Getting' like a valid 'Fold',
+-- While a 'Control.Lens.Traversal.Traversal' could be used for 'Control.Lens.Getter.Getting' like a valid 'Control.Lens.Fold.Fold',
 -- it wasn't a valid 'Getter' as Applicative isn't a superclass of 
 -- 'Gettable'.
 --
@@ -29,20 +29,20 @@
 --
 -- Every 'Lens' is a valid 'Setter', choosing @f@ = 'Identity'.
 --
--- Every 'Lens' can be used for 'Getting' like a 'Fold' that doesn't use
--- the 'Monoid'.
+-- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a 'Control.Lens.Fold.Fold' that doesn't use
+-- the 'Applicative' or 'Control.Lens.Getter.Gettable'.
 --
--- Every 'Lens' is a valid 'Traversal' that only uses the 'Functor' part
+-- Every 'Lens' is a valid 'Control.Lens.Traversal.Traversal' that only uses the 'Functor' part
 -- of the 'Applicative' it is supplied.
 --
--- Every 'Lens' can be used for 'Getting' like a valid 'Getter', choosing
--- @f@ = 'Accessor' @r@ for an appropriate @r@
+-- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a valid 'Getter', since 'Functor' is
+-- a superclass of 'Control.Lens.Getter.Gettable'
 --
--- Since every 'Lens' can be used for 'Getting' like a valid 'Getter' it
+-- Since every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a valid 'Getter' it
 -- follows that it must view exactly one element in the structure.
 --
 -- The lens laws follow from this property and the desire for it to act like
--- a 'Traversable' when used as a 'Traversal'.
+-- a 'Data.Traversable.Traversable' when used as a 'Control.Lens.Traversal.Traversal'.
 ----------------------------------------------------------------------------
 module Control.Lens.Type
   (
@@ -118,11 +118,11 @@ infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<>=
 -- These laws are strong enough that the 4 type parameters of a 'Lens' cannot vary fully independently. For more on
 -- how they interact, read the "Why is it a Lens Family?" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
--- Every 'Lens' can be used directly as a 'Setter' or 'Traversal'.
+-- Every 'Lens' can be used directly as a 'Setter' or 'Control.Lens.Traversal.Traversal'.
 --
--- You can also use a 'Lens' for 'Getting' as if it were a 'Fold' or 'Getter'.
+-- You can also use a 'Lens' for 'Control.Lens.Getter.Getting' as if it were a 'Control.Lens.Fold.Fold' or 'Getter'.
 --
--- Since every lens is a valid 'Traversal', the traversal laws should also apply to any lenses you create.
+-- Since every lens is a valid 'Control.Lens.Traversal.Traversal', the traversal laws should also apply to any lenses you create.
 --
 -- 1.) Idiomatic naturality:
 --
@@ -135,7 +135,7 @@ infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<>=
 -- > type Lens = forall f. Functor f => LensLike f a b c d
 type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 
--- | A @'Simple' 'Lens'@, @'Simple' 'Traversal'@, ... can be used instead of a 'Lens','Traversal', ...
+-- | A @'Simple' 'Lens'@, @'Simple' 'Control.Lens.Traversal.Traversal'@, ... can be used instead of a 'Lens','Control.Lens.Traversal.Traversal', ...
 -- whenever the type variables don't change upon setting a value.
 --
 -- > imaginary :: Simple Lens (Complex a) a
@@ -167,13 +167,13 @@ lens ac adb cfd a = adb a <$> cfd (ac a)
 --------------------------
 
 -- |
--- Many combinators that accept a 'Lens' can also accept a 'Traversal' in limited situations.
+-- Many combinators that accept a 'Lens' can also accept a 'Control.Lens.Traversal.Traversal' in limited situations.
 --
 -- They do so by specializing the type of 'Functor' that they require of the caller.
 --
 -- If a function accepts a @'LensLike' f a b c d@ for some 'Functor' @f@, then they may be passed a 'Lens'.
 --
--- Further, if @f@ is an 'Applicative', they may also be passed a 'Traversal'.
+-- Further, if @f@ is an 'Applicative', they may also be passed a 'Control.Lens.Traversal.Traversal'.
 type LensLike f a b c d = (c -> f d) -> a -> f b
 
 -- | ('%%~') can be used in one of two scenarios:
@@ -181,7 +181,7 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- When applied to a 'Lens', it can edit the target of the 'Lens' in a structure, extracting a
 -- functorial result.
 --
--- When applied to a 'Traversal', it can edit the targets of the 'Traversals', extracting an
+-- When applied to a 'Control.Lens.Traversal.Traversal', it can edit the targets of the 'Traversals', extracting an
 -- applicative summary of its actions.
 --
 -- For all that the definition of this combinator is just:
@@ -194,7 +194,7 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 --
 -- It may be beneficial to think about it as if it had these even more restrictive types, however:
 --
--- When applied to a 'Traversal', it can edit the targets of the 'Traversals', extracting a
+-- When applied to a 'Control.Lens.Traversal.Traversal', it can edit the targets of the 'Traversals', extracting a
 -- supplemental monoidal summary of its actions, by choosing f = ((,) m)
 --
 -- > (%%~) ::             Iso a b c d       -> (c -> (e, d)) -> a -> (e, b)
@@ -205,7 +205,7 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 {-# INLINE (%%~) #-}
 
 -- | Modify the target of a 'Lens' in the current state returning some extra information of @c@ or
--- modify all targets of a 'Traversal' in the current state, extracting extra information of type @c@
+-- modify all targets of a 'Control.Lens.Traversal.Traversal' in the current state, extracting extra information of type @c@
 -- and return a monoidal summary of the changes.
 --
 -- > (%%=) = (state.)
@@ -229,11 +229,11 @@ l %%= f = do
 
 -- | This class allows us to use 'focus' on a number of different monad transformers.
 class Focus st where
-  -- | Run a monadic action in a larger context than it was defined in, using a 'Simple' 'Lens' or 'Simple' 'Traversal'.
+  -- | Run a monadic action in a larger context than it was defined in, using a 'Simple' 'Lens' or 'Simple' 'Control.Lens.Traversal.Traversal'.
   --
   -- This is commonly used to lift actions in a simpler state monad into a state monad with a larger state type.
   --
-  -- When applied to a 'Simple 'Traversal' over multiple values, the actions for each target are executed sequentially
+  -- When applied to a 'Simple 'Control.Lens.Traversal.Traversal' over multiple values, the actions for each target are executed sequentially
   -- and the results are aggregated monoidally
   -- and a monoidal summary
   -- of the result is given.
@@ -337,7 +337,7 @@ bothLenses l r f (a, a') = case l (IndexedStore id) a of
 -- |
 --
 -- Cloning a 'Lens' is one way to make sure you arent given
--- something weaker, such as a 'Traversal' and can be used
+-- something weaker, such as a 'Control.Lens.Traversal.Traversal' and can be used
 -- as a way to pass around lenses that have to be monomorphic in 'f'.
 --
 -- Note: This only accepts a proper 'Lens', because 'IndexedStore' lacks its

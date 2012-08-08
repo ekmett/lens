@@ -14,22 +14,30 @@
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Action
-  ( Action
-  , MonadicFold
-  , Effective(..)
-  , ineffective
-  , Effect(..)
-  , Acting
+  (
+  -- * Composable Actions
+    Action
   , act
   , acts
   , perform
   , liftAct
   , (^!)
+
+  -- * Folds with Effecs
+  , MonadicFold
+
+  -- * Implementation Details
+  , Acting
+  , Effective(..)
+  , ineffective
+  , Effect(..)
   ) where
 
 import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Getter
+import Control.Lens.Fold -- for tests
+import Control.Lens.Type -- for tests
 import Control.Lens.Iso
 import Control.Monad
 import Control.Monad.Trans.Class
@@ -61,6 +69,7 @@ class (Monad m, Gettable f) => Effective m r f | f -> m r where
 -- | A convenient antonym
 ineffective :: Effective m r f => Isomorphic k => k (f a) (m r)
 ineffective = from effective
+{-# INLINE ineffective #-}
 
 instance Effective Identity r (Accessor r) where
   effective = isomorphic (Accessor . runIdentity) (Identity . runAccessor)
