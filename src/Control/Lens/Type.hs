@@ -25,9 +25,9 @@
 --
 -- 'Functor', however is the superclass of both.
 --
--- > type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
+-- @type 'Lens' a b c d = forall f. 'Functor' f => (c -> f d) -> a -> f b@
 --
--- Every 'Lens' is a valid 'Setter', choosing @f@ = 'Identity'.
+-- Every 'Lens' is a valid 'Setter', choosing @f@ = 'Control.Lens.Getter.Mutator'.
 --
 -- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a 'Control.Lens.Fold.Fold' that doesn't use
 -- the 'Applicative' or 'Control.Lens.Getter.Gettable'.
@@ -95,6 +95,7 @@ infix  4 %%=
 infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <%~, <<>~
 infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<>=
 
+
 --------------------------
 -- Lenses
 --------------------------
@@ -105,15 +106,15 @@ infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<>=
 --
 -- 1) You get back what you put in:
 --
--- > view l (set l b a)  = b
+-- @'view' l ('set' l b a)  = b@
 --
 -- 2) Putting back what you got doesn't change anything:
 --
--- > set l (view l a) a  = a
+-- @'set' l ('view' l a) a  = a@
 --
 -- 3) Setting twice is the same as setting once:
 --
--- > set l c (set l b a) = set l c a
+-- @'set' l c ('set' l b a) = 'set' l c a@
 --
 -- These laws are strong enough that the 4 type parameters of a 'Lens' cannot vary fully independently. For more on
 -- how they interact, read the "Why is it a Lens Family?" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
@@ -126,29 +127,31 @@ infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<>=
 --
 -- 1.) Idiomatic naturality:
 --
--- > l pure = pure
+-- @l 'pure' = 'pure'@
 --
 -- 2.) Sequential composition:
 --
--- > fmap (l f) . l g = getCompose . l (Compose . fmap f . g)
+-- @'fmap' (l f) . l g = 'Data.Functor.Compose.getCompose' . l ('Data.Functor.Compose.Compose' . 'fmap' f . g)@
 --
--- > type Lens = forall f. Functor f => LensLike f a b c d
+-- @type 'Lens' a b c d = forall f. 'Functor' f => 'LensLike' f a b c d@
 type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 
--- | A @'Simple' 'Lens'@, @'Simple' 'Control.Lens.Traversal.Traversal'@, ... can be used instead of a 'Lens','Control.Lens.Traversal.Traversal', ...
+-- | A 'Simple' 'Lens', 'Simple' 'Control.Lens.Traversal.Traversal', ... can be used instead of a 'Lens','Control.Lens.Traversal.Traversal', ...
 -- whenever the type variables don't change upon setting a value.
 --
--- > imaginary :: Simple Lens (Complex a) a
--- > traverseHead :: Simple Traversal [a] a
+-- @
+-- 'Data.Complex.Lens.imaginary' :: 'Simple' 'Lens' ('Data.Complex.Complex' a) a
+-- 'Data.List.Lens.traverseHead' :: 'Simple' 'Control.Lens.Lens.Traversal' [a] a
+-- @
 --
--- Note: To use this alias in your own code with @'LensLike' f@ or @Setter@, you may have to turn on
+-- Note: To use this alias in your own code with @'LensLike' f@ or 'Control.Lens.Setter.Setter', you may have to turn on
 -- @LiberalTypeSynonyms@.
 type Simple f a b = f a a b b
 
--- | > type SimpleLens = Simple Lens
+-- | @type 'SimpleLens' = 'Simple' 'Lens'@
 type SimpleLens a b = Lens a a b b
 
--- | > type SimpleLensLike f = Simple (LensLike f)
+-- | @type 'SimpleLensLike' f = 'Simple' ('LensLike' f)@
 type SimpleLensLike f a b = LensLike f a a b b
 
 --------------------------
@@ -186,7 +189,7 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 --
 -- For all that the definition of this combinator is just:
 --
--- > (%%~) = id
+-- @('%%~') = 'id'@
 --
 -- > (%%~) :: Functor f =>     Iso a b c d       -> (c -> f d) -> a -> f b
 -- > (%%~) :: Functor f =>     Lens a b c d      -> (c -> f d) -> a -> f b
@@ -208,7 +211,7 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- modify all targets of a 'Control.Lens.Traversal.Traversal' in the current state, extracting extra information of type @c@
 -- and return a monoidal summary of the changes.
 --
--- > (%%=) = (state.)
+-- @('%%=') = ('state' '.')@
 --
 -- It may be useful to think of ('%%='), instead, as having either of the following more restricted
 -- type signatures:
@@ -286,24 +289,28 @@ instance Focus ReaderT where
 -- | This is a lens that can change the value (and type) of the first field of
 -- a pair.
 --
--- > ghci> (1,2)^._1
--- > 1
+-- >>> import Control.Lens
 --
--- > ghci> _1 +~ "hello" $ (1,2)
--- > ("hello",2)
+-- >>> (1,2)^._1
+-- 1
 --
--- > _1 :: Functor f => (a -> f b) -> (a,c) -> f (a,c)
+-- >>> _1 .~ "hello" $ (1,2)
+-- ("hello",2)
+--
+-- @_1 :: 'Functor' f => (a -> f b) -> (a,c) -> f (a,c)@
 _1 :: Lens (a,c) (b,c) a b
 _1 f (a,c) = (\b -> (b,c)) <$> f a
 {-# INLINE _1 #-}
 
 -- | As '_1', but for the second field of a pair.
 --
--- > anyOf _2 :: (c -> Bool) -> (a, c) -> Bool
--- > traverse._2 :: (Applicative f, Traversable t) => (a -> f b) -> t (c, a) -> f (t (c, b))
--- > foldMapOf (traverse._2) :: (Traversable t, Monoid m) => (c -> m) -> t (b, c) -> m
+-- @
+-- 'Control.Lens.Fold.anyOf' '_2' :: (c -> 'Bool') -> (a, c) -> 'Bool'
+-- 'Data.Traversable.traverse' '.' '_2' :: ('Applicative' f, 'Data.Traversable.Traversable' t) => (a -> f b) -> t (c, a) -> f (t (c, b))
+-- 'Control.Lens.Fold.foldMapOf' ('Data.Traversable.traverse' '.' '_2') :: ('Data.Traversable.Traversable' t, 'Data.Monoid.Monoid' m) => (c -> m) -> t (b, c) -> m
+-- @
 --
--- > _2 :: Functor f => (a -> f b) -> (c,a) -> f (c,b)
+-- @_2 :: 'Functor' f => (a -> f b) -> (c,a) -> f (c,b)@
 _2 :: Lens (c,a) (c,b) a b
 _2 f (c,a) = (,) c <$> f a
 {-# INLINE _2 #-}
@@ -341,7 +348,7 @@ bothLenses l r f (a, a') = case l (IndexedStore id) a of
 -- as a way to pass around lenses that have to be monomorphic in 'f'.
 --
 -- Note: This only accepts a proper 'Lens', because 'IndexedStore' lacks its
--- (admissable) Applicative instance.
+-- (admissable) 'Applicative' instance.
 --
 clone :: Functor f
       => LensLike (IndexedStore c d) a b c d
@@ -354,10 +361,10 @@ clone f cfd a = case f (IndexedStore id) a of
 -- Overloading function application
 -----------------------------------------------------------------------------
 
--- | > type LensLike f a b c d = Overloaded (->) f a b c d
+-- | @type 'LensLike' f a b c d = 'Overloaded' (->) f a b c d@
 type Overloaded k f a b c d = k (c -> f d) (a -> f b)
 
--- | > type SimpleOverloaded k f a b = Simple (Overloaded k f) a b
+-- | @type 'SimpleOverloaded' k f a b = 'Simple' ('Overloaded' k f) a b@
 type SimpleOverloaded k f a b = Overloaded k f a a b b
 
 -----------------------------------------------------------------------------
@@ -445,7 +452,7 @@ l <<>~ m = l <%~ (`mappend` m)
 -- Setting and Remembering State
 -----------------------------------------------------------------------------
 
--- | Modify the target of a ' into your monad's state by a user supplied function and return the result.
+-- | Modify the target of a 'Lens' into your monad's state by a user supplied function and return the result.
 --
 -- When you do not need the result of the operation, ('%=') is more flexible.
 (<%=) :: MonadState a m => LensLike ((,)d) a a c d -> (c -> d) -> m d
