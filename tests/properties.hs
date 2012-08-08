@@ -74,8 +74,6 @@ prop_illegal_iso                     = expectFailure $ isIso badIso
 prop_mapped                          = isSetter (mapped :: Simple Setter [Int] Int)
 prop_mapped_mapped                   = isSetter (mapped.mapped :: Simple Setter [Maybe Int] Int)
 
-
-
 prop_both                            = isTraversal (both :: Simple Traversal (Int,Int) Int)
 prop_value (Fun _ k :: Fun Int Bool) = isTraversal (value k :: Simple Traversal (Int,Int) Int)
 prop_traverseLeft                    = isTraversal (traverseLeft :: Simple Traversal (Either Int Bool) Int)
