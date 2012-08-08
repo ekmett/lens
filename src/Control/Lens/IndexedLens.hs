@@ -39,21 +39,21 @@ import Control.Monad.State.Class as State
 infixr 4 %%@~, <%@~
 infix  4 %%@=, <%@=
 
--- | Every 'IndexedLens' is a valid 'Lens' and a valid 'IndexedTraversal'.
+-- | Every 'IndexedLens' is a valid 'Lens' and a valid 'Control.Lens.IndexedTraversal.IndexedTraversal'.
 type IndexedLens i a b c d = forall f k. (Indexed i k, Functor f) => k (c -> f d) (a -> f b)
 
 -- | @type 'SimpleIndexedLens' i = 'Simple' ('IndexedLens' i)@
 type SimpleIndexedLens i a b = IndexedLens i a a b b
 
 -- | Adjust the target of an 'IndexedLens' returning the intermediate result, or
--- adjust all of the targets of an 'IndexedTraversal' and return a monoidal summary
+-- adjust all of the targets of an 'Control.Lens.IndexedTraversal.IndexedTraversal' and return a monoidal summary
 -- along with the answer.
 --
 -- @l '<%~' f = l '<%@~' 'const' f@
 --
 -- When you do not need access to the index then ('<%~') is more liberal in what it can accept.
 --
--- If you do not need the intermediate result, you can use ('%@~') or even ('%~').
+-- If you do not need the intermediate result, you can use ('Control.Lens.Type.%@~') or even ('Control.Lens.Type.%~').
 --
 -- > (<%@~) ::             IndexedLens i a b c d -> (i -> c -> d) -> a -> (d, b)
 -- > (<%@~) :: Monoid d => IndexedTraversal i a b c d -> (i -> c -> d) -> a -> (d, b)
@@ -62,7 +62,7 @@ l <%@~ f = withIndex l $ \i c -> let d = f i c in (d, d)
 {-# INLINE (<%@~) #-}
 
 -- | Adjust the target of an 'IndexedLens' returning a supplementary result, or
--- adjust all of the targets of an 'IndexedTraversal' and return a monoidal summary
+-- adjust all of the targets of an 'Control.Lens.IndexedTraversal.IndexedTraversal' and return a monoidal summary
 -- of the supplementary results and the answer.
 --
 -- @('%%@~') = 'withIndex'@
@@ -74,7 +74,7 @@ l <%@~ f = withIndex l $ \i c -> let d = f i c in (d, d)
 {-# INLINE (%%@~) #-}
 
 -- | Adjust the target of an 'IndexedLens' returning a supplementary result, or
--- adjust all of the targets of an 'IndexedTraversal' within the current state, and
+-- adjust all of the targets of an 'Control.Lens.IndexedTraversal.IndexedTraversal' within the current state, and
 -- return a monoidal summary of the supplementary results.
 --
 -- @l '%%@=' f = 'state' (l '%%@~' f)@
@@ -93,7 +93,7 @@ l %%@= f = do
 {-# INLINE (%%@=) #-}
 
 -- | Adjust the target of an 'IndexedLens' returning the intermediate result, or
--- adjust all of the targets of an 'IndexedTraversal' within the current state, and
+-- adjust all of the targets of an 'Control.Lens.IndexedTraversal.IndexedTraversal' within the current state, and
 -- return a monoidal summary of the intermediate results.
 --
 -- > (<%@=) :: MonadState a m                IndexedLens i a a c d      -> (i -> c -> d) -> a -> m d

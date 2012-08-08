@@ -21,6 +21,7 @@ module Control.Lens.Action
   , Effect(..)
   , Acting
   , act
+  , acts
   , perform
   , liftAct
   , (^!)
@@ -109,8 +110,6 @@ perform l = getEffect . l (Effect . return)
 -- hello
 -- world
 --
--- >>> (1,"hello")^!_2.act id.to succ
--- "ifmmp"
 (^!) :: Monad m => a -> Acting m c a b c d -> m c
 a ^! l = getEffect (l (Effect . return) a)
 {-# INLINE (^!) #-}
@@ -119,6 +118,16 @@ a ^! l = getEffect (l (Effect . return) a)
 act :: Monad m => (a -> m c) -> Action m a c
 act amc cfd a = effective (amc a >>= from effective . cfd)
 {-# INLINE act #-}
+
+-- | A self-running action, analogous to join.
+--
+-- @'acts' = 'act' 'id'@
+--
+-- >>> (1,"hello")^!_2.acts.to succ
+-- "ifmmp"
+acts :: Action m (m a) a
+acts = act id
+{-# INLINE acts #-}
 
 -- | Apply a 'Monad' transformer to an 'Action'.
 liftAct :: (MonadTrans t, Monad m) => Acting m c a b c d -> Action (t m) a c

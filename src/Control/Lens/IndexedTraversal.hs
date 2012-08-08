@@ -108,7 +108,7 @@ iforMOf = flip . imapMOf
 --
 -- 'imapAccumROf' accumulates state from right to left.
 --
--- @'Control.Lens.Traversal.mapAccumROf' l = 'imapAccumROf' l . 'const'
+-- @'Control.Lens.Traversal.mapAccumROf' l = 'imapAccumROf' l . 'const'@
 --
 -- > imapAccumROf :: IndexedLens i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
 -- > imapAccumROf :: IndexedTraversal i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
@@ -120,7 +120,7 @@ imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s
 --
 -- 'imapAccumLOf' accumulates state from left to right.
 --
--- @'Control.Lens.Traversal.mapAccumLOf' l = 'imapAccumLOf' l . 'const'
+-- @'Control.Lens.Traversal.mapAccumLOf' l = 'imapAccumLOf' l . 'const'@
 --
 -- > imapAccumLOf :: IndexedLens i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
 -- > imapAccumLOf :: IndexedTraversal i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)

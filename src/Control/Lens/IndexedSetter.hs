@@ -37,7 +37,7 @@ infix  4 %@=
 -- The 'Setter' laws are still required to hold.
 type IndexedSetter i a b c d = forall f k. (Indexed i k, Settable f) => k (c -> f d) (a -> f b)
 
--- | @type 'SimpleIdexedTraversal i = 'Simple' ('IndexedTraversal' i)@
+-- | @type 'SimpleIndexedSetter i = 'Simple' ('IndexedSetter' i)@
 type SimpleIndexedSetter i a b = IndexedSetter i a a b b
 
 -- | Map with index.
@@ -53,7 +53,7 @@ imapOf :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
 imapOf l f = runMutator . withIndex l (\i -> Mutator . f i)
 {-# INLINE imapOf #-}
 
--- | Adjust every target of an 'IndexedSetter', 'IndexedLens' or 'IndexedTraversal'
+-- | Adjust every target of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
 -- with access to the index.
 --
 -- @('%@~') = 'imapOf'@
@@ -69,7 +69,7 @@ imapOf l f = runMutator . withIndex l (\i -> Mutator . f i)
 l %@~ f = runMutator . withIndex l (\i -> Mutator . f i)
 {-# INLINE (%@~) #-}
 
--- | Adjust every target in the current state of an 'IndexedSetter', 'IndexedLens' or 'IndexedTraversal'
+-- | Adjust every target in the current state of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
 -- with access to the index.
 --
 -- When you do not need access to the index then ('%=') is more liberal in what it can accept.
