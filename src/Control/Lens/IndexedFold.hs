@@ -54,7 +54,7 @@ type IndexedFold i a c = forall k f. (Indexed i k, Applicative f, Gettable f) =>
 -- Fold an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' by mapping indices and values to an arbitrary 'Monoid' with access
 -- to the index @i@.
 --
--- When you don't need access to the index then 'foldMapOf' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.foldMapOf' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.foldMapOf' l = 'ifoldMapOf' l . 'const'@
 --
@@ -72,7 +72,7 @@ ifoldMapOf l f = runAccessor . withIndex l (\i -> Accessor . f i)
 -- Right-associative fold of parts of a structure that are viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with
 -- access to the index @i@.
 --
--- When you don't need access to the index then 'foldrOf' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.foldrOf' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.foldrOf' l = 'ifoldrOf' l . 'const'@
 --
@@ -90,7 +90,7 @@ ifoldrOf l f z t = appEndo (ifoldMapOf l (\i -> Endo . f i) t) z
 -- Left-associative fold of the parts of a structure that are viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with
 -- access to the index @i@.
 --
--- When you don't need access to the index then 'foldlOf' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.foldlOf' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.foldlOf' l = 'ifoldlOf' l . 'const'@
 --
@@ -108,7 +108,7 @@ ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> Dual . Endo . flip (f i
 -- Return whether or not any element viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' 
 -- satisfy a predicate, with access to the index @i@.
 --
--- When you don't need access to the index then 'anyOf' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.anyOf' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.anyOf' l = 'ianyOf' l . 'const'@
 --
@@ -126,7 +126,7 @@ ianyOf l f = getAny . ifoldMapOf l (\i -> Any . f i)
 -- Return whether or not all elements viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' 
 -- satisfy a predicate, with access to the index @i@.
 --
--- When you don't need access to the index then 'allOf' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.allOf' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.allOf' l = 'iallOf' l . 'const'@
 --
@@ -143,7 +143,7 @@ iallOf l f = getAll . ifoldMapOf l (\i -> All . f i)
 -- |
 -- Traverse the targets of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index @i@, discarding the results.
 --
--- When you don't need access to the index then 'traverseOf_' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.traverseOf_' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.traverseOf_' l = 'itraverseOf' l . 'const'@
 --
@@ -163,7 +163,7 @@ itraverseOf_ l f = getTraversed . ifoldMapOf l (\i -> Traversed . void . f i)
 --
 -- @'iforOf_' = 'flip' . 'itraverseOf_'@
 --
--- When you don't need access to the index then 'forOf_' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.forOf_' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.forOf_' l a = 'iforOf' l a . 'const'@
 --
@@ -181,7 +181,7 @@ iforOf_ = flip . itraverseOf_
 -- Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
 -- discarding the results.
 --
--- When you don't need access to the index then 'mapMOf_' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.mapMOf_' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.mapMOf_' l = 'imapMOf' l . 'const'@
 --
@@ -205,7 +205,7 @@ skip _ = ()
 --
 -- @'iforMOf_' = 'flip' . 'imapMOf_'@
 --
--- When you don't need access to the index then 'forMOf_' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.forMOf_' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.forMOf_' l a = 'iforMOf' l a . 'const'@
 --
@@ -223,7 +223,7 @@ iforMOf_ = flip . imapMOf_
 -- Concatenate the results of a function of the elements of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
 -- with access to the index.
 --
--- When you don't need access to the index then 'concatMapOf_'  is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.concatMapOf_'  is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.concatMapOf_' l = 'iconcatMapMOf' l . 'const'@
 --
@@ -241,7 +241,7 @@ iconcatMapOf l ices = runAccessor . withIndex l (\i -> Accessor . ices i)
 -- supplied the index, a structure and returns the left-most element of the structure
 -- matching the predicate, or 'Nothing' if there is no such element.
 --
--- When you don't need access to the index then 'findOf' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.findOf' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.findOf' l = 'ifoldOf' l . 'const'@
 --
@@ -260,7 +260,7 @@ ifindOf l p = getFirst . ifoldMapOf l step where
 
 -- | /Strictly/ fold right over the elements of a structure with an index.
 --
--- When you don't need access to the index then 'foldrOf'' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.foldrOf'' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.foldrOf'' l = 'ifoldrOf'' l . 'const'@
 --
@@ -277,7 +277,7 @@ ifoldrOf' l f z0 xs = ifoldlOf l f' id xs z0
 
 -- | Fold over the elements of a structure with an index, associating to the left, but /strictly/.
 --
--- When you don't need access to the index then 'foldlOf'' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.foldlOf'' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.foldlOf'' l = 'ifoldlOf'' l . 'const'@
 --
@@ -294,7 +294,7 @@ ifoldlOf' l f z0 xs = ifoldrOf l f' id xs z0
 
 -- | Monadic fold right over the elements of a structure with an index.
 --
--- When you don't need access to the index then 'foldrMOf' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.foldrMOf' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.foldrMOf' l = 'ifoldrMOf' l . 'const'@
 --
@@ -311,7 +311,7 @@ ifoldrMOf l f z0 xs = ifoldlOf l f' return xs z0
 
 -- | Monadic fold over the elements of a structure with an index, associating to the left.
 --
--- When you don't need access to the index then 'foldlMOf' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.foldlMOf' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.foldlMOf' l = 'ifoldlMOf' l . 'const'@
 --
@@ -328,7 +328,7 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 
 -- | Extract the key-value pairs from a structure.
 --
--- When you don't need access to the indices, then 'toListOf' is more flexible in what it accepts.
+-- When you don't need access to the indices in the result, then 'Control.Lens.Fold.toListOf' is more flexible in what it accepts.
 --
 -- @'Control.Lens.Fold.toListOf' l = 'map' 'fst' . 'itoListOf' l@
 --
