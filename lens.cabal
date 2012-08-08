@@ -138,6 +138,8 @@ test-suite doctests
   main-is: doctests.hs
   build-depends:
     base == 4.*,
+    directory,
+    filepath,
     doctest >= 0.8 && <= 0.9
   ghc-options: -Wall -Werror -threaded
   hs-source-dirs: tests
