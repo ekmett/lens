@@ -140,3 +140,10 @@ test-suite templates
   build-depends: base == 4.*, lens == 1.7
   ghc-options: -Wall -Werror -threaded
   hs-source-dirs: test
+
+test-suite properties
+  type: exitcode-stdio-1.0
+  main-is: properties.hs
+  build-depends: base == 4.*, lens == 1.7, QuickCheck, transformers
+  ghc-options: -w -threaded
+  hs-source-dirs: test
