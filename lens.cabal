@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       1.7
+version:       1.7.1
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -46,15 +46,10 @@ build-type:    Simple
 tested-with:   GHC == 7.4.1
 extra-source-files:
   .travis.yml
-  examples/*.hs
-  test/*.hs
+  examples/LICENSE
+  examples/lens-examples.cabal
+  examples/pong.hs
   README.markdown
-
--- Build examples
-flag examples
-  default: False
-  manual: True
-  
 
 source-repository head
   type: git
@@ -168,17 +163,3 @@ test-suite properties
     transformers >= 0.3 && < 0.5
   ghc-options: -w -threaded
   hs-source-dirs: test
-
-executable pong
-  if !flag(examples)
-    buildable: False
-
-  build-depends:
-    base       == 4.*,
-    containers >= 0.4.2 && < 0.6,
-    gloss      == 1.7.*,
-    lens       == 1.7,
-    mtl        >= 2.0.1 && < 2.2,
-    random     == 1.0.*
-  main-is: Pong.hs
-  hs-source-dirs: examples

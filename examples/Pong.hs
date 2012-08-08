@@ -1,4 +1,16 @@
 {-# LANGUAGE TemplateHaskell, Rank2Types, NoMonomorphismRestriction #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Main
+-- Copyright   :  (C) 2012 Edward Kmett, nand`
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  provisional
+-- Portability :  TH, Rank2, NoMonomorphismRestriction
+--
+-- A simple game of pong using gloss.
+-----------------------------------------------------------------------------
+module Main where
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Lens

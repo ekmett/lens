@@ -1,0 +1,31 @@
+name:          lens-examples
+category:      Data, Lenses
+version:       0.1
+license:       BSD3
+cabal-version: >= 1.8
+license-file:  LICENSE
+author:        nand
+maintainer:    Edward A. Kmett <ekmett@gmail.com>
+stability:     provisional
+homepage:      http://github.com/ekmett/lens/
+bug-reports:   http://github.com/ekmett/lens/issues
+copyright:     Copyright (C) 2012 Edward A. Kmett
+synopsis:      Lenses, Folds and Traversals
+description:   Pong Example
+
+build-type:    Simple
+tested-with:   GHC == 7.4.1
+
+source-repository head
+  type: git
+  location: git://github.com/ekmett/lens.git
+
+executable pong
+  build-depends:
+    base       == 4.*,
+    containers >= 0.4.2 && < 0.6,
+    gloss      == 1.7.*,
+    lens       == 1.7.*,
+    mtl        >= 2.0.1 && < 2.2,
+    random     == 1.0.*
+  main-is: pong.hs
