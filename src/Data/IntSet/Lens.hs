@@ -24,7 +24,7 @@ import Data.IntSet as IntSet
 -- > ghci> contains 3 +~ False $ fromList [1,2,3,4]
 -- > fromList [1,2,4]
 --
--- > contains :: Int -> (Bool -> f Bool) -> IntSet -> f IntSet
+-- @contains :: 'Functor' f => 'Int' -> ('Bool' -> f 'Bool') -> 'IntSet' -> f 'IntSet'@
 contains :: Int -> Simple Lens IntSet Bool
 contains k f s = go <$> f (IntSet.member k s) where
   go False = IntSet.delete k s
@@ -47,15 +47,21 @@ members = folding IntSet.toAscList
 --
 -- >>> adjust setmapped (+1) (fromList [1,2,3,4])
 -- fromList [2,3,4,5]
-setmapped :: Setter IntSet IntSet Int Int
+setmapped :: Simple Setter IntSet Int
 setmapped = sets IntSet.map
 
 -- | Construct an 'IntSet' from a 'Getter', 'Fold', 'Traversal', 'Lens' or 'Iso'.
 --
--- > setOf :: Getter a Int        -> a -> IntSet
--- > setOf :: Fold a Int          -> a -> IntSet
--- > setOf :: Iso a b Int d       -> a -> IntSet
--- > setOf :: Lens a b Int d      -> a -> IntSet
--- > setOf :: Traversal a b Int d -> a -> IntSet
-setOf :: Getting IntSet a b Int d -> a -> IntSet
+-- >>> :m + Data.IntSet.Lens Control.Lens
+-- >>> setOf (folded._2) [("hello",1),("world",2),("!!!",3)]
+-- fromList [1,2,3]
+--
+-- @
+-- setOf :: 'Getter' a 'Int'           -> a -> 'IntSet'
+-- setOf :: 'Fold' a 'Int'             -> a -> 'IntSet'
+-- setOf :: 'Simple' 'Iso' a 'Int'       -> a -> 'IntSet'
+-- setOf :: 'Simple' 'Lens' a 'Int'      -> a -> 'IntSet'
+-- setOf :: 'Simple' 'Traversal' a 'Int' -> a -> 'IntSet'
+-- @
+setOf :: Getting IntSet a Int -> a -> IntSet
 setOf l = runAccessor . l (Accessor . IntSet.singleton)

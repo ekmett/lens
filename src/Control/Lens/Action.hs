@@ -49,14 +49,14 @@ infixr 8 ^!
 -- Every 'Getter' can be used as an 'Action'
 --
 -- You can compose an 'Action' with another 'Action' using ('Prelude..') from the @Prelude@.
-type Action m a c = forall f b r d. Effective m r f => (c -> f d) -> a -> f b
+type Action m a c = forall f r. Effective m r f => (c -> f c) -> a -> f a
 
 -- | A 'MonadicFold' is a 'Fold' enriched with access to a 'Monad' for side-effects.
 --
 -- Every 'Fold' can be used as a 'MonadicFold', that simply ignores the access to the 'Monad'.
 --
 -- You can compose a 'MonadicFold' with another 'MonadicFold' using ('Prelude..') from the @Prelude@.
-type MonadicFold m a c = forall f b r d. (Effective m r f, Applicative f) => (c -> f d) -> a -> f b
+type MonadicFold m a c = forall f r. (Effective m r f, Applicative f) => (c -> f c) -> a -> f a
 
 -- | An 'Effective' 'Functor' ignores its argument and is isomorphic to a monad wrapped around a value.
 --
@@ -101,13 +101,13 @@ instance Monad m => Effective m r (Effect m r) where
   {-# SPECIALIZE effective :: Monad m => Isomorphism (m r) (Effect m r a) #-}
 
 -- | Used to evaluate an 'Action'.
-type Acting m r a b c d = (c -> Effect m r d) -> a -> Effect m r b
+type Acting m r a c = (c -> Effect m r c) -> a -> Effect m r a
 
 -- | Perform an 'Action'.
 --
 -- > perform = flip (^!)
 --
-perform :: Monad m => Acting m c a b c d -> a -> m c
+perform :: Monad m => Acting m c a c -> a -> m c
 perform l = getEffect . l (Effect . return)
 {-# INLINE perform #-}
 
@@ -119,7 +119,7 @@ perform l = getEffect . l (Effect . return)
 -- hello
 -- world
 --
-(^!) :: Monad m => a -> Acting m c a b c d -> m c
+(^!) :: Monad m => a -> Acting m c a c -> m c
 a ^! l = getEffect (l (Effect . return) a)
 {-# INLINE (^!) #-}
 
@@ -141,6 +141,6 @@ acts = act id
 {-# INLINE acts #-}
 
 -- | Apply a 'Monad' transformer to an 'Action'.
-liftAct :: (MonadTrans t, Monad m) => Acting m c a b c d -> Action (t m) a c
+liftAct :: (MonadTrans t, Monad m) => Acting m c a c -> Action (t m) a c
 liftAct l = act (lift . perform l)
 {-# INLINE liftAct #-}

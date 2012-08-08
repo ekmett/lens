@@ -12,16 +12,16 @@
 -- A @'Getter' a c@ is just any function @(a -> c)@, which we've flipped into continuation
 -- passing style, @(c -> r) -> a -> r@ and decorated with 'Accessor' to obtain
 --
--- @type 'Getting' r a b c d = (c -> 'Accessor' r d) -> a -> 'Accessor' r b@
+-- @type 'Getting' r a c = (c -> 'Accessor' r c) -> a -> 'Accessor' r a@
 --
 -- If we restrict access to knowledge about the type 'r' and can work for any d and b, we could get:
 --
--- @type 'Getter' a c = forall r b d. 'Getting' r a b c d@
+-- @type 'Getter' a c = forall r. 'Getting' r a c@
 --
 -- But we actually hide the use of 'Accessor' behind a class 'Gettable' to error messages from
 -- type class resolution rather than at unification time, where they are much uglier.
 --
--- @type 'Getter' a c = forall f b d. 'Gettable' f => (c -> f d) -> a -> f b@
+-- @type 'Getter' a c = forall f. 'Gettable' f => (c -> f c) -> a -> f a@
 --
 -- Everything you can do with a function, you can do with a 'Getter', but note that because of the
 -- continuation passing style ('.') composes them in the opposite order.
@@ -71,7 +71,7 @@ infixr 0 ^$
 -- there are no lens laws that can be applied to it. In fact, it is isomorphic to an arbitrary function from @(a -> c)@.
 --
 -- Moreover, a 'Getter' can be used directly as a 'Control.Lens.Fold.Fold', since it just ignores the 'Applicative'.
-type Getter a c = forall f b d. Gettable f => (c -> f d) -> a -> f b
+type Getter a c = forall f. Gettable f => (c -> f c) -> a -> f a
 
 -- | Build a 'Getter' from an arbitrary Haskell function.
 --
@@ -92,10 +92,9 @@ to f g = coerce . g . f
 -- extract with 'Const'. To be compatible with 'Control.Lens.Type.Lens', 'Control.Lens.Traversal.Traversal' and 'Control.Lens.Iso.Iso' we also
 -- restricted choices of the irrelevant b and d parameters.
 --
--- If a function accepts a @'Getting' m r a b c d@, then when @r@ is a 'Monoid', and @m@ is a
--- 'Monad' you can pass a 'Control.Lens.Fold.Fold' (or 'Control.Lens.Traversal.Traversal'), otherwise you can only pass this a
+-- If a function accepts a @'Getting' r a c@, then when @r@ is a 'Monoid', then you can pass a 'Control.Lens.Fold.Fold' (or 'Control.Lens.Traversal.Traversal'), otherwise you can only pass this a
 -- 'Getter' or 'Control.Lens.Type.Lens'.
-type Getting r a b c d = (c -> Accessor r d) -> a -> Accessor r b
+type Getting r a c = (c -> Accessor r c) -> a -> Accessor r a
 
 -----------------------------------------------------------------------------
 -- Gettables & Accessors
@@ -166,11 +165,11 @@ instance Monoid r => Applicative (Accessor r) where
 -- @
 -- view ::             'Getter' a c          -> a -> c
 -- view :: 'Monoid' m => 'Control.Lens.Fold.Fold' a m            -> a -> m
--- view ::             'Control.Lens.Iso.Iso' a b c d         -> a -> c
--- view ::             'Control.Lens.Type.Lens' a b c d        -> a -> c
--- view :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' a b m d   -> a -> m
+-- view ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> a -> c
+-- view ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> a -> c
+-- view :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a m   -> a -> m
 -- @
-view :: Getting c a b c d -> a -> c
+view :: Getting c a c -> a -> c
 view l = runAccessor . l Accessor
 {-# INLINE view #-}
 
@@ -186,11 +185,11 @@ view l = runAccessor . l Accessor
 -- @
 -- views ::             'Getter' a c          -> (c -> d) -> a -> d
 -- views :: 'Monoid' m => 'Control.Lens.Fold.Fold' a c            -> (c -> m) -> a -> m
--- views ::             'Control.Lens.Iso.Iso' a b c d         -> (c -> d) -> a -> d
--- views ::             'Control.Lens.Type.Lens' a b c d        -> (c -> d) -> a -> d
--- views :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' a b c d   -> (c -> m) -> a -> m
+-- views ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> (c -> d) -> a -> d
+-- views ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> (c -> d) -> a -> d
+-- views :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c   -> (c -> m) -> a -> m
 -- @
-views :: Getting m a b c d -> (c -> m) -> a -> m
+views :: Getting m a c -> (c -> m) -> a -> m
 views l f = runAccessor . l (Accessor . f)
 {-# INLINE views #-}
 
@@ -206,11 +205,11 @@ views l f = runAccessor . l (Accessor . f)
 -- @
 -- (^$) ::             'Getter' a c          -> a -> c
 -- (^$) :: 'Monoid' m => 'Control.Lens.Fold.Fold' a m            -> a -> m
--- (^$) ::             'Control.Lens.Iso.Iso' a b c d         -> a -> c
--- (^$) ::             'Control.Lens.Type.Lens' a b c d        -> a -> c
--- (^$) :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' a b m d   -> a -> m
+-- (^$) ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> a -> c
+-- (^$) ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> a -> c
+-- (^$) :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a m   -> a -> m
 -- @
-(^$) :: Getting c a b c d -> a -> c
+(^$) :: Getting c a c -> a -> c
 l ^$ a = runAccessor (l Accessor a)
 {-# INLINE (^$) #-}
 
@@ -229,11 +228,11 @@ l ^$ a = runAccessor (l Accessor a)
 -- @
 -- (^.) ::             a -> 'Getter' a c          -> c
 -- (^.) :: 'Monoid' m => a -> 'Control.Lens.Fold.Fold' a m            -> m
--- (^.) ::             a -> 'Control.Lens.Iso.Iso' a b c d         -> c
--- (^.) ::             a -> 'Control.Lens.Type.Lens' a b c d        -> c
--- (^.) :: 'Monoid' m => a -> 'Control.Lens.Traversal.Traversal' a b m d   -> m
+-- (^.) ::             a -> 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> c
+-- (^.) ::             a -> 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> c
+-- (^.) :: 'Monoid' m => a -> 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a m   -> m
 -- @
-(^.) :: a -> Getting c a b c d -> c
+(^.) :: a -> Getting c a c -> c
 a ^. l = runAccessor (l Accessor a)
 {-# INLINE (^.) #-}
 
@@ -248,11 +247,11 @@ a ^. l = runAccessor (l Accessor a)
 -- @
 -- query :: 'MonadReader' a m             => 'Getter' a c        -> m c
 -- query :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Fold.Fold' a c          -> m c
--- query :: 'MonadReader' a m             => 'Control.Lens.Iso.Iso' a b c d       -> m c
--- query :: 'MonadReader' a m             => 'Control.Lens.Type.Lens' a b c d      -> m c
--- query :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Traversal.Traversal' a b c d -> m c
+-- query :: 'MonadReader' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -> m c
+-- query :: 'MonadReader' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -> m c
+-- query :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -> m c
 -- @
-query :: MonadReader a m => Getting c a b c d -> m c
+query :: MonadReader a m => Getting c a c -> m c
 query l = Reader.asks (^.l)
 {-# INLINE query #-}
 
@@ -263,11 +262,11 @@ query l = Reader.asks (^.l)
 -- @
 -- queries :: 'MonadReader' a m             => 'Getter' a c        -> (c -> e) -> m e
 -- queries :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Fold.Fold' a c          -> (c -> e) -> m e
--- queries :: 'MonadReader' a m             => 'Control.Lens.Iso.Iso' a b c d       -> (c -> e) -> m e
--- queries :: 'MonadReader' a m             => 'Control.Lens.Type.Lens' a b c d      -> (c -> e) -> m e
--- queries :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> e) -> m e
+-- queries :: 'MonadReader' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> e) -> m e
+-- queries :: 'MonadReader' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -> (c -> e) -> m e
+-- queries :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> e) -> m e
 -- @
-queries :: MonadReader a m => Getting e a b c d -> (c -> e) -> m e
+queries :: MonadReader a m => Getting e a c -> (c -> e) -> m e
 queries l f = Reader.asks (views l f)
 {-# INLINE queries #-}
 
@@ -282,11 +281,11 @@ queries l f = Reader.asks (views l f)
 -- @
 -- use :: 'MonadState' a m             => 'Getter' a c          -> m c
 -- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a r            -> m r
--- use :: 'MonadState' a m             => 'Control.Lens.Iso.Iso' a b c d         -> m c
--- use :: 'MonadState' a m             => 'Control.Lens.Type.Lens' a b c d        -> m c
--- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Traversal.Traversal' a b r d   -> m r
+-- use :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> m c
+-- use :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> m c
+-- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a r   -> m r
 -- @
-use :: MonadState a m => Getting c a b c d -> m c
+use :: MonadState a m => Getting c a c -> m c
 use l = State.gets (view l)
 {-# INLINE use #-}
 
@@ -297,10 +296,10 @@ use l = State.gets (view l)
 -- @
 -- uses :: 'MonadState' a m             => 'Getter' a c        -> (c -> e) -> m e
 -- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a c          -> (c -> r) -> m r
--- uses :: 'MonadState' a m             => 'Control.Lens.Type.Lens' a b c d      -> (c -> e) -> m e
--- uses :: 'MonadState' a m             => 'Control.Lens.Iso.Iso' a b c d       -> (c -> e) -> m e
--- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> r) -> m r
+-- uses :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -> (c -> e) -> m e
+-- uses :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> e) -> m e
+-- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> r) -> m r
 -- @
-uses :: MonadState a m => Getting e a b c d -> (c -> e) -> m e
+uses :: MonadState a m => Getting e a c -> (c -> e) -> m e
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}

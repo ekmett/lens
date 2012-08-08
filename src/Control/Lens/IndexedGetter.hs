@@ -25,7 +25,7 @@ import Control.Lens.Indexed
 ------------------------------------------------------------------------------
 
 -- | Every 'IndexedGetter' is a valid 'Control.Lens.IndexedFold.IndexedFold' and 'Getter'.
-type IndexedGetter i a c = forall k f b d. (Indexed i k, Gettable f) => k (c -> f d) (a -> f b)
+type IndexedGetter i a c = forall k f. (Indexed i k, Gettable f) => k (c -> f c) (a -> f a)
 
 -- | Used to consume an 'Control.Lens.IndexedFold.IndexedFold'.
-type IndexedGetting i m a b c d = Index i (c -> Accessor m d) (a -> Accessor m b)
+type IndexedGetting i m a c = Index i (c -> Accessor m c) (a -> Accessor m a)

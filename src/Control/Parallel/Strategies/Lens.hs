@@ -34,7 +34,7 @@ import Control.Parallel.Strategies
 -- evalTraversal :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
 -- evalTraversal :: (b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
 -- @
-evalOf :: LensLike Eval a a b b -> Strategy b -> Strategy a
+evalOf :: SimpleLensLike Eval a b -> Strategy b -> Strategy a
 evalOf l = l
 
 -- | Evaluate the targets of a 'Lens' or 'Traversal' according into a
@@ -47,7 +47,7 @@ evalOf l = l
 -- parTraversal :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
 -- parTraversal :: ((b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
 -- @
-parOf :: LensLike Eval a a b b -> Strategy b -> Strategy a
+parOf :: SimpleLensLike Eval a b -> Strategy b -> Strategy a
 parOf l s = l (rparWith s)
 
 -- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to

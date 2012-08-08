@@ -51,10 +51,12 @@ setmapped = sets Set.map
 -- >>> setOf (folded._2) [("hello",1),("world",2),("!!!",3)]
 -- fromList [1,2,3]
 --
--- > setOf ::          Getter a c        -> a -> Set c
--- > setOf :: Ord c => Fold a c          -> a -> Set c
--- > setOf ::          Iso a b c d       -> a -> Set c
--- > setOf ::          Lens a b c d      -> a -> Set c
--- > setOf :: Ord c => Traversal a b c d -> a -> Set c
-setOf :: Getting (Set c) a b c d -> a -> Set c
+-- @
+-- setOf ::          'Getter' a c           -> a -> 'Set' c
+-- setOf :: 'Ord' c => 'Fold' a c             -> a -> 'Set' c
+-- setOf ::          'Simple' 'Iso' a c       -> a -> 'Set' c
+-- setOf ::          'Simple' 'Lens' a c      -> a -> 'Set' c
+-- setOf :: 'Ord' c => 'Simple' 'Traversal' a c -> a -> 'Set' c
+-- @
+setOf :: Getting (Set c) a c -> a -> Set c
 setOf l = runAccessor . l (Accessor . Set.singleton)
