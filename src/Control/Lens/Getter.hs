@@ -132,8 +132,12 @@ instance Gettable f => Gettable (ElementOf f) where
     Found j as    -> Found j (coerce as)
     NotFound s    -> NotFound s
 
--- | Used instead of Const to report \"No instance of ('Control.Lens.Setter.Settable' 'Accessor')\" when
--- attempting to misuse a 'Control.Lens.Setter.Setter' as a 'Getter'.
+-- | Used instead of 'Const' to report
+--
+-- @No instance of ('Control.Lens.Setter.Settable' 'Accessor')@
+--
+-- when the user attempts to misuse a 'Control.Lens.Setter.Setter' as a 'Getter',
+-- rather than a monolithic unification error.
 newtype Accessor r a = Accessor { runAccessor :: r }
 
 instance Functor (Accessor r) where
@@ -160,11 +164,13 @@ instance Monoid r => Applicative (Accessor r) where
 -- >>> view _2 (1,"hello")
 -- "hello"
 --
--- > view ::             Getter a c          -> a -> c
--- > view :: Monoid m => Fold a m            -> a -> m
--- > view ::             Iso a b c d         -> a -> c
--- > view ::             Lens a b c d        -> a -> c
--- > view :: Monoid m => Traversal a b m d   -> a -> m
+-- @
+-- view ::             'Getter' a c          -> a -> c
+-- view :: 'Monoid' m => 'Control.Lens.Fold.Fold' a m            -> a -> m
+-- view ::             'Control.Lens.Iso.Iso' a b c d         -> a -> c
+-- view ::             'Control.Lens.Type.Lens' a b c d        -> a -> c
+-- view :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' a b m d   -> a -> m
+-- @
 view :: Getting c a b c d -> a -> c
 view l = runAccessor . l Accessor
 {-# INLINE view #-}
@@ -177,11 +183,13 @@ view l = runAccessor . l Accessor
 -- >>> views _2 length (1,"hello")
 -- 5
 --
--- > views ::             Getter a c          -> (c -> d) -> a -> d
--- > views :: Monoid m => Fold a c            -> (c -> m) -> a -> m
--- > views ::             Iso a b c d         -> (c -> d) -> a -> d
--- > views ::             Lens a b c d        -> (c -> d) -> a -> d
--- > views :: Monoid m => Traversal a b c d   -> (c -> m) -> a -> m
+-- @
+-- views ::             'Getter' a c          -> (c -> d) -> a -> d
+-- views :: 'Monoid' m => 'Control.Lens.Fold.Fold' a c            -> (c -> m) -> a -> m
+-- views ::             'Control.Lens.Iso.Iso' a b c d         -> (c -> d) -> a -> d
+-- views ::             'Control.Lens.Type.Lens' a b c d        -> (c -> d) -> a -> d
+-- views :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' a b c d   -> (c -> m) -> a -> m
+-- @
 views :: Getting m a b c d -> (c -> m) -> a -> m
 views l f = runAccessor . l (Accessor . f)
 {-# INLINE views #-}
@@ -194,11 +202,13 @@ views l f = runAccessor . l (Accessor . f)
 -- >>> _2 ^$ (1, "hello")
 -- "hello"
 --
--- > (^$) ::             Getter a c          -> a -> c
--- > (^$) :: Monoid m => Fold a m            -> a -> m
--- > (^$) ::             Iso a b c d         -> a -> c
--- > (^$) ::             Lens a b c d        -> a -> c
--- > (^$) :: Monoid m => Traversal a b m d   -> a -> m
+-- @
+-- (^$) ::             'Getter' a c          -> a -> c
+-- (^$) :: 'Monoid' m => 'Control.Lens.Fold.Fold' a m            -> a -> m
+-- (^$) ::             'Control.Lens.Iso.Iso' a b c d         -> a -> c
+-- (^$) ::             'Control.Lens.Type.Lens' a b c d        -> a -> c
+-- (^$) :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' a b m d   -> a -> m
+-- @
 (^$) :: Getting c a b c d -> a -> c
 l ^$ a = runAccessor (l Accessor a)
 {-# INLINE (^$) #-}
@@ -214,11 +224,13 @@ l ^$ a = runAccessor (l Accessor a)
 -- >>> ((0, 1 :+ 2), 3)^._1._2.to magnitude
 -- 2.23606797749979
 --
--- > (^.) ::             a -> Getter a c          -> c
--- > (^.) :: Monoid m => a -> Fold a m            -> m
--- > (^.) ::             a -> Iso a b c d         -> c
--- > (^.) ::             a -> Lens a b c d        -> c
--- > (^.) :: Monoid m => a -> Traversal a b m d   -> m
+-- @
+-- (^.) ::             a -> 'Getter' a c          -> c
+-- (^.) :: 'Monoid' m => a -> 'Control.Lens.Fold.Fold' a m            -> m
+-- (^.) ::             a -> 'Control.Lens.Iso.Iso' a b c d         -> c
+-- (^.) ::             a -> 'Control.Lens.Type.Lens' a b c d        -> c
+-- (^.) :: 'Monoid' m => a -> 'Control.Lens.Traversal.Traversal' a b m d   -> m
+-- @
 (^.) :: a -> Getting c a b c d -> c
 a ^. l = runAccessor (l Accessor a)
 {-# INLINE (^.) #-}
@@ -231,11 +243,13 @@ a ^. l = runAccessor (l Accessor a)
 -- Query the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso' or 'Getter' in the current state, or use a
 -- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
--- > query :: MonadReader a m             => Getter a c        -> m c
--- > query :: (MonadReader a m, Monoid c) => Fold a c          -> m c
--- > query :: MonadReader a m             => Iso a b c d       -> m c
--- > query :: MonadReader a m             => Lens a b c d      -> m c
--- > query :: (MonadReader a m, Monoid c) => Traversal a b c d -> m c
+-- @
+-- query :: 'MonadReader' a m             => 'Getter' a c        -> m c
+-- query :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Fold.Fold' a c          -> m c
+-- query :: 'MonadReader' a m             => 'Control.Lens.Iso.Iso' a b c d       -> m c
+-- query :: 'MonadReader' a m             => 'Control.Lens.Type.Lens' a b c d      -> m c
+-- query :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Traversal.Traversal' a b c d -> m c
+-- @
 query :: MonadReader a m => Getting c a b c d -> m c
 query l = Reader.asks (^.l)
 {-# INLINE query #-}
@@ -244,11 +258,13 @@ query l = Reader.asks (^.l)
 -- Use the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso' or 'Getter' in the current state, or use a
 -- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
--- > queries :: MonadReader a m             => Getter a c        -> (c -> e) -> m e
--- > queries :: (MonadReader a m, Monoid c) => Fold a c          -> (c -> e) -> m e
--- > queries :: MonadReader a m             => Iso a b c d       -> (c -> e) -> m e
--- > queries :: MonadReader a m             => Lens a b c d      -> (c -> e) -> m e
--- > queries :: (MonadReader a m, Monoid c) => Traversal a b c d -> (c -> e) -> m e
+-- @
+-- queries :: 'MonadReader' a m             => 'Getter' a c        -> (c -> e) -> m e
+-- queries :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Fold.Fold' a c          -> (c -> e) -> m e
+-- queries :: 'MonadReader' a m             => 'Control.Lens.Iso.Iso' a b c d       -> (c -> e) -> m e
+-- queries :: 'MonadReader' a m             => 'Control.Lens.Type.Lens' a b c d      -> (c -> e) -> m e
+-- queries :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> e) -> m e
+-- @
 queries :: MonadReader a m => Getting e a b c d -> (c -> e) -> m e
 queries l f = Reader.asks (views l f)
 {-# INLINE queries #-}
@@ -261,12 +277,13 @@ queries l f = Reader.asks (views l f)
 -- Use the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', or 'Getter' in the current state, or use a
 -- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
--- > use :: MonadState a m             => Action m a b      -> m b
--- > use :: MonadState a m             => Getter a c        -> m c
--- > use :: (MonadState a m, Monoid r) => Fold a r          -> m r
--- > use :: MonadState a m             => Iso a b c d       -> m c
--- > use :: MonadState a m             => Lens a b c d      -> m c
--- > use :: (MonadState a m, Monoid r) => Traversal a b r d -> m r
+-- @
+-- use :: 'MonadState' a m             => 'Getter' a c          -> m c
+-- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a r            -> m r
+-- use :: 'MonadState' a m             => 'Control.Lens.Iso.Iso' a b c d         -> m c
+-- use :: 'MonadState' a m             => 'Control.Lens.Type.Lens' a b c d        -> m c
+-- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Traversal.Traversal' a b r d   -> m r
+-- @
 use :: MonadState a m => Getting c a b c d -> m c
 use l = State.gets (view l)
 {-# INLINE use #-}
@@ -275,12 +292,13 @@ use l = State.gets (view l)
 -- Use the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso' or 'Getter' in the current state, or use a
 -- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
--- > uses :: MonadState a m             => Action m a c      -> (c -> e) -> m e
--- > uses :: MonadState a m             => Getter a c        -> (c -> e) -> m e
--- > uses :: (MonadState a m, Monoid r) => Fold a c          -> (c -> r) -> m r
--- > uses :: MonadState a m             => Lens a b c d      -> (c -> e) -> m e
--- > uses :: MonadState a m             => Iso a b c d       -> (c -> e) -> m e
--- > uses :: (MonadState a m, Monoid r) => Traversal a b c d -> (c -> r) -> m r
+-- @
+-- uses :: 'MonadState' a m             => 'Getter' a c        -> (c -> e) -> m e
+-- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a c          -> (c -> r) -> m r
+-- uses :: 'MonadState' a m             => 'Control.Lens.Type.Lens' a b c d      -> (c -> e) -> m e
+-- uses :: 'MonadState' a m             => 'Control.Lens.Iso.Iso' a b c d       -> (c -> e) -> m e
+-- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> r) -> m r
+-- @
 uses :: MonadState a m => Getting e a b c d -> (c -> e) -> m e
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}

@@ -43,7 +43,7 @@ instance Indexed i (->) where
   {-# INLINE index #-}
 
 -- | A function with access to a index. This constructor may be useful when you need to store
--- a 'HasIndex'.
+-- a 'Indexable' in a container to avoid @ImpredicativeTypes@.
 newtype Index i a b = Index { withIndex :: (i -> a) -> b }
 
 -- | Using an equality witness to avoid potential overlapping instances

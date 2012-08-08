@@ -39,7 +39,7 @@ import Data.Monoid
 -- Functors
 -----------------------------------------------------------------------------
 
--- | Used by 'Focus'
+-- | Used by 'Control.Lens.Type.Focus'
 
 newtype Focusing m c a = Focusing { unfocusing :: m (c, a) }
 
@@ -55,16 +55,16 @@ instance (Monad m, Monoid c) => Applicative (Focusing m c) where
     (d, a) <- ma
     return (mappend c d, f a)
 
--- | The indexed store can be used to characterize a 'LensFamily'
--- and is used by 'clone'
+-- | The indexed store can be used to characterize a 'Control.Lens.Type.Lens'
+-- and is used by 'Control.Lens.Type.clone'
 
 data IndexedStore c d a = IndexedStore (d -> a) c
 
 instance Functor (IndexedStore c d) where
   fmap f (IndexedStore g c) = IndexedStore (f . g) c
 
--- | Applicative composition of @State Int@ with a 'Functor', used
--- by 'elementOf', 'elementsOf', 'traverseElement', 'traverseElementsOf'
+-- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
+-- by 'Control.Lens.Traversal.elementOf', 'Control.Lens.Traversal.elementsOf', 'Control.Lens.Traversal.traverseElement', 'Control.Lens.Traversal.traverseElementsOf'
 
 newtype AppliedState f a = AppliedState { runAppliedState :: Int -> (f a, Int) }
 
@@ -78,7 +78,7 @@ instance Applicative f => Applicative (AppliedState f) where
     (ff, j) -> case ma j of
        (fa, k) -> (ff <*> fa, k)
 
--- | Used internally by 'traverseOf_', 'mapM_' and the like.
+-- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
 
 newtype Traversed f = Traversed { getTraversed :: f () }
 
@@ -86,14 +86,14 @@ instance Applicative f => Monoid (Traversed f) where
   mempty = Traversed (pure ())
   Traversed ma `mappend` Traversed mb = Traversed (ma *> mb)
 
--- | Used internally by 'mapM_' and the like.
+-- | Used internally by 'Control.Lens.Traversal.mapM_' and the like.
 newtype Sequenced m = Sequenced { getSequenced :: m () }
 
 instance Monad m => Monoid (Sequenced m) where
   mempty = Sequenced (return ())
   Sequenced ma `mappend` Sequenced mb = Sequenced (ma >> mb)
 
--- | Used for 'minimumOf'
+-- | Used for 'Control.Lens.Fold.minimumOf'
 data Min a = NoMin | Min a
 
 instance Ord a => Monoid (Min a) where
@@ -102,12 +102,12 @@ instance Ord a => Monoid (Min a) where
   mappend m NoMin = m
   mappend (Min a) (Min b) = Min (min a b)
 
--- | Obtain the minimum
+-- | Obtain the minimum.
 getMin :: Min a -> Maybe a
 getMin NoMin   = Nothing
 getMin (Min a) = Just a
 
--- | Used for 'maximumOf'
+-- | Used for 'Control.Lens.Fold.maximumOf'
 data Max a = NoMax | Max a
 
 instance Ord a => Monoid (Max a) where
@@ -121,7 +121,7 @@ getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
 
--- | The result of trying to find the nth element of a 'Traversal'.
+-- | The result of trying to find the /n/th 'Control.Lens.Traversal.element' of a 'Control.Lens.Traversal.Traversal'.
 data ElementOfResult f a
   = Searching {-# UNPACK #-} !Int a
   | Found {-# UNPACK #-} !Int (f a)
@@ -132,7 +132,7 @@ instance Functor f => Functor (ElementOfResult f) where
   fmap f (Found i as) = Found i (fmap f as)
   fmap _ (NotFound e) = NotFound e
 
--- | Used to find the nth element of a 'Traversal'.
+-- | Used to find the /n/th 'Control.Lens.Traversal.element' of a 'Control.Lens.Traversal.Traversal'.
 newtype ElementOf f a = ElementOf { getElementOf :: Int -> ElementOfResult f a }
 
 instance Functor f => Functor (ElementOf f) where

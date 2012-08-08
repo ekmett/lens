@@ -3,6 +3,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Action
@@ -66,7 +67,7 @@ type MonadicFold m a c = forall f b r d. (Effective m r f, Applicative f) => (c 
 class (Monad m, Gettable f) => Effective m r f | f -> m r where
   effective :: Isomorphic k => k (m r) (f a)
 
--- | A convenient antonym
+-- | A convenient antonym that is used internally.
 ineffective :: Effective m r f => Isomorphic k => k (f a) (m r)
 ineffective = from effective
 {-# INLINE ineffective #-}
@@ -102,7 +103,7 @@ instance Monad m => Effective m r (Effect m r) where
   {-# SPECIALIZE effective :: Monad m => m r -> Effect m r a #-}
   {-# SPECIALIZE effective :: Monad m => Isomorphism (m r) (Effect m r a) #-}
 
--- | Used to evaluate an Action.
+-- | Used to evaluate an 'Action'.
 type Acting m r a b c d = (c -> Effect m r d) -> a -> Effect m r b
 
 -- | Perform an 'Action'.
@@ -128,7 +129,7 @@ act :: Monad m => (a -> m c) -> Action m a c
 act amc cfd a = effective (amc a >>= from effective . cfd)
 {-# INLINE act #-}
 
--- | A self-running action, analogous to join.
+-- | A self-running 'Action', analogous to 'Control.Monad.join'.
 --
 -- @'acts' = 'act' 'id'@
 --

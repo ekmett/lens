@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ByteString.Lazy.Lens
@@ -17,12 +18,14 @@ module Data.ByteString.Lazy.Lens
 import Control.Lens
 import Data.ByteString.Lazy as Words
 import Data.ByteString.Lazy.Char8 as Char8
+import Data.List.Lens
 import Data.Word (Word8)
 
--- | Pack (or unpack) a list of bytes into a 'ByteString'
+-- | 'Data.ByteString.Lazy.pack' (or 'Data.ByteString.Lazy.unpack') a list of bytes into a 'ByteString'
 --
--- > pack x = x^.packedBytes
--- > unpack x = x^.from packedBytes
+-- @'Data.ByteString.Lazy.pack' x = x '^.' 'packedBytes'@
+--
+-- @'Data.ByteString.Lazy.unpack' x = x '^.' 'from' 'packedBytes'@
 packedBytes :: Simple Iso [Word8] ByteString
 packedBytes = iso Words.pack Words.unpack
 {-# INLINE packedBytes #-}
@@ -30,20 +33,21 @@ packedBytes = iso Words.pack Words.unpack
 
 -- | Traverse the individual bytes in a 'ByteString'
 --
--- > bytes = from packedBytes . traverse
+-- @'bytes' = 'from' 'packedBytes' . 'traverseList'@
 --
--- > anyOf bytes (==0x80) :: ByteString -> Bool
-bytes :: Simple Traversal ByteString Word8
-bytes = from packedBytes . traverse
+-- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
+bytes :: SimpleIndexedTraversal Int ByteString Word8
+bytes = from packedBytes .> traverseList
 {-# INLINE bytes #-}
 
--- | Pack (or unpack) a list of characters into a 'ByteString'
+-- | 'Data.ByteString.Lazy.Char8.pack' (or 'Data.ByteString.Lazy.Char8.unpack') a list of characters into a 'ByteString'
 --
--- When writing back to the byteString it is assumed that all characters
--- lie between '\x00' and '\xff'.
+-- When writing back to the 'ByteString' it is assumed that every 'Char'
+-- lies between '\x00' and '\xff'.
 --
--- > pack x = x^.packedChars
--- > unpack x = x^.from packedChars
+-- @'Data.ByteString.Lazy.Char8.pack' x = x '^.' 'packedChars'@
+--
+-- @'Data.ByteString.Lazy.Char8.unpack' x = x '^.' 'from' 'packedChars'@
 packedChars :: Simple Iso String ByteString
 packedChars = iso Char8.pack Char8.unpack
 {-# INLINE packedChars #-}
@@ -51,12 +55,12 @@ packedChars = iso Char8.pack Char8.unpack
 
 -- | Traverse the individual bytes in a 'ByteString' as characters.
 --
--- When writing back to the byteString it is assumed that all characters
--- lie between '\x00' and '\xff'.
+-- When writing back to the 'ByteString' it is assumed that every 'Char'
+-- lies between '\x00' and '\xff'.
 --
--- > chars = from packed . traverse
+-- @'chars' = 'from' 'packedChars' '.>' 'traverseList'@
 --
--- > anyOf chars (=='c') :: ByteString -> Bool
-chars :: Simple Traversal ByteString Char
-chars = from packedChars . traverse
+-- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
+chars :: SimpleIndexedTraversal Int ByteString Char
+chars = from packedChars .> traverseList
 {-# INLINE chars #-}
