@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, Rank2Types #-}
+{-# LANGUAGE TemplateHaskell, Rank2Types, NoMonomorphismRestriction #-}
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Lens
@@ -16,15 +16,18 @@ import System.Random
 
 -- Some global constants
 
-gameSize      = 300
-windowSize    = 480
-ballRadius    = 0.02
-speedIncrease = 1.1
-initialSpeed  = 0.5
-paddleWidth   = 0.02
-paddleHeight  = 0.3
-paddleSpeed   = 1
-textSize      = 0.001
+gameSize        = 300
+windowWidth     = 800
+windowHeight    = 600
+ballRadius      = 0.02
+speedIncrease   = 1.2
+losingAccuracy  = 0.7
+winningAccuracy = 0.3
+initialSpeed    = 0.6
+paddleWidth     = 0.02
+paddleHeight    = 0.3
+paddleSpeed     = 1
+textSize        = 0.001
 
 -- Pure data type for representing the game state
 
@@ -42,6 +45,12 @@ data Pong = Pong
 
 -- Some nice lenses to go with it
 makeLenses ''Pong
+
+ahead (i, j) = i <= j
+
+accuracy p
+  | ahead (p^.score) = winningAccuracy
+  | otherwise = losingAccuracy
 
 -- Renamed tuple lenses for enhanced clarity with points/vectors
 _x = _1
@@ -89,7 +98,7 @@ updatePaddles time = do
   p <- get
 
   let paddleMovement = time * paddleSpeed
-  let keyPressed key = p^.keys.contains (SpecialKey key)
+      keyPressed key = p^.keys.contains (SpecialKey key)
 
   -- Update the player's paddle based on keys
   when (keyPressed KeyUp)   $ paddle1 += paddleMovement
@@ -97,7 +106,9 @@ updatePaddles time = do
 
   -- Calculate the optimal position
   let optimal = hitPos (p^.ballPos) (p^.ballSpeed)
-  let dist    = optimal - p^.paddle2
+      acc     = accuracy p
+      target  = optimal * acc + (p^.ballPos._y) * (1 - acc)
+      dist    = target - p^.paddle2
 
   -- Move the CPU's paddle towards this optimal position as needed
   when (abs dist > paddleHeight/3) $
@@ -125,16 +136,14 @@ checkBounds = do
     ballSpeed._y %= negate
 
   -- Check for collisions with paddles
-  let { check paddle other =
-    if y >= p^.paddle - paddleHeight/2 && y <= p^.paddle + paddleHeight/2
-      then do
-        ballSpeed._x   %= negate
-        ballSpeed.both *= speedIncrease
-
-      else do
-        score.other += 1
-        reset
-  }
+  let check paddle other
+        | y >= p^.paddle - paddleHeight/2 && y <= p^.paddle + paddleHeight/2 = do
+            ballSpeed._x   %= negate
+            ballSpeed._y   += 3*(y - p^.paddle) -- add english
+            ballSpeed.both *= speedIncrease
+        | otherwise = do
+          score.other += 1
+          reset
 
   when (x >=  edge) $ check paddle2 _1
   when (x <= -edge) $ check paddle1 _2
@@ -194,7 +203,7 @@ main = do
   play display backColor fps world draw handle update
 
   where
-    display   = InWindow "Pong!" (windowSize, windowSize) (200, 200)
+    display   = InWindow "Pong!" (windowWidth, windowHeight) (200, 200)
     backColor = white
     fps       = 120
 

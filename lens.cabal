@@ -50,6 +50,12 @@ extra-source-files:
   test/*.hs
   README.markdown
 
+-- Build examples
+flag examples
+  default: False
+  manual: True
+  
+
 source-repository head
   type: git
   location: git://github.com/ekmett/lens.git
@@ -162,3 +168,17 @@ test-suite properties
     transformers >= 0.3 && < 0.5
   ghc-options: -w -threaded
   hs-source-dirs: test
+
+executable pong
+  if !flag(examples)
+    buildable: False
+
+  build-depends:
+    base       == 4.*,
+    containers >= 0.4.2 && < 0.6,
+    gloss      == 1.7.*,
+    lens       == 1.7,
+    mtl        >= 2.0.1 && < 2.2,
+    random     == 1.0.*
+  main-is: Pong.hs
+  hs-source-dirs: examples
