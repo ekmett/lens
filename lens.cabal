@@ -140,7 +140,7 @@ test-suite doctests
     base == 4.*,
     doctest >= 0.8 && <= 0.9
   ghc-options: -Wall -Werror -threaded
-  hs-source-dirs: test
+  hs-source-dirs: tests
 
 -- Verify that Template Haskell expansion works
 test-suite templates
@@ -148,9 +148,9 @@ test-suite templates
   main-is: templates.hs
   build-depends:
     base == 4.*,
-    lens == 1.7
+    lens
   ghc-options: -Wall -Werror -threaded
-  hs-source-dirs: test
+  hs-source-dirs: tests
 
 -- Verify the properties of lenses with QuickCheck
 test-suite properties
@@ -158,8 +158,8 @@ test-suite properties
   main-is: properties.hs
   build-depends:
     base         == 4.*,
-    lens         == 1.7,
+    lens,
     QuickCheck   >= 2.4 && < 2.6,
     transformers >= 0.3 && < 0.5
   ghc-options: -w -threaded
-  hs-source-dirs: test
+  hs-source-dirs: tests
