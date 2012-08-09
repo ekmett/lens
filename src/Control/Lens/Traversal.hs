@@ -67,7 +67,7 @@ import Data.Traversable
 --
 -- These have also been known as multilenses, but they have the signature and spirit of
 --
--- > traverse :: Traversable f => Traversal (f a) (f b) a b
+-- @'traverse' :: 'Traversable' f => 'Traversal' (f a) (f b) a b@
 --
 -- and the more evocative name suggests their application.
 --
@@ -79,11 +79,11 @@ import Data.Traversable
 --
 -- 1) Idiomatic naturality:
 --
--- > t pure = pure
+-- @t 'pure' = 'pure'@
 --
 -- 2) Sequential composition:
 --
--- > fmap (t f) . t g = getCompose . t (Compose . fmap f . g)
+-- @'fmap' (t f) . t g = 'getCompose' . t ('Compose' . 'fmap' f . g)@
 --
 -- One consequence of this requirement is that a traversal needs to leave the same number of elements as a candidate for 
 -- subsequent traversal as it started with.
@@ -92,7 +92,7 @@ import Data.Traversable
 -- that you should incur no effect caused by visiting the same element of the container twice.
 type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 
--- | > type SimpleTraversal = Simple Traversal
+-- | @type SimpleTraversal = 'Simple' 'Traversal'@
 type SimpleTraversal a b = Traversal a a b b
 
 --------------------------
@@ -103,25 +103,33 @@ type SimpleTraversal a b = Traversal a a b b
 -- Map each element of a structure targeted by a Lens or Traversal,
 -- evaluate these actions from left to right, and collect the results.
 --
--- > traverseOf = id
+-- @'traverseOf' = 'id'@
 --
--- > traverse = traverseOf traverse
+-- @'traverse' = 'traverseOf' 'traverse'@
 --
--- > traverseOf :: Iso a b c d       -> (c -> f d) -> a -> f b
--- > traverseOf :: Lens a b c d      -> (c -> f d) -> a -> f b
--- > traverseOf :: Traversal a b c d -> (c -> f d) -> a -> f b
+-- @
+-- 'traverseOf' :: 'Iso' a b c d       -> (c -> f d) -> a -> f b
+-- 'traverseOf' :: 'Lens' a b c d      -> (c -> f d) -> a -> f b
+-- 'traverseOf' :: 'Traversal' a b c d -> (c -> f d) -> a -> f b
+-- @
 traverseOf :: LensLike f a b c d -> (c -> f d) -> a -> f b
 traverseOf = id
 {-# INLINE traverseOf #-}
 
 -- |
 --
--- > forOf l = flip (traverseOf l)
+-- @'forOf' l = 'flip' ('traverseOf' l)@
 --
--- > for = forOf traverse
--- > forOf = morphism flip flip
+-- @
+-- 'for' = 'forOf' 'traverse'
+-- 'forOf' = 'flip'
+-- @
 --
--- > forOf :: Lens a b c d -> a -> (c -> f d) -> f b
+-- @
+-- forOf :: 'Iso' a b c d -> a -> (c -> f d) -> f b
+-- forOf :: 'Lens' a b c d -> a -> (c -> f d) -> f b
+-- forOf :: 'Traversal' a b c d -> a -> (c -> f d) -> f b
+-- @
 forOf :: LensLike f a b c d -> a -> (c -> f d) -> f b
 forOf = flip
 {-# INLINE forOf #-}
@@ -130,13 +138,17 @@ forOf = flip
 -- Evaluate each action in the structure from left to right, and collect
 -- the results.
 --
--- > sequenceA = sequenceAOf traverse
--- > sequenceAOf l = traverseOf l id
--- > sequenceAOf l = l id
+-- @
+-- 'sequenceA' = 'sequenceAOf' 'traverse' = 'traverse' 'id'
+-- 'sequenceAOf' l = 'traverseOf' l id
+-- 'sequenceAOf' l = l id
+-- @
 --
--- > sequenceAOf ::                  Iso a b (f c) c       -> a -> f b
--- > sequenceAOf ::                  Lens a b (f c) c      -> a -> f b
--- > sequenceAOf :: Applicative f => Traversal a b (f c) c -> a -> f b
+-- @
+-- 'sequenceAOf' ::                  'Iso' a b (f c) c       -> a -> f b
+-- 'sequenceAOf' ::                  'Lens' a b (f c) c      -> a -> f b
+-- 'sequenceAOf' :: 'Applicative' f => 'Traversal' a b (f c) c -> a -> f b
+-- @
 sequenceAOf :: LensLike f a b (f c) c -> a -> f b
 sequenceAOf l = l id
 {-# INLINE sequenceAOf #-}
@@ -144,75 +156,91 @@ sequenceAOf l = l id
 -- | Map each element of a structure targeted by a lens to a monadic action,
 -- evaluate these actions from left to right, and collect the results.
 --
--- > mapM = mapMOf traverse
+-- @'mapM' = 'mapMOf' 'traverse'@
 --
--- > mapMOf ::            Iso a b c d       -> (c -> m d) -> a -> m b
--- > mapMOf ::            Lens a b c d      -> (c -> m d) -> a -> m b
--- > mapMOf :: Monad m => Traversal a b c d -> (c -> m d) -> a -> m b
+-- @
+-- 'mapMOf ::            'Iso' a b c d       -> (c -> m d) -> a -> m b
+-- 'mapMOf ::            'Lens' a b c d      -> (c -> m d) -> a -> m b
+-- 'mapMOf :: 'Monad' m => 'Traversal' a b c d -> (c -> m d) -> a -> m b
+-- @
 mapMOf :: LensLike (WrappedMonad m) a b c d -> (c -> m d) -> a -> m b
 mapMOf l cmd = unwrapMonad . l (WrapMonad . cmd)
 {-# INLINE mapMOf #-}
 
 -- |
--- > forM = forMOf traverse
--- > forMOf l = flip (mapMOf l)
+-- @
+-- 'forM' = 'forMOf' 'traverse'
+-- 'forMOf' l = 'flip' ('mapMOf' l)
+-- @
 --
--- > forMOf ::            Iso a b c d       -> a -> (c -> m d) -> m b
--- > forMOf ::            Lens a b c d      -> a -> (c -> m d) -> m b
--- > forMOf :: Monad m => Traversal a b c d -> a -> (c -> m d) -> m b
+-- @
+-- forMOf ::            'Iso' a b c d       -> a -> (c -> m d) -> m b
+-- forMOf ::            'Lens' a b c d      -> a -> (c -> m d) -> m b
+-- forMOf :: 'Monad' m => 'Traversal' a b c d -> a -> (c -> m d) -> m b
+-- @
 forMOf :: LensLike (WrappedMonad m) a b c d -> a -> (c -> m d) -> m b
 forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
 {-# INLINE forMOf #-}
 
 -- |
--- > sequence = sequenceOf traverse
--- > sequenceOf l = mapMOf l id
--- > sequenceOf l = unwrapMonad . l WrapMonad
+-- @
+-- 'sequence' = 'sequenceOf' 'traverse'
+-- sequenceOf l = 'mapMOf' l id
+-- sequenceOf l = 'unwrapMonad' . l 'WrapMonad'
+-- @
 --
--- > sequenceOf ::            Iso a b (m c) c       -> a -> m b
--- > sequenceOf ::            Lens a b (m c) c      -> a -> m b
--- > sequenceOf :: Monad m => Traversal a b (m c) c -> a -> m b
+-- @
+-- sequenceOf ::            'Iso' a b (m c) c       -> a -> m b
+-- sequenceOf ::            'Lens' a b (m c) c      -> a -> m b
+-- sequenceOf :: 'Monad' m => 'Traversal' a b (m c) c -> a -> m b
+-- @
 sequenceOf :: LensLike (WrappedMonad m) a b (m c) c -> a -> m b
 sequenceOf l = unwrapMonad . l WrapMonad
 {-# INLINE sequenceOf #-}
 
 -- | This generalizes 'Data.List.transpose' to an arbitrary 'Traversal'.
 --
--- > transpose = transposeOf traverse
+-- Note: 'Data.List.transpose' handles ragged inputs more intelligently, but for non-ragged inputs:
 --
--- > ghci> transposeOf traverse [[1,2,3],[4,5,6]]
--- > [[1,4],[2,5],[3,6]]
+-- @'Data.List.transpose' = 'transposeOf' 'traverse'@
 --
--- Since every 'Lens' is a Traversal, we can use this as a form of
--- monadic strength.
+-- >>> transposeOf traverse [[1,2,3],[4,5,6]]
+-- [[1,4],[2,5],[3,6]]
 --
--- > transposeOf _2 :: (b, [a]) -> [(b, a)]
+-- Since every 'Lens' is a 'Traversal', we can use this as a form of
+-- monadic strength as well:
+--
+-- @'transposeOf' '_2' :: (b, [a]) -> [(b, a)]@
 transposeOf :: LensLike ZipList a b [c] c -> a -> [b]
 transposeOf l = getZipList . l ZipList
 {-# INLINE transposeOf #-}
 
 -- | Generalizes 'Data.Traversable.mapAccumR' to an arbitrary 'Traversal'.
 --
--- > mapAccumR = mapAccumROf traverse
+-- @'mapAccumR' = 'mapAccumROf' 'traverse'@
 --
 -- 'mapAccumROf' accumulates state from right to left.
 --
--- > mapAccumROf :: Iso a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
--- > mapAccumROf :: Lens a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
--- > mapAccumROf :: Traversal a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- @
+-- mapAccumROf :: 'Iso' a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- mapAccumROf :: 'Lens' a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- mapAccumROf :: 'Traversal' a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- @
 mapAccumROf :: LensLike (Lazy.State s) a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f s c))) a) s0)
 {-# INLINE mapAccumROf #-}
 
 -- | Generalized 'Data.Traversable.mapAccumL' to an arbitrary 'Traversal'.
 --
--- > mapAccumL = mapAccumLOf traverse
+-- @'mapAccumL' = 'mapAccumLOf' 'traverse'@
 --
 -- 'mapAccumLOf' accumulates state from left to right.
 --
--- > mapAccumLOf :: Iso a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
--- > mapAccumLOf :: Lens a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
--- > mapAccumLOf :: Traversal a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- @
+-- mapAccumLOf :: 'Iso' a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- mapAccumLOf :: 'Lens' a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- mapAccumLOf :: 'Traversal' a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- @
 mapAccumLOf :: LensLike (Backwards (Lazy.State s)) a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 mapAccumLOf = mapAccumROf . backwards
 {-# INLINE mapAccumLOf #-}
@@ -223,11 +251,13 @@ swap (a,b) = (b,a)
 
 -- | Permit the use of 'scanr1' over an arbitrary 'Traversal' or 'Lens'.
 --
--- > scanr1 = scanr1Of traverse
+-- @'scanr1' = 'scanr1Of' 'traverse'@
 --
--- > scanr1Of :: Iso a b c c       -> (c -> c -> c) -> a -> b
--- > scanr1Of :: Lens a b c c      -> (c -> c -> c) -> a -> b
--- > scanr1Of :: Traversal a b c c -> (c -> c -> c) -> a -> b
+-- @
+-- scanr1Of :: 'Iso' a b c c       -> (c -> c -> c) -> a -> b
+-- scanr1Of :: 'Lens' a b c c      -> (c -> c -> c) -> a -> b
+-- scanr1Of :: 'Traversal' a b c c -> (c -> c -> c) -> a -> b
+-- @
 scanr1Of :: LensLike (Lazy.State (Maybe c)) a b c c -> (c -> c -> c) -> a -> b
 scanr1Of l f = snd . mapAccumROf l step Nothing where
   step Nothing c  = (Just c, c)
@@ -236,11 +266,13 @@ scanr1Of l f = snd . mapAccumROf l step Nothing where
 
 -- | Permit the use of 'scanl1' over an arbitrary 'Traversal' or 'Lens'.
 --
--- > scanl1 = scanl1Of traverse
+-- @'scanl1' = 'scanl1Of' 'traverse'@
 --
--- > scanr1Of :: Iso a b c c       -> (c -> c -> c) -> a -> b
--- > scanr1Of :: Lens a b c c      -> (c -> c -> c) -> a -> b
--- > scanr1Of :: Traversal a b c c -> (c -> c -> c) -> a -> b
+-- @
+-- scanr1Of :: Iso a b c c       -> (c -> c -> c) -> a -> b
+-- scanr1Of :: Lens a b c c      -> (c -> c -> c) -> a -> b
+-- scanr1Of :: Traversal a b c c -> (c -> c -> c) -> a -> b
+-- @
 scanl1Of :: LensLike (Backwards (Lazy.State (Maybe c))) a b c c -> (c -> c -> c) -> a -> b
 scanl1Of l f = snd . mapAccumLOf l step Nothing where
   step Nothing c  = (Just c, c)
@@ -255,8 +287,9 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 --
 -- Attempts to access beyond the range of the 'Traversal' will cause an error.
 --
--- > ghci> [[1],[3,4]]^.elementOf (traverse.traverse) 1
--- > 3
+-- >>> import Control.Lens
+-- >>> [[1],[3,4]]^.elementOf (traverse.traverse) 1
+-- 3
 elementOf :: Functor f => LensLike (ElementOf f) a b c c -> Int -> LensLike f a b c c
 elementOf l i f a = case getElementOf (l go a) 0 of
     Found _ fb    -> fb
@@ -269,7 +302,7 @@ elementOf l i f a = case getElementOf (l go a) 0 of
 --
 -- Attempts to access beyond the range of the 'Traversal' will cause an error.
 --
--- > element = elementOf traverse
+-- @'element' = 'elementOf' 'traverse'@
 element :: Traversable t => Int -> Simple Lens (t a) a
 element = elementOf traverse
 
@@ -279,7 +312,7 @@ element = elementOf traverse
 
 -- | This is the traversal that just doesn't return anything
 --
--- > traverseNothing :: Applicative f => (c -> f d) -> a -> f a
+-- @'traverseNothing' :: 'Applicative' f => (c -> f d) -> a -> f a@
 traverseNothing :: Traversal a a c d
 traverseNothing = const pure
 {-# INLINE traverseNothing #-}

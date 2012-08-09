@@ -191,18 +191,22 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 --
 -- @('%%~') = 'id'@
 --
--- > (%%~) :: Functor f =>     Iso a b c d       -> (c -> f d) -> a -> f b
--- > (%%~) :: Functor f =>     Lens a b c d      -> (c -> f d) -> a -> f b
--- > (%%~) :: Applicative f => Traversal a b c d -> (c -> f d) -> a -> f b
+-- @
+-- (%%~) :: 'Functor' f =>     'Control.Lens.Iso.Iso' a b c d       -> (c -> f d) -> a -> f b
+-- (%%~) :: 'Functor' f =>     'Lens' a b c d      -> (c -> f d) -> a -> f b
+-- (%%~) :: 'Applicative' f => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> f d) -> a -> f b
+-- @
 --
 -- It may be beneficial to think about it as if it had these even more restrictive types, however:
 --
 -- When applied to a 'Control.Lens.Traversal.Traversal', it can edit the targets of the 'Traversals', extracting a
 -- supplemental monoidal summary of its actions, by choosing f = ((,) m)
 --
--- > (%%~) ::             Iso a b c d       -> (c -> (e, d)) -> a -> (e, b)
--- > (%%~) ::             Lens a b c d      -> (c -> (e, d)) -> a -> (e, b)
--- > (%%~) :: Monoid m => Traversal a b c d -> (c -> (m, d)) -> a -> (m, b)
+-- @
+-- (%%~) ::             'Control.Lens.Iso.Iso' a b c d       -> (c -> (e, d)) -> a -> (e, b)
+-- (%%~) ::             'Lens' a b c d      -> (c -> (e, d)) -> a -> (e, b)
+-- (%%~) :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> (m, d)) -> a -> (m, b)
+-- @
 (%%~) :: LensLike f a b c d -> (c -> f d) -> a -> f b
 (%%~) = id
 {-# INLINE (%%~) #-}
@@ -216,9 +220,11 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- It may be useful to think of ('%%='), instead, as having either of the following more restricted
 -- type signatures:
 --
--- > (%%=) :: MonadState a m             => Iso a a c d       -> (c -> (e, d) -> m e
--- > (%%=) :: MonadState a m             => Lens a a c d      -> (c -> (e, d) -> m e
--- > (%%=) :: (MonadState a m, Monoid e) => Traversal a a c d -> (c -> (e, d) -> m e
+-- @
+-- (%%=) :: 'MonadState' a m             => 'Control.Lens.Iso.Iso' a a c d       -> (c -> (e, d) -> m e
+-- (%%=) :: 'MonadState' a m             => 'Lens' a a c d      -> (c -> (e, d) -> m e
+-- (%%=) :: ('MonadState' a m, 'Monoid' e) => 'Control.Lens.Traversal.Traversal' a a c d -> (c -> (e, d) -> m e
+-- @
 (%%=) :: MonadState a m => LensLike ((,) e) a a c d -> (c -> (e, d)) -> m e
 #if MIN_VERSION_mtl(2,1,1)
 l %%= f = State.state (l f)
@@ -241,16 +247,20 @@ class Focus st where
   -- and a monoidal summary
   -- of the result is given.
   --
-  -- > focus :: Monad m             => Simple Iso a b       -> st b m c -> st a m c
-  -- > focus :: Monad m             => Simple Lens a b      -> st b m c -> st a m c
-  -- > focus :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m c
+  -- @
+  -- focus :: 'Monad' m             => 'Simple' 'Control.Lens.Iso.Iso' a b       -> st b m c -> st a m c
+  -- focus :: 'Monad' m             => 'Simple' 'Lens' a b      -> st b m c -> st a m c
+  -- focus :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> st b m c -> st a m c
+  -- @
   focus :: Monad m => LensLike (Focusing m c) a a b b -> st b m c -> st a m c
 
   -- | Like 'focus', but discarding any accumulated results as you go.
   --
-  -- > focus_ :: Monad m             => Simple Iso a b       -> st b m c -> st a m ()
-  -- > focus_ :: Monad m             => Simple Lens a b      -> st b m c -> st a m ()
-  -- > focus_ :: (Monad m, Monoid c) => Simple Traversal a b -> st b m c -> st a m ()
+  -- @
+  -- focus_ :: 'Monad' m             => 'Simple' 'Control.Lens.Iso.Iso' a b       -> st b m c -> st a m ()
+  -- focus_ :: 'Monad' m             => 'Simple' 'Lens' a b      -> st b m c -> st a m ()
+  -- focus_ :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> st b m c -> st a m ()
+  -- @
   focus_ :: Monad m => LensLike (Focusing m ()) a a b b -> st b m c -> st a m ()
 
   -- | A much more limited version of 'focus' that can work with a 'Setter'.
@@ -275,7 +285,6 @@ instance Focus Lazy.StateT where
   setFocus l m = Lazy.state $ (,) () . runIdentity . l (Identity . snd . Lazy.runState m)
 
 instance Focus ReaderT where
-  --focus l m = ReaderT $ \a -> liftM fst $ unfocusing $ l (\b -> Focusing $ (\c -> (c,b)) `liftM` runReaderT m b) a
   focus l m = ReaderT $ liftM fst . unfocusing . l (\b -> Focusing $ (\c -> (c,b)) `liftM` runReaderT m b)
   {-# INLINE focus #-}
   focus_ l m = ReaderT $ \a -> liftM skip $ unfocusing $ l (\b -> Focusing $ (\_ -> ((),b)) `liftM` runReaderT m b) a
@@ -290,7 +299,6 @@ instance Focus ReaderT where
 -- a pair.
 --
 -- >>> import Control.Lens
---
 -- >>> (1,2)^._1
 -- 1
 --
@@ -330,7 +338,7 @@ merged l _ f (Left a)   = Left <$> l f a
 merged _ r f (Right a') = Right <$> r f a'
 {-# INLINE merged #-}
 
--- | 'bothLenses' makes a lens from two other lenses (or isomorphisms)
+-- | 'bothLenses' makes a 'Lens' from two other lenses (or isomorphisms)
 bothLenses :: Lens a b c d -> Lens a' b' c' d' -> Lens (a,a') (b,b') (c,c') (d,d')
 bothLenses l r f (a, a') = case l (IndexedStore id) a of
   IndexedStore db c -> case r (IndexedStore id) a' of
