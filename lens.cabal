@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       1.8
+version:       1.9
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -33,7 +33,7 @@ description:
   .
   The core of this hierarchy looks like:
   .
-  <<https://github.com/ekmett/lens/wiki/images/Hierarchy-1.8.png>>
+  <<https://github.com/ekmett/lens/wiki/images/Hierarchy-1.9.png>>
   .
   You can compose any two elements of the hierarchy above using (.) from the Prelude, and you can
   use any element of the hierarchy as any type it links to above it.
@@ -49,7 +49,7 @@ description:
   /Minimizing Dependencies/
   .
   If you want to provide lenses and traversals for your own types in your own libraries, then you
-  can do so without incurring a dependency on this (or any other) lens package at all. 
+  can do so without incurring a dependency on this (or any other) lens package at all.
   .
   e.g. for a data type:
   .
