@@ -8,6 +8,8 @@ This package provides families of lenses, isomorphisms, folds, traversals, gette
 These lenses are compatible with those from lens-family, lens-family-core and lens-family-th,
 but they provide a great deal of additional flexibility in their composition.
 
+An overview of the derivation of setters, folds, traversals, getters and lenses can be found on the lens wiki under [Tutorial](https://github.com/ekmett/lens/wiki/Tutorial).
+
 Example
 -------
 
