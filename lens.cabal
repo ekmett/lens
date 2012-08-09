@@ -12,9 +12,6 @@ bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012 Edward A. Kmett
 synopsis:      Lenses, Folds and Traversals
 description:
-  The combinators in @Control.Lens@ provide a highly generic toolbox for composing
-  families of getters, folds, isomorphisms, traversals, setters and lenses and their indexed variants.
-  .
   This package attempts to come 'Batteries Included' with many useful lenses for the types
   commonly used from the Haskell Platform.
   .
@@ -23,12 +20,25 @@ description:
   .
   <http://github.com/ekmett/lens/wiki>
   .
+  /Lenses, Folds and Traversals/
+  .
+  The combinators in @Control.Lens@ provide a highly generic toolbox for composing
+  families of getters, folds, isomorphisms, traversals, setters and lenses and their indexed variants.
+  .
+  The core of this hierarchy looks like:
+  .
   <<http://github.com/ekmett/lens/wiki/images/Hierarchy-1.8.png>>
   .
-  You can compose any two elements of the hierarchy above using (.) from the Prelude.
+  You can compose any two elements of the hierarchy above using (.) from the Prelude, and you can
+  use any element of the hierarchy as any type it links to above it.
+  .
   The result is their lowest upper bound in the hierarchy (or an error f that bound doesn't exist).
   .
-  e.g. You can use any Traversal as a Fold or as a Setter.
+  For instance:
+  .
+  * You can use any 'Traversal' as a 'Fold' or as a 'Setter'.
+  .
+  * The composition of a 'Traversal' and a 'Getter' yields a 'Fold'.
   .
   /Minimizing Dependencies/
   .

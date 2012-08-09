@@ -12,39 +12,36 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
--- This package provides lens families, setters, getters, traversals,
--- isomorphisms, and folds that can all be composed automatically with
--- each other (and other lenses from other van Laarhoven lens libraries)
--- using @(.)@ from Prelude, while reducing the complexity of the API.
---
--- For a longer description and motivation of why you should care about lens families,
--- see <http://comonad.com/reader/2012/mirrored-lenses/>.
---
--- Note: If you merely want your library to /provide/ lenses you may not
--- have to actually import /any/ lens library. For, say, a
--- @'Simple' 'Lens' Bar Foo@, just export a function with the signature:
---
--- > foo :: Functor f => (Foo -> f Foo) -> Bar -> f Bar
---
--- and then you can compose it with other lenses with @(.)@ without needing
--- anything from this library at all.
---
 -- Usage:
 --
 -- You can derive lenses automatically for many data types:
 --
--- > import Control.Lens
--- > data Foo a = Foo { _fooArgs :: [String], _fooValue :: a }
--- > makeLenses ''Foo
+-- @
+-- import Control.Lens
+-- data Foo a = Foo { _fooArgs :: ['String'], _fooValue :: a }
+-- 'makeLenses' ''Foo
+-- @
 --
 -- This defines the following lenses:
 --
--- > fooArgs :: Simple Lens (Foo a) [String]
--- > fooValue :: Lens (Foo a) (Foo b) a b
+-- @
+-- fooArgs :: 'Simple' 'Lens' (Foo a) ['String']
+-- fooValue :: 'Lens' (Foo a) (Foo b) a b
+-- @
+--
+-- You can then access the value with ('^.') and set the value of the field
+-- with ('.~') and can use almost any other combinator that is re-exported here
+-- on those fields.
 --
 -- The combinators here have unusually specific type signatures, so for
--- particularly tricky ones, I've tried to list the simpler type signatures
--- you might want to pretend the combinators have.
+-- particularly tricky ones, the simpler type signatures you might want to
+-- pretend the combinators have are specified as well.
+--
+-- More information on how to use lenses is available on the lens wiki:
+--
+-- <http://github.com/ekmett/lens/wiki>
+--
+-- <<http://github.com/ekmett/lens/wiki/images/Hierarchy-1.8.png>>
 ----------------------------------------------------------------------------
 module Control.Lens
   ( module Control.Lens.Type
