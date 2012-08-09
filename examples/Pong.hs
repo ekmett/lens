@@ -85,8 +85,8 @@ hitPos (x,y) (u,v) = ypos
 accuracy :: Pong -> Float
 accuracy p = g . f . fromIntegral $ p^.score._1 - p^.score._2
   where
-    -- Scaling curve
-    f x = -4.5e-8 * x^3 + 3.7e-6 * x^2 + 0.04 * x + 0.5
+    -- Scaling function
+    f x = 0.04 * x + 0.5
     -- Clamping function
     g = min losingAccuracy . max winningAccuracy
 
