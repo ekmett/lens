@@ -10,7 +10,7 @@ but they provide a great deal of additional flexibility in their composition.
 
 An overview of the derivation of setters, folds, traversals, getters and lenses can be found on the lens wiki under [Tutorial](https://github.com/ekmett/lens/wiki/Tutorial).
 
-![Lens Hierarchy](https://github.com/ekmett/lens/wiki/images/Hierarchy-1.8.png)
+[![Lens Hierarchy](https://s3.amazonaws.com/creately-published/h5nyo9ne1)](https://creately.com/diagram/h5nyo9ne1/LBbRz63yg4yQsTXGLtub1bQU4%3D)
 
 Example
 -------
