@@ -122,6 +122,13 @@ type SimpleIso a b = Iso a a b b
 
 -- | Build an isomorphism family from two pairs of inverse functions
 --
+-- @
+-- 'view' ('isos' ac ca bd db) = ac
+-- 'view' ('from' ('isos' ac ca bd db)) = ca
+-- 'set' ('isos' ac ca bd db) cd = db . cd . ac
+-- 'set' ('from' ('isos' ac ca bd db')) ab = bd . ab . ca
+-- @
+--
 -- @isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> 'Iso' a b c d@
 isos :: (Isomorphic k, Functor f) => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> k (c -> f d) (a -> f b)
 isos ac ca bd db = isomorphic
@@ -132,6 +139,14 @@ isos ac ca bd db = isomorphic
 {-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Isomorphism (c -> f d) (a -> f b) #-}
 
 -- | Build a simple isomorphism from a pair of inverse functions
+--
+--
+-- @
+-- 'view' ('iso' f g) = f
+-- 'view' ('from' ('iso' f g)) = g
+-- 'set' ('isos' f g) h = g . h . f
+-- 'set' ('from' ('iso' f g')) h = f . h . g
+-- @
 --
 -- @iso :: (a -> b) -> (b -> a) -> 'Control.Lens.Type.Simple' 'Iso' a b@
 iso :: (Isomorphic k, Functor f) => (a -> b) -> (b -> a) -> k (b -> f b) (a -> f a)
