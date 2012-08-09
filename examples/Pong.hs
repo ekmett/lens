@@ -33,8 +33,8 @@ windowWidth     = 800
 windowHeight    = 600
 ballRadius      = 0.02
 speedIncrease   = 1.2
-losingAccuracy  = 0.7
-winningAccuracy = 0.3
+losingAccuracy  = 0.9
+winningAccuracy = 0.1
 initialSpeed    = 0.6
 paddleWidth     = 0.02
 paddleHeight    = 0.3
@@ -58,12 +58,6 @@ data Pong = Pong
 -- Some nice lenses to go with it
 makeLenses ''Pong
 
-ahead (i, j) = i <= j
-
-accuracy p
-  | ahead (p^.score) = winningAccuracy
-  | otherwise = losingAccuracy
-
 -- Renamed tuple lenses for enhanced clarity with points/vectors
 _x = _1
 _y = _2
@@ -86,6 +80,15 @@ hitPos (x,y) (u,v) = ypos
       | n >  o    = bounce (  2 *o - n)
       | n < -o    = bounce ((-2)*o - n)
       | otherwise = n
+
+-- Difficulty function
+accuracy :: Pong -> Float
+accuracy p = g . f . fromIntegral $ p^.score._1 - p^.score._2
+  where
+    -- Scaling curve
+    f x = -4.5e-8 * x^3 + 3.7e-6 * x^2 + 0.04 * x + 0.5
+    -- Clamping function
+    g = min losingAccuracy . max winningAccuracy
 
 -- Game update logic
 
