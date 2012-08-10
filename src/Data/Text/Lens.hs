@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Text.Lens
@@ -15,6 +16,7 @@ module Data.Text.Lens
 
 import Control.Lens
 import Data.Text
+import Data.List.Lens
 
 -- | Pack (or unpack) 'Text'.
 --
@@ -28,6 +30,6 @@ packed = iso pack unpack
 -- | Traverse the individual characters in a either strict or lazy 'Text'.
 --
 -- > anyOf text (=='c') :: Text -> Bool
-text :: Simple Traversal Text Char
-text = from packed . traverse
+text :: SimpleIndexedTraversal Int Text Char
+text = from packed .> traverseList
 {-# INLINE text #-}
