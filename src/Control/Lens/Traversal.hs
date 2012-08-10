@@ -62,7 +62,7 @@ import Data.Traversable
 -- Traversals
 ------------------------------------------------------------------------------
 
--- | A 'Traversal' can be used directly as a 'Setter' or a 'Fold' (but not as a 'Lens') and provides
+-- | A 'Traversal' can be used directly as a 'Control.Lens.Setter.Setter' or a 'Fold' (but not as a 'Lens') and provides
 -- the ability to both read and update multiple fields, subject to some relatively weak 'Traversal' laws.
 --
 -- These have also been known as multilenses, but they have the signature and spirit of
@@ -72,7 +72,7 @@ import Data.Traversable
 -- and the more evocative name suggests their application.
 --
 -- Most of the time the 'Traversal' you will want to use is just 'traverse', but you can also pass any
--- 'Lens' or 'Iso' as a Traversal, and composition of a 'Traversal' (or 'Lens' or 'Iso') with a 'Traversal' (or 'Lens' or 'Iso')
+-- 'Lens' or 'Control.Lens.Iso.Iso' as a Traversal, and composition of a 'Traversal' (or 'Lens' or 'Control.Lens.Iso.Iso') with a 'Traversal' (or 'Lens' or 'Control.Lens.Iso.Iso')
 -- using (.) forms a valid 'Traversal'.
 --
 -- The laws for a Traversal @t@ follow from the laws for Traversable as stated in \"The Essence of the Iterator Pattern\".
@@ -108,7 +108,7 @@ type SimpleTraversal a b = Traversal a a b b
 -- @'traverse' = 'traverseOf' 'traverse'@
 --
 -- @
--- 'traverseOf' :: 'Iso' a b c d       -> (c -> f d) -> a -> f b
+-- 'traverseOf' :: 'Control.Lens.Iso.Iso' a b c d       -> (c -> f d) -> a -> f b
 -- 'traverseOf' :: 'Lens' a b c d      -> (c -> f d) -> a -> f b
 -- 'traverseOf' :: 'Traversal' a b c d -> (c -> f d) -> a -> f b
 -- @
@@ -126,7 +126,7 @@ traverseOf = id
 -- @
 --
 -- @
--- forOf :: 'Iso' a b c d -> a -> (c -> f d) -> f b
+-- forOf :: 'Control.Lens.Iso.Iso' a b c d -> a -> (c -> f d) -> f b
 -- forOf :: 'Lens' a b c d -> a -> (c -> f d) -> f b
 -- forOf :: 'Traversal' a b c d -> a -> (c -> f d) -> f b
 -- @
@@ -145,7 +145,7 @@ forOf = flip
 -- @
 --
 -- @
--- 'sequenceAOf' ::                  'Iso' a b (f c) c       -> a -> f b
+-- 'sequenceAOf' ::                  'Control.Lens.Iso.Iso' a b (f c) c       -> a -> f b
 -- 'sequenceAOf' ::                  'Lens' a b (f c) c      -> a -> f b
 -- 'sequenceAOf' :: 'Applicative' f => 'Traversal' a b (f c) c -> a -> f b
 -- @
@@ -159,7 +159,7 @@ sequenceAOf l = l id
 -- @'mapM' = 'mapMOf' 'traverse'@
 --
 -- @
--- 'mapMOf ::            'Iso' a b c d       -> (c -> m d) -> a -> m b
+-- 'mapMOf ::            'Control.Lens.Iso.Iso' a b c d       -> (c -> m d) -> a -> m b
 -- 'mapMOf ::            'Lens' a b c d      -> (c -> m d) -> a -> m b
 -- 'mapMOf :: 'Monad' m => 'Traversal' a b c d -> (c -> m d) -> a -> m b
 -- @
@@ -174,7 +174,7 @@ mapMOf l cmd = unwrapMonad . l (WrapMonad . cmd)
 -- @
 --
 -- @
--- forMOf ::            'Iso' a b c d       -> a -> (c -> m d) -> m b
+-- forMOf ::            'Control.Lens.Iso.Iso' a b c d       -> a -> (c -> m d) -> m b
 -- forMOf ::            'Lens' a b c d      -> a -> (c -> m d) -> m b
 -- forMOf :: 'Monad' m => 'Traversal' a b c d -> a -> (c -> m d) -> m b
 -- @
@@ -190,7 +190,7 @@ forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
 -- @
 --
 -- @
--- sequenceOf ::            'Iso' a b (m c) c       -> a -> m b
+-- sequenceOf ::            'Control.Lens.Iso.Iso' a b (m c) c       -> a -> m b
 -- sequenceOf ::            'Lens' a b (m c) c      -> a -> m b
 -- sequenceOf :: 'Monad' m => 'Traversal' a b (m c) c -> a -> m b
 -- @
@@ -222,7 +222,7 @@ transposeOf l = getZipList . l ZipList
 -- 'mapAccumROf' accumulates state from right to left.
 --
 -- @
--- mapAccumROf :: 'Iso' a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- mapAccumROf :: 'Control.Lens.Iso.Iso' a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- mapAccumROf :: 'Lens' a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- mapAccumROf :: 'Traversal' a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- @
@@ -237,7 +237,7 @@ mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f 
 -- 'mapAccumLOf' accumulates state from left to right.
 --
 -- @
--- mapAccumLOf :: 'Iso' a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- mapAccumLOf :: 'Control.Lens.Iso.Iso' a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- mapAccumLOf :: 'Lens' a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- mapAccumLOf :: 'Traversal' a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- @
@@ -254,7 +254,7 @@ swap (a,b) = (b,a)
 -- @'scanr1' = 'scanr1Of' 'traverse'@
 --
 -- @
--- scanr1Of :: 'Iso' a b c c       -> (c -> c -> c) -> a -> b
+-- scanr1Of :: 'Control.Lens.Iso.Iso' a b c c       -> (c -> c -> c) -> a -> b
 -- scanr1Of :: 'Lens' a b c c      -> (c -> c -> c) -> a -> b
 -- scanr1Of :: 'Traversal' a b c c -> (c -> c -> c) -> a -> b
 -- @
@@ -283,7 +283,7 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 -- Common Lenses
 ------------------------------------------------------------------------------
 
--- | A 'Lens' to view/edit the nth element 'elementOf' a 'Traversal', 'Lens' or 'Iso'.
+-- | A 'Lens' to view/edit the nth element 'elementOf' a 'Traversal', 'Lens' or 'Control.Lens.Iso.Iso'.
 --
 -- Attempts to access beyond the range of the 'Traversal' will cause an error.
 --
