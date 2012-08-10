@@ -83,9 +83,9 @@ import Data.Traversable
 --
 -- 2) Sequential composition:
 --
--- @'fmap' (t f) . t g = 'getCompose' . t ('Compose' . 'fmap' f . g)@
+-- @'fmap' (t f) . t g = 'Data.Functor.Compose.getCompose' . t ('Data.Functor.Compose.Compose' . 'fmap' f . g)@
 --
--- One consequence of this requirement is that a traversal needs to leave the same number of elements as a candidate for 
+-- One consequence of this requirement is that a traversal needs to leave the same number of elements as a candidate for
 -- subsequent traversal as it started with.
 --
 -- 3) No duplication of elements (as defined in \"The Essence of the Iterator Pattern\" section 5.5), which states
