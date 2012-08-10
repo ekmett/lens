@@ -23,7 +23,7 @@ ghci> ("hello",("world","!!!"))^._2._1
 "world"
 ```
 
-You can make getters out of pure functions with 'to'.
+You can make getters out of pure functions with `to`.
 
 
 ```haskell
@@ -36,6 +36,22 @@ You can write to lenses and these writes can change the type of the container.
 ```haskell
 ghci> _1 .~ "hello" $ ((),"world")
 ("hello","world)
+```
+
+You can let the library automatically derive lenses for fields of your data type
+
+```haskell
+import Control.Lens
+
+data Foo a = Foo { _bar :: Int, _baz :: Int, _quux :: a }
+makeLenses ''Foo
+```
+
+This will automatically generate the following lenses:
+
+```haskell
+bar, baz :: Simple Lens (Foo a) Int
+quux :: Lens (Foo a) (Foo b) a b
 ```
 
 You can also write to setters that target multiple parts of a structure, or their composition with other
@@ -92,11 +108,34 @@ ghci> :t hello
 hello :: Text
 ```
 
-but you can also flip them around and use them as a lens the other way with 'from'
+but you can also flip them around and use them as a lens the other way with `from`
 
 ```haskell
 ghci> hello^.from packed.to length
 5
+```
+
+You can automatically derive isomorphisms for your own newtypes with `makeIso`. e.g.
+
+```haskell
+newtype Neither a b = Neither { _nor :: Either a b } deriving (Show)
+makeIso ''Neither
+```
+
+will automatically derive
+
+```haskell
+neither :: Iso (Neither a b) (Neither c d) (Either a b) (Either c d)
+nor :: Iso (Either a b) (Either c d) (Neither a b) (Neither c d)
+```
+
+such that
+
+```haskell
+from neither = nor
+from nor = neither
+neither.nor = id
+nor.neither = id
 ```
 
 Contact Information
