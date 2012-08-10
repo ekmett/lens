@@ -14,8 +14,8 @@ module Main where
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Lens
-import Control.Lens.TH (makeLenses)
-import Control.Monad.State
+import Control.Monad.State (State, execState, get)
+import Control.Monad (when)
 
 import Data.Set (Set, member, empty, insert, delete)
 import Data.Set.Lens (contains)
@@ -24,7 +24,7 @@ import Data.Pair.Lens (both)
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 
-import System.Random
+import System.Random (randomRs, getStdGen)
 
 -- Some global constants
 
