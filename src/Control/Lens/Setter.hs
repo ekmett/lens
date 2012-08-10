@@ -455,7 +455,7 @@ l &&~ n = adjust l (&& n)
 
 -- | Modify the target of a monoidally valued by 'mappend'ing another value.
 --
--- >>> :m + Control.Lens Data.Pair
+-- >>> :m + Control.Lens Data.Pair.Lens
 -- >>> both <>~ "!!!" $ ("hello","world")
 -- ("hello!!!","world!!!")
 --
