@@ -3,4 +3,4 @@
 	url = git://github.com/ekmett/lens.wiki.git
 [submodule "docs"]
 	path = docs
-	url = git@github.com:ekmett/lens.git
+	url = git://github.com/ekmett/lens.git
