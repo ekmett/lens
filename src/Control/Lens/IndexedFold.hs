@@ -17,6 +17,8 @@ module Control.Lens.IndexedFold
   (
   -- * Indexed Folds
     IndexedFold
+
+  -- * Consuming Indexed Folds
   , ifoldMapOf
   , ifoldrOf
   , ifoldlOf
@@ -33,6 +35,11 @@ module Control.Lens.IndexedFold
   , ifoldrMOf
   , ifoldlMOf
   , itoListOf
+
+  -- * Building Indexed Folds
+  , ifiltered
+  , itakingWhile
+  , idroppingWhile
   ) where
 
 import Control.Applicative
@@ -341,3 +348,29 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 itoListOf :: IndexedGetting i [(i,c)] a c -> a -> [(i,c)]
 itoListOf l = ifoldMapOf l (\i c -> [(i,c)])
 {-# INLINE itoListOf #-}
+
+noEffect :: (Applicative f, Gettable f) => f a
+noEffect = coerce $ pure ()
+{-# INLINE noEffect #-}
+
+-- | Obtain an 'IndexedFold' by filtering a 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter', 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'.
+ifiltered :: (Gettable f, Applicative f, Indexed i k) => (i -> c -> Bool) -> Index i (c -> f c) (a -> f a) -> k (c -> f c) (a -> f a)
+ifiltered p l = index $ \ f -> withIndex l $ \ i c -> if p i c then f i c else noEffect
+{-# INLINE ifiltered #-}
+
+-- | Obtain an 'IndexedFold' by taking elements from another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' while a predicate holds.
+itakingWhile :: (Gettable f, Applicative f, Indexed i k)
+            => (i -> c -> Bool)
+            -> IndexedGetting i (Endo (f a)) a c
+            -> k (c -> f c) (a -> f a)
+itakingWhile p l = index $ \ f -> ifoldrOf l (\i a r -> if p i a then f i a *> r else noEffect) noEffect
+{-# INLINE itakingWhile #-}
+
+
+-- | Obtain an 'IndexedFold' by dropping elements from another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' while a predicate holds.
+idroppingWhile :: (Gettable f, Applicative f, Indexed i k)
+              => (i -> c -> Bool)
+              -> IndexedGetting i (Endo (f a)) a c
+              -> k (c -> f c) (a -> f a)
+idroppingWhile p l = index $ \f -> ifoldrOf l (\i a r -> if p i a then r else f i a *> r) noEffect
+{-# INLINE idroppingWhile #-}
