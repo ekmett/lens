@@ -67,8 +67,6 @@ module Control.Lens.Fold
   , foldrOf', foldlOf'
   , foldr1Of, foldl1Of
   , foldrMOf, foldlMOf
-  -- * Implementation Details
-  , noEffect
   ) where
 
 import Control.Applicative as Applicative
