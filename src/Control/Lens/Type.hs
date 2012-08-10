@@ -854,6 +854,7 @@ type instance Subst4 (a,b,c,d,e,f,g) d' = (a,b,c,d',e,f,g)
 type instance Subst4 (a,b,c,d,e,f,g,h) d' = (a,b,c,d',e,f,g,h)
 type instance Subst4 (a,b,c,d,e,f,g,h,i) d' = (a,b,c,d',e,f,g,h,i)
 
+-- | Provide access to the 4th field of a tuple
 class (Subst4 a (Field4 b) ~ b, Subst4 b (Field4 a) ~ a, Tuple3 a a, Tuple3 b b) => Tuple4 a b where
   -- | Access the 4th field of a tuple
   _4 :: Lens a b (Field4 a) (Field4 b)
@@ -1012,6 +1013,7 @@ type instance Subst7 (a,b,c,d,e,f,g) g' = (a,b,c,d,e,f,g')
 type instance Subst7 (a,b,c,d,e,f,g,h) g' = (a,b,c,d,e,f,g',h)
 type instance Subst7 (a,b,c,d,e,f,g,h,i) g' = (a,b,c,d,e,f,g',h,i)
 
+-- | Provide access to the 7th field of a tuple
 class (Subst7 a (Field7 b) ~ b, Subst7 b (Field7 a) ~ a, Tuple6 a a, Tuple6 b b) => Tuple7 a b where
   -- | Access the 7th field of a tuple
   _7 :: Lens a b (Field7 a) (Field7 b)
@@ -1029,6 +1031,7 @@ instance Tuple7 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g',h,i) where
   {-# INLINE _7 #-}
 
 -- | Extract the type of the 8th field of a tuple
+--
 -- @
 -- type instance Field8 (a,b,c,d,e,f,g,h) = h
 -- type instance Field8 (a,b,c,d,e,f,g,h,i) = h
@@ -1047,6 +1050,7 @@ type family Subst8 a b
 type instance Subst8 (a,b,c,d,e,f,g,h) h' = (a,b,c,d,e,f,g,h')
 type instance Subst8 (a,b,c,d,e,f,g,h,i) h' = (a,b,c,d,e,f,g,h',i)
 
+-- | Provide access to the 8th field of a tuple
 class (Subst8 a (Field8 b) ~ b, Subst8 b (Field8 a) ~ a, Tuple7 a a, Tuple7 b b) => Tuple8 a b where
   -- | Access the 8th field of a tuple
   _8 :: Lens a b (Field8 a) (Field8 b)
