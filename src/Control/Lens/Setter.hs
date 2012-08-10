@@ -123,7 +123,6 @@ type SimpleSetting a b = Setting a a b b
 -- | Anything 'Settable' must be isomorphic to the 'Identity' 'Functor'.
 class Applicative f => Settable f where
   untainted :: f a -> a
-  {-# INLINE untainted #-}
 
 -- | so you can pass our a 'Setter' into combinators from other lens libraries
 instance Settable Identity where
@@ -154,6 +153,7 @@ instance Applicative Mutator where
 
 instance Settable Mutator where
   untainted = runMutator
+  {-# INLINE untainted #-}
 
 -----------------------------------------------------------------------------
 -- Setters
