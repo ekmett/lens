@@ -685,8 +685,8 @@ minimumOf l = getMin . foldMapOf l Min
 -- @'Data.Foldable.maximumBy' cmp = 'Data.Maybe.fromMaybe' ('error' "empty") . 'maximumByOf' 'folded' cmp@
 --
 -- @
--- maximumByOf :: 'Getter' a c        -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
--- maximumByOf :: 'Fold' a c          -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- maximumByOf :: 'Getter' a c           -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- maximumByOf :: 'Fold' a c             -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
 -- maximumByOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
 -- maximumByOf :: 'Simple' 'Lens' a c      -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
 -- maximumByOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
