@@ -358,7 +358,7 @@ bothLenses l r f (a, a') = case l (IndexedStore id) a of
 -- Note: This only accepts a proper 'Lens', because 'IndexedStore' lacks its
 -- (admissable) 'Applicative' instance.
 --
--- "Costate Comonad Coalgebra is equivalent of Java's member variable update technology for Haskell"
+-- \"Costate Comonad Coalgebra is equivalent of Java's member variable update technology for Haskell\"
 -- -- \@PLT_Borat on Twitter
 clone :: Functor f
       => LensLike (IndexedStore c d) a b c d
