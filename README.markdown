@@ -1,4 +1,4 @@
-Lens: Lenses, Folds and Traversals
+Lens: Lenses, Folds, and Traversals
 ==================================
 
 [![Build Status](https://secure.travis-ci.org/ekmett/lens.png?branch=master)](http://travis-ci.org/ekmett/lens)
