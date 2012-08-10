@@ -163,7 +163,7 @@ iso ab ba = isos ab ba ab ba
 --
 -- @
 -- x^.identity = 'Identity' x
--- 'Identity' x^.from identity = x
+-- 'Identity' x '^.' 'from' 'identity' = x
 -- @
 identity :: Iso a b (Identity a) (Identity b)
 identity = isos Identity runIdentity Identity runIdentity
@@ -172,8 +172,8 @@ identity = isos Identity runIdentity Identity runIdentity
 -- | This isomorphism can be used to wrap or unwrap a value in 'Const'
 --
 -- @
--- x^._const = 'Const' x
--- 'Const' x^.from _const = x
+-- x '^.' '_const' = 'Const' x
+-- 'Const' x '^.' 'from' '_const' = x
 -- @
 _const :: Iso a b (Const a c) (Const b d)
 _const = isos Const getConst Const getConst
