@@ -12,12 +12,92 @@ An overview of the derivation of setters, folds, traversals, getters and lenses 
 
 [![Lens Hierarchy](https://s3.amazonaws.com/creately-published/h5nyo9ne1)](https://creately.com/diagram/h5nyo9ne1/LBbRz63yg4yQsTXGLtub1bQU4%3D)
 
-Example
--------
+Examples
+--------
 
-    ghci> :m + Control.Lens Data.Text.Lens
-    ghci> anyOf (traverse.text) (=='y') ["hello"^.packed, "goodbye"^.packed]
-    True
+You can read from lenses (or other getters) and they compose in the order an imperative programmer would expect.
+
+```haskell
+ghci> :m + Control.Lens
+ghci> ("hello",("world","!!!"))^._2._1
+"world"
+```
+
+You can make getters out of pure functions with 'to'.
+
+
+```haskell
+ghci> ("hello",("world","!!!"))^._2._1.to length
+5
+```
+
+You can write to lenses and these writes can change the type of the container.
+
+```haskell
+ghci> _1 .~ "hello" $ ((),"world")
+("hello","world)
+```
+
+You can also write to setters that target multiple parts of a structure, or their composition with other
+lenses or setters.
+
+```haskell
+ghci> _1.mapped._2.mapped %~ succ $ ([(42, "hello")],"world")
+([(42, "ifmmp")],"world")
+```
+
+```haskell
+ghci> both *~ 2 $ (1,2)
+(2,4)
+```
+
+There are combinators for manipulating the current state in a state monad as well
+
+```haskell
+fresh :: MonadState Int m => m Int
+fresh = id <+= 1
+```
+
+Anything you know how to do with a `Foldable` container, you can do with a `Fold`
+
+```haskell
+ghci> :m + Data.Char Data.Text.Lens
+ghci> allOf (folded.text) isLower ["hello"^.packed, "goodbye"^.packed]
+True
+```
+
+You can also use this for generic programming:
+
+```haskell
+ghci> :m + GHC.Generics.Lens
+ghci> anyOf every (=="world") ("hello",(),[(2::Int,"world")])
+True
+```
+
+Anything you know how to do with a `Traversable` you can do with a `Traversal`.
+
+```haskell
+ghci> mapMOf (traverse._2) (\xs -> length xs <$ putStrLn xs) [(42,"hello"),(56,"world")
+"hello"
+"world"
+[(42,5),(56,5)]
+```
+
+Many of the lenses supplied are isomorphisms, that means you can use them directly as a lens:
+
+```haskell
+ghci> let hello = "hello"^.packed
+"hello"
+ghci> :t hello
+hello :: Text
+```
+
+but you can also flip them around and use them as a lens the other way with 'from'
+
+```haskell
+ghci> hello^.from packed.to length
+5
+```
 
 Contact Information
 -------------------
