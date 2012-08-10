@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Sequence.Lens
@@ -17,16 +18,17 @@ module Data.Sequence.Lens
   ) where
 
 import Control.Applicative
-import Control.Lens
+import Control.Lens as Lens
 import Data.Monoid
 import Data.Sequence as Seq
+import Data.Traversable
 
 -- | A 'Lens' that can access the @n@th element of a 'Seq'.
 --
 -- Note: This is only a legal lens if there is such an element!
 --
-at :: Int -> Simple Lens (Seq a) a
-at i f m = (\a -> update i a m) <$> f (Seq.index m i)
+at :: Int -> SimpleIndexedLens Int (Seq a) a
+at i = Lens.index $ \ f m -> (\a -> update i a m) <$> f i (Seq.index m i)
 
 -- * Sequence isomorphisms
 
@@ -52,51 +54,55 @@ unviewr :: ViewR a -> Seq a
 unviewr EmptyR = mempty
 unviewr (as :> a) = as |> a
 
+traverseSeq :: IndexedTraversal Int (Seq a) (Seq b) a b
+traverseSeq = Lens.index $ \ f -> sequenceA . Seq.mapWithIndex f
+{-# INLINE traverseSeq #-}
+
 -- * Traversals
 
 -- | Traverse the head of a 'Seq'
-traverseHead :: Simple Traversal (Seq a) a
-traverseHead f m = case viewl m of
-  a :< as -> (<| as) <$> f a
+traverseHead :: SimpleIndexedTraversal Int (Seq a) a
+traverseHead = Lens.index $ \f m -> case viewl m of
+  a :< as -> (<| as) <$> f (0::Int) a
   EmptyL  -> pure m
 {-# INLINE traverseHead #-}
 
 -- | Traverse the tail of a 'Seq'
-traverseTail :: Simple Traversal (Seq a) a
-traverseTail f m = case viewl m of
-  a :< as -> (a <|) <$> traverse f as
+traverseTail :: SimpleIndexedTraversal Int (Seq a) a
+traverseTail = Lens.index $ \f m -> case viewl m of
+  a :< as -> (a <|) <$> withIndex traverseSeq (f . (+1)) as
   EmptyL  -> pure m
 {-# INLINE traverseTail #-}
 
 -- | Traverse the last element of a 'Seq'
-traverseLast :: Simple Traversal (Seq a) a
-traverseLast f m = case viewr m of
-  as :> a -> (as |>) <$> f a
+traverseLast :: SimpleIndexedTraversal Int (Seq a) a
+traverseLast = Lens.index $ \f m ->  case viewr m of
+  as :> a -> (as |>) <$> f (Seq.length as) a
   EmptyR  -> pure m
 {-# INLINE traverseLast #-}
 
 -- | Traverse all but the last element of a 'Seq'
-traverseInit :: Simple Traversal (Seq a) a
-traverseInit f m = case viewr m of
-  as :> a -> (|> a) <$> traverse f as
+traverseInit :: SimpleIndexedTraversal Int (Seq a) a
+traverseInit = Lens.index $ \ f m -> case viewr m of
+  as :> a -> (|> a) <$> withIndex traverseSeq f as
   EmptyR  -> pure m
 {-# INLINE traverseInit #-}
 
 -- | Traverse the first @n@ elements of a 'Seq'
-traverseTo :: Int -> Simple Traversal (Seq a) a
-traverseTo n f m = case Seq.splitAt n m of
-  (l,r) -> (>< r) <$> traverse f l
+traverseTo :: Int -> SimpleIndexedTraversal Int (Seq a) a
+traverseTo n = Lens.index $ \f m -> case Seq.splitAt n m of
+  (l,r) -> (>< r) <$> withIndex traverseSeq f l
 {-# INLINE traverseTo #-}
 
 -- | Traverse all but the first @n@ elements of a 'Seq'
-traverseFrom :: Int -> Simple Traversal (Seq a) a
-traverseFrom n f m = case Seq.splitAt n m of
-  (l,r) -> (l ><) <$> traverse f r
+traverseFrom :: Int -> SimpleIndexedTraversal Int (Seq a) a
+traverseFrom n = Lens.index $ \ f m -> case Seq.splitAt n m of
+  (l,r) -> (l ><) <$> withIndex traverseSeq (f . (+n)) r
 {-# INLINE traverseFrom #-}
 
 -- | Travere all the elements numbered from @i@ to @j@ of a 'Seq'
-traverseSlice :: Int -> Int -> Simple Traversal (Seq a) a
-traverseSlice i j f s = case Seq.splitAt i s of
+traverseSlice :: Int -> Int -> SimpleIndexedTraversal Int (Seq a) a
+traverseSlice i j = Lens.index $ \ f s -> case Seq.splitAt i s of
   (l,mr) -> case Seq.splitAt (j-i) mr of
-     (m, r) -> (\n -> l >< n >< r) <$> traverse f m
+     (m, r) -> (\n -> l >< n >< r) <$> withIndex traverseSeq (f . (+i)) m
 {-# INLINE traverseSlice #-}
