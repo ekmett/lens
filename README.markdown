@@ -90,7 +90,7 @@ True
 Anything you know how to do with a `Traversable` you can do with a `Traversal`.
 
 ```haskell
-ghci> mapMOf (traverse._2) (\xs -> length xs <$ putStrLn xs) [(42,"hello"),(56,"world")
+ghci> mapMOf (traverse._2) (\xs -> length xs <$ putStrLn xs) [(42,"hello"),(56,"world")]
 "hello"
 "world"
 [(42,5),(56,5)]
