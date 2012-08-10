@@ -703,7 +703,7 @@ class (Subst2 a (Field2 b) ~ b, Subst2 b (Field2 a) ~ a, Tuple1 a a, Tuple1 b b)
   -- | Access the 2nd field of a tuple
   --
   -- >>> import Control.Lens
-  -- >>> _2 .= "hello" $ (1,(),3,4)
+  -- >>> _2 .~ "hello" $ (1,(),3,4)
   -- (1,"hello",3,4)
   --
   -- @
