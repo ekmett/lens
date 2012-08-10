@@ -27,7 +27,7 @@ module GHC.Generics.Lens
   -- * Isomorphisms for @GHC.Generics@
     generic
   , generic1
-  -- * 'Generic' 'Traversal'
+  -- * Generic Traversal
   , every
   , GTraversal
   ) where
