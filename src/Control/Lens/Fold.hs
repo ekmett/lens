@@ -294,10 +294,10 @@ toListOf l = foldMapOf l return
 -- @'Data.Foldable.and' = 'andOf' 'folded'@
 --
 -- @
--- andOf :: 'Getter' a 'Bool'          -> a -> 'Bool'
--- andOf :: 'Fold' a 'Bool'            -> a -> 'Bool'
--- andOf :: 'Simple' 'Lens' a 'Bool'     -> a -> 'Bool'
--- andOf :: 'Simple' 'Control.Lens.Iso.Iso' a 'Bool'      -> a -> 'Bool'
+-- andOf :: 'Getter' a 'Bool'           -> a -> 'Bool'
+-- andOf :: 'Fold' a 'Bool'             -> a -> 'Bool'
+-- andOf :: 'Simple' 'Lens' a 'Bool'      -> a -> 'Bool'
+-- andOf :: 'Simple' 'Control.Lens.Iso.Iso' a 'Bool'       -> a -> 'Bool'
 -- andOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a 'Bool' -> a -> 'Bool'
 -- @
 andOf :: Getting All a Bool -> a -> Bool
