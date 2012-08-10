@@ -219,10 +219,10 @@ droppingWhile p l f = foldrOf l (\a r -> if p a then r else f a *> r) noEffect
 --
 -- @
 -- foldMapOf ::             'Getter' a c           -> (c -> r) -> a -> r
--- foldMapOf :: Monoid r => 'Fold' a c             -> (c -> r) -> a -> r
+-- foldMapOf :: 'Monoid' r => 'Fold' a c             -> (c -> r) -> a -> r
 -- foldMapOf ::             'Simple' 'Lens' a c      -> (c -> r) -> a -> r
 -- foldMapOf ::             'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> r) -> a -> r
--- foldMapOf :: Monoid r => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> r) -> a -> r
+-- foldMapOf :: 'Monoid' r => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> r) -> a -> r
 -- @
 foldMapOf :: Getting r a c -> (c -> r) -> a -> r
 foldMapOf l f = runAccessor . l (Accessor . f)
