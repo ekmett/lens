@@ -370,6 +370,10 @@ l -~ n = adjust l (subtract n)
 {-# INLINE (-~) #-}
 
 -- | Divide the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
+-- >>> import Control.Lens
+-- >>> id //~ 2 $ 1
+-- 0.5
+--
 -- @
 -- (//~) :: 'Fractional' c => 'Setter' a b c c -> c -> a -> b
 -- (//~) :: 'Fractional' c => 'Control.Lens.Iso.Iso' a b c c -> c -> a -> b
@@ -424,8 +428,12 @@ l **~ n = adjust l (** n)
 -- | Logically '||' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'
 --
 -- >>> :m + Control.Lens Data.Pair.Lens
+--
 -- >>> both ||~ True $ (False,True)
 -- (True,True)
+--
+-- >>> both ||~ False $ (False,True)
+-- (False,True)
 --
 -- @
 -- (||~):: 'Setter' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
@@ -440,7 +448,11 @@ l ||~ n = adjust l (|| n)
 -- | Logically '&&' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'
 --
 -- >>> :m + Control.Lens Data.Pair.Lens
+--
 -- >>> both &&~ True $ (False, True)
+-- (False,True)
+--
+-- >>> both &&~ False $ (False, True)
 -- (False,False)
 --
 -- @
@@ -466,7 +478,7 @@ l &&~ n = adjust l (&& n)
 -- (<>~) :: 'Monoid' c => 'Control.Lens.Traversal.Traversal' a b c c -> c -> a -> b
 -- @
 (<>~) :: Monoid c => Setting a b c c -> c -> a -> b
-l <>~ n = adjust l (mappend n)
+l <>~ n = adjust l (`mappend` n)
 {-# INLINE (<>~) #-}
 
 ------------------------------------------------------------------------------
