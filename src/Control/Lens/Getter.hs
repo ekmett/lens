@@ -106,9 +106,9 @@ type Getting r a c = (c -> Accessor r c) -> a -> Accessor r a
 -- A 'Gettable' 'Functor' ignores its argument, which it carries solely as a phantom
 -- type parameter.
 --
--- To ensure this, it is required to satisfy:
+-- To ensure this, an instance of 'Gettable' is required to satisfy:
 --
--- > id = fmap f = coerce
+-- @'id' = 'fmap' f = 'coerce'@
 class Functor f => Gettable f where
   -- | Replace the phantom type argument.
   coerce :: f a -> f b
@@ -163,8 +163,8 @@ instance Monoid r => Applicative (Accessor r) where
 -- "hello"
 --
 -- @
--- view ::             'Getter' a c          -> a -> c
--- view :: 'Monoid' m => 'Control.Lens.Fold.Fold' a m            -> a -> m
+-- view ::             'Getter' a c             -> a -> c
+-- view :: 'Monoid' m => 'Control.Lens.Fold.Fold' a m               -> a -> m
 -- view ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> a -> c
 -- view ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> a -> c
 -- view :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a m   -> a -> m
@@ -183,8 +183,8 @@ view l = runAccessor . l Accessor
 -- 5
 --
 -- @
--- views ::             'Getter' a c          -> (c -> d) -> a -> d
--- views :: 'Monoid' m => 'Control.Lens.Fold.Fold' a c            -> (c -> m) -> a -> m
+-- views ::             'Getter' a c             -> (c -> d) -> a -> d
+-- views :: 'Monoid' m => 'Control.Lens.Fold.Fold' a c               -> (c -> m) -> a -> m
 -- views ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> (c -> d) -> a -> d
 -- views ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> (c -> d) -> a -> d
 -- views :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c   -> (c -> m) -> a -> m
@@ -203,8 +203,8 @@ views l f = runAccessor . l (Accessor . f)
 -- "hello"
 --
 -- @
--- (^$) ::             'Getter' a c          -> a -> c
--- (^$) :: 'Monoid' m => 'Control.Lens.Fold.Fold' a m            -> a -> m
+-- (^$) ::             'Getter' a c             -> a -> c
+-- (^$) :: 'Monoid' m => 'Control.Lens.Fold.Fold' a m               -> a -> m
 -- (^$) ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> a -> c
 -- (^$) ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> a -> c
 -- (^$) :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a m   -> a -> m
@@ -226,8 +226,8 @@ l ^$ a = runAccessor (l Accessor a)
 -- 2.23606797749979
 --
 -- @
--- (^.) ::             a -> 'Getter' a c          -> c
--- (^.) :: 'Monoid' m => a -> 'Control.Lens.Fold.Fold' a m            -> m
+-- (^.) ::             a -> 'Getter' a c             -> c
+-- (^.) :: 'Monoid' m => a -> 'Control.Lens.Fold.Fold' a m               -> m
 -- (^.) ::             a -> 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> c
 -- (^.) ::             a -> 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> c
 -- (^.) :: 'Monoid' m => a -> 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a m   -> m
@@ -245,8 +245,8 @@ a ^. l = runAccessor (l Accessor a)
 -- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
 -- @
--- query :: 'MonadReader' a m             => 'Getter' a c        -> m c
--- query :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Fold.Fold' a c          -> m c
+-- query :: 'MonadReader' a m             => 'Getter' a c           -> m c
+-- query :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Fold.Fold' a c             -> m c
 -- query :: 'MonadReader' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -> m c
 -- query :: 'MonadReader' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -> m c
 -- query :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -> m c
@@ -260,8 +260,8 @@ query l = Reader.asks (^.l)
 -- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
 -- @
--- queries :: 'MonadReader' a m             => 'Getter' a c        -> (c -> e) -> m e
--- queries :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Fold.Fold' a c          -> (c -> e) -> m e
+-- queries :: 'MonadReader' a m             => 'Getter' a c           -> (c -> e) -> m e
+-- queries :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Fold.Fold' a c             -> (c -> e) -> m e
 -- queries :: 'MonadReader' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> e) -> m e
 -- queries :: 'MonadReader' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -> (c -> e) -> m e
 -- queries :: ('MonadReader' a m, 'Monoid' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> e) -> m e
@@ -279,8 +279,8 @@ queries l f = Reader.asks (views l f)
 -- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
 -- @
--- use :: 'MonadState' a m             => 'Getter' a c          -> m c
--- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a r            -> m r
+-- use :: 'MonadState' a m             => 'Getter' a c             -> m c
+-- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a r               -> m r
 -- use :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> m c
 -- use :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> m c
 -- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a r   -> m r
@@ -294,8 +294,8 @@ use l = State.gets (view l)
 -- summary of a 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points to a monoidal value.
 --
 -- @
--- uses :: 'MonadState' a m             => 'Getter' a c        -> (c -> e) -> m e
--- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a c          -> (c -> r) -> m r
+-- uses :: 'MonadState' a m             => 'Getter' a c           -> (c -> e) -> m e
+-- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a c             -> (c -> r) -> m r
 -- uses :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -> (c -> e) -> m e
 -- uses :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> e) -> m e
 -- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> r) -> m r
