@@ -643,10 +643,10 @@ l <>= b = State.modify (l <>~ b)
 -- | Run a monadic action, and set all of the targets of a 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to its result.
 --
 -- @
--- (<~) :: 'MonadState' a m => 'Control.Lens.Iso.Iso' a a c d       -> m d -> m ()
--- (<~) :: 'MonadState' a m => 'Control.Lens.Type.Lens' a a c d      -> m d -> m ()
--- (<~) :: 'MonadState' a m => 'Control.Lens.Traversal.Traversal' a a c d -> m d -> m ()
--- (<~) :: 'MonadState' a m => 'Setter' a a c d    -> m d -> m ()
+-- (\<~) :: 'MonadState' a m => 'Control.Lens.Iso.Iso' a a c d       -> m d -> m ()
+-- (\<~) :: 'MonadState' a m => 'Control.Lens.Type.Lens' a a c d      -> m d -> m ()
+-- (\<~) :: 'MonadState' a m => 'Control.Lens.Traversal.Traversal' a a c d -> m d -> m ()
+-- (\<~) :: 'MonadState' a m => 'Setter' a a c d    -> m d -> m ()
 -- @
 --
 -- As a reasonable mnemonic, this lets you store the result of a monadic action in a lens rather than
