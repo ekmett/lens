@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 #ifndef MIN_VERSION_mtl
 #define MIN_VERSION_mtl(x,y,z) 1
@@ -53,9 +55,6 @@ module Control.Lens.Type
   , (%%~)
   , (%%=)
 
-  -- ** Common Lenses
-  , _1, _2
-  , resultAt
 
   -- * Traversing and Lensing
   , Focus(..)
@@ -70,6 +69,19 @@ module Control.Lens.Type
 
   -- * Setting State with Passthrough
   , (<%=), (<+=), (<-=), (<*=), (<//=), (<^=), (<^^=), (<**=), (<||=), (<&&=), (<<>=)
+
+  -- * Common Lenses
+  , resultAt
+  -- ** Lenses for tuples
+  , Field1, Subst1, Tuple1(..)
+  , Field2, Subst2, Tuple2(..)
+  , Field3, Subst3, Tuple3(..)
+  , Field4, Subst4, Tuple4(..)
+  , Field5, Subst5, Tuple5(..)
+  , Field6, Subst6, Tuple6(..)
+  , Field7, Subst7, Tuple7(..)
+  , Field8, Subst8, Tuple8(..)
+  , Field9, Subst9, Tuple9(..)
 
   -- * Simplified and In-Progress
   , LensLike
@@ -295,6 +307,7 @@ instance Focus ReaderT where
 -- Common Lenses
 ------------------------------------------------------------------------------
 
+{-
 -- | This is a lens that can change the value (and type) of the first field of
 -- a pair.
 --
@@ -322,6 +335,7 @@ _1 f (a,c) = (\b -> (b,c)) <$> f a
 _2 :: Lens (c,a) (c,b) a b
 _2 f (c,a) = (,) c <$> f a
 {-# INLINE _2 #-}
+-}
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
@@ -539,12 +553,321 @@ l <&&= b = l <%= (&& b)
 l <<>= r = l <%= (`mappend` r)
 {-# INLINE (<<>=) #-}
 
--- These belong in Setter.
-{-
-(<.~) :: LensLike ((,)d) a b c d -> d -> a -> (d, b)
-l <.~ d = l $ \_ -> (d,d)
-{-# INLINE (<.~) #-}
 
-(<.=) :: MonadState a m => LensLike ((,)d) a a c d -> d -> m d
-(<.=) l = state (l.~)
--}
+type family Field1 a
+type family Subst1 a b
+class (Subst1 a (Field1 b) ~ b, Subst1 b (Field1 a) ~ a) => Tuple1 a b where
+  -- | Access the 1st field of a tuple
+  _1 :: Lens a b (Field1 a) (Field1 b)
+
+type instance Field1 (a,b) = a
+type instance Subst1 (a,b) a' = (a',b)
+instance Tuple1 (a,b) (a',b) where
+  _1 k (a,b) = (\a' -> (a',b)) <$> k a
+  {-# INLINE _1 #-}
+
+type instance Field1 (a,b,c) = a
+type instance Subst1 (a,b,c) a' = (a',b,c)
+instance Tuple1 (a,b,c) (a',b,c) where
+  _1 k (a,b,c) = (\a' -> (a',b,c)) <$> k a
+  {-# INLINE _1 #-}
+
+type instance Field1 (a,b,c,d) = a
+type instance Subst1 (a,b,c,d) a' = (a',b,c,d)
+instance Tuple1 (a,b,c,d) (a',b,c,d) where
+  _1 k (a,b,c,d) = (\a' -> (a',b,c,d)) <$> k a
+  {-# INLINE _1 #-}
+
+type instance Field1 (a,b,c,d,e) = a
+type instance Subst1 (a,b,c,d,e) a' = (a',b,c,d,e)
+instance Tuple1 (a,b,c,d,e) (a',b,c,d,e) where
+  _1 k (a,b,c,d,e) = (\a' -> (a',b,c,d,e)) <$> k a
+  {-# INLINE _1 #-}
+
+type instance Field1 (a,b,c,d,e,f) = a
+type instance Subst1 (a,b,c,d,e,f) a' = (a',b,c,d,e,f)
+instance Tuple1 (a,b,c,d,e,f) (a',b,c,d,e,f) where
+  _1 k (a,b,c,d,e,f) = (\a' -> (a',b,c,d,e,f)) <$> k a
+  {-# INLINE _1 #-}
+
+type instance Field1 (a,b,c,d,e,f,g) = a
+type instance Subst1 (a,b,c,d,e,f,g) a' = (a',b,c,d,e,f,g)
+instance Tuple1 (a,b,c,d,e,f,g) (a',b,c,d,e,f,g) where
+  _1 k (a,b,c,d,e,f,g) = (\a' -> (a',b,c,d,e,f,g)) <$> k a
+  {-# INLINE _1 #-}
+
+type instance Field1 (a,b,c,d,e,f,g,h) = a
+type instance Subst1 (a,b,c,d,e,f,g,h) a' = (a',b,c,d,e,f,g,h)
+instance Tuple1 (a,b,c,d,e,f,g,h) (a',b,c,d,e,f,g,h) where
+  _1 k (a,b,c,d,e,f,g,h) = (\a' -> (a',b,c,d,e,f,g,h)) <$> k a
+  {-# INLINE _1 #-}
+
+type instance Field1 (a,b,c,d,e,f,g,h,i) = a
+type instance Subst1 (a,b,c,d,e,f,g,h,i) a' = (a',b,c,d,e,f,g,h,i)
+instance Tuple1 (a,b,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) where
+  _1 k (a,b,c,d,e,f,g,h,i) = (\a' -> (a',b,c,d,e,f,g,h,i)) <$> k a
+  {-# INLINE _1 #-}
+
+type family Field2 a
+type family Subst2 a b
+class (Subst2 a (Field2 b) ~ b, Subst2 b (Field2 a) ~ a, Tuple1 a a, Tuple1 b b) => Tuple2 a b where
+  -- | Access the 2nd field of a tuple
+  _2 :: Lens a b (Field2 a) (Field2 b)
+
+type instance Field2 (a,b) = b
+type instance Subst2 (a,b) b' = (a,b')
+instance Tuple2 (a,b) (a,b') where
+  _2 k (a,b) = (\b' -> (a,b')) <$> k b
+  {-# INLINE _2 #-}
+
+type instance Field2 (a,b,c) = b
+type instance Subst2 (a,b,c) b' = (a,b',c)
+instance Tuple2 (a,b,c) (a,b',c) where
+  _2 k (a,b,c) = (\b' -> (a,b',c)) <$> k b
+  {-# INLINE _2 #-}
+
+type instance Field2 (a,b,c,d) = b
+type instance Subst2 (a,b,c,d) b' = (a,b',c,d)
+instance Tuple2 (a,b,c,d) (a,b',c,d) where
+  _2 k (a,b,c,d) = (\b' -> (a,b',c,d)) <$> k b
+  {-# INLINE _2 #-}
+
+type instance Field2 (a,b,c,d,e) = b
+type instance Subst2 (a,b,c,d,e) b' = (a,b',c,d,e)
+instance Tuple2 (a,b,c,d,e) (a,b',c,d,e) where
+  _2 k (a,b,c,d,e) = (\b' -> (a,b',c,d,e)) <$> k b
+  {-# INLINE _2 #-}
+
+type instance Field2 (a,b,c,d,e,f) = b
+type instance Subst2 (a,b,c,d,e,f) b' = (a,b',c,d,e,f)
+instance Tuple2 (a,b,c,d,e,f) (a,b',c,d,e,f) where
+  _2 k (a,b,c,d,e,f) = (\b' -> (a,b',c,d,e,f)) <$> k b
+  {-# INLINE _2 #-}
+
+type instance Field2 (a,b,c,d,e,f,g) = b
+type instance Subst2 (a,b,c,d,e,f,g) b' = (a,b',c,d,e,f,g)
+instance Tuple2 (a,b,c,d,e,f,g) (a,b',c,d,e,f,g) where
+  _2 k (a,b,c,d,e,f,g) = (\b' -> (a,b',c,d,e,f,g)) <$> k b
+  {-# INLINE _2 #-}
+
+type instance Field2 (a,b,c,d,e,f,g,h) = b
+type instance Subst2 (a,b,c,d,e,f,g,h) b' = (a,b',c,d,e,f,g,h)
+instance Tuple2 (a,b,c,d,e,f,g,h) (a,b',c,d,e,f,g,h) where
+  _2 k (a,b,c,d,e,f,g,h) = (\b' -> (a,b',c,d,e,f,g,h)) <$> k b
+  {-# INLINE _2 #-}
+
+type instance Field2 (a,b,c,d,e,f,g,h,i) = b
+type instance Subst2 (a,b,c,d,e,f,g,h,i) b' = (a,b',c,d,e,f,g,h,i)
+instance Tuple2 (a,b,c,d,e,f,g,h,i) (a,b',c,d,e,f,g,h,i) where
+  _2 k (a,b,c,d,e,f,g,h,i) = (\b' -> (a,b',c,d,e,f,g,h,i)) <$> k b
+  {-# INLINE _2 #-}
+
+type family Field3 a
+type family Subst3 a b
+class (Subst3 a (Field3 b) ~ b, Subst3 b (Field3 a) ~ a, Tuple2 a a, Tuple2 b b) => Tuple3 a b where
+  -- | Access the 3rd field of a tuple
+  _3 :: Lens a b (Field3 a) (Field3 b)
+
+type instance Field3 (a,b,c) = c
+type instance Subst3 (a,b,c) c' = (a,b,c')
+instance Tuple3 (a,b,c) (a,b,c') where
+  _3 k (a,b,c) = (\c' -> (a,b,c')) <$> k c
+  {-# INLINE _3 #-}
+
+type instance Field3 (a,b,c,d) = c
+type instance Subst3 (a,b,c,d) c' = (a,b,c',d)
+instance Tuple3 (a,b,c,d) (a,b,c',d) where
+  _3 k (a,b,c,d) = (\c' -> (a,b,c',d)) <$> k c
+  {-# INLINE _3 #-}
+
+type instance Field3 (a,b,c,d,e) = c
+type instance Subst3 (a,b,c,d,e) c' = (a,b,c',d,e)
+instance Tuple3 (a,b,c,d,e) (a,b,c',d,e) where
+  _3 k (a,b,c,d,e) = (\c' -> (a,b,c',d,e)) <$> k c
+  {-# INLINE _3 #-}
+
+type instance Field3 (a,b,c,d,e,f) = c
+type instance Subst3 (a,b,c,d,e,f) c' = (a,b,c',d,e,f)
+instance Tuple3 (a,b,c,d,e,f) (a,b,c',d,e,f) where
+  _3 k (a,b,c,d,e,f) = (\c' -> (a,b,c',d,e,f)) <$> k c
+  {-# INLINE _3 #-}
+
+type instance Field3 (a,b,c,d,e,f,g) = c
+type instance Subst3 (a,b,c,d,e,f,g) c' = (a,b,c',d,e,f,g)
+instance Tuple3 (a,b,c,d,e,f,g) (a,b,c',d,e,f,g) where
+  _3 k (a,b,c,d,e,f,g) = (\c' -> (a,b,c',d,e,f,g)) <$> k c
+  {-# INLINE _3 #-}
+
+type instance Field3 (a,b,c,d,e,f,g,h) = c
+type instance Subst3 (a,b,c,d,e,f,g,h) c' = (a,b,c',d,e,f,g,h)
+instance Tuple3 (a,b,c,d,e,f,g,h) (a,b,c',d,e,f,g,h) where
+  _3 k (a,b,c,d,e,f,g,h) = (\c' -> (a,b,c',d,e,f,g,h)) <$> k c
+  {-# INLINE _3 #-}
+
+type instance Field3 (a,b,c,d,e,f,g,h,i) = c
+type instance Subst3 (a,b,c,d,e,f,g,h,i) c' = (a,b,c',d,e,f,g,h,i)
+instance Tuple3 (a,b,c,d,e,f,g,h,i) (a,b,c',d,e,f,g,h,i) where
+  _3 k (a,b,c,d,e,f,g,h,i) = (\c' -> (a,b,c',d,e,f,g,h,i)) <$> k c
+  {-# INLINE _3 #-}
+
+type family Field4 a
+type family Subst4 a b
+class (Subst4 a (Field4 b) ~ b, Subst4 b (Field4 a) ~ a, Tuple3 a a, Tuple3 b b) => Tuple4 a b where
+  -- | Access the 4th field of a tuple
+  _4 :: Lens a b (Field4 a) (Field4 b)
+
+type instance Field4 (a,b,c,d) = d
+type instance Subst4 (a,b,c,d) d' = (a,b,c,d')
+instance Tuple4 (a,b,c,d) (a,b,c,d') where
+  _4 k (a,b,c,d) = (\d' -> (a,b,c,d')) <$> k d
+  {-# INLINE _4 #-}
+
+type instance Field4 (a,b,c,d,e) = d
+type instance Subst4 (a,b,c,d,e) d' = (a,b,c,d',e)
+instance Tuple4 (a,b,c,d,e) (a,b,c,d',e) where
+  _4 k (a,b,c,d,e) = (\d' -> (a,b,c,d',e)) <$> k d
+  {-# INLINE _4 #-}
+
+type instance Field4 (a,b,c,d,e,f) = d
+type instance Subst4 (a,b,c,d,e,f) d' = (a,b,c,d',e,f)
+instance Tuple4 (a,b,c,d,e,f) (a,b,c,d',e,f) where
+  _4 k (a,b,c,d,e,f) = (\d' -> (a,b,c,d',e,f)) <$> k d
+  {-# INLINE _4 #-}
+
+type instance Field4 (a,b,c,d,e,f,g) = d
+type instance Subst4 (a,b,c,d,e,f,g) d' = (a,b,c,d',e,f,g)
+instance Tuple4 (a,b,c,d,e,f,g) (a,b,c,d',e,f,g) where
+  _4 k (a,b,c,d,e,f,g) = (\d' -> (a,b,c,d',e,f,g)) <$> k d
+  {-# INLINE _4 #-}
+
+type instance Field4 (a,b,c,d,e,f,g,h) = d
+type instance Subst4 (a,b,c,d,e,f,g,h) d' = (a,b,c,d',e,f,g,h)
+instance Tuple4 (a,b,c,d,e,f,g,h) (a,b,c,d',e,f,g,h) where
+  _4 k (a,b,c,d,e,f,g,h) = (\d' -> (a,b,c,d',e,f,g,h)) <$> k d
+  {-# INLINE _4 #-}
+
+type instance Field4 (a,b,c,d,e,f,g,h,i) = d
+type instance Subst4 (a,b,c,d,e,f,g,h,i) d' = (a,b,c,d',e,f,g,h,i)
+instance Tuple4 (a,b,c,d,e,f,g,h,i) (a,b,c,d',e,f,g,h,i) where
+  _4 k (a,b,c,d,e,f,g,h,i) = (\d' -> (a,b,c,d',e,f,g,h,i)) <$> k d
+  {-# INLINE _4 #-}
+
+type family Field5 a
+type family Subst5 a b
+class (Subst5 a (Field5 b) ~ b, Subst5 b (Field5 a) ~ a, Tuple4 a a, Tuple4 b b) => Tuple5 a b where
+  -- | Access the 5th field of a tuple
+  _5 :: Lens a b (Field5 a) (Field5 b)
+
+type instance Field5 (a,b,c,d,e) = e
+type instance Subst5 (a,b,c,d,e) e' = (a,b,c,d,e')
+instance Tuple5 (a,b,c,d,e) (a,b,c,d,e') where
+  _5 k (a,b,c,d,e) = (\e' -> (a,b,c,d,e')) <$> k e
+  {-# INLINE _5 #-}
+
+type instance Field5 (a,b,c,d,e,f) = e
+type instance Subst5 (a,b,c,d,e,f) e' = (a,b,c,d,e',f)
+instance Tuple5 (a,b,c,d,e,f) (a,b,c,d,e',f) where
+  _5 k (a,b,c,d,e,f) = (\e' -> (a,b,c,d,e',f)) <$> k e
+  {-# INLINE _5 #-}
+
+type instance Field5 (a,b,c,d,e,f,g) = e
+type instance Subst5 (a,b,c,d,e,f,g) e' = (a,b,c,d,e',f,g)
+instance Tuple5 (a,b,c,d,e,f,g) (a,b,c,d,e',f,g) where
+  _5 k (a,b,c,d,e,f,g) = (\e' -> (a,b,c,d,e',f,g)) <$> k e
+  {-# INLINE _5 #-}
+
+type instance Field5 (a,b,c,d,e,f,g,h) = e
+type instance Subst5 (a,b,c,d,e,f,g,h) e' = (a,b,c,d,e',f,g,h)
+instance Tuple5 (a,b,c,d,e,f,g,h) (a,b,c,d,e',f,g,h) where
+  _5 k (a,b,c,d,e,f,g,h) = (\e' -> (a,b,c,d,e',f,g,h)) <$> k e
+  {-# INLINE _5 #-}
+
+type instance Field5 (a,b,c,d,e,f,g,h,i) = e
+type instance Subst5 (a,b,c,d,e,f,g,h,i) e' = (a,b,c,d,e',f,g,h,i)
+instance Tuple5 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e',f,g,h,i) where
+  _5 k (a,b,c,d,e,f,g,h,i) = (\e' -> (a,b,c,d,e',f,g,h,i)) <$> k e
+  {-# INLINE _5 #-}
+
+type family Field6 a
+type family Subst6 a b
+class (Subst6 a (Field6 b) ~ b, Subst6 b (Field6 a) ~ a, Tuple5 a a, Tuple5 b b) => Tuple6 a b where
+  -- | Access the 6th field of a tuple
+  _6 :: Lens a b (Field6 a) (Field6 b)
+
+type instance Field6 (a,b,c,d,e,f) = f
+type instance Subst6 (a,b,c,d,e,f) f' = (a,b,c,d,e,f')
+instance Tuple6 (a,b,c,d,e,f) (a,b,c,d,e,f') where
+  _6 k (a,b,c,d,e,f) = (\f' -> (a,b,c,d,e,f')) <$> k f
+  {-# INLINE _6 #-}
+
+type instance Field6 (a,b,c,d,e,f,g) = f
+type instance Subst6 (a,b,c,d,e,f,g) f' = (a,b,c,d,e,f',g)
+instance Tuple6 (a,b,c,d,e,f,g) (a,b,c,d,e,f',g) where
+  _6 k (a,b,c,d,e,f,g) = (\f' -> (a,b,c,d,e,f',g)) <$> k f
+  {-# INLINE _6 #-}
+
+type instance Field6 (a,b,c,d,e,f,g,h) = f
+type instance Subst6 (a,b,c,d,e,f,g,h) f' = (a,b,c,d,e,f',g,h)
+instance Tuple6 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f',g,h) where
+  _6 k (a,b,c,d,e,f,g,h) = (\f' -> (a,b,c,d,e,f',g,h)) <$> k f
+  {-# INLINE _6 #-}
+
+type instance Field6 (a,b,c,d,e,f,g,h,i) = f
+type instance Subst6 (a,b,c,d,e,f,g,h,i) f' = (a,b,c,d,e,f',g,h,i)
+instance Tuple6 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f',g,h,i) where
+  _6 k (a,b,c,d,e,f,g,h,i) = (\f' -> (a,b,c,d,e,f',g,h,i)) <$> k f
+  {-# INLINE _6 #-}
+
+type family Field7 a
+type family Subst7 a b
+class (Subst7 a (Field7 b) ~ b, Subst7 b (Field7 a) ~ a, Tuple6 a a, Tuple6 b b) => Tuple7 a b where
+  -- | Access the 7th field of a tuple
+  _7 :: Lens a b (Field7 a) (Field7 b)
+
+type instance Field7 (a,b,c,d,e,f,g) = g
+type instance Subst7 (a,b,c,d,e,f,g) g' = (a,b,c,d,e,f,g')
+instance Tuple7 (a,b,c,d,e,f,g) (a,b,c,d,e,f,g') where
+  _7 k (a,b,c,d,e,f,g) = (\g' -> (a,b,c,d,e,f,g')) <$> k g
+  {-# INLINE _7 #-}
+
+type instance Field7 (a,b,c,d,e,f,g,h) = g
+type instance Subst7 (a,b,c,d,e,f,g,h) g' = (a,b,c,d,e,f,g',h)
+instance Tuple7 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f,g',h) where
+  _7 k (a,b,c,d,e,f,g,h) = (\g' -> (a,b,c,d,e,f,g',h)) <$> k g
+  {-# INLINE _7 #-}
+
+type instance Field7 (a,b,c,d,e,f,g,h,i) = g
+type instance Subst7 (a,b,c,d,e,f,g,h,i) g' = (a,b,c,d,e,f,g',h,i)
+instance Tuple7 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g',h,i) where
+  _7 k (a,b,c,d,e,f,g,h,i) = (\g' -> (a,b,c,d,e,f,g',h,i)) <$> k g
+  {-# INLINE _7 #-}
+
+type family Field8 a
+type family Subst8 a b
+class (Subst8 a (Field8 b) ~ b, Subst8 b (Field8 a) ~ a, Tuple7 a a, Tuple7 b b) => Tuple8 a b where
+  -- | Access the 8th field of a tuple
+  _8 :: Lens a b (Field8 a) (Field8 b)
+
+type instance Field8 (a,b,c,d,e,f,g,h) = h
+type instance Subst8 (a,b,c,d,e,f,g,h) h' = (a,b,c,d,e,f,g,h')
+instance Tuple8 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f,g,h') where
+  _8 k (a,b,c,d,e,f,g,h) = (\h' -> (a,b,c,d,e,f,g,h')) <$> k h
+  {-# INLINE _8 #-}
+
+type instance Field8 (a,b,c,d,e,f,g,h,i) = h
+type instance Subst8 (a,b,c,d,e,f,g,h,i) h' = (a,b,c,d,e,f,g,h',i)
+instance Tuple8 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h',i) where
+  _8 k (a,b,c,d,e,f,g,h,i) = (\h' -> (a,b,c,d,e,f,g,h',i)) <$> k h
+  {-# INLINE _8 #-}
+
+type family Field9 a
+type family Subst9 a b
+class (Subst9 a (Field9 b) ~ b, Subst9 b (Field9 a) ~ a, Tuple8 a a, Tuple8 b b) => Tuple9 a b where
+  -- | Access the 9th field of a tuple
+  _9 :: Lens a b (Field9 a) (Field9 b)
+
+type instance Field9 (a,b,c,d,e,f,g,h,i) = i
+type instance Subst9 (a,b,c,d,e,f,g,h,i) i' = (a,b,c,d,e,f,g,h,i')
+instance Tuple9 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h,i') where
+  _9 k (a,b,c,d,e,f,g,h,i) = (\i' -> (a,b,c,d,e,f,g,h,i')) <$> k i
+  {-# INLINE _9 #-}
