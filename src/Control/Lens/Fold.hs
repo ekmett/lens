@@ -420,11 +420,13 @@ forOf_ = flip . traverseOf_
 -- |
 -- @'sequenceA_' = 'sequenceAOf_' 'folded'@
 --
+-- @
 -- sequenceAOf_ :: 'Functor' f     => 'Getter' a (f ())        -> a -> f ()
 -- sequenceAOf_ :: 'Applicative' f => Fold a (f ())          -> a -> f ()
 -- sequenceAOf_ :: 'Functor' f     => 'Simple' 'Lens' a (f ())      -> a -> f ()
 -- sequenceAOf_ :: 'Functor' f     => 'Simple' 'Iso a (f ())       -> a -> f ()
 -- sequenceAOf_ :: 'Applicative' f => 'Simple' 'Control.Lens.Traversal.Traversal' a (f ()) -> a -> f ()
+-- @
 sequenceAOf_ :: Functor f => Getting (Traversed f) a (f ()) -> a -> f ()
 sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . void)
 {-# INLINE sequenceAOf_ #-}
@@ -432,11 +434,13 @@ sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . void)
 -- |
 -- @'Data.Foldable.mapM_' = 'mapMOf_' 'folded'@
 --
--- > mapMOf_ :: 'Monad' m => 'Getter' a c        -> (c -> m e) -> a -> m ()
--- > mapMOf_ :: 'Monad' m => 'Fold' a c          -> (c -> m e) -> a -> m ()
--- > mapMOf_ :: 'Monad' m => 'Simple' 'Lens' a c      -> (c -> m e) -> a -> m ()
--- > mapMOf_ :: 'Monad' m => 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> m e) -> a -> m ()
--- > mapMOf_ :: 'Monad' m => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> m e) -> a -> m ()
+-- @
+-- mapMOf_ :: 'Monad' m => 'Getter' a c        -> (c -> m e) -> a -> m ()
+-- mapMOf_ :: 'Monad' m => 'Fold' a c          -> (c -> m e) -> a -> m ()
+-- mapMOf_ :: 'Monad' m => 'Simple' 'Lens' a c      -> (c -> m e) -> a -> m ()
+-- mapMOf_ :: 'Monad' m => 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> m e) -> a -> m ()
+-- mapMOf_ :: 'Monad' m => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> m e) -> a -> m ()
+-- @
 mapMOf_ :: Monad m => Getting (Sequenced m) a c -> (c -> m e) -> a -> m ()
 mapMOf_ l f = getSequenced . foldMapOf l (Sequenced . liftM skip . f)
 {-# INLINE mapMOf_ #-}
@@ -448,11 +452,13 @@ skip _ = ()
 -- |
 -- @'Data.Foldable.forM_' = 'forMOf_' 'folded'@
 --
--- > forMOf_ :: 'Monad' m => 'Getter' a c           -> a -> (c -> m e) -> m ()
--- > forMOf_ :: 'Monad' m => 'Fold' a c             -> a -> (c -> m e) -> m ()
--- > forMOf_ :: 'Monad' m => 'Simple' 'Lens' a c      -> a -> (c -> m e) -> m ()
--- > forMOf_ :: 'Monad' m => 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> (c -> m e) -> m ()
--- > forMOf_ :: 'Monad' m => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> (c -> m e) -> m ()
+-- @
+-- forMOf_ :: 'Monad' m => 'Getter' a c           -> a -> (c -> m e) -> m ()
+-- forMOf_ :: 'Monad' m => 'Fold' a c             -> a -> (c -> m e) -> m ()
+-- forMOf_ :: 'Monad' m => 'Simple' 'Lens' a c      -> a -> (c -> m e) -> m ()
+-- forMOf_ :: 'Monad' m => 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> (c -> m e) -> m ()
+-- forMOf_ :: 'Monad' m => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> (c -> m e) -> m ()
+-- @
 forMOf_ :: Monad m => Getting (Sequenced m) a c -> a -> (c -> m e) -> m ()
 forMOf_ = flip . mapMOf_
 {-# INLINE forMOf_ #-}
