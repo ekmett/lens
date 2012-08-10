@@ -53,12 +53,15 @@ type SimpleIndexedTraversal i a b = IndexedTraversal i a a b b
 -- NB: When you don't need access to the index then you can just apply your 'IndexedTraversal'
 -- directly as a function!
 --
--- @'itraverseOf' = 'withIndex'@
+-- @
+-- 'itraverseOf' = 'withIndex'
+-- 'Control.Lens.Traversal.traverseOf' = 'itraverseOf' . 'const' = 'id'
+-- @
 --
--- @'Control.Lens.Traversal.traverseOf' = 'itraverseOf' . 'const' = 'id'@
---
--- > itraverseOf :: IndexedLens i a b c d      -> (i -> c -> f d) -> a -> f b
--- > itraverseOf :: IndexedTraversal i a b c d -> (i -> c -> f d) -> a -> f b
+-- @
+-- itraverseOf :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> f d) -> a -> f b
+-- itraverseOf :: 'IndexedTraversal' i a b c d -> (i -> c -> f d) -> a -> f b
+-- @
 itraverseOf :: Overloaded (Index i) f a b c d -> (i -> c -> f d) -> a -> f b
 itraverseOf = withIndex
 {-# INLINE itraverseOf #-}
@@ -70,8 +73,10 @@ itraverseOf = withIndex
 --
 -- @'iforOf' = 'flip' . 'itraverseOf'@
 --
--- > iforOf :: IndexedLens i a b c d      -> a -> (i -> c -> f d) -> f b
--- > iforOf :: IndexedTraversal i a b c d -> a -> (i -> c -> f d) -> f b
+-- @
+-- iforOf :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> a -> (i -> c -> f d) -> f b
+-- iforOf :: 'IndexedTraversal' i a b c d -> a -> (i -> c -> f d) -> f b
+-- @
 iforOf :: Overloaded (Index i) f a b c d -> a -> (i -> c -> f d) -> f b
 iforOf = flip . withIndex
 {-# INLINE iforOf #-}
@@ -84,8 +89,10 @@ iforOf = flip . withIndex
 --
 -- @'Control.Lens.Traversal.mapMOf' = 'imapMOf' . 'const'@
 --
--- > imapMOf :: Monad m => IndexedLens      i a b c d -> (i -> c -> m d) -> a -> m b
--- > imapMOf :: Monad m => IndexedTraversal i a b c d -> (i -> c -> m d) -> a -> m b
+-- @
+-- imapMOf :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens'      i a b c d -> (i -> c -> m d) -> a -> m b
+-- imapMOf :: 'Monad' m => 'IndexedTraversal' i a b c d -> (i -> c -> m d) -> a -> m b
+-- @
 imapMOf :: Overloaded (Index i) (WrappedMonad m) a b c d -> (i -> c -> m d) -> a -> m b
 imapMOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
 {-# INLINE imapMOf #-}
@@ -94,12 +101,15 @@ imapMOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
 -- evaluate these actions from left to right, and collect the results, with access
 -- its position (and the arguments flipped).
 --
--- @'Control.Lens.Traversal.forMOf' l a = 'iforMOf' l a . 'const'@
+-- @
+-- 'Control.Lens.Traversal.forMOf' l a = 'iforMOf' l a . 'const'
+-- 'iforMOf' = 'flip' . 'imapMOf'
+-- @
 --
--- @'iforMOf' = 'flip' . 'imapMOf'@
---
--- > iforMOf :: Monad m => IndexedLens i a b c d      -> a -> (i -> c -> m d) -> m b
--- > iforMOf :: Monad m => IndexedTraversal i a b c d -> a -> (i -> c -> m d) -> m b
+-- @
+-- iforMOf :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> a -> (i -> c -> m d) -> m b
+-- iforMOf :: 'Monad' m => 'IndexedTraversal' i a b c d -> a -> (i -> c -> m d) -> m b
+-- @
 iforMOf :: Overloaded (Index i) (WrappedMonad m) a b c d -> a -> (i -> c -> m d) -> m b
 iforMOf = flip . imapMOf
 {-# INLINE iforMOf #-}
@@ -110,8 +120,10 @@ iforMOf = flip . imapMOf
 --
 -- @'Control.Lens.Traversal.mapAccumROf' l = 'imapAccumROf' l . 'const'@
 --
--- > imapAccumROf :: IndexedLens i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
--- > imapAccumROf :: IndexedTraversal i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- @
+-- imapAccumROf :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- imapAccumROf :: 'IndexedTraversal' i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- @
 imapAccumROf :: Overloaded (Index i) (Lazy.State s) a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
 imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s -> swap (f i s c))) a) s0)
 {-# INLINE imapAccumROf #-}
@@ -122,8 +134,10 @@ imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s
 --
 -- @'Control.Lens.Traversal.mapAccumLOf' l = 'imapAccumLOf' l . 'const'@
 --
--- > imapAccumLOf :: IndexedLens i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
--- > imapAccumLOf :: IndexedTraversal i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- @
+-- imapAccumLOf :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- imapAccumLOf :: 'IndexedTraversal' i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- @
 imapAccumLOf :: Overloaded (Index i) (Backwards (Lazy.State s)) a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
 imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (withIndex l (\i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)
 {-# INLINE imapAccumLOf #-}
