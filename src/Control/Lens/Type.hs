@@ -610,7 +610,7 @@ class (Subst1 a (Field1 b) ~ b, Subst1 b (Field1 a) ~ a) => Tuple1 a b where
   --
   -- This can also be used on larger tuples as well
   --
-  -- >>> _1 += 41 $ (1,2,3,4,5)
+  -- >>> _1 +~ 41 $ (1,2,3,4,5)
   -- (42,2,3,4,5)
   --
   -- @
