@@ -5,9 +5,9 @@ lens
 
 This package provides families of [lenses](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Type.hs), [isomorphisms](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Iso.hs), [folds](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Fold.hs), [traversals](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Traversal.hs), [getters](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Getter.hs) and [setters](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Setter.hs).
 
-An overview of the derivation of setters, folds, traversals, getters and lenses can be found on the lens wiki under [Tutorial](https://github.com/ekmett/lens/wiki/Tutorial).
+An overview of the [derivation](https://github.com/ekmett/lens/wiki/Derivation) of these types can be found on the [Lens Wiki](https://github.com/ekmett/lens/wiki) along with a brief [Tutorial](https://github.com/ekmett/lens/wiki/Tutorial).
 
-[![Lens Hierarchy](https://s3.amazonaws.com/creately-published/h5nyo9ne1)](https://creately.com/diagram/h5nyo9ne1/LBbRz63yg4yQsTXGLtub1bQU4%3D)
+Documentation is available through [github](https://ekmett.github.com/lens) or [hackage](http://hackage.haskell.org/package/lens).
 
 Examples
 --------
@@ -136,6 +136,11 @@ nor.neither = id
 ```
 
 There is also a fully operational, but simple game of [Pong](https://github.com/ekmett/lens/blob/master/examples/Pong.hs) in the [examples/](https://github.com/ekmett/lens/blob/master/examples/) folder.
+
+Field Guide
+-----------
+
+[![Lens Hierarchy](https://s3.amazonaws.com/creately-published/h5nyo9ne1)](https://creately.com/diagram/h5nyo9ne1/LBbRz63yg4yQsTXGLtub1bQU4%3D)
 
 Contact Information
 -------------------
