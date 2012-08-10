@@ -37,7 +37,8 @@ infix  4 %@=
 -- The 'Setter' laws are still required to hold.
 type IndexedSetter i a b c d = forall f k. (Indexed i k, Settable f) => k (c -> f d) (a -> f b)
 
--- | @type 'SimpleIndexedSetter i = 'Simple' ('IndexedSetter' i)@
+-- |
+-- @type 'SimpleIndexedSetter' i = 'Simple' ('IndexedSetter' i)@
 type SimpleIndexedSetter i a b = IndexedSetter i a a b b
 
 -- | Map with index.
@@ -46,9 +47,11 @@ type SimpleIndexedSetter i a b = IndexedSetter i a a b b
 --
 -- @'mapOf' l = 'imapOf' l . 'const'@
 --
--- > imapOf :: IndexedSetter i a b c d    -> (i -> c -> d) -> a -> b
--- > imapOf :: IndexedLens i a b c d      -> (i -> c -> d) -> a -> b
--- > imapOf :: IndexedTraversal i a b c d -> (i -> c -> d) -> a -> b
+-- @
+-- imapOf :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
+-- imapOf :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> d) -> a -> b
+-- imapOf :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> a -> b
+-- @
 imapOf :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
 imapOf l f = runMutator . withIndex l (\i -> Mutator . f i)
 {-# INLINE imapOf #-}
@@ -62,9 +65,11 @@ imapOf l f = runMutator . withIndex l (\i -> Mutator . f i)
 --
 -- @l '%~' f = l '%@~' 'const' f@
 --
--- > (%@~) :: IndexedSetter i a b c d    -> (i -> c -> d) -> a -> b
--- > (%@~) :: IndexedLens i a b c d      -> (i -> c -> d) -> a -> b
--- > (%@~) :: IndexedTraversal i a b c d -> (i -> c -> d) -> a -> b
+-- @
+-- (%@~) :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
+-- (%@~) :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> d) -> a -> b
+-- (%@~) :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> a -> b
+-- @
 (%@~) :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
 l %@~ f = runMutator . withIndex l (\i -> Mutator . f i)
 {-# INLINE (%@~) #-}
@@ -76,9 +81,11 @@ l %@~ f = runMutator . withIndex l (\i -> Mutator . f i)
 --
 -- @l '%=' f = l '%@=' 'const' f@
 --
--- > (%@=) :: MonadState a m => IndexedSetter i a a c d    -> (i -> c -> d) -> m ()
--- > (%@=) :: MonadState a m => IndexedLens i a a c d      -> (i -> c -> d) -> m ()
--- > (%@=) :: MonadState a m => IndexedTraversal i a b c d -> (i -> c -> d) -> m ()
+-- @
+-- (%@=) :: 'MonadState' a m => 'IndexedSetter' i a a c d    -> (i -> c -> d) -> m ()
+-- (%@=) :: 'MonadState' a m => 'Control.Lens.IndexedLens.IndexedLens' i a a c d      -> (i -> c -> d) -> m ()
+-- (%@=) :: 'MonadState' a m => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> m ()
+-- @
 (%@=) :: MonadState a m => Overloaded (Index i) Mutator a a c d -> (i -> c -> d) -> m ()
 l %@= f = State.modify (l %@~ f)
 {-# INLINE (%@=) #-}
