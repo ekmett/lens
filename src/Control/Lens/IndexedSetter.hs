@@ -66,9 +66,9 @@ imapOf l f = runMutator . withIndex l (\i -> Mutator . f i)
 -- @l '%~' f = l '%@~' 'const' f@
 --
 -- @
--- (%@~) :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
--- (%@~) :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> d) -> a -> b
--- (%@~) :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> a -> b
+-- (%\@~) :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
+-- (%\@~) :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> d) -> a -> b
+-- (%\@~) :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> a -> b
 -- @
 (%@~) :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
 l %@~ f = runMutator . withIndex l (\i -> Mutator . f i)
@@ -82,9 +82,9 @@ l %@~ f = runMutator . withIndex l (\i -> Mutator . f i)
 -- @l '%=' f = l '%@=' 'const' f@
 --
 -- @
--- (%@=) :: 'MonadState' a m => 'IndexedSetter' i a a c d    -> (i -> c -> d) -> m ()
--- (%@=) :: 'MonadState' a m => 'Control.Lens.IndexedLens.IndexedLens' i a a c d      -> (i -> c -> d) -> m ()
--- (%@=) :: 'MonadState' a m => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> m ()
+-- (%\@=) :: 'MonadState' a m => 'IndexedSetter' i a a c d    -> (i -> c -> d) -> m ()
+-- (%\@=) :: 'MonadState' a m => 'Control.Lens.IndexedLens.IndexedLens' i a a c d      -> (i -> c -> d) -> m ()
+-- (%\@=) :: 'MonadState' a m => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> m ()
 -- @
 (%@=) :: MonadState a m => Overloaded (Index i) Mutator a a c d -> (i -> c -> d) -> m ()
 l %@= f = State.modify (l %@~ f)

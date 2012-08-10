@@ -312,10 +312,10 @@ set l d = runMutator . l (\_ -> Mutator d)
 -- If you do not need a copy of the intermediate result, then using @l .~ d@ directly is a good idea.
 --
 -- @
--- (<.~) :: 'Setter' a b c d    -> d -> a -> (d, b)
--- (<.~) :: 'Control.Lens.Iso.Iso' a b c d       -> d -> a -> (d, b)
--- (<.~) :: 'Control.Lens.Type.Lens' a b c d      -> d -> a -> (d, b)
--- (<.~) :: 'Control.Lens.Traversal.Traversal' a b c d -> d -> a -> (d, b)
+-- (\<.~) :: 'Setter' a b c d    -> d -> a -> (d, b)
+-- (\<.~) :: 'Control.Lens.Iso.Iso' a b c d       -> d -> a -> (d, b)
+-- (\<.~) :: 'Control.Lens.Type.Lens' a b c d      -> d -> a -> (d, b)
+-- (\<.~) :: 'Control.Lens.Traversal.Traversal' a b c d -> d -> a -> (d, b)
 -- @
 (<.~) :: Setting a b c d -> d -> a -> (d, b)
 l <.~ d = \a -> (d, l .~ d $ a)
@@ -674,10 +674,10 @@ l <~ md = md >>= (l .=)
 -- If you do not need a copy of the intermediate result, then using @l .= d@ will avoid unused binding warnings
 --
 -- @
--- (<.=) :: 'MonadState' a m => 'Setter' a a c d -> d -> m d
--- (<.=) :: 'MonadState' a m => 'Control.Lens.Iso.Iso' a a c d -> d -> m d
--- (<.=) :: 'MonadState' a m => 'Control.Lens.Type.Lens' a a c d -> d -> m d
--- (<.=) :: 'MonadState' a m => 'Control.Lens.Traversal.Traversal' a a c d -> d -> m d
+-- (\<.=) :: 'MonadState' a m => 'Setter' a a c d -> d -> m d
+-- (\<.=) :: 'MonadState' a m => 'Control.Lens.Iso.Iso' a a c d -> d -> m d
+-- (\<.=) :: 'MonadState' a m => 'Control.Lens.Type.Lens' a a c d -> d -> m d
+-- (\<.=) :: 'MonadState' a m => 'Control.Lens.Traversal.Traversal' a a c d -> d -> m d
 -- @
 (<.=) :: MonadState a m => Setting a a c d -> d -> m d
 l <.= d = do
