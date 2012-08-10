@@ -370,9 +370,6 @@ l -~ n = adjust l (subtract n)
 {-# INLINE (-~) #-}
 
 -- | Divide the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
--- >>> import Control.Lens
--- >>> id //~ 2 $ 1
--- 0.5
 --
 -- @
 -- (//~) :: 'Fractional' c => 'Setter' a b c c -> c -> a -> b
