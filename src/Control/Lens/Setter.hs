@@ -26,9 +26,6 @@ module Control.Lens.Setter
   -- * Setters
     Setter
   , Settable(..)
-  -- * Consuming Setters
-  , Setting
-  , Mutator(..)
   -- * Building Setters
   , sets
   -- * Common Setters
@@ -43,15 +40,17 @@ module Control.Lens.Setter
   , (.=), (%=)
   , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (&&=), (<>=), (<.=)
   , (<~)
+  -- * Setter Internals
+  , Setting
+  , Mutator(..)
+  , SimpleSetting
   -- * Simplicity
   , SimpleSetter
-  , SimpleSetting
   ) where
 
 import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Monad.State.Class        as State
-import Control.Monad.Writer.Class       as Writer
 import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Monoid
@@ -82,7 +81,7 @@ infixr 2 <~
 --
 -- @
 -- l 'pure' = 'pure'
--- l f . 'run' . l g = l (f . 'run' . g)
+-- l f . 'untainted' . l g = l (f . 'untainted' . g)
 -- @
 --
 -- You can compose a 'Setter' with a 'Control.Lens.Type.Lens' or a 'Control.Lens.Traversal.Traversal' using ('.') from the Prelude
@@ -92,17 +91,29 @@ type Setter a b c d = forall f. Settable f => (c -> f d) -> a -> f b
 -- |
 -- Running a 'Setter' instantiates it to a concrete type.
 --
--- When consuming a setter, use this type.
+-- When consuming a setter directly to perform a mapping, you can use this type, but most
+-- user code will not need to use this type.
 --
 -- By choosing 'Mutator' rather than 'Identity', we get nicer error messages.
 type Setting a b c d = (c -> Mutator d) -> a -> Mutator b
 
 -- |
--- > 'SimpleSetter' = 'Control.Lens.Type.Simple' 'Setter'
+--
+-- A Simple Setter is just a 'Setter' that doesn't change the types.
+--
+-- These are particularly common when talking about monomorphic containers. e.g.
+--
+-- @'sets' Data.Text.map :: 'SimpleSetter' 'Data.Text.Internal.Text' 'Char'@
+--
+-- @type 'SimpleSetter' = 'Control.Lens.Type.Simple' 'Setter'@
 type SimpleSetter a b = Setter a a b b
 
 -- |
--- > 'SimpleSetting' m = 'Control.Lens.Type.Simple' 'Setting'
+-- This is a useful alias for use when consuming a 'SimpleSetter'.
+--
+-- Most user code will never have to use this type.
+--
+-- @type 'SimpleSetting' m = 'Control.Lens.Type.Simple' 'Setting'@
 type SimpleSetting a b = Setting a a b b
 
 -----------------------------------------------------------------------------
@@ -111,21 +122,27 @@ type SimpleSetting a b = Setting a a b b
 
 -- | Anything 'Settable' must be isomorphic to the 'Identity' 'Functor'.
 class Applicative f => Settable f where
-  run :: f a -> a
+  untainted :: f a -> a
+  {-# INLINE untainted #-}
 
 -- | so you can pass our a 'Setter' into combinators from other lens libraries
 instance Settable Identity where
-  run = runIdentity
+  untainted = runIdentity
+  {-# INLINE untainted #-}
 
 -- | 'Control.Lens.Fold.backwards'
 instance Settable f => Settable (Backwards f) where
-  run = run . forwards
+  untainted = untainted . forwards
+  {-# INLINE untainted #-}
 
 instance (Settable f, Settable g) => Settable (Compose f g) where
-  run = run . run . getCompose
+  untainted = untainted . untainted . getCompose
+  {-# INLINE untainted #-}
 
 -- | 'Mutator' is just a renamed 'Identity' functor to give better error
 -- messages when someone attempts to use a getter as a setter.
+--
+-- Most user code will never need to see this type.
 newtype Mutator a = Mutator { runMutator :: a }
 
 instance Functor Mutator where
@@ -136,7 +153,7 @@ instance Applicative Mutator where
   Mutator f <*> Mutator a = Mutator (f a)
 
 instance Settable Mutator where
-  run = runMutator
+  untainted = runMutator
 
 -----------------------------------------------------------------------------
 -- Setters
@@ -172,7 +189,7 @@ mapped = sets fmap
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
 sets :: ((c -> d) -> a -> b) -> Setter a b c d
-sets f g = pure . f (run . g)
+sets f g = pure . f (untainted . g)
 {-# INLINE sets #-}
 
 -----------------------------------------------------------------------------
@@ -184,7 +201,7 @@ sets f g = pure . f (run . g)
 --
 -- @
 -- 'fmap' = 'adjust' 'mapped'
--- 'Data.Traversable.fmapDefault' = 'adjust' 'Data.Traversable.traverse'@
+-- 'Data.Traversable.fmapDefault' = 'adjust' 'Data.Traversable.traverse'
 -- 'sets' . 'adjust' = 'id'
 -- 'adjust' . 'sets' = 'id'
 -- @
@@ -223,10 +240,22 @@ mapOf = adjust
 --
 -- @('<$') = 'set' 'mapped'@
 --
--- > set :: Setter a b c d    -> d -> a -> b
--- > set :: Iso a b c d       -> d -> a -> b
--- > set :: Lens a b c d      -> d -> a -> b
--- > set :: Traversal a b c d -> d -> a -> b
+-- >>> import Control.Lens
+-- >>> set _2 "hello" (1,())
+-- (1,"hello")
+--
+-- >>> set mapped () [1,2,3,4]
+-- [(),(),(),()]
+--
+-- Note: Attempting to 'set' a 'Fold' or 'Getter' will fail at compile time with an 
+-- relatively nice error message.
+--
+-- @
+-- set :: 'Setter' a b c d    -> d -> a -> b
+-- set :: 'Control.Lens.Iso.Iso' a b c d       -> d -> a -> b
+-- set :: 'Control.Lens.Type.Lens' a b c d      -> d -> a -> b
+-- set :: 'Control.Lens.Traversal.Traversal' a b c d -> d -> a -> b
+-- @
 set :: Setting a b c d -> d -> a -> b
 set l d = runMutator . l (\_ -> Mutator d)
 {-# INLINE set #-}
