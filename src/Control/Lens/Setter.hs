@@ -73,7 +73,7 @@ infixr 2 <~
 -- However, two 'Functor' laws apply to a 'Setter':
 --
 -- @
--- 'adjust' l id = id
+-- 'adjust' l 'id' = 'id'
 -- 'adjust' l f . 'adjust' l g = 'adjust' l (f . g)
 -- @
 --
@@ -309,7 +309,7 @@ set l d = runMutator . l (\_ -> Mutator d)
 --
 -- This is mostly present for consistency, but may be useful for for chaining assignments
 --
--- If you do not need a copy of the intermediate result, then using @l .~ d@ directly is a good idea.
+-- If you do not need a copy of the intermediate result, then using @l '.~' d@ directly is a good idea.
 --
 -- @
 -- (\<.~) :: 'Setter' a b c d    -> d -> a -> (d, b)
