@@ -12,17 +12,21 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Iso
   (
-  -- * Isomorphisms
-    Isomorphic(..)
-  , Isomorphism(..)
+  -- * Isomorphism Lenses
+    Iso
   , iso
   , isos
-  , from
+  -- ** Combinators
   , via
-  , Iso
-  , SimpleIso
+  , from
+  -- ** Common Isomorphisms
   , _const
   , identity
+  -- * Implementation
+  , Isomorphic(..)
+  , Isomorphism(..)
+  -- * Simplicity
+  , SimpleIso
   ) where
 
 import Control.Applicative
