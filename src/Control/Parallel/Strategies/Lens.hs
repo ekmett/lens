@@ -25,14 +25,14 @@ import Control.Parallel.Strategies
 -- according to the given strategy.
 --
 -- @
--- 'evalTraversable' = 'evalTraversal' 'traverse' = 'traverse'
--- 'evalTraversal' = 'id'
+-- 'evalTraversable' = 'evalOf' 'traverse' = 'traverse'
+-- 'evalOf' = 'id'
 -- @
 --
 -- @
--- evalTraversal :: 'Simple' 'Lens' a b -> 'Strategy' b -> 'Strategy' a
--- evalTraversal :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
--- evalTraversal :: (b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
+-- evalOf :: 'Simple' 'Lens' a b -> 'Strategy' b -> 'Strategy' a
+-- evalOf :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
+-- evalOf :: (b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
 -- @
 evalOf :: SimpleLensLike Eval a b -> Strategy b -> Strategy a
 evalOf l = l
@@ -40,12 +40,12 @@ evalOf l = l
 -- | Evaluate the targets of a 'Lens' or 'Traversal' according into a
 -- data structure according to a given 'Strategy' in parallel.
 --
--- @'parTraversable' = 'parTraversal' 'traverse'@
+-- @'parTraversable' = 'parOf' 'traverse'@
 --
 -- @
--- parTraversal :: 'Simple' 'Lens' a b -> 'Strategy' b -> 'Strategy' a
--- parTraversal :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
--- parTraversal :: ((b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
+-- parOf :: 'Simple' 'Lens' a b -> 'Strategy' b -> 'Strategy' a
+-- parOf :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
+-- parOf :: ((b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
 -- @
 parOf :: SimpleLensLike Eval a b -> Strategy b -> Strategy a
 parOf l s = l (rparWith s)

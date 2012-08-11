@@ -19,6 +19,6 @@ import Control.Seq
 -- | Evaluate the elements targeted by a 'Lens', 'Traversal', 'Iso',
 -- 'Getter' or 'Fold' according to the given strategy.
 --
--- > seqFoldable = seqOf folded
+-- @'seqFoldable' = 'seqOf' 'folded'@
 seqOf :: Getting [c] a c -> Strategy c -> Strategy a
 seqOf l s = seqList s . toListOf l
