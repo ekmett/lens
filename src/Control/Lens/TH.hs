@@ -282,7 +282,7 @@ makeFieldLensBody lensName fieldName cons maybeMethodName = case maybeMethodName
         clause [varP f, conP conName $ map varP names] (normalB
                (appsE [ varE (mkName "fmap")
                       , lamE [varP x] $ appsE $ conE conName : map varE (element i .~ x $ names)
-                      , varE (mkName "f") `appE` varE (names^.element i)
+                      , varE f `appE` varE (names^.element i)
                       ])) []
       Nothing -> errorClause lensName fieldName conName
     clauses con = errorClause lensName fieldName (con^.name)
