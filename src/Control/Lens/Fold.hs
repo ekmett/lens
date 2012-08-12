@@ -13,18 +13,22 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
--- A @'Fold' a c@ is a generalization of something 'Foldable'. It allows you to
--- extract multiple results from a container. A 'Foldable' container can be
--- characterized by the behavior of @foldMap :: ('Foldable' t, 'Monoid' m) => (c -> m) -> t c -> m@.
--- Since we want to be able to work with monomorphic containers, we could generalize this signature to
--- @forall m. 'Monoid' m => (c -> m) -> a -> m@, and then decorate it with 'Accessor' to obtain
+-- A @'Fold' a c@ is a generalization of something 'Foldable'. It allows
+-- you to extract multiple results from a container. A 'Foldable' container
+-- can be characterized by the behavior of
+-- @foldMap :: ('Foldable' t, 'Monoid' m) => (c -> m) -> t c -> m@.
+-- Since we want to be able to work with monomorphic containers, we could
+-- generalize this signature to @forall m. 'Monoid' m => (c -> m) -> a -> m@,
+-- and then decorate it with 'Accessor' to obtain
 --
 -- @type 'Fold' a c = forall m. 'Monoid' m => 'Getting' m a c@
 --
--- Every 'Getter' is a valid 'Fold' that simply doesn't use the 'Monoid' it is passed.
+-- Every 'Getter' is a valid 'Fold' that simply doesn't use the 'Monoid'
+-- it is passed.
 --
--- But in practice the type we use is slightly more complicated to allow for better error messages
--- and for it to be transformed by certain 'Applicative' transformers.
+-- In practice the type we use is slightly more complicated to allow for
+-- better error messages and for it to be transformed by certain 
+-- 'Applicative' transformers.
 --
 -- Everything you can do with a 'Foldable' container, you can with with a 'Fold' and there are
 -- combinators that generalize the usual 'Foldable' operations here.
