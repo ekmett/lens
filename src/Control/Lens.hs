@@ -30,8 +30,8 @@
 -- @
 --
 -- You can then access the value with ('^.') and set the value of the field
--- with ('.~') and can use almost any other combinator that is re-exported here
--- on those fields.
+-- with ('.~') and can use almost any other combinator that is re-exported
+-- here on those fields.
 --
 -- The combinators here have unusually specific type signatures, so for
 -- particularly tricky ones, the simpler type signatures you might want to
