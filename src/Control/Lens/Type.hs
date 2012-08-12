@@ -9,7 +9,7 @@
 #define MIN_VERSION_mtl(x,y,z) 1
 #endif
 
------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Type
 -- Copyright   :  (C) 2012 Edward Kmett
@@ -20,31 +20,36 @@
 --
 -- A @'Lens' a b c d@ is a purely functional reference.
 --
--- While a 'Control.Lens.Traversal.Traversal' could be used for 'Control.Lens.Getter.Getting' like a valid 'Control.Lens.Fold.Fold',
--- it wasn't a valid 'Getter' as Applicative isn't a superclass of 
+-- While a 'Control.Lens.Traversal.Traversal' could be used for
+-- 'Control.Lens.Getter.Getting' like a valid 'Control.Lens.Fold.Fold',
+-- it wasn't a valid 'Getter' as Applicative isn't a superclass of
 -- 'Gettable'.
 --
 -- 'Functor', however is the superclass of both.
 --
 -- @type 'Lens' a b c d = forall f. 'Functor' f => (c -> f d) -> a -> f b@
 --
--- Every 'Lens' is a valid 'Setter', choosing @f@ = 'Control.Lens.Getter.Mutator'.
+-- Every 'Lens' is a valid 'Setter', choosing @f@ =
+-- 'Control.Lens.Getter.Mutator'.
 --
--- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a 'Control.Lens.Fold.Fold' that doesn't use
--- the 'Applicative' or 'Control.Lens.Getter.Gettable'.
+-- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a
+-- 'Control.Lens.Fold.Fold' that doesn't use the 'Applicative' or
+-- 'Control.Lens.Getter.Gettable'.
 --
--- Every 'Lens' is a valid 'Control.Lens.Traversal.Traversal' that only uses the 'Functor' part
--- of the 'Applicative' it is supplied.
+-- Every 'Lens' is a valid 'Control.Lens.Traversal.Traversal' that only uses
+-- the 'Functor' part of the 'Applicative' it is supplied.
 --
--- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a valid 'Getter', since 'Functor' is
--- a superclass of 'Control.Lens.Getter.Gettable'
+-- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a valid
+-- 'Getter', since 'Functor' is a superclass of 'Control.Lens.Getter.Gettable'
 --
--- Since every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a valid 'Getter' it
--- follows that it must view exactly one element in the structure.
+-- Since every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a
+-- valid 'Getter' it follows that it must view exactly one element in the
+-- structure.
 --
 -- The lens laws follow from this property and the desire for it to act like
--- a 'Data.Traversable.Traversable' when used as a 'Control.Lens.Traversal.Traversal'.
-----------------------------------------------------------------------------
+-- a 'Data.Traversable.Traversable' when used as a
+-- 'Control.Lens.Traversal.Traversal'.
+-------------------------------------------------------------------------------
 module Control.Lens.Type
   (
   -- * Lenses
@@ -76,10 +81,14 @@ module Control.Lens.Type
   , bothLenses
 
   -- * Setting Functionally with Passthrough
-  , (<%~), (<+~), (<-~), (<*~), (<//~), (<^~), (<^^~), (<**~), (<||~), (<&&~), (<<>~)
+  , (<%~), (<+~), (<-~), (<*~), (<//~)
+  , (<^~), (<^^~), (<**~)
+  , (<||~), (<&&~), (<<>~)
 
   -- * Setting State with Passthrough
-  , (<%=), (<+=), (<-=), (<*=), (<//=), (<^=), (<^^=), (<**=), (<||=), (<&&=), (<<>=)
+  , (<%=), (<+=), (<-=), (<*=), (<//=)
+  , (<^=), (<^^=), (<**=)
+  , (<||=), (<&&=), (<<>=)
 
   -- * Cloning Lenses
   , clone
@@ -110,13 +119,15 @@ infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <%~, <<>~
 infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<>=
 
 
---------------------------
+-------------------------------------------------------------------------------
 -- Lenses
---------------------------
+-------------------------------------------------------------------------------
 
--- | A 'Lens' is actually a lens family as described in <http://comonad.com/reader/2012/mirrored-lenses/>.
+-- | A 'Lens' is actually a lens family as described in
+-- <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
--- With great power comes great responsibility and a 'Lens' is subject to the three common sense lens laws:
+-- With great power comes great responsibility and a 'Lens'is subject to the
+-- three common sense lens laws:
 --
 -- 1) You get back what you put in:
 --
@@ -130,14 +141,19 @@ infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<>=
 --
 -- @'set' l c ('set' l b a) = 'set' l c a@
 --
--- These laws are strong enough that the 4 type parameters of a 'Lens' cannot vary fully independently. For more on
--- how they interact, read the "Why is it a Lens Family?" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
+-- These laws are strong enough that the 4 type parameters of a 'Lens' cannot
+-- vary fully independently. For more on how they interact, read the "Why is
+-- it a Lens Family?" section of
+-- <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
--- Every 'Lens' can be used directly as a 'Setter' or 'Control.Lens.Traversal.Traversal'.
+-- Every 'Lens' can be used directly as a 'Setter' or
+-- 'Control.Lens.Traversal.Traversal'.
 --
--- You can also use a 'Lens' for 'Control.Lens.Getter.Getting' as if it were a 'Control.Lens.Fold.Fold' or 'Getter'.
+-- You can also use a 'Lens' for 'Control.Lens.Getter.Getting' as if it were a
+-- 'Control.Lens.Fold.Fold' or 'Getter'.
 --
--- Since every lens is a valid 'Control.Lens.Traversal.Traversal', the traversal laws should also apply to any lenses you create.
+-- Since every lens is a valid 'Control.Lens.Traversal.Traversal', the
+-- traversal laws should also apply to any lenses you create.
 --
 -- 1.) Idiomatic naturality:
 --
@@ -150,7 +166,8 @@ infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<>=
 -- @type 'Lens' a b c d = forall f. 'Functor' f => 'LensLike' f a b c d@
 type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 
--- | A 'Simple' 'Lens', 'Simple' 'Control.Lens.Traversal.Traversal', ... can be used instead of a 'Lens','Control.Lens.Traversal.Traversal', ...
+-- | A 'Simple' 'Lens', 'Simple' 'Control.Lens.Traversal.Traversal', ... can
+-- be used instead of a 'Lens','Control.Lens.Traversal.Traversal', ...
 -- whenever the type variables don't change upon setting a value.
 --
 -- @
@@ -158,8 +175,8 @@ type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 -- 'Data.List.Lens.traverseHead' :: 'Simple' 'Control.Lens.Lens.Traversal' [a] a
 -- @
 --
--- Note: To use this alias in your own code with @'LensLike' f@ or 'Control.Lens.Setter.Setter', you may have to turn on
--- @LiberalTypeSynonyms@.
+-- Note: To use this alias in your own code with @'LensLike' f@ or
+-- 'Control.Lens.Setter.Setter', you may have to turn on @LiberalTypeSynonyms@.
 type Simple f a b = f a a b b
 
 -- | @type 'SimpleLens' = 'Simple' 'Lens'@
@@ -179,27 +196,32 @@ lens :: (a -> c) -> (a -> d -> b) -> Lens a b c d
 lens ac adb cfd a = adb a <$> cfd (ac a)
 {-# INLINE lens #-}
 
---------------------------
+-------------------------------------------------------------------------------
 -- LensLike
---------------------------
+-------------------------------------------------------------------------------
 
 -- |
--- Many combinators that accept a 'Lens' can also accept a 'Control.Lens.Traversal.Traversal' in limited situations.
+-- Many combinators that accept a 'Lens' can also accept a
+-- 'Control.Lens.Traversal.Traversal' in limited situations.
 --
--- They do so by specializing the type of 'Functor' that they require of the caller.
+-- They do so by specializing the type of 'Functor' that they require of the
+-- caller.
 --
--- If a function accepts a @'LensLike' f a b c d@ for some 'Functor' @f@, then they may be passed a 'Lens'.
+-- If a function accepts a @'LensLike' f a b c d@ for some 'Functor' @f@,
+-- then they may be passed a 'Lens'.
 --
--- Further, if @f@ is an 'Applicative', they may also be passed a 'Control.Lens.Traversal.Traversal'.
+-- Further, if @f@ is an 'Applicative', they may also be passed a
+-- 'Control.Lens.Traversal.Traversal'.
 type LensLike f a b c d = (c -> f d) -> a -> f b
 
 -- | ('%%~') can be used in one of two scenarios:
 --
--- When applied to a 'Lens', it can edit the target of the 'Lens' in a structure, extracting a
--- functorial result.
+-- When applied to a 'Lens', it can edit the target of the 'Lens' in a
+-- structure, extracting a functorial result.
 --
--- When applied to a 'Control.Lens.Traversal.Traversal', it can edit the targets of the 'Traversals', extracting an
--- applicative summary of its actions.
+-- When applied to a 'Control.Lens.Traversal.Traversal', it can edit the
+-- targets of the 'Traversals', extracting an applicative summary of its
+-- actions.
 --
 -- For all that the definition of this combinator is just:
 --
@@ -211,10 +233,12 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- (%%~) :: 'Applicative' f => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> f d) -> a -> f b
 -- @
 --
--- It may be beneficial to think about it as if it had these even more restrictive types, however:
+-- It may be beneficial to think about it as if it had these even more
+-- restrictive types, however:
 --
--- When applied to a 'Control.Lens.Traversal.Traversal', it can edit the targets of the 'Traversals', extracting a
--- supplemental monoidal summary of its actions, by choosing f = ((,) m)
+-- When applied to a 'Control.Lens.Traversal.Traversal', it can edit the
+-- targets of the 'Traversals', extracting a supplemental monoidal summary
+-- of its actions, by choosing @f = ((,) m)@
 --
 -- @
 -- (%%~) ::             'Control.Lens.Iso.Iso' a b c d       -> (c -> (e, d)) -> a -> (e, b)
@@ -225,14 +249,15 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 (%%~) = id
 {-# INLINE (%%~) #-}
 
--- | Modify the target of a 'Lens' in the current state returning some extra information of @c@ or
--- modify all targets of a 'Control.Lens.Traversal.Traversal' in the current state, extracting extra information of type @c@
--- and return a monoidal summary of the changes.
+-- | Modify the target of a 'Lens' in the current state returning some extra
+-- information of @c@ or modify all targets of a
+-- 'Control.Lens.Traversal.Traversal' in the current state, extracting extra
+-- information of type @c@ and return a monoidal summary of the changes.
 --
 -- @('%%=') = ('state' '.')@
 --
--- It may be useful to think of ('%%='), instead, as having either of the following more restricted
--- type signatures:
+-- It may be useful to think of ('%%='), instead, as having either of the
+-- following more restricted type signatures:
 --
 -- @
 -- (%%=) :: 'MonadState' a m             => 'Control.Lens.Iso.Iso' a a c d       -> (c -> (e, d) -> m e
@@ -250,15 +275,18 @@ l %%= f = do
 #endif
 {-# INLINE (%%=) #-}
 
--- | This class allows us to use 'focus' on a number of different monad transformers.
+-- | This class allows us to use 'focus' on a number of different monad
+-- transformers.
 class Focus st where
-  -- | Run a monadic action in a larger context than it was defined in, using a 'Simple' 'Lens' or 'Simple' 'Control.Lens.Traversal.Traversal'.
+  -- | Run a monadic action in a larger context than it was defined in,
+  -- using a 'Simple' 'Lens' or 'Simple' 'Control.Lens.Traversal.Traversal'.
   --
-  -- This is commonly used to lift actions in a simpler state monad into a state monad with a larger state type.
+  -- This is commonly used to lift actions in a simpler state monad into a
+  -- state monad with a larger state type.
   --
-  -- When applied to a 'Simple 'Control.Lens.Traversal.Traversal' over multiple values, the actions for each target are executed sequentially
-  -- and the results are aggregated monoidally
-  -- and a monoidal summary
+  -- When applied to a 'Simple 'Control.Lens.Traversal.Traversal' over
+  -- multiple values, the actions for each target are executed sequentially
+  -- and the results are aggregated monoidally and a monoidal summary
   -- of the result is given.
   --
   -- @
@@ -285,29 +313,39 @@ skip _ = ()
 {-# INLINE skip #-}
 
 instance Focus Strict.StateT where
-  focus l m = Strict.StateT $ unfocusing . l (Focusing . Strict.runStateT m)
+  focus l m = Strict.StateT $
+    unfocusing . l (Focusing . Strict.runStateT m)
   {-# INLINE focus #-}
-  focus_ l m = Strict.StateT $ unfocusing . l (Focusing . Strict.runStateT (liftM skip m))
+  focus_ l m = Strict.StateT $
+    unfocusing . l (Focusing . Strict.runStateT (liftM skip m))
   {-# INLINE focus_ #-}
-  setFocus l m = Strict.state $ (,) () . runIdentity . l (Identity . snd . Strict.runState m)
+  setFocus l m = Strict.state $
+    (,) () . runIdentity . l (Identity . snd . Strict.runState m)
 
 instance Focus Lazy.StateT where
-  focus l m = Lazy.StateT $ unfocusing . l (Focusing . Lazy.runStateT m)
+  focus l m = Lazy.StateT $
+    unfocusing . l (Focusing . Lazy.runStateT m)
   {-# INLINE focus #-}
-  focus_ l m = Lazy.StateT $ unfocusing . l (Focusing . Lazy.runStateT (liftM skip m))
+  focus_ l m = Lazy.StateT $
+    unfocusing . l (Focusing . Lazy.runStateT (liftM skip m))
   {-# INLINE focus_ #-}
-  setFocus l m = Lazy.state $ (,) () . runIdentity . l (Identity . snd . Lazy.runState m)
+  setFocus l m = Lazy.state $
+    (,) () . runIdentity . l (Identity . snd . Lazy.runState m)
+  {-# INLINE setFocus #-}
 
 instance Focus ReaderT where
-  focus l m = ReaderT $ liftM fst . unfocusing . l (\b -> Focusing $ (\c -> (c,b)) `liftM` runReaderT m b)
+  focus l m = ReaderT $
+    liftM fst . unfocusing . l (\b -> Focusing $
+      (\c -> (c,b)) `liftM` runReaderT m b)
   {-# INLINE focus #-}
-  focus_ l m = ReaderT $ \a -> liftM skip $ unfocusing $ l (\b -> Focusing $ (\_ -> ((),b)) `liftM` runReaderT m b) a
+  focus_ l m = ReaderT $ \a -> liftM skip $
+    unfocusing $ l (\b -> Focusing $ (\_ -> ((),b)) `liftM` runReaderT m b) a
   {-# INLINE focus_ #-}
   setFocus _ _ = return () -- BOOORING
 
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Common Lenses
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 {-
 -- | This is a lens that can change the value (and type) of the first field of
@@ -349,33 +387,38 @@ resultAt e afa ea = go <$> afa a where
 {-# INLINE resultAt #-}
 
 -- | Merge two lenses, getters, setters, folds or traversals.
-merged :: Functor f => LensLike f a b c c -> LensLike f a' b' c c -> LensLike f (Either a a') (Either b b') c c
+merged :: Functor f
+       => LensLike f a b c c
+       -> LensLike f a' b' c c
+       -> LensLike f (Either a a') (Either b b') c c
 merged l _ f (Left a)   = Left <$> l f a
 merged _ r f (Right a') = Right <$> r f a'
 {-# INLINE merged #-}
 
 -- | 'bothLenses' makes a 'Lens' from two other lenses (or isomorphisms)
-bothLenses :: Lens a b c d -> Lens a' b' c' d' -> Lens (a,a') (b,b') (c,c') (d,d')
+bothLenses :: Lens a b c d
+           -> Lens a' b' c' d'
+           -> Lens (a,a') (b,b') (c,c') (d,d')
 bothLenses l r f (a, a') = case l (IndexedStore id) a of
   IndexedStore db c -> case r (IndexedStore id) a' of
     IndexedStore db' c' -> (\(d,d') -> (db d, db' d')) <$> f (c,c')
 {-# INLINE bothLenses #-}
 
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Cloning Lenses
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 -- |
 --
 -- Cloning a 'Lens' is one way to make sure you arent given
--- something weaker, such as a 'Control.Lens.Traversal.Traversal' and can be used
--- as a way to pass around lenses that have to be monomorphic in 'f'.
+-- something weaker, such as a 'Control.Lens.Traversal.Traversal' and can be
+-- used as a way to pass around lenses that have to be monomorphic in @f@.
 --
 -- Note: This only accepts a proper 'Lens', because 'IndexedStore' lacks its
 -- (admissable) 'Applicative' instance.
 --
--- \"Costate Comonad Coalgebra is equivalent of Java's member variable update technology for Haskell\"
--- -- \@PLT_Borat on Twitter
+-- \"Costate Comonad Coalgebra is equivalent of Java's member variable
+-- update technology for Haskell\" -- \@PLT_Borat on Twitter
 clone :: Functor f
       => LensLike (IndexedStore c d) a b c d
       -> (c -> f d) -> a -> f b
@@ -383,9 +426,9 @@ clone f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
 {-# INLINE clone #-}
 
------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Overloading function application
------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 -- | @type 'LensLike' f a b c d = 'Overloaded' (->) f a b c d@
 type Overloaded k f a b c d = k (c -> f d) (a -> f b)
@@ -393,9 +436,9 @@ type Overloaded k f a b c d = k (c -> f d) (a -> f b)
 -- | @type 'SimpleOverloaded' k f a b = 'Simple' ('Overloaded' k f) a b@
 type SimpleOverloaded k f a b = Overloaded k f a a b b
 
------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Setting and Remembering
------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 -- | Modify the target of a 'Lens' and return the result
 --
@@ -420,7 +463,8 @@ l <-~ c = l <%~ subtract c
 
 -- | Multiply the target of a numerically valued 'Lens' and return the result
 --
--- When you do not need the result of the multiplication, ('*~') is more flexible.
+-- When you do not need the result of the multiplication, ('*~') is more
+-- flexible.
 (<*~) :: Num c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <*~ c = l <%~ (* c)
 {-# INLINE (<*~) #-}
@@ -432,21 +476,24 @@ l <*~ c = l <%~ (* c)
 l <//~ c = l <%~ (/ c)
 {-# INLINE (<//~) #-}
 
--- | Raise the target of a numerically valued 'Lens' to a non-negative 'Integral' power and return the result
+-- | Raise the target of a numerically valued 'Lens' to a non-negative
+-- 'Integral' power and return the result
 --
 -- When you do not need the result of the division, ('^~') is more flexible.
 (<^~) :: (Num c, Integral d) => LensLike ((,)c) a b c c -> d -> a -> (c, b)
 l <^~ d = l <%~ (^ d)
 {-# INLINE (<^~) #-}
 
--- | Raise the target of a fractionally valued 'Lens' to an 'Integral' power and return the result
+-- | Raise the target of a fractionally valued 'Lens' to an 'Integral' power 
+-- and return the result.
 --
 -- When you do not need the result of the division, ('^^~') is more flexible.
 (<^^~) :: (Fractional c, Integral d) => LensLike ((,)c) a b c c -> d -> a -> (c, b)
 l <^^~ d = l <%~ (^^ d)
 {-# INLINE (<^^~) #-}
 
--- | Raise the target of a floating-point valued 'Lens' to an arbitrary power and return the result
+-- | Raise the target of a floating-point valued 'Lens' to an arbitrary power
+-- and return the result.
 --
 -- When you do not need the result of the division, ('**~') is more flexible.
 (<**~) :: Floating c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
@@ -467,88 +514,103 @@ l <||~ c = l <%~ (|| c)
 l <&&~ c = l <%~ (&& c)
 {-# INLINE (<&&~) #-}
 
--- | 'mappend' a monoidal value onto the end of the target of a 'Lens' and return the result
+-- | 'mappend' a monoidal value onto the end of the target of a 'Lens' and
+-- return the result
 --
 -- When you do not need the result of the operation, ('<>~') is more flexible.
 (<<>~) :: Monoid m => LensLike ((,)m) a b m m -> m -> a -> (m, b)
 l <<>~ m = l <%~ (`mappend` m)
 {-# INLINE (<<>~) #-}
 
------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Setting and Remembering State
------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
--- | Modify the target of a 'Lens' into your monad's state by a user supplied function and return the result.
+-- | Modify the target of a 'Lens' into your monad's state by a user supplied
+-- function and return the result.
 --
 -- When you do not need the result of the operation, ('%=') is more flexible.
 (<%=) :: MonadState a m => LensLike ((,)d) a a c d -> (c -> d) -> m d
 l <%= f = l %%= (\c -> let d = f c in (d,d))
 {-# INLINE (<%=) #-}
 
--- | Add to the target of a numerically valued 'Lens' into your monad's state and return the result.
+-- | Add to the target of a numerically valued 'Lens' into your monad's state
+-- and return the result.
 --
--- When you do not need the result of the multiplication, ('+=') is more flexible.
+-- When you do not need the result of the multiplication, ('+=') is more
+-- flexible.
 (<+=) :: (MonadState a m, Num b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <+= b = l <%= (+ b)
 {-# INLINE (<+=) #-}
 
--- | Subtract from the target of a numerically valued 'Lens' into your monad's state and return the result.
+-- | Subtract from the target of a numerically valued 'Lens' into your monad's
+-- state and return the result.
 --
--- When you do not need the result of the multiplication, ('-=') is more flexible.
+-- When you do not need the result of the multiplication, ('-=') is more
+-- flexible.
 (<-=) :: (MonadState a m, Num b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <-= b = l <%= subtract b
 {-# INLINE (<-=) #-}
 
--- | Multiply the target of a numerically valued 'Lens' into your monad's state and return the result.
+-- | Multiply the target of a numerically valued 'Lens' into your monad's
+-- state and return the result.
 --
--- When you do not need the result of the multiplication, ('*=') is more flexible.
+-- When you do not need the result of the multiplication, ('*=') is more
+-- flexible.
 (<*=) :: (MonadState a m, Num b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <*= b = l <%= (* b)
 {-# INLINE (<*=) #-}
 
--- | Divide the target of a fractionally valued 'Lens' into your monad's state and return the result.
+-- | Divide the target of a fractionally valued 'Lens' into your monad's state
+-- and return the result.
 --
 -- When you do not need the result of the division, ('//=') is more flexible.
 (<//=) :: (MonadState a m, Fractional b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <//= b = l <%= (/ b)
 {-# INLINE (<//=) #-}
 
--- | Raise the target of a numerically valued 'Lens' into your monad's state to a non-negative 'Integral' power and return the result
+-- | Raise the target of a numerically valued 'Lens' into your monad's state
+-- to a non-negative 'Integral' power and return the result.
 --
 -- When you do not need the result of the operation, ('**=') is more flexible.
 (<^=) :: (MonadState a m, Num b, Integral c) => SimpleLensLike ((,)b) a b -> c -> m b
 l <^= c = l <%= (^ c)
 {-# INLINE (<^=) #-}
 
--- | Raise the target of a fractionally valued 'Lens' into your monad's state to an 'Integral' power and return the result
+-- | Raise the target of a fractionally valued 'Lens' into your monad's state
+-- to an 'Integral' power and return the result.
 --
 -- When you do not need the result of the operation, ('^^=') is more flexible.
 (<^^=) :: (MonadState a m, Fractional b, Integral c) => SimpleLensLike ((,)b) a b -> c -> m b
 l <^^= c = l <%= (^^ c)
 {-# INLINE (<^^=) #-}
 
--- | Raise the target of a floating-point valued 'Lens' into your monad's state to an arbitrary power and return the result
+-- | Raise the target of a floating-point valued 'Lens' into your monad's
+-- state to an arbitrary power and return the result.
 --
 -- When you do not need the result of the operation, ('**=') is more flexible.
 (<**=) :: (MonadState a m, Floating b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <**= b = l <%= (** b)
 {-# INLINE (<**=) #-}
 
--- | Logically '||' a Boolean valued 'Lens' into your monad's state and return the result
+-- | Logically '||' a Boolean valued 'Lens' into your monad's state and return
+-- the result.
 --
 -- When you do not need the result of the operation, ('||=') is more flexible.
 (<||=) :: MonadState a m => SimpleLensLike ((,)Bool) a Bool -> Bool -> m Bool
 l <||= b = l <%= (|| b)
 {-# INLINE (<||=) #-}
 
--- | Logically '&&' a Boolean valued 'Lens' into your monad's state and return the result
+-- | Logically '&&' a Boolean valued 'Lens' into your monad's state and return
+-- the result.
 --
 -- When you do not need the result of the operation, ('&&=') is more flexible.
 (<&&=) :: MonadState a m => SimpleLensLike ((,)Bool) a Bool -> Bool -> m Bool
 l <&&= b = l <%= (&& b)
 {-# INLINE (<&&=) #-}
 
--- | 'mappend' a monoidal value onto the end of the target of a 'Lens' into your monad's state and return the result
+-- | 'mappend' a monoidal value onto the end of the target of a 'Lens' into
+-- your monad's state and return the result.
 --
 -- When you do not need the result of the operation, ('<>=') is more flexible.
 (<<>=) :: (MonadState a m, Monoid r) => SimpleLensLike ((,)r) a r -> r -> m r
