@@ -1,0 +1,12 @@
+" Add the following to your .vimrc to automatically load this on startup
+" if filereadable(".vim.custom")
+"     so .vim.custom
+" endif
+
+syntax on
+set tags=TAGS;/
+set listchars=tab:‗‗,trail:‗
+set list
+
+map <F2> :exec ":!hasktags -x -c --ignore src"<CR><CR>
+" autocmd! bufwritepost *.hs :exec ":!hasktags -x -c --ignore src"
