@@ -1,7 +1,8 @@
 language: haskell
-before_install:
-  - mkdir -p ~/.cabal
-  - cp config ~/.cabal/config
-  - cabal update
+# Use this when hackage is down.
+# before_install:
+#   - mkdir -p ~/.cabal
+#   - cp config ~/.cabal/config
+#   - cabal update
 notifications:
   irc: "irc.freenode.org#haskell-lens"
