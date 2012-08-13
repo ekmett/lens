@@ -45,7 +45,7 @@ members = folding IntSet.toAscList
 -- elements might change but you can manipulate it by reading using 'folded' and
 -- reindexing it via 'setmap'.
 --
--- >>> adjust setmapped (+1) (fromList [1,2,3,4])
+-- >>> under setmapped (+1) (fromList [1,2,3,4])
 -- fromList [2,3,4,5]
 setmapped :: Simple Setter IntSet Int
 setmapped = sets IntSet.map

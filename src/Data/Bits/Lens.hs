@@ -30,7 +30,7 @@ infix 4 |=, &=
 -- >>> _2 |~ 6 $ ("hello",3)
 -- ("hello",7)
 (|~):: Bits c => Setting a b c c -> c -> a -> b
-l |~ n = adjust l (.|. n)
+l |~ n = under l (.|. n)
 {-# INLINE (|~) #-}
 
 -- | Bitwise '.&.' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
@@ -38,7 +38,7 @@ l |~ n = adjust l (.|. n)
 -- >>> _2 &~ 7 $ ("hello",254)
 -- ("hello",6)
 (&~) :: Bits c => Setting a b c c -> c -> a -> b
-l &~ n = adjust l (.&. n)
+l &~ n = under l (.&. n)
 {-# INLINE (&~) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.&.' with another value.

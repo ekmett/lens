@@ -17,6 +17,8 @@ module Control.Lens.Iso
   , iso
   , isos
   , au
+  , auf
+  , over
   -- ** Combinators
   , via
   , from
@@ -162,24 +164,38 @@ iso ab ba = isos ab ba ab ba
 {-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> (b -> f b) -> a -> f a #-}
 {-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> Isomorphism (b -> f b) (a -> f a) #-}
 
--- | Based on @ala@ from Conor McBride's work on Epigram and @Control.Newtype@ from the
--- 'newtype package.
+-- | Based on @ala@ from Conor McBride's work on Epigram.
 --
 -- Mnemonically, /au/ is a French contraction of /à le/.
 --
 -- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
 -- >>> au _sum foldMap [1,2,3,4]
 -- 10
-au :: Simple Iso a b -> ((a -> b) -> e -> b) -> e -> a
+au :: Simple Iso a b -> ((a -> b) -> c -> b) -> c -> a
 au l f e = f (view l) e ^. from l
+{-# INLINE au #-}
 
-{-
-under :: Setter a b c d -> (c -> d) -> a -> b
-under = adjust
+-- |
+-- Based on @ala'@ from Conor McBride's work on Epigram.
+--
+-- Mnemonically, the German /auf/ both plays a similar role to /à la/, and it is /au/ with an
+-- extra function argument.
+auf :: Simple Iso a b -> ((d -> b) -> c -> b) -> (d -> a) -> c -> a
+auf l f g e = f (view l . g) e ^. from l
+{-# INLINE auf #-}
 
+-- | The opposite of working 'under' an isomorphism.
+--
+-- @'over' = 'under' . 'from'@
+--
+-- >>> :m + Control.Lens Data.Monoid Data.Monoid.Lens
+-- >>> over _sum (mappend (Sum 2)) 10
+-- 12
+--
+-- @'over' :: Iso a b c d -> (a -> b) -> (c -> d)@
 over :: Isomorphism (c -> Identity d) (a -> Identity b) -> (a -> b) -> c -> d
 over = under . from
--}
+{-# INLINE over #-}
 
 -----------------------------------------------------------------------------
 -- Isomorphisms

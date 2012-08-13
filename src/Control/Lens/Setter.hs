@@ -31,7 +31,7 @@ module Control.Lens.Setter
   -- * Common Setters
   , mapped
   -- * Functional Combinators
-  , adjust
+  , under
   , mapOf
   , set
   , (.~), (%~)
@@ -73,8 +73,8 @@ infixr 2 <~
 -- However, two 'Functor' laws apply to a 'Setter':
 --
 -- @
--- 'adjust' l 'id' = 'id'
--- 'adjust' l f . 'adjust' l g = 'adjust' l (f . g)
+-- 'under' l 'id' = 'id'
+-- 'under' l f . 'under' l g = 'under' l (f . g)
 -- @
 --
 -- These an be stated more directly:
@@ -162,8 +162,8 @@ instance Settable Mutator where
 -- | This setter can be used to map over all of the values in a 'Functor'.
 --
 -- @
--- 'fmap' = 'adjust' 'mapped'
--- 'Data.Traversable.fmapDefault' = 'adjust' 'Data.Traversable.traverse'
+-- 'fmap' = 'under' 'mapped'
+-- 'Data.Traversable.fmapDefault' = 'under' 'Data.Traversable.traverse'
 -- ('<$') = 'set' 'mapped'
 -- @
 mapped :: Functor f => Setter (f a) (f b) a b
@@ -182,8 +182,8 @@ mapped = sets fmap
 -- Equational reasoning:
 --
 -- @
--- 'sets' . 'adjust' = 'id'
--- 'adjust' . 'sets' = 'id'
+-- 'sets' . 'under' = 'id'
+-- 'under' . 'sets' = 'id'
 -- @
 --
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
@@ -200,25 +200,25 @@ sets f g = pure . f (untainted . g)
 -- with a function.
 --
 -- @
--- 'fmap' = 'adjust' 'mapped'
--- 'Data.Traversable.fmapDefault' = 'adjust' 'Data.Traversable.traverse'
--- 'sets' . 'adjust' = 'id'
--- 'adjust' . 'sets' = 'id'
+-- 'fmap' = 'under' 'mapped'
+-- 'Data.Traversable.fmapDefault' = 'under' 'Data.Traversable.traverse'
+-- 'sets' . 'under' = 'id'
+-- 'under' . 'sets' = 'id'
 -- @
 --
--- Another way to view 'adjust' is to say that it transformers a 'Setter' into a
+-- Another way to view 'under' is to say that it transformers a 'Setter' into a
 -- \"semantic editor combinator\".
 --
--- @'adjust' :: 'Setter' a b c d -> (c -> d) -> a -> b@
-adjust :: Setting a b c d -> (c -> d) -> a -> b
-adjust l f = runMutator . l (Mutator . f)
-{-# INLINE adjust #-}
+-- @'under' :: 'Setter' a b c d -> (c -> d) -> a -> b@
+under :: Setting a b c d -> (c -> d) -> a -> b
+under l f = runMutator . l (Mutator . f)
+{-# INLINE under #-}
 
 -- | Modify the target of a 'Control.Lens.Type.Lens' or all the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal'
--- with a function. This is an alias for adjust that is provided for consistency.
+-- with a function. This is an alias for 'under' that is provided for consistency.
 --
 -- @
--- 'mapOf' = 'adjust'
+-- 'mapOf' = 'under'
 -- 'fmap' = 'mapOf' 'mapped'
 -- 'fmapDefault' = 'mapOf' 'traverse'
 -- 'sets' . 'mapOf' = 'id'
@@ -232,7 +232,7 @@ adjust l f = runMutator . l (Mutator . f)
 -- mapOf :: 'Control.Lens.Traversal.Traversal' a b c d   -> (c -> d) -> a -> b
 -- @
 mapOf :: Setting a b c d -> (c -> d) -> a -> b
-mapOf = adjust
+mapOf = under
 {-# INLINE mapOf #-}
 
 -- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter'
@@ -263,7 +263,7 @@ set l d = runMutator . l (\_ -> Mutator d)
 -- | Modifies the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or
 -- 'Control.Lens.Traversal.Traversal' with a user supplied function.
 --
--- This is an infix version of 'adjust'
+-- This is an infix version of 'under'
 --
 -- @
 -- 'fmap' f = 'mapped' '%~' f
@@ -281,7 +281,7 @@ set l d = runMutator . l (\_ -> Mutator d)
 -- (%~) :: 'Control.Lens.Traversal.Traversal' a b c d -> (c -> d) -> a -> b
 -- @
 (%~) :: Setting a b c d -> (c -> d) -> a -> b
-(%~) = adjust
+(%~) = under
 {-# INLINE (%~) #-}
 
 -- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter'
@@ -334,7 +334,7 @@ l <.~ d = \a -> (d, l .~ d $ a)
 -- (+~) :: Num c => 'Control.Lens.Traversal.Traversal' a b c c -> c -> a -> b
 -- @
 (+~) :: Num c => Setting a b c c -> c -> a -> b
-l +~ n = adjust l (+ n)
+l +~ n = under l (+ n)
 {-# INLINE (+~) #-}
 
 -- | Multiply the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
@@ -350,7 +350,7 @@ l +~ n = adjust l (+ n)
 -- (*~) :: 'Num' c => 'Control.Lens.Traversal.Traversal' a b c c -> c -> a -> b
 -- @
 (*~) :: Num c => Setting a b c c -> c -> a -> b
-l *~ n = adjust l (* n)
+l *~ n = under l (* n)
 {-# INLINE (*~) #-}
 
 -- | Decrement the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
@@ -366,7 +366,7 @@ l *~ n = adjust l (* n)
 -- (-~) :: 'Num' c => 'Control.Lens.Traversal.Traversal' a b c c -> c -> a -> b
 -- @
 (-~) :: Num c => Setting a b c c -> c -> a -> b
-l -~ n = adjust l (subtract n)
+l -~ n = under l (subtract n)
 {-# INLINE (-~) #-}
 
 -- | Divide the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
@@ -378,7 +378,7 @@ l -~ n = adjust l (subtract n)
 -- (//~) :: 'Fractional' c => 'Control.Lens.Traversal.Traversal' a b c c -> c -> a -> b
 -- @
 (//~) :: Fractional c => Setting a b c c -> c -> a -> b
-l //~ n = adjust l (/ n)
+l //~ n = under l (/ n)
 
 -- | Raise the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to a non-negative integral power
 --
@@ -386,7 +386,7 @@ l //~ n = adjust l (/ n)
 -- >>> _2 ^~ 2 $ (1,3)
 -- (1,9)
 (^~) :: (Num c, Integral e) => Setting a b c c -> e -> a -> b
-l ^~ n = adjust l (^ n)
+l ^~ n = under l (^ n)
 {-# INLINE (^~) #-}
 
 -- | Raise the target(s) of a fractionally valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an integral power
@@ -403,7 +403,7 @@ l ^~ n = adjust l (^ n)
 -- @
 --
 (^^~) :: (Fractional c, Integral e) => Setting a b c c -> e -> a -> b
-l ^^~ n = adjust l (^^ n)
+l ^^~ n = under l (^^ n)
 {-# INLINE (^^~) #-}
 
 -- | Raise the target(s) of a floating-point valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an arbitrary power.
@@ -419,7 +419,7 @@ l ^^~ n = adjust l (^^ n)
 -- (**~) :: 'Floating' c => 'Control.Lens.Traversal.Traversal' a b c c -> c -> a -> b
 -- @
 (**~) :: Floating c => Setting a b c c -> c -> a -> b
-l **~ n = adjust l (** n)
+l **~ n = under l (** n)
 {-# INLINE (**~) #-}
 
 -- | Logically '||' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'
@@ -439,7 +439,7 @@ l **~ n = adjust l (** n)
 -- (||~):: 'Control.Lens.Traversal.Traversal' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
 -- @
 (||~):: Setting a b Bool Bool -> Bool -> a -> b
-l ||~ n = adjust l (|| n)
+l ||~ n = under l (|| n)
 {-# INLINE (||~) #-}
 
 -- | Logically '&&' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'
@@ -459,7 +459,7 @@ l ||~ n = adjust l (|| n)
 -- (&&~):: 'Control.Lens.Traversal.Traversal' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
 -- @
 (&&~) :: Setting a b Bool Bool -> Bool -> a -> b
-l &&~ n = adjust l (&& n)
+l &&~ n = under l (&& n)
 {-# INLINE (&&~) #-}
 
 -- | Modify the target of a monoidally valued by 'mappend'ing another value.
@@ -475,7 +475,7 @@ l &&~ n = adjust l (&& n)
 -- (<>~) :: 'Monoid' c => 'Control.Lens.Traversal.Traversal' a b c c -> c -> a -> b
 -- @
 (<>~) :: Monoid c => Setting a b c c -> c -> a -> b
-l <>~ n = adjust l (`mappend` n)
+l <>~ n = under l (`mappend` n)
 {-# INLINE (<>~) #-}
 
 ------------------------------------------------------------------------------
