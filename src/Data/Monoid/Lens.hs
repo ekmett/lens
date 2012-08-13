@@ -30,6 +30,14 @@ _endo = isos Endo appEndo Endo appEndo
 {-# SPECIALIZE _endo :: Functor f => (Endo a -> f (Endo b)) -> (a -> a) -> f (b -> b) #-}
 
 -- | Isomorphism for 'All'
+--
+-- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
+-- >>> au _all foldMap [True,True]
+-- True
+--
+-- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
+-- >>> au _all foldMap [True,False]
+-- False
 _all :: Simple Iso Bool All
 _all = iso All getAll
 {-# INLINE _all #-}
@@ -37,6 +45,14 @@ _all = iso All getAll
 {-# SPECIALIZE _all :: Functor f => (All -> f All) -> Bool -> f Bool #-}
 
 -- | Isomorphism for 'Any'
+--
+-- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
+-- >>> au _any foldMap [False,False]
+-- False
+--
+-- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
+-- >>> au _any foldMap [True,False]
+-- True
 _any :: Simple Iso Bool Any
 _any = iso Any getAny
 {-# INLINE _any #-}
@@ -44,6 +60,10 @@ _any = iso Any getAny
 {-# SPECIALIZE _any :: Functor f => (Any -> f Any) -> Bool -> f Bool #-}
 
 -- | Isomorphism for 'Sum'
+--
+-- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
+-- >>> au _sum foldMap [1,2,3,4]
+-- 10
 _sum :: Iso a b (Sum a) (Sum b)
 _sum = isos Sum getSum Sum getSum
 {-# INLINE _sum #-}
@@ -51,6 +71,10 @@ _sum = isos Sum getSum Sum getSum
 {-# SPECIALIZE _sum :: Functor f => (Sum a -> f (Sum b)) -> a -> f b #-}
 
 -- | Isomorphism for 'Product'
+--
+-- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
+-- >>> au _product foldMap [1,2,3,4]
+-- 24
 _product :: Iso a b (Product a) (Product b)
 _product = isos Product getProduct Product getProduct
 {-# INLINE _product #-}
