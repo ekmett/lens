@@ -125,6 +125,7 @@ library
                    Data.IntMap.Lens
                    Data.IntSet.Lens
                    Data.Map.Lens
+                   Data.Monoid.Lens
                    Data.Sequence.Lens
                    Data.Set.Lens
                    Data.Tree.Lens

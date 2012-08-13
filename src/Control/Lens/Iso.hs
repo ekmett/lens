@@ -16,6 +16,7 @@ module Control.Lens.Iso
     Iso
   , iso
   , isos
+  , au
   -- ** Combinators
   , via
   , from
@@ -31,6 +32,8 @@ module Control.Lens.Iso
 
 import Control.Applicative
 import Control.Category
+import Control.Lens.Type
+import Control.Lens.Getter
 import Data.Functor.Identity
 import Data.Typeable
 import Prelude hiding ((.),id)
@@ -158,6 +161,25 @@ iso ab ba = isos ab ba ab ba
 {-# INLINE iso #-}
 {-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> (b -> f b) -> a -> f a #-}
 {-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> Isomorphism (b -> f b) (a -> f a) #-}
+
+-- | Based on @ala@ from Conor McBride's work on Epigram and @Control.Newtype@ from the
+-- 'newtype package.
+--
+-- Mnemonically, /au/ is a French contraction of /à le/.
+--
+-- >>> :m + Control.Lens Data.Monoid.Lens
+-- >>> au _sum foldMap [1,2,3,4]
+-- 10
+au :: Simple Iso a b -> ((a -> b) -> e -> b) -> e -> a
+au l f e = f (view l) e ^. from l
+
+{-
+under :: Setter a b c d -> (c -> d) -> a -> b
+under = adjust
+
+over :: Isomorphism (c -> Identity d) (a -> Identity b) -> (a -> b) -> c -> d
+over = under . from
+-}
 
 -----------------------------------------------------------------------------
 -- Isomorphisms
