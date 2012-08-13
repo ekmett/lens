@@ -40,7 +40,7 @@
 <a name="line-31"></a>  <span class='hs-comment'>-- * Common Setters</span>
 <a name="line-32"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>mapped</span>
 <a name="line-33"></a>  <span class='hs-comment'>-- * Functional Combinators</span>
-<a name="line-34"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>adjust</span>
+<a name="line-34"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>over</span>
 <a name="line-35"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>mapOf</span>
 <a name="line-36"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>set</span>
 <a name="line-37"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>.~</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>%~</span><span class='hs-layout'>)</span>
@@ -82,8 +82,8 @@
 <a name="line-73"></a><a name="Setter"></a><span class='hs-comment'>-- However, two 'Functor' laws apply to a 'Setter':</span>
 <a name="line-74"></a><a name="Setter"></a><span class='hs-comment'>--</span>
 <a name="line-75"></a><a name="Setter"></a><span class='hs-comment'>-- @</span>
-<a name="line-76"></a><a name="Setter"></a><span class='hs-comment'>-- 'adjust' l id = id</span>
-<a name="line-77"></a><a name="Setter"></a><span class='hs-comment'>-- 'adjust' l f . 'adjust' l g = 'adjust' l (f . g)</span>
+<a name="line-76"></a><a name="Setter"></a><span class='hs-comment'>-- 'over' l 'id' = 'id'</span>
+<a name="line-77"></a><a name="Setter"></a><span class='hs-comment'>-- 'over' l f . 'over' l g = 'over' l (f . g)</span>
 <a name="line-78"></a><a name="Setter"></a><span class='hs-comment'>-- @</span>
 <a name="line-79"></a><a name="Setter"></a><span class='hs-comment'>--</span>
 <a name="line-80"></a><a name="Setter"></a><span class='hs-comment'>-- These an be stated more directly:</span>
@@ -133,17 +133,17 @@
 <a name="line-124"></a><a name="Settable"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>where</span>
 <a name="line-125"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
 <a name="line-126"></a>
-<a name="line-127"></a><span class='hs-comment'>-- | so you can pass our a 'Setter' into combinators from other lens libraries</span>
-<a name="line-128"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-conid'>Identity</span> <span class='hs-keyword'>where</span>
+<a name="line-127"></a><a name="instance%20Settable%20Identity"></a><span class='hs-comment'>-- | so you can pass our a 'Setter' into combinators from other lens libraries</span>
+<a name="line-128"></a><a name="instance%20Settable%20Identity"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-conid'>Identity</span> <span class='hs-keyword'>where</span>
 <a name="line-129"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runIdentity</span>
 <a name="line-130"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
 <a name="line-131"></a>
-<a name="line-132"></a><span class='hs-comment'>-- | 'Control.Lens.Fold.backwards'</span>
-<a name="line-133"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-layout'>(</span><span class='hs-conid'>Backwards</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-132"></a><a name="instance%20Settable%20(Backwards%20f)"></a><span class='hs-comment'>-- | 'Control.Lens.Fold.backwards'</span>
+<a name="line-133"></a><a name="instance%20Settable%20(Backwards%20f)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-layout'>(</span><span class='hs-conid'>Backwards</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-134"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>untainted</span> <span class='hs-varop'>.</span> <span class='hs-varid'>forwards</span>
 <a name="line-135"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
 <a name="line-136"></a>
-<a name="line-137"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-layout'>(</span><span class='hs-conid'>Compose</span> <span class='hs-varid'>f</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-137"></a><a name="instance%20Settable%20(Compose%20f%20g)"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-layout'>(</span><span class='hs-conid'>Compose</span> <span class='hs-varid'>f</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-138"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>untainted</span> <span class='hs-varop'>.</span> <span class='hs-varid'>untainted</span> <span class='hs-varop'>.</span> <span class='hs-varid'>getCompose</span>
 <a name="line-139"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
 <a name="line-140"></a>
@@ -153,14 +153,14 @@
 <a name="line-144"></a><a name="Mutator"></a><span class='hs-comment'>-- Most user code will never need to see this type.</span>
 <a name="line-145"></a><a name="Mutator"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span> <span class='hs-layout'>{</span> <span class='hs-varid'>runMutator</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>a</span> <span class='hs-layout'>}</span>
 <a name="line-146"></a>
-<a name="line-147"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Functor</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
+<a name="line-147"></a><a name="instance%20Functor%20Mutator"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Functor</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
 <a name="line-148"></a>  <span class='hs-varid'>fmap</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Mutator</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
 <a name="line-149"></a>
-<a name="line-150"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Applicative</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
+<a name="line-150"></a><a name="instance%20Applicative%20Mutator"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Applicative</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
 <a name="line-151"></a>  <span class='hs-varid'>pure</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span>
 <a name="line-152"></a>  <span class='hs-conid'>Mutator</span> <span class='hs-varid'>f</span> <span class='hs-varop'>&lt;*&gt;</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
 <a name="line-153"></a>
-<a name="line-154"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
+<a name="line-154"></a><a name="instance%20Settable%20Mutator"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
 <a name="line-155"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runMutator</span>
 <a name="line-156"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
 <a name="line-157"></a>
@@ -171,8 +171,8 @@
 <a name="line-162"></a><a name="mapped"></a><span class='hs-comment'>-- | This setter can be used to map over all of the values in a 'Functor'.</span>
 <a name="line-163"></a><span class='hs-comment'>--</span>
 <a name="line-164"></a><span class='hs-comment'>-- @</span>
-<a name="line-165"></a><span class='hs-comment'>-- 'fmap' = 'adjust' 'mapped'</span>
-<a name="line-166"></a><span class='hs-comment'>-- 'Data.Traversable.fmapDefault' = 'adjust' 'Data.Traversable.traverse'</span>
+<a name="line-165"></a><span class='hs-comment'>-- 'fmap' = 'over' 'mapped'</span>
+<a name="line-166"></a><span class='hs-comment'>-- 'Data.Traversable.fmapDefault' = 'over' 'Data.Traversable.traverse'</span>
 <a name="line-167"></a><span class='hs-comment'>-- ('&lt;$') = 'set' 'mapped'</span>
 <a name="line-168"></a><span class='hs-comment'>-- @</span>
 <a name="line-169"></a><span class='hs-definition'>mapped</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setter</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
@@ -191,8 +191,8 @@
 <a name="line-182"></a><span class='hs-comment'>-- Equational reasoning:</span>
 <a name="line-183"></a><span class='hs-comment'>--</span>
 <a name="line-184"></a><span class='hs-comment'>-- @</span>
-<a name="line-185"></a><span class='hs-comment'>-- 'sets' . 'adjust' = 'id'</span>
-<a name="line-186"></a><span class='hs-comment'>-- 'adjust' . 'sets' = 'id'</span>
+<a name="line-185"></a><span class='hs-comment'>-- 'sets' . 'over' = 'id'</span>
+<a name="line-186"></a><span class='hs-comment'>-- 'over' . 'sets' = 'id'</span>
 <a name="line-187"></a><span class='hs-comment'>-- @</span>
 <a name="line-188"></a><span class='hs-comment'>--</span>
 <a name="line-189"></a><span class='hs-comment'>-- Another way to view 'sets' is that it takes a \"semantic editor combinator\"</span>
@@ -205,29 +205,29 @@
 <a name="line-196"></a><span class='hs-comment'>-- Using Setters</span>
 <a name="line-197"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-198"></a>
-<a name="line-199"></a><a name="adjust"></a><span class='hs-comment'>-- | Modify the target of a 'Control.Lens.Type.Lens' or all the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal'</span>
+<a name="line-199"></a><a name="over"></a><span class='hs-comment'>-- | Modify the target of a 'Control.Lens.Type.Lens' or all the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal'</span>
 <a name="line-200"></a><span class='hs-comment'>-- with a function.</span>
 <a name="line-201"></a><span class='hs-comment'>--</span>
 <a name="line-202"></a><span class='hs-comment'>-- @</span>
-<a name="line-203"></a><span class='hs-comment'>-- 'fmap' = 'adjust' 'mapped'</span>
-<a name="line-204"></a><span class='hs-comment'>-- 'Data.Traversable.fmapDefault' = 'adjust' 'Data.Traversable.traverse'</span>
-<a name="line-205"></a><span class='hs-comment'>-- 'sets' . 'adjust' = 'id'</span>
-<a name="line-206"></a><span class='hs-comment'>-- 'adjust' . 'sets' = 'id'</span>
+<a name="line-203"></a><span class='hs-comment'>-- 'fmap' = 'over' 'mapped'</span>
+<a name="line-204"></a><span class='hs-comment'>-- 'Data.Traversable.fmapDefault' = 'over' 'Data.Traversable.traverse'</span>
+<a name="line-205"></a><span class='hs-comment'>-- 'sets' . 'over' = 'id'</span>
+<a name="line-206"></a><span class='hs-comment'>-- 'over' . 'sets' = 'id'</span>
 <a name="line-207"></a><span class='hs-comment'>-- @</span>
 <a name="line-208"></a><span class='hs-comment'>--</span>
-<a name="line-209"></a><span class='hs-comment'>-- Another way to view 'adjust' is to say that it transformers a 'Setter' into a</span>
+<a name="line-209"></a><span class='hs-comment'>-- Another way to view 'over' is to say that it transformers a 'Setter' into a</span>
 <a name="line-210"></a><span class='hs-comment'>-- \"semantic editor combinator\".</span>
 <a name="line-211"></a><span class='hs-comment'>--</span>
-<a name="line-212"></a><span class='hs-comment'>-- @'adjust' :: 'Setter' a b c d -&gt; (c -&gt; d) -&gt; a -&gt; b@</span>
-<a name="line-213"></a><span class='hs-definition'>adjust</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-214"></a><span class='hs-definition'>adjust</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runMutator</span> <span class='hs-varop'>.</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Mutator</span> <span class='hs-varop'>.</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span>
-<a name="line-215"></a><span class='hs-comment'>{-# INLINE adjust #-}</span>
+<a name="line-212"></a><span class='hs-comment'>-- @'over' :: 'Setter' a b c d -&gt; (c -&gt; d) -&gt; a -&gt; b@</span>
+<a name="line-213"></a><span class='hs-definition'>over</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
+<a name="line-214"></a><span class='hs-definition'>over</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runMutator</span> <span class='hs-varop'>.</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Mutator</span> <span class='hs-varop'>.</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span>
+<a name="line-215"></a><span class='hs-comment'>{-# INLINE over #-}</span>
 <a name="line-216"></a>
 <a name="line-217"></a><a name="mapOf"></a><span class='hs-comment'>-- | Modify the target of a 'Control.Lens.Type.Lens' or all the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal'</span>
-<a name="line-218"></a><span class='hs-comment'>-- with a function. This is an alias for adjust that is provided for consistency.</span>
+<a name="line-218"></a><span class='hs-comment'>-- with a function. This is an alias for 'over' that is provided for consistency.</span>
 <a name="line-219"></a><span class='hs-comment'>--</span>
 <a name="line-220"></a><span class='hs-comment'>-- @</span>
-<a name="line-221"></a><span class='hs-comment'>-- 'mapOf' = 'adjust'</span>
+<a name="line-221"></a><span class='hs-comment'>-- 'mapOf' = 'over'</span>
 <a name="line-222"></a><span class='hs-comment'>-- 'fmap' = 'mapOf' 'mapped'</span>
 <a name="line-223"></a><span class='hs-comment'>-- 'fmapDefault' = 'mapOf' 'traverse'</span>
 <a name="line-224"></a><span class='hs-comment'>-- 'sets' . 'mapOf' = 'id'</span>
@@ -241,7 +241,7 @@
 <a name="line-232"></a><span class='hs-comment'>-- mapOf :: 'Control.Lens.Traversal.Traversal' a b c d   -&gt; (c -&gt; d) -&gt; a -&gt; b</span>
 <a name="line-233"></a><span class='hs-comment'>-- @</span>
 <a name="line-234"></a><span class='hs-definition'>mapOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-235"></a><span class='hs-definition'>mapOf</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span>
+<a name="line-235"></a><span class='hs-definition'>mapOf</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span>
 <a name="line-236"></a><span class='hs-comment'>{-# INLINE mapOf #-}</span>
 <a name="line-237"></a>
 <a name="line-238"></a><a name="set"></a><span class='hs-comment'>-- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter'</span>
@@ -272,7 +272,7 @@
 <a name="line-263"></a><a name="%25~"></a><span class='hs-comment'>-- | Modifies the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or</span>
 <a name="line-264"></a><span class='hs-comment'>-- 'Control.Lens.Traversal.Traversal' with a user supplied function.</span>
 <a name="line-265"></a><span class='hs-comment'>--</span>
-<a name="line-266"></a><span class='hs-comment'>-- This is an infix version of 'adjust'</span>
+<a name="line-266"></a><span class='hs-comment'>-- This is an infix version of 'over'</span>
 <a name="line-267"></a><span class='hs-comment'>--</span>
 <a name="line-268"></a><span class='hs-comment'>-- @</span>
 <a name="line-269"></a><span class='hs-comment'>-- 'fmap' f = 'mapped' '%~' f</span>
@@ -290,7 +290,7 @@
 <a name="line-281"></a><span class='hs-comment'>-- (%~) :: 'Control.Lens.Traversal.Traversal' a b c d -&gt; (c -&gt; d) -&gt; a -&gt; b</span>
 <a name="line-282"></a><span class='hs-comment'>-- @</span>
 <a name="line-283"></a><span class='hs-layout'>(</span><span class='hs-varop'>%~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-284"></a><span class='hs-layout'>(</span><span class='hs-varop'>%~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span>
+<a name="line-284"></a><span class='hs-layout'>(</span><span class='hs-varop'>%~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span>
 <a name="line-285"></a><span class='hs-comment'>{-# INLINE (%~) #-}</span>
 <a name="line-286"></a>
 <a name="line-287"></a><a name=".~"></a><span class='hs-comment'>-- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter'</span>
@@ -318,7 +318,7 @@
 <a name="line-309"></a><span class='hs-comment'>--</span>
 <a name="line-310"></a><span class='hs-comment'>-- This is mostly present for consistency, but may be useful for for chaining assignments</span>
 <a name="line-311"></a><span class='hs-comment'>--</span>
-<a name="line-312"></a><span class='hs-comment'>-- If you do not need a copy of the intermediate result, then using @l .~ d@ directly is a good idea.</span>
+<a name="line-312"></a><span class='hs-comment'>-- If you do not need a copy of the intermediate result, then using @l '.~' d@ directly is a good idea.</span>
 <a name="line-313"></a><span class='hs-comment'>--</span>
 <a name="line-314"></a><span class='hs-comment'>-- @</span>
 <a name="line-315"></a><span class='hs-comment'>-- (\&lt;.~) :: 'Setter' a b c d    -&gt; d -&gt; a -&gt; (d, b)</span>
@@ -343,7 +343,7 @@
 <a name="line-334"></a><span class='hs-comment'>-- (+~) :: Num c =&gt; 'Control.Lens.Traversal.Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
 <a name="line-335"></a><span class='hs-comment'>-- @</span>
 <a name="line-336"></a><span class='hs-layout'>(</span><span class='hs-varop'>+~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-337"></a><span class='hs-definition'>l</span> <span class='hs-varop'>+~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
+<a name="line-337"></a><span class='hs-definition'>l</span> <span class='hs-varop'>+~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
 <a name="line-338"></a><span class='hs-comment'>{-# INLINE (+~) #-}</span>
 <a name="line-339"></a>
 <a name="line-340"></a><a name="*~"></a><span class='hs-comment'>-- | Multiply the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'</span>
@@ -359,7 +359,7 @@
 <a name="line-350"></a><span class='hs-comment'>-- (*~) :: 'Num' c =&gt; 'Control.Lens.Traversal.Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
 <a name="line-351"></a><span class='hs-comment'>-- @</span>
 <a name="line-352"></a><span class='hs-layout'>(</span><span class='hs-varop'>*~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-353"></a><span class='hs-definition'>l</span> <span class='hs-varop'>*~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>*</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
+<a name="line-353"></a><span class='hs-definition'>l</span> <span class='hs-varop'>*~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>*</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
 <a name="line-354"></a><span class='hs-comment'>{-# INLINE (*~) #-}</span>
 <a name="line-355"></a>
 <a name="line-356"></a><a name="-~"></a><span class='hs-comment'>-- | Decrement the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'</span>
@@ -375,7 +375,7 @@
 <a name="line-366"></a><span class='hs-comment'>-- (-~) :: 'Num' c =&gt; 'Control.Lens.Traversal.Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
 <a name="line-367"></a><span class='hs-comment'>-- @</span>
 <a name="line-368"></a><span class='hs-layout'>(</span><span class='hs-varop'>-~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-369"></a><span class='hs-definition'>l</span> <span class='hs-varop'>-~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>subtract</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
+<a name="line-369"></a><span class='hs-definition'>l</span> <span class='hs-varop'>-~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>subtract</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
 <a name="line-370"></a><span class='hs-comment'>{-# INLINE (-~) #-}</span>
 <a name="line-371"></a>
 <a name="line-372"></a><a name="//~"></a><span class='hs-comment'>-- | Divide the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'</span>
@@ -387,7 +387,7 @@
 <a name="line-378"></a><span class='hs-comment'>-- (//~) :: 'Fractional' c =&gt; 'Control.Lens.Traversal.Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
 <a name="line-379"></a><span class='hs-comment'>-- @</span>
 <a name="line-380"></a><span class='hs-layout'>(</span><span class='hs-varop'>//~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Fractional</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-381"></a><span class='hs-definition'>l</span> <span class='hs-varop'>//~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>/</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
+<a name="line-381"></a><span class='hs-definition'>l</span> <span class='hs-varop'>//~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>/</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
 <a name="line-382"></a>
 <a name="line-383"></a><a name="%5e~"></a><span class='hs-comment'>-- | Raise the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to a non-negative integral power</span>
 <a name="line-384"></a><span class='hs-comment'>--</span>
@@ -395,7 +395,7 @@
 <a name="line-386"></a><span class='hs-comment'>-- &gt;&gt;&gt; _2 ^~ 2 $ (1,3)</span>
 <a name="line-387"></a><span class='hs-comment'>-- (1,9)</span>
 <a name="line-388"></a><span class='hs-layout'>(</span><span class='hs-varop'>^~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Num</span> <span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-conid'>Integral</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-389"></a><span class='hs-definition'>l</span> <span class='hs-varop'>^~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>^</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
+<a name="line-389"></a><span class='hs-definition'>l</span> <span class='hs-varop'>^~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>^</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
 <a name="line-390"></a><span class='hs-comment'>{-# INLINE (^~) #-}</span>
 <a name="line-391"></a>
 <a name="line-392"></a><a name="%5e%5e~"></a><span class='hs-comment'>-- | Raise the target(s) of a fractionally valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an integral power</span>
@@ -412,7 +412,7 @@
 <a name="line-403"></a><span class='hs-comment'>-- @</span>
 <a name="line-404"></a><span class='hs-comment'>--</span>
 <a name="line-405"></a><span class='hs-layout'>(</span><span class='hs-varop'>^^~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Fractional</span> <span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-conid'>Integral</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-406"></a><span class='hs-definition'>l</span> <span class='hs-varop'>^^~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>^^</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
+<a name="line-406"></a><span class='hs-definition'>l</span> <span class='hs-varop'>^^~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>^^</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
 <a name="line-407"></a><span class='hs-comment'>{-# INLINE (^^~) #-}</span>
 <a name="line-408"></a>
 <a name="line-409"></a><a name="**~"></a><span class='hs-comment'>-- | Raise the target(s) of a floating-point valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an arbitrary power.</span>
@@ -428,7 +428,7 @@
 <a name="line-419"></a><span class='hs-comment'>-- (**~) :: 'Floating' c =&gt; 'Control.Lens.Traversal.Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
 <a name="line-420"></a><span class='hs-comment'>-- @</span>
 <a name="line-421"></a><span class='hs-layout'>(</span><span class='hs-varop'>**~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Floating</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-422"></a><span class='hs-definition'>l</span> <span class='hs-varop'>**~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>**</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
+<a name="line-422"></a><span class='hs-definition'>l</span> <span class='hs-varop'>**~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>**</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
 <a name="line-423"></a><span class='hs-comment'>{-# INLINE (**~) #-}</span>
 <a name="line-424"></a>
 <a name="line-425"></a><a name="%7c%7c~"></a><span class='hs-comment'>-- | Logically '||' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'</span>
@@ -448,7 +448,7 @@
 <a name="line-439"></a><span class='hs-comment'>-- (||~):: 'Control.Lens.Traversal.Traversal' a b 'Bool' 'Bool' -&gt; 'Bool' -&gt; a -&gt; b</span>
 <a name="line-440"></a><span class='hs-comment'>-- @</span>
 <a name="line-441"></a><span class='hs-layout'>(</span><span class='hs-varop'>||~</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>::</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-442"></a><span class='hs-definition'>l</span> <span class='hs-varop'>||~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>||</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
+<a name="line-442"></a><span class='hs-definition'>l</span> <span class='hs-varop'>||~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>||</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
 <a name="line-443"></a><span class='hs-comment'>{-# INLINE (||~) #-}</span>
 <a name="line-444"></a>
 <a name="line-445"></a><a name="&&~"></a><span class='hs-comment'>-- | Logically '&amp;&amp;' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'</span>
@@ -468,7 +468,7 @@
 <a name="line-459"></a><span class='hs-comment'>-- (&amp;&amp;~):: 'Control.Lens.Traversal.Traversal' a b 'Bool' 'Bool' -&gt; 'Bool' -&gt; a -&gt; b</span>
 <a name="line-460"></a><span class='hs-comment'>-- @</span>
 <a name="line-461"></a><span class='hs-layout'>(</span><span class='hs-varop'>&amp;&amp;~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-462"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&amp;&amp;~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>&amp;&amp;</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
+<a name="line-462"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&amp;&amp;~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>&amp;&amp;</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
 <a name="line-463"></a><span class='hs-comment'>{-# INLINE (&amp;&amp;~) #-}</span>
 <a name="line-464"></a>
 <a name="line-465"></a><a name="%3c%3e~"></a><span class='hs-comment'>-- | Modify the target of a monoidally valued by 'mappend'ing another value.</span>
@@ -484,7 +484,7 @@
 <a name="line-475"></a><span class='hs-comment'>-- (&lt;&gt;~) :: 'Monoid' c =&gt; 'Control.Lens.Traversal.Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
 <a name="line-476"></a><span class='hs-comment'>-- @</span>
 <a name="line-477"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&gt;~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monoid</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-478"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&gt;~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adjust</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>`mappend`</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
+<a name="line-478"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&gt;~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>`mappend`</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
 <a name="line-479"></a><span class='hs-comment'>{-# INLINE (&lt;&gt;~) #-}</span>
 <a name="line-480"></a>
 <a name="line-481"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>

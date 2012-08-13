@@ -54,7 +54,7 @@
 <a name="line-45"></a><span class='hs-comment'>-- elements might change but you can manipulate it by reading using 'folded' and</span>
 <a name="line-46"></a><span class='hs-comment'>-- reindexing it via 'setmap'.</span>
 <a name="line-47"></a><span class='hs-comment'>--</span>
-<a name="line-48"></a><span class='hs-comment'>-- &gt;&gt;&gt; adjust setmapped (+1) (fromList [1,2,3,4])</span>
+<a name="line-48"></a><span class='hs-comment'>-- &gt;&gt;&gt; over setmapped (+1) (fromList [1,2,3,4])</span>
 <a name="line-49"></a><span class='hs-comment'>-- fromList [2,3,4,5]</span>
 <a name="line-50"></a><span class='hs-definition'>setmapped</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Setter</span> <span class='hs-conid'>IntSet</span> <span class='hs-conid'>Int</span>
 <a name="line-51"></a><span class='hs-definition'>setmapped</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sets</span> <span class='hs-conid'>IntSet</span><span class='hs-varop'>.</span><span class='hs-varid'>map</span>
