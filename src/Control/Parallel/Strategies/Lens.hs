@@ -15,7 +15,7 @@ module Control.Parallel.Strategies.Lens
   ( evalOf
   , parOf
   , after
-  , meanwhile
+  , throughout
   ) where
 
 import Control.Lens
@@ -36,6 +36,7 @@ import Control.Parallel.Strategies
 -- @
 evalOf :: SimpleLensLike Eval a b -> Strategy b -> Strategy a
 evalOf l = l
+{-# INLINE evalOf #-}
 
 -- | Evaluate the targets of a 'Lens' or 'Traversal' according into a
 -- data structure according to a given 'Strategy' in parallel.
@@ -49,6 +50,7 @@ evalOf l = l
 -- @
 parOf :: SimpleLensLike Eval a b -> Strategy b -> Strategy a
 parOf l s = l (rparWith s)
+{-# INLINE parOf #-}
 
 -- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
 -- first evaluates its argument according to a given strategy /before/ proceeding.
@@ -58,12 +60,14 @@ parOf l s = l (rparWith s)
 -- @
 after :: Strategy a -> LensLike f a b c d -> LensLike f a b c d
 after s l f = l f $| s
+{-# INLINE after #-}
 
 -- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
 -- evaluate its argument according to a given strategy /in parallel with/ evaluating.
 --
 -- @
--- 'meanwhile' 'rdeepseq' 'traverse' :: 'Traversable' t => 'Strategy' a -> 'Strategy' [a]
+-- 'throughout' 'rdeepseq' 'traverse' :: 'Traversable' t => 'Strategy' a -> 'Strategy' [a]
 -- @
-meanwhile :: Strategy a -> LensLike f a b c d -> LensLike f a b c d
-meanwhile s l f = l f $|| s
+throughout :: Strategy a -> LensLike f a b c d -> LensLike f a b c d
+throughout s l f = l f $|| s
+{-# INLINE throughout #-}

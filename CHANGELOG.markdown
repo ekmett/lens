@@ -1,3 +1,8 @@
+2.3
+---
+* Added missing `{-# INLINE #-}` pragmas
+* Renamed `meanwhile` to `throughout` in `Control.Parallel.Strategies.Lens`
+
 2.2
 ---
 * Added `<&=`, `<&~`, `<|=`, and `<|~`

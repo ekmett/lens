@@ -22,3 +22,4 @@ import Control.Seq
 -- @'seqFoldable' = 'seqOf' 'folded'@
 seqOf :: Getting [c] a c -> Strategy c -> Strategy a
 seqOf l s = seqList s . toListOf l
+{-# INLINE seqOf #-}
