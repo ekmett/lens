@@ -2,6 +2,7 @@
 ---
 * Added `<&=`, `<&~`, `<|=`, and `<|~`
 * Moved `<>~`, `<<>~`, `<>=`, and `<<>=` to `Data.Monoid.Lens`
+* Template Haskell now uses eager binding to avoid adding dependencies.
 
 2.1
 ---
