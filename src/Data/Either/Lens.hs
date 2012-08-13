@@ -20,7 +20,7 @@ import Control.Lens
 
 -- | A traversal for tweaking the left-hand value of an 'Either':
 --
--- @traverseLeft :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ('Either' b c)
+-- @traverseLeft :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ('Either' b c)@
 traverseLeft :: Traversal (Either a c) (Either b c) a b
 traverseLeft f (Left a)  = Left <$> f a
 traverseLeft _ (Right c) = pure $ Right c
