@@ -9,11 +9,62 @@
 --
 ----------------------------------------------------------------------------
 module Data.Monoid.Lens
-  ( _dual, _endo, _all, _any, _sum, _product, _first, _last
+  ( (<>~), (<<>~)
+  , (<>=), (<<>=)
+  , _dual, _endo, _all, _any, _sum, _product, _first, _last
   ) where
 
 import Data.Monoid
 import Control.Lens
+import Control.Monad.State.Class as State
+
+infixr 4 <>~, <<>~
+infix 4 <>=, <<>=
+
+-- | Modify the target of a monoidally valued by 'mappend'ing another value.
+--
+-- >>> :m + Control.Lens Data.Pair.Lens
+-- >>> both <>~ "!!!" $ ("hello","world")
+-- ("hello!!!","world!!!")
+--
+-- @
+-- (<>~) :: 'Monoid' c => 'Setter' a b c c -> c -> a -> b
+-- (<>~) :: 'Monoid' c => 'Iso' a b c c -> c -> a -> b
+-- (<>~) :: 'Monoid' c => 'Lens' a b c c -> c -> a -> b
+-- (<>~) :: 'Monoid' c => 'Traversal' a b c c -> c -> a -> b
+-- @
+(<>~) :: Monoid c => Setting a b c c -> c -> a -> b
+l <>~ n = over l (`mappend` n)
+{-# INLINE (<>~) #-}
+
+-- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by 'mappend'ing a value.
+--
+-- @
+-- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Setter' a b -> b -> m ()
+-- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Iso' a b -> b -> m ()
+-- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Lens' a b -> b -> m ()
+-- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Traversal' a b -> b -> m ()
+-- @
+(<>=) :: (MonadState a m, Monoid b) => SimpleSetting a b -> b -> m ()
+l <>= b = State.modify (l <>~ b)
+{-# INLINE (<>=) #-}
+
+
+-- | 'mappend' a monoidal value onto the end of the target of a 'Lens' and
+-- return the result
+--
+-- When you do not need the result of the operation, ('<>~') is more flexible.
+(<<>~) :: Monoid m => LensLike ((,)m) a b m m -> m -> a -> (m, b)
+l <<>~ m = l <%~ (`mappend` m)
+{-# INLINE (<<>~) #-}
+
+-- | 'mappend' a monoidal value onto the end of the target of a 'Lens' into
+-- your monad's state and return the result.
+--
+-- When you do not need the result of the operation, ('<>=') is more flexible.
+(<<>=) :: (MonadState a m, Monoid r) => SimpleLensLike ((,)r) a r -> r -> m r
+l <<>= r = l <%= (`mappend` r)
+{-# INLINE (<<>=) #-}
 
 -- | Isomorphism for 'Dual'
 _dual :: Iso a b (Dual a) (Dual b)

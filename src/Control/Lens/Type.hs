@@ -83,12 +83,12 @@ module Control.Lens.Type
   -- * Setting Functionally with Passthrough
   , (<%~), (<+~), (<-~), (<*~), (<//~)
   , (<^~), (<^^~), (<**~)
-  , (<||~), (<&&~), (<<>~)
+  , (<||~), (<&&~)
 
   -- * Setting State with Passthrough
   , (<%=), (<+=), (<-=), (<*=), (<//=)
   , (<^=), (<^^=), (<**=)
-  , (<||=), (<&&=), (<<>=)
+  , (<||=), (<&&=)
 
   -- * Cloning Lenses
   , clone
@@ -111,12 +111,11 @@ import Control.Monad.Trans.State.Lazy   as Lazy
 import Control.Monad.Trans.State.Strict as Strict
 import Control.Monad.Trans.Reader
 import Data.Functor.Identity
-import Data.Monoid
 
 infixr 4 %%~
 infix  4 %%=
-infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <%~, <<>~
-infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<>=
+infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <%~
+infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=
 
 
 -------------------------------------------------------------------------------
@@ -484,7 +483,7 @@ l <//~ c = l <%~ (/ c)
 l <^~ d = l <%~ (^ d)
 {-# INLINE (<^~) #-}
 
--- | Raise the target of a fractionally valued 'Lens' to an 'Integral' power 
+-- | Raise the target of a fractionally valued 'Lens' to an 'Integral' power
 -- and return the result.
 --
 -- When you do not need the result of the division, ('^^~') is more flexible.
@@ -513,14 +512,6 @@ l <||~ c = l <%~ (|| c)
 (<&&~) :: LensLike ((,)Bool) a b Bool Bool -> Bool -> a -> (Bool, b)
 l <&&~ c = l <%~ (&& c)
 {-# INLINE (<&&~) #-}
-
--- | 'mappend' a monoidal value onto the end of the target of a 'Lens' and
--- return the result
---
--- When you do not need the result of the operation, ('<>~') is more flexible.
-(<<>~) :: Monoid m => LensLike ((,)m) a b m m -> m -> a -> (m, b)
-l <<>~ m = l <%~ (`mappend` m)
-{-# INLINE (<<>~) #-}
 
 -------------------------------------------------------------------------------
 -- Setting and Remembering State
@@ -608,14 +599,6 @@ l <||= b = l <%= (|| b)
 (<&&=) :: MonadState a m => SimpleLensLike ((,)Bool) a Bool -> Bool -> m Bool
 l <&&= b = l <%= (&& b)
 {-# INLINE (<&&=) #-}
-
--- | 'mappend' a monoidal value onto the end of the target of a 'Lens' into
--- your monad's state and return the result.
---
--- When you do not need the result of the operation, ('<>=') is more flexible.
-(<<>=) :: (MonadState a m, Monoid r) => SimpleLensLike ((,)r) a r -> r -> m r
-l <<>= r = l <%= (`mappend` r)
-{-# INLINE (<<>=) #-}
 
 -- | Provides access to 1st field of a tuple.
 class Field1 a b c d | a -> c, b -> d, a d -> b, b c -> a where

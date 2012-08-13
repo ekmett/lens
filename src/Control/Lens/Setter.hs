@@ -35,10 +35,10 @@ module Control.Lens.Setter
   , mapOf
   , set
   , (.~), (%~)
-  , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (&&~), (<>~), (<.~)
+  , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (&&~), (<.~)
   -- * State Combinators
   , (.=), (%=)
-  , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (&&=), (<>=), (<.=)
+  , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (&&=), (<.=)
   , (<~)
   -- * Setter Internals
   , Setting
@@ -53,10 +53,9 @@ import Control.Applicative.Backwards
 import Control.Monad.State.Class        as State
 import Data.Functor.Compose
 import Data.Functor.Identity
-import Data.Monoid
 
-infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <>~, <.~
-infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <>=, <.=
+infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <.~
+infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <.=
 infixr 2 <~
 
 ------------------------------------------------------------------------------
@@ -247,7 +246,7 @@ mapOf = over
 -- >>> set mapped () [1,2,3,4]
 -- [(),(),(),()]
 --
--- Note: Attempting to 'set' a 'Fold' or 'Getter' will fail at compile time with an 
+-- Note: Attempting to 'set' a 'Fold' or 'Getter' will fail at compile time with an
 -- relatively nice error message.
 --
 -- @
@@ -462,22 +461,6 @@ l ||~ n = over l (|| n)
 l &&~ n = over l (&& n)
 {-# INLINE (&&~) #-}
 
--- | Modify the target of a monoidally valued by 'mappend'ing another value.
---
--- >>> :m + Control.Lens Data.Pair.Lens
--- >>> both <>~ "!!!" $ ("hello","world")
--- ("hello!!!","world!!!")
---
--- @
--- (<>~) :: 'Monoid' c => 'Setter' a b c c -> c -> a -> b
--- (<>~) :: 'Monoid' c => 'Control.Lens.Iso.Iso' a b c c -> c -> a -> b
--- (<>~) :: 'Monoid' c => 'Control.Lens.Type.Lens' a b c c -> c -> a -> b
--- (<>~) :: 'Monoid' c => 'Control.Lens.Traversal.Traversal' a b c c -> c -> a -> b
--- @
-(<>~) :: Monoid c => Setting a b c c -> c -> a -> b
-l <>~ n = over l (`mappend` n)
-{-# INLINE (<>~) #-}
-
 ------------------------------------------------------------------------------
 -- Using Setters with State
 ------------------------------------------------------------------------------
@@ -627,18 +610,6 @@ l &&= b = State.modify (l &&~ b)
 (||=) :: MonadState a m => SimpleSetting a Bool -> Bool -> m ()
 l ||= b = State.modify (l ||~ b)
 {-# INLINE (||=) #-}
-
--- | Modify the target(s) of a 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by 'mappend'ing a value.
---
--- @
--- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Control.Lens.Type.Simple' 'Setter' a b -> b -> m ()
--- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a b -> b -> m ()
--- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a b -> b -> m ()
--- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a b -> b -> m ()
--- @
-(<>=) :: (MonadState a m, Monoid b) => SimpleSetting a b -> b -> m ()
-l <>= b = State.modify (l <>~ b)
-{-# INLINE (<>=) #-}
 
 -- | Run a monadic action, and set all of the targets of a 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to its result.
 --
