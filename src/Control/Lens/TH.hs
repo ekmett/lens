@@ -142,21 +142,21 @@ freshMap ns = Map.fromList <$> for (toList ns) (\ n -> (,) n <$> newName (nameBa
 
 makeIsoTo :: Name -> ExpQ
 makeIsoTo conName = lamE [varP (mkName "f"), conP conName [varP (mkName "a")]] $
-  appsE [ varE (mkName "fmap")
+  appsE [ return (VarE 'fmap)
         , conE conName
         , varE (mkName "f") `appE` varE (mkName "a")
         ]
 
 makeIsoFrom :: Name -> ExpQ
 makeIsoFrom conName = lamE [varP (mkName "f"), varP (mkName "a")] $
-  appsE [ varE (mkName "fmap")
+  appsE [ return (VarE 'fmap)
         , lamE [conP conName [varP (mkName "b")]] $ varE (mkName "b")
         , varE (mkName "f") `appE` (conE conName `appE` varE (mkName "a"))
         ]
 
 makeIsoBody :: Name -> Name -> (Name -> ExpQ) -> (Name -> ExpQ) -> DecQ
 makeIsoBody lensName conName f g = funD lensName [clause [] (normalB body) []] where
-  body = appsE [ varE (mkName "isomorphic")
+  body = appsE [ return (VarE 'isomorphic)
                , f conName
                , g conName
                ]
@@ -261,7 +261,7 @@ commonFieldDescs = toList . Prelude.foldr walk mempty where
 
 errorClause :: Name -> Name -> Name -> ClauseQ
 errorClause lensName fieldName conName
-  = clause [] (normalB (varE (mkName "error") `appE` litE (stringL err))) []
+  = clause [] (normalB (return (VarE 'error) `appE` litE (stringL err))) []
   where
     err = show lensName ++ ": no matching field "
        ++ show fieldName ++ " in constructor "
@@ -280,7 +280,7 @@ makeFieldLensBody lensName fieldName cons maybeMethodName = case maybeMethodName
         f     <- newName "f"
         x     <- newName "y"
         clause [varP f, conP conName $ map varP names] (normalB
-               (appsE [ varE (mkName "fmap")
+               (appsE [ return (VarE 'fmap)
                       , lamE [varP x] $ appsE $ conE conName : map varE (element i .~ x $ names)
                       , varE f `appE` varE (names^.element i)
                       ])) []
