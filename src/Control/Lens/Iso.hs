@@ -194,7 +194,7 @@ auf l f g e = f (view l . g) e ^. from l
 -- 12
 --
 -- @'over' :: Iso a b c d -> (a -> b) -> (c -> d)@
-over :: Isomorphism (c -> Identity d) (a -> Identity b) -> (a -> b) -> c -> d
+over :: Isomorphism (c -> Mutator d) (a -> Mutator b) -> (a -> b) -> c -> d
 over = under . from
 {-# INLINE over #-}
 
