@@ -40,7 +40,7 @@ contains k f s = go <$> f (Set.member k s) where
 -- manipulate it by reading using 'folded' and reindexing it via 'setmap'.
 --
 -- >>> :m + Data.Set.Lens Control.Lens
--- >>> under setmapped (+1) (fromList [1,2,3,4])
+-- >>> over setmapped (+1) (fromList [1,2,3,4])
 -- fromList [2,3,4,5]
 setmapped :: (Ord i, Ord j) => Setter (Set i) (Set j) i j
 setmapped = sets Set.map

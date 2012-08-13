@@ -18,7 +18,7 @@ module Control.Lens.Iso
   , isos
   , au
   , auf
-  , over
+  , under
   -- ** Combinators
   , via
   , from
@@ -185,14 +185,14 @@ auf :: Simple Iso a b -> ((d -> b) -> c -> b) -> (d -> a) -> c -> a
 auf l f g e = f (view l . g) e ^. from l
 {-# INLINE auf #-}
 
--- | The opposite of working 'under' an isomorphism.
+-- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
 --
--- @'over' = 'under' . 'from'@
+-- @'under' = 'over' . 'from'@
 --
--- @'over' :: Iso a b c d -> (a -> b) -> (c -> d)@
-over :: Isomorphism (c -> Mutator d) (a -> Mutator b) -> (a -> b) -> c -> d
-over = under . from
-{-# INLINE over #-}
+-- @'under' :: Iso a b c d -> (a -> b) -> (c -> d)@
+under :: Isomorphism (c -> Mutator d) (a -> Mutator b) -> (a -> b) -> c -> d
+under = over . from
+{-# INLINE under #-}
 
 -----------------------------------------------------------------------------
 -- Isomorphisms
