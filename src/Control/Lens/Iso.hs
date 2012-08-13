@@ -36,6 +36,7 @@ import Control.Applicative
 import Control.Category
 import Control.Lens.Type
 import Control.Lens.Getter
+import Control.Lens.Setter
 import Data.Functor.Identity
 import Data.Typeable
 import Prelude hiding ((.),id)
