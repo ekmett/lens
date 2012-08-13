@@ -16,7 +16,6 @@ set listchars=tab:‗‗,trail:‗
 set list
 
 map <F2> :exec ":!hasktags -x -c --ignore src"<CR><CR>
-" autocmd! bufwritepost *.hs :exec ":!hasktags -x -c --ignore src"
 
 au BufWritePre *.hs,*.markdown silent! cal StripTrailingWhitespace()
 au BufWritePost *.hs silent! :exec ":!hasktags -x -c --ignore src"
