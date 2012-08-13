@@ -81,10 +81,15 @@ build-type:    Simple
 tested-with:   GHC == 7.4.1
 extra-source-files:
   .travis.yml
+  .ghci
+  .gitignore
+  .vim.custom
+  config
   examples/LICENSE
   examples/lens-examples.cabal
   examples/pong.hs
   README.markdown
+  CHANGELOG.markdown
 
 source-repository head
   type: git
