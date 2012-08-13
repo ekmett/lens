@@ -167,7 +167,7 @@ iso ab ba = isos ab ba ab ba
 --
 -- Mnemonically, /au/ is a French contraction of /à le/.
 --
--- >>> :m + Control.Lens Data.Monoid.Lens
+-- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
 -- >>> au _sum foldMap [1,2,3,4]
 -- 10
 au :: Simple Iso a b -> ((a -> b) -> e -> b) -> e -> a
