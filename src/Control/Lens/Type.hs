@@ -78,7 +78,7 @@ module Control.Lens.Type
 
   -- * Lateral Composition
   , merged
-  , bothLenses
+  , alongside
 
   -- * Setting Functionally with Passthrough
   , (<%~), (<+~), (<-~), (<*~), (<//~)
@@ -395,14 +395,14 @@ merged l _ f (Left a)   = Left <$> l f a
 merged _ r f (Right a') = Right <$> r f a'
 {-# INLINE merged #-}
 
--- | 'bothLenses' makes a 'Lens' from two other lenses (or isomorphisms)
-bothLenses :: Lens a b c d
+-- | 'alongside' makes a 'Lens' from two other lenses (or isomorphisms)
+alongside :: Lens a b c d
            -> Lens a' b' c' d'
            -> Lens (a,a') (b,b') (c,c') (d,d')
-bothLenses l r f (a, a') = case l (IndexedStore id) a of
+alongside l r f (a, a') = case l (IndexedStore id) a of
   IndexedStore db c -> case r (IndexedStore id) a' of
     IndexedStore db' c' -> (\(d,d') -> (db d, db' d')) <$> f (c,c')
-{-# INLINE bothLenses #-}
+{-# INLINE alongside #-}
 
 -------------------------------------------------------------------------------
 -- Cloning Lenses
