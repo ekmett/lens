@@ -2,6 +2,8 @@
 ---
 * Added missing `{-# INLINE #-}` pragmas
 * Renamed `meanwhile` to `throughout` in `Control.Parallel.Strategies.Lens`
+* Added `Magnify` to `Control.Lens.Getter`.
+* Added `Zoom` to `Control.Lens.Type`.
 
 2.2
 ---
