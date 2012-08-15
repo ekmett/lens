@@ -358,7 +358,7 @@ class (MonadReader b m, MonadReader a n) => Magnify m n b a | m -> b, n -> a, m 
   --
   -- This acts like 'Control.Monad.Reader.Class.local', but can in many cases change the type of the environment as well.
   --
-  -- This is commonly used to lift actions in a simpler Reader monad into a state monad with a larger state type.
+  -- This is commonly used to lift actions in a simpler Reader monad into a monad with a larger environment type.
   --
   -- This can be used to edit pretty much any monad transformer stack with an environment in it:
   --

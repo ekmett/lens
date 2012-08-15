@@ -116,7 +116,7 @@ import Control.Monad.Trans.Writer.Strict as Strict
 import Control.Monad.Trans.RWS.Lazy   as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
--- import Control.Monad.Trans.Cont
+import Control.Monad.Trans.Cont
 import Control.Monad.Trans.Error
 import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
@@ -417,12 +417,12 @@ instance Zoom m n s t => Zoom (IdentityT m) (IdentityT n) s t where
 instance Zoom m n s t => Zoom (MaybeT m) (MaybeT n) s t where
   zoom l (MaybeT m) = MaybeT (zoom l m)
 
-{-
 instance Zoom m m a a => Zoom (ContT r m) (ContT r m) a a where
   zoom l (ContT m) = ContT $ \k -> do
-    IndexedState ba a <- State.gets (l (IndexedState id))
-    ...
--}
+    f <- State.state $ \s -> case l (IndexedStore id) s of
+      IndexedStore f t -> (f, t)
+    r <- m k
+    State.state $ \t -> (r, f t)
 
 -------------------------------------------------------------------------------
 -- Common Lenses
