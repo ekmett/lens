@@ -373,41 +373,54 @@ class (MonadReader b m, MonadReader a n) => Magnify m n b a | m -> b, n -> a, m 
 
 instance Monad m => Magnify (ReaderT b m) (ReaderT a m) b a where
   magnify l (ReaderT m) = ReaderT $ \e -> m (e^.l)
+  {-# INLINE magnify #-}
 
 instance Magnify ((->) b) ((->) a) b a where
   magnify l bc a = bc (view l a)
+  {-# INLINE magnify #-}
 
 instance (Monad m, Monoid w) => Magnify (Strict.RWST b w s m) (Strict.RWST a w s m) b a where
   magnify l (Strict.RWST m) = Strict.RWST $ \a w -> m (a^.l) w
+  {-# INLINE magnify #-}
 
 instance (Monad m, Monoid w) => Magnify (Lazy.RWST b w s m) (Lazy.RWST a w s m) b a where
   magnify l (Lazy.RWST m) = Lazy.RWST $ \a w -> m (a^.l) w
+  {-# INLINE magnify #-}
 
 instance Magnify m n b a => Magnify (Strict.StateT s m) (Strict.StateT s n) b a where
   magnify l (Strict.StateT m) = Strict.StateT $ magnify l . m
+  {-# INLINE magnify #-}
 
 instance Magnify m n b a => Magnify (Lazy.StateT s m) (Lazy.StateT s n) b a where
   magnify l (Lazy.StateT m) = Lazy.StateT $ magnify l . m
+  {-# INLINE magnify #-}
 
 instance (Monoid w, Magnify m n b a) => Magnify (Strict.WriterT w m) (Strict.WriterT w n) b a where
   magnify l (Strict.WriterT m) = Strict.WriterT (magnify l m)
+  {-# INLINE magnify #-}
 
 instance (Monoid w, Magnify m n b a) => Magnify (Lazy.WriterT w m) (Lazy.WriterT w n) b a where
   magnify l (Lazy.WriterT m) = Lazy.WriterT (magnify l m)
+  {-# INLINE magnify #-}
 
 instance Magnify m n b a => Magnify (ListT m) (ListT n) b a where
   magnify l (ListT m) = ListT (magnify l m)
+  {-# INLINE magnify #-}
 
 instance Magnify m n b a => Magnify (MaybeT m) (MaybeT n) b a where
   magnify l (MaybeT m) = MaybeT (magnify l m)
+  {-# INLINE magnify #-}
 
 instance Magnify m n b a => Magnify (IdentityT m) (IdentityT n) b a where
   magnify l (IdentityT m) = IdentityT (magnify l m)
+  {-# INLINE magnify #-}
 
 instance (Error e, Magnify m n b a) => Magnify (ErrorT e m) (ErrorT e n) b a where
   magnify l (ErrorT m) = ErrorT (magnify l m)
+  {-# INLINE magnify #-}
 
 instance Magnify m m a a => Magnify (ContT r m) (ContT r m) a a where
   magnify l (ContT m) = ContT $ \k -> do
     r <- Reader.ask
     magnify l (m (magnify (to (const r)) . k))
+  {-# INLINE magnify #-}

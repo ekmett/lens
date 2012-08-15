@@ -380,42 +380,53 @@ class (MonadState s m, MonadState t n) => Zoom m n s t | m -> s, n -> t, m t -> 
 
 instance Monad m => Zoom (Strict.StateT s m) (Strict.StateT t m) s t where
   zoom = focus . clone
+  {-# INLINE zoom #-}
 
 instance Monad m => Zoom (Lazy.StateT s m) (Lazy.StateT t m) s t where
   zoom = focus . clone
+  {-# INLINE zoom #-}
 
 instance Zoom m n s t => Zoom (ReaderT e m) (ReaderT e n) s t where
   zoom l (ReaderT m) = ReaderT (zoom l . m)
+  {-# INLINE zoom #-}
 
 instance (Monoid w, Zoom m n s t) => Zoom (Strict.WriterT w m) (Strict.WriterT w n) s t where
   zoom l (Strict.WriterT m) = Strict.WriterT (zoom l m)
+  {-# INLINE zoom #-}
 
 instance (Monoid w, Zoom m n s t) => Zoom (Lazy.WriterT w m) (Lazy.WriterT w n) s t where
   zoom l (Lazy.WriterT m) = Lazy.WriterT (zoom l m)
+  {-# INLINE zoom #-}
 
 instance (Monoid w, Monad m) => Zoom (Strict.RWST r w s m) (Strict.RWST r w t m) s t where
   zoom l (Strict.RWST m) = Strict.RWST $ \ r t -> case l (IndexedStore id) t of
     IndexedStore st s -> do
       (a,s',w) <- m r s
       return (a,st s',w)
+  {-# INLINE zoom #-}
 
 instance (Monoid w, Monad m) => Zoom (Lazy.RWST r w s m) (Lazy.RWST r w t m) s t where
   zoom l (Lazy.RWST m) = Lazy.RWST $ \ r t -> case l (IndexedStore id) t of
     IndexedStore st s -> do
       (a,s',w) <- m r s
       return (a,st s',w)
+  {-# INLINE zoom #-}
 
 instance (Error e, Zoom m n s t) => Zoom (ErrorT e m) (ErrorT e n) s t where
   zoom l (ErrorT m) = ErrorT (zoom l m)
+  {-# INLINE zoom #-}
 
 instance Zoom m n s t => Zoom (ListT m) (ListT n) s t where
   zoom l (ListT m) = ListT (zoom l m)
+  {-# INLINE zoom #-}
 
 instance Zoom m n s t => Zoom (IdentityT m) (IdentityT n) s t where
   zoom l (IdentityT m) = IdentityT (zoom l m)
+  {-# INLINE zoom #-}
 
 instance Zoom m n s t => Zoom (MaybeT m) (MaybeT n) s t where
   zoom l (MaybeT m) = MaybeT (zoom l m)
+  {-# INLINE zoom #-}
 
 instance Zoom m m a a => Zoom (ContT r m) (ContT r m) a a where
   zoom l (ContT m) = ContT $ \k -> do
@@ -423,6 +434,7 @@ instance Zoom m m a a => Zoom (ContT r m) (ContT r m) a a where
       IndexedStore f t -> (f, t)
     r <- m k
     State.state $ \t -> (r, f t)
+  {-# INLINE zoom #-}
 
 -------------------------------------------------------------------------------
 -- Common Lenses
