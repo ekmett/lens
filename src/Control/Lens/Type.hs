@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 #ifndef MIN_VERSION_mtl
 #define MIN_VERSION_mtl(x,y,z) 1
@@ -61,6 +62,7 @@ module Control.Lens.Type
 
   -- * Traversing and Lensing
   , Focus(..)
+  , Zoom(..)
 
   -- * Common Lenses
   -- ** Tuples
@@ -109,8 +111,18 @@ import Control.Monad
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
 import Control.Monad.Trans.State.Strict as Strict
+import Control.Monad.Trans.Writer.Lazy   as Lazy
+import Control.Monad.Trans.Writer.Strict as Strict
+import Control.Monad.Trans.RWS.Lazy   as Lazy
+import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
+-- import Control.Monad.Trans.Cont
+import Control.Monad.Trans.Error
+import Control.Monad.Trans.List
+import Control.Monad.Trans.Identity
+import Control.Monad.Trans.Maybe
 import Data.Functor.Identity
+import Data.Monoid
 
 infixr 4 %%~
 infix  4 %%=
@@ -274,6 +286,7 @@ l %%= f = do
 #endif
 {-# INLINE (%%=) #-}
 
+
 -- | This class allows us to use 'focus' on a number of different monad
 -- transformers.
 class Focus st where
@@ -318,7 +331,7 @@ instance Focus Strict.StateT where
   focus_ l m = Strict.StateT $
     unfocusing . l (Focusing . Strict.runStateT (liftM skip m))
   {-# INLINE focus_ #-}
-  setFocus l m = Strict.state $
+  setFocus l m = State.state $
     (,) () . runIdentity . l (Identity . snd . Strict.runState m)
 
 instance Focus Lazy.StateT where
@@ -328,7 +341,7 @@ instance Focus Lazy.StateT where
   focus_ l m = Lazy.StateT $
     unfocusing . l (Focusing . Lazy.runStateT (liftM skip m))
   {-# INLINE focus_ #-}
-  setFocus l m = Lazy.state $
+  setFocus l m = State.state $
     (,) () . runIdentity . l (Identity . snd . Lazy.runState m)
   {-# INLINE setFocus #-}
 
@@ -342,39 +355,78 @@ instance Focus ReaderT where
   {-# INLINE focus_ #-}
   setFocus _ _ = return () -- BOOORING
 
+-- | This class allows us to use 'zoom' in, changing the State supplied by
+-- many different monad transformers. Unlike 'focus' this can change the state
+-- of a deeply nested monad transformer. However, also unlike 'focus' it can
+-- only be used on an actual 'Lens' or 'Control.Lens.Iso.Iso' and cannot accept
+-- a 'Control.Lens.Traversal.Traversal'
+class (MonadState s m, MonadState t n) => Zoom m n s t | m -> s, n -> t, m t -> n, n s -> m where
+  -- | Run a monadic action in a larger state than it was defined in,
+  -- using a 'Simple' 'Lens'.
+  --
+  -- This is commonly used to lift actions in a simpler state monad into a
+  -- state monad with a larger state type.
+  --
+  -- This can be used to edit pretty much any monad transformer stack with a state in it:
+  --
+  -- @
+  -- zoom :: 'Monad' m => 'Simple' 'Lens' a b -> StateT b m c -> StateT a m c
+  -- zoom :: 'Monad' m => 'Simple' 'Lens' a b -> RWST r w b m c -> RWST r w a m c
+  -- zoom :: 'Monad' m => 'Simple' 'Lens' a b -> ErrorT e (RWST r w b m c) -> ErrorT e (RWST r w a m c)
+  -- zoom :: 'Monad' m => 'Simple' 'Lens' a b -> ErrorT e (RWST r w b m c) -> ErrorT e (RWST r w a m c)
+  -- ...
+  -- @
+  zoom :: SimpleLensLike (IndexedStore s s) t s -> m c -> n c
+
+instance Monad m => Zoom (Strict.StateT s m) (Strict.StateT t m) s t where
+  zoom = focus . clone
+
+instance Monad m => Zoom (Lazy.StateT s m) (Lazy.StateT t m) s t where
+  zoom = focus . clone
+
+instance Zoom m n s t => Zoom (ReaderT e m) (ReaderT e n) s t where
+  zoom l (ReaderT m) = ReaderT (zoom l . m)
+
+instance (Monoid w, Zoom m n s t) => Zoom (Strict.WriterT w m) (Strict.WriterT w n) s t where
+  zoom l (Strict.WriterT m) = Strict.WriterT (zoom l m)
+
+instance (Monoid w, Zoom m n s t) => Zoom (Lazy.WriterT w m) (Lazy.WriterT w n) s t where
+  zoom l (Lazy.WriterT m) = Lazy.WriterT (zoom l m)
+
+instance (Monoid w, Monad m) => Zoom (Strict.RWST r w s m) (Strict.RWST r w t m) s t where
+  zoom l (Strict.RWST m) = Strict.RWST $ \ r t -> case l (IndexedStore id) t of
+    IndexedStore st s -> do
+      (a,s',w) <- m r s
+      return (a,st s',w)
+
+instance (Monoid w, Monad m) => Zoom (Lazy.RWST r w s m) (Lazy.RWST r w t m) s t where
+  zoom l (Lazy.RWST m) = Lazy.RWST $ \ r t -> case l (IndexedStore id) t of
+    IndexedStore st s -> do
+      (a,s',w) <- m r s
+      return (a,st s',w)
+
+instance (Error e, Zoom m n s t) => Zoom (ErrorT e m) (ErrorT e n) s t where
+  zoom l (ErrorT m) = ErrorT (zoom l m)
+
+instance Zoom m n s t => Zoom (ListT m) (ListT n) s t where
+  zoom l (ListT m) = ListT (zoom l m)
+
+instance Zoom m n s t => Zoom (IdentityT m) (IdentityT n) s t where
+  zoom l (IdentityT m) = IdentityT (zoom l m)
+
+instance Zoom m n s t => Zoom (MaybeT m) (MaybeT n) s t where
+  zoom l (MaybeT m) = MaybeT (zoom l m)
+
+{-
+instance Zoom m m a a => Zoom (ContT r m) (ContT r m) a a where
+  zoom l (ContT m) = ContT $ \k -> do
+    IndexedState ba a <- State.gets (l (IndexedState id))
+    ...
+-}
+
 -------------------------------------------------------------------------------
 -- Common Lenses
 -------------------------------------------------------------------------------
-
-{-
--- | This is a lens that can change the value (and type) of the first field of
--- a pair.
---
--- >>> import Control.Lens
--- >>> (1,2)^._1
--- 1
---
--- >>> _1 .~ "hello" $ (1,2)
--- ("hello",2)
---
--- @_1 :: 'Functor' f => (a -> f b) -> (a,c) -> f (a,c)@
-_1 :: Lens (a,c) (b,c) a b
-_1 f (a,c) = (\b -> (b,c)) <$> f a
-{-# INLINE _1 #-}
-
--- | As '_1', but for the second field of a pair.
---
--- @
--- 'Control.Lens.Fold.anyOf' '_2' :: (c -> 'Bool') -> (a, c) -> 'Bool'
--- 'Data.Traversable.traverse' '.' '_2' :: ('Applicative' f, 'Data.Traversable.Traversable' t) => (a -> f b) -> t (c, a) -> f (t (c, b))
--- 'Control.Lens.Fold.foldMapOf' ('Data.Traversable.traverse' '.' '_2') :: ('Data.Traversable.Traversable' t, 'Data.Monoid.Monoid' m) => (c -> m) -> t (b, c) -> m
--- @
---
--- @_2 :: 'Functor' f => (a -> f b) -> (c,a) -> f (c,b)@
-_2 :: Lens (c,a) (c,b) a b
-_2 f (c,a) = (,) c <$> f a
-{-# INLINE _2 #-}
--}
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.

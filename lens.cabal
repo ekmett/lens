@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       2.2
+version:       2.3
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -33,12 +33,12 @@ description:
   .
   The core of this hierarchy looks like:
   .
-  <<https://github.com/ekmett/lens/wiki/images/Hierarchy-2.2.png>>
+  <<https://github.com/ekmett/lens/wiki/images/Hierarchy-2.3.png>>
   .
   You can compose any two elements of the hierarchy above using (.) from the Prelude, and you can
   use any element of the hierarchy as any type it links to above it.
   .
-  The result is their lowest upper bound in the hierarchy (or an error f that bound doesn't exist).
+  The result is their lowest upper bound in the hierarchy (or an error if that bound doesn't exist).
   .
   For instance:
   .

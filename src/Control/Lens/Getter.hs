@@ -1,4 +1,8 @@
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Getter
@@ -51,6 +55,7 @@ module Control.Lens.Getter
   , uses
   , query
   , queries
+  , Magnify(..)
   ) where
 
 import Control.Applicative
@@ -58,6 +63,18 @@ import Control.Applicative.Backwards
 import Control.Lens.Internal
 import Control.Monad.Reader.Class       as Reader
 import Control.Monad.State.Class        as State
+import Control.Monad.Trans.State.Lazy   as Lazy
+import Control.Monad.Trans.State.Strict as Strict
+import Control.Monad.Trans.Writer.Lazy   as Lazy
+import Control.Monad.Trans.Writer.Strict as Strict
+import Control.Monad.Trans.RWS.Lazy   as Lazy
+import Control.Monad.Trans.RWS.Strict as Strict
+import Control.Monad.Trans.Reader
+import Control.Monad.Trans.Error
+import Control.Monad.Trans.List
+import Control.Monad.Trans.Identity
+import Control.Monad.Trans.Cont
+import Control.Monad.Trans.Maybe
 import Data.Functor.Compose
 import Data.Monoid
 
@@ -256,6 +273,44 @@ a ^. l = runAccessor (l Accessor a)
 {-# INLINE (^.) #-}
 
 -------------------------------------------------------------------------------
+-- MonadState
+-------------------------------------------------------------------------------
+
+-- |
+-- Use the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', or
+-- 'Getter' in the current state, or use a summary of a
+-- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
+-- to a monoidal value.
+--
+-- @
+-- use :: 'MonadState' a m             => 'Getter' a c             -> m c
+-- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a r               -> m r
+-- use :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> m c
+-- use :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> m c
+-- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a r   -> m r
+-- @
+use :: MonadState a m => Getting c a c -> m c
+use l = State.gets (view l)
+{-# INLINE use #-}
+
+-- |
+-- Use the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso' or
+-- 'Getter' in the current state, or use a summary of a
+-- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that
+-- points to a monoidal value.
+--
+-- @
+-- uses :: 'MonadState' a m             => 'Getter' a c           -> (c -> e) -> m e
+-- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a c             -> (c -> r) -> m r
+-- uses :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -> (c -> e) -> m e
+-- uses :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> e) -> m e
+-- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> r) -> m r
+-- @
+uses :: MonadState a m => Getting e a c -> (c -> e) -> m e
+uses l f = State.gets (views l f)
+{-# INLINE uses #-}
+
+-------------------------------------------------------------------------------
 -- MonadReader
 -------------------------------------------------------------------------------
 
@@ -293,40 +348,66 @@ queries :: MonadReader a m => Getting e a c -> (c -> e) -> m e
 queries l f = Reader.asks (views l f)
 {-# INLINE queries #-}
 
--------------------------------------------------------------------------------
--- MonadState
--------------------------------------------------------------------------------
 
--- |
--- Use the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', or
--- 'Getter' in the current state, or use a summary of a
--- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
--- to a monoidal value.
+-- | This class allows us to use 'magnify' part of the environment, changing the environment supplied by
+-- many different monad transformers. Unlike 'focus' this can change the environment of a deeply nested monad transformer.
 --
--- @
--- use :: 'MonadState' a m             => 'Getter' a c             -> m c
--- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a r               -> m r
--- use :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> m c
--- use :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> m c
--- use :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a r   -> m r
--- @
-use :: MonadState a m => Getting c a c -> m c
-use l = State.gets (view l)
-{-# INLINE use #-}
+-- Also, unlike 'focus', this can be used with any valid 'Getter', but cannot be used with a 'Traversal' or 'Fold'.
+class (MonadReader b m, MonadReader a n) => Magnify m n b a | m -> b, n -> a, m a -> n, n b -> m where
+  -- | Run a monadic action in a larger environment than it was defined in, using a 'Getter'.
+  --
+  -- This acts like 'Control.Monad.Reader.Class.local', but can in many cases change the type of the environment as well.
+  --
+  -- This is commonly used to lift actions in a simpler Reader monad into a state monad with a larger state type.
+  --
+  -- This can be used to edit pretty much any monad transformer stack with an environment in it:
+  --
+  -- @
+  -- magnify :: 'Getter' a b -> (b -> c) -> a -> c
+  -- magnify :: 'Getter' a b -> RWS a w s c -> RWST b w s c
+  -- magnify :: 'Getter' a b -> ErrorT e (Reader b) c -> ErrorT e (Reader a) c
+  -- magnify :: 'Getter' a b -> ListT (ReaderT b (StateT s)) c -> ListT (ReaderT a (StateT s)) c
+  -- ...
+  -- @
+  magnify :: Getter a b -> m c -> n c
 
--- |
--- Use the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso' or
--- 'Getter' in the current state, or use a summary of a
--- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that
--- points to a monoidal value.
---
--- @
--- uses :: 'MonadState' a m             => 'Getter' a c           -> (c -> e) -> m e
--- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Fold.Fold' a c             -> (c -> r) -> m r
--- uses :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -> (c -> e) -> m e
--- uses :: 'MonadState' a m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> e) -> m e
--- uses :: ('MonadState' a m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> r) -> m r
--- @
-uses :: MonadState a m => Getting e a c -> (c -> e) -> m e
-uses l f = State.gets (views l f)
-{-# INLINE uses #-}
+instance Monad m => Magnify (ReaderT b m) (ReaderT a m) b a where
+  magnify l (ReaderT m) = ReaderT $ \e -> m (e^.l)
+
+instance Magnify ((->) b) ((->) a) b a where
+  magnify l bc a = bc (view l a)
+
+instance (Monad m, Monoid w) => Magnify (Strict.RWST b w s m) (Strict.RWST a w s m) b a where
+  magnify l (Strict.RWST m) = Strict.RWST $ \a w -> m (a^.l) w
+
+instance (Monad m, Monoid w) => Magnify (Lazy.RWST b w s m) (Lazy.RWST a w s m) b a where
+  magnify l (Lazy.RWST m) = Lazy.RWST $ \a w -> m (a^.l) w
+
+instance Magnify m n b a => Magnify (Strict.StateT s m) (Strict.StateT s n) b a where
+  magnify l (Strict.StateT m) = Strict.StateT $ magnify l . m
+
+instance Magnify m n b a => Magnify (Lazy.StateT s m) (Lazy.StateT s n) b a where
+  magnify l (Lazy.StateT m) = Lazy.StateT $ magnify l . m
+
+instance (Monoid w, Magnify m n b a) => Magnify (Strict.WriterT w m) (Strict.WriterT w n) b a where
+  magnify l (Strict.WriterT m) = Strict.WriterT (magnify l m)
+
+instance (Monoid w, Magnify m n b a) => Magnify (Lazy.WriterT w m) (Lazy.WriterT w n) b a where
+  magnify l (Lazy.WriterT m) = Lazy.WriterT (magnify l m)
+
+instance Magnify m n b a => Magnify (ListT m) (ListT n) b a where
+  magnify l (ListT m) = ListT (magnify l m)
+
+instance Magnify m n b a => Magnify (MaybeT m) (MaybeT n) b a where
+  magnify l (MaybeT m) = MaybeT (magnify l m)
+
+instance Magnify m n b a => Magnify (IdentityT m) (IdentityT n) b a where
+  magnify l (IdentityT m) = IdentityT (magnify l m)
+
+instance (Error e, Magnify m n b a) => Magnify (ErrorT e m) (ErrorT e n) b a where
+  magnify l (ErrorT m) = ErrorT (magnify l m)
+
+instance Magnify m m a a => Magnify (ContT r m) (ContT r m) a a where
+  magnify l (ContT m) = ContT $ \k -> do
+    r <- Reader.ask
+    magnify l (m (magnify (to (const r)) . k))

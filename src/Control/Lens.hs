@@ -41,7 +41,7 @@
 --
 -- <http://github.com/ekmett/lens/wiki>
 --
--- <<http://github.com/ekmett/lens/wiki/images/Hierarchy-1.8.png>>
+-- <<http://github.com/ekmett/lens/wiki/images/Hierarchy-2.3.png>>
 ----------------------------------------------------------------------------
 module Control.Lens
   ( module Control.Lens.Type

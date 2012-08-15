@@ -23,13 +23,13 @@ setter_composition :: Eq a => Simple Setter a b -> a -> Fun b b -> Fun b b -> Bo
 setter_composition l a (Fun _ f) (Fun _ g) = mapOf l f (mapOf l g a) == mapOf l (f . g) a
 
 lens_set_view :: Eq a => Simple Lens a b -> a -> Bool
-lens_set_view l a = set l (a^.l) a == a
+lens_set_view l a = set l (view l a) a == a
 
 lens_view_set :: Eq b => Simple Lens a b -> a -> b -> Bool
-lens_view_set l a b = set l b a^.l == b
+lens_view_set l a b = view l (set l b a) == b
 
-traversal_set_set :: Eq a => Simple Traversal a b -> a -> b -> b -> Bool
-traversal_set_set l a b c = set l c (set l b a) == set l c a
+setter_set_set :: Eq a => Simple Setter a b -> a -> b -> b -> Bool
+setter_set_set l a b c = set l c (set l b a) == set l c a
 
 iso_hither :: Eq a => Simple Iso a b -> a -> Bool
 iso_hither l a = a ^.l.from l == a
@@ -39,11 +39,11 @@ iso_yon l b = b^.from l.l == b
 
 isSetter :: (Arbitrary a, Arbitrary b, CoArbitrary b, Show a, Show b, Eq a, Function b)
          => Simple Setter a b -> Property
-isSetter l = setter_id l .&. setter_composition l
+isSetter l = setter_id l .&. setter_composition l .&. setter_set_set l
 
 isTraversal :: (Arbitrary a, Arbitrary b, CoArbitrary b, Show a, Show b, Eq a, Function b)
          => Simple Traversal a b -> Property
-isTraversal l = isSetter l .&. traversal_set_set l
+isTraversal l = isSetter l
 
 isLens :: (Arbitrary a, Arbitrary b, CoArbitrary b, Show a, Show b, Eq a, Eq b, Function b)
        => Simple Lens a b -> Property
@@ -61,9 +61,13 @@ badIso :: Simple Iso Int Bool
 badIso = iso even fromEnum
 
 -- Control.Lens.Type
-prop_1                               = isLens (_1 :: Simple Lens (Int,Double) Int)
+prop_1                               = isLens (_1 :: Simple Lens (Int,Double,()) Int)
 prop_2                               = isLens (_2 :: Simple Lens (Int,Bool) Bool)
-prop_2_2                             = isLens (_2._2 :: Simple Lens (Int,(Int,Bool)) Bool)
+prop_3                               = isLens (_3 :: Simple Lens (Int,Bool,()) ())
+prop_4                               = isLens (_4 :: Simple Lens (Int,Bool,(),Maybe Int) (Maybe Int))
+prop_5                               = isLens (_5 :: Simple Lens ((),(),(),(),Int) Int)
+
+prop_2_2                             = isLens (_2._2 :: Simple Lens (Int,(Int,Bool),Double) Bool)
 
 prop_illegal_lens                    = expectFailure $ isLens bad
 prop_illegal_traversal               = expectFailure $ isTraversal bad
