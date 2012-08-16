@@ -499,7 +499,7 @@ l <&&~ c = l <%~ (&& c)
 -- | Modify the target of a 'Lens' into your monad's state by a user supplied
 -- function and return the result.
 --
--- When you do not need the result of the operation, ('%=') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.
 (<%=) :: MonadState a m => LensLike ((,)d) a a c d -> (c -> d) -> m d
 l <%= f = l %%= (\c -> let d = f c in (d,d))
 {-# INLINE (<%=) #-}
@@ -507,7 +507,7 @@ l <%= f = l %%= (\c -> let d = f c in (d,d))
 -- | Add to the target of a numerically valued 'Lens' into your monad's state
 -- and return the result.
 --
--- When you do not need the result of the multiplication, ('+=') is more
+-- When you do not need the result of the multiplication, ('Control.Lens.Setter.+=') is more
 -- flexible.
 (<+=) :: (MonadState a m, Num b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <+= b = l <%= (+ b)
@@ -516,7 +516,7 @@ l <+= b = l <%= (+ b)
 -- | Subtract from the target of a numerically valued 'Lens' into your monad's
 -- state and return the result.
 --
--- When you do not need the result of the multiplication, ('-=') is more
+-- When you do not need the result of the multiplication, ('Control.Lens.Setter.-=') is more
 -- flexible.
 (<-=) :: (MonadState a m, Num b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <-= b = l <%= subtract b
@@ -525,7 +525,7 @@ l <-= b = l <%= subtract b
 -- | Multiply the target of a numerically valued 'Lens' into your monad's
 -- state and return the result.
 --
--- When you do not need the result of the multiplication, ('*=') is more
+-- When you do not need the result of the multiplication, ('Control.Lens.Setter.*=') is more
 -- flexible.
 (<*=) :: (MonadState a m, Num b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <*= b = l <%= (* b)
@@ -534,7 +534,7 @@ l <*= b = l <%= (* b)
 -- | Divide the target of a fractionally valued 'Lens' into your monad's state
 -- and return the result.
 --
--- When you do not need the result of the division, ('//=') is more flexible.
+-- When you do not need the result of the division, ('Control.Lens.Setter.//=') is more flexible.
 (<//=) :: (MonadState a m, Fractional b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <//= b = l <%= (/ b)
 {-# INLINE (<//=) #-}
@@ -542,7 +542,7 @@ l <//= b = l <%= (/ b)
 -- | Raise the target of a numerically valued 'Lens' into your monad's state
 -- to a non-negative 'Integral' power and return the result.
 --
--- When you do not need the result of the operation, ('**=') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.
 (<^=) :: (MonadState a m, Num b, Integral c) => SimpleLensLike ((,)b) a b -> c -> m b
 l <^= c = l <%= (^ c)
 {-# INLINE (<^=) #-}
@@ -550,7 +550,7 @@ l <^= c = l <%= (^ c)
 -- | Raise the target of a fractionally valued 'Lens' into your monad's state
 -- to an 'Integral' power and return the result.
 --
--- When you do not need the result of the operation, ('^^=') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.^^=') is more flexible.
 (<^^=) :: (MonadState a m, Fractional b, Integral c) => SimpleLensLike ((,)b) a b -> c -> m b
 l <^^= c = l <%= (^^ c)
 {-# INLINE (<^^=) #-}
@@ -558,7 +558,7 @@ l <^^= c = l <%= (^^ c)
 -- | Raise the target of a floating-point valued 'Lens' into your monad's
 -- state to an arbitrary power and return the result.
 --
--- When you do not need the result of the operation, ('**=') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.
 (<**=) :: (MonadState a m, Floating b) => SimpleLensLike ((,)b) a b -> b -> m b
 l <**= b = l <%= (** b)
 {-# INLINE (<**=) #-}
@@ -566,7 +566,7 @@ l <**= b = l <%= (** b)
 -- | Logically '||' a Boolean valued 'Lens' into your monad's state and return
 -- the result.
 --
--- When you do not need the result of the operation, ('||=') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.||=') is more flexible.
 (<||=) :: MonadState a m => SimpleLensLike ((,)Bool) a Bool -> Bool -> m Bool
 l <||= b = l <%= (|| b)
 {-# INLINE (<||=) #-}
@@ -574,7 +574,7 @@ l <||= b = l <%= (|| b)
 -- | Logically '&&' a Boolean valued 'Lens' into your monad's state and return
 -- the result.
 --
--- When you do not need the result of the operation, ('&&=') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.&&=') is more flexible.
 (<&&=) :: MonadState a m => SimpleLensLike ((,)Bool) a Bool -> Bool -> m Bool
 l <&&= b = l <%= (&& b)
 {-# INLINE (<&&=) #-}
