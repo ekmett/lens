@@ -23,8 +23,8 @@ module Control.Lens.Internal
   , FocusingWith(..)
   , FocusingPlus(..)
   , FocusingOn(..)
-  , FocusingErr(..)
-  , Err(..)
+  , FocusingErr(..), Err(..)
+  , FocusingMay(..), May(..)
   , Traversed(..)
   , Sequenced(..)
   , AppliedState(..)
@@ -41,7 +41,6 @@ module Control.Lens.Internal
 import Control.Applicative
 import Control.Category
 import Control.Monad
-import Control.Monad.Error.Class
 import Prelude hiding ((.),id)
 import Data.Monoid
 
@@ -99,11 +98,30 @@ instance Applicative (k (f c)) => Applicative (FocusingOn f k c) where
   pure = FocusingOn . pure
   FocusingOn kf <*> FocusingOn ka = FocusingOn (kf <*> ka)
 
--- | Make a monoid out of 'Either' using 'Error'.
+-- | Make a monoid out of 'Maybe' for error handling
+newtype May a = May { getMay :: Maybe a }
+
+instance Monoid a => Monoid (May a) where
+  mempty = May (Just mempty)
+  May Nothing `mappend` _ = May Nothing
+  _ `mappend` May Nothing = May Nothing
+  May (Just a) `mappend` May (Just b) = May (Just (mappend a b))
+
+-- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Error.ErrorT'
+newtype FocusingMay k c a = FocusingMay { unfocusingMay :: k (May c) a }
+
+instance Functor (k (May c)) => Functor (FocusingMay k c) where
+  fmap f (FocusingMay as) = FocusingMay (fmap f as)
+
+instance Applicative (k (May c)) => Applicative (FocusingMay k c) where
+  pure = FocusingMay . pure
+  FocusingMay kf <*> FocusingMay ka = FocusingMay (kf <*> ka)
+
+-- | Make a monoid out of 'Either' for error handling
 newtype Err e a = Err { getErr :: Either e a }
 
-instance (Error e, Monoid a) => Monoid (Err e a) where
-  mempty = Err (Left noMsg)
+instance Monoid a => Monoid (Err e a) where
+  mempty = Err (Right mempty)
   Err (Left e) `mappend` _ = Err (Left e)
   _ `mappend` Err (Left e) = Err (Left e)
   Err (Right a) `mappend` Err (Right b) = Err (Right (mappend a b))
@@ -114,13 +132,12 @@ newtype FocusingErr e k c a = FocusingErr { unfocusingErr :: k (Err e c) a }
 instance Functor (k (Err e c)) => Functor (FocusingErr e k c) where
   fmap f (FocusingErr as) = FocusingErr (fmap f as)
 
-instance (Error e, Applicative (k (Err e c))) => Applicative (FocusingErr e k c) where
+instance Applicative (k (Err e c)) => Applicative (FocusingErr e k c) where
   pure = FocusingErr . pure
   FocusingErr kf <*> FocusingErr ka = FocusingErr (kf <*> ka)
 
 -- | The indexed store can be used to characterize a 'Control.Lens.Type.Lens'
 -- and is used by 'Control.Lens.Type.clone'
-
 data IndexedStore c d a = IndexedStore (d -> a) c
 
 instance Functor (IndexedStore c d) where
@@ -128,7 +145,6 @@ instance Functor (IndexedStore c d) where
 
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
 -- by 'Control.Lens.Traversal.elementOf', 'Control.Lens.Traversal.elementsOf', 'Control.Lens.Traversal.traverseElement', 'Control.Lens.Traversal.traverseElementsOf'
-
 newtype AppliedState f a = AppliedState { runAppliedState :: Int -> (f a, Int) }
 
 instance Functor f => Functor (AppliedState f) where
@@ -142,7 +158,6 @@ instance Applicative f => Applicative (AppliedState f) where
        (fa, k) -> (ff <*> fa, k)
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
-
 newtype Traversed f = Traversed { getTraversed :: f () }
 
 instance Applicative f => Monoid (Traversed f) where
@@ -223,7 +238,6 @@ instance Functor f => Applicative (ElementOf f) where
 -- This is used to characterize a 'Control.Lens.Traversal.Traversal'.
 --
 -- <http://twanvl.nl/blog/haskell/non-regular1>
-
 data Kleene c d a
   = Done a
   | More (Kleene c d (d -> a)) c
@@ -237,6 +251,7 @@ instance Applicative (Kleene c d) where
   Done f   <*> m = fmap f m
   More k c <*> m = More (flip <$> k <*> m) c
 
+-- | Given an action to run for each matched pair, traverse a store.
 kleene :: Applicative f => (c -> f d) -> Kleene c d b -> f b
 kleene _ (Done b) = pure b
 kleene f (More k c) = f c <**> kleene f k

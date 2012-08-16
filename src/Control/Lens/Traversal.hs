@@ -87,11 +87,8 @@ import Data.Traversable
 --
 -- @'fmap' (t f) . t g = 'Data.Functor.Compose.getCompose' . t ('Data.Functor.Compose.Compose' . 'fmap' f . g)@
 --
--- One consequence of this requirement is that a traversal needs to leave the same number of elements as a candidate for
--- subsequent traversal as it started with.
---
--- 3) No duplication of elements (as defined in \"The Essence of the Iterator Pattern\" section 5.5), which states
--- that you should incur no effect caused by visiting the same element of the container twice.
+-- One consequence of this requirement is that a 'Traversal' needs to leave the same number of elements as a
+-- candidate for subsequent 'Traversal' that it started with.
 type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 
 -- | @type SimpleTraversal = 'Simple' 'Traversal'@

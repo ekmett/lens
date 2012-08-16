@@ -343,8 +343,8 @@ instance Zoom m n k s t => Zoom (ListT m) (ListT n) (FocusingOn [] k) s t where
   zoom l = ListT . zoom (\cfd -> unfocusingOn . l (FocusingOn . cfd)) . runListT
   {-# INLINE zoom #-}
 
-instance Zoom m n k s t => Zoom (MaybeT m) (MaybeT n) (FocusingOn Maybe k) s t where
-  zoom l = MaybeT . zoom (\cfd -> unfocusingOn . l (FocusingOn . cfd)) . runMaybeT
+instance Zoom m n k s t => Zoom (MaybeT m) (MaybeT n) (FocusingMay k) s t where
+  zoom l = MaybeT . liftM getMay . zoom (\cfd -> unfocusingMay . l (FocusingMay . cfd)) . liftM May . runMaybeT
   {-# INLINE zoom #-}
 
 instance (Error e, Zoom m n k s t) => Zoom (ErrorT e m) (ErrorT e n) (FocusingErr e k) s t where
