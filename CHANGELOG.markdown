@@ -6,6 +6,8 @@
 * Renamed `clone` to `cloneLens` in `Control.Lens.Type`
 * Generalized the type of `zoom` to subsume `focus`.
 * Removed `Focus(..)` from `Control.Lens.Type`.
+* Factored out `Control.Lens.Isomorphic`.
+* Moved many private types to `Control.Lens.Internal`
 
 2.3
 ---

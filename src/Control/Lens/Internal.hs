@@ -1,5 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal
@@ -38,7 +41,7 @@ module Control.Lens.Internal
   , Effect(..)
   , EffectRWS(..)
   -- , EffectS(..)
-  , Gettable(..), Accessor(..)
+  , Gettable(..), Accessor(..), Effective(..), ineffective
   , Settable(..), Mutator(..)
   ) where
 
@@ -46,6 +49,7 @@ module Control.Lens.Internal
 import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Category
+import Control.Lens.Isomorphic
 import Control.Monad
 import Prelude hiding ((.),id)
 import Data.Functor.Compose
@@ -360,6 +364,31 @@ instance Monoid r => Applicative (Accessor r) where
   pure _ = Accessor mempty
   Accessor a <*> Accessor b = Accessor (mappend a b)
 
+-- | An 'Effective' 'Functor' ignores its argument and is isomorphic to a monad wrapped around a value.
+--
+-- That said, the monad is possibly rather unrelated to any 'Applicative' structure.
+class (Monad m, Gettable f) => Effective m r f | f -> m r where
+  effective :: Isomorphic k => k (m r) (f a)
+
+-- | A convenient antonym that is used internally.
+ineffective :: Effective m r f => Isomorphic k => k (f a) (m r)
+ineffective = from effective
+{-# INLINE ineffective #-}
+
+instance Effective Identity r (Accessor r) where
+  effective = isomorphic (Accessor . runIdentity) (Identity . runAccessor)
+  {-# INLINE effective #-}
+  {-# SPECIALIZE effective :: Identity r -> Accessor r a #-}
+  {-# SPECIALIZE effective :: Isomorphism (Identity r) (Accessor r a) #-}
+
+instance Effective m r f => Effective m (Dual r) (Backwards f) where
+  effective = isomorphic (Backwards . effective . liftM getDual) (liftM Dual . ineffective . forwards)
+
+instance Monad m => Effective m r (Effect m r) where
+  effective = isomorphic Effect getEffect
+  {-# SPECIALIZE effective :: Monad m => m r -> Effect m r a #-}
+  {-# SPECIALIZE effective :: Monad m => Isomorphism (m r) (Effect m r a) #-}
+
 -----------------------------------------------------------------------------
 -- Settables & Mutators
 -----------------------------------------------------------------------------
@@ -398,3 +427,5 @@ instance Functor Mutator where
 instance Applicative Mutator where
   pure = Mutator
   Mutator f <*> Mutator a = Mutator (f a)
+
+

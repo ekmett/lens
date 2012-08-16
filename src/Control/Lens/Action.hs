@@ -1,8 +1,5 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Action
@@ -28,18 +25,11 @@ module Control.Lens.Action
 
   -- * Implementation Details
   , Acting
-  , Effective(..)
-  , ineffective
   ) where
 
 import Control.Applicative
-import Control.Applicative.Backwards
 import Control.Lens.Internal
-import Control.Lens.Isomorphic
-import Control.Monad
 import Control.Monad.Trans.Class
-import Data.Functor.Identity
-import Data.Monoid
 
 infixr 8 ^!
 
@@ -56,31 +46,6 @@ type Action m a c = forall f r. Effective m r f => (c -> f c) -> a -> f a
 --
 -- You can compose a 'MonadicFold' with another 'MonadicFold' using ('Prelude..') from the @Prelude@.
 type MonadicFold m a c = forall f r. (Effective m r f, Applicative f) => (c -> f c) -> a -> f a
-
--- | An 'Effective' 'Functor' ignores its argument and is isomorphic to a monad wrapped around a value.
---
--- That said, the monad is possibly rather unrelated to any 'Applicative' structure.
-class (Monad m, Gettable f) => Effective m r f | f -> m r where
-  effective :: Isomorphic k => k (m r) (f a)
-
--- | A convenient antonym that is used internally.
-ineffective :: Effective m r f => Isomorphic k => k (f a) (m r)
-ineffective = from effective
-{-# INLINE ineffective #-}
-
-instance Effective Identity r (Accessor r) where
-  effective = isomorphic (Accessor . runIdentity) (Identity . runAccessor)
-  {-# INLINE effective #-}
-  {-# SPECIALIZE effective :: Identity r -> Accessor r a #-}
-  {-# SPECIALIZE effective :: Isomorphism (Identity r) (Accessor r a) #-}
-
-instance Effective m r f => Effective m (Dual r) (Backwards f) where
-  effective = isomorphic (Backwards . effective . liftM getDual) (liftM Dual . ineffective . forwards)
-
-instance Monad m => Effective m r (Effect m r) where
-  effective = isomorphic Effect getEffect
-  {-# SPECIALIZE effective :: Monad m => m r -> Effect m r a #-}
-  {-# SPECIALIZE effective :: Monad m => Isomorphism (m r) (Effect m r a) #-}
 
 -- | Used to evaluate an 'Action'.
 type Acting m r a c = (c -> Effect m r c) -> a -> Effect m r a
@@ -107,7 +72,7 @@ a ^! l = getEffect (l (Effect . return) a)
 
 -- | Construct an 'Action' from a monadic side-effect
 act :: Monad m => (a -> m c) -> Action m a c
-act amc cfd a = effective (amc a >>= from effective . cfd)
+act amc cfd a = effective (amc a >>= ineffective . cfd)
 {-# INLINE act #-}
 
 -- | A self-running 'Action', analogous to 'Control.Monad.join'.

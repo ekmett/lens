@@ -47,11 +47,8 @@ module Control.Lens.Setter
   ) where
 
 import Control.Applicative
-import Control.Applicative.Backwards
 import Control.Lens.Internal
 import Control.Monad.State.Class        as State
-import Data.Functor.Compose
-import Data.Functor.Identity
 
 infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <.~
 infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <.=
