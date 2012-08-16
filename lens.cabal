@@ -100,7 +100,7 @@ library
     base             >= 4.3   && < 5,
     containers       >= 0.4.2 && < 0.6,
     mtl              >= 2.1.1 && < 2.2,
-    template-haskell >= 2.4   && < 2.8,
+    template-haskell >= 2.4   && < 2.9,
     transformers     >= 0.3   && < 0.4
 
   exposed-modules: Control.Exception.Lens
