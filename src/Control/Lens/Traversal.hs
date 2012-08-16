@@ -79,11 +79,11 @@ import Data.Traversable
 --
 -- The laws for a Traversal @t@ follow from the laws for Traversable as stated in \"The Essence of the Iterator Pattern\".
 --
--- 1) Idiomatic naturality:
+-- 1.) Idiomatic naturality:
 --
 -- @t 'pure' = 'pure'@
 --
--- 2) Sequential composition:
+-- 2.) Sequential composition:
 --
 -- @'fmap' (t f) . t g = 'Data.Functor.Compose.getCompose' . t ('Data.Functor.Compose.Compose' . 'fmap' f . g)@
 --
@@ -321,7 +321,7 @@ traverseNothing = const pure
 ------------------------------------------------------------------------------
 
 -- | A traversal is completely characterized by its behavior on the indexed
--- "Kleene store" comonad.
+-- 'Kleene' store comonad.
 --
 -- Cloning a 'Traversal' is one way to make sure you arent given
 -- something weaker, such as a 'Control.Lens.Traversal.Fold' and can be
