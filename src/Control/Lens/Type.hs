@@ -23,7 +23,7 @@
 --
 -- While a 'Control.Lens.Traversal.Traversal' could be used for
 -- 'Control.Lens.Getter.Getting' like a valid 'Control.Lens.Fold.Fold',
--- it wasn't a valid 'Control.Lens.Getter.Getter' as Applicative isn't a superclass of
+-- it wasn't a valid 'Control.Lens.Getter.Getter' as 'Applicative' wasn't a superclass of
 -- 'Control.Lens.Getter.Gettable'.
 --
 -- 'Functor', however is the superclass of both.
@@ -417,28 +417,28 @@ type SimpleOverloaded k f a b = Overloaded k f a a b b
 
 -- | Modify the target of a 'Lens' and return the result
 --
--- When you do not need the result of the addition, ('+~') is more flexible.
+-- When you do not need the result of the addition, ('Control.Lens.Setter.+~') is more flexible.
 (<%~) :: LensLike ((,)d) a b c d -> (c -> d) -> a -> (d, b)
 l <%~ f = l $ \c -> let d = f c in (d, d)
 {-# INLINE (<%~) #-}
 
 -- | Increment the target of a numerically valued 'Lens' and return the result
 --
--- When you do not need the result of the addition, ('+~') is more flexible.
+-- When you do not need the result of the addition, ('Control.Lens.Setter.+~') is more flexible.
 (<+~) :: Num c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <+~ c = l <%~ (+ c)
 {-# INLINE (<+~) #-}
 
 -- | Decrement the target of a numerically valued 'Lens' and return the result
 --
--- When you do not need the result of the subtraction, ('-~') is more flexible.
+-- When you do not need the result of the subtraction, ('Control.Lens.Setter.-~') is more flexible.
 (<-~) :: Num c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <-~ c = l <%~ subtract c
 {-# INLINE (<-~) #-}
 
 -- | Multiply the target of a numerically valued 'Lens' and return the result
 --
--- When you do not need the result of the multiplication, ('*~') is more
+-- When you do not need the result of the multiplication, ('Control.Lens.Setter.*~') is more
 -- flexible.
 (<*~) :: Num c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <*~ c = l <%~ (* c)
@@ -446,7 +446,7 @@ l <*~ c = l <%~ (* c)
 
 -- | Divide the target of a fractionally valued 'Lens' and return the result.
 --
--- When you do not need the result of the division, ('//~') is more flexible.
+-- When you do not need the result of the division, ('Control.Lens.Setter.//~') is more flexible.
 (<//~) :: Fractional c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <//~ c = l <%~ (/ c)
 {-# INLINE (<//~) #-}
@@ -454,7 +454,7 @@ l <//~ c = l <%~ (/ c)
 -- | Raise the target of a numerically valued 'Lens' to a non-negative
 -- 'Integral' power and return the result
 --
--- When you do not need the result of the division, ('^~') is more flexible.
+-- When you do not need the result of the division, ('Control.Lens.Setter.^~') is more flexible.
 (<^~) :: (Num c, Integral d) => LensLike ((,)c) a b c c -> d -> a -> (c, b)
 l <^~ d = l <%~ (^ d)
 {-# INLINE (<^~) #-}
@@ -462,7 +462,7 @@ l <^~ d = l <%~ (^ d)
 -- | Raise the target of a fractionally valued 'Lens' to an 'Integral' power
 -- and return the result.
 --
--- When you do not need the result of the division, ('^^~') is more flexible.
+-- When you do not need the result of the division, ('Control.Lens.Setter.^^~') is more flexible.
 (<^^~) :: (Fractional c, Integral d) => LensLike ((,)c) a b c c -> d -> a -> (c, b)
 l <^^~ d = l <%~ (^^ d)
 {-# INLINE (<^^~) #-}
@@ -470,21 +470,21 @@ l <^^~ d = l <%~ (^^ d)
 -- | Raise the target of a floating-point valued 'Lens' to an arbitrary power
 -- and return the result.
 --
--- When you do not need the result of the division, ('**~') is more flexible.
+-- When you do not need the result of the division, ('Control.Lens.Setter.**~') is more flexible.
 (<**~) :: Floating c => LensLike ((,)c) a b c c -> c -> a -> (c, b)
 l <**~ c = l <%~ (** c)
 {-# INLINE (<**~) #-}
 
 -- | Logically '||' a Boolean valued 'Lens' and return the result
 --
--- When you do not need the result of the operation, ('||~') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.||~') is more flexible.
 (<||~) :: LensLike ((,)Bool) a b Bool Bool -> Bool -> a -> (Bool, b)
 l <||~ c = l <%~ (|| c)
 {-# INLINE (<||~) #-}
 
 -- | Logically '&&' a Boolean valued 'Lens' and return the result
 --
--- When you do not need the result of the operation, ('&&~') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.&&~') is more flexible.
 (<&&~) :: LensLike ((,)Bool) a b Bool Bool -> Bool -> a -> (Bool, b)
 l <&&~ c = l <%~ (&& c)
 {-# INLINE (<&&~) #-}
