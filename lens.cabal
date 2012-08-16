@@ -143,7 +143,7 @@ library
   build-depends:   array >= 0.3.0.2 && < 0.5
   exposed-modules: Data.Array.Lens
 
-  build-depends:   bytestring >= 0.9.1.10 && < 0.10
+  build-depends:   bytestring >= 0.9.1.10 && < 0.11
   exposed-modules: Data.ByteString.Lens Data.ByteString.Lazy.Lens
 
   build-depends:   text >= 0.11.1.5 && < 0.12
