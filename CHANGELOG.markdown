@@ -1,3 +1,8 @@
+2.3.1
+-----
+* Added the indexed `Kleene` store to `Control.Lens.Internal`
+* Added `cloneTraversal` to `Control.Lens.Traversal`
+
 2.3
 ---
 * Added missing `{-# INLINE #-}` pragmas

@@ -27,7 +27,10 @@ module Control.Lens.Internal
   , getMax
   , ElementOf(..)
   , ElementOfResult(..)
+  , Kleene(..)
+  , kleene
   ) where
+
 
 import Control.Applicative
 import Control.Category
@@ -153,3 +156,27 @@ instance Functor f => Applicative (ElementOf f) where
       Searching k a -> Searching k (f a)
       NotFound e    -> NotFound e
     NotFound e -> NotFound e
+
+
+-- | The "Indexed Kleene Store comonad", aka the 'indexed cartesian store comonad' or an indexed 'FunList'.
+--
+-- This is used to characterize a 'Control.Lens.Traversal.Traversal'.
+--
+-- <http://twanvl.nl/blog/haskell/non-regular1>
+
+data Kleene c d a
+  = Done a
+  | More (Kleene c d (d -> a)) c
+
+instance Functor (Kleene c d) where
+  fmap f (Done a) = Done (f a)
+  fmap f (More k b) = More (fmap (f .) k)  b
+
+instance Applicative (Kleene c d) where
+  pure = Done
+  Done f   <*> m = fmap f m
+  More k c <*> m = More (flip <$> k <*> m) c
+
+kleene :: Applicative f => (c -> f d) -> Kleene c d b -> f b
+kleene _ (Done b) = pure b
+kleene f (More k c) = f c <**> kleene f k

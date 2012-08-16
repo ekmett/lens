@@ -44,6 +44,8 @@ module Control.Lens.Traversal
   -- * Common Traversals
   , Traversable(traverse)
   , traverseNothing
+  -- * Cloning Traversals
+  , cloneTraversal
 
   -- * Simple
   , SimpleTraversal
@@ -317,3 +319,12 @@ traverseNothing :: Traversal a a c d
 traverseNothing = const pure
 {-# INLINE traverseNothing #-}
 
+------------------------------------------------------------------------------
+-- Cloning Traversals
+------------------------------------------------------------------------------
+
+-- | A traversal is completely characterized by its behavior on the indexed
+-- "Kleene store" comonad.
+cloneTraversal :: Applicative f => ((c -> Kleene c d d) -> a -> Kleene c d b) -> (c -> f d) -> a -> f b
+cloneTraversal l f = kleene f . l (More (Done id))
+{-# INLINE cloneTraversal #-}
