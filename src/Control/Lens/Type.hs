@@ -104,7 +104,6 @@ module Control.Lens.Type
 
 import Control.Applicative              as Applicative
 import Control.Lens.Internal
-import Control.Lens.Setter
 import Control.Monad
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
@@ -114,12 +113,10 @@ import Control.Monad.Trans.Writer.Strict as Strict
 import Control.Monad.Trans.RWS.Lazy   as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
-import Control.Monad.Trans.Cont
 import Control.Monad.Trans.Error
 import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
-import Data.Functor.Identity
 import Data.Monoid
 
 infixr 4 %%~
@@ -405,7 +402,7 @@ cloneLens :: Functor f
       -> (c -> f d) -> a -> f b
 cloneLens f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
-{-# INLINE clone #-}
+{-# INLINE cloneLens #-}
 
 -------------------------------------------------------------------------------
 -- Overloading function application
