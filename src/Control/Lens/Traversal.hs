@@ -285,7 +285,7 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 -- Common Lenses
 ------------------------------------------------------------------------------
 
--- | A 'Lens' to view/edit the nth element 'elementOf' a 'Traversal', 'Lens' or 'Control.Lens.Iso.Iso'.
+-- | A 'Lens' to 'Control.Lens.Getter.view'/'Control.Lens.Setter.set' the nth element 'elementOf' a 'Traversal', 'Lens' or 'Control.Lens.Iso.Iso'.
 --
 -- Attempts to access beyond the range of the 'Traversal' will cause an error.
 --
