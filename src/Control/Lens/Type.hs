@@ -297,12 +297,12 @@ class (MonadState s m, MonadState t n) => Zoom m n k s t | m -> s k, n -> t k, m
   -- This can be used to edit pretty much any monad transformer stack with a state in it!
   --
   -- @
-  -- zoom :: 'Monad' m               => 'Simple' 'Lens' a b      -> 'StateT' b m c -> 'StateT' a m c
-  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Traversal' a b -> 'StateT' b m c -> 'StateT' a m c
-  -- zoom :: 'Monad' m               => 'Simple' 'Lens' a b      -> 'RWST' r w b m c -> 'RWST' r w a m c
-  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Traversal' a b -> 'RWST' r w b m c -> 'RWST' r w a m c
-  -- zoom :: 'Monad' m               => 'Simple' 'Lens' a b      -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
-  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Traversal' a b -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
+  -- zoom :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'StateT' b m c -> 'StateT' a m c
+  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'StateT' b m c -> 'StateT' a m c
+  -- zoom :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'RWST' r w b m c -> 'RWST' r w a m c
+  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'RWST' r w b m c -> 'RWST' r w a m c
+  -- zoom :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
+  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
   -- ...
   -- @
   zoom :: Monad m => SimpleLensLike (k c) t s -> m c -> n c
