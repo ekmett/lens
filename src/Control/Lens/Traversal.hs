@@ -74,21 +74,21 @@ import Data.Traversable
 -- and the more evocative name suggests their application.
 --
 -- Most of the time the 'Traversal' you will want to use is just 'traverse', but you can also pass any
--- 'Lens' or 'Control.Lens.Iso.Iso' as a Traversal, and composition of a 'Traversal' (or 'Lens' or 'Control.Lens.Iso.Iso') with a 'Traversal' (or 'Lens' or 'Control.Lens.Iso.Iso')
+-- 'Lens' or 'Control.Lens.Iso.Iso' as a 'Traversal', and composition of a 'Traversal' (or 'Lens' or 'Control.Lens.Iso.Iso') with a 'Traversal' (or 'Lens' or 'Control.Lens.Iso.Iso')
 -- using (.) forms a valid 'Traversal'.
 --
 -- The laws for a Traversal @t@ follow from the laws for Traversable as stated in \"The Essence of the Iterator Pattern\".
 --
--- 1.) Idiomatic naturality:
---
--- @t 'pure' = 'pure'@
---
--- 2.) Sequential composition:
---
--- @'fmap' (t f) . t g = 'Data.Functor.Compose.getCompose' . t ('Data.Functor.Compose.Compose' . 'fmap' f . g)@
+-- @
+-- t 'pure' = 'pure'
+-- 'fmap' (t f) . t g = 'Data.Functor.Compose.getCompose' . t ('Data.Functor.Compose.Compose' . 'fmap' f . g)
+-- @
 --
 -- One consequence of this requirement is that a 'Traversal' needs to leave the same number of elements as a
--- candidate for subsequent 'Traversal' that it started with.
+-- candidate for subsequent 'Traversal' that it started with. Another testament to the strength of these laws
+-- is that the caveat expressed in section 5.5 of the \"Essence of the Iterator Pattern\" about exotic
+-- 'Traversable' instances that 'traverse' the same entry multiple times was actually already ruled out by the
+-- second law in that same paper!
 type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 
 -- | @type SimpleTraversal = 'Simple' 'Traversal'@

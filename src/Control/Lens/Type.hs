@@ -161,13 +161,10 @@ infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=
 -- Since every lens is a valid 'Control.Lens.Traversal.Traversal', the
 -- traversal laws should also apply to any lenses you create.
 --
--- 1.) Idiomatic naturality:
---
--- @l 'pure' = 'pure'@
---
--- 2.) Sequential composition:
---
--- @'fmap' (l f) . l g = 'Data.Functor.Compose.getCompose' . l ('Data.Functor.Compose.Compose' . 'fmap' f . g)@
+-- @
+-- l 'pure' = 'pure'
+-- 'fmap' (l f) . l g = 'Data.Functor.Compose.getCompose' . l ('Data.Functor.Compose.Compose' . 'fmap' f . g)
+-- @
 --
 -- @type 'Lens' a b c d = forall f. 'Functor' f => 'LensLike' f a b c d@
 type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
