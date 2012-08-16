@@ -137,15 +137,15 @@ infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=
 --
 -- 1) You get back what you put in:
 --
--- @'view' l ('set' l b a)  = b@
+-- @'Control.Lens.Getter.view' l ('Control.Lens.Setter.set' l b a)  = b@
 --
 -- 2) Putting back what you got doesn't change anything:
 --
--- @'set' l ('view' l a) a  = a@
+-- @'Control.Lens.Setter.set' l ('Control.Lens.Getter.view' l a) a  = a@
 --
 -- 3) Setting twice is the same as setting once:
 --
--- @'set' l c ('set' l b a) = 'set' l c a@
+-- @'Control.Lens.Setter.set' l c ('Control.Lens.Setter.set' l b a) = 'Control.Lens.Setter.set' l c a@
 --
 -- These laws are strong enough that the 4 type parameters of a 'Lens' cannot
 -- vary fully independently. For more on how they interact, read the "Why is
