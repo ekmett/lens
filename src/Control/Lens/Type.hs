@@ -23,8 +23,8 @@
 --
 -- While a 'Control.Lens.Traversal.Traversal' could be used for
 -- 'Control.Lens.Getter.Getting' like a valid 'Control.Lens.Fold.Fold',
--- it wasn't a valid 'Getter' as Applicative isn't a superclass of
--- 'Gettable'.
+-- it wasn't a valid 'Control.Lens.Getter.Getter' as Applicative isn't a superclass of
+-- 'Control.Lens.Getter.Gettable'.
 --
 -- 'Functor', however is the superclass of both.
 --
@@ -41,10 +41,10 @@
 -- the 'Functor' part of the 'Applicative' it is supplied.
 --
 -- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a valid
--- 'Getter', since 'Functor' is a superclass of 'Control.Lens.Getter.Gettable'
+-- 'Control.Lens.Getter.Getter', since 'Functor' is a superclass of 'Control.Lens.Getter.Gettable'
 --
 -- Since every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a
--- valid 'Getter' it follows that it must view exactly one element in the
+-- valid 'Control.Lens.Getter.Getter' it follows that it must view exactly one element in the
 -- structure.
 --
 -- The lens laws follow from this property and the desire for it to act like
@@ -156,7 +156,7 @@ infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=
 -- 'Control.Lens.Traversal.Traversal'.
 --
 -- You can also use a 'Lens' for 'Control.Lens.Getter.Getting' as if it were a
--- 'Control.Lens.Fold.Fold' or 'Getter'.
+-- 'Control.Lens.Fold.Fold' or 'Control.Lens.Getter.Getter'.
 --
 -- Since every lens is a valid 'Control.Lens.Traversal.Traversal', the
 -- traversal laws should also apply to any lenses you create.
