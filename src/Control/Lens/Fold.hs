@@ -27,7 +27,7 @@
 -- it is passed.
 --
 -- In practice the type we use is slightly more complicated to allow for
--- better error messages and for it to be transformed by certain 
+-- better error messages and for it to be transformed by certain
 -- 'Applicative' transformers.
 --
 -- Everything you can do with a 'Foldable' container, you can with with a 'Fold' and there are
@@ -575,6 +575,7 @@ concatOf = view
 --
 -- @'length' = 'lengthOf' 'folded'@
 --
+-- >>> import Control.Lens
 -- >>> lengthOf _1 ("hello",())
 -- 1
 --
@@ -630,6 +631,7 @@ lastOf l = getLast . foldMapOf l (Last . Just)
 --
 -- This may be rather inefficient compared to the 'null' check of many containers.
 --
+-- >>> import Control.Lens
 -- >>> nullOf _1 (1,2)
 -- False
 --
