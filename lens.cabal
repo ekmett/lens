@@ -116,11 +116,14 @@ library
                    Control.Lens.IndexedTraversal
                    Control.Lens.Internal
                    Control.Lens.Iso
+                   Control.Lens.Isomorphic
                    Control.Lens.Representable
                    Control.Lens.Setter
                    Control.Lens.TH
                    Control.Lens.Traversal
+                   Control.Lens.Tuple
                    Control.Lens.Type
+                   Control.Lens.Zoom
                    Data.Bits.Lens
                    Data.Complex.Lens
                    Data.Dynamic.Lens

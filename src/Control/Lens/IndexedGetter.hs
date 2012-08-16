@@ -17,8 +17,8 @@ module Control.Lens.IndexedGetter
   , IndexedGetting
   ) where
 
-import Control.Lens.Getter
 import Control.Lens.Indexed
+import Control.Lens.Internal
 
 ------------------------------------------------------------------------------
 -- Indexed Getters

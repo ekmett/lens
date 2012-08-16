@@ -30,13 +30,12 @@ module Control.Lens.Action
   , Acting
   , Effective(..)
   , ineffective
-  , Effect(..)
   ) where
 
 import Control.Applicative
 import Control.Applicative.Backwards
-import Control.Lens.Getter
-import Control.Lens.Iso
+import Control.Lens.Internal
+import Control.Lens.Isomorphic
 import Control.Monad
 import Control.Monad.Trans.Class
 import Data.Functor.Identity
@@ -77,23 +76,6 @@ instance Effective Identity r (Accessor r) where
 
 instance Effective m r f => Effective m (Dual r) (Backwards f) where
   effective = isomorphic (Backwards . effective . liftM getDual) (liftM Dual . ineffective . forwards)
-
--- | Wrap a monadic effect with a phantom type argument.
-newtype Effect m r a = Effect { getEffect :: m r }
-
-instance Monad m => Functor (Effect m r) where
-  fmap _ (Effect m) = Effect m
-
-instance (Monad m, Monoid r) => Monoid (Effect m r a) where
-  mempty = Effect (return mempty)
-  Effect ma `mappend` Effect mb = Effect (liftM2 mappend ma mb)
-
-instance (Monad m, Monoid r) => Applicative (Effect m r) where
-  pure _ = Effect (return mempty)
-  Effect ma <*> Effect mb = Effect (liftM2 mappend ma mb)
-
-instance Monad m => Gettable (Effect m r) where
-  coerce (Effect m) = Effect m
 
 instance Monad m => Effective m r (Effect m r) where
   effective = isomorphic Effect getEffect

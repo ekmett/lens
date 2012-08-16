@@ -25,6 +25,7 @@ module Control.Lens.IndexedSetter
   ) where
 
 import Control.Lens.Indexed
+import Control.Lens.Internal
 import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Monad.State.Class as State

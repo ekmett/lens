@@ -25,7 +25,6 @@ module Control.Lens.Setter
   (
   -- * Setters
     Setter
-  , Settable(..)
   -- * Building Setters
   , sets
   -- * Common Setters
@@ -42,7 +41,6 @@ module Control.Lens.Setter
   , (<~)
   -- * Setter Internals
   , Setting
-  , Mutator(..)
   , SimpleSetting
   -- * Simplicity
   , SimpleSetter
@@ -50,6 +48,7 @@ module Control.Lens.Setter
 
 import Control.Applicative
 import Control.Applicative.Backwards
+import Control.Lens.Internal
 import Control.Monad.State.Class        as State
 import Data.Functor.Compose
 import Data.Functor.Identity
@@ -114,45 +113,6 @@ type SimpleSetter a b = Setter a a b b
 --
 -- @type 'SimpleSetting' m = 'Control.Lens.Type.Simple' 'Setting'@
 type SimpleSetting a b = Setting a a b b
-
------------------------------------------------------------------------------
--- Settables & Mutators
------------------------------------------------------------------------------
-
--- | Anything 'Settable' must be isomorphic to the 'Identity' 'Functor'.
-class Applicative f => Settable f where
-  untainted :: f a -> a
-
--- | so you can pass our a 'Setter' into combinators from other lens libraries
-instance Settable Identity where
-  untainted = runIdentity
-  {-# INLINE untainted #-}
-
--- | 'Control.Lens.Fold.backwards'
-instance Settable f => Settable (Backwards f) where
-  untainted = untainted . forwards
-  {-# INLINE untainted #-}
-
-instance (Settable f, Settable g) => Settable (Compose f g) where
-  untainted = untainted . untainted . getCompose
-  {-# INLINE untainted #-}
-
--- | 'Mutator' is just a renamed 'Identity' functor to give better error
--- messages when someone attempts to use a getter as a setter.
---
--- Most user code will never need to see this type.
-newtype Mutator a = Mutator { runMutator :: a }
-
-instance Functor Mutator where
-  fmap f (Mutator a) = Mutator (f a)
-
-instance Applicative Mutator where
-  pure = Mutator
-  Mutator f <*> Mutator a = Mutator (f a)
-
-instance Settable Mutator where
-  untainted = runMutator
-  {-# INLINE untainted #-}
 
 -----------------------------------------------------------------------------
 -- Setters

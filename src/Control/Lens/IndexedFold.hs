@@ -43,7 +43,6 @@ module Control.Lens.IndexedFold
   ) where
 
 import Control.Applicative
-import Control.Lens.Getter
 import Control.Lens.Indexed
 import Control.Lens.IndexedGetter
 import Control.Lens.Internal
@@ -112,7 +111,7 @@ ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> Dual . Endo . flip (f i
 {-# INLINE ifoldlOf #-}
 
 -- |
--- Return whether or not any element viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' 
+-- Return whether or not any element viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
 -- satisfy a predicate, with access to the index @i@.
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.anyOf' is more flexible in what it accepts.
@@ -130,7 +129,7 @@ ianyOf l f = getAny . ifoldMapOf l (\i -> Any . f i)
 {-# INLINE ianyOf #-}
 
 -- |
--- Return whether or not all elements viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' 
+-- Return whether or not all elements viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
 -- satisfy a predicate, with access to the index @i@.
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.allOf' is more flexible in what it accepts.

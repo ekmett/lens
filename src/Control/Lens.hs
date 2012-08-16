@@ -59,6 +59,8 @@ module Control.Lens
   , module Control.Lens.IndexedSetter
   , module Control.Lens.Representable
   , module Control.Lens.TH
+  , module Control.Lens.Tuple
+  , module Control.Lens.Zoom
   ) where
 
 import Control.Lens.Type
@@ -76,3 +78,5 @@ import Control.Lens.IndexedTraversal
 import Control.Lens.IndexedSetter
 import Control.Lens.Representable
 import Control.Lens.TH
+import Control.Lens.Zoom
+import Control.Lens.Tuple

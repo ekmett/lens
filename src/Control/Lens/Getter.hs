@@ -43,8 +43,6 @@ module Control.Lens.Getter
   -- * Getters
     Getter
   , Getting
-  , Gettable(..)
-  , Accessor(..)
   -- * Building Getters
   , to
   -- * Combinators for Getters and Folds
@@ -55,28 +53,11 @@ module Control.Lens.Getter
   , uses
   , query
   , queries
-  , Magnify(..)
   ) where
 
-import Control.Applicative
-import Control.Applicative.Backwards
 import Control.Lens.Internal
 import Control.Monad.Reader.Class       as Reader
 import Control.Monad.State.Class        as State
-import Control.Monad.Trans.State.Lazy   as Lazy
-import Control.Monad.Trans.State.Strict as Strict
-import Control.Monad.Trans.Writer.Lazy   as Lazy
-import Control.Monad.Trans.Writer.Strict as Strict
-import Control.Monad.Trans.RWS.Lazy   as Lazy
-import Control.Monad.Trans.RWS.Strict as Strict
-import Control.Monad.Trans.Reader
-import Control.Monad.Trans.Error
-import Control.Monad.Trans.List
-import Control.Monad.Trans.Identity
-import Control.Monad.Trans.Cont
-import Control.Monad.Trans.Maybe
-import Data.Functor.Compose
-import Data.Monoid
 
 infixl 8 ^.
 infixr 0 ^$
@@ -122,57 +103,6 @@ to f g = coerce . g . f
 -- 'Control.Lens.Traversal.Traversal'), otherwise you can only pass this a
 -- 'Getter' or 'Control.Lens.Type.Lens'.
 type Getting r a c = (c -> Accessor r c) -> a -> Accessor r a
-
--------------------------------------------------------------------------------
--- Gettables & Accessors
--------------------------------------------------------------------------------
-
--- | Generalizing 'Const' so we can apply simple 'Applicative'
--- transformations to it and so we can get nicer error messages
---
--- A 'Gettable' 'Functor' ignores its argument, which it carries solely as a
--- phantom type parameter.
---
--- To ensure this, an instance of 'Gettable' is required to satisfy:
---
--- @'id' = 'fmap' f = 'coerce'@
-class Functor f => Gettable f where
-  -- | Replace the phantom type argument.
-  coerce :: f a -> f b
-
-instance Gettable (Const r) where
-  coerce (Const m) = Const m
-
-instance Gettable f => Gettable (Backwards f) where
-  coerce = Backwards . coerce . forwards
-
-instance (Functor f, Gettable g) => Gettable (Compose f g) where
-  coerce = Compose . fmap coerce . getCompose
-
--- | This instance is a lie, but it is a useful lie.
-instance Gettable f => Gettable (ElementOf f) where
-  coerce (ElementOf m) = ElementOf $ \i -> case m i of
-    Searching _ _ -> NotFound "coerced while searching" -- er...
-    Found j as    -> Found j (coerce as)
-    NotFound s    -> NotFound s
-
--- | Used instead of 'Const' to report
---
--- @No instance of ('Control.Lens.Setter.Settable' 'Accessor')@
---
--- when the user attempts to misuse a 'Control.Lens.Setter.Setter' as a
--- 'Getter', rather than a monolithic unification error.
-newtype Accessor r a = Accessor { runAccessor :: r }
-
-instance Functor (Accessor r) where
-  fmap _ (Accessor m) = Accessor m
-
-instance Gettable (Accessor r) where
-  coerce (Accessor m) = Accessor m
-
-instance Monoid r => Applicative (Accessor r) where
-  pure _ = Accessor mempty
-  Accessor a <*> Accessor b = Accessor (mappend a b)
 
 -------------------------------------------------------------------------------
 -- Getting Values
@@ -349,78 +279,3 @@ queries l f = Reader.asks (views l f)
 {-# INLINE queries #-}
 
 
--- | This class allows us to use 'magnify' part of the environment, changing the environment supplied by
--- many different monad transformers. Unlike 'focus' this can change the environment of a deeply nested monad transformer.
---
--- Also, unlike 'focus', this can be used with any valid 'Getter', but cannot be used with a 'Traversal' or 'Fold'.
-class (MonadReader b m, MonadReader a n) => Magnify m n b a | m -> b, n -> a, m a -> n, n b -> m where
-  -- | Run a monadic action in a larger environment than it was defined in, using a 'Getter'.
-  --
-  -- This acts like 'Control.Monad.Reader.Class.local', but can in many cases change the type of the environment as well.
-  --
-  -- This is commonly used to lift actions in a simpler Reader monad into a monad with a larger environment type.
-  --
-  -- This can be used to edit pretty much any monad transformer stack with an environment in it:
-  --
-  -- @
-  -- magnify :: 'Getter' a b -> (b -> c) -> a -> c
-  -- magnify :: 'Getter' a b -> RWS a w s c -> RWST b w s c
-  -- magnify :: 'Getter' a b -> ErrorT e (Reader b) c -> ErrorT e (Reader a) c
-  -- magnify :: 'Getter' a b -> ListT (ReaderT b (StateT s)) c -> ListT (ReaderT a (StateT s)) c
-  -- ...
-  -- @
-  magnify :: Getter a b -> m c -> n c
-
-instance Monad m => Magnify (ReaderT b m) (ReaderT a m) b a where
-  magnify l (ReaderT m) = ReaderT $ \e -> m (e^.l)
-  {-# INLINE magnify #-}
-
-instance Magnify ((->) b) ((->) a) b a where
-  magnify l bc a = bc (view l a)
-  {-# INLINE magnify #-}
-
-instance (Monad m, Monoid w) => Magnify (Strict.RWST b w s m) (Strict.RWST a w s m) b a where
-  magnify l (Strict.RWST m) = Strict.RWST $ \a w -> m (a^.l) w
-  {-# INLINE magnify #-}
-
-instance (Monad m, Monoid w) => Magnify (Lazy.RWST b w s m) (Lazy.RWST a w s m) b a where
-  magnify l (Lazy.RWST m) = Lazy.RWST $ \a w -> m (a^.l) w
-  {-# INLINE magnify #-}
-
-instance Magnify m n b a => Magnify (Strict.StateT s m) (Strict.StateT s n) b a where
-  magnify l (Strict.StateT m) = Strict.StateT $ magnify l . m
-  {-# INLINE magnify #-}
-
-instance Magnify m n b a => Magnify (Lazy.StateT s m) (Lazy.StateT s n) b a where
-  magnify l (Lazy.StateT m) = Lazy.StateT $ magnify l . m
-  {-# INLINE magnify #-}
-
-instance (Monoid w, Magnify m n b a) => Magnify (Strict.WriterT w m) (Strict.WriterT w n) b a where
-  magnify l (Strict.WriterT m) = Strict.WriterT (magnify l m)
-  {-# INLINE magnify #-}
-
-instance (Monoid w, Magnify m n b a) => Magnify (Lazy.WriterT w m) (Lazy.WriterT w n) b a where
-  magnify l (Lazy.WriterT m) = Lazy.WriterT (magnify l m)
-  {-# INLINE magnify #-}
-
-instance Magnify m n b a => Magnify (ListT m) (ListT n) b a where
-  magnify l (ListT m) = ListT (magnify l m)
-  {-# INLINE magnify #-}
-
-instance Magnify m n b a => Magnify (MaybeT m) (MaybeT n) b a where
-  magnify l (MaybeT m) = MaybeT (magnify l m)
-  {-# INLINE magnify #-}
-
-instance Magnify m n b a => Magnify (IdentityT m) (IdentityT n) b a where
-  magnify l (IdentityT m) = IdentityT (magnify l m)
-  {-# INLINE magnify #-}
-
-instance (Error e, Magnify m n b a) => Magnify (ErrorT e m) (ErrorT e n) b a where
-  magnify l (ErrorT m) = ErrorT (magnify l m)
-  {-# INLINE magnify #-}
-
-instance Magnify m m a a => Magnify (ContT r m) (ContT r m) a a where
-  magnify l (ContT m) = ContT $ \k -> do
-    r <- Reader.ask
-    magnify l (m (magnify (to (const r)) . k))
-  {-# INLINE magnify #-}

@@ -35,13 +35,21 @@ module Control.Lens.Internal
   , ElementOf(..)
   , ElementOfResult(..)
   , Kleene(..), kleene
+  , Effect(..)
+  , EffectRWS(..)
+  -- , EffectS(..)
+  , Gettable(..), Accessor(..)
+  , Settable(..), Mutator(..)
   ) where
 
 
 import Control.Applicative
+import Control.Applicative.Backwards
 import Control.Category
 import Control.Monad
 import Prelude hiding ((.),id)
+import Data.Functor.Compose
+import Data.Functor.Identity
 import Data.Monoid
 
 -----------------------------------------------------------------------------
@@ -255,3 +263,138 @@ instance Applicative (Kleene c d) where
 kleene :: Applicative f => (c -> f d) -> Kleene c d b -> f b
 kleene _ (Done b) = pure b
 kleene f (More k c) = f c <**> kleene f k
+
+-- | Wrap a monadic effect with a phantom type argument.
+newtype Effect m r a = Effect { getEffect :: m r }
+
+instance Functor (Effect m r) where
+  fmap _ (Effect m) = Effect m
+
+instance (Monad m, Monoid r) => Monoid (Effect m r a) where
+  mempty = Effect (return mempty)
+  Effect ma `mappend` Effect mb = Effect (liftM2 mappend ma mb)
+
+instance (Monad m, Monoid r) => Applicative (Effect m r) where
+  pure _ = Effect (return mempty)
+  Effect ma <*> Effect mb = Effect (liftM2 mappend ma mb)
+
+-- | Wrap a monadic effect with a phantom type argument. Used when magnifying RWST.
+newtype EffectRWS w s m c a = EffectRWS { getEffectRWS :: s -> m (c,s,w) }
+
+instance Functor (EffectRWS w s m c) where
+  fmap _ (EffectRWS m) = EffectRWS m
+
+instance (Monoid c, Monoid w, Monad m) => Applicative (EffectRWS w s m c) where
+  pure _ = EffectRWS $ \s -> return (mempty, s, mempty)
+  EffectRWS m <*> EffectRWS n = EffectRWS $ \s -> m s >>= \ (c,t,w) -> n t >>= \ (c',u,w') -> return (mappend c c', u, mappend w w')
+
+{-
+-- | Wrap a monadic effect with a phantom type argument. Used when magnifying StateT.
+newtype EffectS s k c a = EffectS { runEffect :: s -> k (c, s) a }
+
+instance Functor (k (c, s)) => Functor (EffectS s m c) where
+  fmap f (EffectS m) = EffectS (fmap f . m)
+
+instance (Monoid c, Monad m) => Applicative (EffectS s m c) where
+  pure _ = EffectS $ \s -> return (mempty, s)
+  EffectS m <*> EffectS n = EffectS $ \s -> m s >>= \ (c,t) -> n s >>= \ (d, u) -> return (mappend c d, u)
+-}
+
+-------------------------------------------------------------------------------
+-- Gettables & Accessors
+-------------------------------------------------------------------------------
+
+-- | Generalizing 'Const' so we can apply simple 'Applicative'
+-- transformations to it and so we can get nicer error messages
+--
+-- A 'Gettable' 'Functor' ignores its argument, which it carries solely as a
+-- phantom type parameter.
+--
+-- To ensure this, an instance of 'Gettable' is required to satisfy:
+--
+-- @'id' = 'fmap' f = 'coerce'@
+class Functor f => Gettable f where
+  -- | Replace the phantom type argument.
+  coerce :: f a -> f b
+
+instance Gettable (Const r) where
+  coerce (Const m) = Const m
+
+instance Gettable f => Gettable (Backwards f) where
+  coerce = Backwards . coerce . forwards
+
+instance (Functor f, Gettable g) => Gettable (Compose f g) where
+  coerce = Compose . fmap coerce . getCompose
+
+instance Gettable (Effect m r) where
+  coerce (Effect m) = Effect m
+
+instance Gettable (EffectRWS w s m c) where
+  coerce (EffectRWS m) = EffectRWS m
+
+--instance Gettable (EffectS s m c) where
+--  coerce (EffectS m) = EffectS m
+
+-- | This instance is a lie, but it is a useful lie.
+instance Gettable f => Gettable (ElementOf f) where
+  coerce (ElementOf m) = ElementOf $ \i -> case m i of
+    Searching _ _ -> NotFound "coerced while searching" -- er...
+    Found j as    -> Found j (coerce as)
+    NotFound s    -> NotFound s
+
+instance Gettable (Accessor r) where
+  coerce (Accessor m) = Accessor m
+
+-- | Used instead of 'Const' to report
+--
+-- @No instance of ('Control.Lens.Setter.Settable' 'Accessor')@
+--
+-- when the user attempts to misuse a 'Control.Lens.Setter.Setter' as a
+-- 'Getter', rather than a monolithic unification error.
+newtype Accessor r a = Accessor { runAccessor :: r }
+
+instance Functor (Accessor r) where
+  fmap _ (Accessor m) = Accessor m
+
+instance Monoid r => Applicative (Accessor r) where
+  pure _ = Accessor mempty
+  Accessor a <*> Accessor b = Accessor (mappend a b)
+
+-----------------------------------------------------------------------------
+-- Settables & Mutators
+-----------------------------------------------------------------------------
+
+-- | Anything 'Settable' must be isomorphic to the 'Identity' 'Functor'.
+class Applicative f => Settable f where
+  untainted :: f a -> a
+
+-- | so you can pass our a 'Setter' into combinators from other lens libraries
+instance Settable Identity where
+  untainted = runIdentity
+  {-# INLINE untainted #-}
+
+-- | 'Control.Lens.Fold.backwards'
+instance Settable f => Settable (Backwards f) where
+  untainted = untainted . forwards
+  {-# INLINE untainted #-}
+
+instance (Settable f, Settable g) => Settable (Compose f g) where
+  untainted = untainted . untainted . getCompose
+  {-# INLINE untainted #-}
+
+instance Settable Mutator where
+  untainted = runMutator
+  {-# INLINE untainted #-}
+
+-- | 'Mutator' is just a renamed 'Identity' functor to give better error
+-- messages when someone attempts to use a getter as a setter.
+--
+-- Most user code will never need to see this type.
+newtype Mutator a = Mutator { runMutator :: a }
+
+instance Functor Mutator where
+  fmap f (Mutator a) = Mutator (f a)
+
+instance Applicative Mutator where
+  pure = Mutator
+  Mutator f <*> Mutator a = Mutator (f a)
