@@ -1,7 +1,10 @@
-2.3.1
+2.4
 -----
 * Added the indexed `Kleene` store to `Control.Lens.Internal`
 * Added `cloneTraversal` to `Control.Lens.Traversal`
+* Renamed `clone` to `cloneLens` in `Control.Lens.Type`
+* Generalized the type of `zoom` to subsume `focus`.
+* Removed `Focus(..)` from `Control.Lens.Type`.
 
 2.3
 ---

@@ -325,6 +325,14 @@ traverseNothing = const pure
 
 -- | A traversal is completely characterized by its behavior on the indexed
 -- "Kleene store" comonad.
+--
+-- Cloning a 'Traversal' is one way to make sure you arent given
+-- something weaker, such as a 'Control.Lens.Traversal.Fold' and can be
+-- used as a way to pass around traversals that have to be monomorphic in @f@.
+--
+-- Note: This only accepts a proper 'Traversal' (or 'Lens').
+--
+-- To clone a 'Lens' as such, use 'cloneLens'
 cloneTraversal :: Applicative f => ((c -> Kleene c d d) -> a -> Kleene c d b) -> (c -> f d) -> a -> f b
 cloneTraversal l f = kleene f . l (More (Done id))
 {-# INLINE cloneTraversal #-}

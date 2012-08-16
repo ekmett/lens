@@ -61,7 +61,6 @@ module Control.Lens.Type
   , (%%=)
 
   -- * Traversing and Lensing
-  , Focus(..)
   , Zoom(..)
 
   -- * Common Lenses
@@ -93,7 +92,7 @@ module Control.Lens.Type
   , (<||=), (<&&=)
 
   -- * Cloning Lenses
-  , clone
+  , cloneLens
 
   -- * Simplified and In-Progress
   , LensLike
@@ -101,7 +100,6 @@ module Control.Lens.Type
   , SimpleLens
   , SimpleLensLike
   , SimpleOverloaded
-
   ) where
 
 import Control.Applicative              as Applicative
@@ -286,11 +284,10 @@ l %%= f = do
 #endif
 {-# INLINE (%%=) #-}
 
-
--- | This class allows us to use 'focus' on a number of different monad
--- transformers.
-class Focus st where
-  -- | Run a monadic action in a larger context than it was defined in,
+-- | This class allows us to use 'zoom' in, changing the State supplied by
+-- many different monad transformers, potentially quite deep in a monad transformer stack.
+class (MonadState s m, MonadState t n) => Zoom m n k s t | m -> s k, n -> t k, m t -> n, n s -> m where
+  -- | Run a monadic action in a larger state than it was defined in,
   -- using a 'Simple' 'Lens' or 'Simple' 'Control.Lens.Traversal.Traversal'.
   --
   -- This is commonly used to lift actions in a simpler state monad into a
@@ -298,143 +295,66 @@ class Focus st where
   --
   -- When applied to a 'Simple 'Control.Lens.Traversal.Traversal' over
   -- multiple values, the actions for each target are executed sequentially
-  -- and the results are aggregated monoidally and a monoidal summary
-  -- of the result is given.
+  -- and the results are aggregated.
+  --
+  -- This can be used to edit pretty much any monad transformer stack with a state in it!
   --
   -- @
-  -- focus :: 'Monad' m             => 'Simple' 'Control.Lens.Iso.Iso' a b       -> st b m c -> st a m c
-  -- focus :: 'Monad' m             => 'Simple' 'Lens' a b      -> st b m c -> st a m c
-  -- focus :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> st b m c -> st a m c
-  -- @
-  focus :: Monad m => LensLike (Focusing m c) a a b b -> st b m c -> st a m c
-
-  -- | Like 'focus', but discarding any accumulated results as you go.
-  --
-  -- @
-  -- focus_ :: 'Monad' m             => 'Simple' 'Control.Lens.Iso.Iso' a b       -> st b m c -> st a m ()
-  -- focus_ :: 'Monad' m             => 'Simple' 'Lens' a b      -> st b m c -> st a m ()
-  -- focus_ :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> st b m c -> st a m ()
-  -- @
-  focus_ :: Monad m => LensLike (Focusing m ()) a a b b -> st b m c -> st a m ()
-
-  -- | A much more limited version of 'focus' that can work with a 'Setter'.
-  setFocus :: Simple Setter a b -> st b Identity c -> st a Identity ()
-
-skip :: a -> ()
-skip _ = ()
-{-# INLINE skip #-}
-
-instance Focus Strict.StateT where
-  focus l m = Strict.StateT $
-    unfocusing . l (Focusing . Strict.runStateT m)
-  {-# INLINE focus #-}
-  focus_ l m = Strict.StateT $
-    unfocusing . l (Focusing . Strict.runStateT (liftM skip m))
-  {-# INLINE focus_ #-}
-  setFocus l m = State.state $
-    (,) () . runIdentity . l (Identity . snd . Strict.runState m)
-
-instance Focus Lazy.StateT where
-  focus l m = Lazy.StateT $
-    unfocusing . l (Focusing . Lazy.runStateT m)
-  {-# INLINE focus #-}
-  focus_ l m = Lazy.StateT $
-    unfocusing . l (Focusing . Lazy.runStateT (liftM skip m))
-  {-# INLINE focus_ #-}
-  setFocus l m = State.state $
-    (,) () . runIdentity . l (Identity . snd . Lazy.runState m)
-  {-# INLINE setFocus #-}
-
-instance Focus ReaderT where
-  focus l m = ReaderT $
-    liftM fst . unfocusing . l (\b -> Focusing $
-      (\c -> (c,b)) `liftM` runReaderT m b)
-  {-# INLINE focus #-}
-  focus_ l m = ReaderT $ \a -> liftM skip $
-    unfocusing $ l (\b -> Focusing $ (\_ -> ((),b)) `liftM` runReaderT m b) a
-  {-# INLINE focus_ #-}
-  setFocus _ _ = return () -- BOOORING
-
--- | This class allows us to use 'zoom' in, changing the State supplied by
--- many different monad transformers. Unlike 'focus' this can change the state
--- of a deeply nested monad transformer. However, also unlike 'focus' it can
--- only be used on an actual 'Lens' or 'Control.Lens.Iso.Iso' and cannot accept
--- a 'Control.Lens.Traversal.Traversal'
-class (MonadState s m, MonadState t n) => Zoom m n s t | m -> s, n -> t, m t -> n, n s -> m where
-  -- | Run a monadic action in a larger state than it was defined in,
-  -- using a 'Simple' 'Lens'.
-  --
-  -- This is commonly used to lift actions in a simpler state monad into a
-  -- state monad with a larger state type.
-  --
-  -- This can be used to edit pretty much any monad transformer stack with a state in it:
-  --
-  -- @
-  -- zoom :: 'Monad' m => 'Simple' 'Lens' a b -> StateT b m c -> StateT a m c
-  -- zoom :: 'Monad' m => 'Simple' 'Lens' a b -> RWST r w b m c -> RWST r w a m c
-  -- zoom :: 'Monad' m => 'Simple' 'Lens' a b -> ErrorT e (RWST r w b m c) -> ErrorT e (RWST r w a m c)
-  -- zoom :: 'Monad' m => 'Simple' 'Lens' a b -> ErrorT e (RWST r w b m c) -> ErrorT e (RWST r w a m c)
+  -- zoom :: 'Monad' m               => 'Simple' 'Lens' a b      -> 'StateT' b m c -> 'StateT' a m c
+  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Traversal' a b -> 'StateT' b m c -> 'StateT' a m c
+  -- zoom :: 'Monad' m               => 'Simple' 'Lens' a b      -> 'RWST' r w b m c -> 'RWST' r w a m c
+  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Traversal' a b -> 'RWST' r w b m c -> 'RWST' r w a m c
+  -- zoom :: 'Monad' m               => 'Simple' 'Lens' a b      -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
+  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Traversal' a b -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
   -- ...
   -- @
-  zoom :: SimpleLensLike (IndexedStore s s) t s -> m c -> n c
+  zoom :: Monad m => SimpleLensLike (k c) t s -> m c -> n c
 
-instance Monad m => Zoom (Strict.StateT s m) (Strict.StateT t m) s t where
-  zoom = focus . clone
+instance Monad z => Zoom (Strict.StateT s z) (Strict.StateT t z) (Focusing z) s t where
+  zoom l (Strict.StateT m) = Strict.StateT $ unfocusing . l (Focusing . m)
   {-# INLINE zoom #-}
 
-instance Monad m => Zoom (Lazy.StateT s m) (Lazy.StateT t m) s t where
-  zoom = focus . clone
+instance Monad z => Zoom (Lazy.StateT s z) (Lazy.StateT t z) (Focusing z) s t where
+  zoom l (Lazy.StateT m) = Lazy.StateT $ unfocusing . l (Focusing . m)
   {-# INLINE zoom #-}
 
-instance Zoom m n s t => Zoom (ReaderT e m) (ReaderT e n) s t where
+instance Zoom m n k s t => Zoom (ReaderT e m) (ReaderT e n) k s t where
   zoom l (ReaderT m) = ReaderT (zoom l . m)
   {-# INLINE zoom #-}
 
-instance (Monoid w, Zoom m n s t) => Zoom (Strict.WriterT w m) (Strict.WriterT w n) s t where
-  zoom l (Strict.WriterT m) = Strict.WriterT (zoom l m)
-  {-# INLINE zoom #-}
-
-instance (Monoid w, Zoom m n s t) => Zoom (Lazy.WriterT w m) (Lazy.WriterT w n) s t where
-  zoom l (Lazy.WriterT m) = Lazy.WriterT (zoom l m)
-  {-# INLINE zoom #-}
-
-instance (Monoid w, Monad m) => Zoom (Strict.RWST r w s m) (Strict.RWST r w t m) s t where
-  zoom l (Strict.RWST m) = Strict.RWST $ \ r t -> case l (IndexedStore id) t of
-    IndexedStore st s -> do
-      (a,s',w) <- m r s
-      return (a,st s',w)
-  {-# INLINE zoom #-}
-
-instance (Monoid w, Monad m) => Zoom (Lazy.RWST r w s m) (Lazy.RWST r w t m) s t where
-  zoom l (Lazy.RWST m) = Lazy.RWST $ \ r t -> case l (IndexedStore id) t of
-    IndexedStore st s -> do
-      (a,s',w) <- m r s
-      return (a,st s',w)
-  {-# INLINE zoom #-}
-
-instance (Error e, Zoom m n s t) => Zoom (ErrorT e m) (ErrorT e n) s t where
-  zoom l (ErrorT m) = ErrorT (zoom l m)
-  {-# INLINE zoom #-}
-
-instance Zoom m n s t => Zoom (ListT m) (ListT n) s t where
-  zoom l (ListT m) = ListT (zoom l m)
-  {-# INLINE zoom #-}
-
-instance Zoom m n s t => Zoom (IdentityT m) (IdentityT n) s t where
+instance Zoom m n k s t => Zoom (IdentityT m) (IdentityT n) k s t where
   zoom l (IdentityT m) = IdentityT (zoom l m)
   {-# INLINE zoom #-}
 
-instance Zoom m n s t => Zoom (MaybeT m) (MaybeT n) s t where
-  zoom l (MaybeT m) = MaybeT (zoom l m)
+instance (Monoid w, Monad z) => Zoom (Strict.RWST r w s z) (Strict.RWST r w t z) (FocusingWith w z) s t where
+  zoom l (Strict.RWST m) = Strict.RWST $ \r -> unfocusingWith . l (FocusingWith . m r)
   {-# INLINE zoom #-}
 
-instance Zoom m m a a => Zoom (ContT r m) (ContT r m) a a where
-  zoom l (ContT m) = ContT $ \k -> do
-    f <- State.state $ \s -> case l (IndexedStore id) s of
-      IndexedStore f t -> (f, t)
-    r <- m k
-    State.state $ \t -> (r, f t)
+instance (Monoid w, Monad z) => Zoom (Lazy.RWST r w s z) (Lazy.RWST r w t z) (FocusingWith w z) s t where
+  zoom l (Lazy.RWST m) = Lazy.RWST $ \r -> unfocusingWith . l (FocusingWith . m r)
   {-# INLINE zoom #-}
+
+instance (Monoid w, Zoom m n k s t) => Zoom (Strict.WriterT w m) (Strict.WriterT w n) (FocusingPlus w k) s t where
+  zoom l = Strict.WriterT . zoom (\cfd -> unfocusingPlus . l (FocusingPlus  . cfd)) . Strict.runWriterT
+  {-# INLINE zoom #-}
+
+instance (Monoid w, Zoom m n k s t) => Zoom (Lazy.WriterT w m) (Lazy.WriterT w n) (FocusingPlus w k) s t where
+  zoom l = Lazy.WriterT . zoom (\cfd -> unfocusingPlus . l (FocusingPlus  . cfd)) . Lazy.runWriterT
+  {-# INLINE zoom #-}
+
+instance Zoom m n k s t => Zoom (ListT m) (ListT n) (FocusingOn [] k) s t where
+  zoom l = ListT . zoom (\cfd -> unfocusingOn . l (FocusingOn . cfd)) . runListT
+  {-# INLINE zoom #-}
+
+instance Zoom m n k s t => Zoom (MaybeT m) (MaybeT n) (FocusingOn Maybe k) s t where
+  zoom l = MaybeT . zoom (\cfd -> unfocusingOn . l (FocusingOn . cfd)) . runMaybeT
+  {-# INLINE zoom #-}
+
+instance (Error e, Zoom m n k s t) => Zoom (ErrorT e m) (ErrorT e n) (FocusingErr e k) s t where
+  zoom l = ErrorT . liftM getErr . zoom (\cfd -> unfocusingErr . l (FocusingErr . cfd)) . liftM Err . runErrorT
+  {-# INLINE zoom #-}
+
+-- TODO: instance Zoom m m k a a => Zoom (ContT r m) (ContT r m) k a a where
 
 -------------------------------------------------------------------------------
 -- Common Lenses
@@ -472,20 +392,18 @@ alongside l r f (a, a') = case l (IndexedStore id) a of
 -------------------------------------------------------------------------------
 
 -- |
---
 -- Cloning a 'Lens' is one way to make sure you arent given
 -- something weaker, such as a 'Control.Lens.Traversal.Traversal' and can be
 -- used as a way to pass around lenses that have to be monomorphic in @f@.
 --
--- Note: This only accepts a proper 'Lens', because 'IndexedStore' lacks its
--- (admissable) 'Applicative' instance.
+-- Note: This only accepts a proper 'Lens'.
 --
 -- \"Costate Comonad Coalgebra is equivalent of Java's member variable
 -- update technology for Haskell\" -- \@PLT_Borat on Twitter
-clone :: Functor f
+cloneLens :: Functor f
       => LensLike (IndexedStore c d) a b c d
       -> (c -> f d) -> a -> f b
-clone f cfd a = case f (IndexedStore id) a of
+cloneLens f cfd a = case f (IndexedStore id) a of
   IndexedStore db c -> db <$> cfd c
 {-# INLINE clone #-}
 

@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal
@@ -18,6 +20,11 @@ module Control.Lens.Internal
   -- * Implementation details
     IndexedStore(..)
   , Focusing(..)
+  , FocusingWith(..)
+  , FocusingPlus(..)
+  , FocusingOn(..)
+  , FocusingErr(..)
+  , Err(..)
   , Traversed(..)
   , Sequenced(..)
   , AppliedState(..)
@@ -27,14 +34,14 @@ module Control.Lens.Internal
   , getMax
   , ElementOf(..)
   , ElementOfResult(..)
-  , Kleene(..)
-  , kleene
+  , Kleene(..), kleene
   ) where
 
 
 import Control.Applicative
 import Control.Category
 import Control.Monad
+import Control.Monad.Error.Class
 import Prelude hiding ((.),id)
 import Data.Monoid
 
@@ -42,8 +49,7 @@ import Data.Monoid
 -- Functors
 -----------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Type.Focus'
-
+-- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.State.StateT'
 newtype Focusing m c a = Focusing { unfocusing :: m (c, a) }
 
 instance Monad m => Functor (Focusing m c) where
@@ -57,6 +63,60 @@ instance (Monad m, Monoid c) => Applicative (Focusing m c) where
     (c, f) <- mf
     (d, a) <- ma
     return (mappend c d, f a)
+
+-- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.RWS.RWST'
+newtype FocusingWith w m c a = FocusingWith { unfocusingWith :: m (c, a, w) }
+
+instance Monad m => Functor (FocusingWith w m c) where
+  fmap f (FocusingWith m) = FocusingWith $ do
+     (c, a, w) <- m
+     return (c, f a, w)
+
+instance (Monad m, Monoid c, Monoid w) => Applicative (FocusingWith w m c) where
+  pure a = FocusingWith (return (mempty, a, mempty))
+  FocusingWith mf <*> FocusingWith ma = FocusingWith $ do
+    (c, f, w) <- mf
+    (d, a, w') <- ma
+    return (mappend c d, f a, mappend w w')
+
+-- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Writer.WriterT'.
+newtype FocusingPlus w k c a = FocusingPlus { unfocusingPlus :: k (c, w) a }
+
+instance Functor (k (c, w)) => Functor (FocusingPlus w k c) where
+  fmap f (FocusingPlus as) = FocusingPlus (fmap f as)
+
+instance (Monoid w, Applicative (k (c, w))) => Applicative (FocusingPlus w k c) where
+  pure = FocusingPlus . pure
+  FocusingPlus kf <*> FocusingPlus ka = FocusingPlus (kf <*> ka)
+
+-- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'
+newtype FocusingOn f k c a = FocusingOn { unfocusingOn :: k (f c) a }
+
+instance Functor (k (f c)) => Functor (FocusingOn f k c) where
+  fmap f (FocusingOn as) = FocusingOn (fmap f as)
+
+instance Applicative (k (f c)) => Applicative (FocusingOn f k c) where
+  pure = FocusingOn . pure
+  FocusingOn kf <*> FocusingOn ka = FocusingOn (kf <*> ka)
+
+-- | Make a monoid out of 'Either' using 'Error'.
+newtype Err e a = Err { getErr :: Either e a }
+
+instance (Error e, Monoid a) => Monoid (Err e a) where
+  mempty = Err (Left noMsg)
+  Err (Left e) `mappend` _ = Err (Left e)
+  _ `mappend` Err (Left e) = Err (Left e)
+  Err (Right a) `mappend` Err (Right b) = Err (Right (mappend a b))
+
+-- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Error.ErrorT'
+newtype FocusingErr e k c a = FocusingErr { unfocusingErr :: k (Err e c) a }
+
+instance Functor (k (Err e c)) => Functor (FocusingErr e k c) where
+  fmap f (FocusingErr as) = FocusingErr (fmap f as)
+
+instance (Error e, Applicative (k (Err e c))) => Applicative (FocusingErr e k c) where
+  pure = FocusingErr . pure
+  FocusingErr kf <*> FocusingErr ka = FocusingErr (kf <*> ka)
 
 -- | The indexed store can be used to characterize a 'Control.Lens.Type.Lens'
 -- and is used by 'Control.Lens.Type.clone'
