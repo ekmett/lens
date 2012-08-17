@@ -270,12 +270,14 @@ makeFieldLensBody lensName fieldName cons maybeMethodName = case maybeMethodName
   where
     clauses con = do
       f <- newName "f"
-      let errorExp = clause [varP f, conP (con^.name) (replicate (lengthOf conFields con) wildP)]
-                   ( normalB . appE (varE 'error) . litE . stringL
-                   $ show lensName ++ ": no matching field "
-                  ++ show fieldName ++ " in constructor "
-                  ++ show (con^.name)
-                   ) []
+      let errorPats
+            = [varP f, conP (con^.name) (replicate (lengthOf conFields con) wildP)]
+          errorBody
+            = normalB . appE (varE 'error) . litE . stringL
+            $ show lensName ++ ": no matching field "
+           ++ show fieldName ++ " in constructor "
+           ++ show (con^.name)
+          errorClause = clause errorPats errorBody []
       case con of
         (RecC conName fields) ->
           case List.findIndex (\(n,_,_) -> n == fieldName) fields of
@@ -288,8 +290,8 @@ makeFieldLensBody lensName fieldName cons maybeMethodName = case maybeMethodName
                        , varE f `appE` varE (names^.element i)
                        ]
               clause [varP f, conP conName $ map varP names] (normalB expr) []
-            Nothing -> errorExp
-        _ -> errorExp
+            Nothing -> errorClause
+        _ -> errorClause
 
 -- TODO: When there are constructors with missing fields, turn that field into a _traversal_ not a lens.
 -- TODO: When the supplied mapping function maps multiple different fields to the same name, try to unify them into a Traversal.
