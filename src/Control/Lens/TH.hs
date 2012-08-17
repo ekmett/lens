@@ -269,9 +269,8 @@ makeFieldLensBody lensName fieldName cons maybeMethodName = case maybeMethodName
     Nothing -> funD lensName (map clauses cons)
   where
     clauses con = do
-      f <- newName "f"
       let errorPats
-            = [varP f, conP (con^.name) (replicate (lengthOf conFields con) wildP)]
+            = [wildP, conP (con^.name) (replicate (lengthOf conFields con) wildP)]
           errorBody
             = normalB . appE (varE 'error) . litE . stringL
             $ show lensName ++ ": no matching field "
@@ -282,6 +281,7 @@ makeFieldLensBody lensName fieldName cons maybeMethodName = case maybeMethodName
         (RecC conName fields) ->
           case List.findIndex (\(n,_,_) -> n == fieldName) fields of
             Just i -> do
+              f     <- newName "f"
               x     <- newName "y"
               names <- for fields $ \(n,_,_) -> newName (nameBase n)
               let expr = appsE 
