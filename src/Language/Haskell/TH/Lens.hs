@@ -20,6 +20,7 @@ module Language.Haskell.TH.Lens
   , SubstType(..)
   , typeVars      -- :: HasTypeVars t => Simple Traversal t Name
   , substTypeVars -- :: HasTypeVars t => Map Name Name -> t -> t
+  , conFields
   ) where
 
 import Control.Applicative
@@ -34,6 +35,7 @@ import Data.Monoid
 import Data.Set as Set hiding (toList,map)
 import Data.Set.Lens
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax
 
 -- | Has a 'Name'
 class HasName t where
@@ -111,3 +113,10 @@ instance SubstType t => SubstType [t] where
 instance SubstType Pred where
   substType m (ClassP n ts) = ClassP n (substType m ts)
   substType m (EqualP l r)  = substType m (EqualP l r)
+
+conFields :: Simple Traversal Con StrictType
+conFields f (NormalC n tys)     = NormalC n <$> traverse f tys
+conFields f (RecC n tys)        = RecC n <$> traverse sans_var tys
+  where sans_var (fn,s,t) = (\(s', t') -> (fn,s',t')) <$> f (s, t)
+conFields f (InfixC l n r)      = InfixC <$> f l <*> pure n <*> f r
+conFields f (ForallC bds ctx c) = ForallC bds ctx <$> conFields f c

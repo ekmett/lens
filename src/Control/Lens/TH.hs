@@ -260,33 +260,38 @@ commonFieldDescs = toList . Prelude.foldr walk mempty where
     Just (FieldDesc _ _ bds') -> at nm .~ Just (FieldDesc nm ty (bds `Set.union` bds')) $ m
     Nothing                   -> at nm .~ Just d                                        $ m
 
-errorClause :: Name -> Name -> Name -> ClauseQ
-errorClause lensName fieldName conName
-  = clause [] (normalB (return (VarE 'error) `appE` litE (stringL err))) []
-  where
-    err = show lensName ++ ": no matching field "
-       ++ show fieldName ++ " in constructor "
-       ++ show conName
-
 makeFieldLensBody :: Name -> Name -> [Con] -> Maybe Name -> Q Dec
 makeFieldLensBody lensName fieldName cons maybeMethodName = case maybeMethodName of
     Just methodName -> do
        go <- newName "go"
-       funD lensName [ clause [] (normalB (infixApp (varE methodName) (varE (mkName ".")) (varE go))) [funD go (map clauses cons)]]
+       let expr = infixApp (varE methodName) (varE (mkName ".")) (varE go)
+       funD lensName [ clause [] (normalB expr) [funD go (map clauses cons)] ]
     Nothing -> funD lensName (map clauses cons)
   where
-    clauses (RecC conName fields) = case List.findIndex (\(n,_,_) -> n == fieldName) fields of
-      Just i -> do
-        names <- for fields $ \(n,_,_) -> newName (nameBase n)
-        f     <- newName "f"
-        x     <- newName "y"
-        clause [varP f, conP conName $ map varP names] (normalB
-               (appsE [ return (VarE 'fmap)
-                      , lamE [varP x] $ appsE $ conE conName : map varE (element i .~ x $ names)
-                      , varE f `appE` varE (names^.element i)
-                      ])) []
-      Nothing -> errorClause lensName fieldName conName
-    clauses con = errorClause lensName fieldName (con^.name)
+    clauses con = do
+      let errorPats
+            = [wildP, conP (con^.name) (replicate (lengthOf conFields con) wildP)]
+          errorBody
+            = normalB . appE (varE 'error) . litE . stringL
+            $ show lensName ++ ": no matching field "
+           ++ show fieldName ++ " in constructor "
+           ++ show (con^.name)
+          errorClause = clause errorPats errorBody []
+      case con of
+        (RecC conName fields) ->
+          case List.findIndex (\(n,_,_) -> n == fieldName) fields of
+            Just i -> do
+              f     <- newName "f"
+              x     <- newName "y"
+              names <- for fields $ \(n,_,_) -> newName (nameBase n)
+              let expr = appsE 
+                       [ return (VarE 'fmap)
+                       , lamE [varP x] $ appsE $ conE conName : map varE (element i .~ x $ names)
+                       , varE f `appE` varE (names^.element i)
+                       ]
+              clause [varP f, conP conName $ map varP names] (normalB expr) []
+            Nothing -> errorClause
+        _ -> errorClause
 
 -- TODO: When there are constructors with missing fields, turn that field into a _traversal_ not a lens.
 -- TODO: When the supplied mapping function maps multiple different fields to the same name, try to unify them into a Traversal.

@@ -20,7 +20,7 @@ makeLenses ''Quux
 -- quartz :: Lens (Quux a b) (Quux a' b') Double Double
 
 data Quark a = Qualified  { _gaffer :: a }
-             | Unqualified { _gaffer :: a, tape :: a }
+             | Unqualified { _gaffer :: a, _tape :: a }
 makeLenses ''Quark
 -- gaffer :: Simple Lens (Quark a) a
 
