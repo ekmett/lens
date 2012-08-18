@@ -17,14 +17,16 @@ module System.FilePath.Lens
 import Control.Applicative ((<$>))
 
 import Control.Monad.State.Class as State
-import System.FilePath ((</>), (<.>), splitExtension, takeBaseName, takeDirectory, takeExtension, takeFileName)
+import System.FilePath
+  ( (</>), (<.>), splitExtension
+  , takeBaseName, takeDirectory
+  , takeExtension, takeFileName
+  )
 
 import Control.Lens hiding ((<.>))
 
-
 infixr 4 </>~, <</>~, <.>~, <<.>~
 infix 4 </>=, <</>=, <.>=, <<.>=
-
 
 -- | Modify the path by adding another path.
 --
