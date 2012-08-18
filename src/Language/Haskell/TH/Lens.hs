@@ -114,6 +114,7 @@ instance SubstType Pred where
   substType m (ClassP n ts) = ClassP n (substType m ts)
   substType m (EqualP l r)  = substType m (EqualP l r)
 
+-- | Provides a 'Traversal' of the types of each field of a constructor.
 conFields :: Simple Traversal Con StrictType
 conFields f (NormalC n tys)     = NormalC n <$> traverse f tys
 conFields f (RecC n tys)        = RecC n <$> traverse sans_var tys
