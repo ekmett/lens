@@ -143,6 +143,9 @@ library
   build-depends:   array >= 0.3.0.2 && < 0.5
   exposed-modules: Data.Array.Lens
 
+  build-depends:   filepath >= 1.2.0.0 && < 1.4
+  exposed-modules: System.FilePath.Lens
+
   build-depends:   bytestring >= 0.9.1.10 && < 0.11
   exposed-modules: Data.ByteString.Lens Data.ByteString.Lazy.Lens
 
