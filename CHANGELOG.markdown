@@ -8,6 +8,8 @@
 * Removed `Focus(..)` from `Control.Lens.Type`.
 * Factored out `Control.Lens.Isomorphic`.
 * Moved many private types to `Control.Lens.Internal`
+* Added `conFields` to `Language.Haskell.TH.Lens`.
+* Added `System.FilePath.Lens`.
 
 2.3
 ---
