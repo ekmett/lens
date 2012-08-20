@@ -328,10 +328,10 @@ l -~ n = over l (subtract n)
 -- | Divide the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
 -- @
--- (//~) :: 'Fractional' c => 'Setter' a b c c -> c -> a -> b
--- (//~) :: 'Fractional' c => 'Control.Lens.Iso.Iso' a b c c -> c -> a -> b
--- (//~) :: 'Fractional' c => 'Control.Lens.Type.Lens' a b c c -> c -> a -> b
--- (//~) :: 'Fractional' c => 'Control.Lens.Traversal.Traversal' a b c c -> c -> a -> b
+-- (\/\/~) :: 'Fractional' c => 'Setter' a b c c -> c -> a -> b
+-- (\/\/~) :: 'Fractional' c => 'Control.Lens.Iso.Iso' a b c c -> c -> a -> b
+-- (\/\/~) :: 'Fractional' c => 'Control.Lens.Type.Lens' a b c c -> c -> a -> b
+-- (\/\/~) :: 'Fractional' c => 'Control.Lens.Traversal.Traversal' a b c c -> c -> a -> b
 -- @
 (//~) :: Fractional c => Setting a b c c -> c -> a -> b
 l //~ n = over l (/ n)
