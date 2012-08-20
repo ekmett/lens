@@ -28,10 +28,10 @@ infix 4 <>=, <<>=
 -- ("hello!!!","world!!!")
 --
 -- @
--- (<>~) :: 'Monoid' c => 'Setter' a b c c -> c -> a -> b
--- (<>~) :: 'Monoid' c => 'Iso' a b c c -> c -> a -> b
--- (<>~) :: 'Monoid' c => 'Lens' a b c c -> c -> a -> b
--- (<>~) :: 'Monoid' c => 'Traversal' a b c c -> c -> a -> b
+-- (\<\>~) :: 'Monoid' c => 'Setter' a b c c -> c -> a -> b
+-- (\<\>~) :: 'Monoid' c => 'Iso' a b c c -> c -> a -> b
+-- (\<\>~) :: 'Monoid' c => 'Lens' a b c c -> c -> a -> b
+-- (\<\>~) :: 'Monoid' c => 'Traversal' a b c c -> c -> a -> b
 -- @
 (<>~) :: Monoid c => Setting a b c c -> c -> a -> b
 l <>~ n = over l (`mappend` n)
@@ -40,10 +40,10 @@ l <>~ n = over l (`mappend` n)
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by 'mappend'ing a value.
 --
 -- @
--- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Setter' a b -> b -> m ()
--- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Iso' a b -> b -> m ()
--- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Lens' a b -> b -> m ()
--- (<>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Traversal' a b -> b -> m ()
+-- (\<\>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Setter' a b -> b -> m ()
+-- (\<\>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Iso' a b -> b -> m ()
+-- (\<\>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Lens' a b -> b -> m ()
+-- (\<\>=) :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Traversal' a b -> b -> m ()
 -- @
 (<>=) :: (MonadState a m, Monoid b) => SimpleSetting a b -> b -> m ()
 l <>= b = State.modify (l <>~ b)

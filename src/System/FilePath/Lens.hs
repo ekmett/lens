@@ -35,10 +35,10 @@ infix 4 </>=, <</>=, <.>=, <<.>=
 -- ("hello/!!!","world/!!!")
 --
 -- @
--- (</>~) :: 'Setter' a b 'FilePath' 'FilePath' -> 'FilePath' -> a -> b
--- (</>~) :: 'Iso' a b 'FilePath' 'FilePath' -> 'FilePath' -> a -> b
--- (</>~) :: 'Lens' a b 'FilePath' 'FilePath' -> 'FilePath' -> a -> b
--- (</>~) :: 'Traversal' a b 'FilePath' 'FilePath' -> 'FilePath' -> a -> b
+-- (\</\>~) :: 'Setter' a b 'FilePath' 'FilePath' -> 'FilePath' -> a -> b
+-- (\</\>~) :: 'Iso' a b 'FilePath' 'FilePath' -> 'FilePath' -> a -> b
+-- (\</\>~) :: 'Lens' a b 'FilePath' 'FilePath' -> 'FilePath' -> a -> b
+-- (\</\>~) :: 'Traversal' a b 'FilePath' 'FilePath' -> 'FilePath' -> a -> b
 -- @
 (</>~) :: Setting a b FilePath FilePath -> FilePath -> a -> b
 l </>~ n = over l (</> n)
@@ -48,10 +48,10 @@ l </>~ n = over l (</> n)
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by adding a path.
 --
 -- @
--- (</>=) :: 'MonadState' a m => 'Simple' 'Setter' a 'FilePath' -> 'FilePath' -> m ()
--- (</>=) :: 'MonadState' a m => 'Simple' 'Iso' a 'FilePath' -> 'FilePath' -> m ()
--- (</>=) :: 'MonadState' a m => 'Simple' 'Lens' a 'FilePath' -> 'FilePath' -> m ()
--- (</>=) :: 'MonadState' a m => 'Simple' 'Traversal' a 'FilePath' -> 'FilePath' -> m ()
+-- (\</\>=) :: 'MonadState' a m => 'Simple' 'Setter' a 'FilePath' -> 'FilePath' -> m ()
+-- (\</\>=) :: 'MonadState' a m => 'Simple' 'Iso' a 'FilePath' -> 'FilePath' -> m ()
+-- (\</\>=) :: 'MonadState' a m => 'Simple' 'Lens' a 'FilePath' -> 'FilePath' -> m ()
+-- (\</\>=) :: 'MonadState' a m => 'Simple' 'Traversal' a 'FilePath' -> 'FilePath' -> m ()
 -- @
 (</>=) :: MonadState a m => SimpleSetting a FilePath -> FilePath -> m ()
 l </>= b = State.modify (l </>~ b)
@@ -82,10 +82,10 @@ l <</>= r = l <%= (</> r)
 -- ("hello.!!!","world.!!!")
 --
 -- @
--- (</>~) :: 'Setter' a b 'FilePath' 'FilePath' -> 'String' -> a -> b
--- (</>~) :: 'Iso' a b 'FilePath' 'FilePath' -> 'String' -> a -> b
--- (</>~) :: 'Lens' a b 'FilePath' 'FilePath' -> 'String' -> a -> b
--- (</>~) :: 'Traversal' a b 'FilePath' 'FilePath' -> 'String' -> a -> b
+-- (\<.\>~) :: 'Setter' a b 'FilePath' 'FilePath' -> 'String' -> a -> b
+-- (\<.\>~) :: 'Iso' a b 'FilePath' 'FilePath' -> 'String' -> a -> b
+-- (\<.\>~) :: 'Lens' a b 'FilePath' 'FilePath' -> 'String' -> a -> b
+-- (\<.\>~) :: 'Traversal' a b 'FilePath' 'FilePath' -> 'String' -> a -> b
 -- @
 (<.>~) :: Setting a b FilePath FilePath -> String -> a -> b
 l <.>~ n = over l (<.> n)
@@ -95,10 +95,10 @@ l <.>~ n = over l (<.> n)
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by adding an extension.
 --
 -- @
--- (<.>=) :: 'MonadState' a m => 'Simple' 'Setter' a 'FilePath' -> 'String' -> m ()
--- (<.>=) :: 'MonadState' a m => 'Simple' 'Iso' a 'FilePath' -> 'String' -> m ()
--- (<.>=) :: 'MonadState' a m => 'Simple' 'Lens' a 'FilePath' -> 'String' -> m ()
--- (<.>=) :: 'MonadState' a m => 'Simple' 'Traversal' a 'FilePath' -> 'String' -> m ()
+-- (\<.\>=) :: 'MonadState' a m => 'Simple' 'Setter' a 'FilePath' -> 'String' -> m ()
+-- (\<.\>=) :: 'MonadState' a m => 'Simple' 'Iso' a 'FilePath' -> 'String' -> m ()
+-- (\<.\>=) :: 'MonadState' a m => 'Simple' 'Lens' a 'FilePath' -> 'String' -> m ()
+-- (\<.\>=) :: 'MonadState' a m => 'Simple' 'Traversal' a 'FilePath' -> 'String' -> m ()
 -- @
 (<.>=) :: MonadState a m => SimpleSetting a FilePath -> String -> m ()
 l <.>= b = State.modify (l <.>~ b)
