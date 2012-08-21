@@ -1,4 +1,5 @@
 {-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE Rank2Types #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Pair.Lens

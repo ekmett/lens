@@ -1,5 +1,6 @@
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE Rank2Types #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Bits.Lens
@@ -154,7 +155,7 @@ bitAt n = index $ \f b -> (\x -> if x then setBit b n else clearBit b n) <$> f n
 --
 -- If you supply this an 'Integer', the result will
 -- be an infinite 'Traversal' that can be productively consumed.
-traverseBits :: Bits b => SimpleIndexedTraversal Int b Bool
+traverseBits :: (Num b, Bits b) => SimpleIndexedTraversal Int b Bool
 traverseBits = index $ \f b -> let
     g n      = (,) n <$> f n (testBit b n)
     bits     = Prelude.takeWhile hasBit [0..]
