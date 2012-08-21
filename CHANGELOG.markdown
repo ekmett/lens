@@ -1,3 +1,11 @@
+2.4.0.2
+-------
+* GHC 7.6 compatibility
+
+2.4.0.1
+-------
+* Haddock cleanup
+
 2.4
 -----
 * Added the indexed `Kleene` store to `Control.Lens.Internal`
