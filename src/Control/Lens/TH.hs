@@ -220,7 +220,12 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
     let decl = SigD isoName $ quantified $ isoCon `apps`
           if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
     body <- makeBody isoName dataConName makeIsoFrom makeIsoTo
-    inlining <- pragInlD isoName $ inlineSpecNoPhase True False
+    inlining <- pragInlD isoName
+#if MIN_VERSION_template_haskell(2,8,0)
+      Inline FunLike AllPhases
+#else
+      $ inlineSpecNoPhase True False
+#endif
     return [decl, body, inlining]
   accessorDecls <- case mkName <$> (maybeFieldName >>= view lensField cfg . nameBase) of
     jfn@(Just lensName)
@@ -229,7 +234,12 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
                    if cfg^.simpleLenses then [cty,cty,aty,aty]
                                         else [cty,dty,aty,bty]
       body <- makeBody lensName dataConName makeIsoTo makeIsoFrom
-      inlining <- pragInlD lensName $ inlineSpecNoPhase True False
+      inlining <- pragInlD lensName
+#if MIN_VERSION_template_haskell(2,8,0)
+        Inline FunLike AllPhases
+#else
+        $ inlineSpecNoPhase True False
+#endif
       return [decl, body, inlining]
     _ -> return []
   return $ isoDecls ++ accessorDecls
@@ -327,7 +337,13 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
         ++ filter (\_ -> cfg^.createInstance)
           [ instanceD (return []) (conT clsName `appT` conT tyConName)
             [ funD methodName [clause [varP a] (normalB (varE a)) []]
-            , pragInlD methodName $ inlineSpecNoPhase True False ]]
+            , pragInlD methodName
+#if MIN_VERSION_template_haskell(2,8,0)
+                Inline FunLike AllPhases
+#else
+                $ inlineSpecNoPhase True False
+#endif
+            ]]
   bodies <- for (toList fieldMap) $ \ (FieldDesc nm cty bds) ->
      case mkName <$> view lensField cfg (nameBase nm) of
        Nothing -> return []
@@ -352,7 +368,12 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
                     then [aty,aty,cty,cty]
                     else [aty,bty,cty,dty]
          body <- makeFieldLensBody lensName nm cons $ fmap (mkName . view _2) maybeLensClass
-         inlining <- pragInlD lensName $ inlineSpecNoPhase True False
+         inlining <- pragInlD lensName
+#if MIN_VERSION_template_haskell(2,8,0)
+           Inline FunLike AllPhases
+#else
+           $ inlineSpecNoPhase True False
+#endif
          return [decl, body, inlining]
   return $ classDecls ++ Prelude.concat bodies
 
