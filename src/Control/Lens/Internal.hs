@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -21,7 +22,7 @@
 module Control.Lens.Internal
   (
   -- * Implementation details
-    IndexedStore(..)
+    Context(..)
   , Focusing(..)
   , FocusingWith(..)
   , FocusingPlus(..)
@@ -37,7 +38,7 @@ module Control.Lens.Internal
   , getMax
   , ElementOf(..)
   , ElementOfResult(..)
-  , Kleene(..), kleene, extractKleene, duplicateKleene
+  , Kleene(..), kleene
   , Effect(..)
   , EffectRWS(..)
   -- , EffectS(..)
@@ -45,10 +46,11 @@ module Control.Lens.Internal
   , Settable(..), Mutator(..)
   ) where
 
-
 import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Category
+import Control.Comonad
+import Control.Comonad.Store.Class
 import Control.Lens.Isomorphic
 import Control.Monad
 import Prelude hiding ((.),id)
@@ -150,17 +152,23 @@ instance Applicative (k (Err e c)) => Applicative (FocusingErr e k c) where
 
 -- | The indexed store can be used to characterize a 'Control.Lens.Type.Lens'
 -- and is used by 'Control.Lens.Type.clone'
-data IndexedStore c d a = IndexedStore (d -> a) c
+data Context c d a = Context (d -> a) c
 
-instance Functor (IndexedStore c d) where
-  fmap f (IndexedStore g c) = IndexedStore (f . g) c
+instance Functor (Context c d) where
+  fmap f (Context g c) = Context (f . g) c
 
-{-
-instance (c ~ d) => Comonad (IndexedStore c d) where
-  extract (IndexedStore f c) = f c
-  duplicate (IndexedStore f c) = IndexedStore (IndexedStore f) c
-  extend g (IndexedStore f c) = IndexedStore (g . IndexedStore f) c
--}
+instance (c ~ d) => Comonad (Context c d) where
+  extract   (Context f c) = f c
+  duplicate (Context f c) = Context (Context f) c
+  extend g  (Context f c) = Context (g . Context f) c
+
+instance (c ~ d) => ComonadStore c (Context c d) where
+  pos (Context _ c) = c
+  peek c (Context g _) = g c
+  peeks f (Context g c) = g (f c)
+  seek c (Context g _) = Context g c
+  seeks f (Context g c) = Context g (f c)
+  experiment f (Context g c) = g <$> f c
 
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
 -- by 'Control.Lens.Traversal.elementOf', 'Control.Lens.Traversal.elementsOf', 'Control.Lens.Traversal.traverseElement', 'Control.Lens.Traversal.traverseElementsOf'
@@ -252,7 +260,7 @@ instance Functor f => Applicative (ElementOf f) where
     NotFound e -> NotFound e
 
 
--- | The "Indexed Kleene Store comonad", aka the 'indexed cartesian store comonad' or an indexed 'FunList'.
+-- | The indexed 'Kleene' store comonad, aka the indexed Cartesian store comonad or an indexed 'FunList'.
 --
 -- This is used to characterize a 'Control.Lens.Traversal.Traversal'.
 --
@@ -270,22 +278,14 @@ instance Applicative (Kleene c d) where
   Done f   <*> m = fmap f m
   More k c <*> m = More (flip <$> k <*> m) c
 
-extractKleene :: Kleene c c a -> a
-extractKleene (Done a) = a
-extractKleene (More z c) = extractKleene z c
-
-duplicateKleene :: Kleene c e a -> Kleene c d (Kleene d e a)
-duplicateKleene (Done b)   = Done (Done b)
-duplicateKleene (More z c) = More (More <$> duplicateKleene z) c
-
-{-
 instance (c ~ d) => Comonad (Kleene c d) where
-  extract = extractKleene
-  duplicate = duplicateKleene
+  extract (Done a) = a
+  extract (More z c) = extract z c
+  duplicate (Done b)   = Done (Done b)
+  duplicate (More z c) = More (More <$> duplicate z) c
 
 instance (c ~ d) => ComonadApply (Kleene c d) where
   (<@>) = (<*>)
--}
 
 -- | Given an action to run for each matched pair, traverse a store.
 kleene :: Applicative f => (c -> f d) -> Kleene c d b -> f b

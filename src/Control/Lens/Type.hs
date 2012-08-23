@@ -276,9 +276,9 @@ merged _ r f (Right a') = Right <$> r f a'
 alongside :: Lens a b c d
            -> Lens a' b' c' d'
            -> Lens (a,a') (b,b') (c,c') (d,d')
-alongside l r f (a, a') = case l (IndexedStore id) a of
-  IndexedStore db c -> case r (IndexedStore id) a' of
-    IndexedStore db' c' -> (\(d,d') -> (db d, db' d')) <$> f (c,c')
+alongside l r f (a, a') = case l (Context id) a of
+  Context db c -> case r (Context id) a' of
+    Context db' c' -> (\(d,d') -> (db d, db' d')) <$> f (c,c')
 {-# INLINE alongside #-}
 
 -------------------------------------------------------------------------------
@@ -295,10 +295,10 @@ alongside l r f (a, a') = case l (IndexedStore id) a of
 -- \"Costate Comonad Coalgebra is equivalent of Java's member variable
 -- update technology for Haskell\" -- \@PLT_Borat on Twitter
 cloneLens :: Functor f
-      => LensLike (IndexedStore c d) a b c d
-      -> (c -> f d) -> a -> f b
-cloneLens f cfd a = case f (IndexedStore id) a of
-  IndexedStore db c -> db <$> cfd c
+  => LensLike (Context c d) a b c d
+  -> (c -> f d) -> a -> f b
+cloneLens f cfd a = case f (Context id) a of
+  Context db c -> db <$> cfd c
 {-# INLINE cloneLens #-}
 
 -------------------------------------------------------------------------------

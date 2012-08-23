@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       2.4.1
+version:       2.5
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -97,11 +97,14 @@ source-repository head
 
 library
   build-depends:
-    base             >= 4.3   && < 5,
-    containers       >= 0.4.2 && < 0.6,
-    mtl              >= 2.1.1 && < 2.2,
-    template-haskell >= 2.4   && < 2.9,
-    transformers     >= 0.3   && < 0.4
+    base                 >= 4.3   && < 5,
+    comonad              == 3.0.*,
+    comonad-transformers == 3.0.*,
+    comonads-fd          == 3.0.*,
+    containers           >= 0.4.2 && < 0.6,
+    mtl                  >= 2.1.1 && < 2.2,
+    template-haskell     >= 2.4   && < 2.9,
+    transformers         >= 0.3   && < 0.4
 
   exposed-modules: Control.Exception.Lens
                    Control.Lens
