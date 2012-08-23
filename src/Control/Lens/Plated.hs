@@ -32,7 +32,9 @@ module Control.Lens.Plated
   , transformM, transformMOf, transformMOn, transformMOnOf
   , descend, descendOf, descendOn, descendOnOf
   , descendA, descendAOf, descendAOn, descendAOnOf
+  , descendA_, descendAOf_, descendAOn_, descendAOnOf_
   , descendM, descendMOf, descendMOn, descendMOnOf
+  , descendM_, descendMOf_, descendMOn_, descendMOnOf_
   , contexts, contextsOf, contextsOn, contextsOnOf
   , holes, holesOf, holesOn, holesOnOf
   -- * Operations to be careful of
@@ -43,6 +45,7 @@ module Control.Lens.Plated
 import Control.Applicative
 import Control.Arrow ((&&&))
 import Control.Comonad
+import Control.Lens.Getter
 import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Lens.Fold
@@ -253,19 +256,19 @@ universe = universeOf plates
 -- 'universeOn' :: 'Plated' b => 'Simple' 'Traversal' a b -> a -> [b]
 -- 'universeOn' :: 'Plated' b => 'Simple' 'Iso' a b       -> a -> [b]
 -- @
-universeOn :: Plated b => Fold a b -> a -> [b]
+universeOn :: Plated b => Getting [b] a b -> a -> [b]
 universeOn b = foldMapOf b universe
 {-# INLINE universeOn #-}
 
 -- | Given a traversal that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself.
-universeOf :: Fold a a -> a -> [a]
+universeOf :: Getting [a] a a -> a -> [a]
 universeOf l = go where
   go a = a : foldMapOf l go a
 {-# INLINE universeOf #-}
 
 -- | Given a traversal that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself that lie
 -- in a region indicated by another fold.
-universeOnOf :: Fold a b -> Fold b b -> a -> [b]
+universeOnOf :: Getting [b] a b -> Getting [b] b b -> a -> [b]
 universeOnOf b = foldMapOf b . universeOf
 {-# INLINE universeOnOf #-}
 
@@ -434,6 +437,48 @@ descendAOn :: (Applicative f, Plated c) => LensLike f a b c c -> (c -> f c) -> a
 descendAOn b = b . plates
 {-# INLINE descendAOn #-}
 
+-- |
+--
+-- @'descendA_' = traverseOf_' 'plates'@
+descendA_ :: (Applicative f, Plated a) => (a -> f b) -> a -> f ()
+descendA_ = traverseOf_ plates
+{-# INLINE descendA_ #-}
+
+-- | Recurse one level into a structure using a user specified recursion scheme and 'Applicative' effects, without reconstructing the structure behind you.
+--
+-- This is just 'traverseOf_', but is provided for consistency.
+--
+-- @'descendAOf_' = 'traverseOf_'@
+--
+-- @
+-- 'descendAOf_' :: 'Applicative' f => 'Fold' a b => (b -> f b) -> a -> f ()
+-- @
+descendAOf_ :: Applicative f => Getting (Traversed f) a b -> (b -> f c) -> a -> f ()
+descendAOf_ = traverseOf_
+{-# INLINE descendAOf_ #-}
+
+-- | Recurse one level into the parts delimited by one 'Fold', using another with 'Applicative' effects, without reconstructing the structure behind you.
+--
+-- @'descendAOnOf_' b l = 'traverseOf_' (b '.' l)@
+--
+-- @
+-- 'descendAOnOf_' :: 'Applicative' f => 'Fold' a b -> 'Fold' b b -> (b -> f c) -> a -> f ()
+-- @
+descendAOnOf_ :: Applicative f => Getting (Traversed f) a b -> Getting (Traversed f) b b -> (b -> f c) -> a -> f ()
+descendAOnOf_ b l = traverseOf_ (b . l)
+{-# INLINE descendAOnOf_ #-}
+
+-- | Recurse one level into the parts of the structure delimited by a 'Traversal' with monadic effects.
+--
+-- @'descendAOn_' b = 'traverseOf_' (b . 'plates')@
+--
+-- @
+-- 'descendAOn_' :: ('Applicative' f, 'Plated' b) => 'Simple' 'Traversal' a b -> (b -> f c) -> a -> f ()
+-- @
+descendAOn_ :: (Applicative f, Plated b) => Getting (Traversed f) a b -> (b -> f c) -> a -> f ()
+descendAOn_ b = traverseOf_ (b . plates)
+{-# INLINE descendAOn_ #-}
+
 -- | Recurse one level into a structure with a monadic effect.
 --
 -- @'descendM' = 'mapMOf' 'plates'@
@@ -453,8 +498,8 @@ descendM = mapMOf plates
 descendMOf :: Monad m => LensLike (WrappedMonad m) a b c d -> (c -> m d) -> a -> m b
 descendMOf = mapMOf
 {-# INLINE descendMOf #-}
+
 -- | Recurse one level into the parts delimited by one 'Traversal', using another with monadic effects.
--- |
 --
 -- @'descendMOnOf' b l = 'mapMOf' (b '.' l)@
 --
@@ -470,11 +515,51 @@ descendMOnOf b l = mapMOf (b . l)
 -- @'descendMOn' b = 'mapMOf' (b . 'plates')@
 --
 -- @
--- 'descendMOn' :: ('Monad' f, 'Plated' c) => 'Simple' 'Traversal' a b -> (b -> f b) -> a -> f a
+-- 'descendMOn' :: ('Monad' m, 'Plated' c) => 'Simple' 'Traversal' a b -> (b -> m b) -> a -> m a
 -- @
 descendMOn :: (Monad m, Plated c) => LensLike (WrappedMonad m) a b c c -> (c -> m c) -> a -> m b
 descendMOn b = mapMOf (b . plates)
 {-# INLINE descendMOn #-}
+
+-- | Also known as @composeOpM_@.
+--
+-- @'descendM_' = mapMOf_' 'plates'@
+descendM_ :: (Monad m, Plated a) => (a -> m b) -> a -> m ()
+descendM_ = mapMOf_ plates
+{-# INLINE descendM_ #-}
+
+-- | Recurse one level into a structure using a user specified recursion scheme and monadic effects. This is just 'mapMOf_', but is provided for consistency.
+--
+-- @'descendMOf_' = 'mapMOf_'@
+--
+-- @
+-- 'descendMOf_' :: 'Monad' m => 'Fold' a b => (b -> m b) -> a -> m ()
+-- @
+descendMOf_ :: Monad m => Getting (Sequenced m) a b -> (b -> m c) -> a -> m ()
+descendMOf_ = mapMOf_
+{-# INLINE descendMOf_ #-}
+
+-- | Recurse one level into the parts delimited by one 'Traversal', using another with monadic effects.
+--
+-- @'descendMOnOf_' b l = 'mapMOf_' (b '.' l)@
+--
+-- @
+-- 'descendMOnOf_' :: 'Monad' m => 'Fold' a b -> 'Fold' b b -> (b -> m b) -> a -> m ()
+-- @
+descendMOnOf_ :: Monad m => Getting (Sequenced m) a b -> Getting (Sequenced m) b b -> (b -> m c) -> a -> m ()
+descendMOnOf_ b l = mapMOf_ (b . l)
+{-# INLINE descendMOnOf_ #-}
+
+-- | Recurse one level into the parts of the structure delimited by a 'Traversal' with monadic effects.
+--
+-- @'descendMOn_' b = 'mapMOf_' (b . 'plates')@
+--
+-- @
+-- 'descendMOn_' :: ('Monad' m, 'Plated' b) => 'Simple' 'Traversal' a b -> (b -> m c) -> a -> m ()
+-- @
+descendMOn_ :: (Monad m, Plated b) => Getting (Sequenced m) a b -> (b -> m c) -> a -> m ()
+descendMOn_ b = mapMOf_ (b . plates)
+{-# INLINE descendMOn_ #-}
 
 -- | Return a list of all of the editable contexts for every location in the structure, recursively.
 --
@@ -588,3 +673,4 @@ holesOn = holesOf
 -- @
 holesOnOf :: LensLike (Kleene e e) a b c d -> LensLike (Kleene e e) c d e e -> a -> [Context e e b]
 holesOnOf b l = holesOf (b.l)
+
