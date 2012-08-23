@@ -220,13 +220,14 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
     let decl = SigD isoName $ quantified $ isoCon `apps`
           if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
     body <- makeBody isoName dataConName makeIsoFrom makeIsoTo
-    inlining <- pragInlD isoName
 #if MIN_VERSION_template_haskell(2,8,0)
-      Inline FunLike AllPhases
+    -- If I have to choose between supporting RC1 or HEAD, I choose to support both and lose the pragma for now.
+    -- inlining <- pragInlD isoName Inline FunLike AllPhases
+    return [decl, body]
 #else
-      $ inlineSpecNoPhase True False
-#endif
+    inlining <- pragInlD isoName $ inlineSpecNoPhase True False
     return [decl, body, inlining]
+#endif
   accessorDecls <- case mkName <$> (maybeFieldName >>= view lensField cfg . nameBase) of
     jfn@(Just lensName)
       | (jfn /= maybeIsoName) && (isNothing maybeIsoName || cfg^.singletonAndField) -> do
@@ -234,13 +235,13 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
                    if cfg^.simpleLenses then [cty,cty,aty,aty]
                                         else [cty,dty,aty,bty]
       body <- makeBody lensName dataConName makeIsoTo makeIsoFrom
-      inlining <- pragInlD lensName
 #if MIN_VERSION_template_haskell(2,8,0)
-        Inline FunLike AllPhases
+      -- inlining <- pragInlD lensName Inline FunLike AllPhases
+      return [decl, body]
 #else
-        $ inlineSpecNoPhase True False
-#endif
+      inlining <- pragInlD lensName $ inlineSpecNoPhase True False
       return [decl, body, inlining]
+#endif
     _ -> return []
   return $ isoDecls ++ accessorDecls
 
@@ -294,7 +295,7 @@ makeFieldLensBody lensName fieldName cons maybeMethodName = case maybeMethodName
               f     <- newName "f"
               x     <- newName "y"
               names <- for fields $ \(n,_,_) -> newName (nameBase n)
-              let expr = appsE 
+              let expr = appsE
                        [ return (VarE 'fmap)
                        , lamE [varP x] $ appsE $ conE conName : map varE (element i .~ x $ names)
                        , varE f `appE` varE (names^.element i)
@@ -337,11 +338,10 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
         ++ filter (\_ -> cfg^.createInstance)
           [ instanceD (return []) (conT clsName `appT` conT tyConName)
             [ funD methodName [clause [varP a] (normalB (varE a)) []]
-            , pragInlD methodName
 #if MIN_VERSION_template_haskell(2,8,0)
-                Inline FunLike AllPhases
+            -- , pragInlD methodName Inline FunLike AllPhases
 #else
-                $ inlineSpecNoPhase True False
+            , pragInlD methodName $ inlineSpecNoPhase True False
 #endif
             ]]
   bodies <- for (toList fieldMap) $ \ (FieldDesc nm cty bds) ->
@@ -368,13 +368,13 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
                     then [aty,aty,cty,cty]
                     else [aty,bty,cty,dty]
          body <- makeFieldLensBody lensName nm cons $ fmap (mkName . view _2) maybeLensClass
-         inlining <- pragInlD lensName
 #if MIN_VERSION_template_haskell(2,8,0)
-           Inline FunLike AllPhases
+         -- inlining <- pragInlD lensName Inline FunLike AllPhases
+         return [decl, body]
 #else
-           $ inlineSpecNoPhase True False
-#endif
+         inlining <- pragInlD lensName $ inlineSpecNoPhase True False
          return [decl, body, inlining]
+#endif
   return $ classDecls ++ Prelude.concat bodies
 
 -- | Build lenses with a custom configuration
