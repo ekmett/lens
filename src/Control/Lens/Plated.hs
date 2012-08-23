@@ -1,9 +1,26 @@
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE Rank2Types #-}
 -------------------------------------------------------------------------------
 -- |
+-- Module      :  Control.Lens.Plated
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  provisional
+-- Portability :  Rank2Types
+--
+-- The name \"plate\" stems originally from \"boilerplate\", which was the term
+-- used by the \"Scrap Your Boilerplate\" papers, and later inherited by Neil
+-- Mitchell's \"Uniplate\".
+--
+-- <http://community.haskell.org/~ndm/uniplate/>
+--
+-- The combinators in here are designed to be compatible with and subsume the
+-- 'uniplate' API with the notion of a 'Traversal' replacing a uniplate or
+-- biplate.
+--
+-- By implementing these combinators in terms of 'plates' instead of 'uniplate'
+-- additional type safety is gained, as the user is no longer responsible for
+-- maintaining invariants such as the number of children he received.
 -------------------------------------------------------------------------------
 module Control.Lens.Plated
   ( Plated(..), uniplate, plateOf
@@ -33,7 +50,7 @@ import Control.Lens.Traversal
 import Control.Lens.Internal
 import Data.Tree
 
--- | A safer version of Neil Mitchell's @Uniplate@.
+-- | A 'Plated' type is one where we know how to extract its immediate self-similar children.
 --
 -- /Example 1/:
 --
