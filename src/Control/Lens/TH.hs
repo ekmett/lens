@@ -220,14 +220,12 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
     let decl = SigD isoName $ quantified $ isoCon `apps`
           if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
     body <- makeBody isoName dataConName makeIsoFrom makeIsoTo
-#if MIN_VERSION_template_haskell(2,8,0)
-    -- If I have to choose between supporting RC1 or HEAD, I choose to support both and lose the pragma for now.
-    -- inlining <- pragInlD isoName Inline FunLike AllPhases
-    return [decl, body]
+#if (MIN_VERSION_template_haskell(2,8,0)) && defined(NEW_INLINE_PRAGMAS)
+    inlining <- pragInlD isoName Inline FunLike AllPhases
 #else
     inlining <- pragInlD isoName $ inlineSpecNoPhase True False
-    return [decl, body, inlining]
 #endif
+    return [decl, body, inlining]
   accessorDecls <- case mkName <$> (maybeFieldName >>= view lensField cfg . nameBase) of
     jfn@(Just lensName)
       | (jfn /= maybeIsoName) && (isNothing maybeIsoName || cfg^.singletonAndField) -> do
@@ -235,13 +233,12 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
                    if cfg^.simpleLenses then [cty,cty,aty,aty]
                                         else [cty,dty,aty,bty]
       body <- makeBody lensName dataConName makeIsoTo makeIsoFrom
-#if MIN_VERSION_template_haskell(2,8,0)
-      -- inlining <- pragInlD lensName Inline FunLike AllPhases
-      return [decl, body]
+#if (MIN_VERSION_template_haskell(2,8,0)) && defined(NEW_INLINE_PRAGMAS)
+      inlining <- pragInlD lensName Inline FunLike AllPhases
 #else
       inlining <- pragInlD lensName $ inlineSpecNoPhase True False
-      return [decl, body, inlining]
 #endif
+      return [decl, body, inlining]
     _ -> return []
   return $ isoDecls ++ accessorDecls
 
@@ -338,8 +335,8 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
         ++ filter (\_ -> cfg^.createInstance)
           [ instanceD (return []) (conT clsName `appT` conT tyConName)
             [ funD methodName [clause [varP a] (normalB (varE a)) []]
-#if MIN_VERSION_template_haskell(2,8,0)
-            -- , pragInlD methodName Inline FunLike AllPhases
+#if (MIN_VERSION_template_haskell(2,8,0)) && defined(NEW_INLINE_PRAGMAS)
+            , pragInlD methodName Inline FunLike AllPhases
 #else
             , pragInlD methodName $ inlineSpecNoPhase True False
 #endif
@@ -368,13 +365,12 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
                     then [aty,aty,cty,cty]
                     else [aty,bty,cty,dty]
          body <- makeFieldLensBody lensName nm cons $ fmap (mkName . view _2) maybeLensClass
-#if MIN_VERSION_template_haskell(2,8,0)
-         -- inlining <- pragInlD lensName Inline FunLike AllPhases
-         return [decl, body]
+#if (MIN_VERSION_template_haskell(2,8,0)) && defined(NEW_INLINE_PRAGMAS)
+         inlining <- pragInlD lensName Inline FunLike AllPhases
 #else
          inlining <- pragInlD lensName $ inlineSpecNoPhase True False
-         return [decl, body, inlining]
 #endif
+         return [decl, body, inlining]
   return $ classDecls ++ Prelude.concat bodies
 
 -- | Build lenses with a custom configuration
@@ -464,8 +460,8 @@ makeClassyFor clsName funName fields = makeLensesWith
   $ lensField .~ (`Prelude.lookup` fields)
   $ classyRules
 
--- The orphan instance for old versions is bad, but programing without Applicative is worse.
 #if !(MIN_VERSION_template_haskell(2,7,0))
+-- | The orphan instance for old versions is bad, but programing without 'Applicative' is worse.
 instance Applicative Q where
   pure = return
   (<*>) = ap

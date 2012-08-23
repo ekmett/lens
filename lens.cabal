@@ -172,6 +172,9 @@ library
     TypeOperators
     UndecidableInstances
 
+  if impl(ghc>7.6.0.20120810)
+    ghc-options: -DNEW_INLINE_PRAGMAS
+
   if (impl(ghc>=7.4))
     other-extensions: Trustworthy
     build-depends: ghc-prim
