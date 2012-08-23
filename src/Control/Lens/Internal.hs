@@ -37,7 +37,7 @@ module Control.Lens.Internal
   , getMax
   , ElementOf(..)
   , ElementOfResult(..)
-  , Kleene(..), kleene
+  , Kleene(..), kleene, extractKleene, duplicateKleene
   , Effect(..)
   , EffectRWS(..)
   -- , EffectS(..)
@@ -155,6 +155,13 @@ data IndexedStore c d a = IndexedStore (d -> a) c
 instance Functor (IndexedStore c d) where
   fmap f (IndexedStore g c) = IndexedStore (f . g) c
 
+{-
+instance (c ~ d) => Comonad (IndexedStore c d) where
+  extract (IndexedStore f c) = f c
+  duplicate (IndexedStore f c) = IndexedStore (IndexedStore f) c
+  extend g (IndexedStore f c) = IndexedStore (g . IndexedStore f) c
+-}
+
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
 -- by 'Control.Lens.Traversal.elementOf', 'Control.Lens.Traversal.elementsOf', 'Control.Lens.Traversal.traverseElement', 'Control.Lens.Traversal.traverseElementsOf'
 newtype AppliedState f a = AppliedState { runAppliedState :: Int -> (f a, Int) }
@@ -262,6 +269,23 @@ instance Applicative (Kleene c d) where
   pure = Done
   Done f   <*> m = fmap f m
   More k c <*> m = More (flip <$> k <*> m) c
+
+extractKleene :: Kleene c c a -> a
+extractKleene (Done a) = a
+extractKleene (More z c) = extractKleene z c
+
+duplicateKleene :: Kleene c e a -> Kleene c d (Kleene d e a)
+duplicateKleene (Done b)   = Done (Done b)
+duplicateKleene (More z c) = More (More <$> duplicateKleene z) c
+
+{-
+instance (c ~ d) => Comonad (Kleene c d) where
+  extract = extractKleene
+  duplicate = duplicateKleene
+
+instance (c ~ d) => ComonadApply (Kleene c d) where
+  (<@>) = (<*>)
+-}
 
 -- | Given an action to run for each matched pair, traverse a store.
 kleene :: Applicative f => (c -> f d) -> Kleene c d b -> f b

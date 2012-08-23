@@ -60,23 +60,25 @@ module Control.Lens
   , module Control.Lens.Representable
   , module Control.Lens.TH
   , module Control.Lens.Tuple
+  , module Control.Lens.Uniplate
   , module Control.Lens.Zoom
   ) where
 
-import Control.Lens.Type
-import Control.Lens.Traversal
-import Control.Lens.Getter
-import Control.Lens.Setter
 import Control.Lens.Action
 import Control.Lens.Fold
-import Control.Lens.Iso
+import Control.Lens.Getter
 import Control.Lens.Indexed
 import Control.Lens.IndexedFold
 import Control.Lens.IndexedGetter
 import Control.Lens.IndexedLens
-import Control.Lens.IndexedTraversal
 import Control.Lens.IndexedSetter
+import Control.Lens.IndexedTraversal
+import Control.Lens.Iso
 import Control.Lens.Representable
+import Control.Lens.Setter
 import Control.Lens.TH
-import Control.Lens.Zoom
+import Control.Lens.Traversal
 import Control.Lens.Tuple
+import Control.Lens.Type
+import Control.Lens.Uniplate
+import Control.Lens.Zoom
