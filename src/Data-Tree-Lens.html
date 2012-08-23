@@ -21,7 +21,7 @@
 <a name="line-12"></a>
 <a name="line-13"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Tree</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
 <a name="line-14"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>root</span>
-<a name="line-15"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>children</span>
+<a name="line-15"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>branches</span>
 <a name="line-16"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-17"></a>
 <a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
@@ -34,10 +34,10 @@
 <a name="line-25"></a><span class='hs-definition'>root</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>`Node`</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
 <a name="line-26"></a><span class='hs-comment'>{-# INLINE root #-}</span>
 <a name="line-27"></a>
-<a name="line-28"></a><a name="children"></a><span class='hs-comment'>-- | A 'Traversal' of the direct descendants of the root of a 'Tree'</span>
+<a name="line-28"></a><a name="branches"></a><span class='hs-comment'>-- | A 'Traversal' of the direct descendants of the root of a 'Tree'</span>
 <a name="line-29"></a><span class='hs-comment'>-- indexed by its position in the list of children</span>
-<a name="line-30"></a><span class='hs-definition'>children</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-31"></a><span class='hs-definition'>children</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>index</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>withIndex</span> <span class='hs-varid'>traverseList</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
-<a name="line-32"></a><span class='hs-comment'>{-# INLINE children #-}</span>
+<a name="line-30"></a><span class='hs-definition'>branches</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-31"></a><span class='hs-definition'>branches</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>index</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>withIndex</span> <span class='hs-varid'>traverseList</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
+<a name="line-32"></a><span class='hs-comment'>{-# INLINE branches #-}</span>
 </pre></body>
 </html>
