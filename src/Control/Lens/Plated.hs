@@ -183,10 +183,9 @@ rewriteMOnOf b l = mapMOf b . rewriteMOf l
 
 -- | Get all the descendants of a node, including itself.
 --
--- >>> data Expr = Val Int | Neg Expr | Add Expr Expr
--- >>> instance Plated Expr where plates f (Neg e) = Neg <$> f e; plates f (Add a b) = Add <$> f a <*> f b; plates _ a = pure a
--- >>> universe (Add (Val 1) (Neg (Val 2)))
--- [Add (Val 1) (Neg (Val 2)), Val 1, Neg (Val 2), Val 2]
+-- @
+-- 'universe' (Add (Val 1) (Neg (Val 2))) = [Add (Val 1) (Neg (Val 2)), Val 1, Neg (Val 2), Val 2]
+-- @
 --
 -- This method is often combined with a list comprehension, for example:
 --
@@ -396,10 +395,3 @@ holesOf l = uncurry f . plateOf l where
   f [] _ = []
   f (x:xs) gen = (x, gen . (:xs)) : f xs (gen . (x:))
 {-# INLINE holesOf #-}
-
-
-
--- $expr
---
--- >>> data Tree a = Bin (Tree a) (Tree a) | Tip a
--- >>> instance Plated (Tree a) where plates f (Bin l r) = Bin <$> f l <*> f r; plates _ a = pure a
