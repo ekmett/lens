@@ -17,8 +17,6 @@ module Control.Lens.Plated
   , descendM, descendMOf, descendMOn, descendMOnOf
   , contexts, contextsOf, contextsOn, contextsOnOf
   , holes, holesOf
-  -- $expr
-  -- $tree
   )
   where
 
@@ -183,7 +181,7 @@ rewriteMOnOf :: Monad m => LensLike (WrappedMonad m) a b c c -> SimpleLensLike (
 rewriteMOnOf b l = mapMOf b . rewriteMOf l
 {-# INLINE rewriteMOnOf #-}
 
--- | Get all the children of a node, including itself and all children.
+-- | Get all the descendants of a node, including itself.
 --
 -- >>> data Expr = Val Int | Neg Expr | Add Expr Expr
 -- >>> instance Plated Expr where plates f (Neg e) = Neg <$> f e; plates f (Add a b) = Add <$> f a <*> f b; plates _ a = pure a
@@ -199,34 +197,78 @@ universe :: Plated a => a -> [a]
 universe = universeOf plates
 {-# INLINE universe #-}
 
+-- | Get all of the descendants of a node that lie in a region indicated by a 'Fold' (or 'Getter')
+--
+-- @
+-- universeOn :: 'Plated' b => 'Getter' a b           -> a -> [b]
+-- universeOn :: 'Plated' b => 'Fold' a b             -> a -> [b]
+-- universeOn :: 'Plated' b => 'Simple' 'Lens' a b      -> a -> [b]
+-- universeOn :: 'Plated' b => 'Simple' 'Traversal' a b -> a -> [b]
+-- universeOn :: 'Plated' b => 'Simple' 'Iso' a b       -> a -> [b]
+-- @
 universeOn :: Plated b => Fold a b -> a -> [b]
 universeOn b = foldMapOf b universe
 {-# INLINE universeOn #-}
 
--- | given a traversal that knows how to read the children,
--- get all of the descendants, including itself
+-- | Given a traversal that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself.
 universeOf :: Fold a a -> a -> [a]
 universeOf l = go where
   go a = a : foldMapOf l go a
 {-# INLINE universeOf #-}
 
+-- | Given a traversal that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself that lie
+-- in a region indicated by another fold.
 universeOnOf :: Fold a b -> Fold b b -> a -> [b]
 universeOnOf b = foldMapOf b . universeOf
 {-# INLINE universeOnOf #-}
 
+-- | Transform every element in the tree, in a bottom-up manner.
+--
+-- For example, replacing negative literals with literals:
+--
+-- @
+-- negLits = 'transform' $ \x -> case x of
+--   Neg (Lit i) -> Lit ('negate' i)
+--   _           -> x
+-- @
 transform :: Plated a => (a -> a) -> a -> a
 transform = transformOf plates
 {-# INLINE transform #-}
 
+-- | Transform every element in the tree in a bottom-up manner over a region indicated by a 'Setter'.
+--
+-- @
+-- transformOn :: 'Plated' b => 'Simple' 'Iso' a b       -> (b -> b) -> a -> a
+-- transformOn :: 'Plated' b => 'Simple' 'Lens' a b      -> (b -> b) -> a -> a
+-- transformOn :: 'Plated' b => 'Simple' 'Traversal' a b -> (b -> b) -> a -> a
+-- transformOn :: 'Plated' b => 'Simple' 'Setter' a b    -> (b -> b) -> a -> a
+-- @
 transformOn :: Plated c => Setting a b c c -> (c -> c) -> a -> b
 transformOn b = over b . transform
 {-# INLINE transformOn #-}
 
+-- | Transform every element by recursively applying a given 'Setter' in a bottom-up manner.
+--
+-- @
+-- transformOf :: 'Simple' 'Iso' a a       -> (a -> a) -> a -> a
+-- transformOf :: 'Simple' 'Lens' a a      -> (a -> a) -> a -> a
+-- transformOf :: 'Simple' 'Traversal' a a -> (a -> a) -> a -> a
+-- transformOf :: 'Simple' 'Setter' a a    -> (a -> a) -> a -> a
+-- @
 transformOf :: SimpleSetting a a -> (a -> a) -> a -> a
 transformOf l f = go where
   go = f . over l go
 {-# INLINE transformOf #-}
 
+-- | Transform every element in a region indicated by a 'Setter' by recursively applying another 'Setter'
+-- in a bottom-up manner.
+--
+-- @
+-- transformOnOf :: 'Setter' a b -> 'Simple' 'Iso' b b       -> (b -> b) -> a -> a
+-- transformOnOf :: 'Setter' a b -> 'Simple' 'Lens' b b      -> (b -> b) -> a -> a
+-- transformOnOf :: 'Setter' a b -> 'Simple' 'Traversal' b b -> (b -> b) -> a -> a
+-- transformOnOf :: 'Setter' a b -> 'Simple' 'Setter' b b    -> (b -> b) -> a -> a
+-- @
 transformOnOf :: Setting a b c c -> SimpleSetting c c -> (c -> c) -> a -> b
 transformOnOf b l = over b . transformOf l
 {-# INLINE transformOnOf #-}
@@ -309,7 +351,7 @@ descendMOn :: (Monad m, Plated c) => LensLike (WrappedMonad m) a b c c -> (c -> 
 descendMOn b = mapMOf (b . plates)
 {-# INLINE descendMOn #-}
 
--- | Return all the contexts and holes.
+-- | Return all a list of editable contexts for every location in the structure.
 --
 -- @
 -- propUniverse x = 'universe' x == 'map' 'fst' ('contexts' x)
