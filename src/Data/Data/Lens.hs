@@ -7,12 +7,14 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Data.Lens
--- Copyright   :  (C) 2012 Edward Kmett
+-- Copyright   :  (C) 2012 Edward Kmett, (C) 2006-2012 Neil Mitchell
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental
 -- Portability :  Rank2Types
 --
+-- Smart generic traversals of 'Data' based on the internals of Neil Mitchell's
+-- @uniplate@.
 ----------------------------------------------------------------------------
 module Data.Data.Lens
   ( naive     -- a naive version of every/uniplates
