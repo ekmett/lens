@@ -1,7 +1,11 @@
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Control.Lens.Plated
+-- Module      :  Data.Plated
 -- Copyright   :  (C) 2012 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
@@ -22,21 +26,38 @@
 -- additional type safety is gained, as the user is no longer responsible for
 -- maintaining invariants such as the number of children he received.
 -------------------------------------------------------------------------------
-module Control.Lens.Plated
-  ( Plated(..), uniplate, plateOf
-  , children
-  , rewrite, rewriteOf, rewriteOn, rewriteOnOf
-  , rewriteM, rewriteMOf, rewriteMOn, rewriteMOnOf
-  , universe, universeOf, universeOn, universeOnOf
-  , transform, transformOf, transformOn, transformOnOf
-  , transformM, transformMOf, transformMOn, transformMOnOf
-  , descend, descendOf, descendOn, descendOnOf
-  , descendA, descendAOf, descendAOn, descendAOnOf
-  , descendA_, descendAOf_, descendAOn_, descendAOnOf_
-  , descendM, descendMOf, descendMOn, descendMOnOf
-  , descendM_, descendMOf_, descendMOn_, descendMOnOf_
-  , contexts, contextsOf, contextsOn, contextsOnOf
-  , holes, holesOf, holesOn, holesOnOf
+module Data.Plated
+  (
+  -- * Uniplates
+    Plated(..)
+  , uniplate
+  , plateOf
+
+  -- * Biplates
+  , Biplated(..)
+  , biplate
+
+  -- * Uniplate Combinators
+  , children, childrenOn, childrenBi
+  , rewrite, rewriteOf, rewriteOn, rewriteOnOf, rewriteBi
+  , rewriteM, rewriteMOf, rewriteMOn, rewriteMOnOf, rewriteMBi
+  , universe, universeOf, universeOn, universeOnOf, universeBi
+  , transform, transformOf, transformOn, transformOnOf, transformBi
+  , transformM, transformMOf, transformMOn, transformMOnOf, transformMBi
+  , descend, descendOf, descendOn, descendOnOf, descendBi
+  , descendA, descendAOf, descendAOn, descendAOnOf, descendABi
+  , descendA_, descendAOf_, descendAOn_, descendAOnOf_, descendABi_
+  , descendM, descendMOf, descendMOn, descendMOnOf, descendMBi
+  , descendM_, descendMOf_, descendMOn_, descendMOnOf_, descendMBi_
+  , contexts, contextsOf, contextsOn, contextsOnOf, contextsBi
+  , holes, holesOf, holesOn, holesOnOf, holesBi
+  , para, paraOf
+
+  -- * Compos
+  --
+  -- $compos
+  , composOpFold, composOpMonoid, composOpMPlus
+
   -- * Operations to be careful of
   , unsafePlateOf
   )
@@ -45,13 +66,18 @@ module Control.Lens.Plated
 import Control.Applicative
 import Control.Arrow ((&&&))
 import Control.Comonad
-import Control.Lens.Getter
-import Control.Lens.Setter
-import Control.Lens.Type
+import Control.Monad
 import Control.Lens.Fold
-import Control.Lens.Traversal
+import Control.Lens.Getter
 import Control.Lens.Internal
-import Data.Tree
+import Control.Lens.Setter
+import Control.Lens.Traversal
+import Control.Lens.Type
+import Data.Int
+import Data.Monoid
+import Data.Ratio
+import Data.Word
+-- import Data.Tree
 
 -- | A 'Plated' type is one where we know how to extract its immediate self-similar children.
 --
@@ -86,17 +112,53 @@ import Data.Tree
 --   'plates' f (Bin l r) = Bin '<$>' f l '<*>' f r
 --   'plates' _ t = 'pure' t
 -- @
-class Plated t where
+class Plated a where
   -- | 'Traversal' of the immediate children of this structure.
-  plates :: Simple Traversal t t
+  plates :: Simple Traversal a a
   plates _ = pure
 
+instance Plated ()
+instance Plated Bool
+instance Plated Char
+instance Plated Double
+instance Plated Float
+instance Plated Int
+instance Plated Int8
+instance Plated Int16
+instance Plated Int32
+instance Plated Int64
+instance Plated Integer
+instance Plated Word
+instance Plated Word8
+instance Plated Word16
+instance Plated Word32
+instance Plated Word64
+instance Plated (Ratio Integer)
+instance Plated [Char] where
+  plates f (x:xs) = (x:) <$> f xs
+  plates _ [] = pure []
+
+
+class Plated b => Biplated a b where
+  biplates :: Simple Traversal a b
+  default biplates :: (Applicative f, Plated a, a ~ b) => (b -> f b) -> a -> f a
+  biplates = id
+
+instance Biplated [Char] [Char] where biplates = plates
+instance Biplated [Char] Char where biplates = traverse
+
+instance Biplated (Ratio Integer) (Ratio Integer)
+instance Biplated (Ratio Integer) Integer where
+  biplates f x = (%) <$> f (numerator x) <*> f (denominator x)
+
+{-
 instance Plated [a] where
   plates _ [] = pure []
   plates f (x:xs) = (x :) <$> f xs
 
 instance Plated (Tree a) where
   plates f (Node a as) = Node a <$> traverse f as
+-}
 
 -- | Neil Mitchell's 'uniplate' combinator, implemented in terms of 'Plated'.
 --
@@ -104,6 +166,13 @@ instance Plated (Tree a) where
 uniplate :: Plated a => a -> ([a], [a] -> a)
 uniplate = plateOf plates
 {-# INLINE uniplate #-}
+
+-- |
+--
+-- @'biplate' = 'plateOf' 'biplates'@
+biplate :: Biplated a b => a -> ([b], [b] -> a)
+biplate = plateOf biplates
+{-# INLINE biplate #-}
 
 -- |
 -- 'plateOf' turns a 'Traversal' into a uniplate (or biplate).
@@ -151,6 +220,19 @@ children :: Plated a => a -> [a]
 children = toListOf plates
 {-# INLINE children #-}
 
+-- | Provided for compatibility with @uniplate@.
+--
+-- @'childrenOn' = 'toListOf'@
+--
+-- @'childrenOn' :: 'Fold' a b -> a -> [b]@
+childrenOn :: Getting [b] a b -> a -> [b]
+childrenOn = toListOf
+
+-- | Extract the immediate descendants of a given type from a 'Biplated' container.
+childrenBi :: Biplated a b => a -> [b]
+childrenBi = toListOf biplates
+{-# INLINE childrenBi #-}
+
 -- | Rewrite by applying a rule everywhere you can. Ensures that the rule cannot
 -- be applied anywhere in the result:
 --
@@ -195,6 +277,10 @@ rewriteOn :: Plated c => Setting a b c c -> (c -> Maybe c) -> a -> b
 rewriteOn b = over b . rewrite
 {-# INLINE rewriteOn #-}
 
+rewriteBi :: Biplated a b => (b -> Maybe b) -> a -> a
+rewriteBi = over biplates . rewrite
+{-# INLINE rewriteBi #-}
+
 -- | Rewrite recursively over part of a larger structure using a specified setter.
 --
 -- @
@@ -232,6 +318,12 @@ rewriteMOnOf :: Monad m => LensLike (WrappedMonad m) a b c c -> SimpleLensLike (
 rewriteMOnOf b l = mapMOf b . rewriteMOf l
 {-# INLINE rewriteMOnOf #-}
 
+-- | Rewrite by applying a monadic rule everywhere inside of a structure located by a user-specified 'Traversal'.
+-- Ensures that the rule cannot be applied anywhere in the result.
+rewriteMBi :: (Monad m, Biplated a b) => (b -> m (Maybe b)) -> a -> m a
+rewriteMBi = mapMOf biplates . rewriteM
+{-# INLINE rewriteMBi #-}
+
 -- | Get all the descendants of a node, including itself.
 --
 -- @
@@ -259,6 +351,11 @@ universe = universeOf plates
 universeOn :: Plated b => Getting [b] a b -> a -> [b]
 universeOn b = foldMapOf b universe
 {-# INLINE universeOn #-}
+
+-- | Get all of the descendants of a node of a given type.
+universeBi :: Biplated a b => a -> [b]
+universeBi = foldMapOf biplates universe
+{-# INLINE universeBi #-}
 
 -- | Given a traversal that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself.
 universeOf :: Getting [a] a a -> a -> [a]
@@ -295,6 +392,11 @@ transformOn :: Plated c => Setting a b c c -> (c -> c) -> a -> b
 transformOn b = over b . transform
 {-# INLINE transformOn #-}
 
+-- | Transform every element in the tree of a given type in a bottom-up manner.
+transformBi :: Biplated a b => (b -> b) -> a -> a
+transformBi = over biplates . transform
+{-# INLINE transformBi #-}
+
 -- | Transform every element by recursively applying a given 'Setter' in a bottom-up manner.
 --
 -- @
@@ -324,18 +426,19 @@ transformM = transformMOf plates
 
 -- | Transform every element in the tree in a region indicated by a supplied 'Traversal', in a bottom-up manner, monadically.
 --
--- @
--- 'transformMOn' :: ('Monad' m, 'Plated' c) => 'Simple' 'Traversal' a b -> (b -> m b) -> a -> m a
--- @
+-- @'transformMOn' :: ('Monad' m, 'Plated' c) => 'Simple' 'Traversal' a b -> (b -> m b) -> a -> m a@
 transformMOn :: (Monad m, Plated c) => LensLike (WrappedMonad m) a b c c -> (c -> m c) -> a -> m b
 transformMOn b = mapMOf b . transformM
 {-# INLINE transformMOn #-}
 
+-- | Transform every element of a given type in the tree, in a bottom-up manner, monadically.
+transformMBi :: (Monad m, Biplated a b) => (b -> m b) -> a -> m a
+transformMBi = mapMOf biplates . transformM
+{-# INLINE transformMBi #-}
+
 -- | Transform every element in a tree using a user supplied 'Traversal' in a bottom-up manner with a monadic effect.
 --
--- @
--- 'transformMOf' :: 'Monad' m => 'Simple 'Traversal' a a -> (a -> m a) -> a -> m a
--- @
+-- @'transformMOf' :: 'Monad' m => 'Simple 'Traversal' a a -> (a -> m a) -> a -> m a@
 transformMOf :: Monad m => SimpleLensLike (WrappedMonad m) a a -> (a -> m a) -> a -> m a
 transformMOf l f = go where
   go t = mapMOf l go t >>= f
@@ -344,9 +447,7 @@ transformMOf l f = go where
 -- | Transform every element in a tree that lies in a region indicated by a supplied 'Traversal', walking with a user supplied 'Traversal' in
 -- a bottom-up manner with a monadic effect.
 --
--- @
--- 'transformMOnOf' :: 'Monad' m => 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> (b -> m b) -> a -> m a
--- @
+-- @'transformMOnOf' :: 'Monad' m => 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> (b -> m b) -> a -> m a@
 transformMOnOf :: Monad m => LensLike (WrappedMonad m) a b c c -> SimpleLensLike (WrappedMonad m) c c -> (c -> m c) -> a -> m b
 transformMOnOf b l = mapMOf b . transformMOf l
 {-# INLINE transformMOnOf #-}
@@ -386,14 +487,19 @@ descendOnOf b l = over (b.l)
 
 -- | Recurse one level into the parts of the structure delimited by a 'Setter'.
 --
--- @'descendOn' b = 'over' (b . 'plates')@
+-- @'descendOn' b = 'over' (b '.' 'plates')@
 --
--- @
--- 'descendOn' :: 'Plated' c => 'Setter' a b -> (b -> b) -> a -> a
--- @
+-- @'descendOn' :: 'Plated' c => 'Setter' a b -> (b -> b) -> a -> a@
 descendOn :: Plated c => Setting a b c c -> (c -> c) -> a -> b
 descendOn b = over (b . plates)
 {-# INLINE descendOn #-}
+
+-- | Recurse one level into the parts of the structure delimited by a 'Setter'.
+--
+-- @'descendBi' b = 'over' ('biplates' '.' 'plates')@
+descendBi :: Biplated a b => (b -> b) -> a -> a
+descendBi = over (biplates . plates)
+{-# INLINE descendBi #-}
 
 -- | Recurse one level into a structure with an 'Applicative' effect, this is 'plates', but it is supplied
 -- for consistency with the uniplate API.
@@ -408,9 +514,7 @@ descendA = plates
 --
 -- @'descendAOf' = 'id'@
 --
--- @
--- 'descendAOf' :: 'Applicative' m => 'Simple' 'Traversal' a b => (b -> m b) -> a -> m a
--- @
+-- @'descendAOf' :: 'Applicative' m => 'Simple' 'Traversal' a b => (b -> m b) -> a -> m a@
 descendAOf :: Applicative f => LensLike f a b c d -> (c -> f d) -> a -> f b
 descendAOf = id
 {-# INLINE descendAOf #-}
@@ -419,23 +523,26 @@ descendAOf = id
 --
 -- @'descendAOnOf' = ('.')@
 --
--- @
--- 'descendAOnOf' :: 'Applicative' f => 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> (b -> f b) -> a -> f a
--- @
+-- @'descendAOnOf' :: 'Applicative' f => 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> (b -> f b) -> a -> f a@
 descendAOnOf :: Applicative g => LensLike g a b c d -> LensLike g c d e f -> (e -> g f) -> a -> g b
 descendAOnOf = (.)
 {-# INLINE descendAOnOf #-}
 
 -- | Recurse one level into the parts of the structure delimited by a 'Traversal' with 'Applicative' effects.
 --
--- @'descendAOn' b = b . 'plates'@
+-- @'descendAOn' b = b '.' 'plates'@
 --
--- @
--- 'descendAOn' :: ('Applicative' f, Plated' c) => 'Simple' 'Traversal' a b -> (b -> f b) -> a -> f a
--- @
+-- @'descendAOn' :: ('Applicative' f, Plated' c) => 'Simple' 'Traversal' a b -> (b -> f b) -> a -> f a@
 descendAOn :: (Applicative f, Plated c) => LensLike f a b c c -> (c -> f c) -> a -> f b
 descendAOn b = b . plates
 {-# INLINE descendAOn #-}
+
+-- | Recurse one level into specified parts of the structure.
+--
+-- @'descendABi' = 'biplates' '.' 'plates'@
+descendABi :: (Applicative f, Biplated a b) => (b -> f b) -> a -> f a
+descendABi = biplates . plates
+{-# INLINE descendABi #-}
 
 -- |
 --
@@ -450,9 +557,7 @@ descendA_ = traverseOf_ plates
 --
 -- @'descendAOf_' = 'traverseOf_'@
 --
--- @
--- 'descendAOf_' :: 'Applicative' f => 'Fold' a b => (b -> f b) -> a -> f ()
--- @
+-- @'descendAOf_' :: 'Applicative' f => 'Fold' a b => (b -> f b) -> a -> f ()@
 descendAOf_ :: Applicative f => Getting (Traversed f) a b -> (b -> f c) -> a -> f ()
 descendAOf_ = traverseOf_
 {-# INLINE descendAOf_ #-}
@@ -461,28 +566,30 @@ descendAOf_ = traverseOf_
 --
 -- @'descendAOnOf_' b l = 'traverseOf_' (b '.' l)@
 --
--- @
--- 'descendAOnOf_' :: 'Applicative' f => 'Fold' a b -> 'Fold' b b -> (b -> f c) -> a -> f ()
--- @
+-- @'descendAOnOf_' :: 'Applicative' f => 'Fold' a b -> 'Fold' b b -> (b -> f c) -> a -> f ()@
 descendAOnOf_ :: Applicative f => Getting (Traversed f) a b -> Getting (Traversed f) b b -> (b -> f c) -> a -> f ()
 descendAOnOf_ b l = traverseOf_ (b . l)
 {-# INLINE descendAOnOf_ #-}
 
 -- | Recurse one level into the parts of the structure delimited by a 'Traversal' with monadic effects.
 --
--- @'descendAOn_' b = 'traverseOf_' (b . 'plates')@
+-- @'descendAOn_' b = 'traverseOf_' (b '.' 'plates')@
 --
--- @
--- 'descendAOn_' :: ('Applicative' f, 'Plated' b) => 'Simple' 'Traversal' a b -> (b -> f c) -> a -> f ()
--- @
+-- @'descendAOn_' :: ('Applicative' f, 'Plated' b) => 'Simple' 'Traversal' a b -> (b -> f c) -> a -> f ()@
 descendAOn_ :: (Applicative f, Plated b) => Getting (Traversed f) a b -> (b -> f c) -> a -> f ()
 descendAOn_ b = traverseOf_ (b . plates)
 {-# INLINE descendAOn_ #-}
 
+-- | Recurse one level into parts of the structure.
+--
+-- @'descendABi_' = 'traverseOf_' ('biplates' '.' 'plates')@
+descendABi_ :: (Applicative f, Biplated a b) => (b -> f c) -> a -> f ()
+descendABi_ = traverseOf_ (biplates . plates)
+{-# INLINE descendABi_ #-}
+
 -- | Recurse one level into a structure with a monadic effect.
 --
 -- @'descendM' = 'mapMOf' 'plates'@
---
 descendM :: (Monad m, Plated a) => (a -> m a) -> a -> m a
 descendM = mapMOf plates
 {-# INLINE descendM #-}
@@ -492,9 +599,7 @@ descendM = mapMOf plates
 --
 -- @'descendMOf' = 'mapMOf'@
 --
--- @
--- 'descendMOf' :: 'Monad' m => 'Simple' 'Traversal' a b => (b -> m b) -> a -> m a
--- @
+-- @'descendMOf' :: 'Monad' m => 'Simple' 'Traversal' a b => (b -> m b) -> a -> m a@
 descendMOf :: Monad m => LensLike (WrappedMonad m) a b c d -> (c -> m d) -> a -> m b
 descendMOf = mapMOf
 {-# INLINE descendMOf #-}
@@ -503,9 +608,7 @@ descendMOf = mapMOf
 --
 -- @'descendMOnOf' b l = 'mapMOf' (b '.' l)@
 --
--- @
--- 'descendMOnOf' :: 'Monad' m => 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> (b -> m b) -> a -> m a
--- @
+-- @'descendMOnOf' :: 'Monad' m => 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> (b -> m b) -> a -> m a@
 descendMOnOf :: Monad m => LensLike (WrappedMonad m) a b c c -> SimpleLensLike (WrappedMonad m) c c -> (c -> m c) -> a -> m b
 descendMOnOf b l = mapMOf (b . l)
 {-# INLINE descendMOnOf #-}
@@ -514,14 +617,19 @@ descendMOnOf b l = mapMOf (b . l)
 --
 -- @'descendMOn' b = 'mapMOf' (b . 'plates')@
 --
--- @
--- 'descendMOn' :: ('Monad' m, 'Plated' c) => 'Simple' 'Traversal' a b -> (b -> m b) -> a -> m a
--- @
+-- @'descendMOn' :: ('Monad' m, 'Plated' c) => 'Simple' 'Traversal' a b -> (b -> m b) -> a -> m a@
 descendMOn :: (Monad m, Plated c) => LensLike (WrappedMonad m) a b c c -> (c -> m c) -> a -> m b
 descendMOn b = mapMOf (b . plates)
 {-# INLINE descendMOn #-}
 
--- | Also known as @composeOpM_@.
+-- | Recurse one level into parts of the structure.
+--
+-- @'descendMBi' = 'mapMOf' ('biplates' . 'plates')@
+descendMBi :: (Monad m, Biplated a b) => (b -> m b) -> a -> m a
+descendMBi = mapMOf (biplates . plates)
+{-# INLINE descendMBi #-}
+
+-- | Known as @composOpM_@ in Björn Bringert's @compos@ library.
 --
 -- @'descendM_' = mapMOf_' 'plates'@
 descendM_ :: (Monad m, Plated a) => (a -> m b) -> a -> m ()
@@ -532,9 +640,7 @@ descendM_ = mapMOf_ plates
 --
 -- @'descendMOf_' = 'mapMOf_'@
 --
--- @
--- 'descendMOf_' :: 'Monad' m => 'Fold' a b => (b -> m b) -> a -> m ()
--- @
+-- @'descendMOf_' :: 'Monad' m => 'Fold' a b => (b -> m b) -> a -> m ()@
 descendMOf_ :: Monad m => Getting (Sequenced m) a b -> (b -> m c) -> a -> m ()
 descendMOf_ = mapMOf_
 {-# INLINE descendMOf_ #-}
@@ -543,23 +649,26 @@ descendMOf_ = mapMOf_
 --
 -- @'descendMOnOf_' b l = 'mapMOf_' (b '.' l)@
 --
--- @
--- 'descendMOnOf_' :: 'Monad' m => 'Fold' a b -> 'Fold' b b -> (b -> m b) -> a -> m ()
--- @
+-- @'descendMOnOf_' :: 'Monad' m => 'Fold' a b -> 'Fold' b b -> (b -> m b) -> a -> m ()@
 descendMOnOf_ :: Monad m => Getting (Sequenced m) a b -> Getting (Sequenced m) b b -> (b -> m c) -> a -> m ()
 descendMOnOf_ b l = mapMOf_ (b . l)
 {-# INLINE descendMOnOf_ #-}
 
 -- | Recurse one level into the parts of the structure delimited by a 'Traversal' with monadic effects.
 --
--- @'descendMOn_' b = 'mapMOf_' (b . 'plates')@
+-- @'descendMOn_' b = 'mapMOf_' (b '.' 'plates')@
 --
--- @
--- 'descendMOn_' :: ('Monad' m, 'Plated' b) => 'Simple' 'Traversal' a b -> (b -> m c) -> a -> m ()
--- @
+-- @'descendMOn_' :: ('Monad' m, 'Plated' b) => 'Simple' 'Traversal' a b -> (b -> m c) -> a -> m ()@
 descendMOn_ :: (Monad m, Plated b) => Getting (Sequenced m) a b -> (b -> m c) -> a -> m ()
 descendMOn_ b = mapMOf_ (b . plates)
 {-# INLINE descendMOn_ #-}
+
+-- | Recurse one level into parts of the structure.
+--
+-- @'descendMBi_' = 'mapMOf_' ('biplates' '.' 'plates')@
+descendMBi_ :: (Monad m, Biplated a b) => (b -> m c) -> a -> m ()
+descendMBi_ = mapMOf_ (biplates . plates)
+{-# INLINE descendMBi_ #-}
 
 -- | Return a list of all of the editable contexts for every location in the structure, recursively.
 --
@@ -580,9 +689,7 @@ contexts = contextsOf plates
 -- propId l x = 'all' ('==' x) [extract w | w <- 'contextsOf' l x]
 -- @
 --
--- @
--- 'contextsOf' :: 'Simple' 'Traversal' a a -> a -> ['Context' a a]
--- @
+-- @'contextsOf' :: 'Simple' 'Traversal' a a -> a -> ['Context' a a]@
 contextsOf :: SimpleLensLike (Kleene a a) a a -> a -> [Context a a a]
 contextsOf l x = Context id x : f (holesOf l x) where
   f xs = do
@@ -595,19 +702,22 @@ contextsOf l x = Context id x : f (holesOf l x) where
 --
 -- @'contextsOn' b = 'contextsOnOf' b 'plates'@
 --
--- @
--- 'contextsOn' :: 'Plated' b => 'Simple' 'Traversal' a b -> a -> ['Context' b b a]
--- @
+-- @'contextsOn' :: 'Plated' b => 'Simple' 'Traversal' a b -> a -> ['Context' b b a]@
 contextsOn :: Plated c => LensLike (Kleene c c) a b c c -> a -> [Context c c b]
 contextsOn b = contextsOnOf b plates
 {-# INLINE contextsOn #-}
 
+-- | Return a list of all of the editable contexts for every location in the structure of a given type.
+--
+-- @'contextsBi' = 'contextsOn' 'biplates'@
+contextsBi :: Biplated a b => a -> [Context b b a]
+contextsBi = contextsOn biplates
+{-# INLINE contextsBi #-}
+
 -- | Return a list of all of the editable contexts for every location in the structure in an areas indicated by a user supplied 'Traversal', recursively using
 -- another user-supplied 'Traversal' to walk each layer.
 --
--- @
--- 'contextsOnOf' :: 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> a -> ['Context' b b a]
--- @
+-- @'contextsOnOf' :: 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> a -> ['Context' b b a]@
 contextsOnOf :: LensLike (Kleene c c) a b c c -> SimpleLensLike (Kleene c c) c c -> a -> [Context c c b]
 contextsOnOf b l = f . holesOf b where
   f xs = do
@@ -662,6 +772,12 @@ holesOf l = uncurry f . plateOf l where
 holesOn :: LensLike (Kleene c c) a b c c -> a -> [Context c c b]
 holesOn = holesOf
 
+-- |
+--
+-- @'holesBi' = 'holesOf' 'biplates'@
+holesBi :: Biplated a b => a -> [Context b b a]
+holesBi = holesOf biplates
+
 -- | Extract one level of holes from a container in a region specified by one 'Traversal', using another.
 --
 -- @'holesOnOf' b l = 'holesOf' (b.l)@
@@ -674,3 +790,73 @@ holesOn = holesOf
 holesOnOf :: LensLike (Kleene e e) a b c d -> LensLike (Kleene e e) c d e e -> a -> [Context e e b]
 holesOnOf b l = holesOf (b.l)
 
+-- | Perform a fold-like computation on each value, technically a paramorphism.
+--
+-- @'paraOf' :: 'Fold' a a -> (a -> [r] -> r) -> a -> r@
+paraOf :: Getting [a] a a -> (a -> [r] -> r) -> a -> r
+paraOf l f = go where
+  go a = f a (go <$> toListOf l a)
+{-# INLINE paraOf #-}
+
+-- | Perform a fold-like computation on each value, technically a paramorphism.
+para :: Plated a => (a -> [r] -> r) -> a -> r
+para = paraOf plates
+{-# INLINE para #-}
+
+-- $compos
+--
+-- Provided for compatibility with Björn Bringert's @compos@ library.
+
+-- | Fold the immediate children of a 'Plated' container.
+--
+-- @'composOpFold' z c f = 'foldrOf' 'plates' (c '.' f) z@
+composOpFold :: Plated a => b -> (b -> b -> b) -> (a -> b) -> a -> b
+composOpFold z c f = foldrOf plates (c . f) z
+{-# INLINE composOpFold #-}
+
+-- |
+--
+-- @'composOpMonoid' = 'foldMapOf' 'plates'@
+composOpMonoid :: (Plated a, Monoid m) => (a -> m) -> a -> m
+composOpMonoid = foldMapOf plates
+{-# INLINE composOpMonoid #-}
+
+-- |
+--
+-- @'composOpMPlus' = 'msumOf' 'plates'
+composOpMPlus :: (MonadPlus m, Plated a) => (a -> m b) -> a -> m b
+composOpMPlus f = msumOf (plates . to f)
+{-# INLINE composOpMPlus #-}
+
+{-
+plateSelf :: a -> Kleene a a a
+plateSelf = More (Done id)
+
+plated $ pure
+
+infix 4 |-, |+, |*, ||*, ||+
+
+(|-) :: Kleene c c (a -> b) -> a -> Kleene c c b
+w |- a = fmap ($a) w
+{-# INLINE (|-) #-}
+
+(|+) :: Biplated a c => Kleene c c (a -> b) -> a -> Kleene c c b
+w |+ a = w <*> biplates plateSelf a
+{-# INLINE (|+) #-}
+
+(|*) :: Kleene a a (a -> b) -> a -> Kleene a a b
+(|*) = More
+{-# INLINE (|*) #-}
+
+(||*) :: Traversable f => Kleene a a (f a -> b) -> f a -> Kleene a a b
+w ||* as = w <*> traverse plateSelf as
+{-# INLINE (||*) #-}
+
+(||+) :: (Traversable f, Biplated a c) => Kleene c c (f a -> b) -> f a -> Kleene c c b
+w ||+ a = w <*> traverse (biplates plateSelf) a
+{-# INLINE (||+) #-}
+
+plated :: Applicative f => (a -> Kleene c d b) -> (c -> f d) -> a -> f b
+plated = cloneTraversal . const
+{-# INLINE plated #-}
+-}

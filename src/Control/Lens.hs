@@ -57,7 +57,6 @@ module Control.Lens
   , module Control.Lens.IndexedLens
   , module Control.Lens.IndexedTraversal
   , module Control.Lens.IndexedSetter
-  , module Control.Lens.Plated
   , module Control.Lens.Representable
   , module Control.Lens.TH
   , module Control.Lens.Tuple
@@ -74,7 +73,6 @@ import Control.Lens.IndexedLens
 import Control.Lens.IndexedSetter
 import Control.Lens.IndexedTraversal
 import Control.Lens.Iso
-import Control.Lens.Plated
 import Control.Lens.Representable
 import Control.Lens.Setter
 import Control.Lens.TH

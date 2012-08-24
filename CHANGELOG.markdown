@@ -1,6 +1,6 @@
 2.5
 ---
-* Added `Control.Lens.Plated` -- a safer version of Neil Mitchell's `uniplate` that can be used with a `Traversal`.
+* Added `Data.Plated` -- a port of Neil Mitchell's `uniplate` that can be used on a `Traversal`.
 * Renamed `IndexedStore` to `Context` now that it is used in user-visible locations, and since I also use it as `uniplate`'s notion of a context.
 * Added `Comonad` instances for `Context` and `Kleene`, so we can use stores as the notion of an editable context in uniplate
 * Compatibility with both sets of template haskell quirks for GHC 7.6.1-rc1 and the GHC 7.6.1 development head.
