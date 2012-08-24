@@ -3,8 +3,8 @@ import Control.Applicative
 import Control.Lens
 import Control.Plated
 import GHC.Generics
-import GHC.Generics.Lens
 import Data.Data
+import Data.Data.Lens
 
 data Expr = Var Int | Pos Expr String | Neg Expr | Add Expr Expr deriving (Eq,Ord,Show,Read,Generic,Data,Typeable)
 data Stmt = Seq [Stmt] | Sel [Expr] | Let String Expr deriving (Eq,Ord,Show,Read,Generic,Data,Typeable)

@@ -29,7 +29,7 @@ module GHC.Generics.Lens
     generic
   , generic1
   -- * Generic Traversal
-  , every, limbs
+  , every
   , GTraversal
   ) where
 
@@ -51,10 +51,6 @@ generic = iso Generic.from Generic.to
 -- | Convert from the data type to its representation (or back)
 generic1 :: Generic1 f => Simple Iso (f a) (Rep1 f a)
 generic1 = iso from1 to1
-
--- | An easy definition for 'Data.Plated.plates'
-limbs :: (Generic a, GTraversal (Rep a), Typeable a) => Simple Traversal a a
-limbs = every
 
 -- | A 'GHC.Generics.Generic' 'Traversal' that visits every occurence
 -- of something 'Typeable' anywhere in a container.

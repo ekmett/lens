@@ -102,9 +102,11 @@ library
     comonad-transformers == 3.0.*,
     comonads-fd          == 3.0.*,
     containers           >= 0.4.2 && < 0.6,
+    hashable             == 1.1.*,
     mtl                  >= 2.1.1 && < 2.2,
     template-haskell     >= 2.4   && < 2.9,
-    transformers         >= 0.3   && < 0.4
+    transformers         >= 0.3   && < 0.4,
+    unordered-containers >= 0.2   && < 0.3
 
   exposed-modules: Control.Exception.Lens
                    Control.Lens
@@ -130,6 +132,7 @@ library
                    Control.Plated
                    Data.Bits.Lens
                    Data.Complex.Lens
+                   Data.Data.Lens
                    Data.Dynamic.Lens
                    Data.Either.Lens
                    Data.List.Lens
@@ -141,6 +144,7 @@ library
                    Data.Sequence.Lens
                    Data.Set.Lens
                    Data.Tree.Lens
+                   Data.Typeable.Lens
                    Language.Haskell.TH.Lens
 
   -- platform
