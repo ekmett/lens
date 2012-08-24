@@ -127,13 +127,13 @@ library
                    Control.Lens.Tuple
                    Control.Lens.Type
                    Control.Lens.Zoom
+                   Control.Plated
                    Data.Bits.Lens
                    Data.Complex.Lens
                    Data.Dynamic.Lens
                    Data.Either.Lens
                    Data.List.Lens
                    Data.Pair.Lens
-                   Data.Plated
                    Data.IntMap.Lens
                    Data.IntSet.Lens
                    Data.Map.Lens

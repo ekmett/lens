@@ -29,7 +29,7 @@ module GHC.Generics.Lens
     generic
   , generic1
   -- * Generic Traversal
-  , every
+  , every, limbs
   , GTraversal
   ) where
 
@@ -52,6 +52,10 @@ generic = iso Generic.from Generic.to
 generic1 :: Generic1 f => Simple Iso (f a) (Rep1 f a)
 generic1 = iso from1 to1
 
+-- | An easy definition for 'Data.Plated.plates'
+limbs :: (Generic a, GTraversal (Rep a), Typeable a) => Simple Traversal a a
+limbs = every
+
 -- | A 'GHC.Generics.Generic' 'Traversal' that visits every occurence
 -- of something 'Typeable' anywhere in a container.
 --
@@ -64,6 +68,9 @@ generic1 = iso from1 to1
 every :: (Generic a, GTraversal (Rep a), Typeable b) => Simple Traversal a b
 every = generic . everyr True
 
+maybeArg1Of :: Maybe c -> (c -> d) -> Maybe c
+maybeArg1Of = const
+
 -- | Used to traverse 'Generic' data by 'every'.
 class GTraversal f where
   everyr :: Typeable b => Bool -> Simple Traversal (f a) b
@@ -73,9 +80,6 @@ instance (Generic a, GTraversal (Rep a), Typeable a) => GTraversal (K1 i a) wher
     Just b  -> K1 . fromJust . cast <$> f b
     Nothing | rec       -> K1 <$> fmap generic (everyr False) f a
             | otherwise -> pure $ K1 a
-    where
-      maybeArg1Of :: Maybe c -> (c -> d) -> Maybe c
-      maybeArg1Of = const
 
 instance GTraversal U1 where
   everyr _ _ U1 = pure U1
@@ -93,4 +97,3 @@ instance GTraversal a => GTraversal (M1 i c a) where
 -- ?
 instance (Traversable f, GTraversal g) => GTraversal (f :.: g) where
   everyr _ f (Comp1 fgp) = Comp1 <$> traverse (everyr True f) fgp
-
