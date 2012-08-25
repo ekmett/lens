@@ -1,9 +1,12 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
-{-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE ExistentialQuantification #-}
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
+{-# LANGUAGE Trustworthy #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Data.Lens
@@ -13,14 +16,17 @@
 -- Stability   :  experimental
 -- Portability :  Rank2Types
 --
--- Smart generic traversals of 'Data' based on the internals of Neil Mitchell's
--- @uniplate@.
+-- Smart and naïve generic traversals given 'Data' instances.
+--
+-- 'every', 'uniplate', and 'biplate' each build up information about what
+-- types can be contained within another type to speed up 'Traversal'.
+--
 ----------------------------------------------------------------------------
 module Data.Data.Lens
-  ( naive     -- a naive version of every/uniplates
-  , every     -- more polymorphic uniplates
-  , uniplates -- Smart uniplate traversal
-  , biplates  -- Smart biplate traversal
+  ( tinplate -- A naïve version of 'every'/'uniplate'
+  , every    -- A more polymorphic version of 'uniplate' than is required for the standard 'uniplate' combinators
+  , uniplate -- Smart 'uniplate' 'Traversal' using 'Data'
+  , biplate  -- Smart 'biplate' 'Traversal' using 'Data'
   ) where
 
 import           Control.Applicative
@@ -41,37 +47,45 @@ import           GHC.Exts (realWorld#)
 import           Unsafe.Coerce as Unsafe
 
 -------------------------------------------------------------------------------
--- Naive Traversal
+-- Naïve Traversal
 -------------------------------------------------------------------------------
 
--- | Naive 'Traversal' using 'Data'. This does not attempt to optimize the traversal.
+-- | Naïve 'Traversal' using 'Data'. This does not attempt to optimize the traversal.
 --
 -- @
--- 'every' :: ('Data' a, 'Typeable' b) => 'Simple' 'Traversal' a b
+-- 'tinplate' :: ('Data' a, 'Typeable' b) => 'Simple' 'Traversal' a b
 -- @
-naive :: (Data a, Typeable b) => Simple Traversal a b
-naive f = gfoldl (step f) pure
+tinplate :: (Data a, Typeable b) => Simple Traversal a b
+tinplate f = gfoldl (step f) pure
+{-# INLINE naïve #-}
 
 step :: (Applicative f, Typeable b, Data d) => (b -> f b) -> f (d -> e) -> d -> f e
 step f w d = w <*> case cast d of
   Just b  -> unsafeCoerce <$> f b
-  Nothing -> naive f d
+  Nothing -> tinplate f d
+{-# INLINE step #-}
 
 -------------------------------------------------------------------------------
 -- Smart Traversal
 -------------------------------------------------------------------------------
 
--- | Find every occurence of a given type recursively that doesn't require passing through something with the same type.
-every :: forall a b. (Data a, Data b) => Simple Traversal a b
-every f a = uniplatesData (fromOracle (hitTest a (undefined :: b))) f a
+-- | Find every occurence of a given type @b@ recursively that doesn't require passing through something of type @b@
+-- using 'Data', while avoiding traversal of areas that cannot contain a value of type @b@.
+every :: forall a b. (Data a, Typeable b) => Simple Traversal a b
+every f a = uniplateData (fromOracle (hitTest a (undefined :: b))) f a
 
--- | Find self-similar descendants non-transitively.
-uniplates :: Data a => Simple Traversal a a
-uniplates = every
+-- | Find descendants of type @a@ non-transitively, while avoiding computation of areas that cannot contain values of
+-- type @a@ using 'Data'.
+--
+-- 'uniplate' is a useful default definition for 'Control.Plated.plate'
+uniplate :: Data a => Simple Traversal a a
+uniplate = every
+{-# INLINE uniplate #-}
 
--- | Like every, except when @a ~ b@, it returns the root and nothing else.
-biplates :: (Data a, Data b) => Simple Traversal a b
-biplates f a = biplatesData (fromOracle (hitTest a (undefined :: b))) f a
+-- | 'biplate' performs like 'every', except when @a ~ b@, it returns itself and nothing else.
+--
+biplate :: (Data a, Typeable b) => Simple Traversal a b
+biplate f a = biplateData (fromOracle (hitTest a (undefined :: b))) f a
 
 -------------------------------------------------------------------------------
 -- Data Box
@@ -84,8 +98,9 @@ data DataBox = forall a. Data a => DataBox
 
 dataBox :: Data a => a -> DataBox
 dataBox a = DataBox (typeOf a) a
+{-# INLINE dataBox #-}
 
--- partial
+-- partial, caught elsewhere
 sybChildren :: forall a. Data a => a -> [DataBox]
 sybChildren x
   | isAlgType dt = do
@@ -110,7 +125,6 @@ emptyHitMap = M.fromList
 
 insertHitMap :: DataBox -> HitMap -> HitMap
 insertHitMap box hit = fixEq trans (populate box) <> hit where
-
   populate :: DataBox -> HitMap
   populate a = f a M.empty where
     f (DataBox k v) m
@@ -129,6 +143,7 @@ fixEq f = go where
   go x | x == x'   = x'
        | otherwise = go x'
        where x' = f x
+{-# INLINE fixEq #-}
 
 -- | inlineable 'unsafePerformIO'
 inlinePerformIO :: IO a -> a
@@ -156,6 +171,7 @@ readCacheFollower b@(DataBox kb _) ka = inlinePerformIO $
 
 insert2 :: TypeRep -> TypeRep -> a -> HashMap TypeRep (HashMap TypeRep a) -> HashMap TypeRep (HashMap TypeRep a)
 insert2 x y v = M.insertWith (const $ M.insert y v) x (M.singleton y v)
+{-# INLINE insert2 #-}
 
 {-
 readCacheHitMap :: DataBox -> Maybe HitMap
@@ -191,7 +207,7 @@ newtype Oracle a = Oracle { fromOracle :: forall t. Typeable t => t -> Answer a 
 instance Functor Oracle where
   fmap f (Oracle g) = Oracle (fmap f . g)
 
-hitTest :: (Data a, Data b) => a -> b -> Oracle b
+hitTest :: (Data a, Typeable b) => a -> b -> Oracle b
 hitTest a b
   | kb <- typeOf b = case readCacheFollower (dataBox a) kb of
     Nothing -> Oracle $ \c ->
@@ -207,21 +223,24 @@ hitTest a b
 -- Traversals
 -------------------------------------------------------------------------------
 
-biplatesData :: (Applicative f, Data a, Data b) => (forall c . Typeable c => c -> Answer b) -> (b -> f b) -> a -> f a
-biplatesData o f a = case o a of
+biplateData :: (Applicative f, Data a, Typeable b) => (forall c . Typeable c => c -> Answer b) -> (b -> f b) -> a -> f a
+biplateData o f a = case o a of
   Hit b  -> Unsafe.unsafeCoerce <$> f b
-  Follow -> uniplatesData o f a
+  Follow -> uniplateData o f a
   Miss   -> pure a
+{-# INLINE biplateData #-}
 
-uniplatesData :: forall a b f. (Applicative f, Data a, Data b) => (forall c. Typeable c => c -> Answer b) -> (b -> f b) -> a -> f a
-uniplatesData o f = gfoldl (\x y -> x <*> biplatesData o f y) pure
+uniplateData :: (Applicative f, Data a, Typeable b) => (forall c. Typeable c => c -> Answer b) -> (b -> f b) -> a -> f a
+uniplateData o f = gfoldl (\x y -> x <*> biplateData o f y) pure
+{-# INLINE uniplateData #-}
 
 -------------------------------------------------------------------------------
 -- Follower
 -------------------------------------------------------------------------------
 
-part :: (Eq a, Hashable a) => (a -> Bool) -> HashSet a -> (HashSet a, HashSet a)
+part :: (a -> Bool) -> HashSet a -> (HashSet a, HashSet a)
 part p = S.filter p &&& S.filter (not . p)
+{-# INLINE part #-}
 
 type Follower = TypeRep -> Bool
 
