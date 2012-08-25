@@ -721,9 +721,9 @@ holesOn = holesOf
 -- @'holesOnOf' b l = 'holesOf' (b '.' l)@
 --
 -- @
--- 'holesOnOf' :: 'Simple 'Iso' a b       -> 'Simple' 'Iso' b b       -> a -> ['Context' b a]
--- 'holesOnOf' :: 'Simple 'Lens' a b      -> 'Simple' 'Lens' b b      -> a -> ['Context' b a]
--- 'holesOnOf' :: 'Simple 'Traversal' a b -> 'Simple' 'Traversal' b b -> a -> ['Context' b a]
+-- 'holesOnOf' :: 'Simple' 'Iso' a b       -> 'Simple' 'Iso' b b       -> a -> ['Context' b a]
+-- 'holesOnOf' :: 'Simple' 'Lens' a b      -> 'Simple' 'Lens' b b      -> a -> ['Context' b a]
+-- 'holesOnOf' :: 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> a -> ['Context' b a]
 -- @
 holesOnOf :: LensLike (Kleene e e) a b c d -> LensLike (Kleene e e) c d e e -> a -> [Context e e b]
 holesOnOf b l = holesOf (b.l)
