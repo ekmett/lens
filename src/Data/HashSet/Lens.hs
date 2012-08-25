@@ -25,7 +25,7 @@ import Data.Hashable
 
 -- | This 'Lens' can be used to read, write or delete a member of a 'HashSet'
 --
--- >>> :m + Data.HashSet Data.HashSet.Lens Control.Lens
+-- >>> :m + Data.HashSet Control.Lens
 -- >>> contains 3 .~ False $ HashSet.fromList [1,2,3,4]
 -- fromList [1,2,4]
 contains :: (Eq k, Hashable k) => k -> Simple Lens (HashSet k) Bool
@@ -40,7 +40,7 @@ contains k f s = go <$> f (HashSet.member k s) where
 -- Sadly, you can't create a valid 'Traversal' for a 'Set', but you can
 -- manipulate it by reading using 'folded' and reindexing it via 'setmap'.
 --
--- >>> :m + Data.HashSet Data.HashSet.Lens Control.Lens
+-- >>> :m + Data.HashSet Control.Lens
 -- >>> over setmapped (+1) (fromList [1,2,3,4])
 -- fromList [2,3,4,5]
 setmapped :: (Eq i, Hashable i, Eq j, Hashable j) => Setter (HashSet i) (HashSet j) i j
@@ -48,7 +48,7 @@ setmapped = sets HashSet.map
 
 -- | Construct a set from a 'Getter', 'Fold', 'Traversal', 'Lens' or 'Iso'.
 --
--- >>> :m + Data.Set.Lens Control.Lens
+-- >>> :m + Control.Lens
 -- >>> setOf (folded._2) [("hello",1),("world",2),("!!!",3)]
 -- fromList [1,2,3]
 --
