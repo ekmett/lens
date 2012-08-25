@@ -11,6 +11,7 @@
 ----------------------------------------------------------------------------
 module Data.Typeable.Lens
   ( _cast
+  , _gcast
   ) where
 
 import Control.Applicative
@@ -23,3 +24,7 @@ _cast f a = case cast a of
   Just b -> Unsafe.unsafeCoerce <$> f b
   Nothing -> pure a
 
+_gcast :: (Typeable a, Typeable b) => Simple Traversal (c a) (c b)
+_gcast f a = case gcast a of
+  Just b -> Unsafe.unsafeCoerce <$> f b
+  Nothing -> pure a

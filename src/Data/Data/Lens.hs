@@ -35,7 +35,6 @@ import           Control.Exception as E
 import           Control.Lens
 import           Data.Data
 import           Data.Foldable
-import           Data.Hashable
 import qualified Data.HashMap.Strict as M
 import           Data.HashMap.Strict (HashMap, (!))
 import qualified Data.HashSet as S
@@ -52,12 +51,14 @@ import           Unsafe.Coerce as Unsafe
 
 -- | Naïve 'Traversal' using 'Data'. This does not attempt to optimize the traversal.
 --
+-- This is primarily useful when the children are immediately obvious, and for benchmarking.
+--
 -- @
 -- 'tinplate' :: ('Data' a, 'Typeable' b) => 'Simple' 'Traversal' a b
 -- @
 tinplate :: (Data a, Typeable b) => Simple Traversal a b
 tinplate f = gfoldl (step f) pure
-{-# INLINE naïve #-}
+{-# INLINE tinplate #-}
 
 step :: (Applicative f, Typeable b, Data d) => (b -> f b) -> f (d -> e) -> d -> f e
 step f w d = w <*> case cast d of

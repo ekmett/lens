@@ -139,6 +139,7 @@ library
                    Data.Data.Lens
                    Data.Dynamic.Lens
                    Data.Either.Lens
+                   Data.HashMap.Lens
                    Data.HashSet.Lens
                    Data.IntMap.Lens
                    Data.IntSet.Lens

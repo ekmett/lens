@@ -26,13 +26,19 @@
 -- additional type safety is gained, as the user is no longer responsible for
 -- maintaining invariants such as the number of children he received.
 --
--- Biplate are deliberately excluded from the API here, with the intention
--- that you replace them with TH derived traversals.
+-- Note: The @Biplate@ is /deliberately/ excluded from the API here, with the
+-- intention that you replace them with either explicit traversals, or by using the
+-- @On@ variants of the combinators below with 'Data.Data.Lens.biplate' from
+-- @Data.Data.Lens@. As a design, it forced the user into too many situations where
+-- they had to choose between correctness and ease of use, and it was brittle in the
+-- face of competing imports.
 --
--- The combinators in this module make a number of assumptions.
+-- Using the combinators to take the place of make a number of simple assumptions.
 --
--- Notably any of the `On` combinators are expecting a 'Traversal', 'Setter' or 'Fold'
--- to play the role of the 'Data.Data.Lens.biplate' combinator.
+-- Notably any of the @On@ combinators are expecting a 'Traversal', 'Setter' or 'Fold'
+-- to play the role of the 'Data.Data.Lens.biplate' combinator, and so when the
+-- types of the contents and the container match, they should be the 'id' 'Traversal',
+-- 'Setter' or 'Fold'.
 --
 -- It is often beneficial to use the combinators in this module with the combinators
 -- from @Data.Data.Lens@ or @GHC.Generics.Lens@ to make it easier to automatically
@@ -42,7 +48,7 @@ module Control.Plated
   (
   -- * Uniplate
     Plated(..)
-  , uniplate
+  , parts
   , partsOf
 
   -- * Uniplate Combinators
@@ -74,7 +80,6 @@ module Control.Plated
 import Control.Applicative
 import Control.Arrow ((&&&))
 import Control.Comonad
-import Control.Monad
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal
@@ -82,7 +87,6 @@ import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.Int
-import Data.Monoid
 import Data.Ratio
 import Data.Word
 -- import Data.Tree
@@ -337,14 +341,26 @@ rewriteMOnOf :: Monad m => LensLike (WrappedMonad m) a b c c -> SimpleLensLike (
 rewriteMOnOf b l = mapMOf b . rewriteMOf l
 {-# INLINE rewriteMOnOf #-}
 
--- | Given a traversal that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself.
+-- | Retrieve all of the transitive descendants of a 'Plated' container, including itself.
+universe :: Plated a => a -> [a]
+universe = universeOf plate
+{-# INLINE universe #-}
+
+-- | Given a fold that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself.
+--
+-- @'universeOf' :: 'Fold' a a -> a -> [a]@
 universeOf :: Getting [a] a a -> a -> [a]
 universeOf l = go where
   go a = a : foldMapOf l go a
 {-# INLINE universeOf #-}
 
--- | Given a traversal that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself that lie
--- in a region indicated by another fold.
+-- | Given a 'Fold' that knows how to find 'Plated' parts of a container retrieve them and all of their descendants, recursively.
+universeOn ::  Plated b => Getting [b] a b -> a -> [b]
+universeOn b = universeOnOf b plate
+{-# INLINE universeOn #-}
+
+-- | Given a 'Fold' that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself that lie
+-- in a region indicated by another 'Fold'.
 universeOnOf :: Getting [b] a b -> Getting [b] b b -> a -> [b]
 universeOnOf b = foldMapOf b . universeOf
 {-# INLINE universeOnOf #-}
