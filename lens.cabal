@@ -95,6 +95,10 @@ source-repository head
   type: git
   location: git://github.com/ekmett/lens.git
 
+flag benchmarks
+  default: False
+  manual: True
+
 library
   build-depends:
     base                 >= 4.3   && < 5,
@@ -193,7 +197,7 @@ test-suite templates
   type: exitcode-stdio-1.0
   main-is: templates.hs
   build-depends:
-    base == 4.*,
+    base,
     lens
   ghc-options: -Wall -Werror -threaded
   hs-source-dirs: tests
@@ -203,9 +207,22 @@ test-suite properties
   type: exitcode-stdio-1.0
   main-is: properties.hs
   build-depends:
-    base         == 4.*,
+    base,
     lens,
     QuickCheck   >= 2.4 && < 2.6,
     transformers >= 0.3 && < 0.5
   ghc-options: -w -threaded
   hs-source-dirs: tests
+
+executable benchmark-plated
+  if !flag(benchmarks)
+    buildable: False
+  main-is: plated.hs
+  build-depends:
+    base,
+    criterion,
+    deepseq,
+    lens,
+    uniplate >= 1.6.7 && < 1.7
+  ghc-options: -Wall -O2 -threaded
+  hs-source-dirs: benchmarks
