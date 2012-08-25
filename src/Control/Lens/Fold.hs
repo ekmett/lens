@@ -37,6 +37,7 @@ module Control.Lens.Fold
   (
   -- * Folds
     Fold
+  , (^?)
   -- ** Building Folds
   --, folds
   , folding
@@ -83,6 +84,7 @@ import Data.Foldable as Foldable
 import Data.Maybe
 import Data.Monoid
 
+infixl 8 ^?, ^..
 
 --------------------------
 -- Folds
@@ -113,6 +115,7 @@ noEffect = coerce $ pure ()
 folding :: (Foldable f, Applicative g, Gettable g) => (a -> f c) -> LensLike g a b c d
 folding afc cgd = coerce . traverse_ cgd . afc
 {-# INLINE folding #-}
+
 
 -- | A monoid in a monad as a monoid
 newtype GA f a = GA { getGA :: f a }
@@ -222,11 +225,11 @@ droppingWhile p l f = foldrOf l (\a r -> if p a then r else f a *> r) noEffect
 -- @'foldMapOf' = 'views'@
 --
 -- @
--- foldMapOf ::             'Getter' a c           -> (c -> r) -> a -> r
--- foldMapOf :: 'Monoid' r => 'Fold' a c             -> (c -> r) -> a -> r
--- foldMapOf ::             'Simple' 'Lens' a c      -> (c -> r) -> a -> r
--- foldMapOf ::             'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> r) -> a -> r
--- foldMapOf :: 'Monoid' r => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> r) -> a -> r
+-- 'foldMapOf' ::             'Getter' a c           -> (c -> r) -> a -> r
+-- 'foldMapOf' :: 'Monoid' r => 'Fold' a c             -> (c -> r) -> a -> r
+-- 'foldMapOf' ::             'Simple' 'Lens' a c      -> (c -> r) -> a -> r
+-- 'foldMapOf' ::             'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> r) -> a -> r
+-- 'foldMapOf' :: 'Monoid' r => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> r) -> a -> r
 -- @
 foldMapOf :: Getting r a c -> (c -> r) -> a -> r
 foldMapOf l f = runAccessor . l (Accessor . f)
@@ -238,11 +241,11 @@ foldMapOf l f = runAccessor . l (Accessor . f)
 -- @'foldOf' = 'view'@
 --
 -- @
--- foldOf ::             'Getter' a m           -> a -> m
--- foldOf :: 'Monoid' m => 'Fold' a m             -> a -> m
--- foldOf ::             'Simple' 'Lens' a m      -> a -> m
--- foldOf ::             'Simple' 'Control.Lens.Iso.Iso' a m       -> a -> m
--- foldOf :: 'Monoid' m => 'Simple' 'Control.Lens.Traversal.Traversal' a m -> a -> m
+-- 'foldOf' ::             'Getter' a m           -> a -> m
+-- 'foldOf' :: 'Monoid' m => 'Fold' a m             -> a -> m
+-- 'foldOf' ::             'Simple' 'Lens' a m      -> a -> m
+-- 'foldOf' ::             'Simple' 'Control.Lens.Iso.Iso' a m       -> a -> m
+-- 'foldOf' :: 'Monoid' m => 'Simple' 'Control.Lens.Traversal.Traversal' a m -> a -> m
 -- @
 foldOf :: Getting c a c -> a -> c
 foldOf l = runAccessor . l Accessor
@@ -254,11 +257,11 @@ foldOf l = runAccessor . l Accessor
 -- @'Data.Foldable.foldr' = 'foldrOf' 'folded'@
 --
 -- @
--- foldrOf :: 'Getter' a c           -> (c -> e -> e) -> e -> a -> e
--- foldrOf :: 'Fold' a c             -> (c -> e -> e) -> e -> a -> e
--- foldrOf :: 'Simple' 'Lens' a c      -> (c -> e -> e) -> e -> a -> e
--- foldrOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> e -> e) -> e -> a -> e
--- foldrOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> e -> e) -> e -> a -> e
+-- 'foldrOf' :: 'Getter' a c           -> (c -> e -> e) -> e -> a -> e
+-- 'foldrOf' :: 'Fold' a c             -> (c -> e -> e) -> e -> a -> e
+-- 'foldrOf' :: 'Simple' 'Lens' a c      -> (c -> e -> e) -> e -> a -> e
+-- 'foldrOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> e -> e) -> e -> a -> e
+-- 'foldrOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> e -> e) -> e -> a -> e
 -- @
 foldrOf :: Getting (Endo e) a c -> (c -> e -> e) -> e -> a -> e
 foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
@@ -270,39 +273,55 @@ foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 -- @'Data.Foldable.foldl' = 'foldlOf' 'folded'@
 --
 -- @
--- foldlOf :: 'Getter' a c           -> (e -> c -> e) -> e -> a -> e
--- foldlOf :: 'Fold' a c             -> (e -> c -> e) -> e -> a -> e
--- foldlOf :: 'Simple' 'Lens' a c      -> (e -> c -> e) -> e -> a -> e
--- foldlOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (e -> c -> e) -> e -> a -> e
--- foldlOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (e -> c -> e) -> e -> a -> e
+-- 'foldlOf' :: 'Getter' a c           -> (e -> c -> e) -> e -> a -> e
+-- 'foldlOf' :: 'Fold' a c             -> (e -> c -> e) -> e -> a -> e
+-- 'foldlOf' :: 'Simple' 'Lens' a c      -> (e -> c -> e) -> e -> a -> e
+-- 'foldlOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (e -> c -> e) -> e -> a -> e
+-- 'foldlOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (e -> c -> e) -> e -> a -> e
 -- @
 foldlOf :: Getting (Dual (Endo e)) a c -> (e -> c -> e) -> e -> a -> e
 foldlOf l f z t = appEndo (getDual (foldMapOf l (Dual . Endo . flip f) t)) z
 {-# INLINE foldlOf #-}
 
--- |
--- @'Data.Foldable.toList' = 'toListOf' 'folded'@
+-- | Extract a list of the targets of a 'Fold'. See also ('^..').
 --
 -- @
--- toListOf :: 'Getter' a c           -> a -> [c]
--- toListOf :: 'Fold' a c             -> a -> [c]
--- toListOf :: 'Simple' 'Lens' a c      -> a -> [c]
--- toListOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> [c]
--- toListOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> [c]
+-- 'Data.Foldable.toList' = 'toListOf' 'folded'
+-- ('^..') = 'flip' 'toListOf'
+-- @
+--
+-- @
+-- 'toListOf' :: 'Getter' a c           -> a -> [c]
+-- 'toListOf' :: 'Fold' a c             -> a -> [c]
+-- 'toListOf' :: 'Simple' 'Lens' a c      -> a -> [c]
+-- 'toListOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> [c]
+-- 'toListOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> [c]
 -- @
 toListOf :: Getting [c] a c -> a -> [c]
 toListOf l = foldMapOf l return
 {-# INLINE toListOf #-}
 
+-- | A convenient infix (flipped) version of 'toListOf'.
+--
+-- @
+-- 'toListOf' :: a -> 'Getter' a c           -> [c]
+-- 'toListOf' :: a -> 'Fold' a c             -> [c]
+-- 'toListOf' :: a -> 'Simple' 'Lens' a c      -> [c]
+-- 'toListOf' :: a -> 'Simple' 'Control.Lens.Iso.Iso' a c       -> [c]
+-- 'toListOf' :: a -> 'Simple' 'Control.Lens.Traversal.Traversal' a c -> [c]
+-- @
+(^..) :: a -> Getting [c] a c -> [c]
+a ^.. l = foldMapOf l return a
+
 -- |
 -- @'Data.Foldable.and' = 'andOf' 'folded'@
 --
 -- @
--- andOf :: 'Getter' a 'Bool'           -> a -> 'Bool'
--- andOf :: 'Fold' a 'Bool'             -> a -> 'Bool'
--- andOf :: 'Simple' 'Lens' a 'Bool'      -> a -> 'Bool'
--- andOf :: 'Simple' 'Control.Lens.Iso.Iso' a 'Bool'       -> a -> 'Bool'
--- andOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a 'Bool' -> a -> 'Bool'
+-- 'andOf' :: 'Getter' a 'Bool'           -> a -> 'Bool'
+-- 'andOf' :: 'Fold' a 'Bool'             -> a -> 'Bool'
+-- 'andOf' :: 'Simple' 'Lens' a 'Bool'      -> a -> 'Bool'
+-- 'andOf' :: 'Simple' 'Control.Lens.Iso.Iso' a 'Bool'       -> a -> 'Bool'
+-- 'andOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a 'Bool' -> a -> 'Bool'
 -- @
 andOf :: Getting All a Bool -> a -> Bool
 andOf l = getAll . foldMapOf l All
@@ -312,11 +331,11 @@ andOf l = getAll . foldMapOf l All
 -- @'Data.Foldable.or' = 'orOf' 'folded'@
 --
 -- @
--- orOf :: 'Getter' a 'Bool'           -> a -> 'Bool'
--- orOf :: 'Fold' a 'Bool'             -> a -> 'Bool'
--- orOf :: 'Simple' 'Lens' a 'Bool'      -> a -> 'Bool'
--- orOf :: 'Simple' 'Control.Lens.Iso.Iso' a 'Bool'       -> a -> 'Bool'
--- orOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a 'Bool' -> a -> 'Bool'
+-- 'orOf' :: 'Getter' a 'Bool'           -> a -> 'Bool'
+-- 'orOf' :: 'Fold' a 'Bool'             -> a -> 'Bool'
+-- 'orOf' :: 'Simple' 'Lens' a 'Bool'      -> a -> 'Bool'
+-- 'orOf' :: 'Simple' 'Control.Lens.Iso.Iso' a 'Bool'       -> a -> 'Bool'
+-- 'orOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a 'Bool' -> a -> 'Bool'
 -- @
 orOf :: Getting Any a Bool -> a -> Bool
 orOf l = getAny . foldMapOf l Any
@@ -326,11 +345,11 @@ orOf l = getAny . foldMapOf l Any
 -- @'Data.Foldable.any' = 'anyOf' 'folded'@
 --
 -- @
--- anyOf :: 'Getter' a c               -> (c -> 'Bool') -> a -> 'Bool'
--- anyOf :: 'Fold' a c                 -> (c -> 'Bool') -> a -> 'Bool'
--- anyOf :: 'Simple' 'Lens' a b c d      -> (c -> 'Bool') -> a -> 'Bool'
--- anyOf :: 'Simple' 'Control.Lens.Iso.Iso' a b c d       -> (c -> 'Bool') -> a -> 'Bool'
--- anyOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a b c d -> (c -> 'Bool') -> a -> 'Bool'
+-- 'anyOf' :: 'Getter' a c               -> (c -> 'Bool') -> a -> 'Bool'
+-- 'anyOf' :: 'Fold' a c                 -> (c -> 'Bool') -> a -> 'Bool'
+-- 'anyOf' :: 'Simple' 'Lens' a b c d      -> (c -> 'Bool') -> a -> 'Bool'
+-- 'anyOf' :: 'Simple' 'Control.Lens.Iso.Iso' a b c d       -> (c -> 'Bool') -> a -> 'Bool'
+-- 'anyOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a b c d -> (c -> 'Bool') -> a -> 'Bool'
 -- @
 anyOf :: Getting Any a c -> (c -> Bool) -> a -> Bool
 anyOf l f = getAny . foldMapOf l (Any . f)
@@ -340,11 +359,11 @@ anyOf l f = getAny . foldMapOf l (Any . f)
 -- @'Data.Foldable.all' = 'allOf' 'folded'@
 --
 -- @
--- allOf :: 'Getter' a c           -> (c -> 'Bool') -> a -> 'Bool'
--- allOf :: 'Fold' a c             -> (c -> 'Bool') -> a -> 'Bool'
--- allOf :: 'Simple' 'Lens' a c      -> (c -> 'Bool') -> a -> 'Bool'
--- allOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> 'Bool') -> a -> 'Bool'
--- allOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> 'Bool') -> a -> 'Bool'
+-- 'allOf' :: 'Getter' a c           -> (c -> 'Bool') -> a -> 'Bool'
+-- 'allOf' :: 'Fold' a c             -> (c -> 'Bool') -> a -> 'Bool'
+-- 'allOf' :: 'Simple' 'Lens' a c      -> (c -> 'Bool') -> a -> 'Bool'
+-- 'allOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> 'Bool') -> a -> 'Bool'
+-- 'allOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> 'Bool') -> a -> 'Bool'
 -- @
 allOf :: Getting All a c -> (c -> Bool) -> a -> Bool
 allOf l f = getAll . foldMapOf l (All . f)
@@ -354,11 +373,11 @@ allOf l f = getAll . foldMapOf l (All . f)
 -- @'Data.Foldable.product' = 'productOf' 'folded'@
 --
 -- @
--- productOf ::          'Getter' a c           -> a -> c
--- productOf :: 'Num' c => 'Fold' a c             -> a -> c
--- productOf ::          'Simple' 'Lens' a c      -> a -> c
--- productOf ::          'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> c
--- productOf :: 'Num' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> c
+-- 'productOf' ::          'Getter' a c           -> a -> c
+-- 'productOf' :: 'Num' c => 'Fold' a c             -> a -> c
+-- 'productOf' ::          'Simple' 'Lens' a c      -> a -> c
+-- 'productOf' ::          'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> c
+-- 'productOf' :: 'Num' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> c
 -- @
 productOf :: Getting (Product c) a c -> a -> c
 productOf l = getProduct . foldMapOf l Product
@@ -372,11 +391,11 @@ productOf l = getProduct . foldMapOf l Product
 -- @'sumOf' ('folded' . '_1') :: ('Foldable' f, 'Num' a) => f (a, b) -> a@
 --
 -- @
--- sumOf ::          'Getter' a c           -> a -> c
--- sumOf :: 'Num' c => 'Fold' a c             -> a -> c
--- sumOf ::          'Simple' 'Lens' a c      -> a -> c
--- sumOf ::          'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> c
--- sumOf :: 'Num' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> c
+-- 'sumOf' ::          'Getter' a c           -> a -> c
+-- 'sumOf' :: 'Num' c => 'Fold' a c             -> a -> c
+-- 'sumOf' ::          'Simple' 'Lens' a c      -> a -> c
+-- 'sumOf' ::          'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> c
+-- 'sumOf' :: 'Num' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> c
 -- @
 sumOf :: Getting (Sum c) a c -> a -> c
 sumOf l = getSum . foldMapOf l Sum
@@ -486,11 +505,11 @@ sequenceOf_ l = getSequenced . foldMapOf l (Sequenced . liftM skip)
 -- @'asum' = 'asumOf' 'folded'@
 --
 -- @
--- asumOf :: 'Alternative' f => 'Getter' a c           -> a -> f c
--- asumOf :: 'Alternative' f => 'Fold' a c             -> a -> f c
--- asumOf :: 'Alternative' f => 'Simple' 'Lens' a c      -> a -> f c
--- asumOf :: 'Alternative' f => 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> f c
--- asumOf :: 'Alternative' f => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> f c
+-- 'asumOf' :: 'Alternative' f => 'Getter' a c           -> a -> f c
+-- 'asumOf' :: 'Alternative' f => 'Fold' a c             -> a -> f c
+-- 'asumOf' :: 'Alternative' f => 'Simple' 'Lens' a c      -> a -> f c
+-- 'asumOf' :: 'Alternative' f => 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> f c
+-- 'asumOf' :: 'Alternative' f => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> f c
 -- @
 asumOf :: Alternative f => Getting (Endo (f c)) a (f c) -> a -> f c
 asumOf l = foldrOf l (<|>) Applicative.empty
@@ -501,11 +520,11 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 -- @'msum' = 'msumOf' 'folded'@
 --
 -- @
--- msumOf :: 'MonadPlus' m => 'Getter' a c           -> a -> m c
--- msumOf :: 'MonadPlus' m => 'Fold' a c             -> a -> m c
--- msumOf :: 'MonadPlus' m => 'Simple' 'Lens' a c      -> a -> m c
--- msumOf :: 'MonadPlus' m => 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> m c
--- msumOf :: 'MonadPlus' m => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> m c
+-- 'msumOf' :: 'MonadPlus' m => 'Getter' a c           -> a -> m c
+-- 'msumOf' :: 'MonadPlus' m => 'Fold' a c             -> a -> m c
+-- 'msumOf' :: 'MonadPlus' m => 'Simple' 'Lens' a c      -> a -> m c
+-- 'msumOf' :: 'MonadPlus' m => 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> m c
+-- 'msumOf' :: 'MonadPlus' m => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> m c
 -- @
 msumOf :: MonadPlus m => Getting (Endo (m c)) a (m c) -> a -> m c
 msumOf l = foldrOf l mplus mzero
@@ -515,11 +534,11 @@ msumOf l = foldrOf l mplus mzero
 -- @'elem' = 'elemOf' 'folded'@
 --
 -- @
--- elemOf :: 'Eq' c => 'Getter' a c           -> c -> a -> 'Bool'
--- elemOf :: 'Eq' c => 'Fold' a c             -> c -> a -> 'Bool'
--- elemOf :: 'Eq' c => 'Simple' 'Lens' a c      -> c -> a -> 'Bool'
--- elemOf :: 'Eq' c => 'Simple' 'Control.Lens.Iso.Iso' a c       -> c -> a -> 'Bool'
--- elemOf :: 'Eq' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> c -> a -> 'Bool'
+-- 'elemOf' :: 'Eq' c => 'Getter' a c           -> c -> a -> 'Bool'
+-- 'elemOf' :: 'Eq' c => 'Fold' a c             -> c -> a -> 'Bool'
+-- 'elemOf' :: 'Eq' c => 'Simple' 'Lens' a c      -> c -> a -> 'Bool'
+-- 'elemOf' :: 'Eq' c => 'Simple' 'Control.Lens.Iso.Iso' a c       -> c -> a -> 'Bool'
+-- 'elemOf' :: 'Eq' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> c -> a -> 'Bool'
 -- @
 elemOf :: Eq c => Getting Any a c -> c -> a -> Bool
 elemOf l = anyOf l . (==)
@@ -529,11 +548,11 @@ elemOf l = anyOf l . (==)
 -- @'notElem' = 'notElemOf' 'folded'@
 --
 -- @
--- notElemOf :: 'Eq' c => 'Getter' a c           -> c -> a -> 'Bool'
--- notElemOf :: 'Eq' c => 'Fold' a c             -> c -> a -> 'Bool'
--- notElemOf :: 'Eq' c => 'Simple' 'Control.Lens.Iso.Iso' a c       -> c -> a -> 'Bool'
--- notElemOf :: 'Eq' c => 'Simple' 'Lens' a c      -> c -> a -> 'Bool'
--- notElemOf :: 'Eq' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> c -> a -> 'Bool'
+-- 'notElemOf' :: 'Eq' c => 'Getter' a c           -> c -> a -> 'Bool'
+-- 'notElemOf' :: 'Eq' c => 'Fold' a c             -> c -> a -> 'Bool'
+-- 'notElemOf' :: 'Eq' c => 'Simple' 'Control.Lens.Iso.Iso' a c       -> c -> a -> 'Bool'
+-- 'notElemOf' :: 'Eq' c => 'Simple' 'Lens' a c      -> c -> a -> 'Bool'
+-- 'notElemOf' :: 'Eq' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> c -> a -> 'Bool'
 -- @
 notElemOf :: Eq c => Getting All a c -> c -> a -> Bool
 notElemOf l = allOf l . (/=)
@@ -543,11 +562,11 @@ notElemOf l = allOf l . (/=)
 -- @'concatMap' = 'concatMapOf' 'folded'@
 --
 -- @
--- concatMapOf :: 'Getter' a c           -> (c -> [e]) -> a -> [e]
--- concatMapOf :: 'Fold' a c             -> (c -> [e]) -> a -> [e]
--- concatMapOf :: 'Simple' 'Lens' a c      -> (c -> [e]) -> a -> [e]
--- concatMapOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> [e]) -> a -> [e]
--- concatMapOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> [e]) -> a -> [e]
+-- 'concatMapOf' :: 'Getter' a c           -> (c -> [e]) -> a -> [e]
+-- 'concatMapOf' :: 'Fold' a c             -> (c -> [e]) -> a -> [e]
+-- 'concatMapOf' :: 'Simple' 'Lens' a c      -> (c -> [e]) -> a -> [e]
+-- 'concatMapOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> [e]) -> a -> [e]
+-- 'concatMapOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> [e]) -> a -> [e]
 -- @
 concatMapOf :: Getting [e] a c -> (c -> [e]) -> a -> [e]
 concatMapOf l ces = runAccessor . l (Accessor . ces)
@@ -560,11 +579,11 @@ concatMapOf l ces = runAccessor . l (Accessor . ces)
 -- @
 --
 -- @
--- concatOf :: 'Getter' a [e]           -> a -> [e]
--- concatOf :: 'Fold' a [e]             -> a -> [e]
--- concatOf :: 'Simple' 'Control.Lens.Iso.Iso' a [e]       -> a -> [e]
--- concatOf :: 'Simple' 'Lens' a [e]      -> a -> [e]
--- concatOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a [e] -> a -> [e]
+-- 'concatOf' :: 'Getter' a [e]           -> a -> [e]
+-- 'concatOf' :: 'Fold' a [e]             -> a -> [e]
+-- 'concatOf' :: 'Simple' 'Control.Lens.Iso.Iso' a [e]       -> a -> [e]
+-- 'concatOf' :: 'Simple' 'Lens' a [e]      -> a -> [e]
+-- 'concatOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a [e] -> a -> [e]
 -- @
 concatOf :: Getting [e] a [e] -> a -> [e]
 concatOf = view
@@ -582,41 +601,52 @@ concatOf = view
 -- @'lengthOf' ('folded' . 'folded') :: 'Foldable' f => f (g a) -> 'Int'@
 --
 -- @
--- lengthOf :: 'Getter' a c           -> a -> 'Int'
--- lengthOf :: 'Fold' a c             -> a -> 'Int'
--- lengthOf :: 'Simple' 'Lens' a c      -> a -> 'Int'
--- lengthOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Int'
--- lengthOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Int'
+-- 'lengthOf' :: 'Getter' a c           -> a -> 'Int'
+-- 'lengthOf' :: 'Fold' a c             -> a -> 'Int'
+-- 'lengthOf' :: 'Simple' 'Lens' a c      -> a -> 'Int'
+-- 'lengthOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Int'
+-- 'lengthOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Int'
 -- @
 lengthOf :: Getting (Sum Int) a c -> a -> Int
 lengthOf l = getSum . foldMapOf l (\_ -> Sum 1)
 {-# INLINE lengthOf #-}
 
 -- | Perform a safe 'head' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
--- from a 'Getter' or 'Lens'.
+-- from a 'Getter' or 'Lens'. See also ('^?').
 --
 -- @'Data.Maybe.listToMaybe' . 'toList' = 'headOf' 'folded'@
 --
 -- @
--- headOf :: 'Getter' a c           -> a -> 'Maybe' c
--- headOf :: 'Fold' a c             -> a -> 'Maybe' c
--- headOf :: 'Simple' 'Lens' a c      -> a -> 'Maybe' c
--- headOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Maybe' c
--- headOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Maybe' c
+-- 'headOf' :: 'Getter' a c           -> a -> 'Maybe' c
+-- 'headOf' :: 'Fold' a c             -> a -> 'Maybe' c
+-- 'headOf' :: 'Simple' 'Lens' a c      -> a -> 'Maybe' c
+-- 'headOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Maybe' c
+-- 'headOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Maybe' c
 -- @
 headOf :: Getting (First c) a c -> a -> Maybe c
 headOf l = getFirst . foldMapOf l (First . Just)
 {-# INLINE headOf #-}
 
+
+-- | Perform a safe 'head' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
+-- from a 'Getter' or 'Lens'.
+--
+-- When using a 'Traversal' as a partial 'Lens', this can be a convenient way to extract the optional value.
+--
+-- @(^?) = 'flip' 'headOf'@
+(^?) :: a -> Getting (First c) a c -> Maybe c
+a ^? l = getFirst (foldMapOf l (First . Just) a)
+{-# INLINE (^?) #-}
+
 -- | Perform a safe 'last' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
 --
 -- @
--- lastOf :: 'Getter' a c           -> a -> 'Maybe' c
--- lastOf :: 'Fold' a c             -> a -> 'Maybe' c
--- lastOf :: 'Simple' 'Lens' a c      -> a -> 'Maybe' c
--- lastOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Maybe' c
--- lastOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Maybe' c
+-- 'lastOf' :: 'Getter' a c           -> a -> 'Maybe' c
+-- 'lastOf' :: 'Fold' a c             -> a -> 'Maybe' c
+-- 'lastOf' :: 'Simple' 'Lens' a c      -> a -> 'Maybe' c
+-- 'lastOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Maybe' c
+-- 'lastOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Maybe' c
 -- @
 lastOf :: Getting (Last c) a c -> a -> Maybe c
 lastOf l = getLast . foldMapOf l (Last . Just)
@@ -638,11 +668,11 @@ lastOf l = getLast . foldMapOf l (Last . Just)
 -- @'nullOf' ('folded' . '_1' . 'folded') :: 'Foldable' f => f (g a, b) -> 'Bool'@
 --
 -- @
--- nullOf :: 'Getter' a c           -> a -> 'Bool'
--- nullOf :: 'Fold' a c             -> a -> 'Bool'
--- nullOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Bool'
--- nullOf :: 'Simple' 'Lens' a c      -> a -> 'Bool'
--- nullOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Bool'
+-- 'nullOf' :: 'Getter' a c           -> a -> 'Bool'
+-- 'nullOf' :: 'Fold' a c             -> a -> 'Bool'
+-- 'nullOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Bool'
+-- 'nullOf' :: 'Simple' 'Lens' a c      -> a -> 'Bool'
+-- 'nullOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Bool'
 -- @
 nullOf :: Getting All a c -> a -> Bool
 nullOf l = getAll . foldMapOf l (\_ -> All False)
@@ -656,11 +686,11 @@ nullOf l = getAll . foldMapOf l (\_ -> All False)
 -- @'maximum' = 'fromMaybe' ('error' "empty") . 'maximumOf' 'folded'@
 --
 -- @
--- maximumOf ::          'Getter' a c           -> a -> 'Maybe' c
--- maximumOf :: 'Ord' c => 'Fold' a c             -> a -> 'Maybe' c
--- maximumOf ::          'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Maybe' c
--- maximumOf ::          'Simple' 'Lens' a c      -> a -> 'Maybe' c
--- maximumOf :: 'Ord' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Maybe' c
+-- 'maximumOf' ::          'Getter' a c           -> a -> 'Maybe' c
+-- 'maximumOf' :: 'Ord' c => 'Fold' a c             -> a -> 'Maybe' c
+-- 'maximumOf' ::          'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Maybe' c
+-- 'maximumOf' ::          'Simple' 'Lens' a c      -> a -> 'Maybe' c
+-- 'maximumOf' :: 'Ord' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Maybe' c
 -- @
 maximumOf :: Getting (Max c) a c -> a -> Maybe c
 maximumOf l = getMax . foldMapOf l Max
@@ -674,11 +704,11 @@ maximumOf l = getMax . foldMapOf l Max
 -- @'minimum' = 'Data.Maybe.fromMaybe' ('error' "empty") . 'minimumOf' 'folded'@
 --
 -- @
--- minimumOf ::          'Getter' a c           -> a -> 'Maybe' c
--- minimumOf :: 'Ord' c => 'Fold' a c             -> a -> 'Maybe' c
--- minimumOf ::          'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Maybe' c
--- minimumOf ::          'Simple' 'Lens' a c      -> a -> 'Maybe' c
--- minimumOf :: 'Ord' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Maybe' c
+-- 'minimumOf' ::          'Getter' a c           -> a -> 'Maybe' c
+-- 'minimumOf' :: 'Ord' c => 'Fold' a c             -> a -> 'Maybe' c
+-- 'minimumOf' ::          'Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Maybe' c
+-- 'minimumOf' ::          'Simple' 'Lens' a c      -> a -> 'Maybe' c
+-- 'minimumOf' :: 'Ord' c => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Maybe' c
 -- @
 minimumOf :: Getting (Min c) a c -> a -> Maybe c
 minimumOf l = getMin . foldMapOf l Min
@@ -691,11 +721,11 @@ minimumOf l = getMin . foldMapOf l Min
 -- @'Data.Foldable.maximumBy' cmp = 'Data.Maybe.fromMaybe' ('error' "empty") . 'maximumByOf' 'folded' cmp@
 --
 -- @
--- maximumByOf :: 'Getter' a c           -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
--- maximumByOf :: 'Fold' a c             -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
--- maximumByOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
--- maximumByOf :: 'Simple' 'Lens' a c      -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
--- maximumByOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- 'maximumByOf' :: 'Getter' a c           -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- 'maximumByOf' :: 'Fold' a c             -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- 'maximumByOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- 'maximumByOf' :: 'Simple' 'Lens' a c      -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- 'maximumByOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
 -- @
 maximumByOf :: Getting (Endo (Maybe c)) a c -> (c -> c -> Ordering) -> a -> Maybe c
 maximumByOf l cmp = foldrOf l step Nothing where
@@ -710,11 +740,11 @@ maximumByOf l cmp = foldrOf l step Nothing where
 -- > minimumBy cmp = fromMaybe (error "empty") . minimumByOf folded cmp
 --
 -- @
--- minimumByOf :: 'Getter' a c           -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
--- minimumByOf :: 'Fold' a c             -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
--- minimumByOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
--- minimumByOf :: 'Simple' 'Lens' a c      -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
--- minimumByOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- 'minimumByOf' :: 'Getter' a c           -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- 'minimumByOf' :: 'Fold' a c             -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- 'minimumByOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- 'minimumByOf' :: 'Simple' 'Lens' a c      -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
+-- 'minimumByOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
 -- @
 minimumByOf :: Getting (Endo (Maybe c)) a c -> (c -> c -> Ordering) -> a -> Maybe c
 minimumByOf l cmp = foldrOf l step Nothing where
@@ -727,11 +757,11 @@ minimumByOf l cmp = foldrOf l step Nothing where
 -- matching the predicate, or 'Nothing' if there is no such element.
 --
 -- @
--- findOf :: 'Getter' a c           -> (c -> 'Bool') -> a -> 'Maybe' c
--- findOf :: 'Fold' a c             -> (c -> 'Bool') -> a -> 'Maybe' c
--- findOf :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> 'Bool') -> a -> 'Maybe' c
--- findOf :: 'Simple' 'Lens' a c      -> (c -> 'Bool') -> a -> 'Maybe' c
--- findOf :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> 'Bool') -> a -> 'Maybe' c
+-- 'findOf' :: 'Getter' a c           -> (c -> 'Bool') -> a -> 'Maybe' c
+-- 'findOf' :: 'Fold' a c             -> (c -> 'Bool') -> a -> 'Maybe' c
+-- 'findOf' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> 'Bool') -> a -> 'Maybe' c
+-- 'findOf' :: 'Simple' 'Lens' a c      -> (c -> 'Bool') -> a -> 'Maybe' c
+-- 'findOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> 'Bool') -> a -> 'Maybe' c
 -- @
 findOf :: Getting (First c) a c -> (c -> Bool) -> a -> Maybe c
 findOf l p = getFirst . foldMapOf l step where
@@ -750,11 +780,11 @@ findOf l p = getFirst . foldMapOf l step where
 -- @'Data.Foldable.foldr1' = 'foldr1Of' 'folded'@
 --
 -- @
--- foldr1Of :: 'Getter' a c           -> (c -> c -> c) -> a -> c
--- foldr1Of :: 'Fold' a c             -> (c -> c -> c) -> a -> c
--- foldr1Of :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> c -> c) -> a -> c
--- foldr1Of :: 'Simple' 'Lens' a c      -> (c -> c -> c) -> a -> c
--- foldr1Of :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> c -> c) -> a -> c
+-- 'foldr1Of' :: 'Getter' a c           -> (c -> c -> c) -> a -> c
+-- 'foldr1Of' :: 'Fold' a c             -> (c -> c -> c) -> a -> c
+-- 'foldr1Of' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> c -> c) -> a -> c
+-- 'foldr1Of' :: 'Simple' 'Lens' a c      -> (c -> c -> c) -> a -> c
+-- 'foldr1Of' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> c -> c) -> a -> c
 -- @
 foldr1Of :: Getting (Endo (Maybe c)) a c -> (c -> c -> c) -> a -> c
 foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
@@ -771,11 +801,11 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
 -- @'Data.Foldable.foldl1' = 'foldl1Of' 'folded'@
 --
 -- @
--- foldl1Of :: 'Getter' a c           -> (c -> c -> c) -> a -> c
--- foldl1Of :: 'Fold' a c             -> (c -> c -> c) -> a -> c
--- foldl1Of :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> c -> c) -> a -> c
--- foldl1Of :: 'Simple' 'Lens' a c      -> (c -> c -> c) -> a -> c
--- foldl1Of :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> c -> c) -> a -> c
+-- 'foldl1Of' :: 'Getter' a c           -> (c -> c -> c) -> a -> c
+-- 'foldl1Of' :: 'Fold' a c             -> (c -> c -> c) -> a -> c
+-- 'foldl1Of' :: 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> c -> c) -> a -> c
+-- 'foldl1Of' :: 'Simple' 'Lens' a c      -> (c -> c -> c) -> a -> c
+-- 'foldl1Of' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> c -> c) -> a -> c
 -- @
 foldl1Of :: Getting (Dual (Endo (Maybe c))) a c -> (c -> c -> c) -> a -> c
 foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf Nothing xs) where
@@ -821,11 +851,11 @@ foldlOf' l f z0 xs = foldrOf l f' id xs z0
 -- @'Data.Foldable.foldrM' = 'foldrMOf' 'folded'@
 --
 -- @
--- foldrMOf :: 'Monad' m => 'Getter' a c           -> (c -> e -> m e) -> e -> a -> m e
--- foldrMOf :: 'Monad' m => 'Fold' a c             -> (c -> e -> m e) -> e -> a -> m e
--- foldrMOf :: 'Monad' m => 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> e -> m e) -> e -> a -> m e
--- foldrMOf :: 'Monad' m => 'Simple' 'Lens' a c      -> (c -> e -> m e) -> e -> a -> m e
--- foldrMOf :: 'Monad' m => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> e -> m e) -> e -> a -> m e
+-- 'foldrMOf' :: 'Monad' m => 'Getter' a c           -> (c -> e -> m e) -> e -> a -> m e
+-- 'foldrMOf' :: 'Monad' m => 'Fold' a c             -> (c -> e -> m e) -> e -> a -> m e
+-- 'foldrMOf' :: 'Monad' m => 'Simple' 'Control.Lens.Iso.Iso' a c       -> (c -> e -> m e) -> e -> a -> m e
+-- 'foldrMOf' :: 'Monad' m => 'Simple' 'Lens' a c      -> (c -> e -> m e) -> e -> a -> m e
+-- 'foldrMOf' :: 'Monad' m => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (c -> e -> m e) -> e -> a -> m e
 -- @
 foldrMOf :: Monad m
          => Getting (Dual (Endo (e -> m e))) a c
@@ -840,11 +870,11 @@ foldrMOf l f z0 xs = foldlOf l f' return xs z0
 -- @'Data.Foldable.foldlM' = 'foldlMOf' 'folded'@
 --
 -- @
--- foldlMOf :: 'Monad' m => 'Getter' a c           -> (e -> c -> m e) -> e -> a -> m e
--- foldlMOf :: 'Monad' m => 'Fold' a c             -> (e -> c -> m e) -> e -> a -> m e
--- foldlMOf :: 'Monad' m => 'Simple' 'Control.Lens.Iso.Iso' a c       -> (e -> c -> m e) -> e -> a -> m e
--- foldlMOf :: 'Monad' m => 'Simple' 'Lens' a c      -> (e -> c -> m e) -> e -> a -> m e
--- foldlMOf :: 'Monad' m => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (e -> c -> m e) -> e -> a -> m e
+-- 'foldlMOf' :: 'Monad' m => 'Getter' a c           -> (e -> c -> m e) -> e -> a -> m e
+-- 'foldlMOf' :: 'Monad' m => 'Fold' a c             -> (e -> c -> m e) -> e -> a -> m e
+-- 'foldlMOf' :: 'Monad' m => 'Simple' 'Control.Lens.Iso.Iso' a c       -> (e -> c -> m e) -> e -> a -> m e
+-- 'foldlMOf' :: 'Monad' m => 'Simple' 'Lens' a c      -> (e -> c -> m e) -> e -> a -> m e
+-- 'foldlMOf' :: 'Monad' m => 'Simple' 'Control.Lens.Traversal.Traversal' a c -> (e -> c -> m e) -> e -> a -> m e
 -- @
 foldlMOf :: Monad m
          => Getting (Endo (e -> m e)) a c

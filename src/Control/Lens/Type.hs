@@ -203,9 +203,9 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- @('%%~') = 'id'@
 --
 -- @
--- (%%~) :: 'Functor' f =>     'Control.Lens.Iso.Iso' a b c d       -> (c -> f d) -> a -> f b
--- (%%~) :: 'Functor' f =>     'Lens' a b c d      -> (c -> f d) -> a -> f b
--- (%%~) :: 'Applicative' f => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> f d) -> a -> f b
+-- ('%%~') :: 'Functor' f =>     'Control.Lens.Iso.Iso' a b c d       -> (c -> f d) -> a -> f b
+-- ('%%~') :: 'Functor' f =>     'Lens' a b c d      -> (c -> f d) -> a -> f b
+-- ('%%~') :: 'Applicative' f => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> f d) -> a -> f b
 -- @
 --
 -- It may be beneficial to think about it as if it had these even more
@@ -216,9 +216,9 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- of its actions, by choosing @f = ((,) m)@
 --
 -- @
--- (%%~) ::             'Control.Lens.Iso.Iso' a b c d       -> (c -> (e, d)) -> a -> (e, b)
--- (%%~) ::             'Lens' a b c d      -> (c -> (e, d)) -> a -> (e, b)
--- (%%~) :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> (m, d)) -> a -> (m, b)
+-- ('%%~') ::             'Control.Lens.Iso.Iso' a b c d       -> (c -> (e, d)) -> a -> (e, b)
+-- ('%%~') ::             'Lens' a b c d      -> (c -> (e, d)) -> a -> (e, b)
+-- ('%%~') :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> (m, d)) -> a -> (m, b)
 -- @
 (%%~) :: LensLike f a b c d -> (c -> f d) -> a -> f b
 (%%~) = id
@@ -235,9 +235,9 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- following more restricted type signatures:
 --
 -- @
--- (%%=) :: 'MonadState' a m             => 'Control.Lens.Iso.Iso' a a c d       -> (c -> (e, d) -> m e
--- (%%=) :: 'MonadState' a m             => 'Lens' a a c d      -> (c -> (e, d) -> m e
--- (%%=) :: ('MonadState' a m, 'Monoid' e) => 'Control.Lens.Traversal.Traversal' a a c d -> (c -> (e, d) -> m e
+-- ('%%=') :: 'MonadState' a m             => 'Control.Lens.Iso.Iso' a a c d       -> (c -> (e, d) -> m e
+-- ('%%=') :: 'MonadState' a m             => 'Lens' a a c d      -> (c -> (e, d) -> m e
+-- ('%%=') :: ('MonadState' a m, 'Monoid' e) => 'Control.Lens.Traversal.Traversal' a a c d -> (c -> (e, d) -> m e
 -- @
 (%%=) :: MonadState a m => LensLike ((,) e) a a c d -> (c -> (e, d)) -> m e
 #if MIN_VERSION_mtl(2,1,1)

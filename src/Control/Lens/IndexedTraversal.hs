@@ -59,8 +59,8 @@ type SimpleIndexedTraversal i a b = IndexedTraversal i a a b b
 -- @
 --
 -- @
--- itraverseOf :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> f d) -> a -> f b
--- itraverseOf :: 'IndexedTraversal' i a b c d -> (i -> c -> f d) -> a -> f b
+-- 'itraverseOf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> f d) -> a -> f b
+-- 'itraverseOf' :: 'IndexedTraversal' i a b c d -> (i -> c -> f d) -> a -> f b
 -- @
 itraverseOf :: Overloaded (Index i) f a b c d -> (i -> c -> f d) -> a -> f b
 itraverseOf = withIndex
@@ -74,8 +74,8 @@ itraverseOf = withIndex
 -- @'iforOf' = 'flip' . 'itraverseOf'@
 --
 -- @
--- iforOf :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> a -> (i -> c -> f d) -> f b
--- iforOf :: 'IndexedTraversal' i a b c d -> a -> (i -> c -> f d) -> f b
+-- 'iforOf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> a -> (i -> c -> f d) -> f b
+-- 'iforOf' :: 'IndexedTraversal' i a b c d -> a -> (i -> c -> f d) -> f b
 -- @
 iforOf :: Overloaded (Index i) f a b c d -> a -> (i -> c -> f d) -> f b
 iforOf = flip . withIndex
@@ -90,8 +90,8 @@ iforOf = flip . withIndex
 -- @'Control.Lens.Traversal.mapMOf' = 'imapMOf' . 'const'@
 --
 -- @
--- imapMOf :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens'      i a b c d -> (i -> c -> m d) -> a -> m b
--- imapMOf :: 'Monad' m => 'IndexedTraversal' i a b c d -> (i -> c -> m d) -> a -> m b
+-- 'imapMOf' :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens'      i a b c d -> (i -> c -> m d) -> a -> m b
+-- 'imapMOf' :: 'Monad' m => 'IndexedTraversal' i a b c d -> (i -> c -> m d) -> a -> m b
 -- @
 imapMOf :: Overloaded (Index i) (WrappedMonad m) a b c d -> (i -> c -> m d) -> a -> m b
 imapMOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
@@ -107,8 +107,8 @@ imapMOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
 -- @
 --
 -- @
--- iforMOf :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> a -> (i -> c -> m d) -> m b
--- iforMOf :: 'Monad' m => 'IndexedTraversal' i a b c d -> a -> (i -> c -> m d) -> m b
+-- 'iforMOf' :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> a -> (i -> c -> m d) -> m b
+-- 'iforMOf' :: 'Monad' m => 'IndexedTraversal' i a b c d -> a -> (i -> c -> m d) -> m b
 -- @
 iforMOf :: Overloaded (Index i) (WrappedMonad m) a b c d -> a -> (i -> c -> m d) -> m b
 iforMOf = flip . imapMOf
@@ -121,8 +121,8 @@ iforMOf = flip . imapMOf
 -- @'Control.Lens.Traversal.mapAccumROf' l = 'imapAccumROf' l . 'const'@
 --
 -- @
--- imapAccumROf :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
--- imapAccumROf :: 'IndexedTraversal' i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'imapAccumROf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'imapAccumROf' :: 'IndexedTraversal' i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
 -- @
 imapAccumROf :: Overloaded (Index i) (Lazy.State s) a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
 imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s -> swap (f i s c))) a) s0)
@@ -135,8 +135,8 @@ imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s
 -- @'Control.Lens.Traversal.mapAccumLOf' l = 'imapAccumLOf' l . 'const'@
 --
 -- @
--- imapAccumLOf :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
--- imapAccumLOf :: 'IndexedTraversal' i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'imapAccumLOf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'imapAccumLOf' :: 'IndexedTraversal' i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
 -- @
 imapAccumLOf :: Overloaded (Index i) (Backwards (Lazy.State s)) a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
 imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (withIndex l (\i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)

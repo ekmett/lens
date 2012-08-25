@@ -125,9 +125,9 @@ traverseOf = id
 -- @
 --
 -- @
--- forOf :: 'Control.Lens.Iso.Iso' a b c d -> a -> (c -> f d) -> f b
--- forOf :: 'Lens' a b c d -> a -> (c -> f d) -> f b
--- forOf :: 'Traversal' a b c d -> a -> (c -> f d) -> f b
+-- 'forOf' :: 'Control.Lens.Iso.Iso' a b c d -> a -> (c -> f d) -> f b
+-- 'forOf' :: 'Lens' a b c d -> a -> (c -> f d) -> f b
+-- 'forOf' :: 'Traversal' a b c d -> a -> (c -> f d) -> f b
 -- @
 forOf :: LensLike f a b c d -> a -> (c -> f d) -> f b
 forOf = flip
@@ -173,9 +173,9 @@ mapMOf l cmd = unwrapMonad . l (WrapMonad . cmd)
 -- @
 --
 -- @
--- forMOf ::            'Control.Lens.Iso.Iso' a b c d       -> a -> (c -> m d) -> m b
--- forMOf ::            'Lens' a b c d      -> a -> (c -> m d) -> m b
--- forMOf :: 'Monad' m => 'Traversal' a b c d -> a -> (c -> m d) -> m b
+-- 'forMOf' ::            'Control.Lens.Iso.Iso' a b c d       -> a -> (c -> m d) -> m b
+-- 'forMOf' ::            'Lens' a b c d      -> a -> (c -> m d) -> m b
+-- 'forMOf' :: 'Monad' m => 'Traversal' a b c d -> a -> (c -> m d) -> m b
 -- @
 forMOf :: LensLike (WrappedMonad m) a b c d -> a -> (c -> m d) -> m b
 forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
@@ -189,9 +189,9 @@ forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
 -- @
 --
 -- @
--- sequenceOf ::            'Control.Lens.Iso.Iso' a b (m c) c       -> a -> m b
--- sequenceOf ::            'Lens' a b (m c) c      -> a -> m b
--- sequenceOf :: 'Monad' m => 'Traversal' a b (m c) c -> a -> m b
+-- 'sequenceOf' ::            'Control.Lens.Iso.Iso' a b (m c) c       -> a -> m b
+-- 'sequenceOf' ::            'Lens' a b (m c) c      -> a -> m b
+-- 'sequenceOf' :: 'Monad' m => 'Traversal' a b (m c) c -> a -> m b
 -- @
 sequenceOf :: LensLike (WrappedMonad m) a b (m c) c -> a -> m b
 sequenceOf l = unwrapMonad . l WrapMonad
@@ -221,9 +221,9 @@ transposeOf l = getZipList . l ZipList
 -- 'mapAccumROf' accumulates state from right to left.
 --
 -- @
--- mapAccumROf :: 'Control.Lens.Iso.Iso' a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
--- mapAccumROf :: 'Lens' a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
--- mapAccumROf :: 'Traversal' a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'mapAccumROf' :: 'Control.Lens.Iso.Iso' a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'mapAccumROf' :: 'Lens' a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'mapAccumROf' :: 'Traversal' a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- @
 mapAccumROf :: LensLike (Lazy.State s) a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f s c))) a) s0)
@@ -236,9 +236,9 @@ mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f 
 -- 'mapAccumLOf' accumulates state from left to right.
 --
 -- @
--- mapAccumLOf :: 'Control.Lens.Iso.Iso' a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
--- mapAccumLOf :: 'Lens' a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
--- mapAccumLOf :: 'Traversal' a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'mapAccumLOf' :: 'Control.Lens.Iso.Iso' a b c d       -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'mapAccumLOf' :: 'Lens' a b c d      -> (s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'mapAccumLOf' :: 'Traversal' a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 -- @
 mapAccumLOf :: LensLike (Backwards (Lazy.State s)) a b c d -> (s -> c -> (s, d)) -> s -> a -> (s, b)
 mapAccumLOf = mapAccumROf . backwards
@@ -253,9 +253,9 @@ swap (a,b) = (b,a)
 -- @'scanr1' = 'scanr1Of' 'traverse'@
 --
 -- @
--- scanr1Of :: 'Control.Lens.Iso.Iso' a b c c       -> (c -> c -> c) -> a -> b
--- scanr1Of :: 'Lens' a b c c      -> (c -> c -> c) -> a -> b
--- scanr1Of :: 'Traversal' a b c c -> (c -> c -> c) -> a -> b
+-- 'scanr1Of' :: 'Control.Lens.Iso.Iso' a b c c       -> (c -> c -> c) -> a -> b
+-- 'scanr1Of' :: 'Lens' a b c c      -> (c -> c -> c) -> a -> b
+-- 'scanr1Of' :: 'Traversal' a b c c -> (c -> c -> c) -> a -> b
 -- @
 scanr1Of :: LensLike (Lazy.State (Maybe c)) a b c c -> (c -> c -> c) -> a -> b
 scanr1Of l f = snd . mapAccumROf l step Nothing where
@@ -268,9 +268,9 @@ scanr1Of l f = snd . mapAccumROf l step Nothing where
 -- @'scanl1' = 'scanl1Of' 'traverse'@
 --
 -- @
--- scanr1Of :: Iso a b c c       -> (c -> c -> c) -> a -> b
--- scanr1Of :: Lens a b c c      -> (c -> c -> c) -> a -> b
--- scanr1Of :: Traversal a b c c -> (c -> c -> c) -> a -> b
+-- 'scanr1Of' :: Iso a b c c       -> (c -> c -> c) -> a -> b
+-- 'scanr1Of' :: Lens a b c c      -> (c -> c -> c) -> a -> b
+-- 'scanr1Of' :: Traversal a b c c -> (c -> c -> c) -> a -> b
 -- @
 scanl1Of :: LensLike (Backwards (Lazy.State (Maybe c))) a b c c -> (c -> c -> c) -> a -> b
 scanl1Of l f = snd . mapAccumLOf l step Nothing where
