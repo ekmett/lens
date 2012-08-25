@@ -34,7 +34,7 @@ infix  4 %@=
 
 -- | Every 'IndexedSetter' is a valid 'Setter'
 --
--- The 'Setter' laws are still required to hold.
+-- The 'Control.Lens.Setter.Setter' laws are still required to hold.
 type IndexedSetter i a b c d = forall f k. (Indexed i k, Settable f) => k (c -> f d) (a -> f b)
 
 -- |
@@ -45,12 +45,12 @@ type SimpleIndexedSetter i a b = IndexedSetter i a a b b
 --
 -- When you do not need access to the index, then 'mapOf' is more liberal in what it can accept.
 --
--- @'mapOf' l = 'imapOf' l . 'const'@
+-- @'Control.Lens.Setter.mapOf' l = 'imapOf' l . 'const'@
 --
 -- @
--- imapOf :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
--- imapOf :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> d) -> a -> b
--- imapOf :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> a -> b
+-- 'imapOf' :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
+-- 'imapOf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> d) -> a -> b
+-- 'imapOf' :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> a -> b
 -- @
 imapOf :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
 imapOf l f = runMutator . withIndex l (\i -> Mutator . f i)
@@ -63,12 +63,12 @@ imapOf l f = runMutator . withIndex l (\i -> Mutator . f i)
 --
 -- When you do not need access to the index then ('%@~') is more liberal in what it can accept.
 --
--- @l '%~' f = l '%@~' 'const' f@
+-- @l 'Control.Lens.Setter.%~' f = l '%@~' 'const' f@
 --
 -- @
--- (%\@~) :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
--- (%\@~) :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> d) -> a -> b
--- (%\@~) :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> a -> b
+-- ('%@~') :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
+-- ('%@~') :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> d) -> a -> b
+-- ('%@~') :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> a -> b
 -- @
 (%@~) :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
 l %@~ f = runMutator . withIndex l (\i -> Mutator . f i)
@@ -79,12 +79,12 @@ l %@~ f = runMutator . withIndex l (\i -> Mutator . f i)
 --
 -- When you do not need access to the index then ('%=') is more liberal in what it can accept.
 --
--- @l '%=' f = l '%@=' 'const' f@
+-- @l 'Control.Lens.Setter.%=' f = l '%@=' 'const' f@
 --
 -- @
--- (%\@=) :: 'MonadState' a m => 'IndexedSetter' i a a c d    -> (i -> c -> d) -> m ()
--- (%\@=) :: 'MonadState' a m => 'Control.Lens.IndexedLens.IndexedLens' i a a c d      -> (i -> c -> d) -> m ()
--- (%\@=) :: 'MonadState' a m => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> m ()
+-- ('%@=') :: 'MonadState' a m => 'IndexedSetter' i a a c d    -> (i -> c -> d) -> m ()
+-- ('%@=') :: 'MonadState' a m => 'Control.Lens.IndexedLens.IndexedLens' i a a c d      -> (i -> c -> d) -> m ()
+-- ('%@=') :: 'MonadState' a m => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> m ()
 -- @
 (%@=) :: MonadState a m => Overloaded (Index i) Mutator a a c d -> (i -> c -> d) -> m ()
 l %@= f = State.modify (l %@~ f)

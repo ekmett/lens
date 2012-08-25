@@ -56,12 +56,12 @@ class (MonadState s m, MonadState t n) => Zoom m n k s t | m -> s k, n -> t k, m
   -- This can be used to edit pretty much any monad transformer stack with a state in it!
   --
   -- @
-  -- zoom :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'StateT' b m c -> 'StateT' a m c
-  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'StateT' b m c -> 'StateT' a m c
-  -- zoom :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'RWST' r w b m c -> 'RWST' r w a m c
-  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'RWST' r w b m c -> 'RWST' r w a m c
-  -- zoom :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
-  -- zoom :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
+  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'StateT' b m c -> 'StateT' a m c
+  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'StateT' b m c -> 'StateT' a m c
+  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'RWST' r w b m c -> 'RWST' r w a m c
+  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'RWST' r w b m c -> 'RWST' r w a m c
+  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
+  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
   -- ...
   -- @
   zoom :: Monad m => SimpleLensLike (k c) t s -> m c -> n c
@@ -127,10 +127,10 @@ class (MonadReader b m, MonadReader a n) => Magnify m n k b a | m -> b, n -> a, 
   -- This can be used to edit pretty much any monad transformer stack with an environment in it:
   --
   -- @
-  -- magnify ::             'Getter' a b -> (b -> c) -> a -> c
-  -- magnify :: 'Monoid' c => 'Fold' a b   -> (b -> c) -> a -> c
-  -- magnify :: 'Monoid' w                'Getter' a b -> 'RWST' a w s c -> 'RWST' b w s c
-  -- magnify :: ('Monoid' w, 'Monoid' c) => 'Fold' a b   -> 'RWST' a w s c -> 'RWST' b w s c
+  -- 'magnify' ::             'Getter' a b -> (b -> c) -> a -> c
+  -- 'magnify' :: 'Monoid' c => 'Fold' a b   -> (b -> c) -> a -> c
+  -- 'magnify' :: 'Monoid' w                'Getter' a b -> 'RWST' a w s c -> 'RWST' b w s c
+  -- 'magnify' :: ('Monoid' w, 'Monoid' c) => 'Fold' a b   -> 'RWST' a w s c -> 'RWST' b w s c
   -- ...
   -- @
   magnify :: ((b -> k c b) -> a -> k c a) -> m c -> n c

@@ -158,9 +158,9 @@ sequenceAOf l = l id
 -- @'mapM' = 'mapMOf' 'traverse'@
 --
 -- @
--- 'mapMOf ::            'Control.Lens.Iso.Iso' a b c d       -> (c -> m d) -> a -> m b
--- 'mapMOf ::            'Lens' a b c d      -> (c -> m d) -> a -> m b
--- 'mapMOf :: 'Monad' m => 'Traversal' a b c d -> (c -> m d) -> a -> m b
+-- 'mapMOf' ::            'Control.Lens.Iso.Iso' a b c d       -> (c -> m d) -> a -> m b
+-- 'mapMOf' ::            'Lens' a b c d      -> (c -> m d) -> a -> m b
+-- 'mapMOf' :: 'Monad' m => 'Traversal' a b c d -> (c -> m d) -> a -> m b
 -- @
 mapMOf :: LensLike (WrappedMonad m) a b c d -> (c -> m d) -> a -> m b
 mapMOf l cmd = unwrapMonad . l (WrapMonad . cmd)
@@ -184,8 +184,8 @@ forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
 -- |
 -- @
 -- 'sequence' = 'sequenceOf' 'traverse'
--- sequenceOf l = 'mapMOf' l id
--- sequenceOf l = 'unwrapMonad' . l 'WrapMonad'
+-- 'sequenceOf' l = 'mapMOf' l id
+-- 'sequenceOf' l = 'unwrapMonad' . l 'WrapMonad'
 -- @
 --
 -- @

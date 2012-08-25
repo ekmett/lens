@@ -154,10 +154,10 @@ iallOf l f = getAll . ifoldMapOf l (\i -> All . f i)
 -- @'Control.Lens.Fold.traverseOf_' l = 'itraverseOf' l . 'const'@
 --
 -- @
--- itraverseOf_ :: 'Functor' f     => 'IndexedGetter' i a c          -> (i -> c -> f e) -> a -> f ()
--- itraverseOf_ :: 'Applicative' f => 'IndexedFold' i a c            -> (i -> c -> f e) -> a -> f ()
--- itraverseOf_ :: 'Functor' f     => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> f e) -> a -> f ()
--- itraverseOf_ :: 'Applicative' f => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> f e) -> a -> f ()
+-- 'itraverseOf_' :: 'Functor' f     => 'IndexedGetter' i a c          -> (i -> c -> f e) -> a -> f ()
+-- 'itraverseOf_' :: 'Applicative' f => 'IndexedFold' i a c            -> (i -> c -> f e) -> a -> f ()
+-- 'itraverseOf_' :: 'Functor' f     => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> f e) -> a -> f ()
+-- 'itraverseOf_' :: 'Applicative' f => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> f e) -> a -> f ()
 -- @
 itraverseOf_ :: Functor f => IndexedGetting i (Traversed f) a c -> (i -> c -> f e) -> a -> f ()
 itraverseOf_ l f = getTraversed . ifoldMapOf l (\i -> Traversed . void . f i)
@@ -174,10 +174,10 @@ itraverseOf_ l f = getTraversed . ifoldMapOf l (\i -> Traversed . void . f i)
 -- @'Control.Lens.Fold.forOf_' l a = 'iforOf' l a . 'const'@
 --
 -- @
--- iforOf_ :: 'Functor' f     => 'IndexedGetter' i a c          -> a -> (i -> c -> f e) -> f ()
--- iforOf_ :: 'Applicative' f => 'IndexedFold' i a c            -> a -> (i -> c -> f e) -> f ()
--- iforOf_ :: 'Functor' f     => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> a -> (i -> c -> f e) -> f ()
--- iforOf_ :: 'Applicative' f => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> a -> (i -> c -> f e) -> f ()
+-- 'iforOf_' :: 'Functor' f     => 'IndexedGetter' i a c          -> a -> (i -> c -> f e) -> f ()
+-- 'iforOf_' :: 'Applicative' f => 'IndexedFold' i a c            -> a -> (i -> c -> f e) -> f ()
+-- 'iforOf_' :: 'Functor' f     => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> a -> (i -> c -> f e) -> f ()
+-- 'iforOf_' :: 'Applicative' f => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> a -> (i -> c -> f e) -> f ()
 -- @
 iforOf_ :: Functor f => IndexedGetting i (Traversed f) a c -> a -> (i -> c -> f e) -> f ()
 iforOf_ = flip . itraverseOf_
@@ -192,10 +192,10 @@ iforOf_ = flip . itraverseOf_
 -- @'Control.Lens.Fold.mapMOf_' l = 'imapMOf' l . 'const'@
 --
 -- @
--- imapMOf_ :: 'Monad' m => 'IndexedGetter' i a c          -> (i -> c -> m e) -> a -> m ()
--- imapMOf_ :: 'Monad' m => 'IndexedFold' i a c            -> (i -> c -> m e) -> a -> m ()
--- imapMOf_ :: 'Monad' m => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> m e) -> a -> m ()
--- imapMOf_ :: 'Monad' m => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> m e) -> a -> m ()
+-- 'imapMOf_' :: 'Monad' m => 'IndexedGetter' i a c          -> (i -> c -> m e) -> a -> m ()
+-- 'imapMOf_' :: 'Monad' m => 'IndexedFold' i a c            -> (i -> c -> m e) -> a -> m ()
+-- 'imapMOf_' :: 'Monad' m => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> m e) -> a -> m ()
+-- 'imapMOf_' :: 'Monad' m => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> m e) -> a -> m ()
 -- @
 imapMOf_ :: Monad m => IndexedGetting i (Sequenced m) a c -> (i -> c -> m e) -> a -> m ()
 imapMOf_ l f = getSequenced . ifoldMapOf l (\i -> Sequenced . liftM skip . f i)
@@ -216,10 +216,10 @@ skip _ = ()
 -- @'Control.Lens.Fold.forMOf_' l a = 'iforMOf' l a . 'const'@
 --
 -- @
--- iforMOf_ :: 'Monad' m => 'IndexedGetter' i a c          -> a -> (i -> c -> m e) -> m ()
--- iforMOf_ :: 'Monad' m => 'IndexedFold' i a c            -> a -> (i -> c -> m e) -> m ()
--- iforMOf_ :: 'Monad' m => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> a -> (i -> c -> m e) -> m ()
--- iforMOf_ :: 'Monad' m => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> a -> (i -> c -> m e) -> m ()
+-- 'iforMOf_' :: 'Monad' m => 'IndexedGetter' i a c          -> a -> (i -> c -> m e) -> m ()
+-- 'iforMOf_' :: 'Monad' m => 'IndexedFold' i a c            -> a -> (i -> c -> m e) -> m ()
+-- 'iforMOf_' :: 'Monad' m => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> a -> (i -> c -> m e) -> m ()
+-- 'iforMOf_' :: 'Monad' m => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> a -> (i -> c -> m e) -> m ()
 -- @
 iforMOf_ :: Monad m => IndexedGetting i (Sequenced m) a c -> a -> (i -> c -> m e) -> m ()
 iforMOf_ = flip . imapMOf_
@@ -271,10 +271,10 @@ ifindOf l p = getFirst . ifoldMapOf l step where
 -- @'Control.Lens.Fold.foldrOf'' l = 'ifoldrOf'' l . 'const'@
 --
 -- @
--- ifoldrOf' :: 'IndexedGetter' i a c          -> (i -> c -> e -> e) -> e -> a -> e
--- ifoldrOf' :: 'IndexedFold' i a c            -> (i -> c -> e -> e) -> e -> a -> e
--- ifoldrOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> e -> e) -> e -> a -> e
--- ifoldrOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> e -> e) -> e -> a -> e
+-- 'ifoldrOf'' :: 'IndexedGetter' i a c          -> (i -> c -> e -> e) -> e -> a -> e
+-- 'ifoldrOf'' :: 'IndexedFold' i a c            -> (i -> c -> e -> e) -> e -> a -> e
+-- 'ifoldrOf'' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> e -> e) -> e -> a -> e
+-- 'ifoldrOf'' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> e -> e) -> e -> a -> e
 -- @
 ifoldrOf' :: IndexedGetting i (Dual (Endo (e -> e))) a c -> (i -> c -> e -> e) -> e -> a -> e
 ifoldrOf' l f z0 xs = ifoldlOf l f' id xs z0
@@ -288,10 +288,10 @@ ifoldrOf' l f z0 xs = ifoldlOf l f' id xs z0
 -- @'Control.Lens.Fold.foldlOf'' l = 'ifoldlOf'' l . 'const'@
 --
 -- @
--- ifoldlOf' :: 'IndexedGetter' i a c            -> (i -> e -> c -> e) -> e -> a -> e
--- ifoldlOf' :: 'IndexedFold' i a c              -> (i -> e -> c -> e) -> e -> a -> e
--- ifoldlOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c        -> (i -> e -> c -> e) -> e -> a -> e
--- ifoldlOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c   -> (i -> e -> c -> e) -> e -> a -> e
+-- 'ifoldlOf'' :: 'IndexedGetter' i a c            -> (i -> e -> c -> e) -> e -> a -> e
+-- 'ifoldlOf'' :: 'IndexedFold' i a c              -> (i -> e -> c -> e) -> e -> a -> e
+-- 'ifoldlOf'' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c        -> (i -> e -> c -> e) -> e -> a -> e
+-- 'ifoldlOf'' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c   -> (i -> e -> c -> e) -> e -> a -> e
 -- @
 ifoldlOf' :: IndexedGetting i (Endo (e -> e)) a c -> (i -> e -> c -> e) -> e -> a -> e
 ifoldlOf' l f z0 xs = ifoldrOf l f' id xs z0
@@ -322,10 +322,10 @@ ifoldrMOf l f z0 xs = ifoldlOf l f' return xs z0
 -- @'Control.Lens.Fold.foldlMOf' l = 'ifoldlMOf' l . 'const'@
 --
 -- @
--- ifoldlOf' :: 'Monad' m => 'IndexedGetter' i a c            -> (i -> e -> c -> m e) -> e -> a -> e
--- ifoldlOf' :: 'Monad' m => 'IndexedFold' i a c              -> (i -> e -> c -> m e) -> e -> a -> e
--- ifoldlOf' :: 'Monad' m => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c        -> (i -> e -> c -> m e) -> e -> a -> e
--- ifoldlOf' :: 'Monad' m => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c   -> (i -> e -> c -> m e) -> e -> a -> e
+-- 'ifoldlOf'' :: 'Monad' m => 'IndexedGetter' i a c            -> (i -> e -> c -> m e) -> e -> a -> e
+-- 'ifoldlOf'' :: 'Monad' m => 'IndexedFold' i a c              -> (i -> e -> c -> m e) -> e -> a -> e
+-- 'ifoldlOf'' :: 'Monad' m => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c        -> (i -> e -> c -> m e) -> e -> a -> e
+-- 'ifoldlOf'' :: 'Monad' m => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c   -> (i -> e -> c -> m e) -> e -> a -> e
 -- @
 ifoldlMOf :: Monad m => IndexedGetting i (Endo (e -> m e)) a c -> (i -> e -> c -> m e) -> e -> a -> m e
 ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0

@@ -168,11 +168,11 @@ views l f = runAccessor . l (Accessor . f)
 -- "hello"
 --
 -- @
--- (^$) ::             'Getter' a c             -> a -> c
--- (^$) :: 'Monoid' m => 'Control.Lens.Fold.Fold' a m               -> a -> m
--- (^$) ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> a -> c
--- (^$) ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> a -> c
--- (^$) :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a m   -> a -> m
+-- ('^$') ::             'Getter' a c             -> a -> c
+-- ('^$') :: 'Monoid' m => 'Control.Lens.Fold.Fold' a m               -> a -> m
+-- ('^$') ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> a -> c
+-- ('^$') ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> a -> c
+-- ('^$') :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a m   -> a -> m
 -- @
 (^$) :: Getting c a c -> a -> c
 l ^$ a = runAccessor (l Accessor a)
@@ -192,11 +192,11 @@ l ^$ a = runAccessor (l Accessor a)
 -- 2.23606797749979
 --
 -- @
--- (^.) ::             a -> 'Getter' a c             -> c
--- (^.) :: 'Monoid' m => a -> 'Control.Lens.Fold.Fold' a m               -> m
--- (^.) ::             a -> 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> c
--- (^.) ::             a -> 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> c
--- (^.) :: 'Monoid' m => a -> 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a m   -> m
+-- ('^.') ::             a -> 'Getter' a c             -> c
+-- ('^.') :: 'Monoid' m => a -> 'Control.Lens.Fold.Fold' a m               -> m
+-- ('^.') ::             a -> 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c         -> c
+-- ('^.') ::             a -> 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c        -> c
+-- ('^.') :: 'Monoid' m => a -> 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a m   -> m
 -- @
 (^.) :: a -> Getting c a c -> c
 a ^. l = runAccessor (l Accessor a)
