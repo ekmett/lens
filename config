@@ -3,7 +3,7 @@
 -- This is particularly useful for travis-ci to get it to stop complaining
 -- about a broken build when everything is still correct on our end.
 --
--- This uses Luite Stegman's mirror of hackage provided by his 'hdiff' site instead
+-- This uses Luite Stegeman's mirror of hackage provided by his 'hdiff' site instead
 --
 -- To enable this, uncomment the before_script in .travis.yml
 
