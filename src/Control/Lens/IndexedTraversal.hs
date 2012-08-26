@@ -20,6 +20,7 @@ module Control.Lens.IndexedTraversal
 
   -- * Common Indexed Traversals
   , traverseAt
+  , iwhere
 
   -- * Indexed Traversal Combinators
   , itraverseOf
@@ -158,8 +159,26 @@ swap (a,b) = (b,a)
 {-# INLINE swap #-}
 
 ------------------------------------------------------------------------------
--- Common indexed traversals
+-- Common Indexed Traversals
 ------------------------------------------------------------------------------
+
+-- | Access the element of an 'IndexedTraversal' where the index matches a predicate.
+--
+-- Attempts to access beyond the range of the 'Traversal' will cause an error.
+--
+-- >>> iwhere (indexed traverse) (>2) *~ 10 $ [1..4]
+-- [1,2,30,40]
+--
+-- @
+-- 'iwhere' :: 'IndexedFold' i a b            -> (i -> 'Bool') -> 'IndexedFold' i a b
+-- 'iwhere' :: 'IndexedGetter' i a b          -> (i -> 'Bool') -> 'IndexedFold' i a b
+-- 'iwhere' :: 'SimpleIndexedLens' i a b      -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i a b
+-- 'iwhere' :: 'SimpleIndexedTraversal' i a b -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i a b
+-- 'iwhere' :: 'SimpleIndexedSetter' i a b    -> (i -> 'Bool') -> 'SimpleIndexedSetter' i a b
+-- @
+iwhere :: (Indexed i k, Applicative f) => Overloaded (Index i) f a b c c -> (i -> Bool) -> Overloaded k f a b c c
+iwhere l p = index $ \f a -> withIndex l (\i c -> if p i then f i c else pure c) a
+{-# INLINE iwhere #-}
 
 -- | Traverse the value at a given key in a map
 --
@@ -177,4 +196,3 @@ newtype ReifiedIndexedTraversal i a b c d = ReifyIndexedTraversal { reflectIndex
 
 -- | @type 'SimpleIndexedTraversal' i = 'Simple' ('ReifiedIndexedTraversal' i)@
 type SimpleReifiedIndexedTraversal i a b = ReifiedIndexedTraversal i a a b b
-
