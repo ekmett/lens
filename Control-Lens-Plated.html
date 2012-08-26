@@ -21,8 +21,8 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Plated.ht
  <code>Data.Data.Lens</code>. As a design, it forced the user into too many situations where
  they had to choose between correctness and ease of use, and it was brittle in the
  face of competing imports.
-</p><p>Using the combinators to take the place of make a number of simple assumptions.
-</p><p>Notably any of the <code>On</code> combinators are expecting a <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Fold.html#t:Fold">Fold</a></code>
+</p><p>The sensible use of these combinators makes some simple assumptions.  Notably, any
+ of the <code>On</code> combinators are expecting a <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Fold.html#t:Fold">Fold</a></code>
  to play the role of the <code><a href="Data-Data-Lens.html#v:biplate">biplate</a></code> combinator, and so when the
  types of the contents and the container match, they should be the <code><a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.0.0/Prelude.html#v:id">id</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code>,
  <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Fold.html#t:Fold">Fold</a></code>.
