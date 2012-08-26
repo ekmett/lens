@@ -93,6 +93,7 @@ step f w d = w <*> case cast d of
 template :: forall a b. (Data a, Typeable b) => Simple Traversal a b
 template = uniplateData (fromOracle answer) where
   answer = hitTest (undefined :: a) (undefined :: b)
+{-# INLINE template #-}
 
 -- | Find descendants of type @a@ non-transitively, while avoiding computation of areas that cannot contain values of
 -- type @a@ using 'Data'.
@@ -106,6 +107,7 @@ uniplate = template
 biplate :: forall a b. (Data a, Typeable b) => Simple Traversal a b
 biplate = biplateData (fromOracle answer) where
   answer = hitTest (undefined :: a) (undefined :: b)
+{-# INLINE biplate #-}
 
 -------------------------------------------------------------------------------
 -- Data Box
