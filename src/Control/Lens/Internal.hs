@@ -342,10 +342,6 @@ sell :: c -> Bazaar c d d
 sell i = Bazaar (\k -> k i)
 {-# INLINE sell #-}
 
-cloneTraversal' :: Applicative f => ((c -> Bazaar c d d) -> a -> Bazaar c d b) -> (c -> f d) -> a -> f b
-cloneTraversal' l f = bazaar f . l sell
-{-# INLINE cloneTraversal' #-}
-
 instance (c ~ d) => ComonadApply (Bazaar c d) where
   (<@>) = (<*>)
 
