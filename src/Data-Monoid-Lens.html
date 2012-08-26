@@ -37,10 +37,10 @@
 <a name="line-28"></a><span class='hs-comment'>-- ("hello!!!","world!!!")</span>
 <a name="line-29"></a><span class='hs-comment'>--</span>
 <a name="line-30"></a><span class='hs-comment'>-- @</span>
-<a name="line-31"></a><span class='hs-comment'>-- (\&lt;\&gt;~) :: 'Monoid' c =&gt; 'Setter' a b c c -&gt; c -&gt; a -&gt; b</span>
-<a name="line-32"></a><span class='hs-comment'>-- (\&lt;\&gt;~) :: 'Monoid' c =&gt; 'Iso' a b c c -&gt; c -&gt; a -&gt; b</span>
-<a name="line-33"></a><span class='hs-comment'>-- (\&lt;\&gt;~) :: 'Monoid' c =&gt; 'Lens' a b c c -&gt; c -&gt; a -&gt; b</span>
-<a name="line-34"></a><span class='hs-comment'>-- (\&lt;\&gt;~) :: 'Monoid' c =&gt; 'Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-31"></a><span class='hs-comment'>-- ('&lt;&gt;~') :: 'Monoid' c =&gt; 'Setter' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-32"></a><span class='hs-comment'>-- ('&lt;&gt;~') :: 'Monoid' c =&gt; 'Iso' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-33"></a><span class='hs-comment'>-- ('&lt;&gt;~') :: 'Monoid' c =&gt; 'Lens' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-34"></a><span class='hs-comment'>-- ('&lt;&gt;~') :: 'Monoid' c =&gt; 'Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
 <a name="line-35"></a><span class='hs-comment'>-- @</span>
 <a name="line-36"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&gt;~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monoid</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
 <a name="line-37"></a><a name="l"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&gt;~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>`mappend`</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
@@ -49,10 +49,10 @@
 <a name="line-40"></a><a name="%3c%3e="></a><span class='hs-comment'>-- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by 'mappend'ing a value.</span>
 <a name="line-41"></a><span class='hs-comment'>--</span>
 <a name="line-42"></a><span class='hs-comment'>-- @</span>
-<a name="line-43"></a><span class='hs-comment'>-- (\&lt;\&gt;=) :: ('MonadState' a m, 'Monoid' b) =&gt; 'Simple' 'Setter' a b -&gt; b -&gt; m ()</span>
-<a name="line-44"></a><span class='hs-comment'>-- (\&lt;\&gt;=) :: ('MonadState' a m, 'Monoid' b) =&gt; 'Simple' 'Iso' a b -&gt; b -&gt; m ()</span>
-<a name="line-45"></a><span class='hs-comment'>-- (\&lt;\&gt;=) :: ('MonadState' a m, 'Monoid' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m ()</span>
-<a name="line-46"></a><span class='hs-comment'>-- (\&lt;\&gt;=) :: ('MonadState' a m, 'Monoid' b) =&gt; 'Simple' 'Traversal' a b -&gt; b -&gt; m ()</span>
+<a name="line-43"></a><span class='hs-comment'>-- ('&lt;&gt;=') :: ('MonadState' a m, 'Monoid' b) =&gt; 'Simple' 'Setter' a b -&gt; b -&gt; m ()</span>
+<a name="line-44"></a><span class='hs-comment'>-- ('&lt;&gt;=') :: ('MonadState' a m, 'Monoid' b) =&gt; 'Simple' 'Iso' a b -&gt; b -&gt; m ()</span>
+<a name="line-45"></a><span class='hs-comment'>-- ('&lt;&gt;=') :: ('MonadState' a m, 'Monoid' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m ()</span>
+<a name="line-46"></a><span class='hs-comment'>-- ('&lt;&gt;=') :: ('MonadState' a m, 'Monoid' b) =&gt; 'Simple' 'Traversal' a b -&gt; b -&gt; m ()</span>
 <a name="line-47"></a><span class='hs-comment'>-- @</span>
 <a name="line-48"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&gt;=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Monoid</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleSetting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
 <a name="line-49"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&gt;=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>State</span><span class='hs-varop'>.</span><span class='hs-varid'>modify</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-varop'>&lt;&gt;~</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>

@@ -44,10 +44,10 @@
 <a name="line-35"></a><span class='hs-comment'>-- ("hello/!!!","world/!!!")</span>
 <a name="line-36"></a><span class='hs-comment'>--</span>
 <a name="line-37"></a><span class='hs-comment'>-- @</span>
-<a name="line-38"></a><span class='hs-comment'>-- (\&lt;/\&gt;~) :: 'Setter' a b 'FilePath' 'FilePath' -&gt; 'FilePath' -&gt; a -&gt; b</span>
-<a name="line-39"></a><span class='hs-comment'>-- (\&lt;/\&gt;~) :: 'Iso' a b 'FilePath' 'FilePath' -&gt; 'FilePath' -&gt; a -&gt; b</span>
-<a name="line-40"></a><span class='hs-comment'>-- (\&lt;/\&gt;~) :: 'Lens' a b 'FilePath' 'FilePath' -&gt; 'FilePath' -&gt; a -&gt; b</span>
-<a name="line-41"></a><span class='hs-comment'>-- (\&lt;/\&gt;~) :: 'Traversal' a b 'FilePath' 'FilePath' -&gt; 'FilePath' -&gt; a -&gt; b</span>
+<a name="line-38"></a><span class='hs-comment'>-- ('&lt;/&gt;~') :: 'Setter' a b 'FilePath' 'FilePath' -&gt; 'FilePath' -&gt; a -&gt; b</span>
+<a name="line-39"></a><span class='hs-comment'>-- ('&lt;/&gt;~') :: 'Iso' a b 'FilePath' 'FilePath' -&gt; 'FilePath' -&gt; a -&gt; b</span>
+<a name="line-40"></a><span class='hs-comment'>-- ('&lt;/&gt;~') :: 'Lens' a b 'FilePath' 'FilePath' -&gt; 'FilePath' -&gt; a -&gt; b</span>
+<a name="line-41"></a><span class='hs-comment'>-- ('&lt;/&gt;~') :: 'Traversal' a b 'FilePath' 'FilePath' -&gt; 'FilePath' -&gt; a -&gt; b</span>
 <a name="line-42"></a><span class='hs-comment'>-- @</span>
 <a name="line-43"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;/&gt;~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>FilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
 <a name="line-44"></a><a name="l"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;/&gt;~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;/&gt;</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
@@ -57,10 +57,10 @@
 <a name="line-48"></a><a name="%3c/%3e="></a><span class='hs-comment'>-- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by adding a path.</span>
 <a name="line-49"></a><span class='hs-comment'>--</span>
 <a name="line-50"></a><span class='hs-comment'>-- @</span>
-<a name="line-51"></a><span class='hs-comment'>-- (\&lt;/\&gt;=) :: 'MonadState' a m =&gt; 'Simple' 'Setter' a 'FilePath' -&gt; 'FilePath' -&gt; m ()</span>
-<a name="line-52"></a><span class='hs-comment'>-- (\&lt;/\&gt;=) :: 'MonadState' a m =&gt; 'Simple' 'Iso' a 'FilePath' -&gt; 'FilePath' -&gt; m ()</span>
-<a name="line-53"></a><span class='hs-comment'>-- (\&lt;/\&gt;=) :: 'MonadState' a m =&gt; 'Simple' 'Lens' a 'FilePath' -&gt; 'FilePath' -&gt; m ()</span>
-<a name="line-54"></a><span class='hs-comment'>-- (\&lt;/\&gt;=) :: 'MonadState' a m =&gt; 'Simple' 'Traversal' a 'FilePath' -&gt; 'FilePath' -&gt; m ()</span>
+<a name="line-51"></a><span class='hs-comment'>-- ('&lt;/&gt;=') :: 'MonadState' a m =&gt; 'Simple' 'Setter' a 'FilePath' -&gt; 'FilePath' -&gt; m ()</span>
+<a name="line-52"></a><span class='hs-comment'>-- ('&lt;/&gt;=') :: 'MonadState' a m =&gt; 'Simple' 'Iso' a 'FilePath' -&gt; 'FilePath' -&gt; m ()</span>
+<a name="line-53"></a><span class='hs-comment'>-- ('&lt;/&gt;=') :: 'MonadState' a m =&gt; 'Simple' 'Lens' a 'FilePath' -&gt; 'FilePath' -&gt; m ()</span>
+<a name="line-54"></a><span class='hs-comment'>-- ('&lt;/&gt;=') :: 'MonadState' a m =&gt; 'Simple' 'Traversal' a 'FilePath' -&gt; 'FilePath' -&gt; m ()</span>
 <a name="line-55"></a><span class='hs-comment'>-- @</span>
 <a name="line-56"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;/&gt;=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleSetting</span> <span class='hs-varid'>a</span> <span class='hs-conid'>FilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>FilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
 <a name="line-57"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;/&gt;=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>State</span><span class='hs-varop'>.</span><span class='hs-varid'>modify</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-varop'>&lt;/&gt;~</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
@@ -91,10 +91,10 @@
 <a name="line-82"></a><span class='hs-comment'>-- ("hello.!!!","world.!!!")</span>
 <a name="line-83"></a><span class='hs-comment'>--</span>
 <a name="line-84"></a><span class='hs-comment'>-- @</span>
-<a name="line-85"></a><span class='hs-comment'>-- (\&lt;.\&gt;~) :: 'Setter' a b 'FilePath' 'FilePath' -&gt; 'String' -&gt; a -&gt; b</span>
-<a name="line-86"></a><span class='hs-comment'>-- (\&lt;.\&gt;~) :: 'Iso' a b 'FilePath' 'FilePath' -&gt; 'String' -&gt; a -&gt; b</span>
-<a name="line-87"></a><span class='hs-comment'>-- (\&lt;.\&gt;~) :: 'Lens' a b 'FilePath' 'FilePath' -&gt; 'String' -&gt; a -&gt; b</span>
-<a name="line-88"></a><span class='hs-comment'>-- (\&lt;.\&gt;~) :: 'Traversal' a b 'FilePath' 'FilePath' -&gt; 'String' -&gt; a -&gt; b</span>
+<a name="line-85"></a><span class='hs-comment'>-- ('&lt;.&gt;~') :: 'Setter' a b 'FilePath' 'FilePath' -&gt; 'String' -&gt; a -&gt; b</span>
+<a name="line-86"></a><span class='hs-comment'>-- ('&lt;.&gt;~') :: 'Iso' a b 'FilePath' 'FilePath' -&gt; 'String' -&gt; a -&gt; b</span>
+<a name="line-87"></a><span class='hs-comment'>-- ('&lt;.&gt;~') :: 'Lens' a b 'FilePath' 'FilePath' -&gt; 'String' -&gt; a -&gt; b</span>
+<a name="line-88"></a><span class='hs-comment'>-- ('&lt;.&gt;~') :: 'Traversal' a b 'FilePath' 'FilePath' -&gt; 'String' -&gt; a -&gt; b</span>
 <a name="line-89"></a><span class='hs-comment'>-- @</span>
 <a name="line-90"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;.&gt;~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
 <a name="line-91"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;.&gt;~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;.&gt;</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
@@ -104,10 +104,10 @@
 <a name="line-95"></a><a name="%3c.%3e="></a><span class='hs-comment'>-- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by adding an extension.</span>
 <a name="line-96"></a><span class='hs-comment'>--</span>
 <a name="line-97"></a><span class='hs-comment'>-- @</span>
-<a name="line-98"></a><span class='hs-comment'>-- (\&lt;.\&gt;=) :: 'MonadState' a m =&gt; 'Simple' 'Setter' a 'FilePath' -&gt; 'String' -&gt; m ()</span>
-<a name="line-99"></a><span class='hs-comment'>-- (\&lt;.\&gt;=) :: 'MonadState' a m =&gt; 'Simple' 'Iso' a 'FilePath' -&gt; 'String' -&gt; m ()</span>
-<a name="line-100"></a><span class='hs-comment'>-- (\&lt;.\&gt;=) :: 'MonadState' a m =&gt; 'Simple' 'Lens' a 'FilePath' -&gt; 'String' -&gt; m ()</span>
-<a name="line-101"></a><span class='hs-comment'>-- (\&lt;.\&gt;=) :: 'MonadState' a m =&gt; 'Simple' 'Traversal' a 'FilePath' -&gt; 'String' -&gt; m ()</span>
+<a name="line-98"></a><span class='hs-comment'>-- ('&lt;.&gt;=') :: 'MonadState' a m =&gt; 'Simple' 'Setter' a 'FilePath' -&gt; 'String' -&gt; m ()</span>
+<a name="line-99"></a><span class='hs-comment'>-- ('&lt;.&gt;=') :: 'MonadState' a m =&gt; 'Simple' 'Iso' a 'FilePath' -&gt; 'String' -&gt; m ()</span>
+<a name="line-100"></a><span class='hs-comment'>-- ('&lt;.&gt;=') :: 'MonadState' a m =&gt; 'Simple' 'Lens' a 'FilePath' -&gt; 'String' -&gt; m ()</span>
+<a name="line-101"></a><span class='hs-comment'>-- ('&lt;.&gt;=') :: 'MonadState' a m =&gt; 'Simple' 'Traversal' a 'FilePath' -&gt; 'String' -&gt; m ()</span>
 <a name="line-102"></a><span class='hs-comment'>-- @</span>
 <a name="line-103"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;.&gt;=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleSetting</span> <span class='hs-varid'>a</span> <span class='hs-conid'>FilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
 <a name="line-104"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;.&gt;=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>State</span><span class='hs-varop'>.</span><span class='hs-varid'>modify</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-varop'>&lt;.&gt;~</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>

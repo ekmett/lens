@@ -65,12 +65,12 @@
 <a name="line-56"></a>  <span class='hs-comment'>-- This can be used to edit pretty much any monad transformer stack with a state in it!</span>
 <a name="line-57"></a>  <span class='hs-comment'>--</span>
 <a name="line-58"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-59"></a>  <span class='hs-comment'>-- zoom :: 'Monad' m             =&gt; 'Simple' 'Lens' a b      -&gt; 'StateT' b m c -&gt; 'StateT' a m c</span>
-<a name="line-60"></a>  <span class='hs-comment'>-- zoom :: ('Monad' m, 'Monoid' c) =&gt; 'Simple' 'Control.Lens.Traversal.Traversal' a b -&gt; 'StateT' b m c -&gt; 'StateT' a m c</span>
-<a name="line-61"></a>  <span class='hs-comment'>-- zoom :: 'Monad' m             =&gt; 'Simple' 'Lens' a b      -&gt; 'RWST' r w b m c -&gt; 'RWST' r w a m c</span>
-<a name="line-62"></a>  <span class='hs-comment'>-- zoom :: ('Monad' m, 'Monoid' c) =&gt; 'Simple' 'Control.Lens.Traversal.Traversal' a b -&gt; 'RWST' r w b m c -&gt; 'RWST' r w a m c</span>
-<a name="line-63"></a>  <span class='hs-comment'>-- zoom :: 'Monad' m             =&gt; 'Simple' 'Lens' a b      -&gt; 'ErrorT' e ('RWST' r w b m c) -&gt; 'ErrorT' e ('RWST' r w a m c)</span>
-<a name="line-64"></a>  <span class='hs-comment'>-- zoom :: ('Monad' m, 'Monoid' c) =&gt; 'Simple' 'Control.Lens.Traversal.Traversal' a b -&gt; 'ErrorT' e ('RWST' r w b m c) -&gt; 'ErrorT' e ('RWST' r w a m c)</span>
+<a name="line-59"></a>  <span class='hs-comment'>-- 'zoom' :: 'Monad' m             =&gt; 'Simple' 'Lens' a b      -&gt; 'StateT' b m c -&gt; 'StateT' a m c</span>
+<a name="line-60"></a>  <span class='hs-comment'>-- 'zoom' :: ('Monad' m, 'Monoid' c) =&gt; 'Simple' 'Control.Lens.Traversal.Traversal' a b -&gt; 'StateT' b m c -&gt; 'StateT' a m c</span>
+<a name="line-61"></a>  <span class='hs-comment'>-- 'zoom' :: 'Monad' m             =&gt; 'Simple' 'Lens' a b      -&gt; 'RWST' r w b m c -&gt; 'RWST' r w a m c</span>
+<a name="line-62"></a>  <span class='hs-comment'>-- 'zoom' :: ('Monad' m, 'Monoid' c) =&gt; 'Simple' 'Control.Lens.Traversal.Traversal' a b -&gt; 'RWST' r w b m c -&gt; 'RWST' r w a m c</span>
+<a name="line-63"></a>  <span class='hs-comment'>-- 'zoom' :: 'Monad' m             =&gt; 'Simple' 'Lens' a b      -&gt; 'ErrorT' e ('RWST' r w b m c) -&gt; 'ErrorT' e ('RWST' r w a m c)</span>
+<a name="line-64"></a>  <span class='hs-comment'>-- 'zoom' :: ('Monad' m, 'Monoid' c) =&gt; 'Simple' 'Control.Lens.Traversal.Traversal' a b -&gt; 'ErrorT' e ('RWST' r w b m c) -&gt; 'ErrorT' e ('RWST' r w a m c)</span>
 <a name="line-65"></a>  <span class='hs-comment'>-- ...</span>
 <a name="line-66"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-67"></a>  <span class='hs-varid'>zoom</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-varid'>k</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>t</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>n</span> <span class='hs-varid'>c</span>
@@ -136,10 +136,10 @@
 <a name="line-127"></a>  <span class='hs-comment'>-- This can be used to edit pretty much any monad transformer stack with an environment in it:</span>
 <a name="line-128"></a>  <span class='hs-comment'>--</span>
 <a name="line-129"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-130"></a>  <span class='hs-comment'>-- magnify ::             'Getter' a b -&gt; (b -&gt; c) -&gt; a -&gt; c</span>
-<a name="line-131"></a>  <span class='hs-comment'>-- magnify :: 'Monoid' c =&gt; 'Fold' a b   -&gt; (b -&gt; c) -&gt; a -&gt; c</span>
-<a name="line-132"></a>  <span class='hs-comment'>-- magnify :: 'Monoid' w                'Getter' a b -&gt; 'RWST' a w s c -&gt; 'RWST' b w s c</span>
-<a name="line-133"></a>  <span class='hs-comment'>-- magnify :: ('Monoid' w, 'Monoid' c) =&gt; 'Fold' a b   -&gt; 'RWST' a w s c -&gt; 'RWST' b w s c</span>
+<a name="line-130"></a>  <span class='hs-comment'>-- 'magnify' ::             'Getter' a b -&gt; (b -&gt; c) -&gt; a -&gt; c</span>
+<a name="line-131"></a>  <span class='hs-comment'>-- 'magnify' :: 'Monoid' c =&gt; 'Fold' a b   -&gt; (b -&gt; c) -&gt; a -&gt; c</span>
+<a name="line-132"></a>  <span class='hs-comment'>-- 'magnify' :: 'Monoid' w                'Getter' a b -&gt; 'RWST' a w s c -&gt; 'RWST' b w s c</span>
+<a name="line-133"></a>  <span class='hs-comment'>-- 'magnify' :: ('Monoid' w, 'Monoid' c) =&gt; 'Fold' a b   -&gt; 'RWST' a w s c -&gt; 'RWST' b w s c</span>
 <a name="line-134"></a>  <span class='hs-comment'>-- ...</span>
 <a name="line-135"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-136"></a>  <span class='hs-varid'>magnify</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-varid'>c</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-varid'>c</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>n</span> <span class='hs-varid'>c</span>
