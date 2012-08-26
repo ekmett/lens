@@ -307,30 +307,6 @@ bazaar :: Applicative f => (c -> f d) -> Bazaar c d b -> f b
 bazaar _ (Buy b)    = pure b
 bazaar f (Trade k c) = f c <**> bazaar f k
 
-{-
--- | A final encoding of 'Bazaar' that, alas, benchmarks slower.
-
-newtype Bazaar c d a = Bazaar { runBazaar :: forall f. Applicative f => (c -> f d) -> f a }
-
-instance Functor (Bazaar c d) where
-  fmap f (Bazaar k) = Bazaar (fmap f . k)
-
-instance Applicative (Bazaar c d) where
-  pure a = Bazaar (\_ -> pure a)
-  Bazaar mf <*> Bazaar ma = Bazaar (\k -> mf k <*> ma k)
-
-instance (c ~ d) => Comonad (Bazaar c d) where
-  extract (Bazaar m) = runIdentity (m Identity)
-  duplicate = duplicateBazaar
-
--- | 'Bazaar' is an indexed 'Comonad'.
-duplicateBazaar :: Bazaar i k a -> Bazaar i j (Bazaar j k a)
-duplicateBazaar (Bazaar m) = Bazaar (\g -> getCompose (m (Compose . fmap (\j -> Bazaar (\h -> h j)) . g)))
-
-instance (c ~ d) => ComonadApply (Bazaar c d) where
-  (<@>) = (<*>)
--}
-
 -- | Wrap a monadic effect with a phantom type argument.
 newtype Effect m r a = Effect { getEffect :: m r }
 
