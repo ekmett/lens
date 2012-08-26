@@ -166,8 +166,9 @@ swap (a,b) = (b,a)
 --
 -- Attempts to access beyond the range of the 'Traversal' will cause an error.
 --
--- >>> iwhere (indexed traverse) (>2) *~ 10 $ [1..4]
--- [1,2,30,40]
+-- >>> :m + Control.Lens
+-- >>> over (iwhere (indexed traverse) (>0)) reverse $ ["He","was","stressed","o_O"]
+-- ["He","saw","desserts","O_o"]
 --
 -- @
 -- 'iwhere' :: 'IndexedFold' i a b            -> (i -> 'Bool') -> 'IndexedFold' i a b
