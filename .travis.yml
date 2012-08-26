@@ -4,7 +4,7 @@ before_install:
   - mkdir -p ~/.cabal
   - cp config ~/.cabal/config
   - cabal update
-  - cabal install --only-dependencies
+  - cabal install --only-dependencies --enable-tests --enable-benchmarks
 install:
   - cabal configure --enable-tests --enable-benchmarks
   - cabal build
