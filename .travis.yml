@@ -1,8 +1,14 @@
 language: haskell
-# Use this when hackage is down.
+# Use this before_install section when hackage is down.
 before_install:
   - mkdir -p ~/.cabal
   - cp config ~/.cabal/config
   - cabal update
+install:
+  - cabal configure --enable-tests --enable-benchmarks
+  - cabal build
+script:
+  - cabal test
+  - cabal bench
 notifications:
   irc: "irc.freenode.org#haskell-lens"
