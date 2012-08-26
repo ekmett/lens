@@ -31,6 +31,7 @@ import Data.Hashable
 -- fromList [2,3,4,5]
 setmapped :: (Eq i, Hashable i, Eq j, Hashable j) => Setter (HashSet i) (HashSet j) i j
 setmapped = sets HashSet.map
+{-# INLINE setmapped #-}
 
 -- | Construct a set from a 'Getter', 'Fold', 'Traversal', 'Lens' or 'Iso'.
 --
@@ -47,3 +48,4 @@ setmapped = sets HashSet.map
 -- @
 setOf :: Hashable c => Getting (HashSet c) a c -> a -> HashSet c
 setOf l = runAccessor . l (Accessor . HashSet.singleton)
+{-# INLINE setOf #-}

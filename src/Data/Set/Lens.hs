@@ -30,6 +30,7 @@ import Data.Set as Set
 -- fromList [2,3,4,5]
 setmapped :: (Ord i, Ord j) => Setter (Set i) (Set j) i j
 setmapped = sets Set.map
+{-# INLINE setmapped #-}
 
 -- | Construct a set from a 'Getter', 'Fold', 'Traversal', 'Lens' or 'Iso'.
 --
@@ -46,3 +47,4 @@ setmapped = sets Set.map
 -- @
 setOf :: Getting (Set c) a c -> a -> Set c
 setOf l = runAccessor . l (Accessor . Set.singleton)
+{-# INLINE setOf #-}

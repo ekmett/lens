@@ -25,6 +25,7 @@ import Data.IntSet as IntSet
 -- 10
 members :: Fold IntSet Int
 members = folding IntSet.toAscList
+{-# INLINE members #-}
 
 -- | This 'Setter' can be used to change the contents of an 'IntSet' by mapping
 -- the elements to new values.
@@ -37,6 +38,7 @@ members = folding IntSet.toAscList
 -- fromList [2,3,4,5]
 setmapped :: Simple Setter IntSet Int
 setmapped = sets IntSet.map
+{-# INLINE setmapped #-}
 
 -- | Construct an 'IntSet' from a 'Getter', 'Fold', 'Traversal', 'Lens' or 'Iso'.
 --
@@ -53,3 +55,4 @@ setmapped = sets IntSet.map
 -- @
 setOf :: Getting IntSet a Int -> a -> IntSet
 setOf l = runAccessor . l (Accessor . IntSet.singleton)
+{-# INLINE setOf #-}
