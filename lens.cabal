@@ -219,6 +219,7 @@ benchmark plated
     base,
     criterion,
     deepseq,
+    ghc-prim,
     lens,
     uniplate >= 1.6.7 && < 1.7
   ghc-options: -Wall -O2 -threaded

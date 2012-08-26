@@ -1,15 +1,16 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
 {-# OPTIONS_GHC -funbox-strict-fields #-}
 import           Control.Applicative
 import           Control.Lens
-import           Control.Plated
 import           Control.DeepSeq
 import           Criterion.Main
 import           Data.Data
-import           Data.Data.Lens
+import           Data.Data.Lens as Data
 import qualified Data.Generics.Uniplate.Direct as Uni
 import           Data.Generics.Uniplate.Direct ((|*))
-import qualified Data.Generics.Uniplate.DataOnly as DataOnly
+import qualified Data.Generics.Uniplate.DataOnly as UniDataOnly
+import           GHC.Generics
+import           GHC.Generics.Lens as Generic
 
 data Expr  =  Val !Int
            |  Var String
@@ -18,7 +19,7 @@ data Expr  =  Val !Int
            |  Sub !Expr !Expr
            |  Mul !Expr !Expr
            |  Div !Expr !Expr
-           deriving (Eq,Show,Data,Typeable)
+           deriving (Eq,Show,Data,Typeable,Generic)
 
 instance NFData Expr where
   rnf (Neg a)   = rnf a
@@ -53,11 +54,13 @@ main :: IO ()
 main = defaultMain
   [ bench "universe"                           $ nf (map universe) testsExpr
   , bench "universeOf plate"                   $ nf (map (universeOf plate)) testsExpr
-  , bench "universeOf uniplate"                $ nf (map (universeOf uniplate)) testsExpr
-  , bench "universeOf tinplate"                $ nf (map (universeOf tinplate)) testsExpr
+  , bench "universeOf Generic.tinplate"        $ nf (map (universeOf Generic.tinplate)) testsExpr
+  , bench "universeOf Data.tinplate"           $ nf (map (universeOf Data.tinplate)) testsExpr
+  , bench "universeOf Data.template"           $ nf (map (universeOf Data.template)) testsExpr
+  , bench "universeOf Data.uniplate"           $ nf (map (universeOf Data.uniplate)) testsExpr
   , bench "universeOf (cloneTraversal plate)"  $ nf (map (universeOf (cloneTraversal plate))) testsExpr
   , bench "Direct.universe"                    $ nf (map Uni.universe) testsExpr
-  , bench "DataOnly.universe"                  $ nf (map DataOnly.universe) testsExpr
+  , bench "DataOnly.universe"                  $ nf (map UniDataOnly.universe) testsExpr
   ]
 
 testsExpr :: [Expr]

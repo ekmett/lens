@@ -19,12 +19,12 @@
 --
 -- Smart and naïve generic traversals given 'Data' instances.
 --
--- 'every', 'uniplate', and 'biplate' each build up information about what
+-- 'template', 'uniplate', and 'biplate' each build up information about what
 -- types can be contained within another type to speed up 'Traversal'.
 --
 ----------------------------------------------------------------------------
 module Data.Data.Lens
-  ( every
+  ( template
   , tinplate
   , uniplate
   , biplate
@@ -85,23 +85,27 @@ step f w d = w <*> case cast d of
 -- Smart Traversal
 -------------------------------------------------------------------------------
 
--- | Find every occurence of a given type @b@ recursively that doesn't require passing through something of type @b@
--- using 'Data', while avoiding traversal of areas that cannot contain a value of type @b@.
-every :: forall a b. (Data a, Typeable b) => Simple Traversal a b
-every f a = uniplateData (fromOracle (hitTest a (undefined :: b))) f a
+-- | Find every occurence of a given type @b@ recursively that doesn't require
+-- passing through something of type @b@ using 'Data', while avoiding traversal
+-- of areas that cannot contain a value of type @b@.
+--
+-- This is 'uniplate' with a more liberal signature.
+template :: forall a b. (Data a, Typeable b) => Simple Traversal a b
+template = uniplateData (fromOracle answer) where
+  answer = hitTest (undefined :: a) (undefined :: b)
 
 -- | Find descendants of type @a@ non-transitively, while avoiding computation of areas that cannot contain values of
 -- type @a@ using 'Data'.
 --
 -- 'uniplate' is a useful default definition for 'Control.Plated.plate'
 uniplate :: Data a => Simple Traversal a a
-uniplate = every
+uniplate = template
 {-# INLINE uniplate #-}
 
--- | 'biplate' performs like 'every', except when @a ~ b@, it returns itself and nothing else.
---
-biplate :: (Data a, Typeable b) => Simple Traversal a b
-biplate f a = biplateData (fromOracle (hitTest a (undefined :: b))) f a
+-- | 'biplate' performs like 'template', except when @a ~ b@, it returns itself and nothing else.
+biplate :: forall a b. (Data a, Typeable b) => Simple Traversal a b
+biplate = biplateData (fromOracle answer) where
+  answer = hitTest (undefined :: a) (undefined :: b)
 
 -------------------------------------------------------------------------------
 -- Data Box
