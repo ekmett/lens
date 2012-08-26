@@ -77,8 +77,6 @@ module Control.Lens.Plated
   where
 
 import Control.Applicative
-import Control.Arrow ((&&&))
--- import Control.Comonad
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal
@@ -195,88 +193,49 @@ instance Plated [Char] where
   plate f (x:xs) = (x:) <$> f xs
   plate _ [] = pure []
 
--- | Neil Mitchell's original version of the @uniplate@ combinator, implemented in terms of 'Plated'.
+-- | Neil Mitchell's original version of the @uniplate@ combinator, implemented in terms of 'Plated' as a 'Lens'
 --
 -- @'parts' = 'partsOf' 'plate'@
 --
--- The resulting plate is actually safer to use as it ignores 'over-application' and
+-- The resulting lens is actually safer to use as it ignores 'over-application' and
 -- deals gracefully with under-application.
-parts :: Plated a => a -> ([a], [a] -> a)
+parts :: Plated a => Simple Lens a [a]
 parts = partsOf plate
 {-# INLINE parts #-}
 
--- | 'partsOf' turns a 'Traversal' into a an early version of the @uniplate@ (or @biplate@) type.
+-- | 'partsOf' turns a 'Traversal' into a lens that resembles an early version of the @uniplate@ (or @biplate@) type.
+--
+-- /Note:/ You should really, maintain the invariant of the number of children in the list.
+--
+-- Any extras will be lost.
+--
+-- If you do not supply enough, then the remainder will come from the original structure.
 --
 -- @
--- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' a b       -> a -> ([b], [b] -> a)
--- 'partsOf' :: 'Simple' 'Lens' a b      -> a -> ([b], [b] -> a)
--- 'partsOf' :: 'Simple' 'Traversal' a b -> a -> ([b], [b] -> a)
+-- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' a b       -> a -> 'Simple' 'Lens' a [b]
+-- 'partsOf' :: 'Simple' 'Lens' a b      -> a -> 'Simple' 'Lens' a [b]
+-- 'partsOf' :: 'Simple' 'Traversal' a b -> a -> 'Simple' 'Traversal' a [b]
 -- @
-partsOf :: LensLike (Bazaar c c) a b c c -> a -> ([c], [c] -> b) -- switch to Context [c] [c] b?
-partsOf l = (ins &&& outs) . l sell
+partsOf :: LensLike (Bazaar c c) a b c c -> Lens a b [c] [c]
+partsOf l f a = outs b <$> f (ins b) where b = l sell a
 {-# INLINE partsOf #-}
 
-ins :: Bazaar c d a -> [c]
-ins (Bazaar m) = getConst (m (Const . return))
 
-{-
-ins (Trade ys c) = c : ins ys
-ins _ = []
--}
-
-newtype Out c a = Out { withOut :: [c] -> (a, [c]) }
-
-instance Functor (Out c) where
-  fmap f (Out m) = Out $ \cs -> case m cs of
-    (as, ds) -> (f as, ds)
-
-instance Applicative (Out c) where
-  pure a = Out $ \cs -> (a, cs)
-  Out mf <*> Out ma = Out $ \cs -> case mf cs of
-    (f,  ds) -> case ma ds of
-       (a,  es) -> (f a, es)
-
-outs :: Bazaar c c a -> [c] -> a
-outs (Bazaar m) = fst . withOut (m $ \c -> Out $ \cs -> case cs of
-  [] -> (c, [])
-  (d:ds) -> (d, ds))
-
-
-{-
-outs (Trade ys _) (c:cs) = outs (fmap ($c) ys) cs
-outs xs          _       = extract xs
--}
 
 -- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
 --
 -- If you do not need the types of @c@ and @d@ to be different, it is recommended that
 -- you use 'partsOf'
 --
--- It is generally safer to traverse with the 'Bazaar' indexed store 'Comonad' rather
--- than use this combinator. However, it is sometimes convenient.
+-- It is generally safer to traverse with the 'Bazaar' rather than use this
+-- combinator. However, it is sometimes convenient.
 --
 -- This is unsafe because if you don't supply at least as many @d@'s as you were
--- given @c@'s, then the reconstruction of @b@ /will/ result in an error.
-unsafePartsOf :: LensLike (Bazaar c d) a b c d -> a -> ([c], [d] -> b)
-unsafePartsOf l = (ins &&& outs') . l sell
+-- given @c@'s, then the reconstruction of @b@ /will/ result in an error!
+--
+unsafePartsOf :: LensLike (Bazaar c d) a b c d -> Lens a b [c] [d]
+unsafePartsOf l f a = outs' b <$> f (ins b) where b = l sell a
 {-# INLINE unsafePartsOf #-}
-
-outs' :: Bazaar c d a -> [d] -> a
-outs' (Bazaar m) = fst . withOut (m $ \_ -> Out $ \cs -> case cs of
-  (d:ds) -> (d, ds)
-  [] -> error "unsafePartsOf: not enough elements were supplied")
-
-{-
-outs (Bazaar m) = withOut $ m $ \c -> Out $ \cs -> case cs of
-  [] -> (c, [])
-  (_:cs) -> (c, cs)
--}
-
-{-
-outs' (Trade ys _) (d:ds) = outs' (fmap ($d) ys) ds
-outs' (Buy a)      _      = a
-outs' _            _      = error "unsafePartsOf: not enough elements were supplied"
--}
 
 -- | Extract the immediate descendants of a 'Plated' container.
 --
@@ -733,10 +692,23 @@ holes = holesOf plate
 -- 'holesOf' :: 'Simple' 'Traversal' a b -> a -> ['Context' b a]
 -- @
 holesOf :: LensLike (Bazaar c c) a b c c -> a -> [Context c c b]
-holesOf l = uncurry f . partsOf l where
+holesOf l a = f (ins b) (outs b) where
+  b = l sell a
   f []     _ = []
   f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
+
+{-
+holesOf l = dig id . l sell
 {-# INLINE holesOf #-}
+
+dig :: (a -> r) -> Bazaar c c a -> [Context c c r]
+dig _ Buy{}        = []
+dig k (Trade xs c) = Context (k . extract xs) c : dig (\a -> k a c) xs
+-}
+{-
+{-# INLINE holesOf #-}
+-}
+
 
 -- | An alias for 'holesOf', provided for consistency with the other combinators.
 --
@@ -798,3 +770,53 @@ para = paraOf plate
 composOpFold :: Plated a => b -> (b -> b -> b) -> (a -> b) -> a -> b
 composOpFold z c f = foldrOf plate (c . f) z
 {-# INLINE composOpFold #-}
+
+-------------------------------------------------------------------------------
+-- The ins and outs of the bazaar
+-------------------------------------------------------------------------------
+
+ins :: Bazaar c d a -> [c]
+ins (Bazaar m) = getConst (m (Const . return))
+{-# INLINE ins #-}
+{-
+ins (Trade ys c) = c : ins ys
+ins _ = []
+-}
+
+newtype Out c a = Out { withOut :: [c] -> (a, [c]) }
+
+instance Functor (Out c) where
+  fmap f (Out m) = Out $ \cs -> case m cs of
+    (as, ds) -> (f as, ds)
+  {-# INLINE fmap #-}
+
+instance Applicative (Out c) where
+  pure a = Out $ \cs -> (a, cs)
+  {-# INLINE pure #-}
+  Out mf <*> Out ma = Out $ \cs -> case mf cs of
+    (f,  ds) -> case ma ds of
+       (a,  es) -> (f a, es)
+  {-# INLINE (<*>) #-}
+
+outs :: Bazaar c c a -> [c] -> a
+outs (Bazaar m) = fst . withOut (m $ \c -> Out $ \cs -> case cs of
+  [] -> (c, [])
+  (d:ds) -> (d, ds))
+{-# INLINE outs #-}
+{-
+outs (Trade ys _) (c:cs) = outs (fmap ($c) ys) cs
+outs xs          _       = extract xs
+-}
+
+outs' :: Bazaar c d a -> [d] -> a
+outs' (Bazaar m) = fst . withOut (m $ \_ -> Out $ \cs -> case cs of
+  (d:ds) -> (d, ds)
+  [] -> error "unsafePartsOf: not enough elements were supplied")
+{-# INLINE outs' #-}
+
+{-
+outs' (Trade ys _) (d:ds) = outs' (fmap ($d) ys) ds
+outs' (Buy a)      _      = a
+outs' _            _      = error "unsafePartsOf: not enough elements were supplied"
+-}
+
