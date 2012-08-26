@@ -166,8 +166,8 @@ instance (Eq k, Hashable k) => At k (HashMap k) where
 -- | Provides an 'IndexedLens' that can be used to read, write or delete a member of a set-like container
 class Contains k m | m -> k where
   -- |
-  -- >>> import Control.Lens
-  -- >>> contains 3 +~ False $ IntSet.fromList [1,2,3,4]
+  -- >>> :m + Control.Lens
+  -- >>> contains 3 .~ False $ IntSet.fromList [1,2,3,4]
   -- fromList [1,2,4]
   contains :: k -> SimpleIndexedLens k m Bool
 
