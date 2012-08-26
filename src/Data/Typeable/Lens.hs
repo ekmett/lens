@@ -25,7 +25,7 @@ _cast f a = case cast a of
   Just b -> Unsafe.unsafeCoerce <$> f b
   Nothing -> pure a
 
--- | A 'Simple' 'Traversal' for working with a 'cast' of a 'Typeable' value.
+-- | A 'Simple' 'Traversal' for working with a 'gcast' of a 'Typeable' value.
 _gcast :: (Typeable a, Typeable b) => Simple Traversal (c a) (c b)
 _gcast f a = case gcast a of
   Just b -> Unsafe.unsafeCoerce <$> f b
