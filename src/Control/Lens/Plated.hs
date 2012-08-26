@@ -33,9 +33,8 @@
 -- they had to choose between correctness and ease of use, and it was brittle in the
 -- face of competing imports.
 --
--- Using the combinators to take the place of make a number of simple assumptions.
---
--- Notably any of the @On@ combinators are expecting a 'Traversal', 'Setter' or 'Fold'
+-- The sensible use of these combinators makes some simple assumptions.  Notably, any
+-- of the @On@ combinators are expecting a 'Traversal', 'Setter' or 'Fold'
 -- to play the role of the 'Data.Data.Lens.biplate' combinator, and so when the
 -- types of the contents and the container match, they should be the 'id' 'Traversal',
 -- 'Setter' or 'Fold'.
