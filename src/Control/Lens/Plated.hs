@@ -5,7 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Control.Plated
+-- Module      :  Control.Lens.Plated
 -- Copyright   :  (C) 2012 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
@@ -44,7 +44,7 @@
 -- from @Data.Data.Lens@ or @GHC.Generics.Lens@ to make it easier to automatically
 -- derive definitions for 'plate', or to derive custom traversals.
 -------------------------------------------------------------------------------
-module Control.Plated
+module Control.Lens.Plated
   (
   -- * Uniplate
     Plated(..)
@@ -213,36 +213,36 @@ parts = partsOf plate
 -- 'partsOf' :: 'Simple' 'Lens' a b      -> a -> ([b], [b] -> a)
 -- 'partsOf' :: 'Simple' 'Traversal' a b -> a -> ([b], [b] -> a)
 -- @
-partsOf :: LensLike (Kleene c c) a b c c -> a -> ([c], [c] -> b)
-partsOf l = (ins &&& outs) . l (More (Done id))
+partsOf :: LensLike (Bazaar c c) a b c c -> a -> ([c], [c] -> b)
+partsOf l = (ins &&& outs) . l sell
 {-# INLINE partsOf #-}
 
-ins :: Kleene c d a -> [c]
-ins (More ys c) = c : ins ys
+ins :: Bazaar c d a -> [c]
+ins (Trade ys c) = c : ins ys
 ins _ = []
 
-outs :: Kleene c c a -> [c] -> a
-outs (More ys _) (c:cs) = outs (fmap ($c) ys) cs
-outs xs          _      = extract xs
+outs :: Bazaar c c a -> [c] -> a
+outs (Trade ys _) (c:cs) = outs (fmap ($c) ys) cs
+outs xs          _       = extract xs
 
 -- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
 --
 -- If you do not need the types of @c@ and @d@ to be different, it is recommended that
 -- you use 'partsOf'
 --
--- It is generally safer to traverse with the 'Kleene' indexed store 'Comonad' rather
+-- It is generally safer to traverse with the 'Bazaar' indexed store 'Comonad' rather
 -- than use this combinator. However, it is sometimes convenient.
 --
 -- This is unsafe because if you don't supply at least as many @d@'s as you were
 -- given @c@'s, then the reconstruction of @b@ /will/ result in an error.
-unsafePartsOf :: LensLike (Kleene c d) a b c d -> a -> ([c], [d] -> b)
-unsafePartsOf l = (ins &&& outs') . l (More (Done id))
+unsafePartsOf :: LensLike (Bazaar c d) a b c d -> a -> ([c], [d] -> b)
+unsafePartsOf l = (ins &&& outs') . l sell
 {-# INLINE unsafePartsOf #-}
 
-outs' :: Kleene c d a -> [d] -> a
-outs' (More ys _) (d:ds) = outs' (fmap ($d) ys) ds
-outs' (Done a)    _      = a
-outs' _           _      = error "unsafePartsOf: not enough elements were supplied"
+outs' :: Bazaar c d a -> [d] -> a
+outs' (Trade ys _) (d:ds) = outs' (fmap ($d) ys) ds
+outs' (Buy a)      _      = a
+outs' _            _      = error "unsafePartsOf: not enough elements were supplied"
 
 -- | Extract the immediate descendants of a 'Plated' container.
 --
@@ -641,7 +641,7 @@ contexts = contextsOf plate
 -- @
 --
 -- @'contextsOf' :: 'Simple' 'Traversal' a a -> a -> ['Context' a a]@
-contextsOf :: SimpleLensLike (Kleene a a) a a -> a -> [Context a a a]
+contextsOf :: SimpleLensLike (Bazaar a a) a a -> a -> [Context a a a]
 contextsOf l x = Context id x : f (holesOf l x) where
   f xs = do
     Context ctx child <- xs
@@ -654,7 +654,7 @@ contextsOf l x = Context id x : f (holesOf l x) where
 -- @'contextsOn' b = 'contextsOnOf' b 'plate'@
 --
 -- @'contextsOn' :: 'Plated' b => 'Simple' 'Traversal' a b -> a -> ['Context' b b a]@
-contextsOn :: Plated c => LensLike (Kleene c c) a b c c -> a -> [Context c c b]
+contextsOn :: Plated c => LensLike (Bazaar c c) a b c c -> a -> [Context c c b]
 contextsOn b = contextsOnOf b plate
 {-# INLINE contextsOn #-}
 
@@ -662,7 +662,7 @@ contextsOn b = contextsOnOf b plate
 -- another user-supplied 'Traversal' to walk each layer.
 --
 -- @'contextsOnOf' :: 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> a -> ['Context' b b a]@
-contextsOnOf :: LensLike (Kleene c c) a b c c -> SimpleLensLike (Kleene c c) c c -> a -> [Context c c b]
+contextsOnOf :: LensLike (Bazaar c c) a b c c -> SimpleLensLike (Bazaar c c) c c -> a -> [Context c c b]
 contextsOnOf b l = f . holesOf b where
   f xs = do
     Context ctx child <- xs
@@ -698,7 +698,7 @@ holes = holesOf plate
 -- 'holesOf' :: 'Simple' 'Lens' a b      -> a -> ['Context' b a]
 -- 'holesOf' :: 'Simple' 'Traversal' a b -> a -> ['Context' b a]
 -- @
-holesOf :: LensLike (Kleene c c) a b c c -> a -> [Context c c b]
+holesOf :: LensLike (Bazaar c c) a b c c -> a -> [Context c c b]
 holesOf l = uncurry f . partsOf l where
   f []     _ = []
   f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
@@ -713,7 +713,7 @@ holesOf l = uncurry f . partsOf l where
 -- 'holesOn' :: 'Simple' 'Lens' a b      -> a -> ['Context' b b a]
 -- 'holesOn' :: 'Simple' 'Traversal' a b -> a -> ['Context' b b a]
 -- @
-holesOn :: LensLike (Kleene c c) a b c c -> a -> [Context c c b]
+holesOn :: LensLike (Bazaar c c) a b c c -> a -> [Context c c b]
 holesOn = holesOf
 
 -- | Extract one level of holes from a container in a region specified by one 'Traversal', using another.
@@ -725,7 +725,7 @@ holesOn = holesOf
 -- 'holesOnOf' :: 'Simple' 'Lens' a b      -> 'Simple' 'Lens' b b      -> a -> ['Context' b a]
 -- 'holesOnOf' :: 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> a -> ['Context' b a]
 -- @
-holesOnOf :: LensLike (Kleene e e) a b c d -> LensLike (Kleene e e) c d e e -> a -> [Context e e b]
+holesOnOf :: LensLike (Bazaar e e) a b c d -> LensLike (Bazaar e e) c d e e -> a -> [Context e e b]
 holesOnOf b l = holesOf (b.l)
 
 -- | Perform a fold-like computation on each value, technically a paramorphism.

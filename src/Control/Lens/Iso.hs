@@ -157,5 +157,5 @@ _const = isos Const getConst Const getConst
 -- | Useful for storing isomorphisms in containers.
 newtype ReifiedIso a b c d = ReifyIso { reflectIso :: Iso a b c d }
 
--- @type SimpleReifiedIso = 'Control.Lens.Type.Simple' 'ReifiedIso'@
+-- | @type SimpleReifiedIso = 'Control.Lens.Type.Simple' 'ReifiedIso'@
 type SimpleReifiedIso a b = ReifiedIso a a b b

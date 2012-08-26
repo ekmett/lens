@@ -322,23 +322,24 @@ traverseNothing = const pure
 -- Cloning Traversals
 ------------------------------------------------------------------------------
 
--- | A traversal is completely characterized by its behavior on the indexed
--- 'Kleene' store comonad.
+-- | A 'Traversal' is completely characterized by its behavior on a 'Bazaar'.
 --
 -- Cloning a 'Traversal' is one way to make sure you arent given
 -- something weaker, such as a 'Control.Lens.Traversal.Fold' and can be
 -- used as a way to pass around traversals that have to be monomorphic in @f@.
 --
--- Note: This only accepts a proper 'Traversal' (or 'Lens').
+-- Note: This only accepts a proper 'Traversal' (or 'Lens'). To clone a 'Lens'
+-- as such, use 'cloneLens'
 --
--- To clone a 'Lens' as such, use 'cloneLens'
-
-cloneTraversal :: Applicative f => ((c -> Kleene c d d) -> a -> Kleene c d b) -> (c -> f d) -> a -> f b
-cloneTraversal l f = kleene f . l (More (Done id))
+-- Note: It is usually better to 'ReifyTraversal' and use 'reflectTraversal'
+-- than to 'cloneTraversal'. The former can execute at full speed, while the
+-- latter needs to round trip through the 'Bazaar'.
+cloneTraversal :: Applicative f => ((c -> Bazaar c d d) -> a -> Bazaar c d b) -> (c -> f d) -> a -> f b
+cloneTraversal l f = bazaar f . l sell
 {-# INLINE cloneTraversal #-}
 
--- cloneTraversal' :: Applicative f => ((c -> Mall c d d) -> a -> Mall c d b) -> (c -> f d) -> a -> f b
--- cloneTraversal' l f a = runMall (l (\c -> Mall (\k -> k c)) a) f
+-- cloneTraversal' :: Applicative f => ((c -> Bazaar c d d) -> a -> Bazaar c d b) -> (c -> f d) -> a -> f b
+-- cloneTraversal' l f a = runBazaar (l (\c -> Bazaar (\k -> k c)) a) f
 -- {-# INLINE cloneTraversal' #-}
 
 -- | A form of 'Traversal' that can be stored monomorphically in a container.

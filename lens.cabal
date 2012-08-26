@@ -126,6 +126,7 @@ library
                    Control.Lens.Internal
                    Control.Lens.Iso
                    Control.Lens.Isomorphic
+                   Control.Lens.Plated
                    Control.Lens.Representable
                    Control.Lens.Setter
                    Control.Lens.TH
@@ -133,7 +134,6 @@ library
                    Control.Lens.Tuple
                    Control.Lens.Type
                    Control.Lens.Zoom
-                   Control.Plated
                    Data.Bits.Lens
                    Data.ByteString.Lens
                    Data.ByteString.Lazy.Lens
@@ -212,7 +212,7 @@ test-suite properties
   ghc-options: -w -threaded
   hs-source-dirs: tests
 
-benchmark benchmark-plated
+benchmark plated
   type: exitcode-stdio-1.0
   main-is: plated.hs
   build-depends:

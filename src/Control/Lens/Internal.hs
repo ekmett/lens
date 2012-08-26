@@ -39,8 +39,7 @@ module Control.Lens.Internal
   , getMax
   , ElementOf(..)
   , ElementOfResult(..)
-  , Kleene(..), kleene, duplicateKleene
-  , Mall(..), duplicateMall
+  , Bazaar(..), bazaar, duplicateBazaar, sell
   , Effect(..)
   , EffectRWS(..)
   -- , EffectS(..)
@@ -262,60 +261,71 @@ instance Functor f => Applicative (ElementOf f) where
     NotFound e -> NotFound e
 
 
--- | The indexed 'Kleene' store comonad, aka the indexed Cartesian store comonad or an indexed 'FunList'.
+-- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
 --
--- This is used to characterize a 'Control.Lens.Traversal.Traversal'.
+-- a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed 'FunList'.
 --
 -- <http://twanvl.nl/blog/haskell/non-regular1>
-data Kleene c d a
-  = Done a
-  | More (Kleene c d (d -> a)) c
+--
+-- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
+data Bazaar c d a
+  = Buy a
+  | Trade (Bazaar c d (d -> a)) c
 
-instance Functor (Kleene c d) where
-  fmap f (Done a) = Done (f a)
-  fmap f (More k b) = More (fmap (f .) k)  b
+instance Functor (Bazaar c d) where
+  fmap f (Buy a)    = Buy (f a)
+  fmap f (Trade k b) = Trade (fmap (f .) k)  b
 
-instance Applicative (Kleene c d) where
-  pure = Done
-  Done f   <*> m = fmap f m
-  More k c <*> m = More (flip <$> k <*> m) c
+instance Applicative (Bazaar c d) where
+  pure            = Buy
+  Buy f     <*> m = fmap f m
+  Trade k c <*> m = Trade (flip <$> k <*> m) c
 
-instance (c ~ d) => Comonad (Kleene c d) where
-  extract (Done a) = a
-  extract (More z c) = extract z c
-  duplicate = duplicateKleene
+instance (c ~ d) => Comonad (Bazaar c d) where
+  extract (Buy a)     = a
+  extract (Trade z c) = extract z c
+  duplicate = duplicateBazaar
 
-duplicateKleene :: Kleene i k a -> Kleene i j (Kleene j k a)
-duplicateKleene (Done b)   = Done (Done b)
-duplicateKleene (More z c) = More (More <$> duplicateKleene z) c
+-- | 'Bazaar' is an indexed 'Comonad'.
+duplicateBazaar :: Bazaar c e a -> Bazaar c d (Bazaar d e a)
+duplicateBazaar (Buy b)     = Buy (Buy b)
+duplicateBazaar (Trade z c) = Trade (Trade <$> duplicateBazaar z) c
 
-instance (c ~ d) => ComonadApply (Kleene c d) where
+-- | A trivial 'Bazaar'.
+sell :: c -> Bazaar c d d
+sell = Trade (Buy id)
+
+instance (c ~ d) => ComonadApply (Bazaar c d) where
   (<@>) = (<*>)
 
--- | Given an action to run for each matched pair, traverse a store.
-kleene :: Applicative f => (c -> f d) -> Kleene c d b -> f b
-kleene _ (Done b) = pure b
-kleene f (More k c) = f c <**> kleene f k
+-- | Given an action to run for each matched pair, traverse a bazaar.
+bazaar :: Applicative f => (c -> f d) -> Bazaar c d b -> f b
+bazaar _ (Buy b)    = pure b
+bazaar f (Trade k c) = f c <**> bazaar f k
 
--- | A final encoding of Kleene
-newtype Mall c d a = Mall { runMall :: forall f. Applicative f => (c -> f d) -> f a }
+{-
+-- | A final encoding of 'Bazaar' that, alas, benchmarks slower.
 
-instance Functor (Mall c d) where
-  fmap f (Mall k) = Mall (fmap f . k)
+newtype Bazaar c d a = Bazaar { runBazaar :: forall f. Applicative f => (c -> f d) -> f a }
 
-instance Applicative (Mall c d) where
-  pure a = Mall (\_ -> pure a)
-  Mall mf <*> Mall ma = Mall (\k -> mf k <*> ma k)
+instance Functor (Bazaar c d) where
+  fmap f (Bazaar k) = Bazaar (fmap f . k)
 
-instance (c ~ d) => Comonad (Mall c d) where
-  extract (Mall m) = runIdentity (m Identity)
-  duplicate = duplicateMall
+instance Applicative (Bazaar c d) where
+  pure a = Bazaar (\_ -> pure a)
+  Bazaar mf <*> Bazaar ma = Bazaar (\k -> mf k <*> ma k)
 
-duplicateMall :: Mall i k a -> Mall i j (Mall j k a)
-duplicateMall (Mall m) = Mall (\g -> getCompose (m (Compose . fmap (\j -> Mall (\h -> h j)) . g)))
+instance (c ~ d) => Comonad (Bazaar c d) where
+  extract (Bazaar m) = runIdentity (m Identity)
+  duplicate = duplicateBazaar
 
-instance (c ~ d) => ComonadApply (Mall c d) where
+-- | 'Bazaar' is an indexed 'Comonad'.
+duplicateBazaar :: Bazaar i k a -> Bazaar i j (Bazaar j k a)
+duplicateBazaar (Bazaar m) = Bazaar (\g -> getCompose (m (Compose . fmap (\j -> Bazaar (\h -> h j)) . g)))
+
+instance (c ~ d) => ComonadApply (Bazaar c d) where
   (<@>) = (<*>)
+-}
 
 -- | Wrap a monadic effect with a phantom type argument.
 newtype Effect m r a = Effect { getEffect :: m r }

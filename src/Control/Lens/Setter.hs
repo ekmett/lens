@@ -619,5 +619,5 @@ l <.= d = do
 -- | Reify a setter so it can be stored safely in a container.
 newtype ReifiedSetter a b c d = ReifySetter { reflectSetter :: Setter a b c d }
 
--- @type 'SimpleReifiedSetter' = 'Control.Lens.Type.Simple' 'ReifiedSetter'@
+-- | @type 'SimpleReifiedSetter' = 'Control.Lens.Type.Simple' 'ReifiedSetter'@
 type SimpleReifiedSetter a b = ReifiedSetter a a b b
