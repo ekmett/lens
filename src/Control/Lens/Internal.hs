@@ -32,7 +32,7 @@ module Control.Lens.Internal
   , FocusingMay(..), May(..)
   , Traversed(..)
   , Sequenced(..)
-  , AppliedState(..)
+  , Indexing(..), IndexingResult(..)
   , Min(..)
   , getMin
   , Max(..)
@@ -171,19 +171,23 @@ instance (c ~ d) => ComonadStore c (Context c d) where
   seeks f (Context g c) = Context g (f c)
   experiment f (Context g c) = g <$> f c
 
+data IndexingResult f a = IndexingResult (f a) {-# UNPACK #-} !Int
+
+instance Functor f => Functor (IndexingResult f) where
+  fmap f (IndexingResult fa n) = IndexingResult (fmap f fa) n
+
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
--- by 'Control.Lens.Traversal.elementOf', 'Control.Lens.Traversal.elementsOf', 'Control.Lens.Traversal.traverseElement', 'Control.Lens.Traversal.traverseElementsOf'
-newtype AppliedState f a = AppliedState { runAppliedState :: Int -> (f a, Int) }
+-- by 'Control.Lens.Indexed.indexed'
+newtype Indexing f a = Indexing { runIndexing :: Int -> IndexingResult f a }
 
-instance Functor f => Functor (AppliedState f) where
-  fmap f (AppliedState m) = AppliedState $ \i -> case m i of
-    (fa, j) -> (fmap f fa, j)
+instance Functor f => Functor (Indexing f) where
+  fmap f (Indexing m) = Indexing $ \i -> fmap f (m i)
 
-instance Applicative f => Applicative (AppliedState f) where
-  pure a = AppliedState (\i -> (pure a, i))
-  AppliedState mf <*> AppliedState ma = AppliedState $ \i -> case mf i of
-    (ff, j) -> case ma j of
-       (fa, k) -> (ff <*> fa, k)
+instance Applicative f => Applicative (Indexing f) where
+  pure = Indexing . IndexingResult . pure
+  Indexing mf <*> Indexing ma = Indexing $ \i -> case mf i of
+    IndexingResult ff j -> case ma j of
+       IndexingResult fa k -> IndexingResult (ff <*> fa) k
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
 newtype Traversed f = Traversed { getTraversed :: f () }

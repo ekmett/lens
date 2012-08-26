@@ -23,7 +23,10 @@ module Control.Lens.Indexed
   , (<.>), (<.), (.>)
   , icompose
   , reindex
+  , indexed
   ) where
+
+import Control.Lens.Internal
 
 infixr 9 <.>, <., .>
 
@@ -91,3 +94,10 @@ icompose ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ \j -> ka
 {-# INLINE icompose #-}
 {-# SPECIALIZE icompose :: (i -> j -> k) -> Index i b c -> Index j a b -> a -> c #-}
 {-# SPECIALIZE icompose :: (k ~ l) => (i -> j -> k) -> Index i b c -> Index j a b -> Index l a c #-}
+
+-- | Transform an Traversal into an IndexedTraversal, a Fold into an IndexedFold, etc.
+-- wh
+indexed :: Indexed Int k => ((c -> Indexing f d) -> a -> Indexing f b) -> k (c -> f d) (a -> f b)
+indexed l = index $ \icfd a -> case runIndexing (l (\c -> Indexing (\i -> IndexingResult (icfd i c) (i + 1))) a) 0 of
+  IndexingResult r _ -> r
+{-# INLINE indexed #-}
