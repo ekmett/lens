@@ -13,9 +13,7 @@
 --
 ----------------------------------------------------------------------------
 module Data.IntMap.Lens
-  ( at
-  , traverseIntMap
-  , traverseAt
+  ( traverseIntMap
   , traverseAtMin
   , traverseAtMax
   ) where
@@ -25,33 +23,10 @@ import Control.Lens
 import Data.IntMap as IntMap
 import Data.Traversable
 
--- | This 'Lens' can be used to read, write or delete the value associated with a key in an 'IntMap'.
---
--- >>> fromList [(1,"hello")] ^.at 1
--- Just "hello"
---
--- >>> at 1 .~ Just "hello" $ IntMap.empty
--- fromList [(1,"hello")]
---
--- > at :: Int -> (Maybe v -> f (Maybe v)) -> IntMap v -> f (IntMap v)
-at :: Int -> SimpleIndexedLens Int (IntMap v) (Maybe v)
-at k = index $ \ f m -> (`go` m) <$> f k (IntMap.lookup k m) where
-  go Nothing   = IntMap.delete k
-  go (Just v') = IntMap.insert k v'
-{-# INLINE at #-}
-
 -- | Traversal of an 'IntMap' indexed by the key.
 traverseIntMap :: IndexedTraversal Int (IntMap v) (IntMap v') v v'
 traverseIntMap = index $ \f -> sequenceA . mapWithKey f
 {-# INLINE traverseIntMap #-}
-
--- | Traverse the value at a given key in an IntMap
---
--- > traverseAt :: Applicative f => Int -> (v -> f v) -> IntMap v -> f (IntMap v)
--- > traverseAt k = at k . traverse
-traverseAt :: Int -> SimpleIndexedTraversal Int (IntMap v) v
-traverseAt k = at k <. traverse
-{-# INLINE traverseAt #-}
 
 -- | Traverse the value at the minimum key in a Map
 --

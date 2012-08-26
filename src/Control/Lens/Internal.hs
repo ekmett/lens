@@ -471,7 +471,6 @@ instance Applicative Mutator where
   pure = Mutator
   Mutator f <*> Mutator a = Mutator (f a)
 
-
 {-
 data Bazaar c d a
   = Buy a

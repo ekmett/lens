@@ -9,6 +9,11 @@ An overview of the [derivation](https://github.com/ekmett/lens/wiki/Derivation) 
 
 Documentation is available through [github](https://ekmett.github.com/lens) or [hackage](http://hackage.haskell.org/package/lens).
 
+Plated
+------
+
+New in version 2.5 is a port of the `Uniplate` API, updated to use `Traversal`. The Data-derived `biplate` and `uniplate` combinators run about 25% faster than the original `uniplate`, and you can use any of the other combinators, since `biplate` and `uniplate` are now just traversals.
+
 Examples
 --------
 

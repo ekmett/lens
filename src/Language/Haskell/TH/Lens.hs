@@ -29,8 +29,8 @@ import Control.Lens.Getter
 import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Lens.Traversal
+import Control.Lens.IndexedLens
 import Data.Map as Map hiding (toList,map)
-import Data.Map.Lens
 import Data.Maybe (fromMaybe)
 import Data.Monoid
 import Data.Set as Set hiding (toList,map)

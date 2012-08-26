@@ -40,12 +40,12 @@ import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
 import Control.Lens.Type
+import Control.Lens.IndexedLens
 import Control.Monad
 import Data.Char (toLower)
 import Data.Foldable
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
-import Data.Map.Lens
 import Data.Maybe (isNothing,isJust)
 import Data.Monoid
 import Data.Set as Set hiding (toList,map,filter)
@@ -262,7 +262,7 @@ conFieldDescs (RecC _ fields) = fieldDescs mempty fields
 conFieldDescs _ = []
 
 commonFieldDescs :: [Con] -> [FieldDesc]
-commonFieldDescs = toList . Prelude.foldr walk mempty where
+commonFieldDescs = toList . Prelude.foldr walk Map.empty where
   walk con m = Prelude.foldr step m (conFieldDescs con)
   step d@(FieldDesc nm ty bds) m = case m^.at nm of
     Just (FieldDesc _ _ bds') -> at nm .~ Just (FieldDesc nm ty (bds `Set.union` bds')) $ m

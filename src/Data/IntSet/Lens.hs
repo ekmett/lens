@@ -10,28 +10,14 @@
 --
 ----------------------------------------------------------------------------
 module Data.IntSet.Lens
-  ( contains
-  , members
+  ( members
   , setmapped
   , setOf
   ) where
 
-import Control.Applicative
 import Control.Lens
 import Control.Lens.Internal
 import Data.IntSet as IntSet
-
--- | This 'Lens' can be used to read, write or delete a member of an 'IntSet'
---
--- > ghci> contains 3 +~ False $ fromList [1,2,3,4]
--- > fromList [1,2,4]
---
--- @contains :: 'Functor' f => 'Int' -> ('Bool' -> f 'Bool') -> 'IntSet' -> f 'IntSet'@
-contains :: Int -> Simple Lens IntSet Bool
-contains k f s = go <$> f (IntSet.member k s) where
-  go False = IntSet.delete k s
-  go True  = IntSet.insert k s
-{-# INLINE contains #-}
 
 -- | IntSet isn't Foldable, but this 'Fold' can be used to access the members of an 'IntSet'.
 --

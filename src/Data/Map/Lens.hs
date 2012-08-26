@@ -12,49 +12,20 @@
 --
 ----------------------------------------------------------------------------
 module Data.Map.Lens
-  ( at
-  , traverseMap
-  , traverseAt
+  ( traverseMap
   , traverseAtMin
   , traverseAtMax
   ) where
 
 import Control.Applicative as Applicative
-import Control.Lens.Traversal
 import Control.Lens.Indexed
-import Control.Lens.IndexedLens
 import Control.Lens.IndexedTraversal
 import Data.Map as Map
 import Data.Traversable
 
--- | This 'Lens' can be used to read, write or delete the value associated with a key in a 'Map'.
---
--- >>> :m + Control.Lens Data.Map.Lens
---
--- >>> Map.fromList [("hello",12)] ^.at "hello"
--- Just 12
---
--- >>> at 10 .~ Just "hello" $ Map.empty
--- fromList [(10,"hello")]
---
--- > at :: Ord k => k -> (Maybe v -> f (Maybe v)) -> Map k v -> f (Map k v)
-at :: Ord k => k -> SimpleIndexedLens k (Map k v) (Maybe v)
-at k = index $ \f m -> (`go` m) <$> f k (Map.lookup k m) where
-  go Nothing   = Map.delete k
-  go (Just v') = Map.insert k v'
-{-# INLINE at #-}
-
 -- | Traversal of a 'Map' indexed by the key.
 traverseMap :: IndexedTraversal k (Map k v) (Map k v') v v'
 traverseMap = index $ \f -> sequenceA . mapWithKey f
-
--- | Traverse the value at a given key in a Map
---
--- > traverseAt :: (Applicative f, Ord k) => k -> (v -> f v) -> Map k v -> f (Map k v)
--- > traverseAt k = valueAt k . traverse
-traverseAt :: Ord k => k -> SimpleIndexedTraversal k (Map k v) v
-traverseAt k = at k <. traverse
-{-# INLINE traverseAt #-}
 
 -- | Traverse the value at the minimum key in a Map.
 --

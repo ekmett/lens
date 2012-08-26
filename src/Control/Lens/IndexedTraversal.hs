@@ -17,6 +17,11 @@ module Control.Lens.IndexedTraversal
   (
   -- * Indexed Traversals
     IndexedTraversal
+
+  -- * Common Indexed Traversals
+  , traverseAt
+
+  -- * Indexed Traversal Combinators
   , itraverseOf
   , iforOf
   , imapMOf
@@ -26,6 +31,7 @@ module Control.Lens.IndexedTraversal
 
   -- * Storing Indexed Traversals
   , ReifiedIndexedTraversal(..)
+
   -- * Simple
   , SimpleIndexedTraversal
   , SimpleReifiedIndexedTraversal
@@ -34,8 +40,10 @@ module Control.Lens.IndexedTraversal
 import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Indexed
+import Control.Lens.IndexedLens
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy as Lazy
+import Data.Traversable
 
 ------------------------------------------------------------------------------
 -- Indexed Traversals
@@ -148,6 +156,17 @@ imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (withIndex l (\i c -> Back
 swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
 {-# INLINE swap #-}
+
+------------------------------------------------------------------------------
+-- Common indexed traversals
+------------------------------------------------------------------------------
+
+-- | Traverse the value at a given key in a map
+--
+-- @'traverseAt' k = 'at' k '<.' 'traverse'@
+traverseAt :: At k m => k -> SimpleIndexedTraversal k (m v) v
+traverseAt k = at k <. traverse
+{-# INLINE traverseAt #-}
 
 ------------------------------------------------------------------------------
 -- Reifying Indexed Traversals

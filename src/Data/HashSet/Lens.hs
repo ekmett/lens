@@ -10,29 +10,15 @@
 --
 ----------------------------------------------------------------------------
 module Data.HashSet.Lens
-  ( contains
-  , setmapped
+  ( setmapped
   , setOf
   ) where
 
-import Control.Applicative
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Setter
-import Control.Lens.Type
 import Data.HashSet as HashSet
 import Data.Hashable
-
--- | This 'Lens' can be used to read, write or delete a member of a 'HashSet'
---
--- >>> :m + Data.HashSet Control.Lens
--- >>> contains 3 .~ False $ HashSet.fromList [1,2,3,4]
--- fromList [1,2,4]
-contains :: (Eq k, Hashable k) => k -> Simple Lens (HashSet k) Bool
-contains k f s = go <$> f (HashSet.member k s) where
-  go False = HashSet.delete k s
-  go True  = HashSet.insert k s
-{-# INLINE contains #-}
 
 -- | This 'Setter' can be used to change the type of a 'HashSet' by mapping
 -- the elements to new values.

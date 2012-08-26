@@ -10,30 +10,14 @@
 --
 ----------------------------------------------------------------------------
 module Data.Set.Lens
-  ( contains
-  , setmapped
+  ( setmapped
   , setOf
   ) where
 
-import Control.Applicative
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Setter
-import Control.Lens.Type
 import Data.Set as Set
-
--- | This 'Lens' can be used to read, write or delete a member of a 'Set'
---
--- >>> :m + Data.Set.Lens Control.Lens
--- >>> contains 3 .~ False $ Set.fromList [1,2,3,4]
--- fromList [1,2,4]
---
--- > contains :: Ord k => k -> (Bool -> f Bool) -> Set k -> f (Set k)
-contains :: Ord k => k -> Simple Lens (Set k) Bool
-contains k f s = go <$> f (Set.member k s) where
-  go False = Set.delete k s
-  go True  = Set.insert k s
-{-# INLINE contains #-}
 
 -- | This 'Setter' can be used to change the type of a 'Set' by mapping
 -- the elements to new values.

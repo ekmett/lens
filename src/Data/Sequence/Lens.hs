@@ -11,7 +11,7 @@
 --
 ----------------------------------------------------------------------------
 module Data.Sequence.Lens
-  ( at, viewL, viewR
+  ( ordinal, viewL, viewR
   , traverseHead, traverseTail
   , traverseLast, traverseInit
   , traverseTo, traverseFrom
@@ -22,20 +22,18 @@ import Control.Applicative
 import Control.Lens as Lens
 import Data.Monoid
 import Data.Sequence as Seq
-import Data.Traversable
 
 -- | A 'Lens' that can access the @n@th element of a 'Seq'.
 --
--- Note: This is only a legal lens if there is such an element!
---
-at :: Int -> SimpleIndexedLens Int (Seq a) a
-at i = Lens.index $ \ f m -> (\a -> update i a m) <$> f i (Seq.index m i)
+-- Note: This is only a legal lens if there is already such an element!
+ordinal :: Int -> SimpleIndexedLens Int (Seq a) a
+ordinal i = Lens.index $ \ f m -> (\a -> update i a m) <$> f i (Seq.index m i)
 
 -- * Sequence isomorphisms
 
 -- | A 'Seq' is isomorphic to a 'ViewL'
 --
--- > viewl m = m^.viewL
+-- @'viewl' m = m '^.' 'viewL'@
 viewL :: Iso (Seq a) (Seq b) (ViewL a) (ViewL b)
 viewL = isos viewl unviewl viewl unviewl where
 
@@ -46,7 +44,7 @@ unviewl (a :< as) = a <| as
 
 -- | A 'Seq' is isomorphic to a 'ViewR'
 --
--- > viewr m = m^.viewR
+-- @'viewr' m = m '^.' 'viewR'@
 viewR :: Iso (Seq a) (Seq b) (ViewR a) (ViewR b)
 viewR = isos viewr unviewr viewr unviewr where
 {-# INLINE viewR #-}
@@ -56,7 +54,7 @@ unviewr EmptyR = mempty
 unviewr (as :> a) = as |> a
 
 traverseSeq :: IndexedTraversal Int (Seq a) (Seq b) a b
-traverseSeq = Lens.index $ \ f -> sequenceA . Seq.mapWithIndex f
+traverseSeq = indexed traverse
 {-# INLINE traverseSeq #-}
 
 -- * Traversals
