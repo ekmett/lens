@@ -171,6 +171,7 @@ instance (c ~ d) => ComonadStore c (Context c d) where
   seeks f (Context g c) = Context g (f c)
   experiment f (Context g c) = g <$> f c
 
+-- | The result of 'Indexing'
 data IndexingResult f a = IndexingResult (f a) {-# UNPACK #-} !Int
 
 instance Functor f => Functor (IndexingResult f) where
@@ -264,42 +265,6 @@ instance Functor f => Applicative (ElementOf f) where
       NotFound e    -> NotFound e
     NotFound e -> NotFound e
 
-{-
-data Bazaar c d a
-  = Buy a
-  | Trade (Bazaar c d (d -> a)) c
-
-instance Functor (Bazaar c d) where
-  fmap f (Buy a)    = Buy (f a)
-  fmap f (Trade k b) = Trade (fmap (f .) k)  b
-
-instance Applicative (Bazaar c d) where
-  pure            = Buy
-  Buy f     <*> m = fmap f m
-  Trade k c <*> m = Trade (flip <$> k <*> m) c
-
-instance (c ~ d) => Comonad (Bazaar c d) where
-  extract (Buy a)     = a
-  extract (Trade z c) = extract z c
-  duplicate = duplicateBazaar
-
--- | 'Bazaar' is an indexed 'Comonad'.
-duplicateBazaar :: Bazaar c e a -> Bazaar c d (Bazaar d e a)
-duplicateBazaar (Buy b)     = Buy (Buy b)
-duplicateBazaar (Trade z c) = Trade (Trade <$> duplicateBazaar z) c
-
--- | A trivial 'Bazaar'.
-sell :: c -> Bazaar c d d
-sell = Trade (Buy id)
-
-instance (c ~ d) => ComonadApply (Bazaar c d) where
-  (<@>) = (<*>)
-
--- | Given an action to run for each matched pair, traverse a bazaar.
-bazaar :: Applicative f => (c -> f d) -> Bazaar c d b -> f b
-bazaar _ (Buy b)    = pure b
-bazaar f (Trade k c) = f c <**> bazaar f k
--}
 
 -- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
 --
@@ -310,7 +275,6 @@ bazaar f (Trade k c) = f c <**> bazaar f k
 -- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
 --
 -- This is a final encoding of 'Bazaar'.
-
 newtype Bazaar c d a = Bazaar { _runBazaar :: forall f. Applicative f => (c -> f d) -> f a }
 
 instance Functor (Bazaar c d) where
@@ -328,6 +292,7 @@ instance (c ~ d) => Comonad (Bazaar c d) where
   duplicate = duplicateBazaar
   {-# INLINE duplicate #-}
 
+-- | Given an action to run for each matched pair, traverse a bazaar.
 bazaar :: Applicative f => (c -> f d) -> Bazaar c d b -> f b
 bazaar cfd (Bazaar m) = m cfd
 {-# INLINE bazaar #-}
@@ -338,6 +303,7 @@ duplicateBazaar (Bazaar m) = getCompose (m (Compose . fmap sell . sell))
 {-# INLINE duplicateBazaar #-}
 -- duplicateBazaar' (Bazaar m) = Bazaar (\g -> getCompose (m (Compose . fmap sell . g)))
 
+-- | A trivial 'Bazaar'.
 sell :: c -> Bazaar c d d
 sell i = Bazaar (\k -> k i)
 {-# INLINE sell #-}
@@ -506,3 +472,39 @@ instance Applicative Mutator where
   Mutator f <*> Mutator a = Mutator (f a)
 
 
+{-
+data Bazaar c d a
+  = Buy a
+  | Trade (Bazaar c d (d -> a)) c
+
+instance Functor (Bazaar c d) where
+  fmap f (Buy a)    = Buy (f a)
+  fmap f (Trade k b) = Trade (fmap (f .) k)  b
+
+instance Applicative (Bazaar c d) where
+  pure            = Buy
+  Buy f     <*> m = fmap f m
+  Trade k c <*> m = Trade (flip <$> k <*> m) c
+
+instance (c ~ d) => Comonad (Bazaar c d) where
+  extract (Buy a)     = a
+  extract (Trade z c) = extract z c
+  duplicate = duplicateBazaar
+
+-- | 'Bazaar' is an indexed 'Comonad'.
+duplicateBazaar :: Bazaar c e a -> Bazaar c d (Bazaar d e a)
+duplicateBazaar (Buy b)     = Buy (Buy b)
+duplicateBazaar (Trade z c) = Trade (Trade <$> duplicateBazaar z) c
+
+-- | A trivial 'Bazaar'.
+sell :: c -> Bazaar c d d
+sell = Trade (Buy id)
+
+instance (c ~ d) => ComonadApply (Bazaar c d) where
+  (<@>) = (<*>)
+
+-- | Given an action to run for each matched pair, traverse a bazaar.
+bazaar :: Applicative f => (c -> f d) -> Bazaar c d b -> f b
+bazaar _ (Buy b)    = pure b
+bazaar f (Trade k c) = f c <**> bazaar f k
+-}
