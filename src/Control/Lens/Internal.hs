@@ -264,14 +264,7 @@ instance Functor f => Applicative (ElementOf f) where
       NotFound e    -> NotFound e
     NotFound e -> NotFound e
 
-
--- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
---
--- a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed 'FunList'.
---
--- <http://twanvl.nl/blog/haskell/non-regular1>
---
--- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
+{-
 data Bazaar c d a
   = Buy a
   | Trade (Bazaar c d (d -> a)) c
@@ -306,6 +299,55 @@ instance (c ~ d) => ComonadApply (Bazaar c d) where
 bazaar :: Applicative f => (c -> f d) -> Bazaar c d b -> f b
 bazaar _ (Buy b)    = pure b
 bazaar f (Trade k c) = f c <**> bazaar f k
+-}
+
+-- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
+--
+-- a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed 'FunList'.
+--
+-- <http://twanvl.nl/blog/haskell/non-regular1>
+--
+-- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
+--
+-- This is a final encoding of 'Bazaar'.
+
+newtype Bazaar c d a = Bazaar { _runBazaar :: forall f. Applicative f => (c -> f d) -> f a }
+
+instance Functor (Bazaar c d) where
+  fmap f (Bazaar k) = Bazaar (fmap f . k)
+
+instance Applicative (Bazaar c d) where
+  pure a = Bazaar (\_ -> pure a)
+  {-# INLINE pure #-}
+  Bazaar mf <*> Bazaar ma = Bazaar (\k -> mf k <*> ma k)
+  {-# INLINE (<*>) #-}
+
+instance (c ~ d) => Comonad (Bazaar c d) where
+  extract (Bazaar m) = runIdentity (m Identity)
+  {-# INLINE extract #-}
+  duplicate = duplicateBazaar
+  {-# INLINE duplicate #-}
+
+bazaar :: Applicative f => (c -> f d) -> Bazaar c d b -> f b
+bazaar cfd (Bazaar m) = m cfd
+{-# INLINE bazaar #-}
+
+-- | 'Bazaar' is an indexed 'Comonad'.
+duplicateBazaar :: Bazaar c e a -> Bazaar c d (Bazaar d e a)
+duplicateBazaar (Bazaar m) = getCompose (m (Compose . fmap sell . sell))
+{-# INLINE duplicateBazaar #-}
+-- duplicateBazaar' (Bazaar m) = Bazaar (\g -> getCompose (m (Compose . fmap sell . g)))
+
+sell :: c -> Bazaar c d d
+sell i = Bazaar (\k -> k i)
+{-# INLINE sell #-}
+
+cloneTraversal' :: Applicative f => ((c -> Bazaar c d d) -> a -> Bazaar c d b) -> (c -> f d) -> a -> f b
+cloneTraversal' l f = bazaar f . l sell
+{-# INLINE cloneTraversal' #-}
+
+instance (c ~ d) => ComonadApply (Bazaar c d) where
+  (<@>) = (<*>)
 
 -- | Wrap a monadic effect with a phantom type argument.
 newtype Effect m r a = Effect { getEffect :: m r }

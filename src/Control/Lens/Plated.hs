@@ -78,7 +78,7 @@ module Control.Lens.Plated
 
 import Control.Applicative
 import Control.Arrow ((&&&))
-import Control.Comonad
+-- import Control.Comonad
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal
@@ -212,17 +212,40 @@ parts = partsOf plate
 -- 'partsOf' :: 'Simple' 'Lens' a b      -> a -> ([b], [b] -> a)
 -- 'partsOf' :: 'Simple' 'Traversal' a b -> a -> ([b], [b] -> a)
 -- @
-partsOf :: LensLike (Bazaar c c) a b c c -> a -> ([c], [c] -> b)
+partsOf :: LensLike (Bazaar c c) a b c c -> a -> ([c], [c] -> b) -- switch to Context [c] [c] b?
 partsOf l = (ins &&& outs) . l sell
 {-# INLINE partsOf #-}
 
 ins :: Bazaar c d a -> [c]
+ins (Bazaar m) = getConst (m (Const . return))
+
+{-
 ins (Trade ys c) = c : ins ys
 ins _ = []
+-}
+
+newtype Out c a = Out { withOut :: [c] -> (a, [c]) }
+
+instance Functor (Out c) where
+  fmap f (Out m) = Out $ \cs -> case m cs of
+    (as, ds) -> (f as, ds)
+
+instance Applicative (Out c) where
+  pure a = Out $ \cs -> (a, cs)
+  Out mf <*> Out ma = Out $ \cs -> case mf cs of
+    (f,  ds) -> case ma ds of
+       (a,  es) -> (f a, es)
 
 outs :: Bazaar c c a -> [c] -> a
+outs (Bazaar m) = fst . withOut (m $ \c -> Out $ \cs -> case cs of
+  [] -> (c, [])
+  (d:ds) -> (d, ds))
+
+
+{-
 outs (Trade ys _) (c:cs) = outs (fmap ($c) ys) cs
 outs xs          _       = extract xs
+-}
 
 -- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
 --
@@ -239,9 +262,21 @@ unsafePartsOf l = (ins &&& outs') . l sell
 {-# INLINE unsafePartsOf #-}
 
 outs' :: Bazaar c d a -> [d] -> a
+outs' (Bazaar m) = fst . withOut (m $ \_ -> Out $ \cs -> case cs of
+  (d:ds) -> (d, ds)
+  [] -> error "unsafePartsOf: not enough elements were supplied")
+
+{-
+outs (Bazaar m) = withOut $ m $ \c -> Out $ \cs -> case cs of
+  [] -> (c, [])
+  (_:cs) -> (c, cs)
+-}
+
+{-
 outs' (Trade ys _) (d:ds) = outs' (fmap ($d) ys) ds
 outs' (Buy a)      _      = a
 outs' _            _      = error "unsafePartsOf: not enough elements were supplied"
+-}
 
 -- | Extract the immediate descendants of a 'Plated' container.
 --

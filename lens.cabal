@@ -217,10 +217,12 @@ benchmark plated
   main-is: plated.hs
   build-depends:
     base,
+    comonad,
     criterion,
     deepseq,
     ghc-prim,
     lens,
+    transformers,
     uniplate >= 1.6.7 && < 1.7
   ghc-options: -Wall -O2 -threaded
   hs-source-dirs: benchmarks
