@@ -20,8 +20,11 @@ module Control.Lens.IndexedSetter
   , imapOf
   , (%@~)
   , (%@=)
+  -- * Storing Indexed Setters
+  , ReifiedIndexedSetter(..)
   -- * Simple
   , SimpleIndexedSetter
+  , SimpleReifiedIndexedSetter
   ) where
 
 import Control.Lens.Indexed
@@ -89,3 +92,14 @@ l %@~ f = runMutator . withIndex l (\i -> Mutator . f i)
 (%@=) :: MonadState a m => Overloaded (Index i) Mutator a a c d -> (i -> c -> d) -> m ()
 l %@= f = State.modify (l %@~ f)
 {-# INLINE (%@=) #-}
+
+------------------------------------------------------------------------------
+-- Reifying Indexed Setters
+------------------------------------------------------------------------------
+
+-- | Useful for storage.
+newtype ReifiedIndexedSetter i a b c d = ReifyIndexedSetter { reflectIndexedSetter :: IndexedSetter i a b c d }
+
+-- | @type 'SimpleIndexedSetter' i = 'Simple' ('ReifiedIndexedSetter' i)@
+type SimpleReifiedIndexedSetter i a b = ReifiedIndexedSetter i a a b b
+

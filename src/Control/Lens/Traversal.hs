@@ -46,9 +46,11 @@ module Control.Lens.Traversal
   , traverseNothing
   -- * Cloning Traversals
   , cloneTraversal
+  , ReifiedTraversal(..)
 
   -- * Simple
   , SimpleTraversal
+  , SimpleReifiedTraversal
   ) where
 
 import Control.Applicative              as Applicative
@@ -330,6 +332,17 @@ traverseNothing = const pure
 -- Note: This only accepts a proper 'Traversal' (or 'Lens').
 --
 -- To clone a 'Lens' as such, use 'cloneLens'
+
 cloneTraversal :: Applicative f => ((c -> Kleene c d d) -> a -> Kleene c d b) -> (c -> f d) -> a -> f b
 cloneTraversal l f = kleene f . l (More (Done id))
 {-# INLINE cloneTraversal #-}
+
+-- cloneTraversal' :: Applicative f => ((c -> Mall c d d) -> a -> Mall c d b) -> (c -> f d) -> a -> f b
+-- cloneTraversal' l f a = runMall (l (\c -> Mall (\k -> k c)) a) f
+-- {-# INLINE cloneTraversal' #-}
+
+-- | A form of 'Traversal' that can be stored monomorphically in a container.
+data ReifiedTraversal a b c d = ReifyTraversal { reflectTraversal :: Traversal a b c d }
+
+-- | @type SimpleReifiedTraversal = 'Simple' 'ReifiedTraversal'@
+type SimpleReifiedTraversal a b = ReifiedTraversal a a b b

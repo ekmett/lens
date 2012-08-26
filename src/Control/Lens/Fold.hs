@@ -72,6 +72,8 @@ module Control.Lens.Fold
   , foldrOf', foldlOf'
   , foldr1Of, foldl1Of
   , foldrMOf, foldlMOf
+  -- * Storing Folds
+  , ReifiedFold(..)
   ) where
 
 import Control.Applicative as Applicative
@@ -890,3 +892,6 @@ foldlMOf :: Monad m
 foldlMOf l f z0 xs = foldrOf l f' return xs z0
   where f' x k z = f z x >>= k
 {-# INLINE foldlMOf #-}
+
+-- | Useful for storing folds in containers.
+newtype ReifiedFold a c = ReifyFold { reflectFold :: Fold a c }

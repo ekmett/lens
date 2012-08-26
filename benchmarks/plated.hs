@@ -1,22 +1,23 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-import Control.Applicative
-import Control.Lens
-import Control.Plated
-import Control.DeepSeq
-import Criterion.Main
-import Data.Data
-import Data.Data.Lens
+{-# OPTIONS_GHC -funbox-strict-fields #-}
+import           Control.Applicative
+import           Control.Lens
+import           Control.Plated
+import           Control.DeepSeq
+import           Criterion.Main
+import           Data.Data
+import           Data.Data.Lens
 import qualified Data.Generics.Uniplate.Direct as Uni
 import           Data.Generics.Uniplate.Direct ((|*))
 import qualified Data.Generics.Uniplate.DataOnly as DataOnly
 
-data Expr  =  Val Int
+data Expr  =  Val !Int
            |  Var String
-           |  Neg Expr
-           |  Add Expr Expr
-           |  Sub Expr Expr
-           |  Mul Expr Expr
-           |  Div Expr Expr
+           |  Neg !Expr
+           |  Add !Expr !Expr
+           |  Sub !Expr !Expr
+           |  Mul !Expr !Expr
+           |  Div !Expr !Expr
            deriving (Eq,Show,Data,Typeable)
 
 instance NFData Expr where
@@ -35,6 +36,7 @@ instance Plated Expr where
   plate f (Mul a b) = Mul <$> f a <*> f b
   plate f (Div a b) = Div <$> f a <*> f b
   plate _ t = pure t
+  {-# INLINE plate #-}
 
 -- | ndm's uniplate
 instance Uni.Uniplate Expr where
@@ -45,14 +47,17 @@ instance Uni.Uniplate Expr where
   uniplate (Div a b) = Uni.plate Div |* a |* b
   uniplate (Val i)   = Uni.plate (Val i)
   uniplate (Var s)   = Uni.plate (Var s)
+  {-# INLINE uniplate #-}
 
-
+main :: IO ()
 main = defaultMain
-  [ bench "universeOf plate"    $ nf (map (universeOf plate)) testsExpr
-  , bench "universeOf uniplate" $ nf (map (universeOf uniplate)) testsExpr
-  , bench "universeOf tinplate" $ nf (map (universeOf tinplate)) testsExpr
-  , bench "Direct.universe"     $ nf (map Uni.universe) testsExpr
-  , bench "DataOnly.universe"   $ nf (map DataOnly.universe) testsExpr
+  [ bench "universe"                           $ nf (map universe) testsExpr
+  , bench "universeOf plate"                   $ nf (map (universeOf plate)) testsExpr
+  , bench "universeOf uniplate"                $ nf (map (universeOf uniplate)) testsExpr
+  , bench "universeOf tinplate"                $ nf (map (universeOf tinplate)) testsExpr
+  , bench "universeOf (cloneTraversal plate)"  $ nf (map (universeOf (cloneTraversal plate))) testsExpr
+  , bench "Direct.universe"                    $ nf (map Uni.universe) testsExpr
+  , bench "DataOnly.universe"                  $ nf (map DataOnly.universe) testsExpr
   ]
 
 testsExpr :: [Expr]

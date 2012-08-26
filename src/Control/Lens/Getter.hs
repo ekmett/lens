@@ -53,6 +53,9 @@ module Control.Lens.Getter
   , uses
   , query
   , queries
+
+  -- * Storing Getters
+  , ReifiedGetter(..)
   ) where
 
 import Control.Lens.Internal
@@ -278,4 +281,5 @@ queries :: MonadReader a m => Getting e a c -> (c -> e) -> m e
 queries l f = Reader.asks (views l f)
 {-# INLINE queries #-}
 
-
+-- | Useful for storing getters in containers.
+newtype ReifiedGetter a c = ReifyGetter { reflectGetter :: Getter a c }

@@ -24,8 +24,11 @@ module Control.Lens.IndexedTraversal
   , imapAccumROf
   , imapAccumLOf
 
+  -- * Storing Indexed Traversals
+  , ReifiedIndexedTraversal(..)
   -- * Simple
   , SimpleIndexedTraversal
+  , SimpleReifiedIndexedTraversal
   ) where
 
 import Control.Applicative
@@ -145,4 +148,14 @@ imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (withIndex l (\i c -> Back
 swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
 {-# INLINE swap #-}
+
+------------------------------------------------------------------------------
+-- Reifying Indexed Traversals
+------------------------------------------------------------------------------
+
+-- | Useful for storage.
+newtype ReifiedIndexedTraversal i a b c d = ReifyIndexedTraversal { reflectIndexedTraversal :: IndexedTraversal i a b c d }
+
+-- | @type 'SimpleIndexedTraversal' i = 'Simple' ('ReifiedIndexedTraversal' i)@
+type SimpleReifiedIndexedTraversal i a b = ReifiedIndexedTraversal i a a b b
 

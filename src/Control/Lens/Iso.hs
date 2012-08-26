@@ -26,8 +26,11 @@ module Control.Lens.Iso
   -- ** Common Isomorphisms
   , _const
   , identity
+  -- * Storing Isomorphisms
+  , ReifiedIso(..)
   -- * Simplicity
   , SimpleIso
+  , SimpleReifiedIso
   ) where
 
 import Control.Applicative
@@ -146,3 +149,13 @@ identity = isos Identity runIdentity Identity runIdentity
 _const :: Iso a b (Const a c) (Const b d)
 _const = isos Const getConst Const getConst
 {-# INLINE _const #-}
+
+-----------------------------------------------------------------------------
+-- Reifying Isomorphisms
+-----------------------------------------------------------------------------
+
+-- | Useful for storing isomorphisms in containers.
+newtype ReifiedIso a b c d = ReifyIso { reflectIso :: Iso a b c d }
+
+-- @type SimpleReifiedIso = 'Control.Lens.Type.Simple' 'ReifiedIso'@
+type SimpleReifiedIso a b = ReifiedIso a a b b

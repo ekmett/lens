@@ -1,3 +1,4 @@
+{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -38,7 +39,8 @@ module Control.Lens.Internal
   , getMax
   , ElementOf(..)
   , ElementOfResult(..)
-  , Kleene(..), kleene
+  , Kleene(..), kleene, duplicateKleene
+  , Mall(..), duplicateMall
   , Effect(..)
   , EffectRWS(..)
   -- , EffectS(..)
@@ -281,8 +283,11 @@ instance Applicative (Kleene c d) where
 instance (c ~ d) => Comonad (Kleene c d) where
   extract (Done a) = a
   extract (More z c) = extract z c
-  duplicate (Done b)   = Done (Done b)
-  duplicate (More z c) = More (More <$> duplicate z) c
+  duplicate = duplicateKleene
+
+duplicateKleene :: Kleene i k a -> Kleene i j (Kleene j k a)
+duplicateKleene (Done b)   = Done (Done b)
+duplicateKleene (More z c) = More (More <$> duplicateKleene z) c
 
 instance (c ~ d) => ComonadApply (Kleene c d) where
   (<@>) = (<*>)
@@ -291,6 +296,26 @@ instance (c ~ d) => ComonadApply (Kleene c d) where
 kleene :: Applicative f => (c -> f d) -> Kleene c d b -> f b
 kleene _ (Done b) = pure b
 kleene f (More k c) = f c <**> kleene f k
+
+-- | A final encoding of Kleene
+newtype Mall c d a = Mall { runMall :: forall f. Applicative f => (c -> f d) -> f a }
+
+instance Functor (Mall c d) where
+  fmap f (Mall k) = Mall (fmap f . k)
+
+instance Applicative (Mall c d) where
+  pure a = Mall (\_ -> pure a)
+  Mall mf <*> Mall ma = Mall (\k -> mf k <*> ma k)
+
+instance (c ~ d) => Comonad (Mall c d) where
+  extract (Mall m) = runIdentity (m Identity)
+  duplicate = duplicateMall
+
+duplicateMall :: Mall i k a -> Mall i j (Mall j k a)
+duplicateMall (Mall m) = Mall (\g -> getCompose (m (Compose . fmap (\j -> Mall (\h -> h j)) . g)))
+
+instance (c ~ d) => ComonadApply (Mall c d) where
+  (<@>) = (<*>)
 
 -- | Wrap a monadic effect with a phantom type argument.
 newtype Effect m r a = Effect { getEffect :: m r }

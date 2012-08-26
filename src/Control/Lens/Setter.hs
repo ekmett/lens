@@ -39,11 +39,14 @@ module Control.Lens.Setter
   , (.=), (%=)
   , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (&&=), (<.=)
   , (<~)
+  -- * Storing Setters
+  , ReifiedSetter(..)
   -- * Setter Internals
   , Setting
   , SimpleSetting
   -- * Simplicity
   , SimpleSetter
+  , SimpleReifiedSetter
   ) where
 
 import Control.Applicative
@@ -612,3 +615,9 @@ l <.= d = do
   l .= d
   return d
 {-# INLINE (<.=) #-}
+
+-- | Reify a setter so it can be stored safely in a container.
+newtype ReifiedSetter a b c d = ReifySetter { reflectSetter :: Setter a b c d }
+
+-- @type 'SimpleReifiedSetter' = 'Control.Lens.Type.Simple' 'ReifiedSetter'@
+type SimpleReifiedSetter a b = ReifiedSetter a a b b

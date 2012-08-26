@@ -78,6 +78,7 @@ module Control.Lens.Type
 
   -- * Cloning Lenses
   , cloneLens
+  , ReifiedLens(..)
 
   -- * Simplified and In-Progress
   , LensLike
@@ -85,6 +86,7 @@ module Control.Lens.Type
   , SimpleLens
   , SimpleLensLike
   , SimpleOverloaded
+  , SimpleReifiedLens
   ) where
 
 import Control.Applicative              as Applicative
@@ -476,3 +478,8 @@ l <||= b = l <%= (|| b)
 l <&&= b = l <%= (&& b)
 {-# INLINE (<&&=) #-}
 
+-- | Useful for storing lenses in containers.
+newtype ReifiedLens a b c d = ReifyLens { reflectLens :: Lens a b c d }
+
+-- | @type 'SimpleReifiedLens' = 'Simple' 'ReifiedLens'@
+type SimpleReifiedLens a b = ReifiedLens a a b b

@@ -3,6 +3,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ExistentialQuantification #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE Trustworthy #-}
@@ -25,6 +26,7 @@
 module Data.Data.Lens
   ( tinplate -- A naïve version of 'every'/'uniplate'
   , every    -- A more polymorphic version of 'uniplate' than is required for the standard 'uniplate' combinators
+--  , kleenePlate -- An experiment using Kleene directly
   , uniplate -- Smart 'uniplate' 'Traversal' using 'Data'
   , biplate  -- Smart 'biplate' 'Traversal' using 'Data'
   ) where
@@ -33,6 +35,7 @@ import           Control.Applicative
 import           Control.Arrow ((&&&))
 import           Control.Exception as E
 import           Control.Lens
+-- import           Control.Lens.Internal -- for kleenePlate
 import           Data.Data
 import           Data.Foldable
 import qualified Data.HashMap.Strict as M
@@ -87,6 +90,13 @@ uniplate = every
 --
 biplate :: (Data a, Typeable b) => Simple Traversal a b
 biplate f a = biplateData (fromOracle (hitTest a (undefined :: b))) f a
+
+{-
+-- | Find every occurence of a given type @b@ recursively that doesn't require passing through something of type @b@
+-- using 'Data', while avoiding traversal of areas that cannot contain a value of type @b@.
+kleenePlate :: forall a b. (Data a, Typeable b) => Simple Traversal a b
+kleenePlate f a = kleene f (uniplateDataK (fromOracle (hitTest a (undefined :: b))) a)
+-}
 
 -------------------------------------------------------------------------------
 -- Data Box
@@ -167,8 +177,9 @@ readCacheFollower b@(DataBox kb _) ka = inlinePerformIO $
   readIORef cache >>= \ (Cache hm m) -> case M.lookup kb m >>= M.lookup ka of
     Just a -> return a
     Nothing -> E.try (return $! insertHitMap b hm) >>= \r -> case r of
-      Left SomeException{}                         -> atomicModifyIORef cache $ \(Cache hm' n) -> (Cache hm' (insert2 kb ka Nothing n), Nothing)
-      Right hm' | fol <- Just (follower kb ka hm') -> atomicModifyIORef cache $ \(Cache _   n) -> (Cache hm' (insert2 kb ka fol n),     fol)
+      -- Left SomeException{}                         -> atomicModifyIORef cache $ \(Cache hm' n) -> (Cache hm' (insert2 kb ka Nothing n), Nothing)
+      Left SomeException{}                         -> atomicModifyIORef cache $ \(Cache _ n) -> (Cache hm (insert2 kb ka Nothing n), Nothing)
+      Right hm' | fol <- Just (follower kb ka hm') -> atomicModifyIORef cache $ \(Cache _ n) -> (Cache hm' (insert2 kb ka fol n),    fol)
 
 insert2 :: TypeRep -> TypeRep -> a -> HashMap TypeRep (HashMap TypeRep a) -> HashMap TypeRep (HashMap TypeRep a)
 insert2 x y v = M.insertWith (const $ M.insert y v) x (M.singleton y v)
@@ -224,16 +235,41 @@ hitTest a b
 -- Traversals
 -------------------------------------------------------------------------------
 
-biplateData :: (Applicative f, Data a, Typeable b) => (forall c . Typeable c => c -> Answer b) -> (b -> f b) -> a -> f a
-biplateData o f a = case o a of
-  Hit b  -> Unsafe.unsafeCoerce <$> f b
-  Follow -> uniplateData o f a
-  Miss   -> pure a
+
+biplateData :: forall f a b. (Applicative f, Data a, Typeable b) => (forall c. Typeable c => c -> Answer b) -> (b -> f b) -> a -> f a
+biplateData o f a0 = go2 a0 where
+  go :: Data d => d -> f d
+  go a = gfoldl (\x y -> x <*> go2 y) pure a
+  go2 :: Data d => d -> f d
+  go2 a = case o a of
+    Hit b  -> Unsafe.unsafeCoerce <$> f b
+    Follow -> go a
+    Miss   -> pure a
 {-# INLINE biplateData #-}
 
-uniplateData :: (Applicative f, Data a, Typeable b) => (forall c. Typeable c => c -> Answer b) -> (b -> f b) -> a -> f a
-uniplateData o f = gfoldl (\x y -> x <*> biplateData o f y) pure
+uniplateData :: forall f a b. (Applicative f, Data a, Typeable b) => (forall c. Typeable c => c -> Answer b) -> (b -> f b) -> a -> f a
+uniplateData o f a0 = go a0 where
+  go :: Data d => d -> f d
+  go a = gfoldl (\x y -> x <*> go2 y) pure a
+  go2 :: Data d => d -> f d
+  go2 a = case o a of
+    Hit b  -> Unsafe.unsafeCoerce <$> f b
+    Follow -> go a
+    Miss   -> pure a
 {-# INLINE uniplateData #-}
+
+{-
+biplateDataK :: (Data a, Typeable b) => (forall c . Typeable c => c -> Answer b) -> a -> Kleene b b a
+biplateDataK o a = case o a of
+  Hit b  -> More (Done unsafeCoerce) b
+  Follow -> uniplateDataK o a
+  Miss   -> pure a
+{-# INLINE biplateDataK #-}
+
+uniplateDataK :: (Data a, Typeable b) => (forall c. Typeable c => c -> Answer b) -> a -> Kleene b b a
+uniplateDataK o = gfoldl (\x y -> x <*> biplateDataK o y) pure
+{-# INLINE uniplateDataK #-}
+-}
 
 -------------------------------------------------------------------------------
 -- Follower

@@ -28,8 +28,11 @@ module Control.Lens.IndexedLens
   , (%%@=)
   , (<%@=)
 
+  -- * Storing Indexed Lenses
+  , ReifiedIndexedLens(..)
   -- * Simple
   , SimpleIndexedLens
+  , SimpleReifiedIndexedLens
   ) where
 
 import Control.Lens.Indexed
@@ -117,3 +120,13 @@ l %%@= f = do
 (<%@=) :: MonadState a m => Overloaded (Index i) ((,)d) a a c d -> (i -> c -> d) -> m d
 l <%@= f = l %%@= \ i c -> let d = f i c in (d, d)
 {-# INLINE (<%@=) #-}
+
+------------------------------------------------------------------------------
+-- Reifying Indexed Lenses
+------------------------------------------------------------------------------
+
+-- | Useful for storage.
+newtype ReifiedIndexedLens i a b c d = ReifyIndexedLens { reflectIndexedLens :: IndexedLens i a b c d }
+
+-- | @type 'SimpleIndexedLens' i = 'Simple' ('ReifiedIndexedLens' i)@
+type SimpleReifiedIndexedLens i a b = ReifiedIndexedLens i a a b b

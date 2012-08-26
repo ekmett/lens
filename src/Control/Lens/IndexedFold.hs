@@ -40,6 +40,9 @@ module Control.Lens.IndexedFold
   , ifiltered
   , itakingWhile
   , idroppingWhile
+
+  -- * Storing Indexed Folds
+  , ReifiedIndexedFold(..)
   ) where
 
 import Control.Applicative
@@ -373,3 +376,10 @@ idroppingWhile :: (Gettable f, Applicative f, Indexed i k)
               -> k (c -> f c) (a -> f a)
 idroppingWhile p l = index $ \f -> ifoldrOf l (\i a r -> if p i a then r else f i a *> r) noEffect
 {-# INLINE idroppingWhile #-}
+
+------------------------------------------------------------------------------
+-- Reifying Indexed Folds
+------------------------------------------------------------------------------
+
+-- | Useful for storage.
+newtype ReifiedIndexedFold i a c = ReifyIndexedFold { reflectIndexedFold :: IndexedFold i a c }

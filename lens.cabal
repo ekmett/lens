@@ -95,9 +95,7 @@ source-repository head
   type: git
   location: git://github.com/ekmett/lens.git
 
-flag benchmarks
-  default: False
-  manual: True
+-- flag benchmarks default: False manual: True
 
 library
   build-depends:
@@ -214,9 +212,8 @@ test-suite properties
   ghc-options: -w -threaded
   hs-source-dirs: tests
 
-executable benchmark-plated
-  if !flag(benchmarks)
-    buildable: False
+benchmark benchmark-plated
+  type: exitcode-stdio-1.0
   main-is: plated.hs
   build-depends:
     base,
