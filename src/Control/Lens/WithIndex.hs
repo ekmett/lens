@@ -108,9 +108,9 @@ class Foldable f => FoldableWithIndex i f | f -> i where
 
   -- | Right-associative fold of an indexed container with access to the index @i@.
   --
-  -- When you don't need access to the index then 'foldr' is more flexible in what it accepts.
+  -- When you don't need access to the index then 'Data.Foldable.foldr' is more flexible in what it accepts.
   --
-  -- @'foldr' = 'ifoldr' . 'const'@
+  -- @'Data.Foldable.foldr' = 'ifoldr' . 'const'@
   ifoldr   :: (i -> a -> b -> b) -> b -> f a -> b
   ifoldr f z t = appEndo (ifoldMap (\i -> Endo . f i) t) z
 
@@ -139,7 +139,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- @'Control.Lens.Fold.foldlOf'' l = 'ifoldlOf'' l . 'const'@
   --
   -- @
-  -- 'ifoldlOf'' :: 'IndexedGetter' i a c            -> (i -> e -> c -> e) -> e -> a -> e
+  -- 'ifoldlOf'' :: 'Control.Lens.IndexedGetter.IndexedGetter' i a c            -> (i -> e -> c -> e) -> e -> a -> e
   -- 'ifoldlOf'' :: 'IndexedFold' i a c              -> (i -> e -> c -> e) -> e -> a -> e
   -- 'ifoldlOf'' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c        -> (i -> e -> c -> e) -> e -> a -> e
   -- 'ifoldlOf'' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c   -> (i -> e -> c -> e) -> e -> a -> e
