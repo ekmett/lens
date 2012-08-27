@@ -53,7 +53,7 @@ class IsByteString t where
   -- When writing back to the 'ByteString' it is assumed that every 'Char'
   -- lies between '\x00' and '\xff'.
   --
-  -- @'chars' = 'from' 'packed' . 'traverse'@
+  -- @'chars' = 'from' 'packedChars' . 'traverse'@
   --
   -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
   chars :: SimpleIndexedTraversal Int t Char
