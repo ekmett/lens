@@ -93,6 +93,7 @@ imapped = isets imap
 -- FoldableWithIndex
 -------------------------------------------------------------------------------
 
+-- | A container that supports folding with an additional index.
 class Foldable f => FoldableWithIndex i f | f -> i where
   --
   -- |
