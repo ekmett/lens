@@ -168,7 +168,7 @@ library
   exposed-modules: Control.Parallel.Strategies.Lens Control.Seq.Lens
 
   if impl(ghc>7.6.0.20120810)
-    ghc-options: -DNEW_INLINE_PRAGMAS
+    cpp-options: -DNEW_INLINE_PRAGMAS
 
   if (impl(ghc>=7.4))
     other-extensions: Trustworthy
