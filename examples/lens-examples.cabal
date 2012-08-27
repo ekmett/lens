@@ -28,4 +28,4 @@ executable pong
     lens,
     mtl        >= 2.0.1 && < 2.2,
     random     == 1.0.*
-  main-is: pong.hs
+  main-is: Pong.hs
