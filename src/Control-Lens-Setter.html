@@ -392,7 +392,7 @@
 <a name="line-383"></a>
 <a name="line-384"></a><a name="%7c%7c~"></a><span class='hs-comment'>-- | Logically '||' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'</span>
 <a name="line-385"></a><span class='hs-comment'>--</span>
-<a name="line-386"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Pair.Lens</span>
+<a name="line-386"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens</span>
 <a name="line-387"></a><span class='hs-comment'>--</span>
 <a name="line-388"></a><span class='hs-comment'>-- &gt;&gt;&gt; both ||~ True $ (False,True)</span>
 <a name="line-389"></a><span class='hs-comment'>-- (True,True)</span>
@@ -412,7 +412,7 @@
 <a name="line-403"></a>
 <a name="line-404"></a><a name="&&~"></a><span class='hs-comment'>-- | Logically '&amp;&amp;' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'</span>
 <a name="line-405"></a><span class='hs-comment'>--</span>
-<a name="line-406"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Pair.Lens</span>
+<a name="line-406"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens</span>
 <a name="line-407"></a><span class='hs-comment'>--</span>
 <a name="line-408"></a><span class='hs-comment'>-- &gt;&gt;&gt; both &amp;&amp;~ True $ (False, True)</span>
 <a name="line-409"></a><span class='hs-comment'>-- (False,True)</span>
@@ -496,7 +496,7 @@
 <a name="line-487"></a>
 <a name="line-488"></a><a name="*="></a><span class='hs-comment'>-- | Modify the target(s) of a 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by multiplying by value.</span>
 <a name="line-489"></a><span class='hs-comment'>--</span>
-<a name="line-490"></a><span class='hs-comment'>-- @ballSpeed '.' 'Data.Pair.Lens.both' '*=' speedMultiplier@</span>
+<a name="line-490"></a><span class='hs-comment'>-- @ballSpeed '.' 'Control.Lens.Traversal.both' '*=' speedMultiplier@</span>
 <a name="line-491"></a><span class='hs-comment'>--</span>
 <a name="line-492"></a><span class='hs-comment'>-- @</span>
 <a name="line-493"></a><span class='hs-comment'>-- ('*=') :: ('MonadState' a m, 'Num' b) =&gt; 'Control.Lens.Type.Simple' 'Setter' a b -&gt; b -&gt; m ()</span>

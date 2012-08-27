@@ -19,28 +19,42 @@
 <a name="line-10"></a><span class='hs-comment'>--</span>
 <a name="line-11"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
 <a name="line-12"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-13"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>packed</span>
-<a name="line-14"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>text</span>
-<a name="line-15"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-16"></a>
-<a name="line-17"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span>
-<a name="line-19"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>List</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-20"></a>
-<a name="line-21"></a><a name="packed"></a><span class='hs-comment'>-- | Pack (or unpack) 'Text'.</span>
-<a name="line-22"></a><span class='hs-comment'>--</span>
-<a name="line-23"></a><span class='hs-comment'>-- &gt; pack x = x^.packed</span>
-<a name="line-24"></a><span class='hs-comment'>-- &gt; unpack x = x^.from packed</span>
-<a name="line-25"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-conid'>String</span> <span class='hs-conid'>Text</span>
-<a name="line-26"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>pack</span> <span class='hs-varid'>unpack</span>
-<a name="line-27"></a><span class='hs-comment'>{-# INLINE packed #-}</span>
-<a name="line-28"></a><span class='hs-comment'>{-# SPECIALIZE packed :: Simple Lens String Text #-}</span>
-<a name="line-29"></a>
-<a name="line-30"></a><a name="text"></a><span class='hs-comment'>-- | Traverse the individual characters in a either strict or lazy 'Text'.</span>
-<a name="line-31"></a><span class='hs-comment'>--</span>
-<a name="line-32"></a><span class='hs-comment'>-- &gt; anyOf text (=='c') :: Text -&gt; Bool</span>
-<a name="line-33"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>Char</span>
-<a name="line-34"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packed</span> <span class='hs-varop'>.&gt;</span> <span class='hs-varid'>traverseList</span>
-<a name="line-35"></a><span class='hs-comment'>{-# INLINE text #-}</span>
+<a name="line-13"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>IsText</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
+<a name="line-14"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-15"></a>
+<a name="line-16"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-17"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Strict</span>
+<a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Strict</span>
+<a name="line-19"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Lazy</span>
+<a name="line-20"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Lazy</span>
+<a name="line-21"></a>
+<a name="line-22"></a><a name="IsText"></a><span class='hs-comment'>-- | Traversals for strict or lazy 'Text'</span>
+<a name="line-23"></a><a name="IsText"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>IsText</span> <span class='hs-varid'>t</span> <span class='hs-keyword'>where</span>
+<a name="line-24"></a>  <span class='hs-comment'>-- | 'pack' (or 'unpack') strict or lazy 'Text'.</span>
+<a name="line-25"></a>  <span class='hs-comment'>--</span>
+<a name="line-26"></a>  <span class='hs-comment'>-- @</span>
+<a name="line-27"></a>  <span class='hs-comment'>-- 'pack' x = x '^.' 'packed'</span>
+<a name="line-28"></a>  <span class='hs-comment'>-- 'unpack' x = x '^.' 'from' 'packed'</span>
+<a name="line-29"></a>  <span class='hs-comment'>-- @</span>
+<a name="line-30"></a>  <span class='hs-varid'>packed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-conid'>String</span> <span class='hs-varid'>t</span>
+<a name="line-31"></a>
+<a name="line-32"></a>  <span class='hs-comment'>-- | Traverse the individual characters in strict or lazy 'Text'.</span>
+<a name="line-33"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>t</span> <span class='hs-conid'>Char</span>
+<a name="line-34"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packed</span> <span class='hs-varop'>.&gt;</span> <span class='hs-varid'>itraversed</span>
+<a name="line-35"></a>  <span class='hs-comment'>{-# INLINE text #-}</span>
+<a name="line-36"></a>
+<a name="line-37"></a><a name="instance%20IsText%20Strict.Text"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsText</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>where</span>
+<a name="line-38"></a>  <span class='hs-varid'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>packed</span>
+<a name="line-39"></a>  <span class='hs-comment'>{-# INLINE packed #-}</span>
+<a name="line-40"></a>  <span class='hs-comment'>{-# SPECIALIZE packed :: Simple Lens String Strict.Text #-}</span>
+<a name="line-41"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>text</span>
+<a name="line-42"></a>  <span class='hs-comment'>{-# INLINE text #-}</span>
+<a name="line-43"></a>
+<a name="line-44"></a><a name="instance%20IsText%20Lazy.Text"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsText</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>where</span>
+<a name="line-45"></a>  <span class='hs-varid'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-varid'>packed</span>
+<a name="line-46"></a>  <span class='hs-comment'>{-# INLINE packed #-}</span>
+<a name="line-47"></a>  <span class='hs-comment'>{-# SPECIALIZE packed :: Simple Lens String Lazy.Text #-}</span>
+<a name="line-48"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-varid'>text</span>
+<a name="line-49"></a>  <span class='hs-comment'>{-# INLINE text #-}</span>
 </pre></body>
 </html>
