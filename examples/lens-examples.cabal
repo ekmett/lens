@@ -25,7 +25,7 @@ executable pong
     base       == 4.*,
     containers >= 0.4.2 && < 0.6,
     gloss      == 1.7.*,
-    lens       == 1.7.*,
+    lens,
     mtl        >= 2.0.1 && < 2.2,
     random     == 1.0.*
   main-is: pong.hs
