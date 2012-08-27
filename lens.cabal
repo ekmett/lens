@@ -97,63 +97,64 @@ source-repository head
 
 library
   build-depends:
-    base                 >= 4.3   && < 5,
+    base                 >= 4.3      && < 5,
     bytestring           >= 0.9.1.10 && < 0.11,
     comonad              == 3.0.*,
     comonad-transformers == 3.0.*,
     comonads-fd          == 3.0.*,
-    containers           >= 0.4.2 && < 0.6,
+    containers           >= 0.4.2    && < 0.6,
     hashable             == 1.1.*,
-    mtl                  >= 2.1.1 && < 2.2,
-    template-haskell     >= 2.4   && < 2.9,
+    mtl                  >= 2.1.1    && < 2.2,
+    template-haskell     >= 2.4      && < 2.9,
     text                 >= 0.11.1.5 && < 0.12,
-    transformers         >= 0.3   && < 0.4,
-    unordered-containers >= 0.2 && < 0.3
+    transformers         >= 0.3      && < 0.4,
+    unordered-containers >= 0.2      && < 0.3
 
-  exposed-modules: Control.Exception.Lens
-                   Control.Lens
-                   Control.Lens.Action
-                   Control.Lens.Fold
-                   Control.Lens.Getter
-                   Control.Lens.Indexed
-                   Control.Lens.IndexedGetter
-                   Control.Lens.IndexedFold
-                   Control.Lens.IndexedLens
-                   Control.Lens.IndexedSetter
-                   Control.Lens.IndexedTraversal
-                   Control.Lens.Internal
-                   Control.Lens.Iso
-                   Control.Lens.Isomorphic
-                   Control.Lens.Plated
-                   Control.Lens.Representable
-                   Control.Lens.Setter
-                   Control.Lens.TH
-                   Control.Lens.Traversal
-                   Control.Lens.Tuple
-                   Control.Lens.Type
-                   Control.Lens.WithIndex
-                   Control.Lens.Zoom
-                   Data.Bits.Lens
-                   Data.ByteString.Lens
-                   Data.ByteString.Strict.Lens
-                   Data.ByteString.Lazy.Lens
-                   Data.Complex.Lens
-                   Data.Data.Lens
-                   Data.Dynamic.Lens
-                   Data.HashSet.Lens
-                   Data.IntMap.Lens
-                   Data.IntSet.Lens
-                   Data.List.Lens
-                   Data.Map.Lens
-                   Data.Monoid.Lens
-                   Data.Sequence.Lens
-                   Data.Set.Lens
-                   Data.Text.Lens
-                   Data.Text.Strict.Lens
-                   Data.Text.Lazy.Lens
-                   Data.Tree.Lens
-                   Data.Typeable.Lens
-                   Language.Haskell.TH.Lens
+  exposed-modules:
+    Control.Exception.Lens
+    Control.Lens
+    Control.Lens.Action
+    Control.Lens.Fold
+    Control.Lens.Getter
+    Control.Lens.Indexed
+    Control.Lens.IndexedGetter
+    Control.Lens.IndexedFold
+    Control.Lens.IndexedLens
+    Control.Lens.IndexedSetter
+    Control.Lens.IndexedTraversal
+    Control.Lens.Internal
+    Control.Lens.Iso
+    Control.Lens.Isomorphic
+    Control.Lens.Plated
+    Control.Lens.Representable
+    Control.Lens.Setter
+    Control.Lens.TH
+    Control.Lens.Traversal
+    Control.Lens.Tuple
+    Control.Lens.Type
+    Control.Lens.WithIndex
+    Control.Lens.Zoom
+    Data.Bits.Lens
+    Data.ByteString.Lens
+    Data.ByteString.Strict.Lens
+    Data.ByteString.Lazy.Lens
+    Data.Complex.Lens
+    Data.Data.Lens
+    Data.Dynamic.Lens
+    Data.HashSet.Lens
+    Data.IntMap.Lens
+    Data.IntSet.Lens
+    Data.List.Lens
+    Data.Map.Lens
+    Data.Monoid.Lens
+    Data.Sequence.Lens
+    Data.Set.Lens
+    Data.Text.Lens
+    Data.Text.Strict.Lens
+    Data.Text.Lazy.Lens
+    Data.Tree.Lens
+    Data.Typeable.Lens
+    Language.Haskell.TH.Lens
 
   -- platform
   build-depends:   array >= 0.3.0.2 && < 0.5
