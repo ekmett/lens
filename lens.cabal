@@ -87,7 +87,8 @@ extra-source-files:
   config
   examples/LICENSE
   examples/lens-examples.cabal
-  examples/pong.hs
+  examples/Pong.hs
+  examples/Plates.hs
   README.markdown
   CHANGELOG.markdown
 
