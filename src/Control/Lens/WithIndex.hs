@@ -276,7 +276,7 @@ ifoldlM f z0 xs = ifoldr f' return xs z0
 --
 -- When you don't need access to the indices in the result, then 'toList' is more flexible in what it accepts.
 --
--- @'toList' = 'map' 'fst' . 'itoList'
+-- @'toList' = 'map' 'fst' . 'itoList'@
 itoList :: FoldableWithIndex i f => f a -> [(i,a)]
 itoList = ifoldMap (\i c -> [(i,c)])
 {-# INLINE itoList #-}

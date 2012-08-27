@@ -20,7 +20,6 @@ import Control.Applicative as Applicative
 import Control.Lens.Indexed
 import Control.Lens.IndexedTraversal
 import Data.Map as Map
-import Data.Traversable
 
 -- | Traverse the value at the minimum key in a Map.
 --
