@@ -190,6 +190,10 @@ instance Applicative f => Applicative (Indexing f) where
     IndexingResult ff j -> case ma j of
        IndexingResult fa k -> IndexingResult (ff <*> fa) k
 
+instance Gettable f => Gettable (Indexing f) where
+  coerce (Indexing m) = Indexing $ \i -> case m i of
+    IndexingResult ff j -> IndexingResult (coerce ff) j
+
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
 newtype Traversed f = Traversed { getTraversed :: f () }
 
