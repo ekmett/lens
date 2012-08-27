@@ -131,25 +131,25 @@ library
                    Control.Lens.Traversal
                    Control.Lens.Tuple
                    Control.Lens.Type
+                   Control.Lens.WithIndex
                    Control.Lens.Zoom
                    Data.Bits.Lens
                    Data.ByteString.Lens
+                   Data.ByteString.Strict.Lens
                    Data.ByteString.Lazy.Lens
                    Data.Complex.Lens
                    Data.Data.Lens
                    Data.Dynamic.Lens
-                   Data.Either.Lens
-                   Data.HashMap.Lens
                    Data.HashSet.Lens
                    Data.IntMap.Lens
                    Data.IntSet.Lens
                    Data.List.Lens
                    Data.Map.Lens
                    Data.Monoid.Lens
-                   Data.Pair.Lens
                    Data.Sequence.Lens
                    Data.Set.Lens
                    Data.Text.Lens
+                   Data.Text.Strict.Lens
                    Data.Text.Lazy.Lens
                    Data.Tree.Lens
                    Data.Typeable.Lens

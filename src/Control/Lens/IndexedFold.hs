@@ -174,7 +174,7 @@ itraverseOf_ l f = getTraversed . ifoldMapOf l (\i -> Traversed . void . f i)
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.forOf_' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.forOf_' l a = 'iforOf' l a . 'const'@
+-- @'Control.Lens.Fold.forOf_' l a = 'iforOf_' l a . 'const'@
 --
 -- @
 -- 'iforOf_' :: 'Functor' f     => 'IndexedGetter' i a c          -> a -> (i -> c -> f e) -> f ()
@@ -232,9 +232,12 @@ iforMOf_ = flip . imapMOf_
 -- Concatenate the results of a function of the elements of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
 -- with access to the index.
 --
--- When you don't need access to the index then 'Control.Lens.Fold.concatMapOf_'  is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Lens.Fold.concatMapOf'  is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.concatMapOf_' l = 'iconcatMapMOf' l . 'const'@
+-- @
+-- 'Control.Lens.Fold.concatMapOf' l = 'iconcatMapOf' l . 'const'
+-- 'iconcatMapOf' = 'ifoldMapOf'
+-- @
 --
 -- @
 -- 'iconcatMapOf' :: 'IndexedGetter' i a c          -> (i -> c -> [e]) -> a -> [e]
@@ -243,7 +246,7 @@ iforMOf_ = flip . imapMOf_
 -- 'iconcatMapOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> [e]) -> a -> [e]
 -- @
 iconcatMapOf :: IndexedGetting i [e] a c -> (i -> c -> [e]) -> a -> [e]
-iconcatMapOf l ices = runAccessor . withIndex l (\i -> Accessor . ices i)
+iconcatMapOf = ifoldMapOf
 {-# INLINE iconcatMapOf #-}
 
 -- | The 'findOf' function takes an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal', a predicate that is also
@@ -252,7 +255,7 @@ iconcatMapOf l ices = runAccessor . withIndex l (\i -> Accessor . ices i)
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.findOf' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.findOf' l = 'ifoldOf' l . 'const'@
+-- @'Control.Lens.Fold.findOf' l = 'ifindOf' l . 'const'@
 --
 -- @
 -- 'ifindOf' :: 'IndexedGetter' a c          -> (i -> c -> 'Bool') -> a -> 'Maybe' (i, c)

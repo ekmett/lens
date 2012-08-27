@@ -20,7 +20,8 @@ module Control.Lens.IndexedTraversal
 
   -- * Common Indexed Traversals
   , traverseAt
-  , iwhere
+  , iwhereOf
+  , value
 
   -- * Indexed Traversal Combinators
   , itraverseOf
@@ -67,7 +68,7 @@ type SimpleIndexedTraversal i a b = IndexedTraversal i a a b b
 --
 -- @
 -- 'itraverseOf' = 'withIndex'
--- 'Control.Lens.Traversal.traverseOf' = 'itraverseOf' . 'const' = 'id'
+-- 'Control.Lens.Traversal.traverseOf' l = 'itraverseOf' l . 'const' = 'id'
 -- @
 --
 -- @
@@ -99,7 +100,7 @@ iforOf = flip . withIndex
 --
 -- When you don't need access to the index 'mapMOf' is more liberal in what it can accept.
 --
--- @'Control.Lens.Traversal.mapMOf' = 'imapMOf' . 'const'@
+-- @'Control.Lens.Traversal.mapMOf' l = 'imapMOf' l . 'const'@
 --
 -- @
 -- 'imapMOf' :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens'      i a b c d -> (i -> c -> m d) -> a -> m b
@@ -167,19 +168,19 @@ swap (a,b) = (b,a)
 -- Attempts to access beyond the range of the 'Traversal' will cause an error.
 --
 -- >>> :m + Control.Lens
--- >>> over (iwhere (indexed traverse) (>0)) reverse $ ["He","was","stressed","o_O"]
+-- >>> over (iwhereOf (indexed traverse) (>0)) reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
 --
 -- @
--- 'iwhere' :: 'IndexedFold' i a b            -> (i -> 'Bool') -> 'IndexedFold' i a b
--- 'iwhere' :: 'IndexedGetter' i a b          -> (i -> 'Bool') -> 'IndexedFold' i a b
--- 'iwhere' :: 'SimpleIndexedLens' i a b      -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i a b
--- 'iwhere' :: 'SimpleIndexedTraversal' i a b -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i a b
--- 'iwhere' :: 'SimpleIndexedSetter' i a b    -> (i -> 'Bool') -> 'SimpleIndexedSetter' i a b
+-- 'iwhereOf' :: 'IndexedFold' i a b            -> (i -> 'Bool') -> 'IndexedFold' i a b
+-- 'iwhereOf' :: 'IndexedGetter' i a b          -> (i -> 'Bool') -> 'IndexedFold' i a b
+-- 'iwhereOf' :: 'SimpleIndexedLens' i a b      -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i a b
+-- 'iwhereOf' :: 'SimpleIndexedTraversal' i a b -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i a b
+-- 'iwhereOf' :: 'SimpleIndexedSetter' i a b    -> (i -> 'Bool') -> 'SimpleIndexedSetter' i a b
 -- @
-iwhere :: (Indexed i k, Applicative f) => Overloaded (Index i) f a b c c -> (i -> Bool) -> Overloaded k f a b c c
-iwhere l p = index $ \f a -> withIndex l (\i c -> if p i then f i c else pure c) a
-{-# INLINE iwhere #-}
+iwhereOf :: (Indexed i k, Applicative f) => Overloaded (Index i) f a b c c -> (i -> Bool) -> Overloaded k f a b c c
+iwhereOf l p = index $ \f a -> withIndex l (\i c -> if p i then f i c else pure c) a
+{-# INLINE iwhereOf #-}
 
 -- | Traverse the value at a given key in a map
 --
@@ -187,6 +188,12 @@ iwhere l p = index $ \f a -> withIndex l (\i c -> if p i then f i c else pure c)
 traverseAt :: At k m => k -> SimpleIndexedTraversal k (m v) v
 traverseAt k = at k <. traverse
 {-# INLINE traverseAt #-}
+
+-- | This provides a 'Traversal' that checks a predicate on a key before
+-- allowing you to traverse into a value.
+value :: (k -> Bool) -> SimpleIndexedTraversal k (k, v) v
+value p = index $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
+{-# INLINE value #-}
 
 ------------------------------------------------------------------------------
 -- Reifying Indexed Traversals

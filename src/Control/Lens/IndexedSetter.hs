@@ -17,7 +17,8 @@ module Control.Lens.IndexedSetter
   (
   -- * Indexed Setter
     IndexedSetter
-  , imapOf
+  , imapOf, iover
+  , isets
   , (%@~)
   , (%@=)
   -- * Storing Indexed Setters
@@ -27,6 +28,7 @@ module Control.Lens.IndexedSetter
   , SimpleReifiedIndexedSetter
   ) where
 
+import Control.Applicative
 import Control.Lens.Indexed
 import Control.Lens.Internal
 import Control.Lens.Type
@@ -58,6 +60,43 @@ type SimpleIndexedSetter i a b = IndexedSetter i a a b b
 imapOf :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
 imapOf l f = runMutator . withIndex l (\i -> Mutator . f i)
 {-# INLINE imapOf #-}
+
+-- | Map with index. This is an alias for 'imapOf'.
+--
+-- When you do not need access to the index, then 'over' is more liberal in what it can accept.
+--
+-- @'Control.Lens.Setter.over' l = 'iover' l . 'const'@
+--
+-- @
+-- 'iover' :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
+-- 'iover' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> d) -> a -> b
+-- 'iover' :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> a -> b
+-- @
+iover :: Overloaded (Index i) Mutator a b c d -> (i -> c -> d) -> a -> b
+iover l f = runMutator . withIndex l (\i -> Mutator . f i)
+{-# INLINE iover #-}
+
+-- | Build an 'IndexedSetter' from an 'imap'-like function.
+--
+-- Your supplied function @f@ is required to satisfy:
+--
+-- @
+-- f 'id' = 'id'
+-- f g '.' f h = f (g '.' h)
+-- @
+--
+-- Equational reasoning:
+--
+-- @
+-- 'isets' . 'iover' = 'id'
+-- 'iover' . 'isets' = 'id'
+-- @
+--
+-- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
+-- and transforms it into a 'Setter'.
+isets :: ((i -> c -> d) -> a -> b) -> IndexedSetter i a b c d
+isets f = index $ \ g -> pure . f (\i -> untainted . g i)
+{-# INLINE isets #-}
 
 -- | Adjust every target of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
 -- with access to the index.

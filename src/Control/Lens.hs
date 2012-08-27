@@ -61,6 +61,7 @@ module Control.Lens
   , module Control.Lens.Representable
   , module Control.Lens.TH
   , module Control.Lens.Tuple
+  , module Control.Lens.WithIndex
   , module Control.Lens.Zoom
   ) where
 
@@ -81,4 +82,5 @@ import Control.Lens.TH
 import Control.Lens.Traversal
 import Control.Lens.Tuple
 import Control.Lens.Type
+import Control.Lens.WithIndex
 import Control.Lens.Zoom

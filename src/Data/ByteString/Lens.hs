@@ -10,56 +10,72 @@
 --
 ----------------------------------------------------------------------------
 module Data.ByteString.Lens
-  ( packedBytes, bytes
-  , packedChars, chars
+  ( IsByteString(..)
   ) where
 
-import Control.Lens
-import Data.ByteString as Words
-import Data.ByteString.Char8 as Char8
-import Data.List.Lens
-import Data.Word (Word8)
+import           Control.Lens
+import           Data.Word (Word8)
+import           Data.ByteString as Strict
+import qualified Data.ByteString.Strict.Lens as Strict
+import           Data.ByteString.Lazy as Lazy
+import qualified Data.ByteString.Lazy.Lens as Lazy
 
--- | 'Data.ByteString.pack' (or 'Data.ByteString.unpack') a list of bytes into a 'ByteString'
---
--- @'Data.ByteString.pack' x = x '^.' 'packedBytes'@
---
--- @'Data.ByteString.unpack' x = x '^.' 'from' 'packedBytes'@
-packedBytes :: Simple Iso [Word8] ByteString
-packedBytes = iso Words.pack Words.unpack
-{-# INLINE packedBytes #-}
-{-# SPECIALIZE packedBytes :: Simple Lens [Word8] ByteString #-}
+-- | Traversals for ByteStrings.
+class IsByteString t where
+  -- | 'Data.ByteString.pack' (or 'Data.ByteString.unpack') a list of bytes into a strict or lazy 'ByteString'
+  --
+  -- @'Data.ByteString.pack' x = x '^.' 'packedBytes'@
+  --
+  -- @'Data.ByteString.unpack' x = x '^.' 'from' 'packedBytes'@
+  packedBytes :: Simple Iso [Word8] t
 
--- | Traverse each 'Word8' in a 'ByteString'
---
--- @'bytes' = 'from' 'packedBytes' '.>' 'traverseList'@
---
--- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
-bytes :: SimpleIndexedTraversal Int ByteString Word8
-bytes = from packedBytes .> traverseList
-{-# INLINE bytes #-}
+  -- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a strict or lazy 'ByteString'
+  --
+  -- When writing back to the 'ByteString' it is assumed that every 'Char'
+  -- lies between '\x00' and '\xff'.
+  --
+  -- @'Data.ByteString.Char8.pack' x = x '^.' 'packedChars'@
+  --
+  -- @'Data.ByteString.Char8.unpack' x = x '^.' 'from' 'packedChars'@
+  packedChars :: Simple Iso String t
 
--- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a 'ByteString'
---
--- When writing back to the 'ByteString' it is assumed that every 'Char'
--- lies between '\x00' and '\xff'.
---
--- @'Data.ByteString.Char8.pack' x = x '^.' 'packedChars'@
---
--- @'Data.ByteString.Char8.unpack' x = x '^.' 'from' 'packedChars'@
-packedChars :: Simple Iso String ByteString
-packedChars = iso Char8.pack Char8.unpack
-{-# INLINE packedChars #-}
-{-# SPECIALIZE packedChars :: Simple Lens String ByteString #-}
+  -- | Traverse each 'Word8' in a strict or lazy 'ByteString'
+  --
+  -- @'bytes' = 'from' 'packedBytes' '.>' 'traverseList'@
+  --
+  -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
+  bytes :: SimpleIndexedTraversal Int t Word8
+  bytes = from packedBytes .> itraversed
+  {-# INLINE bytes #-}
 
--- | Traverse the individual bytes in a 'ByteString' as characters.
---
--- When writing back to the 'ByteString' it is assumed that every 'Char'
--- lies between '\x00' and '\xff'.
---
--- @'chars' = 'from' 'packed' . 'traverse'@
---
--- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
-chars :: SimpleIndexedTraversal Int ByteString Char
-chars = from packedChars .> traverseList
-{-# INLINE chars #-}
+  -- | Traverse the individual bytes in a strict or lazy 'ByteString' as characters.
+  --
+  -- When writing back to the 'ByteString' it is assumed that every 'Char'
+  -- lies between '\x00' and '\xff'.
+  --
+  -- @'chars' = 'from' 'packed' . 'traverse'@
+  --
+  -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
+  chars :: SimpleIndexedTraversal Int t Char
+  chars = from packedChars .> itraversed
+  {-# INLINE chars #-}
+
+instance IsByteString Strict.ByteString where
+  packedBytes = Strict.packedBytes
+  {-# INLINE packedBytes #-}
+  packedChars = Strict.packedChars
+  {-# INLINE packedChars #-}
+  bytes = Strict.bytes
+  {-# INLINE bytes #-}
+  chars = Strict.chars
+  {-# INLINE chars #-}
+
+instance IsByteString Lazy.ByteString where
+  packedBytes = Lazy.packedBytes
+  {-# INLINE packedBytes #-}
+  packedChars = Lazy.packedChars
+  {-# INLINE packedChars #-}
+  bytes = Lazy.bytes
+  {-# INLINE bytes #-}
+  chars = Lazy.chars
+  {-# INLINE chars #-}

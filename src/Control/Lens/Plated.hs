@@ -47,8 +47,6 @@ module Control.Lens.Plated
   (
   -- * Uniplate
     Plated(..)
-  , parts
-  , partsOf
 
   -- * Uniplate Combinators
   , children, childrenOn
@@ -67,11 +65,14 @@ module Control.Lens.Plated
   , para, paraOf
 
   -- * Compos
-  --
   -- $compos
   , composOpFold
 
-  -- * Operations to be careful of
+  -- * Parts
+  , parts
+  , partsOf
+
+  -- ** Unsafe Operations
   , unsafePartsOf
   )
   where
@@ -83,10 +84,7 @@ import Control.Lens.Internal
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
-import Data.Int
-import Data.Ratio
-import Data.Word
--- import Data.Tree
+import Data.Tree
 
 -- | A 'Plated' type is one where we know how to extract its immediate self-similar children.
 --
@@ -152,90 +150,45 @@ import Data.Word
 --   'plate' = 'uniplate'
 -- @
 --
--- Note one distinction between these two implementations.
+-- Note the big distinction between these two implementations.
 --
 -- The former will only treat children directly in this tree as descendents,
 -- the latter will treat trees contained in the values under the tips also
 -- as descendants!
 --
--- Be careful with polymorphic instances for 'Plated'.
---
 -- When in doubt, pick a 'Traversal' and just use the various @...Of@ combinators
 -- rather than pollute 'Plated' with orphan instances!
 --
--- This ability to explicitly pass the 'Traversal' in question is why there is no
+-- If you want to find something unplated and non-recursive with 'Data.Data.Lens.biplate'
+-- use the @...OnOf@ variant with 'ignored', though those usecases are much better served
+-- in most cases by using the existing lens combinators! e.g.
+--
+-- @'toListOf' 'biplate' = 'universeOnOf' 'biplate' 'ignored'@.
+--
+-- This same ability to explicitly pass the 'Traversal' in question is why there is no
 -- analogue to uniplate's @Biplate@.
+--
+-- Moreover, since we can allow custom traversals, we implement reasonable defaults for
+-- polymorphic data types, that only traverse into themselves, and /not/ their
+-- polymorphic arguments.
+
 class Plated a where
   -- | 'Traversal' of the immediate children of this structure.
   --
   -- The default definition finds no children.
   plate :: Simple Traversal a a
-  plate _ = pure
+  plate = ignored
 
-instance Plated ()
-instance Plated Bool
-instance Plated Char
-instance Plated Double
-instance Plated Float
-instance Plated Int
-instance Plated Int8
-instance Plated Int16
-instance Plated Int32
-instance Plated Int64
-instance Plated Integer
-instance Plated Word
-instance Plated Word8
-instance Plated Word16
-instance Plated Word32
-instance Plated Word64
-instance Plated (Ratio Integer)
-instance Plated [Char] where
+instance Plated [a] where
   plate f (x:xs) = (x:) <$> f xs
   plate _ [] = pure []
 
--- | Neil Mitchell's original version of the @uniplate@ combinator, implemented in terms of 'Plated' as a 'Lens'
---
--- @'parts' = 'partsOf' 'plate'@
---
--- The resulting lens is actually safer to use as it ignores 'over-application' and
--- deals gracefully with under-application.
-parts :: Plated a => Simple Lens a [a]
-parts = partsOf plate
-{-# INLINE parts #-}
+instance Plated (Tree a) where
+  plate f (Node a as) = Node a <$> traverse f as
 
--- | 'partsOf' turns a 'Traversal' into a lens that resembles an early version of the @uniplate@ (or @biplate@) type.
---
--- /Note:/ You should really, maintain the invariant of the number of children in the list.
---
--- Any extras will be lost.
---
--- If you do not supply enough, then the remainder will come from the original structure.
---
--- @
--- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' a b       -> a -> 'Simple' 'Lens' a [b]
--- 'partsOf' :: 'Simple' 'Lens' a b      -> a -> 'Simple' 'Lens' a [b]
--- 'partsOf' :: 'Simple' 'Traversal' a b -> a -> 'Simple' 'Traversal' a [b]
--- @
-partsOf :: LensLike (Bazaar c c) a b c c -> Lens a b [c] [c]
-partsOf l f a = outs b <$> f (ins b) where b = l sell a
-{-# INLINE partsOf #-}
-
-
-
--- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
---
--- If you do not need the types of @c@ and @d@ to be different, it is recommended that
--- you use 'partsOf'
---
--- It is generally safer to traverse with the 'Bazaar' rather than use this
--- combinator. However, it is sometimes convenient.
---
--- This is unsafe because if you don't supply at least as many @d@'s as you were
--- given @c@'s, then the reconstruction of @b@ /will/ result in an error!
---
-unsafePartsOf :: LensLike (Bazaar c d) a b c d -> Lens a b [c] [d]
-unsafePartsOf l f a = outs' b <$> f (ins b) where b = l sell a
-{-# INLINE unsafePartsOf #-}
+-------------------------------------------------------------------------------
+-- Children
+-------------------------------------------------------------------------------
 
 -- | Extract the immediate descendants of a 'Plated' container.
 --
@@ -252,6 +205,10 @@ children = toListOf plate
 childrenOn :: Getting [b] a b -> a -> [b]
 childrenOn = toListOf
 {-# INLINE childrenOn #-}
+
+-------------------------------------------------------------------------------
+-- Rewriting
+-------------------------------------------------------------------------------
 
 -- | Rewrite by applying a rule everywhere you can. Ensures that the rule cannot
 -- be applied anywhere in the result:
@@ -334,6 +291,10 @@ rewriteMOnOf :: Monad m => LensLike (WrappedMonad m) a b c c -> SimpleLensLike (
 rewriteMOnOf b l = mapMOf b . rewriteMOf l
 {-# INLINE rewriteMOnOf #-}
 
+-------------------------------------------------------------------------------
+-- Universe
+-------------------------------------------------------------------------------
+
 -- | Retrieve all of the transitive descendants of a 'Plated' container, including itself.
 universe :: Plated a => a -> [a]
 universe = universeOf plate
@@ -354,9 +315,15 @@ universeOn b = universeOnOf b plate
 
 -- | Given a 'Fold' that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself that lie
 -- in a region indicated by another 'Fold'.
+--
+-- @'toListOf' l = 'universeOnOf' l 'ignored'@
 universeOnOf :: Getting [b] a b -> Getting [b] b b -> a -> [b]
 universeOnOf b = foldMapOf b . universeOf
 {-# INLINE universeOnOf #-}
+
+-------------------------------------------------------------------------------
+-- Transformation
+-------------------------------------------------------------------------------
 
 -- | Transform every element in the tree, in a bottom-up manner.
 --
@@ -431,6 +398,10 @@ transformMOnOf :: Monad m => LensLike (WrappedMonad m) a b c c -> SimpleLensLike
 transformMOnOf b l = mapMOf b . transformMOf l
 {-# INLINE transformMOnOf #-}
 
+-------------------------------------------------------------------------------
+-- Descent
+-------------------------------------------------------------------------------
+
 -- | Recurse one level into a structure. (a.k.a @composOp@ from Björn Bringert's @compos@)
 --
 -- @'descend' = 'over' 'plate'@
@@ -472,6 +443,10 @@ descendOnOf b l = over (b.l)
 descendOn :: Plated c => Setting a b c c -> (c -> c) -> a -> b
 descendOn b = over (b . plate)
 {-# INLINE descendOn #-}
+
+-------------------------------------------------------------------------------
+-- Applicative Descent
+-------------------------------------------------------------------------------
 
 -- | Recurse one level into a structure with an 'Applicative' effect, this is 'plate', but it is supplied
 -- for consistency with the uniplate API.
@@ -545,6 +520,10 @@ descendAOn_ :: (Applicative f, Plated b) => Getting (Traversed f) a b -> (b -> f
 descendAOn_ b = traverseOf_ (b . plate)
 {-# INLINE descendAOn_ #-}
 
+-------------------------------------------------------------------------------
+-- Monadic Descent
+-------------------------------------------------------------------------------
+
 -- | Recurse one level into a structure with a monadic effect. (a.k.a @composOpM@ from Björn Bringert's @compos@)
 --
 -- @'descendM' = 'mapMOf' 'plate'@
@@ -613,6 +592,10 @@ descendMOnOf_ b l = mapMOf_ (b . l)
 descendMOn_ :: (Monad m, Plated b) => Getting (Sequenced m) a b -> (b -> m c) -> a -> m ()
 descendMOn_ b = mapMOf_ (b . plate)
 {-# INLINE descendMOn_ #-}
+
+-------------------------------------------------------------------------------
+-- Holes and Contexts
+-------------------------------------------------------------------------------
 
 -- | Return a list of all of the editable contexts for every location in the structure, recursively.
 --
@@ -696,18 +679,7 @@ holesOf l a = f (ins b) (outs b) where
   b = l sell a
   f []     _ = []
   f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
-
-{-
-holesOf l = dig id . l sell
 {-# INLINE holesOf #-}
-
-dig :: (a -> r) -> Bazaar c c a -> [Context c c r]
-dig _ Buy{}        = []
-dig k (Trade xs c) = Context (k . extract xs) c : dig (\a -> k a c) xs
--}
-{-
-{-# INLINE holesOf #-}
--}
 
 
 -- | An alias for 'holesOf', provided for consistency with the other combinators.
@@ -721,6 +693,7 @@ dig k (Trade xs c) = Context (k . extract xs) c : dig (\a -> k a c) xs
 -- @
 holesOn :: LensLike (Bazaar c c) a b c c -> a -> [Context c c b]
 holesOn = holesOf
+{-# INLINE holesOn #-}
 
 -- | Extract one level of holes from a container in a region specified by one 'Traversal', using another.
 --
@@ -733,6 +706,11 @@ holesOn = holesOf
 -- @
 holesOnOf :: LensLike (Bazaar e e) a b c d -> LensLike (Bazaar e e) c d e e -> a -> [Context e e b]
 holesOnOf b l = holesOf (b.l)
+{-# INLINE holesOnOf #-}
+
+-------------------------------------------------------------------------------
+-- Paramorphisms
+-------------------------------------------------------------------------------
 
 -- | Perform a fold-like computation on each value, technically a paramorphism.
 --
@@ -748,6 +726,10 @@ paraOf l f = go where
 para :: Plated a => (a -> [r] -> r) -> a -> r
 para = paraOf plate
 {-# INLINE para #-}
+
+-------------------------------------------------------------------------------
+-- Compos
+-------------------------------------------------------------------------------
 
 -- $compos
 --
@@ -772,16 +754,60 @@ composOpFold z c f = foldrOf plate (c . f) z
 {-# INLINE composOpFold #-}
 
 -------------------------------------------------------------------------------
--- The ins and outs of the bazaar
+-- Parts
+-------------------------------------------------------------------------------
+
+-- | The original @uniplate@ combinator, implemented in terms of 'Plated' as a 'Lens'.
+--
+-- @'parts' = 'partsOf' 'plate'@
+--
+-- The resulting lens is safer to use as it ignores 'over-application' and deals gracefully with under-application,
+-- but it is only a proper lens if you don't change the list 'length'!
+parts :: Plated a => Simple Lens a [a]
+parts = partsOf plate
+{-# INLINE parts #-}
+
+-- | 'partsOf' turns a 'Traversal' into a lens that resembles an early version of the @uniplate@ (or @biplate@) type.
+--
+-- /Note:/ You should really, maintain the invariant of the number of children in the list.
+--
+-- Any extras will be lost.
+--
+-- If you do not supply enough, then the remainder will come from the original structure.
+--
+-- @
+-- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' a b       -> a -> 'Simple' 'Lens' a [b]
+-- 'partsOf' :: 'Simple' 'Lens' a b      -> a -> 'Simple' 'Lens' a [b]
+-- 'partsOf' :: 'Simple' 'Traversal' a b -> a -> 'Simple' 'Traversal' a [b]
+-- @
+partsOf :: LensLike (Bazaar c c) a b c c -> Lens a b [c] [c]
+partsOf l f a = outs b <$> f (ins b) where b = l sell a
+{-# INLINE partsOf #-}
+
+-- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
+--
+-- If you do not need the types of @c@ and @d@ to be different, it is recommended that
+-- you use 'partsOf'
+--
+-- It is generally safer to traverse with the 'Bazaar' rather than use this
+-- combinator. However, it is sometimes convenient.
+--
+-- This is unsafe because if you don't supply at least as many @d@'s as you were
+-- given @c@'s, then the reconstruction of @b@ /will/ result in an error!
+--
+unsafePartsOf :: LensLike (Bazaar c d) a b c d -> Lens a b [c] [d]
+unsafePartsOf l f a = unsafeOuts b <$> f (ins b) where b = l sell a
+{-# INLINE unsafePartsOf #-}
+
+
+
+-------------------------------------------------------------------------------
+-- Misc.
 -------------------------------------------------------------------------------
 
 ins :: Bazaar c d a -> [c]
 ins (Bazaar m) = getConst (m (Const . return))
 {-# INLINE ins #-}
-{-
-ins (Trade ys c) = c : ins ys
-ins _ = []
--}
 
 newtype Out c a = Out { withOut :: [c] -> (a, [c]) }
 
@@ -803,20 +829,9 @@ outs (Bazaar m) = fst . withOut (m $ \c -> Out $ \cs -> case cs of
   [] -> (c, [])
   (d:ds) -> (d, ds))
 {-# INLINE outs #-}
-{-
-outs (Trade ys _) (c:cs) = outs (fmap ($c) ys) cs
-outs xs          _       = extract xs
--}
 
-outs' :: Bazaar c d a -> [d] -> a
-outs' (Bazaar m) = fst . withOut (m $ \_ -> Out $ \cs -> case cs of
+unsafeOuts :: Bazaar c d a -> [d] -> a
+unsafeOuts (Bazaar m) = fst . withOut (m $ \_ -> Out $ \cs -> case cs of
   (d:ds) -> (d, ds)
   [] -> error "unsafePartsOf: not enough elements were supplied")
-{-# INLINE outs' #-}
-
-{-
-outs' (Trade ys _) (d:ds) = outs' (fmap ($d) ys) ds
-outs' (Buy a)      _      = a
-outs' _            _      = error "unsafePartsOf: not enough elements were supplied"
--}
-
+{-# INLINE unsafeOuts #-}

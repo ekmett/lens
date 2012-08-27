@@ -43,7 +43,11 @@ module Control.Lens.Traversal
 
   -- * Common Traversals
   , Traversable(traverse)
-  , traverseNothing
+  , ignored
+  , traverseLeft
+  , traverseRight
+  , both
+
   -- * Cloning Traversals
   , cloneTraversal
   , ReifiedTraversal(..)
@@ -313,10 +317,40 @@ element = elementOf traverse
 
 -- | This is the traversal that just doesn't return anything
 --
--- @'traverseNothing' :: 'Applicative' f => (c -> f d) -> a -> f a@
-traverseNothing :: Traversal a a c d
-traverseNothing = const pure
-{-# INLINE traverseNothing #-}
+-- @'ignored' :: 'Applicative' f => (c -> f d) -> a -> f a@
+--
+-- @'ignored' = 'const' 'pure'@
+ignored :: Traversal a a c d
+ignored _ = pure
+{-# INLINE ignored #-}
+
+-- | Traverse both parts of a tuple with matching types.
+both :: Traversal (a,a) (b,b) a b
+both f (a,a') = (,) <$> f a <*> f a'
+{-# INLINE both #-}
+
+-- | A traversal for tweaking the left-hand value of an 'Either':
+--
+-- @traverseLeft :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ('Either' b c)@
+traverseLeft :: Traversal (Either a c) (Either b c) a b
+traverseLeft f (Left a)  = Left <$> f a
+traverseLeft _ (Right c) = pure $ Right c
+{-# INLINE traverseLeft #-}
+
+-- | traverse the right-hand value of an 'Either':
+--
+-- @'traverseRight' = 'Data.Traversable.traverse'@
+--
+-- Unfortunately the instance for
+-- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,
+-- so this can't just be 'Data.Traversable.traverse'
+--
+-- @traverseRight :: 'Applicative' f => (a -> f b) -> 'Either' c a -> f ('Either' c a)@
+traverseRight :: Traversal (Either c a) (Either c b) a b
+traverseRight _ (Left c) = pure $ Left c
+traverseRight f (Right a) = Right <$> f a
+{-# INLINE traverseRight #-}
+
 
 ------------------------------------------------------------------------------
 -- Cloning Traversals

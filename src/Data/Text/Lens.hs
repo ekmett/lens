@@ -10,26 +10,43 @@
 --
 ----------------------------------------------------------------------------
 module Data.Text.Lens
-  ( packed
-  , text
+  ( IsText(..)
   ) where
 
-import Control.Lens
-import Data.Text
-import Data.List.Lens
+import           Control.Lens
+import           Data.Text as Strict
+import qualified Data.Text.Strict.Lens as Strict
+import           Data.Text.Lazy as Lazy
+import qualified Data.Text.Lazy.Lens as Lazy
 
--- | Pack (or unpack) 'Text'.
---
--- > pack x = x^.packed
--- > unpack x = x^.from packed
-packed :: Simple Iso String Text
-packed = iso pack unpack
-{-# INLINE packed #-}
-{-# SPECIALIZE packed :: Simple Lens String Text #-}
+-- | Traversals for strict or lazy 'Text'
+class IsText t where
+  -- | 'pack' (or 'unpack') strict or lazy 'Text'.
+  --
+  -- @
+  -- 'pack' x = x '^.' 'packed'
+  -- 'unpack' x = x '^.' 'from' 'packed'
+  -- @
+  packed :: Simple Iso String t
 
--- | Traverse the individual characters in a either strict or lazy 'Text'.
---
--- > anyOf text (=='c') :: Text -> Bool
-text :: SimpleIndexedTraversal Int Text Char
-text = from packed .> traverseList
-{-# INLINE text #-}
+  -- | Traverse the individual characters in strict or lazy 'Text'.
+  --
+  -- >>> anyOf text (=='o') $ "hello"^.packed
+  -- True
+  text :: SimpleIndexedTraversal Int t Char
+  text = from packed .> itraversed
+  {-# INLINE text #-}
+
+instance IsText Strict.Text where
+  packed = Strict.packed
+  {-# INLINE packed #-}
+  {-# SPECIALIZE packed :: Simple Lens String Strict.Text #-}
+  text = Strict.text
+  {-# INLINE text #-}
+
+instance IsText Lazy.Text where
+  packed = Lazy.packed
+  {-# INLINE packed #-}
+  {-# SPECIALIZE packed :: Simple Lens String Lazy.Text #-}
+  text = Lazy.text
+  {-# INLINE text #-}

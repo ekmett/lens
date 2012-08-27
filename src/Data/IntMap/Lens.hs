@@ -13,20 +13,13 @@
 --
 ----------------------------------------------------------------------------
 module Data.IntMap.Lens
-  ( traverseIntMap
-  , traverseAtMin
+  ( traverseAtMin
   , traverseAtMax
   ) where
 
 import Control.Applicative as Applicative
 import Control.Lens
 import Data.IntMap as IntMap
-import Data.Traversable
-
--- | Traversal of an 'IntMap' indexed by the key.
-traverseIntMap :: IndexedTraversal Int (IntMap v) (IntMap v') v v'
-traverseIntMap = index $ \f -> sequenceA . mapWithKey f
-{-# INLINE traverseIntMap #-}
 
 -- | Traverse the value at the minimum key in a Map
 --

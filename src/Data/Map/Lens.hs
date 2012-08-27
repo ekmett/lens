@@ -12,8 +12,7 @@
 --
 ----------------------------------------------------------------------------
 module Data.Map.Lens
-  ( traverseMap
-  , traverseAtMin
+  ( traverseAtMin
   , traverseAtMax
   ) where
 
@@ -22,10 +21,6 @@ import Control.Lens.Indexed
 import Control.Lens.IndexedTraversal
 import Data.Map as Map
 import Data.Traversable
-
--- | Traversal of a 'Map' indexed by the key.
-traverseMap :: IndexedTraversal k (Map k v) (Map k v') v v'
-traverseMap = index $ \f -> sequenceA . mapWithKey f
 
 -- | Traverse the value at the minimum key in a Map.
 --
