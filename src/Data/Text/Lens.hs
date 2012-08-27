@@ -30,9 +30,6 @@ class IsText t where
   packed :: Simple Iso String t
 
   -- | Traverse the individual characters in strict or lazy 'Text'.
-  --
-  -- >>> anyOf text (=='o') $ "hello"^.packed
-  -- True
   text :: SimpleIndexedTraversal Int t Char
   text = from packed .> itraversed
   {-# INLINE text #-}

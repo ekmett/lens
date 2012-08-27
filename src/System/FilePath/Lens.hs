@@ -30,7 +30,7 @@ infix 4 </>=, <</>=, <.>=, <<.>=
 
 -- | Modify the path by adding another path.
 --
--- >>> :m + Control.Lens Data.Pair.Lens
+-- >>> :m + Control.Lens
 -- >>> both </>~ "!!!" $ ("hello","world")
 -- ("hello/!!!","world/!!!")
 --
@@ -77,7 +77,7 @@ l <</>= r = l <%= (</> r)
 
 -- | Modify the path by adding extension.
 --
--- >>> :m + Control.Lens Data.Pair.Lens
+-- >>> :m + Control.Lens
 -- >>> both <.>~ "!!!" $ ("hello","world")
 -- ("hello.!!!","world.!!!")
 --

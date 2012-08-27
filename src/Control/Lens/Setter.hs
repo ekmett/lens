@@ -383,7 +383,7 @@ l **~ n = over l (** n)
 
 -- | Logically '||' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'
 --
--- >>> :m + Control.Lens Data.Pair.Lens
+-- >>> :m + Control.Lens
 --
 -- >>> both ||~ True $ (False,True)
 -- (True,True)
@@ -403,7 +403,7 @@ l ||~ n = over l (|| n)
 
 -- | Logically '&&' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'
 --
--- >>> :m + Control.Lens Data.Pair.Lens
+-- >>> :m + Control.Lens
 --
 -- >>> both &&~ True $ (False, True)
 -- (False,True)
@@ -487,7 +487,7 @@ l -= b = State.modify (l -~ b)
 
 -- | Modify the target(s) of a 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by multiplying by value.
 --
--- @ballSpeed '.' 'Data.Pair.Lens.both' '*=' speedMultiplier@
+-- @ballSpeed '.' 'Control.Lens.Traversal.both' '*=' speedMultiplier@
 --
 -- @
 -- ('*=') :: ('MonadState' a m, 'Num' b) => 'Control.Lens.Type.Simple' 'Setter' a b -> b -> m ()

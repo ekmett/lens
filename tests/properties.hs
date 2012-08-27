@@ -12,9 +12,7 @@ import System.Exit
 import Test.QuickCheck
 import Test.QuickCheck.All
 import Test.QuickCheck.Function
-import Data.Pair.Lens
-import Data.Either.Lens
-import Data.Text.Lens
+import Data.Text.Strict.Lens
 
 setter_id :: Eq a => Simple Setter a b -> a -> Bool
 setter_id l a = runIdentity (l Identity a) == a

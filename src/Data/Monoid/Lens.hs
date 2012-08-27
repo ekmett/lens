@@ -23,7 +23,7 @@ infix 4 <>=, <<>=
 
 -- | Modify the target of a monoidally valued by 'mappend'ing another value.
 --
--- >>> :m + Control.Lens Data.Pair.Lens
+-- >>> :m + Control.Lens
 -- >>> both <>~ "!!!" $ ("hello","world")
 -- ("hello!!!","world!!!")
 --
