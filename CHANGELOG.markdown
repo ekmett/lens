@@ -1,3 +1,7 @@
+2.6
+---
+* Removed `_`s from the lenses in `System.FilePath.Lens`.
+
 2.5
 ---
 * Added `Control.Lens.Plated`, a port of Neil Mitchell's `uniplate` that can be used on any `Traversal`.

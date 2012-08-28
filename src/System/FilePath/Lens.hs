@@ -11,7 +11,7 @@
 module System.FilePath.Lens
   ( (</>~), (<</>~), (<.>~), (<<.>~)
   , (</>=), (<</>=), (<.>=), (<<.>=)
-  , _basename, _directory, _extension, _filename
+  , basename, directory, extension, filename
   ) where
 
 import Control.Applicative ((<$>))
@@ -124,37 +124,37 @@ l <<.>= r = l <%= (<.> r)
 
 -- | A lens reading and writing to the basename.
 --
--- >>> _basename .~ "filename" $ "path/name.png"
+-- >>> basename .~ "filename" $ "path/name.png"
 -- "path/filename.png"
-_basename :: Simple Lens FilePath FilePath
-_basename f p = (<.> takeExtension p) . (takeDirectory p </>) <$> f (takeBaseName p)
-{-# INLINE _basename #-}
+basename :: Simple Lens FilePath FilePath
+basename f p = (<.> takeExtension p) . (takeDirectory p </>) <$> f (takeBaseName p)
+{-# INLINE basename #-}
 
 
 -- | A lens reading and writing to the directory.
 --
--- >>> "long/path/name.txt" ^. _directory
+-- >>> "long/path/name.txt" ^. directory
 -- "long/path"
-_directory :: Simple Lens FilePath FilePath
-_directory f p = (</> takeFileName p) <$> f (takeDirectory p)
-{-# INLINE _directory #-}
+directory :: Simple Lens FilePath FilePath
+directory f p = (</> takeFileName p) <$> f (takeDirectory p)
+{-# INLINE directory #-}
 
 
 -- | A lens reading and writing to the extension.
 --
--- >>> _extension .~ ".png" $ "path/name.txt"
+-- >>> extension .~ ".png" $ "path/name.txt"
 -- "path/name.png"
-_extension :: Simple Lens FilePath FilePath
-_extension f p = (n <.>) <$> f e
+extension :: Simple Lens FilePath FilePath
+extension f p = (n <.>) <$> f e
  where
   (n, e) = splitExtension p
-{-# INLINE _extension #-}
+{-# INLINE extension #-}
 
 
 -- | A lens reading and writing to the full filename.
 --
--- >>> _filename .~ "name.txt" $ "path/name.png"
+-- >>> filename .~ "name.txt" $ "path/name.png"
 -- "path/name.txt"
-_filename :: Simple Lens FilePath FilePath
-_filename f p = (takeDirectory p </>) <$> f (takeFileName p)
-{-# INLINE _filename #-}
+filename :: Simple Lens FilePath FilePath
+filename f p = (takeDirectory p </>) <$> f (takeFileName p)
+{-# INLINE filename #-}
