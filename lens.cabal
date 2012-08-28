@@ -20,7 +20,11 @@ description:
   families of getters, folds, isomorphisms, traversals, setters and lenses and their
   indexed variants.
   .
-  More information on the care and feeding of lenses, including a tutorial and motivation
+  An overview, with a large number of examples can be found in the README.
+  .
+  <https://github.com/ekmett/lens#lens-lenses-folds-and-traversals>
+  .
+  More information on the care and feeding of lenses, including a brief tutorial and motivation
   for their types can be found on the lens wiki.
   .
   <https://github.com/ekmett/lens/wiki>
