@@ -122,8 +122,8 @@ infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=
 -- @'Control.Lens.Setter.set' l c ('Control.Lens.Setter.set' l b a) = 'Control.Lens.Setter.set' l c a@
 --
 -- These laws are strong enough that the 4 type parameters of a 'Lens' cannot
--- vary fully independently. For more on how they interact, read the "Why is
--- it a Lens Family?" section of
+-- vary fully independently. For more on how they interact, read the \"Why is
+-- it a Lens Family?\" section of
 -- <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
 -- Every 'Lens' can be used directly as a 'Setter' or
