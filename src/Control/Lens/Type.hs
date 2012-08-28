@@ -319,7 +319,7 @@ type SimpleOverloaded k f a b = Overloaded k f a a b b
 
 -- | Modify the target of a 'Lens' and return the result
 --
--- When you do not need the result of the addition, ('Control.Lens.Setter.+~') is more flexible.
+-- When you do not need the result of the addition, ('Control.Lens.Setter.%~') is more flexible.
 (<%~) :: LensLike ((,)d) a b c d -> (c -> d) -> a -> (d, b)
 l <%~ f = l $ \c -> let d = f c in (d, d)
 {-# INLINE (<%~) #-}
