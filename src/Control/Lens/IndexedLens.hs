@@ -172,15 +172,15 @@ class Contains k m | m -> k where
   contains :: k -> SimpleIndexedLens k m Bool
 
 instance Contains Int IntSet where
-  contains k = index $ \ f s -> (\b -> if b then IntSet.insert k s else IntSet.delete k s) <$> f k (IntSet.member k s) where
+  contains k = index $ \ f s -> (\b -> if b then IntSet.insert k s else IntSet.delete k s) <$> f k (IntSet.member k s)
   {-# INLINE contains #-}
 
 instance Ord k => Contains k (Set k) where
-  contains k = index $ \ f s -> (\b -> if b then Set.insert k s else Set.delete k s) <$> f k (Set.member k s) where
+  contains k = index $ \ f s -> (\b -> if b then Set.insert k s else Set.delete k s) <$> f k (Set.member k s)
   {-# INLINE contains #-}
 
 instance (Eq k, Hashable k) => Contains k (HashSet k) where
-  contains k = index $ \ f s -> (\b -> if b then HashSet.insert k s else HashSet.delete k s) <$> f k (HashSet.member k s) where
+  contains k = index $ \ f s -> (\b -> if b then HashSet.insert k s else HashSet.delete k s) <$> f k (HashSet.member k s)
   {-# INLINE contains #-}
 
 ------------------------------------------------------------------------------
