@@ -165,8 +165,6 @@ swap (a,b) = (b,a)
 
 -- | Access the element of an 'IndexedTraversal' where the index matches a predicate.
 --
--- Attempts to access beyond the range of the 'Traversal' will cause an error.
---
 -- >>> :m + Control.Lens
 -- >>> over (iwhereOf (indexed traverse) (>0)) reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
