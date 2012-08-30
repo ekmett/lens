@@ -380,7 +380,7 @@ imapAccumL f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards 
 -- | Access the element of an indexed container where the index matches a predicate.
 --
 -- >>> :m + Control.Lens
--- >>> over (iwhere (>0)) reverse $ ["He","was","stressed","o_O"]
+-- >>> over (iwhere (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
 iwhere :: (TraversableWithIndex i t) => (i -> Bool) -> SimpleIndexedTraversal i (t a) a
 iwhere p = index $ \f a -> itraverse (\i c -> if p i then f i c else pure c) a
