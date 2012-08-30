@@ -100,6 +100,10 @@ source-repository head
   type: git
   location: git://github.com/ekmett/lens.git
 
+flag benchmark-uniplate
+  default: False
+  manual: True
+
 library
   build-depends:
     base                 >= 4.3      && < 5,
@@ -227,7 +231,9 @@ benchmark plated
     deepseq,
     ghc-prim,
     lens,
-    transformers,
-    uniplate >= 1.6.7 && < 1.7
+    transformers
   ghc-options: -Wall -O2 -threaded
   hs-source-dirs: benchmarks
+  if flag(benchmark-uniplate)
+    build-depends: uniplate >= 1.6.7 && < 1.7
+    cpp-options: -DBENCHMARK_UNIPLATE

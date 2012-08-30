@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
@@ -8,9 +9,11 @@ import           Control.DeepSeq
 import           Criterion.Main
 import           Data.Data
 import           Data.Data.Lens as Data
+#ifdef BENCHMARK_UNIPLATE
 import qualified Data.Generics.Uniplate.Direct as Uni
 import           Data.Generics.Uniplate.Direct ((|*))
 import qualified Data.Generics.Uniplate.DataOnly as UniDataOnly
+#endif
 import           GHC.Generics
 import           GHC.Generics.Lens as Generic
 
@@ -41,7 +44,7 @@ instance Plated Expr where
   plate _ t = pure t
   {-# INLINE plate #-}
 
--- | ndm's uniplate
+#ifdef BENCHMARK_UNIPLATE
 instance Uni.Uniplate Expr where
   uniplate (Neg a)   = Uni.plate Neg |* a
   uniplate (Add a b) = Uni.plate Add |* a |* b
@@ -51,6 +54,7 @@ instance Uni.Uniplate Expr where
   uniplate (Val i)   = Uni.plate (Val i)
   uniplate (Var s)   = Uni.plate (Var s)
   {-# INLINE uniplate #-}
+#endif
 
 main :: IO ()
 main = defaultMain
@@ -61,8 +65,10 @@ main = defaultMain
   , bench "universeOf Data.template"           $ nf (map (universeOf Data.template)) testsExpr
   , bench "universeOf Data.uniplate"           $ nf (map (universeOf Data.uniplate)) testsExpr
   , bench "universeOf (cloneTraversal plate)"  $ nf (map (universeOf (cloneTraversal plate))) testsExpr
+#ifdef BENCHMARK_UNIPLATE
   , bench "Direct.universe"                    $ nf (map Uni.universe) testsExpr
   , bench "DataOnly.universe"                  $ nf (map UniDataOnly.universe) testsExpr
+#endif
   ]
 
 testsExpr :: [Expr]
