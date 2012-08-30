@@ -37,13 +37,11 @@ class IsText t where
 instance IsText Strict.Text where
   packed = Strict.packed
   {-# INLINE packed #-}
-  {-# SPECIALIZE packed :: Simple Lens String Strict.Text #-}
   text = Strict.text
   {-# INLINE text #-}
 
 instance IsText Lazy.Text where
   packed = Lazy.packed
   {-# INLINE packed #-}
-  {-# SPECIALIZE packed :: Simple Lens String Lazy.Text #-}
   text = Lazy.text
   {-# INLINE text #-}

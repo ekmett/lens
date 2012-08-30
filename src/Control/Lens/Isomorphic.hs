@@ -77,8 +77,6 @@ instance Isomorphic Isomorphism where
 from :: Isomorphic k => Isomorphism a b -> k b a
 from (Isomorphism a b) = isomorphic b a
 {-# INLINE from #-}
-{-# SPECIALIZE from :: Isomorphism a b -> b -> a #-}
-{-# SPECIALIZE from :: Isomorphism a b -> Isomorphism b a #-}
 
 -- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.
 --
@@ -87,5 +85,3 @@ from (Isomorphism a b) = isomorphic b a
 via :: Isomorphic k => Isomorphism a b -> k a b
 via (Isomorphism a b) = isomorphic a b
 {-# INLINE via #-}
-{-# SPECIALIZE via :: Isomorphism a b -> a -> b #-}
-{-# SPECIALIZE via :: Isomorphism a b -> Isomorphism a b #-}

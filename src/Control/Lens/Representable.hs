@@ -1,4 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Representable
@@ -65,22 +66,33 @@ module Control.Lens.Representable
   , Path(..)
   , paths
   , tabulated
-  -- * Traversal with representation
-  , mapWithRep
-  , foldMapWithRep
-  , foldrWithRep
-  , traverseWithRep
-  , traverseWithRep_
-  , forWithRep
-  , mapMWithRep
-  , mapMWithRep_
-  , forMWithRep
+  -- * Setting with Representation
+  , rmap
+  -- * Folding with Representation
+  , rfoldMap
+  , rfoldr
+  -- * Traversing with Representation
+  , rtraverse
+  , rtraverse_
+  , rfor
+  , rmapM
+  , rmapM_
+  , rforM
+  -- * Representable Setters, Folds and Traversals
+  , rmapped
+  , rfolded
+  , rtraversed
   ) where
 
 import Control.Applicative
 import Control.Lens.Iso
 import Control.Lens.Type
 import Control.Lens.Getter
+import Control.Lens.Indexed
+import Control.Lens.IndexedSetter
+import Control.Lens.IndexedFold
+import Control.Lens.IndexedTraversal
+import Control.Lens.Internal
 import Data.Foldable         as Foldable
 import Data.Functor.Identity
 import Data.Monoid
@@ -107,7 +119,6 @@ type Rep f = forall a. Simple Lens (f a) a
 
 class Functor f => Representable f where
   rep :: (Rep f -> a) -> f a
-
 
 instance Representable Identity where
   rep f = Identity (f (from identity))
@@ -207,7 +218,7 @@ distributeRep wf = rep $ \i -> fmap (^.i) wf
 -- | Sometimes you need to store a path lens into a container, but at least
 -- at this time, @ImpredicativePolymorphism@ in GHC is somewhat lacking.
 --
--- This type provides a way to, say, store a @[]@ of polymorphic lenses.
+-- This type provides a way to, say, store a @[]@ of paths.
 newtype Path f = Path { walk :: Rep f }
 
 -- | A 'Representable' 'Functor' has a fixed shape. This fills each position
@@ -218,7 +229,7 @@ paths = rep Path
 
 -- | A version of 'rep' that is an isomorphism. Predicativity requires that
 -- we wrap the 'Rep' as a 'Key', however.
-tabulated :: (Isomorphic k, Representable f) => k (Path f -> a) (f a)
+tabulated :: Representable f => (Path f -> a) -> f a
 tabulated = isomorphic (\f -> rep (f . Path)) (\fa path -> view (walk path) fa)
 {-# INLINE tabulated #-}
 
@@ -226,66 +237,77 @@ tabulated = isomorphic (\f -> rep (f . Path)) (\fa path -> view (walk path) fa)
 -- Traversal
 -----------------------------------------------------------------------------
 
-
 -- | Map over a 'Representable' functor with access to the 'Lens' for the
 -- current position
 --
--- @'mapWithRep' f m = 'rep' '$' \i -> f i (m '^.' i)@
-mapWithRep :: Representable f => (Rep f -> a -> b) -> f a -> f b
-mapWithRep f m = rep $ \i -> f i (m^.i)
-{-# INLINE mapWithRep #-}
+-- @'rmap' f m = 'rep' '$' \i -> f i (m '^.' i)@
+rmap :: Representable f => (Rep f -> a -> b) -> f a -> f b
+rmap f m = rep $ \i -> f i (m^.i)
+{-# INLINE rmap #-}
 
 -- | Traverse a 'Representable' functor with access to the current path
-traverseWithRep :: (Representable f, Traversable f, Applicative g)
-                => (Rep f -> a -> g b) -> f a -> g (f b)
-traverseWithRep f m = sequenceA (mapWithRep f m)
-{-# INLINE traverseWithRep #-}
+rtraverse :: (Representable f, Traversable f, Applicative g)
+          => (Rep f -> a -> g b) -> f a -> g (f b)
+rtraverse f m = sequenceA (rmap f m)
+{-# INLINE rtraverse #-}
 
 -- | Traverse a 'Representable' functor with access to the current path
 -- as a 'Lens', discarding the result
-traverseWithRep_ :: (Representable f, Foldable f, Applicative g)
-                 => (Rep f -> a -> g b) -> f a -> g ()
-traverseWithRep_ f m = sequenceA_ (mapWithRep f m)
-{-# INLINE traverseWithRep_ #-}
+rtraverse_ :: (Representable f, Foldable f, Applicative g)
+           => (Rep f -> a -> g b) -> f a -> g ()
+rtraverse_ f m = sequenceA_ (rmap f m)
+{-# INLINE rtraverse_ #-}
 
 -- | Traverse a 'Representable' functor with access to the current path
 -- and a 'Lens' (and the arguments flipped)
-forWithRep :: (Representable f, Traversable f, Applicative g)
-                => f a -> (Rep f -> a -> g b) -> g (f b)
-forWithRep m f = sequenceA (mapWithRep f m)
-{-# INLINE forWithRep #-}
+rfor :: (Representable f, Traversable f, Applicative g)
+     => f a -> (Rep f -> a -> g b) -> g (f b)
+rfor m f = sequenceA (rmap f m)
+{-# INLINE rfor #-}
 
 -- | 'mapM' over a 'Representable' functor with access to the current path
 -- as a 'Lens'
-mapMWithRep :: (Representable f, Traversable f, Monad m)
-                => (Rep f -> a -> m b) -> f a -> m (f b)
-mapMWithRep f m = Traversable.sequence (mapWithRep f m)
-{-# INLINE mapMWithRep #-}
+rmapM :: (Representable f, Traversable f, Monad m)
+      => (Rep f -> a -> m b) -> f a -> m (f b)
+rmapM f m = Traversable.sequence (rmap f m)
+{-# INLINE rmapM #-}
 
 -- | 'mapM' over a 'Representable' functor with access to the current path
 -- as a 'Lens', discarding the result
-mapMWithRep_ :: (Representable f, Foldable f, Monad m)
-                 => (Rep f -> a -> m b) -> f a -> m ()
-mapMWithRep_ f m = Foldable.sequence_ (mapWithRep f m)
-{-# INLINE mapMWithRep_ #-}
+rmapM_ :: (Representable f, Foldable f, Monad m)
+       => (Rep f -> a -> m b) -> f a -> m ()
+rmapM_ f m = Foldable.sequence_ (rmap f m)
+{-# INLINE rmapM_ #-}
 
 -- | 'mapM' over a 'Representable' functor with access to the current path
 -- as a 'Lens' (with the arguments flipped)
-forMWithRep :: (Representable f, Traversable f, Monad m)
-                => f a -> (Rep f -> a -> m b) -> m (f b)
-forMWithRep m f = Traversable.sequence (mapWithRep f m)
-{-# INLINE forMWithRep #-}
+rforM :: (Representable f, Traversable f, Monad m)
+      => f a -> (Rep f -> a -> m b) -> m (f b)
+rforM m f = Traversable.sequence (rmap f m)
+{-# INLINE rforM #-}
 
 -- | Fold over a 'Representable' functor with access to the current path
 -- as a 'Lens', yielding a 'Monoid'
-foldMapWithRep :: (Representable f, Foldable f, Monoid m)
-               => (Rep f -> a -> m) -> f a -> m
-foldMapWithRep f m = fold (mapWithRep f m)
-{-# INLINE foldMapWithRep #-}
+rfoldMap :: (Representable f, Foldable f, Monoid m)
+         => (Rep f -> a -> m) -> f a -> m
+rfoldMap f m = fold (rmap f m)
+{-# INLINE rfoldMap #-}
 
 -- | Fold over a 'Representable' functor with access to the current path
 -- as a 'Lens'.
-foldrWithRep :: (Representable f, Foldable f) => (Rep f -> a -> b -> b) -> b -> f a -> b
-foldrWithRep f b m = Foldable.foldr id b (mapWithRep f m)
-{-# INLINE foldrWithRep #-}
+rfoldr :: (Representable f, Foldable f) => (Rep f -> a -> b -> b) -> b -> f a -> b
+rfoldr f b m = Foldable.foldr id b (rmap f m)
+{-# INLINE rfoldr #-}
 
+rmapped :: Representable f => IndexedSetter (Path f) (f a) (f b) a b
+rmapped = index $ \f -> pure . rmap (\i -> untainted . f (Path i))
+{-# INLINE rmapped #-}
+
+rfolded :: (Representable f, Foldable f) => IndexedFold (Path f) (f a) a
+rfolded = index $ \f -> coerce . getFolding . rfoldMap (\i -> Folding . f (Path i))
+{-# INLINE rfolded #-}
+
+-- | An indexed traversal for a traversable representable functor.
+rtraversed :: (Representable f, Traversable f) => IndexedTraversal (Path f) (f a) (f b) a b
+rtraversed = index $ \ f -> sequenceA . rmap (f . Path)
+{-# INLINE rtraversed #-}

@@ -359,11 +359,6 @@ itoListOf :: IndexedGetting i [(i,c)] a c -> a -> [(i,c)]
 itoListOf l = ifoldMapOf l (\i c -> [(i,c)])
 {-# INLINE itoListOf #-}
 
-noEffect :: (Applicative f, Gettable f) => f a
-noEffect = coerce $ pure ()
-{-# INLINE noEffect #-}
-
-
 -------------------------------------------------------------------------------
 -- Converting to Folds
 -------------------------------------------------------------------------------

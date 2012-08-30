@@ -27,7 +27,6 @@ import Data.Text.Lazy
 packed :: Simple Iso String Text
 packed = iso pack unpack
 {-# INLINE packed #-}
-{-# SPECIALIZE packed :: Simple Lens String Text #-}
 
 -- | Traverse the individual characters in a 'Text'.
 --

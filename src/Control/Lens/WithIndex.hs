@@ -155,7 +155,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
 
 -- | The 'IndexedFold' of a 'FoldableWithIndex' container.
 ifolded :: FoldableWithIndex i f => IndexedFold i (f a) a
-ifolded = index $ \ f -> coerce . getGA . ifoldMap (\i -> GA . f i)
+ifolded = index $ \ f -> coerce . getFolding . ifoldMap (\i -> Folding . f i)
 {-# INLINE ifolded #-}
 
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
@@ -293,12 +293,12 @@ itoList = ifoldr (\i c -> ((i,c):)) []
 
 -- | Fold a container with indices returning both the indices and the values.
 withIndices :: FoldableWithIndex i f => Fold (f a) (i,a)
-withIndices f = coerce . getGA . ifoldMap (\i a -> GA (f (i,a)))
+withIndices f = coerce . getFolding . ifoldMap (\i a -> Folding (f (i,a)))
 {-# INLINE withIndices #-}
 
 -- | Fold a container with indices returning only the indices.
 indices :: FoldableWithIndex i f => Fold (f a) i
-indices f = coerce . getGA . ifoldMap (const . GA . f)
+indices f = coerce . getFolding . ifoldMap (const . Folding . f)
 {-# INLINE indices #-}
 
 -------------------------------------------------------------------------------
@@ -429,16 +429,3 @@ swap (a,b) = (b,a)
 skip :: a -> ()
 skip _ = ()
 {-# INLINE skip #-}
-
--- | A monoid in a monad as a monoid
-newtype GA f a = GA { getGA :: f a }
-
-instance (Gettable f, Applicative f) => Monoid (GA f a) where
-  mempty = GA noEffect
-  {-# INLINE mempty #-}
-  GA fr `mappend` GA fs = GA (fr *> fs)
-  {-# INLINE mappend #-}
-
-noEffect :: (Applicative f, Gettable f) => f a
-noEffect = coerce $ pure ()
-{-# INLINE noEffect #-}

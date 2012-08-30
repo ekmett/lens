@@ -104,6 +104,11 @@ flag benchmark-uniplate
   default: False
   manual: True
 
+-- Some 7.6.1-rc1 users report their TH still uses old style inline pragmas
+flag old-inline-pragmas
+  default: False
+  manual: True
+
 library
   build-depends:
     base                 >= 4.3      && < 5,
@@ -175,8 +180,9 @@ library
   build-depends:   parallel >= 3.1.0.1 && < 3.3
   exposed-modules: Control.Parallel.Strategies.Lens Control.Seq.Lens
 
-  if impl(ghc>7.6.0.20120810)
-    cpp-options: -DNEW_INLINE_PRAGMAS
+  if impl(ghc>=7.6.0.20120810)
+    if !flag(old-inline-pragmas)
+      cpp-options: -DNEW_INLINE_PRAGMAS
 
   if impl(ghc>=7.4)
     other-extensions: Trustworthy

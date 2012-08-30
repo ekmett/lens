@@ -107,9 +107,6 @@ infixl 8 ^?, ^..
 -- there are no lens laws that apply.
 type Fold a c = forall f. (Gettable f, Applicative f) => (c -> f c) -> a -> f a
 
-noEffect :: (Applicative f, Gettable f) => f a
-noEffect = coerce $ pure ()
-{-# INLINE noEffect #-}
 
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
 --
@@ -118,19 +115,9 @@ folding :: (Foldable f, Applicative g, Gettable g) => (a -> f c) -> LensLike g a
 folding afc cgd = coerce . traverse_ cgd . afc
 {-# INLINE folding #-}
 
-
--- | A monoid in a monad as a monoid
-newtype GA f a = GA { getGA :: f a }
-
-instance (Gettable f, Applicative f) => Monoid (GA f a) where
-  mempty = GA noEffect
-  {-# INLINE mempty #-}
-  GA fr `mappend` GA fs = GA (fr *> fs)
-  {-# INLINE mappend #-}
-
 -- | Obtain a 'Fold' from any 'Foldable'.
 folded :: Foldable f => Fold (f c) c
-folded f = coerce . getGA . foldMap (GA . f)
+folded f = coerce . getFolding . foldMap (Folding . f)
 {-# INLINE folded #-}
 
 -- | Fold by repeating the input forever.

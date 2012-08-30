@@ -77,8 +77,6 @@ isos ac ca bd db = isomorphic
   (\cfd a -> db <$> cfd (ac a))
   (\afb c -> bd <$> afb (ca c))
 {-# INLINE isos #-}
-{-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> (c -> f d) -> a -> f b #-}
-{-# SPECIALIZE isos :: Functor f => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> Isomorphism (c -> f d) (a -> f b) #-}
 
 -- | Build a simple isomorphism from a pair of inverse functions
 --
@@ -94,8 +92,6 @@ isos ac ca bd db = isomorphic
 iso :: (Isomorphic k, Functor f) => (a -> b) -> (b -> a) -> k (b -> f b) (a -> f a)
 iso ab ba = isos ab ba ab ba
 {-# INLINE iso #-}
-{-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> (b -> f b) -> a -> f a #-}
-{-# SPECIALIZE iso :: Functor f => (a -> b) -> (b -> a) -> Isomorphism (b -> f b) (a -> f a) #-}
 
 -- | Based on @ala@ from Conor McBride's work on Epigram.
 --

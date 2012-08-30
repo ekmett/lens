@@ -43,7 +43,7 @@ module Control.Lens.Internal
   , Effect(..)
   , EffectRWS(..)
   -- , EffectS(..)
-  , Gettable(..), Accessor(..), Effective(..), ineffective
+  , Gettable(..), Accessor(..), Effective(..), ineffective, noEffect, Folding(..)
   , Settable(..), Mutator(..)
   ) where
 
@@ -425,16 +425,26 @@ ineffective = from effective
 instance Effective Identity r (Accessor r) where
   effective = isomorphic (Accessor . runIdentity) (Identity . runAccessor)
   {-# INLINE effective #-}
-  {-# SPECIALIZE effective :: Identity r -> Accessor r a #-}
-  {-# SPECIALIZE effective :: Isomorphism (Identity r) (Accessor r a) #-}
 
 instance Effective m r f => Effective m (Dual r) (Backwards f) where
   effective = isomorphic (Backwards . effective . liftM getDual) (liftM Dual . ineffective . forwards)
 
 instance Monad m => Effective m r (Effect m r) where
   effective = isomorphic Effect getEffect
-  {-# SPECIALIZE effective :: Monad m => m r -> Effect m r a #-}
-  {-# SPECIALIZE effective :: Monad m => Isomorphism (m r) (Effect m r a) #-}
+  {-# INLINE effective #-}
+
+-- | A monoid in a monad as a monoid
+newtype Folding f a = Folding { getFolding :: f a }
+
+instance (Gettable f, Applicative f) => Monoid (Folding f a) where
+  mempty = Folding noEffect
+  {-# INLINE mempty #-}
+  Folding fr `mappend` Folding fs = Folding (fr *> fs)
+  {-# INLINE mappend #-}
+
+noEffect :: (Applicative f, Gettable f) => f a
+noEffect = coerce $ pure ()
+{-# INLINE noEffect #-}
 
 -----------------------------------------------------------------------------
 -- Settables & Mutators
@@ -511,3 +521,4 @@ bazaar :: Applicative f => (c -> f d) -> Bazaar c d b -> f b
 bazaar _ (Buy b)    = pure b
 bazaar f (Trade k c) = f c <**> bazaar f k
 -}
+

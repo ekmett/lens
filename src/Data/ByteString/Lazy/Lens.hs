@@ -29,7 +29,6 @@ import Data.Word (Word8)
 packedBytes :: Simple Iso [Word8] ByteString
 packedBytes = iso Words.pack Words.unpack
 {-# INLINE packedBytes #-}
-{-# SPECIALIZE packedBytes :: Simple Lens [Word8] ByteString #-}
 
 -- | Traverse the individual bytes in a 'ByteString'
 --
@@ -51,7 +50,6 @@ bytes = from packedBytes .> traverseList
 packedChars :: Simple Iso String ByteString
 packedChars = iso Char8.pack Char8.unpack
 {-# INLINE packedChars #-}
-{-# SPECIALIZE packedChars :: Simple Lens String ByteString #-}
 
 -- | Traverse the individual bytes in a 'ByteString' as characters.
 --

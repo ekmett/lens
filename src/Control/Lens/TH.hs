@@ -221,7 +221,7 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
           if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
     body <- makeBody isoName dataConName makeIsoFrom makeIsoTo
 #if (MIN_VERSION_template_haskell(2,8,0)) && defined(NEW_INLINE_PRAGMAS)
-    inlining <- pragInlD isoName Inline FunLike AllPhases
+    inlining <- pragInlD isoName $ inlineSpecNoPhase Inline False
 #else
     inlining <- pragInlD isoName $ inlineSpecNoPhase True False
 #endif
@@ -234,7 +234,7 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
                                         else [cty,dty,aty,bty]
       body <- makeBody lensName dataConName makeIsoTo makeIsoFrom
 #if (MIN_VERSION_template_haskell(2,8,0)) && defined(NEW_INLINE_PRAGMAS)
-      inlining <- pragInlD lensName Inline FunLike AllPhases
+      inlining <- pragInlD lensName $ inlineSpecNoPhase Inline False
 #else
       inlining <- pragInlD lensName $ inlineSpecNoPhase True False
 #endif
@@ -336,7 +336,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
           [ instanceD (return []) (conT clsName `appT` conT tyConName)
             [ funD methodName [clause [varP a] (normalB (varE a)) []]
 #if (MIN_VERSION_template_haskell(2,8,0)) && defined(NEW_INLINE_PRAGMAS)
-            , pragInlD methodName Inline FunLike AllPhases
+            , pragInlD methodName $ inlineSpecNoPhase Inline False
 #else
             , pragInlD methodName $ inlineSpecNoPhase True False
 #endif
@@ -366,7 +366,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
                     else [aty,bty,cty,dty]
          body <- makeFieldLensBody lensName nm cons $ fmap (mkName . view _2) maybeLensClass
 #if (MIN_VERSION_template_haskell(2,8,0)) && defined(NEW_INLINE_PRAGMAS)
-         inlining <- pragInlD lensName Inline FunLike AllPhases
+         inlining <- pragInlD lensName $ inlineSpecNoPhase Inline False
 #else
          inlining <- pragInlD lensName $ inlineSpecNoPhase True False
 #endif

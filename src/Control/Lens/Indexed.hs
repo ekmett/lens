@@ -61,8 +61,6 @@ instance i ~ j => Indexed i (Index j) where
 (<.)  :: Indexed i k => Index i b c -> (a -> b) -> k a c
 Index ibc <. ab = index $ \ia -> ibc (ab . ia)
 {-# INLINE (<.) #-}
-{-# SPECIALIZE (<.) :: Index i b c -> (a -> b) -> a -> c #-}
-{-# SPECIALIZE (<.) :: Index i b c -> (a -> b) -> Index i a c #-}
 
 -- | Compose a non-indexed function with an 'Indexed' function.
 --
@@ -70,14 +68,11 @@ Index ibc <. ab = index $ \ia -> ibc (ab . ia)
 (.>)  :: Indexed i k => (b -> c) -> Index i a b -> k a c
 bc .> Index iab = index (bc . iab)
 {-# INLINE (.>) #-}
-{-# SPECIALIZE (.>) :: (b -> c) -> Index i a b -> a -> c #-}
-{-# SPECIALIZE (.>) :: (b -> c) -> Index i a b -> Index i a c #-}
 
 -- | Remap the index.
 reindex :: Indexed j k => (i -> j) -> Index i a b -> k a b
 reindex ij (Index iab) = index $ \ ja -> iab $ \i -> ja (ij i)
-{-# SPECIALIZE reindex :: (i -> j) -> Index i a b -> a -> b #-}
-{-# SPECIALIZE reindex :: (i -> j) -> Index i a b -> Index j a b #-}
+{-# INLINE reindex #-}
 
 -- | Composition of 'Indexed' functions
 --
@@ -85,15 +80,11 @@ reindex ij (Index iab) = index $ \ ja -> iab $ \i -> ja (ij i)
 (<.>) :: Indexed (i, j) k => Index i b c -> Index j a b -> k a c
 f <.> g = icompose (,) f g
 {-# INLINE (<.>) #-}
-{-# SPECIALIZE (<.>) :: Index i b c -> Index j a b -> a -> c #-}
-{-# SPECIALIZE (<.>) :: Index i b c -> Index j a b -> Index (i,j) a c #-}
 
 -- | Composition of 'Indexed' functions with a user supplied function for combining indexs
 icompose :: Indexed k r => (i -> j -> k) -> Index i b c -> Index j a b -> r a c
 icompose ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ \j -> ka (ijk i j)
 {-# INLINE icompose #-}
-{-# SPECIALIZE icompose :: (i -> j -> k) -> Index i b c -> Index j a b -> a -> c #-}
-{-# SPECIALIZE icompose :: (k ~ l) => (i -> j -> k) -> Index i b c -> Index j a b -> Index l a c #-}
 
 -- | Transform an Traversal into an IndexedTraversal, a Fold into an IndexedFold, etc.
 --
@@ -108,5 +99,3 @@ indexed :: Indexed Int k => ((c -> Indexing f d) -> a -> Indexing f b) -> k (c -
 indexed l = index $ \icfd a -> case runIndexing (l (\c -> Indexing (\i -> IndexingResult (icfd i c) (i + 1))) a) 0 of
   IndexingResult r _ -> r
 {-# INLINE indexed #-}
-{-# SPECIALIZE indexed :: ((c -> Indexing f d) -> a -> Indexing f b) -> (c -> f d) -> (a -> f b) #-}
-{-# SPECIALIZE indexed :: ((c -> Indexing f d) -> a -> Indexing f b) -> Index Int (c -> f d) (a -> f b) #-}
