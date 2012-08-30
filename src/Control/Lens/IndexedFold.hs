@@ -36,6 +36,10 @@ module Control.Lens.IndexedFold
   , ifoldlMOf
   , itoListOf
 
+  -- * Converting to Folds
+  , withIndicesOf
+  , indicesOf
+
   -- * Building Indexed Folds
   , ifiltered
   , itakingWhile
@@ -49,6 +53,7 @@ import Control.Applicative
 import Control.Lens.Indexed
 import Control.Lens.IndexedGetter
 import Control.Lens.Internal
+import Control.Lens.Type
 import Control.Monad
 import Data.Monoid
 
@@ -357,6 +362,49 @@ itoListOf l = ifoldMapOf l (\i c -> [(i,c)])
 noEffect :: (Applicative f, Gettable f) => f a
 noEffect = coerce $ pure ()
 {-# INLINE noEffect #-}
+
+
+-------------------------------------------------------------------------------
+-- Converting to Folds
+-------------------------------------------------------------------------------
+
+-- | Transform an indexed fold into a fold of both the indices and the values.
+--
+-- @
+-- 'withIndices' :: 'IndexedFold' i a c             -> 'Fold' a (i, c)
+-- 'withIndices' :: 'Simple' 'IndexedLens' i a c      -> 'Getter' a (i, c)
+-- 'withIndices' :: 'Simple' 'IndexedTraversal' i a c -> 'Fold' a (i, c)
+-- @
+--
+-- All 'Fold' operations are safe, and comply with the laws. However,
+--
+-- Passing this an 'IndexedTraversal' will still allow many
+-- 'Traversal' combinators to type check on the result, but the result
+-- can only be legally traversed by operations that do not edit the indices.
+--
+-- @
+-- 'withIndices' :: 'IndexedTraversal' i a b c d -> 'Traversal' a b (i, c) (j, d)
+-- @
+--
+-- Change made to the indices will be discarded.
+withIndicesOf :: Functor f => Overloaded (Index i) f a b c d -> LensLike f a b (i, c) (j, d)
+withIndicesOf l f = withIndex l (\i c -> snd <$> f (i,c))
+{-# INLINE withIndicesOf #-}
+
+-- | Transform an indexed fold into a fold of the indices.
+--
+-- @
+-- 'indices' :: 'IndexedFold' i a c             -> 'Fold' a i
+-- 'indices' :: 'Simple' 'IndexedLens' i a c      -> 'Getter' a i
+-- 'indices' :: 'Simple' 'IndexedTraversal' i a c -> 'Fold' a i
+-- @
+indicesOf :: Gettable f => Overloaded (Index i) f a b c c -> LensLike f a b i j
+indicesOf l f = withIndex l (const . coerce . f)
+{-# INLINE indicesOf #-}
+
+-------------------------------------------------------------------------------
+-- Converting to Folds
+-------------------------------------------------------------------------------
 
 -- | Obtain an 'IndexedFold' by filtering a 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter', 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'.
 ifiltered :: (Gettable f, Applicative f, Indexed i k) => (i -> c -> Bool) -> Index i (c -> f c) (a -> f a) -> k (c -> f c) (a -> f a)

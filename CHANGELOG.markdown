@@ -1,6 +1,7 @@
 2.6
 ---
 * Removed `_`s from the lenses in `System.FilePath.Lens`.
+* Added `iwhere`
 
 2.5
 ---

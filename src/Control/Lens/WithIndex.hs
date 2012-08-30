@@ -35,6 +35,9 @@ module Control.Lens.WithIndex
   , ifoldrM
   , ifoldlM
   , itoList
+  -- * Converting to Folds
+  , withIndices
+  , indices
   -- * Indexed Traversables
   , TraversableWithIndex(..)
   , itraversed
@@ -51,6 +54,7 @@ import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Monad (void, liftM)
 import Control.Monad.Trans.State.Lazy as Lazy
+import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Indexed
 import Control.Lens.IndexedSetter
@@ -280,8 +284,22 @@ ifoldlM f z0 xs = ifoldr f' return xs z0
 --
 -- @'toList' = 'map' 'fst' . 'itoList'@
 itoList :: FoldableWithIndex i f => f a -> [(i,a)]
-itoList = ifoldMap (\i c -> [(i,c)])
+itoList = ifoldr (\i c -> ((i,c):)) []
 {-# INLINE itoList #-}
+
+-------------------------------------------------------------------------------
+-- Converting to Folds
+-------------------------------------------------------------------------------
+
+-- | Fold a container with indices returning both the indices and the values.
+withIndices :: FoldableWithIndex i f => Fold (f a) (i,a)
+withIndices f = coerce . getGA . ifoldMap (\i a -> GA (f (i,a)))
+{-# INLINE withIndices #-}
+
+-- | Fold a container with indices returning only the indices.
+indices :: FoldableWithIndex i f => Fold (f a) i
+indices f = coerce . getGA . ifoldMap (const . GA . f)
+{-# INLINE indices #-}
 
 -------------------------------------------------------------------------------
 -- TraversableWithIndex
