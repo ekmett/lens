@@ -116,8 +116,8 @@ flag old-inline-pragmas
 -- Omit the generation of inlining pragmas in the TH code entirely
 -- (used to address compile errors resulting from different versions of template-haskell that all purport to be 2.8)
 flag inlining
-  default: True
   manual: True
+  default: True
 
 library
   build-depends:

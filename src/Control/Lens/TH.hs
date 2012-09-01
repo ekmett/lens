@@ -3,6 +3,11 @@
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE Trustworthy #-}
 #endif
+
+-- in case we're being loaded from ghci
+#ifndef MIN_VERSION_template_haskell(x,y,z)
+#define MIN_VERSION_template_haskell(x,y,z) 1
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.TH
@@ -465,11 +470,21 @@ instance Applicative Q where
   (<*>) = ap
 #endif
 
-#if !defined(OMIT_INLINING)
+#ifndef OMIT_INLINING
 
-#if (MIN_VERSION_template_haskell(2,8,0)) && defined(NEW_INLINE_PRAGMAS)
+inlinePragma :: Name -> Q Dec
+#if MIN_VERSION_template_haskell(2,8,0)
+
+# ifdef NEW_INLINE_PRAGMAS
+-- 7.7.20120830
+inlinePragma methodName = pragInlD methodName Inline FunLike AllPhases
+# else
+-- 7.6rc1
 inlinePragma methodName = pragInlD methodName $ inlineSpecNoPhase Inline False
+# endif
+
 #else
+-- older TH
 inlinePragma methodName = pragInlD methodName $ inlineSpecNoPhase True False
 #endif
 
