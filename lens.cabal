@@ -113,10 +113,10 @@ flag old-inline-pragmas
   default: False
   manual: True
 
--- Omit the generation of inlining pragmas in the TH code
--- (used to address compile errors resulting from different versions of that API)
-flag omit-inlining
-  default: False
+-- Omit the generation of inlining pragmas in the TH code entirely
+-- (used to address compile errors resulting from different versions of template-haskell that all purport to be 2.8)
+flag inlining
+  default: True
   manual: True
 
 library
@@ -179,7 +179,7 @@ library
 
   if flag(template-haskell)
     cpp-options: -DTEMPLATE_HASKELL
-    build-depends: template-haskell     >= 2.4      && < 2.9
+    build-depends: template-haskell >= 2.4 && < 2.9
     exposed-modules: Control.Lens.TH Language.Haskell.TH.Lens
 
   -- platform
@@ -196,7 +196,7 @@ library
     if !flag(old-inline-pragmas)
       cpp-options: -DNEW_INLINE_PRAGMAS
 
-  if flag(omit-inlining)
+  if !flag(inlining)
     cpp-options: -DOMIT_INLINING
 
   if impl(ghc>=7.4)

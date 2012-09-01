@@ -1,7 +1,9 @@
 2.6
 ---
+* Added option `--flags=-inlining` to facilitate building with the various TH 2.8 versions used by GHC 7.6 and HEAD.
 * Removed `_`s from the lenses in `System.FilePath.Lens`.
-* Added `iwhere`
+* Added `iwhere`, `withIndices`, `withIndicesOf`, `indices` and `indicesOf` to ease work with indexed traversals
+* Added `assign` as an alias for `(.=)` in `Control.Lens.Setter`.
 
 2.5
 ---

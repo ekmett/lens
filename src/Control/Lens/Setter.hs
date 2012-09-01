@@ -36,6 +36,7 @@ module Control.Lens.Setter
   , (.~), (%~)
   , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (&&~), (<.~)
   -- * State Combinators
+  , assign
   , (.=), (%=)
   , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (&&=), (<.=)
   , (<~)
@@ -427,6 +428,23 @@ l &&~ n = over l (&& n)
 
 -- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal' in our monadic
 -- state with a new value, irrespective of the old.
+--
+-- This is an alias for ('.=').
+--
+-- @
+-- assign :: 'MonadState' a m => 'Control.Lens.Iso.Iso' a a c d             -> d -> m ()
+-- assign :: 'MonadState' a m => 'Control.Lens.Type.Lens' a a c d            -> d -> m ()
+-- assign :: 'MonadState' a m => 'Control.Lens.Traversal.Traversal' a a c d       -> d -> m ()
+-- assign :: 'MonadState' a m => 'Setter' a a c d          -> d -> m ()
+-- @
+assign :: MonadState a m => Setting a a c d -> d -> m ()
+assign l b = State.modify (set l b)
+{-# INLINE assign #-}
+
+-- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal' in our monadic
+-- state with a new value, irrespective of the old.
+--
+-- This is an infix version of 'assign'.
 --
 -- @
 -- ('.=') :: 'MonadState' a m => 'Control.Lens.Iso.Iso' a a c d             -> d -> m ()
