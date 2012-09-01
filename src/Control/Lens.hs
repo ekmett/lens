@@ -59,7 +59,9 @@ module Control.Lens
   , module Control.Lens.IndexedSetter
   , module Control.Lens.Plated
   , module Control.Lens.Representable
+#ifdef TEMPLATE_HASKELL
   , module Control.Lens.TH
+#endif
   , module Control.Lens.Tuple
   , module Control.Lens.WithIndex
   , module Control.Lens.Zoom
@@ -78,7 +80,9 @@ import Control.Lens.Iso
 import Control.Lens.Plated
 import Control.Lens.Representable
 import Control.Lens.Setter
+#ifdef TEMPLATE_HASKELL
 import Control.Lens.TH
+#endif
 import Control.Lens.Traversal
 import Control.Lens.Tuple
 import Control.Lens.Type
