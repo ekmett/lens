@@ -27,11 +27,16 @@ module Data.List.Lens
   , traverseTail
   , traverseInit
   , traverseLast
+  , (.:~), (.:=)
   ) where
 
 import Control.Applicative
 import Control.Lens
+import Control.Monad.State (MonadState, modify)
 import Data.List
+
+infixr 4 .:~
+infix 4 .:=
 
 -- | A lens reading and writing to the head of a /non-empty/ list
 --
@@ -149,3 +154,13 @@ traverseInit = index $ \f aas -> case aas of
   [] -> pure []
   as -> (++ [Prelude.last as]) <$> withIndex traverseList f (Prelude.init as)
 {-# INLINE traverseInit #-}
+
+-- | '(:)' a value to list
+(.:~) :: Setting a b [c] [c] -> c -> a -> b
+l .:~ n = over l (n :)
+{-# INLINE (.:~) #-}
+
+-- | '(:)' a value to list into your monad state
+(.:=) :: MonadState a m => SimpleSetting a [c] -> c -> m ()
+l .:= b = modify (l .:~ b)
+{-# INLINE (.:=) #-}
