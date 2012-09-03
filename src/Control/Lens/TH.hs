@@ -542,7 +542,7 @@ getLensFields nameFunc (RecC cn fs)
   = return . catMaybes 
   $ map (\(fn,_,t) -> (\ln -> (mkName ln, (cn,fn,t))) <$> nameFunc (nameBase fn)) fs
 getLensFields _ _
-  = reportWarning "makeLensesWith encountered a non-record constructor, for which no lenses will be generated."
+  = report False "makeLensesWith encountered a non-record constructor, for which no lenses will be generated."
   >> return []
 
 --TODO: properly fill out
