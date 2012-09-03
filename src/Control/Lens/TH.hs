@@ -417,32 +417,28 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
     Nothing -> funD lensName clauses
   where
     clauses = map buildClause conList
-    plainClause ps d = clause ps d []
     buildClause (con, fields) = do
-      let allFields :: [Name]
-          allFields = con^..conNamedFields._1
+      f <- newName "f"
+      vars <- for (con^..conNamedFields._1) $ \field ->
+          if field `List.elem` fields
+        then Left  <$> ((,) <$> newName ("_" ++ nameBase field) <*> newName (nameBase field))
+        else Right <$> newName (nameBase field)
+      let cpats = map (varP . either fst id) vars               -- Deconstruction
+          cvals = map (varE . either snd id) vars               -- Reconstruction
+          fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
+          fvals = map (appE (varE f) . varE . fst) $ lefts vars -- Functor applications
           conName = con^.name
-          conWild = conP conName (replicate (length allFields) wildP)
+          recon = appsE $ conE conName : cvals
 
-      if not isTraversal && length fields /= 1
-        then plainClause [wildP, conWild] . normalB . appE (varE 'error) . litE . stringL
-           $ show lensName ++ ": expected a single matching field in " ++ show conName ++ ", found " ++ show (length fields)
-        else do
-          vars <- for allFields $ \field ->
-              if field `List.elem` fields
-            then fmap Left $ (,) <$> newName (nameBase field) <*> newName (nameBase field ++ "'")
-            else Right <$> newName (nameBase field)
-          f <- newName "f"
-          let cpats = map (varP . either fst id) vars               -- Deconstruction
-              cvals = map (varE . either snd id) vars               -- Reconstruction
-              fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
-              fvals = map (appE (varE f) . varE . fst) $ lefts vars -- Functor applications
-              recon = appsE $ conE conName : cvals
-
-              expr = if List.null fields
-                   then appE (varE 'pure) recon
-                   else uInfixE (lamE fpats recon) (varE '(<$>)) $ List.foldl1 (\l r -> uInfixE l (varE '(<*>)) r) fvals
-          plainClause [varP f, conP conName cpats] (normalB expr)
+          expr 
+            | not isTraversal && length fields /= 1
+              = appE (varE 'error) . litE . stringL
+              $ show lensName ++ ": expected a single matching field in " ++ show conName ++ ", found " ++ show (length fields)
+            | List.null fields
+              = appE (varE 'pure) recon
+            | otherwise
+              = uInfixE (lamE fpats recon) (varE '(<$>)) $ List.foldl1 (\l r -> uInfixE l (varE '(<*>)) r) fvals
+      clause [varP f, conP conName cpats] (normalB expr) []
 
 makeFieldLenses :: LensRules
                 -> Cxt         -- ^ surrounding cxt driven by the data type context
