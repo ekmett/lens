@@ -19,10 +19,27 @@ makeLenses ''Quux
 -- quaffle :: Lens (Quux a b) (Quux a' b') Int Int
 -- quartz :: Lens (Quux a b) (Quux a' b') Double Double
 
-data Quark a = Qualified  { _gaffer :: a }
+data Quark a = Qualified   { _gaffer :: a }
              | Unqualified { _gaffer :: a, _tape :: a }
 makeLenses ''Quark
 -- gaffer :: Simple Lens (Quark a) a
+-- tape :: Simple Traversal (Quark a) a
+
+data Hadron a b = Science { _a1 :: a, _a2 :: a, _b :: b }
+makeLenses ''Hadron
+-- a1 :: Simple Lens (Hadron a b) a
+-- a2 :: Simple Lens (Hadron a b) a
+-- b :: Lens (Hadron a b) (Hadron a b') b b'
+
+data Perambulation a b
+  = Mountains { _terrain :: a, _altitude :: b }
+  | Beaches   { _terrain :: a, _dunes :: a }
+makeLenses ''Perambulation
+-- terrain :: Simple Lens (Perambulation a b) a
+-- altitude :: Traversal (Perambulation a b) (Parambulation a b') b b'
+-- dunes :: Simple Traversal (Perambulation a b) a
+makeLensesFor [("_terrain", "allTerrain"), ("_dunes", "allTerrain")] ''Perambulation
+-- allTerrain :: Traversal (Perambulation a b) (Perambulation a' b) a a'
 
 data LensCrafted a = Still { _still :: a }
                    | Works { _still :: a }
