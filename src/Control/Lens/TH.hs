@@ -36,7 +36,7 @@ module Control.Lens.TH
   , lensClass
   , lensFlags
   , LensFlag(..)
-  , simpleLenses, partialLenses, handleSingletons, singletonIso, singletonRequired, createClass, createInstance, classRequired
+  , simpleLenses, partialLenses, handleSingletons, singletonIso, singletonRequired, createClass, createInstance, classRequired, singletonAndField
   ) where
 
 import Control.Applicative
@@ -418,7 +418,7 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
   where
     clauses = map buildClause conList
     buildClause (con, fields) = do
-      f <- newName "f"
+      f <- newName "_f"
       vars <- for (con^..conNamedFields._1) $ \field ->
           if field `List.elem` fields
         then Left  <$> ((,) <$> newName ("_" ++ nameBase field) <*> newName (nameBase field))
