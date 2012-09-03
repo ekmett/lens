@@ -183,13 +183,15 @@ traversalRules
   $ buildTraversals .~ True
   $ lensRules
 
--- | Rules for making lenses that precompose another lens.
+-- | Rules for making lenses and traversals that precompose another lens.
 classyRules :: LensRules
 classyRules
     = lensIso .~ const Nothing
     $ handleSingletons .~ False
     $ lensClass .~ classy
     $ classRequired .~ True
+    $ partialLenses .~ False
+    $ buildTraversals .~ True
     $ defaultRules
   where
     classy :: String -> Maybe (String, String)
@@ -215,7 +217,23 @@ makeLenses = makeLensesWith lensRules
 makeTraversals :: Name -> Q [Dec]
 makeTraversals = makeLensesWith traversalRules
 
--- | Make 'classy lenses' for a type.
+-- | Make lenses and traversals for a type, and create a class when the type has no arguments.
+--
+-- /e.g./
+--
+-- @
+-- data Foo = Foo { _fooX, _fooY :: 'Int' }
+-- 'makeClassy' ''Foo
+-- @
+--
+-- will create:
+--
+-- @
+-- class HasFoo t where
+--   foo :: 'Simple' 'Lens' t Foo
+-- instance HasFoo Foo where foo = 'id'
+-- fooX, fooY :: HasFoo t => 'Simple' 'Lens' t 'Int'
+-- @
 --
 -- > makeClassy = makeLensesWith classyRules
 makeClassy :: Name -> Q [Dec]
@@ -265,7 +283,7 @@ makeClassyFor clsName funName fields = makeLensesWith
 -- | Build lenses with a custom configuration.
 makeLensesWith :: LensRules -> Name -> Q [Dec]
 makeLensesWith cfg nm = do
-    inf <- reify nm 
+    inf <- reify nm
     case inf of
       (TyConI decl) -> case deNewtype decl of
         (DataD ctx tyConName args cons _) -> case cons of
@@ -288,7 +306,6 @@ makeLensesWith cfg nm = do
   where
     deNewtype (NewtypeD ctx tyConName args c d) = DataD ctx tyConName args [c] d
     deNewtype d = d
-
 
 -----------------------------------------------------------------------------
 -- Internal TH Implementation
@@ -377,7 +394,7 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
     let decl = SigD isoName $ quantified $ isoCon `apps`
           if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
     body <- makeBody isoName dataConName makeIsoFrom makeIsoTo
-#ifdef OMIT_INLINING
+#ifndef INLINING
     return [decl, body]
 #else
     inlining <- inlinePragma isoName
@@ -390,7 +407,7 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
                    if cfg^.simpleLenses then [cty,cty,aty,aty]
                                         else [cty,dty,aty,bty]
       body <- makeBody lensName dataConName makeIsoTo makeIsoFrom
-#ifdef OMIT_INLINING
+#ifndef INLINING
       return [decl, body]
 #else
       inlining <- inlinePragma lensName
@@ -469,13 +486,13 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
         ++ filter (\_ -> cfg^.createInstance)
           [ instanceD (return []) (conT clsName `appT` conT tyConName)
             [ funD methodName [clause [varP a] (normalB (varE a)) []]
-#ifndef OMIT_INLINING
+#ifdef INLINING
             , inlinePragma methodName
 #endif
             ] ]
 
   --TODO: there's probably a more efficient way to do this.
-  lensFields <- map (\xs -> (fst $ head xs, map snd xs)) 
+  lensFields <- map (\xs -> (fst $ head xs, map snd xs))
               . groupBy ((==) `on` fst) . sortBy (comparing fst) . concat
             <$> mapM (getLensFields $ view lensField cfg) cons
 
@@ -528,7 +545,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
              $ if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
 
     body <- makeFieldLensBody isTraversal lensName conList maybeMethodName
-#if defined(OMIT_INLINING)
+#ifndef INLINING
     return [decl, body]
 #else
     inlining <- inlinePragma lensName
@@ -539,10 +556,15 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
 -- gets [(lens name, (constructor name, field name, type))] from a record constructor
 getLensFields :: (String -> Maybe String) -> Con -> Q [(Name, (Name, Name, Type))]
 getLensFields nameFunc (RecC cn fs)
-  = return . catMaybes 
+  = return . catMaybes
   $ map (\(fn,_,t) -> (\ln -> (mkName ln, (cn,fn,t))) <$> nameFunc (nameBase fn)) fs
 getLensFields _ _
-  = report False "makeLensesWith encountered a non-record constructor, for which no lenses will be generated."
+#if MIN_VERSION_template_haskell(2,8,0)
+  = reportWarning
+#else
+  = report False
+#endif
+     "makeLensesWith encountered a non-record constructor, for which no lenses will be generated."
   >> return []
 
 --TODO: properly fill out
@@ -568,7 +590,7 @@ instance Applicative Q where
   (<*>) = ap
 #endif
 
-#ifndef OMIT_INLINING
+#ifdef INLINING
 
 inlinePragma :: Name -> Q Dec
 #if MIN_VERSION_template_haskell(2,8,0)
@@ -577,12 +599,12 @@ inlinePragma :: Name -> Q Dec
 -- 7.7.20120830
 inlinePragma methodName = pragInlD methodName Inline FunLike AllPhases
 # else
--- 7.6rc1
+-- 7.6rc1?
 inlinePragma methodName = pragInlD methodName $ inlineSpecNoPhase Inline False
 # endif
 
 #else
--- older TH
+-- GHC <7.6, TH <2.8.0
 inlinePragma methodName = pragInlD methodName $ inlineSpecNoPhase True False
 #endif
 
