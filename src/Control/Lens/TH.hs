@@ -213,7 +213,7 @@ makeLenses = makeLensesWith lensRules
 -- 'makeClassy' ''Foo
 -- @
 --
--- will create:
+-- will create
 --
 -- @
 -- class HasFoo t where
@@ -226,9 +226,22 @@ makeLenses = makeLensesWith lensRules
 makeClassy :: Name -> Q [Dec]
 makeClassy = makeLensesWith classyRules
 
--- | Make a top level isomorphism injecting _into_ the type.
+-- | Make a top level isomorphism injecting /into/ the type.
 --
 -- The supplied name is required to be for a type with a single constructor that has a single argument
+--
+-- /e.g./
+--
+-- @
+-- newtype List a = List [a]@
+-- makeIso ''List
+-- @
+--
+-- will create
+--
+-- @
+-- list :: Iso [a] [b] ('List' a) ('List' b)
+-- @
 --
 -- > makeIso = makeLensesWith isoRules
 makeIso :: Name -> Q [Dec]
@@ -236,9 +249,9 @@ makeIso = makeLensesWith isoRules
 
 -- | Derive lenses and traversals, specifying explicit pairings of @(fieldName, lensName)@.
 --
--- If you map multiple names to the same label, and it is present in the same field then this will generate a Traversal.
+-- If you map multiple names to the same label, and it is present in the same constructor then this will generate a 'Traversal'.
 --
--- Example usage:
+-- /e.g./
 --
 -- > makeLensesFor [("_foo", "fooLens"), ("baz", "lbaz")] ''Foo
 -- > makeLensesFor [("_barX", "bar"), ("_barY", "bar)] ''Bar
