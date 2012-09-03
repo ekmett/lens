@@ -21,7 +21,7 @@ module Language.Haskell.TH.Lens
   , SubstType(..)
   , typeVars      -- :: HasTypeVars t => Simple Traversal t Name
   , substTypeVars -- :: HasTypeVars t => Map Name Name -> t -> t
-  , conFields
+  , conFields, conNamedFields
   ) where
 
 import Control.Applicative
@@ -117,8 +117,12 @@ instance SubstType Pred where
 
 -- | Provides a 'Traversal' of the types of each field of a constructor.
 conFields :: Simple Traversal Con StrictType
-conFields f (NormalC n tys)     = NormalC n <$> traverse f tys
-conFields f (RecC n tys)        = RecC n <$> traverse sans_var tys
+conFields f (NormalC n fs)      = NormalC n <$> traverse f fs
+conFields f (RecC n fs)         = RecC n <$> traverse sans_var fs
   where sans_var (fn,s,t) = (\(s', t') -> (fn,s',t')) <$> f (s, t)
 conFields f (InfixC l n r)      = InfixC <$> f l <*> pure n <*> f r
 conFields f (ForallC bds ctx c) = ForallC bds ctx <$> conFields f c
+
+conNamedFields :: Simple Traversal Con VarStrictType
+conNamedFields f (RecC n fs) = RecC n <$> traverse f fs
+conNamedFields _ c = pure c

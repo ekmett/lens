@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ViewPatterns #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -51,14 +50,16 @@ import Control.Lens.Type
 import Control.Lens.IndexedLens
 import Control.Monad
 import Data.Char (toLower)
-import Data.Foldable
+import Data.Either (lefts)
+import Data.Foldable hiding (concat)
+import Data.Function (on)
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
-import Data.Maybe (isNothing,isJust)
-import Data.Monoid
+import Data.Maybe (isNothing,isJust, catMaybes)
+import Data.Ord (comparing)
 import Data.Set as Set hiding (toList,map,filter)
 import Data.Set.Lens
-import Data.Traversable
+import Data.Traversable hiding (mapM)
 import Language.Haskell.TH
 import Language.Haskell.TH.Lens
 
@@ -266,29 +267,31 @@ makeLensesWith :: LensRules -> Name -> Q [Dec]
 makeLensesWith cfg nm = do
     inf <- reify nm 
     case inf of
-      (TyConI (deNewtype -> (DataD ctx tyConName args cons _))) -> case cons of
-        [NormalC dataConName [(    _,ty)]]
-          | cfg^.handleSingletons
-           -> makeIsoLenses cfg ctx tyConName args dataConName Nothing ty
+      (TyConI decl) -> case deNewtype decl of
+        (DataD ctx tyConName args cons _) -> case cons of
+          [NormalC dataConName [(    _,ty)]]
+            | cfg^.handleSingletons
+             -> makeIsoLenses cfg ctx tyConName args dataConName Nothing ty
 
-        [RecC    dataConName [(fld,_,ty)]]
-          | cfg^.handleSingletons
-           -> makeIsoLenses cfg ctx tyConName args dataConName (Just fld) ty
+          [RecC    dataConName [(fld,_,ty)]]
+            | cfg^.handleSingletons
+             -> makeIsoLenses cfg ctx tyConName args dataConName (Just fld) ty
 
-        _ | cfg^.singletonRequired
-           -> fail "makeLensesWith: A single-constructor single-argument data type is required"
+          _ | cfg^.singletonRequired
+             -> fail "makeLensesWith: A single-constructor single-argument data type is required"
 
-          | otherwise
-           -> makeFieldLenses cfg ctx tyConName args cons
+            | otherwise
+             -> makeFieldLenses cfg ctx tyConName args cons
 
-      _ -> fail "Expected the name of a data type or newtype"
+        _ -> fail "makeLensesWith: Unsupported data type"
+      _ -> fail "makeLensesWith: Expected the name of a data type or newtype"
   where
     deNewtype (NewtypeD ctx tyConName args c d) = DataD ctx tyConName args [c] d
     deNewtype d = d
 
 
 -----------------------------------------------------------------------------
--- Main TH Implementation
+-- Internal TH Implementation
 -----------------------------------------------------------------------------
 
 -- | Given a set of names, build a map from those names to a set of fresh names based on them.
@@ -374,7 +377,7 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
     let decl = SigD isoName $ quantified $ isoCon `apps`
           if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
     body <- makeBody isoName dataConName makeIsoFrom makeIsoTo
-#if defined(OMIT_INLINING)
+#ifdef OMIT_INLINING
     return [decl, body]
 #else
     inlining <- inlinePragma isoName
@@ -387,7 +390,7 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
                    if cfg^.simpleLenses then [cty,cty,aty,aty]
                                         else [cty,dty,aty,bty]
       body <- makeBody lensName dataConName makeIsoTo makeIsoFrom
-#if defined(OMIT_INLINING)
+#ifdef OMIT_INLINING
       return [decl, body]
 #else
       inlining <- inlinePragma lensName
@@ -396,68 +399,50 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
     _ -> return []
   return $ isoDecls ++ accessorDecls
 
-data FieldDesc = FieldDesc
-  { _fieldName                   :: Name
-  , _fieldType                   :: Type
-  , _fieldTypeVarsBoundElsewhere :: Set Name
-  }
-
-thd :: (a,b,c) -> c
-thd (_,_,c) = c
-
-fieldDescs :: Set Name -> [(Name,Strict,Type)] -> [FieldDesc]
-fieldDescs acc ((nm,_,ty):rest) =
-  FieldDesc nm ty (acc `Set.union` setOf typeVars (map thd rest)) :
-  fieldDescs (acc `Set.union` setOf typeVars ty) rest
-fieldDescs _ [] = []
-
-conFieldDescs :: Con -> [FieldDesc]
-conFieldDescs (RecC _ fields) = fieldDescs mempty fields
-conFieldDescs _ = []
-
-commonFieldDescs :: [Con] -> [FieldDesc]
-commonFieldDescs = toList . Prelude.foldr walk Map.empty where
-  walk con m = Prelude.foldr step m (conFieldDescs con)
-  step d@(FieldDesc nm ty bds) m = case m^.at nm of
-    Just (FieldDesc _ _ bds') -> at nm .~ Just (FieldDesc nm ty (bds `Set.union` bds')) $ m
-    Nothing                   -> at nm .~ Just d                                        $ m
-
-makeFieldLensBody :: Name -> Name -> [Con] -> Maybe Name -> Q Dec
-makeFieldLensBody lensName fieldName cons maybeMethodName = case maybeMethodName of
+makeFieldLensBody :: Bool -> Name -> [(Con, [Name])] -> Maybe Name -> Q Dec
+makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMethodName of
     Just methodName -> do
        go <- newName "go"
        let expr = infixApp (varE methodName) (varE (mkName ".")) (varE go)
-       funD lensName [ clause [] (normalB expr) [funD go (map clauses cons)] ]
-    Nothing -> funD lensName (map clauses cons)
+       funD lensName [ clause [] (normalB expr) [funD go clauses] ]
+    Nothing -> funD lensName clauses
   where
-    clauses con = do
-      let errorPats
-            = [wildP, conP (con^.name) (replicate (lengthOf conFields con) wildP)]
-          errorBody
-            = normalB . appE (varE 'error) . litE . stringL
-            $ show lensName ++ ": no matching field "
-           ++ show fieldName ++ " in constructor "
-           ++ show (con^.name)
-          errorClause = clause errorPats errorBody []
-      case con of
-        (RecC conName fields) ->
-          case List.findIndex (\(n,_,_) -> n == fieldName) fields of
-            Just i -> do
-              f     <- newName "f"
-              x     <- newName "y"
-              names <- for fields $ \(n,_,_) -> newName (nameBase n)
-              let expr = appsE
-                       [ return (VarE 'fmap)
-                       , lamE [varP x] $ appsE $ conE conName : map varE (element i .~ x $ names)
-                       , varE f `appE` varE (names^.element i)
-                       ]
-              clause [varP f, conP conName $ map varP names] (normalB expr) []
-            Nothing -> errorClause
-        _ -> errorClause
+    clauses = map buildClause conList
+    plainClause ps d = clause ps d []
+    buildClause (con, fields) = do
+      y <- newName "y"
+      let allFields :: [Name]
+          allFields = toListOf (conNamedFields._1) con
+          conName = con^.name
+          conWild = conP conName (replicate (length allFields) wildP)
 
--- TODO: When there are constructors with missing fields, turn that field into a _traversal_ not a lens.
--- TODO: When the supplied mapping function maps multiple different fields to the same name, try to unify them into a Traversal.
--- TODO: Add support for precomposing a lens from a class onto all constructed lenses
+      case (List.null fields, isTraversal) of
+        (True, True)
+          -> plainClause [wildP, y `asP` conWild] (normalB . appE (varE 'pure) $ varE y)
+
+        (True, False)
+          -> plainClause [wildP, conWild] . normalB . appE (varE 'error) . litE . stringL
+           $ show lensName ++ ": no matching field in constructor " ++ show conName
+
+        _ -> do
+
+          vars <- for allFields $ \field ->
+              if field `List.elem` fields
+            then fmap Left $ (,) <$> newName (nameBase field) <*> newName (nameBase field ++ "'")
+            else Right <$> newName (nameBase field)
+
+          f     <- newName "f"
+
+          let cpats = map (varP . either fst id) vars               -- Deconstruction
+              cvals = map (varE . either snd id) vars               -- Reconstruction
+              fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
+              fvals = map (appE (varE f) . varE . snd) $ lefts vars -- Functor applications
+
+              expr = uInfixE (lamE fpats . appsE $ varE conName : cvals) (varE '(<$>))
+                   $ List.foldl1 (\l r -> uInfixE l (varE '(<*>)) r) fvals
+
+          plainClause [varP f, conP conName cpats] (normalB expr)
+
 makeFieldLenses :: LensRules
                 -> Cxt         -- ^ surrounding cxt driven by the data type context
                 -> Name        -- ^ data/newtype constructor name
@@ -466,15 +451,10 @@ makeFieldLenses :: LensRules
                 -> Q [Dec]
 makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
   let tyArgs = map plain tyArgs0
-  x <- newName "x"
-  let maybeLensClass = do
+      maybeLensClass = do
         guard $ tyArgs == []
-        view lensClass cfg (nameBase tyConName)
+        view lensClass cfg $ nameBase tyConName
       maybeClassName = fmap (^._1.to mkName) maybeLensClass
-      aty | isJust maybeClassName = VarT x
-          | otherwise             = appArgs (ConT tyConName) tyArgs
-      vs = setOf typeVars tyArgs
-      fieldMap = commonFieldDescs cons
   classDecls <- case maybeLensClass of
     Nothing -> return []
     Just (clsNameString, methodNameString) -> do
@@ -489,42 +469,97 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
         ++ filter (\_ -> cfg^.createInstance)
           [ instanceD (return []) (conT clsName `appT` conT tyConName)
             [ funD methodName [clause [varP a] (normalB (varE a)) []]
-#if !defined(OMIT_INLINING)
+#ifndef OMIT_INLINING
             , inlinePragma methodName
 #endif
-            ]]
-  bodies <- for (toList fieldMap) $ \ (FieldDesc nm cty bds) ->
-     case mkName <$> view lensField cfg (nameBase nm) of
-       Nothing -> return []
-       Just lensName -> do
-         m <- freshMap $ Set.difference vs bds
-         let bty = substTypeVars m aty
-             dty = substTypeVars m cty
-             s = setOf folded m
-             relevantBndr b = s^.contains (b^.name)
-             relevantCtx = not . Set.null . Set.intersection s . setOf typeVars
-             tvs = tyArgs ++ filter relevantBndr (substTypeVars m tyArgs)
-             ps = ctx ++ filter relevantCtx (substTypeVars m ctx)
-             qs = case maybeClassName of
-                Just n -> ClassP n [VarT x] : ps
-                _      -> ps
-             tvs' | isJust maybeClassName = PlainTV x : tvs
-                  | otherwise             = tvs
+            ] ]
 
-         let decl = SigD lensName $ ForallT tvs' qs $
-                    apps (ConT ''Lens) $
-                    if cfg^.simpleLenses
-                    then [aty,aty,cty,cty]
-                    else [aty,bty,cty,dty]
-         body <- makeFieldLensBody lensName nm cons $ fmap (mkName . view _2) maybeLensClass
+  --TODO: there's probably a more efficient way to do this.
+  lensFields <- map (\xs -> (fst $ head xs, map snd xs)) 
+              . groupBy ((==) `on` fst) . sortBy (comparing fst) . concat
+            <$> mapM (getLensFields $ view lensField cfg) cons
+
+  -- if not (cfg^.partialLenses) && not (cfg^.BuildTraversals)
+  bodies <- for lensFields $ \(lensName, fields) -> do
+    (tyArgs', cty) <- unifyTypes tyArgs $ map (view _3) fields
+    let bds = setOf typeVars cty
+    m <- freshMap $ Set.difference (setOf typeVars tyArgs') bds
+    x <- newName "x"
+    let aty | isJust maybeClassName = VarT x
+            | otherwise             = appArgs (ConT tyConName) tyArgs'
+        bty = substTypeVars m aty
+        dty = substTypeVars m cty
+
+        s = setOf folded m
+        relevantBndr b = s^.contains (b^.name)
+        relevantCtx = not . Set.null . Set.intersection s . setOf typeVars
+        tvs = tyArgs' ++ filter relevantBndr (substTypeVars m tyArgs')
+        ps = ctx ++ filter relevantCtx (substTypeVars m ctx)
+        qs = case maybeClassName of
+           Just n -> ClassP n [VarT x] : ps
+           _      -> ps
+        tvs' | isJust maybeClassName = PlainTV x : tvs
+             | otherwise             = tvs
+
+        --TODO: Better way to write this?
+        fieldMap = fromListWith (++) $ map (\(cn,fn,_) -> (cn, [fn])) fields
+        conList = map (\c -> (c, Map.findWithDefault [] (view name c) fieldMap)) cons
+        maybeMethodName = fmap (mkName . view _2) maybeLensClass
+
+    isTraversal <- do
+      let notSingular = filter ((/= 1) . length . snd) conList
+      case (cfg^.buildTraversals, cfg^.partialLenses) of
+        (True,  True) -> fail "Cannot makeLensesWith both of the flags buildTraversals and partialLenses."
+        (False, True) -> return False
+        (True,  False) | List.null notSingular -> return False
+                       | otherwise -> return True
+        (False, False) | List.null notSingular -> return False
+                       | otherwise -> fail . unlines $
+          [ "Cannot use 'makeLensesWith' with constructors that don't map just one field"
+          , "to a lens, without using either the buildTraversals or partialLenses flags."
+          , "The following constructors fail this criteria for the " ++ pprint lensName ++ " lens:"
+          ] ++ map (\(c, fs) -> pprint (view name c)
+                             ++ " { " ++ concat (intersperse ", " $ map pprint fs) ++ " }")
+                   conList
+
+    let decl = SigD lensName
+             . ForallT tvs' qs
+             . apps (if isTraversal then ConT ''Traversal else ConT ''Lens)
+             $ if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
+
+    body <- makeFieldLensBody isTraversal lensName conList maybeMethodName
 #if defined(OMIT_INLINING)
-         return [decl, body]
+    return [decl, body]
 #else
-         inlining <- inlinePragma lensName
-         return [decl, body, inlining]
+    inlining <- inlinePragma lensName
+    return [decl, body, inlining]
 #endif
   return $ classDecls ++ Prelude.concat bodies
 
+-- gets [(lens name, (constructor name, field name, type))] from a record constructor
+getLensFields :: (String -> Maybe String) -> Con -> Q [(Name, (Name, Name, Type))]
+getLensFields nameFunc (RecC cn fs)
+  = return . catMaybes 
+  $ map (\(fn,_,t) -> (\ln -> (mkName ln, (cn,fn,t))) <$> nameFunc (nameBase fn)) fs
+getLensFields _ _
+  = reportWarning "makeLensesWith encountered a non-record constructor, for which no lenses will be generated."
+  >> return []
+
+--TODO: properly fill out
+-- Ideally this would unify the different field types, and figure out which polymorphic variables
+-- need to be the same.  For now it just leaves them the same and yields the first type.
+-- (This leaves us open to inscrutable compile errors in the generated code)
+unifyTypes :: [TyVarBndr] -> [Type] -> Q ([TyVarBndr], Type)
+unifyTypes tvs tys = return (tvs, head tys)
+
+
+{-
+fieldDescs :: Set Name -> [(Name,Strict,Type)] -> [FieldDesc]
+fieldDescs acc ((nm,_,ty):rest) =
+  FieldDesc nm ty (acc `Set.union` setOf typeVars (map thd rest)) :
+  fieldDescs (acc `Set.union` setOf typeVars ty) rest
+fieldDescs _ [] = []
+-}
 
 #if !(MIN_VERSION_template_haskell(2,7,0))
 -- | The orphan instance for old versions is bad, but programing without 'Applicative' is worse.
