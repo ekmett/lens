@@ -559,21 +559,6 @@ getLensFields _ c
 unifyTypes :: [TyVarBndr] -> [Type] -> Q ([TyVarBndr], Type)
 unifyTypes tvs tys = return (tvs, head tys)
 
-{-
-fieldDescs :: Set Name -> [(Name,Strict,Type)] -> [FieldDesc]
-fieldDescs acc ((nm,_,ty):rest) =
-  FieldDesc nm ty (acc `Set.union` setOf typeVars (map thd rest)) :
-  fieldDescs (acc `Set.union` setOf typeVars ty) rest
-fieldDescs _ [] = []
--}
-
-warn :: String -> Q ()
-#if MIN_VERSION_template_haskell(2,8,0)
-warn = reportWarning
-#else
-warn = report False
-#endif
-
 #if !(MIN_VERSION_template_haskell(2,7,0))
 -- | The orphan instance for old versions is bad, but programing without 'Applicative' is worse.
 instance Applicative Q where
