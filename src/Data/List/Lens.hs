@@ -185,7 +185,7 @@ n =: l = modify (n ~: l)
 
 -- | Cons onto the list(s) referenced by a 'Lens', returning the result.
 --
--- >>> 'h' <~: _1 $ ("ello","world"))
+-- >>> 'h' <~: _1 $ ("ello","world")
 -- ("hello",("hello","world"))
 --
 -- @
