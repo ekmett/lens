@@ -272,10 +272,10 @@ set l d = runMutator . l (\_ -> Mutator d)
 -- If you do not need a copy of the intermediate result, then using @l '.~' d@ directly is a good idea.
 --
 -- @
--- ('\<.~') :: 'Setter' a b c d    -> d -> a -> (d, b)
--- ('\<.~') :: 'Control.Lens.Iso.Iso' a b c d       -> d -> a -> (d, b)
--- ('\<.~') :: 'Control.Lens.Type.Lens' a b c d      -> d -> a -> (d, b)
--- ('\<.~') :: 'Control.Lens.Traversal.Traversal' a b c d -> d -> a -> (d, b)
+-- ('<.~') :: 'Setter' a b c d    -> d -> a -> (d, b)
+-- ('<.~') :: 'Control.Lens.Iso.Iso' a b c d       -> d -> a -> (d, b)
+-- ('<.~') :: 'Control.Lens.Type.Lens' a b c d      -> d -> a -> (d, b)
+-- ('<.~') :: 'Control.Lens.Traversal.Traversal' a b c d -> d -> a -> (d, b)
 -- @
 (<.~) :: Setting a b c d -> d -> a -> (d, b)
 l <.~ d = \a -> (d, l .~ d $ a)
@@ -393,10 +393,10 @@ l **~ n = over l (** n)
 -- (False,True)
 --
 -- @
--- (||~):: 'Setter' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
--- (||~):: 'Control.Lens.Iso.Iso' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
--- (||~):: 'Control.Lens.Type.Lens' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
--- (||~):: 'Control.Lens.Traversal.Traversal' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
+-- ('||~') :: 'Setter' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
+-- ('||~') :: 'Control.Lens.Iso.Iso' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
+-- ('||~') :: 'Control.Lens.Type.Lens' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
+-- ('||~') :: 'Control.Lens.Traversal.Traversal' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
 -- @
 (||~):: Setting a b Bool Bool -> Bool -> a -> b
 l ||~ n = over l (|| n)
@@ -413,10 +413,10 @@ l ||~ n = over l (|| n)
 -- (False,False)
 --
 -- @
--- (&&~):: 'Setter' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
--- (&&~):: 'Control.Lens.Iso.Iso' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
--- (&&~):: 'Control.Lens.Type.Lens' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
--- (&&~):: 'Control.Lens.Traversal.Traversal' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
+-- ('&&~') :: 'Setter' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
+-- ('&&~') :: 'Control.Lens.Iso.Iso' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
+-- ('&&~') :: 'Control.Lens.Type.Lens' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
+-- ('&&~') :: 'Control.Lens.Traversal.Traversal' a b 'Bool' 'Bool' -> 'Bool' -> a -> b
 -- @
 (&&~) :: Setting a b Bool Bool -> Bool -> a -> b
 l &&~ n = over l (&& n)
@@ -432,10 +432,10 @@ l &&~ n = over l (&& n)
 -- This is an alias for ('.=').
 --
 -- @
--- assign :: 'MonadState' a m => 'Control.Lens.Iso.Iso' a a c d             -> d -> m ()
--- assign :: 'MonadState' a m => 'Control.Lens.Type.Lens' a a c d            -> d -> m ()
--- assign :: 'MonadState' a m => 'Control.Lens.Traversal.Traversal' a a c d       -> d -> m ()
--- assign :: 'MonadState' a m => 'Setter' a a c d          -> d -> m ()
+-- 'assign' :: 'MonadState' a m => 'Control.Lens.Iso.Iso' a a c d             -> d -> m ()
+-- 'assign' :: 'MonadState' a m => 'Control.Lens.Type.Lens' a a c d            -> d -> m ()
+-- 'assign' :: 'MonadState' a m => 'Control.Lens.Traversal.Traversal' a a c d       -> d -> m ()
+-- 'assign' :: 'MonadState' a m => 'Setter' a a c d          -> d -> m ()
 -- @
 assign :: MonadState a m => Setting a a c d -> d -> m ()
 assign l b = State.modify (set l b)
@@ -494,10 +494,10 @@ l += b = State.modify (l +~ b)
 -- | Modify the target(s) of a 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by subtracting a value
 --
 -- @
--- (-=) :: ('MonadState' a m, 'Num' b) => 'Control.Lens.Type.Simple' 'Setter' a b -> b -> m ()
--- (-=) :: ('MonadState' a m, 'Num' b) => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a b -> b -> m ()
--- (-=) :: ('MonadState' a m, 'Num' b) => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a b -> b -> m ()
--- (-=) :: ('MonadState' a m, 'Num' b) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a b -> b -> m ()
+-- ('-=') :: ('MonadState' a m, 'Num' b) => 'Control.Lens.Type.Simple' 'Setter' a b -> b -> m ()
+-- ('-=') :: ('MonadState' a m, 'Num' b) => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a b -> b -> m ()
+-- ('-=') :: ('MonadState' a m, 'Num' b) => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a b -> b -> m ()
+-- ('-=') :: ('MonadState' a m, 'Num' b) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a b -> b -> m ()
 -- @
 (-=) :: (MonadState a m, Num b) => SimpleSetting a b -> b -> m ()
 l -= b = State.modify (l -~ b)
@@ -568,10 +568,10 @@ l **= b = State.modify (l **~ b)
 -- | Modify the target(s) of a 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by taking their logical '&&' with a value
 --
 -- @
--- (&&=):: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Setter' a 'Bool' -> 'Bool' -> m ()
--- (&&=):: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a 'Bool' -> 'Bool' -> m ()
--- (&&=):: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a 'Bool' -> 'Bool' -> m ()
--- (&&=):: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a 'Bool' -> 'Bool' -> m ()
+-- ('&&=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Setter' a 'Bool' -> 'Bool' -> m ()
+-- ('&&=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a 'Bool' -> 'Bool' -> m ()
+-- ('&&=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a 'Bool' -> 'Bool' -> m ()
+-- ('&&=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a 'Bool' -> 'Bool' -> m ()
 -- @
 (&&=):: MonadState a m => SimpleSetting a Bool -> Bool -> m ()
 l &&= b = State.modify (l &&~ b)
@@ -580,10 +580,10 @@ l &&= b = State.modify (l &&~ b)
 -- | Modify the target(s) of a 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens', 'Iso, 'Setter' or 'Control.Lens.Traversal.Traversal' by taking their logical '||' with a value
 --
 -- @
--- (||=):: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Setter' a 'Bool' -> 'Bool' -> m ()
--- (||=):: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a 'Bool' -> 'Bool' -> m ()
--- (||=):: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a 'Bool' -> 'Bool' -> m ()
--- (||=):: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a 'Bool' -> 'Bool' -> m ()
+-- ('||=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Setter' a 'Bool' -> 'Bool' -> m ()
+-- ('||=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a 'Bool' -> 'Bool' -> m ()
+-- ('||=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a 'Bool' -> 'Bool' -> m ()
+-- ('||=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a 'Bool' -> 'Bool' -> m ()
 -- @
 (||=) :: MonadState a m => SimpleSetting a Bool -> Bool -> m ()
 l ||= b = State.modify (l ||~ b)
