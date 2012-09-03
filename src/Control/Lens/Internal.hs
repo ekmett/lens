@@ -261,7 +261,7 @@ instance Functor f => Applicative (ElementOf f) where
   ElementOf mf <*> ElementOf ma = ElementOf $ \i -> case mf i of
     Found j ff -> case ma j of
       Found _ _     -> NotFound "multiple results"
-      Searching k a -> Found k (fmap ($a) ff)
+      Searching k a -> Found k (fmap ($ a) ff)
       NotFound e    -> NotFound e
     Searching j f -> case ma j of
       Found k as    -> Found k (fmap f as)

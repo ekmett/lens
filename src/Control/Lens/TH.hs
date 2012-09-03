@@ -6,7 +6,7 @@
 
 -- in case we're being loaded from ghci
 #ifndef MIN_VERSION_template_haskell
-#define MIN_VERSION_template_haskell(x,y,z) 1
+#define MIN_VERSION_template_haskell(x,y,z) (defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706)
 #endif
 -----------------------------------------------------------------------------
 -- |
@@ -552,7 +552,6 @@ fieldDescs _ [] = []
 -}
 
 warn :: String -> Q ()
-
 #if MIN_VERSION_template_haskell(2,8,0)
 warn = reportWarning
 #else
@@ -571,12 +570,12 @@ instance Applicative Q where
 inlinePragma :: Name -> Q Dec
 #if MIN_VERSION_template_haskell(2,8,0)
 
-# ifdef NEW_INLINE_PRAGMAS
--- 7.7.20120830
-inlinePragma methodName = pragInlD methodName Inline FunLike AllPhases
-# else
+# ifdef OLD_INLINE_PRAGMAS
 -- 7.6rc1?
 inlinePragma methodName = pragInlD methodName $ inlineSpecNoPhase Inline False
+# else
+-- 7.7.20120830
+inlinePragma methodName = pragInlD methodName Inline FunLike AllPhases
 # endif
 
 #else

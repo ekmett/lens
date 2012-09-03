@@ -82,7 +82,7 @@ description:
   exotic functionality, (e.g. getters, setters, indexed folds, isomorphisms).
 
 build-type:    Simple
-tested-with:   GHC == 7.4.1
+tested-with:   GHC == 7.4.1, GHC == 7.6.0, GHC == 7.7.20120822, GHC == 7.7.20120830
 extra-source-files:
   .travis.yml
   .ghci
@@ -100,24 +100,37 @@ source-repository head
   type: git
   location: git://github.com/ekmett/lens.git
 
+-- Enable benchmarking against Neil Mitchell's uniplate library for comparative performance analysis. Defaults to being turned off to avoid
+-- the extra dependency.
+--
+-- > cabal configure --enable-benchmarks -fbenchmark-uniplate && cabal build && cabal bench
 flag benchmark-uniplate
   default: False
   manual: True
 
+-- Enable template haskell. Disable this at your own risk and for testing only.
+--
+-- cabal configure -f-template-haskell is an /unsuppported/ configuration.
+--
+-- Clients of this library can and should expect this to be turned on.
 flag template-haskell
   default: True
   manual: True
 
--- Some 7.6.1-rc1 users report their TH still uses old style inline pragmas
-flag old-inline-pragmas
-  default: False
-  manual: True
-
--- Omit the generation of inlining pragmas in the TH code entirely
--- (used to address compile errors resulting from different versions of template-haskell that all purport to be 2.8)
+-- Generate inline pragmas when using template-haskell. This defaults to enabled, but you can
+--
+-- > cabal install lens -f-inlining 
+--
+-- to shut it off to benchmark the relative performance impact, or as last ditch effort to address compile
+-- errors resulting from the myriad versions of template-haskell that all purport to be 2.8.
 flag inlining
   manual: True
   default: True
+
+-- Some 7.6.1-rc1 users report their TH still uses old style inline pragmas. This lets them turn on inlining.
+flag old-inline-pragmas
+  default: False
+  manual: True
 
 library
   build-depends:
@@ -178,9 +191,10 @@ library
     Data.Typeable.Lens
 
   if flag(template-haskell)
-    cpp-options: -DTEMPLATE_HASKELL
     build-depends: template-haskell >= 2.4 && < 2.9
     exposed-modules: Control.Lens.TH Language.Haskell.TH.Lens
+  else
+    cpp-options: -DNO_TEMPLATE_HASKELL
 
   -- platform
   build-depends:   array >= 0.3.0.2 && < 0.5
@@ -193,8 +207,8 @@ library
   exposed-modules: Control.Parallel.Strategies.Lens Control.Seq.Lens
 
   if impl(ghc>=7.6.0.20120810)
-    if !flag(old-inline-pragmas)
-      cpp-options: -DNEW_INLINE_PRAGMAS
+    if flag(old-inline-pragmas)
+      cpp-options: -DOLD_INLINE_PRAGMAS
 
   if !flag(inlining)
     cpp-options: -DOMIT_INLINING
