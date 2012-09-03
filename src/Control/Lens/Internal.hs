@@ -433,7 +433,7 @@ instance Monad m => Effective m r (Effect m r) where
   effective = isomorphic Effect getEffect
   {-# INLINE effective #-}
 
--- | A monoid in a monad as a monoid
+-- | A 'Monoid' for a 'Gettable' 'Applicative'.
 newtype Folding f a = Folding { getFolding :: f a }
 
 instance (Gettable f, Applicative f) => Monoid (Folding f a) where
@@ -442,6 +442,7 @@ instance (Gettable f, Applicative f) => Monoid (Folding f a) where
   Folding fr `mappend` Folding fs = Folding (fr *> fs)
   {-# INLINE mappend #-}
 
+-- | The 'mempty' equivalent for a 'Gettable' 'Applicative' 'Functor'.
 noEffect :: (Applicative f, Gettable f) => f a
 noEffect = coerce $ pure ()
 {-# INLINE noEffect #-}

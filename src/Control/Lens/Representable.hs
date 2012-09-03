@@ -116,7 +116,6 @@ type Rep f = forall a. Simple Lens (f a) a
 -- As the covariant case is vastly more common, and both are often referred to
 -- as representable functors, we choose to call these functors 'Representable'
 -- here.
-
 class Functor f => Representable f where
   rep :: (Rep f -> a) -> f a
 
@@ -138,7 +137,6 @@ instance Eq e => Representable ((->) e) where
 -- instance 'Functor' Foo where
 --   'fmap' = 'fmapRep'
 -- @
-
 fmapRep :: Representable f => (a -> b) -> f a -> f b
 fmapRep f m = rep $ \i -> f (m^.i)
 {-# INLINE fmapRep #-}
@@ -299,15 +297,17 @@ rfoldr :: (Representable f, Foldable f) => (Rep f -> a -> b -> b) -> b -> f a ->
 rfoldr f b m = Foldable.foldr id b (rmap f m)
 {-# INLINE rfoldr #-}
 
+-- | An 'IndexedSetter' that walks an 'Representable' 'Functor' using a 'Path' for an index.
 rmapped :: Representable f => IndexedSetter (Path f) (f a) (f b) a b
 rmapped = index $ \f -> pure . rmap (\i -> untainted . f (Path i))
 {-# INLINE rmapped #-}
 
+-- | An 'IndexedFold' that walks an 'Foldable' 'Representable' 'Functor' using a 'Path' for an index.
 rfolded :: (Representable f, Foldable f) => IndexedFold (Path f) (f a) a
 rfolded = index $ \f -> coerce . getFolding . rfoldMap (\i -> Folding . f (Path i))
 {-# INLINE rfolded #-}
 
--- | An indexed traversal for a traversable representable functor.
+-- | An indexed 'Traversal' for a 'Traversable' 'Representable' 'Functor'.
 rtraversed :: (Representable f, Traversable f) => IndexedTraversal (Path f) (f a) (f b) a b
 rtraversed = index $ \ f -> sequenceA . rmap (f . Path)
 {-# INLINE rtraversed #-}
