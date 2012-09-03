@@ -221,7 +221,6 @@ test-suite doctests
 
 -- Verify that Template Haskell expansion works
 test-suite templates
-  buildable: False
   type: exitcode-stdio-1.0
   main-is: templates.hs
   build-depends:

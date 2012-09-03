@@ -25,7 +25,7 @@ module Control.Lens.TH
   , lensClass
   , lensFlags
   , LensFlag(..)
-  , simpleLenses, handleSingletons, singletonIso, singletonRequired, createClass, createInstance, classRequired
+  , simpleLenses, partialLenses, handleSingletons, singletonIso, singletonRequired, createClass, createInstance, classRequired
   -- * Constructing Lenses Automatically
   , defaultRules
   , lensRules
@@ -429,17 +429,16 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
     buildClause (con, fields) = do
       y <- newName "y"
       let allFields :: [Name]
-          allFields = toListOf (conNamedFields._1) con
+          allFields = con^..conNamedFields._1
           conName = con^.name
           conWild = conP conName (replicate (length allFields) wildP)
 
       case isTraversal of
         True | List.null fields
           -> plainClause [wildP, y `asP` conWild] (normalB . appE (varE 'pure) $ varE y)
-
         False | length fields /= 1
           -> plainClause [wildP, conWild] . normalB . appE (varE 'error) . litE . stringL
-           $ show lensName ++ ": no single matching field in constructor " ++ show conName
+           $ show lensName ++ ": expected a single matching field in " ++ show conName ++ ", found " ++ show (length fields)
 
         _ -> do
 
@@ -453,7 +452,7 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
           let cpats = map (varP . either fst id) vars               -- Deconstruction
               cvals = map (varE . either snd id) vars               -- Reconstruction
               fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
-              fvals = map (appE (varE f) . varE . snd) $ lefts vars -- Functor applications
+              fvals = map (appE (varE f) . varE . fst) $ lefts vars -- Functor applications
 
               expr = uInfixE (lamE fpats . appsE $ conE conName : cvals) (varE '(<$>))
                    $ List.foldl1 (\l r -> uInfixE l (varE '(<*>)) r) fvals
@@ -534,7 +533,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
                        | otherwise -> fail . unlines $
           [ "Cannot use 'makeLensesWith' with constructors that don't map just one field"
           , "to a lens, without using either the buildTraversals or partialLenses flags."
-          , "The following constructors fail this criteria for the " ++ pprint lensName ++ " lens:"
+          , "The following constructor(s) fail these criteria for the " ++ pprint lensName ++ " lens:"
           ] ++ map (\(c, fs) -> pprint (view name c)
                              ++ " { " ++ concat (intersperse ", " $ map pprint fs) ++ " }")
                    conList
@@ -553,27 +552,22 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
 #endif
   return $ classDecls ++ Prelude.concat bodies
 
--- gets [(lens name, (constructor name, field name, type))] from a record constructor
+-- | Gets @[(lens name, (constructor name, field name, type))]@ from a record constructor
 getLensFields :: (String -> Maybe String) -> Con -> Q [(Name, (Name, Name, Type))]
 getLensFields nameFunc (RecC cn fs)
   = return . catMaybes
   $ map (\(fn,_,t) -> (\ln -> (mkName ln, (cn,fn,t))) <$> nameFunc (nameBase fn)) fs
 getLensFields _ _
-#if MIN_VERSION_template_haskell(2,8,0)
-  = reportWarning
-#else
-  = report False
-#endif
-     "makeLensesWith encountered a non-record constructor, for which no lenses will be generated."
+  = warn "makeLensesWith: encountered a non-record constructor, for which no lenses will be generated."
   >> return []
 
---TODO: properly fill out
+-- TODO: properly fill this out
+--
 -- Ideally this would unify the different field types, and figure out which polymorphic variables
 -- need to be the same.  For now it just leaves them the same and yields the first type.
 -- (This leaves us open to inscrutable compile errors in the generated code)
 unifyTypes :: [TyVarBndr] -> [Type] -> Q ([TyVarBndr], Type)
 unifyTypes tvs tys = return (tvs, head tys)
-
 
 {-
 fieldDescs :: Set Name -> [(Name,Strict,Type)] -> [FieldDesc]
@@ -582,6 +576,14 @@ fieldDescs acc ((nm,_,ty):rest) =
   fieldDescs (acc `Set.union` setOf typeVars ty) rest
 fieldDescs _ [] = []
 -}
+
+warn :: String -> Q ()
+
+#if MIN_VERSION_template_haskell(2,8,0)
+warn = reportWarning
+#else
+warn = report False
+#endif
 
 #if !(MIN_VERSION_template_haskell(2,7,0))
 -- | The orphan instance for old versions is bad, but programing without 'Applicative' is worse.
