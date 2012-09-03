@@ -194,7 +194,7 @@ library
     build-depends: template-haskell >= 2.4 && < 2.9
     exposed-modules: Control.Lens.TH Language.Haskell.TH.Lens
   else
-    cpp-options: -DNO_TEMPLATE_HASKELL
+    cpp-options: -DDISABLE_TEMPLATE_HASKELL
 
   -- platform
   build-depends:   array >= 0.3.0.2 && < 0.5

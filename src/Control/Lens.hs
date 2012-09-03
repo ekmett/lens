@@ -59,7 +59,7 @@ module Control.Lens
   , module Control.Lens.IndexedSetter
   , module Control.Lens.Plated
   , module Control.Lens.Representable
-#ifndef NO_TEMPLATE_HASKELL
+#ifndef DISABLE_TEMPLATE_HASKELL
   , module Control.Lens.TH
 #endif
   , module Control.Lens.Tuple
@@ -80,7 +80,7 @@ import Control.Lens.Iso
 import Control.Lens.Plated
 import Control.Lens.Representable
 import Control.Lens.Setter
-#ifndef NO_TEMPLATE_HASKELL
+#ifndef DISABLE_TEMPLATE_HASKELL
 import Control.Lens.TH
 #endif
 import Control.Lens.Traversal
