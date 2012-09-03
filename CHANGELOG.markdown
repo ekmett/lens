@@ -3,7 +3,7 @@
 * Added build option `-f-inlining` to facilitate building with the various TH 2.8 versions used by GHC 7.6 and HEAD.
 * Added build option `-f-template-haskell` for testing without template haskell. (Users should be able to assume TH is enabled; use this only for testing!)
 * Added support for generating a `Traversal` rather than a `Lens` when multiple fields map to the same name or some constructors are missing a field.
-* Removed `_`s from the lens names in `System.FilePath.Lens`.
+* Removed `_` from the lens names in `System.FilePath.Lens`.
 * Added `iwhere`, `withIndices`, `withIndicesOf`, `indices` and `indicesOf` to ease work with indexed traversals
 * Added `assign` as an alias for `(.=)` in `Control.Lens.Setter`.
 * Added `~:`, `=:`, `<~:` and `<=:` to `Data.List.Lens`
