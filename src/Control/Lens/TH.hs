@@ -419,31 +419,29 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
     clauses = map buildClause conList
     plainClause ps d = clause ps d []
     buildClause (con, fields) = do
-      y <- newName "y"
       let allFields :: [Name]
           allFields = con^..conNamedFields._1
           conName = con^.name
           conWild = conP conName (replicate (length allFields) wildP)
 
-      case isTraversal of
-        True | List.null fields
-          -> plainClause [wildP, y `asP` conWild] (normalB . appE (varE 'pure) $ varE y)
-        False | length fields /= 1
-          -> plainClause [wildP, conWild] . normalB . appE (varE 'error) . litE . stringL
+      if not isTraversal && length fields /= 1
+        then plainClause [wildP, conWild] . normalB . appE (varE 'error) . litE . stringL
            $ show lensName ++ ": expected a single matching field in " ++ show conName ++ ", found " ++ show (length fields)
-        _ -> do
+        else do
           vars <- for allFields $ \field ->
               if field `List.elem` fields
             then fmap Left $ (,) <$> newName (nameBase field) <*> newName (nameBase field ++ "'")
             else Right <$> newName (nameBase field)
-          f     <- newName "f"
+          f <- newName "f"
           let cpats = map (varP . either fst id) vars               -- Deconstruction
               cvals = map (varE . either snd id) vars               -- Reconstruction
               fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
               fvals = map (appE (varE f) . varE . fst) $ lefts vars -- Functor applications
+              recon = appsE $ conE conName : cvals
 
-              expr = uInfixE (lamE fpats . appsE $ conE conName : cvals) (varE '(<$>))
-                   $ List.foldl1 (\l r -> uInfixE l (varE '(<*>)) r) fvals
+              expr = if List.null fields
+                   then appE (varE 'pure) recon
+                   else uInfixE (lamE fpats recon) (varE '(<$>)) $ List.foldl1 (\l r -> uInfixE l (varE '(<*>)) r) fvals
           plainClause [varP f, conP conName cpats] (normalB expr)
 
 makeFieldLenses :: LensRules
@@ -482,11 +480,19 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
               . groupBy ((==) `on` fst) . sortBy (comparing fst) . concat
             <$> mapM (getLensFields $ view lensField cfg) cons
 
+  -- varMultiSet knows how many usages of the type variables there are.
+  let varMultiSet = List.concatMap (toListOf (conFields._2.typeVars)) cons
+      varSet = Set.fromList $ map (view name) tyArgs
+
   -- if not (cfg^.partialLenses) && not (cfg^.BuildTraversals)
   bodies <- for lensFields $ \(lensName, fields) -> do
-    (tyArgs', cty) <- unifyTypes tyArgs $ map (view _3) fields
-    let bds = setOf typeVars cty
-    m <- freshMap $ Set.difference (setOf typeVars tyArgs') bds
+    let fieldTypes = map (view _3) fields
+    -- All of the polymorphic variables not involved in these fields
+        otherVars = varMultiSet List.\\ fieldTypes^..typeVars
+    -- New type variable binders, and the type to represent the selected fields
+    (tyArgs', cty) <- unifyTypes tyArgs fieldTypes
+    -- Map for the polymorphic variables that are only involved in these fields, to new names for them.
+    m <- freshMap . Set.difference varSet $ Set.fromList otherVars
     x <- newName "x"
     let aty | isJust maybeClassName = VarT x
             | otherwise             = appArgs (ConT tyConName) tyArgs'
@@ -511,6 +517,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
 
     isTraversal <- do
       let notSingular = filter ((/= 1) . length . snd) conList
+          showCon (c, fs) = pprint (view name c) ++ " { " ++ concat (intersperse ", " $ map pprint fs) ++ " }"
       case (cfg^.buildTraversals, cfg^.partialLenses) of
         (True,  True) -> fail "Cannot makeLensesWith both of the flags buildTraversals and partialLenses."
         (False, True) -> return False
@@ -523,8 +530,9 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
           , if length conList == 1
             then "The following constructor failed this criterion for the " ++ pprint lensName ++ " lens:"
             else "The following constructors failed this criterion for the " ++ pprint lensName ++ " lens:"
-          ] ++ map (\(c, fs) -> pprint (view name c) ++ " { " ++ concat (intersperse ", " $ map pprint fs) ++ " }") conList
+          ] ++ map showCon conList
 
+    --TODO: consider detecting simpleLenses, and generating signatures involving "Simple"?
     let decl = SigD lensName
              . ForallT tvs' qs
              . apps (if isTraversal then ConT ''Traversal else ConT ''Lens)
