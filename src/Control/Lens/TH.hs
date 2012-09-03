@@ -5,7 +5,7 @@
 #endif
 
 -- in case we're being loaded from ghci
-#ifndef MIN_VERSION_template_haskell(x,y,z)
+#ifndef MIN_VERSION_template_haskell
 #define MIN_VERSION_template_haskell(x,y,z) 1
 #endif
 -----------------------------------------------------------------------------
