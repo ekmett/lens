@@ -307,7 +307,7 @@ rfolded :: (Representable f, Foldable f) => IndexedFold (Path f) (f a) a
 rfolded = index $ \f -> coerce . getFolding . rfoldMap (\i -> Folding . f (Path i))
 {-# INLINE rfolded #-}
 
--- | An indexed 'Traversal' for a 'Traversable' 'Representable' 'Functor'.
+-- | An 'IndexedTraversal' for a 'Traversable' 'Representable' 'Functor'.
 rtraversed :: (Representable f, Traversable f) => IndexedTraversal (Path f) (f a) (f b) a b
 rtraversed = index $ \ f -> sequenceA . rmap (f . Path)
 {-# INLINE rtraversed #-}

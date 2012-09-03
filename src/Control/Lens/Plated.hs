@@ -769,11 +769,11 @@ parts = partsOf plate
 
 -- | 'partsOf' turns a 'Traversal' into a lens that resembles an early version of the @uniplate@ (or @biplate@) type.
 --
--- /Note:/ You should really, maintain the invariant of the number of children in the list.
+-- /Note:/ You should really try to maintain the invariant of the number of children in the list.
 --
--- Any extras will be lost.
+-- Any extras will be lost. If you do not supply enough, then the remainder will come from the original structure.
 --
--- If you do not supply enough, then the remainder will come from the original structure.
+-- So technically, this is only a lens if you do not change the number of results it returns.
 --
 -- @
 -- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' a b       -> a -> 'Simple' 'Lens' a [b]
