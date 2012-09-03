@@ -548,7 +548,7 @@ getLensFields :: (String -> Maybe String) -> Con -> Q [(Name, (Name, Name, Type)
 getLensFields nameFunc (RecC cn fs)
   = return . catMaybes
   $ map (\(fn,_,t) -> (\ln -> (mkName ln, (cn,fn,t))) <$> nameFunc (nameBase fn)) fs
-getLensFields _ c
+getLensFields _ _
   = return []
 
 -- TODO: properly fill this out
