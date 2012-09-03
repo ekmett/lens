@@ -27,7 +27,8 @@ module Data.List.Lens
   , traverseTail
   , traverseInit
   , traverseLast
-  , (.:~), (.:=)
+  , (~:), (=:)
+  , (<~:), (<=:)
   ) where
 
 import Control.Applicative
@@ -35,8 +36,8 @@ import Control.Lens
 import Control.Monad.State (MonadState, modify)
 import Data.List
 
-infixr 4 .:~
-infix 4 .:=
+infixr 4 ~:, <~:
+infix 4 =:, <=:
 
 -- | A lens reading and writing to the head of a /non-empty/ list
 --
@@ -155,12 +156,52 @@ traverseInit = index $ \f aas -> case aas of
   as -> (++ [Prelude.last as]) <$> withIndex traverseList f (Prelude.init as)
 {-# INLINE traverseInit #-}
 
--- | '(:)' a value to list
-(.:~) :: Setting a b [c] [c] -> c -> a -> b
-l .:~ n = over l (n :)
-{-# INLINE (.:~) #-}
+-- | Cons onto the list(s) referenced by a 'Setter'.
+--
+-- >>> 'h' ~: _1 $ ("ello","world")
+-- ("hello","world")
+--
+-- @
+-- ('~:') :: b -> 'Simple' 'Setter' a [b]    -> a -> a
+-- ('~:') :: b -> 'Simple' 'Traversal' a [b] -> a -> a
+-- ('~:') :: b -> 'Simple' 'Lens' a [b]      -> a -> a
+-- ('~:') :: b -> 'Simple' 'Iso' a [b]       -> a -> a
+-- @
+(~:) :: c -> Setting a b [c] [c] -> a -> b
+n ~: l = over l (n :)
+{-# INLINE (~:) #-}
 
--- | '(:)' a value to list into your monad state
-(.:=) :: MonadState a m => SimpleSetting a [c] -> c -> m ()
-l .:= b = modify (l .:~ b)
-{-# INLINE (.:=) #-}
+-- | Cons onto the list(s) referenced by a 'Setter' in your monad state
+--
+-- @
+-- ('=:') :: 'MonadState' a m => c -> 'Simple' 'Setter' a [c]    -> m ()
+-- ('=:') :: 'MonadState' a m => c -> 'Simple' 'Traversal' a [c] -> m ()
+-- ('=:') :: 'MonadState' a m => c -> 'Simple' 'Lens' a [c]      -> m ()
+-- ('=:') :: 'MonadState' a m => c -> 'Simple' 'Iso' a [c]       -> m ()
+-- @
+(=:) :: MonadState a m => c -> SimpleSetting a [c] -> m ()
+n =: l = modify (n ~: l)
+{-# INLINE (=:) #-}
+
+-- | Cons onto the list(s) referenced by a 'Lens', returning the result.
+--
+-- >>> _1 <~: 'h' $ ("ello","world"))
+-- ("hello",("hello","world"))
+--
+-- @
+-- ('\<~:') :: b -> 'Simple' 'Lens' a [b] -> a -> (b, a)
+-- ('\<~:') :: b -> 'Simple' 'Iso' a [b]  -> a -> (b, a)
+-- @
+(<~:) :: c -> LensLike ((,)[c]) a b [c] [c] -> a -> ([c], b)
+n <~: l = l <%~ (n :)
+{-# INLINE (<~:) #-}
+
+-- | Cons onto the list(s) referenced by a 'Lens' into your monad state, returning the result.
+--
+-- @
+-- ('\<=:') :: 'MonadState' a m => 'Simple' 'Lens' a [c] -> c -> m ()
+-- ('\<=:') :: 'MonadState' a m => 'Simple' 'Iso' a [c]  -> c -> m ()
+-- @
+(<=:) :: MonadState a m => c -> SimpleLensLike ((,)[c]) a [c] -> m [c]
+n <=: l = l <%= (n :)
+{-# INLINE (<=:) #-}
