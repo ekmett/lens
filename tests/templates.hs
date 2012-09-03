@@ -49,6 +49,7 @@ makeLenses ''LensCrafted
 data Danger a = Zone { _highway :: a }
               | Twilight
 makeLensesWith (partialLenses .~ True $ buildTraversals .~ False $ lensRules) ''Danger
+-- highway :: Lens (Danger a) (Danger a') a a'
 
 data Mono = Mono { _monoFoo :: Int, _monoBar :: Int }
 makeClassy ''Mono
