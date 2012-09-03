@@ -432,7 +432,7 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
               if field `List.elem` fields
             then fmap Left $ (,) <$> newName (nameBase field) <*> newName (nameBase field ++ "'")
             else Right <$> newName (nameBase field)
-          f <- newName "f"
+          f <- newName "_f"
           let cpats = map (varP . either fst id) vars               -- Deconstruction
               cvals = map (varE . either snd id) vars               -- Reconstruction
               fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
