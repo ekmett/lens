@@ -233,7 +233,7 @@ makeClassy = makeLensesWith classyRules
 -- /e.g./
 --
 -- @
--- newtype List a = List [a]@
+-- newtype List a = List [a]
 -- makeIso ''List
 -- @
 --
