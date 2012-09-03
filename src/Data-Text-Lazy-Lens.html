@@ -36,13 +36,12 @@
 <a name="line-27"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-conid'>String</span> <span class='hs-conid'>Text</span>
 <a name="line-28"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>pack</span> <span class='hs-varid'>unpack</span>
 <a name="line-29"></a><span class='hs-comment'>{-# INLINE packed #-}</span>
-<a name="line-30"></a><span class='hs-comment'>{-# SPECIALIZE packed :: Simple Lens String Text #-}</span>
-<a name="line-31"></a>
-<a name="line-32"></a><a name="text"></a><span class='hs-comment'>-- | Traverse the individual characters in a 'Text'.</span>
-<a name="line-33"></a><span class='hs-comment'>--</span>
-<a name="line-34"></a><span class='hs-comment'>-- &gt; anyOf text (=='c') :: Text -&gt; Bool</span>
-<a name="line-35"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>Char</span>
-<a name="line-36"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packed</span> <span class='hs-varop'>.&gt;</span> <span class='hs-varid'>itraversed</span>
-<a name="line-37"></a><span class='hs-comment'>{-# INLINE text #-}</span>
+<a name="line-30"></a>
+<a name="line-31"></a><a name="text"></a><span class='hs-comment'>-- | Traverse the individual characters in a 'Text'.</span>
+<a name="line-32"></a><span class='hs-comment'>--</span>
+<a name="line-33"></a><span class='hs-comment'>-- &gt; anyOf text (=='c') :: Text -&gt; Bool</span>
+<a name="line-34"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>Char</span>
+<a name="line-35"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packed</span> <span class='hs-varop'>.&gt;</span> <span class='hs-varid'>itraversed</span>
+<a name="line-36"></a><span class='hs-comment'>{-# INLINE text #-}</span>
 </pre></body>
 </html>

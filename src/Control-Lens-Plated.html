@@ -778,11 +778,11 @@
 <a name="line-769"></a>
 <a name="line-770"></a><a name="partsOf"></a><span class='hs-comment'>-- | 'partsOf' turns a 'Traversal' into a lens that resembles an early version of the @uniplate@ (or @biplate@) type.</span>
 <a name="line-771"></a><span class='hs-comment'>--</span>
-<a name="line-772"></a><span class='hs-comment'>-- /Note:/ You should really, maintain the invariant of the number of children in the list.</span>
+<a name="line-772"></a><span class='hs-comment'>-- /Note:/ You should really try to maintain the invariant of the number of children in the list.</span>
 <a name="line-773"></a><span class='hs-comment'>--</span>
-<a name="line-774"></a><span class='hs-comment'>-- Any extras will be lost.</span>
+<a name="line-774"></a><span class='hs-comment'>-- Any extras will be lost. If you do not supply enough, then the remainder will come from the original structure.</span>
 <a name="line-775"></a><span class='hs-comment'>--</span>
-<a name="line-776"></a><span class='hs-comment'>-- If you do not supply enough, then the remainder will come from the original structure.</span>
+<a name="line-776"></a><span class='hs-comment'>-- So technically, this is only a lens if you do not change the number of results it returns.</span>
 <a name="line-777"></a><span class='hs-comment'>--</span>
 <a name="line-778"></a><span class='hs-comment'>-- @</span>
 <a name="line-779"></a><span class='hs-comment'>-- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' a b       -&gt; a -&gt; 'Simple' 'Lens' a [b]</span>

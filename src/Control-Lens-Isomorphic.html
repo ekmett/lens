@@ -86,17 +86,13 @@
 <a name="line-77"></a><span class='hs-definition'>from</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Isomorphic</span> <span class='hs-varid'>k</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Isomorphism</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span>
 <a name="line-78"></a><span class='hs-definition'>from</span> <span class='hs-layout'>(</span><span class='hs-conid'>Isomorphism</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isomorphic</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span>
 <a name="line-79"></a><span class='hs-comment'>{-# INLINE from #-}</span>
-<a name="line-80"></a><span class='hs-comment'>{-# SPECIALIZE from :: Isomorphism a b -&gt; b -&gt; a #-}</span>
-<a name="line-81"></a><span class='hs-comment'>{-# SPECIALIZE from :: Isomorphism a b -&gt; Isomorphism b a #-}</span>
-<a name="line-82"></a>
-<a name="line-83"></a><a name="via"></a><span class='hs-comment'>-- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.</span>
-<a name="line-84"></a><span class='hs-comment'>--</span>
-<a name="line-85"></a><span class='hs-comment'>-- This is useful when you need to store an isomoprhism as a data type inside a container</span>
-<a name="line-86"></a><span class='hs-comment'>-- and later reconstitute it as an overloaded function.</span>
-<a name="line-87"></a><span class='hs-definition'>via</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Isomorphic</span> <span class='hs-varid'>k</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Isomorphism</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-88"></a><span class='hs-definition'>via</span> <span class='hs-layout'>(</span><span class='hs-conid'>Isomorphism</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isomorphic</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-89"></a><span class='hs-comment'>{-# INLINE via #-}</span>
-<a name="line-90"></a><span class='hs-comment'>{-# SPECIALIZE via :: Isomorphism a b -&gt; a -&gt; b #-}</span>
-<a name="line-91"></a><span class='hs-comment'>{-# SPECIALIZE via :: Isomorphism a b -&gt; Isomorphism a b #-}</span>
+<a name="line-80"></a>
+<a name="line-81"></a><a name="via"></a><span class='hs-comment'>-- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.</span>
+<a name="line-82"></a><span class='hs-comment'>--</span>
+<a name="line-83"></a><span class='hs-comment'>-- This is useful when you need to store an isomoprhism as a data type inside a container</span>
+<a name="line-84"></a><span class='hs-comment'>-- and later reconstitute it as an overloaded function.</span>
+<a name="line-85"></a><span class='hs-definition'>via</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Isomorphic</span> <span class='hs-varid'>k</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Isomorphism</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-86"></a><span class='hs-definition'>via</span> <span class='hs-layout'>(</span><span class='hs-conid'>Isomorphism</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isomorphic</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-87"></a><span class='hs-comment'>{-# INLINE via #-}</span>
 </pre></body>
 </html>

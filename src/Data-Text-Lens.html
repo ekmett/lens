@@ -46,15 +46,13 @@
 <a name="line-37"></a><a name="instance%20IsText%20Strict.Text"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsText</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>where</span>
 <a name="line-38"></a>  <span class='hs-varid'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>packed</span>
 <a name="line-39"></a>  <span class='hs-comment'>{-# INLINE packed #-}</span>
-<a name="line-40"></a>  <span class='hs-comment'>{-# SPECIALIZE packed :: Simple Lens String Strict.Text #-}</span>
-<a name="line-41"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>text</span>
-<a name="line-42"></a>  <span class='hs-comment'>{-# INLINE text #-}</span>
-<a name="line-43"></a>
-<a name="line-44"></a><a name="instance%20IsText%20Lazy.Text"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsText</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>where</span>
-<a name="line-45"></a>  <span class='hs-varid'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-varid'>packed</span>
-<a name="line-46"></a>  <span class='hs-comment'>{-# INLINE packed #-}</span>
-<a name="line-47"></a>  <span class='hs-comment'>{-# SPECIALIZE packed :: Simple Lens String Lazy.Text #-}</span>
-<a name="line-48"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-varid'>text</span>
-<a name="line-49"></a>  <span class='hs-comment'>{-# INLINE text #-}</span>
+<a name="line-40"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>text</span>
+<a name="line-41"></a>  <span class='hs-comment'>{-# INLINE text #-}</span>
+<a name="line-42"></a>
+<a name="line-43"></a><a name="instance%20IsText%20Lazy.Text"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsText</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>where</span>
+<a name="line-44"></a>  <span class='hs-varid'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-varid'>packed</span>
+<a name="line-45"></a>  <span class='hs-comment'>{-# INLINE packed #-}</span>
+<a name="line-46"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-varid'>text</span>
+<a name="line-47"></a>  <span class='hs-comment'>{-# INLINE text #-}</span>
 </pre></body>
 </html>

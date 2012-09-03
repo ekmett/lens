@@ -79,80 +79,64 @@
 <a name="line-70"></a><span class='hs-sel'>_dual</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Dual</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Dual</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
 <a name="line-71"></a><span class='hs-sel'>_dual</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Dual</span> <span class='hs-varid'>getDual</span> <span class='hs-conid'>Dual</span> <span class='hs-varid'>getDual</span>
 <a name="line-72"></a><span class='hs-comment'>{-# INLINE _dual #-}</span>
-<a name="line-73"></a><span class='hs-comment'>{-# SPECIALIZE _dual :: Functor f =&gt; Isomorphism (Dual a -&gt; f (Dual b)) (a -&gt; f b) #-}</span>
-<a name="line-74"></a><span class='hs-comment'>{-# SPECIALIZE _dual :: Functor f =&gt; (Dual a -&gt; f (Dual b)) -&gt; a -&gt; f b #-}</span>
-<a name="line-75"></a>
-<a name="line-76"></a><span class='hs-comment'>-- | Isomorphism for 'Endo'</span>
-<a name="line-77"></a><span class='hs-sel'>_endo</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Endo</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Endo</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-78"></a><span class='hs-sel'>_endo</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Endo</span> <span class='hs-varid'>appEndo</span> <span class='hs-conid'>Endo</span> <span class='hs-varid'>appEndo</span>
-<a name="line-79"></a><span class='hs-comment'>{-# INLINE _endo #-}</span>
-<a name="line-80"></a><span class='hs-comment'>{-# SPECIALIZE _endo :: Functor f =&gt; Isomorphism (Endo a -&gt; f (Endo b)) ((a -&gt; a) -&gt; f (b -&gt; b)) #-}</span>
-<a name="line-81"></a><span class='hs-comment'>{-# SPECIALIZE _endo :: Functor f =&gt; (Endo a -&gt; f (Endo b)) -&gt; (a -&gt; a) -&gt; f (b -&gt; b) #-}</span>
-<a name="line-82"></a>
-<a name="line-83"></a><span class='hs-comment'>-- | Isomorphism for 'All'</span>
+<a name="line-73"></a>
+<a name="line-74"></a><span class='hs-comment'>-- | Isomorphism for 'Endo'</span>
+<a name="line-75"></a><span class='hs-sel'>_endo</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Endo</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Endo</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-76"></a><span class='hs-sel'>_endo</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Endo</span> <span class='hs-varid'>appEndo</span> <span class='hs-conid'>Endo</span> <span class='hs-varid'>appEndo</span>
+<a name="line-77"></a><span class='hs-comment'>{-# INLINE _endo #-}</span>
+<a name="line-78"></a>
+<a name="line-79"></a><span class='hs-comment'>-- | Isomorphism for 'All'</span>
+<a name="line-80"></a><span class='hs-comment'>--</span>
+<a name="line-81"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
+<a name="line-82"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _all foldMap [True,True]</span>
+<a name="line-83"></a><span class='hs-comment'>-- True</span>
 <a name="line-84"></a><span class='hs-comment'>--</span>
 <a name="line-85"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-86"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _all foldMap [True,True]</span>
-<a name="line-87"></a><span class='hs-comment'>-- True</span>
-<a name="line-88"></a><span class='hs-comment'>--</span>
-<a name="line-89"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-90"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _all foldMap [True,False]</span>
-<a name="line-91"></a><span class='hs-comment'>-- False</span>
-<a name="line-92"></a><span class='hs-sel'>_all</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>All</span>
-<a name="line-93"></a><span class='hs-sel'>_all</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-conid'>All</span> <span class='hs-varid'>getAll</span>
-<a name="line-94"></a><span class='hs-comment'>{-# INLINE _all #-}</span>
-<a name="line-95"></a><span class='hs-comment'>{-# SPECIALIZE _all :: Functor f =&gt; Isomorphism (All -&gt; f All) (Bool -&gt; f Bool) #-}</span>
-<a name="line-96"></a><span class='hs-comment'>{-# SPECIALIZE _all :: Functor f =&gt; (All -&gt; f All) -&gt; Bool -&gt; f Bool #-}</span>
-<a name="line-97"></a>
-<a name="line-98"></a><span class='hs-comment'>-- | Isomorphism for 'Any'</span>
-<a name="line-99"></a><span class='hs-comment'>--</span>
-<a name="line-100"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-101"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _any foldMap [False,False]</span>
-<a name="line-102"></a><span class='hs-comment'>-- False</span>
-<a name="line-103"></a><span class='hs-comment'>--</span>
-<a name="line-104"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-105"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _any foldMap [True,False]</span>
-<a name="line-106"></a><span class='hs-comment'>-- True</span>
-<a name="line-107"></a><span class='hs-sel'>_any</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>Any</span>
-<a name="line-108"></a><span class='hs-sel'>_any</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-conid'>Any</span> <span class='hs-varid'>getAny</span>
-<a name="line-109"></a><span class='hs-comment'>{-# INLINE _any #-}</span>
-<a name="line-110"></a><span class='hs-comment'>{-# SPECIALIZE _any :: Functor f =&gt; Isomorphism (Any -&gt; f Any) (Bool -&gt; f Bool) #-}</span>
-<a name="line-111"></a><span class='hs-comment'>{-# SPECIALIZE _any :: Functor f =&gt; (Any -&gt; f Any) -&gt; Bool -&gt; f Bool #-}</span>
-<a name="line-112"></a>
-<a name="line-113"></a><span class='hs-comment'>-- | Isomorphism for 'Sum'</span>
-<a name="line-114"></a><span class='hs-comment'>--</span>
-<a name="line-115"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-116"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _sum foldMap [1,2,3,4]</span>
-<a name="line-117"></a><span class='hs-comment'>-- 10</span>
-<a name="line-118"></a><span class='hs-sel'>_sum</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Sum</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Sum</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-119"></a><span class='hs-sel'>_sum</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Sum</span> <span class='hs-varid'>getSum</span> <span class='hs-conid'>Sum</span> <span class='hs-varid'>getSum</span>
-<a name="line-120"></a><span class='hs-comment'>{-# INLINE _sum #-}</span>
-<a name="line-121"></a><span class='hs-comment'>{-# SPECIALIZE _sum :: Functor f =&gt; Isomorphism (Sum a -&gt; f (Sum b)) (a -&gt; f b) #-}</span>
-<a name="line-122"></a><span class='hs-comment'>{-# SPECIALIZE _sum :: Functor f =&gt; (Sum a -&gt; f (Sum b)) -&gt; a -&gt; f b #-}</span>
-<a name="line-123"></a>
-<a name="line-124"></a><span class='hs-comment'>-- | Isomorphism for 'Product'</span>
-<a name="line-125"></a><span class='hs-comment'>--</span>
-<a name="line-126"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-127"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _product foldMap [1,2,3,4]</span>
-<a name="line-128"></a><span class='hs-comment'>-- 24</span>
-<a name="line-129"></a><span class='hs-sel'>_product</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Product</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Product</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-130"></a><span class='hs-sel'>_product</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Product</span> <span class='hs-varid'>getProduct</span> <span class='hs-conid'>Product</span> <span class='hs-varid'>getProduct</span>
-<a name="line-131"></a><span class='hs-comment'>{-# INLINE _product #-}</span>
-<a name="line-132"></a><span class='hs-comment'>{-# SPECIALIZE _product :: Functor f =&gt; Isomorphism (Product a -&gt; f (Product b)) (a -&gt; f b) #-}</span>
-<a name="line-133"></a><span class='hs-comment'>{-# SPECIALIZE _product :: Functor f =&gt; (Product a -&gt; f (Product b)) -&gt; a -&gt; f b #-}</span>
-<a name="line-134"></a>
-<a name="line-135"></a><span class='hs-comment'>-- | Isomorphism for 'First'</span>
-<a name="line-136"></a><span class='hs-sel'>_first</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-137"></a><span class='hs-sel'>_first</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>First</span> <span class='hs-varid'>getFirst</span> <span class='hs-conid'>First</span> <span class='hs-varid'>getFirst</span>
-<a name="line-138"></a><span class='hs-comment'>{-# INLINE _first #-}</span>
-<a name="line-139"></a><span class='hs-comment'>{-# SPECIALIZE _first :: Functor f =&gt; Isomorphism (First a -&gt; f (First b)) (Maybe a -&gt; f (Maybe b)) #-}</span>
-<a name="line-140"></a><span class='hs-comment'>{-# SPECIALIZE _first :: Functor f =&gt; (First a -&gt; f (First b)) -&gt; Maybe a -&gt; f (Maybe b) #-}</span>
-<a name="line-141"></a>
-<a name="line-142"></a><span class='hs-comment'>-- | Isomorphism for 'Last'</span>
-<a name="line-143"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Last</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Last</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-144"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Last</span> <span class='hs-varid'>getLast</span> <span class='hs-conid'>Last</span> <span class='hs-varid'>getLast</span>
-<a name="line-145"></a><span class='hs-comment'>{-# INLINE _last #-}</span>
-<a name="line-146"></a><span class='hs-comment'>{-# SPECIALIZE _last :: Functor f =&gt; Isomorphism (Last a -&gt; f (Last b)) (Maybe a -&gt; f (Maybe b)) #-}</span>
-<a name="line-147"></a><span class='hs-comment'>{-# SPECIALIZE _last :: Functor f =&gt; (Last a -&gt; f (Last b)) -&gt; Maybe a -&gt; f (Maybe b) #-}</span>
+<a name="line-86"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _all foldMap [True,False]</span>
+<a name="line-87"></a><span class='hs-comment'>-- False</span>
+<a name="line-88"></a><span class='hs-sel'>_all</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>All</span>
+<a name="line-89"></a><span class='hs-sel'>_all</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-conid'>All</span> <span class='hs-varid'>getAll</span>
+<a name="line-90"></a><span class='hs-comment'>{-# INLINE _all #-}</span>
+<a name="line-91"></a>
+<a name="line-92"></a><span class='hs-comment'>-- | Isomorphism for 'Any'</span>
+<a name="line-93"></a><span class='hs-comment'>--</span>
+<a name="line-94"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
+<a name="line-95"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _any foldMap [False,False]</span>
+<a name="line-96"></a><span class='hs-comment'>-- False</span>
+<a name="line-97"></a><span class='hs-comment'>--</span>
+<a name="line-98"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
+<a name="line-99"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _any foldMap [True,False]</span>
+<a name="line-100"></a><span class='hs-comment'>-- True</span>
+<a name="line-101"></a><span class='hs-sel'>_any</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>Any</span>
+<a name="line-102"></a><span class='hs-sel'>_any</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-conid'>Any</span> <span class='hs-varid'>getAny</span>
+<a name="line-103"></a><span class='hs-comment'>{-# INLINE _any #-}</span>
+<a name="line-104"></a>
+<a name="line-105"></a><span class='hs-comment'>-- | Isomorphism for 'Sum'</span>
+<a name="line-106"></a><span class='hs-comment'>--</span>
+<a name="line-107"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
+<a name="line-108"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _sum foldMap [1,2,3,4]</span>
+<a name="line-109"></a><span class='hs-comment'>-- 10</span>
+<a name="line-110"></a><span class='hs-sel'>_sum</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Sum</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Sum</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-111"></a><span class='hs-sel'>_sum</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Sum</span> <span class='hs-varid'>getSum</span> <span class='hs-conid'>Sum</span> <span class='hs-varid'>getSum</span>
+<a name="line-112"></a><span class='hs-comment'>{-# INLINE _sum #-}</span>
+<a name="line-113"></a>
+<a name="line-114"></a><span class='hs-comment'>-- | Isomorphism for 'Product'</span>
+<a name="line-115"></a><span class='hs-comment'>--</span>
+<a name="line-116"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
+<a name="line-117"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _product foldMap [1,2,3,4]</span>
+<a name="line-118"></a><span class='hs-comment'>-- 24</span>
+<a name="line-119"></a><span class='hs-sel'>_product</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Product</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Product</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-120"></a><span class='hs-sel'>_product</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Product</span> <span class='hs-varid'>getProduct</span> <span class='hs-conid'>Product</span> <span class='hs-varid'>getProduct</span>
+<a name="line-121"></a><span class='hs-comment'>{-# INLINE _product #-}</span>
+<a name="line-122"></a>
+<a name="line-123"></a><span class='hs-comment'>-- | Isomorphism for 'First'</span>
+<a name="line-124"></a><span class='hs-sel'>_first</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-125"></a><span class='hs-sel'>_first</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>First</span> <span class='hs-varid'>getFirst</span> <span class='hs-conid'>First</span> <span class='hs-varid'>getFirst</span>
+<a name="line-126"></a><span class='hs-comment'>{-# INLINE _first #-}</span>
+<a name="line-127"></a>
+<a name="line-128"></a><span class='hs-comment'>-- | Isomorphism for 'Last'</span>
+<a name="line-129"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Last</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Last</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-130"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Last</span> <span class='hs-varid'>getLast</span> <span class='hs-conid'>Last</span> <span class='hs-varid'>getLast</span>
+<a name="line-131"></a><span class='hs-comment'>{-# INLINE _last #-}</span>
 </pre></body>
 </html>

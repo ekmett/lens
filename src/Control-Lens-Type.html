@@ -131,8 +131,8 @@
 <a name="line-122"></a><a name="Lens"></a><span class='hs-comment'>-- @'Control.Lens.Setter.set' l c ('Control.Lens.Setter.set' l b a) = 'Control.Lens.Setter.set' l c a@</span>
 <a name="line-123"></a><a name="Lens"></a><span class='hs-comment'>--</span>
 <a name="line-124"></a><a name="Lens"></a><span class='hs-comment'>-- These laws are strong enough that the 4 type parameters of a 'Lens' cannot</span>
-<a name="line-125"></a><a name="Lens"></a><span class='hs-comment'>-- vary fully independently. For more on how they interact, read the "Why is</span>
-<a name="line-126"></a><a name="Lens"></a><span class='hs-comment'>-- it a Lens Family?" section of</span>
+<a name="line-125"></a><a name="Lens"></a><span class='hs-comment'>-- vary fully independently. For more on how they interact, read the \"Why is</span>
+<a name="line-126"></a><a name="Lens"></a><span class='hs-comment'>-- it a Lens Family?\" section of</span>
 <a name="line-127"></a><a name="Lens"></a><span class='hs-comment'>-- &lt;<a href="http://comonad.com/reader/2012/mirrored-lenses/">http://comonad.com/reader/2012/mirrored-lenses/</a>&gt;.</span>
 <a name="line-128"></a><a name="Lens"></a><span class='hs-comment'>--</span>
 <a name="line-129"></a><a name="Lens"></a><span class='hs-comment'>-- Every 'Lens' can be used directly as a 'Setter' or</span>
@@ -328,7 +328,7 @@
 <a name="line-319"></a>
 <a name="line-320"></a><a name="%3c%25~"></a><span class='hs-comment'>-- | Modify the target of a 'Lens' and return the result</span>
 <a name="line-321"></a><span class='hs-comment'>--</span>
-<a name="line-322"></a><span class='hs-comment'>-- When you do not need the result of the addition, ('Control.Lens.Setter.+~') is more flexible.</span>
+<a name="line-322"></a><span class='hs-comment'>-- When you do not need the result of the addition, ('Control.Lens.Setter.%~') is more flexible.</span>
 <a name="line-323"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;%~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>d</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
 <a name="line-324"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>let</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>c</span> <span class='hs-keyword'>in</span> <span class='hs-layout'>(</span><span class='hs-varid'>d</span><span class='hs-layout'>,</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span>
 <a name="line-325"></a><span class='hs-comment'>{-# INLINE (&lt;%~) #-}</span>

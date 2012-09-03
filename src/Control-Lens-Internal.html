@@ -52,7 +52,7 @@
 <a name="line-43"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Effect</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-44"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>EffectRWS</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-45"></a>  <span class='hs-comment'>-- , EffectS(..)</span>
-<a name="line-46"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Gettable</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-conid'>Accessor</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-conid'>Effective</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-varid'>ineffective</span>
+<a name="line-46"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Gettable</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-conid'>Accessor</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-conid'>Effective</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-varid'>ineffective</span><span class='hs-layout'>,</span> <span class='hs-varid'>noEffect</span><span class='hs-layout'>,</span> <span class='hs-conid'>Folding</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-47"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Settable</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-conid'>Mutator</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-48"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-49"></a>
@@ -270,7 +270,7 @@
 <a name="line-261"></a>  <span class='hs-conid'>ElementOf</span> <span class='hs-varid'>mf</span> <span class='hs-varop'>&lt;*&gt;</span> <span class='hs-conid'>ElementOf</span> <span class='hs-varid'>ma</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ElementOf</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>mf</span> <span class='hs-varid'>i</span> <span class='hs-keyword'>of</span>
 <a name="line-262"></a>    <span class='hs-conid'>Found</span> <span class='hs-varid'>j</span> <span class='hs-varid'>ff</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>ma</span> <span class='hs-varid'>j</span> <span class='hs-keyword'>of</span>
 <a name="line-263"></a>      <span class='hs-conid'>Found</span> <span class='hs-keyword'>_</span> <span class='hs-keyword'>_</span>     <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>NotFound</span> <span class='hs-str'>"multiple results"</span>
-<a name="line-264"></a>      <span class='hs-conid'>Searching</span> <span class='hs-varid'>k</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Found</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>fmap</span> <span class='hs-layout'>(</span><span class='hs-varop'>$</span><span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>ff</span><span class='hs-layout'>)</span>
+<a name="line-264"></a>      <span class='hs-conid'>Searching</span> <span class='hs-varid'>k</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Found</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>fmap</span> <span class='hs-layout'>(</span><span class='hs-varop'>$</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>ff</span><span class='hs-layout'>)</span>
 <a name="line-265"></a>      <span class='hs-conid'>NotFound</span> <span class='hs-varid'>e</span>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>NotFound</span> <span class='hs-varid'>e</span>
 <a name="line-266"></a>    <span class='hs-conid'>Searching</span> <span class='hs-varid'>j</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>ma</span> <span class='hs-varid'>j</span> <span class='hs-keyword'>of</span>
 <a name="line-267"></a>      <span class='hs-conid'>Found</span> <span class='hs-varid'>k</span> <span class='hs-keyword'>as</span>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Found</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>fmap</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span>
@@ -434,91 +434,103 @@
 <a name="line-425"></a><a name="instance%20Effective%20Identity%20r%20(Accessor%20r)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Effective</span> <span class='hs-conid'>Identity</span> <span class='hs-varid'>r</span> <span class='hs-layout'>(</span><span class='hs-conid'>Accessor</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-426"></a>  <span class='hs-varid'>effective</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isomorphic</span> <span class='hs-layout'>(</span><span class='hs-conid'>Accessor</span> <span class='hs-varop'>.</span> <span class='hs-varid'>runIdentity</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varop'>.</span> <span class='hs-varid'>runAccessor</span><span class='hs-layout'>)</span>
 <a name="line-427"></a>  <span class='hs-comment'>{-# INLINE effective #-}</span>
-<a name="line-428"></a>  <span class='hs-comment'>{-# SPECIALIZE effective :: Identity r -&gt; Accessor r a #-}</span>
-<a name="line-429"></a>  <span class='hs-comment'>{-# SPECIALIZE effective :: Isomorphism (Identity r) (Accessor r a) #-}</span>
-<a name="line-430"></a>
-<a name="line-431"></a><a name="instance%20Effective%20m%20(Dual%20r)%20(Backwards%20f)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Effective</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Effective</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Dual</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Backwards</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-432"></a>  <span class='hs-varid'>effective</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isomorphic</span> <span class='hs-layout'>(</span><span class='hs-conid'>Backwards</span> <span class='hs-varop'>.</span> <span class='hs-varid'>effective</span> <span class='hs-varop'>.</span> <span class='hs-varid'>liftM</span> <span class='hs-varid'>getDual</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>liftM</span> <span class='hs-conid'>Dual</span> <span class='hs-varop'>.</span> <span class='hs-varid'>ineffective</span> <span class='hs-varop'>.</span> <span class='hs-varid'>forwards</span><span class='hs-layout'>)</span>
-<a name="line-433"></a>
-<a name="line-434"></a><a name="instance%20Effective%20m%20r%20(Effect%20m%20r)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Effective</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-435"></a>  <span class='hs-varid'>effective</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isomorphic</span> <span class='hs-conid'>Effect</span> <span class='hs-varid'>getEffect</span>
-<a name="line-436"></a>  <span class='hs-comment'>{-# SPECIALIZE effective :: Monad m =&gt; m r -&gt; Effect m r a #-}</span>
-<a name="line-437"></a>  <span class='hs-comment'>{-# SPECIALIZE effective :: Monad m =&gt; Isomorphism (m r) (Effect m r a) #-}</span>
+<a name="line-428"></a>
+<a name="line-429"></a><a name="instance%20Effective%20m%20(Dual%20r)%20(Backwards%20f)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Effective</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Effective</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Dual</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Backwards</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-430"></a>  <span class='hs-varid'>effective</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isomorphic</span> <span class='hs-layout'>(</span><span class='hs-conid'>Backwards</span> <span class='hs-varop'>.</span> <span class='hs-varid'>effective</span> <span class='hs-varop'>.</span> <span class='hs-varid'>liftM</span> <span class='hs-varid'>getDual</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>liftM</span> <span class='hs-conid'>Dual</span> <span class='hs-varop'>.</span> <span class='hs-varid'>ineffective</span> <span class='hs-varop'>.</span> <span class='hs-varid'>forwards</span><span class='hs-layout'>)</span>
+<a name="line-431"></a>
+<a name="line-432"></a><a name="instance%20Effective%20m%20r%20(Effect%20m%20r)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Effective</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-433"></a>  <span class='hs-varid'>effective</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isomorphic</span> <span class='hs-conid'>Effect</span> <span class='hs-varid'>getEffect</span>
+<a name="line-434"></a>  <span class='hs-comment'>{-# INLINE effective #-}</span>
+<a name="line-435"></a>
+<a name="line-436"></a><a name="Folding"></a><span class='hs-comment'>-- | A 'Monoid' for a 'Gettable' 'Applicative'.</span>
+<a name="line-437"></a><a name="Folding"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>Folding</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Folding</span> <span class='hs-layout'>{</span> <span class='hs-varid'>getFolding</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-layout'>}</span>
 <a name="line-438"></a>
-<a name="line-439"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-440"></a><span class='hs-comment'>-- Settables &amp; Mutators</span>
-<a name="line-441"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-442"></a>
-<a name="line-443"></a><a name="Settable"></a><span class='hs-comment'>-- | Anything 'Settable' must be isomorphic to the 'Identity' 'Functor'.</span>
-<a name="line-444"></a><a name="Settable"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>where</span>
-<a name="line-445"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
-<a name="line-446"></a>
-<a name="line-447"></a><a name="instance%20Settable%20Identity"></a><span class='hs-comment'>-- | so you can pass our a 'Setter' into combinators from other lens libraries</span>
-<a name="line-448"></a><a name="instance%20Settable%20Identity"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-conid'>Identity</span> <span class='hs-keyword'>where</span>
-<a name="line-449"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runIdentity</span>
-<a name="line-450"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
-<a name="line-451"></a>
-<a name="line-452"></a><a name="instance%20Settable%20(Backwards%20f)"></a><span class='hs-comment'>-- | 'Control.Lens.Fold.backwards'</span>
-<a name="line-453"></a><a name="instance%20Settable%20(Backwards%20f)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-layout'>(</span><span class='hs-conid'>Backwards</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-454"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>untainted</span> <span class='hs-varop'>.</span> <span class='hs-varid'>forwards</span>
-<a name="line-455"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
-<a name="line-456"></a>
-<a name="line-457"></a><a name="instance%20Settable%20(Compose%20f%20g)"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-layout'>(</span><span class='hs-conid'>Compose</span> <span class='hs-varid'>f</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-458"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>untainted</span> <span class='hs-varop'>.</span> <span class='hs-varid'>untainted</span> <span class='hs-varop'>.</span> <span class='hs-varid'>getCompose</span>
-<a name="line-459"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
-<a name="line-460"></a>
-<a name="line-461"></a><a name="instance%20Settable%20Mutator"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
-<a name="line-462"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runMutator</span>
-<a name="line-463"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
-<a name="line-464"></a>
-<a name="line-465"></a><a name="Mutator"></a><span class='hs-comment'>-- | 'Mutator' is just a renamed 'Identity' functor to give better error</span>
-<a name="line-466"></a><a name="Mutator"></a><span class='hs-comment'>-- messages when someone attempts to use a getter as a setter.</span>
-<a name="line-467"></a><a name="Mutator"></a><span class='hs-comment'>--</span>
-<a name="line-468"></a><a name="Mutator"></a><span class='hs-comment'>-- Most user code will never need to see this type.</span>
-<a name="line-469"></a><a name="Mutator"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span> <span class='hs-layout'>{</span> <span class='hs-varid'>runMutator</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>a</span> <span class='hs-layout'>}</span>
-<a name="line-470"></a>
-<a name="line-471"></a><a name="instance%20Functor%20Mutator"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Functor</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
-<a name="line-472"></a>  <span class='hs-varid'>fmap</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Mutator</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-473"></a>
-<a name="line-474"></a><a name="instance%20Applicative%20Mutator"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Applicative</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
-<a name="line-475"></a>  <span class='hs-varid'>pure</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span>
-<a name="line-476"></a>  <span class='hs-conid'>Mutator</span> <span class='hs-varid'>f</span> <span class='hs-varop'>&lt;*&gt;</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-477"></a>
-<a name="line-478"></a><span class='hs-comment'>{-
-<a name="line-479"></a>data Bazaar c d a
-<a name="line-480"></a>  = Buy a
-<a name="line-481"></a>  | Trade (Bazaar c d (d -&gt; a)) c
-<a name="line-482"></a>
-<a name="line-483"></a>instance Functor (Bazaar c d) where
-<a name="line-484"></a>  fmap f (Buy a)    = Buy (f a)
-<a name="line-485"></a>  fmap f (Trade k b) = Trade (fmap (f .) k)  b
-<a name="line-486"></a>
-<a name="line-487"></a>instance Applicative (Bazaar c d) where
-<a name="line-488"></a>  pure            = Buy
-<a name="line-489"></a>  Buy f     &lt;*&gt; m = fmap f m
-<a name="line-490"></a>  Trade k c &lt;*&gt; m = Trade (flip &lt;$&gt; k &lt;*&gt; m) c
-<a name="line-491"></a>
-<a name="line-492"></a>instance (c ~ d) =&gt; Comonad (Bazaar c d) where
-<a name="line-493"></a>  extract (Buy a)     = a
-<a name="line-494"></a>  extract (Trade z c) = extract z c
-<a name="line-495"></a>  duplicate = duplicateBazaar
-<a name="line-496"></a>
-<a name="line-497"></a>-- | 'Bazaar' is an indexed 'Comonad'.
-<a name="line-498"></a>duplicateBazaar :: Bazaar c e a -&gt; Bazaar c d (Bazaar d e a)
-<a name="line-499"></a>duplicateBazaar (Buy b)     = Buy (Buy b)
-<a name="line-500"></a>duplicateBazaar (Trade z c) = Trade (Trade &lt;$&gt; duplicateBazaar z) c
-<a name="line-501"></a>
-<a name="line-502"></a>-- | A trivial 'Bazaar'.
-<a name="line-503"></a>sell :: c -&gt; Bazaar c d d
-<a name="line-504"></a>sell = Trade (Buy id)
-<a name="line-505"></a>
-<a name="line-506"></a>instance (c ~ d) =&gt; ComonadApply (Bazaar c d) where
-<a name="line-507"></a>  (&lt;@&gt;) = (&lt;*&gt;)
-<a name="line-508"></a>
-<a name="line-509"></a>-- | Given an action to run for each matched pair, traverse a bazaar.
-<a name="line-510"></a>bazaar :: Applicative f =&gt; (c -&gt; f d) -&gt; Bazaar c d b -&gt; f b
-<a name="line-511"></a>bazaar _ (Buy b)    = pure b
-<a name="line-512"></a>bazaar f (Trade k c) = f c &lt;**&gt; bazaar f k
-<a name="line-513"></a>-}</span>
+<a name="line-439"></a><a name="instance%20Monoid%20(Folding%20f%20a)"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Gettable</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Monoid</span> <span class='hs-layout'>(</span><span class='hs-conid'>Folding</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-440"></a>  <span class='hs-varid'>mempty</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Folding</span> <span class='hs-varid'>noEffect</span>
+<a name="line-441"></a>  <span class='hs-comment'>{-# INLINE mempty #-}</span>
+<a name="line-442"></a>  <span class='hs-conid'>Folding</span> <span class='hs-varid'>fr</span> <span class='hs-varop'>`mappend`</span> <span class='hs-conid'>Folding</span> <span class='hs-varid'>fs</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Folding</span> <span class='hs-layout'>(</span><span class='hs-varid'>fr</span> <span class='hs-varop'>*&gt;</span> <span class='hs-varid'>fs</span><span class='hs-layout'>)</span>
+<a name="line-443"></a>  <span class='hs-comment'>{-# INLINE mappend #-}</span>
+<a name="line-444"></a>
+<a name="line-445"></a><a name="noEffect"></a><span class='hs-comment'>-- | The 'mempty' equivalent for a 'Gettable' 'Applicative' 'Functor'.</span>
+<a name="line-446"></a><span class='hs-definition'>noEffect</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Gettable</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
+<a name="line-447"></a><span class='hs-definition'>noEffect</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>coerce</span> <span class='hs-varop'>$</span> <span class='hs-varid'>pure</span> <span class='hs-conid'>()</span>
+<a name="line-448"></a><span class='hs-comment'>{-# INLINE noEffect #-}</span>
+<a name="line-449"></a>
+<a name="line-450"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-451"></a><span class='hs-comment'>-- Settables &amp; Mutators</span>
+<a name="line-452"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-453"></a>
+<a name="line-454"></a><a name="Settable"></a><span class='hs-comment'>-- | Anything 'Settable' must be isomorphic to the 'Identity' 'Functor'.</span>
+<a name="line-455"></a><a name="Settable"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>where</span>
+<a name="line-456"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
+<a name="line-457"></a>
+<a name="line-458"></a><a name="instance%20Settable%20Identity"></a><span class='hs-comment'>-- | so you can pass our a 'Setter' into combinators from other lens libraries</span>
+<a name="line-459"></a><a name="instance%20Settable%20Identity"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-conid'>Identity</span> <span class='hs-keyword'>where</span>
+<a name="line-460"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runIdentity</span>
+<a name="line-461"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
+<a name="line-462"></a>
+<a name="line-463"></a><a name="instance%20Settable%20(Backwards%20f)"></a><span class='hs-comment'>-- | 'Control.Lens.Fold.backwards'</span>
+<a name="line-464"></a><a name="instance%20Settable%20(Backwards%20f)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-layout'>(</span><span class='hs-conid'>Backwards</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-465"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>untainted</span> <span class='hs-varop'>.</span> <span class='hs-varid'>forwards</span>
+<a name="line-466"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
+<a name="line-467"></a>
+<a name="line-468"></a><a name="instance%20Settable%20(Compose%20f%20g)"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-layout'>(</span><span class='hs-conid'>Compose</span> <span class='hs-varid'>f</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-469"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>untainted</span> <span class='hs-varop'>.</span> <span class='hs-varid'>untainted</span> <span class='hs-varop'>.</span> <span class='hs-varid'>getCompose</span>
+<a name="line-470"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
+<a name="line-471"></a>
+<a name="line-472"></a><a name="instance%20Settable%20Mutator"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
+<a name="line-473"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runMutator</span>
+<a name="line-474"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
+<a name="line-475"></a>
+<a name="line-476"></a><a name="Mutator"></a><span class='hs-comment'>-- | 'Mutator' is just a renamed 'Identity' functor to give better error</span>
+<a name="line-477"></a><a name="Mutator"></a><span class='hs-comment'>-- messages when someone attempts to use a getter as a setter.</span>
+<a name="line-478"></a><a name="Mutator"></a><span class='hs-comment'>--</span>
+<a name="line-479"></a><a name="Mutator"></a><span class='hs-comment'>-- Most user code will never need to see this type.</span>
+<a name="line-480"></a><a name="Mutator"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span> <span class='hs-layout'>{</span> <span class='hs-varid'>runMutator</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>a</span> <span class='hs-layout'>}</span>
+<a name="line-481"></a>
+<a name="line-482"></a><a name="instance%20Functor%20Mutator"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Functor</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
+<a name="line-483"></a>  <span class='hs-varid'>fmap</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Mutator</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-484"></a>
+<a name="line-485"></a><a name="instance%20Applicative%20Mutator"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Applicative</span> <span class='hs-conid'>Mutator</span> <span class='hs-keyword'>where</span>
+<a name="line-486"></a>  <span class='hs-varid'>pure</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span>
+<a name="line-487"></a>  <span class='hs-conid'>Mutator</span> <span class='hs-varid'>f</span> <span class='hs-varop'>&lt;*&gt;</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-488"></a>
+<a name="line-489"></a><span class='hs-comment'>{-
+<a name="line-490"></a>data Bazaar c d a
+<a name="line-491"></a>  = Buy a
+<a name="line-492"></a>  | Trade (Bazaar c d (d -&gt; a)) c
+<a name="line-493"></a>
+<a name="line-494"></a>instance Functor (Bazaar c d) where
+<a name="line-495"></a>  fmap f (Buy a)    = Buy (f a)
+<a name="line-496"></a>  fmap f (Trade k b) = Trade (fmap (f .) k)  b
+<a name="line-497"></a>
+<a name="line-498"></a>instance Applicative (Bazaar c d) where
+<a name="line-499"></a>  pure            = Buy
+<a name="line-500"></a>  Buy f     &lt;*&gt; m = fmap f m
+<a name="line-501"></a>  Trade k c &lt;*&gt; m = Trade (flip &lt;$&gt; k &lt;*&gt; m) c
+<a name="line-502"></a>
+<a name="line-503"></a>instance (c ~ d) =&gt; Comonad (Bazaar c d) where
+<a name="line-504"></a>  extract (Buy a)     = a
+<a name="line-505"></a>  extract (Trade z c) = extract z c
+<a name="line-506"></a>  duplicate = duplicateBazaar
+<a name="line-507"></a>
+<a name="line-508"></a>-- | 'Bazaar' is an indexed 'Comonad'.
+<a name="line-509"></a>duplicateBazaar :: Bazaar c e a -&gt; Bazaar c d (Bazaar d e a)
+<a name="line-510"></a>duplicateBazaar (Buy b)     = Buy (Buy b)
+<a name="line-511"></a>duplicateBazaar (Trade z c) = Trade (Trade &lt;$&gt; duplicateBazaar z) c
+<a name="line-512"></a>
+<a name="line-513"></a>-- | A trivial 'Bazaar'.
+<a name="line-514"></a>sell :: c -&gt; Bazaar c d d
+<a name="line-515"></a>sell = Trade (Buy id)
+<a name="line-516"></a>
+<a name="line-517"></a>instance (c ~ d) =&gt; ComonadApply (Bazaar c d) where
+<a name="line-518"></a>  (&lt;@&gt;) = (&lt;*&gt;)
+<a name="line-519"></a>
+<a name="line-520"></a>-- | Given an action to run for each matched pair, traverse a bazaar.
+<a name="line-521"></a>bazaar :: Applicative f =&gt; (c -&gt; f d) -&gt; Bazaar c d b -&gt; f b
+<a name="line-522"></a>bazaar _ (Buy b)    = pure b
+<a name="line-523"></a>bazaar f (Trade k c) = f c &lt;**&gt; bazaar f k
+<a name="line-524"></a>-}</span>
+<a name="line-525"></a>
 </pre></body>
 </html>
