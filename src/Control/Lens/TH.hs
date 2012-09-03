@@ -36,7 +36,7 @@ module Control.Lens.TH
   , lensClass
   , lensFlags
   , LensFlag(..)
-  , simpleLenses, partialLenses, handleSingletons, singletonIso, singletonRequired, createClass, createInstance, classRequired
+  , simpleLenses, partialLenses, handleSingletons, singletonIso, singletonRequired, createClass, createInstance, classRequired, singletonAndField
   ) where
 
 import Control.Applicative
