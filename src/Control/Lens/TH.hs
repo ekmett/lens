@@ -213,7 +213,7 @@ makeLenses = makeLensesWith lensRules
 --
 -- > makeTraversals = makeLensesWith traversalRules
 makeTraversals :: Name -> Q [Dec]
-makeTraversals = makeLensesWith lensRules
+makeTraversals = makeLensesWith traversalRules
 
 -- | Make 'classy lenses' for a type.
 --
@@ -438,7 +438,7 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
               fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
               fvals = map (appE (varE f) . varE . snd) $ lefts vars -- Functor applications
 
-              expr = uInfixE (lamE fpats . appsE $ varE conName : cvals) (varE '(<$>))
+              expr = uInfixE (lamE fpats . appsE $ conE conName : cvals) (varE '(<$>))
                    $ List.foldl1 (\l r -> uInfixE l (varE '(<*>)) r) fvals
 
           plainClause [varP f, conP conName cpats] (normalB expr)
