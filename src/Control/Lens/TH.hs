@@ -11,7 +11,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.TH
--- Copyright   :  (C) 2012 Edward Kmett
+-- Copyright   :  (C) 2012 Edward Kmett, Michael Sloan
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental
@@ -19,24 +19,24 @@
 --
 -----------------------------------------------------------------------------
 module Control.Lens.TH
-  ( LensRules(LensRules)
+  (
+  -- * Constructing Lenses Automatically
+    makeLenses, makeLensesFor
+  , makeClassy, makeClassyFor
+  , makeIso
+  -- * Configuring Lenses
+  , makeLensesWith
+  , defaultRules
+  , LensRules(LensRules)
+  , lensRules
+  , classyRules
+  , isoRules
   , lensIso
   , lensField
   , lensClass
   , lensFlags
   , LensFlag(..)
   , simpleLenses, partialLenses, handleSingletons, singletonIso, singletonRequired, createClass, createInstance, classRequired
-  -- * Constructing Lenses Automatically
-  , defaultRules
-  , lensRules
-  , traversalRules
-  , classyRules
-  , isoRules
-  , makeLenses, makeLensesFor
-  , makeTraversals, makeTraversalsFor
-  , makeClassy, makeClassyFor
-  , makeIso
-  , makeLensesWith
   ) where
 
 import Control.Applicative
@@ -90,7 +90,7 @@ partialLenses      = lensFlags.contains PartialLenses
 
 -- | In the situations that a lens would be partial, when 'partialLenses' is
 -- used, this flag instead causes traversals to be generated.  Only one can be
--- used, and if neither are, then compiletime errors are generated.
+-- used, and if neither are, then compile-time errors are generated.
 buildTraversals   :: Simple Lens LensRules Bool
 buildTraversals    = lensFlags.contains BuildTraversals
 
@@ -98,11 +98,12 @@ buildTraversals    = lensFlags.contains BuildTraversals
 handleSingletons  :: Simple Lens LensRules Bool
 handleSingletons   = lensFlags.contains HandleSingletons
 
--- | When building a singleton iso (or lens) for a record constructor, build both.
+-- | When building a singleton 'Iso' (or 'Lens') for a record constructor, build both
+-- the 'Iso' (or 'Lens') for the record and the one for the field.
 singletonAndField :: Simple Lens LensRules Bool
 singletonAndField  = lensFlags.contains SingletonAndField
 
--- | Use Iso for singleton constructors.
+-- | Use 'Iso' for singleton constructors.
 singletonIso      :: Simple Lens LensRules Bool
 singletonIso       = lensFlags.contains SingletonIso
 
@@ -171,17 +172,9 @@ lensRules
   = lensIso   .~ const Nothing
   $ lensClass .~ const Nothing
   $ handleSingletons .~ True
-  $ partialLenses .~ True
-  $ buildTraversals .~ False
-  $ defaultRules
-
--- | Rules for making simple lenses and traversals, ignoring the special cases
--- for isomorphisms, and not making any classes.
-traversalRules :: LensRules
-traversalRules
-  = partialLenses .~ False
+  $ partialLenses .~ False
   $ buildTraversals .~ True
-  $ lensRules
+  $ defaultRules
 
 -- | Rules for making lenses and traversals that precompose another lens.
 classyRules :: LensRules
@@ -205,17 +198,11 @@ isoRules
   $ singletonAndField .~ True
   $ defaultRules
 
--- | Build lenses with a sensible default configuration.
+-- | Build lenses (and traversals) with a sensible default configuration.
 --
 -- > makeLenses = makeLensesWith lensRules
 makeLenses :: Name -> Q [Dec]
 makeLenses = makeLensesWith lensRules
-
--- | Build lenses and traversals with a sensible default configuration.
---
--- > makeTraversals = makeLensesWith traversalRules
-makeTraversals :: Name -> Q [Dec]
-makeTraversals = makeLensesWith traversalRules
 
 -- | Make lenses and traversals for a type, and create a class when the type has no arguments.
 --
@@ -247,28 +234,20 @@ makeClassy = makeLensesWith classyRules
 makeIso :: Name -> Q [Dec]
 makeIso = makeLensesWith isoRules
 
--- | Derive lenses, specifying explicit pairings of @(fieldName, lensName)@.
+-- | Derive lenses and traversals, specifying explicit pairings of @(fieldName, lensName)@.
+--
+-- If you map multiple names to the same label, and it is present in the same field then this will generate a Traversal.
 --
 -- Example usage:
 --
--- > makeLensesFor [("_foo", "fooLens"), ("bar", "lbar")] ''Foo
+-- > makeLensesFor [("_foo", "fooLens"), ("baz", "lbaz")] ''Foo
+-- > makeLensesFor [("_barX", "bar"), ("_barY", "bar)] ''Bar
 makeLensesFor :: [(String, String)] -> Name -> Q [Dec]
 makeLensesFor fields = makeLensesWith
   $ lensField .~ (`Prelude.lookup` fields)
   $ lensRules
 
--- | Derive lenses and traversals, specifying explicit pairings of
--- @(fieldName, traversalName)@.
---
--- Example usage:
---
--- > makeTraversalsFor [("_foo", "lfoo"), ("_foo2", "lfoo"), ("bar", "lbar")] ''Foo
-makeTraversalsFor :: [(String, String)] -> Name -> Q [Dec]
-makeTraversalsFor fields = makeLensesWith
-  $ lensField .~ (`Prelude.lookup` fields)
-  $ traversalRules
-
--- | Derive lenses and traversals, using a wrapper class, and specifying
+-- | Derive lenses and traversals, using a named wrapper class, and specifying
 -- explicit pairings of @(fieldName, traversalName)@.
 --
 -- Example usage:
@@ -439,16 +418,12 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
         False | length fields /= 1
           -> plainClause [wildP, conWild] . normalB . appE (varE 'error) . litE . stringL
            $ show lensName ++ ": expected a single matching field in " ++ show conName ++ ", found " ++ show (length fields)
-
         _ -> do
-
           vars <- for allFields $ \field ->
               if field `List.elem` fields
             then fmap Left $ (,) <$> newName (nameBase field) <*> newName (nameBase field ++ "'")
             else Right <$> newName (nameBase field)
-
           f     <- newName "f"
-
           let cpats = map (varP . either fst id) vars               -- Deconstruction
               cvals = map (varE . either snd id) vars               -- Reconstruction
               fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
@@ -456,7 +431,6 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
 
               expr = uInfixE (lamE fpats . appsE $ conE conName : cvals) (varE '(<$>))
                    $ List.foldl1 (\l r -> uInfixE l (varE '(<*>)) r) fvals
-
           plainClause [varP f, conP conName cpats] (normalB expr)
 
 makeFieldLenses :: LensRules
@@ -488,7 +462,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
 #ifdef INLINING
             , inlinePragma methodName
 #endif
-            ] ]
+            ]]
 
   --TODO: there's probably a more efficient way to do this.
   lensFields <- map (\xs -> (fst $ head xs, map snd xs))
@@ -533,10 +507,10 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
                        | otherwise -> fail . unlines $
           [ "Cannot use 'makeLensesWith' with constructors that don't map just one field"
           , "to a lens, without using either the buildTraversals or partialLenses flags."
-          , "The following constructor(s) fail these criteria for the " ++ pprint lensName ++ " lens:"
-          ] ++ map (\(c, fs) -> pprint (view name c)
-                             ++ " { " ++ concat (intersperse ", " $ map pprint fs) ++ " }")
-                   conList
+          , if length conList == 1
+            then "The following constructor failed this criterion for the " ++ pprint lensName ++ " lens:"
+            else "The following constructors failed this criterion for the " ++ pprint lensName ++ " lens:"
+          ] ++ map (\(c, fs) -> pprint (view name c) ++ " { " ++ concat (intersperse ", " $ map pprint fs) ++ " }") conList
 
     let decl = SigD lensName
              . ForallT tvs' qs
