@@ -416,13 +416,13 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
           conName = con^.name
           conWild = conP conName (replicate (length allFields) wildP)
 
-      case (List.null fields, isTraversal) of
-        (True, True)
+      case isTraversal of
+        True | List.null fields
           -> plainClause [wildP, y `asP` conWild] (normalB . appE (varE 'pure) $ varE y)
 
-        (True, False)
+        False | length fields /= 1
           -> plainClause [wildP, conWild] . normalB . appE (varE 'error) . litE . stringL
-           $ show lensName ++ ": no matching field in constructor " ++ show conName
+           $ show lensName ++ ": no single matching field in constructor " ++ show conName
 
         _ -> do
 
