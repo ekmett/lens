@@ -21,7 +21,8 @@ module Language.Haskell.TH.Lens
   , SubstType(..)
   , typeVars      -- :: HasTypeVars t => Simple Traversal t Name
   , substTypeVars -- :: HasTypeVars t => Map Name Name -> t -> t
-  , conFields, conNamedFields
+  , conFields
+  , conNamedFields
   ) where
 
 import Control.Applicative
@@ -123,6 +124,7 @@ conFields f (RecC n fs)         = RecC n <$> traverse sans_var fs
 conFields f (InfixC l n r)      = InfixC <$> f l <*> pure n <*> f r
 conFields f (ForallC bds ctx c) = ForallC bds ctx <$> conFields f c
 
+-- | 'Traversal' of the types of the /named/ fields of a constructor.
 conNamedFields :: Simple Traversal Con VarStrictType
 conNamedFields f (RecC n fs) = RecC n <$> traverse f fs
 conNamedFields _ c = pure c
