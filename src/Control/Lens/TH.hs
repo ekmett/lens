@@ -36,7 +36,7 @@ module Control.Lens.TH
   , lensClass
   , lensFlags
   , LensFlag(..)
-  , simpleLenses, partialLenses, handleSingletons, singletonIso, singletonRequired, createClass, createInstance, classRequired, singletonAndField
+  , simpleLenses, partialLenses, buildTraversals, handleSingletons, singletonIso, singletonRequired, createClass, createInstance, classRequired, singletonAndField
   ) where
 
 import Control.Applicative
@@ -548,8 +548,10 @@ getLensFields :: (String -> Maybe String) -> Con -> Q [(Name, (Name, Name, Type)
 getLensFields nameFunc (RecC cn fs)
   = return . catMaybes
   $ map (\(fn,_,t) -> (\ln -> (mkName ln, (cn,fn,t))) <$> nameFunc (nameBase fn)) fs
-getLensFields _ _
-  = warn "makeLensesWith: encountered a non-record constructor, for which no lenses will be generated."
+getLensFields _ c
+  = warn ( "makeLensesWith: encountered a non-record constructor, " 
+        ++ pprint (view name c)
+        ++ " for which no lenses will be generated." )
   >> return []
 
 -- TODO: properly fill this out
