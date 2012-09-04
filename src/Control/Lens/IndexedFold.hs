@@ -70,7 +70,7 @@ type IndexedFold i a c = forall k f. (Indexed i k, Applicative f, Gettable f) =>
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.foldMapOf' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.foldMapOf' l = 'ifoldMapOf' l . 'const'@
+-- @'Control.Lens.Fold.foldMapOf' l ≡ 'ifoldMapOf' l '.' 'const'@
 --
 -- @
 -- 'ifoldMapOf' ::             'IndexedGetter' i a c          -> (i -> c -> m) -> a -> m
@@ -88,7 +88,7 @@ ifoldMapOf l f = runAccessor . withIndex l (\i -> Accessor . f i)
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.foldrOf' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.foldrOf' l = 'ifoldrOf' l . 'const'@
+-- @'Control.Lens.Fold.foldrOf' l ≡ 'ifoldrOf' l '.' 'const'@
 --
 -- @
 -- 'ifoldrOf' :: 'IndexedGetter' i a c          -> (i -> c -> e -> e) -> e -> a -> e
@@ -106,7 +106,7 @@ ifoldrOf l f z t = appEndo (ifoldMapOf l (\i -> Endo . f i) t) z
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.foldlOf' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.foldlOf' l = 'ifoldlOf' l . 'const'@
+-- @'Control.Lens.Fold.foldlOf' l ≡ 'ifoldlOf' l '.' 'const'@
 --
 -- @
 -- 'ifoldlOf' :: 'IndexedGetter' i a c          -> (i -> e -> c -> e) -> e -> a -> e
@@ -124,7 +124,7 @@ ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> Dual . Endo . flip (f i
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.anyOf' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.anyOf' l = 'ianyOf' l . 'const'@
+-- @'Control.Lens.Fold.anyOf' l ≡ 'ianyOf' l '.' 'const'@
 --
 -- @
 -- 'ianyOf' :: 'IndexedGetter' i a c          -> (i -> c -> 'Bool') -> a -> 'Bool'
@@ -133,7 +133,7 @@ ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> Dual . Endo . flip (f i
 -- 'ianyOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> 'Bool') -> a -> 'Bool'
 -- @
 ianyOf :: IndexedGetting i Any a b c d -> (i -> c -> Bool) -> a -> Bool
-ianyOf l f = getAny . ifoldMapOf l (\i -> Any . f i)
+ianyOf l f ≡ getAny . ifoldMapOf l (\i -> Any . f i)
 {-# INLINE ianyOf #-}
 
 -- |
@@ -142,7 +142,7 @@ ianyOf l f = getAny . ifoldMapOf l (\i -> Any . f i)
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.allOf' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.allOf' l = 'iallOf' l . 'const'@
+-- @'Control.Lens.Fold.allOf' l ≡ 'iallOf' l '.' 'const'@
 --
 -- @
 -- 'iallOf' :: 'IndexedGetter' i a c          -> (i -> c -> 'Bool') -> a -> 'Bool'
@@ -159,7 +159,7 @@ iallOf l f = getAll . ifoldMapOf l (\i -> All . f i)
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.traverseOf_' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.traverseOf_' l = 'itraverseOf' l . 'const'@
+-- @'Control.Lens.Fold.traverseOf_' l ≡ 'itraverseOf' l '.' 'const'@
 --
 -- @
 -- 'itraverseOf_' :: 'Functor' f     => 'IndexedGetter' i a c          -> (i -> c -> f e) -> a -> f ()
@@ -175,11 +175,11 @@ itraverseOf_ l f = getTraversed . ifoldMapOf l (\i -> Traversed . void . f i)
 -- Traverse the targets of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index, discarding the results
 -- (with the arguments flipped).
 --
--- @'iforOf_' = 'flip' . 'itraverseOf_'@
+-- @'iforOf_' ≡ 'flip' '.' 'itraverseOf_'@
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.forOf_' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.forOf_' l a = 'iforOf_' l a . 'const'@
+-- @'Control.Lens.Fold.forOf_' l a ≡ 'iforOf_' l a '.' 'const'@
 --
 -- @
 -- 'iforOf_' :: 'Functor' f     => 'IndexedGetter' i a c          -> a -> (i -> c -> f e) -> f ()
@@ -197,7 +197,7 @@ iforOf_ = flip . itraverseOf_
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.mapMOf_' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.mapMOf_' l = 'imapMOf' l . 'const'@
+-- @'Control.Lens.Fold.mapMOf_' l ≡ 'imapMOf' l '.' 'const'@
 --
 -- @
 -- 'imapMOf_' :: 'Monad' m => 'IndexedGetter' i a c          -> (i -> c -> m e) -> a -> m ()
@@ -217,11 +217,11 @@ skip _ = ()
 -- Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
 -- discarding the results (with the arguments flipped).
 --
--- @'iforMOf_' = 'flip' . 'imapMOf_'@
+-- @'iforMOf_' ≡ 'flip' '.' 'imapMOf_'@
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.forMOf_' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.forMOf_' l a = 'iforMOf' l a . 'const'@
+-- @'Control.Lens.Fold.forMOf_' l a ≡ 'iforMOf' l a '.' 'const'@
 --
 -- @
 -- 'iforMOf_' :: 'Monad' m => 'IndexedGetter' i a c          -> a -> (i -> c -> m e) -> m ()
@@ -240,8 +240,8 @@ iforMOf_ = flip . imapMOf_
 -- When you don't need access to the index then 'Control.Lens.Fold.concatMapOf'  is more flexible in what it accepts.
 --
 -- @
--- 'Control.Lens.Fold.concatMapOf' l = 'iconcatMapOf' l . 'const'
--- 'iconcatMapOf' = 'ifoldMapOf'
+-- 'Control.Lens.Fold.concatMapOf' l ≡ 'iconcatMapOf' l '.' 'const'
+-- 'iconcatMapOf' ≡ 'ifoldMapOf'
 -- @
 --
 -- @
@@ -260,7 +260,7 @@ iconcatMapOf = ifoldMapOf
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.findOf' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.findOf' l = 'ifindOf' l . 'const'@
+-- @'Control.Lens.Fold.findOf' l ≡ 'ifindOf' l '.' 'const'@
 --
 -- @
 -- 'ifindOf' :: 'IndexedGetter' a c          -> (i -> c -> 'Bool') -> a -> 'Maybe' (i, c)
@@ -279,7 +279,7 @@ ifindOf l p = getFirst . ifoldMapOf l step where
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.foldrOf'' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.foldrOf'' l = 'ifoldrOf'' l . 'const'@
+-- @'Control.Lens.Fold.foldrOf'' l ≡ 'ifoldrOf'' l '.' 'const'@
 --
 -- @
 -- 'ifoldrOf'' :: 'IndexedGetter' i a c          -> (i -> c -> e -> e) -> e -> a -> e
@@ -296,7 +296,7 @@ ifoldrOf' l f z0 xs = ifoldlOf l f' id xs z0
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.foldlOf'' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.foldlOf'' l = 'ifoldlOf'' l . 'const'@
+-- @'Control.Lens.Fold.foldlOf'' l ≡ 'ifoldlOf'' l '.' 'const'@
 --
 -- @
 -- 'ifoldlOf'' :: 'IndexedGetter' i a c            -> (i -> e -> c -> e) -> e -> a -> e
@@ -313,7 +313,7 @@ ifoldlOf' l f z0 xs = ifoldrOf l f' id xs z0
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.foldrMOf' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.foldrMOf' l = 'ifoldrMOf' l . 'const'@
+-- @'Control.Lens.Fold.foldrMOf' l ≡ 'ifoldrMOf' l '.' 'const'@
 --
 -- @
 -- 'ifoldrMOf' :: 'Monad' m => 'IndexedGetter' i a c          -> (i -> c -> e -> m e) -> e -> a -> e
@@ -330,7 +330,7 @@ ifoldrMOf l f z0 xs = ifoldlOf l f' return xs z0
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.foldlMOf' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.foldlMOf' l = 'ifoldlMOf' l . 'const'@
+-- @'Control.Lens.Fold.foldlMOf' l ≡ 'ifoldlMOf' l '.' 'const'@
 --
 -- @
 -- 'ifoldlOf'' :: 'Monad' m => 'IndexedGetter' i a c            -> (i -> e -> c -> m e) -> e -> a -> e
@@ -347,7 +347,7 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 --
 -- When you don't need access to the indices in the result, then 'Control.Lens.Fold.toListOf' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.toListOf' l = 'map' 'fst' . 'itoListOf' l@
+-- @'Control.Lens.Fold.toListOf' l ≡ 'map' 'fst' '.' 'itoListOf' l@
 --
 -- @
 -- 'itoListOf' :: 'IndexedGetter' i a c          -> a -> [(i,c)]
