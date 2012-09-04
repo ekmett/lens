@@ -88,11 +88,11 @@
 <a name="line-79"></a><span class='hs-comment'>-- | Isomorphism for 'All'</span>
 <a name="line-80"></a><span class='hs-comment'>--</span>
 <a name="line-81"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-82"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _all foldMap [True,True]</span>
+<a name="line-82"></a><span class='hs-comment'>-- &gt;&gt;&gt; ala _all foldMap [True,True]</span>
 <a name="line-83"></a><span class='hs-comment'>-- True</span>
 <a name="line-84"></a><span class='hs-comment'>--</span>
 <a name="line-85"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-86"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _all foldMap [True,False]</span>
+<a name="line-86"></a><span class='hs-comment'>-- &gt;&gt;&gt; ala _all foldMap [True,False]</span>
 <a name="line-87"></a><span class='hs-comment'>-- False</span>
 <a name="line-88"></a><span class='hs-sel'>_all</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>All</span>
 <a name="line-89"></a><span class='hs-sel'>_all</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-conid'>All</span> <span class='hs-varid'>getAll</span>
@@ -101,11 +101,11 @@
 <a name="line-92"></a><span class='hs-comment'>-- | Isomorphism for 'Any'</span>
 <a name="line-93"></a><span class='hs-comment'>--</span>
 <a name="line-94"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-95"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _any foldMap [False,False]</span>
+<a name="line-95"></a><span class='hs-comment'>-- &gt;&gt;&gt; ala _any foldMap [False,False]</span>
 <a name="line-96"></a><span class='hs-comment'>-- False</span>
 <a name="line-97"></a><span class='hs-comment'>--</span>
 <a name="line-98"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-99"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _any foldMap [True,False]</span>
+<a name="line-99"></a><span class='hs-comment'>-- &gt;&gt;&gt; ala _any foldMap [True,False]</span>
 <a name="line-100"></a><span class='hs-comment'>-- True</span>
 <a name="line-101"></a><span class='hs-sel'>_any</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>Any</span>
 <a name="line-102"></a><span class='hs-sel'>_any</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-conid'>Any</span> <span class='hs-varid'>getAny</span>
@@ -114,7 +114,7 @@
 <a name="line-105"></a><span class='hs-comment'>-- | Isomorphism for 'Sum'</span>
 <a name="line-106"></a><span class='hs-comment'>--</span>
 <a name="line-107"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-108"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _sum foldMap [1,2,3,4]</span>
+<a name="line-108"></a><span class='hs-comment'>-- &gt;&gt;&gt; ala _sum foldMap [1,2,3,4]</span>
 <a name="line-109"></a><span class='hs-comment'>-- 10</span>
 <a name="line-110"></a><span class='hs-sel'>_sum</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Sum</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Sum</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
 <a name="line-111"></a><span class='hs-sel'>_sum</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Sum</span> <span class='hs-varid'>getSum</span> <span class='hs-conid'>Sum</span> <span class='hs-varid'>getSum</span>
@@ -123,7 +123,7 @@
 <a name="line-114"></a><span class='hs-comment'>-- | Isomorphism for 'Product'</span>
 <a name="line-115"></a><span class='hs-comment'>--</span>
 <a name="line-116"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens Data.Monoid.Lens Data.Foldable</span>
-<a name="line-117"></a><span class='hs-comment'>-- &gt;&gt;&gt; au _product foldMap [1,2,3,4]</span>
+<a name="line-117"></a><span class='hs-comment'>-- &gt;&gt;&gt; ala _product foldMap [1,2,3,4]</span>
 <a name="line-118"></a><span class='hs-comment'>-- 24</span>
 <a name="line-119"></a><span class='hs-sel'>_product</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Product</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Product</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
 <a name="line-120"></a><span class='hs-sel'>_product</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Product</span> <span class='hs-varid'>getProduct</span> <span class='hs-conid'>Product</span> <span class='hs-varid'>getProduct</span>

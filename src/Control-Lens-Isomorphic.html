@@ -78,11 +78,11 @@
 <a name="line-69"></a><span class='hs-comment'>-- Note to compose an isomorphism and receive an isomorphism in turn you'll need to use</span>
 <a name="line-70"></a><span class='hs-comment'>-- 'Control.Category.Category'</span>
 <a name="line-71"></a><span class='hs-comment'>--</span>
-<a name="line-72"></a><span class='hs-comment'>-- &gt; from (from l) = l</span>
+<a name="line-72"></a><span class='hs-comment'>-- @'from' ('from' l) ≡ l@</span>
 <a name="line-73"></a><span class='hs-comment'>--</span>
 <a name="line-74"></a><span class='hs-comment'>-- If you imported 'Control.Category..' from @Control.Category@, then:</span>
 <a name="line-75"></a><span class='hs-comment'>--</span>
-<a name="line-76"></a><span class='hs-comment'>-- &gt; from l . from r = from (r . l)</span>
+<a name="line-76"></a><span class='hs-comment'>-- @'from' l '.' 'from' r ≡ 'from' (r '.' l)@</span>
 <a name="line-77"></a><span class='hs-definition'>from</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Isomorphic</span> <span class='hs-varid'>k</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Isomorphism</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span>
 <a name="line-78"></a><span class='hs-definition'>from</span> <span class='hs-layout'>(</span><span class='hs-conid'>Isomorphism</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isomorphic</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span>
 <a name="line-79"></a><span class='hs-comment'>{-# INLINE from #-}</span>

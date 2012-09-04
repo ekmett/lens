@@ -410,7 +410,7 @@
 <a name="line-401"></a><a name="Accessor"></a><span class='hs-comment'>-- @No instance of ('Control.Lens.Setter.Settable' 'Accessor')@</span>
 <a name="line-402"></a><a name="Accessor"></a><span class='hs-comment'>--</span>
 <a name="line-403"></a><a name="Accessor"></a><span class='hs-comment'>-- when the user attempts to misuse a 'Control.Lens.Setter.Setter' as a</span>
-<a name="line-404"></a><a name="Accessor"></a><span class='hs-comment'>-- 'Getter', rather than a monolithic unification error.</span>
+<a name="line-404"></a><a name="Accessor"></a><span class='hs-comment'>-- 'Control.Lens.Getter.Getter', rather than a monolithic unification error.</span>
 <a name="line-405"></a><a name="Accessor"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>Accessor</span> <span class='hs-varid'>r</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Accessor</span> <span class='hs-layout'>{</span> <span class='hs-varid'>runAccessor</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>r</span> <span class='hs-layout'>}</span>
 <a name="line-406"></a>
 <a name="line-407"></a><a name="instance%20Functor%20(Accessor%20r)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>Accessor</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -464,7 +464,7 @@
 <a name="line-455"></a><a name="Settable"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Settable</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>where</span>
 <a name="line-456"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
 <a name="line-457"></a>
-<a name="line-458"></a><a name="instance%20Settable%20Identity"></a><span class='hs-comment'>-- | so you can pass our a 'Setter' into combinators from other lens libraries</span>
+<a name="line-458"></a><a name="instance%20Settable%20Identity"></a><span class='hs-comment'>-- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries</span>
 <a name="line-459"></a><a name="instance%20Settable%20Identity"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-conid'>Identity</span> <span class='hs-keyword'>where</span>
 <a name="line-460"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runIdentity</span>
 <a name="line-461"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
@@ -495,42 +495,5 @@
 <a name="line-486"></a>  <span class='hs-varid'>pure</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span>
 <a name="line-487"></a>  <span class='hs-conid'>Mutator</span> <span class='hs-varid'>f</span> <span class='hs-varop'>&lt;*&gt;</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
 <a name="line-488"></a>
-<a name="line-489"></a><span class='hs-comment'>{-
-<a name="line-490"></a>data Bazaar c d a
-<a name="line-491"></a>  = Buy a
-<a name="line-492"></a>  | Trade (Bazaar c d (d -&gt; a)) c
-<a name="line-493"></a>
-<a name="line-494"></a>instance Functor (Bazaar c d) where
-<a name="line-495"></a>  fmap f (Buy a)    = Buy (f a)
-<a name="line-496"></a>  fmap f (Trade k b) = Trade (fmap (f .) k)  b
-<a name="line-497"></a>
-<a name="line-498"></a>instance Applicative (Bazaar c d) where
-<a name="line-499"></a>  pure            = Buy
-<a name="line-500"></a>  Buy f     &lt;*&gt; m = fmap f m
-<a name="line-501"></a>  Trade k c &lt;*&gt; m = Trade (flip &lt;$&gt; k &lt;*&gt; m) c
-<a name="line-502"></a>
-<a name="line-503"></a>instance (c ~ d) =&gt; Comonad (Bazaar c d) where
-<a name="line-504"></a>  extract (Buy a)     = a
-<a name="line-505"></a>  extract (Trade z c) = extract z c
-<a name="line-506"></a>  duplicate = duplicateBazaar
-<a name="line-507"></a>
-<a name="line-508"></a>-- | 'Bazaar' is an indexed 'Comonad'.
-<a name="line-509"></a>duplicateBazaar :: Bazaar c e a -&gt; Bazaar c d (Bazaar d e a)
-<a name="line-510"></a>duplicateBazaar (Buy b)     = Buy (Buy b)
-<a name="line-511"></a>duplicateBazaar (Trade z c) = Trade (Trade &lt;$&gt; duplicateBazaar z) c
-<a name="line-512"></a>
-<a name="line-513"></a>-- | A trivial 'Bazaar'.
-<a name="line-514"></a>sell :: c -&gt; Bazaar c d d
-<a name="line-515"></a>sell = Trade (Buy id)
-<a name="line-516"></a>
-<a name="line-517"></a>instance (c ~ d) =&gt; ComonadApply (Bazaar c d) where
-<a name="line-518"></a>  (&lt;@&gt;) = (&lt;*&gt;)
-<a name="line-519"></a>
-<a name="line-520"></a>-- | Given an action to run for each matched pair, traverse a bazaar.
-<a name="line-521"></a>bazaar :: Applicative f =&gt; (c -&gt; f d) -&gt; Bazaar c d b -&gt; f b
-<a name="line-522"></a>bazaar _ (Buy b)    = pure b
-<a name="line-523"></a>bazaar f (Trade k c) = f c &lt;**&gt; bazaar f k
-<a name="line-524"></a>-}</span>
-<a name="line-525"></a>
 </pre></body>
 </html>

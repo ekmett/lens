@@ -95,8 +95,8 @@
 <a name="line-86"></a><a name="Traversal"></a><span class='hs-comment'>-- The laws for a Traversal @t@ follow from the laws for Traversable as stated in \"The Essence of the Iterator Pattern\".</span>
 <a name="line-87"></a><a name="Traversal"></a><span class='hs-comment'>--</span>
 <a name="line-88"></a><a name="Traversal"></a><span class='hs-comment'>-- @</span>
-<a name="line-89"></a><a name="Traversal"></a><span class='hs-comment'>-- t 'pure' = 'pure'</span>
-<a name="line-90"></a><a name="Traversal"></a><span class='hs-comment'>-- 'fmap' (t f) . t g = 'Data.Functor.Compose.getCompose' . t ('Data.Functor.Compose.Compose' . 'fmap' f . g)</span>
+<a name="line-89"></a><a name="Traversal"></a><span class='hs-comment'>-- t 'pure' ≡ 'pure'</span>
+<a name="line-90"></a><a name="Traversal"></a><span class='hs-comment'>-- 'fmap' (t f) '.' t g ≡ 'Data.Functor.Compose.getCompose' '.' t ('Data.Functor.Compose.Compose' '.' 'fmap' f '.' g)</span>
 <a name="line-91"></a><a name="Traversal"></a><span class='hs-comment'>-- @</span>
 <a name="line-92"></a><a name="Traversal"></a><span class='hs-comment'>--</span>
 <a name="line-93"></a><a name="Traversal"></a><span class='hs-comment'>-- One consequence of this requirement is that a 'Traversal' needs to leave the same number of elements as a</span>
@@ -117,9 +117,9 @@
 <a name="line-108"></a><span class='hs-comment'>-- Map each element of a structure targeted by a Lens or Traversal,</span>
 <a name="line-109"></a><span class='hs-comment'>-- evaluate these actions from left to right, and collect the results.</span>
 <a name="line-110"></a><span class='hs-comment'>--</span>
-<a name="line-111"></a><span class='hs-comment'>-- @'traverseOf' = 'id'@</span>
+<a name="line-111"></a><span class='hs-comment'>-- @'traverseOf' ≡ 'id'@</span>
 <a name="line-112"></a><span class='hs-comment'>--</span>
-<a name="line-113"></a><span class='hs-comment'>-- @'traverse' = 'traverseOf' 'traverse'@</span>
+<a name="line-113"></a><span class='hs-comment'>-- @'traverse' ≡ 'traverseOf' 'traverse'@</span>
 <a name="line-114"></a><span class='hs-comment'>--</span>
 <a name="line-115"></a><span class='hs-comment'>-- @</span>
 <a name="line-116"></a><span class='hs-comment'>-- 'traverseOf' :: 'Control.Lens.Iso.Iso' a b c d       -&gt; (c -&gt; f d) -&gt; a -&gt; f b</span>
@@ -132,11 +132,11 @@
 <a name="line-123"></a>
 <a name="line-124"></a><a name="forOf"></a><span class='hs-comment'>-- |</span>
 <a name="line-125"></a><span class='hs-comment'>--</span>
-<a name="line-126"></a><span class='hs-comment'>-- @'forOf' l = 'flip' ('traverseOf' l)@</span>
+<a name="line-126"></a><span class='hs-comment'>-- @'forOf' l ≡ 'flip' ('traverseOf' l)@</span>
 <a name="line-127"></a><span class='hs-comment'>--</span>
 <a name="line-128"></a><span class='hs-comment'>-- @</span>
-<a name="line-129"></a><span class='hs-comment'>-- 'for' = 'forOf' 'traverse'</span>
-<a name="line-130"></a><span class='hs-comment'>-- 'forOf' = 'flip'</span>
+<a name="line-129"></a><span class='hs-comment'>-- 'for' ≡ 'forOf' 'traverse'</span>
+<a name="line-130"></a><span class='hs-comment'>-- 'forOf' ≡ 'flip'</span>
 <a name="line-131"></a><span class='hs-comment'>-- @</span>
 <a name="line-132"></a><span class='hs-comment'>--</span>
 <a name="line-133"></a><span class='hs-comment'>-- @</span>
@@ -153,9 +153,9 @@
 <a name="line-144"></a><span class='hs-comment'>-- the results.</span>
 <a name="line-145"></a><span class='hs-comment'>--</span>
 <a name="line-146"></a><span class='hs-comment'>-- @</span>
-<a name="line-147"></a><span class='hs-comment'>-- 'sequenceA' = 'sequenceAOf' 'traverse' = 'traverse' 'id'</span>
-<a name="line-148"></a><span class='hs-comment'>-- 'sequenceAOf' l = 'traverseOf' l id</span>
-<a name="line-149"></a><span class='hs-comment'>-- 'sequenceAOf' l = l id</span>
+<a name="line-147"></a><span class='hs-comment'>-- 'sequenceA' ≡ 'sequenceAOf' 'traverse' = 'traverse' 'id'</span>
+<a name="line-148"></a><span class='hs-comment'>-- 'sequenceAOf' l ≡ 'traverseOf' l id</span>
+<a name="line-149"></a><span class='hs-comment'>-- 'sequenceAOf' l ≡ l id</span>
 <a name="line-150"></a><span class='hs-comment'>-- @</span>
 <a name="line-151"></a><span class='hs-comment'>--</span>
 <a name="line-152"></a><span class='hs-comment'>-- @</span>
@@ -170,7 +170,7 @@
 <a name="line-161"></a><a name="mapMOf"></a><span class='hs-comment'>-- | Map each element of a structure targeted by a lens to a monadic action,</span>
 <a name="line-162"></a><span class='hs-comment'>-- evaluate these actions from left to right, and collect the results.</span>
 <a name="line-163"></a><span class='hs-comment'>--</span>
-<a name="line-164"></a><span class='hs-comment'>-- @'mapM' = 'mapMOf' 'traverse'@</span>
+<a name="line-164"></a><span class='hs-comment'>-- @'mapM' ≡ 'mapMOf' 'traverse'@</span>
 <a name="line-165"></a><span class='hs-comment'>--</span>
 <a name="line-166"></a><span class='hs-comment'>-- @</span>
 <a name="line-167"></a><span class='hs-comment'>-- 'mapMOf' ::            'Control.Lens.Iso.Iso' a b c d       -&gt; (c -&gt; m d) -&gt; a -&gt; m b</span>
@@ -183,8 +183,8 @@
 <a name="line-174"></a>
 <a name="line-175"></a><a name="forMOf"></a><span class='hs-comment'>-- |</span>
 <a name="line-176"></a><span class='hs-comment'>-- @</span>
-<a name="line-177"></a><span class='hs-comment'>-- 'forM' = 'forMOf' 'traverse'</span>
-<a name="line-178"></a><span class='hs-comment'>-- 'forMOf' l = 'flip' ('mapMOf' l)</span>
+<a name="line-177"></a><span class='hs-comment'>-- 'forM' ≡ 'forMOf' 'traverse'</span>
+<a name="line-178"></a><span class='hs-comment'>-- 'forMOf' l ≡ 'flip' ('mapMOf' l)</span>
 <a name="line-179"></a><span class='hs-comment'>-- @</span>
 <a name="line-180"></a><span class='hs-comment'>--</span>
 <a name="line-181"></a><span class='hs-comment'>-- @</span>
@@ -198,9 +198,9 @@
 <a name="line-189"></a>
 <a name="line-190"></a><a name="sequenceOf"></a><span class='hs-comment'>-- |</span>
 <a name="line-191"></a><span class='hs-comment'>-- @</span>
-<a name="line-192"></a><span class='hs-comment'>-- 'sequence' = 'sequenceOf' 'traverse'</span>
-<a name="line-193"></a><span class='hs-comment'>-- 'sequenceOf' l = 'mapMOf' l id</span>
-<a name="line-194"></a><span class='hs-comment'>-- 'sequenceOf' l = 'unwrapMonad' . l 'WrapMonad'</span>
+<a name="line-192"></a><span class='hs-comment'>-- 'sequence' ≡ 'sequenceOf' 'traverse'</span>
+<a name="line-193"></a><span class='hs-comment'>-- 'sequenceOf' l ≡ 'mapMOf' l id</span>
+<a name="line-194"></a><span class='hs-comment'>-- 'sequenceOf' l ≡ 'unwrapMonad' . l 'WrapMonad'</span>
 <a name="line-195"></a><span class='hs-comment'>-- @</span>
 <a name="line-196"></a><span class='hs-comment'>--</span>
 <a name="line-197"></a><span class='hs-comment'>-- @</span>
@@ -216,7 +216,7 @@
 <a name="line-207"></a><span class='hs-comment'>--</span>
 <a name="line-208"></a><span class='hs-comment'>-- Note: 'Data.List.transpose' handles ragged inputs more intelligently, but for non-ragged inputs:</span>
 <a name="line-209"></a><span class='hs-comment'>--</span>
-<a name="line-210"></a><span class='hs-comment'>-- @'Data.List.transpose' = 'transposeOf' 'traverse'@</span>
+<a name="line-210"></a><span class='hs-comment'>-- @'Data.List.transpose' ≡ 'transposeOf' 'traverse'@</span>
 <a name="line-211"></a><span class='hs-comment'>--</span>
 <a name="line-212"></a><span class='hs-comment'>-- &gt;&gt;&gt; transposeOf traverse [[1,2,3],[4,5,6]]</span>
 <a name="line-213"></a><span class='hs-comment'>-- [[1,4],[2,5],[3,6]]</span>
@@ -231,7 +231,7 @@
 <a name="line-222"></a>
 <a name="line-223"></a><a name="mapAccumROf"></a><span class='hs-comment'>-- | Generalizes 'Data.Traversable.mapAccumR' to an arbitrary 'Traversal'.</span>
 <a name="line-224"></a><span class='hs-comment'>--</span>
-<a name="line-225"></a><span class='hs-comment'>-- @'mapAccumR' = 'mapAccumROf' 'traverse'@</span>
+<a name="line-225"></a><span class='hs-comment'>-- @'mapAccumR' ≡ 'mapAccumROf' 'traverse'@</span>
 <a name="line-226"></a><span class='hs-comment'>--</span>
 <a name="line-227"></a><span class='hs-comment'>-- 'mapAccumROf' accumulates state from right to left.</span>
 <a name="line-228"></a><span class='hs-comment'>--</span>
@@ -246,7 +246,7 @@
 <a name="line-237"></a>
 <a name="line-238"></a><a name="mapAccumLOf"></a><span class='hs-comment'>-- | Generalized 'Data.Traversable.mapAccumL' to an arbitrary 'Traversal'.</span>
 <a name="line-239"></a><span class='hs-comment'>--</span>
-<a name="line-240"></a><span class='hs-comment'>-- @'mapAccumL' = 'mapAccumLOf' 'traverse'@</span>
+<a name="line-240"></a><span class='hs-comment'>-- @'mapAccumL' ≡ 'mapAccumLOf' 'traverse'@</span>
 <a name="line-241"></a><span class='hs-comment'>--</span>
 <a name="line-242"></a><span class='hs-comment'>-- 'mapAccumLOf' accumulates state from left to right.</span>
 <a name="line-243"></a><span class='hs-comment'>--</span>
@@ -265,7 +265,7 @@
 <a name="line-256"></a>
 <a name="line-257"></a><a name="scanr1Of"></a><span class='hs-comment'>-- | Permit the use of 'scanr1' over an arbitrary 'Traversal' or 'Lens'.</span>
 <a name="line-258"></a><span class='hs-comment'>--</span>
-<a name="line-259"></a><span class='hs-comment'>-- @'scanr1' = 'scanr1Of' 'traverse'@</span>
+<a name="line-259"></a><span class='hs-comment'>-- @'scanr1' ≡ 'scanr1Of' 'traverse'@</span>
 <a name="line-260"></a><span class='hs-comment'>--</span>
 <a name="line-261"></a><span class='hs-comment'>-- @</span>
 <a name="line-262"></a><span class='hs-comment'>-- 'scanr1Of' :: 'Control.Lens.Iso.Iso' a b c c       -&gt; (c -&gt; c -&gt; c) -&gt; a -&gt; b</span>
@@ -280,7 +280,7 @@
 <a name="line-271"></a>
 <a name="line-272"></a><a name="scanl1Of"></a><span class='hs-comment'>-- | Permit the use of 'scanl1' over an arbitrary 'Traversal' or 'Lens'.</span>
 <a name="line-273"></a><span class='hs-comment'>--</span>
-<a name="line-274"></a><span class='hs-comment'>-- @'scanl1' = 'scanl1Of' 'traverse'@</span>
+<a name="line-274"></a><span class='hs-comment'>-- @'scanl1' ≡ 'scanl1Of' 'traverse'@</span>
 <a name="line-275"></a><span class='hs-comment'>--</span>
 <a name="line-276"></a><span class='hs-comment'>-- @</span>
 <a name="line-277"></a><span class='hs-comment'>-- 'scanr1Of' :: Iso a b c c       -&gt; (c -&gt; c -&gt; c) -&gt; a -&gt; b</span>
@@ -316,7 +316,7 @@
 <a name="line-307"></a><span class='hs-comment'>--</span>
 <a name="line-308"></a><span class='hs-comment'>-- Attempts to access beyond the range of the 'Traversal' will cause an error.</span>
 <a name="line-309"></a><span class='hs-comment'>--</span>
-<a name="line-310"></a><span class='hs-comment'>-- @'element' = 'elementOf' 'traverse'@</span>
+<a name="line-310"></a><span class='hs-comment'>-- @'element' ≡ 'elementOf' 'traverse'@</span>
 <a name="line-311"></a><span class='hs-definition'>element</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Traversable</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Lens</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
 <a name="line-312"></a><span class='hs-definition'>element</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>elementOf</span> <span class='hs-varid'>traverse</span>
 <a name="line-313"></a>
@@ -328,7 +328,7 @@
 <a name="line-319"></a><span class='hs-comment'>--</span>
 <a name="line-320"></a><span class='hs-comment'>-- @'ignored' :: 'Applicative' f =&gt; (c -&gt; f d) -&gt; a -&gt; f a@</span>
 <a name="line-321"></a><span class='hs-comment'>--</span>
-<a name="line-322"></a><span class='hs-comment'>-- @'ignored' = 'const' 'pure'@</span>
+<a name="line-322"></a><span class='hs-comment'>-- @'ignored' ≡ 'const' 'pure'@</span>
 <a name="line-323"></a><span class='hs-definition'>ignored</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Traversal</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span>
 <a name="line-324"></a><span class='hs-definition'>ignored</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pure</span>
 <a name="line-325"></a><span class='hs-comment'>{-# INLINE ignored #-}</span>
@@ -348,7 +348,7 @@
 <a name="line-339"></a>
 <a name="line-340"></a><a name="traverseRight"></a><span class='hs-comment'>-- | traverse the right-hand value of an 'Either':</span>
 <a name="line-341"></a><span class='hs-comment'>--</span>
-<a name="line-342"></a><span class='hs-comment'>-- @'traverseRight' = 'Data.Traversable.traverse'@</span>
+<a name="line-342"></a><span class='hs-comment'>-- @'traverseRight' ≡ 'Data.Traversable.traverse'@</span>
 <a name="line-343"></a><span class='hs-comment'>--</span>
 <a name="line-344"></a><span class='hs-comment'>-- Unfortunately the instance for</span>
 <a name="line-345"></a><span class='hs-comment'>-- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,</span>
@@ -381,14 +381,10 @@
 <a name="line-372"></a><span class='hs-definition'>cloneTraversal</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>bazaar</span> <span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>l</span> <span class='hs-varid'>sell</span>
 <a name="line-373"></a><span class='hs-comment'>{-# INLINE cloneTraversal #-}</span>
 <a name="line-374"></a>
-<a name="line-375"></a><span class='hs-comment'>-- cloneTraversal' :: Applicative f =&gt; ((c -&gt; Bazaar c d d) -&gt; a -&gt; Bazaar c d b) -&gt; (c -&gt; f d) -&gt; a -&gt; f b</span>
-<a name="line-376"></a><span class='hs-comment'>-- cloneTraversal' l f a = runBazaar (l (\c -&gt; Bazaar (\k -&gt; k c)) a) f</span>
-<a name="line-377"></a><span class='hs-comment'>-- {-# INLINE cloneTraversal' #-}</span>
-<a name="line-378"></a>
-<a name="line-379"></a><a name="ReifiedTraversal"></a><span class='hs-comment'>-- | A form of 'Traversal' that can be stored monomorphically in a container.</span>
-<a name="line-380"></a><a name="ReifiedTraversal"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>ReifiedTraversal</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifyTraversal</span> <span class='hs-layout'>{</span> <span class='hs-varid'>reflectTraversal</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Traversal</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-layout'>}</span>
-<a name="line-381"></a>
-<a name="line-382"></a><a name="SimpleReifiedTraversal"></a><span class='hs-comment'>-- | @type SimpleReifiedTraversal = 'Simple' 'ReifiedTraversal'@</span>
-<a name="line-383"></a><a name="SimpleReifiedTraversal"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleReifiedTraversal</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifiedTraversal</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>b</span>
+<a name="line-375"></a><a name="ReifiedTraversal"></a><span class='hs-comment'>-- | A form of 'Traversal' that can be stored monomorphically in a container.</span>
+<a name="line-376"></a><a name="ReifiedTraversal"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>ReifiedTraversal</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifyTraversal</span> <span class='hs-layout'>{</span> <span class='hs-varid'>reflectTraversal</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Traversal</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-layout'>}</span>
+<a name="line-377"></a>
+<a name="line-378"></a><a name="SimpleReifiedTraversal"></a><span class='hs-comment'>-- | @type SimpleReifiedTraversal = 'Simple' 'ReifiedTraversal'@</span>
+<a name="line-379"></a><a name="SimpleReifiedTraversal"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleReifiedTraversal</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifiedTraversal</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>b</span>
 </pre></body>
 </html>
