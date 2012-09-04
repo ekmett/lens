@@ -89,11 +89,11 @@ icompose ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ \j -> ka
 -- | Transform an Traversal into an IndexedTraversal, a Fold into an IndexedFold, etc.
 --
 -- @
--- 'indexed' :: 'Traversal' a b c d -> 'IndexedTraversal' 'Int' a b c d
--- 'indexed' :: 'Lens' a b c d      -> 'IndexedLens' 'Int' a b c d
--- 'indexed' :: 'Fold' a b          -> 'IndexedFold' 'Int' a b
--- 'indexed' :: 'Iso' a b c d       -> 'IndexedLens' 'Int' a b c d
--- 'indexed' :: 'Getter' a b        -> 'IndexedGetter' 'Int' a b c d
+-- 'indexed' :: 'Control.Lens.Traversal.Traversal' a b c d -> 'Control.Lens.IndexedTraversal.IndexedTraversal' 'Int' a b c d
+-- 'indexed' :: 'Control.Lens.Type.Lens' a b c d      -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' a b c d
+-- 'indexed' :: 'Control.Lens.Fold.Fold' a b          -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' a b
+-- 'indexed' :: 'Control.Lens.Iso.Iso' a b c d       -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' a b c d
+-- 'indexed' :: 'Control.Lens.Getter.Getter' a b        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' a b c d
 -- @
 indexed :: Indexed Int k => ((c -> Indexing f d) -> a -> Indexing f b) -> k (c -> f d) (a -> f b)
 indexed l = index $ \icfd a -> case runIndexing (l (\c -> Indexing (\i -> IndexingResult (icfd i c) (i + 1))) a) 0 of
