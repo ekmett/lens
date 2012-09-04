@@ -1,3 +1,13 @@
+2.7
+---
+* Generalized the signature of `Getting` to help out with the common user code scenario of needing to read and then write to change types.
+* Documentation cleanup and additional examples.
+* Renamed `au` to `ala`.
+
+2.6.1
+-----
+* Fixed bugs in `Traversal` code-generation.
+
 2.6
 ---
 * Added build option `-f-inlining` to facilitate building with the various TH 2.8 versions used by GHC 7.6 and HEAD.
