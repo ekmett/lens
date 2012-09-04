@@ -172,7 +172,7 @@
 <a name="line-163"></a><span class='hs-comment'>-- use the @...OnOf@ variant with 'ignored', though those usecases are much better served</span>
 <a name="line-164"></a><span class='hs-comment'>-- in most cases by using the existing lens combinators! e.g.</span>
 <a name="line-165"></a><span class='hs-comment'>--</span>
-<a name="line-166"></a><span class='hs-comment'>-- @'toListOf' 'biplate' = 'universeOnOf' 'biplate' 'ignored'@.</span>
+<a name="line-166"></a><span class='hs-comment'>-- @'toListOf' 'biplate' ≡ 'universeOnOf' 'biplate' 'ignored'@.</span>
 <a name="line-167"></a><span class='hs-comment'>--</span>
 <a name="line-168"></a><span class='hs-comment'>-- This same ability to explicitly pass the 'Traversal' in question is why there is no</span>
 <a name="line-169"></a><span class='hs-comment'>-- analogue to uniplate's @Biplate@.</span>
@@ -201,14 +201,14 @@
 <a name="line-192"></a>
 <a name="line-193"></a><a name="children"></a><span class='hs-comment'>-- | Extract the immediate descendants of a 'Plated' container.</span>
 <a name="line-194"></a><span class='hs-comment'>--</span>
-<a name="line-195"></a><span class='hs-comment'>-- @'children' = 'toListOf' 'plate'@</span>
+<a name="line-195"></a><span class='hs-comment'>-- @'children' ≡ 'toListOf' 'plate'@</span>
 <a name="line-196"></a><span class='hs-definition'>children</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
 <a name="line-197"></a><span class='hs-definition'>children</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>toListOf</span> <span class='hs-varid'>plate</span>
 <a name="line-198"></a><span class='hs-comment'>{-# INLINE children #-}</span>
 <a name="line-199"></a>
 <a name="line-200"></a><a name="childrenOn"></a><span class='hs-comment'>-- | Provided for compatibility with @uniplate@.</span>
 <a name="line-201"></a><span class='hs-comment'>--</span>
-<a name="line-202"></a><span class='hs-comment'>-- @'childrenOn' = 'toListOf'@</span>
+<a name="line-202"></a><span class='hs-comment'>-- @'childrenOn' ≡ 'toListOf'@</span>
 <a name="line-203"></a><span class='hs-comment'>--</span>
 <a name="line-204"></a><span class='hs-comment'>-- @'childrenOn' :: 'Fold' a c -&gt; a -&gt; [c]@</span>
 <a name="line-205"></a><span class='hs-definition'>childrenOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getting</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>c</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>c</span><span class='hs-keyglyph'>]</span>
@@ -325,7 +325,7 @@
 <a name="line-316"></a><a name="universeOnOf"></a><span class='hs-comment'>-- | Given a 'Fold' that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself that lie</span>
 <a name="line-317"></a><span class='hs-comment'>-- in a region indicated by another 'Fold'.</span>
 <a name="line-318"></a><span class='hs-comment'>--</span>
-<a name="line-319"></a><span class='hs-comment'>-- @'toListOf' l = 'universeOnOf' l 'ignored'@</span>
+<a name="line-319"></a><span class='hs-comment'>-- @'toListOf' l ≡ 'universeOnOf' l 'ignored'@</span>
 <a name="line-320"></a><span class='hs-definition'>universeOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getting</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>c</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>c</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>c</span><span class='hs-keyglyph'>]</span>
 <a name="line-321"></a><span class='hs-definition'>universeOnOf</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldMapOf</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>universeOf</span>
 <a name="line-322"></a><span class='hs-comment'>{-# INLINE universeOnOf #-}</span>
@@ -413,7 +413,7 @@
 <a name="line-404"></a>
 <a name="line-405"></a><a name="descend"></a><span class='hs-comment'>-- | Recurse one level into a structure. (a.k.a @composOp@ from Björn Bringert's @compos@)</span>
 <a name="line-406"></a><span class='hs-comment'>--</span>
-<a name="line-407"></a><span class='hs-comment'>-- @'descend' = 'over' 'plate'@</span>
+<a name="line-407"></a><span class='hs-comment'>-- @'descend' ≡ 'over' 'plate'@</span>
 <a name="line-408"></a><span class='hs-definition'>descend</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
 <a name="line-409"></a><span class='hs-definition'>descend</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>plate</span>
 <a name="line-410"></a><span class='hs-comment'>{-# INLINE descend #-}</span>
@@ -421,7 +421,7 @@
 <a name="line-412"></a><a name="descendOf"></a><span class='hs-comment'>-- | Recurse one level into a structure using a user specified recursion scheme. This is 'over', but it is supplied here</span>
 <a name="line-413"></a><span class='hs-comment'>-- for consistency with the uniplate API.</span>
 <a name="line-414"></a><span class='hs-comment'>--</span>
-<a name="line-415"></a><span class='hs-comment'>-- @'descendOf' = 'over'@</span>
+<a name="line-415"></a><span class='hs-comment'>-- @'descendOf' ≡ 'over'@</span>
 <a name="line-416"></a><span class='hs-comment'>--</span>
 <a name="line-417"></a><span class='hs-comment'>-- @</span>
 <a name="line-418"></a><span class='hs-comment'>-- 'descendOf' :: 'Simple' 'Setter' a b -&gt; (b -&gt; b) -&gt; a -&gt; a</span>
@@ -433,7 +433,7 @@
 <a name="line-424"></a>
 <a name="line-425"></a><a name="descendOnOf"></a><span class='hs-comment'>-- | Recurse one level into the parts delimited by one 'Setter', using another.</span>
 <a name="line-426"></a><span class='hs-comment'>--</span>
-<a name="line-427"></a><span class='hs-comment'>-- @'descendOnOf' b l = 'over' (b '.' l)@</span>
+<a name="line-427"></a><span class='hs-comment'>-- @'descendOnOf' b l ≡ 'over' (b '.' l)@</span>
 <a name="line-428"></a><span class='hs-comment'>--</span>
 <a name="line-429"></a><span class='hs-comment'>-- @</span>
 <a name="line-430"></a><span class='hs-comment'>-- 'descendOnOf' :: 'Simple' 'Setter' a b    -&gt; 'Simple' 'Setter' b b    -&gt; (b -&gt; b) -&gt; a -&gt; a</span>
@@ -446,7 +446,7 @@
 <a name="line-437"></a>
 <a name="line-438"></a><a name="descendOn"></a><span class='hs-comment'>-- | Recurse one level into the parts of the structure delimited by a 'Setter'.</span>
 <a name="line-439"></a><span class='hs-comment'>--</span>
-<a name="line-440"></a><span class='hs-comment'>-- @'descendOn' b = 'over' (b '.' 'plate')@</span>
+<a name="line-440"></a><span class='hs-comment'>-- @'descendOn' b ≡ 'over' (b '.' 'plate')@</span>
 <a name="line-441"></a><span class='hs-comment'>--</span>
 <a name="line-442"></a><span class='hs-comment'>-- @'descendOn' :: 'Plated' c =&gt; 'Setter' a b -&gt; (b -&gt; b) -&gt; a -&gt; a@</span>
 <a name="line-443"></a><span class='hs-definition'>descendOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
@@ -460,7 +460,7 @@
 <a name="line-451"></a><a name="descendA"></a><span class='hs-comment'>-- | Recurse one level into a structure with an 'Applicative' effect, this is 'plate', but it is supplied</span>
 <a name="line-452"></a><span class='hs-comment'>-- for consistency with the uniplate API.</span>
 <a name="line-453"></a><span class='hs-comment'>--</span>
-<a name="line-454"></a><span class='hs-comment'>-- @'descendA' = 'plate'@</span>
+<a name="line-454"></a><span class='hs-comment'>-- @'descendA' ≡ 'plate'@</span>
 <a name="line-455"></a><span class='hs-definition'>descendA</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
 <a name="line-456"></a><span class='hs-definition'>descendA</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>plate</span>
 <a name="line-457"></a><span class='hs-comment'>{-# INLINE descendA #-}</span>
@@ -468,7 +468,7 @@
 <a name="line-459"></a><a name="descendAOf"></a><span class='hs-comment'>-- | Recurse one level into a structure using a user specified recursion scheme and 'Applicative' effects. This is 'id', but it is supplied</span>
 <a name="line-460"></a><span class='hs-comment'>-- for consistency with the uniplate API.</span>
 <a name="line-461"></a><span class='hs-comment'>--</span>
-<a name="line-462"></a><span class='hs-comment'>-- @'descendAOf' = 'id'@</span>
+<a name="line-462"></a><span class='hs-comment'>-- @'descendAOf' ≡ 'id'@</span>
 <a name="line-463"></a><span class='hs-comment'>--</span>
 <a name="line-464"></a><span class='hs-comment'>-- @'descendAOf' :: 'Applicative' m =&gt; 'Simple' 'Traversal' a b =&gt; (b -&gt; m b) -&gt; a -&gt; m a@</span>
 <a name="line-465"></a><span class='hs-definition'>descendAOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
@@ -477,7 +477,7 @@
 <a name="line-468"></a>
 <a name="line-469"></a><a name="descendAOnOf"></a><span class='hs-comment'>-- | Recurse one level into the parts delimited by one 'Traversal', using another with 'Applicative' effects.</span>
 <a name="line-470"></a><span class='hs-comment'>--</span>
-<a name="line-471"></a><span class='hs-comment'>-- @'descendAOnOf' = ('.')@</span>
+<a name="line-471"></a><span class='hs-comment'>-- @'descendAOnOf' ≡ ('.')@</span>
 <a name="line-472"></a><span class='hs-comment'>--</span>
 <a name="line-473"></a><span class='hs-comment'>-- @'descendAOnOf' :: 'Applicative' f =&gt; 'Simple' 'Traversal' a b -&gt; 'Simple' 'Traversal' b b -&gt; (b -&gt; f b) -&gt; a -&gt; f a@</span>
 <a name="line-474"></a><span class='hs-definition'>descendAOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>g</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>g</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>g</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-varid'>e</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>g</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>g</span> <span class='hs-varid'>b</span>
@@ -486,7 +486,7 @@
 <a name="line-477"></a>
 <a name="line-478"></a><a name="descendAOn"></a><span class='hs-comment'>-- | Recurse one level into the parts of the structure delimited by a 'Traversal' with 'Applicative' effects.</span>
 <a name="line-479"></a><span class='hs-comment'>--</span>
-<a name="line-480"></a><span class='hs-comment'>-- @'descendAOn' b = b '.' 'plate'@</span>
+<a name="line-480"></a><span class='hs-comment'>-- @'descendAOn' b ≡ b '.' 'plate'@</span>
 <a name="line-481"></a><span class='hs-comment'>--</span>
 <a name="line-482"></a><span class='hs-comment'>-- @'descendAOn' :: ('Applicative' f, Plated' c) =&gt; 'Simple' 'Traversal' a b -&gt; (b -&gt; f b) -&gt; a -&gt; f a@</span>
 <a name="line-483"></a><span class='hs-definition'>descendAOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
@@ -495,7 +495,7 @@
 <a name="line-486"></a>
 <a name="line-487"></a><a name="descendA_"></a><span class='hs-comment'>-- |</span>
 <a name="line-488"></a><span class='hs-comment'>--</span>
-<a name="line-489"></a><span class='hs-comment'>-- @'descendA_' = traverseOf_' 'plate'@</span>
+<a name="line-489"></a><span class='hs-comment'>-- @'descendA_' ≡ traverseOf_' 'plate'@</span>
 <a name="line-490"></a><span class='hs-definition'>descendA_</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-conid'>()</span>
 <a name="line-491"></a><span class='hs-definition'>descendA_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>traverseOf_</span> <span class='hs-varid'>plate</span>
 <a name="line-492"></a><span class='hs-comment'>{-# INLINE descendA_ #-}</span>
@@ -504,7 +504,7 @@
 <a name="line-495"></a><span class='hs-comment'>--</span>
 <a name="line-496"></a><span class='hs-comment'>-- This is just 'traverseOf_', but is provided for consistency.</span>
 <a name="line-497"></a><span class='hs-comment'>--</span>
-<a name="line-498"></a><span class='hs-comment'>-- @'descendAOf_' = 'traverseOf_'@</span>
+<a name="line-498"></a><span class='hs-comment'>-- @'descendAOf_' ≡ 'traverseOf_'@</span>
 <a name="line-499"></a><span class='hs-comment'>--</span>
 <a name="line-500"></a><span class='hs-comment'>-- @'descendAOf_' :: 'Applicative' f =&gt; 'Fold' a b =&gt; (b -&gt; f b) -&gt; a -&gt; f ()@</span>
 <a name="line-501"></a><span class='hs-definition'>descendAOf_</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Traversed</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-conid'>()</span>
@@ -513,7 +513,7 @@
 <a name="line-504"></a>
 <a name="line-505"></a><a name="descendAOnOf_"></a><span class='hs-comment'>-- | Recurse one level into the parts delimited by one 'Fold', using another with 'Applicative' effects, without reconstructing the structure behind you.</span>
 <a name="line-506"></a><span class='hs-comment'>--</span>
-<a name="line-507"></a><span class='hs-comment'>-- @'descendAOnOf_' b l = 'traverseOf_' (b '.' l)@</span>
+<a name="line-507"></a><span class='hs-comment'>-- @'descendAOnOf_' b l ≡ 'traverseOf_' (b '.' l)@</span>
 <a name="line-508"></a><span class='hs-comment'>--</span>
 <a name="line-509"></a><span class='hs-comment'>-- @'descendAOnOf_' :: 'Applicative' f =&gt; 'Fold' a b -&gt; 'Fold' b b -&gt; (b -&gt; f c) -&gt; a -&gt; f ()@</span>
 <a name="line-510"></a><span class='hs-definition'>descendAOnOf_</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Traversed</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Traversed</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-conid'>()</span>
@@ -522,7 +522,7 @@
 <a name="line-513"></a>
 <a name="line-514"></a><a name="descendAOn_"></a><span class='hs-comment'>-- | Recurse one level into the parts of the structure delimited by a 'Traversal' with monadic effects.</span>
 <a name="line-515"></a><span class='hs-comment'>--</span>
-<a name="line-516"></a><span class='hs-comment'>-- @'descendAOn_' b = 'traverseOf_' (b '.' 'plate')@</span>
+<a name="line-516"></a><span class='hs-comment'>-- @'descendAOn_' b ≡ 'traverseOf_' (b '.' 'plate')@</span>
 <a name="line-517"></a><span class='hs-comment'>--</span>
 <a name="line-518"></a><span class='hs-comment'>-- @'descendAOn_' :: ('Applicative' f, 'Plated' b) =&gt; 'Simple' 'Traversal' a b -&gt; (b -&gt; f c) -&gt; a -&gt; f ()@</span>
 <a name="line-519"></a><span class='hs-definition'>descendAOn_</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Traversed</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-conid'>()</span>
@@ -535,7 +535,7 @@
 <a name="line-526"></a>
 <a name="line-527"></a><a name="descendM"></a><span class='hs-comment'>-- | Recurse one level into a structure with a monadic effect. (a.k.a @composOpM@ from Björn Bringert's @compos@)</span>
 <a name="line-528"></a><span class='hs-comment'>--</span>
-<a name="line-529"></a><span class='hs-comment'>-- @'descendM' = 'mapMOf' 'plate'@</span>
+<a name="line-529"></a><span class='hs-comment'>-- @'descendM' ≡ 'mapMOf' 'plate'@</span>
 <a name="line-530"></a><span class='hs-definition'>descendM</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
 <a name="line-531"></a><span class='hs-definition'>descendM</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf</span> <span class='hs-varid'>plate</span>
 <a name="line-532"></a><span class='hs-comment'>{-# INLINE descendM #-}</span>
@@ -543,7 +543,7 @@
 <a name="line-534"></a><a name="descendMOf"></a><span class='hs-comment'>-- | Recurse one level into a structure using a user specified recursion scheme and monadic effects. This is 'id', but it is</span>
 <a name="line-535"></a><span class='hs-comment'>-- supplied for consistency with the uniplate API.</span>
 <a name="line-536"></a><span class='hs-comment'>--</span>
-<a name="line-537"></a><span class='hs-comment'>-- @'descendMOf' = 'mapMOf'@</span>
+<a name="line-537"></a><span class='hs-comment'>-- @'descendMOf' ≡ 'mapMOf'@</span>
 <a name="line-538"></a><span class='hs-comment'>--</span>
 <a name="line-539"></a><span class='hs-comment'>-- @'descendMOf' :: 'Monad' m =&gt; 'Simple' 'Traversal' a b =&gt; (b -&gt; m b) -&gt; a -&gt; m a@</span>
 <a name="line-540"></a><span class='hs-definition'>descendMOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
@@ -552,7 +552,7 @@
 <a name="line-543"></a>
 <a name="line-544"></a><a name="descendMOnOf"></a><span class='hs-comment'>-- | Recurse one level into the parts delimited by one 'Traversal', using another with monadic effects.</span>
 <a name="line-545"></a><span class='hs-comment'>--</span>
-<a name="line-546"></a><span class='hs-comment'>-- @'descendMOnOf' b l = 'mapMOf' (b '.' l)@</span>
+<a name="line-546"></a><span class='hs-comment'>-- @'descendMOnOf' b l ≡ 'mapMOf' (b '.' l)@</span>
 <a name="line-547"></a><span class='hs-comment'>--</span>
 <a name="line-548"></a><span class='hs-comment'>-- @'descendMOnOf' :: 'Monad' m =&gt; 'Simple' 'Traversal' a b -&gt; 'Simple' 'Traversal' b b -&gt; (b -&gt; m b) -&gt; a -&gt; m a@</span>
 <a name="line-549"></a><span class='hs-definition'>descendMOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
@@ -561,7 +561,7 @@
 <a name="line-552"></a>
 <a name="line-553"></a><a name="descendMOn"></a><span class='hs-comment'>-- | Recurse one level into the parts of the structure delimited by a 'Traversal' with monadic effects.</span>
 <a name="line-554"></a><span class='hs-comment'>--</span>
-<a name="line-555"></a><span class='hs-comment'>-- @'descendMOn' b = 'mapMOf' (b . 'plate')@</span>
+<a name="line-555"></a><span class='hs-comment'>-- @'descendMOn' b ≡ 'mapMOf' (b . 'plate')@</span>
 <a name="line-556"></a><span class='hs-comment'>--</span>
 <a name="line-557"></a><span class='hs-comment'>-- @'descendMOn' :: ('Monad' m, 'Plated' c) =&gt; 'Simple' 'Traversal' a b -&gt; (b -&gt; m b) -&gt; a -&gt; m a@</span>
 <a name="line-558"></a><span class='hs-definition'>descendMOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
@@ -570,14 +570,14 @@
 <a name="line-561"></a>
 <a name="line-562"></a><a name="descendM_"></a><span class='hs-comment'>-- | Descend one level into a structure with monadic effects (a.k.a @composOpM@ from Björn Bringert's @compos@)</span>
 <a name="line-563"></a><span class='hs-comment'>--</span>
-<a name="line-564"></a><span class='hs-comment'>-- @'descendM_' = mapMOf_' 'plate'@</span>
+<a name="line-564"></a><span class='hs-comment'>-- @'descendM_' ≡ mapMOf_' 'plate'@</span>
 <a name="line-565"></a><span class='hs-definition'>descendM_</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
 <a name="line-566"></a><span class='hs-definition'>descendM_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf_</span> <span class='hs-varid'>plate</span>
 <a name="line-567"></a><span class='hs-comment'>{-# INLINE descendM_ #-}</span>
 <a name="line-568"></a>
 <a name="line-569"></a><a name="descendMOf_"></a><span class='hs-comment'>-- | Recurse one level into a structure using a user specified recursion scheme and monadic effects. This is just 'mapMOf_', but is provided for consistency.</span>
 <a name="line-570"></a><span class='hs-comment'>--</span>
-<a name="line-571"></a><span class='hs-comment'>-- @'descendMOf_' = 'mapMOf_'@</span>
+<a name="line-571"></a><span class='hs-comment'>-- @'descendMOf_' ≡ 'mapMOf_'@</span>
 <a name="line-572"></a><span class='hs-comment'>--</span>
 <a name="line-573"></a><span class='hs-comment'>-- @'descendMOf_' :: 'Monad' m =&gt; 'Fold' a b =&gt; (b -&gt; m b) -&gt; a -&gt; m ()@</span>
 <a name="line-574"></a><span class='hs-definition'>descendMOf_</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Sequenced</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
@@ -586,7 +586,7 @@
 <a name="line-577"></a>
 <a name="line-578"></a><a name="descendMOnOf_"></a><span class='hs-comment'>-- | Recurse one level into the parts delimited by one 'Traversal', using another with monadic effects.</span>
 <a name="line-579"></a><span class='hs-comment'>--</span>
-<a name="line-580"></a><span class='hs-comment'>-- @'descendMOnOf_' b l = 'mapMOf_' (b '.' l)@</span>
+<a name="line-580"></a><span class='hs-comment'>-- @'descendMOnOf_' b l ≡ 'mapMOf_' (b '.' l)@</span>
 <a name="line-581"></a><span class='hs-comment'>--</span>
 <a name="line-582"></a><span class='hs-comment'>-- @'descendMOnOf_' :: 'Monad' m =&gt; 'Fold' a b -&gt; 'Fold' b b -&gt; (b -&gt; m b) -&gt; a -&gt; m ()@</span>
 <a name="line-583"></a><span class='hs-definition'>descendMOnOf_</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Sequenced</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Sequenced</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
@@ -595,7 +595,7 @@
 <a name="line-586"></a>
 <a name="line-587"></a><a name="descendMOn_"></a><span class='hs-comment'>-- | Recurse one level into the parts of the structure delimited by a 'Traversal' with monadic effects.</span>
 <a name="line-588"></a><span class='hs-comment'>--</span>
-<a name="line-589"></a><span class='hs-comment'>-- @'descendMOn_' b = 'mapMOf_' (b '.' 'plate')@</span>
+<a name="line-589"></a><span class='hs-comment'>-- @'descendMOn_' b ≡ 'mapMOf_' (b '.' 'plate')@</span>
 <a name="line-590"></a><span class='hs-comment'>--</span>
 <a name="line-591"></a><span class='hs-comment'>-- @'descendMOn_' :: ('Monad' m, 'Plated' b) =&gt; 'Simple' 'Traversal' a b -&gt; (b -&gt; m c) -&gt; a -&gt; m ()@</span>
 <a name="line-592"></a><span class='hs-definition'>descendMOn_</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Sequenced</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
@@ -613,7 +613,7 @@
 <a name="line-604"></a><span class='hs-comment'>-- propId x = 'all' ('==' x) [extract w | w &lt;- 'contexts' x]</span>
 <a name="line-605"></a><span class='hs-comment'>-- @</span>
 <a name="line-606"></a><span class='hs-comment'>--</span>
-<a name="line-607"></a><span class='hs-comment'>-- @'contexts' = 'contextsOf' 'plate'@</span>
+<a name="line-607"></a><span class='hs-comment'>-- @'contexts' ≡ 'contextsOf' 'plate'@</span>
 <a name="line-608"></a><span class='hs-definition'>contexts</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Context</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
 <a name="line-609"></a><span class='hs-definition'>contexts</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>contextsOf</span> <span class='hs-varid'>plate</span>
 <a name="line-610"></a><span class='hs-comment'>{-# INLINE contexts #-}</span>
@@ -636,7 +636,7 @@
 <a name="line-627"></a>
 <a name="line-628"></a><a name="contextsOn"></a><span class='hs-comment'>-- | Return a list of all of the editable contexts for every location in the structure in an areas indicated by a user supplied 'Traversal', recursively using 'plate'.</span>
 <a name="line-629"></a><span class='hs-comment'>--</span>
-<a name="line-630"></a><span class='hs-comment'>-- @'contextsOn' b = 'contextsOnOf' b 'plate'@</span>
+<a name="line-630"></a><span class='hs-comment'>-- @'contextsOn' b ≡ 'contextsOnOf' b 'plate'@</span>
 <a name="line-631"></a><span class='hs-comment'>--</span>
 <a name="line-632"></a><span class='hs-comment'>-- @'contextsOn' :: 'Plated' b =&gt; 'Simple' 'Traversal' a b -&gt; a -&gt; ['Context' b b a]@</span>
 <a name="line-633"></a><span class='hs-definition'>contextsOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>Bazaar</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Context</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-varid'>b</span><span class='hs-keyglyph'>]</span>
@@ -693,7 +693,7 @@
 <a name="line-684"></a>
 <a name="line-685"></a><a name="holesOn"></a><span class='hs-comment'>-- | An alias for 'holesOf', provided for consistency with the other combinators.</span>
 <a name="line-686"></a><span class='hs-comment'>--</span>
-<a name="line-687"></a><span class='hs-comment'>-- @'holesOn' = 'holesOf'@</span>
+<a name="line-687"></a><span class='hs-comment'>-- @'holesOn' ≡ 'holesOf'@</span>
 <a name="line-688"></a><span class='hs-comment'>--</span>
 <a name="line-689"></a><span class='hs-comment'>-- @</span>
 <a name="line-690"></a><span class='hs-comment'>-- 'holesOn' :: 'Simple' 'Iso' a b       -&gt; a -&gt; ['Context' b b a]</span>
@@ -706,7 +706,7 @@
 <a name="line-697"></a>
 <a name="line-698"></a><a name="holesOnOf"></a><span class='hs-comment'>-- | Extract one level of holes from a container in a region specified by one 'Traversal', using another.</span>
 <a name="line-699"></a><span class='hs-comment'>--</span>
-<a name="line-700"></a><span class='hs-comment'>-- @'holesOnOf' b l = 'holesOf' (b '.' l)@</span>
+<a name="line-700"></a><span class='hs-comment'>-- @'holesOnOf' b l ≡ 'holesOf' (b '.' l)@</span>
 <a name="line-701"></a><span class='hs-comment'>--</span>
 <a name="line-702"></a><span class='hs-comment'>-- @</span>
 <a name="line-703"></a><span class='hs-comment'>-- 'holesOnOf' :: 'Simple' 'Iso' a b       -&gt; 'Simple' 'Iso' b b       -&gt; a -&gt; ['Context' b a]</span>
@@ -731,7 +731,7 @@
 <a name="line-722"></a>
 <a name="line-723"></a><a name="para"></a><span class='hs-comment'>-- | Perform a fold-like computation on each value, technically a paramorphism.</span>
 <a name="line-724"></a><span class='hs-comment'>--</span>
-<a name="line-725"></a><span class='hs-comment'>-- @'para' = 'paraOf' 'plate'@</span>
+<a name="line-725"></a><span class='hs-comment'>-- @'para' ≡ 'paraOf' 'plate'@</span>
 <a name="line-726"></a><span class='hs-definition'>para</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>r</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
 <a name="line-727"></a><span class='hs-definition'>para</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>paraOf</span> <span class='hs-varid'>plate</span>
 <a name="line-728"></a><span class='hs-comment'>{-# INLINE para #-}</span>
@@ -748,11 +748,11 @@
 <a name="line-739"></a><span class='hs-comment'>-- to avoid having even more redundant names for the same operators. For comparison:</span>
 <a name="line-740"></a><span class='hs-comment'>--</span>
 <a name="line-741"></a><span class='hs-comment'>-- @</span>
-<a name="line-742"></a><span class='hs-comment'>-- 'composOpMonoid' = 'foldMapOf' 'plate'</span>
-<a name="line-743"></a><span class='hs-comment'>-- 'composOpMPlus' f = 'msumOf' ('plate' '.' 'to' f)</span>
-<a name="line-744"></a><span class='hs-comment'>-- 'composOp' = 'descend' = 'over' 'plate'</span>
-<a name="line-745"></a><span class='hs-comment'>-- 'composOpM' = 'descendM' = 'mapMOf' 'plate'</span>
-<a name="line-746"></a><span class='hs-comment'>-- 'composOpM_' = 'descendM_' = 'mapMOf_' 'plate'</span>
+<a name="line-742"></a><span class='hs-comment'>-- 'composOpMonoid' ≡ 'foldMapOf' 'plate'</span>
+<a name="line-743"></a><span class='hs-comment'>-- 'composOpMPlus' f ≡ 'msumOf' ('plate' '.' 'to' f)</span>
+<a name="line-744"></a><span class='hs-comment'>-- 'composOp' ≡ 'descend' ≡ 'over' 'plate'</span>
+<a name="line-745"></a><span class='hs-comment'>-- 'composOpM' ≡ 'descendM' ≡ 'mapMOf' 'plate'</span>
+<a name="line-746"></a><span class='hs-comment'>-- 'composOpM_' ≡ 'descendM_' ≡ 'mapMOf_' 'plate'</span>
 <a name="line-747"></a><span class='hs-comment'>-- @</span>
 <a name="line-748"></a>
 <a name="line-749"></a><a name="composOpFold"></a><span class='hs-comment'>-- | Fold the immediate children of a 'Plated' container.</span>
@@ -768,7 +768,7 @@
 <a name="line-759"></a>
 <a name="line-760"></a><a name="parts"></a><span class='hs-comment'>-- | The original @uniplate@ combinator, implemented in terms of 'Plated' as a 'Lens'.</span>
 <a name="line-761"></a><span class='hs-comment'>--</span>
-<a name="line-762"></a><span class='hs-comment'>-- @'parts' = 'partsOf' 'plate'@</span>
+<a name="line-762"></a><span class='hs-comment'>-- @'parts' ≡ 'partsOf' 'plate'@</span>
 <a name="line-763"></a><span class='hs-comment'>--</span>
 <a name="line-764"></a><span class='hs-comment'>-- The resulting lens is safer to use as it ignores 'over-application' and deals gracefully with under-application,</span>
 <a name="line-765"></a><span class='hs-comment'>-- but it is only a proper lens if you don't change the list 'length'!</span>

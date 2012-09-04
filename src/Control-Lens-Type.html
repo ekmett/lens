@@ -120,15 +120,15 @@
 <a name="line-111"></a><a name="Lens"></a><span class='hs-comment'>--</span>
 <a name="line-112"></a><a name="Lens"></a><span class='hs-comment'>-- 1) You get back what you put in:</span>
 <a name="line-113"></a><a name="Lens"></a><span class='hs-comment'>--</span>
-<a name="line-114"></a><a name="Lens"></a><span class='hs-comment'>-- @'Control.Lens.Getter.view' l ('Control.Lens.Setter.set' l b a)  = b@</span>
+<a name="line-114"></a><a name="Lens"></a><span class='hs-comment'>-- @'Control.Lens.Getter.view' l ('Control.Lens.Setter.set' l b a)  ≡ b@</span>
 <a name="line-115"></a><a name="Lens"></a><span class='hs-comment'>--</span>
 <a name="line-116"></a><a name="Lens"></a><span class='hs-comment'>-- 2) Putting back what you got doesn't change anything:</span>
 <a name="line-117"></a><a name="Lens"></a><span class='hs-comment'>--</span>
-<a name="line-118"></a><a name="Lens"></a><span class='hs-comment'>-- @'Control.Lens.Setter.set' l ('Control.Lens.Getter.view' l a) a  = a@</span>
+<a name="line-118"></a><a name="Lens"></a><span class='hs-comment'>-- @'Control.Lens.Setter.set' l ('Control.Lens.Getter.view' l a) a  ≡ a@</span>
 <a name="line-119"></a><a name="Lens"></a><span class='hs-comment'>--</span>
 <a name="line-120"></a><a name="Lens"></a><span class='hs-comment'>-- 3) Setting twice is the same as setting once:</span>
 <a name="line-121"></a><a name="Lens"></a><span class='hs-comment'>--</span>
-<a name="line-122"></a><a name="Lens"></a><span class='hs-comment'>-- @'Control.Lens.Setter.set' l c ('Control.Lens.Setter.set' l b a) = 'Control.Lens.Setter.set' l c a@</span>
+<a name="line-122"></a><a name="Lens"></a><span class='hs-comment'>-- @'Control.Lens.Setter.set' l c ('Control.Lens.Setter.set' l b a) ≡ 'Control.Lens.Setter.set' l c a@</span>
 <a name="line-123"></a><a name="Lens"></a><span class='hs-comment'>--</span>
 <a name="line-124"></a><a name="Lens"></a><span class='hs-comment'>-- These laws are strong enough that the 4 type parameters of a 'Lens' cannot</span>
 <a name="line-125"></a><a name="Lens"></a><span class='hs-comment'>-- vary fully independently. For more on how they interact, read the \"Why is</span>
@@ -142,11 +142,11 @@
 <a name="line-133"></a><a name="Lens"></a><span class='hs-comment'>-- 'Control.Lens.Fold.Fold' or 'Control.Lens.Getter.Getter'.</span>
 <a name="line-134"></a><a name="Lens"></a><span class='hs-comment'>--</span>
 <a name="line-135"></a><a name="Lens"></a><span class='hs-comment'>-- Since every lens is a valid 'Control.Lens.Traversal.Traversal', the</span>
-<a name="line-136"></a><a name="Lens"></a><span class='hs-comment'>-- traversal laws should also apply to any lenses you create.</span>
+<a name="line-136"></a><a name="Lens"></a><span class='hs-comment'>-- traversal laws are required of any lenses you create:</span>
 <a name="line-137"></a><a name="Lens"></a><span class='hs-comment'>--</span>
 <a name="line-138"></a><a name="Lens"></a><span class='hs-comment'>-- @</span>
-<a name="line-139"></a><a name="Lens"></a><span class='hs-comment'>-- l 'pure' = 'pure'</span>
-<a name="line-140"></a><a name="Lens"></a><span class='hs-comment'>-- 'fmap' (l f) . l g = 'Data.Functor.Compose.getCompose' . l ('Data.Functor.Compose.Compose' . 'fmap' f . g)</span>
+<a name="line-139"></a><a name="Lens"></a><span class='hs-comment'>-- l 'pure' ≡ 'pure'</span>
+<a name="line-140"></a><a name="Lens"></a><span class='hs-comment'>-- 'fmap' (l f) '.' l g ≡ 'Data.Functor.Compose.getCompose' '.' l ('Data.Functor.Compose.Compose' '.' 'fmap' f '.' g)</span>
 <a name="line-141"></a><a name="Lens"></a><span class='hs-comment'>-- @</span>
 <a name="line-142"></a><a name="Lens"></a><span class='hs-comment'>--</span>
 <a name="line-143"></a><a name="Lens"></a><span class='hs-comment'>-- @type 'Lens' a b c d = forall f. 'Functor' f =&gt; 'LensLike' f a b c d@</span>
@@ -177,7 +177,7 @@
 <a name="line-168"></a>
 <a name="line-169"></a><a name="lens"></a><span class='hs-comment'>-- | Build a 'Lens' from a getter and a setter.</span>
 <a name="line-170"></a><span class='hs-comment'>--</span>
-<a name="line-171"></a><span class='hs-comment'>-- &gt; lens :: Functor f =&gt; (a -&gt; c) -&gt; (a -&gt; d -&gt; b) -&gt; (c -&gt; f d) -&gt; a -&gt; f b</span>
+<a name="line-171"></a><span class='hs-comment'>-- @'lens' :: 'Functor' f =&gt; (a -&gt; c) -&gt; (a -&gt; d -&gt; b) -&gt; (c -&gt; f d) -&gt; a -&gt; f b@</span>
 <a name="line-172"></a><span class='hs-definition'>lens</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Lens</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span>
 <a name="line-173"></a><span class='hs-definition'>lens</span> <span class='hs-varid'>ac</span> <span class='hs-varid'>adb</span> <span class='hs-varid'>cfd</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>adb</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>cfd</span> <span class='hs-layout'>(</span><span class='hs-varid'>ac</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
 <a name="line-174"></a><span class='hs-comment'>{-# INLINE lens #-}</span>
@@ -211,7 +211,7 @@
 <a name="line-202"></a><span class='hs-comment'>--</span>
 <a name="line-203"></a><span class='hs-comment'>-- For all that the definition of this combinator is just:</span>
 <a name="line-204"></a><span class='hs-comment'>--</span>
-<a name="line-205"></a><span class='hs-comment'>-- @('%%~') = 'id'@</span>
+<a name="line-205"></a><span class='hs-comment'>-- @('%%~') ≡ 'id'@</span>
 <a name="line-206"></a><span class='hs-comment'>--</span>
 <a name="line-207"></a><span class='hs-comment'>-- @</span>
 <a name="line-208"></a><span class='hs-comment'>-- ('%%~') :: 'Functor' f =&gt;     'Control.Lens.Iso.Iso' a b c d       -&gt; (c -&gt; f d) -&gt; a -&gt; f b</span>
@@ -240,7 +240,7 @@
 <a name="line-231"></a><span class='hs-comment'>-- 'Control.Lens.Traversal.Traversal' in the current state, extracting extra</span>
 <a name="line-232"></a><span class='hs-comment'>-- information of type @c@ and return a monoidal summary of the changes.</span>
 <a name="line-233"></a><span class='hs-comment'>--</span>
-<a name="line-234"></a><span class='hs-comment'>-- @('%%=') = ('state' '.')@</span>
+<a name="line-234"></a><span class='hs-comment'>-- @('%%=') ≡ ('state' '.')@</span>
 <a name="line-235"></a><span class='hs-comment'>--</span>
 <a name="line-236"></a><span class='hs-comment'>-- It may be useful to think of ('%%='), instead, as having either of the</span>
 <a name="line-237"></a><span class='hs-comment'>-- following more restricted type signatures:</span>
@@ -303,194 +303,298 @@
 <a name="line-294"></a><span class='hs-comment'>--</span>
 <a name="line-295"></a><span class='hs-comment'>-- Note: This only accepts a proper 'Lens'.</span>
 <a name="line-296"></a><span class='hs-comment'>--</span>
-<a name="line-297"></a><span class='hs-comment'>-- \"Costate Comonad Coalgebra is equivalent of Java's member variable</span>
-<a name="line-298"></a><span class='hs-comment'>-- update technology for Haskell\" -- \@PLT_Borat on Twitter</span>
-<a name="line-299"></a><span class='hs-definition'>cloneLens</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span>
-<a name="line-300"></a>  <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>Context</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span>
-<a name="line-301"></a>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
-<a name="line-302"></a><span class='hs-definition'>cloneLens</span> <span class='hs-varid'>f</span> <span class='hs-varid'>cfd</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Context</span> <span class='hs-varid'>id</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>of</span>
-<a name="line-303"></a>  <span class='hs-conid'>Context</span> <span class='hs-varid'>db</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>db</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>cfd</span> <span class='hs-varid'>c</span>
-<a name="line-304"></a><span class='hs-comment'>{-# INLINE cloneLens #-}</span>
-<a name="line-305"></a>
-<a name="line-306"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-307"></a><span class='hs-comment'>-- Overloading function application</span>
-<a name="line-308"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-309"></a>
-<a name="line-310"></a><a name="Overloaded"></a><span class='hs-comment'>-- | @type 'LensLike' f a b c d = 'Overloaded' (-&gt;) f a b c d@</span>
-<a name="line-311"></a><a name="Overloaded"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Overloaded</span> <span class='hs-varid'>k</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-312"></a>
-<a name="line-313"></a><a name="SimpleOverloaded"></a><span class='hs-comment'>-- | @type 'SimpleOverloaded' k f a b = 'Simple' ('Overloaded' k f) a b@</span>
-<a name="line-314"></a><a name="SimpleOverloaded"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleOverloaded</span> <span class='hs-varid'>k</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Overloaded</span> <span class='hs-varid'>k</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>b</span>
-<a name="line-315"></a>
-<a name="line-316"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-317"></a><span class='hs-comment'>-- Setting and Remembering</span>
-<a name="line-318"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-319"></a>
-<a name="line-320"></a><a name="%3c%25~"></a><span class='hs-comment'>-- | Modify the target of a 'Lens' and return the result</span>
-<a name="line-321"></a><span class='hs-comment'>--</span>
-<a name="line-322"></a><span class='hs-comment'>-- When you do not need the result of the addition, ('Control.Lens.Setter.%~') is more flexible.</span>
-<a name="line-323"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;%~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>d</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-324"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>let</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>c</span> <span class='hs-keyword'>in</span> <span class='hs-layout'>(</span><span class='hs-varid'>d</span><span class='hs-layout'>,</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span>
-<a name="line-325"></a><span class='hs-comment'>{-# INLINE (&lt;%~) #-}</span>
-<a name="line-326"></a>
-<a name="line-327"></a><a name="%3c+~"></a><span class='hs-comment'>-- | Increment the target of a numerically valued 'Lens' and return the result</span>
-<a name="line-328"></a><span class='hs-comment'>--</span>
-<a name="line-329"></a><span class='hs-comment'>-- When you do not need the result of the addition, ('Control.Lens.Setter.+~') is more flexible.</span>
-<a name="line-330"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;+~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-331"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;+~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
-<a name="line-332"></a><span class='hs-comment'>{-# INLINE (&lt;+~) #-}</span>
-<a name="line-333"></a>
-<a name="line-334"></a><a name="%3c-~"></a><span class='hs-comment'>-- | Decrement the target of a numerically valued 'Lens' and return the result</span>
+<a name="line-297"></a><span class='hs-comment'>-- /\"Costate Comonad Coalgebra is equivalent of Java's member variable update technology for Haskell\"/ -- \@PLT_Borat on Twitter</span>
+<a name="line-298"></a><span class='hs-definition'>cloneLens</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span>
+<a name="line-299"></a>  <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>Context</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span>
+<a name="line-300"></a>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
+<a name="line-301"></a><span class='hs-definition'>cloneLens</span> <span class='hs-varid'>f</span> <span class='hs-varid'>cfd</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Context</span> <span class='hs-varid'>id</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>of</span>
+<a name="line-302"></a>  <span class='hs-conid'>Context</span> <span class='hs-varid'>db</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>db</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>cfd</span> <span class='hs-varid'>c</span>
+<a name="line-303"></a><span class='hs-comment'>{-# INLINE cloneLens #-}</span>
+<a name="line-304"></a>
+<a name="line-305"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-306"></a><span class='hs-comment'>-- Overloading function application</span>
+<a name="line-307"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-308"></a>
+<a name="line-309"></a><a name="Overloaded"></a><span class='hs-comment'>-- | @type 'LensLike' f a b c d = 'Overloaded' (-&gt;) f a b c d@</span>
+<a name="line-310"></a><a name="Overloaded"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Overloaded</span> <span class='hs-varid'>k</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-311"></a>
+<a name="line-312"></a><a name="SimpleOverloaded"></a><span class='hs-comment'>-- | @type 'SimpleOverloaded' k f a b = 'Simple' ('Overloaded' k f) a b@</span>
+<a name="line-313"></a><a name="SimpleOverloaded"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleOverloaded</span> <span class='hs-varid'>k</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Overloaded</span> <span class='hs-varid'>k</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>b</span>
+<a name="line-314"></a>
+<a name="line-315"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-316"></a><span class='hs-comment'>-- Setting and Remembering</span>
+<a name="line-317"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-318"></a>
+<a name="line-319"></a><a name="%3c%25~"></a><span class='hs-comment'>-- | Modify the target of a 'Lens' and return the result</span>
+<a name="line-320"></a><span class='hs-comment'>--</span>
+<a name="line-321"></a><span class='hs-comment'>-- When you do not need the result of the addition, ('Control.Lens.Setter.%~') is more flexible.</span>
+<a name="line-322"></a><span class='hs-comment'>--</span>
+<a name="line-323"></a><span class='hs-comment'>-- @</span>
+<a name="line-324"></a><span class='hs-comment'>-- ('&lt;%~') ::             'Lens' a b c d      -&gt; (c -&gt; d) -&gt; a -&gt; (d, b)</span>
+<a name="line-325"></a><span class='hs-comment'>-- ('&lt;%~') ::             'Control.Lens.Iso.Iso' a b c d       -&gt; (c -&gt; d) -&gt; a -&gt; (d, b)</span>
+<a name="line-326"></a><span class='hs-comment'>-- ('&lt;%~') :: 'Monoid' d =&gt; 'Control.Lens.Traversal.Traversal' a b c d -&gt; (c -&gt; d) -&gt; a -&gt; (d, b)</span>
+<a name="line-327"></a><span class='hs-comment'>-- @</span>
+<a name="line-328"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;%~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>d</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-329"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>let</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>c</span> <span class='hs-keyword'>in</span> <span class='hs-layout'>(</span><span class='hs-varid'>d</span><span class='hs-layout'>,</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span>
+<a name="line-330"></a><span class='hs-comment'>{-# INLINE (&lt;%~) #-}</span>
+<a name="line-331"></a>
+<a name="line-332"></a><a name="%3c+~"></a><span class='hs-comment'>-- | Increment the target of a numerically valued 'Lens' and return the result</span>
+<a name="line-333"></a><span class='hs-comment'>--</span>
+<a name="line-334"></a><span class='hs-comment'>-- When you do not need the result of the addition, ('Control.Lens.Setter.+~') is more flexible.</span>
 <a name="line-335"></a><span class='hs-comment'>--</span>
-<a name="line-336"></a><span class='hs-comment'>-- When you do not need the result of the subtraction, ('Control.Lens.Setter.-~') is more flexible.</span>
-<a name="line-337"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;-~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-338"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;-~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-varid'>subtract</span> <span class='hs-varid'>c</span>
-<a name="line-339"></a><span class='hs-comment'>{-# INLINE (&lt;-~) #-}</span>
-<a name="line-340"></a>
-<a name="line-341"></a><a name="%3c*~"></a><span class='hs-comment'>-- | Multiply the target of a numerically valued 'Lens' and return the result</span>
-<a name="line-342"></a><span class='hs-comment'>--</span>
-<a name="line-343"></a><span class='hs-comment'>-- When you do not need the result of the multiplication, ('Control.Lens.Setter.*~') is more</span>
-<a name="line-344"></a><span class='hs-comment'>-- flexible.</span>
-<a name="line-345"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;*~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-346"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;*~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>*</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
-<a name="line-347"></a><span class='hs-comment'>{-# INLINE (&lt;*~) #-}</span>
-<a name="line-348"></a>
-<a name="line-349"></a><a name="%3c//~"></a><span class='hs-comment'>-- | Divide the target of a fractionally valued 'Lens' and return the result.</span>
-<a name="line-350"></a><span class='hs-comment'>--</span>
-<a name="line-351"></a><span class='hs-comment'>-- When you do not need the result of the division, ('Control.Lens.Setter.//~') is more flexible.</span>
-<a name="line-352"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;//~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Fractional</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-353"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;//~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>/</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
-<a name="line-354"></a><span class='hs-comment'>{-# INLINE (&lt;//~) #-}</span>
+<a name="line-336"></a><span class='hs-comment'>-- @</span>
+<a name="line-337"></a><span class='hs-comment'>-- ('&lt;+~') :: 'Num' b =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; a -&gt; (b, a)</span>
+<a name="line-338"></a><span class='hs-comment'>-- ('&lt;+~') :: 'Num' b =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; b -&gt; a -&gt; (b, a)</span>
+<a name="line-339"></a><span class='hs-comment'>-- @</span>
+<a name="line-340"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;+~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-341"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;+~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
+<a name="line-342"></a><span class='hs-comment'>{-# INLINE (&lt;+~) #-}</span>
+<a name="line-343"></a>
+<a name="line-344"></a><a name="%3c-~"></a><span class='hs-comment'>-- | Decrement the target of a numerically valued 'Lens' and return the result</span>
+<a name="line-345"></a><span class='hs-comment'>--</span>
+<a name="line-346"></a><span class='hs-comment'>-- When you do not need the result of the subtraction, ('Control.Lens.Setter.-~') is more flexible.</span>
+<a name="line-347"></a><span class='hs-comment'>--</span>
+<a name="line-348"></a><span class='hs-comment'>-- @</span>
+<a name="line-349"></a><span class='hs-comment'>-- ('&lt;-~') :: 'Num' b =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; a -&gt; (b, a)</span>
+<a name="line-350"></a><span class='hs-comment'>-- ('&lt;-~') :: 'Num' b =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; b -&gt; a -&gt; (b, a)</span>
+<a name="line-351"></a><span class='hs-comment'>-- @</span>
+<a name="line-352"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;-~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-353"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;-~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-varid'>subtract</span> <span class='hs-varid'>c</span>
+<a name="line-354"></a><span class='hs-comment'>{-# INLINE (&lt;-~) #-}</span>
 <a name="line-355"></a>
-<a name="line-356"></a><a name="%3c%5e~"></a><span class='hs-comment'>-- | Raise the target of a numerically valued 'Lens' to a non-negative</span>
-<a name="line-357"></a><span class='hs-comment'>-- 'Integral' power and return the result</span>
-<a name="line-358"></a><span class='hs-comment'>--</span>
-<a name="line-359"></a><span class='hs-comment'>-- When you do not need the result of the division, ('Control.Lens.Setter.^~') is more flexible.</span>
-<a name="line-360"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;^~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Num</span> <span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-conid'>Integral</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-361"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;^~</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>^</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span>
-<a name="line-362"></a><span class='hs-comment'>{-# INLINE (&lt;^~) #-}</span>
-<a name="line-363"></a>
-<a name="line-364"></a><a name="%3c%5e%5e~"></a><span class='hs-comment'>-- | Raise the target of a fractionally valued 'Lens' to an 'Integral' power</span>
-<a name="line-365"></a><span class='hs-comment'>-- and return the result.</span>
-<a name="line-366"></a><span class='hs-comment'>--</span>
-<a name="line-367"></a><span class='hs-comment'>-- When you do not need the result of the division, ('Control.Lens.Setter.^^~') is more flexible.</span>
-<a name="line-368"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;^^~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Fractional</span> <span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-conid'>Integral</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-369"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;^^~</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>^^</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span>
-<a name="line-370"></a><span class='hs-comment'>{-# INLINE (&lt;^^~) #-}</span>
-<a name="line-371"></a>
-<a name="line-372"></a><a name="%3c**~"></a><span class='hs-comment'>-- | Raise the target of a floating-point valued 'Lens' to an arbitrary power</span>
-<a name="line-373"></a><span class='hs-comment'>-- and return the result.</span>
-<a name="line-374"></a><span class='hs-comment'>--</span>
-<a name="line-375"></a><span class='hs-comment'>-- When you do not need the result of the division, ('Control.Lens.Setter.**~') is more flexible.</span>
-<a name="line-376"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;**~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Floating</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-377"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;**~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>**</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
-<a name="line-378"></a><span class='hs-comment'>{-# INLINE (&lt;**~) #-}</span>
-<a name="line-379"></a>
-<a name="line-380"></a><a name="%3c%7c%7c~"></a><span class='hs-comment'>-- | Logically '||' a Boolean valued 'Lens' and return the result</span>
-<a name="line-381"></a><span class='hs-comment'>--</span>
-<a name="line-382"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.||~') is more flexible.</span>
-<a name="line-383"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;||~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>Bool</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Bool</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-384"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;||~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>||</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
-<a name="line-385"></a><span class='hs-comment'>{-# INLINE (&lt;||~) #-}</span>
-<a name="line-386"></a>
-<a name="line-387"></a><a name="%3c&&~"></a><span class='hs-comment'>-- | Logically '&amp;&amp;' a Boolean valued 'Lens' and return the result</span>
-<a name="line-388"></a><span class='hs-comment'>--</span>
-<a name="line-389"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.&amp;&amp;~') is more flexible.</span>
-<a name="line-390"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&amp;~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>Bool</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Bool</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-391"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&amp;&amp;~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>&amp;&amp;</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
-<a name="line-392"></a><span class='hs-comment'>{-# INLINE (&lt;&amp;&amp;~) #-}</span>
+<a name="line-356"></a><a name="%3c*~"></a><span class='hs-comment'>-- | Multiply the target of a numerically valued 'Lens' and return the result</span>
+<a name="line-357"></a><span class='hs-comment'>--</span>
+<a name="line-358"></a><span class='hs-comment'>-- When you do not need the result of the multiplication, ('Control.Lens.Setter.*~') is more</span>
+<a name="line-359"></a><span class='hs-comment'>-- flexible.</span>
+<a name="line-360"></a><span class='hs-comment'>--</span>
+<a name="line-361"></a><span class='hs-comment'>-- @</span>
+<a name="line-362"></a><span class='hs-comment'>-- ('&lt;*~') :: 'Num' b =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; a -&gt; (b, a)</span>
+<a name="line-363"></a><span class='hs-comment'>-- ('&lt;*~') :: 'Num' b =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; b -&gt; a -&gt; (b, a)</span>
+<a name="line-364"></a><span class='hs-comment'>-- @</span>
+<a name="line-365"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;*~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-366"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;*~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>*</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
+<a name="line-367"></a><span class='hs-comment'>{-# INLINE (&lt;*~) #-}</span>
+<a name="line-368"></a>
+<a name="line-369"></a><a name="%3c//~"></a><span class='hs-comment'>-- | Divide the target of a fractionally valued 'Lens' and return the result.</span>
+<a name="line-370"></a><span class='hs-comment'>--</span>
+<a name="line-371"></a><span class='hs-comment'>-- When you do not need the result of the division, ('Control.Lens.Setter.//~') is more flexible.</span>
+<a name="line-372"></a><span class='hs-comment'>--</span>
+<a name="line-373"></a><span class='hs-comment'>-- @</span>
+<a name="line-374"></a><span class='hs-comment'>-- ('&lt;//~') :: 'Fractional' b =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; a -&gt; (b, a)</span>
+<a name="line-375"></a><span class='hs-comment'>-- ('&lt;//~') :: 'Fractional' b =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; b -&gt; a -&gt; (b, a)</span>
+<a name="line-376"></a><span class='hs-comment'>-- @</span>
+<a name="line-377"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;//~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Fractional</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-378"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;//~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>/</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
+<a name="line-379"></a><span class='hs-comment'>{-# INLINE (&lt;//~) #-}</span>
+<a name="line-380"></a>
+<a name="line-381"></a><a name="%3c%5e~"></a><span class='hs-comment'>-- | Raise the target of a numerically valued 'Lens' to a non-negative</span>
+<a name="line-382"></a><span class='hs-comment'>-- 'Integral' power and return the result</span>
+<a name="line-383"></a><span class='hs-comment'>--</span>
+<a name="line-384"></a><span class='hs-comment'>-- When you do not need the result of the division, ('Control.Lens.Setter.^~') is more flexible.</span>
+<a name="line-385"></a><span class='hs-comment'>--</span>
+<a name="line-386"></a><span class='hs-comment'>-- @</span>
+<a name="line-387"></a><span class='hs-comment'>-- ('&lt;^~') :: ('Num' b, 'Integral' c) =&gt; 'Simple' 'Lens' a b -&gt; c -&gt; a -&gt; (b, a)</span>
+<a name="line-388"></a><span class='hs-comment'>-- ('&lt;^~') :: ('Num' b, 'Integral' c) =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; c -&gt; a -&gt; (b, a)</span>
+<a name="line-389"></a><span class='hs-comment'>-- @</span>
+<a name="line-390"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;^~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Num</span> <span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-conid'>Integral</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-391"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;^~</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>^</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span>
+<a name="line-392"></a><span class='hs-comment'>{-# INLINE (&lt;^~) #-}</span>
 <a name="line-393"></a>
-<a name="line-394"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-395"></a><span class='hs-comment'>-- Setting and Remembering State</span>
-<a name="line-396"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-397"></a>
-<a name="line-398"></a><a name="%3c%25="></a><span class='hs-comment'>-- | Modify the target of a 'Lens' into your monad's state by a user supplied</span>
-<a name="line-399"></a><span class='hs-comment'>-- function and return the result.</span>
-<a name="line-400"></a><span class='hs-comment'>--</span>
-<a name="line-401"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.</span>
-<a name="line-402"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;%=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>d</span>
-<a name="line-403"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>%%=</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>let</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>c</span> <span class='hs-keyword'>in</span> <span class='hs-layout'>(</span><span class='hs-varid'>d</span><span class='hs-layout'>,</span><span class='hs-varid'>d</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-404"></a><span class='hs-comment'>{-# INLINE (&lt;%=) #-}</span>
-<a name="line-405"></a>
-<a name="line-406"></a><a name="%3c+="></a><span class='hs-comment'>-- | Add to the target of a numerically valued 'Lens' into your monad's state</span>
-<a name="line-407"></a><span class='hs-comment'>-- and return the result.</span>
-<a name="line-408"></a><span class='hs-comment'>--</span>
-<a name="line-409"></a><span class='hs-comment'>-- When you do not need the result of the multiplication, ('Control.Lens.Setter.+=') is more</span>
-<a name="line-410"></a><span class='hs-comment'>-- flexible.</span>
-<a name="line-411"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;+=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
-<a name="line-412"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;+=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-413"></a><span class='hs-comment'>{-# INLINE (&lt;+=) #-}</span>
-<a name="line-414"></a>
-<a name="line-415"></a><a name="%3c-="></a><span class='hs-comment'>-- | Subtract from the target of a numerically valued 'Lens' into your monad's</span>
-<a name="line-416"></a><span class='hs-comment'>-- state and return the result.</span>
-<a name="line-417"></a><span class='hs-comment'>--</span>
-<a name="line-418"></a><span class='hs-comment'>-- When you do not need the result of the multiplication, ('Control.Lens.Setter.-=') is more</span>
-<a name="line-419"></a><span class='hs-comment'>-- flexible.</span>
-<a name="line-420"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;-=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
-<a name="line-421"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;-=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-varid'>subtract</span> <span class='hs-varid'>b</span>
-<a name="line-422"></a><span class='hs-comment'>{-# INLINE (&lt;-=) #-}</span>
-<a name="line-423"></a>
-<a name="line-424"></a><a name="%3c*="></a><span class='hs-comment'>-- | Multiply the target of a numerically valued 'Lens' into your monad's</span>
-<a name="line-425"></a><span class='hs-comment'>-- state and return the result.</span>
-<a name="line-426"></a><span class='hs-comment'>--</span>
-<a name="line-427"></a><span class='hs-comment'>-- When you do not need the result of the multiplication, ('Control.Lens.Setter.*=') is more</span>
-<a name="line-428"></a><span class='hs-comment'>-- flexible.</span>
-<a name="line-429"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;*=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
-<a name="line-430"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;*=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>*</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-431"></a><span class='hs-comment'>{-# INLINE (&lt;*=) #-}</span>
-<a name="line-432"></a>
-<a name="line-433"></a><a name="%3c//="></a><span class='hs-comment'>-- | Divide the target of a fractionally valued 'Lens' into your monad's state</span>
-<a name="line-434"></a><span class='hs-comment'>-- and return the result.</span>
+<a name="line-394"></a><a name="%3c%5e%5e~"></a><span class='hs-comment'>-- | Raise the target of a fractionally valued 'Lens' to an 'Integral' power</span>
+<a name="line-395"></a><span class='hs-comment'>-- and return the result.</span>
+<a name="line-396"></a><span class='hs-comment'>--</span>
+<a name="line-397"></a><span class='hs-comment'>-- When you do not need the result of the division, ('Control.Lens.Setter.^^~') is more flexible.</span>
+<a name="line-398"></a><span class='hs-comment'>--</span>
+<a name="line-399"></a><span class='hs-comment'>-- @</span>
+<a name="line-400"></a><span class='hs-comment'>-- ('&lt;^^~') :: ('Fractional' b, 'Integral' c) =&gt; 'Simple' 'Lens' a b -&gt; c -&gt; a -&gt; (b, a)</span>
+<a name="line-401"></a><span class='hs-comment'>-- ('&lt;^^~') :: ('Fractional' b, 'Integral' c) =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; c -&gt; a -&gt; (b, a)</span>
+<a name="line-402"></a><span class='hs-comment'>-- @</span>
+<a name="line-403"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;^^~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Fractional</span> <span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-conid'>Integral</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-404"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;^^~</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>^^</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span>
+<a name="line-405"></a><span class='hs-comment'>{-# INLINE (&lt;^^~) #-}</span>
+<a name="line-406"></a>
+<a name="line-407"></a><a name="%3c**~"></a><span class='hs-comment'>-- | Raise the target of a floating-point valued 'Lens' to an arbitrary power</span>
+<a name="line-408"></a><span class='hs-comment'>-- and return the result.</span>
+<a name="line-409"></a><span class='hs-comment'>--</span>
+<a name="line-410"></a><span class='hs-comment'>-- When you do not need the result of the division, ('Control.Lens.Setter.**~') is more flexible.</span>
+<a name="line-411"></a><span class='hs-comment'>--</span>
+<a name="line-412"></a><span class='hs-comment'>-- @</span>
+<a name="line-413"></a><span class='hs-comment'>-- ('&lt;**~') :: 'Floating' b =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; a -&gt; (b, a)</span>
+<a name="line-414"></a><span class='hs-comment'>-- ('&lt;**~') :: 'Floating' b =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; b -&gt; a -&gt; (b, a)</span>
+<a name="line-415"></a><span class='hs-comment'>-- @</span>
+<a name="line-416"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;**~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Floating</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-417"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;**~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>**</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
+<a name="line-418"></a><span class='hs-comment'>{-# INLINE (&lt;**~) #-}</span>
+<a name="line-419"></a>
+<a name="line-420"></a><a name="%3c%7c%7c~"></a><span class='hs-comment'>-- | Logically '||' a Boolean valued 'Lens' and return the result</span>
+<a name="line-421"></a><span class='hs-comment'>--</span>
+<a name="line-422"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.||~') is more flexible.</span>
+<a name="line-423"></a><span class='hs-comment'>--</span>
+<a name="line-424"></a><span class='hs-comment'>-- @</span>
+<a name="line-425"></a><span class='hs-comment'>-- ('&lt;||~') :: 'Simple' 'Lens' a 'Bool' -&gt; 'Bool' -&gt; a -&gt; ('Bool', a)</span>
+<a name="line-426"></a><span class='hs-comment'>-- ('&lt;||~') :: 'Simple' 'Control.Lens.Iso.Iso' a 'Bool'  -&gt; 'Bool' -&gt; a -&gt; ('Bool', a)</span>
+<a name="line-427"></a><span class='hs-comment'>-- @</span>
+<a name="line-428"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;||~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>Bool</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Bool</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-429"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;||~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>||</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
+<a name="line-430"></a><span class='hs-comment'>{-# INLINE (&lt;||~) #-}</span>
+<a name="line-431"></a>
+<a name="line-432"></a><a name="%3c&&~"></a><span class='hs-comment'>-- | Logically '&amp;&amp;' a Boolean valued 'Lens' and return the result</span>
+<a name="line-433"></a><span class='hs-comment'>--</span>
+<a name="line-434"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.&amp;&amp;~') is more flexible.</span>
 <a name="line-435"></a><span class='hs-comment'>--</span>
-<a name="line-436"></a><span class='hs-comment'>-- When you do not need the result of the division, ('Control.Lens.Setter.//=') is more flexible.</span>
-<a name="line-437"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;//=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Fractional</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
-<a name="line-438"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;//=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>/</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-439"></a><span class='hs-comment'>{-# INLINE (&lt;//=) #-}</span>
-<a name="line-440"></a>
-<a name="line-441"></a><a name="%3c%5e="></a><span class='hs-comment'>-- | Raise the target of a numerically valued 'Lens' into your monad's state</span>
-<a name="line-442"></a><span class='hs-comment'>-- to a non-negative 'Integral' power and return the result.</span>
-<a name="line-443"></a><span class='hs-comment'>--</span>
-<a name="line-444"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.</span>
-<a name="line-445"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;^=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>b</span><span class='hs-layout'>,</span> <span class='hs-conid'>Integral</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
-<a name="line-446"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;^=</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>^</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
-<a name="line-447"></a><span class='hs-comment'>{-# INLINE (&lt;^=) #-}</span>
-<a name="line-448"></a>
-<a name="line-449"></a><a name="%3c%5e%5e="></a><span class='hs-comment'>-- | Raise the target of a fractionally valued 'Lens' into your monad's state</span>
-<a name="line-450"></a><span class='hs-comment'>-- to an 'Integral' power and return the result.</span>
-<a name="line-451"></a><span class='hs-comment'>--</span>
-<a name="line-452"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.^^=') is more flexible.</span>
-<a name="line-453"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;^^=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Fractional</span> <span class='hs-varid'>b</span><span class='hs-layout'>,</span> <span class='hs-conid'>Integral</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
-<a name="line-454"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;^^=</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>^^</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
-<a name="line-455"></a><span class='hs-comment'>{-# INLINE (&lt;^^=) #-}</span>
-<a name="line-456"></a>
-<a name="line-457"></a><a name="%3c**="></a><span class='hs-comment'>-- | Raise the target of a floating-point valued 'Lens' into your monad's</span>
-<a name="line-458"></a><span class='hs-comment'>-- state to an arbitrary power and return the result.</span>
-<a name="line-459"></a><span class='hs-comment'>--</span>
-<a name="line-460"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.</span>
-<a name="line-461"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;**=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Floating</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
-<a name="line-462"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;**=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>**</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-463"></a><span class='hs-comment'>{-# INLINE (&lt;**=) #-}</span>
+<a name="line-436"></a><span class='hs-comment'>-- @</span>
+<a name="line-437"></a><span class='hs-comment'>-- ('&lt;&amp;&amp;~') :: 'Simple' 'Lens' a 'Bool' -&gt; 'Bool' -&gt; a -&gt; ('Bool', a)</span>
+<a name="line-438"></a><span class='hs-comment'>-- ('&lt;&amp;&amp;~') :: 'Simple' 'Control.Lens.Iso.Iso' a 'Bool'  -&gt; 'Bool' -&gt; a -&gt; ('Bool', a)</span>
+<a name="line-439"></a><span class='hs-comment'>-- @</span>
+<a name="line-440"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&amp;~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>Bool</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Bool</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-441"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&amp;&amp;~</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>&amp;&amp;</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
+<a name="line-442"></a><span class='hs-comment'>{-# INLINE (&lt;&amp;&amp;~) #-}</span>
+<a name="line-443"></a>
+<a name="line-444"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-445"></a><span class='hs-comment'>-- Setting and Remembering State</span>
+<a name="line-446"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-447"></a>
+<a name="line-448"></a><a name="%3c%25="></a><span class='hs-comment'>-- | Modify the target of a 'Lens' into your monad's state by a user supplied</span>
+<a name="line-449"></a><span class='hs-comment'>-- function and return the result.</span>
+<a name="line-450"></a><span class='hs-comment'>--</span>
+<a name="line-451"></a><span class='hs-comment'>-- When applied to a 'Control.Lens.Traversal.Traversal', it this will return a monoidal summary of all of the intermediate</span>
+<a name="line-452"></a><span class='hs-comment'>-- results.</span>
+<a name="line-453"></a><span class='hs-comment'>--</span>
+<a name="line-454"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.</span>
+<a name="line-455"></a><span class='hs-comment'>--</span>
+<a name="line-456"></a><span class='hs-comment'>-- @</span>
+<a name="line-457"></a><span class='hs-comment'>-- ('&lt;%=') :: 'MonadState' a m             =&gt; 'Simple' 'Lens' a b     -&gt; (b -&gt; b) -&gt; m b</span>
+<a name="line-458"></a><span class='hs-comment'>-- ('&lt;%=') :: 'MonadState' a m             =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b      -&gt; (b -&gt; b) -&gt; m b</span>
+<a name="line-459"></a><span class='hs-comment'>-- ('&lt;%=') :: ('MonadState' a m, 'Monoid' b) =&gt; 'Simple' 'Traveral' a b -&gt; (b -&gt; b) -&gt; m b</span>
+<a name="line-460"></a><span class='hs-comment'>-- @</span>
+<a name="line-461"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;%=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>d</span>
+<a name="line-462"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>%%=</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>let</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>c</span> <span class='hs-keyword'>in</span> <span class='hs-layout'>(</span><span class='hs-varid'>d</span><span class='hs-layout'>,</span><span class='hs-varid'>d</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-463"></a><span class='hs-comment'>{-# INLINE (&lt;%=) #-}</span>
 <a name="line-464"></a>
-<a name="line-465"></a><a name="%3c%7c%7c="></a><span class='hs-comment'>-- | Logically '||' a Boolean valued 'Lens' into your monad's state and return</span>
-<a name="line-466"></a><span class='hs-comment'>-- the result.</span>
+<a name="line-465"></a><a name="%3c+="></a><span class='hs-comment'>-- | Add to the target of a numerically valued 'Lens' into your monad's state</span>
+<a name="line-466"></a><span class='hs-comment'>-- and return the result.</span>
 <a name="line-467"></a><span class='hs-comment'>--</span>
-<a name="line-468"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.||=') is more flexible.</span>
-<a name="line-469"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;||=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>Bool</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>Bool</span>
-<a name="line-470"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;||=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>||</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-471"></a><span class='hs-comment'>{-# INLINE (&lt;||=) #-}</span>
-<a name="line-472"></a>
-<a name="line-473"></a><a name="%3c&&="></a><span class='hs-comment'>-- | Logically '&amp;&amp;' a Boolean valued 'Lens' into your monad's state and return</span>
-<a name="line-474"></a><span class='hs-comment'>-- the result.</span>
-<a name="line-475"></a><span class='hs-comment'>--</span>
-<a name="line-476"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.&amp;&amp;=') is more flexible.</span>
-<a name="line-477"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&amp;=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>Bool</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>Bool</span>
-<a name="line-478"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&amp;&amp;=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&amp;&amp;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-479"></a><span class='hs-comment'>{-# INLINE (&lt;&amp;&amp;=) #-}</span>
-<a name="line-480"></a>
-<a name="line-481"></a><a name="ReifiedLens"></a><span class='hs-comment'>-- | Useful for storing lenses in containers.</span>
-<a name="line-482"></a><a name="ReifiedLens"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>ReifiedLens</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifyLens</span> <span class='hs-layout'>{</span> <span class='hs-varid'>reflectLens</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-layout'>}</span>
-<a name="line-483"></a>
-<a name="line-484"></a><a name="SimpleReifiedLens"></a><span class='hs-comment'>-- | @type 'SimpleReifiedLens' = 'Simple' 'ReifiedLens'@</span>
-<a name="line-485"></a><a name="SimpleReifiedLens"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleReifiedLens</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifiedLens</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>b</span>
+<a name="line-468"></a><span class='hs-comment'>-- When you do not need the result of the multiplication, ('Control.Lens.Setter.+=') is more</span>
+<a name="line-469"></a><span class='hs-comment'>-- flexible.</span>
+<a name="line-470"></a><span class='hs-comment'>--</span>
+<a name="line-471"></a><span class='hs-comment'>-- @</span>
+<a name="line-472"></a><span class='hs-comment'>-- ('&lt;+=') :: ('MonadState' a m, 'Num' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m b</span>
+<a name="line-473"></a><span class='hs-comment'>-- ('&lt;+=') :: ('MonadState' a m, 'Num' b) =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; b -&gt; m b</span>
+<a name="line-474"></a><span class='hs-comment'>-- @</span>
+<a name="line-475"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;+=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
+<a name="line-476"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;+=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-477"></a><span class='hs-comment'>{-# INLINE (&lt;+=) #-}</span>
+<a name="line-478"></a>
+<a name="line-479"></a><a name="%3c-="></a><span class='hs-comment'>-- | Subtract from the target of a numerically valued 'Lens' into your monad's</span>
+<a name="line-480"></a><span class='hs-comment'>-- state and return the result.</span>
+<a name="line-481"></a><span class='hs-comment'>--</span>
+<a name="line-482"></a><span class='hs-comment'>-- When you do not need the result of the multiplication, ('Control.Lens.Setter.-=') is more</span>
+<a name="line-483"></a><span class='hs-comment'>-- flexible.</span>
+<a name="line-484"></a><span class='hs-comment'>--</span>
+<a name="line-485"></a><span class='hs-comment'>-- @</span>
+<a name="line-486"></a><span class='hs-comment'>-- ('&lt;-=') :: ('MonadState' a m, 'Num' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m b</span>
+<a name="line-487"></a><span class='hs-comment'>-- ('&lt;-=') :: ('MonadState' a m, 'Num' b) =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; b -&gt; m b</span>
+<a name="line-488"></a><span class='hs-comment'>-- @</span>
+<a name="line-489"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;-=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
+<a name="line-490"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;-=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-varid'>subtract</span> <span class='hs-varid'>b</span>
+<a name="line-491"></a><span class='hs-comment'>{-# INLINE (&lt;-=) #-}</span>
+<a name="line-492"></a>
+<a name="line-493"></a><a name="%3c*="></a><span class='hs-comment'>-- | Multiply the target of a numerically valued 'Lens' into your monad's</span>
+<a name="line-494"></a><span class='hs-comment'>-- state and return the result.</span>
+<a name="line-495"></a><span class='hs-comment'>--</span>
+<a name="line-496"></a><span class='hs-comment'>-- When you do not need the result of the multiplication, ('Control.Lens.Setter.*=') is more</span>
+<a name="line-497"></a><span class='hs-comment'>-- flexible.</span>
+<a name="line-498"></a><span class='hs-comment'>--</span>
+<a name="line-499"></a><span class='hs-comment'>-- @</span>
+<a name="line-500"></a><span class='hs-comment'>-- ('&lt;*=') :: ('MonadState' a m, 'Num' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m b</span>
+<a name="line-501"></a><span class='hs-comment'>-- ('&lt;*=') :: ('MonadState' a m, 'Num' b) =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; b -&gt; m b</span>
+<a name="line-502"></a><span class='hs-comment'>-- @</span>
+<a name="line-503"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;*=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
+<a name="line-504"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;*=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>*</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-505"></a><span class='hs-comment'>{-# INLINE (&lt;*=) #-}</span>
+<a name="line-506"></a>
+<a name="line-507"></a><a name="%3c//="></a><span class='hs-comment'>-- | Divide the target of a fractionally valued 'Lens' into your monad's state</span>
+<a name="line-508"></a><span class='hs-comment'>-- and return the result.</span>
+<a name="line-509"></a><span class='hs-comment'>--</span>
+<a name="line-510"></a><span class='hs-comment'>-- When you do not need the result of the division, ('Control.Lens.Setter.//=') is more flexible.</span>
+<a name="line-511"></a><span class='hs-comment'>--</span>
+<a name="line-512"></a><span class='hs-comment'>-- @</span>
+<a name="line-513"></a><span class='hs-comment'>-- ('&lt;//=') :: ('MonadState' a m, 'Fractional' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m b</span>
+<a name="line-514"></a><span class='hs-comment'>-- ('&lt;//=') :: ('MonadState' a m, 'Fractional' b) =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; b -&gt; m b</span>
+<a name="line-515"></a><span class='hs-comment'>-- @</span>
+<a name="line-516"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;//=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Fractional</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
+<a name="line-517"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;//=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>/</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-518"></a><span class='hs-comment'>{-# INLINE (&lt;//=) #-}</span>
+<a name="line-519"></a>
+<a name="line-520"></a><a name="%3c%5e="></a><span class='hs-comment'>-- | Raise the target of a numerically valued 'Lens' into your monad's state</span>
+<a name="line-521"></a><span class='hs-comment'>-- to a non-negative 'Integral' power and return the result.</span>
+<a name="line-522"></a><span class='hs-comment'>--</span>
+<a name="line-523"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.</span>
+<a name="line-524"></a><span class='hs-comment'>--</span>
+<a name="line-525"></a><span class='hs-comment'>-- @</span>
+<a name="line-526"></a><span class='hs-comment'>-- ('&lt;^=') :: ('MonadState' a m, 'Num' b, 'Integral' c) =&gt; 'Simple' 'Lens' a b -&gt; c -&gt; m b</span>
+<a name="line-527"></a><span class='hs-comment'>-- ('&lt;^=') :: ('MonadState' a m, 'Num' b, 'Integral' c) =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; c -&gt; m b</span>
+<a name="line-528"></a><span class='hs-comment'>-- @</span>
+<a name="line-529"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;^=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Num</span> <span class='hs-varid'>b</span><span class='hs-layout'>,</span> <span class='hs-conid'>Integral</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
+<a name="line-530"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;^=</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>^</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
+<a name="line-531"></a><span class='hs-comment'>{-# INLINE (&lt;^=) #-}</span>
+<a name="line-532"></a>
+<a name="line-533"></a><a name="%3c%5e%5e="></a><span class='hs-comment'>-- | Raise the target of a fractionally valued 'Lens' into your monad's state</span>
+<a name="line-534"></a><span class='hs-comment'>-- to an 'Integral' power and return the result.</span>
+<a name="line-535"></a><span class='hs-comment'>--</span>
+<a name="line-536"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.^^=') is more flexible.</span>
+<a name="line-537"></a><span class='hs-comment'>--</span>
+<a name="line-538"></a><span class='hs-comment'>-- @</span>
+<a name="line-539"></a><span class='hs-comment'>-- ('&lt;^^=') :: ('MonadState' a m, 'Fractional' b, 'Integral' c) =&gt; 'Simple' 'Lens' a b -&gt; c -&gt; m b</span>
+<a name="line-540"></a><span class='hs-comment'>-- ('&lt;^^=') :: ('MonadState' a m, 'Fractional' b, 'Integral' c) =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; c -&gt; m b</span>
+<a name="line-541"></a><span class='hs-comment'>-- @</span>
+<a name="line-542"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;^^=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Fractional</span> <span class='hs-varid'>b</span><span class='hs-layout'>,</span> <span class='hs-conid'>Integral</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
+<a name="line-543"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;^^=</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>^^</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
+<a name="line-544"></a><span class='hs-comment'>{-# INLINE (&lt;^^=) #-}</span>
+<a name="line-545"></a>
+<a name="line-546"></a><a name="%3c**="></a><span class='hs-comment'>-- | Raise the target of a floating-point valued 'Lens' into your monad's</span>
+<a name="line-547"></a><span class='hs-comment'>-- state to an arbitrary power and return the result.</span>
+<a name="line-548"></a><span class='hs-comment'>--</span>
+<a name="line-549"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.</span>
+<a name="line-550"></a><span class='hs-comment'>--</span>
+<a name="line-551"></a><span class='hs-comment'>-- @</span>
+<a name="line-552"></a><span class='hs-comment'>-- ('&lt;**=') :: ('MonadState' a m, 'Floating' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m b</span>
+<a name="line-553"></a><span class='hs-comment'>-- ('&lt;**=') :: ('MonadState' a m, 'Floating' b) =&gt; 'Simple' 'Control.Lens.Iso.Iso' a b  -&gt; b -&gt; m b</span>
+<a name="line-554"></a><span class='hs-comment'>-- @</span>
+<a name="line-555"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;**=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Floating</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
+<a name="line-556"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;**=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>**</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-557"></a><span class='hs-comment'>{-# INLINE (&lt;**=) #-}</span>
+<a name="line-558"></a>
+<a name="line-559"></a><a name="%3c%7c%7c="></a><span class='hs-comment'>-- | Logically '||' a Boolean valued 'Lens' into your monad's state and return</span>
+<a name="line-560"></a><span class='hs-comment'>-- the result.</span>
+<a name="line-561"></a><span class='hs-comment'>--</span>
+<a name="line-562"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.||=') is more flexible.</span>
+<a name="line-563"></a><span class='hs-comment'>--</span>
+<a name="line-564"></a><span class='hs-comment'>-- @</span>
+<a name="line-565"></a><span class='hs-comment'>-- ('&lt;||=') :: 'MonadState' a m =&gt; 'Simple' 'Lens' a 'Bool' -&gt; 'Bool' -&gt; m 'Bool'</span>
+<a name="line-566"></a><span class='hs-comment'>-- ('&lt;||=') :: 'MonadState' a m =&gt; 'Simple' 'Control.Lens.Iso.Iso' a 'Bool'  -&gt; 'Bool' -&gt; m 'Bool'</span>
+<a name="line-567"></a><span class='hs-comment'>-- @</span>
+<a name="line-568"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;||=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>Bool</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>Bool</span>
+<a name="line-569"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;||=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>||</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-570"></a><span class='hs-comment'>{-# INLINE (&lt;||=) #-}</span>
+<a name="line-571"></a>
+<a name="line-572"></a><a name="%3c&&="></a><span class='hs-comment'>-- | Logically '&amp;&amp;' a Boolean valued 'Lens' into your monad's state and return</span>
+<a name="line-573"></a><span class='hs-comment'>-- the result.</span>
+<a name="line-574"></a><span class='hs-comment'>--</span>
+<a name="line-575"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('Control.Lens.Setter.&amp;&amp;=') is more flexible.</span>
+<a name="line-576"></a><span class='hs-comment'>--</span>
+<a name="line-577"></a><span class='hs-comment'>-- @</span>
+<a name="line-578"></a><span class='hs-comment'>-- ('&lt;&amp;&amp;=') :: 'MonadState' a m =&gt; 'Simple' 'Lens' a 'Bool' -&gt; 'Bool' -&gt; m 'Bool'</span>
+<a name="line-579"></a><span class='hs-comment'>-- ('&lt;&amp;&amp;=') :: 'MonadState' a m =&gt; 'Simple' 'Control.Lens.Iso.Iso' a 'Bool'  -&gt; 'Bool' -&gt; m 'Bool'</span>
+<a name="line-580"></a><span class='hs-comment'>-- @</span>
+<a name="line-581"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&amp;=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>Bool</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>Bool</span>
+<a name="line-582"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&amp;&amp;=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&amp;&amp;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-583"></a><span class='hs-comment'>{-# INLINE (&lt;&amp;&amp;=) #-}</span>
+<a name="line-584"></a>
+<a name="line-585"></a><a name="ReifiedLens"></a><span class='hs-comment'>-- | Useful for storing lenses in containers.</span>
+<a name="line-586"></a><a name="ReifiedLens"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>ReifiedLens</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifyLens</span> <span class='hs-layout'>{</span> <span class='hs-varid'>reflectLens</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-layout'>}</span>
+<a name="line-587"></a>
+<a name="line-588"></a><a name="SimpleReifiedLens"></a><span class='hs-comment'>-- | @type 'SimpleReifiedLens' = 'Simple' 'ReifiedLens'@</span>
+<a name="line-589"></a><a name="SimpleReifiedLens"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleReifiedLens</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifiedLens</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>b</span>
 </pre></body>
 </html>
