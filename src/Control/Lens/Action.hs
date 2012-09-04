@@ -84,6 +84,6 @@ acts = act id
 {-# INLINE acts #-}
 
 -- | Apply a 'Monad' transformer to an 'Action'.
-liftAct :: (MonadTrans t, Monad m) => Acting m c a c -> Action (t m) a c
+liftAct :: (MonadTrans t, Monad m) => Acting m c a b c d -> Action (t m) a c
 liftAct l = act (lift . perform l)
 {-# INLINE liftAct #-}
