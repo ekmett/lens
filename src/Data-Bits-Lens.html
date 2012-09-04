@@ -41,10 +41,10 @@
 <a name="line-32"></a><span class='hs-comment'>-- ("hello",7)</span>
 <a name="line-33"></a><span class='hs-comment'>--</span>
 <a name="line-34"></a><span class='hs-comment'>-- @</span>
-<a name="line-35"></a><span class='hs-comment'>-- (|~) :: 'Bits' c =&gt; 'Setter' a b c c -&gt; c -&gt; a -&gt; b</span>
-<a name="line-36"></a><span class='hs-comment'>-- (|~) :: 'Bits' c =&gt; 'Iso' a b c c -&gt; c -&gt; a -&gt; b</span>
-<a name="line-37"></a><span class='hs-comment'>-- (|~) :: 'Bits' c =&gt; 'Lens' a b c c -&gt; c -&gt; a -&gt; b</span>
-<a name="line-38"></a><span class='hs-comment'>-- (|~) :: ('Monoid c', 'Bits' c) =&gt; 'Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-35"></a><span class='hs-comment'>-- ('|~') :: 'Bits' c =&gt; 'Setter' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-36"></a><span class='hs-comment'>-- ('|~') :: 'Bits' c =&gt; 'Iso' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-37"></a><span class='hs-comment'>-- ('|~') :: 'Bits' c =&gt; 'Lens' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-38"></a><span class='hs-comment'>-- ('|~') :: ('Monoid c', 'Bits' c) =&gt; 'Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
 <a name="line-39"></a><span class='hs-comment'>-- @</span>
 <a name="line-40"></a><span class='hs-layout'>(</span><span class='hs-varop'>|~</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bits</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
 <a name="line-41"></a><a name="l"></a><span class='hs-definition'>l</span> <span class='hs-varop'>|~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>.|.</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
@@ -56,10 +56,10 @@
 <a name="line-47"></a><span class='hs-comment'>-- ("hello",6)</span>
 <a name="line-48"></a><span class='hs-comment'>--</span>
 <a name="line-49"></a><span class='hs-comment'>-- @</span>
-<a name="line-50"></a><span class='hs-comment'>-- (&amp;~) :: 'Bits' c =&gt; 'Setter' a b c c -&gt; c -&gt; a -&gt; b</span>
-<a name="line-51"></a><span class='hs-comment'>-- (&amp;~) :: 'Bits' c =&gt; 'Iso' a b c c -&gt; c -&gt; a -&gt; b</span>
-<a name="line-52"></a><span class='hs-comment'>-- (&amp;~) :: 'Bits' c =&gt; 'Lens' a b c c -&gt; c -&gt; a -&gt; b</span>
-<a name="line-53"></a><span class='hs-comment'>-- (&amp;~) :: ('Monoid c', 'Bits' c) =&gt; 'Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-50"></a><span class='hs-comment'>-- ('&amp;~') :: 'Bits' c =&gt; 'Setter' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-51"></a><span class='hs-comment'>-- ('&amp;~') :: 'Bits' c =&gt; 'Iso' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-52"></a><span class='hs-comment'>-- ('&amp;~') :: 'Bits' c =&gt; 'Lens' a b c c -&gt; c -&gt; a -&gt; b</span>
+<a name="line-53"></a><span class='hs-comment'>-- ('&amp;~') :: ('Monoid c', 'Bits' c) =&gt; 'Traversal' a b c c -&gt; c -&gt; a -&gt; b</span>
 <a name="line-54"></a><span class='hs-comment'>-- @</span>
 <a name="line-55"></a><span class='hs-layout'>(</span><span class='hs-varop'>&amp;~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bits</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
 <a name="line-56"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&amp;~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>.&amp;.</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
@@ -68,10 +68,10 @@
 <a name="line-59"></a><a name="&="></a><span class='hs-comment'>-- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.&amp;.' with another value.</span>
 <a name="line-60"></a><span class='hs-comment'>--</span>
 <a name="line-61"></a><span class='hs-comment'>-- @</span>
-<a name="line-62"></a><span class='hs-comment'>-- (&amp;=):: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Setter' a b -&gt; b -&gt; m ()</span>
-<a name="line-63"></a><span class='hs-comment'>-- (&amp;=):: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Iso' a b -&gt; b -&gt; m ()</span>
-<a name="line-64"></a><span class='hs-comment'>-- (&amp;=):: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m ()</span>
-<a name="line-65"></a><span class='hs-comment'>-- (&amp;=):: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Traversal' a b -&gt; b -&gt; m ()</span>
+<a name="line-62"></a><span class='hs-comment'>-- ('&amp;=') :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Setter' a b -&gt; b -&gt; m ()</span>
+<a name="line-63"></a><span class='hs-comment'>-- ('&amp;=') :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Iso' a b -&gt; b -&gt; m ()</span>
+<a name="line-64"></a><span class='hs-comment'>-- ('&amp;=') :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m ()</span>
+<a name="line-65"></a><span class='hs-comment'>-- ('&amp;=') :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Traversal' a b -&gt; b -&gt; m ()</span>
 <a name="line-66"></a><span class='hs-comment'>-- @</span>
 <a name="line-67"></a><span class='hs-layout'>(</span><span class='hs-varop'>&amp;=</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Bits</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
 <a name="line-68"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&amp;=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>modify</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-varop'>&amp;~</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
@@ -80,10 +80,10 @@
 <a name="line-71"></a><a name="%7c="></a><span class='hs-comment'>-- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.|.' with another value.</span>
 <a name="line-72"></a><span class='hs-comment'>--</span>
 <a name="line-73"></a><span class='hs-comment'>-- @</span>
-<a name="line-74"></a><span class='hs-comment'>-- (|=):: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Setter' a b -&gt; b -&gt; m ()</span>
-<a name="line-75"></a><span class='hs-comment'>-- (|=):: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Iso' a b -&gt; b -&gt; m ()</span>
-<a name="line-76"></a><span class='hs-comment'>-- (|=):: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m ()</span>
-<a name="line-77"></a><span class='hs-comment'>-- (|=):: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Traversal' a b -&gt; b -&gt; m ()</span>
+<a name="line-74"></a><span class='hs-comment'>-- ('|=') :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Setter' a b -&gt; b -&gt; m ()</span>
+<a name="line-75"></a><span class='hs-comment'>-- ('|=') :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Iso' a b -&gt; b -&gt; m ()</span>
+<a name="line-76"></a><span class='hs-comment'>-- ('|=') :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m ()</span>
+<a name="line-77"></a><span class='hs-comment'>-- ('|=') :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Traversal' a b -&gt; b -&gt; m ()</span>
 <a name="line-78"></a><span class='hs-comment'>-- @</span>
 <a name="line-79"></a><span class='hs-layout'>(</span><span class='hs-varop'>|=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Bits</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Setting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
 <a name="line-80"></a><span class='hs-definition'>l</span> <span class='hs-varop'>|=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>modify</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-varop'>|~</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
@@ -96,9 +96,9 @@
 <a name="line-87"></a><span class='hs-comment'>-- (7,("hello",7))</span>
 <a name="line-88"></a><span class='hs-comment'>--</span>
 <a name="line-89"></a><span class='hs-comment'>-- @</span>
-<a name="line-90"></a><span class='hs-comment'>-- (\&lt;|~) :: 'Bits' c =&gt; 'Iso' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
-<a name="line-91"></a><span class='hs-comment'>-- (\&lt;|~) :: 'Bits' c =&gt; 'Lens' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
-<a name="line-92"></a><span class='hs-comment'>-- (\&lt;|~) :: ('Bits' c, 'Monoid c) =&gt; 'Traversal' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
+<a name="line-90"></a><span class='hs-comment'>-- ('&lt;|~') :: 'Bits' c =&gt; 'Iso' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
+<a name="line-91"></a><span class='hs-comment'>-- ('&lt;|~') :: 'Bits' c =&gt; 'Lens' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
+<a name="line-92"></a><span class='hs-comment'>-- ('&lt;|~') :: ('Bits' c, 'Monoid c) =&gt; 'Traversal' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
 <a name="line-93"></a><span class='hs-comment'>-- @</span>
 <a name="line-94"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;|~</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bits</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
 <a name="line-95"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;|~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>.|.</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
@@ -111,9 +111,9 @@
 <a name="line-102"></a><span class='hs-comment'>-- (6,("hello",6))</span>
 <a name="line-103"></a><span class='hs-comment'>--</span>
 <a name="line-104"></a><span class='hs-comment'>-- @</span>
-<a name="line-105"></a><span class='hs-comment'>-- (\&lt;&amp;~) :: 'Bits' c =&gt; 'Iso' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
-<a name="line-106"></a><span class='hs-comment'>-- (\&lt;&amp;~) :: 'Bits' c =&gt; 'Lens' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
-<a name="line-107"></a><span class='hs-comment'>-- (\&lt;&amp;~) :: ('Bits' c, 'Monoid c) =&gt; 'Traversal' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
+<a name="line-105"></a><span class='hs-comment'>-- ('&lt;&amp;~') :: 'Bits' c =&gt; 'Iso' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
+<a name="line-106"></a><span class='hs-comment'>-- ('&lt;&amp;~') :: 'Bits' c =&gt; 'Lens' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
+<a name="line-107"></a><span class='hs-comment'>-- ('&lt;&amp;~') :: ('Bits' c, 'Monoid c) =&gt; 'Traversal' a b c c -&gt; c -&gt; a -&gt; (c, b)</span>
 <a name="line-108"></a><span class='hs-comment'>-- @</span>
 <a name="line-109"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Bits</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
 <a name="line-110"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&amp;~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%~</span> <span class='hs-layout'>(</span><span class='hs-varop'>.&amp;.</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
@@ -123,8 +123,8 @@
 <a name="line-114"></a><span class='hs-comment'>-- returning the result (or a monoidal summary of all of the results traversed)</span>
 <a name="line-115"></a><span class='hs-comment'>--</span>
 <a name="line-116"></a><span class='hs-comment'>-- @</span>
-<a name="line-117"></a><span class='hs-comment'>-- (\&lt;&amp;=) :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m b</span>
-<a name="line-118"></a><span class='hs-comment'>-- (\&lt;&amp;=) :: ('MonadState' a m, 'Bits' b, 'Monoid' b) =&gt; 'Simple' 'Traversal' a b -&gt; b -&gt; m b</span>
+<a name="line-117"></a><span class='hs-comment'>-- ('&lt;&amp;=') :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m b</span>
+<a name="line-118"></a><span class='hs-comment'>-- ('&lt;&amp;=') :: ('MonadState' a m, 'Bits' b, 'Monoid' b) =&gt; 'Simple' 'Traversal' a b -&gt; b -&gt; m b</span>
 <a name="line-119"></a><span class='hs-comment'>-- @</span>
 <a name="line-120"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;=</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Bits</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
 <a name="line-121"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&amp;=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>.&amp;.</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
@@ -134,8 +134,8 @@
 <a name="line-125"></a><span class='hs-comment'>-- returning the result (or a monoidal summary of all of the results traversed)</span>
 <a name="line-126"></a><span class='hs-comment'>--</span>
 <a name="line-127"></a><span class='hs-comment'>-- @</span>
-<a name="line-128"></a><span class='hs-comment'>-- (\&lt;|=) :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m b</span>
-<a name="line-129"></a><span class='hs-comment'>-- (\&lt;|=) :: ('MonadState' a m, 'Bits' b, 'Monoid' b) =&gt; 'Simple' 'Traversal' a b -&gt; b -&gt; m b</span>
+<a name="line-128"></a><span class='hs-comment'>-- ('&lt;|=') :: ('MonadState' a m, 'Bits' b) =&gt; 'Simple' 'Lens' a b -&gt; b -&gt; m b</span>
+<a name="line-129"></a><span class='hs-comment'>-- ('&lt;|=') :: ('MonadState' a m, 'Bits' b, 'Monoid' b) =&gt; 'Simple' 'Traversal' a b -&gt; b -&gt; m b</span>
 <a name="line-130"></a><span class='hs-comment'>-- @</span>
 <a name="line-131"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;|=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadState</span> <span class='hs-varid'>a</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Bits</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
 <a name="line-132"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;|=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>.|.</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>

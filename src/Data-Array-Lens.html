@@ -38,36 +38,36 @@
 <a name="line-29"></a><span class='hs-comment'>--</span>
 <a name="line-30"></a><span class='hs-comment'>-- Note: The indexed element is assumed to exist in the target 'IArray'.</span>
 <a name="line-31"></a><span class='hs-comment'>--</span>
-<a name="line-32"></a><span class='hs-comment'>-- @arr '!' i = arr '^.' 'ix' i@</span>
-<a name="line-33"></a><span class='hs-comment'>--</span>
-<a name="line-34"></a><span class='hs-comment'>-- @arr '//' [(i,e)] = 'ix' i '.~' e '$' arr@</span>
-<a name="line-35"></a><span class='hs-comment'>--</span>
-<a name="line-36"></a><span class='hs-comment'>-- &gt;&gt;&gt; ix 2 .~ 9 $ (listArray (1,5) [4,5,6,7,8] :: Array Int Int)</span>
-<a name="line-37"></a><span class='hs-comment'>-- array (1,5) [(1,4),(2,9),(3,6),(4,7),(5,8)]</span>
-<a name="line-38"></a><span class='hs-definition'>ix</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>IArray</span> <span class='hs-varid'>a</span> <span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ix</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Lens</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varid'>i</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span>
-<a name="line-39"></a><span class='hs-definition'>ix</span> <span class='hs-varid'>i</span> <span class='hs-varid'>f</span> <span class='hs-varid'>arr</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>arr</span> <span class='hs-varop'>//</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span><span class='hs-varid'>e</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>arr</span> <span class='hs-varop'>!</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span>
-<a name="line-40"></a><span class='hs-comment'>{-# INLINE ix #-}</span>
-<a name="line-41"></a>
-<a name="line-42"></a><a name="ixmapped"></a><span class='hs-comment'>-- | This setter can be used to derive a new 'IArray' from an old array by</span>
-<a name="line-43"></a><span class='hs-comment'>-- applying a function to each of the indices to look it up in the old 'IArray'.</span>
-<a name="line-44"></a><span class='hs-comment'>--</span>
-<a name="line-45"></a><span class='hs-comment'>-- This is a /contravariant/ 'Setter'.</span>
-<a name="line-46"></a><span class='hs-comment'>--</span>
-<a name="line-47"></a><span class='hs-comment'>-- @'ixmap' = 'over' . 'ixmapped'@</span>
-<a name="line-48"></a><span class='hs-comment'>--</span>
-<a name="line-49"></a><span class='hs-comment'>-- @'ixmapped' = 'sets' . 'ixmap'@</span>
-<a name="line-50"></a><span class='hs-comment'>--</span>
-<a name="line-51"></a><span class='hs-comment'>-- @'over' ('ixmapped' b) f arr '!' i = arr '!' f i@</span>
-<a name="line-52"></a><span class='hs-comment'>--</span>
-<a name="line-53"></a><span class='hs-comment'>-- @'bounds' ('over' ('ixmapped' b) f arr) = b@</span>
+<a name="line-32"></a><span class='hs-comment'>-- @</span>
+<a name="line-33"></a><span class='hs-comment'>-- arr '!' i ≡ arr '^.' 'ix' i</span>
+<a name="line-34"></a><span class='hs-comment'>-- arr '//' [(i,e)] ≡ 'ix' i '.~' e '$' arr</span>
+<a name="line-35"></a><span class='hs-comment'>-- @</span>
+<a name="line-36"></a><span class='hs-comment'>--</span>
+<a name="line-37"></a><span class='hs-comment'>-- &gt;&gt;&gt; ix 2 .~ 9 $ (listArray (1,5) [4,5,6,7,8] :: Array Int Int)</span>
+<a name="line-38"></a><span class='hs-comment'>-- array (1,5) [(1,4),(2,9),(3,6),(4,7),(5,8)]</span>
+<a name="line-39"></a><span class='hs-definition'>ix</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>IArray</span> <span class='hs-varid'>a</span> <span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ix</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Lens</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varid'>i</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span>
+<a name="line-40"></a><span class='hs-definition'>ix</span> <span class='hs-varid'>i</span> <span class='hs-varid'>f</span> <span class='hs-varid'>arr</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>arr</span> <span class='hs-varop'>//</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span><span class='hs-varid'>e</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>arr</span> <span class='hs-varop'>!</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span>
+<a name="line-41"></a><span class='hs-comment'>{-# INLINE ix #-}</span>
+<a name="line-42"></a>
+<a name="line-43"></a><a name="ixmapped"></a><span class='hs-comment'>-- | This setter can be used to derive a new 'IArray' from an old array by</span>
+<a name="line-44"></a><span class='hs-comment'>-- applying a function to each of the indices to look it up in the old 'IArray'.</span>
+<a name="line-45"></a><span class='hs-comment'>--</span>
+<a name="line-46"></a><span class='hs-comment'>-- This is a /contravariant/ 'Setter'.</span>
+<a name="line-47"></a><span class='hs-comment'>--</span>
+<a name="line-48"></a><span class='hs-comment'>-- @</span>
+<a name="line-49"></a><span class='hs-comment'>-- 'ixmap' ≡ 'over' . 'ixmapped'</span>
+<a name="line-50"></a><span class='hs-comment'>-- 'ixmapped' ≡ 'sets' . 'ixmap'</span>
+<a name="line-51"></a><span class='hs-comment'>-- 'over' ('ixmapped' b) f arr '!' i ≡ arr '!' f i</span>
+<a name="line-52"></a><span class='hs-comment'>-- 'bounds' ('over' ('ixmapped' b) f arr) ≡ b</span>
+<a name="line-53"></a><span class='hs-comment'>-- @</span>
 <a name="line-54"></a><span class='hs-definition'>ixmapped</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>IArray</span> <span class='hs-varid'>a</span> <span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ix</span> <span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ix</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span><span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Setter</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varid'>j</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varid'>i</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-varid'>i</span> <span class='hs-varid'>j</span>
 <a name="line-55"></a><span class='hs-definition'>ixmapped</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sets</span> <span class='hs-varop'>.</span> <span class='hs-varid'>ixmap</span>
 <a name="line-56"></a><span class='hs-comment'>{-# INLINE ixmapped #-}</span>
 <a name="line-57"></a>
-<a name="line-58"></a><a name="traverseArray"></a><span class='hs-comment'>-- | An 'IndexedTraversal' of the elements of an 'IArray', using the </span>
+<a name="line-58"></a><a name="traverseArray"></a><span class='hs-comment'>-- | An 'IndexedTraversal' of the elements of an 'IArray', using the</span>
 <a name="line-59"></a><span class='hs-comment'>-- index into the array as the index of the traversal.</span>
 <a name="line-60"></a><span class='hs-comment'>--</span>
-<a name="line-61"></a><span class='hs-comment'>-- @'amap' = 'over' 'traverseArray'@</span>
+<a name="line-61"></a><span class='hs-comment'>-- @'amap' ≡ 'over' 'traverseArray'@</span>
 <a name="line-62"></a><span class='hs-definition'>traverseArray</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>IArray</span> <span class='hs-varid'>a</span> <span class='hs-varid'>c</span><span class='hs-layout'>,</span> <span class='hs-conid'>IArray</span> <span class='hs-varid'>a</span> <span class='hs-varid'>d</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ix</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>IndexedTraversal</span> <span class='hs-varid'>i</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varid'>i</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varid'>i</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span>
 <a name="line-63"></a><span class='hs-definition'>traverseArray</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>index</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>f</span> <span class='hs-varid'>arr</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>array</span> <span class='hs-layout'>(</span><span class='hs-varid'>bounds</span> <span class='hs-varid'>arr</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>traverse</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span><span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>(,)</span> <span class='hs-varid'>i</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>assocs</span> <span class='hs-varid'>arr</span><span class='hs-layout'>)</span>
 <a name="line-64"></a><span class='hs-comment'>{-# INLINE traverseArray #-}</span>

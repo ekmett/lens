@@ -59,7 +59,7 @@
 <a name="line-50"></a><span class='hs-comment'>--</span>
 <a name="line-51"></a><span class='hs-comment'>-- When you do not need access to the index, then 'mapOf' is more liberal in what it can accept.</span>
 <a name="line-52"></a><span class='hs-comment'>--</span>
-<a name="line-53"></a><span class='hs-comment'>-- @'Control.Lens.Setter.mapOf' l = 'imapOf' l . 'const'@</span>
+<a name="line-53"></a><span class='hs-comment'>-- @'Control.Lens.Setter.mapOf' l ≡ 'imapOf' l '.' 'const'@</span>
 <a name="line-54"></a><span class='hs-comment'>--</span>
 <a name="line-55"></a><span class='hs-comment'>-- @</span>
 <a name="line-56"></a><span class='hs-comment'>-- 'imapOf' :: 'IndexedSetter' i a b c d    -&gt; (i -&gt; c -&gt; d) -&gt; a -&gt; b</span>
@@ -74,7 +74,7 @@
 <a name="line-65"></a><span class='hs-comment'>--</span>
 <a name="line-66"></a><span class='hs-comment'>-- When you do not need access to the index, then 'over' is more liberal in what it can accept.</span>
 <a name="line-67"></a><span class='hs-comment'>--</span>
-<a name="line-68"></a><span class='hs-comment'>-- @'Control.Lens.Setter.over' l = 'iover' l . 'const'@</span>
+<a name="line-68"></a><span class='hs-comment'>-- @'Control.Lens.Setter.over' l ≡ 'iover' l '.' 'const'@</span>
 <a name="line-69"></a><span class='hs-comment'>--</span>
 <a name="line-70"></a><span class='hs-comment'>-- @</span>
 <a name="line-71"></a><span class='hs-comment'>-- 'iover' :: 'IndexedSetter' i a b c d    -&gt; (i -&gt; c -&gt; d) -&gt; a -&gt; b</span>
@@ -90,15 +90,15 @@
 <a name="line-81"></a><span class='hs-comment'>-- Your supplied function @f@ is required to satisfy:</span>
 <a name="line-82"></a><span class='hs-comment'>--</span>
 <a name="line-83"></a><span class='hs-comment'>-- @</span>
-<a name="line-84"></a><span class='hs-comment'>-- f 'id' = 'id'</span>
-<a name="line-85"></a><span class='hs-comment'>-- f g '.' f h = f (g '.' h)</span>
+<a name="line-84"></a><span class='hs-comment'>-- f 'id' ≡ 'id'</span>
+<a name="line-85"></a><span class='hs-comment'>-- f g '.' f h ≡ f (g '.' h)</span>
 <a name="line-86"></a><span class='hs-comment'>-- @</span>
 <a name="line-87"></a><span class='hs-comment'>--</span>
 <a name="line-88"></a><span class='hs-comment'>-- Equational reasoning:</span>
 <a name="line-89"></a><span class='hs-comment'>--</span>
 <a name="line-90"></a><span class='hs-comment'>-- @</span>
-<a name="line-91"></a><span class='hs-comment'>-- 'isets' . 'iover' = 'id'</span>
-<a name="line-92"></a><span class='hs-comment'>-- 'iover' . 'isets' = 'id'</span>
+<a name="line-91"></a><span class='hs-comment'>-- 'isets' '.' 'iover' ≡ 'id'</span>
+<a name="line-92"></a><span class='hs-comment'>-- 'iover' '.' 'isets' ≡ 'id'</span>
 <a name="line-93"></a><span class='hs-comment'>-- @</span>
 <a name="line-94"></a><span class='hs-comment'>--</span>
 <a name="line-95"></a><span class='hs-comment'>-- Another way to view 'sets' is that it takes a \"semantic editor combinator\"</span>
@@ -110,11 +110,11 @@
 <a name="line-101"></a><a name="%25@~"></a><span class='hs-comment'>-- | Adjust every target of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'</span>
 <a name="line-102"></a><span class='hs-comment'>-- with access to the index.</span>
 <a name="line-103"></a><span class='hs-comment'>--</span>
-<a name="line-104"></a><span class='hs-comment'>-- @('%@~') = 'imapOf'@</span>
+<a name="line-104"></a><span class='hs-comment'>-- @('%@~') ≡ 'imapOf'@</span>
 <a name="line-105"></a><span class='hs-comment'>--</span>
 <a name="line-106"></a><span class='hs-comment'>-- When you do not need access to the index then ('%@~') is more liberal in what it can accept.</span>
 <a name="line-107"></a><span class='hs-comment'>--</span>
-<a name="line-108"></a><span class='hs-comment'>-- @l 'Control.Lens.Setter.%~' f = l '%@~' 'const' f@</span>
+<a name="line-108"></a><span class='hs-comment'>-- @l 'Control.Lens.Setter.%~' f ≡ l '%@~' 'const' f@</span>
 <a name="line-109"></a><span class='hs-comment'>--</span>
 <a name="line-110"></a><span class='hs-comment'>-- @</span>
 <a name="line-111"></a><span class='hs-comment'>-- ('%@~') :: 'IndexedSetter' i a b c d    -&gt; (i -&gt; c -&gt; d) -&gt; a -&gt; b</span>
@@ -128,9 +128,9 @@
 <a name="line-119"></a><a name="%25@="></a><span class='hs-comment'>-- | Adjust every target in the current state of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'</span>
 <a name="line-120"></a><span class='hs-comment'>-- with access to the index.</span>
 <a name="line-121"></a><span class='hs-comment'>--</span>
-<a name="line-122"></a><span class='hs-comment'>-- When you do not need access to the index then ('%=') is more liberal in what it can accept.</span>
+<a name="line-122"></a><span class='hs-comment'>-- When you do not need access to the index then ('Control.Lens.Setter.%=') is more liberal in what it can accept.</span>
 <a name="line-123"></a><span class='hs-comment'>--</span>
-<a name="line-124"></a><span class='hs-comment'>-- @l 'Control.Lens.Setter.%=' f = l '%@=' 'const' f@</span>
+<a name="line-124"></a><span class='hs-comment'>-- @l 'Control.Lens.Setter.%=' f ≡ l '%@=' 'const' f@</span>
 <a name="line-125"></a><span class='hs-comment'>--</span>
 <a name="line-126"></a><span class='hs-comment'>-- @</span>
 <a name="line-127"></a><span class='hs-comment'>-- ('%@=') :: 'MonadState' a m =&gt; 'IndexedSetter' i a a c d    -&gt; (i -&gt; c -&gt; d) -&gt; m ()</span>
