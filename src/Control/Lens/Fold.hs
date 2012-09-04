@@ -122,13 +122,13 @@ folded f = coerce . getFolding . foldMap (Folding . f)
 
 -- | Fold by repeating the input forever.
 --
--- @'repeat' = 'toListOf' 'repeated'@
+-- @'repeat' ≡ 'toListOf' 'repeated'@
 repeated :: Fold a a
 repeated f a = as where as = f a *> as
 
 -- | A fold that replicates its input @n@ times.
 --
--- @'replicate' n = 'toListOf' ('replicated' n)@
+-- @'replicate' n ≡ 'toListOf' ('replicated' n)@
 replicated :: Int -> Fold a a
 replicated n0 f a = go n0 where
   m = f a
@@ -146,7 +146,7 @@ cycled l f a = as where as = l f a *> as
 
 -- | Build a fold that unfolds its values from a seed.
 --
--- @'Prelude.unfoldr' = 'toListOf' . 'unfolded'@
+-- @'Prelude.unfoldr' ≡ 'toListOf' . 'unfolded'@
 unfolded :: (b -> Maybe (a, b)) -> Fold b a
 unfolded f g b0 = go b0 where
   go b = case f b of
@@ -156,7 +156,7 @@ unfolded f g b0 = go b0 where
 
 -- | @x ^. 'iterated' f@ Return an infinite fold of repeated applications of @f@ to @x@.
 --
--- > toListOf (iterated f) a = iterate f a
+-- @'toListOf' ('iterated' f) a ≡ 'iterate' f a@
 iterated :: (a -> a) -> Fold a a
 iterated f g a0 = go a0 where
   go a = g a *> go (f a)
@@ -179,7 +179,7 @@ backwards l f = forwards . l (Backwards . f)
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Control.Lens.Iso.Iso', 'Getter' or 'Control.Lens.Traversal.Traversal' while a predicate holds.
 --
--- @'takeWhile' p = 'toListOf' ('takingWhile' p 'folded')@
+-- @'takeWhile' p ≡ 'toListOf' ('takingWhile' p 'folded')@
 --
 -- >>> toListOf (takingWhile (<=3) folded) [1..]
 -- [1,2,3]
@@ -193,7 +193,7 @@ takingWhile p l f = foldrOf l (\a r -> if p a then f a *> r else noEffect) noEff
 
 -- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Control.Lens.Iso.Iso', 'Getter' or 'Control.Lens.Traversal.Traversal' while a predicate holds.
 --
--- @'dropWhile' p = 'toListOf' ('droppingWhile' p 'folded')@
+-- @'dropWhile' p ≡ 'toListOf' ('droppingWhile' p 'folded')@
 --
 -- >>> toListOf (droppingWhile (<=3) folded) [1..6]
 -- [4,5,6]
@@ -211,7 +211,7 @@ droppingWhile p l f = foldrOf l (\a r -> if p a then r else f a *> r) noEffect
 -- |
 -- @'Data.Foldable.foldMap' = 'foldMapOf' 'folded'@
 --
--- @'foldMapOf' = 'views'@
+-- @'foldMapOf' ≡ 'views'@
 --
 -- @
 -- 'foldMapOf' ::             'Getter' a c           -> (c -> r) -> a -> r
@@ -227,7 +227,7 @@ foldMapOf l f = runAccessor . l (Accessor . f)
 -- |
 -- @'Data.Foldable.fold' = 'foldOf' 'folded'@
 --
--- @'foldOf' = 'view'@
+-- @'foldOf' ≡ 'view'@
 --
 -- @
 -- 'foldOf' ::             'Getter' a m           -> a -> m
@@ -243,7 +243,7 @@ foldOf l = runAccessor . l Accessor
 -- |
 -- Right-associative fold of parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Control.Lens.Traversal.Traversal'.
 --
--- @'Data.Foldable.foldr' = 'foldrOf' 'folded'@
+-- @'Data.Foldable.foldr' ≡ 'foldrOf' 'folded'@
 --
 -- @
 -- 'foldrOf' :: 'Getter' a c           -> (c -> e -> e) -> e -> a -> e
@@ -259,7 +259,7 @@ foldrOf l f z t = appEndo (foldMapOf l (Endo . f) t) z
 -- |
 -- Left-associative fold of the parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Control.Lens.Traversal.Traversal'.
 --
--- @'Data.Foldable.foldl' = 'foldlOf' 'folded'@
+-- @'Data.Foldable.foldl' ≡ 'foldlOf' 'folded'@
 --
 -- @
 -- 'foldlOf' :: 'Getter' a c           -> (e -> c -> e) -> e -> a -> e
@@ -275,9 +275,13 @@ foldlOf l f z t = appEndo (getDual (foldMapOf l (Dual . Endo . flip f) t)) z
 -- | Extract a list of the targets of a 'Fold'. See also ('^..').
 --
 -- @
--- 'Data.Foldable.toList' = 'toListOf' 'folded'
--- ('^..') = 'flip' 'toListOf'
+-- 'Data.Foldable.toList' ≡ 'toListOf' 'folded'
+-- ('^..') ≡ 'flip' 'toListOf'
 -- @
+
+-- >>> import Control.Lens
+-- >>> toListOf both ("hello","world")
+-- ["hello","world"]
 --
 -- @
 -- 'toListOf' :: 'Getter' a c           -> a -> [c]
@@ -290,20 +294,41 @@ toListOf :: Getting [c] a c -> a -> [c]
 toListOf l = foldMapOf l return
 {-# INLINE toListOf #-}
 
--- | A convenient infix (flipped) version of 'toListOf'.
+-- |
+--
+-- A convenient infix (flipped) version of 'toListOf'.
+--
+-- >>> import Control.Lens
+-- >>> [[1,2],[3]]^..traverse.traverse
+-- [1,2,3]
+--
+-- >>> (1,2)^..both
+-- [1,2]
 --
 -- @
--- 'toListOf' :: a -> 'Getter' a c           -> [c]
--- 'toListOf' :: a -> 'Fold' a c             -> [c]
--- 'toListOf' :: a -> 'Simple' 'Lens' a c      -> [c]
--- 'toListOf' :: a -> 'Simple' 'Control.Lens.Iso.Iso' a c       -> [c]
--- 'toListOf' :: a -> 'Simple' 'Control.Lens.Traversal.Traversal' a c -> [c]
+-- 'Data.Foldable.toList' xs ≡ xs '^..' 'folded'
+-- ('^..') ≡ 'flip' 'toListOf'
+-- @
+--
+-- @
+-- ('^..') :: a -> 'Getter' a c           -> [c]
+-- ('^..') :: a -> 'Fold' a c             -> [c]
+-- ('^..') :: a -> 'Simple' 'Lens' a c      -> [c]
+-- ('^..') :: a -> 'Simple' 'Control.Lens.Iso.Iso' a c       -> [c]
+-- ('^..') :: a -> 'Simple' 'Control.Lens.Traversal.Traversal' a c -> [c]
 -- @
 (^..) :: a -> Getting [c] a c -> [c]
 a ^.. l = foldMapOf l return a
 
--- |
--- @'Data.Foldable.and' = 'andOf' 'folded'@
+-- | Returns 'True' if every target of a 'Fold' is 'True'.
+--
+-- >>> import Control.Lens
+-- >>> andOf both (True,False)
+-- False
+-- >>> andOf both (True,True)
+-- True
+--
+-- @'Data.Foldable.and' ≡ 'andOf' 'folded'@
 --
 -- @
 -- 'andOf' :: 'Getter' a 'Bool'           -> a -> 'Bool'
@@ -316,8 +341,15 @@ andOf :: Getting All a Bool -> a -> Bool
 andOf l = getAll . foldMapOf l All
 {-# INLINE andOf #-}
 
--- |
--- @'Data.Foldable.or' = 'orOf' 'folded'@
+-- | Returns 'True' if any target of a 'Fold' is 'True'.
+--
+-- >>> import Control.Lens
+-- >>> orOf both (True,False)
+-- True
+-- >>> orOf both (False,False)
+-- False
+--
+-- @'Data.Foldable.or' ≡ 'orOf' 'folded'@
 --
 -- @
 -- 'orOf' :: 'Getter' a 'Bool'           -> a -> 'Bool'
@@ -330,8 +362,16 @@ orOf :: Getting Any a Bool -> a -> Bool
 orOf l = getAny . foldMapOf l Any
 {-# INLINE orOf #-}
 
--- |
--- @'Data.Foldable.any' = 'anyOf' 'folded'@
+-- | Returns 'True' if any target of a 'Fold' satisfies a predicate.
+--
+-- >>> import Control.Lens
+-- >>> anyOf both (=='x') ('x','y')
+-- True
+-- >>> import Data.Data.Lens
+-- >>> anyOf biplate (== "world") (((),2::Int),"hello",("world",11))
+-- True
+--
+-- @'Data.Foldable.any' ≡ 'anyOf' 'folded'@
 --
 -- @
 -- 'anyOf' :: 'Getter' a c               -> (c -> 'Bool') -> a -> 'Bool'
@@ -344,8 +384,15 @@ anyOf :: Getting Any a c -> (c -> Bool) -> a -> Bool
 anyOf l f = getAny . foldMapOf l (Any . f)
 {-# INLINE anyOf #-}
 
--- |
--- @'Data.Foldable.all' = 'allOf' 'folded'@
+-- | Returns 'True' if every target of a 'Fold' satisfies a predicate.
+--
+-- >>> import Control.Lens
+-- >>> allOf both (>=3) (4,5)
+-- True
+-- >>> allOf folded (>=2) [1..10]
+-- False
+--
+-- @'Data.Foldable.all' ≡ 'allOf' 'folded'@
 --
 -- @
 -- 'allOf' :: 'Getter' a c           -> (c -> 'Bool') -> a -> 'Bool'
@@ -358,8 +405,15 @@ allOf :: Getting All a c -> (c -> Bool) -> a -> Bool
 allOf l f = getAll . foldMapOf l (All . f)
 {-# INLINE allOf #-}
 
--- |
--- @'Data.Foldable.product' = 'productOf' 'folded'@
+-- | Calculate the product of every number targeted by a 'Fold'
+--
+-- >>> import Control.Lens
+-- >>> productOf both (4,5)
+-- 20
+-- >>> productOf folded [1,2,3,4,5]
+-- 120
+--
+-- @'Data.Foldable.product' ≡ 'productOf' 'folded'@
 --
 -- @
 -- 'productOf' ::          'Getter' a c           -> a -> c
@@ -372,12 +426,25 @@ productOf :: Getting (Product c) a c -> a -> c
 productOf l = getProduct . foldMapOf l Product
 {-# INLINE productOf #-}
 
--- |
--- @'Data.Foldable.sum' = 'sumOf' 'folded'@
+-- | Calculate the sum of every number targeted by a 'Fold'.
 --
--- @'sumOf' '_1' :: (a, b) -> a@
+-- >>> import Control.Lens
+-- >>> sumOf both (5,6)
+-- 11
+-- >>> sumOf folded [1,2,3,4]
+-- 10
+-- >>> sumOf (folded.both) [(1,2),(3,4)]
+-- 10
+-- >>> import Data.Data.Lens
+-- >>> sumOf biplate [(1::Int,[]),(2,[(3::Int,4::Int)])] :: Int
+-- 10
 --
--- @'sumOf' ('folded' . '_1') :: ('Foldable' f, 'Num' a) => f (a, b) -> a@
+-- @'Data.Foldable.sum' ≡ 'sumOf' 'folded'@
+--
+-- @
+-- 'sumOf' '_1' :: (a, b) -> a
+-- 'sumOf' ('folded' . '_1') :: ('Foldable' f, 'Num' a) => f (a, b) -> a
+-- @
 --
 -- @
 -- 'sumOf' ::          'Getter' a c           -> a -> c
@@ -390,19 +457,26 @@ sumOf :: Getting (Sum c) a c -> a -> c
 sumOf l = getSum . foldMapOf l Sum
 {-# INLINE sumOf #-}
 
--- |
+-- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor') -based answer,
+-- but unlike 'Control.Lens.Traversal.traverseOf' do not construct a new structure. 'traverseOf_' generalizes
+-- 'Data.Foldable.traverse_' to work over any 'Fold'.
 --
--- When passed a 'Getter', 'traverseOf_' can work over a 'Functor'.
+-- When passed a 'Getter', 'traverseOf_' can work over any 'Functor', but when passed a 'Fold', 'traverseOf_' requires
+-- an 'Applicative'.
 --
--- When passed a 'Fold', 'traverseOf_' requires an 'Applicative'.
+-- >>> import Control.Lens
+-- >>> traverseOf_ both putStrLn ("hello","world")
+-- hello
+-- world
 --
--- @'Data.Foldable.traverse_' = 'traverseOf_' 'folded'@
+-- @'Data.Foldable.traverse_' ≡ 'traverseOf_' 'folded'@
 --
--- @'traverseOf_' '_2' :: 'Functor' f => (c -> f e) -> (c1, c) -> f ()@
+-- @
+-- 'traverseOf_' '_2' :: 'Functor' f => (c -> f e) -> (c1, c) -> f ()
+-- 'traverseOf_' 'Data.Either.Lens.traverseLeft' :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ()
+-- @
 --
--- @'traverseOf_' 'Data.Either.Lens.traverseLeft' :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ()@
---
--- The rather specific signature of traverseOf_ allows it to be used as if the signature was either:
+-- The rather specific signature of 'traverseOf_' allows it to be used as if the signature was any of:
 --
 -- @
 -- 'traverseOf_' :: 'Functor' f     => 'Getter' a c           -> (c -> f e) -> a -> f ()
@@ -415,8 +489,16 @@ traverseOf_ :: Functor f => Getting (Traversed f) a c -> (c -> f e) -> a -> f ()
 traverseOf_ l f = getTraversed . foldMapOf l (Traversed . void . f)
 {-# INLINE traverseOf_ #-}
 
--- |
--- @'for_' = 'forOf_' 'folded'@
+-- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor') -based answer,
+-- but unlike 'Control.Lens.Traversal.forOf' do not construct a new structure. 'forOf_' generalizes
+-- 'Data.Foldable.for_' to work over any 'Fold'.
+--
+-- When passed a 'Getter', 'forOf_' can work over any 'Functor', but when passed a 'Fold', 'forOf_' requires
+-- an 'Applicative'.
+--
+-- @'for_' ≡ 'forOf_' 'folded'@
+--
+-- The rather specific signature of 'forOf_' allows it to be used as if the signature was any of:
 --
 -- @
 -- 'forOf_' :: 'Functor' f     => 'Getter' a c           -> a -> (c -> f e) -> f ()
@@ -429,8 +511,9 @@ forOf_ :: Functor f => Getting (Traversed f) a c -> a -> (c -> f e) -> f ()
 forOf_ = flip . traverseOf_
 {-# INLINE forOf_ #-}
 
--- |
--- @'sequenceA_' = 'sequenceAOf_' 'folded'@
+-- | Evaluate each action in observed by a 'Fold' on a structure from left to right, ignoring the results.
+--
+-- @'sequenceA_' ≡ 'sequenceAOf_' 'folded'@
 --
 -- @
 -- 'sequenceAOf_' :: 'Functor' f     => 'Getter' a (f ())           -> a -> f ()
@@ -443,8 +526,9 @@ sequenceAOf_ :: Functor f => Getting (Traversed f) a (f ()) -> a -> f ()
 sequenceAOf_ l = getTraversed . foldMapOf l (Traversed . void)
 {-# INLINE sequenceAOf_ #-}
 
--- |
--- @'Data.Foldable.mapM_' = 'mapMOf_' 'folded'@
+-- | Map each target of a 'Fold' on a structure to a monadic action, evaluate these actions from left to right, and ignore the results.
+--
+-- @'Data.Foldable.mapM_' ≡ 'mapMOf_' 'folded'@
 --
 -- @
 -- 'mapMOf_' :: 'Monad' m => 'Getter' a c           -> (c -> m e) -> a -> m ()
@@ -461,8 +545,9 @@ skip :: a -> ()
 skip _ = ()
 {-# INLINE skip #-}
 
--- |
--- @'Data.Foldable.forM_' = 'forMOf_' 'folded'@
+-- | 'forMOf_' is 'mapMOf_' with two of its arguments flipped.
+--
+-- @'Data.Foldable.forM_' ≡ 'forMOf_' 'folded'@
 --
 -- @
 -- 'forMOf_' :: 'Monad' m => 'Getter' a c           -> a -> (c -> m e) -> m ()
@@ -475,8 +560,9 @@ forMOf_ :: Monad m => Getting (Sequenced m) a c -> a -> (c -> m e) -> m ()
 forMOf_ = flip . mapMOf_
 {-# INLINE forMOf_ #-}
 
--- |
--- @'Data.Foldable.sequence_' = 'sequenceOf_' 'folded'@
+-- | Evaluate each monadic action referenced by a 'Fold' on the structure from left to right, and ignore the results.
+--
+-- @'Data.Foldable.sequence_' ≡ 'sequenceOf_' 'folded'@
 --
 -- @
 -- 'sequenceOf_' :: 'Monad' m => 'Getter' a (m b)           -> a -> m ()
@@ -491,7 +577,7 @@ sequenceOf_ l = getSequenced . foldMapOf l (Sequenced . liftM skip)
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
 --
--- @'asum' = 'asumOf' 'folded'@
+-- @'asum' ≡ 'asumOf' 'folded'@
 --
 -- @
 -- 'asumOf' :: 'Alternative' f => 'Getter' a c           -> a -> f c
@@ -506,7 +592,7 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
 --
--- @'msum' = 'msumOf' 'folded'@
+-- @'msum' ≡ 'msumOf' 'folded'@
 --
 -- @
 -- 'msumOf' :: 'MonadPlus' m => 'Getter' a c           -> a -> m c
@@ -519,8 +605,13 @@ msumOf :: MonadPlus m => Getting (Endo (m c)) a (m c) -> a -> m c
 msumOf l = foldrOf l mplus mzero
 {-# INLINE msumOf #-}
 
--- |
--- @'elem' = 'elemOf' 'folded'@
+-- | Does the element occur anywhere within a given 'Fold' of the structure?
+--
+-- >>> import Control.Lens
+-- >>> elemOf both "hello" ("hello","world")
+-- True
+--
+-- @'elem' ≡ 'elemOf' 'folded'@
 --
 -- @
 -- 'elemOf' :: 'Eq' c => 'Getter' a c           -> c -> a -> 'Bool'
@@ -533,8 +624,9 @@ elemOf :: Eq c => Getting Any a c -> c -> a -> Bool
 elemOf l = anyOf l . (==)
 {-# INLINE elemOf #-}
 
--- |
--- @'notElem' = 'notElemOf' 'folded'@
+-- | Does the element not occur anywhere within a given 'Fold' of the structure?
+--
+-- @'notElem' ≡ 'notElemOf' 'folded'@
 --
 -- @
 -- 'notElemOf' :: 'Eq' c => 'Getter' a c           -> c -> a -> 'Bool'
@@ -547,8 +639,9 @@ notElemOf :: Eq c => Getting All a c -> c -> a -> Bool
 notElemOf l = allOf l . (/=)
 {-# INLINE notElemOf #-}
 
--- |
--- @'concatMap' = 'concatMapOf' 'folded'@
+-- | Map a function over all the targets of a 'Fold' of a container and concatenate the resulting lists.
+--
+-- @'concatMap' ≡ 'concatMapOf' 'folded'@
 --
 -- @
 -- 'concatMapOf' :: 'Getter' a c           -> (c -> [e]) -> a -> [e]
@@ -561,10 +654,15 @@ concatMapOf :: Getting [e] a c -> (c -> [e]) -> a -> [e]
 concatMapOf l ces = runAccessor . l (Accessor . ces)
 {-# INLINE concatMapOf #-}
 
--- |
+-- | Concatenate all of the lists targeted by a 'Fold' into a longer list.
+--
+-- >>> import Control.Lens
+-- >>> concatOf both ("pan","ama")
+-- "panama"
+--
 -- @
--- 'concat' = 'concatOf' 'folded'
--- 'concatOf' = 'view'
+-- 'concat' ≡ 'concatOf' 'folded'
+-- 'concatOf' ≡ 'view'
 -- @
 --
 -- @
@@ -581,7 +679,7 @@ concatOf = view
 -- |
 -- Note: this can be rather inefficient for large containers.
 --
--- @'length' = 'lengthOf' 'folded'@
+-- @'length' ≡ 'lengthOf' 'folded'@
 --
 -- >>> import Control.Lens
 -- >>> lengthOf _1 ("hello",())
@@ -603,7 +701,7 @@ lengthOf l = getSum . foldMapOf l (\_ -> Sum 1)
 -- | Perform a safe 'head' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'. See also ('^?').
 --
--- @'Data.Maybe.listToMaybe' . 'toList' = 'headOf' 'folded'@
+-- @'Data.Maybe.listToMaybe' '.' 'toList' ≡ 'headOf' 'folded'@
 --
 -- @
 -- 'headOf' :: 'Getter' a c           -> a -> 'Maybe' c
@@ -622,7 +720,7 @@ headOf l = getFirst . foldMapOf l (First . Just)
 -- When using a 'Control.Lens.Traversal.Traversal' as a partial 'Control.Lens.Type.Lens', or a 'Fold' as a partial 'Getter' this can be a convenient
 -- way to extract the optional value.
 --
--- @('^?') = 'flip' 'headOf'@
+-- @('^?') ≡ 'flip' 'headOf'@
 --
 -- @
 -- ('^?') :: a -> 'Getter' a c           -> 'Maybe' c
@@ -654,7 +752,7 @@ lastOf l = getLast . foldMapOf l (Last . Just)
 --
 -- Note: 'nullOf' on a valid 'Control.Lens.Iso.Iso', 'Lens' or 'Getter' should always return 'False'
 --
--- @'null' = 'nullOf' 'folded'@
+-- @'null' ≡ 'nullOf' 'folded'@
 --
 -- This may be rather inefficient compared to the 'null' check of many containers.
 --
@@ -662,7 +760,7 @@ lastOf l = getLast . foldMapOf l (Last . Just)
 -- >>> nullOf _1 (1,2)
 -- False
 --
--- @'nullOf' ('folded' . '_1' . 'folded') :: 'Foldable' f => f (g a, b) -> 'Bool'@
+-- @'nullOf' ('folded' '.' '_1' '.' 'folded') :: 'Foldable' f => f (g a, b) -> 'Bool'@
 --
 -- @
 -- 'nullOf' :: 'Getter' a c           -> a -> 'Bool'
@@ -680,7 +778,7 @@ nullOf l = getAll . foldMapOf l (\_ -> All False)
 --
 -- Note: maximumOf on a valid 'Control.Lens.Iso.Iso', 'Lens' or 'Getter' will always return 'Just' a value.
 --
--- @'maximum' = 'fromMaybe' ('error' "empty") . 'maximumOf' 'folded'@
+-- @'maximum' ≡ 'fromMaybe' ('error' "empty") '.' 'maximumOf' 'folded'@
 --
 -- @
 -- 'maximumOf' ::          'Getter' a c           -> a -> 'Maybe' c
@@ -698,7 +796,7 @@ maximumOf l = getMax . foldMapOf l Max
 --
 -- Note: minimumOf on a valid 'Control.Lens.Iso.Iso', 'Lens' or 'Getter' will always return 'Just' a value.
 --
--- @'minimum' = 'Data.Maybe.fromMaybe' ('error' "empty") . 'minimumOf' 'folded'@
+-- @'minimum' ≡ 'Data.Maybe.fromMaybe' ('error' "empty") '.' 'minimumOf' 'folded'@
 --
 -- @
 -- 'minimumOf' ::          'Getter' a c           -> a -> 'Maybe' c
@@ -715,7 +813,7 @@ minimumOf l = getMin . foldMapOf l Min
 -- Obtain the maximum element (if any) targeted by a 'Fold', 'Control.Lens.Traversal.Traversal', 'Lens', 'Control.Lens.Iso.Iso',
 -- or 'Getter' according to a user supplied ordering.
 --
--- @'Data.Foldable.maximumBy' cmp = 'Data.Maybe.fromMaybe' ('error' "empty") . 'maximumByOf' 'folded' cmp@
+-- @'Data.Foldable.maximumBy' cmp ≡ 'Data.Maybe.fromMaybe' ('error' "empty") '.' 'maximumByOf' 'folded' cmp@
 --
 -- @
 -- 'maximumByOf' :: 'Getter' a c           -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
@@ -734,7 +832,7 @@ maximumByOf l cmp = foldrOf l step Nothing where
 -- Obtain the minimum element (if any) targeted by a 'Fold', 'Control.Lens.Traversal.Traversal', 'Lens', 'Control.Lens.Iso.Iso'
 -- or 'Getter' according to a user supplied ordering.
 --
--- > minimumBy cmp = fromMaybe (error "empty") . minimumByOf folded cmp
+-- @'minimumBy' cmp ≡ 'Data.Maybe.fromMaybe' ('error' "empty") '.' 'minimumByOf' 'folded' cmp@
 --
 -- @
 -- 'minimumByOf' :: 'Getter' a c           -> (c -> c -> 'Ordering') -> a -> 'Maybe' c
@@ -772,9 +870,10 @@ findOf l p = getFirst . foldMapOf l step where
 -- to lenses and structures such that the lens views at least one element of
 -- the structure.
 --
--- @'foldr1Of' l f = 'Prelude.foldr1' f . 'toListOf' l@
---
--- @'Data.Foldable.foldr1' = 'foldr1Of' 'folded'@
+-- @
+-- 'foldr1Of' l f ≡ 'Prelude.foldr1' f '.' 'toListOf' l
+-- 'Data.Foldable.foldr1' ≡ 'foldr1Of' 'folded'
+-- @
 --
 -- @
 -- 'foldr1Of' :: 'Getter' a c           -> (c -> c -> c) -> a -> c
@@ -793,9 +892,10 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
 -- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and strutures such
 -- that the lens views at least one element of the structure.
 --
--- @'foldl1Of' l f = 'Prelude.foldl1Of' l f . 'toList'@
---
--- @'Data.Foldable.foldl1' = 'foldl1Of' 'folded'@
+-- @
+-- 'foldl1Of' l f ≡ 'Prelude.foldl1Of' l f . 'toList'
+-- 'Data.Foldable.foldl1' ≡ 'foldl1Of' 'folded'
+-- @
 --
 -- @
 -- 'foldl1Of' :: 'Getter' a c           -> (c -> c -> c) -> a -> c
@@ -812,7 +912,7 @@ foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf No
 
 -- | Strictly fold right over the elements of a structure.
 --
--- @'Data.Foldable.foldr'' = 'foldrOf'' 'folded'@
+-- @'Data.Foldable.foldr'' ≡ 'foldrOf'' 'folded'@
 --
 -- @
 -- 'foldrOf'' :: 'Getter' a c           -> (c -> e -> e) -> e -> a -> e
@@ -828,7 +928,7 @@ foldrOf' l f z0 xs = foldlOf l f' id xs z0
 
 -- | Fold over the elements of a structure, associating to the left, but strictly.
 --
--- @'Data.Foldable.foldl'' = 'foldlOf'' 'folded'@
+-- @'Data.Foldable.foldl'' ≡ 'foldlOf'' 'folded'@
 --
 -- @
 -- 'foldlOf'' :: 'Getter' a c           -> (e -> c -> e) -> e -> a -> e
@@ -845,7 +945,7 @@ foldlOf' l f z0 xs = foldrOf l f' id xs z0
 -- | Monadic fold over the elements of a structure, associating to the right,
 -- i.e. from right to left.
 --
--- @'Data.Foldable.foldrM' = 'foldrMOf' 'folded'@
+-- @'Data.Foldable.foldrM' ≡ 'foldrMOf' 'folded'@
 --
 -- @
 -- 'foldrMOf' :: 'Monad' m => 'Getter' a c           -> (c -> e -> m e) -> e -> a -> m e
@@ -864,7 +964,7 @@ foldrMOf l f z0 xs = foldlOf l f' return xs z0
 -- | Monadic fold over the elements of a structure, associating to the left,
 -- i.e. from left to right.
 --
--- @'Data.Foldable.foldlM' = 'foldlMOf' 'folded'@
+-- @'Data.Foldable.foldlM' ≡ 'foldlMOf' 'folded'@
 --
 -- @
 -- 'foldlMOf' :: 'Monad' m => 'Getter' a c           -> (e -> c -> m e) -> e -> a -> m e
