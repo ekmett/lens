@@ -1,6 +1,7 @@
 2.7
 ---
-* Generalized the signature of `Getting` to help out with the common user code scenario of needing to read and then write to change types.
+* Generalized the signature of `Getting`, `Acting` and `IndexedGetting` to help out with the common user code scenario of needing to read
+  and then write to change types.
 * Documentation cleanup and additional examples.
 * Renamed `au` to `ala`.
 * Removed need for `Data.Map.Lens` and `Data.IntMap.Lens` by adding `TraverseMin` and `TraverseMax` to `Control.Lens.IndexedTraversal`.

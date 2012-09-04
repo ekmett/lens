@@ -48,25 +48,22 @@ type Action m a c = forall f r. Effective m r f => (c -> f c) -> a -> f a
 type MonadicFold m a c = forall f r. (Effective m r f, Applicative f) => (c -> f c) -> a -> f a
 
 -- | Used to evaluate an 'Action'.
-type Acting m r a c = (c -> Effect m r c) -> a -> Effect m r a
+type Acting m r a b c d = (c -> Effect m r d) -> a -> Effect m r b
 
 -- | Perform an 'Action'.
 --
 -- > perform = flip (^!)
---
-perform :: Monad m => Acting m c a c -> a -> m c
+perform :: Monad m => Acting m c a b c d -> a -> m c
 perform l = getEffect . l (Effect . return)
 {-# INLINE perform #-}
 
 -- | Perform an 'Action'
 --
 -- >>> import Control.Lens
---
 -- >>> ["hello","world"]^!folded.act putStrLn
 -- hello
 -- world
---
-(^!) :: Monad m => a -> Acting m c a c -> m c
+(^!) :: Monad m => a -> Acting m c a b c d -> m c
 a ^! l = getEffect (l (Effect . return) a)
 {-# INLINE (^!) #-}
 
@@ -80,7 +77,6 @@ act amc cfd a = effective (amc a >>= ineffective . cfd)
 -- @'acts' = 'act' 'id'@
 --
 -- >>> import Control.Lens
---
 -- >>> (1,"hello")^!_2.acts.to succ
 -- "ifmmp"
 acts :: Action m (m a) a
