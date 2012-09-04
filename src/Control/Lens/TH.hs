@@ -123,7 +123,6 @@ createInstance     = lensFlags.contains CreateInstance
 classRequired     :: Simple Lens LensRules Bool
 classRequired      = lensFlags.contains ClassRequired
 
-
 -- | This configuration describes the options we'll be using to make isomorphisms or lenses.
 data LensRules = LensRules
   { _lensIso   :: String -> Maybe String
@@ -280,19 +279,11 @@ makeLensesWith cfg nm = do
       (TyConI decl) -> case deNewtype decl of
         (DataD ctx tyConName args cons _) -> case cons of
           [NormalC dataConName [(    _,ty)]]
-            | cfg^.handleSingletons
-             -> makeIsoLenses cfg ctx tyConName args dataConName Nothing ty
-
+            | cfg^.handleSingletons  -> makeIsoLenses cfg ctx tyConName args dataConName Nothing ty
           [RecC    dataConName [(fld,_,ty)]]
-            | cfg^.handleSingletons
-             -> makeIsoLenses cfg ctx tyConName args dataConName (Just fld) ty
-
-          _ | cfg^.singletonRequired
-             -> fail "makeLensesWith: A single-constructor single-argument data type is required"
-
-            | otherwise
-             -> makeFieldLenses cfg ctx tyConName args cons
-
+            | cfg^.handleSingletons  -> makeIsoLenses cfg ctx tyConName args dataConName (Just fld) ty
+          _ | cfg^.singletonRequired -> fail "makeLensesWith: A single-constructor single-argument data type is required"
+            | otherwise              -> makeFieldLenses cfg ctx tyConName args cons
         _ -> fail "makeLensesWith: Unsupported data type"
       _ -> fail "makeLensesWith: Expected the name of a data type or newtype"
   where
@@ -430,7 +421,7 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
           conName = con^.name
           recon = appsE $ conE conName : cvals
 
-          expr 
+          expr
             | not isTraversal && length fields /= 1
               = appE (varE 'error) . litE . stringL
               $ show lensName ++ ": expected a single matching field in " ++ show conName ++ ", found " ++ show (length fields)
