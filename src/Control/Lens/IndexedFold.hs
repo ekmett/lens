@@ -133,7 +133,7 @@ ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> Dual . Endo . flip (f i
 -- 'ianyOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> 'Bool') -> a -> 'Bool'
 -- @
 ianyOf :: IndexedGetting i Any a b c d -> (i -> c -> Bool) -> a -> Bool
-ianyOf l f ≡ getAny . ifoldMapOf l (\i -> Any . f i)
+ianyOf l f = getAny . ifoldMapOf l (\i -> Any . f i)
 {-# INLINE ianyOf #-}
 
 -- |
