@@ -50,7 +50,7 @@ type SimpleIndexedSetter i a b = IndexedSetter i a a b b
 --
 -- When you do not need access to the index, then 'mapOf' is more liberal in what it can accept.
 --
--- @'Control.Lens.Setter.mapOf' l = 'imapOf' l . 'const'@
+-- @'Control.Lens.Setter.mapOf' l ≡ 'imapOf' l '.' 'const'@
 --
 -- @
 -- 'imapOf' :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
@@ -65,7 +65,7 @@ imapOf l f = runMutator . withIndex l (\i -> Mutator . f i)
 --
 -- When you do not need access to the index, then 'over' is more liberal in what it can accept.
 --
--- @'Control.Lens.Setter.over' l = 'iover' l . 'const'@
+-- @'Control.Lens.Setter.over' l ≡ 'iover' l '.' 'const'@
 --
 -- @
 -- 'iover' :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
@@ -81,15 +81,15 @@ iover l f = runMutator . withIndex l (\i -> Mutator . f i)
 -- Your supplied function @f@ is required to satisfy:
 --
 -- @
--- f 'id' = 'id'
--- f g '.' f h = f (g '.' h)
+-- f 'id' ≡ 'id'
+-- f g '.' f h ≡ f (g '.' h)
 -- @
 --
 -- Equational reasoning:
 --
 -- @
--- 'isets' . 'iover' = 'id'
--- 'iover' . 'isets' = 'id'
+-- 'isets' '.' 'iover' ≡ 'id'
+-- 'iover' '.' 'isets' ≡ 'id'
 -- @
 --
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
@@ -101,11 +101,11 @@ isets f = index $ \ g -> pure . f (\i -> untainted . g i)
 -- | Adjust every target of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
 -- with access to the index.
 --
--- @('%@~') = 'imapOf'@
+-- @('%@~') ≡ 'imapOf'@
 --
 -- When you do not need access to the index then ('%@~') is more liberal in what it can accept.
 --
--- @l 'Control.Lens.Setter.%~' f = l '%@~' 'const' f@
+-- @l 'Control.Lens.Setter.%~' f ≡ l '%@~' 'const' f@
 --
 -- @
 -- ('%@~') :: 'IndexedSetter' i a b c d    -> (i -> c -> d) -> a -> b
@@ -119,9 +119,9 @@ l %@~ f = runMutator . withIndex l (\i -> Mutator . f i)
 -- | Adjust every target in the current state of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
 -- with access to the index.
 --
--- When you do not need access to the index then ('%=') is more liberal in what it can accept.
+-- When you do not need access to the index then ('Control.Lens.Setter.%=') is more liberal in what it can accept.
 --
--- @l 'Control.Lens.Setter.%=' f = l '%@=' 'const' f@
+-- @l 'Control.Lens.Setter.%=' f ≡ l '%@=' 'const' f@
 --
 -- @
 -- ('%@=') :: 'MonadState' a m => 'IndexedSetter' i a a c d    -> (i -> c -> d) -> m ()
