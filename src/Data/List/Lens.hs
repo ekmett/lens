@@ -39,7 +39,9 @@ import Data.List
 infixr 4 ~:, <~:
 infix 4 =:, <=:
 
--- | A lens reading and writing to the head of a /non-empty/ list
+-- | A lens reading and writing to the head of a /non-empty/ list.
+--
+-- Attempting to read or write to the head of an /empty/ list will result in an 'error'.
 --
 -- >>> [1,2,3]^._head
 -- 1
@@ -50,6 +52,8 @@ _head f (a:as) = (:as) <$> f a
 
 -- | A lens reading and writing to the tail of a /non-empty/ list
 --
+-- Attempting to read or write to the tail of an /empty/ list will result in an 'error'.
+--
 -- >>> _tail .~ [3,4,5] $ [1,2]
 -- [1,3,4,5]
 _tail :: Simple Lens [a] [a]
@@ -58,6 +62,8 @@ _tail f (a:as) = (a:) <$> f as
 {-# INLINE _tail #-}
 
 -- | A lens reading and writing to the last element of a /non-empty/ list
+--
+-- Attempting to read or write to the last element of an /empty/ list will result in an 'error'.
 --
 -- >>> [1,2]^._last
 -- 2
@@ -68,6 +74,8 @@ _last f (a:as) = (a:) <$> _last f as
 {-# INLINE _last #-}
 
 -- | A lens reading and replacing all but the a last element of a /non-empty/ list
+--
+-- Attempting to read or write to all but the last element of an /empty/ list will result in an 'error'.
 --
 -- >>> [1,2,3,4]^._init
 -- [1,2,3]
@@ -86,7 +94,7 @@ interspersed :: a -> Getter [a] [a]
 interspersed = to . intersperse
 {-# INLINE interspersed #-}
 
--- | Obtain a version of the list with the supplied value intercalated
+-- | Obtain a version of the list with the supplied value intercalated.
 intercalated :: [a] -> Getter [[a]] [a]
 intercalated = to . intercalate
 {-# INLINE intercalated #-}
@@ -98,42 +106,42 @@ traverseList = index $ go (0::Int) where
   go _ _ [] = pure []
 {-# INLINE traverseList #-}
 
--- | The traversal for reading and writing to the head of a list
+-- | A traversal for reading and writing to the head of a list
 --
 -- The position of the head in the original list (0) is available as the index.
 --
 -- >>> traverseHead +~ 1 $ [1,2,3]
 -- [2,2,3]
 --
--- > traverseHead :: Applicative f => (a -> f a) -> [a] -> f [a]
+-- @'traverseHead' :: 'Applicative' f => (a -> f a) -> [a] -> f [a]@
 traverseHead :: SimpleIndexedTraversal Int [a] a
 traverseHead = index $ \f aas -> case aas of
   []     -> pure []
   (a:as) -> (:as) <$> f (0::Int) a
 {-# INLINE traverseHead #-}
 
--- | Traversal for editing the tail of a list.
+-- | A traversal for editing the tail of a list
 --
 -- The position of each element /in the original list/ is available as the index.
 --
 -- >>> traverseTail +~ 1 $ [1,2,3]
 -- [1,3,4]
 --
--- > traverseTail :: Applicative f => (a -> f a) -> [a] -> f [a]
+-- @'traverseTail' :: 'Applicative' f => (a -> f a) -> [a] -> f [a]@
 traverseTail :: SimpleIndexedTraversal Int [a] a
 traverseTail = index $ \f aas -> case aas of
   []     -> pure []
   (a:as) -> (a:) <$> withIndex traverseList (f . (+1)) as
 {-# INLINE traverseTail #-}
 
--- | Traverse the last element in a list.
+-- | A traversal the last element in a list
 --
 -- The position of the last element in the original list is available as the index.
 --
 -- >>> traverseLast +~ 1 $ [1,2,3]
 -- [1,2,4]
 --
--- > traverseLast :: Applicative f => (a -> f a) -> [a] -> f [a]
+-- @'traverseLast' :: 'Applicative' f => (a -> f a) -> [a] -> f [a]@
 traverseLast :: SimpleIndexedTraversal Int [a] a
 traverseLast = index $ \f xs0 -> let
     go [a]    n = return <$> f n a
@@ -142,14 +150,14 @@ traverseLast = index $ \f xs0 -> let
   in go xs0 (0::Int) where
 {-# INLINE traverseLast #-}
 
--- | Traverse all but the last element of a list
+-- | A traversal of all but the last element of a list
 --
 -- The position of each element is available as the index.
 --
 -- >>> traverseInit +~ 1 $ [1,2,3]
 -- [2,3,3]
 --
--- > traverseInit :: Applicative f => (a -> f a) -> [a] -> f [a]
+-- @'traverseInit' :: 'Applicative' f => (a -> f a) -> [a] -> f [a]@
 traverseInit :: SimpleIndexedTraversal Int [a] a
 traverseInit = index $ \f aas -> case aas of
   [] -> pure []
@@ -183,24 +191,33 @@ n ~: l = over l (n :)
 n =: l = modify (n ~: l)
 {-# INLINE (=:) #-}
 
--- | Cons onto the list(s) referenced by a 'Lens', returning the result.
+-- | Cons onto the list(s) referenced by a 'Lens' (or 'Traversal'), returning the result.
+--
+-- If you use this with a 'Traversal' you will receive back the concatenation of all of
+-- the resulting lists instead of an individual result.
 --
 -- >>> 'h' <~: _1 $ ("ello","world")
 -- ("hello",("hello","world"))
 --
 -- @
--- ('\<~:') :: b -> 'Simple' 'Lens' a [b] -> a -> (b, a)
--- ('\<~:') :: b -> 'Simple' 'Iso' a [b]  -> a -> (b, a)
+-- ('<~:') :: b -> 'Simple' 'Lens' a [b]       -> a -> ([b], a)
+-- ('<~:') :: b -> 'Simple' 'Iso' a [b]        -> a -> ([b], a)
+-- ('<~:') :: b -> 'Simple' 'Traversal' a [b]  -> a -> ([b], a)
 -- @
 (<~:) :: c -> LensLike ((,)[c]) a b [c] [c] -> a -> ([c], b)
 n <~: l = l <%~ (n :)
 {-# INLINE (<~:) #-}
 
--- | Cons onto the list(s) referenced by a 'Lens' into your monad state, returning the result.
+-- | Cons onto the list(s) referenced by a 'Lens' (or 'Traversal') into your monad state,
+-- returning the result.
+--
+-- If you use this with a 'Traversal', you will receive back the concatenation of all
+-- of the resulting lists instead of an individual result.
 --
 -- @
--- ('\<=:') :: 'MonadState' a m => 'Simple' 'Lens' a [c] -> c -> m ()
--- ('\<=:') :: 'MonadState' a m => 'Simple' 'Iso' a [c]  -> c -> m ()
+-- ('<=:') :: 'MonadState' a m => 'Simple' 'Lens' a [c]      -> c -> m [c]
+-- ('<=:') :: 'MonadState' a m => 'Simple' 'Iso' a [c]       -> c -> m [c]
+-- ('<=:') :: 'MonadState' a m => 'Simple' 'Traversal' a [c] -> c -> m [c]
 -- @
 (<=:) :: MonadState a m => c -> SimpleLensLike ((,)[c]) a [c] -> m [c]
 n <=: l = l <%= (n :)
