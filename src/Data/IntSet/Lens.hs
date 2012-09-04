@@ -53,6 +53,6 @@ setmapped = sets IntSet.map
 -- setOf :: 'Simple' 'Lens' a 'Int'      -> a -> 'IntSet'
 -- setOf :: 'Simple' 'Traversal' a 'Int' -> a -> 'IntSet'
 -- @
-setOf :: Getting IntSet a Int -> a -> IntSet
+setOf :: Getting IntSet a b Int d -> a -> IntSet
 setOf l = runAccessor . l (Accessor . IntSet.singleton)
 {-# INLINE setOf #-}

@@ -45,6 +45,6 @@ setmapped = sets Set.map
 -- setOf ::          'Simple' 'Lens' a c      -> a -> 'Set' c
 -- setOf :: 'Ord' c => 'Simple' 'Traversal' a c -> a -> 'Set' c
 -- @
-setOf :: Getting (Set c) a c -> a -> Set c
+setOf :: Getting (Set c) a b c d -> a -> Set c
 setOf l = runAccessor . l (Accessor . Set.singleton)
 {-# INLINE setOf #-}

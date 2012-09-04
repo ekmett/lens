@@ -78,7 +78,7 @@ type IndexedFold i a c = forall k f. (Indexed i k, Applicative f, Gettable f) =>
 -- 'ifoldMapOf' ::             'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> m) -> a -> m
 -- 'ifoldMapOf' :: 'Monoid' m => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> m) -> a -> m
 -- @
-ifoldMapOf :: IndexedGetting i m a c -> (i -> c -> m) -> a -> m
+ifoldMapOf :: IndexedGetting i m a b c d -> (i -> c -> m) -> a -> m
 ifoldMapOf l f = runAccessor . withIndex l (\i -> Accessor . f i)
 {-# INLINE ifoldMapOf #-}
 
@@ -96,7 +96,7 @@ ifoldMapOf l f = runAccessor . withIndex l (\i -> Accessor . f i)
 -- 'ifoldrOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> e -> e) -> e -> a -> e
 -- 'ifoldrOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> e -> e) -> e -> a -> e
 -- @
-ifoldrOf :: IndexedGetting i (Endo e) a c -> (i -> c -> e -> e) -> e -> a -> e
+ifoldrOf :: IndexedGetting i (Endo e) a b c d -> (i -> c -> e -> e) -> e -> a -> e
 ifoldrOf l f z t = appEndo (ifoldMapOf l (\i -> Endo . f i) t) z
 {-# INLINE ifoldrOf #-}
 
@@ -114,7 +114,7 @@ ifoldrOf l f z t = appEndo (ifoldMapOf l (\i -> Endo . f i) t) z
 -- 'ifoldlOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> e -> c -> e) -> e -> a -> e
 -- 'ifoldlOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> e -> c -> e) -> e -> a -> e
 -- @
-ifoldlOf :: IndexedGetting i (Dual (Endo e)) a c -> (i -> e -> c -> e) -> e -> a -> e
+ifoldlOf :: IndexedGetting i (Dual (Endo e)) a b c d -> (i -> e -> c -> e) -> e -> a -> e
 ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> Dual . Endo . flip (f i)) t)) z
 {-# INLINE ifoldlOf #-}
 
@@ -132,7 +132,7 @@ ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> Dual . Endo . flip (f i
 -- 'ianyOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> 'Bool') -> a -> 'Bool'
 -- 'ianyOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> 'Bool') -> a -> 'Bool'
 -- @
-ianyOf :: IndexedGetting i Any a c -> (i -> c -> Bool) -> a -> Bool
+ianyOf :: IndexedGetting i Any a b c d -> (i -> c -> Bool) -> a -> Bool
 ianyOf l f = getAny . ifoldMapOf l (\i -> Any . f i)
 {-# INLINE ianyOf #-}
 
@@ -150,7 +150,7 @@ ianyOf l f = getAny . ifoldMapOf l (\i -> Any . f i)
 -- 'iallOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> 'Bool') -> a -> 'Bool'
 -- 'iallOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> 'Bool') -> a -> 'Bool'
 -- @
-iallOf :: IndexedGetting i All a c -> (i -> c -> Bool) -> a -> Bool
+iallOf :: IndexedGetting i All a b c d -> (i -> c -> Bool) -> a -> Bool
 iallOf l f = getAll . ifoldMapOf l (\i -> All . f i)
 {-# INLINE iallOf #-}
 
@@ -167,7 +167,7 @@ iallOf l f = getAll . ifoldMapOf l (\i -> All . f i)
 -- 'itraverseOf_' :: 'Functor' f     => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> f e) -> a -> f ()
 -- 'itraverseOf_' :: 'Applicative' f => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> f e) -> a -> f ()
 -- @
-itraverseOf_ :: Functor f => IndexedGetting i (Traversed f) a c -> (i -> c -> f e) -> a -> f ()
+itraverseOf_ :: Functor f => IndexedGetting i (Traversed f) a b c d -> (i -> c -> f e) -> a -> f ()
 itraverseOf_ l f = getTraversed . ifoldMapOf l (\i -> Traversed . void . f i)
 {-# INLINE itraverseOf_ #-}
 
@@ -187,7 +187,7 @@ itraverseOf_ l f = getTraversed . ifoldMapOf l (\i -> Traversed . void . f i)
 -- 'iforOf_' :: 'Functor' f     => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> a -> (i -> c -> f e) -> f ()
 -- 'iforOf_' :: 'Applicative' f => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> a -> (i -> c -> f e) -> f ()
 -- @
-iforOf_ :: Functor f => IndexedGetting i (Traversed f) a c -> a -> (i -> c -> f e) -> f ()
+iforOf_ :: Functor f => IndexedGetting i (Traversed f) a b c d -> a -> (i -> c -> f e) -> f ()
 iforOf_ = flip . itraverseOf_
 {-# INLINE iforOf_ #-}
 
@@ -205,7 +205,7 @@ iforOf_ = flip . itraverseOf_
 -- 'imapMOf_' :: 'Monad' m => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> m e) -> a -> m ()
 -- 'imapMOf_' :: 'Monad' m => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> m e) -> a -> m ()
 -- @
-imapMOf_ :: Monad m => IndexedGetting i (Sequenced m) a c -> (i -> c -> m e) -> a -> m ()
+imapMOf_ :: Monad m => IndexedGetting i (Sequenced m) a b c d -> (i -> c -> m e) -> a -> m ()
 imapMOf_ l f = getSequenced . ifoldMapOf l (\i -> Sequenced . liftM skip . f i)
 {-# INLINE imapMOf_ #-}
 
@@ -229,7 +229,7 @@ skip _ = ()
 -- 'iforMOf_' :: 'Monad' m => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> a -> (i -> c -> m e) -> m ()
 -- 'iforMOf_' :: 'Monad' m => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> a -> (i -> c -> m e) -> m ()
 -- @
-iforMOf_ :: Monad m => IndexedGetting i (Sequenced m) a c -> a -> (i -> c -> m e) -> m ()
+iforMOf_ :: Monad m => IndexedGetting i (Sequenced m) a b c d -> a -> (i -> c -> m e) -> m ()
 iforMOf_ = flip . imapMOf_
 {-# INLINE iforMOf_ #-}
 
@@ -250,7 +250,7 @@ iforMOf_ = flip . imapMOf_
 -- 'iconcatMapOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> [e]) -> a -> [e]
 -- 'iconcatMapOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> [e]) -> a -> [e]
 -- @
-iconcatMapOf :: IndexedGetting i [e] a c -> (i -> c -> [e]) -> a -> [e]
+iconcatMapOf :: IndexedGetting i [e] a b c d -> (i -> c -> [e]) -> a -> [e]
 iconcatMapOf = ifoldMapOf
 {-# INLINE iconcatMapOf #-}
 
@@ -268,7 +268,7 @@ iconcatMapOf = ifoldMapOf
 -- 'ifindOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' a c      -> (i -> c -> 'Bool') -> a -> 'Maybe' (i, c)
 -- 'ifindOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' a c -> (i -> c -> 'Bool') -> a -> 'Maybe' (i, c)
 -- @
-ifindOf :: IndexedGetting i (First (i, c)) a c -> (i -> c -> Bool) -> a -> Maybe (i, c)
+ifindOf :: IndexedGetting i (First (i, c)) a b c d -> (i -> c -> Bool) -> a -> Maybe (i, c)
 ifindOf l p = getFirst . ifoldMapOf l step where
   step i c
     | p i c     = First $ Just (i, c)
@@ -287,7 +287,7 @@ ifindOf l p = getFirst . ifoldMapOf l step where
 -- 'ifoldrOf'' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> e -> e) -> e -> a -> e
 -- 'ifoldrOf'' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> e -> e) -> e -> a -> e
 -- @
-ifoldrOf' :: IndexedGetting i (Dual (Endo (e -> e))) a c -> (i -> c -> e -> e) -> e -> a -> e
+ifoldrOf' :: IndexedGetting i (Dual (Endo (e -> e))) a b c d -> (i -> c -> e -> e) -> e -> a -> e
 ifoldrOf' l f z0 xs = ifoldlOf l f' id xs z0
   where f' i k x z = k $! f i x z
 {-# INLINE ifoldrOf' #-}
@@ -304,7 +304,7 @@ ifoldrOf' l f z0 xs = ifoldlOf l f' id xs z0
 -- 'ifoldlOf'' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c        -> (i -> e -> c -> e) -> e -> a -> e
 -- 'ifoldlOf'' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c   -> (i -> e -> c -> e) -> e -> a -> e
 -- @
-ifoldlOf' :: IndexedGetting i (Endo (e -> e)) a c -> (i -> e -> c -> e) -> e -> a -> e
+ifoldlOf' :: IndexedGetting i (Endo (e -> e)) a b c d -> (i -> e -> c -> e) -> e -> a -> e
 ifoldlOf' l f z0 xs = ifoldrOf l f' id xs z0
   where f' i x k z = k $! f i z x
 {-# INLINE ifoldlOf' #-}
@@ -321,7 +321,7 @@ ifoldlOf' l f z0 xs = ifoldrOf l f' id xs z0
 -- 'ifoldrMOf' :: 'Monad' m => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> (i -> c -> e -> m e) -> e -> a -> e
 -- 'ifoldrMOf' :: 'Monad' m => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> (i -> c -> e -> m e) -> e -> a -> e
 -- @
-ifoldrMOf :: Monad m => IndexedGetting i (Dual (Endo (e -> m e))) a c -> (i -> c -> e -> m e) -> e -> a -> m e
+ifoldrMOf :: Monad m => IndexedGetting i (Dual (Endo (e -> m e))) a b c d -> (i -> c -> e -> m e) -> e -> a -> m e
 ifoldrMOf l f z0 xs = ifoldlOf l f' return xs z0
   where f' i k x z = f i x z >>= k
 {-# INLINE ifoldrMOf #-}
@@ -338,7 +338,7 @@ ifoldrMOf l f z0 xs = ifoldlOf l f' return xs z0
 -- 'ifoldlOf'' :: 'Monad' m => 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c        -> (i -> e -> c -> m e) -> e -> a -> e
 -- 'ifoldlOf'' :: 'Monad' m => 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c   -> (i -> e -> c -> m e) -> e -> a -> e
 -- @
-ifoldlMOf :: Monad m => IndexedGetting i (Endo (e -> m e)) a c -> (i -> e -> c -> m e) -> e -> a -> m e
+ifoldlMOf :: Monad m => IndexedGetting i (Endo (e -> m e)) a b c d -> (i -> e -> c -> m e) -> e -> a -> m e
 ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
   where f' i x k z = f i z x >>= k
 {-# INLINE ifoldlMOf #-}
@@ -355,7 +355,7 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 -- 'itoListOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c      -> a -> [(i,c)]
 -- 'itoListOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c -> a -> [(i,c)]
 -- @
-itoListOf :: IndexedGetting i [(i,c)] a c -> a -> [(i,c)]
+itoListOf :: IndexedGetting i [(i,c)] a b c d -> a -> [(i,c)]
 itoListOf l = ifoldMapOf l (\i c -> [(i,c)])
 {-# INLINE itoListOf #-}
 
@@ -402,14 +402,14 @@ indicesOf l f = withIndex l (const . coerce . f)
 -------------------------------------------------------------------------------
 
 -- | Obtain an 'IndexedFold' by filtering a 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter', 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'.
-ifiltered :: (Gettable f, Applicative f, Indexed i k) => (i -> c -> Bool) -> Index i (c -> f c) (a -> f a) -> k (c -> f c) (a -> f a)
+ifiltered :: (Gettable f, Applicative f, Indexed i k) => (i -> c -> Bool) -> Index i (c -> f c) (a -> f b) -> k (c -> f c) (a -> f b)
 ifiltered p l = index $ \ f -> withIndex l $ \ i c -> if p i c then f i c else noEffect
 {-# INLINE ifiltered #-}
 
 -- | Obtain an 'IndexedFold' by taking elements from another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' while a predicate holds.
 itakingWhile :: (Gettable f, Applicative f, Indexed i k)
             => (i -> c -> Bool)
-            -> IndexedGetting i (Endo (f a)) a c
+            -> IndexedGetting i (Endo (f a)) a a c c
             -> k (c -> f c) (a -> f a)
 itakingWhile p l = index $ \ f -> ifoldrOf l (\i a r -> if p i a then f i a *> r else noEffect) noEffect
 {-# INLINE itakingWhile #-}
@@ -418,7 +418,7 @@ itakingWhile p l = index $ \ f -> ifoldrOf l (\i a r -> if p i a then f i a *> r
 -- | Obtain an 'IndexedFold' by dropping elements from another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' while a predicate holds.
 idroppingWhile :: (Gettable f, Applicative f, Indexed i k)
               => (i -> c -> Bool)
-              -> IndexedGetting i (Endo (f a)) a c
+              -> IndexedGetting i (Endo (f a)) a a c c
               -> k (c -> f c) (a -> f a)
 idroppingWhile p l = index $ \f -> ifoldrOf l (\i a r -> if p i a then r else f i a *> r) noEffect
 {-# INLINE idroppingWhile #-}

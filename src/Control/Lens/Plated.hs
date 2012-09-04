@@ -201,8 +201,8 @@ children = toListOf plate
 --
 -- @'childrenOn' = 'toListOf'@
 --
--- @'childrenOn' :: 'Fold' a b -> a -> [b]@
-childrenOn :: Getting [b] a b -> a -> [b]
+-- @'childrenOn' :: 'Fold' a c -> a -> [c]@
+childrenOn :: Getting [c] a b c d -> a -> [c]
 childrenOn = toListOf
 {-# INLINE childrenOn #-}
 
@@ -303,13 +303,13 @@ universe = universeOf plate
 -- | Given a fold that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself.
 --
 -- @'universeOf' :: 'Fold' a a -> a -> [a]@
-universeOf :: Getting [a] a a -> a -> [a]
+universeOf :: Getting [a] a b a b -> a -> [a]
 universeOf l = go where
   go a = a : foldMapOf l go a
 {-# INLINE universeOf #-}
 
 -- | Given a 'Fold' that knows how to find 'Plated' parts of a container retrieve them and all of their descendants, recursively.
-universeOn ::  Plated b => Getting [b] a b -> a -> [b]
+universeOn ::  Plated c => Getting [c] a b c c -> a -> [c]
 universeOn b = universeOnOf b plate
 {-# INLINE universeOn #-}
 
@@ -317,7 +317,7 @@ universeOn b = universeOnOf b plate
 -- in a region indicated by another 'Fold'.
 --
 -- @'toListOf' l = 'universeOnOf' l 'ignored'@
-universeOnOf :: Getting [b] a b -> Getting [b] b b -> a -> [b]
+universeOnOf :: Getting [c] a b c d -> Getting [c] c d c d -> a -> [c]
 universeOnOf b = foldMapOf b . universeOf
 {-# INLINE universeOnOf #-}
 
@@ -498,7 +498,7 @@ descendA_ = traverseOf_ plate
 -- @'descendAOf_' = 'traverseOf_'@
 --
 -- @'descendAOf_' :: 'Applicative' f => 'Fold' a b => (b -> f b) -> a -> f ()@
-descendAOf_ :: Applicative f => Getting (Traversed f) a b -> (b -> f c) -> a -> f ()
+descendAOf_ :: Applicative f => Getting (Traversed f) a b c d -> (c -> f e) -> a -> f ()
 descendAOf_ = traverseOf_
 {-# INLINE descendAOf_ #-}
 
@@ -507,7 +507,7 @@ descendAOf_ = traverseOf_
 -- @'descendAOnOf_' b l = 'traverseOf_' (b '.' l)@
 --
 -- @'descendAOnOf_' :: 'Applicative' f => 'Fold' a b -> 'Fold' b b -> (b -> f c) -> a -> f ()@
-descendAOnOf_ :: Applicative f => Getting (Traversed f) a b -> Getting (Traversed f) b b -> (b -> f c) -> a -> f ()
+descendAOnOf_ :: Applicative f => Getting (Traversed f) a b c d -> Getting (Traversed f) c d c d -> (c -> f e) -> a -> f ()
 descendAOnOf_ b l = traverseOf_ (b . l)
 {-# INLINE descendAOnOf_ #-}
 
@@ -516,7 +516,7 @@ descendAOnOf_ b l = traverseOf_ (b . l)
 -- @'descendAOn_' b = 'traverseOf_' (b '.' 'plate')@
 --
 -- @'descendAOn_' :: ('Applicative' f, 'Plated' b) => 'Simple' 'Traversal' a b -> (b -> f c) -> a -> f ()@
-descendAOn_ :: (Applicative f, Plated b) => Getting (Traversed f) a b -> (b -> f c) -> a -> f ()
+descendAOn_ :: (Applicative f, Plated c) => Getting (Traversed f) a b c c -> (c -> f e) -> a -> f ()
 descendAOn_ b = traverseOf_ (b . plate)
 {-# INLINE descendAOn_ #-}
 
@@ -571,7 +571,7 @@ descendM_ = mapMOf_ plate
 -- @'descendMOf_' = 'mapMOf_'@
 --
 -- @'descendMOf_' :: 'Monad' m => 'Fold' a b => (b -> m b) -> a -> m ()@
-descendMOf_ :: Monad m => Getting (Sequenced m) a b -> (b -> m c) -> a -> m ()
+descendMOf_ :: Monad m => Getting (Sequenced m) a b c d -> (c -> m e) -> a -> m ()
 descendMOf_ = mapMOf_
 {-# INLINE descendMOf_ #-}
 
@@ -580,7 +580,7 @@ descendMOf_ = mapMOf_
 -- @'descendMOnOf_' b l = 'mapMOf_' (b '.' l)@
 --
 -- @'descendMOnOf_' :: 'Monad' m => 'Fold' a b -> 'Fold' b b -> (b -> m b) -> a -> m ()@
-descendMOnOf_ :: Monad m => Getting (Sequenced m) a b -> Getting (Sequenced m) b b -> (b -> m c) -> a -> m ()
+descendMOnOf_ :: Monad m => Getting (Sequenced m) a b c d -> Getting (Sequenced m) c d c d -> (c -> m e) -> a -> m ()
 descendMOnOf_ b l = mapMOf_ (b . l)
 {-# INLINE descendMOnOf_ #-}
 
@@ -589,7 +589,7 @@ descendMOnOf_ b l = mapMOf_ (b . l)
 -- @'descendMOn_' b = 'mapMOf_' (b '.' 'plate')@
 --
 -- @'descendMOn_' :: ('Monad' m, 'Plated' b) => 'Simple' 'Traversal' a b -> (b -> m c) -> a -> m ()@
-descendMOn_ :: (Monad m, Plated b) => Getting (Sequenced m) a b -> (b -> m c) -> a -> m ()
+descendMOn_ :: (Monad m, Plated c) => Getting (Sequenced m) a b c c -> (c -> m e) -> a -> m ()
 descendMOn_ b = mapMOf_ (b . plate)
 {-# INLINE descendMOn_ #-}
 
@@ -715,7 +715,7 @@ holesOnOf b l = holesOf (b.l)
 -- | Perform a fold-like computation on each value, technically a paramorphism.
 --
 -- @'paraOf' :: 'Fold' a a -> (a -> [r] -> r) -> a -> r@
-paraOf :: Getting [a] a a -> (a -> [r] -> r) -> a -> r
+paraOf :: Getting [a] a b a b -> (a -> [r] -> r) -> a -> r
 paraOf l f = go where
   go a = f a (go <$> toListOf l a)
 {-# INLINE paraOf #-}

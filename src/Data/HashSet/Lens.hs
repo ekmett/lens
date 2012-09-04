@@ -46,6 +46,6 @@ setmapped = sets HashSet.map
 -- setOf :: 'Hashable' c         => 'Simple' 'Lens' a c      -> a -> 'HashSet' c
 -- setOf :: ('Eq' c, 'Hashable' c) => 'Simple' 'Traversal' a c -> a -> 'HashSet' c
 -- @
-setOf :: Hashable c => Getting (HashSet c) a c -> a -> HashSet c
+setOf :: Hashable c => Getting (HashSet c) a b c d -> a -> HashSet c
 setOf l = runAccessor . l (Accessor . HashSet.singleton)
 {-# INLINE setOf #-}
