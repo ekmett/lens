@@ -37,7 +37,7 @@ description:
   .
   The core of this hierarchy looks like:
   .
-  <<https://github.com/ekmett/lens/wiki/images/Hierarchy-2.6.png>>
+  <<https://github.com/ekmett/lens/wiki/images/Hierarchy-2.7.png>>
   .
   You can compose any two elements of the hierarchy above using (.) from the Prelude, and you can
   use any element of the hierarchy as any type it links to above it.
@@ -119,7 +119,7 @@ flag template-haskell
 
 -- Generate inline pragmas when using template-haskell. This defaults to enabled, but you can
 --
--- > cabal install lens -f-inlining 
+-- > cabal install lens -f-inlining
 --
 -- to shut it off to benchmark the relative performance impact, or as last ditch effort to address compile
 -- errors resulting from the myriad versions of template-haskell that all purport to be 2.8.
