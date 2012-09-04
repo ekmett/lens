@@ -69,11 +69,11 @@ instance Isomorphic Isomorphism where
 -- Note to compose an isomorphism and receive an isomorphism in turn you'll need to use
 -- 'Control.Category.Category'
 --
--- > from (from l) = l
+-- @'from' ('from' l) ≡ l@
 --
 -- If you imported 'Control.Category..' from @Control.Category@, then:
 --
--- > from l . from r = from (r . l)
+-- @'from' l '.' 'from' r ≡ 'from' (r '.' l)@
 from :: Isomorphic k => Isomorphism a b -> k b a
 from (Isomorphism a b) = isomorphic b a
 {-# INLINE from #-}

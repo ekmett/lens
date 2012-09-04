@@ -15,7 +15,7 @@ module Control.Lens.Iso
     Iso
   , iso
   , isos
-  , au
+  , ala
   , auf
   , under
   -- * Primitive isomorphisms
@@ -65,10 +65,10 @@ type SimpleIso a b = Iso a a b b
 -- | Build an isomorphism family from two pairs of inverse functions
 --
 -- @
--- 'view' ('isos' ac ca bd db) = ac
--- 'view' ('from' ('isos' ac ca bd db)) = ca
--- 'set' ('isos' ac ca bd db) cd = db . cd . ac
--- 'set' ('from' ('isos' ac ca bd db')) ab = bd . ab . ca
+-- 'view' ('isos' ac ca bd db) ≡ ac
+-- 'view' ('from' ('isos' ac ca bd db)) ≡ ca
+-- 'set' ('isos' ac ca bd db) cd ≡ db '.' cd '.' ac
+-- 'set' ('from' ('isos' ac ca bd db')) ab ≡ bd '.' ab '.' ca
 -- @
 --
 -- @isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> 'Iso' a b c d@
@@ -82,10 +82,10 @@ isos ac ca bd db = isomorphic
 --
 --
 -- @
--- 'view' ('iso' f g) = f
--- 'view' ('from' ('iso' f g)) = g
--- 'set' ('isos' f g) h = g . h . f
--- 'set' ('from' ('iso' f g')) h = f . h . g
+-- 'view' ('iso' f g) ≡ f
+-- 'view' ('from' ('iso' f g)) ≡ g
+-- 'set' ('isos' f g) h ≡ g '.' h '.' f
+-- 'set' ('from' ('iso' f g')) h ≡ f '.' h '.' g
 -- @
 --
 -- @iso :: (a -> b) -> (b -> a) -> 'Control.Lens.Type.Simple' 'Iso' a b@
@@ -95,14 +95,12 @@ iso ab ba = isos ab ba ab ba
 
 -- | Based on @ala@ from Conor McBride's work on Epigram.
 --
--- Mnemonically, /au/ is a French contraction of /à le/.
---
 -- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
--- >>> au _sum foldMap [1,2,3,4]
+-- >>> ala _sum foldMap [1,2,3,4]
 -- 10
-au :: Simple Iso a b -> ((a -> b) -> c -> b) -> c -> a
-au l f e = f (view l) e ^. from l
-{-# INLINE au #-}
+ala :: Simple Iso a b -> ((a -> b) -> c -> b) -> c -> a
+ala l f e = f (view l) e ^. from l
+{-# INLINE ala #-}
 
 -- |
 -- Based on @ala'@ from Conor McBride's work on Epigram.
@@ -115,7 +113,7 @@ auf l f g e = f (view l . g) e ^. from l
 
 -- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
 --
--- @'under' = 'over' . 'from'@
+-- @'under' = 'over' '.' 'from'@
 --
 -- @'under' :: Iso a b c d -> (a -> b) -> (c -> d)@
 under :: Isomorphism (c -> Mutator d) (a -> Mutator b) -> (a -> b) -> c -> d
@@ -129,8 +127,8 @@ under = over . from
 -- | This isomorphism can be used to wrap or unwrap a value in 'Identity'.
 --
 -- @
--- x^.identity = 'Identity' x
--- 'Identity' x '^.' 'from' 'identity' = x
+-- x^.identity ≡ 'Identity' x
+-- 'Identity' x '^.' 'from' 'identity' ≡ x
 -- @
 identity :: Iso a b (Identity a) (Identity b)
 identity = isos Identity runIdentity Identity runIdentity
@@ -139,8 +137,8 @@ identity = isos Identity runIdentity Identity runIdentity
 -- | This isomorphism can be used to wrap or unwrap a value in 'Const'
 --
 -- @
--- x '^.' '_const' = 'Const' x
--- 'Const' x '^.' 'from' '_const' = x
+-- x '^.' '_const' ≡ 'Const' x
+-- 'Const' x '^.' 'from' '_const' ≡ x
 -- @
 _const :: Iso a b (Const a c) (Const b d)
 _const = isos Const getConst Const getConst
