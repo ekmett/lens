@@ -316,7 +316,7 @@ set l d = runMutator . l (\_ -> Mutator d)
 --
 -- >>> import Data.Map as Map
 -- >>> _2.at "hello" <.~ Just "world" $ (42,Map.fromList [("goodnight","gracie")])
--- (42,fromList [("hello","world"),("goodnight","gracie")]
+-- (Just "world",(42,fromList [("hello","world"),("goodnight","gracie")]))
 --
 -- @
 -- ('<.~') :: 'Setter' a b c d    -> d -> a -> (d, b)

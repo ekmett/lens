@@ -401,7 +401,7 @@ instance Gettable (Accessor r) where
 -- @No instance of ('Control.Lens.Setter.Settable' 'Accessor')@
 --
 -- when the user attempts to misuse a 'Control.Lens.Setter.Setter' as a
--- 'Getter', rather than a monolithic unification error.
+-- 'Control.Lens.Getter.Getter', rather than a monolithic unification error.
 newtype Accessor r a = Accessor { runAccessor :: r }
 
 instance Functor (Accessor r) where
@@ -455,7 +455,7 @@ noEffect = coerce $ pure ()
 class Applicative f => Settable f where
   untainted :: f a -> a
 
--- | so you can pass our a 'Setter' into combinators from other lens libraries
+-- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries
 instance Settable Identity where
   untainted = runIdentity
   {-# INLINE untainted #-}
