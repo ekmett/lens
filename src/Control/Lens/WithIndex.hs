@@ -78,8 +78,8 @@ import Data.Traversable
 -- Instances must satisfy a modified form of the 'Functor' laws:
 --
 -- @
--- 'imap' f . 'imap' g = 'imap' (\i -> f i . g i)
--- 'imap' (\_ a -> a) = 'id'
+-- 'imap' f '.' 'imap' g ≡ 'imap' (\i -> f i . g i)
+-- 'imap' (\_ a -> a) ≡ 'id'
 -- @
 class Functor f => FunctorWithIndex i f | f -> i where
   -- | Map with access to the index.
@@ -106,7 +106,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   --
   -- When you don't need access to the index then 'foldMap' is more flexible in what it accepts.
   --
-  -- @'foldMap' = 'ifoldMap' . 'const'@
+  -- @'foldMap' ≡ 'ifoldMap' '.' 'const'@
   ifoldMap :: Monoid m => (i -> a -> m) -> f a -> m
   default ifoldMap :: (TraversableWithIndex i f, Monoid m) => (i -> a -> m) -> f a -> m
   ifoldMap = ifoldMapOf itraversed
@@ -115,7 +115,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   --
   -- When you don't need access to the index then 'Data.Foldable.foldr' is more flexible in what it accepts.
   --
-  -- @'Data.Foldable.foldr' = 'ifoldr' . 'const'@
+  -- @'Data.Foldable.foldr' ≡ 'ifoldr' '.' 'const'@
   ifoldr   :: (i -> a -> b -> b) -> b -> f a -> b
   ifoldr f z t = appEndo (ifoldMap (\i -> Endo . f i) t) z
 
@@ -124,7 +124,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   --
   -- When you don't need access to the index then 'foldl' is more flexible in what it accepts.
   --
-  -- @'foldl' = 'ifoldl' . 'const'@
+  -- @'foldl' ≡ 'ifoldl' '.' 'const'@
   ifoldl :: (i -> b -> a -> b) -> b -> f a -> b
   ifoldl f z t = appEndo (getDual (ifoldMap (\i -> Dual . Endo . flip (f i)) t)) z
 
@@ -132,7 +132,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   --
   -- When you don't need access to the index then 'foldr'' is more flexible in what it accepts.
   --
-  -- @'foldr'' = 'ifoldr'' . 'const'@
+  -- @'foldr'' ≡ 'ifoldr'' '.' 'const'@
   ifoldr' :: (i -> a -> b -> b) -> b -> f a -> b
   ifoldr' f z0 xs = ifoldl f' id xs z0
     where f' i k x z = k $! f i x z
@@ -141,7 +141,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   --
   -- When you don't need access to the index then 'Control.Lens.Fold.foldlOf'' is more flexible in what it accepts.
   --
-  -- @'Control.Lens.Fold.foldlOf'' l = 'ifoldlOf'' l . 'const'@
+  -- @'Control.Lens.Fold.foldlOf'' l ≡ 'ifoldlOf'' l '.' 'const'@
   --
   -- @
   -- 'ifoldlOf'' :: 'Control.Lens.IndexedGetter.IndexedGetter' i a c            -> (i -> e -> c -> e) -> e -> a -> e
@@ -170,8 +170,7 @@ ifolding afc = index $ \ icgd -> coerce . itraverse_ icgd . afc
 --
 -- When you don't need access to the index then 'any' is more flexible in what it accepts.
 --
--- @'any' = 'iany' . 'const'@
---
+-- @'any' = 'iany' '.' 'const'@
 iany :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
 iany f = getAny . ifoldMap (\i -> Any . f i)
 {-# INLINE iany #-}
@@ -181,7 +180,7 @@ iany f = getAny . ifoldMap (\i -> Any . f i)
 --
 -- When you don't need access to the index then 'all' is more flexible in what it accepts.
 --
--- @'all' = 'iall' . 'const'@
+-- @'all' ≡ 'iall' '.' 'const'@
 iall :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
 iall f = getAll . ifoldMap (\i -> All . f i)
 {-# INLINE iall #-}
@@ -191,7 +190,7 @@ iall f = getAll . ifoldMap (\i -> All . f i)
 --
 -- When you don't need access to the index then 'traverse_' is more flexible in what it accepts.
 --
--- @'traverse_' l = 'itraverse' . 'const'@
+-- @'traverse_' l = 'itraverse' '.' 'const'@
 itraverse_ :: (FoldableWithIndex i t, Applicative f) => (i -> a -> f b) -> t a -> f ()
 itraverse_ f = getTraversed . ifoldMap (\i -> Traversed . void . f i)
 {-# INLINE itraverse_ #-}
@@ -199,11 +198,11 @@ itraverse_ f = getTraversed . ifoldMap (\i -> Traversed . void . f i)
 -- |
 -- Traverse elements with access to the index @i@, discarding the results (with the arguments flipped).
 --
--- @'ifor_' = 'flip' 'itraverse_'@
+-- @'ifor_' ≡ 'flip' 'itraverse_'@
 --
 -- When you don't need access to the index then 'for_' is more flexible in what it accepts.
 --
--- @'for_' a = 'ifor_' a . 'const'@
+-- @'for_' a ≡ 'ifor_' a '.' 'const'@
 ifor_ :: (FoldableWithIndex i t, Applicative f) => t a -> (i -> a -> f b) -> f ()
 ifor_ = flip itraverse_
 {-# INLINE ifor_ #-}
@@ -214,7 +213,7 @@ ifor_ = flip itraverse_
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.mapMOf_' is more flexible in what it accepts.
 --
--- @'mapM_' = 'imapM' . 'const'@
+-- @'mapM_' ≡ 'imapM' '.' 'const'@
 imapM_ :: (FoldableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m ()
 imapM_ f = getSequenced . ifoldMap (\i -> Sequenced . liftM skip . f i)
 {-# INLINE imapM_ #-}
@@ -223,11 +222,11 @@ imapM_ f = getSequenced . ifoldMap (\i -> Sequenced . liftM skip . f i)
 -- Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
 -- discarding the results (with the arguments flipped).
 --
--- @'iforM_' = 'flip' 'imapM_'@
+-- @'iforM_' ≡ 'flip' 'imapM_'@
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.forMOf_' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.forMOf_' l a = 'iforMOf' l a . 'const'@
+-- @'Control.Lens.Fold.forMOf_' l a ≡ 'iforMOf' l a '.' 'const'@
 iforM_ :: (FoldableWithIndex i t, Monad m) => t a -> (i -> a -> m b) -> m ()
 iforM_ = flip imapM_
 {-# INLINE iforM_ #-}
@@ -238,8 +237,8 @@ iforM_ = flip imapM_
 -- When you don't need access to the index then 'concatMap' is more flexible in what it accepts.
 --
 -- @
--- 'concatMap' = 'iconcatMap' . 'const'
--- 'iconcatMap' = 'ifoldMap'
+-- 'concatMap' ≡ 'iconcatMap' . 'const'
+-- 'iconcatMap' ≡ 'ifoldMap'
 -- @
 iconcatMap :: FoldableWithIndex i f => (i -> a -> [b]) -> f a -> [b]
 iconcatMap = ifoldMap
@@ -250,7 +249,7 @@ iconcatMap = ifoldMap
 --
 -- When you don't need access to the index then 'find' is more flexible in what it accepts.
 --
--- @'find' = 'ifind' . 'const'@
+-- @'find' ≡ 'ifind' '.' 'const'@
 ifind :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Maybe (i, a)
 ifind p = getFirst . ifoldMap step where
   step i c
@@ -262,7 +261,7 @@ ifind p = getFirst . ifoldMap step where
 --
 -- When you don't need access to the index then 'foldrM' is more flexible in what it accepts.
 --
--- @'foldrM' = 'ifoldrM' . 'const'@
+-- @'foldrM' ≡ 'ifoldrM' '.' 'const'@
 ifoldrM :: (FoldableWithIndex i f, Monad m) => (i -> a -> b -> m b) -> b -> f a -> m b
 ifoldrM f z0 xs = ifoldl f' return xs z0
   where f' i k x z = f i x z >>= k
@@ -272,7 +271,7 @@ ifoldrM f z0 xs = ifoldl f' return xs z0
 --
 -- When you don't need access to the index then 'foldlM' is more flexible in what it accepts.
 --
--- @'foldlM' = 'ifoldlM' . 'const'@
+-- @'foldlM' ≡ 'ifoldlM' '.' 'const'@
 ifoldlM :: (FoldableWithIndex i f, Monad m) => (i -> b -> a -> m b) -> b -> f a -> m b
 ifoldlM f z0 xs = ifoldr f' return xs z0
   where f' i x k z = f i z x >>= k
@@ -282,7 +281,7 @@ ifoldlM f z0 xs = ifoldr f' return xs z0
 --
 -- When you don't need access to the indices in the result, then 'toList' is more flexible in what it accepts.
 --
--- @'toList' = 'map' 'fst' . 'itoList'@
+-- @'toList' ≡ 'map' 'fst' '.' 'itoList'@
 itoList :: FoldableWithIndex i f => f a -> [(i,a)]
 itoList = ifoldr (\i c -> ((i,c):)) []
 {-# INLINE itoList #-}
@@ -310,8 +309,8 @@ indices f = coerce . getFolding . ifoldMap (const . Folding . f)
 -- An instance must satisfy a (modified) form of the 'Traversable' laws:
 --
 -- @
--- 'itraverse' ('const' 'Data.Functor.Identity.Identity') = 'Data.Functor.Identity.Identity'
--- 'fmap' ('itraverse' f) '.' 'itraverse' g = 'getCompose' '.' 'itraverse' (\i -> 'Compose' '.' 'fmap' (f i) '.' g i)
+-- 'itraverse' ('const' 'Data.Functor.Identity.Identity') ≡ 'Data.Functor.Identity.Identity'
+-- 'fmap' ('itraverse' f) '.' 'itraverse' g ≡ 'getCompose' '.' 'itraverse' (\i -> 'Compose' '.' 'fmap' (f i) '.' g i)
 -- @
 class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => TraversableWithIndex i t | t -> i where
   -- | Traverse an indexed container.
@@ -329,8 +328,8 @@ itraversed = index itraverse
 -- Traverse with an index (and the arguments flipped)
 --
 -- @
--- 'for' a = 'ifor' a . 'const'
--- 'ifor' = 'flip' 'itraverse'
+-- 'for' a ≡ 'ifor' a '.' 'const'
+-- 'ifor' ≡ 'flip' 'itraverse'
 -- @
 ifor :: (TraversableWithIndex i t, Applicative f) => t a -> (i -> a -> f b) -> f (t b)
 ifor = flip itraverse
@@ -342,7 +341,7 @@ ifor = flip itraverse
 --
 -- When you don't need access to the index 'mapM' is more liberal in what it can accept.
 --
--- @'mapM' = 'imapM' . 'const'@
+-- @'mapM' ≡ 'imapM' '.' 'const'@
 imapM :: (TraversableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m (t b)
 imapM f = unwrapMonad . itraverse (\i -> WrapMonad . f i)
 {-# INLINE imapM #-}
@@ -352,8 +351,8 @@ imapM f = unwrapMonad . itraverse (\i -> WrapMonad . f i)
 -- its position (and the arguments flipped).
 --
 -- @
--- 'forM' a = 'iforM' a . 'const'
--- 'iforM' = 'flip' 'imapM'
+-- 'forM' a ≡ 'iforM' a '.' 'const'
+-- 'iforM' ≡ 'flip' 'imapM'
 -- @
 iforM :: (TraversableWithIndex i t, Monad m) => t a -> (i -> a -> m b) -> m (t b)
 iforM = flip imapM
@@ -363,7 +362,7 @@ iforM = flip imapM
 --
 -- 'imapAccumROf' accumulates state from right to left.
 --
--- @'Control.Lens.Traversal.mapAccumR' = 'imapAccumR' . 'const'@
+-- @'Control.Lens.Traversal.mapAccumR' ≡ 'imapAccumR' '.' 'const'@
 imapAccumR :: TraversableWithIndex i t => (i -> s -> a -> (s, b)) -> s -> t a -> (s, t b)
 imapAccumR f s0 a = swap (Lazy.runState (itraverse (\i c -> Lazy.state (\s -> swap (f i s c))) a) s0)
 {-# INLINE imapAccumR #-}
@@ -372,14 +371,14 @@ imapAccumR f s0 a = swap (Lazy.runState (itraverse (\i c -> Lazy.state (\s -> sw
 --
 -- 'imapAccumLOf' accumulates state from left to right.
 --
--- @'Control.Lens.Traversal.mapAccumLOf' = 'imapAccumL' . 'const'@
+-- @'Control.Lens.Traversal.mapAccumLOf' ≡ 'imapAccumL' '.' 'const'@
 imapAccumL :: TraversableWithIndex i t => (i -> s -> a -> (s, b)) -> s -> t a -> (s, t b)
 imapAccumL f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)
 {-# INLINE imapAccumL #-}
 
 -- | Access the element of an indexed container where the index matches a predicate.
 --
--- >>> :m + Control.Lens
+-- >>> import Control.Lens
 -- >>> over (iwhere (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
 iwhere :: (TraversableWithIndex i t) => (i -> Bool) -> SimpleIndexedTraversal i (t a) a

@@ -22,7 +22,7 @@ import Control.Lens
 import Control.Parallel.Strategies
 
 -- | Evaluate the targets of a 'Lens' or 'Traversal' into a data structure
--- according to the given strategy.
+-- according to the given 'Strategy'.
 --
 -- @
 -- 'evalTraversable' = 'evalOf' 'traverse' = 'traverse'
@@ -30,9 +30,9 @@ import Control.Parallel.Strategies
 -- @
 --
 -- @
--- evalOf :: 'Simple' 'Lens' a b -> 'Strategy' b -> 'Strategy' a
--- evalOf :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
--- evalOf :: (b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
+-- 'evalOf' :: 'Simple' 'Lens' a b -> 'Strategy' b -> 'Strategy' a
+-- 'evalOf' :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
+-- 'evalOf' :: (b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
 -- @
 evalOf :: SimpleLensLike Eval a b -> Strategy b -> Strategy a
 evalOf l = l
@@ -44,16 +44,16 @@ evalOf l = l
 -- @'parTraversable' = 'parOf' 'traverse'@
 --
 -- @
--- parOf :: 'Simple' 'Lens' a b -> 'Strategy' b -> 'Strategy' a
--- parOf :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
--- parOf :: ((b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
+-- 'parOf' :: 'Simple' 'Lens' a b -> 'Strategy' b -> 'Strategy' a
+-- 'parOf' :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
+-- 'parOf' :: ((b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
 -- @
 parOf :: SimpleLensLike Eval a b -> Strategy b -> Strategy a
 parOf l s = l (rparWith s)
 {-# INLINE parOf #-}
 
 -- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
--- first evaluates its argument according to a given strategy /before/ proceeding.
+-- first evaluates its argument according to a given 'Strategy' /before/ proceeding.
 --
 -- @
 -- 'after' 'rdeepseq' 'traverse' :: 'Traversable' t => 'Strategy' a -> 'Strategy' [a]
@@ -63,7 +63,7 @@ after s l f = l f $| s
 {-# INLINE after #-}
 
 -- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to
--- evaluate its argument according to a given strategy /in parallel with/ evaluating.
+-- evaluate its argument according to a given 'Strategy' /in parallel with/ evaluating.
 --
 -- @
 -- 'throughout' 'rdeepseq' 'traverse' :: 'Traversable' t => 'Strategy' a -> 'Strategy' [a]
