@@ -67,8 +67,8 @@ type SimpleIndexedTraversal i a b = IndexedTraversal i a a b b
 -- directly as a function!
 --
 -- @
--- 'itraverseOf' = 'withIndex'
--- 'Control.Lens.Traversal.traverseOf' l = 'itraverseOf' l . 'const' = 'id'
+-- 'itraverseOf' ≡ 'withIndex'
+-- 'Control.Lens.Traversal.traverseOf' l = 'itraverseOf' l '.' 'const' = 'id'
 -- @
 --
 -- @
@@ -82,9 +82,10 @@ itraverseOf = withIndex
 -- |
 -- Traverse with an index (and the arguments flipped)
 --
--- @'Control.Lens.Traversal.forOf' l a = 'iforOf' l a . 'const'@
---
--- @'iforOf' = 'flip' . 'itraverseOf'@
+-- @
+-- 'Control.Lens.Traversal.forOf' l a ≡ 'iforOf' l a '.' 'const'
+-- 'iforOf' ≡ 'flip' . 'itraverseOf'
+-- @
 --
 -- @
 -- 'iforOf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> a -> (i -> c -> f d) -> f b
@@ -100,7 +101,7 @@ iforOf = flip . withIndex
 --
 -- When you don't need access to the index 'mapMOf' is more liberal in what it can accept.
 --
--- @'Control.Lens.Traversal.mapMOf' l = 'imapMOf' l . 'const'@
+-- @'Control.Lens.Traversal.mapMOf' l ≡ 'imapMOf' l '.' 'const'@
 --
 -- @
 -- 'imapMOf' :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens'      i a b c d -> (i -> c -> m d) -> a -> m b
@@ -115,8 +116,8 @@ imapMOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
 -- its position (and the arguments flipped).
 --
 -- @
--- 'Control.Lens.Traversal.forMOf' l a = 'iforMOf' l a . 'const'
--- 'iforMOf' = 'flip' . 'imapMOf'
+-- 'Control.Lens.Traversal.forMOf' l a ≡ 'iforMOf' l a '.' 'const'
+-- 'iforMOf' ≡ 'flip' '.' 'imapMOf'
 -- @
 --
 -- @
@@ -131,7 +132,7 @@ iforMOf = flip . imapMOf
 --
 -- 'imapAccumROf' accumulates state from right to left.
 --
--- @'Control.Lens.Traversal.mapAccumROf' l = 'imapAccumROf' l . 'const'@
+-- @'Control.Lens.Traversal.mapAccumROf' l ≡ 'imapAccumROf' l '.' 'const'@
 --
 -- @
 -- 'imapAccumROf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
@@ -145,7 +146,7 @@ imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s
 --
 -- 'imapAccumLOf' accumulates state from left to right.
 --
--- @'Control.Lens.Traversal.mapAccumLOf' l = 'imapAccumLOf' l . 'const'@
+-- @'Control.Lens.Traversal.mapAccumLOf' l ≡ 'imapAccumLOf' l '.' 'const'@
 --
 -- @
 -- 'imapAccumLOf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
