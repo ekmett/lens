@@ -87,6 +87,13 @@ type Getter a c = forall f. Gettable f => (c -> f c) -> a -> f a
 -- @a '^.' 'to' f = f a@
 --
 -- >>> import Control.Lens
+--
+-- >>> ("hello","world")^.to snd
+-- "world"
+--
+-- >>> 5^.to succ
+-- 6
+--
 -- >>> (0, -5)^._2.to abs
 -- 5
 to :: (a -> c) -> Getter a c
@@ -122,7 +129,14 @@ type Getting r a c = (c -> Accessor r c) -> a -> Accessor r a
 -- >>> view _2 (1,"hello")
 -- "hello"
 --
--- It may be useful to think of 'view' as having these more restrictive
+-- >>> view (to succ) 5
+-- 6
+--
+-- >>> view (_2._1) ("hello",("world","!!!"))
+-- "world"
+--
+--
+-- It may be useful to think of 'view' as having one of these more restrictive
 -- signatures:
 --
 -- @
@@ -143,6 +157,8 @@ view l = runAccessor . l Accessor
 --
 -- It may be useful to think of 'views' as having these more restrictive
 -- signatures:
+--
+-- @'views' l f = 'view' (l '.' 'to' f)@
 --
 -- >>> import Control.Lens
 -- >>> views _2 length (1,"hello")
@@ -165,6 +181,8 @@ views l f = runAccessor . l (Accessor . f)
 -- at a monoidal values.
 --
 -- This is the same operation as 'view', only infix.
+--
+-- @'to' f '^$' x = f x@
 --
 -- >>> import Control.Lens
 -- >>> _2 ^$ (1, "hello")
@@ -190,7 +208,11 @@ l ^$ a = runAccessor (l Accessor a)
 -- The fixity and semantics are such that subsequent field accesses can be
 -- performed with ('Prelude..')
 --
--- >>> :m + Data.Complex Control.Lens
+-- >>> import Control.Lens
+-- >>> ("hello","world")^._2
+-- "world"
+--
+-- >>> import Data.Complex
 -- >>> ((0, 1 :+ 2), 3)^._1._2.to magnitude
 -- 2.23606797749979
 --
