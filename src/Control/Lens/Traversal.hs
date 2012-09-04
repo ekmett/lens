@@ -86,8 +86,8 @@ import Data.Traversable
 -- The laws for a Traversal @t@ follow from the laws for Traversable as stated in \"The Essence of the Iterator Pattern\".
 --
 -- @
--- t 'pure' = 'pure'
--- 'fmap' (t f) . t g = 'Data.Functor.Compose.getCompose' . t ('Data.Functor.Compose.Compose' . 'fmap' f . g)
+-- t 'pure' ≡ 'pure'
+-- 'fmap' (t f) '.' t g ≡ 'Data.Functor.Compose.getCompose' '.' t ('Data.Functor.Compose.Compose' '.' 'fmap' f '.' g)
 -- @
 --
 -- One consequence of this requirement is that a 'Traversal' needs to leave the same number of elements as a
@@ -108,9 +108,9 @@ type SimpleTraversal a b = Traversal a a b b
 -- Map each element of a structure targeted by a Lens or Traversal,
 -- evaluate these actions from left to right, and collect the results.
 --
--- @'traverseOf' = 'id'@
+-- @'traverseOf' ≡ 'id'@
 --
--- @'traverse' = 'traverseOf' 'traverse'@
+-- @'traverse' ≡ 'traverseOf' 'traverse'@
 --
 -- @
 -- 'traverseOf' :: 'Control.Lens.Iso.Iso' a b c d       -> (c -> f d) -> a -> f b
@@ -123,11 +123,11 @@ traverseOf = id
 
 -- |
 --
--- @'forOf' l = 'flip' ('traverseOf' l)@
+-- @'forOf' l ≡ 'flip' ('traverseOf' l)@
 --
 -- @
--- 'for' = 'forOf' 'traverse'
--- 'forOf' = 'flip'
+-- 'for' ≡ 'forOf' 'traverse'
+-- 'forOf' ≡ 'flip'
 -- @
 --
 -- @
@@ -144,9 +144,9 @@ forOf = flip
 -- the results.
 --
 -- @
--- 'sequenceA' = 'sequenceAOf' 'traverse' = 'traverse' 'id'
--- 'sequenceAOf' l = 'traverseOf' l id
--- 'sequenceAOf' l = l id
+-- 'sequenceA' ≡ 'sequenceAOf' 'traverse' = 'traverse' 'id'
+-- 'sequenceAOf' l ≡ 'traverseOf' l id
+-- 'sequenceAOf' l ≡ l id
 -- @
 --
 -- @
@@ -161,7 +161,7 @@ sequenceAOf l = l id
 -- | Map each element of a structure targeted by a lens to a monadic action,
 -- evaluate these actions from left to right, and collect the results.
 --
--- @'mapM' = 'mapMOf' 'traverse'@
+-- @'mapM' ≡ 'mapMOf' 'traverse'@
 --
 -- @
 -- 'mapMOf' ::            'Control.Lens.Iso.Iso' a b c d       -> (c -> m d) -> a -> m b
@@ -174,8 +174,8 @@ mapMOf l cmd = unwrapMonad . l (WrapMonad . cmd)
 
 -- |
 -- @
--- 'forM' = 'forMOf' 'traverse'
--- 'forMOf' l = 'flip' ('mapMOf' l)
+-- 'forM' ≡ 'forMOf' 'traverse'
+-- 'forMOf' l ≡ 'flip' ('mapMOf' l)
 -- @
 --
 -- @
@@ -189,9 +189,9 @@ forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
 
 -- |
 -- @
--- 'sequence' = 'sequenceOf' 'traverse'
--- 'sequenceOf' l = 'mapMOf' l id
--- 'sequenceOf' l = 'unwrapMonad' . l 'WrapMonad'
+-- 'sequence' ≡ 'sequenceOf' 'traverse'
+-- 'sequenceOf' l ≡ 'mapMOf' l id
+-- 'sequenceOf' l ≡ 'unwrapMonad' . l 'WrapMonad'
 -- @
 --
 -- @
@@ -207,7 +207,7 @@ sequenceOf l = unwrapMonad . l WrapMonad
 --
 -- Note: 'Data.List.transpose' handles ragged inputs more intelligently, but for non-ragged inputs:
 --
--- @'Data.List.transpose' = 'transposeOf' 'traverse'@
+-- @'Data.List.transpose' ≡ 'transposeOf' 'traverse'@
 --
 -- >>> transposeOf traverse [[1,2,3],[4,5,6]]
 -- [[1,4],[2,5],[3,6]]
@@ -222,7 +222,7 @@ transposeOf l = getZipList . l ZipList
 
 -- | Generalizes 'Data.Traversable.mapAccumR' to an arbitrary 'Traversal'.
 --
--- @'mapAccumR' = 'mapAccumROf' 'traverse'@
+-- @'mapAccumR' ≡ 'mapAccumROf' 'traverse'@
 --
 -- 'mapAccumROf' accumulates state from right to left.
 --
@@ -237,7 +237,7 @@ mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f 
 
 -- | Generalized 'Data.Traversable.mapAccumL' to an arbitrary 'Traversal'.
 --
--- @'mapAccumL' = 'mapAccumLOf' 'traverse'@
+-- @'mapAccumL' ≡ 'mapAccumLOf' 'traverse'@
 --
 -- 'mapAccumLOf' accumulates state from left to right.
 --
@@ -256,7 +256,7 @@ swap (a,b) = (b,a)
 
 -- | Permit the use of 'scanr1' over an arbitrary 'Traversal' or 'Lens'.
 --
--- @'scanr1' = 'scanr1Of' 'traverse'@
+-- @'scanr1' ≡ 'scanr1Of' 'traverse'@
 --
 -- @
 -- 'scanr1Of' :: 'Control.Lens.Iso.Iso' a b c c       -> (c -> c -> c) -> a -> b
@@ -271,7 +271,7 @@ scanr1Of l f = snd . mapAccumROf l step Nothing where
 
 -- | Permit the use of 'scanl1' over an arbitrary 'Traversal' or 'Lens'.
 --
--- @'scanl1' = 'scanl1Of' 'traverse'@
+-- @'scanl1' ≡ 'scanl1Of' 'traverse'@
 --
 -- @
 -- 'scanr1Of' :: Iso a b c c       -> (c -> c -> c) -> a -> b
@@ -307,7 +307,7 @@ elementOf l i f a = case getElementOf (l go a) 0 of
 --
 -- Attempts to access beyond the range of the 'Traversal' will cause an error.
 --
--- @'element' = 'elementOf' 'traverse'@
+-- @'element' ≡ 'elementOf' 'traverse'@
 element :: Traversable t => Int -> Simple Lens (t a) a
 element = elementOf traverse
 
@@ -319,7 +319,7 @@ element = elementOf traverse
 --
 -- @'ignored' :: 'Applicative' f => (c -> f d) -> a -> f a@
 --
--- @'ignored' = 'const' 'pure'@
+-- @'ignored' ≡ 'const' 'pure'@
 ignored :: Traversal a a c d
 ignored _ = pure
 {-# INLINE ignored #-}
@@ -339,7 +339,7 @@ traverseLeft _ (Right c) = pure $ Right c
 
 -- | traverse the right-hand value of an 'Either':
 --
--- @'traverseRight' = 'Data.Traversable.traverse'@
+-- @'traverseRight' ≡ 'Data.Traversable.traverse'@
 --
 -- Unfortunately the instance for
 -- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,
@@ -371,10 +371,6 @@ traverseRight f (Right a) = Right <$> f a
 cloneTraversal :: Applicative f => ((c -> Bazaar c d d) -> a -> Bazaar c d b) -> (c -> f d) -> a -> f b
 cloneTraversal l f = bazaar f . l sell
 {-# INLINE cloneTraversal #-}
-
--- cloneTraversal' :: Applicative f => ((c -> Bazaar c d d) -> a -> Bazaar c d b) -> (c -> f d) -> a -> f b
--- cloneTraversal' l f a = runBazaar (l (\c -> Bazaar (\k -> k c)) a) f
--- {-# INLINE cloneTraversal' #-}
 
 -- | A form of 'Traversal' that can be stored monomorphically in a container.
 data ReifiedTraversal a b c d = ReifyTraversal { reflectTraversal :: Traversal a b c d }
