@@ -29,9 +29,10 @@ import Data.Array.IArray hiding (index)
 --
 -- Note: The indexed element is assumed to exist in the target 'IArray'.
 --
--- @arr '!' i = arr '^.' 'ix' i@
---
--- @arr '//' [(i,e)] = 'ix' i '.~' e '$' arr@
+-- @
+-- arr '!' i ≡ arr '^.' 'ix' i
+-- arr '//' [(i,e)] ≡ 'ix' i '.~' e '$' arr
+-- @
 --
 -- >>> ix 2 .~ 9 $ (listArray (1,5) [4,5,6,7,8] :: Array Int Int)
 -- array (1,5) [(1,4),(2,9),(3,6),(4,7),(5,8)]
@@ -44,21 +45,20 @@ ix i f arr = (\e -> arr // [(i,e)]) <$> f (arr ! i)
 --
 -- This is a /contravariant/ 'Setter'.
 --
--- @'ixmap' = 'over' . 'ixmapped'@
---
--- @'ixmapped' = 'sets' . 'ixmap'@
---
--- @'over' ('ixmapped' b) f arr '!' i = arr '!' f i@
---
--- @'bounds' ('over' ('ixmapped' b) f arr) = b@
+-- @
+-- 'ixmap' ≡ 'over' . 'ixmapped'
+-- 'ixmapped' ≡ 'sets' . 'ixmap'
+-- 'over' ('ixmapped' b) f arr '!' i ≡ arr '!' f i
+-- 'bounds' ('over' ('ixmapped' b) f arr) ≡ b
+-- @
 ixmapped :: (IArray a e, Ix i, Ix j) => (i,i) -> Setter (a j e) (a i e) i j
 ixmapped = sets . ixmap
 {-# INLINE ixmapped #-}
 
--- | An 'IndexedTraversal' of the elements of an 'IArray', using the 
+-- | An 'IndexedTraversal' of the elements of an 'IArray', using the
 -- index into the array as the index of the traversal.
 --
--- @'amap' = 'over' 'traverseArray'@
+-- @'amap' ≡ 'over' 'traverseArray'@
 traverseArray :: (IArray a c, IArray a d, Ix i) => IndexedTraversal i (a i c) (a i d) c d
 traverseArray = index $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (assocs arr)
 {-# INLINE traverseArray #-}
