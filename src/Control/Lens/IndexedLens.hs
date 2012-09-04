@@ -72,8 +72,8 @@ type SimpleIndexedLens i a b = IndexedLens i a a b b
 -- If you do not need the intermediate result, you can use ('Control.Lens.Type.%@~') or even ('Control.Lens.Type.%~').
 --
 -- @
--- ('\<%\@~') ::             'IndexedLens' i a b c d -> (i -> c -> d) -> a -> (d, b)
--- ('\<%\@~') :: 'Monoid' d => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> a -> (d, b)
+-- ('<%@~') ::             'IndexedLens' i a b c d -> (i -> c -> d) -> a -> (d, b)
+-- ('<%@~') :: 'Monoid' d => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> d) -> a -> (d, b)
 -- @
 (<%@~) :: Overloaded (Index i) ((,)d) a b c d -> (i -> c -> d) -> a -> (d, b)
 l <%@~ f = withIndex l $ \i c -> let d = f i c in (d, d)
@@ -86,16 +86,16 @@ l <%@~ f = withIndex l $ \i c -> let d = f i c in (d, d)
 -- @('%%@~') = 'withIndex'@
 --
 -- @
--- ('%%\@~') :: 'Functor' f => 'IndexedLens' i a b c d      -> (i -> c -> f d) -> a -> f b
--- ('%%\@~') :: 'Functor' f => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> f d) -> a -> f b
+-- ('%%@~') :: 'Functor' f => 'IndexedLens' i a b c d      -> (i -> c -> f d) -> a -> f b
+-- ('%%@~') :: 'Functor' f => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> f d) -> a -> f b
 -- @
 --
 -- In particular, it is often useful to think of this function as having one of these even more
 -- restrictive type signatures
 --
 -- @
--- ('%%\@~') ::             'IndexedLens' i a b c d      -> (i -> c -> (e, d)) -> a -> (e, b)
--- ('%%\@~') :: 'Monoid' e => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> (e, d)) -> a -> (e, b)
+-- ('%%@~') ::             'IndexedLens' i a b c d      -> (i -> c -> (e, d)) -> a -> (e, b)
+-- ('%%@~') :: 'Monoid' e => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a b c d -> (i -> c -> (e, d)) -> a -> (e, b)
 -- @
 (%%@~) :: Overloaded (Index i) f a b c d -> (i -> c -> f d) -> a -> f b
 (%%@~) = withIndex
@@ -108,8 +108,8 @@ l <%@~ f = withIndex l $ \i c -> let d = f i c in (d, d)
 -- @l '%%@=' f = 'state' (l '%%@~' f)@
 --
 -- @
--- ('%%\@=') :: 'MonadState' a m                'IndexedLens' i a a c d      -> (i -> c -> (e, d)) -> a -> m e
--- ('%%\@=') :: ('MonadState' a m, 'Monoid' e) => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a a c d -> (i -> c -> (e, d)) -> a -> m e
+-- ('%%@=') :: 'MonadState' a m                'IndexedLens' i a a c d      -> (i -> c -> (e, d)) -> a -> m e
+-- ('%%@=') :: ('MonadState' a m, 'Monoid' e) => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a a c d -> (i -> c -> (e, d)) -> a -> m e
 -- @
 (%%@=) :: MonadState a m => Overloaded (Index i) ((,)e) a a c d -> (i -> c -> (e, d)) -> m e
 #if MIN_VERSION_mtl(2,1,0)
@@ -127,8 +127,8 @@ l %%@= f = do
 -- return a monoidal summary of the intermediate results.
 --
 -- @
--- ('\<%\@=') :: 'MonadState' a m                'IndexedLens' i a a c d      -> (i -> c -> d) -> a -> m d
--- ('\<%\@=') :: ('MonadState' a m, 'Monoid' e) => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a a c d -> (i -> c -> d) -> a -> m d
+-- ('<%@=') :: 'MonadState' a m                'IndexedLens' i a a c d      -> (i -> c -> d) -> a -> m d
+-- ('<%@=') :: ('MonadState' a m, 'Monoid' e) => 'Control.Lens.IndexedTraversal.IndexedTraversal' i a a c d -> (i -> c -> d) -> a -> m d
 -- @
 (<%@=) :: MonadState a m => Overloaded (Index i) ((,)d) a a c d -> (i -> c -> d) -> m d
 l <%@= f = l %%@= \ i c -> let d = f i c in (d, d)

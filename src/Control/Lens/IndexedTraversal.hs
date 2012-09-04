@@ -1,8 +1,14 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
+
+#ifndef MIN_VERSION_containers
+#define MIN_VERSION_containers(x,y,z) 1
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.IndexedTraversal
@@ -22,6 +28,8 @@ module Control.Lens.IndexedTraversal
   , traverseAt
   , iwhereOf
   , value
+  , TraverseMin(..)
+  , TraverseMax(..)
 
   -- * Indexed Traversal Combinators
   , itraverseOf
@@ -46,6 +54,8 @@ import Control.Lens.IndexedLens
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy as Lazy
 import Data.Traversable
+import Data.IntMap as IntMap
+import Data.Map as Map
 
 ------------------------------------------------------------------------------
 -- Indexed Traversals
@@ -193,6 +203,48 @@ traverseAt k = at k <. traverse
 value :: (k -> Bool) -> SimpleIndexedTraversal k (k, v) v
 value p = index $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
 {-# INLINE value #-}
+
+-- | Allows 'IndexedTraversal' the value at the smallest index.
+class Ord k => TraverseMin k m | m -> k where
+  -- | 'IndexedTraversal' of the element with the smallest index.
+  traverseMin :: SimpleIndexedTraversal k (m v) v
+
+instance TraverseMin Int IntMap where
+  traverseMin = index $ \f m -> case IntMap.minViewWithKey m of
+#if MIN_VERSION_containers(0,5,0)
+    Just ((k,a), _) -> (\v -> IntMap.updateMin (const (Just v)) m) <$> f k a
+#else
+    Just ((k,a), _) -> (\v -> IntMap.updateMin (const v) m) <$> f k a
+#endif
+    Nothing     -> pure m
+  {-# INLINE traverseMin #-}
+
+instance Ord k => TraverseMin k (Map k) where
+  traverseMin = index $ \f m -> case Map.minViewWithKey m of
+    Just ((k, a), _) -> (\v -> Map.updateMin (const (Just v)) m) <$> f k a
+    Nothing          -> pure m
+  {-# INLINE traverseMin #-}
+
+-- | Allows 'IndexedTraversal' of the value at the largest index.
+class Ord k => TraverseMax k m | m -> k where
+  -- | 'IndexedTraversal' of the element at the largest index.
+  traverseMax :: SimpleIndexedTraversal k (m v) v
+
+instance TraverseMax Int IntMap where
+  traverseMax = index $ \f m -> case IntMap.maxViewWithKey m of
+#if MIN_VERSION_containers(0,5,0)
+    Just ((k,a), _) -> (\v -> IntMap.updateMax (const (Just v)) m) <$> f k a
+#else
+    Just ((k,a), _) -> (\v -> IntMap.updateMax (const v) m) <$> f k a
+#endif
+    Nothing     -> pure m
+  {-# INLINE traverseMax #-}
+
+instance Ord k => TraverseMax k (Map k) where
+  traverseMax = index $ \f m -> case Map.maxViewWithKey m of
+    Just ((k, a), _) -> (\v -> Map.updateMax (const (Just v)) m) <$> f k a
+    Nothing          -> pure m
+  {-# INLINE traverseMax #-}
 
 ------------------------------------------------------------------------------
 -- Reifying Indexed Traversals

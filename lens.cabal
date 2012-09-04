@@ -177,10 +177,8 @@ library
     Data.Data.Lens
     Data.Dynamic.Lens
     Data.HashSet.Lens
-    Data.IntMap.Lens
     Data.IntSet.Lens
     Data.List.Lens
-    Data.Map.Lens
     Data.Monoid.Lens
     Data.Sequence.Lens
     Data.Set.Lens
