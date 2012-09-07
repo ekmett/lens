@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-binds #-}
+{-# OPTIONS_GHC -Werror #-}
 -- | The commented code summarizes what will be auto-generated below
 module Main where
 
@@ -50,6 +50,14 @@ data Danger a = Zone { _highway :: a }
               | Twilight
 makeLensesWith (partialLenses .~ True $ buildTraversals .~ False $ lensRules) ''Danger
 -- highway :: Lens (Danger a) (Danger a') a a'
+
+data Task a = Task
+  { taskOutput :: a -> IO ()
+  , taskState :: a
+  , taskStop :: IO ()
+  }
+
+makeLensesFor [("taskOutput", "outputLens"), ("taskState", "stateLens"), ("taskStop", "stopLens")] ''Task
 
 data Mono = Mono { _monoFoo :: Int, _monoBar :: Int }
 makeClassy ''Mono

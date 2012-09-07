@@ -776,9 +776,9 @@ parts = partsOf plate
 -- So technically, this is only a lens if you do not change the number of results it returns.
 --
 -- @
--- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' a b       -> a -> 'Simple' 'Lens' a [b]
--- 'partsOf' :: 'Simple' 'Lens' a b      -> a -> 'Simple' 'Lens' a [b]
--- 'partsOf' :: 'Simple' 'Traversal' a b -> a -> 'Simple' 'Traversal' a [b]
+-- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' a b       -> 'Simple' 'Lens' a [b]
+-- 'partsOf' :: 'Simple' 'Lens' a b      -> 'Simple' 'Lens' a [b]
+-- 'partsOf' :: 'Simple' 'Traversal' a b -> 'Simple' 'Lens' a [b]
 -- @
 partsOf :: LensLike (Bazaar c c) a b c c -> Lens a b [c] [c]
 partsOf l f a = outs b <$> f (ins b) where b = l sell a
@@ -795,11 +795,14 @@ partsOf l f a = outs b <$> f (ins b) where b = l sell a
 -- This is unsafe because if you don't supply at least as many @d@'s as you were
 -- given @c@'s, then the reconstruction of @b@ /will/ result in an error!
 --
+-- @
+-- 'unsafePartsOf' :: 'Control.Lens.Iso.Iso' a b c d       -> 'Lens' a b [c] [d]
+-- 'unsafePartsOf' :: 'Lens' a b c d      -> 'Lens' a b [c] [d]
+-- 'unsafePartsOf' :: 'Traversal' a b c d -> 'Lens' a b [c] [d]
+-- @
 unsafePartsOf :: LensLike (Bazaar c d) a b c d -> Lens a b [c] [d]
 unsafePartsOf l f a = unsafeOuts b <$> f (ins b) where b = l sell a
 {-# INLINE unsafePartsOf #-}
-
-
 
 -------------------------------------------------------------------------------
 -- Misc.
