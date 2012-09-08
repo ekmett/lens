@@ -29,6 +29,8 @@ module Data.List.Lens
   , traverseLast
   , (~:), (=:)
   , (<~:), (<=:)
+  , (++~), (<++~)
+  , (++=), (<++=)
   ) where
 
 import Control.Applicative
@@ -36,8 +38,9 @@ import Control.Lens
 import Control.Monad.State (MonadState, modify)
 import Data.List
 
-infixr 4 ~:, <~:
-infix 4 =:, <=:
+infixr 4 ++~, <++~
+infixl 4 ~:, <~:
+infix 4 =:, <=:, ++=, <++=
 
 -- | A lens reading and writing to the head of a /non-empty/ list.
 --
@@ -222,3 +225,58 @@ n <~: l = l <%~ (n :)
 (<=:) :: MonadState a m => c -> SimpleLensLike ((,)[c]) a [c] -> m [c]
 n <=: l = l <%= (n :)
 {-# INLINE (<=:) #-}
+
+
+-- | Append to the target of a list-valued setter by appending to it with ('++').
+--
+-- ('Data.Monoid.<>~') generalizes this operation to an arbitrary 'Monoid'.
+--
+-- >>> :m + Control.Lens
+-- >>> both ++~ "!!!" $ ("hello","world")
+-- ("hello!!!","world!!!")
+--
+-- @
+-- ('++~') :: 'Simple' 'Setter' a [b] -> [b] -> a -> a
+-- ('++~') :: 'Simple' 'Iso' a [b] -> [b] -> a -> a
+-- ('++~') :: 'Simple' 'Lens' a [b] -> [b] -> a -> a
+-- ('++~') :: 'Simple' 'Traversal' a [b] -> [b] -> a -> a
+-- @
+(++~) :: Setting a b [c] [c] -> [c] -> a -> b
+l ++~ n = over l (++ n)
+{-# INLINE (++~) #-}
+
+-- | Append to the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' with ('++') in the current state.
+--
+-- ('Data.Monoid.<>=') generalizes this operation to an arbitrary 'Monoid'.
+--
+-- @
+-- ('++=') :: 'MonadState' a m => 'Simple' 'Setter' a [b] -> [b] -> m ()
+-- ('++=') :: 'MonadState' a m => 'Simple' 'Iso' a [b] -> [b] -> m ()
+-- ('++=') :: 'MonadState' a m => 'Simple' 'Lens' a [b] -> [b] -> m ()
+-- ('++=') :: 'MonadState' a m => 'Simple' 'Traversal' a [b] -> [b] -> m ()
+-- @
+(++=) :: MonadState a m => SimpleSetting a [b] -> [b] -> m ()
+l ++= b = State.modify (l ++~ b)
+{-# INLINE (++=) #-}
+
+-- | Append onto the end of the list targeted by a 'Lens' and return the result.
+--
+-- ('Data.Monoid.<<>~') generalizes this operation to an arbitrary 'Monoid'.
+--
+-- When using a 'Traversal', the result returned is actually the concatenation of all of the results.
+--
+-- When you do not need the result of the operation, ('++~') is more flexible.
+(<++~) :: Monoid m => LensLike ((,)[c]) a b [c] [c] -> [c] -> a -> ([c], b)
+l <++~ m = l <%~ (++ m)
+{-# INLINE (<++~) #-}
+
+-- | Append onto the end of the list targeted by a 'Lens' into the current monadic state, and return the result.
+--
+-- ('Data.Monoid.<<>=') generalizes this operation to an arbitrary 'Monoid'.
+--
+-- When using a 'Traversal', the result returned is actually the concatenation of all of the results.
+--
+-- When you do not need the result of the operation, ('++=') is more flexible.
+(<++=) :: MonadState a m => SimpleLensLike ((,)[b]) a [b] -> [b] -> m [b]
+l <++= r = l <%= (`mappend` r)
+{-# INLINE (<++=) #-}

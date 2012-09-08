@@ -5,6 +5,8 @@
 * Documentation cleanup and additional examples.
 * Renamed `au` to `ala`.
 * Removed need for `Data.Map.Lens` and `Data.IntMap.Lens` by adding `TraverseMin` and `TraverseMax` to `Control.Lens.IndexedTraversal`.
+* Flipped fixity of `~:` and `<~:`
+* Added `++~`, `++=`, `<++~` and `<++=` to Data.List.Lens in response to popular demand.
 
 2.6.1
 -----
