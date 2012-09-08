@@ -48,6 +48,7 @@ import Control.Lens.Tuple
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Control.Lens.IndexedLens
+import Control.Lens.Combinators
 import Control.Monad
 import Data.Char (toLower)
 import Data.Either (lefts)
@@ -167,24 +168,22 @@ defaultRules = LensRules top field (const Nothing) $
 -- | Rules for making fairly simple partial lenses, ignoring the special cases
 -- for isomorphisms and traversals, and not making any classes.
 lensRules :: LensRules
-lensRules
-  = lensIso   .~ const Nothing
-  $ lensClass .~ const Nothing
-  $ handleSingletons .~ True
-  $ partialLenses .~ False
-  $ buildTraversals .~ True
-  $ defaultRules
+lensRules = defaultRules
+  |> lensIso          .~ const Nothing
+  |> lensClass        .~ const Nothing
+  |> handleSingletons .~ True
+  |> partialLenses    .~ False
+  |> buildTraversals  .~ True
 
 -- | Rules for making lenses and traversals that precompose another lens.
 classyRules :: LensRules
-classyRules
-    = lensIso .~ const Nothing
-    $ handleSingletons .~ False
-    $ lensClass .~ classy
-    $ classRequired .~ True
-    $ partialLenses .~ False
-    $ buildTraversals .~ True
-    $ defaultRules
+classyRules = defaultRules
+  |> lensIso .~ const Nothing
+  |> handleSingletons .~ False
+  |> lensClass .~ classy
+  |> classRequired .~ True
+  |> partialLenses .~ False
+  |> buildTraversals .~ True
   where
     classy :: String -> Maybe (String, String)
     classy n@(a:as) = Just ("Has" ++ n, toLower a:as)
@@ -192,10 +191,9 @@ classyRules
 
 -- | Rules for making an isomorphism from a data type
 isoRules :: LensRules
-isoRules
-  = singletonRequired .~ True
-  $ singletonAndField .~ True
-  $ defaultRules
+isoRules = defaultRules
+  |> singletonRequired .~ True
+  |> singletonAndField .~ True
 
 -- | Build lenses (and traversals) with a sensible default configuration.
 --
@@ -255,9 +253,7 @@ makeIso = makeLensesWith isoRules
 -- > makeLensesFor [("_foo", "fooLens"), ("baz", "lbaz")] ''Foo
 -- > makeLensesFor [("_barX", "bar"), ("_barY", "bar)] ''Bar
 makeLensesFor :: [(String, String)] -> Name -> Q [Dec]
-makeLensesFor fields = makeLensesWith
-  $ lensField .~ (`Prelude.lookup` fields)
-  $ lensRules
+makeLensesFor fields = makeLensesWith $ lensRules |> lensField .~ (`Prelude.lookup` fields)
 
 -- | Derive lenses and traversals, using a named wrapper class, and specifying
 -- explicit pairings of @(fieldName, traversalName)@.
@@ -266,10 +262,9 @@ makeLensesFor fields = makeLensesWith
 --
 -- > makeClassyFor "HasFoo" "foo" [("_foo", "fooLens"), ("bar", "lbar")] ''Foo
 makeClassyFor :: String -> String -> [(String, String)] -> Name -> Q [Dec]
-makeClassyFor clsName funName fields = makeLensesWith
-  $ lensClass .~ const (Just (clsName,funName))
-  $ lensField .~ (`Prelude.lookup` fields)
-  $ classyRules
+makeClassyFor clsName funName fields = makeLensesWith $ classyRules
+  |> lensClass .~ const (Just (clsName,funName))
+  |> lensField .~ (`Prelude.lookup` fields)
 
 -- | Build lenses with a custom configuration.
 makeLensesWith :: LensRules -> Name -> Q [Dec]

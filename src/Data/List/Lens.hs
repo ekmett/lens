@@ -35,7 +35,7 @@ module Data.List.Lens
 
 import Control.Applicative
 import Control.Lens
-import Control.Monad.State (MonadState, modify)
+import Control.Monad.State as State (MonadState, modify)
 import Data.List
 
 infixr 4 ++~, <++~
@@ -266,7 +266,7 @@ l ++= b = State.modify (l ++~ b)
 -- When using a 'Traversal', the result returned is actually the concatenation of all of the results.
 --
 -- When you do not need the result of the operation, ('++~') is more flexible.
-(<++~) :: Monoid m => LensLike ((,)[c]) a b [c] [c] -> [c] -> a -> ([c], b)
+(<++~) :: LensLike ((,)[c]) a b [c] [c] -> [c] -> a -> ([c], b)
 l <++~ m = l <%~ (++ m)
 {-# INLINE (<++~) #-}
 
@@ -278,5 +278,5 @@ l <++~ m = l <%~ (++ m)
 --
 -- When you do not need the result of the operation, ('++=') is more flexible.
 (<++=) :: MonadState a m => SimpleLensLike ((,)[b]) a [b] -> [b] -> m [b]
-l <++= r = l <%= (`mappend` r)
+l <++= m = l <%= (++ m)
 {-# INLINE (<++=) #-}

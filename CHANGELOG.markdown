@@ -3,10 +3,12 @@
 * Generalized the signature of `Getting`, `Acting` and `IndexedGetting` to help out with the common user code scenario of needing to read
   and then write to change types.
 * Documentation cleanup and additional examples.
-* Renamed `au` to `ala`.
+* Renamed `au` to `ala`, introducing further incompatibility with the `newtype` package, but reducing confusion.
 * Removed need for `Data.Map.Lens` and `Data.IntMap.Lens` by adding `TraverseMin` and `TraverseMax` to `Control.Lens.IndexedTraversal`.
 * Flipped fixity of `~:` and `<~:`
 * Added `++~`, `++=`, `<++~` and `<++=` to Data.List.Lens in response to popular demand.
+* Added `|>`, `<$!>` and `<$!` to `Control.Lens.Combinators`, which exports combinators that are often useful in lens-based code, but that
+  don't strictly involve lenses.
 
 2.6.1
 -----

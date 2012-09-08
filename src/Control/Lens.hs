@@ -49,6 +49,7 @@ module Control.Lens
   , module Control.Lens.Getter
   , module Control.Lens.Setter
   , module Control.Lens.Action
+  , module Control.Lens.Combinators
   , module Control.Lens.Fold
   , module Control.Lens.Iso
   , module Control.Lens.Indexed
@@ -68,6 +69,7 @@ module Control.Lens
   ) where
 
 import Control.Lens.Action
+import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed
