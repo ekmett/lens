@@ -253,6 +253,16 @@ test-suite properties
   ghc-options: -w -threaded
   hs-source-dirs: tests
 
+test-suite hunit
+  type: exitcode-stdio-1.0
+  main-is: hunit.hs
+  build-depends:
+    base,
+    HUnit == 1.2.*,
+    lens
+  ghc-options: -w -threaded
+  hs-source-dirs: tests
+
 -- Basic benchmarks for the uniplate-style combinators
 benchmark plated
   type: exitcode-stdio-1.0
