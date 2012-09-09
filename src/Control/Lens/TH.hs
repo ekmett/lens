@@ -294,18 +294,25 @@ freshMap :: Set Name -> Q (Map Name Name)
 freshMap ns = Map.fromList <$> for (toList ns) (\ n -> (,) n <$> newName (nameBase n))
 
 makeIsoTo :: Name -> ExpQ
-makeIsoTo conName = lamE [varP (mkName "f"), conP conName [varP (mkName "a")]] $
-  appsE [ return (VarE 'fmap)
-        , conE conName
-        , varE (mkName "f") `appE` varE (mkName "a")
-        ]
+makeIsoTo conName = do
+  f <- newName "f"
+  a <- newName "a"
+  lamE [varP f, conP conName [varP a]] $
+    appsE [ return (VarE 'fmap)
+          , conE conName
+          , varE f `appE` varE a
+          ]
 
 makeIsoFrom :: Name -> ExpQ
-makeIsoFrom conName = lamE [varP (mkName "f"), varP (mkName "a")] $
-  appsE [ return (VarE 'fmap)
-        , lamE [conP conName [varP (mkName "b")]] $ varE (mkName "b")
-        , varE (mkName "f") `appE` (conE conName `appE` varE (mkName "a"))
-        ]
+makeIsoFrom conName = do
+  f <- newName "f"
+  a <- newName "a"
+  b <- newName "b"
+  lamE [varP f, varP a] $
+    appsE [ return (VarE 'fmap)
+          , lamE [conP conName [varP b]] $ varE b
+          , varE f `appE` (conE conName `appE` varE a)
+          ]
 
 makeIsoBody :: Name -> Name -> (Name -> ExpQ) -> (Name -> ExpQ) -> DecQ
 makeIsoBody lensName conName f g = funD lensName [clause [] (normalB body) []] where
@@ -398,7 +405,7 @@ makeFieldLensBody :: Bool -> Name -> [(Con, [Name])] -> Maybe Name -> Q Dec
 makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMethodName of
     Just methodName -> do
        go <- newName "go"
-       let expr = infixApp (varE methodName) (varE (mkName ".")) (varE go)
+       let expr = infixApp (varE methodName) (varE '(Prelude..)) (varE go)
        funD lensName [ clause [] (normalB expr) [funD go clauses] ]
     Nothing -> funD lensName clauses
   where
@@ -407,8 +414,8 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
       f <- newName "_f"
       vars <- for (con^..conNamedFields._1) $ \field ->
           if field `List.elem` fields
-        then Left  <$> ((,) <$> newName ("_" ++ nameBase field) <*> newName (nameBase field))
-        else Right <$> newName (nameBase field)
+        then Left  <$> ((,) <$> newName ('_':(nameBase field++"'")) <*> newName ('_':nameBase field))
+        else Right <$> newName ('_':nameBase field)
       let cpats = map (varP . either fst id) vars               -- Deconstruction
           cvals = map (varE . either snd id) vars               -- Reconstruction
           fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
@@ -459,14 +466,14 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
 
   --TODO: there's probably a more efficient way to do this.
   lensFields <- map (\xs -> (fst $ head xs, map snd xs))
-              . groupBy ((==) `on` fst) . sortBy (comparing fst) . concat
+              . groupBy ((==) `on` fst) . sortBy (comparing fst)
+              . concat
             <$> mapM (getLensFields $ view lensField cfg) cons
 
   -- varMultiSet knows how many usages of the type variables there are.
   let varMultiSet = List.concatMap (toListOf (conFields._2.typeVars)) cons
       varSet = Set.fromList $ map (view name) tyArgs
 
-  -- if not (cfg^.partialLenses) && not (cfg^.BuildTraversals)
   bodies <- for lensFields $ \(lensName, fields) -> do
     let fieldTypes = map (view _3) fields
     -- All of the polymorphic variables not involved in these fields
@@ -531,9 +538,9 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
 
 -- | Gets @[(lens name, (constructor name, field name, type))]@ from a record constructor
 getLensFields :: (String -> Maybe String) -> Con -> Q [(Name, (Name, Name, Type))]
-getLensFields nameFunc (RecC cn fs)
+getLensFields f (RecC cn fs)
   = return . catMaybes
-  $ map (\(fn,_,t) -> (\ln -> (mkName ln, (cn,fn,t))) <$> nameFunc (nameBase fn)) fs
+  $ map (\(fn,_,t) -> (\ln -> (mkName ln, (cn,fn,t))) <$> f (nameBase fn)) fs
 getLensFields _ _
   = return []
 

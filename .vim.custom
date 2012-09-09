@@ -25,7 +25,7 @@ set list
 map <F2> :exec ":!hasktags -x -c --ignore src"<CR><CR>
 
 " strip trailing whitespace before saving
-au BufWritePre *.hs,*.markdown silent! cal StripTrailingWhitespace()
+" au BufWritePre *.hs,*.markdown silent! cal StripTrailingWhitespace()
 
 " rebuild hasktags after saving
 au BufWritePost *.hs silent! :exec ":!hasktags -x -c --ignore src"
