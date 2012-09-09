@@ -430,7 +430,7 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
             | List.null fields
               = appE (varE 'pure) recon
             | otherwise
-              = uInfixE (lamE fpats recon) (varE '(<$>)) $ List.foldl1 (\l r -> uInfixE l (varE '(<*>)) r) fvals
+              = infixE (Just $ lamE fpats recon) (varE '(<$>)) $ Just $ List.foldl1 (\l r -> infixE (Just l) (varE '(<*>)) (Just r)) fvals
       clause [varP f, conP conName cpats] (normalB expr) []
 
 makeFieldLenses :: LensRules
