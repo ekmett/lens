@@ -1,8 +1,12 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 706
+{-# LANGUAGE DefaultSignatures #-}
+#define MPTC_DEFAULTS
+#endif
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.WithIndex
@@ -84,8 +88,10 @@ import Data.Traversable
 class Functor f => FunctorWithIndex i f | f -> i where
   -- | Map with access to the index.
   imap :: (i -> a -> b) -> f a -> f b
+#ifdef MPTC_DEFAULTS
   default imap :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
   imap = imapOf itraversed
+#endif
 
 -- | The 'IndexedSetter' for a 'FunctorWithIndex'.
 --
@@ -108,8 +114,11 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   --
   -- @'foldMap' ≡ 'ifoldMap' '.' 'const'@
   ifoldMap :: Monoid m => (i -> a -> m) -> f a -> m
+#ifdef MPTC_DEFAULTS
   default ifoldMap :: (TraversableWithIndex i f, Monoid m) => (i -> a -> m) -> f a -> m
   ifoldMap = ifoldMapOf itraversed
+  {-# INLINE ifoldMap #-}
+#endif
 
   -- | Right-associative fold of an indexed container with access to the index @i@.
   --
@@ -315,9 +324,11 @@ indices f = coerce . getFolding . ifoldMap (const . Folding . f)
 class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => TraversableWithIndex i t | t -> i where
   -- | Traverse an indexed container.
   itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
+#ifdef MPTC_DEFAULTS
   default itraverse :: Applicative f => (Int -> a -> f b) -> t a -> f (t b)
   itraverse = withIndex (indexed traverse)
   {-# INLINE itraverse #-}
+#endif
 
 -- | The 'IndexedTraversal' of a 'TraversableWithIndex' container.
 itraversed :: TraversableWithIndex i f => IndexedTraversal i (f a) (f b) a b
@@ -390,29 +401,41 @@ iwhere p = index $ \f a -> itraverse (\i c -> if p i then f i c else pure c) a
 -------------------------------------------------------------------------------
 
 -- | The position in the list is available as the index.
-instance FunctorWithIndex Int []
-instance FoldableWithIndex Int []
-instance TraversableWithIndex Int []
+instance FunctorWithIndex Int [] where
+  imap = imapOf itraversed
+instance FoldableWithIndex Int [] where
+  ifoldMap = ifoldMapOf itraversed
+instance TraversableWithIndex Int [] where
+  itraverse = withIndex (indexed traverse)
 
 -- | The position in the sequence is available as the index.
-instance FunctorWithIndex Int Seq
-instance FoldableWithIndex Int Seq
-instance TraversableWithIndex Int Seq
+instance FunctorWithIndex Int Seq where
+  imap = imapOf itraversed
+instance FoldableWithIndex Int Seq where
+  ifoldMap = ifoldMapOf itraversed
+instance TraversableWithIndex Int Seq where
+  itraverse = withIndex (indexed traverse)
 
-instance FunctorWithIndex Int IntMap
-instance FoldableWithIndex Int IntMap
+instance FunctorWithIndex Int IntMap where
+  imap = imapOf itraversed
+instance FoldableWithIndex Int IntMap where
+  ifoldMap = ifoldMapOf itraversed
 instance TraversableWithIndex Int IntMap where
   itraverse f = sequenceA . IntMap.mapWithKey f
   {-# INLINE itraverse #-}
 
-instance Ord k => FunctorWithIndex k (Map k)
-instance Ord k => FoldableWithIndex k (Map k)
+instance Ord k => FunctorWithIndex k (Map k) where
+  imap = imapOf itraversed
+instance Ord k => FoldableWithIndex k (Map k) where
+  ifoldMap = ifoldMapOf itraversed
 instance Ord k => TraversableWithIndex k (Map k) where
   itraverse f = sequenceA . Map.mapWithKey f
   {-# INLINE itraverse #-}
 
-instance (Eq k, Hashable k) => FunctorWithIndex k (HashMap k)
-instance (Eq k, Hashable k) => FoldableWithIndex k (HashMap k)
+instance (Eq k, Hashable k) => FunctorWithIndex k (HashMap k) where
+  imap = imapOf itraversed
+instance (Eq k, Hashable k) => FoldableWithIndex k (HashMap k) where
+  ifoldMap = ifoldMapOf itraversed
 instance (Eq k, Hashable k) => TraversableWithIndex k (HashMap k) where
   itraverse = HashMap.traverseWithKey
   {-# INLINE itraverse #-}
