@@ -262,6 +262,7 @@ test-suite hunit
   main-is: hunit.hs
   build-depends:
     base,
+    containers,
     HUnit == 1.2.*,
     lens,
     mtl,
