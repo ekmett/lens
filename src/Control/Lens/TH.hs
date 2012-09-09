@@ -56,7 +56,7 @@ import Data.Foldable hiding (concat)
 import Data.Function (on)
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
-import Data.Maybe (isNothing,isJust, catMaybes)
+import Data.Maybe (isNothing,isJust,catMaybes,fromJust)
 import Data.Ord (comparing)
 import Data.Set as Set hiding (toList,map,filter)
 import Data.Set.Lens
@@ -430,7 +430,10 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
             | List.null fields
               = appE (varE 'pure) recon
             | otherwise
-              = infixE (Just $ lamE fpats recon) (varE '(<$>)) $ Just $ List.foldl1 (\l r -> infixE (Just l) (varE '(<*>)) (Just r)) fvals
+              = let step Nothing r = Just $ infixE (Just $ lamE fpats recon) (varE '(<$>)) (Just r)
+                    step (Just l) r = Just $ infixE (Just l) (varE '(<*>)) (Just r)
+                in  fromJust $ List.foldl step Nothing fvals
+              -- = infixE (Just $ lamE fpats recon) (varE '(<$>)) $ Just $ List.foldl1 (\l r -> infixE (Just l) (varE '(<*>)) (Just r)) fvals
       clause [varP f, conP conName cpats] (normalB expr) []
 
 makeFieldLenses :: LensRules
