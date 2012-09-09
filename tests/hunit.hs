@@ -1,4 +1,4 @@
-module hunit (testGroup) where
+module HUnit where
 
 import Control.Lens ()
 import Control.Lens.Utils
