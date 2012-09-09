@@ -146,7 +146,7 @@ emptyHitMap = M.fromList
   tInteger  = typeOf (undefined :: Integer )
 
 insertHitMap :: DataBox -> HitMap -> HitMap
-insertHitMap box hit = fixEq trans (populate box) <> hit where
+insertHitMap box hit = fixEq trans (populate box) `mappend` hit where
   populate :: DataBox -> HitMap
   populate a = f a M.empty where
     f (DataBox k v) m
@@ -157,7 +157,7 @@ insertHitMap box hit = fixEq trans (populate box) <> hit where
 
   trans :: HitMap -> HitMap
   trans m = M.map f m where
-    f x = x <> foldMap g x
+    f x = x `mappend` foldMap g x
     g x = M.lookupDefault (hit ! x) x m
 
 fixEq :: Eq a => (a -> a) -> a -> a
