@@ -9,6 +9,7 @@
 * Added `++~`, `++=`, `<++~` and `<++=` to Data.List.Lens in response to popular demand.
 * Added `|>`, `<$!>` and `<$!` to `Control.Lens.Combinators`, which exports combinators that are often useful in lens-based code, but that
   don't strictly involve lenses.
+* Added an HUnit-based test suite by @orenbenkiki
 
 2.6.1
 -----
