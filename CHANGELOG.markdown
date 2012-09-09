@@ -1,3 +1,7 @@
+2.8
+---
+* Restored compatibility with GHC 7.2. This required a major version bump due to making some MPTC-based default signatures conditional.
+
 2.7
 ---
 * Generalized the signature of `Getting`, `Acting` and `IndexedGetting` to help out with the common user code scenario of needing to read
