@@ -1,7 +1,6 @@
 module HUnit where
 
-import Control.Lens ()
-import Control.Lens.Utils
+import Control.Lens
 import Control.Monad.State
 import Data.Char
 import Data.List as List
