@@ -224,11 +224,13 @@ test-suite doctests
   type:    exitcode-stdio-1.0
   main-is: doctests.hs
   build-depends:
-    base == 4.*,
-    directory >= 1.0 && < 1.2,
+    base,
+    directory >= 1.0 && < 1.3,
     doctest >= 0.8 && <= 0.9,
-    filepath >= 1.3 && < 1.4
-  ghc-options: -Wall -Werror -threaded
+    filepath
+  ghc-options: -Wall -threaded
+  if impl(ghc<7.6.1)
+    ghc-options: -Werror
   hs-source-dirs: tests
 
 -- Verify that Template Haskell expansion works
@@ -238,7 +240,9 @@ test-suite templates
   build-depends:
     base,
     lens
-  ghc-options: -Wall -Werror -threaded
+  ghc-options: -Wall -threaded
+  if impl(ghc<7.6.1)
+    ghc-options: -Werror
   hs-source-dirs: tests
 
 -- Verify the properties of lenses with QuickCheck
@@ -249,7 +253,7 @@ test-suite properties
     base,
     lens,
     QuickCheck   >= 2.4 && < 2.6,
-    transformers >= 0.3 && < 0.5
+    transformers
   ghc-options: -w -threaded
   hs-source-dirs: tests
 
@@ -259,7 +263,10 @@ test-suite hunit
   build-depends:
     base,
     HUnit == 1.2.*,
-    lens
+    lens,
+    mtl,
+    test-framework == 0.6.*,
+    test-framework-th == 0.2.*
   ghc-options: -w -threaded
   hs-source-dirs: tests
 

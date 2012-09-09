@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -Werror #-}
 -- | The commented code summarizes what will be auto-generated below
 module Main where
 
