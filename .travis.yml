@@ -4,7 +4,9 @@ before_install:
   #  - mkdir -p ~/.cabal
   #  - cp config ~/.cabal/config
   #  - cabal update
-  - cabal install --only-dependencies --enable-tests --enable-benchmarks
+
+  # adding the hunit test suite causes us to have to reinstall regex-posix and regex-base
+  - cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstall
 install:
   # we have to configure rather than install to get benchmarks
   - cabal configure --enable-tests --enable-benchmarks
