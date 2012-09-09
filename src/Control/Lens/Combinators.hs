@@ -31,7 +31,7 @@ a |> f = f a
 -- | A strict version of ('Data.Functor.<$>') for monads.
 --
 -- >>> (+1) <$!> [1,2,3,4]
--- [1,2,3,4]
+-- [2,3,4,5]
 (<$!>) :: Monad m => (a -> b) -> m a -> m b
 f <$!> m = do
   a <- m
