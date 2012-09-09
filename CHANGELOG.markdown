@@ -1,3 +1,7 @@
+2.8.1
+-----
+* Added `<<%~`, `<<.~`, `<<%=` and `<<.=` for accessing the old values targeted by a `Lens` (or a summary of those targeted by a `Traversal`)
+
 2.8
 ---
 * Restored compatibility with GHC 7.2. This required a major version bump due to making some MPTC-based default signatures conditional.

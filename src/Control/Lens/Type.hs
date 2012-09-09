@@ -70,11 +70,13 @@ module Control.Lens.Type
   , (<%~), (<+~), (<-~), (<*~), (<//~)
   , (<^~), (<^^~), (<**~)
   , (<||~), (<&&~)
+  , (<<%~), (<<.~)
 
   -- * Setting State with Passthrough
   , (<%=), (<+=), (<-=), (<*=), (<//=)
   , (<^=), (<^^=), (<**=)
   , (<||=), (<&&=)
+  , (<<%=), (<<.=)
 
   -- * Cloning Lenses
   , cloneLens
@@ -95,8 +97,8 @@ import Control.Monad.State.Class        as State
 
 infixr 4 %%~
 infix  4 %%=
-infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <%~
-infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=
+infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <%~, <<%~, <<.~
+infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<%=, <<.=
 
 
 -------------------------------------------------------------------------------
@@ -441,6 +443,32 @@ l <||~ c = l <%~ (|| c)
 l <&&~ c = l <%~ (&& c)
 {-# INLINE (<&&~) #-}
 
+-- | Modify the target of a 'Lens', but return the old value.
+--
+-- When you do not need the result of the addition, ('Control.Lens.Setter.%~') is more flexible.
+--
+-- @
+-- ('<<%~') ::             'Lens' a b c d      -> (c -> d) -> a -> (d, b)
+-- ('<<%~') ::             'Control.Lens.Iso.Iso' a b c d       -> (c -> d) -> a -> (d, b)
+-- ('<<%~') :: 'Monoid' d => 'Control.Lens.Traversal.Traversal' a b c d -> (c -> d) -> a -> (d, b)
+-- @
+(<<%~) :: LensLike ((,)c) a b c d -> (c -> d) -> a -> (c, b)
+l <<%~ f = l $ \c -> (c, f c)
+{-# INLINE (<<%~) #-}
+
+-- | Modify the target of a 'Lens', but return the old value.
+--
+-- When you do not need the old value, ('Control.Lens.Setter.%~') is more flexible.
+--
+-- @
+-- ('<<%~') ::             'Lens' a b c d      -> d -> a -> (c, b)
+-- ('<<%~') ::             'Control.Lens.Iso.Iso' a b c d       -> d -> a -> (c, b)
+-- ('<<%~') :: 'Monoid' d => 'Control.Lens.Traversal.Traversal' a b c d -> d -> a -> (c, b)
+-- @
+(<<.~) :: LensLike ((,)c) a b c d -> d -> a -> (c, b)
+l <<.~ d = l $ \c -> (c, d)
+{-# INLINE (<<.~) #-}
+
 -------------------------------------------------------------------------------
 -- Setting and Remembering State
 -------------------------------------------------------------------------------
@@ -459,8 +487,9 @@ l <&&~ c = l <%~ (&& c)
 -- ('<%=') :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Traveral' a b -> (b -> b) -> m b
 -- @
 (<%=) :: MonadState a m => LensLike ((,)d) a a c d -> (c -> d) -> m d
-l <%= f = l %%= (\c -> let d = f c in (d,d))
+l <%= f = l %%= \c -> let d = f c in (d,d)
 {-# INLINE (<%=) #-}
+
 
 -- | Add to the target of a numerically valued 'Lens' into your monad's state
 -- and return the result.
@@ -581,6 +610,40 @@ l <||= b = l <%= (|| b)
 (<&&=) :: MonadState a m => SimpleLensLike ((,)Bool) a Bool -> Bool -> m Bool
 l <&&= b = l <%= (&& b)
 {-# INLINE (<&&=) #-}
+
+-- | Modify the target of a 'Lens' into your monad's state by a user supplied
+-- function and return the /old/ value that was replaced.
+--
+-- When applied to a 'Control.Lens.Traversal.Traversal', it this will return a monoidal summary of all of the old values
+-- present.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.
+--
+-- @
+-- ('<<%=') :: 'MonadState' a m             => 'Simple' 'Lens' a b     -> (b -> b) -> m b
+-- ('<<%=') :: 'MonadState' a m             => 'Simple' 'Control.Lens.Iso.Iso' a b      -> (b -> b) -> m b
+-- ('<<%=') :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Traveral' a b -> (b -> b) -> m b
+-- @
+(<<%=) :: MonadState a m => LensLike ((,)c) a a c d -> (c -> d) -> m c
+l <<%= f = l %%= \c -> (c, f c)
+{-# INLINE (<<%=) #-}
+
+-- | Modify the target of a 'Lens' into your monad's state by a user supplied
+-- function and return the /old/ value that was replaced.
+--
+-- When applied to a 'Control.Lens.Traversal.Traversal', it this will return a monoidal summary of all of the old values
+-- present.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.
+--
+-- @
+-- ('<<%=') :: 'MonadState' a m             => 'Simple' 'Lens' a b     -> (b -> b) -> m b
+-- ('<<%=') :: 'MonadState' a m             => 'Simple' 'Control.Lens.Iso.Iso' a b      -> (b -> b) -> m b
+-- ('<<%=') :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Traveral' a b -> (b -> b) -> m b
+-- @
+(<<.=) :: MonadState a m => LensLike ((,)c) a a c d -> d -> m c
+l <<.= d = l %%= \c -> (c,d)
+{-# INLINE (<<.=) #-}
 
 -- | Useful for storing lenses in containers.
 newtype ReifiedLens a b c d = ReifyLens { reflectLens :: Lens a b c d }
