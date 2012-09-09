@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       2.7
+version:       2.7.0.1
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -150,6 +150,7 @@ library
     Control.Exception.Lens
     Control.Lens
     Control.Lens.Action
+    Control.Lens.Combinators
     Control.Lens.Fold
     Control.Lens.Getter
     Control.Lens.Indexed
