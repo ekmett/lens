@@ -16,12 +16,6 @@ import Test.HUnit
 -- of each available lens function. The tests here merely scratch the surface
 -- of what is possible using the lens package; there are a great many use cases
 -- (and lens functions) that aren't covered.
---
--- Here are some use cases that are not covered:
--- * In the state monad, access some field(s), apply monadic function(s) and
---   access the result.
--- * In the state monad, modify some field(s) by applying a monadic rather than
---   a pure function to them.
 
 data Point =
   Point
@@ -77,11 +71,6 @@ case_read_state_record_field =
   where
     test = use $ box.high.y
 
--- TODO: Having to write @. to@ all the time isn't nice. In an ideal world,
--- we'd be able to avoid the @to@. If at all possible, this would require heavy
--- type wizardry, as the default behavior of @f . g@ is already defined to work
--- in the other way than we need.
-
 case_read_record_field_and_apply_function =
   (trig^.points.to last.to (vectorFrom origin).x)
     @?= 8
@@ -118,19 +107,19 @@ case_write_state_record_field_and_access_new_value = do
   where
     test = box.high.y <.= 6
 
--- case_write_record_field_and_access_old_value =
---   (trig |> box.high.y <<.~ 6)
---     @?= (7, trig { _box = (trig |> _box)
---                           { _high = (trig |> _box |> _high)
---                                     { _y = 6 } } })
---
--- case_write_state_record_field_and_access_old_value = do
---   let trig' = trig { _box = (trig |> _box)
---                             { _high = (trig |> _box |> _high)
---                                       { _y = 6 } } }
---   runState test trig @?= (7, trig')
---   where
---     test = box.high.y <<.= 6
+case_write_record_field_and_access_old_value =
+  (trig |> box.high.y <<.~ 6)
+    @?= (7, trig { _box = (trig |> _box)
+                          { _high = (trig |> _box |> _high)
+                                    { _y = 6 } } })
+
+case_write_state_record_field_and_access_old_value = do
+  let trig' = trig { _box = (trig |> _box)
+                            { _high = (trig |> _box |> _high)
+                                      { _y = 6 } } }
+  runState test trig @?= (7, trig')
+  where
+    test = box.high.y <<.= 6
 
 case_modify_record_field =
   (trig |> box.low.y %~ (+ 2))
@@ -160,19 +149,19 @@ case_modify_state_record_field_and_access_new_value = do
   where
     test = box.low.y <%= (+ 2)
 
--- case_modify_record_field_and_access_old_value =
---   (trig |> box.low.y <<%~ (+ 2))
---     @?= (0, trig { _box = (trig |> _box)
---                           { _low = (trig |> _box |> _low)
---                                    { _y = ((trig |> _box |> _low |> _y) + 2) } } })
---
--- case_modify_state_record_field_and_access_old_value = do
---   let trig' = trig { _box = (trig |> _box)
---                             { _low = (trig |> _box |> _low)
---                                      { _y = ((trig |> _box |> _low |> _y) + 2) } } }
---   runState test trig @?= (0, trig')
---   where
---     test = box.low.y <<%= (+ 2)
+case_modify_record_field_and_access_old_value =
+  (trig |> box.low.y <<%~ (+ 2))
+    @?= (0, trig { _box = (trig |> _box)
+                          { _low = (trig |> _box |> _low)
+                                   { _y = ((trig |> _box |> _low |> _y) + 2) } } })
+
+case_modify_state_record_field_and_access_old_value = do
+  let trig' = trig { _box = (trig |> _box)
+                            { _low = (trig |> _box |> _low)
+                                     { _y = ((trig |> _box |> _low |> _y) + 2) } } }
+  runState test trig @?= (0, trig')
+  where
+    test = box.low.y <<%= (+ 2)
 
 case_modify_record_field_and_access_side_result = do
   runState test trig @?= (8, trig')
@@ -218,15 +207,15 @@ case_append_to_state_record_field_and_access_new_value = do
     test = points <++= [ origin ]
     trig' = trig { _points = (trig |> _points) ++ [ origin ] }
 
--- case_append_to_record_field_and_access_old_value =
---   (trig |> points <<++~ [ origin ])
---     @?= (_points trig, trig { _points = (trig |> _points) ++ [ origin ] })
---
--- case_append_to_state_record_field_and_access_old_value = do
---   runState test trig @?= (_points trig, trig')
---   where
---     test = points <<++= [ origin ]
---     trig' = trig { _points = (trig |> _points) ++ [ origin ] }
+case_append_to_record_field_and_access_old_value =
+  (trig |> points <<%~ (++[origin]))
+    @?= (_points trig, trig { _points = (trig |> _points) ++ [ origin ] })
+
+case_append_to_state_record_field_and_access_old_value = do
+  runState test trig @?= (_points trig, trig')
+  where
+    test = points <<%= (++[origin])
+    trig' = trig { _points = (trig |> _points) ++ [ origin ] }
 
 case_read_maybe_map_entry = trig^.labels.at origin @?= Just "Origin"
 
