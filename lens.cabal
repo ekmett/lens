@@ -298,6 +298,7 @@ benchmark alongside
   build-depends:
     base,
     comonad,
+    comonads-fd,
     criterion,
     deepseq,
     ghc-prim,
