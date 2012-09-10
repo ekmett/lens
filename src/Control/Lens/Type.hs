@@ -30,7 +30,7 @@
 --
 -- @type 'Lens' a b c d = forall f. 'Functor' f => (c -> f d) -> a -> f b@
 --
--- Every 'Lens' is a valid 'Setter', choosing @f@ =
+-- Every 'Lens' is a valid 'Control.Lens.Setter.Setter', choosing @f@ =
 -- 'Control.Lens.Getter.Mutator'.
 --
 -- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a
@@ -128,7 +128,7 @@ infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<%=, <<.=
 -- it a Lens Family?\" section of
 -- <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
--- Every 'Lens' can be used directly as a 'Setter' or
+-- Every 'Lens' can be used directly as a 'Control.Lens.Setter.Setter' or
 -- 'Control.Lens.Traversal.Traversal'.
 --
 -- You can also use a 'Lens' for 'Control.Lens.Getter.Getting' as if it were a
