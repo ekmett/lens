@@ -276,9 +276,10 @@ merged l _ f (Left a)   = Left <$> l f a
 merged _ r f (Right a') = Right <$> r f a'
 {-# INLINE merged #-}
 
--- | 'alongside' makes a 'Lens' from two other lenses (or isomorphisms)
-alongside :: Lens a b c d
-           -> Lens a' b' c' d'
+-- | 'alongside' makes a 'Lens' from two other lenses.
+-- @'alongside' :: 'Lens' a b c d -> 'Lens' a' b' c' d' -> 'Lens' (a,a') (b,b') (c,c') (d,d')@
+alongside :: LensLike (Context c d) a b c d
+           -> LensLike (Context c' d')  a' b' c' d'
            -> Lens (a,a') (b,b') (c,c') (d,d')
 alongside l r f (a, a') = case l (Context id) a of
   Context db c -> case r (Context id) a' of
