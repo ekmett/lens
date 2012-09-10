@@ -290,3 +290,18 @@ benchmark plated
   if flag(benchmark-uniplate)
     build-depends: uniplate >= 1.6.7 && < 1.7
     cpp-options: -DBENCHMARK_UNIPLATE
+
+-- Basic benchmarks for the uniplate-style combinators
+benchmark alongside
+  type: exitcode-stdio-1.0
+  main-is: alongside.hs
+  build-depends:
+    base,
+    comonad,
+    criterion,
+    deepseq,
+    ghc-prim,
+    lens,
+    transformers
+  ghc-options: -Wall -O2 -threaded
+  hs-source-dirs: benchmarks
