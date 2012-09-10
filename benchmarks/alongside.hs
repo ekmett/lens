@@ -29,9 +29,8 @@ main = defaultMain
     [ bench "alongside1" $ nf (view $ alongside _1 _2) (("hi", 1), (2, "there!"))
     , bench "compound1"  $ nf (view $ compound _1 _2) (("hi", 1), (2, "there!"))
     , bench "alongside5"  $ nf (view $ (alongside _1 (alongside _1 (alongside _1 (alongside _1 _1)))))
-    	((v,v),((v,v),((v,v),((v, v),(v,v)))))
+      ((v,v),((v,v),((v,v),((v, v),(v,v)))))
     , bench "compound5"  $ nf (view $ compound5 _1 _1 _1 _1 _1)
         ((v,v),((v,v),((v,v),((v, v),(v,v)))))
     ]
-  where
-  	v = 1 :: Int
+  where v = 1 :: Int
