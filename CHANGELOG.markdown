@@ -4,6 +4,7 @@
 * Renamed `|>` to `%`, as `%~` is the lensed version of `%`, and moved it to `Control.Lens.Getter` along with a version `^%` with tighter
   precedence that can be interleaved with `^.`
 * Upgraded to `doctest` 0.9, which lets us factor out common `$setup` for our doctests
+* Renamed `merged` to `choosing`. Added a simpler `chosen` operation to mirror `both`.
 
 2.8
 ---

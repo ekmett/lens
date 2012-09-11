@@ -111,7 +111,11 @@ type SimpleTraversal a b = Traversal a a b b
 -- Map each element of a structure targeted by a Lens or Traversal,
 -- evaluate these actions from left to right, and collect the results.
 --
+-- This function is only provided for consistency, 'id' is strictly more general.
+--
 -- @'traverseOf' ≡ 'id'@
+--
+-- This yields the obvious law:
 --
 -- @'traverse' ≡ 'traverseOf' 'traverse'@
 --
@@ -124,12 +128,17 @@ traverseOf :: LensLike f a b c d -> (c -> f d) -> a -> f b
 traverseOf = id
 {-# INLINE traverseOf #-}
 
--- |
+-- | A version of 'traverseOf' with the arguments flipped, such that:
 --
 -- @'forOf' l ≡ 'flip' ('traverseOf' l)@
 --
 -- @
 -- 'for' ≡ 'forOf' 'traverse'
+-- @
+--
+-- This function is only provided for consistency, 'flip' is strictly more general.
+--
+-- @
 -- 'forOf' ≡ 'flip'
 -- @
 --
@@ -147,9 +156,8 @@ forOf = flip
 -- the results.
 --
 -- @
--- 'sequenceA' ≡ 'sequenceAOf' 'traverse' = 'traverse' 'id'
--- 'sequenceAOf' l ≡ 'traverseOf' l id
--- 'sequenceAOf' l ≡ l id
+-- 'sequenceA' ≡ 'sequenceAOf' 'traverse' ≡ 'traverse' 'id'
+-- 'sequenceAOf' l ≡ 'traverseOf' l id ≡ l id
 -- @
 --
 -- @
@@ -175,7 +183,7 @@ mapMOf :: LensLike (WrappedMonad m) a b c d -> (c -> m d) -> a -> m b
 mapMOf l cmd = unwrapMonad . l (WrapMonad . cmd)
 {-# INLINE mapMOf #-}
 
--- |
+-- | 'forMOf' is a flipped version of 'mapMOf', consistent with the definition of 'forM'.
 -- @
 -- 'forM' ≡ 'forMOf' 'traverse'
 -- 'forMOf' l ≡ 'flip' ('mapMOf' l)
@@ -190,7 +198,8 @@ forMOf :: LensLike (WrappedMonad m) a b c d -> a -> (c -> m d) -> m b
 forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
 {-# INLINE forMOf #-}
 
--- |
+-- | Sequence the (monadic) effects targeted by a lens in a container from left to right.
+--
 -- @
 -- 'sequence' ≡ 'sequenceOf' 'traverse'
 -- 'sequenceOf' l ≡ 'mapMOf' l id
@@ -223,7 +232,7 @@ transposeOf :: LensLike ZipList a b [c] c -> a -> [b]
 transposeOf l = getZipList . l ZipList
 {-# INLINE transposeOf #-}
 
--- | Generalizes 'Data.Traversable.mapAccumR' to an arbitrary 'Traversal'.
+-- | This generalizes 'Data.Traversable.mapAccumR' to an arbitrary 'Traversal'.
 --
 -- @'mapAccumR' ≡ 'mapAccumROf' 'traverse'@
 --
@@ -238,7 +247,7 @@ mapAccumROf :: LensLike (Lazy.State s) a b c d -> (s -> c -> (s, d)) -> s -> a -
 mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f s c))) a) s0)
 {-# INLINE mapAccumROf #-}
 
--- | Generalized 'Data.Traversable.mapAccumL' to an arbitrary 'Traversal'.
+-- | This generalizes 'Data.Traversable.mapAccumL' to an arbitrary 'Traversal'.
 --
 -- @'mapAccumL' ≡ 'mapAccumLOf' 'traverse'@
 --
@@ -257,7 +266,7 @@ swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
 {-# INLINE swap #-}
 
--- | Permit the use of 'scanr1' over an arbitrary 'Traversal' or 'Lens'.
+-- | This permits the use of 'scanr1' over an arbitrary 'Traversal' or 'Lens'.
 --
 -- @'scanr1' ≡ 'scanr1Of' 'traverse'@
 --
@@ -272,14 +281,14 @@ scanr1Of l f = snd . mapAccumROf l step Nothing where
   step (Just s) c = (Just r, r) where r = f c s
 {-# INLINE scanr1Of #-}
 
--- | Permit the use of 'scanl1' over an arbitrary 'Traversal' or 'Lens'.
+-- | This permits the use of 'scanl1' over an arbitrary 'Traversal' or 'Lens'.
 --
 -- @'scanl1' ≡ 'scanl1Of' 'traverse'@
 --
 -- @
--- 'scanr1Of' :: Iso a b c c       -> (c -> c -> c) -> a -> b
--- 'scanr1Of' :: Lens a b c c      -> (c -> c -> c) -> a -> b
--- 'scanr1Of' :: Traversal a b c c -> (c -> c -> c) -> a -> b
+-- 'scanr1Of' :: 'Control.Lens.Iso.Iso' a b c c       -> (c -> c -> c) -> a -> b
+-- 'scanr1Of' :: 'Lens' a b c c      -> (c -> c -> c) -> a -> b
+-- 'scanr1Of' :: 'Traversal' a b c c -> (c -> c -> c) -> a -> b
 -- @
 scanl1Of :: LensLike (Backwards (Lazy.State (Maybe c))) a b c c -> (c -> c -> c) -> a -> b
 scanl1Of l f = snd . mapAccumLOf l step Nothing where
@@ -305,7 +314,7 @@ elementOf l i f a = case getElementOf (l go a) 0 of
   where
     go c = ElementOf $ \j -> if i == j then Found (j + 1) (f c) else Searching (j + 1) c
 
--- | Access the nth element of a 'Traversable' container.
+-- | Access the /nth/ element of a 'Traversable' container.
 --
 -- Attempts to access beyond the range of the 'Traversal' will cause an error.
 --
@@ -317,7 +326,7 @@ element = elementOf traverse
 -- Traversals
 ------------------------------------------------------------------------------
 
--- | This is the traversal that just doesn't return anything
+-- | This is the trivial empty traversal.
 --
 -- @'ignored' :: 'Applicative' f => (c -> f d) -> a -> f a@
 --
@@ -327,11 +336,27 @@ ignored _ = pure
 {-# INLINE ignored #-}
 
 -- | Traverse both parts of a tuple with matching types.
+--
+-- >>> both *~ 10 $ (1,2)
+-- (10,20)
+-- >>> over both length ("hello","world")
+-- (5,5)
+-- >>> ("hello","world")^.both
+-- "helloworld"
 both :: Traversal (a,a) (b,b) a b
 both f (a,a') = (,) <$> f a <*> f a'
 {-# INLINE both #-}
 
 -- | A traversal for tweaking the left-hand value of an 'Either':
+--
+-- >>> over traverseLeft (+1) (Left 2)
+-- Left 3
+-- >>> over traverseLeft (+1) (Right 2)
+-- Right 2
+-- >>> Right 42 ^.traverseLeft :: String
+-- ""
+-- >>> Left "hello" ^.traverseLeft
+-- "hello"
 --
 -- @traverseLeft :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ('Either' b c)@
 traverseLeft :: Traversal (Either a c) (Either b c) a b
@@ -346,6 +371,15 @@ traverseLeft _ (Right c) = pure $ Right c
 -- Unfortunately the instance for
 -- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,
 -- so this can't just be 'Data.Traversable.traverse'
+--
+-- >>> over traverseRight (+1) (Left 2)
+-- Left 2
+-- >>> over traverseRight (+1) (Right 2)
+-- Right 3
+-- >>> Right "hello" ^.traverseRight
+-- "hello"
+-- >>> Left "hello" ^.traverseRight :: [Double]
+-- []
 --
 -- @traverseRight :: 'Applicative' f => (a -> f b) -> 'Either' c a -> f ('Either' c a)@
 traverseRight :: Traversal (Either c a) (Either c b) a b
@@ -370,6 +404,10 @@ traverseRight f (Right a) = Right <$> f a
 -- Note: It is usually better to 'ReifyTraversal' and use 'reflectTraversal'
 -- than to 'cloneTraversal'. The former can execute at full speed, while the
 -- latter needs to round trip through the 'Bazaar'.
+--
+-- >>> let foo l a = (view (cloneTraversal l) a, set (cloneTraversal l) 10 a)
+-- >>> foo both ("hello","world")
+-- ("helloworld",(10,10))
 cloneTraversal :: Applicative f => ((c -> Bazaar c d d) -> a -> Bazaar c d b) -> (c -> f d) -> a -> f b
 cloneTraversal l f = bazaar f . l sell
 {-# INLINE cloneTraversal #-}

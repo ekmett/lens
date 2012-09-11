@@ -63,7 +63,8 @@ module Control.Lens.Type
   , resultAt
 
   -- * Lateral Composition
-  , merged
+  , choosing
+  , chosen
   , alongside
 
   -- * Setting Functionally with Passthrough
@@ -268,15 +269,41 @@ resultAt e afa ea = go <$> afa a where
 {-# INLINE resultAt #-}
 
 -- | Merge two lenses, getters, setters, folds or traversals.
-merged :: Functor f
+--
+-- @'chosen' ≡ 'choosing' 'id' 'id'@
+--
+-- @
+-- 'choosing' :: 'Control.Lens.Getter.Getter' a c           -> 'Control.Lens.Getter.Getter' b c           -> 'Control.Lens.Getter.Getter' ('Either' a b) c
+-- 'choosing' :: 'Control.Lens.Fold.Fold' a c             -> 'Control.Lens.Fold.Fold' b c             -> 'Control.Lens.Fold.Fold' ('Either' a b) c
+-- 'choosing' :: 'Simple' 'Lens' a c      -> 'Simple' 'Lens' b c      -> 'Simple' 'Lens' ('Either' a b) c
+-- 'choosing' :: 'Simple' 'Control.Lens.Traversal.Traversal' a c -> 'Simple' 'Control.Lens.Traversal.Traversal' b c -> 'Simple' 'Control.Lens.Traversal.Traversal' ('Either' a b) c
+-- 'choosing' :: 'Simple' 'Control.Lens.Setter.Setter' a c    -> 'Simple' 'Control.Lens.Setter.Setter' b c    -> 'Simple' 'Control.Lens.Setter.Setter' ('Either' a b) c
+-- @
+choosing :: Functor f
        => LensLike f a b c c
        -> LensLike f a' b' c c
        -> LensLike f (Either a a') (Either b b') c c
-merged l _ f (Left a)   = Left <$> l f a
-merged _ r f (Right a') = Right <$> r f a'
-{-# INLINE merged #-}
+choosing l _ f (Left a)   = Left <$> l f a
+choosing _ r f (Right a') = Right <$> r f a'
+{-# INLINE choosing #-}
+
+-- | This is a 'Lens' that updates either side of an 'Either', where both sides have the same type.
+--
+-- @'chosen' ≡ 'choosing' 'id' 'id'@
+--
+-- >>> Left 12^.chosen
+-- 12
+-- >>> Right "hello"^.chosen
+-- "hello"
+-- >>> chosen *~ 10 $ Right 2
+-- Right 20
+chosen :: Lens (Either a a) (Either b b) a b
+chosen f (Left a) = Left <$> f a
+chosen f (Right a) = Right <$> f a
+{-# INLINE chosen #-}
 
 -- | 'alongside' makes a 'Lens' from two other lenses.
+--
 -- @'alongside' :: 'Lens' a b c d -> 'Lens' a' b' c' d' -> 'Lens' (a,a') (b,b') (c,c') (d,d')@
 alongside :: LensLike (Context c d) a b c d
            -> LensLike (Context c' d')  a' b' c' d'
