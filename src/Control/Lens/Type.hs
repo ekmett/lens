@@ -96,6 +96,9 @@ import Control.Applicative              as Applicative
 import Control.Lens.Internal
 import Control.Monad.State.Class        as State
 
+-- $setup
+-- >>> import Control.Lens
+
 infixr 4 %%~
 infix  4 %%=
 infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <%~, <<%~, <<.~
