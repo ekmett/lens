@@ -52,13 +52,6 @@ imaginary f (a :+ b) = (a :+) <$> f b
 -- as the 'phase' information is lost. So don't do that!
 --
 -- Otherwise, this is a perfectly cromulent 'Lens'.
---
--- >>> (0.0 :+ 1.0)^.polarize
--- (1.0,1.5707963267948966)
---
--- >>> (1.0,pi)^.from polarize
--- (-1.0) :+ 1.2246063538223773e-16
-
 polarize :: (RealFloat a, RealFloat b) => Iso (Complex a) (Complex b) (a,a) (b,b)
 polarize = isos polar (uncurry mkPolar)
                 polar (uncurry mkPolar)
