@@ -20,7 +20,7 @@ import Data.Complex
 
 -- | Access the 'realPart' of a 'Complex' number
 --
--- >>> real (1.0 :+ 0.0)
+-- >>> (1.0 :+ 0.0)^.real
 -- 1.0
 --
 -- @'real' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
@@ -33,7 +33,7 @@ real f (a :+ b) = (:+ b) <$> f a
 
 -- | Access the 'imaginaryPart' of a 'Complex' number
 --
--- >>> imaginary (0.0 :+ 1.0)
+-- >>> (0.0 :+ 1.0)^.imaginary
 -- 1.0
 --
 -- @'imaginary' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
