@@ -20,7 +20,10 @@ import Data.Complex
 
 -- | Access the 'realPart' of a 'Complex' number
 --
--- > real :: Functor f => (a -> f a) -> Complex a -> f (Complex a)
+-- >>> real (1.0 :+ 0.0)
+-- 1.0
+--
+-- @'real' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
 #if MIN_VERSION_base(4,4,0)
 real :: Simple Lens (Complex a) a
 #else
@@ -30,7 +33,10 @@ real f (a :+ b) = (:+ b) <$> f a
 
 -- | Access the 'imaginaryPart' of a 'Complex' number
 --
--- > imaginary :: Functor f => (a -> f a) -> Complex a -> f (Complex a)
+-- >>> imaginary (0.0 :+ 1.0)
+-- 1.0
+--
+-- @'imaginary' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
 #if MIN_VERSION_base(4,4,0)
 imaginary :: Simple Lens (Complex a) a
 #else
@@ -46,7 +52,12 @@ imaginary f (a :+ b) = (a :+) <$> f b
 -- as the 'phase' information is lost. So don't do that!
 --
 -- Otherwise, this is a perfectly cromulent 'Lens'.
-
+--
+-- >>> (0.0 :+ 1.0)^.polarize
+-- (1.0,1.5707963267948966)
+--
+-- >>> (1.0,pi)^.from polarize
+-- (-1.0) :+ 1.2246467991473532e-16
 polarize :: (RealFloat a, RealFloat b) => Iso (Complex a) (Complex b) (a,a) (b,b)
 polarize = isos polar (uncurry mkPolar)
                 polar (uncurry mkPolar)

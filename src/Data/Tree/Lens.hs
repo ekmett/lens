@@ -21,12 +21,17 @@ import Data.List.Lens
 import Data.Tree
 
 -- | A 'Lens' that focuses on the root of a 'Tree'.
+--
+-- >>> view root $ Node 42 []
+-- 42
 root :: Simple Lens (Tree a) a
 root f (Node a as) = (`Node` as) <$> f a
 {-# INLINE root #-}
 
 -- | A 'Traversal' of the direct descendants of the root of a 'Tree'
 -- indexed by its position in the list of children
+--
+-- @'toListOf' 'branches' ≡ 'subForest'@
 branches :: SimpleIndexedTraversal Int (Tree a) (Tree a)
 branches = index $ \ f (Node a as) -> Node a <$> withIndex traverseList f as
 {-# INLINE branches #-}

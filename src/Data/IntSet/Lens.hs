@@ -19,6 +19,9 @@ import Control.Lens
 import Control.Lens.Internal
 import Data.IntSet as IntSet
 
+-- $setup
+-- >>> :m + Data.IntSet.Lens Control.Lens
+
 -- | IntSet isn't Foldable, but this 'Fold' can be used to access the members of an 'IntSet'.
 --
 -- >>> sumOf members $ setOf folded [1,2,3,4]
@@ -42,7 +45,6 @@ setmapped = sets IntSet.map
 
 -- | Construct an 'IntSet' from a 'Getter', 'Fold', 'Traversal', 'Lens' or 'Iso'.
 --
--- >>> :m + Data.IntSet.Lens Control.Lens
 -- >>> setOf (folded._2) [("hello",1),("world",2),("!!!",3)]
 -- fromList [1,2,3]
 --
