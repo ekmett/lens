@@ -48,7 +48,6 @@ import Control.Lens.Tuple
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Control.Lens.IndexedLens
-import Control.Lens.Combinators
 import Control.Monad
 import Data.Char (toLower)
 import Data.Either (lefts)
