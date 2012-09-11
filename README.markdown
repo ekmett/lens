@@ -79,7 +79,7 @@ ghci> view _2 (10,20)
 
 There are a large number of other lens variants provided by the library, in particular a `Traversal` generalizes `traverse` from `Data.Traversable`.
 
-We'll come back to those later, but continuing with just lenses
+We'll come back to those later, but continuing with just lenses:
 
 You can let the library automatically derive lenses for fields of your data type
 
