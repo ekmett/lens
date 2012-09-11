@@ -9,36 +9,77 @@ An overview of the [derivation](https://github.com/ekmett/lens/wiki/Derivation) 
 
 Documentation is available through [github](http://ekmett.github.com/lens) or [hackage](http://hackage.haskell.org/package/lens).
 
-Plated
-------
+Field Guide
+-----------
 
-New in version 2.5 is a port of the `Uniplate` API, updated to use `Traversal`. The Data-derived `biplate` and `uniplate` combinators run about 25% faster than the original `uniplate`, and you can use any of the other combinators, since `biplate` and `uniplate` are now just traversals.
+[![Lens Hierarchy](https://s3.amazonaws.com/creately-published/h5nyo9ne1)](https://creately.com/diagram/h5nyo9ne1/LBbRz63yg4yQsTXGLtub1bQU4%3D)
 
 Examples
 --------
 
-You can read from lenses (or other getters) and they compose in the order an imperative programmer would expect.
+First, import `Control.Lens`.
 
 ```haskell
-ghci> :m + Control.Lens
+ghci> import Control.Lens
+```
+
+Now, you can read from lenses
+
+```haskell
+ghci> ("hello","world")^._2
+"world"
+```
+
+and you can write to lenses.
+
+```haskell
+ghci> set _2 42 ("hello","world")
+("hello",42)
+```
+
+Composing lenses for reading (or writing) goes in the order an imperative programmer would expect, and just uses `(.)` from the `Prelude`.
+
+```haskell
 ghci> ("hello",("world","!!!"))^._2._1
 "world"
 ```
 
-You can make getters out of pure functions with `to`.
+```haskell
+ghci> set (_2._1) 42 ("hello","world")
+("hello",(42,"!!!"))
+```
 
+You can make a `Getter` out of a pure functions with `to`.
 
 ```haskell
-ghci> ("hello",("world","!!!"))^._2._1.to length
+ghci> "hello"^.to length
 5
 ```
 
-You can write to lenses and these writes can change the type of the container.
+You can easily compose a `Getter` with a `Lens` just using `(.)`. No explicit coercion is necessary.
+
+```haskell
+ghci> ("hello",("world","!!!"))^._2._2.to length
+3
+```
+
+As we saw above, you can write to lenses and these writes can change the type of the container. `(.~)` is an infix alias for `set`.
 
 ```haskell
 ghci> _1 .~ "hello" $ ((),"world")
 ("hello","world)
 ```
+
+Conversely `view`, can be used as an infix alias for `(^.)`.
+
+```haskell
+ghci> view _2 (10,20)
+20
+```
+
+There are a large number of other lens variants provided by the library, in particular a `Traversal` generalizes `traverse` from `Data.Traversable`.
+
+We'll come back to those later, but continuing with just lenses
 
 You can let the library automatically derive lenses for fields of your data type
 
@@ -56,13 +97,44 @@ bar, baz :: Simple Lens (Foo a) Int
 quux :: Lens (Foo a) (Foo b) a b
 ```
 
+A `Lens` takes 4 parameters because it can change the types of the whole when you change the type of the part.
+
+Often you won't need this flexibility, a `Simple Lens` takes 2 parameters, and can be used directly as a `Lens`.
+
 You can also write to setters that target multiple parts of a structure, or their composition with other
-lenses or setters.
+lenses or setters. The canonical example of a setter is 'mapped':
+
+```haskell
+mapped :: Functor f => Setter (f a) (f b) a b
+```
+
+`over` is then analogous to `fmap`, but parameterized on the Setter.
+
+```haskell
+ghci> fmap succ [1,2,3]
+[2,3,4]
+ghci> over mapped succ [1,2,3]
+[2,3,4]
+```
+
+The benefit is that you can use any `Lens` as a `Setter`, and the composition of setters with other setters or lenses using `(.)` yields
+a `Setter`.
+
+```haskell
+ghci> over (mapped._2) succ [(1,2),(3,4)]
+[(1,3),(3,5)]
+```
+
+`(%~)` is an infix alias for 'over', and the precedence lets you avoid swimming in parentheses:
 
 ```haskell
 ghci> _1.mapped._2.mapped %~ succ $ ([(42, "hello")],"world")
 ([(42, "ifmmp")],"world")
 ```
+
+There are a number of combinators that resemble the `+=`, `*=`, etc. operators from C/C++ for working with the monad transformers.
+
+There are `+~`, `*~`, etc. analogues to those combinators that work functionally, returning the modified version of the structure.
 
 ```haskell
 ghci> both *~ 2 $ (1,2)
@@ -84,15 +156,16 @@ ghci> allOf (folded.text) isLower ["hello"^.packed, "goodbye"^.packed]
 True
 ```
 
-You can also use this for generic programming:
+You can also use this for generic programming. Combinators are included that are based on Neil Mitchell's `uniplate`, but which
+have been generalized to work on or as lenses, folds, and traversals.
 
 ```haskell
-ghci> :m + GHC.Generics.Lens
-ghci> anyOf every (=="world") ("hello",(),[(2::Int,"world")])
+ghci> :m + Data.Data.Lens
+ghci> anyOf biplate (=="world") ("hello",(),[(2::Int,"world")])
 True
 ```
 
-Anything you know how to do with a `Traversable` you can do with a `Traversal`.
+As alluded to above, anything you know how to do with a `Traversable` you can do with a `Traversal`.
 
 ```haskell
 ghci> mapMOf (traverse._2) (\xs -> length xs <$ putStrLn xs) [(42,"hello"),(56,"world")]
@@ -101,7 +174,7 @@ ghci> mapMOf (traverse._2) (\xs -> length xs <$ putStrLn xs) [(42,"hello"),(56,"
 [(42,5),(56,5)]
 ```
 
-Many of the lenses supplied are isomorphisms, that means you can use them directly as a lens:
+Moreover, many of the lenses supplied are actually isomorphisms, that means you can use them directly as a lens or getter:
 
 ```haskell
 ghci> let hello = "hello"^.packed
@@ -110,7 +183,7 @@ ghci> :t hello
 hello :: Text
 ```
 
-but you can also flip them around and use them as a lens the other way with `from`
+but you can also flip them around and use them as a lens the other way with `from`!
 
 ```haskell
 ghci> hello^.from packed.to length
@@ -142,10 +215,7 @@ nor.neither = id
 
 There is also a fully operational, but simple game of [Pong](https://github.com/ekmett/lens/blob/master/examples/Pong.hs) in the [examples/](https://github.com/ekmett/lens/blob/master/examples/) folder.
 
-Field Guide
------------
-
-[![Lens Hierarchy](https://s3.amazonaws.com/creately-published/h5nyo9ne1)](https://creately.com/diagram/h5nyo9ne1/LBbRz63yg4yQsTXGLtub1bQU4%3D)
+There are also a couple of hundred examples distributed throughout the haddock documentation.
 
 Contact Information
 -------------------
