@@ -227,7 +227,7 @@ test-suite doctests
   build-depends:
     base,
     directory >= 1.0 && < 1.3,
-    doctest >= 0.8 && <= 0.9,
+    doctest >= 0.9 && <= 0.10,
     filepath
   ghc-options: -Wall -threaded
   if impl(ghc<7.6.1)

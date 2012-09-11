@@ -52,6 +52,9 @@ import Data.HashSet as HashSet
 import Data.IntSet as IntSet
 import Data.Set as Set
 
+-- $setup
+-- >>> import Control.Lens
+
 infixr 4 %%@~, <%@~
 infix  4 %%@=, <%@=
 
@@ -137,7 +140,6 @@ l <%@= f = l %%@= \ i c -> let d = f i c in (d, d)
 -- | Provides an 'IndexedLens' that can be used to read, write or delete the value associated with a key in a map-like container.
 class At k m | m -> k where
   -- |
-  -- >>> import Control.Lens
   -- >>> Map.fromList [(1,"hello")] ^.at 1
   -- Just "hello"
   --
@@ -166,7 +168,6 @@ instance (Eq k, Hashable k) => At k (HashMap k) where
 -- | Provides an 'IndexedLens' that can be used to read, write or delete a member of a set-like container
 class Contains k m | m -> k where
   -- |
-  -- >>> :m + Control.Lens
   -- >>> contains 3 .~ False $ IntSet.fromList [1,2,3,4]
   -- fromList [1,2,4]
   contains :: k -> SimpleIndexedLens k m Bool

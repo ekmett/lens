@@ -57,6 +57,9 @@ import Data.Traversable
 import Data.IntMap as IntMap
 import Data.Map as Map
 
+-- $setup
+-- >>> import Control.Lens
+
 ------------------------------------------------------------------------------
 -- Indexed Traversals
 ------------------------------------------------------------------------------
@@ -176,7 +179,6 @@ swap (a,b) = (b,a)
 
 -- | Access the element of an 'IndexedTraversal' where the index matches a predicate.
 --
--- >>> :m + Control.Lens
 -- >>> over (iwhereOf (indexed traverse) (>0)) reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
 --

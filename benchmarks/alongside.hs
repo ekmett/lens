@@ -37,6 +37,9 @@ instance (c ~ d) => ComonadStore c (Experiment c d) where
   peeks f m = runIdentity $ runExperiment m (\c -> Identity (f c))
   experiment cfd m = runExperiment m cfd
 
+-- alongside' :: Lens a b c d -> Lens a' b' c' d' -> Lens (a,a') (b,b') (c,c') (d,d')
+-- {-# INLINE alongside'#-}
+
 compound :: Lens a b c d
          -> Lens a' b' c' d'
          -> Lens (a,a') (b,b') (c,c') (d,d')
@@ -44,7 +47,6 @@ compound l r = lens (\(a, a') -> (view l a, view r a'))
                     (\(a, a') (b, b') -> (set l b a, set r b' a'))
 {-# INLINE compound #-}
 
--- BWAHAAHA
 compound5 :: Lens a b c d
           -> Lens a' b' c' d'
           -> Lens a'' b'' c'' d''
@@ -64,8 +66,8 @@ main = defaultMain
     [ bench "alongside1" $ nf (view $ alongside _1 _2) (("hi", 1), (2, "there!"))
     , bench "compound1"  $ nf (view $ compound _1 _2) (("hi", 1), (2, "there!"))
     , bench "alongside5"  $ nf (view $ (alongside _1 (alongside _1 (alongside _1 (alongside _1 _1)))))
-      ((v,v),((v,v),((v,v),((v, v),(v,v)))))
+      ((v,v),((v,v),((v,v),((v,v),(v,v)))))
     , bench "compound5"  $ nf (view $ compound5 _1 _1 _1 _1 _1)
-        ((v,v),((v,v),((v,v),((v, v),(v,v)))))
+      ((v,v),((v,v),((v,v),((v,v),(v,v)))))
     ]
   where v = 1 :: Int

@@ -66,6 +66,9 @@ import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
 import Data.Traversable
 
+-- $setup
+-- >>> import Control.Lens
+
 ------------------------------------------------------------------------------
 -- Traversals
 ------------------------------------------------------------------------------
@@ -292,7 +295,6 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 --
 -- Attempts to access beyond the range of the 'Traversal' will cause an error.
 --
--- >>> import Control.Lens
 -- >>> [[1],[3,4]]^.elementOf (traverse.traverse) 1
 -- 3
 elementOf :: Functor f => LensLike (ElementOf f) a b c c -> Int -> LensLike f a b c c

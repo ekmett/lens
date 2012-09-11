@@ -31,6 +31,9 @@ import Control.Applicative
 import Control.Lens.Internal
 import Control.Monad.Trans.Class
 
+-- $setup
+-- >>> import Control.Lens
+
 infixr 8 ^!
 
 -- | An 'Action' is a 'Getter' enriched with access to a 'Monad' for side-effects.
@@ -59,7 +62,6 @@ perform l = getEffect . l (Effect . return)
 
 -- | Perform an 'Action'
 --
--- >>> import Control.Lens
 -- >>> ["hello","world"]^!folded.act putStrLn
 -- hello
 -- world
@@ -76,7 +78,6 @@ act amc cfd a = effective (amc a >>= ineffective . cfd)
 --
 -- @'acts' = 'act' 'id'@
 --
--- >>> import Control.Lens
 -- >>> (1,"hello")^!_2.acts.to succ
 -- "ifmmp"
 acts :: Action m (m a) a

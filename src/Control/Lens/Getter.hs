@@ -62,6 +62,9 @@ import Control.Lens.Internal
 import Control.Monad.Reader.Class       as Reader
 import Control.Monad.State.Class        as State
 
+-- $setup
+-- >>> import Control.Lens
+
 infixl 8 ^.
 infixr 0 ^$
 
@@ -86,7 +89,6 @@ type Getter a c = forall f. Gettable f => (c -> f c) -> a -> f a
 --
 -- @a '^.' 'to' f = f a@
 --
--- >>> import Control.Lens
 --
 -- >>> ("hello","world")^.to snd
 -- "world"
@@ -125,7 +127,6 @@ type Getting r a b c d = (c -> Accessor r d) -> a -> Accessor r b
 --
 -- @'view' . 'to' = 'id'@
 --
--- >>> import Control.Lens
 -- >>> view _2 (1,"hello")
 -- "hello"
 --
@@ -160,7 +161,6 @@ view l = runAccessor . l Accessor
 --
 -- @'views' l f = 'view' (l '.' 'to' f)@
 --
--- >>> import Control.Lens
 -- >>> views _2 length (1,"hello")
 -- 5
 --
@@ -184,7 +184,6 @@ views l f = runAccessor . l (Accessor . f)
 --
 -- @'to' f '^$' x = f x@
 --
--- >>> import Control.Lens
 -- >>> _2 ^$ (1, "hello")
 -- "hello"
 --
@@ -208,7 +207,6 @@ l ^$ a = runAccessor (l Accessor a)
 -- The fixity and semantics are such that subsequent field accesses can be
 -- performed with ('Prelude..')
 --
--- >>> import Control.Lens
 -- >>> ("hello","world")^._2
 -- "world"
 --

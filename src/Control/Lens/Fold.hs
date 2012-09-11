@@ -86,6 +86,9 @@ import Data.Foldable as Foldable
 import Data.Maybe
 import Data.Monoid
 
+-- $setup
+-- >>> import Control.Lens
+
 infixl 8 ^?, ^..
 
 --------------------------
@@ -138,7 +141,6 @@ replicated n0 f a = go n0 where
 
 -- | Transform a fold into a fold that loops over its elements over and over.
 --
--- >>> import Control.Lens
 -- >>> take 6 $ toListOf (cycled traverse) [1,2,3]
 -- [1,2,3,1,2,3]
 cycled :: (Applicative f, Gettable f) => LensLike f a b c d -> LensLike f a b c d
@@ -279,7 +281,6 @@ foldlOf l f z t = appEndo (getDual (foldMapOf l (Dual . Endo . flip f) t)) z
 -- ('^..') ≡ 'flip' 'toListOf'
 -- @
 
--- >>> import Control.Lens
 -- >>> toListOf both ("hello","world")
 -- ["hello","world"]
 --
@@ -298,7 +299,6 @@ toListOf l = foldMapOf l return
 --
 -- A convenient infix (flipped) version of 'toListOf'.
 --
--- >>> import Control.Lens
 -- >>> [[1,2],[3]]^..traverse.traverse
 -- [1,2,3]
 --
@@ -322,7 +322,6 @@ a ^.. l = foldMapOf l return a
 
 -- | Returns 'True' if every target of a 'Fold' is 'True'.
 --
--- >>> import Control.Lens
 -- >>> andOf both (True,False)
 -- False
 -- >>> andOf both (True,True)
@@ -343,7 +342,6 @@ andOf l = getAll . foldMapOf l All
 
 -- | Returns 'True' if any target of a 'Fold' is 'True'.
 --
--- >>> import Control.Lens
 -- >>> orOf both (True,False)
 -- True
 -- >>> orOf both (False,False)
@@ -364,7 +362,6 @@ orOf l = getAny . foldMapOf l Any
 
 -- | Returns 'True' if any target of a 'Fold' satisfies a predicate.
 --
--- >>> import Control.Lens
 -- >>> anyOf both (=='x') ('x','y')
 -- True
 -- >>> import Data.Data.Lens
@@ -386,7 +383,6 @@ anyOf l f = getAny . foldMapOf l (Any . f)
 
 -- | Returns 'True' if every target of a 'Fold' satisfies a predicate.
 --
--- >>> import Control.Lens
 -- >>> allOf both (>=3) (4,5)
 -- True
 -- >>> allOf folded (>=2) [1..10]
@@ -407,7 +403,6 @@ allOf l f = getAll . foldMapOf l (All . f)
 
 -- | Calculate the product of every number targeted by a 'Fold'
 --
--- >>> import Control.Lens
 -- >>> productOf both (4,5)
 -- 20
 -- >>> productOf folded [1,2,3,4,5]
@@ -428,7 +423,6 @@ productOf l = getProduct . foldMapOf l Product
 
 -- | Calculate the sum of every number targeted by a 'Fold'.
 --
--- >>> import Control.Lens
 -- >>> sumOf both (5,6)
 -- 11
 -- >>> sumOf folded [1,2,3,4]
@@ -464,7 +458,6 @@ sumOf l = getSum . foldMapOf l Sum
 -- When passed a 'Getter', 'traverseOf_' can work over any 'Functor', but when passed a 'Fold', 'traverseOf_' requires
 -- an 'Applicative'.
 --
--- >>> import Control.Lens
 -- >>> traverseOf_ both putStrLn ("hello","world")
 -- hello
 -- world
@@ -607,7 +600,6 @@ msumOf l = foldrOf l mplus mzero
 
 -- | Does the element occur anywhere within a given 'Fold' of the structure?
 --
--- >>> import Control.Lens
 -- >>> elemOf both "hello" ("hello","world")
 -- True
 --
@@ -656,7 +648,6 @@ concatMapOf l ces = runAccessor . l (Accessor . ces)
 
 -- | Concatenate all of the lists targeted by a 'Fold' into a longer list.
 --
--- >>> import Control.Lens
 -- >>> concatOf both ("pan","ama")
 -- "panama"
 --
@@ -681,7 +672,6 @@ concatOf = view
 --
 -- @'length' ≡ 'lengthOf' 'folded'@
 --
--- >>> import Control.Lens
 -- >>> lengthOf _1 ("hello",())
 -- 1
 --
@@ -756,7 +746,6 @@ lastOf l = getLast . foldMapOf l (Last . Just)
 --
 -- This may be rather inefficient compared to the 'null' check of many containers.
 --
--- >>> import Control.Lens
 -- >>> nullOf _1 (1,2)
 -- False
 --

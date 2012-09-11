@@ -73,6 +73,9 @@ import Data.Monoid
 import Data.Sequence hiding (index)
 import Data.Traversable
 
+-- $setup
+-- >>> import Control.Lens
+
 -------------------------------------------------------------------------------
 -- FunctorWithIndex
 -------------------------------------------------------------------------------
@@ -389,7 +392,6 @@ imapAccumL f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards 
 
 -- | Access the element of an indexed container where the index matches a predicate.
 --
--- >>> import Control.Lens
 -- >>> over (iwhere (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
 iwhere :: (TraversableWithIndex i t) => (i -> Bool) -> SimpleIndexedTraversal i (t a) a

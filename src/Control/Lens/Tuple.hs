@@ -31,11 +31,13 @@ module Control.Lens.Tuple
 import Control.Lens.Type
 import Data.Functor
 
+-- $setup
+-- >>> import Control.Lens
+
 -- | Provides access to 1st field of a tuple.
 class Field1 a b c d | a -> c, b -> d, a d -> b, b c -> a where
   -- | Access the 1st field of a tuple (and possibly change its type).
   --
-  -- >>> import Control.Lens
   -- >>> (1,2)^._1
   -- 1
   --
@@ -92,7 +94,6 @@ instance Field1 (a,b,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a' where
 class Field2 a b c d | a -> c, b -> d, a d -> b, b c -> a where
   -- | Access the 2nd field of a tuple
   --
-  -- >>> import Control.Lens
   -- >>> _2 .~ "hello" $ (1,(),3,4)
   -- (1,"hello",3,4)
   --

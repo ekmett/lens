@@ -43,6 +43,9 @@ import Control.Lens.Type
 import Data.Functor.Identity
 import Prelude hiding ((.),id)
 
+-- $setup
+-- >>> import Control.Lens
+
 -----------------------------------------------------------------------------
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
@@ -95,7 +98,7 @@ iso ab ba = isos ab ba ab ba
 
 -- | Based on @ala@ from Conor McBride's work on Epigram.
 --
--- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
+-- >>> :m + Data.Monoid.Lens Data.Foldable
 -- >>> ala _sum foldMap [1,2,3,4]
 -- 10
 ala :: Simple Iso a b -> ((a -> b) -> c -> b) -> c -> a

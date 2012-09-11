@@ -54,6 +54,9 @@ import Control.Applicative
 import Control.Lens.Internal
 import Control.Monad.State.Class as State
 
+-- $setup
+-- >>> import Control.Lens
+
 infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <.~
 infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <.=
 infixr 2 <~
@@ -127,7 +130,6 @@ type SimpleSetting a b = Setting a a b b
 -- ('<$') ≡ 'set' 'mapped'
 -- @
 --
--- >>> import Control.Lens
 -- >>> over mapped (+1) [1,2,3]
 -- [2,3,4]
 --
@@ -179,7 +181,6 @@ sets f g = pure . f (untainted . g)
 -- 'over' '.' 'sets' ≡ 'id'
 -- @
 --
--- >>> import Control.Lens
 -- >>> over mapped (*10) [1,2,3]
 -- [10,20,30]
 --
@@ -205,7 +206,6 @@ over l f = runMutator . l (Mutator . f)
 -- 'mapOf' '.' 'sets' ≡ 'id'
 -- @
 --
--- >>> import Control.Lens
 -- >>> mapOf mapped (+1) [1,2,3,4]
 -- [2,3,4,5]
 --
@@ -230,7 +230,6 @@ mapOf = over
 --
 -- @('<$') ≡ 'set' 'mapped'@
 --
--- >>> import Control.Lens
 -- >>> set _2 "hello" (1,())
 -- (1,"hello")
 --
@@ -260,7 +259,6 @@ set l d = runMutator . l (\_ -> Mutator d)
 -- 'Data.Traversable.fmapDefault' f ≡ 'traverse' '%~' f
 -- @
 --
--- >>> import Control.Lens
 -- >>> _2 %~ length $ (1,"hello")
 -- (1,5)
 --
@@ -290,7 +288,6 @@ set l d = runMutator . l (\_ -> Mutator d)
 --
 -- @f '<$' a ≡ 'mapped' '.~' f '$' a@
 --
--- >>> import Control.Lens
 -- >>> _1 .~ "hello" $ (42,"world")
 -- ("hello","world")
 --
@@ -310,7 +307,6 @@ set l d = runMutator . l (\_ -> Mutator d)
 --
 -- If you do not need a copy of the intermediate result, then using @l '.~' d@ directly is a good idea.
 --
--- >>> import Control.Lens
 -- >>> _3 <.~ "world" $ ("good","morning","vietnam")
 -- ("world",("good","morning","world"))
 --
@@ -330,7 +326,6 @@ l <.~ d = \a -> (d, l .~ d $ a)
 
 -- | Increment the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
--- >>> import Control.Lens
 -- >>> _1 +~ 1 $ (1,2)
 -- (2,2)
 --
@@ -349,7 +344,6 @@ l +~ n = over l (+ n)
 
 -- | Multiply the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
--- >>> import Control.Lens
 -- >>> _2 *~ 4 $ (1,2)
 -- (1,8)
 --
@@ -368,7 +362,6 @@ l *~ n = over l (* n)
 
 -- | Decrement the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
--- >>> import Control.Lens
 -- >>> _1 -~ 2 $ (1,2)
 -- (-1,2)
 --
@@ -387,7 +380,6 @@ l -~ n = over l (subtract n)
 
 -- | Divide the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
--- >>> import Control.Lens
 -- >>> _2 //~ 2 $ ("Hawaii",10)
 -- ("Hawaii",5.0)
 --
@@ -402,7 +394,6 @@ l //~ n = over l (/ n)
 
 -- | Raise the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to a non-negative integral power
 --
--- >>> import Control.Lens
 -- >>> _2 ^~ 2 $ (1,3)
 -- (1,9)
 --
@@ -418,7 +409,6 @@ l ^~ n = over l (^ n)
 
 -- | Raise the target(s) of a fractionally valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an integral power
 --
--- >>> import Control.Lens
 -- >>> _2 ^^~ (-1) $ (1,2)
 -- (1,0.5)
 --
@@ -435,7 +425,6 @@ l ^^~ n = over l (^^ n)
 
 -- | Raise the target(s) of a floating-point valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to an arbitrary power.
 --
--- >>> import Control.Lens
 -- >>> _2 **~ pi $ (1,3)
 -- (1,31.54428070019754)
 --
@@ -451,7 +440,6 @@ l **~ n = over l (** n)
 
 -- | Logically '||' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'
 --
--- >>> import Control.Lens
 -- >>> both ||~ True $ (False,True)
 -- (True,True)
 --
@@ -470,7 +458,6 @@ l ||~ n = over l (|| n)
 
 -- | Logically '&&' the target(s) of a 'Bool'-valued 'Control.Lens.Type.Lens' or 'Setter'
 --
--- >>> import Control.Lens
 -- >>> both &&~ True $ (False, True)
 -- (False,True)
 --
@@ -706,3 +693,4 @@ newtype ReifiedSetter a b c d = ReifySetter { reflectSetter :: Setter a b c d }
 
 -- | @type 'SimpleReifiedSetter' = 'Control.Lens.Type.Simple' 'ReifiedSetter'@
 type SimpleReifiedSetter a b = ReifiedSetter a a b b
+
