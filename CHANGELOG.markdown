@@ -1,6 +1,8 @@
-2.8.1
+2.9
 -----
 * Added `<<%~`, `<<.~`, `<<%=` and `<<.=` for accessing the old values targeted by a `Lens` (or a summary of those targeted by a `Traversal`)
+* Renamed `|>` to `%`, as `%~` is the lensed version of `%`.
+* Upgraded to `doctest` 0.9, which lets us factor out common `$setup` for our doctests
 
 2.8
 ---

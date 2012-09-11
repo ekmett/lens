@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       2.8.1
+version:       2.9
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -37,7 +37,7 @@ description:
   .
   The core of this hierarchy looks like:
   .
-  <<https://github.com/ekmett/lens/wiki/images/Hierarchy-2.8.png>>
+  <<https://github.com/ekmett/lens/wiki/images/Hierarchy-2.9.png>>
   .
   You can compose any two elements of the hierarchy above using (.) from the Prelude, and you can
   use any element of the hierarchy as any type it links to above it.

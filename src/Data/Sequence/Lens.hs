@@ -19,7 +19,7 @@ module Data.Sequence.Lens
   ) where
 
 import Control.Applicative
-import Control.Lens as Lens hiding ((|>))
+import Control.Lens as Lens
 import Data.Monoid
 import Data.Sequence as Seq
 
