@@ -26,6 +26,7 @@ module Control.Lens.Projection
 import Control.Applicative
 import Control.Lens.Type
 import Control.Lens.Getter
+import Data.Functor.Identity
 
 -- | A Projection is a 'Traversal' that can also be turned around with 'by' to obtain a 'Getter'
 type Projection a b c d = forall k f. (Projective k a d, Applicative f) => k (c -> f d) (a -> f a)
