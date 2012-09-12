@@ -164,53 +164,5 @@
 <a name="line-155"></a><a name="instance%20Magnify%20(IdentityT%20m)%20(IdentityT%20n)%20k%20b%20a"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Magnify</span> <span class='hs-varid'>m</span> <span class='hs-varid'>n</span> <span class='hs-varid'>k</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Magnify</span> <span class='hs-layout'>(</span><span class='hs-conid'>IdentityT</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>IdentityT</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span> <span class='hs-varid'>k</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>where</span>
 <a name="line-156"></a>  <span class='hs-varid'>magnify</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>IdentityT</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>IdentityT</span> <span class='hs-layout'>(</span><span class='hs-varid'>magnify</span> <span class='hs-varid'>l</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span>
 <a name="line-157"></a>  <span class='hs-comment'>{-# INLINE magnify #-}</span>
-<a name="line-158"></a>
-<a name="line-159"></a><span class='hs-comment'>{-
-<a name="line-160"></a>-- | Wrap a monadic effect with a phantom type argument. Used when magnifying StateT.
-<a name="line-161"></a>newtype EffectS s k c a = EffectS { runEffect :: s -&gt; k (c, s) a }
-<a name="line-162"></a>
-<a name="line-163"></a>instance Functor (k (c, s)) =&gt; Functor (EffectS s k c) where
-<a name="line-164"></a>  fmap f (EffectS m) = EffectS (fmap f . m)
-<a name="line-165"></a>
-<a name="line-166"></a>
-<a name="line-167"></a>instance (Monoid c, Monad m) =&gt; Applicative (EffectS s k c) where
-<a name="line-168"></a>  pure _ = EffectS $ \s -&gt; return (mempty, s)
-<a name="line-169"></a>  EffectS m &lt;*&gt; EffectS n = EffectS $ \s -&gt; m s &gt;&gt;= \ (c,t) -&gt; n s &gt;&gt;= \ (d, u) -&gt; return (mappend c d, u)
-<a name="line-170"></a>
-<a name="line-171"></a>
-<a name="line-172"></a>instance Magnify m n k b a =&gt; Magnify (Strict.StateT s m) (Strict.StateT s n) (EffectS s k) b a where
-<a name="line-173"></a>  magnify l (Strict.StateT m) = Strict.StateT $ magnify l . m
-<a name="line-174"></a>  {-# INLINE magnify #-}
-<a name="line-175"></a>
-<a name="line-176"></a>instance Magnify m n b a =&gt; Magnify (Lazy.StateT s m) (Lazy.StateT s n) b a where
-<a name="line-177"></a>  magnify l (Lazy.StateT m) = Lazy.StateT $ magnify l . m
-<a name="line-178"></a>  {-# INLINE magnify #-}
-<a name="line-179"></a>
-<a name="line-180"></a>instance (Monoid w, Magnify m n b a) =&gt; Magnify (Strict.WriterT w m) (Strict.WriterT w n) b a where
-<a name="line-181"></a>  magnify l (Strict.WriterT m) = Strict.WriterT (magnify l m)
-<a name="line-182"></a>  {-# INLINE magnify #-}
-<a name="line-183"></a>
-<a name="line-184"></a>instance (Monoid w, Magnify m n b a) =&gt; Magnify (Lazy.WriterT w m) (Lazy.WriterT w n) b a where
-<a name="line-185"></a>  magnify l (Lazy.WriterT m) = Lazy.WriterT (magnify l m)
-<a name="line-186"></a>  {-# INLINE magnify #-}
-<a name="line-187"></a>
-<a name="line-188"></a>instance Magnify m n b a =&gt; Magnify (ListT m) (ListT n) b a where
-<a name="line-189"></a>  magnify l (ListT m) = ListT (magnify l m)
-<a name="line-190"></a>  {-# INLINE magnify #-}
-<a name="line-191"></a>
-<a name="line-192"></a>instance Magnify m n b a =&gt; Magnify (MaybeT m) (MaybeT n) b a where
-<a name="line-193"></a>  magnify l (MaybeT m) = MaybeT (magnify l m)
-<a name="line-194"></a>  {-# INLINE magnify #-}
-<a name="line-195"></a>
-<a name="line-196"></a>instance (Error e, Magnify m n b a) =&gt; Magnify (ErrorT e m) (ErrorT e n) b a where
-<a name="line-197"></a>  magnify l (ErrorT m) = ErrorT (magnify l m)
-<a name="line-198"></a>  {-# INLINE magnify #-}
-<a name="line-199"></a>
-<a name="line-200"></a>instance Magnify m m a a =&gt; Magnify (ContT r m) (ContT r m) a a where
-<a name="line-201"></a>  magnify l (ContT m) = ContT $ \k -&gt; do
-<a name="line-202"></a>    r &lt;- Reader.ask
-<a name="line-203"></a>    magnify l (m (magnify (to (const r)) . k))
-<a name="line-204"></a>  {-# INLINE magnify #-}
-<a name="line-205"></a>-}</span>
 </pre></body>
 </html>
