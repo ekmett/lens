@@ -5,6 +5,8 @@
   precedence that can be interleaved with `^.`
 * Upgraded to `doctest` 0.9, which lets us factor out common `$setup` for our doctests
 * Renamed `merged` to `choosing`. Added a simpler `chosen` operation to mirror `both`.
+* Added `Control.Lens.Projection`
+* Renamed `traverseException` to `exception` and `traverseDynamic` to `dynamic`, upgrading them to use `Projection`.
 
 2.8
 ---
