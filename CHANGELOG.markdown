@@ -7,6 +7,10 @@
 * Renamed `merged` to `choosing`. Added a simpler `chosen` operation to mirror `both`.
 * Added `Control.Lens.Projection`
 * Renamed `traverseException` to `exception` and `traverseDynamic` to `dynamic`, upgrading them to use `Projection`.
+* `makeClassy` now places each generated `Lens` or `Traversal` inside the class it constructs when possible.
+  This makes it possible for users to just export `HasFoo(..)`, rather than have to enumerate each lens in
+  the export list. It can only do that if it creates the class. If the `createClass` flag is disabled, then
+  it will default to the old behavior.
 
 2.8
 ---
