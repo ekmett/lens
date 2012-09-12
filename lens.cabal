@@ -133,6 +133,11 @@ flag old-inline-pragmas
   default: False
   manual: True
 
+-- Make the test suites dump their template-haskell splices.
+flag dump-splices
+  default: False
+  manual: True
+
 library
   build-depends:
     base                 >= 4.4      && < 5,
@@ -230,6 +235,8 @@ test-suite templates
     base,
     lens
   ghc-options: -Wall -threaded
+  if flag(dump-splices)
+    ghc-options: -ddump-splices
   if impl(ghc<7.6.1)
     ghc-options: -Werror
   hs-source-dirs: tests
@@ -287,7 +294,7 @@ benchmark plated
     ghc-prim,
     lens,
     transformers
-  ghc-options: -Wall -O2 -threaded
+  ghc-options: -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: benchmarks
   if flag(benchmark-uniplate)
     build-depends: uniplate >= 1.6.7 && < 1.7
@@ -306,5 +313,5 @@ benchmark alongside
     ghc-prim,
     lens,
     transformers
-  ghc-options: -w -O2 -threaded
+  ghc-options: -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: benchmarks

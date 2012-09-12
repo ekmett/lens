@@ -447,25 +447,9 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
         guard $ tyArgs == []
         view lensClass cfg $ nameBase tyConName
       maybeClassName = fmap (^._1.to mkName) maybeLensClass
-  classDecls <- case maybeLensClass of
-    Nothing -> return []
-    Just (clsNameString, methodNameString) -> do
-      let clsName    = mkName clsNameString
-          methodName = mkName methodNameString
-      t <- newName "t"
-      a <- newName "a"
-      Prelude.sequence $
-        filter (\_ -> cfg^.createClass)
-          [ classD (return []) clsName [PlainTV t] []
-            [ sigD methodName $ appsT (return (ConT ''Lens)) [varT t, varT t, conT tyConName, conT tyConName] ]]
-        ++ filter (\_ -> cfg^.createInstance)
-          [ instanceD (return []) (conT clsName `appT` conT tyConName)
-            [ funD methodName [clause [varP a] (normalB (varE a)) []]
-#ifdef INLINING
-            , inlinePragma methodName
-#endif
-            ]]
-
+  t <- newName "t"
+  a <- newName "a"
+    
   --TODO: there's probably a more efficient way to do this.
   lensFields <- map (\xs -> (fst $ head xs, map snd xs))
               . groupBy ((==) `on` fst) . sortBy (comparing fst)
@@ -484,8 +468,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
     (tyArgs', cty) <- unifyTypes tyArgs fieldTypes
     -- Map for the polymorphic variables that are only involved in these fields, to new names for them.
     m <- freshMap . Set.difference varSet $ Set.fromList otherVars
-    x <- newName "x"
-    let aty | isJust maybeClassName = VarT x
+    let aty | isJust maybeClassName = VarT t
             | otherwise             = appArgs (ConT tyConName) tyArgs'
         bty = substTypeVars m aty
         dty = substTypeVars m cty
@@ -496,10 +479,10 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
         tvs = tyArgs' ++ filter relevantBndr (substTypeVars m tyArgs')
         ps = ctx ++ filter relevantCtx (substTypeVars m ctx)
         qs = case maybeClassName of
-           Just n -> ClassP n [VarT x] : ps
-           _      -> ps
-        tvs' | isJust maybeClassName = PlainTV x : tvs
-             | otherwise             = tvs
+           Just n | not (cfg^.createClass) -> ClassP n [VarT t] : ps
+           _                               -> ps
+        tvs' | isJust maybeClassName && not (cfg^.createClass) = PlainTV t : tvs
+             | otherwise                                       = tvs
 
         --TODO: Better way to write this?
         fieldMap = fromListWith (++) $ map (\(cn,fn,_) -> (cn, [fn])) fields
@@ -536,7 +519,25 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
     inlining <- inlinePragma lensName
     return [decl, body, inlining]
 #endif
-  return $ classDecls ++ Prelude.concat bodies
+  let defs = Prelude.concat bodies
+  case maybeLensClass of
+    Nothing -> return defs
+    Just (clsNameString, methodNameString) -> do
+      let clsName    = mkName clsNameString
+          methodName = mkName methodNameString
+      Prelude.sequence $
+        filter (\_ -> cfg^.createClass) [
+          classD (return []) clsName [PlainTV t] [] (
+            sigD methodName (appsT (conT ''Lens) [varT t, varT t, conT tyConName, conT tyConName]) :
+            map return defs)]
+        ++ filter (\_ -> cfg^.createInstance) [
+          instanceD (return []) (conT clsName `appT` conT tyConName) [
+            funD methodName [clause [varP a] (normalB (varE a)) []]
+#ifdef INLINING
+            , inlinePragma methodName
+#endif
+            ]]
+        ++ filter (\_ -> not $ cfg^.createClass) (map return defs)
 
 -- | Gets @[(lens name, (constructor name, field name, type))]@ from a record constructor
 getLensFields :: (String -> Maybe String) -> Con -> Q [(Name, (Name, Name, Type))]
