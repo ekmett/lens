@@ -305,5 +305,5 @@ benchmark alongside
     ghc-prim,
     lens,
     transformers
-  ghc-options: -Wall -O2 -threaded
+  ghc-options: -w -O2 -threaded
   hs-source-dirs: benchmarks
