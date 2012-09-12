@@ -51,7 +51,7 @@ project :: Projective k a d => Overloaded (Project a d) f a a c d -> Overloaded 
 project (Project f g) = projective f g
 
 -- | Turn a projection around to get an embedding
-by :: Project a d x y -> Getter d a
+by :: Project a d (d -> Identity d) (a -> Identity a) -> Getter d a
 by (Project g _) = to g
 
 -- | Build a projection
