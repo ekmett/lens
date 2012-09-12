@@ -48,6 +48,9 @@ module Control.Lens.Setter
   -- * Simplicity
   , SimpleSetter
   , SimpleReifiedSetter
+  -- * Exported for legible error messages
+  , Settable
+  , Mutator
   ) where
 
 import Control.Applicative

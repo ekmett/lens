@@ -57,6 +57,8 @@ module Control.Lens.Getter
 
   -- * Storing Getters
   , ReifiedGetter(..)
+  , Gettable
+  , Accessor
   ) where
 
 import Control.Lens.Internal

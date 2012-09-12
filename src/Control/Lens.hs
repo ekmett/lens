@@ -59,6 +59,7 @@ module Control.Lens
   , module Control.Lens.IndexedTraversal
   , module Control.Lens.IndexedSetter
   , module Control.Lens.Plated
+  , module Control.Lens.Projection
   , module Control.Lens.Representable
 #ifndef DISABLE_TEMPLATE_HASKELL
   , module Control.Lens.TH
@@ -80,6 +81,7 @@ import Control.Lens.IndexedSetter
 import Control.Lens.IndexedTraversal
 import Control.Lens.Iso
 import Control.Lens.Plated
+import Control.Lens.Projection
 import Control.Lens.Representable
 import Control.Lens.Setter
 #ifndef DISABLE_TEMPLATE_HASKELL

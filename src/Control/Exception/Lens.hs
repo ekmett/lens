@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Exception.Lens
@@ -9,10 +10,9 @@
 --
 ----------------------------------------------------------------------------
 module Control.Exception.Lens
-  ( traverseException
+  ( exception
   ) where
 
-import Control.Applicative
 import Control.Exception
 import Control.Lens
 
@@ -21,11 +21,9 @@ import Control.Lens
 -- the desired 'Exception'.
 --
 -- @
--- traverseException :: ('Applicative' f, 'Exception' a, 'Exception' b)
---                   => (a -> f b) -> 'SomeException' -> f 'SomeException'
+-- exception :: ('Applicative' f, 'Exception' a, 'Exception' b)
+--           => (a -> f b) -> 'SomeException' -> f 'SomeException'
 -- @
-traverseException :: (Exception a, Exception b) => Traversal SomeException SomeException a b
-traverseException f e = case fromException e of
-  Just a -> toException <$> f a
-  Nothing -> pure e
-{-# INLINE traverseException #-}
+exception :: (Exception a, Exception b) => Projection SomeException SomeException a b
+exception = projection SomeException fromException
+{-# INLINE exception #-}

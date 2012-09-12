@@ -163,6 +163,7 @@ library
     Control.Lens.Iso
     Control.Lens.Isomorphic
     Control.Lens.Plated
+    Control.Lens.Projection
     Control.Lens.Representable
     Control.Lens.Setter
     Control.Lens.Traversal
