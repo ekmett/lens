@@ -93,6 +93,7 @@ extra-source-files:
   examples/lens-examples.cabal
   examples/Pong.hs
   examples/Plates.hs
+  examples/Aeson.hs
   README.markdown
   CHANGELOG.markdown
 
