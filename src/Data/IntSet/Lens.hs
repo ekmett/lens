@@ -49,11 +49,11 @@ setmapped = sets IntSet.map
 -- fromList [1,2,3]
 --
 -- @
--- setOf :: 'Getter' a 'Int'           -> a -> 'IntSet'
--- setOf :: 'Fold' a 'Int'             -> a -> 'IntSet'
--- setOf :: 'Simple' 'Iso' a 'Int'       -> a -> 'IntSet'
--- setOf :: 'Simple' 'Lens' a 'Int'      -> a -> 'IntSet'
--- setOf :: 'Simple' 'Traversal' a 'Int' -> a -> 'IntSet'
+-- 'setOf' :: 'Getter' a 'Int'           -> a -> 'IntSet'
+-- 'setOf' :: 'Fold' a 'Int'             -> a -> 'IntSet'
+-- 'setOf' :: 'Simple' 'Iso' a 'Int'       -> a -> 'IntSet'
+-- 'setOf' :: 'Simple' 'Lens' a 'Int'      -> a -> 'IntSet'
+-- 'setOf' :: 'Simple' 'Traversal' a 'Int' -> a -> 'IntSet'
 -- @
 setOf :: Getting IntSet a b Int d -> a -> IntSet
 setOf l = runAccessor . l (Accessor . IntSet.singleton)

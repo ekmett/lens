@@ -41,11 +41,11 @@ setmapped = sets HashSet.map
 -- fromList [1,2,3]
 --
 -- @
--- setOf :: 'Hashable' c         => 'Getter' a c           -> a -> 'HashSet' c
--- setOf :: ('Eq' c, 'Hashable' c) => 'Control.Lens.Fold.Fold' a c             -> a -> 'HashSet' c
--- setOf :: 'Hashable' c         => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'HashSet' c
--- setOf :: 'Hashable' c         => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -> a -> 'HashSet' c
--- setOf :: ('Eq' c, 'Hashable' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'HashSet' c
+-- 'setOf' :: 'Hashable' c         => 'Getter' a c           -> a -> 'HashSet' c
+-- 'setOf' :: ('Eq' c, 'Hashable' c) => 'Control.Lens.Fold.Fold' a c             -> a -> 'HashSet' c
+-- 'setOf' :: 'Hashable' c         => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'HashSet' c
+-- 'setOf' :: 'Hashable' c         => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -> a -> 'HashSet' c
+-- 'setOf' :: ('Eq' c, 'Hashable' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'HashSet' c
 -- @
 setOf :: Hashable c => Getting (HashSet c) a b c d -> a -> HashSet c
 setOf l = runAccessor . l (Accessor . HashSet.singleton)
