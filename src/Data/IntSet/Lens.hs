@@ -35,7 +35,7 @@ members = folding IntSet.toAscList
 --
 -- Sadly, you can't create a valid 'Traversal' for a 'Set', because the number of
 -- elements might change but you can manipulate it by reading using 'folded' and
--- reindexing it via 'setmap'.
+-- reindexing it via 'setmapped'.
 --
 -- >>> over setmapped (+1) (fromList [1,2,3,4])
 -- fromList [2,3,4,5]

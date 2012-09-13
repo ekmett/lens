@@ -26,7 +26,7 @@ import Data.Set as Set
 -- the elements to new values.
 --
 -- Sadly, you can't create a valid 'Control.Lens.Traversal.Traversal' for a 'Set', but you can
--- manipulate it by reading using 'folded' and reindexing it via 'setmap'.
+-- manipulate it by reading using 'Control.Lens.Fold.folded' and reindexing it via 'setmapped'.
 --
 -- >>> over setmapped (+1) (fromList [1,2,3,4])
 -- fromList [2,3,4,5]
