@@ -50,11 +50,11 @@
 <a name="line-41"></a><span class='hs-comment'>-- fromList [1,2,3]</span>
 <a name="line-42"></a><span class='hs-comment'>--</span>
 <a name="line-43"></a><span class='hs-comment'>-- @</span>
-<a name="line-44"></a><span class='hs-comment'>-- setOf :: 'Hashable' c         =&gt; 'Getter' a c           -&gt; a -&gt; 'HashSet' c</span>
-<a name="line-45"></a><span class='hs-comment'>-- setOf :: ('Eq' c, 'Hashable' c) =&gt; 'Control.Lens.Fold.Fold' a c             -&gt; a -&gt; 'HashSet' c</span>
-<a name="line-46"></a><span class='hs-comment'>-- setOf :: 'Hashable' c         =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -&gt; a -&gt; 'HashSet' c</span>
-<a name="line-47"></a><span class='hs-comment'>-- setOf :: 'Hashable' c         =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -&gt; a -&gt; 'HashSet' c</span>
-<a name="line-48"></a><span class='hs-comment'>-- setOf :: ('Eq' c, 'Hashable' c) =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -&gt; a -&gt; 'HashSet' c</span>
+<a name="line-44"></a><span class='hs-comment'>-- 'setOf' :: 'Hashable' c         =&gt; 'Getter' a c           -&gt; a -&gt; 'HashSet' c</span>
+<a name="line-45"></a><span class='hs-comment'>-- 'setOf' :: ('Eq' c, 'Hashable' c) =&gt; 'Control.Lens.Fold.Fold' a c             -&gt; a -&gt; 'HashSet' c</span>
+<a name="line-46"></a><span class='hs-comment'>-- 'setOf' :: 'Hashable' c         =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -&gt; a -&gt; 'HashSet' c</span>
+<a name="line-47"></a><span class='hs-comment'>-- 'setOf' :: 'Hashable' c         =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -&gt; a -&gt; 'HashSet' c</span>
+<a name="line-48"></a><span class='hs-comment'>-- 'setOf' :: ('Eq' c, 'Hashable' c) =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -&gt; a -&gt; 'HashSet' c</span>
 <a name="line-49"></a><span class='hs-comment'>-- @</span>
 <a name="line-50"></a><span class='hs-definition'>setOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Hashable</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>HashSet</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>HashSet</span> <span class='hs-varid'>c</span>
 <a name="line-51"></a><span class='hs-definition'>setOf</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runAccessor</span> <span class='hs-varop'>.</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Accessor</span> <span class='hs-varop'>.</span> <span class='hs-conid'>HashSet</span><span class='hs-varop'>.</span><span class='hs-varid'>singleton</span><span class='hs-layout'>)</span>
