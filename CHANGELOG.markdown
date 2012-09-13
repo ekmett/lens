@@ -11,6 +11,7 @@
   This makes it possible for users to just export `HasFoo(..)`, rather than have to enumerate each lens in
   the export list. It can only do that if it creates the class. If the `createClass` flag is disabled, then
   it will default to the old behavior.
+* Added `performs` to `Control.Lens.Action` to mirror `views` in `Control.Lens.Getter`.
 
 2.8
 ---
