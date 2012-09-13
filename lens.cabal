@@ -55,7 +55,7 @@ description:
   If you want to provide lenses and traversals for your own types in your own libraries, then you
   can do so without incurring a dependency on this (or any other) lens package at all.
   .
-  e.g. for a data type:
+  /e.g./ for a data type:
   .
   > data Foo a = Foo Int Int a
   .
@@ -79,7 +79,7 @@ description:
   .
   What is provided in this library is a number of stock lenses and traversals for
   common haskell types, a wide array of combinators for working them, and more
-  exotic functionality, (e.g. getters, setters, indexed folds, isomorphisms).
+  exotic functionality, (/e.g./ getters, setters, indexed folds, isomorphisms).
 
 build-type:    Simple
 tested-with:   GHC == 7.4.1, GHC == 7.6.0, GHC == 7.7.20120822, GHC == 7.7.20120830
