@@ -109,7 +109,7 @@ ala l f e = f (view l) e ^. from l
 -- Based on @ala'@ from Conor McBride's work on Epigram.
 --
 -- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator
--- is /au/ with an extra function argument.
+-- is 'ala' with an extra function argument.
 auf :: Simple Iso a b -> ((d -> b) -> c -> b) -> (d -> a) -> c -> a
 auf l f g e = f (view l . g) e ^. from l
 {-# INLINE auf #-}
