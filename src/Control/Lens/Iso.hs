@@ -58,11 +58,11 @@ import Prelude hiding ((.),id)
 -- > import Control.Category
 -- > import Prelude hiding ((.),id)
 --
--- @type Iso a b c d = forall k f. ('Isomorphic' k, 'Functor' f) => 'Overloaded' k f a b c d@
+-- @type 'Iso' a b c d = forall k f. ('Isomorphic' k, 'Functor' f) => 'Overloaded' k f a b c d@
 type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
 
 -- |
--- @type SimpleIso = 'Control.Lens.Type.Simple' 'Iso'@
+-- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
 type SimpleIso a b = Iso a a b b
 
 -- | Build an isomorphism family from two pairs of inverse functions
@@ -118,7 +118,7 @@ auf l f g e = f (view l . g) e ^. from l
 --
 -- @'under' = 'over' '.' 'from'@
 --
--- @'under' :: Iso a b c d -> (a -> b) -> (c -> d)@
+-- @'under' :: 'Iso' a b c d -> (a -> b) -> c -> d@
 under :: Isomorphism (c -> Mutator d) (a -> Mutator b) -> (a -> b) -> c -> d
 under = over . from
 {-# INLINE under #-}
@@ -154,5 +154,5 @@ _const = isos Const getConst Const getConst
 -- | Useful for storing isomorphisms in containers.
 newtype ReifiedIso a b c d = ReifyIso { reflectIso :: Iso a b c d }
 
--- | @type SimpleReifiedIso = 'Control.Lens.Type.Simple' 'ReifiedIso'@
+-- | @type 'SimpleReifiedIso' = 'Control.Lens.Type.Simple' 'ReifiedIso'@
 type SimpleReifiedIso a b = ReifiedIso a a b b
