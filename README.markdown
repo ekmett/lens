@@ -7,7 +7,7 @@ This package provides families of [lenses](https://github.com/ekmett/lens/blob/m
 
 An overview of the [derivation](https://github.com/ekmett/lens/wiki/Derivation) of these types can be found on the [Lens Wiki](https://github.com/ekmett/lens/wiki) along with a brief [Overview](https://github.com/ekmett/lens/wiki/Overview).
 
-Documentation is available through [github](http://ekmett.github.com/lens) or [hackage](http://hackage.haskell.org/package/lens).
+Documentation is available through [github](http://ekmett.github.com/lens/frames.html) or [hackage](http://hackage.haskell.org/package/lens).
 
 Field Guide
 -----------
