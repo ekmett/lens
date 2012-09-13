@@ -17,6 +17,7 @@ module Control.Lens.Action
   , act
   , acts
   , perform
+  , performs
   , liftAct
   , (^!)
 
@@ -59,6 +60,10 @@ type Acting m r a b c d = (c -> Effect m r d) -> a -> Effect m r b
 perform :: Monad m => Acting m c a b c d -> a -> m c
 perform l = getEffect . l (Effect . return)
 {-# INLINE perform #-}
+
+-- | Perform an 'Action' and modify the result.
+performs :: Monad m => Acting m e a b c d -> (c -> e) -> a -> m e
+performs l f = getEffect . l (Effect . return . f)
 
 -- | Perform an 'Action'
 --
