@@ -220,6 +220,8 @@ There are also a couple of hundred examples distributed throughout the haddock d
 Operators
 =========
 
+(This list is maintained at [`wiki/Operators`](https://github.com/ekmett/lens/wiki/Operators.md))
+
 <table>
 <thead>
 <tr>
