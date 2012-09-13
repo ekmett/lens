@@ -55,8 +55,10 @@ import Prelude hiding ((.),id)
 -- with each other using ('.') from the Prelude, they will be dumbed down to a
 -- mere 'Lens'.
 --
--- > import Control.Category
--- > import Prelude hiding ((.),id)
+-- @
+-- import Control.Category
+-- import Prelude hiding (('Prelude..'),'Prelude.id')
+-- @
 --
 -- @type 'Iso' a b c d = forall k f. ('Isomorphic' k, 'Functor' f) => 'Overloaded' k f a b c d@
 type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
