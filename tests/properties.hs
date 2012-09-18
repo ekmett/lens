@@ -58,6 +58,13 @@ bad f (a,b) = (,) b <$> f a
 badIso :: Simple Iso Int Bool
 badIso = iso even fromEnum
 
+badLeft :: Simple Lens (Maybe (Either a b)) (Maybe a)
+badLeft = lens (>>= either Just (const Nothing))
+  $ \e m -> case (e, m) of
+    (Just (Right e), Nothing) -> Just (Right e)
+    _ -> fmap Left m
+
+
 -- Control.Lens.Type
 prop_1                               = isLens (_1 :: Simple Lens (Int,Double,()) Int)
 prop_2                               = isLens (_2 :: Simple Lens (Int,Bool) Bool)
@@ -71,6 +78,8 @@ prop_illegal_lens                    = expectFailure $ isLens bad
 prop_illegal_traversal               = expectFailure $ isTraversal bad
 prop_illegal_setter                  = expectFailure $ isSetter bad
 prop_illegal_iso                     = expectFailure $ isIso badIso
+
+prop_illegal_badLeft                 = expectFailure $ isLens (badLeft :: Simple Lens (Maybe (Either Int Bool)) (Maybe Int))
 
 -- Control.Lens.Setter
 prop_mapped                          = isSetter (mapped :: Simple Setter [Int] Int)
