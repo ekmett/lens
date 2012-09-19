@@ -1,5 +1,9 @@
+3.0
+---
+* Added `Control.Lens.Zipper`. (Not exported from `Control.Lens` by default)
+
 2.9
------
+---
 * Added `<<%~`, `<<.~`, `<<%=` and `<<.=` for accessing the old values targeted by a `Lens` (or a summary of those targeted by a `Traversal`)
 * Renamed `|>` to `%`, as `%~` is the lensed version of `%`, and moved it to `Control.Lens.Getter` along with a version `^%` with tighter
   precedence that can be interleaved with `^.`

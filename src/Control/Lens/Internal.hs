@@ -42,9 +42,12 @@ module Control.Lens.Internal
   , Bazaar(..), bazaar, duplicateBazaar, sell
   , Effect(..)
   , EffectRWS(..)
-  -- , EffectS(..)
+  -- * Getter internals
   , Gettable(..), Accessor(..), Effective(..), ineffective, noEffect, Folding(..)
+  -- * Setter internals
   , Settable(..), Mutator(..)
+  -- * Zipper internals
+  , Level(..), leftLevel, rightLevel, closeLevel, focusLevel
   ) where
 
 import Control.Applicative
@@ -55,9 +58,12 @@ import Control.Comonad.Store.Class
 import Control.Lens.Isomorphic
 import Control.Monad
 import Prelude hiding ((.),id)
+import Data.Foldable
 import Data.Functor.Compose
 import Data.Functor.Identity
+import Data.List.NonEmpty as NonEmpty
 import Data.Monoid
+import Data.Traversable
 
 -----------------------------------------------------------------------------
 -- Functors
@@ -485,4 +491,54 @@ instance Functor Mutator where
 instance Applicative Mutator where
   pure = Mutator
   Mutator f <*> Mutator a = Mutator (f a)
+
+-----------------------------------------------------------------------------
+-- Level
+-----------------------------------------------------------------------------
+
+-- | A basic list zipper
+data Level a = Level {-# UNPACK #-} !Int [a] a [a]
+
+leftLevel :: Level a -> Maybe (Level a)
+leftLevel (Level _ []     _ _ ) = Nothing
+leftLevel (Level n (l:ls) a rs) = Just (Level (n - 1) ls l (a:rs))
+{-# INLINE leftLevel #-}
+
+rightLevel :: Level a -> Maybe (Level a)
+rightLevel (Level _ _  _ []    ) = Nothing
+rightLevel (Level n ls a (r:rs)) = Just (Level (n + 1) (a:ls) r rs)
+{-# INLINE rightLevel #-}
+
+focusLevel :: Functor f => (a -> f a) -> Level a -> f (Level a)
+focusLevel f (Level n ls a rs) = (\b -> Level n ls b rs) <$> f a
+{-# INLINE focusLevel #-}
+
+instance Functor Level where
+  fmap f (Level n ls a rs) = Level n (f <$> ls) (f a) (f <$> rs)
+
+instance Foldable Level where
+  foldMap f = foldMap f . closeLevel
+
+instance Traversable Level where
+  traverse f (Level n ls a rs) = Level n <$> forwards (traverse (Backwards . f) ls) <*> f a <*> traverse f rs
+
+-- | NB: not a comonad homomorphism
+closeLevel :: Level a -> NonEmpty a
+closeLevel (Level _ ls a rs) = NonEmpty.fromList (Prelude.reverse ls ++ a : rs)
+{-# INLINE closeLevel #-}
+
+instance Comonad Level where
+  extract (Level _ _ a _) = a
+  extend f w@(Level n ls m rs) = Level n (gol (n - 1) (m:rs) ls) (f w) (gor (n + 1) (m:ls) rs) where
+    gol k zs (y:ys) = f (Level k ys y zs) : (gol $! k - 1) (y:zs) ys
+    gol _ _ [] = []
+    gor k ys (z:zs) = f (Level k ys z zs) : (gor $! k + 1) (z:ys) zs
+    gor _ _ [] = []
+
+instance ComonadStore Int Level where
+  pos (Level n _ _ _) = n
+  peek n (Level m ls a rs) = case compare n m of
+    LT -> ls Prelude.!! (m - n)
+    EQ -> a
+    GT -> rs Prelude.!! (n - m)
 
