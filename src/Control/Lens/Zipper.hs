@@ -47,6 +47,7 @@ module Control.Lens.Zipper
   -- * Zippers
     Top()
   , (:>)()
+  , zipper
   -- ** Focusing
   , focus
   -- ** Horizontal movement
