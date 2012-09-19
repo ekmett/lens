@@ -15,8 +15,11 @@ main = getSources >>= \sources -> doctest $
   : "-optPdist/build/autogen/cabal_macros.h"
   : sources
 
+excluded :: [String]
+excluded = ["src/Control/Lens/Zipper.hs"]
+
 getSources :: IO [FilePath]
-getSources = filter (isSuffixOf ".hs") <$> go "src"
+getSources = filter (\fn -> isSuffixOf ".hs" fn && notElem fn excluded) <$> go "src"
   where
     go dir = do
       (dirs, files) <- getFilesAndDirectories dir
