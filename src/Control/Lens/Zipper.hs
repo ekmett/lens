@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -12,14 +12,14 @@
 -- Copyright   :  (C) 2012 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
--- Stability   :  provisional
--- Portability :  Rank2Types
+-- Stability   :  experimental
+-- Portability :  non-portable
 --
 -- This module provides a 'Zipper' with fairly strong type checking guarantees.
 --
 -- The code here is inspired by Brandon Simmons' @zippo@ package, but uses
 -- a slightly different approach to represent the 'Zipper' that makes the whole thing
--- look like his breadcrumb trail.
+-- look like his breadcrumb trail, and can move side-to-side through traversals.
 --
 -- Some examples types:
 --
@@ -38,7 +38,7 @@
 -- >>> zipper ("hello","world") % down _1 % fromWithin traverse % focus .~ 'J' % rightmost % focus .~ 'y' % rezip
 -- ("Jelly","world")
 --
--- This is gotoicularly powerful when compiled with 'Control.Lens.Plated.plate',
+-- This is particularly powerful when compiled with 'Control.Lens.Plated.plate',
 -- 'Data.Data.Lens.uniplate' or 'Data.Data.Lens.biplate' for walking down into
 -- self-similar children in syntax trees and other structures.
 -----------------------------------------------------------------------------
@@ -109,7 +109,8 @@ type instance Zipped (h :> b) a = Zipped h b
 data Coil :: * -> * -> * where
   Coil :: Coil Top a
   Snoc :: Coil h b ->
-          {-# UNPACK #-} !Int -> SimpleLensLike (Bazaar a a) b a ->
+          {-# UNPACK #-} !Int ->
+          SimpleLensLike (Bazaar a a) b a ->
           [b] -> (NonEmpty a -> b) -> [b] ->
           Coil (h :> b) a
 
@@ -284,7 +285,9 @@ within l (Zipper h (Level n ls b rs)) = case partsOf l (Context id) b of
 -- can still succeed if it is lazy enough in the use of the focused value.
 fromWithin :: SimpleLensLike (Bazaar c c) b c -> (a :> b) -> a :> b :> c
 fromWithin l (Zipper h (Level n ls b rs)) = case partsOf l (Context id) b of
-  Context k cs -> Zipper (Snoc h n l ls (k . NonEmpty.toList) rs) (Level 0 [] (Prelude.head cs) (Prelude.tail cs))
+  Context k cs -> Zipper (Snoc h n l ls (k . NonEmpty.toList) rs)
+                         (Level 0 [] (Prelude.head cs) (Prelude.tail cs))
+{-# INLINE fromWithin #-}
 
 class Zipper h a where
   recoil :: Coil h a -> NonEmpty a -> Zipped h a
