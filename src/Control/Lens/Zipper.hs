@@ -25,10 +25,10 @@
 --
 -- [@'Top' ':>' a@] represents a trivial 'Zipper' with its focus at the root.
 --
--- [@Top :> Tree a :> a@] represents a zipper that starts with a 
+-- [@'Top' ':>' 'Data.Tree.Tree' a ':>' a@] represents a zipper that starts with a 
 --   'Data.Tree.Tree' and descends in a single step to values of type @a@.
 --
--- [@Top :> Tree a :> Tree a :> Tree a@] represents a 'Zipper' into a
+-- [@'Top' ':>' 'Data.Tree.Tree' a ':>' 'Data.Tree.Tree' a ':>' 'Data.Tree.Tree' a@] represents a 'Zipper' into a
 --   'Data.Tree.Tree' with an intermediate bookmarked 'Data.Tree.Tree',
 --   focusing in yet another 'Data.Tree.Tree'.
 --

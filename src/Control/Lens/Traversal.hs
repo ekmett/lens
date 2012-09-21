@@ -408,6 +408,8 @@ traverseRight f (Right a) = Right <$> f a
 -- >>> let foo l a = (view (cloneTraversal l) a, set (cloneTraversal l) 10 a)
 -- >>> foo both ("hello","world")
 -- ("helloworld",(10,10))
+--
+-- @'cloneTraversal' :: 'LensLike' ('Bazaar' c d) a b c d -> 'Traversal' a b c d@
 cloneTraversal :: Applicative f => ((c -> Bazaar c d d) -> a -> Bazaar c d b) -> (c -> f d) -> a -> f b
 cloneTraversal l f = bazaar f . l sell
 {-# INLINE cloneTraversal #-}

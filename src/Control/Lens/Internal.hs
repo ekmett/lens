@@ -508,6 +508,7 @@ instance Applicative Mutator where
 -- stored reversed.
 data Level a = Level {-# UNPACK #-} !Int [a] a [a]
 
+-- | How many entries are there in this level?
 levelWidth :: Level a -> Int
 levelWidth (Level n _ _ rs) = n + 1 + length rs
 {-# INLINE levelWidth #-}
