@@ -16,7 +16,7 @@ main = getSources >>= \sources -> doctest $
   : sources
 
 excluded :: [String]
-excluded = ["src/Control/Lens/Zipper.hs"]
+excluded = []
 
 getSources :: IO [FilePath]
 getSources = filter (\fn -> isSuffixOf ".hs" fn && notElem fn excluded) <$> go "src"

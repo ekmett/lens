@@ -1,5 +1,6 @@
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -74,10 +75,16 @@ import Control.Applicative
 import Control.Category
 import Control.Comonad
 import Control.Monad ((>=>))
-import Control.Lens
+import Control.Lens.Indexed
+import Control.Lens.IndexedLens
 import Control.Lens.Internal
+import Control.Lens.Plated
+import Control.Lens.Type
 import Data.List.NonEmpty as NonEmpty
 import Prelude hiding ((.),id)
+
+-- $setup
+-- >>> :m + Control.Lens
 
 -- | This is used to represent the 'Top' of the 'Zipper'.
 --
@@ -100,7 +107,7 @@ infixl 9 :>
 -- crumb for the 'String' containing the 'Char'.
 data p :> a = Zipper (Coil p a) {-# UNPACK #-} !(Level a)
 
--- | This represents the type a zipper will have when it is fully 'Zipped' back up.
+-- This represents the type a zipper will have when it is fully 'Zipped' back up.
 type family Zipped h a
 type instance Zipped Top a      = a
 type instance Zipped (h :> b) a = Zipped h b
@@ -114,14 +121,9 @@ data Coil :: * -> * -> * where
           [b] -> (NonEmpty a -> b) -> [b] ->
           Coil (h :> b) a
 
--- | This (somewhat dangerous) Lens gives you access to the current 'Level' of the zipper.
-level :: Simple Lens (h :> a) (Level a)
-level f (Zipper h a) = Zipper h <$> f a
-{-# INLINE level #-}
-
 -- | This 'Lens' views the current target of the 'zipper'.
-focus :: Simple Lens (h :> a) a
-focus = level.focusLevel
+focus :: SimpleIndexedLens (Tape (h :> a)) (h :> a) a
+focus = index $ \f (Zipper h (Level n l a r)) -> (\a' -> Zipper h (Level n l a' r)) <$> f (Tape (peel h) n) a
 {-# INLINE focus #-}
 
 -- | Construct a 'zipper' that can explore anything.

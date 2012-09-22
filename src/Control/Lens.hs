@@ -66,6 +66,7 @@ module Control.Lens
 #endif
   , module Control.Lens.Tuple
   , module Control.Lens.WithIndex
+  , module Control.Lens.Zipper
   , module Control.Lens.Zoom
   ) where
 
@@ -91,4 +92,5 @@ import Control.Lens.Traversal
 import Control.Lens.Tuple
 import Control.Lens.Type
 import Control.Lens.WithIndex
+import Control.Lens.Zipper
 import Control.Lens.Zoom

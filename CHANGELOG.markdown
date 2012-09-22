@@ -1,6 +1,6 @@
 3.0
 ---
-* Added `Control.Lens.Zipper`. (Not exported from `Control.Lens` by default)
+* Added `Control.Lens.Zipper`.
 
 2.9
 ---
