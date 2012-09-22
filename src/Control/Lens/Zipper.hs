@@ -107,7 +107,7 @@ infixl 9 :>
 -- crumb for the 'String' containing the 'Char'.
 data p :> a = Zipper (Coil p a) {-# UNPACK #-} !(Level a)
 
--- This represents the type a zipper will have when it is fully 'Zipped' back up.
+-- | This represents the type a zipper will have when it is fully 'Zipped' back up.
 type family Zipped h a
 type instance Zipped Top a      = a
 type instance Zipped (h :> b) a = Zipped h b
@@ -291,6 +291,7 @@ fromWithin l (Zipper h (Level n ls b rs)) = case partsOf l (Context id) b of
                          (Level 0 [] (Prelude.head cs) (Prelude.tail cs))
 {-# INLINE fromWithin #-}
 
+-- | This enables us to pull the 'zipper' back up to the 'Top'.
 class Zipper h a where
   recoil :: Coil h a -> NonEmpty a -> Zipped h a
 
@@ -326,6 +327,7 @@ unsafelyRestoreTrack :: Track h a -> Zipped h a -> h :> a
 unsafelyRestoreTrack Track = zipper
 unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> rights1 n >>> fromWithin l
 
+-- | A 'Tape' is a recorded path through the 'Traversal' chain of a 'Zipper'.
 data Tape k where
   Tape :: Track h a -> {-# UNPACK #-} !Int -> Tape (h :> a)
 
