@@ -5,10 +5,6 @@ module Main where
 import Control.Lens
 -- import Test.QuickCheck (quickCheck)
 
--- newtype Foo a = Foo a
--- makeIso ''Foo
--- foo :: Iso a b (Foo a) (Foo b)
-
 data Bar a b c = Bar { _baz :: (a, b) }
 makeLenses ''Bar
 -- baz :: Lens (Bar a b c) (Bar a' b' c) (a,b) (a',b')
@@ -76,6 +72,10 @@ makeClassy ''Nucleosis
 
 instance HasMono Nucleosis where
   mono = nuclear
+
+-- Dodek's example
+data Foo = Foo { _fooX, _fooY :: Int }
+makeClassy ''Foo
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
