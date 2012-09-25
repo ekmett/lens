@@ -1,6 +1,7 @@
 3.0
 ---
-* Added `Control.Lens.Zipper`.
+* Added `Control.Lens.Zipper`
+* Added `<<~`
 
 2.9
 ---
