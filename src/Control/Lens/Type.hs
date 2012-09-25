@@ -5,6 +5,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeOperators #-}
 
 #ifndef MIN_VERSION_mtl
 #define MIN_VERSION_mtl(x,y,z) 1
@@ -56,6 +57,8 @@ module Control.Lens.Type
   -- * Lenses
     Lens
   , Simple
+  , (:->)
+
   , lens
   , (%%~)
   , (%%=)
@@ -100,6 +103,10 @@ import Control.Monad.State.Class        as State
 -- $setup
 -- >>> import Control.Lens
 
+-- types
+infixr 0 :->
+
+-- terms
 infixr 4 %%~
 infix  4 %%=
 infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <%~, <<%~, <<.~
@@ -162,6 +169,9 @@ type Lens a b c d = forall f. Functor f => (c -> f d) -> a -> f b
 -- Note: To use this alias in your own code with @'LensLike' f@ or
 -- 'Control.Lens.Setter.Setter', you may have to turn on @LiberalTypeSynonyms@.
 type Simple f a b = f a a b b
+
+-- | This is a commonly used infix alias for a @'Simple' 'Lens'@.
+type a :-> b = forall f. Functor f => (b -> f b) -> a -> f a
 
 -- | @type 'SimpleLens' = 'Simple' 'Lens'@
 type SimpleLens a b = Lens a a b b
@@ -265,7 +275,7 @@ l %%= f = do
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
-resultAt :: Eq e => e -> Simple Lens (e -> a) a
+resultAt :: Eq e => e -> (e -> a) :-> a
 resultAt e afa ea = go <$> afa a where
   a = ea e
   go a' e' | e == e'   = a'

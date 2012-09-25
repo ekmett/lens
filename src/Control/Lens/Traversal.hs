@@ -1,5 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE TypeOperators #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Traversal
@@ -29,6 +30,7 @@ module Control.Lens.Traversal
   (
   -- * Lenses
     Traversal
+  , (:=>)
 
   -- ** Lensing Traversals
   , element
@@ -69,6 +71,8 @@ import Data.Traversable
 -- $setup
 -- >>> import Control.Lens
 
+infixr 0 :=>
+
 ------------------------------------------------------------------------------
 -- Traversals
 ------------------------------------------------------------------------------
@@ -102,6 +106,9 @@ type Traversal a b c d = forall f. Applicative f => (c -> f d) -> a -> f b
 
 -- | @type SimpleTraversal = 'Simple' 'Traversal'@
 type SimpleTraversal a b = Traversal a a b b
+
+-- | This is a commonly-used infix alias for a @'Simple' 'Traversal'@.
+type a :=> b = forall f. Applicative f => (b -> f b) -> a -> f a
 
 --------------------------
 -- Traversal Combinators
@@ -319,7 +326,7 @@ elementOf l i f a = case getElementOf (l go a) 0 of
 -- Attempts to access beyond the range of the 'Traversal' will cause an error.
 --
 -- @'element' ≡ 'elementOf' 'traverse'@
-element :: Traversable t => Int -> Simple Lens (t a) a
+element :: Traversable t => Int -> t a :-> a
 element = elementOf traverse
 
 ------------------------------------------------------------------------------
