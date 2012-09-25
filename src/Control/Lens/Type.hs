@@ -78,6 +78,7 @@ module Control.Lens.Type
   , (<^=), (<^^=), (<**=)
   , (<||=), (<&&=)
   , (<<%=), (<<.=)
+  , (<<~)
 
   -- * Cloning Lenses
   , cloneLens
@@ -103,7 +104,7 @@ infixr 4 %%~
 infix  4 %%=
 infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <%~, <<%~, <<.~
 infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<%=, <<.=
-
+infixr 2 <<~
 
 -------------------------------------------------------------------------------
 -- Lenses
@@ -675,6 +676,22 @@ l <<%= f = l %%= \c -> (c, f c)
 (<<.=) :: MonadState a m => LensLike ((,)c) a a c d -> d -> m c
 l <<.= d = l %%= \c -> (c,d)
 {-# INLINE (<<.=) #-}
+
+-- | Run a monadic action, and set the target of 'Lens' to its result.
+--
+-- @
+-- ('<<~') :: 'MonadState' a m => 'Control.Lens.Iso.Iso' a a c d   -> m d -> m d
+-- ('<<~') :: 'MonadState' a m => 'Control.Lens.Type.Lens' a a c d  -> m d -> m d
+-- @
+--
+-- NB: This is limited to taking an actual 'Lens' than admitting a 'Control.Lens.Traversal.Traversal' because
+-- there are potential loss of state issues otherwise.
+(<<~) :: MonadState a m => LensLike (Context c d) a a c d -> m d -> m d
+l <<~ md = do
+  d <- md
+  modify $ \a -> case l (Context id) a of Context f _ -> f d
+  return d
+{-# INLINE (<<~) #-}
 
 -- | Useful for storing lenses in containers.
 newtype ReifiedLens a b c d = ReifyLens { reflectLens :: Lens a b c d }
