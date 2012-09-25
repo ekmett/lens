@@ -1,4 +1,5 @@
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE TypeOperators #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Iso
@@ -13,6 +14,7 @@ module Control.Lens.Iso
   (
   -- * Isomorphism Lenses
     Iso
+  , (:<->)
   , iso
   , isos
   , ala
@@ -46,6 +48,8 @@ import Prelude hiding ((.),id)
 -- $setup
 -- >>> import Control.Lens
 
+infixr 0 :<->
+
 -----------------------------------------------------------------------------
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
@@ -66,6 +70,9 @@ type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f
 -- |
 -- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
 type SimpleIso a b = Iso a a b b
+
+-- | An commonly used infix alias for @'Control.Lens.Type.Simple' 'Iso'@
+type a :<-> b = Iso a a b b
 
 -- | Build an isomorphism family from two pairs of inverse functions
 --

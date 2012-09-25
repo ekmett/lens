@@ -2,7 +2,7 @@
 ---
 * Added `Control.Lens.Zipper`
 * Added `<<~`
-* Added `:->` and `:=>` as type operator aliases for `Simple Lens` and `Simple Traversal` respectively
+* Added `:->`, `:=>`, and `:<->` as type operator aliases for `Simple Lens`, `Simple Traversal`, and `Simple Iso`  respectively
 
 2.9
 ---
