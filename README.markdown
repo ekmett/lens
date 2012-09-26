@@ -47,7 +47,7 @@ ghci> ("hello",("world","!!!"))^._2._1
 ```
 
 ```haskell
-ghci> set (_2._1) 42 ("hello","world")
+ghci> set (_2._1) 42 ("hello",("world","!!!"))
 ("hello",(42,"!!!"))
 ```
 
