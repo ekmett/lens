@@ -72,7 +72,7 @@ ghci> _1 .~ "hello" $ ((),"world")
 ("hello","world)
 ```
 
-Conversely `view`, can be used as an infix alias for `(^.)`.
+Conversely `view`, can be used as a prefix alias for `(^.)`.
 
 ```haskell
 ghci> view _2 (10,20)
