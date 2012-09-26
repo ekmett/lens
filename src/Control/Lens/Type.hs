@@ -535,7 +535,7 @@ l <%= f = l %%= \c -> let d = f c in (d,d)
 -- | Add to the target of a numerically valued 'Lens' into your monad's state
 -- and return the result.
 --
--- When you do not need the result of the multiplication, ('Control.Lens.Setter.+=') is more
+-- When you do not need the result of the addition, ('Control.Lens.Setter.+=') is more
 -- flexible.
 --
 -- @
@@ -549,7 +549,7 @@ l <+= b = l <%= (+ b)
 -- | Subtract from the target of a numerically valued 'Lens' into your monad's
 -- state and return the result.
 --
--- When you do not need the result of the multiplication, ('Control.Lens.Setter.-=') is more
+-- When you do not need the result of the subtraction, ('Control.Lens.Setter.-=') is more
 -- flexible.
 --
 -- @
