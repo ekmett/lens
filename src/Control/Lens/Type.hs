@@ -31,8 +31,7 @@
 --
 -- @type 'Lens' a b c d = forall f. 'Functor' f => (c -> f d) -> a -> f b@
 --
--- Every 'Lens' is a valid 'Control.Lens.Setter.Setter', choosing @f@ =
--- 'Control.Lens.Getter.Mutator'.
+-- Every 'Lens' is a valid 'Control.Lens.Setter.Setter'.
 --
 -- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a
 -- 'Control.Lens.Fold.Fold' that doesn't use the 'Applicative' or
