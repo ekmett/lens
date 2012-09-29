@@ -59,6 +59,7 @@ module Control.Lens.Type
   , (:->)
 
   , lens
+  , simple
   , (%%~)
   , (%%=)
 
@@ -188,6 +189,12 @@ type SimpleLensLike f a b = LensLike f a a b b
 lens :: (a -> c) -> (a -> d -> b) -> Lens a b c d
 lens ac adb cfd a = adb a <$> cfd (ac a)
 {-# INLINE lens #-}
+
+-- | This is occasionally useful when your 'Lens' (or 'Control.Lens.Traversal.Traversal')
+-- has a constraint on an unused argument to force that argument to agree with the
+-- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.
+simple :: SimpleLensLike f a b -> SimpleLensLike f a b
+simple l = l
 
 -------------------------------------------------------------------------------
 -- LensLike

@@ -1,3 +1,7 @@
+3.0.1
+-----
+* Added `Control.Lens.Type.simple`.
+
 3.0
 ---
 * Added `Control.Lens.Zipper`.
