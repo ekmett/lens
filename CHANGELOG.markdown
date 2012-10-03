@@ -1,3 +1,8 @@
+3.0.2
+-----
+* Added `generateSignatures` option to `Control.Lens.TH` to allow the end user to disable the generation of type signatures for the
+  template-haskell generated lenses. This lets the user supply hand-written haddocks and more restricted signatures.
+
 3.0.1
 -----
 * Added `Control.Lens.Type.simple`.

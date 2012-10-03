@@ -36,7 +36,17 @@ module Control.Lens.TH
   , lensClass
   , lensFlags
   , LensFlag(..)
-  , simpleLenses, partialLenses, buildTraversals, handleSingletons, singletonIso, singletonRequired, createClass, createInstance, classRequired, singletonAndField
+  , simpleLenses
+  , partialLenses
+  , buildTraversals
+  , handleSingletons
+  , singletonIso
+  , singletonRequired
+  , createClass
+  , createInstance
+  , classRequired
+  , singletonAndField
+  , generateSignatures
   ) where
 
 import Control.Applicative
@@ -75,6 +85,7 @@ data LensFlag
   | CreateClass
   | CreateInstance
   | ClassRequired
+  | GenerateSignatures
   deriving (Eq,Ord,Show,Read)
 
 -- | Only Generate valid 'Simple' 'Lens' lenses.
@@ -123,6 +134,13 @@ createInstance     = lensFlags.contains CreateInstance
 classRequired     :: Simple Lens LensRules Bool
 classRequired      = lensFlags.contains ClassRequired
 
+-- | Indicate whether or not to supply the signatures for the generated lenses.
+--
+-- Disabling this can be useful if you want to provide a more restricted type signature
+-- or if you want to supply hand-written haddocks.
+generateSignatures :: Simple Lens LensRules Bool
+generateSignatures = lensFlags.contains GenerateSignatures
+
 -- | This configuration describes the options we'll be using to make isomorphisms or lenses.
 data LensRules = LensRules
   { _lensIso   :: String -> Maybe String
@@ -157,7 +175,7 @@ lensFlags f (LensRules i n c o) = LensRules i n c <$> f o
 -- | Default lens rules
 defaultRules :: LensRules
 defaultRules = LensRules top field (const Nothing) $
-    Set.fromList [SingletonIso, SingletonAndField, CreateClass, CreateInstance, BuildTraversals]
+    Set.fromList [SingletonIso, SingletonAndField, CreateClass, CreateInstance, BuildTraversals, GenerateSignatures]
   where
     top (c:cs) = Just (toLower c:cs)
     top _      = Nothing
@@ -379,10 +397,10 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
           if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
     body <- makeBody isoName dataConName makeIsoFrom makeIsoTo
 #ifndef INLINING
-    return [decl, body]
+    return $ if cfg^.generateSignatures then [decl, body] else [body]
 #else
     inlining <- inlinePragma isoName
-    return [decl, body, inlining]
+    return $ if cfg^.generateSignatures then [decl, body, inlining] else [body, inlining]
 #endif
   accessorDecls <- case mkName <$> (maybeFieldName >>= view lensField cfg . nameBase) of
     jfn@(Just lensName)
@@ -392,10 +410,10 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
                                         else [cty,dty,aty,bty]
       body <- makeBody lensName dataConName makeIsoTo makeIsoFrom
 #ifndef INLINING
-      return [decl, body]
+      return $ if cfg^.generateSignatures then [decl, body] else [body]
 #else
       inlining <- inlinePragma lensName
-      return [decl, body, inlining]
+      return $ if cfg^.generateSignatures then [decl, body, inlining] else [body, inlining]
 #endif
     _ -> return []
   return $ isoDecls ++ accessorDecls
@@ -514,10 +532,10 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
 
     body <- makeFieldLensBody isTraversal lensName conList maybeMethodName
 #ifndef INLINING
-    return [decl, body]
+    return $ if cfg^.generateSignatures then [decl, body] else [body]
 #else
     inlining <- inlinePragma lensName
-    return [decl, body, inlining]
+    return $ if cfg^.generateSignatures then [decl, body, inlining] else [body, inlining]
 #endif
   let defs = Prelude.concat bodies
   case maybeLensClass of
