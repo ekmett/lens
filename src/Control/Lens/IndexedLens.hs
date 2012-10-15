@@ -143,7 +143,7 @@ class At k m | m -> k where
   -- >>> Map.fromList [(1,"hello")] ^.at 1
   -- Just "hello"
   --
-  -- >>> at 1 .~ Just "hello" $ Map.empty
+  -- >>> at 1 ?~ "hello" $ Map.empty
   -- fromList [(1,"hello")]
   at :: k -> SimpleIndexedLens k (m v) (Maybe v)
 

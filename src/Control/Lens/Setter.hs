@@ -34,11 +34,11 @@ module Control.Lens.Setter
   , mapOf
   , set
   , (.~), (%~)
-  , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (&&~), (<.~)
+  , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (&&~), (<.~), (?~), (<?~)
   -- * State Combinators
   , assign
   , (.=), (%=)
-  , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (&&=), (<.=)
+  , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (&&=), (<.=), (?=), (<?=)
   , (<~)
   -- * Storing Setters
   , ReifiedSetter(..)
@@ -60,8 +60,8 @@ import Control.Monad.State.Class as State
 -- $setup
 -- >>> import Control.Lens
 
-infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <.~
-infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <.=
+infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <.~, ?~, <?~
+infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <.=, ?=, <?=
 infixr 2 <~
 
 ------------------------------------------------------------------------------
@@ -304,6 +304,20 @@ set l d = runMutator . l (\_ -> Mutator d)
 (.~) = set
 {-# INLINE (.~) #-}
 
+-- | Set the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Traversal.Traversal' or 'Setter' to 'Just' a value.
+--
+-- @l '?~' d ≡ 'set' l ('Just' d)@
+--
+-- @
+-- ('?~') :: 'Setter' a b c ('Maybe' d)    -> d -> a -> b
+-- ('?~') :: 'Control.Lens.Iso.Iso' a b c ('Maybe' d)       -> d -> a -> b
+-- ('?~') :: 'Control.Lens.Type.Lens' a b c ('Maybe' d)      -> d -> a -> b
+-- ('?~') :: 'Control.Lens.Traversal.Traversal' a b c ('Maybe' d) -> d -> a -> b
+-- @
+(?~) :: Setting a b c (Maybe d) -> d -> a -> b
+l ?~ d = set l (Just d)
+{-# INLINE (?~) #-}
+
 -- | Set with pass-through
 --
 -- This is mostly present for consistency, but may be useful for for chaining assignments
@@ -324,8 +338,28 @@ set l d = runMutator . l (\_ -> Mutator d)
 -- ('<.~') :: 'Control.Lens.Traversal.Traversal' a b c d -> d -> a -> (d, b)
 -- @
 (<.~) :: Setting a b c d -> d -> a -> (d, b)
-l <.~ d = \a -> (d, l .~ d $ a)
+l <.~ d = \a -> (d, set l d a)
 {-# INLINE (<.~) #-}
+
+-- | Set to 'Just' a value with pass-through
+--
+-- This is mostly present for consistency, but may be useful for for chaining assignments
+--
+-- If you do not need a copy of the intermediate result, then using @l '?~' d@ directly is a good idea.
+--
+-- >>> import Data.Map as Map
+-- >>> _2.at "hello" <?~ "world" $ (42,Map.fromList [("goodnight","gracie")])
+-- ("world",(42,fromList [("goodnight","gracie"),("hello","world")]))
+--
+-- @
+-- ('<?~') :: 'Setter' a b c d    -> ('Maybe' d) -> a -> (d, b)
+-- ('<?~') :: 'Control.Lens.Iso.Iso' a b c ('Maybe' d)       -> d -> a -> (d, b)
+-- ('<?~') :: 'Control.Lens.Type.Lens' a b c ('Maybe' d)      -> d -> a -> (d, b)
+-- ('<?~') :: 'Control.Lens.Traversal.Traversal' a b c ('Maybe' d) -> d -> a -> (d, b)
+-- @
+(<?~) :: Setting a b c (Maybe d) -> d -> a -> (d, b)
+l <?~ d = \a -> (d, set l (Just d) a)
+{-# INLINE (<?~) #-}
 
 -- | Increment the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal'
 --
@@ -525,6 +559,19 @@ l .= b = State.modify (l .~ b)
 l %= f = State.modify (l %~ f)
 {-# INLINE (%=) #-}
 
+-- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal' in our monadic
+-- state with 'Just' a new value, irrespective of the old.
+--
+-- @
+-- ('?=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a ('Maybe' b)       -> b -> m ()
+-- ('?=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a ('Maybe' b)      -> b -> m ()
+-- ('?=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a ('Maybe' b) -> b -> m ()
+-- ('?=') :: 'MonadState' a m => 'Control.Lens.Type.Simple' 'Setter' a ('Maybe' b)    -> b -> m ()
+-- @
+(?=) :: MonadState a m => Setting a a c (Maybe d) -> d -> m ()
+l ?= b = State.modify (l ?~ b)
+{-# INLINE (?=) #-}
+
 -- | Modify the target(s) of a 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso', 'Setter' or 'Control.Lens.Traversal.Traversal' by adding a value
 --
 -- Example:
@@ -690,6 +737,26 @@ l <.= d = do
   l .= d
   return d
 {-# INLINE (<.=) #-}
+
+-- | Set 'Just' a value with pass-through
+--
+-- This is useful for chaining assignment without round-tripping through your monad stack.
+--
+-- @do x <- at "foo" <?= ninety_nine_bottles_of_beer_on_the_wall@
+--
+-- If you do not need a copy of the intermediate result, then using @l ?= d@ will avoid unused binding warnings
+--
+-- @
+-- ('<?=') :: 'MonadState' a m => 'Setter' a a c ('Maybe' d) -> d -> m d
+-- ('<?=') :: 'MonadState' a m => 'Control.Lens.Iso.Iso' a a c ('Maybe' d) -> d -> m d
+-- ('<?=') :: 'MonadState' a m => 'Control.Lens.Type.Lens' a a c ('Maybe' d) -> d -> m d
+-- ('<?=') :: 'MonadState' a m => 'Control.Lens.Traversal.Traversal' a a c ('Maybe' d) -> d -> m d
+-- @
+(<?=) :: MonadState a m => Setting a a c (Maybe d) -> d -> m d
+l <?= d = do
+  l ?= d
+  return d
+{-# INLINE (<?=) #-}
 
 -- | Reify a setter so it can be stored safely in a container.
 newtype ReifiedSetter a b c d = ReifySetter { reflectSetter :: Setter a b c d }
