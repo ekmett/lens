@@ -1,3 +1,8 @@
+3.0.3
+-----
+* Refined the behavior of `substType` in `Control.Lens.TH` to match the behavior of `typeVarsEx` when moving under binders.
+
+
 3.0.2
 -----
 * Added `generateSignatures` option to `Control.Lens.TH` to allow the end user to disable the generation of type signatures for the

@@ -28,6 +28,7 @@ module Language.Haskell.TH.Lens
 import Control.Applicative
 import Control.Lens.Getter
 import Control.Lens.Setter
+import Control.Lens.Fold
 import Control.Lens.Type
 import Control.Lens.Traversal
 import Control.Lens.IndexedLens
@@ -104,7 +105,8 @@ class SubstType t where
 
 instance SubstType Type where
   substType m t@(VarT n)          = fromMaybe t (m^.at n)
-  substType m (ForallT bs ctx ty) = ForallT bs (substType m ctx) (substType m ty)
+  substType m (ForallT bs ctx ty) = ForallT bs (substType m' ctx) (substType m' ty)
+    where m' = foldrOf typeVars Map.delete m bs
   substType m (SigT t k)          = SigT (substType m t) k
   substType m (AppT l r)          = AppT (substType m l) (substType m r)
   substType _ t                   = t
