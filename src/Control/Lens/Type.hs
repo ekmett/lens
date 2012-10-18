@@ -260,9 +260,9 @@ type LensLike f a b c d = (c -> f d) -> a -> f b
 -- following more restricted type signatures:
 --
 -- @
--- ('%%=') :: 'MonadState' a m             => 'Control.Lens.Iso.Iso' a a c d       -> (c -> (e, d) -> m e
--- ('%%=') :: 'MonadState' a m             => 'Lens' a a c d      -> (c -> (e, d) -> m e
--- ('%%=') :: ('MonadState' a m, 'Monoid' e) => 'Control.Lens.Traversal.Traversal' a a c d -> (c -> (e, d) -> m e
+-- ('%%=') :: 'MonadState' a m             => 'Control.Lens.Iso.Iso' a a c d       -> (c -> (e, d)) -> m e
+-- ('%%=') :: 'MonadState' a m             => 'Lens' a a c d      -> (c -> (e, d)) -> m e
+-- ('%%=') :: ('MonadState' a m, 'Monoid' e) => 'Control.Lens.Traversal.Traversal' a a c d -> (c -> (e, d)) -> m e
 -- @
 (%%=) :: MonadState a m => LensLike ((,) e) a a c d -> (c -> (e, d)) -> m e
 #if MIN_VERSION_mtl(2,1,1)
