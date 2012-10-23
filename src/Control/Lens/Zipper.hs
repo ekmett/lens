@@ -281,7 +281,7 @@ within l (Zipper h (Level n ls b rs)) = case partsOf l (Context id) b of
 --
 -- You can reason about this function as if the definition was:
 --
--- @'fromWithin' l ≡ 'fromMaybe' '.' 'within' l@
+-- @'fromWithin' l ≡ 'fromJust ' '.' 'within' l@
 --
 -- but it is lazier in such a way that if this invariant is violated, some code
 -- can still succeed if it is lazy enough in the use of the focused value.
