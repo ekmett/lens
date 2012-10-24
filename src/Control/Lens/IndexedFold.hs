@@ -401,7 +401,7 @@ indicesOf l f = withIndex l (const . coerce . f)
 -- Converting to Folds
 -------------------------------------------------------------------------------
 
--- | Obtain an 'IndexedFold' by filtering a 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter', 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'.
+-- | Obtain an 'IndexedFold' by filtering an 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter', 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'.
 ifiltered :: (Gettable f, Applicative f, Indexed i k) => (i -> c -> Bool) -> Index i (c -> f c) (a -> f b) -> k (c -> f c) (a -> f b)
 ifiltered p l = index $ \ f -> withIndex l $ \ i c -> if p i c then f i c else noEffect
 {-# INLINE ifiltered #-}
