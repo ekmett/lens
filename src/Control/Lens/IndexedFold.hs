@@ -42,6 +42,7 @@ module Control.Lens.IndexedFold
 
   -- * Building Indexed Folds
   , ifiltered
+  , ibackwards
   , itakingWhile
   , idroppingWhile
 
@@ -50,6 +51,7 @@ module Control.Lens.IndexedFold
   ) where
 
 import Control.Applicative
+import Control.Applicative.Backwards
 import Control.Lens.Indexed
 import Control.Lens.IndexedGetter
 import Control.Lens.Internal
@@ -405,6 +407,12 @@ indicesOf l f = withIndex l (const . coerce . f)
 ifiltered :: (Gettable f, Applicative f, Indexed i k) => (i -> c -> Bool) -> Index i (c -> f c) (a -> f b) -> k (c -> f c) (a -> f b)
 ifiltered p l = index $ \ f -> withIndex l $ \ i c -> if p i c then f i c else noEffect
 {-# INLINE ifiltered #-}
+
+-- | Reverse the order of the elements of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'.
+-- This has no effect on an 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter', or 'Control.Lens.IndexedSetter.IndexedSetter'.
+ibackwards :: (Indexed i k) => Index i (c -> (Backwards f) d) (a -> (Backwards f) b) -> k (c -> f d) (a -> f b)
+ibackwards l = index $ \ f -> fmap forwards . withIndex l $ \ i -> Backwards . f i
+{-# INLINE ibackwards #-}
 
 -- | Obtain an 'IndexedFold' by taking elements from another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' while a predicate holds.
 itakingWhile :: (Gettable f, Applicative f, Indexed i k)
