@@ -410,7 +410,7 @@ ifiltered p l = index $ \ f -> withIndex l $ \ i c -> if p i c then f i c else n
 
 -- | Reverse the order of the elements of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'.
 -- This has no effect on an 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter', or 'Control.Lens.IndexedSetter.IndexedSetter'.
-ibackwards :: (Indexed i k) => Index i (c -> (Backwards f) d) (a -> (Backwards f) b) -> k (c -> f d) (a -> f b)
+ibackwards :: Indexed i k => Index i (c -> (Backwards f) d) (a -> (Backwards f) b) -> k (c -> f d) (a -> f b)
 ibackwards l = index $ \ f -> fmap forwards . withIndex l $ \ i -> Backwards . f i
 {-# INLINE ibackwards #-}
 
