@@ -76,7 +76,7 @@ reindex ij (Index iab) = index $ \ ja -> iab $ \i -> ja (ij i)
 
 -- | Composition of 'Indexed' functions
 --
--- Mnemonically, the @<@ and @>@ points to the fact that we want to preserve the indices.
+-- Mnemonically, the @\<@ and @\>@ points to the fact that we want to preserve the indices.
 (<.>) :: Indexed (i, j) k => Index i b c -> Index j a b -> k a c
 f <.> g = icompose (,) f g
 {-# INLINE (<.>) #-}
