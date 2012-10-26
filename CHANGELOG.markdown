@@ -1,3 +1,7 @@
+3.0.5
+-----
+* Fixed a bug in `rights1` and `lefts1` in `Control.Lens.Zipper` which would cause them to loop forever when given a 0 offset.
+
 3.0.4
 -----
 * Added `?~`, `<?~`, `?=` and `<?=` to `Control.Lens.Setter` for setting the target(s) of a Lens to `Just` a value. They are particularly useful when combined with `at`.

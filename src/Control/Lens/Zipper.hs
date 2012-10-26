@@ -190,7 +190,7 @@ lefts k z
 -- Passing a negative @n@ will move to @-n@ entries the right, and will return the last entry if you run out of entries.
 lefts1 :: Int -> (h :> a) -> h :> a
 lefts1 n z
-  | n <= 0 = rights1 (-n) z
+  | n < 0 = rights1 (-n) z
   | otherwise = go n z
   where go 0 c = c
         go k c = case left c of
@@ -202,7 +202,7 @@ lefts1 n z
 -- Passing a negative number will move to the left and will return the first entry if you run out of entries.
 rights1 :: Int -> (h :> a) -> h :> a
 rights1 n z
-  | n <= 0 = lefts1 (-n) z
+  | n < 0 = lefts1 (-n) z
   | otherwise = go n z
   where go 0 c = c
         go k c = case right c of
