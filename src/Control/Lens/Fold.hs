@@ -203,13 +203,12 @@ takingWhile p l f = foldrOf l (\a r -> if p a then f a *> r else noEffect) noEff
 -- [4,5,6]
 --
 -- >>> toListOf (droppingWhile (<=3) folded) [1,6,1]
-
+-- [6,1]
 droppingWhile :: (Gettable f, Applicative f)
               => (c -> Bool)
-              -> Getting (Endo (f a)) a a c c
+              -> Getting (Endo (f a, f a)) a a c c
               -> LensLike f a a c c
-droppingWhile p l f = foldrOf l (\a r -> if p a then r else f a *> r) noEffect
--- droppingWhile p l f = fst . foldrOf l (\a r -> let s = f a *> snd r in if p a then (snd r, s) else (s, s)) (noEffect, noEffect)
+droppingWhile p l f = fst . foldrOf l (\a r -> let s = f a *> snd r in if p a then (fst r, s) else (s, s)) (noEffect, noEffect)
 {-# INLINE droppingWhile #-}
 
 --------------------------
