@@ -338,7 +338,7 @@ alongside l r f (a, a') = case l (Context id) a of
 -------------------------------------------------------------------------------
 
 -- |
--- Cloning a 'Lens' is one way to make sure you arent given
+-- Cloning a 'Lens' is one way to make sure you aren't given
 -- something weaker, such as a 'Control.Lens.Traversal.Traversal' and can be
 -- used as a way to pass around lenses that have to be monomorphic in @f@.
 --

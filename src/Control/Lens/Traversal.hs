@@ -401,7 +401,7 @@ traverseRight f (Right a) = Right <$> f a
 
 -- | A 'Traversal' is completely characterized by its behavior on a 'Bazaar'.
 --
--- Cloning a 'Traversal' is one way to make sure you arent given
+-- Cloning a 'Traversal' is one way to make sure you aren't given
 -- something weaker, such as a 'Control.Lens.Traversal.Fold' and can be
 -- used as a way to pass around traversals that have to be monomorphic in @f@.
 --
