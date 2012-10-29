@@ -1,3 +1,7 @@
+3.0.6
+-----
+* Restored lenses to `Trustworthy` status so they can be used with Safe Haskell once more.
+
 3.0.5
 -----
 * Fixed a bug in `rights1` and `lefts1` in `Control.Lens.Zipper` which would cause them to loop forever when given a 0 offset.
