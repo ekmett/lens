@@ -632,12 +632,12 @@ l //= b = State.modify (l //~ b)
 -- | Raise the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to a non-negative integral power.
 --
 -- @
--- ('^=') ::  ('MonadState' a m, 'Fractional' b, 'Integral' c) => 'Control.Lens.Type.Simple' 'Setter' a b -> c -> m ()
--- ('^=') ::  ('MonadState' a m, 'Fractional' b, 'Integral' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a b -> c -> m ()
--- ('^=') ::  ('MonadState' a m, 'Fractional' b, 'Integral' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a b -> c -> m ()
--- ('^=') ::  ('MonadState' a m, 'Fractional' b, 'Integral' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a b -> c -> m ()
+-- ('^=') ::  ('MonadState' a m, 'Num' b, 'Integral' c) => 'Control.Lens.Type.Simple' 'Setter' a b -> c -> m ()
+-- ('^=') ::  ('MonadState' a m, 'Num' b, 'Integral' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a b -> c -> m ()
+-- ('^=') ::  ('MonadState' a m, 'Num' b, 'Integral' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a b -> c -> m ()
+-- ('^=') ::  ('MonadState' a m, 'Num' b, 'Integral' c) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a b -> c -> m ()
 -- @
-(^=) :: (MonadState a m, Fractional b, Integral c) => SimpleSetting a b -> c -> m ()
+(^=) :: (MonadState a m, Num b, Integral c) => SimpleSetting a b -> c -> m ()
 l ^= c = State.modify (l ^~ c)
 {-# INLINE (^=) #-}
 
