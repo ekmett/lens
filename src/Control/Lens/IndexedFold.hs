@@ -426,9 +426,9 @@ itakingWhile p l = index $ \ f -> ifoldrOf l (\i a r -> if p i a then f i a *> r
 -- | Obtain an 'IndexedFold' by dropping elements from another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' while a predicate holds.
 idroppingWhile :: (Gettable f, Applicative f, Indexed i k)
               => (i -> c -> Bool)
-              -> IndexedGetting i (Endo (f a)) a a c c
+              -> IndexedGetting i (Endo (f a, f a)) a a c c
               -> k (c -> f c) (a -> f a)
-idroppingWhile p l = index $ \f -> ifoldrOf l (\i a r -> if p i a then r else f i a *> r) noEffect
+idroppingWhile p l = index $ \f -> fst . ifoldrOf l (\i a r -> let s = f i a *> snd r in if p i a then (fst r, s) else (s, s)) (noEffect, noEffect)
 {-# INLINE idroppingWhile #-}
 
 ------------------------------------------------------------------------------
