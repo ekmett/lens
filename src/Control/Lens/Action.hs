@@ -42,27 +42,27 @@ infixr 8 ^!
 -- Every 'Getter' can be used as an 'Action'
 --
 -- You can compose an 'Action' with another 'Action' using ('Prelude..') from the @Prelude@.
-type Action m a c = forall f r. Effective m r f => (c -> f c) -> a -> f a
+type Action m s a = forall f r. Effective m r f => (a -> f a) -> s -> f s
 
 -- | A 'MonadicFold' is a 'Fold' enriched with access to a 'Monad' for side-effects.
 --
 -- Every 'Fold' can be used as a 'MonadicFold', that simply ignores the access to the 'Monad'.
 --
 -- You can compose a 'MonadicFold' with another 'MonadicFold' using ('Prelude..') from the @Prelude@.
-type MonadicFold m a c = forall f r. (Effective m r f, Applicative f) => (c -> f c) -> a -> f a
+type MonadicFold m s a = forall f r. (Effective m r f, Applicative f) => (a -> f a) -> s -> f s
 
 -- | Used to evaluate an 'Action'.
-type Acting m r a b c d = (c -> Effect m r d) -> a -> Effect m r b
+type Acting m r s t a b = (a -> Effect m r b) -> s -> Effect m r t
 
 -- | Perform an 'Action'.
 --
 -- > perform = flip (^!)
-perform :: Monad m => Acting m c a b c d -> a -> m c
+perform :: Monad m => Acting m a s t a b -> s -> m a
 perform l = getEffect . l (Effect . return)
 {-# INLINE perform #-}
 
 -- | Perform an 'Action' and modify the result.
-performs :: Monad m => Acting m e a b c d -> (c -> e) -> a -> m e
+performs :: Monad m => Acting m e s t a b -> (a -> e) -> s -> m e
 performs l f = getEffect . l (Effect . return . f)
 
 -- | Perform an 'Action'
@@ -70,13 +70,13 @@ performs l f = getEffect . l (Effect . return . f)
 -- >>> ["hello","world"]^!folded.act putStrLn
 -- hello
 -- world
-(^!) :: Monad m => a -> Acting m c a b c d -> m c
+(^!) :: Monad m => s -> Acting m a s t a b -> m a
 a ^! l = getEffect (l (Effect . return) a)
 {-# INLINE (^!) #-}
 
 -- | Construct an 'Action' from a monadic side-effect
-act :: Monad m => (a -> m c) -> Action m a c
-act amc cfd a = effective (amc a >>= ineffective . cfd)
+act :: Monad m => (s -> m a) -> Action m s a
+act sma afb a = effective (sma a >>= ineffective . afb)
 {-# INLINE act #-}
 
 -- | A self-running 'Action', analogous to 'Control.Monad.join'.
@@ -90,6 +90,6 @@ acts = act id
 {-# INLINE acts #-}
 
 -- | Apply a 'Monad' transformer to an 'Action'.
-liftAct :: (MonadTrans t, Monad m) => Acting m c a b c d -> Action (t m) a c
+liftAct :: (MonadTrans trans, Monad m) => Acting m a s t a b -> Action (trans m) s a
 liftAct l = act (lift . perform l)
 {-# INLINE liftAct #-}

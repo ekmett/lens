@@ -28,25 +28,25 @@ infix 4 <>=, <<>=
 -- ("hello!!!","world!!!")
 --
 -- @
--- ('<>~') :: 'Monoid' c => 'Setter' a b c c -> c -> a -> b
--- ('<>~') :: 'Monoid' c => 'Iso' a b c c -> c -> a -> b
--- ('<>~') :: 'Monoid' c => 'Lens' a b c c -> c -> a -> b
--- ('<>~') :: 'Monoid' c => 'Traversal' a b c c -> c -> a -> b
+-- ('<>~') :: 'Monoid' a => 'Setter' s t a a -> a -> s -> t
+-- ('<>~') :: 'Monoid' a => 'Iso' s t a a -> a -> s -> t
+-- ('<>~') :: 'Monoid' a => 'Lens' s t a a -> a -> s -> t
+-- ('<>~') :: 'Monoid' a => 'Traversal' s t a a -> a -> s -> t
 -- @
-(<>~) :: Monoid c => Setting a b c c -> c -> a -> b
+(<>~) :: Monoid a => Setting s t a a -> a -> s -> t
 l <>~ n = over l (`mappend` n)
 {-# INLINE (<>~) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by 'mappend'ing a value.
 --
 -- @
--- ('<>=') :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Setter' a b -> b -> m ()
--- ('<>=') :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Iso' a b -> b -> m ()
--- ('<>=') :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Lens' a b -> b -> m ()
--- ('<>=') :: ('MonadState' a m, 'Monoid' b) => 'Simple' 'Traversal' a b -> b -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Setter' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Iso' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Lens' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Traversal' s a -> a -> m ()
 -- @
-(<>=) :: (MonadState a m, Monoid b) => SimpleSetting a b -> b -> m ()
-l <>= b = State.modify (l <>~ b)
+(<>=) :: (MonadState s m, Monoid a) => SimpleSetting s a -> a -> m ()
+l <>= a = State.modify (l <>~ a)
 {-# INLINE (<>=) #-}
 
 
@@ -54,7 +54,7 @@ l <>= b = State.modify (l <>~ b)
 -- return the result
 --
 -- When you do not need the result of the operation, ('<>~') is more flexible.
-(<<>~) :: Monoid m => LensLike ((,)m) a b m m -> m -> a -> (m, b)
+(<<>~) :: Monoid m => LensLike ((,)m) s t m m -> m -> s -> (m, t)
 l <<>~ m = l <%~ (`mappend` m)
 {-# INLINE (<<>~) #-}
 
@@ -62,7 +62,7 @@ l <<>~ m = l <%~ (`mappend` m)
 -- your monad's state and return the result.
 --
 -- When you do not need the result of the operation, ('<>=') is more flexible.
-(<<>=) :: (MonadState a m, Monoid r) => SimpleLensLike ((,)r) a r -> r -> m r
+(<<>=) :: (MonadState s m, Monoid r) => SimpleLensLike ((,)r) s r -> r -> m r
 l <<>= r = l <%= (`mappend` r)
 {-# INLINE (<<>=) #-}
 

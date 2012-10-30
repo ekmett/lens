@@ -12,85 +12,85 @@ import Data.Functor.Compose
 import Data.Functor.Identity
 
 -- | A finally encoded Store
-newtype Experiment c d a = Experiment { runExperiment :: forall f. Functor f => (c -> f d) -> f a }
+newtype Experiment a b s = Experiment { runExperiment :: forall f. Functor f => (a -> f b) -> f s }
 
-instance Functor (Experiment c d) where
+instance Functor (Experiment a b) where
   fmap f (Experiment k) = Experiment (fmap f . k)
   {-# INLINE fmap #-}
 
-instance (c ~ d) => Comonad (Experiment c d) where
+instance (a ~ b) => Comonad (Experiment a b) where
   extract (Experiment m) = runIdentity (m Identity)
   {-# INLINE extract #-}
   duplicate = duplicateExperiment
   {-# INLINE duplicate #-}
 
 -- | 'Experiment' is an indexed 'Comonad'.
-duplicateExperiment :: Experiment c e a -> Experiment c d (Experiment d e a)
+duplicateExperiment :: Experiment a c s -> Experiment a b (Experiment b c s)
 duplicateExperiment (Experiment m) = getCompose (m (Compose . fmap placebo . placebo))
 {-# INLINE duplicateExperiment #-}
 
 -- | A trivial 'Experiment'.
-placebo :: c -> Experiment c d d
+placebo :: a -> Experiment a b b
 placebo i = Experiment (\k -> k i)
 {-# INLINE placebo #-}
 
-instance (c ~ d) => ComonadStore c (Experiment c d) where
+instance (a ~ b) => ComonadStore a (Experiment a b) where
   pos m = posExperiment m
   peek d m = peekExperiment d m
   peeks f m = runIdentity $ runExperiment m (\c -> Identity (f c))
   experiment f m = runExperiment m f
 
-posExperiment :: Experiment c d a -> c
+posExperiment :: Experiment a b s -> a
 posExperiment m = getConst (runExperiment m Const)
 {-# INLINE posExperiment #-}
 
-peekExperiment :: d -> Experiment c d a -> a
-peekExperiment d m = runIdentity $ runExperiment m (\_ -> Identity d)
+peekExperiment :: b -> Experiment a b s -> s
+peekExperiment b m = runIdentity $ runExperiment m (\_ -> Identity b)
 {-# INLINE peekExperiment #-}
 
-trial :: Lens a b c d -> Lens a' b' c' d' -> Lens (a,a') (b,b') (c,c') (d,d')
-trial l r pfq (a,a') = fmap (\(d,b') -> (peekExperiment d x,b')) (getCompose (r (\c' -> Compose $ pfq (posExperiment x, c')) a'))
-  where x = l placebo a
+trial :: Lens s t a b -> Lens s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
+trial l r pfq (s,s') = fmap (\(b,t') -> (peekExperiment b x,t')) (getCompose (r (\a' -> Compose $ pfq (posExperiment x, a')) s'))
+  where x = l placebo s
 {-# INLINE trial #-}
 
-posContext :: Context c d a -> c
-posContext (Context _ c) = c
+posContext :: Context a b s -> a
+posContext (Context _ a) = a
 {-# INLINE posContext #-}
 
-peekContext :: d -> Context c d a -> a
-peekContext d (Context f _) = f d
+peekContext :: b -> Context a b s -> s
+peekContext b (Context f _) = f b
 {-# INLINE peekContext #-}
 
 -- a version of alongside built with Context and product
-half :: LensLike (Context c d) a b c d -> Lens a' b' c' d' -> Lens (a,a') (b,b') (c,c') (d,d')
-half l r pfq (a,a') = fmap (\(d,b') -> (peekContext d x,b')) (getCompose (r (\c' -> Compose $ pfq (posContext x, c')) a'))
-  where x = l (Context id) a
+half :: LensLike (Context a b) s t a b -> Lens s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
+half l r pfq (s,s') = fmap (\(b,t') -> (peekContext b x,t')) (getCompose (r (\a' -> Compose $ pfq (posContext x, a')) s'))
+  where x = l (Context id) s
 {-# INLINE half #-}
 
--- alongside' :: Lens a b c d -> Lens a' b' c' d' -> Lens (a,a') (b,b') (c,c') (d,d')
+-- alongside' :: Lens s t a b -> Lens s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
 -- {-# INLINE alongside'#-}
 
-compound :: Lens a b c d
-         -> Lens a' b' c' d'
-         -> Lens (a,a') (b,b') (c,c') (d,d')
-compound l r = lens (\(a, a') -> (view l a, view r a'))
-                    (\(a, a') (b, b') -> (set l b a, set r b' a'))
+compound :: Lens s t a b
+         -> Lens s' t' a' b'
+         -> Lens (s,s') (t,t') (a,a') (b,b')
+compound l r = lens (\(s, s') -> (view l s, view r s'))
+                    (\(s, s') (t, t') -> (set l t s, set r t' s'))
 {-# INLINE compound #-}
 
-compound5 :: Lens a b c d
-          -> Lens a' b' c' d'
-          -> Lens a'' b'' c'' d''
-          -> Lens a''' b''' c''' d'''
-          -> Lens a'''' b'''' c'''' d''''
-          -> Lens (a, (a', (a'', (a''', a''''))))
+compound5 :: Lens s t a b
+          -> Lens s' t' a' b'
+          -> Lens s'' t'' a'' b''
+          -> Lens s''' t''' a''' b'''
+          -> Lens s'''' t'''' a'''' b''''
+          -> Lens (s, (s', (s'', (s''', s''''))))
+                  (t, (t', (t'', (t''', t''''))))
+                  (a, (a', (a'', (a''', a''''))))
                   (b, (b', (b'', (b''', b''''))))
-                  (c, (c', (c'', (c''', c''''))))
-                  (d, (d', (d'', (d''', d''''))))
 compound5 l l' l'' l''' l''''
-  = lens (\(a, (a', (a'', (a''', a''''))))
-           -> (view l a, (view l' a', (view l'' a'', (view l''' a''', view l'''' a'''')))) )
-         (\(a, (a', (a'', (a''', a'''')))) (b, (b', (b'', (b''', b''''))))
-           -> (set l b a, (set l' b' a', (set l'' b'' a'', (set l''' b''' a''', set l'''' b'''' a'''')))) )
+  = lens (\(s, (s', (s'', (s''', s''''))))
+           -> (view l s, (view l' s', (view l'' s'', (view l''' s''', view l'''' s'''')))) )
+         (\(s, (s', (s'', (s''', s'''')))) (t, (t', (t'', (t''', t''''))))
+           -> (set l t s, (set l' t' s', (set l'' t'' s'', (set l''' t''' s''', set l'''' t'''' s'''')))) )
 
 main = defaultMain
     [ bench "alongside1" $ nf (view $ alongside _1 _2) (("hi", 1), (2, "there!"))

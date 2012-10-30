@@ -59,6 +59,6 @@ ixmapped = sets . ixmap
 -- index into the array as the index of the traversal.
 --
 -- @'amap' ≡ 'over' 'traverseArray'@
-traverseArray :: (IArray a c, IArray a d, Ix i) => IndexedTraversal i (a i c) (a i d) c d
+traverseArray :: (IArray arr a, IArray arr b, Ix i) => IndexedTraversal i (arr i a) (arr i b) a b
 traverseArray = index $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (assocs arr)
 {-# INLINE traverseArray #-}

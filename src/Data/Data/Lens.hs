@@ -67,32 +67,28 @@ gtraverse f = gfoldl (\x y -> x <*> f y) pure
 -- | Naïve 'Traversal' using 'Data'. This does not attempt to optimize the traversal.
 --
 -- This is primarily useful when the children are immediately obvious, and for benchmarking.
---
--- @
--- 'tinplate' :: ('Data' a, 'Typeable' b) => 'Simple' 'Traversal' a b
--- @
-tinplate :: (Data a, Typeable b) => Simple Traversal a b
+tinplate :: (Data s, Typeable a) => Simple Traversal s a
 tinplate f = gfoldl (step f) pure
 {-# INLINE tinplate #-}
 
-step :: (Applicative f, Typeable b, Data d) => (b -> f b) -> f (d -> e) -> d -> f e
-step f w d = w <*> case cast d of
-  Just b  -> unsafeCoerce <$> f b
-  Nothing -> tinplate f d
+step :: (Applicative f, Typeable a, Data s) => (a -> f a) -> f (s -> r) -> s -> f r
+step f w s = w <*> case cast s of
+  Just a  -> unsafeCoerce <$> f a
+  Nothing -> tinplate f s
 {-# INLINE step #-}
 
 -------------------------------------------------------------------------------
 -- Smart Traversal
 -------------------------------------------------------------------------------
 
--- | Find every occurence of a given type @b@ recursively that doesn't require
--- passing through something of type @b@ using 'Data', while avoiding traversal
--- of areas that cannot contain a value of type @b@.
+-- | Find every occurence of a given type @a@ recursively that doesn't require
+-- passing through something of type @a@ using 'Data', while avoiding traversal
+-- of areas that cannot contain a value of type @a@.
 --
 -- This is 'uniplate' with a more liberal signature.
-template :: forall a b. (Data a, Typeable b) => Simple Traversal a b
+template :: forall s a. (Data s, Typeable a) => Simple Traversal s a
 template = uniplateData (fromOracle answer) where
-  answer = hitTest (undefined :: a) (undefined :: b)
+  answer = hitTest (undefined :: s) (undefined :: a)
 {-# INLINE template #-}
 
 -- | Find descendants of type @a@ non-transitively, while avoiding computation of areas that cannot contain values of
@@ -103,10 +99,10 @@ uniplate :: Data a => Simple Traversal a a
 uniplate = template
 {-# INLINE uniplate #-}
 
--- | 'biplate' performs like 'template', except when @a ~ b@, it returns itself and nothing else.
-biplate :: forall a b. (Data a, Typeable b) => Simple Traversal a b
+-- | 'biplate' performs like 'template', except when @s ~ a@, it returns itself and nothing else.
+biplate :: forall s a. (Data s, Typeable a) => Simple Traversal s a
 biplate = biplateData (fromOracle answer) where
-  answer = hitTest (undefined :: a) (undefined :: b)
+  answer = hitTest (undefined :: s) (undefined :: a)
 {-# INLINE biplate #-}
 
 -------------------------------------------------------------------------------
@@ -246,26 +242,26 @@ hitTest a b
 -------------------------------------------------------------------------------
 
 
-biplateData :: forall f a b. (Applicative f, Data a, Typeable b) => (forall c. Typeable c => c -> Answer b) -> (b -> f b) -> a -> f a
+biplateData :: forall f s a. (Applicative f, Data s, Typeable a) => (forall c. Typeable c => c -> Answer a) -> (a -> f a) -> s -> f s
 biplateData o f a0 = go2 a0 where
   go :: Data d => d -> f d
-  go a = gfoldl (\x y -> x <*> go2 y) pure a
+  go s = gfoldl (\x y -> x <*> go2 y) pure s
   go2 :: Data d => d -> f d
-  go2 a = case o a of
-    Hit b  -> Unsafe.unsafeCoerce <$> f b
-    Follow -> go a
-    Miss   -> pure a
+  go2 s = case o s of
+    Hit a  -> Unsafe.unsafeCoerce <$> f a
+    Follow -> go s
+    Miss   -> pure s
 {-# INLINE biplateData #-}
 
-uniplateData :: forall f a b. (Applicative f, Data a, Typeable b) => (forall c. Typeable c => c -> Answer b) -> (b -> f b) -> a -> f a
+uniplateData :: forall f s a. (Applicative f, Data s, Typeable a) => (forall c. Typeable c => c -> Answer a) -> (a -> f a) -> s -> f s
 uniplateData o f a0 = go a0 where
   go :: Data d => d -> f d
-  go a = gfoldl (\x y -> x <*> go2 y) pure a
+  go s = gfoldl (\x y -> x <*> go2 y) pure s
   go2 :: Data d => d -> f d
-  go2 a = case o a of
-    Hit b  -> Unsafe.unsafeCoerce <$> f b
-    Follow -> go a
-    Miss   -> pure a
+  go2 s = case o s of
+    Hit a  -> Unsafe.unsafeCoerce <$> f a
+    Follow -> go s
+    Miss   -> pure s
 {-# INLINE uniplateData #-}
 
 -------------------------------------------------------------------------------

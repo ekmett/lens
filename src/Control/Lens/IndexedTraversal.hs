@@ -73,10 +73,10 @@ import Data.Map as Map
 -- The 'Indexed' constraint is used to allow an 'IndexedTraversal' to be used directly as a 'Control.Lens.Traversal.Traversal'.
 --
 -- The 'Control.Lens.Traversal.Traversal' laws are still required to hold.
-type IndexedTraversal i a b c d = forall f k. (Indexed i k, Applicative f) => k (c -> f d) (a -> f b)
+type IndexedTraversal i s t a b = forall f k. (Indexed i k, Applicative f) => k (a -> f b) (s -> f t)
 
 -- | @type 'SimpleIndexedTraversal' i = 'Simple' ('IndexedTraversal' i)@
-type SimpleIndexedTraversal i a b = IndexedTraversal i a a b b
+type SimpleIndexedTraversal i s a = IndexedTraversal i s s a a
 
 -- | Traversal with an index.
 --
@@ -89,10 +89,10 @@ type SimpleIndexedTraversal i a b = IndexedTraversal i a a b b
 -- @
 --
 -- @
--- 'itraverseOf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> c -> f d) -> a -> f b
--- 'itraverseOf' :: 'IndexedTraversal' i a b c d -> (i -> c -> f d) -> a -> f b
+-- 'itraverseOf' :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> (i -> a -> f b) -> s -> f t
+-- 'itraverseOf' :: 'IndexedTraversal' i s t a b -> (i -> a -> f b) -> s -> f t
 -- @
-itraverseOf :: Overloaded (Index i) f a b c d -> (i -> c -> f d) -> a -> f b
+itraverseOf :: Overloaded (Index i) f s t a b -> (i -> a -> f b) -> s -> f t
 itraverseOf = withIndex
 {-# INLINE itraverseOf #-}
 
@@ -105,10 +105,10 @@ itraverseOf = withIndex
 -- @
 --
 -- @
--- 'iforOf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> a -> (i -> c -> f d) -> f b
--- 'iforOf' :: 'IndexedTraversal' i a b c d -> a -> (i -> c -> f d) -> f b
+-- 'iforOf' :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> s -> (i -> a -> f b) -> f t
+-- 'iforOf' :: 'IndexedTraversal' i s t a b -> s -> (i -> a -> f b) -> f t
 -- @
-iforOf :: Overloaded (Index i) f a b c d -> a -> (i -> c -> f d) -> f b
+iforOf :: Overloaded (Index i) f s t a b -> s -> (i -> a -> f b) -> f t
 iforOf = flip . withIndex
 {-# INLINE iforOf #-}
 
@@ -121,10 +121,10 @@ iforOf = flip . withIndex
 -- @'Control.Lens.Traversal.mapMOf' l ≡ 'imapMOf' l '.' 'const'@
 --
 -- @
--- 'imapMOf' :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens'      i a b c d -> (i -> c -> m d) -> a -> m b
--- 'imapMOf' :: 'Monad' m => 'IndexedTraversal' i a b c d -> (i -> c -> m d) -> a -> m b
+-- 'imapMOf' :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens'      i s t a b -> (i -> a -> m b) -> s -> m t
+-- 'imapMOf' :: 'Monad' m => 'IndexedTraversal' i s t a b -> (i -> a -> m b) -> s -> m t
 -- @
-imapMOf :: Overloaded (Index i) (WrappedMonad m) a b c d -> (i -> c -> m d) -> a -> m b
+imapMOf :: Overloaded (Index i) (WrappedMonad m) s t a b -> (i -> a -> m b) -> s -> m t
 imapMOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
 {-# INLINE imapMOf #-}
 
@@ -138,10 +138,10 @@ imapMOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
 -- @
 --
 -- @
--- 'iforMOf' :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> a -> (i -> c -> m d) -> m b
--- 'iforMOf' :: 'Monad' m => 'IndexedTraversal' i a b c d -> a -> (i -> c -> m d) -> m b
+-- 'iforMOf' :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> s -> (i -> a -> m b) -> m t
+-- 'iforMOf' :: 'Monad' m => 'IndexedTraversal' i s t a b -> s -> (i -> a -> m b) -> m t
 -- @
-iforMOf :: Overloaded (Index i) (WrappedMonad m) a b c d -> a -> (i -> c -> m d) -> m b
+iforMOf :: Overloaded (Index i) (WrappedMonad m) s t a b -> s -> (i -> a -> m b) -> m t
 iforMOf = flip . imapMOf
 {-# INLINE iforMOf #-}
 
@@ -152,10 +152,10 @@ iforMOf = flip . imapMOf
 -- @'Control.Lens.Traversal.mapAccumROf' l ≡ 'imapAccumROf' l '.' 'const'@
 --
 -- @
--- 'imapAccumROf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
--- 'imapAccumROf' :: 'IndexedTraversal' i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'imapAccumROf' :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
+-- 'imapAccumROf' :: 'IndexedTraversal' i s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 -- @
-imapAccumROf :: Overloaded (Index i) (Lazy.State s) a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+imapAccumROf :: Overloaded (Index i) (Lazy.State s) s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s -> swap (f i s c))) a) s0)
 {-# INLINE imapAccumROf #-}
 
@@ -166,10 +166,10 @@ imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s
 -- @'Control.Lens.Traversal.mapAccumLOf' l ≡ 'imapAccumLOf' l '.' 'const'@
 --
 -- @
--- 'imapAccumLOf' :: 'Control.Lens.IndexedLens.IndexedLens' i a b c d      -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
--- 'imapAccumLOf' :: 'IndexedTraversal' i a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+-- 'imapAccumLOf' :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
+-- 'imapAccumLOf' :: 'IndexedTraversal' i s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 -- @
-imapAccumLOf :: Overloaded (Index i) (Backwards (Lazy.State s)) a b c d -> (i -> s -> c -> (s, d)) -> s -> a -> (s, b)
+imapAccumLOf :: Overloaded (Index i) (Backwards (Lazy.State s)) s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (withIndex l (\i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)
 {-# INLINE imapAccumLOf #-}
 
@@ -187,14 +187,14 @@ swap (a,b) = (b,a)
 -- ["He","saw","desserts","O_o"]
 --
 -- @
--- 'iwhereOf' :: 'IndexedFold' i a b            -> (i -> 'Bool') -> 'IndexedFold' i a b
--- 'iwhereOf' :: 'IndexedGetter' i a b          -> (i -> 'Bool') -> 'IndexedFold' i a b
--- 'iwhereOf' :: 'SimpleIndexedLens' i a b      -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i a b
--- 'iwhereOf' :: 'SimpleIndexedTraversal' i a b -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i a b
--- 'iwhereOf' :: 'SimpleIndexedSetter' i a b    -> (i -> 'Bool') -> 'SimpleIndexedSetter' i a b
+-- 'iwhereOf' :: 'IndexedFold' i s a            -> (i -> 'Bool') -> 'IndexedFold' i s a
+-- 'iwhereOf' :: 'IndexedGetter' i s a          -> (i -> 'Bool') -> 'IndexedFold' i s a
+-- 'iwhereOf' :: 'SimpleIndexedLens' i s a      -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i s a
+-- 'iwhereOf' :: 'SimpleIndexedTraversal' i s a -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i s a
+-- 'iwhereOf' :: 'SimpleIndexedSetter' i s a    -> (i -> 'Bool') -> 'SimpleIndexedSetter' i s a
 -- @
-iwhereOf :: (Indexed i k, Applicative f) => Overloaded (Index i) f a b c c -> (i -> Bool) -> Overloaded k f a b c c
-iwhereOf l p = index $ \f a -> withIndex l (\i c -> if p i then f i c else pure c) a
+iwhereOf :: (Indexed i k, Applicative f) => Overloaded (Index i) f s t a a -> (i -> Bool) -> Overloaded k f s t a a
+iwhereOf l p = index $ \f s -> withIndex l (\i a -> if p i then f i a else pure a) s
 {-# INLINE iwhereOf #-}
 
 -- | Traverse the value at a given key in a map
@@ -257,7 +257,7 @@ instance Ord k => TraverseMax k (Map k) where
 ------------------------------------------------------------------------------
 
 -- | Useful for storage.
-newtype ReifiedIndexedTraversal i a b c d = ReifyIndexedTraversal { reflectIndexedTraversal :: IndexedTraversal i a b c d }
+newtype ReifiedIndexedTraversal i s t a b = ReifyIndexedTraversal { reflectIndexedTraversal :: IndexedTraversal i s t a b }
 
 -- | @type 'SimpleIndexedTraversal' i = 'Simple' ('ReifiedIndexedTraversal' i)@
-type SimpleReifiedIndexedTraversal i a b = ReifiedIndexedTraversal i a a b b
+type SimpleReifiedIndexedTraversal i s a = ReifiedIndexedTraversal i s s a a

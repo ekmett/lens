@@ -80,52 +80,52 @@ import Data.Traversable
 -----------------------------------------------------------------------------
 
 -- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.State.StateT'
-newtype Focusing m c a = Focusing { unfocusing :: m (c, a) }
+newtype Focusing m s a = Focusing { unfocusing :: m (s, a) }
 
-instance Monad m => Functor (Focusing m c) where
+instance Monad m => Functor (Focusing m s) where
   fmap f (Focusing m) = Focusing $ do
-     (c, a) <- m
-     return (c, f a)
+     (s, a) <- m
+     return (s, f a)
 
-instance (Monad m, Monoid c) => Applicative (Focusing m c) where
+instance (Monad m, Monoid s) => Applicative (Focusing m s) where
   pure a = Focusing (return (mempty, a))
   Focusing mf <*> Focusing ma = Focusing $ do
-    (c, f) <- mf
-    (d, a) <- ma
-    return (mappend c d, f a)
+    (s, f) <- mf
+    (s', a) <- ma
+    return (mappend s s', f a)
 
 -- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.RWS.RWST'
-newtype FocusingWith w m c a = FocusingWith { unfocusingWith :: m (c, a, w) }
+newtype FocusingWith w m s a = FocusingWith { unfocusingWith :: m (s, a, w) }
 
-instance Monad m => Functor (FocusingWith w m c) where
+instance Monad m => Functor (FocusingWith w m s) where
   fmap f (FocusingWith m) = FocusingWith $ do
-     (c, a, w) <- m
-     return (c, f a, w)
+     (s, a, w) <- m
+     return (s, f a, w)
 
-instance (Monad m, Monoid c, Monoid w) => Applicative (FocusingWith w m c) where
+instance (Monad m, Monoid s, Monoid w) => Applicative (FocusingWith w m s) where
   pure a = FocusingWith (return (mempty, a, mempty))
   FocusingWith mf <*> FocusingWith ma = FocusingWith $ do
-    (c, f, w) <- mf
-    (d, a, w') <- ma
-    return (mappend c d, f a, mappend w w')
+    (s, f, w) <- mf
+    (s', a, w') <- ma
+    return (mappend s s', f a, mappend w w')
 
 -- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Writer.WriterT'.
-newtype FocusingPlus w k c a = FocusingPlus { unfocusingPlus :: k (c, w) a }
+newtype FocusingPlus w k s a = FocusingPlus { unfocusingPlus :: k (s, w) a }
 
-instance Functor (k (c, w)) => Functor (FocusingPlus w k c) where
+instance Functor (k (s, w)) => Functor (FocusingPlus w k s) where
   fmap f (FocusingPlus as) = FocusingPlus (fmap f as)
 
-instance (Monoid w, Applicative (k (c, w))) => Applicative (FocusingPlus w k c) where
+instance (Monoid w, Applicative (k (s, w))) => Applicative (FocusingPlus w k s) where
   pure = FocusingPlus . pure
   FocusingPlus kf <*> FocusingPlus ka = FocusingPlus (kf <*> ka)
 
 -- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'
-newtype FocusingOn f k c a = FocusingOn { unfocusingOn :: k (f c) a }
+newtype FocusingOn f k s a = FocusingOn { unfocusingOn :: k (f s) a }
 
-instance Functor (k (f c)) => Functor (FocusingOn f k c) where
+instance Functor (k (f s)) => Functor (FocusingOn f k s) where
   fmap f (FocusingOn as) = FocusingOn (fmap f as)
 
-instance Applicative (k (f c)) => Applicative (FocusingOn f k c) where
+instance Applicative (k (f s)) => Applicative (FocusingOn f k s) where
   pure = FocusingOn . pure
   FocusingOn kf <*> FocusingOn ka = FocusingOn (kf <*> ka)
 
@@ -139,12 +139,12 @@ instance Monoid a => Monoid (May a) where
   May (Just a) `mappend` May (Just b) = May (Just (mappend a b))
 
 -- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Error.ErrorT'
-newtype FocusingMay k c a = FocusingMay { unfocusingMay :: k (May c) a }
+newtype FocusingMay k s a = FocusingMay { unfocusingMay :: k (May s) a }
 
-instance Functor (k (May c)) => Functor (FocusingMay k c) where
+instance Functor (k (May s)) => Functor (FocusingMay k s) where
   fmap f (FocusingMay as) = FocusingMay (fmap f as)
 
-instance Applicative (k (May c)) => Applicative (FocusingMay k c) where
+instance Applicative (k (May s)) => Applicative (FocusingMay k s) where
   pure = FocusingMay . pure
   FocusingMay kf <*> FocusingMay ka = FocusingMay (kf <*> ka)
 
@@ -158,34 +158,34 @@ instance Monoid a => Monoid (Err e a) where
   Err (Right a) `mappend` Err (Right b) = Err (Right (mappend a b))
 
 -- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Error.ErrorT'
-newtype FocusingErr e k c a = FocusingErr { unfocusingErr :: k (Err e c) a }
+newtype FocusingErr e k s a = FocusingErr { unfocusingErr :: k (Err e s) a }
 
-instance Functor (k (Err e c)) => Functor (FocusingErr e k c) where
+instance Functor (k (Err e s)) => Functor (FocusingErr e k s) where
   fmap f (FocusingErr as) = FocusingErr (fmap f as)
 
-instance Applicative (k (Err e c)) => Applicative (FocusingErr e k c) where
+instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
   pure = FocusingErr . pure
   FocusingErr kf <*> FocusingErr ka = FocusingErr (kf <*> ka)
 
 -- | The indexed store can be used to characterize a 'Control.Lens.Type.Lens'
 -- and is used by 'Control.Lens.Type.clone'
-data Context c d a = Context (d -> a) c
+data Context a b s = Context (b -> s) a
 
-instance Functor (Context c d) where
-  fmap f (Context g c) = Context (f . g) c
+instance Functor (Context a b) where
+  fmap f (Context g s) = Context (f . g) s
 
-instance (c ~ d) => Comonad (Context c d) where
-  extract   (Context f c) = f c
-  duplicate (Context f c) = Context (Context f) c
-  extend g  (Context f c) = Context (g . Context f) c
+instance (a ~ b) => Comonad (Context a b) where
+  extract   (Context f s) = f s
+  duplicate (Context f s) = Context (Context f) s
+  extend g  (Context f s) = Context (g . Context f) s
 
-instance (c ~ d) => ComonadStore c (Context c d) where
-  pos (Context _ c) = c
-  peek c (Context g _) = g c
-  peeks f (Context g c) = g (f c)
-  seek c (Context g _) = Context g c
-  seeks f (Context g c) = Context g (f c)
-  experiment f (Context g c) = g <$> f c
+instance (a ~ b) => ComonadStore a (Context a b) where
+  pos (Context _ s) = s
+  peek s (Context g _) = g s
+  peeks f (Context g s) = g (f s)
+  seek s (Context g _) = Context g s
+  seeks f (Context g s) = Context g (f s)
+  experiment f (Context g s) = g <$> f s
 
 -- | The result of 'Indexing'
 data IndexingResult f a = IndexingResult (f a) {-# UNPACK #-} !Int
@@ -295,40 +295,42 @@ instance Functor f => Applicative (ElementOf f) where
 -- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
 --
 -- This is a final encoding of 'Bazaar'.
-newtype Bazaar c d a = Bazaar { _runBazaar :: forall f. Applicative f => (c -> f d) -> f a }
+newtype Bazaar a b s = Bazaar { _runBazaar :: forall f. Applicative f => (a -> f b) -> f s }
 
-instance Functor (Bazaar c d) where
+instance Functor (Bazaar s t) where
   fmap f (Bazaar k) = Bazaar (fmap f . k)
 
-instance Applicative (Bazaar c d) where
+instance Applicative (Bazaar a b) where
   pure a = Bazaar (\_ -> pure a)
   {-# INLINE pure #-}
   Bazaar mf <*> Bazaar ma = Bazaar (\k -> mf k <*> ma k)
   {-# INLINE (<*>) #-}
 
-instance (c ~ d) => Comonad (Bazaar c d) where
+instance (a ~ b) => Comonad (Bazaar a b) where
   extract (Bazaar m) = runIdentity (m Identity)
   {-# INLINE extract #-}
   duplicate = duplicateBazaar
   {-# INLINE duplicate #-}
 
 -- | Given an action to run for each matched pair, traverse a bazaar.
-bazaar :: Applicative f => (c -> f d) -> Bazaar c d b -> f b
-bazaar cfd (Bazaar m) = m cfd
+--
+-- @'bazaar' :: 'Traversal' ('Bazaar' a b s) s a b@
+bazaar :: Applicative f => (a -> f b) -> Bazaar a b s -> f s
+bazaar afb (Bazaar m) = m afb
 {-# INLINE bazaar #-}
 
 -- | 'Bazaar' is an indexed 'Comonad'.
-duplicateBazaar :: Bazaar c e a -> Bazaar c d (Bazaar d e a)
+duplicateBazaar :: Bazaar a c s -> Bazaar a b (Bazaar b c s)
 duplicateBazaar (Bazaar m) = getCompose (m (Compose . fmap sell . sell))
 {-# INLINE duplicateBazaar #-}
 -- duplicateBazaar' (Bazaar m) = Bazaar (\g -> getCompose (m (Compose . fmap sell . g)))
 
 -- | A trivial 'Bazaar'.
-sell :: c -> Bazaar c d d
+sell :: a -> Bazaar a b b
 sell i = Bazaar (\k -> k i)
 {-# INLINE sell #-}
 
-instance (c ~ d) => ComonadApply (Bazaar c d) where
+instance (s ~ t) => ComonadApply (Bazaar s t) where
   (<@>) = (<*>)
 
 -- | Wrap a monadic effect with a phantom type argument.
@@ -346,25 +348,25 @@ instance (Monad m, Monoid r) => Applicative (Effect m r) where
   Effect ma <*> Effect mb = Effect (liftM2 mappend ma mb)
 
 -- | Wrap a monadic effect with a phantom type argument. Used when magnifying RWST.
-newtype EffectRWS w s m c a = EffectRWS { getEffectRWS :: s -> m (c,s,w) }
+newtype EffectRWS w st m s a = EffectRWS { getEffectRWS :: st -> m (s,st,w) }
 
-instance Functor (EffectRWS w s m c) where
+instance Functor (EffectRWS w st m s) where
   fmap _ (EffectRWS m) = EffectRWS m
 
-instance (Monoid c, Monoid w, Monad m) => Applicative (EffectRWS w s m c) where
-  pure _ = EffectRWS $ \s -> return (mempty, s, mempty)
-  EffectRWS m <*> EffectRWS n = EffectRWS $ \s -> m s >>= \ (c,t,w) -> n t >>= \ (c',u,w') -> return (mappend c c', u, mappend w w')
+instance (Monoid s, Monoid w, Monad m) => Applicative (EffectRWS w st m s) where
+  pure _ = EffectRWS $ \st -> return (mempty, st, mempty)
+  EffectRWS m <*> EffectRWS n = EffectRWS $ \st -> m st >>= \ (s,t,w) -> n t >>= \ (s',u,w') -> return (mappend s s', u, mappend w w')
 
 {-
 -- | Wrap a monadic effect with a phantom type argument. Used when magnifying StateT.
-newtype EffectS s k c a = EffectS { runEffect :: s -> k (c, s) a }
+newtype EffectS st k s a = EffectS { runEffect :: st -> k (s, st) a }
 
-instance Functor (k (c, s)) => Functor (EffectS s m c) where
+instance Functor (k (s, st)) => Functor (EffectS st m s) where
   fmap f (EffectS m) = EffectS (fmap f . m)
 
-instance (Monoid c, Monad m) => Applicative (EffectS s m c) where
-  pure _ = EffectS $ \s -> return (mempty, s)
-  EffectS m <*> EffectS n = EffectS $ \s -> m s >>= \ (c,t) -> n s >>= \ (d, u) -> return (mappend c d, u)
+instance (Monoid s, Monad m) => Applicative (EffectS st m s) where
+  pure _ = EffectS $ \st -> return (mempty, st)
+  EffectS m <*> EffectS n = EffectS $ \st -> m st >>= \ (s,t) -> n st >>= \ (s', u) -> return (mappend s s', u)
 -}
 
 -------------------------------------------------------------------------------
@@ -396,10 +398,10 @@ instance (Functor f, Gettable g) => Gettable (Compose f g) where
 instance Gettable (Effect m r) where
   coerce (Effect m) = Effect m
 
-instance Gettable (EffectRWS w s m c) where
+instance Gettable (EffectRWS w st m s) where
   coerce (EffectRWS m) = EffectRWS m
 
---instance Gettable (EffectS s m c) where
+--instance Gettable (EffectS st m s) where
 --  coerce (EffectS m) = EffectS m
 
 -- | This instance is a lie, but it is a useful lie.

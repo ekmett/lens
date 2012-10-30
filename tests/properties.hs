@@ -14,41 +14,41 @@ import Test.QuickCheck.All
 import Test.QuickCheck.Function
 import Data.Text.Strict.Lens
 
-setter_id :: Eq a => Simple Setter a b -> a -> Bool
-setter_id l a = runIdentity (l Identity a) == a
+setter_id :: Eq s => Simple Setter s a -> s -> Bool
+setter_id l s = runIdentity (l Identity s) == s
 
-setter_composition :: Eq a => Simple Setter a b -> a -> Fun b b -> Fun b b -> Bool
-setter_composition l a (Fun _ f) (Fun _ g) = mapOf l f (mapOf l g a) == mapOf l (f . g) a
+setter_composition :: Eq s => Simple Setter s a -> s -> Fun a a -> Fun a a -> Bool
+setter_composition l s (Fun _ f) (Fun _ g) = mapOf l f (mapOf l g s) == mapOf l (f . g) s
 
-lens_set_view :: Eq a => Simple Lens a b -> a -> Bool
-lens_set_view l a = set l (view l a) a == a
+lens_set_view :: Eq s => Simple Lens s a -> s -> Bool
+lens_set_view l s = set l (view l s) s == s
 
-lens_view_set :: Eq b => Simple Lens a b -> a -> b -> Bool
-lens_view_set l a b = view l (set l b a) == b
+lens_view_set :: Eq a => Simple Lens s a -> s -> a -> Bool
+lens_view_set l s a = view l (set l a s) == a
 
-setter_set_set :: Eq a => Simple Setter a b -> a -> b -> b -> Bool
-setter_set_set l a b c = set l c (set l b a) == set l c a
+setter_set_set :: Eq s => Simple Setter s a -> s -> a -> a -> Bool
+setter_set_set l s a b = set l b (set l a s) == set l b s
 
-iso_hither :: Eq a => Simple Iso a b -> a -> Bool
-iso_hither l a = a ^.l.from l == a
+iso_hither :: Eq s => Simple Iso s a -> s -> Bool
+iso_hither l s = s ^.l.from l == s
 
-iso_yon :: Eq b => Simple Iso a b -> b -> Bool
-iso_yon l b = b^.from l.l == b
+iso_yon :: Eq a => Simple Iso s a -> a -> Bool
+iso_yon l a = a^.from l.l == a
 
-isSetter :: (Arbitrary a, Arbitrary b, CoArbitrary b, Show a, Show b, Eq a, Function b)
-         => Simple Setter a b -> Property
+isSetter :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Function a)
+         => Simple Setter s a -> Property
 isSetter l = setter_id l .&. setter_composition l .&. setter_set_set l
 
-isTraversal :: (Arbitrary a, Arbitrary b, CoArbitrary b, Show a, Show b, Eq a, Function b)
-         => Simple Traversal a b -> Property
+isTraversal :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Function a)
+         => Simple Traversal s a -> Property
 isTraversal l = isSetter l
 
-isLens :: (Arbitrary a, Arbitrary b, CoArbitrary b, Show a, Show b, Eq a, Eq b, Function b)
-       => Simple Lens a b -> Property
+isLens :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Eq a, Function a)
+       => Simple Lens s a -> Property
 isLens l = lens_set_view l .&. lens_view_set l .&. isTraversal l
 
-isIso :: (Arbitrary a, Arbitrary b, CoArbitrary a, CoArbitrary b, Show a, Show b, Eq a, Eq b, Function a, Function b)
-      => Simple Iso a b -> Property
+isIso :: (Arbitrary s, Arbitrary a, CoArbitrary s, CoArbitrary a, Show s, Show a, Eq s, Eq a, Function s, Function a)
+      => Simple Iso s a -> Property
 isIso l = iso_hither l .&. iso_yon l .&. isLens l .&. isLens (from l)
 
 -- an illegal lens

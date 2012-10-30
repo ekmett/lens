@@ -20,15 +20,15 @@ import Data.Typeable
 import Unsafe.Coerce as Unsafe
 
 -- | A 'Simple' 'Traversal' for working with a 'cast' of a 'Typeable' value.
-_cast :: (Typeable a, Typeable b) => Simple Traversal a b
-_cast f a = case cast a of
-  Just b  -> Unsafe.unsafeCoerce <$> f b
-  Nothing -> pure a
+_cast :: (Typeable s, Typeable a) => Simple Traversal s a
+_cast f s = case cast s of
+  Just a  -> Unsafe.unsafeCoerce <$> f a
+  Nothing -> pure s
 {-# INLINE _cast #-}
 
 -- | A 'Simple' 'Traversal' for working with a 'gcast' of a 'Typeable' value.
-_gcast :: (Typeable a, Typeable b) => Simple Traversal (c a) (c b)
-_gcast f a = case gcast a of
-  Just b  -> Unsafe.unsafeCoerce <$> f b
-  Nothing -> pure a
+_gcast :: (Typeable s, Typeable a) => Simple Traversal (c s) (c a)
+_gcast f s = case gcast s of
+  Just a  -> Unsafe.unsafeCoerce <$> f a
+  Nothing -> pure s
 {-# INLINE _gcast #-}

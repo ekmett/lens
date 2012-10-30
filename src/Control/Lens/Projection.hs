@@ -33,7 +33,7 @@ import Data.Functor.Identity
 import Control.Lens.Iso
 
 -- | A 'Projection' is a 'Traversal' that can also be turned around with 'by' to obtain a 'Getter'
-type Projection a b c d = forall k f. (Projective k a d, Applicative f) => k (c -> f d) (a -> f a)
+type Projection s t a b = forall k f. (Projective k s b, Applicative f) => k (a -> f b) (s -> f s)
 
 -- | Used to provide overloading of projections.
 class Projective k a d where
@@ -43,32 +43,32 @@ instance Projective (->) a d where
   projective _ x = x
 
 -- | A concrete 'Projection', suitable for storing in a container or extracting an embedding.
-data Project a d x y = Project (d -> a) (x -> y)
+data Project s b x y = Project (b -> s) (x -> y)
 
 -- | Compose projections.
-stereo :: Projective k a c => Project b c y z -> Project a b x y -> k x z
+stereo :: Projective k s a => Project t a y z -> Project s t x y -> k x z
 stereo (Project g f) (Project i h) = projective (i.g) (f.h)
 
-instance (a ~ a', d ~ d') => Projective (Project a d) a' d' where
+instance (s ~ s', b ~ b') => Projective (Project s b) s' b' where
   projective = Project
 
 -- | Reflect a 'Projection'.
-project :: Projective k a d => Overloaded (Project a d) f a a c d -> Overloaded k f a a c d
+project :: Projective k s b => Overloaded (Project s b) f s s a b -> Overloaded k f s s a b
 project (Project f g) = projective f g
 
 -- | Turn a 'Projection' around to get an embedding
-by :: Project a d (d -> Identity d) (a -> Identity a) -> Getter d a
+by :: Project s b (b -> Identity b) (s -> Identity s) -> Getter b s
 by (Project g _) = to g
 
 -- | Build a 'Projection'
-projection :: (d -> a) -> (a -> Maybe c) -> Projection a b c d
-projection da amc = projective da (\cfd a -> maybe (pure a) (fmap da . cfd) (amc a))
+projection :: (b -> s) -> (s -> Maybe a) -> Projection s t a b
+projection bs sma = projective bs (\afb a -> maybe (pure a) (fmap bs . afb) (sma a))
 
 -- | Convert an 'Iso' to a 'Projection'.
 --
 -- Ideally we would be able to use an 'Iso' directly as a 'Projection', but this opens a can of worms.
-mirror :: Projective k a c => Simple Iso a c -> Simple Projection a c
+mirror :: Projective k s a => Simple Iso s a -> Simple Projection s a
 mirror l = projection (^.from l) (\a -> Just (a^.l))
 
 -- | @type 'SimpleProjection' = 'Simple' 'Projection'@
-type SimpleProjection a b = Projection a a b b
+type SimpleProjection s a = Projection s s a a

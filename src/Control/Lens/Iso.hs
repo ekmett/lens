@@ -64,30 +64,31 @@ infixr 0 :<->
 -- import Prelude hiding (('Prelude..'),'Prelude.id')
 -- @
 --
--- @type 'Iso' a b c d = forall k f. ('Isomorphic' k, 'Functor' f) => 'Overloaded' k f a b c d@
-type Iso a b c d = forall k f. (Isomorphic k, Functor f) => k (c -> f d) (a -> f b)
+-- @type 'Iso' s t a b = forall k f. ('Isomorphic' k, 'Functor' f) => 'Overloaded' k f s t a b@
+type Iso s t a b = forall k f. (Isomorphic k, Functor f) => k (a -> f b) (s -> f t)
 
 -- |
 -- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
-type SimpleIso a b = Iso a a b b
+type SimpleIso s a = Iso s s a a
 
 -- | An commonly used infix alias for @'Control.Lens.Type.Simple' 'Iso'@
-type a :<-> b = Iso a a b b
+type s :<-> a = Iso s s a a
 
 -- | Build an isomorphism family from two pairs of inverse functions
 --
 -- @
--- 'view' ('isos' ac ca bd db) ≡ ac
--- 'view' ('from' ('isos' ac ca bd db)) ≡ ca
--- 'set' ('isos' ac ca bd db) cd ≡ db '.' cd '.' ac
+-- 'view' ('isos' sa as tb bt) ≡ sa
+-- 'view' ('from' ('isos' sa as tb bt)) ≡ as
+-- 'set' ('isos' sa as tb bt) ab ≡ bt '.' ab '.' sa
 -- 'set' ('from' ('isos' ac ca bd db')) ab ≡ bd '.' ab '.' ca
+-- 'set' ('from' ('isos' sa as tb bt')) s t ≡ tb '.' st '.' as
 -- @
 --
--- @isos :: (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> 'Iso' a b c d@
-isos :: (Isomorphic k, Functor f) => (a -> c) -> (c -> a) -> (b -> d) -> (d -> b) -> k (c -> f d) (a -> f b)
-isos ac ca bd db = isomorphic
-  (\cfd a -> db <$> cfd (ac a))
-  (\afb c -> bd <$> afb (ca c))
+-- @isos :: (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> 'Iso' s t a b@
+isos :: (Isomorphic k, Functor f) => (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> k (a -> f b) (s -> f t)
+isos sa as tb bt = isomorphic
+  (\afb s -> bt <$> afb (sa s))
+  (\sft a -> tb <$> sft (as a))
 {-# INLINE isos #-}
 
 -- | Build a simple isomorphism from a pair of inverse functions
@@ -100,9 +101,9 @@ isos ac ca bd db = isomorphic
 -- 'set' ('from' ('iso' f g')) h ≡ f '.' h '.' g
 -- @
 --
--- @iso :: (a -> b) -> (b -> a) -> 'Control.Lens.Type.Simple' 'Iso' a b@
-iso :: (Isomorphic k, Functor f) => (a -> b) -> (b -> a) -> k (b -> f b) (a -> f a)
-iso ab ba = isos ab ba ab ba
+-- @iso :: (s -> a) -> (a -> s) -> 'Control.Lens.Type.Simple' 'Iso' s a@
+iso :: (Isomorphic k, Functor f) => (s -> a) -> (a -> s) -> k (a -> f a) (s -> f s)
+iso sa as = isos sa as sa as
 {-# INLINE iso #-}
 
 -- | Based on @ala@ from Conor McBride's work on Epigram.
@@ -110,7 +111,7 @@ iso ab ba = isos ab ba ab ba
 -- >>> :m + Data.Monoid.Lens Data.Foldable
 -- >>> ala _sum foldMap [1,2,3,4]
 -- 10
-ala :: Simple Iso a b -> ((a -> b) -> c -> b) -> c -> a
+ala :: Simple Iso s a -> ((s -> a) -> e -> a) -> e -> s
 ala l f e = f (view l) e ^. from l
 {-# INLINE ala #-}
 
@@ -119,7 +120,7 @@ ala l f e = f (view l) e ^. from l
 --
 -- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator
 -- is 'ala' with an extra function argument.
-auf :: Simple Iso a b -> ((d -> b) -> c -> b) -> (d -> a) -> c -> a
+auf :: Simple Iso s a -> ((b -> a) -> e -> a) -> (b -> s) -> e -> s
 auf l f g e = f (view l . g) e ^. from l
 {-# INLINE auf #-}
 
@@ -127,8 +128,8 @@ auf l f g e = f (view l . g) e ^. from l
 --
 -- @'under' = 'over' '.' 'from'@
 --
--- @'under' :: 'Iso' a b c d -> (a -> b) -> c -> d@
-under :: Isomorphism (c -> Mutator d) (a -> Mutator b) -> (a -> b) -> c -> d
+-- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
+under :: Isomorphism (a -> Mutator b) (s -> Mutator t) -> (s -> t) -> a -> b
 under = over . from
 {-# INLINE under #-}
 
@@ -161,7 +162,7 @@ _const = isos Const getConst Const getConst
 -----------------------------------------------------------------------------
 
 -- | Useful for storing isomorphisms in containers.
-newtype ReifiedIso a b c d = ReifyIso { reflectIso :: Iso a b c d }
+newtype ReifiedIso s t a b = ReifyIso { reflectIso :: Iso s t a b }
 
 -- | @type 'SimpleReifiedIso' = 'Control.Lens.Type.Simple' 'ReifiedIso'@
-type SimpleReifiedIso a b = ReifiedIso a a b b
+type SimpleReifiedIso s a = ReifiedIso s s a a

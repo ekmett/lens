@@ -40,12 +40,12 @@ setmapped = sets Set.map
 -- fromList [1,2,3]
 --
 -- @
--- 'setOf' ::          'Getter' a c           -> a -> 'Set' c
--- 'setOf' :: 'Ord' c => 'Control.Lens.Fold.Fold' a c             -> a -> 'Set' c
--- 'setOf' ::          'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' a c       -> a -> 'Set' c
--- 'setOf' ::          'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' a c      -> a -> 'Set' c
--- 'setOf' :: 'Ord' c => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' a c -> a -> 'Set' c
+-- 'setOf' ::          'Getter' s a           -> s -> 'Set' a
+-- 'setOf' :: 'Ord' a => 'Control.Lens.Fold.Fold' s a             -> s -> 'Set' a
+-- 'setOf' ::          'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> s -> 'Set' a
+-- 'setOf' ::          'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> s -> 'Set' a
+-- 'setOf' :: 'Ord' a => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Set' a
 -- @
-setOf :: Getting (Set c) a b c d -> a -> Set c
+setOf :: Getting (Set a) s t a b -> s -> Set a
 setOf l = runAccessor . l (Accessor . Set.singleton)
 {-# INLINE setOf #-}

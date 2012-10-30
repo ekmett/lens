@@ -173,24 +173,24 @@ traverseInit = index $ \f aas -> case aas of
 -- ("hello","world")
 --
 -- @
--- ('~:') :: b -> 'Simple' 'Setter' a [b]    -> a -> a
--- ('~:') :: b -> 'Simple' 'Traversal' a [b] -> a -> a
--- ('~:') :: b -> 'Simple' 'Lens' a [b]      -> a -> a
--- ('~:') :: b -> 'Simple' 'Iso' a [b]       -> a -> a
+-- ('~:') :: b -> 'Simple' 'Setter' s [a]    -> s -> s
+-- ('~:') :: b -> 'Simple' 'Traversal' s [a] -> s -> s
+-- ('~:') :: b -> 'Simple' 'Lens' s [a]      -> s -> s
+-- ('~:') :: b -> 'Simple' 'Iso' s [a]       -> s -> s
 -- @
-(~:) :: c -> Setting a b [c] [c] -> a -> b
+(~:) :: a -> Setting s t [a] [a] -> s -> t
 n ~: l = over l (n :)
 {-# INLINE (~:) #-}
 
 -- | Cons onto the list(s) referenced by a 'Setter' in your monad state
 --
 -- @
--- ('=:') :: 'MonadState' a m => c -> 'Simple' 'Setter' a [c]    -> m ()
--- ('=:') :: 'MonadState' a m => c -> 'Simple' 'Traversal' a [c] -> m ()
--- ('=:') :: 'MonadState' a m => c -> 'Simple' 'Lens' a [c]      -> m ()
--- ('=:') :: 'MonadState' a m => c -> 'Simple' 'Iso' a [c]       -> m ()
+-- ('=:') :: 'MonadState' s m => a -> 'Simple' 'Setter' s [a]    -> m ()
+-- ('=:') :: 'MonadState' s m => a -> 'Simple' 'Traversal' s [a] -> m ()
+-- ('=:') :: 'MonadState' s m => a -> 'Simple' 'Lens' s [a]      -> m ()
+-- ('=:') :: 'MonadState' s m => a -> 'Simple' 'Iso' s [a]       -> m ()
 -- @
-(=:) :: MonadState a m => c -> SimpleSetting a [c] -> m ()
+(=:) :: MonadState s m => a -> SimpleSetting s [a] -> m ()
 n =: l = modify (n ~: l)
 {-# INLINE (=:) #-}
 
@@ -203,11 +203,11 @@ n =: l = modify (n ~: l)
 -- ("hello",("hello","world"))
 --
 -- @
--- ('<~:') :: b -> 'Simple' 'Lens' a [b]       -> a -> ([b], a)
--- ('<~:') :: b -> 'Simple' 'Iso' a [b]        -> a -> ([b], a)
--- ('<~:') :: b -> 'Simple' 'Traversal' a [b]  -> a -> ([b], a)
+-- ('<~:') :: b -> 'Simple' 'Lens' s [a]       -> s -> ([a], s)
+-- ('<~:') :: b -> 'Simple' 'Iso' s [a]        -> s -> ([a], s)
+-- ('<~:') :: b -> 'Simple' 'Traversal' s [a]  -> s -> ([a], s)
 -- @
-(<~:) :: c -> LensLike ((,)[c]) a b [c] [c] -> a -> ([c], b)
+(<~:) :: a -> LensLike ((,)[a]) s t [a] [a] -> s -> ([a], t)
 n <~: l = l <%~ (n :)
 {-# INLINE (<~:) #-}
 
@@ -218,11 +218,11 @@ n <~: l = l <%~ (n :)
 -- of the resulting lists instead of an individual result.
 --
 -- @
--- ('<=:') :: 'MonadState' a m => 'Simple' 'Lens' a [c]      -> c -> m [c]
--- ('<=:') :: 'MonadState' a m => 'Simple' 'Iso' a [c]       -> c -> m [c]
--- ('<=:') :: 'MonadState' a m => 'Simple' 'Traversal' a [c] -> c -> m [c]
+-- ('<=:') :: 'MonadState' s m => 'Simple' 'Lens' s [a]      -> a -> m [a]
+-- ('<=:') :: 'MonadState' s m => 'Simple' 'Iso' s [a]       -> a -> m [a]
+-- ('<=:') :: 'MonadState' s m => 'Simple' 'Traversal' s [a] -> a -> m [a]
 -- @
-(<=:) :: MonadState a m => c -> SimpleLensLike ((,)[c]) a [c] -> m [c]
+(<=:) :: MonadState s m => a -> SimpleLensLike ((,)[a]) s [a] -> m [a]
 n <=: l = l <%= (n :)
 {-# INLINE (<=:) #-}
 
@@ -236,12 +236,12 @@ n <=: l = l <%= (n :)
 -- ("hello!!!","world!!!")
 --
 -- @
--- ('++~') :: 'Simple' 'Setter' a [b] -> [b] -> a -> a
--- ('++~') :: 'Simple' 'Iso' a [b] -> [b] -> a -> a
--- ('++~') :: 'Simple' 'Lens' a [b] -> [b] -> a -> a
--- ('++~') :: 'Simple' 'Traversal' a [b] -> [b] -> a -> a
+-- ('++~') :: 'Simple' 'Setter' s [a] -> [a] -> s -> s
+-- ('++~') :: 'Simple' 'Iso' s [a] -> [a] -> s -> s
+-- ('++~') :: 'Simple' 'Lens' s [a] -> [a] -> s -> s
+-- ('++~') :: 'Simple' 'Traversal' s [a] -> [a] -> s -> s
 -- @
-(++~) :: Setting a b [c] [c] -> [c] -> a -> b
+(++~) :: Setting s t [a] [a] -> [a] -> s -> t
 l ++~ n = over l (++ n)
 {-# INLINE (++~) #-}
 
@@ -250,12 +250,12 @@ l ++~ n = over l (++ n)
 -- ('Data.Monoid.<>=') generalizes this operation to an arbitrary 'Monoid'.
 --
 -- @
--- ('++=') :: 'MonadState' a m => 'Simple' 'Setter' a [b] -> [b] -> m ()
--- ('++=') :: 'MonadState' a m => 'Simple' 'Iso' a [b] -> [b] -> m ()
--- ('++=') :: 'MonadState' a m => 'Simple' 'Lens' a [b] -> [b] -> m ()
--- ('++=') :: 'MonadState' a m => 'Simple' 'Traversal' a [b] -> [b] -> m ()
+-- ('++=') :: 'MonadState' s m => 'Simple' 'Setter' s [a] -> [a] -> m ()
+-- ('++=') :: 'MonadState' s m => 'Simple' 'Iso' s [a] -> [a] -> m ()
+-- ('++=') :: 'MonadState' s m => 'Simple' 'Lens' s [a] -> [a] -> m ()
+-- ('++=') :: 'MonadState' s m => 'Simple' 'Traversal' s [a] -> [a] -> m ()
 -- @
-(++=) :: MonadState a m => SimpleSetting a [b] -> [b] -> m ()
+(++=) :: MonadState s m => SimpleSetting s [a] -> [a] -> m ()
 l ++= b = State.modify (l ++~ b)
 {-# INLINE (++=) #-}
 
@@ -266,7 +266,7 @@ l ++= b = State.modify (l ++~ b)
 -- When using a 'Traversal', the result returned is actually the concatenation of all of the results.
 --
 -- When you do not need the result of the operation, ('++~') is more flexible.
-(<++~) :: LensLike ((,)[c]) a b [c] [c] -> [c] -> a -> ([c], b)
+(<++~) :: LensLike ((,)[a]) s t [a] [a] -> [a] -> s -> ([a], t)
 l <++~ m = l <%~ (++ m)
 {-# INLINE (<++~) #-}
 
@@ -277,6 +277,6 @@ l <++~ m = l <%~ (++ m)
 -- When using a 'Traversal', the result returned is actually the concatenation of all of the results.
 --
 -- When you do not need the result of the operation, ('++=') is more flexible.
-(<++=) :: MonadState a m => SimpleLensLike ((,)[b]) a [b] -> [b] -> m [b]
+(<++=) :: MonadState s m => SimpleLensLike ((,)[a]) s [a] -> [a] -> m [a]
 l <++= m = l <%= (++ m)
 {-# INLINE (<++=) #-}

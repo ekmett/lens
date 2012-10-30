@@ -20,6 +20,6 @@ import Control.Seq
 -- 'Getter' or 'Fold' according to the given strategy.
 --
 -- @'seqFoldable' = 'seqOf' 'folded'@
-seqOf :: Getting [c] a b c d -> Strategy c -> Strategy a
+seqOf :: Getting [a] s t a b -> Strategy a -> Strategy s
 seqOf l s = seqList s . toListOf l
 {-# INLINE seqOf #-}

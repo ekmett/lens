@@ -30,11 +30,11 @@ import Control.Parallel.Strategies
 -- @
 --
 -- @
--- 'evalOf' :: 'Simple' 'Lens' a b -> 'Strategy' b -> 'Strategy' a
--- 'evalOf' :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
--- 'evalOf' :: (b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
+-- 'evalOf' :: 'Simple' 'Lens' s a -> 'Strategy' a -> 'Strategy' s
+-- 'evalOf' :: 'Simple' 'Traversal' s a -> 'Strategy' a -> 'Strategy' s
+-- 'evalOf' :: (a -> 'Eval' a) -> s -> 'Eval' s) -> 'Strategy' a -> 'Strategy' s
 -- @
-evalOf :: SimpleLensLike Eval a b -> Strategy b -> Strategy a
+evalOf :: SimpleLensLike Eval s a -> Strategy a -> Strategy s
 evalOf l = l
 {-# INLINE evalOf #-}
 
@@ -44,11 +44,11 @@ evalOf l = l
 -- @'parTraversable' = 'parOf' 'traverse'@
 --
 -- @
--- 'parOf' :: 'Simple' 'Lens' a b -> 'Strategy' b -> 'Strategy' a
--- 'parOf' :: 'Simple' 'Traversal' a b -> 'Strategy' b -> 'Strategy' a
--- 'parOf' :: ((b -> 'Eval' b) -> a -> 'Eval' a) -> 'Strategy' b -> 'Strategy' a
+-- 'parOf' :: 'Simple' 'Lens' s a -> 'Strategy' a -> 'Strategy' s
+-- 'parOf' :: 'Simple' 'Traversal' s a -> 'Strategy' a -> 'Strategy' s
+-- 'parOf' :: ((a -> 'Eval' a) -> s -> 'Eval' s) -> 'Strategy' a -> 'Strategy' s
 -- @
-parOf :: SimpleLensLike Eval a b -> Strategy b -> Strategy a
+parOf :: SimpleLensLike Eval s a -> Strategy a -> Strategy s
 parOf l s = l (rparWith s)
 {-# INLINE parOf #-}
 
@@ -58,7 +58,7 @@ parOf l s = l (rparWith s)
 -- @
 -- 'after' 'rdeepseq' 'traverse' :: 'Traversable' t => 'Strategy' a -> 'Strategy' [a]
 -- @
-after :: Strategy a -> LensLike f a b c d -> LensLike f a b c d
+after :: Strategy s -> LensLike f s t a b -> LensLike f s t a b
 after s l f = l f $| s
 {-# INLINE after #-}
 
@@ -68,6 +68,6 @@ after s l f = l f $| s
 -- @
 -- 'throughout' 'rdeepseq' 'traverse' :: 'Traversable' t => 'Strategy' a -> 'Strategy' [a]
 -- @
-throughout :: Strategy a -> LensLike f a b c d -> LensLike f a b c d
+throughout :: Strategy s -> LensLike f s t a b -> LensLike f s t a b
 throughout s l f = l f $|| s
 {-# INLINE throughout #-}

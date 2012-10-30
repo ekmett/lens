@@ -32,12 +32,12 @@ infix 4 |=, &=, <|=, <&=
 -- ("hello",7)
 --
 -- @
--- ('|~') :: 'Bits' c => 'Setter' a b c c -> c -> a -> b
--- ('|~') :: 'Bits' c => 'Iso' a b c c -> c -> a -> b
--- ('|~') :: 'Bits' c => 'Lens' a b c c -> c -> a -> b
--- ('|~') :: ('Monoid c', 'Bits' c) => 'Traversal' a b c c -> c -> a -> b
+-- ('|~') :: 'Bits' a => 'Setter' s t a a -> a -> s -> t
+-- ('|~') :: 'Bits' a => 'Iso' s t a a -> a -> s -> t
+-- ('|~') :: 'Bits' a => 'Lens' s t a a -> a -> s -> t
+-- ('|~') :: ('Monoid a', 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
 -- @
-(|~):: Bits c => Setting a b c c -> c -> a -> b
+(|~):: Bits a => Setting s t a a -> a -> s -> t
 l |~ n = over l (.|. n)
 {-# INLINE (|~) #-}
 
@@ -47,37 +47,37 @@ l |~ n = over l (.|. n)
 -- ("hello",6)
 --
 -- @
--- ('&~') :: 'Bits' c => 'Setter' a b c c -> c -> a -> b
--- ('&~') :: 'Bits' c => 'Iso' a b c c -> c -> a -> b
--- ('&~') :: 'Bits' c => 'Lens' a b c c -> c -> a -> b
--- ('&~') :: ('Monoid c', 'Bits' c) => 'Traversal' a b c c -> c -> a -> b
+-- ('&~') :: 'Bits' a => 'Setter' s t a a -> a -> s -> t
+-- ('&~') :: 'Bits' a => 'Iso' s t a a -> a -> s -> t
+-- ('&~') :: 'Bits' a => 'Lens' s t a a -> a -> s -> t
+-- ('&~') :: ('Monoid a', 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
 -- @
-(&~) :: Bits c => Setting a b c c -> c -> a -> b
+(&~) :: Bits a => Setting s t a a -> a -> s -> t
 l &~ n = over l (.&. n)
 {-# INLINE (&~) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.&.' with another value.
 --
 -- @
--- ('&=') :: ('MonadState' a m, 'Bits' b) => 'Simple' 'Setter' a b -> b -> m ()
--- ('&=') :: ('MonadState' a m, 'Bits' b) => 'Simple' 'Iso' a b -> b -> m ()
--- ('&=') :: ('MonadState' a m, 'Bits' b) => 'Simple' 'Lens' a b -> b -> m ()
--- ('&=') :: ('MonadState' a m, 'Bits' b) => 'Simple' 'Traversal' a b -> b -> m ()
+-- ('&=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Setter' s a -> a -> m ()
+-- ('&=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Iso' s a -> a -> m ()
+-- ('&=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m ()
+-- ('&=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Traversal' s a -> a -> m ()
 -- @
-(&=):: (MonadState a m, Bits b) => Simple Setting a b -> b -> m ()
-l &= b = modify (l &~ b)
+(&=):: (MonadState s m, Bits a) => Simple Setting s a -> a -> m ()
+l &= a = modify (l &~ a)
 {-# INLINE (&=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.|.' with another value.
 --
 -- @
--- ('|=') :: ('MonadState' a m, 'Bits' b) => 'Simple' 'Setter' a b -> b -> m ()
--- ('|=') :: ('MonadState' a m, 'Bits' b) => 'Simple' 'Iso' a b -> b -> m ()
--- ('|=') :: ('MonadState' a m, 'Bits' b) => 'Simple' 'Lens' a b -> b -> m ()
--- ('|=') :: ('MonadState' a m, 'Bits' b) => 'Simple' 'Traversal' a b -> b -> m ()
+-- ('|=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Setter' s a -> a -> m ()
+-- ('|=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Iso' s a -> a -> m ()
+-- ('|=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m ()
+-- ('|=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Traversal' s a -> a -> m ()
 -- @
-(|=) :: (MonadState a m, Bits b) => Simple Setting a b -> b -> m ()
-l |= b = modify (l |~ b)
+(|=) :: (MonadState s m, Bits a) => Simple Setting s a -> a -> m ()
+l |= a = modify (l |~ a)
 {-# INLINE (|=) #-}
 
 -- | Bitwise '.|.' the target(s) of a 'Lens' (or 'Traversal'), returning the result
@@ -87,11 +87,11 @@ l |= b = modify (l |~ b)
 -- (7,("hello",7))
 --
 -- @
--- ('<|~') :: 'Bits' c => 'Iso' a b c c -> c -> a -> (c, b)
--- ('<|~') :: 'Bits' c => 'Lens' a b c c -> c -> a -> (c, b)
--- ('<|~') :: ('Bits' c, 'Monoid c) => 'Traversal' a b c c -> c -> a -> (c, b)
+-- ('<|~') :: 'Bits' a => 'Iso' s t a a -> a -> s -> (a, t)
+-- ('<|~') :: 'Bits' a => 'Lens' s t a a -> a -> s -> (a, t)
+-- ('<|~') :: ('Bits' a, 'Monoid a) => 'Traversal' s t a a -> a -> s -> (a, t)
 -- @
-(<|~):: Bits c => LensLike ((,) c) a b c c -> c -> a -> (c, b)
+(<|~):: Bits a => LensLike ((,) a) s t a a -> a -> s -> (a, t)
 l <|~ n = l <%~ (.|. n)
 {-# INLINE (<|~) #-}
 
@@ -102,11 +102,11 @@ l <|~ n = l <%~ (.|. n)
 -- (6,("hello",6))
 --
 -- @
--- ('<&~') :: 'Bits' c => 'Iso' a b c c -> c -> a -> (c, b)
--- ('<&~') :: 'Bits' c => 'Lens' a b c c -> c -> a -> (c, b)
--- ('<&~') :: ('Bits' c, 'Monoid c) => 'Traversal' a b c c -> c -> a -> (c, b)
+-- ('<&~') :: 'Bits' a => 'Iso' s t a a -> a -> s -> (a, t)
+-- ('<&~') :: 'Bits' a => 'Lens' s t a a -> a -> s -> (a, t)
+-- ('<&~') :: ('Bits' a, 'Monoid a) => 'Traversal' s t a a -> a -> s -> (a, t)
 -- @
-(<&~) :: Bits c => LensLike ((,) c) a b c c -> c -> a -> (c, b)
+(<&~) :: Bits a => LensLike ((,) a) s t a a -> a -> s -> (a, t)
 l <&~ n = l <%~ (.&. n)
 {-# INLINE (<&~) #-}
 
@@ -114,10 +114,10 @@ l <&~ n = l <%~ (.&. n)
 -- returning the result (or a monoidal summary of all of the results traversed)
 --
 -- @
--- ('<&=') :: ('MonadState' a m, 'Bits' b) => 'Simple' 'Lens' a b -> b -> m b
--- ('<&=') :: ('MonadState' a m, 'Bits' b, 'Monoid' b) => 'Simple' 'Traversal' a b -> b -> m b
+-- ('<&=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m a
+-- ('<&=') :: ('MonadState' s m, 'Bits' a, 'Monoid' a) => 'Simple' 'Traversal' s a -> a -> m a
 -- @
-(<&=):: (MonadState a m, Bits b) => SimpleLensLike ((,)b) a b -> b -> m b
+(<&=):: (MonadState s m, Bits a) => SimpleLensLike ((,)a) s a -> a -> m a
 l <&= b = l <%= (.&. b)
 {-# INLINE (<&=) #-}
 
@@ -125,10 +125,10 @@ l <&= b = l <%= (.&. b)
 -- returning the result (or a monoidal summary of all of the results traversed)
 --
 -- @
--- ('<|=') :: ('MonadState' a m, 'Bits' b) => 'Simple' 'Lens' a b -> b -> m b
--- ('<|=') :: ('MonadState' a m, 'Bits' b, 'Monoid' b) => 'Simple' 'Traversal' a b -> b -> m b
+-- ('<|=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m a
+-- ('<|=') :: ('MonadState' s m, 'Bits' a, 'Monoid' a) => 'Simple' 'Traversal' s a -> a -> m a
 -- @
-(<|=) :: (MonadState a m, Bits b) => SimpleLensLike ((,)b) a b -> b -> m b
+(<|=) :: (MonadState s m, Bits a) => SimpleLensLike ((,)a) s a -> a -> m a
 l <|= b = l <%= (.|. b)
 {-# INLINE (<|=) #-}
 

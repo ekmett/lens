@@ -89,13 +89,13 @@ icompose ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ \j -> ka
 -- | Transform an Traversal into an IndexedTraversal, a Fold into an IndexedFold, etc.
 --
 -- @
--- 'indexed' :: 'Control.Lens.Traversal.Traversal' a b c d -> 'Control.Lens.IndexedTraversal.IndexedTraversal' 'Int' a b c d
--- 'indexed' :: 'Control.Lens.Type.Lens' a b c d      -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' a b c d
--- 'indexed' :: 'Control.Lens.Fold.Fold' a b          -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' a b
--- 'indexed' :: 'Control.Lens.Iso.Iso' a b c d       -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' a b c d
--- 'indexed' :: 'Control.Lens.Getter.Getter' a b        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' a b c d
+-- 'indexed' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.IndexedTraversal.IndexedTraversal' 'Int' s t a b
+-- 'indexed' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexed' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
+-- 'indexed' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexed' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
 -- @
-indexed :: Indexed Int k => ((c -> Indexing f d) -> a -> Indexing f b) -> k (c -> f d) (a -> f b)
-indexed l = index $ \icfd a -> case runIndexing (l (\c -> Indexing (\i -> IndexingResult (icfd i c) (i + 1))) a) 0 of
+indexed :: Indexed Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k (a -> f b) (s -> f t)
+indexed l = index $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> IndexingResult (iafb i a) (i + 1))) s) 0 of
   IndexingResult r _ -> r
 {-# INLINE indexed #-}

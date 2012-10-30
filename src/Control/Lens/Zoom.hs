@@ -60,12 +60,12 @@ class (MonadState s m, MonadState t n) => Zoom m n k s t | m -> s k, n -> t k, m
   -- This can be used to edit pretty much any monad transformer stack with a state in it!
   --
   -- @
-  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'StateT' b m c -> 'StateT' a m c
-  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'StateT' b m c -> 'StateT' a m c
-  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'RWST' r w b m c -> 'RWST' r w a m c
-  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'RWST' r w b m c -> 'RWST' r w a m c
-  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' a b      -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
-  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' a b -> 'ErrorT' e ('RWST' r w b m c) -> 'ErrorT' e ('RWST' r w a m c)
+  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' s t      -> 'StateT' t m a -> 'StateT' s m a
+  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' s t -> 'StateT' t m c -> 'StateT' s m c
+  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' s t      -> 'RWST' r w t m c -> 'RWST' r w s m c
+  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' s t -> 'RWST' r w t m c -> 'RWST' r w s m c
+  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' s t      -> 'ErrorT' e ('RWST' r w t m c) -> 'ErrorT' e ('RWST' r w s m c)
+  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' s t -> 'ErrorT' e ('RWST' r w t m c) -> 'ErrorT' e ('RWST' r w s m c)
   -- ...
   -- @
   zoom :: Monad m => SimpleLensLike (k c) t s -> m c -> n c
@@ -118,9 +118,9 @@ instance (Error e, Zoom m n k s t) => Zoom (ErrorT e m) (ErrorT e n) (FocusingEr
 
 
 -- | This class allows us to use 'magnify' part of the environment, changing the environment supplied by
--- many different monad transformers. Unlike 'focus' this can change the environment of a deeply nested monad transformer.
+-- many different monad transformers. Unlike 'zoom' this can change the environment of a deeply nested monad transformer.
 --
--- Also, unlike 'focus', this can be used with any valid 'Getter', but cannot be used with a 'Traversal' or 'Fold'.
+-- Also, unlike 'zoom', this can be used with any valid 'Getter', but cannot be used with a 'Traversal' or 'Fold'.
 class (MonadReader b m, MonadReader a n) => Magnify m n k b a | m -> b, n -> a, m a -> n, n b -> m where
   -- | Run a monadic action in a larger environment than it was defined in, using a 'Getter'.
   --
@@ -131,10 +131,10 @@ class (MonadReader b m, MonadReader a n) => Magnify m n k b a | m -> b, n -> a, 
   -- This can be used to edit pretty much any monad transformer stack with an environment in it:
   --
   -- @
-  -- 'magnify' ::             'Getter' a b -> (b -> c) -> a -> c
-  -- 'magnify' :: 'Monoid' c => 'Fold' a b   -> (b -> c) -> a -> c
-  -- 'magnify' :: 'Monoid' w                'Getter' a b -> 'RWST' a w s c -> 'RWST' b w s c
-  -- 'magnify' :: ('Monoid' w, 'Monoid' c) => 'Fold' a b   -> 'RWST' a w s c -> 'RWST' b w s c
+  -- 'magnify' ::             'Getter' s a -> (a -> r) -> s -> r
+  -- 'magnify' :: 'Monoid' c => 'Fold' s a   -> (a -> r) -> s -> r
+  -- 'magnify' :: 'Monoid' w                'Getter' s t -> 'RWST' s w st c -> 'RWST' t w st c
+  -- 'magnify' :: ('Monoid' w, 'Monoid' c) => 'Fold' s t   -> 'RWST' s w st c -> 'RWST' t w st c
   -- ...
   -- @
   magnify :: ((b -> k c b) -> a -> k c a) -> m c -> n c

@@ -201,8 +201,8 @@ children = toListOf plate
 --
 -- @'childrenOn' ≡ 'toListOf'@
 --
--- @'childrenOn' :: 'Fold' a c -> a -> [c]@
-childrenOn :: Getting [c] a b c d -> a -> [c]
+-- @'childrenOn' :: 'Fold' s a -> s -> [a]@
+childrenOn :: Getting [a] s t a b -> s -> [a]
 childrenOn = toListOf
 {-# INLINE childrenOn #-}
 
@@ -245,24 +245,24 @@ rewriteOf l f = go where
 -- | Rewrite recursively over part of a larger structure.
 --
 -- @
--- 'rewriteOn' :: 'Plated' c => 'Simple' 'Control.Lens.Iso.Iso' a b       -> (b -> 'Maybe' b) -> a -> a
--- 'rewriteOn' :: 'Plated' c => 'Simple' 'Lens' a b      -> (b -> 'Maybe' b) -> a -> a
--- 'rewriteOn' :: 'Plated' c => 'Simple' 'Traversal' a b -> (b -> 'Maybe' b) -> a -> a
--- 'rewriteOn' :: 'Plated' c => 'Simple' 'Setting' a b   -> (b -> 'Maybe' b) -> a -> a
+-- 'rewriteOn' :: 'Plated' a => 'Simple' 'Control.Lens.Iso.Iso' s a       -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOn' :: 'Plated' a => 'Simple' 'Lens' s a      -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOn' :: 'Plated' a => 'Simple' 'Traversal' s a -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOn' :: 'Plated' a => 'Simple' 'Setting' s a   -> (a -> 'Maybe' a) -> s -> s
 -- @
-rewriteOn :: Plated c => Setting a b c c -> (c -> Maybe c) -> a -> b
+rewriteOn :: Plated a => Setting s t a a -> (a -> Maybe a) -> s -> t
 rewriteOn b = over b . rewrite
 {-# INLINE rewriteOn #-}
 
 -- | Rewrite recursively over part of a larger structure using a specified setter.
 --
 -- @
--- 'rewriteOnOf' :: 'Plated' b => 'Simple' 'Control.Lens.Iso.Iso' a b       -> 'Simple' 'Control.Lens.Iso.Iso' b b       -> (b -> 'Maybe' b) -> a -> a
--- 'rewriteOnOf' :: 'Plated' b => 'Simple' 'Lens' a b      -> 'Simple' 'Lens' b b      -> (b -> 'Maybe' b) -> a -> a
--- 'rewriteOnOf' :: 'Plated' b => 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> (b -> 'Maybe' b) -> a -> a
--- 'rewriteOnOf' :: 'Plated' b => 'Simple' 'Setter' a b    -> 'Simple' 'Setter' b b    -> (b -> 'Maybe' b) -> a -> a
+-- 'rewriteOnOf' :: 'Plated' a => 'Simple' 'Control.Lens.Iso.Iso' s a       -> 'Simple' 'Control.Lens.Iso.Iso' a a       -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOnOf' :: 'Plated' a => 'Simple' 'Lens' s a      -> 'Simple' 'Lens' a a      -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOnOf' :: 'Plated' a => 'Simple' 'Traversal' s a -> 'Simple' 'Traversal' a a -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOnOf' :: 'Plated' a => 'Simple' 'Setter' s a    -> 'Simple' 'Setter' a a    -> (a -> 'Maybe' a) -> s -> s
 -- @
-rewriteOnOf :: Setting a b c c -> SimpleSetting c c -> (c -> Maybe c) -> a -> b
+rewriteOnOf :: Setting s t a a -> SimpleSetting a a -> (a -> Maybe a) -> s -> t
 rewriteOnOf b l = over b . rewriteOf l
 {-# INLINE rewriteOnOf #-}
 
@@ -281,13 +281,13 @@ rewriteMOf l f = go where
 
 -- | Rewrite by applying a monadic rule everywhere inside of a structure located by a user-specified 'Traversal'.
 -- Ensures that the rule cannot be applied anywhere in the result.
-rewriteMOn :: (Monad m, Plated c) => LensLike (WrappedMonad m) a b c c -> (c -> m (Maybe c)) -> a -> m b
+rewriteMOn :: (Monad m, Plated a) => LensLike (WrappedMonad m) s t a a -> (a -> m (Maybe a)) -> s -> m t
 rewriteMOn b = mapMOf b . rewriteM
 {-# INLINE rewriteMOn #-}
 
 -- | Rewrite by applying a monadic rule everywhere inside of a structure located by a user-specified 'Traversal',
 -- using a user-specified 'Traversal' for recursion. Ensures that the rule cannot be applied anywhere in the result.
-rewriteMOnOf :: Monad m => LensLike (WrappedMonad m) a b c c -> SimpleLensLike (WrappedMonad m) c c -> (c -> m (Maybe c)) -> a -> m b
+rewriteMOnOf :: Monad m => LensLike (WrappedMonad m) s t a a -> SimpleLensLike (WrappedMonad m) a a -> (a -> m (Maybe a)) -> s -> m t
 rewriteMOnOf b l = mapMOf b . rewriteMOf l
 {-# INLINE rewriteMOnOf #-}
 
@@ -309,7 +309,7 @@ universeOf l = go where
 {-# INLINE universeOf #-}
 
 -- | Given a 'Fold' that knows how to find 'Plated' parts of a container retrieve them and all of their descendants, recursively.
-universeOn ::  Plated c => Getting [c] a b c c -> a -> [c]
+universeOn ::  Plated a => Getting [a] s t a a -> s -> [a]
 universeOn b = universeOnOf b plate
 {-# INLINE universeOn #-}
 
@@ -317,7 +317,7 @@ universeOn b = universeOnOf b plate
 -- in a region indicated by another 'Fold'.
 --
 -- @'toListOf' l ≡ 'universeOnOf' l 'ignored'@
-universeOnOf :: Getting [c] a b c d -> Getting [c] c d c d -> a -> [c]
+universeOnOf :: Getting [a] s t a b -> Getting [a] a b a b -> s -> [a]
 universeOnOf b = foldMapOf b . universeOf
 {-# INLINE universeOnOf #-}
 
@@ -341,10 +341,10 @@ transform = transformOf plate
 -- | Transform every element in the tree in a bottom-up manner over a region indicated by a 'Setter'.
 --
 -- @
--- 'transformOn' :: 'Plated' b => 'Simple' 'Traversal' a b -> (b -> b) -> a -> a
--- 'transformOn' :: 'Plated' b => 'Simple' 'Setter' a b    -> (b -> b) -> a -> a
+-- 'transformOn' :: 'Plated' a => 'Simple' 'Traversal' s a -> (a -> a) -> s -> s
+-- 'transformOn' :: 'Plated' a => 'Simple' 'Setter' s a    -> (a -> a) -> s -> s
 -- @
-transformOn :: Plated c => Setting a b c c -> (c -> c) -> a -> b
+transformOn :: Plated a => Setting s t a a -> (a -> a) -> s -> t
 transformOn b = over b . transform
 {-# INLINE transformOn #-}
 
@@ -363,10 +363,10 @@ transformOf l f = go where
 -- in a bottom-up manner.
 --
 -- @
--- 'transformOnOf' :: 'Setter' a b -> 'Simple' 'Traversal' b b -> (b -> b) -> a -> a
--- 'transformOnOf' :: 'Setter' a b -> 'Simple' 'Setter' b b    -> (b -> b) -> a -> a
+-- 'transformOnOf' :: 'Simple' 'Setter' s a -> 'Simple' 'Traversal' a a -> (a -> a) -> s -> s
+-- 'transformOnOf' :: 'Simple' 'Setter' s a -> 'Simple' 'Setter' a a    -> (a -> a) -> s -> s
 -- @
-transformOnOf :: Setting a b c c -> SimpleSetting c c -> (c -> c) -> a -> b
+transformOnOf :: Setting s t a a -> SimpleSetting a a -> (a -> a) -> s -> t
 transformOnOf b l = over b . transformOf l
 {-# INLINE transformOnOf #-}
 
@@ -377,8 +377,8 @@ transformM = transformMOf plate
 
 -- | Transform every element in the tree in a region indicated by a supplied 'Traversal', in a bottom-up manner, monadically.
 --
--- @'transformMOn' :: ('Monad' m, 'Plated' c) => 'Simple' 'Traversal' a b -> (b -> m b) -> a -> m a@
-transformMOn :: (Monad m, Plated c) => LensLike (WrappedMonad m) a b c c -> (c -> m c) -> a -> m b
+-- @'transformMOn' :: ('Monad' m, 'Plated' a) => 'Simple' 'Traversal' s a -> (a -> m a) -> s -> m s@
+transformMOn :: (Monad m, Plated a) => LensLike (WrappedMonad m) s t a a -> (a -> m a) -> s -> m t
 transformMOn b = mapMOf b . transformM
 {-# INLINE transformMOn #-}
 
@@ -393,8 +393,8 @@ transformMOf l f = go where
 -- | Transform every element in a tree that lies in a region indicated by a supplied 'Traversal', walking with a user supplied 'Traversal' in
 -- a bottom-up manner with a monadic effect.
 --
--- @'transformMOnOf' :: 'Monad' m => 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> (b -> m b) -> a -> m a@
-transformMOnOf :: Monad m => LensLike (WrappedMonad m) a b c c -> SimpleLensLike (WrappedMonad m) c c -> (c -> m c) -> a -> m b
+-- @'transformMOnOf' :: 'Monad' m => 'Simple' 'Traversal' s a -> 'Simple' 'Traversal' a a -> (a -> m a) -> s -> m s@
+transformMOnOf :: Monad m => LensLike (WrappedMonad m) s a a a -> SimpleLensLike (WrappedMonad m) a a -> (a -> m a) -> s -> m a
 transformMOnOf b l = mapMOf b . transformMOf l
 {-# INLINE transformMOnOf #-}
 
@@ -415,10 +415,10 @@ descend = over plate
 -- @'descendOf' ≡ 'over'@
 --
 -- @
--- 'descendOf' :: 'Simple' 'Setter' a b -> (b -> b) -> a -> a
--- 'descendOf' :: 'Simple' 'Traversal' a b -> (b -> b) -> a -> a
+-- 'descendOf' :: 'Simple' 'Setter' s a -> (a -> a) -> s -> s
+-- 'descendOf' :: 'Simple' 'Traversal' s a -> (a -> a) -> s -> s
 -- @
-descendOf :: Setting a b c d -> (c -> d) -> a -> b
+descendOf :: Setting s t a b -> (a -> b) -> s -> t
 descendOf = over
 {-# INLINE descendOf #-}
 
@@ -427,11 +427,11 @@ descendOf = over
 -- @'descendOnOf' b l ≡ 'over' (b '.' l)@
 --
 -- @
--- 'descendOnOf' :: 'Simple' 'Setter' a b    -> 'Simple' 'Setter' b b    -> (b -> b) -> a -> a
--- 'descendOnOf' :: 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> (b -> b) -> a -> a
+-- 'descendOnOf' :: 'Simple' 'Setter' s a    -> 'Simple' 'Setter' a a    -> (a -> a) -> s -> s
+-- 'descendOnOf' :: 'Simple' 'Traversal' s a -> 'Simple' 'Traversal' a a -> (a -> a) -> s -> s
 -- @
 --
-descendOnOf :: Setting a b c d -> Setting c d e f -> (e -> f) -> a -> b
+descendOnOf :: Setting s t a b -> Setting a b u v -> (u -> v) -> s -> t
 descendOnOf b l = over (b.l)
 {-# INLINE descendOnOf #-}
 
@@ -439,8 +439,8 @@ descendOnOf b l = over (b.l)
 --
 -- @'descendOn' b ≡ 'over' (b '.' 'plate')@
 --
--- @'descendOn' :: 'Plated' c => 'Setter' a b -> (b -> b) -> a -> a@
-descendOn :: Plated c => Setting a b c c -> (c -> c) -> a -> b
+-- @'descendOn' :: 'Plated' a => 'Setter' s t -> (t -> t) -> s -> s@
+descendOn :: Plated a => Setting s t a a -> (a -> a) -> s -> t
 descendOn b = over (b . plate)
 {-# INLINE descendOn #-}
 
@@ -461,8 +461,8 @@ descendA = plate
 --
 -- @'descendAOf' ≡ 'id'@
 --
--- @'descendAOf' :: 'Applicative' m => 'Simple' 'Traversal' a b => (b -> m b) -> a -> m a@
-descendAOf :: Applicative f => LensLike f a b c d -> (c -> f d) -> a -> f b
+-- @'descendAOf' :: 'Applicative' m => 'Simple' 'Traversal' s a => (a -> m a) -> s -> m s@
+descendAOf :: Applicative f => LensLike f s t a b -> (a -> f b) -> s -> f t
 descendAOf = id
 {-# INLINE descendAOf #-}
 
@@ -470,8 +470,8 @@ descendAOf = id
 --
 -- @'descendAOnOf' ≡ ('.')@
 --
--- @'descendAOnOf' :: 'Applicative' f => 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> (b -> f b) -> a -> f a@
-descendAOnOf :: Applicative g => LensLike g a b c d -> LensLike g c d e f -> (e -> g f) -> a -> g b
+-- @'descendAOnOf' :: 'Applicative' f => 'Simple' 'Traversal' s a -> 'Simple' 'Traversal' a a -> (a -> f a) -> s -> f s@
+descendAOnOf :: Applicative f => LensLike f u v s t -> LensLike f s t a b -> (a -> f b) -> u -> f v
 descendAOnOf = (.)
 {-# INLINE descendAOnOf #-}
 
@@ -479,8 +479,8 @@ descendAOnOf = (.)
 --
 -- @'descendAOn' b ≡ b '.' 'plate'@
 --
--- @'descendAOn' :: ('Applicative' f, Plated' c) => 'Simple' 'Traversal' a b -> (b -> f b) -> a -> f a@
-descendAOn :: (Applicative f, Plated c) => LensLike f a b c c -> (c -> f c) -> a -> f b
+-- @'descendAOn' :: ('Applicative' f, Plated' a) => 'Simple' 'Traversal' s a -> (a -> f a) -> s -> f s@
+descendAOn :: (Applicative f, Plated a) => LensLike f s t a a -> (a -> f a) -> s -> f t
 descendAOn b = b . plate
 {-# INLINE descendAOn #-}
 
@@ -497,8 +497,8 @@ descendA_ = traverseOf_ plate
 --
 -- @'descendAOf_' ≡ 'traverseOf_'@
 --
--- @'descendAOf_' :: 'Applicative' f => 'Fold' a b => (b -> f b) -> a -> f ()@
-descendAOf_ :: Applicative f => Getting (Traversed f) a b c d -> (c -> f e) -> a -> f ()
+-- @'descendAOf_' :: 'Applicative' f => 'Fold' s a => (a -> f r) -> s -> f ()@
+descendAOf_ :: Applicative f => Getting (Traversed f) s t a b -> (a -> f r) -> s -> f ()
 descendAOf_ = traverseOf_
 {-# INLINE descendAOf_ #-}
 
@@ -506,8 +506,8 @@ descendAOf_ = traverseOf_
 --
 -- @'descendAOnOf_' b l ≡ 'traverseOf_' (b '.' l)@
 --
--- @'descendAOnOf_' :: 'Applicative' f => 'Fold' a b -> 'Fold' b b -> (b -> f c) -> a -> f ()@
-descendAOnOf_ :: Applicative f => Getting (Traversed f) a b c d -> Getting (Traversed f) c d c d -> (c -> f e) -> a -> f ()
+-- @'descendAOnOf_' :: 'Applicative' f => 'Fold' s a -> 'Fold' a a -> (a -> f r) -> s -> f ()@
+descendAOnOf_ :: Applicative f => Getting (Traversed f) s t a b -> Getting (Traversed f) a b a b -> (a -> f r) -> s -> f ()
 descendAOnOf_ b l = traverseOf_ (b . l)
 {-# INLINE descendAOnOf_ #-}
 
@@ -515,8 +515,8 @@ descendAOnOf_ b l = traverseOf_ (b . l)
 --
 -- @'descendAOn_' b ≡ 'traverseOf_' (b '.' 'plate')@
 --
--- @'descendAOn_' :: ('Applicative' f, 'Plated' b) => 'Simple' 'Traversal' a b -> (b -> f c) -> a -> f ()@
-descendAOn_ :: (Applicative f, Plated c) => Getting (Traversed f) a b c c -> (c -> f e) -> a -> f ()
+-- @'descendAOn_' :: ('Applicative' f, 'Plated' a) => 'Simple' 'Traversal' s a -> (a -> f r) -> s -> f ()@
+descendAOn_ :: (Applicative f, Plated a) => Getting (Traversed f) s t a a -> (a -> f r) -> s -> f ()
 descendAOn_ b = traverseOf_ (b . plate)
 {-# INLINE descendAOn_ #-}
 
@@ -536,8 +536,8 @@ descendM = mapMOf plate
 --
 -- @'descendMOf' ≡ 'mapMOf'@
 --
--- @'descendMOf' :: 'Monad' m => 'Simple' 'Traversal' a b => (b -> m b) -> a -> m a@
-descendMOf :: Monad m => LensLike (WrappedMonad m) a b c d -> (c -> m d) -> a -> m b
+-- @'descendMOf' :: 'Monad' m => 'Simple' 'Traversal' s a => (a -> m a) -> s -> m s@
+descendMOf :: Monad m => LensLike (WrappedMonad m) s t a b -> (a -> m b) -> s -> m t
 descendMOf = mapMOf
 {-# INLINE descendMOf #-}
 
@@ -545,8 +545,8 @@ descendMOf = mapMOf
 --
 -- @'descendMOnOf' b l ≡ 'mapMOf' (b '.' l)@
 --
--- @'descendMOnOf' :: 'Monad' m => 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> (b -> m b) -> a -> m a@
-descendMOnOf :: Monad m => LensLike (WrappedMonad m) a b c c -> SimpleLensLike (WrappedMonad m) c c -> (c -> m c) -> a -> m b
+-- @'descendMOnOf' :: 'Monad' m => 'Simple' 'Traversal' s a -> 'Simple' 'Traversal' a a -> (a -> m a) -> s -> m s@
+descendMOnOf :: Monad m => LensLike (WrappedMonad m) s t a a -> SimpleLensLike (WrappedMonad m) a a -> (a -> m a) -> s -> m t
 descendMOnOf b l = mapMOf (b . l)
 {-# INLINE descendMOnOf #-}
 
@@ -554,8 +554,8 @@ descendMOnOf b l = mapMOf (b . l)
 --
 -- @'descendMOn' b ≡ 'mapMOf' (b . 'plate')@
 --
--- @'descendMOn' :: ('Monad' m, 'Plated' c) => 'Simple' 'Traversal' a b -> (b -> m b) -> a -> m a@
-descendMOn :: (Monad m, Plated c) => LensLike (WrappedMonad m) a b c c -> (c -> m c) -> a -> m b
+-- @'descendMOn' :: ('Monad' m, 'Plated' a) => 'Simple' 'Traversal' s a -> (a -> m a) -> s -> m s@
+descendMOn :: (Monad m, Plated a) => LensLike (WrappedMonad m) s t a a -> (a -> m a) -> s -> m t
 descendMOn b = mapMOf (b . plate)
 {-# INLINE descendMOn #-}
 
@@ -570,8 +570,8 @@ descendM_ = mapMOf_ plate
 --
 -- @'descendMOf_' ≡ 'mapMOf_'@
 --
--- @'descendMOf_' :: 'Monad' m => 'Fold' a b => (b -> m b) -> a -> m ()@
-descendMOf_ :: Monad m => Getting (Sequenced m) a b c d -> (c -> m e) -> a -> m ()
+-- @'descendMOf_' :: 'Monad' m => 'Fold' s a => (a -> m a) -> s -> m ()@
+descendMOf_ :: Monad m => Getting (Sequenced m) s t a b -> (a -> m r) -> s -> m ()
 descendMOf_ = mapMOf_
 {-# INLINE descendMOf_ #-}
 
@@ -579,8 +579,8 @@ descendMOf_ = mapMOf_
 --
 -- @'descendMOnOf_' b l ≡ 'mapMOf_' (b '.' l)@
 --
--- @'descendMOnOf_' :: 'Monad' m => 'Fold' a b -> 'Fold' b b -> (b -> m b) -> a -> m ()@
-descendMOnOf_ :: Monad m => Getting (Sequenced m) a b c d -> Getting (Sequenced m) c d c d -> (c -> m e) -> a -> m ()
+-- @'descendMOnOf_' :: 'Monad' m => 'Fold' s a -> 'Fold' a a -> (a -> m a) -> s -> m ()@
+descendMOnOf_ :: Monad m => Getting (Sequenced m) s t a b -> Getting (Sequenced m) a b a b -> (a -> m r) -> s -> m ()
 descendMOnOf_ b l = mapMOf_ (b . l)
 {-# INLINE descendMOnOf_ #-}
 
@@ -588,8 +588,8 @@ descendMOnOf_ b l = mapMOf_ (b . l)
 --
 -- @'descendMOn_' b ≡ 'mapMOf_' (b '.' 'plate')@
 --
--- @'descendMOn_' :: ('Monad' m, 'Plated' b) => 'Simple' 'Traversal' a b -> (b -> m c) -> a -> m ()@
-descendMOn_ :: (Monad m, Plated c) => Getting (Sequenced m) a b c c -> (c -> m e) -> a -> m ()
+-- @'descendMOn_' :: ('Monad' m, 'Plated' a) => 'Simple' 'Traversal' s a -> (a -> m r) -> b -> m ()@
+descendMOn_ :: (Monad m, Plated a) => Getting (Sequenced m) s t a a -> (a -> m r) -> s -> m ()
 descendMOn_ b = mapMOf_ (b . plate)
 {-# INLINE descendMOn_ #-}
 
@@ -629,16 +629,16 @@ contextsOf l x = Context id x : f (holesOf l x) where
 --
 -- @'contextsOn' b ≡ 'contextsOnOf' b 'plate'@
 --
--- @'contextsOn' :: 'Plated' b => 'Simple' 'Traversal' a b -> a -> ['Context' b b a]@
-contextsOn :: Plated c => LensLike (Bazaar c c) a b c c -> a -> [Context c c b]
+-- @'contextsOn' :: 'Plated' a => 'Simple' 'Traversal' s a -> s -> ['Context' a a s]@
+contextsOn :: Plated a => LensLike (Bazaar a a) s t a a -> s -> [Context a a t]
 contextsOn b = contextsOnOf b plate
 {-# INLINE contextsOn #-}
 
 -- | Return a list of all of the editable contexts for every location in the structure in an areas indicated by a user supplied 'Traversal', recursively using
 -- another user-supplied 'Traversal' to walk each layer.
 --
--- @'contextsOnOf' :: 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> a -> ['Context' b b a]@
-contextsOnOf :: LensLike (Bazaar c c) a b c c -> SimpleLensLike (Bazaar c c) c c -> a -> [Context c c b]
+-- @'contextsOnOf' :: 'Simple' 'Traversal' s a -> 'Simple' 'Traversal' a a -> s -> ['Context' a a s]@
+contextsOnOf :: LensLike (Bazaar a a) s t a a -> SimpleLensLike (Bazaar a a) a a -> s -> [Context a a t]
 contextsOnOf b l = f . holesOf b where
   f xs = do
     Context ctx child <- xs
@@ -670,11 +670,11 @@ holes = holesOf plate
 -- @
 --
 -- @
--- 'holesOf' :: 'Simple' 'Iso' a b       -> a -> ['Context' b a]
--- 'holesOf' :: 'Simple' 'Lens' a b      -> a -> ['Context' b a]
--- 'holesOf' :: 'Simple' 'Traversal' a b -> a -> ['Context' b a]
+-- 'holesOf' :: 'Simple' 'Iso' s a       -> s -> ['Context' a a s]
+-- 'holesOf' :: 'Simple' 'Lens' s a      -> s -> ['Context' a a s]
+-- 'holesOf' :: 'Simple' 'Traversal' s a -> s -> ['Context' a a s]
 -- @
-holesOf :: LensLike (Bazaar c c) a b c c -> a -> [Context c c b]
+holesOf :: LensLike (Bazaar a a) s t a a -> s -> [Context a a t]
 holesOf l a = f (ins b) (outs b) where
   b = l sell a
   f []     _ = []
@@ -687,11 +687,11 @@ holesOf l a = f (ins b) (outs b) where
 -- @'holesOn' ≡ 'holesOf'@
 --
 -- @
--- 'holesOn' :: 'Simple' 'Iso' a b       -> a -> ['Context' b b a]
--- 'holesOn' :: 'Simple' 'Lens' a b      -> a -> ['Context' b b a]
--- 'holesOn' :: 'Simple' 'Traversal' a b -> a -> ['Context' b b a]
+-- 'holesOn' :: 'Simple' 'Iso' s a       -> s -> ['Context' a a s]
+-- 'holesOn' :: 'Simple' 'Lens' s a      -> s -> ['Context' a a s]
+-- 'holesOn' :: 'Simple' 'Traversal' s a -> s -> ['Context' a a s]
 -- @
-holesOn :: LensLike (Bazaar c c) a b c c -> a -> [Context c c b]
+holesOn :: LensLike (Bazaar a a) s t a a -> s -> [Context a a t]
 holesOn = holesOf
 {-# INLINE holesOn #-}
 
@@ -700,11 +700,11 @@ holesOn = holesOf
 -- @'holesOnOf' b l ≡ 'holesOf' (b '.' l)@
 --
 -- @
--- 'holesOnOf' :: 'Simple' 'Iso' a b       -> 'Simple' 'Iso' b b       -> a -> ['Context' b a]
--- 'holesOnOf' :: 'Simple' 'Lens' a b      -> 'Simple' 'Lens' b b      -> a -> ['Context' b a]
--- 'holesOnOf' :: 'Simple' 'Traversal' a b -> 'Simple' 'Traversal' b b -> a -> ['Context' b a]
+-- 'holesOnOf' :: 'Simple' 'Iso' s a       -> 'Simple' 'Iso' a a       -> s -> ['Context' a a s]
+-- 'holesOnOf' :: 'Simple' 'Lens' s a      -> 'Simple' 'Lens' a a      -> s -> ['Context' a a s]
+-- 'holesOnOf' :: 'Simple' 'Traversal' s a -> 'Simple' 'Traversal' a a -> s -> ['Context' a a s]
 -- @
-holesOnOf :: LensLike (Bazaar e e) a b c d -> LensLike (Bazaar e e) c d e e -> a -> [Context e e b]
+holesOnOf :: LensLike (Bazaar r r) s t a b -> LensLike (Bazaar r r) a b r r -> s -> [Context r r t]
 holesOnOf b l = holesOf (b.l)
 {-# INLINE holesOnOf #-}
 
@@ -776,31 +776,31 @@ parts = partsOf plate
 -- So technically, this is only a lens if you do not change the number of results it returns.
 --
 -- @
--- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' a b       -> 'Simple' 'Lens' a [b]
--- 'partsOf' :: 'Simple' 'Lens' a b      -> 'Simple' 'Lens' a [b]
--- 'partsOf' :: 'Simple' 'Traversal' a b -> 'Simple' 'Lens' a [b]
+-- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' s a       -> 'Simple' 'Lens' s [a]
+-- 'partsOf' :: 'Simple' 'Lens' s a      -> 'Simple' 'Lens' s [a]
+-- 'partsOf' :: 'Simple' 'Traversal' s a -> 'Simple' 'Lens' s [a]
 -- @
-partsOf :: LensLike (Bazaar c c) a b c c -> Lens a b [c] [c]
+partsOf :: LensLike (Bazaar a a) s t a a -> Lens s t [a] [a]
 partsOf l f a = outs b <$> f (ins b) where b = l sell a
 {-# INLINE partsOf #-}
 
 -- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
 --
--- If you do not need the types of @c@ and @d@ to be different, it is recommended that
+-- If you do not need the types of @s@ and @t@ to be different, it is recommended that
 -- you use 'partsOf'
 --
 -- It is generally safer to traverse with the 'Bazaar' rather than use this
 -- combinator. However, it is sometimes convenient.
 --
--- This is unsafe because if you don't supply at least as many @d@'s as you were
--- given @c@'s, then the reconstruction of @b@ /will/ result in an error!
+-- This is unsafe because if you don't supply at least as many @b@'s as you were
+-- given @a@'s, then the reconstruction of @t@ /will/ result in an error!
 --
 -- @
--- 'unsafePartsOf' :: 'Control.Lens.Iso.Iso' a b c d       -> 'Lens' a b [c] [d]
--- 'unsafePartsOf' :: 'Lens' a b c d      -> 'Lens' a b [c] [d]
--- 'unsafePartsOf' :: 'Traversal' a b c d -> 'Lens' a b [c] [d]
+-- 'unsafePartsOf' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Lens' s t [a] [b]
+-- 'unsafePartsOf' :: 'Lens' s t a b      -> 'Lens' s t [a] [b]
+-- 'unsafePartsOf' :: 'Traversal' s t a b -> 'Lens' s t [a] [b]
 -- @
-unsafePartsOf :: LensLike (Bazaar c d) a b c d -> Lens a b [c] [d]
+unsafePartsOf :: LensLike (Bazaar a b) s t a b -> Lens s t [a] [b]
 unsafePartsOf l f a = unsafeOuts b <$> f (ins b) where b = l sell a
 {-# INLINE unsafePartsOf #-}
 
@@ -808,18 +808,18 @@ unsafePartsOf l f a = unsafeOuts b <$> f (ins b) where b = l sell a
 -- Misc.
 -------------------------------------------------------------------------------
 
-ins :: Bazaar c d a -> [c]
+ins :: Bazaar a b s -> [a]
 ins (Bazaar m) = getConst (m (Const . return))
 {-# INLINE ins #-}
 
-newtype Out c a = Out { withOut :: [c] -> (a, [c]) }
+newtype Out s a = Out { withOut :: [s] -> (a, [s]) }
 
-instance Functor (Out c) where
+instance Functor (Out s) where
   fmap f (Out m) = Out $ \cs -> case m cs of
     (as, ds) -> (f as, ds)
   {-# INLINE fmap #-}
 
-instance Applicative (Out c) where
+instance Applicative (Out s) where
   pure a = Out $ \cs -> (a, cs)
   {-# INLINE pure #-}
   Out mf <*> Out ma = Out $ \cs -> case mf cs of
@@ -827,13 +827,13 @@ instance Applicative (Out c) where
        (a,  es) -> (f a, es)
   {-# INLINE (<*>) #-}
 
-outs :: Bazaar c c a -> [c] -> a
+outs :: Bazaar a a s -> [a] -> s
 outs (Bazaar m) = fst . withOut (m $ \c -> Out $ \cs -> case cs of
   [] -> (c, [])
   (d:ds) -> (d, ds))
 {-# INLINE outs #-}
 
-unsafeOuts :: Bazaar c d a -> [d] -> a
+unsafeOuts :: Bazaar a b s -> [b] -> s
 unsafeOuts (Bazaar m) = fst . withOut (m $ \_ -> Out $ \cs -> case cs of
   (d:ds) -> (d, ds)
   [] -> error "unsafePartsOf: not enough elements were supplied")

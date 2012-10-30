@@ -26,10 +26,10 @@ import Control.Lens.Internal
 ------------------------------------------------------------------------------
 
 -- | Every 'IndexedGetter' is a valid 'Control.Lens.IndexedFold.IndexedFold' and 'Getter'.
-type IndexedGetter i a c = forall k f. (Indexed i k, Gettable f) => k (c -> f c) (a -> f a)
+type IndexedGetter i s a = forall k f. (Indexed i k, Gettable f) => k (a -> f a) (s -> f s)
 
 -- | Used to consume an 'Control.Lens.IndexedFold.IndexedFold'.
-type IndexedGetting i m a b c d = Index i (c -> Accessor m d) (a -> Accessor m b)
+type IndexedGetting i m s t a b = Index i (a -> Accessor m b) (s -> Accessor m t)
 
 -- | Useful for storage.
-newtype ReifiedIndexedGetter i a c = ReifyIndexedGetter { reflectIndexedGetter :: IndexedGetter i a c }
+newtype ReifiedIndexedGetter i s a = ReifyIndexedGetter { reflectIndexedGetter :: IndexedGetter i s a }
