@@ -164,10 +164,21 @@ iterated f g a0 = go a0 where
   go a = g a *> go (f a)
 {-# INLINE iterated #-}
 
--- | Obtain a 'Fold' by filtering a 'Lens', 'Control.Lens.Iso.Iso', 'Getter', 'Fold' or 'Control.Lens.Traversal.Traversal'.
-filtered :: (Gettable f, Applicative f) => (a -> Bool) -> LensLike f s t a b -> LensLike f s t a b
-filtered p l f = l $ \c -> if p c then f c
-                                  else noEffect
+-- | Obtain a 'Fold' that can be composed with to filter another 'Lens', 'Control.Lens.Iso.Iso', 'Getter', 'Fold' (or 'Control.Lens.Traversal.Traversal')
+--
+-- Note: This is /not/ a legal 'Control.Lens.Traversal.Traversal', unless you are very careful not to invalidate the predicate on the target.
+--
+-- As a counter example, consider that given @evens = 'filtered' 'even'@ the second 'Control.Lens.Traversal.Traversal' law is violated:
+--
+-- @'over' evens 'succ' '.' 'over' evens 'succ' /= 'over' evens ('succ' '.' 'succ')@
+--
+-- So, in order for this to qualify as a legal 'Traversal' you can only use it for actions that preserve the result of the predicate!
+--
+-- @'filtered' :: (a -> 'Bool') -> 'Fold' a a@
+filtered :: Applicative f => (a -> Bool) -> SimpleLensLike f a a
+filtered p f a
+  | p a       = f a
+  | otherwise = pure a
 {-# INLINE filtered #-}
 
 -- | This allows you to traverse the elements of a 'Control.Lens.Traversal.Traversal' or 'Fold' in the opposite order.

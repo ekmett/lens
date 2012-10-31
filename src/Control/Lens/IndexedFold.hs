@@ -41,7 +41,7 @@ module Control.Lens.IndexedFold
   , indicesOf
 
   -- * Building Indexed Folds
-  , ifiltered
+  , ifiltering
   , ibackwards
   , itakingWhile
   , idroppingWhile
@@ -403,10 +403,14 @@ indicesOf l f = withIndex l (const . coerce . f)
 -- Converting to Folds
 -------------------------------------------------------------------------------
 
--- | Obtain an 'IndexedFold' by filtering an 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter', 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'.
-ifiltered :: (Gettable f, Applicative f, Indexed i k) => (i -> a -> Bool) -> Index i (a -> f a) (s -> f t) -> k (a -> f a) (s -> f t)
-ifiltered p l = index $ \ f -> withIndex l $ \ i c -> if p i c then f i c else noEffect
-{-# INLINE ifiltered #-}
+-- | Obtain an 'IndexedFold' by filtering an 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter', or 'IndexedFold'.
+--
+-- When passed an 'Control.Lens.IndexedTraversal.IndexedTraversal', sadly the result is /not/ a legal 'Control.Lens.IndexedTraversal.IndexedTraversal'.
+--
+-- See 'filtered' for a related counter-example.
+ifiltering :: (Applicative f, Indexed i k) => (i -> a -> Bool) -> Index i (a -> f a) (s -> f t) -> k (a -> f a) (s -> f t)
+ifiltering p l = index $ \ f -> withIndex l $ \ i c -> if p i c then f i c else pure c
+{-# INLINE ifiltering #-}
 
 -- | Reverse the order of the elements of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'.
 -- This has no effect on an 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter', or 'Control.Lens.IndexedSetter.IndexedSetter'.
