@@ -49,6 +49,8 @@ module Control.Lens.Traversal
   , traverseLeft
   , traverseRight
   , both
+  , taking
+  , dropping
 
   -- * Cloning Traversals
   , cloneTraversal
@@ -394,6 +396,17 @@ traverseRight _ (Left c) = pure $ Left c
 traverseRight f (Right a) = Right <$> f a
 {-# INLINE traverseRight #-}
 
+-- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
+taking :: Applicative f => Int -> SimpleLensLike (Indexing f) s a -> SimpleLensLike f s a
+taking n l f s = case runIndexing (l (\a -> Indexing $ \i -> IndexingResult (if i < n then f a else pure a) (i + 1)) s) 0 of
+  IndexingResult r _ -> r
+{-# INLINE taking #-}
+
+-- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
+dropping :: Applicative f => Int -> SimpleLensLike (Indexing f) s a -> SimpleLensLike f s a
+dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> IndexingResult (if i >= n then f a else pure a) (i + 1)) s) 0 of
+  IndexingResult r _ -> r
+{-# INLINE dropping #-}
 
 ------------------------------------------------------------------------------
 -- Cloning Traversals
