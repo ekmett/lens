@@ -200,13 +200,13 @@ view l = runAccessor . l Accessor
 -- 5
 --
 -- @
--- 'views' ::             'Getter' s a             -> (a -> b) -> s -> b
+-- 'views' ::             'Getter' s a             -> (a -> r) -> s -> r
 -- 'views' :: 'Monoid' m => 'Control.Lens.Fold.Fold' s a               -> (a -> m) -> s -> m
--- 'views' ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a         -> (a -> b) -> s -> b
--- 'views' ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a        -> (a -> b) -> s -> b
+-- 'views' ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a         -> (a -> r) -> s -> r
+-- 'views' ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a        -> (a -> r) -> s -> r
 -- 'views' :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a   -> (a -> m) -> s -> m
 -- @
-views :: Getting m s t a b -> (a -> m) -> s -> m
+views :: Getting r s t a b -> (a -> r) -> s -> r
 views l f = runAccessor . l (Accessor . f)
 {-# INLINE views #-}
 
@@ -288,13 +288,13 @@ use l = State.gets (view l)
 -- points to a monoidal value.
 --
 -- @
--- 'uses' :: 'MonadState' s m             => 'Getter' s a           -> (a -> e) -> m e
+-- 'uses' :: 'MonadState' s m             => 'Getter' s a           -> (a -> r) -> m r
 -- 'uses' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Fold.Fold' s a             -> (a -> r) -> m r
--- 'uses' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> (a -> e) -> m e
--- 'uses' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> (a -> e) -> m e
+-- 'uses' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> (a -> r) -> m r
+-- 'uses' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> (a -> r) -> m r
 -- 'uses' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> r) -> m r
 -- @
-uses :: MonadState s m => Getting e s t a b -> (a -> e) -> m e
+uses :: MonadState s m => Getting r s t a b -> (a -> r) -> m r
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}
 
