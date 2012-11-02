@@ -1,3 +1,7 @@
+3.1.1
+-----
+* Made `holesOf` and `partsOf` lazier to deal with infinite structures.
+
 3.1
 ---
 * Simplified the type of `filtered`, so that it can be composed with other folds rather than be parameterized on one. Included the caveat that the new `filtered` is still not a legal `Traversal`, despite seeming to compose like one.

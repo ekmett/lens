@@ -78,6 +78,7 @@ module Control.Lens.Plated
   where
 
 import Control.Applicative
+import Control.Monad.State
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal
@@ -812,29 +813,16 @@ ins :: Bazaar a b s -> [a]
 ins (Bazaar m) = getConst (m (Const . return))
 {-# INLINE ins #-}
 
-newtype Out s a = Out { withOut :: [s] -> (a, [s]) }
-
-instance Functor (Out s) where
-  fmap f (Out m) = Out $ \cs -> case m cs of
-    (as, ds) -> (f as, ds)
-  {-# INLINE fmap #-}
-
-instance Applicative (Out s) where
-  pure a = Out $ \cs -> (a, cs)
-  {-# INLINE pure #-}
-  Out mf <*> Out ma = Out $ \cs -> case mf cs of
-    (f,  ds) -> case ma ds of
-       (a,  es) -> (f a, es)
-  {-# INLINE (<*>) #-}
+unsafeUncons :: [a] -> (a,[a])
+unsafeUncons ~(a:as) = (a,as)
 
 outs :: Bazaar a a s -> [a] -> s
-outs (Bazaar m) = fst . withOut (m $ \c -> Out $ \cs -> case cs of
-  [] -> (c, [])
-  (d:ds) -> (d, ds))
+
+outs (Bazaar m) = evalState $ m $ \c -> state $ \cs -> case cs of
+  [] -> (c,[])
+  (d:ds) -> (d,ds)
 {-# INLINE outs #-}
 
 unsafeOuts :: Bazaar a b s -> [b] -> s
-unsafeOuts (Bazaar m) = fst . withOut (m $ \_ -> Out $ \cs -> case cs of
-  (d:ds) -> (d, ds)
-  [] -> error "unsafePartsOf: not enough elements were supplied")
+unsafeOuts (Bazaar m) = evalState (m $ \_ -> state unsafeUncons)
 {-# INLINE unsafeOuts #-}
