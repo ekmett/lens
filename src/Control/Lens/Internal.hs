@@ -167,26 +167,6 @@ instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
   pure = FocusingErr . pure
   FocusingErr kf <*> FocusingErr ka = FocusingErr (kf <*> ka)
 
--- | The indexed store can be used to characterize a 'Control.Lens.Type.Lens'
--- and is used by 'Control.Lens.Type.clone'
-data Context a b s = Context (b -> s) a
-
-instance Functor (Context a b) where
-  fmap f (Context g s) = Context (f . g) s
-
-instance (a ~ b) => Comonad (Context a b) where
-  extract   (Context f s) = f s
-  duplicate (Context f s) = Context (Context f) s
-  extend g  (Context f s) = Context (g . Context f) s
-
-instance (a ~ b) => ComonadStore a (Context a b) where
-  pos (Context _ s) = s
-  peek s (Context g _) = g s
-  peeks f (Context g s) = g (f s)
-  seek s (Context g _) = Context g s
-  seeks f (Context g s) = Context g (f s)
-  experiment f (Context g s) = g <$> f s
-
 -- | The result of 'Indexing'
 data IndexingResult f a = IndexingResult (f a) {-# UNPACK #-} !Int
 
@@ -286,18 +266,53 @@ instance Functor f => Applicative (ElementOf f) where
     NotFound e -> NotFound e
 
 
+-- | The indexed store can be used to characterize a 'Control.Lens.Type.Lens'
+-- and is used by 'Control.Lens.Type.clone'
+--
+-- @'Context' a b t@ is isomorphic to
+-- @newtype Context a b t = Context { runContext :: forall f. Functor f => (a -> f b) -> f t }@,
+-- and to @exists s. (s, 'Control.Lens.Type.Lens' s t a b)@.
+--
+-- A 'Context' is like a 'Control.Lens.Type.Lens' that has already been applied to a some structure.
+data Context a b t = Context (b -> t) a
+
+instance Functor (Context a b) where
+  fmap f (Context g t) = Context (f . g) t
+
+instance (a ~ b) => Comonad (Context a b) where
+  extract   (Context f a) = f a
+  duplicate (Context f a) = Context (Context f) a
+  extend g  (Context f a) = Context (g . Context f) a
+
+instance (a ~ b) => ComonadStore a (Context a b) where
+  pos (Context _ a) = a
+  peek b (Context g _) = g b
+  peeks f (Context g a) = g (f a)
+  seek a (Context g _) = Context g a
+  seeks f (Context g a) = Context g (f a)
+  experiment f (Context g a) = g <$> f a
+
 -- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
 --
 -- a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed 'FunList'.
 --
 -- <http://twanvl.nl/blog/haskell/non-regular1>
 --
+-- @'Bazaar' a b t@ is isomorphic to @data Bazaar a b t = Buy t | Trade (Bazaar a b (b -> t)) a@,
+-- and to @exists s. (s, 'Control.Lens.Traversal.Traversal' s t a b)@.
+--
+-- A 'Bazaar' is like a 'Control.Lens.Traversal.Traversal' that has already been applied to some structure.
+--
+-- Where a @'Context' a b t@ holds an @a@ and a function from @b@ to
+-- @t@, a @'Bazaar' a b t@ holds N @a@s and a function from N
+-- @b@s to @t@.
+--
 -- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
 --
 -- This is a final encoding of 'Bazaar'.
-newtype Bazaar a b s = Bazaar { _runBazaar :: forall f. Applicative f => (a -> f b) -> f s }
+newtype Bazaar a b t = Bazaar { _runBazaar :: forall f. Applicative f => (a -> f b) -> f t }
 
-instance Functor (Bazaar s t) where
+instance Functor (Bazaar a b) where
   fmap f (Bazaar k) = Bazaar (fmap f . k)
 
 instance Applicative (Bazaar a b) where
@@ -314,13 +329,13 @@ instance (a ~ b) => Comonad (Bazaar a b) where
 
 -- | Given an action to run for each matched pair, traverse a bazaar.
 --
--- @'bazaar' :: 'Traversal' ('Bazaar' a b s) s a b@
-bazaar :: Applicative f => (a -> f b) -> Bazaar a b s -> f s
+-- @'bazaar' :: 'Control.Lens.Traversal.Traversal' ('Bazaar' a b t) t a b@
+bazaar :: Applicative f => (a -> f b) -> Bazaar a b t -> f t
 bazaar afb (Bazaar m) = m afb
 {-# INLINE bazaar #-}
 
 -- | 'Bazaar' is an indexed 'Comonad'.
-duplicateBazaar :: Bazaar a c s -> Bazaar a b (Bazaar b c s)
+duplicateBazaar :: Bazaar a c t -> Bazaar a b (Bazaar b c t)
 duplicateBazaar (Bazaar m) = getCompose (m (Compose . fmap sell . sell))
 {-# INLINE duplicateBazaar #-}
 -- duplicateBazaar' (Bazaar m) = Bazaar (\g -> getCompose (m (Compose . fmap sell . g)))
@@ -330,7 +345,7 @@ sell :: a -> Bazaar a b b
 sell i = Bazaar (\k -> k i)
 {-# INLINE sell #-}
 
-instance (s ~ t) => ComonadApply (Bazaar s t) where
+instance (a ~ b) => ComonadApply (Bazaar a b) where
   (<@>) = (<*>)
 
 -- | Wrap a monadic effect with a phantom type argument.
