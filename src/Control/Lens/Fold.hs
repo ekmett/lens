@@ -185,9 +185,9 @@ filtered p f a
 -- This will demote an 'Control.Lens.IndexedTraversal.IndexedTraversal' or 'Control.Lens.IndexedFold.IndexedFold' to a regular 'Control.Lens.Traversal.Traversal' or 'Fold';
 -- to preserve the indices, use 'Control.Lens.IndexedFold.ibackwards' instead.
 --
--- Note: 'backwards' should have no impact on a 'Getter' 'Setter', 'Lens' or 'Control.Lens.Iso.Iso'.
+-- Note: 'backwards' should have no impact on a 'Getter', 'Control.Lens.Setter.Setter', 'Lens' or 'Control.Lens.Iso.Iso'.
 --
--- To change the direction of an 'Control.Lens.Iso.Iso', use 'from'.
+-- To change the direction of an 'Control.Lens.Iso.Iso', use 'Control.Lens.Isomorphic.from'.
 backwards :: LensLike (Backwards f) s t a b -> LensLike f s t a b
 backwards l f = forwards . l (Backwards . f)
 {-# INLINE backwards #-}
