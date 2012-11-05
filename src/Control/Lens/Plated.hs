@@ -835,21 +835,21 @@ element = elementOf traverse
 -- Misc.
 -------------------------------------------------------------------------------
 
-ins :: Bazaar a b s -> [a]
+ins :: Bazaar a b t -> [a]
 ins (Bazaar m) = getConst (m (Const . return))
 {-# INLINE ins #-}
 
 unsafeUncons :: [a] -> (a,[a])
 unsafeUncons ~(a:as) = (a,as)
+{-# INLINE unsafeUncons #-}
 
-outs :: Bazaar a a s -> [a] -> s
-
+outs :: Bazaar a a t -> [a] -> t
 outs (Bazaar m) = evalState $ m $ \c -> state $ \cs -> case cs of
   [] -> (c,[])
   (d:ds) -> (d,ds)
 {-# INLINE outs #-}
 
-unsafeOuts :: Bazaar a b s -> [b] -> s
+unsafeOuts :: Bazaar a b t -> [b] -> t
 unsafeOuts (Bazaar m) = evalState (m $ \_ -> state unsafeUncons)
 {-# INLINE unsafeOuts #-}
 
