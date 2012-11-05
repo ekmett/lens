@@ -42,8 +42,6 @@ module Control.Lens.Internal
   , getMin
   , Max(..)
   , getMax
-  , ElementOf(..)
-  , ElementOfResult(..)
   , Bazaar(..), bazaar, duplicateBazaar, sell
   , Effect(..)
   , EffectRWS(..)
@@ -232,39 +230,6 @@ getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
 
--- | The result of trying to find the /n/th 'Control.Lens.Traversal.element' of a 'Control.Lens.Traversal.Traversal'.
-data ElementOfResult f a
-  = Searching {-# UNPACK #-} !Int a
-  | Found {-# UNPACK #-} !Int (f a)
-  | NotFound String
-
-instance Functor f => Functor (ElementOfResult f) where
-  fmap f (Searching i a) = Searching i (f a)
-  fmap f (Found i as) = Found i (fmap f as)
-  fmap _ (NotFound e) = NotFound e
-
--- | Used to find the /n/th 'Control.Lens.Traversal.element' of a 'Control.Lens.Traversal.Traversal'.
-newtype ElementOf f a = ElementOf { getElementOf :: Int -> ElementOfResult f a }
-
-instance Functor f => Functor (ElementOf f) where
-  fmap f (ElementOf m) = ElementOf $ \i -> case m i of
-    Searching j a -> Searching j (f a)
-    Found j as    -> Found j (fmap f as)
-    NotFound e    -> NotFound e
-
-instance Functor f => Applicative (ElementOf f) where
-  pure a = ElementOf $ \i -> Searching i a
-  ElementOf mf <*> ElementOf ma = ElementOf $ \i -> case mf i of
-    Found j ff -> case ma j of
-      Found _ _     -> NotFound "multiple results"
-      Searching k a -> Found k (fmap ($ a) ff)
-      NotFound e    -> NotFound e
-    Searching j f -> case ma j of
-      Found k as    -> Found k (fmap f as)
-      Searching k a -> Searching k (f a)
-      NotFound e    -> NotFound e
-    NotFound e -> NotFound e
-
 
 -- | The indexed store can be used to characterize a 'Control.Lens.Type.Lens'
 -- and is used by 'Control.Lens.Type.clone'
@@ -419,13 +384,6 @@ instance Gettable (EffectRWS w st m s) where
 --instance Gettable (EffectS st m s) where
 --  coerce (EffectS m) = EffectS m
 
--- | This instance is a lie, but it is a useful lie.
-instance Gettable f => Gettable (ElementOf f) where
-  coerce (ElementOf m) = ElementOf $ \i -> case m i of
-    Searching _ _ -> NotFound "coerced while searching" -- er...
-    Found j as    -> Found j (coerce as)
-    NotFound s    -> NotFound s
-
 instance Gettable (Accessor r) where
   coerce (Accessor m) = Accessor m
 
@@ -577,7 +535,7 @@ right1Level z = fromMaybe z (rightLevel z)
 --
 -- @'view' 'focusLevel' ≡ 'extract'@
 --
--- @'focusLevel' :: 'Simple' 'Lens' ('Level' a) a@
+-- @'focusLevel' :: 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' ('Level' a) a@
 focusLevel :: Functor f => (a -> f a) -> Level a -> f (Level a)
 focusLevel f (Level n ls a rs) = (\b -> Level n ls b rs) <$> f a
 {-# INLINE focusLevel #-}
