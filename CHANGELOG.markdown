@@ -2,6 +2,7 @@
 ---
 * Made `elementOf` lazier and moved it from `Control.Lens.Traversal` to `Control.Lens.Plated`.
 * Made `holesOf` and `partsOf` lazier to deal with infinite structures.
+* Resolved issue #75. We now generate nicer core for most `Setter` and `Fold` operations, and some others.
 
 3.1
 ---
