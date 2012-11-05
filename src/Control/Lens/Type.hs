@@ -281,7 +281,7 @@ l %%= f = do
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
-resultAt :: Eq e => e -> (e -> a) :-> a
+resultAt :: Eq e => e -> Simple Lens (e -> a) a
 resultAt e afa ea = go <$> afa a where
   a = ea e
   go a' e' | e == e'   = a'
