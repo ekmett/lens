@@ -27,8 +27,10 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal
   (
+    (#)
+
   -- * Implementation details
-    Context(..)
+  , Context(..)
   , Focusing(..)
   , FocusingWith(..)
   , FocusingPlus(..)
@@ -72,6 +74,77 @@ import Data.List.NonEmpty as NonEmpty
 import Data.Maybe
 import Data.Monoid
 import Data.Traversable
+import Unsafe.Coerce
+
+-- | Logically this function is a more strict form of function application.
+--
+-- Ideally this function is
+--
+-- @f # g = f `seq` g `seq` \x -> f (g x)@
+--
+-- This fixes pedantic issues with the strictness of functions. (See issue #75)
+
+infixr 9 #
+(#) :: (b -> c) -> (a -> b) -> a -> c
+f # g = f `seq` g `seq` \x -> f (g x)
+
+{-# RULES "Const#"          (#) Const          = unsafeCoerce #-}
+{-# RULES "getConst#"       (#) getConst       = unsafeCoerce #-}
+{-# RULES "ZipList#"        (#) ZipList        = unsafeCoerce #-}
+{-# RULES "getZipList#"     (#) getZipList     = unsafeCoerce #-}
+{-# RULES "WrapMonad#"      (#) WrapMonad      = unsafeCoerce #-}
+{-# RULES "unwrapMonad#"    (#) unwrapMonad    = unsafeCoerce #-}
+{-# RULES "Last#"           (#) Last           = unsafeCoerce #-}
+{-# RULES "getLast#"        (#) getLast        = unsafeCoerce #-}
+{-# RULES "First#"          (#) First          = unsafeCoerce #-}
+{-# RULES "getFirst#"       (#) getFirst       = unsafeCoerce #-}
+{-# RULES "Product#"        (#) Product        = unsafeCoerce #-}
+{-# RULES "getProduct#"     (#) getProduct     = unsafeCoerce #-}
+{-# RULES "Sum#"            (#) Sum            = unsafeCoerce #-}
+{-# RULES "getSum#"         (#) getSum         = unsafeCoerce #-}
+{-# RULES "Any#"            (#) Any            = unsafeCoerce #-}
+{-# RULES "getAny#"         (#) getAny         = unsafeCoerce #-}
+{-# RULES "All#"            (#) All            = unsafeCoerce #-}
+{-# RULES "getAll#"         (#) getAll         = unsafeCoerce #-}
+{-# RULES "Dual#"           (#) Dual           = unsafeCoerce #-}
+{-# RULES "getDual#"        (#) getDual        = unsafeCoerce #-}
+{-# RULES "Endo#"           (#) Endo           = unsafeCoerce #-}
+{-# RULES "appEndo#"        (#) appEndo        = unsafeCoerce #-}
+{-# RULES "May#"            (#) May            = unsafeCoerce #-}
+{-# RULES "getMay#"         (#) getMay         = unsafeCoerce #-}
+{-# RULES "Folding#"        (#) Folding        = unsafeCoerce #-}
+{-# RULES "getFolding#"     (#) getFolding     = unsafeCoerce #-}
+{-# RULES "Effect#"         (#) Effect         = unsafeCoerce #-}
+{-# RULES "getEffect#"      (#) getEffect      = unsafeCoerce #-}
+{-# RULES "EffectRWS#"      (#) EffectRWS      = unsafeCoerce #-}
+{-# RULES "getEffectRWS#"   (#) getEffectRWS   = unsafeCoerce #-}
+{-# RULES "Accessor#"       (#) Accessor       = unsafeCoerce #-}
+{-# RULES "runAccessor#"    (#) runAccessor    = unsafeCoerce #-}
+{-# RULES "Err#"            (#) Err            = unsafeCoerce #-}
+{-# RULES "getErr#"         (#) getErr         = unsafeCoerce #-}
+{-# RULES "Traversed#"      (#) Traversed      = unsafeCoerce #-}
+{-# RULES "getTraversed#"   (#) getTraversed   = unsafeCoerce #-}
+{-# RULES "Sequenced#"      (#) Sequenced      = unsafeCoerce #-}
+{-# RULES "getSequenced#"   (#) getSequenced   = unsafeCoerce #-}
+{-# RULES "Focusing#"       (#) Focusing       = unsafeCoerce #-}
+{-# RULES "unfocusing#"     (#) unfocusing     = unsafeCoerce #-}
+{-# RULES "FocusingWith#"   (#) FocusingWith   = unsafeCoerce #-}
+{-# RULES "unfocusingWith#" (#) unfocusingWith = unsafeCoerce #-}
+{-# RULES "FocusingPlus#"   (#) FocusingPlus   = unsafeCoerce #-}
+{-# RULES "unfocusingPlus#" (#) unfocusingPlus = unsafeCoerce #-}
+{-# RULES "FocusingOn#"     (#) FocusingOn     = unsafeCoerce #-}
+{-# RULES "unfocusingOn#"   (#) unfocusingOn   = unsafeCoerce #-}
+{-# RULES "FocusingMay#"    (#) FocusingMay    = unsafeCoerce #-}
+{-# RULES "unfocusingMay#"  (#) unfocusingMay  = unsafeCoerce #-}
+{-# RULES "FocusingErr#"    (#) FocusingErr    = unsafeCoerce #-}
+{-# RULES "unfocusingErr#"  (#) unfocusingErr  = unsafeCoerce #-}
+{-# RULES "Bazaar#"         (#) Bazaar         = unsafeCoerce #-}
+{-# RULES "runBazaar#"      (#) runBazaar      = unsafeCoerce #-}
+{-# RULES "Mutator#"        (#) Mutator        = unsafeCoerce #-}
+{-# RULES "runMutator#"     (#) runMutator     = unsafeCoerce #-}
+{-# RULES "Backwards#"      (#) Backwards      = unsafeCoerce #-}
+{-# RULES "forwards#"       (#) forwards       = unsafeCoerce #-}
+
 
 -----------------------------------------------------------------------------
 -- Functors
@@ -275,7 +348,7 @@ instance (a ~ b) => ComonadStore a (Context a b) where
 -- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
 --
 -- This is a final encoding of 'Bazaar'.
-newtype Bazaar a b t = Bazaar { _runBazaar :: forall f. Applicative f => (a -> f b) -> f t }
+newtype Bazaar a b t = Bazaar { runBazaar :: forall f. Applicative f => (a -> f b) -> f t }
 
 instance Functor (Bazaar a b) where
   fmap f (Bazaar k) = Bazaar (fmap f . k)

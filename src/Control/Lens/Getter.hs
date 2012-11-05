@@ -183,7 +183,7 @@ type Getting r s t a b = (a -> Accessor r b) -> s -> Accessor r t
 -- 'view' :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s m   -> s -> m
 -- @
 view :: Getting a s t a b -> s -> a
-view l = runAccessor . l Accessor
+view l = runAccessor # l Accessor
 {-# INLINE view #-}
 
 -- | View the value of a 'Getter', 'Control.Lens.Iso.Iso',
@@ -207,7 +207,7 @@ view l = runAccessor . l Accessor
 -- 'views' :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a   -> (a -> m) -> s -> m
 -- @
 views :: Getting r s t a b -> (a -> r) -> s -> r
-views l f = runAccessor . l (Accessor . f)
+views l f = runAccessor # l (Accessor # f)
 {-# INLINE views #-}
 
 -- | View the value pointed to by a 'Getter', 'Control.Lens.Iso.Iso' or

@@ -185,7 +185,7 @@ sequenceAOf l = l id
 -- 'mapMOf' :: 'Monad' m => 'Traversal' s t a b -> (a -> m b) -> s -> m t
 -- @
 mapMOf :: LensLike (WrappedMonad m) s t a b -> (a -> m b) -> s -> m t
-mapMOf l cmd = unwrapMonad . l (WrapMonad . cmd)
+mapMOf l cmd = unwrapMonad # l (WrapMonad # cmd)
 {-# INLINE mapMOf #-}
 
 -- | 'forMOf' is a flipped version of 'mapMOf', consistent with the definition of 'forM'.
@@ -200,7 +200,7 @@ mapMOf l cmd = unwrapMonad . l (WrapMonad . cmd)
 -- 'forMOf' :: 'Monad' m => 'Traversal' s t a b -> s -> (a -> m b) -> m t
 -- @
 forMOf :: LensLike (WrappedMonad m) s t a b -> s -> (a -> m b) -> m t
-forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
+forMOf l a cmd = unwrapMonad (l (WrapMonad # cmd) a)
 {-# INLINE forMOf #-}
 
 -- | Sequence the (monadic) effects targeted by a lens in a container from left to right.
@@ -217,7 +217,7 @@ forMOf l a cmd = unwrapMonad (l (WrapMonad . cmd) a)
 -- 'sequenceOf' :: 'Monad' m => 'Traversal' s t (m b) b -> s -> m t
 -- @
 sequenceOf :: LensLike (WrappedMonad m) s t (m b) b -> s -> m t
-sequenceOf l = unwrapMonad . l WrapMonad
+sequenceOf l = unwrapMonad # l WrapMonad
 {-# INLINE sequenceOf #-}
 
 -- | This generalizes 'Data.List.transpose' to an arbitrary 'Traversal'.
@@ -234,7 +234,7 @@ sequenceOf l = unwrapMonad . l WrapMonad
 --
 -- @'transposeOf' '_2' :: (b, [a]) -> [(b, a)]@
 transposeOf :: LensLike ZipList s t [a] a -> s -> [t]
-transposeOf l = getZipList . l ZipList
+transposeOf l = getZipList # l ZipList
 {-# INLINE transposeOf #-}
 
 -- | This generalizes 'Data.Traversable.mapAccumR' to an arbitrary 'Traversal'.
