@@ -32,10 +32,6 @@ module Control.Lens.Traversal
     Traversal
   , (:=>)
 
-  -- ** Lensing Traversals
-  , element
-  , elementOf
-
   -- * Traversing and Lensing
   , traverseOf, forOf, sequenceAOf
   , mapMOf, forMOf, sequenceOf
@@ -304,32 +300,6 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
   step Nothing a  = (Just a, a)
   step (Just s) a = (Just r, r) where r = f s a
 {-# INLINE scanl1Of #-}
-
-------------------------------------------------------------------------------
--- Common Lenses
-------------------------------------------------------------------------------
-
--- | A 'Lens' to 'Control.Lens.Getter.view'/'Control.Lens.Setter.set' the nth element 'elementOf' a 'Traversal', 'Lens' or 'Control.Lens.Iso.Iso'.
---
--- Attempts to access beyond the range of the 'Traversal' will cause an error.
---
--- >>> [[1],[3,4]]^.elementOf (traverse.traverse) 1
--- 3
-elementOf :: Functor f => LensLike (ElementOf f) s t a a -> Int -> LensLike f s t a a
-elementOf l i f s = case getElementOf (l go s) 0 of
-    Found _ ft    -> ft
-    Searching _ _ -> error "elementOf: index out of range"
-    NotFound e    -> error $ "elementOf: " ++ e
-  where
-    go a = ElementOf $ \j -> if i == j then Found (j + 1) (f a) else Searching (j + 1) a
-
--- | Access the /nth/ element of a 'Traversable' container.
---
--- Attempts to access beyond the range of the 'Traversal' will cause an error.
---
--- @'element' ≡ 'elementOf' 'traverse'@
-element :: Traversable t => Int -> t a :-> a
-element = elementOf traverse
 
 ------------------------------------------------------------------------------
 -- Traversals

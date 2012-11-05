@@ -68,6 +68,10 @@ module Control.Lens.Plated
   -- $compos
   , composOpFold
 
+  -- * Indexing into a Traversal
+  , element
+  , elementOf
+
   -- * Parts
   , parts
   , partsOf
@@ -805,6 +809,28 @@ unsafePartsOf :: LensLike (Bazaar a b) s t a b -> Lens s t [a] [b]
 unsafePartsOf l f a = unsafeOuts b <$> f (ins b) where b = l sell a
 {-# INLINE unsafePartsOf #-}
 
+------------------------------------------------------------------------------
+-- Common Lenses
+------------------------------------------------------------------------------
+
+-- | A 'Lens' to 'Control.Lens.Getter.view'/'Control.Lens.Setter.set' the nth element 'elementOf' a 'Traversal', 'Lens' or 'Control.Lens.Iso.Iso'.
+--
+-- Attempts to access beyond the range of the 'Traversal' will cause an error.
+--
+-- >>> [[1],[3,4]]^.elementOf (traverse.traverse) 1
+-- 3
+elementOf :: Functor f => LensLike (Bazaar a a) s t a a -> Int -> LensLike f s t a a
+elementOf l k f s = case holesOf l s !! k of
+  Context g a -> g <$> f a
+
+-- | Access the /nth/ element of a 'Traversable' container.
+--
+-- Attempts to access beyond the range of the 'Traversal' will cause an error.
+--
+-- @'element' ≡ 'elementOf' 'traverse'@
+element :: Traversable t => Int -> Simple Lens (t a) a
+element = elementOf traverse
+
 -------------------------------------------------------------------------------
 -- Misc.
 -------------------------------------------------------------------------------
@@ -826,3 +852,4 @@ outs (Bazaar m) = evalState $ m $ \c -> state $ \cs -> case cs of
 unsafeOuts :: Bazaar a b s -> [b] -> s
 unsafeOuts (Bazaar m) = evalState (m $ \_ -> state unsafeUncons)
 {-# INLINE unsafeOuts #-}
+

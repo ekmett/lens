@@ -1,3 +1,7 @@
+3.2
+---
+* Made `elementOf` lazier and moved it from `Control.Lens.Traversal` to `Control.Lens.Plated`.
+
 3.1.1
 -----
 * Made `holesOf` and `partsOf` lazier to deal with infinite structures.
