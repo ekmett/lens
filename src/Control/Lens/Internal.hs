@@ -45,30 +45,11 @@ import Data.Monoid
 import Data.Traversable
 import Unsafe.Coerce
 
--- | Logically this function is a more strict form of function application.
---
--- Ideally this function is
---
--- @f # g = f `seq` g `seq` \x -> f (g x)@
---
--- This fixes pedantic issues with the strictness of functions. (See issue #75)
-
-infixr 9 #
-(#) :: (b -> c) -> (a -> b) -> a -> c
-f # g = f `seq` g `seq` \x -> f (g x)
-{-# NOINLINE (#) #-}
-
-{-# RULES "Const#"          (#) Const          = unsafeCoerce #-}
-{-# RULES "getConst#"       (#) getConst       = unsafeCoerce #-}
-
 const# :: (a -> b) -> a -> Const b r
 const# = unsafeCoerce
 
 getConst# :: (a -> Const b r) -> a -> b
 getConst# = unsafeCoerce
-
-{-# RULES "ZipList#"        (#) ZipList        = unsafeCoerce #-}
-{-# RULES "getZipList#"     (#) getZipList     = unsafeCoerce #-}
 
 zipList# :: (a -> [b]) -> a -> ZipList b
 zipList# = unsafeCoerce
@@ -76,16 +57,11 @@ zipList# = unsafeCoerce
 getZipList# :: (a -> ZipList b) -> a -> [b]
 getZipList# = unsafeCoerce
 
-{-# RULES "WrapMonad#"      (#) WrapMonad      = unsafeCoerce #-}
-{-# RULES "unwrapMonad#"    (#) unwrapMonad    = unsafeCoerce #-}
 wrapMonad# :: (a -> m b) -> a -> WrappedMonad m b
 wrapMonad# = unsafeCoerce
 
 unwrapMonad# :: (a -> WrappedMonad m b) -> a -> m b
 unwrapMonad# = unsafeCoerce
-
-{-# RULES "Last#"           (#) Last           = unsafeCoerce #-}
-{-# RULES "getLast#"        (#) getLast        = unsafeCoerce #-}
 
 last# :: (a -> Maybe b) -> a -> Last b
 last# = unsafeCoerce
@@ -93,17 +69,11 @@ last# = unsafeCoerce
 getLast# :: (a -> Last b) -> a -> Maybe b
 getLast# = unsafeCoerce
 
-{-# RULES "First#"          (#) First          = unsafeCoerce #-}
-{-# RULES "getFirst#"       (#) getFirst       = unsafeCoerce #-}
-
 first# :: (a -> Maybe b) -> a -> First b
 first# = unsafeCoerce
 
 getFirst# :: (a -> First b) -> a -> Maybe b
 getFirst# = unsafeCoerce
-
-{-# RULES "Product#"        (#) Product        = unsafeCoerce #-}
-{-# RULES "getProduct#"     (#) getProduct     = unsafeCoerce #-}
 
 product# :: (a -> b) -> a -> Product b
 product# = unsafeCoerce
@@ -111,17 +81,11 @@ product# = unsafeCoerce
 getProduct# :: (a -> Product b) -> a -> b
 getProduct# = unsafeCoerce
 
-{-# RULES "Sum#"            (#) Sum            = unsafeCoerce #-}
-{-# RULES "getSum#"         (#) getSum         = unsafeCoerce #-}
-
 sum# :: (a -> b) -> a -> Sum b
 sum# = unsafeCoerce
 
 getSum# :: (a -> Sum b) -> a -> b
 getSum# = unsafeCoerce
-
-{-# RULES "Any#"            (#) Any            = unsafeCoerce #-}
-{-# RULES "getAny#"         (#) getAny         = unsafeCoerce #-}
 
 any# :: (a -> Bool) -> a -> Any
 any# = unsafeCoerce
@@ -129,17 +93,11 @@ any# = unsafeCoerce
 getAny# :: (a -> Any) -> a -> Bool
 getAny# = unsafeCoerce
 
-{-# RULES "All#"            (#) All            = unsafeCoerce #-}
-{-# RULES "getAll#"         (#) getAll         = unsafeCoerce #-}
-
 all# :: (a -> Bool) -> a -> All
 all# = unsafeCoerce
 
 getAll# :: (a -> All) -> a -> Bool
 getAll# = unsafeCoerce
-
-{-# RULES "Dual#"           (#) Dual           = unsafeCoerce #-}
-{-# RULES "getDual#"        (#) getDual        = unsafeCoerce #-}
 
 dual# :: (a -> b) -> a -> Dual b
 dual# = unsafeCoerce
@@ -147,17 +105,11 @@ dual# = unsafeCoerce
 getDual# :: (a -> Dual b) -> a -> b
 getDual# = unsafeCoerce
 
-{-# RULES "Endo#"           (#) Endo           = unsafeCoerce #-}
-{-# RULES "appEndo#"        (#) appEndo        = unsafeCoerce #-}
-
 endo# :: (a -> b -> b) -> a -> Endo b
 endo# = unsafeCoerce
 
 appEndo# :: (a -> Endo b) -> a -> b -> b
 appEndo# = unsafeCoerce
-
-{-# RULES "May#"            (#) May            = unsafeCoerce #-}
-{-# RULES "getMay#"         (#) getMay         = unsafeCoerce #-}
 
 may# :: (a -> Maybe b) -> a -> May b
 may# = unsafeCoerce
@@ -165,17 +117,11 @@ may# = unsafeCoerce
 getMay# :: (a -> May b) -> a -> Maybe b
 getMay# = unsafeCoerce
 
-{-# RULES "Folding#"        (#) Folding        = unsafeCoerce #-}
-{-# RULES "getFolding#"     (#) getFolding     = unsafeCoerce #-}
-
 folding# :: (a -> f b) -> a -> Folding f b
 folding# = unsafeCoerce
 
 getFolding# :: (a -> Folding f b) -> a -> f b
 getFolding# = unsafeCoerce
-
-{-# RULES "Effect#"         (#) Effect         = unsafeCoerce #-}
-{-# RULES "getEffect#"      (#) getEffect      = unsafeCoerce #-}
 
 effect# :: (a -> m r) -> a -> Effect m r b
 effect# = unsafeCoerce
@@ -183,17 +129,11 @@ effect# = unsafeCoerce
 getEffect# :: (a -> Effect m r b) -> a -> m r
 getEffect# = unsafeCoerce
 
-{-# RULES "EffectRWS#"      (#) EffectRWS      = unsafeCoerce #-}
-{-# RULES "getEffectRWS#"   (#) getEffectRWS   = unsafeCoerce #-}
-
 effectRWS# :: (a -> st -> m (s, st, w)) -> a -> EffectRWS w st m s b
 effectRWS# = unsafeCoerce
 
 getEffectRWS# :: (a -> EffectRWS w st m s b) -> a -> st -> m (s, st, w)
 getEffectRWS# = unsafeCoerce
-
-{-# RULES "Accessor#"       (#) Accessor       = unsafeCoerce #-}
-{-# RULES "runAccessor#"    (#) runAccessor    = unsafeCoerce #-}
 
 accessor# :: (a -> r) -> a -> Accessor r b
 accessor# = unsafeCoerce
@@ -201,17 +141,11 @@ accessor# = unsafeCoerce
 runAccessor# :: (a -> Accessor r b) -> a -> r
 runAccessor# = unsafeCoerce
 
-{-# RULES "Err#"            (#) Err            = unsafeCoerce #-}
-{-# RULES "getErr#"         (#) getErr         = unsafeCoerce #-}
-
 err# :: (a -> Either e b) -> a -> Err e b
 err# = unsafeCoerce
 
 getErr# :: (a -> Err e b) -> a -> Either e b
 getErr# = unsafeCoerce
-
-{-# RULES "Traversed#"      (#) Traversed      = unsafeCoerce #-}
-{-# RULES "getTraversed#"   (#) getTraversed   = unsafeCoerce #-}
 
 traversed# :: (a -> f ()) -> a -> Traversed f
 traversed# = unsafeCoerce
@@ -219,17 +153,11 @@ traversed# = unsafeCoerce
 getTraversed# :: (a -> Traversed f) -> a -> f ()
 getTraversed# = unsafeCoerce
 
-{-# RULES "Sequenced#"      (#) Sequenced      = unsafeCoerce #-}
-{-# RULES "getSequenced#"   (#) getSequenced   = unsafeCoerce #-}
-
 sequenced# :: (a -> f ()) -> a -> Sequenced f
 sequenced# = unsafeCoerce
 
 getSequenced# :: (a -> Sequenced f) -> a -> f ()
 getSequenced# = unsafeCoerce
-
-{-# RULES "Focusing#"       (#) Focusing       = unsafeCoerce #-}
-{-# RULES "unfocusing#"     (#) unfocusing     = unsafeCoerce #-}
 
 focusing# :: (a -> m (s, b)) -> a -> Focusing m s b
 focusing# = unsafeCoerce
@@ -237,17 +165,11 @@ focusing# = unsafeCoerce
 unfocusing# :: (a -> Focusing m s b) -> a -> m (s, b)
 unfocusing# = unsafeCoerce
 
-{-# RULES "FocusingWith#"   (#) FocusingWith   = unsafeCoerce #-}
-{-# RULES "unfocusingWith#" (#) unfocusingWith = unsafeCoerce #-}
-
 focusingWith# :: (a -> m (s, b, w)) -> a -> FocusingWith w m s b
 focusingWith# = unsafeCoerce
 
 unfocusingWith# :: (a -> FocusingWith w m s b) -> a -> m (s, b, w)
 unfocusingWith# = unsafeCoerce
-
-{-# RULES "FocusingPlus#"   (#) FocusingPlus   = unsafeCoerce #-}
-{-# RULES "unfocusingPlus#" (#) unfocusingPlus = unsafeCoerce #-}
 
 focusingPlus# :: (a -> k (s, w) b) -> a -> FocusingPlus w k s b
 focusingPlus# = unsafeCoerce
@@ -255,17 +177,11 @@ focusingPlus# = unsafeCoerce
 unfocusingPlus# :: (a -> FocusingPlus w k s b) -> a -> k (s, w) b
 unfocusingPlus# = unsafeCoerce
 
-{-# RULES "FocusingOn#"     (#) FocusingOn     = unsafeCoerce #-}
-{-# RULES "unfocusingOn#"   (#) unfocusingOn   = unsafeCoerce #-}
-
 focusingOn# :: (a -> k (f s) b) -> a -> FocusingOn f k s b
 focusingOn# = unsafeCoerce
 
 unfocusingOn# :: (a -> FocusingOn f k s b) -> a -> k (f s) b
 unfocusingOn# = unsafeCoerce
-
-{-# RULES "FocusingMay#"    (#) FocusingMay    = unsafeCoerce #-}
-{-# RULES "unfocusingMay#"  (#) unfocusingMay  = unsafeCoerce #-}
 
 focusingMay# :: (a -> k (May s) b) -> a -> FocusingMay k s b
 focusingMay# = unsafeCoerce
@@ -273,17 +189,11 @@ focusingMay# = unsafeCoerce
 unfocusingMay# :: (a -> FocusingMay k s b) -> a -> k (May s) b
 unfocusingMay# = unsafeCoerce
 
-{-# RULES "FocusingErr#"    (#) FocusingErr    = unsafeCoerce #-}
-{-# RULES "unfocusingErr#"  (#) unfocusingErr  = unsafeCoerce #-}
-
 focusingErr# :: (a -> k (Err e s) b) -> a -> FocusingErr e k s b
 focusingErr# = unsafeCoerce
 
 unfocusingErr# :: (a -> FocusingErr e k s b) -> a -> k (Err e s) b
 unfocusingErr# = unsafeCoerce
-
-{-# RULES "Bazaar#"         (#) Bazaar         = unsafeCoerce #-}
-{-# RULES "runBazaar#"      (#) runBazaar      = unsafeCoerce #-}
 
 bazaar# :: (forall f. Applicative f => a -> (c -> f d) -> f t) -> a -> Bazaar c d t
 bazaar# = unsafeCoerce
@@ -291,17 +201,11 @@ bazaar# = unsafeCoerce
 runBazaar# :: Applicative f => (a -> Bazaar c d t) -> a -> (c -> f d) -> f t
 runBazaar# = unsafeCoerce
 
-{-# RULES "Mutator#"        (#) Mutator        = unsafeCoerce #-}
-{-# RULES "runMutator#"     (#) runMutator     = unsafeCoerce #-}
-
 mutator# :: (a -> b) -> a -> Mutator b
 mutator# = unsafeCoerce
 
 runMutator# :: (a -> Mutator b) -> a -> b
 runMutator# = unsafeCoerce
-
-{-# RULES "Backwards#"      (#) Backwards      = unsafeCoerce #-}
-{-# RULES "forwards#"       (#) forwards       = unsafeCoerce #-}
 
 backwards# :: (a -> f b) -> a -> Backwards f b
 backwards# = unsafeCoerce
