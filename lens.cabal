@@ -171,6 +171,7 @@ library
     Control.Lens.Internal
     Control.Lens.Iso
     Control.Lens.Isomorphic
+    Control.Lens.Loupe
     Control.Lens.Plated
     Control.Lens.Projection
     Control.Lens.Representable
