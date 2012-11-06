@@ -73,41 +73,41 @@ type Loupe s t a b = LensLike (Context a b) s t a b
 -- | @type 'SimpleLoupe' = 'Simple' 'Loupe'@
 type SimpleLoupe s a = Loupe s s a a
 
--- | A 'Loupe'-specific version of ('^.')
+-- | A 'Loupe'-specific version of ('Control.Lens.Getter.^.')
 (^#) :: s -> Loupe s t a b -> a
 s ^# l = case l (Context id) s of
   Context _ a -> a
 {-# INLINE (^#) #-}
 
--- | A 'Loupe'-specific version of 'set'
+-- | A 'Loupe'-specific version of 'Control.Lens.Setter.set'
 storing :: Loupe s t a b -> b -> s -> t
 storing l b s = case l (Context id) s of
   Context g _ -> g b
 {-# INLINE storing #-}
 
--- | A 'Loupe'-specific version of ('.~')
+-- | A 'Loupe'-specific version of ('Control.Lens.Setter..~')
 (#~) :: Loupe s t a b -> b -> s -> t
 (#~) l b s = case l (Context id ) s of
   Context g _ -> g b
 {-# INLINE (#~) #-}
 
--- | A 'Loupe'-specific version of ('%~')
+-- | A 'Loupe'-specific version of ('Control.Lens.Setter.%~')
 (#%~) :: Loupe s t a b -> (a -> b) -> s -> t
 (#%~) l f s = case l (Context id) s of
   Context g a -> g (f a)
 {-# INLINE (#%~) #-}
 
--- | A 'Loupe'-specific version of ('%%~')
+-- | A 'Loupe'-specific version of ('Control.Lens.Type.%%~')
 (#%%~) :: Functor f => Loupe s t a b -> (a -> f b) -> s -> f t
 (#%%~) l f s = case l (Context id) s of
   Context g a -> g <$> f a
 
--- | A 'Loupe'-specific version of ('.=')
+-- | A 'Loupe'-specific version of ('Control.Lens.Setter..=')
 (#=) :: MonadState s m => Loupe s s a b -> b -> m ()
 l #= f = modify (l #~ f)
 {-# INLINE (#=) #-}
 
--- | A 'Loupe'-specific version of ('%=')
+-- | A 'Loupe'-specific version of ('Control.Lens.Setter.%=')
 (#%=) :: MonadState s m => Loupe s s a b -> (a -> b) -> m ()
 l #%= f = modify (l #%~ f)
 {-# INLINE (#%=) #-}
@@ -119,15 +119,11 @@ l <#%~ f = \s -> case l (Context id) s of
 {-# INLINE (<#%~) #-}
 
 -- | Modify the target of a 'Loupe' into your monad's state by a user supplied function and return the result.
---
--- When you do not need the result of the operation, ('#%=') is more flexible.
 (<#%=) :: MonadState s m => Loupe s s a b -> (a -> b) -> m b
 l <#%= f = l #%%= \a -> let b = f a in (b,b)
 {-# INLINE (<#%=) #-}
 
 -- | Modify the target of a 'Loupe' in the current monadic state, returning an auxillary result.
---
--- When you do not need the supplemental result, ('#%=') is more flexible.
 (#%%=) :: MonadState s m => Loupe s s a b -> (a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,1)
 l #%%= f = State.state $ \s -> case l (Context id) s of
