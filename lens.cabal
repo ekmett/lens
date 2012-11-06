@@ -94,6 +94,8 @@ extra-source-files:
   examples/Pong.hs
   examples/Plates.hs
   examples/Aeson.hs
+  examples/Brainfuck.hs
+  examples/bf-examples/*.bf
   README.markdown
   CHANGELOG.markdown
 
