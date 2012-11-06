@@ -56,7 +56,6 @@ module Control.Lens.Type
   -- * Lenses
     Lens
   , Simple
-  , (:->)
 
   , lens
   , simple
@@ -103,10 +102,6 @@ import Control.Monad.State.Class        as State
 -- $setup
 -- >>> import Control.Lens
 
--- types
-infixr 0 :->
-
--- terms
 infixr 4 %%~
 infix  4 %%=
 infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <%~, <<%~, <<.~
@@ -169,9 +164,6 @@ type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
 -- Note: To use this alias in your own code with @'LensLike' f@ or
 -- 'Control.Lens.Setter.Setter', you may have to turn on @LiberalTypeSynonyms@.
 type Simple f s a = f s s a a
-
--- | This is a commonly used infix alias for a @'Simple' 'Lens'@.
-type s :-> a = forall f. Functor f => (a -> f a) -> s -> f s
 
 -- | @type 'SimpleLens' = 'Simple' 'Lens'@
 type SimpleLens s a = Lens s s a a

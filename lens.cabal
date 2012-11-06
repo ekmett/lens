@@ -176,6 +176,7 @@ library
     Control.Lens.Projection
     Control.Lens.Representable
     Control.Lens.Setter
+    Control.Lens.Simple
     Control.Lens.Traversal
     Control.Lens.Tuple
     Control.Lens.Type

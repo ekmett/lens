@@ -7,6 +7,7 @@
 * Added `Control.Lens.Loupe`, which provides a limited form of `Lens` that can be read from and written to and which can compose
   with other lenses, but can also be returned in a list or as a monadic result, but cannot be used directly for most combinators
   without cloning it first. It is easier to compose than a `ReifiedLens`, but slightly slower.
+* Moved (`:=>`) and (`:->`) into `Control.Lens.Simple`, which is not exported by `Control.Lens` by default to reduce name conflicts with third party libraries.
 
 3.1
 ---

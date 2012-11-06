@@ -31,7 +31,6 @@ module Control.Lens.Traversal
   (
   -- * Lenses
     Traversal
-  , (:=>)
 
   -- * Traversing and Lensing
   , traverseOf, forOf, sequenceAOf
@@ -70,8 +69,6 @@ import Data.Traversable
 -- $setup
 -- >>> import Control.Lens
 
-infixr 0 :=>
-
 ------------------------------------------------------------------------------
 -- Traversals
 ------------------------------------------------------------------------------
@@ -105,9 +102,6 @@ type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
 
 -- | @type SimpleTraversal = 'Simple' 'Traversal'@
 type SimpleTraversal s a = Traversal s s a a
-
--- | This is a commonly-used infix alias for a @'Simple' 'Traversal'@.
-type s :=> a = forall f. Applicative f => (a -> f a) -> s -> f s
 
 --------------------------
 -- Traversal Combinators
