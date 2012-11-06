@@ -20,12 +20,34 @@ source-repository head
   type: git
   location: git://github.com/ekmett/lens.git
 
+flag pong
+  default: True
+
+flag brainfuck
+  default: True
+
 executable pong
+  if !flag(pong)
+    buildable: False
+
   build-depends:
-    base       == 4.*,
+    base,
     containers >= 0.4.2 && < 0.6,
     gloss      == 1.7.*,
     lens,
     mtl        >= 2.0.1 && < 2.2,
     random     == 1.0.*
   main-is: Pong.hs
+
+executable brainfuck
+  if !flag(pong)
+    buildable: False
+
+  build-depends:
+    base,
+    lens       == 3.2.*,
+    free       >= 3.0 && < 3.3,
+    bytestring,
+    mtl        >= 2.0.1 && < 2.2,
+    streams    == 3.0.*
+  main-is: Brainfuck.hs
