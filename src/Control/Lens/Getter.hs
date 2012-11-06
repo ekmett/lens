@@ -1,3 +1,4 @@
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -207,7 +208,7 @@ view l = runAccessor# (l Accessor)
 -- 'views' :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a   -> (a -> m) -> s -> m
 -- @
 views :: Getting r s t a b -> (a -> r) -> s -> r
-views l f = runAccessor# (l (Accessor# f))
+views l f = runAccessor# (l (accessor# f))
 {-# INLINE views #-}
 
 -- | View the value pointed to by a 'Getter', 'Control.Lens.Iso.Iso' or
