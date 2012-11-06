@@ -688,19 +688,23 @@ class Applicative f => Settable f where
 -- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries
 instance Settable Identity where
   untainted = runIdentity
+  untainted# = unsafeCoerce
   {-# INLINE untainted #-}
 
 -- | 'Control.Lens.Fold.backwards'
 instance Settable f => Settable (Backwards f) where
   untainted = untainted . forwards
+  -- untainted# = untainted# forwards
   {-# INLINE untainted #-}
 
 instance (Settable f, Settable g) => Settable (Compose f g) where
   untainted = untainted . untainted . getCompose
+  -- untainted# = untainted# (untainted# getCompose)
   {-# INLINE untainted #-}
 
 instance Settable Mutator where
   untainted = runMutator
+  untainted# = unsafeCoerce
   {-# INLINE untainted #-}
 
 -- | 'Mutator' is just a renamed 'Identity' functor to give better error
