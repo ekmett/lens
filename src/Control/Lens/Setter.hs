@@ -1,3 +1,4 @@
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
@@ -167,7 +168,7 @@ mapped = sets fmap
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
 sets :: ((a -> b) -> s -> t) -> Setter s t a b
-sets f g = pure . f (untainted . g)
+sets f g = pure . f (untainted# g)
 {-# INLINE sets #-}
 
 -----------------------------------------------------------------------------
@@ -195,7 +196,7 @@ sets f g = pure . f (untainted . g)
 --
 -- @'over' :: 'Setter' s t a b -> (a -> b) -> s -> t@
 over :: Setting s t a b -> (a -> b) -> s -> t
-over l f = runMutator # l (Mutator # f)
+over l f = runMutator# (l (mutator# f))
 {-# INLINE over #-}
 
 -- | Modify the target of a 'Control.Lens.Type.Lens' or all the targets of a 'Setter' or 'Control.Lens.Traversal.Traversal'
@@ -249,7 +250,7 @@ mapOf = over
 -- 'set' :: 'Control.Lens.Traversal.Traversal' s t a b -> b -> s -> t
 -- @
 set :: Setting s t a b -> b -> s -> t
-set l b = runMutator # l (\_ -> Mutator b)
+set l b = runMutator# (l (\_ -> Mutator b))
 {-# INLINE set #-}
 
 -- | Modifies the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or
