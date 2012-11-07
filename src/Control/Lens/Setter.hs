@@ -27,6 +27,7 @@ module Control.Lens.Setter
   -- * Setters
     Setter
   -- * Building Setters
+  , (~*~)
   , sets
   -- * Common Setters
   , mapped
@@ -56,11 +57,13 @@ module Control.Lens.Setter
 
 import Control.Applicative
 import Control.Lens.Internal
+import Control.Lens.Type
 import Control.Monad.State.Class as State
 
 -- $setup
 -- >>> import Control.Lens
 
+infixr 8 ~*~
 infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <.~, ?~, <?~
 infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <.=, ?=, <?=
 infixr 2 <~
@@ -148,6 +151,11 @@ type SimpleSetting s a = Setting s s a a
 mapped :: Functor f => Setter (f a) (f b) a b
 mapped = sets fmap
 {-# INLINE mapped #-}
+
+-- | Combine Setters pairwise.
+(~*~) :: (Settable f) => LensLike f a a' c c' -> LensLike f b b' c c' ->
+    LensLike f (a, b) (a', b') c c'
+(~*~) l r f (a, b) = (,) <$> l f a <*> r f b
 
 -- | Build a Setter from a map-like function.
 --
