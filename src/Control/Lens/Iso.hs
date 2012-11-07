@@ -71,7 +71,7 @@ type Iso s t a b = forall k f. (Isomorphic k, Functor f) => k (a -> f b) (s -> f
 -- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
 type SimpleIso s a = Iso s s a a
 
--- | An commonly used infix alias for @'Control.Lens.Type.Simple' 'Iso'@
+-- | This is a commonly-used infix alias for a @'Control.Lens.Type.Simple' 'Iso'@
 type s :<-> a = Iso s s a a
 
 -- | Build an isomorphism family from two pairs of inverse functions
