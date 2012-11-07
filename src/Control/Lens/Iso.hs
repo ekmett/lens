@@ -54,7 +54,7 @@ infixr 0 :<->
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
 
--- | Isomorphim families can be composed with other lenses using either ('.') and 'id'
+-- | Isomorphism families can be composed with other lenses using either ('.') and 'id'
 -- from the Prelude or from Control.Category. However, if you compose them
 -- with each other using ('.') from the Prelude, they will be dumbed down to a
 -- mere 'Lens'.
