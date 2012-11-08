@@ -28,6 +28,7 @@ module Control.Lens.Iso
   -- ** Common Isomorphisms
   , _const
   , identity
+  , simple
   -- * Storing Isomorphisms
   , ReifiedIso(..)
   -- * Simplicity
@@ -156,6 +157,14 @@ identity = isos Identity runIdentity Identity runIdentity
 _const :: Iso a b (Const a c) (Const b d)
 _const = isos Const getConst Const getConst
 {-# INLINE _const #-}
+
+
+-- | Composition with this isomorphism is occasionally useful when your 'Lens',
+-- 'Control.Lens.Traversal.Traversal' or 'Iso' has a constraint on an unused
+-- argument to force that argument to agree with the
+-- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.
+simple :: Iso a b a b
+simple = isos id id id id
 
 -----------------------------------------------------------------------------
 -- Reifying Isomorphisms

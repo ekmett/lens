@@ -1,3 +1,7 @@
+3.3
+---
+* Redefined `simple` and moved it to `Control.Lens.Iso`. Instead of using `simple l` you can now compose `l.simple` or `simple.l` providing more nuanced control and a more compositional API.
+
 3.2
 ---
 * Made `elementOf` lazier and moved it from `Control.Lens.Traversal` to `Control.Lens.Plated`.
