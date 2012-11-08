@@ -168,7 +168,7 @@ mapped = sets fmap
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
 sets :: ((a -> b) -> s -> t) -> Setter s t a b
-sets f g = pure . f (untainted# g)
+sets f g = tainted# (f (untainted# g))
 {-# INLINE sets #-}
 
 -----------------------------------------------------------------------------

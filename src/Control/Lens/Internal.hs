@@ -586,14 +586,19 @@ noEffect = coerce $ pure ()
 class Applicative f => Settable f where
   untainted :: f a -> a
 
-  untainted# :: (b -> f a) -> b -> a
+  untainted# :: (a -> f b) -> a -> b
   untainted# f = untainted . f
+
+  tainted# :: (a -> b) -> a -> f b
+  tainted# f = pure . f
 
 -- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries
 instance Settable Identity where
   untainted = runIdentity
   untainted# = unsafeCoerce
   {-# INLINE untainted #-}
+  tainted# = unsafeCoerce
+  {-# INLINE tainted# #-}
 
 -- | 'Control.Lens.Fold.backwards'
 instance Settable f => Settable (Backwards f) where
@@ -610,6 +615,8 @@ instance Settable Mutator where
   untainted = runMutator
   untainted# = unsafeCoerce
   {-# INLINE untainted #-}
+  tainted# = unsafeCoerce
+  {-# INLINE tainted# #-}
 
 -- | 'Mutator' is just a renamed 'Identity' functor to give better error
 -- messages when someone attempts to use a getter as a setter.
