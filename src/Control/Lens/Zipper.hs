@@ -103,7 +103,7 @@ infixl 9 :>
 -- used in website navigation. Each breadcrumb in the trail represents a level you
 -- can move up to.
 --
--- This type operator associates to the right, so you can use a type like
+-- This type operator associates to the left, so you can use a type like
 --
 -- @'Top' ':>' ('String','Double') ':>' 'String' ':>' 'Char'@
 --
