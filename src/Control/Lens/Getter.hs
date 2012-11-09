@@ -67,6 +67,7 @@ module Control.Lens.Getter
   ) where
 
 import Control.Lens.Internal
+import Control.Lens.Unsafe
 import Control.Monad.Reader.Class       as Reader
 import Control.Monad.State.Class        as State
 

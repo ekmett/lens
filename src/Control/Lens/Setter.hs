@@ -54,8 +54,8 @@ module Control.Lens.Setter
   , Mutator
   ) where
 
-import Control.Applicative
 import Control.Lens.Internal
+import Control.Lens.Unsafe
 import Control.Monad.State.Class as State
 
 -- $setup

@@ -61,6 +61,7 @@ import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Fold
 import Control.Lens.Internal
+import Control.Lens.Unsafe
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy

@@ -81,6 +81,7 @@ import Control.Applicative as Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Getter
 import Control.Lens.Internal
+import Control.Lens.Unsafe
 import Control.Lens.Type
 import Control.Monad
 import Data.Foldable as Foldable

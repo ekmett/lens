@@ -1,6 +1,8 @@
 3.3
 ---
 * Redefined `simple` and moved it to `Control.Lens.Iso`. Instead of using `simple l` you can now compose `l.simple` or `simple.l` providing more nuanced control and a more compositional API.
+* Moved the various `foo#` combinators used to emit cleaner core into an unexported module, `Control.Lens.Unsafe`. This removes `MagicHash` from the public API.
+* Removed the `bazaar#` and `runBazaar#` coercions that caused issues on GHC HEAD.
 
 3.2
 ---
