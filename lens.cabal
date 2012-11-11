@@ -153,7 +153,8 @@ library
     semigroups           >= 0.8.4    && < 0.9,
     text                 >= 0.11     && < 0.12,
     transformers         >= 0.3      && < 0.4,
-    unordered-containers >= 0.2      && < 0.3
+    unordered-containers >= 0.2      && < 0.3,
+    vector               >= 0.9      && < 0.11
 
   exposed-modules:
     Control.Exception.Lens
@@ -201,6 +202,7 @@ library
     Data.Text.Lazy.Lens
     Data.Tree.Lens
     Data.Typeable.Lens
+    Data.Vector.Lens
 
   other-modules:
     Control.Lens.Unsafe
