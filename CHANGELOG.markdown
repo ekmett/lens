@@ -4,7 +4,8 @@
 * Moved the various `foo#` combinators used to emit cleaner core into an unexported module, `Control.Lens.Unsafe`. This removes `MagicHash` from the public API.
 * Removed the `bazaar#` and `runBazaar#` coercions that caused issues on GHC HEAD.
 * Changed the default definition of `plate` to `uniplate` from `ignored`.
-* Added `Data.Vector.Instances` and instances for `Data.Vector`.
+* Added `Data.Vector.Lens` and instances for `Data.Vector`.
+* Removed redundant `Data.List.traverseList`. Use `itraversed` or `traverse` instead.
 
 3.2
 ---

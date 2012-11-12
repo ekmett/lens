@@ -18,7 +18,6 @@ module Data.ByteString.Lazy.Lens
 import Control.Lens
 import Data.ByteString.Lazy as Words
 import Data.ByteString.Lazy.Char8 as Char8
-import Data.List.Lens
 import Data.Word (Word8)
 
 -- | 'Data.ByteString.Lazy.pack' (or 'Data.ByteString.Lazy.unpack') a list of bytes into a 'ByteString'
@@ -32,11 +31,11 @@ packedBytes = iso Words.pack Words.unpack
 
 -- | Traverse the individual bytes in a 'ByteString'
 --
--- @'bytes' = 'from' 'packedBytes' . 'traverseList'@
+-- @'bytes' = 'from' 'packedBytes' . 'itraversed'@
 --
 -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
 bytes :: SimpleIndexedTraversal Int ByteString Word8
-bytes = from packedBytes .> traverseList
+bytes = from packedBytes .> itraversed
 {-# INLINE bytes #-}
 
 -- | 'Data.ByteString.Lazy.Char8.pack' (or 'Data.ByteString.Lazy.Char8.unpack') a list of characters into a 'ByteString'
@@ -56,9 +55,9 @@ packedChars = iso Char8.pack Char8.unpack
 -- When writing back to the 'ByteString' it is assumed that every 'Char'
 -- lies between '\x00' and '\xff'.
 --
--- @'chars' = 'from' 'packedChars' '.>' 'traverseList'@
+-- @'chars' = 'from' 'packedChars' '.>' 'itraversed'@
 --
 -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
 chars :: SimpleIndexedTraversal Int ByteString Char
-chars = from packedChars .> traverseList
+chars = from packedChars .> itraversed
 {-# INLINE chars #-}
