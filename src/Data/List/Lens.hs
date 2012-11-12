@@ -22,7 +22,6 @@ module Data.List.Lens
   , interspersed
   , intercalated
   -- * Traversals
-  , traverseList
   , traverseHead
   , traverseTail
   , traverseInit
@@ -44,9 +43,9 @@ infixr 4 ++~, <++~, \\~, <\\~
 infixl 4 ~:, <~:, ~\\, <~\\
 infix 4 =:, <=:, ++=, <++=, \\=, <\\=, =\\, <=\\
 
--- | A lens reading and writing to the head of a /non-empty/ list.
+-- | A 'Lens' reading and writing to the 'head' of a /non-empty/ list.
 --
--- Attempting to read or write to the head of an /empty/ list will result in an 'error'.
+-- Attempting to read or write to the 'head' of an /empty/ list will result in an 'error'.
 --
 -- >>> [1,2,3]^._head
 -- 1
@@ -55,9 +54,9 @@ _head _ [] = error "_head: empty list"
 _head f (a:as) = (:as) <$> f a
 {-# INLINE _head #-}
 
--- | A lens reading and writing to the tail of a /non-empty/ list
+-- | A 'Lens' reading and writing to the 'tail' of a /non-empty/ list
 --
--- Attempting to read or write to the tail of an /empty/ list will result in an 'error'.
+-- Attempting to read or write to the 'tail' of an /empty/ list will result in an 'error'.
 --
 -- >>> _tail .~ [3,4,5] $ [1,2]
 -- [1,3,4,5]
@@ -104,13 +103,6 @@ intercalated :: [a] -> Getter [[a]] [a]
 intercalated = to . intercalate
 {-# INLINE intercalated #-}
 
--- | Indexed traversal of a list. The position in the list is available as the index.
-traverseList :: IndexedTraversal Int [a] [b] a b
-traverseList = index $ go (0::Int) where
-  go !n f (x:xs) = (:) <$> f n x <*> go (n + 1) f xs
-  go _ _ [] = pure []
-{-# INLINE traverseList #-}
-
 -- | A traversal for reading and writing to the head of a list
 --
 -- The position of the head in the original list (0) is available as the index.
@@ -136,7 +128,7 @@ traverseHead = index $ \f aas -> case aas of
 traverseTail :: SimpleIndexedTraversal Int [a] a
 traverseTail = index $ \f aas -> case aas of
   []     -> pure []
-  (a:as) -> (a:) <$> withIndex traverseList (f . (+1)) as
+  (a:as) -> (a:) <$> itraverse (f . (+1)) as
 {-# INLINE traverseTail #-}
 
 -- | A traversal the last element in a list
@@ -166,7 +158,7 @@ traverseLast = index $ \f xs0 -> let
 traverseInit :: SimpleIndexedTraversal Int [a] a
 traverseInit = index $ \f aas -> case aas of
   [] -> pure []
-  as -> (++ [Prelude.last as]) <$> withIndex traverseList f (Prelude.init as)
+  as -> (++ [Prelude.last as]) <$> itraverse f (Prelude.init as)
 {-# INLINE traverseInit #-}
 
 -- | Cons onto the list(s) referenced by a 'Setter'.

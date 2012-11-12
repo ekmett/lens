@@ -90,6 +90,8 @@ import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.Tree
+import Data.Data
+import Data.Data.Lens
 
 -- | A 'Plated' type is one where we know how to extract its immediate self-similar children.
 --
@@ -182,7 +184,8 @@ class Plated a where
   --
   -- The default definition finds no children.
   plate :: Simple Traversal a a
-  plate = ignored
+  default plate :: Data a => Simple Traversal a a
+  plate = uniplate
 
 instance Plated [a] where
   plate f (x:xs) = (x:) <$> f xs

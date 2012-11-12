@@ -17,7 +17,6 @@ module Data.Tree.Lens
 
 import Control.Lens
 import Data.Functor
-import Data.List.Lens
 import Data.Tree
 
 -- | A 'Lens' that focuses on the root of a 'Tree'.
@@ -33,5 +32,5 @@ root f (Node a as) = (`Node` as) <$> f a
 --
 -- @'toListOf' 'branches' ≡ 'subForest'@
 branches :: SimpleIndexedTraversal Int (Tree a) (Tree a)
-branches = index $ \ f (Node a as) -> Node a <$> withIndex traverseList f as
+branches = index $ \ f (Node a as) -> Node a <$> itraverse f as
 {-# INLINE branches #-}

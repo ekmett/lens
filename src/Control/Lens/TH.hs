@@ -209,6 +209,7 @@ classyRules = defaultRules
 -- | Rules for making an isomorphism from a data type
 isoRules :: LensRules
 isoRules = defaultRules
+  % handleSingletons  .~ True
   % singletonRequired .~ True
   % singletonAndField .~ True
 

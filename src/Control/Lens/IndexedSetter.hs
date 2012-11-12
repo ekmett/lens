@@ -29,7 +29,6 @@ module Control.Lens.IndexedSetter
   , SimpleReifiedIndexedSetter
   ) where
 
-import Control.Applicative
 import Control.Lens.Indexed
 import Control.Lens.Internal
 import Control.Lens.Unsafe

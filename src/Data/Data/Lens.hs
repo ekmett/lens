@@ -35,7 +35,8 @@ module Data.Data.Lens
 import           Control.Applicative
 import           Control.Arrow ((&&&))
 import           Control.Exception as E
-import           Control.Lens
+import           Control.Lens.Traversal
+import           Control.Lens.Type
 import           Data.Data
 import           Data.Foldable
 import qualified Data.HashMap.Strict as M

@@ -82,7 +82,7 @@ description:
   exotic functionality, (/e.g./ getters, setters, indexed folds, isomorphisms).
 
 build-type:    Simple
-tested-with:   GHC == 7.4.1, GHC == 7.6.0, GHC == 7.7.20120822, GHC == 7.7.20120830
+tested-with:   GHC == 7.4.1, GHC == 7.6.1
 extra-source-files:
   .travis.yml
   .ghci
@@ -204,7 +204,7 @@ library
     Data.Text.Lazy.Lens
     Data.Tree.Lens
     Data.Typeable.Lens
-    Data.Vector.Lens
+    Data.Vector.Generic.Lens
 
   other-modules:
     Control.Lens.Unsafe

@@ -15,14 +15,19 @@
 module Control.Lens.Simple
   ( (:->)
   , (:=>)
+  , (:<->)
   ) where
 
 import Control.Applicative
+import Control.Lens.Iso
 
-infixr 0 :=>, :->
+infixr 0 :=>, :->, :<->
 
 -- | This is a commonly used infix alias for a @'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens'@.
 type s :-> a = forall f. Functor f => (a -> f a) -> s -> f s
 
 -- | This is a commonly-used infix alias for a @'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal'@.
 type s :=> a = forall f. Applicative f => (a -> f a) -> s -> f s
+
+-- | This is a commonly-used infix alias for a @'Control.Lens.Type.Simple' 'Iso'@
+type s :<-> a = Iso s s a a
