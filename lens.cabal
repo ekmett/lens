@@ -154,7 +154,8 @@ library
     text                 >= 0.11     && < 0.12,
     transformers         >= 0.3      && < 0.4,
     unordered-containers >= 0.2      && < 0.3,
-    vector               >= 0.9      && < 0.11
+    vector               >= 0.9      && < 0.11,
+    split                == 0.2.*
 
   exposed-modules:
     Control.Exception.Lens
@@ -194,6 +195,7 @@ library
     Data.HashSet.Lens
     Data.IntSet.Lens
     Data.List.Lens
+    Data.List.Split.Lens
     Data.Monoid.Lens
     Data.Sequence.Lens
     Data.Set.Lens
