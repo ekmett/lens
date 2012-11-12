@@ -11,6 +11,7 @@ module Data.Vector.Generic.Lens
   , asStream
   , asStreamR
   , cloned
+  , reversed
   -- * Lenses
   , _head
   , _tail
@@ -33,7 +34,7 @@ import Control.Monad.State as State (MonadState, modify)
 import Data.Vector.Generic as V hiding (zip, filter)
 import Data.Vector.Fusion.Stream (Stream)
 import Data.Vector.Generic.New (New)
-import Prelude hiding ((++), length, head, tail, init, last, map)
+import Prelude hiding ((++), length, head, tail, init, last, map, reverse)
 
 infixr 4 ++~, <++~, ///~, <///~
 infix 4 ++=, <++=, ///=, <///=
@@ -109,7 +110,7 @@ v ++= b = State.modify (v ++~ b)
 v <++~ m = v <%~ (++ m)
 {-# INLINE (<++~) #-}
 
--- | Append to the target of a 'Vector'-valued 'Lens'.
+-- | Append to the target of a 'Vector'-valued 'Lens' in the current monadic state, returning the result.
 (<++=) :: (MonadState s m, Vector v a) => SimpleLensLike ((,) (v a)) s (v a) -> v a -> m (v a)
 v <++= m = v <%= (++ m)
 {-# INLINE (<++=) #-}
@@ -134,18 +135,26 @@ forced :: Vector v a => Simple Iso (v a) (v a)
 forced = iso force force
 {-# INLINE forced #-}
 
+reversed :: Vector v a => Simple Iso (v a) (v a)
+reversed = iso reverse reverse
+{-# INLINE reversed #-}
+
+-- | Bulk-update the target(s) of a 'Vector'-valued 'Setter'.
 (///~) :: Vector v a => Setting s t (v a) (v a) -> [(Int, a)] -> s -> t
 v ///~ n = over v (// n)
 {-# INLINE (///~) #-}
 
+-- | Bulk-update the target(s) of a 'Vector'-valued 'Setter' in the current monadic state.
 (///=) :: (MonadState s m, Vector v a) => SimpleSetting s (v a) -> [(Int, a)] -> m ()
 v ///= b = State.modify (v ///~ b)
 {-# INLINE (///=) #-}
 
+-- | Bulk-update the target of a 'Vector'-valued 'Lens', returning the result as well as the updated structure.
 (<///~) :: Vector v a => LensLike ((,)(v a)) s t (v a) (v a) -> [(Int, a)] -> s -> (v a, t)
 v <///~ m = v <%~ (// m)
 {-# INLINE (<///~) #-}
 
+-- | Bulk-update the target of a 'Vector'-valued 'Lens' in the current monadic state, returning the result.
 (<///=) :: (MonadState s m, Vector v a) => SimpleLensLike ((,)(v a)) s (v a) -> [(Int, a)] -> m (v a)
 v <///= m = v <%= (// m)
 {-# INLINE (<///=) #-}
