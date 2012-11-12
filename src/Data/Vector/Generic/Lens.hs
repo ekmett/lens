@@ -154,6 +154,10 @@ forced :: Vector v a => Simple Iso (v a) (v a)
 forced = iso force force
 {-# INLINE forced #-}
 
+reversed :: Vector v a => Simple Iso (v a) (v a)
+reversed = iso reverse reverse
+{-# INLINE reversed #-}
+
 -- | Update elements of the target(s) of a vector-valued 'Setter', functionally.
 (///~) :: Vector v a => Setting s t (v a) (v a) -> [(Int, a)] -> s -> t
 v ///~ n = over v (// n)
