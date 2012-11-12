@@ -1,8 +1,19 @@
-{-# LANGUAGE LiberalTypeSynonyms #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+-------------------------------------------------------------------------------
+-- |
+-- Module      :  Control.Lens.Type
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  provisional
+-- Portability :  non-portable
+--
+-- This module provides lenses and traversals for working with generic vectors.
+-------------------------------------------------------------------------------
 module Data.Vector.Generic.Lens
   ( toVectorOf
   -- * Isomorphisms
@@ -36,7 +47,7 @@ import Data.Vector.Generic.New (New)
 import Prelude hiding ((++), length, head, tail, init, last, map)
 
 -- $setup
--- >>> import Data.Vector as Vector (fromList)
+-- >>> import Data.Vector as Vector
 
 infixr 4 ++~, <++~, ///~, <///~
 infix 4 ++=, <++=, ///=, <///=
@@ -92,7 +103,7 @@ sliced :: Vector v a => Int -- ^ @i@ starting index
 sliced i n f v = (\ v0 -> v // zip [i..i+n-1] (V.toList v0)) <$> f (slice i n v)
 {-# INLINE sliced #-}
 
--- Similar to 'toListOf', but returning a 'Vector'.
+-- | Similar to 'toListOf', but returning a 'Vector'.
 toVectorOf :: Vector v a => Getting [a] s t a b -> s -> v a
 toVectorOf l s = fromList (toListOf l s)
 {-# INLINE toVectorOf #-}
@@ -117,38 +128,47 @@ v <++~ m = v <%~ (++ m)
 v <++= m = v <%= (++ m)
 {-# INLINE (<++=) #-}
 
+-- | Convert a list to a 'Vector' (or back)
 vector :: Vector v a => Simple Iso [a] (v a)
 vector = iso fromList V.toList
 {-# INLINE vector #-}
 
+-- | Convert a 'Vector' to a finite 'Stream' (or back)
 asStream :: Vector v a => Simple Iso (v a) (Stream a)
 asStream = iso stream unstream
 {-# INLINE asStream #-}
 
+-- | Convert a 'Vector' to a finite 'Stream' from right to left (or back)
 asStreamR :: Vector v a => Simple Iso (v a) (Stream a)
 asStreamR = iso streamR unstreamR
 {-# INLINE asStreamR #-}
 
+-- | Convert a 'Vector' back and forth to an initializer that when run produces a copy of the 'Vector'.
 cloned :: Vector v a => Simple Iso (v a) (New v a)
 cloned = iso clone new
 {-# INLINE cloned #-}
 
+-- | Convert a 'Vector' to a version that doesn't retain any extra memory.
 forced :: Vector v a => Simple Iso (v a) (v a)
 forced = iso force force
 {-# INLINE forced #-}
 
+-- | Update elements of the target(s) of a vector-valued 'Setter', functionally.
 (///~) :: Vector v a => Setting s t (v a) (v a) -> [(Int, a)] -> s -> t
 v ///~ n = over v (// n)
 {-# INLINE (///~) #-}
 
+-- | Update elements of the target(s) of a vector-valued 'Setter' in the current state.
 (///=) :: (MonadState s m, Vector v a) => SimpleSetting s (v a) -> [(Int, a)] -> m ()
 v ///= b = State.modify (v ///~ b)
 {-# INLINE (///=) #-}
 
+-- | Update elements of the target of a vector-valued 'Lens', functionally.
 (<///~) :: Vector v a => LensLike ((,)(v a)) s t (v a) (v a) -> [(Int, a)] -> s -> (v a, t)
 v <///~ m = v <%~ (// m)
 {-# INLINE (<///~) #-}
 
+-- | Update elements of the target of a vector-valued 'Lens' in the current state.
 (<///=) :: (MonadState s m, Vector v a) => SimpleLensLike ((,)(v a)) s (v a) -> [(Int, a)] -> m (v a)
 v <///= m = v <%= (// m)
 {-# INLINE (<///=) #-}
