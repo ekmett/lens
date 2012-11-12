@@ -15,7 +15,6 @@ module Data.Set.Lens
   ) where
 
 import Control.Lens.Getter
-import Control.Lens.Internal
 import Control.Lens.Setter
 import Data.Set as Set
 
@@ -47,5 +46,5 @@ setmapped = sets Set.map
 -- 'setOf' :: 'Ord' a => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Set' a
 -- @
 setOf :: Getting (Set a) s t a b -> s -> Set a
-setOf l = runAccessor . l (Accessor . Set.singleton)
+setOf l = views l Set.singleton
 {-# INLINE setOf #-}

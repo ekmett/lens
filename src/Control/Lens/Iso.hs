@@ -82,7 +82,6 @@ type s :<-> a = Iso s s a a
 -- 'view' ('from' ('isos' sa as tb bt)) ≡ as
 -- 'set' ('isos' sa as tb bt) ab ≡ bt '.' ab '.' sa
 -- 'set' ('from' ('isos' ac ca bd db')) ab ≡ bd '.' ab '.' ca
--- 'set' ('from' ('isos' sa as tb bt')) s t ≡ tb '.' st '.' as
 -- @
 --
 -- @isos :: (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> 'Iso' s t a b@

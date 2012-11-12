@@ -16,7 +16,6 @@ module Data.IntSet.Lens
   ) where
 
 import Control.Lens
-import Control.Lens.Internal
 import Data.IntSet as IntSet
 
 -- $setup
@@ -56,5 +55,5 @@ setmapped = sets IntSet.map
 -- 'setOf' :: 'Simple' 'Traversal' s 'Int' -> s -> 'IntSet'
 -- @
 setOf :: Getting IntSet s t Int b -> s -> IntSet
-setOf l = runAccessor . l (Accessor . IntSet.singleton)
+setOf l = views l IntSet.singleton
 {-# INLINE setOf #-}

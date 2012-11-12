@@ -839,7 +839,7 @@ element = elementOf traverse
 -------------------------------------------------------------------------------
 
 ins :: Bazaar a b t -> [a]
-ins (Bazaar m) = getConst (m (Const . return))
+ins = toListOf bazaar
 {-# INLINE ins #-}
 
 unsafeUncons :: [a] -> (a,[a])
