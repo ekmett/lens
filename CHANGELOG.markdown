@@ -6,6 +6,7 @@
 * Changed the default definition of `plate` to `uniplate` from `ignored`.
 * Added `Data.Vector.Lens` and instances for `Data.Vector`.
 * Removed redundant `Data.List.traverseList`. Use `itraversed` or `traverse` instead.
+* Moved `(:<->)` to `Control.Lens.Simple`.
 
 3.2
 ---
