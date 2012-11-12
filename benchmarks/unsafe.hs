@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 module Main where
 
 import Control.Lens
@@ -7,38 +8,56 @@ import Control.Exception
 import Criterion.Main
 import Criterion.Config
 
-overA :: Setting s t a b -> (a -> b) -> s -> t
-overA l f = runMutator . l (Mutator . f)
-{-# INLINE overA #-}
+import GHC.Exts
 
-mappedA :: Setting [a] [b] a b
-mappedA f = Mutator . map (runMutator . f)
-{-# INLINE mappedA #-}
+overS :: Setting s t a b -> (a -> b) -> s -> t
+overS l f = runMutator . l (Mutator . f)
+{-# INLINE overS #-}
 
-overB :: Setting s t a b -> (a -> b) -> s -> t
-overB = over
-{-# INLINE overB #-}
+mappedS :: Setting [a] [b] a b
+mappedS f = Mutator . map (runMutator . f)
+{-# INLINE mappedS #-}
 
-mappedB :: Setting [a] [b] a b
-mappedB = mapped
-{-# INLINE mappedB #-}
+overU :: Setting s t a b -> (a -> b) -> s -> t
+overU = over
+{-# INLINE overU #-}
+
+mappedU :: Setting [a] [b] a b
+mappedU = mapped
+{-# INLINE mappedU #-}
 
 
-mapA :: (a -> b) -> [a] -> [b]
-mapA f l = overA mappedA f l
-{-# INLINE mapA #-}
+-- Need to eta-expand for full inlining in the NOINLINE cases?
+-- Doesn't seem to make a difference, though.
 
-mapB :: (a -> b) -> [a] -> [b]
-mapB f l = overB mappedB f l
-{-# INLINE mapB #-}
+mapSN :: (a -> b) -> [a] -> [b]
+mapSN f l = overS mappedS f l
+{-# NOINLINE mapSN #-}
+
+mapSI :: (a -> b) -> [a] -> [b]
+mapSI f = overS mappedS f
+{-# INLINE mapSI #-}
+
+mapUN :: (a -> b) -> [a] -> [b]
+mapUN f l = overU mappedU f l
+{-# NOINLINE mapUN #-}
+
+mapUI :: (a -> b) -> [a] -> [b]
+mapUI f = overU mappedU f
+{-# INLINE mapUI #-}
 
 main :: IO ()
 main = do
-    let l = replicate 1000 "hi"
-    evaluate (length l)
+    let n = 1000
+        l = replicate n "hi"; f = length
+        --l = replicate n ();   f = (\ _ -> ())
+        --l = replicate n ();   f = (\ !_ -> ()) -- strange results
+        --l = replicate n ();   f = lazy (\_ -> ())
     defaultMainWith config (return ())
-        [ bench "mapA" $ nf (mapA length) l
-        , bench "mapB" $ nf (mapB length) l
+        [ bench "map   safe noinline" $ nf (mapSN f) l
+        , bench "map   safe   inline" $ nf (mapSI f) l
+        , bench "map unsafe noinline" $ nf (mapUN f) l
+        , bench "map unsafe   inline" $ nf (mapUI f) l
         ]
   where
     config = defaultConfig { cfgSamples = ljust 1000 }
