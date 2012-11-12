@@ -127,7 +127,7 @@ asStreamR = iso streamR unstreamR
 {-# INLINE asStreamR #-}
 
 cloned :: Vector v a => Simple Iso (v a) (New v a)
-cloned = isos clone new
+cloned = iso clone new
 {-# INLINE cloned #-}
 
 forced :: Vector v a => Simple Iso (v a) (v a)
