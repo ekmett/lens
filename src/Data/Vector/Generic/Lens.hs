@@ -139,22 +139,18 @@ reversed :: Vector v a => Simple Iso (v a) (v a)
 reversed = iso reverse reverse
 {-# INLINE reversed #-}
 
--- | Bulk-update the target(s) of a 'Vector'-valued 'Setter'.
 (///~) :: Vector v a => Setting s t (v a) (v a) -> [(Int, a)] -> s -> t
 v ///~ n = over v (// n)
 {-# INLINE (///~) #-}
 
--- | Bulk-update the target(s) of a 'Vector'-valued 'Setter' in the current monadic state.
 (///=) :: (MonadState s m, Vector v a) => SimpleSetting s (v a) -> [(Int, a)] -> m ()
 v ///= b = State.modify (v ///~ b)
 {-# INLINE (///=) #-}
 
--- | Bulk-update the target of a 'Vector'-valued 'Lens', returning the result as well as the updated structure.
 (<///~) :: Vector v a => LensLike ((,)(v a)) s t (v a) (v a) -> [(Int, a)] -> s -> (v a, t)
 v <///~ m = v <%~ (// m)
 {-# INLINE (<///~) #-}
 
--- | Bulk-update the target of a 'Vector'-valued 'Lens' in the current monadic state, returning the result.
 (<///=) :: (MonadState s m, Vector v a) => SimpleLensLike ((,)(v a)) s (v a) -> [(Int, a)] -> m (v a)
 v <///= m = v <%= (// m)
 {-# INLINE (<///=) #-}
