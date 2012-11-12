@@ -35,6 +35,9 @@ import Data.Vector.Fusion.Stream (Stream)
 import Data.Vector.Generic.New (New)
 import Prelude hiding ((++), length, head, tail, init, last, map)
 
+-- $setup
+-- >>> import Data.Vector as Vector (fromList)
+
 infixr 4 ++~, <++~, ///~, <///~
 infix 4 ++=, <++=, ///=, <///=
 
@@ -42,7 +45,7 @@ infix 4 ++=, <++=, ///=, <///=
 --
 -- Attempting to read or write to the 'head' of an /empty/ 'Vector' will result in an 'error'.
 --
--- >>> V.fromList [1,2,3]^._head
+-- >>> Vector.fromList [1,2,3]^._head
 -- 1
 _head :: Vector v a => SimpleLens (v a) a
 _head f v = (\a -> v // [(0,a)]) <$> f (head v)
@@ -52,7 +55,7 @@ _head f v = (\a -> v // [(0,a)]) <$> f (head v)
 --
 -- Attempting to read or write to the 'last' element of an /empty/ 'Vector' will result in an 'error'.
 --
--- >>> V.fromList [1,2]^._last
+-- >>> Vector.fromList [1,2]^._last
 -- 2
 _last :: Vector v a => SimpleLens (v a) a
 _last f v = (\a -> v // [(length v - 1, a)]) <$> f (last v)
@@ -62,7 +65,7 @@ _last f v = (\a -> v // [(length v - 1, a)]) <$> f (last v)
 --
 -- Attempting to read or write to the 'tail' of an /empty/ 'Vector' will result in an 'error'.
 --
--- >>> _tail .~ V.fromList [3,4,5] $ V.fromList [1,2]
+-- >>> _tail .~ Vector.fromList [3,4,5] $ Vector.fromList [1,2]
 -- fromList [1,3,4,5]
 _tail :: Vector v a => SimpleLens (v a) (v a)
 _tail f v = cons (head v) <$> f (tail v)
@@ -72,8 +75,8 @@ _tail f v = cons (head v) <$> f (tail v)
 --
 -- Attempting to read or write to all but the 'last' element of an /empty/ 'Vector' will result in an 'error'.
 --
--- >>> V.fromList [1,2,3,4]^._init
--- [1,2,3]
+-- >>> Vector.fromList [1,2,3,4]^._init
+-- fromList [1,2,3]
 _init :: Vector v a => SimpleLens (v a) (v a)
 _init f v = (`snoc` last v) <$> f (init v)
 {-# INLINE _init #-}
