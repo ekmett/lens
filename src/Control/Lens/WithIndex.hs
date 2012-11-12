@@ -77,6 +77,8 @@ import Data.Map as Map
 import Data.Monoid
 import Data.Sequence hiding (index)
 import Data.Traversable
+import Data.Vector (Vector)
+import qualified Data.Vector as V
 
 -- $setup
 -- >>> import Control.Lens
@@ -422,6 +424,17 @@ instance FoldableWithIndex Int Seq where
   ifoldMap = ifoldMapOf itraversed
 instance TraversableWithIndex Int Seq where
   itraverse = withIndex (indexed traverse)
+
+instance FunctorWithIndex Int Vector where
+  imap = V.imap
+instance FoldableWithIndex Int Vector where
+  ifoldMap = ifoldMapOf itraversed
+  ifoldr = V.ifoldr
+  ifoldl = V.ifoldl . flip
+  ifoldr' = V.ifoldr'
+  ifoldl' = V.ifoldl' . flip
+instance TraversableWithIndex Int Vector where
+  itraverse f = sequenceA . V.imap f
 
 instance FunctorWithIndex Int IntMap where
   imap = imapOf itraversed
