@@ -59,7 +59,6 @@ module Control.Lens.Traversal
 
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
-import qualified Data.List.Split as Split
 import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Unsafe

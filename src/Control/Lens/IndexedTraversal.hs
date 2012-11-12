@@ -53,7 +53,6 @@ module Control.Lens.IndexedTraversal
 
 import Control.Applicative
 import Control.Applicative.Backwards
-import qualified Data.List.Split as Split
 import Control.Lens.Indexed
 import Control.Lens.IndexedLens
 import Control.Lens.Type

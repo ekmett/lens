@@ -52,6 +52,18 @@ module Control.Lens.Fold
   , cycled
   , takingWhile
   , droppingWhile
+  , splitting
+  , splittingOn
+  , splittingOneOf
+  , splittingWhen
+  , endingBy
+  , endingByOneOf
+  , wordingBy
+  , liningBy
+  , chunkingOf
+  , splittingPlaces
+  , splittingPlacesBlanks
+  , chopping
   -- ** Folding
   , foldMapOf, foldOf
   , foldrOf, foldlOf
@@ -79,7 +91,6 @@ module Control.Lens.Fold
 
 import Control.Applicative as Applicative
 import Control.Applicative.Backwards
-import qualified Data.List.Split as Split
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Unsafe
@@ -88,6 +99,7 @@ import Control.Monad
 import Data.Foldable as Foldable
 import Data.Maybe
 import Data.Monoid
+import Data.List.Split (Splitter, split)
 
 -- $setup
 -- >>> import Control.Lens
