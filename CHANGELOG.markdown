@@ -7,6 +7,7 @@
 * Added `Data.Vector.Lens` and instances for `Data.Vector`.
 * Removed redundant `Data.List.traverseList`. Use `itraversed` or `traverse` instead.
 * Moved `(:<->)` to `Control.Lens.Simple`.
+* Fixed a bug in `Control.Lens.TH` that was causing `makeIso` not to work.
 
 3.2
 ---
