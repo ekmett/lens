@@ -37,7 +37,7 @@ description:
   .
   The core of this hierarchy looks like:
   .
-  <<https://github.com/ekmett/lens/wiki/images/Hierarchy-3.3.png>>
+  <<http://i.imgur.com/keOs9.png>>
   .
   You can compose any two elements of the hierarchy above using (.) from the Prelude, and you can
   use any element of the hierarchy as any type it links to above it.
@@ -317,6 +317,22 @@ benchmark plated
 benchmark alongside
   type: exitcode-stdio-1.0
   main-is: alongside.hs
+  build-depends:
+    base,
+    comonad,
+    comonads-fd,
+    criterion,
+    deepseq,
+    ghc-prim,
+    lens,
+    transformers
+  ghc-options: -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs: benchmarks
+
+-- Basic benchmarks for the uniplate-style combinators
+benchmark unsafe
+  type: exitcode-stdio-1.0
+  main-is: unsafe.hs
   build-depends:
     base,
     comonad,
