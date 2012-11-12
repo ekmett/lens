@@ -53,6 +53,7 @@ module Control.Lens.IndexedFold
 
 import Control.Applicative
 import Control.Applicative.Backwards
+import qualified Data.List.Split as Split
 import Control.Lens.Indexed
 import Control.Lens.IndexedGetter
 import Control.Lens.Internal

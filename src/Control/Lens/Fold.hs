@@ -79,6 +79,7 @@ module Control.Lens.Fold
 
 import Control.Applicative as Applicative
 import Control.Applicative.Backwards
+import qualified Data.List.Split as Split
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Unsafe
@@ -184,8 +185,8 @@ filtered p f a
 {-# INLINE filtered #-}
 
 -- | This allows you to traverse the elements of a 'Control.Lens.Traversal.Traversal' or 'Fold' in the opposite order.
--- This will demote an 'Control.Lens.IndexedTraversal.IndexedTraversal' or 'Control.Lens.IndexedFold.IndexedFold' to a regular 'Control.Lens.Traversal.Traversal' or 'Fold';
--- to preserve the indices, use 'Control.Lens.IndexedFold.ibackwards' instead.
+-- This will demote an 'Control.Lens.IndexedTraversal.IndexedTraversal' or 'Control.Lens.IndexedFold.IndexedFold' to a regular 'Control.Lens.Traversal.Traversal' or 'Fold',
+-- repectively; to preserve the indices, use 'Control.Lens.IndexedFold.ibackwards' instead.
 --
 -- Note: 'backwards' should have no impact on a 'Getter', 'Control.Lens.Setter.Setter', 'Lens' or 'Control.Lens.Iso.Iso'.
 --

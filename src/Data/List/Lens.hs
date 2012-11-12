@@ -40,9 +40,9 @@ import Control.Lens
 import Control.Monad.State as State (MonadState, modify)
 import Data.List
 
-infixr 4 ++~, <++~
-infixl 4 ~:, <~:
-infix 4 =:, <=:, ++=, <++=
+infixr 4 ++~, <++~, \\~, <\\~
+infixl 4 ~:, <~:, ~\\, <~\\
+infix 4 =:, <=:, ++=, <++=, \\=, <\\=, =\\, <=\\
 
 -- | A lens reading and writing to the head of a /non-empty/ list.
 --
