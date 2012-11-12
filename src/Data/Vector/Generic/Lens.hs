@@ -3,9 +3,8 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
-module Data.Vector.Lens
-  ( Vector
-  , toVectorOf
+module Data.Vector.Generic.Lens
+  ( toVectorOf
   -- * Isomorphisms
   , forced
   , vector
@@ -101,7 +100,7 @@ v ++~ n = over v (++ n)
 {-# INLINE (++~) #-}
 
 -- | Append to the target(s) of a 'Vector'-valued 'Setter' in the current monadic state.
-(++=) :: (Vector v a, MonadState s m) => SimpleSetting s (v a) -> v a -> m ()
+(++=) :: (MonadState s m, Vector v a) => SimpleSetting s (v a) -> v a -> m ()
 v ++= b = State.modify (v ++~ b)
 {-# INLINE (++=) #-}
 
@@ -111,35 +110,35 @@ v <++~ m = v <%~ (++ m)
 {-# INLINE (<++~) #-}
 
 -- | Append to the target of a 'Vector'-valued 'Lens'.
-(<++=) :: (Vector v a, MonadState s m) => SimpleLensLike ((,) (v a)) s (v a) -> v a -> m (v a)
+(<++=) :: (MonadState s m, Vector v a) => SimpleLensLike ((,) (v a)) s (v a) -> v a -> m (v a)
 v <++= m = v <%= (++ m)
 {-# INLINE (<++=) #-}
 
-vector :: (Vector v a, Vector v b) => Iso [a] [b] (v a) (v b)
-vector = isos fromList V.toList fromList V.toList
+vector :: Vector v a => Simple Iso [a] (v a)
+vector = iso fromList V.toList
 {-# INLINE vector #-}
 
-asStream :: (Vector v a, Vector v b) => Iso (v a) (v b) (Stream a) (Stream b)
-asStream = isos stream unstream stream unstream
+asStream :: Vector v a => Simple Iso (v a) (Stream a)
+asStream = iso stream unstream
 {-# INLINE asStream #-}
 
-asStreamR :: (Vector v a, Vector v b) => Iso (v a) (v b) (Stream a) (Stream b)
-asStreamR = isos streamR unstreamR streamR unstreamR
+asStreamR :: Vector v a => Simple Iso (v a) (Stream a)
+asStreamR = iso streamR unstreamR
 {-# INLINE asStreamR #-}
 
-cloned :: (Vector v a, Vector v b) => Iso (v a) (v b) (New v a) (New v b)
-cloned = isos clone new clone new
+cloned :: Vector v a => Simple Iso (v a) (New v a)
+cloned = isos clone new
 {-# INLINE cloned #-}
 
-forced :: (Vector v a, Vector v b) => Iso (v a) (v b) (v a) (v b)
-forced = isos force force force force
+forced :: Vector v a => Simple Iso (v a) (v a)
+forced = iso force force
 {-# INLINE forced #-}
 
 (///~) :: Vector v a => Setting s t (v a) (v a) -> [(Int, a)] -> s -> t
 v ///~ n = over v (// n)
 {-# INLINE (///~) #-}
 
-(///=) :: (Vector v a, MonadState s m) => SimpleSetting s (v a) -> [(Int, a)] -> m ()
+(///=) :: (MonadState s m, Vector v a) => SimpleSetting s (v a) -> [(Int, a)] -> m ()
 v ///= b = State.modify (v ///~ b)
 {-# INLINE (///=) #-}
 
@@ -147,7 +146,7 @@ v ///= b = State.modify (v ///~ b)
 v <///~ m = v <%~ (// m)
 {-# INLINE (<///~) #-}
 
-(<///=) :: (Vector v a, MonadState s m) => SimpleLensLike ((,)(v a)) s (v a) -> [(Int, a)] -> m (v a)
+(<///=) :: (MonadState s m, Vector v a) => SimpleLensLike ((,)(v a)) s (v a) -> [(Int, a)] -> m (v a)
 v <///= m = v <%= (// m)
 {-# INLINE (<///=) #-}
 

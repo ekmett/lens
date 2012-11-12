@@ -202,7 +202,7 @@ library
     Data.Text.Lazy.Lens
     Data.Tree.Lens
     Data.Typeable.Lens
-    Data.Vector.Lens
+    Data.Vector.Generic.Lens
 
   other-modules:
     Control.Lens.Unsafe
