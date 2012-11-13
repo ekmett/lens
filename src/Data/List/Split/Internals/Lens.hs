@@ -6,8 +6,8 @@ module Data.List.Split.Internals.Lens
   ( delimiters
   , delimiting
   , condensing
-  , initialBlanks
-  , finalBlanks
+  , keepInitialBlanks
+  , keepFinalBlanks
   ) where
 
 import Control.Applicative
@@ -23,13 +23,27 @@ delimiting :: Simple Lens (Splitter a) DelimPolicy
 delimiting f s@Splitter { delimPolicy = p } = (\p' -> s { delimPolicy = p' }) <$> f p
 
 -- | Modify or retrieve the policy for what a 'Splitter' should about consecutive delimiters.
-condensing :: Simple Lens (Splitter a) CondensePolicy
-condensing f s@Splitter { condensePolicy = p } = (\p' -> s { condensePolicy = p' }) <$> f p
+condensing :: Simple Lens (Splitter a) Bool
+condensing f s@Splitter { condensePolicy = p } = (\p' -> s { condensePolicy = i p' }) <$> f (o p) where
+  i True = Condense
+  i False = KeepBlankFields
+  o Condense = True
+  o KeepBlankFields = False
 
 -- | Modify or retrieve the policy for whether a 'Splitter' should drop an initial blank.
-initialBlanks :: Simple Lens (Splitter a) EndPolicy
-initialBlanks f s@Splitter { initBlankPolicy = p } = (\p' -> s { initBlankPolicy = p' }) <$> f p
+keepInitialBlanks :: Simple Lens (Splitter a) Bool
+keepInitialBlanks f s@Splitter { initBlankPolicy = p } = (\p' -> s { initBlankPolicy = end p' }) <$> f (keeps p)
 
 -- | Modify or retrieve the policy for whether a 'Splitter' should drop a final blank.
-finalBlanks :: Simple Lens (Splitter a) EndPolicy
-finalBlanks f s@Splitter { finalBlankPolicy = p } = (\p' -> s { finalBlankPolicy = p' }) <$> f p
+keepFinalBlanks :: Simple Lens (Splitter a) Bool
+keepFinalBlanks f s@Splitter { finalBlankPolicy = p } = (\p' -> s { finalBlankPolicy = end p' }) <$> f (keeps p)
+
+-- utilities
+
+end :: Bool -> EndPolicy
+end True  = KeepBlank
+end False = DropBlank
+
+keeps :: EndPolicy -> Bool
+keeps KeepBlank = True
+keeps DropBlank = False
