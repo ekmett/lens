@@ -9,6 +9,7 @@
 * Removed redundant `Data.List.traverseList`. Use `itraversed` or `traverse` instead.
 * Moved `(:<->)` to `Control.Lens.Simple`.
 * Fixed a bug in `Control.Lens.TH` that was causing `makeIso` not to work.
+* Added `lifted` to `Control.Lens.Setter` for mapping over monads.
 
 3.2
 ---

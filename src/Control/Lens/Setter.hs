@@ -30,6 +30,7 @@ module Control.Lens.Setter
   , sets
   -- * Common Setters
   , mapped
+  , lifted
   -- * Functional Combinators
   , over
   , mapOf
@@ -148,6 +149,21 @@ type SimpleSetting s a = Setting s s a a
 mapped :: Functor f => Setter (f a) (f b) a b
 mapped = sets fmap
 {-# INLINE mapped #-}
+
+-- | This setter can be used to modify all of the values in a 'Monad'.
+--
+-- You sometimes have to use this, rather than 'mapped', because due to
+-- temporary insanity 'Functor' is not a superclass of 'Monad'.
+--
+-- @
+-- 'liftM' ≡ 'over' 'lifted'
+-- @
+--
+-- >>> over lifted (+1) [1,2,3]
+-- [2,3,4]
+lifted :: Monad m => Setter (m a) (m b) a b
+lifted = sets liftM
+{-# INLINE lifted #-}
 
 -- | Build a Setter from a map-like function.
 --
