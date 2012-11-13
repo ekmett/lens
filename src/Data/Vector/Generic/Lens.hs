@@ -22,6 +22,7 @@ module Data.Vector.Generic.Lens
   , asStream
   , asStreamR
   , cloned
+  , reversed
   -- * Lenses
   , _head
   , _tail
@@ -44,7 +45,8 @@ import Control.Monad.State as State (MonadState, modify)
 import Data.Vector.Generic as V hiding (zip, filter)
 import Data.Vector.Fusion.Stream (Stream)
 import Data.Vector.Generic.New (New)
-import Prelude hiding ((++), length, head, tail, init, last, map)
+import Prelude hiding ((++), length, head, tail, init, last, map, reverse)
+import Data.List (nub)
 
 -- $setup
 -- >>> import Data.Vector as Vector
@@ -123,7 +125,7 @@ v ++= b = State.modify (v ++~ b)
 v <++~ m = v <%~ (++ m)
 {-# INLINE (<++~) #-}
 
--- | Append to the target of a 'Vector'-valued 'Lens'.
+-- | Append to the target of a 'Vector'-valued 'Lens' in the current monadic state, returning the result.
 (<++=) :: (MonadState s m, Vector v a) => SimpleLensLike ((,) (v a)) s (v a) -> v a -> m (v a)
 v <++= m = v <%= (++ m)
 {-# INLINE (<++=) #-}
@@ -153,6 +155,11 @@ forced :: Vector v a => Simple Iso (v a) (v a)
 forced = iso force force
 {-# INLINE forced #-}
 
+-- | Convert a 'Vector' to a version with all the elements in the reverse order
+reversed :: Vector v a => Simple Iso (v a) (v a)
+reversed = iso reverse reverse
+{-# INLINE reversed #-}
+
 -- | Update elements of the target(s) of a vector-valued 'Setter', functionally.
 (///~) :: Vector v a => Setting s t (v a) (v a) -> [(Int, a)] -> s -> t
 v ///~ n = over v (// n)
@@ -163,12 +170,12 @@ v ///~ n = over v (// n)
 v ///= b = State.modify (v ///~ b)
 {-# INLINE (///=) #-}
 
--- | Update elements of the target of a vector-valued 'Lens', functionally.
+-- | Update elements of the target(s) of a vector-valued 'Lens', functionally, while also returning the result.
 (<///~) :: Vector v a => LensLike ((,)(v a)) s t (v a) (v a) -> [(Int, a)] -> s -> (v a, t)
 v <///~ m = v <%~ (// m)
 {-# INLINE (<///~) #-}
 
--- | Update elements of the target of a vector-valued 'Lens' in the current state.
+-- | Update elements of the target(s) of a vector-valued 'Lens' in the current state, while also returning the result.
 (<///=) :: (MonadState s m, Vector v a) => SimpleLensLike ((,)(v a)) s (v a) -> [(Int, a)] -> m (v a)
 v <///= m = v <%= (// m)
 {-# INLINE (<///=) #-}
@@ -180,10 +187,13 @@ atIndex :: Vector v a => Int -> SimpleIndexedLens Int (v a) a
 atIndex i = index $ \ f v -> (\ a -> v // [(i, a)]) <$> f i (v ! i)
 {-# INLINE atIndex #-}
 
--- | This is only a valid 'Traversal' if the supplied list of indices contains no duplicates.
+-- | This 'Traversal' will ignore any duplicates in the supplied list of indices.
+--
+-- >>> toListOf (atIndices [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
+-- [4,8,6,12,20,22]
 atIndices :: Vector v a => [Int] -> SimpleIndexedTraversal Int (v a) a
 atIndices is = index $ \ f v -> let
      l = length v
-     is' = filter (<l) is
+     is' = nub $ filter (<l) is
   in fmap ((v //) . zip is') . traverse (uncurry f) . zip is $ fmap (v !) is'
 {-# INLINE atIndices #-}

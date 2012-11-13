@@ -46,6 +46,17 @@ module Control.Lens.IndexedFold
   , ibackwards
   , itakingWhile
   , idroppingWhile
+  , isplitting
+  , isplittingOn
+  , isplittingOneOf
+  , isplittingWhen
+  , iendingBy
+  , iendingByOneOf
+  , iwordingBy
+  , iliningBy
+  , ichunkingOf
+  , isplittingPlaces
+  , isplittingPlacesBlanks
 
   -- * Storing Indexed Folds
   , ReifiedIndexedFold(..)
@@ -53,13 +64,16 @@ module Control.Lens.IndexedFold
 
 import Control.Applicative
 import Control.Applicative.Backwards
+import Data.Traversable (traverse)
 import Control.Lens.Indexed
 import Control.Lens.IndexedGetter
 import Control.Lens.Internal
 import Control.Lens.Unsafe
 import Control.Lens.Type
+import Control.Lens.Fold (toListOf)
 import Control.Monad
 import Data.Monoid
+import Data.List.Split
 
 ------------------------------------------------------------------------------
 -- Indexed Folds
@@ -375,7 +389,7 @@ itoListOf l = ifoldMapOf l (\i a -> [(i,a)])
 -- 'withIndicesOf' :: 'SimpleIndexedTraversal' i s a -> 'Fold' s (i, a)
 -- @
 --
--- All 'Fold' operations are safe, and comply with the laws. However,
+-- All 'Fold' operations are safe, and comply with the laws. However:
 --
 -- Passing this an 'IndexedTraversal' will still allow many
 -- 'Traversal' combinators to type check on the result, but the result
@@ -434,8 +448,122 @@ idroppingWhile :: (Gettable f, Applicative f, Indexed i k)
               => (i -> a -> Bool)
               -> IndexedGetting i (Endo (f s, f s)) s s a a
               -> k (a -> f a) (s -> f s)
-idroppingWhile p l = index $ \f -> fst . ifoldrOf l (\i a r -> let s = f i a *> snd r in if p i a then (fst r, s) else (s, s)) (noEffect, noEffect)
+idroppingWhile p l = index $ \ f -> fst . ifoldrOf l (\i a r -> let s = f i a *> snd r in if p i a then (fst r, s) else (s, s)) (noEffect, noEffect)
 {-# INLINE idroppingWhile #-}
+
+-- | Obtain an 'IndexedFold' by splitting another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' according to the given splitting strategy.
+--
+-- @
+-- 'isplitting' :: 'Splitter' (i, a) -> 'IndexedFold' i s a -> 'IndexedFold' [i] s [a]
+-- @
+isplitting :: (Applicative f, Gettable f, Indexed [i] k) => Splitter (i, a) -> IndexedGetting i [(i, a)] s s a a -> k ([a] -> f [a]) (s -> f s)
+isplitting s l = index $ \ f -> coerce . traverse (uncurry f . unzip) . split s . toListOf (withIndicesOf l)
+{-# INLINE isplitting #-}
+
+-- | Obtain an 'IndexedFold' by splitting another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' on the given delimiter.
+--
+-- Equivalent to @'isplitting' '.' 'dropDelims' '.' 'onSublist'@.
+--
+-- @
+-- 'isplittingOn' :: ('Eq' i, 'Eq' a) => [(i, a)] -> 'IndexedFold' i s a -> 'IndexedFold' [i] s [a]
+-- @
+isplittingOn :: (Applicative f, Gettable f, Indexed [i] k, Eq i, Eq a) => [(i, a)] -> IndexedGetting i [(i, a)] s s a a -> k ([a] -> f [a]) (s -> f s)
+isplittingOn s l = index $ \ f -> coerce . traverse (uncurry f . unzip) . splitOn s . toListOf (withIndicesOf l)
+{-# INLINE isplittingOn #-}
+
+-- | Obtain an 'IndexedFold' by splitting another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' on any of the given elements.
+--
+-- Equivalent to @'isplitting' '.' 'dropDelims' '.' 'oneOf'@.
+--
+-- @
+-- 'isplittingOneOf' :: ('Eq' i, 'Eq' a) => [(i, a)] -> 'IndexedFold' i s a -> 'IndexedFold' [i] s [a]
+-- @
+isplittingOneOf :: (Applicative f, Gettable f, Indexed [i] k, Eq i, Eq a) => [(i, a)] -> IndexedGetting i [(i, a)] s s a a -> k ([a] -> f [a]) (s -> f s)
+isplittingOneOf s l = index $ \ f -> coerce . traverse (uncurry f . unzip) . splitOneOf s . toListOf (withIndicesOf l)
+{-# INLINE isplittingOneOf #-}
+
+-- | Obtain an 'IndexedFold' by splitting another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' on elements satisfying the given predicate.
+--
+-- Equivalent to @'isplitting' '.' 'dropDelims' '.' 'whenElt' '.' 'uncurry'@.
+--
+-- @
+-- 'isplittingWhen' :: (i -> a -> 'Bool') -> 'IndexedFold' i s a -> 'IndexedFold' [i] s [a]
+-- @
+isplittingWhen :: (Applicative f, Gettable f, Indexed [i] k) => (i -> a -> Bool) -> IndexedGetting i [(i, a)] s s a a -> k ([a] -> f [a]) (s -> f s)
+isplittingWhen s l = index $ \ f -> coerce . traverse (uncurry f . unzip) . splitWhen (uncurry s) . toListOf (withIndicesOf l)
+{-# INLINE isplittingWhen #-}
+
+-- | Obtain an 'IndexedFold' by splitting another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' into chunks terminated by the given delimiter.
+--
+-- Equivalent to @'isplitting' '.' 'dropDelims' '.' 'onSublist'@.
+--
+-- @
+-- 'iendingBy' :: ('Eq' i, 'Eq' a) => [(i, a)] -> 'IndexedFold' i s a -> 'IndexedFold' [i] s [a]
+-- @
+iendingBy :: (Applicative f, Gettable f, Indexed [i] k, Eq i, Eq a) => [(i, a)] -> IndexedGetting i [(i, a)] s s a a -> k ([a] -> f [a]) (s -> f s)
+iendingBy s l = index $ \ f -> coerce . traverse (uncurry f . unzip) . endBy s . toListOf (withIndicesOf l)
+{-# INLINE iendingBy #-}
+
+-- | Obtain an 'IndexedFold' by splitting another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' into chunks terminated by any of the given elements.
+--
+-- Equivalent to @'isplitting' '.' 'dropFinalBlank' '.' 'dropDelims' '.' 'oneOf'@.
+--
+-- @
+-- 'iendingByOneOf' :: ('Eq' i, 'Eq' a) => [(i, a)] -> 'IndexedFold' i s a -> 'IndexedFold' [i] s [a]
+-- @
+iendingByOneOf :: (Applicative f, Gettable f, Indexed [i] k, Eq i, Eq a) => [(i, a)] -> IndexedGetting i [(i, a)] s s a a -> k ([a] -> f [a]) (s -> f s)
+iendingByOneOf s l = index $ \ f -> coerce . traverse (uncurry f . unzip) . endByOneOf s . toListOf (withIndicesOf l)
+{-# INLINE iendingByOneOf #-}
+
+-- | Obtain an 'IndexedFold' by splitting another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' into "words", with word boundaries indicated by the given predicate.
+--
+-- Equivalent to @'isplitting' '.' 'dropBlanks' '.' 'dropDelims' '.' 'whenElt' '.' 'uncurry'@.
+--
+-- @
+-- 'iwordingBy' :: (i -> a -> 'Bool') -> 'IndexedFold' i s a -> 'IndexedFold' [i] s [a]
+-- @
+iwordingBy :: (Applicative f, Gettable f, Indexed [i] k) => (i -> a -> Bool) -> IndexedGetting i [(i, a)] s s a a -> k ([a] -> f [a]) (s -> f s)
+iwordingBy s l = index $ \ f -> coerce . traverse (uncurry f . unzip) . wordsBy (uncurry s) . toListOf (withIndicesOf l)
+{-# INLINE iwordingBy #-}
+
+-- | Obtain an 'IndexedFold' by splitting another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' into "lines", with line boundaries indicated by the given predicate.
+--
+-- Equivalent to @'isplitting' '.' 'dropFinalBlank' '.' 'dropDelims' '.' 'whenElt' '.' 'uncurry'@.
+--
+-- @
+-- 'iliningBy' :: (i -> a -> 'Bool') -> 'IndexedFold' i s a -> 'IndexedFold' [i] s [a]
+-- @
+iliningBy :: (Applicative f, Gettable f, Indexed [i] k) => (i -> a -> Bool) -> IndexedGetting i [(i, a)] s s a a -> k ([a] -> f [a]) (s -> f s)
+iliningBy s l = index $ \ f -> coerce . traverse (uncurry f . unzip) . linesBy (uncurry s) . toListOf (withIndicesOf l)
+{-# INLINE iliningBy #-}
+
+-- | Obtain an 'IndexedFold' by splitting another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' into length-@n@ pieces.
+--
+-- @
+-- 'ichunkingOf' :: 'Int' -> 'IndexedFold' i s a -> 'IndexedFold' [i] s [a]
+-- @
+ichunkingOf :: (Applicative f, Gettable f, Indexed [i] k) => Int -- ^ @n@
+               -> IndexedGetting i [(i, a)] s s a a -> k ([a] -> f [a]) (s -> f s)
+ichunkingOf s l = index $ \ f -> coerce . traverse (uncurry f . unzip) . chunksOf s . toListOf (withIndicesOf l)
+{-# INLINE ichunkingOf #-}
+
+-- | Obtain an 'IndexedFold' by splitting another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' into chunks of the given lengths.
+--
+-- @
+-- 'isplittingPlaces' :: 'Integral' n => [n] -> 'IndexedFold' i s a -> 'IndexedFold' [i] s [a]
+-- @
+isplittingPlaces :: (Applicative f, Gettable f, Indexed [i] k, Integral n) => [n] -> IndexedGetting i [(i, a)] s s a a -> k ([a] -> f [a]) (s -> f s)
+isplittingPlaces s l = index $ \ f -> coerce . traverse (uncurry f . unzip) . splitPlaces s . toListOf (withIndicesOf l)
+{-# INLINE isplittingPlaces #-}
+
+-- | Obtain an 'IndexedFold' by splitting another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' into chunks of the given lengths.  Unlike 'isplittingPlaces', the output 'IndexedFold' will always be the same length as the first input argument.
+--
+-- @
+-- 'isplittingPlacesBlanks' :: 'Integral' n => [n] -> 'IndexedFold' i s a -> 'IndexedFold' [i] s [a]
+-- @
+isplittingPlacesBlanks :: (Applicative f, Gettable f, Indexed [i] k, Integral n) => [n] -> IndexedGetting i [(i, a)] s s a a -> k ([a] -> f [a]) (s -> f s)
+isplittingPlacesBlanks s l = index $ \ f -> coerce . traverse (uncurry f . unzip) . splitPlacesBlanks s . toListOf (withIndicesOf l)
+{-# INLINE isplittingPlacesBlanks #-}
 
 ------------------------------------------------------------------------------
 -- Reifying Indexed Folds
