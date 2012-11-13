@@ -45,6 +45,7 @@ module Control.Lens.Traversal
   , traverseLeft
   , traverseRight
   , both
+  , beside
   , taking
   , dropping
 
@@ -319,8 +320,16 @@ ignored _ = pure
 -- >>> ("hello","world")^.both
 -- "helloworld"
 both :: Traversal (a,a) (b,b) a b
-both f (a,a') = (,) <$> f a <*> f a'
+both f ~(a,a') = (,) <$> f a <*> f a'
 {-# INLINE both #-}
+
+-- | Apply a different 'Traversal' or 'Control.Lens.Fold.Fold' to each side of a tuple.
+--
+-- >>> ("hello",["world,"!!!"])^..beside id traverse
+-- ["hello","world","!!!"]
+beside :: Applicative f => LensLike f s t a b -> LensLike f s' t' a b -> LensLike f (s,s') (t,t') a b
+beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
+{-# INLINE beside #-}
 
 -- | A traversal for tweaking the left-hand value of an 'Either':
 --
