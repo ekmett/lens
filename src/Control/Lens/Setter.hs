@@ -72,7 +72,7 @@ infixr 2 <~
 -- |
 -- The only 'Control.Lens.Type.Lens'-like law that can apply to a 'Setter' @l@ is that
 --
--- @'set' l y ('set' l x a) ≡ 'set' l x a@
+-- @'set' l y ('set' l x a) ≡ 'set' l y a@
 --
 -- You can't 'view' a 'Setter' in general, so the other two laws are irrelevant.
 --
