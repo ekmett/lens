@@ -5,6 +5,7 @@
 * Removed the `bazaar#` and `runBazaar#` coercions that caused issues on GHC HEAD.
 * Changed the default definition of `plate` to `uniplate` from `ignored`.
 * Added `Data.Vector.Lens` and instances for `Data.Vector`.
+* Added support for the `split` package, which is now part of the Haskell platform.
 * Removed redundant `Data.List.traverseList`. Use `itraversed` or `traverse` instead.
 * Moved `(:<->)` to `Control.Lens.Simple`.
 * Fixed a bug in `Control.Lens.TH` that was causing `makeIso` not to work.

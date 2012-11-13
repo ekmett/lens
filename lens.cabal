@@ -195,7 +195,7 @@ library
     Data.HashSet.Lens
     Data.IntSet.Lens
     Data.List.Lens
-    Data.List.Split.Lens
+    Data.List.Split.Internals.Lens
     Data.Monoid.Lens
     Data.Sequence.Lens
     Data.Set.Lens
