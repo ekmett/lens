@@ -57,6 +57,7 @@ module Control.Lens.Setter
 
 import Control.Lens.Internal
 import Control.Lens.Unsafe
+import Control.Monad (liftM)
 import Control.Monad.State.Class as State
 
 -- $setup
