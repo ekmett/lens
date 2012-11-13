@@ -789,7 +789,7 @@ parts = partsOf plate
 -- 'partsOf' :: 'Simple' 'Traversal' s a -> 'Simple' 'Lens' s [a]
 -- @
 partsOf :: LensLike (Bazaar a a) s t a a -> Lens s t [a] [a]
-partsOf l f s = outs b <$> f (ins b) where b = l sell s
+partsOf l f a = outs b <$> f (ins b) where b = l sell a
 {-# INLINE partsOf #-}
 
 -- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
@@ -809,7 +809,7 @@ partsOf l f s = outs b <$> f (ins b) where b = l sell s
 -- 'unsafePartsOf' :: 'Traversal' s t a b -> 'Lens' s t [a] [b]
 -- @
 unsafePartsOf :: LensLike (Bazaar a b) s t a b -> Lens s t [a] [b]
-unsafePartsOf l f s = unsafeOuts b <$> f (ins b) where b = l sell s
+unsafePartsOf l f a = unsafeOuts b <$> f (ins b) where b = l sell a
 {-# INLINE unsafePartsOf #-}
 
 ------------------------------------------------------------------------------
@@ -842,17 +842,17 @@ ins :: Bazaar a b t -> [a]
 ins = toListOf bazaar
 {-# INLINE ins #-}
 
-unconsWithDefault :: a -> [a] -> (a,[a])
-unconsWithDefault d []     = (d,[])
-unconsWithDefault _ (x:xs) = (x,xs)
-{-# INLINE unconsWithDefault #-}
+unsafeUncons :: [a] -> (a,[a])
+unsafeUncons ~(a:as) = (a,as)
+{-# INLINE unsafeUncons #-}
 
 outs :: Bazaar a a t -> [a] -> t
-outs = evalState . bazaar (\oldVal -> state (unconsWithDefault oldVal))
+outs (Bazaar m) = evalState $ m $ \c -> state $ \cs -> case cs of
+  [] -> (c,[])
+  (d:ds) -> (d,ds)
 {-# INLINE outs #-}
 
 unsafeOuts :: Bazaar a b t -> [b] -> t
-unsafeOuts = evalState . bazaar (\_ -> state (unconsWithDefault fakeVal))
-  where fakeVal = error "unsafePartsOf: not enough elements were supplied"
+unsafeOuts (Bazaar m) = evalState (m $ \_ -> state unsafeUncons)
 {-# INLINE unsafeOuts #-}
 
