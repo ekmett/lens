@@ -325,9 +325,9 @@ l <\\= m = l <%= (\\ m)
 -- ('~\\') :: 'Simple' 'Lens' s [a] -> [a] -> s -> s
 -- ('~\\') :: 'Simple' 'Traversal' s [a] -> [a] -> s -> s
 -- @
-(\\~) :: (Eq a) => Setting s t [a] [a] -> [a] -> s -> t
-l \\~ n = over l (n \\)
-{-# INLINE (\\~) #-}
+(~\\) :: (Eq a) => Setting s t [a] [a] -> [a] -> s -> t
+l ~\\ n = over l (n \\)
+{-# INLINE (~\\) #-}
 
 -- | Take the list difference ('\\') of the supplied list with the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' in the current state.
 --
@@ -339,7 +339,7 @@ l \\~ n = over l (n \\)
 -- @
 (=\\) :: (Eq a, MonadState s m) => SimpleSetting s [a] -> [a] -> m ()
 l =\\ b = State.modify (l ~\\ b)
-{-# INLINE (\\=) #-}
+{-# INLINE (=\\) #-}
 
 -- | Take the list difference of the supplied list with the list targeted by a 'Lens' and return the result.
 --
@@ -348,13 +348,13 @@ l =\\ b = State.modify (l ~\\ b)
 -- When you do not need the result of the operation, ('\\~') is more flexible.
 (<~\\) :: (Eq a) => LensLike ((,)[a]) s t [a] [a] -> [a] -> s -> ([a], t)
 l <~\\ m = l <%~ (m \\)
-{-# INLINE (<\\~) #-}
+{-# INLINE (<~\\) #-}
 
 -- | Take the list difference of the supplied list with the list targeted by a 'Lens' into the current monadic state, and return the result.
 --
 -- When using a 'Traversal', the result returned is actually the combined difference of all of the results.
 --
 -- When you do not need the result of the operation, ('\\=') is more flexible.
-(<\\=) :: (Eq a, MonadState s m) => SimpleLensLike ((,)[a]) s [a] -> [a] -> m [a]
+(<=\\) :: (Eq a, MonadState s m) => SimpleLensLike ((,)[a]) s [a] -> [a] -> m [a]
 l <=\\ m = l <%= (m \\)
 {-# INLINE (<=\\) #-}
