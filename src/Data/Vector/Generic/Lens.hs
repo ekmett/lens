@@ -189,7 +189,7 @@ atIndex i = index $ \ f v -> (\ a -> v // [(i, a)]) <$> f i (v ! i)
 
 -- | This 'Traversal' will ignore any duplicates in the supplied list of indices.
 --
--- >>> toListOf $ Vector.fromList [2,4..40]^.atIndices [1,3,2,5,9,10]
+-- >>> toListOf (atIndices [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
 -- [2,6,4,10,18,20]
 atIndices :: Vector v a => [Int] -> SimpleIndexedTraversal Int (v a) a
 atIndices is = index $ \ f v -> let
