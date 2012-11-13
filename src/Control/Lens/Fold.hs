@@ -52,17 +52,6 @@ module Control.Lens.Fold
   , cycled
   , takingWhile
   , droppingWhile
-  , splitting
-  , splittingOn
-  , splittingOneOf
-  , splittingWhen
-  , endingBy
-  , endingByOneOf
-  , wordingBy
-  , liningBy
-  , chunkingOf
-  , splittingPlaces
-  , splittingPlacesBlanks
   -- ** Folding
   , foldMapOf, foldOf
   , foldrOf, foldlOf
@@ -96,10 +85,8 @@ import Control.Lens.Unsafe
 import Control.Lens.Type
 import Control.Monad
 import Data.Foldable as Foldable
-import Data.Traversable (traverse)
 import Data.Maybe
 import Data.Monoid
-import Data.List.Split
 
 -- $setup
 -- >>> import Control.Lens
@@ -236,120 +223,6 @@ droppingWhile :: (Gettable f, Applicative f)
               -> LensLike f s s a a
 droppingWhile p l f = fst . foldrOf l (\a r -> let s = f a *> snd r in if p a then (fst r, s) else (s, s)) (noEffect, noEffect)
 {-# INLINE droppingWhile #-}
-
--- | Obtain a 'Fold' by splitting another 'Fold', 'Control.Lens.Type.Lens', 'Getter' or 'Control.Lens.Traversal.Traversal' according to the given splitting strategy.
---
--- @
--- 'splitting' :: 'Splitter' a -> 'Fold' i s a -> 'Fold' [i] s [a]
--- @
-splitting :: (Applicative f, Gettable f) => Splitter a -> Getting [a] s s a a -> LensLike f s s [a] [a]
-splitting s l f = coerce . traverse f . split s . toListOf l
-{-# INLINE splitting #-}
-
--- | Obtain a 'Fold' by splitting another 'Fold', 'Control.Lens.Type.Lens', 'Getter' or 'Control.Lens.Traversal.Traversal' on the given delimiter.
---
--- Equivalent to @'splitting' '.' 'dropDelims' '.' 'onSublist'@.
---
--- @
--- 'splittingOn' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
--- @
-splittingOn :: (Applicative f, Gettable f, Eq a) => [a] -> Getting [a] s s a a -> LensLike f s s [a] [a]
-splittingOn s l f = coerce . traverse f . splitOn s . toListOf l
-{-# INLINE splittingOn #-}
-
--- | Obtain a 'Fold' by splitting another 'Fold', 'Control.Lens.Type.Lens', 'Getter' or 'Control.Lens.Traversal.Traversal' on any of the given elements.
---
--- Equivalent to @'splitting' '.' 'dropDelims' '.' 'oneOf'@.
---
--- @
--- 'splittingOn' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
--- @
-splittingOneOf :: (Applicative f, Gettable f, Eq a) => [a] -> Getting [a] s s a a -> LensLike f s s [a] [a]
-splittingOneOf s l f = coerce . traverse f . splitOneOf s . toListOf l
-{-# INLINE splittingOneOf #-}
-
--- | Obtain a 'Fold' by splitting another 'Fold', 'Control.Lens.Type.Lens', 'Getter' or 'Control.Lens.Traversal.Traversal' on elements satisfying the given predicate.
---
--- Equivalent to @'splitting' '.' 'dropDelims' '.' 'whenElt'@.
---
--- @
--- 'splittingOn' :: (a -> 'Bool') -> 'Fold' s a -> 'Fold' s [a]
--- @
-splittingWhen :: (Applicative f, Gettable f, Eq a) => (a -> Bool) -> Getting [a] s s a a -> LensLike f s s [a] [a]
-splittingWhen s l f = coerce . traverse f . splitWhen s . toListOf l
-{-# INLINE splittingWhen #-}
-
--- | Obtain a 'Fold' by splitting another 'Fold', 'Control.Lens.Type.Lens', 'Getter' or 'Control.Lens.Traversal.Traversal' into chunks terminated by the given delimiter.
---
--- Equivalent to @'splitting' '.' 'dropDelims' '.' 'onSublist'@.
---
--- @
--- 'endingBy' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
--- @
-endingBy :: (Applicative f, Gettable f, Eq a) => [a] -> Getting [a] s s a a -> LensLike f s s [a] [a]
-endingBy s l f = coerce . traverse f . endBy s . toListOf l
-{-# INLINE endingBy #-}
-
--- | Obtain a 'Fold' by splitting another 'Fold', 'Control.Lens.Type.Lens', 'Getter' or 'Control.Lens.Traversal.Traversal' into chunks terminated by any of the given elements.
---
--- Equivalent to @'splitting' '.' 'dropFinalBlank' '.' 'dropDelims' '.' 'oneOf'@.
---
--- @
--- 'endingByOneOf' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
--- @
-endingByOneOf :: (Applicative f, Gettable f, Eq a) => [a] -> Getting [a] s s a a -> LensLike f s s [a] [a]
-endingByOneOf s l f = coerce . traverse f . endByOneOf s . toListOf l
-{-# INLINE endingByOneOf #-}
-
--- | Obtain a 'Fold' by splitting another 'Fold', 'Control.Lens.Type.Lens', 'Getter' or 'Control.Lens.Traversal.Traversal' into "words", with word boundaries indicated by the given predicate.
---
--- Equivalent to @'splitting' '.' 'dropBlanks' '.' 'dropDelims' '.' 'whenElt'@.
---
--- @
--- 'wordingBy' :: (a -> 'Bool') -> 'Fold' a -> 'Fold' s [a]
--- @
-wordingBy :: (Applicative f, Gettable f, Eq a) => (a -> Bool) -> Getting [a] s s a a -> LensLike f s s [a] [a]
-wordingBy s l f = coerce . traverse f . wordsBy s . toListOf l
-{-# INLINE wordingBy #-}
-
--- | Obtain a 'Fold' by splitting another 'Fold', 'Control.Lens.Type.Lens', 'Getter' or 'Control.Lens.Traversal.Traversal' into "lines", with line boundaries indicated by the given predicate.
---
--- Equivalent to @'splitting' '.' 'dropFinalBlank' '.' 'dropDelims' '.' 'whenElt'@.
---
--- @
--- 'liningBy' :: (a -> 'Bool') -> 'Fold' s a -> 'Fold' s [a]
--- @
-liningBy :: (Applicative f, Gettable f, Eq a) => (a -> Bool) -> Getting [a] s s a a -> LensLike f s s [a] [a]
-liningBy s l f = coerce . traverse f . linesBy s . toListOf l
-{-# INLINE liningBy #-}
-
--- | Obtain a 'Fold' by splitting another 'Fold', 'Control.Lens.Type.Lens', 'Getter' or 'Control.Lens.Traversal.Traversal' into length-@n@ pieces.
---
--- @
--- 'chunkingOf' :: 'Int' -> 'Fold' s a -> 'Fold' s [a]
--- @
-chunkingOf :: (Applicative f, Gettable f) => Int -- ^ @n@
-            -> Getting [a] s s a a -> LensLike f s s [a] [a]
-chunkingOf s l f = coerce . traverse f . chunksOf s . toListOf l
-{-# INLINE chunkingOf #-}
-
--- | Obtain a 'Fold' by splitting another 'Fold', 'Control.Lens.Type.Lens', 'Getter' or 'Control.Lens.Traversal.Traversal' into chunks of the given lengths, .
---
--- @
--- 'splittingPlaces' :: 'Integral' n => [n] -> 'Fold' s a -> 'Fold' s [a]
--- @
-splittingPlaces :: (Applicative f, Gettable f, Integral n) => [n] -> Getting [a] s s a a -> LensLike f s s [a] [a]
-splittingPlaces s l f = coerce . traverse f . splitPlaces s . toListOf l
-{-# INLINE splittingPlaces #-}
-
--- | Obtain a 'Fold' by splitting another 'Fold', 'Control.Lens.Type.Lens', 'Getter' or 'Control.Lens.Traversal.Traversal' into chunks of the given lengths.  Unlike 'splittingPlaces', the output 'Fold' will always be the same length as the first input argument.
---
--- @
--- 'splittingPlacesBlanks' :: 'Integral' n => [n] -> 'Fold' s a -> 'Fold' s [a]
--- @
-splittingPlacesBlanks :: (Applicative f, Gettable f, Integral n) => [n] -> Getting [a] s s a a -> LensLike f s s [a] [a]
-splittingPlacesBlanks s l f = coerce . traverse f . splitPlacesBlanks s . toListOf l
-{-# INLINE splittingPlacesBlanks #-}
 
 --------------------------
 -- Fold/Getter combinators
