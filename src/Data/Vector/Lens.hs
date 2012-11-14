@@ -17,9 +17,9 @@
 module Data.Vector.Lens
   ( toVectorOf
   -- * Isomorphisms
-  , forced
   , vector
   , reversed
+  , forced
   -- * Lenses
   , _head
   , _tail
@@ -33,7 +33,6 @@ module Data.Vector.Lens
 
 import Control.Applicative
 import Control.Lens
-import Control.Monad.State as State (MonadState, modify)
 import Data.Vector as Vector hiding (zip, filter)
 import Prelude hiding ((++), length, head, tail, init, last, map, reverse)
 import Data.List (nub)
@@ -101,8 +100,13 @@ vector = isos fromList toList fromList toList
 
 -- | Convert a 'Vector' to a version with all the elements in the reverse order
 reversed :: Iso (Vector a) (Vector b) (Vector a) (Vector b)
-reversed = iso reverse reverse
+reversed = isos reverse reverse reverse reverse
 {-# INLINE reversed #-}
+
+-- | Convert a 'Vector' to a version that doesn't retain any extra memory.
+forced :: Iso (Vector a) (Vector b) (Vector a) (Vector b)
+forced = isos force force force force
+{-# INLINE forced #-}
 
 -- | This is a more efficient version of 'element' that works for any 'Vector'.
 --

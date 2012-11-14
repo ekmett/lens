@@ -30,7 +30,6 @@ module Data.List.Lens
 
 import Control.Applicative
 import Control.Lens
-import Control.Monad.State as State (MonadState, modify)
 import Data.List
 
 -- | A 'Lens' reading and writing to the 'head' of a /non-empty/ list.
