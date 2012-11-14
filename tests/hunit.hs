@@ -5,7 +5,8 @@ import Control.Lens
 import Control.Monad.State
 import Data.Char
 import Data.List as List
-import Data.List.Lens
+import Data.Monoid
+import Data.Monoid.Lens
 import Data.Map as Map
 import Test.Framework.Providers.HUnit
 import Test.Framework.TH
@@ -188,34 +189,34 @@ case_increment_state_record_field =
                      { _y = ((trig % _box % _low % _y) + 1) } } }
 
 case_append_to_record_field =
-  (trig % points ++~ [ origin ])
-    @?= trig { _points = (trig % _points) ++ [ origin ] }
+  (trig % points <>~ [ origin ])
+    @?= trig { _points = (trig % _points) <> [ origin ] }
 
 case_append_to_state_record_field = do
   runState test trig @?= ((), trig')
   where
-    test = points ++= [ origin ]
-    trig' = trig { _points = (trig % _points) ++ [ origin ] }
+    test = points <>= [ origin ]
+    trig' = trig { _points = (trig % _points) <> [ origin ] }
 
 case_append_to_record_field_and_access_new_value =
-  (trig % points <++~ [ origin ])
-    @?= (_points trig ++ [ origin ], trig { _points = (trig % _points) ++ [ origin ] })
+  (trig % points <<>~ [ origin ])
+    @?= (_points trig <> [ origin ], trig { _points = (trig % _points) <> [ origin ] })
 
 case_append_to_state_record_field_and_access_new_value = do
-  runState test trig @?= (_points trig ++ [ origin ], trig')
+  runState test trig @?= (_points trig <> [ origin ], trig')
   where
-    test = points <++= [ origin ]
-    trig' = trig { _points = (trig % _points) ++ [ origin ] }
+    test = points <<>= [ origin ]
+    trig' = trig { _points = (trig % _points) <> [ origin ] }
 
 case_append_to_record_field_and_access_old_value =
-  (trig % points <<%~ (++[origin]))
-    @?= (_points trig, trig { _points = (trig % _points) ++ [ origin ] })
+  (trig % points <<%~ (<>[origin]))
+    @?= (_points trig, trig { _points = (trig % _points) <> [ origin ] })
 
 case_append_to_state_record_field_and_access_old_value = do
   runState test trig @?= (_points trig, trig')
   where
-    test = points <<%= (++[origin])
-    trig' = trig { _points = (trig % _points) ++ [ origin ] }
+    test = points <<%= (<>[origin])
+    trig' = trig { _points = (trig % _points) <> [ origin ] }
 
 case_read_maybe_map_entry = trig^.labels.at origin @?= Just "Origin"
 
