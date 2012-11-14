@@ -11,6 +11,7 @@
 * Fixed a bug in `Control.Lens.TH` that was causing `makeIso` not to work.
 * Added `lifted` to `Control.Lens.Setter` for mapping over monads.
 * Added `beside` to `Control.Lens.Traversal`.
+* Removed the operators from `Data.List.Lens`, they broke the overall pattern of the rest of the API, and were terrible clutter.
 
 3.2
 ---
