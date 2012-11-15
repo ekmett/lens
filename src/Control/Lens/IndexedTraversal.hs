@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE Trustworthy #-}
@@ -32,6 +33,7 @@ module Control.Lens.IndexedTraversal
   , traverseAt
   , iwhereOf
   , value
+  , ignored
   , TraverseMin(..)
   , TraverseMax(..)
 
@@ -60,6 +62,7 @@ import Control.Monad.Trans.State.Lazy as Lazy
 import Data.Traversable
 import Data.IntMap as IntMap
 import Data.Map as Map
+import Data.Void
 
 -- $setup
 -- >>> import Control.Lens
@@ -209,6 +212,16 @@ traverseAt k = at k <. traverse
 value :: (k -> Bool) -> SimpleIndexedTraversal k (k, v) v
 value p = index $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
 {-# INLINE value #-}
+
+-- | This is the trivial empty traversal.
+--
+-- @'ignored' :: 'IndexedTraversal' 'Void' s s a b
+--
+-- @'ignored' ≡ 'const' 'pure'@
+ignored :: forall s a b k f. (Indexed Void k, Applicative f) => Overloaded k f s s a b
+ignored = index $ \ (_ :: Void -> a -> f b) s -> pure s :: f s
+{-# INLINE ignored #-}
+
 
 -- | Allows 'IndexedTraversal' the value at the smallest index.
 class Ord k => TraverseMin k m | m -> k where

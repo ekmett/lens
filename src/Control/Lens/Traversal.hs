@@ -41,7 +41,6 @@ module Control.Lens.Traversal
 
   -- * Common Traversals
   , Traversable(traverse)
-  , ignored
   , traverseLeft
   , traverseRight
   , both
@@ -301,15 +300,6 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 ------------------------------------------------------------------------------
 -- Traversals
 ------------------------------------------------------------------------------
-
--- | This is the trivial empty traversal.
---
--- @'ignored' :: 'Applicative' f => (a -> f b) -> s -> f s@
---
--- @'ignored' ≡ 'const' 'pure'@
-ignored :: Traversal s s a b
-ignored _ = pure
-{-# INLINE ignored #-}
 
 -- | Traverse both parts of a tuple with matching types.
 --

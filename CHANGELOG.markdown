@@ -14,6 +14,7 @@
 * Removed the operators from `Data.List.Lens`, they broke the overall pattern of the rest of the API, and were terrible clutter.
 * Fixed a bug that caused `resultAt` to give wrong answers most of the time.
 * Changed `resultAt` to an `IndexedLens` and moved it to `Control.Lens.IndexedLens`
+* Changed `ignored` to an `IndexedTraversal` and moved it to `Control.Lens.IndexedTraversal`
 
 3.2
 ---
