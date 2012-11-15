@@ -23,20 +23,20 @@
 <a name="line-14"></a>  <span class='hs-layout'>(</span>
 <a name="line-15"></a>  <span class='hs-comment'>-- * Isomorphism Lenses</span>
 <a name="line-16"></a>    <span class='hs-conid'>Iso</span>
-<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-conop'>:&lt;-&gt;</span><span class='hs-layout'>)</span>
-<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>iso</span>
-<a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>isos</span>
-<a name="line-20"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>ala</span>
-<a name="line-21"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>auf</span>
-<a name="line-22"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>under</span>
-<a name="line-23"></a>  <span class='hs-comment'>-- * Primitive isomorphisms</span>
-<a name="line-24"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>from</span>
-<a name="line-25"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>via</span>
-<a name="line-26"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Isomorphism</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
-<a name="line-27"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Isomorphic</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
-<a name="line-28"></a>  <span class='hs-comment'>-- ** Common Isomorphisms</span>
-<a name="line-29"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_const</span>
-<a name="line-30"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>identity</span>
+<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>iso</span>
+<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>isos</span>
+<a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>ala</span>
+<a name="line-20"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>auf</span>
+<a name="line-21"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>under</span>
+<a name="line-22"></a>  <span class='hs-comment'>-- * Primitive isomorphisms</span>
+<a name="line-23"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>from</span>
+<a name="line-24"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>via</span>
+<a name="line-25"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Isomorphism</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
+<a name="line-26"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Isomorphic</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
+<a name="line-27"></a>  <span class='hs-comment'>-- ** Common Isomorphisms</span>
+<a name="line-28"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_const</span>
+<a name="line-29"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>identity</span>
+<a name="line-30"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>simple</span>
 <a name="line-31"></a>  <span class='hs-comment'>-- * Storing Isomorphisms</span>
 <a name="line-32"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>ReifiedIso</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-33"></a>  <span class='hs-comment'>-- * Simplicity</span>
@@ -57,122 +57,126 @@
 <a name="line-48"></a><span class='hs-comment'>-- $setup</span>
 <a name="line-49"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
 <a name="line-50"></a>
-<a name="line-51"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>0</span> <span class='hs-conop'>:&lt;-&gt;</span>
-<a name="line-52"></a>
+<a name="line-51"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-52"></a><span class='hs-comment'>-- Isomorphisms families as Lenses</span>
 <a name="line-53"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-54"></a><span class='hs-comment'>-- Isomorphisms families as Lenses</span>
-<a name="line-55"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-56"></a>
-<a name="line-57"></a><a name="Iso"></a><span class='hs-comment'>-- | Isomorphim families can be composed with other lenses using either ('.') and 'id'</span>
-<a name="line-58"></a><a name="Iso"></a><span class='hs-comment'>-- from the Prelude or from Control.Category. However, if you compose them</span>
-<a name="line-59"></a><a name="Iso"></a><span class='hs-comment'>-- with each other using ('.') from the Prelude, they will be dumbed down to a</span>
-<a name="line-60"></a><a name="Iso"></a><span class='hs-comment'>-- mere 'Lens'.</span>
-<a name="line-61"></a><a name="Iso"></a><span class='hs-comment'>--</span>
-<a name="line-62"></a><a name="Iso"></a><span class='hs-comment'>-- @</span>
-<a name="line-63"></a><a name="Iso"></a><span class='hs-comment'>-- import Control.Category</span>
-<a name="line-64"></a><a name="Iso"></a><span class='hs-comment'>-- import Prelude hiding (('Prelude..'),'Prelude.id')</span>
-<a name="line-65"></a><a name="Iso"></a><span class='hs-comment'>-- @</span>
-<a name="line-66"></a><a name="Iso"></a><span class='hs-comment'>--</span>
-<a name="line-67"></a><a name="Iso"></a><span class='hs-comment'>-- @type 'Iso' a b c d = forall k f. ('Isomorphic' k, 'Functor' f) =&gt; 'Overloaded' k f a b c d@</span>
-<a name="line-68"></a><a name="Iso"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>forall</span> <span class='hs-varid'>k</span> <span class='hs-varid'>f</span><span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-conid'>Isomorphic</span> <span class='hs-varid'>k</span><span class='hs-layout'>,</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-69"></a>
-<a name="line-70"></a><a name="SimpleIso"></a><span class='hs-comment'>-- |</span>
-<a name="line-71"></a><a name="SimpleIso"></a><span class='hs-comment'>-- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@</span>
-<a name="line-72"></a><a name="SimpleIso"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleIso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>b</span>
-<a name="line-73"></a>
-<a name="line-74"></a><span class='hs-comment'>-- | An commonly used infix alias for @'Control.Lens.Type.Simple' 'Iso'@</span>
-<a name="line-75"></a><span class='hs-keyword'>type</span> <span class='hs-varid'>a</span> <span class='hs-conop'>:&lt;-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>b</span>
-<a name="line-76"></a>
-<a name="line-77"></a><a name="isos"></a><span class='hs-comment'>-- | Build an isomorphism family from two pairs of inverse functions</span>
-<a name="line-78"></a><span class='hs-comment'>--</span>
-<a name="line-79"></a><span class='hs-comment'>-- @</span>
-<a name="line-80"></a><span class='hs-comment'>-- 'view' ('isos' ac ca bd db) ≡ ac</span>
-<a name="line-81"></a><span class='hs-comment'>-- 'view' ('from' ('isos' ac ca bd db)) ≡ ca</span>
-<a name="line-82"></a><span class='hs-comment'>-- 'set' ('isos' ac ca bd db) cd ≡ db '.' cd '.' ac</span>
-<a name="line-83"></a><span class='hs-comment'>-- 'set' ('from' ('isos' ac ca bd db')) ab ≡ bd '.' ab '.' ca</span>
-<a name="line-84"></a><span class='hs-comment'>-- @</span>
-<a name="line-85"></a><span class='hs-comment'>--</span>
-<a name="line-86"></a><span class='hs-comment'>-- @isos :: (a -&gt; c) -&gt; (c -&gt; a) -&gt; (b -&gt; d) -&gt; (d -&gt; b) -&gt; 'Iso' a b c d@</span>
-<a name="line-87"></a><span class='hs-definition'>isos</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Isomorphic</span> <span class='hs-varid'>k</span><span class='hs-layout'>,</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-88"></a><span class='hs-definition'>isos</span> <span class='hs-varid'>ac</span> <span class='hs-varid'>ca</span> <span class='hs-varid'>bd</span> <span class='hs-varid'>db</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isomorphic</span>
-<a name="line-89"></a>  <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>cfd</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>db</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>cfd</span> <span class='hs-layout'>(</span><span class='hs-varid'>ac</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-90"></a>  <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>afb</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>bd</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>afb</span> <span class='hs-layout'>(</span><span class='hs-varid'>ca</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-91"></a><span class='hs-comment'>{-# INLINE isos #-}</span>
-<a name="line-92"></a>
-<a name="line-93"></a><a name="iso"></a><span class='hs-comment'>-- | Build a simple isomorphism from a pair of inverse functions</span>
-<a name="line-94"></a><span class='hs-comment'>--</span>
-<a name="line-95"></a><span class='hs-comment'>--</span>
-<a name="line-96"></a><span class='hs-comment'>-- @</span>
-<a name="line-97"></a><span class='hs-comment'>-- 'view' ('iso' f g) ≡ f</span>
-<a name="line-98"></a><span class='hs-comment'>-- 'view' ('from' ('iso' f g)) ≡ g</span>
-<a name="line-99"></a><span class='hs-comment'>-- 'set' ('isos' f g) h ≡ g '.' h '.' f</span>
-<a name="line-100"></a><span class='hs-comment'>-- 'set' ('from' ('iso' f g')) h ≡ f '.' h '.' g</span>
-<a name="line-101"></a><span class='hs-comment'>-- @</span>
-<a name="line-102"></a><span class='hs-comment'>--</span>
-<a name="line-103"></a><span class='hs-comment'>-- @iso :: (a -&gt; b) -&gt; (b -&gt; a) -&gt; 'Control.Lens.Type.Simple' 'Iso' a b@</span>
-<a name="line-104"></a><span class='hs-definition'>iso</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Isomorphic</span> <span class='hs-varid'>k</span><span class='hs-layout'>,</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-105"></a><span class='hs-definition'>iso</span> <span class='hs-varid'>ab</span> <span class='hs-varid'>ba</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-varid'>ab</span> <span class='hs-varid'>ba</span> <span class='hs-varid'>ab</span> <span class='hs-varid'>ba</span>
-<a name="line-106"></a><span class='hs-comment'>{-# INLINE iso #-}</span>
-<a name="line-107"></a>
-<a name="line-108"></a><a name="ala"></a><span class='hs-comment'>-- | Based on @ala@ from Conor McBride's work on Epigram.</span>
-<a name="line-109"></a><span class='hs-comment'>--</span>
-<a name="line-110"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Data.Monoid.Lens Data.Foldable</span>
-<a name="line-111"></a><span class='hs-comment'>-- &gt;&gt;&gt; ala _sum foldMap [1,2,3,4]</span>
-<a name="line-112"></a><span class='hs-comment'>-- 10</span>
-<a name="line-113"></a><span class='hs-definition'>ala</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
-<a name="line-114"></a><span class='hs-definition'>ala</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varop'>^.</span> <span class='hs-varid'>from</span> <span class='hs-varid'>l</span>
-<a name="line-115"></a><span class='hs-comment'>{-# INLINE ala #-}</span>
-<a name="line-116"></a>
-<a name="line-117"></a><a name="auf"></a><span class='hs-comment'>-- |</span>
-<a name="line-118"></a><span class='hs-comment'>-- Based on @ala'@ from Conor McBride's work on Epigram.</span>
-<a name="line-119"></a><span class='hs-comment'>--</span>
-<a name="line-120"></a><span class='hs-comment'>-- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator</span>
-<a name="line-121"></a><span class='hs-comment'>-- is 'ala' with an extra function argument.</span>
-<a name="line-122"></a><span class='hs-definition'>auf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>d</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
-<a name="line-123"></a><span class='hs-definition'>auf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-varid'>g</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varid'>l</span> <span class='hs-varop'>.</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varop'>^.</span> <span class='hs-varid'>from</span> <span class='hs-varid'>l</span>
-<a name="line-124"></a><span class='hs-comment'>{-# INLINE auf #-}</span>
-<a name="line-125"></a>
-<a name="line-126"></a><a name="under"></a><span class='hs-comment'>-- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.</span>
-<a name="line-127"></a><span class='hs-comment'>--</span>
-<a name="line-128"></a><span class='hs-comment'>-- @'under' = 'over' '.' 'from'@</span>
-<a name="line-129"></a><span class='hs-comment'>--</span>
-<a name="line-130"></a><span class='hs-comment'>-- @'under' :: 'Iso' a b c d -&gt; (a -&gt; b) -&gt; c -&gt; d@</span>
-<a name="line-131"></a><span class='hs-definition'>under</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Isomorphism</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>d</span>
-<a name="line-132"></a><span class='hs-definition'>under</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varop'>.</span> <span class='hs-varid'>from</span>
-<a name="line-133"></a><span class='hs-comment'>{-# INLINE under #-}</span>
+<a name="line-54"></a>
+<a name="line-55"></a><a name="Iso"></a><span class='hs-comment'>-- | Isomorphism families can be composed with other lenses using either ('.') and 'id'</span>
+<a name="line-56"></a><a name="Iso"></a><span class='hs-comment'>-- from the Prelude or from Control.Category. However, if you compose them</span>
+<a name="line-57"></a><a name="Iso"></a><span class='hs-comment'>-- with each other using ('.') from the Prelude, they will be dumbed down to a</span>
+<a name="line-58"></a><a name="Iso"></a><span class='hs-comment'>-- mere 'Lens'.</span>
+<a name="line-59"></a><a name="Iso"></a><span class='hs-comment'>--</span>
+<a name="line-60"></a><a name="Iso"></a><span class='hs-comment'>-- @</span>
+<a name="line-61"></a><a name="Iso"></a><span class='hs-comment'>-- import Control.Category</span>
+<a name="line-62"></a><a name="Iso"></a><span class='hs-comment'>-- import Prelude hiding (('Prelude..'),'Prelude.id')</span>
+<a name="line-63"></a><a name="Iso"></a><span class='hs-comment'>-- @</span>
+<a name="line-64"></a><a name="Iso"></a><span class='hs-comment'>--</span>
+<a name="line-65"></a><a name="Iso"></a><span class='hs-comment'>-- @type 'Iso' s t a b = forall k f. ('Isomorphic' k, 'Functor' f) =&gt; 'Overloaded' k f s t a b@</span>
+<a name="line-66"></a><a name="Iso"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>forall</span> <span class='hs-varid'>k</span> <span class='hs-varid'>f</span><span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-conid'>Isomorphic</span> <span class='hs-varid'>k</span><span class='hs-layout'>,</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-67"></a>
+<a name="line-68"></a><a name="SimpleIso"></a><span class='hs-comment'>-- |</span>
+<a name="line-69"></a><a name="SimpleIso"></a><span class='hs-comment'>-- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@</span>
+<a name="line-70"></a><a name="SimpleIso"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleIso</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
+<a name="line-71"></a>
+<a name="line-72"></a>
+<a name="line-73"></a><a name="isos"></a><span class='hs-comment'>-- | Build an isomorphism family from two pairs of inverse functions</span>
+<a name="line-74"></a><span class='hs-comment'>--</span>
+<a name="line-75"></a><span class='hs-comment'>-- @</span>
+<a name="line-76"></a><span class='hs-comment'>-- 'view' ('isos' sa as tb bt) ≡ sa</span>
+<a name="line-77"></a><span class='hs-comment'>-- 'view' ('from' ('isos' sa as tb bt)) ≡ as</span>
+<a name="line-78"></a><span class='hs-comment'>-- 'set' ('isos' sa as tb bt) ab ≡ bt '.' ab '.' sa</span>
+<a name="line-79"></a><span class='hs-comment'>-- 'set' ('from' ('isos' ac ca bd db')) ab ≡ bd '.' ab '.' ca</span>
+<a name="line-80"></a><span class='hs-comment'>-- @</span>
+<a name="line-81"></a><span class='hs-comment'>--</span>
+<a name="line-82"></a><span class='hs-comment'>-- @isos :: (s -&gt; a) -&gt; (a -&gt; s) -&gt; (t -&gt; b) -&gt; (b -&gt; t) -&gt; 'Iso' s t a b@</span>
+<a name="line-83"></a><span class='hs-definition'>isos</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Isomorphic</span> <span class='hs-varid'>k</span><span class='hs-layout'>,</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-84"></a><span class='hs-definition'>isos</span> <span class='hs-varid'>sa</span> <span class='hs-keyword'>as</span> <span class='hs-varid'>tb</span> <span class='hs-varid'>bt</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isomorphic</span>
+<a name="line-85"></a>  <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>afb</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>bt</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>afb</span> <span class='hs-layout'>(</span><span class='hs-varid'>sa</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-86"></a>  <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>sft</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>tb</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>sft</span> <span class='hs-layout'>(</span><span class='hs-keyword'>as</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-87"></a><span class='hs-comment'>{-# INLINE isos #-}</span>
+<a name="line-88"></a>
+<a name="line-89"></a><a name="iso"></a><span class='hs-comment'>-- | Build a simple isomorphism from a pair of inverse functions</span>
+<a name="line-90"></a><span class='hs-comment'>--</span>
+<a name="line-91"></a><span class='hs-comment'>--</span>
+<a name="line-92"></a><span class='hs-comment'>-- @</span>
+<a name="line-93"></a><span class='hs-comment'>-- 'view' ('iso' f g) ≡ f</span>
+<a name="line-94"></a><span class='hs-comment'>-- 'view' ('from' ('iso' f g)) ≡ g</span>
+<a name="line-95"></a><span class='hs-comment'>-- 'set' ('isos' f g) h ≡ g '.' h '.' f</span>
+<a name="line-96"></a><span class='hs-comment'>-- 'set' ('from' ('iso' f g')) h ≡ f '.' h '.' g</span>
+<a name="line-97"></a><span class='hs-comment'>-- @</span>
+<a name="line-98"></a><span class='hs-comment'>--</span>
+<a name="line-99"></a><span class='hs-comment'>-- @iso :: (s -&gt; a) -&gt; (a -&gt; s) -&gt; 'Control.Lens.Type.Simple' 'Iso' s a@</span>
+<a name="line-100"></a><span class='hs-definition'>iso</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Isomorphic</span> <span class='hs-varid'>k</span><span class='hs-layout'>,</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
+<a name="line-101"></a><span class='hs-definition'>iso</span> <span class='hs-varid'>sa</span> <span class='hs-keyword'>as</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-varid'>sa</span> <span class='hs-keyword'>as</span> <span class='hs-varid'>sa</span> <span class='hs-keyword'>as</span>
+<a name="line-102"></a><span class='hs-comment'>{-# INLINE iso #-}</span>
+<a name="line-103"></a>
+<a name="line-104"></a><a name="ala"></a><span class='hs-comment'>-- | Based on @ala@ from Conor McBride's work on Epigram.</span>
+<a name="line-105"></a><span class='hs-comment'>--</span>
+<a name="line-106"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Data.Monoid.Lens Data.Foldable</span>
+<a name="line-107"></a><span class='hs-comment'>-- &gt;&gt;&gt; ala _sum foldMap [1,2,3,4]</span>
+<a name="line-108"></a><span class='hs-comment'>-- 10</span>
+<a name="line-109"></a><span class='hs-definition'>ala</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span>
+<a name="line-110"></a><span class='hs-definition'>ala</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varop'>^.</span> <span class='hs-varid'>from</span> <span class='hs-varid'>l</span>
+<a name="line-111"></a><span class='hs-comment'>{-# INLINE ala #-}</span>
+<a name="line-112"></a>
+<a name="line-113"></a><a name="auf"></a><span class='hs-comment'>-- |</span>
+<a name="line-114"></a><span class='hs-comment'>-- Based on @ala'@ from Conor McBride's work on Epigram.</span>
+<a name="line-115"></a><span class='hs-comment'>--</span>
+<a name="line-116"></a><span class='hs-comment'>-- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator</span>
+<a name="line-117"></a><span class='hs-comment'>-- is 'ala' with an extra function argument.</span>
+<a name="line-118"></a><span class='hs-definition'>auf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span>
+<a name="line-119"></a><span class='hs-definition'>auf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-varid'>g</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>view</span> <span class='hs-varid'>l</span> <span class='hs-varop'>.</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varop'>^.</span> <span class='hs-varid'>from</span> <span class='hs-varid'>l</span>
+<a name="line-120"></a><span class='hs-comment'>{-# INLINE auf #-}</span>
+<a name="line-121"></a>
+<a name="line-122"></a><a name="under"></a><span class='hs-comment'>-- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.</span>
+<a name="line-123"></a><span class='hs-comment'>--</span>
+<a name="line-124"></a><span class='hs-comment'>-- @'under' = 'over' '.' 'from'@</span>
+<a name="line-125"></a><span class='hs-comment'>--</span>
+<a name="line-126"></a><span class='hs-comment'>-- @'under' :: 'Iso' s t a b -&gt; (s -&gt; t) -&gt; a -&gt; b@</span>
+<a name="line-127"></a><span class='hs-definition'>under</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Isomorphism</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
+<a name="line-128"></a><span class='hs-definition'>under</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varop'>.</span> <span class='hs-varid'>from</span>
+<a name="line-129"></a><span class='hs-comment'>{-# INLINE under #-}</span>
+<a name="line-130"></a>
+<a name="line-131"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-132"></a><span class='hs-comment'>-- Isomorphisms</span>
+<a name="line-133"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-134"></a>
-<a name="line-135"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-136"></a><span class='hs-comment'>-- Isomorphisms</span>
-<a name="line-137"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-138"></a>
-<a name="line-139"></a><a name="identity"></a><span class='hs-comment'>-- | This isomorphism can be used to wrap or unwrap a value in 'Identity'.</span>
-<a name="line-140"></a><span class='hs-comment'>--</span>
-<a name="line-141"></a><span class='hs-comment'>-- @</span>
-<a name="line-142"></a><span class='hs-comment'>-- x^.identity ≡ 'Identity' x</span>
-<a name="line-143"></a><span class='hs-comment'>-- 'Identity' x '^.' 'from' 'identity' ≡ x</span>
-<a name="line-144"></a><span class='hs-comment'>-- @</span>
-<a name="line-145"></a><span class='hs-definition'>identity</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-146"></a><span class='hs-definition'>identity</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Identity</span> <span class='hs-varid'>runIdentity</span> <span class='hs-conid'>Identity</span> <span class='hs-varid'>runIdentity</span>
-<a name="line-147"></a><span class='hs-comment'>{-# INLINE identity #-}</span>
-<a name="line-148"></a>
-<a name="line-149"></a><span class='hs-comment'>-- | This isomorphism can be used to wrap or unwrap a value in 'Const'</span>
-<a name="line-150"></a><span class='hs-comment'>--</span>
-<a name="line-151"></a><span class='hs-comment'>-- @</span>
-<a name="line-152"></a><span class='hs-comment'>-- x '^.' '_const' ≡ 'Const' x</span>
-<a name="line-153"></a><span class='hs-comment'>-- 'Const' x '^.' 'from' '_const' ≡ x</span>
-<a name="line-154"></a><span class='hs-comment'>-- @</span>
-<a name="line-155"></a><span class='hs-sel'>_const</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Const</span> <span class='hs-varid'>a</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Const</span> <span class='hs-varid'>b</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span>
-<a name="line-156"></a><span class='hs-sel'>_const</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Const</span> <span class='hs-varid'>getConst</span> <span class='hs-conid'>Const</span> <span class='hs-varid'>getConst</span>
-<a name="line-157"></a><span class='hs-comment'>{-# INLINE _const #-}</span>
-<a name="line-158"></a>
-<a name="line-159"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-160"></a><span class='hs-comment'>-- Reifying Isomorphisms</span>
-<a name="line-161"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-135"></a><a name="identity"></a><span class='hs-comment'>-- | This isomorphism can be used to wrap or unwrap a value in 'Identity'.</span>
+<a name="line-136"></a><span class='hs-comment'>--</span>
+<a name="line-137"></a><span class='hs-comment'>-- @</span>
+<a name="line-138"></a><span class='hs-comment'>-- x^.identity ≡ 'Identity' x</span>
+<a name="line-139"></a><span class='hs-comment'>-- 'Identity' x '^.' 'from' 'identity' ≡ x</span>
+<a name="line-140"></a><span class='hs-comment'>-- @</span>
+<a name="line-141"></a><span class='hs-definition'>identity</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-142"></a><span class='hs-definition'>identity</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Identity</span> <span class='hs-varid'>runIdentity</span> <span class='hs-conid'>Identity</span> <span class='hs-varid'>runIdentity</span>
+<a name="line-143"></a><span class='hs-comment'>{-# INLINE identity #-}</span>
+<a name="line-144"></a>
+<a name="line-145"></a><span class='hs-comment'>-- | This isomorphism can be used to wrap or unwrap a value in 'Const'</span>
+<a name="line-146"></a><span class='hs-comment'>--</span>
+<a name="line-147"></a><span class='hs-comment'>-- @</span>
+<a name="line-148"></a><span class='hs-comment'>-- x '^.' '_const' ≡ 'Const' x</span>
+<a name="line-149"></a><span class='hs-comment'>-- 'Const' x '^.' 'from' '_const' ≡ x</span>
+<a name="line-150"></a><span class='hs-comment'>-- @</span>
+<a name="line-151"></a><span class='hs-sel'>_const</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Const</span> <span class='hs-varid'>a</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Const</span> <span class='hs-varid'>b</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span>
+<a name="line-152"></a><span class='hs-sel'>_const</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-conid'>Const</span> <span class='hs-varid'>getConst</span> <span class='hs-conid'>Const</span> <span class='hs-varid'>getConst</span>
+<a name="line-153"></a><span class='hs-comment'>{-# INLINE _const #-}</span>
+<a name="line-154"></a>
+<a name="line-155"></a>
+<a name="line-156"></a><a name="simple"></a><span class='hs-comment'>-- | Composition with this isomorphism is occasionally useful when your 'Lens',</span>
+<a name="line-157"></a><span class='hs-comment'>-- 'Control.Lens.Traversal.Traversal' or 'Iso' has a constraint on an unused</span>
+<a name="line-158"></a><span class='hs-comment'>-- argument to force that argument to agree with the</span>
+<a name="line-159"></a><span class='hs-comment'>-- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.</span>
+<a name="line-160"></a><span class='hs-definition'>simple</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-161"></a><span class='hs-definition'>simple</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>isos</span> <span class='hs-varid'>id</span> <span class='hs-varid'>id</span> <span class='hs-varid'>id</span> <span class='hs-varid'>id</span>
 <a name="line-162"></a>
-<a name="line-163"></a><a name="ReifiedIso"></a><span class='hs-comment'>-- | Useful for storing isomorphisms in containers.</span>
-<a name="line-164"></a><a name="ReifiedIso"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>ReifiedIso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifyIso</span> <span class='hs-layout'>{</span> <span class='hs-varid'>reflectIso</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span> <span class='hs-layout'>}</span>
-<a name="line-165"></a>
-<a name="line-166"></a><a name="SimpleReifiedIso"></a><span class='hs-comment'>-- | @type 'SimpleReifiedIso' = 'Control.Lens.Type.Simple' 'ReifiedIso'@</span>
-<a name="line-167"></a><a name="SimpleReifiedIso"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleReifiedIso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifiedIso</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>b</span>
+<a name="line-163"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-164"></a><span class='hs-comment'>-- Reifying Isomorphisms</span>
+<a name="line-165"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-166"></a>
+<a name="line-167"></a><a name="ReifiedIso"></a><span class='hs-comment'>-- | Useful for storing isomorphisms in containers.</span>
+<a name="line-168"></a><a name="ReifiedIso"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>ReifiedIso</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifyIso</span> <span class='hs-layout'>{</span> <span class='hs-varid'>reflectIso</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-layout'>}</span>
+<a name="line-169"></a>
+<a name="line-170"></a><a name="SimpleReifiedIso"></a><span class='hs-comment'>-- | @type 'SimpleReifiedIso' = 'Control.Lens.Type.Simple' 'ReifiedIso'@</span>
+<a name="line-171"></a><a name="SimpleReifiedIso"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleReifiedIso</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifiedIso</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
 </pre></body>
 </html>
