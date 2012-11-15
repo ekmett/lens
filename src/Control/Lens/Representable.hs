@@ -90,8 +90,9 @@ import Control.Lens.Iso
 import Control.Lens.Type
 import Control.Lens.Getter
 import Control.Lens.Indexed
-import Control.Lens.IndexedSetter
 import Control.Lens.IndexedFold
+import Control.Lens.IndexedLens
+import Control.Lens.IndexedSetter
 import Control.Lens.IndexedTraversal
 import Control.Lens.Internal
 import Control.Lens.Unsafe

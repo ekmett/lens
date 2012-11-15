@@ -30,6 +30,7 @@ module Control.Lens.IndexedLens
   -- * Common Indexed Lenses
   , At(..)
   , Contains(..)
+  , resultAt
   -- * Indexed Lens Combinators
   , (%%@~)
   , (<%@~)
@@ -186,6 +187,15 @@ instance Ord k => Contains k (Set k) where
 instance (Eq k, Hashable k) => Contains k (HashSet k) where
   contains k = index $ \ f s -> (\b -> if b then HashSet.insert k s else HashSet.delete k s) <$> f k (HashSet.member k s)
   {-# INLINE contains #-}
+
+-- | This lens can be used to change the result of a function but only where
+-- the arguments match the key given.
+--
+-- >>> let f = (+1) % resultAt 3 .~ 8 in (f 2, f 3)
+-- (3,8)
+resultAt :: Eq e => e -> SimpleIndexedLens e (e -> a) a
+resultAt e = index $ \ g f -> (\a' e' -> if e == e' then a' else f e') <$> g e (f e)
+{-# INLINE resultAt #-}
 
 ------------------------------------------------------------------------------
 -- Reifying Indexed Lenses
