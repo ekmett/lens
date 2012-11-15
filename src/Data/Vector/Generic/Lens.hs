@@ -36,7 +36,6 @@ module Data.Vector.Generic.Lens
 
 import Control.Applicative
 import Control.Lens
-import Control.Monad.State as State (MonadState, modify)
 import Data.Vector.Generic as V hiding (zip, filter)
 import Data.Vector.Fusion.Stream (Stream)
 import Data.Vector.Generic.New (New)
