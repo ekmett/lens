@@ -32,11 +32,6 @@ module Data.Vector.Generic.Lens
   -- * Traversal of individual indices
   , atIndex
   , atIndices
-  -- * Convenience combinators for modification
-  , (++~), (<++~)
-  , (++=), (<++=)
-  , (///~), (<///~)
-  , (///=), (<///=)
   ) where
 
 import Control.Applicative
@@ -50,9 +45,6 @@ import Data.List (nub)
 
 -- $setup
 -- >>> import Data.Vector as Vector
-
-infixr 4 ++~, <++~, ///~, <///~
-infix 4 ++=, <++=, ///=, <///=
 
 -- | A lens reading and writing to the 'head' of a /non-empty/ 'Vector'
 --
@@ -110,26 +102,6 @@ toVectorOf :: Vector v a => Getting [a] s t a b -> s -> v a
 toVectorOf l s = fromList (toListOf l s)
 {-# INLINE toVectorOf #-}
 
--- | Append to the target(s) of a 'Vector'-valued 'Setter'.
-(++~) :: Vector v a => Setting s t (v a) (v a) -> v a -> s -> t
-v ++~ n = over v (++ n)
-{-# INLINE (++~) #-}
-
--- | Append to the target(s) of a 'Vector'-valued 'Setter' in the current monadic state.
-(++=) :: (MonadState s m, Vector v a) => SimpleSetting s (v a) -> v a -> m ()
-v ++= b = State.modify (v ++~ b)
-{-# INLINE (++=) #-}
-
--- | Append to the target of a 'Vector'-valued 'Lens', returning the result as well as the updated structure.
-(<++~) :: Vector v a => LensLike ((,) (v a)) s t (v a) (v a) -> v a -> s -> (v a, t)
-v <++~ m = v <%~ (++ m)
-{-# INLINE (<++~) #-}
-
--- | Append to the target of a 'Vector'-valued 'Lens' in the current monadic state, returning the result.
-(<++=) :: (MonadState s m, Vector v a) => SimpleLensLike ((,) (v a)) s (v a) -> v a -> m (v a)
-v <++= m = v <%= (++ m)
-{-# INLINE (<++=) #-}
-
 -- | Convert a list to a 'Vector' (or back)
 vector :: Vector v a => Simple Iso [a] (v a)
 vector = iso fromList V.toList
@@ -159,26 +131,6 @@ forced = iso force force
 reversed :: Vector v a => Simple Iso (v a) (v a)
 reversed = iso reverse reverse
 {-# INLINE reversed #-}
-
--- | Update elements of the target(s) of a vector-valued 'Setter', functionally.
-(///~) :: Vector v a => Setting s t (v a) (v a) -> [(Int, a)] -> s -> t
-v ///~ n = over v (// n)
-{-# INLINE (///~) #-}
-
--- | Update elements of the target(s) of a vector-valued 'Setter' in the current state.
-(///=) :: (MonadState s m, Vector v a) => SimpleSetting s (v a) -> [(Int, a)] -> m ()
-v ///= b = State.modify (v ///~ b)
-{-# INLINE (///=) #-}
-
--- | Update elements of the target(s) of a vector-valued 'Lens', functionally, while also returning the result.
-(<///~) :: Vector v a => LensLike ((,)(v a)) s t (v a) (v a) -> [(Int, a)] -> s -> (v a, t)
-v <///~ m = v <%~ (// m)
-{-# INLINE (<///~) #-}
-
--- | Update elements of the target(s) of a vector-valued 'Lens' in the current state, while also returning the result.
-(<///=) :: (MonadState s m, Vector v a) => SimpleLensLike ((,)(v a)) s (v a) -> [(Int, a)] -> m (v a)
-v <///= m = v <%= (// m)
-{-# INLINE (<///=) #-}
 
 -- | This is a more efficient version of 'element' that works for any 'Vector'.
 --
