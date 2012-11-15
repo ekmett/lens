@@ -530,7 +530,7 @@ instance Functor Level where
   fmap f (Level n ls a rs) = Level n (f <$> ls) (f a) (f <$> rs)
 
 instance Foldable Level where
-  foldMap f = foldMap f . rezipLevel
+  foldMap f (Level _ ls a rs) = foldMap f (Prelude.reverse ls) <> f a <> foldMap f rs
 
 instance Traversable Level where
   traverse f (Level n ls a rs) = Level n <$> forwards (traverse (Backwards . f) ls) <*> f a <*> traverse f rs

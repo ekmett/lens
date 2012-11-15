@@ -337,6 +337,7 @@ toListOf l = foldMapOf l return
 -- @
 (^..) :: s -> Getting [a] s t a b -> [a]
 s ^.. l = foldMapOf l return s
+{-# INLINE (^..) #-}
 
 -- | Returns 'True' if every target of a 'Fold' is 'True'.
 --
