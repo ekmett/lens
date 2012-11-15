@@ -266,11 +266,14 @@ l %%= f = do
 
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
+--
+-- >>> let f = (+1) % resultAt 3 .~ 8 in (f 2, f 3)
+-- (3,8)
 resultAt :: Eq e => e -> Simple Lens (e -> a) a
 resultAt e afa ea = go <$> afa a where
   a = ea e
   go a' e' | e == e'   = a'
-           | otherwise = a
+           | otherwise = ea e'
 {-# INLINE resultAt #-}
 
 -- | Merge two lenses, getters, setters, folds or traversals.

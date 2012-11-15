@@ -12,6 +12,7 @@
 * Added `lifted` to `Control.Lens.Setter` for mapping over monads.
 * Added `beside` to `Control.Lens.Traversal`.
 * Removed the operators from `Data.List.Lens`, they broke the overall pattern of the rest of the API, and were terrible clutter.
+* Fixed a bug that caused `resultAt` to give wrong answers most of the time.
 
 3.2
 ---
