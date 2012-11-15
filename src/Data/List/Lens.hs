@@ -15,12 +15,12 @@
 --
 ----------------------------------------------------------------------------
 module Data.List.Lens
-  ( _head
+  (
+  -- * Partial Lenses
+    _head
   , _tail
   , _last
   , _init
-  , interspersed
-  , intercalated
   -- * Traversals
   , traverseHead
   , traverseTail
@@ -32,7 +32,7 @@ import Control.Applicative
 import Control.Lens
 import Data.List
 
--- | A 'Lens' reading and writing to the 'head' of a /non-empty/ list.
+-- | A partial 'Lens' reading and writing to the 'head' of a /non-empty/ list.
 --
 -- Attempting to read or write to the 'head' of an /empty/ list will result in an 'error'.
 --
@@ -43,7 +43,7 @@ _head _ [] = error "_head: empty list"
 _head f (a:as) = (:as) <$> f a
 {-# INLINE _head #-}
 
--- | A 'Lens' reading and writing to the 'tail' of a /non-empty/ list
+-- | A partial 'Lens' reading and writing to the 'tail' of a /non-empty/ list
 --
 -- Attempting to read or write to the 'tail' of an /empty/ list will result in an 'error'.
 --
@@ -54,7 +54,7 @@ _tail _ [] = error "_tail: empty list"
 _tail f (a:as) = (a:) <$> f as
 {-# INLINE _tail #-}
 
--- | A lens reading and writing to the last element of a /non-empty/ list
+-- | A partial 'Lens' reading and writing to the last element of a /non-empty/ list
 --
 -- Attempting to read or write to the last element of an /empty/ list will result in an 'error'.
 --
@@ -66,7 +66,7 @@ _last f [a]    = return <$> f a
 _last f (a:as) = (a:) <$> _last f as
 {-# INLINE _last #-}
 
--- | A lens reading and replacing all but the a last element of a /non-empty/ list
+-- | A partial 'Lens' reading and replacing all but the a last element of a /non-empty/ list
 --
 -- Attempting to read or write to all but the last element of an /empty/ list will result in an 'error'.
 --
@@ -76,21 +76,6 @@ _init :: Simple Lens [a] [a]
 _init _ [] = error "_init: empty list"
 _init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
 {-# INLINE _init #-}
-
--- | Obtain a version of the list with the supplied value interspersed.
---
--- >>> "abcde"^.interspersed ','
--- "a,b,c,d,e"
---
--- > xs^.interspersed a = intersperse a xs
-interspersed :: a -> Getter [a] [a]
-interspersed = to . intersperse
-{-# INLINE interspersed #-}
-
--- | Obtain a version of the list with the supplied value intercalated.
-intercalated :: [a] -> Getter [[a]] [a]
-intercalated = to . intercalate
-{-# INLINE intercalated #-}
 
 -- | A traversal for reading and writing to the head of a list
 --
