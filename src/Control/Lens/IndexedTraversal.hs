@@ -62,7 +62,6 @@ import Control.Monad.Trans.State.Lazy as Lazy
 import Data.Traversable
 import Data.IntMap as IntMap
 import Data.Map as Map
-import Data.Void
 
 -- $setup
 -- >>> import Control.Lens
@@ -215,13 +214,12 @@ value p = index $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
 
 -- | This is the trivial empty traversal.
 --
--- @'ignored' :: 'IndexedTraversal' 'Void' s s a b
+-- @'ignored' :: 'IndexedTraversal' i s s a b
 --
 -- @'ignored' ≡ 'const' 'pure'@
-ignored :: forall s a b k f. (Indexed Void k, Applicative f) => Overloaded k f s s a b
-ignored = index $ \ (_ :: Void -> a -> f b) s -> pure s :: f s
+ignored :: forall k f i s a b. (Indexed i k, Applicative f) => Overloaded k f s s a b
+ignored = index $ \ (_ :: i -> a -> f b) s -> pure s :: f s
 {-# INLINE ignored #-}
-
 
 -- | Allows 'IndexedTraversal' the value at the smallest index.
 class Ord k => TraverseMin k m | m -> k where
