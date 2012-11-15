@@ -30,7 +30,6 @@ module Data.List.Lens
 
 import Control.Applicative
 import Control.Lens
-import Data.List
 
 -- | A partial 'Lens' reading and writing to the 'head' of a /non-empty/ list.
 --
