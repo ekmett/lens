@@ -1,6 +1,7 @@
 3.4
 ---
 * Switched to a more liberal type for `ignored`
+* Removed some "`isplitting`" bad combinators from Control.Lens.IndexedFold
 
 3.3
 ---
