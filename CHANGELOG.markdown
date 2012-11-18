@@ -2,7 +2,7 @@
 ---
 * Switched to a more liberal type for `ignored`
 * Removed some "`isplitting`" bad combinators from Control.Lens.IndexedFold
-* Made `indexed` lazier and moved it to `Control.Lens.Plated`
+* Made `indexed` lazier
 * Removed some of the more redundant combinators from `Control.Lens.Plated`.
 
 3.3
