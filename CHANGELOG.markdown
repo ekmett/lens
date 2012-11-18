@@ -1,9 +1,10 @@
 3.4
 ---
-* Switched to a more liberal type for `ignored`
-* Removed some "`isplitting`" bad combinators from Control.Lens.IndexedFold
-* Made `indexed` lazier
+* Switched to a more liberal type for `ignored`.
+* Removed some "`isplitting`" bad combinators from `Control.Lens.IndexedFold`.
+* Made `indexed` lazier.
 * Removed some of the more redundant combinators from `Control.Lens.Plated`.
+* Moved `partsOf`, `holesOf`, and `elementOf` into `Control.Lens.Traversal`.
 
 3.3
 ---
