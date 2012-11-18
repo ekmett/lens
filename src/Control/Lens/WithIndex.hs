@@ -69,6 +69,7 @@ import Control.Lens.Indexed
 import Control.Lens.IndexedSetter
 import Control.Lens.IndexedFold
 import Control.Lens.IndexedTraversal
+import Control.Lens.Plated
 import Data.Foldable
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap

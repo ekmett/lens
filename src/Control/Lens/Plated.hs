@@ -2,6 +2,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 -------------------------------------------------------------------------------
 -- |
@@ -71,6 +73,7 @@ module Control.Lens.Plated
   -- * Indexing into a Traversal
   , element
   , elementOf
+  , indexed
 
   -- * Parts
   , parts
@@ -85,6 +88,8 @@ import Control.Applicative
 import Control.Monad.State
 import Control.Lens.Fold
 import Control.Lens.Getter
+import Control.Lens.Indexed
+import Control.Lens.IndexedLens
 import Control.Lens.Internal
 import Control.Lens.Setter
 import Control.Lens.Traversal
@@ -92,6 +97,7 @@ import Control.Lens.Type
 import Data.Tree
 import Data.Data
 import Data.Data.Lens
+import Data.Traversable (sequenceA)
 
 -- | A 'Plated' type is one where we know how to extract its immediate self-similar children.
 --
@@ -833,6 +839,21 @@ elementOf l k f s = case holesOf l s !! k of
 -- @'element' ≡ 'elementOf' 'traverse'@
 element :: Traversable t => Int -> Simple Lens (t a) a
 element = elementOf traverse
+
+-- | Transform an 'Traversal' into an 'Control.Lens.IndexedTraversal.IndexedTraversal', a 'Fold' into an 'Control.Lens.IndexedFold.IndexedFold', etc.
+--
+-- @
+-- 'indexed' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.IndexedTraversal.IndexedTraversal' 'Int' s t a b
+-- 'indexed' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexed' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
+-- 'indexed' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexed' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
+-- @
+indexed :: forall k f s t a b. (Applicative f, Indexed Int k) => LensLike (Bazaar a b) s t a b -> k (a -> f b) (s -> f t)
+indexed l = index $ \(iafb :: Int -> a -> f b) s ->
+  (\bs -> set (unsafePartsOf l) bs s) <$>
+  sequenceA (zipWith iafb [(0 :: Int)..] (s^.unsafePartsOf l))
+{-# INLINE indexed #-}
 
 -------------------------------------------------------------------------------
 -- Misc.
