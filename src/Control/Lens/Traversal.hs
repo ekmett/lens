@@ -68,8 +68,10 @@ module Control.Lens.Traversal
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Fold
+import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Unsafe
+import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
@@ -471,15 +473,26 @@ traverseRight f (Right a) = Right <$> f a
 {-# INLINE traverseRight #-}
 
 -- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
-taking :: Applicative f => Int -> SimpleLensLike (Indexing f) s a -> SimpleLensLike f s a
-taking n l f s = case runIndexing (l (\a -> Indexing $ \i -> IndexingResult (if i < n then f a else pure a) (i + 1)) s) 0 of
-  IndexingResult r _ -> r
+--
+-- >>> [("hello","world"),("!!!","!!!")]^.. taking 2 traverse
+-- ["hello","world"]
+taking :: Int -> SimpleLensLike (Bazaar a a) s a -> SimpleTraversal s a
+taking n l f s = case splitAt n $ view (unsafePartsOf l) s of
+  (as,xs) -> (\bs -> set (unsafePartsOf l) (bs ++ xs) s) <$> traverse f as
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
-dropping :: Applicative f => Int -> SimpleLensLike (Indexing f) s a -> SimpleLensLike f s a
-dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> IndexingResult (if i >= n then f a else pure a) (i + 1)) s) 0 of
-  IndexingResult r _ -> r
+--
+-- >>> ("hello","world") ^? dropping 1 both
+-- Just "world"
+--
+-- Dropping works on infinite traversals as well.
+--
+-- >>> [1..]^? dropping 1 traverse
+-- Just 2
+dropping :: Int -> SimpleLensLike (Bazaar a a) s a -> SimpleTraversal s a
+dropping n l f s = case splitAt n $ view (unsafePartsOf l) s of
+  (xs,as) -> (\bs -> set (unsafePartsOf l) (xs ++ bs) s) <$> traverse f as
 {-# INLINE dropping #-}
 
 ------------------------------------------------------------------------------

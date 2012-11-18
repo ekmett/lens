@@ -137,29 +137,6 @@ instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
   pure = FocusingErr . pure
   FocusingErr kf <*> FocusingErr ka = FocusingErr (kf <*> ka)
 
--- | The result of 'Indexing'
-data IndexingResult f a = IndexingResult (f a) {-# UNPACK #-} !Int
-
-instance Functor f => Functor (IndexingResult f) where
-  fmap f (IndexingResult fa n) = IndexingResult (fmap f fa) n
-
--- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
--- by 'Control.Lens.Indexed.indexed'
-newtype Indexing f a = Indexing { runIndexing :: Int -> IndexingResult f a }
-
-instance Functor f => Functor (Indexing f) where
-  fmap f (Indexing m) = Indexing $ \i -> fmap f (m i)
-
-instance Applicative f => Applicative (Indexing f) where
-  pure = Indexing . IndexingResult . pure
-  Indexing mf <*> Indexing ma = Indexing $ \i -> case mf i of
-    IndexingResult ff j -> case ma j of
-       IndexingResult fa k -> IndexingResult (ff <*> fa) k
-
-instance Gettable f => Gettable (Indexing f) where
-  coerce (Indexing m) = Indexing $ \i -> case m i of
-    IndexingResult ff j -> IndexingResult (coerce ff) j
-
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
 newtype Traversed f = Traversed { getTraversed :: f () }
 

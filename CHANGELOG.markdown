@@ -1,8 +1,9 @@
 3.4
 ---
 * Switched to a more liberal type for `ignored`
-* Removed some "`isplitting`" bad combinators from Control.Lens.IndexedFold
-* Made `indexed` lazier
+* Removed some "`isplitting`" bad combinators from `Control.Lens.IndexedFold`.
+* Made `indexed`, `taking` and `dropping` lazier.
+* Removed `Indexing` and `IndexingResult` from `Control.Lens.Internal`.
 * Removed some of the more redundant combinators from `Control.Lens.Plated`.
 
 3.3
