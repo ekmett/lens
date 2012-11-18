@@ -82,7 +82,7 @@ import Control.Monad ((>=>))
 import Control.Lens.Indexed
 import Control.Lens.IndexedLens
 import Control.Lens.Internal
-import Control.Lens.Plated
+import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.List.NonEmpty as NonEmpty
 import Prelude hiding ((.),id)

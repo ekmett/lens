@@ -32,12 +32,20 @@ module Control.Lens.Traversal
   -- * Lenses
     Traversal
 
+--  -- ** Lensing Traversals
+--  --
+
   -- * Traversing and Lensing
   , traverseOf, forOf, sequenceAOf
   , mapMOf, forMOf, sequenceOf
   , transposeOf
   , mapAccumLOf, mapAccumROf
   , scanr1Of, scanl1Of
+
+  -- * Parts and Holes
+  , partsOf, unsafePartsOf
+  , holesOf
+  , element, elementOf
 
   -- * Common Traversals
   , Traversable(traverse)
@@ -296,6 +304,107 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
   step Nothing a  = (Just a, a)
   step (Just s) a = (Just r, r) where r = f s a
 {-# INLINE scanl1Of #-}
+
+-------------------------------------------------------------------------------
+-- Parts and Holes
+-------------------------------------------------------------------------------
+
+-- | 'partsOf' turns a 'Traversal' into a lens that resembles an early version of the @uniplate@ (or @biplate@) type.
+--
+-- /Note:/ You should really try to maintain the invariant of the number of children in the list.
+--
+-- Any extras will be lost. If you do not supply enough, then the remainder will come from the original structure.
+--
+-- So technically, this is only a lens if you do not change the number of results it returns.
+--
+-- @
+-- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' s a       -> 'Simple' 'Lens' s [a]
+-- 'partsOf' :: 'Simple' 'Lens' s a      -> 'Simple' 'Lens' s [a]
+-- 'partsOf' :: 'Simple' 'Traversal' s a -> 'Simple' 'Lens' s [a]
+-- @
+partsOf :: LensLike (Bazaar a a) s t a a -> Lens s t [a] [a]
+partsOf l f s = outs b <$> f (ins b) where b = l sell s
+{-# INLINE partsOf #-}
+
+-- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
+--
+-- If you do not need the types of @s@ and @t@ to be different, it is recommended that
+-- you use 'partsOf'
+--
+-- It is generally safer to traverse with the 'Bazaar' rather than use this
+-- combinator. However, it is sometimes convenient.
+--
+-- This is unsafe because if you don't supply at least as many @b@'s as you were
+-- given @a@'s, then the reconstruction of @t@ /will/ result in an error!
+--
+-- @
+-- 'unsafePartsOf' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Lens' s t [a] [b]
+-- 'unsafePartsOf' :: 'Lens' s t a b      -> 'Lens' s t [a] [b]
+-- 'unsafePartsOf' :: 'Traversal' s t a b -> 'Lens' s t [a] [b]
+-- @
+unsafePartsOf :: LensLike (Bazaar a b) s t a b -> Lens s t [a] [b]
+unsafePartsOf l f s = unsafeOuts b <$> f (ins b) where b = l sell s
+{-# INLINE unsafePartsOf #-}
+
+-- | The one-level version of 'contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
+--
+-- Given a context you can use 'pos' to see the values, 'peek' at what the structure would be like with an edited result, or simply 'extract' the original structure.
+--
+-- @
+-- propChildren l x = 'childrenOf' l x '==' 'map' 'pos' ('holesOf' l x)
+-- propId l x = 'all' ('==' x) [extract w | w <- 'holesOf' l x]
+-- @
+--
+-- @
+-- 'holesOf' :: 'Simple' 'Iso' s a       -> s -> ['Context' a a s]
+-- 'holesOf' :: 'Simple' 'Lens' s a      -> s -> ['Context' a a s]
+-- 'holesOf' :: 'Simple' 'Traversal' s a -> s -> ['Context' a a s]
+-- @
+holesOf :: LensLike (Bazaar a a) s t a a -> s -> [Context a a t]
+holesOf l a = f (ins b) (outs b) where
+  b = l sell a
+  f []     _ = []
+  f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
+{-# INLINE holesOf #-}
+
+
+-- | A 'Lens' to 'Control.Lens.Getter.view'/'Control.Lens.Setter.set' the nth element 'elementOf' a 'Traversal', 'Lens' or 'Control.Lens.Iso.Iso'.
+--
+-- Attempts to access beyond the range of the 'Traversal' will cause an error.
+--
+-- >>> [[1],[3,4]]^.elementOf (traverse.traverse) 1
+-- 3
+elementOf :: Functor f => LensLike (Bazaar a a) s t a a -> Int -> LensLike f s t a a
+elementOf l k f s = case holesOf l s !! k of
+  Context g a -> g <$> f a
+
+-- | Access the /nth/ element of a 'Traversable' container.
+--
+-- Attempts to access beyond the range of the 'Traversal' will cause an error.
+--
+-- @'element' ≡ 'elementOf' 'traverse'@
+element :: Traversable t => Int -> Simple Lens (t a) a
+element = elementOf traverse
+
+
+-- Internal functions used in the implementation of partsOf and holesOf.
+ins :: Bazaar a b t -> [a]
+ins = toListOf bazaar
+{-# INLINE ins #-}
+
+outs :: Bazaar a a t -> [a] -> t
+outs = evalState . bazaar (\oldVal -> State.state (unconsWithDefault oldVal))
+{-# INLINE outs #-}
+
+unsafeOuts :: Bazaar a b t -> [b] -> t
+unsafeOuts = evalState . bazaar (\_ -> State.state (unconsWithDefault fakeVal))
+  where fakeVal = error "unsafePartsOf: not enough elements were supplied"
+{-# INLINE unsafeOuts #-}
+
+unconsWithDefault :: a -> [a] -> (a,[a])
+unconsWithDefault d []     = (d,[])
+unconsWithDefault _ (x:xs) = (x,xs)
+{-# INLINE unconsWithDefault #-}
 
 ------------------------------------------------------------------------------
 -- Traversals

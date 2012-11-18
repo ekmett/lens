@@ -53,16 +53,13 @@ module Control.Lens.IndexedFold
 
 import Control.Applicative
 import Control.Applicative.Backwards
-import Data.Traversable (traverse)
 import Control.Lens.Indexed
 import Control.Lens.IndexedGetter
 import Control.Lens.Internal
 import Control.Lens.Unsafe
 import Control.Lens.Type
-import Control.Lens.Fold (toListOf)
 import Control.Monad
 import Data.Monoid
-import Data.List.Split
 
 ------------------------------------------------------------------------------
 -- Indexed Folds

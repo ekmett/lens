@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Indexed
@@ -23,9 +24,16 @@ module Control.Lens.Indexed
   , (<.>), (<.), (.>)
   , icompose
   , reindex
+  , indexed
   ) where
 
+import Control.Applicative
 import Control.Lens.Internal
+import Control.Lens.Traversal
+import Control.Lens.Type
+import Control.Lens.Getter
+import Control.Lens.Setter
+import Data.Traversable (sequenceA)
 
 infixr 9 <.>, <., .>
 
@@ -84,3 +92,19 @@ f <.> g = icompose (,) f g
 icompose :: Indexed k r => (i -> j -> k) -> Index i b c -> Index j a b -> r a c
 icompose ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ \j -> ka (ijk i j)
 {-# INLINE icompose #-}
+
+-- | Transform an 'Traversal' into an 'Control.Lens.IndexedTraversal.IndexedTraversal', a 'Fold' into an 'Control.Lens.IndexedFold.IndexedFold', etc.
+--
+-- @
+-- 'indexed' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.IndexedTraversal.IndexedTraversal' 'Int' s t a b
+-- 'indexed' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexed' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
+-- 'indexed' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexed' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
+-- @
+indexed :: forall k f s t a b. (Applicative f, Indexed Int k) => LensLike (Bazaar a b) s t a b -> k (a -> f b) (s -> f t)
+indexed l = index $ \(iafb :: Int -> a -> f b) s ->
+  (\bs -> set (unsafePartsOf l) bs s) <$>
+  sequenceA (zipWith iafb [(0 :: Int)..] (s^.unsafePartsOf l))
+{-# INLINE indexed #-}
+
