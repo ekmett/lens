@@ -474,8 +474,11 @@ traverseRight f (Right a) = Right <$> f a
 
 -- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
 --
--- >>> [("hello","world"),("!!!","!!!")]^.. taking 2 traverse
+-- >>> [("hello","world"),("!!!","!!!")]^.. taking 2 (traverse.both)
 -- ["hello","world"]
+--
+-- >>> [1..]^.. taking 3 traverse
+-- [1,2,3]
 taking :: Int -> SimpleLensLike (Bazaar a a) s a -> SimpleTraversal s a
 taking n l f s = case splitAt n $ view (unsafePartsOf l) s of
   (as,xs) -> (\bs -> set (unsafePartsOf l) (bs ++ xs) s) <$> traverse f as
