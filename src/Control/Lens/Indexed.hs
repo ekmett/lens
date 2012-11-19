@@ -27,13 +27,7 @@ module Control.Lens.Indexed
   , indexed
   ) where
 
-import Control.Applicative
 import Control.Lens.Internal
-import Control.Lens.Traversal
-import Control.Lens.Type
-import Control.Lens.Getter
-import Control.Lens.Setter
-import Data.Traversable (sequenceA)
 
 infixr 9 <.>, <., .>
 
@@ -102,9 +96,8 @@ icompose ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ \j -> ka
 -- 'indexed' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
 -- 'indexed' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
 -- @
-indexed :: forall k f s t a b. (Applicative f, Indexed Int k) => LensLike (Bazaar a b) s t a b -> k (a -> f b) (s -> f t)
-indexed l = index $ \(iafb :: Int -> a -> f b) s ->
-  (\bs -> set (unsafePartsOf l) bs s) <$>
-  sequenceA (zipWith iafb [(0 :: Int)..] (s^.unsafePartsOf l))
+indexed :: Indexed Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k (a -> f b) (s -> f t)
+indexed l = index $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> IndexingResult (iafb i a) (i + 1))) s) 0 of
+  IndexingResult r _ -> r
 {-# INLINE indexed #-}
 

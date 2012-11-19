@@ -482,6 +482,7 @@ traverseRight f (Right a) = Right <$> f a
 taking :: Int -> SimpleLensLike (Bazaar a a) s a -> SimpleTraversal s a
 taking n l f s = case splitAt n $ view (unsafePartsOf l) s of
   (as,xs) -> (\bs -> set (unsafePartsOf l) (bs ++ xs) s) <$> traverse f as
+
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
@@ -491,11 +492,11 @@ taking n l f s = case splitAt n $ view (unsafePartsOf l) s of
 --
 -- Dropping works on infinite traversals as well.
 --
--- >>> [1..]^? dropping 1 traverse
+-- >>> [1..]^? dropping 1 folded
 -- Just 2
-dropping :: Int -> SimpleLensLike (Bazaar a a) s a -> SimpleTraversal s a
-dropping n l f s = case splitAt n $ view (unsafePartsOf l) s of
-  (xs,as) -> (\bs -> set (unsafePartsOf l) (xs ++ bs) s) <$> traverse f as
+dropping :: Applicative f => Int -> SimpleLensLike (Indexing f) s a -> SimpleLensLike f s a
+dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> IndexingResult (if i >= n then f a else pure a) (i + 1)) s) 0 of
+  IndexingResult r _ -> r
 {-# INLINE dropping #-}
 
 ------------------------------------------------------------------------------
