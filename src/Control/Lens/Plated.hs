@@ -57,7 +57,7 @@ module Control.Lens.Plated
   , transform, transformOf, transformOn, transformOnOf
   , transformM, transformMOf, transformMOn, transformMOnOf
   , contexts, contextsOf, contextsOn, contextsOnOf
-  , holes, holesOf, holesOn, holesOnOf
+  , holes, holesOn, holesOnOf
   , para, paraOf
 
   -- * Compos
