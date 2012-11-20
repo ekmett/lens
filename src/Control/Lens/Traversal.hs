@@ -479,10 +479,11 @@ traverseRight f (Right a) = Right <$> f a
 --
 -- >>> [1..]^.. taking 3 traverse
 -- [1,2,3]
+--
+-- >>> over (taking 5 traverse) succ "hello world"
+-- "ifmmp world"
 taking :: Int -> SimpleLensLike (Bazaar a a) s a -> SimpleTraversal s a
-taking n l f s = case splitAt n $ view (unsafePartsOf l) s of
-  (as,xs) -> (\bs -> set (unsafePartsOf l) (bs ++ xs) s) <$> traverse f as
-
+taking n l f s = (\bs -> set (partsOf l) bs s) <$> traverse f (take n $ view (partsOf l) s)
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
@@ -495,8 +496,8 @@ taking n l f s = case splitAt n $ view (unsafePartsOf l) s of
 -- >>> [1..]^? dropping 1 folded
 -- Just 2
 dropping :: Applicative f => Int -> SimpleLensLike (Indexing f) s a -> SimpleLensLike f s a
-dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> IndexingResult (if i >= n then f a else pure a) (i + 1)) s) 0 of
-  IndexingResult r _ -> r
+dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> (if i >= n then f a else pure a, i + 1)) s) 0 of
+  (r, _) -> r
 {-# INLINE dropping #-}
 
 ------------------------------------------------------------------------------
