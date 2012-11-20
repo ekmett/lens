@@ -130,6 +130,7 @@ folded f = coerce . getFolding . foldMap (folding# f)
 -- @'repeat' ≡ 'toListOf' 'repeated'@
 repeated :: Fold a a
 repeated f a = as where as = f a *> as
+{-# INLINE repeated #-}
 
 -- | A fold that replicates its input @n@ times.
 --
