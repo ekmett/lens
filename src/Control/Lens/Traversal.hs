@@ -495,8 +495,8 @@ taking n l f s = case splitAt n $ view (unsafePartsOf l) s of
 -- >>> [1..]^? dropping 1 folded
 -- Just 2
 dropping :: Applicative f => Int -> SimpleLensLike (Indexing f) s a -> SimpleLensLike f s a
-dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> IndexingResult (if i >= n then f a else pure a) (i + 1)) s) 0 of
-  IndexingResult r _ -> r
+dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> (if i >= n then f a else pure a, i + 1)) s) 0 of
+  (r, _) -> r
 {-# INLINE dropping #-}
 
 ------------------------------------------------------------------------------
