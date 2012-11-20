@@ -214,7 +214,7 @@ value p = index $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
 
 -- | This is the trivial empty traversal.
 --
--- @'ignored' :: 'IndexedTraversal' i s s a b
+-- @'ignored' :: 'IndexedTraversal' i s s a b@
 --
 -- @'ignored' ≡ 'const' 'pure'@
 ignored :: forall k f i s a b. (Indexed i k, Applicative f) => Overloaded k f s s a b
