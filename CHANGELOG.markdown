@@ -2,12 +2,13 @@
 ---
 * Switched to a more liberal type for `ignored`
 * Removed some "`isplitting`" bad combinators from `Control.Lens.IndexedFold`.
-* Made `indexed`, `taking` and `dropping` lazier.
+* Made `indexed`, `taking` and `dropping` lazier, and capable of dealing with infinite lists, but at the cost that `taking` can no longer accept a `Fold`.
 * Removed `Indexing` and `IndexingResult` from `Control.Lens.Internal`.
 * Removed some of the more redundant combinators from `Control.Lens.Plated`.
 * Moved `partsOf`, `holesOf`, and `elementOf` into `Control.Lens.Traversal`.
 * Renamed `query` to `peruse` and `queries` to `peruses`. These are much less contentious names,
   both contain `use` in their name for analogy to `use` and `uses` and the word is about reading.
+* Renamed `(%)` to `(&)` and `(^%)` to `(^&)`. This avoids the conflict with `Data.Ratio`, which was our highest priority conflict with a third party library.
 
 3.3
 ---
