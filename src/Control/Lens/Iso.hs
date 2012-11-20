@@ -82,7 +82,7 @@ type SimpleIso s a = Iso s s a a
 -- 'view' ('isos' sa as tb bt) ≡ sa
 -- 'view' ('from' ('isos' sa as tb bt)) ≡ as
 -- 'set' ('isos' sa as tb bt) ab ≡ bt '.' ab '.' sa
--- 'set' ('from' ('isos' ac ca bd db')) ab ≡ bd '.' ab '.' ca
+-- 'set' ('from' ('isos' ac ca bd db)) ab ≡ bd '.' ab '.' ca
 -- @
 --
 -- @isos :: (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> 'Iso' s t a b@
@@ -98,8 +98,8 @@ isos sa as tb bt = isomorphic
 -- @
 -- 'view' ('iso' f g) ≡ f
 -- 'view' ('from' ('iso' f g)) ≡ g
--- 'set' ('isos' f g) h ≡ g '.' h '.' f
--- 'set' ('from' ('iso' f g')) h ≡ f '.' h '.' g
+-- 'set' ('iso' f g) h ≡ g '.' h '.' f
+-- 'set' ('from' ('iso' f g)) h ≡ f '.' h '.' g
 -- @
 --
 -- @iso :: (s -> a) -> (a -> s) -> 'Control.Lens.Type.Simple' 'Iso' s a@
