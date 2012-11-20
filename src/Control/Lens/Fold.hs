@@ -147,6 +147,7 @@ replicated n0 f a = go n0 where
 -- [1,2,3,1,2,3]
 cycled :: (Applicative f, Gettable f) => LensLike f s t a b -> LensLike f s t a b
 cycled l f a = as where as = l f a *> as
+{-# INLINE cycled #-}
 
 -- | Build a fold that unfolds its values from a seed.
 --
