@@ -130,6 +130,7 @@ folded f = coerce . getFolding . foldMap (folding# f)
 -- @'repeat' ≡ 'toListOf' 'repeated'@
 repeated :: Fold a a
 repeated f a = as where as = f a *> as
+{-# INLINE repeated #-}
 
 -- | A fold that replicates its input @n@ times.
 --
@@ -147,6 +148,7 @@ replicated n0 f a = go n0 where
 -- [1,2,3,1,2,3]
 cycled :: (Applicative f, Gettable f) => LensLike f s t a b -> LensLike f s t a b
 cycled l f a = as where as = l f a *> as
+{-# INLINE cycled #-}
 
 -- | Build a fold that unfolds its values from a seed.
 --
