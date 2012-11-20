@@ -194,13 +194,10 @@ simple = isos id id id id
 -- >>> Map.fromList [] ^. at "hello" . non 0
 -- 0
 
-non :: a -> Simple Iso (Maybe a) a
+non :: Eq a => a -> Simple Iso (Maybe a) a
 non a = iso (fromMaybe a) go where
   go b | a == b    = Nothing
        | otherwise = Just b
-
-
-non v f s = go <$> f (fromMaybe v s) where go v' = if v' == v then Nothing else Just v'
 
 -----------------------------------------------------------------------------
 -- Reifying Isomorphisms

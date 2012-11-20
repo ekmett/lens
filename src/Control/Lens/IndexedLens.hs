@@ -191,7 +191,7 @@ instance (Eq k, Hashable k) => Contains k (HashSet k) where
 -- | This lens can be used to change the result of a function but only where
 -- the arguments match the key given.
 --
--- >>> let f = (+1) % resultAt 3 .~ 8 in (f 2, f 3)
+-- >>> let f = (+1) & resultAt 3 .~ 8 in (f 2, f 3)
 -- (3,8)
 resultAt :: Eq e => e -> SimpleIndexedLens e (e -> a) a
 resultAt e = index $ \ g f -> (\a' e' -> if e == e' then a' else f e') <$> g e (f e)

@@ -85,7 +85,7 @@ type Interpreter = RWS Input Output Memory ()
 
 -- | Initial memory configuration
 initial :: Memory
-initial = zipper (replicate 30000 0) % fromWithin traverse
+initial = zipper (replicate 30000 0) & fromWithin traverse
 
 interpret :: Input -> Program -> Output
 interpret i p = snd $ execRWS (run p) i initial
