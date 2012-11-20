@@ -16,9 +16,12 @@ module Control.Lens.Iso
     Iso
   , iso
   , isos
+  -- * Working with isomorphisms
   , ala
   , auf
   , under
+  , mapping
+  , review
   -- * Primitive isomorphisms
   , from
   , via
@@ -26,7 +29,6 @@ module Control.Lens.Iso
   , Isomorphic(..)
   -- ** Common Isomorphisms
   , _const
-  , _fmap
   , identity
   , simple
   -- * Storing Isomorphisms
@@ -129,6 +131,13 @@ under :: Isomorphism (a -> Mutator b) (s -> Mutator t) -> (s -> t) -> a -> b
 under = over . from
 {-# INLINE under #-}
 
+-- | This can be used to turn an 'Iso' around and 'view' the other way.
+--
+-- @'review' = 'view' '.' 'from'@
+review :: Overloaded Isomorphism (Accessor s) s t a b -> a -> s
+review (Isomorphism _ l) = view l
+{-# INLINE review #-}
+
 -----------------------------------------------------------------------------
 -- Isomorphisms
 -----------------------------------------------------------------------------
@@ -154,9 +163,10 @@ _const = isos Const getConst Const getConst
 {-# INLINE _const #-}
 
 -- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
-_fmap :: (Functor f) => SimpleIso s a -> SimpleIso (f s) (f a)
-_fmap f = iso (fmap (view f)) (fmap (view (from f)))
-{-# INLINE _fmap #-}
+mapping :: Functor f => SimpleIso s a -> SimpleIso (f s) (f a)
+mapping l = iso (view l <$>) (view (from l) <$>)
+{-# INLINE mapping #-}
+
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',
 -- 'Control.Lens.Traversal.Traversal' or 'Iso' has a constraint on an unused
