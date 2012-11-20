@@ -26,6 +26,7 @@ module Control.Lens.Iso
   , Isomorphic(..)
   -- ** Common Isomorphisms
   , _const
+  , _fmap
   , identity
   , simple
   -- * Storing Isomorphisms
@@ -152,6 +153,10 @@ _const :: Iso a b (Const a c) (Const b d)
 _const = isos Const getConst Const getConst
 {-# INLINE _const #-}
 
+-- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
+_fmap :: (Functor f) => SimpleIso s a -> SimpleIso (f s) (f a)
+_fmap f = iso (fmap (view f)) (fmap (view (from f)))
+{-# INLINE _fmap #-}
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',
 -- 'Control.Lens.Traversal.Traversal' or 'Iso' has a constraint on an unused
