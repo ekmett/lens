@@ -193,6 +193,18 @@ simple = isomorphic id id
 --
 -- >>> Map.fromList [] ^. at "hello" . non 0
 -- 0
+--
+-- This combinator is particularly useful when working with nested maps, when you want to
+-- create the nested map when it is missing:
+--
+-- >>> Map.empty & at "hello" . non Map.empty . at "world" ?~ "!!!"
+-- fromList [("hello",fromList [("world","!!!")]]
+--
+-- and have deleting the last entry from the nested map
+-- to mean we should delete its entry from the surrounding one:
+--
+-- >>> fromList [("hello",fromList [("world","!!!")]] & at "hello" . non Map.empty . at "world" .~ Nothing
+-- fromList []
 
 non :: Eq a => a -> Simple Iso (Maybe a) a
 non a = iso (fromMaybe a) go where

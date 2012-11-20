@@ -229,6 +229,8 @@ instance (a ~ b) => ComonadStore a (Context a b) where
   seeks f (Context g a) = Context g (f a)
   experiment f (Context g a) = g <$> f a
 
+
+
 -- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
 --
 -- a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed 'FunList'.
