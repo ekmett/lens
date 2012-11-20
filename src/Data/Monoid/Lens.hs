@@ -18,12 +18,14 @@ import Data.Monoid
 import Control.Lens
 import Control.Monad.State.Class as State
 
+-- $setup
+-- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
+
 infixr 4 <>~, <<>~
 infix 4 <>=, <<>=
 
 -- | Modify the target of a monoidally valued by 'mappend'ing another value.
 --
--- >>> :m + Control.Lens
 -- >>> both <>~ "!!!" $ ("hello","world")
 -- ("hello!!!","world!!!")
 --
@@ -78,11 +80,9 @@ _endo = isos Endo appEndo Endo appEndo
 
 -- | Isomorphism for 'All'
 --
--- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
 -- >>> ala _all foldMap [True,True]
 -- True
 --
--- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
 -- >>> ala _all foldMap [True,False]
 -- False
 _all :: Simple Iso Bool All
@@ -91,11 +91,9 @@ _all = iso All getAll
 
 -- | Isomorphism for 'Any'
 --
--- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
 -- >>> ala _any foldMap [False,False]
 -- False
 --
--- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
 -- >>> ala _any foldMap [True,False]
 -- True
 _any :: Simple Iso Bool Any
@@ -104,7 +102,6 @@ _any = iso Any getAny
 
 -- | Isomorphism for 'Sum'
 --
--- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
 -- >>> ala _sum foldMap [1,2,3,4]
 -- 10
 _sum :: Iso a b (Sum a) (Sum b)
@@ -113,7 +110,6 @@ _sum = isos Sum getSum Sum getSum
 
 -- | Isomorphism for 'Product'
 --
--- >>> :m + Control.Lens Data.Monoid.Lens Data.Foldable
 -- >>> ala _product foldMap [1,2,3,4]
 -- 24
 _product :: Iso a b (Product a) (Product b)

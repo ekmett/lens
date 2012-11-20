@@ -31,6 +31,7 @@ module Control.Lens.Iso
   , _const
   , identity
   , simple
+  , non
   -- * Storing Isomorphisms
   , ReifiedIso(..)
   -- * Simplicity
@@ -46,10 +47,12 @@ import Control.Lens.Isomorphic
 import Control.Lens.Setter
 import Control.Lens.Type
 import Data.Functor.Identity
+import Data.Maybe (fromMaybe)
 import Prelude hiding ((.),id)
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Data.Map as Map
 
 -----------------------------------------------------------------------------
 -- Isomorphisms families as Lenses
@@ -167,13 +170,37 @@ mapping :: Functor f => SimpleIso s a -> SimpleIso (f s) (f a)
 mapping l = iso (view l <$>) (view (from l) <$>)
 {-# INLINE mapping #-}
 
-
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',
 -- 'Control.Lens.Traversal.Traversal' or 'Iso' has a constraint on an unused
 -- argument to force that argument to agree with the
 -- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.
 simple :: Iso a b a b
 simple = isos id id id id
+
+-- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @non v@ is an isomorphism from 
+-- @Maybe a'@ to @a@.
+--
+-- This is practically quite useful when you want to have a map where all the entries should have non-zero values.
+--
+-- >>> Map.fromList [("hello",1)] & at "hello" . non 0 +~ 2
+-- fromList [("hello",3)]
+--
+-- >>> Map.fromList [("hello",1)] & at "hello" . non 0 -~ 1
+-- fromList []
+--
+-- >>> Map.fromList [("hello",1)] ^. at "hello" . non 0
+-- 1
+--
+-- >>> Map.fromList [] ^. at "hello" . non 0
+-- 0
+
+non :: a -> Simple Iso (Maybe a) a
+non a = iso (fromMaybe a) go where
+  go b | a == b    = Nothing
+       | otherwise = Just b
+
+
+non v f s = go <$> f (fromMaybe v s) where go v' = if v' == v then Nothing else Just v'
 
 -----------------------------------------------------------------------------
 -- Reifying Isomorphisms

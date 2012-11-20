@@ -52,7 +52,7 @@ module Control.Lens.Getter
   , to
   -- * Combinators for Getters and Folds
   , (^.), (^$)
-  , (%), (^%)
+  , (&), (^&)
   , view
   , views
   , use
@@ -74,8 +74,8 @@ import Control.Monad.State.Class        as State
 -- $setup
 -- >>> import Control.Lens
 
-infixl 8 ^., ^%
-infixl 1 %
+infixl 8 ^., ^&
+infixl 1 &
 infixr 0 ^$
 
 -------------------------------------------------------------------------------
@@ -88,21 +88,21 @@ infixr 0 ^$
 -- for inference. Here it is supplied for notational convenience and given a precedence that allows it
 -- to be nested inside uses of ('$').
 --
--- >>> "hello" % length % succ
+-- >>> "hello" & length & succ
 -- 6
-(%) :: a -> (a -> b) -> b
-a % f = f a
-{-# INLINE (%) #-}
+(&) :: a -> (a -> b) -> b
+a & f = f a
+{-# INLINE (&) #-}
 
--- | A version of ('Control.Lens.Combinators.%') with much tighter precedence that can be interleaved with ('^.')
+-- | A version of ('&') with much tighter precedence that can be interleaved with ('^.')
 --
--- >>> "hello"^%length
+-- >>> "hello" ^& length
 -- 5
 -- >>> import Data.List.Lens
--- >>> ("hello","world")^._1^%reverse^._head
+-- >>> ("hello","world")^._1^&reverse^._head
 -- 'o'
-(^%) :: a -> (a -> b) -> b
-a ^% f = f a
+(^&) :: a -> (a -> b) -> b
+a ^& f = f a
 
 -------------------------------------------------------------------------------
 -- Getters
