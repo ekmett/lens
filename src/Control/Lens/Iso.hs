@@ -174,8 +174,8 @@ mapping l = iso (view l <$>) (view (from l) <$>)
 -- 'Control.Lens.Traversal.Traversal' or 'Iso' has a constraint on an unused
 -- argument to force that argument to agree with the
 -- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.
-simple :: Iso a b a b
-simple = isos id id id id
+simple :: Simple Iso a a
+simple = isomorphic id id
 
 -- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @non v@ is an isomorphism from 
 -- @Maybe a'@ to @a@.

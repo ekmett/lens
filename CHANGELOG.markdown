@@ -9,6 +9,7 @@
 * Renamed `query` to `peruse` and `queries` to `peruses`. These are much less contentious names,
   both contain `use` in their name for analogy to `use` and `uses` and the word is about reading.
 * Renamed `(%)` to `(&)` and `(^%)` to `(^&)`. This avoids the conflict with `Data.Ratio`, which was our highest priority conflict with a third party library.
+* Simpler `simple`.
 
 3.3
 ---
