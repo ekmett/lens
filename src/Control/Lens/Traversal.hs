@@ -376,7 +376,7 @@ holesOf l a = f (ins b) (outs b) where
 -- Attempts to access beyond the range of the 'Traversal' will cause an error. This also works transparently
 -- with Folds, returning a getter.
 --
--- >>> [[1],[3,4]] % elementOf (traverse.traverse) 1 .~ 5
+-- >>> [[1],[3,4]] & elementOf (traverse.traverse) 1 .~ 5
 -- [[1],[5,4]]
 --
 -- >>> [[1],[3,4]]^.elementOf (folded.folded) 1
