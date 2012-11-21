@@ -196,8 +196,10 @@ simple :: Simple Iso a a
 simple = isomorphic id id
 {-# INLINE simple #-}
 
--- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @non v@ is an isomorphism from 
+-- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @non v@ is an isomorphism from
 -- @Maybe a'@ to @a@.
+--
+-- Keep in mind this is only a real isomorphism if you treat the domain as being @'Maybe' (a sans v)@
 --
 -- This is practically quite useful when you want to have a map where all the entries should have non-zero values.
 --
@@ -213,14 +215,15 @@ simple = isomorphic id id
 -- >>> Map.fromList [] ^. at "hello" . non 0
 -- 0
 --
--- This combinator is particularly useful when working with nested maps, when you want to
--- create the nested map when it is missing:
+-- This combinator is also particularly useful when working with nested maps.
+--
+-- /e.g./ When you want to create the nested map when it is missing:
 --
 -- >>> Map.empty & at "hello" . non Map.empty . at "world" ?~ "!!!"
 -- fromList [("hello",fromList [("world","!!!")])]
 --
--- and have deleting the last entry from the nested map
--- to mean we should delete its entry from the surrounding one:
+-- and when have deleting the last entry from the nested map mean that we 
+-- should delete its entry from the surrounding one:
 --
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
 -- fromList []
