@@ -217,12 +217,12 @@ simple = isomorphic id id
 -- create the nested map when it is missing:
 --
 -- >>> Map.empty & at "hello" . non Map.empty . at "world" ?~ "!!!"
--- fromList [("hello",fromList [("world","!!!")]]
+-- fromList [("hello",fromList [("world","!!!")])]
 --
 -- and have deleting the last entry from the nested map
 -- to mean we should delete its entry from the surrounding one:
 --
--- >>> fromList [("hello",fromList [("world","!!!")]] & at "hello" . non Map.empty . at "world" .~ Nothing
+-- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
 -- fromList []
 
 non :: Eq a => a -> Simple Iso (Maybe a) a
