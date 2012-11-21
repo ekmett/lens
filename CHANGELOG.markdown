@@ -1,16 +1,16 @@
 3.4
 ---
+* Renamed `(%)` to `(&)` and `(^%)` to `(^&)`. This avoids the conflict with `Data.Ratio`, which was our highest priority conflict with a third party library.
 * Switched to a more liberal type for `ignored`
 * Removed some "`isplitting`" bad combinators from `Control.Lens.IndexedFold`.
-* Made `indexed`, `taking` and `dropping` lazier, and capable of dealing with infinite lists, but at the cost that `taking` can no longer accept a `Fold`.
+* Made `indexed`, `taking`, and `dropping` and `elementOf` lazier, and capable of dealing with infinite lists, but at the cost that `taking` can no longer accept a `Fold`.
 * Removed `Indexing` and `IndexingResult` from `Control.Lens.Internal`.
-* Removed some of the more redundant combinators from `Control.Lens.Plated`.
+* Removed some of the more redundant combinators from `Control.Lens.Plated`, which already had existing aliases in the rest of the traversal API.
 * Moved `partsOf`, `holesOf`, and `elementOf` into `Control.Lens.Traversal`.
 * Renamed `query` to `peruse` and `queries` to `peruses`. These are much less contentious names,
   both contain `use` in their name for analogy to `use` and `uses` and the word is about reading.
-* Renamed `(%)` to `(&)` and `(^%)` to `(^&)`. This avoids the conflict with `Data.Ratio`, which was our highest priority conflict with a third party library.
 * Simpler `simple`.
-* Added `enum` to `Control.Lens.Iso`.
+* Added `enum` and `non` to `Control.Lens.Iso`.
 
 3.3
 ---
