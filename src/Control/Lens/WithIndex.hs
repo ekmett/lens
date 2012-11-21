@@ -11,6 +11,10 @@
 {-# LANGUAGE DefaultSignatures #-}
 #define MPTC_DEFAULTS
 #endif
+
+#ifndef MIN_VERSION_containers
+#define MIN_VERSION_containers(x,y,z) 1
+#endif
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.WithIndex
@@ -441,7 +445,11 @@ instance FunctorWithIndex Int IntMap where
 instance FoldableWithIndex Int IntMap where
   ifoldMap = ifoldMapOf itraversed
 instance TraversableWithIndex Int IntMap where
+#if MIN_VERSION_containers(0,5,0)
+  itraverse = IntMap.traverseWithKey
+#else
   itraverse f = sequenceA . IntMap.mapWithKey f
+#endif
   {-# INLINE itraverse #-}
 
 instance Ord k => FunctorWithIndex k (Map k) where
@@ -449,7 +457,11 @@ instance Ord k => FunctorWithIndex k (Map k) where
 instance Ord k => FoldableWithIndex k (Map k) where
   ifoldMap = ifoldMapOf itraversed
 instance Ord k => TraversableWithIndex k (Map k) where
+#if MIN_VERSION_containers(0,5,0)
+  itraverse = Map.traverseWithKey
+#else
   itraverse f = sequenceA . Map.mapWithKey f
+#endif
   {-# INLINE itraverse #-}
 
 instance (Eq k, Hashable k) => FunctorWithIndex k (HashMap k) where
