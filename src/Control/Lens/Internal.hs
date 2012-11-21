@@ -552,3 +552,22 @@ instance ComonadStore Int Level where
     EQ -> a
     GT -> rs Prelude.!! (n - m)
 
+data ElementOfResult f a = Searching Int a (Maybe (f a))
+
+instance Functor f => Functor (ElementOfResult f) where
+  fmap f (Searching i a as) = Searching i (f a) (fmap f <$> as)
+
+newtype ElementOf f a = ElementOf { getElementOf :: Int -> ElementOfResult f a }
+
+instance Functor f => Functor (ElementOf f) where
+  fmap f (ElementOf m) = ElementOf (fmap f . m)
+
+instance Functor f => Applicative (ElementOf f) where
+  pure a = ElementOf $ \i -> Searching i a Nothing
+  ElementOf mf <*> ElementOf ma = ElementOf $ \i -> case mf i of
+    ~(Searching j f mff) -> case ma j of
+      ~(Searching k a maa) -> Searching k (f a) $ fmap ($a) <$> mff
+                                              <|> fmap f <$> maa
+instance Gettable f => Gettable (ElementOf f) where
+  coerce (ElementOf m) = ElementOf $ \i -> case m i of
+    ~(Searching j _ mas) -> Searching j (error "coerced while searching") (coerce <$> mas)

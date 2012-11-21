@@ -75,6 +75,7 @@ import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
+import Data.Maybe
 import Data.Traversable
 
 -- $setup
@@ -372,13 +373,19 @@ holesOf l a = f (ins b) (outs b) where
 
 -- | A 'Lens' to 'Control.Lens.Getter.view'/'Control.Lens.Setter.set' the nth element 'elementOf' a 'Traversal', 'Lens' or 'Control.Lens.Iso.Iso'.
 --
--- Attempts to access beyond the range of the 'Traversal' will cause an error.
+-- Attempts to access beyond the range of the 'Traversal' will cause an error. This also works transparently
+-- with Folds, returning a getter.
 --
--- >>> [[1],[3,4]]^.elementOf (traverse.traverse) 1
+-- >>> [[1],[3,4]] % elementOf (traverse.traverse) 1 .~ 5
+-- [[1],[5,4]]
+--
+-- >>> [[1],[3,4]]^.elementOf (folded.folded) 1
 -- 3
-elementOf :: Functor f => LensLike (Bazaar a a) s t a a -> Int -> LensLike f s t a a
-elementOf l k f s = case holesOf l s !! k of
-  Context g a -> g <$> f a
+elementOf :: Functor f => LensLike (ElementOf f) s t a a -> Int -> LensLike f s t a a
+elementOf l i f s = case getElementOf (l go s) 0 of
+    Searching _ _ mft -> fromMaybe (error "elOf: index out of range") mft
+  where
+    go a = ElementOf $ \j -> Searching (j + 1) a (if i == j then Just (f a) else Nothing)
 
 -- | Access the /nth/ element of a 'Traversable' container.
 --
