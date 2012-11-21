@@ -32,6 +32,7 @@ module Control.Lens.Iso
   , identity
   , simple
   , non
+  , enum
   -- * Storing Isomorphisms
   , ReifiedIso(..)
   -- * Simplicity
@@ -165,6 +166,23 @@ _const :: Iso a b (Const a c) (Const b d)
 _const = isos Const getConst Const getConst
 {-# INLINE _const #-}
 
+-- | This isomorphism can be used to convert to or from an instance of 'Enum'.
+--
+-- >>> LT^.from enum
+-- 0
+--
+-- >>> 97^.enum :: Char
+-- 'a'
+--
+-- Note: this is only an isomorphism from the numeric range actually used
+-- and it is a bit of a pleasant fiction, since there are questionable
+-- 'Enum' instances for 'Double', and 'Float' that exist solely for
+-- @[1.0 .. 4.0]@ sugar and the instances for those and 'Integer' don't
+-- cover all values in their range.
+enum :: Enum a => Simple Iso Int a
+enum = iso toEnum fromEnum
+{-# INLINE enum #-}
+
 -- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
 mapping :: Functor f => SimpleIso s a -> SimpleIso (f s) (f a)
 mapping l = iso (view l <$>) (view (from l) <$>)
@@ -176,6 +194,7 @@ mapping l = iso (view l <$>) (view (from l) <$>)
 -- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.
 simple :: Simple Iso a a
 simple = isomorphic id id
+{-# INLINE simple #-}
 
 -- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @non v@ is an isomorphism from 
 -- @Maybe a'@ to @a@.
