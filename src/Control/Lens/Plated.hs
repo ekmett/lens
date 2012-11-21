@@ -76,9 +76,10 @@ import Control.Lens.Internal
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
-import Data.Tree
 import Data.Data
 import Data.Data.Lens
+import Data.Monoid
+import Data.Tree
 
 -- | A 'Plated' type is one where we know how to extract its immediate self-similar children.
 --
@@ -484,7 +485,7 @@ holesOnOf b l = holesOf (b.l)
 -- | Perform a fold-like computation on each value, technically a paramorphism.
 --
 -- @'paraOf' :: 'Fold' a a -> (a -> [r] -> r) -> a -> r@
-paraOf :: Getting [a] a b a b -> (a -> [r] -> r) -> a -> r
+paraOf :: Getting (Endo [a]) a b a b -> (a -> [r] -> r) -> a -> r
 paraOf l f = go where
   go a = f a (go <$> toListOf l a)
 {-# INLINE paraOf #-}

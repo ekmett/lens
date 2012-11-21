@@ -36,11 +36,12 @@ module Data.Vector.Generic.Lens
 
 import Control.Applicative
 import Control.Lens
+import Data.List (nub)
+import Data.Monoid
 import Data.Vector.Generic as V hiding (zip, filter)
 import Data.Vector.Fusion.Stream (Stream)
 import Data.Vector.Generic.New (New)
 import Prelude hiding ((++), length, head, tail, init, last, map, reverse)
-import Data.List (nub)
 
 -- $setup
 -- >>> import Data.Vector as Vector
@@ -97,7 +98,7 @@ sliced i n f v = (\ v0 -> v // zip [i..i+n-1] (V.toList v0)) <$> f (slice i n v)
 {-# INLINE sliced #-}
 
 -- | Similar to 'toListOf', but returning a 'Vector'.
-toVectorOf :: Vector v a => Getting [a] s t a b -> s -> v a
+toVectorOf :: Vector v a => Getting (Endo [a]) s t a b -> s -> v a
 toVectorOf l s = fromList (toListOf l s)
 {-# INLINE toVectorOf #-}
 

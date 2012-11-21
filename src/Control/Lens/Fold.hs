@@ -311,8 +311,9 @@ foldlOf l f z t = appEndo (getDual (foldMapOf l (dual# (endo# (flip f))) t)) z
 -- 'toListOf' :: 'Simple' 'Control.Lens.Iso.Iso' s a       -> s -> [a]
 -- 'toListOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> [a]
 -- @
-toListOf :: Getting [a] s t a b -> s -> [a]
-toListOf l = foldMapOf l return
+toListOf :: Getting (Endo [a]) s t a b -> s -> [a]
+toListOf l = foldrOf l (:) []
+-- toListOf l = foldMapOf l return
 {-# INLINE toListOf #-}
 
 -- |

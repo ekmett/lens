@@ -36,6 +36,7 @@ import Control.Lens
 import Data.Vector as Vector hiding (zip, filter)
 import Prelude hiding ((++), length, head, tail, init, last, map, reverse)
 import Data.List (nub)
+import Data.Monoid
 
 -- | A lens reading and writing to the 'head' of a /non-empty/ 'Vector'
 --
@@ -89,7 +90,7 @@ sliced i n f v = (\ v0 -> v // zip [i..i+n-1] (toList v0)) <$> f (slice i n v)
 {-# INLINE sliced #-}
 
 -- | Similar to 'toListOf', but returning a 'Vector'.
-toVectorOf :: Getting [a] s t a b -> s -> Vector a
+toVectorOf :: Getting (Endo [a]) s t a b -> s -> Vector a
 toVectorOf l s = fromList (toListOf l s)
 {-# INLINE toVectorOf #-}
 
