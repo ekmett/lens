@@ -11,6 +11,7 @@
   both contain `use` in their name for analogy to `use` and `uses` and the word is about reading.
 * Simpler `simple`.
 * Added `enum` and `non` to `Control.Lens.Iso`.
+* Added `(^?!)` to `Control.Lens.Fold` for unsafe access to the head of a `Fold`.
 
 3.3
 ---
