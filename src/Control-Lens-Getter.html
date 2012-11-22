@@ -61,13 +61,13 @@
 <a name="line-52"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>to</span>
 <a name="line-53"></a>  <span class='hs-comment'>-- * Combinators for Getters and Folds</span>
 <a name="line-54"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^.</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^$</span><span class='hs-layout'>)</span>
-<a name="line-55"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>%</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^%</span><span class='hs-layout'>)</span>
+<a name="line-55"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&amp;</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^&amp;</span><span class='hs-layout'>)</span>
 <a name="line-56"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>view</span>
 <a name="line-57"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>views</span>
 <a name="line-58"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>use</span>
 <a name="line-59"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>uses</span>
-<a name="line-60"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>query</span>
-<a name="line-61"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>queries</span>
+<a name="line-60"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>peruse</span>
+<a name="line-61"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>peruses</span>
 <a name="line-62"></a>
 <a name="line-63"></a>  <span class='hs-comment'>-- * Storing Getters</span>
 <a name="line-64"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>ReifiedGetter</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
@@ -83,35 +83,35 @@
 <a name="line-74"></a><span class='hs-comment'>-- $setup</span>
 <a name="line-75"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
 <a name="line-76"></a>
-<a name="line-77"></a><span class='hs-keyword'>infixl</span> <span class='hs-num'>8</span> <span class='hs-varop'>^.</span><span class='hs-layout'>,</span> <span class='hs-varop'>^%</span>
-<a name="line-78"></a><span class='hs-keyword'>infixl</span> <span class='hs-num'>1</span> <span class='hs-varop'>%</span>
+<a name="line-77"></a><span class='hs-keyword'>infixl</span> <span class='hs-num'>8</span> <span class='hs-varop'>^.</span><span class='hs-layout'>,</span> <span class='hs-varop'>^&amp;</span>
+<a name="line-78"></a><span class='hs-keyword'>infixl</span> <span class='hs-num'>1</span> <span class='hs-varop'>&amp;</span>
 <a name="line-79"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>0</span> <span class='hs-varop'>^$</span>
 <a name="line-80"></a>
 <a name="line-81"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
 <a name="line-82"></a><span class='hs-comment'>-- Pipelining</span>
 <a name="line-83"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
 <a name="line-84"></a>
-<a name="line-85"></a><a name="%25"></a><span class='hs-comment'>-- | Passes the result of the left side to the function on the right side (forward pipe operator).</span>
+<a name="line-85"></a><a name="&"></a><span class='hs-comment'>-- | Passes the result of the left side to the function on the right side (forward pipe operator).</span>
 <a name="line-86"></a><span class='hs-comment'>--</span>
 <a name="line-87"></a><span class='hs-comment'>-- This is the flipped version of ('$'), which is more common in languages like F# as (@|&gt;@) where it is needed</span>
 <a name="line-88"></a><span class='hs-comment'>-- for inference. Here it is supplied for notational convenience and given a precedence that allows it</span>
 <a name="line-89"></a><span class='hs-comment'>-- to be nested inside uses of ('$').</span>
 <a name="line-90"></a><span class='hs-comment'>--</span>
-<a name="line-91"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello" % length % succ</span>
+<a name="line-91"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello" &amp; length &amp; succ</span>
 <a name="line-92"></a><span class='hs-comment'>-- 6</span>
-<a name="line-93"></a><span class='hs-layout'>(</span><span class='hs-varop'>%</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-94"></a><a name="a"></a><span class='hs-definition'>a</span> <span class='hs-varop'>%</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
-<a name="line-95"></a><span class='hs-comment'>{-# INLINE (%) #-}</span>
+<a name="line-93"></a><span class='hs-layout'>(</span><span class='hs-varop'>&amp;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
+<a name="line-94"></a><a name="a"></a><span class='hs-definition'>a</span> <span class='hs-varop'>&amp;</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
+<a name="line-95"></a><span class='hs-comment'>{-# INLINE (&amp;) #-}</span>
 <a name="line-96"></a>
-<a name="line-97"></a><a name="%5e%25"></a><span class='hs-comment'>-- | A version of ('Control.Lens.Combinators.%') with much tighter precedence that can be interleaved with ('^.')</span>
+<a name="line-97"></a><a name="%5e&"></a><span class='hs-comment'>-- | A version of ('&amp;') with much tighter precedence that can be interleaved with ('^.')</span>
 <a name="line-98"></a><span class='hs-comment'>--</span>
-<a name="line-99"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello"^%length</span>
+<a name="line-99"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello" ^&amp; length</span>
 <a name="line-100"></a><span class='hs-comment'>-- 5</span>
 <a name="line-101"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Data.List.Lens</span>
-<a name="line-102"></a><span class='hs-comment'>-- &gt;&gt;&gt; ("hello","world")^._1^%reverse^._head</span>
+<a name="line-102"></a><span class='hs-comment'>-- &gt;&gt;&gt; ("hello","world")^._1^&amp;reverse^!?_head</span>
 <a name="line-103"></a><span class='hs-comment'>-- 'o'</span>
-<a name="line-104"></a><span class='hs-layout'>(</span><span class='hs-varop'>^%</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-105"></a><span class='hs-definition'>a</span> <span class='hs-varop'>^%</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
+<a name="line-104"></a><span class='hs-layout'>(</span><span class='hs-varop'>^&amp;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
+<a name="line-105"></a><span class='hs-definition'>a</span> <span class='hs-varop'>^&amp;</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
 <a name="line-106"></a>
 <a name="line-107"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
 <a name="line-108"></a><span class='hs-comment'>-- Getters</span>
@@ -313,39 +313,39 @@
 <a name="line-304"></a><span class='hs-comment'>-- MonadReader</span>
 <a name="line-305"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
 <a name="line-306"></a>
-<a name="line-307"></a><a name="query"></a><span class='hs-comment'>-- |</span>
+<a name="line-307"></a><a name="peruse"></a><span class='hs-comment'>-- |</span>
 <a name="line-308"></a><span class='hs-comment'>-- Query the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso' or</span>
 <a name="line-309"></a><span class='hs-comment'>-- 'Getter' in the current state, or use a summary of a</span>
 <a name="line-310"></a><span class='hs-comment'>-- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points</span>
 <a name="line-311"></a><span class='hs-comment'>-- to a monoidal value.</span>
 <a name="line-312"></a><span class='hs-comment'>--</span>
 <a name="line-313"></a><span class='hs-comment'>-- @</span>
-<a name="line-314"></a><span class='hs-comment'>-- 'query' :: 'MonadReader' s m             =&gt; 'Getter' s a           -&gt; m a</span>
-<a name="line-315"></a><span class='hs-comment'>-- 'query' :: ('MonadReader' s m, 'Monoid' a) =&gt; 'Control.Lens.Fold.Fold' s a             -&gt; m a</span>
-<a name="line-316"></a><span class='hs-comment'>-- 'query' :: 'MonadReader' s m             =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -&gt; m a</span>
-<a name="line-317"></a><span class='hs-comment'>-- 'query' :: 'MonadReader' s m             =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -&gt; m a</span>
-<a name="line-318"></a><span class='hs-comment'>-- 'query' :: ('MonadReader' s m, 'Monoid' a) =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -&gt; m a</span>
+<a name="line-314"></a><span class='hs-comment'>-- 'peruse' :: 'MonadReader' s m             =&gt; 'Getter' s a           -&gt; m a</span>
+<a name="line-315"></a><span class='hs-comment'>-- 'peruse' :: ('MonadReader' s m, 'Monoid' a) =&gt; 'Control.Lens.Fold.Fold' s a             -&gt; m a</span>
+<a name="line-316"></a><span class='hs-comment'>-- 'peruse' :: 'MonadReader' s m             =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -&gt; m a</span>
+<a name="line-317"></a><span class='hs-comment'>-- 'peruse' :: 'MonadReader' s m             =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -&gt; m a</span>
+<a name="line-318"></a><span class='hs-comment'>-- 'peruse' :: ('MonadReader' s m, 'Monoid' a) =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -&gt; m a</span>
 <a name="line-319"></a><span class='hs-comment'>-- @</span>
-<a name="line-320"></a><span class='hs-definition'>query</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
-<a name="line-321"></a><span class='hs-definition'>query</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Reader</span><span class='hs-varop'>.</span><span class='hs-varid'>asks</span> <span class='hs-layout'>(</span><span class='hs-varop'>^.</span><span class='hs-varid'>l</span><span class='hs-layout'>)</span>
-<a name="line-322"></a><span class='hs-comment'>{-# INLINE query #-}</span>
+<a name="line-320"></a><span class='hs-definition'>peruse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
+<a name="line-321"></a><span class='hs-definition'>peruse</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Reader</span><span class='hs-varop'>.</span><span class='hs-varid'>asks</span> <span class='hs-layout'>(</span><span class='hs-varop'>^.</span><span class='hs-varid'>l</span><span class='hs-layout'>)</span>
+<a name="line-322"></a><span class='hs-comment'>{-# INLINE peruse #-}</span>
 <a name="line-323"></a>
-<a name="line-324"></a><a name="queries"></a><span class='hs-comment'>-- |</span>
+<a name="line-324"></a><a name="peruses"></a><span class='hs-comment'>-- |</span>
 <a name="line-325"></a><span class='hs-comment'>-- Use the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Iso.Iso' or</span>
 <a name="line-326"></a><span class='hs-comment'>-- 'Getter' in the current state, or use a summary of a</span>
 <a name="line-327"></a><span class='hs-comment'>-- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points</span>
 <a name="line-328"></a><span class='hs-comment'>-- to a monoidal value.</span>
 <a name="line-329"></a><span class='hs-comment'>--</span>
 <a name="line-330"></a><span class='hs-comment'>-- @</span>
-<a name="line-331"></a><span class='hs-comment'>-- 'queries' :: 'MonadReader' s m             =&gt; 'Getter' s a           -&gt; (a -&gt; r) -&gt; m r</span>
-<a name="line-332"></a><span class='hs-comment'>-- 'queries' :: ('MonadReader' s m, 'Monoid' a) =&gt; 'Control.Lens.Fold.Fold' s a             -&gt; (a -&gt; r) -&gt; m r</span>
-<a name="line-333"></a><span class='hs-comment'>-- 'queries' :: 'MonadReader' s m             =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -&gt; (a -&gt; r) -&gt; m r</span>
-<a name="line-334"></a><span class='hs-comment'>-- 'queries' :: 'MonadReader' s m             =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -&gt; (a -&gt; r) -&gt; m r</span>
-<a name="line-335"></a><span class='hs-comment'>-- 'queries' :: ('MonadReader' s m, 'Monoid' a) =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -&gt; (a -&gt; r) -&gt; m r</span>
+<a name="line-331"></a><span class='hs-comment'>-- 'peruses' :: 'MonadReader' s m             =&gt; 'Getter' s a           -&gt; (a -&gt; r) -&gt; m r</span>
+<a name="line-332"></a><span class='hs-comment'>-- 'peruses' :: ('MonadReader' s m, 'Monoid' a) =&gt; 'Control.Lens.Fold.Fold' s a             -&gt; (a -&gt; r) -&gt; m r</span>
+<a name="line-333"></a><span class='hs-comment'>-- 'peruses' :: 'MonadReader' s m             =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -&gt; (a -&gt; r) -&gt; m r</span>
+<a name="line-334"></a><span class='hs-comment'>-- 'peruses' :: 'MonadReader' s m             =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -&gt; (a -&gt; r) -&gt; m r</span>
+<a name="line-335"></a><span class='hs-comment'>-- 'peruses' :: ('MonadReader' s m, 'Monoid' a) =&gt; 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -&gt; (a -&gt; r) -&gt; m r</span>
 <a name="line-336"></a><span class='hs-comment'>-- @</span>
-<a name="line-337"></a><span class='hs-definition'>queries</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-varid'>r</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
-<a name="line-338"></a><span class='hs-definition'>queries</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Reader</span><span class='hs-varop'>.</span><span class='hs-varid'>asks</span> <span class='hs-layout'>(</span><span class='hs-varid'>views</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span>
-<a name="line-339"></a><span class='hs-comment'>{-# INLINE queries #-}</span>
+<a name="line-337"></a><span class='hs-definition'>peruses</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-varid'>r</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
+<a name="line-338"></a><span class='hs-definition'>peruses</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Reader</span><span class='hs-varop'>.</span><span class='hs-varid'>asks</span> <span class='hs-layout'>(</span><span class='hs-varid'>views</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span>
+<a name="line-339"></a><span class='hs-comment'>{-# INLINE peruses #-}</span>
 <a name="line-340"></a>
 <a name="line-341"></a><a name="ReifiedGetter"></a><span class='hs-comment'>-- | Useful for storing getters in containers.</span>
 <a name="line-342"></a><a name="ReifiedGetter"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>ReifiedGetter</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ReifyGetter</span> <span class='hs-layout'>{</span> <span class='hs-varid'>reflectGetter</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getter</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-layout'>}</span>

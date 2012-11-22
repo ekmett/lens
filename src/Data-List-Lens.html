@@ -30,117 +30,49 @@
 <a name="line-21"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_tail</span>
 <a name="line-22"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_last</span>
 <a name="line-23"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_init</span>
-<a name="line-24"></a>  <span class='hs-comment'>-- * Traversals</span>
-<a name="line-25"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>traverseHead</span>
-<a name="line-26"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>traverseTail</span>
-<a name="line-27"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>traverseInit</span>
-<a name="line-28"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>traverseLast</span>
-<a name="line-29"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-30"></a>
-<a name="line-31"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
-<a name="line-32"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-33"></a>
-<a name="line-34"></a><span class='hs-comment'>-- | A partial 'Lens' reading and writing to the 'head' of a /non-empty/ list.</span>
-<a name="line-35"></a><span class='hs-comment'>--</span>
-<a name="line-36"></a><span class='hs-comment'>-- Attempting to read or write to the 'head' of an /empty/ list will result in an 'error'.</span>
-<a name="line-37"></a><span class='hs-comment'>--</span>
-<a name="line-38"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2,3]^._head</span>
-<a name="line-39"></a><span class='hs-comment'>-- 1</span>
-<a name="line-40"></a><span class='hs-sel'>_head</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Lens</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span>
-<a name="line-41"></a><span class='hs-sel'>_head</span> <span class='hs-keyword'>_</span> <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>error</span> <span class='hs-str'>"_head: empty list"</span>
-<a name="line-42"></a><span class='hs-sel'>_head</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
-<a name="line-43"></a><span class='hs-comment'>{-# INLINE _head #-}</span>
-<a name="line-44"></a>
-<a name="line-45"></a><span class='hs-comment'>-- | A partial 'Lens' reading and writing to the 'tail' of a /non-empty/ list</span>
-<a name="line-46"></a><span class='hs-comment'>--</span>
-<a name="line-47"></a><span class='hs-comment'>-- Attempting to read or write to the 'tail' of an /empty/ list will result in an 'error'.</span>
-<a name="line-48"></a><span class='hs-comment'>--</span>
-<a name="line-49"></a><span class='hs-comment'>-- &gt;&gt;&gt; _tail .~ [3,4,5] $ [1,2]</span>
-<a name="line-50"></a><span class='hs-comment'>-- [1,3,4,5]</span>
-<a name="line-51"></a><span class='hs-sel'>_tail</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Lens</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-52"></a><span class='hs-sel'>_tail</span> <span class='hs-keyword'>_</span> <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>error</span> <span class='hs-str'>"_tail: empty list"</span>
-<a name="line-53"></a><span class='hs-sel'>_tail</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
-<a name="line-54"></a><span class='hs-comment'>{-# INLINE _tail #-}</span>
-<a name="line-55"></a>
-<a name="line-56"></a><span class='hs-comment'>-- | A partial 'Lens' reading and writing to the last element of a /non-empty/ list</span>
-<a name="line-57"></a><span class='hs-comment'>--</span>
-<a name="line-58"></a><span class='hs-comment'>-- Attempting to read or write to the last element of an /empty/ list will result in an 'error'.</span>
-<a name="line-59"></a><span class='hs-comment'>--</span>
-<a name="line-60"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2]^._last</span>
-<a name="line-61"></a><span class='hs-comment'>-- 2</span>
-<a name="line-62"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Lens</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span>
-<a name="line-63"></a><span class='hs-sel'>_last</span> <span class='hs-keyword'>_</span> <span class='hs-conid'>[]</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>error</span> <span class='hs-str'>"_last: empty list"</span>
-<a name="line-64"></a><span class='hs-sel'>_last</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>    <span class='hs-keyglyph'>=</span> <span class='hs-varid'>return</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
-<a name="line-65"></a><span class='hs-sel'>_last</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-sel'>_last</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
-<a name="line-66"></a><span class='hs-comment'>{-# INLINE _last #-}</span>
-<a name="line-67"></a>
-<a name="line-68"></a><span class='hs-comment'>-- | A partial 'Lens' reading and replacing all but the a last element of a /non-empty/ list</span>
-<a name="line-69"></a><span class='hs-comment'>--</span>
-<a name="line-70"></a><span class='hs-comment'>-- Attempting to read or write to all but the last element of an /empty/ list will result in an 'error'.</span>
-<a name="line-71"></a><span class='hs-comment'>--</span>
-<a name="line-72"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2,3,4]^._init</span>
-<a name="line-73"></a><span class='hs-comment'>-- [1,2,3]</span>
-<a name="line-74"></a><span class='hs-sel'>_init</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Lens</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-75"></a><span class='hs-sel'>_init</span> <span class='hs-keyword'>_</span> <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>error</span> <span class='hs-str'>"_init: empty list"</span>
-<a name="line-76"></a><span class='hs-sel'>_init</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>++</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-keyword'>as</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span>
-<a name="line-77"></a><span class='hs-comment'>{-# INLINE _init #-}</span>
-<a name="line-78"></a>
-<a name="line-79"></a><a name="traverseHead"></a><span class='hs-comment'>-- | A traversal for reading and writing to the head of a list</span>
-<a name="line-80"></a><span class='hs-comment'>--</span>
-<a name="line-81"></a><span class='hs-comment'>-- The position of the head in the original list (0) is available as the index.</span>
-<a name="line-82"></a><span class='hs-comment'>--</span>
-<a name="line-83"></a><span class='hs-comment'>-- &gt;&gt;&gt; traverseHead +~ 1 $ [1,2,3]</span>
-<a name="line-84"></a><span class='hs-comment'>-- [2,2,3]</span>
-<a name="line-85"></a><span class='hs-comment'>--</span>
-<a name="line-86"></a><span class='hs-comment'>-- @'traverseHead' :: 'Applicative' f =&gt; (a -&gt; f a) -&gt; [a] -&gt; f [a]@</span>
-<a name="line-87"></a><span class='hs-definition'>traverseHead</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span>
-<a name="line-88"></a><span class='hs-definition'>traverseHead</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>index</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>f</span> <span class='hs-varid'>aas</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>aas</span> <span class='hs-keyword'>of</span>
-<a name="line-89"></a>  <span class='hs-conid'>[]</span>     <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-conid'>[]</span>
-<a name="line-90"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-num'>0</span><span class='hs-keyglyph'>::</span><span class='hs-conid'>Int</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-91"></a><span class='hs-comment'>{-# INLINE traverseHead #-}</span>
-<a name="line-92"></a>
-<a name="line-93"></a><a name="traverseTail"></a><span class='hs-comment'>-- | A traversal for editing the tail of a list</span>
-<a name="line-94"></a><span class='hs-comment'>--</span>
-<a name="line-95"></a><span class='hs-comment'>-- The position of each element /in the original list/ is available as the index.</span>
-<a name="line-96"></a><span class='hs-comment'>--</span>
-<a name="line-97"></a><span class='hs-comment'>-- &gt;&gt;&gt; traverseTail +~ 1 $ [1,2,3]</span>
-<a name="line-98"></a><span class='hs-comment'>-- [1,3,4]</span>
-<a name="line-99"></a><span class='hs-comment'>--</span>
-<a name="line-100"></a><span class='hs-comment'>-- @'traverseTail' :: 'Applicative' f =&gt; (a -&gt; f a) -&gt; [a] -&gt; f [a]@</span>
-<a name="line-101"></a><span class='hs-definition'>traverseTail</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span>
-<a name="line-102"></a><span class='hs-definition'>traverseTail</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>index</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>f</span> <span class='hs-varid'>aas</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>aas</span> <span class='hs-keyword'>of</span>
-<a name="line-103"></a>  <span class='hs-conid'>[]</span>     <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-conid'>[]</span>
-<a name="line-104"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>itraverse</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span><span class='hs-num'>1</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyword'>as</span>
-<a name="line-105"></a><span class='hs-comment'>{-# INLINE traverseTail #-}</span>
-<a name="line-106"></a>
-<a name="line-107"></a><a name="traverseLast"></a><span class='hs-comment'>-- | A traversal the last element in a list</span>
-<a name="line-108"></a><span class='hs-comment'>--</span>
-<a name="line-109"></a><span class='hs-comment'>-- The position of the last element in the original list is available as the index.</span>
-<a name="line-110"></a><span class='hs-comment'>--</span>
-<a name="line-111"></a><span class='hs-comment'>-- &gt;&gt;&gt; traverseLast +~ 1 $ [1,2,3]</span>
-<a name="line-112"></a><span class='hs-comment'>-- [1,2,4]</span>
-<a name="line-113"></a><span class='hs-comment'>--</span>
-<a name="line-114"></a><span class='hs-comment'>-- @'traverseLast' :: 'Applicative' f =&gt; (a -&gt; f a) -&gt; [a] -&gt; f [a]@</span>
-<a name="line-115"></a><span class='hs-definition'>traverseLast</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span>
-<a name="line-116"></a><span class='hs-definition'>traverseLast</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>index</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>f</span> <span class='hs-varid'>xs0</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>let</span>
-<a name="line-117"></a>    <span class='hs-varid'>go</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>    <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>return</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>n</span> <span class='hs-varid'>a</span>
-<a name="line-118"></a>    <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>go</span> <span class='hs-keyword'>as</span> <span class='hs-varop'>$!</span> <span class='hs-varid'>n</span> <span class='hs-varop'>+</span> <span class='hs-num'>1</span><span class='hs-layout'>)</span>
-<a name="line-119"></a>    <span class='hs-varid'>go</span> <span class='hs-conid'>[]</span>     <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pure</span> <span class='hs-conid'>[]</span>
-<a name="line-120"></a>  <span class='hs-keyword'>in</span> <span class='hs-varid'>go</span> <span class='hs-varid'>xs0</span> <span class='hs-layout'>(</span><span class='hs-num'>0</span><span class='hs-keyglyph'>::</span><span class='hs-conid'>Int</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-121"></a><span class='hs-comment'>{-# INLINE traverseLast #-}</span>
-<a name="line-122"></a>
-<a name="line-123"></a><a name="traverseInit"></a><span class='hs-comment'>-- | A traversal of all but the last element of a list</span>
-<a name="line-124"></a><span class='hs-comment'>--</span>
-<a name="line-125"></a><span class='hs-comment'>-- The position of each element is available as the index.</span>
-<a name="line-126"></a><span class='hs-comment'>--</span>
-<a name="line-127"></a><span class='hs-comment'>-- &gt;&gt;&gt; traverseInit +~ 1 $ [1,2,3]</span>
-<a name="line-128"></a><span class='hs-comment'>-- [2,3,3]</span>
-<a name="line-129"></a><span class='hs-comment'>--</span>
-<a name="line-130"></a><span class='hs-comment'>-- @'traverseInit' :: 'Applicative' f =&gt; (a -&gt; f a) -&gt; [a] -&gt; f [a]@</span>
-<a name="line-131"></a><span class='hs-definition'>traverseInit</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span>
-<a name="line-132"></a><span class='hs-definition'>traverseInit</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>index</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>f</span> <span class='hs-varid'>aas</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>aas</span> <span class='hs-keyword'>of</span>
-<a name="line-133"></a>  <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-conid'>[]</span>
-<a name="line-134"></a>  <span class='hs-keyword'>as</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varop'>++</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-keyword'>as</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>itraverse</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span>
-<a name="line-135"></a><span class='hs-comment'>{-# INLINE traverseInit #-}</span>
+<a name="line-24"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-25"></a>
+<a name="line-26"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
+<a name="line-27"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-28"></a>
+<a name="line-29"></a><span class='hs-comment'>-- | A 'Traversal' reading and writing to the 'head' of a /non-empty/ list.</span>
+<a name="line-30"></a><span class='hs-comment'>--</span>
+<a name="line-31"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2,3]^!?_head</span>
+<a name="line-32"></a><span class='hs-comment'>-- 1</span>
+<a name="line-33"></a><span class='hs-sel'>_head</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span>
+<a name="line-34"></a><span class='hs-sel'>_head</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>index</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>f</span> <span class='hs-varid'>aas</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>aas</span> <span class='hs-keyword'>of</span>
+<a name="line-35"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-num'>0</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-36"></a>  <span class='hs-keyword'>_</span>      <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>aas</span>
+<a name="line-37"></a><span class='hs-comment'>{-# INLINE _head #-}</span>
+<a name="line-38"></a>
+<a name="line-39"></a><span class='hs-comment'>-- | A 'Traversal' reading and writing to the 'tail' of a /non-empty/ list</span>
+<a name="line-40"></a><span class='hs-comment'>--</span>
+<a name="line-41"></a><span class='hs-comment'>-- &gt;&gt;&gt; _tail .~ [3,4,5] $ [1,2]</span>
+<a name="line-42"></a><span class='hs-comment'>-- [1,3,4,5]</span>
+<a name="line-43"></a><span class='hs-sel'>_tail</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Traversal</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-44"></a><span class='hs-sel'>_tail</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
+<a name="line-45"></a><span class='hs-sel'>_tail</span> <span class='hs-keyword'>_</span> <span class='hs-keyword'>as</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pure</span> <span class='hs-keyword'>as</span>
+<a name="line-46"></a><span class='hs-comment'>{-# INLINE _tail #-}</span>
+<a name="line-47"></a>
+<a name="line-48"></a><span class='hs-comment'>-- | A 'Traversal' reading and writing to the last element of a /non-empty/ list</span>
+<a name="line-49"></a><span class='hs-comment'>--</span>
+<a name="line-50"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2]^!?_last</span>
+<a name="line-51"></a><span class='hs-comment'>-- 2</span>
+<a name="line-52"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span>
+<a name="line-53"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>index</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>f</span> <span class='hs-varid'>aas</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>aas</span> <span class='hs-keyword'>of</span>
+<a name="line-54"></a>  <span class='hs-conid'>[]</span>     <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>aas</span>
+<a name="line-55"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-conop'>:</span><span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>let</span> <span class='hs-varid'>go</span> <span class='hs-varop'>!</span><span class='hs-varid'>n</span> <span class='hs-varid'>b</span> <span class='hs-conid'>[]</span>  <span class='hs-keyglyph'>=</span> <span class='hs-varid'>return</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>n</span> <span class='hs-varid'>b</span>
+<a name="line-56"></a>                <span class='hs-varid'>go</span> <span class='hs-varop'>!</span><span class='hs-varid'>n</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span><span class='hs-conop'>:</span><span class='hs-varid'>cs</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span><span class='hs-conop'>:</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-varid'>n</span> <span class='hs-varop'>+</span> <span class='hs-num'>1</span><span class='hs-layout'>)</span> <span class='hs-varid'>c</span> <span class='hs-varid'>cs</span>
+<a name="line-57"></a>            <span class='hs-keyword'>in</span> <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-num'>0</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>as</span>
+<a name="line-58"></a><span class='hs-comment'>{-# INLINE _last #-}</span>
+<a name="line-59"></a>
+<a name="line-60"></a><span class='hs-comment'>-- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ list</span>
+<a name="line-61"></a><span class='hs-comment'>--</span>
+<a name="line-62"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2,3,4]^!?_init</span>
+<a name="line-63"></a><span class='hs-comment'>-- [1,2,3]</span>
+<a name="line-64"></a><span class='hs-sel'>_init</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Traversal</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-65"></a><span class='hs-sel'>_init</span> <span class='hs-keyword'>_</span> <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pure</span> <span class='hs-conid'>[]</span>
+<a name="line-66"></a><span class='hs-sel'>_init</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>++</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-keyword'>as</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span>
+<a name="line-67"></a><span class='hs-comment'>{-# INLINE _init #-}</span>
 </pre></body>
 </html>
