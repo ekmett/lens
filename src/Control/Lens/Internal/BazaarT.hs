@@ -51,11 +51,14 @@ instance Applicative (BazaarT a b g) where
   BazaarT mf <*> BazaarT ma = BazaarT (\k -> mf k <*> ma k)
   {-# INLINE (<*>) #-}
 
+-- | Extract from a 'BazaarT'.
+--
+-- @'bazaarT' = 'flip' 'runBazaarT'@
 bazaarT :: Applicative f => (a -> f b) -> BazaarT a b g s -> f s
 bazaarT afb (BazaarT m) = m afb
 {-# INLINE bazaarT #-}
 
--- | A trivial 'Bazaar'.
+-- | A trivial 'BazaarT'.
 sellT :: a -> BazaarT a b f b
 sellT i = BazaarT (\k -> k i)
 {-# INLINE sellT #-}
