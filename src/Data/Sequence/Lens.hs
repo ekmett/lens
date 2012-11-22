@@ -12,8 +12,8 @@
 ----------------------------------------------------------------------------
 module Data.Sequence.Lens
   ( ordinal, viewL, viewR
-  , traverseHead, traverseTail
-  , traverseLast, traverseInit
+  , _head, _tail
+  , _last, _init
   , traverseTo, traverseFrom
   , traverseSlice
   ) where
@@ -56,32 +56,32 @@ unviewr (as :> a) = as |> a
 -- * Traversals
 
 -- | Traverse the head of a 'Seq'
-traverseHead :: SimpleIndexedTraversal Int (Seq a) a
-traverseHead = Lens.index $ \f m -> case viewl m of
+_head :: SimpleIndexedTraversal Int (Seq a) a
+_head = Lens.index $ \f m -> case viewl m of
   a :< as -> (<| as) <$> f (0::Int) a
   EmptyL  -> pure m
-{-# INLINE traverseHead #-}
+{-# INLINE _head #-}
 
 -- | Traverse the tail of a 'Seq'
-traverseTail :: SimpleIndexedTraversal Int (Seq a) a
-traverseTail = Lens.index $ \f m -> case viewl m of
-  a :< as -> (a <|) <$> itraverse (f . (+1)) as
+_tail :: SimpleTraversal (Seq a) (Seq a)
+_tail f m = case viewl m of
+  a :< as -> (a <|) <$> f as
   EmptyL  -> pure m
-{-# INLINE traverseTail #-}
+{-# INLINE _tail #-}
 
 -- | Traverse the last element of a 'Seq'
-traverseLast :: SimpleIndexedTraversal Int (Seq a) a
-traverseLast = Lens.index $ \f m ->  case viewr m of
+_last :: SimpleIndexedTraversal Int (Seq a) a
+_last = Lens.index $ \f m ->  case viewr m of
   as :> a -> (as |>) <$> f (Seq.length as) a
   EmptyR  -> pure m
-{-# INLINE traverseLast #-}
+{-# INLINE _last #-}
 
 -- | Traverse all but the last element of a 'Seq'
-traverseInit :: SimpleIndexedTraversal Int (Seq a) a
-traverseInit = Lens.index $ \ f m -> case viewr m of
-  as :> a -> (|> a) <$> itraverse f as
+_init :: SimpleTraversal (Seq a) (Seq a)
+_init f m = case viewr m of
+  as :> a -> (|> a) <$> f as
   EmptyR  -> pure m
-{-# INLINE traverseInit #-}
+{-# INLINE _init #-}
 
 -- | Traverse the first @n@ elements of a 'Seq'
 traverseTo :: Int -> SimpleIndexedTraversal Int (Seq a) a
