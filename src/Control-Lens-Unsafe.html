@@ -33,8 +33,8 @@
 <a name="line-24"></a>
 <a name="line-25"></a><span class='hs-comment'>-- | This class is only exported by this untrustworthy module, but is a superclass of 'Gettable'.</span>
 <a name="line-26"></a><span class='hs-comment'>--</span>
-<a name="line-27"></a><span class='hs-comment'>-- This is required because otherwise you could construct 'unsafeCoerce' using 'EvilBazaar' and</span>
-<a name="line-28"></a><span class='hs-comment'>-- an illegal 'Gettable' instance that uses 'undefined'.</span>
+<a name="line-27"></a><span class='hs-comment'>-- This is required because otherwise you could construct 'Unsafe.Coerce.unsafeCoerce' using 'Control.Lens.Internal.BazaarT.BazaarT' and</span>
+<a name="line-28"></a><span class='hs-comment'>-- an illegal 'Control.Lens.Classes.Gettable' instance that uses @'Control.Lens.Classes.coerce' = 'undefined'@.</span>
 <a name="line-29"></a>
 <a name="line-30"></a><a name="Trustworthy"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Trustworthy</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>*</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varop'>*</span><span class='hs-layout'>)</span>
 <a name="line-31"></a><a name="instance%20Trustworthy%20(Backwards%20f)%20instance%20Trustworthy%20g%20=%3e%20Trustworthy%20(Compose%20f%20g)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Trustworthy</span> <span class='hs-layout'>(</span><span class='hs-conid'>Const</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>

@@ -7,78 +7,82 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-2"></a><span class='hs-comment'>-- |</span>
-<a name="line-3"></a><span class='hs-comment'>-- Module      :  Control.Parallel.Strategies.Lens</span>
-<a name="line-4"></a><span class='hs-comment'>-- Copyright   :  (C) 2012 Edward Kmett</span>
-<a name="line-5"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
-<a name="line-6"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
-<a name="line-7"></a><span class='hs-comment'>-- Stability   :  provisional</span>
-<a name="line-8"></a><span class='hs-comment'>-- Portability :  portable</span>
-<a name="line-9"></a><span class='hs-comment'>--</span>
-<a name="line-10"></a><span class='hs-comment'>-- A 'Lens' or 'Traversal' can be used to take the role of 'Traversable' in</span>
-<a name="line-11"></a><span class='hs-comment'>-- @Control.Parallel.Strategies@, enabling those combinators to work with</span>
-<a name="line-12"></a><span class='hs-comment'>-- monomorphic containers.</span>
-<a name="line-13"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
-<a name="line-14"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Parallel</span><span class='hs-varop'>.</span><span class='hs-conid'>Strategies</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-15"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>evalOf</span>
-<a name="line-16"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>parOf</span>
-<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>after</span>
-<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>throughout</span>
-<a name="line-19"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-20"></a>
-<a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Parallel</span><span class='hs-varop'>.</span><span class='hs-conid'>Strategies</span>
-<a name="line-23"></a>
-<a name="line-24"></a><a name="evalOf"></a><span class='hs-comment'>-- | Evaluate the targets of a 'Lens' or 'Traversal' into a data structure</span>
-<a name="line-25"></a><span class='hs-comment'>-- according to the given 'Strategy'.</span>
-<a name="line-26"></a><span class='hs-comment'>--</span>
-<a name="line-27"></a><span class='hs-comment'>-- @</span>
-<a name="line-28"></a><span class='hs-comment'>-- 'evalTraversable' = 'evalOf' 'traverse' = 'traverse'</span>
-<a name="line-29"></a><span class='hs-comment'>-- 'evalOf' = 'id'</span>
-<a name="line-30"></a><span class='hs-comment'>-- @</span>
-<a name="line-31"></a><span class='hs-comment'>--</span>
-<a name="line-32"></a><span class='hs-comment'>-- @</span>
-<a name="line-33"></a><span class='hs-comment'>-- 'evalOf' :: 'Simple' 'Lens' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
-<a name="line-34"></a><span class='hs-comment'>-- 'evalOf' :: 'Simple' 'Traversal' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
-<a name="line-35"></a><span class='hs-comment'>-- 'evalOf' :: (a -&gt; 'Eval' a) -&gt; s -&gt; 'Eval' s) -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE CPP #-}</span>
+<a name="line-2"></a><span class='hs-cpp'>#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 704</span>
+<a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE Trustworthy #-}</span>
+<a name="line-4"></a><span class='hs-cpp'>#endif</span>
+<a name="line-5"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-6"></a><span class='hs-comment'>-- |</span>
+<a name="line-7"></a><span class='hs-comment'>-- Module      :  Control.Parallel.Strategies.Lens</span>
+<a name="line-8"></a><span class='hs-comment'>-- Copyright   :  (C) 2012 Edward Kmett</span>
+<a name="line-9"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
+<a name="line-10"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
+<a name="line-11"></a><span class='hs-comment'>-- Stability   :  provisional</span>
+<a name="line-12"></a><span class='hs-comment'>-- Portability :  portable</span>
+<a name="line-13"></a><span class='hs-comment'>--</span>
+<a name="line-14"></a><span class='hs-comment'>-- A 'Lens' or 'Traversal' can be used to take the role of 'Traversable' in</span>
+<a name="line-15"></a><span class='hs-comment'>-- @Control.Parallel.Strategies@, enabling those combinators to work with</span>
+<a name="line-16"></a><span class='hs-comment'>-- monomorphic containers.</span>
+<a name="line-17"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
+<a name="line-18"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Parallel</span><span class='hs-varop'>.</span><span class='hs-conid'>Strategies</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-19"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>evalOf</span>
+<a name="line-20"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>parOf</span>
+<a name="line-21"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>after</span>
+<a name="line-22"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>throughout</span>
+<a name="line-23"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-24"></a>
+<a name="line-25"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-26"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Parallel</span><span class='hs-varop'>.</span><span class='hs-conid'>Strategies</span>
+<a name="line-27"></a>
+<a name="line-28"></a><a name="evalOf"></a><span class='hs-comment'>-- | Evaluate the targets of a 'Lens' or 'Traversal' into a data structure</span>
+<a name="line-29"></a><span class='hs-comment'>-- according to the given 'Strategy'.</span>
+<a name="line-30"></a><span class='hs-comment'>--</span>
+<a name="line-31"></a><span class='hs-comment'>-- @</span>
+<a name="line-32"></a><span class='hs-comment'>-- 'evalTraversable' = 'evalOf' 'traverse' = 'traverse'</span>
+<a name="line-33"></a><span class='hs-comment'>-- 'evalOf' = 'id'</span>
+<a name="line-34"></a><span class='hs-comment'>-- @</span>
+<a name="line-35"></a><span class='hs-comment'>--</span>
 <a name="line-36"></a><span class='hs-comment'>-- @</span>
-<a name="line-37"></a><span class='hs-definition'>evalOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-conid'>Eval</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span>
-<a name="line-38"></a><span class='hs-definition'>evalOf</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span>
-<a name="line-39"></a><span class='hs-comment'>{-# INLINE evalOf #-}</span>
-<a name="line-40"></a>
-<a name="line-41"></a><a name="parOf"></a><span class='hs-comment'>-- | Evaluate the targets of a 'Lens' or 'Traversal' according into a</span>
-<a name="line-42"></a><span class='hs-comment'>-- data structure according to a given 'Strategy' in parallel.</span>
-<a name="line-43"></a><span class='hs-comment'>--</span>
-<a name="line-44"></a><span class='hs-comment'>-- @'parTraversable' = 'parOf' 'traverse'@</span>
-<a name="line-45"></a><span class='hs-comment'>--</span>
-<a name="line-46"></a><span class='hs-comment'>-- @</span>
-<a name="line-47"></a><span class='hs-comment'>-- 'parOf' :: 'Simple' 'Lens' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
-<a name="line-48"></a><span class='hs-comment'>-- 'parOf' :: 'Simple' 'Traversal' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
-<a name="line-49"></a><span class='hs-comment'>-- 'parOf' :: ((a -&gt; 'Eval' a) -&gt; s -&gt; 'Eval' s) -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<a name="line-37"></a><span class='hs-comment'>-- 'evalOf' :: 'Simple' 'Lens' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<a name="line-38"></a><span class='hs-comment'>-- 'evalOf' :: 'Simple' 'Traversal' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<a name="line-39"></a><span class='hs-comment'>-- 'evalOf' :: (a -&gt; 'Eval' a) -&gt; s -&gt; 'Eval' s) -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<a name="line-40"></a><span class='hs-comment'>-- @</span>
+<a name="line-41"></a><span class='hs-definition'>evalOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-conid'>Eval</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span>
+<a name="line-42"></a><span class='hs-definition'>evalOf</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span>
+<a name="line-43"></a><span class='hs-comment'>{-# INLINE evalOf #-}</span>
+<a name="line-44"></a>
+<a name="line-45"></a><a name="parOf"></a><span class='hs-comment'>-- | Evaluate the targets of a 'Lens' or 'Traversal' according into a</span>
+<a name="line-46"></a><span class='hs-comment'>-- data structure according to a given 'Strategy' in parallel.</span>
+<a name="line-47"></a><span class='hs-comment'>--</span>
+<a name="line-48"></a><span class='hs-comment'>-- @'parTraversable' = 'parOf' 'traverse'@</span>
+<a name="line-49"></a><span class='hs-comment'>--</span>
 <a name="line-50"></a><span class='hs-comment'>-- @</span>
-<a name="line-51"></a><span class='hs-definition'>parOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-conid'>Eval</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span>
-<a name="line-52"></a><span class='hs-definition'>parOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>rparWith</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
-<a name="line-53"></a><span class='hs-comment'>{-# INLINE parOf #-}</span>
-<a name="line-54"></a>
-<a name="line-55"></a><a name="after"></a><span class='hs-comment'>-- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to</span>
-<a name="line-56"></a><span class='hs-comment'>-- first evaluates its argument according to a given 'Strategy' /before/ proceeding.</span>
-<a name="line-57"></a><span class='hs-comment'>--</span>
-<a name="line-58"></a><span class='hs-comment'>-- @</span>
-<a name="line-59"></a><span class='hs-comment'>-- 'after' 'rdeepseq' 'traverse' :: 'Traversable' t =&gt; 'Strategy' a -&gt; 'Strategy' [a]</span>
-<a name="line-60"></a><span class='hs-comment'>-- @</span>
-<a name="line-61"></a><span class='hs-definition'>after</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-62"></a><span class='hs-definition'>after</span> <span class='hs-varid'>s</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-varop'>$|</span> <span class='hs-varid'>s</span>
-<a name="line-63"></a><span class='hs-comment'>{-# INLINE after #-}</span>
-<a name="line-64"></a>
-<a name="line-65"></a><a name="throughout"></a><span class='hs-comment'>-- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to</span>
-<a name="line-66"></a><span class='hs-comment'>-- evaluate its argument according to a given 'Strategy' /in parallel with/ evaluating.</span>
-<a name="line-67"></a><span class='hs-comment'>--</span>
-<a name="line-68"></a><span class='hs-comment'>-- @</span>
-<a name="line-69"></a><span class='hs-comment'>-- 'throughout' 'rdeepseq' 'traverse' :: 'Traversable' t =&gt; 'Strategy' a -&gt; 'Strategy' [a]</span>
-<a name="line-70"></a><span class='hs-comment'>-- @</span>
-<a name="line-71"></a><span class='hs-definition'>throughout</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-72"></a><span class='hs-definition'>throughout</span> <span class='hs-varid'>s</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-varop'>$||</span> <span class='hs-varid'>s</span>
-<a name="line-73"></a><span class='hs-comment'>{-# INLINE throughout #-}</span>
+<a name="line-51"></a><span class='hs-comment'>-- 'parOf' :: 'Simple' 'Lens' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<a name="line-52"></a><span class='hs-comment'>-- 'parOf' :: 'Simple' 'Traversal' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<a name="line-53"></a><span class='hs-comment'>-- 'parOf' :: ((a -&gt; 'Eval' a) -&gt; s -&gt; 'Eval' s) -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<a name="line-54"></a><span class='hs-comment'>-- @</span>
+<a name="line-55"></a><span class='hs-definition'>parOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-conid'>Eval</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span>
+<a name="line-56"></a><span class='hs-definition'>parOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>rparWith</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
+<a name="line-57"></a><span class='hs-comment'>{-# INLINE parOf #-}</span>
+<a name="line-58"></a>
+<a name="line-59"></a><a name="after"></a><span class='hs-comment'>-- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to</span>
+<a name="line-60"></a><span class='hs-comment'>-- first evaluates its argument according to a given 'Strategy' /before/ proceeding.</span>
+<a name="line-61"></a><span class='hs-comment'>--</span>
+<a name="line-62"></a><span class='hs-comment'>-- @</span>
+<a name="line-63"></a><span class='hs-comment'>-- 'after' 'rdeepseq' 'traverse' :: 'Traversable' t =&gt; 'Strategy' a -&gt; 'Strategy' [a]</span>
+<a name="line-64"></a><span class='hs-comment'>-- @</span>
+<a name="line-65"></a><span class='hs-definition'>after</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-66"></a><span class='hs-definition'>after</span> <span class='hs-varid'>s</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-varop'>$|</span> <span class='hs-varid'>s</span>
+<a name="line-67"></a><span class='hs-comment'>{-# INLINE after #-}</span>
+<a name="line-68"></a>
+<a name="line-69"></a><a name="throughout"></a><span class='hs-comment'>-- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to</span>
+<a name="line-70"></a><span class='hs-comment'>-- evaluate its argument according to a given 'Strategy' /in parallel with/ evaluating.</span>
+<a name="line-71"></a><span class='hs-comment'>--</span>
+<a name="line-72"></a><span class='hs-comment'>-- @</span>
+<a name="line-73"></a><span class='hs-comment'>-- 'throughout' 'rdeepseq' 'traverse' :: 'Traversable' t =&gt; 'Strategy' a -&gt; 'Strategy' [a]</span>
+<a name="line-74"></a><span class='hs-comment'>-- @</span>
+<a name="line-75"></a><span class='hs-definition'>throughout</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-76"></a><span class='hs-definition'>throughout</span> <span class='hs-varid'>s</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-varop'>$||</span> <span class='hs-varid'>s</span>
+<a name="line-77"></a><span class='hs-comment'>{-# INLINE throughout #-}</span>
 </pre></body>
 </html>
