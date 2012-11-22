@@ -26,7 +26,43 @@
 -- \"Family\" and need to add instances.
 --
 ----------------------------------------------------------------------------
-module Control.Lens.Internal where
+module Control.Lens.Internal
+  (
+  -- * Internal Classes
+    Gettable(..)
+  , Effective(..), ineffective, noEffect
+  , Settable(..)
+  -- * Internal Types
+  , May(..)
+  , Folding(..)
+  , Effect(..)
+  , EffectRWS(..)
+  , Accessor(..)
+  , Err(..)
+  , Traversed(..)
+  , Sequenced(..)
+  , Focusing(..)
+  , FocusingWith(..)
+  , FocusingPlus(..)
+  , FocusingOn(..)
+  , FocusingMay(..)
+  , FocusingErr(..)
+  , Mutator(..)
+  , Bazaar(..), bazaar, duplicateBazaar, sell
+  , Context(..)
+  , Max(..), getMax
+  , Min(..), getMin
+  , ElementOfResult(..), ElementOf(..)
+  , Indexing(..)
+  , Level(..)
+  , levelWidth
+  , leftLevel, left1Level, leftmostLevel
+  , rightmostLevel, rightLevel, right1Level
+  , focusLevel
+  , rezipLevel
+  -- * Evil Internal Types
+  , EvilBazaar
+  ) where
 
 import Control.Applicative
 import Control.Applicative.Backwards
