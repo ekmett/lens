@@ -14,6 +14,7 @@
 * Added `(^?!)` to `Control.Lens.Fold` for unsafe access to the head of a `Fold`.
 * Changed `_head`, `_tail`, `_init` and `_last` to Traversals in `Data.List.Lens` and `Data.Sequence.Lens`.
 * Eliminated `traverseHead`, `traverseTail`, `traverseInit` and `traverseLast`.
+* `partsOf` and `unsafePartsOf` can now also be applied to a `Fold` yielding a `Getter` or to a `MonadicFold` yielding an `Action`.
 
 3.3
 ---
