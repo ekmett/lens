@@ -24,7 +24,7 @@ import Data.Functor.Compose
 
 -- | This class is only exported by this untrustworthy module, but is a superclass of 'Gettable'.
 --
--- This is required because otherwise you could construct 'unsafeCoerce' using 'EvilBazaar' and
+-- This is required because otherwise you could construct 'unsafeCoerce' using 'BazaarT' and
 -- an illegal 'Gettable' instance that uses 'undefined'.
 
 class Trustworthy (f :: * -> *)
