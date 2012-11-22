@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       3.4
+version:       3.5
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -161,6 +161,7 @@ library
     Control.Exception.Lens
     Control.Lens
     Control.Lens.Action
+    Control.Lens.Classes
     Control.Lens.Combinators
     Control.Lens.Fold
     Control.Lens.Getter
@@ -182,6 +183,7 @@ library
     Control.Lens.Traversal
     Control.Lens.Tuple
     Control.Lens.Type
+    Control.Lens.Unsafe
     Control.Lens.WithIndex
     Control.Lens.Zipper
     Control.Lens.Zoom
@@ -208,8 +210,8 @@ library
     Data.Vector.Generic.Lens
 
   other-modules:
-    Control.Lens.Unsafe
-    Control.Lens.Evil
+    Control.Lens.Internal.BazaarT
+    Control.Lens.Internal.Combinators
 
   if flag(template-haskell)
     build-depends: template-haskell >= 2.4 && < 2.9

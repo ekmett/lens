@@ -20,6 +20,7 @@ module Control.Lens.IndexedGetter
 
 import Control.Lens.Indexed
 import Control.Lens.Internal
+import Control.Lens.Classes
 
 ------------------------------------------------------------------------------
 -- Indexed Getters

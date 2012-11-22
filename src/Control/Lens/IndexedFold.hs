@@ -53,10 +53,11 @@ module Control.Lens.IndexedFold
 
 import Control.Applicative
 import Control.Applicative.Backwards
+import Control.Lens.Classes
 import Control.Lens.Indexed
 import Control.Lens.IndexedGetter
 import Control.Lens.Internal
-import Control.Lens.Unsafe
+import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad
 import Data.Monoid

@@ -29,9 +29,10 @@ module Control.Lens.IndexedSetter
   , SimpleReifiedIndexedSetter
   ) where
 
+import Control.Lens.Classes
 import Control.Lens.Indexed
 import Control.Lens.Internal
-import Control.Lens.Unsafe
+import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad.State.Class as State
 

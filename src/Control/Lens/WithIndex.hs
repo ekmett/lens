@@ -4,9 +4,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 704
-{-# LANGUAGE Trustworthy #-}
-#endif
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 706
 {-# LANGUAGE DefaultSignatures #-}
 #define MPTC_DEFAULTS
@@ -66,9 +63,10 @@ import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Monad (void, liftM)
 import Control.Monad.Trans.State.Lazy as Lazy
+import Control.Lens.Classes
 import Control.Lens.Fold
 import Control.Lens.Internal
-import Control.Lens.Unsafe
+import Control.Lens.Internal.Combinators
 import Control.Lens.Indexed
 import Control.Lens.IndexedSetter
 import Control.Lens.IndexedFold

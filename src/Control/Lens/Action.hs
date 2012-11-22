@@ -30,8 +30,9 @@ module Control.Lens.Action
   ) where
 
 import Control.Applicative
+import Control.Lens.Classes
 import Control.Lens.Internal
-import Control.Lens.Unsafe
+import Control.Lens.Internal.Combinators
 import Control.Monad.Trans.Class
 
 -- $setup

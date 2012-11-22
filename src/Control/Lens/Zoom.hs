@@ -26,10 +26,10 @@ module Control.Lens.Zoom
   , Zoom(..)
   ) where
 
-import Control.Lens.Internal
-import Control.Lens.Unsafe
-import Control.Lens.Type
 import Control.Lens.Getter
+import Control.Lens.Internal
+import Control.Lens.Internal.Combinators
+import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader.Class       as Reader
 import Control.Monad.State.Class        as State

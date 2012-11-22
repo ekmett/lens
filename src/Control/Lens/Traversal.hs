@@ -66,10 +66,10 @@ module Control.Lens.Traversal
 
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
-import Control.Lens.Evil
 import Control.Lens.Fold
 import Control.Lens.Internal
-import Control.Lens.Unsafe
+import Control.Lens.Internal.BazaarT
+import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
@@ -327,8 +327,8 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 -- 'partsOf' :: 'Fold' s a             -> 'Getter' s [a]
 -- 'partsOf' :: 'Getter' s a           -> 'Getter' s [a]
 -- @
-partsOf :: Functor f => LensLike (EvilBazaar f a a) s t a a -> LensLike f s t [a] [a]
-partsOf l f s = evilOuts b <$> f (evilIns b) where b = l evilSell s
+partsOf :: Functor f => LensLike (BazaarT a a f) s t a a -> LensLike f s t [a] [a]
+partsOf l f s = outsT b <$> f (insT b) where b = l sellT s
 {-# INLINE partsOf #-}
 
 -- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
@@ -349,8 +349,8 @@ partsOf l f s = evilOuts b <$> f (evilIns b) where b = l evilSell s
 -- 'unsafePartsOf' :: 'Fold' s a          -> 'Getter' s [a]
 -- 'unsafePartsOf' :: 'Getter' s a        -> 'Getter' s [a]
 -- @
-unsafePartsOf :: Functor f => LensLike (EvilBazaar f a b) s t a b -> LensLike f s t [a] [b]
-unsafePartsOf l f s = unsafeEvilOuts b <$> f (evilIns b) where b = l evilSell s
+unsafePartsOf :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t [a] [b]
+unsafePartsOf l f s = unsafeOutsT b <$> f (insT b) where b = l sellT s
 {-# INLINE unsafePartsOf #-}
 
 -- | The one-level version of 'contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
@@ -404,8 +404,9 @@ elementOf l i f s = case getElementOf (l go s) 0 of
 element :: Traversable t => Int -> Simple Lens (t a) a
 element = elementOf traverse
 
-
--- Internal functions used in the implementation of partsOf and holesOf.
+------------------------------------------------------------------------------
+-- Internal functions used by 'partsOf', 'holesOf', etc.
+------------------------------------------------------------------------------
 ins :: Bazaar a b t -> [a]
 ins = toListOf bazaar
 {-# INLINE ins #-}
@@ -414,18 +415,18 @@ outs :: Bazaar a a t -> [a] -> t
 outs = evalState . bazaar (\oldVal -> State.state (unconsWithDefault oldVal))
 {-# INLINE outs #-}
 
-evilIns :: EvilBazaar f a b t -> [a]
-evilIns = toListOf evilBazaar
-{-# INLINE evilIns #-}
+insT :: BazaarT a b f t -> [a]
+insT = toListOf bazaarT
+{-# INLINE insT #-}
 
-evilOuts :: EvilBazaar f a a s -> [a] -> s
-evilOuts = evalState . evilBazaar (\oldVal -> State.state (unconsWithDefault oldVal))
-{-# INLINE evilOuts #-}
+outsT :: BazaarT a a f s -> [a] -> s
+outsT = evalState . bazaarT (\oldVal -> State.state (unconsWithDefault oldVal))
+{-# INLINE outsT #-}
 
-unsafeEvilOuts :: EvilBazaar f a b t -> [b] -> t
-unsafeEvilOuts = evalState . evilBazaar (\_ -> State.state (unconsWithDefault fakeVal))
+unsafeOutsT :: BazaarT a b f t -> [b] -> t
+unsafeOutsT = evalState . bazaarT (\_ -> State.state (unconsWithDefault fakeVal))
   where fakeVal = error "unsafePartsOf: not enough elements were supplied"
-{-# INLINE unsafeEvilOuts #-}
+{-# INLINE unsafeOutsT #-}
 
 unconsWithDefault :: a -> [a] -> (a,[a])
 unconsWithDefault d []     = (d,[])
@@ -506,8 +507,8 @@ traverseRight f (Right a) = Right <$> f a
 --
 -- >>> over (taking 5 traverse) succ "hello world"
 -- "ifmmp world"
-taking :: Applicative f => Int -> SimpleLensLike (EvilBazaar f a a) s a -> SimpleLensLike f s a
-taking n l f s = evilOuts b <$> traverse f (take n $ evilIns b) where b = l evilSell s
+taking :: Applicative f => Int -> SimpleLensLike (BazaarT a a f) s a -> SimpleLensLike f s a
+taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sellT s
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.

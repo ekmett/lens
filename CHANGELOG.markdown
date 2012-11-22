@@ -1,3 +1,9 @@
+3.5
+---
+* Fixed a potential SafeHaskell issue where a user could use `undefined` to derive `unsafeCoerce`. You now have to import an explicitly
+  Unsafe module and create an instance of `Trustworthy` for your type to cause this behavior, so if you do, its on your head, not mine. :)
+* Renamed `EvilBazaar` to `BazaarT` and moved a lot of internals around.
+
 3.4
 ---
 * Renamed `(%)` to `(&)` and `(^%)` to `(^&)`. This avoids the conflict with `Data.Ratio`, which was our highest priority conflict with a third party library.
@@ -12,7 +18,7 @@
 * Simpler `simple`.
 * Added `enum` and `non` to `Control.Lens.Iso`.
 * Added `(^?!)` to `Control.Lens.Fold` for unsafe access to the head of a `Fold`.
-* Changed `_head`, `_tail`, `_init` and `_last` to Traversals in `Data.List.Lens` and `Data.Sequence.Lens`.
+* Changed `_head`, `_tail`, `_init` and `_last` to traversals in `Data.List.Lens` and `Data.Sequence.Lens`.
 * Eliminated `traverseHead`, `traverseTail`, `traverseInit` and `traverseLast`.
 * `partsOf` and `unsafePartsOf` can now also be applied to a `Fold` yielding a `Getter` or to a `MonadicFold` yielding an `Action`.
 

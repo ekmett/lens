@@ -86,8 +86,7 @@ module Control.Lens.Representable
   ) where
 
 import Control.Applicative
-import Control.Lens.Iso
-import Control.Lens.Type
+import Control.Lens.Classes
 import Control.Lens.Getter
 import Control.Lens.Indexed
 import Control.Lens.IndexedFold
@@ -95,7 +94,9 @@ import Control.Lens.IndexedLens
 import Control.Lens.IndexedSetter
 import Control.Lens.IndexedTraversal
 import Control.Lens.Internal
-import Control.Lens.Unsafe
+import Control.Lens.Internal.Combinators
+import Control.Lens.Iso
+import Control.Lens.Type
 import Data.Foldable         as Foldable
 import Data.Functor.Identity
 import Data.Monoid

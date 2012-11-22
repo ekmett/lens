@@ -55,8 +55,9 @@ module Control.Lens.Setter
   , Mutator
   ) where
 
+import Control.Lens.Classes
 import Control.Lens.Internal
-import Control.Lens.Unsafe
+import Control.Lens.Internal.Combinators
 import Control.Monad (liftM)
 import Control.Monad.State.Class as State
 
