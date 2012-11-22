@@ -1,3 +1,7 @@
+3.5.1
+-----
+* Improved SafeHaskell inference.
+
 3.5
 ---
 * Fixed a potential SafeHaskell issue where a user could use `undefined` to derive `unsafeCoerce`. You now have to import an explicitly
