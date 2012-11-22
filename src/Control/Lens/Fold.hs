@@ -757,6 +757,7 @@ a ^? l = getFirst (foldMapOf l (first# Just) a)
 -- @
 (^?!) :: s -> Getting (First a) s t a b -> a
 a ^?! l = fromMaybe (error "(^?!): empty Fold") $ getFirst (foldMapOf l (first# Just) a)
+{-# INLINE (^?!) #-}
 
 -- | Perform a safe 'last' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
