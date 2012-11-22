@@ -90,6 +90,9 @@ module Control.Lens.Type
   , SimpleLensLike
   , SimpleOverloaded
   , SimpleReifiedLens
+
+  -- * Exposed Implementation Details
+  , Context(..)
   ) where
 
 import Control.Applicative              as Applicative

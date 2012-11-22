@@ -43,7 +43,10 @@ module Control.Lens.Traversal
   , scanr1Of, scanl1Of
 
   -- * Parts and Holes
-  , partsOf, unsafePartsOf
+  , partsOf
+  , partsOf'
+  , unsafePartsOf
+  , unsafePartsOf'
   , holesOf
 
   -- * Common Traversals
@@ -62,6 +65,9 @@ module Control.Lens.Traversal
   -- * Simple
   , SimpleTraversal
   , SimpleReifiedTraversal
+
+  -- * Exposed Implementation Details
+  , Bazaar(..)
   ) where
 
 import Control.Applicative              as Applicative
@@ -331,6 +337,11 @@ partsOf :: Functor f => LensLike (BazaarT a a f) s t a a -> LensLike f s t [a] [
 partsOf l f s = outsT b <$> f (insT b) where b = l sellT s
 {-# INLINE partsOf #-}
 
+-- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
+partsOf' :: LensLike (Bazaar a a) s t a a -> Lens s t [a] [a]
+partsOf' l f s = outs b <$> f (ins b) where b = l sell s
+{-# INLINE partsOf' #-}
+
 -- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
 --
 -- If you do not need the types of @s@ and @t@ to be different, it is recommended that
@@ -342,6 +353,8 @@ partsOf l f s = outsT b <$> f (insT b) where b = l sellT s
 -- This is unsafe because if you don't supply at least as many @b@'s as you were
 -- given @a@'s, then the reconstruction of @t@ /will/ result in an error!
 --
+-- When applied to a 'Fold' the result is merely a 'Getter' (and becomes safe).
+--
 -- @
 -- 'unsafePartsOf' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Lens' s t [a] [b]
 -- 'unsafePartsOf' :: 'Lens' s t a b      -> 'Lens' s t [a] [b]
@@ -352,6 +365,10 @@ partsOf l f s = outsT b <$> f (insT b) where b = l sellT s
 unsafePartsOf :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t [a] [b]
 unsafePartsOf l f s = unsafeOutsT b <$> f (insT b) where b = l sellT s
 {-# INLINE unsafePartsOf #-}
+
+unsafePartsOf' :: LensLike (Bazaar a b) s t a b -> Lens s t [a] [b]
+unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
+{-# INLINE unsafePartsOf' #-}
 
 -- | The one-level version of 'contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
 --
@@ -414,6 +431,11 @@ ins = toListOf bazaar
 outs :: Bazaar a a t -> [a] -> t
 outs = evalState . bazaar (\oldVal -> State.state (unconsWithDefault oldVal))
 {-# INLINE outs #-}
+
+unsafeOuts :: Bazaar a b t -> [b] -> t
+unsafeOuts = evalState . bazaar (\_ -> State.state (unconsWithDefault fakeVal))
+  where fakeVal = error "unsafePartsOf': not enough elements were supplied"
+{-# INLINE unsafeOuts #-}
 
 insT :: BazaarT a b f t -> [a]
 insT = toListOf bazaarT

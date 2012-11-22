@@ -121,7 +121,7 @@ data Coil :: * -> * -> * where
   Coil :: Coil Top a
   Snoc :: Coil h b ->
           {-# UNPACK #-} !Int ->
-          SimpleLensLike (BazaarT a a (Context [a] [a])) b a ->
+          SimpleLensLike (Bazaar a a) b a ->
           [b] -> (NonEmpty a -> b) -> [b] ->
           Coil (h :> b) a
 
@@ -267,8 +267,8 @@ down l (Zipper h (Level n ls b rs)) = case l (Context id) b of
 -- 'within' :: 'Simple' 'Lens' b c      -> (a :> b) -> Maybe (a :> b :> c)
 -- 'within' :: 'Simple' 'Iso' b c       -> (a :> b) -> Maybe (a :> b :> c)
 -- @
-within :: SimpleLensLike (BazaarT c c (Context [c] [c])) b c -> (a :> b) -> Maybe (a :> b :> c)
-within l (Zipper h (Level n ls b rs)) = case partsOf l (Context id) b of
+within :: SimpleLensLike (Bazaar c c) b c -> (a :> b) -> Maybe (a :> b :> c)
+within l (Zipper h (Level n ls b rs)) = case partsOf' l (Context id) b of
   Context _ []     -> Nothing
   Context k (c:cs) -> Just (Zipper (Snoc h n l ls (k . NonEmpty.toList) rs) (Level 0 [] c cs))
 {-# INLINE within #-}
@@ -289,8 +289,8 @@ within l (Zipper h (Level n ls b rs)) = case partsOf l (Context id) b of
 --
 -- but it is lazier in such a way that if this invariant is violated, some code
 -- can still succeed if it is lazy enough in the use of the focused value.
-fromWithin :: SimpleLensLike (BazaarT c c (Context [c] [c])) b c -> (a :> b) -> a :> b :> c
-fromWithin l (Zipper h (Level n ls b rs)) = case partsOf l (Context id) b of
+fromWithin :: SimpleLensLike (Bazaar c c) b c -> (a :> b) -> a :> b :> c
+fromWithin l (Zipper h (Level n ls b rs)) = case partsOf' l (Context id) b of
   Context k cs -> Zipper (Snoc h n l ls (k . NonEmpty.toList) rs)
                          (Level 0 [] (Prelude.head cs) (Prelude.tail cs))
 {-# INLINE fromWithin #-}
@@ -317,7 +317,7 @@ peel (Snoc h n l _ _ _) = Fork (peel h) n l
 
 data Track :: * -> * -> * where
   Track :: Track Top a
-  Fork  :: Track h b -> {-# UNPACK #-} !Int -> SimpleLensLike (BazaarT a a (Context [a] [a])) b a -> Track (h :> b) a
+  Fork  :: Track h b -> {-# UNPACK #-} !Int -> SimpleLensLike (Bazaar a a) b a -> Track (h :> b) a
 
 restoreTrack :: Track h a -> Zipped h a -> Maybe (h :> a)
 restoreTrack Track = Just . zipper

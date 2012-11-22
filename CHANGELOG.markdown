@@ -2,7 +2,9 @@
 ---
 * Fixed a potential SafeHaskell issue where a user could use `undefined` to derive `unsafeCoerce`. You now have to import an explicitly
   Unsafe module and create an instance of `Trustworthy` for your type to cause this behavior, so if you do, its on your head, not mine. :)
-* Renamed `EvilBazaar` to `BazaarT` and moved a lot of internals around.
+* Renamed `EvilBazaar` to `BazaarT`.
+* Moved a lot of internals around. Most notably, `Gettable`, `Settable` and `Effective` have moved to `Control.Lens.Classes`.
+* Exposed `partsOf'` and `unsafePartsOf'` in `Control.Lens.Traversal` to reduce reliance on `BazaarT` in `Control.Lens.Zipper`
 
 3.4
 ---
