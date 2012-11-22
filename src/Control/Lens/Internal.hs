@@ -610,5 +610,5 @@ instance Gettable f => Gettable (ElementOf f) where
     Searching j _ mas -> Searching j (error "coerced while searching") (coerce <$> mas)
 
 -- See Control.Lens.Evil.
-instance Gettable g => Gettable (EvilBazaar g a) where
+instance Gettable g => Gettable (EvilBazaar g a b) where
     coerce = unsafeCoerce

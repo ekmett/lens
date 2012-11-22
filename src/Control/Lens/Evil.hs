@@ -14,9 +14,10 @@
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Evil
-    ( EvilBazaar(..)
-    , evilBazaar
-    ) where
+  ( EvilBazaar(..)
+  , evilBazaar
+  , evilSell
+  ) where
 
 
 import Control.Applicative
@@ -32,13 +33,13 @@ import Control.Applicative
 --
 -- @g@ is a phantom type used in the 'Control.Lens.Internal.Gettable' instance.
 
-newtype EvilBazaar (g :: * -> *) a s = EvilBazaar (forall f. Applicative f => (a -> f a) -> f s)
+newtype EvilBazaar (g :: * -> *) a b s = EvilBazaar (forall f. Applicative f => (a -> f b) -> f s)
 
-instance Functor (EvilBazaar g a) where
+instance Functor (EvilBazaar g a b) where
   fmap f (EvilBazaar k) = EvilBazaar (fmap f . k)
   {-# INLINE fmap #-}
 
-instance Applicative (EvilBazaar g a) where
+instance Applicative (EvilBazaar g a b) where
   pure a = EvilBazaar (\_ -> pure a)
   {-# INLINE pure #-}
   EvilBazaar mf <*> EvilBazaar ma = EvilBazaar (\k -> mf k <*> ma k)
@@ -47,6 +48,11 @@ instance Applicative (EvilBazaar g a) where
 -- NB: We can't import .Internal yet, so the 'Gettable' instance is defined there
 -- instead.
 
-evilBazaar :: Applicative f => (a -> f a) -> EvilBazaar g a s -> f s
+evilBazaar :: Applicative f => (a -> f b) -> EvilBazaar g a b s -> f s
 evilBazaar afb (EvilBazaar m) = m afb
 {-# INLINE evilBazaar #-}
+
+-- | A trivial 'Bazaar'.
+evilSell :: a -> EvilBazaar f a b b
+evilSell i = EvilBazaar (\k -> k i)
+{-# INLINE evilSell #-}
