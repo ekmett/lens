@@ -25,15 +25,16 @@ import Control.Applicative
 -- | 'EvilBazaar' is like 'Control.Lens.Internal.Bazaar', except that it has an evil 'Gettable' instance
 -- where @'Control.Lens.Internal.coerce' = 'Unsafe.Coerce.unsafeCoerce'@.
 --
--- This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there *must* be a better way!.
+-- This lets us write a suitably polymorphic and lazy
+-- 'Control.Lens.Traversal.taking', for example. But there must be a better
+-- way!
 --
--- This type isn't exported from the package in a way that allows anyone to
--- write 'Unsafe.Coerce.unsafeCoerce' with it. It's only used in the implementation of
--- 'Control.Lens.Traversal.taking'.
+-- 'EvilBazaar' isn't exported from the package in a way that allows anyone to
+-- write 'Unsafe.Coerce.unsafeCoerce' with it.
 --
 -- @g@ is a phantom type used in the 'Control.Lens.Internal.Gettable' instance.
 
-newtype EvilBazaar (g :: * -> *) a b s = EvilBazaar (forall f. Applicative f => (a -> f b) -> f s)
+newtype EvilBazaar (g :: * -> *) a b t = EvilBazaar (forall f. Applicative f => (a -> f b) -> f t)
 
 instance Functor (EvilBazaar g a b) where
   fmap f (EvilBazaar k) = EvilBazaar (fmap f . k)
@@ -48,7 +49,7 @@ instance Applicative (EvilBazaar g a b) where
 -- NB: We can't import .Internal yet, so the 'Gettable' instance is defined there
 -- instead.
 
-evilBazaar :: Applicative f => (a -> f b) -> EvilBazaar g a b s -> f s
+evilBazaar :: Applicative f => (a -> f b) -> EvilBazaar g a b t -> f t
 evilBazaar afb (EvilBazaar m) = m afb
 {-# INLINE evilBazaar #-}
 

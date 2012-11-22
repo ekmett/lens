@@ -414,7 +414,7 @@ outs :: Bazaar a a t -> [a] -> t
 outs = evalState . bazaar (\oldVal -> State.state (unconsWithDefault oldVal))
 {-# INLINE outs #-}
 
-evilIns :: EvilBazaar f a b s -> [a]
+evilIns :: EvilBazaar f a b t -> [a]
 evilIns = toListOf evilBazaar
 {-# INLINE evilIns #-}
 
