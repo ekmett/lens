@@ -380,6 +380,12 @@ holesOf l a = f (ins b) (outs b) where
 --
 -- >>> [[1],[3,4]]^.elementOf (folded.folded) 1
 -- 3
+--
+-- >>> [0..]^.elementOf folded 5
+-- 5
+--
+-- >>> take 10 $ (elementOf traverse 3 .~ 16) [0..]
+-- [0,1,2,16,4,5,6,7,8,9]
 elementOf :: Functor f => LensLike (ElementOf f) s t a a -> Int -> LensLike f s t a a
 elementOf l i f s = case getElementOf (l go s) 0 of
     Searching _ _ mft -> fromMaybe (error "elOf: index out of range") mft
