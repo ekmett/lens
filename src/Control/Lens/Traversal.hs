@@ -507,9 +507,7 @@ traverseRight f (Right a) = Right <$> f a
 -- >>> over (taking 5 traverse) succ "hello world"
 -- "ifmmp world"
 taking :: Applicative f => Int -> SimpleLensLike (EvilBazaar f a a) s a -> SimpleLensLike f s a
-taking n l f s = evilOuts bz <$> traverse f (take n $ evilIns bz)
-  where
-    bz = l (\i -> EvilBazaar ($ i)) s
+taking n l f s = evilOuts b <$> traverse f (take n $ evilIns b) where b = l evilSell s
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
