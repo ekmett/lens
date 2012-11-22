@@ -4,7 +4,7 @@
 * Switched to a more liberal type for `ignored`
 * Removed some "`isplitting`" bad combinators from `Control.Lens.IndexedFold`.
 * Made `indexed`, `taking`, and `dropping` and `elementOf` lazier, and capable of dealing with infinite lists, but at the cost that `taking` can no longer accept a `Fold`.
-* Removed `Indexing` and `IndexingResult` from `Control.Lens.Internal`.
+* Improved `Indexing` to support infinite traversals and folds.
 * Removed some of the more redundant combinators from `Control.Lens.Plated`, which already had existing aliases in the rest of the traversal API.
 * Moved `partsOf`, `holesOf`, and `elementOf` into `Control.Lens.Traversal`.
 * Renamed `query` to `peruse` and `queries` to `peruses`. These are much less contentious names,
