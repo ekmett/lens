@@ -39,7 +39,8 @@ module Control.Lens.Fold
   -- * Folds
     Fold
   , (^..)
-  , (^?) , (^?!)
+  , (^?)
+  , (^?!), (^!?)
   -- ** Building Folds
   --, folds
   , folding
@@ -92,7 +93,7 @@ import Data.Monoid
 -- $setup
 -- >>> import Control.Lens
 
-infixl 8 ^.., ^?, ^?!
+infixl 8 ^.., ^?, ^?!, ^!?
 
 --------------------------
 -- Folds
@@ -758,6 +759,21 @@ a ^? l = getFirst (foldMapOf l (first# Just) a)
 (^?!) :: s -> Getting (First a) s t a b -> a
 a ^?! l = fromMaybe (error "(^?!): empty Fold") $ getFirst (foldMapOf l (first# Just) a)
 {-# INLINE (^?!) #-}
+
+-- | Perform an *UNSAFE* 'head' of a 'Fold' or 'Control.Lens.Traversal.Traversal' assuming that it is there.
+--
+-- This is an alias for ('^?!').
+--
+-- @
+-- ('^!?') :: s -> 'Getter' s a           -> a
+-- ('^!?') :: s -> 'Fold' s a             -> a
+-- ('^!?') :: s -> 'Simple' 'Lens' s a      -> a
+-- ('^!?') :: s -> 'Simple' 'Control.Lens.Iso.Iso' s a       -> a
+-- ('^!?') :: s -> 'Simple' 'Control.Lens.Traversal.Traversal' s a -> a
+-- @
+(^!?) :: s -> Getting (First a) s t a b -> a
+a ^!? l = fromMaybe (error "(^!?): empty Fold") $ getFirst (foldMapOf l (first# Just) a)
+{-# INLINE (^!?) #-}
 
 -- | Perform a safe 'last' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.

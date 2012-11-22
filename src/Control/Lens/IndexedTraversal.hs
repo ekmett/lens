@@ -36,6 +36,7 @@ module Control.Lens.IndexedTraversal
   , ignored
   , TraverseMin(..)
   , TraverseMax(..)
+  , traversed
 
   -- * Indexed Traversal Combinators
   , itraverseOf
@@ -205,6 +206,10 @@ iwhereOf l p = index $ \f s -> withIndex l (\i a -> if p i then f i a else pure 
 traverseAt :: At k m => k -> SimpleIndexedTraversal k (m v) v
 traverseAt k = at k <. traverse
 {-# INLINE traverseAt #-}
+
+-- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
+traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b
+traversed = indexed traverse
 
 -- | This provides a 'Traversal' that checks a predicate on a key before
 -- allowing you to traverse into a value.

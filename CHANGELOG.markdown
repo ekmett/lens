@@ -12,6 +12,8 @@
 * Simpler `simple`.
 * Added `enum` and `non` to `Control.Lens.Iso`.
 * Added `(^?!)` to `Control.Lens.Fold` for unsafe access to the head of a `Fold`.
+* Changed `_head`, `_tail`, `_init` and `_last` to Traversals in `Data.List.Lens` and `Data.Sequence.Lens`.
+* Eliminated `traverseHead`, `traverseTail`, `traverseInit` and `traverseLast`.
 
 3.3
 ---

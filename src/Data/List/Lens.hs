@@ -62,6 +62,6 @@ _last = index $ \f aas -> case aas of
 -- >>> [1,2,3,4]^!?_init
 -- [1,2,3]
 _init :: Simple Traversal [a] [a]
+_init _ [] = pure []
 _init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
-_init _ as = pure as
 {-# INLINE _init #-}
