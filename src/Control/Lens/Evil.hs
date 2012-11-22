@@ -7,8 +7,9 @@ module Control.Lens.Evil
 import Control.Applicative
 
 -- | 'EvilBazaar' is like 'Control.Lens.Internal.Bazaar', except that it has an evil 'Gettable' instance
--- where @'coerce' = 'Unsafe.Coerce.unsafeCoerce'@. This lets us write a suitably polymorphic and
--- lazy 'Control.Lens.Traversal.taking' (but there *must* be a better way!).
+-- where @'Control.Lens.Internal.coerce' = 'Unsafe.Coerce.unsafeCoerce'@.
+--
+-- This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there *must* be a better way!.
 
 -- This type isn't exported from the package in a way that allows anyone to
 -- write 'Unsafe.Coerce.unsafeCoerce' with it. It's only used in the implementation of
