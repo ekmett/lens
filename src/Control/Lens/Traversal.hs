@@ -66,11 +66,10 @@ module Control.Lens.Traversal
 
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
+import qualified Control.Lens.Evil as Evil
 import Control.Lens.Fold
-import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Unsafe
-import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
@@ -494,8 +493,16 @@ traverseRight f (Right a) = Right <$> f a
 --
 -- >>> over (taking 5 traverse) succ "hello world"
 -- "ifmmp world"
-taking :: Int -> SimpleLensLike (Bazaar a a) s a -> SimpleTraversal s a
-taking n l f s = (\bs -> set (partsOf l) bs s) <$> traverse f (take n $ view (partsOf l) s)
+taking :: Applicative f => Int -> SimpleLensLike (Evil.EvilBazaar f a) s a -> SimpleLensLike f s a
+taking n l f s = evilOuts bz <$> traverse f (take n $ evilIns bz)
+  where
+    bz = l (\i -> Evil.EvilBazaar ($ i)) s
+
+    evilIns :: Evil.EvilBazaar f a s -> [a]
+    evilIns = toListOf Evil.evilBazaar
+
+    evilOuts :: Evil.EvilBazaar f a s -> [a] -> s
+    evilOuts = evalState . Evil.evilBazaar (\oldVal -> State.state (unconsWithDefault oldVal))
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.

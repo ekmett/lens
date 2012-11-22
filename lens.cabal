@@ -209,6 +209,7 @@ library
 
   other-modules:
     Control.Lens.Unsafe
+    Control.Lens.Evil
 
   if flag(template-haskell)
     build-depends: template-haskell >= 2.4 && < 2.9

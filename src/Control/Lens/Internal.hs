@@ -34,6 +34,7 @@ import Control.Category
 import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Lens.Isomorphic
+import Control.Lens.Evil (EvilBazaar)
 import Control.Monad
 import Prelude hiding ((.),id)
 import Data.Foldable
@@ -571,3 +572,7 @@ instance Functor f => Applicative (ElementOf f) where
 instance Gettable f => Gettable (ElementOf f) where
   coerce (ElementOf m) = ElementOf $ \i -> case m i of
     Searching j _ mas -> Searching j (error "coerced while searching") (coerce <$> mas)
+
+-- See Control.Lens.Evil.
+instance Gettable g => Gettable (EvilBazaar g a) where
+    coerce = unsafeCoerce
