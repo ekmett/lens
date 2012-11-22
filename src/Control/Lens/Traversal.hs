@@ -310,7 +310,7 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 -- Parts and Holes
 -------------------------------------------------------------------------------
 
--- | 'partsOf' turns a 'Traversal' into a lens that resembles an early version of the @uniplate@ (or @biplate@) type.
+-- | 'partsOf' turns a 'Traversal' into a 'Lens' that resembles an early version of the @uniplate@ (or @biplate@) type.
 --
 -- /Note:/ You should really try to maintain the invariant of the number of children in the list.
 --
@@ -318,10 +318,14 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 --
 -- So technically, this is only a lens if you do not change the number of results it returns.
 --
+-- When applied to a 'Fold' the result is merely a 'Getter'.
+--
 -- @
 -- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' s a       -> 'Simple' 'Lens' s [a]
 -- 'partsOf' :: 'Simple' 'Lens' s a      -> 'Simple' 'Lens' s [a]
 -- 'partsOf' :: 'Simple' 'Traversal' s a -> 'Simple' 'Lens' s [a]
+-- 'partsOf' :: 'Fold' s a             -> 'Getter' s [a]
+-- 'partsOf' :: 'Getter' s a           -> 'Getter' s [a]
 -- @
 partsOf :: Functor f => LensLike (EvilBazaar f a a) s t a a -> LensLike f s t [a] [a]
 partsOf l f s = evilOuts b <$> f (evilIns b) where b = l evilSell s
@@ -342,6 +346,8 @@ partsOf l f s = evilOuts b <$> f (evilIns b) where b = l evilSell s
 -- 'unsafePartsOf' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Lens' s t [a] [b]
 -- 'unsafePartsOf' :: 'Lens' s t a b      -> 'Lens' s t [a] [b]
 -- 'unsafePartsOf' :: 'Traversal' s t a b -> 'Lens' s t [a] [b]
+-- 'unsafePartsOf' :: 'Fold' s a          -> 'Getter' s [a]
+-- 'unsafePartsOf' :: 'Getter' s a        -> 'Getter' s [a]
 -- @
 unsafePartsOf :: Functor f => LensLike (EvilBazaar f a b) s t a b -> LensLike f s t [a] [b]
 unsafePartsOf l f s = unsafeEvilOuts b <$> f (evilIns b) where b = l evilSell s
