@@ -32,8 +32,8 @@ module Control.Lens.Traversal
   -- * Lenses
     Traversal
 
---  -- ** Lensing Traversals
---  --
+  -- ** Lensing Traversals
+  , element, elementOf
 
   -- * Traversing and Lensing
   , traverseOf, forOf, sequenceAOf
@@ -45,7 +45,6 @@ module Control.Lens.Traversal
   -- * Parts and Holes
   , partsOf, unsafePartsOf
   , holesOf
-  , element, elementOf
 
   -- * Common Traversals
   , Traversable(traverse)
