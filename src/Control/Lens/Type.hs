@@ -706,29 +706,26 @@ type SimpleReifiedLens s a = ReifiedLens s s a a
 newtype FieldException = FieldException Int deriving (Show, Typeable)
 instance Exception FieldException
 
-fresh :: State Int Int
-fresh = do
-  x <- get
-  put $! x + 1
-  return x
-
-getFieldIndex :: forall a b. Data a => (a -> b) -> a -> Maybe Int
-getFieldIndex ac a = unsafePerformIO $ do
-  x <- C.try $ evaluate $ ac $ evalState (gmapM go a) 0
-  case x of
-    Left (FieldException e) -> return (Just e)
-    Right _ -> return Nothing
+indexedGmap :: Data s => (forall a. Data a => Int -> a -> a) -> s -> s
+indexedGmap f s = (`evalState` 0) $ gmapM go s
   where
-    go :: Data d => d -> State Int d
-    go _ = C.throw . FieldException <$> fresh
+    go :: Data a => a -> State Int a
+    go a = do
+      i <- get
+      put $! i + 1
+      return (f i a)
 
-updateFieldByIndex :: Data a => Maybe Int -> a -> b -> a
-updateFieldByIndex Nothing  a _ = a
-updateFieldByIndex (Just i) a b = evalState (gmapM go a) 0 where
-  go :: Data d => d -> State Int d
-  go d = do
-    x <- fresh
-    return (if x == i then unsafeCoerce b else d)
+getFieldIndex :: Data s => (s -> a) -> s -> Maybe Int
+getFieldIndex ac s = unsafePerformIO $ do
+  let s' = indexedGmap (\i _ -> C.throw (FieldException i)) s
+  x <- C.try $ evaluate (ac s')
+  return $ case x of
+    Left (FieldException e) -> Just e
+    Right _ -> Nothing
+
+updateFieldByIndex :: Data s => Maybe Int -> s -> a -> s
+updateFieldByIndex Nothing  s _ = s
+updateFieldByIndex (Just i) s a = indexedGmap (\j x -> if i == j then unsafeCoerce a else x) s
 
 -- | This automatically constructs a 'Simple' 'Lens' from a field accessor, subject to
 -- a few caveats.
@@ -740,6 +737,6 @@ updateFieldByIndex (Just i) a b = evalState (gmapM go a) 0 where
 -- to access nested structures or use non-field accessor functions will fail to write back.
 --
 -- Second, the field must not be strict or unboxed.
-field :: forall a b. Data a => (a -> b) -> Simple Lens a b
-field g f a = updateFieldByIndex ix a <$> f (g a) where
-  ix = getFieldIndex g a
+field :: Data s => (s -> a) -> Simple Lens s a
+field ac f s = updateFieldByIndex ix s <$> f (ac s) where
+  ix = getFieldIndex ac s
