@@ -135,17 +135,34 @@ instance Show (FieldException a) where
 
 instance Typeable a => Exception (FieldException a)
 
--- | This automatically constructs a 'Simple' 'Traversal' from a field accessor, subject to
--- a few caveats.
+-- | This automatically constructs a 'Simple' 'Traversal' from a field accessor.
 --
 -- >>> (2,4) & upon fst *~ 5
 -- (10,4)
 --
--- First, the user supplied function must access one of the immediate descendants of the structure as attempts
--- to access deeper structures or use non-field accessor functions will fail to write back. (The target must be
--- a field that would be visited by 'template'.
+-- There are however, a few caveats on how this function can be used:
 --
--- Second, the field must not be strict or unboxed.
+-- First, the user supplied function must access one of the \"immediate descendants\" of the structure as attempts
+-- to access deeper structures or use non-field accessor functions will generate an empty 'Traversal'.
+--
+-- A more rigorous way to say \"immediate descendants\" is that the function must only inspect one value that would
+-- be visited by 'template'.
+--
+-- Note: this even permits some functions to be used directly.
+--
+-- >>> [1,2,3,4] & upon head .~ 0
+-- [0,2,3,4]
+--
+-- >>> [1,2,3,4] & upon last .~ 5
+-- [1,2,3,5]
+--
+-- >>> [1,2,3,4] ^? upon tail
+-- Just [2,3,4]
+--
+-- >>> [] ^? upon tail
+-- Nothing
+--
+-- Second, the structure must not contain strict or unboxed fields of the same type that will be visited by 'Data'
 --
 -- If the supplied function is not a descendant that would be visible to 'template', the resulting 'Traversal'
 -- will traverse no elements.
