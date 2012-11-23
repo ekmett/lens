@@ -1,8 +1,11 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ExistentialQuantification #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
@@ -28,6 +31,7 @@ module Data.Data.Lens
   , tinplate
   , uniplate
   , biplate
+  , upon
   -- * Traversal of Data
   , gtraverse
   ) where
@@ -36,6 +40,9 @@ import           Control.Applicative
 import           Control.Arrow ((&&&))
 import           Control.Exception as E
 import           Control.Lens.Traversal
+import           Control.Lens.Indexed
+import           Control.Lens.IndexedSetter
+import           Control.Lens.IndexedTraversal
 import           Control.Lens.Type
 import           Data.Data
 import           Data.Foldable
@@ -105,6 +112,45 @@ biplate :: forall s a. (Data s, Typeable a) => Simple Traversal s a
 biplate = biplateData (fromOracle answer) where
   answer = hitTest (undefined :: s) (undefined :: a)
 {-# INLINE biplate #-}
+
+------------------------------------------------------------------------------
+-- Automatic Traversal construction from field accessors
+------------------------------------------------------------------------------
+
+data FieldException a = FieldException !Int a deriving Typeable
+
+instance Show (FieldException a) where
+  showsPrec d (FieldException i _) = showParen (d > 10) $
+    showString "<field " . showsPrec 11 i . showChar '>'
+
+instance Typeable a => Exception (FieldException a)
+
+igfor :: (Data s, Typeable a) => s -> (Int -> a -> a) -> s
+igfor s f  = iover (indexed template) f s
+
+updateFieldByIndex :: (Data s, Typeable a) => Int -> s -> a -> s
+updateFieldByIndex i s a = igfor s $ \j x -> if i == j then a else x
+
+-- | This automatically constructs a 'Simple' 'Traversal' from a field accessor, subject to
+-- a few caveats.
+--
+-- >>> (2,4) & upon fst *~ 5
+-- (10,4)
+--
+-- First, the user supplied function must access one of the immediate descendants of the structure as attempts
+-- to access nested structures or use non-field accessor functions will fail to write back.
+--
+-- Second, the field must not be strict or unboxed.
+--
+-- If the supplied function is not a descendant that would be visible to 'template', the resulting 'Traversal'
+-- will traverse no elements.
+upon :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedTraversal Int s a
+upon ac = index $ \f s -> unsafePerformIO $ do
+  let s' = igfor s $ \i (a :: a) -> E.throw (FieldException i a)
+  x <- E.try $ evaluate (ac s')
+  return $ case x of
+    Right _ -> pure s
+    Left (FieldException i (a :: a)) -> updateFieldByIndex i s <$> f i a
 
 -------------------------------------------------------------------------------
 -- Data Box

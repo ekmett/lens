@@ -1,6 +1,7 @@
 3.6
 -----
-* Added `upon` to `Control.Lens.Traversal`, which can be used to generate a `Traversal` from a field accessor by abusing `Data.Data` without quasiquotation.
+* Added `upon` to `Data.Data.Lens`, which can be used to generate a `Traversal` from a field accessor or any function that returns, unmodified
+  a single field that would be visited by `template`.
 * Added some missing examples/ files to the distribution.
 * Renamed `Data.Bits.Lens.traverseBits` to `bits`.
 * Removed `(^!?)`, which was an alias for `(^?!)`.

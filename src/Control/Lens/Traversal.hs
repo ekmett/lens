@@ -57,7 +57,6 @@ module Control.Lens.Traversal
   , traverseLeft
   , traverseRight
   , both
-  , upon
   , beside
   , taking
   , dropping
@@ -76,17 +75,14 @@ module Control.Lens.Traversal
 
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
-import Control.Exception as C
 import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
-import Data.Data
 import Data.Maybe
 import Data.Traversable
-import System.IO.Unsafe
 
 
 -- $setup
@@ -586,55 +582,3 @@ data ReifiedTraversal s t a b = ReifyTraversal { reflectTraversal :: Traversal s
 -- | @type SimpleReifiedTraversal = 'Simple' 'ReifiedTraversal'@
 type SimpleReifiedTraversal s a = ReifiedTraversal s s a a
 
-------------------------------------------------------------------------------
--- Automatic Traversal construction from field accessors
-------------------------------------------------------------------------------
-
-data FieldException where
-  FieldException :: Data b => b -> Int -> FieldException
-  deriving Typeable
-
-instance Show FieldException where
-  showsPrec d (FieldException _ i) = showParen (d > 10) $
-    showString "<field " . showsPrec 11 i . showChar '>'
-
-instance Exception FieldException
-
-igfor :: Data s => s -> (forall a. Data a => Int -> a -> a) -> s
-igfor s f = Lazy.evalState (gmapM go s) 0
-  where
-    go :: Data a => a -> Lazy.State Int a
-    go a = do
-      i <- Lazy.get
-      Lazy.put $! i + 1
-      return (f i a)
-
-updateFieldByIndex :: (Data s, Typeable a) => Int -> s -> a -> s
-updateFieldByIndex i s a = igfor s $ \j x ->
-  if i == j
-  then case cast a of
-    Just a' -> a'
-    Nothing -> x
-  else x
-
--- | This automatically constructs a 'Simple' 'Traversal' from a field accessor, subject to
--- a few caveats.
---
--- >>> (2,4) & upon fst *~ 5
--- (10,4)
---
--- First, the user supplied function must access one of the immediate members of the structure as attempts
--- to access nested structures or use non-field accessor functions will fail to write back.
---
--- Second, the field must not be strict or unboxed.
---
--- If the supplied function is not a field accessor, the resulting Traversal will traverse no elements.
-upon :: (Data s, Typeable a) => (s -> a) -> Simple Traversal s a
-upon ac f s = unsafePerformIO $ do
-  let s' = igfor s $ \i e -> C.throw (FieldException e i)
-  x <- C.try $ evaluate (ac s')
-  return $ case x of
-    Right _ -> pure s
-    Left (FieldException e i) -> case cast e of
-      Nothing -> pure s
-      Just a -> updateFieldByIndex i s <$> f a
