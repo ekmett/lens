@@ -13,8 +13,10 @@
 --
 ----------------------------------------------------------------------------
 module Data.Complex.Lens
-  ( real, imaginary, polarize
-  , traverseComplex
+  ( real
+  , imaginary
+  , polarize
+  , complex
   ) where
 
 import Control.Applicative
@@ -55,16 +57,15 @@ imaginary f (a :+ b) = (a :+) <$> f b
 -- as the 'phase' information is lost. So don't do that!
 --
 -- Otherwise, this is a perfectly cromulent 'Lens'.
-polarize :: (RealFloat a, RealFloat b) => Iso (Complex a) (Complex b) (a,a) (b,b)
-polarize = isos polar (uncurry mkPolar)
-                polar (uncurry mkPolar)
+polarize :: RealFloat a => Iso (Complex a) (a,a)
+polarize = iso polar (uncurry mkPolar)
 
 -- | Traverse both the real and imaginary parts of a 'Complex' number.
 --
--- > traverseComplex :: Applicative f => (a -> f b) -> Complex a -> f (Complex b)
+-- > complex :: Applicative f => (a -> f b) -> Complex a -> f (Complex b)
 #if MIN_VERSION_base(4,4,0)
-traverseComplex :: Traversal (Complex a) (Complex b) a b
+complex :: Traversal (Complex a) (Complex b) a b
 #else
-traverseComplex :: (RealFloat a, RealFloat b) => Traversal (Complex a) (Complex b) a b
+complex :: (RealFloat a, RealFloat b) => Traversal (Complex a) (Complex b) a b
 #endif
-traverseComplex f (a :+ b) = (:+) <$> f a <*> f b
+complex f (a :+ b) = (:+) <$> f a <*> f b

@@ -435,7 +435,7 @@ levelWidth :: Level a -> Int
 levelWidth (Level n _ _ rs) = n + 1 + length rs
 {-# INLINE levelWidth #-}
 
--- | Pull the non-emtpy list zipper left one entry
+-- | Pull the non-empty list zipper left one entry
 leftLevel :: Level a -> Maybe (Level a)
 leftLevel (Level _ []     _ _ ) = Nothing
 leftLevel (Level n (l:ls) a rs) = Just (Level (n - 1) ls l (a:rs))

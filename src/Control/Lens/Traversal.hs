@@ -48,8 +48,8 @@ module Control.Lens.Traversal
 
   -- * Common Traversals
   , Traversable(traverse)
-  , traverseLeft
-  , traverseRight
+  , _left
+  , _right
   , both
   , beside
   , taking
@@ -447,43 +447,43 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 
 -- | A traversal for tweaking the left-hand value of an 'Either':
 --
--- >>> over traverseLeft (+1) (Left 2)
+-- >>> over _left (+1) (Left 2)
 -- Left 3
--- >>> over traverseLeft (+1) (Right 2)
+-- >>> over _left (+1) (Right 2)
 -- Right 2
--- >>> Right 42 ^.traverseLeft :: String
+-- >>> Right 42 ^._left :: String
 -- ""
--- >>> Left "hello" ^.traverseLeft
+-- >>> Left "hello" ^._left
 -- "hello"
 --
--- @traverseLeft :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ('Either' b c)@
-traverseLeft :: Traversal (Either a c) (Either b c) a b
-traverseLeft f (Left a)  = Left <$> f a
-traverseLeft _ (Right c) = pure $ Right c
-{-# INLINE traverseLeft #-}
+-- @_left :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ('Either' b c)@
+_left :: Traversal (Either a c) (Either b c) a b
+_left f (Left a)  = Left <$> f a
+_left _ (Right c) = pure $ Right c
+{-# INLINE _left #-}
 
 -- | traverse the right-hand value of an 'Either':
 --
--- @'traverseRight' ≡ 'Data.Traversable.traverse'@
+-- @'_right' ≡ 'Data.Traversable.traverse'@
 --
 -- Unfortunately the instance for
 -- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,
 -- so this can't just be 'Data.Traversable.traverse'
 --
--- >>> over traverseRight (+1) (Left 2)
+-- >>> over _right (+1) (Left 2)
 -- Left 2
--- >>> over traverseRight (+1) (Right 2)
+-- >>> over _right (+1) (Right 2)
 -- Right 3
--- >>> Right "hello" ^.traverseRight
+-- >>> Right "hello" ^._right
 -- "hello"
--- >>> Left "hello" ^.traverseRight :: [Double]
+-- >>> Left "hello" ^._right :: [Double]
 -- []
 --
--- @traverseRight :: 'Applicative' f => (a -> f b) -> 'Either' c a -> f ('Either' c a)@
-traverseRight :: Traversal (Either c a) (Either c b) a b
-traverseRight _ (Left c) = pure $ Left c
-traverseRight f (Right a) = Right <$> f a
-{-# INLINE traverseRight #-}
+-- @_right :: 'Applicative' f => (a -> f b) -> 'Either' c a -> f ('Either' c a)@
+_right :: Traversal (Either c a) (Either c b) a b
+_right _ (Left c) = pure $ Left c
+_right f (Right a) = Right <$> f a
+{-# INLINE _right #-}
 
 -- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
 --

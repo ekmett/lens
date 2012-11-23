@@ -10,6 +10,9 @@
 * Added `(<&>)` to `Control.Lens.Combinators`.
 * `element` and `elementOf` are now indexed traversals rather than lenses and have moved to `Control.Lens.IndexedTraversal`. This both fixes their former partiality and lets you use chain indexed combinators with them.
 * Added `elements` and `elementsOf` as indexed traversals for ordinal indexing into regular traversals that generalize `element` and `elementOf`.
+* Renamed `Data.Complex.Lens.traverseComplex` to `complex`.
+* Changed `Data.Complex.Lens.polarize` to a `Simple Iso`, due to the `RealFloat` constraint causing inference problems.
+* Renamed `traverseLeft` and `traverseRight` to `_left` and `_right` respectively.
 
 3.5.1
 -----
