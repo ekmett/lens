@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
@@ -589,11 +590,18 @@ type SimpleReifiedTraversal s a = ReifiedTraversal s s a a
 -- Automatic Traversal construction from field accessors
 ------------------------------------------------------------------------------
 
-newtype FieldException = FieldException Int deriving (Show, Typeable)
+data FieldException where
+  FieldException :: Data b => b -> Int -> FieldException
+  deriving Typeable
+
+instance Show FieldException where
+  showsPrec d (FieldException _ i) = showParen (d > 10) $
+    showString "<field " . showsPrec 11 i . showChar '>'
+
 instance Exception FieldException
 
-iGfor :: Data s => s -> (forall a. Data a => Int -> a -> a) -> s
-iGfor s f = Lazy.evalState (gmapM go s) 0
+igfor :: Data s => s -> (forall a. Data a => Int -> a -> a) -> s
+igfor s f = Lazy.evalState (gmapM go s) 0
   where
     go :: Data a => a -> Lazy.State Int a
     go a = do
@@ -601,16 +609,8 @@ iGfor s f = Lazy.evalState (gmapM go s) 0
       Lazy.put $! i + 1
       return (f i a)
 
-getFieldIndex :: Data s => (s -> a) -> s -> Maybe Int
-getFieldIndex ac s = unsafePerformIO $ do
-  let s' = iGfor s $ \i _ -> C.throw (FieldException i)
-  x <- C.try $ evaluate (ac s')
-  return $ case x of
-    Left (FieldException e) -> Just e
-    Right _                 -> Nothing
-
 updateFieldByIndex :: (Data s, Typeable a) => Int -> s -> a -> s
-updateFieldByIndex i s a = iGfor s $ \j x ->
+updateFieldByIndex i s a = igfor s $ \j x ->
   if i == j
   then case cast a of
     Just a' -> a'
@@ -630,6 +630,11 @@ updateFieldByIndex i s a = iGfor s $ \j x ->
 --
 -- If the supplied function is not a field accessor, the resulting Traversal will traverse no elements.
 field :: (Data s, Typeable a) => (s -> a) -> Simple Traversal s a
-field ac f s = case getFieldIndex ac s of
-  Nothing -> pure s
-  Just ix -> updateFieldByIndex ix s <$> f (ac s) where
+field ac f s = unsafePerformIO $ do
+  let s' = igfor s $ \i e -> C.throw (FieldException e i)
+  x <- C.try $ evaluate (ac s')
+  return $ case x of
+    Right _ -> pure s
+    Left (FieldException e i) -> case cast e of
+      Nothing -> pure s
+      Just a -> updateFieldByIndex i s <$> f a
