@@ -9,10 +9,12 @@
 --
 -------------------------------------------------------------------------------
 module Control.Lens.Combinators
-  ( (<$!>), (<$!)
+  ( (<$!>), (<$!), (<&>)
   ) where
 
-infixr 4 <$!>, <$!
+import Data.Functor
+
+infixr 4 <$!>, <$!, <&>
 
 -- | A strict version of ('Data.Functor.<$>') for monads.
 --
@@ -33,3 +35,10 @@ b <$! m = do
   _ <- m
   return $! b
 {-# INLINE (<$!) #-}
+
+-- | Infix flipped fmap.
+--
+-- @('<&>') = 'flip' 'fmap'@
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+as <&> f = f <$> as
+{-# INLINE (<&>) #-}

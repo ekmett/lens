@@ -40,6 +40,7 @@ import           Control.Applicative
 import           Control.Arrow ((&&&))
 import           Control.Exception as E
 import           Control.Lens.Traversal
+import           Control.Lens.Combinators
 import           Control.Lens.Getter
 import           Control.Lens.Indexed
 import           Control.Lens.IndexedSetter
@@ -126,9 +127,6 @@ instance Show (FieldException a) where
 
 instance Typeable a => Exception (FieldException a)
 
-updateFieldByIndex :: (Data s, Typeable a) => Int -> s -> a -> s
-updateFieldByIndex i s a = s & indexed template %@~ \j x -> if i == j then a else x
-
 -- | This automatically constructs a 'Simple' 'Traversal' from a field accessor, subject to
 -- a few caveats.
 --
@@ -148,7 +146,8 @@ upon ac = index $ \f s -> unsafePerformIO $ do
   x <- E.try $ evaluate (ac s')
   return $ case x of
     Right _ -> pure s
-    Left (FieldException i (a :: a)) -> updateFieldByIndex i s <$> f i a
+    Left (FieldException i (a :: a)) -> f i a <&> \a' ->
+      s & indexed template %@~ \j b -> if i == j then a' else b
 
 -------------------------------------------------------------------------------
 -- Data Box

@@ -1,12 +1,13 @@
 3.6
 -----
-* Added `upon` to `Data.Data.Lens`, which can be used to generate a `Traversal` from a field accessor or any function that returns, unmodified
+* Added `upon` to `Data.Data.Lens`, which can be used to generate a `Traversal` from a field accessor or any function that returns, unmodified,
   a single field that would be visited by `template`.
 * Added some missing examples/ files to the distribution.
 * Renamed `Data.Bits.Lens.traverseBits` to `bits`.
 * Removed `(^!?)`, which was an alias for `(^?!)`.
 * Removed the need for `Trustworthy` by changing the implementation of `coerce` for `BazaarT`.
 * Moved BazaarT to `Control.Lens.Internal`.
+* Added `(<&>)` to `Control.Lens.Combinators`.
 
 3.5.1
 -----
