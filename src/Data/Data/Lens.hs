@@ -40,6 +40,7 @@ import           Control.Applicative
 import           Control.Arrow ((&&&))
 import           Control.Exception as E
 import           Control.Lens.Traversal
+import           Control.Lens.Getter
 import           Control.Lens.Indexed
 import           Control.Lens.IndexedSetter
 import           Control.Lens.IndexedTraversal
@@ -125,11 +126,8 @@ instance Show (FieldException a) where
 
 instance Typeable a => Exception (FieldException a)
 
-igfor :: (Data s, Typeable a) => s -> (Int -> a -> a) -> s
-igfor s f  = iover (indexed template) f s
-
 updateFieldByIndex :: (Data s, Typeable a) => Int -> s -> a -> s
-updateFieldByIndex i s a = igfor s $ \j x -> if i == j then a else x
+updateFieldByIndex i s a = s & indexed template %@~ \j x -> if i == j then a else x
 
 -- | This automatically constructs a 'Simple' 'Traversal' from a field accessor, subject to
 -- a few caveats.
@@ -146,7 +144,7 @@ updateFieldByIndex i s a = igfor s $ \j x -> if i == j then a else x
 -- will traverse no elements.
 upon :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedTraversal Int s a
 upon ac = index $ \f s -> unsafePerformIO $ do
-  let s' = igfor s $ \i (a :: a) -> E.throw (FieldException i a)
+  let s' = s & indexed template %@~ \i (a :: a) -> E.throw (FieldException i a)
   x <- E.try $ evaluate (ac s')
   return $ case x of
     Right _ -> pure s
