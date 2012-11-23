@@ -27,12 +27,16 @@
 --
 ----------------------------------------------------------------------------
 module Data.Data.Lens
-  ( template
+  (
+  -- * Generic Traversal
+    template
   , tinplate
   , uniplate
   , biplate
+  -- * Field Accessor Traversal
   , upon
-  -- * Traversal of Data
+  , upon'
+  -- * Data Traversal
   , gtraverse
   ) where
 
@@ -43,6 +47,7 @@ import           Control.Lens.Traversal
 import           Control.Lens.Combinators
 import           Control.Lens.Getter
 import           Control.Lens.Indexed
+import           Control.Lens.IndexedLens
 import           Control.Lens.IndexedSetter
 import           Control.Lens.IndexedTraversal
 import           Control.Lens.Type
@@ -134,20 +139,42 @@ instance Typeable a => Exception (FieldException a)
 -- (10,4)
 --
 -- First, the user supplied function must access one of the immediate descendants of the structure as attempts
--- to access nested structures or use non-field accessor functions will fail to write back.
+-- to access deeper structures or use non-field accessor functions will fail to write back. (The target must be
+-- a field that would be visited by 'template'.
 --
 -- Second, the field must not be strict or unboxed.
 --
 -- If the supplied function is not a descendant that would be visible to 'template', the resulting 'Traversal'
 -- will traverse no elements.
+--
+-- The index of the 'Traversal' can be used as an offset into @'elementOf' ('indexed' 'template')@ or into the list
+-- returned by @'holesOf' 'template'@.
 upon :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedTraversal Int s a
-upon ac = index $ \f s -> unsafePerformIO $ do
-  let s' = s & indexed template %@~ \i (a :: a) -> E.throw (FieldException i a)
-  x <- E.try $ evaluate (ac s')
-  return $ case x of
+upon field = index $ \f s ->
+  case unsafePerformIO $ E.try $ evaluate $ field $ s & indexed template %@~ \i (a::a) -> E.throw (FieldException i a) of
     Right _ -> pure s
-    Left (FieldException i (a :: a)) -> f i a <&> \a' ->
-      s & indexed template %@~ \j b -> if i == j then a' else b
+    Left (FieldException i (a::a)) ->
+      f i a <&> \a' -> s & indexed template %@~ \j b -> if i == j then a' else b
+
+-- | This more trusting version of 'upon' uses your function directly as the \"getter\" for a 'Lens'.
+--
+-- This means that reading from 'upon'' is considerably faster than 'upon'.
+--
+-- However, you pay for faster access in two ways:
+--
+-- 1. When passed an illegal field accessor, 'upon'' will give you a 'Lens' that quietly violates
+--    the laws unlike 'upon' will will give you a legal 'Traversal', that avoids modifying the target.
+--
+-- 2. Modifying with the lens is slightly slower, since it has to go back and calculate the index after the fact.
+--
+-- When given a legal field accessor, the index of the 'Lens' can be used as an offset into
+-- @'elementOf' ('indexed' 'template')@ or into the list returned by @'holesOf' 'template'@.
+upon' :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedLens Int s a
+upon' field = index $ \f s -> let
+  i = case unsafePerformIO $ E.try $ evaluate $ field $ s & indexed template %@~ \j (a::a) -> E.throw (FieldException j a) of
+    Right _ -> error "upon': no index, not a field"
+    Left (FieldException j (_::a)) -> j
+  in f i (field s) <&> \a' -> s & indexed template %@~ \j b -> if i == j then a' else b
 
 -------------------------------------------------------------------------------
 -- Data Box
