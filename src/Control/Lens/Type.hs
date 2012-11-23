@@ -6,8 +6,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE KindSignatures #-}
 
 #ifndef MIN_VERSION_mtl
 #define MIN_VERSION_mtl(x,y,z) 1
@@ -60,7 +58,6 @@ module Control.Lens.Type
   , Simple
 
   , lens
-  , field
   , (%%~)
   , (%%=)
 
@@ -101,10 +98,6 @@ module Control.Lens.Type
 import Control.Applicative              as Applicative
 import Control.Lens.Internal
 import Control.Monad.State              as State
-import Control.Exception as C
-import Data.Data
-import System.IO.Unsafe
-import Unsafe.Coerce
 
 -- $setup
 -- >>> import Control.Lens
@@ -698,45 +691,3 @@ newtype ReifiedLens s t a b = ReifyLens { reflectLens :: Lens s t a b }
 
 -- | @type 'SimpleReifiedLens' = 'Simple' 'ReifiedLens'@
 type SimpleReifiedLens s a = ReifiedLens s s a a
-
-------------------------------------------------------------------------------
--- Automatic lens construction from fields.
-------------------------------------------------------------------------------
-
-newtype FieldException = FieldException Int deriving (Show, Typeable)
-instance Exception FieldException
-
-indexedGmap :: Data s => (forall a. Data a => Int -> a -> a) -> s -> s
-indexedGmap f s = (`evalState` 0) $ gmapM go s
-  where
-    go :: Data a => a -> State Int a
-    go a = do
-      i <- get
-      put $! i + 1
-      return (f i a)
-
-getFieldIndex :: Data s => (s -> a) -> s -> Maybe Int
-getFieldIndex ac s = unsafePerformIO $ do
-  let s' = indexedGmap (\i _ -> C.throw (FieldException i)) s
-  x <- C.try $ evaluate (ac s')
-  return $ case x of
-    Left (FieldException e) -> Just e
-    Right _ -> Nothing
-
-updateFieldByIndex :: Data s => Maybe Int -> s -> a -> s
-updateFieldByIndex Nothing  s _ = s
-updateFieldByIndex (Just i) s a = indexedGmap (\j x -> if i == j then unsafeCoerce a else x) s
-
--- | This automatically constructs a 'Simple' 'Lens' from a field accessor, subject to
--- a few caveats.
---
--- >>> field fst *~ 5 $ (2,4)
--- (10,4)
---
--- First, the user supplied function must access one of the immediate members of the structure as attempts
--- to access nested structures or use non-field accessor functions will fail to write back.
---
--- Second, the field must not be strict or unboxed.
-field :: Data s => (s -> a) -> Simple Lens s a
-field ac f s = updateFieldByIndex ix s <$> f (ac s) where
-  ix = getFieldIndex ac s

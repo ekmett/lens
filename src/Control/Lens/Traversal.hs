@@ -1,7 +1,9 @@
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Traversal
@@ -54,6 +56,7 @@ module Control.Lens.Traversal
   , traverseLeft
   , traverseRight
   , both
+  , field
   , beside
   , taking
   , dropping
@@ -72,14 +75,18 @@ module Control.Lens.Traversal
 
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
+import Control.Exception as C
 import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
+import Data.Data
 import Data.Maybe
 import Data.Traversable
+import System.IO.Unsafe
+
 
 -- $setup
 -- >>> import Control.Lens
@@ -577,3 +584,52 @@ data ReifiedTraversal s t a b = ReifyTraversal { reflectTraversal :: Traversal s
 
 -- | @type SimpleReifiedTraversal = 'Simple' 'ReifiedTraversal'@
 type SimpleReifiedTraversal s a = ReifiedTraversal s s a a
+
+------------------------------------------------------------------------------
+-- Automatic traversal construction from fields.
+------------------------------------------------------------------------------
+
+newtype FieldException = FieldException Int deriving (Show, Typeable)
+instance Exception FieldException
+
+indexedGmap :: Data s => (forall a. Data a => Int -> a -> a) -> s -> s
+indexedGmap f s = Lazy.evalState (gmapM go s) 0
+  where
+    go :: Data a => a -> Lazy.State Int a
+    go a = do
+      i <- Lazy.get
+      Lazy.put $! i + 1
+      return (f i a)
+
+getFieldIndex :: Data s => (s -> a) -> s -> Maybe Int
+getFieldIndex ac s = unsafePerformIO $ do
+  let s' = indexedGmap (\i _ -> C.throw (FieldException i)) s
+  x <- C.try $ evaluate (ac s')
+  return $ case x of
+    Left (FieldException e) -> Just e
+    Right _                 -> Nothing
+
+updateFieldByIndex :: (Data s, Typeable a) => Int -> s -> a -> s
+updateFieldByIndex i s a = indexedGmap go s where
+  go j x
+    | i == j = case cast a of
+      Just a' -> a'
+      Nothing -> x
+    | otherwise = x
+
+-- | This automatically constructs a 'Simple' 'Traversal' from a field accessor, subject to
+-- a few caveats.
+--
+-- >>> field fst *~ 5 $ (2,4)
+-- (10,4)
+--
+-- First, the user supplied function must access one of the immediate members of the structure as attempts
+-- to access nested structures or use non-field accessor functions will fail to write back.
+--
+-- Second, the field must not be strict or unboxed.
+--
+-- If the supplied function is not a field accessor, the resulting Traversal will traverse no elements.
+field :: (Data s, Typeable a) => (s -> a) -> Simple Traversal s a
+field ac f s = case getFieldIndex ac s of
+  Nothing -> pure s
+  Just ix -> updateFieldByIndex ix s <$> f (ac s) where
