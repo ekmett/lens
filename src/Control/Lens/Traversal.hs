@@ -592,8 +592,8 @@ type SimpleReifiedTraversal s a = ReifiedTraversal s s a a
 newtype FieldException = FieldException Int deriving (Show, Typeable)
 instance Exception FieldException
 
-indexedGmap :: Data s => (forall a. Data a => Int -> a -> a) -> s -> s
-indexedGmap f s = Lazy.evalState (gmapM go s) 0
+iGfor :: Data s => s -> (forall a. Data a => Int -> a -> a) -> s
+iGfor s f = Lazy.evalState (gmapM go s) 0
   where
     go :: Data a => a -> Lazy.State Int a
     go a = do
@@ -603,19 +603,19 @@ indexedGmap f s = Lazy.evalState (gmapM go s) 0
 
 getFieldIndex :: Data s => (s -> a) -> s -> Maybe Int
 getFieldIndex ac s = unsafePerformIO $ do
-  let s' = indexedGmap (\i _ -> C.throw (FieldException i)) s
+  let s' = iGfor s $ \i _ -> C.throw (FieldException i)
   x <- C.try $ evaluate (ac s')
   return $ case x of
     Left (FieldException e) -> Just e
     Right _                 -> Nothing
 
 updateFieldByIndex :: (Data s, Typeable a) => Int -> s -> a -> s
-updateFieldByIndex i s a = indexedGmap go s where
-  go j x
-    | i == j = case cast a of
-      Just a' -> a'
-      Nothing -> x
-    | otherwise = x
+updateFieldByIndex i s a = iGfor s $ \j x ->
+  if i == j
+  then case cast a of
+    Just a' -> a'
+    Nothing -> x
+  else x
 
 -- | This automatically constructs a 'Simple' 'Traversal' from a field accessor, subject to
 -- a few caveats.
