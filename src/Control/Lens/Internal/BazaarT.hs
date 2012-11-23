@@ -66,4 +66,4 @@ sellT i = BazaarT (\k -> k i)
 instance Trustworthy g => Trustworthy (BazaarT a b g)
 
 instance Gettable g => Gettable (BazaarT a b g) where
-    coerce = unsafeCoerce
+    coerce = fmap unsafeCoerce
