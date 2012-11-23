@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       3.5.1
+version:       3.5.2
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -94,6 +94,7 @@ extra-source-files:
   examples/Pong.hs
   examples/Plates.hs
   examples/Aeson.hs
+  examples/Turtle.hs
   examples/Brainfuck.hs
   examples/bf-examples/*.bf
   README.markdown
