@@ -57,7 +57,7 @@ imaginary f (a :+ b) = (a :+) <$> f b
 -- as the 'phase' information is lost. So don't do that!
 --
 -- Otherwise, this is a perfectly cromulent 'Lens'.
-polarize :: RealFloat a => Iso (Complex a) (a,a)
+polarize :: RealFloat a => Simple Iso (Complex a) (a,a)
 polarize = iso polar (uncurry mkPolar)
 
 -- | Traverse both the real and imaginary parts of a 'Complex' number.

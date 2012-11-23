@@ -11,11 +11,11 @@
 --
 ----------------------------------------------------------------------------
 module Data.Sequence.Lens
-  ( ordinal, viewL, viewR
+  ( ordinal
+  , viewL, viewR
   , _head, _tail
   , _last, _init
-  , traverseTo, traverseFrom
-  , traverseSlice
+  , sliced, slicedTo, slicedFrom
   ) where
 
 import Control.Applicative
@@ -84,20 +84,20 @@ _init f m = case viewr m of
 {-# INLINE _init #-}
 
 -- | Traverse the first @n@ elements of a 'Seq'
-traverseTo :: Int -> SimpleIndexedTraversal Int (Seq a) a
-traverseTo n = Lens.index $ \f m -> case Seq.splitAt n m of
+slicedTo :: Int -> SimpleIndexedTraversal Int (Seq a) a
+slicedTo n = Lens.index $ \f m -> case Seq.splitAt n m of
   (l,r) -> (>< r) <$> itraverse f l
-{-# INLINE traverseTo #-}
+{-# INLINE slicedTo #-}
 
 -- | Traverse all but the first @n@ elements of a 'Seq'
-traverseFrom :: Int -> SimpleIndexedTraversal Int (Seq a) a
-traverseFrom n = Lens.index $ \ f m -> case Seq.splitAt n m of
+slicedFrom :: Int -> SimpleIndexedTraversal Int (Seq a) a
+slicedFrom n = Lens.index $ \ f m -> case Seq.splitAt n m of
   (l,r) -> (l ><) <$> itraverse (f . (+n)) r
-{-# INLINE traverseFrom #-}
+{-# INLINE slicedFrom #-}
 
 -- | Travere all the elements numbered from @i@ to @j@ of a 'Seq'
-traverseSlice :: Int -> Int -> SimpleIndexedTraversal Int (Seq a) a
-traverseSlice i j = Lens.index $ \ f s -> case Seq.splitAt i s of
+sliced :: Int -> Int -> SimpleIndexedTraversal Int (Seq a) a
+sliced i j = Lens.index $ \ f s -> case Seq.splitAt i s of
   (l,mr) -> case Seq.splitAt (j-i) mr of
      (m, r) -> (\n -> l >< n >< r) <$> itraverse (f . (+i)) m
-{-# INLINE traverseSlice #-}
+{-# INLINE sliced #-}
