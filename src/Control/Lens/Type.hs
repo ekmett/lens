@@ -106,11 +106,8 @@ import Data.Data
 import System.IO.Unsafe
 import Unsafe.Coerce
 
-
 -- $setup
--- >>> :set -XDeriveDataTypeable
 -- >>> import Control.Lens
--- >>> import Data.Data
 
 infixr 4 %%~
 infix  4 %%=
@@ -736,9 +733,8 @@ updateFieldByIndex (Just i) a b = evalState (gmapM go a) 0 where
 -- | This automatically constructs a 'Simple' 'Lens' from a field accessor, subject to
 -- a few caveats.
 --
--- >>> data Foo = Foo { fooBar :: Int } deriving (Show, Data, Typeable)
--- >>> field fooBar .~ 20 $ Foo 10
--- Foo {fooBar = 20}
+-- >>> field fst *~ 5 $ (2,4)
+-- (10,4)
 --
 -- First, the user supplied function must access one of the immediate members of the structure as attempts
 -- to access nested structures or use non-field accessor functions will fail to write back.
