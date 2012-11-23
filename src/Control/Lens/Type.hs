@@ -6,6 +6,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE KindSignatures #-}
 
 #ifndef MIN_VERSION_mtl
 #define MIN_VERSION_mtl(x,y,z) 1
@@ -58,6 +60,7 @@ module Control.Lens.Type
   , Simple
 
   , lens
+  , field
   , (%%~)
   , (%%=)
 
@@ -97,10 +100,17 @@ module Control.Lens.Type
 
 import Control.Applicative              as Applicative
 import Control.Lens.Internal
-import Control.Monad.State.Class        as State
+import Control.Monad.State              as State
+import Control.Exception as C
+import Data.Data
+import System.IO.Unsafe
+import Unsafe.Coerce
+
 
 -- $setup
+-- >>> :set -XDeriveDataTypeable
 -- >>> import Control.Lens
+-- >>> import Data.Data
 
 infixr 4 %%~
 infix  4 %%=
@@ -691,3 +701,53 @@ newtype ReifiedLens s t a b = ReifyLens { reflectLens :: Lens s t a b }
 
 -- | @type 'SimpleReifiedLens' = 'Simple' 'ReifiedLens'@
 type SimpleReifiedLens s a = ReifiedLens s s a a
+
+------------------------------------------------------------------------------
+-- Automatic lens construction from fields.
+------------------------------------------------------------------------------
+
+newtype FieldException = FieldException Int deriving (Show, Typeable)
+instance Exception FieldException
+
+fresh :: State Int Int
+fresh = do
+  x <- get
+  put $! x + 1
+  return x
+
+getFieldIndex :: forall a b. Data a => (a -> b) -> Int -> Int
+getFieldIndex ac con = unsafePerformIO $ do
+  x <- C.try . evaluate . ac $ gb (undefined::a)
+  case x of
+    Left (FieldException e) -> return e
+    Right _ -> error "field: not a field"
+  where
+    gb :: Data a => a -> a
+    gb px = evalState (fromConstrM gbuild' (dataTypeConstrs (dataTypeOf px) !! con)) 0
+      where
+        gbuild' :: Data c => State Int c
+        gbuild' = do
+          i <- fresh
+          return (C.throw (FieldException i))
+
+updateFieldByIndex :: Data r => Int -> r -> a -> r
+updateFieldByIndex i r a = evalState (gmapM go r) 0 where
+  go :: Data d => d -> State Int d
+  go d = do
+    x <- fresh
+    return (if x == i then unsafeCoerce a else d)
+
+-- | This automatically constructs a 'Simple' 'Lens' from a field accessor, subject to
+-- a few caveats.
+--
+-- >>> data Foo = Foo { fooBar :: Int } deriving (Show, Data, Typeable)
+-- >>> field fooBar .~ 20 $ Foo 10
+-- Foo { fooBar = 20 }
+--
+-- First, the user supplied function must access one of the immediate members of the structure as attempts 
+-- to access nested structures will result in an error when you write back.
+--
+-- Second, the field must not be strict.
+field :: forall a b. Data a => (a -> b) -> Simple Lens a b
+field g f a = updateFieldByIndex ix a <$> f (g a)
+  where ix = getFieldIndex g (constrIndex (toConstr a))

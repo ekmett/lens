@@ -174,13 +174,13 @@ lensFlags f (LensRules i n c o) = LensRules i n c <$> f o
 
 -- | Default lens rules
 defaultRules :: LensRules
-defaultRules = LensRules top field (const Nothing) $
+defaultRules = LensRules top fld (const Nothing) $
     Set.fromList [SingletonIso, SingletonAndField, CreateClass, CreateInstance, BuildTraversals, GenerateSignatures]
   where
     top (c:cs) = Just (toLower c:cs)
     top _      = Nothing
-    field ('_':c:cs) = Just (toLower c:cs)
-    field _          = Nothing
+    fld ('_':c:cs) = Just (toLower c:cs)
+    fld _          = Nothing
 
 -- | Rules for making fairly simple partial lenses, ignoring the special cases
 -- for isomorphisms and traversals, and not making any classes.
@@ -430,10 +430,10 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
     clauses = map buildClause conList
     buildClause (con, fields) = do
       f <- newName "_f"
-      vars <- for (con^..conNamedFields._1) $ \field ->
-          if field `List.elem` fields
-        then Left  <$> ((,) <$> newName ('_':(nameBase field++"'")) <*> newName ('_':nameBase field))
-        else Right <$> newName ('_':nameBase field)
+      vars <- for (con^..conNamedFields._1) $ \fld ->
+          if fld `List.elem` fields
+        then Left  <$> ((,) <$> newName ('_':(nameBase fld++"'")) <*> newName ('_':nameBase fld))
+        else Right <$> newName ('_':nameBase fld)
       let cpats = map (varP . either fst id) vars               -- Deconstruction
           cvals = map (varE . either snd id) vars               -- Reconstruction
           fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
