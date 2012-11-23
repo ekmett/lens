@@ -715,27 +715,23 @@ fresh = do
   put $! x + 1
   return x
 
-getFieldIndex :: forall a b. Data a => (a -> b) -> Int -> Int
-getFieldIndex ac con = unsafePerformIO $ do
-  x <- C.try . evaluate . ac $ gb (undefined::a)
+getFieldIndex :: forall a b. Data a => (a -> b) -> a -> Maybe Int
+getFieldIndex ac a = unsafePerformIO $ do
+  x <- C.try $ evaluate $ ac $ evalState (gmapM go a) 0
   case x of
-    Left (FieldException e) -> return e
-    Right _ -> error "field: not a field"
+    Left (FieldException e) -> return (Just e)
+    Right _ -> return Nothing
   where
-    gb :: Data a => a -> a
-    gb px = evalState (fromConstrM gbuild' (dataTypeConstrs (dataTypeOf px) !! con)) 0
-      where
-        gbuild' :: Data c => State Int c
-        gbuild' = do
-          i <- fresh
-          return (C.throw (FieldException i))
+    go :: Data d => d -> State Int d
+    go _ = C.throw . FieldException <$> fresh
 
-updateFieldByIndex :: Data r => Int -> r -> a -> r
-updateFieldByIndex i r a = evalState (gmapM go r) 0 where
+updateFieldByIndex :: Data a => Maybe Int -> a -> b -> a
+updateFieldByIndex Nothing  a _ = a
+updateFieldByIndex (Just i) a b = evalState (gmapM go a) 0 where
   go :: Data d => d -> State Int d
   go d = do
     x <- fresh
-    return (if x == i then unsafeCoerce a else d)
+    return (if x == i then unsafeCoerce b else d)
 
 -- | This automatically constructs a 'Simple' 'Lens' from a field accessor, subject to
 -- a few caveats.
@@ -744,10 +740,10 @@ updateFieldByIndex i r a = evalState (gmapM go r) 0 where
 -- >>> field fooBar .~ 20 $ Foo 10
 -- Foo {fooBar = 20}
 --
--- First, the user supplied function must access one of the immediate members of the structure as attempts 
--- to access nested structures will result in an error when you write back.
+-- First, the user supplied function must access one of the immediate members of the structure as attempts
+-- to access nested structures or use non-field accessor functions will fail to write back.
 --
--- Second, the field must not be strict.
+-- Second, the field must not be strict or unboxed.
 field :: forall a b. Data a => (a -> b) -> Simple Lens a b
-field g f a = updateFieldByIndex ix a <$> f (g a)
-  where ix = getFieldIndex g (constrIndex (toConstr a))
+field g f a = updateFieldByIndex ix a <$> f (g a) where
+  ix = getFieldIndex g a
