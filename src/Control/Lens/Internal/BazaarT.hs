@@ -39,7 +39,7 @@ import Unsafe.Coerce
 --
 -- @g@ is a phantom type used in the 'Control.Lens.Internal.Gettable' instance.
 
-newtype BazaarT a b (g :: * -> *) s = BazaarT (forall f. Applicative f => (a -> f b) -> f s)
+newtype BazaarT a b (g :: * -> *) t = BazaarT (forall f. Applicative f => (a -> f b) -> f t)
 
 instance Functor (BazaarT a b g) where
   fmap f (BazaarT k) = BazaarT (fmap f . k)
@@ -54,7 +54,7 @@ instance Applicative (BazaarT a b g) where
 -- | Extract from a 'BazaarT'.
 --
 -- @'bazaarT' = 'flip' 'runBazaarT'@
-bazaarT :: Applicative f => (a -> f b) -> BazaarT a b g s -> f s
+bazaarT :: Applicative f => (a -> f b) -> BazaarT a b g t -> f t
 bazaarT afb (BazaarT m) = m afb
 {-# INLINE bazaarT #-}
 

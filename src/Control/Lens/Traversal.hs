@@ -441,7 +441,7 @@ insT :: BazaarT a b f t -> [a]
 insT = toListOf bazaarT
 {-# INLINE insT #-}
 
-outsT :: BazaarT a a f s -> [a] -> s
+outsT :: BazaarT a a f t -> [a] -> t
 outsT = evalState . bazaarT (\oldVal -> State.state (unconsWithDefault oldVal))
 {-# INLINE outsT #-}
 
