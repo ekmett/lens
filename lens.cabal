@@ -37,7 +37,7 @@ description:
   .
   The core of this hierarchy looks like:
   .
-  <<http://i.imgur.com/keOs9.png>>
+  <<http://i.imgur.com/I0uXl.png>>
   .
   You can compose any two elements of the hierarchy above using (.) from the Prelude, and you can
   use any element of the hierarchy as any type it links to above it.
@@ -91,11 +91,8 @@ extra-source-files:
   config
   examples/LICENSE
   examples/lens-examples.cabal
-  examples/Pong.hs
-  examples/Plates.hs
-  examples/Aeson.hs
-  examples/Turtle.hs
-  examples/Brainfuck.hs
+  examples/*.hs
+  examples/*.lhs
   examples/bf-examples/*.bf
   README.markdown
   CHANGELOG.markdown
