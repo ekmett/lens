@@ -541,7 +541,7 @@ instance Gettable f => Gettable (ElementOf f) where
 -- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
 -- must be a better way!
 --
-newtype BazaarT a b (g :: * -> *) t = BazaarT (forall f. Applicative f => (a -> f b) -> f t)
+newtype BazaarT a b (g :: * -> *) t = BazaarT { runBazaarT :: forall f. Applicative f => (a -> f b) -> f t }
 
 instance Functor (BazaarT a b g) where
   fmap f (BazaarT k) = BazaarT (fmap f . k)
@@ -553,14 +553,14 @@ instance Applicative (BazaarT a b g) where
   BazaarT mf <*> BazaarT ma = BazaarT (\k -> mf k <*> ma k)
   {-# INLINE (<*>) #-}
 
-instance (a ~ b) => Comonad (BazaarT a b f) where
+instance (a ~ b) => Comonad (BazaarT a b g) where
   extract (BazaarT m) = runIdentity (m Identity)
   {-# INLINE extract #-}
   duplicate = duplicateBazaarT
   {-# INLINE duplicate #-}
 
 instance Gettable g => Gettable (BazaarT a b g) where
-  coerce = (<$) undefined
+  coerce = (<$) (error "coerced BazaarT")
   {-# INLINE coerce #-}
 
 -- | Extract from a 'BazaarT'.
