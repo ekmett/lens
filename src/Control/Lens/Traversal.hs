@@ -74,7 +74,6 @@ import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Fold
 import Control.Lens.Internal
-import Control.Lens.Internal.BazaarT
 import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad.State.Class        as State

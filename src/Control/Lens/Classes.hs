@@ -32,7 +32,6 @@ module Control.Lens.Classes
 import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Isomorphic
-import Control.Lens.Unsafe
 import Control.Monad (liftM)
 import Data.Functor.Compose
 import Data.Functor.Identity
@@ -55,22 +54,8 @@ import Unsafe.Coerce
 --
 -- Which is equivalent to making a @'Gettable' f@ an \"anyvariant\" functor.
 --
--- Due to the structure of this library, if you built an illegal 'Gettable'
--- instance that defined @'coerce' = 'undefined'@, it would be possible to
--- produce code that would 'unsafeCoerce'.
---
--- This would violate the promises of @SafeHaskell@.
---
--- That said, the existing instances are all safe. To verify that any
--- additional instances that *you* provide are safe, you must
---
--- > import Control.Lens.Unsafe
---
--- and provide an instance of @Trustworthy@ for your data type. That module
--- does not make @SafeHaskell@ guarantees, so by doing so you've taken the
--- @SafeHaskell@ proof obligation into your own hands.
 
-class (Functor f, Trustworthy f) => Gettable f where
+class Functor f => Gettable f where
   -- | Replace the phantom type argument.
   coerce :: f a -> f b
 

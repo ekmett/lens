@@ -181,7 +181,6 @@ library
     Control.Lens.Traversal
     Control.Lens.Tuple
     Control.Lens.Type
-    Control.Lens.Unsafe
     Control.Lens.WithIndex
     Control.Lens.Zipper
     Control.Lens.Zoom
@@ -208,7 +207,6 @@ library
     Data.Vector.Generic.Lens
 
   other-modules:
-    Control.Lens.Internal.BazaarT
     Control.Lens.Internal.Combinators
 
   if flag(template-haskell)

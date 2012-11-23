@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -44,6 +45,7 @@ module Control.Lens.Internal
   , FocusingErr(..)
   , Mutator(..)
   , Bazaar(..), bazaar, duplicateBazaar, sell
+  , BazaarT(..), bazaarT, duplicateBazaarT, sellT
   , Context(..)
   , Max(..), getMax
   , Min(..), getMin
@@ -55,8 +57,6 @@ module Control.Lens.Internal
   , rightmostLevel, rightLevel, right1Level
   , focusLevel
   , rezipLevel
-  -- * Hidden implementations
-  , BazaarT
   ) where
 
 import Control.Applicative
@@ -65,9 +65,7 @@ import Control.Category
 import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Lens.Isomorphic
-import Control.Lens.Internal.BazaarT
 import Control.Lens.Classes
-import Control.Lens.Unsafe
 import Control.Monad
 import Prelude hiding ((.),id)
 import Data.Foldable
@@ -184,8 +182,6 @@ instance Applicative f => Applicative (Indexing f) where
   Indexing mf <*> Indexing ma = Indexing $ \i -> case mf i of
     (ff, j) -> case ma j of
        ~(fa, k) -> (ff <*> fa, k)
-
-instance Trustworthy f => Trustworthy (Indexing f)
 
 instance Gettable f => Gettable (Indexing f) where
   coerce (Indexing m) = Indexing $ \i -> case m i of
@@ -305,7 +301,6 @@ bazaar afb (Bazaar m) = m afb
 duplicateBazaar :: Bazaar a c t -> Bazaar a b (Bazaar b c t)
 duplicateBazaar (Bazaar m) = getCompose (m (Compose . fmap sell . sell))
 {-# INLINE duplicateBazaar #-}
--- duplicateBazaar' (Bazaar m) = Bazaar (\g -> getCompose (m (Compose . fmap sell . g)))
 
 -- | A trivial 'Bazaar'.
 sell :: a -> Bazaar a b b
@@ -329,8 +324,6 @@ instance (Monad m, Monoid r) => Applicative (Effect m r) where
   pure _ = Effect (return mempty)
   Effect ma <*> Effect mb = Effect (liftM2 mappend ma mb)
 
-instance Trustworthy (Effect m r)
-
 instance Gettable (Effect m r) where
   coerce (Effect m) = Effect m
 
@@ -343,8 +336,6 @@ newtype EffectRWS w st m s a = EffectRWS { getEffectRWS :: st -> m (s,st,w) }
 
 instance Functor (EffectRWS w st m s) where
   fmap _ (EffectRWS m) = EffectRWS m
-
-instance Trustworthy (EffectRWS w st m s)
 
 instance Gettable (EffectRWS w st m s) where
   coerce (EffectRWS m) = EffectRWS m
@@ -388,8 +379,6 @@ instance Functor (Accessor r) where
 instance Monoid r => Applicative (Accessor r) where
   pure _ = Accessor mempty
   Accessor a <*> Accessor b = Accessor (mappend a b)
-
-instance Trustworthy (Accessor r)
 
 instance Gettable (Accessor r) where
   coerce (Accessor m) = Accessor m
@@ -542,8 +531,52 @@ instance Functor f => Applicative (ElementOf f) where
       ~(Searching k a maa) -> Searching k (f a) $ fmap ($ a) <$> mff
                                               <|> fmap f <$> maa
 
-instance Trustworthy f => Trustworthy (ElementOf f)
-
 instance Gettable f => Gettable (ElementOf f) where
   coerce (ElementOf m) = ElementOf $ \i -> case m i of
     Searching j _ mas -> Searching j (error "coerced while searching") (coerce <$> mas)
+
+-- | 'BazaarT' is like 'Control.Lens.Internal.Bazaar', except that it provides a questionable 'Gettable' instance
+-- To protect this instance it relies on the soundness of another 'Gettable' type, and usage conventions.
+--
+-- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
+-- must be a better way!
+--
+newtype BazaarT a b (g :: * -> *) t = BazaarT (forall f. Applicative f => (a -> f b) -> f t)
+
+instance Functor (BazaarT a b g) where
+  fmap f (BazaarT k) = BazaarT (fmap f . k)
+  {-# INLINE fmap #-}
+
+instance Applicative (BazaarT a b g) where
+  pure a = BazaarT (\_ -> pure a)
+  {-# INLINE pure #-}
+  BazaarT mf <*> BazaarT ma = BazaarT (\k -> mf k <*> ma k)
+  {-# INLINE (<*>) #-}
+
+instance (a ~ b) => Comonad (BazaarT a b f) where
+  extract (BazaarT m) = runIdentity (m Identity)
+  {-# INLINE extract #-}
+  duplicate = duplicateBazaarT
+  {-# INLINE duplicate #-}
+
+instance Gettable g => Gettable (BazaarT a b g) where
+  coerce = (<$) undefined
+  {-# INLINE coerce #-}
+
+-- | Extract from a 'BazaarT'.
+--
+-- @'bazaarT' = 'flip' 'runBazaarT'@
+bazaarT :: Applicative f => (a -> f b) -> BazaarT a b g t -> f t
+bazaarT afb (BazaarT m) = m afb
+{-# INLINE bazaarT #-}
+
+-- | 'BazaarT' is an indexed 'Comonad'.
+duplicateBazaarT :: BazaarT a c f t -> BazaarT a b f (BazaarT b c f t)
+duplicateBazaarT (BazaarT m) = getCompose (m (Compose . fmap sellT . sellT))
+{-# INLINE duplicateBazaarT #-}
+
+-- | A trivial 'BazaarT'.
+sellT :: a -> BazaarT a b f b
+sellT i = BazaarT (\k -> k i)
+{-# INLINE sellT #-}
+

@@ -158,9 +158,9 @@ bitAt n = index $ \f b -> (\x -> if x then setBit b n else clearBit b n) <$> f n
 bits :: (Num b, Bits b) => SimpleIndexedTraversal Int b Bool
 bits = index $ \f b -> let
     g n      = (,) n <$> f n (testBit b n)
-    bits     = Prelude.takeWhile hasBit [0..]
+    bs       = Prelude.takeWhile hasBit [0..]
     hasBit n = complementBit b n /= b -- test to make sure that complementing this bit actually changes the value
     step (n,True) r = setBit r n
     step _        r = r
-  in Prelude.foldr step 0 <$> traverse g bits
+  in Prelude.foldr step 0 <$> traverse g bs
 {-# INLINE bits #-}
