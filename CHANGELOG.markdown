@@ -1,6 +1,8 @@
-3.5.2
+3.6
 -----
 * Added some missing examples/ files to the distribution.
+* Renamed `Data.Bits.Lens.traverseBits` to `bits`.
+* Removed `(^!?)`, which was an alias for `(^?!)`.
 
 3.5.1
 -----
