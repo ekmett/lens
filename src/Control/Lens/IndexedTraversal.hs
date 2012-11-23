@@ -278,10 +278,10 @@ instance Ord k => TraverseMax k (Map k) where
 -- >>> [[1],[3,4]] & elementOf (traverse.traverse) 1 .~ 5
 -- [[1],[5,4]]
 --
--- >>> [[1],[3,4]]^.elementOf (folded.folded) 1
--- 3
+-- >>> [[1],[3,4]] ^? elementOf (folded.folded) 1
+-- Just 3
 --
--- >>> [0..]^.elementOf folded 5
+-- >>> [0..] ^?! elementOf folded 5
 -- 5
 --
 -- >>> take 10 $ elementOf traverse 3 .~ 16 $ [0..]

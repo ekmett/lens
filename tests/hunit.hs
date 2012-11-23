@@ -245,8 +245,8 @@ case_delete_maybe_map_entry =
     @?= trig { _labels = fromList [ (Point { _x = 4, _y = 7 }, "Peak") ] }
 
 case_read_list_entry =
-  (trig^.points.element 0)
-    @?= origin
+  (trig ^? points.element 0)
+    @?= Just origin
 
 case_write_list_entry =
   (trig & points.element 0 .~ Point { _x = 2, _y = 0 })
