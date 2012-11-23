@@ -18,7 +18,7 @@ module Data.Array.Lens
   -- * Setters
   , ixmapped
   -- * Traversal
-  , traverseArray
+  , _array
   ) where
 
 import Control.Applicative
@@ -58,7 +58,7 @@ ixmapped = sets . ixmap
 -- | An 'IndexedTraversal' of the elements of an 'IArray', using the
 -- index into the array as the index of the traversal.
 --
--- @'amap' ≡ 'over' 'traverseArray'@
-traverseArray :: (IArray arr a, IArray arr b, Ix i) => IndexedTraversal i (arr i a) (arr i b) a b
-traverseArray = index $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (assocs arr)
-{-# INLINE traverseArray #-}
+-- @'amap' ≡ 'over' '_array'@
+_array :: (IArray arr a, IArray arr b, Ix i) => IndexedTraversal i (arr i a) (arr i b) a b
+_array = index $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (assocs arr)
+{-# INLINE _array #-}

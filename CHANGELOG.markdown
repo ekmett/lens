@@ -14,6 +14,8 @@
 * Changed `Data.Complex.Lens.polarize` to a `Simple Iso`, due to the `RealFloat` constraint causing inference problems.
 * Renamed `traverseLeft` and `traverseRight` to `_left` and `_right` respectively.
 * Renamed `traverseSlice`, `traverseFrom`, and `traverseTo` in `Data.Sequence.Lens` to `sliced`, `slicedFrom`, and `slicedTo` respectively.
+* Renamed `traverseAt` to `_at` in `Control.Lens.IndexedTraversal`.
+* Renamed `traverseArray` to `_array` in `Data.Array.Lens`.
 
 3.5.1
 -----
