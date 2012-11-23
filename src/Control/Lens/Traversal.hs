@@ -586,7 +586,7 @@ data ReifiedTraversal s t a b = ReifyTraversal { reflectTraversal :: Traversal s
 type SimpleReifiedTraversal s a = ReifiedTraversal s s a a
 
 ------------------------------------------------------------------------------
--- Automatic traversal construction from fields.
+-- Automatic Traversal construction from field accessors
 ------------------------------------------------------------------------------
 
 newtype FieldException = FieldException Int deriving (Show, Typeable)
