@@ -37,6 +37,10 @@ module Control.Lens.IndexedTraversal
   , TraverseMin(..)
   , TraverseMax(..)
   , traversed
+  , elementOf
+  , element
+  , elementsOf
+  , elements
 
   -- * Indexed Traversal Combinators
   , itraverseOf
@@ -58,6 +62,7 @@ import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Indexed
 import Control.Lens.IndexedLens
+import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy as Lazy
 import Data.Traversable
@@ -186,7 +191,7 @@ swap (a,b) = (b,a)
 
 -- | Access the element of an 'IndexedTraversal' where the index matches a predicate.
 --
--- >>> over (iwhereOf (indexed traverse) (>0)) reverse $ ["He","was","stressed","o_O"]
+-- >>> over (iwhereOf traversed (>0)) reverse ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
 --
 -- @
@@ -267,6 +272,53 @@ instance Ord k => TraverseMax k (Map k) where
     Just ((k, a), _) -> (\v -> Map.updateMax (const (Just v)) m) <$> f k a
     Nothing          -> pure m
   {-# INLINE traverseMax #-}
+
+-- | Traverse the /nth/ element 'elementOf' a 'Traversal', 'Lens' or 'Control.Lens.Iso.Iso' if it exists.
+--
+-- >>> [[1],[3,4]] & elementOf (traverse.traverse) 1 .~ 5
+-- [[1],[5,4]]
+--
+-- >>> [[1],[3,4]]^.elementOf (folded.folded) 1
+-- 3
+--
+-- >>> [0..]^.elementOf folded 5
+-- 5
+--
+-- >>> take 10 $ elementOf traverse 3 .~ 16 $ [0..]
+-- [0,1,2,16,4,5,6,7,8,9]
+--
+-- @
+-- 'elementOf' :: 'Simple' 'Traversal' s a -> Int -> 'SimpleIndexedTraversal' 'Int' s a
+-- 'elementOf' :: 'Fold' s a            -> Int -> 'IndexedFold' 'Int' s a
+-- @
+elementOf :: (Applicative f, Indexed Int k) => LensLike (Indexing f) s t a a -> Int -> Overloaded k f s t a a
+elementOf l = elementsOf l . (==)
+{-# INLINE elementOf #-}
+
+-- | Traverse the /nth/ element of a 'Traversable' container.
+--
+-- @'element' ≡ 'elementOf' 'traverse'@
+element :: Traversable t => Int -> SimpleIndexedTraversal Int (t a) a
+element = elementOf traverse
+{-# INLINE element #-}
+
+-- | Traverse (or fold) selected elements of a 'Traversal' (or 'Fold') where their ordinal positions match a predicate.
+--
+-- @
+-- 'elementsOf' :: 'Simple' 'Traversal' s a -> ('Int' -> 'Bool') -> 'SimpleIndexedTraversal' 'Int' s a
+-- 'elementsOf' :: 'Fold' s a            -> ('Int' -> 'Bool') -> 'IndexedFold' 'Int' s a
+-- @
+elementsOf :: (Applicative f, Indexed Int k) => LensLike (Indexing f) s t a a -> (Int -> Bool) -> Overloaded k f s t a a
+elementsOf l p = index $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> (if p i then iafb i a else pure a, i + 1))) s) 0 of
+  (r, _) -> r
+{-# INLINE elementsOf #-}
+
+-- | Traverse elements of a 'Traversable' container where their ordinal positions matches a predicate.
+--
+-- @'elements' ≡ 'elementsOf' 'traverse'@
+elements :: Traversable t => (Int -> Bool) -> SimpleIndexedTraversal Int (t a) a
+elements = elementsOf traverse
+{-# INLINE elements #-}
 
 ------------------------------------------------------------------------------
 -- Reifying Indexed Traversals

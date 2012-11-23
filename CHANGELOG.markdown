@@ -8,6 +8,8 @@
 * Removed the need for `Trustworthy` by changing the implementation of `coerce` for `BazaarT`.
 * Moved BazaarT to `Control.Lens.Internal`.
 * Added `(<&>)` to `Control.Lens.Combinators`.
+* `element` and `elementOf` are now indexed traversals rather than lenses and have moved to `Control.Lens.IndexedTraversal`. This both fixes their former partiality and lets you use chain indexed combinators with them.
+* Added `elements` and `elementsOf` as indexed traversals for ordinal indexing into regular traversals that generalize `element` and `elementOf`.
 
 3.5.1
 -----

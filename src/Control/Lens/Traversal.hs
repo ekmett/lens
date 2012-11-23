@@ -1,9 +1,6 @@
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
 -- |
@@ -34,9 +31,6 @@ module Control.Lens.Traversal
   (
   -- * Lenses
     Traversal
-
-  -- ** Lensing Traversals
-  , element, elementOf
 
   -- * Traversing and Lensing
   , traverseOf, forOf, sequenceAOf
@@ -81,7 +75,6 @@ import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
-import Data.Maybe
 import Data.Traversable
 
 
@@ -393,36 +386,6 @@ holesOf l a = f (ins b) (outs b) where
   f []     _ = []
   f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
 {-# INLINE holesOf #-}
-
--- | A 'Lens' to 'Control.Lens.Getter.view'/'Control.Lens.Setter.set' the nth element 'elementOf' a 'Traversal', 'Lens' or 'Control.Lens.Iso.Iso'.
---
--- Attempts to access beyond the range of the 'Traversal' will cause an error. This also works transparently
--- with Folds, returning a getter.
---
--- >>> [[1],[3,4]] & elementOf (traverse.traverse) 1 .~ 5
--- [[1],[5,4]]
---
--- >>> [[1],[3,4]]^.elementOf (folded.folded) 1
--- 3
---
--- >>> [0..]^.elementOf folded 5
--- 5
---
--- >>> take 10 $ (elementOf traverse 3 .~ 16) [0..]
--- [0,1,2,16,4,5,6,7,8,9]
-elementOf :: Functor f => LensLike (ElementOf f) s t a a -> Int -> LensLike f s t a a
-elementOf l i f s = case getElementOf (l go s) 0 of
-    Searching _ _ mft -> fromMaybe (error "elOf: index out of range") mft
-  where
-    go a = ElementOf $ \j -> Searching (j + 1) a (if i == j then Just (f a) else Nothing)
-
--- | Access the /nth/ element of a 'Traversable' container.
---
--- Attempts to access beyond the range of the 'Traversal' will cause an error.
---
--- @'element' ≡ 'elementOf' 'traverse'@
-element :: Traversable t => Int -> Simple Lens (t a) a
-element = elementOf traverse
 
 ------------------------------------------------------------------------------
 -- Internal functions used by 'partsOf', 'holesOf', etc.
