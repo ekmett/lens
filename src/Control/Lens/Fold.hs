@@ -94,7 +94,7 @@ import Data.Monoid
 -- $setup
 -- >>> import Control.Lens
 
-infixl 8 ^.., ^?, ^?!, ^!?
+infixl 8 ^.., ^?, ^?!
 
 --------------------------
 -- Folds
