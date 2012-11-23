@@ -742,7 +742,7 @@ updateFieldByIndex i r a = evalState (gmapM go r) 0 where
 --
 -- >>> data Foo = Foo { fooBar :: Int } deriving (Show, Data, Typeable)
 -- >>> field fooBar .~ 20 $ Foo 10
--- Foo { fooBar = 20 }
+-- Foo {fooBar = 20}
 --
 -- First, the user supplied function must access one of the immediate members of the structure as attempts 
 -- to access nested structures will result in an error when you write back.
