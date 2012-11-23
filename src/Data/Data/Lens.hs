@@ -63,6 +63,9 @@ import           GHC.IO
 import           GHC.Exts (realWorld#)
 import           Unsafe.Coerce as Unsafe
 
+-- $setup
+-- >>> import Control.Lens.Setter
+
 -------------------------------------------------------------------------------
 -- Generic Traversal
 -------------------------------------------------------------------------------
