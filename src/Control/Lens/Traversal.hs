@@ -57,7 +57,7 @@ module Control.Lens.Traversal
   , traverseLeft
   , traverseRight
   , both
-  , field
+  , upon
   , beside
   , taking
   , dropping
@@ -620,7 +620,7 @@ updateFieldByIndex i s a = igfor s $ \j x ->
 -- | This automatically constructs a 'Simple' 'Traversal' from a field accessor, subject to
 -- a few caveats.
 --
--- >>> field fst *~ 5 $ (2,4)
+-- >>> (2,4) & upon fst *~ 5
 -- (10,4)
 --
 -- First, the user supplied function must access one of the immediate members of the structure as attempts
@@ -629,8 +629,8 @@ updateFieldByIndex i s a = igfor s $ \j x ->
 -- Second, the field must not be strict or unboxed.
 --
 -- If the supplied function is not a field accessor, the resulting Traversal will traverse no elements.
-field :: (Data s, Typeable a) => (s -> a) -> Simple Traversal s a
-field ac f s = unsafePerformIO $ do
+upon :: (Data s, Typeable a) => (s -> a) -> Simple Traversal s a
+upon ac f s = unsafePerformIO $ do
   let s' = igfor s $ \i e -> C.throw (FieldException e i)
   x <- C.try $ evaluate (ac s')
   return $ case x of
