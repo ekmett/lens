@@ -511,7 +511,7 @@ instance ComonadStore Int Level where
     EQ -> a
     GT -> rs Prelude.!! (n - m)
 
--- | 'BazaarT' is like 'Control.Lens.Internal.Bazaar', except that it provides a questionable 'Gettable' instance
+-- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance
 -- To protect this instance it relies on the soundness of another 'Gettable' type, and usage conventions.
 --
 -- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
