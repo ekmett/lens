@@ -41,7 +41,7 @@ class IsByteString t where
 
   -- | Traverse each 'Word8' in a strict or lazy 'ByteString'
   --
-  -- @'bytes' = 'from' 'packedBytes' '.>' 'traverseList'@
+  -- @'bytes' = 'from' 'packedBytes' '.>' 'itraversed'@
   --
   -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
   bytes :: SimpleIndexedTraversal Int t Word8
