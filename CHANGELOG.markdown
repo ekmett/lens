@@ -1,3 +1,7 @@
+3.5.2
+-----
+* Added some missing examples/ files to the distribution.
+
 3.5.1
 -----
 * Improved SafeHaskell inference.
