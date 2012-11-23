@@ -100,7 +100,7 @@ a & f = f a
 -- >>> "hello" ^& length
 -- 5
 -- >>> import Data.List.Lens
--- >>> ("hello","world")^._1^&reverse^!?_head
+-- >>> ("hello","world")^._1^&reverse^?!_head
 -- 'o'
 (^&) :: a -> (a -> b) -> b
 a ^& f = f a

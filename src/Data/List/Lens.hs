@@ -28,7 +28,7 @@ import Control.Lens
 
 -- | A 'Traversal' reading and writing to the 'head' of a /non-empty/ list.
 --
--- >>> [1,2,3]^!?_head
+-- >>> [1,2,3]^?!_head
 -- 1
 _head :: SimpleIndexedTraversal Int [a] a
 _head = index $ \f aas -> case aas of
@@ -47,7 +47,7 @@ _tail _ as     = pure as
 
 -- | A 'Traversal' reading and writing to the last element of a /non-empty/ list
 --
--- >>> [1,2]^!?_last
+-- >>> [1,2]^?!_last
 -- 2
 _last :: SimpleIndexedTraversal Int [a] a
 _last = index $ \f aas -> case aas of
@@ -59,7 +59,7 @@ _last = index $ \f aas -> case aas of
 
 -- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ list
 --
--- >>> [1,2,3,4]^!?_init
+-- >>> [1,2,3,4]^?!_init
 -- [1,2,3]
 _init :: Simple Traversal [a] [a]
 _init _ [] = pure []
