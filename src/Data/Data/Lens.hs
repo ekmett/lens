@@ -64,7 +64,7 @@ import           GHC.Exts (realWorld#)
 import           Unsafe.Coerce as Unsafe
 
 -- $setup
--- >>> import Control.Lens.Setter
+-- >>> import Control.Lens
 
 -------------------------------------------------------------------------------
 -- Generic Traversal
@@ -159,7 +159,7 @@ instance Typeable a => Exception (FieldException a)
 -- >>> [1,2,3,4] ^? upon tail
 -- Just [2,3,4]
 --
--- >>> [] ^? upon tail
+-- >>> "" ^? upon tail
 -- Nothing
 --
 -- Second, the structure must not contain strict or unboxed fields of the same type that will be visited by 'Data'
@@ -173,8 +173,10 @@ upon :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedTraversal I
 upon field = index $ \f s ->
   case unsafePerformIO $ E.try $ evaluate $ field $ s & indexed template %@~ \i (a::a) -> E.throw (FieldException i a) of
     Right _ -> pure s
-    Left (FieldException i (a::a)) ->
-      f i a <&> \a' -> s & indexed template %@~ \j b -> if i == j then a' else b
+    Left e -> case fromException e of
+      Nothing -> pure s
+      Just (FieldException i (a::a)) ->
+        f i a <&> \a' -> s & indexed template %@~ \j b -> if i == j then a' else b
 
 -- | This more trusting version of 'upon' uses your function directly as the \"getter\" for a 'Lens'.
 --
