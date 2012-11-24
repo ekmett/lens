@@ -41,7 +41,7 @@ import Data.Monoid
 import Prelude hiding ((.),id)
 
 -----------------------------------------------------------------------------
--- Zipper
+-- * Zippers
 -----------------------------------------------------------------------------
 
 -- | This is used to represent the 'Top' of the 'Zipper'.
@@ -226,31 +226,9 @@ rezip :: Zipper h a => (h :> a) -> Zipped h a
 rezip (Zipper h w) = recoil h (rezipLevel w)
 {-# INLINE rezip #-}
 
-
 -----------------------------------------------------------------------------
--- Track and Tape
+-- * Tapes
 -----------------------------------------------------------------------------
-
--- | This is used to peel off the path information from a 'Coil' for use when saving the current path for later replay.
-peel :: Coil h a -> Track h a
-peel Coil               = Track
-peel (Snoc h n l _ _ _) = Fork (peel h) n l
-
-data Track :: * -> * -> * where
-  Track :: Track Top a
-  Fork  :: Track h b -> {-# UNPACK #-} !Int -> SimpleLensLike (Bazaar a a) b a -> Track (h :> b) a
-
-restoreTrack :: Track h a -> Zipped h a -> Maybe (h :> a)
-restoreTrack Track = Just . zipper
-restoreTrack (Fork h n l) = restoreTrack h >=> jerks right n >=> within l
-
-restoreNearTrack :: Track h a -> Zipped h a -> Maybe (h :> a)
-restoreNearTrack Track = Just . zipper
-restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs right n >>> within l
-
-unsafelyRestoreTrack :: Track h a -> Zipped h a -> h :> a
-unsafelyRestoreTrack Track = zipper
-unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> tugs right n >>> fromWithin l
 
 -- | A 'Tape' is a recorded path through the 'Traversal' chain of a 'Zipper'.
 data Tape k where
@@ -288,7 +266,47 @@ unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> tugs right n
 {-# INLINE unsafelyRestoreTape #-}
 
 -----------------------------------------------------------------------------
--- Level
+-- * Tracks
+-----------------------------------------------------------------------------
+
+-- | This is used to peel off the path information from a 'Coil' for use when saving the current path for later replay.
+peel :: Coil h a -> Track h a
+peel Coil               = Track
+peel (Snoc h n l _ _ _) = Fork (peel h) n l
+
+-- | The 'Track' forms the bulk of a 'Tape'.
+data Track :: * -> * -> * where
+  Track :: Track Top a
+  Fork  :: Track h b -> {-# UNPACK #-} !Int -> SimpleLensLike (Bazaar a a) b a -> Track (h :> b) a
+
+-- | Restore ourselves to a previously recorded position precisely.
+--
+-- If the position does not exist, then fail.
+restoreTrack :: Track h a -> Zipped h a -> Maybe (h :> a)
+restoreTrack Track = Just . zipper
+restoreTrack (Fork h n l) = restoreTrack h >=> jerks right n >=> within l
+
+-- | Restore ourselves to a location near our previously recorded position.
+--
+-- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
+-- so the only failures will occur when one of the sequence of downward traversals find no targets.
+restoreNearTrack :: Track h a -> Zipped h a -> Maybe (h :> a)
+restoreNearTrack Track = Just . zipper
+restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs right n >>> within l
+
+-- | Restore ourselves to a previously recorded position.
+--
+-- This *assumes* that nothing has been done in the meantime to affect the existence of anything on the entire path.
+--
+-- Motions left or right are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
+--
+-- Violate these assumptions at your own risk!
+unsafelyRestoreTrack :: Track h a -> Zipped h a -> h :> a
+unsafelyRestoreTrack Track = zipper
+unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> tugs right n >>> fromWithin l
+
+-----------------------------------------------------------------------------
+-- * Levels
 -----------------------------------------------------------------------------
 
 -- | A basic non-empty list zipper
