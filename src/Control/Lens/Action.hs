@@ -36,7 +36,7 @@ import Control.Lens.Internal.Combinators
 import Control.Monad.Trans.Class
 
 -- $setup
--- >>> import Control.Lens
+-- >>> :m + Control.Lens
 
 infixr 8 ^!
 
@@ -59,7 +59,7 @@ type Acting m r s t a b = (a -> Effect m r b) -> s -> Effect m r t
 
 -- | Perform an 'Action'.
 --
--- > perform = flip (^!)
+-- @'perform' ≡ 'flip' ('^!')@
 perform :: Monad m => Acting m a s t a b -> s -> m a
 perform l = getEffect# (l (effect# return))
 {-# INLINE perform #-}
@@ -78,6 +78,9 @@ a ^! l = getEffect (l (effect# return) a)
 {-# INLINE (^!) #-}
 
 -- | Construct an 'Action' from a monadic side-effect
+--
+-- >>> ["hello","world"]^!folded.act (\x -> [x,x ++ "!"])
+-- ["helloworld","helloworld!","hello!world","hello!world!"]
 act :: Monad m => (s -> m a) -> Action m s a
 act sma afb a = effective (sma a >>= ineffective . afb)
 {-# INLINE act #-}
