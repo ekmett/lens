@@ -199,7 +199,7 @@ upon field = index $ \f s -> case lookupon template field s of
   Just (i, Context k a) -> k <$> f i a
 {-# INLINE upon #-}
 
--- | This more trusting version of 'upon' uses your function directly as the \"getter\" for a 'Lens'.
+-- | This more trusting version of 'upon' uses your function directly as the getter for a 'Lens'.
 --
 -- This means that reading from 'upon'' is considerably faster than 'upon'.
 --
@@ -240,7 +240,7 @@ uponTheDeep field = index $ \ f s -> case lookupon template field s of
 {-# INLINE uponTheDeep #-}
 
 -- | The design of 'upon'' doesn't allow it to search inside of values of type 'a' for other values of type 'a'.
--- ''uponTheDeep'' provides this additional recursion.
+-- 'uponTheDeep'' provides this additional recursion.
 --
 -- Like 'upon'', 'uponTheDeep'' trusts the user supplied function more than 'uponTheDeep' using it directly
 -- as the accessor. This enables reading from the resulting 'Lens' to be considerably faster at the risk of
