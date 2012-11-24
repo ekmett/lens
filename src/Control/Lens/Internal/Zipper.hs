@@ -233,9 +233,11 @@ class Zipper h a where
 
 instance Zipper Top a where
   recoil Coil = extract
+  {-# INLINE recoil #-}
 
 instance Zipper h b => Zipper (h :> b) c where
-  recoil (Snoc h _ _ ls k rs) as = recoil h (NonEmpty.fromList (Prelude.reverse ls ++ k as : rs))
+  recoil (Snoc h _ _ ls k rs) as = recoil h (NonEmpty.fromList (reverseList ls ++ k as : rs))
+  {-# INLINE recoil #-}
 
 -- | Close something back up that you opened as a 'zipper'.
 rezip :: Zipper h a => (h :> a) -> Zipped h a
@@ -350,7 +352,7 @@ left1Level z = fromMaybe z (leftLevel z)
 
 -- | Pull the non-empty list zipper all the way to the left.
 leftmostLevel :: Level a -> Level a
-leftmostLevel (Level _ ls m rs) = case Prelude.reverse ls ++ m : rs of
+leftmostLevel (Level _ ls m rs) = case reverseList ls ++ m : rs of
   (c:cs) -> Level 0 [] c cs
   _ -> error "the impossible happened"
 {-# INLINE leftmostLevel #-}
@@ -359,7 +361,7 @@ leftmostLevel (Level _ ls m rs) = case Prelude.reverse ls ++ m : rs of
 -- /NB:/, when given an infinite list this may not terminate.
 rightmostLevel :: Level a -> Level a
 rightmostLevel (Level _ ls m rs) = go 0 [] (Prelude.head xs) (Prelude.tail xs) where
-  xs = Prelude.reverse ls ++ m : rs
+  xs = reverseList ls ++ m : rs
   go n zs y []     = Level n zs y []
   go n zs y (w:ws) = (go $! n + 1) (y:zs) w ws
 {-# INLINE rightmostLevel #-}
@@ -395,7 +397,7 @@ instance Traversable Level where
 
 -- | Zip a non-empty list zipper back up, and return the result.
 rezipLevel :: Level a -> NonEmpty a
-rezipLevel (Level _ ls a rs) = NonEmpty.fromList (Prelude.reverse ls ++ a : rs)
+rezipLevel (Level _ ls a rs) = NonEmpty.fromList (reverseList ls ++ a : rs)
 {-# INLINE rezipLevel #-}
 
 instance Comonad Level where
@@ -412,3 +414,18 @@ instance ComonadStore Int Level where
     LT -> ls Prelude.!! (m - n)
     EQ -> a
     GT -> rs Prelude.!! (n - m)
+
+-- | Reverse a list.
+--
+-- GHC doesn't optimize @reverse []@ into @[]@, so we'll nudge it with our own
+-- reverse function.
+--
+-- This is relevant when descending into a lens, for example -- we know the
+-- unzipped part of the level will be empty.
+reverseList :: [a] -> [a]
+reverseList [] = []
+reverseList (x:xs) = go [x] xs
+  where
+    go a [] = a
+    go a (y:ys) = go (y:a) ys
+{-# INLINE reverseList #-}
