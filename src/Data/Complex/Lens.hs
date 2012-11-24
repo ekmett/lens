@@ -18,12 +18,18 @@ module Data.Complex.Lens
   ( real
   , imaginary
   , polarize
+  , _magnitude
+  , _phase
+  , _conjugate
   , complex
   ) where
 
 import Control.Applicative
 import Control.Lens
 import Data.Complex
+
+-- $setup
+-- >>> import Numeric
 
 -- | Access the 'realPart' of a 'Complex' number
 --
@@ -64,6 +70,55 @@ imaginary f (a :+ b) = (a :+) <$> f b
 -- Otherwise, this is a perfectly cromulent 'Lens'.
 polarize :: RealFloat a => Simple Iso (Complex a) (a,a)
 polarize = iso polar (uncurry mkPolar)
+
+-- | Access the 'magnitude' of a 'Complex' number
+--
+-- >>> (10.0 :+ 20.0) & _magnitude *~ 2
+-- 20.0 :+ 40.0
+--
+-- This isn't /quite/ a legal lens. Notably the
+--
+-- @'view' l ('set' l b a) = b@
+--
+-- law is violated when you set a negative 'magnitude'. This flips the 'phase'
+-- and retains a positive 'magnitude'. So don't do that!
+--
+-- Otherwise, this is a perfectly cromulent 'Lens'.
+--
+-- Setting the 'magnitude' of a zero 'Complex' number assumes the 'phase' is 0.
+_magnitude :: RealFloat a => Simple Lens (Complex a) a
+_magnitude f c = setMag <$> f r
+  where setMag r' | r /= 0    = c * (r' / r :+ 0)
+                  | otherwise = r' :+ 0
+        r = magnitude c
+
+-- | Access the 'phase' of a 'Complex' number
+--
+-- >>> showFFloat (Just 6) (mkPolar 10 (2-pi) & _phase +~ pi & view _phase) ""
+-- "2.000000"
+--
+-- This isn't /quite/ a legal lens. Notably the
+--
+-- @'view' l ('set' l b a) = b@
+--
+-- law is violated when you set a 'phase' outside the range @(-'pi', 'pi']@.
+-- The phase is always in that range when queried. So don't do that!
+--
+-- Otherwise, this is a perfectly cromulent 'Lens'.
+_phase :: RealFloat a => Simple Lens (Complex a) a
+_phase f c = setPhase <$> f theta
+  where setPhase theta' = c * cis (theta' - theta)
+        theta = phase c
+
+-- | Access the 'conjugate' of a 'Complex' number
+--
+-- >>> (2.0 :+ 3.0) & _conjugate . imaginary -~ 1
+-- 2.0 :+ 4.0
+--
+-- >>> showFFloat (Just 6) (mkPolar 10.0 2.0 ^. _conjugate . _phase) ""
+-- "-2.000000"
+_conjugate :: RealFloat a => Simple Iso (Complex a) (Complex a)
+_conjugate = iso conjugate conjugate
 
 -- | Traverse both the 'real' and 'imaginary' parts of a 'Complex' number.
 --

@@ -1,3 +1,7 @@
+3.6.1
+-----
+* Added `_magnitude`, `_phase` and `_conjugate` to `Data.Complex.Lens`.
+
 3.6
 -----
 * Added `upon` (along with variants of it) to `Data.Data.Lens`, which can be used to generate a `Traversal` from a field accessor or any function that returns, unmodified,
