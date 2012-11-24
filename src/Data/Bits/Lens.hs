@@ -19,9 +19,12 @@ module Data.Bits.Lens
   ) where
 
 import Control.Lens
-import Control.Monad.State.Class
+import Control.Monad.State
 import Data.Bits
 import Data.Functor
+
+-- $setup
+-- >>> import Data.Word
 
 infixr 4 .|.~, .&.~, <.|.~, <.&.~
 infix 4 .|.=, .&.=, <.|.=, <.&.=
@@ -58,6 +61,9 @@ l .&.~ n = over l (.&. n)
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.&.' with another value.
 --
+-- >>> execState (do _1 .&.= 15; _2 .&.= 3) (7,7)
+-- (7,3)
+--
 -- @
 -- ('.&.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Setter' s a -> a -> m ()
 -- ('.&.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Iso' s a -> a -> m ()
@@ -69,6 +75,9 @@ l .&.= a = modify (l .&.~ a)
 {-# INLINE (.&.=) #-}
 
 -- | Modify the target(s) of a 'Simple' 'Lens', 'Setter' or 'Traversal' by computing its bitwise '.|.' with another value.
+--
+-- >>> execState (do _1 .|.= 15; _2 .|.= 3) (7,7)
+-- (15,7)
 --
 -- @
 -- ('.|.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Setter' s a -> a -> m ()
@@ -113,6 +122,9 @@ l <.&.~ n = l <%~ (.&. n)
 -- | Modify the target(s) of a 'Simple' 'Lens' (or 'Traversal') by computing its bitwise '.&.' with another value,
 -- returning the result (or a monoidal summary of all of the results traversed)
 --
+-- >>> runState (_1 <.&.= 15) (31,0)
+-- (15,(15,0))
+--
 -- @
 -- ('<.&.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m a
 -- ('<.&.=') :: ('MonadState' s m, 'Bits' a, 'Monoid' a) => 'Simple' 'Traversal' s a -> a -> m a
@@ -123,6 +135,9 @@ l <.&.= b = l <%= (.&. b)
 
 -- | Modify the target(s) of a 'Simple' 'Lens', (or 'Traversal') by computing its bitwise '.|.' with another value,
 -- returning the result (or a monoidal summary of all of the results traversed)
+--
+-- >>> runState (_1 <.|.= 7) (28,0)
+-- (31,(31,0))
 --
 -- @
 -- ('<.|.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m a
@@ -141,6 +156,12 @@ l <.|.= b = l <%= (.|. b)
 --
 -- >>> 15^.bitAt 4
 -- False
+--
+-- >>> 15 & bitAt 4 .~ True
+-- 31
+--
+-- >>> 16 & bitAt 4 .~ False
+-- 0
 bitAt :: Bits b => Int -> SimpleIndexedLens Int b Bool
 bitAt n = index $ \f b -> (\x -> if x then setBit b n else clearBit b n) <$> f n (testBit b n)
 {-# INLINE bitAt #-}
@@ -149,12 +170,11 @@ bitAt n = index $ \f b -> (\x -> if x then setBit b n else clearBit b n) <$> f n
 --
 -- The bit position is available as the index.
 --
--- >>> import Data.Word
 -- >>> toListOf bits (5 :: Word8)
 -- [True,False,True,False,False,False,False,False]
 --
--- If you supply this an 'Integer', the result will
--- be an infinite 'Traversal' that can be productively consumed.
+-- If you supply this an 'Integer', the result will be an infinite 'Traversal', which
+-- can be productively consumed, but not reassembled.
 bits :: (Num b, Bits b) => SimpleIndexedTraversal Int b Bool
 bits = index $ \f b -> let
     g n      = (,) n <$> f n (testBit b n)
