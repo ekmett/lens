@@ -49,7 +49,7 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   --
   -- >>> _1 putStrLn ("hello","world")
   -- hello
-  -- ((),"world)
+  -- ((),"world")
   --
   -- This can also be used on larger tuples as well
   --
