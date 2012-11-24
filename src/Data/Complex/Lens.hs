@@ -11,6 +11,8 @@
 -- Stability   :  experimental
 -- Portability :  Rank2Types
 --
+-- Lenses and traversals for complex numbers
+--
 ----------------------------------------------------------------------------
 module Data.Complex.Lens
   ( real
@@ -27,6 +29,9 @@ import Data.Complex
 --
 -- >>> (1.0 :+ 0.0)^.real
 -- 1.0
+--
+-- >>> 3 :+ 1 & real *~ 2
+-- 6 :+ 1
 --
 -- @'real' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
 #if MIN_VERSION_base(4,4,0)
@@ -60,9 +65,18 @@ imaginary f (a :+ b) = (a :+) <$> f b
 polarize :: RealFloat a => Simple Iso (Complex a) (a,a)
 polarize = iso polar (uncurry mkPolar)
 
--- | Traverse both the real and imaginary parts of a 'Complex' number.
+-- | Traverse both the 'real' and 'imaginary' parts of a 'Complex' number.
 --
--- > complex :: Applicative f => (a -> f b) -> Complex a -> f (Complex b)
+-- >>> 0 & complex .~ 1
+-- 1 :+ 1
+--
+-- >>> 3 :+ 4 & complex *~ 2
+-- 6 :+ 8
+--
+-- >>> sumOf complex (1 :+ 2)
+-- 3
+--
+-- @'complex' :: 'Applicative' f => (a -> f b) -> 'Complex' a -> f ('Complex' b)
 #if MIN_VERSION_base(4,4,0)
 complex :: Traversal (Complex a) (Complex b) a b
 #else
