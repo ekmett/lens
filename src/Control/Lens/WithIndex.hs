@@ -143,9 +143,9 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- |
   -- Left-associative fold of an indexed container with access to the index @i@.
   --
-  -- When you don't need access to the index then 'foldl' is more flexible in what it accepts.
+  -- When you don't need access to the index then 'Data.Foldable.foldl' is more flexible in what it accepts.
   --
-  -- @'foldl' ≡ 'ifoldl' '.' 'const'@
+  -- @'Data.Foldable.foldl' ≡ 'ifoldl' '.' 'const'@
   ifoldl :: (i -> b -> a -> b) -> b -> f a -> b
   ifoldl f z t = appEndo (getDual (ifoldMap (\i -> dual# (endo# (flip (f i)))) t)) z
 
@@ -300,9 +300,9 @@ ifoldlM f z0 xs = ifoldr f' return xs z0
 
 -- | Extract the key-value pairs from a structure.
 --
--- When you don't need access to the indices in the result, then 'toList' is more flexible in what it accepts.
+-- When you don't need access to the indices in the result, then 'Data.Foldable.toList' is more flexible in what it accepts.
 --
--- @'toList' ≡ 'map' 'fst' '.' 'itoList'@
+-- @'Data.Foldable.toList' ≡ 'Data.List.map' 'fst' '.' 'itoList'@
 itoList :: FoldableWithIndex i f => f a -> [(i,a)]
 itoList = ifoldr (\i c -> ((i,c):)) []
 {-# INLINE itoList #-}
