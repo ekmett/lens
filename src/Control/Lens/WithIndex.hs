@@ -164,13 +164,6 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- When you don't need access to the index then 'Control.Lens.Fold.foldlOf'' is more flexible in what it accepts.
   --
   -- @'Control.Lens.Fold.foldlOf'' l ≡ 'ifoldlOf'' l '.' 'const'@
-  --
-  -- @
-  -- 'ifoldlOf'' :: 'Control.Lens.IndexedGetter.IndexedGetter' i a c            -> (i -> e -> c -> e) -> e -> a -> e
-  -- 'ifoldlOf'' :: 'IndexedFold' i a c              -> (i -> e -> c -> e) -> e -> a -> e
-  -- 'ifoldlOf'' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i a c        -> (i -> e -> c -> e) -> e -> a -> e
-  -- 'ifoldlOf'' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i a c   -> (i -> e -> c -> e) -> e -> a -> e
-  -- @
   ifoldl' :: (i -> b -> a -> b) -> b -> f a -> b
   ifoldl' f z0 xs = ifoldr f' id xs z0
     where f' i x k z = k $! f i z x
@@ -183,8 +176,8 @@ ifolded = index $ \ f -> coerce . getFolding . ifoldMap (\i -> folding# (f i))
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
 --
 -- This can be useful to lift operations from @Data.List@ and elsewhere into a 'Fold'.
-ifolding :: FoldableWithIndex i f => (a -> f c) -> IndexedFold i a c
-ifolding afc = index $ \ icgd -> coerce . itraverse_ icgd . afc
+ifolding :: FoldableWithIndex i f => (s -> f a) -> IndexedFold i s a
+ifolding sfa = index $ \ iagb -> coerce . itraverse_ iagb . sfa
 {-# INLINE ifolding #-}
 
 -- |
