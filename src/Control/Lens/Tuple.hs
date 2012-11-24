@@ -44,6 +44,13 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- >>> _1 .~ "hello" $ (1,2)
   -- ("hello",2)
   --
+  -- >>> (1,2) & _1 .~ "hello"
+  -- ("hello",2)
+  --
+  -- >>> _1 putStrLn ("hello","world")
+  -- hello
+  -- ((),"world)
+  --
   -- This can also be used on larger tuples as well
   --
   -- >>> _1 +~ 41 $ (1,2,3,4,5)
@@ -58,6 +65,7 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- @
   _1 :: Lens s t a b
 
+-- | @'_1' k ~(a,b) = (\a' -> (a',b)) '<$>' k a@
 instance Field1 (a,b) (a',b) a a' where
   _1 k ~(a,b) = (\a' -> (a',b)) <$> k a
   {-# INLINE _1 #-}
@@ -97,6 +105,13 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- >>> _2 .~ "hello" $ (1,(),3,4)
   -- (1,"hello",3,4)
   --
+  -- >>> (1,2,3,4) & _2 *~ 3
+  -- (1,6,3,4)
+  --
+  -- >>> _2 print (1,2)
+  -- 2
+  -- (1,())
+  --
   -- @
   -- 'Control.Lens.Fold.anyOf' '_2' :: (s -> 'Bool') -> (a, s) -> 'Bool'
   -- 'Data.Traversable.traverse' '.' '_2' :: ('Applicative' f, 'Data.Traversable.Traversable' t) => (a -> f b) -> t (s, a) -> f (t (s, b))
@@ -104,6 +119,7 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- @
   _2 :: Lens s t a b
 
+-- | @'_2' k ~(a,b) = (\b' -> (a,b')) '<$>' k b@
 instance Field2 (a,b) (a,b') b b' where
   _2 k ~(a,b) = (\b' -> (a,b')) <$> k b
   {-# INLINE _2 #-}

@@ -429,8 +429,10 @@ unconsWithDefault _ (x:xs) = (x,xs)
 --
 -- >>> both *~ 10 $ (1,2)
 -- (10,20)
+--
 -- >>> over both length ("hello","world")
 -- (5,5)
+--
 -- >>> ("hello","world")^.both
 -- "helloworld"
 both :: Traversal (a,a) (b,b) a b
@@ -449,10 +451,13 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 --
 -- >>> over _left (+1) (Left 2)
 -- Left 3
+--
 -- >>> over _left (+1) (Right 2)
 -- Right 2
+--
 -- >>> Right 42 ^._left :: String
 -- ""
+--
 -- >>> Left "hello" ^._left
 -- "hello"
 --
@@ -472,10 +477,13 @@ _left _ (Right c) = pure $ Right c
 --
 -- >>> over _right (+1) (Left 2)
 -- Left 2
+--
 -- >>> over _right (+1) (Right 2)
 -- Right 3
+--
 -- >>> Right "hello" ^._right
 -- "hello"
+--
 -- >>> Left "hello" ^._right :: [Double]
 -- []
 --
@@ -490,7 +498,7 @@ _right f (Right a) = Right <$> f a
 -- >>> [("hello","world"),("!!!","!!!")]^.. taking 2 (traverse.both)
 -- ["hello","world"]
 --
--- >>> [1..]^.. taking 3 traverse
+-- >>> [1..] ^.. taking 3 traverse
 -- [1,2,3]
 --
 -- >>> over (taking 5 traverse) succ "hello world"
@@ -504,7 +512,7 @@ taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sellT s
 -- >>> ("hello","world") ^? dropping 1 both
 -- Just "world"
 --
--- Dropping works on infinite traversals as well.
+-- Dropping works on infinite traversals as well:
 --
 -- >>> [1..]^? dropping 1 folded
 -- Just 2
