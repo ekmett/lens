@@ -170,6 +170,7 @@ library
     Control.Lens.IndexedSetter
     Control.Lens.IndexedTraversal
     Control.Lens.Internal
+    Control.Lens.Internal.Zipper
     Control.Lens.Iso
     Control.Lens.Isomorphic
     Control.Lens.Loupe
