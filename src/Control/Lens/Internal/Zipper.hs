@@ -53,7 +53,7 @@ data Top
 
 infixl 9 :>
 
--- | This is the type of a 'Zipper'. It visually resembes a 'breadcrumb trail' as
+-- | This is the type of a 'Zipper'. It visually resembles a 'breadcrumb trail' as
 -- used in website navigation. Each breadcrumb in the trail represents a level you
 -- can move up to.
 --
@@ -135,7 +135,7 @@ farthest f = go where
   go a = maybe a go (f a)
 {-# INLINE farthest #-}
 
--- | This allows for you to repeatedly pull a 'zipper' in a given direction, failing if it falls of the end.
+-- | This allows for you to repeatedly pull a 'zipper' in a given direction, failing if it falls off the end.
 jerks :: (a -> Maybe a) -> Int -> a -> Maybe a
 jerks f n0
   | n0 < 0    = error "jerks: negative jerk count"
