@@ -46,7 +46,6 @@ module Data.Data.Lens
 import           Control.Applicative
 import           Control.Arrow ((&&&))
 import           Control.Exception as E
-import           Control.Lens.Combinators
 import           Control.Lens.Getter
 import           Control.Lens.Indexed
 import           Control.Lens.IndexedLens
@@ -216,7 +215,7 @@ upon field = index $ \f s -> case lookupon template field s of
 upon' :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedLens Int s a
 upon' field = index $ \f s -> let
     ~(i, Context k _) = case lookupon template field s of
-      Nothing -> error "upon': no index, not a field"
+      Nothing -> error "upon': no index, not a member"
       Just ip -> ip
   in k <$> f i (field s)
 {-# INLINE upon' #-}
@@ -249,15 +248,16 @@ uponTheDeep field = index $ \ f s -> case lookupon template field s of
 --
 -- >>> uponTheDeep' (tail.tail) .~ [10,20] $ [1,2,3,4]
 -- [1,2,10,20]
-uponTheDeep' :: forall s a. (Data s, Data a) => (s -> a) -> Simple Lens s a
-uponTheDeep' field f s = f (field s) <&> \a' -> case lookupon template field s of
-  Nothing               -> s
-  Just (i, Context k _) -> go a' (elementOf template i) k
-  where
-    go :: a -> SimpleTraversal s a -> (a -> s) -> s
-    go a' l k = case lookupon (l.uniplate) field s of
-      Nothing                -> k a'
-      Just (j, Context k' _) -> go a' (l.elementOf uniplate j) k'
+uponTheDeep' :: forall s a. (Data s, Data a) => (s -> a) -> SimpleIndexedLens [Int] s a
+uponTheDeep' field = index $ \ f s -> let
+    ~(isn, kn) = case lookupon template field s of
+      Nothing -> (error "uponTheDeep': no index, not a member", const s)
+      Just (i, Context k0 _) -> go [i] (elementOf template i) k0
+    go :: [Int] -> SimpleTraversal s a -> (a -> s) -> ([Int], a -> s)
+    go is l k = case lookupon (l.uniplate) field s of
+      Nothing                -> (reverse is, k)
+      Just (j, Context k' _) -> go (j:is) (l.elementOf uniplate j) k'
+  in kn <$> f isn (field s)
 {-# INLINE uponTheDeep' #-}
 
 -------------------------------------------------------------------------------
