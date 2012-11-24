@@ -76,7 +76,7 @@ polarize = iso polar (uncurry mkPolar)
 -- >>> sumOf complex (1 :+ 2)
 -- 3
 --
--- @'complex' :: 'Applicative' f => (a -> f b) -> 'Complex' a -> f ('Complex' b)
+-- @'complex' :: 'Applicative' f => (a -> f b) -> 'Complex' a -> f ('Complex' b)@
 #if MIN_VERSION_base(4,4,0)
 complex :: Traversal (Complex a) (Complex b) a b
 #else
