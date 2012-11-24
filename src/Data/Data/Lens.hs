@@ -38,6 +38,7 @@ module Data.Data.Lens
   , upon
   , upon'
   , uponTheDeep
+  , uponTheDeep'
   -- * Data Traversal
   , gtraverse
   ) where
@@ -45,7 +46,7 @@ module Data.Data.Lens
 import           Control.Applicative
 import           Control.Arrow ((&&&))
 import           Control.Exception as E
-import           Control.Lens.Traversal
+import           Control.Lens.Combinators
 import           Control.Lens.Getter
 import           Control.Lens.Indexed
 import           Control.Lens.IndexedLens
@@ -53,6 +54,7 @@ import           Control.Lens.IndexedSetter
 import           Control.Lens.IndexedTraversal
 import           Control.Lens.Internal
 import           Control.Lens.Setter
+import           Control.Lens.Traversal
 import           Control.Lens.Type
 import           Data.Data
 import           Data.Foldable
@@ -178,6 +180,18 @@ lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & index
 -- If the supplied function is not a descendant that would be visible to 'template', the resulting 'Traversal'
 -- will traverse no elements.
 --
+-- If the field you name isn't visible to 'template', but is a "descendant" of a field visible to 'template', then
+-- upon will return the *ancestor* it can visit, not the field you asked for! Be careful.
+--
+-- >>> upon (tail.tail) .~ [10,20] $ [1,2,3,4] -- BAD
+-- [1,10,20]
+--
+-- To resolve this when you need deep self-similar recursion, use 'uponTheDeep'. However, 'upon' terminates for
+-- more inputs, while 'uponTheDeep' can get lost in structures that are infinitely depth-recursive through @a@.
+--
+-- >>> uponTheDeep (tail.tail) .~ [10,20] $ [1,2,3,4] -- GOOD
+-- [1,10,20]
+--
 -- The index of the 'Traversal' can be used as an offset into @'elementOf' ('indexed' 'template')@ or into the list
 -- returned by @'holesOf' 'template'@.
 upon :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedTraversal Int s a
@@ -208,19 +222,42 @@ upon' field = index $ \f s -> let
 {-# INLINE upon' #-}
 
 -- | The design of 'upon' doesn't allow it to search inside of values of type 'a' for other values of type 'a'.
--- uponTheDeep provides this additional recursion.
+-- uponTheDeep provides this additional recursion. 
 --
--- @'uponTheDeep' :: ('Data' s, 'Typeable' a) => (s -> a) -> 'Simple' 'Traversal' s a@
+-- >>> uponTheDeep (tail.tail) .~ [10,20] $ [1,2,3,4]
+-- [1,2,10,20]
+--
+-- @'uponTheDeep' :: ('Data' s, 'Data' a) => (s -> a) -> 'Simple' 'Traversal' s a@
 uponTheDeep :: forall f s a. (Applicative f, Data s, Data a) => (s -> a) -> (a -> f a) -> s -> f s
 uponTheDeep field f s = case lookupon template field s of
   Nothing -> pure s
   Just (i, Context k a) -> go (elementOf template i) k a
   where
     go :: SimpleTraversal s a -> (a -> s) -> a -> f s
-    go l k a = case lookupon (l.uniplate) field (k a) of
+    go l k a = case lookupon (l.uniplate) field s of
       Nothing                 -> k <$> f a
       Just (j, Context k' a') -> go (l.elementOf uniplate j) k' a'
 {-# INLINE uponTheDeep #-}
+
+-- | The design of 'upon'' doesn't allow it to search inside of values of type 'a' for other values of type 'a'.
+-- ''uponTheDeep'' provides this additional recursion.
+--
+-- Like 'upon'', 'uponTheDeep'' trusts the user supplied function more than 'uponTheDeep' using it directly
+-- as the accessor. This enables reading from the resulting 'Lens' to be considerably faster at the risk of
+-- generating an illegal lens.
+--
+-- >>> uponTheDeep' (tail.tail) .~ [10,20] $ [1,2,3,4]
+-- [1,2,10,20]
+uponTheDeep' :: forall s a. (Data s, Data a) => (s -> a) -> Simple Lens s a
+uponTheDeep' field f s = f (field s) <&> \a' -> case lookupon template field s of
+  Nothing               -> s
+  Just (i, Context k _) -> go a' (elementOf template i) k
+  where
+    go :: a -> SimpleTraversal s a -> (a -> s) -> s
+    go a' l k = case lookupon (l.uniplate) field s of
+      Nothing                -> k a'
+      Just (j, Context k' _) -> go a' (l.elementOf uniplate j) k'
+{-# INLINE uponTheDeep' #-}
 
 -------------------------------------------------------------------------------
 -- Data Box
