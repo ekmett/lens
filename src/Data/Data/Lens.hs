@@ -6,6 +6,7 @@
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ExistentialQuantification #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
@@ -36,6 +37,7 @@ module Data.Data.Lens
   -- * Field Accessor Traversal
   , upon
   , upon'
+  , uponTheDeep
   -- * Data Traversal
   , gtraverse
   ) where
@@ -44,12 +46,13 @@ import           Control.Applicative
 import           Control.Arrow ((&&&))
 import           Control.Exception as E
 import           Control.Lens.Traversal
-import           Control.Lens.Combinators
 import           Control.Lens.Getter
 import           Control.Lens.Indexed
 import           Control.Lens.IndexedLens
 import           Control.Lens.IndexedSetter
 import           Control.Lens.IndexedTraversal
+import           Control.Lens.Internal
+import           Control.Lens.Setter
 import           Control.Lens.Type
 import           Data.Data
 import           Data.Foldable
@@ -135,6 +138,14 @@ instance Show (FieldException a) where
 
 instance Typeable a => Exception (FieldException a)
 
+lookupon :: Typeable a => SimpleLensLike (Indexing Mutator) s a -> (s -> a) -> s -> Maybe (Int, Context a a s)
+lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & indexed l %@~ \i (a::a) -> E.throw (FieldException i a) of
+  Right _ -> Nothing
+  Left e -> case fromException e of
+    Nothing -> Nothing
+    Just (FieldException i a) -> Just (i, Context (\a' -> set (elementOf l i) a' s) a)
+{-# INLINE lookupon #-}
+
 -- | This automatically constructs a 'Simple' 'Traversal' from a field accessor.
 --
 -- >>> (2,4) & upon fst *~ 5
@@ -170,13 +181,10 @@ instance Typeable a => Exception (FieldException a)
 -- The index of the 'Traversal' can be used as an offset into @'elementOf' ('indexed' 'template')@ or into the list
 -- returned by @'holesOf' 'template'@.
 upon :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedTraversal Int s a
-upon field = index $ \f s ->
-  case unsafePerformIO $ E.try $ evaluate $ field $ s & indexed template %@~ \i (a::a) -> E.throw (FieldException i a) of
-    Right _ -> pure s
-    Left e -> case fromException e of
-      Nothing -> pure s
-      Just (FieldException i (a::a)) ->
-        f i a <&> \a' -> s & indexed template %@~ \j b -> if i == j then a' else b
+upon field = index $ \f s -> case lookupon template field s of
+  Nothing -> pure s
+  Just (i, Context k a) -> k <$> f i a
+{-# INLINE upon #-}
 
 -- | This more trusting version of 'upon' uses your function directly as the \"getter\" for a 'Lens'.
 --
@@ -193,10 +201,26 @@ upon field = index $ \f s ->
 -- @'elementOf' ('indexed' 'template')@ or into the list returned by @'holesOf' 'template'@.
 upon' :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedLens Int s a
 upon' field = index $ \f s -> let
-  i = case unsafePerformIO $ E.try $ evaluate $ field $ s & indexed template %@~ \j (a::a) -> E.throw (FieldException j a) of
-    Right _ -> error "upon': no index, not a field"
-    Left (FieldException j (_::a)) -> j
-  in f i (field s) <&> \a' -> s & indexed template %@~ \j b -> if i == j then a' else b
+    ~(i, Context k _) = case lookupon template field s of
+      Nothing -> error "upon': no index, not a field"
+      Just ip -> ip
+  in k <$> f i (field s)
+{-# INLINE upon' #-}
+
+-- | The design of 'upon' doesn't allow it to search inside of values of type 'a' for other values of type 'a'.
+-- uponTheDeep provides this additional recursion.
+--
+-- @'uponTheDeep' :: ('Data' s, 'Typeable' a) => (s -> a) -> 'Simple' 'Traversal' s a@
+uponTheDeep :: forall f s a. (Applicative f, Data s, Data a) => (s -> a) -> (a -> f a) -> s -> f s
+uponTheDeep field f s = case lookupon template field s of
+  Nothing -> pure s
+  Just (i, Context k a) -> go (elementOf template i) k a
+  where
+    go :: SimpleTraversal s a -> (a -> s) -> a -> f s
+    go l k a = case lookupon (l.uniplate) field (k a) of
+      Nothing                 -> k <$> f a
+      Just (j, Context k' a') -> go (l.elementOf uniplate j) k' a'
+{-# INLINE uponTheDeep #-}
 
 -------------------------------------------------------------------------------
 -- Data Box
