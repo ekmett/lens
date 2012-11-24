@@ -30,7 +30,7 @@
 --
 -- [@'Top' ':>' a@] represents a trivial 'Zipper' with its focus at the root.
 --
--- [@'Top' ':>' 'Data.Tree.Tree' a ':>' a@] represents a zipper that starts with a 
+-- [@'Top' ':>' 'Data.Tree.Tree' a ':>' a@] represents a zipper that starts with a
 --   'Data.Tree.Tree' and descends in a single step to values of type @a@.
 --
 -- [@'Top' ':>' 'Data.Tree.Tree' a ':>' 'Data.Tree.Tree' a ':>' 'Data.Tree.Tree' a@] represents a 'Zipper' into a
@@ -40,7 +40,7 @@
 -- Since individual levels of a zipper are managed by an arbitrary 'Traversal',
 -- you can move left and right through the 'Traversal' selecting neighboring elements.
 --
--- >>> zipper ("hello","world") & down _1 & fromWithin traverse & focus .~ 'J' & rightmost & focus .~ 'y' & rezip
+-- >>> zipper ("hello","world") & down _1 & fromWithin traverse & focus .~ 'J' & farthest right & focus .~ 'y' & rezip
 -- ("Jelly","world")
 --
 -- This is particularly powerful when compiled with 'Control.Lens.Plated.plate',
@@ -55,24 +55,35 @@ module Control.Lens.Zipper
   , zipper
   -- ** Focusing
   , focus
-  -- ** Horizontal movement
+  -- ** Horizontal Movement
   , up
   , down
-  , within, fromWithin
-  -- ** Lateral movement
-  , left, left1, lefts, lefts1, leftmost
-  , right, right1, rights, rights1, rightmost
-  , goto, goto1, coordinate, width
-  -- ** Closing the Zipper
+  , within
+  -- ** Lateral Movement
+  , left
+  , right
+  -- ** Movement Combinators
+  , tug
+  , tugs
+  , jerks
+  , farthest
+  -- ** Absolute Positioning
+  , tooth
+  , teeth
+  , jerkTo
+  , tugTo
+  -- ** Closing the zipper
   , rezip
   , Zipped
   , Zipper()
-  -- ** Saving your Progress
+  -- ** Recording
   , Tape()
-  , save
-  , restore
-  , restore1
-  , unsafelyRestore
+  , saveTape
+  , restoreTape
+  , restoreNearTape
+  -- ** Unsafe Movement
+  , fromWithin
+  , unsafelyRestoreTape
   ) where
 
 import Control.Applicative
@@ -84,6 +95,7 @@ import Control.Lens.IndexedLens
 import Control.Lens.Internal
 import Control.Lens.Traversal
 import Control.Lens.Type
+import Data.Maybe
 import Data.List.NonEmpty as NonEmpty
 import Prelude hiding ((.),id)
 
@@ -135,12 +147,12 @@ zipper :: a -> Top :> a
 zipper a = Zipper Coil (Level 0 [] a [])
 {-# INLINE zipper #-}
 
--- | Return the index into the current 'Traversal'.
+-- | Return the index into the current 'Traversal' within the current level of the zipper.
 --
--- @'goto' ('coordinate' l) l = Just'@
-coordinate :: (a :> b) -> Int
-coordinate (Zipper _ (Level n _ _ _)) = n
-{-# INLINE coordinate #-}
+-- @'jerkTo' ('tooth' l) l = Just'@
+tooth :: (a :> b) -> Int
+tooth (Zipper _ (Level n _ _ _)) = n
+{-# INLINE tooth #-}
 
 -- | Move the 'zipper' 'up', closing the current level and focusing on the parent element.
 up :: (a :> b :> c) -> a :> b
@@ -152,101 +164,63 @@ left  :: (a :> b) -> Maybe (a :> b)
 left (Zipper h w) = Zipper h <$> leftLevel w
 {-# INLINE left #-}
 
--- | Try to pull the 'zipper' one entry to the 'left'.
---
--- If the entry to the left doesn't exist, then stay still.
-left1 :: (a :> b) -> a :> b
-left1 (Zipper h w) = Zipper h $ left1Level w
-{-# INLINE left1 #-}
-
 -- | Pull the entry one entry to the 'right'
 right :: (a :> b) -> Maybe (a :> b)
 right (Zipper h w) = Zipper h <$> rightLevel w
 {-# INLINE right #-}
 
--- | Try to pull the 'zipper' one entry to the 'right'.
+-- | This allows you to safely 'tug left' or 'tug right' on a 'zipper'.
 --
--- If the entry doesn't exist, then stay still.
-right1 :: (a :> b) -> a :> b
-right1 (Zipper h w) = Zipper h $ right1Level w
-{-# INLINE right1 #-}
+-- The more general signature allows its use in other circumstances, however.
+tug :: (a -> Maybe a) -> a -> a
+tug f a = fromMaybe a (f a)
+{-# INLINE tug #-}
 
--- | Try to pull the 'zipper' @n@ entries to the 'right', returning 'Nothing' if you pull too far and run out of entries.
---
--- Passing a negative @n@ will move @-n@ entries to the 'left'.
-rights :: Int -> (h :> a) -> Maybe (h :> a)
-rights n z
-  | n < 0 = lefts (-n) z
-  | otherwise = go n z
-  where go 0 c = Just c
-        go k c = case right c of
-          Nothing -> Nothing
-          Just c' -> go (k - 1) c'
+-- | This allows you to safely 'tug left' or 'tug right' on a 'zipper', moving multiple steps in a given direction,
+-- stopping at the last place you couldn't move from.
+tugs :: (a -> Maybe a) -> Int -> a -> a
+tugs f = go where
+  go 0 a = a
+  go n a = maybe a (go (n - 1)) (f a)
+{-# INLINE tugs #-}
 
--- | Try to pull the 'zipper' @n@ entries to the 'left', returning 'Nothing' if you pull too far and run out of entries.
-lefts :: Int -> (h :> a) -> Maybe (h :> a)
-lefts k z
-  | coordinate z < k = Nothing
-  | otherwise = Just (lefts1 k z)
+-- | Move in a direction as far as you can go, then stop.
+farthest :: (a -> Maybe a) -> a -> a
+farthest f = go where
+  go a = maybe a go (f a)
+{-# INLINE farthest #-}
 
--- | Try to pull the 'zipper' @n@ entries to the 'left'. Stopping at the first entry if you run out of entries.
---
--- Passing a negative @n@ will move to @-n@ entries the right, and will return the last entry if you run out of entries.
-lefts1 :: Int -> (h :> a) -> h :> a
-lefts1 n z
-  | n < 0 = rights1 (-n) z
-  | otherwise = go n z
-  where go 0 c = c
-        go k c = case left c of
-          Nothing -> c
-          Just c' -> go (k - 1) c'
-
--- | Try to pull the 'zipper' @n@ entries to the 'right'. Stopping at the last entry if you run out of entries.
---
--- Passing a negative number will move to the left and will return the first entry if you run out of entries.
-rights1 :: Int -> (h :> a) -> h :> a
-rights1 n z
-  | n < 0 = lefts1 (-n) z
-  | otherwise = go n z
-  where go 0 c = c
-        go k c = case right c of
-          Nothing -> c
-          Just c' -> go (k - 1) c'
+-- | This allows for you to repeatedly pull a 'zipper' in a given direction, failing if it falls of the end.
+jerks :: (a -> Maybe a) -> Int -> a -> Maybe a
+jerks f = go where
+  go 0 a = Just a
+  go n a = f a >>= go (n - 1)
+{-# INLINE jerks #-}
 
 -- | Returns the number of siblings at the current level in the 'zipper'.
 --
--- @'width' z '>=' 1@
+-- @'teeth' z '>=' 1@
 --
 -- /NB:/ If the current 'Traversal' targets an infinite number of elements then this may not terminate.
-width :: (a :> b) -> Int
-width (Zipper _ w) = levelWidth w
-{-# INLINE width #-}
+teeth :: (a :> b) -> Int
+teeth (Zipper _ w) = levelWidth w
+{-# INLINE teeth #-}
 
--- | Move the 'zipper' horizontally to the element in the @n@th position in the current level. (absolutely indexed, starting with the 'leftmost' as @0@)
+-- | Move the 'zipper' horizontally to the element in the @n@th position in the current level, absolutely indexed, starting with the @'farthest' 'left'@ as @0@.
 --
 -- This returns 'Nothing' if the target element doesn't exist.
 --
--- @'goto' n = 'rights' n . 'leftmost'@
-goto :: Int -> (a :> b) -> Maybe (a :> b)
-goto n = rights n . leftmost
-{-# INLINE goto #-}
+-- @'tooth' n = 'rights' n . 'leftmost'@
+jerkTo :: Int -> (a :> b) -> Maybe (a :> b)
+jerkTo n = jerks right n . farthest left
+{-# INLINE jerkTo #-}
 
--- | Move the 'zipper' horizontally to the element in the @n@th position of the current level. (absolutely indexed, starting with the 'leftmost' as @0@)
+-- | Move the 'zipper' horizontally to the element in the @n@th position of the current level, absolutely indexed, starting with the @'farthest' 'left'@ as @0@.
 --
--- If the element at that position doesn't exist, then this will clamp to the range @0 <= n < 'width' z@ and return the element there.
-goto1 :: Int -> (a :> b) -> a :> b
-goto1 n = rights1 n . leftmost
-{-# INLINE goto1 #-}
-
--- | Move to the left-most position of the current 'Traversal'.
-leftmost :: (a :> b) -> a :> b
-leftmost (Zipper h w) = Zipper h $ leftmostLevel w
-{-# INLINE leftmost #-}
-
--- | Move to the right-most position of the current 'Traversal'.
-rightmost :: (a :> b) -> a :> b
-rightmost (Zipper h w) = Zipper h $ rightmostLevel w
-{-# INLINE rightmost #-}
+-- If the element at that position doesn't exist, then this will clamp to the range @0 <= n < 'teeth'@.
+tugTo :: Int -> (a :> b) -> a :> b
+tugTo n = tugs right n . farthest left
+{-# INLINE tugTo #-}
 
 -- | Step down into a 'Lens'. This is a constrained form of 'fromWithin' for when you know
 -- there is precisely one target.
@@ -321,47 +295,47 @@ data Track :: * -> * -> * where
 
 restoreTrack :: Track h a -> Zipped h a -> Maybe (h :> a)
 restoreTrack Track = Just . zipper
-restoreTrack (Fork h n l) = restoreTrack h >=> rights n >=> within l
+restoreTrack (Fork h n l) = restoreTrack h >=> jerks right n >=> within l
 
-restoreTrack1 :: Track h a -> Zipped h a -> Maybe (h :> a)
-restoreTrack1 Track = Just . zipper
-restoreTrack1 (Fork h n l) = restoreTrack1 h >=> rights1 n >>> within l
+restoreNearTrack :: Track h a -> Zipped h a -> Maybe (h :> a)
+restoreNearTrack Track = Just . zipper
+restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs right n >>> within l
 
 unsafelyRestoreTrack :: Track h a -> Zipped h a -> h :> a
 unsafelyRestoreTrack Track = zipper
-unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> rights1 n >>> fromWithin l
+unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> tugs right n >>> fromWithin l
 
 -- | A 'Tape' is a recorded path through the 'Traversal' chain of a 'Zipper'.
 data Tape k where
   Tape :: Track h a -> {-# UNPACK #-} !Int -> Tape (h :> a)
 
 -- | Save the current path as as a 'Tape' we can play back later.
-save :: (a :> b) -> Tape (a :> b)
-save (Zipper h (Level n _ _ _)) = Tape (peel h) n
-{-# INLINE save #-}
+saveTape :: (a :> b) -> Tape (a :> b)
+saveTape (Zipper h (Level n _ _ _)) = Tape (peel h) n
+{-# INLINE saveTape #-}
 
 -- | Restore ourselves to a previously recorded position precisely.
 --
 -- If the position does not exist, then fail.
-restore :: Tape (h :> a) -> Zipped h a -> Maybe (h :> a)
-restore (Tape h n) = restoreTrack h >=> rights n
-{-# INLINE restore #-}
+restoreTape :: Tape (h :> a) -> Zipped h a -> Maybe (h :> a)
+restoreTape (Tape h n) = restoreTrack h >=> jerks right n
+{-# INLINE restoreTape #-}
 
--- | Restore ourselves to a previously recorded position.
+-- | Restore ourselves to a location near our previously recorded position.
 --
--- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 <= k < width@,
+-- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
-restore1 :: Tape (h :> a) -> Zipped h a -> Maybe (h :> a)
-restore1 (Tape h n) a = rights1 n <$> restoreTrack1 h a
-{-# INLINE restore1 #-}
+restoreNearTape :: Tape (h :> a) -> Zipped h a -> Maybe (h :> a)
+restoreNearTape (Tape h n) a = tugs right n <$> restoreNearTrack h a
+{-# INLINE restoreNearTape #-}
 
 -- | Restore ourselves to a previously recorded position.
 --
--- This assumes that nothing has been done in the meantime to affect the existence of anything on the entire path.
+-- This *assumes* that nothing has been done in the meantime to affect the existence of anything on the entire path.
 --
 -- Motions left or right are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
 --
--- Violate these assumptions at your own risk.
-unsafelyRestore :: Tape (h :> a) -> Zipped h a -> h :> a
-unsafelyRestore (Tape h n) = unsafelyRestoreTrack h >>> rights1 n
-{-# INLINE unsafelyRestore #-}
+-- Violate these assumptions at your own risk!
+unsafelyRestoreTape :: Tape (h :> a) -> Zipped h a -> h :> a
+unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> tugs right n
+{-# INLINE unsafelyRestoreTape #-}

@@ -16,6 +16,7 @@
 * Renamed `traverseSlice`, `traverseFrom`, and `traverseTo` in `Data.Sequence.Lens` to `sliced`, `slicedFrom`, and `slicedTo` respectively.
 * Renamed `traverseAt` to `_at` in `Control.Lens.IndexedTraversal`.
 * Renamed `traverseArray` to `_array` in `Data.Array.Lens`.
+* Renamed and made the combinators in `Control.Lens.Zipper` more compositional to reduce third-party naming conflicts down to just `left` and `right`.
 
 3.5.1
 -----

@@ -224,13 +224,13 @@ case_read_maybe_state_map_entry =
   runState test trig @?= (Just "Origin", trig)
   where test = use $ labels.at origin
 
-case_read_map_entry = trig^.labels.traverseAt origin @?= "Origin"
+case_read_map_entry = trig^.labels._at origin @?= "Origin"
 
 case_read_state_map_entry = runState test trig @?= ("Origin", trig)
-  where test = use $ labels.traverseAt origin
+  where test = use $ labels._at origin
 
 case_modify_map_entry =
-  (trig & labels.traverseAt origin %~ List.map toUpper)
+  (trig & labels._at origin %~ List.map toUpper)
     @?= trig { _labels = fromList [ (Point { _x = 0, _y = 0 }, "ORIGIN")
                                   , (Point { _x = 4, _y = 7 }, "Peak") ] }
 
