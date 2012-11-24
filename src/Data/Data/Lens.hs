@@ -227,16 +227,17 @@ upon' field = index $ \f s -> let
 -- >>> uponTheDeep (tail.tail) .~ [10,20] $ [1,2,3,4]
 -- [1,2,10,20]
 --
--- @'uponTheDeep' :: ('Data' s, 'Data' a) => (s -> a) -> 'Simple' 'Traversal' s a@
-uponTheDeep :: forall f s a. (Applicative f, Data s, Data a) => (s -> a) -> (a -> f a) -> s -> f s
-uponTheDeep field f s = case lookupon template field s of
+-- @'uponTheDeep' :: ('Data' s, 'Data' a) => (s -> a) -> 'SimpleIndexedTraversal' [Int] s a@
+uponTheDeep :: forall k f s a. (Indexed [Int] k, Applicative f, Data s, Data a) => (s -> a) -> k (a -> f a) (s -> f s)
+uponTheDeep field = index $ \ f s -> case lookupon template field s of
   Nothing -> pure s
-  Just (i, Context k a) -> go (elementOf template i) k a
-  where
-    go :: SimpleTraversal s a -> (a -> s) -> a -> f s
-    go l k a = case lookupon (l.uniplate) field s of
-      Nothing                 -> k <$> f a
-      Just (j, Context k' a') -> go (l.elementOf uniplate j) k' a'
+  Just (i, Context k0 a0) ->
+    let
+      go :: [Int] -> SimpleTraversal s a -> (a -> s) -> a -> f s
+      go is l k a = case lookupon (l.uniplate) field s of
+        Nothing                 -> k <$> f (reverse is) a
+        Just (j, Context k' a') -> go (j:is) (l.elementOf uniplate j) k' a'
+    in go [i] (elementOf template i) k0 a0
 {-# INLINE uponTheDeep #-}
 
 -- | The design of 'upon'' doesn't allow it to search inside of values of type 'a' for other values of type 'a'.
