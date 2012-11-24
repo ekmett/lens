@@ -28,6 +28,7 @@ import Control.Category
 import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Monad ((>=>))
+import Control.Lens.Fold
 import Control.Lens.Indexed
 import Control.Lens.IndexedLens
 import Control.Lens.Internal
@@ -344,7 +345,7 @@ right1Level z = fromMaybe z (rightLevel z)
 --
 -- @'view' 'focusLevel' ≡ 'extract'@
 --
--- @'focusLevel' :: 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' ('Level' a) a@
+-- @'focusLevel' :: 'Simple' 'Lens' ('Level' a) a@
 focusLevel :: Functor f => (a -> f a) -> Level a -> f (Level a)
 focusLevel f (Level n ls a rs) = (\b -> Level n ls b rs) <$> f a
 {-# INLINE focusLevel #-}
@@ -353,7 +354,7 @@ instance Functor Level where
   fmap f (Level n ls a rs) = Level n (f <$> ls) (f a) (f <$> rs)
 
 instance Foldable Level where
-  foldMap f (Level _ ls a rs) = foldMap f (Prelude.reverse ls) <> f a <> foldMap f rs
+  foldMap f (Level _ ls a rs) = foldMapOf (backwards folded) f ls <> f a <> foldMap f rs
 
 instance Traversable Level where
   traverse f (Level n ls a rs) = Level n <$> forwards (traverse (Backwards . f) ls) <*> f a <*> traverse f rs
