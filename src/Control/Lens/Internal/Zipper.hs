@@ -121,9 +121,12 @@ tug f a = fromMaybe a (f a)
 -- | This allows you to safely 'tug left' or 'tug right' on a 'zipper', moving multiple steps in a given direction,
 -- stopping at the last place you couldn't move from.
 tugs :: (a -> Maybe a) -> Int -> a -> a
-tugs f = go where
-  go 0 a = a
-  go n a = maybe a (go (n - 1)) (f a)
+tugs f n0
+  | n0 < 0    = error "tugs: negative tug count"
+  | otherwise = go n0
+  where
+    go 0 a = a
+    go n a = maybe a (go (n - 1)) (f a)
 {-# INLINE tugs #-}
 
 -- | Move in a direction as far as you can go, then stop.
@@ -134,9 +137,12 @@ farthest f = go where
 
 -- | This allows for you to repeatedly pull a 'zipper' in a given direction, failing if it falls of the end.
 jerks :: (a -> Maybe a) -> Int -> a -> Maybe a
-jerks f = go where
-  go 0 a = Just a
-  go n a = f a >>= go (n - 1)
+jerks f n0
+  | n0 < 0    = error "jerks: negative jerk count"
+  | otherwise = go n0
+  where
+    go 0 a = Just a
+    go n a = f a >>= go (n - 1)
 {-# INLINE jerks #-}
 
 -- | Returns the number of siblings at the current level in the 'zipper'.
