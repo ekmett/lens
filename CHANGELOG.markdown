@@ -17,6 +17,7 @@
 * Renamed `traverseAt` to `_at` in `Control.Lens.IndexedTraversal`.
 * Renamed `traverseArray` to `_array` in `Data.Array.Lens`.
 * Renamed and made the combinators in `Control.Lens.Zipper` more compositional to reduce third-party naming conflicts down to just `left` and `right`.
+* Renamed `&=` and `|=` to `.&.=` and `.|.=` for consistency, mutatis mutandis their related operations.
 
 3.5.1
 -----
