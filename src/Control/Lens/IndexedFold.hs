@@ -360,8 +360,8 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 -- 'itoListOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i s a      -> s -> [(i,a)]
 -- 'itoListOf' :: 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i s a -> s -> [(i,a)]
 -- @
-itoListOf :: IndexedGetting i [(i,a)] s t a b -> s -> [(i,a)]
-itoListOf l = ifoldMapOf l (\i a -> [(i,a)])
+itoListOf :: IndexedGetting i (Endo [(i,a)]) s t a b -> s -> [(i,a)]
+itoListOf l = ifoldrOf l (\i a -> ((i,a):)) []
 {-# INLINE itoListOf #-}
 
 -------------------------------------------------------------------------------
