@@ -31,8 +31,8 @@ module Data.Vector.Lens
   , _init
   , sliced
   -- * Traversal of individual indices
-  , atIndex
-  , atIndices
+  , ordinal
+  , ordinals
   ) where
 
 import Control.Applicative
@@ -115,18 +115,18 @@ forced = isos force force force force
 
 -- | This is a more efficient version of 'element' that works for any 'Vector'.
 --
--- @atIndex n@ is only a valid 'Lens' into a 'Vector' with 'length' at least @n + 1@.
-atIndex :: Int -> SimpleIndexedLens Int (Vector a) a
-atIndex i = index $ \ f v -> (\ a -> v // [(i, a)]) <$> f i (v ! i)
-{-# INLINE atIndex #-}
+-- @ordinal n@ is only a valid 'Lens' into a 'Vector' with 'length' at least @n + 1@.
+ordinal :: Int -> SimpleIndexedLens Int (Vector a) a
+ordinal i = index $ \ f v -> (\ a -> v // [(i, a)]) <$> f i (v ! i)
+{-# INLINE ordinal #-}
 
 -- | This 'Traversal' will ignore any duplicates in the supplied list of indices.
 --
--- >>> toListOf (atIndices [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
+-- >>> toListOf (ordinals [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
 -- [4,8,6,12,20,22]
-atIndices :: [Int] -> SimpleIndexedTraversal Int (Vector a) a
-atIndices is = index $ \ f v -> let
+ordinals :: [Int] -> SimpleIndexedTraversal Int (Vector a) a
+ordinals is = index $ \ f v -> let
      l = length v
      is' = nub $ filter (<l) is
   in fmap ((v //) . zip is') . traverse (uncurry f) . zip is $ fmap (v !) is'
-{-# INLINE atIndices #-}
+{-# INLINE ordinals #-}

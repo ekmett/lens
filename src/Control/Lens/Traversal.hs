@@ -15,11 +15,11 @@
 -- 'Traversable'. It allows you to traverse over a structure and change out
 -- its contents with monadic or applicative side-effects. Starting from
 --
--- @'traverse' :: ('Traversable' t, 'Applicative' f) => (a -> f b) -> t a -> f (t b)@,
+-- @'traverse' :: ('Traversable' t, 'Applicative' f) => (a -> f b) -> t a -> f (t b)@
 --
 -- we monomorphize the contents and result to obtain
 --
---  > type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
+-- @type 'Traversal' s t a b = forall f. 'Applicative' f => (a -> f b) -> s -> f t@
 --
 -- While a 'Traversal' isn't quite a 'Fold', it _can_ be used for 'Getting'
 -- like a 'Fold', because given a 'Monoid' @m@, we have an 'Applicative'

@@ -19,6 +19,7 @@
 * Renamed and made the combinators in `Control.Lens.Zipper` more compositional to reduce third-party naming conflicts down to just `left` and `right`.
 * Renamed `&=` and `|=` to `.&.=` and `.|.=` for consistency, mutatis mutandis their related operations.
 * Added a `Plated` instances for `Language.Haskell.TH` types.
+* Renamed `atIndex` and `atIndices` in `Data.Vector.Lens` and `Data.Vector.Generic.Lens` to `ordinal` and `ordinals` to match `Data.Sequence.Lens`
 
 3.5.1
 -----
