@@ -18,29 +18,38 @@
 <a name="line-9"></a><span class='hs-comment'>--</span>
 <a name="line-10"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
 <a name="line-11"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Combinators</span>
-<a name="line-12"></a>  <span class='hs-layout'>(</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!</span><span class='hs-layout'>)</span>
+<a name="line-12"></a>  <span class='hs-layout'>(</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&gt;</span><span class='hs-layout'>)</span>
 <a name="line-13"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-14"></a>
-<a name="line-15"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>4</span> <span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>,</span> <span class='hs-varop'>&lt;$!</span>
+<a name="line-15"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Functor</span>
 <a name="line-16"></a>
-<a name="line-17"></a><a name="%3c$!%3e"></a><span class='hs-comment'>-- | A strict version of ('Data.Functor.&lt;$&gt;') for monads.</span>
-<a name="line-18"></a><span class='hs-comment'>--</span>
-<a name="line-19"></a><span class='hs-comment'>-- &gt;&gt;&gt; (+1) &lt;$!&gt; [1,2,3,4]</span>
-<a name="line-20"></a><span class='hs-comment'>-- [2,3,4,5]</span>
-<a name="line-21"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
-<a name="line-22"></a><a name="f"></a><span class='hs-definition'>f</span> <span class='hs-varop'>&lt;$!&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
-<a name="line-23"></a>  <span class='hs-varid'>a</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>m</span>
-<a name="line-24"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$!</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
-<a name="line-25"></a><span class='hs-comment'>{-# INLINE (&lt;$!&gt;) #-}</span>
-<a name="line-26"></a>
-<a name="line-27"></a><a name="%3c$!"></a><span class='hs-comment'>-- | A strict version of ('Data.Functor.&lt;$') for monads.</span>
-<a name="line-28"></a><span class='hs-comment'>--</span>
-<a name="line-29"></a><span class='hs-comment'>-- &gt;&gt;&gt; () &lt;$! [1,2,3,4]</span>
-<a name="line-30"></a><span class='hs-comment'>-- [(),(),(),()]</span>
-<a name="line-31"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
-<a name="line-32"></a><a name="b"></a><span class='hs-definition'>b</span> <span class='hs-varop'>&lt;$!</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
-<a name="line-33"></a>  <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>m</span>
-<a name="line-34"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$!</span> <span class='hs-varid'>b</span>
-<a name="line-35"></a><span class='hs-comment'>{-# INLINE (&lt;$!) #-}</span>
+<a name="line-17"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>4</span> <span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>,</span> <span class='hs-varop'>&lt;$!</span><span class='hs-layout'>,</span> <span class='hs-varop'>&lt;&amp;&gt;</span>
+<a name="line-18"></a>
+<a name="line-19"></a><a name="%3c$!%3e"></a><span class='hs-comment'>-- | A strict version of ('Data.Functor.&lt;$&gt;') for monads.</span>
+<a name="line-20"></a><span class='hs-comment'>--</span>
+<a name="line-21"></a><span class='hs-comment'>-- &gt;&gt;&gt; (+1) &lt;$!&gt; [1,2,3,4]</span>
+<a name="line-22"></a><span class='hs-comment'>-- [2,3,4,5]</span>
+<a name="line-23"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
+<a name="line-24"></a><a name="f"></a><span class='hs-definition'>f</span> <span class='hs-varop'>&lt;$!&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
+<a name="line-25"></a>  <span class='hs-varid'>a</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>m</span>
+<a name="line-26"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$!</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
+<a name="line-27"></a><span class='hs-comment'>{-# INLINE (&lt;$!&gt;) #-}</span>
+<a name="line-28"></a>
+<a name="line-29"></a><a name="%3c$!"></a><span class='hs-comment'>-- | A strict version of ('Data.Functor.&lt;$') for monads.</span>
+<a name="line-30"></a><span class='hs-comment'>--</span>
+<a name="line-31"></a><span class='hs-comment'>-- &gt;&gt;&gt; () &lt;$! [1,2,3,4]</span>
+<a name="line-32"></a><span class='hs-comment'>-- [(),(),(),()]</span>
+<a name="line-33"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
+<a name="line-34"></a><a name="b"></a><span class='hs-definition'>b</span> <span class='hs-varop'>&lt;$!</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
+<a name="line-35"></a>  <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>m</span>
+<a name="line-36"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$!</span> <span class='hs-varid'>b</span>
+<a name="line-37"></a><span class='hs-comment'>{-# INLINE (&lt;$!) #-}</span>
+<a name="line-38"></a>
+<a name="line-39"></a><a name="%3c&%3e"></a><span class='hs-comment'>-- | Infix flipped fmap.</span>
+<a name="line-40"></a><span class='hs-comment'>--</span>
+<a name="line-41"></a><span class='hs-comment'>-- @('&lt;&amp;&gt;') = 'flip' 'fmap'@</span>
+<a name="line-42"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
+<a name="line-43"></a><span class='hs-keyword'>as</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-keyword'>as</span>
+<a name="line-44"></a><span class='hs-comment'>{-# INLINE (&lt;&amp;&gt;) #-}</span>
 </pre></body>
 </html>

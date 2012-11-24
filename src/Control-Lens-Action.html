@@ -45,7 +45,7 @@
 <a name="line-36"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span><span class='hs-varop'>.</span><span class='hs-conid'>Trans</span><span class='hs-varop'>.</span><span class='hs-conid'>Class</span>
 <a name="line-37"></a>
 <a name="line-38"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-39"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
+<a name="line-39"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens</span>
 <a name="line-40"></a>
 <a name="line-41"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>8</span> <span class='hs-varop'>^!</span>
 <a name="line-42"></a>
@@ -68,7 +68,7 @@
 <a name="line-59"></a>
 <a name="line-60"></a><a name="perform"></a><span class='hs-comment'>-- | Perform an 'Action'.</span>
 <a name="line-61"></a><span class='hs-comment'>--</span>
-<a name="line-62"></a><span class='hs-comment'>-- &gt; perform = flip (^!)</span>
+<a name="line-62"></a><span class='hs-comment'>-- @'perform' ≡ 'flip' ('^!')@</span>
 <a name="line-63"></a><span class='hs-definition'>perform</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
 <a name="line-64"></a><span class='hs-definition'>perform</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span><span class='hs-cpp'>#</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>effect</span><span class='hs-cpp'>#</span> <span class='hs-varid'>return</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-65"></a><span class='hs-comment'>{-# INLINE perform #-}</span>
@@ -87,23 +87,26 @@
 <a name="line-78"></a><span class='hs-comment'>{-# INLINE (^!) #-}</span>
 <a name="line-79"></a>
 <a name="line-80"></a><a name="act"></a><span class='hs-comment'>-- | Construct an 'Action' from a monadic side-effect</span>
-<a name="line-81"></a><span class='hs-definition'>act</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Action</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
-<a name="line-82"></a><span class='hs-definition'>act</span> <span class='hs-varid'>sma</span> <span class='hs-varid'>afb</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>effective</span> <span class='hs-layout'>(</span><span class='hs-varid'>sma</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-varid'>ineffective</span> <span class='hs-varop'>.</span> <span class='hs-varid'>afb</span><span class='hs-layout'>)</span>
-<a name="line-83"></a><span class='hs-comment'>{-# INLINE act #-}</span>
-<a name="line-84"></a>
-<a name="line-85"></a><a name="acts"></a><span class='hs-comment'>-- | A self-running 'Action', analogous to 'Control.Monad.join'.</span>
-<a name="line-86"></a><span class='hs-comment'>--</span>
-<a name="line-87"></a><span class='hs-comment'>-- @'acts' = 'act' 'id'@</span>
-<a name="line-88"></a><span class='hs-comment'>--</span>
-<a name="line-89"></a><span class='hs-comment'>-- &gt;&gt;&gt; (1,"hello")^!_2.acts.to succ</span>
-<a name="line-90"></a><span class='hs-comment'>-- "ifmmp"</span>
-<a name="line-91"></a><span class='hs-definition'>acts</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Action</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-92"></a><span class='hs-definition'>acts</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-varid'>id</span>
-<a name="line-93"></a><span class='hs-comment'>{-# INLINE acts #-}</span>
-<a name="line-94"></a>
-<a name="line-95"></a><a name="liftAct"></a><span class='hs-comment'>-- | Apply a 'Monad' transformer to an 'Action'.</span>
-<a name="line-96"></a><span class='hs-definition'>liftAct</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadTrans</span> <span class='hs-varid'>trans</span><span class='hs-layout'>,</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Action</span> <span class='hs-layout'>(</span><span class='hs-varid'>trans</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
-<a name="line-97"></a><span class='hs-definition'>liftAct</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-varid'>lift</span> <span class='hs-varop'>.</span> <span class='hs-varid'>perform</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
-<a name="line-98"></a><span class='hs-comment'>{-# INLINE liftAct #-}</span>
+<a name="line-81"></a><span class='hs-comment'>--</span>
+<a name="line-82"></a><span class='hs-comment'>-- &gt;&gt;&gt; ["hello","world"]^!folded.act (\x -&gt; [x,x ++ "!"])</span>
+<a name="line-83"></a><span class='hs-comment'>-- ["helloworld","helloworld!","hello!world","hello!world!"]</span>
+<a name="line-84"></a><span class='hs-definition'>act</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Action</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
+<a name="line-85"></a><span class='hs-definition'>act</span> <span class='hs-varid'>sma</span> <span class='hs-varid'>afb</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>effective</span> <span class='hs-layout'>(</span><span class='hs-varid'>sma</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-varid'>ineffective</span> <span class='hs-varop'>.</span> <span class='hs-varid'>afb</span><span class='hs-layout'>)</span>
+<a name="line-86"></a><span class='hs-comment'>{-# INLINE act #-}</span>
+<a name="line-87"></a>
+<a name="line-88"></a><a name="acts"></a><span class='hs-comment'>-- | A self-running 'Action', analogous to 'Control.Monad.join'.</span>
+<a name="line-89"></a><span class='hs-comment'>--</span>
+<a name="line-90"></a><span class='hs-comment'>-- @'acts' = 'act' 'id'@</span>
+<a name="line-91"></a><span class='hs-comment'>--</span>
+<a name="line-92"></a><span class='hs-comment'>-- &gt;&gt;&gt; (1,"hello")^!_2.acts.to succ</span>
+<a name="line-93"></a><span class='hs-comment'>-- "ifmmp"</span>
+<a name="line-94"></a><span class='hs-definition'>acts</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Action</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-95"></a><span class='hs-definition'>acts</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-varid'>id</span>
+<a name="line-96"></a><span class='hs-comment'>{-# INLINE acts #-}</span>
+<a name="line-97"></a>
+<a name="line-98"></a><a name="liftAct"></a><span class='hs-comment'>-- | Apply a 'Monad' transformer to an 'Action'.</span>
+<a name="line-99"></a><span class='hs-definition'>liftAct</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadTrans</span> <span class='hs-varid'>trans</span><span class='hs-layout'>,</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Action</span> <span class='hs-layout'>(</span><span class='hs-varid'>trans</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
+<a name="line-100"></a><span class='hs-definition'>liftAct</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-varid'>lift</span> <span class='hs-varop'>.</span> <span class='hs-varid'>perform</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
+<a name="line-101"></a><span class='hs-comment'>{-# INLINE liftAct #-}</span>
 </pre></body>
 </html>

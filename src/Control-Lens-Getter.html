@@ -109,7 +109,7 @@
 <a name="line-100"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello" ^&amp; length</span>
 <a name="line-101"></a><span class='hs-comment'>-- 5</span>
 <a name="line-102"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Data.List.Lens</span>
-<a name="line-103"></a><span class='hs-comment'>-- &gt;&gt;&gt; ("hello","world")^._1^&amp;reverse^!?_head</span>
+<a name="line-103"></a><span class='hs-comment'>-- &gt;&gt;&gt; ("hello","world")^._1^&amp;reverse^?!_head</span>
 <a name="line-104"></a><span class='hs-comment'>-- 'o'</span>
 <a name="line-105"></a><span class='hs-layout'>(</span><span class='hs-varop'>^&amp;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
 <a name="line-106"></a><span class='hs-definition'>a</span> <span class='hs-varop'>^&amp;</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>

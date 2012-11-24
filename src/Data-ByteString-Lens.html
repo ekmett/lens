@@ -50,7 +50,7 @@
 <a name="line-41"></a>
 <a name="line-42"></a>  <span class='hs-comment'>-- | Traverse each 'Word8' in a strict or lazy 'ByteString'</span>
 <a name="line-43"></a>  <span class='hs-comment'>--</span>
-<a name="line-44"></a>  <span class='hs-comment'>-- @'bytes' = 'from' 'packedBytes' '.&gt;' 'traverseList'@</span>
+<a name="line-44"></a>  <span class='hs-comment'>-- @'bytes' = 'from' 'packedBytes' '.&gt;' 'itraversed'@</span>
 <a name="line-45"></a>  <span class='hs-comment'>--</span>
 <a name="line-46"></a>  <span class='hs-comment'>-- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -&gt; 'Bool'@</span>
 <a name="line-47"></a>  <span class='hs-varid'>bytes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>t</span> <span class='hs-conid'>Word8</span>
