@@ -365,26 +365,18 @@ Operators
 </tr>
 <tr><th colspan=5><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html">Data.Bits.Lens</a></th></tr>
 <tr>
-  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-124--126-"><code>|~</code></a></td>
-  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-60--124--126-"><code>&lt;|~</code></td>
-  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-124--61-"><code>|=</code></a></td>
-  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-60--124--61-"><code>&lt;|=</code></td>
+  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-124--126-"><code>.|.~</code></a></td>
+  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-60--124--126-"><code>&lt;.|.~</code></td>
+  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-124--61-"><code>.|.=</code></a></td>
+  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-60--124--61-"><code>&lt;.|.=</code></td>
   <td>Bitwise or target(s)</td>
 </tr>
 <tr>
-  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-38--126-"><code>&amp;~</code></a></td>
-  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-60--38--126-"><code>&lt;&amp;~</code></td>
-  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-38--61-"><code>&amp;=</code></a></td>
-  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-60--38--61-"><code>&lt;&amp;=</code></td>
+  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-38--126-"><code>.&amp;.~</code></a></td>
+  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-60--38--126-"><code>&lt;.&amp;.~</code></td>
+  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-38--61-"><code>.&amp;.=</code></a></td>
+  <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-60--38--61-"><code>&lt;.&amp;.=</code></td>
   <td>Bitwise and target(s)</td>
-</tr>
-<tr><th colspan=5><a href="http://ekmett.github.com/lens/Data-Monoid-Lens.html">Data.List.Lens</a></th></tr>
-<tr>
-  <td><a href="http://ekmett.github.com/lens/Data-List-Lens.html#v:-43--43--126-"><code>++~</code></a></td>
-  <td><a href="http://ekmett.github.com/lens/Data-List-Lens.html#v:-60--43--43--126-"><code>&lt;++~</code></td>
-  <td><a href="http://ekmett.github.com/lens/Data-List-Lens.html#v:-43--43--61-"><code>++=</code></a></td>
-  <td><a href="http://ekmett.github.com/lens/Data-List-Lens.html#v:-60--43--43--61-"><code>&lt;++=</code></td>
-  <td>Append to target list(s)</td>
 </tr>
 <tr><th colspan=5><a href="http://ekmett.github.com/lens/Data-Monoid-Lens.html">Data.Monoid.Lens</a></th></tr>
 <tr>
