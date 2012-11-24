@@ -396,10 +396,13 @@ newtype Mutator a = Mutator { runMutator :: a }
 
 instance Functor Mutator where
   fmap f (Mutator a) = Mutator (f a)
+  {-# INLINE fmap #-}
 
 instance Applicative Mutator where
   pure = Mutator
+  {-# INLINE pure #-}
   Mutator f <*> Mutator a = Mutator (f a)
+  {-# INLINE (<*>) #-}
 
 instance Settable Mutator where
   untainted = runMutator
