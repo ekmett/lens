@@ -97,7 +97,7 @@ icompose ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ \j -> ka
 -- 'indexed' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
 -- @
 indexed :: Indexed Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k (a -> f b) (s -> f t)
-indexed l = index $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> (iafb i a, i + 1))) s) 0 of
+indexed l = index $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
   (r, _) -> r
 {-# INLINE indexed #-}
 
