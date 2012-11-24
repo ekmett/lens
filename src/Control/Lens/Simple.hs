@@ -10,6 +10,8 @@
 -- Portability :  Rank2Types
 --
 -- Infix type operators for simple lenses and traversals.
+--
+-- These type aliases are not re-exported from @Control.Lens@.
 ----------------------------------------------------------------------------
 
 module Control.Lens.Simple
