@@ -44,16 +44,16 @@ import Prelude hiding ((.),id)
 -- * Zippers
 -----------------------------------------------------------------------------
 
--- | This is used to represent the 'Top' of the 'Zipper'.
+-- | This is used to represent the 'Top' of the 'zipper'.
 --
--- Every 'Zipper' starts with 'Top'.
+-- Every 'zipper' starts with 'Top'.
 --
 -- /e.g./ @'Top' ':>' a@ is the trivial zipper.
 data Top
 
 infixl 9 :>
 
--- | This is the type of a 'Zipper'. It visually resembles a 'breadcrumb trail' as
+-- | This is the type of a 'zipper'. It visually resembles a \"breadcrumb trail\" as
 -- used in website navigation. Each breadcrumb in the trail represents a level you
 -- can move up to.
 --
@@ -70,7 +70,7 @@ type family Zipped h a
 type instance Zipped Top a      = a
 type instance Zipped (h :> b) a = Zipped h b
 
--- | 'Coil' is used internally in the definition of a 'Zipper'.
+-- | 'Coil' is used internally in the definition of a 'zipper'.
 data Coil :: * -> * -> * where
   Coil :: Coil Top a
   Snoc :: Coil h b ->
@@ -246,7 +246,7 @@ rezip (Zipper h w) = recoil h (rezipLevel w)
 -- * Tapes
 -----------------------------------------------------------------------------
 
--- | A 'Tape' is a recorded path through the 'Traversal' chain of a 'Zipper'.
+-- | A 'Tape' is a recorded path through the 'Traversal' chain of a 'zipper'.
 data Tape k where
   Tape :: Track h a -> {-# UNPACK #-} !Int -> Tape (h :> a)
 
