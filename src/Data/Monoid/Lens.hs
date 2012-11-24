@@ -9,8 +9,11 @@
 --
 ----------------------------------------------------------------------------
 module Data.Monoid.Lens
-  ( (<>~), (<<>~)
+  (
+  -- * Monoid Lens Operators
+    (<>~), (<<>~)
   , (<>=), (<<>=)
+  -- * Isomorphisms for Monoidal Wrappers
   , _dual, _endo, _all, _any, _sum, _product, _first, _last
   ) where
 
