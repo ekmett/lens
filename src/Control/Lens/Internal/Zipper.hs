@@ -152,16 +152,26 @@ teeth (Zipper _ w) = levelWidth w
 --
 -- This returns 'Nothing' if the target element doesn't exist.
 --
--- @'tooth' n = 'rights' n . 'leftmost'@
+-- @'jerkTo' n ≡ 'jerks' 'right' n . 'farthest' 'left'@
 jerkTo :: Int -> (a :> b) -> Maybe (a :> b)
-jerkTo n = jerks right n . farthest left
+jerkTo n z = case compare k n of
+  LT -> jerks left (n - k) z
+  EQ -> Just z
+  GT -> jerks right (k - n) z
+  where k = tooth z
 {-# INLINE jerkTo #-}
 
 -- | Move the 'zipper' horizontally to the element in the @n@th position of the current level, absolutely indexed, starting with the @'farthest' 'left'@ as @0@.
 --
 -- If the element at that position doesn't exist, then this will clamp to the range @0 <= n < 'teeth'@.
+--
+-- @'tugTo' n ≡ 'tugs' 'right' n . 'farthest' 'left'@
 tugTo :: Int -> (a :> b) -> a :> b
-tugTo n = tugs right n . farthest left
+tugTo n z = case compare k n of
+  LT -> tugs left (n - k) z
+  EQ -> z
+  GT -> tugs right (k - n) z
+  where k = tooth z
 {-# INLINE tugTo #-}
 
 -- | Step down into a 'Lens'. This is a constrained form of 'fromWithin' for when you know
