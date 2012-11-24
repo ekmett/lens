@@ -314,7 +314,7 @@ benchmark plated
     build-depends: uniplate >= 1.6.7 && < 1.7
     cpp-options: -DBENCHMARK_UNIPLATE
 
--- Basic benchmarks for the uniplate-style combinators
+-- Benchmarking alongside variants
 benchmark alongside
   type: exitcode-stdio-1.0
   main-is: alongside.hs
@@ -330,7 +330,7 @@ benchmark alongside
   ghc-options: -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: benchmarks
 
--- Basic benchmarks for the uniplate-style combinators
+-- Benchmarking unsafe implementation strategies
 benchmark unsafe
   type: exitcode-stdio-1.0
   main-is: unsafe.hs
