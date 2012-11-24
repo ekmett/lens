@@ -189,7 +189,7 @@ lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & index
 -- more inputs, while 'uponTheDeep' can get lost in structures that are infinitely depth-recursive through @a@.
 --
 -- >>> uponTheDeep (tail.tail) .~ [10,20] $ [1,2,3,4] -- GOOD
--- [1,10,20]
+-- [1,2,10,20]
 --
 -- The index of the 'Traversal' can be used as an offset into @'elementOf' ('indexed' 'template')@ or into the list
 -- returned by @'holesOf' 'template'@.
