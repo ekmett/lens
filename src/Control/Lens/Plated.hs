@@ -1,9 +1,13 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+#ifndef MIN_VERSION_template_haskell
+#define MIN_VERSION_template_haskell(x,y,z) 1
+#endif
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Plated
@@ -69,17 +73,18 @@ module Control.Lens.Plated
   )
   where
 
-import Control.Applicative
-import Control.Lens.Fold
-import Control.Lens.Getter
-import Control.Lens.Internal
-import Control.Lens.Setter
-import Control.Lens.Traversal
-import Control.Lens.Type
-import Data.Data
-import Data.Data.Lens
-import Data.Monoid
-import Data.Tree
+import           Control.Applicative
+import           Control.Lens.Fold
+import           Control.Lens.Getter
+import           Control.Lens.Internal
+import           Control.Lens.Setter
+import           Control.Lens.Traversal
+import           Control.Lens.Type
+import qualified Language.Haskell.TH as TH
+import           Data.Data
+import           Data.Data.Lens
+import           Data.Monoid
+import           Data.Tree
 
 -- | A 'Plated' type is one where we know how to extract its immediate self-similar children.
 --
@@ -181,6 +186,16 @@ instance Plated [a] where
 
 instance Plated (Tree a) where
   plate f (Node a as) = Node a <$> traverse f as
+
+instance Plated TH.Exp
+instance Plated TH.Dec
+instance Plated TH.Con
+instance Plated TH.Type
+#if !(MIN_VERSION_template_haskell(2,8,0))
+instance Plated TH.Kind -- in 2.8 Kind is an alias for Type
+#endif
+instance Plated TH.Stmt
+instance Plated TH.Pat
 
 -------------------------------------------------------------------------------
 -- Children
