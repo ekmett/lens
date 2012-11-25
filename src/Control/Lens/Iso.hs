@@ -22,6 +22,7 @@ module Control.Lens.Iso
   , under
   , mapping
   , review
+  , reviews
   -- * Primitive isomorphisms
   , from
   , via
@@ -141,6 +142,14 @@ under = over . from
 review :: Overloaded Isomorphism (Accessor s) s t a b -> a -> s
 review (Isomorphism _ l) = view l
 {-# INLINE review #-}
+
+-- | This can be used to turn an 'Iso' around and 'view' the other way,
+-- applying a function.
+--
+-- @'reviews' = 'views' '.' 'from'@
+reviews :: Overloaded Isomorphism (Accessor r) s t a b -> (s -> r) -> (a -> r)
+reviews (Isomorphism _ l) = views l
+{-# INLINE reviews #-}
 
 -----------------------------------------------------------------------------
 -- Isomorphisms
