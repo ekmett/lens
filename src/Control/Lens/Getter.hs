@@ -122,9 +122,9 @@ type Getter s a = forall f. Gettable f => (a -> f a) -> s -> f s
 
 -- | Build a 'Getter' from an arbitrary Haskell function.
 --
--- @'to' f . 'to' g = 'to' (g . f)@
+-- @'to' f . 'to' g ≡ 'to' (g . f)@
 --
--- @a '^.' 'to' f = f a@
+-- @a '^.' 'to' f ≡ f a@
 --
 --
 -- >>> ("hello","world")^.to snd
@@ -163,7 +163,7 @@ type Getting r s t a b = (a -> Accessor r b) -> s -> Accessor r t
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
 -- at a monoidal values.
 --
--- @'view' . 'to' = 'id'@
+-- @'view' . 'to' ≡ 'id'@
 --
 -- >>> view _2 (1,"hello")
 -- "hello"
@@ -197,7 +197,7 @@ view l = runAccessor# (l Accessor)
 -- It may be useful to think of 'views' as having these more restrictive
 -- signatures:
 --
--- @'views' l f = 'view' (l '.' 'to' f)@
+-- @'views' l f ≡ 'view' (l '.' 'to' f)@
 --
 -- >>> views _2 length (1,"hello")
 -- 5
@@ -220,7 +220,7 @@ views l f = runAccessor# (l (accessor# f))
 --
 -- This is the same operation as 'view', only infix.
 --
--- @'to' f '^$' x = f x@
+-- @'to' f '^$' x ≡ f x@
 --
 -- >>> _2 ^$ (1, "hello")
 -- "hello"

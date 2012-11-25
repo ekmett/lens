@@ -185,7 +185,7 @@ ifolding sfa = index $ \ iagb -> coerce . itraverse_ iagb . sfa
 --
 -- When you don't need access to the index then 'any' is more flexible in what it accepts.
 --
--- @'any' = 'iany' '.' 'const'@
+-- @'any' ≡ 'iany' '.' 'const'@
 iany :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
 iany f = getAny# (ifoldMap (\i -> any# (f i)))
 {-# INLINE iany #-}
