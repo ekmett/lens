@@ -129,7 +129,7 @@ auf l f g e = f (view l . g) e ^. from l
 
 -- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
 --
--- @'under' = 'over' '.' 'from'@
+-- @'under' ≡ 'over' '.' 'from'@
 --
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
 under :: Isomorphism (a -> Mutator b) (s -> Mutator t) -> (s -> t) -> a -> b
@@ -138,7 +138,7 @@ under = over . from
 
 -- | This can be used to turn an 'Iso' around and 'view' the other way.
 --
--- @'review' = 'view' '.' 'from'@
+-- @'review' ≡ 'view' '.' 'from'@
 review :: Overloaded Isomorphism (Accessor s) s t a b -> a -> s
 review (Isomorphism _ l) = view l
 {-# INLINE review #-}
@@ -146,7 +146,7 @@ review (Isomorphism _ l) = view l
 -- | This can be used to turn an 'Iso' around and 'view' the other way,
 -- applying a function.
 --
--- @'reviews' = 'views' '.' 'from'@
+-- @'reviews' ≡ 'views' '.' 'from'@
 reviews :: Overloaded Isomorphism (Accessor r) s t a b -> (s -> r) -> (a -> r)
 reviews (Isomorphism _ l) = views l
 {-# INLINE reviews #-}
