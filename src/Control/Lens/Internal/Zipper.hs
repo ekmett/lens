@@ -35,7 +35,6 @@ import Control.Lens.Internal
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.Foldable
-import Data.List.NonEmpty as NonEmpty
 import Data.Maybe
 import Data.Monoid
 import Prelude hiding ((.),id)
@@ -76,7 +75,7 @@ data Coil :: * -> * -> * where
   Snoc :: Coil h b ->
           {-# UNPACK #-} !Int ->
           SimpleLensLike (Bazaar a a) b a ->
-          [b] -> (NonEmpty a -> b) -> [b] ->
+          [b] -> ([a] -> b) -> [b] ->
           Coil (h :> b) a
 
 -- | This 'Lens' views the current target of the 'zipper'.
@@ -189,7 +188,7 @@ tugTo n z = case compare k n of
 -- @
 down :: SimpleLensLike (Context c c) b c -> (a :> b) -> a :> b :> c
 down l (Zipper h (Level n ls b rs)) = case l (Context id) b of
-  Context k c -> Zipper (Snoc h n (cloneLens l) ls (k . extract) rs) (Level 0 [] c [])
+  Context k c -> Zipper (Snoc h n (cloneLens l) ls (k . head) rs) (Level 0 [] c [])
 {-# INLINE down #-}
 
 -- | Step down into the 'leftmost' entry of a 'Traversal'.
@@ -202,7 +201,7 @@ down l (Zipper h (Level n ls b rs)) = case l (Context id) b of
 within :: SimpleLensLike (Bazaar c c) b c -> (a :> b) -> Maybe (a :> b :> c)
 within l (Zipper h (Level n ls b rs)) = case partsOf' l (Context id) b of
   Context _ []     -> Nothing
-  Context k (c:cs) -> Just (Zipper (Snoc h n l ls (k . NonEmpty.toList) rs) (Level 0 [] c cs))
+  Context k (c:cs) -> Just (Zipper (Snoc h n l ls k rs) (Level 0 [] c cs))
 {-# INLINE within #-}
 
 -- | Unsafely step down into a 'Traversal' that is /assumed/ to be non-empty.
@@ -223,20 +222,20 @@ within l (Zipper h (Level n ls b rs)) = case partsOf' l (Context id) b of
 -- can still succeed if it is lazy enough in the use of the focused value.
 fromWithin :: SimpleLensLike (Bazaar c c) b c -> (a :> b) -> a :> b :> c
 fromWithin l (Zipper h (Level n ls b rs)) = case partsOf' l (Context id) b of
-  Context k cs -> Zipper (Snoc h n l ls (k . NonEmpty.toList) rs)
+  Context k cs -> Zipper (Snoc h n l ls k rs)
                          (Level 0 [] (Prelude.head cs) (Prelude.tail cs))
 {-# INLINE fromWithin #-}
 
 -- | This enables us to pull the 'zipper' back up to the 'Top'.
 class Zipper h a where
-  recoil :: Coil h a -> NonEmpty a -> Zipped h a
+  recoil :: Coil h a -> [a] -> Zipped h a
 
 instance Zipper Top a where
-  recoil Coil = extract
+  recoil Coil = head
   {-# INLINE recoil #-}
 
 instance Zipper h b => Zipper (h :> b) c where
-  recoil (Snoc h _ _ ls k rs) as = recoil h (NonEmpty.fromList (reverseList ls ++ k as : rs))
+  recoil (Snoc h _ _ ls k rs) as = recoil h (reverseList ls ++ k as : rs)
   {-# INLINE recoil #-}
 
 -- | Close something back up that you opened as a 'zipper'.
@@ -396,8 +395,8 @@ instance Traversable Level where
   traverse f (Level n ls a rs) = Level n <$> forwards (traverse (Backwards . f) ls) <*> f a <*> traverse f rs
 
 -- | Zip a non-empty list zipper back up, and return the result.
-rezipLevel :: Level a -> NonEmpty a
-rezipLevel (Level _ ls a rs) = NonEmpty.fromList (reverseList ls ++ a : rs)
+rezipLevel :: Level a -> [a]
+rezipLevel (Level _ ls a rs) = reverseList ls ++ a : rs
 {-# INLINE rezipLevel #-}
 
 instance Comonad Level where
