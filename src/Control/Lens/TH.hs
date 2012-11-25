@@ -58,7 +58,6 @@ import Control.Lens.Tuple
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Control.Lens.IndexedLens
-import Control.Monad
 import Data.Char (toLower)
 import Data.Either (lefts)
 import Data.Foldable hiding (concat)
@@ -462,13 +461,11 @@ makeFieldLenses :: LensRules
                 -> Q [Dec]
 makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
   let tyArgs = map plain tyArgs0
-      maybeLensClass = do
-        guard $ tyArgs == []
-        view lensClass cfg $ nameBase tyConName
+      maybeLensClass = view lensClass cfg $ nameBase tyConName
       maybeClassName = fmap (^._1.to mkName) maybeLensClass
   t <- newName "t"
   a <- newName "a"
-    
+
   --TODO: there's probably a more efficient way to do this.
   lensFields <- map (\xs -> (fst $ head xs, map snd xs))
               . groupBy ((==) `on` fst) . sortBy (comparing fst)
@@ -496,12 +493,15 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
         relevantBndr b = s^.contains (b^.name)
         relevantCtx = not . Set.null . Set.intersection s . setOf typeVars
         tvs = tyArgs' ++ filter relevantBndr (substTypeVars m tyArgs')
-        ps = ctx ++ filter relevantCtx (substTypeVars m ctx)
+        ps = filter relevantCtx (substTypeVars m ctx)
         qs = case maybeClassName of
-           Just n | not (cfg^.createClass) -> ClassP n [VarT t] : ps
-           _                               -> ps
-        tvs' | isJust maybeClassName && not (cfg^.createClass) = PlainTV t : tvs
-             | otherwise                                       = tvs
+           Just n | not (cfg^.createClass) -> ClassP n [VarT t] : (ctx ++ ps)
+                  | otherwise              -> ps
+           _                               -> ctx ++ ps
+        tvs' = case maybeClassName of
+           Just n | not (cfg^.createClass) -> PlainTV t : tvs
+                  | otherwise              -> []
+           _                               -> tvs
 
         --TODO: Better way to write this?
         fieldMap = fromListWith (++) $ map (\(cn,fn,_) -> (cn, [fn])) fields
@@ -529,7 +529,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
     let decl = SigD lensName
              . ForallT tvs' qs
              . apps (if isTraversal then ConT ''Traversal else ConT ''Lens)
-             $ if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
+             $ if cfg^.simpleLenses || isJust maybeClassName then [aty,aty,cty,cty] else [aty,bty,cty,dty]
 
     body <- makeFieldLensBody isTraversal lensName conList maybeMethodName
 #ifndef INLINING
@@ -544,13 +544,15 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
     Just (clsNameString, methodNameString) -> do
       let clsName    = mkName clsNameString
           methodName = mkName methodNameString
+          varArgs    = varT . view name <$> tyArgs
+          appliedCon = conT tyConName `appsT` varArgs
       Prelude.sequence $
         filter (\_ -> cfg^.createClass) [
-          classD (return []) clsName [PlainTV t] [] (
-            sigD methodName (appsT (conT ''Lens) [varT t, varT t, conT tyConName, conT tyConName]) :
+          classD (return []) clsName (PlainTV t : tyArgs) (if List.null tyArgs then [] else [FunDep [t] (view name <$> tyArgs)]) (
+            sigD methodName (appsT (conT ''Lens) [varT t, varT t, appliedCon, appliedCon]) :
             map return defs)]
         ++ filter (\_ -> cfg^.createInstance) [
-          instanceD (return []) (conT clsName `appT` conT tyConName) [
+          instanceD (return []) ((conT clsName `appT` appliedCon) `appsT` varArgs) [
             funD methodName [clause [varP a] (normalB (varE a)) []]
 #ifdef INLINING
             , inlinePragma methodName

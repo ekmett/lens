@@ -1,4 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE FlexibleInstances #-}
 -- | The commented code summarizes what will be auto-generated below
 module Main where
 
@@ -54,7 +57,7 @@ data Task a = Task
 
 makeLensesFor [("taskOutput", "outputLens"), ("taskState", "stateLens"), ("taskStop", "stopLens")] ''Task
 
-data Mono = Mono { _monoFoo :: Int, _monoBar :: Int }
+data Mono a = Mono { _monoFoo :: a, _monoBar :: Int }
 makeClassy ''Mono
 -- class HasMono t where
 --   mono :: Simple Lens t Mono
@@ -63,14 +66,14 @@ makeClassy ''Mono
 -- monoFoo :: HasMono t => Simple Lens t Int
 -- monoBar :: HasMono t => Simple Lens t Int
 
-data Nucleosis = Nucleosis { _nuclear :: Mono }
+data Nucleosis = Nucleosis { _nuclear :: Mono Int }
 makeClassy ''Nucleosis
 -- class HasNucleosis t where
 --   nucleosis :: Simple Lens t Nucleosis
 -- instance HasNucleosis Nucleosis
 -- nuclear :: HasNucleosis t => Simple Lens t Mono
 
-instance HasMono Nucleosis where
+instance HasMono Nucleosis Int where
   mono = nuclear
 
 -- Dodek's example
