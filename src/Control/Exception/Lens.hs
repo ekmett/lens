@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Exception.Lens
@@ -13,6 +14,7 @@ module Control.Exception.Lens
   ( exception
   ) where
 
+import Control.Applicative
 import Control.Exception
 import Control.Lens
 
@@ -25,5 +27,7 @@ import Control.Lens
 --           => (a -> f b) -> 'SomeException' -> f 'SomeException'
 -- @
 exception :: (Exception a, Exception b) => Projection SomeException SomeException a b
-exception = projection SomeException fromException
+exception = projecting toException $ \f e -> case fromException e of
+  Just a  -> toException <$> f a
+  Nothing -> pure e
 {-# INLINE exception #-}

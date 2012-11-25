@@ -13,6 +13,7 @@ module Data.Dynamic.Lens
   ( dynamic
   ) where
 
+import Control.Applicative
 import Control.Lens
 import Data.Dynamic
 
@@ -23,5 +24,7 @@ import Data.Dynamic
 -- >>> ()^.by dynamic
 -- <<()>>
 dynamic :: (Typeable a, Typeable b) => Projection Dynamic Dynamic a b
-dynamic = projection toDyn fromDynamic
+dynamic = projecting toDyn $ \f e -> case fromDynamic e of
+  Just a  -> toDyn <$> f a
+  Nothing -> pure e
 {-# INLINE dynamic #-}

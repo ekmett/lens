@@ -17,6 +17,7 @@ module Control.Lens.Projection
   ( Projection
   , Projective(..)
   , project
+  , projecting
   , by
   , Project(..)
   , projection
@@ -33,7 +34,7 @@ import Data.Functor.Identity
 import Control.Lens.Iso
 
 -- | A 'Projection' is a 'Traversal' that can also be turned around with 'by' to obtain a 'Getter'
-type Projection s t a b = forall k f. (Projective k s b, Applicative f) => k (a -> f b) (s -> f s)
+type Projection s t a b = forall k f. (Projective k t b, Applicative f) => k (a -> f b) (s -> f t)
 
 -- | Used to provide overloading of projections.
 class Projective k a d where
@@ -61,8 +62,11 @@ by :: Project s b (b -> Identity b) (s -> Identity s) -> Getter b s
 by (Project g _) = to g
 
 -- | Build a 'Projection'
-projection :: (b -> s) -> (s -> Maybe a) -> Projection s t a b
-projection bs sma = projective bs (\afb a -> maybe (pure a) (fmap bs . afb) (sma a))
+projection :: (a -> s) -> (s -> Maybe a) -> Projection s s a a
+projection bt sma = projective bt (\afb a -> maybe (pure a) (fmap bt . afb) (sma a))
+
+projecting :: (b -> t) -> (forall f. Applicative f => (a -> f b) -> s -> f t) -> Projection s t a b
+projecting bt k = projective bt k
 
 -- | Convert an 'Iso' to a 'Projection'.
 --

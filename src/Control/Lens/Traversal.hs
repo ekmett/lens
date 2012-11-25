@@ -1,7 +1,9 @@
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Traversal
@@ -48,12 +50,14 @@ module Control.Lens.Traversal
 
   -- * Common Traversals
   , Traversable(traverse)
-  , _left
-  , _right
   , both
   , beside
   , taking
   , dropping
+
+  -- * Projections
+  , _left
+  , _right
 
   -- * Cloning Traversals
   , cloneTraversal
@@ -72,6 +76,7 @@ import Control.Applicative.Backwards
 import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
+import Control.Lens.Projection
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
@@ -462,9 +467,10 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 -- "hello"
 --
 -- @_left :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ('Either' b c)@
-_left :: Traversal (Either a c) (Either b c) a b
-_left f (Left a)  = Left <$> f a
-_left _ (Right c) = pure $ Right c
+_left :: Projection (Either a c) (Either b c) a b
+_left = projecting Left $ \ f e -> case e of
+  Left a  -> Left <$> f a
+  Right c -> pure $ Right c
 {-# INLINE _left #-}
 
 -- | traverse the right-hand value of an 'Either':
@@ -488,9 +494,10 @@ _left _ (Right c) = pure $ Right c
 -- []
 --
 -- @_right :: 'Applicative' f => (a -> f b) -> 'Either' c a -> f ('Either' c a)@
-_right :: Traversal (Either c a) (Either c b) a b
-_right _ (Left c) = pure $ Left c
-_right f (Right a) = Right <$> f a
+_right :: Projection (Either c a) (Either c b) a b
+_right = projecting Right $ \f e -> case e of
+  Left c -> pure $ Left c
+  Right a -> Right <$> f a
 {-# INLINE _right #-}
 
 -- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.

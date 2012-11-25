@@ -1,6 +1,8 @@
 3.6.1
 -----
 * Added `_magnitude`, `_phase` and `_conjugate` to `Data.Complex.Lens`.
+* Promoted `_left` and `_right` to projections.
+* Bug fixes for `Projection`.
 
 3.6
 -----
