@@ -87,7 +87,7 @@ act sma afb a = effective (sma a >>= ineffective . afb)
 
 -- | A self-running 'Action', analogous to 'Control.Monad.join'.
 --
--- @'acts' = 'act' 'id'@
+-- @'acts' ≡ 'act' 'id'@
 --
 -- >>> (1,"hello")^!_2.acts.to succ
 -- "ifmmp"
