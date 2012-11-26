@@ -222,8 +222,8 @@ within l (Zipper h (Level n ls b rs)) = case partsOf' l (Context id) b of
 -- can still succeed if it is lazy enough in the use of the focused value.
 fromWithin :: SimpleLensLike (Bazaar c c) b c -> (a :> b) -> a :> b :> c
 fromWithin l (Zipper h (Level n ls b rs)) = case partsOf' l (Context id) b of
-  Context k cs -> Zipper (Snoc h n l ls k rs)
-                         (Level 0 [] (Prelude.head cs) (Prelude.tail cs))
+  Context k ~(c:cs) -> Zipper (Snoc h n l ls k rs)
+                              (Level 0 [] c cs)
 {-# INLINE fromWithin #-}
 
 -- | This enables us to pull the 'zipper' back up to the 'Top'.
@@ -344,46 +344,16 @@ leftLevel (Level _ []     _ _ ) = Nothing
 leftLevel (Level n (l:ls) a rs) = Just (Level (n - 1) ls l (a:rs))
 {-# INLINE leftLevel #-}
 
--- | Pull the non-empty list zipper left one entry, stopping at the first entry.
-left1Level :: Level a -> Level a
-left1Level z = fromMaybe z (leftLevel z)
-{-# INLINE left1Level #-}
-
--- | Pull the non-empty list zipper all the way to the left.
-leftmostLevel :: Level a -> Level a
-leftmostLevel (Level _ ls m rs) = case reverseList ls ++ m : rs of
-  (c:cs) -> Level 0 [] c cs
-  _ -> error "the impossible happened"
-{-# INLINE leftmostLevel #-}
-
--- | Pul the non-empty list zipper all the way to the right.
--- /NB:/, when given an infinite list this may not terminate.
-rightmostLevel :: Level a -> Level a
-rightmostLevel (Level _ ls m rs) = go 0 [] (Prelude.head xs) (Prelude.tail xs) where
-  xs = reverseList ls ++ m : rs
-  go n zs y []     = Level n zs y []
-  go n zs y (w:ws) = (go $! n + 1) (y:zs) w ws
-{-# INLINE rightmostLevel #-}
-
 -- | Pull the non-empty list zipper right one entry.
 rightLevel :: Level a -> Maybe (Level a)
 rightLevel (Level _ _  _ []    ) = Nothing
 rightLevel (Level n ls a (r:rs)) = Just (Level (n + 1) (a:ls) r rs)
 {-# INLINE rightLevel #-}
 
--- | Pull the non-empty list zipper right one entry, stopping at the last entry.
-right1Level :: Level a -> Level a
-right1Level z = fromMaybe z (rightLevel z)
-{-# INLINE right1Level #-}
-
--- | This is a 'Lens' targeting the value that we would 'extract' from the non-empty list zipper.
---
--- @'view' 'focusLevel' ≡ 'extract'@
---
--- @'focusLevel' :: 'Simple' 'Lens' ('Level' a) a@
-focusLevel :: Functor f => (a -> f a) -> Level a -> f (Level a)
-focusLevel f (Level n ls a rs) = (\b -> Level n ls b rs) <$> f a
-{-# INLINE focusLevel #-}
+-- | Zip a non-empty list zipper back up, and return the result.
+rezipLevel :: Level a -> [a]
+rezipLevel (Level _ ls a rs) = reverseList ls ++ a : rs
+{-# INLINE rezipLevel #-}
 
 instance Functor Level where
   fmap f (Level n ls a rs) = Level n (f <$> ls) (f a) (f <$> rs)
@@ -393,11 +363,6 @@ instance Foldable Level where
 
 instance Traversable Level where
   traverse f (Level n ls a rs) = Level n <$> forwards (traverse (Backwards . f) ls) <*> f a <*> traverse f rs
-
--- | Zip a non-empty list zipper back up, and return the result.
-rezipLevel :: Level a -> [a]
-rezipLevel (Level _ ls a rs) = reverseList ls ++ a : rs
-{-# INLINE rezipLevel #-}
 
 instance Comonad Level where
   extract (Level _ _ a _) = a
@@ -410,9 +375,13 @@ instance Comonad Level where
 instance ComonadStore Int Level where
   pos (Level n _ _ _) = n
   peek n (Level m ls a rs) = case compare n m of
-    LT -> ls Prelude.!! (m - n)
+    LT -> ls !! (m - n)
     EQ -> a
-    GT -> rs Prelude.!! (n - m)
+    GT -> rs !! (n - m)
+
+-----------------------------------------------------------------------------
+-- * Helper functions
+-----------------------------------------------------------------------------
 
 -- | Reverse a list.
 --
