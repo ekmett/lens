@@ -145,7 +145,7 @@ farthest f = go where
   go a = maybe a go (f a)
 {-# INLINE farthest #-}
 
--- | This allows for you to repeatedly pull a 'zipper' in a given direction, failing if it falls off the end..
+-- | This allows for you to repeatedly pull a 'zipper' in a given direction, failing if it falls off the end.
 jerks :: (a -> Maybe a) -> Int -> a -> Maybe a
 jerks f n0
   | n0 < 0    = error "jerks: negative jerk count"
