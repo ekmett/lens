@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Projection
@@ -20,9 +21,11 @@ module Control.Lens.Projection
   , projecting
   , by
   , Project(..)
-  , projection
   , stereo
   , mirror
+  -- * Common projections
+  , _left
+  , _right
   -- * Simple
   , SimpleProjection
   ) where
@@ -32,6 +35,7 @@ import Control.Lens.Type
 import Control.Lens.Getter
 import Data.Functor.Identity
 import Control.Lens.Iso
+import Control.Lens.Traversal
 
 -- | A 'Projection' is a 'Traversal' that can also be turned around with 'by' to obtain a 'Getter'
 type Projection s t a b = forall k f. (Projective k t b, Applicative f) => k (a -> f b) (s -> f t)
@@ -62,17 +66,62 @@ by :: Project s b (b -> Identity b) (s -> Identity s) -> Getter b s
 by (Project g _) = to g
 
 -- | Build a 'Projection'
-projection :: (a -> s) -> (s -> Maybe a) -> Projection s s a a
-projection bt sma = projective bt (\afb a -> maybe (pure a) (fmap bt . afb) (sma a))
-
-projecting :: (b -> t) -> (forall f. Applicative f => (a -> f b) -> s -> f t) -> Projection s t a b
+projecting :: (b -> t) -> Traversal s t a b -> Projection s t a b
 projecting bt k = projective bt k
 
 -- | Convert an 'Iso' to a 'Projection'.
 --
 -- Ideally we would be able to use an 'Iso' directly as a 'Projection', but this opens a can of worms.
 mirror :: Projective k s a => Simple Iso s a -> Simple Projection s a
-mirror l = projection (^.from l) (\a -> Just (a^.l))
+mirror l = projecting (review l) l
 
 -- | @type 'SimpleProjection' = 'Simple' 'Projection'@
 type SimpleProjection s a = Projection s s a a
+
+-- | A traversal for tweaking the left-hand value of an 'Either':
+--
+-- >>> over _left (+1) (Left 2)
+-- Left 3
+--
+-- >>> over _left (+1) (Right 2)
+-- Right 2
+--
+-- >>> Right 42 ^._left :: String
+-- ""
+--
+-- >>> Left "hello" ^._left
+-- "hello"
+--
+-- @_left :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ('Either' b c)@
+_left :: Projection (Either a c) (Either b c) a b
+_left = projecting Left $ \ f e -> case e of
+  Left a  -> Left <$> f a
+  Right c -> pure $ Right c
+{-# INLINE _left #-}
+
+-- | traverse the right-hand value of an 'Either':
+--
+-- @'_right' ≡ 'Data.Traversable.traverse'@
+--
+-- Unfortunately the instance for
+-- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,
+-- so this can't just be 'Data.Traversable.traverse'
+--
+-- >>> over _right (+1) (Left 2)
+-- Left 2
+--
+-- >>> over _right (+1) (Right 2)
+-- Right 3
+--
+-- >>> Right "hello" ^._right
+-- "hello"
+--
+-- >>> Left "hello" ^._right :: [Double]
+-- []
+--
+-- @_right :: 'Applicative' f => (a -> f b) -> 'Either' c a -> f ('Either' c a)@
+_right :: Projection (Either c a) (Either c b) a b
+_right = projecting Right $ \f e -> case e of
+  Left c -> pure $ Left c
+  Right a -> Right <$> f a
+{-# INLINE _right #-}

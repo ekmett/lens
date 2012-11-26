@@ -1,7 +1,7 @@
-3.6.1
+3.7
 -----
 * Added `_magnitude`, `_phase` and `_conjugate` to `Data.Complex.Lens`.
-* Promoted `_left` and `_right` to projections.
+* Promoted `_left` and `_right` to projections and moved them to `Control.Lens.Projection`.
 * Bug fixes for `Projection`.
 * Generalized `view` and `views` to subsume the functionality of `peruse` and `peruses`.
 * Deprecated `peruse`, `peruses`.

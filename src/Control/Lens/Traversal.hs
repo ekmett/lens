@@ -55,10 +55,6 @@ module Control.Lens.Traversal
   , taking
   , dropping
 
-  -- * Projections
-  , _left
-  , _right
-
   -- * Cloning Traversals
   , cloneTraversal
   , ReifiedTraversal(..)
@@ -76,7 +72,6 @@ import Control.Applicative.Backwards
 import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
-import Control.Lens.Projection
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy
@@ -451,54 +446,6 @@ both f ~(a,a') = (,) <$> f a <*> f a'
 beside :: Applicative f => LensLike f s t a b -> LensLike f s' t' a b -> LensLike f (s,s') (t,t') a b
 beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 {-# INLINE beside #-}
-
--- | A traversal for tweaking the left-hand value of an 'Either':
---
--- >>> over _left (+1) (Left 2)
--- Left 3
---
--- >>> over _left (+1) (Right 2)
--- Right 2
---
--- >>> Right 42 ^._left :: String
--- ""
---
--- >>> Left "hello" ^._left
--- "hello"
---
--- @_left :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ('Either' b c)@
-_left :: Projection (Either a c) (Either b c) a b
-_left = projecting Left $ \ f e -> case e of
-  Left a  -> Left <$> f a
-  Right c -> pure $ Right c
-{-# INLINE _left #-}
-
--- | traverse the right-hand value of an 'Either':
---
--- @'_right' ≡ 'Data.Traversable.traverse'@
---
--- Unfortunately the instance for
--- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,
--- so this can't just be 'Data.Traversable.traverse'
---
--- >>> over _right (+1) (Left 2)
--- Left 2
---
--- >>> over _right (+1) (Right 2)
--- Right 3
---
--- >>> Right "hello" ^._right
--- "hello"
---
--- >>> Left "hello" ^._right :: [Double]
--- []
---
--- @_right :: 'Applicative' f => (a -> f b) -> 'Either' c a -> f ('Either' c a)@
-_right :: Projection (Either c a) (Either c b) a b
-_right = projecting Right $ \f e -> case e of
-  Left c -> pure $ Left c
-  Right a -> Right <$> f a
-{-# INLINE _right #-}
 
 -- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
 --
