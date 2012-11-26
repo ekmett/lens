@@ -361,8 +361,8 @@ toListOf l = foldrOf l (:) []
 -- ('^..') :: s -> 'Simple' 'Control.Lens.Iso.Iso' s a       -> [a]
 -- ('^..') :: s -> 'Simple' 'Control.Lens.Traversal.Traversal' s a -> [a]
 -- @
-(^..) :: s -> Getting [a] s t a b -> [a]
-s ^.. l = foldMapOf l return s
+(^..) :: s -> Getting (Endo [a]) s t a b -> [a]
+s ^.. l = toListOf l s
 {-# INLINE (^..) #-}
 
 -- | Returns 'True' if every target of a 'Fold' is 'True'.
