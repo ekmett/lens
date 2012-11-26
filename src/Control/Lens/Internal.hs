@@ -316,8 +316,10 @@ instance Gettable (Effect m r) where
   coerce (Effect m) = Effect m
 
 instance Monad m => Effective m r (Effect m r) where
-  effective = isomorphic Effect getEffect
+  effective = Effect
   {-# INLINE effective #-}
+  ineffective = getEffect
+  {-# INLINE ineffective #-}
 
 -- | Wrap a monadic effect with a phantom type argument. Used when magnifying RWST.
 newtype EffectRWS w st m s a = EffectRWS { getEffectRWS :: st -> m (s,st,w) }
@@ -372,8 +374,10 @@ instance Gettable (Accessor r) where
   coerce (Accessor m) = Accessor m
 
 instance Effective Identity r (Accessor r) where
-  effective = isomorphic (Accessor . runIdentity) (Identity . runAccessor)
+  effective = Accessor . runIdentity
   {-# INLINE effective #-}
+  ineffective = Identity . runAccessor
+  {-# INLINE ineffective #-}
 
 -- | A 'Monoid' for a 'Gettable' 'Applicative'.
 newtype Folding f a = Folding { getFolding :: f a }

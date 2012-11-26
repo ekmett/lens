@@ -81,15 +81,12 @@ noEffect = coerce $ pure ()
 --
 -- That said, the monad is possibly rather unrelated to any 'Applicative' structure.
 class (Monad m, Gettable f) => Effective m r f | f -> m r where
-  effective :: Isomorphic k => k (m r) (f a)
-
--- | A convenient antonym that is used internally.
-ineffective :: Effective m r f => Isomorphic k => k (f a) (m r)
-ineffective = from effective
-{-# INLINE ineffective #-}
+  effective :: m r -> f a
+  ineffective :: f a -> m r
 
 instance Effective m r f => Effective m (Dual r) (Backwards f) where
-  effective = isomorphic (Backwards . effective . liftM getDual) (liftM Dual . ineffective . forwards)
+  effective = Backwards . effective . liftM getDual
+  ineffective = liftM Dual . ineffective . forwards
 
 -----------------------------------------------------------------------------
 -- Settable
