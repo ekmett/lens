@@ -56,7 +56,6 @@ import Control.Applicative
 import Control.Category
 import Control.Comonad
 import Control.Comonad.Store.Class
-import Control.Lens.Isomorphic
 import Control.Lens.Classes
 import Control.Monad
 import Prelude hiding ((.),id)

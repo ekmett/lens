@@ -24,14 +24,12 @@ module Control.Lens.Classes
   , noEffect
   -- * Actions
   , Effective(..)
-  , ineffective
   -- * Setters
   , Settable(..)
   ) where
 
 import Control.Applicative
 import Control.Applicative.Backwards
-import Control.Lens.Isomorphic
 import Control.Monad (liftM)
 import Data.Functor.Compose
 import Data.Functor.Identity
