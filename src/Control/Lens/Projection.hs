@@ -37,6 +37,9 @@ import Data.Functor.Identity
 import Control.Lens.Iso
 import Control.Lens.Traversal
 
+-- $setup
+-- >>> import Control.Lens
+
 -- | A 'Projection' is a 'Traversal' that can also be turned around with 'by' to obtain a 'Getter'
 type Projection s t a b = forall k f. (Projective k t b, Applicative f) => k (a -> f b) (s -> f t)
 

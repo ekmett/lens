@@ -131,7 +131,7 @@ folding sfa agb = coerce . traverse_ agb . sfa
 -- >>> Just 3^..folded
 -- [3]
 --
--- >>> Nothing^.folded
+-- >>> Nothing^..folded
 -- []
 --
 -- >>> [(1,2),(3,4)]^..folded.both
