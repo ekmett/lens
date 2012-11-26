@@ -97,7 +97,7 @@ infixr 0 ^$
 --
 -- This combinator is commonly used when applying multiple lens operations in sequence.
 --
--- >>> ("hello,"world") & _1.element 0 .~ 'j' & _1.element 4 .~ 'y'
+-- >>> ("hello","world") & _1.element 0 .~ 'j' & _1.element 4 .~ 'y'
 -- ("jelly","world")
 --
 -- This reads somewhat similar to:
@@ -317,7 +317,7 @@ s ^. l = runAccessor (l Accessor s)
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
 -- to a monoidal value.
 --
--- >>> evalState ("hello","world") (use _1)
+-- >>> evalState (use _1) ("hello","world")
 -- "hello"
 --
 -- @
@@ -337,7 +337,7 @@ use l = State.gets (view l)
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that
 -- points to a monoidal value.
 --
--- >>> evalState ("hello","world") (uses _1 length)
+-- >>> evalState (uses _1 length) ("hello","world")
 -- 5
 --
 -- @
