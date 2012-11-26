@@ -6,6 +6,7 @@
 * Generalized `view` and `views` to subsume the functionality of `peruse` and `peruses`.
 * Deprecated `peruse`, `peruses`.
 * Generalized `review and `reviews`.
+* Merged `Control.Lens.Isomorphic` into `Control.Lens.Iso`.
 
 3.6
 -----
