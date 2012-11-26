@@ -29,7 +29,7 @@ import Control.Lens
 import Data.Complex
 
 -- $setup
--- >>> import Numeric
+-- >>> let { a ≈ b = abs (a - b) < 1e-6; infix 4 ≈ }
 
 -- | Access the 'realPart' of a 'Complex' number
 --
@@ -94,8 +94,8 @@ _magnitude f c = setMag <$> f r
 
 -- | Access the 'phase' of a 'Complex' number
 --
--- >>> showFFloat (Just 6) (mkPolar 10 (2-pi) & _phase +~ pi & view _phase) ""
--- "2.000000"
+-- >>> (mkPolar 10 (2-pi) & _phase +~ pi & view _phase) ≈ 2
+-- True
 --
 -- This isn't /quite/ a legal lens. Notably the
 --
@@ -115,8 +115,8 @@ _phase f c = setPhase <$> f theta
 -- >>> (2.0 :+ 3.0) & _conjugate . imaginary -~ 1
 -- 2.0 :+ 4.0
 --
--- >>> showFFloat (Just 6) (mkPolar 10.0 2.0 ^. _conjugate . _phase) ""
--- "-2.000000"
+-- >>> (mkPolar 10.0 2.0 ^. _conjugate . _phase) ≈ (-2.0)
+-- True
 _conjugate :: RealFloat a => Simple Iso (Complex a) (Complex a)
 _conjugate = iso conjugate conjugate
 
