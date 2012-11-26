@@ -119,11 +119,23 @@ type Fold s a = forall f. (Gettable f, Applicative f) => (a -> f a) -> s -> f s
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
 --
 -- This can be useful to lift operations from @Data.List@ and elsewhere into a 'Fold'.
+--
+-- >>> [1,2,3,4]^..folding tail
+-- [2,3,4]
 folding :: (Foldable f, Applicative g, Gettable g) => (s -> f a) -> LensLike g s t a b
 folding sfa agb = coerce . traverse_ agb . sfa
 {-# INLINE folding #-}
 
 -- | Obtain a 'Fold' from any 'Foldable'.
+--
+-- >>> Just 3^..folded
+-- [3]
+--
+-- >>> Nothing^.folded
+-- []
+--
+-- >>> [(1,2),(3,4)]^..folded.both
+-- [1,2,3,4]
 folded :: Foldable f => Fold (f a) a
 folded f = coerce . getFolding . foldMap (folding# f)
 {-# INLINE folded #-}
@@ -131,6 +143,9 @@ folded f = coerce . getFolding . foldMap (folding# f)
 -- | Fold by repeating the input forever.
 --
 -- @'repeat' ≡ 'toListOf' 'repeated'@
+--
+-- >>> 5^..taking 20 repeated
+-- [5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5]
 repeated :: Fold a a
 repeated f a = as where as = f a *> as
 {-# INLINE repeated #-}
@@ -138,6 +153,9 @@ repeated f a = as where as = f a *> as
 -- | A fold that replicates its input @n@ times.
 --
 -- @'replicate' n ≡ 'toListOf' ('replicated' n)@
+--
+-- >>> 5^..replicated 20
+-- [5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5]
 replicated :: Int -> Fold a a
 replicated n0 f a = go n0 where
   m = f a
@@ -147,8 +165,8 @@ replicated n0 f a = go n0 where
 
 -- | Transform a fold into a fold that loops over its elements over and over.
 --
--- >>> take 6 $ toListOf (cycled traverse) [1,2,3]
--- [1,2,3,1,2,3]
+-- >>> [1,2,3]^..taking 7 (cycled traverse)
+-- [1,2,3,1,2,3,1]
 cycled :: (Applicative f, Gettable f) => LensLike f s t a b -> LensLike f s t a b
 cycled l f a = as where as = l f a *> as
 {-# INLINE cycled #-}
@@ -156,6 +174,9 @@ cycled l f a = as where as = l f a *> as
 -- | Build a fold that unfolds its values from a seed.
 --
 -- @'Prelude.unfoldr' ≡ 'toListOf' . 'unfolded'@
+--
+-- >>> 10^..unfolded (\b -> if b == 0 then Nothing else Just (b, b-1))
+-- [10,9,8,7,6,5,4,3,2,1]
 unfolded :: (b -> Maybe (a, b)) -> Fold b a
 unfolded f g b0 = go b0 where
   go b = case f b of
