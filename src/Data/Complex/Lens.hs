@@ -15,9 +15,9 @@
 --
 ----------------------------------------------------------------------------
 module Data.Complex.Lens
-  ( real
-  , imaginary
-  , polarize
+  ( _realPart
+  , _imagPart
+  , _polar
   , _magnitude
   , _phase
   , _conjugate
@@ -33,43 +33,45 @@ import Data.Complex
 
 -- | Access the 'realPart' of a 'Complex' number
 --
--- >>> (1.0 :+ 0.0)^.real
+-- >>> (1.0 :+ 0.0)^._realPart
 -- 1.0
 --
--- >>> 3 :+ 1 & real *~ 2
+-- >>> 3 :+ 1 & _realPart *~ 2
 -- 6 :+ 1
 --
--- @'real' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
+-- @'_realPart' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
 #if MIN_VERSION_base(4,4,0)
-real :: Simple Lens (Complex a) a
+_realPart :: Simple Lens (Complex a) a
 #else
-real :: RealFloat a => Simple Lens (Complex a) a
+_realPart :: RealFloat a => Simple Lens (Complex a) a
 #endif
-real f (a :+ b) = (:+ b) <$> f a
+_realPart f (a :+ b) = (:+ b) <$> f a
 
--- | Access the 'imaginaryPart' of a 'Complex' number
+-- | Access the 'imagPart' of a 'Complex' number
 --
--- >>> (0.0 :+ 1.0)^.imaginary
+-- >>> (0.0 :+ 1.0)^._imagPart
 -- 1.0
 --
--- @'imaginary' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
+-- @'_imagPart' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
 #if MIN_VERSION_base(4,4,0)
-imaginary :: Simple Lens (Complex a) a
+_imagPart :: Simple Lens (Complex a) a
 #else
-imaginary :: RealFloat a => Simple Lens (Complex a) a
+_imagPart :: RealFloat a => Simple Lens (Complex a) a
 #endif
-imaginary f (a :+ b) = (a :+) <$> f b
+_imagPart f (a :+ b) = (a :+) <$> f b
 
 -- | This isn't /quite/ a legal lens. Notably the 
 --
 -- @'view' l ('set' l b a) = b@
 --
--- law is violated when you set a 'polar' value with 0 'magnitude' and non-zero 'phase'
--- as the 'phase' information is lost. So don't do that!
+-- law is violated when you set a 'polar' value with 0 'magnitude' and non-zero
+-- 'phase' as the 'phase' information is lost, or with a negative 'magnitude'
+-- which flips the 'phase' and retains a positive 'magnitude'. So don't do
+-- that!
 --
 -- Otherwise, this is a perfectly cromulent 'Lens'.
-polarize :: RealFloat a => Simple Iso (Complex a) (a,a)
-polarize = iso polar (uncurry mkPolar)
+_polar :: RealFloat a => Simple Iso (Complex a) (a,a)
+_polar = iso polar (uncurry mkPolar)
 
 -- | Access the 'magnitude' of a 'Complex' number
 --
@@ -112,7 +114,7 @@ _phase f c = setPhase <$> f theta
 
 -- | Access the 'conjugate' of a 'Complex' number
 --
--- >>> (2.0 :+ 3.0) & _conjugate . imaginary -~ 1
+-- >>> (2.0 :+ 3.0) & _conjugate . _imagPart -~ 1
 -- 2.0 :+ 4.0
 --
 -- >>> (mkPolar 10.0 2.0 ^. _conjugate . _phase) ≈ (-2.0)
@@ -120,7 +122,7 @@ _phase f c = setPhase <$> f theta
 _conjugate :: RealFloat a => Simple Iso (Complex a) (Complex a)
 _conjugate = iso conjugate conjugate
 
--- | Traverse both the 'real' and 'imaginary' parts of a 'Complex' number.
+-- | Traverse both the 'realPart' and the 'imagPart' of a 'Complex' number.
 --
 -- >>> 0 & complex .~ 1
 -- 1 :+ 1
