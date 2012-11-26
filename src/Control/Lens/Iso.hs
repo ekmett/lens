@@ -43,6 +43,7 @@ module Control.Lens.Iso
 
 import Control.Applicative
 import Control.Category
+import Control.Monad.Reader
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Isomorphic
@@ -139,7 +140,7 @@ under = over . from
 -- | This can be used to turn an 'Iso' around and 'view' the other way.
 --
 -- @'review' ≡ 'view' '.' 'from'@
-review :: Overloaded Isomorphism (Accessor s) s t a b -> a -> s
+review :: MonadReader a m => Overloaded Isomorphism (Accessor s) s t a b -> m s
 review (Isomorphism _ l) = view l
 {-# INLINE review #-}
 
@@ -147,7 +148,7 @@ review (Isomorphism _ l) = view l
 -- applying a function.
 --
 -- @'reviews' ≡ 'views' '.' 'from'@
-reviews :: Overloaded Isomorphism (Accessor r) s t a b -> (s -> r) -> (a -> r)
+reviews :: MonadReader a m => Overloaded Isomorphism (Accessor r) s t a b -> (s -> r) -> m r
 reviews (Isomorphism _ l) = views l
 {-# INLINE reviews #-}
 
