@@ -499,7 +499,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
                   | otherwise              -> ps
            _                               -> ctx ++ ps
         tvs' = case maybeClassName of
-           Just n | not (cfg^.createClass) -> PlainTV t : tvs
+           Just _ | not (cfg^.createClass) -> PlainTV t : tvs
                   | otherwise              -> []
            _                               -> tvs
 
