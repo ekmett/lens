@@ -23,20 +23,14 @@
 module Control.Lens.Internal.Zipper where
 
 import Control.Applicative
-import Control.Applicative.Backwards
 import Control.Category
-import Control.Comonad
-import Control.Comonad.Store.Class
 import Control.Monad ((>=>))
-import Control.Lens.Fold
 import Control.Lens.Indexed
 import Control.Lens.IndexedLens
 import Control.Lens.Internal
 import Control.Lens.Traversal
 import Control.Lens.Type
-import Data.Foldable
 import Data.Maybe
-import Data.Monoid
 import Prelude hiding ((.),id)
 
 -----------------------------------------------------------------------------
@@ -62,7 +56,7 @@ infixl 9 :>
 --
 -- to represent a zipper from @('String','Double')@ down to 'Char' that has an intermediate
 -- crumb for the 'String' containing the 'Char'.
-data p :> a = Zipper (Coil p a) {-# UNPACK #-} !(Level a)
+data p :> a = Zipper (Coil p a) {-# UNPACK #-} !Int [a] a [a]
 
 -- | This represents the type a zipper will have when it is fully 'Zipped' back up.
 type family Zipped h a
@@ -73,41 +67,44 @@ type instance Zipped (h :> b) a = Zipped h b
 data Coil :: * -> * -> * where
   Coil :: Coil Top a
   Snoc :: Coil h b ->
-          {-# UNPACK #-} !Int ->
           SimpleLensLike (Bazaar a a) b a ->
+          {-# UNPACK #-} !Int ->
           [b] -> ([a] -> b) -> [b] ->
           Coil (h :> b) a
 
 -- | This 'Lens' views the current target of the 'zipper'.
 focus :: SimpleIndexedLens (Tape (h :> a)) (h :> a) a
-focus = index $ \f (Zipper h (Level n l a r)) -> (\a' -> Zipper h (Level n l a' r)) <$> f (Tape (peel h) n) a
+focus = index $ \f (Zipper h n l a r) -> (\a' -> Zipper h n l a' r) <$> f (Tape (peel h) n) a
 {-# INLINE focus #-}
 
 -- | Construct a 'zipper' that can explore anything.
 zipper :: a -> Top :> a
-zipper a = Zipper Coil (Level 0 [] a [])
+zipper a = Zipper Coil 0 [] a []
 {-# INLINE zipper #-}
 
 -- | Return the index into the current 'Traversal' within the current level of the zipper.
 --
 -- @'jerkTo' ('tooth' l) l = Just'@
 tooth :: (a :> b) -> Int
-tooth (Zipper _ (Level n _ _ _)) = n
+tooth (Zipper _ n _ _ _) = n
 {-# INLINE tooth #-}
 
 -- | Move the 'zipper' 'up', closing the current level and focusing on the parent element.
 up :: (a :> b :> c) -> a :> b
-up (Zipper (Snoc h n _ ls k rs) w) = Zipper h (Level n ls (k (rezipLevel w)) rs)
+up (Zipper (Snoc h _ un uls k urs) _ ls x rs) = Zipper h un uls ux urs
+  where ux = k (reverseList ls ++ x : rs)
 {-# INLINE up #-}
 
 -- | Pull the 'zipper' 'left' within the current 'Traversal'.
 left  :: (a :> b) -> Maybe (a :> b)
-left (Zipper h w) = Zipper h <$> leftLevel w
+left (Zipper _ _ []     _ _ ) = Nothing
+left (Zipper h n (l:ls) a rs) = Just (Zipper h (n - 1) ls l (a:rs))
 {-# INLINE left #-}
 
 -- | Pull the entry one entry to the 'right'
 right :: (a :> b) -> Maybe (a :> b)
-right (Zipper h w) = Zipper h <$> rightLevel w
+right (Zipper _ _ _  _ []    ) = Nothing
+right (Zipper h n ls a (r:rs)) = Just (Zipper h (n + 1) (a:ls) r rs)
 {-# INLINE right #-}
 
 -- | This allows you to safely 'tug left' or 'tug right' on a 'zipper'.
@@ -150,7 +147,7 @@ jerks f n0
 --
 -- /NB:/ If the current 'Traversal' targets an infinite number of elements then this may not terminate.
 teeth :: (a :> b) -> Int
-teeth (Zipper _ w) = levelWidth w
+teeth (Zipper _ n _ _ rs) = n + 1 + length rs
 {-# INLINE teeth #-}
 
 -- | Move the 'zipper' horizontally to the element in the @n@th position in the current level, absolutely indexed, starting with the @'farthest' 'left'@ as @0@.
@@ -187,8 +184,8 @@ tugTo n z = case compare k n of
 -- 'down' :: 'Simple' 'Iso' b c  -> (a :> b) -> a :> b :> c
 -- @
 down :: SimpleLensLike (Context c c) b c -> (a :> b) -> a :> b :> c
-down l (Zipper h (Level n ls b rs)) = case l (Context id) b of
-  Context k c -> Zipper (Snoc h n (cloneLens l) ls (k . head) rs) (Level 0 [] c [])
+down l (Zipper h n ls b rs) = case l (Context id) b of
+  Context k c -> Zipper (Snoc h (cloneLens l) n ls (k . head) rs) 0 [] c []
 {-# INLINE down #-}
 
 -- | Step down into the 'leftmost' entry of a 'Traversal'.
@@ -199,9 +196,9 @@ down l (Zipper h (Level n ls b rs)) = case l (Context id) b of
 -- 'within' :: 'Simple' 'Iso' b c       -> (a :> b) -> Maybe (a :> b :> c)
 -- @
 within :: SimpleLensLike (Bazaar c c) b c -> (a :> b) -> Maybe (a :> b :> c)
-within l (Zipper h (Level n ls b rs)) = case partsOf' l (Context id) b of
+within l (Zipper h n ls b rs) = case partsOf' l (Context id) b of
   Context _ []     -> Nothing
-  Context k (c:cs) -> Just (Zipper (Snoc h n l ls k rs) (Level 0 [] c cs))
+  Context k (c:cs) -> Just (Zipper (Snoc h l n ls k rs) 0 [] c cs)
 {-# INLINE within #-}
 
 -- | Unsafely step down into a 'Traversal' that is /assumed/ to be non-empty.
@@ -221,9 +218,8 @@ within l (Zipper h (Level n ls b rs)) = case partsOf' l (Context id) b of
 -- but it is lazier in such a way that if this invariant is violated, some code
 -- can still succeed if it is lazy enough in the use of the focused value.
 fromWithin :: SimpleLensLike (Bazaar c c) b c -> (a :> b) -> a :> b :> c
-fromWithin l (Zipper h (Level n ls b rs)) = case partsOf' l (Context id) b of
-  Context k ~(c:cs) -> Zipper (Snoc h n l ls k rs)
-                              (Level 0 [] c cs)
+fromWithin l (Zipper h n ls b rs) = case partsOf' l (Context id) b of
+  Context k ~(c:cs) -> Zipper (Snoc h l n ls k rs) 0 [] c cs
 {-# INLINE fromWithin #-}
 
 -- | This enables us to pull the 'zipper' back up to the 'Top'.
@@ -240,7 +236,7 @@ instance Zipper h b => Zipper (h :> b) c where
 
 -- | Close something back up that you opened as a 'zipper'.
 rezip :: Zipper h a => (h :> a) -> Zipped h a
-rezip (Zipper h w) = recoil h (rezipLevel w)
+rezip (Zipper h _ ls a rs) = recoil h (reverseList ls ++ a : rs)
 {-# INLINE rezip #-}
 
 -----------------------------------------------------------------------------
@@ -253,7 +249,7 @@ data Tape k where
 
 -- | Save the current path as as a 'Tape' we can play back later.
 saveTape :: (a :> b) -> Tape (a :> b)
-saveTape (Zipper h (Level n _ _ _)) = Tape (peel h) n
+saveTape (Zipper h n _ _ _) = Tape (peel h) n
 {-# INLINE saveTape #-}
 
 -- | Restore ourselves to a previously recorded position precisely.
@@ -289,7 +285,7 @@ unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> tugs right n
 -- | This is used to peel off the path information from a 'Coil' for use when saving the current path for later replay.
 peel :: Coil h a -> Track h a
 peel Coil               = Track
-peel (Snoc h n l _ _ _) = Fork (peel h) n l
+peel (Snoc h l n _ _ _) = Fork (peel h) n l
 
 -- | The 'Track' forms the bulk of a 'Tape'.
 data Track :: * -> * -> * where
@@ -321,63 +317,6 @@ restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs right n >>> within l
 unsafelyRestoreTrack :: Track h a -> Zipped h a -> h :> a
 unsafelyRestoreTrack Track = zipper
 unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> tugs right n >>> fromWithin l
-
------------------------------------------------------------------------------
--- * Levels
------------------------------------------------------------------------------
-
--- | A basic non-empty list zipper
---
--- All combinators assume the invariant that the length stored matches the number
--- of elements in list of items to the left, and the list of items to the left is
--- stored reversed.
-data Level a = Level {-# UNPACK #-} !Int [a] a [a]
-
--- | How many entries are there in this level?
-levelWidth :: Level a -> Int
-levelWidth (Level n _ _ rs) = n + 1 + length rs
-{-# INLINE levelWidth #-}
-
--- | Pull the non-empty list zipper left one entry
-leftLevel :: Level a -> Maybe (Level a)
-leftLevel (Level _ []     _ _ ) = Nothing
-leftLevel (Level n (l:ls) a rs) = Just (Level (n - 1) ls l (a:rs))
-{-# INLINE leftLevel #-}
-
--- | Pull the non-empty list zipper right one entry.
-rightLevel :: Level a -> Maybe (Level a)
-rightLevel (Level _ _  _ []    ) = Nothing
-rightLevel (Level n ls a (r:rs)) = Just (Level (n + 1) (a:ls) r rs)
-{-# INLINE rightLevel #-}
-
--- | Zip a non-empty list zipper back up, and return the result.
-rezipLevel :: Level a -> [a]
-rezipLevel (Level _ ls a rs) = reverseList ls ++ a : rs
-{-# INLINE rezipLevel #-}
-
-instance Functor Level where
-  fmap f (Level n ls a rs) = Level n (f <$> ls) (f a) (f <$> rs)
-
-instance Foldable Level where
-  foldMap f (Level _ ls a rs) = foldMapOf (backwards folded) f ls <> f a <> foldMap f rs
-
-instance Traversable Level where
-  traverse f (Level n ls a rs) = Level n <$> forwards (traverse (Backwards . f) ls) <*> f a <*> traverse f rs
-
-instance Comonad Level where
-  extract (Level _ _ a _) = a
-  extend f w@(Level n ls m rs) = Level n (gol (n - 1) (m:rs) ls) (f w) (gor (n + 1) (m:ls) rs) where
-    gol k zs (y:ys) = f (Level k ys y zs) : (gol $! k - 1) (y:zs) ys
-    gol _ _ [] = []
-    gor k ys (z:zs) = f (Level k ys z zs) : (gor $! k + 1) (z:ys) zs
-    gor _ _ [] = []
-
-instance ComonadStore Int Level where
-  pos (Level n _ _ _) = n
-  peek n (Level m ls a rs) = case compare n m of
-    LT -> ls !! (m - n)
-    EQ -> a
-    GT -> rs !! (n - m)
 
 -----------------------------------------------------------------------------
 -- * Helper functions
