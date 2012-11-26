@@ -1,6 +1,5 @@
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE Rank2Types #-}
 -----------------------------------------------------------------------------
 -- |

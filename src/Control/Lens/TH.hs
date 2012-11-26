@@ -346,8 +346,7 @@ plain (KindedTV t _) = PlainTV t
 plain (PlainTV t) = PlainTV t
 
 appArgs :: Type -> [TyVarBndr] -> Type
-appArgs t [] = t
-appArgs t (x:xs) = appArgs (AppT t (VarT (x^.name))) xs
+appArgs = Prelude.foldl (\t x -> AppT t (VarT (x ^. name)))
 
 apps :: Type -> [Type] -> Type
 apps = Prelude.foldl AppT
@@ -510,7 +509,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
 
     isTraversal <- do
       let notSingular = filter ((/= 1) . length . snd) conList
-          showCon (c, fs) = pprint (view name c) ++ " { " ++ concat (intersperse ", " $ map pprint fs) ++ " }"
+          showCon (c, fs) = pprint (view name c) ++ " { " ++ intercalate ", " (map pprint fs) ++ " }"
       case (cfg^.buildTraversals, cfg^.partialLenses) of
         (True,  True) -> fail "Cannot makeLensesWith both of the flags buildTraversals and partialLenses."
         (False, True) -> return False
@@ -528,7 +527,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
     --TODO: consider detecting simpleLenses, and generating signatures involving "Simple"?
     let decl = SigD lensName
              . ForallT tvs' qs
-             . apps (if isTraversal then ConT ''Traversal else ConT ''Lens)
+             . apps (ConT (if isTraversal then ''Traversal else ''Lens))
              $ if cfg^.simpleLenses || isJust maybeClassName then [aty,aty,cty,cty] else [aty,bty,cty,dty]
 
     body <- makeFieldLensBody isTraversal lensName conList maybeMethodName

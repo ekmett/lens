@@ -4,7 +4,6 @@
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Fold
