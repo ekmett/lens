@@ -60,7 +60,7 @@ _imagPart :: RealFloat a => Simple Lens (Complex a) a
 #endif
 _imagPart f (a :+ b) = (a :+) <$> f b
 
--- | This isn't /quite/ a legal lens. Notably the 
+-- | This isn't /quite/ a legal lens. Notably the
 --
 -- @'view' l ('set' l b a) = b@
 --

@@ -221,7 +221,7 @@ upon' field = index $ \f s -> let
 {-# INLINE upon' #-}
 
 -- | The design of 'upon' doesn't allow it to search inside of values of type 'a' for other values of type 'a'.
--- uponTheDeep provides this additional recursion. 
+-- uponTheDeep provides this additional recursion.
 --
 -- >>> uponTheDeep (tail.tail) .~ [10,20] $ [1,2,3,4]
 -- [1,2,10,20]

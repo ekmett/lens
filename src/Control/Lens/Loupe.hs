@@ -49,7 +49,7 @@ infix  4 <#=, #=, #%=, <#%=, #%%=
 -- A @'Loupe' s t a b@ is almost a 'Lens'. It can be composed on the left of other lenses,
 -- you can use 'cloneLens' to promote it to a 'Lens', and it provides a minimalist lens-like
 -- interface. They can be used in an API where you need to pass around lenses inside containers
--- or as monadic results. Unlike a 'ReifiedLens' they can be composed and used directly, but 
+-- or as monadic results. Unlike a 'ReifiedLens' they can be composed and used directly, but
 -- they are slightly lower performance.
 
 -- 1) You get back what you put in:

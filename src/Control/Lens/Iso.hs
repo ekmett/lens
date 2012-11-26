@@ -299,7 +299,7 @@ simple = isomorphic id id
 -- >>> Map.empty & at "hello" . non Map.empty . at "world" ?~ "!!!"
 -- fromList [("hello",fromList [("world","!!!")])]
 --
--- and when have deleting the last entry from the nested map mean that we 
+-- and when have deleting the last entry from the nested map mean that we
 -- should delete its entry from the surrounding one:
 --
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
