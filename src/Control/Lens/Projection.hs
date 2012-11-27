@@ -47,12 +47,51 @@ import Unsafe.Coerce
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Numeric.Natural
+-- >>> let nat :: Simple Projection Integer Natural; nat = projecting toInteger $ \f i -> if i < 0 then pure i else toInteger <$> f (fromInteger i)
 
 ------------------------------------------------------------------------------
 -- Projection Internals
 ------------------------------------------------------------------------------
 
--- | A 'Projection' is a 'Traversal' that can also be turned around with 'remit' to obtain a 'Getter'. It may help to think of this as a 'Control.Lens.Iso.Iso' that is partial in the \'reverse\' direction. For example, 'Simple' 'Projection' @Int NaturalNumber@ shows we can always go from a @NaturalNumber@ to an @Int@, but we can't always go from an @Int@ to a @NaturalNumber@.
+-- | A 'Projection' is a 0-or-1 target 'Traversal' that can also be turned around with 'remit' to
+-- obtain a 'Getter' in the opposite direction, such that in addition to the 'Traversal' laws,
+--
+-- @x '^.' 'remit' l '^?' l ≡ 'Just' x@
+--
+-- It may help to think of this as a 'Control.Lens.Iso.Iso' that is partial in one direction.
+--
+-- For example, a @'Simple' 'Projection' 'Integer' Natural@ would allow you to always go from a
+-- @Natural@ to an @Int@, and provide you with tools to check if an 'Integer' is a Natural, and edit
+-- it if it is.
+--
+-- For example:
+--
+-- @
+-- 'nat' :: 'Simple' 'Projection' 'Integer' 'Numeric.Natural.Natural'
+-- 'nat' = 'projecting' 'toInteger' '$' \f i ->
+--    if i '<' 0 
+--    then 'pure' i
+--    else 'toInteger' '<$>' f ('fromInteger' i)
+-- @
+--
+-- Now we can ask if a number is a natural.
+
+-- >>> 5^?nat
+-- Just 5
+--
+-- >>> (-5)^?nat
+-- Nothing
+--
+-- We can update the ones that are:
+--
+-- >>> (-3,4) & both.nat *~ 2
+-- (-3,8)
+--
+-- And we can then convert from a 'Natural' to an 'Integer'.
+--
+-- >>> 5 ^. remit nat
+-- 5
 type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f b) (s -> f t)
 
 -- | A @'Simple' 'Projection'@.
