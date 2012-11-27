@@ -63,7 +63,7 @@ import Unsafe.Coerce
 --
 -- For example, you might have a @'Simple' 'Projection' 'Integer' Natural@ allows you to always
 -- go from a 'Natural' to an 'Integer', and provide you with tools to check if an 'Integer' is
--- a 'Natural' and edit it if it is.
+-- a 'Natural' and/or to edit one if it is.
 --
 -- @
 -- 'nat' :: 'Simple' 'Projection' 'Integer' 'Numeric.Natural.Natural'
@@ -73,7 +73,7 @@ import Unsafe.Coerce
 --    else 'toInteger' '<$>' f ('fromInteger' i)
 -- @
 --
--- Now we can ask if a number is a natural.
+-- Now we can ask if an 'Integer' is a 'Natural'.
 --
 -- >>> 5^?nat
 -- Just 5
@@ -96,7 +96,7 @@ import Unsafe.Coerce
 -- >>> Left "hello" & _left %~ length
 -- Left 5
 --
--- or to construct an Either:
+-- or to construct an 'Either':
 --
 -- >>> 5^.remit _left
 -- Left 5
