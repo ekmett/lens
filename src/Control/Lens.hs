@@ -3,9 +3,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE FlexibleContexts #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
-{-# LANGUAGE Safe #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens
