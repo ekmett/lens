@@ -40,6 +40,7 @@ module Data.Vector.Generic.Lens
 
 import Control.Applicative
 import Control.Lens
+import Control.Lens.Internal
 import Data.List (nub)
 import Data.Monoid
 import Data.Vector.Generic as V hiding (zip, filter)

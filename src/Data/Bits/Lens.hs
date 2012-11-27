@@ -19,6 +19,7 @@ module Data.Bits.Lens
   ) where
 
 import Control.Lens
+import Control.Lens.Internal
 import Control.Monad.State
 import Data.Bits
 import Data.Functor

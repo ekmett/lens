@@ -88,7 +88,6 @@ module Control.Lens.Representable
 import Control.Applicative
 import Control.Lens.Classes
 import Control.Lens.Getter
-import Control.Lens.Indexed
 import Control.Lens.IndexedFold
 import Control.Lens.IndexedLens
 import Control.Lens.IndexedSetter

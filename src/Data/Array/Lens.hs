@@ -23,6 +23,7 @@ module Data.Array.Lens
 
 import Control.Applicative
 import Control.Lens
+import Control.Lens.Internal
 import Data.Array.IArray hiding (index)
 
 -- | Access an element of an array.

@@ -19,7 +19,8 @@ module Data.Sequence.Lens
   ) where
 
 import Control.Applicative
-import Control.Lens as Lens
+import Control.Lens          as Lens
+import Control.Lens.Internal as Lens
 import Data.Monoid
 import Data.Sequence as Seq
 

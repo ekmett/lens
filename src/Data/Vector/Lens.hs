@@ -37,6 +37,7 @@ module Data.Vector.Lens
 
 import Control.Applicative
 import Control.Lens
+import Control.Lens.Internal
 import Data.Vector as Vector hiding (zip, filter)
 import Prelude hiding ((++), length, head, tail, init, last, map, reverse)
 import Data.List (nub)

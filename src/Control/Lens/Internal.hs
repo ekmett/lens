@@ -52,6 +52,7 @@ module Control.Lens.Internal
   , Indexing(..)
   , Project(..)
   , Isos(..)
+  , Indexed(..)
   ) where
 
 import Control.Applicative
@@ -488,10 +489,6 @@ instance Isomorphic Project where
 -- Isomorphism Internals
 ------------------------------------------------------------------------------
 
-----------------------------------------------------------------------------
--- Isomorphism Implementation Details
------------------------------------------------------------------------------
-
 -- | Reify all of the information given to you by being 'Isomorphic'.
 data Isos x y where
   Isos :: (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> Isos (a -> f b) (s -> f t)
@@ -507,3 +504,19 @@ instance Category Isos where
 
 instance Isomorphic Isos where
   isos = Isos
+
+----------------------------------------------------------------------------
+-- Indexed Internals
+-----------------------------------------------------------------------------
+
+-- | Permit overloading of function application for things that also admit a notion of a key or index.
+
+-- | Provides overloading for 'Indexed' functions.
+class Indexed i k where
+  -- | Build a function from an 'Indexed' function
+  index :: ((i -> a) -> b) -> k a b
+
+instance Indexed i (->) where
+  index f = f . const
+  {-# INLINE index #-}
+

@@ -25,7 +25,6 @@ module Control.Lens.Internal.Zipper where
 import Control.Applicative
 import Control.Category
 import Control.Monad ((>=>))
-import Control.Lens.Indexed
 import Control.Lens.IndexedLens
 import Control.Lens.Internal
 import Control.Lens.Traversal

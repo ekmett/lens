@@ -18,8 +18,7 @@
 module Control.Lens.Indexed
   (
   -- * Indexed Functions
-    Indexed(..)
-  , Indexable
+    Indexable
   , Index(..)
   , (<.>), (<.), (.>)
   , icompose
@@ -31,20 +30,9 @@ import Control.Lens.Internal
 
 infixr 9 <.>, <., .>
 
--- | Permit overloading of function application for things that also admit a notion of a key or index.
-
--- | Provides overloading for 'Indexed' functions.
-class Indexed i k where
-  -- | Build a function from an 'Indexed' function
-  index :: ((i -> a) -> b) -> k a b
-
 -- | Type alias for passing around polymorphic 'Indexed' functions that can be called 'withIndex' or
 -- directly as a function
 type Indexable i a b = forall k. Indexed i k => k a b
-
-instance Indexed i (->) where
-  index f = f . const
-  {-# INLINE index #-}
 
 -- | A function with access to a index. This constructor may be useful when you need to store
 -- a 'Indexable' in a container to avoid @ImpredicativeTypes@.

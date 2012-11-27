@@ -44,6 +44,7 @@ module Control.Lens.IndexedLens
   ) where
 
 import Control.Applicative
+import Control.Lens.Internal
 import Control.Lens.Indexed
 import Control.Lens.Type
 import Control.Monad.State.Class as State

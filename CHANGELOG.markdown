@@ -7,6 +7,7 @@
 * Removed `peruse`, `peruses`.
 * Generalized `review` and `reviews` to both return a `MonadReader` and to work on a `Projection`.
 * Added `reuse` : `use` :: `review` : `view` and `reuses` : `uses` :: `reviews` : `views` for working a `Projection` from the current `MonadState`.
+* Moved `Indexed(index)` to `Control.Lens.Internal`. `index` is a rather too common name to export by default.
 
 3.6
 -----

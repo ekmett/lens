@@ -16,6 +16,7 @@ module Data.Tree.Lens
   ) where
 
 import Control.Lens
+import Control.Lens.Internal
 import Data.Functor
 import Data.Tree
 
