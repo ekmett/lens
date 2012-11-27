@@ -52,7 +52,7 @@ import Unsafe.Coerce
 -- Projection Internals
 ------------------------------------------------------------------------------
 
--- | A 'Projection' is a 'Traversal' that can also be turned around with 'remit' to obtain a 'Getter'
+-- | A 'Projection' is a 'Traversal' that can also be turned around with 'remit' to obtain a 'Getter'. It may help to think of this as a 'Control.Lens.Iso.Iso' that is partial in the \'reverse\' direction. For example, 'Simple' 'Projection' @Int NaturalNumber@ shows we can always go from a @NaturalNumber@ to an @Int@, but we can't always go from an @Int@ to a @NaturalNumber@.
 type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f b) (s -> f t)
 
 -- | A @'Simple' 'Projection'@.
