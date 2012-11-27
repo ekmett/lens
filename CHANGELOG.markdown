@@ -1,6 +1,6 @@
 3.7
 -----
-* Added `_magnitude`, `_phase` and `_conjugate` to `Data.Complex.Lens`.
+* Added `_magnitude`, `_phase` and `_conjugate` to `Data.Complex.Lens`. Renamed other lenses for consistency: `_realPart`, `_imagPart`, `_polar`.
 * Promoted `_left` and `_right` to projections and moved them to `Control.Lens.Projection`.
 * Implemented a complete redesign of the way `Projection` is handled internally, that necessitated some changes to `Iso` internally as well.
 * Generalized `view` and `views` to subsume the functionality of `peruse` and `peruses`.
