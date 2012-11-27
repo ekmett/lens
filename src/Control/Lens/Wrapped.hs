@@ -19,6 +19,7 @@ module Control.Lens.Wrapped
   ( Wrapped(..)
   , wrapping, unwrapping
   , wrappings, unwrappings
+  , ala, alaf
   ) where
 
 import Control.Applicative
@@ -124,3 +125,17 @@ wrappings _ _ = wrapped
 unwrappings :: Wrapped s t a b => (s -> a) -> (t -> b) -> Iso a b s t
 unwrappings _ _ = unwrapped
 
+-- | Based on @ala@ from Conor McBride's work on Epigram.
+--
+-- >>> :m + Data.Monoid.Lens Data.Foldable
+-- >>> ala Sum foldMap [1,2,3,4]
+-- 10
+ala :: Wrapped s s a a => (s -> a) -> ((s -> a) -> e -> a) -> e -> s
+ala = au . wrapping
+{-# INLINE ala #-}
+
+-- |
+-- Based on @ala'@ from Conor McBride's work on Epigram.
+alaf :: Wrapped s s a a => (s -> a) -> ((r -> a) -> e -> a) -> (r -> s) -> e -> s
+alaf = auf . wrapping
+{-# INLINE alaf #-}

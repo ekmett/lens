@@ -8,6 +8,9 @@
 * Generalized `review` and `reviews` to both return a `MonadReader` and to work on a `Projection`.
 * Added `reuse` : `use` :: `review` : `view` and `reuses` : `uses` :: `reviews` : `views` for working a `Projection` from the current `MonadState`.
 * Moved `Indexed(index)` to `Control.Lens.Internal`. `index` is a rather too common name to export by default.
+* Added `Control.Lens.Wrapped` providing a canonical isomorphism for newtypes.
+* Repurposed `ala` to be closer to the original design in @newtype@.
+* Added `au` and `alaf`.
 
 3.6
 -----

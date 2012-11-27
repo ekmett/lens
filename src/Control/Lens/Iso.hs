@@ -1,7 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE TypeOperators #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -27,7 +26,7 @@ module Control.Lens.Iso
   , via
   , Isomorphism
   -- * Working with isomorphisms
-  , ala
+  , au
   , auf
   , under
   , mapping
@@ -123,20 +122,27 @@ iso :: (Isomorphic k, Functor f) => (s -> a) -> (a -> s) -> k (a -> f a) (s -> f
 iso sa as = isos sa as sa as
 {-# INLINE iso #-}
 
--- | Based on @ala@ from Conor McBride's work on Epigram.
+-- | Based on 'Control.Lens.Wrapped.ala' from Conor McBride's work on Epigram.
+--
+-- This version is generalized to accept any 'Iso', not just a newtype.
 --
 -- >>> :m + Data.Monoid.Lens Data.Foldable
--- >>> ala _sum foldMap [1,2,3,4]
+-- >>> au (wrapping Sum) foldMap [1,2,3,4]
 -- 10
-ala :: Isomorphism s t a b -> ((s -> a) -> e -> b) -> e -> t
-ala (Isos sa _ _ bt) f e = unsafeCoerce bt (f sa e)
-{-# INLINE ala #-}
+au :: Isomorphism s t a b -> ((s -> a) -> e -> b) -> e -> t
+au (Isos sa _ _ bt) f e = unsafeCoerce bt (f sa e)
+{-# INLINE au #-}
 
 -- |
 -- Based on @ala'@ from Conor McBride's work on Epigram.
 --
+-- This version is generalized to accept any 'Iso', not just a newtype.
+--
 -- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator
 -- is 'ala' with an extra function argument.
+--
+-- >>> auf (wrapping Sum) (foldMapOf both) length ("hello","world")
+-- 10
 auf :: Isomorphism s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
 auf (Isos sa _ _ bt) f g e = unsafeCoerce bt (f (sa . g) e)
 {-# INLINE auf #-}
