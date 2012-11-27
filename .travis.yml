@@ -16,3 +16,4 @@ script:
   - cabal bench
 notifications:
   irc: "irc.freenode.org#haskell-lens"
+  skip_join: true
