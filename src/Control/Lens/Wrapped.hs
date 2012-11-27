@@ -47,7 +47,6 @@ import           Data.Functor.Compose
 import           Data.Functor.Constant
 import           Data.Functor.Coproduct
 import           Data.Functor.Identity
-import qualified Data.Functor.Product              as F
 import           Data.Functor.Reverse
 import           Data.Monoid
 
@@ -155,10 +154,6 @@ instance Wrapped (m (Maybe a)) (m' (Maybe a')) (MaybeT m a) (MaybeT m' a') where
   wrapped   = isos MaybeT runMaybeT MaybeT runMaybeT
   unwrapped = isos runMaybeT MaybeT runMaybeT MaybeT
 
-instance Wrapped (f a, g a) (f' a', g' a') (F.Product f g a) (F.Product f' g' a') where
-  wrapped   = isos pair getPair pair getPair
-  unwrapped = isos getPair pair getPair pair
-
 instance Wrapped (r -> m a) (r' -> m' a') (ReaderT r m a) (ReaderT r' m' a') where
   wrapped   = isos ReaderT runReaderT ReaderT runReaderT
   unwrapped = isos runReaderT ReaderT runReaderT ReaderT
@@ -254,12 +249,6 @@ failedAssertion (AssertionFailed x) = x
 
 getArrowMonad :: ArrowApply m  => ArrowMonad m a -> m () a
 getArrowMonad (ArrowMonad x) = x
-
-pair :: (f a, g a) -> F.Product f g a
-pair = uncurry F.Pair
-
-getPair :: F.Product f g a -> (f a, g a)
-getPair (F.Pair f g) = (f, g)
 
 -- | This is a convenient version of 'wrapped' with an argument that's ignored.
 --
