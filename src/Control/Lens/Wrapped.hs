@@ -190,8 +190,8 @@ instance Wrapped (m (a, w)) (m' (a', w')) (Strict.WriterT w m a) (Strict.WriterT
 -- comonad-transformers
 
 instance Wrapped (w (m -> a)) (w' (m' -> a')) (TracedT m w a) (TracedT m' w' a') where
-  wrapped   = iso TracedT runTracedT TracedT runTracedT
-  unwrapped = iso runTracedT TracedT runTracedT TracedT
+  wrapped   = isos TracedT runTracedT TracedT runTracedT
+  unwrapped = isos runTracedT TracedT runTracedT TracedT
 
 
 getArrowMonad :: ArrowApply m  => ArrowMonad m a -> m () a
