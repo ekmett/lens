@@ -16,9 +16,9 @@
 -- Combinators for working with 'Indexed' functions.
 ----------------------------------------------------------------------------
 module Control.Lens.Indexed
-  (
+  ( Indexed(..)
   -- * Indexed Functions
-    Indexable
+  , Indexable
   , Index(..)
   , (<.>), (<.), (.>)
   , icompose
