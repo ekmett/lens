@@ -2,11 +2,10 @@
 -----
 * Added `_magnitude`, `_phase` and `_conjugate` to `Data.Complex.Lens`.
 * Promoted `_left` and `_right` to projections and moved them to `Control.Lens.Projection`.
-* Bug fixes for `Projection`.
+* Implemented a complete redesign of the way `Projection` is handled internally, that necessitated some changes to `Iso` internally as well.
 * Generalized `view` and `views` to subsume the functionality of `peruse` and `peruses`.
 * Deprecated `peruse`, `peruses`.
 * Generalized `review and `reviews`.
-* Merged `Control.Lens.Isomorphic` into `Control.Lens.Iso`.
 
 3.6
 -----

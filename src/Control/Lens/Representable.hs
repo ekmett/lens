@@ -232,7 +232,7 @@ paths = rep Path
 -- | A version of 'rep' that is an isomorphism. Predicativity requires that
 -- we wrap the 'Rep' as a 'Key', however.
 tabulated :: Representable f => (Path f -> a) -> f a
-tabulated = isomorphic (\f -> rep (f . Path)) (\fa path -> view (walk path) fa)
+tabulated f = rep (f . Path)
 {-# INLINE tabulated #-}
 
 -----------------------------------------------------------------------------

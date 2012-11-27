@@ -311,35 +311,32 @@ freshMap :: Set Name -> Q (Map Name Name)
 freshMap ns = Map.fromList <$> for (toList ns) (\ n -> (,) n <$> newName (nameBase n))
 
 makeIsoTo :: Name -> ExpQ
-makeIsoTo conName = do
-  f <- newName "f"
-  a <- newName "a"
-  lamE [varP f, conP conName [varP a]] $
-    appsE [ return (VarE 'fmap)
-          , conE conName
-          , varE f `appE` varE a
-          ]
+makeIsoTo = conE
 
 makeIsoFrom :: Name -> ExpQ
 makeIsoFrom conName = do
-  f <- newName "f"
-  a <- newName "a"
   b <- newName "b"
-  lamE [varP f, varP a] $
-    appsE [ return (VarE 'fmap)
-          , lamE [conP conName [varP b]] $ varE b
-          , varE f `appE` (conE conName `appE` varE a)
-          ]
+  lamE [conP conName [varP b]] $ varE b
 
 makeIsoBody :: Name -> Name -> (Name -> ExpQ) -> (Name -> ExpQ) -> DecQ
 makeIsoBody lensName conName f g = funD lensName [clause [] (normalB body) []] where
-  body = appsE [ return (VarE 'isomorphic)
+  body = appsE [ varE 'isos
+               , g conName
                , f conName
                , g conName
+               , f conName
                ]
 
 makeLensBody :: Name -> Name -> (Name -> ExpQ) -> (Name -> ExpQ) -> DecQ
-makeLensBody lensName conName f _ = funD lensName [clause [] (normalB (f conName)) []]
+makeLensBody lensName conName i o = do
+  f <- newName "f"
+  a <- newName "a"
+  funD lensName [clause [] (normalB (
+    lamE [varP f, varP a] $
+      appsE [ varE 'fmap
+            , o conName
+            , varE f `appE` (i conName `appE` varE a)
+            ])) []]
 
 plain :: TyVarBndr -> TyVarBndr
 plain (KindedTV t _) = PlainTV t
@@ -355,21 +352,6 @@ apps = Prelude.foldl AppT
 appsT :: TypeQ -> [TypeQ] -> TypeQ
 appsT = Prelude.foldl appT
 
--- | Given
---
--- > newtype Cxt b => Foo a b c d = Foo { _baz :: Bar a b }
---
--- This will generate:
---
--- > foo :: (Cxt b, Cxt f) => Iso (Foo a b c d) (Foo e f g h) (Bar a b) (Bar e f)
--- > foo = isomorphic (\f a -> (\(Foo b) -> b) <$> f (Foo a))
--- >                  (\f (Foo a) -> fmap Foo (f a))
--- > {-# INLINE foo #-}
-
--- > baz :: (Cxt b, Cxt f) => Iso (Bar a b) (Bar e f) (Foo a b c d) (Foo e f g h)
--- > baz = isomorphic (\f (Foo a) -> fmap Foo (f a))
--- >                  (\f a -> fmap (\(Foo b) -> b) (f (Foo a)))
--- > {-# INLINE baz #-}
 makeIsoLenses :: LensRules
               -> Cxt
               -> Name

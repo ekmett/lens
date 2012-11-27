@@ -26,15 +26,21 @@ module Control.Lens.Classes
   , Effective(..)
   -- * Setters
   , Settable(..)
+  -- * Isomorphisms
+  , Isomorphic(..)
+  -- * Projections
+  , Projective(..)
   ) where
 
 import Control.Applicative
 import Control.Applicative.Backwards
+import Control.Category
 import Control.Monad (liftM)
 import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Monoid
 import Unsafe.Coerce
+import Prelude hiding ((.),id)
 
 -------------------------------------------------------------------------------
 -- Gettables & Accessors
@@ -116,3 +122,43 @@ instance Settable f => Settable (Backwards f) where
 instance (Settable f, Settable g) => Settable (Compose f g) where
   untainted = untainted . untainted . getCompose
   {-# INLINE untainted #-}
+
+-----------------------------------------------------------------------------
+-- Isomorphisms
+-----------------------------------------------------------------------------
+
+-- | Used to provide overloading of isomorphism application
+--
+-- An instance of 'Isomorphic' is a 'Category' with a canonical mapping to it from the
+-- category of isomorphisms over Haskell types.
+class Category k => Isomorphic k where
+
+  -- | Build an isomorphism family from two (related) pairs of inverse functions.
+  --
+  -- @
+  -- 'Control.Lens.Getter.view' ('isos' sa as tb bt) ≡ sa
+  -- 'Control.Lens.Getter.view' ('Control.Lens.Iso.from' ('isos' sa as tb bt)) ≡ as
+  -- 'Control.Lens.Setter.set' ('isos' sa as tb bt) ab ≡ bt '.' ab '.' sa
+  -- 'Control.Lens.Setter.set' ('Control.Lens.Iso.from' ('isos' ac ca bd db)) ab ≡ bd '.' ab '.' ca
+  -- @
+  --
+  -- @isos :: (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> 'Iso' s t a b@
+  isos :: Functor f => (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> k (a -> f b) (s -> f t)
+
+instance Isomorphic (->) where
+  isos sa _ _ bt afb s = bt <$> afb (sa s)
+
+-----------------------------------------------------------------------------
+-- Projections
+-----------------------------------------------------------------------------
+
+-- | Used to provide overloading of projections.
+--
+-- An instance of 'Projective' is a 'Category' with a canonical mapping to it from the category
+-- of embedding-projection pairs over Haskell types.
+class Isomorphic k => Projective k where
+  -- | Build a 'Control.Lens.Projection.Projection' or 'Control.Lens.Traversal.Traversal'
+  projecting :: Applicative f => (b -> t) -> ((a -> f b) -> s -> f t) -> k (a -> f b) (s -> f t)
+
+instance Projective (->) where
+  projecting _ k = k

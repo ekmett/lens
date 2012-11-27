@@ -1,6 +1,10 @@
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE DeriveDataTypeable #-}
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
+{-# LANGUAGE Trustworthy #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Iso
@@ -15,8 +19,13 @@ module Control.Lens.Iso
   (
   -- * Isomorphism Lenses
     Iso
+  -- * Isomorphism Construction
+  , Isomorphic(..)
   , iso
-  , isos
+  -- * Consuming Isomorphisms
+  , from
+  , via
+  , Isomorphism
   -- * Working with isomorphisms
   , ala
   , auf
@@ -24,11 +33,6 @@ module Control.Lens.Iso
   , mapping
   , review
   , reviews
-  -- * Primitive isomorphisms
-  , from
-  , via
-  , Isomorphism(..)
-  , Isomorphic(..)
   -- ** Common Isomorphisms
   , _const
   , identity
@@ -45,14 +49,13 @@ module Control.Lens.Iso
 import Control.Applicative
 import Control.Category
 import Control.Monad.Reader
-import Control.Lens.Getter
+import Control.Lens.Classes
 import Control.Lens.Internal
-import Control.Lens.Setter
 import Control.Lens.Type
 import Data.Functor.Identity
 import Data.Maybe (fromMaybe)
-import Data.Typeable
 import Prelude hiding ((.),id)
+import Unsafe.Coerce
 
 -- $setup
 -- >>> import Control.Lens
@@ -62,45 +65,27 @@ import Prelude hiding ((.),id)
 -- Isomorphism Implementation Details
 -----------------------------------------------------------------------------
 
--- | Used to provide overloading of isomorphism application
---
--- This is a 'Category' with a canonical mapping to it from the
--- category of isomorphisms over Haskell types.
-class Category k => Isomorphic k where
-  -- | Build this morphism out of an isomorphism
-  --
-  -- The intention is that by using 'isomorphic', you can supply both halves of an
-  -- isomorphism, but k can be instantiated to @(->)@, so you can freely use
-  -- the resulting isomorphism as a function.
-  isomorphic :: (a -> b) -> (b -> a) -> k a b
+-- | Reify all of the information given to you by being 'Isomorphic'.
+data Isos x y where
+  Isos :: (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> Isos (a -> f b) (s -> f t)
 
-  -- | Map a morphism in the target category using an isomorphism between morphisms
-  -- in Hask.
-  isomap :: ((a -> b) -> c -> d) -> ((b -> a) -> d -> c) -> k a b -> k c d
+-- | NB: Only arrows for objects of form @(a -> f b)@ can be pattern matched.
+instance Category Isos where
+  id = unsafeCoerce (Isos id id id id)
 
-instance Isomorphic (->) where
-  isomorphic = const
-  {-# INLINE isomorphic #-}
-  isomap = const
-  {-# INLINE isomap #-}
+  -- The outer unsafeCoerce is being by the same justification as 'id' above.
+  -- The other two are because GHC is unwilling to infer that @a -> f b@ ~ @s -> g t@ entails @b ~ t@ in a context where
+  -- neither @f@ nor @g@ could be type families.
+  Isos xs sx yt ty . Isos sa as tb bt = unsafeCoerce $ Isos (sa.xs) (sx.as) (unsafeCoerce tb.yt) (unsafeCoerce ty.bt)
 
--- | A concrete data type for isomorphisms.
---
--- This lets you place an isomorphism inside a container without using @ImpredicativeTypes@.
-data Isomorphism a b = Isomorphism (a -> b) (b -> a)
-  deriving Typeable
+instance Isomorphic Isos where
+  isos = Isos
 
-instance Category Isomorphism where
-  id = Isomorphism id id
-  {-# INLINE id #-}
-  Isomorphism bc cb . Isomorphism ab ba = Isomorphism (bc . ab) (ba . cb)
-  {-# INLINE (.) #-}
+----------------------------------------------------------------------------
+-- Consuming Isomorphisms
+-----------------------------------------------------------------------------
 
-instance Isomorphic Isomorphism where
-  isomorphic = Isomorphism
-  {-# INLINE isomorphic #-}
-  isomap abcd badc (Isomorphism ab ba) = Isomorphism (abcd ab) (badc ba)
-  {-# INLINE isomap #-}
+type Isomorphism s t a b = Isos (a -> Mutator b) (s -> Mutator t)
 
 -- | Invert an isomorphism.
 --
@@ -112,16 +97,16 @@ instance Isomorphic Isomorphism where
 -- If you imported 'Control.Category..' from @Control.Category@, then:
 --
 -- @'from' l '.' 'from' r ≡ 'from' (r '.' l)@
-from :: Isomorphic k => Isomorphism a b -> k b a
-from (Isomorphism a b) = isomorphic b a
+from :: (Isomorphic k, Functor f) => Isomorphism s t a b -> k (s -> f t) (a -> f b)
+from (Isos sa as tb bt) = isos as sa (unsafeCoerce bt) (unsafeCoerce tb)
 {-# INLINE from #-}
 
 -- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.
 --
 -- This is useful when you need to store an isomoprhism as a data type inside a container
 -- and later reconstitute it as an overloaded function.
-via :: Isomorphic k => Isomorphism a b -> k a b
-via (Isomorphism a b) = isomorphic a b
+via :: (Isomorphic k, Functor f) => Isomorphism s t a b -> k (a -> f b) (s -> f t)
+via (Isos sa as tb bt) = isos sa as (unsafeCoerce tb) (unsafeCoerce bt)
 {-# INLINE via #-}
 
 -----------------------------------------------------------------------------
@@ -145,23 +130,6 @@ type Iso s t a b = forall k f. (Isomorphic k, Functor f) => k (a -> f b) (s -> f
 -- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
 type SimpleIso s a = Iso s s a a
 
-
--- | Build an isomorphism family from two pairs of inverse functions
---
--- @
--- 'view' ('isos' sa as tb bt) ≡ sa
--- 'view' ('from' ('isos' sa as tb bt)) ≡ as
--- 'set' ('isos' sa as tb bt) ab ≡ bt '.' ab '.' sa
--- 'set' ('from' ('isos' ac ca bd db)) ab ≡ bd '.' ab '.' ca
--- @
---
--- @isos :: (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> 'Iso' s t a b@
-isos :: (Isomorphic k, Functor f) => (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> k (a -> f b) (s -> f t)
-isos sa as tb bt = isomorphic
-  (\afb s -> bt <$> afb (sa s))
-  (\sft a -> tb <$> sft (as a))
-{-# INLINE isos #-}
-
 -- | Build a simple isomorphism from a pair of inverse functions
 --
 --
@@ -182,8 +150,8 @@ iso sa as = isos sa as sa as
 -- >>> :m + Data.Monoid.Lens Data.Foldable
 -- >>> ala _sum foldMap [1,2,3,4]
 -- 10
-ala :: Simple Iso s a -> ((s -> a) -> e -> a) -> e -> s
-ala l f e = f (view l) e ^. from l
+ala :: Isomorphism s t a b -> ((s -> a) -> e -> b) -> e -> t
+ala (Isos sa _ _ bt) f e = unsafeCoerce bt (f sa e)
 {-# INLINE ala #-}
 
 -- |
@@ -191,8 +159,8 @@ ala l f e = f (view l) e ^. from l
 --
 -- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator
 -- is 'ala' with an extra function argument.
-auf :: Simple Iso s a -> ((b -> a) -> e -> a) -> (b -> s) -> e -> s
-auf l f g e = f (view l . g) e ^. from l
+auf :: Isomorphism s t a b -> ((b -> a) -> e -> a) -> (b -> s) -> e -> s
+auf (Isos sa _ _ bt) f g e = unsafeCoerce bt (f (sa . g) e)
 {-# INLINE auf #-}
 
 -- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
@@ -200,23 +168,23 @@ auf l f g e = f (view l . g) e ^. from l
 -- @'under' ≡ 'over' '.' 'from'@
 --
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
-under :: Isomorphism (a -> Mutator b) (s -> Mutator t) -> (s -> t) -> a -> b
-under = over . from
+under :: Isomorphism s t a b -> (s -> t) -> a -> b
+under (Isos _ as tb _) st a = unsafeCoerce tb (st (as a))
 {-# INLINE under #-}
 
 -- | This can be used to turn an 'Iso' around and 'view' the other way.
 --
 -- @'review' ≡ 'view' '.' 'from'@
-review :: MonadReader a m => Overloaded Isomorphism (Accessor s) s t a b -> m s
-review (Isomorphism _ l) = view l
+review :: MonadReader a m => Isomorphism s t a b -> m s
+review (Isos _ as _ _) = asks as
 {-# INLINE review #-}
 
 -- | This can be used to turn an 'Iso' around and 'view' the other way,
 -- applying a function.
 --
 -- @'reviews' ≡ 'views' '.' 'from'@
-reviews :: MonadReader a m => Overloaded Isomorphism (Accessor r) s t a b -> (s -> r) -> m r
-reviews (Isomorphism _ l) = views l
+reviews :: MonadReader a m => Isomorphism s t a b -> (s -> r) -> m r
+reviews (Isos _ as _ _) f = asks (f . as)
 {-# INLINE reviews #-}
 
 -----------------------------------------------------------------------------
@@ -261,8 +229,8 @@ enum = iso toEnum fromEnum
 {-# INLINE enum #-}
 
 -- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
-mapping :: Functor f => SimpleIso s a -> SimpleIso (f s) (f a)
-mapping l = iso (view l <$>) (view (from l) <$>)
+mapping :: Functor f => Isos (a -> g b) (s -> g t) -> Iso (f s) (f t) (f a) (f b)
+mapping (Isos sa as tb bt) = isos (fmap sa) (fmap as) (fmap (unsafeCoerce tb)) (fmap (unsafeCoerce bt))
 {-# INLINE mapping #-}
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',
@@ -270,7 +238,7 @@ mapping l = iso (view l <$>) (view (from l) <$>)
 -- argument to force that argument to agree with the
 -- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.
 simple :: Simple Iso a a
-simple = isomorphic id id
+simple = iso id id
 {-# INLINE simple #-}
 
 -- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @non v@ is an isomorphism from
@@ -304,7 +272,6 @@ simple = isomorphic id id
 --
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
 -- fromList []
-
 non :: Eq a => a -> Simple Iso (Maybe a) a
 non a = iso (fromMaybe a) go where
   go b | a == b    = Nothing

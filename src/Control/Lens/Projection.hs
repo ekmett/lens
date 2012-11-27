@@ -1,9 +1,9 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
+{-# LANGUAGE Trustworthy #-}
+#endif
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Projection
@@ -15,14 +15,15 @@
 --
 -------------------------------------------------------------------------------
 module Control.Lens.Projection
-  ( Projection
+  (
+  -- * Projections
+    Projection
+  -- * Constructing Projections
   , Projective(..)
-  , project
-  , projecting
-  , by
   , Project(..)
-  , stereo
-  , mirror
+  -- * Consuming Projections
+  , project
+  , by
   -- * Common projections
   , _left
   , _right
@@ -31,55 +32,50 @@ module Control.Lens.Projection
   ) where
 
 import Control.Applicative
-import Control.Lens.Type
+import Control.Category
+import Control.Lens.Classes
 import Control.Lens.Getter
-import Data.Functor.Identity
-import Control.Lens.Iso
-import Control.Lens.Traversal
+import Control.Lens.Internal
+import Control.Lens.Type
+import Prelude hiding (id,(.))
+import Unsafe.Coerce
 
 -- $setup
 -- >>> import Control.Lens
 
+------------------------------------------------------------------------------
+-- Projection Internals
+------------------------------------------------------------------------------
+
+data Project x y where
+  Project :: (b -> t) -> ((a -> f b) -> s -> f t) -> Project (a -> f b) (s -> f t)
+
+instance Category Project where
+  id = unsafeCoerce (Project id id)
+  Project ty f . Project bt g = unsafeCoerce $ Project (unsafeCoerce ty . unsafeCoerce bt) (unsafeCoerce f . unsafeCoerce g)
+
+instance Projective Project where
+  projecting = Project
+
+instance Isomorphic Project where
+  isos sa _ _ bt = Project bt (\afb s -> bt <$> afb (sa s))
+
 -- | A 'Projection' is a 'Traversal' that can also be turned around with 'by' to obtain a 'Getter'
-type Projection s t a b = forall k f. (Projective k t b, Applicative f) => k (a -> f b) (s -> f t)
+type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f b) (s -> f t)
 
--- | Used to provide overloading of projections.
-class Projective k a d where
-  projective :: (d -> a) -> (x -> y) -> k x y
-
-instance Projective (->) a d where
-  projective _ x = x
-
--- | A concrete 'Projection', suitable for storing in a container or extracting an embedding.
-data Project s b x y = Project (b -> s) (x -> y)
-
--- | Compose projections.
-stereo :: Projective k s a => Project t a y z -> Project s t x y -> k x z
-stereo (Project g f) (Project i h) = projective (i.g) (f.h)
-
-instance (s ~ s', b ~ b') => Projective (Project s b) s' b' where
-  projective = Project
+-- | A @'Simple' 'Projection'@.
+type SimpleProjection s a = Projection s s a a
 
 -- | Reflect a 'Projection'.
-project :: Projective k s b => Overloaded (Project s b) f s s a b -> Overloaded k f s s a b
-project (Project f g) = projective f g
+project :: (Projective k, Applicative f) => Overloaded Project f s t a b -> Overloaded k f s t a b
+project (Project f g) = projecting (unsafeCoerce f) (unsafeCoerce g)
+
+-- | Consume a 'Project'. This is commonly used when a function takes a 'Projection' as a parameter.
+type Projecting f s t a b = Overloaded Project f s t a b
 
 -- | Turn a 'Projection' around to get an embedding
-by :: Project s b (b -> Identity b) (s -> Identity s) -> Getter b s
-by (Project g _) = to g
-
--- | Build a 'Projection'
-projecting :: (b -> t) -> Traversal s t a b -> Projection s t a b
-projecting bt k = projective bt k
-
--- | Convert an 'Iso' to a 'Projection'.
---
--- Ideally we would be able to use an 'Iso' directly as a 'Projection', but this opens a can of worms.
-mirror :: Projective k s a => Simple Iso s a -> Simple Projection s a
-mirror l = projecting (review l) l
-
--- | @type 'SimpleProjection' = 'Simple' 'Projection'@
-type SimpleProjection s a = Projection s s a a
+by :: Projecting Mutator s t a b -> Getter b t
+by (Project bt _) = to (unsafeCoerce bt)
 
 -- | A traversal for tweaking the left-hand value of an 'Either':
 --
