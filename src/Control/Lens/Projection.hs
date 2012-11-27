@@ -76,7 +76,7 @@ import Unsafe.Coerce
 -- @
 --
 -- Now we can ask if a number is a natural.
-
+--
 -- >>> 5^?nat
 -- Just 5
 --
