@@ -53,6 +53,8 @@ import Unsafe.Coerce
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Data.Map as Map
+-- >>> import Data.Foldable
+-- >>> import Data.Monoid
 
 ----------------------------------------------------------------------------
 -- Consuming Isomorphisms
@@ -122,7 +124,6 @@ iso sa as = isos sa as sa as
 --
 -- This version is generalized to accept any 'Iso', not just a newtype.
 --
--- >>> :m + Data.Monoid.Lens Data.Foldable
 -- >>> au (wrapping Sum) foldMap [1,2,3,4]
 -- 10
 au :: Isomorphism s t a b -> ((s -> a) -> e -> b) -> e -> t

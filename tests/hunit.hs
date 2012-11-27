@@ -6,7 +6,6 @@ import Control.Monad.State
 import Data.Char
 import Data.List as List
 import Data.Monoid
-import Data.Monoid.Lens
 import Data.Map as Map
 import Test.Framework.Providers.HUnit
 import Test.Framework.TH

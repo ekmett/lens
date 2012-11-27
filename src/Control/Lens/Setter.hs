@@ -59,7 +59,7 @@ import Control.Lens.Classes
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Monad (liftM)
-import Control.Monad.State.Class as State
+import Control.Monad.State as State
 import Data.Monoid
 
 -- $setup
