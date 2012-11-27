@@ -60,26 +60,6 @@ import Unsafe.Coerce
 -- >>> import Data.Map as Map
 
 ----------------------------------------------------------------------------
--- Isomorphism Implementation Details
------------------------------------------------------------------------------
-
--- | Reify all of the information given to you by being 'Isomorphic'.
-data Isos x y where
-  Isos :: (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> Isos (a -> f b) (s -> f t)
-
--- | NB: Only arrows for objects of form @(a -> f b)@ can be pattern matched.
-instance Category Isos where
-  id = unsafeCoerce (Isos id id id id)
-
-  -- The outer unsafeCoerce is being by the same justification as 'id' above.
-  -- The other two are because GHC is unwilling to infer that @a -> f b@ ~ @s -> g t@ entails @b ~ t@ in a context where
-  -- neither @f@ nor @g@ could be type families.
-  Isos xs sx yt ty . Isos sa as tb bt = unsafeCoerce $ Isos (sa.xs) (sx.as) (unsafeCoerce tb.yt) (unsafeCoerce ty.bt)
-
-instance Isomorphic Isos where
-  isos = Isos
-
-----------------------------------------------------------------------------
 -- Consuming Isomorphisms
 -----------------------------------------------------------------------------
 

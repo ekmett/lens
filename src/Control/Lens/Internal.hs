@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE KindSignatures #-}
@@ -49,6 +50,8 @@ module Control.Lens.Internal
   , Max(..), getMax
   , Min(..), getMin
   , Indexing(..)
+  , Project(..)
+  , Isos(..)
   ) where
 
 import Control.Applicative
@@ -458,3 +461,49 @@ sellT :: a -> BazaarT a b f b
 sellT i = BazaarT (\k -> k i)
 {-# INLINE sellT #-}
 
+------------------------------------------------------------------------------
+-- Projection Internals
+------------------------------------------------------------------------------
+
+-- | This data type is used to capture all of the information provided by the 'Projective'
+-- class, so you can turn a 'Projection' around into a 'Getter' or otherwise muck around
+-- with its internals.
+--
+-- If you see a function that expects a 'Project', it is probably just expecting a 'Projection'.
+-- You can safely
+data Project x y where
+  Project :: (b -> t) -> ((a -> f b) -> s -> f t) -> Project (a -> f b) (s -> f t)
+
+instance Category Project where
+  id = unsafeCoerce (Project id id)
+  Project ty f . Project bt g = unsafeCoerce $ Project (unsafeCoerce ty . unsafeCoerce bt) (unsafeCoerce f . unsafeCoerce g)
+
+instance Projective Project where
+  projecting = Project
+
+instance Isomorphic Project where
+  isos sa _ _ bt = Project bt $ \afb s -> bt <$> afb (sa s)
+
+------------------------------------------------------------------------------
+-- Isomorphism Internals
+------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------
+-- Isomorphism Implementation Details
+-----------------------------------------------------------------------------
+
+-- | Reify all of the information given to you by being 'Isomorphic'.
+data Isos x y where
+  Isos :: (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> Isos (a -> f b) (s -> f t)
+
+-- | NB: Only arrows for objects of form @(a -> f b)@ can be pattern matched.
+instance Category Isos where
+  id = unsafeCoerce (Isos id id id id)
+
+  -- The outer unsafeCoerce is being by the same justification as 'id' above.
+  -- The other two are because GHC is unwilling to infer that @a -> f b@ ~ @s -> g t@ entails @b ~ t@ in a context where
+  -- neither @f@ nor @g@ could be type families.
+  Isos xs sx yt ty . Isos sa as tb bt = unsafeCoerce $ Isos (sa.xs) (sx.as) (unsafeCoerce tb.yt) (unsafeCoerce ty.bt)
+
+instance Isomorphic Isos where
+  isos = Isos

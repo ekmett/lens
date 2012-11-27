@@ -52,19 +52,6 @@ import Unsafe.Coerce
 -- Projection Internals
 ------------------------------------------------------------------------------
 
-data Project x y where
-  Project :: (b -> t) -> ((a -> f b) -> s -> f t) -> Project (a -> f b) (s -> f t)
-
-instance Category Project where
-  id = unsafeCoerce (Project id id)
-  Project ty f . Project bt g = unsafeCoerce $ Project (unsafeCoerce ty . unsafeCoerce bt) (unsafeCoerce f . unsafeCoerce g)
-
-instance Projective Project where
-  projecting = Project
-
-instance Isomorphic Project where
-  isos sa _ _ bt = Project bt $ \afb s -> bt <$> afb (sa s)
-
 -- | A 'Projection' is a 'Traversal' that can also be turned around with 'qua' to obtain a 'Getter'
 type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f b) (s -> f t)
 
