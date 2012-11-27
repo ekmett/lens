@@ -43,31 +43,58 @@
 --
 -- <<http://github.com/ekmett/lens/wiki/images/Hierarchy-3.6.png>>
 ----------------------------------------------------------------------------
-module Control.Lens (module Exports) where
-
-import Control.Lens.Action           as Exports
-import Control.Lens.Combinators      as Exports
-import Control.Lens.Fold             as Exports
-import Control.Lens.Getter           as Exports
-import Control.Lens.Indexed          as Exports
-import Control.Lens.IndexedFold      as Exports
-import Control.Lens.IndexedGetter    as Exports
-import Control.Lens.IndexedLens      as Exports
-import Control.Lens.IndexedSetter    as Exports
-import Control.Lens.IndexedTraversal as Exports
-import Control.Lens.Iso              as Exports
-import Control.Lens.Loupe            as Exports
-import Control.Lens.Plated           as Exports
-import Control.Lens.Projection       as Exports
-import Control.Lens.Representable    as Exports
-import Control.Lens.Setter           as Exports
+module Control.Lens
+  ( module Control.Lens.Action
+  , module Control.Lens.Combinators
+  , module Control.Lens.Fold
+  , module Control.Lens.Getter
+  , module Control.Lens.Indexed
+  , module Control.Lens.IndexedFold
+  , module Control.Lens.IndexedGetter
+  , module Control.Lens.IndexedLens
+  , module Control.Lens.IndexedSetter
+  , module Control.Lens.IndexedTraversal
+  , module Control.Lens.Iso
+  , module Control.Lens.Loupe
+  , module Control.Lens.Plated
+  , module Control.Lens.Projection
+  , module Control.Lens.Representable
+  , module Control.Lens.Setter
 #ifndef DISABLE_TEMPLATE_HASKELL
-import Control.Lens.TH               as Exports
+  , module Control.Lens.TH
 #endif
-import Control.Lens.Traversal        as Exports
-import Control.Lens.Tuple            as Exports
-import Control.Lens.Type             as Exports
-import Control.Lens.WithIndex        as Exports
-import Control.Lens.Wrapped          as Exports
-import Control.Lens.Zipper           as Exports
-import Control.Lens.Zoom             as Exports
+  , module Control.Lens.Traversal
+  , module Control.Lens.Tuple
+  , module Control.Lens.Type
+  , module Control.Lens.WithIndex
+  , module Control.Lens.Wrapped
+  , module Control.Lens.Zipper
+  , module Control.Lens.Zoom
+  ) where
+
+import Control.Lens.Action
+import Control.Lens.Combinators
+import Control.Lens.Fold
+import Control.Lens.Getter
+import Control.Lens.Indexed
+import Control.Lens.IndexedFold
+import Control.Lens.IndexedGetter
+import Control.Lens.IndexedLens
+import Control.Lens.IndexedSetter
+import Control.Lens.IndexedTraversal
+import Control.Lens.Iso
+import Control.Lens.Loupe
+import Control.Lens.Plated
+import Control.Lens.Projection
+import Control.Lens.Representable
+import Control.Lens.Setter
+#ifndef DISABLE_TEMPLATE_HASKELL
+import Control.Lens.TH
+#endif
+import Control.Lens.Traversal
+import Control.Lens.Tuple
+import Control.Lens.Type
+import Control.Lens.WithIndex
+import Control.Lens.Wrapped
+import Control.Lens.Zipper
+import Control.Lens.Zoom
