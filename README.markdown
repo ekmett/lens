@@ -332,6 +332,13 @@ Operators
   <td>Logically and target(s)</td>
 </tr>
 <tr>
+  <td><a href="http://ekmett.github.com/lens/Control-Lens-Setter.html#v:-60--62--126-"><code>&lt;&gt;~</code></a></td>
+  <td><a href="http://ekmett.github.com/lens/Control-Lens-Type.html#v:-60--60--62--126-"><code>&lt;&lt;&gt;~</code></td>
+  <td><a href="http://ekmett.github.com/lens/Control-Lens-Setter.html#v:-60--62--61-"><code>&lt;&gt;=</code></a></td>
+  <td><a href="http://ekmett.github.com/lens/Control-Lens-Type.html#v:-60--60--62--61-"><code>&lt;&lt;&gt;=</code></td>
+  <td><code>mappend</code> to the target monoidal value(s)</td>
+</tr>
+<tr>
   <td><a href="http://ekmett.github.com/lens/Control-Lens-Fold.html#v:headOf"><code>headOf</code>,<a href="http://ekmett.github.com/lens/Control-Lens-Fold.html#v:-94--63-"><code>^?</code></a></td>
   <td/><td/><td/>
   <td>Return <code>Just</code> the first target or <code>Nothing</code></td>
@@ -378,14 +385,6 @@ Operators
   <td><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html#v:-60--38--61-"><code>&lt;.&amp;.=</code></td>
   <td>Bitwise and target(s)</td>
 </tr>
-<tr><th colspan=5><a href="http://ekmett.github.com/lens/Data-Monoid-Lens.html">Data.Monoid.Lens</a></th></tr>
-<tr>
-  <td><a href="http://ekmett.github.com/lens/Data-Monoid-Lens.html#v:-60--62--126-"><code>&lt;&gt;~</code></a></td>
-  <td><a href="http://ekmett.github.com/lens/Data-Monoid-Lens.html#v:-60--60--62--126-"><code>&lt;&lt;&gt;~</code></td>
-  <td><a href="http://ekmett.github.com/lens/Data-Monoid-Lens.html#v:-60--62--61-"><code>&lt;&gt;=</code></a></td>
-  <td><a href="http://ekmett.github.com/lens/Data-Monoid-Lens.html#v:-60--60--62--61-"><code>&lt;&lt;&gt;=</code></td>
-  <td><code>mappend</code> to the target monoidal value(s)</td>
-</tr>
 <tr><th colspan=5><a href="http://ekmett.github.com/lens/System-FilePath-Lens.html">System.FilePath.Lens</a></th></tr>
 <tr>
   <td><a href="http://ekmett.github.com/lens/System-FilePath-Lens.html#v:-60--47--62--126-"><code>&lt;/&gt;~</code></a></td>
@@ -403,6 +402,7 @@ Operators
 </tr>
 </tbody>
 </table>
+
 
 Contact Information
 -------------------
