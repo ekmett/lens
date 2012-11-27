@@ -68,5 +68,6 @@ import Control.Lens.Traversal        as Exports
 import Control.Lens.Tuple            as Exports
 import Control.Lens.Type             as Exports
 import Control.Lens.WithIndex        as Exports
+import Control.Lens.Wrapped          as Exports
 import Control.Lens.Zipper           as Exports
 import Control.Lens.Zoom             as Exports
