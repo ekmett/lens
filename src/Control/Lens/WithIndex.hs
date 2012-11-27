@@ -8,6 +8,10 @@
 {-# LANGUAGE DefaultSignatures #-}
 #define MPTC_DEFAULTS
 #endif
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
+{-# LANGUAGE Trustworthy #-} -- vector, hashable
+#endif
+
 
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
