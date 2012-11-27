@@ -31,8 +31,6 @@ module Control.Lens.Iso
   , auf
   , under
   , mapping
-  , review
-  , reviews
   -- ** Common Isomorphisms
   , _const
   , identity
@@ -171,21 +169,6 @@ auf (Isos sa _ _ bt) f g e = unsafeCoerce bt (f (sa . g) e)
 under :: Isomorphism s t a b -> (s -> t) -> a -> b
 under (Isos _ as tb _) st a = unsafeCoerce tb (st (as a))
 {-# INLINE under #-}
-
--- | This can be used to turn an 'Iso' around and 'view' the other way.
---
--- @'review' ≡ 'view' '.' 'from'@
-review :: MonadReader a m => Isomorphism s t a b -> m s
-review (Isos _ as _ _) = asks as
-{-# INLINE review #-}
-
--- | This can be used to turn an 'Iso' around and 'view' the other way,
--- applying a function.
---
--- @'reviews' ≡ 'views' '.' 'from'@
-reviews :: MonadReader a m => Isomorphism s t a b -> (s -> r) -> m r
-reviews (Isos _ as _ _) f = asks (f . as)
-{-# INLINE reviews #-}
 
 -----------------------------------------------------------------------------
 -- Isomorphisms

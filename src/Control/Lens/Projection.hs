@@ -22,8 +22,11 @@ module Control.Lens.Projection
   , Projective(..)
   , Project(..)
   -- * Consuming Projections
+  , Projecting
   , project
-  , by
+  , qua
+  , review, reviews
+  , reuse, reuses
   -- * Common projections
   , _left
   , _right
@@ -33,6 +36,8 @@ module Control.Lens.Projection
 
 import Control.Applicative
 import Control.Category
+import Control.Monad.Reader as Reader
+import Control.Monad.State as State
 import Control.Lens.Classes
 import Control.Lens.Getter
 import Control.Lens.Internal
@@ -60,7 +65,7 @@ instance Projective Project where
 instance Isomorphic Project where
   isos sa _ _ bt = Project bt $ \afb s -> bt <$> afb (sa s)
 
--- | A 'Projection' is a 'Traversal' that can also be turned around with 'by' to obtain a 'Getter'
+-- | A 'Projection' is a 'Traversal' that can also be turned around with 'qua' to obtain a 'Getter'
 type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f b) (s -> f t)
 
 -- | A @'Simple' 'Projection'@.
@@ -73,9 +78,39 @@ project (Project f g) = projecting (unsafeCoerce f) (unsafeCoerce g)
 -- | Consume a 'Project'. This is commonly used when a function takes a 'Projection' as a parameter.
 type Projecting f s t a b = Overloaded Project f s t a b
 
--- | Turn a 'Projection' around to get an embedding
-by :: Projecting Mutator s t a b -> Getter b t
-by (Project bt _) = to (unsafeCoerce bt)
+-- | Turn a 'Projection' around to get at its contents.
+qua :: Projecting Mutator s t a b -> Getter b t
+qua (Project bt _) = to (unsafeCoerce bt)
+
+-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way.
+--
+-- @'review' ≡ 'view' '.' 'from'@
+review :: MonadReader b m => Projecting Mutator s t a b -> m t
+review (Project bt _) = asks (unsafeCoerce bt)
+{-# INLINE review #-}
+
+-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way,
+-- applying a function.
+--
+-- @'reviews' ≡ 'views' '.' 'from'@
+reviews :: MonadReader b m => Projecting Mutator s t a b -> (t -> r) -> m r
+reviews (Project bt _) f = asks (f . unsafeCoerce bt)
+{-# INLINE reviews #-}
+
+-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'use' a value (or the current environment) through it the other way.
+--
+-- @'reuse' ≡ 'use' '.' 'from'@
+reuse :: MonadState b m => Projecting Mutator s t a b -> m t
+reuse (Project bt _) = gets (unsafeCoerce bt)
+{-# INLINE reuse #-}
+
+-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'use' the current state through it the other way,
+-- applying a function.
+--
+-- @'reuses' ≡ 'uses' '.' 'from'@
+reuses :: MonadState b m => Projecting Mutator s t a b -> (t -> r) -> m r
+reuses (Project bt _) f = gets (f . unsafeCoerce bt)
+{-# INLINE reuses #-}
 
 -- | A traversal for tweaking the left-hand value of an 'Either':
 --

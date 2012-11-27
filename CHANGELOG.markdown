@@ -4,8 +4,9 @@
 * Promoted `_left` and `_right` to projections and moved them to `Control.Lens.Projection`.
 * Implemented a complete redesign of the way `Projection` is handled internally, that necessitated some changes to `Iso` internally as well.
 * Generalized `view` and `views` to subsume the functionality of `peruse` and `peruses`.
-* Deprecated `peruse`, `peruses`.
-* Generalized `review and `reviews`.
+* Removed `peruse`, `peruses`.
+* Generalized `review` and `reviews` to both return a `MonadReader` and to work on a `Projection`.
+* Added `reuse` : `use` :: `review` : `view` and `reuses` : `uses` :: `reviews` : `views` for working a `Projection` from the current `MonadState`.
 
 3.6
 -----
