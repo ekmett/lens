@@ -26,6 +26,8 @@ import           Control.Applicative
 import           Control.Applicative.Backwards
 import           Control.Applicative.Lift
 import           Control.Arrow
+import           Control.Comonad.Trans.Env
+import           Control.Comonad.Trans.Store
 import           Control.Comonad.Trans.Traced
 import           Control.Lens.Iso
 import           Control.Monad.Trans.Cont
@@ -42,6 +44,7 @@ import qualified Control.Monad.Trans.Writer.Lazy   as Lazy
 import qualified Control.Monad.Trans.Writer.Strict as Strict
 import           Data.Functor.Compose
 import           Data.Functor.Constant
+import           Data.Functor.Coproduct
 import           Data.Functor.Identity
 import qualified Data.Functor.Product              as F
 import           Data.Functor.Reverse
@@ -188,6 +191,18 @@ instance Wrapped (m (a, w)) (m' (a', w')) (Strict.WriterT w m a) (Strict.WriterT
   unwrapped = isos Strict.runWriterT Strict.WriterT Strict.runWriterT Strict.WriterT
 
 -- comonad-transformers
+
+instance Wrapped (Either (f a) (g a)) (Either (f' a') (g' a')) (Coproduct f g a) (Coproduct f' g' a') where
+  wrapped   = isos Coproduct getCoproduct Coproduct getCoproduct
+  unwrapped = isos getCoproduct Coproduct getCoproduct Coproduct
+
+instance Wrapped (e, w a) (e', w' a') (EnvT e w a) (EnvT e' w' a') where
+  wrapped   = isos (uncurry EnvT) runEnvT (uncurry EnvT) runEnvT
+  unwrapped = isos runEnvT (uncurry EnvT) runEnvT (uncurry EnvT)
+
+instance Wrapped (w (s -> a), s) (w' (s' -> a'), s') (StoreT s w a) (StoreT s' w' a') where
+  wrapped   = isos (uncurry StoreT) runStoreT (uncurry StoreT) runStoreT
+  unwrapped = isos runStoreT (uncurry StoreT) runStoreT (uncurry StoreT)
 
 instance Wrapped (w (m -> a)) (w' (m' -> a')) (TracedT m w a) (TracedT m' w' a') where
   wrapped   = isos TracedT runTracedT TracedT runTracedT
