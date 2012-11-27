@@ -27,7 +27,7 @@ import Data.Monoid
 
 -- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes.
 class Wrapped s t a b | a -> s, b -> t, a t -> s, b s -> t where
-  wrapped :: Iso s t a b
+  wrapped   :: Iso s t a b
   unwrapped :: Iso a b s t
 
 -- | Convenience for 'wrapped' with an argument that's ignored.  This argument
@@ -56,40 +56,40 @@ instance Wrapped a b (Sum a) (Sum b) where
   unwrapped = isos getSum Sum getSum Sum
 
 instance Wrapped a b (Product a) (Product b) where
-  wrapped   = isos Product getProduct Product getProduct 
+  wrapped   = isos Product getProduct Product getProduct
   unwrapped = isos getProduct Product getProduct Product
 
 instance Wrapped (a -> m b) (u -> n v) (Kleisli m a b) (Kleisli n u v) where
-  wrapped   = isos Kleisli runKleisli Kleisli runKleisli 
+  wrapped   = isos Kleisli runKleisli Kleisli runKleisli
   unwrapped = isos runKleisli Kleisli runKleisli Kleisli
   
 instance Wrapped (m a) (n b) (WrappedMonad m a) (WrappedMonad n b) where
-  wrapped   = isos WrapMonad unwrapMonad WrapMonad unwrapMonad 
+  wrapped   = isos WrapMonad unwrapMonad WrapMonad unwrapMonad
   unwrapped = isos unwrapMonad WrapMonad unwrapMonad WrapMonad 
 
 instance Wrapped (a b c) (u v w) (WrappedArrow a b c) (WrappedArrow u v w) where
   wrapped   = isos WrapArrow unwrapArrow WrapArrow unwrapArrow
-  unwrapped = isos unwrapArrow WrapArrow unwrapArrow WrapArrow 
+  unwrapped = isos unwrapArrow WrapArrow unwrapArrow WrapArrow
 
 instance Wrapped [a] [b] (ZipList a) (ZipList b) where
   wrapped   = isos ZipList getZipList ZipList getZipList
-  unwrapped = isos getZipList ZipList getZipList ZipList 
+  unwrapped = isos getZipList ZipList getZipList ZipList
 
 instance Wrapped a b (Const a x) (Const b y) where
   wrapped   = isos Const getConst Const getConst
-  unwrapped = isos getConst Const getConst Const 
+  unwrapped = isos getConst Const getConst Const
 
 instance Wrapped (a -> a) (b -> b) (Endo a) (Endo b) where
   wrapped   = isos Endo appEndo Endo appEndo
-  unwrapped = isos appEndo Endo appEndo Endo 
+  unwrapped = isos appEndo Endo appEndo Endo
 
 instance Wrapped (Maybe a) (Maybe b) (First a) (First b) where
-  wrapped   = isos First getFirst First getFirst 
-  unwrapped = isos getFirst First getFirst First 
+  wrapped   = isos First getFirst First getFirst
+  unwrapped = isos getFirst First getFirst First
 
 instance Wrapped (Maybe a) (Maybe b) (Last a) (Last b) where
-  wrapped   = isos Last getLast Last getLast 
-  unwrapped = isos getLast Last getLast Last 
+  wrapped   = isos Last getLast Last getLast
+  unwrapped = isos getLast Last getLast Last
 
 instance (ArrowApply m, ArrowApply n) => Wrapped (m () a) (n () b) (ArrowMonad m a) (ArrowMonad n b) where
   wrapped   = isos ArrowMonad getArrowMonad ArrowMonad getArrowMonad
