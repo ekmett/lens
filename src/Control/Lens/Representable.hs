@@ -94,8 +94,8 @@ import Control.Lens.IndexedSetter
 import Control.Lens.IndexedTraversal
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
-import Control.Lens.Iso
 import Control.Lens.Type
+import Control.Lens.Wrapped
 import Data.Foldable         as Foldable
 import Data.Functor.Identity
 import Data.Monoid
@@ -123,7 +123,7 @@ class Functor f => Representable f where
   rep :: (Rep f -> a) -> f a
 
 instance Representable Identity where
-  rep f = Identity (f (from identity))
+  rep f = Identity (f (unwrapping Identity))
 
 -- | NB: The 'Eq' requirement on this instance is a consequence of the choice of 'Lens' as a 'Rep', it isn't fundamental.
 instance Eq e => Representable ((->) e) where

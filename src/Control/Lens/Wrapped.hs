@@ -23,9 +23,16 @@ module Control.Lens.Wrapped
   ) where
 
 import Control.Applicative
+import Control.Applicative.Backwards
 import Control.Arrow
 import Control.Lens.Iso
 import Data.Monoid
+import Data.Functor.Identity
+import Data.Functor.Compose
+
+-- $setup
+-- >>> import Control.Lens
+-- >>> import Data.Foldable
 
 -- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes.
 class Wrapped s t a b | a -> s, b -> t, a t -> s, b s -> t where
@@ -84,6 +91,18 @@ instance (ArrowApply m, ArrowApply n) => Wrapped (m () a) (n () b) (ArrowMonad m
   wrapped   = isos ArrowMonad getArrowMonad ArrowMonad getArrowMonad
   unwrapped = isos getArrowMonad ArrowMonad getArrowMonad ArrowMonad
 
+instance Wrapped a b (Identity a) (Identity b) where
+  wrapped   = isos Identity runIdentity Identity runIdentity
+  unwrapped = isos runIdentity Identity runIdentity Identity
+
+instance Wrapped (f (g a)) (h (i b)) (Compose f g a) (Compose h i b) where
+  wrapped   = isos Compose getCompose Compose getCompose
+  unwrapped = isos getCompose Compose getCompose Compose
+
+instance Wrapped (f a) (g b) (Backwards f a) (Backwards g b) where
+  wrapped   = isos Backwards forwards Backwards forwards
+  unwrapped = isos forwards Backwards forwards Backwards
+
 getArrowMonad :: ArrowApply m  => ArrowMonad m a -> m () a
 getArrowMonad (ArrowMonad x) = x
 
@@ -125,17 +144,41 @@ wrappings _ _ = wrapped
 unwrappings :: Wrapped s t a b => (s -> a) -> (t -> b) -> Iso a b s t
 unwrappings _ _ = unwrapped
 
--- | Based on @ala@ from Conor McBride's work on Epigram.
+-- | This combinator is based on @ala@ from Conor McBride's work on Epigram.
 --
--- >>> :m + Data.Monoid.Lens Data.Foldable
+-- As with 'wrapping', the user supplied function for the newtype is /ignored/.
+--
 -- >>> ala Sum foldMap [1,2,3,4]
 -- 10
+--
+-- >>> ala All foldMap [True,True]
+-- True
+--
+-- >>> ala All foldMap [True,False]
+-- False
+--
+-- >>> ala Any foldMap [False,False]
+-- False
+--
+-- >>> ala Any foldMap [True,False]
+-- True
+--
+-- >>> ala Sum foldMap [1,2,3,4]
+-- 10
+--
+-- >>> ala Product foldMap [1,2,3,4]
+-- 24
 ala :: Wrapped s s a a => (s -> a) -> ((s -> a) -> e -> a) -> e -> s
 ala = au . wrapping
 {-# INLINE ala #-}
 
 -- |
--- Based on @ala'@ from Conor McBride's work on Epigram.
+-- This combinator is based on @ala'@ from Conor McBride's work on Epigram.
+--
+-- As with 'wrapping', the user supplied function for the newtype is /ignored/.
+--
+-- >>> alaf Sum foldMap length ["hello","world"]
+-- 10
 alaf :: Wrapped s s a a => (s -> a) -> ((r -> a) -> e -> a) -> (r -> s) -> e -> s
 alaf = auf . wrapping
 {-# INLINE alaf #-}

@@ -31,8 +31,6 @@ module Control.Lens.Iso
   , under
   , mapping
   -- ** Common Isomorphisms
-  , _const
-  , identity
   , simple
   , non
   , enum
@@ -43,13 +41,11 @@ module Control.Lens.Iso
   , SimpleReifiedIso
   ) where
 
-import Control.Applicative
 import Control.Category
 import Control.Monad.Reader
 import Control.Lens.Classes
 import Control.Lens.Internal
 import Control.Lens.Type
-import Data.Functor.Identity
 import Data.Maybe (fromMaybe)
 import Prelude hiding ((.),id)
 import Unsafe.Coerce
@@ -159,26 +155,6 @@ under (Isos _ as tb _) st a = unsafeCoerce tb (st (as a))
 -----------------------------------------------------------------------------
 -- Isomorphisms
 -----------------------------------------------------------------------------
-
--- | This isomorphism can be used to wrap or unwrap a value in 'Identity'.
---
--- @
--- x^.identity ≡ 'Identity' x
--- 'Identity' x '^.' 'from' 'identity' ≡ x
--- @
-identity :: Iso a b (Identity a) (Identity b)
-identity = isos Identity runIdentity Identity runIdentity
-{-# INLINE identity #-}
-
--- | This isomorphism can be used to wrap or unwrap a value in 'Const'
---
--- @
--- x '^.' '_const' ≡ 'Const' x
--- 'Const' x '^.' 'from' '_const' ≡ x
--- @
-_const :: Iso a b (Const a c) (Const b d)
-_const = isos Const getConst Const getConst
-{-# INLINE _const #-}
 
 -- | This isomorphism can be used to convert to or from an instance of 'Enum'.
 --
