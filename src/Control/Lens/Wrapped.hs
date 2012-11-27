@@ -22,13 +22,29 @@ module Control.Lens.Wrapped
   , ala, alaf
   ) where
 
-import Control.Applicative
-import Control.Applicative.Backwards
-import Control.Arrow
-import Control.Lens.Iso
-import Data.Monoid
-import Data.Functor.Identity
-import Data.Functor.Compose
+import           Control.Applicative
+import           Control.Applicative.Backwards
+import           Control.Applicative.Lift
+import           Control.Arrow
+import           Control.Lens.Iso
+import           Control.Monad.Trans.Cont
+import           Control.Monad.Trans.Error
+import           Control.Monad.Trans.Identity
+import           Control.Monad.Trans.List
+import           Control.Monad.Trans.Maybe
+import           Control.Monad.Trans.Reader
+import qualified Control.Monad.Trans.RWS.Lazy      as Lazy
+import qualified Control.Monad.Trans.RWS.Strict    as Strict
+import qualified Control.Monad.Trans.State.Lazy    as Lazy
+import qualified Control.Monad.Trans.State.Strict  as Strict
+import qualified Control.Monad.Trans.Writer.Lazy   as Lazy
+import qualified Control.Monad.Trans.Writer.Strict as Strict
+import           Data.Functor.Compose
+import           Data.Functor.Constant
+import           Data.Functor.Identity
+import qualified Data.Functor.Product              as F
+import           Data.Functor.Reverse
+import           Data.Monoid
 
 -- $setup
 -- >>> import Control.Lens
@@ -91,20 +107,92 @@ instance (ArrowApply m, ArrowApply n) => Wrapped (m () a) (n () b) (ArrowMonad m
   wrapped   = isos ArrowMonad getArrowMonad ArrowMonad getArrowMonad
   unwrapped = isos getArrowMonad ArrowMonad getArrowMonad ArrowMonad
 
-instance Wrapped a b (Identity a) (Identity b) where
-  wrapped   = isos Identity runIdentity Identity runIdentity
-  unwrapped = isos runIdentity Identity runIdentity Identity
+-- transformers
 
-instance Wrapped (f (g a)) (h (i b)) (Compose f g a) (Compose h i b) where
-  wrapped   = isos Compose getCompose Compose getCompose
-  unwrapped = isos getCompose Compose getCompose Compose
-
-instance Wrapped (f a) (g b) (Backwards f a) (Backwards g b) where
+instance Wrapped (f a) (f' a') (Backwards f a) (Backwards f' a') where
   wrapped   = isos Backwards forwards Backwards forwards
   unwrapped = isos forwards Backwards forwards Backwards
 
+instance Wrapped (f (g a)) (f' (g' a')) (Compose f g a) (Compose f' g' a') where
+  wrapped   = isos Compose getCompose Compose getCompose
+  unwrapped = isos getCompose Compose getCompose Compose
+
+instance Wrapped a a' (Constant a b) (Constant a' b') where
+  wrapped   = isos Constant getConstant Constant getConstant
+  unwrapped = isos getConstant Constant getConstant Constant
+
+instance Wrapped ((a -> m r) -> m r) ((a' -> m' r') -> m' r') (ContT r m a) (ContT r' m' a') where
+  wrapped   = isos ContT runContT ContT runContT
+  unwrapped = isos runContT ContT runContT ContT
+
+instance Wrapped (m (Either e a)) (m' (Either e' a')) (ErrorT e m a) (ErrorT e' m' a') where
+  wrapped   = isos ErrorT runErrorT ErrorT runErrorT
+  unwrapped = isos runErrorT ErrorT runErrorT ErrorT
+
+instance Wrapped a a' (Identity a) (Identity a') where
+  wrapped   = isos Identity runIdentity Identity runIdentity
+  unwrapped = isos runIdentity Identity runIdentity Identity
+
+instance Wrapped (m a) (m' a') (IdentityT m a) (IdentityT m' a') where
+  wrapped   = isos IdentityT runIdentityT IdentityT runIdentityT
+  unwrapped = isos runIdentityT IdentityT runIdentityT IdentityT
+
+instance (Applicative f, Applicative g) => Wrapped (f a) (g b) (Lift f a) (Lift g b) where
+  wrapped   = isos Other unLift Other unLift
+  unwrapped = isos unLift Other unLift Other
+
+instance Wrapped (m [a]) (m' [a']) (ListT m a) (ListT m' a') where
+  wrapped   = isos ListT runListT ListT runListT
+  unwrapped = isos runListT ListT runListT ListT
+
+instance Wrapped (m (Maybe a)) (m' (Maybe a')) (MaybeT m a) (MaybeT m' a') where
+  wrapped   = isos MaybeT runMaybeT MaybeT runMaybeT
+  unwrapped = isos runMaybeT MaybeT runMaybeT MaybeT
+
+instance Wrapped (f a, g a) (f' a', g' a') (F.Product f g a) (F.Product f' g' a') where
+  wrapped   = isos pair getPair pair getPair
+  unwrapped = isos getPair pair getPair pair
+
+instance Wrapped (r -> m a) (r' -> m' a') (ReaderT r m a) (ReaderT r' m' a') where
+  wrapped   = isos ReaderT runReaderT ReaderT runReaderT
+  unwrapped = isos runReaderT ReaderT runReaderT ReaderT
+
+instance Wrapped (f a) (f' a') (Reverse f a) (Reverse f' a') where
+  wrapped   = isos Reverse getReverse Reverse getReverse
+  unwrapped = isos getReverse Reverse getReverse Reverse
+
+instance Wrapped (r -> s -> m (a, s, w)) (r' -> s' -> m' (a', s', w')) (Lazy.RWST r w s m a) (Lazy.RWST r' w' s' m' a') where
+  wrapped   = isos Lazy.RWST Lazy.runRWST Lazy.RWST Lazy.runRWST
+  unwrapped = isos Lazy.runRWST Lazy.RWST Lazy.runRWST Lazy.RWST
+
+instance Wrapped (r -> s -> m (a, s, w)) (r' -> s' -> m' (a', s', w')) (Strict.RWST r w s m a) (Strict.RWST r' w' s' m' a') where
+  wrapped   = isos Strict.RWST Strict.runRWST Strict.RWST Strict.runRWST
+  unwrapped = isos Strict.runRWST Strict.RWST Strict.runRWST Strict.RWST
+
+instance Wrapped (s -> m (a, s)) (s' -> m' (a', s')) (Lazy.StateT s m a) (Lazy.StateT s' m' a') where
+  wrapped   = isos Lazy.StateT Lazy.runStateT Lazy.StateT Lazy.runStateT
+  unwrapped = isos Lazy.runStateT Lazy.StateT Lazy.runStateT Lazy.StateT
+
+instance Wrapped (s -> m (a, s)) (s' -> m' (a', s')) (Strict.StateT s m a) (Strict.StateT s' m' a') where
+  wrapped   = isos Strict.StateT Strict.runStateT Strict.StateT Strict.runStateT
+  unwrapped = isos Strict.runStateT Strict.StateT Strict.runStateT Strict.StateT
+
+instance Wrapped (m (a, w)) (m' (a', w')) (Lazy.WriterT w m a) (Lazy.WriterT w' m' a') where
+  wrapped   = isos Lazy.WriterT Lazy.runWriterT Lazy.WriterT Lazy.runWriterT
+  unwrapped = isos Lazy.runWriterT Lazy.WriterT Lazy.runWriterT Lazy.WriterT
+
+instance Wrapped (m (a, w)) (m' (a', w')) (Strict.WriterT w m a) (Strict.WriterT w' m' a') where
+  wrapped   = isos Strict.WriterT Strict.runWriterT Strict.WriterT Strict.runWriterT
+  unwrapped = isos Strict.runWriterT Strict.WriterT Strict.runWriterT Strict.WriterT
+
 getArrowMonad :: ArrowApply m  => ArrowMonad m a -> m () a
 getArrowMonad (ArrowMonad x) = x
+
+pair :: (f a, g a) -> F.Product f g a
+pair = uncurry F.Pair
+
+getPair :: F.Product f g a -> (f a, g a)
+getPair (F.Pair f g) = (f, g)
 
 -- | This is a convenient version of 'wrapped' with an argument that's ignored.
 --
