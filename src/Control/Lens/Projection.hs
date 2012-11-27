@@ -61,11 +61,9 @@ import Unsafe.Coerce
 --
 -- It may help to think of this as a 'Control.Lens.Iso.Iso' that is partial in one direction.
 --
--- For example, a @'Simple' 'Projection' 'Integer' Natural@ would allow you to always go from a
--- @Natural@ to an @Int@, and provide you with tools to check if an 'Integer' is a Natural, and edit
--- it if it is.
---
--- For example:
+-- For example, you might have a @'Simple' 'Projection' 'Integer' Natural@ allows you to always
+-- go from a 'Natural' to an 'Integer', and provide you with tools to check if an 'Integer' is
+-- a 'Natural' and edit it if it is.
 --
 -- @
 -- 'nat' :: 'Simple' 'Projection' 'Integer' 'Numeric.Natural.Natural'
@@ -92,6 +90,21 @@ import Unsafe.Coerce
 --
 -- >>> 5 ^. remit nat
 -- 5
+--
+-- Similarly we can use a projection to 'traverse' the left half of an 'Either':
+--
+-- >>> Left "hello" & _left %~ length
+-- Left 5
+--
+-- or to construct an Either:
+--
+-- >>> 5^.remit _left
+-- Left 5
+--
+-- such that if you query it with the 'Projection', you will get your original input back.
+--
+-- >>> 5^.remit _left ^? _left
+-- Just 5
 type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f b) (s -> f t)
 
 -- | A @'Simple' 'Projection'@.
