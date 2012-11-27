@@ -12,7 +12,7 @@
 * Repurposed `ala` to be closer to the original design in @newtype@.
 * Added `au` and `alaf`.
 * Removed many isomorphisms for various newtypes. `_const`, `identity`, `_sum`, etc. Use `wrapping Const`, `wrapping Identity`, etc.
-
+* Removed `Data.Monoid.Lens` now that its newtypes are instances of `Wrapped`, exporting the `<>=`-variants from `Control.Lens`.
 
 3.6
 -----

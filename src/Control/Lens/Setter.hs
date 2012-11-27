@@ -36,11 +36,11 @@ module Control.Lens.Setter
   , mapOf
   , set
   , (.~), (%~)
-  , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (&&~), (<.~), (?~), (<?~)
+  , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (<>~), (&&~), (<.~), (?~), (<?~)
   -- * State Combinators
   , assign
   , (.=), (%=)
-  , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (&&=), (<.=), (?=), (<?=)
+  , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (<>=), (&&=), (<.=), (?=), (<?=)
   , (<~)
   -- * Storing Setters
   , ReifiedSetter(..)
@@ -60,12 +60,13 @@ import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Monad (liftM)
 import Control.Monad.State.Class as State
+import Data.Monoid
 
 -- $setup
 -- >>> import Control.Lens
 
-infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, ||~, %~, <.~, ?~, <?~
-infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, ||=, %=, <.=, ?=, <?=
+infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, ||~, %~, <.~, ?~, <?~
+infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, <>=, ||=, %=, <.=, ?=, <?=
 infixr 2 <~
 
 ------------------------------------------------------------------------------
@@ -776,6 +777,36 @@ l <?= b = do
   l ?= b
   return b
 {-# INLINE (<?=) #-}
+
+-- | Modify the target of a monoidally valued by 'mappend'ing another value.
+--
+-- >>> both <>~ "!!!" $ ("hello","world")
+-- ("hello!!!","world!!!")
+--
+-- @
+-- ('<>~') :: 'Monoid' a => 'Setter' s t a a -> a -> s -> t
+-- ('<>~') :: 'Monoid' a => 'Iso' s t a a -> a -> s -> t
+-- ('<>~') :: 'Monoid' a => 'Lens' s t a a -> a -> s -> t
+-- ('<>~') :: 'Monoid' a => 'Traversal' s t a a -> a -> s -> t
+-- @
+(<>~) :: Monoid a => Setting s t a a -> a -> s -> t
+l <>~ n = over l (`mappend` n)
+{-# INLINE (<>~) #-}
+
+-- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by 'mappend'ing a value.
+--
+-- >>> execState (both <>= "!!!") ("hello","world")
+-- ("hello!!!","world!!!")
+--
+-- @
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Setter' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Iso' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Lens' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Traversal' s a -> a -> m ()
+-- @
+(<>=) :: (MonadState s m, Monoid a) => SimpleSetting s a -> a -> m ()
+l <>= a = State.modify (l <>~ a)
+{-# INLINE (<>=) #-}
 
 -- | Reify a setter so it can be stored safely in a container.
 newtype ReifiedSetter s t a b = ReifySetter { reflectSetter :: Setter s t a b }

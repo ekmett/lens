@@ -68,13 +68,13 @@ module Control.Lens.Type
   -- * Setting Functionally with Passthrough
   , (<%~), (<+~), (<-~), (<*~), (<//~)
   , (<^~), (<^^~), (<**~)
-  , (<||~), (<&&~)
+  , (<||~), (<&&~), (<<>~)
   , (<<%~), (<<.~)
 
   -- * Setting State with Passthrough
   , (<%=), (<+=), (<-=), (<*=), (<//=)
   , (<^=), (<^^=), (<**=)
-  , (<||=), (<&&=)
+  , (<||=), (<&&=), (<<>=)
   , (<<%=), (<<.=)
   , (<<~)
 
@@ -97,14 +97,15 @@ module Control.Lens.Type
 import Control.Applicative              as Applicative
 import Control.Lens.Internal
 import Control.Monad.State              as State
+import Data.Monoid
 
 -- $setup
 -- >>> import Control.Lens
 
 infixr 4 %%~
 infix  4 %%=
-infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <%~, <<%~, <<.~
-infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <%=, <<%=, <<.=
+infixr 4 <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <%~, <<%~, <<.~
+infix  4 <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=
 infixr 2 <<~
 
 -------------------------------------------------------------------------------
@@ -684,6 +685,23 @@ l <<~ mb = do
   modify $ \s -> case l (Context id) s of Context f _ -> f b
   return b
 {-# INLINE (<<~) #-}
+
+-- | 'mappend' a monoidal value onto the end of the target of a 'Lens' and
+-- return the result
+--
+-- When you do not need the result of the operation, ('<>~') is more flexible.
+(<<>~) :: Monoid m => LensLike ((,)m) s t m m -> m -> s -> (m, t)
+l <<>~ m = l <%~ (`mappend` m)
+{-# INLINE (<<>~) #-}
+
+-- | 'mappend' a monoidal value onto the end of the target of a 'Lens' into
+-- your monad's state and return the result.
+--
+-- When you do not need the result of the operation, ('<>=') is more flexible.
+(<<>=) :: (MonadState s m, Monoid r) => SimpleLensLike ((,)r) s r -> r -> m r
+l <<>= r = l <%= (`mappend` r)
+{-# INLINE (<<>=) #-}
+
 
 -- | Useful for storing lenses in containers.
 newtype ReifiedLens s t a b = ReifyLens { reflectLens :: Lens s t a b }
