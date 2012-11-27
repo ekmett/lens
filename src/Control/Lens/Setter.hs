@@ -59,11 +59,12 @@ import Control.Lens.Classes
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Monad (liftM)
-import Control.Monad.State as State
+import Control.Monad.State.Class as State
 import Data.Monoid
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Control.Monad.State
 
 infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, ||~, %~, <.~, ?~, <?~
 infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, <>=, ||=, %=, <.=, ?=, <?=
