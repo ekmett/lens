@@ -182,6 +182,7 @@ library
     Control.Lens.Tuple
     Control.Lens.Type
     Control.Lens.WithIndex
+    Control.Lens.Wrapped
     Control.Lens.Zipper
     Control.Lens.Zoom
     Data.Bits.Lens
