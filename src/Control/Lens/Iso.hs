@@ -159,7 +159,7 @@ ala (Isos sa _ _ bt) f e = unsafeCoerce bt (f sa e)
 --
 -- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator
 -- is 'ala' with an extra function argument.
-auf :: Isomorphism s t a b -> ((b -> a) -> e -> a) -> (b -> s) -> e -> s
+auf :: Isomorphism s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
 auf (Isos sa _ _ bt) f g e = unsafeCoerce bt (f (sa . g) e)
 {-# INLINE auf #-}
 
