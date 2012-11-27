@@ -24,7 +24,7 @@ module Control.Lens.Projection
   -- * Consuming Projections
   , Projecting
   , project
-  , qua
+  , remit
   , review, reviews
   , reuse, reuses
   -- * Common projections
@@ -52,7 +52,7 @@ import Unsafe.Coerce
 -- Projection Internals
 ------------------------------------------------------------------------------
 
--- | A 'Projection' is a 'Traversal' that can also be turned around with 'qua' to obtain a 'Getter'
+-- | A 'Projection' is a 'Traversal' that can also be turned around with 'remit' to obtain a 'Getter'
 type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f b) (s -> f t)
 
 -- | A @'Simple' 'Projection'@.
@@ -66,8 +66,11 @@ project (Project f g) = projecting (unsafeCoerce f) (unsafeCoerce g)
 type Projecting f s t a b = Overloaded Project f s t a b
 
 -- | Turn a 'Projection' around to get at its contents.
-qua :: Projecting Mutator s t a b -> Getter b t
-qua (Project bt _) = to (unsafeCoerce bt)
+--
+-- >>> 5 ^.remit _left
+-- Left 5
+remit :: Projecting Mutator s t a b -> Getter b t
+remit (Project bt _) = to (unsafeCoerce bt)
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way.
 --
