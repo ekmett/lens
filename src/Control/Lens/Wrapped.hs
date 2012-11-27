@@ -29,6 +29,7 @@ import           Control.Arrow
 -- import        Control.Comonad.Trans.Env
 -- import        Control.Comonad.Trans.Store
 import           Control.Comonad.Trans.Traced
+import           Control.Exception
 import           Control.Lens.Iso
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
@@ -200,7 +201,56 @@ instance Wrapped (w (m -> a)) (w' (m' -> a')) (TracedT m w a) (TracedT m' w' a')
   wrapped   = isos TracedT runTracedT TracedT runTracedT
   unwrapped = isos runTracedT TracedT runTracedT TracedT
 
+-- exceptions
 
+instance Wrapped String String AssertionFailed AssertionFailed where
+  wrapped   = isos AssertionFailed failedAssertion AssertionFailed failedAssertion
+  unwrapped = isos failedAssertion AssertionFailed failedAssertion AssertionFailed
+
+instance Wrapped String String NoMethodError NoMethodError where
+  wrapped   = isos NoMethodError getNoMethodError NoMethodError getNoMethodError
+  unwrapped = isos getNoMethodError NoMethodError getNoMethodError NoMethodError
+
+instance Wrapped String String PatternMatchFail PatternMatchFail where
+  wrapped   = isos PatternMatchFail getPatternMatchFail PatternMatchFail getPatternMatchFail
+  unwrapped = isos getPatternMatchFail PatternMatchFail getPatternMatchFail PatternMatchFail
+
+instance Wrapped String String RecConError RecConError where
+  wrapped   = isos RecConError getRecConError RecConError getRecConError
+  unwrapped = isos getRecConError RecConError getRecConError RecConError
+
+instance Wrapped String String RecSelError RecSelError where
+  wrapped   = isos RecSelError getRecSelError RecSelError getRecSelError
+  unwrapped = isos getRecSelError RecSelError getRecSelError RecSelError
+
+instance Wrapped String String RecUpdError RecUpdError where
+  wrapped   = isos RecUpdError getRecUpdError RecUpdError getRecUpdError
+  unwrapped = isos getRecUpdError RecUpdError getRecUpdError RecUpdError
+
+instance Wrapped String String ErrorCall ErrorCall where
+  wrapped   = isos ErrorCall getErrorCall ErrorCall getErrorCall
+  unwrapped = isos getErrorCall ErrorCall getErrorCall ErrorCall
+
+getErrorCall :: ErrorCall -> String
+getErrorCall (ErrorCall x) = x
+
+getRecUpdError :: RecUpdError -> String
+getRecUpdError (RecUpdError x) = x
+
+getRecSelError :: RecSelError -> String
+getRecSelError (RecSelError x) = x
+
+getRecConError :: RecConError -> String
+getRecConError (RecConError x) = x
+
+getPatternMatchFail :: PatternMatchFail -> String
+getPatternMatchFail (PatternMatchFail x) = x
+
+getNoMethodError :: NoMethodError -> String
+getNoMethodError (NoMethodError x) = x
+
+failedAssertion :: AssertionFailed -> String
+failedAssertion (AssertionFailed x) = x
 
 getArrowMonad :: ArrowApply m  => ArrowMonad m a -> m () a
 getArrowMonad (ArrowMonad x) = x
