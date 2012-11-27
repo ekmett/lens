@@ -26,6 +26,7 @@ import           Control.Applicative
 import           Control.Applicative.Backwards
 import           Control.Applicative.Lift
 import           Control.Arrow
+import           Control.Comonad.Trans.Traced
 import           Control.Lens.Iso
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
@@ -50,9 +51,10 @@ import           Data.Monoid
 -- >>> import Control.Lens
 -- >>> import Data.Foldable
 
--- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes.
+-- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes or
+-- data types with one constructor.
 class Wrapped s t a b | a -> s, b -> t, a t -> s, b s -> t where
-  wrapped :: Iso s t a b
+  wrapped   :: Iso s t a b
   unwrapped :: Iso a b s t
 
 instance Wrapped Bool Bool All All where
@@ -184,6 +186,13 @@ instance Wrapped (m (a, w)) (m' (a', w')) (Lazy.WriterT w m a) (Lazy.WriterT w' 
 instance Wrapped (m (a, w)) (m' (a', w')) (Strict.WriterT w m a) (Strict.WriterT w' m' a') where
   wrapped   = isos Strict.WriterT Strict.runWriterT Strict.WriterT Strict.runWriterT
   unwrapped = isos Strict.runWriterT Strict.WriterT Strict.runWriterT Strict.WriterT
+
+-- comonad-transformers
+
+instance Wrapped (w (m -> a)) (w' (m' -> a')) (TracedT m w a) (TracedT m' w' a') where
+  wrapped   = iso TracedT runTracedT TracedT runTracedT
+  unwrapped = iso runTracedT TracedT runTracedT TracedT
+
 
 getArrowMonad :: ArrowApply m  => ArrowMonad m a -> m () a
 getArrowMonad (ArrowMonad x) = x
