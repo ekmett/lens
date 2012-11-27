@@ -477,7 +477,7 @@ data Project x y where
 
 instance Category Project where
   id = unsafeCoerce (Project id id)
-  Project ty f . Project bt g = unsafeCoerce $ Project (unsafeCoerce ty . unsafeCoerce bt) (unsafeCoerce f . unsafeCoerce g)
+  Project ty f . Project bt g = unsafeCoerce $ Project (unsafeCoerce ty.bt) (unsafeCoerce f.g)
 
 instance Projective Project where
   projecting = Project
