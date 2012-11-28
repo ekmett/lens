@@ -126,7 +126,7 @@ remit (Project bt _) = to (unsafeCoerce bt)
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way.
 --
--- @'review' ≡ 'view' '.' 'from'@
+-- @'review' ≡ 'view' '.' 'remit'@
 review :: MonadReader b m => Projecting Mutator s t a b -> m t
 review (Project bt _) = asks (unsafeCoerce bt)
 {-# INLINE review #-}
@@ -134,14 +134,14 @@ review (Project bt _) = asks (unsafeCoerce bt)
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way,
 -- applying a function.
 --
--- @'reviews' ≡ 'views' '.' 'from'@
+-- @'reviews' ≡ 'views' '.' 'remit'@
 reviews :: MonadReader b m => Projecting Mutator s t a b -> (t -> r) -> m r
 reviews (Project bt _) f = asks (f . unsafeCoerce bt)
 {-# INLINE reviews #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'use' a value (or the current environment) through it the other way.
 --
--- @'reuse' ≡ 'use' '.' 'from'@
+-- @'reuse' ≡ 'use' '.' 'remit'@
 reuse :: MonadState b m => Projecting Mutator s t a b -> m t
 reuse (Project bt _) = gets (unsafeCoerce bt)
 {-# INLINE reuse #-}
@@ -149,7 +149,7 @@ reuse (Project bt _) = gets (unsafeCoerce bt)
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'use' the current state through it the other way,
 -- applying a function.
 --
--- @'reuses' ≡ 'uses' '.' 'from'@
+-- @'reuses' ≡ 'uses' '.' 'remit'@
 reuses :: MonadState b m => Projecting Mutator s t a b -> (t -> r) -> m r
 reuses (Project bt _) f = gets (f . unsafeCoerce bt)
 {-# INLINE reuses #-}
