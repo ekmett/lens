@@ -23,7 +23,7 @@ module Control.Lens.Iso
   , iso
   -- * Consuming Isomorphisms
   , from
-  , via
+  , cloneIso
   , Isomorphism
   -- * Working with isomorphisms
   , au
@@ -60,6 +60,10 @@ import Unsafe.Coerce
 -- Consuming Isomorphisms
 -----------------------------------------------------------------------------
 
+-- | This is a particularly concrete type used by functions that want to work
+-- directly with the individual getter/setter pairs that make up an 'Iso'
+--
+-- If you see this type it probably means that the function expects an 'Iso'.
 type Isomorphism s t a b = Isos (a -> Mutator b) (s -> Mutator t)
 
 -- | Invert an isomorphism.
@@ -69,7 +73,7 @@ type Isomorphism s t a b = Isos (a -> Mutator b) (s -> Mutator t)
 --
 -- @'from' ('from' l) ≡ l@
 --
--- If you imported 'Control.Category..' from @Control.Category@, then:
+-- If you've imported 'Control.Category..' from @Control.Category@, then:
 --
 -- @'from' l '.' 'from' r ≡ 'from' (r '.' l)@
 from :: (Isomorphic k, Functor f) => Isomorphism s t a b -> k (s -> f t) (a -> f b)
@@ -80,9 +84,11 @@ from (Isos sa as tb bt) = isos as sa (unsafeCoerce bt) (unsafeCoerce tb)
 --
 -- This is useful when you need to store an isomoprhism as a data type inside a container
 -- and later reconstitute it as an overloaded function.
-via :: (Isomorphic k, Functor f) => Isomorphism s t a b -> k (a -> f b) (s -> f t)
-via (Isos sa as tb bt) = isos sa as (unsafeCoerce tb) (unsafeCoerce bt)
-{-# INLINE via #-}
+--
+-- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
+cloneIso :: Isomorphism s t a b -> Iso s t a b
+cloneIso (Isos sa as tb bt) = isos sa as (unsafeCoerce tb) (unsafeCoerce bt)
+{-# INLINE cloneIso #-}
 
 -----------------------------------------------------------------------------
 -- Isomorphisms families as Lenses
