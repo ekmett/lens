@@ -9,7 +9,7 @@ before_install:
   - ./travis-tests
   # - ./travis-benchmarks
 
-  - cabal install --only-dependencies --enable-tests --force-reinstall
+  - cabal install --only-dependencies --enable-tests
   # - cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstall
 install:
 

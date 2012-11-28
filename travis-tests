@@ -6,7 +6,7 @@ sudo apt-get -q -y install dctrl-tools
 
 eval "$(
   printf '%s' "grep-aptavail -n -sPackage '(' -FFALSE -X FALSE ')'"
-  2>/dev/null cabal install --only-dependencies --enable-tests --force-reinstall --dry-run -v | \
+  2>/dev/null cabal install --only-dependencies --enable-tests --dry-run -v | \
   sed -nre "s/^([^ ]+)-[0-9.]+ \(.*$/ -o '(' -FPackage -X libghc-\1-dev ')'/p" | \
   xargs -d'\n'
 )" | sort -u | xargs -d'\n' sudo apt-get -q -y install -- libghc-quickcheck2-dev
