@@ -35,7 +35,6 @@ module Data.Vector.Lens
   , ordinals
   ) where
 
-import Control.Applicative
 import Control.Lens
 import Data.Vector as Vector hiding (zip, filter)
 import Prelude hiding ((++), length, head, tail, init, last, map, reverse)
@@ -49,7 +48,7 @@ import Data.Monoid
 -- >>> Vector.fromList [1,2,3]^._head
 -- 1
 _head :: SimpleLens (Vector a) a
-_head f v = (\a -> v // [(0,a)]) <$> f (head v)
+_head f v = f (head v) <&> \a -> v // [(0,a)]
 {-# INLINE _head #-}
 
 -- | A 'Lens' reading and writing to the 'last' element of a /non-empty/ 'Vector'
@@ -59,7 +58,7 @@ _head f v = (\a -> v // [(0,a)]) <$> f (head v)
 -- >>> Vector.fromList [1,2]^._last
 -- 2
 _last :: SimpleLens (Vector a) a
-_last f v = (\a -> v // [(length v - 1, a)]) <$> f (last v)
+_last f v = f (last v) <&> \a -> v // [(length v - 1, a)]
 {-# INLINE _last #-}
 
 -- | A lens reading and writing to the 'tail' of a /non-empty/ 'Vector'
@@ -69,7 +68,7 @@ _last f v = (\a -> v // [(length v - 1, a)]) <$> f (last v)
 -- >>> _tail .~ Vector.fromList [3,4,5] $ Vector.fromList [1,2]
 -- fromList [1,3,4,5]
 _tail :: SimpleLens (Vector a) (Vector a)
-_tail f v = cons (head v) <$> f (tail v)
+_tail f v = f (tail v) <&> cons (head v)
 {-# INLINE _tail #-}
 
 -- | A 'Lens' reading and replacing all but the a 'last' element of a /non-empty/ 'Vector'
@@ -79,7 +78,7 @@ _tail f v = cons (head v) <$> f (tail v)
 -- >>> Vector.fromList [1,2,3,4]^._init
 -- fromList [1,2,3]
 _init :: SimpleLens (Vector a) (Vector a)
-_init f v = (`snoc` last v) <$> f (init v)
+_init f v = f (init v) <&> (`snoc` last v)
 {-# INLINE _init #-}
 
 -- | @sliced i n@ provides a lens that edits the @n@ elements starting at index @i@ from a lens.
@@ -90,7 +89,7 @@ _init f v = (`snoc` last v) <$> f (init v)
 sliced :: Int -- ^ @i@ starting index
        -> Int -- ^ @n@ length
        -> SimpleLens (Vector a) (Vector a)
-sliced i n f v = (\ v0 -> v // zip [i..i+n-1] (toList v0)) <$> f (slice i n v)
+sliced i n f v = f (slice i n v) <&> \ v0 -> v // zip [i..i+n-1] (toList v0)
 {-# INLINE sliced #-}
 
 -- | Similar to 'toListOf', but returning a 'Vector'.
@@ -117,7 +116,7 @@ forced = isos force force force force
 --
 -- @ordinal n@ is only a valid 'Lens' into a 'Vector' with 'length' at least @n + 1@.
 ordinal :: Int -> SimpleIndexedLens Int (Vector a) a
-ordinal i = indexing $ \ f v -> (\ a -> v // [(i, a)]) <$> f i (v ! i)
+ordinal i = indexing $ \ f v -> f i (v ! i) <&> \ a -> v // [(i, a)]
 {-# INLINE ordinal #-}
 
 -- | This 'Traversal' will ignore any duplicates in the supplied list of indices.

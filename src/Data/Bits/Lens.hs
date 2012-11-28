@@ -163,7 +163,7 @@ l <.|.= b = l <%= (.|. b)
 -- >>> 16 & bitAt 4 .~ False
 -- 0
 bitAt :: Bits b => Int -> SimpleIndexedLens Int b Bool
-bitAt n = indexing $ \f b -> (\x -> if x then setBit b n else clearBit b n) <$> f n (testBit b n)
+bitAt n = indexing $ \f b -> f n (testBit b n) <&> \x -> if x then setBit b n else clearBit b n
 {-# INLINE bitAt #-}
 
 -- | Traverse over all bits in a numeric type.

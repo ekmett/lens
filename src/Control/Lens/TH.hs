@@ -50,6 +50,7 @@ module Control.Lens.TH
   ) where
 
 import Control.Applicative
+import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Iso
@@ -152,24 +153,24 @@ data LensRules = LensRules
 --
 -- Defaults to lowercasing the first letter of the constructor.
 lensIso :: Simple Lens LensRules (String -> Maybe String)
-lensIso f (LensRules i n c o) = (\i' -> LensRules i' n c o) <$> f i
+lensIso f (LensRules i n c o) = f i <&> \i' -> LensRules i' n c o
 
 -- | Lens to access the convention for naming fields in our lens rules.
 --
 -- Defaults to stripping the _ off of the field name, lowercasing the name, and
 -- rejecting the field if it doesn't start with an '_'.
 lensField :: Simple Lens LensRules (String -> Maybe String)
-lensField f (LensRules i n c o) = (\n' -> LensRules i n' c o) <$> f n
+lensField f (LensRules i n c o) = f n <&> \n' -> LensRules i n' c o
 
 -- | Retrieve options such as the name of the class and method to put in it to
 -- build a class around monomorphic data types.
 lensClass :: Simple Lens LensRules (String -> Maybe (String, String))
-lensClass f (LensRules i n c o) = (\c' -> LensRules i n c' o) <$> f c
+lensClass f (LensRules i n c o) = f c <&> \c' -> LensRules i n c' o
 
 -- | Retrieve options such as the name of the class and method to put in it to
 -- build a class around monomorphic data types.
 lensFlags :: Simple Lens LensRules (Set LensFlag)
-lensFlags f (LensRules i n c o) = LensRules i n c <$> f o
+lensFlags f (LensRules i n c o) = f o <&> LensRules i n c
 
 -- | Default lens rules
 defaultRules :: LensRules
@@ -546,7 +547,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
 getLensFields :: (String -> Maybe String) -> Con -> Q [(Name, (Name, Name, Type))]
 getLensFields f (RecC cn fs)
   = return . catMaybes
-  $ map (\(fn,_,t) -> (\ln -> (mkName ln, (cn,fn,t))) <$> f (nameBase fn)) fs
+  $ fs <&> \(fn,_,t) -> f (nameBase fn) <&> \ln -> (mkName ln, (cn,fn,t))
 getLensFields _ _
   = return []
 

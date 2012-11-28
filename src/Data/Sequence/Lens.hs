@@ -27,7 +27,7 @@ import Data.Sequence as Seq
 --
 -- Note: This is only a legal lens if there is already such an element!
 ordinal :: Int -> SimpleIndexedLens Int (Seq a) a
-ordinal i = indexing $ \ f m -> (\a -> update i a m) <$> f i (index m i)
+ordinal i = indexing $ \ f m -> f i (index m i) <&> \a -> update i a m
 
 -- * Sequence isomorphisms
 
@@ -99,5 +99,5 @@ slicedFrom n = indexing $ \ f m -> case Seq.splitAt n m of
 sliced :: Int -> Int -> SimpleIndexedTraversal Int (Seq a) a
 sliced i j = indexing $ \ f s -> case Seq.splitAt i s of
   (l,mr) -> case Seq.splitAt (j-i) mr of
-     (m, r) -> (\n -> l >< n >< r) <$> itraverse (f . (+i)) m
+     (m, r) -> itraverse (f . (+i)) m <&> \n -> l >< n >< r
 {-# INLINE sliced #-}

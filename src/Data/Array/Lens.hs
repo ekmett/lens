@@ -37,7 +37,7 @@ import Data.Array.IArray hiding (index)
 -- >>> ix 2 .~ 9 $ (listArray (1,5) [4,5,6,7,8] :: Array Int Int)
 -- array (1,5) [(1,4),(2,9),(3,6),(4,7),(5,8)]
 ix :: (IArray a e, Ix i) => i -> Simple Lens (a i e) e
-ix i f arr = (\e -> arr // [(i,e)]) <$> f (arr ! i)
+ix i f arr = f (arr ! i) <&> \e -> arr // [(i,e)]
 {-# INLINE ix #-}
 
 -- | This setter can be used to derive a new 'IArray' from an old array by

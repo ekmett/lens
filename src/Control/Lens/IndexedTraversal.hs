@@ -60,6 +60,7 @@ module Control.Lens.IndexedTraversal
 
 import Control.Applicative
 import Control.Applicative.Backwards
+import Control.Lens.Combinators
 import Control.Lens.Indexed
 import Control.Lens.IndexedLens
 import Control.Lens.Internal
@@ -239,16 +240,16 @@ class Ord k => TraverseMin k m | m -> k where
 instance TraverseMin Int IntMap where
   traverseMin = indexing $ \f m -> case IntMap.minViewWithKey m of
 #if MIN_VERSION_containers(0,5,0)
-    Just ((k,a), _) -> (\v -> IntMap.updateMin (const (Just v)) m) <$> f k a
+    Just ((k,a), _) -> f k a <&> \v -> IntMap.updateMin (const (Just v)) m
 #else
-    Just ((k,a), _) -> (\v -> IntMap.updateMin (const v) m) <$> f k a
+    Just ((k,a), _) -> f k a <&> \v -> IntMap.updateMin (const v) m
 #endif
     Nothing     -> pure m
   {-# INLINE traverseMin #-}
 
 instance Ord k => TraverseMin k (Map k) where
   traverseMin = indexing $ \f m -> case Map.minViewWithKey m of
-    Just ((k, a), _) -> (\v -> Map.updateMin (const (Just v)) m) <$> f k a
+    Just ((k, a), _) -> f k a <&> \v -> Map.updateMin (const (Just v)) m
     Nothing          -> pure m
   {-# INLINE traverseMin #-}
 
@@ -260,16 +261,16 @@ class Ord k => TraverseMax k m | m -> k where
 instance TraverseMax Int IntMap where
   traverseMax = indexing $ \f m -> case IntMap.maxViewWithKey m of
 #if MIN_VERSION_containers(0,5,0)
-    Just ((k,a), _) -> (\v -> IntMap.updateMax (const (Just v)) m) <$> f k a
+    Just ((k,a), _) -> f k a <&> \v -> IntMap.updateMax (const (Just v)) m
 #else
-    Just ((k,a), _) -> (\v -> IntMap.updateMax (const v) m) <$> f k a
+    Just ((k,a), _) -> f k a <&> \v -> IntMap.updateMax (const v) m
 #endif
     Nothing     -> pure m
   {-# INLINE traverseMax #-}
 
 instance Ord k => TraverseMax k (Map k) where
   traverseMax = indexing $ \f m -> case Map.maxViewWithKey m of
-    Just ((k, a), _) -> (\v -> Map.updateMax (const (Just v)) m) <$> f k a
+    Just ((k, a), _) -> f k a <&> \v -> Map.updateMax (const (Just v)) m
     Nothing          -> pure m
   {-# INLINE traverseMax #-}
 

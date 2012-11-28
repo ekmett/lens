@@ -95,6 +95,7 @@ module Control.Lens.Type
   ) where
 
 import Control.Applicative              as Applicative
+import Control.Lens.Combinators
 import Control.Lens.Internal
 import Control.Monad.State              as State
 import Data.Monoid
@@ -307,7 +308,7 @@ alongside :: LensLike (Context a b) s t a b
            -> Lens (s,s') (t,t') (a,a') (b,b')
 alongside l r f (s, s') = case l (Context id) s of
   Context bt a -> case r (Context id) s' of
-    Context bt' a' -> (\(b,b') -> (bt b, bt' b')) <$> f (a,a')
+    Context bt' a' -> f (a,a') <&> \(b,b') -> (bt b, bt' b')
 {-# INLINE alongside #-}
 
 -------------------------------------------------------------------------------
