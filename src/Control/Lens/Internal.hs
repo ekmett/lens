@@ -471,7 +471,6 @@ sellT i = BazaarT (\k -> k i)
 -- with its internals.
 --
 -- If you see a function that expects a 'Project', it is probably just expecting a 'Projection'.
--- You can safely
 data Project x y where
   Project :: (b -> t) -> ((a -> f b) -> s -> f t) -> Project (a -> f b) (s -> f t)
 
