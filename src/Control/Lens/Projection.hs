@@ -50,6 +50,8 @@ import Unsafe.Coerce
 -- >>> import Control.Lens
 -- >>> import Numeric.Natural
 -- >>> let nat :: Simple Projection Integer Natural; nat = projecting toInteger $ \f i -> if i < 0 then pure i else toInteger <$> f (fromInteger i)
+-- >>> let isLeft  (Left  _) = True; isLeft  _ = False
+-- >>> let isRight (Right _) = True; isRight _ = False
 
 ------------------------------------------------------------------------------
 -- Projection Internals
