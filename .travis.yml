@@ -22,4 +22,4 @@ notifications:
     skip_join: true
     template:
       - "%{repository}%{build_number} (%{branch} - %{commit} : %{author}) : %{message}"
-      - "Details: %{build_url}, %{compare_url}"
+      - "Details: %{build_url}"
