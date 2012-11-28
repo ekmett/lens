@@ -6,11 +6,7 @@ before_install:
   #  - cabal update
 
   # Try installing some of the build-deps with apt-get for speed.
-  - ./travis-tests
-  - cabal install --only-dependencies --enable-tests
-
-  # - ./travis-benchmarks
-  # - cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstall
+  - ./travis-cabal-apt-install --only-dependencies --enable-tests
 install:
 
   # we have to configure rather than install in order to get benchmarks

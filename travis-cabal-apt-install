@@ -4,9 +4,13 @@ set -eu
 sudo apt-get -q update
 sudo apt-get -q -y install dctrl-tools
 
+# Try installing some of the build-deps with apt-get for speed.
 eval "$(
   printf '%s' "grep-aptavail -n -sPackage '(' -FFALSE -X FALSE ')'"
-  2>/dev/null cabal install --only-dependencies --enable-tests --dry-run -v | \
+  2>/dev/null cabal install "$@" --dry-run -v | \
   sed -nre "s/^([^ ]+)-[0-9.]+ \(.*$/ -o '(' -FPackage -X libghc-\1-dev ')'/p" | \
   xargs -d'\n'
 )" | sort -u | xargs -d'\n' sudo apt-get -q -y install -- libghc-quickcheck2-dev
+
+# Install whatever is still needed with cabal.
+cabal install "$@"
