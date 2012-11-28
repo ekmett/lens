@@ -23,7 +23,7 @@ module Control.Lens.Projection
   , Project(..)
   -- * Consuming Projections
   , Projecting
-  , project
+  , cloneProjection
   , remit
   , review, reviews
   , reuse, reuses
@@ -41,6 +41,7 @@ import Control.Monad.State as State
 import Control.Lens.Classes
 import Control.Lens.Getter
 import Control.Lens.Internal
+import Control.Lens.Traversal
 import Control.Lens.Type
 import Prelude hiding (id,(.))
 import Unsafe.Coerce
@@ -54,15 +55,15 @@ import Unsafe.Coerce
 -- Projection Internals
 ------------------------------------------------------------------------------
 
--- | A 'Projection' @l@ is a 0-or-1 target 'Control.Lens.Traversal.Traversal' that can also be turned around with 'remit' to
--- obtain a 'Getter' in the opposite direction, such that in addition to the 'Control.Lens.Traversal.Traversal' laws, we also
+-- | A 'Projection' @l@ is a 0-or-1 target 'Traversal' that can also be turned around with 'remit' to
+-- obtain a 'Getter' in the opposite direction, such that in addition to the 'Traversal' laws, we also
 -- have
 --
 -- @x '^.' 'remit' l '^?' l ≡ 'Just' x@
 --
 -- @'Control.Lens.Fold.lengthOf' l x '<=' 1@
 --
--- Every 'Projection' is a valid 'Control.Lens.Traversal.Traversal'.
+-- Every 'Projection' is a valid 'Traversal'.
 --
 -- Every 'Control.Lens.Iso.Iso' is a valid 'Projection'.
 --
@@ -98,7 +99,7 @@ import Unsafe.Coerce
 -- >>> 5 ^. remit nat
 -- 5
 --
--- Similarly we can use a 'Projection' to 'Control.Lens.Traversal.traverse' the left half of an 'Either':
+-- Similarly we can use a 'Projection' to 'traverse' the left half of an 'Either':
 --
 -- >>> Left "hello" & _left %~ length
 -- Left 5
@@ -117,23 +118,52 @@ type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f
 -- | A @'Simple' 'Projection'@.
 type SimpleProjection s a = Projection s s a a
 
--- | Reflect a 'Projection'.
-project :: (Projective k, Applicative f) => Overloaded Project f s t a b -> Overloaded k f s t a b
-project (Project f g) = projecting (unsafeCoerce f) (unsafeCoerce g)
+-- | Clone a 'Projection' so that you can reuse the same monomorphically typed 'Projection' for different purposes.
+--
+-- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.
+cloneProjection :: Overloaded Project (Bazaar a b) s t a b -> Projection s t a b
+cloneProjection (Project f g) = projecting (unsafeCoerce f) (cloneTraversal (unsafeCoerce g))
 
 -- | Consume a 'Project'. This is commonly used when a function takes a 'Projection' as a parameter.
 type Projecting f s t a b = Overloaded Project f s t a b
 
--- | Turn a 'Projection' (or 'Control.Lens.Iso.Iso') around to get at its contents.
+-- | Turn a 'Projection' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
+--
+-- If you have an 'Control.Lens.Iso.Iso', 'Control.Lens.Iso.from' is a more powerful version of this function
+-- that will return an 'Control.Lens.Iso.Iso' instead of a mere 'Getter'.
 --
 -- >>> 5 ^.remit _left
 -- Left 5
+--
+-- @
+-- 'remit' :: 'Projection' s t a b -> 'Getter' b t
+-- 'remit' :: 'Iso' s t a b        -> 'Getter' b t
+-- @
 remit :: Projecting Mutator s t a b -> Getter b t
 remit (Project bt _) = to (unsafeCoerce bt)
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way.
 --
 -- @'review' ≡ 'view' '.' 'remit'@
+--
+-- >>> review _left "mustard"
+-- Left "mustard"
+--
+-- Usually 'review' is used in the @(->)@ monad with a 'Simple' 'Projection' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
+-- it as having one of these more restricted type signatures:
+--
+-- @
+-- 'review' :: 'Simple' 'Iso' s a        -> a -> s
+-- 'review' :: 'Simple' 'Projection' s a -> a -> s
+-- @
+--
+-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of 
+-- these more slightly more liberal type signatures may be beneficial to think of it as having:
+--
+-- @
+-- 'review' :: 'MonadReader' a m => 'Simple' 'Iso' s a        -> m s
+-- 'review' :: 'MonadReader' a m => 'Simple' 'Projection' s a -> m s
+-- @
 review :: MonadReader b m => Projecting Mutator s t a b -> m t
 review (Project bt _) = asks (unsafeCoerce bt)
 {-# INLINE review #-}
@@ -142,6 +172,25 @@ review (Project bt _) = asks (unsafeCoerce bt)
 -- applying a function.
 --
 -- @'reviews' ≡ 'views' '.' 'remit'@
+--
+-- >>> reviews _left isRight "mustard"
+-- False
+--
+-- Usually this function is used in the @(->)@ monad with a 'Simple' 'Projection' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
+-- it as having one of these more restricted type signatures:
+--
+-- @
+-- 'reviews' :: 'Simple' 'Iso' s a        -> (s -> r) -> a -> r
+-- 'reviews' :: 'Simple' 'Projection' s a -> (s -> r) -> a -> r
+-- @
+--
+-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of 
+-- these more slightly more liberal type signatures may be beneficial to think of it as having:
+--
+-- @
+-- 'reviews' :: 'MonadReader' a m => 'Simple' 'Iso' s a        -> (s -> r) -> m r
+-- 'reviews' :: 'MonadReader' a m => 'Simple' 'Projection' s a -> (s -> r) -> m r
+-- @
 reviews :: MonadReader b m => Projecting Mutator s t a b -> (t -> r) -> m r
 reviews (Project bt _) f = asks (f . unsafeCoerce bt)
 {-# INLINE reviews #-}
@@ -149,6 +198,14 @@ reviews (Project bt _) f = asks (f . unsafeCoerce bt)
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'use' a value (or the current environment) through it the other way.
 --
 -- @'reuse' ≡ 'use' '.' 'remit'@
+--
+-- >>> evalState (reuse _left) 5
+-- Left 5
+--
+-- @
+-- 'reuse' :: 'MonadState' a m => 'Simple' 'Projection' s a -> m s
+-- 'reuse' :: 'MonadState' a m => 'Simple' 'Iso' s a        -> m s
+-- @
 reuse :: MonadState b m => Projecting Mutator s t a b -> m t
 reuse (Project bt _) = gets (unsafeCoerce bt)
 {-# INLINE reuse #-}
@@ -157,11 +214,19 @@ reuse (Project bt _) = gets (unsafeCoerce bt)
 -- applying a function.
 --
 -- @'reuses' ≡ 'uses' '.' 'remit'@
+--
+-- >>> evalState (reuses _left isLeft) 5
+-- True
+--
+-- @
+-- 'reuses' :: 'MonadState' a m => 'Simple' 'Projection' s a -> (s -> r) -> m r
+-- 'reuses' :: 'MonadState' a m => 'Simple' 'Iso' s a        -> (s -> r) -> m r
+-- @
 reuses :: MonadState b m => Projecting Mutator s t a b -> (t -> r) -> m r
 reuses (Project bt _) f = gets (f . unsafeCoerce bt)
 {-# INLINE reuses #-}
 
--- | A traversal for tweaking the left-hand value of an 'Either':
+-- | This projection provides a traversal for tweaking the left-hand value of an 'Either':
 --
 -- >>> over _left (+1) (Left 2)
 -- Left 3
@@ -175,7 +240,10 @@ reuses (Project bt _) f = gets (f . unsafeCoerce bt)
 -- >>> Left "hello" ^._left
 -- "hello"
 --
--- @'_left' :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ('Either' b c)@
+-- It also can be turned around to obtain the embedding into the 'Left' half of an 'Either'
+--
+-- >>> 5^.remit _left
+-- Left 5
 _left :: Projection (Either a c) (Either b c) a b
 _left = projecting Left $ \ f e -> case e of
   Left a  -> Left <$> f a
@@ -202,7 +270,10 @@ _left = projecting Left $ \ f e -> case e of
 -- >>> Left "hello" ^._right :: [Double]
 -- []
 --
--- @'_right' :: 'Applicative' f => (a -> f b) -> 'Either' c a -> f ('Either' c a)@
+-- It also can be turned around to obtain the embedding into the 'Left' half of an 'Either'
+--
+-- >>> 5^.remit _right
+-- Right 5
 _right :: Projection (Either c a) (Either c b) a b
 _right = projecting Right $ \f e -> case e of
   Left c -> pure $ Left c
