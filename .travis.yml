@@ -19,7 +19,7 @@ notifications:
       - "irc.freenode.org#haskell-lens"
     skip_join: true
     template:
-      - "lens/%{branch} %{commit} %{author}: %{message} (#${build_number})"
+      - "lens/%{branch} %{commit} %{author}: %{message} (#%{build_number})"
       - "Details: %{build_url}"
 
 env:
