@@ -1,23 +1,28 @@
 language: haskell
 before_install:
-  # Uncomment the next line whenever hackage is down.
+  # Uncomment whenever hackage is down.
   #  - mkdir -p ~/.cabal & cp config ~/.cabal/config & cabal update
 
   # Try installing some of the build-deps with apt-get for speed.
-  - ./travis-cabal-apt-install --only-dependencies --force-reinstall $CABAL_APT
+  - ./travis-cabal-apt-install --only-dependencies --force-reinstall $mode
+
 install:
-  - cabal configure $CABAL_APT
+  - cabal configure $mode
   - cabal build
+
 script:
-  - $GO
+  - $script
+
 notifications:
   irc:
     channels:
       - "irc.freenode.org#haskell-lens"
     skip_join: true
     template:
-      - "lens/%{branch} %{commit} %{author} (%{MODE} #${build_number}): %{message}"
+      - "lens/%{branch} %{commit} %{author}: %{message} (#${build_number})"
       - "Details: %{build_url}"
+
 env:
-  - MODE=test-suite CABAL_APT="--enable-tests" GO="cabal test --show-details=always"
-  - MODE=benchmarks CABAL_APT="--enable-benchmarks -fdump-splices" GO="cabal bench"
+  - mode="--enable-tests" script="cabal test"
+  # - mode="--enable-tests -fdump-splices" script="cabal test --show-details=always"
+  # - mode="--enable-benchmarks -fdump-splices" script="cabal bench"
