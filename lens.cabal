@@ -285,9 +285,8 @@ test-suite hunit
     test-framework-th == 0.2.*
   ghc-options: -w -threaded
   hs-source-dirs: tests
-  if flag(test-hunit)
-    build-depends: uniplate >= 1.6.7 && < 1.7
-    cpp-options: -DBENCHMARK_UNIPLATE
+  if !flag(test-hunit)
+    buildable: False
 
 -- Verify the results of the examples
 test-suite doctests
