@@ -5,29 +5,8 @@ sudo apt-get -q update
 sudo apt-get -q -y install dctrl-tools
 
 eval "$(
-  printf "grep-aptavail -n -sPackage '(' -FFALSE -X FALSE ')'"
-  pkg() {
-    printf " -o '(' -FPackage -X libghc-%s-dev -a -FVersion --ge %s ')'" \
-           "$1" "$2"
-  }
-  pkg comonad 3.0
-  pkg comonads-fd 3.0
-  pkg comonad-transformers 3.0
-  pkg criterion 0
-  pkg doctest 0.9.1
-  pkg hashable 1.1
-  pkg hunit 1.2
-  pkg mtl 2.1.1
-  pkg parallel 3.1.0.1
-  pkg quickcheck2 2.4
-  pkg semigroups 0.8.4
-  pkg split 0.2
-  pkg test-framework 0.6
-  pkg test-framework-hunit 0.2
-  pkg test-framework-th 0.2
-  pkg text 0.11
-  pkg transformers 0.3
-  pkg uniplate 1.6.7
-  pkg unordered-containers 0.2
-  pkg vector 0.9
-)" | sort -u | xargs -d'\n' sudo apt-get -q -y install --
+  printf '%s' "grep-aptavail -n -sPackage '(' -FFALSE -X FALSE ')'"
+  2>/dev/null cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstall --dry-run -v | \
+  sed -nre "s/^([^ ]+)-[0-9.]+ \(.*$/ -o '(' -FPackage -X libghc-\1-dev ')'/p" | \
+  xargs -d'\n'
+)" | sort -u | xargs -d'\n' sudo apt-get -q -y install -- libghc-quickcheck2-dev
