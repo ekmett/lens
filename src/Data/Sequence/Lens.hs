@@ -19,8 +19,7 @@ module Data.Sequence.Lens
   ) where
 
 import Control.Applicative
-import Control.Lens          as Lens
-import Control.Lens.Internal as Lens
+import Control.Lens
 import Data.Monoid
 import Data.Sequence as Seq
 
@@ -28,7 +27,7 @@ import Data.Sequence as Seq
 --
 -- Note: This is only a legal lens if there is already such an element!
 ordinal :: Int -> SimpleIndexedLens Int (Seq a) a
-ordinal i = Lens.index $ \ f m -> (\a -> update i a m) <$> f i (Seq.index m i)
+ordinal i = indexing $ \ f m -> (\a -> update i a m) <$> f i (index m i)
 
 -- * Sequence isomorphisms
 
@@ -58,7 +57,7 @@ unviewr (as :> a) = as |> a
 
 -- | Traverse the head of a 'Seq'
 _head :: SimpleIndexedTraversal Int (Seq a) a
-_head = Lens.index $ \f m -> case viewl m of
+_head = indexing $ \f m -> case viewl m of
   a :< as -> (<| as) <$> f (0::Int) a
   EmptyL  -> pure m
 {-# INLINE _head #-}
@@ -72,7 +71,7 @@ _tail f m = case viewl m of
 
 -- | Traverse the last element of a 'Seq'
 _last :: SimpleIndexedTraversal Int (Seq a) a
-_last = Lens.index $ \f m ->  case viewr m of
+_last = indexing $ \f m ->  case viewr m of
   as :> a -> (as |>) <$> f (Seq.length as) a
   EmptyR  -> pure m
 {-# INLINE _last #-}
@@ -86,19 +85,19 @@ _init f m = case viewr m of
 
 -- | Traverse the first @n@ elements of a 'Seq'
 slicedTo :: Int -> SimpleIndexedTraversal Int (Seq a) a
-slicedTo n = Lens.index $ \f m -> case Seq.splitAt n m of
+slicedTo n = indexing $ \f m -> case Seq.splitAt n m of
   (l,r) -> (>< r) <$> itraverse f l
 {-# INLINE slicedTo #-}
 
 -- | Traverse all but the first @n@ elements of a 'Seq'
 slicedFrom :: Int -> SimpleIndexedTraversal Int (Seq a) a
-slicedFrom n = Lens.index $ \ f m -> case Seq.splitAt n m of
+slicedFrom n = indexing $ \ f m -> case Seq.splitAt n m of
   (l,r) -> (l ><) <$> itraverse (f . (+n)) r
 {-# INLINE slicedFrom #-}
 
 -- | Travere all the elements numbered from @i@ to @j@ of a 'Seq'
 sliced :: Int -> Int -> SimpleIndexedTraversal Int (Seq a) a
-sliced i j = Lens.index $ \ f s -> case Seq.splitAt i s of
+sliced i j = indexing $ \ f s -> case Seq.splitAt i s of
   (l,mr) -> case Seq.splitAt (j-i) mr of
      (m, r) -> (\n -> l >< n >< r) <$> itraverse (f . (+i)) m
 {-# INLINE sliced #-}

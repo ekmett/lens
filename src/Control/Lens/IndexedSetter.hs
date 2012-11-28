@@ -97,7 +97,7 @@ iover l f = runMutator# (withIndex l (\i -> mutator# (f i)))
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
 isets :: ((i -> a -> b) -> s -> t) -> IndexedSetter i s t a b
-isets f = index $ \ g -> tainted# (f (\i -> untainted# (g i)))
+isets f = indexing $ \ g -> tainted# (f (\i -> untainted# (g i)))
 {-# INLINE isets #-}
 
 -- | Adjust every target of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'

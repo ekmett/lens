@@ -505,18 +505,3 @@ instance Category Isos where
 instance Isomorphic Isos where
   isos = Isos
 
-----------------------------------------------------------------------------
--- Indexed Internals
------------------------------------------------------------------------------
-
--- | Permit overloading of function application for things that also admit a notion of a key or index.
-
--- | Provides overloading for 'Indexed' functions.
-class Indexed i k where
-  -- | Build a function from an 'Indexed' function
-  index :: ((i -> a) -> b) -> k a b
-
-instance Indexed i (->) where
-  index f = f . const
-  {-# INLINE index #-}
-

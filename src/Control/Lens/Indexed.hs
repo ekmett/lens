@@ -22,7 +22,7 @@ module Control.Lens.Indexed
   , Index(..)
   , (<.>), (<.), (.>)
   , icompose
-  , reindex
+  , reindexing
   , indexed
   ) where
 
@@ -41,27 +41,27 @@ newtype Index i a b = Index { withIndex :: (i -> a) -> b }
 -- | Using an equality witness to avoid potential overlapping instances
 -- and aid dispatch.
 instance i ~ j => Indexed i (Index j) where
-  index = Index
-  {-# INLINE index #-}
+  indexing = Index
+  {-# INLINE indexing #-}
 
 -- | Compose an 'Indexed' function with a non-indexed function.
 --
--- Mnemonically, the @<@ points to the index we want to preserve.
+-- Mnemonically, the @<@ points to the indexing we want to preserve.
 (<.)  :: Indexed i k => Index i b c -> (a -> b) -> k a c
-Index ibc <. ab = index $ \ia -> ibc (ab . ia)
+Index ibc <. ab = indexing $ \ia -> ibc (ab . ia)
 {-# INLINE (<.) #-}
 
 -- | Compose a non-indexed function with an 'Indexed' function.
 --
--- Mnemonically, the @>@ points to the index we want to preserve.
+-- Mnemonically, the @>@ points to the indexing we want to preserve.
 (.>)  :: Indexed i k => (b -> c) -> Index i a b -> k a c
-bc .> Index iab = index (bc . iab)
+bc .> Index iab = indexing (bc . iab)
 {-# INLINE (.>) #-}
 
 -- | Remap the index.
-reindex :: Indexed j k => (i -> j) -> Index i a b -> k a b
-reindex ij (Index iab) = index $ \ ja -> iab $ \i -> ja (ij i)
-{-# INLINE reindex #-}
+reindexing :: Indexed j k => (i -> j) -> Index i a b -> k a b
+reindexing ij (Index iab) = indexing $ \ ja -> iab $ \i -> ja (ij i)
+{-# INLINE reindexing #-}
 
 -- | Composition of 'Indexed' functions
 --
@@ -72,7 +72,7 @@ f <.> g = icompose (,) f g
 
 -- | Composition of 'Indexed' functions with a user supplied function for combining indexs
 icompose :: Indexed k r => (i -> j -> k) -> Index i b c -> Index j a b -> r a c
-icompose ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ \j -> ka (ijk i j)
+icompose ijk (Index ibc) (Index jab) = indexing $ \ka -> ibc $ \i -> jab $ \j -> ka (ijk i j)
 {-# INLINE icompose #-}
 
 -- | Transform an 'Traversal' into an 'Control.Lens.IndexedTraversal.IndexedTraversal', a 'Fold' into an 'Control.Lens.IndexedFold.IndexedFold', etc.
@@ -85,7 +85,7 @@ icompose ijk (Index ibc) (Index jab) = index $ \ka -> ibc $ \i -> jab $ \j -> ka
 -- 'indexed' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
 -- @
 indexed :: Indexed Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k (a -> f b) (s -> f t)
-indexed l = index $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
+indexed l = indexing $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
   (r, _) -> r
 {-# INLINE indexed #-}
 

@@ -19,7 +19,6 @@ module Data.Bits.Lens
   ) where
 
 import Control.Lens
-import Control.Lens.Internal
 import Control.Monad.State
 import Data.Bits
 import Data.Functor
@@ -164,7 +163,7 @@ l <.|.= b = l <%= (.|. b)
 -- >>> 16 & bitAt 4 .~ False
 -- 0
 bitAt :: Bits b => Int -> SimpleIndexedLens Int b Bool
-bitAt n = index $ \f b -> (\x -> if x then setBit b n else clearBit b n) <$> f n (testBit b n)
+bitAt n = indexing $ \f b -> (\x -> if x then setBit b n else clearBit b n) <$> f n (testBit b n)
 {-# INLINE bitAt #-}
 
 -- | Traverse over all bits in a numeric type.
@@ -177,7 +176,7 @@ bitAt n = index $ \f b -> (\x -> if x then setBit b n else clearBit b n) <$> f n
 -- If you supply this an 'Integer', the result will be an infinite 'Traversal', which
 -- can be productively consumed, but not reassembled.
 bits :: (Num b, Bits b) => SimpleIndexedTraversal Int b Bool
-bits = index $ \f b -> let
+bits = indexing $ \f b -> let
     g n      = (,) n <$> f n (testBit b n)
     bs       = Prelude.takeWhile hasBit [0..]
     hasBit n = complementBit b n /= b -- test to make sure that complementing this bit actually changes the value

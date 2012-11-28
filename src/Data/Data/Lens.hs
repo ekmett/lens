@@ -194,7 +194,7 @@ lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & index
 -- The index of the 'Traversal' can be used as an offset into @'elementOf' ('indexed' 'template')@ or into the list
 -- returned by @'holesOf' 'template'@.
 upon :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedTraversal Int s a
-upon field = index $ \f s -> case lookupon template field s of
+upon field = indexing $ \f s -> case lookupon template field s of
   Nothing -> pure s
   Just (i, Context k a) -> k <$> f i a
 {-# INLINE upon #-}
@@ -213,7 +213,7 @@ upon field = index $ \f s -> case lookupon template field s of
 -- When given a legal field accessor, the index of the 'Lens' can be used as an offset into
 -- @'elementOf' ('indexed' 'template')@ or into the list returned by @'holesOf' 'template'@.
 upon' :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedLens Int s a
-upon' field = index $ \f s -> let
+upon' field = indexing $ \f s -> let
     ~(i, Context k _) = case lookupon template field s of
       Nothing -> error "upon': no index, not a member"
       Just ip -> ip
@@ -228,7 +228,7 @@ upon' field = index $ \f s -> let
 --
 -- @'uponTheDeep' :: ('Data' s, 'Data' a) => (s -> a) -> 'SimpleIndexedTraversal' [Int] s a@
 uponTheDeep :: forall k f s a. (Indexed [Int] k, Applicative f, Data s, Data a) => (s -> a) -> k (a -> f a) (s -> f s)
-uponTheDeep field = index $ \ f s -> case lookupon template field s of
+uponTheDeep field = indexing $ \ f s -> case lookupon template field s of
   Nothing -> pure s
   Just (i, Context k0 a0) ->
     let
@@ -249,7 +249,7 @@ uponTheDeep field = index $ \ f s -> case lookupon template field s of
 -- >>> uponTheDeep' (tail.tail) .~ [10,20] $ [1,2,3,4]
 -- [1,2,10,20]
 uponTheDeep' :: forall s a. (Data s, Data a) => (s -> a) -> SimpleIndexedLens [Int] s a
-uponTheDeep' field = index $ \ f s -> let
+uponTheDeep' field = indexing $ \ f s -> let
     ~(isn, kn) = case lookupon template field s of
       Nothing -> (error "uponTheDeep': no index, not a member", const s)
       Just (i, Context k0 _) -> go [i] (elementOf template i) k0

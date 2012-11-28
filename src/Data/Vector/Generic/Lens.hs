@@ -40,7 +40,6 @@ module Data.Vector.Generic.Lens
 
 import Control.Applicative
 import Control.Lens
-import Control.Lens.Internal
 import Data.List (nub)
 import Data.Monoid
 import Data.Vector.Generic as V hiding (zip, filter)
@@ -141,7 +140,7 @@ reversed = iso reverse reverse
 --
 -- @ordinal n@ is only a valid 'Lens' into a 'Vector' with 'length' at least @n + 1@.
 ordinal :: Vector v a => Int -> SimpleIndexedLens Int (v a) a
-ordinal i = index $ \ f v -> (\ a -> v // [(i, a)]) <$> f i (v ! i)
+ordinal i = indexing $ \ f v -> (\ a -> v // [(i, a)]) <$> f i (v ! i)
 {-# INLINE ordinal #-}
 
 -- | This 'Traversal' will ignore any duplicates in the supplied list of indices.
@@ -149,7 +148,7 @@ ordinal i = index $ \ f v -> (\ a -> v // [(i, a)]) <$> f i (v ! i)
 -- >>> toListOf (ordinals [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
 -- [4,8,6,12,20,22]
 ordinals :: Vector v a => [Int] -> SimpleIndexedTraversal Int (v a) a
-ordinals is = index $ \ f v -> let
+ordinals is = indexing $ \ f v -> let
      l = length v
      is' = nub $ filter (<l) is
   in fmap ((v //) . zip is') . traverse (uncurry f) . zip is $ fmap (v !) is'

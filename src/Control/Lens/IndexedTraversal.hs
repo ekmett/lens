@@ -202,7 +202,7 @@ swap (a,b) = (b,a)
 -- 'iwhereOf' :: 'SimpleIndexedSetter' i s a    -> (i -> 'Bool') -> 'SimpleIndexedSetter' i s a
 -- @
 iwhereOf :: (Indexed i k, Applicative f) => Overloaded (Index i) f s t a a -> (i -> Bool) -> Overloaded k f s t a a
-iwhereOf l p = index $ \f s -> withIndex l (\i a -> if p i then f i a else pure a) s
+iwhereOf l p = indexing $ \f s -> withIndex l (\i a -> if p i then f i a else pure a) s
 {-# INLINE iwhereOf #-}
 
 -- | This simple indexed traversal lets you 'traverse' the value at a given key in a map.
@@ -219,7 +219,7 @@ traversed = indexed traverse
 -- | This provides a 'Traversal' that checks a predicate on a key before
 -- allowing you to traverse into a value.
 value :: (k -> Bool) -> SimpleIndexedTraversal k (k, v) v
-value p = index $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
+value p = indexing $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
 {-# INLINE value #-}
 
 -- | This is the trivial empty traversal.
@@ -228,7 +228,7 @@ value p = index $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
 --
 -- @'ignored' ≡ 'const' 'pure'@
 ignored :: forall k f i s a b. (Indexed i k, Applicative f) => Overloaded k f s s a b
-ignored = index $ \ (_ :: i -> a -> f b) s -> pure s :: f s
+ignored = indexing $ \ (_ :: i -> a -> f b) s -> pure s :: f s
 {-# INLINE ignored #-}
 
 -- | Allows 'IndexedTraversal' the value at the smallest index.
@@ -237,7 +237,7 @@ class Ord k => TraverseMin k m | m -> k where
   traverseMin :: SimpleIndexedTraversal k (m v) v
 
 instance TraverseMin Int IntMap where
-  traverseMin = index $ \f m -> case IntMap.minViewWithKey m of
+  traverseMin = indexing $ \f m -> case IntMap.minViewWithKey m of
 #if MIN_VERSION_containers(0,5,0)
     Just ((k,a), _) -> (\v -> IntMap.updateMin (const (Just v)) m) <$> f k a
 #else
@@ -247,7 +247,7 @@ instance TraverseMin Int IntMap where
   {-# INLINE traverseMin #-}
 
 instance Ord k => TraverseMin k (Map k) where
-  traverseMin = index $ \f m -> case Map.minViewWithKey m of
+  traverseMin = indexing $ \f m -> case Map.minViewWithKey m of
     Just ((k, a), _) -> (\v -> Map.updateMin (const (Just v)) m) <$> f k a
     Nothing          -> pure m
   {-# INLINE traverseMin #-}
@@ -258,7 +258,7 @@ class Ord k => TraverseMax k m | m -> k where
   traverseMax :: SimpleIndexedTraversal k (m v) v
 
 instance TraverseMax Int IntMap where
-  traverseMax = index $ \f m -> case IntMap.maxViewWithKey m of
+  traverseMax = indexing $ \f m -> case IntMap.maxViewWithKey m of
 #if MIN_VERSION_containers(0,5,0)
     Just ((k,a), _) -> (\v -> IntMap.updateMax (const (Just v)) m) <$> f k a
 #else
@@ -268,7 +268,7 @@ instance TraverseMax Int IntMap where
   {-# INLINE traverseMax #-}
 
 instance Ord k => TraverseMax k (Map k) where
-  traverseMax = index $ \f m -> case Map.maxViewWithKey m of
+  traverseMax = indexing $ \f m -> case Map.maxViewWithKey m of
     Just ((k, a), _) -> (\v -> Map.updateMax (const (Just v)) m) <$> f k a
     Nothing          -> pure m
   {-# INLINE traverseMax #-}
@@ -309,7 +309,7 @@ element = elementOf traverse
 -- 'elementsOf' :: 'Fold' s a            -> ('Int' -> 'Bool') -> 'IndexedFold' 'Int' s a
 -- @
 elementsOf :: (Applicative f, Indexed Int k) => LensLike (Indexing f) s t a a -> (Int -> Bool) -> Overloaded k f s t a a
-elementsOf l p = index $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> (if p i then iafb i a else pure a, i + 1))) s) 0 of
+elementsOf l p = indexing $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> (if p i then iafb i a else pure a, i + 1))) s) 0 of
   (r, _) -> r
 {-# INLINE elementsOf #-}
 

@@ -87,7 +87,7 @@ data Coil :: * -> * -> * where
 
 -- | This 'Lens' views the current target of the 'zipper'.
 focus :: SimpleIndexedLens (Tape (h :> a)) (h :> a) a
-focus = index $ \f (Zipper h n l a r) -> (\a' -> Zipper h n l a' r) <$> f (Tape (peel h) n) a
+focus = indexing $ \f (Zipper h n l a r) -> (\a' -> Zipper h n l a' r) <$> f (Tape (peel h) n) a
 {-# INLINE focus #-}
 
 -- | Construct a 'zipper' that can explore anything.

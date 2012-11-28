@@ -153,19 +153,19 @@ class At k m | m -> k where
   at :: k -> SimpleIndexedLens k (m v) (Maybe v)
 
 instance At Int IntMap where
-  at k = index $ \ f m -> (`go` m) <$> f k (IntMap.lookup k m) where
+  at k = indexing $ \ f m -> (`go` m) <$> f k (IntMap.lookup k m) where
     go Nothing   = IntMap.delete k
     go (Just v') = IntMap.insert k v'
   {-# INLINE at #-}
 
 instance Ord k => At k (Map k) where
-  at k = index $ \ f m -> (`go` m) <$> f k (Map.lookup k m) where
+  at k = indexing $ \ f m -> (`go` m) <$> f k (Map.lookup k m) where
     go Nothing   = Map.delete k
     go (Just v') = Map.insert k v'
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At k (HashMap k) where
-  at k = index $ \ f m -> (`go` m) <$> f k (HashMap.lookup k m) where
+  at k = indexing $ \ f m -> (`go` m) <$> f k (HashMap.lookup k m) where
     go Nothing   = HashMap.delete k
     go (Just v') = HashMap.insert k v'
   {-# INLINE at #-}
@@ -178,15 +178,15 @@ class Contains k m | m -> k where
   contains :: k -> SimpleIndexedLens k m Bool
 
 instance Contains Int IntSet where
-  contains k = index $ \ f s -> (\b -> if b then IntSet.insert k s else IntSet.delete k s) <$> f k (IntSet.member k s)
+  contains k = indexing $ \ f s -> (\b -> if b then IntSet.insert k s else IntSet.delete k s) <$> f k (IntSet.member k s)
   {-# INLINE contains #-}
 
 instance Ord k => Contains k (Set k) where
-  contains k = index $ \ f s -> (\b -> if b then Set.insert k s else Set.delete k s) <$> f k (Set.member k s)
+  contains k = indexing $ \ f s -> (\b -> if b then Set.insert k s else Set.delete k s) <$> f k (Set.member k s)
   {-# INLINE contains #-}
 
 instance (Eq k, Hashable k) => Contains k (HashSet k) where
-  contains k = index $ \ f s -> (\b -> if b then HashSet.insert k s else HashSet.delete k s) <$> f k (HashSet.member k s)
+  contains k = indexing $ \ f s -> (\b -> if b then HashSet.insert k s else HashSet.delete k s) <$> f k (HashSet.member k s)
   {-# INLINE contains #-}
 
 -- | This lens can be used to change the result of a function but only where
@@ -195,7 +195,7 @@ instance (Eq k, Hashable k) => Contains k (HashSet k) where
 -- >>> let f = (+1) & resultAt 3 .~ 8 in (f 2, f 3)
 -- (3,8)
 resultAt :: Eq e => e -> SimpleIndexedLens e (e -> a) a
-resultAt e = index $ \ g f -> (\a' e' -> if e == e' then a' else f e') <$> g e (f e)
+resultAt e = indexing $ \ g f -> (\a' e' -> if e == e' then a' else f e') <$> g e (f e)
 {-# INLINE resultAt #-}
 
 ------------------------------------------------------------------------------

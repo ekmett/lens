@@ -23,7 +23,6 @@ module Data.Array.Lens
 
 import Control.Applicative
 import Control.Lens
-import Control.Lens.Internal
 import Data.Array.IArray hiding (index)
 
 -- | Access an element of an array.
@@ -61,5 +60,5 @@ ixmapped = sets . ixmap
 --
 -- @'amap' ≡ 'over' '_array'@
 _array :: (IArray arr a, IArray arr b, Ix i) => IndexedTraversal i (arr i a) (arr i b) a b
-_array = index $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (assocs arr)
+_array = indexing $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (assocs arr)
 {-# INLINE _array #-}

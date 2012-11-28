@@ -302,15 +302,15 @@ rfoldr f b m = Foldable.foldr id b (rmap f m)
 
 -- | An 'IndexedSetter' that walks an 'Representable' 'Functor' using a 'Path' for an index.
 rmapped :: Representable f => IndexedSetter (Path f) (f a) (f b) a b
-rmapped = index $ \f -> tainted# (rmap (\i -> untainted# (f (Path i))))
+rmapped = indexing $ \f -> tainted# (rmap (\i -> untainted# (f (Path i))))
 {-# INLINE rmapped #-}
 
 -- | An 'IndexedFold' that walks an 'Foldable' 'Representable' 'Functor' using a 'Path' for an index.
 rfolded :: (Representable f, Foldable f) => IndexedFold (Path f) (f a) a
-rfolded = index $ \f -> coerce . getFolding . rfoldMap (\i -> folding# (f (Path i)))
+rfolded = indexing $ \f -> coerce . getFolding . rfoldMap (\i -> folding# (f (Path i)))
 {-# INLINE rfolded #-}
 
 -- | An 'IndexedTraversal' for a 'Traversable' 'Representable' 'Functor'.
 rtraversed :: (Representable f, Traversable f) => IndexedTraversal (Path f) (f a) (f b) a b
-rtraversed = index $ \ f -> sequenceA . rmap (f . Path)
+rtraversed = indexing $ \ f -> sequenceA . rmap (f . Path)
 {-# INLINE rtraversed #-}

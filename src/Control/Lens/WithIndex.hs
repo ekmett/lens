@@ -174,14 +174,14 @@ class Foldable f => FoldableWithIndex i f | f -> i where
 
 -- | The 'IndexedFold' of a 'FoldableWithIndex' container.
 ifolded :: FoldableWithIndex i f => IndexedFold i (f a) a
-ifolded = index $ \ f -> coerce . getFolding . ifoldMap (\i -> folding# (f i))
+ifolded = indexing $ \ f -> coerce . getFolding . ifoldMap (\i -> folding# (f i))
 {-# INLINE ifolded #-}
 
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
 --
 -- This can be useful to lift operations from @Data.List@ and elsewhere into a 'Fold'.
 ifolding :: FoldableWithIndex i f => (s -> f a) -> IndexedFold i s a
-ifolding sfa = index $ \ iagb -> coerce . itraverse_ iagb . sfa
+ifolding sfa = indexing $ \ iagb -> coerce . itraverse_ iagb . sfa
 {-# INLINE ifolding #-}
 
 -- |
@@ -342,7 +342,7 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
 
 -- | The 'IndexedTraversal' of a 'TraversableWithIndex' container.
 itraversed :: TraversableWithIndex i f => IndexedTraversal i (f a) (f b) a b
-itraversed = index itraverse
+itraversed = indexing itraverse
 {-# INLINE itraversed #-}
 
 -- |
@@ -402,7 +402,7 @@ imapAccumL f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards 
 -- >>> over (iwhere (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
 iwhere :: TraversableWithIndex i t => (i -> Bool) -> SimpleIndexedTraversal i (t a) a
-iwhere p = index $ \f a -> itraverse (\i c -> if p i then f i c else pure c) a
+iwhere p = indexing $ \f a -> itraverse (\i c -> if p i then f i c else pure c) a
 {-# INLINE iwhere #-}
 
 -------------------------------------------------------------------------------

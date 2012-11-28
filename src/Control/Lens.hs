@@ -76,7 +76,7 @@ import Control.Lens.Action
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
-import Control.Lens.Indexed hiding (Indexed(..))
+import Control.Lens.Indexed
 import Control.Lens.IndexedFold
 import Control.Lens.IndexedGetter
 import Control.Lens.IndexedLens

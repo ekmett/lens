@@ -71,7 +71,7 @@ type IndexedFold i s a = forall k f. (Indexed i k, Applicative f, Gettable f) =>
 
 -- |
 -- Fold an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' by mapping indices and values to an arbitrary 'Monoid' with access
--- to the index @i@.
+-- to the @i@.
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.foldMapOf' is more flexible in what it accepts.
 --
@@ -89,7 +89,7 @@ ifoldMapOf l f = runAccessor# (withIndex l (\i -> accessor# (f i)))
 
 -- |
 -- Right-associative fold of parts of a structure that are viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with
--- access to the index @i@.
+-- access to the @i@.
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.foldrOf' is more flexible in what it accepts.
 --
@@ -107,7 +107,7 @@ ifoldrOf l f z t = appEndo (ifoldMapOf l (\i -> endo# (f i)) t) z
 
 -- |
 -- Left-associative fold of the parts of a structure that are viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with
--- access to the index @i@.
+-- access to the @i@.
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.foldlOf' is more flexible in what it accepts.
 --
@@ -125,7 +125,7 @@ ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> dual# (endo# (flip (f i
 
 -- |
 -- Return whether or not any element viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
--- satisfy a predicate, with access to the index @i@.
+-- satisfy a predicate, with access to the @i@.
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.anyOf' is more flexible in what it accepts.
 --
@@ -143,7 +143,7 @@ ianyOf l f = getAny# (ifoldMapOf l (\i -> any# (f i)))
 
 -- |
 -- Return whether or not all elements viewed through an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
--- satisfy a predicate, with access to the index @i@.
+-- satisfy a predicate, with access to the @i@.
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.allOf' is more flexible in what it accepts.
 --
@@ -160,7 +160,7 @@ iallOf l f = getAll# (ifoldMapOf l (\i -> all# (f i)))
 {-# INLINE iallOf #-}
 
 -- |
--- Traverse the targets of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index @i@, discarding the results.
+-- Traverse the targets of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the @i@, discarding the results.
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.traverseOf_' is more flexible in what it accepts.
 --
@@ -412,13 +412,13 @@ indicesOf l f = withIndex l (const . coerce . f)
 --
 -- See 'filtered' for a related counter-example.
 ifiltering :: (Applicative f, Indexed i k) => (i -> a -> Bool) -> Index i (a -> f a) (s -> f t) -> k (a -> f a) (s -> f t)
-ifiltering p l = index $ \ f -> withIndex l $ \ i c -> if p i c then f i c else pure c
+ifiltering p l = indexing $ \ f -> withIndex l $ \ i c -> if p i c then f i c else pure c
 {-# INLINE ifiltering #-}
 
 -- | Reverse the order of the elements of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal'.
 -- This has no effect on an 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter', or 'Control.Lens.IndexedSetter.IndexedSetter'.
 ibackwards :: Indexed i k => Index i (a -> (Backwards f) b) (s -> (Backwards f) t) -> k (a -> f b) (s -> f t)
-ibackwards l = index $ \ f -> fmap forwards . withIndex l $ \ i -> backwards# (f i)
+ibackwards l = indexing $ \ f -> fmap forwards . withIndex l $ \ i -> backwards# (f i)
 {-# INLINE ibackwards #-}
 
 -- | Obtain an 'IndexedFold' by taking elements from another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' while a predicate holds.
@@ -426,7 +426,7 @@ itakingWhile :: (Gettable f, Applicative f, Indexed i k)
             => (i -> a -> Bool)
             -> IndexedGetting i (Endo (f s)) s s a a
             -> k (a -> f a) (s -> f s)
-itakingWhile p l = index $ \ f -> ifoldrOf l (\i a r -> if p i a then f i a *> r else noEffect) noEffect
+itakingWhile p l = indexing $ \ f -> ifoldrOf l (\i a r -> if p i a then f i a *> r else noEffect) noEffect
 {-# INLINE itakingWhile #-}
 
 
@@ -435,7 +435,7 @@ idroppingWhile :: (Gettable f, Applicative f, Indexed i k)
               => (i -> a -> Bool)
               -> IndexedGetting i (Endo (f s, f s)) s s a a
               -> k (a -> f a) (s -> f s)
-idroppingWhile p l = index $ \ f -> fst . ifoldrOf l (\i a r -> let s = f i a *> snd r in if p i a then (fst r, s) else (s, s)) (noEffect, noEffect)
+idroppingWhile p l = indexing $ \ f -> fst . ifoldrOf l (\i a r -> let s = f i a *> snd r in if p i a then (fst r, s) else (s, s)) (noEffect, noEffect)
 {-# INLINE idroppingWhile #-}
 
 ------------------------------------------------------------------------------

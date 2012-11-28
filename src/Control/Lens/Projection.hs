@@ -120,6 +120,7 @@ type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f
 -- | A @'Simple' 'Projection'@.
 type SimpleProjection s a = Projection s s a a
 
+
 -- | Clone a 'Projection' so that you can reuse the same monomorphically typed 'Projection' for different purposes.
 --
 -- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.
@@ -281,3 +282,21 @@ _right = projecting Right $ \f e -> case e of
   Left c -> pure $ Left c
   Right a -> Right <$> f a
 {-# INLINE _right #-}
+
+
+{-
+
+-- | A 'ProjectiveLens' @l@ is a 'Lens' that can also be turned around with 'remit' to
+-- obtain a 'Getter' in the opposite direction, such that in addition to the 'Lens' laws, we also
+-- satisfy the 'Projection' laws.
+type ProjectiveLens s t a b = forall k f. (Projective k, Functor f) => k (a -> f b) (s -> f t)
+
+type NonEmptyProjecting s t a b = P
+
+cloneProjectiveLens :: Overloaded Project (Context a b) s t a b -> ProjectiveLens s t a b
+cloneProjectiveLens (Project f g) = projecting (unsafeCoerce f) (cloneLens (unsafeCoerce g))
+
+-- | @'Simple' 'ProjectiveLens'@
+type SimpleProjectiveLens s a = ProjectiveLens s s a a
+
+-}

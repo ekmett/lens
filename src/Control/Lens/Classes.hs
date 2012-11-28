@@ -30,6 +30,8 @@ module Control.Lens.Classes
   , Isomorphic(..)
   -- * Projections
   , Projective(..)
+  -- * Indexed
+  , Indexed(..)
   ) where
 
 import Control.Applicative
@@ -162,3 +164,17 @@ class Isomorphic k => Projective k where
 
 instance Projective (->) where
   projecting _ k = k
+
+----------------------------------------------------------------------------
+-- Indexed Internals
+-----------------------------------------------------------------------------
+
+-- | This class permits overloading of function application for things that 
+-- also admit a notion of a key or index.
+class Indexed i k where
+  -- | Build a function from an 'Indexed' function
+  indexing :: ((i -> a) -> b) -> k a b
+
+instance Indexed i (->) where
+  indexing f = f . const
+  {-# INLINE indexing #-}
