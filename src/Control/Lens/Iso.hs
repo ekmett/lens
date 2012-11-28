@@ -181,7 +181,7 @@ enum = iso toEnum fromEnum
 {-# INLINE enum #-}
 
 -- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
-mapping :: Functor f => Isos (a -> g b) (s -> g t) -> Iso (f s) (f t) (f a) (f b)
+mapping :: Functor f => Isomorphism s t a b -> Iso (f s) (f t) (f a) (f b)
 mapping (Isos sa as tb bt) = isos (fmap sa) (fmap as) (fmap (unsafeCoerce tb)) (fmap (unsafeCoerce bt))
 {-# INLINE mapping #-}
 
