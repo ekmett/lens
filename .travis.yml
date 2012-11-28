@@ -5,18 +5,21 @@ before_install:
   #  - cp config ~/.cabal/config
   #  - cabal update
 
+  # Disable fsync et al. Perhaps this will speed up things just a bit.
+  - apt-get -q -y install eatmydata
+
   # Try installing some of the build-deps with apt-get for speed.
-  - ./travis-before-install
+  - eatmydata ./travis-before-install
 
   # adding the hunit test suite causes us to have to reinstall regex-posix and regex-base
-  - cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstall
+  - eatmydata cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstall
 install:
   # we have to configure rather than install in order to get benchmarks
-  - cabal configure --enable-tests --enable-benchmarks -fdump-splices
-  - cabal build
+  - eatmydata cabal configure --enable-tests --enable-benchmarks -fdump-splices
+  - eatmydata cabal build
 script:
-  - cabal test --show-details=always
-  - cabal bench
+  - eatmydata cabal test --show-details=always
+  - eatmydata cabal bench
 notifications:
   irc:
     channels:
