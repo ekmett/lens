@@ -3,9 +3,10 @@
 * Added `_magnitude`, `_phase` and `_conjugate` to `Data.Complex.Lens`. Renamed other lenses for consistency: `_realPart`, `_imagPart`, `_polar`.
 * Promoted `_left` and `_right` to projections and moved them to `Control.Lens.Projection`.
 * Implemented a complete redesign of the way `Projection` is handled internally, that necessitated some changes to `Iso` internally as well.
-* Generalized `view` and `views` to subsume the functionality of `peruse` and `peruses`.
-* Removed `peruse`, `peruses`.
+* Repurposed `peruse` and `peruses` for `Simple` access to state.
+* Generalized `view` and `views` to subsume the old functionality of `peruse` and `peruses`.
 * Generalized `review` and `reviews` to both return a `MonadReader` and to work on a `Projection`.
+* Added `perview` and `perviews` for `Simple` access to the environment.
 * Added `reuse` : `use` :: `review` : `view` and `reuses` : `uses` :: `reviews` : `views` for working a `Projection` from the current `MonadState`.
 * Added `Control.Lens.Wrapped` providing a canonical isomorphism for newtypes.
 * Repurposed `ala` to be closer to the original design in @newtype@.
