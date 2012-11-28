@@ -300,9 +300,9 @@ wrapping :: Wrapped s s a a => (s -> a) -> Iso s s a a
 wrapping _ = wrapped
 {-# INLINE wrapping #-}
 
--- | Convenient variant for 'unwrapped' with an argument that's ignored.
+-- | This is a convenient version of 'unwrapped' with an argument that's ignored.
 --
--- The argument is used to specify which newtype the user intends to remove
+-- The argument is used to specify which newtype the user intends to /remove/
 -- by using the constructor for that newtype.
 --
 -- The user supplied function is /ignored/, merely its type is used.
@@ -310,7 +310,7 @@ unwrapping :: Wrapped s s a a => (s -> a) -> Iso a a s s
 unwrapping _ = unwrapped
 {-# INLINE unwrapping #-}
 
--- | Convenience for 'wrapped' with two arguments that are ignored.
+-- | This is a convenient version of 'wrapped' with two arguments that are ignored.
 --
 -- These arguments are used to which newtype the user intends to wrap and
 -- should both be the same constructor.  This redundency is necessary
@@ -321,7 +321,7 @@ wrappings :: Wrapped s t a b => (s -> a) -> (t -> b) -> Iso s t a b
 wrappings _ _ = wrapped
 {-# INLINE wrappings #-}
 
--- | Convenience for 'wrapped' with two arguments that are ignored.
+-- | This is a convenient version of 'unwrapped' with two arguments that are ignored.
 --
 -- These arguments are used to which newtype the user intends to remove and
 -- should both be the same constructor. This redundency is necessary
