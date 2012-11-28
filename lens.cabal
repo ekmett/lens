@@ -275,7 +275,7 @@ test-suite hunit
     HUnit == 1.2.*,
     lens,
     mtl,
-    test-framework == 0.6.*,
+    test-framework >= 0.5 && < 0.7,
     test-framework-hunit == 0.2.*,
     test-framework-th == 0.2.*
   ghc-options: -w -threaded
