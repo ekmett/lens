@@ -5,6 +5,9 @@ before_install:
   #  - cp config ~/.cabal/config
   #  - cabal update
 
+  # Try installing some of the build-deps with apt-get for speed.
+  - ./travis-before-install
+
   # adding the hunit test suite causes us to have to reinstall regex-posix and regex-base
   - cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstall
 install:
