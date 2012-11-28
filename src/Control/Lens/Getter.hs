@@ -56,10 +56,10 @@ module Control.Lens.Getter
   , use
   , uses
   -- * Simple Getter Operations
-  , perview
-  , perviews
-  , peruse
-  , peruses
+  , view'
+  , views'
+  , use'
+  , uses'
   -- * Storing Getters
   , ReifiedGetter(..)
   , Gettable
@@ -365,19 +365,19 @@ uses l f = State.gets (views l f)
 -- This use of this combinator may aid type-inference when working with lenses or traversals that
 -- have non-defaultable typeclass constraints on their arguments.
 --
--- >>> evalState (peruse _1) ("hello","world")
+-- >>> evalState (use' _1) ("hello","world")
 -- "hello"
 --
 -- @
--- 'peruse' :: 'MonadState' s m             => 'Getter' s a             -> m a
--- 'peruse' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Fold.Fold' s r               -> m r
--- 'peruse' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a         -> m a
--- 'peruse' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a        -> m a
--- 'peruse' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s r   -> m r
+-- 'use'' :: 'MonadState' s m             => 'Getter' s a             -> m a
+-- 'use'' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Fold.Fold' s r               -> m r
+-- 'use'' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a         -> m a
+-- 'use'' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a        -> m a
+-- 'use'' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s r   -> m r
 -- @
-peruse :: MonadState s m => Getting a s s a a -> m a
-peruse l = State.gets (perview l)
-{-# INLINE peruse #-}
+use' :: MonadState s m => Getting a s s a a -> m a
+use' l = State.gets (view' l)
+{-# INLINE use' #-}
 
 -- |
 -- This is a type restricted version of 'uses' that expects a 'Simple' 'Getter'.
@@ -387,19 +387,19 @@ peruse l = State.gets (perview l)
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that
 -- points to a monoidal value.
 --
--- >>> evalState (peruses _1 length) ("hello","world")
+-- >>> evalState (uses' _1 length) ("hello","world")
 -- 5
 --
 -- @
--- 'peruses' :: 'MonadState' s m             => 'Getter' s a           -> (a -> r) -> m r
--- 'peruses' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Fold.Fold' s a             -> (a -> r) -> m r
--- 'peruses' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> (a -> r) -> m r
--- 'peruses' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> (a -> r) -> m r
--- 'peruses' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> r) -> m r
+-- 'uses'' :: 'MonadState' s m             => 'Getter' s a           -> (a -> r) -> m r
+-- 'uses'' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Fold.Fold' s a             -> (a -> r) -> m r
+-- 'uses'' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> (a -> r) -> m r
+-- 'uses'' :: 'MonadState' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> (a -> r) -> m r
+-- 'uses'' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> r) -> m r
 -- @
-peruses :: MonadState s m => Getting r s s a a -> (a -> r) -> m r
-peruses l f = State.gets (perviews l f)
-{-# INLINE peruses #-}
+uses' :: MonadState s m => Getting r s s a a -> (a -> r) -> m r
+uses' l f = State.gets (views' l f)
+{-# INLINE uses' #-}
 
 ------------------------------------------------------------------------------
 -- Viewing, Simplified
@@ -412,40 +412,40 @@ peruses l f = State.gets (perviews l f)
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
 -- at a monoidal values.
 --
--- @'perview' . 'to' ≡ 'id'@
+-- @'view'' . 'to' ≡ 'id'@
 --
--- >>> perview _2 (1,"hello")
+-- >>> view' _2 (1,"hello")
 -- "hello"
 --
--- >>> perview (to succ) 5
+-- >>> view' (to succ) 5
 -- 6
 --
--- >>> perview (_2._1) ("hello",("world","!!!"))
+-- >>> view' (_2._1) ("hello",("world","!!!"))
 -- "world"
 --
--- As 'perview' is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
+-- As 'view'' is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
 -- It may be useful to think of it as having one of these more restrictive signatures:
 --
 -- @
--- 'perview' ::             'Getter' s a             -> s -> a
--- 'perview' :: 'Monoid' m => 'Control.Lens.Fold.Fold' s m               -> s -> m
--- 'perview' ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a         -> s -> a
--- 'perview' ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a        -> s -> a
--- 'perview' :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s m   -> s -> m
+-- 'view'' ::             'Getter' s a             -> s -> a
+-- 'view'' :: 'Monoid' m => 'Control.Lens.Fold.Fold' s m               -> s -> m
+-- 'view'' ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a         -> s -> a
+-- 'view'' ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a        -> s -> a
+-- 'view'' :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s m   -> s -> m
 -- @
 --
 -- In a more general setting, such as when working with a monad transformer stack you can use:
 --
 -- @
--- 'perview' :: 'MonadReader' s m             => 'Getter' s a           -> m a
--- 'perview' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Fold.Fold' s a             -> m a
--- 'perview' :: 'MonadReader' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> m a
--- 'perview' :: 'MonadReader' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> m a
--- 'perview' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> m a
+-- 'view'' :: 'MonadReader' s m             => 'Getter' s a           -> m a
+-- 'view'' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Fold.Fold' s a             -> m a
+-- 'view'' :: 'MonadReader' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> m a
+-- 'view'' :: 'MonadReader' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> m a
+-- 'view'' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> m a
 -- @
-perview :: MonadReader s m => Getting a s s a a -> m a
-perview l = Reader.asks (runAccessor# (l Accessor))
-{-# INLINE perview #-}
+view' :: MonadReader s m => Getting a s s a a -> m a
+view' l = Reader.asks (runAccessor# (l Accessor))
+{-# INLINE view' #-}
 
 -- | This is a type restricted version of 'views' that expects a 'Simple' 'Getter'.
 --
@@ -457,34 +457,34 @@ perview l = Reader.asks (runAccessor# (l Accessor))
 -- It may be useful to think of 'perviews' as having these more restrictive
 -- signatures:
 --
--- @'perviews' l f ≡ 'perview' (l '.' 'to' f)@
+-- @'views'' l f ≡ 'view'' (l '.' 'to' f)@
 --
--- >>> perviews _2 length (1,"hello")
+-- >>> views' _2 length (1,"hello")
 -- 5
 --
--- As 'perviews' is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
+-- As 'views'' is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
 -- It may be useful to think of it as having one of these more restrictive signatures:
 --
 -- @
--- 'perviews' ::             'Getter' s a             -> (a -> r) -> s -> r
--- 'perviews' :: 'Monoid' m => 'Control.Lens.Fold.Fold' s a               -> (a -> m) -> s -> m
--- 'perviews' ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a         -> (a -> r) -> s -> r
--- 'perviews' ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a        -> (a -> r) -> s -> r
--- 'perviews' :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a   -> (a -> m) -> s -> m
+-- 'views'' ::             'Getter' s a             -> (a -> r) -> s -> r
+-- 'views'' :: 'Monoid' m => 'Control.Lens.Fold.Fold' s a               -> (a -> m) -> s -> m
+-- 'views'' ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a         -> (a -> r) -> s -> r
+-- 'views'' ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a        -> (a -> r) -> s -> r
+-- 'views'' :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a   -> (a -> m) -> s -> m
 -- @
 --
 -- In a more general setting, such as when working with a monad transformer stack you can use:
 --
 -- @
--- 'perviews' :: 'MonadReader' s m             => 'Getter' s a           -> (a -> r) -> m r
--- 'perviews' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Fold.Fold' s a             -> (a -> r) -> m r
--- 'perviews' :: 'MonadReader' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> (a -> r) -> m r
--- 'perviews' :: 'MonadReader' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> (a -> r) -> m r
--- 'perviews' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> r) -> m r
+-- 'views'' :: 'MonadReader' s m             => 'Getter' s a           -> (a -> r) -> m r
+-- 'views'' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Fold.Fold' s a             -> (a -> r) -> m r
+-- 'views'' :: 'MonadReader' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> (a -> r) -> m r
+-- 'views'' :: 'MonadReader' s m             => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> (a -> r) -> m r
+-- 'views'' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> r) -> m r
 -- @
-perviews :: MonadReader s m => Getting r s s a a -> (a -> r) -> m r
-perviews l f = Reader.asks (runAccessor# (l (accessor# f)))
-{-# INLINE perviews #-}
+views' :: MonadReader s m => Getting r s s a a -> (a -> r) -> m r
+views' l f = Reader.asks (runAccessor# (l (accessor# f)))
+{-# INLINE views' #-}
 
 ------------------------------------------------------------------------------
 -- Reified Getters
