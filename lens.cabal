@@ -138,6 +138,11 @@ flag dump-splices
   default: False
   manual: True
 
+-- You can disable the hunit test suite with -f-test-hunit
+flag test-hunit
+  default: True
+  manual: True
+
 library
   build-depends:
     base                 >= 4.4      && < 5,
@@ -275,11 +280,14 @@ test-suite hunit
     HUnit == 1.2.*,
     lens,
     mtl,
-    test-framework >= 0.5 && < 0.7,
+    test-framework == 0.6,
     test-framework-hunit == 0.2.*,
     test-framework-th == 0.2.*
   ghc-options: -w -threaded
   hs-source-dirs: tests
+  if flag(test-hunit)
+    build-depends: uniplate >= 1.6.7 && < 1.7
+    cpp-options: -DBENCHMARK_UNIPLATE
 
 -- Verify the results of the examples
 test-suite doctests

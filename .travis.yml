@@ -6,11 +6,11 @@ before_install:
   #  - cabal update
 
   # Try installing some of the build-deps with apt-get for speed.
-  - ./travis-cabal-apt-install --only-dependencies --enable-tests
+  - ./travis-cabal-apt-install --only-dependencies --enable-tests -f-test-hunit
 install:
 
   # we have to configure rather than install in order to get benchmarks
-  - cabal configure --enable-tests -fdump-splices
+  - cabal configure --enable-tests -fdump-splices -f-test-hunit
   # - cabal configure --enable-tests --enable-benchmarks -fdump-splices
 
   - cabal build
