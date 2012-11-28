@@ -54,13 +54,17 @@ import Unsafe.Coerce
 -- Projection Internals
 ------------------------------------------------------------------------------
 
--- | A 'Projection' @l@ is a 0-or-1 target 'Traversal' that can also be turned around with 'remit' to
--- obtain a 'Getter' in the opposite direction, such that in addition to the 'Traversal' laws, we also
+-- | A 'Projection' @l@ is a 0-or-1 target 'Control.Lens.Traversal.Traversal' that can also be turned around with 'remit' to
+-- obtain a 'Getter' in the opposite direction, such that in addition to the 'Control.Lens.Traversal.Traversal' laws, we also
 -- have
 --
 -- @x '^.' 'remit' l '^?' l ≡ 'Just' x@
 --
 -- @'Control.Lens.Fold.lengthOf' l x '<=' 1@
+--
+-- Every 'Projection' is a valid 'Control.Lens.Traversal.Traversal'.
+--
+-- Every 'Control.Lens.Iso.Iso' is a valid 'Projection'.
 --
 -- It may help to think of this as a 'Control.Lens.Iso.Iso' that is partial in one direction.
 --
@@ -120,7 +124,7 @@ project (Project f g) = projecting (unsafeCoerce f) (unsafeCoerce g)
 -- | Consume a 'Project'. This is commonly used when a function takes a 'Projection' as a parameter.
 type Projecting f s t a b = Overloaded Project f s t a b
 
--- | Turn a 'Projection' around to get at its contents.
+-- | Turn a 'Projection' (or 'Control.Lens.Iso.Iso') around to get at its contents.
 --
 -- >>> 5 ^.remit _left
 -- Left 5
