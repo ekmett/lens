@@ -153,21 +153,27 @@ class At k m | m -> k where
   at :: k -> SimpleIndexedLens k (m v) (Maybe v)
 
 instance At Int IntMap where
-  at k = indexing $ \ f m -> (`go` m) <$> f k (IntMap.lookup k m) where
-    go Nothing   = IntMap.delete k
-    go (Just v') = IntMap.insert k v'
+  at k = indexing $ \f m ->
+    let mv = IntMap.lookup k m
+        go Nothing   = maybe m (const (IntMap.delete k m)) mv
+        go (Just v') = IntMap.insert k v' m
+    in go <$> f k mv
   {-# INLINE at #-}
 
 instance Ord k => At k (Map k) where
-  at k = indexing $ \ f m -> (`go` m) <$> f k (Map.lookup k m) where
-    go Nothing   = Map.delete k
-    go (Just v') = Map.insert k v'
+  at k = indexing $ \f m ->
+    let mv = Map.lookup k m
+        go Nothing   = maybe m (const (Map.delete k m)) mv
+        go (Just v') = Map.insert k v' m
+    in go <$> f k mv
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At k (HashMap k) where
-  at k = indexing $ \ f m -> (`go` m) <$> f k (HashMap.lookup k m) where
-    go Nothing   = HashMap.delete k
-    go (Just v') = HashMap.insert k v'
+  at k = indexing $ \f m ->
+    let mv = HashMap.lookup k m
+        go Nothing   = maybe m (const (HashMap.delete k m)) mv
+        go (Just v') = HashMap.insert k v' m
+    in go <$> f k mv
   {-# INLINE at #-}
 
 -- | Provides an 'IndexedLens' that can be used to read, write or delete a member of a set-like container
