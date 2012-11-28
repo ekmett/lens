@@ -43,7 +43,7 @@ module Control.Lens.Setter
   , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (<>=), (&&=), (<.=), (?=), (<?=)
   , (<~)
   -- * Simplified State Setting
-  , per
+  , set'
   -- * Storing Setters
   , ReifiedSetter(..)
   -- * Setter Internals
@@ -279,26 +279,26 @@ set l b = runMutator# (l (\_ -> Mutator b))
 -- Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Control.Lens.Type.Simple' 'Setter'
 -- or 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' with a constant value, without changing its type.
 --
--- This is a type restricted version of 'set', which retains the type 'per' the original.
+-- This is a type restricted version of 'set', which retains the type of the original.
 --
--- >>> per _2 "hello" (1,"world")
+-- >>> set' _2 "hello" (1,"world")
 -- (1,"hello")
 --
--- >>> per mapped 0 [1,2,3,4]
+-- >>> set' mapped 0 [1,2,3,4]
 -- [0,0,0,0]
 --
--- Note: Attempting to adjust 'per' a 'Fold' or 'Getter' will fail at compile time with an
+-- Note: Attempting to adjust 'set'' a 'Fold' or 'Getter' will fail at compile time with an
 -- relatively nice error message.
 --
 -- @
--- 'per' :: 'Control.Lens.Type.Simple' 'Setter' s a    -> a -> s -> s
--- 'per' :: 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> a -> s -> s
--- 'per' :: 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> a -> s -> s
--- 'per' :: 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> a -> s -> s
+-- 'set'' :: 'Control.Lens.Type.Simple' 'Setter' s a    -> a -> s -> s
+-- 'set'' :: 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> a -> s -> s
+-- 'set'' :: 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> a -> s -> s
+-- 'set'' :: 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> a -> s -> s
 -- @
-per :: Setting s s a a -> a -> s -> s
-per l b = runMutator# (l (\_ -> Mutator b))
-{-# INLINE per #-}
+set' :: Setting s s a a -> a -> s -> s
+set' l b = runMutator# (l (\_ -> Mutator b))
+{-# INLINE set' #-}
 
 -- | Modifies the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or
 -- 'Control.Lens.Traversal.Traversal' with a user supplied function.
