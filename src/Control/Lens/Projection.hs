@@ -98,7 +98,7 @@ import Unsafe.Coerce
 -- >>> 5 ^. remit nat
 -- 5
 --
--- Similarly we can use a projection to 'traverse' the left half of an 'Either':
+-- Similarly we can use a 'Projection' to 'Control.Lens.Traversal.traverse' the left half of an 'Either':
 --
 -- >>> Left "hello" & _left %~ length
 -- Left 5
