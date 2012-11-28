@@ -54,10 +54,13 @@ import Unsafe.Coerce
 -- Projection Internals
 ------------------------------------------------------------------------------
 
--- | A 'Projection' is a 0-or-1 target 'Traversal' that can also be turned around with 'remit' to
--- obtain a 'Getter' in the opposite direction, such that in addition to the 'Traversal' laws,
+-- | A 'Projection' @l@ is a 0-or-1 target 'Traversal' that can also be turned around with 'remit' to
+-- obtain a 'Getter' in the opposite direction, such that in addition to the 'Traversal' laws, we also
+-- have
 --
 -- @x '^.' 'remit' l '^?' l ≡ 'Just' x@
+--
+-- @'Control.Lens.Fold.lengthOf' l x '<=' 1@
 --
 -- It may help to think of this as a 'Control.Lens.Iso.Iso' that is partial in one direction.
 --
