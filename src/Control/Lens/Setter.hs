@@ -284,8 +284,8 @@ set l b = runMutator# (l (\_ -> Mutator b))
 -- >>> per _2 "hello" (1,"world")
 -- (1,"hello")
 --
--- >>> per mapped (+1) [1,2,3,4]
--- [2,3,4,5]
+-- >>> per mapped 0 [1,2,3,4]
+-- [0,0,0,0]
 --
 -- Note: Attempting to adjust 'per' a 'Fold' or 'Getter' will fail at compile time with an
 -- relatively nice error message.
