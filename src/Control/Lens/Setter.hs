@@ -42,6 +42,8 @@ module Control.Lens.Setter
   , (.=), (%=)
   , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (<>=), (&&=), (<.=), (?=), (<?=)
   , (<~)
+  -- * Simplified State Setting
+  , per
   -- * Storing Setters
   , ReifiedSetter(..)
   -- * Setter Internals
@@ -272,6 +274,31 @@ mapOf = over
 set :: Setting s t a b -> b -> s -> t
 set l b = runMutator# (l (\_ -> Mutator b))
 {-# INLINE set #-}
+
+-- |
+-- Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Control.Lens.Type.Simple' 'Setter'
+-- or 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' with a constant value, without changing its type.
+--
+-- This is a type restricted version of 'set', which retains the type 'per' the original.
+--
+-- >>> per _2 "hello" (1,"world")
+-- (1,"hello")
+--
+-- >>> per mapped (+1) [1,2,3,4]
+-- [2,3,4,5]
+--
+-- Note: Attempting to adjust 'per' a 'Fold' or 'Getter' will fail at compile time with an
+-- relatively nice error message.
+--
+-- @
+-- 'per' :: 'Control.Lens.Type.Simple' 'Setter' s a    -> a -> s -> s
+-- 'per' :: 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> a -> s -> s
+-- 'per' :: 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> a -> s -> s
+-- 'per' :: 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> a -> s -> s
+-- @
+per :: Setting s s a a -> a -> s -> s
+per l b = runMutator# (l (\_ -> Mutator b))
+{-# INLINE per #-}
 
 -- | Modifies the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or
 -- 'Control.Lens.Traversal.Traversal' with a user supplied function.
@@ -794,16 +821,16 @@ l <?= b = do
 l <>~ n = over l (`mappend` n)
 {-# INLINE (<>~) #-}
 
--- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by 'mappend'ing a value.
+-- | Modify the target(s) of a 'Control.Lens.Type.Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by 'mappend'ing a value.
 --
 -- >>> execState (both <>= "!!!") ("hello","world")
 -- ("hello!!!","world!!!")
 --
 -- @
--- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Setter' s a -> a -> m ()
--- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Iso' s a -> a -> m ()
--- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Lens' s a -> a -> m ()
--- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Traversal' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Setter' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Iso' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Lens' s a -> a -> m ()
+-- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Traversal' s a -> a -> m ()
 -- @
 (<>=) :: (MonadState s m, Monoid a) => SimpleSetting s a -> a -> m ()
 l <>= a = State.modify (l <>~ a)
