@@ -6,7 +6,7 @@ before_install:
   #  - cabal update
 
   # Disable fsync et al. Perhaps this will speed up things just a bit.
-  - apt-get -q -y install eatmydata
+  - sudo apt-get -q -y install eatmydata
 
   # Try installing some of the build-deps with apt-get for speed.
   - eatmydata ./travis-before-install
