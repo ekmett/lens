@@ -6,17 +6,19 @@ before_install:
   #  - cabal update
 
   # Try installing some of the build-deps with apt-get for speed.
-  - ./travis-before-install
-
+  - ./travis-tests
+  # - ./travis-benchmarks
   # adding the hunit test suite causes us to have to reinstall regex-posix and regex-base
-  - cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstall
+  - cabal install --only-dependencies --enable-tests --force-reinstall
+  # - cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstall
 install:
   # we have to configure rather than install in order to get benchmarks
-  - cabal configure --enable-tests --enable-benchmarks -fdump-splices
+  - cabal configure --enable-tests -fdump-splices
+  # - cabal configure --enable-tests --enable-benchmarks -fdump-splices
   - cabal build
 script:
   - cabal test --show-details=always
-  - cabal bench
+  # - cabal bench
 notifications:
   irc:
     channels:
