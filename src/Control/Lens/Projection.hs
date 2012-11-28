@@ -67,8 +67,8 @@ import Unsafe.Coerce
 --
 -- @
 -- 'nat' :: 'Simple' 'Projection' 'Integer' 'Numeric.Natural.Natural'
--- 'nat' = 'projecting' 'toInteger' '$' \f i ->
---    if i '<' 0 
+-- 'nat' = 'projecting' 'toInteger' '$' \\ f i ->
+--    if i '<' 0
 --    then 'pure' i
 --    else 'toInteger' '<$>' f ('fromInteger' i)
 -- @
