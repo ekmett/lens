@@ -62,6 +62,9 @@ import Data.IntSet as IntSet
 import Data.Map as Map
 import Data.Set as Set
 
+-- $setup
+-- >>> import Control.Lens
+
 ------------------------------------------------------------------------------
 -- Indexed Projection Internals
 ------------------------------------------------------------------------------
