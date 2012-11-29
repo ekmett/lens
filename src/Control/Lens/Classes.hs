@@ -32,6 +32,8 @@ module Control.Lens.Classes
   , Projective(..)
   -- * Indexed
   , Indexed(..)
+  -- * Indexed Projections
+  , IndexedProjective(..)
   ) where
 
 import Control.Applicative
@@ -158,8 +160,10 @@ instance Isomorphic (->) where
 --
 -- An instance of 'Projective' is a 'Category' with a canonical mapping to it from the category
 -- of embedding-projection pairs over Haskell types.
+
+-- class (forall i. IndexedProjective i k, Isomorphic k) => Projective k where
 class Isomorphic k => Projective k where
-  -- | Build a 'Control.Lens.Projection.Projection' or 'Control.Lens.Traversal.Traversal'
+  -- | Build a 'Control.Lens.Projection.Projection'.
   projecting :: Applicative f => (b -> t) -> ((a -> f b) -> s -> f t) -> k (a -> f b) (s -> f t)
 
 instance Projective (->) where
@@ -171,10 +175,20 @@ instance Projective (->) where
 
 -- | This class permits overloading of function application for things that 
 -- also admit a notion of a key or index.
-class Indexed i k where
+class IndexedProjective i k => Indexed i k where
   -- | Build a function from an 'Indexed' function
   indexing :: ((i -> a) -> b) -> k a b
 
 instance Indexed i (->) where
   indexing f = f . const
   {-# INLINE indexing #-}
+
+-- | This class permits overloading of function application for things that both admit
+-- a notion of a key or index, and provide an embedding in the opposite direction.
+class IndexedProjective i k where
+  -- | Build a 'Control.Lens.IndexedProjection'.
+  iprojecting :: Applicative f => (b -> t) -> ((i -> a -> f b) -> s -> f t) -> k (a -> f b) (s -> f t)
+
+instance IndexedProjective i (->) where
+  iprojecting _ f = f . const
+  {-# INLINE iprojecting #-}

@@ -26,6 +26,7 @@ module Control.Lens.Indexed
   , indexed
   ) where
 
+import Control.Lens.Classes
 import Control.Lens.Internal
 
 infixr 9 <.>, <., .>
@@ -43,6 +44,10 @@ newtype Index i a b = Index { withIndex :: (i -> a) -> b }
 instance i ~ j => Indexed i (Index j) where
   indexing = Index
   {-# INLINE indexing #-}
+
+instance i ~ j => IndexedProjective i (Index j) where
+  iprojecting _ = Index
+  {-# INLINE iprojecting #-}
 
 -- | Compose an 'Indexed' function with a non-indexed function.
 --

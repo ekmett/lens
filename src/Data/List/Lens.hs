@@ -47,9 +47,9 @@ import Control.Lens
 -- [2,1]
 --
 --
-_head :: SimpleProjection [a] a
-_head = projecting (:[]) $ \f aas -> case aas of
-  (a:as) -> (:as) <$> f a
+_head :: SimpleIndexedProjection Int [a] a
+_head = iprojecting (:[]) $ \f aas -> case aas of
+  (a:as) -> (:as) <$> f (0 :: Int) a
   _      -> pure aas
 {-# INLINE _head #-}
 
@@ -96,12 +96,12 @@ _tail _ as     = pure as
 --
 -- >>> [0,1] & _last .~ 2
 -- [0,2]
-_last :: SimpleProjection [a] a
-_last = projecting (:[]) $ \f aas -> case aas of
+_last :: SimpleIndexedProjection Int [a] a
+_last = iprojecting (:[]) $ \f aas -> case aas of
   []     -> pure aas
-  (a:as) -> let go b []  = return <$> f b
-                go b (c:cs) = (b:) <$> go c cs
-            in go a as
+  (a:as) -> let go n b []  = return <$> f n b
+                go n b (c:cs) = (b:) <$> (go $! n + 1) c cs
+            in go (0 :: Int) a as
 {-# INLINE _last #-}
 
 -- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ list

@@ -20,7 +20,6 @@ module Control.Lens.Projection
     Projection
   -- * Constructing Projections
   , Projective(..)
-  , Project(..)
   -- * Consuming Projections
   , Projecting
   , cloneProjection

@@ -172,6 +172,7 @@ library
     Control.Lens.IndexedGetter
     Control.Lens.IndexedFold
     Control.Lens.IndexedLens
+    Control.Lens.IndexedProjection
     Control.Lens.IndexedSetter
     Control.Lens.IndexedTraversal
     Control.Lens.Internal

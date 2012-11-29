@@ -52,6 +52,7 @@ module Control.Lens
   , module Control.Lens.IndexedFold
   , module Control.Lens.IndexedGetter
   , module Control.Lens.IndexedLens
+  , module Control.Lens.IndexedProjection
   , module Control.Lens.IndexedSetter
   , module Control.Lens.IndexedTraversal
   , module Control.Lens.Iso
@@ -80,6 +81,7 @@ import Control.Lens.Indexed
 import Control.Lens.IndexedFold
 import Control.Lens.IndexedGetter
 import Control.Lens.IndexedLens
+import Control.Lens.IndexedProjection
 import Control.Lens.IndexedSetter
 import Control.Lens.IndexedTraversal
 import Control.Lens.Iso

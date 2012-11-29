@@ -53,6 +53,7 @@ module Control.Lens.Internal
   , Project(..)
   , Isos(..)
   , Indexed(..)
+  , IndexedProject(..)
   ) where
 
 import Control.Applicative
@@ -504,3 +505,14 @@ instance Category Isos where
 instance Isomorphic Isos where
   isos = Isos
 
+------------------------------------------------------------------------------
+-- Indexed Projection Internals
+------------------------------------------------------------------------------
+
+-- | This data type is used to capture all of the information provided by the 'Projective'
+-- class, so you can turn a 'Projection' around into a 'Getter' or otherwise muck around
+-- with its internals.
+--
+-- If you see a function that expects a 'Project', it is probably just expecting a 'Projection'.
+data IndexedProject i x y where
+  IndexedProject :: (b -> t) -> ((i -> a -> f b) -> s -> f t) -> IndexedProject i (a -> f b) (s -> f t)
