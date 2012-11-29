@@ -56,8 +56,8 @@ unviewr (as :> a) = as |> a
 -- * Traversals
 
 -- | Traverse the head of a 'Seq'
-_head :: SimpleIndexedTraversal Int (Seq a) a
-_head = indexing $ \f m -> case viewl m of
+_head :: SimpleIndexedProjection Int (Seq a) a
+_head = iprojecting singleton $ \f m -> case viewl m of
   a :< as -> (<| as) <$> f (0::Int) a
   EmptyL  -> pure m
 {-# INLINE _head #-}
@@ -84,8 +84,8 @@ _init f m = case viewr m of
 {-# INLINE _init #-}
 
 -- | Traverse the first @n@ elements of a 'Seq'
-slicedTo :: Int -> SimpleIndexedTraversal Int (Seq a) a
-slicedTo n = indexing $ \f m -> case Seq.splitAt n m of
+slicedTo :: Int -> SimpleIndexedProjection Int (Seq a) a
+slicedTo n = iprojecting singleton $ \f m -> case Seq.splitAt n m of
   (l,r) -> (>< r) <$> itraverse f l
 {-# INLINE slicedTo #-}
 
