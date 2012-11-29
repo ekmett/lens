@@ -21,7 +21,6 @@ module Control.Lens.Projection
 
   -- * Constructing Projections
   , Projective(..)
-  , projection
   , projected
 
   -- * Consuming Projections
