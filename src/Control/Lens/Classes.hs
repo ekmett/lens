@@ -136,21 +136,18 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
 -- An instance of 'Isomorphic' is a 'Category' with a canonical mapping to it from the
 -- category of isomorphisms over Haskell types.
 class Category k => Isomorphic k where
-
-  -- | Build an isomorphism family from two (related) pairs of inverse functions.
+  -- | Build a simple isomorphism from a pair of inverse functions
   --
   -- @
-  -- 'Control.Lens.Getter.view' ('isos' sa as tb bt) ≡ sa
-  -- 'Control.Lens.Getter.view' ('Control.Lens.Iso.from' ('isos' sa as tb bt)) ≡ as
-  -- 'Control.Lens.Setter.set' ('isos' sa as tb bt) ab ≡ bt '.' ab '.' sa
-  -- 'Control.Lens.Setter.set' ('Control.Lens.Iso.from' ('isos' ac ca bd db)) ab ≡ bd '.' ab '.' ca
+  -- 'view' ('iso' f g) ≡ f
+  -- 'view' ('from' ('iso' f g)) ≡ g
+  -- 'set' ('iso' f g) h ≡ g '.' h '.' f
+  -- 'set' ('from' ('iso' f g)) h ≡ f '.' h '.' g
   -- @
-  --
-  -- @isos :: (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> 'Iso' s t a b@
-  isos :: Functor f => (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> k (a -> f b) (s -> f t)
+  iso :: Functor f => (s -> a) -> (b -> t) -> k (a -> f b) (s -> f t)
 
 instance Isomorphic (->) where
-  isos sa _ _ bt afb s = bt <$> afb (sa s)
+  iso sa bt afb s = bt <$> afb (sa s)
 
 -----------------------------------------------------------------------------
 -- Projections

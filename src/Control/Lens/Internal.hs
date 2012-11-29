@@ -483,7 +483,7 @@ instance Projective Project where
   projecting = Project
 
 instance Isomorphic Project where
-  isos sa _ _ bt = Project bt $ \afb s -> bt <$> afb (sa s)
+  iso sa bt = Project bt $ \afb s -> bt <$> afb (sa s)
 
 ------------------------------------------------------------------------------
 -- Isomorphism Internals
@@ -491,19 +491,18 @@ instance Isomorphic Project where
 
 -- | Reify all of the information given to you by being 'Isomorphic'.
 data Isos x y where
-  Isos :: (s -> a) -> (a -> s) -> (t -> b) -> (b -> t) -> Isos (a -> f b) (s -> f t)
+  Isos :: (s -> a) -> (b -> t) -> Isos (a -> f b) (s -> f t)
 
 -- | NB: Only arrows for objects of form @(a -> f b)@ can be pattern matched.
 instance Category Isos where
-  id = unsafeCoerce (Isos id id id id)
-
+  id = unsafeCoerce (Isos id id)
   -- The outer unsafeCoerce is being by the same justification as 'id' above.
   -- The other two are because GHC is unwilling to infer that @a -> f b@ ~ @s -> g t@ entails @b ~ t@ in a context where
   -- neither @f@ nor @g@ could be type families.
-  Isos xs sx yt ty . Isos sa as tb bt = unsafeCoerce $ Isos (sa.xs) (sx.as) (unsafeCoerce tb.yt) (unsafeCoerce ty.bt)
+  Isos xs ty . Isos sa bt = unsafeCoerce $ Isos (sa.xs) (unsafeCoerce ty.bt)
 
 instance Isomorphic Isos where
-  isos = Isos
+  iso = Isos
 
 ------------------------------------------------------------------------------
 -- Indexed Projection Internals

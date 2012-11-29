@@ -20,7 +20,6 @@ module Control.Lens.Iso
     Iso
   -- * Isomorphism Construction
   , Isomorphic(..)
-  , iso
   -- * Consuming Isomorphisms
   , from
   , cloneIso
@@ -76,8 +75,8 @@ type Isomorphism s t a b = Isos (a -> Mutator b) (s -> Mutator t)
 -- If you've imported 'Control.Category..' from @Control.Category@, then:
 --
 -- @'from' l '.' 'from' r ≡ 'from' (r '.' l)@
-from :: (Isomorphic k, Functor f) => Isomorphism s t a b -> k (s -> f t) (a -> f b)
-from (Isos sa as tb bt) = isos as sa (unsafeCoerce bt) (unsafeCoerce tb)
+from :: (Isomorphic k, Functor f) => Isomorphism s t a b -> k (t -> f s) (b -> f a)
+from (Isos sa bt) = iso (unsafeCoerce bt) sa
 {-# INLINE from #-}
 
 -- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.
@@ -87,7 +86,7 @@ from (Isos sa as tb bt) = isos as sa (unsafeCoerce bt) (unsafeCoerce tb)
 --
 -- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
 cloneIso :: Isomorphism s t a b -> Iso s t a b
-cloneIso (Isos sa as tb bt) = isos sa as (unsafeCoerce tb) (unsafeCoerce bt)
+cloneIso (Isos sa bt) = iso sa (unsafeCoerce bt)
 {-# INLINE cloneIso #-}
 
 -----------------------------------------------------------------------------
@@ -111,21 +110,6 @@ type Iso s t a b = forall k f. (Isomorphic k, Functor f) => k (a -> f b) (s -> f
 -- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
 type SimpleIso s a = Iso s s a a
 
--- | Build a simple isomorphism from a pair of inverse functions
---
---
--- @
--- 'view' ('iso' f g) ≡ f
--- 'view' ('from' ('iso' f g)) ≡ g
--- 'set' ('iso' f g) h ≡ g '.' h '.' f
--- 'set' ('from' ('iso' f g)) h ≡ f '.' h '.' g
--- @
---
--- @iso :: (s -> a) -> (a -> s) -> 'Control.Lens.Type.Simple' 'Iso' s a@
-iso :: (Isomorphic k, Functor f) => (s -> a) -> (a -> s) -> k (a -> f a) (s -> f s)
-iso sa as = isos sa as sa as
-{-# INLINE iso #-}
-
 -- | Based on 'Control.Lens.Wrapped.ala' from Conor McBride's work on Epigram.
 --
 -- This version is generalized to accept any 'Iso', not just a newtype.
@@ -133,7 +117,7 @@ iso sa as = isos sa as sa as
 -- >>> au (wrapping Sum) foldMap [1,2,3,4]
 -- 10
 au :: Isomorphism s t a b -> ((s -> a) -> e -> b) -> e -> t
-au (Isos sa _ _ bt) f e = unsafeCoerce bt (f sa e)
+au (Isos sa bt) f e = unsafeCoerce bt (f sa e)
 {-# INLINE au #-}
 
 -- |
@@ -147,7 +131,7 @@ au (Isos sa _ _ bt) f e = unsafeCoerce bt (f sa e)
 -- >>> auf (wrapping Sum) (foldMapOf both) length ("hello","world")
 -- 10
 auf :: Isomorphism s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
-auf (Isos sa _ _ bt) f g e = unsafeCoerce bt (f (sa . g) e)
+auf (Isos sa bt) f g e = unsafeCoerce bt (f (sa . g) e)
 {-# INLINE auf #-}
 
 -- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
@@ -155,8 +139,8 @@ auf (Isos sa _ _ bt) f g e = unsafeCoerce bt (f (sa . g) e)
 -- @'under' ≡ 'over' '.' 'from'@
 --
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
-under :: Isomorphism s t a b -> (s -> t) -> a -> b
-under (Isos _ as tb _) st a = unsafeCoerce tb (st (as a))
+under :: Isomorphism s t a b -> (t -> s) -> b -> a
+under (Isos sa bt) ts b = sa (ts (unsafeCoerce bt b))
 {-# INLINE under #-}
 
 -----------------------------------------------------------------------------
@@ -182,7 +166,7 @@ enum = iso toEnum fromEnum
 
 -- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
 mapping :: Functor f => Isomorphism s t a b -> Iso (f s) (f t) (f a) (f b)
-mapping (Isos sa as tb bt) = isos (fmap sa) (fmap as) (fmap (unsafeCoerce tb)) (fmap (unsafeCoerce bt))
+mapping (Isos sa bt) = iso (fmap sa) (fmap (unsafeCoerce bt))
 {-# INLINE mapping #-}
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',

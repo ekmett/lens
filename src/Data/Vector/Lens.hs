@@ -99,17 +99,17 @@ toVectorOf l s = fromList (toListOf l s)
 
 -- | Convert a list to a 'Vector' (or back)
 vector :: Iso [a] [b] (Vector a) (Vector b)
-vector = isos fromList toList fromList toList
+vector = iso fromList toList
 {-# INLINE vector #-}
 
 -- | Convert a 'Vector' to a version with all the elements in the reverse order
 reversed :: Iso (Vector a) (Vector b) (Vector a) (Vector b)
-reversed = isos reverse reverse reverse reverse
+reversed = iso reverse reverse
 {-# INLINE reversed #-}
 
 -- | Convert a 'Vector' to a version that doesn't retain any extra memory.
 forced :: Iso (Vector a) (Vector b) (Vector a) (Vector b)
-forced = isos force force force force
+forced = iso force force
 {-# INLINE forced #-}
 
 -- | This is a more efficient version of 'element' that works for any 'Vector'.

@@ -321,9 +321,7 @@ makeIsoFrom conName = do
 
 makeIsoBody :: Name -> Name -> (Name -> ExpQ) -> (Name -> ExpQ) -> DecQ
 makeIsoBody lensName conName f g = funD lensName [clause [] (normalB body) []] where
-  body = appsE [ varE 'isos
-               , g conName
-               , f conName
+  body = appsE [ varE 'iso
                , g conName
                , f conName
                ]

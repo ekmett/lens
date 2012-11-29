@@ -35,23 +35,19 @@ ordinal i = indexing $ \ f m -> f i (index m i) <&> \a -> update i a m
 --
 -- @'viewl' m = m '^.' 'viewL'@
 viewL :: Iso (Seq a) (Seq b) (ViewL a) (ViewL b)
-viewL = isos viewl unviewl viewl unviewl where
-
-unviewl :: ViewL a -> Seq a
-unviewl EmptyL = mempty
-unviewl (a :< as) = a <| as
+viewL = iso viewl $ \ xs -> case xs of
+  EmptyL ->  mempty
+  a :< as -> a <| as
 {-# INLINE viewL #-}
 
 -- | A 'Seq' is isomorphic to a 'ViewR'
 --
 -- @'viewr' m = m '^.' 'viewR'@
 viewR :: Iso (Seq a) (Seq b) (ViewR a) (ViewR b)
-viewR = isos viewr unviewr viewr unviewr where
+viewR = iso viewr $ \xs -> case xs of
+  EmptyR  -> mempty
+  as :> a -> as |> a
 {-# INLINE viewR #-}
-
-unviewr :: ViewR a -> Seq a
-unviewr EmptyR = mempty
-unviewr (as :> a) = as |> a
 
 -- * Traversals
 
