@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -34,6 +36,7 @@ module Control.Lens.Iso
   , non
   , enum
   , curried, uncurried
+  , Lazy(..)
   -- * Storing Isomorphisms
   , ReifiedIso(..)
   -- * Simplicity
@@ -46,6 +49,10 @@ import Control.Monad.Reader
 import Control.Lens.Classes
 import Control.Lens.Internal
 import Control.Lens.Type
+import Data.ByteString as StrictB
+import Data.ByteString.Lazy as LazyB
+import Data.Text as StrictT
+import Data.Text.Lazy as LazyT
 import Data.Maybe (fromMaybe)
 import Prelude hiding ((.),id)
 import Unsafe.Coerce
@@ -226,6 +233,17 @@ curried = iso curry uncurry
 -- @'uncurried' = 'from' 'curried'@
 uncurried :: Iso (a -> b -> c) (d -> e -> f) ((a,b) -> c) ((d,e) -> f)
 uncurried = iso uncurry curry
+
+-- | Ad hoc conversion between 'strict' and 'lazy' versions of a structure, such as 'StrictB.Text'
+-- or 'StrictB.ByteString'.
+class Lazy s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  lazy :: Iso s t a b
+
+instance Lazy StrictB.ByteString StrictB.ByteString LazyB.ByteString LazyB.ByteString where
+  lazy = iso LazyB.fromStrict LazyB.toStrict
+
+instance Lazy StrictT.Text StrictT.Text LazyT.Text LazyT.Text where
+  lazy = iso LazyT.fromStrict LazyT.toStrict
 
 -----------------------------------------------------------------------------
 -- Reifying Isomorphisms
