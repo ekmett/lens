@@ -228,7 +228,7 @@ curried = iso curry uncurry
 uncurried :: Iso (a -> b -> c) (d -> e -> f) ((a,b) -> c) ((d,e) -> f)
 uncurried = iso uncurry curry
 
--- | Ad hoc conversion between 'strict' and 'lazy' versions of a structure, such as 'StrictB.Text'
+-- | Ad hoc conversion between 'strict' and 'lazy' versions of a structure, such as 'StrictT.Text'
 -- or 'StrictB.ByteString'.
 class Lazy s t a b | s -> a, t -> b, s b -> t, t a -> s where
   lazy :: Iso s t a b
