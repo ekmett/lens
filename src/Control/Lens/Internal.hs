@@ -512,6 +512,6 @@ instance Isomorphic Isos where
 -- class, so you can turn a 'Projection' around into a 'Getter' or otherwise muck around
 -- with its internals.
 --
--- If you see a function that expects a 'Project', it is probably just expecting a 'Projection'.
+-- If you see a function that expects an 'IndexedProject', it is probably just expecting a 'IndexedProjection'.
 data IndexedProject i x y where
   IndexedProject :: (b -> t) -> ((i -> a -> f b) -> s -> f t) -> IndexedProject i (a -> f b) (s -> f t)
