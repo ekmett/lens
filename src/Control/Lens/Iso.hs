@@ -222,7 +222,7 @@ curried = iso curry uncurry
 
 -- | The canonical isomorphism for uncurrying and currying function.
 --
--- @'uncurried' = 'iso' 'uncurry' 'cuurry'@
+-- @'uncurried' = 'iso' 'uncurry' 'curry'@
 -- @'uncurried' = 'from' 'curried'@
 uncurried :: Simple Iso (a -> b -> c) (d -> e -> f) ((a,b) -> c) ((d,e) -> f)
 uncurried = iso uncurry curry
