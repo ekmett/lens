@@ -28,9 +28,10 @@ import Control.Applicative
 import Control.Lens.Getter
 import Control.Lens.Setter
 import Control.Lens.Fold
+import Control.Lens.IndexedLens
+import Control.Lens.IndexedTraversal
 import Control.Lens.Type
 import Control.Lens.Traversal
-import Control.Lens.IndexedProjection
 import Data.Map as Map hiding (toList,map)
 import Data.Maybe (fromMaybe)
 import Data.Monoid

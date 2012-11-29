@@ -25,6 +25,7 @@ module Control.Lens.Internal.Zipper where
 import Control.Applicative
 import Control.Category
 import Control.Monad ((>=>))
+import Control.Lens.Classes
 import Control.Lens.IndexedLens
 import Control.Lens.Internal
 import Control.Lens.Traversal
@@ -87,7 +88,7 @@ data Coil :: * -> * -> * where
 
 -- | This 'Lens' views the current target of the 'zipper'.
 focus :: SimpleIndexedLens (Tape (h :> a)) (h :> a) a
-focus = indexing $ \f (Zipper h n l a r) -> (\a' -> Zipper h n l a' r) <$> f (Tape (peel h) n) a
+focus = indexed $ \f (Zipper h n l a r) -> (\a' -> Zipper h n l a' r) <$> f (Tape (peel h) n) a
 {-# INLINE focus #-}
 
 -- | Construct a 'zipper' that can explore anything.

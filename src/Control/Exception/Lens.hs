@@ -27,7 +27,5 @@ import Control.Lens
 --           => (a -> f b) -> 'SomeException' -> f 'SomeException'
 -- @
 exception :: (Exception a, Exception b) => Projection SomeException SomeException a b
-exception = projecting toException $ \f e -> case fromException e of
-  Just a  -> toException <$> f a
-  Nothing -> pure e
+exception = projected toException $ \ e -> maybe (Left e) Right (fromException e)
 {-# INLINE exception #-}

@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
@@ -34,15 +36,27 @@ module Control.Lens.IndexedLens
   , (<%@=)
   -- * Storing Indexed Lenses
   , ReifiedIndexedLens(..)
+  -- * Common Indexed Lenses
+  , Contains(..)
+  , resultAt
   -- * Simple
   , SimpleIndexedLens
   , SimpleReifiedIndexedLens
   ) where
 
+import Control.Applicative
+import Control.Lens.Classes
+import Control.Lens.Combinators
 import Control.Lens.Internal
 import Control.Lens.Indexed
 import Control.Lens.Type
 import Control.Monad.State.Class as State
+import Data.Hashable
+import Data.HashSet as HashSet
+import Data.IntSet as IntSet
+import Data.Set as Set
+import Data.Traversable
+
 
 -- $setup
 -- >>> import Control.Lens
@@ -51,7 +65,7 @@ infixr 4 %%@~, <%@~
 infix  4 %%@=, <%@=
 
 -- | Every 'IndexedLens' is a valid 'Lens' and a valid 'Control.Lens.IndexedTraversal.IndexedTraversal'.
-type IndexedLens i s t a b = forall f k. (Indexed i k, Functor f) => k (a -> f b) (s -> f t)
+type IndexedLens i s t a b = forall f k. (Indexable i k, Functor f) => k (a -> f b) (s -> f t)
 
 -- | @type 'SimpleIndexedLens' i = 'Simple' ('IndexedLens' i)@
 type SimpleIndexedLens i s a = IndexedLens i s s a a
@@ -70,7 +84,7 @@ type SimpleIndexedLens i s a = IndexedLens i s s a a
 -- ('<%@~') ::             'IndexedLens' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- ('<%@~') :: 'Monoid' b => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- @
-(<%@~) :: Overloaded (Index i) ((,)b) s t a b -> (i -> a -> b) -> s -> (b, t)
+(<%@~) :: Overloaded (Indexed i) ((,)b) s t a b -> (i -> a -> b) -> s -> (b, t)
 l <%@~ f = withIndex l $ \i a -> let b = f i a in (b, b)
 {-# INLINE (<%@~) #-}
 
@@ -92,7 +106,7 @@ l <%@~ f = withIndex l $ \i a -> let b = f i a in (b, b)
 -- ('%%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> (r, b)) -> s -> (r, t)
 -- ('%%@~') :: 'Monoid' r => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> (r, b)) -> s -> (r, t)
 -- @
-(%%@~) :: Overloaded (Index i) f s t a b -> (i -> a -> f b) -> s -> f t
+(%%@~) :: Overloaded (Indexed i) f s t a b -> (i -> a -> f b) -> s -> f t
 (%%@~) = withIndex
 {-# INLINE (%%@~) #-}
 
@@ -106,7 +120,7 @@ l <%@~ f = withIndex l $ \i a -> let b = f i a in (b, b)
 -- ('%%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> (r, b)) -> s -> m r
 -- ('%%@=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s s a b -> (i -> a -> (r, b)) -> s -> m r
 -- @
-(%%@=) :: MonadState s m => Overloaded (Index i) ((,)r) s s a b -> (i -> a -> (r, b)) -> m r
+(%%@=) :: MonadState s m => Overloaded (Indexed i) ((,)r) s s a b -> (i -> a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,0)
 l %%@= f = State.state (l %%@~ f)
 #else
@@ -125,7 +139,7 @@ l %%@= f = do
 -- ('<%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> b) -> m b
 -- ('<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m b
 -- @
-(<%@=) :: MonadState s m => Overloaded (Index i) ((,)b) s s a b -> (i -> a -> b) -> m b
+(<%@=) :: MonadState s m => Overloaded (Indexed i) ((,)b) s s a b -> (i -> a -> b) -> m b
 l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 {-# INLINE (<%@=) #-}
 
@@ -138,3 +152,43 @@ newtype ReifiedIndexedLens i s t a b = ReifyIndexedLens { reflectIndexedLens :: 
 
 -- | @type 'SimpleIndexedLens' i = 'Simple' ('ReifiedIndexedLens' i)@
 type SimpleReifiedIndexedLens i s a = ReifiedIndexedLens i s s a a
+
+-- | Provides an 'IndexedLens' that can be used to read, write or delete a member of a set-like container
+class Contains k m | m -> k where
+  -- |
+  -- >>> contains 3 .~ False $ IntSet.fromList [1,2,3,4]
+  -- fromList [1,2,4]
+  contains :: k -> SimpleIndexedLens k m Bool
+
+instance Contains Int IntSet where
+  contains k = indexed $ \ f s -> f k (IntSet.member k s) <&> \b ->
+    if b then IntSet.insert k s else IntSet.delete k s
+    where
+      embedding False = IntSet.empty
+      embedding True = IntSet.singleton k
+  {-# INLINE contains #-}
+
+instance Ord k => Contains k (Set k) where
+  contains k = indexed $ \ f s -> f k (Set.member k s) <&> \b ->
+    if b then Set.insert k s else Set.delete k s
+    where
+      embedding False = Set.empty
+      embedding True = Set.singleton k
+  {-# INLINE contains #-}
+
+instance (Eq k, Hashable k) => Contains k (HashSet k) where
+  contains k = indexed $ \ f s -> f k (HashSet.member k s) <&> \b ->
+    if b then HashSet.insert k s else HashSet.delete k s
+    where
+      embedding False = HashSet.empty
+      embedding True = HashSet.singleton k
+  {-# INLINE contains #-}
+
+-- | This lens can be used to change the result of a function but only where
+-- the arguments match the key given.
+--
+-- >>> let f = (+1) & resultAt 3 .~ 8 in (f 2, f 3)
+-- (3,8)
+resultAt :: Eq e => e -> SimpleIndexedLens e (e -> a) a
+resultAt e = indexed $ \ g f -> g e (f e) <&> \a' e' -> if e == e' then a' else f e'
+{-# INLINE resultAt #-}

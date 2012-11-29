@@ -1,8 +1,9 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -14,6 +15,7 @@
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.IndexedTraversal
@@ -33,6 +35,7 @@ module Control.Lens.IndexedTraversal
   , iwhereOf
   , value
   , ignored
+  , At(..)
   , TraverseMin(..)
   , TraverseMax(..)
   , traversed
@@ -61,12 +64,15 @@ import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Combinators
 import Control.Lens.Indexed
+import Control.Lens.IndexedLens
 import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy as Lazy
-import Data.Traversable
+import Data.Hashable
+import Data.HashMap.Lazy as HashMap
 import Data.IntMap as IntMap
 import Data.Map as Map
+import Data.Traversable
 
 -- $setup
 -- >>> import Control.Lens
@@ -75,12 +81,14 @@ import Data.Map as Map
 -- Indexed Traversals
 ------------------------------------------------------------------------------
 
--- | Every indexed traversal is a valid 'Control.Lens.Traversal.Traversal' or 'Control.Lens.IndexedFold.IndexedFold'.
+-- | Every indexed traversal is a valid 'Control.Lens.Traversal.Traversal' or
+-- 'Control.Lens.IndexedFold.IndexedFold'.
 --
--- The 'Indexed' constraint is used to allow an 'IndexedTraversal' to be used directly as a 'Control.Lens.Traversal.Traversal'.
+-- The 'Indexed' constraint is used to allow an 'IndexedTraversal' to be used
+-- directly as a 'Control.Lens.Traversal.Traversal'.
 --
 -- The 'Control.Lens.Traversal.Traversal' laws are still required to hold.
-type IndexedTraversal i s t a b = forall f k. (Indexed i k, Applicative f) => k (a -> f b) (s -> f t)
+type IndexedTraversal i s t a b = forall f k. (Indexable i k, Applicative f) => k (a -> f b) (s -> f t)
 
 -- | @type 'SimpleIndexedTraversal' i = 'Simple' ('IndexedTraversal' i)@
 type SimpleIndexedTraversal i s a = IndexedTraversal i s s a a
@@ -99,7 +107,7 @@ type SimpleIndexedTraversal i s a = IndexedTraversal i s s a a
 -- 'itraverseOf' :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> (i -> a -> f b) -> s -> f t
 -- 'itraverseOf' :: 'IndexedTraversal' i s t a b -> (i -> a -> f b) -> s -> f t
 -- @
-itraverseOf :: Overloaded (Index i) f s t a b -> (i -> a -> f b) -> s -> f t
+itraverseOf :: Overloaded (Indexed i) f s t a b -> (i -> a -> f b) -> s -> f t
 itraverseOf = withIndex
 {-# INLINE itraverseOf #-}
 
@@ -115,7 +123,7 @@ itraverseOf = withIndex
 -- 'iforOf' :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> s -> (i -> a -> f b) -> f t
 -- 'iforOf' :: 'IndexedTraversal' i s t a b -> s -> (i -> a -> f b) -> f t
 -- @
-iforOf :: Overloaded (Index i) f s t a b -> s -> (i -> a -> f b) -> f t
+iforOf :: Overloaded (Indexed i) f s t a b -> s -> (i -> a -> f b) -> f t
 iforOf = flip . withIndex
 {-# INLINE iforOf #-}
 
@@ -131,7 +139,7 @@ iforOf = flip . withIndex
 -- 'imapMOf' :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens'      i s t a b -> (i -> a -> m b) -> s -> m t
 -- 'imapMOf' :: 'Monad' m => 'IndexedTraversal' i s t a b -> (i -> a -> m b) -> s -> m t
 -- @
-imapMOf :: Overloaded (Index i) (WrappedMonad m) s t a b -> (i -> a -> m b) -> s -> m t
+imapMOf :: Overloaded (Indexed i) (WrappedMonad m) s t a b -> (i -> a -> m b) -> s -> m t
 imapMOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
 {-# INLINE imapMOf #-}
 
@@ -148,7 +156,7 @@ imapMOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
 -- 'iforMOf' :: 'Monad' m => 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> s -> (i -> a -> m b) -> m t
 -- 'iforMOf' :: 'Monad' m => 'IndexedTraversal' i s t a b -> s -> (i -> a -> m b) -> m t
 -- @
-iforMOf :: Overloaded (Index i) (WrappedMonad m) s t a b -> s -> (i -> a -> m b) -> m t
+iforMOf :: Overloaded (Indexed i) (WrappedMonad m) s t a b -> s -> (i -> a -> m b) -> m t
 iforMOf = flip . imapMOf
 {-# INLINE iforMOf #-}
 
@@ -162,7 +170,7 @@ iforMOf = flip . imapMOf
 -- 'imapAccumROf' :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 -- 'imapAccumROf' :: 'IndexedTraversal' i s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 -- @
-imapAccumROf :: Overloaded (Index i) (Lazy.State s) s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
+imapAccumROf :: Overloaded (Indexed i) (Lazy.State s) s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s -> swap (f i s c))) a) s0)
 {-# INLINE imapAccumROf #-}
 
@@ -176,7 +184,7 @@ imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s
 -- 'imapAccumLOf' :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 -- 'imapAccumLOf' :: 'IndexedTraversal' i s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 -- @
-imapAccumLOf :: Overloaded (Index i) (Backwards (Lazy.State s)) s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
+imapAccumLOf :: Overloaded (Indexed i) (Backwards (Lazy.State s)) s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (withIndex l (\i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)
 {-# INLINE imapAccumLOf #-}
 
@@ -200,18 +208,18 @@ swap (a,b) = (b,a)
 -- 'iwhereOf' :: 'SimpleIndexedTraversal' i s a -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i s a
 -- 'iwhereOf' :: 'SimpleIndexedSetter' i s a    -> (i -> 'Bool') -> 'SimpleIndexedSetter' i s a
 -- @
-iwhereOf :: (Indexed i k, Applicative f) => Overloaded (Index i) f s t a a -> (i -> Bool) -> Overloaded k f s t a a
-iwhereOf l p = indexing $ \f s -> withIndex l (\i a -> if p i then f i a else pure a) s
+iwhereOf :: (Indexable i k, Applicative f) => Overloaded (Indexed i) f s t a a -> (i -> Bool) -> Overloaded k f s t a a
+iwhereOf l p = indexed $ \f s -> withIndex l (\i a -> if p i then f i a else pure a) s
 {-# INLINE iwhereOf #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
 traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b
-traversed = indexed traverse
+traversed = indexing traverse
 
 -- | This provides a 'Traversal' that checks a predicate on a key before
 -- allowing you to traverse into a value.
 value :: (k -> Bool) -> SimpleIndexedTraversal k (k, v) v
-value p = indexing $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
+value p = indexed $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
 {-# INLINE value #-}
 
 -- | This is the trivial empty traversal.
@@ -219,9 +227,69 @@ value p = indexing $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
 -- @'ignored' :: 'IndexedTraversal' i s s a b@
 --
 -- @'ignored' ≡ 'const' 'pure'@
-ignored :: forall k f i s a b. (Indexed i k, Applicative f) => Overloaded k f s s a b
-ignored = indexing $ \ (_ :: i -> a -> f b) s -> pure s :: f s
+ignored :: forall k f i s a b. (Indexable i k, Applicative f) => Overloaded k f s s a b
+ignored = indexed $ \ (_ :: i -> a -> f b) s -> pure s :: f s
 {-# INLINE ignored #-}
+
+-- | 'At' provides a lens that can be used to read,
+-- write or delete the value associated with a key in a map-like
+-- container on an ad hoc basis.
+class At k m | m -> k where
+  -- |
+  -- >>> Map.fromList [(1,"hello")] ^.at 1
+  -- Just "hello"
+  --
+  -- >>> at 1 ?~ "hello" $ Map.empty
+  -- fromList [(1,"hello")]
+  --
+  -- Note: 'Map'-like containers form a reasonable instance, but not 'Array'-like ones, where
+  -- you cannot satisfy the 'Lens' laws.
+  at :: k -> SimpleIndexedLens k (m v) (Maybe v)
+
+  -- | This simple indexed traversal lets you 'traverse' the value at a given key in a map.
+  --
+  -- *NB:* _setting_ the value of this lens will only set the value in the lens
+  -- if it is already present.
+  --
+  -- @'_at' k ≡ 'at' k '<.' 'traverse'@
+  _at :: k -> SimpleIndexedTraversal k (m v) v
+  _at k = at k <. traverse
+
+instance At Int IntMap where
+  at k = indexed $ \f m ->
+    let mv = IntMap.lookup k m
+        go Nothing   = maybe m (const (IntMap.delete k m)) mv
+        go (Just v') = IntMap.insert k v' m
+    in go <$> f k mv where
+  {-# INLINE at #-}
+  _at k = indexed $ \f m -> case IntMap.lookup k m of
+     Just v -> f k v <&> \v' -> IntMap.insert k v' m
+     Nothing -> pure m
+  {-# INLINE _at #-}
+
+instance Ord k => At k (Map k) where
+  at k = indexed $ \f m ->
+    let mv = Map.lookup k m
+        go Nothing   = maybe m (const (Map.delete k m)) mv
+        go (Just v') = Map.insert k v' m
+    in go <$> f k mv
+  {-# INLINE at #-}
+  _at k = indexed $ \f m -> case Map.lookup k m of
+     Just v  -> f k v <&> \v' -> Map.insert k v' m
+     Nothing -> pure m
+  {-# INLINE _at #-}
+
+instance (Eq k, Hashable k) => At k (HashMap k) where
+  at k = indexed $ \f m ->
+    let mv = HashMap.lookup k m
+        go Nothing   = maybe m (const (HashMap.delete k m)) mv
+        go (Just v') = HashMap.insert k v' m
+    in go <$> f k mv
+  {-# INLINE at #-}
+  _at k = indexed $ \f m -> case HashMap.lookup k m of
+     Just v  -> f k v <&> \v' -> HashMap.insert k v' m
+     Nothing -> pure m
+  {-# INLINE _at #-}
 
 -- | Allows 'IndexedTraversal' the value at the smallest index.
 class Ord k => TraverseMin k m | m -> k where
@@ -229,7 +297,7 @@ class Ord k => TraverseMin k m | m -> k where
   traverseMin :: SimpleIndexedTraversal k (m v) v
 
 instance TraverseMin Int IntMap where
-  traverseMin = indexing $ \f m -> case IntMap.minViewWithKey m of
+  traverseMin = indexed $ \f m -> case IntMap.minViewWithKey m of
 #if MIN_VERSION_containers(0,5,0)
     Just ((k,a), _) -> f k a <&> \v -> IntMap.updateMin (const (Just v)) m
 #else
@@ -239,7 +307,7 @@ instance TraverseMin Int IntMap where
   {-# INLINE traverseMin #-}
 
 instance Ord k => TraverseMin k (Map k) where
-  traverseMin = indexing $ \f m -> case Map.minViewWithKey m of
+  traverseMin = indexed $ \f m -> case Map.minViewWithKey m of
     Just ((k, a), _) -> f k a <&> \v -> Map.updateMin (const (Just v)) m
     Nothing          -> pure m
   {-# INLINE traverseMin #-}
@@ -250,7 +318,7 @@ class Ord k => TraverseMax k m | m -> k where
   traverseMax :: SimpleIndexedTraversal k (m v) v
 
 instance TraverseMax Int IntMap where
-  traverseMax = indexing $ \f m -> case IntMap.maxViewWithKey m of
+  traverseMax = indexed $ \f m -> case IntMap.maxViewWithKey m of
 #if MIN_VERSION_containers(0,5,0)
     Just ((k,a), _) -> f k a <&> \v -> IntMap.updateMax (const (Just v)) m
 #else
@@ -260,12 +328,13 @@ instance TraverseMax Int IntMap where
   {-# INLINE traverseMax #-}
 
 instance Ord k => TraverseMax k (Map k) where
-  traverseMax = indexing $ \f m -> case Map.maxViewWithKey m of
+  traverseMax = indexed $ \f m -> case Map.maxViewWithKey m of
     Just ((k, a), _) -> f k a <&> \v -> Map.updateMax (const (Just v)) m
     Nothing          -> pure m
   {-# INLINE traverseMax #-}
 
--- | Traverse the /nth/ element 'elementOf' a 'Traversal', 'Lens' or 'Control.Lens.Iso.Iso' if it exists.
+-- | Traverse the /nth/ element 'elementOf' a 'Traversal', 'Lens' or
+-- 'Control.Lens.Iso.Iso' if it exists.
 --
 -- >>> [[1],[3,4]] & elementOf (traverse.traverse) 1 .~ 5
 -- [[1],[5,4]]
@@ -283,8 +352,11 @@ instance Ord k => TraverseMax k (Map k) where
 -- 'elementOf' :: 'Simple' 'Traversal' s a -> Int -> 'SimpleIndexedTraversal' 'Int' s a
 -- 'elementOf' :: 'Fold' s a            -> Int -> 'IndexedFold' 'Int' s a
 -- @
-elementOf :: (Applicative f, Indexed Int k) => LensLike (Indexing f) s t a a -> Int -> Overloaded k f s t a a
-elementOf l = elementsOf l . (==)
+elementOf :: (Applicative f, Indexable Int k)
+          => LensLike (Indexing f) s t a a
+          -> Int
+          -> Overloaded k f s t a a
+elementOf l p = elementsOf l (p ==)
 {-# INLINE elementOf #-}
 
 -- | Traverse the /nth/ element of a 'Traversable' container.
@@ -300,9 +372,13 @@ element = elementOf traverse
 -- 'elementsOf' :: 'Simple' 'Traversal' s a -> ('Int' -> 'Bool') -> 'SimpleIndexedTraversal' 'Int' s a
 -- 'elementsOf' :: 'Fold' s a            -> ('Int' -> 'Bool') -> 'IndexedFold' 'Int' s a
 -- @
-elementsOf :: (Applicative f, Indexed Int k) => LensLike (Indexing f) s t a a -> (Int -> Bool) -> Overloaded k f s t a a
-elementsOf l p = indexing $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> (if p i then iafb i a else pure a, i + 1))) s) 0 of
-  (r, _) -> r
+elementsOf :: (Applicative f, Indexable Int k)
+           => LensLike (Indexing f) s t a a
+           -> (Int -> Bool)
+           -> Overloaded k f s t a a
+elementsOf l p = indexed $ \iafb s ->
+  case runIndexing (l (\a -> Indexing (\i -> (if p i then iafb i a else pure a, i + 1))) s) 0 of
+    (r, _) -> r
 {-# INLINE elementsOf #-}
 
 -- | Traverse elements of a 'Traversable' container where their ordinal positions matches a predicate.
@@ -317,7 +393,8 @@ elements = elementsOf traverse
 ------------------------------------------------------------------------------
 
 -- | Useful for storage.
-newtype ReifiedIndexedTraversal i s t a b = ReifyIndexedTraversal { reflectIndexedTraversal :: IndexedTraversal i s t a b }
+newtype ReifiedIndexedTraversal i s t a b =
+  ReifyIndexedTraversal { reflectIndexedTraversal :: IndexedTraversal i s t a b }
 
 -- | @type 'SimpleIndexedTraversal' i = 'Simple' ('ReifiedIndexedTraversal' i)@
 type SimpleReifiedIndexedTraversal i s a = ReifiedIndexedTraversal i s s a a

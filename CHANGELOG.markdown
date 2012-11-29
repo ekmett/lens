@@ -20,6 +20,7 @@
 * Renamed `index` to `indexing` to reduce conflicts with third-party libraries.
 * `At(..)` and `Contains(..)` now provide simple indexed projections.
 * Added `curried` and `uncurried` to `Control.Lens.Iso`.
+* Added `Lazy(lazy)` for ad hoc overloading of conversions between strict and lazy variants of `ByteString` and `Text`.
 
 3.6
 -----

@@ -89,9 +89,9 @@ import Control.Applicative
 import Control.Lens.Classes
 import Control.Lens.Getter
 import Control.Lens.IndexedFold
+import Control.Lens.IndexedLens
 import Control.Lens.IndexedSetter
 import Control.Lens.IndexedTraversal
-import Control.Lens.IndexedProjection
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Lens.Type
@@ -302,15 +302,15 @@ rfoldr f b m = Foldable.foldr id b (rmap f m)
 
 -- | An 'IndexedSetter' that walks an 'Representable' 'Functor' using a 'Path' for an index.
 rmapped :: Representable f => IndexedSetter (Path f) (f a) (f b) a b
-rmapped = indexing $ \f -> tainted# (rmap (\i -> untainted# (f (Path i))))
+rmapped = indexed $ \f -> tainted# (rmap (\i -> untainted# (f (Path i))))
 {-# INLINE rmapped #-}
 
 -- | An 'IndexedFold' that walks an 'Foldable' 'Representable' 'Functor' using a 'Path' for an index.
 rfolded :: (Representable f, Foldable f) => IndexedFold (Path f) (f a) a
-rfolded = indexing $ \f -> coerce . getFolding . rfoldMap (\i -> folding# (f (Path i)))
+rfolded = indexed $ \f -> coerce . getFolding . rfoldMap (\i -> folding# (f (Path i)))
 {-# INLINE rfolded #-}
 
 -- | An 'IndexedTraversal' for a 'Traversable' 'Representable' 'Functor'.
 rtraversed :: (Representable f, Traversable f) => IndexedTraversal (Path f) (f a) (f b) a b
-rtraversed = indexing $ \ f -> sequenceA . rmap (f . Path)
+rtraversed = indexed $ \ f -> sequenceA . rmap (f . Path)
 {-# INLINE rtraversed #-}

@@ -50,10 +50,10 @@ module Control.Lens.Internal
   , Max(..), getMax
   , Min(..), getMin
   , Indexing(..)
-  , Project(..)
-  , Isos(..)
+  -- * Overloadings
+  , Projected(..)
+  , Isomorphism(..)
   , Indexed(..)
-  , IndexedProject(..)
   ) where
 
 import Control.Applicative
@@ -472,49 +472,57 @@ sellT i = BazaarT (\k -> k i)
 -- with its internals.
 --
 -- If you see a function that expects a 'Project', it is probably just expecting a 'Projection'.
-data Project x y where
-  Project :: (b -> t) -> ((a -> f b) -> s -> f t) -> Project (a -> f b) (s -> f t)
+data Projected x y where
+  Projected :: (b -> t) -> (s -> Either t a) -> Projected (a -> f b) (s -> f t)
 
-instance Category Project where
-  id = unsafeCoerce (Project id id)
-  Project ty f . Project bt g = unsafeCoerce $ Project (unsafeCoerce ty.bt) (unsafeCoerce f.g)
+-- | NB: Only arrows for objects of form @(a -> f b)@ can be pattern matched.
+instance Category Projected where
+  id = unsafeCoerce (Projected id id)
+  Projected ty xeys . Projected bt seta = unsafeCoerce $ Projected (unsafeCoerce ty.bt) $ \x ->
+    case unsafeCoerce xeys x of
+      Left y  -> Left y
+      Right s -> case unsafeCoerce seta s of
+        Left t  -> Left (unsafeCoerce ty t)
+        Right a -> Right a
 
-instance Projective Project where
-  projecting = Project
+instance Projective Projected where
+  projected = Projected
 
-instance Isomorphic Project where
-  iso sa bt = Project bt $ \afb s -> bt <$> afb (sa s)
+instance Isomorphic Projected where
+  iso sa bt = Projected bt (Right . sa)
 
 ------------------------------------------------------------------------------
 -- Isomorphism Internals
 ------------------------------------------------------------------------------
 
 -- | Reify all of the information given to you by being 'Isomorphic'.
-data Isos x y where
-  Isos :: (s -> a) -> (b -> t) -> Isos (a -> f b) (s -> f t)
+data Isomorphism x y where
+  Isomorphism :: (s -> a) -> (b -> t) -> Isomorphism (a -> f b) (s -> f t)
 
 -- | NB: Only arrows for objects of form @(a -> f b)@ can be pattern matched.
-instance Category Isos where
-  id = unsafeCoerce (Isos id id)
-  -- The outer unsafeCoerce is being by the same justification as 'id' above.
-  -- The other two are because GHC is unwilling to infer that @a -> f b@ ~ @s -> g t@ entails @b ~ t@ in a context where
-  -- neither @f@ nor @g@ could be type families.
-  Isos xs ty . Isos sa bt = unsafeCoerce $ Isos (sa.xs) (unsafeCoerce ty.bt)
+instance Category Isomorphism where
+  id = unsafeCoerce (Isomorphism id id)
+  -- The outer 'unsafeCoerce' is being by the same justification as 'id' above.
 
-instance Isomorphic Isos where
-  iso = Isos
+  -- The inner 'unsafeCoerce' is because GHC is unwilling to infer that
+  -- @a -> f b@ ~ @s -> g t@ entails @b ~ t@ even in a context where
+  -- neither @f@ nor @g@ could be type families, such as in the definition of
+  -- 'Isos'.
+  Isomorphism xs ty . Isomorphism sa bt = unsafeCoerce $ Isomorphism (sa.xs) (unsafeCoerce ty.bt)
+
+instance Isomorphic Isomorphism where
+  iso = Isomorphism
 
 ------------------------------------------------------------------------------
--- Indexed Projection Internals
+-- Indexed Internals
 ------------------------------------------------------------------------------
 
--- | This data type is used to capture all of the information provided by the 'Projective'
--- class, so you can turn a 'Projection' around into a 'Getter' or otherwise muck around
--- with its internals.
---
--- If you see a function that expects an 'IndexedProject', it is probably just expecting a 'IndexedProjection'.
-data IndexedProject i x y where
-  IndexedProject :: (b -> t) -> ((i -> a -> f b) -> s -> f t) -> IndexedProject i (a -> f b) (s -> f t)
+-- | A function with access to a index. This constructor may be useful when you need to store
+-- a 'Indexable' in a container to avoid @ImpredicativeTypes@.
+newtype Indexed i a b = Indexed { withIndex :: (i -> a) -> b }
 
-instance i ~ j => IndexedProjective i (IndexedProject j) where
-  iprojecting = IndexedProject
+-- | Using an equality witness to avoid potential overlapping instances
+-- and aid dispatch.
+instance i ~ j => Indexable i (Indexed j) where
+  indexed = Indexed
+  {-# INLINE indexed #-}

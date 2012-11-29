@@ -60,5 +60,5 @@ ixmapped = sets . ixmap
 --
 -- @'amap' ≡ 'over' '_array'@
 _array :: (IArray arr a, IArray arr b, Ix i) => IndexedTraversal i (arr i a) (arr i b) a b
-_array = indexing $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (assocs arr)
+_array = indexed $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (assocs arr)
 {-# INLINE _array #-}

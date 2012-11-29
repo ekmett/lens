@@ -21,7 +21,6 @@ module Control.Lens.Projection
 
   -- * Constructing Projections
   , Projective(..)
-  , projected
 
   -- * Consuming Projections
   , Projecting
@@ -34,17 +33,11 @@ module Control.Lens.Projection
   , _left
   , _right
 
-  -- * Projective Lenses
-  , ProjectiveLens
-
-  -- * Consuming projective lenses
-  , cloneProjectiveLens
-
   -- * Simple
   , SimpleProjection
-  , SimpleProjectiveLens
   ) where
 
+import Control.Arrow
 import Control.Applicative
 import Control.Category
 import Control.Monad.Reader as Reader
@@ -52,7 +45,6 @@ import Control.Monad.State as State
 import Control.Lens.Classes
 import Control.Lens.Getter
 import Control.Lens.Internal
-import Control.Lens.Traversal
 import Control.Lens.Type
 import Prelude hiding (id,(.))
 import Unsafe.Coerce
@@ -60,7 +52,7 @@ import Unsafe.Coerce
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Numeric.Natural
--- >>> let nat :: Simple Projection Integer Natural; nat = projecting toInteger $ \f i -> if i < 0 then pure i else toInteger <$> f (fromInteger i)
+-- >>> let nat :: Simple Projection Integer Natural; nat = projected toInteger $ \i -> if i <= 0 then Left i else Right (fromInteger i)
 -- >>> let isLeft  (Left  _) = True; isLeft  _ = False
 -- >>> let isRight (Right _) = True; isRight _ = False
 
@@ -88,10 +80,10 @@ import Unsafe.Coerce
 --
 -- @
 -- 'nat' :: 'Simple' 'Projection' 'Integer' 'Numeric.Natural.Natural'
--- 'nat' = 'projecting' 'toInteger' '$' \\ f i ->
+-- 'nat' = 'projected' 'toInteger' '$' \\ i ->
 --    if i '<' 0
---    then 'pure' i
---    else 'toInteger' '<$>' f ('fromInteger' i)
+--    then 'Left' i
+--    else 'Right' ('fromInteger' i)
 -- @
 --
 -- Now we can ask if an 'Integer' is a 'Natural'.
@@ -128,39 +120,17 @@ import Unsafe.Coerce
 -- Just 5
 type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f b) (s -> f t)
 
--- | A 'ProjectiveLens' @l@ is a 'Lens' that can also be turned around with 'remit' to
--- obtain a 'Getter' in the opposite direction, such that in addition to the 'Lens' laws, we also
--- satisfy the 'Projection' laws.
-type ProjectiveLens s t a b = forall k f. (Projective k, Functor f) => k (a -> f b) (s -> f t)
-
 -- | A @'Simple' 'Projection'@.
 type SimpleProjection s a = Projection s s a a
 
--- | @'Simple' 'ProjectiveLens'@
-type SimpleProjectiveLens s a = ProjectiveLens s s a a
-
 -- | Consume a 'Project'. This is commonly used when a function takes a 'Projection' as a parameter.
-type Projecting f s t a b = Overloaded Project f s t a b
-
--- | Construct a 'Projection' from a projection/embedding pair.
---
--- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
-projected :: (b -> t) -> (s -> Either t a) -> Projection s t a b
-projected bt sma = projecting bt $ \f s -> case sma s of
-  Left  t -> pure t
-  Right a -> bt <$> f a
+type Projecting s t a b = Overloaded Projected (Bazaar a b) s t a b
 
 -- | Clone a 'Projection' so that you can reuse the same monomorphically typed 'Projection' for different purposes.
 --
 -- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.
-cloneProjection :: Projecting (Bazaar a b) s t a b -> Projection s t a b
-cloneProjection (Project f g) = projecting (unsafeCoerce f) (cloneTraversal (unsafeCoerce g))
-
--- | Clone a 'ProjectiveLens'. Similar to 'cloneLens', 'cloneProjection', 'cloneTraversal' this
--- can permit you to reuse a projective lens several times in a function for different purposes
--- without a rank-2 type and explicit signature.
-cloneProjectiveLens :: Projecting (Context a b) s t a b -> ProjectiveLens s t a b
-cloneProjectiveLens (Project f g) = projecting (unsafeCoerce f) (cloneLens (unsafeCoerce g))
+cloneProjection :: Overloaded Projected (Bazaar a b) s t a b -> Projection s t a b
+cloneProjection (Projected f g) = projected (unsafeCoerce f) (unsafeCoerce g)
 
 ------------------------------------------------------------------------------
 -- Projection Combinators
@@ -178,8 +148,8 @@ cloneProjectiveLens (Project f g) = projecting (unsafeCoerce f) (cloneLens (unsa
 -- 'remit' :: 'Projection' s t a b -> 'Getter' b t
 -- 'remit' :: 'Iso' s t a b        -> 'Getter' b t
 -- @
-remit :: Projecting Mutator s t a b -> Getter b t
-remit (Project bt _) = to (unsafeCoerce bt)
+remit :: Projecting s t a b -> Getter b t
+remit (Projected bt _) = to (unsafeCoerce bt)
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way.
 --
@@ -203,8 +173,8 @@ remit (Project bt _) = to (unsafeCoerce bt)
 -- 'review' :: 'MonadReader' a m => 'Simple' 'Iso' s a        -> m s
 -- 'review' :: 'MonadReader' a m => 'Simple' 'Projection' s a -> m s
 -- @
-review :: MonadReader b m => Projecting Mutator s t a b -> m t
-review (Project bt _) = asks (unsafeCoerce bt)
+review :: MonadReader b m => Projecting s t a b -> m t
+review (Projected bt _) = asks (unsafeCoerce bt)
 {-# INLINE review #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way,
@@ -230,8 +200,8 @@ review (Project bt _) = asks (unsafeCoerce bt)
 -- 'reviews' :: 'MonadReader' a m => 'Simple' 'Iso' s a        -> (s -> r) -> m r
 -- 'reviews' :: 'MonadReader' a m => 'Simple' 'Projection' s a -> (s -> r) -> m r
 -- @
-reviews :: MonadReader b m => Projecting Mutator s t a b -> (t -> r) -> m r
-reviews (Project bt _) f = asks (f . unsafeCoerce bt)
+reviews :: MonadReader b m => Projecting s t a b -> (t -> r) -> m r
+reviews (Projected bt _) f = asks (f . unsafeCoerce bt)
 {-# INLINE reviews #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'use' a value (or the current environment) through it the other way.
@@ -245,8 +215,8 @@ reviews (Project bt _) f = asks (f . unsafeCoerce bt)
 -- 'reuse' :: 'MonadState' a m => 'Simple' 'Projection' s a -> m s
 -- 'reuse' :: 'MonadState' a m => 'Simple' 'Iso' s a        -> m s
 -- @
-reuse :: MonadState b m => Projecting Mutator s t a b -> m t
-reuse (Project bt _) = gets (unsafeCoerce bt)
+reuse :: MonadState b m => Projecting s t a b -> m t
+reuse (Projected bt _) = gets (unsafeCoerce bt)
 {-# INLINE reuse #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'use' the current state through it the other way,
@@ -261,8 +231,8 @@ reuse (Project bt _) = gets (unsafeCoerce bt)
 -- 'reuses' :: 'MonadState' a m => 'Simple' 'Projection' s a -> (s -> r) -> m r
 -- 'reuses' :: 'MonadState' a m => 'Simple' 'Iso' s a        -> (s -> r) -> m r
 -- @
-reuses :: MonadState b m => Projecting Mutator s t a b -> (t -> r) -> m r
-reuses (Project bt _) f = gets (f . unsafeCoerce bt)
+reuses :: MonadState b m => Projecting s t a b -> (t -> r) -> m r
+reuses (Projected bt _) f = gets (f . unsafeCoerce bt)
 {-# INLINE reuses #-}
 
 ------------------------------------------------------------------------------
@@ -288,9 +258,7 @@ reuses (Project bt _) f = gets (f . unsafeCoerce bt)
 -- >>> 5^.remit _left
 -- Left 5
 _left :: Projection (Either a c) (Either b c) a b
-_left = projecting Left $ \ f e -> case e of
-  Left a  -> Left <$> f a
-  Right c -> pure $ Right c
+_left = projected Left $ either Right (Left . Right)
 {-# INLINE _left #-}
 
 -- | traverse the right-hand value of an 'Either':
@@ -318,7 +286,5 @@ _left = projecting Left $ \ f e -> case e of
 -- >>> 5^.remit _right
 -- Right 5
 _right :: Projection (Either c a) (Either c b) a b
-_right = projecting Right $ \f e -> case e of
-  Left c -> pure $ Left c
-  Right a -> Right <$> f a
+_right = projected Right (left Left)
 {-# INLINE _right #-}

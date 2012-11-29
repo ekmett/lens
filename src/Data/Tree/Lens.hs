@@ -23,14 +23,13 @@ import Data.Tree
 --
 -- >>> view root $ Node 42 []
 -- 42
-root :: SimpleProjectiveLens (Tree a) a
-root = projecting (`Node` []) $ \ f (Node a as) -> f a <&> (`Node` as)
+root :: SimpleLens (Tree a) a
+root f (Node a as) = (`Node` as) <$> f a
 {-# INLINE root #-}
 
--- | A 'Traversal' of the direct descendants of the root of a 'Tree'
--- indexed by its position in the list of children
+-- | A 'Lens' returning the direct descendants of the root of a 'Tree'
 --
--- @'toListOf' 'branches' ≡ 'subForest'@
-branches :: SimpleIndexedTraversal Int (Tree a) (Tree a)
-branches = indexing $ \ f (Node a as) -> Node a <$> itraverse f as
+-- @'view' 'branches' ≡ 'subForest'@
+branches :: SimpleLens (Tree a) [Tree a]
+branches f (Node a as) = Node a <$> f as
 {-# INLINE branches #-}

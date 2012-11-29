@@ -71,7 +71,6 @@ import Control.Lens.Classes
 import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
-import Control.Lens.Indexed
 import Control.Lens.IndexedSetter
 import Control.Lens.IndexedFold
 import Control.Lens.IndexedTraversal
@@ -174,14 +173,14 @@ class Foldable f => FoldableWithIndex i f | f -> i where
 
 -- | The 'IndexedFold' of a 'FoldableWithIndex' container.
 ifolded :: FoldableWithIndex i f => IndexedFold i (f a) a
-ifolded = indexing $ \ f -> coerce . getFolding . ifoldMap (\i -> folding# (f i))
+ifolded = indexed $ \ f -> coerce . getFolding . ifoldMap (\i -> folding# (f i))
 {-# INLINE ifolded #-}
 
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
 --
 -- This can be useful to lift operations from @Data.List@ and elsewhere into a 'Fold'.
 ifolding :: FoldableWithIndex i f => (s -> f a) -> IndexedFold i s a
-ifolding sfa = indexing $ \ iagb -> coerce . itraverse_ iagb . sfa
+ifolding sfa = indexed $ \ iagb -> coerce . itraverse_ iagb . sfa
 {-# INLINE ifolding #-}
 
 -- |
@@ -336,13 +335,13 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
   itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
 #ifdef MPTC_DEFAULTS
   default itraverse :: Applicative f => (Int -> a -> f b) -> t a -> f (t b)
-  itraverse = withIndex (indexed traverse)
+  itraverse = withIndex traversed
   {-# INLINE itraverse #-}
 #endif
 
 -- | The 'IndexedTraversal' of a 'TraversableWithIndex' container.
 itraversed :: TraversableWithIndex i f => IndexedTraversal i (f a) (f b) a b
-itraversed = indexing itraverse
+itraversed = indexed itraverse
 {-# INLINE itraversed #-}
 
 -- |
@@ -402,7 +401,7 @@ imapAccumL f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards 
 -- >>> over (iwhere (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
 iwhere :: TraversableWithIndex i t => (i -> Bool) -> SimpleIndexedTraversal i (t a) a
-iwhere p = indexing $ \f a -> itraverse (\i c -> if p i then f i c else pure c) a
+iwhere p = indexed $ \f a -> itraverse (\i c -> if p i then f i c else pure c) a
 {-# INLINE iwhere #-}
 
 -------------------------------------------------------------------------------
@@ -417,7 +416,7 @@ instance FoldableWithIndex Int [] where
   ifoldMap = ifoldMapOf itraversed
   {-# INLINE ifoldMap #-}
 instance TraversableWithIndex Int [] where
-  itraverse = withIndex (indexed traverse)
+  itraverse = withIndex traversed
   {-# INLINE itraverse #-}
 
 -- | The position in the sequence is available as the index.
@@ -428,7 +427,7 @@ instance FoldableWithIndex Int Seq where
   ifoldMap = ifoldMapOf itraversed
   {-# INLINE ifoldMap #-}
 instance TraversableWithIndex Int Seq where
-  itraverse = withIndex (indexed traverse)
+  itraverse = withIndex traversed
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex Int Vector where

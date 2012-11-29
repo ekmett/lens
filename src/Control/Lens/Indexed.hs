@@ -16,14 +16,14 @@
 -- Combinators for working with 'Indexed' functions.
 ----------------------------------------------------------------------------
 module Control.Lens.Indexed
-  ( Indexed(..)
+  ( Indexable(..)
   -- * Indexed Functions
-  , Indexable
-  , Index(..)
+  , Indexed(..)
   , (<.>), (<.), (.>)
   , icompose
-  , reindexing
-  , indexed
+  , reindexed
+  -- * Indexing existing lenses, traversals, etc.
+  , indexing
   ) where
 
 import Control.Lens.Classes
@@ -31,66 +31,47 @@ import Control.Lens.Internal
 
 infixr 9 <.>, <., .>
 
--- | Type alias for passing around polymorphic 'Indexed' functions that can be called 'withIndex' or
--- directly as a function
-type Indexable i a b = forall k. Indexed i k => k a b
-
--- | A function with access to a index. This constructor may be useful when you need to store
--- a 'Indexable' in a container to avoid @ImpredicativeTypes@.
-newtype Index i a b = Index { withIndex :: (i -> a) -> b }
-
--- | Using an equality witness to avoid potential overlapping instances
--- and aid dispatch.
-instance i ~ j => Indexed i (Index j) where
-  indexing = Index
-  {-# INLINE indexing #-}
-
-instance i ~ j => IndexedProjective i (Index j) where
-  iprojecting _ = Index
-  {-# INLINE iprojecting #-}
-
 -- | Compose an 'Indexed' function with a non-indexed function.
 --
 -- Mnemonically, the @<@ points to the indexing we want to preserve.
-(<.)  :: Indexed i k => Index i b c -> (a -> b) -> k a c
-Index ibc <. ab = indexing $ \ia -> ibc (ab . ia)
+(<.)  :: Indexable i k => Indexed i b c -> (a -> b) -> k a c
+Indexed ibc <. ab = indexed $ \ia -> ibc (ab . ia)
 {-# INLINE (<.) #-}
 
 -- | Compose a non-indexed function with an 'Indexed' function.
 --
 -- Mnemonically, the @>@ points to the indexing we want to preserve.
-(.>)  :: Indexed i k => (b -> c) -> Index i a b -> k a c
-bc .> Index iab = indexing (bc . iab)
+(.>)  :: Indexable i k => (b -> c) -> Indexed i a b -> k a c
+bc .> Indexed iab = indexed (bc . iab)
 {-# INLINE (.>) #-}
 
 -- | Remap the index.
-reindexing :: Indexed j k => (i -> j) -> Index i a b -> k a b
-reindexing ij (Index iab) = indexing $ \ ja -> iab $ \i -> ja (ij i)
-{-# INLINE reindexing #-}
+reindexed :: Indexable j k => (i -> j) -> Indexed i a b -> k a b
+reindexed ij (Indexed iab) = indexed $ \ ja -> iab $ \i -> ja (ij i)
+{-# INLINE reindexed #-}
 
 -- | Composition of 'Indexed' functions
 --
 -- Mnemonically, the @\<@ and @\>@ points to the fact that we want to preserve the indices.
-(<.>) :: Indexed (i, j) k => Index i b c -> Index j a b -> k a c
+(<.>) :: Indexable (i, j) k => Indexed i b c -> Indexed j a b -> k a c
 f <.> g = icompose (,) f g
 {-# INLINE (<.>) #-}
 
 -- | Composition of 'Indexed' functions with a user supplied function for combining indexs
-icompose :: Indexed k r => (i -> j -> k) -> Index i b c -> Index j a b -> r a c
-icompose ijk (Index ibc) (Index jab) = indexing $ \ka -> ibc $ \i -> jab $ \j -> ka (ijk i j)
+icompose :: Indexable k r => (i -> j -> k) -> Indexed i b c -> Indexed j a b -> r a c
+icompose ijk (Indexed ibc) (Indexed jab) = indexed $ \ka -> ibc $ \i -> jab $ \j -> ka (ijk i j)
 {-# INLINE icompose #-}
 
 -- | Transform an 'Traversal' into an 'Control.Lens.IndexedTraversal.IndexedTraversal', a 'Fold' into an 'Control.Lens.IndexedFold.IndexedFold', etc.
 --
 -- @
--- 'indexed' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.IndexedTraversal.IndexedTraversal' 'Int' s t a b
--- 'indexed' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
--- 'indexed' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
--- 'indexed' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
--- 'indexed' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.IndexedTraversal.IndexedTraversal' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
+-- 'indexing' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
 -- @
-indexed :: Indexed Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k (a -> f b) (s -> f t)
-indexed l = indexing $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
+indexing :: Indexable Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k (a -> f b) (s -> f t)
+indexing l = indexed $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
   (r, _) -> r
-{-# INLINE indexed #-}
-
+{-# INLINE indexing #-}

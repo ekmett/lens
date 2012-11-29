@@ -163,7 +163,7 @@ l <.|.= b = l <%= (.|. b)
 -- >>> 16 & bitAt 4 .~ False
 -- 0
 bitAt :: Bits b => Int -> SimpleIndexedLens Int b Bool
-bitAt n = indexing $ \f b -> f n (testBit b n) <&> \x -> if x then setBit b n else clearBit b n
+bitAt n = indexed $ \f b -> f n (testBit b n) <&> \x -> if x then setBit b n else clearBit b n
 {-# INLINE bitAt #-}
 
 -- | Traverse over all bits in a numeric type.
@@ -176,7 +176,7 @@ bitAt n = indexing $ \f b -> f n (testBit b n) <&> \x -> if x then setBit b n el
 -- If you supply this an 'Integer', the result will be an infinite 'Traversal', which
 -- can be productively consumed, but not reassembled.
 bits :: (Num b, Bits b) => SimpleIndexedTraversal Int b Bool
-bits = indexing $ \f b -> let
+bits = indexed $ \f b -> let
     g n      = (,) n <$> f n (testBit b n)
     bs       = Prelude.takeWhile hasBit [0..]
     hasBit n = complementBit b n /= b -- test to make sure that complementing this bit actually changes the value

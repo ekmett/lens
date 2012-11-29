@@ -53,12 +53,12 @@ import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
+import Control.Lens.IndexedLens
 import Control.Lens.Iso
 import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
 import Control.Lens.Type
-import Control.Lens.IndexedProjection
 import Data.Char (toLower)
 import Data.Either (lefts)
 import Data.Foldable hiding (concat)

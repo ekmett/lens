@@ -22,10 +22,10 @@ module Control.Lens.Iso
     Iso
   -- * Isomorphism Construction
   , Isomorphic(..)
+  , Isomorphism(..)
   -- * Consuming Isomorphisms
   , from
   , cloneIso
-  , Isomorphism
   -- * Working with isomorphisms
   , au
   , auf
@@ -49,10 +49,10 @@ import Control.Monad.Reader
 import Control.Lens.Classes
 import Control.Lens.Internal
 import Control.Lens.Type
-import Data.ByteString as StrictB
-import Data.ByteString.Lazy as LazyB
-import Data.Text as StrictT
-import Data.Text.Lazy as LazyT
+import Data.ByteString as StrictB hiding (length)
+import Data.ByteString.Lazy as LazyB hiding (length)
+import Data.Text as StrictT hiding (length)
+import Data.Text.Lazy as LazyT hiding (length)
 import Data.Maybe (fromMaybe)
 import Prelude hiding ((.),id)
 import Unsafe.Coerce
@@ -67,12 +67,6 @@ import Unsafe.Coerce
 -- Consuming Isomorphisms
 -----------------------------------------------------------------------------
 
--- | This is a particularly concrete type used by functions that want to work
--- directly with the individual getter/setter pairs that make up an 'Iso'
---
--- If you see this type it probably means that the function expects an 'Iso'.
-type Isomorphism s t a b = Isos (a -> Mutator b) (s -> Mutator t)
-
 -- | Invert an isomorphism.
 --
 -- Note to compose an isomorphism and receive an isomorphism in turn you'll need to use
@@ -83,8 +77,8 @@ type Isomorphism s t a b = Isos (a -> Mutator b) (s -> Mutator t)
 -- If you've imported 'Control.Category..' from @Control.Category@, then:
 --
 -- @'from' l '.' 'from' r ≡ 'from' (r '.' l)@
-from :: (Isomorphic k, Functor f) => Isomorphism s t a b -> k (t -> f s) (b -> f a)
-from (Isos sa bt) = iso (unsafeCoerce bt) sa
+from :: (Isomorphic k, Functor f) => Overloaded Isomorphism Mutator s t a b -> k (t -> f s) (b -> f a)
+from (Isomorphism sa bt) = iso (unsafeCoerce bt) sa
 {-# INLINE from #-}
 
 -- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.
@@ -93,8 +87,8 @@ from (Isos sa bt) = iso (unsafeCoerce bt) sa
 -- and later reconstitute it as an overloaded function.
 --
 -- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
-cloneIso :: Isomorphism s t a b -> Iso s t a b
-cloneIso (Isos sa bt) = iso sa (unsafeCoerce bt)
+cloneIso :: Overloaded Isomorphism Mutator s t a b -> Iso s t a b
+cloneIso (Isomorphism sa bt) = iso sa (unsafeCoerce bt)
 {-# INLINE cloneIso #-}
 
 -----------------------------------------------------------------------------
@@ -124,8 +118,8 @@ type SimpleIso s a = Iso s s a a
 --
 -- >>> au (wrapping Sum) foldMap [1,2,3,4]
 -- 10
-au :: Isomorphism s t a b -> ((s -> a) -> e -> b) -> e -> t
-au (Isos sa bt) f e = unsafeCoerce bt (f sa e)
+au :: Overloaded Isomorphism Mutator s t a b -> ((s -> a) -> e -> b) -> e -> t
+au (Isomorphism sa bt) f e = unsafeCoerce bt (f sa e)
 {-# INLINE au #-}
 
 -- |
@@ -138,8 +132,8 @@ au (Isos sa bt) f e = unsafeCoerce bt (f sa e)
 --
 -- >>> auf (wrapping Sum) (foldMapOf both) length ("hello","world")
 -- 10
-auf :: Isomorphism s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
-auf (Isos sa bt) f g e = unsafeCoerce bt (f (sa . g) e)
+auf :: Overloaded Isomorphism Mutator s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
+auf (Isomorphism sa bt) f g e = unsafeCoerce bt (f (sa . g) e)
 {-# INLINE auf #-}
 
 -- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
@@ -147,8 +141,8 @@ auf (Isos sa bt) f g e = unsafeCoerce bt (f (sa . g) e)
 -- @'under' ≡ 'over' '.' 'from'@
 --
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
-under :: Isomorphism s t a b -> (t -> s) -> b -> a
-under (Isos sa bt) ts b = sa (ts (unsafeCoerce bt b))
+under :: Overloaded Isomorphism Mutator s t a b -> (t -> s) -> b -> a
+under (Isomorphism sa bt) ts b = sa (ts (unsafeCoerce bt b))
 {-# INLINE under #-}
 
 -----------------------------------------------------------------------------
@@ -173,8 +167,8 @@ enum = iso toEnum fromEnum
 {-# INLINE enum #-}
 
 -- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
-mapping :: Functor f => Isomorphism s t a b -> Iso (f s) (f t) (f a) (f b)
-mapping (Isos sa bt) = iso (fmap sa) (fmap (unsafeCoerce bt))
+mapping :: Functor f => Overloaded Isomorphism Mutator s t a b -> Iso (f s) (f t) (f a) (f b)
+mapping (Isomorphism sa bt) = iso (fmap sa) (fmap (unsafeCoerce bt))
 {-# INLINE mapping #-}
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',

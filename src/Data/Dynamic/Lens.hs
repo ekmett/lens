@@ -21,7 +21,5 @@ import Data.Dynamic
 -- Traverse the typed value contained in a 'Dynamic' where the type required by your function matches that
 -- of the contents of the 'Dynamic'.
 dynamic :: (Typeable a, Typeable b) => Projection Dynamic Dynamic a b
-dynamic = projecting toDyn $ \f e -> case fromDynamic e of
-  Just a  -> toDyn <$> f a
-  Nothing -> pure e
+dynamic = projected toDyn $ \e -> maybe (Left e) Right (fromDynamic e)
 {-# INLINE dynamic #-}

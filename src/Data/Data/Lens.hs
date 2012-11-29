@@ -140,7 +140,7 @@ instance Show (FieldException a) where
 instance Typeable a => Exception (FieldException a)
 
 lookupon :: Typeable a => SimpleLensLike (Indexing Mutator) s a -> (s -> a) -> s -> Maybe (Int, Context a a s)
-lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & indexed l %@~ \i (a::a) -> E.throw (FieldException i a) of
+lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & indexing l %@~ \i (a::a) -> E.throw (FieldException i a) of
   Right _ -> Nothing
   Left e -> case fromException e of
     Nothing -> Nothing
@@ -191,10 +191,10 @@ lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & index
 -- >>> uponTheDeep (tail.tail) .~ [10,20] $ [1,2,3,4] -- GOOD
 -- [1,2,10,20]
 --
--- The index of the 'Traversal' can be used as an offset into @'elementOf' ('indexed' 'template')@ or into the list
+-- The index of the 'Traversal' can be used as an offset into @'elementOf' ('indexing' 'template')@ or into the list
 -- returned by @'holesOf' 'template'@.
 upon :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedTraversal Int s a
-upon field = indexing $ \f s -> case lookupon template field s of
+upon field = indexed $ \f s -> case lookupon template field s of
   Nothing -> pure s
   Just (i, Context k a) -> k <$> f i a
 {-# INLINE upon #-}
@@ -211,9 +211,9 @@ upon field = indexing $ \f s -> case lookupon template field s of
 -- 2. Modifying with the lens is slightly slower, since it has to go back and calculate the index after the fact.
 --
 -- When given a legal field accessor, the index of the 'Lens' can be used as an offset into
--- @'elementOf' ('indexed' 'template')@ or into the list returned by @'holesOf' 'template'@.
+-- @'elementOf' ('indexing' 'template')@ or into the list returned by @'holesOf' 'template'@.
 upon' :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedLens Int s a
-upon' field = indexing $ \f s -> let
+upon' field = indexed $ \f s -> let
     ~(i, Context k _) = case lookupon template field s of
       Nothing -> error "upon': no index, not a member"
       Just ip -> ip
@@ -227,8 +227,8 @@ upon' field = indexing $ \f s -> let
 -- [1,2,10,20]
 --
 -- @'uponTheDeep' :: ('Data' s, 'Data' a) => (s -> a) -> 'SimpleIndexedTraversal' [Int] s a@
-uponTheDeep :: forall k f s a. (Indexed [Int] k, Applicative f, Data s, Data a) => (s -> a) -> k (a -> f a) (s -> f s)
-uponTheDeep field = indexing $ \ f s -> case lookupon template field s of
+uponTheDeep :: forall k f s a. (Indexable [Int] k, Applicative f, Data s, Data a) => (s -> a) -> k (a -> f a) (s -> f s)
+uponTheDeep field = indexed $ \ f s -> case lookupon template field s of
   Nothing -> pure s
   Just (i, Context k0 a0) ->
     let
@@ -249,7 +249,7 @@ uponTheDeep field = indexing $ \ f s -> case lookupon template field s of
 -- >>> uponTheDeep' (tail.tail) .~ [10,20] $ [1,2,3,4]
 -- [1,2,10,20]
 uponTheDeep' :: forall s a. (Data s, Data a) => (s -> a) -> SimpleIndexedLens [Int] s a
-uponTheDeep' field = indexing $ \ f s -> let
+uponTheDeep' field = indexed $ \ f s -> let
     ~(isn, kn) = case lookupon template field s of
       Nothing -> (error "uponTheDeep': no index, not a member", const s)
       Just (i, Context k0 _) -> go [i] (elementOf template i) k0
