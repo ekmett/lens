@@ -217,14 +217,14 @@ non a = iso (fromMaybe a) go where
 -- | The canonical isomorphism for currying and uncurrying function.
 --
 -- @'curried' = 'iso' 'curry' 'uncurry'@
-curried :: Simple Iso ((a,b) -> c) ((d,e) -> f) (a -> b -> c) (d -> e -> f)
+curried :: Iso ((a,b) -> c) ((d,e) -> f) (a -> b -> c) (d -> e -> f)
 curried = iso curry uncurry
 
 -- | The canonical isomorphism for uncurrying and currying function.
 --
 -- @'uncurried' = 'iso' 'uncurry' 'curry'@
 -- @'uncurried' = 'from' 'curried'@
-uncurried :: Simple Iso (a -> b -> c) (d -> e -> f) ((a,b) -> c) ((d,e) -> f)
+uncurried :: Iso (a -> b -> c) (d -> e -> f) ((a,b) -> c) ((d,e) -> f)
 uncurried = iso uncurry curry
 
 -----------------------------------------------------------------------------
