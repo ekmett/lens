@@ -89,9 +89,9 @@ import Control.Applicative
 import Control.Lens.Classes
 import Control.Lens.Getter
 import Control.Lens.IndexedFold
-import Control.Lens.IndexedLens
 import Control.Lens.IndexedSetter
 import Control.Lens.IndexedTraversal
+import Control.Lens.IndexedProjection
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Lens.Type

@@ -27,10 +27,6 @@ module Control.Lens.IndexedLens
   (
   -- * Indexed Lenses
     IndexedLens
-  -- * Common Indexed Lenses
-  , At(..)
-  , Contains(..)
-  , resultAt
   -- * Indexed Lens Combinators
   , (%%@~)
   , (<%@~)
@@ -43,20 +39,10 @@ module Control.Lens.IndexedLens
   , SimpleReifiedIndexedLens
   ) where
 
-import Control.Applicative
-import Control.Lens.Combinators
 import Control.Lens.Internal
 import Control.Lens.Indexed
 import Control.Lens.Type
 import Control.Monad.State.Class as State
-import Data.Hashable
-import Data.HashMap.Lazy as HashMap
-import Data.IntMap as IntMap
-import Data.Map as Map
-
-import Data.HashSet as HashSet
-import Data.IntSet as IntSet
-import Data.Set as Set
 
 -- $setup
 -- >>> import Control.Lens
@@ -142,68 +128,6 @@ l %%@= f = do
 (<%@=) :: MonadState s m => Overloaded (Index i) ((,)b) s s a b -> (i -> a -> b) -> m b
 l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 {-# INLINE (<%@=) #-}
-
--- | Provides an 'IndexedLens' that can be used to read, write or delete the value associated with a key in a map-like container.
-class At k m | m -> k where
-  -- |
-  -- >>> Map.fromList [(1,"hello")] ^.at 1
-  -- Just "hello"
-  --
-  -- >>> at 1 ?~ "hello" $ Map.empty
-  -- fromList [(1,"hello")]
-  at :: k -> SimpleIndexedLens k (m v) (Maybe v)
-
-instance At Int IntMap where
-  at k = indexing $ \f m ->
-    let mv = IntMap.lookup k m
-        go Nothing   = maybe m (const (IntMap.delete k m)) mv
-        go (Just v') = IntMap.insert k v' m
-    in go <$> f k mv
-  {-# INLINE at #-}
-
-instance Ord k => At k (Map k) where
-  at k = indexing $ \f m ->
-    let mv = Map.lookup k m
-        go Nothing   = maybe m (const (Map.delete k m)) mv
-        go (Just v') = Map.insert k v' m
-    in go <$> f k mv
-  {-# INLINE at #-}
-
-instance (Eq k, Hashable k) => At k (HashMap k) where
-  at k = indexing $ \f m ->
-    let mv = HashMap.lookup k m
-        go Nothing   = maybe m (const (HashMap.delete k m)) mv
-        go (Just v') = HashMap.insert k v' m
-    in go <$> f k mv
-  {-# INLINE at #-}
-
--- | Provides an 'IndexedLens' that can be used to read, write or delete a member of a set-like container
-class Contains k m | m -> k where
-  -- |
-  -- >>> contains 3 .~ False $ IntSet.fromList [1,2,3,4]
-  -- fromList [1,2,4]
-  contains :: k -> SimpleIndexedLens k m Bool
-
-instance Contains Int IntSet where
-  contains k = indexing $ \ f s -> f k (IntSet.member k s) <&> \b -> if b then IntSet.insert k s else IntSet.delete k s
-  {-# INLINE contains #-}
-
-instance Ord k => Contains k (Set k) where
-  contains k = indexing $ \ f s -> f k (Set.member k s) <&> \b -> if b then Set.insert k s else Set.delete k s
-  {-# INLINE contains #-}
-
-instance (Eq k, Hashable k) => Contains k (HashSet k) where
-  contains k = indexing $ \ f s -> f k (HashSet.member k s) <&> \b -> if b then HashSet.insert k s else HashSet.delete k s
-  {-# INLINE contains #-}
-
--- | This lens can be used to change the result of a function but only where
--- the arguments match the key given.
---
--- >>> let f = (+1) & resultAt 3 .~ 8 in (f 2, f 3)
--- (3,8)
-resultAt :: Eq e => e -> SimpleIndexedLens e (e -> a) a
-resultAt e = indexing $ \ g f -> g e (f e) <&> \a' e' -> if e == e' then a' else f e'
-{-# INLINE resultAt #-}
 
 ------------------------------------------------------------------------------
 -- Reifying Indexed Lenses

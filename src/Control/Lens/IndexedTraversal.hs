@@ -30,7 +30,6 @@ module Control.Lens.IndexedTraversal
     IndexedTraversal
 
   -- * Common Indexed Traversals
-  , _at
   , iwhereOf
   , value
   , ignored
@@ -62,7 +61,6 @@ import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Combinators
 import Control.Lens.Indexed
-import Control.Lens.IndexedLens
 import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy as Lazy
@@ -205,13 +203,6 @@ swap (a,b) = (b,a)
 iwhereOf :: (Indexed i k, Applicative f) => Overloaded (Index i) f s t a a -> (i -> Bool) -> Overloaded k f s t a a
 iwhereOf l p = indexing $ \f s -> withIndex l (\i a -> if p i then f i a else pure a) s
 {-# INLINE iwhereOf #-}
-
--- | This simple indexed traversal lets you 'traverse' the value at a given key in a map.
---
--- @'_at' k = 'at' k '<.' 'traverse'@
-_at :: At k m => k -> SimpleIndexedTraversal k (m v) v
-_at k = at k <. traverse
-{-# INLINE _at #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
 traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b
