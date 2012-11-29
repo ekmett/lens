@@ -18,15 +18,19 @@ module Control.Lens.IndexedProjection
   (
   -- * Projections
     IndexedProjection
+  , IndexedProjectiveLens
   -- * Constructing Projections
   , IndexedProjective(..)
   , IndexedProjecting
+
 {-
   -- * Consuming Projections
   , cloneIndexedProjection
 -}
+
   -- * Simple
   , SimpleIndexedProjection
+  , SimpleIndexedProjectiveLens
   ) where
 
 import Control.Applicative
@@ -49,8 +53,14 @@ import Prelude hiding (id,(.))
 -- 'Projecting'. If you need to pass it as a 'Projection', you may have to call 'cloneProjection' on it first.
 type IndexedProjection i s t a b = forall k f. (IndexedProjective i k, Applicative f) => k (a -> f b) (s -> f t)
 
--- | A @'Simple' 'Projection'@.
+-- | An 'IndexedProjectiveLens' @l@ is an 'IndexedLens' than can also be used as an 'IndexedProjection'
+type IndexedProjectiveLens i s t a b = forall k f. (IndexedProjective i k, Functor f) => k (a -> f b) (s -> f t)
+
+-- | A @'Simple' ('IndexedProjection' i)@
 type SimpleIndexedProjection i s a = IndexedProjection i s s a a
+
+-- | A @'Simple' ('IndexedProjectiveLens' i)@
+type SimpleIndexedProjectiveLens i s a = IndexedProjectiveLens i s s a a
 
 -- | Consume a 'Project'. This is commonly used when a function takes a 'Projection' as a parameter.
 type IndexedProjecting i f s t a b = Overloaded (IndexedProject i) f s t a b
