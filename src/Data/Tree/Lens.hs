@@ -23,8 +23,8 @@ import Data.Tree
 --
 -- >>> view root $ Node 42 []
 -- 42
-root :: Simple Lens (Tree a) a
-root f (Node a as) = f a <&> (`Node` as)
+root :: SimpleProjectiveLens (Tree a) a
+root = projecting (`Node` []) $ \ f (Node a as) -> f a <&> (`Node` as)
 {-# INLINE root #-}
 
 -- | A 'Traversal' of the direct descendants of the root of a 'Tree'

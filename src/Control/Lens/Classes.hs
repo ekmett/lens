@@ -164,7 +164,7 @@ instance Isomorphic (->) where
 -- class (forall i. IndexedProjective i k, Isomorphic k) => Projective k where
 class Isomorphic k => Projective k where
   -- | Build a 'Control.Lens.Projection.Projection'.
-  projecting :: Applicative f => (b -> t) -> ((a -> f b) -> s -> f t) -> k (a -> f b) (s -> f t)
+  projecting :: (b -> t) -> ((a -> f b) -> s -> f t) -> k (a -> f b) (s -> f t)
 
 instance Projective (->) where
   projecting _ k = k
@@ -187,7 +187,7 @@ instance Indexed i (->) where
 -- a notion of a key or index, and provide an embedding in the opposite direction.
 class IndexedProjective i k where
   -- | Build a 'Control.Lens.IndexedProjection'.
-  iprojecting :: Applicative f => (b -> t) -> ((i -> a -> f b) -> s -> f t) -> k (a -> f b) (s -> f t)
+  iprojecting :: (b -> t) -> ((i -> a -> f b) -> s -> f t) -> k (a -> f b) (s -> f t)
 
 instance IndexedProjective i (->) where
   iprojecting _ f = f . const

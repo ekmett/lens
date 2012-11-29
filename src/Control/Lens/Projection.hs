@@ -18,19 +18,30 @@ module Control.Lens.Projection
   (
   -- * Projections
     Projection
+
   -- * Constructing Projections
   , Projective(..)
+
   -- * Consuming Projections
   , Projecting
   , cloneProjection
   , remit
   , review, reviews
   , reuse, reuses
+
   -- * Common projections
   , _left
   , _right
+
+  -- * Projective Lenses
+  , ProjectiveLens
+
+  -- * Consuming projective lenses
+  , cloneProjectiveLens
+
   -- * Simple
   , SimpleProjection
+  , SimpleProjectiveLens
   ) where
 
 import Control.Applicative
@@ -116,18 +127,35 @@ import Unsafe.Coerce
 -- Just 5
 type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f b) (s -> f t)
 
+-- | A 'ProjectiveLens' @l@ is a 'Lens' that can also be turned around with 'remit' to
+-- obtain a 'Getter' in the opposite direction, such that in addition to the 'Lens' laws, we also
+-- satisfy the 'Projection' laws.
+type ProjectiveLens s t a b = forall k f. (Projective k, Functor f) => k (a -> f b) (s -> f t)
+
 -- | A @'Simple' 'Projection'@.
 type SimpleProjection s a = Projection s s a a
 
+-- | @'Simple' 'ProjectiveLens'@
+type SimpleProjectiveLens s a = ProjectiveLens s s a a
+
+-- | Consume a 'Project'. This is commonly used when a function takes a 'Projection' as a parameter.
+type Projecting f s t a b = Overloaded Project f s t a b
 
 -- | Clone a 'Projection' so that you can reuse the same monomorphically typed 'Projection' for different purposes.
 --
 -- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.
-cloneProjection :: Overloaded Project (Bazaar a b) s t a b -> Projection s t a b
+cloneProjection :: Projecting (Bazaar a b) s t a b -> Projection s t a b
 cloneProjection (Project f g) = projecting (unsafeCoerce f) (cloneTraversal (unsafeCoerce g))
 
--- | Consume a 'Project'. This is commonly used when a function takes a 'Projection' as a parameter.
-type Projecting f s t a b = Overloaded Project f s t a b
+-- | Clone a 'ProjectiveLens'. Similar to 'cloneLens', 'cloneProjection', 'cloneTraversal' this
+-- can permit you to reuse a projective lens several times in a function for different purposes
+-- without a rank-2 type and explicit signature.
+cloneProjectiveLens :: Projecting (Context a b) s t a b -> ProjectiveLens s t a b
+cloneProjectiveLens (Project f g) = projecting (unsafeCoerce f) (cloneLens (unsafeCoerce g))
+
+------------------------------------------------------------------------------
+-- Projection Combinators
+------------------------------------------------------------------------------
 
 -- | Turn a 'Projection' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
 --
@@ -228,6 +256,10 @@ reuses :: MonadState b m => Projecting Mutator s t a b -> (t -> r) -> m r
 reuses (Project bt _) f = gets (f . unsafeCoerce bt)
 {-# INLINE reuses #-}
 
+------------------------------------------------------------------------------
+-- Common Projections
+------------------------------------------------------------------------------
+
 -- | This projection provides a traversal for tweaking the left-hand value of an 'Either':
 --
 -- >>> over _left (+1) (Left 2)
@@ -281,21 +313,3 @@ _right = projecting Right $ \f e -> case e of
   Left c -> pure $ Left c
   Right a -> Right <$> f a
 {-# INLINE _right #-}
-
-
-{-
-
--- | A 'ProjectiveLens' @l@ is a 'Lens' that can also be turned around with 'remit' to
--- obtain a 'Getter' in the opposite direction, such that in addition to the 'Lens' laws, we also
--- satisfy the 'Projection' laws.
-type ProjectiveLens s t a b = forall k f. (Projective k, Functor f) => k (a -> f b) (s -> f t)
-
-type NonEmptyProjecting s t a b = P
-
-cloneProjectiveLens :: Overloaded Project (Context a b) s t a b -> ProjectiveLens s t a b
-cloneProjectiveLens (Project f g) = projecting (unsafeCoerce f) (cloneLens (unsafeCoerce g))
-
--- | @'Simple' 'ProjectiveLens'@
-type SimpleProjectiveLens s a = ProjectiveLens s s a a
-
--}
