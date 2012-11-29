@@ -515,3 +515,6 @@ instance Isomorphic Isos where
 -- If you see a function that expects an 'IndexedProject', it is probably just expecting a 'IndexedProjection'.
 data IndexedProject i x y where
   IndexedProject :: (b -> t) -> ((i -> a -> f b) -> s -> f t) -> IndexedProject i (a -> f b) (s -> f t)
+
+instance i ~ j => IndexedProjective i (IndexedProject j) where
+  iprojecting = IndexedProject
