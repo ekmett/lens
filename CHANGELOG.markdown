@@ -1,21 +1,24 @@
 3.7
 -----
+* Implemented a complete redesign of the way `Iso` and `Projection` is handled internally. Any `Iso` can now be used as a `Projection`.
+* Changes to the signature of `from` and `under` necessitated by the new design.
+* Repurposed `ala` to be closer to the original design in @newtype@.
+* Added `au` and `alaf`.
+* The `isos` combinator is no longer required. `iso` can now be used to construct an `Iso`.
 * Added `_magnitude`, `_phase` and `_conjugate` to `Data.Complex.Lens`. Renamed other lenses for consistency: `_realPart`, `_imagPart`, `_polar`.
 * Promoted `_left` and `_right` to projections and moved them to `Control.Lens.Projection`.
-* Implemented a complete redesign of the way `Projection` is handled internally, that necessitated some changes to `Iso` internally as well.
 * Generalized `view` and `views` to subsume the old functionality of `peruse` and `peruses`.
 * Generalized `review` and `reviews` to both return a `MonadReader` and to work on a `Projection`.
 * Added `view'`/`views'` and `use'`/`uses'` for `Simple` access to the environment/state.
 * Added `set'`, a `Simple` version of `set`.
 * Added `reuse` : `use` :: `review` : `view` and `reuses` : `uses` :: `reviews` : `views` for working a `Projection` from the current `MonadState`.
 * Added `Control.Lens.Wrapped` providing a canonical isomorphism for newtypes.
-* Repurposed `ala` to be closer to the original design in @newtype@.
-* Added `au` and `alaf`.
 * Removed many isomorphisms for various newtypes. `_const`, `identity`, `_sum`, etc. Use `wrapping Const`, `wrapping Identity`, etc.
 * Removed `Data.Monoid.Lens` now that its newtypes are instances of `Wrapped`, exporting the (`<>=`)-variants from `Control.Lens.*`.
 * Renamed `via` to `cloneIso` for consistency.
 * Moved `Indexed(..)` to `Control.Lens.Classes`.
 * Renamed `index` to `indexing` to reduce conflicts with third-party libraries.
+* `At(..)` and `Contains(..)` now provide simple indexed projections.
 
 3.6
 -----
