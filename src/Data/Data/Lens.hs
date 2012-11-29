@@ -206,7 +206,7 @@ upon field = indexing $ \f s -> case lookupon template field s of
 -- However, you pay for faster access in two ways:
 --
 -- 1. When passed an illegal field accessor, 'upon'' will give you a 'Lens' that quietly violates
---    the laws unlike 'upon' will will give you a legal 'Traversal', that avoids modifying the target.
+--    the laws, unlike 'upon', which will give you a legal 'Traversal' that avoids modifying the target.
 --
 -- 2. Modifying with the lens is slightly slower, since it has to go back and calculate the index after the fact.
 --
