@@ -21,6 +21,8 @@ module Control.Lens.Projection
 
   -- * Constructing Projections
   , Projective(..)
+  , projection
+  , projected
 
   -- * Consuming Projections
   , Projecting
@@ -140,6 +142,14 @@ type SimpleProjectiveLens s a = ProjectiveLens s s a a
 
 -- | Consume a 'Project'. This is commonly used when a function takes a 'Projection' as a parameter.
 type Projecting f s t a b = Overloaded Project f s t a b
+
+-- | Construct a 'Projection' from a projection/embedding pair.
+--
+-- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
+projected :: (b -> t) -> (s -> Either t a) -> Projection s t a b
+projected bt sma = projecting bt $ \f s -> case sma s of
+  Left  t -> pure t
+  Right a -> bt <$> f a
 
 -- | Clone a 'Projection' so that you can reuse the same monomorphically typed 'Projection' for different purposes.
 --

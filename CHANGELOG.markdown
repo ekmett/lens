@@ -19,6 +19,7 @@
 * Moved `Indexed(..)` to `Control.Lens.Classes`.
 * Renamed `index` to `indexing` to reduce conflicts with third-party libraries.
 * `At(..)` and `Contains(..)` now provide simple indexed projections.
+* Added `curried` and `uncurried` to `Control.Lens.Iso`.
 
 3.6
 -----

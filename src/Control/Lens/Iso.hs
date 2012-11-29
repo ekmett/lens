@@ -33,6 +33,7 @@ module Control.Lens.Iso
   , simple
   , non
   , enum
+  , curried, uncurried
   -- * Storing Isomorphisms
   , ReifiedIso(..)
   -- * Simplicity
@@ -212,6 +213,19 @@ non :: Eq a => a -> Simple Iso (Maybe a) a
 non a = iso (fromMaybe a) go where
   go b | a == b    = Nothing
        | otherwise = Just b
+
+-- | The canonical isomorphism for currying and uncurrying function.
+--
+-- @'curried' = 'iso' 'curry' 'uncurry'@
+curried :: Simple Iso ((a,b) -> c) ((d,e) -> f) (a -> b -> c) (d -> e -> f)
+curried = iso curry uncurry
+
+-- | The canonical isomorphism for uncurrying and currying function.
+--
+-- @'uncurried' = 'iso' 'uncurry' 'cuurry'@
+-- @'uncurried' = 'from' 'curried'@
+uncurried :: Simple Iso (a -> b -> c) (d -> e -> f) ((a,b) -> c) ((d,e) -> f)
+uncurried = iso uncurry curry
 
 -----------------------------------------------------------------------------
 -- Reifying Isomorphisms
