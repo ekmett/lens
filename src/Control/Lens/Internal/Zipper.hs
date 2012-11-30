@@ -227,6 +227,12 @@ farthest f = go where
 {-# INLINE farthest #-}
 
 -- | This allows for you to repeatedly pull a 'zipper' in a given direction, failing if it falls off the end.
+--
+-- >>> isNothing $ zipper "hello" & fromWithin traverse & jerks right 10
+-- True
+--
+-- >>> rezip $ zipper "silly" & fromWithin traverse & jerks right 3 & fromJust & focus .~ 'k'
+-- "silky"
 jerks :: (a -> Maybe a) -> Int -> a -> Maybe a
 jerks f n0
   | n0 < 0    = error "jerks: negative jerk count"
@@ -241,6 +247,24 @@ jerks f n0
 -- @'teeth' z '>=' 1@
 --
 -- /NB:/ If the current 'Traversal' targets an infinite number of elements then this may not terminate.
+--
+-- >>> zipper ("hello","world") & teeth
+-- 1
+--
+-- >>> zipper ("hello","world") & fromWithin both & teeth
+-- 2
+--
+-- >>> zipper ("hello","world") & down _1 & teeth
+-- 1
+--
+-- >>> zipper ("hello","world") & down _1 & fromWithin traverse & teeth
+-- 5
+--
+-- >>> zipper ("hello","world") & fromWithin (_1.traverse) & teeth
+-- 5
+--
+-- >>> zipper ("hello","world") & fromWithin (both.traverse) & teeth
+-- 10
 teeth :: (h :> a) -> Int
 teeth (Zipper _ n _ _ rs) = n + 1 + length rs
 {-# INLINE teeth #-}
@@ -250,11 +274,17 @@ teeth (Zipper _ n _ _ rs) = n + 1 + length rs
 -- This returns 'Nothing' if the target element doesn't exist.
 --
 -- @'jerkTo' n ≡ 'jerks' 'right' n . 'farthest' 'left'@
+--
+-- >>> isNothing $ zipper "not working." & jerkTo 20
+-- True
+--
+-- >>> rezip $ zipper "not working" & fromWithin traverse & jerkTo 2 & fromJust & focus .~ 'w'
+-- "now working"
 jerkTo :: Int -> (h :> a) -> Maybe (h :> a)
 jerkTo n z = case compare k n of
-  LT -> jerks left (n - k) z
+  LT -> jerks right (n - k) z
   EQ -> Just z
-  GT -> jerks right (k - n) z
+  GT -> jerks left (k - n) z
   where k = tooth z
 {-# INLINE jerkTo #-}
 
@@ -263,16 +293,19 @@ jerkTo n z = case compare k n of
 -- If the element at that position doesn't exist, then this will clamp to the range @0 <= n < 'teeth'@.
 --
 -- @'tugTo' n ≡ 'tugs' 'right' n . 'farthest' 'left'@
+--
+-- >> rezip $ zipper "not working." & tugTo 100 & focus .~ '!' tugTo 1 & focus .~ 'u'
+-- "nut working!"
 tugTo :: Int -> (h :> a) -> h :> a
 tugTo n z = case compare k n of
-  LT -> tugs left (n - k) z
+  LT -> tugs right (n - k) z
   EQ -> z
-  GT -> tugs right (k - n) z
+  GT -> tugs left (k - n) z
   where k = tooth z
 {-# INLINE tugTo #-}
 
 -- | Step down into a 'Lens'. This is a constrained form of 'fromWithin' for when you know
--- there is precisely one target.
+-- there is precisely one target that can never fail.
 --
 -- @
 -- 'down' :: 'Simple' 'Lens' s a -> (h :> s) -> h :> s :> a
