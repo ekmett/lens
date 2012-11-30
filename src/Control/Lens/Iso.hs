@@ -36,7 +36,7 @@ module Control.Lens.Iso
   , non
   , enum
   , curried, uncurried
-  , Lazy(..)
+  , Strict(..)
   -- * Storing Isomorphisms
   , ReifiedIso(..)
   -- * Simplicity
@@ -228,16 +228,16 @@ curried = iso curry uncurry
 uncurried :: Iso (a -> b -> c) (d -> e -> f) ((a,b) -> c) ((d,e) -> f)
 uncurried = iso uncurry curry
 
--- | Ad hoc conversion between 'strict' and 'lazy' versions of a structure, such as 'StrictB.Text'
--- or 'StrictB.ByteString'.
-class Lazy s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  lazy :: Iso s t a b
+-- | Ad hoc conversion between \"strict\" and \"lazy\" versions of a structure,
+-- such as 'StrictB.Text' or 'StrictB.ByteString'.
+class Strict s t a b | s -> a, a -> s, b -> t, t -> b, s b -> a t, a t -> s b where
+  strict :: Iso s t a b
 
-instance Lazy StrictB.ByteString StrictB.ByteString LazyB.ByteString LazyB.ByteString where
-  lazy = iso LazyB.fromStrict LazyB.toStrict
+instance Strict LazyB.ByteString LazyB.ByteString StrictB.ByteString StrictB.ByteString where
+  strict = iso LazyB.toStrict LazyB.fromStrict
 
-instance Lazy StrictT.Text StrictT.Text LazyT.Text LazyT.Text where
-  lazy = iso LazyT.fromStrict LazyT.toStrict
+instance Strict LazyT.Text LazyT.Text StrictT.Text StrictT.Text where
+  strict = iso LazyT.toStrict LazyT.fromStrict
 
 -----------------------------------------------------------------------------
 -- Reifying Isomorphisms

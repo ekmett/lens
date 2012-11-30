@@ -14,7 +14,6 @@ module Control.Exception.Lens
   ( exception
   ) where
 
-import Control.Applicative
 import Control.Exception
 import Control.Lens
 

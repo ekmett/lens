@@ -13,7 +13,6 @@ module Data.Dynamic.Lens
   ( dynamic
   ) where
 
-import Control.Applicative
 import Control.Lens
 import Data.Dynamic
 
