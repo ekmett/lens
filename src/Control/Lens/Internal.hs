@@ -476,11 +476,14 @@ data Projected x y where
   Projected :: (b -> t) -> (s -> Either t a) -> Projected (a -> f b) (s -> f t)
   ProjectedId :: Projected x x
 
--- | NB: Only arrows for objects of form @(a -> f b)@ can be pattern matched.
 instance Category Projected where
   id = ProjectedId
   ProjectedId . y = y
   x . ProjectedId = x
+  -- The use of 'unsafeCoerce' below is because GHC is unwilling to infer that
+  -- @a -> f b@ ~ @s -> g t@ entails @b ~ t@ even in a context where
+  -- neither @f@ nor @g@ could be type families, such as in the definition of
+  -- 'Isos'.
   Projected ty xeys . Projected bt seta = unsafeCoerce $ Projected (unsafeCoerce ty.bt) $ \x ->
     case unsafeCoerce xeys x of
       Left y  -> Left y
@@ -503,12 +506,9 @@ data Isomorphism x y where
   Isomorphism   :: (s -> a) -> (b -> t) -> Isomorphism (a -> f b) (s -> f t)
   IsomorphismId :: Isomorphism x x
 
--- | NB: Only arrows for objects of form @(a -> f b)@ can be pattern matched.
 instance Category Isomorphism where
   id = IsomorphismId
-  -- The outer 'unsafeCoerce' is being by the same justification as 'id' above.
-
-  -- The inner 'unsafeCoerce' is because GHC is unwilling to infer that
+  -- The use of 'unsafeCoerce' below is because GHC is unwilling to infer that
   -- @a -> f b@ ~ @s -> g t@ entails @b ~ t@ even in a context where
   -- neither @f@ nor @g@ could be type families, such as in the definition of
   -- 'Isos'.
