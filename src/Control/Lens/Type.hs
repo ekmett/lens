@@ -49,6 +49,9 @@
 -- The lens laws follow from this property and the desire for it to act like
 -- a 'Data.Traversable.Traversable' when used as a
 -- 'Control.Lens.Traversal.Traversal'.
+--
+-- In the examples below, 'getter' and 'setter' are supplied as example getters
+-- and setters.
 -------------------------------------------------------------------------------
 module Control.Lens.Type
   (
@@ -102,6 +105,13 @@ import Data.Monoid
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Debug.SimpleReflect.Expr
+-- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
+-- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
+-- >>> let h :: Expr -> Expr -> Expr; h = Debug.SimpleReflect.Vars.h
+-- >>> let getter :: Expr -> Expr; getter = fun "getter"
+-- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
 
 infixr 4 %%~
 infix  4 %%=
@@ -179,6 +189,15 @@ type SimpleLensLike f s a = LensLike f s s a a
 -- | Build a 'Lens' from a getter and a setter.
 --
 -- @'lens' :: 'Functor' f => (s -> a) -> (s -> b -> t) -> (a -> f b) -> s -> f t@
+--
+-- >>> s ^. lens getter setter
+-- getter s
+--
+-- >>> s & lens getter setter .~ b
+-- setter s b
+--
+-- >>> s & lens getter setter %~ f
+-- setter s (f (getter s))
 lens :: (s -> a) -> (s -> b -> t) -> Lens s t a b
 lens sa sbt afb s = sbt s <$> afb (sa s)
 {-# INLINE lens #-}
@@ -240,6 +259,9 @@ type LensLike f s t a b = (a -> f b) -> s -> f t
 -- information of type @r@ or modify all targets of a
 -- 'Control.Lens.Traversal.Traversal' in the current state, extracting extra
 -- information of type @r@ and return a monoidal summary of the changes.
+--
+-- >>> runState (_1 %%= \x -> (f x, g x)) (a,b)
+-- (f a,(g a,b))
 --
 -- @('%%=') ≡ ('state' '.')@
 --
