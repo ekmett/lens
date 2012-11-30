@@ -74,6 +74,3 @@ module Control.Lens.Zipper
   ) where
 
 import Control.Lens.Internal.Zipper
-
--- $setup
--- >>> :m + Control.Lens
