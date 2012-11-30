@@ -2,7 +2,7 @@
 -----
 * Implemented a complete redesign of the way `Iso` and `Projection` is handled internally. Any `Iso` can now be used as a `Projection`.
 * Changes to the signature of `from` and `under` necessitated by the new design.
-* Repurposed `ala` to be closer to the original design in @newtype@.
+* Repurposed `ala` to be closer to the original design in `newtype`.
 * Added `au` and `alaf`.
 * The `isos` combinator is no longer required. `iso` can now be used to construct an `Iso`.
 * Added `_magnitude`, `_phase` and `_conjugate` to `Data.Complex.Lens`. Renamed other lenses for consistency: `_realPart`, `_imagPart`, `_polar`.
