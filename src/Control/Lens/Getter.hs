@@ -75,6 +75,9 @@ import Control.Monad.State        as State
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Data.List.Lens
+-- >>> import Debug.SimpleReflect.Expr
+-- >>> import Debug.SimpleReflect.Vars as Vars hiding (f)
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 
 infixl 8 ^., ^&
 infixl 1 &
@@ -90,6 +93,9 @@ infixr 0 ^$
 -- for inference. Here it is supplied for notational convenience and given a precedence that allows it
 -- to be nested inside uses of ('$').
 --
+-- >>> a & f :: Expr
+-- f a
+--
 -- >>> "hello" & length & succ
 -- 6
 --
@@ -102,12 +108,16 @@ infixr 0 ^$
 --
 -- >>> flip execState ("hello","world") $ do _1.element 0 .= 'j'; _1.element 4 .= 'y'
 -- ("jelly","world")
+--
 
 (&) :: a -> (a -> b) -> b
 a & f = f a
 {-# INLINE (&) #-}
 
 -- | A version of ('&') with much tighter precedence that can be interleaved with ('^.')
+--
+-- >>> a ^& f :: Expr
+-- f a
 --
 -- >>> "hello" ^& length
 -- 5
@@ -138,6 +148,8 @@ type Getter s a = forall f. Gettable f => (a -> f a) -> s -> f s
 --
 -- @a '^.' 'to' f ≡ f a@
 --
+-- >>> a ^.to f :: Expr
+-- f a
 --
 -- >>> ("hello","world")^.to snd
 -- "world"
@@ -184,6 +196,9 @@ type Getting r s t a b = (a -> Accessor r b) -> s -> Accessor r t
 --
 -- @'view' . 'to' ≡ 'id'@
 --
+-- >>> view (to f) a :: Expr
+-- f a
+--
 -- >>> view _2 (1,"hello")
 -- "hello"
 --
@@ -228,6 +243,9 @@ view l = Reader.asks (runAccessor# (l Accessor))
 --
 -- @'views' l f ≡ 'view' (l '.' 'to' f)@
 --
+-- >>> views (to f) g a :: Expr
+-- g (f a)
+--
 -- >>> views _2 length (1,"hello")
 -- 5
 --
@@ -264,6 +282,9 @@ views l f = Reader.asks (runAccessor# (l (accessor# f)))
 --
 -- @'to' f '^$' x ≡ f x@
 --
+-- >>> to f ^$ x :: Expr
+-- f x
+--
 -- >>> _2 ^$ (1, "hello")
 -- "hello"
 --
@@ -286,6 +307,9 @@ l ^$ s = runAccessor (l Accessor s)
 --
 -- The fixity and semantics are such that subsequent field accesses can be
 -- performed with ('Prelude..')
+--
+-- >>> (a,b)^._2 :: Expr
+-- b
 --
 -- >>> ("hello","world")^._2
 -- "world"
@@ -314,6 +338,9 @@ s ^. l = runAccessor (l Accessor s)
 -- 'Getter' in the current state, or use a summary of a
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
 -- to a monoidal value.
+--
+-- >>> evalState (use _1) (a,b) :: Expr
+-- a
 --
 -- >>> evalState (use _1) ("hello","world")
 -- "hello"
@@ -365,6 +392,10 @@ uses l f = State.gets (views l f)
 -- This use of this combinator may aid type-inference when working with lenses or traversals that
 -- have non-defaultable typeclass constraints on their arguments.
 --
+-- >>> evalState (use' _1) (a,b) :: Expr
+-- a
+--
+--
 -- >>> evalState (use' _1) ("hello","world")
 -- "hello"
 --
@@ -413,6 +444,9 @@ uses' l f = State.gets (views' l f)
 -- at a monoidal values.
 --
 -- @'view'' . 'to' ≡ 'id'@
+--
+-- >>> view' (to f) a :: Expr
+-- f a
 --
 -- >>> view' _2 (1,"hello")
 -- "hello"
