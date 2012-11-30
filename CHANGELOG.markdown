@@ -22,6 +22,7 @@
 * Added `curried` and `uncurried` to `Control.Lens.Iso`.
 * Added `Strict(strict)` for ad hoc overloading of conversions between strict and lazy variants of `ByteString` and `Text`.
 * Bug fixes for `tugTo` and `jerkTo`.
+* These no longer traverse in the wrong direction: `scanl1Of`, `scanr1Of`, `mapAccumLOf`, and `mapAccumROf`
 
 [3.6](https://github.com/ekmett/lens/issues?milestone=9&state=closed)
 ---
