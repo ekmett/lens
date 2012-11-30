@@ -33,6 +33,9 @@ import Control.Lens.Type
 import Data.Maybe
 import Prelude hiding ((.),id)
 
+-- $setup
+-- >>> import Control.Lens
+
 -----------------------------------------------------------------------------
 -- * Zippers
 -----------------------------------------------------------------------------
@@ -61,6 +64,18 @@ infixl 9 :>
 -- of type @h ':>' s@ -- as we descend into a level, the previous level is
 -- unpacked and stored in 'Coil' form. Only one value of type @_ ':>' _@ exists
 -- at any particular time for any particular 'zipper'.
+--
+-- You can construct a zipper into *any* data structure with 'zipper'.
+--
+-- >>> :t zipper (Just "hello")
+-- zipper (Just "hello") :: Top :> Maybe [Char]
+--
+-- You can repackage up the contents of a zipper with 'rezip'.
+-- >>> rezip $ zipper 42
+-- 42
+--
+-- The combinators in this module provide lot of things you can do to the zipper while you
+-- have it open.
 data h :> a = Zipper (Coil h a) -- The 'Coil' storing the previous levels of the 'zipper'.
       {-# UNPACK #-} !Int       -- Number of items to the left.
                      [a]        -- Items to the left (stored reversed).
@@ -74,6 +89,8 @@ type instance Zipped (h :> s) a = Zipped h s
 
 -- | A 'Coil' is a linked list of the levels above the current one. The length
 -- of a 'Coil' is known at compile time.
+--
+-- This is part of the internal structure of a zipper. You shouldn't need to manipulate this directly.
 data Coil :: * -> * -> * where
   Coil :: Coil Top a
   Snoc :: Coil h s                           -- Previous 'Coil'.
@@ -87,11 +104,13 @@ data Coil :: * -> * -> * where
        -> Coil (h :> s) a
 
 -- | This 'Lens' views the current target of the 'zipper'.
+--
+-- A 'Tape' that can be used to get to the current location is available as the index of this 'Lens'.
 focus :: SimpleIndexedLens (Tape (h :> a)) (h :> a) a
 focus = indexed $ \f (Zipper h n l a r) -> (\a' -> Zipper h n l a' r) <$> f (Tape (peel h) n) a
 {-# INLINE focus #-}
 
--- | Construct a 'zipper' that can explore anything.
+-- | Construct a 'zipper' that can explore anything, and start it at the top.
 zipper :: a -> Top :> a
 zipper a = Zipper Coil 0 [] a []
 {-# INLINE zipper #-}
@@ -99,37 +118,91 @@ zipper a = Zipper Coil 0 [] a []
 -- | Return the index into the current 'Traversal' within the current level of the 'zipper'.
 --
 -- @'jerkTo' ('tooth' l) l = Just'@
+--
+-- Mnemonically, zippers have a number of 'teeth' within each level. This is which 'tooth' you are currently at.
 tooth :: (h :> a) -> Int
 tooth (Zipper _ n _ _ _) = n
 {-# INLINE tooth #-}
 
 -- | Move the 'zipper' 'up', closing the current level and focusing on the parent element.
+--
+-- NB: Attempts to move up from the 'Top' of the 'zipper' will fail to typecheck.
+--
+-- >>> :t zipper ("hello","world") & down _1 & fromWithin traverse & up
+-- zipper ("hello","world") & down _1 & fromWithin traverse & up
+--   :: (Top :> ([Char], [Char])) :> [Char]
 up :: (h :> s :> a) -> h :> s
 up (Zipper (Snoc h _ un uls k urs) _ ls x rs) = Zipper h un uls ux urs
   where ux = k (reverseList ls ++ x : rs)
 {-# INLINE up #-}
 
--- | Pull the 'zipper' 'left' within the current 'Traversal'.
-left  :: (h :> a) -> Maybe (h :> a)
-left (Zipper _ _ []     _ _ ) = Nothing
-left (Zipper h n (l:ls) a rs) = Just (Zipper h (n - 1) ls l (a:rs))
-{-# INLINE left #-}
-
--- | Pull the entry one entry to the 'right'.
+-- | Jerk the 'zipper' one 'tooth' to the 'right' within the current 'Lens' or 'Traversal'.
+--
+-- Attempts to move past the start of the current 'Traversal' (or trivially, the current 'Lens')
+-- will return 'Nothing'.
+--
+-- >>> isNothing $ zipper "hello" & right
+-- True
+--
+-- >>> zipper "hello" & fromWithin traverse & tug right & view focus
+-- 'e'
+--
+-- >>> zipper "hello" & fromWithin traverse & tug right & focus .~ 'u' & rezip
+-- "hullo"
+--
+-- >>> rezip $ zipper (1,2) & fromWithin both & tug right & focus .~ 3
+-- (1,3)
 right :: (h :> a) -> Maybe (h :> a)
 right (Zipper _ _ _  _ []    ) = Nothing
 right (Zipper h n ls a (r:rs)) = Just (Zipper h (n + 1) (a:ls) r rs)
 {-# INLINE right #-}
 
--- | This allows you to safely 'tug left' or 'tug right' on a 'zipper'.
+-- | Jerk the 'zipper' 'left' one 'tooth' within the current 'Lens' or 'Traversal'.
+--
+-- Attempts to move past the end of the current 'Traversal' (or trivially, the current 'Lens')
+-- will return 'Nothing'.
+--
+-- >>> isNothing $ zipper "hello" & left
+-- True
+
+-- >>> isNothing $ zipper "hello" & fromWithin traverse & left
+-- True
+--
+-- >>> zipper "hello" & fromWithin traverse & tug left
+-- 'h'
+--
+-- >>> zipper "hello" & fromWithin traverse & tug right & tug left & view focus
+-- 'h'
+left  :: (h :> a) -> Maybe (h :> a)
+left (Zipper _ _ []     _ _ ) = Nothing
+left (Zipper h n (l:ls) a rs) = Just (Zipper h (n - 1) ls l (a:rs))
+{-# INLINE left #-}
+
+-- | This allows you to safely 'tug left' or 'tug right' on a 'zipper'. This
+-- will attempt the move, and stay where it was if it fails.
 --
 -- The more general signature allows its use in other circumstances, however.
+--
+-- @'tug' f x ≡ 'fromMaybe' a (f a)@
+--
+-- >>> rezip $ zipper "hello" & fromWithin traverse & tug left & focus .~ 'j'
+-- "jello"
+--
+-- >>> rezip $ zipper "hello" & fromWithin traverse & tug right & focus .~ 'u'
+-- "hullo"
 tug :: (a -> Maybe a) -> a -> a
 tug f a = fromMaybe a (f a)
 {-# INLINE tug #-}
 
--- | This allows you to safely 'tug left' or 'tug right' on a 'zipper', moving multiple steps in a given direction,
--- stopping at the last place you couldn't move from.
+-- | This allows you to safely @'tug' 'left'@ or @'tug' 'right'@ multiple times on a 'zipper',
+-- moving multiple steps in a given direction and stopping at the last place you
+-- couldn't move from. This lets you safely move a zipper, because it will stop at either end.
+--
+-- >>> rezip $ zipper "stale" & fromWithin traverse & tugs right 2 & focus .~ 'y'
+-- "style"
+--
+-- >>> rezip $ zipper "want" & fromWithin traverse & tugs right 2 & focus .~ 'r' & tugs left 100 & focus .~ 'c'
+-- "cart"
 tugs :: (a -> Maybe a) -> Int -> a -> a
 tugs f n0
   | n0 < 0    = error "tugs: negative tug count"
@@ -139,7 +212,15 @@ tugs f n0
     go n a = maybe a (go (n - 1)) (f a)
 {-# INLINE tugs #-}
 
--- | Move in a direction as far as you can go, then stop.
+-- | Move in a direction as far as you can go, then stop there.
+--
+-- This repeatedly applies a function until it returns Nothing, and then returns the last answer.
+--
+-- >>> rezip $ zipper ("hello","world") & down _1 & fromWithin traverse & farthest right & focus .~ 'a'
+-- ("hella","world")
+--
+-- >>> rezip $ zipper ("hello","there") & fromWithin (both.traverse) & farthest right & focus .~ 'm'
+-- ("hello","therm")
 farthest :: (a -> Maybe a) -> a -> a
 farthest f = go where
   go a = maybe a go (f a)
