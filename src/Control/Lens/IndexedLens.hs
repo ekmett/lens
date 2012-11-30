@@ -44,18 +44,15 @@ module Control.Lens.IndexedLens
   , SimpleReifiedIndexedLens
   ) where
 
-import Control.Applicative
 import Control.Lens.Classes
 import Control.Lens.Combinators
 import Control.Lens.Internal
-import Control.Lens.Indexed
 import Control.Lens.Type
 import Control.Monad.State.Class as State
 import Data.Hashable
 import Data.HashSet as HashSet
 import Data.IntSet as IntSet
 import Data.Set as Set
-import Data.Traversable
 
 
 -- $setup
@@ -163,25 +160,16 @@ class Contains k m | m -> k where
 instance Contains Int IntSet where
   contains k = indexed $ \ f s -> f k (IntSet.member k s) <&> \b ->
     if b then IntSet.insert k s else IntSet.delete k s
-    where
-      embedding False = IntSet.empty
-      embedding True = IntSet.singleton k
   {-# INLINE contains #-}
 
 instance Ord k => Contains k (Set k) where
   contains k = indexed $ \ f s -> f k (Set.member k s) <&> \b ->
     if b then Set.insert k s else Set.delete k s
-    where
-      embedding False = Set.empty
-      embedding True = Set.singleton k
   {-# INLINE contains #-}
 
 instance (Eq k, Hashable k) => Contains k (HashSet k) where
   contains k = indexed $ \ f s -> f k (HashSet.member k s) <&> \b ->
     if b then HashSet.insert k s else HashSet.delete k s
-    where
-      embedding False = HashSet.empty
-      embedding True = HashSet.singleton k
   {-# INLINE contains #-}
 
 -- | This lens can be used to change the result of a function but only where
