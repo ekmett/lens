@@ -255,8 +255,8 @@ transposeOf l = getZipList# (l ZipList)
 -- 'mapAccumROf' :: 'Lens' s t a b      -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumROf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-mapAccumROf :: LensLike (Lazy.State acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f s c))) a) s0)
+mapAccumROf :: LensLike (Backwards (Lazy.State acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumROf = mapAccumLOf . backwards
 {-# INLINE mapAccumROf #-}
 
 -- | This generalizes 'Data.Traversable.mapAccumL' to an arbitrary 'Traversal'.
@@ -270,8 +270,8 @@ mapAccumROf l f s0 a = swap (Lazy.runState (l (\c -> State.state (\s -> swap (f 
 -- 'mapAccumLOf' :: 'Lens' s t a b      -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumLOf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-mapAccumLOf :: LensLike (Backwards (Lazy.State acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-mapAccumLOf = mapAccumROf . backwards
+mapAccumLOf :: LensLike (Lazy.State acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumLOf l f acc0 s = swap (Lazy.runState (l (\a -> State.state (\acc -> swap (f acc a))) s) acc0)
 {-# INLINE mapAccumLOf #-}
 
 swap :: (a,b) -> (b,a)
@@ -287,7 +287,7 @@ swap (a,b) = (b,a)
 -- 'scanr1Of' :: 'Lens' s t a a      -> (a -> a -> a) -> s -> t
 -- 'scanr1Of' :: 'Traversal' s t a a -> (a -> a -> a) -> s -> t
 -- @
-scanr1Of :: LensLike (Lazy.State (Maybe a)) s t a a -> (a -> a -> a) -> s -> t
+scanr1Of :: LensLike (Backwards (Lazy.State (Maybe a))) s t a a -> (a -> a -> a) -> s -> t
 scanr1Of l f = snd . mapAccumROf l step Nothing where
   step Nothing a  = (Just a, a)
   step (Just s) a = (Just r, r) where r = f a s
@@ -302,7 +302,7 @@ scanr1Of l f = snd . mapAccumROf l step Nothing where
 -- 'scanr1Of' :: 'Lens' s t a a      -> (a -> a -> a) -> s -> t
 -- 'scanr1Of' :: 'Traversal' s t a a -> (a -> a -> a) -> s -> t
 -- @
-scanl1Of :: LensLike (Backwards (Lazy.State (Maybe a))) s t a a -> (a -> a -> a) -> s -> t
+scanl1Of :: LensLike (Lazy.State (Maybe a)) s t a a -> (a -> a -> a) -> s -> t
 scanl1Of l f = snd . mapAccumLOf l step Nothing where
   step Nothing a  = (Just a, a)
   step (Just s) a = (Just r, r) where r = f s a
