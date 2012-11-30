@@ -60,22 +60,23 @@ infixl 9 :>
 -- to represent a zipper from @('String','Double')@ down to 'Char' that has an intermediate
 -- crumb for the 'String' containing the 'Char'.
 --
--- Note that a value of type @h ':>' s ':>' a@ doesn't actually contain a value
--- of type @h ':>' s@ -- as we descend into a level, the previous level is
--- unpacked and stored in 'Coil' form. Only one value of type @_ ':>' _@ exists
--- at any particular time for any particular 'zipper'.
---
 -- You can construct a zipper into *any* data structure with 'zipper'.
 --
 -- >>> :t zipper (Just "hello")
 -- zipper (Just "hello") :: Top :> Maybe [Char]
 --
 -- You can repackage up the contents of a zipper with 'rezip'.
+--
 -- >>> rezip $ zipper 42
 -- 42
 --
 -- The combinators in this module provide lot of things you can do to the zipper while you
 -- have it open.
+--
+-- Note that a value of type @h ':>' s ':>' a@ doesn't actually contain a value
+-- of type @h ':>' s@ -- as we descend into a level, the previous level is
+-- unpacked and stored in 'Coil' form. Only one value of type @_ ':>' _@ exists
+-- at any particular time for any particular 'zipper'.
 data h :> a = Zipper (Coil h a) -- The 'Coil' storing the previous levels of the 'zipper'.
       {-# UNPACK #-} !Int       -- Number of items to the left.
                      [a]        -- Items to the left (stored reversed).
@@ -269,13 +270,17 @@ teeth :: (h :> a) -> Int
 teeth (Zipper _ n _ _ rs) = n + 1 + length rs
 {-# INLINE teeth #-}
 
--- | Move the 'zipper' horizontally to the element in the @n@th position in the current level, absolutely indexed, starting with the @'farthest' 'left'@ as @0@.
+-- | Move the 'zipper' horizontally to the element in the @n@th position in the
+-- current level, absolutely indexed, starting with the 'farthest' 'left' as @0@.
 --
 -- This returns 'Nothing' if the target element doesn't exist.
 --
 -- @'jerkTo' n ≡ 'jerks' 'right' n . 'farthest' 'left'@
 --
 -- >>> isNothing $ zipper "not working." & jerkTo 20
+-- True
+
+-- >>> isNothing $ zipper "not working." & fromWithin traverse & jerkTo 20
 -- True
 --
 -- >>> rezip $ zipper "not working" & fromWithin traverse & jerkTo 2 & fromJust & focus .~ 'w'
@@ -288,13 +293,14 @@ jerkTo n z = case compare k n of
   where k = tooth z
 {-# INLINE jerkTo #-}
 
--- | Move the 'zipper' horizontally to the element in the @n@th position of the current level, absolutely indexed, starting with the @'farthest' 'left'@ as @0@.
+-- | Move the 'zipper' horizontally to the element in the @n@th position of the
+-- current level, absolutely indexed, starting with the 'farthest' 'left' as @0@.
 --
 -- If the element at that position doesn't exist, then this will clamp to the range @0 <= n < 'teeth'@.
 --
 -- @'tugTo' n ≡ 'tugs' 'right' n . 'farthest' 'left'@
 --
--- >> rezip $ zipper "not working." & tugTo 100 & focus .~ '!' tugTo 1 & focus .~ 'u'
+-- >> rezip $ zipper "not working" & tugTo 100 & focus .~ '!' & tugTo 1 & focus .~ 'u'
 -- "nut working!"
 tugTo :: Int -> (h :> a) -> h :> a
 tugTo n z = case compare k n of
