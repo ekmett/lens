@@ -1,4 +1,4 @@
-3.7
+[3.7](https://github.com/ekmett/lens/issues?milestone=11&page=1&state=closed)
 -----
 * Implemented a complete redesign of the way `Iso` and `Projection` is handled internally. Any `Iso` can now be used as a `Projection`.
 * Changes to the signature of `from` and `under` necessitated by the new design.
@@ -23,8 +23,8 @@
 * Added `Lazy(lazy)` for ad hoc overloading of conversions between strict and lazy variants of `ByteString` and `Text`.
 * Bug fixes for `tugTo` and `jerkTo`.
 
-3.6
------
+[3.6](https://github.com/ekmett/lens/issues?milestone=9&state=closed)
+---
 * Added `upon` (along with variants of it) to `Data.Data.Lens`, which can be used to generate a `Traversal` from a field accessor or any function that returns, unmodified,
   a single field that would be visited by `template`.
 * Added some missing `examples/` files to the distribution.
@@ -50,7 +50,7 @@
 -----
 * Improved SafeHaskell inference.
 
-3.5
+[3.5](https://github.com/ekmett/lens/issues?milestone=8&state=closed)
 ---
 * Fixed a potential SafeHaskell issue where a user could use `undefined` to derive `unsafeCoerce`. You now have to import an explicitly
   Unsafe module and create an instance of `Trustworthy` for your type to cause this behavior, so if you do, its on your head, not mine. :)
@@ -58,7 +58,7 @@
 * Moved a lot of internals around. Most notably, `Gettable`, `Settable` and `Effective` have moved to `Control.Lens.Classes`.
 * Exposed `partsOf'` and `unsafePartsOf'` in `Control.Lens.Traversal` to reduce reliance on `BazaarT` in `Control.Lens.Zipper`
 
-3.4
+[3.4](https://github.com/ekmett/lens/issues?milestone=7&state=closed)
 ---
 * Renamed `(%)` to `(&)` and `(^%)` to `(^&)`. This avoids the conflict with `Data.Ratio`, which was our highest priority conflict with a third party library.
 * Switched to a more liberal type for `ignored`
@@ -138,13 +138,13 @@
 -----
 * Added `Control.Lens.Type.simple`.
 
-3.0
+[3.0](https://github.com/ekmett/lens/issues?milestone=6&state=closed)
 ---
 * Added `Control.Lens.Zipper`.
 * Added `<<~`, a version of `<~` that supports chaining assignment.
 * Added `:->`, `:=>`, and `:<->` as type operator aliases for `Simple Lens`, `Simple Traversal`, and `Simple Iso`  respectively.
 
-2.9
+[2.9](https://github.com/ekmett/lens/issues?milestone=5&state=closed)
 ---
 * Added `<<%~`, `<<.~`, `<<%=` and `<<.=` for accessing the old values targeted by a `Lens` (or a summary of those targeted by a `Traversal`)
 * Renamed `|>` to `%`, as `%~` is the lensed version of `%`, and moved it to `Control.Lens.Getter` along with a version `^%` with tighter
@@ -159,7 +159,7 @@
   it will default to the old behavior.
 * Added `performs` to `Control.Lens.Action` to mirror `views` in `Control.Lens.Getter`.
 
-2.8
+[2.8](https://github.com/ekmett/lens/issues?milestone=4&state=closed)
 ---
 * Restored compatibility with GHC 7.2. This required a major version bump due to making some MPTC-based default signatures conditional.
 
@@ -167,7 +167,7 @@
 -------
 * Added the missing `Control.Lens.Combinators` to exported-modules! Its absence was causing it not to be included on hackage.
 
-2.7
+[2.7](https://github.com/ekmett/lens/issues?milestone=3&state=closed)
 ---
 * Generalized the signature of `Getting`, `Acting` and `IndexedGetting` to help out with the common user code scenario of needing to read
   and then write to change types.
@@ -184,7 +184,7 @@
 -----
 * Fixed bugs in `Traversal` code-generation.
 
-2.6
+[2.6](https://github.com/ekmett/lens/issues?milestone=2&state=closed)
 ---
 * Added build option `-f-inlining` to facilitate building with the various TH 2.8 versions used by GHC 7.6 and HEAD.
 * Added build option `-f-template-haskell` for testing without template haskell. (Users should be able to assume TH is enabled; use this only for testing!)
@@ -194,7 +194,7 @@
 * Added `assign` as an alias for `(.=)` in `Control.Lens.Setter`.
 * Added `~:`, `=:`, `<~:` and `<=:` to `Data.List.Lens`
 
-2.5
+[2.5](https://github.com/ekmett/lens/issues?milestone=1&state=closed)
 ---
 * Added `Control.Lens.Plated`, a port of Neil Mitchell's `uniplate` that can be used on any `Traversal`.
 * Added `Data.Data.Lens` with smart traversals that know how to avoid traversing parts of a structure that can't contain a given type.
