@@ -68,11 +68,11 @@ import Unsafe.Coerce
 --
 -- @'Control.Lens.Fold.lengthOf' l x '<=' 1@
 --
+-- It may help to think of this as a 'Control.Lens.Iso.Iso' that can be partial in one direction.
+--
 -- Every 'Projection' is a valid 'Traversal'.
 --
 -- Every 'Control.Lens.Iso.Iso' is a valid 'Projection'.
---
--- It may help to think of this as a 'Control.Lens.Iso.Iso' that is partial in one direction.
 --
 -- For example, you might have a @'Simple' 'Projection' 'Integer' Natural@ allows you to always
 -- go from a 'Natural' to an 'Integer', and provide you with tools to check if an 'Integer' is
@@ -101,7 +101,7 @@ import Unsafe.Coerce
 --
 -- And we can then convert from a 'Natural' to an 'Integer'.
 --
--- >>> 5 ^. remit nat
+-- >>> 5 ^. remit nat -- :: Natural
 -- 5
 --
 -- Similarly we can use a 'Projection' to 'traverse' the left half of an 'Either':
