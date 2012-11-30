@@ -83,6 +83,7 @@ import Unsafe.Coerce
 -- @'from' l '.' 'from' r ≡ 'from' (r '.' l)@
 from :: (Isomorphic k, Functor f) => Overloaded Isomorphism Mutator s t a b -> k (t -> f s) (b -> f a)
 from (Isomorphism sa bt) = iso (unsafeCoerce bt) sa
+from IsomorphismId       = iso id id
 {-# INLINE from #-}
 
 -- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.
@@ -93,6 +94,7 @@ from (Isomorphism sa bt) = iso (unsafeCoerce bt) sa
 -- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
 cloneIso :: Overloaded Isomorphism Mutator s t a b -> Iso s t a b
 cloneIso (Isomorphism sa bt) = iso sa (unsafeCoerce bt)
+cloneIso IsomorphismId       = iso id id
 {-# INLINE cloneIso #-}
 
 -----------------------------------------------------------------------------
@@ -124,6 +126,7 @@ type SimpleIso s a = Iso s s a a
 -- 10
 au :: Overloaded Isomorphism Mutator s t a b -> ((s -> a) -> e -> b) -> e -> t
 au (Isomorphism sa bt) f e = unsafeCoerce bt (f sa e)
+au IsomorphismId       f e = f id e
 {-# INLINE au #-}
 
 -- |
@@ -138,6 +141,7 @@ au (Isomorphism sa bt) f e = unsafeCoerce bt (f sa e)
 -- 10
 auf :: Overloaded Isomorphism Mutator s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
 auf (Isomorphism sa bt) f g e = unsafeCoerce bt (f (sa . g) e)
+auf IsomorphismId       f g e = f g e
 {-# INLINE auf #-}
 
 -- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
@@ -147,6 +151,7 @@ auf (Isomorphism sa bt) f g e = unsafeCoerce bt (f (sa . g) e)
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
 under :: Overloaded Isomorphism Mutator s t a b -> (t -> s) -> b -> a
 under (Isomorphism sa bt) ts b = sa (ts (unsafeCoerce bt b))
+under IsomorphismId       ts b = ts b
 {-# INLINE under #-}
 
 -----------------------------------------------------------------------------
@@ -173,6 +178,7 @@ enum = iso toEnum fromEnum
 -- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
 mapping :: Functor f => Overloaded Isomorphism Mutator s t a b -> Iso (f s) (f t) (f a) (f b)
 mapping (Isomorphism sa bt) = iso (fmap sa) (fmap (unsafeCoerce bt))
+mapping IsomorphismId = iso id id -- HA!
 {-# INLINE mapping #-}
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',

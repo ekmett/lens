@@ -131,6 +131,7 @@ type Projecting s t a b = Overloaded Projected (Bazaar a b) s t a b
 -- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.
 cloneProjection :: Overloaded Projected (Bazaar a b) s t a b -> Projection s t a b
 cloneProjection (Projected f g) = projected (unsafeCoerce f) (unsafeCoerce g)
+cloneProjection ProjectedId     = id
 
 ------------------------------------------------------------------------------
 -- Projection Combinators
@@ -150,6 +151,7 @@ cloneProjection (Projected f g) = projected (unsafeCoerce f) (unsafeCoerce g)
 -- @
 remit :: Projecting s t a b -> Getter b t
 remit (Projected bt _) = to (unsafeCoerce bt)
+remit ProjectedId      = id
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way.
 --
@@ -175,6 +177,7 @@ remit (Projected bt _) = to (unsafeCoerce bt)
 -- @
 review :: MonadReader b m => Projecting s t a b -> m t
 review (Projected bt _) = asks (unsafeCoerce bt)
+review ProjectedId      = ask
 {-# INLINE review #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way,
@@ -202,6 +205,7 @@ review (Projected bt _) = asks (unsafeCoerce bt)
 -- @
 reviews :: MonadReader b m => Projecting s t a b -> (t -> r) -> m r
 reviews (Projected bt _) f = asks (f . unsafeCoerce bt)
+reviews ProjectedId      f = asks f
 {-# INLINE reviews #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'use' a value (or the current environment) through it the other way.
@@ -217,6 +221,7 @@ reviews (Projected bt _) f = asks (f . unsafeCoerce bt)
 -- @
 reuse :: MonadState b m => Projecting s t a b -> m t
 reuse (Projected bt _) = gets (unsafeCoerce bt)
+reuse ProjectedId      = get
 {-# INLINE reuse #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'use' the current state through it the other way,
@@ -233,6 +238,7 @@ reuse (Projected bt _) = gets (unsafeCoerce bt)
 -- @
 reuses :: MonadState b m => Projecting s t a b -> (t -> r) -> m r
 reuses (Projected bt _) f = gets (f . unsafeCoerce bt)
+reuses ProjectedId      f = gets f
 {-# INLINE reuses #-}
 
 ------------------------------------------------------------------------------

@@ -474,10 +474,13 @@ sellT i = BazaarT (\k -> k i)
 -- If you see a function that expects a 'Project', it is probably just expecting a 'Projection'.
 data Projected x y where
   Projected :: (b -> t) -> (s -> Either t a) -> Projected (a -> f b) (s -> f t)
+  ProjectedId :: Projected x x
 
 -- | NB: Only arrows for objects of form @(a -> f b)@ can be pattern matched.
 instance Category Projected where
-  id = unsafeCoerce (Projected id id)
+  id = ProjectedId
+  ProjectedId . y = y
+  x . ProjectedId = x
   Projected ty xeys . Projected bt seta = unsafeCoerce $ Projected (unsafeCoerce ty.bt) $ \x ->
     case unsafeCoerce xeys x of
       Left y  -> Left y
@@ -497,17 +500,20 @@ instance Isomorphic Projected where
 
 -- | Reify all of the information given to you by being 'Isomorphic'.
 data Isomorphism x y where
-  Isomorphism :: (s -> a) -> (b -> t) -> Isomorphism (a -> f b) (s -> f t)
+  Isomorphism   :: (s -> a) -> (b -> t) -> Isomorphism (a -> f b) (s -> f t)
+  IsomorphismId :: Isomorphism x x
 
 -- | NB: Only arrows for objects of form @(a -> f b)@ can be pattern matched.
 instance Category Isomorphism where
-  id = unsafeCoerce (Isomorphism id id)
+  id = IsomorphismId
   -- The outer 'unsafeCoerce' is being by the same justification as 'id' above.
 
   -- The inner 'unsafeCoerce' is because GHC is unwilling to infer that
   -- @a -> f b@ ~ @s -> g t@ entails @b ~ t@ even in a context where
   -- neither @f@ nor @g@ could be type families, such as in the definition of
   -- 'Isos'.
+  x                 . IsomorphismId     = x
+  IsomorphismId     . y                 = y
   Isomorphism xs ty . Isomorphism sa bt = unsafeCoerce $ Isomorphism (sa.xs) (unsafeCoerce ty.bt)
 
 instance Isomorphic Isomorphism where
