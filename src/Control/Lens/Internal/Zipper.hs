@@ -300,7 +300,7 @@ jerkTo n z = case compare k n of
 --
 -- @'tugTo' n ≡ 'tugs' 'right' n . 'farthest' 'left'@
 --
--- >>> rezip $ zipper "not working" & tugTo 100 & focus .~ '!' & tugTo 1 & focus .~ 'u'
+-- >>> rezip $ zipper "not working" & fromWithin traverse & tugTo 100 & focus .~ '!' & tugTo 1 & focus .~ 'u'
 -- "nut working!"
 tugTo :: Int -> (h :> a) -> h :> a
 tugTo n z = case compare k n of
