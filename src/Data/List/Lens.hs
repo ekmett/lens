@@ -142,7 +142,7 @@ _last = indexed $ \f aas -> case aas of
 -- Nothing
 --
 -- >>> [a,b] & _init .~ [c,d,e]
--- [a,c,d,e]
+-- [c,d,e,b]
 --
 -- >>> [] & _init .~ [a,b]
 -- []

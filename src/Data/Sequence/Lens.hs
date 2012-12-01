@@ -31,8 +31,14 @@ import Data.Sequence as Seq
 
 -- | A 'Lens' that can access the @n@th element of a 'Seq'.
 --
+-- >>> Seq.fromList [a,b,c,d] & ordinal 2 %~ f
+-- fromList [a,b,f c,d]
+--
 -- >>> Seq.fromList [a,b,c,d] & ordinal 2 .~ e
 -- fromList [a,b,e,d]
+--
+-- >>> Seq.fromList [a,b,c,d] ^. ordinal 2
+-- e
 --
 -- *NB:* This is only a legal lens if there is already such an element!
 ordinal :: Int -> SimpleIndexedLens Int (Seq a) a
@@ -41,6 +47,8 @@ ordinal i = indexed $ \ f m -> f i (index m i) <&> \a -> update i a m
 -- * Sequence isomorphisms
 
 -- | A 'Seq' is isomorphic to a 'ViewL'
+--
+-- @'viewl' m ≡ m '^.' 'viewL'@
 --
 -- >>> Seq.fromList [a,b,c] ^. viewL
 -- a :< fromList [b,c]
@@ -54,7 +62,6 @@ ordinal i = indexed $ \ f m -> f i (index m i) <&> \a -> update i a m
 -- >>> from viewL ^$ a :< fromList [b,c]
 -- fromList [a,b,c]
 --
--- @'viewl' m = m '^.' 'viewL'@
 viewL :: Iso (Seq a) (Seq b) (ViewL a) (ViewL b)
 viewL = iso viewl $ \ xs -> case xs of
   EmptyL ->  mempty
@@ -63,7 +70,19 @@ viewL = iso viewl $ \ xs -> case xs of
 
 -- | A 'Seq' is isomorphic to a 'ViewR'
 --
--- @'viewr' m = m '^.' 'viewR'@
+-- @'viewr' m ≡ m '^.' 'viewR'@
+--
+-- >>> Seq.fromList [a,b,c] ^. viewR
+-- fromList [a,b] :> c
+--
+-- >>> Seq.empty ^. viewR
+-- EmptyR
+--
+-- >>> EmptyR ^. from viewR
+-- fromList []
+--
+-- >>> from viewR ^$ fromList [a,b] :> c
+-- fromList [a,b,c]
 viewR :: Iso (Seq a) (Seq b) (ViewR a) (ViewR b)
 viewR = iso viewr $ \xs -> case xs of
   EmptyR  -> mempty
@@ -73,6 +92,9 @@ viewR = iso viewr $ \xs -> case xs of
 -- * Traversals
 
 -- | Traverse the head of a 'Seq'
+--
+-- >>> fromList [a,b] & _head %~ f
+-- fromList [f a,b]
 _head :: SimpleIndexedTraversal Int (Seq a) a
 _head = indexed $ \f m -> case viewl m of
   a :< as -> (<| as) <$> f (0::Int) a
