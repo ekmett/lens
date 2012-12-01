@@ -378,7 +378,7 @@ elementsOf :: (Applicative f, Indexable Int k)
            -> (Int -> Bool)
            -> Overloaded k f s t a a
 elementsOf l p = indexed $ \iafb s ->
-  case runIndexing (l (\a -> Indexing (\i -> (if p i then iafb i a else pure a, i + 1))) s) 0 of
+  case runIndexing (l (\a -> Indexing (\i -> i `seq` (if p i then iafb i a else pure a, i + 1))) s) 0 of
     (r, _) -> r
 {-# INLINE elementsOf #-}
 
