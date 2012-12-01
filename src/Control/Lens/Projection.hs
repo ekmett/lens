@@ -28,6 +28,7 @@ module Control.Lens.Projection
   , remit
   , review, reviews
   , reuse, reuses
+  , embedding
 
   -- * Common projections
   , _left
@@ -43,6 +44,7 @@ import Control.Category
 import Control.Monad.Reader as Reader
 import Control.Monad.State as State
 import Control.Lens.Classes
+import Control.Lens.Combinators
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Type
@@ -136,6 +138,14 @@ cloneProjection ProjectedId     = id
 ------------------------------------------------------------------------------
 -- Projection Combinators
 ------------------------------------------------------------------------------
+
+-- | Use a 'Projection' as a first-class pattern.
+--
+-- This lets you modify an entire function.
+--
+-- @'embedding' :: 'Projection' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
+embedding :: Overloaded Projected (Bazaar a b) s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
+embedding (Projected bt seta) f tr = f (tr.unsafeCoerce bt) <&> \ar -> either tr ar . unsafeCoerce seta
 
 -- | Turn a 'Projection' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
 --
