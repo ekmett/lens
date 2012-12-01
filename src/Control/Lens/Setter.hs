@@ -244,7 +244,7 @@ sets f g = tainted# (f (untainted# g))
 --
 -- Given any valid 'Setter' @l@, you can also rely on the law:
 --
--- @'over' l f . 'over' l g@ = 'over' l (f . g)@
+-- @'over' l f . 'over' l g = 'over' l (f . g)@
 --
 -- /e.g./
 --
