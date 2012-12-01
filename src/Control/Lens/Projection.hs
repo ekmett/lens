@@ -29,6 +29,7 @@ module Control.Lens.Projection
   , review, reviews
   , reuse, reuses
   , outside
+  , aside
 
   -- * Common projections
   , _left
@@ -147,8 +148,15 @@ cloneProjection ProjectedId     = id
 --
 -- @'outside' :: 'Projection' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
 outside :: Overloaded Projected (Bazaar a b) s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
-outside (Projected bt seta) f tr = f (tr.unsafeCoerce bt) <&> \ar -> either tr ar . unsafeCoerce seta
 outside ProjectedId         f tr = f tr
+outside (Projected bt seta) f tr = f (tr.unsafeCoerce bt) <&> \ar -> either tr ar . unsafeCoerce seta
+
+-- | Use a 'Projection' to work over part of a structure.
+aside :: Overloaded Projected (Bazaar a b) s t a b -> Projection (e, s) (e, t) (e, a) (e, b)
+aside ProjectedId = id
+aside (Projected bt seta) = projected (fmap (unsafeCoerce bt)) $ \(e,s) -> case unsafeCoerce seta s of
+  Left t -> Left (e,t)
+  Right a -> Right (e,a)
 
 -- | Turn a 'Projection' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
 --
