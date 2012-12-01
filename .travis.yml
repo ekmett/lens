@@ -19,7 +19,7 @@ notifications:
       - "irc.freenode.org#haskell-lens"
     skip_join: true
     template:
-      - "13lens/6%{branch} 14%{commit} %{build_url} %{message}"
+      - "\x0313lens\x03/\x036%{branch}\x03 \x0314%{commit}\x03 %{build_url} %{message}"
 
 env:
   - mode="--enable-tests" script="cabal test"
