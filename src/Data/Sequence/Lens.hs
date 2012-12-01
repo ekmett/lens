@@ -109,8 +109,8 @@ _head = indexed $ \f m -> case viewl m of
 
 -- | Traverse the tail of a 'Seq'
 --
--- >>> fromList [a,b,c] & _tail .~ [d,e,f]
--- fromList [a,d,e,f]
+-- >>> fromList [a,b] & _tail .~ fromList [c,d,e]
+-- fromList [a,c,d,e]
 --
 -- >>> fromList [a,b,c] ^? _tail
 -- Just (fromList [b,c])
@@ -140,6 +140,15 @@ _last = indexed $ \f m ->  case viewr m of
 {-# INLINE _last #-}
 
 -- | Traverse all but the last element of a 'Seq'
+--
+-- >>> fromList [1,2,3] ^? _init
+-- Just (fromList [1,2])
+--
+-- >>> fromList [a,b,c,d] & _init.traverse %~ f
+-- fromList [f a,f b,f c,d]
+--
+-- >>> fromList [] & _init .~ fromList [a,b,c]
+-- fromList []
 _init :: SimpleTraversal (Seq a) (Seq a)
 _init f m = case viewr m of
   as :> a -> (|> a) <$> f as
@@ -147,18 +156,45 @@ _init f m = case viewr m of
 {-# INLINE _init #-}
 
 -- | Traverse the first @n@ elements of a 'Seq'
+--
+-- >>> fromList [a,b,c,d,e] ^.. slicedTo 2
+-- [a,b]
+--
+-- >>> fromList [a,b,c,d,e] & slicedTo 2 %~ f
+-- fromList [f a,f b,c,d,e]
+--
+-- >>> fromList [a,b,c,d,e] & slicedTo 10 .~ x
+-- fromList [x,x,x,x,x]
 slicedTo :: Int -> SimpleIndexedTraversal Int (Seq a) a
 slicedTo n = indexed $ \f m -> case Seq.splitAt n m of
   (l,r) -> (>< r) <$> itraverse f l
 {-# INLINE slicedTo #-}
 
 -- | Traverse all but the first @n@ elements of a 'Seq'
+--
+-- >>> fromList [a,b,c,d,e] ^.. slicedFrom 2
+-- [c,d,e]
+--
+-- >>> fromList [a,b,c,d,e] & slicedFrom 2 %~ f
+-- fromList [a,b,f c,f d,f e]
+--
+-- >>> fromList [a,b,c,d,e] & slicedFrom 10 .~ x
+-- fromList [a,b,c,d,e]
 slicedFrom :: Int -> SimpleIndexedTraversal Int (Seq a) a
 slicedFrom n = indexed $ \ f m -> case Seq.splitAt n m of
   (l,r) -> (l ><) <$> itraverse (f . (+n)) r
 {-# INLINE slicedFrom #-}
 
 -- | Travere all the elements numbered from @i@ to @j@ of a 'Seq'
+--
+-- >>> fromList [a,b,c,d,e] & sliced 1 3 %~ f
+-- fromList [a,f b,f c,d,e]
+
+-- >>> fromList [a,b,c,d,e] ^.. sliced 1 3
+-- [f b,f c]
+--
+-- >>> fromList [a,b,c,d,e] & sliced 1 3 .~ x
+-- fromList [a,x,x,b,e]
 sliced :: Int -> Int -> SimpleIndexedTraversal Int (Seq a) a
 sliced i j = indexed $ \ f s -> case Seq.splitAt i s of
   (l,mr) -> case Seq.splitAt (j-i) mr of
