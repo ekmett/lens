@@ -38,7 +38,7 @@ import Data.Sequence as Seq
 -- fromList [a,b,e,d]
 --
 -- >>> Seq.fromList [a,b,c,d] ^. ordinal 2
--- e
+-- c
 --
 -- *NB:* This is only a legal lens if there is already such an element!
 ordinal :: Int -> SimpleIndexedLens Int (Seq a) a
@@ -93,8 +93,14 @@ viewR = iso viewr $ \xs -> case xs of
 
 -- | Traverse the head of a 'Seq'
 --
--- >>> fromList [a,b] & _head %~ f
--- fromList [f a,b]
+-- >>> fromList [a,b,c,d] & _head %~ f
+-- fromList [f a,b,c,d]
+--
+-- >>> fromList [] ^? _head
+-- Nothing
+--
+-- >>> fromList [a,b,c,d] ^? _head
+-- Just a
 _head :: SimpleIndexedTraversal Int (Seq a) a
 _head = indexed $ \f m -> case viewl m of
   a :< as -> (<| as) <$> f (0::Int) a
@@ -102,6 +108,15 @@ _head = indexed $ \f m -> case viewl m of
 {-# INLINE _head #-}
 
 -- | Traverse the tail of a 'Seq'
+--
+-- >>> fromList [a,b,c] & _tail .~ [d,e,f]
+-- fromList [a,d,e,f]
+--
+-- >>> fromList [a,b,c] ^? _tail
+-- Just (fromList [b,c])
+--
+-- >>> fromList [] ^? _tail
+-- Nothing
 _tail :: SimpleTraversal (Seq a) (Seq a)
 _tail f m = case viewl m of
   a :< as -> (a <|) <$> f as
@@ -109,6 +124,15 @@ _tail f m = case viewl m of
 {-# INLINE _tail #-}
 
 -- | Traverse the last element of a 'Seq'
+--
+-- >>> fromList [a,b,c,d] & _last %~ f
+-- fromList [a,b,c,f d]
+--
+-- >>> fromList [a,b,c,d] ^? _last
+-- Just d
+--
+-- >>> fromList [] ^? _last
+-- Nothing
 _last :: SimpleIndexedTraversal Int (Seq a) a
 _last = indexed $ \f m ->  case viewr m of
   as :> a -> (as |>) <$> f (Seq.length as) a
