@@ -25,8 +25,25 @@ module Data.List.Lens
 import Control.Applicative
 import Control.Lens
 
+-- $setup
+-- >>> import Debug.SimpleReflect.Expr
+-- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
+-- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
 -- | A 'Traversal' reading and writing to the 'head' of a /non-empty/ list.
+--
+-- >>> [a,b,c]^? _head
+-- Just a
+--
+-- >>> [a,b,c] & _head .~ d
+-- [d,b,c]
+
+-- >>> [a,b,c] & _head %~ f
+-- [f a,b,c]
+--
+-- >>> [] & _head %~ f
+-- []
 --
 -- >>> [1,2,3]^?!_head
 -- 1
@@ -55,6 +72,12 @@ _head = indexed $ \f aas -> case aas of
 
 -- | A 'Traversal' reading and writing to the 'tail' of a /non-empty/ list
 --
+-- >>> [a,b] & _tail .~ [c,d,e]
+-- [a,c,d,e]
+--
+-- >>> [] & _tail .~ [a,b]
+-- []
+--
 -- >>> [1,2] & _tail .~ [3,4,5]
 -- [1,3,4,5]
 --
@@ -79,11 +102,14 @@ _tail _ as     = pure as
 
 -- | A 'Traversal' reading and writing to the last element of a /non-empty/ list
 --
--- >>> [1,2,3]^?!_last
--- 3
+-- >>> [a,b,c]^?!_last
+-- c
 --
 -- >>> []^?_last
 -- Nothing
+--
+-- >>> [a,b,c] & _last %~ f
+-- [a,b,f c]
 --
 -- >>> [1,2]^?_last
 -- Just 2
