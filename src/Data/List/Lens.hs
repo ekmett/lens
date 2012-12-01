@@ -78,14 +78,17 @@ _head = indexed $ \f aas -> case aas of
 -- >>> [] & _tail .~ [a,b]
 -- []
 --
+-- >>> [a,b,c,d,e] & _tail.traverse %~ f
+-- [a,f b,f c,f d,f e]
+--
 -- >>> [1,2] & _tail .~ [3,4,5]
 -- [1,3,4,5]
 --
 -- >>> [] & _tail .~ [1,2]
 -- []
 --
--- >>> [1,2,3]^?_tail
--- Just [2,3]
+-- >>> [a,b,c]^?_tail
+-- Just [a,b]
 --
 -- >>> [1,2]^?!_tail
 -- [2]
@@ -132,20 +135,26 @@ _last = indexed $ \f aas -> case aas of
 
 -- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ list
 --
--- >>> [1,2,3,4]^?!_init
--- [1,2,3]
+-- >>> [a,b,c,d]^?_init
+-- Just [a,b,c]
 --
--- >>> [1,2] & _init .~ [3,4,5]
--- [3,4,5,2]
---
--- >>> [] & _init .~ [1,2]
+-- >>> []^?_init
 -- []
+--
+-- >>> [a,b] & _init .~ [c,d,e]
+-- [a,c,d,e]
+--
+-- >>> [] & _init .~ [a,b]
+-- []
+--
+-- >>> [a,b,c,d] & _init.traverse %~ f
+-- [f a,f b,f c,d]
 --
 -- >>> [1,2,3]^?_init
 -- Just [1,2]
 --
--- >>> [1,2]^?!_init
--- [1]
+-- >>> [1,2,3,4]^?!_init
+-- [1,2,3]
 --
 -- >>> "hello"^._init
 -- "hell"
