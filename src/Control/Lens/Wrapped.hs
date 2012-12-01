@@ -18,13 +18,13 @@
 -- they can be done with the 'Iso' directly:
 --
 -- @
--- Control.Newtype.over Sum f ≡ 'wrappings' Sum Sum %~ f@
--- Control.Newtype.under Sum f ≡ 'unwrappings' Sum Sum %~ f
--- Control.Newtype.overF Sum f ≡ 'mapping' ('wrappings' Sum Sum) %~ f
--- Control.Newtype.underF Sum f ≡ 'mapping' ('unwrappings' Sum Sum) %~ f
+-- Control.Newtype.over 'Sum' f ≡ 'wrapping' 'Sum' '%~' f
+-- Control.Newtype.under 'Sum' f ≡ 'unwrapping' 'Sum' '%~' f
+-- Control.Newtype.overF 'Sum' f ≡ 'mapping' ('wrapping' 'Sum') '%~' f
+-- Control.Newtype.underF 'Sum' f ≡ 'mapping' ('unwrapping' 'Sum') '%~' f
 -- @
 --
--- 'under' can also be used with 'wrappings' to provide the equivalent of
+-- 'under' can also be used with 'wrapping' to provide the equivalent of
 -- @Control.Newtype.under@.  Also, most use cases don't need full polymorphism,
 -- so only the single constructor 'wrapping' functions would be needed.
 --
