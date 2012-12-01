@@ -23,6 +23,6 @@ notifications:
 
 env:
   - mode="--enable-tests" script="cabal test"
-  - mode="--enable-tests -fsafe" script="cabal test"
+  # - mode="--enable-tests -fsafe" script="cabal test"
   # - mode="--enable-tests -fdump-splices" script="cabal test --show-details=always"
   # - mode="--enable-benchmarks -fdump-splices" script="cabal bench"
