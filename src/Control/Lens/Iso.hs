@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
@@ -59,7 +60,6 @@ import Data.Text as StrictT hiding (length)
 import Data.Text.Lazy as LazyT hiding (length)
 import Data.Maybe (fromMaybe)
 import Prelude hiding ((.),id)
-import Unsafe.Coerce
 
 -- $setup
 -- >>> import Control.Lens
@@ -81,9 +81,8 @@ import Unsafe.Coerce
 -- If you've imported 'Control.Category..' from @Control.Category@, then:
 --
 -- @'from' l '.' 'from' r ≡ 'from' (r '.' l)@
-from :: (Isomorphic k, Functor f) => Overloaded Isomorphism Mutator s t a b -> k (t -> f s) (b -> f a)
-from (Isomorphism sa bt) = iso (unsafeCoerce bt) sa
-from IsomorphismId       = iso id id
+from :: Isomorphism s t a b -> Iso b a t s
+from (Isomorphism sa bt) = iso bt sa
 {-# INLINE from #-}
 
 -- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.
@@ -92,9 +91,8 @@ from IsomorphismId       = iso id id
 -- and later reconstitute it as an overloaded function.
 --
 -- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
-cloneIso :: Overloaded Isomorphism Mutator s t a b -> Iso s t a b
-cloneIso (Isomorphism sa bt) = iso sa (unsafeCoerce bt)
-cloneIso IsomorphismId       = iso id id
+cloneIso :: Isomorphism s t a b -> Iso s t a b
+cloneIso (Isomorphism sa bt) = iso sa bt
 {-# INLINE cloneIso #-}
 
 -----------------------------------------------------------------------------
@@ -111,8 +109,7 @@ cloneIso IsomorphismId       = iso id id
 -- import Prelude hiding (('Prelude..'),'Prelude.id')
 -- @
 --
--- @type 'Iso' s t a b = forall k f. ('Isomorphic' k, 'Functor' f) => 'Overloaded' k f s t a b@
-type Iso s t a b = forall k f. (Isomorphic k, Functor f) => k (a -> f b) (s -> f t)
+type Iso s t a b = forall r. Isomorphic r s t a b => r
 
 -- |
 -- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
@@ -124,9 +121,8 @@ type SimpleIso s a = Iso s s a a
 --
 -- >>> au (wrapping Sum) foldMap [1,2,3,4]
 -- 10
-au :: Overloaded Isomorphism Mutator s t a b -> ((s -> a) -> e -> b) -> e -> t
-au (Isomorphism sa bt) f e = unsafeCoerce bt (f sa e)
-au IsomorphismId       f e = f id e
+au :: Isomorphism s t a b -> ((s -> a) -> e -> b) -> e -> t
+au (Isomorphism sa bt) f e = bt (f sa e)
 {-# INLINE au #-}
 
 -- |
@@ -139,9 +135,8 @@ au IsomorphismId       f e = f id e
 --
 -- >>> auf (wrapping Sum) (foldMapOf both) length ("hello","world")
 -- 10
-auf :: Overloaded Isomorphism Mutator s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
-auf (Isomorphism sa bt) f g e = unsafeCoerce bt (f (sa . g) e)
-auf IsomorphismId       f g e = f g e
+auf :: Isomorphism s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
+auf (Isomorphism sa bt) f g e = bt (f (sa . g) e)
 {-# INLINE auf #-}
 
 -- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
@@ -149,9 +144,8 @@ auf IsomorphismId       f g e = f g e
 -- @'under' ≡ 'over' '.' 'from'@
 --
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
-under :: Overloaded Isomorphism Mutator s t a b -> (t -> s) -> b -> a
-under (Isomorphism sa bt) ts b = sa (ts (unsafeCoerce bt b))
-under IsomorphismId       ts b = ts b
+under :: Isomorphism s t a b -> (t -> s) -> b -> a
+under (Isomorphism sa bt) ts b = sa (ts (bt b))
 {-# INLINE under #-}
 
 -----------------------------------------------------------------------------
@@ -176,9 +170,8 @@ enum = iso toEnum fromEnum
 {-# INLINE enum #-}
 
 -- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
-mapping :: Functor f => Overloaded Isomorphism Mutator s t a b -> Iso (f s) (f t) (f a) (f b)
-mapping (Isomorphism sa bt) = iso (fmap sa) (fmap (unsafeCoerce bt))
-mapping IsomorphismId = iso id id -- HA!
+mapping :: Functor f => Isomorphism s t a b -> Iso (f s) (f t) (f a) (f b)
+mapping (Isomorphism sa bt) = iso (fmap sa) (fmap bt)
 {-# INLINE mapping #-}
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',

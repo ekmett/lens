@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -23,7 +25,6 @@ module Control.Lens.Projection
   , Projective(..)
 
   -- * Consuming Projections
-  , Projecting
   , cloneProjection
   , remit
   , review, reviews
@@ -41,7 +42,6 @@ module Control.Lens.Projection
   ) where
 
 import Control.Arrow
-import Control.Applicative
 import Control.Category
 import Control.Monad.Reader as Reader
 import Control.Monad.State as State
@@ -51,11 +51,11 @@ import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Type
 import Prelude hiding (id,(.))
-import Unsafe.Coerce
 
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Numeric.Natural
+-- >>> :set -XFlexibleContexts
 -- >>> let nat :: Simple Projection Integer Natural; nat = projected toInteger $ \i -> if i <= 0 then Left i else Right (fromInteger i)
 -- >>> let isLeft  (Left  _) = True; isLeft  _ = False
 -- >>> let isRight (Right _) = True; isRight _ = False
@@ -126,20 +126,16 @@ import Unsafe.Coerce
 --
 -- Another interesting way to think of a 'Projection' is as the categorical dual of a 'Lens'
 -- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
-type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f b) (s -> f t)
+type Projection s t a b = forall r. Projective r s t a b => r
 
 -- | A @'Simple' 'Projection'@.
 type SimpleProjection s a = Projection s s a a
 
--- | Consume a 'Project'. This is commonly used when a function takes a 'Projection' as a parameter.
-type Projecting s t a b = Overloaded Projected (Bazaar a b) s t a b
-
 -- | Clone a 'Projection' so that you can reuse the same monomorphically typed 'Projection' for different purposes.
 --
 -- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.
-cloneProjection :: Overloaded Projected (Bazaar a b) s t a b -> Projection s t a b
-cloneProjection (Projected f g) = projected (unsafeCoerce f) (unsafeCoerce g)
-cloneProjection ProjectedId     = id
+cloneProjection :: Projected s t a b -> Projection s t a b
+cloneProjection (Projected f g) = projected f g
 
 ------------------------------------------------------------------------------
 -- Projection Combinators
@@ -148,33 +144,24 @@ cloneProjection ProjectedId     = id
 -- | Use a 'Projection' as a kind of first-class pattern.
 --
 -- @'outside' :: 'Projection' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
-outside :: Overloaded Projected (Bazaar a b) s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
-outside ProjectedId         f tr = f tr
-outside (Projected bt seta) f tr = f (tr.unsafeCoerce bt) <&> \ar -> either tr ar . unsafeCoerce seta
+outside :: Projected s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
+outside (Projected bt seta) f tr = f (tr.bt) <&> \ar -> either tr ar . seta
 
 -- | Use a 'Projection' to work over part of a structure.
-aside :: Overloaded Projected (Bazaar a b) s t a b -> Projection (e, s) (e, t) (e, a) (e, b)
-aside ProjectedId = id
-aside (Projected bt seta) = projected (fmap (unsafeCoerce bt)) $ \(e,s) -> case unsafeCoerce seta s of
+aside :: Projected s t a b -> Projection (e, s) (e, t) (e, a) (e, b)
+aside (Projected bt seta) = projected (fmap bt) $ \(e,s) -> case seta s of
   Left t -> Left (e,t)
   Right a -> Right (e,a)
 
 -- | Given a pair of projections, project sums.
 --
 -- Viewing a 'Projection' as a co-lens, this combinator can be seen to be dual to 'alongside'.
-without :: Overloaded Projected (Bazaar a b) s t a b
-        -> Overloaded Projected (Bazaar c d) u v c d
+without :: Projected s t a b
+        -> Projected u v c d
         -> Projection (Either s u) (Either t v) (Either a c) (Either b d)
-without ProjectedId ProjectedId = id
-without (Projected bt seta) ProjectedId = projected (unsafeCoerce (left bt)) go where
-  go (Left s) = either (Left . Left) (Right . Left) (unsafeCoerce seta s)
-  go (Right u) = Right (Right u)
-without ProjectedId (Projected dv uevc) = projected (unsafeCoerce (right dv)) go where
-  go (Left s) = Right (Left s)
-  go (Right u) = either (Left . Right) (Right . Right) (unsafeCoerce uevc u)
-without (Projected bt seta) (Projected dv uevc) = projected (unsafeCoerce (bt +++ dv)) go where
-  go (Left s) = either (Left . Left) (Right . Left) (unsafeCoerce seta s)
-  go (Right u) = either (Left . Right) (Right . Right) (unsafeCoerce uevc u)
+without (Projected bt seta) (Projected dv uevc) = projected (bt +++ dv) go where
+  go (Left s) = either (Left . Left) (Right . Left) (seta s)
+  go (Right u) = either (Left . Right) (Right . Right) (uevc u)
 
 -- | Turn a 'Projection' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
 --
@@ -188,9 +175,8 @@ without (Projected bt seta) (Projected dv uevc) = projected (unsafeCoerce (bt ++
 -- 'remit' :: 'Projection' s t a b -> 'Getter' b t
 -- 'remit' :: 'Iso' s t a b        -> 'Getter' b t
 -- @
-remit :: Projecting s t a b -> Getter b t
-remit (Projected bt _) = to (unsafeCoerce bt)
-remit ProjectedId      = id
+remit :: Projected s t a b -> Getter b t
+remit (Projected bt _) = to bt
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way.
 --
@@ -214,9 +200,8 @@ remit ProjectedId      = id
 -- 'review' :: 'MonadReader' a m => 'Simple' 'Iso' s a        -> m s
 -- 'review' :: 'MonadReader' a m => 'Simple' 'Projection' s a -> m s
 -- @
-review :: MonadReader b m => Projecting s t a b -> m t
-review (Projected bt _) = asks (unsafeCoerce bt)
-review ProjectedId      = ask
+review :: MonadReader b m => Projected s t a b -> m t
+review (Projected bt _) = asks bt
 {-# INLINE review #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'view' a value (or the current environment) through it the other way,
@@ -242,9 +227,8 @@ review ProjectedId      = ask
 -- 'reviews' :: 'MonadReader' a m => 'Simple' 'Iso' s a        -> (s -> r) -> m r
 -- 'reviews' :: 'MonadReader' a m => 'Simple' 'Projection' s a -> (s -> r) -> m r
 -- @
-reviews :: MonadReader b m => Projecting s t a b -> (t -> r) -> m r
-reviews (Projected bt _) f = asks (f . unsafeCoerce bt)
-reviews ProjectedId      f = asks f
+reviews :: MonadReader b m => Projected s t a b -> (t -> r) -> m r
+reviews (Projected bt _) f = asks (f . bt)
 {-# INLINE reviews #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'use' a value (or the current environment) through it the other way.
@@ -258,9 +242,8 @@ reviews ProjectedId      f = asks f
 -- 'reuse' :: 'MonadState' a m => 'Simple' 'Projection' s a -> m s
 -- 'reuse' :: 'MonadState' a m => 'Simple' 'Iso' s a        -> m s
 -- @
-reuse :: MonadState b m => Projecting s t a b -> m t
-reuse (Projected bt _) = gets (unsafeCoerce bt)
-reuse ProjectedId      = get
+reuse :: MonadState b m => Projected s t a b -> m t
+reuse (Projected bt _) = gets bt
 {-# INLINE reuse #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Projection' around and 'use' the current state through it the other way,
@@ -275,9 +258,8 @@ reuse ProjectedId      = get
 -- 'reuses' :: 'MonadState' a m => 'Simple' 'Projection' s a -> (s -> r) -> m r
 -- 'reuses' :: 'MonadState' a m => 'Simple' 'Iso' s a        -> (s -> r) -> m r
 -- @
-reuses :: MonadState b m => Projecting s t a b -> (t -> r) -> m r
-reuses (Projected bt _) f = gets (f . unsafeCoerce bt)
-reuses ProjectedId      f = gets f
+reuses :: MonadState b m => Projected s t a b -> (t -> r) -> m r
+reuses (Projected bt _) f = gets (f . bt)
 {-# INLINE reuses #-}
 
 ------------------------------------------------------------------------------

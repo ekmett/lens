@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -133,7 +134,7 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
 --
 -- An instance of 'Isomorphic' is a 'Category' with a canonical mapping to it from the
 -- category of isomorphisms over Haskell types.
-class Category k => Isomorphic k where
+class Isomorphic r s t a b | r -> s t a b, s b -> t a, t a -> s b where
   -- | Build a simple isomorphism from a pair of inverse functions
   --
   -- @
@@ -142,9 +143,9 @@ class Category k => Isomorphic k where
   -- 'set' ('iso' f g) h ≡ g '.' h '.' f
   -- 'set' ('from' ('iso' f g)) h ≡ f '.' h '.' g
   -- @
-  iso :: Functor f => (s -> a) -> (b -> t) -> k (a -> f b) (s -> f t)
+  iso :: (s -> a) -> (b -> t) -> r
 
-instance Isomorphic (->) where
+instance (Functor f, x ~ (a -> f b), y ~ (s -> f t)) => Isomorphic (x -> y) s t a b where
   iso sa bt afb s = bt <$> afb (sa s)
 
 -----------------------------------------------------------------------------
@@ -155,13 +156,13 @@ instance Isomorphic (->) where
 --
 -- An instance of 'Projective' is a 'Category' with a canonical mapping to it from the category
 -- of embedding-projection pairs over Haskell types.
-class Isomorphic k => Projective k where
+class Isomorphic r s t a b => Projective r s t a b | r -> s t a b, s b -> t a, t a -> s b where
   -- | Build a 'Control.Lens.Projection.Projection'.
   --
   -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
-  projected :: Applicative f => (b -> t) -> (s -> Either t a) -> k (a -> f b) (s -> f t)
+  projected :: (b -> t) -> (s -> Either t a) -> r
 
-instance Projective (->) where
+instance (Applicative f, x ~ (a -> f b), y ~ (s -> f t)) => Projective (x -> y) s t a b where
   projected bt seta afb = either pure (fmap bt . afb) . seta
   {-# INLINE projected #-}
 

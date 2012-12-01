@@ -472,29 +472,23 @@ sellT i = BazaarT (\k -> k i)
 -- with its internals.
 --
 -- If you see a function that expects a 'Project', it is probably just expecting a 'Projection'.
-data Projected x y where
-  Projected :: (b -> t) -> (s -> Either t a) -> Projected (a -> f b) (s -> f t)
-  ProjectedId :: Projected x x
+data Projected s t a b where
+  Projected :: (b -> t) -> (s -> Either t a) -> Projected s t a b
 
+{-
 instance Category Projected where
-  id = ProjectedId
-  ProjectedId . y = y
-  x . ProjectedId = x
-  -- The use of 'unsafeCoerce' below is because GHC is unwilling to infer that
-  -- @a -> f b@ ~ @s -> g t@ entails @b ~ t@ even in a context where
-  -- neither @f@ nor @g@ could be type families, such as in the definition of
-  -- 'Isos'.
-  Projected ty xeys . Projected bt seta = unsafeCoerce $ Projected (unsafeCoerce ty.bt) $ \x ->
-    case unsafeCoerce xeys x of
+  Projected ty xeys . Projected bt seta = Projected (ty.bt) $ \x ->
+    case xeys x of
       Left y  -> Left y
-      Right s -> case unsafeCoerce seta s of
-        Left t  -> Left (unsafeCoerce ty t)
+      Right s -> case seta s of
+        Left t  -> Left (ty t)
         Right a -> Right a
+-}
 
-instance Projective Projected where
+instance Projective (Projected s t a b) s t a b where
   projected = Projected
 
-instance Isomorphic Projected where
+instance Isomorphic (Projected s t a b) s t a b where
   iso sa bt = Projected bt (Right . sa)
 
 ------------------------------------------------------------------------------
@@ -502,21 +496,15 @@ instance Isomorphic Projected where
 ------------------------------------------------------------------------------
 
 -- | Reify all of the information given to you by being 'Isomorphic'.
-data Isomorphism x y where
-  Isomorphism   :: (s -> a) -> (b -> t) -> Isomorphism (a -> f b) (s -> f t)
-  IsomorphismId :: Isomorphism x x
+data Isomorphism s t a b where
+  Isomorphism :: (s -> a) -> (b -> t) -> Isomorphism s t a b
 
+{-
 instance Category Isomorphism where
-  id = IsomorphismId
-  -- The use of 'unsafeCoerce' below is because GHC is unwilling to infer that
-  -- @a -> f b@ ~ @s -> g t@ entails @b ~ t@ even in a context where
-  -- neither @f@ nor @g@ could be type families, such as in the definition of
-  -- 'Isos'.
-  x                 . IsomorphismId     = x
-  IsomorphismId     . y                 = y
-  Isomorphism xs ty . Isomorphism sa bt = unsafeCoerce $ Isomorphism (sa.xs) (unsafeCoerce ty.bt)
+  Isomorphism xs ty . Isomorphism sa bt = Isomorphism (sa.xs) (ty.bt)
+-}
 
-instance Isomorphic Isomorphism where
+instance Isomorphic (Isomorphism s t a b) s t a b where
   iso = Isomorphism
 
 ------------------------------------------------------------------------------
