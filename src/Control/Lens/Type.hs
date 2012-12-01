@@ -311,10 +311,10 @@ choosing _ r f (Right a') = Right <$> r f a'
 --
 -- @'chosen' ≡ 'choosing' 'id' 'id'@
 --
--- >> Left a^.chosen
+-- >>> Left a^.chosen
 -- a
 --
--- >> Right a^.chosen
+-- >>> Right a^.chosen
 -- a
 --
 -- >>> Right "hello"^.chosen
