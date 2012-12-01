@@ -938,8 +938,8 @@ l <?= b = do
 -- >>> (Sum a,b) & _1 <>~ Sum c
 -- (Sum {getSum = a + c},b)
 --
--- >>> (Sum a,Sum b) & both <>~ c
--- (Sum {getSum = a + c,Sum {getSum = b + c})
+-- >>> (Sum a,Sum b) & both <>~ Sum c
+-- (Sum {getSum = a + c},Sum {getSum = b + c})
 --
 -- >>> both <>~ "!!!" $ ("hello","world")
 -- ("hello!!!","world!!!")
@@ -957,7 +957,7 @@ l <>~ n = over l (`mappend` n)
 -- | Modify the target(s) of a 'Control.Lens.Type.Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by 'mappend'ing a value.
 --
 -- >>> execState (do _1 <>= Sum c; _2 <>= Product d) (Sum a,Product b)
--- (Sum {getSum = a + c},Product {getProduct = b + d})
+-- (Sum {getSum = a + c},Product {getProduct = b * d})
 --
 -- >>> execState (both <>= "!!!") ("hello","world")
 -- ("hello!!!","world!!!")
