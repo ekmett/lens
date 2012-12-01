@@ -44,7 +44,6 @@ module Data.Data.Lens
   ) where
 
 import           Control.Applicative
-import           Control.Arrow ((&&&))
 import           Control.Exception as E
 import           Control.Lens.Getter
 import           Control.Lens.Indexed
@@ -56,6 +55,11 @@ import           Control.Lens.Setter
 import           Control.Lens.Traversal
 import           Control.Lens.Type
 import           Data.Data
+import           GHC.IO
+import           Unsafe.Coerce as Unsafe
+
+#ifndef SAFE
+import           Control.Arrow ((&&&))
 import           Data.Foldable
 import qualified Data.HashMap.Strict as M
 import           Data.HashMap.Strict (HashMap, (!))
@@ -63,9 +67,8 @@ import qualified Data.HashSet as S
 import           Data.HashSet (HashSet)
 import           Data.IORef
 import           Data.Monoid
-import           GHC.IO
 import           GHC.Exts (realWorld#)
-import           Unsafe.Coerce as Unsafe
+#endif
 
 -- $setup
 -- >>> import Control.Lens
@@ -109,8 +112,12 @@ step f w s = w <*> case cast s of
 --
 -- This is 'uniplate' with a more liberal signature.
 template :: forall s a. (Data s, Typeable a) => Simple Traversal s a
+#ifdef SAFE
+template = tinplate
+#else
 template = uniplateData (fromOracle answer) where
   answer = hitTest (undefined :: s) (undefined :: a)
+#endif
 {-# INLINE template #-}
 
 -- | Find descendants of type @a@ non-transitively, while avoiding computation of areas that cannot contain values of
@@ -123,8 +130,14 @@ uniplate = template
 
 -- | 'biplate' performs like 'template', except when @s ~ a@, it returns itself and nothing else.
 biplate :: forall s a. (Data s, Typeable a) => Simple Traversal s a
+#ifdef SAFE
+biplate f s
+  | typeOf (undefined :: s) == typeOf (undefined :: a) = pure s
+  | otherwise                                          = template f s
+#else
 biplate = biplateData (fromOracle answer) where
   answer = hitTest (undefined :: s) (undefined :: a)
+#endif
 {-# INLINE biplate #-}
 
 ------------------------------------------------------------------------------
@@ -256,6 +269,8 @@ onceUpon' field = indexed $ \f s -> let
       Just ip -> ip
   in k <$> f i (field s)
 {-# INLINE onceUpon' #-}
+
+#ifndef SAFE
 
 -------------------------------------------------------------------------------
 -- Data Box
@@ -434,3 +449,4 @@ follower a b m
   | otherwise = \k -> not (S.member k miss)
   where (hit, miss) = part (\x -> S.member b (m ! x)) (S.insert a (m ! a))
 
+#endif
