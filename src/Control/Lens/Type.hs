@@ -51,7 +51,7 @@
 -- 'Control.Lens.Traversal.Traversal'.
 --
 -- In the examples below, 'getter' and 'setter' are supplied as example getters
--- and setters.
+-- and setters, and are not actual functions supplied by this package.
 -------------------------------------------------------------------------------
 module Control.Lens.Type
   (
@@ -311,18 +311,29 @@ choosing _ r f (Right a') = Right <$> r f a'
 --
 -- @'chosen' ≡ 'choosing' 'id' 'id'@
 --
--- >>> Left 12^.chosen
--- 12
+-- >> Left a^.chosen
+-- a
+--
+-- >> Right a^.chosen
+-- a
+--
 -- >>> Right "hello"^.chosen
 -- "hello"
--- >>> chosen *~ 10 $ Right 2
--- Right 20
+--
+-- >>> Right a & chosen *~ b
+-- Right (a * b)
 chosen :: Lens (Either a a) (Either b b) a b
 chosen f (Left a) = Left <$> f a
 chosen f (Right a) = Right <$> f a
 {-# INLINE chosen #-}
 
 -- | 'alongside' makes a 'Lens' from two other lenses.
+--
+-- >>> (Left a, Right b)^.alongside chosen chosen
+-- (a,b)
+--
+-- >>> (Left a, Right b) & alongside chosen chosen .~ (c,d)
+-- (Left c,Right d)
 --
 -- @'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')@
 alongside :: LensLike (Context a b) s t a b
@@ -343,6 +354,8 @@ alongside l r f (s, s') = case l (Context id) s of
 -- used as a way to pass around lenses that have to be monomorphic in @f@.
 --
 -- Note: This only accepts a proper 'Lens'.
+--
+-- :t let example l x = set (cloneLens l) (x^.cloneLens l + 1) x in example
 --
 -- /\"Costate Comonad Coalgebra is equivalent of Java's member variable update technology for Haskell\"/ -- \@PLT_Borat on Twitter
 cloneLens :: Functor f
