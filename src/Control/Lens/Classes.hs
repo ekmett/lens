@@ -113,10 +113,10 @@ class Applicative f => Settable f where
   untainted :: f a -> a
 
   untainted# :: (a -> f b) -> a -> b
-  untainted# f = untainted . f
+  untainted# g = g `seq` \x -> untainted (g x)
 
   tainted# :: (a -> b) -> a -> f b
-  tainted# f = pure . f
+  tainted# g = g `seq` \x -> pure (g x)
 
 -- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries
 instance Settable Identity where
