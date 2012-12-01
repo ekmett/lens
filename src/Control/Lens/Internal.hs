@@ -66,7 +66,15 @@ import Prelude hiding ((.),id)
 import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Monoid
+#ifndef SAFE
 import Unsafe.Coerce
+#endif
+
+#ifndef SAFE
+#define UNSAFELY(x) unsafeCoerce
+#else
+#define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
+#endif
 
 -----------------------------------------------------------------------------
 -- Functors
@@ -413,9 +421,9 @@ instance Applicative Mutator where
 
 instance Settable Mutator where
   untainted = runMutator
-  untainted# = unsafeCoerce
+  untainted# = UNSAFELY(runMutator)
   {-# INLINE untainted #-}
-  tainted# = unsafeCoerce
+  tainted# = UNSAFELY(Mutator)
   {-# INLINE tainted# #-}
 
 -- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance

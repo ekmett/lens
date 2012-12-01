@@ -42,8 +42,17 @@ import Control.Monad (liftM)
 import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Monoid
-import Unsafe.Coerce
 import Prelude hiding ((.),id)
+#ifndef SAFE
+import Unsafe.Coerce
+#endif
+
+#ifndef SAFE
+#define UNSAFELY(x) unsafeCoerce
+#else
+#define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
+#endif
+
 
 -------------------------------------------------------------------------------
 -- Gettables & Accessors
@@ -112,9 +121,9 @@ class Applicative f => Settable f where
 -- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries
 instance Settable Identity where
   untainted = runIdentity
-  untainted# = unsafeCoerce
+  untainted# = UNSAFELY(runIdentity)
   {-# INLINE untainted #-}
-  tainted# = unsafeCoerce
+  tainted# = UNSAFELY(Identity)
   {-# INLINE tainted# #-}
 
 -- | 'Control.Lens.Fold.backwards'
