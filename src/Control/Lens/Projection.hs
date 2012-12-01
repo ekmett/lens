@@ -30,6 +30,7 @@ module Control.Lens.Projection
   , reuse, reuses
   , outside
   , aside
+  , without
 
   -- * Common projections
   , _left
@@ -157,6 +158,23 @@ aside ProjectedId = id
 aside (Projected bt seta) = projected (fmap (unsafeCoerce bt)) $ \(e,s) -> case unsafeCoerce seta s of
   Left t -> Left (e,t)
   Right a -> Right (e,a)
+
+-- | Given a pair of projections, project sums.
+--
+-- Viewing a 'Projection' as a co-lens, this combinator can be seen to be dual to 'alongside'.
+without :: Overloaded Projected (Bazaar a b) s t a b
+        -> Overloaded Projected (Bazaar c d) u v c d
+        -> Projection (Either s u) (Either t v) (Either a c) (Either b d)
+without ProjectedId ProjectedId = id
+without (Projected bt seta) ProjectedId = projected (unsafeCoerce (left bt)) go where
+  go (Left s) = either (Left . Left) (Right . Left) (unsafeCoerce seta s)
+  go (Right u) = Right (Right u)
+without ProjectedId (Projected dv uevc) = projected (unsafeCoerce (right dv)) go where
+  go (Left s) = Right (Left s)
+  go (Right u) = either (Left . Right) (Right . Right) (unsafeCoerce uevc u)
+without (Projected bt seta) (Projected dv uevc) = projected (unsafeCoerce (bt +++ dv)) go where
+  go (Left s) = either (Left . Left) (Right . Left) (unsafeCoerce seta s)
+  go (Right u) = either (Left . Right) (Right . Right) (unsafeCoerce uevc u)
 
 -- | Turn a 'Projection' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
 --
