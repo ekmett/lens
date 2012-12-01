@@ -30,15 +30,16 @@ import Control.Lens
 import Data.Complex
 
 -- $setup
+-- >>> import Debug.SimpleReflect
 -- >>> let { a ≈ b = abs (a - b) < 1e-6; infix 4 ≈ }
 
 -- | Access the 'realPart' of a 'Complex' number
 --
--- >>> (1.0 :+ 0.0)^._realPart
--- 1.0
+-- >>> (a :+ b)^._realPart
+-- a
 --
--- >>> 3 :+ 1 & _realPart *~ 2
--- 6 :+ 1
+-- >>> a :+ b & _realPart *~ 2
+-- a * 2 :+ b
 --
 -- @'_realPart' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
 #if MIN_VERSION_base(4,4,0)
@@ -50,8 +51,11 @@ _realPart f (a :+ b) = (:+ b) <$> f a
 
 -- | Access the 'imagPart' of a 'Complex' number
 --
--- >>> (0.0 :+ 1.0)^._imagPart
--- 1.0
+-- >>> (a :+ b)^._imagPart
+-- b
+--
+-- >>> a :+ b & _imagPart *~ 2
+-- a :+ b * 2
 --
 -- @'_imagPart' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
 #if MIN_VERSION_base(4,4,0)
@@ -125,14 +129,14 @@ _conjugate = iso conjugate conjugate
 
 -- | Traverse both the 'realPart' and the 'imagPart' of a 'Complex' number.
 --
--- >>> 0 & complex .~ 1
--- 1 :+ 1
+-- >>> a :+ b & complex .~ c
+-- c :+ c
 --
--- >>> 3 :+ 4 & complex *~ 2
--- 6 :+ 8
+-- >>> a :+ b & complex *~ 2
+-- a * 2 :+ b * 2
 --
--- >>> sumOf complex (1 :+ 2)
--- 3
+-- >>> sumOf complex (a :+ b)
+-- a + b
 --
 -- @'complex' :: 'Applicative' f => (a -> f b) -> 'Complex' a -> f ('Complex' b)@
 #if MIN_VERSION_base(4,4,0)
