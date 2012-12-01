@@ -251,7 +251,7 @@ reuse (Projected bt _) = gets bt
 --
 -- @'reuses' ≡ 'uses' '.' 'remit'@
 --
--- >>> evalState (reuses _left isLeft) 5
+-- >>> evalState (reuses _left isLeft) (5 :: Int)
 -- True
 --
 -- @
