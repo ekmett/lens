@@ -90,7 +90,7 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
 </p><pre><code><a href="Control-Lens-Setter.html#v:over">over</a></code> l f . <code><a href="Control-Lens-Setter.html#v:over">over</a></code> l g = <code><a href="Control-Lens-Setter.html#v:over">over</a></code> l (f . g)</pre><p><em>e.g.</em>
 </p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over mapped f (over mapped g [a,b,c]) == over mapped (f . g) [a,b,c]
 </code></strong>True
-</pre><p>Another way to view <code><a href="Control-Lens-Setter.html#v:over">over</a></code> is to say that it transformers a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> into a
+</pre><p>Another way to view <code><a href="Control-Lens-Setter.html#v:over">over</a></code> is to say that it transforms a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> into a
  &quot;semantic editor combinator&quot;.
 </p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over mapped f (Just a)
 </code></strong>Just (f a)

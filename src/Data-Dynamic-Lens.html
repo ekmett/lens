@@ -7,29 +7,30 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE FlexibleContexts #-}</span>
-<a name="line-2"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-3"></a><span class='hs-comment'>-- |</span>
-<a name="line-4"></a><span class='hs-comment'>-- Module      :  Data.Dynamic.Lens</span>
-<a name="line-5"></a><span class='hs-comment'>-- Copyright   :  (C) 2012 Edward Kmett</span>
-<a name="line-6"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
-<a name="line-7"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
-<a name="line-8"></a><span class='hs-comment'>-- Stability   :  provisional</span>
-<a name="line-9"></a><span class='hs-comment'>-- Portability :  portable</span>
-<a name="line-10"></a><span class='hs-comment'>--</span>
-<a name="line-11"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
-<a name="line-12"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Dynamic</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-13"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>dynamic</span>
-<a name="line-14"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-15"></a>
-<a name="line-16"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-17"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Dynamic</span>
-<a name="line-18"></a>
-<a name="line-19"></a><a name="dynamic"></a><span class='hs-comment'>-- |</span>
-<a name="line-20"></a><span class='hs-comment'>-- Traverse the typed value contained in a 'Dynamic' where the type required by your function matches that</span>
-<a name="line-21"></a><span class='hs-comment'>-- of the contents of the 'Dynamic'.</span>
-<a name="line-22"></a><span class='hs-definition'>dynamic</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Typeable</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-conid'>Typeable</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Projection</span> <span class='hs-conid'>Dynamic</span> <span class='hs-conid'>Dynamic</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-23"></a><span class='hs-definition'>dynamic</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>projected</span> <span class='hs-varid'>toDyn</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>maybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-varid'>fromDynamic</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span>
-<a name="line-24"></a><span class='hs-comment'>{-# INLINE dynamic #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE TypeFamilies #-}</span>
+<a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE FlexibleContexts #-}</span>
+<a name="line-3"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-4"></a><span class='hs-comment'>-- |</span>
+<a name="line-5"></a><span class='hs-comment'>-- Module      :  Data.Dynamic.Lens</span>
+<a name="line-6"></a><span class='hs-comment'>-- Copyright   :  (C) 2012 Edward Kmett</span>
+<a name="line-7"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
+<a name="line-8"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
+<a name="line-9"></a><span class='hs-comment'>-- Stability   :  provisional</span>
+<a name="line-10"></a><span class='hs-comment'>-- Portability :  portable</span>
+<a name="line-11"></a><span class='hs-comment'>--</span>
+<a name="line-12"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
+<a name="line-13"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Dynamic</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-14"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>dynamic</span>
+<a name="line-15"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-16"></a>
+<a name="line-17"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Dynamic</span>
+<a name="line-19"></a>
+<a name="line-20"></a><a name="dynamic"></a><span class='hs-comment'>-- |</span>
+<a name="line-21"></a><span class='hs-comment'>-- Traverse the typed value contained in a 'Dynamic' where the type required by your function matches that</span>
+<a name="line-22"></a><span class='hs-comment'>-- of the contents of the 'Dynamic'.</span>
+<a name="line-23"></a><span class='hs-definition'>dynamic</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Typeable</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-conid'>Typeable</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Projection</span> <span class='hs-conid'>Dynamic</span> <span class='hs-conid'>Dynamic</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-24"></a><span class='hs-definition'>dynamic</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>projected</span> <span class='hs-varid'>toDyn</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>maybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-varid'>fromDynamic</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span>
+<a name="line-25"></a><span class='hs-comment'>{-# INLINE dynamic #-}</span>
 </pre></body>
 </html>
