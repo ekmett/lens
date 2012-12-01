@@ -96,7 +96,7 @@ typeVars = typeVarsEx mempty
 
 -- | Substitute using a map of names in for /free/ type variables
 substTypeVars :: HasTypeVars t => Map Name Name -> t -> t
-substTypeVars m = mapOf typeVars $ \n -> fromMaybe n (m^.at n)
+substTypeVars m = over typeVars $ \n -> fromMaybe n (m^.at n)
 
 -- | Provides substitution for types
 class SubstType t where

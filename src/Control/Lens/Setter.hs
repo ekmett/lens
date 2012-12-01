@@ -67,6 +67,14 @@ import Data.Monoid
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State
+-- >>> import Data.Map as Map
+-- >>> import Debug.SimpleReflect.Expr
+-- >>> import Debug.SimpleReflect.Vars
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
+-- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
+-- >>> let h :: Expr -> Expr -> Expr; h = Debug.SimpleReflect.Vars.h
+-- >>> let getter :: Expr -> Expr; getter = fun "getter"
+-- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
 
 infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, ||~, %~, <.~, ?~, <?~
 infix  4 .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, <>=, ||=, %=, <.=, ?=, <?=
@@ -90,6 +98,7 @@ infixr 2 <~
 -- 'over' l f '.' 'over' l g ≡ 'over' l (f '.' g)
 -- @
 --
+--
 -- These an be stated more directly:
 --
 -- @
@@ -99,6 +108,15 @@ infixr 2 <~
 --
 -- You can compose a 'Setter' with a 'Control.Lens.Type.Lens' or a 'Control.Lens.Traversal.Traversal' using ('.') from the Prelude
 -- and the result is always only a 'Setter' and nothing more.
+--
+-- >>> over _1 f (a,b)
+-- (f a,b)
+--
+-- >>> over both f (a,b)
+-- (f a,f b)
+--
+-- >>> over mapped f g a
+-- f (g a)
 type Setter s t a b = forall f. Settable f => (a -> f b) -> s -> f t
 
 -- |
@@ -141,14 +159,17 @@ type SimpleSetting s a = Setting s s a a
 -- ('<$') ≡ 'set' 'mapped'
 -- @
 --
+-- >>> over mapped f [a,b,c]
+-- [f a,f b,f c]
+--
 -- >>> over mapped (+1) [1,2,3]
 -- [2,3,4]
 --
--- >>> set mapped () [1,2,3]
--- [(),(),()]
+-- >>> set mapped x [a,b,c]
+-- [x,x,x]
 --
--- >>> mapped.mapped %~ (+1) $ [[1,2],[3]]
--- [[2,3],[4]]
+-- >>> mapped.mapped +~ x $ [[a,b],[c]]
+-- [[a + x,b + x],[c + x]]
 --
 -- >>> over (mapped._2) length [("hello","world"),("leaders","!!!")]
 -- [("hello",5),("leaders",3)]
@@ -165,8 +186,11 @@ mapped = sets fmap
 -- 'liftM' ≡ 'over' 'lifted'
 -- @
 --
--- >>> over lifted (+1) [1,2,3]
--- [2,3,4]
+-- >>> over lifted f [a,b,c]
+-- [f a,f b,f c]
+--
+-- >>> set lifted b (Just a)
+-- Just b
 lifted :: Monad m => Setter (m a) (m b) a b
 lifted = sets liftM
 {-# INLINE lifted #-}
@@ -207,8 +231,14 @@ sets f g = tainted# (f (untainted# g))
 -- 'over' '.' 'sets' ≡ 'id'
 -- @
 --
+-- >>> over mapped f (Just a)
+-- Just (f a)
+--
 -- >>> over mapped (*10) [1,2,3]
 -- [10,20,30]
+--
+-- >>> over _1 f (a,b)
+-- (f a,b)
 --
 -- >>> over _1 show (10,20)
 -- ("10",20)
@@ -250,6 +280,7 @@ over l f = runMutator# (l (mutator# f))
 mapOf :: Setting s t a b -> (a -> b) -> s -> t
 mapOf = over
 {-# INLINE mapOf #-}
+{-# DEPRECATED mapOf "Will be removed in 3.8. Use `over`" #-}
 
 -- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter'
 -- or 'Control.Lens.Traversal.Traversal' with a constant value.
@@ -281,6 +312,9 @@ set l b = runMutator# (l (\_ -> Mutator b))
 --
 -- This is a type restricted version of 'set', which retains the type of the original.
 --
+-- >>> set' mapped x [a,b,c,d]
+-- [x,x,x,x]
+--
 -- >>> set' _2 "hello" (1,"world")
 -- (1,"hello")
 --
@@ -310,14 +344,20 @@ set' l b = runMutator# (l (\_ -> Mutator b))
 -- 'Data.Traversable.fmapDefault' f ≡ 'traverse' '%~' f
 -- @
 --
+-- >>> (a,b,c) & _3 %~ f
+-- (a,b,f c)
+--
+-- >>> (a,b) & both %~ f
+-- (f a,f b)
+--
 -- >>> _2 %~ length $ (1,"hello")
 -- (1,5)
 --
--- >>> traverse %~ (+1) $ [1,2,3]
--- [2,3,4]
+-- >>> traverse %~ f $ [a,b,c]
+-- [f a,f b,f c]
 --
--- >>> _2 %~ (+1) $ (3,4)
--- (3,5)
+-- >>> traverse %~ even $ [1,2,3]
+-- [False,True,False]
 --
 -- >>> traverse.traverse %~ length $ [["hello","world"],["!!!"]]
 -- [[5,5],[3]]
@@ -339,8 +379,14 @@ set' l b = runMutator# (l (\_ -> Mutator b))
 --
 -- @f '<$' a ≡ 'mapped' '.~' f '$' a@
 --
--- >>> _1 .~ "hello" $ (42,"world")
+-- >>> (a,b,c,d) & _4 .~ e
+-- (a,b,c,e)
+--
+-- >>> (42,"world") & _1 .~ "hello"
 -- ("hello","world")
+--
+-- >>> (a,b) & both .~ c
+-- (c,c)
 --
 -- @
 -- ('.~') :: 'Setter' s t a b    -> b -> s -> t
@@ -355,6 +401,12 @@ set' l b = runMutator# (l (\_ -> Mutator b))
 -- | Set the target of a 'Control.Lens.Type.Lens', 'Control.Lens.Traversal.Traversal' or 'Setter' to 'Just' a value.
 --
 -- @l '?~' t ≡ 'set' l ('Just' t)@
+--
+-- >>> Nothing & id ?~ a
+-- Just a
+--
+-- >>> Map.empty & at 3 ?~ x
+-- fromList [(3,x)]
 --
 -- @
 -- ('?~') :: 'Setter' s t a ('Maybe' b)    -> b -> s -> t
