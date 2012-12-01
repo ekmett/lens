@@ -235,7 +235,7 @@ reviews (Projected bt _) f = asks (f . bt)
 --
 -- @'reuse' ≡ 'use' '.' 'remit'@
 --
--- >>> evalState (reuse _left) (5 :: Int)
+-- >>> evalState (reuse _left) 5
 -- Left 5
 --
 -- @
@@ -274,7 +274,7 @@ reuses (Projected bt _) f = gets (f . bt)
 -- >>> over _left (+1) (Right 2)
 -- Right 2
 --
--- >>> Right (42 :: Int) ^._left :: String
+-- >>> Right 42 ^._left :: String
 -- ""
 --
 -- >>> Left "hello" ^._left
