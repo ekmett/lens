@@ -38,7 +38,7 @@ import Control.Lens
 --
 -- >>> [a,b,c] & _head .~ d
 -- [d,b,c]
-
+--
 -- >>> [a,b,c] & _head %~ f
 -- [f a,b,c]
 --
