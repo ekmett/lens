@@ -1,5 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
+#ifdef SAFE
+{-# LANGUAGE BangPatterns #-}
+#endif
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704 && !defined(SAFE)
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -66,7 +69,10 @@ import Unsafe.Coerce
 #ifndef SAFE
 #define UNSAFELY(x) unsafeCoerce
 #else
-#define UNSAFELY(x) (\f -> x . f)
+strictlyCompose :: (b -> c) -> (a -> b) -> a -> c
+strictlyCompose !f !g x = f (g x)
+
+#define UNSAFELY(x) (\f -> strictlyCompose (x) f)
 #endif
 
 const# :: (a -> b) -> a -> Const b r
