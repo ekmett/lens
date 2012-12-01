@@ -251,7 +251,7 @@ sets f g = tainted# (f (untainted# g))
 -- >>> over mapped f (over mapped g [a,b,c]) == over mapped (f . g) [a,b,c]
 -- True
 --
--- Another way to view 'over' is to say that it transformers a 'Setter' into a
+-- Another way to view 'over' is to say that it transforms a 'Setter' into a
 -- \"semantic editor combinator\".
 --
 -- >>> over mapped f (Just a)
