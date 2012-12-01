@@ -75,6 +75,10 @@ import Data.Monoid
 -- >>> let h :: Expr -> Expr -> Expr; h = Vars.h
 -- >>> let getter :: Expr -> Expr; getter = fun "getter"
 -- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
+
+-- This would be nice to have for the Monoid examples, but adding data types or
+-- instances causes doctest on Travis-CI to flip out.
+--
 -- >>> instance Monoid Expr where mappend = Expr.op InfixR 6 "<>"; mempty = var "mempty"
 
 infixr 4 .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, ||~, %~, <.~, ?~, <?~
@@ -931,11 +935,11 @@ l <?= b = do
 
 -- | Modify the target of a monoidally valued by 'mappend'ing another value.
 --
--- >>> (a,b) & _1 <>~ c
--- (a<>c,b)
+-- >>> (Sum a,b) & _1 <>~ Sum c
+-- (Sum {getSum = a + c},b)
 --
--- >>> (a,b) & both <>~ c
--- (a<>c,b<>c)
+-- >>> (Sum a,Sum b) & both <>~ c
+-- (Sum {getSum = a + c,Sum {getSum = b + c})
 --
 -- >>> both <>~ "!!!" $ ("hello","world")
 -- ("hello!!!","world!!!")
@@ -952,8 +956,8 @@ l <>~ n = over l (`mappend` n)
 
 -- | Modify the target(s) of a 'Control.Lens.Type.Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by 'mappend'ing a value.
 --
--- >>> execState (do _1 <>= c; _2 <>= d) (a,b)
--- (a<>c,b<>d)
+-- >>> execState (do _1 <>= Sum c; _2 <>= Product d) (Sum a,Product b)
+-- (Sum {getSum = a + c},Product {getProduct = b + d})
 --
 -- >>> execState (both <>= "!!!") ("hello","world")
 -- ("hello!!!","world!!!")
