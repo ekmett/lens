@@ -31,7 +31,17 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  l f . <code><a href="Control-Lens-Classes.html#v:untainted">untainted</a></code> . l g &#8801; l (f . <code><a href="Control-Lens-Classes.html#v:untainted">untainted</a></code> . g)
 </pre><p>You can compose a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> with a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or a <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> using (<code>.</code>) from the Prelude
  and the result is always only a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> and nothing more.
-</p></div></div><h1 id="g:2">Building Setters
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over traverse f [a,b,c,d]
+</code></strong>[f a,f b,f c,f d]
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over _1 f (a,b)
+</code></strong>(f a,b)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over (traverse._1) f [(a,b),(c,d)]
+</code></strong>[(f a,b),(f c,d)]
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over both f (a,b)
+</code></strong>(f a,f b)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over (traverse.both) f [(a,b),(c,d)]
+</code></strong>[(f a,f b),(f c,f d)]
+</pre></div></div><h1 id="g:2">Building Setters
 </h1><div class="top"><p class="src"><a name="v:sets" class="def">sets</a> ::  ((a -&gt; b) -&gt; s -&gt; t) -&gt; <a href="Control-Lens-Setter.html#t:Setter">Setter</a> s t a b<a href="src/Control-Lens-Setter.html#sets" class="link">Source</a></p><div class="doc"><p>Build a Setter from a map-like function.
 </p><p>Your supplied function <code>f</code> is required to satisfy:
 </p><pre>
@@ -49,12 +59,14 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  <code>fmap</code> &#8801; <code><a href="Control-Lens-Setter.html#v:over">over</a></code> <code><a href="Control-Lens-Setter.html#v:mapped">mapped</a></code>
  <code><a href="Data-Traversable.html#t:fmapDefault">fmapDefault</a></code> &#8801; <code><a href="Control-Lens-Setter.html#v:over">over</a></code> <code><a href="Data-Traversable.html#t:traverse">traverse</a></code>
  (<code>&lt;$</code>) &#8801; <code><a href="Control-Lens-Setter.html#v:set">set</a></code> <code><a href="Control-Lens-Setter.html#v:mapped">mapped</a></code>
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over mapped f [a,b,c]
+</code></strong>[f a,f b,f c]
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over mapped (+1) [1,2,3]
 </code></strong>[2,3,4]
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>set mapped () [1,2,3]
-</code></strong>[(),(),()]
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>mapped.mapped %~ (+1) $ [[1,2],[3]]
-</code></strong>[[2,3],[4]]
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>set mapped x [a,b,c]
+</code></strong>[x,x,x]
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>[[a,b],[c]] &amp; mapped.mapped +~ x
+</code></strong>[[a + x,b + x],[c + x]]
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over (mapped._2) length [(&quot;hello&quot;,&quot;world&quot;),(&quot;leaders&quot;,&quot;!!!&quot;)]
 </code></strong>[(&quot;hello&quot;,5),(&quot;leaders&quot;,3)]
 </pre></div></div><div class="top"><p class="src"><a name="v:lifted" class="def">lifted</a> :: Monad m =&gt; <a href="Control-Lens-Setter.html#t:Setter">Setter</a> (m a) (m b) a b<a href="src/Control-Lens-Setter.html#lifted" class="link">Source</a></p><div class="doc"><p>This setter can be used to modify all of the values in a <code>Monad</code>.
@@ -62,8 +74,10 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  temporary insanity <code>Functor</code> is not a superclass of <code>Monad</code>.
 </p><pre>
  <code>liftM</code> &#8801; <code><a href="Control-Lens-Setter.html#v:over">over</a></code> <code><a href="Control-Lens-Setter.html#v:lifted">lifted</a></code>
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over lifted (+1) [1,2,3]
-</code></strong>[2,3,4]
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over lifted f [a,b,c]
+</code></strong>[f a,f b,f c]
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>set lifted b (Just a)
+</code></strong>Just b
 </pre></div></div><h1 id="g:4">Functional Combinators
 </h1><div class="top"><p class="src"><a name="v:over" class="def">over</a> ::  <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#over" class="link">Source</a></p><div class="doc"><p>Modify the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or all the targets of a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code>
  with a function.
@@ -72,32 +86,22 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  <code><a href="Data-Traversable.html#t:fmapDefault">fmapDefault</a></code> &#8801; <code><a href="Control-Lens-Setter.html#v:over">over</a></code> <code><a href="Data-Traversable.html#t:traverse">traverse</a></code>
  <code><a href="Control-Lens-Setter.html#v:sets">sets</a></code> <code>.</code> <code><a href="Control-Lens-Setter.html#v:over">over</a></code> &#8801; <code>id</code>
  <code><a href="Control-Lens-Setter.html#v:over">over</a></code> <code>.</code> <code><a href="Control-Lens-Setter.html#v:sets">sets</a></code> &#8801; <code>id</code>
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over mapped (*10) [1,2,3]
-</code></strong>[10,20,30]
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over _1 show (10,20)
-</code></strong>(&quot;10&quot;,20)
+</pre><p>Given any valid <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> <code>l</code>, you can also rely on the law:
+</p><pre><code><a href="Control-Lens-Setter.html#v:over">over</a></code> l f . <code><a href="Control-Lens-Setter.html#v:over">over</a></code> l g = <code><a href="Control-Lens-Setter.html#v:over">over</a></code> l (f . g)</pre><p><em>e.g.</em>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over mapped f (over mapped g [a,b,c]) == over mapped (f . g) [a,b,c]
+</code></strong>True
 </pre><p>Another way to view <code><a href="Control-Lens-Setter.html#v:over">over</a></code> is to say that it transformers a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> into a
  &quot;semantic editor combinator&quot;.
-</p><pre><code><a href="Control-Lens-Setter.html#v:over">over</a></code> :: <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t</pre></div></div><div class="top"><p class="src"><a name="v:mapOf" class="def">mapOf</a> ::  <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#mapOf" class="link">Source</a></p><div class="doc"><p>Modify the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or all the targets of a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code>
- with a function. This is an alias for <code><a href="Control-Lens-Setter.html#v:over">over</a></code> that is provided for consistency.
-</p><pre>
- <code><a href="Control-Lens-Setter.html#v:mapOf">mapOf</a></code> &#8801; <code><a href="Control-Lens-Setter.html#v:over">over</a></code>
- <code>fmap</code> &#8801; <code><a href="Control-Lens-Setter.html#v:mapOf">mapOf</a></code> <code><a href="Control-Lens-Setter.html#v:mapped">mapped</a></code>
- <code>fmapDefault</code> &#8801; <code><a href="Control-Lens-Setter.html#v:mapOf">mapOf</a></code> <code>traverse</code>
- <code><a href="Control-Lens-Setter.html#v:sets">sets</a></code> <code>.</code> <code><a href="Control-Lens-Setter.html#v:mapOf">mapOf</a></code> &#8801; <code>id</code>
- <code><a href="Control-Lens-Setter.html#v:mapOf">mapOf</a></code> <code>.</code> <code><a href="Control-Lens-Setter.html#v:sets">sets</a></code> &#8801; <code>id</code>
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>mapOf mapped (+1) [1,2,3,4]
-</code></strong>[2,3,4,5]
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>mapOf _1 (+1) (1,2)
-</code></strong>(2,2)
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>mapOf both (+1) (1,2)
-</code></strong>(2,3)
-</pre><pre>
- <code><a href="Control-Lens-Setter.html#v:mapOf">mapOf</a></code> :: <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s t a b      -&gt; (a -&gt; b) -&gt; s -&gt; t
- <code><a href="Control-Lens-Setter.html#v:mapOf">mapOf</a></code> :: <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s t a b         -&gt; (a -&gt; b) -&gt; s -&gt; t
- <code><a href="Control-Lens-Setter.html#v:mapOf">mapOf</a></code> :: <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s t a b        -&gt; (a -&gt; b) -&gt; s -&gt; t
- <code><a href="Control-Lens-Setter.html#v:mapOf">mapOf</a></code> :: <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s t a b   -&gt; (a -&gt; b) -&gt; s -&gt; t
-</pre></div></div><div class="top"><p class="src"><a name="v:set" class="def">set</a> ::  <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a b -&gt; b -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#set" class="link">Source</a></p><div class="doc"><p>Replace the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or all of the targets of a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over mapped f (Just a)
+</code></strong>Just (f a)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over mapped (*10) [1,2,3]
+</code></strong>[10,20,30]
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over _1 f (a,b)
+</code></strong>(f a,b)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>over _1 show (10,20)
+</code></strong>(&quot;10&quot;,20)
+</pre><pre><code><a href="Control-Lens-Setter.html#v:over">over</a></code> :: <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t</pre></div></div><div class="top"><p class="src"><a name="v:mapOf" class="def">mapOf</a> ::  <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#mapOf" class="link">Source</a></p><div class="doc"><div class="warning"><p>Deprecated: Will be removed in 3.8. Use `over`</p></div><p><code><a href="Control-Lens-Setter.html#v:mapOf">mapOf</a></code> is a deprecated alias for <code><a href="Control-Lens-Setter.html#v:over">over</a></code>.
+</p></div></div><div class="top"><p class="src"><a name="v:set" class="def">set</a> ::  <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a b -&gt; b -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#set" class="link">Source</a></p><div class="doc"><p>Replace the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or all of the targets of a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code>
  or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> with a constant value.
 </p><pre>(<code>&lt;$</code>) &#8801; <code><a href="Control-Lens-Setter.html#v:set">set</a></code> <code><a href="Control-Lens-Setter.html#v:mapped">mapped</a></code></pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>set _2 &quot;hello&quot; (1,())
 </code></strong>(1,&quot;hello&quot;)
@@ -113,8 +117,12 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
 </pre></div></div><div class="top"><p class="src"><a name="v:.-126-" class="def">(.~)</a> ::  <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a b -&gt; b -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#.~" class="link">Source</a></p><div class="doc"><p>Replace the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or all of the targets of a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code>
  or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> with a constant value.
 </p><p>This is an infix version of <code><a href="Control-Lens-Setter.html#v:set">set</a></code>, provided for consistency with (<code><a href="Control-Lens-Setter.html#v:.-61-">.=</a></code>)
-</p><pre>f <code>&lt;$</code> a &#8801; <code><a href="Control-Lens-Setter.html#v:mapped">mapped</a></code> <code><a href="Control-Lens-Setter.html#v:.-126-">.~</a></code> f <code>$</code> a</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_1 .~ &quot;hello&quot; $ (42,&quot;world&quot;)
+</p><pre>f <code>&lt;$</code> a &#8801; <code><a href="Control-Lens-Setter.html#v:mapped">mapped</a></code> <code><a href="Control-Lens-Setter.html#v:.-126-">.~</a></code> f <code>$</code> a</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b,c,d) &amp; _4 .~ e
+</code></strong>(a,b,c,e)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(42,&quot;world&quot;) &amp; _1 .~ &quot;hello&quot;
 </code></strong>(&quot;hello&quot;,&quot;world&quot;)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; both .~ c
+</code></strong>(c,c)
 </pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:.-126-">.~</a></code>) :: <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s t a b    -&gt; b -&gt; s -&gt; t
  (<code><a href="Control-Lens-Setter.html#v:.-126-">.~</a></code>) :: <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s t a b       -&gt; b -&gt; s -&gt; t
@@ -126,12 +134,16 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
 </p><pre>
  <code>fmap</code> f &#8801; <code><a href="Control-Lens-Setter.html#v:mapped">mapped</a></code> <code><a href="Control-Lens-Setter.html#v:-37--126-">%~</a></code> f
  <code><a href="Data-Traversable.html#t:fmapDefault">fmapDefault</a></code> f &#8801; <code>traverse</code> <code><a href="Control-Lens-Setter.html#v:-37--126-">%~</a></code> f
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b,c) &amp; _3 %~ f
+</code></strong>(a,b,f c)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; both %~ f
+</code></strong>(f a,f b)
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_2 %~ length $ (1,&quot;hello&quot;)
 </code></strong>(1,5)
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>traverse %~ (+1) $ [1,2,3]
-</code></strong>[2,3,4]
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_2 %~ (+1) $ (3,4)
-</code></strong>(3,5)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>traverse %~ f $ [a,b,c]
+</code></strong>[f a,f b,f c]
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>traverse %~ even $ [1,2,3]
+</code></strong>[False,True,False]
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>traverse.traverse %~ length $ [[&quot;hello&quot;,&quot;world&quot;],[&quot;!!!&quot;]]
 </code></strong>[[5,5],[3]]
 </pre><pre>
@@ -140,17 +152,25 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  (<code><a href="Control-Lens-Setter.html#v:-37--126-">%~</a></code>) :: <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s t a b      -&gt; (a -&gt; b) -&gt; s -&gt; t
  (<code><a href="Control-Lens-Setter.html#v:-37--126-">%~</a></code>) :: <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
 </pre></div></div><div class="top"><p class="src"><a name="v:-43--126-" class="def">(+~)</a> :: Num a =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a a -&gt; a -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#%2B~" class="link">Source</a></p><div class="doc"><p>Increment the target(s) of a numerically valued <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code>
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_1 +~ 1 $ (1,2)
-</code></strong>(2,2)
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>both +~ 2 $ (5,6)
-</code></strong>(7,8)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; _1 +~ c
+</code></strong>(a + c,b)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; both +~ c
+</code></strong>(a + c,b + c)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(1,2) &amp; _2 +~ 1
+</code></strong>(1,3)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>[(a,b),(c,d)] &amp; traverse.both +~ e
+</code></strong>[(a + e,b + e),(c + e,d + e)]
 </pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-43--126-">+~</a></code>) :: Num a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; a -&gt; s -&gt; s
  (<code><a href="Control-Lens-Setter.html#v:-43--126-">+~</a></code>) :: Num a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s a -&gt; a -&gt; s -&gt; s
  (<code><a href="Control-Lens-Setter.html#v:-43--126-">+~</a></code>) :: Num a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; a -&gt; s -&gt; s
  (<code><a href="Control-Lens-Setter.html#v:-43--126-">+~</a></code>) :: Num a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; a -&gt; s -&gt; s
 </pre></div></div><div class="top"><p class="src"><a name="v:-45--126-" class="def">(-~)</a> :: Num a =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a a -&gt; a -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#-~" class="link">Source</a></p><div class="doc"><p>Decrement the target(s) of a numerically valued <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code>
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_1 -~ 2 $ (1,2)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; _1 -~ c
+</code></strong>(a - c,b)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; both -~ c
+</code></strong>(a - c,b - c)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_1 -~ 2 $ (1,2)
 </code></strong>(-1,2)
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>mapped.mapped -~ 1 $ [[4,5],[6,7]]
 </code></strong>[[3,4],[5,6]]
@@ -160,9 +180,13 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  (<code><a href="Control-Lens-Setter.html#v:-45--126-">-~</a></code>) :: <code>Num</code> a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; a -&gt; s -&gt; s
  (<code><a href="Control-Lens-Setter.html#v:-45--126-">-~</a></code>) :: <code>Num</code> a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; a -&gt; s -&gt; s
 </pre></div></div><div class="top"><p class="src"><a name="v:-42--126-" class="def">(*~)</a> :: Num a =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a a -&gt; a -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#%2A~" class="link">Source</a></p><div class="doc"><p>Multiply the target(s) of a numerically valued <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code>
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_2 *~ 4 $ (1,2)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; _1 *~ c
+</code></strong>(a * c,b)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; both *~ c
+</code></strong>(a * c,b * c)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(1,2) &amp; _2 *~ 4
 </code></strong>(1,8)
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>mapped *~ 2 $ Just 24
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>Just 24 &amp; mapped *~ 2
 </code></strong>Just 48
 </pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-42--126-">*~</a></code>) :: <code>Num</code> a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; a -&gt; s -&gt; s
@@ -170,7 +194,11 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  (<code><a href="Control-Lens-Setter.html#v:-42--126-">*~</a></code>) :: <code>Num</code> a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; a -&gt; s -&gt; s
  (<code><a href="Control-Lens-Setter.html#v:-42--126-">*~</a></code>) :: <code>Num</code> a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; a -&gt; s -&gt; s
 </pre></div></div><div class="top"><p class="src"><a name="v:-47--47--126-" class="def">(//~)</a> :: Fractional s =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> a b s s -&gt; s -&gt; a -&gt; b<a href="src/Control-Lens-Setter.html#%2F%2F~" class="link">Source</a></p><div class="doc"><p>Divide the target(s) of a numerically valued <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code>
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_2 //~ 2 $ (&quot;Hawaii&quot;,10)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; _1 //~ c
+</code></strong>(a / c,b)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; both //~ c
+</code></strong>(a / c,b / c)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(&quot;Hawaii&quot;,10) &amp; _2 //~ 2
 </code></strong>(&quot;Hawaii&quot;,5.0)
 </pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-47--47--126-">//~</a></code>) :: <code>Fractional</code> a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; a -&gt; s -&gt; s
@@ -178,7 +206,7 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  (<code><a href="Control-Lens-Setter.html#v:-47--47--126-">//~</a></code>) :: <code>Fractional</code> a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; a -&gt; s -&gt; s
  (<code><a href="Control-Lens-Setter.html#v:-47--47--126-">//~</a></code>) :: <code>Fractional</code> a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; a -&gt; s -&gt; s
 </pre></div></div><div class="top"><p class="src"><a name="v:-94--126-" class="def">(^~)</a> :: (Num a, Integral e) =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a a -&gt; e -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#%5E~" class="link">Source</a></p><div class="doc"><p>Raise the target(s) of a numerically valued <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> to a non-negative integral power
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_2 ^~ 2 $ (1,3)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(1,3) &amp; _2 ^~ 2
 </code></strong>(1,9)
 </pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-94--126-">^~</a></code>) :: (<code>Num</code> a, <code>Integral</code> e) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; e -&gt; s -&gt; s
@@ -186,7 +214,7 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  (<code><a href="Control-Lens-Setter.html#v:-94--126-">^~</a></code>) :: (<code>Num</code> a, <code>Integral</code> e) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; e -&gt; s -&gt; s
  (<code><a href="Control-Lens-Setter.html#v:-94--126-">^~</a></code>) :: (<code>Num</code> a, <code>Integral</code> e) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; e -&gt; s -&gt; s
 </pre></div></div><div class="top"><p class="src"><a name="v:-94--94--126-" class="def">(^^~)</a> :: (Fractional a, Integral e) =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a a -&gt; e -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#%5E%5E~" class="link">Source</a></p><div class="doc"><p>Raise the target(s) of a fractionally valued <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> to an integral power
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_2 ^^~ (-1) $ (1,2)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(1,2) &amp; _2 ^^~ (-1)
 </code></strong>(1,0.5)
 </pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-94--94--126-">^^~</a></code>) :: (<code>Fractional</code> a, <code>Integral</code> e) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; e -&gt; s -&gt; s
@@ -194,7 +222,11 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  (<code><a href="Control-Lens-Setter.html#v:-94--94--126-">^^~</a></code>) :: (<code>Fractional</code> a, <code>Integral</code> e) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; e -&gt; s -&gt; s
  (<code><a href="Control-Lens-Setter.html#v:-94--94--126-">^^~</a></code>) :: (<code>Fractional</code> a, <code>Integral</code> e) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; e -&gt; s -&gt; s
 </pre></div></div><div class="top"><p class="src"><a name="v:-42--42--126-" class="def">(**~)</a> :: Floating a =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a a -&gt; a -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#%2A%2A~" class="link">Source</a></p><div class="doc"><p>Raise the target(s) of a floating-point valued <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> to an arbitrary power.
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_2 **~ pi $ (1,3)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; _1 **~ c
+</code></strong>(a**c,b)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; both **~ c
+</code></strong>(a**c,b**c)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_2 **~ pi $ (1,3)
 </code></strong>(1,31.54428070019754)
 </pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-42--42--126-">**~</a></code>) :: <code>Floating</code> a =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; a -&gt; s -&gt; s
@@ -212,7 +244,11 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  (<code><a href="Control-Lens-Setter.html#v:-124--124--126-">||~</a></code>) :: <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s <code>Bool</code> -&gt; <code>Bool</code> -&gt; s -&gt; s
  (<code><a href="Control-Lens-Setter.html#v:-124--124--126-">||~</a></code>) :: <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s <code>Bool</code> -&gt; <code>Bool</code> -&gt; s -&gt; s
 </pre></div></div><div class="top"><p class="src"><a name="v:-60--62--126-" class="def">(&lt;&gt;~)</a> :: Monoid a =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a a -&gt; a -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#%3C%3E~" class="link">Source</a></p><div class="doc"><p>Modify the target of a monoidally valued by <code>mappend</code>ing another value.
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>both &lt;&gt;~ &quot;!!!&quot; $ (&quot;hello&quot;,&quot;world&quot;)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(Sum a,b) &amp; _1 &lt;&gt;~ Sum c
+</code></strong>(Sum {getSum = a + c},b)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(Sum a,Sum b) &amp; both &lt;&gt;~ Sum c
+</code></strong>(Sum {getSum = a + c},Sum {getSum = b + c})
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>both &lt;&gt;~ &quot;!!!&quot; $ (&quot;hello&quot;,&quot;world&quot;)
 </code></strong>(&quot;hello!!!&quot;,&quot;world!!!&quot;)
 </pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-60--62--126-">&lt;&gt;~</a></code>) :: <code>Monoid</code> a =&gt; <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s t a a -&gt; a -&gt; s -&gt; t
@@ -232,10 +268,11 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
 </pre></div></div><div class="top"><p class="src"><a name="v:-60-.-126-" class="def">(&lt;.~)</a> ::  <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a b -&gt; b -&gt; s -&gt; (b, t)<a href="src/Control-Lens-Setter.html#%3C.~" class="link">Source</a></p><div class="doc"><p>Set with pass-through
 </p><p>This is mostly present for consistency, but may be useful for for chaining assignments
 </p><p>If you do not need a copy of the intermediate result, then using <code>l <code><a href="Control-Lens-Setter.html#v:.-126-">.~</a></code> t</code> directly is a good idea.
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_3 &lt;.~ &quot;world&quot; $ (&quot;good&quot;,&quot;morning&quot;,&quot;vietnam&quot;)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b) &amp; _1 &lt;.~ c
+</code></strong>(c,(c,b))
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(&quot;good&quot;,&quot;morning&quot;,&quot;vietnam&quot;) &amp; _3 &lt;.~ &quot;world&quot;
 </code></strong>(&quot;world&quot;,(&quot;good&quot;,&quot;morning&quot;,&quot;world&quot;))
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>import Data.Map as Map
-</code></strong><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_2.at &quot;hello&quot; &lt;.~ Just &quot;world&quot; $ (42,Map.fromList [(&quot;goodnight&quot;,&quot;gracie&quot;)])
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(42,Map.fromList [(&quot;goodnight&quot;,&quot;gracie&quot;)]) &amp; _2.at &quot;hello&quot; &lt;.~ Just &quot;world&quot;
 </code></strong>(Just &quot;world&quot;,(42,fromList [(&quot;goodnight&quot;,&quot;gracie&quot;),(&quot;hello&quot;,&quot;world&quot;)]))
 </pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-60-.-126-">&lt;.~</a></code>) :: <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s t a b    -&gt; b -&gt; s -&gt; (b, t)
@@ -243,7 +280,11 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  (<code><a href="Control-Lens-Setter.html#v:-60-.-126-">&lt;.~</a></code>) :: <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s t a b      -&gt; b -&gt; s -&gt; (b, t)
  (<code><a href="Control-Lens-Setter.html#v:-60-.-126-">&lt;.~</a></code>) :: <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s t a b -&gt; b -&gt; s -&gt; (b, t)
 </pre></div></div><div class="top"><p class="src"><a name="v:-63--126-" class="def">(?~)</a> ::  <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s t a (Maybe b) -&gt; b -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#%3F~" class="link">Source</a></p><div class="doc"><p>Set the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> or <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> to <code>Just</code> a value.
-</p><pre>l <code><a href="Control-Lens-Setter.html#v:-63--126-">?~</a></code> t &#8801; <code><a href="Control-Lens-Setter.html#v:set">set</a></code> l (<code>Just</code> t)</pre><pre>
+</p><pre>l <code><a href="Control-Lens-Setter.html#v:-63--126-">?~</a></code> t &#8801; <code><a href="Control-Lens-Setter.html#v:set">set</a></code> l (<code>Just</code> t)</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>Nothing &amp; id ?~ a
+</code></strong>Just a
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>Map.empty &amp; at 3 ?~ x
+</code></strong>fromList [(3,x)]
+</pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-63--126-">?~</a></code>) :: <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s t a (<code>Maybe</code> b)    -&gt; b -&gt; s -&gt; t
  (<code><a href="Control-Lens-Setter.html#v:-63--126-">?~</a></code>) :: <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s t a (<code>Maybe</code> b)       -&gt; b -&gt; s -&gt; t
  (<code><a href="Control-Lens-Setter.html#v:-63--126-">?~</a></code>) :: <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s t a (<code>Maybe</code> b)      -&gt; b -&gt; s -&gt; t
@@ -263,7 +304,11 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
 </h1><div class="top"><p class="src"><a name="v:assign" class="def">assign</a> :: MonadState s m =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s s a b -&gt; b -&gt; m ()<a href="src/Control-Lens-Setter.html#assign" class="link">Source</a></p><div class="doc"><p>Replace the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or all of the targets of a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> in our monadic
  state with a new value, irrespective of the old.
 </p><p>This is an alias for (<code><a href="Control-Lens-Setter.html#v:.-61-">.=</a></code>).
-</p><pre>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do assign _1 c; assign _2 d) (a,b)
+</code></strong>(c,d)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (both .= c) (a,b)
+</code></strong>(c,c)
+</pre><pre>
  <code><a href="Control-Lens-Setter.html#v:assign">assign</a></code> :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s a       -&gt; a -&gt; m ()
  <code><a href="Control-Lens-Setter.html#v:assign">assign</a></code> :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a      -&gt; a -&gt; m ()
  <code><a href="Control-Lens-Setter.html#v:assign">assign</a></code> :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; a -&gt; m ()
@@ -271,14 +316,22 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
 </pre></div></div><div class="top"><p class="src"><a name="v:.-61-" class="def">(.=)</a> :: MonadState s m =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s s a b -&gt; b -&gt; m ()<a href="src/Control-Lens-Setter.html#.%3D" class="link">Source</a></p><div class="doc"><p>Replace the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or all of the targets of a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> in our monadic
  state with a new value, irrespective of the old.
 </p><p>This is an infix version of <code><a href="Control-Lens-Setter.html#v:assign">assign</a></code>.
-</p><pre>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1 .= c; _2 .= d) (a,b)
+</code></strong>(c,d)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (both .= c) (a,b)
+</code></strong>(c,c)
+</pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:.-61-">.=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s a       -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:.-61-">.=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a      -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:.-61-">.=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:.-61-">.=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a    -&gt; a -&gt; m ()
 </pre><p><a href="It puts the state in the monad or it gets the hose again-.html">It puts the state in the monad or it gets the hose again.</a>
 </p></div></div><div class="top"><p class="src"><a name="v:-37--61-" class="def">(%=)</a> :: MonadState s m =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s s a b -&gt; (a -&gt; b) -&gt; m ()<a href="src/Control-Lens-Setter.html#%25%3D" class="link">Source</a></p><div class="doc"><p>Map over the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or all of the targets of a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> in our monadic state.
-</p><pre>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1 %= f;_2 %= g) (a,b)
+</code></strong>(f a,g b)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do both %= f) (a,b)
+</code></strong>(f a,f b)
+</pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-37--61-">%=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s a       -&gt; (a -&gt; a) -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-37--61-">%=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a      -&gt; (a -&gt; a) -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-37--61-">%=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; (a -&gt; a) -&gt; m ()
@@ -290,25 +343,35 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  fresh = do
    <code>id</code> <code><a href="Control-Lens-Setter.html#v:-43--61-">+=</a></code> 1
    <code>use</code> <code>id</code>
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1 += c; _2 += d) (a,b)
+</code></strong>(a + c,b + d)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1.at 1.non 0 += 10) (Map.fromList [(2,100)],&quot;hello&quot;)
+</code></strong>(fromList [(1,10),(2,100)],&quot;hello&quot;)
 </pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-43--61-">+=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-43--61-">+=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-43--61-">+=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-43--61-">+=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; a -&gt; m ()
 </pre></div></div><div class="top"><p class="src"><a name="v:-45--61-" class="def">(-=)</a> :: (MonadState s m, Num a) =&gt; <a href="Control-Lens-Setter.html#t:SimpleSetting">SimpleSetting</a> s a -&gt; a -&gt; m ()<a href="src/Control-Lens-Setter.html#-%3D" class="link">Source</a></p><div class="doc"><p>Modify the target(s) of a <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> by subtracting a value
-</p><pre>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1 -= c; _2 -= d) (a,b)
+</code></strong>(a - c,b - d)
+</pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-45--61-">-=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-45--61-">-=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-45--61-">-=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-45--61-">-=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; a -&gt; m ()
 </pre></div></div><div class="top"><p class="src"><a name="v:-42--61-" class="def">(*=)</a> :: (MonadState s m, Num a) =&gt; <a href="Control-Lens-Setter.html#t:SimpleSetting">SimpleSetting</a> s a -&gt; a -&gt; m ()<a href="src/Control-Lens-Setter.html#%2A%3D" class="link">Source</a></p><div class="doc"><p>Modify the target(s) of a <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> by multiplying by value.
-</p><pre>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1 *= c; _2 *= d) (a,b)
+</code></strong>(a * c,b * d)
+</pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-42--61-">*=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-42--61-">*=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-42--61-">*=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-42--61-">*=</a></code>) :: (<code>MonadState</code> s m, <code>Num</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; a -&gt; m ()
 </pre></div></div><div class="top"><p class="src"><a name="v:-47--47--61-" class="def">(//=)</a> :: (MonadState s m, Fractional a) =&gt; <a href="Control-Lens-Setter.html#t:SimpleSetting">SimpleSetting</a> s a -&gt; a -&gt; m ()<a href="src/Control-Lens-Setter.html#%2F%2F%3D" class="link">Source</a></p><div class="doc"><p>Modify the target(s) of a <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> by dividing by a value.
-</p><pre>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1 //= c; _2 //= d) (a,b)
+</code></strong>(a / c,b / d)
+</pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-47--47--61-">//=</a></code>) :: (<code>MonadState</code> s m, <code>Fractional</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-47--47--61-">//=</a></code>) :: (<code>MonadState</code> s m, <code>Fractional</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-47--47--61-">//=</a></code>) :: (<code>MonadState</code> s m, <code>Fractional</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; a -&gt; m ()
@@ -326,19 +389,25 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  (<code><a href="Control-Lens-Setter.html#v:-94--94--61-">^^=</a></code>) ::  (<code>MonadState</code> s m, <code>Fractional</code> a, <code>Integral</code> e) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; e -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-94--94--61-">^^=</a></code>) ::  (<code>MonadState</code> s m, <code>Fractional</code> a, <code>Integral</code> e) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; e -&gt; m ()
 </pre></div></div><div class="top"><p class="src"><a name="v:-42--42--61-" class="def">(**=)</a> :: (MonadState s m, Floating a) =&gt; <a href="Control-Lens-Setter.html#t:SimpleSetting">SimpleSetting</a> s a -&gt; a -&gt; m ()<a href="src/Control-Lens-Setter.html#%2A%2A%3D" class="link">Source</a></p><div class="doc"><p>Raise the target(s) of a numerically valued <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> to an arbitrary power
-</p><pre>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1 **= c; _2 **= d) (a,b)
+</code></strong>(a**c,b**d)
+</pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-42--42--61-">**=</a></code>) ::  (<code>MonadState</code> s m, <code>Floating</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-42--42--61-">**=</a></code>) ::  (<code>MonadState</code> s m, <code>Floating</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-42--42--61-">**=</a></code>) ::  (<code>MonadState</code> s m, <code>Floating</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-42--42--61-">**=</a></code>) ::  (<code>MonadState</code> s m, <code>Floating</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s a -&gt; a -&gt; m ()
 </pre></div></div><div class="top"><p class="src"><a name="v:-124--124--61-" class="def">(||=)</a> :: MonadState s m =&gt; <a href="Control-Lens-Setter.html#t:SimpleSetting">SimpleSetting</a> s Bool -&gt; Bool -&gt; m ()<a href="src/Control-Lens-Setter.html#%7C%7C%3D" class="link">Source</a></p><div class="doc"><p>Modify the target(s) of a <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, 'Iso, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> by taking their logical <code>||</code> with a value
-</p><pre>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1 ||= True; _2 ||= False; _3 ||= True; _4 ||= False) (True,True,False,False)
+</code></strong>(True,True,True,False)
+</pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-124--124--61-">||=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s <code>Bool</code> -&gt; <code>Bool</code> -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-124--124--61-">||=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s <code>Bool</code> -&gt; <code>Bool</code> -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-124--124--61-">||=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s <code>Bool</code> -&gt; <code>Bool</code> -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-124--124--61-">||=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s <code>Bool</code> -&gt; <code>Bool</code> -&gt; m ()
 </pre></div></div><div class="top"><p class="src"><a name="v:-60--62--61-" class="def">(&lt;&gt;=)</a> :: (MonadState s m, Monoid a) =&gt; <a href="Control-Lens-Setter.html#t:SimpleSetting">SimpleSetting</a> s a -&gt; a -&gt; m ()<a href="src/Control-Lens-Setter.html#%3C%3E%3D" class="link">Source</a></p><div class="doc"><p>Modify the target(s) of a <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code>Lens</code>, <code>Iso</code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code>Traversal</code> by <code>mappend</code>ing a value.
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (both &lt;&gt;= &quot;!!!&quot;) (&quot;hello&quot;,&quot;world&quot;)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1 &lt;&gt;= Sum c; _2 &lt;&gt;= Product d) (Sum a,Product b)
+</code></strong>(Sum {getSum = a + c},Product {getProduct = b * d})
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (both &lt;&gt;= &quot;!!!&quot;) (&quot;hello&quot;,&quot;world&quot;)
 </code></strong>(&quot;hello!!!&quot;,&quot;world!!!&quot;)
 </pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-60--62--61-">&lt;&gt;=</a></code>) :: (<code>MonadState</code> s m, <code>Monoid</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s a -&gt; a -&gt; m ()
@@ -346,7 +415,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  (<code><a href="Control-Lens-Setter.html#v:-60--62--61-">&lt;&gt;=</a></code>) :: (<code>MonadState</code> s m, <code>Monoid</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code>Lens</code> s a -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-60--62--61-">&lt;&gt;=</a></code>) :: (<code>MonadState</code> s m, <code>Monoid</code> a) =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code>Traversal</code> s a -&gt; a -&gt; m ()
 </pre></div></div><div class="top"><p class="src"><a name="v:-38--38--61-" class="def">(&amp;&amp;=)</a> :: MonadState s m =&gt; <a href="Control-Lens-Setter.html#t:SimpleSetting">SimpleSetting</a> s Bool -&gt; Bool -&gt; m ()<a href="src/Control-Lens-Setter.html#%26%26%3D" class="link">Source</a></p><div class="doc"><p>Modify the target(s) of a <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>, <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code>, <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> by taking their logical <code>&amp;&amp;</code> with a value
-</p><pre>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1 &amp;&amp;= True; _2 &amp;&amp;= False; _3 &amp;&amp;= True; _4 &amp;&amp;= False) (True,True,False,False)
+</code></strong>(True,False,False,False)
+</pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-38--38--61-">&amp;&amp;=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> s <code>Bool</code> -&gt; <code>Bool</code> -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-38--38--61-">&amp;&amp;=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s <code>Bool</code> -&gt; <code>Bool</code> -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-38--38--61-">&amp;&amp;=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s <code>Bool</code> -&gt; <code>Bool</code> -&gt; m ()
@@ -361,7 +432,11 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
  (<code><a href="Control-Lens-Setter.html#v:-60-.-61-">&lt;.=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s s a b -&gt; b -&gt; m b
 </pre></div></div><div class="top"><p class="src"><a name="v:-63--61-" class="def">(?=)</a> :: MonadState s m =&gt; <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s s a (Maybe b) -&gt; b -&gt; m ()<a href="src/Control-Lens-Setter.html#%3F%3D" class="link">Source</a></p><div class="doc"><p>Replace the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or all of the targets of a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> in our monadic
  state with <code>Just</code> a new value, irrespective of the old.
-</p><pre>
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do at 1 ?= a; at 2 ?= b) Map.empty
+</code></strong>fromList [(1,a),(2,b)]
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>execState (do _1 ?= b; _2 ?= c) (Just a, Nothing)
+</code></strong>(Just b,Just c)
+</pre><pre>
  (<code><a href="Control-Lens-Setter.html#v:-63--61-">?=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s (<code>Maybe</code> a)       -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-63--61-">?=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> s (<code>Maybe</code> a)      -&gt; a -&gt; m ()
  (<code><a href="Control-Lens-Setter.html#v:-63--61-">?=</a></code>) :: <code>MonadState</code> s m =&gt; <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> s (<code>Maybe</code> a) -&gt; a -&gt; m ()
@@ -394,7 +469,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Setter.ht
 </h1><div class="top"><p class="src"><a name="v:set-39-" class="def">set'</a> ::  <a href="Control-Lens-Setter.html#t:Setting">Setting</a> s s a a -&gt; a -&gt; s -&gt; s<a href="src/Control-Lens-Setter.html#set%27" class="link">Source</a></p><div class="doc"><p>Replace the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or all of the targets of a <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code>
  or <code><a href="Control-Lens-Type.html#t:Simple">Simple</a></code> <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> with a constant value, without changing its type.
 </p><p>This is a type restricted version of <code><a href="Control-Lens-Setter.html#v:set">set</a></code>, which retains the type of the original.
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>set' _2 &quot;hello&quot; (1,&quot;world&quot;)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>set' mapped x [a,b,c,d]
+</code></strong>[x,x,x,x]
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>set' _2 &quot;hello&quot; (1,&quot;world&quot;)
 </code></strong>(1,&quot;hello&quot;)
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>set' mapped 0 [1,2,3,4]
 </code></strong>[0,0,0,0]

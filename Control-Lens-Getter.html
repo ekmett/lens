@@ -44,7 +44,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Getter.ht
  <code><a href="Control-Lens-Getter.html#t:Getter">Getter</a></code> or <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>.
 </p></div></div><h1 id="g:2">Building Getters
 </h1><div class="top"><p class="src"><a name="v:to" class="def">to</a> ::  (s -&gt; a) -&gt; <a href="Control-Lens-Getter.html#t:Getter">Getter</a> s a<a href="src/Control-Lens-Getter.html#to" class="link">Source</a></p><div class="doc"><p>Build a <code><a href="Control-Lens-Getter.html#t:Getter">Getter</a></code> from an arbitrary Haskell function.
-</p><pre><code><a href="Control-Lens-Getter.html#v:to">to</a></code> f . <code><a href="Control-Lens-Getter.html#v:to">to</a></code> g &#8801; <code><a href="Control-Lens-Getter.html#v:to">to</a></code> (g . f)</pre><pre>a <code><a href="Control-Lens-Getter.html#v:-94-.">^.</a></code> <code><a href="Control-Lens-Getter.html#v:to">to</a></code> f &#8801; f a</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(&quot;hello&quot;,&quot;world&quot;)^.to snd
+</p><pre><code><a href="Control-Lens-Getter.html#v:to">to</a></code> f . <code><a href="Control-Lens-Getter.html#v:to">to</a></code> g &#8801; <code><a href="Control-Lens-Getter.html#v:to">to</a></code> (g . f)</pre><pre>a <code><a href="Control-Lens-Getter.html#v:-94-.">^.</a></code> <code><a href="Control-Lens-Getter.html#v:to">to</a></code> f &#8801; f a</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>a ^.to f
+</code></strong>f a
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(&quot;hello&quot;,&quot;world&quot;)^.to snd
 </code></strong>&quot;world&quot;
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>5^.to succ
 </code></strong>6
@@ -57,7 +59,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Getter.ht
 </p><p>This is the same operation as <code><a href="Control-Lens-Getter.html#v:view">view</a></code> with the arguments flipped.
 </p><p>The fixity and semantics are such that subsequent field accesses can be
  performed with (<code>.</code>)
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(&quot;hello&quot;,&quot;world&quot;)^._2
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(a,b)^._2
+</code></strong>b
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(&quot;hello&quot;,&quot;world&quot;)^._2
 </code></strong>&quot;world&quot;
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>import Data.Complex
 </code></strong><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>((0, 1 :+ 2), 3)^._1._2.to magnitude
@@ -73,7 +77,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Getter.ht
  <code><a href="Control-Lens-Fold.html#t:Fold">Fold</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> that points
  at a monoidal values.
 </p><p>This is the same operation as <code><a href="Control-Lens-Getter.html#v:view">view</a></code>, only infix.
-</p><pre><code><a href="Control-Lens-Getter.html#v:to">to</a></code> f <code><a href="Control-Lens-Getter.html#v:-94--36-">^$</a></code> x &#8801; f x</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_2 ^$ (1, &quot;hello&quot;)
+</p><pre><code><a href="Control-Lens-Getter.html#v:to">to</a></code> f <code><a href="Control-Lens-Getter.html#v:-94--36-">^$</a></code> x &#8801; f x</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>to f ^$ x
+</code></strong>f x
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_2 ^$ (1, &quot;hello&quot;)
 </code></strong>&quot;hello&quot;
 </pre><pre>
  (<code><a href="Control-Lens-Getter.html#v:-94--36-">^$</a></code>) ::             <code><a href="Control-Lens-Getter.html#t:Getter">Getter</a></code> s a             -&gt; s -&gt; a
@@ -85,7 +91,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Getter.ht
 </p><p>This is the flipped version of (<code>$</code>), which is more common in languages like F# as (<code>|&gt;</code>) where it is needed
  for inference. Here it is supplied for notational convenience and given a precedence that allows it
  to be nested inside uses of (<code>$</code>).
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>&quot;hello&quot; &amp; length &amp; succ
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>a &amp; f
+</code></strong>f a
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>&quot;hello&quot; &amp; length &amp; succ
 </code></strong>6
 </pre><p>This combinator is commonly used when applying multiple lens operations in sequence.
 </p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(&quot;hello&quot;,&quot;world&quot;) &amp; _1.element 0 .~ 'j' &amp; _1.element 4 .~ 'y'
@@ -94,7 +102,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Getter.ht
 </p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>flip execState (&quot;hello&quot;,&quot;world&quot;) $ do _1.element 0 .= 'j'; _1.element 4 .= 'y'
 </code></strong>(&quot;jelly&quot;,&quot;world&quot;)
 </pre></div></div><div class="top"><p class="src"><a name="v:-94--38-" class="def">(^&amp;)</a> ::  a -&gt; (a -&gt; b) -&gt; b<a href="src/Control-Lens-Getter.html#%5E%26" class="link">Source</a></p><div class="doc"><p>A version of (<code><a href="Control-Lens-Getter.html#v:-38-">&amp;</a></code>) with much tighter precedence that can be interleaved with (<code><a href="Control-Lens-Getter.html#v:-94-.">^.</a></code>)
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>&quot;hello&quot; ^&amp; length
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>a ^&amp; f
+</code></strong>f a
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>&quot;hello&quot; ^&amp; length
 </code></strong>5
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>(&quot;hello&quot;,&quot;world&quot;)^._1^&amp;reverse^?!_head
 </code></strong>'o'
@@ -102,7 +112,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Getter.ht
  <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or the result of folding over all the results of a
  <code><a href="Control-Lens-Fold.html#t:Fold">Fold</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> that points
  at a monoidal values.
-</p><pre><code><a href="Control-Lens-Getter.html#v:view">view</a></code> . <code><a href="Control-Lens-Getter.html#v:to">to</a></code> &#8801; <code>id</code></pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>view _2 (1,&quot;hello&quot;)
+</p><pre><code><a href="Control-Lens-Getter.html#v:view">view</a></code> . <code><a href="Control-Lens-Getter.html#v:to">to</a></code> &#8801; <code>id</code></pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>view (to f) a
+</code></strong>f a
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>view _2 (1,&quot;hello&quot;)
 </code></strong>&quot;hello&quot;
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>view (to succ) 5
 </code></strong>6
@@ -129,7 +141,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Getter.ht
  <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code>.
 </p><p>It may be useful to think of <code><a href="Control-Lens-Getter.html#v:views">views</a></code> as having these more restrictive
  signatures:
-</p><pre><code><a href="Control-Lens-Getter.html#v:views">views</a></code> l f &#8801; <code><a href="Control-Lens-Getter.html#v:view">view</a></code> (l <code>.</code> <code><a href="Control-Lens-Getter.html#v:to">to</a></code> f)</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>views _2 length (1,&quot;hello&quot;)
+</p><pre><code><a href="Control-Lens-Getter.html#v:views">views</a></code> l f &#8801; <code><a href="Control-Lens-Getter.html#v:view">view</a></code> (l <code>.</code> <code><a href="Control-Lens-Getter.html#v:to">to</a></code> f)</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>views (to f) g a
+</code></strong>g (f a)
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>views _2 length (1,&quot;hello&quot;)
 </code></strong>5
 </pre><p>As <code>views</code> is commonly used to access the target of a <code><a href="Control-Lens-Getter.html#t:Getter">Getter</a></code> or obtain a monoidal summary of the targets of a <code>Fold</code>,
  It may be useful to think of it as having one of these more restrictive signatures:
@@ -150,7 +164,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Getter.ht
  <code><a href="Control-Lens-Getter.html#t:Getter">Getter</a></code> in the current state, or use a summary of a
  <code><a href="Control-Lens-Fold.html#t:Fold">Fold</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> that points
  to a monoidal value.
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>evalState (use _1) (&quot;hello&quot;,&quot;world&quot;)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>evalState (use _1) (a,b)
+</code></strong>a
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>evalState (use _1) (&quot;hello&quot;,&quot;world&quot;)
 </code></strong>&quot;hello&quot;
 </pre><pre>
  <code><a href="Control-Lens-Getter.html#v:use">use</a></code> :: <code>MonadState</code> s m             =&gt; <code><a href="Control-Lens-Getter.html#t:Getter">Getter</a></code> s a             -&gt; m a
@@ -176,7 +192,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Getter.ht
  <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or the result of folding over all the results of a
  <code><a href="Control-Lens-Fold.html#t:Fold">Fold</a></code> or <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> that points
  at a monoidal values.
-</p><pre><code><a href="Control-Lens-Getter.html#v:view-39-">view'</a></code> . <code><a href="Control-Lens-Getter.html#v:to">to</a></code> &#8801; <code>id</code></pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>view' _2 (1,&quot;hello&quot;)
+</p><pre><code><a href="Control-Lens-Getter.html#v:view-39-">view'</a></code> . <code><a href="Control-Lens-Getter.html#v:to">to</a></code> &#8801; <code>id</code></pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>view' (to f) a
+</code></strong>f a
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>view' _2 (1,&quot;hello&quot;)
 </code></strong>&quot;hello&quot;
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>view' (to succ) 5
 </code></strong>6
@@ -228,7 +246,9 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Getter.ht
  to a monoidal value.
 </p><p>This use of this combinator may aid type-inference when working with lenses or traversals that
  have non-defaultable typeclass constraints on their arguments.
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>evalState (use' _1) (&quot;hello&quot;,&quot;world&quot;)
+</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>evalState (use' _1) (a,b)
+</code></strong>a
+</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>evalState (use' _1) (&quot;hello&quot;,&quot;world&quot;)
 </code></strong>&quot;hello&quot;
 </pre><pre>
  <code><a href="Control-Lens-Getter.html#v:use-39-">use'</a></code> :: <code>MonadState</code> s m             =&gt; <code><a href="Control-Lens-Getter.html#t:Getter">Getter</a></code> s a             -&gt; m a
