@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704 && !defined(SAFE)
 {-# LANGUAGE Trustworthy #-}
 #endif
 -----------------------------------------------------------------------------
@@ -58,166 +58,175 @@ import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Internal
 import Data.Monoid
+#ifndef SAFE
 import Unsafe.Coerce
+#endif
+
+
+#ifndef SAFE
+#define UNSAFELY(x) unsafeCoerce
+#else
+#define UNSAFELY(x) (\f -> x . f)
+#endif
 
 const# :: (a -> b) -> a -> Const b r
-const# = unsafeCoerce
+const# = UNSAFELY(Const)
 
 getConst# :: (a -> Const b r) -> a -> b
-getConst# = unsafeCoerce
+getConst# = UNSAFELY(getConst)
 
 zipList# :: (a -> [b]) -> a -> ZipList b
-zipList# = unsafeCoerce
+zipList# = UNSAFELY(ZipList)
 
 getZipList# :: (a -> ZipList b) -> a -> [b]
-getZipList# = unsafeCoerce
+getZipList# = UNSAFELY(getZipList)
 
 wrapMonad# :: (a -> m b) -> a -> WrappedMonad m b
-wrapMonad# = unsafeCoerce
+wrapMonad# = UNSAFELY(WrapMonad)
 
 unwrapMonad# :: (a -> WrappedMonad m b) -> a -> m b
-unwrapMonad# = unsafeCoerce
+unwrapMonad# = UNSAFELY(unwrapMonad)
 
 last# :: (a -> Maybe b) -> a -> Last b
-last# = unsafeCoerce
+last# = UNSAFELY(Last)
 
 getLast# :: (a -> Last b) -> a -> Maybe b
-getLast# = unsafeCoerce
+getLast# = UNSAFELY(getLast)
 
 first# :: (a -> Maybe b) -> a -> First b
-first# = unsafeCoerce
+first# = UNSAFELY(First)
 
 getFirst# :: (a -> First b) -> a -> Maybe b
-getFirst# = unsafeCoerce
+getFirst# = UNSAFELY(getFirst)
 
 product# :: (a -> b) -> a -> Product b
-product# = unsafeCoerce
+product# = UNSAFELY(Product)
 
 getProduct# :: (a -> Product b) -> a -> b
-getProduct# = unsafeCoerce
+getProduct# = UNSAFELY(getProduct)
 
 sum# :: (a -> b) -> a -> Sum b
-sum# = unsafeCoerce
+sum# = UNSAFELY(Sum)
 
 getSum# :: (a -> Sum b) -> a -> b
-getSum# = unsafeCoerce
+getSum# = UNSAFELY(getSum)
 
 any# :: (a -> Bool) -> a -> Any
-any# = unsafeCoerce
+any# = UNSAFELY(Any)
 
 getAny# :: (a -> Any) -> a -> Bool
-getAny# = unsafeCoerce
+getAny# = UNSAFELY(getAny)
 
 all# :: (a -> Bool) -> a -> All
-all# = unsafeCoerce
+all# = UNSAFELY(All)
 
 getAll# :: (a -> All) -> a -> Bool
-getAll# = unsafeCoerce
+getAll# = UNSAFELY(getAll)
 
 dual# :: (a -> b) -> a -> Dual b
-dual# = unsafeCoerce
+dual# = UNSAFELY(Dual)
 
 getDual# :: (a -> Dual b) -> a -> b
-getDual# = unsafeCoerce
+getDual# = UNSAFELY(getDual)
 
 endo# :: (a -> b -> b) -> a -> Endo b
-endo# = unsafeCoerce
+endo# = UNSAFELY(Endo)
 
 appEndo# :: (a -> Endo b) -> a -> b -> b
-appEndo# = unsafeCoerce
+appEndo# = UNSAFELY(appEndo)
 
 may# :: (a -> Maybe b) -> a -> May b
-may# = unsafeCoerce
+may# = UNSAFELY(May)
 
 getMay# :: (a -> May b) -> a -> Maybe b
-getMay# = unsafeCoerce
+getMay# = UNSAFELY(getMay)
 
 folding# :: (a -> f b) -> a -> Folding f b
-folding# = unsafeCoerce
+folding# = UNSAFELY(Folding)
 
 getFolding# :: (a -> Folding f b) -> a -> f b
-getFolding# = unsafeCoerce
+getFolding# = UNSAFELY(getFolding)
 
 effect# :: (a -> m r) -> a -> Effect m r b
-effect# = unsafeCoerce
+effect# = UNSAFELY(Effect)
 
 getEffect# :: (a -> Effect m r b) -> a -> m r
-getEffect# = unsafeCoerce
+getEffect# = UNSAFELY(getEffect)
 
 effectRWS# :: (a -> st -> m (s, st, w)) -> a -> EffectRWS w st m s b
-effectRWS# = unsafeCoerce
+effectRWS# = UNSAFELY(EffectRWS)
 
 getEffectRWS# :: (a -> EffectRWS w st m s b) -> a -> st -> m (s, st, w)
-getEffectRWS# = unsafeCoerce
+getEffectRWS# = UNSAFELY(getEffectRWS)
 
 accessor# :: (a -> r) -> a -> Accessor r b
-accessor# = unsafeCoerce
+accessor# = UNSAFELY(Accessor)
 
 runAccessor# :: (a -> Accessor r b) -> a -> r
-runAccessor# = unsafeCoerce
+runAccessor# = UNSAFELY(runAccessor)
 
 err# :: (a -> Either e b) -> a -> Err e b
-err# = unsafeCoerce
+err# = UNSAFELY(Err)
 
 getErr# :: (a -> Err e b) -> a -> Either e b
-getErr# = unsafeCoerce
+getErr# = UNSAFELY(getErr)
 
 traversed# :: (a -> f ()) -> a -> Traversed f
-traversed# = unsafeCoerce
+traversed# = UNSAFELY(Traversed)
 
 getTraversed# :: (a -> Traversed f) -> a -> f ()
-getTraversed# = unsafeCoerce
+getTraversed# = UNSAFELY(getTraversed)
 
 sequenced# :: (a -> f ()) -> a -> Sequenced f
-sequenced# = unsafeCoerce
+sequenced# = UNSAFELY(Sequenced)
 
 getSequenced# :: (a -> Sequenced f) -> a -> f ()
-getSequenced# = unsafeCoerce
+getSequenced# = UNSAFELY(getSequenced)
 
 focusing# :: (a -> m (s, b)) -> a -> Focusing m s b
-focusing# = unsafeCoerce
+focusing# = UNSAFELY(Focusing)
 
 unfocusing# :: (a -> Focusing m s b) -> a -> m (s, b)
-unfocusing# = unsafeCoerce
+unfocusing# = UNSAFELY(unfocusing)
 
 focusingWith# :: (a -> m (s, b, w)) -> a -> FocusingWith w m s b
-focusingWith# = unsafeCoerce
+focusingWith# = UNSAFELY(FocusingWith)
 
 unfocusingWith# :: (a -> FocusingWith w m s b) -> a -> m (s, b, w)
-unfocusingWith# = unsafeCoerce
+unfocusingWith# = UNSAFELY(unfocusingWith)
 
 focusingPlus# :: (a -> k (s, w) b) -> a -> FocusingPlus w k s b
-focusingPlus# = unsafeCoerce
+focusingPlus# = UNSAFELY(FocusingPlus)
 
 unfocusingPlus# :: (a -> FocusingPlus w k s b) -> a -> k (s, w) b
-unfocusingPlus# = unsafeCoerce
+unfocusingPlus# = UNSAFELY(unfocusingPlus)
 
 focusingOn# :: (a -> k (f s) b) -> a -> FocusingOn f k s b
-focusingOn# = unsafeCoerce
+focusingOn# = UNSAFELY(FocusingOn)
 
 unfocusingOn# :: (a -> FocusingOn f k s b) -> a -> k (f s) b
-unfocusingOn# = unsafeCoerce
+unfocusingOn# = UNSAFELY(unfocusingOn)
 
 focusingMay# :: (a -> k (May s) b) -> a -> FocusingMay k s b
-focusingMay# = unsafeCoerce
+focusingMay# = UNSAFELY(FocusingMay)
 
 unfocusingMay# :: (a -> FocusingMay k s b) -> a -> k (May s) b
-unfocusingMay# = unsafeCoerce
+unfocusingMay# = UNSAFELY(unfocusingMay)
 
 focusingErr# :: (a -> k (Err e s) b) -> a -> FocusingErr e k s b
-focusingErr# = unsafeCoerce
+focusingErr# = UNSAFELY(FocusingErr)
 
 unfocusingErr# :: (a -> FocusingErr e k s b) -> a -> k (Err e s) b
-unfocusingErr# = unsafeCoerce
+unfocusingErr# = UNSAFELY(unfocusingErr)
 
 mutator# :: (a -> b) -> a -> Mutator b
-mutator# = unsafeCoerce
+mutator# = UNSAFELY(Mutator)
 
 runMutator# :: (a -> Mutator b) -> a -> b
-runMutator# = unsafeCoerce
+runMutator# = UNSAFELY(runMutator)
 
 backwards# :: (a -> f b) -> a -> Backwards f b
-backwards# = unsafeCoerce
+backwards# = UNSAFELY(Backwards)
 
 forwards# :: (a -> Backwards f b) -> a -> f b
-forwards# = unsafeCoerce
+forwards# = UNSAFELY(forwards)

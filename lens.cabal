@@ -143,6 +143,11 @@ flag test-hunit
   default: True
   manual: True
 
+-- Disallow unsafeCoerce
+flag safe
+  default: False
+  manual: True
+
 library
   build-depends:
     base                 >= 4.4      && < 5,
@@ -219,6 +224,8 @@ library
     exposed-modules: Control.Lens.TH Language.Haskell.TH.Lens
   else
     cpp-options: -DDISABLE_TEMPLATE_HASKELL
+  if flag(safe)
+    cpp-options: -DSAFE
 
   -- platform
   build-depends:   array >= 0.3.0.2 && < 0.5
