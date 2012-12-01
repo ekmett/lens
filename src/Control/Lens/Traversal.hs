@@ -471,7 +471,7 @@ taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sellT s
 -- >>> [1..]^? dropping 1 folded
 -- Just 2
 dropping :: Applicative f => Int -> SimpleLensLike (Indexing f) s a -> SimpleLensLike f s a
-dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> (if i >= n then f a else pure a, i + 1)) s) 0 of
+dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> i `seq` (if i >= n then f a else pure a, i + 1)) s) 0 of
   (r, _) -> r
 {-# INLINE dropping #-}
 
