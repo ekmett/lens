@@ -31,11 +31,11 @@ lens_view_set l s a = view l (set l a s) == a
 setter_set_set :: Eq s => Simple Setter s a -> s -> a -> a -> Bool
 setter_set_set l s a b = set l b (set l a s) == set l b s
 
-iso_hither :: Eq s => Simple Iso s a -> s -> Bool
-iso_hither l s = s ^.l.from l == s
+iso_hither :: Eq s => Simple Isomorphism s a -> s -> Bool
+iso_hither l s = s ^.cloneIso l.from l == s
 
-iso_yon :: Eq a => Simple Iso s a -> a -> Bool
-iso_yon l a = a^.from l.l == a
+iso_yon :: Eq a => Simple Isomorphism s a -> a -> Bool
+iso_yon l a = a^.from l.cloneIso l == a
 
 isSetter :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Function a)
          => Simple Setter s a -> Property
