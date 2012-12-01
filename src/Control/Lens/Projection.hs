@@ -28,7 +28,7 @@ module Control.Lens.Projection
   , remit
   , review, reviews
   , reuse, reuses
-  , embedding
+  , outside
 
   -- * Common projections
   , _left
@@ -80,6 +80,7 @@ import Unsafe.Coerce
 -- go from a 'Natural' to an 'Integer', and provide you with tools to check if an 'Integer' is
 -- a 'Natural' and/or to edit one if it is.
 --
+--
 -- @
 -- 'nat' :: 'Simple' 'Projection' 'Integer' 'Numeric.Natural.Natural'
 -- 'nat' = 'projected' 'toInteger' '$' \\ i ->
@@ -120,6 +121,9 @@ import Unsafe.Coerce
 --
 -- >>> 5^.remit _left ^? _left
 -- Just 5
+--
+-- Another interesting way to think of a 'Projection' is as the categorical dual of a 'Lens'
+-- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
 type Projection s t a b = forall k f. (Projective k, Applicative f) => k (a -> f b) (s -> f t)
 
 -- | A @'Simple' 'Projection'@.
@@ -139,13 +143,12 @@ cloneProjection ProjectedId     = id
 -- Projection Combinators
 ------------------------------------------------------------------------------
 
--- | Use a 'Projection' as a first-class pattern.
+-- | Use a 'Projection' as a kind of first-class pattern.
 --
--- This lets you modify an entire function.
---
--- @'embedding' :: 'Projection' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
-embedding :: Overloaded Projected (Bazaar a b) s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
-embedding (Projected bt seta) f tr = f (tr.unsafeCoerce bt) <&> \ar -> either tr ar . unsafeCoerce seta
+-- @'outside' :: 'Projection' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
+outside :: Overloaded Projected (Bazaar a b) s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
+outside (Projected bt seta) f tr = f (tr.unsafeCoerce bt) <&> \ar -> either tr ar . unsafeCoerce seta
+outside ProjectedId         f tr = f tr
 
 -- | Turn a 'Projection' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
 --

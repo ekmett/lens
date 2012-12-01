@@ -67,6 +67,7 @@ module Control.Lens.Type
   , choosing
   , chosen
   , alongside
+  , inside
 
   -- * Setting Functionally with Passthrough
   , (<%~), (<+~), (<-~), (<*~), (<//~)
@@ -287,6 +288,13 @@ l %%= f = do
 -------------------------------------------------------------------------------
 -- Common Lenses
 -------------------------------------------------------------------------------
+
+-- | Lift a 'Lens' so it can run under a function.
+--
+inside :: LensLike (Context a b) s t a b -> Lens (e -> s) (e -> t) (e -> a) (e -> b)
+inside l f es = o <$> f i where
+  i e = case l (Context id) (es e) of Context _ a -> a
+  o ea e = case l (Context id) (es e) of Context k _ -> k (ea e)
 
 -- | Merge two lenses, getters, setters, folds or traversals.
 --
