@@ -23,15 +23,36 @@ import Control.Lens
 import Data.Monoid
 import Data.Sequence as Seq
 
+-- $setup
+-- >>> import Debug.SimpleReflect.Expr
+-- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
+-- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
+
 -- | A 'Lens' that can access the @n@th element of a 'Seq'.
 --
--- Note: This is only a legal lens if there is already such an element!
+-- >>> Seq.fromList [a,b,c,d] & ordinal 2 .~ e
+-- fromList [a,b,e,d]
+--
+-- *NB:* This is only a legal lens if there is already such an element!
 ordinal :: Int -> SimpleIndexedLens Int (Seq a) a
 ordinal i = indexed $ \ f m -> f i (index m i) <&> \a -> update i a m
 
 -- * Sequence isomorphisms
 
 -- | A 'Seq' is isomorphic to a 'ViewL'
+--
+-- >>> Seq.fromList [a,b,c] ^. viewL
+-- a :< fromList [b,c]
+--
+-- >>> Seq.empty ^. viewL
+-- EmptyL
+--
+-- >>> EmptyL ^. from viewL
+-- fromList []
+--
+-- >>> from viewL ^$ a :< fromList [b,c]
+-- fromList [a,b,c]
 --
 -- @'viewl' m = m '^.' 'viewL'@
 viewL :: Iso (Seq a) (Seq b) (ViewL a) (ViewL b)

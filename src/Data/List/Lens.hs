@@ -88,7 +88,7 @@ _head = indexed $ \f aas -> case aas of
 -- []
 --
 -- >>> [a,b,c]^?_tail
--- Just [a,b]
+-- Just [b,c]
 --
 -- >>> [1,2]^?!_tail
 -- [2]
@@ -139,7 +139,7 @@ _last = indexed $ \f aas -> case aas of
 -- Just [a,b,c]
 --
 -- >>> []^?_init
--- []
+-- Nothing
 --
 -- >>> [a,b] & _init .~ [c,d,e]
 -- [a,c,d,e]
