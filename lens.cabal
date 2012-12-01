@@ -143,10 +143,15 @@ flag test-hunit
   default: True
   manual: True
 
+flag test-properties
+  default: True
+  manual: True
+
 -- Disallow unsafeCoerce
 flag safe
   default: False
   manual: True
+
 
 library
   build-depends:
@@ -277,6 +282,8 @@ test-suite properties
     transformers
   ghc-options: -w -threaded
   hs-source-dirs: tests
+  if !flag(test-properties)
+    buildable: False
 
 test-suite hunit
   type: exitcode-stdio-1.0

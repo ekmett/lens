@@ -493,11 +493,15 @@ instance Category Projected where
         Right a -> Right a
 -}
 
-instance Projective (Projected s t a b) s t a b where
-  projected = Projected
-
-instance Isomorphic (Projected s t a b) s t a b where
+instance Isomorphic (Projected s t a b) where
+  type S (Projected s t a b) = s
+  type T (Projected s t a b) = t
+  type A (Projected s t a b) = a
+  type B (Projected s t a b) = b
   iso sa bt = Projected bt (Right . sa)
+
+instance Projective (Projected s t a b) where
+  projected = Projected
 
 ------------------------------------------------------------------------------
 -- Isomorphism Internals
@@ -512,7 +516,11 @@ instance Category Isomorphism where
   Isomorphism xs ty . Isomorphism sa bt = Isomorphism (sa.xs) (ty.bt)
 -}
 
-instance Isomorphic (Isomorphism s t a b) s t a b where
+instance Isomorphic (Isomorphism s t a b) where
+  type S (Isomorphism s t a b) = s
+  type T (Isomorphism s t a b) = t
+  type A (Isomorphism s t a b) = a
+  type B (Isomorphism s t a b) = b
   iso = Isomorphism
 
 ------------------------------------------------------------------------------

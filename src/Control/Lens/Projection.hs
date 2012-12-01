@@ -55,7 +55,7 @@ import Prelude hiding (id,(.))
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Numeric.Natural
--- >>> :set -XFlexibleContexts
+-- >>> :set -XFlexibleContexts -XTypeFamilies
 -- >>> let nat :: Simple Projection Integer Natural; nat = projected toInteger $ \i -> if i <= 0 then Left i else Right (fromInteger i)
 -- >>> let isLeft  (Left  _) = True; isLeft  _ = False
 -- >>> let isRight (Right _) = True; isRight _ = False
@@ -126,7 +126,7 @@ import Prelude hiding (id,(.))
 --
 -- Another interesting way to think of a 'Projection' is as the categorical dual of a 'Lens'
 -- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
-type Projection s t a b = forall r. Projective r s t a b => r
+type Projection s t a b = forall r. (Projective r, S r ~ s, T r ~ t, A r ~ a, B r ~ b) => r
 
 -- | A @'Simple' 'Projection'@.
 type SimpleProjection s a = Projection s s a a

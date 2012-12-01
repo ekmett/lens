@@ -26,7 +26,7 @@ module Control.Lens.Iso
   -- * Isomorphism Lenses
     Iso
   -- * Isomorphism Construction
-  , Isomorphic(..)
+  , Isomorphic(iso)
   , Isomorphism(..)
   -- * Consuming Isomorphisms
   , from
@@ -109,7 +109,7 @@ cloneIso (Isomorphism sa bt) = iso sa bt
 -- import Prelude hiding (('Prelude..'),'Prelude.id')
 -- @
 --
-type Iso s t a b = forall r. Isomorphic r s t a b => r
+type Iso s t a b = forall r. (Isomorphic r, S r ~ s, T r ~ t, A r ~ a, B r ~ b) => r
 
 -- |
 -- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@

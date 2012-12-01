@@ -33,6 +33,10 @@ module Control.Lens.Classes
   , Projective(..)
   -- * Indexable
   , Indexable(..)
+  -- * Families
+  , CoalgebraicA
+  , CoalgebraicB
+  , CoalgebraicF
   ) where
 
 import Control.Applicative
@@ -139,11 +143,23 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
 -- Isomorphisms
 -----------------------------------------------------------------------------
 
+type family CoalgebraicA (x :: *) :: *
+type family CoalgebraicB (x :: *) :: *
+type family CoalgebraicF (x :: *) :: * -> *
+
+type instance CoalgebraicA (a -> f_b) = a
+type instance CoalgebraicB (a -> f b) = b
+type instance CoalgebraicF (a -> f b) = f
+
 -- | Used to provide overloading of isomorphism application
 --
 -- An instance of 'Isomorphic' is a 'Category' with a canonical mapping to it from the
 -- category of isomorphisms over Haskell types.
-class Isomorphic r s t a b | r -> s t a b, s b -> t a, t a -> s b where
+class Isomorphic r where
+  type S (r :: *) :: *
+  type T (r :: *) :: *
+  type A (r :: *) :: *
+  type B (r :: *) :: *
   -- | Build a simple isomorphism from a pair of inverse functions
   --
   -- @
@@ -152,9 +168,13 @@ class Isomorphic r s t a b | r -> s t a b, s b -> t a, t a -> s b where
   -- 'set' ('iso' f g) h ≡ g '.' h '.' f
   -- 'set' ('from' ('iso' f g)) h ≡ f '.' h '.' g
   -- @
-  iso :: (s -> a) -> (b -> t) -> r
+  iso :: (S r -> A r) -> (B r -> T r) -> r
 
-instance (Functor f, x ~ (a -> f b), y ~ (s -> f t)) => Isomorphic (x -> y) s t a b where
+instance (Functor f, x ~ (a -> f b), y ~ (s -> f t)) => Isomorphic (x -> y) where
+  type S (x -> y) = CoalgebraicA y
+  type T (x -> y) = CoalgebraicB y
+  type A (x -> y) = CoalgebraicA x
+  type B (x -> y) = CoalgebraicB x
   iso sa bt afb s = bt <$> afb (sa s)
 
 -----------------------------------------------------------------------------
@@ -165,13 +185,13 @@ instance (Functor f, x ~ (a -> f b), y ~ (s -> f t)) => Isomorphic (x -> y) s t 
 --
 -- An instance of 'Projective' is a 'Category' with a canonical mapping to it from the category
 -- of embedding-projection pairs over Haskell types.
-class Isomorphic r s t a b => Projective r s t a b | r -> s t a b, s b -> t a, t a -> s b where
+class Isomorphic r => Projective r where
   -- | Build a 'Control.Lens.Projection.Projection'.
   --
   -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
-  projected :: (b -> t) -> (s -> Either t a) -> r
+  projected :: (B r -> T r) -> (S r -> Either (T r) (A r)) -> r
 
-instance (Applicative f, x ~ (a -> f b), y ~ (s -> f t)) => Projective (x -> y) s t a b where
+instance (Applicative f, x ~ (a -> f b), y ~ (s -> f t)) => Projective (x -> y) where
   projected bt seta afb = either pure (fmap bt . afb) . seta
   {-# INLINE projected #-}
 
