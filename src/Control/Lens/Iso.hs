@@ -39,6 +39,7 @@ module Control.Lens.Iso
   -- ** Common Isomorphisms
   , simple
   , non
+  , anon
   , enum
   , curried, uncurried
   , Strict(..)
@@ -214,15 +215,30 @@ simple = iso id id
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
 -- fromList []
 non :: Eq a => a -> Simple Iso (Maybe a) a
-non a = iso (fromMaybe a) go where
-  go b | a == b    = Nothing
+non a = anon a (a==)
+{-# INLINE non #-}
+
+-- | @'anon' a p@ generalizes @'non' a@ to take any value and a predicate.
+--
+-- This function assumes that @p a@ holds @True@ and generates an isomorphism between @'Maybe' (a | not (p a))@ and @a@
+--
+-- >>> Map.empty & at "hello" . anon Map.empty Map.null . at "world" ?~ "!!!"
+-- fromList [("hello",fromList [("world","!!!")])]
+--
+-- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . anon Map.empty Map.null . at "world" .~ Nothing
+-- fromList []
+anon :: a -> (a -> Bool) -> Simple Iso (Maybe a) a
+anon a p = iso (fromMaybe a) go where
+  go b | p a       = Nothing
        | otherwise = Just b
+{-# INLINE anon #-}
 
 -- | The canonical isomorphism for currying and uncurrying function.
 --
 -- @'curried' = 'iso' 'curry' 'uncurry'@
 curried :: Iso ((a,b) -> c) ((d,e) -> f) (a -> b -> c) (d -> e -> f)
 curried = iso curry uncurry
+{-# INLINE curried #-}
 
 -- | The canonical isomorphism for uncurrying and currying function.
 --
@@ -230,6 +246,7 @@ curried = iso curry uncurry
 -- @'uncurried' = 'from' 'curried'@
 uncurried :: Iso (a -> b -> c) (d -> e -> f) ((a,b) -> c) ((d,e) -> f)
 uncurried = iso uncurry curry
+{-# INLINE uncurried #-}
 
 -- | Ad hoc conversion between \"strict\" and \"lazy\" versions of a structure,
 -- such as 'StrictT.Text' or 'StrictB.ByteString'.
@@ -242,9 +259,11 @@ instance Strict LazyB.ByteString LazyB.ByteString StrictB.ByteString StrictB.Byt
 #else
   strict = iso (StrictB.concat . LazyB.toChunks) (LazyB.fromChunks . return)
 #endif
+  {-# INLINE strict #-}
 
 instance Strict LazyT.Text LazyT.Text StrictT.Text StrictT.Text where
   strict = iso LazyT.toStrict LazyT.fromStrict
+  {-# INLINE strict #-}
 
 -----------------------------------------------------------------------------
 -- Reifying Isomorphisms
