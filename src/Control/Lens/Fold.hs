@@ -244,9 +244,9 @@ takingWhile p l f = foldrOf l (\a r -> if p a then f a *> r else noEffect) noEff
 -- [6,1]
 droppingWhile :: (Gettable f, Applicative f)
               => (a -> Bool)
-              -> Getting (Dual (Endo (Bool, f s))) s s a a
+              -> Getting (Endo (f s, f s)) s s a a
               -> LensLike f s s a a
-droppingWhile p l f = snd . foldlOf l (\(dropping,r) a -> if dropping && p a then (True, r) else (False, r <* f a)) (True, noEffect)
+droppingWhile p l f = fst . foldrOf l (\a r -> let s = f a *> snd r in (if p a then fst r else s, s)) (noEffect, noEffect)
 {-# INLINE droppingWhile #-}
 
 --------------------------
