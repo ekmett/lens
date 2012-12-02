@@ -1,4 +1,3 @@
-{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -231,7 +230,7 @@ type Getting r s t a b = (a -> Accessor r b) -> s -> Accessor r t
 -- 'view' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> m a
 -- @
 view :: MonadReader s m => Getting a s t a b -> m a
-view l = Reader.asks (runAccessor# (l Accessor))
+view l = Reader.asks (runAccessor # (l _Accessor))
 {-# INLINE view #-}
 
 -- | View the value of a 'Getter', 'Control.Lens.Iso.Iso',
@@ -271,7 +270,7 @@ view l = Reader.asks (runAccessor# (l Accessor))
 -- 'view' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> m a
 -- @
 views :: MonadReader s m => Getting r s t a b -> (a -> r) -> m r
-views l f = Reader.asks (runAccessor# (l (accessor# f)))
+views l f = Reader.asks (runAccessor # (l (_Accessor # f)))
 {-# INLINE views #-}
 
 -- | View the value pointed to by a 'Getter', 'Control.Lens.Iso.Iso' or
@@ -479,7 +478,7 @@ uses' l f = State.gets (views' l f)
 -- 'view'' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> m a
 -- @
 view' :: MonadReader s m => Getting a s s a a -> m a
-view' l = Reader.asks (runAccessor# (l Accessor))
+view' l = Reader.asks (runAccessor # (l _Accessor))
 {-# INLINE view' #-}
 
 -- | This is a type restricted version of 'views' that expects a 'Simple' 'Getter'.
@@ -518,7 +517,7 @@ view' l = Reader.asks (runAccessor# (l Accessor))
 -- 'views'' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> r) -> m r
 -- @
 views' :: MonadReader s m => Getting r s s a a -> (a -> r) -> m r
-views' l f = Reader.asks (runAccessor# (l (accessor# f)))
+views' l f = Reader.asks (runAccessor # (l (_Accessor # f)))
 {-# INLINE views' #-}
 
 ------------------------------------------------------------------------------

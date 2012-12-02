@@ -7,7 +7,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE MagicHash #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -54,6 +53,7 @@ module Control.Lens.Internal
   , Projected(..)
   , Isomorphism(..)
   , Indexed(..)
+  , _Mutator
   ) where
 
 import Control.Applicative
@@ -68,12 +68,6 @@ import Data.Functor.Identity
 import Data.Monoid
 #ifndef SAFE
 import Unsafe.Coerce
-#endif
-
-#ifndef SAFE
-#define UNSAFELY(x) unsafeCoerce
-#else
-#define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
 #endif
 
 -----------------------------------------------------------------------------
@@ -409,22 +403,26 @@ instance (Gettable f, Applicative f) => Monoid (Folding f a) where
 -- Most user code will never need to see this type.
 newtype Mutator a = Mutator { runMutator :: a }
 
+-- This alias can't be defined in .Combinators because we need it for the
+-- 'Settable' instance. Ideally it wouldn't be exported from a public module.
+-- (.Combinators still defines a RULE for it, which isn't orphan because it
+-- involves (#).
+_Mutator :: a -> Mutator a
+_Mutator = Mutator
+
 instance Functor Mutator where
   fmap f (Mutator a) = Mutator (f a)
   {-# INLINE fmap #-}
 
 instance Applicative Mutator where
-  pure = Mutator
-  {-# INLINE pure #-}
+  pure = _Mutator
+  -- Figure out the proper {-# INLINE #-} pragma here and in Settable (and
+  -- maybe in _Mutator?) to interact with the the RULE for (#) _Mutator.
   Mutator f <*> Mutator a = Mutator (f a)
   {-# INLINE (<*>) #-}
 
 instance Settable Mutator where
   untainted = runMutator
-  untainted# = UNSAFELY(runMutator)
-  {-# INLINE untainted #-}
-  tainted# = UNSAFELY(Mutator)
-  {-# INLINE tainted# #-}
 
 -- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance
 -- To protect this instance it relies on the soundness of another 'Gettable' type, and usage conventions.

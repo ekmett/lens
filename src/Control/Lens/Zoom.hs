@@ -1,4 +1,3 @@
-{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
@@ -73,11 +72,11 @@ class (MonadState s m, MonadState t n) => Zoom m n k s t | m -> s k, n -> t k, m
   zoom :: Monad m => SimpleLensLike (k c) t s -> m c -> n c
 
 instance Monad z => Zoom (Strict.StateT s z) (Strict.StateT t z) (Focusing z) s t where
-  zoom l (Strict.StateT m) = Strict.StateT $ unfocusing# (l (focusing# m))
+  zoom l (Strict.StateT m) = Strict.StateT $ unfocusing # l (_Focusing # m)
   {-# INLINE zoom #-}
 
 instance Monad z => Zoom (Lazy.StateT s z) (Lazy.StateT t z) (Focusing z) s t where
-  zoom l (Lazy.StateT m) = Lazy.StateT $ unfocusing# (l (focusing# m))
+  zoom l (Lazy.StateT m) = Lazy.StateT $ unfocusing # l (_Focusing # m)
   {-# INLINE zoom #-}
 
 instance Zoom m n k s t => Zoom (ReaderT e m) (ReaderT e n) k s t where
@@ -89,19 +88,19 @@ instance Zoom m n k s t => Zoom (IdentityT m) (IdentityT n) k s t where
   {-# INLINE zoom #-}
 
 instance (Monoid w, Monad z) => Zoom (Strict.RWST r w s z) (Strict.RWST r w t z) (FocusingWith w z) s t where
-  zoom l (Strict.RWST m) = Strict.RWST $ \r -> unfocusingWith# (l (focusingWith# (m r)))
+  zoom l (Strict.RWST m) = Strict.RWST $ \r -> unfocusingWith # l (_FocusingWith # m r)
   {-# INLINE zoom #-}
 
 instance (Monoid w, Monad z) => Zoom (Lazy.RWST r w s z) (Lazy.RWST r w t z) (FocusingWith w z) s t where
-  zoom l (Lazy.RWST m) = Lazy.RWST $ \r -> unfocusingWith# (l (focusingWith# (m r)))
+  zoom l (Lazy.RWST m) = Lazy.RWST $ \r -> unfocusingWith # l (_FocusingWith # m r)
   {-# INLINE zoom #-}
 
 instance (Monoid w, Zoom m n k s t) => Zoom (Strict.WriterT w m) (Strict.WriterT w n) (FocusingPlus w k) s t where
-  zoom l = Strict.WriterT . zoom (\afb -> unfocusingPlus# (l (focusingPlus# afb))) . Strict.runWriterT
+  zoom l = Strict.WriterT . zoom (\afb -> unfocusingPlus # l (_FocusingPlus # afb)) . Strict.runWriterT
   {-# INLINE zoom #-}
 
 instance (Monoid w, Zoom m n k s t) => Zoom (Lazy.WriterT w m) (Lazy.WriterT w n) (FocusingPlus w k) s t where
-  zoom l = Lazy.WriterT . zoom (\afb -> unfocusingPlus# (l (focusingPlus# afb))) . Lazy.runWriterT
+  zoom l = Lazy.WriterT . zoom (\afb -> unfocusingPlus # l (_FocusingPlus # afb)) . Lazy.runWriterT
   {-# INLINE zoom #-}
 
 instance Zoom m n k s t => Zoom (ListT m) (ListT n) (FocusingOn [] k) s t where
@@ -109,11 +108,11 @@ instance Zoom m n k s t => Zoom (ListT m) (ListT n) (FocusingOn [] k) s t where
   {-# INLINE zoom #-}
 
 instance Zoom m n k s t => Zoom (MaybeT m) (MaybeT n) (FocusingMay k) s t where
-  zoom l = MaybeT . liftM getMay . zoom (\afb -> unfocusingMay# (l (focusingMay# afb))) . liftM May . runMaybeT
+  zoom l = MaybeT . liftM getMay . zoom (\afb -> unfocusingMay # l (_FocusingMay # afb)) . liftM May . runMaybeT
   {-# INLINE zoom #-}
 
 instance (Error e, Zoom m n k s t) => Zoom (ErrorT e m) (ErrorT e n) (FocusingErr e k) s t where
-  zoom l = ErrorT . liftM getErr . zoom (\afb -> unfocusingErr# (l (focusingErr# afb))) . liftM Err . runErrorT
+  zoom l = ErrorT . liftM getErr . zoom (\afb -> unfocusingErr # l (_FocusingErr # afb)) . liftM Err . runErrorT
   {-# INLINE zoom #-}
 
 -- TODO: instance Zoom m m k a a => Zoom (ContT r m) (ContT r m) k a a where
@@ -142,7 +141,7 @@ class (MonadReader b m, MonadReader a n) => Magnify m n k b a | m -> b, n -> a, 
   magnify :: ((b -> k c b) -> a -> k c a) -> m c -> n c
 
 instance Monad m => Magnify (ReaderT b m) (ReaderT a m) (Effect m) b a where
-  magnify l (ReaderT m) = ReaderT $ getEffect# (l (effect# m))
+  magnify l (ReaderT m) = ReaderT $ getEffect # l (_Effect # m)
   {-# INLINE magnify #-}
 
 -- | @'magnify' = 'views'@
@@ -151,11 +150,11 @@ instance Magnify ((->) b) ((->) a) Accessor b a where
   {-# INLINE magnify #-}
 
 instance (Monad m, Monoid w) => Magnify (Strict.RWST b w s m) (Strict.RWST a w s m) (EffectRWS w s m) b a where
-  magnify l (Strict.RWST m) = Strict.RWST $ getEffectRWS# (l (effectRWS# m))
+  magnify l (Strict.RWST m) = Strict.RWST $ getEffectRWS # l (_EffectRWS # m)
   {-# INLINE magnify #-}
 
 instance (Monad m, Monoid w) => Magnify (Lazy.RWST b w s m) (Lazy.RWST a w s m) (EffectRWS w s m) b a where
-  magnify l (Lazy.RWST m) = Lazy.RWST $ getEffectRWS# (l (effectRWS# m))
+  magnify l (Lazy.RWST m) = Lazy.RWST $ getEffectRWS # l (_EffectRWS # m)
   {-# INLINE magnify #-}
 
 instance Magnify m n k b a => Magnify (IdentityT m) (IdentityT n) k b a where

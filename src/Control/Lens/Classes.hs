@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -47,15 +46,6 @@ import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Monoid
 import Prelude hiding ((.),id)
-#ifndef SAFE
-import Unsafe.Coerce
-#endif
-
-#ifndef SAFE
-#define UNSAFELY(x) unsafeCoerce
-#else
-#define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
-#endif
 
 
 -------------------------------------------------------------------------------
@@ -116,19 +106,9 @@ instance Effective m r f => Effective m (Dual r) (Backwards f) where
 class Applicative f => Settable f where
   untainted :: f a -> a
 
-  untainted# :: (a -> f b) -> a -> b
-  untainted# g = g `seq` \x -> untainted (g x)
-
-  tainted# :: (a -> b) -> a -> f b
-  tainted# g = g `seq` \x -> pure (g x)
-
 -- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries
 instance Settable Identity where
   untainted = runIdentity
-  untainted# = UNSAFELY(runIdentity)
-  {-# INLINE untainted #-}
-  tainted# = UNSAFELY(Identity)
-  {-# INLINE tainted# #-}
 
 -- | 'Control.Lens.Fold.backwards'
 instance Settable f => Settable (Backwards f) where

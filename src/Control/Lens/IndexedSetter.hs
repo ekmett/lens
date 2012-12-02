@@ -1,4 +1,3 @@
-{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -29,6 +28,7 @@ module Control.Lens.IndexedSetter
   , SimpleReifiedIndexedSetter
   ) where
 
+import Control.Applicative
 import Control.Lens.Classes
 import Control.Lens.Indexed
 import Control.Lens.Internal
@@ -61,7 +61,7 @@ type SimpleIndexedSetter i s a = IndexedSetter i s s a a
 -- 'imapOf' :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
 imapOf :: Overloaded (Indexed i) Mutator s t a b -> (i -> a -> b) -> s -> t
-imapOf l f = runMutator# (withIndex l (\i -> mutator# (f i)))
+imapOf l f = runMutator # withIndex l (\i -> _Mutator # f i)
 {-# INLINE imapOf #-}
 
 -- | Map with index. This is an alias for 'imapOf'.
@@ -76,7 +76,7 @@ imapOf l f = runMutator# (withIndex l (\i -> mutator# (f i)))
 -- 'iover' :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
 iover :: Overloaded (Indexed i) Mutator s t a b -> (i -> a -> b) -> s -> t
-iover l f = runMutator# (withIndex l (\i -> mutator# (f i)))
+iover l f = runMutator # withIndex l (\i -> _Mutator # f i)
 {-# INLINE iover #-}
 
 -- | Build an 'IndexedSetter' from an 'imap'-like function.
@@ -98,7 +98,7 @@ iover l f = runMutator# (withIndex l (\i -> mutator# (f i)))
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
 isets :: ((i -> a -> b) -> s -> t) -> IndexedSetter i s t a b
-isets f = indexed $ \ g -> tainted# (f (\i -> untainted# (g i)))
+isets f = indexed $ \ g -> pure # f (\i -> untainted # g i)
 {-# INLINE isets #-}
 
 -- | Adjust every target of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
@@ -116,7 +116,7 @@ isets f = indexed $ \ g -> tainted# (f (\i -> untainted# (g i)))
 -- ('%@~') :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
 (%@~) :: Overloaded (Indexed i) Mutator s t a b -> (i -> a -> b) -> s -> t
-l %@~ f = runMutator# (withIndex l (\i -> mutator# (f i)))
+l %@~ f = runMutator # withIndex l (\i -> _Mutator # f i)
 {-# INLINE (%@~) #-}
 
 -- | Adjust every target in the current state of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
