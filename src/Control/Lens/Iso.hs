@@ -229,7 +229,7 @@ non a = anon a (a==)
 -- fromList []
 anon :: a -> (a -> Bool) -> Simple Iso (Maybe a) a
 anon a p = iso (fromMaybe a) go where
-  go b | p a       = Nothing
+  go b | p b       = Nothing
        | otherwise = Just b
 {-# INLINE anon #-}
 
