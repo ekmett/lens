@@ -9,15 +9,13 @@
 --
 -------------------------------------------------------------------------------
 module Control.Lens.Combinators
-  ( (<$!>), (<$!), (<&>)
-  , (>>&), (>&>)
+  ( (<$!>), (<$!), (<&>), (?)
   ) where
 
-import Control.Monad (liftM)
 import Data.Functor
 
 infixl 4 <$!>, <$!, <&>
-infixl 1 >>&, >&>
+infixl 1 ?
 
 -- | A strict version of ('Data.Functor.<$>') for monads.
 --
@@ -46,16 +44,9 @@ b <$! m = do
 as <&> f = f <$> as
 {-# INLINE (<&>) #-}
 
--- | Provided by analogy to @('>>=')@
+-- | @(<&>)@ with a fixity to match @('>>=')@
 --
--- @('>>&') ≡ 'flip' 'liftM'@
-(>>&) :: Monad m => m a -> (a -> b) -> m b
-(>>&) = flip liftM
-{-# INLINE (>>&) #-}
-
--- | Provided by analogy to ('>=>')
---
--- Compose a 'Kleisli' action with a normal function.
-(>&>) :: Monad m => (a -> m b) -> (b -> c) -> a -> m c
-amb >&> bc = liftM bc . amb
-{-# INLINE (>&>) #-}
+-- @('>>&') ≡ 'flip' 'fmap'@
+(?) :: Functor f => f a -> (a -> b) -> f b
+(?) = flip fmap
+{-# INLINE (?) #-}
