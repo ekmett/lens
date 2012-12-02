@@ -361,9 +361,13 @@ alongside l r f (s, s') = case l (Context id) s of
 --
 -- @
 -- 'pos' w ≡ w '^.' 'locus'
--- 'seek' s w ≡ w '&' 'locus '.~' s
+-- 'seek' s w ≡ w '&' 'locus' '.~' s
 -- 'seeks' f w ≡ w '&' 'locus' '%~' f
 -- @
+--
+-- @
+-- 'locus' :: Simple Lens ('Context' s s a) s
+-- @ 
 locus :: ComonadStore s w => Simple Lens (w a) s
 locus f w = (`seek` w) <$> f (pos w)
 
