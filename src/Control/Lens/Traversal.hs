@@ -54,6 +54,7 @@ module Control.Lens.Traversal
   , beside
   , taking
   , dropping
+  , loci
 
   -- * Cloning Traversals
   , cloneTraversal
@@ -69,6 +70,7 @@ module Control.Lens.Traversal
 
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
+import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
@@ -307,6 +309,10 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
   step Nothing a  = (Just a, a)
   step (Just s) a = (Just r, r) where r = f s a
 {-# INLINE scanl1Of #-}
+
+-- | This 'Traversal' allows you to 'traverse' the individual stores in a 'Bazaar'.
+loci :: Traversal (Bazaar a c s) (Bazaar b c s) a b
+loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafeOuts w
 
 -------------------------------------------------------------------------------
 -- Parts and Holes
