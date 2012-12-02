@@ -77,7 +77,7 @@ import           Data.HashSet as HashSet
 import           Data.HashMap.Lazy as HashMap
 import           Data.Map as Map
 import           Data.Monoid
-import           Data.Sequence as Seq
+import           Data.Sequence as Seq hiding (length)
 import           Data.Set as Set
 
 -- $setup
