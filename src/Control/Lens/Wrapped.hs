@@ -69,7 +69,14 @@ import           Data.Functor.Constant
 import           Data.Functor.Coproduct
 import           Data.Functor.Identity
 import           Data.Functor.Reverse
+import           Data.Hashable
+import           Data.IntSet as IntSet
+import           Data.IntMap as IntMap
+import           Data.HashSet as HashSet
+import           Data.HashMap.Lazy as HashMap
+import           Data.Map as Map
 import           Data.Monoid
+import           Data.Set as Set
 
 -- $setup
 -- >>> import Control.Lens
@@ -83,170 +90,200 @@ class Wrapped s t a b | a -> s, b -> t, a t -> s, b s -> t where
   -- This is often used via 'wrapping' to aid type inference.
   wrapped   :: Iso s t a b
 
+-- * base
+
 instance Wrapped Bool Bool All All where
-  wrapped   = iso All getAll
+  wrapped = iso All getAll
   {-# INLINE wrapped #-}
 
 instance Wrapped Bool Bool Any Any where
-  wrapped   = iso Any getAny
+  wrapped = iso Any getAny
   {-# INLINE wrapped #-}
 
 instance Wrapped a b (Sum a) (Sum b) where
-  wrapped   = iso Sum getSum
+  wrapped = iso Sum getSum
   {-# INLINE wrapped #-}
 
 instance Wrapped a b (Product a) (Product b) where
-  wrapped   = iso Product getProduct
+  wrapped = iso Product getProduct
   {-# INLINE wrapped #-}
 
 instance Wrapped (a -> m b) (u -> n v) (Kleisli m a b) (Kleisli n u v) where
-  wrapped   = iso Kleisli runKleisli
+  wrapped = iso Kleisli runKleisli
   {-# INLINE wrapped #-}
 
 instance Wrapped (m a) (n b) (WrappedMonad m a) (WrappedMonad n b) where
-  wrapped   = iso WrapMonad unwrapMonad
+  wrapped = iso WrapMonad unwrapMonad
   {-# INLINE wrapped #-}
 
 instance Wrapped (a b c) (u v w) (WrappedArrow a b c) (WrappedArrow u v w) where
-  wrapped   = iso WrapArrow unwrapArrow
+  wrapped = iso WrapArrow unwrapArrow
   {-# INLINE wrapped #-}
 
 instance Wrapped [a] [b] (ZipList a) (ZipList b) where
-  wrapped   = iso ZipList getZipList
+  wrapped = iso ZipList getZipList
   {-# INLINE wrapped #-}
 
 instance Wrapped a b (Const a x) (Const b y) where
-  wrapped   = iso Const getConst
+  wrapped = iso Const getConst
   {-# INLINE wrapped #-}
 
 instance Wrapped (a -> a) (b -> b) (Endo a) (Endo b) where
-  wrapped   = iso Endo appEndo
+  wrapped = iso Endo appEndo
   {-# INLINE wrapped #-}
 
 instance Wrapped (Maybe a) (Maybe b) (First a) (First b) where
-  wrapped   = iso First getFirst
+  wrapped = iso First getFirst
   {-# INLINE wrapped #-}
 
 instance Wrapped (Maybe a) (Maybe b) (Last a) (Last b) where
-  wrapped   = iso Last getLast
+  wrapped = iso Last getLast
   {-# INLINE wrapped #-}
 
 instance (ArrowApply m, ArrowApply n) => Wrapped (m () a) (n () b) (ArrowMonad m a) (ArrowMonad n b) where
-  wrapped   = iso ArrowMonad getArrowMonad
+  wrapped = iso ArrowMonad getArrowMonad
   {-# INLINE wrapped #-}
 
--- transformers
+-- * transformers
 
 instance Wrapped (f a) (f' a') (Backwards f a) (Backwards f' a') where
-  wrapped   = iso Backwards forwards
+  wrapped = iso Backwards forwards
   {-# INLINE wrapped #-}
 
 instance Wrapped (f (g a)) (f' (g' a')) (Compose f g a) (Compose f' g' a') where
-  wrapped   = iso Compose getCompose
+  wrapped = iso Compose getCompose
   {-# INLINE wrapped #-}
 
 instance Wrapped a a' (Constant a b) (Constant a' b') where
-  wrapped   = iso Constant getConstant
+  wrapped = iso Constant getConstant
   {-# INLINE wrapped #-}
 
 instance Wrapped ((a -> m r) -> m r) ((a' -> m' r') -> m' r') (ContT r m a) (ContT r' m' a') where
-  wrapped   = iso ContT runContT
+  wrapped = iso ContT runContT
   {-# INLINE wrapped #-}
 
 instance Wrapped (m (Either e a)) (m' (Either e' a')) (ErrorT e m a) (ErrorT e' m' a') where
-  wrapped   = iso ErrorT runErrorT
+  wrapped = iso ErrorT runErrorT
   {-# INLINE wrapped #-}
 
 instance Wrapped a a' (Identity a) (Identity a') where
-  wrapped   = iso Identity runIdentity
+  wrapped = iso Identity runIdentity
   {-# INLINE wrapped #-}
 
 instance Wrapped (m a) (m' a') (IdentityT m a) (IdentityT m' a') where
-  wrapped   = iso IdentityT runIdentityT
+  wrapped = iso IdentityT runIdentityT
   {-# INLINE wrapped #-}
 
 instance (Applicative f, Applicative g) => Wrapped (f a) (g b) (Lift f a) (Lift g b) where
-  wrapped   = iso Other unLift
+  wrapped = iso Other unLift
   {-# INLINE wrapped #-}
 
 instance Wrapped (m [a]) (m' [a']) (ListT m a) (ListT m' a') where
-  wrapped   = iso ListT runListT
+  wrapped = iso ListT runListT
   {-# INLINE wrapped #-}
 
 instance Wrapped (m (Maybe a)) (m' (Maybe a')) (MaybeT m a) (MaybeT m' a') where
-  wrapped   = iso MaybeT runMaybeT
+  wrapped = iso MaybeT runMaybeT
   {-# INLINE wrapped #-}
 
 instance Wrapped (r -> m a) (r' -> m' a') (ReaderT r m a) (ReaderT r' m' a') where
-  wrapped   = iso ReaderT runReaderT
+  wrapped = iso ReaderT runReaderT
   {-# INLINE wrapped #-}
 
 instance Wrapped (f a) (f' a') (Reverse f a) (Reverse f' a') where
-  wrapped   = iso Reverse getReverse
+  wrapped = iso Reverse getReverse
   {-# INLINE wrapped #-}
 
 instance Wrapped (r -> s -> m (a, s, w)) (r' -> s' -> m' (a', s', w')) (Lazy.RWST r w s m a) (Lazy.RWST r' w' s' m' a') where
-  wrapped   = iso Lazy.RWST Lazy.runRWST
+  wrapped = iso Lazy.RWST Lazy.runRWST
   {-# INLINE wrapped #-}
 
 instance Wrapped (r -> s -> m (a, s, w)) (r' -> s' -> m' (a', s', w')) (Strict.RWST r w s m a) (Strict.RWST r' w' s' m' a') where
-  wrapped   = iso Strict.RWST Strict.runRWST
+  wrapped = iso Strict.RWST Strict.runRWST
   {-# INLINE wrapped #-}
 
 instance Wrapped (s -> m (a, s)) (s' -> m' (a', s')) (Lazy.StateT s m a) (Lazy.StateT s' m' a') where
-  wrapped   = iso Lazy.StateT Lazy.runStateT
+  wrapped = iso Lazy.StateT Lazy.runStateT
   {-# INLINE wrapped #-}
 
 instance Wrapped (s -> m (a, s)) (s' -> m' (a', s')) (Strict.StateT s m a) (Strict.StateT s' m' a') where
-  wrapped   = iso Strict.StateT Strict.runStateT
+  wrapped = iso Strict.StateT Strict.runStateT
   {-# INLINE wrapped #-}
 
 instance Wrapped (m (a, w)) (m' (a', w')) (Lazy.WriterT w m a) (Lazy.WriterT w' m' a') where
-  wrapped   = iso Lazy.WriterT Lazy.runWriterT
+  wrapped = iso Lazy.WriterT Lazy.runWriterT
   {-# INLINE wrapped #-}
 
 instance Wrapped (m (a, w)) (m' (a', w')) (Strict.WriterT w m a) (Strict.WriterT w' m' a') where
-  wrapped   = iso Strict.WriterT Strict.runWriterT
+  wrapped = iso Strict.WriterT Strict.runWriterT
   {-# INLINE wrapped #-}
 
--- comonad-transformers
+-- * comonad-transformers
 
 instance Wrapped (Either (f a) (g a)) (Either (f' a') (g' a')) (Coproduct f g a) (Coproduct f' g' a') where
-  wrapped   = iso Coproduct getCoproduct
+  wrapped = iso Coproduct getCoproduct
   {-# INLINE wrapped #-}
 
 instance Wrapped (w (m -> a)) (w' (m' -> a')) (TracedT m w a) (TracedT m' w' a') where
-  wrapped   = iso TracedT runTracedT
+  wrapped = iso TracedT runTracedT
   {-# INLINE wrapped #-}
 
--- exceptions
+-- * unordered-containers
+
+-- | Use @'wrapping' HashMap.fromList'@. Unwrapping returns some permutation of the list.
+instance (Hashable k, Eq k, Hashable k', Eq k') => Wrapped [(k, a)] [(k', b)] (HashMap k a) (HashMap k' b) where
+  wrapped = iso HashMap.fromList HashMap.toList
+
+-- | Use @'wrapping' HashSet.fromList'@. Unwrapping returns some permutation of the list.
+instance (Hashable a, Eq a, Hashable b, Eq b) => Wrapped [a] [b] (HashSet a) (HashSet b) where
+  wrapped = iso HashSet.fromList HashSet.toList
+
+-- * containers
+
+-- | Use @'wrapping' 'IntMap.fromList'@. unwrapping returns a /sorted/ list.
+instance Wrapped [(Int, a)] [(Int, b)] (IntMap a) (IntMap b) where
+  wrapped = iso IntMap.fromList IntMap.toAscList
+
+-- | Use @'wrapping' 'IntSet.fromList'@. unwrapping returns a /sorted/ list.
+instance Wrapped [Int] [Int] IntSet IntSet where
+  wrapped = iso IntSet.fromList IntSet.toAscList
+
+-- | Use @'wrapping' 'Map.fromList'@. unwrapping returns a /sorted/ list.
+instance (Ord k, Ord k') => Wrapped [(k, a)] [(k', b)] (Map k a) (Map k' b) where
+  wrapped = iso Map.fromList Map.toAscList
+
+-- | Use @'wrapping' 'Set.fromList'@. unwrapping returns a /sorted/ list.
+instance (Ord a, Ord b) => Wrapped [a] [b] (Set a) (Set b) where
+  wrapped = iso Set.fromList Set.toAscList
+
+-- * Exceptions
 
 instance Wrapped String String AssertionFailed AssertionFailed where
-  wrapped   = iso AssertionFailed failedAssertion
+  wrapped = iso AssertionFailed failedAssertion
   {-# INLINE wrapped #-}
 
 instance Wrapped String String NoMethodError NoMethodError where
-  wrapped   = iso NoMethodError getNoMethodError
+  wrapped = iso NoMethodError getNoMethodError
   {-# INLINE wrapped #-}
 
 instance Wrapped String String PatternMatchFail PatternMatchFail where
-  wrapped   = iso PatternMatchFail getPatternMatchFail
+  wrapped = iso PatternMatchFail getPatternMatchFail
   {-# INLINE wrapped #-}
 
 instance Wrapped String String RecConError RecConError where
-  wrapped   = iso RecConError getRecConError
+  wrapped = iso RecConError getRecConError
   {-# INLINE wrapped #-}
 
 instance Wrapped String String RecSelError RecSelError where
-  wrapped   = iso RecSelError getRecSelError
+  wrapped = iso RecSelError getRecSelError
   {-# INLINE wrapped #-}
 
 instance Wrapped String String RecUpdError RecUpdError where
-  wrapped   = iso RecUpdError getRecUpdError
+  wrapped = iso RecUpdError getRecUpdError
   {-# INLINE wrapped #-}
 
 instance Wrapped String String ErrorCall ErrorCall where
-  wrapped   = iso ErrorCall getErrorCall
+  wrapped = iso ErrorCall getErrorCall
   {-# INLINE wrapped #-}
 
 getErrorCall :: ErrorCall -> String
