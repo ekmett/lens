@@ -13,6 +13,7 @@ module Control.Lens.Combinators
   , (>>&), (>&>)
   ) where
 
+import Control.Monad (liftM)
 import Data.Functor
 
 infixl 4 <$!>, <$!, <&>
