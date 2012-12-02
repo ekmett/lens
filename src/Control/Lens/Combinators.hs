@@ -14,7 +14,7 @@ module Control.Lens.Combinators
 
 import Data.Functor
 
-infixr 4 <$!>, <$!, <&>
+infixl 4 <$!>, <$!, <&>
 
 -- | A strict version of ('Data.Functor.<$>') for monads.
 --
