@@ -64,6 +64,7 @@ import qualified Control.Monad.Trans.State.Lazy    as Lazy
 import qualified Control.Monad.Trans.State.Strict  as Strict
 import qualified Control.Monad.Trans.Writer.Lazy   as Lazy
 import qualified Control.Monad.Trans.Writer.Strict as Strict
+import           Data.Foldable as Foldable
 import           Data.Functor.Compose
 import           Data.Functor.Constant
 import           Data.Functor.Coproduct
@@ -76,6 +77,7 @@ import           Data.HashSet as HashSet
 import           Data.HashMap.Lazy as HashMap
 import           Data.Map as Map
 import           Data.Monoid
+import           Data.Sequence as Seq
 import           Data.Set as Set
 
 -- $setup
@@ -256,7 +258,10 @@ instance (Ord k, Ord k') => Wrapped [(k, a)] [(k', b)] (Map k a) (Map k' b) wher
 instance (Ord a, Ord b) => Wrapped [a] [b] (Set a) (Set b) where
   wrapped = iso Set.fromList Set.toAscList
 
--- * Exceptions
+instance Wrapped [a] [b] (Seq a) (Seq b) where
+  wrapped = iso Seq.fromList Foldable.toList
+
+-- * Control.Exception
 
 instance Wrapped String String AssertionFailed AssertionFailed where
   wrapped = iso AssertionFailed failedAssertion
