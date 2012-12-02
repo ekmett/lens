@@ -24,7 +24,7 @@ module Control.Lens.Internal.Zipper where
 
 import Control.Applicative
 import Control.Category
-import Control.Monad ((>=>))
+import Control.Monad
 import Control.Lens.Classes
 import Control.Lens.IndexedLens
 import Control.Lens.Internal
@@ -153,9 +153,9 @@ up (Zipper (Snoc h _ un uls k urs) _ ls x rs) = Zipper h un uls ux urs
 --
 -- >>> rezip $ zipper (1,2) & fromWithin both & tug right & focus .~ 3
 -- (1,3)
-right :: (h :> a) -> Maybe (h :> a)
-right (Zipper _ _ _  _ []    ) = Nothing
-right (Zipper h n ls a (r:rs)) = Just (Zipper h (n + 1) (a:ls) r rs)
+right :: MonadPlus m => (h :> a) -> m (h :> a)
+right (Zipper _ _ _  _ []    ) = mzero
+right (Zipper h n ls a (r:rs)) = return (Zipper h (n + 1) (a:ls) r rs)
 {-# INLINE right #-}
 
 -- | Jerk the 'zipper' 'left' one 'tooth' within the current 'Lens' or 'Traversal'.
@@ -174,9 +174,9 @@ right (Zipper h n ls a (r:rs)) = Just (Zipper h (n + 1) (a:ls) r rs)
 --
 -- >>> zipper "hello" & fromWithin traverse & tug right & tug left & view focus
 -- 'h'
-left  :: (h :> a) -> Maybe (h :> a)
-left (Zipper _ _ []     _ _ ) = Nothing
-left (Zipper h n (l:ls) a rs) = Just (Zipper h (n - 1) ls l (a:rs))
+left :: MonadPlus m => (h :> a) -> m (h :> a)
+left (Zipper _ _ []     _ _ ) = mzero
+left (Zipper h n (l:ls) a rs) = return (Zipper h (n - 1) ls l (a:rs))
 {-# INLINE left #-}
 
 -- | This allows you to safely 'tug left' or 'tug right' on a 'zipper'. This
@@ -234,12 +234,12 @@ farthest f = go where
 --
 -- >>> rezip $ zipper "silly" & fromWithin traverse & jerks right 3 & fromJust & focus .~ 'k'
 -- "silky"
-jerks :: (a -> Maybe a) -> Int -> a -> Maybe a
+jerks :: Monad m => (a -> m a) -> Int -> a -> m a
 jerks f n0
-  | n0 < 0    = error "jerks: negative jerk count"
+  | n0 < 0    = fail "jerks: negative jerk count"
   | otherwise = go n0
   where
-    go 0 a = Just a
+    go 0 a = return a
     go n a = f a >>= go (n - 1)
 {-# INLINE jerks #-}
 
@@ -285,10 +285,10 @@ teeth (Zipper _ n _ _ rs) = n + 1 + length rs
 --
 -- >>> rezip $ zipper "not working" & fromWithin traverse & jerkTo 2 & fromJust & focus .~ 'w'
 -- "now working"
-jerkTo :: Int -> (h :> a) -> Maybe (h :> a)
+jerkTo :: MonadPlus m => Int -> (h :> a) -> m (h :> a)
 jerkTo n z = case compare k n of
   LT -> jerks right (n - k) z
-  EQ -> Just z
+  EQ -> return z
   GT -> jerks left (k - n) z
   where k = tooth z
 {-# INLINE jerkTo #-}
@@ -329,11 +329,22 @@ down l (Zipper h n ls s rs) = case l (Context id) s of
 -- 'within' :: 'Simple' 'Lens' s a      -> (h :> s) -> Maybe (h :> s :> a)
 -- 'within' :: 'Simple' 'Iso' s a       -> (h :> s) -> Maybe (h :> s :> a)
 -- @
-within :: SimpleLensLike (Bazaar a a) s a -> (h :> s) -> Maybe (h :> s :> a)
+within :: MonadPlus m => SimpleLensLike (Bazaar a a) s a -> (h :> s) -> m (h :> s :> a)
 within l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
-  Context _ []     -> Nothing
-  Context k (a:as) -> Just (Zipper (Snoc h l n ls k rs) 0 [] a as)
+  Context _ []     -> mzero
+  Context k (a:as) -> return (Zipper (Snoc h l n ls k rs) 0 [] a as)
 {-# INLINE within #-}
+
+-- | Step down into every entry of a 'Traversal' simultaneously.
+--
+-- 'withins' :: 'Simple' 'Traversal' s a -> (h :> s) -> [h :> s :> a]
+-- 'withins' :: 'Simple' 'Lens' s a      -> (h :> s) -> [h :> s :> a]
+-- 'withins' :: 'Simple' 'Iso' s a       -> (h :> s) -> [h :> s :> a]
+withins :: SimpleLensLike (Bazaar a a) s a -> (h :> s) -> [h :> s :> a]
+withins l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
+  Context k ys -> go k [] ys
+  where go k xs (y:ys) = Zipper (Snoc h l n ls k rs) 0 xs y ys : go k (y:xs) ys
+        go _ _  []     = []
 
 -- | Unsafely step down into a 'Traversal' that is /assumed/ to be non-empty.
 --
@@ -389,7 +400,7 @@ saveTape (Zipper h n _ _ _) = Tape (peel h) n
 -- | Restore ourselves to a previously recorded position precisely.
 --
 -- If the position does not exist, then fail.
-restoreTape :: Tape (h :> a) -> Zipped h a -> Maybe (h :> a)
+restoreTape :: MonadPlus m => Tape (h :> a) -> Zipped h a -> m (h :> a)
 restoreTape (Tape h n) = restoreTrack h >=> jerks right n
 {-# INLINE restoreTape #-}
 
@@ -397,8 +408,8 @@ restoreTape (Tape h n) = restoreTrack h >=> jerks right n
 --
 -- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
-restoreNearTape :: Tape (h :> a) -> Zipped h a -> Maybe (h :> a)
-restoreNearTape (Tape h n) a = tugs right n <$> restoreNearTrack h a
+restoreNearTape :: MonadPlus m => Tape (h :> a) -> Zipped h a -> m (h :> a)
+restoreNearTape (Tape h n) a = liftM (tugs right n) (restoreNearTrack h a)
 {-# INLINE restoreNearTape #-}
 
 -- | Restore ourselves to a previously recorded position.
@@ -429,16 +440,16 @@ data Track :: * -> * -> * where
 -- | Restore ourselves to a previously recorded position precisely.
 --
 -- If the position does not exist, then fail.
-restoreTrack :: Track h a -> Zipped h a -> Maybe (h :> a)
-restoreTrack Track = Just . zipper
+restoreTrack :: MonadPlus m => Track h a -> Zipped h a -> m (h :> a)
+restoreTrack Track = return . zipper
 restoreTrack (Fork h n l) = restoreTrack h >=> jerks right n >=> within l
 
 -- | Restore ourselves to a location near our previously recorded position.
 --
 -- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
-restoreNearTrack :: Track h a -> Zipped h a -> Maybe (h :> a)
-restoreNearTrack Track = Just . zipper
+restoreNearTrack :: MonadPlus m => Track h a -> Zipped h a -> m (h :> a)
+restoreNearTrack Track = return . zipper
 restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs right n >>> within l
 
 -- | Restore ourselves to a previously recorded position.
