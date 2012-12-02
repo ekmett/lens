@@ -458,13 +458,13 @@ instance TraversableWithIndex Int IntMap where
 #endif
   {-# INLINE itraverse #-}
 
-instance Ord k => FunctorWithIndex k (Map k) where
+instance FunctorWithIndex k (Map k) where
   imap = imapOf itraversed
   {-# INLINE imap #-}
-instance Ord k => FoldableWithIndex k (Map k) where
+instance FoldableWithIndex k (Map k) where
   ifoldMap = ifoldMapOf itraversed
   {-# INLINE ifoldMap #-}
-instance Ord k => TraversableWithIndex k (Map k) where
+instance TraversableWithIndex k (Map k) where
 #if MIN_VERSION_containers(0,5,0)
   itraverse = Map.traverseWithKey
 #else
