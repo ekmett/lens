@@ -70,7 +70,7 @@ class (MonadState s m, MonadState t n) => Zoom m n k s t | m -> s k, n -> t k, m
   -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' s t -> 'ErrorT' e ('RWST' r w t m c) -> 'ErrorT' e ('RWST' r w s m c)
   -- ...
   -- @
-  zoom :: Monad m => SimpleLensLike (k c) t s -> m c -> n c
+  zoom :: SimpleLensLike (k c) t s -> m c -> n c
 
 instance Monad z => Zoom (Strict.StateT s z) (Strict.StateT t z) (Focusing z) s t where
   zoom l (Strict.StateT m) = Strict.StateT $ unfocusing# (l (focusing# m))
