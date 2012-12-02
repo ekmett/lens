@@ -63,6 +63,7 @@ module Control.Lens.Type
   , (%%~)
   , (%%=)
 
+
   -- * Lateral Composition
   , choosing
   , chosen
@@ -86,6 +87,10 @@ module Control.Lens.Type
   , cloneLens
   , ReifiedLens(..)
 
+  -- * Context
+  , Context(..)
+  , locus
+
   -- * Simplified and In-Progress
   , LensLike
   , Overloaded
@@ -93,15 +98,13 @@ module Control.Lens.Type
   , SimpleLensLike
   , SimpleOverloaded
   , SimpleReifiedLens
-
-  -- * Exposed Implementation Details
-  , Context(..)
   ) where
 
-import Control.Applicative              as Applicative
+import Control.Applicative as Applicative
+import Control.Comonad.Store as Store
 import Control.Lens.Combinators
 import Control.Lens.Internal
-import Control.Monad.State              as State
+import Control.Monad.State as State
 import Data.Monoid
 
 -- $setup
@@ -351,6 +354,18 @@ alongside l r f (s, s') = case l (Context id) s of
   Context bt a -> case r (Context id) s' of
     Context bt' a' -> f (a,a') <&> \(b,b') -> (bt b, bt' b')
 {-# INLINE alongside #-}
+
+-- | This 'Lens' lets you 'view' the current 'pos' of any 'Store'
+-- 'Comonad' and 'seek' to a new position. This reduces the API
+-- for working with a 'ComonadStore' instances to a single 'Lens'.
+--
+-- @
+-- 'pos' w ≡ w '^.' 'locus'
+-- 'seek' s w ≡ w '&' 'locus '.~' s
+-- 'seeks' f w ≡ w '&' 'locus' '%~' f
+-- @
+locus :: ComonadStore s w => Simple Lens (w a) s
+locus f w = (`seek` w) <$> f (pos w)
 
 -------------------------------------------------------------------------------
 -- Cloning Lenses
