@@ -361,7 +361,7 @@ alongside l r f (s, s') = case l (Context id) s of
 --
 -- @
 -- 'pos' w ≡ w '^.' 'locus'
--- 'seek' s w ≡ w '&' 'locus '.~' s
+-- 'seek' s w ≡ w '&' 'locus' '.~' s
 -- 'seeks' f w ≡ w '&' 'locus' '%~' f
 -- @
 --
