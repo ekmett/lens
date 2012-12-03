@@ -24,6 +24,10 @@
 * Bug fixes for `tugTo` and `jerkTo`.
 * These no longer traverse in the wrong direction: `scanl1Of`, `scanr1Of`, `mapAccumLOf`, and `mapAccumROf`
 * Added `embedding` to `Control.Lens.Projection`.
+* Added `(?)` as a low fixity alias for `(<&>)` to easy working with partial zipper functions.
+* Added `anon` to `Control.Lens.Iso`.
+* Generalized the types of the `Control.Lens.Zipper` combinators to work with other MonadPlus instances.
+* Added `withins` to `Control.Lens.Zipper` now that they can work better with [].
 
 [3.6](https://github.com/ekmett/lens/issues?milestone=9&state=closed)
 ---
