@@ -53,7 +53,7 @@ module Control.Lens.Iso
 import Control.Lens.Classes (Isomorphic(..))
 import Control.Lens.Internal (Isomorphism(..))
 import Control.Lens.Type (Simple)
-import Data.ByteString as StrictB (ByteString)
+import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Text as StrictT (Text)
 import Data.Text.Lazy as LazyT (Text, toStrict, fromStrict)

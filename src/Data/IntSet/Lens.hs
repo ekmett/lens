@@ -16,7 +16,7 @@ module Data.IntSet.Lens
   ) where
 
 import Control.Lens
-import Data.IntSet as IntSet
+import Data.IntSet as IntSet ( IntSet, singleton, map, toAscList )
 
 -- $setup
 -- >>> :m + Data.IntSet.Lens Control.Lens

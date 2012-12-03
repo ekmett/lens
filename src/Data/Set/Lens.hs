@@ -14,9 +14,9 @@ module Data.Set.Lens
   , setOf
   ) where
 
-import Control.Lens.Getter
-import Control.Lens.Setter
-import Data.Set as Set
+import Control.Lens.Getter ( Getting, views )
+import Control.Lens.Setter ( Setter, sets )
+import Data.Set as Set ( Set, singleton, map )
 
 -- $setup
 -- >>> :m + Data.Set.Lens Control.Lens
