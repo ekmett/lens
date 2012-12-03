@@ -40,15 +40,13 @@ module Control.Lens.Classes
   ) where
 
 import Control.Applicative
-import Control.Applicative.Backwards
-import Control.Category
+import Control.Applicative.Backwards (Backwards(..))
 import Control.Monad (liftM)
-import Data.Functor.Compose
-import Data.Functor.Identity
-import Data.Monoid
-import Prelude hiding ((.),id)
+import Data.Functor.Compose (Compose(..))
+import Data.Functor.Identity (Identity(..))
+import Data.Monoid (Dual(..))
 #ifndef SAFE
-import Unsafe.Coerce
+import Unsafe.Coerce (unsafeCoerce)
 #endif
 
 #ifndef SAFE

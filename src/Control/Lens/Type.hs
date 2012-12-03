@@ -100,12 +100,12 @@ module Control.Lens.Type
   , SimpleReifiedLens
   ) where
 
-import Control.Applicative as Applicative
+import Control.Applicative
 import Control.Comonad.Store as Store
-import Control.Lens.Combinators
-import Control.Lens.Internal
+import Control.Lens.Combinators ((<&>))
+import Control.Lens.Internal (Context(..))
 import Control.Monad.State as State
-import Data.Monoid
+import Data.Monoid (Monoid(mappend))
 
 -- $setup
 -- >>> import Control.Lens

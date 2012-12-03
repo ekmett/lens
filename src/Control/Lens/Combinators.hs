@@ -12,7 +12,7 @@ module Control.Lens.Combinators
   ( (<$!>), (<$!), (<&>), (?)
   ) where
 
-import Data.Functor
+import Data.Functor ((<$>))
 
 infixl 4 <$!>, <$!, <&>
 infixl 1 ?

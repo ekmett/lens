@@ -50,17 +50,14 @@ module Control.Lens.Iso
   , SimpleReifiedIso
   ) where
 
-import Control.Category
-import Control.Monad.Reader
-import Control.Lens.Classes
-import Control.Lens.Internal
-import Control.Lens.Type
-import Data.ByteString as StrictB hiding (length)
-import Data.ByteString.Lazy as LazyB hiding (length)
-import Data.Text as StrictT hiding (length)
-import Data.Text.Lazy as LazyT hiding (length)
+import Control.Lens.Classes (Isomorphic(..))
+import Control.Lens.Internal (Isomorphism(..))
+import Control.Lens.Type (Simple)
+import Data.ByteString as StrictB (ByteString)
+import Data.ByteString.Lazy as LazyB (ByteString, toStrict, fromStrict)
+import Data.Text as StrictT (Text)
+import Data.Text.Lazy as LazyT (Text, toStrict, fromStrict)
 import Data.Maybe (fromMaybe)
-import Prelude hiding ((.),id)
 
 -- $setup
 -- >>> import Control.Lens
@@ -74,14 +71,7 @@ import Prelude hiding ((.),id)
 
 -- | Invert an isomorphism.
 --
--- Note to compose an isomorphism and receive an isomorphism in turn you'll need to use
--- 'Control.Category.Category'
---
 -- @'from' ('from' l) ≡ l@
---
--- If you've imported 'Control.Category..' from @Control.Category@, then:
---
--- @'from' l '.' 'from' r ≡ 'from' (r '.' l)@
 from :: Isomorphism s t a b -> Iso b a t s
 from (Isomorphism sa bt) = iso bt sa
 {-# INLINE from #-}
@@ -100,16 +90,7 @@ cloneIso (Isomorphism sa bt) = iso sa bt
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
 
--- | Isomorphism families can be composed with other lenses using either ('.') and 'id'
--- from the Prelude or from Control.Category. However, if you compose them
--- with each other using ('.') from the Prelude, they will be dumbed down to a
--- mere 'Lens'.
---
--- @
--- import Control.Category
--- import Prelude hiding (('Prelude..'),'Prelude.id')
--- @
---
+-- | Isomorphism families can be composed with other lenses using ('.') and 'id'.
 type Iso s t a b = forall r. (Isomorphic r, S r ~ s, T r ~ t, A r ~ a, B r ~ b) => r
 
 -- |
@@ -118,7 +99,7 @@ type SimpleIso s a = Iso s s a a
 
 -- | Based on 'Control.Lens.Wrapped.ala' from Conor McBride's work on Epigram.
 --
--- This version is generalized to accept any 'Iso', not just a newtype.
+-- This version is generalized to accept any 'Iso', not just a @newtype@.
 --
 -- >>> au (wrapping Sum) foldMap [1,2,3,4]
 -- 10
@@ -129,10 +110,12 @@ au (Isomorphism sa bt) f e = bt (f sa e)
 -- |
 -- Based on @ala'@ from Conor McBride's work on Epigram.
 --
--- This version is generalized to accept any 'Iso', not just a newtype.
+-- This version is generalized to accept any 'Iso', not just a @newtype@.
+--
+-- For a version you pass the name of the @newtype@ constructor to, see 'Control.Lens.Wrapped.alaf'.
 --
 -- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator
--- is 'ala' with an extra function argument.
+-- is 'au' with an extra function argument.
 --
 -- >>> auf (wrapping Sum) (foldMapOf both) length ("hello","world")
 -- 10
