@@ -275,7 +275,7 @@ over l f = runMutator# (l (mutator# f))
 mapOf :: Setting s t a b -> (a -> b) -> s -> t
 mapOf = over
 {-# INLINE mapOf #-}
-{-# DEPRECATED mapOf "Will be removed in 3.8. Use `over`" #-}
+{-# DEPRECATED mapOf "Use `over`" #-}
 
 -- | Replace the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter'
 -- or 'Control.Lens.Traversal.Traversal' with a constant value.
