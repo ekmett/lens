@@ -54,7 +54,7 @@ import Control.Lens.Classes (Isomorphic(..))
 import Control.Lens.Internal (Isomorphism(..))
 import Control.Lens.Type (Simple)
 import Data.ByteString as StrictB (ByteString)
-import Data.ByteString.Lazy as LazyB (ByteString, toStrict, fromStrict)
+import Data.ByteString.Lazy as LazyB
 import Data.Text as StrictT (Text)
 import Data.Text.Lazy as LazyT (Text, toStrict, fromStrict)
 import Data.Maybe (fromMaybe)
