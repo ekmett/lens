@@ -31,13 +31,13 @@ import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad
-import Control.Monad.Reader.Class       as Reader
-import Control.Monad.State.Class        as State
-import Control.Monad.Trans.State.Lazy   as Lazy
+import Control.Monad.Reader.Class as Reader
+import Control.Monad.State as State
+import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
-import Control.Monad.Trans.Writer.Lazy   as Lazy
+import Control.Monad.Trans.Writer.Lazy as Lazy
 import Control.Monad.Trans.Writer.Strict as Strict
-import Control.Monad.Trans.RWS.Lazy   as Lazy
+import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Error
@@ -45,6 +45,16 @@ import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Data.Monoid
+
+-- $setup
+-- >>> import Control.Lens
+-- >>> import Control.Monad.State
+-- >>> import Data.Map as Map
+-- >>> import Debug.SimpleReflect.Expr as Expr
+-- >>> import Debug.SimpleReflect.Vars as Vars
+-- >>> let f :: Expr -> Expr; f = Vars.f
+-- >>> let g :: Expr -> Expr; g = Vars.g
+-- >>> let h :: Expr -> Expr -> Expr; h = Vars.h
 
 -- | This class allows us to use 'zoom' in, changing the State supplied by
 -- many different monad transformers, potentially quite deep in a monad transformer stack.
@@ -60,6 +70,21 @@ class (MonadState s m, MonadState t n) => Zoom m n k s t | m -> s k, n -> t k, m
   -- and the results are aggregated.
   --
   -- This can be used to edit pretty much any monad transformer stack with a state in it!
+  --
+  -- >>> flip State.evalState (a,b) $ zoom _1 $ use id
+  -- a
+  --
+  -- >>> flip State.execState (a,b) $ zoom _1 $ id .= c
+  -- (c,b)
+  --
+  -- >>> flip State.execState [(a,b),(c,d)] $ zoom traverse $ _2 %= f
+  -- [(a,f b),(c,f d)]
+  --
+  -- >>> flip State.runState [(a,b),(c,d)] $ zoom traverse $ _2 <%= f
+  -- (f b <> f d <> mempty,[(a,f b),(c,f d)])
+  --
+  -- >>> flip State.evalState (a,b) $ zoom both (use id)
+  -- a <> b
   --
   -- @
   -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' s t      -> 'StateT' t m a -> 'StateT' s m a
