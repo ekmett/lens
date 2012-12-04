@@ -308,12 +308,18 @@ test-suite doctests
   main-is: doctests.hs
   build-depends:
     base,
+    bytestring,
     containers,
     directory >= 1.0 && < 1.3,
     doctest >= 0.9.1 && <= 0.10,
     filepath,
+    mtl,
+    parallel,
     simple-reflect >= 0.3.1 && < 0.4,
-    unordered-containers
+    split,
+    text,
+    unordered-containers,
+    vector
   ghc-options: -Wall -threaded
   if impl(ghc<7.6.1)
     ghc-options: -Werror
