@@ -308,6 +308,7 @@ test-suite doctests
   main-is: doctests.hs
   build-depends:
     base,
+    containers,
     directory >= 1.0 && < 1.3,
     doctest >= 0.9.1 && <= 0.10,
     filepath,
