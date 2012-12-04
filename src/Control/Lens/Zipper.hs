@@ -42,7 +42,7 @@ module Control.Lens.Zipper
   , zipper
   -- ** Focusing
   , focus
-  -- ** Horizontal Movement
+  -- ** Vertical Movement
   , up
   , down
   , within
