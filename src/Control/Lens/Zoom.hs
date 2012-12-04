@@ -56,7 +56,7 @@ import Data.Monoid
 -- >>> let g :: Expr -> Expr; g = Vars.g
 -- >>> let h :: Expr -> Expr -> Expr; h = Vars.h
 
-infix 4 `zoom`, `magnify`
+infixr 4 `zoom`, `magnify`
 
 -- | This class allows us to use 'zoom' in, changing the State supplied by
 -- many different monad transformers, potentially quite deep in a monad transformer stack.
