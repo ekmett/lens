@@ -117,7 +117,7 @@ au (Isomorphism sa bt) f e = bt (f sa e)
 -- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator
 -- is 'au' with an extra function argument.
 --
--- >>> auf (wrapping Sum) (foldMapOf both) length ("hello","world")
+-- >>> auf (wrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
 -- 10
 auf :: Isomorphism s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
 auf (Isomorphism sa bt) f g e = bt (f (sa . g) e)
