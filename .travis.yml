@@ -15,4 +15,9 @@ script:
   - cabal test --show-details=always
   - cabal bench
 notifications:
-  irc: "irc.freenode.org#haskell-lens"
+  irc:
+    channels:
+      - "irc.freenode.org#haskell-lens"
+    skip_join: true
+    template:
+      - "\x0313lens\x03/\x036%{branch}\x03 \x0314%{commit}\x03 %{build_url} %{message}"
