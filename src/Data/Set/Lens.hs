@@ -16,7 +16,7 @@ module Data.Set.Lens
 
 import Control.Lens.Getter ( Getting, views )
 import Control.Lens.Setter ( Setter, sets )
-import Data.Set as Set ( Set, singleton, map )
+import Data.Set as Set
 
 -- $setup
 -- >>> :m + Data.Set.Lens Control.Lens
