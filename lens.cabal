@@ -292,6 +292,7 @@ test-suite doctests
     directory >= 1.0 && < 1.3,
     doctest >= 0.9.1 && <= 0.10,
     filepath,
+    parallel,
     unordered-containers
   ghc-options: -Wall -threaded
   if impl(ghc<7.6.1)
