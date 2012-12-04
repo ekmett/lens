@@ -56,8 +56,8 @@ import Data.Monoid
 -- >>> let g :: Expr -> Expr; g = Vars.g
 -- >>> let h :: Expr -> Expr -> Expr; h = Vars.h
 
--- Chosen so that they have lower fixity than ('%='), and higher than ('<~')
-infixr 3 `zoom`, `magnify`
+-- Chosen so that they have lower fixity than ('%='), and to match ('<~')
+infixr 2 `zoom`, `magnify`
 
 -- | This class allows us to use 'zoom' in, changing the State supplied by
 -- many different monad transformers, potentially quite deep in a monad transformer stack.
