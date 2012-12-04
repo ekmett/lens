@@ -67,10 +67,10 @@ prop_5                               = isLens (_5 :: Simple Lens ((),(),(),(),In
 
 prop_2_2                             = isLens (_2._2 :: Simple Lens (Int,(Int,Bool),Double) Bool)
 
-prop_illegal_lens                    = expectFailure $ isLens bad
-prop_illegal_traversal               = expectFailure $ isTraversal bad
-prop_illegal_setter                  = expectFailure $ isSetter bad
-prop_illegal_iso                     = expectFailure $ isIso badIso
+-- prop_illegal_lens                    = expectFailure $ isLens bad
+-- prop_illegal_traversal               = expectFailure $ isTraversal bad
+-- prop_illegal_setter                  = expectFailure $ isSetter bad
+-- prop_illegal_iso                     = expectFailure $ isIso badIso
 
 -- Control.Lens.Setter
 prop_mapped                          = isSetter (mapped :: Simple Setter [Int] Int)
