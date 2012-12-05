@@ -14,7 +14,11 @@ import qualified Data.Generics.Uniplate.Direct as Uni
 import           Data.Generics.Uniplate.Direct ((|*))
 import qualified Data.Generics.Uniplate.DataOnly as UniDataOnly
 #endif
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
 import           GHC.Generics
+#else
+import           Generics.Deriving
+#endif
 import           GHC.Generics.Lens as Generic
 
 data Expr  =  Val !Int
