@@ -27,8 +27,7 @@ module Control.Lens.Iso
     Iso
   , AnIso
   -- * Isomorphism Construction
-  , Isomorphic(iso)
-  , IsoS, IsoT, IsoA, IsoB
+  , Isomorphic(..)
   , Isoid(..)
   -- * Consuming Isomorphisms
   , from
