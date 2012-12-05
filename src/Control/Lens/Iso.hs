@@ -45,11 +45,8 @@ module Control.Lens.Iso
   , enum
   , curried, uncurried
   , Strict(..)
-  -- * Storing Isomorphisms
-  , ReifiedIso(..)
   -- * Simplicity
   , SimpleIso
-  , SimpleReifiedIso
   ) where
 
 import Control.Lens.Classes (Isomorphic(..))
@@ -258,13 +255,3 @@ instance Strict LazyB.ByteString LazyB.ByteString StrictB.ByteString StrictB.Byt
 instance Strict LazyT.Text LazyT.Text StrictT.Text StrictT.Text where
   strict = iso LazyT.toStrict LazyT.fromStrict
   {-# INLINE strict #-}
-
------------------------------------------------------------------------------
--- Reifying Isomorphisms
------------------------------------------------------------------------------
-
--- | Useful for storing isomorphisms in containers.
-newtype ReifiedIso s t a b = ReifyIso { reflectIso :: Iso s t a b }
-
--- | @type 'SimpleReifiedIso' = 'Control.Lens.Type.Simple' 'ReifiedIso'@
-type SimpleReifiedIso s a = ReifiedIso s s a a
