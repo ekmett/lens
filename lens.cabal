@@ -220,6 +220,7 @@ library
     Data.Typeable.Lens
     Data.Vector.Lens
     Data.Vector.Generic.Lens
+    GHC.Generics.Lens
 
   other-modules:
     Control.Lens.Internal.Combinators
@@ -249,10 +250,11 @@ library
   if !flag(inlining)
     cpp-options: -DOMIT_INLINING
 
-  if impl(ghc>=7.4)
+  if impl(ghc>=7.2)
     other-extensions: Trustworthy
     build-depends: ghc-prim
-    exposed-modules: GHC.Generics.Lens
+  else
+    build-depends: generic-deriving
 
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: src
@@ -334,9 +336,12 @@ benchmark plated
     comonad,
     criterion,
     deepseq,
-    ghc-prim,
     lens,
     transformers
+  if impl(ghc>=7.2)
+    build-depends: ghc-prim
+  else
+    build-depends: generic-deriving
   ghc-options: -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: benchmarks
   if flag(benchmark-uniplate)
