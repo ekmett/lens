@@ -238,7 +238,7 @@ library
     cpp-options: -DSAFE=1
 
   if flag(trustworthy) && impl(ghc>=7.4)
-    ghc-options: -DTRUSTWORTHY=1
+    cpp-options: -DTRUSTWORTHY=1
 
   if impl(ghc<7.4)
     ghc-options: -fno-spec-constr-count
