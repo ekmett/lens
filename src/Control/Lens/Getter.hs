@@ -169,8 +169,8 @@ to f g = coerce . g . f
 -- When you see this in a type signature it indicates that you can
 -- pass the function a 'Control.Lens.Type.Lens', 'Getter',
 -- 'Control.Lens.Traversal.Traversal', 'Control.Lens.Fold.Fold',
--- 'Control.Lens.Projection.Projection', 'Control.Lens.Iso.Iso',
--- or one of the indexed variants, and it will just \"do the right thing\".
+-- 'Control.Lens.Prism.Prism', 'Control.Lens.Iso.Iso', or one of
+-- the indexed variants, and it will just \"do the right thing\".
 --
 -- Most 'Getter' combinators are able to be used with both a 'Getter' or a
 -- 'Control.Lens.Fold.Fold' in limited situations, to do so, they need to be

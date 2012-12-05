@@ -475,11 +475,12 @@ sellT i = BazaarT (\k -> k i)
 -- Prism Internals
 ------------------------------------------------------------------------------
 
--- | This data type is used to capture all of the information provided by the 'Projective'
+-- | This data type is used to capture all of the information provided by the 'Prismatic'
 -- class, so you can turn a 'Prism' around into a 'Getter' or otherwise muck around
 -- with its internals.
 --
--- If you see a function that expects a 'Project', it is probably just expecting a 'Projection'.
+-- If you see a function that expects a 'Prismoid' or 'APrism', it is probably just
+-- expecting a 'Prism'.
 data Prismoid ab st where
   Prismoid :: Prismoid ab ab
   Prism    :: (b -> t) -> (s -> Either t a) -> Prismoid (a,b) (s,t)

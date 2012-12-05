@@ -30,7 +30,7 @@ module Control.Lens.Classes
   , Settable(..)
   -- * Isomorphisms
   , Isomorphic(..)
-  -- * Projections
+  -- * Prisms
   , Prismatic(..)
   -- * Indexable
   , Indexable(..)
@@ -183,10 +183,10 @@ instance (Functor f, x ~ (a -> f b), y ~ (s -> f t)) => Isomorphic (x -> y) wher
   {-# INLINE isoid #-}
 
 -----------------------------------------------------------------------------
--- Projections
+-- Prisms
 -----------------------------------------------------------------------------
 
--- | Used to provide overloading of projections.
+-- | Used to provide overloading of prisms.
 --
 -- An instance of 'Prismatic' is a 'Category' with a canonical mapping to it from the category
 -- of embedding-projection pairs over Haskell types.

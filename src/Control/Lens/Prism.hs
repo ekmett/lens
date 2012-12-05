@@ -34,7 +34,7 @@ module Control.Lens.Prism
   , aside
   , without
 
-  -- * Common projections
+  -- * Common Prisms
   , _left
   , _right
 
@@ -160,7 +160,7 @@ aside (Prism bt seta) = prism (fmap bt) $ \(e,s) -> case seta s of
   Left t -> Left (e,t)
   Right a -> Right (e,a)
 
--- | Given a pair of projections, project sums.
+-- | Given a pair of prisms, project sums.
 --
 -- Viewing a 'Prism' as a co-lens, this combinator can be seen to be dual to 'alongside'.
 without :: APrism s t a b
@@ -285,7 +285,7 @@ reuses (Prism bt _) f = gets (f . bt)
 -- Common Prisms
 ------------------------------------------------------------------------------
 
--- | This projection provides a traversal for tweaking the left-hand value of an 'Either':
+-- | This prism provides a traversal for tweaking the left-hand value of an 'Either':
 --
 -- >>> over _left (+1) (Left 2)
 -- Left 3
@@ -299,7 +299,7 @@ reuses (Prism bt _) f = gets (f . bt)
 -- >>> Left "hello" ^._left
 -- "hello"
 --
--- It also can be turned around to obtain the embedding into the 'Left' half of an 'Either'
+-- It also can be turned around to obtain the embedding into the 'Left' half of an 'Either':
 --
 -- >>> 5^.remit _left
 -- Left 5
@@ -307,13 +307,7 @@ _left :: Prism (Either a c) (Either b c) a b
 _left = prism Left $ either Right (Left . Right)
 {-# INLINE _left #-}
 
--- | traverse the right-hand value of an 'Either':
---
--- @'_right' ≡ 'Data.Traversable.traverse'@
---
--- Unfortunately the instance for
--- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,
--- so this can't just be 'Data.Traversable.traverse'
+-- | This prism provides a traversal for tweaking the right-hand value of an 'Either':
 --
 -- >>> over _right (+1) (Left 2)
 -- Left 2
@@ -327,10 +321,14 @@ _left = prism Left $ either Right (Left . Right)
 -- >>> Left "hello" ^._right :: [Double]
 -- []
 --
--- It also can be turned around to obtain the embedding into the 'Left' half of an 'Either'
+-- It also can be turned around to obtain the embedding into the 'Right' half of an 'Either':
 --
 -- >>> 5^.remit _right
 -- Right 5
+--
+-- (Unfortunately the instance for
+-- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,
+-- so this can't just be 'Data.Traversable.traverse'.)
 _right :: Prism (Either c a) (Either c b) a b
 _right = prism Right $ left Left
 {-# INLINE _right #-}
