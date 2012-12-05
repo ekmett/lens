@@ -399,7 +399,7 @@ holesOf l a = f (ins b) (outs b) where
   f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
 {-# INLINE holesOf #-}
 
--- | This convers a 'Traversal' that you "know" will target one or more elements to a 'Lens'. It can
+-- | This converts a 'Traversal' that you "know" will target one or more elements to a 'Lens'. It can
 -- also be used to transform a non-empty 'Fold' into a 'Getter' or a non-empty 'Control.Lens.Action.MonadicFold' into an
 -- 'Control.Lens.Action.Action'.
 --
