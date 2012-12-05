@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
@@ -23,6 +24,11 @@
 -- You can use 'generic' to replace 'GHC.Generics.from' and 'GHC.Generics.to' from @GHC.Generics@,
 -- and probably won't be explicitly referencing 'Control.Lens.Representable.Rep' from @Control.Lens@
 -- in code that uses generics.
+--
+-- If you're using a version of GHC older than 7.2, this module is
+-- compatible with the
+-- <http://hackage.haskell.org/package/generic-deriving generic-deriving>
+-- package.
 ----------------------------------------------------------------------------
 module GHC.Generics.Lens
   (
@@ -38,8 +44,13 @@ import           Control.Applicative
 import           Control.Lens hiding (Rep)
 import           Data.Maybe (fromJust)
 import           Data.Typeable
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
 import qualified GHC.Generics as Generic
-import           GHC.Generics                     hiding (from, to)
+import           GHC.Generics hiding (from, to)
+#else
+import qualified Generics.Deriving as Generic
+import           Generics.Deriving hiding (from, to)
+#endif
 
 -- | Convert from the data type to its representation (or back)
 --
