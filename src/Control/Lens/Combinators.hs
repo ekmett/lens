@@ -9,13 +9,13 @@
 --
 -------------------------------------------------------------------------------
 module Control.Lens.Combinators
-  ( (<$!>), (<$!), (<&>), (?)
+  ( (<$!>), (<$!), (<&>)
   ) where
 
 import Data.Functor ((<$>))
 
-infixl 4 <$!>, <$!, <&>
-infixl 1 ?
+infixl 4 <$!>, <$!
+infixl 1 <&>
 
 -- | A strict version of ('Data.Functor.<$>') for monads.
 --
@@ -43,10 +43,3 @@ b <$! m = do
 (<&>) :: Functor f => f a -> (a -> b) -> f b
 as <&> f = f <$> as
 {-# INLINE (<&>) #-}
-
--- | @(<&>)@ with a fixity to match @('>>=')@
---
--- @('>>&') ≡ 'flip' 'fmap'@
-(?) :: Functor f => f a -> (a -> b) -> f b
-(?) = flip fmap
-{-# INLINE (?) #-}

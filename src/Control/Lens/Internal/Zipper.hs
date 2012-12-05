@@ -16,8 +16,8 @@
 -- Portability :  non-portable
 --
 -- This module provides internal types and functions used in the implementation
--- of Control.Lens.Zipper. You shouldn't need to import it directly, and the
--- exported types can be used to break Zipper invariants.
+-- of @Control.Lens.Zipper@. You shouldn't need to import it directly, and the
+-- exported types can be used to break 'zipper' invariants.
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Zipper where
@@ -145,10 +145,10 @@ up (Zipper (Snoc h _ un uls k urs) _ ls x rs) = Zipper h un uls ux urs
 -- >>> isNothing $ zipper "hello" & right
 -- True
 --
--- >>> zipper "hello" & fromWithin traverse & right ? view focus
+-- >>> zipper "hello" & fromWithin traverse & right <&> view focus
 -- 'e'
 --
--- >>> zipper "hello" & fromWithin traverse & right ? focus .~ 'u' ? rezip
+-- >>> zipper "hello" & fromWithin traverse & right <&> focus .~ 'u' <&> rezip
 -- "hullo"
 --
 -- >>> rezip $ zipper (1,2) & fromWithin both & tug right & focus .~ 3
@@ -169,7 +169,7 @@ right (Zipper h n ls a (r:rs)) = return (Zipper h (n + 1) (a:ls) r rs)
 -- >>> isNothing $ zipper "hello" & within traverse >>= left
 -- True
 --
--- >>> zipper "hello" & within traverse ? tug left
+-- >>> zipper "hello" & within traverse <&> tug left
 -- Just 'h'
 --
 -- >>> zipper "hello" & fromWithin traverse & tug right & tug left & view focus
@@ -186,10 +186,10 @@ left (Zipper h n (l:ls) a rs) = return (Zipper h (n - 1) ls l (a:rs))
 --
 -- @'tug' f x ≡ 'fromMaybe' a (f a)@
 --
--- >>> fmap rezip $ zipper "hello" & within traverse ? tug left ? focus .~ 'j'
+-- >>> fmap rezip $ zipper "hello" & within traverse <&> tug left <&> focus .~ 'j'
 -- "jello"
 --
--- >>> fmap rezip $ zipper "hello" & within traverse ? tug right ? focus .~ 'u'
+-- >>> fmap rezip $ zipper "hello" & within traverse <&> tug right <&> focus .~ 'u'
 -- "hullo"
 tug :: (a -> Maybe a) -> a -> a
 tug f a = fromMaybe a (f a)
@@ -199,7 +199,7 @@ tug f a = fromMaybe a (f a)
 -- moving multiple steps in a given direction and stopping at the last place you
 -- couldn't move from. This lets you safely move a zipper, because it will stop at either end.
 --
--- >>> fmap rezip $ zipper "stale" & within traverse ? tugs right 2 ? focus .~ 'y'
+-- >>> fmap rezip $ zipper "stale" & within traverse <&> tugs right 2 <&> focus .~ 'y'
 -- "style"
 --
 -- >>> rezip $ zipper "want" & fromWithin traverse & tugs right 2 & focus .~ 'r' & tugs left 100 & focus .~ 'c'
@@ -217,7 +217,7 @@ tugs f n0
 --
 -- This repeatedly applies a function until it returns Nothing, and then returns the last answer.
 --
--- >>> fmap rezip $ zipper ("hello","world") & down _1 & within traverse ? farthest right ? focus .~ 'a'
+-- >>> fmap rezip $ zipper ("hello","world") & down _1 & within traverse <&> farthest right <&> focus .~ 'a'
 -- ("hella","world")
 --
 -- >>> rezip $ zipper ("hello","there") & fromWithin (both.traverse) & farthest right & focus .~ 'm'
@@ -232,7 +232,7 @@ farthest f = go where
 -- >>> isNothing $ zipper "hello" & within traverse >>= jerks right 10
 -- True
 --
--- >>> fmap rezip $ zipper "silly" & within traverse >>= jerks right 3 ? focus .~ 'k'
+-- >>> fmap rezip $ zipper "silly" & within traverse >>= jerks right 3 <&> focus .~ 'k'
 -- "silky"
 jerks :: Monad m => (a -> m a) -> Int -> a -> m a
 jerks f n0
@@ -283,7 +283,7 @@ teeth (Zipper _ n _ _ rs) = n + 1 + length rs
 -- >>> isNothing $ zipper "not working." & fromWithin traverse & jerkTo 20
 -- True
 --
--- >>> fmap rezip $ zipper "not working" & within traverse >>= jerkTo 2 ? focus .~ 'w'
+-- >>> fmap rezip $ zipper "not working" & within traverse >>= jerkTo 2 <&> focus .~ 'w'
 -- Just "now working"
 jerkTo :: MonadPlus m => Int -> (h :> a) -> m (h :> a)
 jerkTo n z = case compare k n of
