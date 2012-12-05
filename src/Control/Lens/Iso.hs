@@ -28,6 +28,7 @@ module Control.Lens.Iso
   , AnIso
   -- * Isomorphism Construction
   , Isomorphic(iso)
+  , IsoS, IsoT, IsoA, IsoB
   , Isoid(..)
   -- * Consuming Isomorphisms
   , from
@@ -94,7 +95,7 @@ cloneIso (Iso sa bt) = iso sa bt
 -----------------------------------------------------------------------------
 
 -- | Isomorphism families can be composed with other lenses using ('.') and 'id'.
-type Iso s t a b = forall r. (Isomorphic r, S r ~ s, T r ~ t, A r ~ a, B r ~ b) => r
+type Iso s t a b = forall r. (Isomorphic r, IsoS r ~ s, IsoT r ~ t, IsoA r ~ a, IsoB r ~ b) => r
 
 -- | When you see this as an argument to a function, it expects an 'Iso'.
 type AnIso s t a b = Isoid (a,b) (s,t)

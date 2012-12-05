@@ -127,7 +127,7 @@ import Prelude hiding (id,(.))
 --
 -- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'
 -- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
-type Prism s t a b = forall r. (Prismatic r, S r ~ s, T r ~ t, A r ~ a, B r ~ b) => r
+type Prism s t a b = forall r. (Prismatic r, IsoS r ~ s, IsoT r ~ t, IsoA r ~ a, IsoB r ~ b) => r
 
 -- | If you see this in a signature for a function, the function is expecting a 'Prism'.
 type APrism s t a b = Prismoid (a,b) (s,t)

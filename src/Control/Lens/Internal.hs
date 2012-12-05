@@ -496,15 +496,16 @@ instance Category Prismoid where
         Right a -> Right a
 
 instance Isomorphic (Prismoid (a,b) (s,t)) where
-  type S (Prismoid (a,b) (s,t)) = s
-  type T (Prismoid (a,b) (s,t)) = t
-  type A (Prismoid (a,b) (s,t)) = a
-  type B (Prismoid (a,b) (s,t)) = b
+  type IsoS (Prismoid (a,b) (s,t)) = s
+  type IsoT (Prismoid (a,b) (s,t)) = t
+  type IsoA (Prismoid (a,b) (s,t)) = a
+  type IsoB (Prismoid (a,b) (s,t)) = b
+
   iso sa bt = Prism bt (Right . sa)
   isoid = Prismoid
 
 instance Prismatic (Prismoid (a,b) (s,t)) where
-  prism = Prism
+  prism    = Prism
   prismoid = Prismoid
 
 ------------------------------------------------------------------------------
@@ -523,11 +524,11 @@ instance Category Isoid where
   Iso xs ty . Iso sa bt = Iso (sa.xs) (ty.bt)
 
 instance Isomorphic (Isoid (a,b) (s,t)) where
-  type S (Isoid (a,b) (s,t)) = s
-  type T (Isoid (a,b) (s,t)) = t
-  type A (Isoid (a,b) (s,t)) = a
-  type B (Isoid (a,b) (s,t)) = b
-  iso = Iso
+  type IsoS (Isoid (a,b) (s,t)) = s
+  type IsoT (Isoid (a,b) (s,t)) = t
+  type IsoA (Isoid (a,b) (s,t)) = a
+  type IsoB (Isoid (a,b) (s,t)) = b
+  iso   = Iso
   isoid = Isoid
 
 ------------------------------------------------------------------------------

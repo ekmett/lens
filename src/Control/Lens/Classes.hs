@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -41,10 +42,12 @@ module Control.Lens.Classes
 
 import Control.Applicative
 import Control.Applicative.Backwards (Backwards(..))
+import Control.Category
 import Control.Monad (liftM)
 import Data.Functor.Compose (Compose(..))
 import Data.Functor.Identity (Identity(..))
 import Data.Monoid (Dual(..))
+import Prelude hiding ((.),id)
 #ifndef SAFE
 import Unsafe.Coerce (unsafeCoerce)
 #endif
@@ -154,10 +157,10 @@ type instance CoalgebraicF (a -> f b) = f
 -- An instance of 'Isomorphic' is a 'Category' with a canonical mapping to it from the
 -- category of isomorphisms over Haskell types.
 class Isomorphic r where
-  type S (r :: *) :: *
-  type T (r :: *) :: *
-  type A (r :: *) :: *
-  type B (r :: *) :: *
+  type IsoS (r :: *) :: *
+  type IsoT (r :: *) :: *
+  type IsoA (r :: *) :: *
+  type IsoB (r :: *) :: *
   -- | Build a simple isomorphism from a pair of inverse functions
   --
   -- @
@@ -166,14 +169,14 @@ class Isomorphic r where
   -- 'set' ('iso' f g) h ≡ g '.' h '.' f
   -- 'set' ('from' ('iso' f g)) h ≡ f '.' h '.' g
   -- @
-  iso :: (S r -> A r) -> (B r -> T r) -> r
-  isoid :: (A r ~ S r, B r ~ T r) => r
+  iso :: (IsoS r -> IsoA r) -> (IsoB r -> IsoT r) -> r
+  isoid :: (IsoA r ~ IsoS r, IsoB r ~ IsoT r) => r
 
 instance (Functor f, x ~ (a -> f b), y ~ (s -> f t)) => Isomorphic (x -> y) where
-  type S (x -> y) = CoalgebraicA y
-  type T (x -> y) = CoalgebraicB y
-  type A (x -> y) = CoalgebraicA x
-  type B (x -> y) = CoalgebraicB x
+  type IsoS (x -> y) = CoalgebraicA y
+  type IsoT (x -> y) = CoalgebraicB y
+  type IsoA (x -> y) = CoalgebraicA x
+  type IsoB (x -> y) = CoalgebraicB x
   iso sa bt afb s = bt <$> afb (sa s)
   {-# INLINE iso #-}
   isoid = id
@@ -191,8 +194,8 @@ class Isomorphic r => Prismatic r where
   -- | Build a 'Control.Lens.Prism.Prism'.
   --
   -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
-  prism :: (B r -> T r) -> (S r -> Either (T r) (A r)) -> r
-  prismoid :: (A r ~ S r, B r ~ T r) => r
+  prism :: (IsoB r -> IsoT r) -> (IsoS r -> Either (IsoT r) (IsoA r)) -> r
+  prismoid :: (IsoA r ~ IsoS r, IsoB r ~ IsoT r) => r
 
 instance (Applicative f, x ~ (a -> f b), y ~ (s -> f t)) => Prismatic (x -> y) where
   prism bt seta afb = either pure (fmap bt . afb) . seta
