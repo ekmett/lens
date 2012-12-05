@@ -1,3 +1,16 @@
+3.6.0.3 [maintenance release]
+-------
+* Added support for the new `test-framework`
+
+3.6.0.2 [maintenance release]
+-------
+* Added more explicit dependencies to the doctest suite.
+* Disabled the 'expected failure' quickcheck tests that occasionally would fail with internal QuickCheck errors.
+
+3.6.0.1 [maintenance release]
+-------
+* Added explicit dependency on containers and unordered-containers to the doctest suite
+
 3.6
 -----
 * Added `upon` (along with variants of it) to `Data.Data.Lens`, which can be used to generate a `Traversal` from a field accessor or any function that returns, unmodified,
