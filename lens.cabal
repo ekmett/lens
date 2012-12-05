@@ -40,7 +40,7 @@ description:
   <<http://i.imgur.com/FgfVW.png>>
   .
   You can compose any two elements of the hierarchy above using (.) from the Prelude, and you can
-  use any element of the hierarchy as any type it links to above it.
+  use any element of the hierarchy as any type it linked to above it.
   .
   The result is their lowest upper bound in the hierarchy (or an error if that bound doesn't exist).
   .
