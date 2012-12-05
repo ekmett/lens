@@ -27,6 +27,19 @@
 * Added `withins` to `Control.Lens.Zipper` now that they can work better with [].
 * Added `singular` and `unsafeSingular` to `Control.Lens.Traversal` to assert a `Traversal` is a `Lens`, a `Fold` is a `Getter` or a `MonadicFold` is an `Action`.
 
+3.6.0.3 [maintenance release]
+-------
+* Added support for the new `test-framework`
+
+3.6.0.2 [maintenance release]
+-------
+* Added more explicit dependencies to the doctest suite.
+* Disabled the 'expected failure' quickcheck tests that occasionally would fail with internal QuickCheck errors.
+
+3.6.0.1 [maintenance release]
+-------
+* Added explicit dependency on containers and unordered-containers to the doctest suite
+
 [3.6](https://github.com/ekmett/lens/issues?milestone=9&state=closed)
 ---
 * Added `upon` (along with variants of it) to `Data.Data.Lens`, which can be used to generate a `Traversal` from a field accessor or any function that returns, unmodified,
