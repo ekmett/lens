@@ -25,6 +25,7 @@
 * Added `anon` to `Control.Lens.Iso`.
 * Generalized the types of the `Control.Lens.Zipper` combinators to work with other MonadPlus instances.
 * Added `withins` to `Control.Lens.Zipper` now that they can work better with [].
+* Added `singular` and `unsafeSingular` to `Control.Lens.Traversal` to assert a `Traversal` is a `Lens`, a `Fold` is a `Getter` or a `MonadicFold` is an `Action`.
 
 [3.6](https://github.com/ekmett/lens/issues?milestone=9&state=closed)
 ---

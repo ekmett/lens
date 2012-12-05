@@ -47,6 +47,8 @@ module Control.Lens.Traversal
   , unsafePartsOf
   , unsafePartsOf'
   , holesOf
+  , singular
+  , unsafeSingular
 
   -- * Common Traversals
   , Traversable(traverse)
@@ -55,6 +57,7 @@ module Control.Lens.Traversal
   , taking
   , dropping
   , loci
+
 
   -- * Cloning Traversals
   , cloneTraversal
@@ -315,6 +318,8 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 loci :: Traversal (Bazaar a c s) (Bazaar b c s) a b
 loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafeOuts w
 
+
+
 -------------------------------------------------------------------------------
 -- Parts and Holes
 -------------------------------------------------------------------------------
@@ -393,6 +398,40 @@ holesOf l a = f (ins b) (outs b) where
   f []     _ = []
   f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
 {-# INLINE holesOf #-}
+
+-- | This convers a 'Traversal' thay you "know" will target one or more elements to a 'Lens'. It can
+-- also be used to transform a non-empty 'Fold' into a 'Getter' or a non-empty 'Control.Lens.Action.MonadicFold' into an
+-- 'Control.Lens.Action.Action'.
+--
+-- The resulting 'Lens', 'Getter', or 'Control.Lens.Action.Action' will be partial if the supplied traversal returns
+-- no results.
+--
+-- @
+-- 'singular' :: 'Traversal' s t a a -> 'Lens' s t a a
+-- 'singular' :: 'Fold' s a          -> 'Getter' s a
+-- 'singular' :: 'Control.Lens.Action.MonadicFold' m s a -> 'Control.Lens.Action.Action' m s a
+-- @
+singular :: Functor f => LensLike (BazaarT a a f) s t a a -> LensLike f s t a a
+singular l f = partsOf l $ \xs -> case xs of
+  (a:as) -> (:as) <$> f a
+  []     -> [] <$ f (error "singular: empty traversal")
+
+-- | This converts a 'Traversal' you "know" will target only one element to a 'Lens'. It can also be
+-- used to transform a 'Fold' into a 'Getter' or a 'Control.Lens.Action.MonadicFold' into an 'Control.Lens.Action.Action'.
+--
+-- The resulting 'Lens', 'Getter', or 'Control.Lens.Action.Action' will be partial if the Traversal targets nothing
+-- or more than one element.
+--
+-- @
+-- 'unsafeSingular' :: 'Traversal' s t a b -> 'Lens' s t a b
+-- 'unsafeSingular' :: 'Fold' s a          -> 'Getter' s a
+-- 'unsafeSingular' :: 'Control.Lens.Action.MonadicFold' m s a -> 'Control.Lens.Action.Action' m s a
+-- @
+unsafeSingular :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t a b
+unsafeSingular l f = unsafePartsOf l $ \xs -> case xs of
+  [a] -> return <$> f a
+  []  -> error "unsafeSingular: empty traversal"
+  _   -> error "unsafeSingular: traversing multiple results"
 
 ------------------------------------------------------------------------------
 -- Internal functions used by 'partsOf', 'holesOf', etc.
