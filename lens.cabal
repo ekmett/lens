@@ -189,7 +189,7 @@ library
     Control.Lens.Iso
     Control.Lens.Loupe
     Control.Lens.Plated
-    Control.Lens.Projection
+    Control.Lens.Prism
     Control.Lens.Representable
     Control.Lens.Setter
     Control.Lens.Simple

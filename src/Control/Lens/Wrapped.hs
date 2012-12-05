@@ -50,7 +50,7 @@ import           Control.Arrow
 -- import        Control.Comonad.Trans.Store
 import           Control.Comonad.Trans.Traced
 import           Control.Exception
-import           Control.Lens.Projection
+import           Control.Lens.Prism
 import           Control.Lens.Iso
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error

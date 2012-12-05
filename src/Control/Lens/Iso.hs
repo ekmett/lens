@@ -27,7 +27,7 @@ module Control.Lens.Iso
     Iso
   -- * Isomorphism Construction
   , Isomorphic(iso)
-  , Isomorphism(..)
+  , AnIso(..)
   -- * Consuming Isomorphisms
   , from
   , cloneIso
@@ -51,7 +51,7 @@ module Control.Lens.Iso
   ) where
 
 import Control.Lens.Classes (Isomorphic(..))
-import Control.Lens.Internal (Isomorphism(..))
+import Control.Lens.Internal (AnIso(..))
 import Control.Lens.Type (Simple)
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
@@ -72,8 +72,8 @@ import Data.Maybe (fromMaybe)
 -- | Invert an isomorphism.
 --
 -- @'from' ('from' l) ≡ l@
-from :: Isomorphism s t a b -> Iso b a t s
-from (Isomorphism sa bt) = iso bt sa
+from :: AnIso s t a b -> Iso b a t s
+from (Iso sa bt) = iso bt sa
 {-# INLINE from #-}
 
 -- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.
@@ -82,8 +82,8 @@ from (Isomorphism sa bt) = iso bt sa
 -- and later reconstitute it as an overloaded function.
 --
 -- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
-cloneIso :: Isomorphism s t a b -> Iso s t a b
-cloneIso (Isomorphism sa bt) = iso sa bt
+cloneIso :: AnIso s t a b -> Iso s t a b
+cloneIso (Iso sa bt) = iso sa bt
 {-# INLINE cloneIso #-}
 
 -----------------------------------------------------------------------------
@@ -103,8 +103,8 @@ type SimpleIso s a = Iso s s a a
 --
 -- >>> au (wrapping Sum) foldMap [1,2,3,4]
 -- 10
-au :: Isomorphism s t a b -> ((s -> a) -> e -> b) -> e -> t
-au (Isomorphism sa bt) f e = bt (f sa e)
+au :: AnIso s t a b -> ((s -> a) -> e -> b) -> e -> t
+au (Iso sa bt) f e = bt (f sa e)
 {-# INLINE au #-}
 
 -- |
@@ -119,8 +119,8 @@ au (Isomorphism sa bt) f e = bt (f sa e)
 --
 -- >>> auf (wrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
 -- 10
-auf :: Isomorphism s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
-auf (Isomorphism sa bt) f g e = bt (f (sa . g) e)
+auf :: AnIso s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
+auf (Iso sa bt) f g e = bt (f (sa . g) e)
 {-# INLINE auf #-}
 
 -- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
@@ -128,8 +128,8 @@ auf (Isomorphism sa bt) f g e = bt (f (sa . g) e)
 -- @'under' ≡ 'over' '.' 'from'@
 --
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
-under :: Isomorphism s t a b -> (t -> s) -> b -> a
-under (Isomorphism sa bt) ts b = sa (ts (bt b))
+under :: AnIso s t a b -> (t -> s) -> b -> a
+under (Iso sa bt) ts b = sa (ts (bt b))
 {-# INLINE under #-}
 
 -----------------------------------------------------------------------------
@@ -154,8 +154,8 @@ enum = iso toEnum fromEnum
 {-# INLINE enum #-}
 
 -- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
-mapping :: Functor f => Isomorphism s t a b -> Iso (f s) (f t) (f a) (f b)
-mapping (Isomorphism sa bt) = iso (fmap sa) (fmap bt)
+mapping :: Functor f => AnIso s t a b -> Iso (f s) (f t) (f a) (f b)
+mapping (Iso sa bt) = iso (fmap sa) (fmap bt)
 {-# INLINE mapping #-}
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',

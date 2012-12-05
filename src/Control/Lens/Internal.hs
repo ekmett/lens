@@ -51,8 +51,8 @@ module Control.Lens.Internal
   , Min(..), getMin
   , Indexing(..)
   -- * Overloadings
-  , Projected(..)
-  , Isomorphism(..)
+  , APrism(..)
+  , AnIso(..)
   , Indexed(..)
   ) where
 
@@ -480,8 +480,8 @@ sellT i = BazaarT (\k -> k i)
 -- with its internals.
 --
 -- If you see a function that expects a 'Project', it is probably just expecting a 'Projection'.
-data Projected s t a b where
-  Projected :: (b -> t) -> (s -> Either t a) -> Projected s t a b
+data APrism s t a b where
+  Prism :: (b -> t) -> (s -> Either t a) -> APrism s t a b
 
 {-
 instance Category Projected where
@@ -493,35 +493,35 @@ instance Category Projected where
         Right a -> Right a
 -}
 
-instance Isomorphic (Projected s t a b) where
-  type S (Projected s t a b) = s
-  type T (Projected s t a b) = t
-  type A (Projected s t a b) = a
-  type B (Projected s t a b) = b
-  iso sa bt = Projected bt (Right . sa)
+instance Isomorphic (APrism s t a b) where
+  type S (APrism s t a b) = s
+  type T (APrism s t a b) = t
+  type A (APrism s t a b) = a
+  type B (APrism s t a b) = b
+  iso sa bt = Prism bt (Right . sa)
 
-instance Projective (Projected s t a b) where
-  projected = Projected
+instance Prismatic (APrism s t a b) where
+  prism = Prism
 
 ------------------------------------------------------------------------------
--- Isomorphism Internals
+-- AnIso Internals
 ------------------------------------------------------------------------------
 
 -- | Reify all of the information given to you by being 'Isomorphic'.
-data Isomorphism s t a b where
-  Isomorphism :: (s -> a) -> (b -> t) -> Isomorphism s t a b
+data AnIso s t a b where
+  Iso :: (s -> a) -> (b -> t) -> AnIso s t a b
 
 {-
-instance Category Isomorphism where
-  Isomorphism xs ty . Isomorphism sa bt = Isomorphism (sa.xs) (ty.bt)
+instance Category AnIso where
+  AnIso xs ty . AnIso sa bt = AnIso (sa.xs) (ty.bt)
 -}
 
-instance Isomorphic (Isomorphism s t a b) where
-  type S (Isomorphism s t a b) = s
-  type T (Isomorphism s t a b) = t
-  type A (Isomorphism s t a b) = a
-  type B (Isomorphism s t a b) = b
-  iso = Isomorphism
+instance Isomorphic (AnIso s t a b) where
+  type S (AnIso s t a b) = s
+  type T (AnIso s t a b) = t
+  type A (AnIso s t a b) = a
+  type B (AnIso s t a b) = b
+  iso = Iso
 
 ------------------------------------------------------------------------------
 -- Indexed Internals

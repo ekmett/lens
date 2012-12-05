@@ -30,7 +30,7 @@ module Control.Lens.Classes
   -- * Isomorphisms
   , Isomorphic(..)
   -- * Projections
-  , Projective(..)
+  , Prismatic(..)
   -- * Indexable
   , Indexable(..)
   -- * Families
@@ -181,17 +181,17 @@ instance (Functor f, x ~ (a -> f b), y ~ (s -> f t)) => Isomorphic (x -> y) wher
 
 -- | Used to provide overloading of projections.
 --
--- An instance of 'Projective' is a 'Category' with a canonical mapping to it from the category
+-- An instance of 'Prismatic' is a 'Category' with a canonical mapping to it from the category
 -- of embedding-projection pairs over Haskell types.
-class Isomorphic r => Projective r where
-  -- | Build a 'Control.Lens.Projection.Projection'.
+class Isomorphic r => Prismatic r where
+  -- | Build a 'Control.Lens.Prism.Prism'.
   --
   -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
-  projected :: (B r -> T r) -> (S r -> Either (T r) (A r)) -> r
+  prism :: (B r -> T r) -> (S r -> Either (T r) (A r)) -> r
 
-instance (Applicative f, x ~ (a -> f b), y ~ (s -> f t)) => Projective (x -> y) where
-  projected bt seta afb = either pure (fmap bt . afb) . seta
-  {-# INLINE projected #-}
+instance (Applicative f, x ~ (a -> f b), y ~ (s -> f t)) => Prismatic (x -> y) where
+  prism bt seta afb = either pure (fmap bt . afb) . seta
+  {-# INLINE prism #-}
 
 ----------------------------------------------------------------------------
 -- Indexed Internals
