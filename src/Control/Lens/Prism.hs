@@ -38,6 +38,7 @@ module Control.Lens.Prism
   -- * Common Prisms
   , _left
   , _right
+  , just
 
   -- * Simple
   , SimplePrism
@@ -333,3 +334,15 @@ _left = prism Left $ either Right (Left . Right)
 _right :: Prism (Either c a) (Either c b) a b
 _right = prism Right $ left Left
 {-# INLINE _right #-}
+
+-- | This prism provides a traversal for tweaking the target of the value of 'Just' in a 'Maybe'.
+--
+-- >>> over just (+1) (Just 2)
+-- Just 3
+--
+-- Unlike 'traverse' this is a 'Prism', and so you can use it to inject as well:
+--
+-- >>> 5^.remit just
+-- Just 5
+just :: Prism (Maybe a) (Maybe b) a b
+just = prism Just $ maybe (Left Nothing) Right
