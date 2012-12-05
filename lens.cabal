@@ -82,7 +82,7 @@ description:
   exotic functionality, (/e.g./ getters, setters, indexed folds, isomorphisms).
 
 build-type:    Simple
-tested-with:   GHC == 7.4.1, GHC == 7.6.1
+tested-with:   GHC == 7.0.4, GHC == 7.4.1, GHC == 7.6.1
 extra-source-files:
   .travis.yml
   .ghci
