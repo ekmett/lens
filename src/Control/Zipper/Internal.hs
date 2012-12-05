@@ -8,7 +8,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Control.Lens.Internal.Zipper
+-- Module      :  Control.Zipper.Internal
 -- Copyright   :  (C) 2012 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
@@ -16,11 +16,11 @@
 -- Portability :  non-portable
 --
 -- This module provides internal types and functions used in the implementation
--- of Control.Lens.Zipper. You shouldn't need to import it directly, and the
--- exported types can be used to break Zipper invariants.
+-- of @Control.Zipper@. You shouldn't need to import it directly, and the
+-- exported types can be used to break 'zipper' invariants.
 --
 ----------------------------------------------------------------------------
-module Control.Lens.Internal.Zipper where
+module Control.Zipper.Internal where
 
 import Control.Applicative
 import Control.Category

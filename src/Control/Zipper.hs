@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Control.Lens.Zipper
+-- Module      :  Control.Zipper
 -- Copyright   :  (C) 2012 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
@@ -34,7 +34,7 @@
 -- 'Data.Data.Lens.uniplate' or 'Data.Data.Lens.biplate' for walking down into
 -- self-similar children in syntax trees and other structures.
 -----------------------------------------------------------------------------
-module Control.Lens.Zipper
+module Control.Zipper
   (
   -- * Zippers
     Top()
@@ -73,7 +73,7 @@ module Control.Lens.Zipper
   , unsafelyRestoreTape
   ) where
 
-import Control.Lens.Internal.Zipper
+import Control.Zipper.Internal
 
 -- $setup
 -- >>> :m + Control.Lens

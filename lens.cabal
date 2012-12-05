@@ -185,7 +185,6 @@ library
     Control.Lens.IndexedSetter
     Control.Lens.IndexedTraversal
     Control.Lens.Internal
-    Control.Lens.Internal.Zipper
     Control.Lens.Iso
     Control.Lens.Loupe
     Control.Lens.Plated
@@ -198,8 +197,9 @@ library
     Control.Lens.Type
     Control.Lens.WithIndex
     Control.Lens.Wrapped
-    Control.Lens.Zipper
     Control.Lens.Zoom
+    Control.Zipper
+    Control.Zipper.Internal
     Data.Bits.Lens
     Data.ByteString.Lens
     Data.ByteString.Strict.Lens
