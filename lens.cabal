@@ -353,7 +353,6 @@ benchmark alongside
     comonads-fd,
     criterion,
     deepseq,
-    ghc-prim,
     lens,
     transformers
   ghc-options: -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
