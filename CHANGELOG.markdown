@@ -1,29 +1,27 @@
 [3.7](https://github.com/ekmett/lens/issues?milestone=11&page=1&state=closed)
 -----
-* Implemented a complete redesign of the way `Iso` and `Projection` is handled internally. Any `Iso` can now be used as a `Projection`.
-* Changes to the signature of `from` and `under` necessitated by the new design.
-* Repurposed `ala` to be closer to the original design in `newtype`.
-* Added `au` and `alaf`.
+* Renamed `Projection` to `Prism`.
+* Implemented a complete redesign of the way `Iso` and `Prism` are handled internally. Any `Iso` can now be used as a `Prism`.
 * The `isos` combinator is no longer required. `iso` can now be used to construct an `Iso`.
+* Changes to the signature of `from` and `under` were necessitated by the new design.
+* Added `Control.Lens.Wrapped` providing a canonical isomorphism for newtypes.
+* Repurposed `ala` to be closer to the original design in `newtype`, but added `au` and `alaf`.
 * Added `_magnitude`, `_phase` and `_conjugate` to `Data.Complex.Lens`. Renamed other lenses for consistency: `_realPart`, `_imagPart`, `_polar`.
-* Promoted `_left` and `_right` to projections and moved them to `Control.Lens.Projection`.
+* Promoted `_left` and `_right` to prisms and moved them to `Control.Lens.Prism`.
 * Generalized `view` and `views` to subsume the old functionality of `peruse` and `peruses`.
 * Generalized `review` and `reviews` to both return a `MonadReader` and to work on a `Projection`.
 * Added `view'`/`views'` and `use'`/`uses'` for `Simple` access to the environment/state.
 * Added `set'`, a `Simple` version of `set`.
 * Added `reuse` : `use` :: `review` : `view` and `reuses` : `uses` :: `reviews` : `views` for working a `Projection` from the current `MonadState`.
-* Added `Control.Lens.Wrapped` providing a canonical isomorphism for newtypes.
 * Removed many isomorphisms for various newtypes. `_const`, `identity`, `_sum`, etc. Use `wrapping Const`, `wrapping Identity`, etc.
 * Removed `Data.Monoid.Lens` now that its newtypes are instances of `Wrapped`, exporting the (`<>=`)-variants from `Control.Lens.*`.
 * Renamed `via` to `cloneIso` for consistency.
 * Moved `Indexed(..)` to `Control.Lens.Classes`.
 * Renamed `index` to `indexing` to reduce conflicts with third-party libraries.
-* `At(..)` and `Contains(..)` now provide simple indexed projections.
 * Added `curried` and `uncurried` to `Control.Lens.Iso`.
 * Added `Strict(strict)` for ad hoc overloading of conversions between strict and lazy variants of `ByteString` and `Text`.
 * Bug fixes for `tugTo` and `jerkTo`.
 * These no longer traverse in the wrong direction: `scanl1Of`, `scanr1Of`, `mapAccumLOf`, and `mapAccumROf`
-* Added `embedding` to `Control.Lens.Projection`.
 * Added `(?)` as a low fixity alias for `(<&>)` to easy working with partial zipper functions.
 * Added `anon` to `Control.Lens.Iso`.
 * Generalized the types of the `Control.Lens.Zipper` combinators to work with other MonadPlus instances.
