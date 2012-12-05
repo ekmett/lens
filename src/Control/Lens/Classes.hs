@@ -167,6 +167,7 @@ class Isomorphic r where
   -- 'set' ('from' ('iso' f g)) h ≡ f '.' h '.' g
   -- @
   iso :: (S r -> A r) -> (B r -> T r) -> r
+  isoid :: (A r ~ S r, B r ~ T r) => r
 
 instance (Functor f, x ~ (a -> f b), y ~ (s -> f t)) => Isomorphic (x -> y) where
   type S (x -> y) = CoalgebraicA y
@@ -174,6 +175,9 @@ instance (Functor f, x ~ (a -> f b), y ~ (s -> f t)) => Isomorphic (x -> y) wher
   type A (x -> y) = CoalgebraicA x
   type B (x -> y) = CoalgebraicB x
   iso sa bt afb s = bt <$> afb (sa s)
+  {-# INLINE iso #-}
+  isoid = id
+  {-# INLINE isoid #-}
 
 -----------------------------------------------------------------------------
 -- Projections
@@ -188,10 +192,13 @@ class Isomorphic r => Prismatic r where
   --
   -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
   prism :: (B r -> T r) -> (S r -> Either (T r) (A r)) -> r
+  prismoid :: (A r ~ S r, B r ~ T r) => r
 
 instance (Applicative f, x ~ (a -> f b), y ~ (s -> f t)) => Prismatic (x -> y) where
   prism bt seta afb = either pure (fmap bt . afb) . seta
   {-# INLINE prism #-}
+  prismoid = id
+  {-# INLINE prismoid #-}
 
 ----------------------------------------------------------------------------
 -- Indexed Internals
