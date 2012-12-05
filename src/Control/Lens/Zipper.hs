@@ -46,6 +46,7 @@ module Control.Lens.Zipper
   , up
   , down
   , within
+  , withins
   -- ** Lateral Movement
   , left
   , right
