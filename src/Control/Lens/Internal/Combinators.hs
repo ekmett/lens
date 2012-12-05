@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704 && !defined(SAFE)
+#if defined(TRUSTWORTHY) && !defined(SAFE)
 {-# LANGUAGE Trustworthy #-}
 #endif
 -----------------------------------------------------------------------------

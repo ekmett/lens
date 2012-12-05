@@ -4,11 +4,13 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 706
+#ifdef DEFAULT_SIGNATURES
 {-# LANGUAGE DefaultSignatures #-}
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 706
 #define MPTC_DEFAULTS
 #endif
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
+#endif
+#ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-} -- vector, hashable
 #endif
 

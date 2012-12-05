@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
+#ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
 
@@ -50,6 +50,7 @@ module Control.Lens.TH
   ) where
 
 import Control.Applicative
+import Control.Monad (ap)
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter

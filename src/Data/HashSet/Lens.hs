@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 704
+#ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
 -----------------------------------------------------------------------------

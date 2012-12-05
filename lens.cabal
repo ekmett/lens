@@ -152,10 +152,14 @@ flag safe
   default: False
   manual: True
 
+-- Assert that we are trustworthy when we can
+flag trustworthy
+  default: True
+  manual: False
 
 library
   build-depends:
-    base                 >= 4.4      && < 5,
+    base                 >= 4.3      && < 5,
     bytestring           >= 0.9.1.10 && < 0.11,
     comonad              == 3.0.*,
     comonad-transformers == 3.0.*,
@@ -228,9 +232,18 @@ library
     build-depends: template-haskell >= 2.4 && < 2.9
     exposed-modules: Control.Lens.TH Language.Haskell.TH.Lens
   else
-    cpp-options: -DDISABLE_TEMPLATE_HASKELL
+    cpp-options: -DDISABLE_TEMPLATE_HASKELL=1
+
   if flag(safe)
-    cpp-options: -DSAFE
+    cpp-options: -DSAFE=1
+
+  if flag(trustworthy) && impl(ghc>=7.4)
+    ghc-options: -DTRUSTWORTHY=1
+
+  if impl(ghc<7.4)
+    ghc-options: -fno-spec-constr-count
+  else
+    cpp-options: -DDEFAULT_SIGNATURES=1
 
   -- platform
   build-depends:   array >= 0.3.0.2 && < 0.5
@@ -244,10 +257,10 @@ library
 
   if impl(ghc>=7.6.0.20120810)
     if flag(old-inline-pragmas)
-      cpp-options: -DOLD_INLINE_PRAGMAS
+      cpp-options: -DOLD_INLINE_PRAGMAS=1
 
   if !flag(inlining)
-    cpp-options: -DOMIT_INLINING
+    cpp-options: -DOMIT_INLINING=1
 
   if impl(ghc>=7.4)
     other-extensions: Trustworthy
