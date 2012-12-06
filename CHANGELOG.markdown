@@ -21,11 +21,12 @@
 * Added `curried` and `uncurried` to `Control.Lens.Iso`.
 * Added `Strict(strict)` for ad hoc overloading of conversions between strict and lazy variants of `ByteString` and `Text`.
 * Bug fixes for `tugTo` and `jerkTo`.
-* These no longer traverse in the wrong direction: `scanl1Of`, `scanr1Of`, `mapAccumLOf`, and `mapAccumROf`
+* These no longer traverse in the wrong direction: `scanl1Of`, `scanr1Of`, `mapAccumLOf`, and `mapAccumROf`.
 * Added `anon` to `Control.Lens.Iso`.
 * Generalized the types of the `Control.Lens.Zipper` combinators to work with other MonadPlus instances.
 * Added `withins` to `Control.Lens.Zipper` now that they can work better with [].
 * Added `singular` and `unsafeSingular` to `Control.Lens.Traversal` to assert a `Traversal` is a `Lens`, a `Fold` is a `Getter` or a `MonadicFold` is an `Action`.
+* Generalized `sequenceAOf_`'s type to match `sequenceA_`.
 
 3.6.0.3 [maintenance release]
 -------
