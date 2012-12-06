@@ -50,7 +50,9 @@ module Control.Lens.TH
   ) where
 
 import Control.Applicative
+#if !(MIN_VERSION_template_haskell(2,7,0))
 import Control.Monad (ap)
+#endif
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
