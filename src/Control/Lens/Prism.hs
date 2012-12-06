@@ -212,7 +212,7 @@ remit (Prism bt _) = to bt
 -- 'review' :: 'Simple' 'Prism' s a -> a -> s
 -- @
 --
--- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of 
+-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of
 -- these more slightly more liberal type signatures may be beneficial to think of it as having:
 --
 -- @
@@ -240,7 +240,7 @@ review (Prism bt _) = asks bt
 -- 'reviews' :: 'Simple' 'Prism' s a -> (s -> r) -> a -> r
 -- @
 --
--- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of 
+-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of
 -- these more slightly more liberal type signatures may be beneficial to think of it as having:
 --
 -- @

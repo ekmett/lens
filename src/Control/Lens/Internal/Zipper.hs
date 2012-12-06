@@ -180,7 +180,7 @@ leftward (Zipper h n (l:ls) a rs) = return (Zipper h (n - 1) ls l (a:rs))
 {-# INLINE leftward #-}
 
 -- | Move to the leftmost position of the current 'Traversal'.
--- 
+--
 -- This is just a convenient alias for @'farthest' 'leftward'@.
 --
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip

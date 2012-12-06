@@ -368,7 +368,7 @@ alongside l r f (s, s') = case l (Context id) s of
 --
 -- @
 -- 'locus' :: Simple Lens ('Context' s s a) s
--- @ 
+-- @
 locus :: ComonadStore s w => Simple Lens (w a) s
 locus f w = (`seek` w) <$> f (pos w)
 
