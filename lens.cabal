@@ -238,7 +238,7 @@ library
   if flag(safe)
     cpp-options: -DSAFE=1
 
-  if flag(trustworthy) && impl(ghc>=7.4)
+  if flag(trustworthy) && impl(ghc>=7.2)
     cpp-options: -DTRUSTWORTHY=1
 
   if impl(ghc<7.4)
