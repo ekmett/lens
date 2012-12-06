@@ -78,7 +78,7 @@ from (Iso sa bt) = iso bt sa
 
 -- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.
 --
--- This is useful when you need to store an isomoprhism as a data type inside a container
+-- This is useful when you need to store an isomorphism as a data type inside a container
 -- and later reconstitute it as an overloaded function.
 --
 -- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
@@ -224,14 +224,14 @@ anon a p = iso (fromMaybe a) go where
        | otherwise = Just b
 {-# INLINE anon #-}
 
--- | The canonical isomorphism for currying and uncurrying function.
+-- | The canonical isomorphism for currying and uncurrying a function.
 --
 -- @'curried' = 'iso' 'curry' 'uncurry'@
 curried :: Iso ((a,b) -> c) ((d,e) -> f) (a -> b -> c) (d -> e -> f)
 curried = iso curry uncurry
 {-# INLINE curried #-}
 
--- | The canonical isomorphism for uncurrying and currying function.
+-- | The canonical isomorphism for uncurrying and currying a function.
 --
 -- @'uncurried' = 'iso' 'uncurry' 'curry'@
 --

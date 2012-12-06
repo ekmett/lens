@@ -64,7 +64,7 @@ generic = iso Generic.from Generic.to
 generic1 :: Generic1 f => Simple Iso (f a) (Rep1 f a)
 generic1 = iso from1 to1
 
--- | A 'GHC.Generics.Generic' 'Traversal' that visits every occurence
+-- | A 'GHC.Generics.Generic' 'Traversal' that visits every occurrence
 -- of something 'Typeable' anywhere in a container.
 --
 -- >>> allOf tinplate (=="Hello") (1::Int,2::Double,(),"Hello",["Hello"])

@@ -22,7 +22,7 @@ module Control.Lens.Action
   , liftAct
   , (^!)
 
-  -- * Folds with Effecs
+  -- * Folds with Effects
   , MonadicFold
 
   -- * Implementation Details

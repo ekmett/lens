@@ -123,7 +123,7 @@ l <#%~ f = \s -> case l (Context id) s of
 l <#%= f = l #%%= \a -> let b = f a in (b,b)
 {-# INLINE (<#%=) #-}
 
--- | Modify the target of a 'Loupe' in the current monadic state, returning an auxillary result.
+-- | Modify the target of a 'Loupe' in the current monadic state, returning an auxiliary result.
 (#%%=) :: MonadState s m => Loupe s s a b -> (a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,1)
 l #%%= f = State.state $ \s -> case l (Context id) s of

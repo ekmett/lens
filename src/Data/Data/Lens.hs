@@ -106,7 +106,7 @@ step f w s = w <*> case cast s of
 -- Smart Traversal
 -------------------------------------------------------------------------------
 
--- | Find every occurence of a given type @a@ recursively that doesn't require
+-- | Find every occurrence of a given type @a@ recursively that doesn't require
 -- passing through something of type @a@ using 'Data', while avoiding traversal
 -- of areas that cannot contain a value of type @a@.
 --
