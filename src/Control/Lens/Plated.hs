@@ -183,7 +183,7 @@ import           Data.Tree
 class Plated a where
   -- | 'Traversal' of the immediate children of this structure.
   --
-  -- If you're using GHC 7.4 or newer and your type has a 'Data' instance,
+  -- If you're using GHC 7.2 or newer and your type has a 'Data' instance,
   -- 'plate' will default to 'uniplate' and you can choose to not override
   -- it with your own definition.
   plate :: Simple Traversal a a
