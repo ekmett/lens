@@ -125,84 +125,84 @@ tooth :: (h :> a) -> Int
 tooth (Zipper _ n _ _ _) = n
 {-# INLINE tooth #-}
 
--- | Move the 'zipper' 'up', closing the current level and focusing on the parent element.
+-- | Move the 'zipper' 'upward', closing the current level and focusing on the parent element.
 --
--- NB: Attempts to move up from the 'Top' of the 'zipper' will fail to typecheck.
+-- NB: Attempts to move upward from the 'Top' of the 'zipper' will fail to typecheck.
 --
--- >>> :t zipper ("hello","world") & down _1 & fromWithin traverse & up
--- zipper ("hello","world") & down _1 & fromWithin traverse & up
+-- >>> :t zipper ("hello","world") & downward _1 & fromWithin traverse & upward
+-- zipper ("hello","world") & downward _1 & fromWithin traverse & upward
 --   :: (Top :> ([Char], [Char])) :> [Char]
-up :: (h :> s :> a) -> h :> s
-up (Zipper (Snoc h _ un uls k urs) _ ls x rs) = Zipper h un uls ux urs
+upward :: (h :> s :> a) -> h :> s
+upward (Zipper (Snoc h _ un uls k urs) _ ls x rs) = Zipper h un uls ux urs
   where ux = k (reverseList ls ++ x : rs)
-{-# INLINE up #-}
+{-# INLINE upward #-}
 
--- | Jerk the 'zipper' one 'tooth' to the 'right' within the current 'Lens' or 'Traversal'.
+-- | Jerk the 'zipper' one 'tooth' to the 'rightward' within the current 'Lens' or 'Traversal'.
 --
 -- Attempts to move past the start of the current 'Traversal' (or trivially, the current 'Lens')
 -- will return 'Nothing'.
 --
--- >>> isNothing $ zipper "hello" & right
+-- >>> isNothing $ zipper "hello" & rightward
 -- True
 --
--- >>> zipper "hello" & fromWithin traverse & right <&> view focus
+-- >>> zipper "hello" & fromWithin traverse & rightward <&> view focus
 -- 'e'
 --
--- >>> zipper "hello" & fromWithin traverse & right <&> focus .~ 'u' <&> rezip
+-- >>> zipper "hello" & fromWithin traverse & rightward <&> focus .~ 'u' <&> rezip
 -- "hullo"
 --
--- >>> rezip $ zipper (1,2) & fromWithin both & tug right & focus .~ 3
+-- >>> rezip $ zipper (1,2) & fromWithin both & tug rightward & focus .~ 3
 -- (1,3)
-right :: MonadPlus m => (h :> a) -> m (h :> a)
-right (Zipper _ _ _  _ []    ) = mzero
-right (Zipper h n ls a (r:rs)) = return (Zipper h (n + 1) (a:ls) r rs)
-{-# INLINE right #-}
+rightward :: MonadPlus m => (h :> a) -> m (h :> a)
+rightward (Zipper _ _ _  _ []    ) = mzero
+rightward (Zipper h n ls a (r:rs)) = return (Zipper h (n + 1) (a:ls) r rs)
+{-# INLINE rightward #-}
 
--- | Jerk the 'zipper' 'left' one 'tooth' within the current 'Lens' or 'Traversal'.
+-- | Jerk the 'zipper' 'leftward' one 'tooth' within the current 'Lens' or 'Traversal'.
 --
 -- Attempts to move past the end of the current 'Traversal' (or trivially, the current 'Lens')
 -- will return 'Nothing'.
 --
--- >>> isNothing $ zipper "hello" & left
+-- >>> isNothing $ zipper "hello" & leftward
 -- True
 
--- >>> isNothing $ zipper "hello" & within traverse >>= left
+-- >>> isNothing $ zipper "hello" & within traverse >>= leftward
 -- True
 --
--- >>> zipper "hello" & within traverse <&> tug left
+-- >>> zipper "hello" & within traverse <&> tug leftward
 -- Just 'h'
 --
--- >>> zipper "hello" & fromWithin traverse & tug right & tug left & view focus
+-- >>> zipper "hello" & fromWithin traverse & tug rightward & tug leftward & view focus
 -- 'h'
-left :: MonadPlus m => (h :> a) -> m (h :> a)
-left (Zipper _ _ []     _ _ ) = mzero
-left (Zipper h n (l:ls) a rs) = return (Zipper h (n - 1) ls l (a:rs))
-{-# INLINE left #-}
+leftward :: MonadPlus m => (h :> a) -> m (h :> a)
+leftward (Zipper _ _ []     _ _ ) = mzero
+leftward (Zipper h n (l:ls) a rs) = return (Zipper h (n - 1) ls l (a:rs))
+{-# INLINE leftward #-}
 
--- | This allows you to safely 'tug left' or 'tug right' on a 'zipper'. This
+-- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'zipper'. This
 -- will attempt the move, and stay where it was if it fails.
 --
 -- The more general signature allows its use in other circumstances, however.
 --
 -- @'tug' f x ≡ 'fromMaybe' a (f a)@
 --
--- >>> fmap rezip $ zipper "hello" & within traverse <&> tug left <&> focus .~ 'j'
+-- >>> fmap rezip $ zipper "hello" & within traverse <&> tug leftward <&> focus .~ 'j'
 -- "jello"
 --
--- >>> fmap rezip $ zipper "hello" & within traverse <&> tug right <&> focus .~ 'u'
+-- >>> fmap rezip $ zipper "hello" & within traverse <&> tug rightward <&> focus .~ 'u'
 -- "hullo"
 tug :: (a -> Maybe a) -> a -> a
 tug f a = fromMaybe a (f a)
 {-# INLINE tug #-}
 
--- | This allows you to safely @'tug' 'left'@ or @'tug' 'right'@ multiple times on a 'zipper',
+-- | This allows you to safely @'tug' 'leftward'@ or @'tug' 'rightward'@ multiple times on a 'zipper',
 -- moving multiple steps in a given direction and stopping at the last place you
 -- couldn't move from. This lets you safely move a zipper, because it will stop at either end.
 --
--- >>> fmap rezip $ zipper "stale" & within traverse <&> tugs right 2 <&> focus .~ 'y'
+-- >>> fmap rezip $ zipper "stale" & within traverse <&> tugs rightward 2 <&> focus .~ 'y'
 -- "style"
 --
--- >>> rezip $ zipper "want" & fromWithin traverse & tugs right 2 & focus .~ 'r' & tugs left 100 & focus .~ 'c'
+-- >>> rezip $ zipper "want" & fromWithin traverse & tugs rightward 2 & focus .~ 'r' & tugs leftward 100 & focus .~ 'c'
 -- "cart"
 tugs :: (a -> Maybe a) -> Int -> a -> a
 tugs f n0
@@ -217,10 +217,10 @@ tugs f n0
 --
 -- This repeatedly applies a function until it returns Nothing, and then returns the last answer.
 --
--- >>> fmap rezip $ zipper ("hello","world") & down _1 & within traverse <&> farthest right <&> focus .~ 'a'
+-- >>> fmap rezip $ zipper ("hello","world") & downward _1 & within traverse <&> farthest rightward <&> focus .~ 'a'
 -- ("hella","world")
 --
--- >>> rezip $ zipper ("hello","there") & fromWithin (both.traverse) & farthest right & focus .~ 'm'
+-- >>> rezip $ zipper ("hello","there") & fromWithin (both.traverse) & farthest rightward & focus .~ 'm'
 -- ("hello","therm")
 farthest :: (a -> Maybe a) -> a -> a
 farthest f = go where
@@ -229,10 +229,10 @@ farthest f = go where
 
 -- | This allows for you to repeatedly pull a 'zipper' in a given direction, failing if it falls off the end.
 --
--- >>> isNothing $ zipper "hello" & within traverse >>= jerks right 10
+-- >>> isNothing $ zipper "hello" & within traverse >>= jerks rightward 10
 -- True
 --
--- >>> fmap rezip $ zipper "silly" & within traverse >>= jerks right 3 <&> focus .~ 'k'
+-- >>> fmap rezip $ zipper "silly" & within traverse >>= jerks rightward 3 <&> focus .~ 'k'
 -- "silky"
 jerks :: Monad m => (a -> m a) -> Int -> a -> m a
 jerks f n0
@@ -255,10 +255,10 @@ jerks f n0
 -- >>> zipper ("hello","world") & fromWithin both & teeth
 -- 2
 --
--- >>> zipper ("hello","world") & down _1 & teeth
+-- >>> zipper ("hello","world") & downward _1 & teeth
 -- 1
 --
--- >>> zipper ("hello","world") & down _1 & fromWithin traverse & teeth
+-- >>> zipper ("hello","world") & downward _1 & fromWithin traverse & teeth
 -- 5
 --
 -- >>> zipper ("hello","world") & fromWithin (_1.traverse) & teeth
@@ -271,11 +271,11 @@ teeth (Zipper _ n _ _ rs) = n + 1 + length rs
 {-# INLINE teeth #-}
 
 -- | Move the 'zipper' horizontally to the element in the @n@th position in the
--- current level, absolutely indexed, starting with the 'farthest' 'left' as @0@.
+-- current level, absolutely indexed, starting with the 'farthest' 'leftward' as @0@.
 --
 -- This returns 'Nothing' if the target element doesn't exist.
 --
--- @'jerkTo' n ≡ 'jerks' 'right' n . 'farthest' 'left'@
+-- @'jerkTo' n ≡ 'jerks' 'rightward' n . 'farthest' 'leftward'@
 --
 -- >>> isNothing $ zipper "not working." & jerkTo 20
 -- True
@@ -287,26 +287,26 @@ teeth (Zipper _ n _ _ rs) = n + 1 + length rs
 -- Just "now working"
 jerkTo :: MonadPlus m => Int -> (h :> a) -> m (h :> a)
 jerkTo n z = case compare k n of
-  LT -> jerks right (n - k) z
+  LT -> jerks rightward (n - k) z
   EQ -> return z
-  GT -> jerks left (k - n) z
+  GT -> jerks leftward (k - n) z
   where k = tooth z
 {-# INLINE jerkTo #-}
 
 -- | Move the 'zipper' horizontally to the element in the @n@th position of the
--- current level, absolutely indexed, starting with the 'farthest' 'left' as @0@.
+-- current level, absolutely indexed, starting with the 'farthest' 'leftward' as @0@.
 --
 -- If the element at that position doesn't exist, then this will clamp to the range @0 <= n < 'teeth'@.
 --
--- @'tugTo' n ≡ 'tugs' 'right' n . 'farthest' 'left'@
+-- @'tugTo' n ≡ 'tugs' 'rightward' n . 'farthest' 'leftward'@
 --
 -- >>> rezip $ zipper "not working." & fromWithin traverse & tugTo 100 & focus .~ '!' & tugTo 1 & focus .~ 'u'
 -- "nut working!"
 tugTo :: Int -> (h :> a) -> h :> a
 tugTo n z = case compare k n of
-  LT -> tugs right (n - k) z
+  LT -> tugs rightward (n - k) z
   EQ -> z
-  GT -> tugs left (k - n) z
+  GT -> tugs leftward (k - n) z
   where k = tooth z
 {-# INLINE tugTo #-}
 
@@ -314,13 +314,13 @@ tugTo n z = case compare k n of
 -- there is precisely one target that can never fail.
 --
 -- @
--- 'down' :: 'Simple' 'Lens' s a -> (h :> s) -> h :> s :> a
--- 'down' :: 'Simple' 'Iso' s a  -> (h :> s) -> h :> s :> a
+-- 'downward' :: 'Simple' 'Lens' s a -> (h :> s) -> h :> s :> a
+-- 'downward' :: 'Simple' 'Iso' s a  -> (h :> s) -> h :> s :> a
 -- @
-down :: SimpleLensLike (Context a a) s a -> (h :> s) -> h :> s :> a
-down l (Zipper h n ls s rs) = case l (Context id) s of
+downward :: SimpleLensLike (Context a a) s a -> (h :> s) -> h :> s :> a
+downward l (Zipper h n ls s rs) = case l (Context id) s of
   Context k a -> Zipper (Snoc h (cloneLens l) n ls (k . head) rs) 0 [] a []
-{-# INLINE down #-}
+{-# INLINE downward #-}
 
 -- | Step down into the 'leftmost' entry of a 'Traversal'.
 --
@@ -401,7 +401,7 @@ saveTape (Zipper h n _ _ _) = Tape (peel h) n
 --
 -- If the position does not exist, then fail.
 restoreTape :: MonadPlus m => Tape (h :> a) -> Zipped h a -> m (h :> a)
-restoreTape (Tape h n) = restoreTrack h >=> jerks right n
+restoreTape (Tape h n) = restoreTrack h >=> jerks rightward n
 {-# INLINE restoreTape #-}
 
 -- | Restore ourselves to a location near our previously recorded position.
@@ -409,18 +409,18 @@ restoreTape (Tape h n) = restoreTrack h >=> jerks right n
 -- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
 restoreNearTape :: MonadPlus m => Tape (h :> a) -> Zipped h a -> m (h :> a)
-restoreNearTape (Tape h n) a = liftM (tugs right n) (restoreNearTrack h a)
+restoreNearTape (Tape h n) a = liftM (tugs rightward n) (restoreNearTrack h a)
 {-# INLINE restoreNearTape #-}
 
 -- | Restore ourselves to a previously recorded position.
 --
 -- This *assumes* that nothing has been done in the meantime to affect the existence of anything on the entire path.
 --
--- Motions left or right are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
+-- Motions leftward or rightward are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
 --
 -- Violate these assumptions at your own risk!
 unsafelyRestoreTape :: Tape (h :> a) -> Zipped h a -> h :> a
-unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> tugs right n
+unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> tugs rightward n
 {-# INLINE unsafelyRestoreTape #-}
 
 -----------------------------------------------------------------------------
@@ -442,26 +442,26 @@ data Track :: * -> * -> * where
 -- If the position does not exist, then fail.
 restoreTrack :: MonadPlus m => Track h a -> Zipped h a -> m (h :> a)
 restoreTrack Track = return . zipper
-restoreTrack (Fork h n l) = restoreTrack h >=> jerks right n >=> within l
+restoreTrack (Fork h n l) = restoreTrack h >=> jerks rightward n >=> within l
 
 -- | Restore ourselves to a location near our previously recorded position.
 --
--- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
+-- When moving leftward to rightward through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
 restoreNearTrack :: MonadPlus m => Track h a -> Zipped h a -> m (h :> a)
 restoreNearTrack Track = return . zipper
-restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs right n >>> within l
+restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs rightward n >>> within l
 
 -- | Restore ourselves to a previously recorded position.
 --
 -- This *assumes* that nothing has been done in the meantime to affect the existence of anything on the entire path.
 --
--- Motions left or right are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
+-- Motions leftward or rightward are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
 --
 -- Violate these assumptions at your own risk!
 unsafelyRestoreTrack :: Track h a -> Zipped h a -> h :> a
 unsafelyRestoreTrack Track = zipper
-unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> tugs right n >>> fromWithin l
+unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> tugs rightward n >>> fromWithin l
 
 -----------------------------------------------------------------------------
 -- * Helper functions
