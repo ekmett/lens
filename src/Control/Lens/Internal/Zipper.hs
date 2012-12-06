@@ -179,6 +179,24 @@ leftward (Zipper _ _ []     _ _ ) = mzero
 leftward (Zipper h n (l:ls) a rs) = return (Zipper h (n - 1) ls l (a:rs))
 {-# INLINE leftward #-}
 
+-- | Move to the leftmost position of the current 'Traversal'.
+-- 
+-- This is just a convenient alias for @'farthest' 'leftward'@.
+--
+-- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
+-- "hella"
+leftmost :: (a :> b) -> a :> b
+leftmost = farthest leftward
+
+-- | Move to the rightmost position of the current 'Traversal'.
+--
+-- This is just a convenient alias for @'farthest' 'rightward'@.
+--
+-- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
+-- "jelly"
+rightmost :: (a :> b) -> a :> b
+rightmost = farthest rightward
+
 -- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'zipper'. This
 -- will attempt the move, and stay where it was if it fails.
 --
@@ -217,10 +235,10 @@ tugs f n0
 --
 -- This repeatedly applies a function until it returns Nothing, and then returns the last answer.
 --
--- >>> fmap rezip $ zipper ("hello","world") & downward _1 & within traverse <&> farthest rightward <&> focus .~ 'a'
+-- >>> fmap rezip $ zipper ("hello","world") & downward _1 & within traverse <&> rightmost <&> focus .~ 'a'
 -- ("hella","world")
 --
--- >>> rezip $ zipper ("hello","there") & fromWithin (both.traverse) & farthest rightward & focus .~ 'm'
+-- >>> rezip $ zipper ("hello","there") & fromWithin (both.traverse) & rightmost & focus .~ 'm'
 -- ("hello","therm")
 farthest :: (a -> Maybe a) -> a -> a
 farthest f = go where
