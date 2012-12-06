@@ -186,7 +186,7 @@ slicedFrom n = indexed $ \ f m -> case Seq.splitAt n m of
   (l,r) -> (l ><) <$> itraverse (f . (+n)) r
 {-# INLINE slicedFrom #-}
 
--- | Travere all the elements numbered from @i@ to @j@ of a 'Seq'
+-- | Traverse all the elements numbered from @i@ to @j@ of a 'Seq'
 --
 -- >>> fromList [a,b,c,d,e] & sliced 1 3 %~ f
 -- fromList [a,f b,f c,d,e]

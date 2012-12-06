@@ -189,7 +189,7 @@ without (Prism bt seta) (Prism dv uevc) = prism (bt +++ dv) go where
 --
 -- @
 -- 'remit' :: 'Prism' s t a b -> 'Getter' b t
--- 'remit' :: 'Iso' s t a b        -> 'Getter' b t
+-- 'remit' :: 'Iso' s t a b   -> 'Getter' b t
 -- @
 remit :: APrism s t a b -> Getter b t
 remit Prismoid     = id

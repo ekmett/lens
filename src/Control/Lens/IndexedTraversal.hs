@@ -8,7 +8,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#ifdef TRUSTHWORTHY
+#ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
 

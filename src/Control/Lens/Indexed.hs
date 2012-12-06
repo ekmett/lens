@@ -57,7 +57,7 @@ reindexed ij (Indexed iab) = indexed $ \ ja -> iab $ \i -> ja (ij i)
 f <.> g = icompose (,) f g
 {-# INLINE (<.>) #-}
 
--- | Composition of 'Indexed' functions with a user supplied function for combining indexs
+-- | Composition of 'Indexed' functions with a user supplied function for combining indices
 icompose :: Indexable k r => (i -> j -> k) -> Indexed i b c -> Indexed j a b -> r a c
 icompose ijk (Indexed ibc) (Indexed jab) = indexed $ \ka -> ibc $ \i -> jab $ \j -> ka (ijk i j)
 {-# INLINE icompose #-}

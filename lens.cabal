@@ -238,13 +238,11 @@ library
   if flag(safe)
     cpp-options: -DSAFE=1
 
-  if flag(trustworthy) && impl(ghc>=7.4)
+  if flag(trustworthy) && impl(ghc>=7.2)
     cpp-options: -DTRUSTWORTHY=1
 
   if impl(ghc<7.4)
     ghc-options: -fno-spec-constr-count
-  else
-    cpp-options: -DDEFAULT_SIGNATURES=1
 
   -- platform
   build-depends:   array >= 0.3.0.2 && < 0.5
@@ -266,6 +264,7 @@ library
   if impl(ghc>=7.2)
     other-extensions: Trustworthy
     build-depends: ghc-prim
+    cpp-options: -DDEFAULT_SIGNATURES=1
   else
     build-depends: generic-deriving
 

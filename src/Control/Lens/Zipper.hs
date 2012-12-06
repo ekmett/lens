@@ -27,7 +27,7 @@
 -- Since individual levels of a zipper are managed by an arbitrary 'Traversal',
 -- you can move left and right through the 'Traversal' selecting neighboring elements.
 --
--- >>> zipper ("hello","world") & downward _1 & fromWithin traverse & focus .~ 'J' & farthest rightward & focus .~ 'y' & rezip
+-- >>> zipper ("hello","world") & downward _1 & fromWithin traverse & focus .~ 'J' & rightmost & focus .~ 'y' & rezip
 -- ("Jelly","world")
 --
 -- This is particularly powerful when compiled with 'Control.Lens.Plated.plate',
@@ -50,6 +50,8 @@ module Control.Lens.Zipper
   -- ** Lateral Movement
   , leftward
   , rightward
+  , leftmost
+  , rightmost
   -- ** Movement Combinators
   , tug
   , tugs

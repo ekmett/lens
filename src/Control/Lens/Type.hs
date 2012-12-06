@@ -573,7 +573,7 @@ l <<.~ b = l $ \a -> (a, b)
 -- @
 -- ('<%=') :: 'MonadState' s m             => 'Simple' 'Lens' s a     -> (a -> a) -> m a
 -- ('<%=') :: 'MonadState' s m             => 'Simple' 'Control.Lens.Iso.Iso' s a      -> (a -> a) -> m a
--- ('<%=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Traveral' s a -> (a -> a) -> m a
+-- ('<%=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Traversal' s a -> (a -> a) -> m a
 -- @
 (<%=) :: MonadState s m => LensLike ((,)b) s s a b -> (a -> b) -> m b
 l <%= f = l %%= \a -> let b = f a in (b,b)
@@ -711,7 +711,7 @@ l <&&= b = l <%= (&& b)
 -- @
 -- ('<<%=') :: 'MonadState' s m             => 'Simple' 'Lens' s a     -> (a -> a) -> m a
 -- ('<<%=') :: 'MonadState' s m             => 'Simple' 'Control.Lens.Iso.Iso' s a      -> (a -> a) -> m a
--- ('<<%=') :: ('MonadState' s m, 'Monoid' b) => 'Simple' 'Traveral' s a -> (a -> a) -> m a
+-- ('<<%=') :: ('MonadState' s m, 'Monoid' b) => 'Simple' 'Traversal' s a -> (a -> a) -> m a
 -- @
 (<<%=) :: MonadState s m => LensLike ((,)a) s s a b -> (a -> b) -> m a
 l <<%= f = l %%= \a -> (a, f a)
@@ -728,7 +728,7 @@ l <<%= f = l %%= \a -> (a, f a)
 -- @
 -- ('<<%=') :: 'MonadState' s m             => 'Simple' 'Lens' s a     -> (a -> a) -> m a
 -- ('<<%=') :: 'MonadState' s m             => 'Simple' 'Control.Lens.Iso.Iso' s a      -> (a -> a) -> m a
--- ('<<%=') :: ('MonadState' s m, 'Monoid' t) => 'Simple' 'Traveral' s a -> (a -> a) -> m a
+-- ('<<%=') :: ('MonadState' s m, 'Monoid' t) => 'Simple' 'Traversal' s a -> (a -> a) -> m a
 -- @
 (<<.=) :: MonadState s m => LensLike ((,)a) s s a b -> b -> m a
 l <<.= b = l %%= \a -> (a,b)

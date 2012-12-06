@@ -375,7 +375,7 @@ unwrapping _ = unwrapped
 -- | This is a convenient version of 'wrapped' with two arguments that are ignored.
 --
 -- These arguments are used to which newtype the user intends to wrap and
--- should both be the same constructor.  This redundency is necessary
+-- should both be the same constructor.  This redundancy is necessary
 -- in order to find the full polymorphic isomorphism family.
 --
 -- The user supplied functions are /ignored/, merely their types are used.
@@ -386,7 +386,7 @@ wrappings _ _ = wrapped
 -- | This is a convenient version of 'unwrapped' with two arguments that are ignored.
 --
 -- These arguments are used to which newtype the user intends to remove and
--- should both be the same constructor. This redundency is necessary
+-- should both be the same constructor. This redundancy is necessary
 -- in order to find the full polymorphic isomorphism family.
 --
 -- The user supplied functions are /ignored/, merely their types are used.

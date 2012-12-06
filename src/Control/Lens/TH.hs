@@ -561,7 +561,7 @@ unifyTypes :: [TyVarBndr] -> [Type] -> Q ([TyVarBndr], Type)
 unifyTypes tvs tys = return (tvs, head tys)
 
 #if !(MIN_VERSION_template_haskell(2,7,0))
--- | The orphan instance for old versions is bad, but programing without 'Applicative' is worse.
+-- | The orphan instance for old versions is bad, but programming without 'Applicative' is worse.
 instance Applicative Q where
   pure = return
   (<*>) = ap

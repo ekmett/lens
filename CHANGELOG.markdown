@@ -28,6 +28,7 @@
 * Added `singular` and `unsafeSingular` to `Control.Lens.Traversal` to assert a `Traversal` is a `Lens`, a `Fold` is a `Getter` or a `MonadicFold` is an `Action`.
 * Generalized `sequenceAOf_`'s type to match `sequenceA_`.
 * Renamed `up`/`down`/`left`/`right` to `upward`/`downward`/`leftward`/`rightward` to reduce conflicts -- in particular with `Control.Arrow`.
+* Readded `leftmost` and `rightmost` due to the verbosity of `farthest leftward`/`farthest rightward`.
 
 3.6.0.3 [maintenance release]
 -------

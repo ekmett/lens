@@ -210,7 +210,7 @@ filtered p f a
 
 -- | This allows you to traverse the elements of a 'Control.Lens.Traversal.Traversal' or 'Fold' in the opposite order.
 -- This will demote an 'Control.Lens.IndexedTraversal.IndexedTraversal' or 'Control.Lens.IndexedFold.IndexedFold' to a regular 'Control.Lens.Traversal.Traversal' or 'Fold',
--- repectively; to preserve the indices, use 'Control.Lens.IndexedFold.ibackwards' instead.
+-- respectively; to preserve the indices, use 'Control.Lens.IndexedFold.ibackwards' instead.
 --
 -- Note: 'backwards' should have no impact on a 'Getter', 'Control.Lens.Setter.Setter', 'Lens' or 'Control.Lens.Iso.Iso'.
 --
@@ -936,7 +936,7 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
   mf x (Just y) = Just (f x y)
 {-# INLINE foldr1Of #-}
 
--- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and strutures such
+-- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and structures such
 -- that the lens views at least one element of the structure.
 --
 -- @
