@@ -35,7 +35,7 @@
 --
 -- By implementing these combinators in terms of 'plate' instead of 'uniplate'
 -- additional type safety is gained, as the user is no longer responsible for
--- maintaining invariants such as the number of children he received.
+-- maintaining invariants such as the number of children they received.
 --
 -- Note: The @Biplate@ is /deliberately/ excluded from the API here, with the
 -- intention that you replace them with either explicit traversals, or by using the
