@@ -47,16 +47,20 @@ module Control.Lens.Iso
   , Strict(..)
   -- * Simplicity
   , SimpleIso
+  -- * Useful Type Families
+  , CoA, CoB
   ) where
 
-import Control.Lens.Classes (Isomorphic(..))
-import Control.Lens.Internal (Isoid(..))
-import Control.Lens.Type (Simple)
+import Control.Category
+import Control.Lens.Classes
+import Control.Lens.Internal
+import Control.Lens.Type
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
-import Data.Text as StrictT (Text)
-import Data.Text.Lazy as LazyT (Text, toStrict, fromStrict)
-import Data.Maybe (fromMaybe)
+import Data.Text as StrictT
+import Data.Text.Lazy as LazyT
+import Data.Maybe
+import Prelude hiding ((.),id)
 
 -- $setup
 -- >>> import Control.Lens
@@ -72,7 +76,7 @@ import Data.Maybe (fromMaybe)
 --
 -- @'from' ('from' l) ≡ l@
 from :: AnIso s t a b -> Iso b a t s
-from Isoid       = isoid
+from Isoid       = id
 from (Iso sa bt) = iso bt sa
 {-# INLINE from #-}
 
@@ -83,7 +87,7 @@ from (Iso sa bt) = iso bt sa
 --
 -- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
 cloneIso :: AnIso s t a b -> Iso s t a b
-cloneIso Isoid       = isoid
+cloneIso Isoid       = id
 cloneIso (Iso sa bt) = iso sa bt
 {-# INLINE cloneIso #-}
 
@@ -92,10 +96,10 @@ cloneIso (Iso sa bt) = iso sa bt
 -----------------------------------------------------------------------------
 
 -- | Isomorphism families can be composed with other lenses using ('.') and 'id'.
-type Iso s t a b = forall r. (Isomorphic r, IsoS r ~ s, IsoT r ~ t, IsoA r ~ a, IsoB r ~ b) => r
+type Iso s t a b = forall k f. (Isomorphic k, Functor f) => k (a -> f b) (s -> f t)
 
 -- | When you see this as an argument to a function, it expects an 'Iso'.
-type AnIso s t a b = Isoid (a,b) (s,t)
+type AnIso s t a b = Overloaded Isoid Mutator s t a b
 
 -- |
 -- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
@@ -162,7 +166,7 @@ enum = iso toEnum fromEnum
 
 -- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
 mapping :: Functor f => AnIso s t a b -> Iso (f s) (f t) (f a) (f b)
-mapping Isoid       = isoid
+mapping Isoid       = id
 mapping (Iso sa bt) = iso (fmap sa) (fmap bt)
 {-# INLINE mapping #-}
 
@@ -171,7 +175,7 @@ mapping (Iso sa bt) = iso (fmap sa) (fmap bt)
 -- argument to force that argument to agree with the
 -- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.
 simple :: Simple Iso a a
-simple = isoid
+simple = id
 {-# INLINE simple #-}
 
 -- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @non v@ is an isomorphism from

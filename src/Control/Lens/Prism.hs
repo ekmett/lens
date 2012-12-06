@@ -44,6 +44,7 @@ module Control.Lens.Prism
   , SimplePrism
   ) where
 
+import Control.Applicative
 import Control.Arrow
 import Control.Category
 import Control.Monad.Reader as Reader
@@ -129,10 +130,11 @@ import Prelude hiding (id,(.))
 --
 -- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'
 -- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
-type Prism s t a b = forall r. (Prismatic r, IsoS r ~ s, IsoT r ~ t, IsoA r ~ a, IsoB r ~ b) => r
+type Prism s t a b = forall k f. (Prismatic k, Applicative f) => k (a -> f b) (s -> f t)
 
--- | If you see this in a signature for a function, the function is expecting a 'Prism'.
-type APrism s t a b = Prismoid (a,b) (s,t)
+-- | If you see this in a signature for a function, the function is expecting a 'Prism',
+-- not some kind of alien invader.
+type APrism s t a b = Overloaded Prismoid Mutator s t a b
 
 -- | A @'Simple' 'Prism'@.
 type SimplePrism s a = Prism s s a a
@@ -141,7 +143,7 @@ type SimplePrism s a = Prism s s a a
 --
 -- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.
 clonePrism :: APrism s t a b -> Prism s t a b
-clonePrism Prismoid    = prismoid
+clonePrism Prismoid    = id
 clonePrism (Prism f g) = prism f g
 
 ------------------------------------------------------------------------------
@@ -157,7 +159,7 @@ outside (Prism bt seta) f tr = f (tr.bt) <&> \ar -> either tr ar . seta
 
 -- | Use a 'Prism' to work over part of a structure.
 aside :: APrism s t a b -> Prism (e, s) (e, t) (e, a) (e, b)
-aside Prismoid = prismoid
+aside Prismoid = id
 aside (Prism bt seta) = prism (fmap bt) $ \(e,s) -> case seta s of
   Left t -> Left (e,t)
   Right a -> Right (e,a)
@@ -168,7 +170,7 @@ aside (Prism bt seta) = prism (fmap bt) $ \(e,s) -> case seta s of
 without :: APrism s t a b
         -> APrism u v c d
         -> Prism (Either s u) (Either t v) (Either a c) (Either b d)
-without Prismoid Prismoid = prismoid
+without Prismoid Prismoid = id
 without (Prism bt seta) Prismoid = prism (left bt) go where
   go (Left s) = either (Left . Left) (Right . Left) (seta s)
   go (Right u) = Right (Right u)

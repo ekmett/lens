@@ -54,6 +54,7 @@ module Control.Lens.Internal
   , Prismoid(..)
   , Isoid(..)
   , Indexed(..)
+  , CoA, CoB
   ) where
 
 import Control.Applicative
@@ -475,15 +476,22 @@ sellT i = BazaarT (\k -> k i)
 -- Prism Internals
 ------------------------------------------------------------------------------
 
--- | This data type is used to capture all of the information provided by the 'Prismatic'
--- class, so you can turn a 'Prism' around into a 'Getter' or otherwise muck around
--- with its internals.
+type family ArgOf (f_b :: *) :: *
+type instance ArgOf (f b) = b
+type family CoA x :: *
+type family CoB x :: *
+type instance CoA (a -> f_b) = a
+type instance CoB (a -> f_b) = ArgOf f_b
+
+-- | This data type is used to capture all of the information provided by the
+-- 'Prismatic' -- class, so you can turn a 'Prism' around into a 'Getter' or
+-- otherwise muck around with its internals.
 --
--- If you see a function that expects a 'Prismoid' or 'APrism', it is probably just
--- expecting a 'Prism'.
+-- If you see a function that expects a 'Prismoid' or 'APrism', it is probably
+-- just expecting a 'Prism'.
 data Prismoid ab st where
-  Prismoid :: Prismoid ab ab
-  Prism    :: (b -> t) -> (s -> Either t a) -> Prismoid (a,b) (s,t)
+  Prismoid :: Prismoid x x
+  Prism :: (CoB x -> CoB y) -> (CoA y -> Either (CoB y) (CoA x)) -> Prismoid x y
 
 instance Category Prismoid where
   id = Prismoid
@@ -496,18 +504,13 @@ instance Category Prismoid where
         Left t  -> Left (ty t)
         Right a -> Right a
 
-instance Isomorphic (Prismoid (a,b) (s,t)) where
-  type IsoS (Prismoid (a,b) (s,t)) = s
-  type IsoT (Prismoid (a,b) (s,t)) = t
-  type IsoA (Prismoid (a,b) (s,t)) = a
-  type IsoB (Prismoid (a,b) (s,t)) = b
-
+instance Isomorphic Prismoid where
   iso sa bt = Prism bt (Right . sa)
-  isoid = Prismoid
+  {-# INLINE iso #-}
 
-instance Prismatic (Prismoid (a,b) (s,t)) where
+instance Prismatic Prismoid where
   prism    = Prism
-  prismoid = Prismoid
+  {-# INLINE prism #-}
 
 ------------------------------------------------------------------------------
 -- Isomorphism Internals
@@ -516,7 +519,7 @@ instance Prismatic (Prismoid (a,b) (s,t)) where
 -- | Reify all of the information given to you by being 'Isomorphic'.
 data Isoid ab st where
   Isoid :: Isoid ab ab
-  Iso   :: (s -> a) -> (b -> t) -> Isoid (a,b) (s,t)
+  Iso   :: (CoA y -> CoA x) -> (CoB x -> CoB y) -> Isoid x y
 
 instance Category Isoid where
   id = Isoid
@@ -524,13 +527,9 @@ instance Category Isoid where
   x . Isoid = x
   Iso xs ty . Iso sa bt = Iso (sa.xs) (ty.bt)
 
-instance Isomorphic (Isoid (a,b) (s,t)) where
-  type IsoS (Isoid (a,b) (s,t)) = s
-  type IsoT (Isoid (a,b) (s,t)) = t
-  type IsoA (Isoid (a,b) (s,t)) = a
-  type IsoB (Isoid (a,b) (s,t)) = b
+instance Isomorphic Isoid where
   iso   = Iso
-  isoid = Isoid
+  {-# INLINE iso #-}
 
 ------------------------------------------------------------------------------
 -- Indexed Internals

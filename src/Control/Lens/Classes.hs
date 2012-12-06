@@ -34,10 +34,6 @@ module Control.Lens.Classes
   , Prismatic(..)
   -- * Indexable
   , Indexable(..)
-  -- * Families
-  , CoalgebraicA
-  , CoalgebraicB
-  , CoalgebraicF
   ) where
 
 import Control.Applicative
@@ -144,23 +140,11 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
 -- Isomorphisms
 -----------------------------------------------------------------------------
 
-type family CoalgebraicA (x :: *) :: *
-type family CoalgebraicB (x :: *) :: *
-type family CoalgebraicF (x :: *) :: * -> *
-
-type instance CoalgebraicA (a -> f_b) = a
-type instance CoalgebraicB (a -> f b) = b
-type instance CoalgebraicF (a -> f b) = f
-
 -- | Used to provide overloading of isomorphism application
 --
 -- An instance of 'Isomorphic' is a 'Category' with a canonical mapping to it from the
 -- category of isomorphisms over Haskell types.
-class Isomorphic r where
-  type IsoS (r :: *) :: *
-  type IsoT (r :: *) :: *
-  type IsoA (r :: *) :: *
-  type IsoB (r :: *) :: *
+class Category k => Isomorphic k where
   -- | Build a simple isomorphism from a pair of inverse functions
   --
   -- @
@@ -169,18 +153,11 @@ class Isomorphic r where
   -- 'set' ('iso' f g) h ≡ g '.' h '.' f
   -- 'set' ('from' ('iso' f g)) h ≡ f '.' h '.' g
   -- @
-  iso :: (IsoS r -> IsoA r) -> (IsoB r -> IsoT r) -> r
-  isoid :: (IsoA r ~ IsoS r, IsoB r ~ IsoT r) => r
+  iso :: Functor f => (s -> a) -> (b -> t) -> k (a -> f b) (s -> f t)
 
-instance (Functor f, x ~ (a -> f b), y ~ (s -> f t)) => Isomorphic (x -> y) where
-  type IsoS (x -> y) = CoalgebraicA y
-  type IsoT (x -> y) = CoalgebraicB y
-  type IsoA (x -> y) = CoalgebraicA x
-  type IsoB (x -> y) = CoalgebraicB x
+instance Isomorphic (->) where
   iso sa bt afb s = bt <$> afb (sa s)
   {-# INLINE iso #-}
-  isoid = id
-  {-# INLINE isoid #-}
 
 -----------------------------------------------------------------------------
 -- Prisms
@@ -190,18 +167,15 @@ instance (Functor f, x ~ (a -> f b), y ~ (s -> f t)) => Isomorphic (x -> y) wher
 --
 -- An instance of 'Prismatic' is a 'Category' with a canonical mapping to it from the category
 -- of embedding-projection pairs over Haskell types.
-class Isomorphic r => Prismatic r where
+class Isomorphic k => Prismatic k where
   -- | Build a 'Control.Lens.Prism.Prism'.
   --
   -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
-  prism :: (IsoB r -> IsoT r) -> (IsoS r -> Either (IsoT r) (IsoA r)) -> r
-  prismoid :: (IsoA r ~ IsoS r, IsoB r ~ IsoT r) => r
+  prism :: Applicative f => (b -> t) -> (s -> Either t a) -> k (a -> f b) (s -> f t)
 
-instance (Applicative f, x ~ (a -> f b), y ~ (s -> f t)) => Prismatic (x -> y) where
+instance Prismatic (->) where
   prism bt seta afb = either pure (fmap bt . afb) . seta
   {-# INLINE prism #-}
-  prismoid = id
-  {-# INLINE prismoid #-}
 
 ----------------------------------------------------------------------------
 -- Indexed Internals
