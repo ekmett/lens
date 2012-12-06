@@ -27,6 +27,7 @@
 * Added `withins` to `Control.Lens.Zipper` now that they can work better with [].
 * Added `singular` and `unsafeSingular` to `Control.Lens.Traversal` to assert a `Traversal` is a `Lens`, a `Fold` is a `Getter` or a `MonadicFold` is an `Action`.
 * Generalized `sequenceAOf_`'s type to match `sequenceA_`.
+* Renamed `up`/`down`/`left`/`right` to `upward`/`downward`/`leftward`/`rightward` to reduce conflicts -- in particular with `Control.Arrow`.
 
 3.6.0.3 [maintenance release]
 -------
