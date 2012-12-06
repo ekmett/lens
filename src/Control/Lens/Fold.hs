@@ -554,13 +554,13 @@ forOf_ = flip . traverseOf_
 -- @'sequenceA_' ≡ 'sequenceAOf_' 'folded'@
 --
 -- @
--- 'sequenceAOf_' :: 'Functor' f     => 'Getter' s (f ())           -> s -> f ()
--- 'sequenceAOf_' :: 'Applicative' f => 'Fold' s (f ())             -> s -> f ()
--- 'sequenceAOf_' :: 'Functor' f     => 'Simple' 'Lens' s (f ())      -> s -> f ()
--- 'sequenceAOf_' :: 'Functor' f     => 'Simple' 'Iso' s (f ())       -> s -> f ()
--- 'sequenceAOf_' :: 'Applicative' f => 'Simple' 'Control.Lens.Traversal.Traversal' s (f ()) -> s -> f ()
+-- 'sequenceAOf_' :: 'Functor' f     => 'Getter' s (f a)           -> s -> f ()
+-- 'sequenceAOf_' :: 'Applicative' f => 'Fold' s (f a)             -> s -> f ()
+-- 'sequenceAOf_' :: 'Functor' f     => 'Simple' 'Lens' s (f a)      -> s -> f ()
+-- 'sequenceAOf_' :: 'Functor' f     => 'Simple' 'Iso' s (f a)       -> s -> f ()
+-- 'sequenceAOf_' :: 'Applicative' f => 'Simple' 'Control.Lens.Traversal.Traversal' s (f a) -> s -> f ()
 -- @
-sequenceAOf_ :: Functor f => Getting (Traversed f) s t (f ()) b -> s -> f ()
+sequenceAOf_ :: Functor f => Getting (Traversed f) s t (f a) b -> s -> f ()
 sequenceAOf_ l = getTraversed# (foldMapOf l (traversed# void))
 {-# INLINE sequenceAOf_ #-}
 
