@@ -219,7 +219,7 @@
 <a name="line-210"></a>
 <a name="line-211"></a><a name="backwards"></a><span class='hs-comment'>-- | This allows you to traverse the elements of a 'Control.Lens.Traversal.Traversal' or 'Fold' in the opposite order.</span>
 <a name="line-212"></a><span class='hs-comment'>-- This will demote an 'Control.Lens.IndexedTraversal.IndexedTraversal' or 'Control.Lens.IndexedFold.IndexedFold' to a regular 'Control.Lens.Traversal.Traversal' or 'Fold',</span>
-<a name="line-213"></a><span class='hs-comment'>-- repectively; to preserve the indices, use 'Control.Lens.IndexedFold.ibackwards' instead.</span>
+<a name="line-213"></a><span class='hs-comment'>-- respectively; to preserve the indices, use 'Control.Lens.IndexedFold.ibackwards' instead.</span>
 <a name="line-214"></a><span class='hs-comment'>--</span>
 <a name="line-215"></a><span class='hs-comment'>-- Note: 'backwards' should have no impact on a 'Getter', 'Control.Lens.Setter.Setter', 'Lens' or 'Control.Lens.Iso.Iso'.</span>
 <a name="line-216"></a><span class='hs-comment'>--</span>
@@ -563,13 +563,13 @@
 <a name="line-554"></a><span class='hs-comment'>-- @'sequenceA_' ≡ 'sequenceAOf_' 'folded'@</span>
 <a name="line-555"></a><span class='hs-comment'>--</span>
 <a name="line-556"></a><span class='hs-comment'>-- @</span>
-<a name="line-557"></a><span class='hs-comment'>-- 'sequenceAOf_' :: 'Functor' f     =&gt; 'Getter' s (f ())           -&gt; s -&gt; f ()</span>
-<a name="line-558"></a><span class='hs-comment'>-- 'sequenceAOf_' :: 'Applicative' f =&gt; 'Fold' s (f ())             -&gt; s -&gt; f ()</span>
-<a name="line-559"></a><span class='hs-comment'>-- 'sequenceAOf_' :: 'Functor' f     =&gt; 'Simple' 'Lens' s (f ())      -&gt; s -&gt; f ()</span>
-<a name="line-560"></a><span class='hs-comment'>-- 'sequenceAOf_' :: 'Functor' f     =&gt; 'Simple' 'Iso' s (f ())       -&gt; s -&gt; f ()</span>
-<a name="line-561"></a><span class='hs-comment'>-- 'sequenceAOf_' :: 'Applicative' f =&gt; 'Simple' 'Control.Lens.Traversal.Traversal' s (f ()) -&gt; s -&gt; f ()</span>
+<a name="line-557"></a><span class='hs-comment'>-- 'sequenceAOf_' :: 'Functor' f     =&gt; 'Getter' s (f a)           -&gt; s -&gt; f ()</span>
+<a name="line-558"></a><span class='hs-comment'>-- 'sequenceAOf_' :: 'Applicative' f =&gt; 'Fold' s (f a)             -&gt; s -&gt; f ()</span>
+<a name="line-559"></a><span class='hs-comment'>-- 'sequenceAOf_' :: 'Functor' f     =&gt; 'Simple' 'Lens' s (f a)      -&gt; s -&gt; f ()</span>
+<a name="line-560"></a><span class='hs-comment'>-- 'sequenceAOf_' :: 'Functor' f     =&gt; 'Simple' 'Iso' s (f a)       -&gt; s -&gt; f ()</span>
+<a name="line-561"></a><span class='hs-comment'>-- 'sequenceAOf_' :: 'Applicative' f =&gt; 'Simple' 'Control.Lens.Traversal.Traversal' s (f a) -&gt; s -&gt; f ()</span>
 <a name="line-562"></a><span class='hs-comment'>-- @</span>
-<a name="line-563"></a><span class='hs-definition'>sequenceAOf_</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Traversed</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-conid'>()</span><span class='hs-layout'>)</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-conid'>()</span>
+<a name="line-563"></a><span class='hs-definition'>sequenceAOf_</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Traversed</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-conid'>()</span>
 <a name="line-564"></a><span class='hs-definition'>sequenceAOf_</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getTraversed</span><span class='hs-cpp'>#</span> <span class='hs-layout'>(</span><span class='hs-varid'>foldMapOf</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>traversed</span><span class='hs-cpp'>#</span> <span class='hs-varid'>void</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
 <a name="line-565"></a><span class='hs-comment'>{-# INLINE sequenceAOf_ #-}</span>
 <a name="line-566"></a>
@@ -945,7 +945,7 @@
 <a name="line-936"></a>  <span class='hs-varid'>mf</span> <span class='hs-varid'>x</span> <span class='hs-layout'>(</span><span class='hs-conid'>Just</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Just</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>x</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span>
 <a name="line-937"></a><span class='hs-comment'>{-# INLINE foldr1Of #-}</span>
 <a name="line-938"></a>
-<a name="line-939"></a><a name="foldl1Of"></a><span class='hs-comment'>-- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and strutures such</span>
+<a name="line-939"></a><a name="foldl1Of"></a><span class='hs-comment'>-- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and structures such</span>
 <a name="line-940"></a><span class='hs-comment'>-- that the lens views at least one element of the structure.</span>
 <a name="line-941"></a><span class='hs-comment'>--</span>
 <a name="line-942"></a><span class='hs-comment'>-- @</span>

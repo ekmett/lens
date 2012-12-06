@@ -11,337 +11,351 @@
 <a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE GADTs #-}</span>
 <a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE Rank2Types #-}</span>
 <a name="line-4"></a><span class='hs-comment'>{-# LANGUAGE FlexibleContexts #-}</span>
-<a name="line-5"></a><span class='hs-comment'>{-# LANGUAGE MultiParamTypeClasses #-}</span>
-<a name="line-6"></a><span class='hs-cpp'>#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 704</span>
-<a name="line-7"></a><span class='hs-comment'>{-# LANGUAGE Trustworthy #-}</span>
-<a name="line-8"></a><span class='hs-cpp'>#endif</span>
-<a name="line-9"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-10"></a><span class='hs-comment'>-- |</span>
-<a name="line-11"></a><span class='hs-comment'>-- Module      :  Control.Lens.Prism</span>
-<a name="line-12"></a><span class='hs-comment'>-- Copyright   :  (C) 2012 Edward Kmett</span>
-<a name="line-13"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
-<a name="line-14"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
-<a name="line-15"></a><span class='hs-comment'>-- Stability   :  provisional</span>
-<a name="line-16"></a><span class='hs-comment'>-- Portability :  non-portable</span>
-<a name="line-17"></a><span class='hs-comment'>--</span>
-<a name="line-18"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-19"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Prism</span>
-<a name="line-20"></a>  <span class='hs-layout'>(</span>
-<a name="line-21"></a>  <span class='hs-comment'>-- * Prisms</span>
-<a name="line-22"></a>    <span class='hs-conid'>Prism</span>
-<a name="line-23"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>APrism</span>
-<a name="line-24"></a>  <span class='hs-comment'>-- * Constructing Prisms</span>
-<a name="line-25"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Prismatic</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
-<a name="line-26"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Prismoid</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
-<a name="line-27"></a>
-<a name="line-28"></a>  <span class='hs-comment'>-- * Consuming Prisms</span>
-<a name="line-29"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>clonePrism</span>
-<a name="line-30"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>remit</span>
-<a name="line-31"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>review</span><span class='hs-layout'>,</span> <span class='hs-varid'>reviews</span>
-<a name="line-32"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>reuse</span><span class='hs-layout'>,</span> <span class='hs-varid'>reuses</span>
-<a name="line-33"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>outside</span>
-<a name="line-34"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>aside</span>
-<a name="line-35"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>without</span>
-<a name="line-36"></a>
-<a name="line-37"></a>  <span class='hs-comment'>-- * Common projections</span>
-<a name="line-38"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_left</span>
-<a name="line-39"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_right</span>
-<a name="line-40"></a>
-<a name="line-41"></a>  <span class='hs-comment'>-- * Simple</span>
-<a name="line-42"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>SimplePrism</span>
-<a name="line-43"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-44"></a>
-<a name="line-45"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Arrow</span>
-<a name="line-46"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Category</span>
-<a name="line-47"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span><span class='hs-varop'>.</span><span class='hs-conid'>Reader</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Reader</span>
-<a name="line-48"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span><span class='hs-varop'>.</span><span class='hs-conid'>State</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>State</span>
-<a name="line-49"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Classes</span>
-<a name="line-50"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Combinators</span>
-<a name="line-51"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Getter</span>
-<a name="line-52"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span>
-<a name="line-53"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
-<a name="line-54"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Prelude</span> <span class='hs-varid'>hiding</span> <span class='hs-layout'>(</span><span class='hs-varid'>id</span><span class='hs-layout'>,</span><span class='hs-layout'>(</span><span class='hs-varop'>.</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-55"></a>
-<a name="line-56"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-57"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
-<a name="line-58"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Numeric.Natural</span>
-<a name="line-59"></a><span class='hs-comment'>-- &gt;&gt;&gt; :set -XFlexibleContexts -XTypeFamilies</span>
-<a name="line-60"></a><span class='hs-comment'>-- &gt;&gt;&gt; let nat :: Simple Prism Integer Natural; nat = prism toInteger $ \i -&gt; if i &lt;= 0 then Left i else Right (fromInteger i)</span>
-<a name="line-61"></a><span class='hs-comment'>-- &gt;&gt;&gt; let isLeft  (Left  _) = True; isLeft  _ = False</span>
-<a name="line-62"></a><span class='hs-comment'>-- &gt;&gt;&gt; let isRight (Right _) = True; isRight _ = False</span>
-<a name="line-63"></a>
-<a name="line-64"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-65"></a><span class='hs-comment'>-- Prism Internals</span>
-<a name="line-66"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-67"></a>
-<a name="line-68"></a><a name="Prism"></a><span class='hs-comment'>-- | A 'Prism' @l@ is a 0-or-1 target 'Traversal' that can also be turned around with 'remit' to</span>
-<a name="line-69"></a><a name="Prism"></a><span class='hs-comment'>-- obtain a 'Getter' in the opposite direction, such that in addition to the 'Traversal' laws, we also</span>
-<a name="line-70"></a><a name="Prism"></a><span class='hs-comment'>-- have</span>
-<a name="line-71"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-72"></a><a name="Prism"></a><span class='hs-comment'>-- @x '^.' 'remit' l '^?' l ≡ 'Just' x@</span>
-<a name="line-73"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-74"></a><a name="Prism"></a><span class='hs-comment'>-- @'Control.Lens.Fold.lengthOf' l x '&lt;=' 1@</span>
-<a name="line-75"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-76"></a><a name="Prism"></a><span class='hs-comment'>-- It may help to think of this as a 'Control.Lens.Iso.Iso' that can be partial in one direction.</span>
-<a name="line-77"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-78"></a><a name="Prism"></a><span class='hs-comment'>-- Every 'Prism' is a valid 'Traversal'.</span>
-<a name="line-79"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-80"></a><a name="Prism"></a><span class='hs-comment'>-- Every 'Control.Lens.Iso.Iso' is a valid 'Prism'.</span>
-<a name="line-81"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-82"></a><a name="Prism"></a><span class='hs-comment'>-- For example, you might have a @'Simple' 'Prism' 'Integer' Natural@ allows you to always</span>
-<a name="line-83"></a><a name="Prism"></a><span class='hs-comment'>-- go from a 'Natural' to an 'Integer', and provide you with tools to check if an 'Integer' is</span>
-<a name="line-84"></a><a name="Prism"></a><span class='hs-comment'>-- a 'Natural' and/or to edit one if it is.</span>
-<a name="line-85"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-86"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-87"></a><a name="Prism"></a><span class='hs-comment'>-- @</span>
-<a name="line-88"></a><a name="Prism"></a><span class='hs-comment'>-- 'nat' :: 'Simple' 'Prism' 'Integer' 'Numeric.Natural.Natural'</span>
-<a name="line-89"></a><a name="Prism"></a><span class='hs-comment'>-- 'nat' = 'prism' 'toInteger' '$' \\ i -&gt;</span>
-<a name="line-90"></a><a name="Prism"></a><span class='hs-comment'>--    if i '&lt;' 0</span>
-<a name="line-91"></a><a name="Prism"></a><span class='hs-comment'>--    then 'Left' i</span>
-<a name="line-92"></a><a name="Prism"></a><span class='hs-comment'>--    else 'Right' ('fromInteger' i)</span>
-<a name="line-93"></a><a name="Prism"></a><span class='hs-comment'>-- @</span>
-<a name="line-94"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-95"></a><a name="Prism"></a><span class='hs-comment'>-- Now we can ask if an 'Integer' is a 'Natural'.</span>
-<a name="line-96"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-97"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5^?nat</span>
-<a name="line-98"></a><a name="Prism"></a><span class='hs-comment'>-- Just 5</span>
+<a name="line-5"></a><span class='hs-comment'>{-# LANGUAGE TypeFamilies #-}</span>
+<a name="line-6"></a><span class='hs-comment'>{-# LANGUAGE MultiParamTypeClasses #-}</span>
+<a name="line-7"></a><span class='hs-cpp'>#ifdef TRUSTWORTHY</span>
+<a name="line-8"></a><span class='hs-comment'>{-# LANGUAGE Trustworthy #-}</span>
+<a name="line-9"></a><span class='hs-cpp'>#endif</span>
+<a name="line-10"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-11"></a><span class='hs-comment'>-- |</span>
+<a name="line-12"></a><span class='hs-comment'>-- Module      :  Control.Lens.Prism</span>
+<a name="line-13"></a><span class='hs-comment'>-- Copyright   :  (C) 2012 Edward Kmett</span>
+<a name="line-14"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
+<a name="line-15"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
+<a name="line-16"></a><span class='hs-comment'>-- Stability   :  provisional</span>
+<a name="line-17"></a><span class='hs-comment'>-- Portability :  non-portable</span>
+<a name="line-18"></a><span class='hs-comment'>--</span>
+<a name="line-19"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-20"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Prism</span>
+<a name="line-21"></a>  <span class='hs-layout'>(</span>
+<a name="line-22"></a>  <span class='hs-comment'>-- * Prisms</span>
+<a name="line-23"></a>    <span class='hs-conid'>Prism</span>
+<a name="line-24"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>APrism</span>
+<a name="line-25"></a>  <span class='hs-comment'>-- * Constructing Prisms</span>
+<a name="line-26"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Prismatic</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
+<a name="line-27"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Prismoid</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
+<a name="line-28"></a>
+<a name="line-29"></a>  <span class='hs-comment'>-- * Consuming Prisms</span>
+<a name="line-30"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>clonePrism</span>
+<a name="line-31"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>remit</span>
+<a name="line-32"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>review</span><span class='hs-layout'>,</span> <span class='hs-varid'>reviews</span>
+<a name="line-33"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>reuse</span><span class='hs-layout'>,</span> <span class='hs-varid'>reuses</span>
+<a name="line-34"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>outside</span>
+<a name="line-35"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>aside</span>
+<a name="line-36"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>without</span>
+<a name="line-37"></a>
+<a name="line-38"></a>  <span class='hs-comment'>-- * Common Prisms</span>
+<a name="line-39"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_left</span>
+<a name="line-40"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_right</span>
+<a name="line-41"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_just</span>
+<a name="line-42"></a>
+<a name="line-43"></a>  <span class='hs-comment'>-- * Simple</span>
+<a name="line-44"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>SimplePrism</span>
+<a name="line-45"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-46"></a>
+<a name="line-47"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
+<a name="line-48"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Arrow</span>
+<a name="line-49"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Category</span>
+<a name="line-50"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span><span class='hs-varop'>.</span><span class='hs-conid'>Reader</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Reader</span>
+<a name="line-51"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span><span class='hs-varop'>.</span><span class='hs-conid'>State</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>State</span>
+<a name="line-52"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Classes</span>
+<a name="line-53"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Combinators</span>
+<a name="line-54"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Getter</span>
+<a name="line-55"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span>
+<a name="line-56"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
+<a name="line-57"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Prelude</span> <span class='hs-varid'>hiding</span> <span class='hs-layout'>(</span><span class='hs-varid'>id</span><span class='hs-layout'>,</span><span class='hs-layout'>(</span><span class='hs-varop'>.</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-58"></a>
+<a name="line-59"></a><span class='hs-comment'>-- $setup</span>
+<a name="line-60"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
+<a name="line-61"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Numeric.Natural</span>
+<a name="line-62"></a><span class='hs-comment'>-- &gt;&gt;&gt; :set -XFlexibleContexts -XTypeFamilies</span>
+<a name="line-63"></a><span class='hs-comment'>-- &gt;&gt;&gt; let nat :: Simple Prism Integer Natural; nat = prism toInteger $ \i -&gt; if i &lt;= 0 then Left i else Right (fromInteger i)</span>
+<a name="line-64"></a><span class='hs-comment'>-- &gt;&gt;&gt; let isLeft  (Left  _) = True; isLeft  _ = False</span>
+<a name="line-65"></a><span class='hs-comment'>-- &gt;&gt;&gt; let isRight (Right _) = True; isRight _ = False</span>
+<a name="line-66"></a>
+<a name="line-67"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-68"></a><span class='hs-comment'>-- Prism Internals</span>
+<a name="line-69"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-70"></a>
+<a name="line-71"></a><a name="Prism"></a><span class='hs-comment'>-- | A 'Prism' @l@ is a 0-or-1 target 'Traversal' that can also be turned around with 'remit' to</span>
+<a name="line-72"></a><a name="Prism"></a><span class='hs-comment'>-- obtain a 'Getter' in the opposite direction, such that in addition to the 'Traversal' laws, we also</span>
+<a name="line-73"></a><a name="Prism"></a><span class='hs-comment'>-- have</span>
+<a name="line-74"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-75"></a><a name="Prism"></a><span class='hs-comment'>-- @x '^.' 'remit' l '^?' l ≡ 'Just' x@</span>
+<a name="line-76"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-77"></a><a name="Prism"></a><span class='hs-comment'>-- @'Control.Lens.Fold.lengthOf' l x '&lt;=' 1@</span>
+<a name="line-78"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-79"></a><a name="Prism"></a><span class='hs-comment'>-- It may help to think of this as a 'Control.Lens.Iso.Iso' that can be partial in one direction.</span>
+<a name="line-80"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-81"></a><a name="Prism"></a><span class='hs-comment'>-- Every 'Prism' is a valid 'Traversal'.</span>
+<a name="line-82"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-83"></a><a name="Prism"></a><span class='hs-comment'>-- Every 'Control.Lens.Iso.Iso' is a valid 'Prism'.</span>
+<a name="line-84"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-85"></a><a name="Prism"></a><span class='hs-comment'>-- For example, you might have a @'Simple' 'Prism' 'Integer' Natural@ allows you to always</span>
+<a name="line-86"></a><a name="Prism"></a><span class='hs-comment'>-- go from a 'Natural' to an 'Integer', and provide you with tools to check if an 'Integer' is</span>
+<a name="line-87"></a><a name="Prism"></a><span class='hs-comment'>-- a 'Natural' and/or to edit one if it is.</span>
+<a name="line-88"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-89"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-90"></a><a name="Prism"></a><span class='hs-comment'>-- @</span>
+<a name="line-91"></a><a name="Prism"></a><span class='hs-comment'>-- 'nat' :: 'Simple' 'Prism' 'Integer' 'Numeric.Natural.Natural'</span>
+<a name="line-92"></a><a name="Prism"></a><span class='hs-comment'>-- 'nat' = 'prism' 'toInteger' '$' \\ i -&gt;</span>
+<a name="line-93"></a><a name="Prism"></a><span class='hs-comment'>--    if i '&lt;' 0</span>
+<a name="line-94"></a><a name="Prism"></a><span class='hs-comment'>--    then 'Left' i</span>
+<a name="line-95"></a><a name="Prism"></a><span class='hs-comment'>--    else 'Right' ('fromInteger' i)</span>
+<a name="line-96"></a><a name="Prism"></a><span class='hs-comment'>-- @</span>
+<a name="line-97"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-98"></a><a name="Prism"></a><span class='hs-comment'>-- Now we can ask if an 'Integer' is a 'Natural'.</span>
 <a name="line-99"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-100"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; (-5)^?nat</span>
-<a name="line-101"></a><a name="Prism"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-100"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5^?nat</span>
+<a name="line-101"></a><a name="Prism"></a><span class='hs-comment'>-- Just 5</span>
 <a name="line-102"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-103"></a><a name="Prism"></a><span class='hs-comment'>-- We can update the ones that are:</span>
-<a name="line-104"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-105"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; (-3,4) &amp; both.nat *~ 2</span>
-<a name="line-106"></a><a name="Prism"></a><span class='hs-comment'>-- (-3,8)</span>
+<a name="line-103"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; (-5)^?nat</span>
+<a name="line-104"></a><a name="Prism"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-105"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-106"></a><a name="Prism"></a><span class='hs-comment'>-- We can update the ones that are:</span>
 <a name="line-107"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-108"></a><a name="Prism"></a><span class='hs-comment'>-- And we can then convert from a 'Natural' to an 'Integer'.</span>
-<a name="line-109"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-110"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5 ^. remit nat -- :: Natural</span>
-<a name="line-111"></a><a name="Prism"></a><span class='hs-comment'>-- 5</span>
+<a name="line-108"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; (-3,4) &amp; both.nat *~ 2</span>
+<a name="line-109"></a><a name="Prism"></a><span class='hs-comment'>-- (-3,8)</span>
+<a name="line-110"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-111"></a><a name="Prism"></a><span class='hs-comment'>-- And we can then convert from a 'Natural' to an 'Integer'.</span>
 <a name="line-112"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-113"></a><a name="Prism"></a><span class='hs-comment'>-- Similarly we can use a 'Prism' to 'traverse' the left half of an 'Either':</span>
-<a name="line-114"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-115"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; Left "hello" &amp; _left %~ length</span>
-<a name="line-116"></a><a name="Prism"></a><span class='hs-comment'>-- Left 5</span>
+<a name="line-113"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5 ^. remit nat -- :: Natural</span>
+<a name="line-114"></a><a name="Prism"></a><span class='hs-comment'>-- 5</span>
+<a name="line-115"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-116"></a><a name="Prism"></a><span class='hs-comment'>-- Similarly we can use a 'Prism' to 'traverse' the left half of an 'Either':</span>
 <a name="line-117"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-118"></a><a name="Prism"></a><span class='hs-comment'>-- or to construct an 'Either':</span>
-<a name="line-119"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-120"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5^.remit _left</span>
-<a name="line-121"></a><a name="Prism"></a><span class='hs-comment'>-- Left 5</span>
+<a name="line-118"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; Left "hello" &amp; _left %~ length</span>
+<a name="line-119"></a><a name="Prism"></a><span class='hs-comment'>-- Left 5</span>
+<a name="line-120"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-121"></a><a name="Prism"></a><span class='hs-comment'>-- or to construct an 'Either':</span>
 <a name="line-122"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-123"></a><a name="Prism"></a><span class='hs-comment'>-- such that if you query it with the 'Prism', you will get your original input back.</span>
-<a name="line-124"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-125"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5^.remit _left ^? _left</span>
-<a name="line-126"></a><a name="Prism"></a><span class='hs-comment'>-- Just 5</span>
+<a name="line-123"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5^.remit _left</span>
+<a name="line-124"></a><a name="Prism"></a><span class='hs-comment'>-- Left 5</span>
+<a name="line-125"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-126"></a><a name="Prism"></a><span class='hs-comment'>-- such that if you query it with the 'Prism', you will get your original input back.</span>
 <a name="line-127"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-128"></a><a name="Prism"></a><span class='hs-comment'>-- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'</span>
-<a name="line-129"></a><a name="Prism"></a><span class='hs-comment'>-- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.</span>
-<a name="line-130"></a><a name="Prism"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>forall</span> <span class='hs-varid'>r</span><span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prismatic</span> <span class='hs-varid'>r</span><span class='hs-layout'>,</span> <span class='hs-conid'>IsoS</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>~</span> <span class='hs-varid'>s</span><span class='hs-layout'>,</span> <span class='hs-conid'>IsoT</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>~</span> <span class='hs-varid'>t</span><span class='hs-layout'>,</span> <span class='hs-conid'>IsoA</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>~</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-conid'>IsoB</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>~</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>r</span>
-<a name="line-131"></a>
-<a name="line-132"></a><a name="APrism"></a><span class='hs-comment'>-- | If you see this in a signature for a function, the function is expecting a 'Prism'.</span>
-<a name="line-133"></a><a name="APrism"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prismoid</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-layout'>,</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span><span class='hs-layout'>,</span><span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-128"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5^.remit _left ^? _left</span>
+<a name="line-129"></a><a name="Prism"></a><span class='hs-comment'>-- Just 5</span>
+<a name="line-130"></a><a name="Prism"></a><span class='hs-comment'>--</span>
+<a name="line-131"></a><a name="Prism"></a><span class='hs-comment'>-- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'</span>
+<a name="line-132"></a><a name="Prism"></a><span class='hs-comment'>-- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.</span>
+<a name="line-133"></a><a name="Prism"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>forall</span> <span class='hs-varid'>k</span> <span class='hs-varid'>f</span><span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prismatic</span> <span class='hs-varid'>k</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
 <a name="line-134"></a>
-<a name="line-135"></a><a name="SimplePrism"></a><span class='hs-comment'>-- | A @'Simple' 'Prism'@.</span>
-<a name="line-136"></a><a name="SimplePrism"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimplePrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
-<a name="line-137"></a>
-<a name="line-138"></a><a name="clonePrism"></a><span class='hs-comment'>-- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.</span>
-<a name="line-139"></a><span class='hs-comment'>--</span>
-<a name="line-140"></a><span class='hs-comment'>-- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.</span>
-<a name="line-141"></a><span class='hs-definition'>clonePrism</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-142"></a><span class='hs-definition'>clonePrism</span> <span class='hs-conid'>Prismoid</span>    <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prismoid</span>
-<a name="line-143"></a><span class='hs-definition'>clonePrism</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>f</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-varid'>f</span> <span class='hs-varid'>g</span>
-<a name="line-144"></a>
-<a name="line-145"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-146"></a><span class='hs-comment'>-- Prism Combinators</span>
-<a name="line-147"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-135"></a><a name="APrism"></a><span class='hs-comment'>-- | If you see this in a signature for a function, the function is expecting a 'Prism',</span>
+<a name="line-136"></a><a name="APrism"></a><span class='hs-comment'>-- not some kind of alien invader.</span>
+<a name="line-137"></a><a name="APrism"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Overloaded</span> <span class='hs-conid'>Prismoid</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-138"></a>
+<a name="line-139"></a><a name="SimplePrism"></a><span class='hs-comment'>-- | A @'Simple' 'Prism'@.</span>
+<a name="line-140"></a><a name="SimplePrism"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimplePrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
+<a name="line-141"></a>
+<a name="line-142"></a><a name="clonePrism"></a><span class='hs-comment'>-- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.</span>
+<a name="line-143"></a><span class='hs-comment'>--</span>
+<a name="line-144"></a><span class='hs-comment'>-- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.</span>
+<a name="line-145"></a><span class='hs-definition'>clonePrism</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-146"></a><span class='hs-definition'>clonePrism</span> <span class='hs-conid'>Prismoid</span>    <span class='hs-keyglyph'>=</span> <span class='hs-varid'>id</span>
+<a name="line-147"></a><span class='hs-definition'>clonePrism</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>f</span> <span class='hs-varid'>g</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-varid'>f</span> <span class='hs-varid'>g</span>
 <a name="line-148"></a>
-<a name="line-149"></a><a name="outside"></a><span class='hs-comment'>-- | Use a 'Prism' as a kind of first-class pattern.</span>
-<a name="line-150"></a><span class='hs-comment'>--</span>
-<a name="line-151"></a><span class='hs-comment'>-- @'outside' :: 'Prism' s t a b -&gt; 'Lens' (t -&gt; r) (s -&gt; r) (b -&gt; r) (a -&gt; r)@</span>
-<a name="line-152"></a><span class='hs-definition'>outside</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Lens</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
-<a name="line-153"></a><span class='hs-definition'>outside</span> <span class='hs-conid'>Prismoid</span>        <span class='hs-varid'>f</span> <span class='hs-varid'>tr</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>tr</span>
-<a name="line-154"></a><span class='hs-definition'>outside</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>tr</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>tr</span><span class='hs-varop'>.</span><span class='hs-varid'>bt</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>ar</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>either</span> <span class='hs-varid'>tr</span> <span class='hs-varid'>ar</span> <span class='hs-varop'>.</span> <span class='hs-varid'>seta</span>
-<a name="line-155"></a>
-<a name="line-156"></a><a name="aside"></a><span class='hs-comment'>-- | Use a 'Prism' to work over part of a structure.</span>
-<a name="line-157"></a><span class='hs-definition'>aside</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-158"></a><span class='hs-definition'>aside</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prismoid</span>
-<a name="line-159"></a><span class='hs-definition'>aside</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>fmap</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span><span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>seta</span> <span class='hs-varid'>s</span> <span class='hs-keyword'>of</span>
-<a name="line-160"></a>  <span class='hs-conid'>Left</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Left</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span><span class='hs-varid'>t</span><span class='hs-layout'>)</span>
-<a name="line-161"></a>  <span class='hs-conid'>Right</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span><span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-162"></a>
-<a name="line-163"></a><a name="without"></a><span class='hs-comment'>-- | Given a pair of projections, project sums.</span>
-<a name="line-164"></a><span class='hs-comment'>--</span>
-<a name="line-165"></a><span class='hs-comment'>-- Viewing a 'Prism' as a co-lens, this combinator can be seen to be dual to 'alongside'.</span>
-<a name="line-166"></a><span class='hs-definition'>without</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-167"></a>        <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>u</span> <span class='hs-varid'>v</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span>
-<a name="line-168"></a>        <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>s</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>t</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>a</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>b</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span>
-<a name="line-169"></a><span class='hs-definition'>without</span> <span class='hs-conid'>Prismoid</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prismoid</span>
-<a name="line-170"></a><span class='hs-definition'>without</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span><span class='hs-layout'>)</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>left</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
-<a name="line-171"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>either</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Left</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Left</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>seta</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
-<a name="line-172"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span>
-<a name="line-173"></a><span class='hs-definition'>without</span> <span class='hs-conid'>Prismoid</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>dv</span> <span class='hs-varid'>uevc</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>right</span> <span class='hs-varid'>dv</span><span class='hs-layout'>)</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
-<a name="line-174"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
-<a name="line-175"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>either</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Right</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Right</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>uevc</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span>
-<a name="line-176"></a><span class='hs-definition'>without</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>dv</span> <span class='hs-varid'>uevc</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>bt</span> <span class='hs-varop'>+++</span> <span class='hs-varid'>dv</span><span class='hs-layout'>)</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
-<a name="line-177"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>either</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Left</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Left</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>seta</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
-<a name="line-178"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>either</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Right</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Right</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>uevc</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span>
-<a name="line-179"></a>
-<a name="line-180"></a><a name="remit"></a><span class='hs-comment'>-- | Turn a 'Prism' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.</span>
-<a name="line-181"></a><span class='hs-comment'>--</span>
-<a name="line-182"></a><span class='hs-comment'>-- If you have an 'Control.Lens.Iso.Iso', 'Control.Lens.Iso.from' is a more powerful version of this function</span>
-<a name="line-183"></a><span class='hs-comment'>-- that will return an 'Control.Lens.Iso.Iso' instead of a mere 'Getter'.</span>
-<a name="line-184"></a><span class='hs-comment'>--</span>
-<a name="line-185"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5 ^.remit _left</span>
-<a name="line-186"></a><span class='hs-comment'>-- Left 5</span>
-<a name="line-187"></a><span class='hs-comment'>--</span>
-<a name="line-188"></a><span class='hs-comment'>-- @</span>
-<a name="line-189"></a><span class='hs-comment'>-- 'remit' :: 'Prism' s t a b -&gt; 'Getter' b t</span>
-<a name="line-190"></a><span class='hs-comment'>-- 'remit' :: 'Iso' s t a b        -&gt; 'Getter' b t</span>
-<a name="line-191"></a><span class='hs-comment'>-- @</span>
-<a name="line-192"></a><span class='hs-definition'>remit</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Getter</span> <span class='hs-varid'>b</span> <span class='hs-varid'>t</span>
-<a name="line-193"></a><span class='hs-definition'>remit</span> <span class='hs-conid'>Prismoid</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>id</span>
-<a name="line-194"></a><span class='hs-definition'>remit</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>to</span> <span class='hs-varid'>bt</span>
-<a name="line-195"></a>
-<a name="line-196"></a><a name="review"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.</span>
-<a name="line-197"></a><span class='hs-comment'>--</span>
-<a name="line-198"></a><span class='hs-comment'>-- @'review' ≡ 'view' '.' 'remit'@</span>
-<a name="line-199"></a><span class='hs-comment'>--</span>
-<a name="line-200"></a><span class='hs-comment'>-- &gt;&gt;&gt; review _left "mustard"</span>
-<a name="line-201"></a><span class='hs-comment'>-- Left "mustard"</span>
-<a name="line-202"></a><span class='hs-comment'>--</span>
-<a name="line-203"></a><span class='hs-comment'>-- Usually 'review' is used in the @(-&gt;)@ monad with a 'Simple' 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
-<a name="line-204"></a><span class='hs-comment'>-- it as having one of these more restricted type signatures:</span>
-<a name="line-205"></a><span class='hs-comment'>--</span>
-<a name="line-206"></a><span class='hs-comment'>-- @</span>
-<a name="line-207"></a><span class='hs-comment'>-- 'review' :: 'Simple' 'Iso' s a        -&gt; a -&gt; s</span>
-<a name="line-208"></a><span class='hs-comment'>-- 'review' :: 'Simple' 'Prism' s a -&gt; a -&gt; s</span>
-<a name="line-209"></a><span class='hs-comment'>-- @</span>
-<a name="line-210"></a><span class='hs-comment'>--</span>
-<a name="line-211"></a><span class='hs-comment'>-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of </span>
-<a name="line-212"></a><span class='hs-comment'>-- these more slightly more liberal type signatures may be beneficial to think of it as having:</span>
-<a name="line-213"></a><span class='hs-comment'>--</span>
-<a name="line-214"></a><span class='hs-comment'>-- @</span>
-<a name="line-215"></a><span class='hs-comment'>-- 'review' :: 'MonadReader' a m =&gt; 'Simple' 'Iso' s a        -&gt; m s</span>
-<a name="line-216"></a><span class='hs-comment'>-- 'review' :: 'MonadReader' a m =&gt; 'Simple' 'Prism' s a -&gt; m s</span>
-<a name="line-217"></a><span class='hs-comment'>-- @</span>
-<a name="line-218"></a><span class='hs-definition'>review</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
-<a name="line-219"></a><span class='hs-definition'>review</span> <span class='hs-conid'>Prismoid</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ask</span>
-<a name="line-220"></a><span class='hs-definition'>review</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>asks</span> <span class='hs-varid'>bt</span>
-<a name="line-221"></a><span class='hs-comment'>{-# INLINE review #-}</span>
-<a name="line-222"></a>
-<a name="line-223"></a><a name="reviews"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,</span>
-<a name="line-224"></a><span class='hs-comment'>-- applying a function.</span>
-<a name="line-225"></a><span class='hs-comment'>--</span>
-<a name="line-226"></a><span class='hs-comment'>-- @'reviews' ≡ 'views' '.' 'remit'@</span>
-<a name="line-227"></a><span class='hs-comment'>--</span>
-<a name="line-228"></a><span class='hs-comment'>-- &gt;&gt;&gt; reviews _left isRight "mustard"</span>
-<a name="line-229"></a><span class='hs-comment'>-- False</span>
-<a name="line-230"></a><span class='hs-comment'>--</span>
-<a name="line-231"></a><span class='hs-comment'>-- Usually this function is used in the @(-&gt;)@ monad with a 'Simple' 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
-<a name="line-232"></a><span class='hs-comment'>-- it as having one of these more restricted type signatures:</span>
-<a name="line-233"></a><span class='hs-comment'>--</span>
-<a name="line-234"></a><span class='hs-comment'>-- @</span>
-<a name="line-235"></a><span class='hs-comment'>-- 'reviews' :: 'Simple' 'Iso' s a        -&gt; (s -&gt; r) -&gt; a -&gt; r</span>
-<a name="line-236"></a><span class='hs-comment'>-- 'reviews' :: 'Simple' 'Prism' s a -&gt; (s -&gt; r) -&gt; a -&gt; r</span>
-<a name="line-237"></a><span class='hs-comment'>-- @</span>
-<a name="line-238"></a><span class='hs-comment'>--</span>
-<a name="line-239"></a><span class='hs-comment'>-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of </span>
-<a name="line-240"></a><span class='hs-comment'>-- these more slightly more liberal type signatures may be beneficial to think of it as having:</span>
-<a name="line-241"></a><span class='hs-comment'>--</span>
-<a name="line-242"></a><span class='hs-comment'>-- @</span>
-<a name="line-243"></a><span class='hs-comment'>-- 'reviews' :: 'MonadReader' a m =&gt; 'Simple' 'Iso' s a        -&gt; (s -&gt; r) -&gt; m r</span>
-<a name="line-244"></a><span class='hs-comment'>-- 'reviews' :: 'MonadReader' a m =&gt; 'Simple' 'Prism' s a -&gt; (s -&gt; r) -&gt; m r</span>
-<a name="line-245"></a><span class='hs-comment'>-- @</span>
-<a name="line-246"></a><span class='hs-definition'>reviews</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
-<a name="line-247"></a><span class='hs-definition'>reviews</span> <span class='hs-conid'>Prismoid</span>     <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>asks</span> <span class='hs-varid'>f</span>
-<a name="line-248"></a><span class='hs-definition'>reviews</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>asks</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span>
-<a name="line-249"></a><span class='hs-comment'>{-# INLINE reviews #-}</span>
-<a name="line-250"></a>
-<a name="line-251"></a><a name="reuse"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.</span>
-<a name="line-252"></a><span class='hs-comment'>--</span>
-<a name="line-253"></a><span class='hs-comment'>-- @'reuse' ≡ 'use' '.' 'remit'@</span>
-<a name="line-254"></a><span class='hs-comment'>--</span>
-<a name="line-255"></a><span class='hs-comment'>-- &gt;&gt;&gt; evalState (reuse _left) 5</span>
-<a name="line-256"></a><span class='hs-comment'>-- Left 5</span>
-<a name="line-257"></a><span class='hs-comment'>--</span>
-<a name="line-258"></a><span class='hs-comment'>-- @</span>
-<a name="line-259"></a><span class='hs-comment'>-- 'reuse' :: 'MonadState' a m =&gt; 'Simple' 'Prism' s a -&gt; m s</span>
-<a name="line-260"></a><span class='hs-comment'>-- 'reuse' :: 'MonadState' a m =&gt; 'Simple' 'Iso' s a        -&gt; m s</span>
-<a name="line-261"></a><span class='hs-comment'>-- @</span>
-<a name="line-262"></a><span class='hs-definition'>reuse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
-<a name="line-263"></a><span class='hs-definition'>reuse</span> <span class='hs-conid'>Prismoid</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>get</span>
-<a name="line-264"></a><span class='hs-definition'>reuse</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>gets</span> <span class='hs-varid'>bt</span>
-<a name="line-265"></a><span class='hs-comment'>{-# INLINE reuse #-}</span>
-<a name="line-266"></a>
-<a name="line-267"></a><a name="reuses"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,</span>
-<a name="line-268"></a><span class='hs-comment'>-- applying a function.</span>
-<a name="line-269"></a><span class='hs-comment'>--</span>
-<a name="line-270"></a><span class='hs-comment'>-- @'reuses' ≡ 'uses' '.' 'remit'@</span>
-<a name="line-271"></a><span class='hs-comment'>--</span>
-<a name="line-272"></a><span class='hs-comment'>-- &gt;&gt;&gt; evalState (reuses _left isLeft) (5 :: Int)</span>
-<a name="line-273"></a><span class='hs-comment'>-- True</span>
-<a name="line-274"></a><span class='hs-comment'>--</span>
-<a name="line-275"></a><span class='hs-comment'>-- @</span>
-<a name="line-276"></a><span class='hs-comment'>-- 'reuses' :: 'MonadState' a m =&gt; 'Simple' 'Prism' s a -&gt; (s -&gt; r) -&gt; m r</span>
-<a name="line-277"></a><span class='hs-comment'>-- 'reuses' :: 'MonadState' a m =&gt; 'Simple' 'Iso' s a        -&gt; (s -&gt; r) -&gt; m r</span>
-<a name="line-278"></a><span class='hs-comment'>-- @</span>
-<a name="line-279"></a><span class='hs-definition'>reuses</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
-<a name="line-280"></a><span class='hs-definition'>reuses</span> <span class='hs-conid'>Prismoid</span>     <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>gets</span> <span class='hs-varid'>f</span>
-<a name="line-281"></a><span class='hs-definition'>reuses</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>gets</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span>
-<a name="line-282"></a><span class='hs-comment'>{-# INLINE reuses #-}</span>
-<a name="line-283"></a>
-<a name="line-284"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-285"></a><span class='hs-comment'>-- Common Prisms</span>
-<a name="line-286"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-149"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-150"></a><span class='hs-comment'>-- Prism Combinators</span>
+<a name="line-151"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-152"></a>
+<a name="line-153"></a><a name="outside"></a><span class='hs-comment'>-- | Use a 'Prism' as a kind of first-class pattern.</span>
+<a name="line-154"></a><span class='hs-comment'>--</span>
+<a name="line-155"></a><span class='hs-comment'>-- @'outside' :: 'Prism' s t a b -&gt; 'Lens' (t -&gt; r) (s -&gt; r) (b -&gt; r) (a -&gt; r)@</span>
+<a name="line-156"></a><span class='hs-definition'>outside</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Lens</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
+<a name="line-157"></a><span class='hs-definition'>outside</span> <span class='hs-conid'>Prismoid</span>        <span class='hs-varid'>f</span> <span class='hs-varid'>tr</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>tr</span>
+<a name="line-158"></a><span class='hs-definition'>outside</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>tr</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>tr</span><span class='hs-varop'>.</span><span class='hs-varid'>bt</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>ar</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>either</span> <span class='hs-varid'>tr</span> <span class='hs-varid'>ar</span> <span class='hs-varop'>.</span> <span class='hs-varid'>seta</span>
+<a name="line-159"></a>
+<a name="line-160"></a><a name="aside"></a><span class='hs-comment'>-- | Use a 'Prism' to work over part of a structure.</span>
+<a name="line-161"></a><span class='hs-definition'>aside</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-162"></a><span class='hs-definition'>aside</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>id</span>
+<a name="line-163"></a><span class='hs-definition'>aside</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>fmap</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span><span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>seta</span> <span class='hs-varid'>s</span> <span class='hs-keyword'>of</span>
+<a name="line-164"></a>  <span class='hs-conid'>Left</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Left</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span><span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-165"></a>  <span class='hs-conid'>Right</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span><span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-166"></a>
+<a name="line-167"></a><a name="without"></a><span class='hs-comment'>-- | Given a pair of prisms, project sums.</span>
+<a name="line-168"></a><span class='hs-comment'>--</span>
+<a name="line-169"></a><span class='hs-comment'>-- Viewing a 'Prism' as a co-lens, this combinator can be seen to be dual to 'alongside'.</span>
+<a name="line-170"></a><span class='hs-definition'>without</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-171"></a>        <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>u</span> <span class='hs-varid'>v</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span>
+<a name="line-172"></a>        <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>s</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>t</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>a</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>b</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span>
+<a name="line-173"></a><span class='hs-definition'>without</span> <span class='hs-conid'>Prismoid</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>id</span>
+<a name="line-174"></a><span class='hs-definition'>without</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span><span class='hs-layout'>)</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>left</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
+<a name="line-175"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>either</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Left</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Left</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>seta</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
+<a name="line-176"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span>
+<a name="line-177"></a><span class='hs-definition'>without</span> <span class='hs-conid'>Prismoid</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>dv</span> <span class='hs-varid'>uevc</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>right</span> <span class='hs-varid'>dv</span><span class='hs-layout'>)</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
+<a name="line-178"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
+<a name="line-179"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>either</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Right</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Right</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>uevc</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span>
+<a name="line-180"></a><span class='hs-definition'>without</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>dv</span> <span class='hs-varid'>uevc</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>bt</span> <span class='hs-varop'>+++</span> <span class='hs-varid'>dv</span><span class='hs-layout'>)</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
+<a name="line-181"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>either</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Left</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Left</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>seta</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
+<a name="line-182"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>either</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Right</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Right</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>uevc</span> <span class='hs-varid'>u</span><span class='hs-layout'>)</span>
+<a name="line-183"></a>
+<a name="line-184"></a><a name="remit"></a><span class='hs-comment'>-- | Turn a 'Prism' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.</span>
+<a name="line-185"></a><span class='hs-comment'>--</span>
+<a name="line-186"></a><span class='hs-comment'>-- If you have an 'Control.Lens.Iso.Iso', 'Control.Lens.Iso.from' is a more powerful version of this function</span>
+<a name="line-187"></a><span class='hs-comment'>-- that will return an 'Control.Lens.Iso.Iso' instead of a mere 'Getter'.</span>
+<a name="line-188"></a><span class='hs-comment'>--</span>
+<a name="line-189"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5 ^.remit _left</span>
+<a name="line-190"></a><span class='hs-comment'>-- Left 5</span>
+<a name="line-191"></a><span class='hs-comment'>--</span>
+<a name="line-192"></a><span class='hs-comment'>-- @</span>
+<a name="line-193"></a><span class='hs-comment'>-- 'remit' :: 'Prism' s t a b -&gt; 'Getter' b t</span>
+<a name="line-194"></a><span class='hs-comment'>-- 'remit' :: 'Iso' s t a b   -&gt; 'Getter' b t</span>
+<a name="line-195"></a><span class='hs-comment'>-- @</span>
+<a name="line-196"></a><span class='hs-definition'>remit</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Getter</span> <span class='hs-varid'>b</span> <span class='hs-varid'>t</span>
+<a name="line-197"></a><span class='hs-definition'>remit</span> <span class='hs-conid'>Prismoid</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>id</span>
+<a name="line-198"></a><span class='hs-definition'>remit</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>to</span> <span class='hs-varid'>bt</span>
+<a name="line-199"></a>
+<a name="line-200"></a><a name="review"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.</span>
+<a name="line-201"></a><span class='hs-comment'>--</span>
+<a name="line-202"></a><span class='hs-comment'>-- @'review' ≡ 'view' '.' 'remit'@</span>
+<a name="line-203"></a><span class='hs-comment'>--</span>
+<a name="line-204"></a><span class='hs-comment'>-- &gt;&gt;&gt; review _left "mustard"</span>
+<a name="line-205"></a><span class='hs-comment'>-- Left "mustard"</span>
+<a name="line-206"></a><span class='hs-comment'>--</span>
+<a name="line-207"></a><span class='hs-comment'>-- Usually 'review' is used in the @(-&gt;)@ monad with a 'Simple' 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
+<a name="line-208"></a><span class='hs-comment'>-- it as having one of these more restricted type signatures:</span>
+<a name="line-209"></a><span class='hs-comment'>--</span>
+<a name="line-210"></a><span class='hs-comment'>-- @</span>
+<a name="line-211"></a><span class='hs-comment'>-- 'review' :: 'Simple' 'Iso' s a        -&gt; a -&gt; s</span>
+<a name="line-212"></a><span class='hs-comment'>-- 'review' :: 'Simple' 'Prism' s a -&gt; a -&gt; s</span>
+<a name="line-213"></a><span class='hs-comment'>-- @</span>
+<a name="line-214"></a><span class='hs-comment'>--</span>
+<a name="line-215"></a><span class='hs-comment'>-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of</span>
+<a name="line-216"></a><span class='hs-comment'>-- these more slightly more liberal type signatures may be beneficial to think of it as having:</span>
+<a name="line-217"></a><span class='hs-comment'>--</span>
+<a name="line-218"></a><span class='hs-comment'>-- @</span>
+<a name="line-219"></a><span class='hs-comment'>-- 'review' :: 'MonadReader' a m =&gt; 'Simple' 'Iso' s a        -&gt; m s</span>
+<a name="line-220"></a><span class='hs-comment'>-- 'review' :: 'MonadReader' a m =&gt; 'Simple' 'Prism' s a -&gt; m s</span>
+<a name="line-221"></a><span class='hs-comment'>-- @</span>
+<a name="line-222"></a><span class='hs-definition'>review</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
+<a name="line-223"></a><span class='hs-definition'>review</span> <span class='hs-conid'>Prismoid</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ask</span>
+<a name="line-224"></a><span class='hs-definition'>review</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>asks</span> <span class='hs-varid'>bt</span>
+<a name="line-225"></a><span class='hs-comment'>{-# INLINE review #-}</span>
+<a name="line-226"></a>
+<a name="line-227"></a><a name="reviews"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,</span>
+<a name="line-228"></a><span class='hs-comment'>-- applying a function.</span>
+<a name="line-229"></a><span class='hs-comment'>--</span>
+<a name="line-230"></a><span class='hs-comment'>-- @'reviews' ≡ 'views' '.' 'remit'@</span>
+<a name="line-231"></a><span class='hs-comment'>--</span>
+<a name="line-232"></a><span class='hs-comment'>-- &gt;&gt;&gt; reviews _left isRight "mustard"</span>
+<a name="line-233"></a><span class='hs-comment'>-- False</span>
+<a name="line-234"></a><span class='hs-comment'>--</span>
+<a name="line-235"></a><span class='hs-comment'>-- Usually this function is used in the @(-&gt;)@ monad with a 'Simple' 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
+<a name="line-236"></a><span class='hs-comment'>-- it as having one of these more restricted type signatures:</span>
+<a name="line-237"></a><span class='hs-comment'>--</span>
+<a name="line-238"></a><span class='hs-comment'>-- @</span>
+<a name="line-239"></a><span class='hs-comment'>-- 'reviews' :: 'Simple' 'Iso' s a        -&gt; (s -&gt; r) -&gt; a -&gt; r</span>
+<a name="line-240"></a><span class='hs-comment'>-- 'reviews' :: 'Simple' 'Prism' s a -&gt; (s -&gt; r) -&gt; a -&gt; r</span>
+<a name="line-241"></a><span class='hs-comment'>-- @</span>
+<a name="line-242"></a><span class='hs-comment'>--</span>
+<a name="line-243"></a><span class='hs-comment'>-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of</span>
+<a name="line-244"></a><span class='hs-comment'>-- these more slightly more liberal type signatures may be beneficial to think of it as having:</span>
+<a name="line-245"></a><span class='hs-comment'>--</span>
+<a name="line-246"></a><span class='hs-comment'>-- @</span>
+<a name="line-247"></a><span class='hs-comment'>-- 'reviews' :: 'MonadReader' a m =&gt; 'Simple' 'Iso' s a        -&gt; (s -&gt; r) -&gt; m r</span>
+<a name="line-248"></a><span class='hs-comment'>-- 'reviews' :: 'MonadReader' a m =&gt; 'Simple' 'Prism' s a -&gt; (s -&gt; r) -&gt; m r</span>
+<a name="line-249"></a><span class='hs-comment'>-- @</span>
+<a name="line-250"></a><span class='hs-definition'>reviews</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
+<a name="line-251"></a><span class='hs-definition'>reviews</span> <span class='hs-conid'>Prismoid</span>     <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>asks</span> <span class='hs-varid'>f</span>
+<a name="line-252"></a><span class='hs-definition'>reviews</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>asks</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span>
+<a name="line-253"></a><span class='hs-comment'>{-# INLINE reviews #-}</span>
+<a name="line-254"></a>
+<a name="line-255"></a><a name="reuse"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.</span>
+<a name="line-256"></a><span class='hs-comment'>--</span>
+<a name="line-257"></a><span class='hs-comment'>-- @'reuse' ≡ 'use' '.' 'remit'@</span>
+<a name="line-258"></a><span class='hs-comment'>--</span>
+<a name="line-259"></a><span class='hs-comment'>-- &gt;&gt;&gt; evalState (reuse _left) 5</span>
+<a name="line-260"></a><span class='hs-comment'>-- Left 5</span>
+<a name="line-261"></a><span class='hs-comment'>--</span>
+<a name="line-262"></a><span class='hs-comment'>-- @</span>
+<a name="line-263"></a><span class='hs-comment'>-- 'reuse' :: 'MonadState' a m =&gt; 'Simple' 'Prism' s a -&gt; m s</span>
+<a name="line-264"></a><span class='hs-comment'>-- 'reuse' :: 'MonadState' a m =&gt; 'Simple' 'Iso' s a        -&gt; m s</span>
+<a name="line-265"></a><span class='hs-comment'>-- @</span>
+<a name="line-266"></a><span class='hs-definition'>reuse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
+<a name="line-267"></a><span class='hs-definition'>reuse</span> <span class='hs-conid'>Prismoid</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>get</span>
+<a name="line-268"></a><span class='hs-definition'>reuse</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>gets</span> <span class='hs-varid'>bt</span>
+<a name="line-269"></a><span class='hs-comment'>{-# INLINE reuse #-}</span>
+<a name="line-270"></a>
+<a name="line-271"></a><a name="reuses"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,</span>
+<a name="line-272"></a><span class='hs-comment'>-- applying a function.</span>
+<a name="line-273"></a><span class='hs-comment'>--</span>
+<a name="line-274"></a><span class='hs-comment'>-- @'reuses' ≡ 'uses' '.' 'remit'@</span>
+<a name="line-275"></a><span class='hs-comment'>--</span>
+<a name="line-276"></a><span class='hs-comment'>-- &gt;&gt;&gt; evalState (reuses _left isLeft) (5 :: Int)</span>
+<a name="line-277"></a><span class='hs-comment'>-- True</span>
+<a name="line-278"></a><span class='hs-comment'>--</span>
+<a name="line-279"></a><span class='hs-comment'>-- @</span>
+<a name="line-280"></a><span class='hs-comment'>-- 'reuses' :: 'MonadState' a m =&gt; 'Simple' 'Prism' s a -&gt; (s -&gt; r) -&gt; m r</span>
+<a name="line-281"></a><span class='hs-comment'>-- 'reuses' :: 'MonadState' a m =&gt; 'Simple' 'Iso' s a        -&gt; (s -&gt; r) -&gt; m r</span>
+<a name="line-282"></a><span class='hs-comment'>-- @</span>
+<a name="line-283"></a><span class='hs-definition'>reuses</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
+<a name="line-284"></a><span class='hs-definition'>reuses</span> <span class='hs-conid'>Prismoid</span>     <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>gets</span> <span class='hs-varid'>f</span>
+<a name="line-285"></a><span class='hs-definition'>reuses</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>gets</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span>
+<a name="line-286"></a><span class='hs-comment'>{-# INLINE reuses #-}</span>
 <a name="line-287"></a>
-<a name="line-288"></a><span class='hs-comment'>-- | This projection provides a traversal for tweaking the left-hand value of an 'Either':</span>
-<a name="line-289"></a><span class='hs-comment'>--</span>
-<a name="line-290"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _left (+1) (Left 2)</span>
-<a name="line-291"></a><span class='hs-comment'>-- Left 3</span>
-<a name="line-292"></a><span class='hs-comment'>--</span>
-<a name="line-293"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _left (+1) (Right 2)</span>
-<a name="line-294"></a><span class='hs-comment'>-- Right 2</span>
-<a name="line-295"></a><span class='hs-comment'>--</span>
-<a name="line-296"></a><span class='hs-comment'>-- &gt;&gt;&gt; Right 42 ^._left :: String</span>
-<a name="line-297"></a><span class='hs-comment'>-- ""</span>
-<a name="line-298"></a><span class='hs-comment'>--</span>
-<a name="line-299"></a><span class='hs-comment'>-- &gt;&gt;&gt; Left "hello" ^._left</span>
-<a name="line-300"></a><span class='hs-comment'>-- "hello"</span>
-<a name="line-301"></a><span class='hs-comment'>--</span>
-<a name="line-302"></a><span class='hs-comment'>-- It also can be turned around to obtain the embedding into the 'Left' half of an 'Either'</span>
-<a name="line-303"></a><span class='hs-comment'>--</span>
-<a name="line-304"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5^.remit _left</span>
-<a name="line-305"></a><span class='hs-comment'>-- Left 5</span>
-<a name="line-306"></a><span class='hs-sel'>_left</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>a</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-307"></a><span class='hs-sel'>_left</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-conid'>Left</span> <span class='hs-varop'>$</span> <span class='hs-varid'>either</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Right</span><span class='hs-layout'>)</span>
-<a name="line-308"></a><span class='hs-comment'>{-# INLINE _left #-}</span>
-<a name="line-309"></a>
-<a name="line-310"></a><span class='hs-comment'>-- | traverse the right-hand value of an 'Either':</span>
-<a name="line-311"></a><span class='hs-comment'>--</span>
-<a name="line-312"></a><span class='hs-comment'>-- @'_right' ≡ 'Data.Traversable.traverse'@</span>
-<a name="line-313"></a><span class='hs-comment'>--</span>
-<a name="line-314"></a><span class='hs-comment'>-- Unfortunately the instance for</span>
-<a name="line-315"></a><span class='hs-comment'>-- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,</span>
-<a name="line-316"></a><span class='hs-comment'>-- so this can't just be 'Data.Traversable.traverse'</span>
-<a name="line-317"></a><span class='hs-comment'>--</span>
-<a name="line-318"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _right (+1) (Left 2)</span>
-<a name="line-319"></a><span class='hs-comment'>-- Left 2</span>
-<a name="line-320"></a><span class='hs-comment'>--</span>
-<a name="line-321"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _right (+1) (Right 2)</span>
-<a name="line-322"></a><span class='hs-comment'>-- Right 3</span>
-<a name="line-323"></a><span class='hs-comment'>--</span>
-<a name="line-324"></a><span class='hs-comment'>-- &gt;&gt;&gt; Right "hello" ^._right</span>
-<a name="line-325"></a><span class='hs-comment'>-- "hello"</span>
-<a name="line-326"></a><span class='hs-comment'>--</span>
-<a name="line-327"></a><span class='hs-comment'>-- &gt;&gt;&gt; Left "hello" ^._right :: [Double]</span>
-<a name="line-328"></a><span class='hs-comment'>-- []</span>
+<a name="line-288"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-289"></a><span class='hs-comment'>-- Common Prisms</span>
+<a name="line-290"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-291"></a>
+<a name="line-292"></a><span class='hs-comment'>-- | This prism provides a traversal for tweaking the left-hand value of an 'Either':</span>
+<a name="line-293"></a><span class='hs-comment'>--</span>
+<a name="line-294"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _left (+1) (Left 2)</span>
+<a name="line-295"></a><span class='hs-comment'>-- Left 3</span>
+<a name="line-296"></a><span class='hs-comment'>--</span>
+<a name="line-297"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _left (+1) (Right 2)</span>
+<a name="line-298"></a><span class='hs-comment'>-- Right 2</span>
+<a name="line-299"></a><span class='hs-comment'>--</span>
+<a name="line-300"></a><span class='hs-comment'>-- &gt;&gt;&gt; Right 42 ^._left :: String</span>
+<a name="line-301"></a><span class='hs-comment'>-- ""</span>
+<a name="line-302"></a><span class='hs-comment'>--</span>
+<a name="line-303"></a><span class='hs-comment'>-- &gt;&gt;&gt; Left "hello" ^._left</span>
+<a name="line-304"></a><span class='hs-comment'>-- "hello"</span>
+<a name="line-305"></a><span class='hs-comment'>--</span>
+<a name="line-306"></a><span class='hs-comment'>-- It also can be turned around to obtain the embedding into the 'Left' half of an 'Either':</span>
+<a name="line-307"></a><span class='hs-comment'>--</span>
+<a name="line-308"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5^.remit _left</span>
+<a name="line-309"></a><span class='hs-comment'>-- Left 5</span>
+<a name="line-310"></a><span class='hs-sel'>_left</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>a</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>b</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-311"></a><span class='hs-sel'>_left</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-conid'>Left</span> <span class='hs-varop'>$</span> <span class='hs-varid'>either</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Right</span><span class='hs-layout'>)</span>
+<a name="line-312"></a><span class='hs-comment'>{-# INLINE _left #-}</span>
+<a name="line-313"></a>
+<a name="line-314"></a><span class='hs-comment'>-- | This prism provides a traversal for tweaking the right-hand value of an 'Either':</span>
+<a name="line-315"></a><span class='hs-comment'>--</span>
+<a name="line-316"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _right (+1) (Left 2)</span>
+<a name="line-317"></a><span class='hs-comment'>-- Left 2</span>
+<a name="line-318"></a><span class='hs-comment'>--</span>
+<a name="line-319"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _right (+1) (Right 2)</span>
+<a name="line-320"></a><span class='hs-comment'>-- Right 3</span>
+<a name="line-321"></a><span class='hs-comment'>--</span>
+<a name="line-322"></a><span class='hs-comment'>-- &gt;&gt;&gt; Right "hello" ^._right</span>
+<a name="line-323"></a><span class='hs-comment'>-- "hello"</span>
+<a name="line-324"></a><span class='hs-comment'>--</span>
+<a name="line-325"></a><span class='hs-comment'>-- &gt;&gt;&gt; Left "hello" ^._right :: [Double]</span>
+<a name="line-326"></a><span class='hs-comment'>-- []</span>
+<a name="line-327"></a><span class='hs-comment'>--</span>
+<a name="line-328"></a><span class='hs-comment'>-- It also can be turned around to obtain the embedding into the 'Right' half of an 'Either':</span>
 <a name="line-329"></a><span class='hs-comment'>--</span>
-<a name="line-330"></a><span class='hs-comment'>-- It also can be turned around to obtain the embedding into the 'Left' half of an 'Either'</span>
-<a name="line-331"></a><span class='hs-comment'>--</span>
-<a name="line-332"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5^.remit _right</span>
-<a name="line-333"></a><span class='hs-comment'>-- Right 5</span>
-<a name="line-334"></a><span class='hs-sel'>_right</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>c</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>c</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-335"></a><span class='hs-sel'>_right</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-conid'>Right</span> <span class='hs-varop'>$</span> <span class='hs-varid'>left</span> <span class='hs-conid'>Left</span>
-<a name="line-336"></a><span class='hs-comment'>{-# INLINE _right #-}</span>
+<a name="line-330"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5^.remit _right</span>
+<a name="line-331"></a><span class='hs-comment'>-- Right 5</span>
+<a name="line-332"></a><span class='hs-comment'>--</span>
+<a name="line-333"></a><span class='hs-comment'>-- (Unfortunately the instance for</span>
+<a name="line-334"></a><span class='hs-comment'>-- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,</span>
+<a name="line-335"></a><span class='hs-comment'>-- so this can't just be 'Data.Traversable.traverse'.)</span>
+<a name="line-336"></a><span class='hs-sel'>_right</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>c</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>c</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-337"></a><span class='hs-sel'>_right</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-conid'>Right</span> <span class='hs-varop'>$</span> <span class='hs-varid'>left</span> <span class='hs-conid'>Left</span>
+<a name="line-338"></a><span class='hs-comment'>{-# INLINE _right #-}</span>
+<a name="line-339"></a>
+<a name="line-340"></a><span class='hs-comment'>-- | This prism provides a traversal for tweaking the target of the value of 'Just' in a 'Maybe'.</span>
+<a name="line-341"></a><span class='hs-comment'>--</span>
+<a name="line-342"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _just (+1) (Just 2)</span>
+<a name="line-343"></a><span class='hs-comment'>-- Just 3</span>
+<a name="line-344"></a><span class='hs-comment'>--</span>
+<a name="line-345"></a><span class='hs-comment'>-- Unlike 'traverse' this is a 'Prism', and so you can use it to inject as well:</span>
+<a name="line-346"></a><span class='hs-comment'>--</span>
+<a name="line-347"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5^.remit _just</span>
+<a name="line-348"></a><span class='hs-comment'>-- Just 5</span>
+<a name="line-349"></a><span class='hs-sel'>_just</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-350"></a><span class='hs-sel'>_just</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-conid'>Just</span> <span class='hs-varop'>$</span> <span class='hs-varid'>maybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-conid'>Nothing</span><span class='hs-layout'>)</span> <span class='hs-conid'>Right</span>
 </pre></body>
 </html>

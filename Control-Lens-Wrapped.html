@@ -36,12 +36,12 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Wrapped.h
 </p><p>The user supplied function is <em>ignored</em>, merely its type is used.
 </p></div></div><div class="top"><p class="src"><a name="v:wrappings" class="def">wrappings</a> :: <a href="Control-Lens-Wrapped.html#t:Wrapped">Wrapped</a> s t a b =&gt; (s -&gt; a) -&gt; (t -&gt; b) -&gt; <a href="Control-Lens-Iso.html#t:Iso">Iso</a> s t a b<a href="src/Control-Lens-Wrapped.html#wrappings" class="link">Source</a></p><div class="doc"><p>This is a convenient version of <code><a href="Control-Lens-Wrapped.html#v:wrapped">wrapped</a></code> with two arguments that are ignored.
 </p><p>These arguments are used to which newtype the user intends to wrap and
- should both be the same constructor.  This redundency is necessary
+ should both be the same constructor.  This redundancy is necessary
  in order to find the full polymorphic isomorphism family.
 </p><p>The user supplied functions are <em>ignored</em>, merely their types are used.
 </p></div></div><div class="top"><p class="src"><a name="v:unwrappings" class="def">unwrappings</a> :: <a href="Control-Lens-Wrapped.html#t:Wrapped">Wrapped</a> t s b a =&gt; (s -&gt; a) -&gt; (t -&gt; b) -&gt; <a href="Control-Lens-Iso.html#t:Iso">Iso</a> a b s t<a href="src/Control-Lens-Wrapped.html#unwrappings" class="link">Source</a></p><div class="doc"><p>This is a convenient version of <code>unwrapped</code> with two arguments that are ignored.
 </p><p>These arguments are used to which newtype the user intends to remove and
- should both be the same constructor. This redundency is necessary
+ should both be the same constructor. This redundancy is necessary
  in order to find the full polymorphic isomorphism family.
 </p><p>The user supplied functions are <em>ignored</em>, merely their types are used.
 </p></div></div><div class="top"><p class="src"><a name="v:op" class="def">op</a> :: <a href="Control-Lens-Wrapped.html#t:Wrapped">Wrapped</a> s s a a =&gt; (s -&gt; a) -&gt; a -&gt; s<a href="src/Control-Lens-Wrapped.html#op" class="link">Source</a></p><div class="doc"><p>Given the constructor for a <code>Wrapped</code> type, return a
@@ -74,4 +74,4 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Wrapped.h
 </p><p>As with <code><a href="Control-Lens-Wrapped.html#v:wrapping">wrapping</a></code>, the user supplied function for the newtype is <em>ignored</em>.
 </p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>alaf Sum foldMap length [&quot;hello&quot;,&quot;world&quot;]
 </code></strong>10
-</pre></div></div></div></div><div id="footer"><p>Produced by <a href="http://www.haskell.org/haddock/">Haddock</a> version 2.11.1</p></div></body></html>
+</pre></div></div></div></div><div id="footer"><p>Produced by <a href="http://www.haskell.org/haddock/">Haddock</a> version 2.11.0</p></div></body></html>

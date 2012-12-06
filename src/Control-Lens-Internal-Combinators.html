@@ -9,7 +9,7 @@
 <body>
 <pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE CPP #-}</span>
 <a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE MagicHash #-}</span>
-<a name="line-3"></a><span class='hs-cpp'>#if defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 704 &amp;&amp; !defined(SAFE)</span>
+<a name="line-3"></a><span class='hs-cpp'>#if defined(TRUSTWORTHY) &amp;&amp; !defined(SAFE)</span>
 <a name="line-4"></a><span class='hs-comment'>{-# LANGUAGE Trustworthy #-}</span>
 <a name="line-5"></a><span class='hs-cpp'>#endif</span>
 <a name="line-6"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
