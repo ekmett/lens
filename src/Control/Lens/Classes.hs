@@ -207,7 +207,7 @@ instance (Applicative f, x ~ (a -> f b), y ~ (s -> f t)) => Prismatic (x -> y) w
 -- Indexed Internals
 -----------------------------------------------------------------------------
 
--- | This class permits overloading of function application for things that 
+-- | This class permits overloading of function application for things that
 -- also admit a notion of a key or index.
 class Indexable i k where
   -- | Build a function from an 'Indexed' function
