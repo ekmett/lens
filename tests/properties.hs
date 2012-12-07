@@ -42,13 +42,22 @@ iso_yon l a = a^.from l.cloneIso l == a
 prism_yen :: Eq a => Simple APrism s a -> a -> Bool
 prism_yen l a = a^.remit l^?clonePrism l == Just a
 
+traverse_pure :: forall f s a. (Applicative f, Eq (f s)) => SimpleLensLike f s a -> s -> Bool
+traverse_pure l s = l pure s == (pure s :: f s)
+
+traverse_pureMaybe :: Eq s => SimpleLensLike Maybe s a -> s -> Bool
+traverse_pureMaybe = traverse_pure
+
+traverse_pureList :: Eq s => SimpleLensLike [] s a -> s -> Bool
+traverse_pureList = traverse_pure
+
 isSetter :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Function a)
          => Simple Setter s a -> Property
 isSetter l = setter_id l .&. setter_composition l .&. setter_set_set l
 
 isTraversal :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Function a)
          => Simple Traversal s a -> Property
-isTraversal l = isSetter l
+isTraversal l = isSetter l .&. traverse_pureMaybe l .&. traverse_pureList l
 
 isLens :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Eq a, Function a)
        => Simple Lens s a -> Property
