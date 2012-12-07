@@ -35,6 +35,7 @@ import Prelude hiding ((.),id)
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Data.Char
 
 -----------------------------------------------------------------------------
 -- * Zippers
