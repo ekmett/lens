@@ -38,6 +38,9 @@ iso_hither l s = s ^.cloneIso l.from l == s
 iso_yon :: Eq a => Simple AnIso s a -> a -> Bool
 iso_yon l a = a^.from l.cloneIso l == a
 
+prism_yen :: Eq a => Simple APrism s a -> a -> Bool
+prism_yen l a = a^.remit l^?clonePrism l == Just a
+
 isSetter :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Function a)
          => Simple Setter s a -> Property
 isSetter l = setter_id l .&. setter_composition l .&. setter_set_set l
@@ -53,6 +56,10 @@ isLens l = lens_set_view l .&. lens_view_set l .&. isTraversal l
 isIso :: (Arbitrary s, Arbitrary a, CoArbitrary s, CoArbitrary a, Show s, Show a, Eq s, Eq a, Function s, Function a)
       => Simple Iso s a -> Property
 isIso l = iso_hither l .&. iso_yon l .&. isLens l .&. isLens (from l)
+
+isPrism :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Eq a, Function a)
+      => Simple Prism s a -> Property
+isPrism l = isTraversal l .&. prism_yen l
 
 -- an illegal lens
 bad :: Simple Lens (Int,Int) Int
@@ -83,6 +90,10 @@ prop_both                            = isTraversal (both    :: Simple Traversal 
 prop_value (Fun _ k :: Fun Int Bool) = isTraversal (value k :: Simple Traversal (Int,Int) Int)
 prop_traverseLeft                    = isTraversal (_left   :: Simple Traversal (Either Int Bool) Int)
 prop_traverseRight                   = isTraversal (_right  :: Simple Traversal (Either Int Bool) Bool)
+
+prop__left                           = isPrism (_left :: Simple Prism (Either Int Bool) Int)
+prop__right                          = isPrism (_right :: Simple Prism (Either Int Bool) Bool)
+prop__just                           = isPrism (_just :: Simple Prism (Maybe Int) Int)
 
 -- Data.Text.Lens
 prop_text s                          = s^.packed.from packed == s
