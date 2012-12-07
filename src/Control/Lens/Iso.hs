@@ -230,12 +230,18 @@ anon a p = iso (fromMaybe a) go where
 
 -- | The canonical isomorphism for currying and uncurrying a function.
 --
+-- >>> :t fst^.curried
+-- fst^.curried :: a -> b -> a
+--
 -- @'curried' = 'iso' 'curry' 'uncurry'@
 curried :: Iso ((a,b) -> c) ((d,e) -> f) (a -> b -> c) (d -> e -> f)
 curried = iso curry uncurry
 {-# INLINE curried #-}
 
 -- | The canonical isomorphism for uncurrying and currying a function.
+--
+-- >>> :t flip (,)^.uncurried
+-- flip (,)^.uncurried :: (b, a) -> (a, b)
 --
 -- @'uncurried' = 'iso' 'uncurry' 'curry'@
 --
