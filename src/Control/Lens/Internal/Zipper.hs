@@ -355,9 +355,14 @@ within l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
 
 -- | Step down into every entry of a 'Traversal' simultaneously.
 --
+-- >>> zipper ("hello","world") & withins both >>= leftward >>= withins traverse >>= rightward <&> focus %~ toUpper <&> rezip
+-- [("hEllo","world"),("heLlo","world"),("helLo","world"),("hellO","world")]
+--
+-- @
 -- 'withins' :: 'Simple' 'Traversal' s a -> (h :> s) -> [h :> s :> a]
 -- 'withins' :: 'Simple' 'Lens' s a      -> (h :> s) -> [h :> s :> a]
 -- 'withins' :: 'Simple' 'Iso' s a       -> (h :> s) -> [h :> s :> a]
+-- @
 withins :: SimpleLensLike (Bazaar a a) s a -> (h :> s) -> [h :> s :> a]
 withins l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
   Context k ys -> go k [] ys
