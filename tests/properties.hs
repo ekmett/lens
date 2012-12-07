@@ -91,12 +91,16 @@ prop_value (Fun _ k :: Fun Int Bool) = isTraversal (value k :: Simple Traversal 
 prop_traverseLeft                    = isTraversal (_left   :: Simple Traversal (Either Int Bool) Int)
 prop_traverseRight                   = isTraversal (_right  :: Simple Traversal (Either Int Bool) Bool)
 
+prop_simple                          = isIso (simple :: Simple Iso Int Int)
+--prop_enum                            = isIso (enum :: Simple Iso Int Char)
+
 prop__left                           = isPrism (_left :: Simple Prism (Either Int Bool) Int)
 prop__right                          = isPrism (_right :: Simple Prism (Either Int Bool) Bool)
 prop__just                           = isPrism (_just :: Simple Prism (Maybe Int) Int)
 
 -- Data.Text.Lens
 prop_text s                          = s^.packed.from packed == s
+--prop_text                           = isIso packed
 
 main :: IO ()
 main = do
