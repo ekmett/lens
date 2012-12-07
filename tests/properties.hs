@@ -22,7 +22,7 @@ setter_id :: Eq s => Simple Setter s a -> s -> Bool
 setter_id l s = runIdentity (l Identity s) == s
 
 setter_composition :: Eq s => Simple Setter s a -> s -> Fun a a -> Fun a a -> Bool
-setter_composition l s (Fun _ f) (Fun _ g) = mapOf l f (mapOf l g s) == mapOf l (f . g) s
+setter_composition l s (Fun _ f) (Fun _ g) = over l f (over l g s) == over l (f . g) s
 
 lens_set_view :: Eq s => Simple Lens s a -> s -> Bool
 lens_set_view l s = set l (view l s) s == s
