@@ -144,7 +144,6 @@ type SimpleTraversal s a = Traversal s s a a
 traverseOf :: LensLike f s t a b -> (a -> f b) -> s -> f t
 traverseOf = id
 {-# INLINE traverseOf #-}
-{-# DEPRECATED traverseOf "traverseOf = id" #-}
 
 -- | A version of 'traverseOf' with the arguments flipped, such that:
 --

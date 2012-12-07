@@ -258,7 +258,6 @@ type LensLike f s t a b = (a -> f b) -> s -> f t
 (%%~) :: LensLike f s t a b -> (a -> f b) -> s -> f t
 (%%~) = id
 {-# INLINE (%%~) #-}
-{-# DEPRECATED (%%~) "(%%~) = id" #-}
 
 -- | Modify the target of a 'Lens' in the current state returning some extra
 -- information of type @r@ or modify all targets of a

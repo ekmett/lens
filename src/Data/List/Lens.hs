@@ -15,15 +15,16 @@
 ----------------------------------------------------------------------------
 module Data.List.Lens
   (
-  -- * Partial Lenses
     _head
   , _tail
   , _last
   , _init
+  , strippingPrefix
   ) where
 
 import Control.Applicative
 import Control.Lens
+import Data.List
 
 -- $setup
 -- >>> import Debug.SimpleReflect.Expr
@@ -165,3 +166,19 @@ _init :: Simple Traversal [a] [a]
 _init _ [] = pure []
 _init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
 {-# INLINE _init #-}
+
+-- | A 'Prism' stripping a prefix from a list when used as a 'Traversal', or
+-- prepending that prefix when run backwards:
+--
+-- >>> "preview" ^? strippingPrefix "pre"
+-- Just "view"
+--
+-- >>> "review" ^? strippingPrefix "pre"
+-- Nothing
+--
+-- >>> "amble"^.remit (strippingPrefix "pre")
+-- "preamble"
+strippingPrefix :: Eq a => [a] -> Simple Prism [a] [a]
+strippingPrefix ps = prism (ps ++) $ \xs -> case stripPrefix ps xs of
+  Nothing  -> Left xs
+  Just xs' -> Right xs'
