@@ -16,6 +16,7 @@ import Test.QuickCheck
 import Test.QuickCheck.All
 import Test.QuickCheck.Function
 import Data.Text.Strict.Lens
+import Data.List.Lens
 
 setter_id :: Eq s => Simple Setter s a -> s -> Bool
 setter_id l s = runIdentity (l Identity s) == s
@@ -97,6 +98,9 @@ prop_simple                          = isIso (simple :: Simple Iso Int Int)
 prop__left                           = isPrism (_left :: Simple Prism (Either Int Bool) Int)
 prop__right                          = isPrism (_right :: Simple Prism (Either Int Bool) Bool)
 prop__just                           = isPrism (_just :: Simple Prism (Maybe Int) Int)
+
+-- Data.List.Lens
+prop_strippingPrefix s               = isPrism (strippingPrefix s :: Simple Prism String String)
 
 -- Data.Text.Lens
 prop_text s                          = s^.packed.from packed == s
