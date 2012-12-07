@@ -487,71 +487,75 @@
 <a name="line-478"></a>
 <a name="line-479"></a><span class='hs-keyword'>type</span> <span class='hs-varid'>family</span> <span class='hs-conid'>ArgOf</span> <span class='hs-layout'>(</span><span class='hs-varid'>f_b</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>*</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>*</span>
 <a name="line-480"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>ArgOf</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>b</span>
-<a name="line-481"></a><span class='hs-keyword'>type</span> <span class='hs-varid'>family</span> <span class='hs-conid'>CoA</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>*</span>
-<a name="line-482"></a><span class='hs-keyword'>type</span> <span class='hs-varid'>family</span> <span class='hs-conid'>CoB</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>*</span>
-<a name="line-483"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>CoA</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f_b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>a</span>
-<a name="line-484"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>CoB</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f_b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ArgOf</span> <span class='hs-varid'>f_b</span>
-<a name="line-485"></a>
-<a name="line-486"></a><a name="Prismoid"></a><span class='hs-comment'>-- | This data type is used to capture all of the information provided by the</span>
-<a name="line-487"></a><a name="Prismoid"></a><span class='hs-comment'>-- 'Prismatic' -- class, so you can turn a 'Prism' around into a 'Getter' or</span>
-<a name="line-488"></a><a name="Prismoid"></a><span class='hs-comment'>-- otherwise muck around with its internals.</span>
-<a name="line-489"></a><a name="Prismoid"></a><span class='hs-comment'>--</span>
-<a name="line-490"></a><a name="Prismoid"></a><span class='hs-comment'>-- If you see a function that expects a 'Prismoid' or 'APrism', it is probably</span>
-<a name="line-491"></a><a name="Prismoid"></a><span class='hs-comment'>-- just expecting a 'Prism'.</span>
-<a name="line-492"></a><a name="Prismoid"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Prismoid</span> <span class='hs-varid'>ab</span> <span class='hs-varid'>st</span> <span class='hs-keyword'>where</span>
-<a name="line-493"></a>  <span class='hs-conid'>Prismoid</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prismoid</span> <span class='hs-varid'>x</span> <span class='hs-varid'>x</span>
-<a name="line-494"></a>  <span class='hs-conid'>Prism</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoB</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>CoB</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoA</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Either</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoB</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoA</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prismoid</span> <span class='hs-varid'>x</span> <span class='hs-varid'>y</span>
-<a name="line-495"></a>
-<a name="line-496"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Category</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyword'>where</span>
-<a name="line-497"></a>  <span class='hs-varid'>id</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prismoid</span>
-<a name="line-498"></a>  <span class='hs-varid'>x</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
-<a name="line-499"></a>  <span class='hs-conid'>Prismoid</span> <span class='hs-varop'>.</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
-<a name="line-500"></a>  <span class='hs-conid'>Prism</span> <span class='hs-varid'>ty</span> <span class='hs-varid'>xeys</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>ty</span><span class='hs-varop'>.</span><span class='hs-varid'>bt</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>x</span> <span class='hs-keyglyph'>-&gt;</span>
-<a name="line-501"></a>    <span class='hs-keyword'>case</span> <span class='hs-varid'>xeys</span> <span class='hs-varid'>x</span> <span class='hs-keyword'>of</span>
-<a name="line-502"></a>      <span class='hs-conid'>Left</span> <span class='hs-varid'>y</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Left</span> <span class='hs-varid'>y</span>
-<a name="line-503"></a>      <span class='hs-conid'>Right</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>seta</span> <span class='hs-varid'>s</span> <span class='hs-keyword'>of</span>
-<a name="line-504"></a>        <span class='hs-conid'>Left</span> <span class='hs-varid'>t</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Left</span> <span class='hs-layout'>(</span><span class='hs-varid'>ty</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
-<a name="line-505"></a>        <span class='hs-conid'>Right</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Right</span> <span class='hs-varid'>a</span>
-<a name="line-506"></a>
-<a name="line-507"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Isomorphic</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyword'>where</span>
-<a name="line-508"></a>  <span class='hs-varid'>iso</span> <span class='hs-varid'>sa</span> <span class='hs-varid'>bt</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varop'>.</span> <span class='hs-varid'>sa</span><span class='hs-layout'>)</span>
-<a name="line-509"></a>  <span class='hs-comment'>{-# INLINE iso #-}</span>
+<a name="line-481"></a>
+<a name="line-482"></a><span class='hs-comment'>-- | Extract @a@ from the type @a -&gt; f b@</span>
+<a name="line-483"></a><span class='hs-keyword'>type</span> <span class='hs-varid'>family</span> <span class='hs-conid'>CoA</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>*</span>
+<a name="line-484"></a>
+<a name="line-485"></a><span class='hs-comment'>-- | Extract @b@ from the type @a -&gt; f b@</span>
+<a name="line-486"></a><span class='hs-keyword'>type</span> <span class='hs-varid'>family</span> <span class='hs-conid'>CoB</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>*</span>
+<a name="line-487"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>CoA</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f_b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>a</span>
+<a name="line-488"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>CoB</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f_b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ArgOf</span> <span class='hs-varid'>f_b</span>
+<a name="line-489"></a>
+<a name="line-490"></a><a name="Prismoid"></a><span class='hs-comment'>-- | This data type is used to capture all of the information provided by the</span>
+<a name="line-491"></a><a name="Prismoid"></a><span class='hs-comment'>-- 'Prismatic' -- class, so you can turn a 'Prism' around into a 'Getter' or</span>
+<a name="line-492"></a><a name="Prismoid"></a><span class='hs-comment'>-- otherwise muck around with its internals.</span>
+<a name="line-493"></a><a name="Prismoid"></a><span class='hs-comment'>--</span>
+<a name="line-494"></a><a name="Prismoid"></a><span class='hs-comment'>-- If you see a function that expects a 'Prismoid' or 'APrism', it is probably</span>
+<a name="line-495"></a><a name="Prismoid"></a><span class='hs-comment'>-- just expecting a 'Prism'.</span>
+<a name="line-496"></a><a name="Prismoid"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Prismoid</span> <span class='hs-varid'>ab</span> <span class='hs-varid'>st</span> <span class='hs-keyword'>where</span>
+<a name="line-497"></a>  <span class='hs-conid'>Prismoid</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prismoid</span> <span class='hs-varid'>x</span> <span class='hs-varid'>x</span>
+<a name="line-498"></a>  <span class='hs-conid'>Prism</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoB</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>CoB</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoA</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Either</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoB</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoA</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prismoid</span> <span class='hs-varid'>x</span> <span class='hs-varid'>y</span>
+<a name="line-499"></a>
+<a name="line-500"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Category</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyword'>where</span>
+<a name="line-501"></a>  <span class='hs-varid'>id</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prismoid</span>
+<a name="line-502"></a>  <span class='hs-varid'>x</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
+<a name="line-503"></a>  <span class='hs-conid'>Prismoid</span> <span class='hs-varop'>.</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
+<a name="line-504"></a>  <span class='hs-conid'>Prism</span> <span class='hs-varid'>ty</span> <span class='hs-varid'>xeys</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>ty</span><span class='hs-varop'>.</span><span class='hs-varid'>bt</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>x</span> <span class='hs-keyglyph'>-&gt;</span>
+<a name="line-505"></a>    <span class='hs-keyword'>case</span> <span class='hs-varid'>xeys</span> <span class='hs-varid'>x</span> <span class='hs-keyword'>of</span>
+<a name="line-506"></a>      <span class='hs-conid'>Left</span> <span class='hs-varid'>y</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Left</span> <span class='hs-varid'>y</span>
+<a name="line-507"></a>      <span class='hs-conid'>Right</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>seta</span> <span class='hs-varid'>s</span> <span class='hs-keyword'>of</span>
+<a name="line-508"></a>        <span class='hs-conid'>Left</span> <span class='hs-varid'>t</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Left</span> <span class='hs-layout'>(</span><span class='hs-varid'>ty</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-509"></a>        <span class='hs-conid'>Right</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Right</span> <span class='hs-varid'>a</span>
 <a name="line-510"></a>
-<a name="line-511"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Prismatic</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyword'>where</span>
-<a name="line-512"></a>  <span class='hs-varid'>prism</span>    <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prism</span>
-<a name="line-513"></a>  <span class='hs-comment'>{-# INLINE prism #-}</span>
+<a name="line-511"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Isomorphic</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyword'>where</span>
+<a name="line-512"></a>  <span class='hs-varid'>iso</span> <span class='hs-varid'>sa</span> <span class='hs-varid'>bt</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>bt</span> <span class='hs-layout'>(</span><span class='hs-conid'>Right</span> <span class='hs-varop'>.</span> <span class='hs-varid'>sa</span><span class='hs-layout'>)</span>
+<a name="line-513"></a>  <span class='hs-comment'>{-# INLINE iso #-}</span>
 <a name="line-514"></a>
-<a name="line-515"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-516"></a><span class='hs-comment'>-- Isomorphism Internals</span>
-<a name="line-517"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-515"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Prismatic</span> <span class='hs-conid'>Prismoid</span> <span class='hs-keyword'>where</span>
+<a name="line-516"></a>  <span class='hs-varid'>prism</span>    <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prism</span>
+<a name="line-517"></a>  <span class='hs-comment'>{-# INLINE prism #-}</span>
 <a name="line-518"></a>
-<a name="line-519"></a><a name="Isoid"></a><span class='hs-comment'>-- | Reify all of the information given to you by being 'Isomorphic'.</span>
-<a name="line-520"></a><a name="Isoid"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Isoid</span> <span class='hs-varid'>ab</span> <span class='hs-varid'>st</span> <span class='hs-keyword'>where</span>
-<a name="line-521"></a>  <span class='hs-conid'>Isoid</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Isoid</span> <span class='hs-varid'>ab</span> <span class='hs-varid'>ab</span>
-<a name="line-522"></a>  <span class='hs-conid'>Iso</span>   <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoA</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>CoA</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoB</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>CoB</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Isoid</span> <span class='hs-varid'>x</span> <span class='hs-varid'>y</span>
-<a name="line-523"></a>
-<a name="line-524"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Category</span> <span class='hs-conid'>Isoid</span> <span class='hs-keyword'>where</span>
-<a name="line-525"></a>  <span class='hs-varid'>id</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Isoid</span>
-<a name="line-526"></a>  <span class='hs-conid'>Isoid</span> <span class='hs-varop'>.</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
-<a name="line-527"></a>  <span class='hs-varid'>x</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Isoid</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
-<a name="line-528"></a>  <span class='hs-conid'>Iso</span> <span class='hs-varid'>xs</span> <span class='hs-varid'>ty</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>sa</span> <span class='hs-varid'>bt</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-varid'>sa</span><span class='hs-varop'>.</span><span class='hs-varid'>xs</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>ty</span><span class='hs-varop'>.</span><span class='hs-varid'>bt</span><span class='hs-layout'>)</span>
-<a name="line-529"></a>
-<a name="line-530"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Isomorphic</span> <span class='hs-conid'>Isoid</span> <span class='hs-keyword'>where</span>
-<a name="line-531"></a>  <span class='hs-varid'>iso</span>   <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Iso</span>
-<a name="line-532"></a>  <span class='hs-comment'>{-# INLINE iso #-}</span>
+<a name="line-519"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-520"></a><span class='hs-comment'>-- Isomorphism Internals</span>
+<a name="line-521"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-522"></a>
+<a name="line-523"></a><a name="Isoid"></a><span class='hs-comment'>-- | Reify all of the information given to you by being 'Isomorphic'.</span>
+<a name="line-524"></a><a name="Isoid"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Isoid</span> <span class='hs-varid'>ab</span> <span class='hs-varid'>st</span> <span class='hs-keyword'>where</span>
+<a name="line-525"></a>  <span class='hs-conid'>Isoid</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Isoid</span> <span class='hs-varid'>ab</span> <span class='hs-varid'>ab</span>
+<a name="line-526"></a>  <span class='hs-conid'>Iso</span>   <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoA</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>CoA</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>CoB</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>CoB</span> <span class='hs-varid'>y</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Isoid</span> <span class='hs-varid'>x</span> <span class='hs-varid'>y</span>
+<a name="line-527"></a>
+<a name="line-528"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Category</span> <span class='hs-conid'>Isoid</span> <span class='hs-keyword'>where</span>
+<a name="line-529"></a>  <span class='hs-varid'>id</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Isoid</span>
+<a name="line-530"></a>  <span class='hs-conid'>Isoid</span> <span class='hs-varop'>.</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
+<a name="line-531"></a>  <span class='hs-varid'>x</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Isoid</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
+<a name="line-532"></a>  <span class='hs-conid'>Iso</span> <span class='hs-varid'>xs</span> <span class='hs-varid'>ty</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Iso</span> <span class='hs-varid'>sa</span> <span class='hs-varid'>bt</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-varid'>sa</span><span class='hs-varop'>.</span><span class='hs-varid'>xs</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>ty</span><span class='hs-varop'>.</span><span class='hs-varid'>bt</span><span class='hs-layout'>)</span>
 <a name="line-533"></a>
-<a name="line-534"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-535"></a><span class='hs-comment'>-- Indexed Internals</span>
-<a name="line-536"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-534"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Isomorphic</span> <span class='hs-conid'>Isoid</span> <span class='hs-keyword'>where</span>
+<a name="line-535"></a>  <span class='hs-varid'>iso</span>   <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Iso</span>
+<a name="line-536"></a>  <span class='hs-comment'>{-# INLINE iso #-}</span>
 <a name="line-537"></a>
-<a name="line-538"></a><a name="Indexed"></a><span class='hs-comment'>-- | A function with access to a index. This constructor may be useful when you need to store</span>
-<a name="line-539"></a><a name="Indexed"></a><span class='hs-comment'>-- a 'Indexable' in a container to avoid @ImpredicativeTypes@.</span>
-<a name="line-540"></a><a name="Indexed"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>Indexed</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Indexed</span> <span class='hs-layout'>{</span> <span class='hs-varid'>withIndex</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-layout'>}</span>
+<a name="line-538"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-539"></a><span class='hs-comment'>-- Indexed Internals</span>
+<a name="line-540"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-541"></a>
-<a name="line-542"></a><span class='hs-comment'>-- | Using an equality witness to avoid potential overlapping instances</span>
-<a name="line-543"></a><span class='hs-comment'>-- and aid dispatch.</span>
-<a name="line-544"></a><span class='hs-keyword'>instance</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>~</span> <span class='hs-varid'>j</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Indexable</span> <span class='hs-varid'>i</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-545"></a>  <span class='hs-varid'>indexed</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Indexed</span>
-<a name="line-546"></a>  <span class='hs-comment'>{-# INLINE indexed #-}</span>
+<a name="line-542"></a><a name="Indexed"></a><span class='hs-comment'>-- | A function with access to a index. This constructor may be useful when you need to store</span>
+<a name="line-543"></a><a name="Indexed"></a><span class='hs-comment'>-- a 'Indexable' in a container to avoid @ImpredicativeTypes@.</span>
+<a name="line-544"></a><a name="Indexed"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>Indexed</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Indexed</span> <span class='hs-layout'>{</span> <span class='hs-varid'>withIndex</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-layout'>}</span>
+<a name="line-545"></a>
+<a name="line-546"></a><span class='hs-comment'>-- | Using an equality witness to avoid potential overlapping instances</span>
+<a name="line-547"></a><span class='hs-comment'>-- and aid dispatch.</span>
+<a name="line-548"></a><span class='hs-keyword'>instance</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>~</span> <span class='hs-varid'>j</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Indexable</span> <span class='hs-varid'>i</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-549"></a>  <span class='hs-varid'>indexed</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Indexed</span>
+<a name="line-550"></a>  <span class='hs-comment'>{-# INLINE indexed #-}</span>
 </pre></body>
 </html>

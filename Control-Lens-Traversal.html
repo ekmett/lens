@@ -35,7 +35,7 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Traversal
  <code><a href="Control-Lens-Traversal.html#t:Traversable">Traversable</a></code> instances that <code><a href="Control-Lens-Traversal.html#v:traverse">traverse</a></code> the same entry multiple times was actually already ruled out by the
  second law in that same paper!
 </p></div></div><h1 id="g:2">Traversing and Lensing
-</h1><div class="top"><p class="src"><a name="v:traverseOf" class="def">traverseOf</a> ::  <a href="Control-Lens-Type.html#t:LensLike">LensLike</a> f s t a b -&gt; (a -&gt; f b) -&gt; s -&gt; f t<a href="src/Control-Lens-Traversal.html#traverseOf" class="link">Source</a></p><div class="doc"><div class="warning"><p>Deprecated: traverseOf = id</p></div><p>Map each element of a structure targeted by a Lens or Traversal,
+</h1><div class="top"><p class="src"><a name="v:traverseOf" class="def">traverseOf</a> ::  <a href="Control-Lens-Type.html#t:LensLike">LensLike</a> f s t a b -&gt; (a -&gt; f b) -&gt; s -&gt; f t<a href="src/Control-Lens-Traversal.html#traverseOf" class="link">Source</a></p><div class="doc"><p>Map each element of a structure targeted by a Lens or Traversal,
  evaluate these actions from left to right, and collect the results.
 </p><p>This function is only provided for consistency, <code><a href="/Library/Frameworks/GHC.framework/Versions/7.4.2-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.1.0/Prelude.html#v:id">id</a></code> is strictly more general.
 </p><pre><code><a href="Control-Lens-Traversal.html#v:traverseOf">traverseOf</a></code> &#8801; <code><a href="/Library/Frameworks/GHC.framework/Versions/7.4.2-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.1.0/Prelude.html#v:id">id</a></code></pre><p>This yields the obvious law:

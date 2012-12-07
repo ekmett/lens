@@ -26,14 +26,14 @@
 <a name="line-17"></a><span class='hs-comment'>--</span>
 <a name="line-18"></a><span class='hs-comment'>-- [@'Top' ':&gt;' a@] represents a trivial 'Zipper' with its focus at the root.</span>
 <a name="line-19"></a><span class='hs-comment'>--</span>
-<a name="line-20"></a><span class='hs-comment'>-- [@'Top' ':&gt;' 'Data.Tree.Tree' a ':&gt;' a@] represents a zipper that starts with a</span>
+<a name="line-20"></a><span class='hs-comment'>-- [@'Top' ':&gt;' 'Data.Tree.Tree' a ':&gt;' a@] represents a 'Zipper' that starts with a</span>
 <a name="line-21"></a><span class='hs-comment'>--   'Data.Tree.Tree' and descends in a single step to values of type @a@.</span>
 <a name="line-22"></a><span class='hs-comment'>--</span>
 <a name="line-23"></a><span class='hs-comment'>-- [@'Top' ':&gt;' 'Data.Tree.Tree' a ':&gt;' 'Data.Tree.Tree' a ':&gt;' 'Data.Tree.Tree' a@] represents a 'Zipper' into a</span>
 <a name="line-24"></a><span class='hs-comment'>--   'Data.Tree.Tree' with an intermediate bookmarked 'Data.Tree.Tree',</span>
 <a name="line-25"></a><span class='hs-comment'>--   focusing in yet another 'Data.Tree.Tree'.</span>
 <a name="line-26"></a><span class='hs-comment'>--</span>
-<a name="line-27"></a><span class='hs-comment'>-- Since individual levels of a zipper are managed by an arbitrary 'Traversal',</span>
+<a name="line-27"></a><span class='hs-comment'>-- Since individual levels of a 'Zipper' are managed by an arbitrary 'Traversal',</span>
 <a name="line-28"></a><span class='hs-comment'>-- you can move left and right through the 'Traversal' selecting neighboring elements.</span>
 <a name="line-29"></a><span class='hs-comment'>--</span>
 <a name="line-30"></a><span class='hs-comment'>-- &gt;&gt;&gt; zipper ("hello","world") &amp; downward _1 &amp; fromWithin traverse &amp; focus .~ 'J' &amp; rightmost &amp; focus .~ 'y' &amp; rezip</span>
@@ -48,46 +48,48 @@
 <a name="line-39"></a>  <span class='hs-comment'>-- * Zippers</span>
 <a name="line-40"></a>    <span class='hs-conid'>Top</span><span class='hs-conid'>()</span>
 <a name="line-41"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-conop'>:&gt;</span><span class='hs-layout'>)</span><span class='hs-conid'>()</span>
-<a name="line-42"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>zipper</span>
-<a name="line-43"></a>  <span class='hs-comment'>-- ** Focusing</span>
-<a name="line-44"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>focus</span>
-<a name="line-45"></a>  <span class='hs-comment'>-- ** Vertical Movement</span>
-<a name="line-46"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>upward</span>
-<a name="line-47"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>downward</span>
-<a name="line-48"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>within</span>
-<a name="line-49"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>withins</span>
-<a name="line-50"></a>  <span class='hs-comment'>-- ** Lateral Movement</span>
-<a name="line-51"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>leftward</span>
-<a name="line-52"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rightward</span>
-<a name="line-53"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>leftmost</span>
-<a name="line-54"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rightmost</span>
-<a name="line-55"></a>  <span class='hs-comment'>-- ** Movement Combinators</span>
-<a name="line-56"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tug</span>
-<a name="line-57"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tugs</span>
-<a name="line-58"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>jerks</span>
-<a name="line-59"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>farthest</span>
-<a name="line-60"></a>  <span class='hs-comment'>-- ** Absolute Positioning</span>
-<a name="line-61"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tooth</span>
-<a name="line-62"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>teeth</span>
-<a name="line-63"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>jerkTo</span>
-<a name="line-64"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tugTo</span>
-<a name="line-65"></a>  <span class='hs-comment'>-- ** Closing the zipper</span>
-<a name="line-66"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rezip</span>
-<a name="line-67"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Zipped</span>
-<a name="line-68"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Zipper</span><span class='hs-conid'>()</span>
-<a name="line-69"></a>  <span class='hs-comment'>-- ** Recording</span>
-<a name="line-70"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Tape</span><span class='hs-conid'>()</span>
-<a name="line-71"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>saveTape</span>
-<a name="line-72"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>restoreTape</span>
-<a name="line-73"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>restoreNearTape</span>
-<a name="line-74"></a>  <span class='hs-comment'>-- ** Unsafe Movement</span>
-<a name="line-75"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>fromWithin</span>
-<a name="line-76"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>unsafelyRestoreTape</span>
-<a name="line-77"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-78"></a>
-<a name="line-79"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Zipper</span>
+<a name="line-42"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Zipper</span>
+<a name="line-43"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>zipper</span>
+<a name="line-44"></a>  <span class='hs-comment'>-- ** Focusing</span>
+<a name="line-45"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>focus</span>
+<a name="line-46"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>focusedContext</span>
+<a name="line-47"></a>  <span class='hs-comment'>-- ** Vertical Movement</span>
+<a name="line-48"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>upward</span>
+<a name="line-49"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>downward</span>
+<a name="line-50"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>within</span>
+<a name="line-51"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>withins</span>
+<a name="line-52"></a>  <span class='hs-comment'>-- ** Lateral Movement</span>
+<a name="line-53"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>leftward</span>
+<a name="line-54"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rightward</span>
+<a name="line-55"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>leftmost</span>
+<a name="line-56"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rightmost</span>
+<a name="line-57"></a>  <span class='hs-comment'>-- ** Movement Combinators</span>
+<a name="line-58"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tug</span>
+<a name="line-59"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tugs</span>
+<a name="line-60"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>jerks</span>
+<a name="line-61"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>farthest</span>
+<a name="line-62"></a>  <span class='hs-comment'>-- ** Absolute Positioning</span>
+<a name="line-63"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tooth</span>
+<a name="line-64"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>teeth</span>
+<a name="line-65"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>jerkTo</span>
+<a name="line-66"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tugTo</span>
+<a name="line-67"></a>  <span class='hs-comment'>-- ** Closing the zipper</span>
+<a name="line-68"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rezip</span>
+<a name="line-69"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Zipped</span>
+<a name="line-70"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Zipping</span><span class='hs-conid'>()</span>
+<a name="line-71"></a>  <span class='hs-comment'>-- ** Recording</span>
+<a name="line-72"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Tape</span><span class='hs-conid'>()</span>
+<a name="line-73"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>saveTape</span>
+<a name="line-74"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>restoreTape</span>
+<a name="line-75"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>restoreNearTape</span>
+<a name="line-76"></a>  <span class='hs-comment'>-- ** Unsafe Movement</span>
+<a name="line-77"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>fromWithin</span>
+<a name="line-78"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>unsafelyRestoreTape</span>
+<a name="line-79"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-80"></a>
-<a name="line-81"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-82"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens</span>
+<a name="line-81"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Zipper</span>
+<a name="line-82"></a>
+<a name="line-83"></a><span class='hs-comment'>-- $setup</span>
+<a name="line-84"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens</span>
 </pre></body>
 </html>
