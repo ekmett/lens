@@ -165,7 +165,7 @@ library
     comonad-transformers == 3.0.*,
     comonads-fd          == 3.0.*,
     containers           >= 0.4.2    && < 0.6,
-    hashable             == 1.1.*,
+    hashable             >= 1.1.2.3  && < 1.2,
     mtl                  >= 2.1.1    && < 2.2,
     semigroups           >= 0.8.4    && < 0.9,
     split                == 0.2.*,
