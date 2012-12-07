@@ -40,7 +40,7 @@ executable pong
   main-is: Pong.hs
 
 executable brainfuck
-  if !flag(pong)
+  if !flag(brainfuck)
     buildable: False
 
   build-depends:
