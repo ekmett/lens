@@ -17,14 +17,14 @@
 --
 -- [@'Top' ':>' a@] represents a trivial 'Zipper' with its focus at the root.
 --
--- [@'Top' ':>' 'Data.Tree.Tree' a ':>' a@] represents a zipper that starts with a
+-- [@'Top' ':>' 'Data.Tree.Tree' a ':>' a@] represents a 'Zipper' that starts with a
 --   'Data.Tree.Tree' and descends in a single step to values of type @a@.
 --
 -- [@'Top' ':>' 'Data.Tree.Tree' a ':>' 'Data.Tree.Tree' a ':>' 'Data.Tree.Tree' a@] represents a 'Zipper' into a
 --   'Data.Tree.Tree' with an intermediate bookmarked 'Data.Tree.Tree',
 --   focusing in yet another 'Data.Tree.Tree'.
 --
--- Since individual levels of a zipper are managed by an arbitrary 'Traversal',
+-- Since individual levels of a 'Zipper' are managed by an arbitrary 'Traversal',
 -- you can move left and right through the 'Traversal' selecting neighboring elements.
 --
 -- >>> zipper ("hello","world") & downward _1 & fromWithin traverse & focus .~ 'J' & rightmost & focus .~ 'y' & rezip
@@ -39,9 +39,11 @@ module Control.Lens.Zipper
   -- * Zippers
     Top()
   , (:>)()
+  , Zipper
   , zipper
   -- ** Focusing
   , focus
+  , focusedContext
   -- ** Vertical Movement
   , upward
   , downward
@@ -65,7 +67,7 @@ module Control.Lens.Zipper
   -- ** Closing the zipper
   , rezip
   , Zipped
-  , Zipper()
+  , Zipping()
   -- ** Recording
   , Tape()
   , saveTape

@@ -29,7 +29,8 @@
 * Generalized `sequenceAOf_`'s type to match `sequenceA_`.
 * Renamed `up`/`down`/`left`/`right` to `upward`/`downward`/`leftward`/`rightward` to reduce conflicts -- in particular with `Control.Arrow`.
 * Readded `leftmost` and `rightmost` due to the verbosity of `farthest leftward`/`farthest rightward`.
-* Added `preview`/`previews`/`firstOf`. Deprecated `headOf`.
+* Added `preview`/`previews`/`firstOf` and deprecated `headOf`.
+* Added `iview`/`iviews`/`iuse`/`iuses` to `Control.Lens.IndexedGetter`.
 
 3.6.0.4 [maintenance release]
 -------

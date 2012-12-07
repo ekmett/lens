@@ -17,7 +17,7 @@
 --
 -- This module provides internal types and functions used in the implementation
 -- of @Control.Lens.Zipper@. You shouldn't need to import it directly, and the
--- exported types can be used to break 'zipper' invariants.
+-- exported types can be used to break 'Zipper' invariants.
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Zipper where
@@ -26,8 +26,10 @@ import Control.Applicative
 import Control.Category
 import Control.Monad
 import Control.Lens.Classes
+import Control.Lens.Getter
 import Control.Lens.IndexedLens
 import Control.Lens.Internal
+import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.Maybe
@@ -41,16 +43,16 @@ import Prelude hiding ((.),id)
 -- * Zippers
 -----------------------------------------------------------------------------
 
--- | This is used to represent the 'Top' of the 'zipper'.
+-- | This is used to represent the 'Top' of the 'Zipper'.
 --
--- Every 'zipper' starts with 'Top'.
+-- Every 'Zipper' starts with 'Top'.
 --
--- /e.g./ @'Top' ':>' a@ is the trivial zipper.
+-- /e.g./ @'Top' ':>' a@ is the type of the trivial 'Zipper'.
 data Top
 
 infixl 9 :>
 
--- | This is the type of a 'zipper'. It visually resembles a \"breadcrumb trail\" as
+-- | This is the type of a 'Zipper'. It visually resembles a \"breadcrumb trail\" as
 -- used in website navigation. Each breadcrumb in the trail represents a level you
 -- can move up to.
 --
@@ -77,14 +79,17 @@ infixl 9 :>
 -- Note that a value of type @h ':>' s ':>' a@ doesn't actually contain a value
 -- of type @h ':>' s@ -- as we descend into a level, the previous level is
 -- unpacked and stored in 'Coil' form. Only one value of type @_ ':>' _@ exists
--- at any particular time for any particular 'zipper'.
-data h :> a = Zipper (Coil h a) -- The 'Coil' storing the previous levels of the 'zipper'.
+-- at any particular time for any particular 'Zipper'.
+data h :> a = Zipper (Coil h a) -- The 'Coil' storing the previous levels of the 'Zipper'.
       {-# UNPACK #-} !Int       -- Number of items to the left.
                      [a]        -- Items to the left (stored reversed).
                      a          -- Focused item.
                      [a]        -- Items to the right.
 
--- | This represents the type a 'zipper' will have when it is fully 'Zipped' back up.
+-- | This is an alias for '(:>)'. Provided mostly for convenience
+type Zipper = (:>)
+
+-- | This represents the type a 'Zipper' will have when it is fully 'Zipped' back up.
 type family Zipped h a
 type instance Zipped Top a      = a
 type instance Zipped (h :> s) a = Zipped h s
@@ -105,19 +110,19 @@ data Coil :: * -> * -> * where
        -> [s]                                -- Previous level's items to the right.
        -> Coil (h :> s) a
 
--- | This 'Lens' views the current target of the 'zipper'.
+-- | This 'Lens' views the current target of the 'Zipper'.
 --
 -- A 'Tape' that can be used to get to the current location is available as the index of this 'Lens'.
 focus :: SimpleIndexedLens (Tape (h :> a)) (h :> a) a
 focus = indexed $ \f (Zipper h n l a r) -> (\a' -> Zipper h n l a' r) <$> f (Tape (peel h) n) a
 {-# INLINE focus #-}
 
--- | Construct a 'zipper' that can explore anything, and start it at the top.
+-- | Construct a 'Zipper' that can explore anything, and start it at the top.
 zipper :: a -> Top :> a
 zipper a = Zipper Coil 0 [] a []
 {-# INLINE zipper #-}
 
--- | Return the index into the current 'Traversal' within the current level of the 'zipper'.
+-- | Return the index into the current 'Traversal' within the current level of the 'Zipper'.
 --
 -- @'jerkTo' ('tooth' l) l = Just'@
 --
@@ -126,9 +131,9 @@ tooth :: (h :> a) -> Int
 tooth (Zipper _ n _ _ _) = n
 {-# INLINE tooth #-}
 
--- | Move the 'zipper' 'upward', closing the current level and focusing on the parent element.
+-- | Move the 'Zipper' 'upward', closing the current level and focusing on the parent element.
 --
--- NB: Attempts to move upward from the 'Top' of the 'zipper' will fail to typecheck.
+-- NB: Attempts to move upward from the 'Top' of the 'Zipper' will fail to typecheck.
 --
 -- >>> :t zipper ("hello","world") & downward _1 & fromWithin traverse & upward
 -- zipper ("hello","world") & downward _1 & fromWithin traverse & upward
@@ -138,7 +143,7 @@ upward (Zipper (Snoc h _ un uls k urs) _ ls x rs) = Zipper h un uls ux urs
   where ux = k (reverseList ls ++ x : rs)
 {-# INLINE upward #-}
 
--- | Jerk the 'zipper' one 'tooth' to the 'rightward' within the current 'Lens' or 'Traversal'.
+-- | Jerk the 'Zipper' one 'tooth' to the 'rightward' within the current 'Lens' or 'Traversal'.
 --
 -- Attempts to move past the start of the current 'Traversal' (or trivially, the current 'Lens')
 -- will return 'Nothing'.
@@ -289,7 +294,7 @@ teeth :: (h :> a) -> Int
 teeth (Zipper _ n _ _ rs) = n + 1 + length rs
 {-# INLINE teeth #-}
 
--- | Move the 'zipper' horizontally to the element in the @n@th position in the
+-- | Move the 'Zipper' horizontally to the element in the @n@th position in the
 -- current level, absolutely indexed, starting with the 'farthest' 'leftward' as @0@.
 --
 -- This returns 'Nothing' if the target element doesn't exist.
@@ -312,7 +317,7 @@ jerkTo n z = case compare k n of
   where k = tooth z
 {-# INLINE jerkTo #-}
 
--- | Move the 'zipper' horizontally to the element in the @n@th position of the
+-- | Move the 'Zipper' horizontally to the element in the @n@th position of the
 -- current level, absolutely indexed, starting with the 'farthest' 'leftward' as @0@.
 --
 -- If the element at that position doesn't exist, then this will clamp to the range @0 <= n < 'teeth'@.
@@ -391,28 +396,32 @@ fromWithin l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
   Context k ~(a:as) -> Zipper (Snoc h l n ls k rs) 0 [] a as
 {-# INLINE fromWithin #-}
 
--- | This enables us to pull the 'zipper' back up to the 'Top'.
-class Zipper h a where
+-- | This enables us to pull the 'Zipper' back up to the 'Top'.
+class Zipping h a where
   recoil :: Coil h a -> [a] -> Zipped h a
 
-instance Zipper Top a where
+instance Zipping Top a where
   recoil Coil = head
   {-# INLINE recoil #-}
 
-instance Zipper h s => Zipper (h :> s) a where
+instance Zipping h s => Zipping (h :> s) a where
   recoil (Snoc h _ _ ls k rs) as = recoil h (reverseList ls ++ k as : rs)
   {-# INLINE recoil #-}
 
--- | Close something back up that you opened as a 'zipper'.
-rezip :: Zipper h a => (h :> a) -> Zipped h a
+-- | Close something back up that you opened as a 'Zipper'.
+rezip :: Zipping h a => (h :> a) -> Zipped h a
 rezip (Zipper h _ ls a rs) = recoil h (reverseList ls ++ a : rs)
 {-# INLINE rezip #-}
+
+-- | Extract the current 'focus' from a 'Zipper' as a 'Context'
+focusedContext :: Zipping h a => (h :> a) -> Context a a (Zipped h a)
+focusedContext z = Context (\a -> z & focus .~ a & rezip) (z^.focus)
 
 -----------------------------------------------------------------------------
 -- * Tapes
 -----------------------------------------------------------------------------
 
--- | A 'Tape' is a recorded path through the 'Traversal' chain of a 'zipper'.
+-- | A 'Tape' is a recorded path through the 'Traversal' chain of a 'Zipper'.
 data Tape k where
   Tape :: Track h a -> {-# UNPACK #-} !Int -> Tape (h :> a)
 
