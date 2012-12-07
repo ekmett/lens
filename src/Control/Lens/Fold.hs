@@ -40,6 +40,8 @@ module Control.Lens.Fold
   , (^..)
   , (^?)
   , (^?!)
+  , preview
+  , previews
   -- ** Building Folds
   --, folds
   , folding
@@ -67,7 +69,7 @@ module Control.Lens.Fold
   , elemOf, notElemOf
   , lengthOf
   , nullOf
-  , headOf, lastOf
+  , firstOf, lastOf
   , maximumOf, minimumOf
   , maximumByOf, minimumByOf
   , findOf
@@ -76,6 +78,8 @@ module Control.Lens.Fold
   , foldrMOf, foldlMOf
   -- * Storing Folds
   , ReifiedFold(..)
+  -- * Deprecated
+  , headOf
   ) where
 
 import Control.Applicative as Applicative
@@ -86,6 +90,7 @@ import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad
+import Control.Monad.Reader
 import Data.Foldable as Foldable
 import Data.Maybe
 import Data.Monoid
@@ -733,21 +738,12 @@ lengthOf :: Getting (Sum Int) s t a b -> s -> Int
 lengthOf l = getSum# (foldMapOf l (\_ -> Sum 1))
 {-# INLINE lengthOf #-}
 
--- | Perform a safe 'head' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
--- from a 'Getter' or 'Lens'. See also ('^?').
---
--- @'Data.Maybe.listToMaybe' '.' 'toList' ≡ 'headOf' 'folded'@
---
--- @
--- 'headOf' :: 'Getter' s a           -> s -> 'Maybe' a
--- 'headOf' :: 'Fold' s a             -> s -> 'Maybe' a
--- 'headOf' :: 'Simple' 'Lens' s a      -> s -> 'Maybe' a
--- 'headOf' :: 'Simple' 'Control.Lens.Iso.Iso' s a       -> s -> 'Maybe' a
--- 'headOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Maybe' a
--- @
+-- | A deprecated alias for 'firstOf'
 headOf :: Getting (First a) s t a b -> s -> Maybe a
 headOf l = getFirst# (foldMapOf l (first# Just))
 {-# INLINE headOf #-}
+{-# DEPRECATED headOf "`headOf' will be removed in 3.8. (Use `preview' or `firstOf')" #-}
+
 
 -- | Perform a safe 'head' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
@@ -781,7 +777,21 @@ a ^? l = getFirst (foldMapOf l (first# Just) a)
 a ^?! l = fromMaybe (error "(^?!): empty Fold") $ getFirst (foldMapOf l (first# Just) a)
 {-# INLINE (^?!) #-}
 
--- | Perform a safe 'last' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
+-- | Retrieve the 'First' entry of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
+-- from a 'Getter' or 'Lens'.
+--
+-- @
+-- 'firstOf' :: 'Getter' s a           -> s -> 'Maybe' a
+-- 'firstOf' :: 'Fold' s a             -> s -> 'Maybe' a
+-- 'firstOf' :: 'Simple' 'Lens' s a      -> s -> 'Maybe' a
+-- 'firstOf' :: 'Simple' 'Control.Lens.Iso.Iso' s a       -> s -> 'Maybe' a
+-- 'firstOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Maybe' a
+-- @
+firstOf :: Getting (First a) s t a b -> s -> Maybe a
+firstOf l = getFirst# (foldMapOf l (first# Just))
+{-# INLINE firstOf #-}
+
+-- | Retrieve the 'Last' entry of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
 --
 -- @
@@ -1029,3 +1039,61 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 
 -- | Useful for storing folds in containers.
 newtype ReifiedFold s a = ReifyFold { reflectFold :: Fold s a }
+
+-- * Previewing
+
+-- | Retrieve the first value targeted by a 'Fold' or 'Control.Lens.Traversal.Traversal' (or 'Just' the result
+-- from a 'Getter' or 'Lens'). See also ('^?').
+--
+-- @'Data.Maybe.listToMaybe' '.' 'toList' ≡ 'preview' 'folded'@
+--
+-- This is usually applied in the reader monad @(->) s@.
+--
+-- @
+-- 'preview' :: 'Getter' s a           -> s -> 'Maybe' a
+-- 'preview' :: 'Fold' s a             -> s -> 'Maybe' a
+-- 'preview' :: 'Simple' 'Lens' s a      -> s -> 'Maybe' a
+-- 'preview' :: 'Simple' 'Control.Lens.Iso.Iso' s a       -> s -> 'Maybe' a
+-- 'preview' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Maybe' a
+-- @
+--
+-- However, it may be useful to think of its full generality when working with
+-- a monad transformer stack:
+--
+-- @
+-- 'preview' :: MonadReader s m => 'Getter' s a           -> m ('Maybe' a)
+-- 'preview' :: MonadReader s m => 'Fold' s a             -> m ('Maybe' a)
+-- 'preview' :: MonadReader s m => 'Simple' 'Lens' s a      -> m ('Maybe' a)
+-- 'preview' :: MonadReader s m => 'Simple' 'Control.Lens.Iso.Iso' s a       -> m ('Maybe' a)
+-- 'preview' :: MonadReader s m => 'Simple' 'Control.Lens.Traversal.Traversal' s a -> m ('Maybe' a)
+-- @
+preview :: MonadReader s m => Getting (First a) s t a b -> m (Maybe a)
+preview l = asks (getFirst# (foldMapOf l (first# Just)))
+{-# INLINE preview #-}
+
+-- | Retrieve a function of the first value targeted by a 'Fold' or
+-- 'Control.Lens.Traversal.Traversal' (or 'Just' the result from a 'Getter' or 'Lens').
+--
+-- This is usually applied in the reader monad @(->) s@.
+--
+-- @
+-- 'previews' :: 'Getter' s a           -> (a -> r) -> s -> 'Maybe' a
+-- 'previews' :: 'Fold' s a             -> (a -> r) -> s -> 'Maybe' a
+-- 'previews' :: 'Simple' 'Lens' s a      -> (a -> r) -> s -> 'Maybe' a
+-- 'previews' :: 'Simple' 'Control.Lens.Iso.Iso' s a       -> (a -> r) -> s -> 'Maybe' a
+-- 'previews' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> r) -> s -> 'Maybe' a
+-- @
+--
+-- However, it may be useful to think of its full generality when working with
+-- a monad transformer stack:
+--
+-- @
+-- 'previews' :: MonadReader s m => 'Getter' s a           -> (a -> r) -> m ('Maybe' r)
+-- 'previews' :: MonadReader s m => 'Fold' s a             -> (a -> r) -> m ('Maybe' r)
+-- 'previews' :: MonadReader s m => 'Simple' 'Lens' s a      -> (a -> r) -> m ('Maybe' r)
+-- 'previews' :: MonadReader s m => 'Simple' 'Control.Lens.Iso.Iso' s a       -> (a -> r) -> m ('Maybe' r)
+-- 'previews' :: MonadReader s m => 'Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> r) -> m ('Maybe' r)
+-- @
+previews :: MonadReader s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe r)
+previews l f = asks (getFirst# (foldMapOf l (first# (Just . f))))
+{-# INLINE previews #-}
