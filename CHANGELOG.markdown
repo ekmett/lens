@@ -1,6 +1,6 @@
 3.7.0.1
 -------
-* Fixed compatibility with Haskell Platform 2011.4.0.0
+* Fixed compatibility with Haskell Platform 2011.4.0.0 -- you may have to install with --constraint="transformers = 0.2.2.0" to avoid getting new mtl and transformer versions installed.
 
 [3.7](https://github.com/ekmett/lens/issues?milestone=11&page=1&state=closed)
 -----
