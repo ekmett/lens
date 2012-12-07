@@ -1,9 +1,14 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+#ifndef MIN_VERSION_mtl
+#define MIN_VERSION_mtl(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Traversal
@@ -276,7 +281,11 @@ mapAccumROf = mapAccumLOf . backwards
 -- 'mapAccumLOf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
 mapAccumLOf :: LensLike (Lazy.State acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+#if MIN_VERSION_mtl(2,1,1)
 mapAccumLOf l f acc0 s = swap (Lazy.runState (l (\a -> State.state (\acc -> swap (f acc a))) s) acc0)
+#else
+mapAccumLOf l f acc0 s = swap (Lazy.runState (l (\a -> do (r,s') <- State.gets (\acc -> swap (f acc a)); State.put s'; return r) s) acc0)
+#endif
 {-# INLINE mapAccumLOf #-}
 
 swap :: (a,b) -> (b,a)
@@ -440,11 +449,20 @@ ins = toListOf bazaar
 {-# INLINE ins #-}
 
 outs :: Bazaar a a t -> [a] -> t
+#if MIN_VERSION_mtl(2,1,1)
 outs = evalState . bazaar (\oldVal -> State.state (unconsWithDefault oldVal))
+#else
+outs = evalState . bazaar (\oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r)
+#endif
 {-# INLINE outs #-}
 
+
 unsafeOuts :: Bazaar a b t -> [b] -> t
+#if MIN_VERSION_mtl(2,1,1)
 unsafeOuts = evalState . bazaar (\_ -> State.state (unconsWithDefault fakeVal))
+#else
+unsafeOuts = evalState . bazaar (\_-> do (r,s) <- State.gets (unconsWithDefault fakeVal); State.put s; return r)
+#endif
   where fakeVal = error "unsafePartsOf': not enough elements were supplied"
 {-# INLINE unsafeOuts #-}
 
@@ -453,11 +471,19 @@ insT = toListOf bazaarT
 {-# INLINE insT #-}
 
 outsT :: BazaarT a a f t -> [a] -> t
+#if MIN_VERSION_mtl(2,1,1)
 outsT = evalState . bazaarT (\oldVal -> State.state (unconsWithDefault oldVal))
+#else
+outsT = evalState . bazaarT (\oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r)
+#endif
 {-# INLINE outsT #-}
 
 unsafeOutsT :: BazaarT a b f t -> [b] -> t
+#if MIN_VERSION_mtl(2,1,1)
 unsafeOutsT = evalState . bazaarT (\_ -> State.state (unconsWithDefault fakeVal))
+#else
+unsafeOutsT = evalState . bazaarT (\_-> do (r,s) <- State.gets (unconsWithDefault fakeVal); State.put s; return r)
+#endif
   where fakeVal = error "unsafePartsOf: not enough elements were supplied"
 {-# INLINE unsafeOutsT #-}
 

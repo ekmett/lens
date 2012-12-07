@@ -2,6 +2,9 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+#ifndef MIN_VERSION_parallel
+#define MIN_VERSION_parallel(x,y,z) (defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL > 700)
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Parallel.Strategies.Lens
@@ -53,7 +56,11 @@ evalOf l = l
 -- 'parOf' :: ((a -> 'Eval' a) -> s -> 'Eval' s) -> 'Strategy' a -> 'Strategy' s
 -- @
 parOf :: SimpleLensLike Eval s a -> Strategy a -> Strategy s
+#if MIN_VERSION_parallel(3,2,0)
 parOf l s = l (rparWith s)
+#else
+parOf l s = l (rpar `dot` s)
+#endif
 {-# INLINE parOf #-}
 
 -- | Transform a 'Lens', 'Fold', 'Getter', 'Setter' or 'Traversal' to

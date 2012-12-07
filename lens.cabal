@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       3.7
+version:       3.7.0.1
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -155,6 +155,10 @@ flag safe
 -- Assert that we are trustworthy when we can
 flag trustworthy
   default: True
+  manual: True
+
+flag transformers2
+  default: False
   manual: False
 
 library
@@ -164,15 +168,24 @@ library
     comonad              == 3.0.*,
     comonad-transformers == 3.0.*,
     comonads-fd          == 3.0.*,
-    containers           >= 0.4.2    && < 0.6,
+    containers           >= 0.4.0    && < 0.6,
     hashable             >= 1.1.2.3  && < 1.2,
-    mtl                  >= 2.1.1    && < 2.2,
+    mtl                  >= 2.0.1    && < 2.2,
     semigroups           >= 0.8.4    && < 0.9,
     split                == 0.2.*,
     text                 >= 0.11     && < 0.12,
-    transformers         >= 0.3      && < 0.4,
     unordered-containers >= 0.2      && < 0.3,
     vector               >= 0.9      && < 0.11
+
+  if flag(transformers2)
+    build-depends:  transformers >= 0.2 && < 0.3
+    hs-source-dirs: compat
+    exposed-modules:
+      Control.Applicative.Backwards
+      Control.Applicative.Lift
+      Data.Functor.Reverse
+  else
+    build-depends: transformers >= 0.3 && < 0.4
 
   exposed-modules:
     Control.Exception.Lens
