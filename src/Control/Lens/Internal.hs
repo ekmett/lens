@@ -478,7 +478,11 @@ sellT i = BazaarT (\k -> k i)
 
 type family ArgOf (f_b :: *) :: *
 type instance ArgOf (f b) = b
+
+-- | Extract @a@ from the type @a -> f b@
 type family CoA x :: *
+
+-- | Extract @b@ from the type @a -> f b@
 type family CoB x :: *
 type instance CoA (a -> f_b) = a
 type instance CoB (a -> f_b) = ArgOf f_b
