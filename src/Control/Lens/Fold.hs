@@ -766,14 +766,13 @@ headOf l = getFirst# (foldMapOf l (first# Just))
 {-# INLINE headOf #-}
 {-# DEPRECATED headOf "`headOf' will be removed in 3.8. (Use `preview' or `firstOf')" #-}
 
-
 -- | Perform a safe 'head' of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
 --
 -- When using a 'Control.Lens.Traversal.Traversal' as a partial 'Control.Lens.Type.Lens', or a 'Fold' as a partial 'Getter' this can be a convenient
 -- way to extract the optional value.
 --
--- @('^?') ≡ 'flip' 'headOf'@
+-- @('^?') ≡ 'flip' 'preview'@
 --
 -- @
 -- ('^?') :: s -> 'Getter' s a           -> 'Maybe' a
