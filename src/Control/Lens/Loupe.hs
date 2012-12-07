@@ -74,30 +74,45 @@ type Loupe s t a b = LensLike (Context a b) s t a b
 type SimpleLoupe s a = Loupe s s a a
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Getter.^.')
+--
+-- >>> ("hello","world")^#_2
+-- "world"
 (^#) :: s -> Loupe s t a b -> a
 s ^# l = case l (Context id) s of
   Context _ a -> a
 {-# INLINE (^#) #-}
 
 -- | A 'Loupe'-specific version of 'Control.Lens.Setter.set'
+--
+-- >>> storing _2 "world" ("hello","there")
+-- ("hello","world")
 storing :: Loupe s t a b -> b -> s -> t
 storing l b s = case l (Context id) s of
   Context g _ -> g b
 {-# INLINE storing #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Setter..~')
+--
+-- >>> ("hello","there") & _2 #~ "world"
+-- ("hello","world")
 (#~) :: Loupe s t a b -> b -> s -> t
 (#~) l b s = case l (Context id ) s of
   Context g _ -> g b
 {-# INLINE (#~) #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Setter.%~')
+--
+-- >>> ("hello","world") & _2 #%~ length
+-- ("hello",5)
 (#%~) :: Loupe s t a b -> (a -> b) -> s -> t
 (#%~) l f s = case l (Context id) s of
   Context g a -> g (f a)
 {-# INLINE (#%~) #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Type.%%~')
+--
+-- >>> ("hello","world") & _2 #%%~ \x -> (length x, x ++ "!")
+-- (5,("hello","world!"))
 (#%%~) :: Functor f => Loupe s t a b -> (a -> f b) -> s -> f t
 (#%%~) l f s = case l (Context id) s of
   Context g a -> g <$> f a
@@ -113,6 +128,9 @@ l #%= f = modify (l #%~ f)
 {-# INLINE (#%=) #-}
 
 -- | Modify the target of a 'Loupe' and return the result.
+--
+-- >>> ("hello","world") & _2 <#%~ length
+-- (5,("hello",5))
 (<#%~) :: Loupe s t a b -> (a -> b) -> s -> (b, t)
 l <#%~ f = \s -> case l (Context id) s of
   Context g a -> let b = f a in (b, g b)
@@ -137,6 +155,9 @@ l #%%= f = do
 #endif
 
 -- | Replace the target of a 'Loupe' and return the new value.
+--
+-- >>> ("hello","there") & _2 <#~ "world"
+-- ("world",("hello","world"))
 (<#~) :: Loupe s t a b -> b -> s -> (b, t)
 l <#~ b = \s -> (b, storing l b s)
 
