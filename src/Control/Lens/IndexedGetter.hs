@@ -1,4 +1,5 @@
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
@@ -12,15 +13,21 @@
 ----------------------------------------------------------------------------
 module Control.Lens.IndexedGetter
   (
-  -- * Indexed Folds
+  -- * Indexed Getters
     IndexedGetter
   , IndexedGetting
   , ReifiedIndexedGetter(..)
+  -- * Indexed Getter Combinators
+  , iview, iviews
+  , iuse, iuses
   ) where
 
 import Control.Lens.Indexed
 import Control.Lens.Internal
+import Control.Lens.Internal.Combinators
 import Control.Lens.Classes
+import Control.Monad.Reader
+import Control.Monad.State
 
 ------------------------------------------------------------------------------
 -- Indexed Getters
@@ -34,3 +41,35 @@ type IndexedGetting i m s t a b = Indexed i (a -> Accessor m b) (s -> Accessor m
 
 -- | Useful for storage.
 newtype ReifiedIndexedGetter i s a = ReifyIndexedGetter { reflectIndexedGetter :: IndexedGetter i s a }
+
+-- | View the index and value of an 'IndexedGetter' into the current environment as a pair.
+--
+-- When applied to an 'IndexedFold' the result will most likely be a nonsensical monoidal summary of
+-- the indices tupled with a monoidal summary of the values and probably not whatever it is you wanted.
+iview :: MonadReader s m => IndexedGetting i (i,a) s t a b -> m (i,a)
+iview l = asks (runAccessor# (withIndex l (\i -> accessor# ((,) i))))
+{-# INLINE iview #-}
+
+-- | View a function of the index and value of an 'IndexedGetter' into the current environment
+--
+-- When applied to an 'IndexedFold' the result will be a monoidal summary instead of a single answer.
+--
+-- @'iviews' ≡ 'Control.Lens.IndexedFold.ifoldMapOf'@
+iviews :: MonadReader s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
+iviews l f = asks (runAccessor# (withIndex l (\i -> accessor# (f i))))
+{-# INLINE iviews #-}
+
+-- | Use the index and value of an 'IndexedGetter' into the current state as a pair.
+--
+-- When applied to an 'IndexedFold' the result will most likely be a nonsensical monoidal summary of
+-- the indices tupled with a monoidal summary of the values and probably not whatever it is you wanted.
+iuse :: MonadState s m => IndexedGetting i (i,a) s t a b -> m (i,a)
+iuse l = gets (runAccessor# (withIndex l (\i -> accessor# ((,) i))))
+{-# INLINE iuse #-}
+
+-- | Use a function of the index and value of an 'IndexedGetter' into the current state.
+--
+-- When applied to an 'IndexedFold' the result will be a monoidal summary instead of a single answer.
+iuses :: MonadState s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
+iuses l f = gets (runAccessor# (withIndex l (\i -> accessor# (f i))))
+{-# INLINE iuses #-}
