@@ -22,7 +22,7 @@
 * Removed `Data.Monoid.Lens` now that its newtypes are instances of `Wrapped`, exporting the (`<>=`)-variants from `Control.Lens.*`.
 * Renamed `via` to `cloneIso` for consistency.
 * Moved `Indexed(..)` to `Control.Lens.Classes`.
-* Renamed `index` to `indexing` to reduce conflicts with third-party libraries.
+* Renamed `index` to `indexed` to reduce conflicts with third-party libraries.
 * Added `curried` and `uncurried` to `Control.Lens.Iso`.
 * Added `Strict(strict)` for ad hoc overloading of conversions between strict and lazy variants of `ByteString` and `Text`.
 * Bug fixes for `tugTo` and `jerkTo`.
