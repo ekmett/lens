@@ -68,7 +68,7 @@ module Control.Lens.Fold
   , concatMapOf, concatOf
   , elemOf, notElemOf
   , lengthOf
-  , nullOf
+  , nullOf, notNullOf
   , firstOf, lastOf
   , maximumOf, minimumOf
   , maximumByOf, minimumByOf
