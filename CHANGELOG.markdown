@@ -31,9 +31,13 @@
 * Readded `leftmost` and `rightmost` due to the verbosity of `farthest leftward`/`farthest rightward`.
 * Added `preview`/`previews`/`firstOf`. Deprecated `headOf`.
 
+3.6.0.4 [maintenance release]
+-------
+* Added support for `test-framework` 0.8
+
 3.6.0.3 [maintenance release]
 -------
-* Added support for the new `test-framework`
+* Added support for `test-framework` 0.7
 
 3.6.0.2 [maintenance release]
 -------
