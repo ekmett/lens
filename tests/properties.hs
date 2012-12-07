@@ -17,6 +17,8 @@ import Test.QuickCheck.All
 import Test.QuickCheck.Function
 import Data.Text.Strict.Lens
 import Data.List.Lens
+import Data.Functor.Compose
+
 
 setter_id :: Eq s => Simple Setter s a -> s -> Bool
 setter_id l s = runIdentity (l Identity s) == s
@@ -42,13 +44,31 @@ iso_yon l a = a^.from l.cloneIso l == a
 prism_yen :: Eq a => Simple APrism s a -> a -> Bool
 prism_yen l a = a^.remit l^?clonePrism l == Just a
 
+traverse_pure :: forall f s a. (Applicative f, Eq (f s)) => SimpleLensLike f s a -> s -> Bool
+traverse_pure l s = l pure s == (pure s :: f s)
+
+traverse_pureMaybe :: Eq s => SimpleLensLike Maybe s a -> s -> Bool
+traverse_pureMaybe = traverse_pure
+
+traverse_pureList :: Eq s => SimpleLensLike [] s a -> s -> Bool
+traverse_pureList = traverse_pure
+
+traverse_compose :: (Applicative f, Applicative g, Eq (f (g s)))
+                    => Simple Traversal s a -> (a -> g a) -> (a -> f a) -> s -> Bool
+traverse_compose t f g s = (fmap (t f) . t g) s == (getCompose . t (Compose . fmap f . g)) s
+
 isSetter :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Function a)
          => Simple Setter s a -> Property
 isSetter l = setter_id l .&. setter_composition l .&. setter_set_set l
 
 isTraversal :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Function a)
          => Simple Traversal s a -> Property
-isTraversal l = isSetter l
+isTraversal l = isSetter l .&. traverse_pureMaybe l .&. traverse_pureList l
+                  .&. do as <- arbitrary
+                         bs <- arbitrary
+                         t <- arbitrary
+                         property $ traverse_compose l (\x -> as++[x]++bs)
+                                                       (\x -> if t then Just x else Nothing)
 
 isLens :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Eq a, Function a)
        => Simple Lens s a -> Property
