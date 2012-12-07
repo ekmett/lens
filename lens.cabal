@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       3.6.0.3
+version:       3.6.0.4
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -276,7 +276,7 @@ test-suite hunit
     HUnit == 1.2.*,
     lens,
     mtl,
-    test-framework >= 0.6 && < 0.8,
+    test-framework >= 0.6 && < 0.9,
     test-framework-hunit >= 0.2 && < 0.4,
     test-framework-th >= 0.2 && < 0.4
   ghc-options: -w -threaded

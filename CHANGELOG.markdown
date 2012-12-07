@@ -1,6 +1,10 @@
+3.6.0.4 [maintenance release]
+-------
+* Added support for `test-framework` 0.8
+
 3.6.0.3 [maintenance release]
 -------
-* Added support for the new `test-framework`
+* Added support for `test-framework` 0.7
 
 3.6.0.2 [maintenance release]
 -------
