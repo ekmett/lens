@@ -113,8 +113,8 @@ run (Free f) = case f of
 
 -- | Zipper helpers
 wrapRight, wrapLeft :: (a :> b) -> (a :> b)
-wrapRight = liftM2 fromMaybe leftmost  right
-wrapLeft  = liftM2 fromMaybe rightmost left
+wrapRight = liftM2 fromMaybe leftmost rightward
+wrapLeft  = liftM2 fromMaybe rightmost leftward
 
 -- Main program action to actually run this stuff
 

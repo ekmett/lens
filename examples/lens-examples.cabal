@@ -32,7 +32,7 @@ executable pong
 
   build-depends:
     base,
-    containers >= 0.4.2 && < 0.6,
+    containers >= 0.4 && < 0.6,
     gloss      == 1.7.*,
     lens,
     mtl        >= 2.0.1 && < 2.2,
@@ -45,7 +45,7 @@ executable brainfuck
 
   build-depends:
     base,
-    lens       == 3.2.*,
+    lens,
     free       >= 3.0 && < 3.3,
     bytestring,
     mtl        >= 2.0.1 && < 2.2,
