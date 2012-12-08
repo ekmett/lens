@@ -2,6 +2,7 @@
 -------
 * Fixed flagging for Safe Haskell.
 * Fixed examples.
+* Cleaned up the statement of the Prism laws.
 
 3.7.0.1
 -------
