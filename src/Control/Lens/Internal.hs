@@ -488,7 +488,7 @@ type instance CoA (a -> f_b) = a
 type instance CoB (a -> f_b) = ArgOf f_b
 
 -- | This data type is used to capture all of the information provided by the
--- 'Prismatic' -- class, so you can turn a 'Prism' around into a 'Getter' or
+-- 'Prismatic' class, so you can turn a 'Prism' around into a 'Getter' or
 -- otherwise muck around with its internals.
 --
 -- If you see a function that expects a 'Prismoid' or 'APrism', it is probably
