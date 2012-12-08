@@ -41,8 +41,11 @@ iso_hither l s = s ^.cloneIso l.from l == s
 iso_yon :: Eq a => Simple AnIso s a -> a -> Bool
 iso_yon l a = a^.from l.cloneIso l == a
 
-prism_yen :: Eq a => Simple APrism s a -> a -> Bool
-prism_yen l a = a^.remit l^?clonePrism l == Just a
+prism_yin :: Eq a => Simple Prism s a -> a -> Bool
+prism_yin l a = preview l (review l a) == Just a
+
+prism_yang :: Eq s => Simple Prism s a -> s -> Bool
+prism_yang l s = maybe s (review l) (preview l s) == s
 
 traverse_pure :: forall f s a. (Applicative f, Eq (f s)) => SimpleLensLike f s a -> s -> Bool
 traverse_pure l s = l pure s == (pure s :: f s)
@@ -80,7 +83,7 @@ isIso l = iso_hither l .&. iso_yon l .&. isLens l .&. isLens (from l)
 
 isPrism :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Eq a, Function a)
       => Simple Prism s a -> Property
-isPrism l = isTraversal l .&. prism_yen l
+isPrism l = isTraversal l .&. prism_yin l .&. prism_yang l
 
 -- an illegal lens
 bad :: Simple Lens (Int,Int) Int
