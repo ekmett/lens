@@ -46,6 +46,8 @@ module Control.Lens.Fold
   , (^?!)
   , preview
   , previews
+  , preuse
+  , preuses
   -- ** Building Folds
   --, folds
   , folding
@@ -95,6 +97,7 @@ import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader
+import Control.Monad.State
 import Data.Foldable as Foldable
 import Data.Maybe
 import Data.Monoid
@@ -1091,7 +1094,9 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 -- | Useful for storing folds in containers.
 newtype ReifiedFold s a = ReifyFold { reflectFold :: Fold s a }
 
--- * Previewing
+------------------------------------------------------------------------------
+-- Preview
+------------------------------------------------------------------------------
 
 -- | Retrieve the first value targeted by a 'Fold' or 'Control.Lens.Traversal.Traversal' (or 'Just' the result
 -- from a 'Getter' or 'Lens'). See also ('^?').
@@ -1148,3 +1153,36 @@ preview l = asks (getFirst# (foldMapOf l (first# Just)))
 previews :: MonadReader s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe r)
 previews l f = asks (getFirst# (foldMapOf l (first# (Just . f))))
 {-# INLINE previews #-}
+
+
+------------------------------------------------------------------------------
+-- Preuse
+------------------------------------------------------------------------------
+
+-- | Retrieve the first value targeted by a 'Fold' or 'Control.Lens.Traversal.Traversal' (or 'Just' the result
+-- from a 'Getter' or 'Lens') into the current state.
+--
+-- @
+-- 'preuse' :: MonadState s m => 'Getter' s a           -> m ('Maybe' a)
+-- 'preuse' :: MonadState s m => 'Fold' s a             -> m ('Maybe' a)
+-- 'preuse' :: MonadState s m => 'Simple' 'Lens' s a      -> m ('Maybe' a)
+-- 'preuse' :: MonadState s m => 'Simple' 'Control.Lens.Iso.Iso' s a       -> m ('Maybe' a)
+-- 'preuse' :: MonadState s m => 'Simple' 'Control.Lens.Traversal.Traversal' s a -> m ('Maybe' a)
+-- @
+preuse :: MonadState s m => Getting (First a) s t a b -> m (Maybe a)
+preuse l = gets (getFirst# (foldMapOf l (first# Just)))
+{-# INLINE preuse #-}
+
+-- | Retrieve a function of the first value targeted by a 'Fold' or
+-- 'Control.Lens.Traversal.Traversal' (or 'Just' the result from a 'Getter' or 'Lens') into the current state.
+--
+-- @
+-- 'preuses' :: MonadState s m => 'Getter' s a           -> (a -> r) -> m ('Maybe' r)
+-- 'preuses' :: MonadState s m => 'Fold' s a             -> (a -> r) -> m ('Maybe' r)
+-- 'preuses' :: MonadState s m => 'Simple' 'Lens' s a      -> (a -> r) -> m ('Maybe' r)
+-- 'preuses' :: MonadState s m => 'Simple' 'Control.Lens.Iso.Iso' s a       -> (a -> r) -> m ('Maybe' r)
+-- 'preuses' :: MonadState s m => 'Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> r) -> m ('Maybe' r)
+-- @
+preuses :: MonadState s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe r)
+preuses l f = gets (getFirst# (foldMapOf l (first# (Just . f))))
+{-# INLINE preuses #-}

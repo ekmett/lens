@@ -1,3 +1,7 @@
+3.7.1
+-----
+* Added `preuse`, `preuses` to `Control.Lens.Fold`
+
 3.7.0.2
 -------
 * Fixed flagging for Safe Haskell.
