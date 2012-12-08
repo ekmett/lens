@@ -1,3 +1,8 @@
+3.7.0.2
+-------
+* Fixed flagging for Safe Haskell.
+* Fixed examples.
+
 3.7.0.1
 -------
 * Corrected bounds for hashable.
