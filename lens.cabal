@@ -302,32 +302,37 @@ test-suite templates
 test-suite properties
   type: exitcode-stdio-1.0
   main-is: properties.hs
-  build-depends:
-    base,
-    lens,
-    QuickCheck   >= 2.4 && < 2.6,
-    transformers
-  ghc-options: -w -threaded
+  ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: tests
   if !flag(test-properties)
     buildable: False
+  else
+    build-depends:
+      base,
+      lens,
+      QuickCheck                 >= 2.4 && < 2.6,
+      test-framework             >= 0.6 && < 0.9,
+      test-framework-quickcheck2 >= 0.2 && < 0.4,
+      test-framework-th          >= 0.2 && < 0.4,
+      transformers
 
 test-suite hunit
   type: exitcode-stdio-1.0
   main-is: hunit.hs
-  build-depends:
-    base,
-    containers,
-    HUnit == 1.2.*,
-    lens,
-    mtl,
-    test-framework       >= 0.6 && < 0.9,
-    test-framework-hunit >= 0.2 && < 0.4,
-    test-framework-th    >= 0.2 && < 0.4
-  ghc-options: -w -threaded
+  ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: tests
   if !flag(test-hunit)
     buildable: False
+  else
+    build-depends:
+      base,
+      containers,
+      HUnit == 1.2.*,
+      lens,
+      mtl,
+      test-framework       >= 0.6 && < 0.9,
+      test-framework-hunit >= 0.2 && < 0.4,
+      test-framework-th    >= 0.2 && < 0.4
 
 -- Verify the results of the examples
 test-suite doctests
