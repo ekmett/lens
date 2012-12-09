@@ -386,9 +386,8 @@ locus f w = (`seek` w) <$> f (pos w)
 --
 -- Note: This only accepts a proper 'Lens'.
 --
--- > :t let example l x = set (cloneLens l) (x^.cloneLens l + 1) x in example
--- > let example l x = set (cloneLens l) (x^.cloneLens l + 1) x in example
--- >   :: Num b => LensLike (Context b b) s t b b -> s -> t
+-- >>> let example l x = set (cloneLens l) (x^.cloneLens l + 1) x in example _2 ("hello",1,"you")
+-- ("hello",2,"you")
 cloneLens :: Functor f
   => LensLike (Context a b) s t a b
   -> (a -> f b) -> s -> f t
