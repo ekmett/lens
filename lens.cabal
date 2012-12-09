@@ -302,7 +302,7 @@ test-suite templates
 test-suite properties
   type: exitcode-stdio-1.0
   main-is: properties.hs
-  ghc-options: -w -threaded
+  ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: tests
   if !flag(test-properties)
     buildable: False
@@ -319,7 +319,7 @@ test-suite properties
 test-suite hunit
   type: exitcode-stdio-1.0
   main-is: hunit.hs
-  ghc-options: -w -threaded
+  ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: tests
   if !flag(test-hunit)
     buildable: False
