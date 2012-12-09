@@ -22,7 +22,7 @@ import Data.Set (Set, member, empty, insert, delete)
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 
-import System.Random (randomRs, getStdGen)
+import System.Random (randomRs, newStdGen)
 
 -- Some global constants
 
@@ -224,7 +224,7 @@ main = do
 
 startingSpeeds :: IO [Vector]
 startingSpeeds = do
-  rs <- randomRs (-initialSpeed, initialSpeed) <$> getStdGen
+  rs <- randomRs (-initialSpeed, initialSpeed) <$> newStdGen
   return . interleave $ filter ((> 0.2) . abs) rs
 
   where
