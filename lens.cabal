@@ -111,7 +111,7 @@ flag benchmark-uniplate
 
 -- Enable template haskell. Disable this at your own risk and for testing only.
 --
--- cabal configure -f-template-haskell is an /unsuppported/ configuration.
+-- cabal configure -f-template-haskell is an /unsupported/ configuration.
 --
 -- Clients of this library can and should expect this to be turned on.
 flag template-haskell
