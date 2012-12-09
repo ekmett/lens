@@ -13,8 +13,9 @@ import Control.Lens
 import Data.Functor.Identity
 import System.Exit
 import Test.QuickCheck
-import Test.QuickCheck.All
 import Test.QuickCheck.Function
+import Test.Framework.TH
+import Test.Framework.Providers.QuickCheck2
 import Data.Text.Strict.Lens
 import Data.List.Lens
 import Data.Functor.Compose
@@ -130,6 +131,4 @@ prop_text s                          = s^.packed.from packed == s
 --prop_text                           = isIso packed
 
 main :: IO ()
-main = do
-  b <- $quickCheckAll
-  unless b $ exitWith (ExitFailure 1)
+main = $defaultMainGenerator

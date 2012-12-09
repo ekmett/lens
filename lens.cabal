@@ -305,7 +305,10 @@ test-suite properties
   build-depends:
     base,
     lens,
-    QuickCheck   >= 2.4 && < 2.6,
+    QuickCheck                 >= 2.4 && < 2.6,
+    test-framework             >= 0.6 && < 0.9,
+    test-framework-quickcheck2 >= 0.2 && < 0.4,
+    test-framework-th          >= 0.2 && < 0.4,
     transformers
   ghc-options: -w -threaded
   hs-source-dirs: tests
