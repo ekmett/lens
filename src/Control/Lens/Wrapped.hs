@@ -42,6 +42,7 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Wrapped
   ( Wrapped(..)
+  , unwrapped
   , wrapping, unwrapping
   , wrappings, unwrappings
   , op
