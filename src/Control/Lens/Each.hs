@@ -50,7 +50,7 @@ import Data.Array.IArray as IArray
 
 -- | Extract 'each' element of a (potentially monomorphic) container.
 class Each i s t a b | s -> i a, t -> i b, s b -> t, t a -> s where
-  each :: Traversal s t a b
+  each :: IndexedTraversal i s t a b
   default each :: (Traversable f, s ~ f a, t ~ f b) => IndexedTraversal Int s t a b
   each = traversed
   {-# INLINE each #-}
