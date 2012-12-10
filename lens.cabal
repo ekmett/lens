@@ -193,6 +193,7 @@ library
     Control.Lens.Action
     Control.Lens.Classes
     Control.Lens.Combinators
+    Control.Lens.Each
     Control.Lens.Fold
     Control.Lens.Getter
     Control.Lens.Indexed
