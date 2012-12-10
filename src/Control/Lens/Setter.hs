@@ -103,7 +103,6 @@ infixr 2 <~
 -- 'over' l f '.' 'over' l g ≡ 'over' l (f '.' g)
 -- @
 --
---
 -- These an be stated more directly:
 --
 -- @
