@@ -45,6 +45,8 @@ import Data.Vector as Vector
 import Data.Vector.Primitive as Prim
 import Data.Vector.Storable as Storable
 import Data.Vector.Unboxed as Unboxed
+import Data.Array.Unboxed as Unboxed
+import Data.Array.IArray as IArray
 
 -- | Extract 'each' element of a (potentially monomorphic) container.
 class Each i s t a b | s -> i a, t -> i b, s b -> t, t a -> s where
@@ -88,19 +90,24 @@ instance (a ~ a2, a ~ a3, a ~ a4, a ~ a5, a ~ a6, a ~ a7, a ~ a8, a ~ a9, b ~ b2
 #if MIN_VERSION_base(4,4,0)
 instance RealFloat a => Each Int (Complex a) (Complex a) a a where
   each = Lens.indexed $ \ f (a :+ b) -> (:+) <$> f (0 :: Int) a <*> f 1 b
+  {-# INLINE each #-}
 #else
 instance Each Int (Complex a) (Complex a) a a where
   each = Lens.indexed $ \ f (a :+ b) -> (:+) <$> f (0 :: Int) a <*> f 1 b
+  {-# INLINE each #-}
 #endif
 
 instance Each k (Map k a) (Map k b) a b where
   each = Lens.indexed $ \f m -> sequenceA $ Map.mapWithKey f m
+  {-# INLINE each #-}
 
 instance Each Int (IntMap a) (IntMap b) a b where
   each = Lens.indexed $ \f m -> sequenceA $ IntMap.mapWithKey f m
+  {-# INLINE each #-}
 
 instance Each k (HashMap k a) (HashMap k b) a b where
   each = Lens.indexed HashMap.traverseWithKey
+  {-# INLINE each #-}
 
 instance Each Int [a] [b] a b
 instance Each Int (Seq a) (Seq b) a b
@@ -130,4 +137,12 @@ instance Each Int StrictB.ByteString StrictB.ByteString Word8 Word8 where
 
 instance Each Int64 LazyB.ByteString LazyB.ByteString Word8 Word8 where
   each = iso LazyB.unpack LazyB.pack .> traversed64 where
+  {-# INLINE each #-}
+
+instance (Ix i, IArray UArray a, IArray UArray b) => Each i (Array i a) (Array i b) a b where
+  each = Lens.indexed $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (IArray.assocs arr)
+  {-# INLINE each #-}
+
+instance (Ix i, IArray UArray a, IArray UArray b) => Each i (UArray i a) (UArray i b) a b where
+  each = Lens.indexed $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (IArray.assocs arr)
   {-# INLINE each #-}
