@@ -1,6 +1,7 @@
 3.7.1
 -----
 * Added `preuse`, `preuses` to `Control.Lens.Fold`
+* Added `Each(each)` to `Control.Lens.Each`
 
 3.7.0.2
 -------
