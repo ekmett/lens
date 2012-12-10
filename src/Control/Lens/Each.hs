@@ -29,7 +29,11 @@ import Data.ByteString.Lazy as LazyB
 import Data.Int
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
+import Data.Traversable
 import Data.Word
+import Data.Map as Map
+import Data.IntMap as IntMap
+import Data.HashMap.Lazy as HashMap
 
 -- | Extract 'each' element of a (potentially monomorphic) container.
 class Each i s t a b | s -> i a, t -> i b, s b -> t, t a -> s where
@@ -69,6 +73,15 @@ instance (a ~ a2, a ~ a3, a ~ a4, a ~ a5, a ~ a6, a ~ a7, a ~ a8, b ~ b2, b ~ b3
 instance (a ~ a2, a ~ a3, a ~ a4, a ~ a5, a ~ a6, a ~ a7, a ~ a8, a ~ a9, b ~ b2, b ~ b3, b ~ b4, b ~ b5, b ~ b6, b ~ b7, b ~ b8, b ~ b9) => Each Int (a,a2,a3,a4,a5,a6,a7,a8,a9) (b,b2,b3,b4,b5,b6,b7,b8,b9) a b where
   each = indexed $ \ f ~(a,b,c,d,e,g,h,i,j) -> (,,,,,,,,) <$> f (0 :: Int) a <*> f 1 b <*> f 2 c <*> f 3 d <*> f 4 e <*> f 5 g <*> f 6 h <*> f 7 i <*> f 8 j
   {-# INLINE each #-}
+
+instance Each k (Map k a) (Map k b) a b where
+  each = indexed $ \f m -> sequenceA $ Map.mapWithKey f m
+
+instance Each Int (IntMap a) (IntMap b) a b where
+  each = indexed $ \f m -> sequenceA $ IntMap.mapWithKey f m
+
+instance Each k (HashMap k a) (HashMap k b) a b where
+  each = indexed HashMap.traverseWithKey
 
 instance Each Int [a] [b] a b
 
