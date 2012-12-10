@@ -264,7 +264,7 @@ Operators
   <td/>
   <td><a href="http://ekmett.github.com/lens/Control-Lens-Type.html#v:-37--37--61-"><code>%%=</code></a></td>
   <td/>
-  <td>Update target(s) with an <code>Applicative</code> or auxillary result</td>
+  <td>Update target(s) with an <code>Applicative</code> or auxiliary result</td>
 </tr>
 <tr>
   <td><a href="http://ekmett.github.com/lens/Control-Lens-Setter.html#v:-43--126-"><code>+~</code></a></td>
@@ -366,7 +366,7 @@ Operators
   <td/>
   <td><a href="http://ekmett.github.com/lens/Control-Lens-IndexedLens.html#v:-37--37--64--61-"><code>%%@=</code></a></td>
   <td/>
-  <td>Update target(s) with an <code>Applicative</code> or auxillary result with access to the index.</td>
+  <td>Update target(s) with an <code>Applicative</code> or auxiliary result with access to the index.</td>
 </tr>
 <tr><th colspan=5><a href="http://ekmett.github.com/lens/Data-Bits-Lens.html">Data.Bits.Lens</a></th></tr>
 <tr>
