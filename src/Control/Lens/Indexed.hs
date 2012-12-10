@@ -64,32 +64,34 @@ icompose :: Indexable k r => (i -> j -> k) -> Indexed i b c -> Indexed j a b -> 
 icompose ijk (Indexed ibc) (Indexed jab) = indexed $ \ka -> ibc $ \i -> jab $ \j -> ka (ijk i j)
 {-# INLINE icompose #-}
 
--- | Transform an 'Traversal' into an 'Control.Lens.IndexedTraversal.IndexedTraversal' or
+-- | Transform a 'Traversal' into an 'Control.Lens.IndexedTraversal.IndexedTraversal' or
 -- a 'Fold' into an 'Control.Lens.IndexedFold.IndexedFold', etc.
 --
 -- @
 -- 'indexing' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.IndexedTraversal.IndexedTraversal' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Prism.Prism' s t a b     -> 'Control.Lens.IndexedLens.IndexedTraversal' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
--- 'indexing' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Prism.Prism' s t a b         -> 'Control.Lens.IndexedLens.IndexedTraversal' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Type.Lens' s t a b           -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Iso.Iso' s t a b             -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Fold.Fold' s t               -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
+-- 'indexing' :: 'Control.Lens.Getter.Getter' s t           -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
 -- @
 indexing :: Indexable Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k (a -> f b) (s -> f t)
 indexing l = indexed $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
   (r, _) -> r
 {-# INLINE indexing #-}
 
--- | Transform an 'Traversal' into an 'Control.Lens.IndexedTraversal.IndexedTraversal' or
+-- | Transform a 'Traversal' into an 'Control.Lens.IndexedTraversal.IndexedTraversal' or
 -- a 'Fold' into an 'Control.Lens.IndexedFold.IndexedFold', etc.
 --
+-- This combinator is like 'indexing' except that it handles large 'Traversal's and 'Fold's gracefully.
+--
 -- @
--- 'indexing' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.IndexedTraversal.IndexedTraversal' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Prism.Prism' s t a b     -> 'Control.Lens.IndexedLens.IndexedTraversal' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
--- 'indexing' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
+-- 'indexing64' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.IndexedTraversal.IndexedTraversal' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Prism.Prism' s t a b         -> 'Control.Lens.IndexedLens.IndexedTraversal' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Lens' s t a b           -> 'Control.Lens.IndexedLens.IndexedLens' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Iso.Iso' s t a b             -> 'Control.Lens.IndexedLens.IndexedLens' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Fold.Fold' s t               -> 'Control.Lens.IndexedFold.IndexedFold' 'Int64' s t
+-- 'indexing64' :: 'Control.Lens.Getter.Getter' s t           -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int64' s t a b
 -- @
 indexing64 :: Indexable Int64 k => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> k (a -> f b) (s -> f t)
 indexing64 l = indexed $ \iafb s -> case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
