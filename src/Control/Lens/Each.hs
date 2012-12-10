@@ -136,7 +136,7 @@ instance Each Int StrictB.ByteString StrictB.ByteString Word8 Word8 where
   {-# INLINE each #-}
 
 instance Each Int64 LazyB.ByteString LazyB.ByteString Word8 Word8 where
-  each = iso LazyB.unpack LazyB.pack .> traversed64 where
+  each = iso LazyB.unpack LazyB.pack .> traversed64
   {-# INLINE each #-}
 
 instance (Ix i, IArray UArray a, IArray UArray b) => Each i (Array i a) (Array i b) a b where
