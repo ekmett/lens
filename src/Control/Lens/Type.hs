@@ -315,9 +315,9 @@ inside l f es = o <$> f i where
 -- 'choosing' :: 'Simple' 'Control.Lens.Setter.Setter' s a    -> 'Simple' 'Control.Lens.Setter.Setter' s' a    -> 'Simple' 'Control.Lens.Setter.Setter' ('Either' s s') a
 -- @
 choosing :: Functor f
-       => LensLike f s t a a
-       -> LensLike f s' t' a a
-       -> LensLike f (Either s s') (Either t t') a a
+       => LensLike f s t a b
+       -> LensLike f s' t' a b
+       -> LensLike f (Either s s') (Either t t') a b
 choosing l _ f (Left a)   = Left <$> l f a
 choosing _ r f (Right a') = Right <$> r f a'
 {-# INLINE choosing #-}

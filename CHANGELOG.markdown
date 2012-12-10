@@ -3,6 +3,7 @@
 * Added `preuse`, `preuses` to `Control.Lens.Fold`
 * Added `Each(each)` to `Control.Lens.Each`
 * Added `indexing64` and `traversed64` for help with large containers.
+* Generalized the type signature of `choosing`.
 
 3.7.0.2
 -------
