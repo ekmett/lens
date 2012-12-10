@@ -332,8 +332,9 @@ test-suite properties
   type: exitcode-stdio-1.0
   main-is: properties.hs
   ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
-  hs-source-dirs: tests
-
+  hs-source-dirs:
+    tests
+    lens-properties/src
   if !flag(test-properties)
     buildable: False
   else

@@ -1,0 +1,32 @@
+name:          lens-properties
+category:      Data, Lenses
+version:       4.0
+license:       BSD3
+cabal-version: >= 1.8
+author:        Oliver Charles
+maintainer:    Oliver Charles <ollie@ocharles.org.uk>
+stability:     provisional
+homepage:      http://github.com/ekmett/lens/
+bug-reports:   http://github.com/ekmett/lens/issues
+copyright:     Copyright (C) 2012 Edward A. Kmett, Copyright (C) 2014 Oliver Charles
+synopsis:      QuickCheck properties for lens
+build-type:    Simple
+
+extra-source-files:
+  Changelog.md
+
+source-repository head
+  type: git
+  location: git://github.com/ekmett/lens.git
+
+library
+  build-depends:
+    base >= 4.3 && < 5,
+    lens >= 4 && < 4.1,
+    QuickCheck >= 2.4 && < 2.7,
+    transformers
+
+  exposed-modules:
+    Control.Lens.Properties
+
+  hs-source-dirs: src
