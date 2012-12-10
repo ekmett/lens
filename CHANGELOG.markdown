@@ -1,9 +1,10 @@
 3.7.1
 -----
 * Added `preuse`, `preuses` to `Control.Lens.Fold`
-* Added `Each(each)` to `Control.Lens.Each`
+* Added `Each(each)` to `Control.Lens.Each` for indexed traversal of potentially monomorphic containers.
 * Added `indexing64` and `traversed64` for help with large containers.
 * Generalized the type signature of `choosing`.
+* Exported `unwrapped` from `Control.Lens.Wrapped`.
 
 3.7.0.2
 -------
