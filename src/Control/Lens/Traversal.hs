@@ -344,14 +344,14 @@ loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafe
 --
 -- So technically, this is only a lens if you do not change the number of results it returns.
 --
--- When applied to a 'Fold' the result is merely a 'Getter'.
+-- When applied to a 'Fold' the result is merely a 'Control.Lens.Getter.Getter'.
 --
 -- @
 -- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' s a       -> 'Simple' 'Lens' s [a]
 -- 'partsOf' :: 'Simple' 'Lens' s a      -> 'Simple' 'Lens' s [a]
 -- 'partsOf' :: 'Simple' 'Traversal' s a -> 'Simple' 'Lens' s [a]
--- 'partsOf' :: 'Fold' s a             -> 'Getter' s [a]
--- 'partsOf' :: 'Getter' s a           -> 'Getter' s [a]
+-- 'partsOf' :: 'Fold' s a             -> 'Control.Lens.Getter.Getter' s [a]
+-- 'partsOf' :: 'Control.Lens.Getter.Getter' s a           -> 'Control.Lens.Getter.Getter' s [a]
 -- @
 partsOf :: Functor f => LensLike (BazaarT a a f) s t a a -> LensLike f s t [a] [a]
 partsOf l f s = outsT b <$> f (insT b) where b = l sellT s
@@ -373,14 +373,14 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 -- This is unsafe because if you don't supply at least as many @b@'s as you were
 -- given @a@'s, then the reconstruction of @t@ /will/ result in an error!
 --
--- When applied to a 'Fold' the result is merely a 'Getter' (and becomes safe).
+-- When applied to a 'Fold' the result is merely a 'Control.Lens.Getter.Getter' (and becomes safe).
 --
 -- @
 -- 'unsafePartsOf' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Lens' s t [a] [b]
 -- 'unsafePartsOf' :: 'Lens' s t a b      -> 'Lens' s t [a] [b]
 -- 'unsafePartsOf' :: 'Traversal' s t a b -> 'Lens' s t [a] [b]
--- 'unsafePartsOf' :: 'Fold' s a          -> 'Getter' s [a]
--- 'unsafePartsOf' :: 'Getter' s a        -> 'Getter' s [a]
+-- 'unsafePartsOf' :: 'Fold' s a          -> 'Control.Lens.Getter.Getter' s [a]
+-- 'unsafePartsOf' :: 'Control.Lens.Getter.Getter' s a        -> 'Control.Lens.Getter.Getter' s [a]
 -- @
 unsafePartsOf :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t [a] [b]
 unsafePartsOf l f s = unsafeOutsT b <$> f (insT b) where b = l sellT s
@@ -411,16 +411,16 @@ holesOf l a = f (ins b) (outs b) where
   f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
 {-# INLINE holesOf #-}
 
--- | This converts a 'Traversal' that you "know" will target one or more elements to a 'Lens'. It can
--- also be used to transform a non-empty 'Fold' into a 'Getter' or a non-empty 'Control.Lens.Action.MonadicFold' into an
+-- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can
+-- also be used to transform a non-empty 'Fold' into a 'Control.Lens.Getter.Getter' or a non-empty 'Control.Lens.Action.MonadicFold' into an
 -- 'Control.Lens.Action.Action'.
 --
--- The resulting 'Lens', 'Getter', or 'Control.Lens.Action.Action' will be partial if the supplied traversal returns
+-- The resulting 'Lens', 'Control.Lens.Getter.Getter', or 'Control.Lens.Action.Action' will be partial if the supplied traversal returns
 -- no results.
 --
 -- @
 -- 'singular' :: 'Traversal' s t a a -> 'Lens' s t a a
--- 'singular' :: 'Fold' s a          -> 'Getter' s a
+-- 'singular' :: 'Fold' s a          -> 'Control.Lens.Getter.Getter' s a
 -- 'singular' :: 'Control.Lens.Action.MonadicFold' m s a -> 'Control.Lens.Action.Action' m s a
 -- @
 singular :: Functor f => LensLike (BazaarT a a f) s t a a -> LensLike f s t a a
@@ -428,15 +428,15 @@ singular l f = partsOf l $ \xs -> case xs of
   (a:as) -> (:as) <$> f a
   []     -> [] <$ f (error "singular: empty traversal")
 
--- | This converts a 'Traversal' that you "know" will target only one element to a 'Lens'. It can also be
--- used to transform a 'Fold' into a 'Getter' or a 'Control.Lens.Action.MonadicFold' into an 'Control.Lens.Action.Action'.
+-- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be
+-- used to transform a 'Fold' into a 'Control.Lens.Getter.Getter' or a 'Control.Lens.Action.MonadicFold' into an 'Control.Lens.Action.Action'.
 --
--- The resulting 'Lens', 'Getter', or 'Control.Lens.Action.Action' will be partial if the Traversal targets nothing
+-- The resulting 'Lens', 'Control.Lens.Getter.Getter', or 'Control.Lens.Action.Action' will be partial if the Traversal targets nothing
 -- or more than one element.
 --
 -- @
 -- 'unsafeSingular' :: 'Traversal' s t a b -> 'Lens' s t a b
--- 'unsafeSingular' :: 'Fold' s a          -> 'Getter' s a
+-- 'unsafeSingular' :: 'Fold' s a          -> 'Control.Lens.Getter.Getter' s a
 -- 'unsafeSingular' :: 'Control.Lens.Action.MonadicFold' m s a -> 'Control.Lens.Action.Action' m s a
 -- @
 unsafeSingular :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t a b
@@ -522,7 +522,7 @@ beside :: Applicative f => LensLike f s t a b -> LensLike f s' t' a b -> LensLik
 beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 {-# INLINE beside #-}
 
--- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
+-- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Control.Lens.Getter.Getter' or 'Lens'.
 --
 -- >>> [("hello","world"),("!!!","!!!")]^.. taking 2 (traverse.both)
 -- ["hello","world"]
@@ -536,7 +536,7 @@ taking :: Applicative f => Int -> SimpleLensLike (BazaarT a a f) s a -> SimpleLe
 taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sellT s
 {-# INLINE taking #-}
 
--- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
+-- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Control.Lens.Getter.Getter' or 'Lens'.
 --
 -- >>> ("hello","world") ^? dropping 1 both
 -- Just "world"
