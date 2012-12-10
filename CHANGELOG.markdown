@@ -2,6 +2,7 @@
 -----
 * Added `preuse`, `preuses` to `Control.Lens.Fold`
 * Added `Each(each)` to `Control.Lens.Each`
+* Added `indexing64` and `traverse64` for help with large containers.
 
 3.7.0.2
 -------
