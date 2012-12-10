@@ -39,6 +39,7 @@ module Control.Lens.IndexedTraversal
   , TraverseMin(..)
   , TraverseMax(..)
   , traversed
+  , traversed64
   , elementOf
   , element
   , elementsOf
@@ -70,6 +71,7 @@ import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy as Lazy
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
+import Data.Int
 import Data.IntMap as IntMap
 import Data.Map as Map
 import Data.Traversable
@@ -216,6 +218,11 @@ iwhereOf l p = indexed $ \f s -> withIndex l (\i a -> if p i then f i a else pur
 traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b
 traversed = indexing traverse
 {-# INLINE traversed #-}
+
+-- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
+traversed64 :: Traversable f => IndexedTraversal Int64 (f a) (f b) a b
+traversed64 = indexing64 traverse
+{-# INLINE traversed64 #-}
 
 -- | This provides a 'Traversal' that checks a predicate on a key before
 -- allowing you to traverse into a value.

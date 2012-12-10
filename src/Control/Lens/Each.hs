@@ -26,6 +26,7 @@ import Control.Lens.Traversal
 import Control.Lens.Iso
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
+import Data.Int
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Word
@@ -75,14 +76,14 @@ instance Each Int StrictT.Text StrictT.Text Char Char where
   each = iso StrictT.unpack StrictT.pack .> traversed
   {-# INLINE each #-}
 
-instance Each Int LazyT.Text LazyT.Text Char Char where
-  each = iso LazyT.unpack LazyT.pack .> traversed
+instance Each Int64 LazyT.Text LazyT.Text Char Char where
+  each = iso LazyT.unpack LazyT.pack .> traversed64
   {-# INLINE each #-}
 
 instance Each Int StrictB.ByteString StrictB.ByteString Word8 Word8 where
   each = iso StrictB.unpack StrictB.pack .> traversed
   {-# INLINE each #-}
 
-instance Each Int LazyB.ByteString LazyB.ByteString Word8 Word8 where
-  each = iso LazyB.unpack LazyB.pack .> traversed
+instance Each Int64 LazyB.ByteString LazyB.ByteString Word8 Word8 where
+  each = iso LazyB.unpack LazyB.pack .> traversed64 where
   {-# INLINE each #-}

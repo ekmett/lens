@@ -24,10 +24,12 @@ module Control.Lens.Indexed
   , reindexed
   -- * Indexing existing lenses, traversals, etc.
   , indexing
+  , indexing64
   ) where
 
 import Control.Lens.Classes
 import Control.Lens.Internal
+import Data.Int
 
 infixr 9 <.>, <., .>
 
@@ -77,3 +79,19 @@ indexing :: Indexable Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k (
 indexing l = indexed $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
   (r, _) -> r
 {-# INLINE indexing #-}
+
+-- | Transform an 'Traversal' into an 'Control.Lens.IndexedTraversal.IndexedTraversal' or
+-- a 'Fold' into an 'Control.Lens.IndexedFold.IndexedFold', etc.
+--
+-- @
+-- 'indexing' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.IndexedTraversal.IndexedTraversal' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Prism.Prism' s t a b     -> 'Control.Lens.IndexedLens.IndexedTraversal' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Control.Lens.IndexedLens.IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
+-- 'indexing' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
+-- @
+indexing64 :: Indexable Int64 k => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> k (a -> f b) (s -> f t)
+indexing64 l = indexed $ \iafb s -> case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
+  (r, _) -> r
+{-# INLINE indexing64 #-}

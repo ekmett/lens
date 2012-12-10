@@ -50,6 +50,7 @@ module Control.Lens.Internal
   , Max(..), getMax
   , Min(..), getMin
   , Indexing(..)
+  , Indexing64(..)
   -- * Overloadings
   , Prismoid(..)
   , Isoid(..)
@@ -66,6 +67,7 @@ import Control.Monad
 import Prelude hiding ((.),id)
 import Data.Functor.Compose
 import Data.Functor.Identity
+import Data.Int
 import Data.Monoid
 #ifndef SAFE
 import Unsafe.Coerce
@@ -185,6 +187,24 @@ instance Applicative f => Applicative (Indexing f) where
 
 instance Gettable f => Gettable (Indexing f) where
   coerce (Indexing m) = Indexing $ \i -> case m i of
+    (ff, j) -> (coerce ff, j)
+
+-- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
+-- by 'Control.Lens.Indexed.indexed'
+newtype Indexing64 f a = Indexing64 { runIndexing64 :: Int64 -> (f a, Int64) }
+
+instance Functor f => Functor (Indexing64 f) where
+  fmap f (Indexing64 m) = Indexing64 $ \i -> case m i of
+    (x, j) -> (fmap f x, j)
+
+instance Applicative f => Applicative (Indexing64 f) where
+  pure x = Indexing64 (\i -> (pure x, i))
+  Indexing64 mf <*> Indexing64 ma = Indexing64 $ \i -> case mf i of
+    (ff, j) -> case ma j of
+       ~(fa, k) -> (ff <*> fa, k)
+
+instance Gettable f => Gettable (Indexing64 f) where
+  coerce (Indexing64 m) = Indexing64 $ \i -> case m i of
     (ff, j) -> (coerce ff, j)
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
