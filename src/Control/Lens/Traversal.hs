@@ -411,7 +411,7 @@ holesOf l a = f (ins b) (outs b) where
   f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
 {-# INLINE holesOf #-}
 
--- | This converts a 'Traversal' that you "know" will target one or more elements to a 'Lens'. It can
+-- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can
 -- also be used to transform a non-empty 'Fold' into a 'Getter' or a non-empty 'Control.Lens.Action.MonadicFold' into an
 -- 'Control.Lens.Action.Action'.
 --
@@ -428,7 +428,7 @@ singular l f = partsOf l $ \xs -> case xs of
   (a:as) -> (:as) <$> f a
   []     -> [] <$ f (error "singular: empty traversal")
 
--- | This converts a 'Traversal' that you "know" will target only one element to a 'Lens'. It can also be
+-- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be
 -- used to transform a 'Fold' into a 'Getter' or a 'Control.Lens.Action.MonadicFold' into an 'Control.Lens.Action.Action'.
 --
 -- The resulting 'Lens', 'Getter', or 'Control.Lens.Action.Action' will be partial if the Traversal targets nothing

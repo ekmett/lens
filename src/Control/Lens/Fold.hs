@@ -889,7 +889,7 @@ notNullOf l = getAny# (foldMapOf l (\_ -> Any True))
 --
 -- Note: maximumOf on a valid 'Control.Lens.Iso.Iso', 'Lens' or 'Getter' will always return 'Just' a value.
 --
--- @'maximum' ≡ 'fromMaybe' ('error' "empty") '.' 'maximumOf' 'folded'@
+-- @'maximum' ≡ 'fromMaybe' ('error' \"empty\") '.' 'maximumOf' 'folded'@
 --
 -- @
 -- 'maximumOf' ::          'Getter' s a           -> s -> 'Maybe' a
@@ -907,7 +907,7 @@ maximumOf l = getMax . foldMapOf l Max
 --
 -- Note: minimumOf on a valid 'Control.Lens.Iso.Iso', 'Lens' or 'Getter' will always return 'Just' a value.
 --
--- @'minimum' ≡ 'Data.Maybe.fromMaybe' ('error' "empty") '.' 'minimumOf' 'folded'@
+-- @'minimum' ≡ 'Data.Maybe.fromMaybe' ('error' \"empty\") '.' 'minimumOf' 'folded'@
 --
 -- @
 -- 'minimumOf' ::          'Getter' s a           -> s -> 'Maybe' a
@@ -924,7 +924,7 @@ minimumOf l = getMin . foldMapOf l Min
 -- Obtain the maximum element (if any) targeted by a 'Fold', 'Control.Lens.Traversal.Traversal', 'Lens', 'Control.Lens.Iso.Iso',
 -- or 'Getter' according to a user supplied ordering.
 --
--- @'Data.Foldable.maximumBy' cmp ≡ 'Data.Maybe.fromMaybe' ('error' "empty") '.' 'maximumByOf' 'folded' cmp@
+-- @'Data.Foldable.maximumBy' cmp ≡ 'Data.Maybe.fromMaybe' ('error' \"empty\") '.' 'maximumByOf' 'folded' cmp@
 --
 -- @
 -- 'maximumByOf' :: 'Getter' s a           -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
@@ -943,7 +943,7 @@ maximumByOf l cmp = foldrOf l step Nothing where
 -- Obtain the minimum element (if any) targeted by a 'Fold', 'Control.Lens.Traversal.Traversal', 'Lens', 'Control.Lens.Iso.Iso'
 -- or 'Getter' according to a user supplied ordering.
 --
--- @'minimumBy' cmp ≡ 'Data.Maybe.fromMaybe' ('error' "empty") '.' 'minimumByOf' 'folded' cmp@
+-- @'minimumBy' cmp ≡ 'Data.Maybe.fromMaybe' ('error' \"empty\") '.' 'minimumByOf' 'folded' cmp@
 --
 -- @
 -- 'minimumByOf' :: 'Getter' s a           -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
