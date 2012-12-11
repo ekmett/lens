@@ -31,6 +31,7 @@ import Control.Lens.Iso
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Complex
+import Data.Functor.Identity
 import Data.Int
 import Data.Sequence as Seq
 import Data.Text as StrictT
@@ -110,9 +111,14 @@ instance Each k (HashMap k a) (HashMap k b) a b where
   {-# INLINE each #-}
 
 instance Each Int [a] [b] a b
+instance Each Int (Identity a) (Identity b) a b
+instance Each Int (Maybe a) (Maybe b) a b
 instance Each Int (Seq a) (Seq b) a b
 instance Each Int (Tree a) (Tree b) a b
 instance Each Int (Vector.Vector a) (Vector.Vector b) a b
+
+instance Each Int (Either l a) (Either l b) a b where
+  each = Lens.indexed $ \f -> either (pure . Left) (fmap Right . f (0 :: Int))
 
 instance (Prim a, Prim b) => Each Int (Prim.Vector a) (Prim.Vector b) a b where
   each = Lens.indexed $ \f v -> Prim.fromListN (Prim.length v) <$> withIndex traversed f (Prim.toList v)
