@@ -136,7 +136,7 @@ instance Eq e => Representable ((->) e) where
 -- | 'fmapRep' is a valid default definition for 'fmap' for a 'Representable'
 -- functor.
 --
--- @'fmapRep' f m = 'rep' '$' \i -> f (m '^.' i)@
+-- @'fmapRep' f m = 'rep' '$' \\i -> f (m '^.' i)@
 --
 -- Usage for a @'Representable' Foo@:
 --
@@ -173,7 +173,7 @@ pureRep = rep . const
 -- | 'apRep' is a valid default definition for ('<*>') for a 'Representable'
 -- functor.
 --
--- @'apRep' mf ma = 'rep' '$' \i -> mf '^.' i '$' ma '^.' i@
+-- @'apRep' mf ma = 'rep' '$' \\i -> mf '^.' i '$' ma '^.' i@
 --
 -- Usage for a @'Representable' Foo@:
 --
@@ -189,7 +189,7 @@ apRep mf ma = rep $ \i -> mf^.i $ ma^.i
 -- | 'bindRep' is a valid default default definition for '(>>=)' for a
 -- representable functor.
 --
--- @'bindRep' m f = 'rep' '$' \i -> f (m '^.' i) '^.' i@
+-- @'bindRep' m f = 'rep' '$' \\i -> f (m '^.' i) '^.' i@
 --
 -- Usage for a @'Representable' Foo@:
 --
@@ -204,7 +204,7 @@ bindRep m f = rep $ \i -> f(m^.i)^.i
 
 -- | A default definition for 'Data.Distributive.distribute' for a 'Representable' 'Functor'
 --
--- @'distributeRep' wf = 'rep' '$' \i -> 'fmap' ('^.' i) wf@
+-- @'distributeRep' wf = 'rep' '$' \\i -> 'fmap' ('^.' i) wf@
 --
 -- Usage for a @'Representable' Foo@:
 --
@@ -245,7 +245,7 @@ tabulated f = rep (f . Path)
 -- | Map over a 'Representable' functor with access to the 'Lens' for the
 -- current position
 --
--- @'rmap' f m = 'rep' '$' \i -> f i (m '^.' i)@
+-- @'rmap' f m = 'rep' '$' \\i -> f i (m '^.' i)@
 rmap :: Representable f => (Rep f -> a -> b) -> f a -> f b
 rmap f m = rep $ \i -> f i (m^.i)
 {-# INLINE rmap #-}

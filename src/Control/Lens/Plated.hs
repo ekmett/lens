@@ -344,7 +344,7 @@ universeOnOf b = foldMapOf b . universeOf
 -- For example, replacing negative literals with literals:
 --
 -- @
--- negLits = 'transform' $ \x -> case x of
+-- negLits = 'transform' $ \\x -> case x of
 --   Neg (Lit i) -> Lit ('negate' i)
 --   _           -> x
 -- @
