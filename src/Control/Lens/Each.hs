@@ -49,7 +49,30 @@ import Data.Vector.Unboxed as Unboxed
 import Data.Array.Unboxed as Unboxed
 import Data.Array.IArray as IArray
 
+-- $setup
+-- >>> import Control.Lens
+-- >>> import Data.Text.Strict.Lens as Text
+-- >>> import Data.Char as Char
+
 -- | Extract 'each' element of a (potentially monomorphic) container.
+--
+-- Notably, when applied to a tuple, this generalizes 'Control.Lens.Traversal.both' to arbitrary homogeneous tuples.
+--
+-- >>> (1,2,3) & each *~ 10
+-- (10,20,30)
+--
+-- It can also be used on monomorphic containers like 'StrictT.Text' or 'StrictB.ByteString'
+--
+-- >>> over each Char.toUpper ("hello"^.Text.packed)
+-- "HELLO"
+--
+-- 'each' is an indexed traversal, so it can be used to access keys in many containers:
+--
+-- >>> itoListOf each $ Map.fromList [("hello",2),("world",4)]
+-- [("hello",2),("world",4)]
+--
+-- >>> ("hello","world") & each.each %~ Char.toUpper
+-- ("HELLO","WORLD")
 class Each i s t a b | s -> i a, t -> i b, s b -> t, t a -> s where
   each :: IndexedTraversal i s t a b
   default each :: (Traversable f, s ~ f a, t ~ f b) => IndexedTraversal Int s t a b
