@@ -117,9 +117,6 @@ instance Each Int (Seq a) (Seq b) a b
 instance Each Int (Tree a) (Tree b) a b
 instance Each Int (Vector.Vector a) (Vector.Vector b) a b
 
-instance Each Int (Either l a) (Either l b) a b where
-  each = Lens.indexed $ \f -> either (pure . Left) (fmap Right . f (0 :: Int))
-
 instance (Prim a, Prim b) => Each Int (Prim.Vector a) (Prim.Vector b) a b where
   each = Lens.indexed $ \f v -> Prim.fromListN (Prim.length v) <$> withIndex traversed f (Prim.toList v)
 
