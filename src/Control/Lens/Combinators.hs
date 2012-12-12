@@ -14,6 +14,9 @@ module Control.Lens.Combinators
 
 import Data.Functor ((<$>))
 
+-- $setup
+-- >>> import Control.Lens
+
 infixl 4 <$!>, <$!
 infixl 1 <&>, ?
 
