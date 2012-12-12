@@ -51,5 +51,5 @@ as <&> f = f <$> as
 --
 -- >>> over ? length ? ("hello","world") $ _2
 -- ("hello",5)
-(?) :: f (a -> b) -> a -> f b
+(?) :: Functor f => f (a -> b) -> a -> f b
 fab ? a = fmap ($a) fab
