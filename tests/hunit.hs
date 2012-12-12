@@ -43,6 +43,9 @@ data Polygon =
 
 makeLenses ''Polygon
 
+data Shape = SBox Box | SPolygon Polygon | SCircle Point Int | SVoid
+makePrisms ''Shape
+
 origin =
   Point { _x = 0, _y = 0 }
 

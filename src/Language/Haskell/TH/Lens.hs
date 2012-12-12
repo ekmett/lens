@@ -30,6 +30,7 @@ import Control.Lens.Setter
 import Control.Lens.Fold
 import Control.Lens.IndexedLens
 import Control.Lens.IndexedTraversal
+import Control.Lens.Tuple
 import Control.Lens.Type
 import Control.Lens.Traversal
 import Data.Map as Map hiding (toList,map)
@@ -86,6 +87,14 @@ instance HasTypeVars Type where
 instance HasTypeVars Pred where
   typeVarsEx s f (ClassP n ts) = ClassP n <$> typeVarsEx s f ts
   typeVarsEx s f (EqualP l r)  = EqualP <$> typeVarsEx s f l <*> typeVarsEx s f r
+
+instance HasTypeVars Con where
+  typeVarsEx s f (NormalC n ts) = NormalC n <$> traverseOf (traverse . _2) (typeVarsEx s f) ts
+  typeVarsEx s f (RecC n ts) = RecC n <$> traverseOf (traverse . _3) (typeVarsEx s f) ts
+  typeVarsEx s f (InfixC l n r) = InfixC <$> g l <*> pure n <*> g r
+       where g (i, t) = (,) i <$> typeVarsEx s f t
+  typeVarsEx s f (ForallC bs ctx c) = ForallC bs <$> typeVarsEx s' f ctx <*> typeVarsEx s' f c
+       where s' = s `Set.union` setOf typeVars bs
 
 instance HasTypeVars t => HasTypeVars [t] where
   typeVarsEx s = traverse . typeVarsEx s
