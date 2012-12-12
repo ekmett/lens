@@ -94,9 +94,9 @@ noEffect = coerce $ pure ()
 -- Programming with Effects
 -------------------------------------------------------------------------------
 
--- | An 'Effective' 'Functor' ignores its argument and is isomorphic to a monad wrapped around a value.
+-- | An 'Effective' 'Functor' ignores its argument and is isomorphic to a 'Monad' wrapped around a value.
 --
--- That said, the monad is possibly rather unrelated to any 'Applicative' structure.
+-- That said, the 'Monad' is possibly rather unrelated to any 'Applicative' structure.
 class (Monad m, Gettable f) => Effective m r f | f -> m r where
   effective :: m r -> f a
   ineffective :: f a -> m r
@@ -148,10 +148,10 @@ class Category k => Isomorphic k where
   -- | Build a simple isomorphism from a pair of inverse functions
   --
   -- @
-  -- 'view' ('iso' f g) ≡ f
-  -- 'view' ('from' ('iso' f g)) ≡ g
-  -- 'set' ('iso' f g) h ≡ g '.' h '.' f
-  -- 'set' ('from' ('iso' f g)) h ≡ f '.' h '.' g
+  -- 'Control.Lens.Getter.view' ('iso' f g) ≡ f
+  -- 'Control.Lens.Getter.view' ('Control.Lens.Iso.from' ('iso' f g)) ≡ g
+  -- 'Control.Lens.Setter.set' ('iso' f g) h ≡ g '.' h '.' f
+  -- 'Control.Lens.Setter.set' ('Control.Lens.Iso.from' ('iso' f g)) h ≡ f '.' h '.' g
   -- @
   iso :: Functor f => (s -> a) -> (b -> t) -> k (a -> f b) (s -> f t)
 
