@@ -24,6 +24,7 @@ module Control.Lens.TH
     makeLenses, makeLensesFor
   , makeClassy, makeClassyFor
   , makeIso
+  , makePrisms
   -- * Configuring Lenses
   , makeLensesWith
   , defaultRules
@@ -58,6 +59,7 @@ import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.IndexedLens
 import Control.Lens.Iso
+import Control.Lens.Prism
 import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
@@ -68,7 +70,7 @@ import Data.Foldable hiding (concat)
 import Data.Function (on)
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
-import Data.Maybe (isNothing,isJust,catMaybes,fromJust)
+import Data.Maybe (isNothing,isJust,catMaybes,fromJust,fromMaybe)
 import Data.Ord (comparing)
 import Data.Set as Set hiding (toList,map,filter)
 import Data.Set.Lens
@@ -177,13 +179,15 @@ lensFlags f (LensRules i n c o) = f o <&> LensRules i n c
 
 -- | Default lens rules
 defaultRules :: LensRules
-defaultRules = LensRules top fld (const Nothing) $
+defaultRules = LensRules mLowerName fld (const Nothing) $
     Set.fromList [SingletonIso, SingletonAndField, CreateClass, CreateInstance, BuildTraversals, GenerateSignatures]
   where
-    top (c:cs) = Just (toLower c:cs)
-    top _      = Nothing
-    fld ('_':c:cs) = Just (toLower c:cs)
-    fld _          = Nothing
+    fld ('_':cs) = mLowerName cs
+    fld _        = Nothing
+
+mLowerName :: String -> Maybe String
+mLowerName (c:cs) = Just (toLower c:cs)
+mLowerName _ = Nothing
 
 -- | Rules for making fairly simple partial lenses, ignoring the special cases
 -- for isomorphisms and traversals, and not making any classes.
@@ -302,13 +306,113 @@ makeLensesWith cfg nm = do
             | otherwise              -> makeFieldLenses cfg ctx tyConName args cons
         _ -> fail "makeLensesWith: Unsupported data type"
       _ -> fail "makeLensesWith: Expected the name of a data type or newtype"
-  where
-    deNewtype (NewtypeD ctx tyConName args c d) = DataD ctx tyConName args [c] d
-    deNewtype d = d
+
+makePrisms :: Name -> Q [Dec]
+makePrisms nm = do
+    inf <- reify nm
+    case inf of
+      TyConI decl -> case deNewtype decl of
+        DataD ctx tyConName args cons _ ->
+          makePrismsForCons ctx tyConName args cons
+        _ -> fail "makePrisms: Unsupported data type"
+      _ -> fail "makePrisms: Expected the name of a data type or newtype"
 
 -----------------------------------------------------------------------------
 -- Internal TH Implementation
 -----------------------------------------------------------------------------
+
+-- | Transform @NewtypeD@s declarations to @DataD@s
+deNewtype :: Dec -> Dec
+deNewtype (NewtypeD ctx tyConName args c d) = DataD ctx tyConName args [c] d
+deNewtype d = d
+
+makePrismsForCons :: [Pred] -> Name -> [TyVarBndr] -> [Con] -> Q [Dec]
+makePrismsForCons ctx tyConName args cons =
+  concat <$> mapM (makePrismForCon ctx tyConName args canModifyTypeVar cons) cons
+  where
+    conTypeVars = map (Set.fromList . toListOf typeVars) cons
+    canModifyTypeVar = (`Set.member` typeVarsOnlyInOneCon) . view name
+    typeVarsOnlyInOneCon =
+      Set.fromList . concat . filter ((== 1) . length) .
+      List.group . List.sort . concat $
+      map toList conTypeVars
+
+makePrismForCon :: [Pred] -> Name -> [TyVarBndr] -> (TyVarBndr -> Bool) -> [Con] -> Con -> Q [Dec]
+makePrismForCon ctx tyConName args canModifyTypeVar allCons con =
+    return
+    [ SigD resName .
+      ForallT
+        (args ++ (PlainTV <$> Map.elems altArgs))
+        (List.nub (ctx ++ substTypeVars altArgs ctx)) $
+      List.foldl1 AppT
+      [ ConT ''Prism
+      , List.foldl AppT (ConT tyConName) (VarT . view name <$> args)
+      , List.foldl AppT (ConT tyConName) (VarT . view name <$> substTypeVars altArgs args)
+      , toTupleT fieldTypes
+      , toTupleT $ substTypeVars altArgs fieldTypes
+      ]
+    , FunD resName
+      [ Clause []
+        (NormalB (List.foldl1 AppE [VarE 'prism, VarE remiterName, VarE reviewerName]))
+        [remiter, reviewer]
+      ]
+    ]
+  where
+    (dataConName, fieldTypes) = ctrNameAndFieldTypes con
+    resName =
+      mkName .
+      fromMaybe (error ("bad constructor name: " ++ show dataConName)) . mLowerName $
+      nameBase dataConName
+    altArgs = Map.fromList . map (mkAltArg . view name) $ filter isAltArg args
+    isAltArg arg = canModifyTypeVar arg && Set.member (arg ^. name) conArgs
+    conArgs = Set.fromList $ toListOf typeVars fieldTypes
+    mkAltArg arg = (arg, mkName (nameBase arg ++ "'"))
+    reviewerName = mkName "reviewer"
+    reviewer = FunD reviewerName $ hitClause : missClauses
+    hitClause =
+      Clause [ConP dataConName (VarP <$> varNames)]
+      ((NormalB . AppE (ConE 'Right) . toTupleE) (VarE <$> varNames)) []
+    missClauses
+      | Map.null altArgs =
+        [Clause [VarP xName] (NormalB (AppE (ConE 'Left) (VarE xName))) []]
+      | otherwise =
+        reviewerIdClause <$> filter (/= con) allCons
+    varNames = map (mkName . ('x' :) . show) [0 .. length fieldTypes - 1]
+    xName = mkName "x"
+    remiterName = mkName "remiter"
+    remiter =
+      FunD remiterName
+      [ Clause [toTupleP (VarP <$> varNames)]
+        (NormalB (List.foldl AppE (ConE dataConName) (VarE <$> varNames))) []
+      ]
+
+ctrNameAndFieldTypes :: Con -> (Name, [Type])
+ctrNameAndFieldTypes (NormalC n ts) = (n, snd <$> ts)
+ctrNameAndFieldTypes (RecC n ts) = (n, view _3 <$> ts)
+ctrNameAndFieldTypes (InfixC l n r) = (n, [snd l, snd r])
+ctrNameAndFieldTypes (ForallC _ _ c) = ctrNameAndFieldTypes c
+
+-- When a prism can change type variables it needs to pattern match on all
+-- other data constructors and rebuild the data so it will have the new type.
+reviewerIdClause :: Con -> Clause
+reviewerIdClause con =
+    Clause [ConP dataConName (VarP <$> varNames)]
+    ((NormalB . AppE (ConE 'Left)) (List.foldl AppE (ConE dataConName) (VarE <$> varNames))) []
+  where
+    (dataConName, fieldTypes) = ctrNameAndFieldTypes con
+    varNames = map (mkName . ('x' :) . show) [0 .. length fieldTypes - 1]
+
+toTupleT :: [Type] -> Type
+toTupleT [x] = x
+toTupleT xs = List.foldl AppT (TupleT (length xs)) xs
+
+toTupleE :: [Exp] -> Exp
+toTupleE [x] = x
+toTupleE xs = TupE xs
+
+toTupleP :: [Pat] -> Pat
+toTupleP [x] = x
+toTupleP xs = TupP xs
 
 -- | Given a set of names, build a map from those names to a set of fresh names based on them.
 freshMap :: Set Name -> Q (Map Name Name)
