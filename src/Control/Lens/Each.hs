@@ -112,11 +112,11 @@ instance (a ~ a2, a ~ a3, a ~ a4, a ~ a5, a ~ a6, a ~ a7, a ~ a8, a ~ a9, b ~ b2
   {-# INLINE each #-}
 
 #if MIN_VERSION_base(4,4,0)
-instance RealFloat a => Each Int (Complex a) (Complex a) a a where
+instance (RealFloat a, RealFloat b) => Each Int (Complex a) (Complex b) a b where
   each = Lens.indexed $ \ f (a :+ b) -> (:+) <$> f (0 :: Int) a <*> f 1 b
   {-# INLINE each #-}
 #else
-instance Each Int (Complex a) (Complex a) a a where
+instance Each Int (Complex a) (Complex b) a b where
   each = Lens.indexed $ \ f (a :+ b) -> (:+) <$> f (0 :: Int) a <*> f 1 b
   {-# INLINE each #-}
 #endif
