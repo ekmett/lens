@@ -204,8 +204,8 @@ swap (a,b) = (b,a)
 -- ["He","saw","desserts","O_o"]
 --
 -- @
--- 'iwhereOf' :: 'IndexedFold' i s a            -> (i -> 'Bool') -> 'IndexedFold' i s a
--- 'iwhereOf' :: 'IndexedGetter' i s a          -> (i -> 'Bool') -> 'IndexedFold' i s a
+-- 'iwhereOf' :: 'Control.Lens.IndexedFold.IndexedFold' i s a            -> (i -> 'Bool') -> 'Control.Lens.IndexedFold.IndexedFold' i s a
+-- 'iwhereOf' :: 'IndexedGetter' i s a          -> (i -> 'Bool') -> 'Control.Lens.IndexedFold.IndexedFold' i s a
 -- 'iwhereOf' :: 'SimpleIndexedLens' i s a      -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i s a
 -- 'iwhereOf' :: 'SimpleIndexedTraversal' i s a -> (i -> 'Bool') -> 'SimpleIndexedTraversal' i s a
 -- 'iwhereOf' :: 'SimpleIndexedSetter' i s a    -> (i -> 'Bool') -> 'SimpleIndexedSetter' i s a
@@ -224,7 +224,7 @@ traversed64 :: Traversable f => IndexedTraversal Int64 (f a) (f b) a b
 traversed64 = indexing64 traverse
 {-# INLINE traversed64 #-}
 
--- | This provides a 'Traversal' that checks a predicate on a key before
+-- | This provides a 'Control.Lens.Traversal.Traversal' that checks a predicate on a key before
 -- allowing you to traverse into a value.
 value :: (k -> Bool) -> SimpleIndexedTraversal k (k, v) v
 value p = indexed $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
@@ -341,7 +341,7 @@ instance Ord k => TraverseMax k (Map k) where
     Nothing          -> pure m
   {-# INLINE traverseMax #-}
 
--- | Traverse the /nth/ element 'elementOf' a 'Traversal', 'Lens' or
+-- | Traverse the /nth/ element 'elementOf' a 'Control.Lens.Traversal.Traversal', 'Lens' or
 -- 'Control.Lens.Iso.Iso' if it exists.
 --
 -- >>> [[1],[3,4]] & elementOf (traverse.traverse) 1 .~ 5
@@ -357,8 +357,8 @@ instance Ord k => TraverseMax k (Map k) where
 -- [0,1,2,16,4,5,6,7,8,9]
 --
 -- @
--- 'elementOf' :: 'Simple' 'Traversal' s a -> Int -> 'SimpleIndexedTraversal' 'Int' s a
--- 'elementOf' :: 'Fold' s a            -> Int -> 'IndexedFold' 'Int' s a
+-- 'elementOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> Int -> 'SimpleIndexedTraversal' 'Int' s a
+-- 'elementOf' :: 'Control.Lens.Fold.Fold' s a            -> Int -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s a
 -- @
 elementOf :: (Applicative f, Indexable Int k)
           => LensLike (Indexing f) s t a a
@@ -374,11 +374,11 @@ element :: Traversable t => Int -> SimpleIndexedTraversal Int (t a) a
 element = elementOf traverse
 {-# INLINE element #-}
 
--- | Traverse (or fold) selected elements of a 'Traversal' (or 'Fold') where their ordinal positions match a predicate.
+-- | Traverse (or fold) selected elements of a 'Control.Lens.Traversal.Traversal' (or 'Control.Lens.Fold.Fold') where their ordinal positions match a predicate.
 --
 -- @
--- 'elementsOf' :: 'Simple' 'Traversal' s a -> ('Int' -> 'Bool') -> 'SimpleIndexedTraversal' 'Int' s a
--- 'elementsOf' :: 'Fold' s a            -> ('Int' -> 'Bool') -> 'IndexedFold' 'Int' s a
+-- 'elementsOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> ('Int' -> 'Bool') -> 'SimpleIndexedTraversal' 'Int' s a
+-- 'elementsOf' :: 'Control.Lens.Fold.Fold' s a            -> ('Int' -> 'Bool') -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s a
 -- @
 elementsOf :: (Applicative f, Indexable Int k)
            => LensLike (Indexing f) s t a a
