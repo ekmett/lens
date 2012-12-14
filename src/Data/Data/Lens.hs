@@ -123,7 +123,7 @@ template = uniplateData (fromOracle answer) where
 -- | Find descendants of type @a@ non-transitively, while avoiding computation of areas that cannot contain values of
 -- type @a@ using 'Data'.
 --
--- 'uniplate' is a useful default definition for 'Control.Plated.plate'
+-- 'uniplate' is a useful default definition for 'Control.Lens.Plated.plate'
 uniplate :: Data a => Simple Traversal a a
 uniplate = template
 {-# INLINE uniplate #-}
