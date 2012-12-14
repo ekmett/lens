@@ -9,7 +9,7 @@
 --
 -------------------------------------------------------------------------------
 module Control.Lens.Combinators
-  ( (<$!>), (<$!), (<&>), (?)
+  ( (<$!>), (<$!), (<&>), (??)
   ) where
 
 import Data.Functor ((<$>))
@@ -18,7 +18,7 @@ import Data.Functor ((<$>))
 -- >>> import Control.Lens
 
 infixl 4 <$!>, <$!
-infixl 1 <&>, ?
+infixl 1 <&>, ??
 
 -- | A strict version of ('Data.Functor.<$>') for monads.
 --
@@ -49,10 +49,10 @@ as <&> f = f <$> as
 
 -- | This is convenient to 'flip' argument order of composite functions
 --
--- >>> over _2 ? ("hello","world") $ length
+-- >>> over _2 ?? ("hello","world") $ length
 -- ("hello",5)
 --
--- >>> over ? length ? ("hello","world") $ _2
+-- >>> over ?? length ?? ("hello","world") $ _2
 -- ("hello",5)
-(?) :: Functor f => f (a -> b) -> a -> f b
-fab ? a = fmap ($a) fab
+(??) :: Functor f => f (a -> b) -> a -> f b
+fab ?? a = fmap ($a) fab
