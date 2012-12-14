@@ -5,6 +5,8 @@
 * Added `indexing64` and `traversed64` for help with large containers.
 * Generalized the type signature of `choosing`.
 * Exported `unwrapped` from `Control.Lens.Wrapped`.
+* Support for `hashable` 1.2
+* Added `(??)` to `Control.Lens.Combinators`.
 
 3.7.0.2
 -------
