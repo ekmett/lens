@@ -165,7 +165,7 @@ iallOf l f = getAll# (ifoldMapOf l (\i -> all# (f i)))
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.traverseOf_' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.traverseOf_' l ≡ 'itraverseOf' l '.' 'const'@
+-- @'Control.Lens.Fold.traverseOf_' l ≡ 'Control.Lens.IndexedTraversal.itraverseOf' l '.' 'const'@
 --
 -- @
 -- 'itraverseOf_' :: 'Functor' f     => 'IndexedGetter' i s a          -> (i -> a -> f r) -> s -> f ()
@@ -203,7 +203,7 @@ iforOf_ = flip . itraverseOf_
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.mapMOf_' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.mapMOf_' l ≡ 'imapMOf' l '.' 'const'@
+-- @'Control.Lens.Fold.mapMOf_' l ≡ 'Control.Lens.IndexedSetter.imapMOf' l '.' 'const'@
 --
 -- @
 -- 'imapMOf_' :: 'Monad' m => 'IndexedGetter' i s a          -> (i -> a -> m r) -> s -> m ()
@@ -227,7 +227,7 @@ skip _ = ()
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.forMOf_' is more flexible in what it accepts.
 --
--- @'Control.Lens.Fold.forMOf_' l a ≡ 'iforMOf' l a '.' 'const'@
+-- @'Control.Lens.Fold.forMOf_' l a ≡ 'Control.Lens.IndexedTraversal.iforMOf' l a '.' 'const'@
 --
 -- @
 -- 'iforMOf_' :: 'Monad' m => 'IndexedGetter' i s a          -> s -> (i -> a -> m r) -> m ()
@@ -372,19 +372,19 @@ itoListOf l = ifoldrOf l (\i a -> ((i,a):)) []
 -- | Transform an indexed fold into a fold of both the indices and the values.
 --
 -- @
--- 'withIndicesOf' :: 'IndexedFold' i s a             -> 'Fold' s (i, a)
--- 'withIndicesOf' :: 'SimpleIndexedLens' i s a      -> 'Getter' s (i, a)
--- 'withIndicesOf' :: 'SimpleIndexedTraversal' i s a -> 'Fold' s (i, a)
+-- 'withIndicesOf' :: 'IndexedFold' i s a            -> 'Control.Lens.Fold.Fold' s (i, a)
+-- 'withIndicesOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i s a      -> 'Control.Lens.Fold.Getter' s (i, a)
+-- 'withIndicesOf' :: 'Control.Lens.IndexedLens.SimpleIndexedTraversal' i s a -> 'Control.Lens.Fold.Fold' s (i, a)
 -- @
 --
--- All 'Fold' operations are safe, and comply with the laws. However:
+-- All 'Control.Lens.Fold.Fold' operations are safe, and comply with the laws. However:
 --
--- Passing this an 'IndexedTraversal' will still allow many
--- 'Traversal' combinators to type check on the result, but the result
+-- Passing this an 'Control.Lens.IndexedTraversal.IndexedTraversal' will still allow many
+-- 'Control.Lens.Traversal.Traversal' combinators to type check on the result, but the result
 -- can only be legally traversed by operations that do not edit the indices.
 --
 -- @
--- 'withIndicesOf' :: 'IndexedTraversal' i s t a b -> 'Traversal' s t (i, a) (j, b)
+-- 'withIndicesOf' :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> 'Control.Lens.Traversal.Traversal' s t (i, a) (j, b)
 -- @
 --
 -- Change made to the indices will be discarded.
@@ -395,9 +395,9 @@ withIndicesOf l f = withIndex l (\i c -> snd <$> f (i,c))
 -- | Transform an indexed fold into a fold of the indices.
 --
 -- @
--- 'indicesOf' :: 'IndexedFold' i s a             -> 'Fold' s i
--- 'indicesOf' :: 'SimpleIndexedLens' i s a      -> 'Getter' s i
--- 'indicesOf' :: 'SimpleIndexedTraversal' i s a -> 'Fold' s i
+-- 'indicesOf' :: 'IndexedFold' i s a            -> 'Control.Lens.Fold.Fold' s i
+-- 'indicesOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i s a      -> 'Control.Lens.Fold.Getter' s i
+-- 'indicesOf' :: 'Control.Lens.IndexedLens.SimpleIndexedTraversal' i s a -> 'Control.Lens.Fold.Fold' s i
 -- @
 indicesOf :: Gettable f => Overloaded (Indexed i) f s t a a -> LensLike f s t i j
 indicesOf l f = withIndex l (const . coerce . f)
@@ -411,7 +411,7 @@ indicesOf l f = withIndex l (const . coerce . f)
 --
 -- When passed an 'Control.Lens.IndexedTraversal.IndexedTraversal', sadly the result is /not/ a legal 'Control.Lens.IndexedTraversal.IndexedTraversal'.
 --
--- See 'filtered' for a related counter-example.
+-- See 'Control.Lens.Fold.filtered' for a related counter-example.
 ifiltering :: (Applicative f, Indexable i k)
            => (i -> a -> Bool)
            -> Indexed i (a -> f a) (s -> f t)
