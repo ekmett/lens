@@ -39,12 +39,9 @@ module Control.Lens.IndexedLens
   -- * Simple
   , SimpleIndexedLens
   , SimpleReifiedIndexedLens
-  -- * Deprecated
-  , resultAt
   ) where
 
 import Control.Lens.Classes
-import Control.Lens.Combinators
 import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad.State.Class as State
@@ -143,9 +140,3 @@ newtype ReifiedIndexedLens i s t a b = ReifyIndexedLens { reflectIndexedLens :: 
 
 -- | @type 'SimpleIndexedLens' i = 'Simple' ('ReifiedIndexedLens' i)@
 type SimpleReifiedIndexedLens i s a = ReifiedIndexedLens i s s a a
-
--- | Deprecated alias for 'Control.Lens.At.contains'
-resultAt :: Eq e => e -> SimpleIndexedLens e (e -> a) a
-resultAt e = indexed $ \ g f -> g e (f e) <&> \a' e' -> if e == e' then a' else f e'
-{-# DEPRECATED resultAt "Use contains from Control.Lens.At instead" #-}
-{-# INLINE resultAt #-}
