@@ -5,6 +5,10 @@
 * Removed various `ordinal` and `ix` combinators, which are subsumed by `Ixed(ix)`.
 * Changed `_head`, `_tail`, `_init` and `_last` to traversals in `Data.Vector.Lens` and `Data.Vector.Generic.Lens`.
 
+3.7.1.1 [maintenance release]
+-------
+* Removed tests that will (likely) fail in the presence of `hashable` 1.2
+
 3.7.1
 -----
 * Added `preuse`, `preuses` to `Control.Lens.Fold`
