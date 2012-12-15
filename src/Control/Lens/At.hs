@@ -35,6 +35,7 @@ module Control.Lens.At
   -- * Deprecated
   , _at
   , contains
+  , resultAt
   ) where
 
 import Control.Applicative
@@ -65,10 +66,11 @@ import Data.Vector.Storable as Storable
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
 -- | A deprecated alias for 'ix'
-contains, _at :: (Indexable (IxKey m) k, Ixed f m) => IxKey m -> SimpleOverloaded k f m (IxValue m)
+contains, _at, resultAt :: (Indexable (IxKey m) k, Ixed f m) => IxKey m -> SimpleOverloaded k f m (IxValue m)
 contains = ix
 _at      = ix
-{-# DEPRECATED _at, contains "use 'ix'. This function will be removed in version 3.9" #-}
+resultAt = ix
+{-# DEPRECATED _at, contains, resultAt "use 'ix'. This function will be removed in version 3.9" #-}
 
 type family IxKey (m :: *) :: *
 type family IxValue (m :: *) :: *
