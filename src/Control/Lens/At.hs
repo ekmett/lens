@@ -146,13 +146,13 @@ instance El Int Vector where
 -- @'el' k ≡ 'at' k '<.' 'traverse'@
 class El k m => At k m | m -> k where
   -- |
-  -- >>> IntMap.fromList [(1,"hello")] ^.at 1
-  -- Just "hello"
+  -- >>> Map.fromList [("hello","world")] ^.at "hello"
+  -- Just "world"
   --
   -- >>> at 1 ?~ "hello" $ Map.empty
   -- fromList [(1,"hello")]
   --
-  -- Note: 'Map'-like containers form a reasonable instance, but not 'Array'-like ones, where
+  -- /Note:/ 'Map'-like containers form a reasonable instance, but not 'Array'-like ones, where
   -- you cannot satisfy the 'Lens' laws.
   at :: k -> SimpleIndexedLens k (m v) (Maybe v)
 
