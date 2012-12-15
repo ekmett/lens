@@ -28,12 +28,13 @@
 ----------------------------------------------------------------------------
 module Control.Lens.At
   (
-  -- * Indexed Traversals
-    Ixed(..)
-  , _at -- DEPRECATED
-
-  -- * Indexed Lenses
-  , At(..)
+  -- * Indexed Lens
+    At(at)
+  -- * Indexed Traversal
+  , Ixed(ix)
+  -- * Deprecated
+  , _at
+  , contains
   ) where
 
 import Control.Applicative
@@ -64,9 +65,10 @@ import Data.Vector.Storable as Storable
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
 -- | A deprecated alias for 'ix'
-_at :: (Indexable (IxKey m) k, Ixed f m) => IxKey m -> SimpleOverloaded k f m (IxValue m)
-_at = ix
-{-# DEPRECATED _at "use 'ix'. '_at' will be removed in version 3.9" #-}
+contains, _at :: (Indexable (IxKey m) k, Ixed f m) => IxKey m -> SimpleOverloaded k f m (IxValue m)
+contains = ix
+_at      = ix
+{-# DEPRECATED _at, contains "use 'ix'. This function will be removed in version 3.9" #-}
 
 type family IxKey (m :: *) :: *
 type family IxValue (m :: *) :: *
@@ -93,6 +95,15 @@ class Ixed f m where
   --
   -- >>> Seq.fromList [] ^? ix 2
   -- Nothing
+  --
+  -- >>> IntSet.fromList [1,2,3,4] & ix 3 .~ False
+  -- fromList [1,2,4]
+  --
+  -- >>> IntSet.fromList [1,2,3,4] ^. ix 3
+  -- True
+
+  -- >>> IntSet.fromList [1,2,3,4] ^. ix 5
+  -- False
   ix :: Indexable (IxKey m) k => IxKey m -> SimpleOverloaded k f m (IxValue m)
 #ifdef DEFAULT_SIGNATURES
   default ix :: (Indexable (IxKey m) k, Applicative f, At m) => IxKey m -> SimpleOverloaded k f m (IxValue m)
@@ -266,14 +277,3 @@ instance (Eq k, Hashable k) => At (HashMap k a) where
       Nothing -> maybe m (const (HashMap.delete k m)) mv
       Just v' -> HashMap.insert k v' m
   {-# INLINE at #-}
-
-{-
-  -- |
-  -- If this wasn't an indexed lens you could assume:
-  --
-  -- @'contains' k ≡ 'singular' ('ix' k)@
-  --
-  -- >>> contains 3 .~ False $ IntSet.fromList [1,2,3,4]
-  -- fromList [1,2,4]
-  contains :: IxKey m -> SimpleIndexedLens (IxKey m) m (IxValue m)
--}
