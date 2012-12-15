@@ -34,50 +34,66 @@ module Data.Vector.Lens
   , ordinals
   ) where
 
+import Control.Applicative
 import Control.Lens
 import Data.Vector as Vector hiding (zip, filter, indexed)
-import Prelude hiding ((++), length, head, tail, init, last, map, reverse)
+import Prelude hiding ((++), length, null, head, tail, init, last, map, reverse)
 import Data.List (nub)
 import Data.Monoid
 
--- | A lens reading and writing to the 'head' of a /non-empty/ 'Vector'
+-- | A 'Traversal' reading and writing to the 'head' of a /non-empty/ 'Vector'
 --
--- Attempting to read or write to the 'head' of an /empty/ 'Vector' will result in an 'error'.
+-- >>> Vector.fromList [1,2,3] ^? _head
+-- Just 1
 --
--- >>> Vector.fromList [1,2,3]^._head
--- 1
-_head :: SimpleLens (Vector a) a
-_head f v = f (head v) <&> \a -> v // [(0,a)]
+-- >>> Vector.empty ^? _head
+-- Nothing
+--
+-- >>> Vector.fromList "abc" & _head .~ 'Q'
+-- fromList "Qbc"
+_head :: SimpleTraversal (Vector a) a
+_head f v
+  | null v    = pure v
+  | otherwise = f (head v) <&> \a -> v // [(0,a)]
 {-# INLINE _head #-}
 
--- | A 'Lens' reading and writing to the 'last' element of a /non-empty/ 'Vector'
+-- | A 'Traversal' reading and writing to the 'last' element of a /non-empty/ 'Vector'
 --
--- Attempting to read or write to the 'last' element of an /empty/ 'Vector' will result in an 'error'.
+-- >>> Vector.fromList "abcde" ^? _last
+-- Just 'e'
 --
--- >>> Vector.fromList [1,2]^._last
--- 2
-_last :: SimpleLens (Vector a) a
-_last f v = f (last v) <&> \a -> v // [(length v - 1, a)]
+-- >>> Vector.empty ^? _last
+-- Nothing
+--
+-- >>> Vector.fromList "abcde" & _last .~ 'Q'
+-- fromList "abcdQ"
+_last :: SimpleTraversal (Vector a) a
+_last f v
+  | null v    = pure v
+  | otherwise = f (last v) <&> \a -> v // [(length v - 1, a)]
 {-# INLINE _last #-}
 
--- | A lens reading and writing to the 'tail' of a /non-empty/ 'Vector'
---
--- Attempting to read or write to the 'tail' of an /empty/ 'Vector' will result in an 'error'.
+-- | A 'Traversal' reading and writing to the 'tail' of a /non-empty/ 'Vector'
 --
 -- >>> _tail .~ Vector.fromList [3,4,5] $ Vector.fromList [1,2]
 -- fromList [1,3,4,5]
-_tail :: SimpleLens (Vector a) (Vector a)
-_tail f v = f (tail v) <&> cons (head v)
+_tail :: SimpleTraversal (Vector a) (Vector a)
+_tail f v
+  | null v    = pure v
+  | otherwise = f (tail v) <&> cons (head v)
 {-# INLINE _tail #-}
 
--- | A 'Lens' reading and replacing all but the a 'last' element of a /non-empty/ 'Vector'
+-- | A 'Traversal' reading and replacing all but the a 'last' element of a /non-empty/ 'Vector'
 --
--- Attempting to read or write to all but the 'last' element of an /empty/ 'Vector' will result in an 'error'.
+-- >>> Vector.fromList [1,2,3,4] ^? _init
+-- Just (fromList [1,2,3])
 --
--- >>> Vector.fromList [1,2,3,4]^._init
--- fromList [1,2,3]
-_init :: SimpleLens (Vector a) (Vector a)
-_init f v = f (init v) <&> (`snoc` last v)
+-- >>> Vector.fromList "abcdef" & _init.mapped %~ succ
+-- fromList "bcdeff"
+_init :: SimpleTraversal (Vector a) (Vector a)
+_init f v
+  | null v    = pure v
+  | otherwise = f (init v) <&> (`snoc` last v)
 {-# INLINE _init #-}
 
 -- | @sliced i n@ provides a lens that edits the @n@ elements starting at index @i@ from a lens.
