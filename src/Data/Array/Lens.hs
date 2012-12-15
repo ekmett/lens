@@ -59,6 +59,8 @@ ixmapped = sets . ixmap
 -- | An 'IndexedTraversal' of the elements of an 'IArray', using the
 -- index into the array as the index of the traversal.
 --
+-- This is a suitable definition for 'each' for any 'IArray'.
+--
 -- @'amap' ≡ 'over' '_array'@
 _array :: (IArray arr a, IArray arr b, Ix i) => IndexedTraversal i (arr i a) (arr i b) a b
 _array = indexed $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (assocs arr)
