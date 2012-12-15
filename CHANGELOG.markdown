@@ -1,3 +1,7 @@
+3.7.1.1
+-------
+* Removed tests that will (likely) fail in the presence of `hashable` 1.2
+
 3.7.1
 -----
 * Added `preuse`, `preuses` to `Control.Lens.Fold`
