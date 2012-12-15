@@ -1,8 +1,7 @@
 3.8
 ---
-* Moved `At` to `Control.Lens.At` and factored out `El(el)`. Deprecated `_at`.
-* Upgraded `ix` in `Data.Array.Lens` to an `IndexedTraversal`.
-* Removed `Data.Sequence.ordinal` and `Data.Vector.Lens.ordinal`, which are subsumed by `El(el)`.
+* Moved `At` to `Control.Lens.At` and factored out `Ixed(ix)`. Deprecated `_at`.
+* Removed various `ordinal` and `ix` combinators, which are subsumed by `Ixed(ix)`.
 
 3.7.1
 -----

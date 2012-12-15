@@ -13,33 +13,12 @@
 ----------------------------------------------------------------------------
 module Data.Array.Lens
   (
-  -- * Indexing
-    ix
   -- * Setters
-  , ixmapped
-  -- * Traversal
-  , _array
+    ixmapped
   ) where
 
-import Control.Applicative
 import Control.Lens
 import Data.Array.IArray hiding (index)
-
--- | Access an element of an array.
---
--- @
--- arr '!' i ≡ arr '^.' 'ix' i
--- arr '//' [(i,e)] ≡ 'ix' i '.~' e '$' arr
--- @
---
--- >>> ix 2 .~ 9 $ (listArray (1,5) [4,5,6,7,8] :: Array Int Int)
--- array (1,5) [(1,4),(2,9),(3,6),(4,7),(5,8)]
-ix :: (IArray a e, Ix i) => i -> SimpleIndexedTraversal i (a i e) e
-ix i = indexed $ \ f arr ->
-  if inRange (bounds arr) i
-  then f i (arr ! i) <&> \e -> arr // [(i,e)]
-  else pure arr
-{-# INLINE ix #-}
 
 -- | This setter can be used to derive a new 'IArray' from an old array by
 -- applying a function to each of the indices to look it up in the old 'IArray'.
@@ -55,13 +34,3 @@ ix i = indexed $ \ f arr ->
 ixmapped :: (IArray a e, Ix i, Ix j) => (i,i) -> Setter (a j e) (a i e) i j
 ixmapped = sets . ixmap
 {-# INLINE ixmapped #-}
-
--- | An 'IndexedTraversal' of the elements of an 'IArray', using the
--- index into the array as the index of the traversal.
---
--- This is a suitable definition for 'each' for any 'IArray'.
---
--- @'amap' ≡ 'over' '_array'@
-_array :: (IArray arr a, IArray arr b, Ix i) => IndexedTraversal i (arr i a) (arr i b) a b
-_array = indexed $ \f arr -> array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f i a) (assocs arr)
-{-# INLINE _array #-}

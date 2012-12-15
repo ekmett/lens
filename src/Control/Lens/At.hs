@@ -29,7 +29,7 @@
 module Control.Lens.At
   (
   -- * Indexed Traversals
-    El(..)
+    Ixed(..)
   , At(..)
   , _at -- DEPRECATED
   ) where
@@ -39,12 +39,16 @@ import Control.Lens.Combinators
 import Control.Lens.Indexed
 import Control.Lens.IndexedLens
 import Control.Lens.IndexedTraversal
+import Control.Monad (guard)
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
+import Data.HashSet as HashSet
 import Data.IntMap as IntMap
+import Data.IntSet as IntSet
 import Data.Map as Map
+import Data.Set as Set
 import Data.Sequence as Seq
 import Data.Traversable
 import Data.Vector as Vector hiding (indexed)
@@ -60,16 +64,16 @@ import Data.Vector.Storable as Storable
 
 
 -- | A deprecated alias for 'el'
-_at :: El m => ElKey m -> SimpleIndexedTraversal (ElKey m) m (ElValue m)
-_at = el
-{-# DEPRECATED _at "use 'el'. '_at' will be removed in version 3.9" #-}
+_at :: Ixed m => IxKey m -> SimpleIndexedTraversal (IxKey m) m (IxValue m)
+_at = ix
+{-# DEPRECATED _at "use 'ix'. '_at' will be removed in version 3.9" #-}
 
 -- | This simple indexed traversal lets you 'traverse' the value at a given key in a map or element at an ordinal
 -- position in a list or sequence.
-class El m where
+class Ixed m where
   -- | What is the index type?
-  type ElKey m :: *
-  type ElValue m :: *
+  type IxKey m :: *
+  type IxValue m :: *
   -- | This simple indexed traversal lets you 'traverse' the value at a given key in a map.
   --
   -- *NB:* _setting_ the value of this 'Traversal' will only set the value in the lens
@@ -77,120 +81,138 @@ class El m where
   --
   -- If you want to be able to insert /missing/ values, you want 'at'.
   --
-  -- >>> Seq.fromList [a,b,c,d] & el 2 %~ f
+  -- >>> Seq.fromList [a,b,c,d] & ix 2 %~ f
   -- fromList [a,b,f c,d]
   --
-  -- >>> Seq.fromList [a,b,c,d] & el 2 .~ e
+  -- >>> Seq.fromList [a,b,c,d] & ix 2 .~ e
   -- fromList [a,b,e,d]
   --
-  -- >>> Seq.fromList [a,b,c,d] ^? el 2
+  -- >>> Seq.fromList [a,b,c,d] ^? ix 2
   -- Just c
   --
-  -- >>> Seq.fromList [] ^? el 2
+  -- >>> Seq.fromList [] ^? ix 2
   -- Nothing
-  el :: ElKey m -> SimpleIndexedTraversal (ElKey m) m (ElValue m)
+  ix :: IxKey m -> SimpleIndexedTraversal (IxKey m) m (IxValue m)
 #ifdef DEFAULT_SIGNATURES
-  default el :: At m => ElKey m -> SimpleIndexedTraversal (ElKey m) m (ElValue m)
-  el k = at k <. traverse
+  default ix :: At m => IxKey m -> SimpleIndexedTraversal (IxKey m) m (IxValue m)
+  ix k = at k <. traverse
 #endif
 
-instance El [a] where
-  type ElKey [a] = Int
-  type ElValue [a] = a
-  el k = indexed $ \ f xs0 ->
+instance Ixed [a] where
+  type IxKey [a] = Int
+  type IxValue [a] = a
+  ix k = indexed $ \ f xs0 ->
     let go [] _ = pure []
         go (a:as) 0 = f k a <&> (:as)
         go (a:as) i = (a:) <$> (go as $! i - 1)
     in go xs0 k
-  {-# INLINE el #-}
+  {-# INLINE ix #-}
 
-instance El (Seq a) where
-  type ElKey (Seq a) = Int
-  type ElValue (Seq a) = a
-  el i = indexed $ \ f m ->
+instance Ixed (Seq a) where
+  type IxKey (Seq a) = Int
+  type IxValue (Seq a) = a
+  ix i = indexed $ \ f m ->
     if 0 <= i && i < Seq.length m
     then f i (Seq.index m i) <&> \a -> Seq.update i a m
     else pure m
-  {-# INLINE el #-}
+  {-# INLINE ix #-}
 
-instance El (IntMap a) where
-  type ElKey (IntMap a) = Int
-  type ElValue (IntMap a) = a
-  el k = indexed $ \f m -> case IntMap.lookup k m of
+instance Ixed (IntMap a) where
+  type IxKey (IntMap a) = Int
+  type IxValue (IntMap a) = a
+  ix k = indexed $ \f m -> case IntMap.lookup k m of
      Just v -> f k v <&> \v' -> IntMap.insert k v' m
      Nothing -> pure m
-  {-# INLINE el #-}
+  {-# INLINE ix #-}
 
-instance Ord k => El (Map k a) where
-  type ElKey (Map k a) = k
-  type ElValue (Map k a) = a
-  el k = indexed $ \f m -> case Map.lookup k m of
+instance Ord k => Ixed (Map k a) where
+  type IxKey (Map k a) = k
+  type IxValue (Map k a) = a
+  ix k = indexed $ \f m -> case Map.lookup k m of
      Just v  -> f k v <&> \v' -> Map.insert k v' m
      Nothing -> pure m
-  {-# INLINE el #-}
+  {-# INLINE ix #-}
 
-instance (Eq k, Hashable k) => El (HashMap k a) where
-  type ElKey (HashMap k a) = k
-  type ElValue (HashMap k a) = a
-  el k = indexed $ \f m -> case HashMap.lookup k m of
+instance (Eq k, Hashable k) => Ixed (HashMap k a) where
+  type IxKey (HashMap k a) = k
+  type IxValue (HashMap k a) = a
+  ix k = indexed $ \f m -> case HashMap.lookup k m of
      Just v  -> f k v <&> \v' -> HashMap.insert k v' m
      Nothing -> pure m
-  {-# INLINE el #-}
+  {-# INLINE ix #-}
 
 -- |
 -- @
--- arr '!' i ≡ arr '^.' 'el' i
--- arr '//' [(i,e)] ≡ 'el' i '.~' e '$' arr
+-- arr '!' i ≡ arr '^.' 'ix' i
+-- arr '//' [(i,e)] ≡ 'ix' i '.~' e '$' arr
 -- @
-instance Ix i => El (Array i e) where
-  type ElKey (Array i e) = i
-  type ElValue (Array i e) = e
-  el i = indexed $ \f arr ->
+instance Ix i => Ixed (Array i e) where
+  type IxKey (Array i e) = i
+  type IxValue (Array i e) = e
+  ix i = indexed $ \f arr ->
     if inRange (bounds arr) i
     then f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
     else pure arr
-  {-# INLINE el #-}
+  {-# INLINE ix #-}
 
 -- |
 -- @
--- arr '!' i ≡ arr '^.' 'el' i
--- arr '//' [(i,e)] ≡ 'el' i '.~' e '$' arr
+-- arr '!' i ≡ arr '^.' 'ix' i
+-- arr '//' [(i,e)] ≡ 'ix' i '.~' e '$' arr
 -- @
-instance (IArray UArray e, Ix i) => El (UArray i e) where
-  type ElKey (UArray i e) = i
-  type ElValue (UArray i e) = e
-  el i = indexed $ \f arr ->
+instance (IArray UArray e, Ix i) => Ixed (UArray i e) where
+  type IxKey (UArray i e) = i
+  type IxValue (UArray i e) = e
+  ix i = indexed $ \f arr ->
     if inRange (bounds arr) i
     then f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
     else pure arr
-  {-# INLINE el #-}
+  {-# INLINE ix #-}
 
-instance El (Vector.Vector a) where
-  type ElKey (Vector.Vector a) = Int
-  type ElValue (Vector.Vector a) = a
-  el i = indexed $ \f v ->
+instance Ixed (Vector.Vector a) where
+  type IxKey (Vector.Vector a) = Int
+  type IxValue (Vector.Vector a) = a
+  ix i = indexed $ \f v ->
     if 0 <= i && i < Vector.length v
     then f i (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
     else pure v
-  {-# INLINE el #-}
+  {-# INLINE ix #-}
 
-instance Prim a => El (Prim.Vector a) where
-  type ElKey (Prim.Vector a) = Int
-  type ElValue (Prim.Vector a) = a
-  el i = indexed $ \f v ->
+instance Prim a => Ixed (Prim.Vector a) where
+  type IxKey (Prim.Vector a) = Int
+  type IxValue (Prim.Vector a) = a
+  ix i = indexed $ \f v ->
     if 0 <= i && i < Prim.length v
     then f i (v Prim.! i) <&> \a -> v Prim.// [(i, a)]
     else pure v
-  {-# INLINE el #-}
+  {-# INLINE ix #-}
 
-instance Storable a => El (Storable.Vector a) where
-  type ElKey (Storable.Vector a) = Int
-  type ElValue (Storable.Vector a) = a
-  el i = indexed $ \f v ->
+instance Storable a => Ixed (Storable.Vector a) where
+  type IxKey (Storable.Vector a) = Int
+  type IxValue (Storable.Vector a) = a
+  ix i = indexed $ \f v ->
     if 0 <= i && i < Storable.length v
     then f i (v Storable.! i) <&> \a -> v Storable.// [(i, a)]
     else pure v
-  {-# INLINE el #-}
+  {-# INLINE ix #-}
+
+instance Ixed IntSet where
+  type IxKey IntSet = Int
+  type IxValue IntSet = ()
+  ix i = indexed $ \f s -> if IntSet.member i s then s <$ f i () else pure s
+  {-# INLINE ix #-}
+
+instance Ord a => Ixed (Set a) where
+  type IxKey (Set a) = a
+  type IxValue (Set a) = ()
+  ix i = indexed $ \f s -> if Set.member i s then s <$ f i () else pure s
+  {-# INLINE ix #-}
+
+instance (Eq a, Hashable a) => Ixed (HashSet a) where
+  type IxKey (HashSet a) = a
+  type IxValue (HashSet a) = ()
+  ix i = indexed $ \f s -> if HashSet.member i s then s <$ f i () else pure s
+  {-# INLINE ix #-}
 
 -- | 'At' provides a lens that can be used to read,
 -- write or delete the value associated with a key in a map-like
@@ -199,7 +221,7 @@ instance Storable a => El (Storable.Vector a) where
 -- An instance of @At@ should satisfy:
 --
 -- @'el' k ≡ 'at' k '<.' 'traverse'@
-class El m => At m where
+class Ixed m => At m where
   -- |
   -- >>> Map.fromList [(1,"world")] ^.at 1
   -- Just "world"
@@ -209,28 +231,52 @@ class El m => At m where
   --
   -- /Note:/ 'Map'-like containers form a reasonable instance, but not 'Array'-like ones, where
   -- you cannot satisfy the 'Lens' laws.
-  at :: ElKey m -> SimpleIndexedLens (ElKey m) m (Maybe (ElValue m))
+  at :: IxKey m -> SimpleIndexedLens (IxKey m) m (Maybe (IxValue m))
 
 instance At (IntMap a) where
   at k = indexed $ \f m ->
     let mv = IntMap.lookup k m
-        go Nothing   = maybe m (const (IntMap.delete k m)) mv
-        go (Just v') = IntMap.insert k v' m
-    in go <$> f k mv where
+    in f k mv <&> \r -> case r of
+      Nothing -> maybe m (const (IntMap.delete k m)) mv
+      Just v' -> IntMap.insert k v' m
   {-# INLINE at #-}
 
 instance Ord k => At (Map k a) where
   at k = indexed $ \f m ->
     let mv = Map.lookup k m
-        go Nothing   = maybe m (const (Map.delete k m)) mv
-        go (Just v') = Map.insert k v' m
-    in go <$> f k mv
+    in f k mv <&> \r -> case r of
+      Nothing -> maybe m (const (Map.delete k m)) mv
+      Just v' -> Map.insert k v' m
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At (HashMap k a) where
   at k = indexed $ \f m ->
     let mv = HashMap.lookup k m
-        go Nothing   = maybe m (const (HashMap.delete k m)) mv
-        go (Just v') = HashMap.insert k v' m
-    in go <$> f k mv
+    in f k mv <&> \r -> case r of
+      Nothing -> maybe m (const (HashMap.delete k m)) mv
+      Just v' -> HashMap.insert k v' m
   {-# INLINE at #-}
+
+instance At IntSet where
+  at k = indexed $ \f s ->
+    let b = IntSet.member k s
+    in f k (guard b) <&> \r -> case r of
+      Nothing | b     -> IntSet.delete k s
+      Just () | not b -> IntSet.insert k s
+      _ -> s
+
+instance Ord a => At (Set a) where
+  at k = indexed $ \f s ->
+    let b = Set.member k s
+    in f k (guard b) <&> \r -> case r of
+      Nothing | b     -> Set.delete k s
+      Just () | not b -> Set.insert k s
+      _ -> s
+
+instance (Eq a, Hashable a) => At (HashSet a) where
+  at k = indexed $ \f s ->
+    let b = HashSet.member k s
+    in f k (guard b) <&> \r -> case r of
+      Nothing | b     -> HashSet.delete k s
+      Just () | not b -> HashSet.insert k s
+      _ -> s
