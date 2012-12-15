@@ -95,56 +95,56 @@ data LensFlag
 
 -- | Only Generate valid 'Simple' 'Lens' lenses.
 simpleLenses      :: Simple Lens LensRules Bool
-simpleLenses       = lensFlags.contains SimpleLenses
+simpleLenses       = lensFlags.ix SimpleLenses
 
 -- | Enables the generation of partial lenses, generating runtime errors for
 -- every constructor that does not have a valid definition for the lens. This
 -- occurs when the constructor lacks the field, or has multiple fields mapped
 -- to the same lens.
 partialLenses     :: Simple Lens LensRules Bool
-partialLenses      = lensFlags.contains PartialLenses
+partialLenses      = lensFlags.ix PartialLenses
 
 -- | In the situations that a lens would be partial, when 'partialLenses' is
 -- used, this flag instead causes traversals to be generated.  Only one can be
 -- used, and if neither are, then compile-time errors are generated.
 buildTraversals   :: Simple Lens LensRules Bool
-buildTraversals    = lensFlags.contains BuildTraversals
+buildTraversals    = lensFlags.ix BuildTraversals
 
 -- | Handle singleton constructors specially.
 handleSingletons  :: Simple Lens LensRules Bool
-handleSingletons   = lensFlags.contains HandleSingletons
+handleSingletons   = lensFlags.ix HandleSingletons
 
 -- | When building a singleton 'Iso' (or 'Lens') for a record constructor, build both
 -- the 'Iso' (or 'Lens') for the record and the one for the field.
 singletonAndField :: Simple Lens LensRules Bool
-singletonAndField  = lensFlags.contains SingletonAndField
+singletonAndField  = lensFlags.ix SingletonAndField
 
 -- | Use 'Iso' for singleton constructors.
 singletonIso      :: Simple Lens LensRules Bool
-singletonIso       = lensFlags.contains SingletonIso
+singletonIso       = lensFlags.ix SingletonIso
 
 -- | Expect a single constructor, single field newtype or data type.
 singletonRequired :: Simple Lens LensRules Bool
-singletonRequired  = lensFlags.contains SingletonRequired
+singletonRequired  = lensFlags.ix SingletonRequired
 
 -- | Create the class if the constructor is simple and the 'lensClass' rule matches.
 createClass       :: Simple Lens LensRules Bool
-createClass        = lensFlags.contains CreateClass
+createClass        = lensFlags.ix CreateClass
 
 -- | Create the instance if the constructor is simple and the 'lensClass' rule matches.
 createInstance    :: Simple Lens LensRules Bool
-createInstance     = lensFlags.contains CreateInstance
+createInstance     = lensFlags.ix CreateInstance
 
 -- | Die if the 'lensClass' fails to match.
 classRequired     :: Simple Lens LensRules Bool
-classRequired      = lensFlags.contains ClassRequired
+classRequired      = lensFlags.ix ClassRequired
 
 -- | Indicate whether or not to supply the signatures for the generated lenses.
 --
 -- Disabling this can be useful if you want to provide a more restricted type signature
 -- or if you want to supply hand-written haddocks.
 generateSignatures :: Simple Lens LensRules Bool
-generateSignatures = lensFlags.contains GenerateSignatures
+generateSignatures = lensFlags.ix GenerateSignatures
 
 -- | This configuration describes the options we'll be using to make isomorphisms or lenses.
 data LensRules = LensRules
@@ -578,7 +578,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
         dty = substTypeVars m cty
 
         s = setOf folded m
-        relevantBndr b = s^.contains (b^.name)
+        relevantBndr b = s^.ix (b^.name)
         relevantCtx = not . Set.null . Set.intersection s . setOf typeVars
         tvs = tyArgs' ++ filter relevantBndr (substTypeVars m tyArgs')
         ps = filter relevantCtx (substTypeVars m ctx)

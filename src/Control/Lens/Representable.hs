@@ -131,7 +131,7 @@ instance Representable Identity where
 
 -- | NB: The 'Eq' requirement on this instance is a consequence of the choice of 'Lens' as a 'Rep', it isn't fundamental.
 instance Eq e => Representable ((->) e) where
-  rep f e = f (contains e)
+  rep f e = f (ix e)
 
 -- | 'fmapRep' is a valid default definition for 'fmap' for a 'Representable'
 -- functor.
