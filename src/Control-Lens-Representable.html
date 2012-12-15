@@ -99,10 +99,10 @@
 <a name="line-90"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-91"></a>
 <a name="line-92"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
-<a name="line-93"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Classes</span>
-<a name="line-94"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Getter</span>
-<a name="line-95"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>IndexedFold</span>
-<a name="line-96"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>IndexedLens</span>
+<a name="line-93"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>At</span>
+<a name="line-94"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Classes</span>
+<a name="line-95"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Getter</span>
+<a name="line-96"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>IndexedFold</span>
 <a name="line-97"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>IndexedSetter</span>
 <a name="line-98"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>IndexedTraversal</span>
 <a name="line-99"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span>
@@ -140,12 +140,12 @@
 <a name="line-131"></a>
 <a name="line-132"></a><span class='hs-comment'>-- | NB: The 'Eq' requirement on this instance is a consequence of the choice of 'Lens' as a 'Rep', it isn't fundamental.</span>
 <a name="line-133"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Representable</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-134"></a>  <span class='hs-varid'>rep</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>resultAt</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span>
+<a name="line-134"></a>  <span class='hs-varid'>rep</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ix</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span>
 <a name="line-135"></a>
 <a name="line-136"></a><a name="fmapRep"></a><span class='hs-comment'>-- | 'fmapRep' is a valid default definition for 'fmap' for a 'Representable'</span>
 <a name="line-137"></a><span class='hs-comment'>-- functor.</span>
 <a name="line-138"></a><span class='hs-comment'>--</span>
-<a name="line-139"></a><span class='hs-comment'>-- @'fmapRep' f m = 'rep' '$' \i -&gt; f (m '^.' i)@</span>
+<a name="line-139"></a><span class='hs-comment'>-- @'fmapRep' f m = 'rep' '$' \\i -&gt; f (m '^.' i)@</span>
 <a name="line-140"></a><span class='hs-comment'>--</span>
 <a name="line-141"></a><span class='hs-comment'>-- Usage for a @'Representable' Foo@:</span>
 <a name="line-142"></a><span class='hs-comment'>--</span>
@@ -182,7 +182,7 @@
 <a name="line-173"></a><a name="apRep"></a><span class='hs-comment'>-- | 'apRep' is a valid default definition for ('&lt;*&gt;') for a 'Representable'</span>
 <a name="line-174"></a><span class='hs-comment'>-- functor.</span>
 <a name="line-175"></a><span class='hs-comment'>--</span>
-<a name="line-176"></a><span class='hs-comment'>-- @'apRep' mf ma = 'rep' '$' \i -&gt; mf '^.' i '$' ma '^.' i@</span>
+<a name="line-176"></a><span class='hs-comment'>-- @'apRep' mf ma = 'rep' '$' \\i -&gt; mf '^.' i '$' ma '^.' i@</span>
 <a name="line-177"></a><span class='hs-comment'>--</span>
 <a name="line-178"></a><span class='hs-comment'>-- Usage for a @'Representable' Foo@:</span>
 <a name="line-179"></a><span class='hs-comment'>--</span>
@@ -198,7 +198,7 @@
 <a name="line-189"></a><a name="bindRep"></a><span class='hs-comment'>-- | 'bindRep' is a valid default default definition for '(&gt;&gt;=)' for a</span>
 <a name="line-190"></a><span class='hs-comment'>-- representable functor.</span>
 <a name="line-191"></a><span class='hs-comment'>--</span>
-<a name="line-192"></a><span class='hs-comment'>-- @'bindRep' m f = 'rep' '$' \i -&gt; f (m '^.' i) '^.' i@</span>
+<a name="line-192"></a><span class='hs-comment'>-- @'bindRep' m f = 'rep' '$' \\i -&gt; f (m '^.' i) '^.' i@</span>
 <a name="line-193"></a><span class='hs-comment'>--</span>
 <a name="line-194"></a><span class='hs-comment'>-- Usage for a @'Representable' Foo@:</span>
 <a name="line-195"></a><span class='hs-comment'>--</span>
@@ -213,7 +213,7 @@
 <a name="line-204"></a>
 <a name="line-205"></a><a name="distributeRep"></a><span class='hs-comment'>-- | A default definition for 'Data.Distributive.distribute' for a 'Representable' 'Functor'</span>
 <a name="line-206"></a><span class='hs-comment'>--</span>
-<a name="line-207"></a><span class='hs-comment'>-- @'distributeRep' wf = 'rep' '$' \i -&gt; 'fmap' ('^.' i) wf@</span>
+<a name="line-207"></a><span class='hs-comment'>-- @'distributeRep' wf = 'rep' '$' \\i -&gt; 'fmap' ('^.' i) wf@</span>
 <a name="line-208"></a><span class='hs-comment'>--</span>
 <a name="line-209"></a><span class='hs-comment'>-- Usage for a @'Representable' Foo@:</span>
 <a name="line-210"></a><span class='hs-comment'>--</span>
@@ -254,7 +254,7 @@
 <a name="line-245"></a><a name="rmap"></a><span class='hs-comment'>-- | Map over a 'Representable' functor with access to the 'Lens' for the</span>
 <a name="line-246"></a><span class='hs-comment'>-- current position</span>
 <a name="line-247"></a><span class='hs-comment'>--</span>
-<a name="line-248"></a><span class='hs-comment'>-- @'rmap' f m = 'rep' '$' \i -&gt; f i (m '^.' i)@</span>
+<a name="line-248"></a><span class='hs-comment'>-- @'rmap' f m = 'rep' '$' \\i -&gt; f i (m '^.' i)@</span>
 <a name="line-249"></a><span class='hs-definition'>rmap</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Representable</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Rep</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
 <a name="line-250"></a><span class='hs-definition'>rmap</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>rep</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>i</span> <span class='hs-layout'>(</span><span class='hs-varid'>m</span><span class='hs-varop'>^.</span><span class='hs-varid'>i</span><span class='hs-layout'>)</span>
 <a name="line-251"></a><span class='hs-comment'>{-# INLINE rmap #-}</span>

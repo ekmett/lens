@@ -353,7 +353,7 @@
 <a name="line-344"></a><span class='hs-comment'>-- For example, replacing negative literals with literals:</span>
 <a name="line-345"></a><span class='hs-comment'>--</span>
 <a name="line-346"></a><span class='hs-comment'>-- @</span>
-<a name="line-347"></a><span class='hs-comment'>-- negLits = 'transform' $ \x -&gt; case x of</span>
+<a name="line-347"></a><span class='hs-comment'>-- negLits = 'transform' $ \\x -&gt; case x of</span>
 <a name="line-348"></a><span class='hs-comment'>--   Neg (Lit i) -&gt; Lit ('negate' i)</span>
 <a name="line-349"></a><span class='hs-comment'>--   _           -&gt; x</span>
 <a name="line-350"></a><span class='hs-comment'>-- @</span>

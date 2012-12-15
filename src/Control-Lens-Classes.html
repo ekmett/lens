@@ -103,9 +103,9 @@
 <a name="line-94"></a><span class='hs-comment'>-- Programming with Effects</span>
 <a name="line-95"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
 <a name="line-96"></a>
-<a name="line-97"></a><a name="Effective"></a><span class='hs-comment'>-- | An 'Effective' 'Functor' ignores its argument and is isomorphic to a monad wrapped around a value.</span>
+<a name="line-97"></a><a name="Effective"></a><span class='hs-comment'>-- | An 'Effective' 'Functor' ignores its argument and is isomorphic to a 'Monad' wrapped around a value.</span>
 <a name="line-98"></a><a name="Effective"></a><span class='hs-comment'>--</span>
-<a name="line-99"></a><a name="Effective"></a><span class='hs-comment'>-- That said, the monad is possibly rather unrelated to any 'Applicative' structure.</span>
+<a name="line-99"></a><a name="Effective"></a><span class='hs-comment'>-- That said, the 'Monad' is possibly rather unrelated to any 'Applicative' structure.</span>
 <a name="line-100"></a><a name="Effective"></a><span class='hs-keyword'>class</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Gettable</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Effective</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>|</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyword'>where</span>
 <a name="line-101"></a>  <span class='hs-varid'>effective</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
 <a name="line-102"></a>  <span class='hs-varid'>ineffective</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
@@ -157,10 +157,10 @@
 <a name="line-148"></a>  <span class='hs-comment'>-- | Build a simple isomorphism from a pair of inverse functions</span>
 <a name="line-149"></a>  <span class='hs-comment'>--</span>
 <a name="line-150"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-151"></a>  <span class='hs-comment'>-- 'view' ('iso' f g) ≡ f</span>
-<a name="line-152"></a>  <span class='hs-comment'>-- 'view' ('from' ('iso' f g)) ≡ g</span>
-<a name="line-153"></a>  <span class='hs-comment'>-- 'set' ('iso' f g) h ≡ g '.' h '.' f</span>
-<a name="line-154"></a>  <span class='hs-comment'>-- 'set' ('from' ('iso' f g)) h ≡ f '.' h '.' g</span>
+<a name="line-151"></a>  <span class='hs-comment'>-- 'Control.Lens.Getter.view' ('iso' f g) ≡ f</span>
+<a name="line-152"></a>  <span class='hs-comment'>-- 'Control.Lens.Getter.view' ('Control.Lens.Iso.from' ('iso' f g)) ≡ g</span>
+<a name="line-153"></a>  <span class='hs-comment'>-- 'Control.Lens.Setter.set' ('iso' f g) h ≡ g '.' h '.' f</span>
+<a name="line-154"></a>  <span class='hs-comment'>-- 'Control.Lens.Setter.set' ('Control.Lens.Iso.from' ('iso' f g)) h ≡ f '.' h '.' g</span>
 <a name="line-155"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-156"></a>  <span class='hs-varid'>iso</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
 <a name="line-157"></a>

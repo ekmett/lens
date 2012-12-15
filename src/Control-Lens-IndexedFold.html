@@ -174,7 +174,7 @@
 <a name="line-165"></a><span class='hs-comment'>--</span>
 <a name="line-166"></a><span class='hs-comment'>-- When you don't need access to the index then 'Control.Lens.Fold.traverseOf_' is more flexible in what it accepts.</span>
 <a name="line-167"></a><span class='hs-comment'>--</span>
-<a name="line-168"></a><span class='hs-comment'>-- @'Control.Lens.Fold.traverseOf_' l ≡ 'itraverseOf' l '.' 'const'@</span>
+<a name="line-168"></a><span class='hs-comment'>-- @'Control.Lens.Fold.traverseOf_' l ≡ 'Control.Lens.IndexedTraversal.itraverseOf' l '.' 'const'@</span>
 <a name="line-169"></a><span class='hs-comment'>--</span>
 <a name="line-170"></a><span class='hs-comment'>-- @</span>
 <a name="line-171"></a><span class='hs-comment'>-- 'itraverseOf_' :: 'Functor' f     =&gt; 'IndexedGetter' i s a          -&gt; (i -&gt; a -&gt; f r) -&gt; s -&gt; f ()</span>
@@ -212,7 +212,7 @@
 <a name="line-203"></a><span class='hs-comment'>--</span>
 <a name="line-204"></a><span class='hs-comment'>-- When you don't need access to the index then 'Control.Lens.Fold.mapMOf_' is more flexible in what it accepts.</span>
 <a name="line-205"></a><span class='hs-comment'>--</span>
-<a name="line-206"></a><span class='hs-comment'>-- @'Control.Lens.Fold.mapMOf_' l ≡ 'imapMOf' l '.' 'const'@</span>
+<a name="line-206"></a><span class='hs-comment'>-- @'Control.Lens.Fold.mapMOf_' l ≡ 'Control.Lens.IndexedSetter.imapMOf' l '.' 'const'@</span>
 <a name="line-207"></a><span class='hs-comment'>--</span>
 <a name="line-208"></a><span class='hs-comment'>-- @</span>
 <a name="line-209"></a><span class='hs-comment'>-- 'imapMOf_' :: 'Monad' m =&gt; 'IndexedGetter' i s a          -&gt; (i -&gt; a -&gt; m r) -&gt; s -&gt; m ()</span>
@@ -236,7 +236,7 @@
 <a name="line-227"></a><span class='hs-comment'>--</span>
 <a name="line-228"></a><span class='hs-comment'>-- When you don't need access to the index then 'Control.Lens.Fold.forMOf_' is more flexible in what it accepts.</span>
 <a name="line-229"></a><span class='hs-comment'>--</span>
-<a name="line-230"></a><span class='hs-comment'>-- @'Control.Lens.Fold.forMOf_' l a ≡ 'iforMOf' l a '.' 'const'@</span>
+<a name="line-230"></a><span class='hs-comment'>-- @'Control.Lens.Fold.forMOf_' l a ≡ 'Control.Lens.IndexedTraversal.iforMOf' l a '.' 'const'@</span>
 <a name="line-231"></a><span class='hs-comment'>--</span>
 <a name="line-232"></a><span class='hs-comment'>-- @</span>
 <a name="line-233"></a><span class='hs-comment'>-- 'iforMOf_' :: 'Monad' m =&gt; 'IndexedGetter' i s a          -&gt; s -&gt; (i -&gt; a -&gt; m r) -&gt; m ()</span>
@@ -381,19 +381,19 @@
 <a name="line-372"></a><a name="withIndicesOf"></a><span class='hs-comment'>-- | Transform an indexed fold into a fold of both the indices and the values.</span>
 <a name="line-373"></a><span class='hs-comment'>--</span>
 <a name="line-374"></a><span class='hs-comment'>-- @</span>
-<a name="line-375"></a><span class='hs-comment'>-- 'withIndicesOf' :: 'IndexedFold' i s a             -&gt; 'Fold' s (i, a)</span>
-<a name="line-376"></a><span class='hs-comment'>-- 'withIndicesOf' :: 'SimpleIndexedLens' i s a      -&gt; 'Getter' s (i, a)</span>
-<a name="line-377"></a><span class='hs-comment'>-- 'withIndicesOf' :: 'SimpleIndexedTraversal' i s a -&gt; 'Fold' s (i, a)</span>
+<a name="line-375"></a><span class='hs-comment'>-- 'withIndicesOf' :: 'IndexedFold' i s a            -&gt; 'Control.Lens.Fold.Fold' s (i, a)</span>
+<a name="line-376"></a><span class='hs-comment'>-- 'withIndicesOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i s a      -&gt; 'Control.Lens.Fold.Getter' s (i, a)</span>
+<a name="line-377"></a><span class='hs-comment'>-- 'withIndicesOf' :: 'Control.Lens.IndexedLens.SimpleIndexedTraversal' i s a -&gt; 'Control.Lens.Fold.Fold' s (i, a)</span>
 <a name="line-378"></a><span class='hs-comment'>-- @</span>
 <a name="line-379"></a><span class='hs-comment'>--</span>
-<a name="line-380"></a><span class='hs-comment'>-- All 'Fold' operations are safe, and comply with the laws. However:</span>
+<a name="line-380"></a><span class='hs-comment'>-- All 'Control.Lens.Fold.Fold' operations are safe, and comply with the laws. However:</span>
 <a name="line-381"></a><span class='hs-comment'>--</span>
-<a name="line-382"></a><span class='hs-comment'>-- Passing this an 'IndexedTraversal' will still allow many</span>
-<a name="line-383"></a><span class='hs-comment'>-- 'Traversal' combinators to type check on the result, but the result</span>
+<a name="line-382"></a><span class='hs-comment'>-- Passing this an 'Control.Lens.IndexedTraversal.IndexedTraversal' will still allow many</span>
+<a name="line-383"></a><span class='hs-comment'>-- 'Control.Lens.Traversal.Traversal' combinators to type check on the result, but the result</span>
 <a name="line-384"></a><span class='hs-comment'>-- can only be legally traversed by operations that do not edit the indices.</span>
 <a name="line-385"></a><span class='hs-comment'>--</span>
 <a name="line-386"></a><span class='hs-comment'>-- @</span>
-<a name="line-387"></a><span class='hs-comment'>-- 'withIndicesOf' :: 'IndexedTraversal' i s t a b -&gt; 'Traversal' s t (i, a) (j, b)</span>
+<a name="line-387"></a><span class='hs-comment'>-- 'withIndicesOf' :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -&gt; 'Control.Lens.Traversal.Traversal' s t (i, a) (j, b)</span>
 <a name="line-388"></a><span class='hs-comment'>-- @</span>
 <a name="line-389"></a><span class='hs-comment'>--</span>
 <a name="line-390"></a><span class='hs-comment'>-- Change made to the indices will be discarded.</span>
@@ -404,9 +404,9 @@
 <a name="line-395"></a><a name="indicesOf"></a><span class='hs-comment'>-- | Transform an indexed fold into a fold of the indices.</span>
 <a name="line-396"></a><span class='hs-comment'>--</span>
 <a name="line-397"></a><span class='hs-comment'>-- @</span>
-<a name="line-398"></a><span class='hs-comment'>-- 'indicesOf' :: 'IndexedFold' i s a             -&gt; 'Fold' s i</span>
-<a name="line-399"></a><span class='hs-comment'>-- 'indicesOf' :: 'SimpleIndexedLens' i s a      -&gt; 'Getter' s i</span>
-<a name="line-400"></a><span class='hs-comment'>-- 'indicesOf' :: 'SimpleIndexedTraversal' i s a -&gt; 'Fold' s i</span>
+<a name="line-398"></a><span class='hs-comment'>-- 'indicesOf' :: 'IndexedFold' i s a            -&gt; 'Control.Lens.Fold.Fold' s i</span>
+<a name="line-399"></a><span class='hs-comment'>-- 'indicesOf' :: 'Control.Lens.IndexedLens.SimpleIndexedLens' i s a      -&gt; 'Control.Lens.Fold.Getter' s i</span>
+<a name="line-400"></a><span class='hs-comment'>-- 'indicesOf' :: 'Control.Lens.IndexedLens.SimpleIndexedTraversal' i s a -&gt; 'Control.Lens.Fold.Fold' s i</span>
 <a name="line-401"></a><span class='hs-comment'>-- @</span>
 <a name="line-402"></a><span class='hs-definition'>indicesOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Gettable</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Overloaded</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>i</span> <span class='hs-varid'>j</span>
 <a name="line-403"></a><span class='hs-definition'>indicesOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>withIndex</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>const</span> <span class='hs-varop'>.</span> <span class='hs-varid'>coerce</span> <span class='hs-varop'>.</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span>
@@ -420,7 +420,7 @@
 <a name="line-411"></a><span class='hs-comment'>--</span>
 <a name="line-412"></a><span class='hs-comment'>-- When passed an 'Control.Lens.IndexedTraversal.IndexedTraversal', sadly the result is /not/ a legal 'Control.Lens.IndexedTraversal.IndexedTraversal'.</span>
 <a name="line-413"></a><span class='hs-comment'>--</span>
-<a name="line-414"></a><span class='hs-comment'>-- See 'filtered' for a related counter-example.</span>
+<a name="line-414"></a><span class='hs-comment'>-- See 'Control.Lens.Fold.filtered' for a related counter-example.</span>
 <a name="line-415"></a><span class='hs-definition'>ifiltering</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Indexable</span> <span class='hs-varid'>i</span> <span class='hs-varid'>k</span><span class='hs-layout'>)</span>
 <a name="line-416"></a>           <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Bool</span><span class='hs-layout'>)</span>
 <a name="line-417"></a>           <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Indexed</span> <span class='hs-varid'>i</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>

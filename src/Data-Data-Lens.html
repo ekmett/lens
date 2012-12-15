@@ -132,7 +132,7 @@
 <a name="line-123"></a><a name="uniplate"></a><span class='hs-comment'>-- | Find descendants of type @a@ non-transitively, while avoiding computation of areas that cannot contain values of</span>
 <a name="line-124"></a><span class='hs-comment'>-- type @a@ using 'Data'.</span>
 <a name="line-125"></a><span class='hs-comment'>--</span>
-<a name="line-126"></a><span class='hs-comment'>-- 'uniplate' is a useful default definition for 'Control.Plated.plate'</span>
+<a name="line-126"></a><span class='hs-comment'>-- 'uniplate' is a useful default definition for 'Control.Lens.Plated.plate'</span>
 <a name="line-127"></a><span class='hs-definition'>uniplate</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Data</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Traversal</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
 <a name="line-128"></a><span class='hs-definition'>uniplate</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>template</span>
 <a name="line-129"></a><span class='hs-comment'>{-# INLINE uniplate #-}</span>
