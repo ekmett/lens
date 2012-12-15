@@ -154,7 +154,7 @@ instance El Vector where
 -- @'el' k ≡ 'at' k '<.' 'traverse'@
 class El m => At m where
   -- |
-  -- >>> Map.fromList [("hello","world")] ^.at "hello"
+  -- >>> Map.fromList [(1,"world")] ^.at 1
   -- Just "world"
   --
   -- >>> at 1 ?~ "hello" $ Map.empty
