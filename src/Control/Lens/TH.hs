@@ -54,10 +54,10 @@ import Control.Applicative
 #if !(MIN_VERSION_template_haskell(2,7,0))
 import Control.Monad (ap)
 #endif
+import Control.Lens.At
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
-import Control.Lens.IndexedLens
 import Control.Lens.Iso
 import Control.Lens.Prism
 import Control.Lens.Setter

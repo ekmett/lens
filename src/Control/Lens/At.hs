@@ -30,8 +30,11 @@ module Control.Lens.At
   (
   -- * Indexed Traversals
     Ixed(..)
-  , At(..)
   , _at -- DEPRECATED
+
+  -- * Indexed Lenses
+  , At(..)
+  , Contains(..)
   ) where
 
 import Control.Applicative
@@ -39,7 +42,7 @@ import Control.Lens.Combinators
 import Control.Lens.Indexed
 import Control.Lens.IndexedLens
 import Control.Lens.IndexedTraversal
-import Control.Monad (guard)
+import Control.Lens.Traversal
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
 import Data.Hashable
@@ -50,7 +53,6 @@ import Data.IntSet as IntSet
 import Data.Map as Map
 import Data.Set as Set
 import Data.Sequence as Seq
-import Data.Traversable
 import Data.Vector as Vector hiding (indexed)
 import Data.Vector.Primitive as Prim
 import Data.Vector.Storable as Storable
@@ -61,7 +63,6 @@ import Data.Vector.Storable as Storable
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
-
 
 -- | A deprecated alias for 'el'
 _at :: Ixed m => IxKey m -> SimpleIndexedTraversal (IxKey m) m (IxValue m)
@@ -198,20 +199,26 @@ instance Storable a => Ixed (Storable.Vector a) where
 
 instance Ixed IntSet where
   type IxKey IntSet = Int
-  type IxValue IntSet = ()
-  ix i = indexed $ \f s -> if IntSet.member i s then s <$ f i () else pure s
+  type IxValue IntSet = Bool
+  ix = contains
   {-# INLINE ix #-}
 
 instance Ord a => Ixed (Set a) where
   type IxKey (Set a) = a
-  type IxValue (Set a) = ()
-  ix i = indexed $ \f s -> if Set.member i s then s <$ f i () else pure s
+  type IxValue (Set a) = Bool
+  ix = contains
   {-# INLINE ix #-}
 
 instance (Eq a, Hashable a) => Ixed (HashSet a) where
   type IxKey (HashSet a) = a
-  type IxValue (HashSet a) = ()
-  ix i = indexed $ \f s -> if HashSet.member i s then s <$ f i () else pure s
+  type IxValue (HashSet a) = Bool
+  ix = contains
+  {-# INLINE ix #-}
+
+instance Eq k => Ixed (k -> a) where
+  type IxKey (k -> a) = k
+  type IxValue (k -> a) = a
+  ix = contains
   {-# INLINE ix #-}
 
 -- | 'At' provides a lens that can be used to read,
@@ -257,26 +264,32 @@ instance (Eq k, Hashable k) => At (HashMap k a) where
       Just v' -> HashMap.insert k v' m
   {-# INLINE at #-}
 
-instance At IntSet where
-  at k = indexed $ \f s ->
-    let b = IntSet.member k s
-    in f k (guard b) <&> \r -> case r of
-      Nothing | b     -> IntSet.delete k s
-      Just () | not b -> IntSet.insert k s
-      _ -> s
+-- | Provides an 'IndexedLens' that can be used to read, write to a 'total map'.
+class Ixed m => Contains m where
+  -- |
+  -- If this wasn't an indexed lens you could assume:
+  --
+  -- @'contains' k ≡ 'singular' ('ix' k)@
+  --
+  -- >>> contains 3 .~ False $ IntSet.fromList [1,2,3,4]
+  -- fromList [1,2,4]
+  contains :: IxKey m -> SimpleIndexedLens (IxKey m) m (IxValue m)
 
-instance Ord a => At (Set a) where
-  at k = indexed $ \f s ->
-    let b = Set.member k s
-    in f k (guard b) <&> \r -> case r of
-      Nothing | b     -> Set.delete k s
-      Just () | not b -> Set.insert k s
-      _ -> s
+instance Contains IntSet where
+  contains k = indexed $ \ f s -> f k (IntSet.member k s) <&> \b ->
+    if b then IntSet.insert k s else IntSet.delete k s
+  {-# INLINE contains #-}
 
-instance (Eq a, Hashable a) => At (HashSet a) where
-  at k = indexed $ \f s ->
-    let b = HashSet.member k s
-    in f k (guard b) <&> \r -> case r of
-      Nothing | b     -> HashSet.delete k s
-      Just () | not b -> HashSet.insert k s
-      _ -> s
+instance Ord k => Contains (Set k) where
+  contains k = indexed $ \ f s -> f k (Set.member k s) <&> \b ->
+    if b then Set.insert k s else Set.delete k s
+  {-# INLINE contains #-}
+
+instance (Eq k, Hashable k) => Contains (HashSet k) where
+  contains k = indexed $ \ f s -> f k (HashSet.member k s) <&> \b ->
+    if b then HashSet.insert k s else HashSet.delete k s
+  {-# INLINE contains #-}
+
+instance Eq k => Contains (k -> a) where
+  contains e = indexed $ \ g f -> g e (f e) <&> \a' e' -> if e == e' then a' else f e'
+  {-# INLINE contains #-}

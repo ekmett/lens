@@ -90,10 +90,10 @@ module Control.Lens.Representable
   ) where
 
 import Control.Applicative
+import Control.Lens.At
 import Control.Lens.Classes
 import Control.Lens.Getter
 import Control.Lens.IndexedFold
-import Control.Lens.IndexedLens
 import Control.Lens.IndexedSetter
 import Control.Lens.IndexedTraversal
 import Control.Lens.Internal
@@ -131,7 +131,7 @@ instance Representable Identity where
 
 -- | NB: The 'Eq' requirement on this instance is a consequence of the choice of 'Lens' as a 'Rep', it isn't fundamental.
 instance Eq e => Representable ((->) e) where
-  rep f e = f (resultAt e)
+  rep f e = f (contains e)
 
 -- | 'fmapRep' is a valid default definition for 'fmap' for a 'Representable'
 -- functor.
