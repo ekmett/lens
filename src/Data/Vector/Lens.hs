@@ -54,7 +54,7 @@ import Data.Monoid
 _head :: SimpleTraversal (Vector a) a
 _head f v
   | null v    = pure v
-  | otherwise = f (head v) <&> \a -> v // [(0,a)]
+  | otherwise = f (unsafeHead v) <&> \a -> v // [(0,a)]
 {-# INLINE _head #-}
 
 -- | A 'Traversal' reading and writing to the 'last' element of a 'Vector'
@@ -70,7 +70,7 @@ _head f v
 _last :: SimpleTraversal (Vector a) a
 _last f v
   | null v    = pure v
-  | otherwise = f (last v) <&> \a -> v // [(length v - 1, a)]
+  | otherwise = f (unsafeLast v) <&> \a -> v // [(length v - 1, a)]
 {-# INLINE _last #-}
 
 -- | A 'Traversal' reading and writing to the 'tail' of a 'Vector'
@@ -80,7 +80,7 @@ _last f v
 _tail :: SimpleTraversal (Vector a) (Vector a)
 _tail f v
   | null v    = pure v
-  | otherwise = f (tail v) <&> cons (head v)
+  | otherwise = f (unsafeTail v) <&> cons (unsafeHead v)
 {-# INLINE _tail #-}
 
 -- | A 'Traversal' reading and replacing all but the a 'last' element of a 'Vector'
@@ -93,7 +93,7 @@ _tail f v
 _init :: SimpleTraversal (Vector a) (Vector a)
 _init f v
   | null v    = pure v
-  | otherwise = f (init v) <&> (`snoc` last v)
+  | otherwise = f (unsafeInit v) <&> (`snoc` unsafeLast v)
 {-# INLINE _init #-}
 
 -- | @sliced i n@ provides a lens that edits the @n@ elements starting at index @i@ from a lens.
