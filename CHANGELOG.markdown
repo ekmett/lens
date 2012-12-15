@@ -2,6 +2,7 @@
 ---
 * Moved `At` to `Control.Lens.At` and factored out `Ixed(ix)`. Deprecated `_at`.
 * Removed various `ordinal` and `ix` combinators, which are subsumed by `Ixed(ix)`.
+* Changed `_head`, `_tail`, `_init` and `_last` to traversals in `Data.Vector.Lens` and `Data.Vector.Generic.Lens`.
 
 3.7.1
 -----

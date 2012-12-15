@@ -49,7 +49,7 @@ import Prelude hiding ((++), length, null, head, tail, init, last, map, reverse)
 -- $setup
 -- >>> import Data.Vector as Vector
 
--- | A 'Traversal' reading and writing to the 'head' of a /non-empty/ 'Vector'
+-- | A 'Traversal' reading and writing to the 'head' of a 'Vector'
 --
 -- >>> Vector.fromList [1,2,3] ^? _head
 -- Just 1
@@ -59,7 +59,7 @@ _head f v
   | otherwise = f (head v) <&> \a -> v // [(0,a)]
 {-# INLINE _head #-}
 
--- | A 'Traversal' reading and writing to the 'last' element of a /non-empty/ 'Vector'
+-- | A 'Traversal' reading and writing to the 'last' element of a 'Vector'
 --
 -- >>> Vector.fromList [1,2] ^? _last
 -- Just 2
@@ -69,7 +69,7 @@ _last f v
   | otherwise = f (last v) <&> \a -> v // [(length v - 1, a)]
 {-# INLINE _last #-}
 
--- | A 'Traversal' reading and writing to the 'tail' of a /non-empty/ 'Vector'
+-- | A 'Traversal' reading and writing to the 'tail' of a 'Vector'
 --
 -- >>> _tail .~ Vector.fromList [3,4,5] $ Vector.fromList [1,2]
 -- fromList [1,3,4,5]
@@ -79,7 +79,7 @@ _tail f v
   | otherwise = f (tail v) <&> cons (head v)
 {-# INLINE _tail #-}
 
--- | A 'Traversal' reading and replacing all but the a 'last' element of a /non-empty/ 'Vector'
+-- | A 'Traversal' reading and replacing all but the a 'last' element of a 'Vector'
 --
 -- >>> Vector.fromList [1,2,3,4] ^? _init
 -- Just (fromList [1,2,3])
