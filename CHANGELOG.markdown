@@ -1,7 +1,8 @@
 3.8
 ---
-* Moved `At` to `Control.Lens.At` and factored out `El(el)` which replaces the various `ordinal` combinators and `_at`. Deprecated `_at`.
+* Moved `At` to `Control.Lens.At` and factored out `El(el)`. Deprecated `_at`.
 * Upgraded `ix` in `Data.Array.Lens` to an `IndexedTraversal`.
+* Removed `Data.Sequence.ordinal` and `Data.Vector.Lens.ordinal`, which are subsumed by `El(el)`.
 
 3.7.1
 -----

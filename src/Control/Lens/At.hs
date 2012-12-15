@@ -46,14 +46,23 @@ import Data.IntMap as IntMap
 import Data.Map as Map
 import Data.Sequence as Seq
 import Data.Traversable
+import Data.Vector as Vector hiding (indexed)
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Debug.SimpleReflect.Expr
+-- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
+-- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
+
+-- | A deprecated alias for 'el'
 _at :: El k m => k -> SimpleIndexedTraversal k (m v) v
 _at = el
 {-# DEPRECATED _at "use 'el'. '_at' will be removed in version 3.9" #-}
 
+-- | This simple indexed traversal lets you 'traverse' the value at a given key in a map or element at an ordinal
+-- position in a list or sequence.
 class El k m | m -> k where
   -- | This simple indexed traversal lets you 'traverse' the value at a given key in a map.
   --
@@ -61,6 +70,15 @@ class El k m | m -> k where
   -- if it is already present.
   --
   -- If you want to be able to insert /missing/ values, you want 'at'.
+  --
+  -- >>> Seq.fromList [a,b,c,d] & el 2 %~ f
+  -- fromList [a,b,f c,d]
+  --
+  -- >>> Seq.fromList [a,b,c,d] & el 2 .~ e
+  -- fromList [a,b,e,d]
+  --
+  -- >>> Seq.fromList [a,b,c,d] ^? el 2
+  -- Just c
   el :: k -> SimpleIndexedTraversal k (m v) v
 #ifdef DEFAULT_SIGNATURES
   default el :: At k m => k -> SimpleIndexedTraversal k (m v) v
@@ -109,9 +127,15 @@ instance (Eq k, Hashable k) => El k (HashMap k) where
 instance Ix i => El i (Array i) where
   el i = indexed $ \f arr ->
     if inRange (bounds arr) i
-    then f i (arr Array.! i) <&> \e -> arr // [(i,e)]
+    then f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
     else pure arr
   {-# INLINE el #-}
+
+instance El Int Vector where
+  el i = indexed $ \f v ->
+    if 0 <= i && i < Vector.length v
+    then f i (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
+    else pure v
 
 -- | 'At' provides a lens that can be used to read,
 -- write or delete the value associated with a key in a map-like
@@ -122,7 +146,7 @@ instance Ix i => El i (Array i) where
 -- @'el' k ≡ 'at' k '<.' 'traverse'@
 class El k m => At k m | m -> k where
   -- |
-  -- >>> Map.fromList [(1,"hello")] ^.at 1
+  -- >>> IntMap.fromList [(1,"hello")] ^.at 1
   -- Just "hello"
   --
   -- >>> at 1 ?~ "hello" $ Map.empty

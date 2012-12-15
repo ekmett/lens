@@ -31,7 +31,6 @@ module Data.Vector.Lens
   , _init
   , sliced
   -- * Traversal of individual indices
-  , ordinal
   , ordinals
   ) where
 
@@ -111,13 +110,6 @@ reversed = iso reverse reverse
 forced :: Iso (Vector a) (Vector b) (Vector a) (Vector b)
 forced = iso force force
 {-# INLINE forced #-}
-
--- | This is a more efficient version of 'element' that works for any 'Vector'.
---
--- @ordinal n@ is only a valid 'Lens' into a 'Vector' with 'length' at least @n + 1@.
-ordinal :: Int -> SimpleIndexedLens Int (Vector a) a
-ordinal i = indexed $ \ f v -> f i (v ! i) <&> \ a -> v // [(i, a)]
-{-# INLINE ordinal #-}
 
 -- | This 'Traversal' will ignore any duplicates in the supplied list of indices.
 --
