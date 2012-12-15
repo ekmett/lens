@@ -1,3 +1,8 @@
+3.8
+---
+* Moved `At` to `Control.Lens.At` and factored out `El(el)` which replaces the various `ordinal` combinators and `_at`. Deprecated `_at`.
+* Upgraded `ix` in `Data.Array.Lens` to an `IndexedTraversal`.
+
 3.7.1
 -----
 * Added `preuse`, `preuses` to `Control.Lens.Fold`

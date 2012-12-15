@@ -35,7 +35,6 @@ module Control.Lens.IndexedTraversal
   , iwhereOf
   , value
   , ignored
-  , At(..)
   , TraverseMin(..)
   , TraverseMax(..)
   , traversed
@@ -65,12 +64,9 @@ import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Combinators
 import Control.Lens.Indexed
-import Control.Lens.IndexedLens
 import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy as Lazy
-import Data.Hashable
-import Data.HashMap.Lazy as HashMap
 import Data.Int
 import Data.IntMap as IntMap
 import Data.Map as Map
@@ -238,66 +234,6 @@ value p = indexed $ \ f kv@(k,v) -> if p k then (,) k <$> f k v else pure kv
 ignored :: forall k f i s a b. (Indexable i k, Applicative f) => Overloaded k f s s a b
 ignored = indexed $ \ (_ :: i -> a -> f b) s -> pure s :: f s
 {-# INLINE ignored #-}
-
--- | 'At' provides a lens that can be used to read,
--- write or delete the value associated with a key in a map-like
--- container on an ad hoc basis.
-class At k m | m -> k where
-  -- |
-  -- >>> Map.fromList [(1,"hello")] ^.at 1
-  -- Just "hello"
-  --
-  -- >>> at 1 ?~ "hello" $ Map.empty
-  -- fromList [(1,"hello")]
-  --
-  -- Note: 'Map'-like containers form a reasonable instance, but not 'Array'-like ones, where
-  -- you cannot satisfy the 'Lens' laws.
-  at :: k -> SimpleIndexedLens k (m v) (Maybe v)
-
-  -- | This simple indexed traversal lets you 'traverse' the value at a given key in a map.
-  --
-  -- *NB:* _setting_ the value of this lens will only set the value in the lens
-  -- if it is already present.
-  --
-  -- @'_at' k ≡ 'at' k '<.' 'traverse'@
-  _at :: k -> SimpleIndexedTraversal k (m v) v
-  _at k = at k <. traverse
-
-instance At Int IntMap where
-  at k = indexed $ \f m ->
-    let mv = IntMap.lookup k m
-        go Nothing   = maybe m (const (IntMap.delete k m)) mv
-        go (Just v') = IntMap.insert k v' m
-    in go <$> f k mv where
-  {-# INLINE at #-}
-  _at k = indexed $ \f m -> case IntMap.lookup k m of
-     Just v -> f k v <&> \v' -> IntMap.insert k v' m
-     Nothing -> pure m
-  {-# INLINE _at #-}
-
-instance Ord k => At k (Map k) where
-  at k = indexed $ \f m ->
-    let mv = Map.lookup k m
-        go Nothing   = maybe m (const (Map.delete k m)) mv
-        go (Just v') = Map.insert k v' m
-    in go <$> f k mv
-  {-# INLINE at #-}
-  _at k = indexed $ \f m -> case Map.lookup k m of
-     Just v  -> f k v <&> \v' -> Map.insert k v' m
-     Nothing -> pure m
-  {-# INLINE _at #-}
-
-instance (Eq k, Hashable k) => At k (HashMap k) where
-  at k = indexed $ \f m ->
-    let mv = HashMap.lookup k m
-        go Nothing   = maybe m (const (HashMap.delete k m)) mv
-        go (Just v') = HashMap.insert k v' m
-    in go <$> f k mv
-  {-# INLINE at #-}
-  _at k = indexed $ \f m -> case HashMap.lookup k m of
-     Just v  -> f k v <&> \v' -> HashMap.insert k v' m
-     Nothing -> pure m
-  {-# INLINE _at #-}
 
 -- | Allows 'IndexedTraversal' the value at the smallest index.
 class Ord k => TraverseMin k m | m -> k where

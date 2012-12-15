@@ -25,11 +25,11 @@ module Language.Haskell.TH.Lens
   ) where
 
 import Control.Applicative
+import Control.Lens.At
 import Control.Lens.Getter
 import Control.Lens.Setter
 import Control.Lens.Fold
 import Control.Lens.IndexedLens
-import Control.Lens.IndexedTraversal
 import Control.Lens.Tuple
 import Control.Lens.Type
 import Control.Lens.Traversal

@@ -27,8 +27,6 @@ import Data.Array.IArray hiding (index)
 
 -- | Access an element of an array.
 --
--- Note: The indexed element is assumed to exist in the target 'IArray'.
---
 -- @
 -- arr '!' i ≡ arr '^.' 'ix' i
 -- arr '//' [(i,e)] ≡ 'ix' i '.~' e '$' arr
@@ -36,8 +34,11 @@ import Data.Array.IArray hiding (index)
 --
 -- >>> ix 2 .~ 9 $ (listArray (1,5) [4,5,6,7,8] :: Array Int Int)
 -- array (1,5) [(1,4),(2,9),(3,6),(4,7),(5,8)]
-ix :: (IArray a e, Ix i) => i -> Simple Lens (a i e) e
-ix i f arr = f (arr ! i) <&> \e -> arr // [(i,e)]
+ix :: (IArray a e, Ix i) => i -> SimpleIndexedTraversal i (a i e) e
+ix i = indexed $ \ f arr ->
+  if inRange (bounds arr) i
+  then f i (arr ! i) <&> \e -> arr // [(i,e)]
+  else pure arr
 {-# INLINE ix #-}
 
 -- | This setter can be used to derive a new 'IArray' from an old array by

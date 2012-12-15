@@ -191,6 +191,7 @@ library
     Control.Exception.Lens
     Control.Lens
     Control.Lens.Action
+    Control.Lens.At
     Control.Lens.Classes
     Control.Lens.Combinators
     Control.Lens.Each

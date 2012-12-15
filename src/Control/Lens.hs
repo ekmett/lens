@@ -45,6 +45,7 @@
 ----------------------------------------------------------------------------
 module Control.Lens
   ( module Control.Lens.Action
+  , module Control.Lens.At
   , module Control.Lens.Combinators
   , module Control.Lens.Each
   , module Control.Lens.Fold
@@ -73,6 +74,7 @@ module Control.Lens
   , module Control.Lens.Zoom
   ) where
 
+import Control.Lens.At
 import Control.Lens.Action
 import Control.Lens.Combinators
 import Control.Lens.Each
