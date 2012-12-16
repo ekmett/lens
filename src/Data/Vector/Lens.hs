@@ -75,6 +75,12 @@ _last f v
 
 -- | A 'Traversal' reading and writing to the 'tail' of a 'Vector'
 --
+-- >>> Vector.fromList "abcde" ^? _tail
+-- Just (fromList "bcde")
+--
+-- >>> Vector.empty ^? _tail
+-- Nothing
+--
 -- >>> _tail .~ Vector.fromList [3,4,5] $ Vector.fromList [1,2]
 -- fromList [1,3,4,5]
 _tail :: SimpleTraversal (Vector a) (Vector a)
@@ -87,6 +93,9 @@ _tail f v
 --
 -- >>> Vector.fromList [1,2,3,4] ^? _init
 -- Just (fromList [1,2,3])
+--
+-- >>> Vector.empty ^? _init
+-- Nothing
 --
 -- >>> Vector.fromList "abcdef" & _init.mapped %~ succ
 -- fromList "bcdeff"
@@ -102,8 +111,8 @@ _init f v
 --
 -- Attempting to return a longer or shorter vector will result in violations of the 'Lens' laws.
 --
--- >>> Vector.fromList [1..10] ^? sliced 2 5
--- Just (fromList [3,4,5,6,7])
+-- >>> Vector.fromList [1..10] ^. sliced 2 5
+-- fromList [3,4,5,6,7]
 --
 -- >>> Vector.fromList [1..10] & sliced 2 5 . mapped .~ 0
 -- fromList [1,2,0,0,0,0,0,8,9,10]
@@ -129,7 +138,7 @@ toVectorOf l s = fromList (toListOf l s)
 -- >>> [1,2,3] ^. vector . from vector
 -- [1,2,3]
 --
--- >>> fromList [0,8,15] ^. from vector . vector
+-- >>> Vector.fromList [0,8,15] ^. from vector . vector
 -- fromList [0,8,15]
 vector :: Iso [a] [b] (Vector a) (Vector b)
 vector = iso fromList toList
@@ -137,7 +146,7 @@ vector = iso fromList toList
 
 -- | Convert a 'Vector' to a version with all the elements in the reverse order
 --
--- >>> fromList [1,2,3] ^. reversed
+-- >>> Vector.fromList [1,2,3] ^. reversed
 -- fromList [3,2,1]
 reversed :: Iso (Vector a) (Vector b) (Vector a) (Vector b)
 reversed = iso reverse reverse
