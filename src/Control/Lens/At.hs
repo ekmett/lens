@@ -30,6 +30,8 @@ module Control.Lens.At
   (
   -- * Indexed Lens
     At(at)
+  , ixAt
+  , ixEach
   -- * Indexed Traversal
   , Ixed(ix)
   -- * Deprecated
@@ -40,10 +42,11 @@ module Control.Lens.At
 
 import Control.Applicative
 import Control.Lens.Combinators
+import Control.Lens.Each
 import Control.Lens.Indexed
 import Control.Lens.IndexedLens
+import Control.Lens.IndexedTraversal
 import Control.Lens.Traversal
-import Control.Lens.Tuple
 import Control.Lens.Type
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
@@ -110,8 +113,19 @@ class Ixed f m where
   ix :: Indexable (IxKey m) k => IxKey m -> SimpleOverloaded k f m (IxValue m)
 #ifdef DEFAULT_SIGNATURES
   default ix :: (Indexable (IxKey m) k, Applicative f, At m) => IxKey m -> SimpleOverloaded k f m (IxValue m)
-  ix k = at k <. traverse
+  ix = ixAt
 #endif
+
+-- | A definition of 'ix' for types with an 'At' instance. This is the default
+-- if you don't specify a definition for 'ix'.
+ixAt :: (Indexable (IxKey m) k, Applicative f, At m) => IxKey m -> SimpleOverloaded k f m (IxValue m)
+ixAt i = at i <. traverse
+{-# INLINE ixAt #-}
+
+-- | A definition of 'ix' for types with an 'Each' instance.
+ixEach :: (Indexable (IxKey m) k, Applicative f, Eq (IxKey m), Each (IxKey m) f m m (IxValue m) (IxValue m)) => IxKey m -> SimpleOverloaded k f m (IxValue m)
+ixEach i = iwhereOf each (i ==)
+{-# INLINE ixEach #-}
 
 type instance IxKey [a] = Int
 type instance IxValue [a] = a
@@ -241,102 +255,42 @@ instance (Functor f, Eq k) => Ixed f (k -> a) where
 type instance IxKey (a,a) = Int
 type instance IxValue (a,a) = a
 instance (Applicative f, a ~ b) => Ixed f (a,b) where
-  ix i = indexed $ \k t -> case i of
-    0 -> withIndex _1 k t
-    1 -> withIndex _2 k t
-    _ -> pure t
-  {-# INLINE ix #-}
+  ix = ixEach
 
 type instance IxKey (a,a,a) = Int
 type instance IxValue (a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c) => Ixed f (a,b,c) where
-  ix i = indexed $ \k t -> case i of
-    0 -> withIndex _1 k t
-    1 -> withIndex _2 k t
-    2 -> withIndex _3 k t
-    _ -> pure t
-  {-# INLINE ix #-}
+  ix = ixEach
 
 type instance IxKey (a,a,a,a) = Int
 type instance IxValue (a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d) => Ixed f (a,b,c,d) where
-  ix i = indexed $ \k t -> case i of
-    0 -> withIndex _1 k t
-    1 -> withIndex _2 k t
-    2 -> withIndex _3 k t
-    3 -> withIndex _4 k t
-    _ -> pure t
-  {-# INLINE ix #-}
+  ix = ixEach
 
 type instance IxKey (a,a,a,a,a) = Int
 type instance IxValue (a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e) => Ixed f (a,b,c,d,e) where
-  ix i = indexed $ \k t -> case i of
-    0 -> withIndex _1 k t
-    1 -> withIndex _2 k t
-    2 -> withIndex _3 k t
-    3 -> withIndex _4 k t
-    4 -> withIndex _5 k t
-    _ -> pure t
-  {-# INLINE ix #-}
+  ix = ixEach
 
 type instance IxKey (a,a,a,a,a,a) = Int
 type instance IxValue (a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f') => Ixed f (a,b,c,d,e,f') where
-  ix i = indexed $ \k t -> case i of
-    0 -> withIndex _1 k t
-    1 -> withIndex _2 k t
-    2 -> withIndex _3 k t
-    3 -> withIndex _4 k t
-    4 -> withIndex _5 k t
-    5 -> withIndex _6 k t
-    _ -> pure t
-  {-# INLINE ix #-}
+  ix = ixEach
 
 type instance IxKey (a,a,a,a,a,a,a) = Int
 type instance IxValue (a,a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g) => Ixed f (a,b,c,d,e,f',g) where
-  ix i = indexed $ \k t -> case i of
-    0 -> withIndex _1 k t
-    1 -> withIndex _2 k t
-    2 -> withIndex _3 k t
-    3 -> withIndex _4 k t
-    4 -> withIndex _5 k t
-    5 -> withIndex _6 k t
-    6 -> withIndex _7 k t
-    _ -> pure t
-  {-# INLINE ix #-}
+  ix = ixEach
 
 type instance IxKey (a,a,a,a,a,a,a,a) = Int
 type instance IxValue (a,a,a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h) => Ixed f (a,b,c,d,e,f',g,h) where
-  ix i = indexed $ \k t -> case i of
-    0 -> withIndex _1 k t
-    1 -> withIndex _2 k t
-    2 -> withIndex _3 k t
-    3 -> withIndex _4 k t
-    4 -> withIndex _5 k t
-    5 -> withIndex _6 k t
-    6 -> withIndex _7 k t
-    7 -> withIndex _8 k t
-    _ -> pure t
-  {-# INLINE ix #-}
+  ix = ixEach
 
 type instance IxKey (a,a,a,a,a,a,a,a,a) = Int
 type instance IxValue (a,a,a,a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h, h ~ i) => Ixed f (a,b,c,d,e,f',g,h,i) where
-  ix i = indexed $ \k t -> case i of
-    0 -> withIndex _1 k t
-    1 -> withIndex _2 k t
-    2 -> withIndex _3 k t
-    3 -> withIndex _4 k t
-    4 -> withIndex _5 k t
-    5 -> withIndex _6 k t
-    6 -> withIndex _7 k t
-    7 -> withIndex _8 k t
-    8 -> withIndex _9 k t
-    _ -> pure t
-  {-# INLINE ix #-}
+  ix = ixEach
 
 -- | 'At' provides a lens that can be used to read,
 -- write or delete the value associated with a key in a map-like
