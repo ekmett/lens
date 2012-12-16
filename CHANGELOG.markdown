@@ -4,6 +4,7 @@
 * Deprecated `_at` and `resultAt`.
 * Removed various `ordinal` and `ix` combinators, which are subsumed by `Ixed(ix)`.
 * Changed `_head`, `_tail`, `_init` and `_last` to traversals in `Data.Vector.Lens` and `Data.Vector.Generic.Lens`.
+* `Strict(strict)` is now a `Simple Iso`.
 
 3.7.1.2 [maintenance release]
 -------
