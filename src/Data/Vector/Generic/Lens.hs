@@ -53,6 +53,12 @@ import Prelude hiding ((++), length, null, head, tail, init, last, map, reverse)
 --
 -- >>> Vector.fromList [1,2,3] ^? _head
 -- Just 1
+--
+-- >>> Vector.empty ^? _head
+-- Nothing
+--
+-- >>> Vector.fromList "abc" & _head .~ 'Q'
+-- fromList "Qbc"
 _head :: Vector v a => SimpleTraversal (v a) a
 _head f v
   | null v    = pure v
@@ -61,8 +67,14 @@ _head f v
 
 -- | A 'Traversal' reading and writing to the 'last' element of a 'Vector'
 --
--- >>> Vector.fromList [1,2] ^? _last
--- Just 2
+-- >>> Vector.fromList "abcde" ^? _last
+-- Just 'e'
+--
+-- >>> Vector.empty ^? _last
+-- Nothing
+--
+-- >>> Vector.fromList "abcde" & _last .~ 'Q'
+-- fromList "abcdQ"
 _last :: Vector v a => SimpleTraversal (v a) a
 _last f v
   | null v    = pure v
@@ -70,6 +82,12 @@ _last f v
 {-# INLINE _last #-}
 
 -- | A 'Traversal' reading and writing to the 'tail' of a 'Vector'
+--
+-- >>> Vector.fromList "abcde" ^? _tail
+-- Just (fromList "bcde")
+--
+-- >>> Vector.empty ^? _tail
+-- Nothing
 --
 -- >>> _tail .~ Vector.fromList [3,4,5] $ Vector.fromList [1,2]
 -- fromList [1,3,4,5]
@@ -80,6 +98,12 @@ _tail f v
 {-# INLINE _tail #-}
 
 -- | A 'Traversal' reading and replacing all but the a 'last' element of a 'Vector'
+--
+-- >>> Vector.fromList [1,2,3,4] ^? _init
+-- Just (fromList [1,2,3])
+--
+-- >>> Vector.empty ^? _init
+-- Nothing
 --
 -- >>> Vector.fromList [1,2,3,4] ^? _init
 -- Just (fromList [1,2,3])
@@ -94,6 +118,12 @@ _init f v
 -- This is only a valid lens if you do not change the length of the resulting 'Vector'.
 --
 -- Attempting to return a longer or shorter vector will result in violations of the 'Lens' laws.
+--
+-- >>> Vector.fromList [1..10] ^. sliced 2 5
+-- fromList [3,4,5,6,7]
+--
+-- >>> Vector.fromList [1..10] & sliced 2 5 . mapped .~ 0
+-- fromList [1,2,0,0,0,0,0,8,9,10]
 sliced :: Vector v a => Int -- ^ @i@ starting index
           -> Int -- ^ @n@ length
           -> SimpleLens (v a) (v a)
@@ -101,11 +131,20 @@ sliced i n f v = f (slice i n v) <&> \ v0 -> v // zip [i..i+n-1] (V.toList v0)
 {-# INLINE sliced #-}
 
 -- | Similar to 'toListOf', but returning a 'Vector'.
+--
+-- >>> toVectorOf both (8,15) :: Vector.Vector Int
+-- fromList [8,15]
 toVectorOf :: Vector v a => Getting (Endo [a]) s t a b -> s -> v a
 toVectorOf l s = fromList (toListOf l s)
 {-# INLINE toVectorOf #-}
 
 -- | Convert a list to a 'Vector' (or back)
+--
+-- >>> [1,2,3] ^. vector :: Vector.Vector Int
+-- fromList [1,2,3]
+--
+-- >>> Vector.fromList [0,8,15] ^. from vector
+-- [0,8,15]
 vector :: Vector v a => Simple Iso [a] (v a)
 vector = iso fromList V.toList
 {-# INLINE vector #-}
@@ -131,6 +170,9 @@ forced = iso force force
 {-# INLINE forced #-}
 
 -- | Convert a 'Vector' to a version with all the elements in the reverse order
+--
+-- >>> Vector.fromList [1,2,3] ^. reversed
+-- fromList [3,2,1]
 reversed :: Vector v a => Simple Iso (v a) (v a)
 reversed = iso reverse reverse
 {-# INLINE reversed #-}
