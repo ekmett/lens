@@ -164,7 +164,7 @@ enum :: Enum a => Simple Iso Int a
 enum = iso toEnum fromEnum
 {-# INLINE enum #-}
 
--- | This can be used to lift any 'SimpleIso' into an arbitrary functor.
+-- | This can be used to lift any 'Iso' into an arbitrary functor.
 mapping :: Functor f => AnIso s t a b -> Iso (f s) (f t) (f a) (f b)
 mapping Isoid       = id
 mapping (Iso sa bt) = iso (fmap sa) (fmap bt)
