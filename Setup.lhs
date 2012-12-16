@@ -18,9 +18,6 @@ main = defaultMainWithHooks simpleUserHooks
   { buildHook = \pkg lbi hooks flags -> do
      generateBuildModule "doctests" (fromFlag (buildVerbosity flags)) lbi
      buildHook simpleUserHooks pkg lbi hooks flags
-  -- , haddockHook = \pkg lbi hooks flags -> do
-  --   generateBuildModule (fromFlag (haddockVerbosity flags)) lbi
-  --   haddockHook simpleUserHooks pkg lbi hooks flags
   }
 
 generateBuildModule :: String -> Verbosity -> LocalBuildInfo -> IO ()
