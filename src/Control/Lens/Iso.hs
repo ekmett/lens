@@ -246,10 +246,10 @@ uncurried = iso uncurry curry
 
 -- | Ad hoc conversion between \"strict\" and \"lazy\" versions of a structure,
 -- such as 'StrictT.Text' or 'StrictB.ByteString'.
-class Strict s t a b | s -> a, a -> s, b -> t, t -> b, s b -> a t, a t -> s b where
-  strict :: Iso s t a b
+class Strict s a | s -> a, a -> s where
+  strict :: Simple Iso s a
 
-instance Strict LazyB.ByteString LazyB.ByteString StrictB.ByteString StrictB.ByteString where
+instance Strict LazyB.ByteString StrictB.ByteString where
 #if MIN_VERSION_bytestring(0,10,0)
   strict = iso LazyB.toStrict LazyB.fromStrict
 #else
@@ -257,6 +257,6 @@ instance Strict LazyB.ByteString LazyB.ByteString StrictB.ByteString StrictB.Byt
 #endif
   {-# INLINE strict #-}
 
-instance Strict LazyT.Text LazyT.Text StrictT.Text StrictT.Text where
+instance Strict LazyT.Text StrictT.Text where
   strict = iso LazyT.toStrict LazyT.fromStrict
   {-# INLINE strict #-}
