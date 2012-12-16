@@ -1,11 +1,12 @@
 module Main where
 
-import Test.DocTest
-import System.Directory
-import System.FilePath
+import Build_doctests (deps)
 import Control.Applicative
 import Control.Monad
 import Data.List
+import System.Directory
+import System.FilePath
+import Test.DocTest
 
 main :: IO ()
 main = getSources >>= \sources -> doctest $
@@ -13,7 +14,8 @@ main = getSources >>= \sources -> doctest $
   : "-idist/build/autogen"
   : "-optP-include"
   : "-optPdist/build/autogen/cabal_macros.h"
-  : sources
+  : "-hide-all-packages"
+  : map ("-package="++) deps ++ sources
 
 getSources :: IO [FilePath]
 getSources = filter (isSuffixOf ".hs") <$> go "src"
