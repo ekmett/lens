@@ -69,9 +69,6 @@ infixl 9 :>
 --
 -- You can construct a zipper into *any* data structure with 'zipper'.
 --
--- >>> :t zipper (Just "hello")
--- zipper (Just "hello") :: Top :> Maybe [Char]
---
 -- You can repackage up the contents of a zipper with 'rezip'.
 --
 -- >>> rezip $ zipper 42
@@ -139,9 +136,6 @@ tooth (Zipper _ n _ _ _) = n
 --
 -- NB: Attempts to move upward from the 'Top' of the 'Zipper' will fail to typecheck.
 --
--- >>> :t zipper ("hello","world") & downward _1 & fromWithin traverse & upward
--- zipper ("hello","world") & downward _1 & fromWithin traverse & upward
---   :: (Top :> ([Char], [Char])) :> [Char]
 upward :: (h :> s :> a) -> h :> s
 upward (Zipper (Snoc h _ un uls k urs) _ ls x rs) = Zipper h un uls ux urs
   where ux = k (reverseList ls ++ x : rs)
