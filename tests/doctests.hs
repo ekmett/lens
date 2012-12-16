@@ -1,11 +1,12 @@
 module Main where
 
-import Test.DocTest
-import System.Directory
-import System.FilePath
+import Build_doctests (deps)
 import Control.Applicative
 import Control.Monad
 import Data.List
+import System.Directory
+import System.FilePath
+import Test.DocTest
 
 main :: IO ()
 main = getSources >>= \sources -> doctest $
@@ -14,27 +15,7 @@ main = getSources >>= \sources -> doctest $
   : "-optP-include"
   : "-optPdist/build/autogen/cabal_macros.h"
   : "-hide-all-packages"
-  : "-package=array"
-  : "-package=base"
-  : "-package=bytestring"
-  : "-package=comonad"
-  : "-package=comonad-transformers"
-  : "-package=comonads-fd"
-  : "-package=containers"
-  : "-package=filepath"
-  : "-package=ghc-prim"
-  : "-package=hashable"
-  : "-package=mtl"
-  : "-package=parallel"
-  : "-package=semigroups"
-  : "-package=simple-reflect"
-  : "-package=split"
-  : "-package=template-haskell"
-  : "-package=text"
-  : "-package=transformers"
-  : "-package=unordered-containers"
-  : "-package=vector"
-  : sources
+  : map ("-package="++) deps ++ sources
 
 getSources :: IO [FilePath]
 getSources = filter (isSuffixOf ".hs") <$> go "src"

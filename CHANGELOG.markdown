@@ -4,6 +4,7 @@
 * Deprecated `_at` and `resultAt`.
 * Removed various `ordinal` and `ix` combinators, which are subsumed by `Ixed(ix)`.
 * Changed `_head`, `_tail`, `_init` and `_last` to traversals in `Data.Vector.Lens` and `Data.Vector.Generic.Lens`.
+* Made the doctest test suite hide all but the exact versions of packages used to build this package to avoid problems with complicated user environments.
 
 3.7.1.1 [maintenance release]
 -------
