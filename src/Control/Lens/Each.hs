@@ -6,6 +6,11 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
+
+#ifdef DEFAULT_SIGNATURES
+{-# LANGUAGE DefaultSignatures #-}
+#endif
+
 #ifndef MIN_VERSION_base
 #define MIN_VERSION_base(x,y,z) 1
 #endif
@@ -75,9 +80,12 @@ import Data.Array.IArray as IArray
 -- ("HELLO","WORLD")
 class Each i s t a b | s -> i a, t -> i b, s b -> t, t a -> s where
   each :: IndexedTraversal i s t a b
+
+#ifdef DEFAULT_SIGNATURES
   default each :: (Traversable f, s ~ f a, t ~ f b) => IndexedTraversal Int s t a b
   each = traversed
   {-# INLINE each #-}
+#endif
 
 instance (a ~ a', b ~ b') => Each Int (a,a') (b,b') a b where
   each = Lens.indexed $ \ f ~(a,b) -> (,) <$> f (0 :: Int) a <*> f 1 b
@@ -133,12 +141,29 @@ instance Each k (HashMap k a) (HashMap k b) a b where
   each = Lens.indexed HashMap.traverseWithKey
   {-# INLINE each #-}
 
-instance Each Int [a] [b] a b
-instance Each Int (Identity a) (Identity b) a b
-instance Each Int (Maybe a) (Maybe b) a b
-instance Each Int (Seq a) (Seq b) a b
-instance Each Int (Tree a) (Tree b) a b
-instance Each Int (Vector.Vector a) (Vector.Vector b) a b
+instance Each Int [a] [b] a b where
+  each = traversed
+  {-# INLINE each #-}
+
+instance Each Int (Identity a) (Identity b) a b where
+  each = traversed
+  {-# INLINE each #-}
+
+instance Each Int (Maybe a) (Maybe b) a b where
+  each = traversed
+  {-# INLINE each #-}
+
+instance Each Int (Seq a) (Seq b) a b where
+  each = traversed
+  {-# INLINE each #-}
+
+instance Each Int (Tree a) (Tree b) a b where
+  each = traversed
+  {-# INLINE each #-}
+
+instance Each Int (Vector.Vector a) (Vector.Vector b) a b where
+  each = traversed
+  {-# INLINE each #-}
 
 instance (Prim a, Prim b) => Each Int (Prim.Vector a) (Prim.Vector b) a b where
   each = Lens.indexed $ \f v -> Prim.fromListN (Prim.length v) <$> withIndex traversed f (Prim.toList v)

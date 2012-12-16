@@ -2,6 +2,7 @@
 -------
 * Made the doctest test suite hide all but the exact versions of packages used to build this package to avoid problems with complicated user environments.
 * Removed doctests based on `:t` as they are fragile and break across GHC versions.
+* Fixed GHC 7.0.4 compatibility by guarding `DefaultSignatures` in `Control.Lens.Each`.
 
 3.7.1.1 [maintenance release]
 -------
