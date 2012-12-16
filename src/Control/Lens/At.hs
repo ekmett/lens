@@ -256,41 +256,49 @@ type instance IxKey (a,a) = Int
 type instance IxValue (a,a) = a
 instance (Applicative f, a ~ b) => Ixed f (a,b) where
   ix = ixEach
+  {-# INLINE ix #-}
 
 type instance IxKey (a,a,a) = Int
 type instance IxValue (a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c) => Ixed f (a,b,c) where
   ix = ixEach
+  {-# INLINE ix #-}
 
 type instance IxKey (a,a,a,a) = Int
 type instance IxValue (a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d) => Ixed f (a,b,c,d) where
   ix = ixEach
+  {-# INLINE ix #-}
 
 type instance IxKey (a,a,a,a,a) = Int
 type instance IxValue (a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e) => Ixed f (a,b,c,d,e) where
   ix = ixEach
+  {-# INLINE ix #-}
 
 type instance IxKey (a,a,a,a,a,a) = Int
 type instance IxValue (a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f') => Ixed f (a,b,c,d,e,f') where
   ix = ixEach
+  {-# INLINE ix #-}
 
 type instance IxKey (a,a,a,a,a,a,a) = Int
 type instance IxValue (a,a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g) => Ixed f (a,b,c,d,e,f',g) where
   ix = ixEach
+  {-# INLINE ix #-}
 
 type instance IxKey (a,a,a,a,a,a,a,a) = Int
 type instance IxValue (a,a,a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h) => Ixed f (a,b,c,d,e,f',g,h) where
   ix = ixEach
+  {-# INLINE ix #-}
 
 type instance IxKey (a,a,a,a,a,a,a,a,a) = Int
 type instance IxValue (a,a,a,a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h, h ~ i) => Ixed f (a,b,c,d,e,f',g,h,i) where
   ix = ixEach
+  {-# INLINE ix #-}
 
 -- | 'At' provides a lens that can be used to read,
 -- write or delete the value associated with a key in a map-like
