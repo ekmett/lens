@@ -101,6 +101,12 @@ _init f v
 -- This is only a valid lens if you do not change the length of the resulting 'Vector'.
 --
 -- Attempting to return a longer or shorter vector will result in violations of the 'Lens' laws.
+--
+-- >>> Vector.fromList [1..10] ^? sliced 2 5
+-- Just (fromList [3,4,5,6,7])
+--
+-- >>> Vector.fromList [1..10] & sliced 2 5 . mapped .~ 0
+-- fromList [1,2,0,0,0,0,0,8,9,10]
 sliced :: Int -- ^ @i@ starting index
        -> Int -- ^ @n@ length
        -> SimpleLens (Vector a) (Vector a)
@@ -108,16 +114,31 @@ sliced i n f v = f (slice i n v) <&> \ v0 -> v // zip [i..i+n-1] (toList v0)
 {-# INLINE sliced #-}
 
 -- | Similar to 'toListOf', but returning a 'Vector'.
+--
+-- >>> toVectorOf both (8,15)
+-- fromList [8,15]
 toVectorOf :: Getting (Endo [a]) s t a b -> s -> Vector a
 toVectorOf l s = fromList (toListOf l s)
 {-# INLINE toVectorOf #-}
 
 -- | Convert a list to a 'Vector' (or back)
+--
+-- >>> [1,2,3] ^. vector
+-- fromList [1,2,3]
+--
+-- >>> [1,2,3] ^. vector . from vector
+-- [1,2,3]
+--
+-- >>> fromList [0,8,15] ^. from vector . vector
+-- fromList [0,8,15]
 vector :: Iso [a] [b] (Vector a) (Vector b)
 vector = iso fromList toList
 {-# INLINE vector #-}
 
 -- | Convert a 'Vector' to a version with all the elements in the reverse order
+--
+-- >>> fromList [1,2,3] ^. reversed
+-- fromList [3,2,1]
 reversed :: Iso (Vector a) (Vector b) (Vector a) (Vector b)
 reversed = iso reverse reverse
 {-# INLINE reversed #-}
