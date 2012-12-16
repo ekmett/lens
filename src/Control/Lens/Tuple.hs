@@ -2,6 +2,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 #ifdef TRUSTWORTHY
@@ -33,7 +34,8 @@ module Control.Lens.Tuple
   ) where
 
 import Control.Lens.Combinators
-import Control.Lens.Type
+import Control.Lens.Indexed
+import Control.Lens.IndexedLens
 
 -- $setup
 -- >>> import Control.Lens
@@ -67,39 +69,39 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- ...
   -- _1 :: 'Lens' (a,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a'
   -- @
-  _1 :: Lens s t a b
+  _1 :: IndexedLens Int s t a b
 
 -- | @'_1' k ~(a,b) = (\a' -> (a',b)) '<$>' k a@
 instance Field1 (a,b) (a',b) a a' where
-  _1 k ~(a,b) = k a <&> \a' -> (a',b)
+  _1 = indexed $ \k ~(a,b) -> k (0 :: Int) a <&> \a' -> (a',b)
   {-# INLINE _1 #-}
 
 instance Field1 (a,b,c) (a',b,c) a a' where
-  _1 k ~(a,b,c) = k a <&> \a' -> (a',b,c)
+  _1 = indexed $ \k ~(a,b,c) -> k (0 :: Int) a <&> \a' -> (a',b,c)
   {-# INLINE _1 #-}
 
 instance Field1 (a,b,c,d) (a',b,c,d) a a' where
-  _1 k ~(a,b,c,d) = k a <&> \a' -> (a',b,c,d)
+  _1 = indexed $ \k ~(a,b,c,d) -> k (0 :: Int) a <&> \a' -> (a',b,c,d)
   {-# INLINE _1 #-}
 
 instance Field1 (a,b,c,d,e) (a',b,c,d,e) a a' where
-  _1 k ~(a,b,c,d,e) = k a <&> \a' -> (a',b,c,d,e)
+  _1 = indexed $ \k ~(a,b,c,d,e) -> k (0 :: Int) a <&> \a' -> (a',b,c,d,e)
   {-# INLINE _1 #-}
 
 instance Field1 (a,b,c,d,e,f) (a',b,c,d,e,f) a a' where
-  _1 k ~(a,b,c,d,e,f) = k a <&> \a' -> (a',b,c,d,e,f)
+  _1 = indexed $ \k ~(a,b,c,d,e,f) -> k (0 :: Int) a <&> \a' -> (a',b,c,d,e,f)
   {-# INLINE _1 #-}
 
 instance Field1 (a,b,c,d,e,f,g) (a',b,c,d,e,f,g) a a' where
-  _1 k ~(a,b,c,d,e,f,g) = k a <&> \a' -> (a',b,c,d,e,f,g)
+  _1 = indexed $ \k ~(a,b,c,d,e,f,g) -> k (0 :: Int) a <&> \a' -> (a',b,c,d,e,f,g)
   {-# INLINE _1 #-}
 
 instance Field1 (a,b,c,d,e,f,g,h) (a',b,c,d,e,f,g,h) a a' where
-  _1 k ~(a,b,c,d,e,f,g,h) = k a <&> \a' -> (a',b,c,d,e,f,g,h)
+  _1 = indexed $ \k ~(a,b,c,d,e,f,g,h) -> k (0 :: Int) a <&> \a' -> (a',b,c,d,e,f,g,h)
   {-# INLINE _1 #-}
 
 instance Field1 (a,b,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a' where
-  _1 k ~(a,b,c,d,e,f,g,h,i) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i)
+  _1 = indexed $ \k ~(a,b,c,d,e,f,g,h,i) -> k (0 :: Int) a <&> \a' -> (a',b,c,d,e,f,g,h,i)
   {-# INLINE _1 #-}
 
 -- | Provides access to the 2nd field of a tuple
@@ -121,184 +123,184 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- 'Data.Traversable.traverse' '.' '_2' :: ('Applicative' f, 'Data.Traversable.Traversable' t) => (a -> f b) -> t (s, a) -> f (t (s, b))
   -- 'Control.Lens.Fold.foldMapOf' ('Data.Traversable.traverse' '.' '_2') :: ('Data.Traversable.Traversable' t, 'Data.Monoid.Monoid' m) => (s -> m) -> t (b, s) -> m
   -- @
-  _2 :: Lens s t a b
+  _2 :: IndexedLens Int s t a b
 
 -- | @'_2' k ~(a,b) = (\b' -> (a,b')) '<$>' k b@
 instance Field2 (a,b) (a,b') b b' where
-  _2 k ~(a,b) = k b <&> \b' -> (a,b')
+  _2 = indexed $ \k ~(a,b) -> k (1 :: Int) b <&> \b' -> (a,b')
   {-# INLINE _2 #-}
 
 instance Field2 (a,b,c) (a,b',c) b b' where
-  _2 k ~(a,b,c) = k b <&> \b' -> (a,b',c)
+  _2 = indexed $ \k ~(a,b,c) -> k (1 :: Int) b <&> \b' -> (a,b',c)
   {-# INLINE _2 #-}
 
 instance Field2 (a,b,c,d) (a,b',c,d) b b' where
-  _2 k ~(a,b,c,d) = k b <&> \b' -> (a,b',c,d)
+  _2 = indexed $ \k ~(a,b,c,d) -> k (1 :: Int) b <&> \b' -> (a,b',c,d)
   {-# INLINE _2 #-}
 
 instance Field2 (a,b,c,d,e) (a,b',c,d,e) b b' where
-  _2 k ~(a,b,c,d,e) = k b <&> \b' -> (a,b',c,d,e)
+  _2 = indexed $ \k ~(a,b,c,d,e) -> k (1 :: Int) b <&> \b' -> (a,b',c,d,e)
   {-# INLINE _2 #-}
 
 instance Field2 (a,b,c,d,e,f) (a,b',c,d,e,f) b b' where
-  _2 k ~(a,b,c,d,e,f) = k b <&> \b' -> (a,b',c,d,e,f)
+  _2 = indexed $ \k ~(a,b,c,d,e,f) -> k (1 :: Int) b <&> \b' -> (a,b',c,d,e,f)
   {-# INLINE _2 #-}
 
 instance Field2 (a,b,c,d,e,f,g) (a,b',c,d,e,f,g) b b' where
-  _2 k ~(a,b,c,d,e,f,g) = k b <&> \b' -> (a,b',c,d,e,f,g)
+  _2 = indexed $ \k ~(a,b,c,d,e,f,g) -> k (1 :: Int) b <&> \b' -> (a,b',c,d,e,f,g)
   {-# INLINE _2 #-}
 
 instance Field2 (a,b,c,d,e,f,g,h) (a,b',c,d,e,f,g,h) b b' where
-  _2 k ~(a,b,c,d,e,f,g,h) = k b <&> \b' -> (a,b',c,d,e,f,g,h)
+  _2 = indexed $ \k ~(a,b,c,d,e,f,g,h) -> k (1 :: Int) b <&> \b' -> (a,b',c,d,e,f,g,h)
   {-# INLINE _2 #-}
 
 instance Field2 (a,b,c,d,e,f,g,h,i) (a,b',c,d,e,f,g,h,i) b b' where
-  _2 k ~(a,b,c,d,e,f,g,h,i) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i)
+  _2 = indexed $ \k ~(a,b,c,d,e,f,g,h,i) -> k (1 :: Int) b <&> \b' -> (a,b',c,d,e,f,g,h,i)
   {-# INLINE _2 #-}
 
 -- | Provides access to the 3rd field of a tuple
 class Field3 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 3rd field of a tuple
-  _3 :: Lens s t a b
+  _3 :: IndexedLens Int s t a b
 
 instance Field3 (a,b,c) (a,b,c') c c' where
-  _3 k ~(a,b,c) = k c <&> \c' -> (a,b,c')
+  _3 = indexed $ \k ~(a,b,c) -> k (2 :: Int) c <&> \c' -> (a,b,c')
   {-# INLINE _3 #-}
 
 instance Field3 (a,b,c,d) (a,b,c',d) c c' where
-  _3 k ~(a,b,c,d) = k c <&> \c' -> (a,b,c',d)
+  _3 = indexed $ \k ~(a,b,c,d) -> k (2 :: Int) c <&> \c' -> (a,b,c',d)
   {-# INLINE _3 #-}
 
 instance Field3 (a,b,c,d,e) (a,b,c',d,e) c c' where
-  _3 k ~(a,b,c,d,e) = k c <&> \c' -> (a,b,c',d,e)
+  _3 = indexed $ \k ~(a,b,c,d,e) -> k (2 :: Int) c <&> \c' -> (a,b,c',d,e)
   {-# INLINE _3 #-}
 
 instance Field3 (a,b,c,d,e,f) (a,b,c',d,e,f) c c' where
-  _3 k ~(a,b,c,d,e,f) = k c <&> \c' -> (a,b,c',d,e,f)
+  _3 = indexed $ \k ~(a,b,c,d,e,f) -> k (2 :: Int) c <&> \c' -> (a,b,c',d,e,f)
   {-# INLINE _3 #-}
 
 instance Field3 (a,b,c,d,e,f,g) (a,b,c',d,e,f,g) c c' where
-  _3 k ~(a,b,c,d,e,f,g) = k c <&> \c' -> (a,b,c',d,e,f,g)
+  _3 = indexed $ \k ~(a,b,c,d,e,f,g) -> k (2 :: Int) c <&> \c' -> (a,b,c',d,e,f,g)
   {-# INLINE _3 #-}
 
 instance Field3 (a,b,c,d,e,f,g,h) (a,b,c',d,e,f,g,h) c c' where
-  _3 k ~(a,b,c,d,e,f,g,h) = k c <&> \c' -> (a,b,c',d,e,f,g,h)
+  _3 = indexed $ \k ~(a,b,c,d,e,f,g,h) -> k (2 :: Int) c <&> \c' -> (a,b,c',d,e,f,g,h)
   {-# INLINE _3 #-}
 
 instance Field3 (a,b,c,d,e,f,g,h,i) (a,b,c',d,e,f,g,h,i) c c' where
-  _3 k ~(a,b,c,d,e,f,g,h,i) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i)
+  _3 = indexed $ \k ~(a,b,c,d,e,f,g,h,i) -> k (2 :: Int) c <&> \c' -> (a,b,c',d,e,f,g,h,i)
   {-# INLINE _3 #-}
 
 -- | Provide access to the 4th field of a tuple
 class Field4 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 4th field of a tuple
-  _4 :: Lens s t a b
+  _4 :: IndexedLens Int s t a b
 
 instance Field4 (a,b,c,d) (a,b,c,d') d d' where
-  _4 k ~(a,b,c,d) = k d <&> \d' -> (a,b,c,d')
+  _4 = indexed $ \k ~(a,b,c,d) -> k (3 :: Int) d <&> \d' -> (a,b,c,d')
   {-# INLINE _4 #-}
 
 instance Field4 (a,b,c,d,e) (a,b,c,d',e) d d' where
-  _4 k ~(a,b,c,d,e) = k d <&> \d' -> (a,b,c,d',e)
+  _4 = indexed $ \k ~(a,b,c,d,e) -> k (3 :: Int) d <&> \d' -> (a,b,c,d',e)
   {-# INLINE _4 #-}
 
 instance Field4 (a,b,c,d,e,f) (a,b,c,d',e,f) d d' where
-  _4 k ~(a,b,c,d,e,f) = k d <&> \d' -> (a,b,c,d',e,f)
+  _4 = indexed $ \k ~(a,b,c,d,e,f) -> k (3 :: Int) d <&> \d' -> (a,b,c,d',e,f)
   {-# INLINE _4 #-}
 
 instance Field4 (a,b,c,d,e,f,g) (a,b,c,d',e,f,g) d d' where
-  _4 k ~(a,b,c,d,e,f,g) = k d <&> \d' -> (a,b,c,d',e,f,g)
+  _4 = indexed $ \k ~(a,b,c,d,e,f,g) -> k (3 :: Int) d <&> \d' -> (a,b,c,d',e,f,g)
   {-# INLINE _4 #-}
 
 instance Field4 (a,b,c,d,e,f,g,h) (a,b,c,d',e,f,g,h) d d' where
-  _4 k ~(a,b,c,d,e,f,g,h) = k d <&> \d' -> (a,b,c,d',e,f,g,h)
+  _4 = indexed $ \k ~(a,b,c,d,e,f,g,h) -> k (3 :: Int) d <&> \d' -> (a,b,c,d',e,f,g,h)
   {-# INLINE _4 #-}
 
 instance Field4 (a,b,c,d,e,f,g,h,i) (a,b,c,d',e,f,g,h,i) d d' where
-  _4 k ~(a,b,c,d,e,f,g,h,i) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i)
+  _4 = indexed $ \k ~(a,b,c,d,e,f,g,h,i) -> k (3 :: Int) d <&> \d' -> (a,b,c,d',e,f,g,h,i)
   {-# INLINE _4 #-}
 
 -- | Provides access to the 5th field of a tuple
 class Field5 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 5th field of a tuple
-  _5 :: Lens s t a b
+  _5 :: IndexedLens Int s t a b
 
 instance Field5 (a,b,c,d,e) (a,b,c,d,e') e e' where
-  _5 k ~(a,b,c,d,e) = k e <&> \e' -> (a,b,c,d,e')
+  _5 = indexed $ \k ~(a,b,c,d,e) -> k (4 :: Int) e <&> \e' -> (a,b,c,d,e')
   {-# INLINE _5 #-}
 
 instance Field5 (a,b,c,d,e,f) (a,b,c,d,e',f) e e' where
-  _5 k ~(a,b,c,d,e,f) = k e <&> \e' -> (a,b,c,d,e',f)
+  _5 = indexed $ \k ~(a,b,c,d,e,f) -> k (4 :: Int) e <&> \e' -> (a,b,c,d,e',f)
   {-# INLINE _5 #-}
 
 instance Field5 (a,b,c,d,e,f,g) (a,b,c,d,e',f,g) e e' where
-  _5 k ~(a,b,c,d,e,f,g) = k e <&> \e' -> (a,b,c,d,e',f,g)
+  _5 = indexed $ \k ~(a,b,c,d,e,f,g) -> k (4 :: Int) e <&> \e' -> (a,b,c,d,e',f,g)
   {-# INLINE _5 #-}
 
 instance Field5 (a,b,c,d,e,f,g,h) (a,b,c,d,e',f,g,h) e e' where
-  _5 k ~(a,b,c,d,e,f,g,h) = k e <&> \e' -> (a,b,c,d,e',f,g,h)
+  _5 = indexed $ \k ~(a,b,c,d,e,f,g,h) -> k (4 :: Int) e <&> \e' -> (a,b,c,d,e',f,g,h)
   {-# INLINE _5 #-}
 
 instance Field5 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e',f,g,h,i) e e' where
-  _5 k ~(a,b,c,d,e,f,g,h,i) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i)
+  _5 = indexed $ \k ~(a,b,c,d,e,f,g,h,i) -> k (4 :: Int) e <&> \e' -> (a,b,c,d,e',f,g,h,i)
   {-# INLINE _5 #-}
 
 -- | Provides access to the 6th element of a tuple
 class Field6 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 6th field of a tuple
-  _6 :: Lens s t a b
+  _6 :: IndexedLens Int s t a b
 
 instance Field6 (a,b,c,d,e,f) (a,b,c,d,e,f') f f' where
-  _6 k ~(a,b,c,d,e,f) = k f <&> \f' -> (a,b,c,d,e,f')
+  _6 = indexed $ \k ~(a,b,c,d,e,f) -> k (5 :: Int) f <&> \f' -> (a,b,c,d,e,f')
   {-# INLINE _6 #-}
 
 instance Field6 (a,b,c,d,e,f,g) (a,b,c,d,e,f',g) f f' where
-  _6 k ~(a,b,c,d,e,f,g) = k f <&> \f' -> (a,b,c,d,e,f',g)
+  _6 = indexed $ \k ~(a,b,c,d,e,f,g) -> k (5 :: Int) f <&> \f' -> (a,b,c,d,e,f',g)
   {-# INLINE _6 #-}
 
 instance Field6 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f',g,h) f f' where
-  _6 k ~(a,b,c,d,e,f,g,h) = k f <&> \f' -> (a,b,c,d,e,f',g,h)
+  _6 = indexed $ \k ~(a,b,c,d,e,f,g,h) -> k (5 :: Int) f <&> \f' -> (a,b,c,d,e,f',g,h)
   {-# INLINE _6 #-}
 
 instance Field6 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f',g,h,i) f f' where
-  _6 k ~(a,b,c,d,e,f,g,h,i) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i)
+  _6 = indexed $ \k ~(a,b,c,d,e,f,g,h,i) -> k (5 :: Int) f <&> \f' -> (a,b,c,d,e,f',g,h,i)
   {-# INLINE _6 #-}
 
 -- | Provide access to the 7th field of a tuple
 class Field7 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 7th field of a tuple
-  _7 :: Lens s t a b
+  _7 :: IndexedLens Int s t a b
 
 instance Field7 (a,b,c,d,e,f,g) (a,b,c,d,e,f,g') g g' where
-  _7 k ~(a,b,c,d,e,f,g) = k g <&> \g' -> (a,b,c,d,e,f,g')
+  _7 = indexed $ \k ~(a,b,c,d,e,f,g) -> k (6 :: Int) g <&> \g' -> (a,b,c,d,e,f,g')
   {-# INLINE _7 #-}
 
 instance Field7 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f,g',h) g g' where
-  _7 k ~(a,b,c,d,e,f,g,h) = k g <&> \g' -> (a,b,c,d,e,f,g',h)
+  _7 = indexed $ \k ~(a,b,c,d,e,f,g,h) -> k (6 :: Int) g <&> \g' -> (a,b,c,d,e,f,g',h)
   {-# INLINE _7 #-}
 
 instance Field7 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g',h,i) g g' where
-  _7 k ~(a,b,c,d,e,f,g,h,i) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i)
+  _7 = indexed $ \k ~(a,b,c,d,e,f,g,h,i) -> k (6 :: Int) g <&> \g' -> (a,b,c,d,e,f,g',h,i)
   {-# INLINE _7 #-}
 
 -- | Provide access to the 8th field of a tuple
 class Field8 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 8th field of a tuple
-  _8 :: Lens s t a b
+  _8 :: IndexedLens Int s t a b
 
 instance Field8 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f,g,h') h h' where
-  _8 k ~(a,b,c,d,e,f,g,h) = k h <&> \h' -> (a,b,c,d,e,f,g,h')
+  _8 = indexed $ \k ~(a,b,c,d,e,f,g,h) -> k (7 :: Int) h <&> \h' -> (a,b,c,d,e,f,g,h')
   {-# INLINE _8 #-}
 
 instance Field8 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h',i) h h' where
-  _8 k ~(a,b,c,d,e,f,g,h,i) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i)
+  _8 = indexed $ \k ~(a,b,c,d,e,f,g,h,i) -> k (7 :: Int) h <&> \h' -> (a,b,c,d,e,f,g,h',i)
   {-# INLINE _8 #-}
 
 -- | Provides access to the 9th field of a tuple
 class Field9 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 9th field of a tuple
-  _9 :: Lens s t a b
+  _9 :: IndexedLens Int s t a b
 
 instance Field9 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h,i') i i' where
-  _9 k ~(a,b,c,d,e,f,g,h,i) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i')
+  _9 = indexed $ \k ~(a,b,c,d,e,f,g,h,i) -> k (8 :: Int) i <&> \i' -> (a,b,c,d,e,f,g,h,i')
   {-# INLINE _9 #-}

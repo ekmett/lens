@@ -43,6 +43,7 @@ import Control.Lens.Combinators
 import Control.Lens.Indexed
 import Control.Lens.IndexedLens
 import Control.Lens.Traversal
+import Control.Lens.Tuple
 import Control.Lens.Type
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
@@ -235,6 +236,106 @@ type instance IxKey (k -> a) = k
 type instance IxValue (k -> a) = a
 instance (Functor f, Eq k) => Ixed f (k -> a) where
   ix e = indexed $ \ g f -> g e (f e) <&> \a' e' -> if e == e' then a' else f e'
+  {-# INLINE ix #-}
+
+type instance IxKey (a,a) = Int
+type instance IxValue (a,a) = a
+instance (Applicative f, a ~ b) => Ixed f (a,b) where
+  ix i = indexed $ \k t -> case i of
+    0 -> withIndex _1 k t
+    1 -> withIndex _2 k t
+    _ -> pure t
+  {-# INLINE ix #-}
+
+type instance IxKey (a,a,a) = Int
+type instance IxValue (a,a,a) = a
+instance (Applicative f, a ~ b, b ~ c) => Ixed f (a,b,c) where
+  ix i = indexed $ \k t -> case i of
+    0 -> withIndex _1 k t
+    1 -> withIndex _2 k t
+    2 -> withIndex _3 k t
+    _ -> pure t
+  {-# INLINE ix #-}
+
+type instance IxKey (a,a,a,a) = Int
+type instance IxValue (a,a,a,a) = a
+instance (Applicative f, a ~ b, b ~ c, c ~ d) => Ixed f (a,b,c,d) where
+  ix i = indexed $ \k t -> case i of
+    0 -> withIndex _1 k t
+    1 -> withIndex _2 k t
+    2 -> withIndex _3 k t
+    3 -> withIndex _4 k t
+    _ -> pure t
+  {-# INLINE ix #-}
+
+type instance IxKey (a,a,a,a,a) = Int
+type instance IxValue (a,a,a,a,a) = a
+instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e) => Ixed f (a,b,c,d,e) where
+  ix i = indexed $ \k t -> case i of
+    0 -> withIndex _1 k t
+    1 -> withIndex _2 k t
+    2 -> withIndex _3 k t
+    3 -> withIndex _4 k t
+    4 -> withIndex _5 k t
+    _ -> pure t
+  {-# INLINE ix #-}
+
+type instance IxKey (a,a,a,a,a,a) = Int
+type instance IxValue (a,a,a,a,a,a) = a
+instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f') => Ixed f (a,b,c,d,e,f') where
+  ix i = indexed $ \k t -> case i of
+    0 -> withIndex _1 k t
+    1 -> withIndex _2 k t
+    2 -> withIndex _3 k t
+    3 -> withIndex _4 k t
+    4 -> withIndex _5 k t
+    5 -> withIndex _6 k t
+    _ -> pure t
+  {-# INLINE ix #-}
+
+type instance IxKey (a,a,a,a,a,a,a) = Int
+type instance IxValue (a,a,a,a,a,a,a) = a
+instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g) => Ixed f (a,b,c,d,e,f',g) where
+  ix i = indexed $ \k t -> case i of
+    0 -> withIndex _1 k t
+    1 -> withIndex _2 k t
+    2 -> withIndex _3 k t
+    3 -> withIndex _4 k t
+    4 -> withIndex _5 k t
+    5 -> withIndex _6 k t
+    6 -> withIndex _7 k t
+    _ -> pure t
+  {-# INLINE ix #-}
+
+type instance IxKey (a,a,a,a,a,a,a,a) = Int
+type instance IxValue (a,a,a,a,a,a,a,a) = a
+instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h) => Ixed f (a,b,c,d,e,f',g,h) where
+  ix i = indexed $ \k t -> case i of
+    0 -> withIndex _1 k t
+    1 -> withIndex _2 k t
+    2 -> withIndex _3 k t
+    3 -> withIndex _4 k t
+    4 -> withIndex _5 k t
+    5 -> withIndex _6 k t
+    6 -> withIndex _7 k t
+    7 -> withIndex _8 k t
+    _ -> pure t
+  {-# INLINE ix #-}
+
+type instance IxKey (a,a,a,a,a,a,a,a,a) = Int
+type instance IxValue (a,a,a,a,a,a,a,a,a) = a
+instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h, h ~ i) => Ixed f (a,b,c,d,e,f',g,h,i) where
+  ix i = indexed $ \k t -> case i of
+    0 -> withIndex _1 k t
+    1 -> withIndex _2 k t
+    2 -> withIndex _3 k t
+    3 -> withIndex _4 k t
+    4 -> withIndex _5 k t
+    5 -> withIndex _6 k t
+    6 -> withIndex _7 k t
+    7 -> withIndex _8 k t
+    8 -> withIndex _9 k t
+    _ -> pure t
   {-# INLINE ix #-}
 
 -- | 'At' provides a lens that can be used to read,
