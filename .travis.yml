@@ -13,6 +13,10 @@ install:
 script:
   - $script
 
+branches:
+  except:
+    - symmetric
+
 notifications:
   irc:
     channels:
