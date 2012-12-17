@@ -173,10 +173,14 @@ instance Applicative f => Applicative (Indexing f) where
     (ff, j) -> case ma j of
        ~(fa, k) -> (ff <*> fa, k)
 
-instance Gettable f => Costrong (Indexing f) where costrength = costrengthGettable
+instance Gettable f => Costrong (Indexing f) where
+  costrength = costrengthGettable
+  {-# INLINE costrength #-}
+
 instance Gettable f => Gettable (Indexing f) where
   coerce (Indexing m) = Indexing $ \i -> case m i of
     (ff, j) -> (coerce ff, j)
+  {-# INLINE coerce #-}
 
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
 -- by 'Control.Lens.Indexed.indexed'
@@ -192,10 +196,14 @@ instance Applicative f => Applicative (Indexing64 f) where
     (ff, j) -> case ma j of
        ~(fa, k) -> (ff <*> fa, k)
 
-instance Gettable f => Costrong (Indexing64 f) where costrength = costrengthGettable
+instance Gettable f => Costrong (Indexing64 f) where
+  costrength = costrengthGettable
+  {-# INLINE costrength #-}
+
 instance Gettable f => Gettable (Indexing64 f) where
   coerce (Indexing64 m) = Indexing64 $ \i -> case m i of
     (ff, j) -> (coerce ff, j)
+  {-# INLINE coerce #-}
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
 newtype Traversed f = Traversed { getTraversed :: f () }
@@ -334,9 +342,13 @@ instance (Monad m, Monoid r) => Applicative (Effect m r) where
   pure _ = Effect (return mempty)
   Effect ma <*> Effect mb = Effect (liftM2 mappend ma mb)
 
-instance Costrong (Effect m r) where costrength = costrengthGettable
+instance Costrong (Effect m r) where
+  costrength = costrengthGettable
+  {-# INLINE costrength #-}
+
 instance Gettable (Effect m r) where
   coerce (Effect m) = Effect m
+  {-# INLINE coerce #-}
 
 instance Monad m => Effective m r (Effect m r) where
   effective = Effect
@@ -350,9 +362,13 @@ newtype EffectRWS w st m s a = EffectRWS { getEffectRWS :: st -> m (s,st,w) }
 instance Functor (EffectRWS w st m s) where
   fmap _ (EffectRWS m) = EffectRWS m
 
-instance Costrong (EffectRWS w st m s) where costrength = costrengthGettable
+instance Costrong (EffectRWS w st m s) where
+  costrength = costrengthGettable
+  {-# INLINE costrength #-}
+
 instance Gettable (EffectRWS w st m s) where
   coerce (EffectRWS m) = EffectRWS m
+  {-# INLINE coerce #-}
 
 -- Effective EffectRWS
 
@@ -389,14 +405,21 @@ newtype Accessor r a = Accessor { runAccessor :: r }
 
 instance Functor (Accessor r) where
   fmap _ (Accessor m) = Accessor m
+  {-# INLINE fmap #-}
 
 instance Monoid r => Applicative (Accessor r) where
   pure _ = Accessor mempty
+  {-# INLINE pure #-}
   Accessor a <*> Accessor b = Accessor (mappend a b)
+  {-# INLINE (<*>) #-}
 
-instance Costrong (Accessor r) where costrength = costrengthGettable
+instance Costrong (Accessor r) where
+  costrength = costrengthGettable
+  {-# INLINE costrength #-}
+
 instance Gettable (Accessor r) where
   coerce (Accessor m) = Accessor m
+  {-# INLINE coerce #-}
 
 instance Effective Identity r (Accessor r) where
   effective = Accessor . runIdentity
@@ -433,9 +456,18 @@ instance Applicative Mutator where
   Mutator f <*> Mutator a = Mutator (f a)
   {-# INLINE (<*>) #-}
 
-instance Pointed Mutator where point = Mutator
-instance Copointed Mutator where copoint = runMutator
-instance Costrong Mutator where costrength = costrengthSettable
+instance Pointed Mutator where
+  point = Mutator
+  {-# INLINE point #-}
+
+instance Copointed Mutator where
+  copoint = runMutator
+  {-# INLINE copoint #-}
+
+instance Costrong Mutator where
+  costrength = costrengthSettable
+  {-# INLINE costrength #-}
+
 instance Settable Mutator
 
 -- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance
@@ -462,7 +494,10 @@ instance (a ~ b) => Comonad (BazaarT a b g) where
   duplicate = duplicateBazaarT
   {-# INLINE duplicate #-}
 
-instance Gettable g => Costrong (BazaarT a b g) where costrength = costrengthGettable
+instance Gettable g => Costrong (BazaarT a b g) where
+  costrength = costrengthGettable
+  {-# INLINE costrength #-}
+
 instance Gettable g => Gettable (BazaarT a b g) where
   coerce = (<$) (error "coerced BazaarT")
   {-# INLINE coerce #-}
