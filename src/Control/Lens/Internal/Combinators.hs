@@ -71,6 +71,7 @@ import Unsafe.Coerce
 #define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
 #endif
 
+infixr 9 #
 (#) :: (b -> c) -> (a -> b) -> a -> c
 f # g = f `seq` g `seq` \x -> f (g x)
 
