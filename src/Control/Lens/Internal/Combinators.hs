@@ -24,8 +24,10 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Combinators
   (
+    (#)
+  {-
   -- * Safe "Unsafe" Coercions
-    const#, getConst#
+  , const#, getConst#
   , zipList#, getZipList#
   , wrapMonad#, unwrapMonad#
   , last#, getLast#
@@ -52,6 +54,7 @@ module Control.Lens.Internal.Combinators
   , focusingErr#, unfocusingErr#
   , mutator#, runMutator#
   , backwards#, forwards#
+  -}
   ) where
 
 import Control.Applicative
@@ -68,6 +71,10 @@ import Unsafe.Coerce
 #define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
 #endif
 
+(#) :: (b -> c) -> (a -> b) -> a -> c
+f # g = f `seq` g `seq` \x -> f (g x)
+
+{-
 const# :: (a -> b) -> a -> Const b r
 const# = UNSAFELY(Const)
 
@@ -229,3 +236,4 @@ backwards# = UNSAFELY(Backwards)
 
 forwards# :: (a -> Backwards f b) -> a -> f b
 forwards# = UNSAFELY(forwards)
+-}

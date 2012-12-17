@@ -29,6 +29,7 @@
 module Control.Lens.Internal
   (
   -- * Internal Types
+  {-
     May(..)
   , Folding(..)
   , Effect(..)
@@ -46,16 +47,16 @@ module Control.Lens.Internal
   , Mutator(..)
   , Bazaar(..), bazaar, duplicateBazaar, sell
   , BazaarT(..), bazaarT, duplicateBazaarT, sellT
-  , Context(..)
+  -}
+    Context(..)
+  {-
   , Max(..), getMax
   , Min(..), getMin
   , Indexing(..)
   , Indexing64(..)
   -- * Overloadings
-  , Prismoid(..)
-  , Isoid(..)
   , Indexed(..)
-  , CoA, CoB
+  -}
   ) where
 
 import Control.Applicative
@@ -69,16 +70,8 @@ import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Int
 import Data.Monoid
-#ifndef SAFE
-import Unsafe.Coerce
-#endif
 
-#ifndef SAFE
-#define UNSAFELY(x) unsafeCoerce
-#else
-#define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
-#endif
-
+{-
 -----------------------------------------------------------------------------
 -- Functors
 -----------------------------------------------------------------------------
@@ -248,6 +241,7 @@ instance Ord a => Monoid (Max a) where
 getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
+-}
 
 -- | The indexed store can be used to characterize a 'Control.Lens.Type.Lens'
 -- and is used by 'Control.Lens.Type.clone'
@@ -275,6 +269,7 @@ instance (a ~ b) => ComonadStore a (Context a b) where
   seeks f (Context g a) = Context g (f a)
   experiment f (Context g a) = g <$> f a
 
+{-
 -- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
 --
 -- a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed 'FunList'.
@@ -440,12 +435,7 @@ instance Applicative Mutator where
   Mutator f <*> Mutator a = Mutator (f a)
   {-# INLINE (<*>) #-}
 
-instance Settable Mutator where
-  untainted = runMutator
-  untainted# = UNSAFELY(runMutator)
-  {-# INLINE untainted #-}
-  tainted# = UNSAFELY(Mutator)
-  {-# INLINE tainted# #-}
+instance Settable Mutator
 
 -- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance
 -- To protect this instance it relies on the soundness of another 'Gettable' type, and usage conventions.
@@ -493,69 +483,6 @@ sellT i = BazaarT (\k -> k i)
 {-# INLINE sellT #-}
 
 ------------------------------------------------------------------------------
--- Prism Internals
-------------------------------------------------------------------------------
-
-type family ArgOf (f_b :: *) :: *
-type instance ArgOf (f b) = b
-
--- | Extract @a@ from the type @a -> f b@
-type family CoA x :: *
-
--- | Extract @b@ from the type @a -> f b@
-type family CoB x :: *
-type instance CoA (a -> f_b) = a
-type instance CoB (a -> f_b) = ArgOf f_b
-
--- | This data type is used to capture all of the information provided by the
--- 'Prismatic' class, so you can turn a 'Prism' around into a 'Getter' or
--- otherwise muck around with its internals.
---
--- If you see a function that expects a 'Prismoid' or 'APrism', it is probably
--- just expecting a 'Prism'.
-data Prismoid ab st where
-  Prismoid :: Prismoid x x
-  Prism :: (CoB x -> CoB y) -> (CoA y -> Either (CoB y) (CoA x)) -> Prismoid x y
-
-instance Category Prismoid where
-  id = Prismoid
-  x . Prismoid = x
-  Prismoid . x = x
-  Prism ty xeys . Prism bt seta = Prism (ty.bt) $ \x ->
-    case xeys x of
-      Left y  -> Left y
-      Right s -> case seta s of
-        Left t  -> Left (ty t)
-        Right a -> Right a
-
-instance Isomorphic Prismoid where
-  iso sa bt = Prism bt (Right . sa)
-  {-# INLINE iso #-}
-
-instance Prismatic Prismoid where
-  prism    = Prism
-  {-# INLINE prism #-}
-
-------------------------------------------------------------------------------
--- Isomorphism Internals
-------------------------------------------------------------------------------
-
--- | Reify all of the information given to you by being 'Isomorphic'.
-data Isoid ab st where
-  Isoid :: Isoid ab ab
-  Iso   :: (CoA y -> CoA x) -> (CoB x -> CoB y) -> Isoid x y
-
-instance Category Isoid where
-  id = Isoid
-  Isoid . x = x
-  x . Isoid = x
-  Iso xs ty . Iso sa bt = Iso (sa.xs) (ty.bt)
-
-instance Isomorphic Isoid where
-  iso   = Iso
-  {-# INLINE iso #-}
-
-------------------------------------------------------------------------------
 -- Indexed Internals
 ------------------------------------------------------------------------------
 
@@ -570,3 +497,4 @@ newtype Indexed i a b = Indexed { withIndex :: (i -> a) -> b }
 instance i ~ j => Indexable i (Indexed j) where
   indexed = Indexed
   {-# INLINE indexed #-}
+-}

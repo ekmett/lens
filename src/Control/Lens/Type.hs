@@ -63,6 +63,7 @@ module Control.Lens.Type
     Lens
   , Simple
 
+  , twan
   , lens
   , (%%~)
   , (%%=)
@@ -106,8 +107,10 @@ module Control.Lens.Type
 
 import Control.Applicative
 import Control.Comonad.Store as Store
+import Control.Lens.Classes
 import Control.Lens.Combinators ((<&>))
 import Control.Lens.Internal (Context(..))
+import Control.Lens.Internal.Combinators ((#))
 import Control.Monad.State as State
 import Data.Monoid (Monoid(mappend))
 
@@ -169,7 +172,7 @@ infixr 2 <<~
 -- @
 --
 -- @type 'Lens' s t a b = forall f. 'Functor' f => 'LensLike' f s t a b@
-type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
+type Lens s t a b = forall f g. (Functor f, Settable g) => (g a -> f b) -> g s -> f t
 
 -- | A 'Simple' 'Lens', 'Simple' 'Control.Lens.Traversal.Traversal', ... can
 -- be used instead of a 'Lens','Control.Lens.Traversal.Traversal', ...
@@ -187,12 +190,16 @@ type Simple f s a = f s s a a
 -- | @type 'SimpleLens' = 'Simple' 'Lens'@
 type SimpleLens s a = Lens s s a a
 
--- | @type 'SimpleLensLike' f = 'Simple' ('LensLike' f)@
-type SimpleLensLike f s a = LensLike f s s a a
+-- | @type 'SimpleLensLike' f g = 'Simple' ('LensLike' f g)@
+type SimpleLensLike f g s a = LensLike f g s s a a
 
 --------------------------
 -- Constructing Lenses
 --------------------------
+
+twan :: Settable g => ((a -> f b) -> s -> f t) -> (g a -> f b) -> g s -> f t
+twan f g = f (g . point) . copoint
+{-# INLINE twan #-}
 
 -- | Build a 'Lens' from a getter and a setter.
 --
@@ -206,8 +213,8 @@ type SimpleLensLike f s a = LensLike f s s a a
 --
 -- >>> s & lens getter setter %~ f
 -- setter s (f (getter s))
-lens :: (s -> a) -> (s -> b -> t) -> Lens s t a b
-lens sa sbt afb s = sbt s <$> afb (sa s)
+lens :: (Functor f, Settable g) => (s -> a) -> (s -> b -> t) -> (g a -> f b) -> g s -> f t
+lens sa sbt = twan $ \afb s -> sbt s <$> afb (sa s)
 {-# INLINE lens #-}
 
 -------------------------------------------------------------------------------
@@ -226,7 +233,7 @@ lens sa sbt afb s = sbt s <$> afb (sa s)
 --
 -- Further, if @f@ is an 'Applicative', they may also be passed a
 -- 'Control.Lens.Traversal.Traversal'.
-type LensLike f s t a b = (a -> f b) -> s -> f t
+type LensLike f g s t a b = (g a -> f b) -> g s -> f t
 
 -- | ('%%~') can be used in one of two scenarios:
 --
@@ -236,7 +243,7 @@ type LensLike f s t a b = (a -> f b) -> s -> f t
 -- When applied to a 'Control.Lens.Traversal.Traversal', it can edit the
 -- targets of the 'Traversals', extracting an applicative summary of its
 -- actions.
---
+
 -- For all that the definition of this combinator is just:
 --
 -- @('%%~') ≡ 'id'@
@@ -259,8 +266,9 @@ type LensLike f s t a b = (a -> f b) -> s -> f t
 -- ('%%~') ::             'Lens' s t a b      -> (a -> (r, b)) -> s -> (r, t)
 -- ('%%~') :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> (m, b)) -> s -> (m, t)
 -- @
-(%%~) :: LensLike f s t a b -> (a -> f b) -> s -> f t
-(%%~) = id
+-- (%%~) :: Settable g => LensLike f g s t a b -> (a -> f b) -> s -> f t
+(%%~) :: Settable g => ((g a -> f b) -> g s -> f t) -> (a -> f b) -> s -> f t
+l %%~ afb = l (afb # copoint) # point
 {-# INLINE (%%~) #-}
 
 -- | Modify the target of a 'Lens' in the current state returning some extra
@@ -281,12 +289,12 @@ type LensLike f s t a b = (a -> f b) -> s -> f t
 -- ('%%=') :: 'MonadState' s m             => 'Lens' s s a b      -> (a -> (r, b)) -> m r
 -- ('%%=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Traversal.Traversal' s s a b -> (a -> (r, b)) -> m r
 -- @
-(%%=) :: MonadState s m => LensLike ((,) r) s s a b -> (a -> (r, b)) -> m r
+(%%=) :: (MonadState s m, Settable g) => LensLike ((,) r) g s s a b -> (a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,1)
-l %%= f = State.state (l f)
+l %%= f = State.state (l %%~ f)
 #else
 l %%= f = do
-  (r, s) <- State.gets (l f)
+  (r, s) <- State.gets (l %%~ f)
   State.put s
   return r
 #endif
@@ -298,10 +306,13 @@ l %%= f = do
 
 -- | Lift a 'Lens' so it can run under a function.
 --
-inside :: LensLike (Context a b) s t a b -> Lens (e -> s) (e -> t) (e -> a) (e -> b)
-inside l f es = o <$> f i where
-  i e = case l (Context id) (es e) of Context _ a -> a
-  o ea e = case l (Context id) (es e) of Context k _ -> k (ea e)
+-- FIXME: ugly
+inside :: Settable g => LensLike (Context a b) g s t a b -> Lens (e -> s) (e -> t) (e -> a) (e -> b)
+inside l = twan $ \f es -> o es <$> f (i es) where
+  i es e = case l (Context id # copoint) (point (es e)) of
+    Context _ a -> a
+  o es ea e = case l (Context id # copoint) (point (es e)) of
+    Context k _ -> k (ea e)
 
 -- | Merge two lenses, getters, setters, folds or traversals.
 --
@@ -314,12 +325,11 @@ inside l f es = o <$> f i where
 -- 'choosing' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> 'Simple' 'Control.Lens.Traversal.Traversal' s' a -> 'Simple' 'Control.Lens.Traversal.Traversal' ('Either' s s') a
 -- 'choosing' :: 'Simple' 'Control.Lens.Setter.Setter' s a    -> 'Simple' 'Control.Lens.Setter.Setter' s' a    -> 'Simple' 'Control.Lens.Setter.Setter' ('Either' s s') a
 -- @
-choosing :: Functor f
-       => LensLike f s t a b
-       -> LensLike f s' t' a b
-       -> LensLike f (Either s s') (Either t t') a b
-choosing l _ f (Left a)   = Left <$> l f a
-choosing _ r f (Right a') = Right <$> r f a'
+choosing :: (Functor f, Settable g)
+       => LensLike f g s t a b
+       -> LensLike f g s' t' a b
+       -> LensLike f g (Either s s') (Either t t') a b
+choosing l r f = either (fmap Left # l f # point) (fmap Right # r f # point) # copoint
 {-# INLINE choosing #-}
 
 -- | This is a 'Lens' that updates either side of an 'Either', where both sides have the same type.
@@ -338,8 +348,7 @@ choosing _ r f (Right a') = Right <$> r f a'
 -- >>> Right a & chosen *~ b
 -- Right (a * b)
 chosen :: Lens (Either a a) (Either b b) a b
-chosen f (Left a) = Left <$> f a
-chosen f (Right a) = Right <$> f a
+chosen = twan $ \f -> either (fmap Left . f) (fmap Right . f)
 {-# INLINE chosen #-}
 
 -- | 'alongside' makes a 'Lens' from two other lenses.
@@ -351,11 +360,12 @@ chosen f (Right a) = Right <$> f a
 -- (Left c,Right d)
 --
 -- @'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')@
-alongside :: LensLike (Context a b) s t a b
-           -> LensLike (Context a' b')  s' t' a' b'
+alongside :: Settable g
+           => LensLike (Context a b) g s t a b
+           -> LensLike (Context a' b') g s' t' a' b'
            -> Lens (s,s') (t,t') (a,a') (b,b')
-alongside l r f (s, s') = case l (Context id) s of
-  Context bt a -> case r (Context id) s' of
+alongside l r = twan $ \f (s, s') -> case l (Context id # copoint) (point s) of
+  Context bt a -> case r (Context id # copoint) (point s') of
     Context bt' a' -> f (a,a') <&> \(b,b') -> (bt b, bt' b')
 {-# INLINE alongside #-}
 
@@ -373,7 +383,7 @@ alongside l r f (s, s') = case l (Context id) s of
 -- 'locus' :: Simple Lens ('Context' s s a) s
 -- @
 locus :: ComonadStore s w => Simple Lens (w a) s
-locus f w = (`seek` w) <$> f (pos w)
+locus = twan $ \f w -> (`seek` w) <$> f (pos w)
 
 -------------------------------------------------------------------------------
 -- Cloning Lenses
@@ -388,22 +398,22 @@ locus f w = (`seek` w) <$> f (pos w)
 --
 -- >>> let example l x = set (cloneLens l) (x^.cloneLens l + 1) x in example _2 ("hello",1,"you")
 -- ("hello",2,"you")
-cloneLens :: Functor f
-  => LensLike (Context a b) s t a b
-  -> (a -> f b) -> s -> f t
-cloneLens f afb s = case f (Context id) s of
-  Context bt a -> bt <$> afb a
+cloneLens :: (Functor f, Settable g)
+  => LensLike (Context a b) g s t a b
+  -> (g a -> f b) -> g s -> f t
+cloneLens f gafb gs = case f (Context id # copoint) gs of
+  Context bt a -> bt <$> gafb (point a)
 {-# INLINE cloneLens #-}
 
 -------------------------------------------------------------------------------
 -- Overloading function application
 -------------------------------------------------------------------------------
 
--- | @type 'LensLike' f s t a b = 'Overloaded' (->) f s t a b@
-type Overloaded k f s t a b = k (a -> f b) (s -> f t)
+-- | @type 'LensLike' f g s t a b = 'Overloaded' (->) f g s t a b@
+type Overloaded k f g s t a b = k (g a -> f b) (g s -> f t)
 
--- | @type 'SimpleOverloaded' k f s a = 'Simple' ('Overloaded' k f) s a@
-type SimpleOverloaded k f s a = Overloaded k f s s a a
+-- | @type 'SimpleOverloaded' k f g s a = 'Simple' ('Overloaded' k f g) s a@
+type SimpleOverloaded k f g s a = Overloaded k f g s s a a
 
 -------------------------------------------------------------------------------
 -- Setting and Remembering
@@ -418,8 +428,8 @@ type SimpleOverloaded k f s a = Overloaded k f s s a a
 -- ('<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> (a -> b) -> s -> (b, t)
 -- ('<%~') :: 'Monoid' b => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> b) -> s -> (b, t)
 -- @
-(<%~) :: LensLike ((,)b) s t a b -> (a -> b) -> s -> (b, t)
-l <%~ f = l $ \s -> let t = f s in (t, t)
+(<%~) :: Settable g => LensLike ((,)b) g s t a b -> (a -> b) -> s -> (b, t)
+l <%~ f = l %%~ \s -> let t = f s in (t, t)
 {-# INLINE (<%~) #-}
 
 -- | Increment the target of a numerically valued 'Lens' and return the result
@@ -430,7 +440,7 @@ l <%~ f = l $ \s -> let t = f s in (t, t)
 -- ('<+~') :: 'Num' a => 'Simple' 'Lens' s a -> a -> s -> (a, s)
 -- ('<+~') :: 'Num' a => 'Simple' 'Control.Lens.Iso.Iso' s a  -> a -> s -> (a, s)
 -- @
-(<+~) :: Num a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
+(<+~) :: (Settable g, Num a) => LensLike ((,)a) g s t a a -> a -> s -> (a, t)
 l <+~ a = l <%~ (+ a)
 {-# INLINE (<+~) #-}
 
@@ -442,7 +452,7 @@ l <+~ a = l <%~ (+ a)
 -- ('<-~') :: 'Num' a => 'Simple' 'Lens' s a -> a -> s -> (a, s)
 -- ('<-~') :: 'Num' a => 'Simple' 'Control.Lens.Iso.Iso' s a  -> a -> s -> (a, s)
 -- @
-(<-~) :: Num a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
+(<-~) :: (Settable g, Num a) => LensLike ((,)a) g s t a a -> a -> s -> (a, t)
 l <-~ a = l <%~ subtract a
 {-# INLINE (<-~) #-}
 
@@ -455,7 +465,7 @@ l <-~ a = l <%~ subtract a
 -- ('<*~') :: 'Num' b => 'Simple' 'Lens' s a -> a -> a -> (s, a)
 -- ('<*~') :: 'Num' b => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> a -> (s, a))
 -- @
-(<*~) :: Num a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
+(<*~) :: (Settable g, Num a) => LensLike ((,)a) g s t a a -> a -> s -> (a, t)
 l <*~ a = l <%~ (* a)
 {-# INLINE (<*~) #-}
 
@@ -467,7 +477,7 @@ l <*~ a = l <%~ (* a)
 -- ('<//~') :: 'Fractional' b => 'Simple' 'Lens' s a -> a -> a -> (s, a)
 -- ('<//~') :: 'Fractional' b => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> a -> (s, a))
 -- @
-(<//~) :: Fractional a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
+(<//~) :: (Settable g, Fractional a) => LensLike ((,)a) g s t a a -> a -> s -> (a, t)
 l <//~ a = l <%~ (/ a)
 {-# INLINE (<//~) #-}
 
@@ -480,7 +490,7 @@ l <//~ a = l <%~ (/ a)
 -- ('<^~') :: ('Num' b, 'Integral' e) => 'Simple' 'Lens' s a -> e -> a -> (a, s)
 -- ('<^~') :: ('Num' b, 'Integral' e) => 'Simple' 'Control.Lens.Iso.Iso' s a -> e -> a -> (a, s)
 -- @
-(<^~) :: (Num a, Integral e) => LensLike ((,)a) s t a a -> e -> s -> (a, t)
+(<^~) :: (Settable g, Num a, Integral e) => LensLike ((,)a) g s t a a -> e -> s -> (a, t)
 l <^~ e = l <%~ (^ e)
 {-# INLINE (<^~) #-}
 
@@ -493,7 +503,7 @@ l <^~ e = l <%~ (^ e)
 -- ('<^^~') :: ('Fractional' b, 'Integral' e) => 'Simple' 'Lens' s a -> e -> a -> (a, s)
 -- ('<^^~') :: ('Fractional' b, 'Integral' e) => 'Simple' 'Control.Lens.Iso.Iso' s a -> e -> a -> (a, s)
 -- @
-(<^^~) :: (Fractional a, Integral e) => LensLike ((,)a) s t a a -> e -> s -> (a, t)
+(<^^~) :: (Settable g, Fractional a, Integral e) => LensLike ((,)a) g s t a a -> e -> s -> (a, t)
 l <^^~ e = l <%~ (^^ e)
 {-# INLINE (<^^~) #-}
 
@@ -506,7 +516,7 @@ l <^^~ e = l <%~ (^^ e)
 -- ('<**~') :: 'Floating' a => 'Simple' 'Lens' s a -> a -> s -> (a, s)
 -- ('<**~') :: 'Floating' a => 'Simple' 'Control.Lens.Iso.Iso' s a  -> a -> s -> (a, s)
 -- @
-(<**~) :: Floating a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
+(<**~) :: (Settable g, Floating a) => LensLike ((,)a) g s t a a -> a -> s -> (a, t)
 l <**~ a = l <%~ (** a)
 {-# INLINE (<**~) #-}
 
@@ -518,7 +528,7 @@ l <**~ a = l <%~ (** a)
 -- ('<||~') :: 'Simple' 'Lens' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
 -- ('<||~') :: 'Simple' 'Control.Lens.Iso.Iso' s 'Bool'  -> 'Bool' -> s -> ('Bool', s)
 -- @
-(<||~) :: LensLike ((,)Bool) s t Bool Bool -> Bool -> s -> (Bool, t)
+(<||~) :: Settable g => LensLike ((,)Bool) g s t Bool Bool -> Bool -> s -> (Bool, t)
 l <||~ b = l <%~ (|| b)
 {-# INLINE (<||~) #-}
 
@@ -530,7 +540,7 @@ l <||~ b = l <%~ (|| b)
 -- ('<&&~') :: 'Simple' 'Lens' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
 -- ('<&&~') :: 'Simple' 'Control.Lens.Iso.Iso' s 'Bool'  -> 'Bool' -> s -> ('Bool', s)
 -- @
-(<&&~) :: LensLike ((,)Bool) s t Bool Bool -> Bool -> s -> (Bool, t)
+(<&&~) :: Settable g => LensLike ((,)Bool) g s t Bool Bool -> Bool -> s -> (Bool, t)
 l <&&~ b = l <%~ (&& b)
 {-# INLINE (<&&~) #-}
 
@@ -543,8 +553,8 @@ l <&&~ b = l <%~ (&& b)
 -- ('<<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> (a -> b) -> s -> (b, t)
 -- ('<<%~') :: 'Monoid' b => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> b) -> s -> (b, t)
 -- @
-(<<%~) :: LensLike ((,)a) s t a b -> (a -> b) -> s -> (a, t)
-l <<%~ f = l $ \a -> (a, f a)
+(<<%~) :: Settable g => LensLike ((,)a) g s t a b -> (a -> b) -> s -> (a, t)
+l <<%~ f = l %%~ \a -> (a, f a)
 {-# INLINE (<<%~) #-}
 
 -- | Modify the target of a 'Lens', but return the old value.
@@ -556,8 +566,8 @@ l <<%~ f = l $ \a -> (a, f a)
 -- ('<<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> b -> s -> (a, t)
 -- ('<<%~') :: 'Monoid' b => 'Control.Lens.Traversal.Traversal' s t a b -> b -> s -> (a, t)
 -- @
-(<<.~) :: LensLike ((,)a) s t a b -> b -> s -> (a, t)
-l <<.~ b = l $ \a -> (a, b)
+(<<.~) :: Settable g => LensLike ((,)a) g s t a b -> b -> s -> (a, t)
+l <<.~ b = l %%~ \a -> (a, b)
 {-# INLINE (<<.~) #-}
 
 -------------------------------------------------------------------------------
@@ -577,7 +587,7 @@ l <<.~ b = l $ \a -> (a, b)
 -- ('<%=') :: 'MonadState' s m             => 'Simple' 'Control.Lens.Iso.Iso' s a      -> (a -> a) -> m a
 -- ('<%=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Traversal' s a -> (a -> a) -> m a
 -- @
-(<%=) :: MonadState s m => LensLike ((,)b) s s a b -> (a -> b) -> m b
+(<%=) :: (Settable g, MonadState s m) => LensLike ((,)b) g s s a b -> (a -> b) -> m b
 l <%= f = l %%= \a -> let b = f a in (b,b)
 {-# INLINE (<%=) #-}
 
@@ -592,7 +602,7 @@ l <%= f = l %%= \a -> let b = f a in (b,b)
 -- ('<+=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Lens' s a -> a -> m a
 -- ('<+=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> m a
 -- @
-(<+=) :: (MonadState s m, Num a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<+=) :: (Settable g, MonadState s m, Num a) => SimpleLensLike ((,)a) g s a -> a -> m a
 l <+= a = l <%= (+ a)
 {-# INLINE (<+=) #-}
 
@@ -606,7 +616,7 @@ l <+= a = l <%= (+ a)
 -- ('<-=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Lens' s a -> a -> m a
 -- ('<-=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> m a
 -- @
-(<-=) :: (MonadState s m, Num a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<-=) :: (Settable g, MonadState s m, Num a) => SimpleLensLike ((,)a) g s a -> a -> m a
 l <-= a = l <%= subtract a
 {-# INLINE (<-=) #-}
 
@@ -620,7 +630,7 @@ l <-= a = l <%= subtract a
 -- ('<*=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Lens' s a -> a -> m a
 -- ('<*=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> m a
 -- @
-(<*=) :: (MonadState s m, Num a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<*=) :: (Settable g, MonadState s m, Num a) => SimpleLensLike ((,)a) g s a -> a -> m a
 l <*= a = l <%= (* a)
 {-# INLINE (<*=) #-}
 
@@ -633,7 +643,7 @@ l <*= a = l <%= (* a)
 -- ('<//=') :: ('MonadState' s m, 'Fractional' a) => 'Simple' 'Lens' s a -> a -> m a
 -- ('<//=') :: ('MonadState' s m, 'Fractional' a) => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> m a
 -- @
-(<//=) :: (MonadState s m, Fractional a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<//=) :: (Settable g, MonadState s m, Fractional a) => SimpleLensLike ((,)a) g s a -> a -> m a
 l <//= a = l <%= (/ a)
 {-# INLINE (<//=) #-}
 
@@ -646,7 +656,7 @@ l <//= a = l <%= (/ a)
 -- ('<^=') :: ('MonadState' s m, 'Num' a, 'Integral' e) => 'Simple' 'Lens' s a -> e -> m a
 -- ('<^=') :: ('MonadState' s m, 'Num' a, 'Integral' e) => 'Simple' 'Control.Lens.Iso.Iso' s a -> e -> m a
 -- @
-(<^=) :: (MonadState s m, Num a, Integral e) => SimpleLensLike ((,)a) s a -> e -> m a
+(<^=) :: (Settable g, MonadState s m, Num a, Integral e) => SimpleLensLike ((,)a) g s a -> e -> m a
 l <^= e = l <%= (^ e)
 {-# INLINE (<^=) #-}
 
@@ -659,7 +669,7 @@ l <^= e = l <%= (^ e)
 -- ('<^^=') :: ('MonadState' s m, 'Fractional' b, 'Integral' e) => 'Simple' 'Lens' s a -> e -> m a
 -- ('<^^=') :: ('MonadState' s m, 'Fractional' b, 'Integral' e) => 'Simple' 'Control.Lens.Iso.Iso' s a  -> e -> m a
 -- @
-(<^^=) :: (MonadState s m, Fractional a, Integral e) => SimpleLensLike ((,)a) s a -> e -> m a
+(<^^=) :: (Settable g, MonadState s m, Fractional a, Integral e) => SimpleLensLike ((,)a) g s a -> e -> m a
 l <^^= e = l <%= (^^ e)
 {-# INLINE (<^^=) #-}
 
@@ -672,7 +682,7 @@ l <^^= e = l <%= (^^ e)
 -- ('<**=') :: ('MonadState' s m, 'Floating' a) => 'Simple' 'Lens' s a -> a -> m a
 -- ('<**=') :: ('MonadState' s m, 'Floating' a) => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> m a
 -- @
-(<**=) :: (MonadState s m, Floating a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<**=) :: (Settable g, MonadState s m, Floating a) => SimpleLensLike ((,)a) g s a -> a -> m a
 l <**= a = l <%= (** a)
 {-# INLINE (<**=) #-}
 
@@ -685,7 +695,7 @@ l <**= a = l <%= (** a)
 -- ('<||=') :: 'MonadState' s m => 'Simple' 'Lens' s 'Bool' -> 'Bool' -> m 'Bool'
 -- ('<||=') :: 'MonadState' s m => 'Simple' 'Control.Lens.Iso.Iso' s 'Bool'  -> 'Bool' -> m 'Bool'
 -- @
-(<||=) :: MonadState s m => SimpleLensLike ((,)Bool) s Bool -> Bool -> m Bool
+(<||=) :: (Settable g, MonadState s m) => SimpleLensLike ((,)Bool) g s Bool -> Bool -> m Bool
 l <||= b = l <%= (|| b)
 {-# INLINE (<||=) #-}
 
@@ -698,7 +708,7 @@ l <||= b = l <%= (|| b)
 -- ('<&&=') :: 'MonadState' s m => 'Simple' 'Lens' s 'Bool' -> 'Bool' -> m 'Bool'
 -- ('<&&=') :: 'MonadState' s m => 'Simple' 'Control.Lens.Iso.Iso' s 'Bool'  -> 'Bool' -> m 'Bool'
 -- @
-(<&&=) :: MonadState s m => SimpleLensLike ((,)Bool) s Bool -> Bool -> m Bool
+(<&&=) :: (Settable g, MonadState s m) => SimpleLensLike ((,)Bool) g s Bool -> Bool -> m Bool
 l <&&= b = l <%= (&& b)
 {-# INLINE (<&&=) #-}
 
@@ -715,7 +725,7 @@ l <&&= b = l <%= (&& b)
 -- ('<<%=') :: 'MonadState' s m             => 'Simple' 'Control.Lens.Iso.Iso' s a      -> (a -> a) -> m a
 -- ('<<%=') :: ('MonadState' s m, 'Monoid' b) => 'Simple' 'Traversal' s a -> (a -> a) -> m a
 -- @
-(<<%=) :: MonadState s m => LensLike ((,)a) s s a b -> (a -> b) -> m a
+(<<%=) :: (Settable g, MonadState s m) => LensLike ((,)a) g s s a b -> (a -> b) -> m a
 l <<%= f = l %%= \a -> (a, f a)
 {-# INLINE (<<%=) #-}
 
@@ -732,7 +742,7 @@ l <<%= f = l %%= \a -> (a, f a)
 -- ('<<%=') :: 'MonadState' s m             => 'Simple' 'Control.Lens.Iso.Iso' s a      -> (a -> a) -> m a
 -- ('<<%=') :: ('MonadState' s m, 'Monoid' t) => 'Simple' 'Traversal' s a -> (a -> a) -> m a
 -- @
-(<<.=) :: MonadState s m => LensLike ((,)a) s s a b -> b -> m a
+(<<.=) :: (Settable g, MonadState s m) => LensLike ((,)a) g s s a b -> b -> m a
 l <<.= b = l %%= \a -> (a,b)
 {-# INLINE (<<.=) #-}
 
@@ -745,10 +755,10 @@ l <<.= b = l %%= \a -> (a,b)
 --
 -- NB: This is limited to taking an actual 'Lens' than admitting a 'Control.Lens.Traversal.Traversal' because
 -- there are potential loss of state issues otherwise.
-(<<~) :: MonadState s m => LensLike (Context a b) s s a b -> m b -> m b
+(<<~) :: (Settable g, MonadState s m) => LensLike (Context a b) g s s a b -> m b -> m b
 l <<~ mb = do
   b <- mb
-  modify $ \s -> case l (Context id) s of Context f _ -> f b
+  modify $ \s -> case l (Context id # copoint) (point s) of Context f _ -> f b
   return b
 {-# INLINE (<<~) #-}
 
@@ -756,7 +766,7 @@ l <<~ mb = do
 -- return the result
 --
 -- When you do not need the result of the operation, ('<>~') is more flexible.
-(<<>~) :: Monoid m => LensLike ((,)m) s t m m -> m -> s -> (m, t)
+(<<>~) :: (Settable g, Monoid m) => LensLike ((,)m) g s t m m -> m -> s -> (m, t)
 l <<>~ m = l <%~ (`mappend` m)
 {-# INLINE (<<>~) #-}
 
@@ -764,7 +774,7 @@ l <<>~ m = l <%~ (`mappend` m)
 -- your monad's state and return the result.
 --
 -- When you do not need the result of the operation, ('<>=') is more flexible.
-(<<>=) :: (MonadState s m, Monoid r) => SimpleLensLike ((,)r) s r -> r -> m r
+(<<>=) :: (Settable g, MonadState s m, Monoid r) => SimpleLensLike ((,)r) g s r -> r -> m r
 l <<>= r = l <%= (`mappend` r)
 {-# INLINE (<<>=) #-}
 

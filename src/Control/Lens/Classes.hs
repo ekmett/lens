@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -21,39 +20,102 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Classes
   (
+    Pointed(..)
+  , Copointed(..)
+  , Costrong(..)
+  , costrengthGettable
+  , costrengthSettable
   -- * Getters
-    Gettable(..)
+  , Gettable(..)
   , noEffect
   -- * Actions
   , Effective(..)
   -- * Setters
   , Settable(..)
-  -- * Isomorphisms
-  , Isomorphic(..)
-  -- * Prisms
-  , Prismatic(..)
   -- * Indexable
   , Indexable(..)
   ) where
 
 import Control.Applicative
 import Control.Applicative.Backwards (Backwards(..))
-import Control.Category
 import Control.Monad (liftM)
 import Data.Functor.Compose (Compose(..))
 import Data.Functor.Identity (Identity(..))
-import Data.Monoid (Dual(..))
-import Prelude hiding ((.),id)
+import Data.Monoid (Dual(..), Monoid(..))
+import Data.Proxy
 #ifndef SAFE
 import Unsafe.Coerce (unsafeCoerce)
 #endif
 
-#ifndef SAFE
-#define UNSAFELY(x) unsafeCoerce
-#else
-#define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
-#endif
+class Pointed f where
+  point :: a -> f a
 
+instance Pointed Identity where
+  point = Identity
+  {-# INLINE point #-}
+
+instance Pointed Proxy where
+  point _ = Proxy
+  {-# INLINE point #-}
+
+-- should be Default m, technically
+instance Monoid m => Pointed (Const m) where
+  point _ = Const mempty
+  {-# INLINE point #-}
+
+instance Pointed f => Pointed (Backwards f) where
+  point = Backwards . point
+  {-# INLINE point #-}
+
+instance (Pointed f, Pointed g) => Pointed (Compose f g) where
+  point = Compose . point . point
+  {-# INLINE point #-}
+
+class Copointed f where
+  copoint :: f a -> a
+
+instance Copointed Identity where
+  copoint = runIdentity
+  {-# INLINE copoint #-}
+
+instance Copointed f => Copointed (Backwards f) where
+  copoint = copoint . forwards
+  {-# INLINE copoint #-}
+
+instance (Copointed f, Copointed g) => Copointed (Compose f g) where
+  copoint = copoint . copoint . getCompose
+  {-# INLINE copoint #-}
+
+class Functor f => Costrong f where
+  costrength :: f (Either a b) -> Either a (f b)
+
+instance Costrong Identity where
+  costrength = costrengthSettable
+  {-# INLINE costrength #-}
+
+instance Costrong (Const r) where
+  costrength = costrengthGettable
+  {-# INLINE costrength #-}
+
+instance Costrong Proxy where
+  costrength = costrengthGettable
+  {-# INLINE costrength #-}
+
+instance Costrong f => Costrong (Backwards f) where
+  costrength = fmap Backwards . costrength . forwards
+  {-# INLINE costrength #-}
+
+instance (Costrong f, Costrong g) => Costrong (Compose f g) where
+  costrength = fmap Compose . costrength . fmap costrength . getCompose
+  {-# INLINE costrength #-}
+
+costrengthSettable :: Settable f => f (Either a b) -> Either a (f b)
+costrengthSettable = either Left (Right . point) . copoint
+{-# INLINE costrengthSettable #-}
+
+costrengthGettable :: Gettable f => f (Either a b) -> Either a (f b)
+costrengthGettable = Right . coerce
+{-# INLINE costrengthGettable #-}
 
 -------------------------------------------------------------------------------
 -- Gettables & Accessors
@@ -72,18 +134,25 @@ import Unsafe.Coerce (unsafeCoerce)
 -- Which is equivalent to making a @'Gettable' f@ an \"anyvariant\" functor.
 --
 
-class Functor f => Gettable f where
+class Costrong f => Gettable f where
   -- | Replace the phantom type argument.
   coerce :: f a -> f b
 
+instance Gettable Proxy where
+  coerce = reproxy
+  {-# INLINE coerce #-}
+
 instance Gettable (Const r) where
   coerce (Const m) = Const m
+  {-# INLINE coerce #-}
 
 instance Gettable f => Gettable (Backwards f) where
   coerce = Backwards . coerce . forwards
+  {-# INLINE coerce #-}
 
-instance (Functor f, Gettable g) => Gettable (Compose f g) where
+instance (Costrong f, Gettable g) => Gettable (Compose f g) where
   coerce = Compose . fmap coerce . getCompose
+  {-# INLINE coerce #-}
 
 -- | The 'mempty' equivalent for a 'Gettable' 'Applicative' 'Functor'.
 noEffect :: (Applicative f, Gettable f) => f a
@@ -110,72 +179,15 @@ instance Effective m r f => Effective m (Dual r) (Backwards f) where
 -----------------------------------------------------------------------------
 
 -- | Anything 'Settable' must be isomorphic to the 'Identity' 'Functor'.
-class Applicative f => Settable f where
-  untainted :: f a -> a
-
-  untainted# :: (a -> f b) -> a -> b
-  untainted# g = g `seq` \x -> untainted (g x)
-
-  tainted# :: (a -> b) -> a -> f b
-  tainted# g = g `seq` \x -> pure (g x)
+class (Pointed f, Copointed f, Costrong f) => Settable f
 
 -- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries
-instance Settable Identity where
-  untainted = runIdentity
-  untainted# = UNSAFELY(runIdentity)
-  {-# INLINE untainted #-}
-  tainted# = UNSAFELY(Identity)
-  {-# INLINE tainted# #-}
+instance Settable Identity
 
 -- | 'Control.Lens.Fold.backwards'
-instance Settable f => Settable (Backwards f) where
-  untainted = untainted . forwards
-  {-# INLINE untainted #-}
+instance Settable f => Settable (Backwards f)
 
-instance (Settable f, Settable g) => Settable (Compose f g) where
-  untainted = untainted . untainted . getCompose
-  {-# INLINE untainted #-}
-
------------------------------------------------------------------------------
--- Isomorphisms
------------------------------------------------------------------------------
-
--- | Used to provide overloading of isomorphism application
---
--- An instance of 'Isomorphic' is a 'Category' with a canonical mapping to it from the
--- category of isomorphisms over Haskell types.
-class Category k => Isomorphic k where
-  -- | Build a simple isomorphism from a pair of inverse functions
-  --
-  -- @
-  -- 'Control.Lens.Getter.view' ('iso' f g) ≡ f
-  -- 'Control.Lens.Getter.view' ('Control.Lens.Iso.from' ('iso' f g)) ≡ g
-  -- 'Control.Lens.Setter.set' ('iso' f g) h ≡ g '.' h '.' f
-  -- 'Control.Lens.Setter.set' ('Control.Lens.Iso.from' ('iso' f g)) h ≡ f '.' h '.' g
-  -- @
-  iso :: Functor f => (s -> a) -> (b -> t) -> k (a -> f b) (s -> f t)
-
-instance Isomorphic (->) where
-  iso sa bt afb s = bt <$> afb (sa s)
-  {-# INLINE iso #-}
-
------------------------------------------------------------------------------
--- Prisms
------------------------------------------------------------------------------
-
--- | Used to provide overloading of prisms.
---
--- An instance of 'Prismatic' is a 'Category' with a canonical mapping to it from the category
--- of embedding-projection pairs over Haskell types.
-class Isomorphic k => Prismatic k where
-  -- | Build a 'Control.Lens.Prism.Prism'.
-  --
-  -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
-  prism :: Applicative f => (b -> t) -> (s -> Either t a) -> k (a -> f b) (s -> f t)
-
-instance Prismatic (->) where
-  prism bt seta afb = either pure (fmap bt . afb) . seta
-  {-# INLINE prism #-}
+instance (Settable f, Settable g) => Settable (Compose f g)
 
 ----------------------------------------------------------------------------
 -- Indexed Internals
