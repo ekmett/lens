@@ -51,6 +51,8 @@ module Control.Lens.Internal
   , Min(..), getMin
   , Indexing(..)
   , Indexing64(..)
+  , IsoChoice(..), fromIsoLeft, fromIsoRight
+  , PrismChoice(..), fromPrismLeft, fromPrismRight
   -- * Overloadings
   , Indexed(..)
   ) where
@@ -518,6 +520,40 @@ duplicateBazaarT (BazaarT m) = getCompose (m (Compose . fmap sellT . sellT))
 sellT :: a -> BazaarT a b f b
 sellT i = BazaarT (\k -> k i)
 {-# INLINE sellT #-}
+
+data IsoChoice a b = IsoLeft a | IsoRight b
+
+instance Functor (IsoChoice a) where
+  fmap _ (IsoLeft a) = IsoLeft a
+  fmap f (IsoRight a) = IsoRight (f a)
+  {-# INLINE fmap #-}
+
+fromIsoLeft :: IsoChoice a b -> a
+fromIsoLeft (IsoLeft a) = a
+fromIsoLeft _ = error "fromIsoLeft: invalid Iso passed as AnIso"
+{-# INLINE fromIsoLeft #-}
+
+fromIsoRight :: IsoChoice a b -> b
+fromIsoRight (IsoRight a) = a
+fromIsoRight _ = error "fromIsoRight: invalid Iso passed as AnIso"
+{-# INLINE fromIsoRight #-}
+
+data PrismChoice a b = PrismLeft a | PrismRight b
+
+instance Functor (PrismChoice a) where
+  fmap _ (PrismLeft a) = PrismLeft a
+  fmap f (PrismRight a) = PrismRight (f a)
+  {-# INLINE fmap #-}
+
+fromPrismLeft :: PrismChoice a b -> a
+fromPrismLeft (PrismLeft a) = a
+fromPrismLeft _ = error "fromPrismLeft: invalid Prism passed as APrism"
+{-# INLINE fromPrismLeft #-}
+
+fromPrismRight :: PrismChoice a b -> b
+fromPrismRight (PrismRight a) = a
+fromPrismRight _ = error "fromPrismRight: invalid Prism passed as APrism"
+{-# INLINE fromPrismRight #-}
 
 ------------------------------------------------------------------------------
 -- Indexed Internals

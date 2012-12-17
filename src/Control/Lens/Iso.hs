@@ -27,12 +27,13 @@ module Control.Lens.Iso
   -- * Isomorphism Lenses
     Iso
   , AnIso
+  , Reviewing
   -- * Isomorphism Construction
-  , Isomorphic(..)
-  , Isoid(..)
+  , iso
   -- * Consuming Isomorphisms
   , from
   , cloneIso
+  , withIso
   -- * Working with isomorphisms
   , au
   , auf
@@ -47,11 +48,8 @@ module Control.Lens.Iso
   , Strict(..)
   -- * Simplicity
   , SimpleIso
-  -- * Useful Type Families
-  , CoA, CoB
   ) where
 
-import Control.Category
 import Control.Lens.Classes
 import Control.Lens.Internal
 import Control.Lens.Type
@@ -60,7 +58,7 @@ import Data.ByteString.Lazy as LazyB
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Maybe
-import Prelude hiding ((.),id)
+import Data.Proxy
 
 -- $setup
 -- >>> import Control.Lens
@@ -68,17 +66,38 @@ import Prelude hiding ((.),id)
 -- >>> import Data.Foldable
 -- >>> import Data.Monoid
 
+-----------------------------------------------------------------------------
+-- Isomorphisms families as Lenses
+-----------------------------------------------------------------------------
+
+-- | Isomorphism families can be composed with other lenses using ('.') and 'id'.
+type Iso s t a b = forall f g. (Functor f, Functor g) => (g a -> f b) -> g s -> f t
+
+-- | When you see this as an argument to a function, it expects an 'Iso'.
+type AnIso s t a b = (IsoChoice () a -> IsoChoice a b) -> IsoChoice () s -> IsoChoice a t
+
+-- FIXME: Is Mutator correct here? (Should we use another name for Proxy?)
+type Reviewing s t a b = (Proxy a -> Mutator b) -> Proxy s -> Mutator t
+
+-- |
+-- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
+type SimpleIso s a = Iso s s a a
+
+-- | Build a simple isomorphism from a pair of inverse functions
+--
+-- @
+-- 'Control.Lens.Getter.view' ('iso' f g) ≡ f
+-- 'Control.Lens.Getter.view' ('from' ('iso' f g)) ≡ g
+-- 'Control.Lens.Setter.set' ('iso' f g) h ≡ g '.' h '.' f
+-- 'Control.Lens.Setter.set' ('from' ('iso' f g)) h ≡ f '.' h '.' g
+-- @
+iso :: (s -> a) -> (b -> t) -> Iso s t a b
+iso sa bt f = fmap bt . f . fmap sa
+{-# INLINE iso #-}
+
 ----------------------------------------------------------------------------
 -- Consuming Isomorphisms
 -----------------------------------------------------------------------------
-
--- | Invert an isomorphism.
---
--- @'from' ('from' l) ≡ l@
-from :: AnIso s t a b -> Iso b a t s
-from Isoid       = id
-from (Iso sa bt) = iso bt sa
-{-# INLINE from #-}
 
 -- | Convert from an 'Isomorphism' back to any 'Isomorphic' value.
 --
@@ -87,23 +106,21 @@ from (Iso sa bt) = iso bt sa
 --
 -- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
 cloneIso :: AnIso s t a b -> Iso s t a b
-cloneIso Isoid       = id
-cloneIso (Iso sa bt) = iso sa bt
+cloneIso = withIso iso
 {-# INLINE cloneIso #-}
 
------------------------------------------------------------------------------
--- Isomorphisms families as Lenses
------------------------------------------------------------------------------
+withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
+withIso k ai = k
+  (\s -> fromIsoLeft $ ai (IsoLeft . fromIsoRight) (IsoRight s))
+  (\b -> fromIsoRight $ ai (\_ -> IsoRight b) (IsoLeft ()))
+{-# INLINE withIso #-}
 
--- | Isomorphism families can be composed with other lenses using ('.') and 'id'.
-type Iso s t a b = forall k f. (Isomorphic k, Functor f) => k (a -> f b) (s -> f t)
-
--- | When you see this as an argument to a function, it expects an 'Iso'.
-type AnIso s t a b = Overloaded Isoid Mutator s t a b
-
--- |
--- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
-type SimpleIso s a = Iso s s a a
+-- | Invert an isomorphism.
+--
+-- @'from' ('from' l) ≡ l@
+from :: AnIso s t a b -> Iso b a t s
+from = withIso (flip iso)
+{-# INLINE from #-}
 
 -- | Based on 'Control.Lens.Wrapped.ala' from Conor McBride's work on Epigram.
 --
@@ -112,8 +129,7 @@ type SimpleIso s a = Iso s s a a
 -- >>> au (wrapping Sum) foldMap [1,2,3,4]
 -- 10
 au :: AnIso s t a b -> ((s -> a) -> e -> b) -> e -> t
-au Isoid f e = f id e
-au (Iso sa bt) f e = bt (f sa e)
+au = withIso $ \sa bt f e -> bt (f sa e)
 {-# INLINE au #-}
 
 -- |
@@ -129,8 +145,7 @@ au (Iso sa bt) f e = bt (f sa e)
 -- >>> auf (wrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
 -- 10
 auf :: AnIso s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
-auf Isoid       f g e = f g e
-auf (Iso sa bt) f g e = bt (f (sa . g) e)
+auf = withIso $ \sa bt f g e -> bt (f (sa . g) e)
 {-# INLINE auf #-}
 
 -- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
@@ -139,8 +154,7 @@ auf (Iso sa bt) f g e = bt (f (sa . g) e)
 --
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
 under :: AnIso s t a b -> (t -> s) -> b -> a
-under Isoid       ts b = ts b
-under (Iso sa bt) ts b = sa (ts (bt b))
+under = withIso $ \sa bt ts -> sa . ts . bt
 {-# INLINE under #-}
 
 -----------------------------------------------------------------------------
@@ -166,8 +180,7 @@ enum = iso toEnum fromEnum
 
 -- | This can be used to lift any 'Iso' into an arbitrary functor.
 mapping :: Functor f => AnIso s t a b -> Iso (f s) (f t) (f a) (f b)
-mapping Isoid       = id
-mapping (Iso sa bt) = iso (fmap sa) (fmap bt)
+mapping = withIso $ \sa bt -> iso (fmap sa) (fmap bt)
 {-# INLINE mapping #-}
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',
