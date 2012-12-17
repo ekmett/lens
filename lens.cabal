@@ -175,7 +175,8 @@ library
     split                == 0.2.*,
     text                 >= 0.11     && < 0.12,
     unordered-containers >= 0.2      && < 0.3,
-    vector               >= 0.9      && < 0.11
+    vector               >= 0.9      && < 0.11,
+    tagged               >= 0.4      && < 0.5
 
   if flag(transformers2)
     build-depends:  transformers >= 0.2 && < 0.3
