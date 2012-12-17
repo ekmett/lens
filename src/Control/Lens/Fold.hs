@@ -124,7 +124,7 @@ infixl 8 ^.., ^?, ^?!
 --
 -- Unlike a 'Control.Lens.Traversal.Traversal' a 'Fold' is read-only. Since a 'Fold' cannot be used to write back
 -- there are no lens laws that apply.
-type Fold s a = forall f. (Gettable f, Applicative f) => (a -> f a) -> s -> f s
+type Fold s a = forall f g. (Gettable f, Applicative f, Settable g) => (g a -> f a) -> g s -> f s
 
 
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
@@ -133,8 +133,8 @@ type Fold s a = forall f. (Gettable f, Applicative f) => (a -> f a) -> s -> f s
 --
 -- >>> [1,2,3,4]^..folding tail
 -- [2,3,4]
-folding :: (Foldable f, Applicative g, Gettable g) => (s -> f a) -> LensLike g s t a b
-folding sfa agb = coerce . traverse_ agb . sfa
+folding :: (Foldable h, Applicative f, Gettable f, Settable g) => (s -> h a) -> LensLike f g s t a b
+folding sha = twan $ \afb -> coerce . traverse_ afb . sha
 {-# INLINE folding #-}
 
 -- | Obtain a 'Fold' from any 'Foldable'.
@@ -148,7 +148,7 @@ folding sfa agb = coerce . traverse_ agb . sfa
 -- >>> [(1,2),(3,4)]^..folded.both
 -- [1,2,3,4]
 folded :: Foldable f => Fold (f a) a
-folded f = coerce . getFolding . foldMap (folding# f)
+folded = twan $ \f -> coerce . getFolding . foldMap (Folding # f)
 {-# INLINE folded #-}
 
 -- | Fold by repeating the input forever.
@@ -178,7 +178,7 @@ replicated n0 f a = go n0 where
 --
 -- >>> [1,2,3]^..taking 7 (cycled traverse)
 -- [1,2,3,1,2,3,1]
-cycled :: (Applicative f, Gettable f) => LensLike f s t a b -> LensLike f s t a b
+cycled :: (Applicative f, Gettable f) => LensLike f g s t a b -> LensLike f g s t a b
 cycled l f a = as where as = l f a *> as
 {-# INLINE cycled #-}
 
@@ -189,18 +189,18 @@ cycled l f a = as where as = l f a *> as
 -- >>> 10^..unfolded (\b -> if b == 0 then Nothing else Just (b, b-1))
 -- [10,9,8,7,6,5,4,3,2,1]
 unfolded :: (b -> Maybe (a, b)) -> Fold b a
-unfolded f g b0 = go b0 where
-  go b = case f b of
-    Just (a, b') -> g a *> go b'
-    Nothing      -> noEffect
+unfolded f = twan $ \g b0 ->
+  let go b = case f b of
+        Just (a, b') -> g a *> go b'
+        Nothing      -> noEffect
+  in go b0
 {-# INLINE unfolded #-}
 
 -- | @x ^. 'iterated' f@ Return an infinite fold of repeated applications of @f@ to @x@.
 --
 -- @'toListOf' ('iterated' f) a ≡ 'iterate' f a@
 iterated :: (a -> a) -> Fold a a
-iterated f g a0 = go a0 where
-  go a = g a *> go (f a)
+iterated f = twan $ \g a0 -> let go a = g a *> go (f a) in go a0
 {-# INLINE iterated #-}
 
 -- | Obtain a 'Fold' that can be composed with to filter another 'Lens', 'Control.Lens.Iso.Iso', 'Getter', 'Fold' (or 'Control.Lens.Traversal.Traversal')
@@ -214,10 +214,8 @@ iterated f g a0 = go a0 where
 -- So, in order for this to qualify as a legal 'Traversal' you can only use it for actions that preserve the result of the predicate!
 --
 -- @'filtered' :: (a -> 'Bool') -> 'Fold' a a@
-filtered :: Applicative f => (a -> Bool) -> SimpleLensLike f a a
-filtered p f a
-  | p a       = f a
-  | otherwise = pure a
+filtered :: (Applicative f, Settable g) => (a -> Bool) -> SimpleLensLike f g a a
+filtered p = twan $ \f a -> if p a then f a else pure a
 {-# INLINE filtered #-}
 
 -- | This allows you to traverse the elements of a 'Control.Lens.Traversal.Traversal' or 'Fold' in the opposite order.
@@ -227,8 +225,8 @@ filtered p f a
 -- Note: 'backwards' should have no impact on a 'Getter', 'Control.Lens.Setter.Setter', 'Lens' or 'Control.Lens.Iso.Iso'.
 --
 -- To change the direction of an 'Control.Lens.Iso.Iso', use 'Control.Lens.Isomorphic.from'.
-backwards :: LensLike (Backwards f) s t a b -> LensLike f s t a b
-backwards l f = forwards# $ l (backwards# f)
+backwards :: LensLike (Backwards f) g s t a b -> LensLike f g s t a b
+backwards l f = forwards # l (Backwards # f)
 {-# INLINE backwards #-}
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Control.Lens.Iso.Iso', 'Getter' or 'Control.Lens.Traversal.Traversal' while a predicate holds.
@@ -237,11 +235,11 @@ backwards l f = forwards# $ l (backwards# f)
 --
 -- >>> toListOf (takingWhile (<=3) folded) [1..]
 -- [1,2,3]
-takingWhile :: (Gettable f, Applicative f)
+takingWhile :: (Gettable f, Applicative f, Settable g)
             => (a -> Bool)
             -> Getting (Endo (f s)) s s a a
-            -> LensLike f s s a a
-takingWhile p l f = foldrOf l (\a r -> if p a then f a *> r else noEffect) noEffect
+            -> LensLike f g s s a a
+takingWhile p l = twan $ \f -> foldrOf l (\a r -> if p a then f a *> r else noEffect) noEffect
 {-# INLINE takingWhile #-}
 
 
@@ -254,11 +252,13 @@ takingWhile p l f = foldrOf l (\a r -> if p a then f a *> r else noEffect) noEff
 --
 -- >>> toListOf (droppingWhile (<=3) folded) [1,6,1]
 -- [6,1]
-droppingWhile :: (Gettable f, Applicative f)
+droppingWhile :: (Gettable f, Applicative f, Settable g)
               => (a -> Bool)
               -> Getting (Endo (f s, f s)) s s a a
-              -> LensLike f s s a a
-droppingWhile p l f = fst . foldrOf l (\a r -> let s = f a *> snd r in (if p a then fst r else s, s)) (noEffect, noEffect)
+              -> LensLike f g s s a a
+droppingWhile p l = twan $ \f -> fst . foldrOf l
+  (\a r -> let s = f a *> snd r in (if p a then fst r else s, s))
+  (noEffect, noEffect)
 {-# INLINE droppingWhile #-}
 
 --------------------------
@@ -279,7 +279,7 @@ droppingWhile p l f = fst . foldrOf l (\a r -> let s = f a *> snd r in (if p a t
 -- 'foldMapOf' :: 'Monoid' r => 'Simple' 'Control.Lens.Prism.Prism' s a     -> (a -> r) -> s -> r
 -- @
 foldMapOf :: Getting r s t a b -> (a -> r) -> s -> r
-foldMapOf l f = runAccessor# (l (accessor# f))
+foldMapOf l f = runAccessor # l (Accessor # f # copoint) # point
 {-# INLINE foldMapOf #-}
 
 -- |
@@ -296,7 +296,7 @@ foldMapOf l f = runAccessor# (l (accessor# f))
 -- 'foldOf' :: 'Monoid' m => 'Simple' 'Control.Lens.Prism.Prism' s m     -> s -> m
 -- @
 foldOf :: Getting a s t a b -> s -> a
-foldOf l = runAccessor# (l Accessor)
+foldOf l = runAccessor # l (Accessor # copoint) # point
 {-# INLINE foldOf #-}
 
 -- |
@@ -313,7 +313,7 @@ foldOf l = runAccessor# (l Accessor)
 -- 'foldrOf' :: 'Simple' 'Control.Lens.Prism.Prism' s a     -> (a -> r -> r) -> r -> s -> r
 -- @
 foldrOf :: Getting (Endo r) s t a b -> (a -> r -> r) -> r -> s -> r
-foldrOf l f z t = appEndo (foldMapOf l (endo# f) t) z
+foldrOf l f z t = appEndo (foldMapOf l (Endo # f) t) z
 {-# INLINE foldrOf #-}
 
 -- |
@@ -330,7 +330,8 @@ foldrOf l f z t = appEndo (foldMapOf l (endo# f) t) z
 -- 'foldlOf' :: 'Simple' 'Control.Lens.Prism.Prism' s a     -> (r -> a -> r) -> r -> s -> r
 -- @
 foldlOf :: Getting (Dual (Endo r)) s t a b -> (r -> a -> r) -> r -> s -> r
-foldlOf l f z t = appEndo (getDual (foldMapOf l (dual# (endo# (flip f))) t)) z
+foldlOf l f z t = appEndo (getDual (foldMapOf l (Dual # Endo # flip f) t)) z
+
 {-# INLINE foldlOf #-}
 
 -- | Extract a list of the targets of a 'Fold'. See also ('^..').
@@ -401,7 +402,7 @@ s ^.. l = toListOf l s
 -- 'andOf' :: 'Simple' 'Control.Lens.Prism.Prism' s 'Bool'     -> s -> 'Bool'
 -- @
 andOf :: Getting All s t Bool b -> s -> Bool
-andOf l = getAll# (foldMapOf l All)
+andOf l = getAll # foldMapOf l All
 {-# INLINE andOf #-}
 
 -- | Returns 'True' if any target of a 'Fold' is 'True'.
@@ -422,7 +423,7 @@ andOf l = getAll# (foldMapOf l All)
 -- 'orOf' :: 'Simple' 'Control.Lens.Prism.Prism' s 'Bool'     -> s -> 'Bool'
 -- @
 orOf :: Getting Any s t Bool b -> s -> Bool
-orOf l = getAny# (foldMapOf l Any)
+orOf l = getAny # foldMapOf l Any
 {-# INLINE orOf #-}
 
 -- | Returns 'True' if any target of a 'Fold' satisfies a predicate.
@@ -444,7 +445,7 @@ orOf l = getAny# (foldMapOf l Any)
 -- 'anyOf' :: 'Simple' 'Control.Lens.Prism.Prism' s a     -> (a -> 'Bool') -> s -> 'Bool'
 -- @
 anyOf :: Getting Any s t a b -> (a -> Bool) -> s -> Bool
-anyOf l f = getAny# $ foldMapOf l (any# f)
+anyOf l f = getAny # foldMapOf l (Any # f)
 {-# INLINE anyOf #-}
 
 -- | Returns 'True' if every target of a 'Fold' satisfies a predicate.
@@ -465,7 +466,7 @@ anyOf l f = getAny# $ foldMapOf l (any# f)
 -- 'allOf' :: 'Simple' 'Control.Lens.Prism.Prism' s a     -> (a -> 'Bool') -> s -> 'Bool'
 -- @
 allOf :: Getting All s t a b -> (a -> Bool) -> s -> Bool
-allOf l f = getAll# $ foldMapOf l (all# f)
+allOf l f = getAll # foldMapOf l (All # f)
 {-# INLINE allOf #-}
 
 -- | Calculate the product of every number targeted by a 'Fold'
@@ -486,7 +487,7 @@ allOf l f = getAll# $ foldMapOf l (all# f)
 -- 'productOf' :: 'Num' a => 'Simple' 'Control.Lens.Prism.Prism' s a     -> s -> a
 -- @
 productOf :: Getting (Product a) s t a b -> s -> a
-productOf l = getProduct# $ foldMapOf l Product
+productOf l = getProduct # foldMapOf l Product
 {-# INLINE productOf #-}
 
 -- | Calculate the sum of every number targeted by a 'Fold'.
@@ -517,7 +518,7 @@ productOf l = getProduct# $ foldMapOf l Product
 -- 'sumOf' :: 'Num' a => 'Simple' 'Control.Lens.Prism.Prism' s a     -> s -> a
 -- @
 sumOf :: Getting (Sum a) s t a b -> s -> a
-sumOf l = getSum# $ foldMapOf l Sum
+sumOf l = getSum # foldMapOf l Sum
 {-# INLINE sumOf #-}
 
 -- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor') -based answer,
@@ -549,7 +550,7 @@ sumOf l = getSum# $ foldMapOf l Sum
 -- 'traverseOf_' :: 'Applicative' f => 'Simple' 'Control.Lens.Prism.Prism' s a     -> (a -> f r) -> s -> f ()
 -- @
 traverseOf_ :: Functor f => Getting (Traversed f) s t a b -> (a -> f r) -> s -> f ()
-traverseOf_ l f = getTraversed# (foldMapOf l (traversed# (void . f)))
+traverseOf_ l f = getTraversed # foldMapOf l (Traversed # void # f)
 {-# INLINE traverseOf_ #-}
 
 -- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor') -based answer,
@@ -588,7 +589,7 @@ forOf_ = flip . traverseOf_
 -- 'sequenceAOf_' :: 'Applicative' f => 'Simple' 'Control.Lens.Prism.Prism' s (f a)     -> s -> f ()
 -- @
 sequenceAOf_ :: Functor f => Getting (Traversed f) s t (f a) b -> s -> f ()
-sequenceAOf_ l = getTraversed# (foldMapOf l (traversed# void))
+sequenceAOf_ l = getTraversed # foldMapOf l (Traversed # void)
 {-# INLINE sequenceAOf_ #-}
 
 -- | Map each target of a 'Fold' on a structure to a monadic action, evaluate these actions from left to right, and ignore the results.
@@ -604,7 +605,7 @@ sequenceAOf_ l = getTraversed# (foldMapOf l (traversed# void))
 -- 'mapMOf_' :: 'Monad' m => 'Simple' 'Control.Lens.Prism.Prism' s a     -> (a -> m r) -> s -> m ()
 -- @
 mapMOf_ :: Monad m => Getting (Sequenced m) s t a b -> (a -> m r) -> s -> m ()
-mapMOf_ l f = getSequenced# (foldMapOf l (sequenced# (liftM skip . f)))
+mapMOf_ l f = getSequenced # foldMapOf l (Sequenced # liftM skip # f)
 {-# INLINE mapMOf_ #-}
 
 skip :: a -> ()
@@ -640,7 +641,7 @@ forMOf_ = flip . mapMOf_
 -- 'sequenceOf_' :: 'Monad' m => 'Simple' 'Control.Lens.Prism.Prism' s (m a)     -> s -> m ()
 -- @
 sequenceOf_ :: Monad m => Getting (Sequenced m) s t (m a) b -> s -> m ()
-sequenceOf_ l = getSequenced# (foldMapOf l (sequenced# (liftM skip)))
+sequenceOf_ l = getSequenced # foldMapOf l (Sequenced # liftM skip)
 {-# INLINE sequenceOf_ #-}
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
@@ -722,7 +723,7 @@ notElemOf l = allOf l . (/=)
 -- 'concatMapOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> [r]) -> s -> [r]
 -- @
 concatMapOf :: Getting [r] s t a b -> (a -> [r]) -> s -> [r]
-concatMapOf l ces = runAccessor# (l (accessor# ces))
+concatMapOf l ces = runAccessor # l (Accessor # ces # copoint) # point
 {-# INLINE concatMapOf #-}
 
 -- | Concatenate all of the lists targeted by a 'Fold' into a longer list.
@@ -764,12 +765,12 @@ concatOf = view
 -- 'lengthOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Int'
 -- @
 lengthOf :: Getting (Sum Int) s t a b -> s -> Int
-lengthOf l = getSum# (foldMapOf l (\_ -> Sum 1))
+lengthOf l = getSum # foldMapOf l (\_ -> Sum 1)
 {-# INLINE lengthOf #-}
 
 -- | A deprecated alias for 'firstOf'
 headOf :: Getting (First a) s t a b -> s -> Maybe a
-headOf l = getFirst# (foldMapOf l (first# Just))
+headOf l = getFirst # foldMapOf l (First # Just)
 {-# INLINE headOf #-}
 {-# DEPRECATED headOf "`headOf' will be removed in 3.8. (Use `preview' or `firstOf')" #-}
 
@@ -789,7 +790,7 @@ headOf l = getFirst# (foldMapOf l (first# Just))
 -- ('^?') :: s -> 'Simple' 'Control.Lens.Traversal.Traversal' s a -> 'Maybe' a
 -- @
 (^?) :: s -> Getting (First a) s t a b -> Maybe a
-a ^? l = getFirst (foldMapOf l (first# Just) a)
+a ^? l = getFirst (foldMapOf l (First # Just) a)
 {-# INLINE (^?) #-}
 
 -- | Perform an *UNSAFE* 'head' of a 'Fold' or 'Control.Lens.Traversal.Traversal' assuming that it is there.
@@ -802,7 +803,7 @@ a ^? l = getFirst (foldMapOf l (first# Just) a)
 -- ('^?!') :: s -> 'Simple' 'Control.Lens.Traversal.Traversal' s a -> a
 -- @
 (^?!) :: s -> Getting (First a) s t a b -> a
-a ^?! l = fromMaybe (error "(^?!): empty Fold") $ getFirst (foldMapOf l (first# Just) a)
+a ^?! l = fromMaybe (error "(^?!): empty Fold") $ getFirst (foldMapOf l (First # Just) a)
 {-# INLINE (^?!) #-}
 
 -- | Retrieve the 'First' entry of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
@@ -816,7 +817,7 @@ a ^?! l = fromMaybe (error "(^?!): empty Fold") $ getFirst (foldMapOf l (first# 
 -- 'firstOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Maybe' a
 -- @
 firstOf :: Getting (First a) s t a b -> s -> Maybe a
-firstOf l = getFirst# (foldMapOf l (first# Just))
+firstOf l = getFirst # foldMapOf l (First # Just)
 {-# INLINE firstOf #-}
 
 -- | Retrieve the 'Last' entry of a 'Fold' or 'Control.Lens.Traversal.Traversal' or retrieve 'Just' the result
@@ -830,7 +831,7 @@ firstOf l = getFirst# (foldMapOf l (first# Just))
 -- 'lastOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Maybe' a
 -- @
 lastOf :: Getting (Last a) s t a b -> s -> Maybe a
-lastOf l = getLast# (foldMapOf l (last# Just))
+lastOf l = getLast # foldMapOf l (Last # Just)
 {-# INLINE lastOf #-}
 
 -- |
@@ -855,7 +856,7 @@ lastOf l = getLast# (foldMapOf l (last# Just))
 -- 'nullOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Bool'
 -- @
 nullOf :: Getting All s t a b -> s -> Bool
-nullOf l = getAll# (foldMapOf l (\_ -> All False))
+nullOf l = getAll # foldMapOf l (\_ -> All False)
 {-# INLINE nullOf #-}
 
 
@@ -881,7 +882,7 @@ nullOf l = getAll# (foldMapOf l (\_ -> All False))
 -- 'notNullOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Bool'
 -- @
 notNullOf :: Getting Any s t a b -> s -> Bool
-notNullOf l = getAny# (foldMapOf l (\_ -> Any True))
+notNullOf l = getAny # foldMapOf l (\_ -> Any True)
 {-# INLINE notNullOf #-}
 
 -- |
@@ -970,7 +971,7 @@ minimumByOf l cmp = foldrOf l step Nothing where
 -- 'findOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> 'Bool') -> s -> 'Maybe' a
 -- @
 findOf :: Getting (First a) s t a b -> (a -> Bool) -> s -> Maybe a
-findOf l p = getFirst# (foldMapOf l step) where
+findOf l p = getFirst # foldMapOf l step where
   step a
     | p a       = First (Just a)
     | otherwise = First Nothing
@@ -1124,7 +1125,7 @@ newtype ReifiedFold s a = ReifyFold { reflectFold :: Fold s a }
 -- 'preview' :: MonadReader s m => 'Simple' 'Control.Lens.Traversal.Traversal' s a -> m ('Maybe' a)
 -- @
 preview :: MonadReader s m => Getting (First a) s t a b -> m (Maybe a)
-preview l = asks (getFirst# (foldMapOf l (first# Just)))
+preview l = asks (getFirst # foldMapOf l (First # Just))
 {-# INLINE preview #-}
 
 -- | Retrieve a function of the first value targeted by a 'Fold' or
@@ -1151,7 +1152,7 @@ preview l = asks (getFirst# (foldMapOf l (first# Just)))
 -- 'previews' :: MonadReader s m => 'Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> r) -> m ('Maybe' r)
 -- @
 previews :: MonadReader s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe r)
-previews l f = asks (getFirst# (foldMapOf l (first# (Just . f))))
+previews l f = asks (getFirst # foldMapOf l (First # Just # f))
 {-# INLINE previews #-}
 
 
@@ -1170,7 +1171,7 @@ previews l f = asks (getFirst# (foldMapOf l (first# (Just . f))))
 -- 'preuse' :: MonadState s m => 'Simple' 'Control.Lens.Traversal.Traversal' s a -> m ('Maybe' a)
 -- @
 preuse :: MonadState s m => Getting (First a) s t a b -> m (Maybe a)
-preuse l = gets (getFirst# (foldMapOf l (first# Just)))
+preuse l = gets (getFirst # foldMapOf l (First # Just))
 {-# INLINE preuse #-}
 
 -- | Retrieve a function of the first value targeted by a 'Fold' or
@@ -1184,5 +1185,5 @@ preuse l = gets (getFirst# (foldMapOf l (first# Just)))
 -- 'preuses' :: MonadState s m => 'Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> r) -> m ('Maybe' r)
 -- @
 preuses :: MonadState s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe r)
-preuses l f = gets (getFirst# (foldMapOf l (first# (Just . f))))
+preuses l f = gets (getFirst # foldMapOf l (First # Just # f))
 {-# INLINE preuses #-}
