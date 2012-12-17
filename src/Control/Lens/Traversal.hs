@@ -60,7 +60,7 @@ module Control.Lens.Traversal
   , unsafeSingular
 
   -- * Common Traversals
-  , Traversable(traverse)
+  , traversed
   , both
   , beside
   , taking
@@ -82,6 +82,7 @@ module Control.Lens.Traversal
 
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
+import Control.Lens.Classes
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Internal
@@ -124,7 +125,7 @@ import Data.Traversable
 -- is that the caveat expressed in section 5.5 of the \"Essence of the Iterator Pattern\" about exotic
 -- 'Traversable' instances that 'traverse' the same entry multiple times was actually already ruled out by the
 -- second law in that same paper!
-type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
+type Traversal s t a b = forall f g. (Applicative f, Settable g) => (g a -> f b) -> g s -> f t
 
 -- | @type SimpleTraversal = 'Simple' 'Traversal'@
 type SimpleTraversal s a = Traversal s s a a
@@ -150,8 +151,8 @@ type SimpleTraversal s a = Traversal s s a a
 -- 'traverseOf' :: 'Lens' s t a b      -> (a -> f b) -> s -> f t
 -- 'traverseOf' :: 'Traversal' s t a b -> (a -> f b) -> s -> f t
 -- @
-traverseOf :: LensLike f s t a b -> (a -> f b) -> s -> f t
-traverseOf = id
+traverseOf :: Settable g => LensLike f g s t a b -> (a -> f b) -> s -> f t
+traverseOf l afb = l (afb # copoint) # point
 {-# INLINE traverseOf #-}
 
 -- | A version of 'traverseOf' with the arguments flipped, such that:
@@ -173,8 +174,8 @@ traverseOf = id
 -- 'forOf' :: 'Lens' s t a b -> s -> (a -> f b) -> f t
 -- 'forOf' :: 'Traversal' s t a b -> s -> (a -> f b) -> f t
 -- @
-forOf :: LensLike f s t a b -> s -> (a -> f b) -> f t
-forOf = flip
+forOf :: Settable g => LensLike f g s t a b -> s -> (a -> f b) -> f t
+forOf l s afb = l (afb # copoint) (point s)
 {-# INLINE forOf #-}
 
 -- |
@@ -191,8 +192,8 @@ forOf = flip
 -- 'sequenceAOf' ::                  'Lens' s t (f b) b      -> s -> f t
 -- 'sequenceAOf' :: 'Applicative' f => 'Traversal' s t (f b) b -> s -> f t
 -- @
-sequenceAOf :: LensLike f s t (f b) b -> s -> f t
-sequenceAOf l = l id
+sequenceAOf :: Settable g => LensLike f g s t (f b) b -> s -> f t
+sequenceAOf l = l copoint # point
 {-# INLINE sequenceAOf #-}
 
 -- | Map each element of a structure targeted by a lens to a monadic action,
@@ -205,8 +206,8 @@ sequenceAOf l = l id
 -- 'mapMOf' ::            'Lens' s t a b      -> (a -> m b) -> s -> m t
 -- 'mapMOf' :: 'Monad' m => 'Traversal' s t a b -> (a -> m b) -> s -> m t
 -- @
-mapMOf :: LensLike (WrappedMonad m) s t a b -> (a -> m b) -> s -> m t
-mapMOf l cmd = unwrapMonad# (l (wrapMonad# cmd))
+mapMOf :: Settable g => LensLike (WrappedMonad m) g s t a b -> (a -> m b) -> s -> m t
+mapMOf l cmd = unwrapMonad # l (WrapMonad # cmd # copoint) # point
 {-# INLINE mapMOf #-}
 
 -- | 'forMOf' is a flipped version of 'mapMOf', consistent with the definition of 'forM'.
@@ -220,8 +221,8 @@ mapMOf l cmd = unwrapMonad# (l (wrapMonad# cmd))
 -- 'forMOf' ::            'Lens' s t a b      -> s -> (a -> m b) -> m t
 -- 'forMOf' :: 'Monad' m => 'Traversal' s t a b -> s -> (a -> m b) -> m t
 -- @
-forMOf :: LensLike (WrappedMonad m) s t a b -> s -> (a -> m b) -> m t
-forMOf l a cmd = unwrapMonad (l (wrapMonad# cmd) a)
+forMOf :: Settable g => LensLike (WrappedMonad m) g s t a b -> s -> (a -> m b) -> m t
+forMOf l a cmd = unwrapMonad (l (WrapMonad # cmd # copoint) (point a))
 {-# INLINE forMOf #-}
 
 -- | Sequence the (monadic) effects targeted by a lens in a container from left to right.
@@ -237,8 +238,8 @@ forMOf l a cmd = unwrapMonad (l (wrapMonad# cmd) a)
 -- 'sequenceOf' ::            'Lens' s t (m b) b      -> s -> m t
 -- 'sequenceOf' :: 'Monad' m => 'Traversal' s t (m b) b -> s -> m t
 -- @
-sequenceOf :: LensLike (WrappedMonad m) s t (m b) b -> s -> m t
-sequenceOf l = unwrapMonad# (l WrapMonad)
+sequenceOf :: Settable g => LensLike (WrappedMonad m) g s t (m b) b -> s -> m t
+sequenceOf l = unwrapMonad # l (WrapMonad # copoint) # point
 {-# INLINE sequenceOf #-}
 
 -- | This generalizes 'Data.List.transpose' to an arbitrary 'Traversal'.
@@ -254,8 +255,8 @@ sequenceOf l = unwrapMonad# (l WrapMonad)
 -- monadic strength as well:
 --
 -- @'transposeOf' '_2' :: (b, [a]) -> [(b, a)]@
-transposeOf :: LensLike ZipList s t [a] a -> s -> [t]
-transposeOf l = getZipList# (l ZipList)
+transposeOf :: Settable g => LensLike ZipList g s t [a] a -> s -> [t]
+transposeOf l = getZipList # l (ZipList # copoint) # point
 {-# INLINE transposeOf #-}
 
 -- | This generalizes 'Data.Traversable.mapAccumR' to an arbitrary 'Traversal'.
@@ -269,7 +270,7 @@ transposeOf l = getZipList# (l ZipList)
 -- 'mapAccumROf' :: 'Lens' s t a b      -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumROf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-mapAccumROf :: LensLike (Backwards (Lazy.State acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumROf :: Settable g => LensLike (Backwards (Lazy.State acc)) g s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumROf = mapAccumLOf . backwards
 {-# INLINE mapAccumROf #-}
 
@@ -284,11 +285,11 @@ mapAccumROf = mapAccumLOf . backwards
 -- 'mapAccumLOf' :: 'Lens' s t a b      -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumLOf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-mapAccumLOf :: LensLike (Lazy.State acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumLOf :: Settable g => LensLike (Lazy.State acc) g s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 #if MIN_VERSION_mtl(2,1,1)
-mapAccumLOf l f acc0 s = swap (Lazy.runState (l (\a -> State.state (\acc -> swap (f acc a))) s) acc0)
+mapAccumLOf l f acc0 s = swap (Lazy.runState (l (\a -> State.state (\acc -> swap (f acc (copoint a)))) (point s)) acc0)
 #else
-mapAccumLOf l f acc0 s = swap (Lazy.runState (l (\a -> do (r,s') <- State.gets (\acc -> swap (f acc a)); State.put s'; return r) s) acc0)
+mapAccumLOf l f acc0 s = swap (Lazy.runState (l (\a -> do (r,s') <- State.gets (\acc -> swap (f acc (copoint a))); State.put s'; return r) (point s)) acc0)
 #endif
 {-# INLINE mapAccumLOf #-}
 
@@ -305,7 +306,7 @@ swap (a,b) = (b,a)
 -- 'scanr1Of' :: 'Lens' s t a a      -> (a -> a -> a) -> s -> t
 -- 'scanr1Of' :: 'Traversal' s t a a -> (a -> a -> a) -> s -> t
 -- @
-scanr1Of :: LensLike (Backwards (Lazy.State (Maybe a))) s t a a -> (a -> a -> a) -> s -> t
+scanr1Of :: Settable g => LensLike (Backwards (Lazy.State (Maybe a))) g s t a a -> (a -> a -> a) -> s -> t
 scanr1Of l f = snd . mapAccumROf l step Nothing where
   step Nothing a  = (Just a, a)
   step (Just s) a = (Just r, r) where r = f a s
@@ -320,7 +321,7 @@ scanr1Of l f = snd . mapAccumROf l step Nothing where
 -- 'scanr1Of' :: 'Lens' s t a a      -> (a -> a -> a) -> s -> t
 -- 'scanr1Of' :: 'Traversal' s t a a -> (a -> a -> a) -> s -> t
 -- @
-scanl1Of :: LensLike (Lazy.State (Maybe a)) s t a a -> (a -> a -> a) -> s -> t
+scanl1Of :: Settable g => LensLike (Lazy.State (Maybe a)) g s t a a -> (a -> a -> a) -> s -> t
 scanl1Of l f = snd . mapAccumLOf l step Nothing where
   step Nothing a  = (Just a, a)
   step (Just s) a = (Just r, r) where r = f s a
@@ -328,7 +329,7 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 
 -- | This 'Traversal' allows you to 'traverse' the individual stores in a 'Bazaar'.
 loci :: Traversal (Bazaar a c s) (Bazaar b c s) a b
-loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafeOuts w
+loci = twan $ \f w -> traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafeOuts w
 
 
 
@@ -353,13 +354,13 @@ loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafe
 -- 'partsOf' :: 'Fold' s a             -> 'Control.Lens.Getter.Getter' s [a]
 -- 'partsOf' :: 'Control.Lens.Getter.Getter' s a           -> 'Control.Lens.Getter.Getter' s [a]
 -- @
-partsOf :: Functor f => LensLike (BazaarT a a f) s t a a -> LensLike f s t [a] [a]
-partsOf l f s = outsT b <$> f (insT b) where b = l sellT s
+partsOf :: (Functor f, Settable g) => LensLike (BazaarT a a f) g s t a a -> LensLike f g s t [a] [a]
+partsOf l = twan $ \f s -> let b = l (sellT # copoint) (point s) in outsT b <$> f (insT b)
 {-# INLINE partsOf #-}
 
 -- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
-partsOf' :: LensLike (Bazaar a a) s t a a -> Lens s t [a] [a]
-partsOf' l f s = outs b <$> f (ins b) where b = l sell s
+partsOf' :: Settable g => LensLike (Bazaar a a) g s t a a -> Lens s t [a] [a]
+partsOf' l = twan $ \f s -> let b = l (sell # copoint) (point s) in outs b <$> f (ins b)
 {-# INLINE partsOf' #-}
 
 -- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
@@ -382,12 +383,12 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 -- 'unsafePartsOf' :: 'Fold' s a          -> 'Control.Lens.Getter.Getter' s [a]
 -- 'unsafePartsOf' :: 'Control.Lens.Getter.Getter' s a        -> 'Control.Lens.Getter.Getter' s [a]
 -- @
-unsafePartsOf :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t [a] [b]
-unsafePartsOf l f s = unsafeOutsT b <$> f (insT b) where b = l sellT s
+unsafePartsOf :: (Functor f, Settable g) => LensLike (BazaarT a b f) g s t a b -> LensLike f g s t [a] [b]
+unsafePartsOf l = twan $ \f s -> let b = l (sellT # copoint) (point s) in unsafeOutsT b <$> f (insT b)
 {-# INLINE unsafePartsOf #-}
 
-unsafePartsOf' :: LensLike (Bazaar a b) s t a b -> Lens s t [a] [b]
-unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
+unsafePartsOf' :: Settable g => LensLike (Bazaar a b) g s t a b -> Lens s t [a] [b]
+unsafePartsOf' l = twan $ \f s -> let b = l (sell # copoint) (point s) in unsafeOuts b <$> f (ins b)
 {-# INLINE unsafePartsOf' #-}
 
 -- | The one-level version of 'contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
@@ -404,9 +405,9 @@ unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 -- 'holesOf' :: 'Simple' 'Lens' s a      -> s -> ['Context' a a s]
 -- 'holesOf' :: 'Simple' 'Traversal' s a -> s -> ['Context' a a s]
 -- @
-holesOf :: LensLike (Bazaar a a) s t a a -> s -> [Context a a t]
+holesOf :: Settable g => LensLike (Bazaar a a) g s t a a -> s -> [Context a a t]
 holesOf l a = f (ins b) (outs b) where
-  b = l sell a
+  b = l (sell # copoint) (point a)
   f []     _ = []
   f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
 {-# INLINE holesOf #-}
@@ -423,8 +424,8 @@ holesOf l a = f (ins b) (outs b) where
 -- 'singular' :: 'Fold' s a          -> 'Control.Lens.Getter.Getter' s a
 -- 'singular' :: 'Control.Lens.Action.MonadicFold' m s a -> 'Control.Lens.Action.Action' m s a
 -- @
-singular :: Functor f => LensLike (BazaarT a a f) s t a a -> LensLike f s t a a
-singular l f = partsOf l $ \xs -> case xs of
+singular :: (Functor f, Settable g) => LensLike (BazaarT a a f) g s t a a -> LensLike f g s t a a
+singular l = twan $ \f -> partsOf l %%~ \xs -> case xs of
   (a:as) -> (:as) <$> f a
   []     -> [] <$ f (error "singular: empty traversal")
 
@@ -439,8 +440,8 @@ singular l f = partsOf l $ \xs -> case xs of
 -- 'unsafeSingular' :: 'Fold' s a          -> 'Control.Lens.Getter.Getter' s a
 -- 'unsafeSingular' :: 'Control.Lens.Action.MonadicFold' m s a -> 'Control.Lens.Action.Action' m s a
 -- @
-unsafeSingular :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t a b
-unsafeSingular l f = unsafePartsOf l $ \xs -> case xs of
+unsafeSingular :: (Functor f, Settable g) => LensLike (BazaarT a b f) g s t a b -> LensLike f g s t a b
+unsafeSingular l = twan $ \f -> unsafePartsOf l %%~ \xs -> case xs of
   [a] -> return <$> f a
   []  -> error "unsafeSingular: empty traversal"
   _   -> error "unsafeSingular: traversing multiple results"
@@ -449,7 +450,9 @@ unsafeSingular l f = unsafePartsOf l $ \xs -> case xs of
 -- Internal functions used by 'partsOf', 'holesOf', etc.
 ------------------------------------------------------------------------------
 ins :: Bazaar a b t -> [a]
-ins = toListOf bazaar
+-- ins = toListOf bazaar
+ins = undefined
+-- FIXME
 {-# INLINE ins #-}
 
 outs :: Bazaar a a t -> [a] -> t
@@ -471,7 +474,8 @@ unsafeOuts = evalState . bazaar (\_-> do (r,s) <- State.gets (unconsWithDefault 
 {-# INLINE unsafeOuts #-}
 
 insT :: BazaarT a b f t -> [a]
-insT = toListOf bazaarT
+-- insT = toListOf bazaarT
+insT = undefined -- FIXME
 {-# INLINE insT #-}
 
 outsT :: BazaarT a a f t -> [a] -> t
@@ -500,6 +504,9 @@ unconsWithDefault _ (x:xs) = (x,xs)
 -- Traversals
 ------------------------------------------------------------------------------
 
+traversed :: Traversable f => Traversal (f a) (f b) a b
+traversed = twan traverse
+
 -- | Traverse both parts of a tuple with matching types.
 --
 -- >>> both *~ 10 $ (1,2)
@@ -511,15 +518,15 @@ unconsWithDefault _ (x:xs) = (x,xs)
 -- >>> ("hello","world")^.both
 -- "helloworld"
 both :: Traversal (a,a) (b,b) a b
-both f ~(a,a') = (,) <$> f a <*> f a'
+both = twan $ \f ~(a,a') -> (,) <$> f a <*> f a'
 {-# INLINE both #-}
 
 -- | Apply a different 'Traversal' or 'Control.Lens.Fold.Fold' to each side of a tuple.
 --
 -- >>> ("hello",["world","!!!"])^..beside id traverse
 -- ["hello","world","!!!"]
-beside :: Applicative f => LensLike f s t a b -> LensLike f s' t' a b -> LensLike f (s,s') (t,t') a b
-beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
+beside :: (Applicative f, Functor g) => LensLike f g s t a b -> LensLike f g s' t' a b -> LensLike f g (s,s') (t,t') a b
+beside l r f t = (,) <$> l f (fmap fst t) <*> r f (fmap snd t)
 {-# INLINE beside #-}
 
 -- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Control.Lens.Getter.Getter' or 'Lens'.
@@ -532,8 +539,8 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 --
 -- >>> over (taking 5 traverse) succ "hello world"
 -- "ifmmp world"
-taking :: Applicative f => Int -> SimpleLensLike (BazaarT a a f) s a -> SimpleLensLike f s a
-taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sellT s
+taking :: (Applicative f, Settable g) => Int -> SimpleLensLike (BazaarT a a f) g s a -> SimpleLensLike f g s a
+taking n l = twan $ \f s -> let b = l (sellT # copoint) (point s) in outsT b <$> traverse f (take n $ insT b)
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Control.Lens.Getter.Getter' or 'Lens'.
@@ -545,9 +552,10 @@ taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sellT s
 --
 -- >>> [1..]^? dropping 1 folded
 -- Just 2
-dropping :: Applicative f => Int -> SimpleLensLike (Indexing f) s a -> SimpleLensLike f s a
-dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> i `seq` (if i >= n then f a else pure a, i + 1)) s) 0 of
-  (r, _) -> r
+dropping :: (Applicative f, Settable g) => Int -> SimpleLensLike (Indexing f) g s a -> SimpleLensLike f g s a
+dropping n l = twan $ \f s -> fst $ runIndexing (l (go f) (point s)) 0 where
+  go f ga = Indexing $ \i -> i `seq` (if i >= n then f a else pure a, i + 1) where
+    a = copoint ga
 {-# INLINE dropping #-}
 
 ------------------------------------------------------------------------------
@@ -572,8 +580,8 @@ dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> i `seq` (if i >= 
 -- ("helloworld",(10,10))
 --
 -- @'cloneTraversal' :: 'LensLike' ('Bazaar' a b) s t a b -> 'Traversal' s t a b@
-cloneTraversal :: Applicative f => ((a -> Bazaar a b b) -> s -> Bazaar a b t) -> (a -> f b) -> s -> f t
-cloneTraversal l f = bazaar f . l sell
+cloneTraversal :: (Applicative f, Settable g) => LensLike (Bazaar a b) g s t a b -> LensLike f g s t a b
+cloneTraversal l f = bazaar (f # point) # l (sell # copoint)
 {-# INLINE cloneTraversal #-}
 
 -- | A form of 'Traversal' that can be stored monomorphically in a container.
@@ -581,4 +589,3 @@ data ReifiedTraversal s t a b = ReifyTraversal { reflectTraversal :: Traversal s
 
 -- | @type SimpleReifiedTraversal = 'Simple' 'ReifiedTraversal'@
 type SimpleReifiedTraversal s a = ReifiedTraversal s s a a
-

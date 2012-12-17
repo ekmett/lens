@@ -400,7 +400,7 @@ locus = twan $ \f w -> (`seek` w) <$> f (pos w)
 -- ("hello",2,"you")
 cloneLens :: (Functor f, Settable g)
   => LensLike (Context a b) g s t a b
-  -> (g a -> f b) -> g s -> f t
+  -> LensLike f g s t a b
 cloneLens f gafb gs = case f (Context id # copoint) gs of
   Context bt a -> bt <$> gafb (point a)
 {-# INLINE cloneLens #-}
