@@ -10,7 +10,7 @@
 #endif
 
 #ifndef MIN_VERSION_bytestring
-#define MIN_VERSION_bytestring(x,y,z)
+#define MIN_VERSION_bytestring(x,y,z) 1
 #endif
 -----------------------------------------------------------------------------
 -- |
