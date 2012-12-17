@@ -1,5 +1,4 @@
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
@@ -34,10 +33,11 @@ import Control.Monad.State
 ------------------------------------------------------------------------------
 
 -- | Every 'IndexedGetter' is a valid 'Control.Lens.IndexedFold.IndexedFold' and 'Getter'.
-type IndexedGetter i s a = forall k f. (Indexable i k, Gettable f) => k (a -> f a) (s -> f s)
+type IndexedGetter i s a = forall k f g. (Indexable i k, Gettable f, Settable g) => k (g a -> f a) (g s -> f s)
 
 -- | Used to consume an 'Control.Lens.IndexedFold.IndexedFold'.
-type IndexedGetting i m s t a b = Indexed i (a -> Accessor m b) (s -> Accessor m t)
+-- FIXME: Probably shouldn't use Mutator.
+type IndexedGetting i m s t a b = Indexed i (Mutator a -> Accessor m b) (Mutator s -> Accessor m t)
 
 -- | Useful for storage.
 newtype ReifiedIndexedGetter i s a = ReifyIndexedGetter { reflectIndexedGetter :: IndexedGetter i s a }
@@ -47,7 +47,7 @@ newtype ReifiedIndexedGetter i s a = ReifyIndexedGetter { reflectIndexedGetter :
 -- When applied to an 'IndexedFold' the result will most likely be a nonsensical monoidal summary of
 -- the indices tupled with a monoidal summary of the values and probably not whatever it is you wanted.
 iview :: MonadReader s m => IndexedGetting i (i,a) s t a b -> m (i,a)
-iview l = asks (runAccessor# (withIndex l (\i -> accessor# ((,) i))))
+iview l = asks (runAccessor # withIndex l (\i -> Accessor # (,) i # copoint) # point)
 {-# INLINE iview #-}
 
 -- | View a function of the index and value of an 'IndexedGetter' into the current environment
@@ -56,7 +56,7 @@ iview l = asks (runAccessor# (withIndex l (\i -> accessor# ((,) i))))
 --
 -- @'iviews' ≡ 'Control.Lens.IndexedFold.ifoldMapOf'@
 iviews :: MonadReader s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
-iviews l f = asks (runAccessor# (withIndex l (\i -> accessor# (f i))))
+iviews l f = asks (runAccessor # withIndex l (\i -> Accessor # f i # copoint) # point)
 {-# INLINE iviews #-}
 
 -- | Use the index and value of an 'IndexedGetter' into the current state as a pair.
@@ -64,12 +64,12 @@ iviews l f = asks (runAccessor# (withIndex l (\i -> accessor# (f i))))
 -- When applied to an 'IndexedFold' the result will most likely be a nonsensical monoidal summary of
 -- the indices tupled with a monoidal summary of the values and probably not whatever it is you wanted.
 iuse :: MonadState s m => IndexedGetting i (i,a) s t a b -> m (i,a)
-iuse l = gets (runAccessor# (withIndex l (\i -> accessor# ((,) i))))
+iuse l = gets (runAccessor # withIndex l (\i -> Accessor # (,) i # copoint) # point)
 {-# INLINE iuse #-}
 
 -- | Use a function of the index and value of an 'IndexedGetter' into the current state.
 --
 -- When applied to an 'IndexedFold' the result will be a monoidal summary instead of a single answer.
 iuses :: MonadState s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
-iuses l f = gets (runAccessor# (withIndex l (\i -> accessor# (f i))))
+iuses l f = gets (runAccessor # withIndex l (\i -> Accessor # f i # copoint) # point)
 {-# INLINE iuses #-}
