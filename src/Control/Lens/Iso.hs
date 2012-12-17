@@ -27,6 +27,7 @@ module Control.Lens.Iso
   -- * Isomorphism Lenses
     Iso
   , AnIso
+  , withIso
   -- * Isomorphism Construction
   , Isomorphic(..)
   , Isoid(..)
@@ -100,6 +101,12 @@ type Iso s t a b = forall k f. (Isomorphic k, Functor f) => k (a -> f b) (s -> f
 
 -- | When you see this as an argument to a function, it expects an 'Iso'.
 type AnIso s t a b = Overloaded Isoid Mutator s t a b
+
+-- | Safely decompose 'AnIso'
+withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
+withIso k (Iso sa bt) = k sa bt
+withIso k Isoid       = k id id
+{-# INLINE withIso #-}
 
 -- |
 -- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@

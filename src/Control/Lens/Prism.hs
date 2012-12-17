@@ -22,6 +22,7 @@ module Control.Lens.Prism
   -- * Prisms
     Prism
   , APrism
+  , withPrism
   -- * Constructing Prisms
   , Prismatic(..)
   , Prismoid(..)
@@ -144,6 +145,12 @@ type Prism s t a b = forall k f. (Prismatic k, Applicative f) => k (a -> f b) (s
 -- | If you see this in a signature for a function, the function is expecting a 'Prism',
 -- not some kind of alien invader.
 type APrism s t a b = Overloaded Prismoid Mutator s t a b
+
+-- | Safely decompose 'APrism'
+withPrism :: ((b -> t) -> (s -> Either t a) -> r) -> APrism s t a b -> r
+withPrism k (Prism bt seta) = k bt seta
+withPrism k Prismoid        = k id Right
+{-# INLINE withPrism #-}
 
 -- | A @'Simple' 'Prism'@.
 type SimplePrism s a = Prism s s a a
