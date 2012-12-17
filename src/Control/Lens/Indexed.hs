@@ -28,6 +28,7 @@ module Control.Lens.Indexed
   ) where
 
 import Control.Lens.Classes
+import Control.Lens.Type -- FIXME: for twan
 import Control.Lens.Internal
 import Data.Int
 
@@ -75,9 +76,9 @@ icompose ijk (Indexed ibc) (Indexed jab) = indexed $ \ka -> ibc $ \i -> jab $ \j
 -- 'indexing' :: 'Control.Lens.Fold.Fold' s t               -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
 -- 'indexing' :: 'Control.Lens.Getter.Getter' s t           -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
 -- @
-indexing :: Indexable Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k (a -> f b) (s -> f t)
-indexing l = indexed $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
-  (r, _) -> r
+indexing :: (Indexable Int k, Settable g) => ((g a -> Indexing f b) -> g s -> Indexing f t) -> k (a -> f b) (s -> f t)
+indexing l = indexed $ \iafb s -> fst $ runIndexing (l (go iafb) (point s)) 0 where
+  go iafb ga = Indexing $ \i -> i `seq` (iafb i (copoint ga), i + 1)
 {-# INLINE indexing #-}
 
 -- | Transform a 'Traversal' into an 'Control.Lens.IndexedTraversal.IndexedTraversal' or
@@ -93,7 +94,7 @@ indexing l = indexed $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> i `
 -- 'indexing64' :: 'Control.Lens.Fold.Fold' s t               -> 'Control.Lens.IndexedFold.IndexedFold' 'Int64' s t
 -- 'indexing64' :: 'Control.Lens.Getter.Getter' s t           -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int64' s t a b
 -- @
-indexing64 :: Indexable Int64 k => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> k (a -> f b) (s -> f t)
-indexing64 l = indexed $ \iafb s -> case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
-  (r, _) -> r
+indexing64 :: (Indexable Int64 k, Settable g) => ((g a -> Indexing64 f b) -> g s -> Indexing64 f t) -> k (a -> f b) (s -> f t)
+indexing64 l = indexed $ \iafb s -> fst $ runIndexing64 (l (go iafb) (point s)) 0 where
+  go iafb ga = Indexing64 $ \i -> i `seq` (iafb i (copoint ga), i + 1)
 {-# INLINE indexing64 #-}
