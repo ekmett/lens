@@ -22,25 +22,22 @@ module Control.Lens.Prism
   -- * Prisms
     Prism
   , APrism
-  , withPrism
   -- * Constructing Prisms
   , Prismatic(..)
   , Prismoid(..)
-
   -- * Consuming Prisms
   , clonePrism
+  , withPrism
   , remit
   , review, reviews
   , reuse, reuses
   , outside
   , aside
   , without
-
   -- * Common Prisms
   , _left
   , _right
   , _just
-
   -- * Simple
   , SimplePrism
   ) where

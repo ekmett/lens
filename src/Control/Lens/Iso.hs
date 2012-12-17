@@ -27,13 +27,13 @@ module Control.Lens.Iso
   -- * Isomorphism Lenses
     Iso
   , AnIso
-  , withIso
   -- * Isomorphism Construction
   , Isomorphic(..)
   , Isoid(..)
   -- * Consuming Isomorphisms
   , from
   , cloneIso
+  , withIso
   -- * Working with isomorphisms
   , au
   , auf
