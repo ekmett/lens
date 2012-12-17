@@ -33,7 +33,9 @@ module Control.Lens.Loupe
   ) where
 
 import Control.Applicative              as Applicative
+import Control.Lens.Classes
 import Control.Lens.Internal
+import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 
@@ -71,7 +73,7 @@ infix  4 <#=, #=, #%=, <#%=, #%%=
 -- vary fully independently. For more on how they interact, read the \"Why is
 -- it a Lens Family?\" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
 
-type Loupe s t a b = LensLike (Context a b) s t a b
+type Loupe s t a b = LensLike (Context a b) Mutator s t a b
 
 -- | @type 'SimpleLoupe' = 'Simple' 'Loupe'@
 type SimpleLoupe s a = Loupe s s a a
@@ -81,7 +83,7 @@ type SimpleLoupe s a = Loupe s s a a
 -- >>> ("hello","world")^#_2
 -- "world"
 (^#) :: s -> Loupe s t a b -> a
-s ^# l = case l (Context id) s of
+s ^# l = case l (Context id # copoint) (point s) of
   Context _ a -> a
 {-# INLINE (^#) #-}
 
@@ -90,7 +92,7 @@ s ^# l = case l (Context id) s of
 -- >>> storing _2 "world" ("hello","there")
 -- ("hello","world")
 storing :: Loupe s t a b -> b -> s -> t
-storing l b s = case l (Context id) s of
+storing l b s = case l (Context id # copoint) (point s) of
   Context g _ -> g b
 {-# INLINE storing #-}
 
@@ -99,7 +101,7 @@ storing l b s = case l (Context id) s of
 -- >>> ("hello","there") & _2 #~ "world"
 -- ("hello","world")
 (#~) :: Loupe s t a b -> b -> s -> t
-(#~) l b s = case l (Context id ) s of
+(#~) l b s = case l (Context id # copoint) (point s) of
   Context g _ -> g b
 {-# INLINE (#~) #-}
 
@@ -108,7 +110,7 @@ storing l b s = case l (Context id) s of
 -- >>> ("hello","world") & _2 #%~ length
 -- ("hello",5)
 (#%~) :: Loupe s t a b -> (a -> b) -> s -> t
-(#%~) l f s = case l (Context id) s of
+(#%~) l f s = case l (Context id # copoint) (point s) of
   Context g a -> g (f a)
 {-# INLINE (#%~) #-}
 
@@ -117,7 +119,7 @@ storing l b s = case l (Context id) s of
 -- >>> ("hello","world") & _2 #%%~ \x -> (length x, x ++ "!")
 -- (5,("hello","world!"))
 (#%%~) :: Functor f => Loupe s t a b -> (a -> f b) -> s -> f t
-(#%%~) l f s = case l (Context id) s of
+(#%%~) l f s = case l (Context id # copoint) (point s) of
   Context g a -> g <$> f a
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Setter..=')
@@ -135,7 +137,7 @@ l #%= f = modify (l #%~ f)
 -- >>> ("hello","world") & _2 <#%~ length
 -- (5,("hello",5))
 (<#%~) :: Loupe s t a b -> (a -> b) -> s -> (b, t)
-l <#%~ f = \s -> case l (Context id) s of
+l <#%~ f = \s -> case l (Context id # copoint) (point s) of
   Context g a -> let b = f a in (b, g b)
 {-# INLINE (<#%~) #-}
 
@@ -147,11 +149,11 @@ l <#%= f = l #%%= \a -> let b = f a in (b,b)
 -- | Modify the target of a 'Loupe' in the current monadic state, returning an auxiliary result.
 (#%%=) :: MonadState s m => Loupe s s a b -> (a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,1)
-l #%%= f = State.state $ \s -> case l (Context id) s of
+l #%%= f = State.state $ \s -> case l (Context id # copoint) (point s) of
   Context g a -> g <$> f a
 #else
 l #%%= f = do
-  Context g a <- State.gets (l (Context id))
+  Context g a <- State.gets (l (Context id # copoint) # point)
   let (r, b) = f a
   State.put (g b)
   return r
