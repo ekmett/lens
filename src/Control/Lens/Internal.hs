@@ -525,7 +525,7 @@ data IsoChoice a b = IsoLeft a | IsoRight b
 
 instance Functor (IsoChoice a) where
   fmap _ (IsoLeft a) = IsoLeft a
-  fmap f (IsoRight a) = IsoRight (f a)
+  fmap f (IsoRight b) = IsoRight (f b)
   {-# INLINE fmap #-}
 
 fromIsoLeft :: IsoChoice a b -> a
@@ -534,7 +534,7 @@ fromIsoLeft _ = error "fromIsoLeft: invalid Iso passed as AnIso"
 {-# INLINE fromIsoLeft #-}
 
 fromIsoRight :: IsoChoice a b -> b
-fromIsoRight (IsoRight a) = a
+fromIsoRight (IsoRight b) = b
 fromIsoRight _ = error "fromIsoRight: invalid Iso passed as AnIso"
 {-# INLINE fromIsoRight #-}
 
@@ -542,8 +542,17 @@ data PrismChoice a b = PrismLeft a | PrismRight b
 
 instance Functor (PrismChoice a) where
   fmap _ (PrismLeft a) = PrismLeft a
-  fmap f (PrismRight a) = PrismRight (f a)
+  fmap f (PrismRight b) = PrismRight (f b)
   {-# INLINE fmap #-}
+
+instance Pointed (PrismChoice a) where
+  point = PrismRight
+
+instance Costrong (PrismChoice a) where
+  costrength (PrismLeft a) = Right (PrismLeft a)
+  costrength (PrismRight (Left b)) = Left b
+  costrength (PrismRight (Right c)) = Right (PrismRight c)
+  {-# INLINE costrength #-}
 
 fromPrismLeft :: PrismChoice a b -> a
 fromPrismLeft (PrismLeft a) = a
@@ -551,7 +560,7 @@ fromPrismLeft _ = error "fromPrismLeft: invalid Prism passed as APrism"
 {-# INLINE fromPrismLeft #-}
 
 fromPrismRight :: PrismChoice a b -> b
-fromPrismRight (PrismRight a) = a
+fromPrismRight (PrismRight b) = b
 fromPrismRight _ = error "fromPrismRight: invalid Prism passed as APrism"
 {-# INLINE fromPrismRight #-}
 

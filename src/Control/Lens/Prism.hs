@@ -44,6 +44,9 @@ module Control.Lens.Prism
 
   -- * Simple
   , SimplePrism
+
+  -- * Internals
+  , PrismChoice
   ) where
 
 import Control.Applicative

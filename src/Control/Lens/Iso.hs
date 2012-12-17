@@ -47,6 +47,8 @@ module Control.Lens.Iso
   , Strict(..)
   -- * Simplicity
   , SimpleIso
+  -- * Internals
+  , IsoChoice
   ) where
 
 import Control.Lens.Classes
