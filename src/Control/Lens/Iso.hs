@@ -103,6 +103,9 @@ type Iso s t a b = forall k f. (Isomorphic k, Functor f) => k (a -> f b) (s -> f
 type AnIso s t a b = Overloaded Isoid Mutator s t a b
 
 -- | Safely decompose 'AnIso'
+--
+-- @'cloneIso' ≡ 'withIso' 'iso'@
+-- @'from' ≡ 'withIso' ('flip' 'iso')@
 withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
 withIso k (Iso sa bt) = k sa bt
 withIso k Isoid       = k id id
