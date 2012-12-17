@@ -1,4 +1,3 @@
-{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
@@ -127,7 +126,7 @@ infixr 2 <~
 --
 -- >>> over (traverse.both) f [(a,b),(c,d)]
 -- [(f a,f b),(f c,f d)]
-type Setter s t a b = forall f. Settable f => (a -> f b) -> s -> f t
+type Setter s t a b = forall f g. (Settable f, Settable g) => (g a -> f b) -> g s -> f t
 
 -- |
 -- Running a 'Setter' instantiates it to a concrete type.
@@ -136,7 +135,11 @@ type Setter s t a b = forall f. Settable f => (a -> f b) -> s -> f t
 -- user code will not need to use this type.
 --
 -- By choosing 'Mutator' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
-type Setting s t a b = (a -> Mutator b) -> s -> Mutator t
+--
+-- FIXME: If Getting is changed to use something other than
+-- Mutator, this should probably use it for "g", since g is
+-- conceptually an access here.
+type Setting s t a b = (Mutator a -> Mutator b) -> Mutator s -> Mutator t
 
 -- |
 --
@@ -224,7 +227,7 @@ lifted = sets liftM
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
 sets :: ((a -> b) -> s -> t) -> Setter s t a b
-sets f g = tainted# (f (untainted# g))
+sets f g = point # f (copoint # g # point) # copoint
 {-# INLINE sets #-}
 
 -----------------------------------------------------------------------------
@@ -267,7 +270,7 @@ sets f g = tainted# (f (untainted# g))
 --
 -- @'over' :: 'Setter' s t a b -> (a -> b) -> s -> t@
 over :: Setting s t a b -> (a -> b) -> s -> t
-over l f = runMutator# (l (mutator# f))
+over l f = copoint # l (point # f # copoint) # point
 {-# INLINE over #-}
 
 -- | 'mapOf' is a deprecated alias for 'over'.
@@ -297,7 +300,7 @@ mapOf = over
 -- 'set' :: 'Control.Lens.Traversal.Traversal' s t a b -> b -> s -> t
 -- @
 set :: Setting s t a b -> b -> s -> t
-set l b = runMutator# (l (\_ -> Mutator b))
+set l b = copoint # l (\_ -> point b) # point
 {-# INLINE set #-}
 
 -- |
@@ -325,7 +328,7 @@ set l b = runMutator# (l (\_ -> Mutator b))
 -- 'set'' :: 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> a -> s -> s
 -- @
 set' :: Setting s s a a -> a -> s -> s
-set' l b = runMutator# (l (\_ -> Mutator b))
+set' l b = copoint # l (\_ -> point b) # point
 {-# INLINE set' #-}
 
 -- | Modifies the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or
@@ -976,4 +979,3 @@ newtype ReifiedSetter s t a b = ReifySetter { reflectSetter :: Setter s t a b }
 
 -- | @type 'SimpleReifiedSetter' = 'Control.Lens.Type.Simple' 'ReifiedSetter'@
 type SimpleReifiedSetter s a = ReifiedSetter s s a a
-
