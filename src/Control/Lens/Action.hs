@@ -31,6 +31,7 @@ module Control.Lens.Action
 
 import Control.Applicative
 import Control.Lens.Classes
+import Control.Lens.Type -- FIXME: Should twan move elsewhere?
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Monad.Trans.Class
@@ -45,28 +46,31 @@ infixr 8 ^!
 -- Every 'Getter' can be used as an 'Action'
 --
 -- You can compose an 'Action' with another 'Action' using ('Prelude..') from the @Prelude@.
-type Action m s a = forall f r. Effective m r f => (a -> f a) -> s -> f s
+type Action m s a = forall f g r. (Effective m r f, Settable g) => (g a -> f a) -> g s -> f s
 
 -- | A 'MonadicFold' is a 'Fold' enriched with access to a 'Monad' for side-effects.
 --
 -- Every 'Fold' can be used as a 'MonadicFold', that simply ignores the access to the 'Monad'.
 --
 -- You can compose a 'MonadicFold' with another 'MonadicFold' using ('Prelude..') from the @Prelude@.
-type MonadicFold m s a = forall f r. (Effective m r f, Applicative f) => (a -> f a) -> s -> f s
+type MonadicFold m s a = forall f g r. (Effective m r f, Applicative f, Settable g) => (g a -> f a) -> g s -> f s
 
 -- | Used to evaluate an 'Action'.
-type Acting m r s t a b = (a -> Effect m r b) -> s -> Effect m r t
+--
+-- FIXME: Should probably not use Mutator.
+type Acting m r s t a b = (Mutator a -> Effect m r b) -> Mutator s -> Effect m r t
 
 -- | Perform an 'Action'.
 --
 -- @'perform' ≡ 'flip' ('^!')@
 perform :: Monad m => Acting m a s t a b -> s -> m a
-perform l = getEffect# (l (effect# return))
+perform l = getEffect # l (Effect # return # copoint) # point
 {-# INLINE perform #-}
 
 -- | Perform an 'Action' and modify the result.
 performs :: Monad m => Acting m e s t a b -> (a -> e) -> s -> m e
-performs l f = getEffect# (l (effect# (return . f)))
+performs l f = getEffect # l (Effect # return # f # copoint) # point
+{-# INLINE performs #-}
 
 -- | Perform an 'Action'
 --
@@ -74,7 +78,7 @@ performs l f = getEffect# (l (effect# (return . f)))
 -- hello
 -- world
 (^!) :: Monad m => s -> Acting m a s t a b -> m a
-a ^! l = getEffect (l (effect# return) a)
+a ^! l = getEffect (l (Effect # return # copoint) (point a))
 {-# INLINE (^!) #-}
 
 -- | Construct an 'Action' from a monadic side-effect
@@ -82,7 +86,7 @@ a ^! l = getEffect (l (effect# return) a)
 -- >>> ["hello","world"]^!folded.act (\x -> [x,x ++ "!"])
 -- ["helloworld","helloworld!","hello!world","hello!world!"]
 act :: Monad m => (s -> m a) -> Action m s a
-act sma afb a = effective (sma a >>= ineffective . afb)
+act sma = twan $ \afb a -> effective (sma a >>= ineffective . afb)
 {-# INLINE act #-}
 
 -- | A self-running 'Action', analogous to 'Control.Monad.join'.
