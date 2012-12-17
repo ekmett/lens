@@ -43,6 +43,7 @@ module Control.Lens.IndexedLens
 
 import Control.Lens.Classes
 import Control.Lens.Internal
+import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad.State.Class as State
 
@@ -53,7 +54,7 @@ infixr 4 %%@~, <%@~
 infix  4 %%@=, <%@=
 
 -- | Every 'IndexedLens' is a valid 'Lens' and a valid 'Control.Lens.IndexedTraversal.IndexedTraversal'.
-type IndexedLens i s t a b = forall f k. (Indexable i k, Functor f) => k (a -> f b) (s -> f t)
+type IndexedLens i s t a b = forall f g k. (Indexable i k, Functor f, Settable g) => k (g a -> f b) (g s -> f t)
 
 -- | @type 'SimpleIndexedLens' i = 'Simple' ('IndexedLens' i)@
 type SimpleIndexedLens i s a = IndexedLens i s s a a
@@ -72,8 +73,10 @@ type SimpleIndexedLens i s a = IndexedLens i s s a a
 -- ('<%@~') ::             'IndexedLens' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- ('<%@~') :: 'Monoid' b => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- @
-(<%@~) :: Overloaded (Indexed i) ((,)b) s t a b -> (i -> a -> b) -> s -> (b, t)
-l <%@~ f = withIndex l $ \i a -> let b = f i a in (b, b)
+--
+-- FIXME: This is ugly.
+(<%@~) :: Settable g => Overloaded (Indexed i) ((,)b) g s t a b -> (i -> a -> b) -> s -> (b, t)
+l <%@~ f = withIndex l (\i a -> let b = f i (copoint a) in (b, b)) # point
 {-# INLINE (<%@~) #-}
 
 -- | Adjust the target of an 'IndexedLens' returning a supplementary result, or
@@ -94,8 +97,8 @@ l <%@~ f = withIndex l $ \i a -> let b = f i a in (b, b)
 -- ('%%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> (r, b)) -> s -> (r, t)
 -- ('%%@~') :: 'Monoid' r => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> (r, b)) -> s -> (r, t)
 -- @
-(%%@~) :: Overloaded (Indexed i) f s t a b -> (i -> a -> f b) -> s -> f t
-(%%@~) = withIndex
+(%%@~) :: Settable g => Overloaded (Indexed i) f g s t a b -> (i -> a -> f b) -> s -> f t
+l %%@~ f = withIndex l (\i a -> f i (copoint a)) # point
 {-# INLINE (%%@~) #-}
 
 -- | Adjust the target of an 'IndexedLens' returning a supplementary result, or
@@ -108,7 +111,7 @@ l <%@~ f = withIndex l $ \i a -> let b = f i a in (b, b)
 -- ('%%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> (r, b)) -> s -> m r
 -- ('%%@=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s s a b -> (i -> a -> (r, b)) -> s -> m r
 -- @
-(%%@=) :: MonadState s m => Overloaded (Indexed i) ((,)r) s s a b -> (i -> a -> (r, b)) -> m r
+(%%@=) :: MonadState s m => Overloaded (Indexed i) ((,)r) Mutator s s a b -> (i -> a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,0)
 l %%@= f = State.state (l %%@~ f)
 #else
@@ -127,7 +130,7 @@ l %%@= f = do
 -- ('<%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> b) -> m b
 -- ('<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m b
 -- @
-(<%@=) :: MonadState s m => Overloaded (Indexed i) ((,)b) s s a b -> (i -> a -> b) -> m b
+(<%@=) :: MonadState s m => Overloaded (Indexed i) ((,)b) Mutator s s a b -> (i -> a -> b) -> m b
 l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 {-# INLINE (<%@=) #-}
 
