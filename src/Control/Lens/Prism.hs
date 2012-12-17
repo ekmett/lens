@@ -158,6 +158,7 @@ type SimplePrism s a = Prism s s a a
 clonePrism :: APrism s t a b -> Prism s t a b
 clonePrism Prismoid    = id
 clonePrism (Prism f g) = prism f g
+{-# INLINE clonePrism #-}
 
 ------------------------------------------------------------------------------
 -- Prism Combinators
@@ -169,6 +170,7 @@ clonePrism (Prism f g) = prism f g
 outside :: APrism s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
 outside Prismoid        f tr = f tr
 outside (Prism bt seta) f tr = f (tr.bt) <&> \ar -> either tr ar . seta
+{-# INLINE outside #-}
 
 -- | Use a 'Prism' to work over part of a structure.
 aside :: APrism s t a b -> Prism (e, s) (e, t) (e, a) (e, b)
@@ -176,6 +178,7 @@ aside Prismoid = id
 aside (Prism bt seta) = prism (fmap bt) $ \(e,s) -> case seta s of
   Left t -> Left (e,t)
   Right a -> Right (e,a)
+{-# INLINE aside #-}
 
 -- | Given a pair of prisms, project sums.
 --
@@ -193,6 +196,7 @@ without Prismoid (Prism dv uevc) = prism (right dv) go where
 without (Prism bt seta) (Prism dv uevc) = prism (bt +++ dv) go where
   go (Left s) = either (Left . Left) (Right . Left) (seta s)
   go (Right u) = either (Left . Right) (Right . Right) (uevc u)
+{-# INLINE without #-}
 
 -- | Turn a 'Prism' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
 --
@@ -209,6 +213,7 @@ without (Prism bt seta) (Prism dv uevc) = prism (bt +++ dv) go where
 remit :: APrism s t a b -> Getter b t
 remit Prismoid     = id
 remit (Prism bt _) = to bt
+{-# INLINE remit #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.
 --
@@ -361,3 +366,4 @@ _right = prism Right $ left Left
 -- Just 5
 _just :: Prism (Maybe a) (Maybe b) a b
 _just = prism Just $ maybe (Left Nothing) Right
+{-# INLINE _just #-}
