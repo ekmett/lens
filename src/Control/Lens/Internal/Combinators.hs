@@ -74,6 +74,7 @@ import Unsafe.Coerce
 infixr 9 #
 (#) :: (b -> c) -> (a -> b) -> a -> c
 f # g = f `seq` g `seq` \x -> f (g x)
+{-# INLINE (#) #-}
 
 {-
 const# :: (a -> b) -> a -> Const b r
