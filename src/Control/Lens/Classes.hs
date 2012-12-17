@@ -58,8 +58,8 @@ instance Pointed Proxy where
   point _ = Proxy
   {-# INLINE point #-}
 
--- should be Default m, technically
-instance Monoid m => Pointed (Const m) where
+-- FIXME: should be Default r, technically
+instance Monoid r => Pointed (Const r) where
   point _ = Const mempty
   {-# INLINE point #-}
 

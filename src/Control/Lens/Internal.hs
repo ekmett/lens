@@ -409,6 +409,11 @@ instance Functor (Accessor r) where
   fmap _ (Accessor m) = Accessor m
   {-# INLINE fmap #-}
 
+-- FIXME: should be Default r, technically
+instance Monoid r => Pointed (Accessor r) where
+  point _ = Accessor mempty
+  {-# INLINE point #-}
+
 instance Monoid r => Applicative (Accessor r) where
   pure _ = Accessor mempty
   {-# INLINE pure #-}
