@@ -29,7 +29,6 @@
 module Control.Lens.Internal
   (
   -- * Internal Types
-  {-
     May(..)
   , Folding(..)
   , Effect(..)
@@ -47,16 +46,13 @@ module Control.Lens.Internal
   , Mutator(..)
   , Bazaar(..), bazaar, duplicateBazaar, sell
   , BazaarT(..), bazaarT, duplicateBazaarT, sellT
-  -}
-    Context(..)
-  {-
+  , Context(..)
   , Max(..), getMax
   , Min(..), getMin
   , Indexing(..)
   , Indexing64(..)
   -- * Overloadings
   , Indexed(..)
-  -}
   ) where
 
 import Control.Applicative
@@ -71,7 +67,6 @@ import Data.Functor.Identity
 import Data.Int
 import Data.Monoid
 
-{-
 -----------------------------------------------------------------------------
 -- Functors
 -----------------------------------------------------------------------------
@@ -178,6 +173,7 @@ instance Applicative f => Applicative (Indexing f) where
     (ff, j) -> case ma j of
        ~(fa, k) -> (ff <*> fa, k)
 
+instance Gettable f => Costrong (Indexing f) where costrength = costrengthGettable
 instance Gettable f => Gettable (Indexing f) where
   coerce (Indexing m) = Indexing $ \i -> case m i of
     (ff, j) -> (coerce ff, j)
@@ -196,6 +192,7 @@ instance Applicative f => Applicative (Indexing64 f) where
     (ff, j) -> case ma j of
        ~(fa, k) -> (ff <*> fa, k)
 
+instance Gettable f => Costrong (Indexing64 f) where costrength = costrengthGettable
 instance Gettable f => Gettable (Indexing64 f) where
   coerce (Indexing64 m) = Indexing64 $ \i -> case m i of
     (ff, j) -> (coerce ff, j)
@@ -241,7 +238,6 @@ instance Ord a => Monoid (Max a) where
 getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
--}
 
 -- | The indexed store can be used to characterize a 'Control.Lens.Type.Lens'
 -- and is used by 'Control.Lens.Type.clone'
@@ -269,7 +265,6 @@ instance (a ~ b) => ComonadStore a (Context a b) where
   seeks f (Context g a) = Context g (f a)
   experiment f (Context g a) = g <$> f a
 
-{-
 -- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
 --
 -- a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed 'FunList'.
@@ -339,6 +334,7 @@ instance (Monad m, Monoid r) => Applicative (Effect m r) where
   pure _ = Effect (return mempty)
   Effect ma <*> Effect mb = Effect (liftM2 mappend ma mb)
 
+instance Costrong (Effect m r) where costrength = costrengthGettable
 instance Gettable (Effect m r) where
   coerce (Effect m) = Effect m
 
@@ -354,6 +350,7 @@ newtype EffectRWS w st m s a = EffectRWS { getEffectRWS :: st -> m (s,st,w) }
 instance Functor (EffectRWS w st m s) where
   fmap _ (EffectRWS m) = EffectRWS m
 
+instance Costrong (EffectRWS w st m s) where costrength = costrengthGettable
 instance Gettable (EffectRWS w st m s) where
   coerce (EffectRWS m) = EffectRWS m
 
@@ -397,6 +394,7 @@ instance Monoid r => Applicative (Accessor r) where
   pure _ = Accessor mempty
   Accessor a <*> Accessor b = Accessor (mappend a b)
 
+instance Costrong (Accessor r) where costrength = costrengthGettable
 instance Gettable (Accessor r) where
   coerce (Accessor m) = Accessor m
 
@@ -435,6 +433,9 @@ instance Applicative Mutator where
   Mutator f <*> Mutator a = Mutator (f a)
   {-# INLINE (<*>) #-}
 
+instance Pointed Mutator where point = Mutator
+instance Copointed Mutator where copoint = runMutator
+instance Costrong Mutator where costrength = costrengthSettable
 instance Settable Mutator
 
 -- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance
@@ -461,6 +462,7 @@ instance (a ~ b) => Comonad (BazaarT a b g) where
   duplicate = duplicateBazaarT
   {-# INLINE duplicate #-}
 
+instance Gettable g => Costrong (BazaarT a b g) where costrength = costrengthGettable
 instance Gettable g => Gettable (BazaarT a b g) where
   coerce = (<$) (error "coerced BazaarT")
   {-# INLINE coerce #-}
@@ -497,4 +499,3 @@ newtype Indexed i a b = Indexed { withIndex :: (i -> a) -> b }
 instance i ~ j => Indexable i (Indexed j) where
   indexed = Indexed
   {-# INLINE indexed #-}
--}
