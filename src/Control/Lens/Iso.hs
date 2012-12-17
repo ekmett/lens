@@ -27,13 +27,12 @@ module Control.Lens.Iso
   -- * Isomorphism Lenses
     Iso
   , AnIso
-  , Reviewing
   -- * Isomorphism Construction
   , iso
   -- * Consuming Isomorphisms
   , from
-  , cloneIso
   , withIso
+  , cloneIso
   -- * Working with isomorphisms
   , au
   , auf
@@ -75,9 +74,6 @@ type Iso s t a b = forall f g. (Functor f, Functor g) => (g a -> f b) -> g s -> 
 
 -- | When you see this as an argument to a function, it expects an 'Iso'.
 type AnIso s t a b = (IsoChoice () a -> IsoChoice a b) -> IsoChoice () s -> IsoChoice a t
-
--- FIXME: Is Mutator correct here? (Should we use another name for Proxy?)
-type Reviewing s t a b = (Proxy a -> Mutator b) -> Proxy s -> Mutator t
 
 -- |
 -- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@

@@ -22,11 +22,13 @@ module Control.Lens.Prism
   -- * Prisms
     Prism
   , APrism
+  , Reviewing
+
   -- * Constructing Prisms
-  , Prismatic(..)
-  , Prismoid(..)
+  , prism
 
   -- * Consuming Prisms
+  , withPrism
   , clonePrism
   , remit
   , review, reviews
@@ -46,7 +48,6 @@ module Control.Lens.Prism
 
 import Control.Applicative
 import Control.Arrow
-import Control.Category
 import Control.Monad.Reader as Reader
 import Control.Monad.State as State
 import Control.Lens.Classes
@@ -54,7 +55,7 @@ import Control.Lens.Combinators
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Type
-import Prelude hiding (id,(.))
+import Data.Proxy
 
 -- $setup
 -- >>> import Control.Lens
@@ -139,21 +140,38 @@ import Prelude hiding (id,(.))
 --
 -- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'
 -- -- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
-type Prism s t a b = forall k f. (Prismatic k, Applicative f) => k (a -> f b) (s -> f t)
+type Prism s t a b = forall f g. (Functor f, Pointed f, Costrong g) => (g a -> f b) -> g s -> f t
 
--- | If you see this in a signature for a function, the function is expecting a 'Prism',
+-- | If you see this in a signature for a function, the function is expecting a 'Prism'.
 -- not some kind of alien invader.
-type APrism s t a b = Overloaded Prismoid Mutator s t a b
+type APrism s t a b = (PrismChoice () a -> PrismChoice a b) -> PrismChoice () s -> PrismChoice a t
 
 -- | A @'Simple' 'Prism'@.
 type SimplePrism s a = Prism s s a a
+
+-- FIXME: Is Mutator correct here? (Should we use another name for Proxy?)
+type Reviewing s t a b = (Proxy a -> Mutator b) -> Proxy s -> Mutator t
+
+-- | Build a 'Prism'.
+--
+-- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
+prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
+prism bt seta f = either point (fmap bt . f) . costrength . fmap seta
 
 -- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.
 --
 -- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.
 clonePrism :: APrism s t a b -> Prism s t a b
-clonePrism Prismoid    = id
-clonePrism (Prism f g) = prism f g
+clonePrism = withPrism prism
+{-# INLINE clonePrism #-}
+
+withPrism :: ((b -> t) -> (s -> Either t a) -> r) -> APrism s t a b -> r
+withPrism k ap = k
+  (\b -> fromPrismRight $ ap (\_ -> PrismRight b) (PrismLeft ()))
+  (\s -> case ap (PrismLeft . fromPrismRight) (PrismRight s) of
+    PrismLeft a -> Right a
+    PrismRight t -> Left t)
+{-# INLINE withPrism #-}
 
 ------------------------------------------------------------------------------
 -- Prism Combinators
@@ -163,15 +181,15 @@ clonePrism (Prism f g) = prism f g
 --
 -- @'outside' :: 'Prism' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
 outside :: APrism s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
-outside Prismoid        f tr = f tr
-outside (Prism bt seta) f tr = f (tr.bt) <&> \ar -> either tr ar . seta
+outside = withPrism $ \bt seta -> twan $ \f tr -> f (tr.bt) <&> \ar -> either tr ar . seta
+{-# INLINE outside #-}
 
 -- | Use a 'Prism' to work over part of a structure.
 aside :: APrism s t a b -> Prism (e, s) (e, t) (e, a) (e, b)
-aside Prismoid = id
-aside (Prism bt seta) = prism (fmap bt) $ \(e,s) -> case seta s of
+aside = withPrism $ \bt seta -> prism (fmap bt) $ \(e,s) -> case seta s of
   Left t -> Left (e,t)
   Right a -> Right (e,a)
+{-# INLINE aside #-}
 
 -- | Given a pair of prisms, project sums.
 --
@@ -179,16 +197,11 @@ aside (Prism bt seta) = prism (fmap bt) $ \(e,s) -> case seta s of
 without :: APrism s t a b
         -> APrism u v c d
         -> Prism (Either s u) (Either t v) (Either a c) (Either b d)
-without Prismoid Prismoid = id
-without (Prism bt seta) Prismoid = prism (left bt) go where
-  go (Left s) = either (Left . Left) (Right . Left) (seta s)
-  go (Right u) = Right (Right u)
-without Prismoid (Prism dv uevc) = prism (right dv) go where
-  go (Left s) = Right (Left s)
-  go (Right u) = either (Left . Right) (Right . Right) (uevc u)
-without (Prism bt seta) (Prism dv uevc) = prism (bt +++ dv) go where
-  go (Left s) = either (Left . Left) (Right . Left) (seta s)
-  go (Right u) = either (Left . Right) (Right . Right) (uevc u)
+without = withPrism $ \bt seta -> withPrism $ \dv uevc ->
+  let go (Left s) = either (Left . Left) (Right . Left) (seta s)
+      go (Right u) = either (Left . Right) (Right . Right) (uevc u)
+  in prism (bt +++ dv) go
+{-# INLINE without #-}
 
 -- | Turn a 'Prism' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
 --
@@ -202,9 +215,9 @@ without (Prism bt seta) (Prism dv uevc) = prism (bt +++ dv) go where
 -- 'remit' :: 'Prism' s t a b -> 'Getter' b t
 -- 'remit' :: 'Iso' s t a b   -> 'Getter' b t
 -- @
-remit :: APrism s t a b -> Getter b t
-remit Prismoid     = id
-remit (Prism bt _) = to bt
+remit :: Reviewing s t a b -> Getter b t
+remit p = to $ \b -> copoint $ p (\_ -> point b) Proxy
+{-# INLINE remit #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.
 --
@@ -228,9 +241,8 @@ remit (Prism bt _) = to bt
 -- 'review' :: 'MonadReader' a m => 'Simple' 'Iso' s a        -> m s
 -- 'review' :: 'MonadReader' a m => 'Simple' 'Prism' s a -> m s
 -- @
-review :: MonadReader b m => APrism s t a b -> m t
-review Prismoid     = ask
-review (Prism bt _) = asks bt
+review :: MonadReader b m => Reviewing s t a b -> m t
+review p = asks $ \b -> copoint $ p (\_ -> point b) Proxy
 {-# INLINE review #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,
@@ -256,9 +268,8 @@ review (Prism bt _) = asks bt
 -- 'reviews' :: 'MonadReader' a m => 'Simple' 'Iso' s a        -> (s -> r) -> m r
 -- 'reviews' :: 'MonadReader' a m => 'Simple' 'Prism' s a -> (s -> r) -> m r
 -- @
-reviews :: MonadReader b m => APrism s t a b -> (t -> r) -> m r
-reviews Prismoid     f = asks f
-reviews (Prism bt _) f = asks (f . bt)
+reviews :: MonadReader b m => Reviewing s t a b -> (t -> r) -> m r
+reviews p tr = asks $ \b -> tr . copoint $ p (\_ -> point b) Proxy
 {-# INLINE reviews #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.
@@ -272,9 +283,8 @@ reviews (Prism bt _) f = asks (f . bt)
 -- 'reuse' :: 'MonadState' a m => 'Simple' 'Prism' s a -> m s
 -- 'reuse' :: 'MonadState' a m => 'Simple' 'Iso' s a        -> m s
 -- @
-reuse :: MonadState b m => APrism s t a b -> m t
-reuse Prismoid     = get
-reuse (Prism bt _) = gets bt
+reuse :: MonadState b m => Reviewing s t a b -> m t
+reuse p = gets $ \b -> copoint $ p (\_ -> point b) Proxy
 {-# INLINE reuse #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,
@@ -289,9 +299,8 @@ reuse (Prism bt _) = gets bt
 -- 'reuses' :: 'MonadState' a m => 'Simple' 'Prism' s a -> (s -> r) -> m r
 -- 'reuses' :: 'MonadState' a m => 'Simple' 'Iso' s a        -> (s -> r) -> m r
 -- @
-reuses :: MonadState b m => APrism s t a b -> (t -> r) -> m r
-reuses Prismoid     f = gets f
-reuses (Prism bt _) f = gets (f . bt)
+reuses :: MonadState b m => Reviewing s t a b -> (t -> r) -> m r
+reuses p tr = gets $ \b -> tr . copoint $ p (\_ -> point b) Proxy
 {-# INLINE reuses #-}
 
 ------------------------------------------------------------------------------
@@ -357,3 +366,4 @@ _right = prism Right $ left Left
 -- Just 5
 _just :: Prism (Maybe a) (Maybe b) a b
 _just = prism Just $ maybe (Left Nothing) Right
+{-# INLINE _just #-}
