@@ -101,6 +101,8 @@ import Data.Foldable as Foldable
 import Data.Maybe
 import Data.Monoid
 
+{-# ANN module "HLint: ignore Eta reduce" #-}
+
 -- $setup
 -- >>> import Control.Lens
 

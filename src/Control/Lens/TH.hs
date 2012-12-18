@@ -78,6 +78,8 @@ import Data.Traversable hiding (mapM)
 import Language.Haskell.TH
 import Language.Haskell.TH.Lens
 
+{-# ANN module "HLint: ignore Use foldl" #-}
+
 -- | Flags for lens construction
 data LensFlag
   = SimpleLenses

@@ -72,6 +72,8 @@ import Data.Monoid
 import Unsafe.Coerce
 #endif
 
+{-# ANN module "HLint: ignore Use >=>" #-}
+
 #ifndef SAFE
 #define UNSAFELY(x) unsafeCoerce
 #else

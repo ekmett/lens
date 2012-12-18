@@ -39,6 +39,8 @@ import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad.State.Class as State
 
+{-# ANN module "HLint: ignore Avoid lambda" #-}
+
 infixr 4 %@~
 infix  4 %@=
 

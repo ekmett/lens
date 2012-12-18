@@ -104,6 +104,8 @@ import Data.Functor.Identity
 import Data.Monoid
 import Data.Traversable      as Traversable
 
+{-# ANN module "HLint: ignore Avoid lambda" #-}
+
 -- | The representation of a 'Representable' 'Functor' as Lenses
 type Rep f = forall a. Simple Lens (f a) a
 

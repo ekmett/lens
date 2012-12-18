@@ -9,11 +9,9 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
-
 #ifndef MIN_VERSION_mtl
 #define MIN_VERSION_mtl(x,y,z) 1
 #endif
-
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Type
@@ -110,6 +108,8 @@ import Control.Lens.Combinators ((<&>))
 import Control.Lens.Internal (Context(..))
 import Control.Monad.State as State
 import Data.Monoid (Monoid(mappend))
+
+{-# ANN module "HLint: ignore Use ***" #-}
 
 -- $setup
 -- >>> import Control.Lens

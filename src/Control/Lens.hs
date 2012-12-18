@@ -102,3 +102,5 @@ import Control.Lens.WithIndex
 import Control.Lens.Wrapped
 import Control.Lens.Zipper
 import Control.Lens.Zoom
+
+{-# ANN module "HLint: ignore Use import/export shortcut" #-}
