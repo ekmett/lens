@@ -7,7 +7,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE MagicHash #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -442,10 +441,11 @@ instance Applicative Mutator where
 
 instance Settable Mutator where
   untainted = runMutator
-  untainted# = UNSAFELY(runMutator)
   {-# INLINE untainted #-}
-  tainted# = UNSAFELY(Mutator)
-  {-# INLINE tainted# #-}
+  untaintedDot = UNSAFELY(runMutator)
+  {-# INLINE untaintedDot #-}
+  taintedDot = UNSAFELY(Mutator)
+  {-# INLINE taintedDot #-}
 
 -- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance
 -- To protect this instance it relies on the soundness of another 'Gettable' type, and usage conventions.

@@ -6,7 +6,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MagicHash #-}
 
 #ifdef DEFAULT_SIGNATURES
 {-# LANGUAGE DefaultSignatures #-}
@@ -232,5 +231,5 @@ instance (Applicative f, Ix i, IArray UArray a, IArray UArray b) => Each i f (UA
 
 -- | @'each' :: 'Control.Lens.IndexedSetter.IndexedSetter' i (i -> a) (i -> b) a b@
 instance Settable f => Each i f (i -> a) (i -> b) a b where
-  each = Lens.indexed $ \ f g -> pure (\i -> untainted# (f i) (g i))
+  each = Lens.indexed $ \ f g -> pure (\i -> untaintedDot (f i) (g i))
   {-# INLINE each #-}
