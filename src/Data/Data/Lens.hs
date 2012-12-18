@@ -84,6 +84,7 @@ import           GHC.Exts (realWorld#)
 -- This really belongs in @Data.Data@.
 gtraverse :: (Applicative f, Data a) => (forall d. Data d => d -> f d) -> a -> f a
 gtraverse f = gfoldl (\x y -> x <*> f y) pure
+{-# INLINE gtraverse #-}
 
 -------------------------------------------------------------------------------
 -- Naïve Traversal
@@ -293,6 +294,7 @@ sybChildren x
     gmapQ dataBox (fromConstr c `asTypeOf` x)
   | otherwise = []
   where dt = dataTypeOf x
+{-# INLINE sybChildren #-}
 
 -------------------------------------------------------------------------------
 -- HitMap
@@ -382,6 +384,7 @@ instance Functor Answer where
   fmap f (Hit a) = Hit (f a)
   fmap _ Follow  = Follow
   fmap _ Miss    = Miss
+  {-# INLINE fmap #-}
 
 -------------------------------------------------------------------------------
 -- Oracles
@@ -391,6 +394,7 @@ newtype Oracle a = Oracle { fromOracle :: forall t. Typeable t => t -> Answer a 
 
 instance Functor Oracle where
   fmap f (Oracle g) = Oracle (fmap f . g)
+  {-# INLINE fmap #-}
 
 hitTest :: (Data a, Typeable b) => a -> b -> Oracle b
 hitTest a b
