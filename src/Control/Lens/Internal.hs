@@ -441,6 +441,12 @@ instance Applicative Mutator where
   Mutator f <*> Mutator a = Mutator (f a)
   {-# INLINE (<*>) #-}
 
+instance Monad Mutator where
+    return = Mutator
+    {-# INLINE return #-}
+    Mutator x >>= f = f x
+    {-# INLINE (>>=) #-}
+
 instance Settable Mutator where
   untainted = runMutator
   {-# INLINE untainted #-}
