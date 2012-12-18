@@ -278,7 +278,7 @@ droppingWhile p l f = fst . foldrOf l (\a r -> let s = f a *> snd r in (if p a t
 -- 'foldMapOf' :: 'Monoid' r => 'Simple' 'Control.Lens.Prism.Prism' s a     -> (a -> r) -> s -> r
 -- @
 foldMapOf :: Getting r s t a b -> (a -> r) -> s -> r
-foldMapOf l f = runAccessor # (l (Accessor # f))
+foldMapOf l f = runAccessor # l (Accessor # f)
 {-# INLINE foldMapOf #-}
 
 -- |
@@ -295,7 +295,7 @@ foldMapOf l f = runAccessor # (l (Accessor # f))
 -- 'foldOf' :: 'Monoid' m => 'Simple' 'Control.Lens.Prism.Prism' s m     -> s -> m
 -- @
 foldOf :: Getting a s t a b -> s -> a
-foldOf l = runAccessor # (l Accessor)
+foldOf l = runAccessor # l Accessor
 {-# INLINE foldOf #-}
 
 -- |
@@ -854,7 +854,7 @@ lastOf l = getLast # foldMapOf l (Last # Just)
 -- 'nullOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Bool'
 -- @
 nullOf :: Getting All s t a b -> s -> Bool
-nullOf l = getAll # (foldMapOf l (\_ -> All False))
+nullOf l = getAll # foldMapOf l (\_ -> All False)
 {-# INLINE nullOf #-}
 
 
@@ -880,7 +880,7 @@ nullOf l = getAll # (foldMapOf l (\_ -> All False))
 -- 'notNullOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Bool'
 -- @
 notNullOf :: Getting Any s t a b -> s -> Bool
-notNullOf l = getAny # (foldMapOf l (\_ -> Any True))
+notNullOf l = getAny # foldMapOf l (\_ -> Any True)
 {-# INLINE notNullOf #-}
 
 -- |
@@ -969,7 +969,7 @@ minimumByOf l cmp = foldrOf l step Nothing where
 -- 'findOf' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> (a -> 'Bool') -> s -> 'Maybe' a
 -- @
 findOf :: Getting (First a) s t a b -> (a -> Bool) -> s -> Maybe a
-findOf l p = getFirst # (foldMapOf l step) where
+findOf l p = getFirst # foldMapOf l step where
   step a
     | p a       = First (Just a)
     | otherwise = First Nothing

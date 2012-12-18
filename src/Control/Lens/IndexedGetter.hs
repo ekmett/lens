@@ -46,7 +46,7 @@ newtype ReifiedIndexedGetter i s a = ReifyIndexedGetter { reflectIndexedGetter :
 -- When applied to an 'IndexedFold' the result will most likely be a nonsensical monoidal summary of
 -- the indices tupled with a monoidal summary of the values and probably not whatever it is you wanted.
 iview :: MonadReader s m => IndexedGetting i (i,a) s t a b -> m (i,a)
-iview l = asks (runAccessor # (withIndex l (\i -> Accessor # (,) i)))
+iview l = asks (runAccessor # withIndex l (\i -> Accessor # (,) i))
 {-# INLINE iview #-}
 
 -- | View a function of the index and value of an 'IndexedGetter' into the current environment
@@ -70,5 +70,5 @@ iuse l = gets (runAccessor # withIndex l (\i -> Accessor # (,) i))
 --
 -- When applied to an 'IndexedFold' the result will be a monoidal summary instead of a single answer.
 iuses :: MonadState s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
-iuses l f = gets (runAccessor # (withIndex l (\i -> Accessor # f i)))
+iuses l f = gets (runAccessor # withIndex l (\i -> Accessor # f i))
 {-# INLINE iuses #-}
