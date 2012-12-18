@@ -328,6 +328,7 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 -- | This 'Traversal' allows you to 'traverse' the individual stores in a 'Bazaar'.
 loci :: Traversal (Bazaar a c s) (Bazaar b c s) a b
 loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafeOuts w
+{-# INLINE loci #-}
 
 
 
