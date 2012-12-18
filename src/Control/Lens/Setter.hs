@@ -266,7 +266,7 @@ sets f g = taintedDot (f (untaintedDot g))
 --
 -- @'over' :: 'Setter' s t a b -> (a -> b) -> s -> t@
 over :: Setting s t a b -> (a -> b) -> s -> t
-over l f = runMutator # (l (Mutator # f))
+over l f = runMutator # l (Mutator # f)
 {-# INLINE over #-}
 
 -- | 'mapOf' is a deprecated alias for 'over'.
@@ -296,7 +296,7 @@ mapOf = over
 -- 'set' :: 'Control.Lens.Traversal.Traversal' s t a b -> b -> s -> t
 -- @
 set :: Setting s t a b -> b -> s -> t
-set l b = runMutator # (l (\_ -> Mutator b))
+set l b = runMutator # l (\_ -> Mutator b)
 {-# INLINE set #-}
 
 -- |
@@ -324,7 +324,7 @@ set l b = runMutator # (l (\_ -> Mutator b))
 -- 'set'' :: 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> a -> s -> s
 -- @
 set' :: Setting s s a a -> a -> s -> s
-set' l b = runMutator # (l (\_ -> Mutator b))
+set' l b = runMutator # l (\_ -> Mutator b)
 {-# INLINE set' #-}
 
 -- | Modifies the target of a 'Control.Lens.Type.Lens' or all of the targets of a 'Setter' or
