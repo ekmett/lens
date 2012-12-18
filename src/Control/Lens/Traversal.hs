@@ -453,7 +453,7 @@ ins = toListOf bazaar
 
 outs :: Bazaar a a t -> [a] -> t
 #if MIN_VERSION_mtl(2,1,1)
-outs = evalState . bazaar (\oldVal -> State.state (unconsWithDefault oldVal))
+outs = evalState . bazaar (State.state . unconsWithDefault)
 #else
 outs = evalState . bazaar (\oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r)
 #endif
@@ -475,7 +475,7 @@ insT = toListOf bazaarT
 
 outsT :: BazaarT a a f t -> [a] -> t
 #if MIN_VERSION_mtl(2,1,1)
-outsT = evalState . bazaarT (\oldVal -> State.state (unconsWithDefault oldVal))
+outsT = evalState . bazaarT (State.state . unconsWithDefault)
 #else
 outsT = evalState . bazaarT (\oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r)
 #endif
