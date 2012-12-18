@@ -43,6 +43,7 @@
 module Control.Lens.Wrapped
   ( Wrapped(..)
   , unwrapped
+  , wrapped', unwrapped'
   , wrapping, unwrapping
   , wrappings, unwrappings
   , op
@@ -53,12 +54,11 @@ import           Control.Applicative
 import           Control.Applicative.Backwards
 import           Control.Applicative.Lift
 import           Control.Arrow
--- import        Control.Comonad.Trans.Env
--- import        Control.Comonad.Trans.Store
 import           Control.Comonad.Trans.Traced
 import           Control.Exception
-import           Control.Lens.Prism
 import           Control.Lens.Iso
+import           Control.Lens.Prism
+import           Control.Lens.Type
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
 import           Control.Monad.Trans.Identity
@@ -357,6 +357,16 @@ op f = review (wrapping f)
 unwrapped :: Wrapped t s b a => Iso a b s t
 unwrapped = from wrapped
 {-# INLINE unwrapped #-}
+
+-- | A convenient type-restricted version of 'wrapped' for aiding type inference
+wrapped' :: Wrapped s s a a => Simple Iso s a
+wrapped' = wrapped
+{-# INLINE wrapped' #-}
+
+-- | A convenient type-restricted version of 'unwrapped' for aiding type inference
+unwrapped' :: Wrapped s s a a => Simple Iso a s
+unwrapped' = unwrapped
+{-# INLINE unwrapped' #-}
 
 -- | This is a convenient version of 'wrapped' with an argument that's ignored.
 --
