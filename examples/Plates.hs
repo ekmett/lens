@@ -19,7 +19,7 @@ instance Plated Stmt where
   plate f (Sel xs) = pure (Sel xs)
   plate f (Let x y) = pure (Let x y)
 
-exprs :: Simple Traversal Stmt Expr
+exprs :: Traversal' Stmt Expr
 exprs f (Seq xs)  = Seq <$> traverse (exprs f) xs
 exprs f (Sel xs)  = Sel <$> traverse f xs
 exprs f (Let x y) = Let x <$> f y

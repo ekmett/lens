@@ -10,11 +10,11 @@
 -- > def & forward 10 & down & color .~ red % turn (pi/2) & forward 5
 module Turtle where
 
-import Control.Lens hiding (up, down)
+import Control.Lens
 import Data.Default
 
 data Point = Point
-  { _x, _y :: Double
+  { __x, __y :: Double
   } deriving (Eq,Show)
 
 makeClassy ''Point
@@ -23,7 +23,7 @@ instance Default Point where
   def = Point def def
 
 data Color = Color
-  { _r, _g, _b :: Int
+  { __r, __g, __b :: Int
   } deriving (Eq,Show)
 
 makeClassy ''Color
@@ -54,8 +54,8 @@ instance HasColor Turtle where
 
 forward :: Double -> Turtle -> Turtle
 forward d t =
-  t & y +~ d * cos (t^.heading)
-    & x +~ d * sin (t^.heading)
+  t & _y +~ d * cos (t^.heading)
+    & _x +~ d * sin (t^.heading)
 
 turn :: Double -> Turtle -> Turtle
 turn d = heading +~ d
