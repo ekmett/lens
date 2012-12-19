@@ -47,6 +47,7 @@ module Control.Lens.Fold
   , previews
   , preuse
   , preuses
+  , has
   -- ** Building Folds
   --, folds
   , folding
@@ -1091,6 +1092,32 @@ foldlMOf :: Monad m
 foldlMOf l f z0 xs = foldrOf l f' return xs z0
   where f' x k z = f z x >>= k
 {-# INLINE foldlMOf #-}
+
+-- | Check to see if this 'Fold' or 'Traversal' matches 1 or more entries
+--
+-- >>> has (element 0) []
+-- False
+--
+-- >>> has _left (Left 12)
+-- True
+--
+-- >>> has _right (Left 12)
+-- True
+--
+-- This will always return True for a 'Lens' or 'Getter'
+--
+-- >>> has _1 ("hello","world")
+-- True
+--
+-- @
+-- 'has' :: 'Getter' s a           -> s -> 'Bool'
+-- 'has' :: 'Fold' s a             -> s -> 'Bool'
+-- 'has' :: 'Simple' 'Control.Lens.Iso.Iso' s a       -> s -> 'Bool'
+-- 'has' :: 'Simple' 'Lens' s a      -> s -> 'Bool'
+-- 'has' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Bool'
+-- @
+has :: Getting Any s t a b -> s -> Bool
+has l = getAny # views l (\_ -> Any True)
 
 -- | Useful for storing folds in containers.
 newtype ReifiedFold s a = ReifyFold { reflectFold :: Fold s a }
