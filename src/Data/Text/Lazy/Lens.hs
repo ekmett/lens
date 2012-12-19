@@ -29,13 +29,13 @@ import Data.Text.Lazy
 -- 'pack' x = x '^.' 'packed'
 -- 'unpack' x = x '^.' 'from' 'packed'
 -- @
-packed :: Simple Iso String Text
+packed :: Iso' String Text
 packed = iso pack unpack
 {-# INLINE packed #-}
 
 -- | Traverse the individual characters in a 'Text'.
 --
 -- > anyOf text (=='c') :: Text -> Bool
-text :: SimpleIndexedTraversal Int Text Char
+text :: IndexedTraversal' Int Text Char
 text = from packed .> itraversed
 {-# INLINE text #-}

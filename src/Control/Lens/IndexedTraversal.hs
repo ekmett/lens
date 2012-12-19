@@ -30,6 +30,7 @@ module Control.Lens.IndexedTraversal
   (
   -- * Indexed Traversals
     IndexedTraversal
+  , IndexedTraversal'
 
   -- * Common Indexed Traversals
   , iwhereOf
@@ -54,8 +55,9 @@ module Control.Lens.IndexedTraversal
 
   -- * Storing Indexed Traversals
   , ReifiedIndexedTraversal(..)
+  , ReifiedIndexedTraversal'
 
-  -- * Simple
+  -- * Deprecated
   , SimpleIndexedTraversal
   , SimpleReifiedIndexedTraversal
   ) where
@@ -88,8 +90,9 @@ import Data.Traversable
 -- The 'Control.Lens.Traversal.Traversal' laws are still required to hold.
 type IndexedTraversal i s t a b = forall f k. (Indexable i k, Applicative f) => k (a -> f b) (s -> f t)
 
--- | @type 'SimpleIndexedTraversal' i = 'Simple' ('IndexedTraversal' i)@
-type SimpleIndexedTraversal i s a = IndexedTraversal i s s a a
+-- | @type 'IndexedTraversal'' i = 'Simple' ('IndexedTraversal' i)@
+type IndexedTraversal' i s a = IndexedTraversal i s s a a
+
 
 -- | Traversal with an index.
 --
@@ -340,5 +343,17 @@ elements = elementsOf traverse
 newtype ReifiedIndexedTraversal i s t a b =
   ReifyIndexedTraversal { reflectIndexedTraversal :: IndexedTraversal i s t a b }
 
--- | @type 'SimpleIndexedTraversal' i = 'Simple' ('ReifiedIndexedTraversal' i)@
+-- | @type 'ReifiedIndexedTraversal'' i = 'Simple' ('ReifiedIndexedTraversal' i)@
+type ReifiedIndexedTraversal' i s a = ReifiedIndexedTraversal i s s a a
+
+------------------------------------------------------------------------------
+-- Deprecated
+------------------------------------------------------------------------------
+
+-- | @type 'SimpleReifiedIndexedTraversal' i = 'Simple' ('ReifiedIndexedTraversal' i)@
 type SimpleReifiedIndexedTraversal i s a = ReifiedIndexedTraversal i s s a a
+{-# DEPRECATED SimpleReifiedIndexedTraversal "use ReifiedIndexedTraversal'" #-}
+
+-- | @type 'SimpleIndexedTraversal' i = 'Simple' ('IndexedTraversal' i)@
+type SimpleIndexedTraversal i s a = IndexedTraversal i s s a a
+{-# DEPRECATED SimpleIndexedTraversal "use IndexedTraversal'" #-}

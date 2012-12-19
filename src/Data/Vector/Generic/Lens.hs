@@ -59,7 +59,7 @@ import Prelude hiding ((++), length, null, head, tail, init, last, map, reverse)
 --
 -- >>> Vector.fromList "abc" & _head .~ 'Q'
 -- fromList "Qbc"
-_head :: Vector v a => SimpleTraversal (v a) a
+_head :: Vector v a => Traversal' (v a) a
 _head f v
   | null v    = pure v
   | otherwise = f (unsafeHead v) <&> \a -> v // [(0,a)]
@@ -75,7 +75,7 @@ _head f v
 --
 -- >>> Vector.fromList "abcde" & _last .~ 'Q'
 -- fromList "abcdQ"
-_last :: Vector v a => SimpleTraversal (v a) a
+_last :: Vector v a => Traversal' (v a) a
 _last f v
   | null v    = pure v
   | otherwise = f (unsafeLast v) <&> \a -> v // [(length v - 1, a)]
@@ -91,7 +91,7 @@ _last f v
 --
 -- >>> _tail .~ Vector.fromList [3,4,5] $ Vector.fromList [1,2]
 -- fromList [1,3,4,5]
-_tail :: Vector v a => SimpleTraversal (v a) (v a)
+_tail :: Vector v a => Traversal' (v a) (v a)
 _tail f v
   | null v    = pure v
   | otherwise = f (unsafeTail v) <&> cons (unsafeHead v)
@@ -107,7 +107,7 @@ _tail f v
 --
 -- >>> Vector.fromList [1,2,3,4] ^? _init
 -- Just (fromList [1,2,3])
-_init :: Vector v a => SimpleTraversal (v a) (v a)
+_init :: Vector v a => Traversal' (v a) (v a)
 _init f v
   | null v    = pure v
   | otherwise = f (unsafeInit v) <&> (`snoc` unsafeLast v)
@@ -126,7 +126,7 @@ _init f v
 -- fromList [1,2,0,0,0,0,0,8,9,10]
 sliced :: Vector v a => Int -- ^ @i@ starting index
           -> Int -- ^ @n@ length
-          -> SimpleLens (v a) (v a)
+          -> Lens' (v a) (v a)
 sliced i n f v = f (slice i n v) <&> \ v0 -> v // zip [i..i+n-1] (V.toList v0)
 {-# INLINE sliced #-}
 
@@ -145,27 +145,27 @@ toVectorOf l s = fromList (toListOf l s)
 --
 -- >>> Vector.fromList [0,8,15] ^. from vector
 -- [0,8,15]
-vector :: Vector v a => Simple Iso [a] (v a)
+vector :: Vector v a => Iso' [a] (v a)
 vector = iso fromList V.toList
 {-# INLINE vector #-}
 
 -- | Convert a 'Vector' to a finite 'Stream' (or back)
-asStream :: Vector v a => Simple Iso (v a) (Stream a)
+asStream :: Vector v a => Iso' (v a) (Stream a)
 asStream = iso stream unstream
 {-# INLINE asStream #-}
 
 -- | Convert a 'Vector' to a finite 'Stream' from right to left (or back)
-asStreamR :: Vector v a => Simple Iso (v a) (Stream a)
+asStreamR :: Vector v a => Iso' (v a) (Stream a)
 asStreamR = iso streamR unstreamR
 {-# INLINE asStreamR #-}
 
 -- | Convert a 'Vector' back and forth to an initializer that when run produces a copy of the 'Vector'.
-cloned :: Vector v a => Simple Iso (v a) (New v a)
+cloned :: Vector v a => Iso' (v a) (New v a)
 cloned = iso clone new
 {-# INLINE cloned #-}
 
 -- | Convert a 'Vector' to a version that doesn't retain any extra memory.
-forced :: Vector v a => Simple Iso (v a) (v a)
+forced :: Vector v a => Iso' (v a) (v a)
 forced = iso force force
 {-# INLINE forced #-}
 
@@ -173,7 +173,7 @@ forced = iso force force
 --
 -- >>> Vector.fromList [1,2,3] ^. reversed
 -- fromList [3,2,1]
-reversed :: Vector v a => Simple Iso (v a) (v a)
+reversed :: Vector v a => Iso' (v a) (v a)
 reversed = iso reverse reverse
 {-# INLINE reversed #-}
 
@@ -181,7 +181,7 @@ reversed = iso reverse reverse
 --
 -- >>> toListOf (ordinals [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
 -- [4,8,6,12,20,22]
-ordinals :: Vector v a => [Int] -> SimpleIndexedTraversal Int (v a) a
+ordinals :: Vector v a => [Int] -> IndexedTraversal' Int (v a) a
 ordinals is = indexed $ \ f v -> let
      l = length v
      is' = nub $ filter (<l) is

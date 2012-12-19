@@ -28,7 +28,7 @@ import Data.Text
 -- 'pack' x = x '^.' 'packed'
 -- 'unpack' x = x '^.' 'from' 'packed'
 -- @
-packed :: Simple Iso String Text
+packed :: Iso' String Text
 packed = iso pack unpack
 {-# INLINE packed #-}
 
@@ -36,6 +36,6 @@ packed = iso pack unpack
 --
 -- >>> anyOf text (=='o') $ "hello"^.packed
 -- True
-text :: SimpleIndexedTraversal Int Text Char
+text :: IndexedTraversal' Int Text Char
 text = from packed .> itraversed
 {-# INLINE text #-}

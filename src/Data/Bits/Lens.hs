@@ -129,7 +129,7 @@ l <.&.~ n = l <%~ (.&. n)
 -- ('<.&.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m a
 -- ('<.&.=') :: ('MonadState' s m, 'Bits' a, 'Monoid' a) => 'Simple' 'Traversal' s a -> a -> m a
 -- @
-(<.&.=):: (MonadState s m, Bits a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<.&.=):: (MonadState s m, Bits a) => LensLike' ((,)a) s a -> a -> m a
 l <.&.= b = l <%= (.&. b)
 {-# INLINE (<.&.=) #-}
 
@@ -143,7 +143,7 @@ l <.&.= b = l <%= (.&. b)
 -- ('<.|.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m a
 -- ('<.|.=') :: ('MonadState' s m, 'Bits' a, 'Monoid' a) => 'Simple' 'Traversal' s a -> a -> m a
 -- @
-(<.|.=) :: (MonadState s m, Bits a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<.|.=) :: (MonadState s m, Bits a) => LensLike' ((,)a) s a -> a -> m a
 l <.|.= b = l <%= (.|. b)
 {-# INLINE (<.|.=) #-}
 
@@ -162,7 +162,7 @@ l <.|.= b = l <%= (.|. b)
 --
 -- >>> 16 & bitAt 4 .~ False
 -- 0
-bitAt :: Bits b => Int -> SimpleIndexedLens Int b Bool
+bitAt :: Bits b => Int -> IndexedLens' Int b Bool
 bitAt n = indexed $ \f b -> f n (testBit b n) <&> \x -> if x then setBit b n else clearBit b n
 {-# INLINE bitAt #-}
 
@@ -175,7 +175,7 @@ bitAt n = indexed $ \f b -> f n (testBit b n) <&> \x -> if x then setBit b n els
 --
 -- If you supply this an 'Integer', the result will be an infinite 'Traversal', which
 -- can be productively consumed, but not reassembled.
-bits :: (Num b, Bits b) => SimpleIndexedTraversal Int b Bool
+bits :: (Num b, Bits b) => IndexedTraversal' Int b Bool
 bits = indexed $ \f b -> let
     g n      = (,) n <$> f n (testBit b n)
     bs       = Prelude.takeWhile hasBit [0..]

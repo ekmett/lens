@@ -12,9 +12,8 @@
 --
 -- Infix type operators for simple lenses and traversals.
 --
--- These type aliases are not re-exported from @Control.Lens@.
+-- These deprecated type aliases are not re-exported from @Control.Lens@.
 ----------------------------------------------------------------------------
-
 module Control.Lens.Simple
   ( (:->)
   , (:=>)
@@ -28,9 +27,12 @@ infixr 0 :=>, :->, :<->
 
 -- | This is a commonly used infix alias for a @'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens'@.
 type s :-> a = forall f. Functor f => (a -> f a) -> s -> f s
+{-# DEPRECATED (:->) "use Lens'" #-}
 
 -- | This is a commonly-used infix alias for a @'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal'@.
 type s :=> a = forall f. Applicative f => (a -> f a) -> s -> f s
+{-# DEPRECATED (:=>) "use Traversal'" #-}
 
 -- | This is a commonly-used infix alias for a @'Control.Lens.Type.Simple' 'Iso'@
 type s :<-> a = Iso s s a a
+{-# DEPRECATED (:<->) "use Iso'" #-}

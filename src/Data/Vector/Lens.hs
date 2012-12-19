@@ -2,7 +2,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
@@ -51,7 +50,7 @@ import Data.Monoid
 --
 -- >>> Vector.fromList "abc" & _head .~ 'Q'
 -- fromList "Qbc"
-_head :: SimpleTraversal (Vector a) a
+_head :: Traversal' (Vector a) a
 _head f v
   | null v    = pure v
   | otherwise = f (unsafeHead v) <&> \a -> v // [(0,a)]
@@ -67,7 +66,7 @@ _head f v
 --
 -- >>> Vector.fromList "abcde" & _last .~ 'Q'
 -- fromList "abcdQ"
-_last :: SimpleTraversal (Vector a) a
+_last :: Traversal' (Vector a) a
 _last f v
   | null v    = pure v
   | otherwise = f (unsafeLast v) <&> \a -> v // [(length v - 1, a)]
@@ -83,7 +82,7 @@ _last f v
 --
 -- >>> _tail .~ Vector.fromList [3,4,5] $ Vector.fromList [1,2]
 -- fromList [1,3,4,5]
-_tail :: SimpleTraversal (Vector a) (Vector a)
+_tail :: Traversal' (Vector a) (Vector a)
 _tail f v
   | null v    = pure v
   | otherwise = f (unsafeTail v) <&> cons (unsafeHead v)
@@ -99,7 +98,7 @@ _tail f v
 --
 -- >>> Vector.fromList "abcdef" & _init.mapped %~ succ
 -- fromList "bcdeff"
-_init :: SimpleTraversal (Vector a) (Vector a)
+_init :: Traversal' (Vector a) (Vector a)
 _init f v
   | null v    = pure v
   | otherwise = f (unsafeInit v) <&> (`snoc` unsafeLast v)
@@ -118,7 +117,7 @@ _init f v
 -- fromList [1,2,0,0,0,0,0,8,9,10]
 sliced :: Int -- ^ @i@ starting index
        -> Int -- ^ @n@ length
-       -> SimpleLens (Vector a) (Vector a)
+       -> Lens' (Vector a) (Vector a)
 sliced i n f v = f (slice i n v) <&> \ v0 -> v // zip [i..i+n-1] (toList v0)
 {-# INLINE sliced #-}
 
@@ -161,7 +160,7 @@ forced = iso force force
 --
 -- >>> toListOf (ordinals [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
 -- [4,8,6,12,20,22]
-ordinals :: [Int] -> SimpleIndexedTraversal Int (Vector a) a
+ordinals :: [Int] -> IndexedTraversal' Int (Vector a) a
 ordinals is = indexed $ \ f v -> let
      l = length v
      is' = nub $ filter (<l) is

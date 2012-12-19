@@ -101,20 +101,20 @@ type instance Zipped (h :> s) a = Zipped h s
 -- This is part of the internal structure of a zipper. You shouldn't need to manipulate this directly.
 data Coil :: * -> * -> * where
   Coil :: Coil Top a
-  Snoc :: Coil h s                           -- Previous 'Coil'.
-       -> SimpleLensLike (Bazaar a a) s a    -- The 'Traversal' used to descend into this level (used to build a 'Tape').
+  Snoc :: Coil h s                        -- Previous 'Coil'.
+       -> LensLike' (Bazaar a a) s a      -- The 'Traversal' used to descend into this level (used to build a 'Tape').
        -- The Zipper above us, unpacked:
-       -> {-# UNPACK #-} !Int                -- Number of items to the left.
-       -> [s]                                -- Previous level's items to the left (stored reverse).
-       -> ([a] -> s)                         -- Function to rebuild the previous level's focused item from the entire current level.
-                                             --   (Since the current level always has a focus, the list must be nonempty.)
-       -> [s]                                -- Previous level's items to the right.
+       -> {-# UNPACK #-} !Int             -- Number of items to the left.
+       -> [s]                             -- Previous level's items to the left (stored reverse).
+       -> ([a] -> s)                      -- Function to rebuild the previous level's focused item from the entire current level.
+                                          --   (Since the current level always has a focus, the list must be nonempty.)
+       -> [s]                             -- Previous level's items to the right.
        -> Coil (h :> s) a
 
 -- | This 'Lens' views the current target of the 'Zipper'.
 --
 -- A 'Tape' that can be used to get to the current location is available as the index of this 'Lens'.
-focus :: SimpleIndexedLens (Tape (h :> a)) (h :> a) a
+focus :: IndexedLens' (Tape (h :> a)) (h :> a) a
 focus = indexed $ \f (Zipper h n l a r) -> (\a' -> Zipper h n l a' r) <$> f (Tape (peel h) n) a
 {-# INLINE focus #-}
 
@@ -336,10 +336,10 @@ tugTo n z = case compare k n of
 -- there is precisely one target that can never fail.
 --
 -- @
--- 'downward' :: 'Simple' 'Lens' s a -> (h :> s) -> h :> s :> a
--- 'downward' :: 'Simple' 'Iso' s a  -> (h :> s) -> h :> s :> a
+-- 'downward' :: 'Lens'' s a -> (h :> s) -> h :> s :> a
+-- 'downward' :: 'Iso'' s a  -> (h :> s) -> h :> s :> a
 -- @
-downward :: SimpleLensLike (Context a a) s a -> (h :> s) -> h :> s :> a
+downward :: LensLike' (Context a a) s a -> (h :> s) -> h :> s :> a
 downward l (Zipper h n ls s rs) = case l (Context id) s of
   Context k a -> Zipper (Snoc h (cloneLens l) n ls (k . head) rs) 0 [] a []
 {-# INLINE downward #-}
@@ -347,11 +347,11 @@ downward l (Zipper h n ls s rs) = case l (Context id) s of
 -- | Step down into the 'leftmost' entry of a 'Traversal'.
 --
 -- @
--- 'within' :: 'Simple' 'Traversal' s a -> (h :> s) -> Maybe (h :> s :> a)
--- 'within' :: 'Simple' 'Lens' s a      -> (h :> s) -> Maybe (h :> s :> a)
--- 'within' :: 'Simple' 'Iso' s a       -> (h :> s) -> Maybe (h :> s :> a)
+-- 'within' :: 'Traversal'' s a -> (h :> s) -> Maybe (h :> s :> a)
+-- 'within' :: 'Lens'' s a      -> (h :> s) -> Maybe (h :> s :> a)
+-- 'within' :: 'Iso'' s a       -> (h :> s) -> Maybe (h :> s :> a)
 -- @
-within :: MonadPlus m => SimpleLensLike (Bazaar a a) s a -> (h :> s) -> m (h :> s :> a)
+within :: MonadPlus m => LensLike' (Bazaar a a) s a -> (h :> s) -> m (h :> s :> a)
 within l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
   Context _ []     -> mzero
   Context k (a:as) -> return (Zipper (Snoc h l n ls k rs) 0 [] a as)
@@ -363,11 +363,11 @@ within l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
 -- [("hEllo","world"),("heLlo","world"),("helLo","world"),("hellO","world")]
 --
 -- @
--- 'withins' :: 'Simple' 'Traversal' s a -> (h :> s) -> [h :> s :> a]
--- 'withins' :: 'Simple' 'Lens' s a      -> (h :> s) -> [h :> s :> a]
--- 'withins' :: 'Simple' 'Iso' s a       -> (h :> s) -> [h :> s :> a]
+-- 'withins' :: 'Traversal'' s a -> (h :> s) -> [h :> s :> a]
+-- 'withins' :: 'Lens'' s a      -> (h :> s) -> [h :> s :> a]
+-- 'withins' :: 'Iso'' s a       -> (h :> s) -> [h :> s :> a]
 -- @
-withins :: SimpleLensLike (Bazaar a a) s a -> (h :> s) -> [h :> s :> a]
+withins :: LensLike' (Bazaar a a) s a -> (h :> s) -> [h :> s :> a]
 withins l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
   Context k ys -> go k [] ys
   where go k xs (y:ys) = Zipper (Snoc h l n ls k rs) 0 xs y ys : go k (y:xs) ys
@@ -378,9 +378,9 @@ withins l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
 -- If this invariant is not met then this will usually result in an error!
 --
 -- @
--- 'fromWithin' :: 'Simple' 'Traversal' s a -> (h :> s) -> h :> s :> a
--- 'fromWithin' :: 'Simple' 'Lens' s a      -> (h :> s) -> h :> s :> a
--- 'fromWithin' :: 'Simple' 'Iso' s a       -> (h :> s) -> h :> s :> a
+-- 'fromWithin' :: 'Traversal'' s a -> (h :> s) -> h :> s :> a
+-- 'fromWithin' :: 'Lens'' s a      -> (h :> s) -> h :> s :> a
+-- 'fromWithin' :: 'Iso'' s a       -> (h :> s) -> h :> s :> a
 -- @
 --
 -- You can reason about this function as if the definition was:
@@ -389,7 +389,7 @@ withins l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
 --
 -- but it is lazier in such a way that if this invariant is violated, some code
 -- can still succeed if it is lazy enough in the use of the focused value.
-fromWithin :: SimpleLensLike (Bazaar a a) s a -> (h :> s) -> h :> s :> a
+fromWithin :: LensLike' (Bazaar a a) s a -> (h :> s) -> h :> s :> a
 fromWithin l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
   Context k ~(a:as) -> Zipper (Snoc h l n ls k rs) 0 [] a as
 {-# INLINE fromWithin #-}
@@ -466,7 +466,7 @@ peel (Snoc h l n _ _ _) = Fork (peel h) n l
 -- | The 'Track' forms the bulk of a 'Tape'.
 data Track :: * -> * -> * where
   Track :: Track Top a
-  Fork  :: Track h s -> {-# UNPACK #-} !Int -> SimpleLensLike (Bazaar a a) s a -> Track (h :> s) a
+  Fork  :: Track h s -> {-# UNPACK #-} !Int -> LensLike' (Bazaar a a) s a -> Track (h :> s) a
 
 -- | Restore ourselves to a previously recorded position precisely.
 --

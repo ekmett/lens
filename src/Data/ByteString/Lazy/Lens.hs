@@ -27,7 +27,7 @@ import Data.Int (Int64)
 -- @'Data.ByteString.Lazy.pack' x = x '^.' 'packedBytes'@
 --
 -- @'Data.ByteString.Lazy.unpack' x = x '^.' 'from' 'packedBytes'@
-packedBytes :: Simple Iso [Word8] ByteString
+packedBytes :: Iso' [Word8] ByteString
 packedBytes = iso Words.pack Words.unpack
 {-# INLINE packedBytes #-}
 
@@ -36,7 +36,7 @@ packedBytes = iso Words.pack Words.unpack
 -- @'bytes' = 'from' 'packedBytes' . 'itraversed'@
 --
 -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
-bytes :: SimpleIndexedTraversal Int64 ByteString Word8
+bytes :: IndexedTraversal' Int64 ByteString Word8
 bytes = from packedBytes .> traversed64
 {-# INLINE bytes #-}
 
@@ -48,7 +48,7 @@ bytes = from packedBytes .> traversed64
 -- @'Data.ByteString.Lazy.Char8.pack' x = x '^.' 'packedChars'@
 --
 -- @'Data.ByteString.Lazy.Char8.unpack' x = x '^.' 'from' 'packedChars'@
-packedChars :: Simple Iso String ByteString
+packedChars :: Iso' String ByteString
 packedChars = iso Char8.pack Char8.unpack
 {-# INLINE packedChars #-}
 
@@ -60,6 +60,6 @@ packedChars = iso Char8.pack Char8.unpack
 -- @'chars' = 'from' 'packedChars' '.>' 'itraversed'@
 --
 -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
-chars :: SimpleIndexedTraversal Int64 ByteString Char
+chars :: IndexedTraversal' Int64 ByteString Char
 chars = from packedChars .> traversed64
 {-# INLINE chars #-}

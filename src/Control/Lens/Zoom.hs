@@ -62,7 +62,7 @@ infixr 2 `zoom`, `magnify`
 -- many different monad transformers, potentially quite deep in a monad transformer stack.
 class (MonadState s m, MonadState t n) => Zoom m n k s t | m -> s k, n -> t k, m t -> n, n s -> m where
   -- | Run a monadic action in a larger state than it was defined in,
-  -- using a 'Simple' 'Lens' or 'Simple' 'Control.Lens.Traversal.Traversal'.
+  -- using a 'Lens'' or 'Control.Lens.Traversal.Traversal''.
   --
   -- This is commonly used to lift actions in a simpler state monad into a
   -- state monad with a larger state type.
@@ -89,15 +89,15 @@ class (MonadState s m, MonadState t n) => Zoom m n k s t | m -> s k, n -> t k, m
   -- a <> b
   --
   -- @
-  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' s t      -> 'StateT' t m a -> 'StateT' s m a
-  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' s t -> 'StateT' t m c -> 'StateT' s m c
-  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' s t      -> 'RWST' r w t m c -> 'RWST' r w s m c
-  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' s t -> 'RWST' r w t m c -> 'RWST' r w s m c
-  -- 'zoom' :: 'Monad' m             => 'Simple' 'Lens' s t      -> 'ErrorT' e ('RWST' r w t m c) -> 'ErrorT' e ('RWST' r w s m c)
-  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Simple' 'Control.Lens.Traversal.Traversal' s t -> 'ErrorT' e ('RWST' r w t m c) -> 'ErrorT' e ('RWST' r w s m c)
+  -- 'zoom' :: 'Monad' m             => 'Lens'' s t      -> 'StateT' t m a -> 'StateT' s m a
+  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Control.Lens.Traversal.Traversal'' s t -> 'StateT' t m c -> 'StateT' s m c
+  -- 'zoom' :: 'Monad' m             => 'Lens'' s t      -> 'RWST' r w t m c -> 'RWST' r w s m c
+  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Control.Lens.Traversal.Traversal'' s t -> 'RWST' r w t m c -> 'RWST' r w s m c
+  -- 'zoom' :: 'Monad' m             => 'Lens'' s t      -> 'ErrorT' e ('RWST' r w t m c) -> 'ErrorT' e ('RWST' r w s m c)
+  -- 'zoom' :: ('Monad' m, 'Monoid' c) => 'Control.Lens.Traversal.Traversal'' s t -> 'ErrorT' e ('RWST' r w t m c) -> 'ErrorT' e ('RWST' r w s m c)
   -- ...
   -- @
-  zoom :: SimpleLensLike (k c) t s -> m c -> n c
+  zoom :: LensLike' (k c) t s -> m c -> n c
 
 instance Monad z => Zoom (Strict.StateT s z) (Strict.StateT t z) (Focusing z) s t where
   zoom l (Strict.StateT m) = Strict.StateT $ unfocusing # l (Focusing # m)

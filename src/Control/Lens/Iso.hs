@@ -26,6 +26,7 @@ module Control.Lens.Iso
   (
   -- * Isomorphism Lenses
     Iso
+  , Iso'
   , AnIso
   -- * Isomorphism Construction
   , Isomorphic(..)
@@ -46,10 +47,10 @@ module Control.Lens.Iso
   , enum
   , curried, uncurried
   , Strict(..)
-  -- * Simplicity
-  , SimpleIso
   -- * Useful Type Families
   , CoA, CoB
+  -- * Deprecated
+  , SimpleIso
   ) where
 
 import Control.Category
@@ -112,8 +113,9 @@ withIso k Isoid       = k id id
 {-# INLINE withIso #-}
 
 -- |
--- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
-type SimpleIso s a = Iso s s a a
+-- @type 'Iso'' = 'Control.Lens.Type.Simple' 'Iso'@
+type Iso' s a = Iso s s a a
+
 
 -- | Based on 'Control.Lens.Wrapped.ala' from Conor McBride's work on Epigram.
 --
@@ -270,3 +272,12 @@ instance Strict LazyB.ByteString StrictB.ByteString where
 instance Strict LazyT.Text StrictT.Text where
   strict = iso LazyT.toStrict LazyT.fromStrict
   {-# INLINE strict #-}
+
+------------------------------------------------------------------------------
+-- Deprecated
+------------------------------------------------------------------------------
+
+-- |
+-- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
+type SimpleIso s a = Iso s s a a
+{-# DEPRECATED SimpleIso "use Iso'" #-}

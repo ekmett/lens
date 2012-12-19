@@ -96,56 +96,56 @@ data LensFlag
   deriving (Eq,Ord,Show,Read)
 
 -- | Only Generate valid 'Simple' 'Lens' lenses.
-simpleLenses      :: Simple Lens LensRules Bool
+simpleLenses      :: Lens' LensRules Bool
 simpleLenses       = lensFlags.ix SimpleLenses
 
 -- | Enables the generation of partial lenses, generating runtime errors for
 -- every constructor that does not have a valid definition for the lens. This
 -- occurs when the constructor lacks the field, or has multiple fields mapped
 -- to the same lens.
-partialLenses     :: Simple Lens LensRules Bool
+partialLenses     :: Lens' LensRules Bool
 partialLenses      = lensFlags.ix PartialLenses
 
 -- | In the situations that a lens would be partial, when 'partialLenses' is
 -- used, this flag instead causes traversals to be generated.  Only one can be
 -- used, and if neither are, then compile-time errors are generated.
-buildTraversals   :: Simple Lens LensRules Bool
+buildTraversals   :: Lens' LensRules Bool
 buildTraversals    = lensFlags.ix BuildTraversals
 
 -- | Handle singleton constructors specially.
-handleSingletons  :: Simple Lens LensRules Bool
+handleSingletons  :: Lens' LensRules Bool
 handleSingletons   = lensFlags.ix HandleSingletons
 
 -- | When building a singleton 'Iso' (or 'Lens') for a record constructor, build both
 -- the 'Iso' (or 'Lens') for the record and the one for the field.
-singletonAndField :: Simple Lens LensRules Bool
+singletonAndField :: Lens' LensRules Bool
 singletonAndField  = lensFlags.ix SingletonAndField
 
 -- | Use 'Iso' for singleton constructors.
-singletonIso      :: Simple Lens LensRules Bool
+singletonIso      :: Lens' LensRules Bool
 singletonIso       = lensFlags.ix SingletonIso
 
 -- | Expect a single constructor, single field newtype or data type.
-singletonRequired :: Simple Lens LensRules Bool
+singletonRequired :: Lens' LensRules Bool
 singletonRequired  = lensFlags.ix SingletonRequired
 
 -- | Create the class if the constructor is simple and the 'lensClass' rule matches.
-createClass       :: Simple Lens LensRules Bool
+createClass       :: Lens' LensRules Bool
 createClass        = lensFlags.ix CreateClass
 
 -- | Create the instance if the constructor is simple and the 'lensClass' rule matches.
-createInstance    :: Simple Lens LensRules Bool
+createInstance    :: Lens' LensRules Bool
 createInstance     = lensFlags.ix CreateInstance
 
 -- | Die if the 'lensClass' fails to match.
-classRequired     :: Simple Lens LensRules Bool
+classRequired     :: Lens' LensRules Bool
 classRequired      = lensFlags.ix ClassRequired
 
 -- | Indicate whether or not to supply the signatures for the generated lenses.
 --
 -- Disabling this can be useful if you want to provide a more restricted type signature
 -- or if you want to supply hand-written haddocks.
-generateSignatures :: Simple Lens LensRules Bool
+generateSignatures :: Lens' LensRules Bool
 generateSignatures = lensFlags.ix GenerateSignatures
 
 -- | This configuration describes the options we'll be using to make isomorphisms or lenses.
@@ -159,24 +159,24 @@ data LensRules = LensRules
 -- | Lens to access the convention for naming top level isomorphisms in our lens rules.
 --
 -- Defaults to lowercasing the first letter of the constructor.
-lensIso :: Simple Lens LensRules (String -> Maybe String)
+lensIso :: Lens' LensRules (String -> Maybe String)
 lensIso f (LensRules i n c o) = f i <&> \i' -> LensRules i' n c o
 
 -- | Lens to access the convention for naming fields in our lens rules.
 --
 -- Defaults to stripping the _ off of the field name, lowercasing the name, and
 -- rejecting the field if it doesn't start with an '_'.
-lensField :: Simple Lens LensRules (String -> Maybe String)
+lensField :: Lens' LensRules (String -> Maybe String)
 lensField f (LensRules i n c o) = f n <&> \n' -> LensRules i n' c o
 
 -- | Retrieve options such as the name of the class and method to put in it to
 -- build a class around monomorphic data types.
-lensClass :: Simple Lens LensRules (String -> Maybe (String, String))
+lensClass :: Lens' LensRules (String -> Maybe (String, String))
 lensClass f (LensRules i n c o) = f c <&> \c' -> LensRules i n c' o
 
 -- | Retrieve options such as the name of the class and method to put in it to
 -- build a class around monomorphic data types.
-lensFlags :: Simple Lens LensRules (Set LensFlag)
+lensFlags :: Lens' LensRules (Set LensFlag)
 lensFlags f (LensRules i n c o) = f o <&> LensRules i n c
 
 -- | Default lens rules

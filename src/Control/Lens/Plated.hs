@@ -188,9 +188,9 @@ class Plated a where
   -- If you're using GHC 7.2 or newer and your type has a 'Data' instance,
   -- 'plate' will default to 'uniplate' and you can choose to not override
   -- it with your own definition.
-  plate :: Simple Traversal a a
+  plate :: Traversal' a a
 #ifdef DEFAULT_SIGNATURES
-  default plate :: Data a => Simple Traversal a a
+  default plate :: Data a => Traversal' a a
   plate = uniplate
 #endif
 
@@ -248,12 +248,12 @@ rewrite = rewriteOf plate
 -- construct @\a -> f a `mplus` g a@ which performs both rewrites until a fixed point.
 --
 -- @
--- 'rewriteOf' :: 'Simple' 'Control.Lens.Iso.Iso' a a       -> (a -> 'Maybe' a) -> a -> a
--- 'rewriteOf' :: 'Simple' 'Lens' a a      -> (a -> 'Maybe' a) -> a -> a
--- 'rewriteOf' :: 'Simple' 'Traversal' a a -> (a -> 'Maybe' a) -> a -> a
--- 'rewriteOf' :: 'Simple' 'Setter' a a    -> (a -> 'Maybe' a) -> a -> a
+-- 'rewriteOf' :: 'Control.Lens.Iso.Iso'' a a       -> (a -> 'Maybe' a) -> a -> a
+-- 'rewriteOf' :: 'Lens'' a a      -> (a -> 'Maybe' a) -> a -> a
+-- 'rewriteOf' :: 'Traversal'' a a -> (a -> 'Maybe' a) -> a -> a
+-- 'rewriteOf' :: 'Setter'' a a    -> (a -> 'Maybe' a) -> a -> a
 -- @
-rewriteOf :: SimpleSetting a a -> (a -> Maybe a) -> a -> a
+rewriteOf :: Setting' a a -> (a -> Maybe a) -> a -> a
 rewriteOf l f = go where
   go = transformOf l (\x -> maybe x go (f x))
 {-# INLINE rewriteOf #-}
@@ -261,10 +261,10 @@ rewriteOf l f = go where
 -- | Rewrite recursively over part of a larger structure.
 --
 -- @
--- 'rewriteOn' :: 'Plated' a => 'Simple' 'Control.Lens.Iso.Iso' s a       -> (a -> 'Maybe' a) -> s -> s
--- 'rewriteOn' :: 'Plated' a => 'Simple' 'Lens' s a      -> (a -> 'Maybe' a) -> s -> s
--- 'rewriteOn' :: 'Plated' a => 'Simple' 'Traversal' s a -> (a -> 'Maybe' a) -> s -> s
--- 'rewriteOn' :: 'Plated' a => 'Simple' 'Setting' s a   -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOn' :: 'Plated' a => 'Control.Lens.Iso.Iso'' s a       -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOn' :: 'Plated' a => 'Lens'' s a      -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOn' :: 'Plated' a => 'Traversal'' s a -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOn' :: 'Plated' a => 'Setting'' s a   -> (a -> 'Maybe' a) -> s -> s
 -- @
 rewriteOn :: Plated a => Setting s t a a -> (a -> Maybe a) -> s -> t
 rewriteOn b = over b . rewrite
@@ -273,12 +273,12 @@ rewriteOn b = over b . rewrite
 -- | Rewrite recursively over part of a larger structure using a specified setter.
 --
 -- @
--- 'rewriteOnOf' :: 'Plated' a => 'Simple' 'Control.Lens.Iso.Iso' s a       -> 'Simple' 'Control.Lens.Iso.Iso' a a       -> (a -> 'Maybe' a) -> s -> s
--- 'rewriteOnOf' :: 'Plated' a => 'Simple' 'Lens' s a      -> 'Simple' 'Lens' a a      -> (a -> 'Maybe' a) -> s -> s
--- 'rewriteOnOf' :: 'Plated' a => 'Simple' 'Traversal' s a -> 'Simple' 'Traversal' a a -> (a -> 'Maybe' a) -> s -> s
--- 'rewriteOnOf' :: 'Plated' a => 'Simple' 'Setter' s a    -> 'Simple' 'Setter' a a    -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOnOf' :: 'Plated' a => 'Control.Lens.Iso.Iso'' s a       -> 'Control.Lens.Iso.Iso'' a a       -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOnOf' :: 'Plated' a => 'Lens'' s a      -> 'Lens'' a a      -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOnOf' :: 'Plated' a => 'Traversal'' s a -> 'Traversal'' a a -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOnOf' :: 'Plated' a => 'Setter'' s a    -> 'Setter'' a a    -> (a -> 'Maybe' a) -> s -> s
 -- @
-rewriteOnOf :: Setting s t a a -> SimpleSetting a a -> (a -> Maybe a) -> s -> t
+rewriteOnOf :: Setting s t a a -> Setting' a a -> (a -> Maybe a) -> s -> t
 rewriteOnOf b l = over b . rewriteOf l
 {-# INLINE rewriteOnOf #-}
 
@@ -290,7 +290,7 @@ rewriteM = rewriteMOf plate
 
 -- | Rewrite by applying a monadic rule everywhere you recursing with a user-specified 'Traversal'.
 -- Ensures that the rule cannot be applied anywhere in the result.
-rewriteMOf :: Monad m => SimpleLensLike (WrappedMonad m) a a -> (a -> m (Maybe a)) -> a -> m a
+rewriteMOf :: Monad m => LensLike' (WrappedMonad m) a a -> (a -> m (Maybe a)) -> a -> m a
 rewriteMOf l f = go where
   go = transformMOf l (\x -> f x >>= maybe (return x) go)
 {-# INLINE rewriteMOf #-}
@@ -303,7 +303,7 @@ rewriteMOn b = mapMOf b . rewriteM
 
 -- | Rewrite by applying a monadic rule everywhere inside of a structure located by a user-specified 'Traversal',
 -- using a user-specified 'Traversal' for recursion. Ensures that the rule cannot be applied anywhere in the result.
-rewriteMOnOf :: Monad m => LensLike (WrappedMonad m) s t a a -> SimpleLensLike (WrappedMonad m) a a -> (a -> m (Maybe a)) -> s -> m t
+rewriteMOnOf :: Monad m => LensLike (WrappedMonad m) s t a a -> LensLike' (WrappedMonad m) a a -> (a -> m (Maybe a)) -> s -> m t
 rewriteMOnOf b l = mapMOf b . rewriteMOf l
 {-# INLINE rewriteMOnOf #-}
 
@@ -357,8 +357,8 @@ transform = transformOf plate
 -- | Transform every element in the tree in a bottom-up manner over a region indicated by a 'Setter'.
 --
 -- @
--- 'transformOn' :: 'Plated' a => 'Simple' 'Traversal' s a -> (a -> a) -> s -> s
--- 'transformOn' :: 'Plated' a => 'Simple' 'Setter' s a    -> (a -> a) -> s -> s
+-- 'transformOn' :: 'Plated' a => 'Traversal'' s a -> (a -> a) -> s -> s
+-- 'transformOn' :: 'Plated' a => 'Setter'' s a    -> (a -> a) -> s -> s
 -- @
 transformOn :: Plated a => Setting s t a a -> (a -> a) -> s -> t
 transformOn b = over b . transform
@@ -367,10 +367,10 @@ transformOn b = over b . transform
 -- | Transform every element by recursively applying a given 'Setter' in a bottom-up manner.
 --
 -- @
--- 'transformOf' :: 'Simple' 'Traversal' a a -> (a -> a) -> a -> a
--- 'transformOf' :: 'Simple' 'Setter' a a    -> (a -> a) -> a -> a
+-- 'transformOf' :: 'Traversal'' a a -> (a -> a) -> a -> a
+-- 'transformOf' :: 'Setter'' a a    -> (a -> a) -> a -> a
 -- @
-transformOf :: SimpleSetting a a -> (a -> a) -> a -> a
+transformOf :: Setting' a a -> (a -> a) -> a -> a
 transformOf l f = go where
   go = f . over l go
 {-# INLINE transformOf #-}
@@ -379,10 +379,10 @@ transformOf l f = go where
 -- in a bottom-up manner.
 --
 -- @
--- 'transformOnOf' :: 'Simple' 'Setter' s a -> 'Simple' 'Traversal' a a -> (a -> a) -> s -> s
--- 'transformOnOf' :: 'Simple' 'Setter' s a -> 'Simple' 'Setter' a a    -> (a -> a) -> s -> s
+-- 'transformOnOf' :: 'Setter'' s a -> 'Traversal'' a a -> (a -> a) -> s -> s
+-- 'transformOnOf' :: 'Setter'' s a -> 'Setter'' a a    -> (a -> a) -> s -> s
 -- @
-transformOnOf :: Setting s t a a -> SimpleSetting a a -> (a -> a) -> s -> t
+transformOnOf :: Setting s t a a -> Setting' a a -> (a -> a) -> s -> t
 transformOnOf b l = over b . transformOf l
 {-# INLINE transformOnOf #-}
 
@@ -393,15 +393,15 @@ transformM = transformMOf plate
 
 -- | Transform every element in the tree in a region indicated by a supplied 'Traversal', in a bottom-up manner, monadically.
 --
--- @'transformMOn' :: ('Monad' m, 'Plated' a) => 'Simple' 'Traversal' s a -> (a -> m a) -> s -> m s@
+-- @'transformMOn' :: ('Monad' m, 'Plated' a) => 'Traversal'' s a -> (a -> m a) -> s -> m s@
 transformMOn :: (Monad m, Plated a) => LensLike (WrappedMonad m) s t a a -> (a -> m a) -> s -> m t
 transformMOn b = mapMOf b . transformM
 {-# INLINE transformMOn #-}
 
 -- | Transform every element in a tree using a user supplied 'Traversal' in a bottom-up manner with a monadic effect.
 --
--- @'transformMOf' :: 'Monad' m => 'Simple 'Traversal' a a -> (a -> m a) -> a -> m a@
-transformMOf :: Monad m => SimpleLensLike (WrappedMonad m) a a -> (a -> m a) -> a -> m a
+-- @'transformMOf' :: 'Monad' m => 'Traversal'' a a -> (a -> m a) -> a -> m a@
+transformMOf :: Monad m => LensLike' (WrappedMonad m) a a -> (a -> m a) -> a -> m a
 transformMOf l f = go where
   go t = mapMOf l go t >>= f
 {-# INLINE transformMOf #-}
@@ -409,8 +409,8 @@ transformMOf l f = go where
 -- | Transform every element in a tree that lies in a region indicated by a supplied 'Traversal', walking with a user supplied 'Traversal' in
 -- a bottom-up manner with a monadic effect.
 --
--- @'transformMOnOf' :: 'Monad' m => 'Simple' 'Traversal' s a -> 'Simple' 'Traversal' a a -> (a -> m a) -> s -> m s@
-transformMOnOf :: Monad m => LensLike (WrappedMonad m) s a a a -> SimpleLensLike (WrappedMonad m) a a -> (a -> m a) -> s -> m a
+-- @'transformMOnOf' :: 'Monad' m => 'Traversal'' s a -> 'Traversal'' a a -> (a -> m a) -> s -> m s@
+transformMOnOf :: Monad m => LensLike (WrappedMonad m) s a a a -> LensLike' (WrappedMonad m) a a -> (a -> m a) -> s -> m a
 transformMOnOf b l = mapMOf b . transformMOf l
 {-# INLINE transformMOnOf #-}
 
@@ -437,8 +437,8 @@ contexts = contextsOf plate
 -- propId l x = 'all' ('==' x) [extract w | w <- 'contextsOf' l x]
 -- @
 --
--- @'contextsOf' :: 'Simple' 'Traversal' a a -> a -> ['Context' a a]@
-contextsOf :: SimpleLensLike (Bazaar a a) a a -> a -> [Context a a a]
+-- @'contextsOf' :: 'Traversal'' a a -> a -> ['Context' a a]@
+contextsOf :: LensLike' (Bazaar a a) a a -> a -> [Context a a a]
 contextsOf l x = Context id x : f (holesOf l x) where
   f xs = do
     Context ctx child <- xs
@@ -450,7 +450,7 @@ contextsOf l x = Context id x : f (holesOf l x) where
 --
 -- @'contextsOn' b ≡ 'contextsOnOf' b 'plate'@
 --
--- @'contextsOn' :: 'Plated' a => 'Simple' 'Traversal' s a -> s -> ['Context' a a s]@
+-- @'contextsOn' :: 'Plated' a => 'Traversal'' s a -> s -> ['Context' a a s]@
 contextsOn :: Plated a => LensLike (Bazaar a a) s t a a -> s -> [Context a a t]
 contextsOn b = contextsOnOf b plate
 {-# INLINE contextsOn #-}
@@ -458,8 +458,8 @@ contextsOn b = contextsOnOf b plate
 -- | Return a list of all of the editable contexts for every location in the structure in an areas indicated by a user supplied 'Traversal', recursively using
 -- another user-supplied 'Traversal' to walk each layer.
 --
--- @'contextsOnOf' :: 'Simple' 'Traversal' s a -> 'Simple' 'Traversal' a a -> s -> ['Context' a a s]@
-contextsOnOf :: LensLike (Bazaar a a) s t a a -> SimpleLensLike (Bazaar a a) a a -> s -> [Context a a t]
+-- @'contextsOnOf' :: 'Traversal'' s a -> 'Traversal'' a a -> s -> ['Context' a a s]@
+contextsOnOf :: LensLike (Bazaar a a) s t a a -> LensLike' (Bazaar a a) a a -> s -> [Context a a t]
 contextsOnOf b l = f . holesOf b where
   f xs = do
     Context ctx child <- xs
@@ -486,9 +486,9 @@ holes = holesOf plate
 -- @'holesOn' ≡ 'holesOf'@
 --
 -- @
--- 'holesOn' :: 'Simple' 'Iso' s a       -> s -> ['Context' a a s]
--- 'holesOn' :: 'Simple' 'Lens' s a      -> s -> ['Context' a a s]
--- 'holesOn' :: 'Simple' 'Traversal' s a -> s -> ['Context' a a s]
+-- 'holesOn' :: 'Iso'' s a       -> s -> ['Context' a a s]
+-- 'holesOn' :: 'Lens'' s a      -> s -> ['Context' a a s]
+-- 'holesOn' :: 'Traversal'' s a -> s -> ['Context' a a s]
 -- @
 holesOn :: LensLike (Bazaar a a) s t a a -> s -> [Context a a t]
 holesOn = holesOf
@@ -499,9 +499,9 @@ holesOn = holesOf
 -- @'holesOnOf' b l ≡ 'holesOf' (b '.' l)@
 --
 -- @
--- 'holesOnOf' :: 'Simple' 'Iso' s a       -> 'Simple' 'Iso' a a       -> s -> ['Context' a a s]
--- 'holesOnOf' :: 'Simple' 'Lens' s a      -> 'Simple' 'Lens' a a      -> s -> ['Context' a a s]
--- 'holesOnOf' :: 'Simple' 'Traversal' s a -> 'Simple' 'Traversal' a a -> s -> ['Context' a a s]
+-- 'holesOnOf' :: 'Iso'' s a       -> 'Iso'' a a       -> s -> ['Context' a a s]
+-- 'holesOnOf' :: 'Lens'' s a      -> 'Lens'' a a      -> s -> ['Context' a a s]
+-- 'holesOnOf' :: 'Traversal'' s a -> 'Traversal'' a a -> s -> ['Context' a a s]
 -- @
 holesOnOf :: LensLike (Bazaar r r) s t a b -> LensLike (Bazaar r r) a b r r -> s -> [Context r r t]
 holesOnOf b l = holesOf (b.l)
@@ -562,6 +562,6 @@ composOpFold z c f = foldrOf plate (c . f) z
 --
 -- The resulting lens is safer to use as it ignores 'over-application' and deals gracefully with under-application,
 -- but it is only a proper lens if you don't change the list 'length'!
-parts :: Plated a => Simple Lens a [a]
+parts :: Plated a => Lens' a [a]
 parts = partsOf plate
 {-# INLINE parts #-}

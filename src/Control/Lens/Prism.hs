@@ -21,6 +21,7 @@ module Control.Lens.Prism
   (
   -- * Prisms
     Prism
+  , Prism'
   , APrism
   -- * Constructing Prisms
   , Prismatic(..)
@@ -90,13 +91,13 @@ import Prelude hiding (id,(.))
 --
 -- Every 'Control.Lens.Iso.Iso' is a valid 'Prism'.
 --
--- For example, you might have a @'Simple' 'Prism' 'Integer' Natural@ allows you to always
+-- For example, you might have a @'Prism'' 'Integer' Natural@ allows you to always
 -- go from a 'Natural' to an 'Integer', and provide you with tools to check if an 'Integer' is
 -- a 'Natural' and/or to edit one if it is.
 --
 --
 -- @
--- 'nat' :: 'Simple' 'Prism' 'Integer' 'Numeric.Natural.Natural'
+-- 'nat' :: 'Prism'' 'Integer' 'Numeric.Natural.Natural'
 -- 'nat' = 'prism' 'toInteger' '$' \\ i ->
 --    if i '<' 0
 --    then 'Left' i
@@ -140,6 +141,9 @@ import Prelude hiding (id,(.))
 -- -- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
 type Prism s t a b = forall k f. (Prismatic k, Applicative f) => k (a -> f b) (s -> f t)
 
+-- | A 'Simple' 'Prism'
+type Prism' s a = Prism s s a a
+
 -- | If you see this in a signature for a function, the function is expecting a 'Prism',
 -- not some kind of alien invader.
 type APrism s t a b = Overloaded Prismoid Mutator s t a b
@@ -150,8 +154,7 @@ withPrism k (Prism bt seta) = k bt seta
 withPrism k Prismoid        = k id Right
 {-# INLINE withPrism #-}
 
--- | A @'Simple' 'Prism'@.
-type SimplePrism s a = Prism s s a a
+
 
 -- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.
 --
@@ -165,8 +168,8 @@ clonePrism (Prism f g) = prism f g
 -- Prism Combinators
 ------------------------------------------------------------------------------
 
--- | Build a 'SimplePrism'.
-simplePrism :: (a -> s) -> (s -> Maybe a) -> SimplePrism s a
+-- | Build a 'Prism''.
+simplePrism :: (a -> s) -> (s -> Maybe a) -> Prism' s a
 simplePrism as sma = prism as (\s -> maybe (Left s) Right (sma s))
 {-# INLINE simplePrism #-}
 
@@ -228,20 +231,20 @@ remit (Prism bt _) = to bt
 -- >>> review _left "mustard"
 -- Left "mustard"
 --
--- Usually 'review' is used in the @(->)@ monad with a 'Simple' 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
+-- Usually 'review' is used in the @(->)@ monad with a 'Prism'' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
 -- it as having one of these more restricted type signatures:
 --
 -- @
--- 'review' :: 'Simple' 'Iso' s a        -> a -> s
--- 'review' :: 'Simple' 'Prism' s a -> a -> s
+-- 'review' :: 'Iso'' s a        -> a -> s
+-- 'review' :: 'Prism'' s a -> a -> s
 -- @
 --
 -- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of
 -- these more slightly more liberal type signatures may be beneficial to think of it as having:
 --
 -- @
--- 'review' :: 'MonadReader' a m => 'Simple' 'Iso' s a        -> m s
--- 'review' :: 'MonadReader' a m => 'Simple' 'Prism' s a -> m s
+-- 'review' :: 'MonadReader' a m => 'Iso'' s a        -> m s
+-- 'review' :: 'MonadReader' a m => 'Prism'' s a -> m s
 -- @
 review :: MonadReader b m => APrism s t a b -> m t
 review Prismoid     = ask
@@ -256,20 +259,20 @@ review (Prism bt _) = asks bt
 -- >>> reviews _left isRight "mustard"
 -- False
 --
--- Usually this function is used in the @(->)@ monad with a 'Simple' 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
+-- Usually this function is used in the @(->)@ monad with a 'Prism'' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
 -- it as having one of these more restricted type signatures:
 --
 -- @
--- 'reviews' :: 'Simple' 'Iso' s a        -> (s -> r) -> a -> r
--- 'reviews' :: 'Simple' 'Prism' s a -> (s -> r) -> a -> r
+-- 'reviews' :: 'Iso'' s a        -> (s -> r) -> a -> r
+-- 'reviews' :: 'Prism'' s a -> (s -> r) -> a -> r
 -- @
 --
 -- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of
 -- these more slightly more liberal type signatures may be beneficial to think of it as having:
 --
 -- @
--- 'reviews' :: 'MonadReader' a m => 'Simple' 'Iso' s a        -> (s -> r) -> m r
--- 'reviews' :: 'MonadReader' a m => 'Simple' 'Prism' s a -> (s -> r) -> m r
+-- 'reviews' :: 'MonadReader' a m => 'Iso'' s a   -> (s -> r) -> m r
+-- 'reviews' :: 'MonadReader' a m => 'Prism'' s a -> (s -> r) -> m r
 -- @
 reviews :: MonadReader b m => APrism s t a b -> (t -> r) -> m r
 reviews Prismoid     f = asks f
@@ -284,8 +287,8 @@ reviews (Prism bt _) f = asks (f . bt)
 -- Left 5
 --
 -- @
--- 'reuse' :: 'MonadState' a m => 'Simple' 'Prism' s a -> m s
--- 'reuse' :: 'MonadState' a m => 'Simple' 'Iso' s a        -> m s
+-- 'reuse' :: 'MonadState' a m => 'Prism'' s a -> m s
+-- 'reuse' :: 'MonadState' a m => 'Iso'' s a   -> m s
 -- @
 reuse :: MonadState b m => APrism s t a b -> m t
 reuse Prismoid     = get
@@ -301,8 +304,8 @@ reuse (Prism bt _) = gets bt
 -- True
 --
 -- @
--- 'reuses' :: 'MonadState' a m => 'Simple' 'Prism' s a -> (s -> r) -> m r
--- 'reuses' :: 'MonadState' a m => 'Simple' 'Iso' s a        -> (s -> r) -> m r
+-- 'reuses' :: 'MonadState' a m => 'Prism'' s a -> (s -> r) -> m r
+-- 'reuses' :: 'MonadState' a m => 'Iso'' s a   -> (s -> r) -> m r
 -- @
 reuses :: MonadState b m => APrism s t a b -> (t -> r) -> m r
 reuses Prismoid     f = gets f
@@ -373,3 +376,7 @@ _right = prism Right $ left Left
 _just :: Prism (Maybe a) (Maybe b) a b
 _just = prism Just $ maybe (Left Nothing) Right
 {-# INLINE _just #-}
+
+-- | A deprecated alias for @'Prism''@.
+type SimplePrism s a = Prism s s a a
+{-# DEPRECATED SimplePrism "use Prism'" #-}

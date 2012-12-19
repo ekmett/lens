@@ -58,7 +58,6 @@ import           Control.Comonad.Trans.Traced
 import           Control.Exception
 import           Control.Lens.Iso
 import           Control.Lens.Prism
-import           Control.Lens.Type
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
 import           Control.Monad.Trans.Identity
@@ -359,12 +358,12 @@ unwrapped = from wrapped
 {-# INLINE unwrapped #-}
 
 -- | A convenient type-restricted version of 'wrapped' for aiding type inference
-wrapped' :: Wrapped s s a a => Simple Iso s a
+wrapped' :: Wrapped s s a a => Iso' s a
 wrapped' = wrapped
 {-# INLINE wrapped' #-}
 
 -- | A convenient type-restricted version of 'unwrapped' for aiding type inference
-unwrapped' :: Wrapped s s a a => Simple Iso a s
+unwrapped' :: Wrapped s s a a => Iso' a s
 unwrapped' = unwrapped
 {-# INLINE unwrapped' #-}
 

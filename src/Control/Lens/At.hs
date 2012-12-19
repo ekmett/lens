@@ -69,7 +69,7 @@ import Data.Vector.Storable as Storable
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
 -- | A deprecated alias for 'ix'
-contains, _at, resultAt :: (Indexable (IxKey m) k, Ixed f m) => IxKey m -> SimpleOverloaded k f m (IxValue m)
+contains, _at, resultAt :: (Indexable (IxKey m) k, Ixed f m) => IxKey m -> Overloaded' k f m (IxValue m)
 contains = ix
 _at      = ix
 resultAt = ix
@@ -109,20 +109,20 @@ class Ixed f m where
 
   -- >>> IntSet.fromList [1,2,3,4] ^. ix 5
   -- False
-  ix :: Indexable (IxKey m) k => IxKey m -> SimpleOverloaded k f m (IxValue m)
+  ix :: Indexable (IxKey m) k => IxKey m -> Overloaded' k f m (IxValue m)
 #ifdef DEFAULT_SIGNATURES
-  default ix :: (Indexable (IxKey m) k, Applicative f, At m) => IxKey m -> SimpleOverloaded k f m (IxValue m)
+  default ix :: (Indexable (IxKey m) k, Applicative f, At m) => IxKey m -> Overloaded' k f m (IxValue m)
   ix = ixAt
 #endif
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
-ixAt :: (Indexable (IxKey m) k, Applicative f, At m) => IxKey m -> SimpleOverloaded k f m (IxValue m)
+ixAt :: (Indexable (IxKey m) k, Applicative f, At m) => IxKey m -> Overloaded' k f m (IxValue m)
 ixAt i = at i <. traverse
 {-# INLINE ixAt #-}
 
 -- | A definition of 'ix' for types with an 'Each' instance.
-ixEach :: (Indexable (IxKey m) k, Applicative f, Eq (IxKey m), Each (IxKey m) f m m (IxValue m) (IxValue m)) => IxKey m -> SimpleOverloaded k f m (IxValue m)
+ixEach :: (Indexable (IxKey m) k, Applicative f, Eq (IxKey m), Each (IxKey m) f m m (IxValue m) (IxValue m)) => IxKey m -> Overloaded' k f m (IxValue m)
 ixEach i = iwhereOf each (i ==)
 {-# INLINE ixEach #-}
 
@@ -316,7 +316,7 @@ class At m where
   --
   -- /Note:/ 'Map'-like containers form a reasonable instance, but not 'Array'-like ones, where
   -- you cannot satisfy the 'Lens' laws.
-  at :: IxKey m -> SimpleIndexedLens (IxKey m) m (Maybe (IxValue m))
+  at :: IxKey m -> IndexedLens' (IxKey m) m (Maybe (IxValue m))
 
 instance At (IntMap a) where
   at k = indexed $ \f m ->

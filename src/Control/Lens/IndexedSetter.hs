@@ -21,13 +21,15 @@ module Control.Lens.IndexedSetter
   (
   -- * Indexed Setter
     IndexedSetter
+  , IndexedSetter'
   , imapOf, iover
   , isets
   , (%@~)
   , (%@=)
   -- * Storing Indexed Setters
   , ReifiedIndexedSetter(..)
-  -- * Simple
+  , ReifiedIndexedSetter'
+  -- * Deprecated
   , SimpleIndexedSetter
   , SimpleReifiedIndexedSetter
   ) where
@@ -50,9 +52,10 @@ infix  4 %@=
 type IndexedSetter i s t a b = forall f k.
   (Indexable i k, Settable f) => k (a -> f b) (s -> f t)
 
+
 -- |
--- @type 'SimpleIndexedSetter' i = 'Simple' ('IndexedSetter' i)@
-type SimpleIndexedSetter i s a = IndexedSetter i s s a a
+-- @type 'IndexedSetter'' i = 'Simple' ('IndexedSetter' i)@
+type IndexedSetter' i s a = IndexedSetter i s s a a
 
 -- | Map with index.
 --
@@ -148,6 +151,18 @@ l %@= f = State.modify (l %@~ f)
 newtype ReifiedIndexedSetter i s t a b =
   ReifyIndexedSetter { reflectIndexedSetter :: IndexedSetter i s t a b }
 
--- | @type 'SimpleIndexedSetter' i = 'Simple' ('ReifiedIndexedSetter' i)@
-type SimpleReifiedIndexedSetter i s a = ReifiedIndexedSetter i s s a a
+-- | @type 'ReifiedIndexedSetter'' i = 'Simple' ('ReifiedIndexedSetter' i)@
+type ReifiedIndexedSetter' i s a = ReifiedIndexedSetter i s s a a
 
+------------------------------------------------------------------------------
+-- Deprecated
+------------------------------------------------------------------------------
+
+-- | @type 'SimpleReifiedIndexedSetter' i = 'Simple' ('ReifiedIndexedSetter' i)@
+type SimpleReifiedIndexedSetter i s a = ReifiedIndexedSetter i s s a a
+{-# DEPRECATED SimpleReifiedIndexedSetter "use ReifiedIndexedSetter'" #-}
+
+-- |
+-- @type 'SimpleIndexedSetter' i = 'Simple' ('IndexedSetter' i)@
+type SimpleIndexedSetter i s a = IndexedSetter i s s a a
+{-# DEPRECATED SimpleIndexedSetter "use IndexedSetter'" #-}

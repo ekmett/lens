@@ -41,6 +41,7 @@ module Control.Lens.Traversal
   (
   -- * Lenses
     Traversal
+  , Traversal'
 
   -- * Traversing and Lensing
   , traverseOf, forOf, sequenceAOf
@@ -70,13 +71,15 @@ module Control.Lens.Traversal
   -- * Cloning Traversals
   , cloneTraversal
   , ReifiedTraversal(..)
+  , ReifiedTraversal'
 
-  -- * Simple
-  , SimpleTraversal
-  , SimpleReifiedTraversal
 
   -- * Exposed Implementation Details
   , Bazaar(..)
+
+  -- * Deprecated
+  , SimpleTraversal
+  , SimpleReifiedTraversal
   ) where
 
 import Control.Applicative              as Applicative
@@ -125,8 +128,8 @@ import Data.Traversable
 -- second law in that same paper!
 type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
 
--- | @type SimpleTraversal = 'Simple' 'Traversal'@
-type SimpleTraversal s a = Traversal s s a a
+-- | @type 'Traversal'' = 'Simple' 'Traversal'@
+type Traversal' s a = Traversal s s a a
 
 --------------------------
 -- Traversal Combinators
@@ -347,9 +350,9 @@ loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafe
 -- When applied to a 'Fold' the result is merely a 'Control.Lens.Getter.Getter'.
 --
 -- @
--- 'partsOf' :: 'Simple' 'Control.Lens.Iso.Iso' s a       -> 'Simple' 'Lens' s [a]
--- 'partsOf' :: 'Simple' 'Lens' s a      -> 'Simple' 'Lens' s [a]
--- 'partsOf' :: 'Simple' 'Traversal' s a -> 'Simple' 'Lens' s [a]
+-- 'partsOf' :: 'Control.Lens.Iso.Iso'' s a       -> 'Lens'' s [a]
+-- 'partsOf' :: 'Lens'' s a      -> 'Lens'' s [a]
+-- 'partsOf' :: 'Traversal'' s a -> 'Lens'' s [a]
 -- 'partsOf' :: 'Fold' s a             -> 'Control.Lens.Getter.Getter' s [a]
 -- 'partsOf' :: 'Control.Lens.Getter.Getter' s a           -> 'Control.Lens.Getter.Getter' s [a]
 -- @
@@ -400,9 +403,9 @@ unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 -- @
 --
 -- @
--- 'holesOf' :: 'Simple' 'Iso' s a       -> s -> ['Context' a a s]
--- 'holesOf' :: 'Simple' 'Lens' s a      -> s -> ['Context' a a s]
--- 'holesOf' :: 'Simple' 'Traversal' s a -> s -> ['Context' a a s]
+-- 'holesOf' :: 'Control.Lens.Iso.Iso'' s a       -> s -> ['Context' a a s]
+-- 'holesOf' :: 'Lens'' s a      -> s -> ['Context' a a s]
+-- 'holesOf' :: 'Traversal'' s a -> s -> ['Context' a a s]
 -- @
 holesOf :: LensLike (Bazaar a a) s t a a -> s -> [Context a a t]
 holesOf l a = f (ins b) (outs b) where
@@ -532,7 +535,7 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 --
 -- >>> over (taking 5 traverse) succ "hello world"
 -- "ifmmp world"
-taking :: Applicative f => Int -> SimpleLensLike (BazaarT a a f) s a -> SimpleLensLike f s a
+taking :: Applicative f => Int -> LensLike' (BazaarT a a f) s a -> LensLike' f s a
 taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sellT s
 {-# INLINE taking #-}
 
@@ -545,7 +548,7 @@ taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sellT s
 --
 -- >>> [1..]^? dropping 1 folded
 -- Just 2
-dropping :: Applicative f => Int -> SimpleLensLike (Indexing f) s a -> SimpleLensLike f s a
+dropping :: Applicative f => Int -> LensLike' (Indexing f) s a -> LensLike' f s a
 dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> i `seq` (if i >= n then f a else pure a, i + 1)) s) 0 of
   (r, _) -> r
 {-# INLINE dropping #-}
@@ -579,6 +582,17 @@ cloneTraversal l f = bazaar f . l sell
 -- | A form of 'Traversal' that can be stored monomorphically in a container.
 data ReifiedTraversal s t a b = ReifyTraversal { reflectTraversal :: Traversal s t a b }
 
--- | @type SimpleReifiedTraversal = 'Simple' 'ReifiedTraversal'@
-type SimpleReifiedTraversal s a = ReifiedTraversal s s a a
+-- | @type 'ReifiedTraversal'' = 'Simple' 'ReifiedTraversal'@
+type ReifiedTraversal' s a = ReifiedTraversal s s a a
 
+------------------------------------------------------------------------------
+-- Deprecated
+------------------------------------------------------------------------------
+
+-- | A deprecated alias for 'ReifiedTraversal''
+type SimpleReifiedTraversal s a = ReifiedTraversal s s a a
+{-# DEPRECATED SimpleReifiedTraversal "use ReifiedTraversal'" #-}
+
+-- | A deprecated alias for 'Traversal''
+type SimpleTraversal s a = Traversal s s a a
+{-# DEPRECATED SimpleTraversal "use Traversal'" #-}

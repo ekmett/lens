@@ -93,7 +93,7 @@ gtraverse f = gfoldl (\x y -> x <*> f y) pure
 -- | Naïve 'Traversal' using 'Data'. This does not attempt to optimize the traversal.
 --
 -- This is primarily useful when the children are immediately obvious, and for benchmarking.
-tinplate :: (Data s, Typeable a) => Simple Traversal s a
+tinplate :: (Data s, Typeable a) => Traversal' s a
 tinplate f = gfoldl (step f) pure
 {-# INLINE tinplate #-}
 
@@ -112,7 +112,7 @@ step f w s = w <*> case cast s of
 -- of areas that cannot contain a value of type @a@.
 --
 -- This is 'uniplate' with a more liberal signature.
-template :: forall s a. (Data s, Typeable a) => Simple Traversal s a
+template :: forall s a. (Data s, Typeable a) => Traversal' s a
 #ifdef SAFE
 template = tinplate
 #else
@@ -125,12 +125,12 @@ template = uniplateData (fromOracle answer) where
 -- type @a@ using 'Data'.
 --
 -- 'uniplate' is a useful default definition for 'Control.Lens.Plated.plate'
-uniplate :: Data a => Simple Traversal a a
+uniplate :: Data a => Traversal' a a
 uniplate = template
 {-# INLINE uniplate #-}
 
 -- | 'biplate' performs like 'template', except when @s ~ a@, it returns itself and nothing else.
-biplate :: forall s a. (Data s, Typeable a) => Simple Traversal s a
+biplate :: forall s a. (Data s, Typeable a) => Traversal' s a
 #ifdef SAFE
 biplate f s
   | typeOf (undefined :: s) == typeOf (undefined :: a) = pure s
@@ -153,7 +153,7 @@ instance Show (FieldException a) where
 
 instance Typeable a => Exception (FieldException a)
 
-lookupon :: Typeable a => SimpleLensLike (Indexing Mutator) s a -> (s -> a) -> s -> Maybe (Int, Context a a s)
+lookupon :: Typeable a => LensLike' (Indexing Mutator) s a -> (s -> a) -> s -> Maybe (Int, Context a a s)
 lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & indexing l %@~ \i (a::a) -> E.throw (FieldException i a) of
   Right _ -> Nothing
   Left e -> case fromException e of
@@ -162,7 +162,7 @@ lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & index
 {-# INLINE lookupon #-}
 
 
--- | This automatically constructs a 'Simple' 'Traversal' from an function.
+-- | This automatically constructs a 'Traversal'' from an function.
 --
 -- >>> (2,4) & upon fst *~ 5
 -- (10,4)
@@ -193,13 +193,13 @@ lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & index
 --
 -- Second, the structure must not contain strict or unboxed fields of the same type that will be visited by 'Data'
 --
--- @'upon' :: ('Data' s, 'Data' a) => (s -> a) -> 'SimpleIndexedTraversal' [Int] s a@
+-- @'upon' :: ('Data' s, 'Data' a) => (s -> a) -> 'IndexedTraversal'' [Int] s a@
 upon :: forall k f s a. (Indexable [Int] k, Applicative f, Data s, Data a) => (s -> a) -> k (a -> f a) (s -> f s)
 upon field = indexed $ \ f s -> case lookupon template field s of
   Nothing -> pure s
   Just (i, Context k0 a0) ->
     let
-      go :: [Int] -> SimpleTraversal s a -> (a -> s) -> a -> f s
+      go :: [Int] -> Traversal' s a -> (a -> s) -> a -> f s
       go is l k a = case lookupon (l.uniplate) field s of
         Nothing                 -> k <$> f (reverse is) a
         Just (j, Context k' a') -> go (j:is) (l.elementOf uniplate j) k' a'
@@ -215,19 +215,19 @@ upon field = indexed $ \ f s -> case lookupon template field s of
 --
 -- >>> upon' (tail.tail) .~ [10,20] $ [1,2,3,4]
 -- [1,2,10,20]
-upon' :: forall s a. (Data s, Data a) => (s -> a) -> SimpleIndexedLens [Int] s a
+upon' :: forall s a. (Data s, Data a) => (s -> a) -> IndexedLens' [Int] s a
 upon' field = indexed $ \ f s -> let
     ~(isn, kn) = case lookupon template field s of
       Nothing -> (error "upon': no index, not a member", const s)
       Just (i, Context k0 _) -> go [i] (elementOf template i) k0
-    go :: [Int] -> SimpleTraversal s a -> (a -> s) -> ([Int], a -> s)
+    go :: [Int] -> Traversal' s a -> (a -> s) -> ([Int], a -> s)
     go is l k = case lookupon (l.uniplate) field s of
       Nothing                -> (reverse is, k)
       Just (j, Context k' _) -> go (j:is) (l.elementOf uniplate j) k'
   in kn <$> f isn (field s)
 {-# INLINE upon' #-}
 
--- | This automatically constructs a 'Simple' 'Traversal' from a field accessor.
+-- | This automatically constructs a 'Traversal'' from a field accessor.
 --
 -- The index of the 'Traversal' can be used as an offset into @'elementOf' ('indexing' 'template')@ or into the list
 -- returned by @'holesOf' 'template'@.
@@ -242,7 +242,7 @@ upon' field = indexed $ \ f s -> let
 -- [1,2,10,20]
 --
 -- When in doubt, use 'upon' instead.
-onceUpon :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedTraversal Int s a
+onceUpon :: forall s a. (Data s, Typeable a) => (s -> a) -> IndexedTraversal' Int s a
 onceUpon field = indexed $ \f s -> case lookupon template field s of
   Nothing -> pure s
   Just (i, Context k a) -> k <$> f i a
@@ -263,7 +263,7 @@ onceUpon field = indexed $ \f s -> case lookupon template field s of
 -- @'elementOf' ('indexed' 'template')@ or into the list returned by @'holesOf' 'template'@.
 --
 -- When in doubt, use 'upon'' instead.
-onceUpon' :: forall s a. (Data s, Typeable a) => (s -> a) -> SimpleIndexedLens Int s a
+onceUpon' :: forall s a. (Data s, Typeable a) => (s -> a) -> IndexedLens' Int s a
 onceUpon' field = indexed $ \f s -> let
     ~(i, Context k _) = case lookupon template field s of
       Nothing -> error "upon': no index, not a member"

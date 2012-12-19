@@ -217,7 +217,7 @@ iterated f g a0 = go a0 where
 -- So, in order for this to qualify as a legal 'Traversal' you can only use it for actions that preserve the result of the predicate!
 --
 -- @'filtered' :: (a -> 'Bool') -> 'Fold' a a@
-filtered :: Applicative f => (a -> Bool) -> SimpleLensLike f a a
+filtered :: Applicative f => (a -> Bool) -> LensLike' f a a
 filtered p f a
   | p a       = f a
   | otherwise = pure a

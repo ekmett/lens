@@ -32,10 +32,10 @@ class IsText t where
   -- 'pack' x = x '^.' 'packed'
   -- 'unpack' x = x '^.' 'from' 'packed'
   -- @
-  packed :: Simple Iso String t
+  packed :: Iso' String t
 
   -- | Traverse the individual characters in strict or lazy 'Text'.
-  text :: SimpleIndexedTraversal Int t Char
+  text :: IndexedTraversal' Int t Char
   text = from packed .> itraversed
   {-# INLINE text #-}
 

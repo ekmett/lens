@@ -53,12 +53,12 @@ l </>~ n = over l (</> n)
 -- ("hello/bin","world/bin")
 --
 -- @
--- ('</>=') :: 'MonadState' s m => 'Simple' 'Setter' s 'FilePath' -> 'FilePath' -> m ()
--- ('</>=') :: 'MonadState' s m => 'Simple' 'Iso' s 'FilePath' -> 'FilePath' -> m ()
--- ('</>=') :: 'MonadState' s m => 'Simple' 'Lens' s 'FilePath' -> 'FilePath' -> m ()
--- ('</>=') :: 'MonadState' s m => 'Simple' 'Traversal' s 'FilePath' -> 'FilePath' -> m ()
+-- ('</>=') :: 'MonadState' s m => 'Setter'' s 'FilePath' -> 'FilePath' -> m ()
+-- ('</>=') :: 'MonadState' s m => 'Iso'' s 'FilePath' -> 'FilePath' -> m ()
+-- ('</>=') :: 'MonadState' s m => 'Lens'' s 'FilePath' -> 'FilePath' -> m ()
+-- ('</>=') :: 'MonadState' s m => 'Traversal'' s 'FilePath' -> 'FilePath' -> m ()
 -- @
-(</>=) :: MonadState s m => SimpleSetting s FilePath -> FilePath -> m ()
+(</>=) :: MonadState s m => Setting' s FilePath -> FilePath -> m ()
 l </>= b = State.modify (l </>~ b)
 {-# INLINE (</>=) #-}
 
@@ -75,7 +75,7 @@ l <</>~ m = l <%~ (</> m)
 -- your monad's state and return the result.
 --
 -- When you do not need the result of the operation, ('</>=') is more flexible.
-(<</>=) :: MonadState s m => SimpleLensLike ((,)FilePath) s FilePath -> FilePath -> m FilePath
+(<</>=) :: MonadState s m => LensLike' ((,)FilePath) s FilePath -> FilePath -> m FilePath
 l <</>= r = l <%= (</> r)
 {-# INLINE (<</>=) #-}
 
@@ -101,12 +101,12 @@ l <.>~ n = over l (<.> n)
 -- ("hello.txt","world.txt")
 --
 -- @
--- ('<.>=') :: 'MonadState' s m => 'Simple' 'Setter' s 'FilePath' -> 'String' -> m ()
--- ('<.>=') :: 'MonadState' s m => 'Simple' 'Iso' s 'FilePath' -> 'String' -> m ()
--- ('<.>=') :: 'MonadState' s m => 'Simple' 'Lens' s 'FilePath' -> 'String' -> m ()
--- ('<.>=') :: 'MonadState' s m => 'Simple' 'Traversal' s 'FilePath' -> 'String' -> m ()
+-- ('<.>=') :: 'MonadState' s m => 'Setter'' s 'FilePath' -> 'String' -> m ()
+-- ('<.>=') :: 'MonadState' s m => 'Iso'' s 'FilePath' -> 'String' -> m ()
+-- ('<.>=') :: 'MonadState' s m => 'Lens'' s 'FilePath' -> 'String' -> m ()
+-- ('<.>=') :: 'MonadState' s m => 'Traversal'' s 'FilePath' -> 'String' -> m ()
 -- @
-(<.>=) :: MonadState s m => SimpleSetting s FilePath -> String -> m ()
+(<.>=) :: MonadState s m => Setting' s FilePath -> String -> m ()
 l <.>= b = State.modify (l <.>~ b)
 {-# INLINE (<.>=) #-}
 
@@ -128,7 +128,7 @@ l <<.>~ m = l <%~ (<.> m)
 -- "hello.txt"
 --
 -- When you do not need the result of the operation, ('<.>=') is more flexible.
-(<<.>=) :: MonadState s m => SimpleLensLike ((,)FilePath) s FilePath -> String -> m FilePath
+(<<.>=) :: MonadState s m => LensLike' ((,)FilePath) s FilePath -> String -> m FilePath
 l <<.>= r = l <%= (<.> r)
 {-# INLINE (<<.>=) #-}
 

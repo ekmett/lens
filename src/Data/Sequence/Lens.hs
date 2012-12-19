@@ -86,7 +86,7 @@ viewR = iso viewr $ \xs -> case xs of
 --
 -- >>> fromList [a,b,c,d] ^? _head
 -- Just a
-_head :: SimpleIndexedTraversal Int (Seq a) a
+_head :: IndexedTraversal' Int (Seq a) a
 _head = indexed $ \f m -> case viewl m of
   a :< as -> (<| as) <$> f (0::Int) a
   EmptyL  -> pure m
@@ -102,7 +102,7 @@ _head = indexed $ \f m -> case viewl m of
 --
 -- >>> fromList [] ^? _tail
 -- Nothing
-_tail :: SimpleTraversal (Seq a) (Seq a)
+_tail :: Traversal' (Seq a) (Seq a)
 _tail f m = case viewl m of
   a :< as -> (a <|) <$> f as
   EmptyL  -> pure m
@@ -118,7 +118,7 @@ _tail f m = case viewl m of
 --
 -- >>> fromList [] ^? _last
 -- Nothing
-_last :: SimpleIndexedTraversal Int (Seq a) a
+_last :: IndexedTraversal' Int (Seq a) a
 _last = indexed $ \f m ->  case viewr m of
   as :> a -> (as |>) <$> f (Seq.length as) a
   EmptyR  -> pure m
@@ -134,7 +134,7 @@ _last = indexed $ \f m ->  case viewr m of
 --
 -- >>> fromList [] & _init .~ fromList [a,b,c]
 -- fromList []
-_init :: SimpleTraversal (Seq a) (Seq a)
+_init :: Traversal' (Seq a) (Seq a)
 _init f m = case viewr m of
   as :> a -> (|> a) <$> f as
   EmptyR  -> pure m
@@ -150,7 +150,7 @@ _init f m = case viewr m of
 --
 -- >>> fromList [a,b,c,d,e] & slicedTo 10 .~ x
 -- fromList [x,x,x,x,x]
-slicedTo :: Int -> SimpleIndexedTraversal Int (Seq a) a
+slicedTo :: Int -> IndexedTraversal' Int (Seq a) a
 slicedTo n = indexed $ \f m -> case Seq.splitAt n m of
   (l,r) -> (>< r) <$> itraverse f l
 {-# INLINE slicedTo #-}
@@ -165,7 +165,7 @@ slicedTo n = indexed $ \f m -> case Seq.splitAt n m of
 --
 -- >>> fromList [a,b,c,d,e] & slicedFrom 10 .~ x
 -- fromList [a,b,c,d,e]
-slicedFrom :: Int -> SimpleIndexedTraversal Int (Seq a) a
+slicedFrom :: Int -> IndexedTraversal' Int (Seq a) a
 slicedFrom n = indexed $ \ f m -> case Seq.splitAt n m of
   (l,r) -> (l ><) <$> itraverse (f . (+n)) r
 {-# INLINE slicedFrom #-}
@@ -180,7 +180,7 @@ slicedFrom n = indexed $ \ f m -> case Seq.splitAt n m of
 --
 -- >>> fromList [a,b,c,d,e] & sliced 1 3 .~ x
 -- fromList [a,x,x,b,e]
-sliced :: Int -> Int -> SimpleIndexedTraversal Int (Seq a) a
+sliced :: Int -> Int -> IndexedTraversal' Int (Seq a) a
 sliced i j = indexed $ \ f s -> case Seq.splitAt i s of
   (l,mr) -> case Seq.splitAt (j-i) mr of
      (m, r) -> itraverse (f . (+i)) m <&> \n -> l >< n >< r

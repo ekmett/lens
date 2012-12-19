@@ -23,12 +23,13 @@ module Control.Lens.Loupe
   (
   -- * Lenses
     Loupe
+  , Loupe'
   , storing
   , (^#)
   , (#~), (#%~), (#%%~), (<#~), (<#%~)
   , (#=), (#%=), (#%%=), (<#=), (<#%=)
 
-  -- * Simplified
+  -- * Deprecated
   , SimpleLoupe
   ) where
 
@@ -73,8 +74,9 @@ infix  4 <#=, #=, #%=, <#%=, #%%=
 
 type Loupe s t a b = LensLike (Context a b) s t a b
 
--- | @type 'SimpleLoupe' = 'Simple' 'Loupe'@
-type SimpleLoupe s a = Loupe s s a a
+-- | @type 'Loupe'' = 'Simple' 'Loupe'@
+type Loupe' s a = Loupe s s a a
+
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Getter.^.')
 --
@@ -169,3 +171,11 @@ l <#~ b = \s -> (b, storing l b s)
 l <#= b = do
   l #= b
   return b
+
+------------------------------------------------------------------------------
+-- Deprecated
+------------------------------------------------------------------------------
+
+-- | @type 'SimpleLoupe' = 'Simple' 'Loupe'@
+type SimpleLoupe s a = Loupe s s a a
+{-# DEPRECATED SimpleLoupe "use Loupe'" #-}

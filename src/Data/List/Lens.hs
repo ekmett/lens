@@ -1,4 +1,3 @@
-{-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Rank2Types #-}
 -----------------------------------------------------------------------------
@@ -65,7 +64,7 @@ import Data.List
 -- [2,1]
 --
 --
-_head :: SimpleIndexedTraversal Int [a] a
+_head :: IndexedTraversal' Int [a] a
 _head = indexed $ \f aas -> case aas of
   (a:as) -> (:as) <$> f (0 :: Int) a
   _      -> pure aas
@@ -99,7 +98,7 @@ _head = indexed $ \f aas -> case aas of
 --
 -- >>> ""^._tail
 -- ""
-_tail :: Simple Traversal [a] [a]
+_tail :: Traversal' [a] [a]
 _tail f (a:as) = (a:) <$> f as
 _tail _ as     = pure as
 {-# INLINE _tail #-}
@@ -126,7 +125,7 @@ _tail _ as     = pure as
 --
 -- >>> [0,1] & _last .~ 2
 -- [0,2]
-_last :: SimpleIndexedTraversal Int [a] a
+_last :: IndexedTraversal' Int [a] a
 _last = indexed $ \f aas -> case aas of
   []     -> pure aas
   (a:as) -> let go n b []  = return <$> f n b
@@ -162,7 +161,7 @@ _last = indexed $ \f aas -> case aas of
 --
 -- >>> ""^._init
 -- ""
-_init :: Simple Traversal [a] [a]
+_init :: Traversal' [a] [a]
 _init _ [] = pure []
 _init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
 {-# INLINE _init #-}
@@ -178,7 +177,7 @@ _init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
 --
 -- >>> "amble"^.remit (strippingPrefix "pre")
 -- "preamble"
-strippingPrefix :: Eq a => [a] -> Simple Prism [a] [a]
+strippingPrefix :: Eq a => [a] -> Prism' [a] [a]
 strippingPrefix ps = prism (ps ++) $ \xs -> case stripPrefix ps xs of
   Nothing  -> Left xs
   Just xs' -> Right xs'

@@ -37,11 +37,11 @@ import Control.Parallel.Strategies
 -- @
 --
 -- @
--- 'evalOf' :: 'Simple' 'Lens' s a -> 'Strategy' a -> 'Strategy' s
--- 'evalOf' :: 'Simple' 'Traversal' s a -> 'Strategy' a -> 'Strategy' s
+-- 'evalOf' :: 'Lens'' s a -> 'Strategy' a -> 'Strategy' s
+-- 'evalOf' :: 'Traversal'' s a -> 'Strategy' a -> 'Strategy' s
 -- 'evalOf' :: (a -> 'Eval' a) -> s -> 'Eval' s) -> 'Strategy' a -> 'Strategy' s
 -- @
-evalOf :: SimpleLensLike Eval s a -> Strategy a -> Strategy s
+evalOf :: LensLike' Eval s a -> Strategy a -> Strategy s
 evalOf l = l
 {-# INLINE evalOf #-}
 
@@ -51,11 +51,11 @@ evalOf l = l
 -- @'parTraversable' = 'parOf' 'traverse'@
 --
 -- @
--- 'parOf' :: 'Simple' 'Lens' s a -> 'Strategy' a -> 'Strategy' s
--- 'parOf' :: 'Simple' 'Traversal' s a -> 'Strategy' a -> 'Strategy' s
+-- 'parOf' :: 'Lens'' s a -> 'Strategy' a -> 'Strategy' s
+-- 'parOf' :: 'Traversal'' s a -> 'Strategy' a -> 'Strategy' s
 -- 'parOf' :: ((a -> 'Eval' a) -> s -> 'Eval' s) -> 'Strategy' a -> 'Strategy' s
 -- @
-parOf :: SimpleLensLike Eval s a -> Strategy a -> Strategy s
+parOf :: LensLike' Eval s a -> Strategy a -> Strategy s
 #if MIN_VERSION_parallel(3,2,0)
 parOf l s = l (rparWith s)
 #else

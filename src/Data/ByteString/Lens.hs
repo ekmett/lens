@@ -28,7 +28,7 @@ class IsByteString t where
   -- @'Data.ByteString.pack' x = x '^.' 'packedBytes'@
   --
   -- @'Data.ByteString.unpack' x = x '^.' 'from' 'packedBytes'@
-  packedBytes :: Simple Iso [Word8] t
+  packedBytes :: Iso' [Word8] t
 
   -- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a strict or lazy 'ByteString'
   --
@@ -38,14 +38,14 @@ class IsByteString t where
   -- @'Data.ByteString.Char8.pack' x = x '^.' 'packedChars'@
   --
   -- @'Data.ByteString.Char8.unpack' x = x '^.' 'from' 'packedChars'@
-  packedChars :: Simple Iso String t
+  packedChars :: Iso' String t
 
   -- | Traverse each 'Word8' in a strict or lazy 'ByteString'
   --
   -- @'bytes' = 'from' 'packedBytes' '.>' 'itraversed'@
   --
   -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
-  bytes :: SimpleIndexedTraversal Int t Word8
+  bytes :: IndexedTraversal' Int t Word8
   bytes = from packedBytes .> traversed
   {-# INLINE bytes #-}
 
@@ -57,7 +57,7 @@ class IsByteString t where
   -- @'chars' = 'from' 'packedChars' . 'traverse'@
   --
   -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
-  chars :: SimpleIndexedTraversal Int t Char
+  chars :: IndexedTraversal' Int t Char
   chars = from packedChars .> traversed
   {-# INLINE chars #-}
 

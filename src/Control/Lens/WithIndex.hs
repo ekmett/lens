@@ -401,7 +401,7 @@ imapAccumL f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards 
 --
 -- >>> over (iwhere (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
-iwhere :: TraversableWithIndex i t => (i -> Bool) -> SimpleIndexedTraversal i (t a) a
+iwhere :: TraversableWithIndex i t => (i -> Bool) -> IndexedTraversal' i (t a) a
 iwhere p = indexed $ \f a -> itraverse (\i c -> if p i then f i c else pure c) a
 {-# INLINE iwhere #-}
 

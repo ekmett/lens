@@ -23,13 +23,13 @@ import Data.Tree
 --
 -- >>> view root $ Node 42 []
 -- 42
-root :: SimpleLens (Tree a) a
+root :: Lens' (Tree a) a
 root f (Node a as) = (`Node` as) <$> f a
 {-# INLINE root #-}
 
 -- | A 'Lens' returning the direct descendants of the root of a 'Tree'
 --
 -- @'view' 'branches' ≡ 'subForest'@
-branches :: SimpleLens (Tree a) [Tree a]
+branches :: Lens' (Tree a) [Tree a]
 branches f (Node a as) = Node a <$> f as
 {-# INLINE branches #-}

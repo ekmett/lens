@@ -13,7 +13,6 @@
 #ifndef MIN_VERSION_mtl
 #define MIN_VERSION_mtl(x,y,z) 1
 #endif
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.IndexedLens
@@ -28,6 +27,7 @@ module Control.Lens.IndexedLens
   (
   -- * Indexed Lenses
     IndexedLens
+  , IndexedLens'
   -- * Indexed Lens Combinators
   , (%%@~)
   , (<%@~)
@@ -35,7 +35,8 @@ module Control.Lens.IndexedLens
   , (<%@=)
   -- * Storing Indexed Lenses
   , ReifiedIndexedLens(..)
-  -- * Simple
+  , ReifiedIndexedLens'
+  -- * Deprecated
   , SimpleIndexedLens
   , SimpleReifiedIndexedLens
   ) where
@@ -54,8 +55,9 @@ infix  4 %%@=, <%@=
 -- | Every 'IndexedLens' is a valid 'Lens' and a valid 'Control.Lens.IndexedTraversal.IndexedTraversal'.
 type IndexedLens i s t a b = forall f k. (Indexable i k, Functor f) => k (a -> f b) (s -> f t)
 
--- | @type 'SimpleIndexedLens' i = 'Simple' ('IndexedLens' i)@
-type SimpleIndexedLens i s a = IndexedLens i s s a a
+
+-- | @type 'IndexedLens'' i = 'Simple' ('IndexedLens' i)@
+type IndexedLens' i s a = IndexedLens i s s a a
 
 -- | Adjust the target of an 'IndexedLens' returning the intermediate result, or
 -- adjust all of the targets of an 'Control.Lens.IndexedTraversal.IndexedTraversal' and return a monoidal summary
@@ -137,5 +139,17 @@ l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 -- | Useful for storage.
 newtype ReifiedIndexedLens i s t a b = ReifyIndexedLens { reflectIndexedLens :: IndexedLens i s t a b }
 
--- | @type 'SimpleIndexedLens' i = 'Simple' ('ReifiedIndexedLens' i)@
+-- | @type 'ReifiedIndexedLens'' i = 'Simple' ('ReifiedIndexedLens' i)@
+type ReifiedIndexedLens' i s a = ReifiedIndexedLens i s s a a
+
+------------------------------------------------------------------------------
+-- Deprecated
+------------------------------------------------------------------------------
+
+-- | @type 'SimpleIndexedLens' i = 'Simple' ('IndexedLens' i)@
+type SimpleIndexedLens i s a = IndexedLens i s s a a
+{-# DEPRECATED SimpleIndexedLens "use IndexedLens'" #-}
+
+-- | @type 'SimpleReifiedIndexedLens' i = 'Simple' ('ReifiedIndexedLens' i)@
 type SimpleReifiedIndexedLens i s a = ReifiedIndexedLens i s s a a
+{-# DEPRECATED SimpleReifiedIndexedLens "use ReifiedIndexedLens'" #-}

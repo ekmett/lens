@@ -59,12 +59,12 @@ module Control.Lens.Type
   (
   -- * Lenses
     Lens
+  , Lens'
   , Simple
 
   , lens
   , (%%~)
   , (%%=)
-
 
   -- * Lateral Composition
   , choosing
@@ -88,6 +88,7 @@ module Control.Lens.Type
   -- * Cloning Lenses
   , cloneLens
   , ReifiedLens(..)
+  , ReifiedLens'
 
   -- * Context
   , Context(..)
@@ -95,7 +96,11 @@ module Control.Lens.Type
 
   -- * Simplified and In-Progress
   , LensLike
+  , LensLike'
   , Overloaded
+  , Overloaded'
+
+  -- * Deprecated
   , SimpleLens
   , SimpleLensLike
   , SimpleOverloaded
@@ -182,13 +187,16 @@ type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
 --
 -- Note: To use this alias in your own code with @'LensLike' f@ or
 -- 'Control.Lens.Setter.Setter', you may have to turn on @LiberalTypeSynonyms@.
+--
+-- This is commonly abbreviated as a \"prime\" marker, /e.g./ 'Lens'' = 'Simple' 'Lens'.
 type Simple f s a = f s s a a
 
--- | @type 'SimpleLens' = 'Simple' 'Lens'@
-type SimpleLens s a = Lens s s a a
+-- | @type 'Lens'' = 'Simple' 'Lens'@
+type Lens' s a = Lens s s a a
 
--- | @type 'SimpleLensLike' f = 'Simple' ('LensLike' f)@
-type SimpleLensLike f s a = LensLike f s s a a
+-- | @type 'LensLike'' f = 'Simple' ('LensLike' f)@
+type LensLike' f s a = LensLike f s s a a
+
 
 --------------------------
 -- Constructing Lenses
@@ -310,9 +318,9 @@ inside l f es = o <$> f i where
 -- @
 -- 'choosing' :: 'Control.Lens.Getter.Getter' s a           -> 'Control.Lens.Getter.Getter' s' a           -> 'Control.Lens.Getter.Getter' ('Either' s s') a
 -- 'choosing' :: 'Control.Lens.Fold.Fold' s a             -> 'Control.Lens.Fold.Fold' s' a             -> 'Control.Lens.Fold.Fold' ('Either' s s') a
--- 'choosing' :: 'Simple' 'Lens' s a      -> 'Simple' 'Lens' s' a      -> 'Simple' 'Lens' ('Either' s s') a
--- 'choosing' :: 'Simple' 'Control.Lens.Traversal.Traversal' s a -> 'Simple' 'Control.Lens.Traversal.Traversal' s' a -> 'Simple' 'Control.Lens.Traversal.Traversal' ('Either' s s') a
--- 'choosing' :: 'Simple' 'Control.Lens.Setter.Setter' s a    -> 'Simple' 'Control.Lens.Setter.Setter' s' a    -> 'Simple' 'Control.Lens.Setter.Setter' ('Either' s s') a
+-- 'choosing' :: 'Lens'' s a      -> 'Lens'' s' a      -> 'Lens'' ('Either' s s') a
+-- 'choosing' :: 'Control.Lens.Traversal.Traversal'' s a -> 'Control.Lens.Traversal.Traversal'' s' a -> 'Control.Lens.Traversal.Traversal'' ('Either' s s') a
+-- 'choosing' :: 'Control.Lens.Setter.Setter'' s a    -> 'Control.Lens.Setter.Setter'' s' a    -> 'Control.Lens.Setter.Setter'' ('Either' s s') a
 -- @
 choosing :: Functor f
        => LensLike f s t a b
@@ -402,8 +410,9 @@ cloneLens f afb s = case f (Context id) s of
 -- | @type 'LensLike' f s t a b = 'Overloaded' (->) f s t a b@
 type Overloaded k f s t a b = k (a -> f b) (s -> f t)
 
--- | @type 'SimpleOverloaded' k f s a = 'Simple' ('Overloaded' k f) s a@
-type SimpleOverloaded k f s a = Overloaded k f s s a a
+-- | @type 'Overloaded'' k f s a = 'Simple' ('Overloaded' k f) s a@
+type Overloaded' k f s a = Overloaded k f s s a a
+
 
 -------------------------------------------------------------------------------
 -- Setting and Remembering
@@ -427,8 +436,8 @@ l <%~ f = l $ \s -> let t = f s in (t, t)
 -- When you do not need the result of the addition, ('Control.Lens.Setter.+~') is more flexible.
 --
 -- @
--- ('<+~') :: 'Num' a => 'Simple' 'Lens' s a -> a -> s -> (a, s)
--- ('<+~') :: 'Num' a => 'Simple' 'Control.Lens.Iso.Iso' s a  -> a -> s -> (a, s)
+-- ('<+~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
+-- ('<+~') :: 'Num' a => 'Control.Lens.Iso.Iso'' s a  -> a -> s -> (a, s)
 -- @
 (<+~) :: Num a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
 l <+~ a = l <%~ (+ a)
@@ -439,8 +448,8 @@ l <+~ a = l <%~ (+ a)
 -- When you do not need the result of the subtraction, ('Control.Lens.Setter.-~') is more flexible.
 --
 -- @
--- ('<-~') :: 'Num' a => 'Simple' 'Lens' s a -> a -> s -> (a, s)
--- ('<-~') :: 'Num' a => 'Simple' 'Control.Lens.Iso.Iso' s a  -> a -> s -> (a, s)
+-- ('<-~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
+-- ('<-~') :: 'Num' a => 'Control.Lens.Iso.Iso'' s a  -> a -> s -> (a, s)
 -- @
 (<-~) :: Num a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
 l <-~ a = l <%~ subtract a
@@ -452,8 +461,8 @@ l <-~ a = l <%~ subtract a
 -- flexible.
 --
 -- @
--- ('<*~') :: 'Num' b => 'Simple' 'Lens' s a -> a -> a -> (s, a)
--- ('<*~') :: 'Num' b => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> a -> (s, a))
+-- ('<*~') :: 'Num' b => 'Lens'' s a -> a -> a -> (s, a)
+-- ('<*~') :: 'Num' b => 'Control.Lens.Iso.Iso''  s a -> a -> a -> (s, a)
 -- @
 (<*~) :: Num a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
 l <*~ a = l <%~ (* a)
@@ -464,8 +473,8 @@ l <*~ a = l <%~ (* a)
 -- When you do not need the result of the division, ('Control.Lens.Setter.//~') is more flexible.
 --
 -- @
--- ('<//~') :: 'Fractional' b => 'Simple' 'Lens' s a -> a -> a -> (s, a)
--- ('<//~') :: 'Fractional' b => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> a -> (s, a))
+-- ('<//~') :: 'Fractional' b => 'Lens'' s a -> a -> a -> (s, a)
+-- ('<//~') :: 'Fractional' b => 'Control.Lens.Iso.Iso''  s a -> a -> a -> (s, a)
 -- @
 (<//~) :: Fractional a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
 l <//~ a = l <%~ (/ a)
@@ -477,8 +486,8 @@ l <//~ a = l <%~ (/ a)
 -- When you do not need the result of the division, ('Control.Lens.Setter.^~') is more flexible.
 --
 -- @
--- ('<^~') :: ('Num' b, 'Integral' e) => 'Simple' 'Lens' s a -> e -> a -> (a, s)
--- ('<^~') :: ('Num' b, 'Integral' e) => 'Simple' 'Control.Lens.Iso.Iso' s a -> e -> a -> (a, s)
+-- ('<^~') :: ('Num' b, 'Integral' e) => 'Lens'' s a -> e -> a -> (a, s)
+-- ('<^~') :: ('Num' b, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a -> e -> a -> (a, s)
 -- @
 (<^~) :: (Num a, Integral e) => LensLike ((,)a) s t a a -> e -> s -> (a, t)
 l <^~ e = l <%~ (^ e)
@@ -490,8 +499,8 @@ l <^~ e = l <%~ (^ e)
 -- When you do not need the result of the division, ('Control.Lens.Setter.^^~') is more flexible.
 --
 -- @
--- ('<^^~') :: ('Fractional' b, 'Integral' e) => 'Simple' 'Lens' s a -> e -> a -> (a, s)
--- ('<^^~') :: ('Fractional' b, 'Integral' e) => 'Simple' 'Control.Lens.Iso.Iso' s a -> e -> a -> (a, s)
+-- ('<^^~') :: ('Fractional' b, 'Integral' e) => 'Lens'' s a -> e -> a -> (a, s)
+-- ('<^^~') :: ('Fractional' b, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a -> e -> a -> (a, s)
 -- @
 (<^^~) :: (Fractional a, Integral e) => LensLike ((,)a) s t a a -> e -> s -> (a, t)
 l <^^~ e = l <%~ (^^ e)
@@ -503,8 +512,8 @@ l <^^~ e = l <%~ (^^ e)
 -- When you do not need the result of the division, ('Control.Lens.Setter.**~') is more flexible.
 --
 -- @
--- ('<**~') :: 'Floating' a => 'Simple' 'Lens' s a -> a -> s -> (a, s)
--- ('<**~') :: 'Floating' a => 'Simple' 'Control.Lens.Iso.Iso' s a  -> a -> s -> (a, s)
+-- ('<**~') :: 'Floating' a => 'Lens'' s a -> a -> s -> (a, s)
+-- ('<**~') :: 'Floating' a => 'Control.Lens.Iso.Iso'' s a  -> a -> s -> (a, s)
 -- @
 (<**~) :: Floating a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
 l <**~ a = l <%~ (** a)
@@ -515,8 +524,8 @@ l <**~ a = l <%~ (** a)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.||~') is more flexible.
 --
 -- @
--- ('<||~') :: 'Simple' 'Lens' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
--- ('<||~') :: 'Simple' 'Control.Lens.Iso.Iso' s 'Bool'  -> 'Bool' -> s -> ('Bool', s)
+-- ('<||~') :: 'Lens'' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
+-- ('<||~') :: 'Control.Lens.Iso.Iso'' s 'Bool'  -> 'Bool' -> s -> ('Bool', s)
 -- @
 (<||~) :: LensLike ((,)Bool) s t Bool Bool -> Bool -> s -> (Bool, t)
 l <||~ b = l <%~ (|| b)
@@ -527,8 +536,8 @@ l <||~ b = l <%~ (|| b)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.&&~') is more flexible.
 --
 -- @
--- ('<&&~') :: 'Simple' 'Lens' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
--- ('<&&~') :: 'Simple' 'Control.Lens.Iso.Iso' s 'Bool'  -> 'Bool' -> s -> ('Bool', s)
+-- ('<&&~') :: 'Lens'' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
+-- ('<&&~') :: 'Control.Lens.Iso.Iso'' s 'Bool'  -> 'Bool' -> s -> ('Bool', s)
 -- @
 (<&&~) :: LensLike ((,)Bool) s t Bool Bool -> Bool -> s -> (Bool, t)
 l <&&~ b = l <%~ (&& b)
@@ -573,9 +582,9 @@ l <<.~ b = l $ \a -> (a, b)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.
 --
 -- @
--- ('<%=') :: 'MonadState' s m             => 'Simple' 'Lens' s a     -> (a -> a) -> m a
--- ('<%=') :: 'MonadState' s m             => 'Simple' 'Control.Lens.Iso.Iso' s a      -> (a -> a) -> m a
--- ('<%=') :: ('MonadState' s m, 'Monoid' a) => 'Simple' 'Traversal' s a -> (a -> a) -> m a
+-- ('<%=') :: 'MonadState' s m             => 'Lens'' s a     -> (a -> a) -> m a
+-- ('<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a      -> (a -> a) -> m a
+-- ('<%=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
 -- @
 (<%=) :: MonadState s m => LensLike ((,)b) s s a b -> (a -> b) -> m b
 l <%= f = l %%= \a -> let b = f a in (b,b)
@@ -589,10 +598,10 @@ l <%= f = l %%= \a -> let b = f a in (b,b)
 -- flexible.
 --
 -- @
--- ('<+=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Lens' s a -> a -> m a
--- ('<+=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> m a
+-- ('<+=') :: ('MonadState' s m, 'Num' a) => 'Lens'' s a -> a -> m a
+-- ('<+=') :: ('MonadState' s m, 'Num' a) => 'Control.Lens.Iso.Iso'' s a -> a -> m a
 -- @
-(<+=) :: (MonadState s m, Num a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<+=) :: (MonadState s m, Num a) => LensLike' ((,)a) s a -> a -> m a
 l <+= a = l <%= (+ a)
 {-# INLINE (<+=) #-}
 
@@ -603,10 +612,10 @@ l <+= a = l <%= (+ a)
 -- flexible.
 --
 -- @
--- ('<-=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Lens' s a -> a -> m a
--- ('<-=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> m a
+-- ('<-=') :: ('MonadState' s m, 'Num' a) => 'Lens'' s a -> a -> m a
+-- ('<-=') :: ('MonadState' s m, 'Num' a) => 'Control.Lens.Iso.Iso'' s a -> a -> m a
 -- @
-(<-=) :: (MonadState s m, Num a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<-=) :: (MonadState s m, Num a) => LensLike' ((,)a) s a -> a -> m a
 l <-= a = l <%= subtract a
 {-# INLINE (<-=) #-}
 
@@ -617,10 +626,10 @@ l <-= a = l <%= subtract a
 -- flexible.
 --
 -- @
--- ('<*=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Lens' s a -> a -> m a
--- ('<*=') :: ('MonadState' s m, 'Num' a) => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> m a
+-- ('<*=') :: ('MonadState' s m, 'Num' a) => 'Lens'' s a -> a -> m a
+-- ('<*=') :: ('MonadState' s m, 'Num' a) => 'Control.Lens.Iso.Iso'' s a -> a -> m a
 -- @
-(<*=) :: (MonadState s m, Num a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<*=) :: (MonadState s m, Num a) => LensLike' ((,)a) s a -> a -> m a
 l <*= a = l <%= (* a)
 {-# INLINE (<*=) #-}
 
@@ -630,10 +639,10 @@ l <*= a = l <%= (* a)
 -- When you do not need the result of the division, ('Control.Lens.Setter.//=') is more flexible.
 --
 -- @
--- ('<//=') :: ('MonadState' s m, 'Fractional' a) => 'Simple' 'Lens' s a -> a -> m a
--- ('<//=') :: ('MonadState' s m, 'Fractional' a) => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> m a
+-- ('<//=') :: ('MonadState' s m, 'Fractional' a) => 'Lens'' s a -> a -> m a
+-- ('<//=') :: ('MonadState' s m, 'Fractional' a) => 'Control.Lens.Iso.Iso'' s a -> a -> m a
 -- @
-(<//=) :: (MonadState s m, Fractional a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<//=) :: (MonadState s m, Fractional a) => LensLike' ((,)a) s a -> a -> m a
 l <//= a = l <%= (/ a)
 {-# INLINE (<//=) #-}
 
@@ -643,10 +652,10 @@ l <//= a = l <%= (/ a)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.
 --
 -- @
--- ('<^=') :: ('MonadState' s m, 'Num' a, 'Integral' e) => 'Simple' 'Lens' s a -> e -> m a
--- ('<^=') :: ('MonadState' s m, 'Num' a, 'Integral' e) => 'Simple' 'Control.Lens.Iso.Iso' s a -> e -> m a
+-- ('<^=') :: ('MonadState' s m, 'Num' a, 'Integral' e) => 'Lens'' s a -> e -> m a
+-- ('<^=') :: ('MonadState' s m, 'Num' a, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a -> e -> m a
 -- @
-(<^=) :: (MonadState s m, Num a, Integral e) => SimpleLensLike ((,)a) s a -> e -> m a
+(<^=) :: (MonadState s m, Num a, Integral e) => LensLike' ((,)a) s a -> e -> m a
 l <^= e = l <%= (^ e)
 {-# INLINE (<^=) #-}
 
@@ -656,10 +665,10 @@ l <^= e = l <%= (^ e)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.^^=') is more flexible.
 --
 -- @
--- ('<^^=') :: ('MonadState' s m, 'Fractional' b, 'Integral' e) => 'Simple' 'Lens' s a -> e -> m a
--- ('<^^=') :: ('MonadState' s m, 'Fractional' b, 'Integral' e) => 'Simple' 'Control.Lens.Iso.Iso' s a  -> e -> m a
+-- ('<^^=') :: ('MonadState' s m, 'Fractional' b, 'Integral' e) => 'Lens'' s a -> e -> m a
+-- ('<^^=') :: ('MonadState' s m, 'Fractional' b, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a  -> e -> m a
 -- @
-(<^^=) :: (MonadState s m, Fractional a, Integral e) => SimpleLensLike ((,)a) s a -> e -> m a
+(<^^=) :: (MonadState s m, Fractional a, Integral e) => LensLike' ((,)a) s a -> e -> m a
 l <^^= e = l <%= (^^ e)
 {-# INLINE (<^^=) #-}
 
@@ -669,10 +678,10 @@ l <^^= e = l <%= (^^ e)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.
 --
 -- @
--- ('<**=') :: ('MonadState' s m, 'Floating' a) => 'Simple' 'Lens' s a -> a -> m a
--- ('<**=') :: ('MonadState' s m, 'Floating' a) => 'Simple' 'Control.Lens.Iso.Iso' s a -> a -> m a
+-- ('<**=') :: ('MonadState' s m, 'Floating' a) => 'Lens'' s a -> a -> m a
+-- ('<**=') :: ('MonadState' s m, 'Floating' a) => 'Control.Lens.Iso.Iso'' s a -> a -> m a
 -- @
-(<**=) :: (MonadState s m, Floating a) => SimpleLensLike ((,)a) s a -> a -> m a
+(<**=) :: (MonadState s m, Floating a) => LensLike' ((,)a) s a -> a -> m a
 l <**= a = l <%= (** a)
 {-# INLINE (<**=) #-}
 
@@ -682,10 +691,10 @@ l <**= a = l <%= (** a)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.||=') is more flexible.
 --
 -- @
--- ('<||=') :: 'MonadState' s m => 'Simple' 'Lens' s 'Bool' -> 'Bool' -> m 'Bool'
--- ('<||=') :: 'MonadState' s m => 'Simple' 'Control.Lens.Iso.Iso' s 'Bool'  -> 'Bool' -> m 'Bool'
+-- ('<||=') :: 'MonadState' s m => 'Lens'' s 'Bool' -> 'Bool' -> m 'Bool'
+-- ('<||=') :: 'MonadState' s m => 'Control.Lens.Iso.Iso'' s 'Bool'  -> 'Bool' -> m 'Bool'
 -- @
-(<||=) :: MonadState s m => SimpleLensLike ((,)Bool) s Bool -> Bool -> m Bool
+(<||=) :: MonadState s m => LensLike' ((,)Bool) s Bool -> Bool -> m Bool
 l <||= b = l <%= (|| b)
 {-# INLINE (<||=) #-}
 
@@ -695,10 +704,10 @@ l <||= b = l <%= (|| b)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.&&=') is more flexible.
 --
 -- @
--- ('<&&=') :: 'MonadState' s m => 'Simple' 'Lens' s 'Bool' -> 'Bool' -> m 'Bool'
--- ('<&&=') :: 'MonadState' s m => 'Simple' 'Control.Lens.Iso.Iso' s 'Bool'  -> 'Bool' -> m 'Bool'
+-- ('<&&=') :: 'MonadState' s m => 'Lens'' s 'Bool' -> 'Bool' -> m 'Bool'
+-- ('<&&=') :: 'MonadState' s m => 'Control.Lens.Iso.Iso'' s 'Bool'  -> 'Bool' -> m 'Bool'
 -- @
-(<&&=) :: MonadState s m => SimpleLensLike ((,)Bool) s Bool -> Bool -> m Bool
+(<&&=) :: MonadState s m => LensLike' ((,)Bool) s Bool -> Bool -> m Bool
 l <&&= b = l <%= (&& b)
 {-# INLINE (<&&=) #-}
 
@@ -711,9 +720,9 @@ l <&&= b = l <%= (&& b)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.
 --
 -- @
--- ('<<%=') :: 'MonadState' s m             => 'Simple' 'Lens' s a     -> (a -> a) -> m a
--- ('<<%=') :: 'MonadState' s m             => 'Simple' 'Control.Lens.Iso.Iso' s a      -> (a -> a) -> m a
--- ('<<%=') :: ('MonadState' s m, 'Monoid' b) => 'Simple' 'Traversal' s a -> (a -> a) -> m a
+-- ('<<%=') :: 'MonadState' s m             => 'Lens'' s a     -> (a -> a) -> m a
+-- ('<<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a      -> (a -> a) -> m a
+-- ('<<%=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
 -- @
 (<<%=) :: MonadState s m => LensLike ((,)a) s s a b -> (a -> b) -> m a
 l <<%= f = l %%= \a -> (a, f a)
@@ -728,9 +737,9 @@ l <<%= f = l %%= \a -> (a, f a)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.
 --
 -- @
--- ('<<%=') :: 'MonadState' s m             => 'Simple' 'Lens' s a     -> (a -> a) -> m a
--- ('<<%=') :: 'MonadState' s m             => 'Simple' 'Control.Lens.Iso.Iso' s a      -> (a -> a) -> m a
--- ('<<%=') :: ('MonadState' s m, 'Monoid' t) => 'Simple' 'Traversal' s a -> (a -> a) -> m a
+-- ('<<%=') :: 'MonadState' s m             => 'Lens'' s a     -> (a -> a) -> m a
+-- ('<<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a      -> (a -> a) -> m a
+-- ('<<%=') :: ('MonadState' s m, 'Monoid' t) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
 -- @
 (<<.=) :: MonadState s m => LensLike ((,)a) s s a b -> b -> m a
 l <<.= b = l %%= \a -> (a,b)
@@ -764,13 +773,28 @@ l <<>~ m = l <%~ (`mappend` m)
 -- your monad's state and return the result.
 --
 -- When you do not need the result of the operation, ('<>=') is more flexible.
-(<<>=) :: (MonadState s m, Monoid r) => SimpleLensLike ((,)r) s r -> r -> m r
+(<<>=) :: (MonadState s m, Monoid r) => LensLike' ((,)r) s r -> r -> m r
 l <<>= r = l <%= (`mappend` r)
 {-# INLINE (<<>=) #-}
-
 
 -- | Useful for storing lenses in containers.
 newtype ReifiedLens s t a b = ReifyLens { reflectLens :: Lens s t a b }
 
--- | @type 'SimpleReifiedLens' = 'Simple' 'ReifiedLens'@
+-- | @type 'ReifiedLens'' = 'Simple' 'ReifiedLens'@
+type ReifiedLens' s a = ReifiedLens s s a a
+
+-- | A deprecated alias for 'ReifiedLens''
 type SimpleReifiedLens s a = ReifiedLens s s a a
+{-# DEPRECATED SimpleReifiedLens "use ReifiedLens'" #-}
+
+-- | A deprecated alias for 'Lens''
+type SimpleLens s a = Lens s s a a
+{-# DEPRECATED SimpleLens "use Lens'" #-}
+
+-- | A deprecated alias for 'LensLike''
+type SimpleLensLike f s a = LensLike f s s a a
+{-# DEPRECATED SimpleLensLike "use LensLike'" #-}
+
+-- | A deprecated alias for 'Overloaded''
+type SimpleOverloaded k f s a = Overloaded k f s s a a
+{-# DEPRECATED SimpleOverloaded "use Overloaded'" #-}
