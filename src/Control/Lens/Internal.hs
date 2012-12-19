@@ -527,6 +527,8 @@ data Prismoid ab st where
 
 instance Category Prismoid where
   id = Prismoid
+  {-# INLINE id #-}
+
   x . Prismoid = x
   Prismoid . x = x
   Prism ty xeys . Prism bt seta = Prism (ty.bt) $ \x ->
@@ -535,6 +537,7 @@ instance Category Prismoid where
       Right s -> case seta s of
         Left t  -> Left (ty t)
         Right a -> Right a
+  {-# INLINE (.) #-}
 
 instance Isomorphic Prismoid where
   iso sa bt = Prism bt (Right . sa)
@@ -555,9 +558,12 @@ data Isoid ab st where
 
 instance Category Isoid where
   id = Isoid
+  {-# INLINE id #-}
+
   Isoid . x = x
   x . Isoid = x
   Iso xs ty . Iso sa bt = Iso (sa.xs) (ty.bt)
+  {-# INLINE (.) #-}
 
 instance Isomorphic Isoid where
   iso   = Iso

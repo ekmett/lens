@@ -25,6 +25,7 @@ module Control.Lens.Prism
   -- * Constructing Prisms
   , Prismatic(..)
   , Prismoid(..)
+  , simplePrism
   -- * Consuming Prisms
   , clonePrism
   , withPrism
@@ -163,6 +164,11 @@ clonePrism (Prism f g) = prism f g
 ------------------------------------------------------------------------------
 -- Prism Combinators
 ------------------------------------------------------------------------------
+
+-- | Build a 'SimplePrism'.
+simplePrism :: (a -> s) -> (s -> Maybe a) -> SimplePrism s a
+simplePrism as sma = prism as (\s -> maybe (Left s) Right (sma s))
+{-# INLINE simplePrism #-}
 
 -- | Use a 'Prism' as a kind of first-class pattern.
 --
