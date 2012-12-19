@@ -7,8 +7,9 @@
 * `Strict(strict)` is now a `Simple Iso`.
 * Added `withPrism` and `withIso`.
 * Added `wrapped'` and `unwrapped'` for scenarios where you need the help with type inference.
-* Added `simplePrism` to construct `SimplePrism`s.
+* Added `prism'` to construct `SimplePrism`s.
 * Added `has` and `hasn't`.
+* Replaced each of the different `SimpleFoo` type aliases `Foo'` throughout.
 
 3.7.1.2 [maintenance release]
 -------
