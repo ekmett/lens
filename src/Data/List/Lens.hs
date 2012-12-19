@@ -65,9 +65,8 @@ import Data.List
 --
 --
 _head :: IndexedTraversal' Int [a] a
-_head = indexed $ \f aas -> case aas of
-  (a:as) -> (:as) <$> f (0 :: Int) a
-  _      -> pure aas
+_head _ []  = pure []
+_head f (a:as) = (:as) <$> indexed f (0 :: Int) a
 {-# INLINE _head #-}
 
 -- | A 'Traversal' reading and writing to the 'tail' of a /non-empty/ list
@@ -126,11 +125,10 @@ _tail _ as     = pure as
 -- >>> [0,1] & _last .~ 2
 -- [0,2]
 _last :: IndexedTraversal' Int [a] a
-_last = indexed $ \f aas -> case aas of
-  []     -> pure aas
-  (a:as) -> let go n b []  = return <$> f n b
-                go n b (c:cs) = (b:) <$> (go $! n + 1) c cs
-            in go (0 :: Int) a as
+_last _ []     = pure []
+_last f (a:as) = go (0 :: Int) a as where
+  go n b []  = return <$> indexed f n b
+  go n b (c:cs) = (b:) <$> (go $! n + 1) c cs
 {-# INLINE _last #-}
 
 -- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ list

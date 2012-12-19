@@ -26,7 +26,6 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Zipper where
 
-import Control.Applicative
 import Control.Category
 import Control.Monad
 import Control.Lens.Classes

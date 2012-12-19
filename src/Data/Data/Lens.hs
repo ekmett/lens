@@ -194,14 +194,14 @@ lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & index
 -- Second, the structure must not contain strict or unboxed fields of the same type that will be visited by 'Data'
 --
 -- @'upon' :: ('Data' s, 'Data' a) => (s -> a) -> 'IndexedTraversal'' [Int] s a@
-upon :: forall k f s a. (Indexable [Int] k, Applicative f, Data s, Data a) => (s -> a) -> k (a -> f a) (s -> f s)
-upon field = indexed $ \ f s -> case lookupon template field s of
+upon :: forall k f s a. (Indexable [Int] k, Applicative f, Data s, Data a) => (s -> a) -> k a (f a) -> s -> f s
+upon field f s = case lookupon template field s of
   Nothing -> pure s
   Just (i, Context k0 a0) ->
     let
       go :: [Int] -> Traversal' s a -> (a -> s) -> a -> f s
       go is l k a = case lookupon (l.uniplate) field s of
-        Nothing                 -> k <$> f (reverse is) a
+        Nothing                 -> k <$> indexed f (reverse is) a
         Just (j, Context k' a') -> go (j:is) (l.elementOf uniplate j) k' a'
     in go [i] (elementOf template i) k0 a0
 {-# INLINE upon #-}
@@ -216,7 +216,7 @@ upon field = indexed $ \ f s -> case lookupon template field s of
 -- >>> upon' (tail.tail) .~ [10,20] $ [1,2,3,4]
 -- [1,2,10,20]
 upon' :: forall s a. (Data s, Data a) => (s -> a) -> IndexedLens' [Int] s a
-upon' field = indexed $ \ f s -> let
+upon' field f s = let
     ~(isn, kn) = case lookupon template field s of
       Nothing -> (error "upon': no index, not a member", const s)
       Just (i, Context k0 _) -> go [i] (elementOf template i) k0
@@ -224,7 +224,7 @@ upon' field = indexed $ \ f s -> let
     go is l k = case lookupon (l.uniplate) field s of
       Nothing                -> (reverse is, k)
       Just (j, Context k' _) -> go (j:is) (l.elementOf uniplate j) k'
-  in kn <$> f isn (field s)
+  in kn <$> indexed f isn (field s)
 {-# INLINE upon' #-}
 
 -- | This automatically constructs a 'Traversal'' from a field accessor.
@@ -243,9 +243,9 @@ upon' field = indexed $ \ f s -> let
 --
 -- When in doubt, use 'upon' instead.
 onceUpon :: forall s a. (Data s, Typeable a) => (s -> a) -> IndexedTraversal' Int s a
-onceUpon field = indexed $ \f s -> case lookupon template field s of
+onceUpon field f s = case lookupon template field s of
   Nothing -> pure s
-  Just (i, Context k a) -> k <$> f i a
+  Just (i, Context k a) -> k <$> indexed f i a
 {-# INLINE onceUpon #-}
 
 -- | This more trusting version of 'upon' uses your function directly as the getter for a 'Lens'.
@@ -264,11 +264,11 @@ onceUpon field = indexed $ \f s -> case lookupon template field s of
 --
 -- When in doubt, use 'upon'' instead.
 onceUpon' :: forall s a. (Data s, Typeable a) => (s -> a) -> IndexedLens' Int s a
-onceUpon' field = indexed $ \f s -> let
+onceUpon' field f s = let
     ~(i, Context k _) = case lookupon template field s of
       Nothing -> error "upon': no index, not a member"
       Just ip -> ip
-  in k <$> f i (field s)
+  in k <$> indexed f i (field s)
 {-# INLINE onceUpon' #-}
 
 #ifndef SAFE

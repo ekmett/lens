@@ -79,9 +79,9 @@ import Data.Array.IArray as IArray
 -- >>> ("hello","world") & each.each %~ Char.toUpper
 -- ("HELLO","WORLD")
 class Functor f => Each i f s t a b | s -> i a, t -> i b, s b -> t, t a -> s where
-  each :: Indexable i k => k a (f b) -> s -> f t
+  each :: Indexable i k => IndexedLensLike k f s t a b
 #ifdef DEFAULT_SIGNATURES
-  default each :: (Indexable Int k, Applicative f, Traversable g, s ~ g a, t ~ g b) => k a (f b) -> s -> f t
+  default each :: (Indexable Int k, Applicative f, Traversable g, s ~ g a, t ~ g b) => IndexedLensLike k f s t a b
   each = traversed
   {-# INLINE each #-}
 #endif

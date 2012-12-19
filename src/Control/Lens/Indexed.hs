@@ -28,6 +28,8 @@ module Control.Lens.Indexed
   -- * withIndex
   , (@~)
   , withIndex
+  , IndexedLensLike
+  , IndexedLensLike'
   ) where
 
 import Control.Lens.Classes
@@ -115,3 +117,9 @@ indexing64 :: Indexable Int64 k => ((a -> Indexing64 f b) -> s -> Indexing64 f t
 indexing64 l iafb s = case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
   (r, _) -> r
 {-# INLINE indexing64 #-}
+
+-- | Convenient alias for constructing indexed lenses and their ilk
+type IndexedLensLike k f s t a b = k a (f b) -> s -> f t
+
+-- | Convenient alias for constructing simple indexed lenses and their ilk
+type IndexedLensLike' k f s a    = k a (f a) -> s -> f s

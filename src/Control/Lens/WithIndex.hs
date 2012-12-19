@@ -107,7 +107,7 @@ class Functor f => FunctorWithIndex i f | f -> i where
   imap :: (i -> a -> b) -> f a -> f b
 #ifdef MPTC_DEFAULTS
   default imap :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
-  imap = imapOf itraversed
+  imap = iover itraversed
   {-# INLINE imap #-}
 #endif
 
@@ -343,7 +343,7 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
 
 -- | The 'IndexedTraversal' of a 'TraversableWithIndex' container.
 itraversed :: TraversableWithIndex i f => IndexedTraversal i (f a) (f b) a b
-itraversed = indexed itraverse
+itraversed = itraverse . indexed
 {-# INLINE itraversed #-}
 
 -- |
@@ -412,7 +412,7 @@ iwhere p f a = itraverse (\i c -> if p i then indexed f i c else pure c) a
 
 -- | The position in the list is available as the index.
 instance FunctorWithIndex Int [] where
-  imap = imapOf itraversed
+  imap = iover itraversed
   {-# INLINE imap #-}
 instance FoldableWithIndex Int [] where
   ifoldMap = ifoldMapOf itraversed
@@ -423,7 +423,7 @@ instance TraversableWithIndex Int [] where
 
 -- | The position in the sequence is available as the index.
 instance FunctorWithIndex Int Seq where
-  imap = imapOf itraversed
+  imap = iover itraversed
   {-# INLINE imap #-}
 instance FoldableWithIndex Int Seq where
   ifoldMap = ifoldMapOf itraversed
@@ -447,7 +447,7 @@ instance TraversableWithIndex Int Vector where
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex Int IntMap where
-  imap = imapOf itraversed
+  imap = iover itraversed
   {-# INLINE imap #-}
 instance FoldableWithIndex Int IntMap where
   ifoldMap = ifoldMapOf itraversed
@@ -461,7 +461,7 @@ instance TraversableWithIndex Int IntMap where
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex k (Map k) where
-  imap = imapOf itraversed
+  imap = iover itraversed
   {-# INLINE imap #-}
 instance FoldableWithIndex k (Map k) where
   ifoldMap = ifoldMapOf itraversed
@@ -475,7 +475,7 @@ instance TraversableWithIndex k (Map k) where
   {-# INLINE itraverse #-}
 
 instance (Eq k, Hashable k) => FunctorWithIndex k (HashMap k) where
-  imap = imapOf itraversed
+  imap = iover itraversed
   {-# INLINE imap #-}
 instance (Eq k, Hashable k) => FoldableWithIndex k (HashMap k) where
   ifoldMap = ifoldMapOf itraversed

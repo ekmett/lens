@@ -71,7 +71,7 @@ type IndexedLens' i s a = IndexedLens i s s a a
 -- ('<%@~') ::             'IndexedLens' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- ('<%@~') :: 'Monoid' b => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- @
-(<%@~) :: (Indexed i a (b, b) -> s -> (b, t)) -> (i -> a -> b) -> s -> (b, t)
+(<%@~) :: IndexedLensLike (Indexed i) ((,) b) s t a b -> (i -> a -> b) -> s -> (b, t)
 l <%@~ f = l @~ \i a -> let b = f i a in (b, b)
 {-# INLINE (<%@~) #-}
 
@@ -93,7 +93,7 @@ l <%@~ f = l @~ \i a -> let b = f i a in (b, b)
 -- ('%%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> (r, b)) -> s -> (r, t)
 -- ('%%@~') :: 'Monoid' r => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> (r, b)) -> s -> (r, t)
 -- @
-(%%@~) :: (Indexed i a (f b) -> s -> f t) -> (i -> a -> f b) -> s -> f t
+(%%@~) :: IndexedLensLike (Indexed i) f s t a b -> (i -> a -> f b) -> s -> f t
 (%%@~) = withIndex
 {-# INLINE (%%@~) #-}
 
@@ -107,7 +107,7 @@ l <%@~ f = l @~ \i a -> let b = f i a in (b, b)
 -- ('%%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> (r, b)) -> s -> m r
 -- ('%%@=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s s a b -> (i -> a -> (r, b)) -> s -> m r
 -- @
-(%%@=) :: MonadState s m => (Indexed i a (r, b) -> s -> (r, s)) -> (i -> a -> (r, b)) -> m r
+(%%@=) :: MonadState s m => IndexedLensLike (Indexed i) ((,) r) s s a b -> (i -> a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,0)
 l %%@= f = State.state (l %%@~ f)
 #else
@@ -126,7 +126,7 @@ l %%@= f = do
 -- ('<%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> b) -> m b
 -- ('<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m b
 -- @
-(<%@=) :: MonadState s m => (Indexed i a (b, b) -> s -> (b, s)) -> (i -> a -> b) -> m b
+(<%@=) :: MonadState s m => IndexedLensLike (Indexed i) ((,) b) s s a b -> (i -> a -> b) -> m b
 l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 {-# INLINE (<%@=) #-}
 

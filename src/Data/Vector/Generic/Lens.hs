@@ -181,9 +181,8 @@ reversed = iso reverse reverse
 --
 -- >>> toListOf (ordinals [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
 -- [4,8,6,12,20,22]
+
 ordinals :: Vector v a => [Int] -> IndexedTraversal' Int (v a) a
-ordinals is = indexed $ \ f v -> let
-     l = length v
-     is' = nub $ filter (<l) is
-  in fmap ((v //) . zip is') . traverse (uncurry f) . zip is $ fmap (v !) is'
+ordinals is f v = fmap (v //) $ traverse (\i -> (,) i <$> indexed f i (v ! i)) $ nub $ filter (\i -> 0 <= i && i < l) is where
+  l = length v
 {-# INLINE ordinals #-}

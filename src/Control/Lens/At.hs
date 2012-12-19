@@ -46,7 +46,6 @@ import Control.Lens.Indexed
 import Control.Lens.IndexedLens
 import Control.Lens.IndexedTraversal
 import Control.Lens.Traversal
-import Control.Lens.Type
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
 import Data.Hashable
@@ -69,7 +68,7 @@ import Data.Vector.Storable as Storable
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
 -- | A deprecated alias for 'ix'
-contains, _at, resultAt :: (Indexable (IxKey m) k, Ixed f m) => IxKey m -> Overloaded' k f m (IxValue m)
+contains, _at, resultAt :: (Indexable (IxKey m) k, Ixed f m) => IxKey m -> IndexedLensLike' k f m (IxValue m)
 contains = ix
 _at      = ix
 resultAt = ix
@@ -109,63 +108,61 @@ class Ixed f m where
 
   -- >>> IntSet.fromList [1,2,3,4] ^. ix 5
   -- False
-  ix :: Indexable (IxKey m) k => IxKey m -> Overloaded' k f m (IxValue m)
+  ix :: Indexable (IxKey m) k => IxKey m -> IndexedLensLike' k f m (IxValue m)
 #ifdef DEFAULT_SIGNATURES
-  default ix :: (Indexable (IxKey m) k, Applicative f, At m) => IxKey m -> Overloaded' k f m (IxValue m)
+  default ix :: (Indexable (IxKey m) k, Applicative f, At m) => IxKey m -> IndexedLensLike' k f m (IxValue m)
   ix = ixAt
 #endif
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
-ixAt :: (Indexable (IxKey m) k, Applicative f, At m) => IxKey m -> Overloaded' k f m (IxValue m)
+ixAt :: (Indexable (IxKey m) k, Applicative f, At m) => IxKey m -> IndexedLensLike' k f m (IxValue m)
 ixAt i = at i <. traverse
 {-# INLINE ixAt #-}
 
 -- | A definition of 'ix' for types with an 'Each' instance.
-ixEach :: (Indexable (IxKey m) k, Applicative f, Eq (IxKey m), Each (IxKey m) f m m (IxValue m) (IxValue m)) => IxKey m -> Overloaded' k f m (IxValue m)
+ixEach :: (Indexable (IxKey m) k, Applicative f, Eq (IxKey m), Each (IxKey m) f m m (IxValue m) (IxValue m)) => IxKey m -> IndexedLensLike' k f m (IxValue m)
 ixEach i = iwhereOf each (i ==)
 {-# INLINE ixEach #-}
 
 type instance IxKey [a] = Int
 type instance IxValue [a] = a
 instance Applicative f => Ixed f [a] where
-  ix k = indexed $ \ f xs0 ->
-    let go [] _ = pure []
-        go (a:as) 0 = f k a <&> (:as)
-        go (a:as) i = (a:) <$> (go as $! i - 1)
-    in go xs0 k
+  ix k f xs0 = go xs0 k where
+    go [] _ = pure []
+    go (a:as) 0 = indexed f k a <&> (:as)
+    go (a:as) i = (a:) <$> (go as $! i - 1)
   {-# INLINE ix #-}
 
 type instance IxKey (Seq a) = Int
 type instance IxValue (Seq a) = a
 instance Applicative f => Ixed f (Seq a) where
-  ix i = indexed $ \ f m ->
-    if 0 <= i && i < Seq.length m
-    then f i (Seq.index m i) <&> \a -> Seq.update i a m
-    else pure m
+  ix i f m
+    | 0 <= i && i < Seq.length m = indexed f i (Seq.index m i) <&> \a -> Seq.update i a m
+    | otherwise                  = pure m
   {-# INLINE ix #-}
 
 type instance IxKey (IntMap a) = Int
 type instance IxValue (IntMap a) = a
 instance Applicative f => Ixed f (IntMap a) where
-  ix k = indexed $ \f m -> case IntMap.lookup k m of
-     Just v -> f k v <&> \v' -> IntMap.insert k v' m
+  ix k f m = case IntMap.lookup k m of
+     Just v -> indexed f k v <&> \v' -> IntMap.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
 type instance IxKey (Map k a) = k
 type instance IxValue (Map k a) = a
 instance (Applicative f, Ord k) => Ixed f (Map k a) where
-  ix k = indexed $ \f m -> case Map.lookup k m of
-     Just v  -> f k v <&> \v' -> Map.insert k v' m
+  ix k f m = case Map.lookup k m of
+     Just v  -> indexed f k v <&> \v' -> Map.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
 type instance IxKey (HashMap k a) = k
 type instance IxValue (HashMap k a) = a
 instance (Applicative f, Eq k, Hashable k) => Ixed f (HashMap k a) where
-  ix k = indexed $ \f m -> case HashMap.lookup k m of
-     Just v  -> f k v <&> \v' -> HashMap.insert k v' m
+  ix k f m = case HashMap.lookup k m of
+     Just v  -> indexed f k v <&> \v' -> HashMap.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
@@ -177,10 +174,9 @@ type instance IxValue (Array i e) = e
 -- arr '//' [(i,e)] ≡ 'ix' i '.~' e '$' arr
 -- @
 instance (Applicative f, Ix i) => Ixed f (Array i e) where
-  ix i = indexed $ \f arr ->
-    if inRange (bounds arr) i
-    then f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
-    else pure arr
+  ix i f arr
+    | inRange (bounds arr) i = indexed f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
+    | otherwise              = pure arr
   {-# INLINE ix #-}
 
 type instance IxKey (UArray i e) = i
@@ -191,64 +187,60 @@ type instance IxValue (UArray i e) = e
 -- arr '//' [(i,e)] ≡ 'ix' i '.~' e '$' arr
 -- @
 instance (Applicative f, IArray UArray e, Ix i) => Ixed f (UArray i e) where
-  ix i = indexed $ \f arr ->
-    if inRange (bounds arr) i
-    then f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
-    else pure arr
+  ix i f arr
+    | inRange (bounds arr) i = indexed f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
+    | otherwise              = pure arr
   {-# INLINE ix #-}
 
 type instance IxKey (Vector.Vector a) = Int
 type instance IxValue (Vector.Vector a) = a
 instance Applicative f => Ixed f (Vector.Vector a) where
-  ix i = indexed $ \f v ->
-    if 0 <= i && i < Vector.length v
-    then f i (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
-    else pure v
+  ix i f v
+    | 0 <= i && i < Vector.length v = indexed f i (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
+    | otherwise                     = pure v
   {-# INLINE ix #-}
 
 type instance IxKey (Prim.Vector a) = Int
 type instance IxValue (Prim.Vector a) = a
 instance (Applicative f, Prim a) => Ixed f (Prim.Vector a) where
-  ix i = indexed $ \f v ->
-    if 0 <= i && i < Prim.length v
-    then f i (v Prim.! i) <&> \a -> v Prim.// [(i, a)]
-    else pure v
+  ix i f v
+    | 0 <= i && i < Prim.length v = indexed f i (v Prim.! i) <&> \a -> v Prim.// [(i, a)]
+    | otherwise                   = pure v
   {-# INLINE ix #-}
 
 type instance IxKey (Storable.Vector a) = Int
 type instance IxValue (Storable.Vector a) = a
 instance (Applicative f, Storable a) => Ixed f (Storable.Vector a) where
-  ix i = indexed $ \f v ->
-    if 0 <= i && i < Storable.length v
-    then f i (v Storable.! i) <&> \a -> v Storable.// [(i, a)]
-    else pure v
+  ix i f v
+    | 0 <= i && i < Storable.length v = indexed f i (v Storable.! i) <&> \a -> v Storable.// [(i, a)]
+    | otherwise                       = pure v
   {-# INLINE ix #-}
 
 type instance IxKey IntSet = Int
 type instance IxValue IntSet = Bool
 instance Functor f => Ixed f IntSet where
-  ix k = indexed $ \ f s -> f k (IntSet.member k s) <&> \b ->
+  ix k f s = indexed f k (IntSet.member k s) <&> \b ->
     if b then IntSet.insert k s else IntSet.delete k s
   {-# INLINE ix #-}
 
 type instance IxKey (Set a) = a
 type instance IxValue (Set a) = Bool
 instance (Functor f, Ord a) => Ixed f (Set a) where
-  ix k = indexed $ \ f s -> f k (Set.member k s) <&> \b ->
+  ix k f s = indexed f k (Set.member k s) <&> \b ->
     if b then Set.insert k s else Set.delete k s
   {-# INLINE ix #-}
 
 type instance IxKey (HashSet a) = a
 type instance IxValue (HashSet a) = Bool
 instance (Functor f, Eq a, Hashable a) => Ixed f (HashSet a) where
-  ix k = indexed $ \ f s -> f k (HashSet.member k s) <&> \b ->
+  ix k f s = indexed f k (HashSet.member k s) <&> \b ->
     if b then HashSet.insert k s else HashSet.delete k s
   {-# INLINE ix #-}
 
 type instance IxKey (k -> a) = k
 type instance IxValue (k -> a) = a
 instance (Functor f, Eq k) => Ixed f (k -> a) where
-  ix e = indexed $ \ g f -> g e (f e) <&> \a' e' -> if e == e' then a' else f e'
+  ix e g f = indexed g e (f e) <&> \a' e' -> if e == e' then a' else f e'
   {-# INLINE ix #-}
 
 type instance IxKey (a,a) = Int
@@ -319,25 +311,22 @@ class At m where
   at :: IxKey m -> IndexedLens' (IxKey m) m (Maybe (IxValue m))
 
 instance At (IntMap a) where
-  at k = indexed $ \f m ->
-    let mv = IntMap.lookup k m
-    in f k mv <&> \r -> case r of
-      Nothing -> maybe m (const (IntMap.delete k m)) mv
-      Just v' -> IntMap.insert k v' m
+  at k f m = indexed f k mv <&> \r -> case r of
+    Nothing -> maybe m (const (IntMap.delete k m)) mv
+    Just v' -> IntMap.insert k v' m
+    where mv = IntMap.lookup k m
   {-# INLINE at #-}
 
 instance Ord k => At (Map k a) where
-  at k = indexed $ \f m ->
-    let mv = Map.lookup k m
-    in f k mv <&> \r -> case r of
-      Nothing -> maybe m (const (Map.delete k m)) mv
-      Just v' -> Map.insert k v' m
+  at k f m = indexed f k mv <&> \r -> case r of
+    Nothing -> maybe m (const (Map.delete k m)) mv
+    Just v' -> Map.insert k v' m
+    where mv = Map.lookup k m
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At (HashMap k a) where
-  at k = indexed $ \f m ->
-    let mv = HashMap.lookup k m
-    in f k mv <&> \r -> case r of
-      Nothing -> maybe m (const (HashMap.delete k m)) mv
-      Just v' -> HashMap.insert k v' m
+  at k f m = indexed f k mv <&> \r -> case r of
+    Nothing -> maybe m (const (HashMap.delete k m)) mv
+    Just v' -> HashMap.insert k v' m
+    where mv = HashMap.lookup k m
   {-# INLINE at #-}

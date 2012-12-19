@@ -87,8 +87,8 @@ viewR = iso viewr $ \xs -> case xs of
 -- >>> fromList [a,b,c,d] ^? _head
 -- Just a
 _head :: IndexedTraversal' Int (Seq a) a
-_head = indexed $ \f m -> case viewl m of
-  a :< as -> (<| as) <$> f (0::Int) a
+_head f m = case viewl m of
+  a :< as -> (<| as) <$> indexed f (0::Int) a
   EmptyL  -> pure m
 {-# INLINE _head #-}
 
@@ -119,8 +119,8 @@ _tail f m = case viewl m of
 -- >>> fromList [] ^? _last
 -- Nothing
 _last :: IndexedTraversal' Int (Seq a) a
-_last = indexed $ \f m ->  case viewr m of
-  as :> a -> (as |>) <$> f (Seq.length as) a
+_last f m = case viewr m of
+  as :> a -> (as |>) <$> indexed f (Seq.length as) a
   EmptyR  -> pure m
 {-# INLINE _last #-}
 
@@ -151,8 +151,8 @@ _init f m = case viewr m of
 -- >>> fromList [a,b,c,d,e] & slicedTo 10 .~ x
 -- fromList [x,x,x,x,x]
 slicedTo :: Int -> IndexedTraversal' Int (Seq a) a
-slicedTo n = indexed $ \f m -> case Seq.splitAt n m of
-  (l,r) -> (>< r) <$> itraverse f l
+slicedTo n f m = case Seq.splitAt n m of
+  (l,r) -> (>< r) <$> itraverse (indexed f) l
 {-# INLINE slicedTo #-}
 
 -- | Traverse all but the first @n@ elements of a 'Seq'
@@ -166,8 +166,8 @@ slicedTo n = indexed $ \f m -> case Seq.splitAt n m of
 -- >>> fromList [a,b,c,d,e] & slicedFrom 10 .~ x
 -- fromList [a,b,c,d,e]
 slicedFrom :: Int -> IndexedTraversal' Int (Seq a) a
-slicedFrom n = indexed $ \ f m -> case Seq.splitAt n m of
-  (l,r) -> (l ><) <$> itraverse (f . (+n)) r
+slicedFrom n f m = case Seq.splitAt n m of
+  (l,r) -> (l ><) <$> itraverse (indexed f . (+n)) r
 {-# INLINE slicedFrom #-}
 
 -- | Traverse all the elements numbered from @i@ to @j@ of a 'Seq'
@@ -181,7 +181,7 @@ slicedFrom n = indexed $ \ f m -> case Seq.splitAt n m of
 -- >>> fromList [a,b,c,d,e] & sliced 1 3 .~ x
 -- fromList [a,x,x,b,e]
 sliced :: Int -> Int -> IndexedTraversal' Int (Seq a) a
-sliced i j = indexed $ \ f s -> case Seq.splitAt i s of
+sliced i j f s = case Seq.splitAt i s of
   (l,mr) -> case Seq.splitAt (j-i) mr of
-     (m, r) -> itraverse (f . (+i)) m <&> \n -> l >< n >< r
+     (m, r) -> itraverse (indexed f . (+i)) m <&> \n -> l >< n >< r
 {-# INLINE sliced #-}

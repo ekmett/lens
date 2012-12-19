@@ -56,8 +56,7 @@ type IndexedSetter i s t a b = forall f k.
 type IndexedSetter' i s a = IndexedSetter i s s a a
 
 -- | Used to consume an 'IndexedSetter'
-type IndexedSetting i s t a b = Indexed i a (Mutator b) -> s -> Mutator t
-
+type IndexedSetting i s t a b = IndexedLensLike (Indexed i) Mutator s t a b
 
 -- | Map with index. This is an alias for 'imapOf'.
 --

@@ -208,7 +208,7 @@ swap (a,b) = (b,a)
 -- 'iwhereOf' :: 'IndexedTraversal'' i s a -> (i -> 'Bool') -> 'IndexedTraversal'' i s a
 -- 'iwhereOf' :: 'IndexedSetter'' i s a    -> (i -> 'Bool') -> 'IndexedSetter'' i s a
 -- @
-iwhereOf :: (Indexable i k, Applicative f) => (Indexed i a (f a) -> s -> f t) -> (i -> Bool) -> k a (f a) -> s -> f t
+iwhereOf :: (Indexable i k, Applicative f) => IndexedLensLike (Indexed i) f s t a a -> (i -> Bool) -> IndexedLensLike k f s t a a
 iwhereOf l p f = withIndex l (\i a -> if p i then indexed f i a else pure a)
 {-# INLINE iwhereOf #-}
 
@@ -303,7 +303,7 @@ instance Ord k => TraverseMax k (Map k) where
 elementOf :: (Applicative f, Indexable Int k)
           => LensLike (Indexing f) s t a a
           -> Int
-          -> k a (f a) -> s -> f t
+          -> IndexedLensLike k f s t a a
 elementOf l p = elementsOf l (p ==)
 {-# INLINE elementOf #-}
 
@@ -323,7 +323,7 @@ element = elementOf traverse
 elementsOf :: (Applicative f, Indexable Int k)
            => LensLike (Indexing f) s t a a
            -> (Int -> Bool)
-           -> k a (f a) -> s -> f t
+           -> IndexedLensLike k f s t a a
 elementsOf l p iafb s =
   case runIndexing (l (\a -> Indexing (\i -> i `seq` (if p i then indexed iafb i a else pure a, i + 1))) s) 0 of
     (r, _) -> r

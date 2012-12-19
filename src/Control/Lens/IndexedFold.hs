@@ -401,7 +401,7 @@ s ^@.. l = ifoldrOf l (\i a -> ((i,a):)) [] s
 -- @
 --
 -- Change made to the indices will be discarded.
-withIndicesOf :: Functor f => (Indexed i a (f b) -> s -> f t) -> LensLike f s t (i, a) (j, b)
+withIndicesOf :: Functor f => IndexedLensLike (Indexed i) f s t a b -> LensLike f s t (i, a) (j, b)
 withIndicesOf l f = l @~ \i c -> snd <$> f (i,c)
 {-# INLINE withIndicesOf #-}
 
@@ -412,7 +412,7 @@ withIndicesOf l f = l @~ \i c -> snd <$> f (i,c)
 -- 'indicesOf' :: 'Control.Lens.IndexedLens.IndexedLens'' i s a      -> 'Control.Lens.Fold.Getter' s i
 -- 'indicesOf' :: 'Control.Lens.IndexedLens.IndexedTraversal'' i s a -> 'Control.Lens.Fold.Fold' s i
 -- @
-indicesOf :: Gettable f => (Indexed i a (f a) -> s -> f t) -> LensLike f s t i j
+indicesOf :: Gettable f => IndexedLensLike (Indexed i) f s t a a -> LensLike f s t i j
 indicesOf l f = l @~ const . coerce . f
 {-# INLINE indicesOf #-}
 
@@ -428,7 +428,7 @@ indicesOf l f = l @~ const . coerce . f
 ifiltering :: (Applicative f, Indexable i k)
            => (i -> a -> Bool)
            -> (Indexed i a (f a) -> s -> f t)
-           -> k a (f a) -> s -> f t
+           -> IndexedLensLike k f s t a a
 ifiltering p l f = l @~ \ i c -> if p i c then indexed f i c else pure c
 {-# INLINE ifiltering #-}
 
@@ -438,7 +438,7 @@ ifiltering p l f = l @~ \ i c -> if p i c then indexed f i c else pure c
 -- 'IndexedGetter', or 'Control.Lens.IndexedSetter.IndexedSetter'.
 ibackwards :: Indexable i k
            => (Indexed i a (Backwards f b) -> s -> Backwards f t)
-           -> k a (f b) -> s -> f t
+           -> IndexedLensLike k f s t a b
 ibackwards l f =
   fmap forwards . withIndex l $ \ i -> Backwards # indexed f i
 {-# INLINE ibackwards #-}
@@ -450,7 +450,7 @@ ibackwards l f =
 itakingWhile :: (Gettable f, Applicative f, Indexable i k)
              => (i -> a -> Bool)
              -> IndexedGetting i (Endo (f s)) s s a a
-             -> k a (f a) -> s -> f s
+             -> IndexedLensLike' k f s a
 itakingWhile p l f =
   ifoldrOf l (\i a r -> if p i a then indexed f i a *> r else noEffect) noEffect
 {-# INLINE itakingWhile #-}
@@ -460,7 +460,7 @@ itakingWhile p l f =
 idroppingWhile :: (Gettable f, Applicative f, Indexable i k)
               => (i -> a -> Bool)
               -> IndexedGetting i (Endo (f s, f s)) s s a a
-              -> k a (f a) -> s -> f s
+              -> IndexedLensLike' k f s a
 idroppingWhile p l f =
   fst . ifoldrOf l
                  (\i a r -> let s = indexed f i a *> snd r in if p i a then (fst r, s) else (s, s))
