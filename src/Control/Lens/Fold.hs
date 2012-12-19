@@ -1103,7 +1103,7 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 -- True
 --
 -- >>> has _right (Left 12)
--- True
+-- False
 --
 -- This will always return True for a 'Lens' or 'Getter'
 --
@@ -1124,6 +1124,9 @@ has l = getAny # views l (\_ -> Any True)
 --
 -- >>> hasn't _left (Right 12)
 -- True
+--
+-- >>> hasn't_ left (Left 12)
+-- False
 hasn't :: Getting All s t a b -> s -> Bool
 hasn't l = getAll # views l (\_ -> All False)
 
