@@ -42,6 +42,7 @@ import Control.Monad (liftM)
 import Data.Functor.Compose (Compose(..))
 import Data.Functor.Identity (Identity(..))
 import Data.Monoid (Dual(..))
+import Data.Profunctor
 import Prelude hiding ((.),id)
 #ifndef SAFE
 import Unsafe.Coerce (unsafeCoerce)
@@ -183,7 +184,7 @@ instance Prismatic (->) where
 
 -- | This class permits overloading of function application for things that
 -- also admit a notion of a key or index.
-class Indexable i c where
+class Profunctor c => Indexable i c where
   -- | Build a function from an 'Indexed' function
   indexed :: c a b -> i -> a -> b
 

@@ -68,6 +68,7 @@ import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Int
 import Data.Monoid
+import Data.Profunctor
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
@@ -576,6 +577,10 @@ instance Isomorphic Isoid where
 -- | A function with access to a index. This constructor may be useful when you need to store
 -- a 'Indexable' in a container to avoid @ImpredicativeTypes@.
 newtype Indexed i a b = Indexed { unindexed :: i -> a -> b }
+
+instance Profunctor (Indexed i) where
+  lmap ab (Indexed ibc) = Indexed (\i -> ibc i . ab)
+  rmap bc (Indexed iab) = Indexed (\i -> bc . iab i)
 
 -- | Using an equality witness to avoid potential overlapping instances
 -- and aid dispatch.
