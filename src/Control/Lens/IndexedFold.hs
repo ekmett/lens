@@ -17,6 +17,7 @@ module Control.Lens.IndexedFold
   (
   -- * Indexed Folds
     IndexedFold
+  , (^@..)
 
   -- * Consuming Indexed Folds
   , ifoldMapOf
@@ -60,6 +61,8 @@ import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad
 import Data.Monoid
+
+infixr 8 ^@..
 
 ------------------------------------------------------------------------------
 -- Indexed Folds
@@ -363,6 +366,17 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 itoListOf :: IndexedGetting i (Endo [(i,a)]) s t a b -> s -> [(i,a)]
 itoListOf l = ifoldrOf l (\i a -> ((i,a):)) []
 {-# INLINE itoListOf #-}
+
+-- | An infixed version of 'itoListOf'
+
+-- @
+-- ('^@..' :: s -> 'IndexedGetter' i s a          -> [(i,a)]
+-- ('^@..') :: s -> 'IndexedFold' i s a            -> [(i,a)]
+-- ('^@..') :: s -> 'Control.Lens.IndexedLens.SimpleIndexedLens' i s a      -> [(i,a)]
+-- ('^@..') :: s -> 'Control.Lens.IndexedTraversal.SimpleIndexedTraversal' i s a -> [(i,a)]
+-- @
+(^@..) :: s -> IndexedGetting i (Endo [(i,a)]) s t a b -> [(i,a)]
+s ^@.. l = ifoldrOf l (\i a -> ((i,a):)) [] s
 
 -------------------------------------------------------------------------------
 -- Converting to Folds
