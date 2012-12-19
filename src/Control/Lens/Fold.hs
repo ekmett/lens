@@ -48,6 +48,7 @@ module Control.Lens.Fold
   , preuse
   , preuses
   , has
+  , hasn't
   -- ** Building Folds
   --, folds
   , folding
@@ -1118,6 +1119,13 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 -- @
 has :: Getting Any s t a b -> s -> Bool
 has l = getAny # views l (\_ -> Any True)
+
+-- | Check to see if this Fold' or 'Traversal' has no matches.
+--
+-- >>> hasn't _left (Right 12)
+-- True
+hasn't :: Getting All s t a b -> s -> Bool
+hasn't l = getAll # views l (\_ -> All False)
 
 -- | Useful for storing folds in containers.
 newtype ReifiedFold s a = ReifyFold { reflectFold :: Fold s a }
