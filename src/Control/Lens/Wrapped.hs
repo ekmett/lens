@@ -136,6 +136,10 @@ instance Wrapped a b (Const a x) (Const b y) where
   wrapped = iso Const getConst
   {-# INLINE wrapped #-}
 
+instance Wrapped a b (Dual a) (Dual b) where
+  wrapped = iso Dual getDual
+  {-# INLINE wrapped #-}
+
 instance Wrapped (a -> a) (b -> b) (Endo a) (Endo b) where
   wrapped = iso Endo appEndo
   {-# INLINE wrapped #-}
