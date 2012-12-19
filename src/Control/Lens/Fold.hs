@@ -1120,7 +1120,7 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 has :: Getting Any s t a b -> s -> Bool
 has l = getAny # views l (\_ -> Any True)
 
--- | Check to see if this Fold' or 'Traversal' has no matches.
+-- | Check to see if this 'Fold' or 'Traversal' has no matches.
 --
 -- >>> hasn't _left (Right 12)
 -- True
