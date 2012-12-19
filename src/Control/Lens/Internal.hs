@@ -575,12 +575,10 @@ instance Isomorphic Isoid where
 
 -- | A function with access to a index. This constructor may be useful when you need to store
 -- a 'Indexable' in a container to avoid @ImpredicativeTypes@.
---
--- @'withIndex' '.' 'indexed' ≡ 'id'@
-newtype Indexed i a b = Indexed { withIndex :: (i -> a) -> b }
+newtype Indexed i a b = Indexed { unindexed :: i -> a -> b }
 
 -- | Using an equality witness to avoid potential overlapping instances
 -- and aid dispatch.
 instance i ~ j => Indexable i (Indexed j) where
-  indexed = Indexed
+  indexed = unindexed
   {-# INLINE indexed #-}

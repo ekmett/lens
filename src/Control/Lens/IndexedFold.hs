@@ -70,7 +70,7 @@ infixr 8 ^@..
 
 -- | Every 'IndexedFold' is a valid 'Control.Lens.Fold.Fold'.
 type IndexedFold i s a = forall k f.
-  (Indexable i k, Applicative f, Gettable f) => k (a -> f a) (s -> f s)
+  (Indexable i k, Applicative f, Gettable f) => k a (f a) -> s -> f s
 
 -- |
 -- Fold an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' by mapping indices and values to an arbitrary 'Monoid' with access
@@ -401,8 +401,8 @@ s ^@.. l = ifoldrOf l (\i a -> ((i,a):)) [] s
 -- @
 --
 -- Change made to the indices will be discarded.
-withIndicesOf :: Functor f => Overloaded (Indexed i) f s t a b -> LensLike f s t (i, a) (j, b)
-withIndicesOf l f = withIndex l (\i c -> snd <$> f (i,c))
+withIndicesOf :: Functor f => (Indexed i a (f b) -> s -> f t) -> LensLike f s t (i, a) (j, b)
+withIndicesOf l f = l @~ \i c -> snd <$> f (i,c)
 {-# INLINE withIndicesOf #-}
 
 -- | Transform an indexed fold into a fold of the indices.
@@ -412,8 +412,8 @@ withIndicesOf l f = withIndex l (\i c -> snd <$> f (i,c))
 -- 'indicesOf' :: 'Control.Lens.IndexedLens.IndexedLens'' i s a      -> 'Control.Lens.Fold.Getter' s i
 -- 'indicesOf' :: 'Control.Lens.IndexedLens.IndexedTraversal'' i s a -> 'Control.Lens.Fold.Fold' s i
 -- @
-indicesOf :: Gettable f => Overloaded (Indexed i) f s t a a -> LensLike f s t i j
-indicesOf l f = withIndex l (const . coerce . f)
+indicesOf :: Gettable f => (Indexed i a (f a) -> s -> f t) -> LensLike f s t i j
+indicesOf l f = l @~ const . coerce . f
 {-# INLINE indicesOf #-}
 
 -------------------------------------------------------------------------------
@@ -427,10 +427,9 @@ indicesOf l f = withIndex l (const . coerce . f)
 -- See 'Control.Lens.Fold.filtered' for a related counter-example.
 ifiltering :: (Applicative f, Indexable i k)
            => (i -> a -> Bool)
-           -> Indexed i (a -> f a) (s -> f t)
-           -> k (a -> f a) (s -> f t)
-ifiltering p l = indexed $ \ f ->
-  withIndex l $ \ i c -> if p i c then f i c else pure c
+           -> (Indexed i a (f a) -> s -> f t)
+           -> k a (f a) -> s -> f t
+ifiltering p l f = l @~ \ i c -> if p i c then indexed f i c else pure c
 {-# INLINE ifiltering #-}
 
 -- | Reverse the order of the elements of an 'IndexedFold' or
@@ -438,10 +437,10 @@ ifiltering p l = indexed $ \ f ->
 -- This has no effect on an 'Control.Lens.IndexedLens.IndexedLens',
 -- 'IndexedGetter', or 'Control.Lens.IndexedSetter.IndexedSetter'.
 ibackwards :: Indexable i k
-           => Indexed i (a -> (Backwards f) b) (s -> (Backwards f) t)
-           -> k (a -> f b) (s -> f t)
-ibackwards l = indexed $ \ f ->
-  fmap forwards . withIndex l $ \ i -> Backwards # f i
+           => (Indexed i a (Backwards f b) -> s -> Backwards f t)
+           -> k a (f b) -> s -> f t
+ibackwards l f =
+  fmap forwards . withIndex l $ \ i -> Backwards # indexed f i
 {-# INLINE ibackwards #-}
 
 -- | Obtain an 'IndexedFold' by taking elements from another
@@ -451,9 +450,9 @@ ibackwards l = indexed $ \ f ->
 itakingWhile :: (Gettable f, Applicative f, Indexable i k)
              => (i -> a -> Bool)
              -> IndexedGetting i (Endo (f s)) s s a a
-             -> k (a -> f a) (s -> f s)
-itakingWhile p l = indexed $ \ f ->
-  ifoldrOf l (\i a r -> if p i a then f i a *> r else noEffect) noEffect
+             -> k a (f a) -> s -> f s
+itakingWhile p l f =
+  ifoldrOf l (\i a r -> if p i a then indexed f i a *> r else noEffect) noEffect
 {-# INLINE itakingWhile #-}
 
 
@@ -461,10 +460,10 @@ itakingWhile p l = indexed $ \ f ->
 idroppingWhile :: (Gettable f, Applicative f, Indexable i k)
               => (i -> a -> Bool)
               -> IndexedGetting i (Endo (f s, f s)) s s a a
-              -> k (a -> f a) (s -> f s)
-idroppingWhile p l = indexed $ \ f ->
+              -> k a (f a) -> s -> f s
+idroppingWhile p l f =
   fst . ifoldrOf l
-                 (\i a r -> let s = f i a *> snd r in if p i a then (fst r, s) else (s, s))
+                 (\i a r -> let s = indexed f i a *> snd r in if p i a then (fst r, s) else (s, s))
                  (noEffect, noEffect)
 {-# INLINE idroppingWhile #-}
 

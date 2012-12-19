@@ -38,7 +38,6 @@ import Control.Lens.Classes
 import Control.Lens.Indexed
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
-import Control.Lens.Type
 import Control.Monad.State.Class as State
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
@@ -50,27 +49,15 @@ infix  4 %@=
 --
 -- The 'Control.Lens.Setter.Setter' laws are still required to hold.
 type IndexedSetter i s t a b = forall f k.
-  (Indexable i k, Settable f) => k (a -> f b) (s -> f t)
-
+  (Indexable i k, Settable f) => k a (f b) -> s -> f t
 
 -- |
 -- @type 'IndexedSetter'' i = 'Simple' ('IndexedSetter' i)@
 type IndexedSetter' i s a = IndexedSetter i s s a a
 
--- | Map with index.
---
--- When you do not need access to the index, then 'mapOf' is more liberal in what it can accept.
---
--- @'Control.Lens.Setter.mapOf' l ≡ 'imapOf' l '.' 'const'@
---
--- @
--- 'imapOf' :: 'IndexedSetter' i s t a b    -> (i -> a -> b) -> s -> t
--- 'imapOf' :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
--- 'imapOf' :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
--- @
-imapOf :: Overloaded (Indexed i) Mutator s t a b -> (i -> a -> b) -> s -> t
-imapOf l f = runMutator # withIndex l (\i -> Mutator # f i)
-{-# INLINE imapOf #-}
+-- | Used to consume an 'IndexedSetter'
+type IndexedSetting i s t a b = Indexed i a (Mutator b) -> s -> Mutator t
+
 
 -- | Map with index. This is an alias for 'imapOf'.
 --
@@ -83,7 +70,7 @@ imapOf l f = runMutator # withIndex l (\i -> Mutator # f i)
 -- 'iover' :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- 'iover' :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
-iover :: Overloaded (Indexed i) Mutator s t a b -> (i -> a -> b) -> s -> t
+iover :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
 iover l f = runMutator # withIndex l (\i -> Mutator # f i)
 {-# INLINE iover #-}
 
@@ -106,7 +93,7 @@ iover l f = runMutator # withIndex l (\i -> Mutator # f i)
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
 isets :: ((i -> a -> b) -> s -> t) -> IndexedSetter i s t a b
-isets f = indexed $ \ g -> taintedDot (f (\i -> untaintedDot (g i)))
+isets f g = taintedDot (f (\i -> untaintedDot (indexed g i)))
 {-# INLINE isets #-}
 
 -- | Adjust every target of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
@@ -123,7 +110,7 @@ isets f = indexed $ \ g -> taintedDot (f (\i -> untaintedDot (g i)))
 -- ('%@~') :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- ('%@~') :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
-(%@~) :: Overloaded (Indexed i) Mutator s t a b -> (i -> a -> b) -> s -> t
+(%@~) :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
 l %@~ f = runMutator # withIndex l (\i -> Mutator # f i)
 {-# INLINE (%@~) #-}
 
@@ -139,7 +126,7 @@ l %@~ f = runMutator # withIndex l (\i -> Mutator # f i)
 -- ('%@=') :: 'MonadState' s m => 'Control.Lens.IndexedLens.IndexedLens' i s s a b      -> (i -> a -> b) -> m ()
 -- ('%@=') :: 'MonadState' s m => 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> m ()
 -- @
-(%@=) :: MonadState s m => Overloaded (Indexed i) Mutator s s a b -> (i -> a -> b) -> m ()
+(%@=) :: MonadState s m => IndexedSetting i s s a b -> (i -> a -> b) -> m ()
 l %@= f = State.modify (l %@~ f)
 {-# INLINE (%@=) #-}
 
@@ -157,6 +144,22 @@ type ReifiedIndexedSetter' i s a = ReifiedIndexedSetter i s s a a
 ------------------------------------------------------------------------------
 -- Deprecated
 ------------------------------------------------------------------------------
+
+-- | Map with index. (Deprecated alias for 'iover')
+--
+-- When you do not need access to the index, then 'mapOf' is more liberal in what it can accept.
+--
+-- @'Control.Lens.Setter.mapOf' l ≡ 'imapOf' l '.' 'const'@
+--
+-- @
+-- 'imapOf' :: 'IndexedSetter' i s t a b    -> (i -> a -> b) -> s -> t
+-- 'imapOf' :: 'Control.Lens.IndexedLens.IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
+-- 'imapOf' :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
+-- @
+imapOf :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
+imapOf l f = runMutator # withIndex l (\i -> Mutator # f i)
+{-# INLINE imapOf #-}
+{-# DEPRECATED imapOf "use iover" #-}
 
 -- | @type 'SimpleReifiedIndexedSetter' i = 'Simple' ('ReifiedIndexedSetter' i)@
 type SimpleReifiedIndexedSetter i s a = ReifiedIndexedSetter i s s a a

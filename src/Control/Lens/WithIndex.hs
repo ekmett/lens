@@ -72,8 +72,9 @@ import Control.Lens.Classes
 import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
-import Control.Lens.IndexedSetter
+import Control.Lens.Indexed
 import Control.Lens.IndexedFold
+import Control.Lens.IndexedSetter
 import Control.Lens.IndexedTraversal
 import Data.Foldable
 import Data.Hashable
@@ -174,14 +175,14 @@ class Foldable f => FoldableWithIndex i f | f -> i where
 
 -- | The 'IndexedFold' of a 'FoldableWithIndex' container.
 ifolded :: FoldableWithIndex i f => IndexedFold i (f a) a
-ifolded = indexed $ \ f -> coerce . getFolding . ifoldMap (\i -> Folding # f i)
+ifolded f = coerce . getFolding . ifoldMap (\i -> Folding # indexed f i)
 {-# INLINE ifolded #-}
 
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
 --
 -- This can be useful to lift operations from @Data.List@ and elsewhere into a 'Fold'.
 ifolding :: FoldableWithIndex i f => (s -> f a) -> IndexedFold i s a
-ifolding sfa = indexed $ \ iagb -> coerce . itraverse_ iagb . sfa
+ifolding sfa iagb = coerce . itraverse_ (indexed iagb) . sfa
 {-# INLINE ifolding #-}
 
 -- |
@@ -402,7 +403,7 @@ imapAccumL f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards 
 -- >>> over (iwhere (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
 iwhere :: TraversableWithIndex i t => (i -> Bool) -> IndexedTraversal' i (t a) a
-iwhere p = indexed $ \f a -> itraverse (\i c -> if p i then f i c else pure c) a
+iwhere p f a = itraverse (\i c -> if p i then indexed f i c else pure c) a
 {-# INLINE iwhere #-}
 
 -------------------------------------------------------------------------------

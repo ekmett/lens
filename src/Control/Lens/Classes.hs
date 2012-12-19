@@ -183,10 +183,10 @@ instance Prismatic (->) where
 
 -- | This class permits overloading of function application for things that
 -- also admit a notion of a key or index.
-class Indexable i k where
+class Indexable i c where
   -- | Build a function from an 'Indexed' function
-  indexed :: ((i -> a) -> b) -> k a b
+  indexed :: c a b -> i -> a -> b
 
 instance Indexable i (->) where
-  indexed f = f . const
+  indexed = const
   {-# INLINE indexed #-}

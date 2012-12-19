@@ -25,6 +25,9 @@ module Control.Lens.Indexed
   -- * Indexing existing lenses, traversals, etc.
   , indexing
   , indexing64
+  -- * withIndex
+  , (@~)
+  , withIndex
   ) where
 
 import Control.Lens.Classes
@@ -32,36 +35,51 @@ import Control.Lens.Internal
 import Data.Int
 
 infixr 9 <.>, <., .>
+infixr 4 @~
+
+withIndex :: (Indexed i s t -> r) -> (i -> s -> t) -> r
+withIndex l = l . Indexed
+{-# INLINE withIndex #-}
+
+
+(@~) :: (Indexed i s t -> r) -> (i -> s -> t) -> r
+(@~) = withIndex
+{-# INLINE (@~) #-}
 
 -- | Compose an 'Indexed' function with a non-indexed function.
 --
 -- Mnemonically, the @<@ points to the indexing we want to preserve.
-(<.)  :: Indexable i k => Indexed i b c -> (a -> b) -> k a c
-Indexed ibc <. ab = indexed $ \ia -> ibc (ab . ia)
+(<.) :: Indexable i k => (Indexed i s t -> r) -> ((a -> b) -> s -> t) -> k a b -> r
+(<.) f g h = f @~ g . indexed h
 {-# INLINE (<.) #-}
 
 -- | Compose a non-indexed function with an 'Indexed' function.
 --
 -- Mnemonically, the @>@ points to the indexing we want to preserve.
-(.>)  :: Indexable i k => (b -> c) -> Indexed i a b -> k a c
-bc .> Indexed iab = indexed (bc . iab)
+--
+-- Note, even if you do nothing, this gives you the most recent index.
+(.>) :: (st -> r) -> (kab -> st) -> kab -> r
+(.>) = (.)
 {-# INLINE (.>) #-}
 
+-- (.>)  :: Indexable i k => (b -> c) -> Indexed i a b -> k a c
+-- bc .> Indexed iab = indexed (bc . iab)
+
 -- | Remap the index.
-reindexed :: Indexable j k => (i -> j) -> Indexed i a b -> k a b
-reindexed ij (Indexed iab) = indexed $ \ ja -> iab $ \i -> ja (ij i)
+reindexed :: Indexable j k => (i -> j) -> (Indexed i a b -> r) -> k a b -> r
+reindexed ij f g = f @~ indexed g . ij
 {-# INLINE reindexed #-}
 
 -- | Composition of 'Indexed' functions
 --
 -- Mnemonically, the @\<@ and @\>@ points to the fact that we want to preserve the indices.
-(<.>) :: Indexable (i, j) k => Indexed i b c -> Indexed j a b -> k a c
+(<.>) :: Indexable (i, j) k => (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> k a b -> r
 f <.> g = icompose (,) f g
 {-# INLINE (<.>) #-}
 
 -- | Composition of 'Indexed' functions with a user supplied function for combining indices
-icompose :: Indexable k r => (i -> j -> k) -> Indexed i b c -> Indexed j a b -> r a c
-icompose ijk (Indexed ibc) (Indexed jab) = indexed $ \ka -> ibc $ \i -> jab $ \j -> ka (ijk i j)
+icompose :: Indexable k c => (i -> j -> k) -> (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> c a b -> r
+icompose ijk istr jabst cab = istr @~ \i -> jabst @~ \j -> indexed cab $ ijk i j
 {-# INLINE icompose #-}
 
 -- | Transform a 'Traversal' into an 'Control.Lens.IndexedTraversal.IndexedTraversal' or
@@ -75,8 +93,8 @@ icompose ijk (Indexed ibc) (Indexed jab) = indexed $ \ka -> ibc $ \i -> jab $ \j
 -- 'indexing' :: 'Control.Lens.Fold.Fold' s t               -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
 -- 'indexing' :: 'Control.Lens.Getter.Getter' s t           -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
 -- @
-indexing :: Indexable Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k (a -> f b) (s -> f t)
-indexing l = indexed $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
+indexing :: Indexable Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k a (f b) -> s -> f t
+indexing l iafb s = case runIndexing (l (\a -> Indexing (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
   (r, _) -> r
 {-# INLINE indexing #-}
 
@@ -93,7 +111,7 @@ indexing l = indexed $ \iafb s -> case runIndexing (l (\a -> Indexing (\i -> i `
 -- 'indexing64' :: 'Control.Lens.Fold.Fold' s t               -> 'Control.Lens.IndexedFold.IndexedFold' 'Int64' s t
 -- 'indexing64' :: 'Control.Lens.Getter.Getter' s t           -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int64' s t a b
 -- @
-indexing64 :: Indexable Int64 k => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> k (a -> f b) (s -> f t)
-indexing64 l = indexed $ \iafb s -> case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (iafb i a, i + 1))) s) 0 of
+indexing64 :: Indexable Int64 k => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> k a (f b) -> s -> f t
+indexing64 l iafb s = case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
   (r, _) -> r
 {-# INLINE indexing64 #-}

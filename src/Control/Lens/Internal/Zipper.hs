@@ -30,6 +30,7 @@ import Control.Applicative
 import Control.Category
 import Control.Monad
 import Control.Lens.Classes
+import Control.Lens.Combinators
 import Control.Lens.Getter
 import Control.Lens.IndexedLens
 import Control.Lens.Internal
@@ -115,7 +116,7 @@ data Coil :: * -> * -> * where
 --
 -- A 'Tape' that can be used to get to the current location is available as the index of this 'Lens'.
 focus :: IndexedLens' (Tape (h :> a)) (h :> a) a
-focus = indexed $ \f (Zipper h n l a r) -> (\a' -> Zipper h n l a' r) <$> f (Tape (peel h) n) a
+focus f (Zipper h n l a r) = indexed f (Tape (peel h) n) a <&> \a' -> Zipper h n l a' r
 {-# INLINE focus #-}
 
 -- | Construct a 'Zipper' that can explore anything, and start it at the top.
