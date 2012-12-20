@@ -185,7 +185,7 @@ rToL = unsafeCoerce
 -- @'from' ≡ 'withIso' ('flip' 'iso')@
 withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
 withIso k ai = k
-  (\s -> fromL $ algebraic ai rToL (chooseR s))
+  (fromL . algebraic ai rToL . chooseR)
   (\b -> fromR $ algebraic ai (\_ -> chooseR b) (chooseL ()))
 {-# INLINE withIso #-}
 
