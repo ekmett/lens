@@ -32,14 +32,14 @@
 <a name="line-23"></a><span class='hs-comment'>--</span>
 <a name="line-24"></a><span class='hs-comment'>-- &gt;&gt;&gt; view root $ Node 42 []</span>
 <a name="line-25"></a><span class='hs-comment'>-- 42</span>
-<a name="line-26"></a><span class='hs-definition'>root</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleLens</span> <span class='hs-layout'>(</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-26"></a><span class='hs-definition'>root</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
 <a name="line-27"></a><span class='hs-definition'>root</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>`Node`</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
 <a name="line-28"></a><span class='hs-comment'>{-# INLINE root #-}</span>
 <a name="line-29"></a>
 <a name="line-30"></a><a name="branches"></a><span class='hs-comment'>-- | A 'Lens' returning the direct descendants of the root of a 'Tree'</span>
 <a name="line-31"></a><span class='hs-comment'>--</span>
 <a name="line-32"></a><span class='hs-comment'>-- @'view' 'branches' ≡ 'subForest'@</span>
-<a name="line-33"></a><span class='hs-definition'>branches</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleLens</span> <span class='hs-layout'>(</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-33"></a><span class='hs-definition'>branches</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
 <a name="line-34"></a><span class='hs-definition'>branches</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
 <a name="line-35"></a><span class='hs-comment'>{-# INLINE branches #-}</span>
 </pre></body>

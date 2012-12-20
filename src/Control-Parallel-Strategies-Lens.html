@@ -46,11 +46,11 @@
 <a name="line-37"></a><span class='hs-comment'>-- @</span>
 <a name="line-38"></a><span class='hs-comment'>--</span>
 <a name="line-39"></a><span class='hs-comment'>-- @</span>
-<a name="line-40"></a><span class='hs-comment'>-- 'evalOf' :: 'Simple' 'Lens' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
-<a name="line-41"></a><span class='hs-comment'>-- 'evalOf' :: 'Simple' 'Traversal' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<a name="line-40"></a><span class='hs-comment'>-- 'evalOf' :: 'Lens'' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<a name="line-41"></a><span class='hs-comment'>-- 'evalOf' :: 'Traversal'' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
 <a name="line-42"></a><span class='hs-comment'>-- 'evalOf' :: (a -&gt; 'Eval' a) -&gt; s -&gt; 'Eval' s) -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
 <a name="line-43"></a><span class='hs-comment'>-- @</span>
-<a name="line-44"></a><span class='hs-definition'>evalOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-conid'>Eval</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span>
+<a name="line-44"></a><span class='hs-definition'>evalOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>LensLike'</span> <span class='hs-conid'>Eval</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span>
 <a name="line-45"></a><span class='hs-definition'>evalOf</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span>
 <a name="line-46"></a><span class='hs-comment'>{-# INLINE evalOf #-}</span>
 <a name="line-47"></a>
@@ -60,11 +60,11 @@
 <a name="line-51"></a><span class='hs-comment'>-- @'parTraversable' = 'parOf' 'traverse'@</span>
 <a name="line-52"></a><span class='hs-comment'>--</span>
 <a name="line-53"></a><span class='hs-comment'>-- @</span>
-<a name="line-54"></a><span class='hs-comment'>-- 'parOf' :: 'Simple' 'Lens' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
-<a name="line-55"></a><span class='hs-comment'>-- 'parOf' :: 'Simple' 'Traversal' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<a name="line-54"></a><span class='hs-comment'>-- 'parOf' :: 'Lens'' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
+<a name="line-55"></a><span class='hs-comment'>-- 'parOf' :: 'Traversal'' s a -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
 <a name="line-56"></a><span class='hs-comment'>-- 'parOf' :: ((a -&gt; 'Eval' a) -&gt; s -&gt; 'Eval' s) -&gt; 'Strategy' a -&gt; 'Strategy' s</span>
 <a name="line-57"></a><span class='hs-comment'>-- @</span>
-<a name="line-58"></a><span class='hs-definition'>parOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleLensLike</span> <span class='hs-conid'>Eval</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span>
+<a name="line-58"></a><span class='hs-definition'>parOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>LensLike'</span> <span class='hs-conid'>Eval</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Strategy</span> <span class='hs-varid'>s</span>
 <a name="line-59"></a><span class='hs-cpp'>#if MIN_VERSION_parallel(3,2,0)</span>
 <a name="line-60"></a><span class='hs-definition'>parOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>rparWith</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
 <a name="line-61"></a><span class='hs-cpp'>#else</span>

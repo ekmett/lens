@@ -37,7 +37,7 @@
 <a name="line-28"></a>  <span class='hs-comment'>-- @'Data.ByteString.pack' x = x '^.' 'packedBytes'@</span>
 <a name="line-29"></a>  <span class='hs-comment'>--</span>
 <a name="line-30"></a>  <span class='hs-comment'>-- @'Data.ByteString.unpack' x = x '^.' 'from' 'packedBytes'@</span>
-<a name="line-31"></a>  <span class='hs-varid'>packedBytes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Word8</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>t</span>
+<a name="line-31"></a>  <span class='hs-varid'>packedBytes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Word8</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>t</span>
 <a name="line-32"></a>
 <a name="line-33"></a>  <span class='hs-comment'>-- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a strict or lazy 'ByteString'</span>
 <a name="line-34"></a>  <span class='hs-comment'>--</span>
@@ -47,15 +47,15 @@
 <a name="line-38"></a>  <span class='hs-comment'>-- @'Data.ByteString.Char8.pack' x = x '^.' 'packedChars'@</span>
 <a name="line-39"></a>  <span class='hs-comment'>--</span>
 <a name="line-40"></a>  <span class='hs-comment'>-- @'Data.ByteString.Char8.unpack' x = x '^.' 'from' 'packedChars'@</span>
-<a name="line-41"></a>  <span class='hs-varid'>packedChars</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-conid'>String</span> <span class='hs-varid'>t</span>
+<a name="line-41"></a>  <span class='hs-varid'>packedChars</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>String</span> <span class='hs-varid'>t</span>
 <a name="line-42"></a>
 <a name="line-43"></a>  <span class='hs-comment'>-- | Traverse each 'Word8' in a strict or lazy 'ByteString'</span>
 <a name="line-44"></a>  <span class='hs-comment'>--</span>
-<a name="line-45"></a>  <span class='hs-comment'>-- @'bytes' = 'from' 'packedBytes' '.&gt;' 'itraversed'@</span>
+<a name="line-45"></a>  <span class='hs-comment'>-- @'bytes' = 'from' 'packedBytes' '.' 'itraversed'@</span>
 <a name="line-46"></a>  <span class='hs-comment'>--</span>
 <a name="line-47"></a>  <span class='hs-comment'>-- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -&gt; 'Bool'@</span>
-<a name="line-48"></a>  <span class='hs-varid'>bytes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>t</span> <span class='hs-conid'>Word8</span>
-<a name="line-49"></a>  <span class='hs-varid'>bytes</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedBytes</span> <span class='hs-varop'>.&gt;</span> <span class='hs-varid'>traversed</span>
+<a name="line-48"></a>  <span class='hs-varid'>bytes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>t</span> <span class='hs-conid'>Word8</span>
+<a name="line-49"></a>  <span class='hs-varid'>bytes</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedBytes</span> <span class='hs-varop'>.</span> <span class='hs-varid'>traversed</span>
 <a name="line-50"></a>  <span class='hs-comment'>{-# INLINE bytes #-}</span>
 <a name="line-51"></a>
 <a name="line-52"></a>  <span class='hs-comment'>-- | Traverse the individual bytes in a strict or lazy 'ByteString' as characters.</span>
@@ -66,8 +66,8 @@
 <a name="line-57"></a>  <span class='hs-comment'>-- @'chars' = 'from' 'packedChars' . 'traverse'@</span>
 <a name="line-58"></a>  <span class='hs-comment'>--</span>
 <a name="line-59"></a>  <span class='hs-comment'>-- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -&gt; 'Bool'@</span>
-<a name="line-60"></a>  <span class='hs-varid'>chars</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>t</span> <span class='hs-conid'>Char</span>
-<a name="line-61"></a>  <span class='hs-varid'>chars</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedChars</span> <span class='hs-varop'>.&gt;</span> <span class='hs-varid'>traversed</span>
+<a name="line-60"></a>  <span class='hs-varid'>chars</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>t</span> <span class='hs-conid'>Char</span>
+<a name="line-61"></a>  <span class='hs-varid'>chars</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedChars</span> <span class='hs-varop'>.</span> <span class='hs-varid'>traversed</span>
 <a name="line-62"></a>  <span class='hs-comment'>{-# INLINE chars #-}</span>
 <a name="line-63"></a>
 <a name="line-64"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsByteString</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyword'>where</span>
@@ -85,9 +85,9 @@
 <a name="line-76"></a>  <span class='hs-comment'>{-# INLINE packedBytes #-}</span>
 <a name="line-77"></a>  <span class='hs-varid'>packedChars</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-varid'>packedChars</span>
 <a name="line-78"></a>  <span class='hs-comment'>{-# INLINE packedChars #-}</span>
-<a name="line-79"></a>  <span class='hs-varid'>bytes</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedBytes</span> <span class='hs-varop'>.&gt;</span> <span class='hs-varid'>traversed</span>
+<a name="line-79"></a>  <span class='hs-varid'>bytes</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedBytes</span> <span class='hs-varop'>.</span> <span class='hs-varid'>traversed</span>
 <a name="line-80"></a>  <span class='hs-comment'>{-# INLINE bytes #-}</span>
-<a name="line-81"></a>  <span class='hs-varid'>chars</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedChars</span> <span class='hs-varop'>.&gt;</span> <span class='hs-varid'>traversed</span>
+<a name="line-81"></a>  <span class='hs-varid'>chars</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedChars</span> <span class='hs-varop'>.</span> <span class='hs-varid'>traversed</span>
 <a name="line-82"></a>  <span class='hs-comment'>{-# INLINE chars #-}</span>
 </pre></body>
 </html>

@@ -41,11 +41,11 @@
 <a name="line-32"></a>  <span class='hs-comment'>-- 'pack' x = x '^.' 'packed'</span>
 <a name="line-33"></a>  <span class='hs-comment'>-- 'unpack' x = x '^.' 'from' 'packed'</span>
 <a name="line-34"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-35"></a>  <span class='hs-varid'>packed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Iso</span> <span class='hs-conid'>String</span> <span class='hs-varid'>t</span>
+<a name="line-35"></a>  <span class='hs-varid'>packed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>String</span> <span class='hs-varid'>t</span>
 <a name="line-36"></a>
 <a name="line-37"></a>  <span class='hs-comment'>-- | Traverse the individual characters in strict or lazy 'Text'.</span>
-<a name="line-38"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>SimpleIndexedTraversal</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>t</span> <span class='hs-conid'>Char</span>
-<a name="line-39"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packed</span> <span class='hs-varop'>.&gt;</span> <span class='hs-varid'>itraversed</span>
+<a name="line-38"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>t</span> <span class='hs-conid'>Char</span>
+<a name="line-39"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packed</span> <span class='hs-varop'>.</span> <span class='hs-varid'>itraversed</span>
 <a name="line-40"></a>  <span class='hs-comment'>{-# INLINE text #-}</span>
 <a name="line-41"></a>
 <a name="line-42"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsText</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>where</span>
