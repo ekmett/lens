@@ -56,6 +56,7 @@ import           Control.Lens.Setter
 import           Control.Lens.Traversal
 import           Control.Lens.Type
 import           Data.Data
+import           Data.Maybe (fromMaybe)
 import           GHC.IO
 import           Unsafe.Coerce as Unsafe
 
