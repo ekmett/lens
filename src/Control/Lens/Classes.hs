@@ -27,10 +27,10 @@ module Control.Lens.Classes
   , Effective(..)
   -- * Setters
   , Settable(..)
-  -- * Isomorphisms
-  , Isomorphic(..)
-  -- * Prisms
-  , Prismatic(..)
+  -- * Costrong
+  , Costrong(..)
+  -- * Algebraics
+  , Algebraic(..)
   -- * Indexable
   , Indexable(..)
   ) where
@@ -38,11 +38,13 @@ module Control.Lens.Classes
 import Control.Applicative
 import Control.Applicative.Backwards (Backwards(..))
 import Control.Category
+import Control.Comonad
 import Control.Monad (liftM)
 import Data.Functor.Compose (Compose(..))
 import Data.Functor.Identity (Identity(..))
 import Data.Monoid (Dual(..))
 import Data.Profunctor
+import Data.Proxy
 import Prelude hiding ((.),id)
 #ifndef SAFE
 import Unsafe.Coerce (unsafeCoerce)
@@ -54,6 +56,24 @@ import Unsafe.Coerce (unsafeCoerce)
 #define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
 #endif
 
+-------------------------------------------------------------------------------
+-- Costrong Functors
+-------------------------------------------------------------------------------
+
+class Functor f => Costrong f where
+  costrength :: f (Either a b) -> Either a (f b)
+
+instance Costrong Identity where
+  costrength = either Left (Right . Identity) . runIdentity
+  {-# INLINE costrength #-}
+
+instance Costrong (Const r) where
+  costrength = Right . coerce
+  {-# INLINE costrength #-}
+
+instance Costrong Proxy where
+  costrength = Right . coerce
+  {-# INLINE costrength #-}
 
 -------------------------------------------------------------------------------
 -- Gettables & Accessors
@@ -78,6 +98,9 @@ class Functor f => Gettable f where
 
 instance Gettable (Const r) where
   coerce (Const m) = Const m
+
+instance Gettable Proxy where
+  coerce = reproxy
 
 instance Gettable f => Gettable (Backwards f) where
   coerce = Backwards . coerce . forwards
@@ -138,45 +161,31 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
   {-# INLINE untainted #-}
 
 -----------------------------------------------------------------------------
--- Isomorphisms
+-- Algebraic overloading
 -----------------------------------------------------------------------------
 
--- | Used to provide overloading of isomorphism application
+-- | Used to provide overloading of symmetric lenses as regular lenses.
 --
--- An instance of 'Isomorphic' is a 'Category' with a canonical mapping to it from the
--- category of isomorphisms over Haskell types.
-class Category k => Isomorphic k where
-  -- | Build a simple isomorphism from a pair of inverse functions
-  --
-  -- @
-  -- 'Control.Lens.Getter.view' ('iso' f g) ≡ f
-  -- 'Control.Lens.Getter.view' ('Control.Lens.Iso.from' ('iso' f g)) ≡ g
-  -- 'Control.Lens.Setter.set' ('iso' f g) h ≡ g '.' h '.' f
-  -- 'Control.Lens.Setter.set' ('Control.Lens.Iso.from' ('iso' f g)) h ≡ f '.' h '.' g
-  -- @
-  iso :: Functor f => (s -> a) -> (b -> t) -> k (a -> f b) (s -> f t)
+-- There are two relevant instances: @(->)@ (for using an 'Iso'/'Prism' as a
+-- regular lens) and @'Cokleisli' g@ (for using it as a symmetric lens).
+class Algebraic g k | k -> g where
+  algebraically :: (k a b -> k s t) -> (g a -> b) -> g s -> t
+  unalgebraically :: ((g a -> b) -> g s -> t) -> k a b -> k s t
 
-instance Isomorphic (->) where
-  iso sa bt afb s = bt <$> afb (sa s)
-  {-# INLINE iso #-}
+-- FIXME: unsafeCoerce should be a valid instance in every case we care about.
+instance Algebraic Identity (->) where
+  algebraically l f = l (f . Identity) . runIdentity
+  {-# INLINE algebraically #-}
 
------------------------------------------------------------------------------
--- Prisms
------------------------------------------------------------------------------
+  unalgebraically l f = l (f . runIdentity) . Identity
+  {-# INLINE unalgebraically #-}
 
--- | Used to provide overloading of prisms.
---
--- An instance of 'Prismatic' is a 'Category' with a canonical mapping to it from the category
--- of embedding-projection pairs over Haskell types.
-class Isomorphic k => Prismatic k where
-  -- | Build a 'Control.Lens.Prism.Prism'.
-  --
-  -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
-  prism :: Applicative f => (b -> t) -> (s -> Either t a) -> k (a -> f b) (s -> f t)
+instance Algebraic g (Cokleisli g) where
+  algebraically f = runCokleisli . f . Cokleisli
+  {-# INLINE algebraically #-}
 
-instance Prismatic (->) where
-  prism bt seta afb = either pure (fmap bt . afb) . seta
-  {-# INLINE prism #-}
+  unalgebraically f = Cokleisli . f . runCokleisli
+  {-# INLINE unalgebraically #-}
 
 ----------------------------------------------------------------------------
 -- Indexed Internals
