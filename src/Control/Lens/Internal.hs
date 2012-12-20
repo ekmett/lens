@@ -50,7 +50,6 @@ module Control.Lens.Internal
   , Indexing(..)
   , Indexing64(..)
   -- * Overloadings
-  , IsoChoice(..), fromIsoLeft, fromIsoRight
   , PrismChoice(..), fromPrismLeft, fromPrismRight
   , Indexed(..)
   ) where
@@ -500,25 +499,8 @@ sellT i = BazaarT (\k -> k i)
 {-# INLINE sellT #-}
 
 ------------------------------------------------------------------------------
--- Isomorphism and Prism Internals
+-- Prism Internals
 ------------------------------------------------------------------------------
-
-data IsoChoice a b = IsoLeft a | IsoRight b
-
-instance Functor (IsoChoice a) where
-  fmap _ (IsoLeft a) = IsoLeft a
-  fmap f (IsoRight b) = IsoRight (f b)
-  {-# INLINE fmap #-}
-
-fromIsoLeft :: IsoChoice a b -> a
-fromIsoLeft (IsoLeft a) = a
-fromIsoLeft _ = error "fromIsoLeft: invalid Iso passed as AnIso"
-{-# INLINE fromIsoLeft #-}
-
-fromIsoRight :: IsoChoice a b -> b
-fromIsoRight (IsoRight b) = b
-fromIsoRight _ = error "fromIsoRight: invalid Iso passed as AnIso"
-{-# INLINE fromIsoRight #-}
 
 data PrismChoice a b = PrismLeft a | PrismRight b
 
