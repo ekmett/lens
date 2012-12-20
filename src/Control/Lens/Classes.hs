@@ -166,26 +166,26 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
 
 -- | Used to provide overloading of symmetric lenses as regular lenses.
 --
--- There are two relevant instances: @(->)@ (for using an 'Iso'/'Prism' as a
+-- There are two relevant instances: @(->)@ (for using an 'Control.Lens.Iso.Iso' or 'Control.Lens.Prism.Prism' as a
 -- regular lens) and @'Cokleisli' g@ (for using it as a symmetric lens).
 class (Profunctor k, Functor g) => Algebraic g k | k -> g where
-  algebraically :: (k a b -> k s t) -> (g a -> b) -> g s -> t
-  unalgebraically :: ((g a -> b) -> g s -> t) -> k a b -> k s t
+  algebraic :: (k a b -> k s t) -> (g a -> b) -> g s -> t
+  unalgebraic :: ((g a -> b) -> g s -> t) -> k a b -> k s t
 
 -- FIXME: unsafeCoerce should be a valid instance in every case we care about.
 instance Algebraic Identity (->) where
-  algebraically l f = l (f . Identity) . runIdentity
-  {-# INLINE algebraically #-}
+  algebraic l f = l (f . Identity) . runIdentity
+  {-# INLINE algebraic #-}
 
-  unalgebraically l f = l (f . runIdentity) . Identity
-  {-# INLINE unalgebraically #-}
+  unalgebraic l f = l (f . runIdentity) . Identity
+  {-# INLINE unalgebraic #-}
 
 instance Functor g => Algebraic g (Cokleisli g) where
-  algebraically f = runCokleisli . f . Cokleisli
-  {-# INLINE algebraically #-}
+  algebraic f = runCokleisli . f . Cokleisli
+  {-# INLINE algebraic #-}
 
-  unalgebraically f = Cokleisli . f . runCokleisli
-  {-# INLINE unalgebraically #-}
+  unalgebraic f = Cokleisli . f . runCokleisli
+  {-# INLINE unalgebraic #-}
 
 ----------------------------------------------------------------------------
 -- Indexed Internals

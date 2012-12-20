@@ -78,7 +78,7 @@ import Data.Maybe
 -- 'Control.Lens.Setter.set' ('Control.Lens.Iso.from' ('iso' f g)) h ≡ f '.' h '.' g
 -- @
 iso :: (s -> a) -> (b -> t) -> Iso s t a b
-iso sa bt = unalgebraically $ \f -> fmap bt . f . fmap sa
+iso sa bt = unalgebraic $ \f -> fmap bt . f . fmap sa
 {-# INLINE iso #-}
 
 ----------------------------------------------------------------------------
@@ -119,8 +119,8 @@ type AnIso s t a b = Cokleisli (IsoChoice ()) a (IsoChoice a b) -> Cokleisli (Is
 -- @'from' ≡ 'withIso' ('flip' 'iso')@
 withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
 withIso k ai = k
-  (\s -> fromIsoLeft $ algebraically ai (IsoLeft . fromIsoRight) (IsoRight s))
-  (\b -> fromIsoRight $ algebraically ai (\_ -> IsoRight b) (IsoLeft ()))
+  (\s -> fromIsoLeft $ algebraic ai (IsoLeft . fromIsoRight) (IsoRight s))
+  (\b -> fromIsoRight $ algebraic ai (\_ -> IsoRight b) (IsoLeft ()))
 {-# INLINE withIso #-}
 
 -- |
