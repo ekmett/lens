@@ -43,12 +43,14 @@ module Control.Lens.IndexedFold
 
   -- * Building Indexed Folds
   , ifiltering
-  , ibackwards
   , itakingWhile
   , idroppingWhile
 
   -- * Storing Indexed Folds
   , ReifiedIndexedFold(..)
+
+  -- * Deprecated
+  , ibackwards
   ) where
 
 import Control.Applicative
@@ -61,6 +63,7 @@ import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad
 import Data.Monoid
+import Data.Profunctor
 
 infixr 8 ^@..
 
@@ -432,16 +435,6 @@ ifiltering :: (Applicative f, Indexable i k)
 ifiltering p l f = l @~ \ i c -> if p i c then indexed f i c else pure c
 {-# INLINE ifiltering #-}
 
--- | Reverse the order of the elements of an 'IndexedFold' or
--- 'Control.Lens.IndexedTraversal.IndexedTraversal'.
--- This has no effect on an 'Control.Lens.IndexedLens.IndexedLens',
--- 'IndexedGetter', or 'Control.Lens.IndexedSetter.IndexedSetter'.
-ibackwards :: Indexable i k
-           => (Indexed i a (Backwards f b) -> s -> Backwards f t)
-           -> IndexedLensLike k f s t a b
-ibackwards l f =
-  fmap forwards . withIndex l $ \ i -> Backwards # indexed f i
-{-# INLINE ibackwards #-}
 
 -- | Obtain an 'IndexedFold' by taking elements from another
 -- 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens',
@@ -474,3 +467,7 @@ idroppingWhile p l f =
 -- | Useful for storage.
 newtype ReifiedIndexedFold i s a =
   ReifyIndexedFold { reflectIndexedFold :: IndexedFold i s a }
+
+ibackwards :: Profunctor k => IndexedLensLike k (Backwards f) s t a b -> IndexedLensLike k f s t a b
+ibackwards l f = forwards # l (rmap Backwards f)
+{-# DEPRECATED ibackwards "use backwards" #-}

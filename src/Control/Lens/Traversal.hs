@@ -333,8 +333,6 @@ loci :: Traversal (Bazaar a c s) (Bazaar b c s) a b
 loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafeOuts w
 {-# INLINE loci #-}
 
-
-
 -------------------------------------------------------------------------------
 -- Parts and Holes
 -------------------------------------------------------------------------------
