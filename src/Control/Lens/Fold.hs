@@ -93,7 +93,6 @@ import Control.Applicative as Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Classes
 import Control.Lens.Getter
-import Control.Lens.Indexed
 import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Lens.Type
@@ -1224,11 +1223,14 @@ preuses l f = gets (getFirst # foldMapOf l (First # Just . f))
 ------------------------------------------------------------------------------
 
 
--- | This allows you to traverse the elements of a (potentially indexed) 'Control.Lens.Traversal.Traversal' or 'Fold' in the opposite order.
+-- | This allows you to traverse the elements of a pretty much any lens-like construction in the opposite order.
+--
+-- This will preserve indexes on indexed types, and work 
+-- (potentially indexed) 'Control.Lens.Traversal.Traversal' or 'Fold' in the opposite order.
 --
 -- Note: 'backwards' should have no impact on a 'Getter', 'Control.Lens.Setter.Setter', 'Lens' or 'Control.Lens.Iso.Iso'.
 --
 -- To change the direction of an 'Control.Lens.Iso.Iso', use 'Control.Lens.Isomorphic.from'.
-backwards :: Profunctor k => IndexedLensLike k (Backwards f) s t a b -> IndexedLensLike k f s t a b
-backwards l f = forwards # l (rmap Backwards f)
+backwards :: (Profunctor k, Profunctor k') => (k a (Backwards f b) -> k' s (Backwards f t)) -> k a (f b) -> k' s (f t)
+backwards l f = rmap forwards (l (rmap Backwards f))
 {-# INLINE backwards #-}

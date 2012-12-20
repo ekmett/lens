@@ -23,11 +23,12 @@
 -- win asymptotically.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Combinators
-  ( Compose(..)
+  ( NewtypeComposition(..)
   ) where
 
 import Control.Applicative
 import Control.Applicative.Backwards
+import Data.Functor.Compose
 import Control.Lens.Internal
 import Data.Monoid
 #ifndef SAFE
@@ -36,28 +37,28 @@ import Unsafe.Coerce
 
 infixr 8 #
 
-class Compose a b where
+class NewtypeComposition a b where
   (#) :: (a -> b) -> (c -> a) -> c -> b
   f # g = f `seq` g `seq` \x -> f (g x)
   {-# INLINE (#) #-}
 
 #ifndef SAFE
 #define COMPOSE(a, b, f, g) \
-  instance Compose (a) (b) where { \
+  instance NewtypeComposition (a) (b) where { \
     _ # h = unsafeCoerce h; \
     {-# INLINE (#) #-}; \
   }; \
-  instance Compose (b) (a) where { \
+  instance NewtypeComposition (b) (a) where { \
     _ # h = unsafeCoerce h; \
     {-# INLINE (#) #-}; \
   }
 #else
 #define COMPOSE(a, b, f, g) \
-  instance Compose (a) (b) where { \
+  instance NewtypeComposition (a) (b) where { \
     _ # h = h `seq` \x -> (f) (h x); \
     {-# INLINE (#) #-}; \
   } \
-  instance Compose (b) (a) where { \
+  instance NewtypeComposition (b) (a) where { \
     _ # h = h `seq` \x -> (g) (h x); \
     {-# INLINE (#) #-}; \
   }
@@ -90,3 +91,4 @@ COMPOSE(FocusingMay k s a, k (May s) a, FocusingMay, unfocusingMay)
 COMPOSE(FocusingErr e k s a, k (Err e s) a, FocusingErr, unfocusingErr)
 COMPOSE(Mutator a, a, Mutator, runMutator)
 COMPOSE(Backwards f a, f a, Backwards, forwards)
+COMPOSE(Compose f g a, f (g a), Compose, getCompose)

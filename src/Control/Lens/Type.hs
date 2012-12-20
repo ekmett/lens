@@ -97,13 +97,12 @@ module Control.Lens.Type
   -- * Simplified and In-Progress
   , LensLike
   , LensLike'
-  , Overloaded
-  , Overloaded'
+  , Overloading
+  , Overloading'
 
   -- * Deprecated
   , SimpleLens
   , SimpleLensLike
-  , SimpleOverloaded
   , SimpleReifiedLens
   ) where
 
@@ -407,12 +406,11 @@ cloneLens f afb s = case f (Context id) s of
 -- Overloading function application
 -------------------------------------------------------------------------------
 
--- | @type 'LensLike' f s t a b = 'Overloaded' (->) f s t a b@
-type Overloaded k f s t a b = k (a -> f b) (s -> f t)
+-- | @type 'LensLike' f s t a b = 'Overloading' (->) (->) f s t a b@
+type Overloading p q f s t a b = p a (f b) -> q s (f t)
 
--- | @type 'Overloaded'' k f s a = 'Simple' ('Overloaded' k f) s a@
-type Overloaded' k f s a = Overloaded k f s s a a
-
+-- | @type 'Overloading'' p q f s a = 'Simple' ('Overloading' p q f) s a@
+type Overloading' p q f s a = Overloading p q f s s a a
 
 -------------------------------------------------------------------------------
 -- Setting and Remembering
@@ -794,7 +792,3 @@ type SimpleLens s a = Lens s s a a
 -- | A deprecated alias for 'LensLike''
 type SimpleLensLike f s a = LensLike f s s a a
 {-# DEPRECATED SimpleLensLike "use LensLike'" #-}
-
--- | A deprecated alias for 'Overloaded''
-type SimpleOverloaded k f s a = Overloaded k f s s a a
-{-# DEPRECATED SimpleOverloaded "use Overloaded'" #-}
