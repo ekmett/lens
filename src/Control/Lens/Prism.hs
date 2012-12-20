@@ -26,6 +26,7 @@ module Control.Lens.Prism
   , prism
   , prism'
   -- * Consuming Prisms
+  , Reviewing
   , clonePrism
   , withPrism
   , remit
