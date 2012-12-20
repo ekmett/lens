@@ -168,22 +168,24 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
 --
 -- There are two relevant instances: @(->)@ (for using an 'Iso'/'Prism' as a
 -- regular lens) and @'Cokleisli' g@ (for using it as a symmetric lens).
---
 class Algebraic g k | k -> g where
-  algebraic :: (g a -> b) -> k a b
-  runAlgebraic :: k a b -> g a -> b
-  mapAlgebraic :: (k a b -> k s t) -> (g a -> b) -> g s -> t
-  mapAlgebraic f = runAlgebraic . f . algebraic
-  {-# INLINE mapAlgebraic #-}
+  algebraically :: (k a b -> k s t) -> (g a -> b) -> g s -> t
+  unalgebraically :: ((g a -> b) -> g s -> t) -> k a b -> k s t
 
+-- FIXME: unsafeCoerce should be a valid instance in every case we care about.
 instance Algebraic Identity (->) where
-  -- This instance should use strict composition.
-  algebraic f = f . Identity
-  runAlgebraic f = f . runIdentity
+  algebraically l f = l (f . Identity) . runIdentity
+  {-# INLINE algebraically #-}
+
+  unalgebraically l f = l (f . runIdentity) . Identity
+  {-# INLINE unalgebraically #-}
 
 instance Algebraic g (Cokleisli g) where
-  algebraic = Cokleisli
-  runAlgebraic = runCokleisli
+  algebraically f = runCokleisli . f . Cokleisli
+  {-# INLINE algebraically #-}
+
+  unalgebraically f = Cokleisli . f . runCokleisli
+  {-# INLINE unalgebraically #-}
 
 ----------------------------------------------------------------------------
 -- Indexed Internals

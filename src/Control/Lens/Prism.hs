@@ -152,8 +152,8 @@ type APrism s t a b = Cokleisli (PrismChoice ()) a (PrismChoice a b) -> Cokleisl
 -- | Safely decompose 'APrism'
 withPrism :: ((b -> t) -> (s -> Either t a) -> r) -> APrism s t a b -> r
 withPrism k p = k
-  (\b -> fromPrismRight $ mapAlgebraic p (\_ -> PrismRight b) (PrismLeft ()))
-  (\s -> case mapAlgebraic p (PrismLeft . fromPrismRight) (PrismRight s) of
+  (\b -> fromPrismRight $ algebraically p (\_ -> PrismRight b) (PrismLeft ()))
+  (\s -> case algebraically p (PrismLeft . fromPrismRight) (PrismRight s) of
     PrismLeft a -> Right a
     PrismRight t -> Left t)
 {-# INLINE withPrism #-}
@@ -173,7 +173,7 @@ clonePrism = withPrism prism
 --
 -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
 prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
-prism bt seta f = algebraic $ either pure (fmap bt . runAlgebraic f) . costrength . fmap seta
+prism bt seta = unalgebraically $ \f -> either pure (fmap bt . f) . costrength . fmap seta
 
 
 -- | Build a 'Prism''.
@@ -220,7 +220,7 @@ without = withPrism $ \bt seta -> withPrism $ \dv uevc ->
 -- 'remit' :: 'Iso' s t a b   -> 'Getter' b t
 -- @
 remit :: Reviewing s t a b -> Getter b t
-remit p = to $ \b -> runMutator $ mapAlgebraic p (\_ -> Mutator b) Proxy
+remit p = to $ \b -> runMutator $ algebraically p (\_ -> Mutator b) Proxy
 {-# INLINE remit #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.
@@ -246,7 +246,7 @@ remit p = to $ \b -> runMutator $ mapAlgebraic p (\_ -> Mutator b) Proxy
 -- 'review' :: 'MonadReader' a m => 'Prism'' s a -> m s
 -- @
 review :: MonadReader b m => Reviewing s t a b -> m t
-review p = asks $ \b -> runMutator $ mapAlgebraic p (\_ -> Mutator b) Proxy
+review p = asks $ \b -> runMutator $ algebraically p (\_ -> Mutator b) Proxy
 {-# INLINE review #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,
@@ -273,7 +273,7 @@ review p = asks $ \b -> runMutator $ mapAlgebraic p (\_ -> Mutator b) Proxy
 -- 'reviews' :: 'MonadReader' a m => 'Prism'' s a -> (s -> r) -> m r
 -- @
 reviews :: MonadReader b m => Reviewing s t a b -> (t -> r) -> m r
-reviews p tr = asks $ \b -> tr . runMutator $ mapAlgebraic p (\_ -> Mutator b) Proxy
+reviews p tr = asks $ \b -> tr . runMutator $ algebraically p (\_ -> Mutator b) Proxy
 {-# INLINE reviews #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.
@@ -288,7 +288,7 @@ reviews p tr = asks $ \b -> tr . runMutator $ mapAlgebraic p (\_ -> Mutator b) P
 -- 'reuse' :: 'MonadState' a m => 'Iso'' s a   -> m s
 -- @
 reuse :: MonadState b m => Reviewing s t a b -> m t
-reuse p = gets $ \b -> runMutator $ mapAlgebraic p (\_ -> Mutator b) Proxy
+reuse p = gets $ \b -> runMutator $ algebraically p (\_ -> Mutator b) Proxy
 {-# INLINE reuse #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,
@@ -304,7 +304,7 @@ reuse p = gets $ \b -> runMutator $ mapAlgebraic p (\_ -> Mutator b) Proxy
 -- 'reuses' :: 'MonadState' a m => 'Iso'' s a   -> (s -> r) -> m r
 -- @
 reuses :: MonadState b m => Reviewing s t a b -> (t -> r) -> m r
-reuses p tr = gets $ \b -> tr . runMutator $ mapAlgebraic p (\_ -> Mutator b) Proxy
+reuses p tr = gets $ \b -> tr . runMutator $ algebraically p (\_ -> Mutator b) Proxy
 {-# INLINE reuses #-}
 
 ------------------------------------------------------------------------------
