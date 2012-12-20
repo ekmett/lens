@@ -163,23 +163,23 @@ rToL = chooseL . fromR
 newtype IsoChoice f a b = IsoChoice Any
 
 instance Functor (IsoChoice f a) where
-  fmap f (IsoChoice x) = IsoChoice (unsafeCoerce (f (unsafeCoerce x)))
+  fmap = unsafeCoerce
   {-# INLINE fmap #-}
 
 chooseL :: a -> IsoChoice f a b
-chooseL x = IsoChoice (unsafeCoerce x)
+chooseL = unsafeCoerce
 {-# INLINE chooseL #-}
 
 chooseR :: b -> IsoChoice f a b
-chooseR x = IsoChoice (unsafeCoerce x)
+chooseR = unsafeCoerce
 {-# INLINE chooseR #-}
 
 fromL :: IsoChoice f a b -> a
-fromL (IsoChoice x) = unsafeCoerce x
+fromL = unsafeCoerce
 {-# INLINE fromL #-}
 
 fromR :: IsoChoice f a b -> b
-fromR (IsoChoice x) = unsafeCoerce x
+fromR = unsafeCoerce
 {-# INLINE fromR #-}
 
 rToL :: IsoChoice f a b -> IsoChoice g b c
