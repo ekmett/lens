@@ -115,6 +115,7 @@ type AnIso s t a b = Cokleisli (IsoChoice ()) a (IsoChoice a b) -> Cokleisli (Is
 -- | Safely decompose 'AnIso'
 --
 -- @'cloneIso' ≡ 'withIso' 'iso'@
+--
 -- @'from' ≡ 'withIso' ('flip' 'iso')@
 withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
 withIso k ai = k
