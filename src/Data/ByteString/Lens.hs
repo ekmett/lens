@@ -42,11 +42,11 @@ class IsByteString t where
 
   -- | Traverse each 'Word8' in a strict or lazy 'ByteString'
   --
-  -- @'bytes' = 'from' 'packedBytes' '.>' 'itraversed'@
+  -- @'bytes' = 'from' 'packedBytes' '.' 'itraversed'@
   --
   -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
   bytes :: IndexedTraversal' Int t Word8
-  bytes = from packedBytes .> traversed
+  bytes = from packedBytes . traversed
   {-# INLINE bytes #-}
 
   -- | Traverse the individual bytes in a strict or lazy 'ByteString' as characters.
@@ -58,7 +58,7 @@ class IsByteString t where
   --
   -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
   chars :: IndexedTraversal' Int t Char
-  chars = from packedChars .> traversed
+  chars = from packedChars . traversed
   {-# INLINE chars #-}
 
 instance IsByteString Strict.ByteString where
@@ -76,7 +76,7 @@ instance IsByteString Lazy.ByteString where
   {-# INLINE packedBytes #-}
   packedChars = Lazy.packedChars
   {-# INLINE packedChars #-}
-  bytes = from packedBytes .> traversed
+  bytes = from packedBytes . traversed
   {-# INLINE bytes #-}
-  chars = from packedChars .> traversed
+  chars = from packedChars . traversed
   {-# INLINE chars #-}

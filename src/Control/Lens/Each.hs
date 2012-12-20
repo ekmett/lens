@@ -216,22 +216,22 @@ instance (Applicative f, Unbox a, Unbox b) => Each Int f (Unboxed.Vector a) (Unb
 
 -- | @'each' :: 'IndexedTraversal' 'Int' 'StrictT.Text' 'StrictT.Text' 'Char' 'Char'@
 instance Applicative f =>  Each Int f StrictT.Text StrictT.Text Char Char where
-  each = iso StrictT.unpack StrictT.pack .> traversed
+  each = iso StrictT.unpack StrictT.pack . traversed
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int64' 'LazyT.Text' 'LazyT.Text' 'Char' 'Char'@
 instance Applicative f => Each Int64 f LazyT.Text LazyT.Text Char Char where
-  each = iso LazyT.unpack LazyT.pack .> traversed64
+  each = iso LazyT.unpack LazyT.pack . traversed64
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' 'StrictB.ByteString' 'StrictB.ByteString' 'Char' 'Char'@
 instance Applicative f => Each Int f StrictB.ByteString StrictB.ByteString Word8 Word8 where
-  each = iso StrictB.unpack StrictB.pack .> traversed
+  each = iso StrictB.unpack StrictB.pack . traversed
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int64' 'LazyB.ByteString' 'LazyB.ByteString' 'Char' 'Char'@
 instance Applicative f => Each Int64 f LazyB.ByteString LazyB.ByteString Word8 Word8 where
-  each = iso LazyB.unpack LazyB.pack .> traversed64
+  each = iso LazyB.unpack LazyB.pack . traversed64
   {-# INLINE each #-}
 
 -- | @'each' :: 'Ix' i => 'IndexedTraversal' i ('Array' i a) ('Array' i b) a b@

@@ -31,11 +31,11 @@ packedBytes = iso Words.pack Words.unpack
 
 -- | Traverse each 'Word8' in a 'ByteString'
 --
--- @'bytes' = 'from' 'packedBytes' '.>' 'itraversed'@
+-- @'bytes' = 'from' 'packedBytes' '.' 'itraversed'@
 --
 -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
 bytes :: IndexedTraversal' Int ByteString Word8
-bytes = from packedBytes .> itraversed
+bytes = from packedBytes . itraversed
 {-# INLINE bytes #-}
 
 -- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a 'ByteString'
@@ -59,5 +59,5 @@ packedChars = iso Char8.pack Char8.unpack
 --
 -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
 chars :: IndexedTraversal' Int ByteString Char
-chars = from packedChars .> itraversed
+chars = from packedChars . itraversed
 {-# INLINE chars #-}

@@ -37,7 +37,7 @@ packedBytes = iso Words.pack Words.unpack
 --
 -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
 bytes :: IndexedTraversal' Int64 ByteString Word8
-bytes = from packedBytes .> traversed64
+bytes = from packedBytes . traversed64
 {-# INLINE bytes #-}
 
 -- | 'Data.ByteString.Lazy.Char8.pack' (or 'Data.ByteString.Lazy.Char8.unpack') a list of characters into a 'ByteString'
@@ -57,9 +57,9 @@ packedChars = iso Char8.pack Char8.unpack
 -- When writing back to the 'ByteString' it is assumed that every 'Char'
 -- lies between '\x00' and '\xff'.
 --
--- @'chars' = 'from' 'packedChars' '.>' 'itraversed'@
+-- @'chars' = 'from' 'packedChars' '.' 'itraversed'@
 --
 -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
 chars :: IndexedTraversal' Int64 ByteString Char
-chars = from packedChars .> traversed64
+chars = from packedChars . traversed64
 {-# INLINE chars #-}

@@ -63,7 +63,6 @@ withIndex l = l . Indexed
 (.>) :: (st -> r) -> (kab -> st) -> kab -> r
 (.>) = (.)
 {-# INLINE (.>) #-}
-{-# DEPRECATED (.>) "Use (.)" #-}
 
 -- (.>)  :: Indexable i k => (b -> c) -> Indexed i a b -> k a c
 -- bc .> Indexed iab = indexed (bc . iab)

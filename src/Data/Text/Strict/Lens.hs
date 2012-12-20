@@ -37,5 +37,5 @@ packed = iso pack unpack
 -- >>> anyOf text (=='o') $ "hello"^.packed
 -- True
 text :: IndexedTraversal' Int Text Char
-text = from packed .> itraversed
+text = from packed . itraversed
 {-# INLINE text #-}

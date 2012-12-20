@@ -36,7 +36,7 @@ class IsText t where
 
   -- | Traverse the individual characters in strict or lazy 'Text'.
   text :: IndexedTraversal' Int t Char
-  text = from packed .> itraversed
+  text = from packed . itraversed
   {-# INLINE text #-}
 
 instance IsText Strict.Text where
