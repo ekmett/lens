@@ -174,6 +174,7 @@ clonePrism = withPrism prism
 -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
 prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
 prism bt seta = unalgebraically $ \f -> either pure (fmap bt . f) . costrength . fmap seta
+{-# INLINE prism #-}
 
 
 -- | Build a 'Prism''.

@@ -79,6 +79,7 @@ import Data.Maybe
 -- @
 iso :: (s -> a) -> (b -> t) -> Iso s t a b
 iso sa bt = unalgebraically $ \f -> fmap bt . f . fmap sa
+{-# INLINE iso #-}
 
 ----------------------------------------------------------------------------
 -- Consuming Isomorphisms
