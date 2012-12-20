@@ -44,7 +44,7 @@ module Control.Lens.Prism
   ) where
 
 import Control.Applicative
-import Control.Arrow
+import Control.Arrow ((+++))
 import Control.Comonad
 import Control.Monad.Reader as Reader
 import Control.Monad.State as State
@@ -358,7 +358,7 @@ _left = prism Left $ either Right (Left . Right)
 -- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,
 -- so this can't just be 'Data.Traversable.traverse'.)
 _right :: Prism (Either c a) (Either c b) a b
-_right = prism Right $ left Left
+_right = prism Right $ either (Left . Left) Right
 {-# INLINE _right #-}
 
 -- | This prism provides a traversal for tweaking the target of the value of 'Just' in a 'Maybe'.
