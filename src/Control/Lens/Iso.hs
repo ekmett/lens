@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -49,6 +50,8 @@ module Control.Lens.Iso
   , SimpleIso
   -- * Implementation details
   , IsoChoice
+  , IsoF
+  , IsoG
   ) where
 
 import Control.Comonad
@@ -117,64 +120,69 @@ cloneIso = withIso iso
 type Iso s t a b = forall k g f. (Algebraic g k, Functor g, Functor f) => k a (f b) -> k s (f t)
 
 -- | When you see this as an argument to a function, it expects an 'Iso'.
-type AnIso s t a b = Cokleisli (IsoChoice ()) a (IsoChoice a b) -> Cokleisli (IsoChoice ()) s (IsoChoice a t)
+type AnIso s t a b =
+  Cokleisli (IsoChoice IsoG ()) a (IsoChoice IsoF a b) ->
+  Cokleisli (IsoChoice IsoG ()) s (IsoChoice IsoF a t)
+
+data IsoF
+data IsoG
 
 #ifdef SAFE
 
 -- | Used in the implementation of 'fromIso'.
-newtype IsoChoice a b = IsoChoice (Either a b)
+newtype IsoChoice f a b = IsoChoice (Either a b)
 
-instance Functor (IsoChoice a) where
+instance Functor (IsoChoice f a) where
   fmap f (IsoChoice e) = IsoChoice (fmap f e)
 
-chooseL :: a -> IsoChoice a b
+chooseL :: a -> IsoChoice f a b
 chooseL = IsoChoice . Left
 {-# INLINE chooseL #-}
 
-chooseR :: b -> IsoChoice a b
+chooseR :: b -> IsoChoice f a b
 chooseR = IsoChoice . Right
 {-# INLINE chooseR #-}
 
-fromL :: IsoChoice a b -> a
+fromL :: IsoChoice f a b -> a
 fromL (IsoChoice (Left a)) = a
 fromL _ = error "Control.Lens.Iso.fromL: Right"
 {-# INLINE fromL #-}
 
-fromR :: IsoChoice a b -> b
+fromR :: IsoChoice f a b -> b
 fromR (IsoChoice (Right b)) = b
 fromR _ = error "Control.Lens.Iso.fromR: Left"
 {-# INLINE fromR #-}
 
-rToL :: Either a b -> Either b c
+rToL :: IsoChoice f a b -> IsoChoice g b c
 rToL = chooseL . fromR
 {-# INLINE rToL #-}
 
 #else
 
 -- | Used in the implementation of 'fromIso'.
-newtype IsoChoice a b = IsoChoice Any
+newtype IsoChoice f a b = IsoChoice Any
 
-instance Functor (IsoChoice a) where
+instance Functor (IsoChoice f a) where
   fmap f (IsoChoice x) = IsoChoice (unsafeCoerce (f (unsafeCoerce x)))
   {-# INLINE fmap #-}
 
-chooseL :: a -> IsoChoice a b
+chooseL :: a -> IsoChoice f a b
 chooseL x = IsoChoice (unsafeCoerce x)
 {-# INLINE chooseL #-}
 
-chooseR :: b -> IsoChoice a b
+chooseR :: b -> IsoChoice f a b
 chooseR x = IsoChoice (unsafeCoerce x)
 {-# INLINE chooseR #-}
 
-fromL :: IsoChoice a b -> a
+fromL :: IsoChoice f a b -> a
 fromL (IsoChoice x) = unsafeCoerce x
 {-# INLINE fromL #-}
 
-fromR :: IsoChoice a b -> b
+fromR :: IsoChoice f a b -> b
 fromR (IsoChoice x) = unsafeCoerce x
 {-# INLINE fromR #-}
 
-rToL :: IsoChoice a b -> IsoChoice b c
+rToL :: IsoChoice f a b -> IsoChoice g b c
 rToL = unsafeCoerce
 {-# INLINE rToL #-}
 
