@@ -59,10 +59,11 @@ withIndex l = l . Indexed
 --
 -- Mnemonically, the @>@ points to the indexing we want to preserve.
 --
--- Note, even if you do nothing, this gives you the most recent index.
+-- Note, even if you use @(.)@, this gives you the most recent index.
 (.>) :: (st -> r) -> (kab -> st) -> kab -> r
 (.>) = (.)
 {-# INLINE (.>) #-}
+{-# DEPRECATED (.>) "Use (.)" #-}
 
 -- (.>)  :: Indexable i k => (b -> c) -> Indexed i a b -> k a c
 -- bc .> Indexed iab = indexed (bc . iab)
