@@ -558,7 +558,9 @@ newtype Indexed i a b = Indexed { unindexed :: i -> a -> b }
 
 instance Profunctor (Indexed i) where
   lmap ab (Indexed ibc) = Indexed (\i -> ibc i . ab)
+  {-# INLINE lmap #-}
   rmap bc (Indexed iab) = Indexed (\i -> bc . iab i)
+  {-# INLINE rmap #-}
 
 -- | Using an equality witness to avoid potential overlapping instances
 -- and aid dispatch.
