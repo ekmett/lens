@@ -71,8 +71,9 @@ import           Data.Monoid
 import           GHC.Exts (realWorld#)
 #endif
 
-{-# ANN module "HLint: ignore Eta reduce #-}
-{-# ANN module "HLint: ignore Use foldl #-}
+{-# ANN module "HLint: ignore Eta reduce" #-}
+{-# ANN module "HLint: ignore Use foldl" #-}
+{-# ANN module "Hlint: ignore Reduce duplication" #-}
 
 -- $setup
 -- >>> import Control.Lens
@@ -248,7 +249,7 @@ upon' field f s = let
 -- When in doubt, use 'upon' instead.
 onceUpon :: forall s a. (Data s, Typeable a) => (s -> a) -> IndexedTraversal' Int s a
 onceUpon field f s = case lookupon template field s of
-  Nothing -> pure s
+  Nothing               -> pure s
   Just (i, Context k a) -> k <$> indexed f i a
 {-# INLINE onceUpon #-}
 
@@ -268,11 +269,8 @@ onceUpon field f s = case lookupon template field s of
 --
 -- When in doubt, use 'upon'' instead.
 onceUpon' :: forall s a. (Data s, Typeable a) => (s -> a) -> IndexedLens' Int s a
-onceUpon' field f s = let
-    ~(i, Context k _) = case lookupon template field s of
-      Nothing -> error "upon': no index, not a member"
-      Just ip -> ip
-  in k <$> indexed f i (field s)
+onceUpon' field f s = k <$> indexed f i (field s) where
+  ~(i, Context k _) = fromMaybe (error "upon': no index, not a member") (lookupon template field s)
 {-# INLINE onceUpon' #-}
 
 #ifndef SAFE
