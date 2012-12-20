@@ -24,7 +24,6 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Combinators
   ( Compose(..)
-  , (##)
   ) where
 
 import Control.Applicative
