@@ -1225,12 +1225,12 @@ preuses l f = gets (getFirst # foldMapOf l (First # Just . f))
 
 -- | This allows you to traverse the elements of a pretty much any lens-like construction in the opposite order.
 --
--- This will preserve indexes on indexed types, and work 
--- (potentially indexed) 'Control.Lens.Traversal.Traversal' or 'Fold' in the opposite order.
+-- This will preserve indexes on indexed types and will give you the elements of a (finite) 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' in the opposite order.
 --
--- Note: 'backwards' should have no impact on a 'Getter', 'Control.Lens.Setter.Setter', 'Lens' or 'Control.Lens.Iso.Iso'.
+-- This has no practical impact on a 'Getter', 'Control.Lens.Setter.Setter', 'Lens' or 'Control.Lens.Iso.Iso'.
 --
--- To change the direction of an 'Control.Lens.Iso.Iso', use 'Control.Lens.Isomorphic.from'.
-backwards :: (Profunctor p, Profunctor q) => Overloaded p q (Backwards f) s t a b -> Overloaded p q f s t a b
+-- /NB:/ To write back through an 'Control.Lens.Iso.Iso', you want to use 'Control.Lens.Isomorphic.from'.
+-- Similarly, to write back through an 'Control.Lens.Prism.Prism', you want to use 'Control.Lens.Prism.remit'.
+backwards :: (Profunctor p, Profunctor q) => Overloading p q (Backwards f) s t a b -> Overloading p q f s t a b
 backwards l f = rmap forwards (l (rmap Backwards f))
 {-# INLINE backwards #-}
