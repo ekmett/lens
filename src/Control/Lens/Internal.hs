@@ -189,8 +189,8 @@ instance Gettable f => Gettable (Indexing f) where
   coerce (Indexing m) = Indexing $ \i -> case m i of
     (ff, j) -> (coerce ff, j)
 
--- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
--- by 'Control.Lens.Indexed.indexed'
+-- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int64'@ with a 'Functor', used
+-- by 'Control.Lens.Indexed.indexed64'
 newtype Indexing64 f a = Indexing64 { runIndexing64 :: Int64 -> (f a, Int64) }
 
 instance Functor f => Functor (Indexing64 f) where
