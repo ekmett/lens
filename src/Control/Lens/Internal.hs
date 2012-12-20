@@ -553,7 +553,7 @@ fromPrismRight _ = error "fromPrismRight: invalid Prism passed as APrism"
 ------------------------------------------------------------------------------
 
 -- | A function with access to a index. This constructor may be useful when you need to store
--- a 'Indexable' in a container to avoid @ImpredicativeTypes@.
+-- an 'Indexable' in a container to avoid @ImpredicativeTypes@.
 newtype Indexed i a b = Indexed { unindexed :: i -> a -> b }
 
 instance Profunctor (Indexed i) where
