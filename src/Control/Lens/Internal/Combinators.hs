@@ -35,11 +35,6 @@ import Data.Monoid
 import Unsafe.Coerce
 #endif
 
--- Temporary strict composition operator -- should be replaced with a Compose method.
-infixr 8 ##
-(##) :: (b -> c) -> (a -> b) -> a -> c
-f ## g = f `seq` g `seq` \x -> f (g x)
-
 infixr 8 #
 
 class Compose a b where

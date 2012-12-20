@@ -177,8 +177,9 @@ class Algebraic g k | k -> g where
   {-# INLINE mapAlgebraic #-}
 
 instance Algebraic Identity (->) where
-  algebraic f = f . Identity -- ##
-  runAlgebraic f = f . runIdentity -- ##
+  -- This instance should use strict composition.
+  algebraic f = f . Identity
+  runAlgebraic f = f . runIdentity
 
 instance Algebraic g (Cokleisli g) where
   algebraic = Cokleisli
