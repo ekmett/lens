@@ -1110,6 +1110,7 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 -- @
 has :: Getting Any s t a b -> s -> Bool
 has l = getAny # views l (\_ -> Any True)
+{-# INLINE has #-}
 
 -- | Check to see if this 'Fold' or 'Traversal' has no matches.
 --
@@ -1120,6 +1121,7 @@ has l = getAny # views l (\_ -> Any True)
 -- False
 hasn't :: Getting All s t a b -> s -> Bool
 hasn't l = getAll # views l (\_ -> All False)
+{-# INLINE hasn't #-}
 
 -- | Useful for storing folds in containers.
 newtype ReifiedFold s a = ReifyFold { reflectFold :: Fold s a }
