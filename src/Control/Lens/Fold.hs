@@ -1231,6 +1231,6 @@ preuses l f = gets (getFirst # foldMapOf l (First # Just . f))
 -- Note: 'backwards' should have no impact on a 'Getter', 'Control.Lens.Setter.Setter', 'Lens' or 'Control.Lens.Iso.Iso'.
 --
 -- To change the direction of an 'Control.Lens.Iso.Iso', use 'Control.Lens.Isomorphic.from'.
-backwards :: (Profunctor k, Profunctor k') => (k a (Backwards f b) -> k' s (Backwards f t)) -> k a (f b) -> k' s (f t)
+backwards :: (Profunctor p, Profunctor q) => Overloaded p q (Backwards f) s t a b -> Overloaded p q f s t a b
 backwards l f = rmap forwards (l (rmap Backwards f))
 {-# INLINE backwards #-}
