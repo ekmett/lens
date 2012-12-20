@@ -530,7 +530,7 @@ instance Functor (PrismChoice a) where
 instance Applicative (PrismChoice a) where
   pure = PrismRight
   {-# INLINE pure #-}
-  (<*>) = error "(<*>)ed PrismChoice"
+  (<*>) = error "(<*>): invalid Prism passed as APrism"
 
 instance Costrong (PrismChoice a) where
   costrength (PrismLeft a) = Right (PrismLeft a)
