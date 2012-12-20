@@ -168,7 +168,7 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
 --
 -- There are two relevant instances: @(->)@ (for using an 'Iso'/'Prism' as a
 -- regular lens) and @'Cokleisli' g@ (for using it as a symmetric lens).
-class Algebraic g k | k -> g where
+class (Profunctor k, Functor g) => Algebraic g k | k -> g where
   algebraically :: (k a b -> k s t) -> (g a -> b) -> g s -> t
   unalgebraically :: ((g a -> b) -> g s -> t) -> k a b -> k s t
 
@@ -180,7 +180,7 @@ instance Algebraic Identity (->) where
   unalgebraically l f = l (f . runIdentity) . Identity
   {-# INLINE unalgebraically #-}
 
-instance Algebraic g (Cokleisli g) where
+instance Functor g => Algebraic g (Cokleisli g) where
   algebraically f = runCokleisli . f . Cokleisli
   {-# INLINE algebraically #-}
 
