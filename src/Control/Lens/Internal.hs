@@ -554,7 +554,9 @@ fromPrismRight _ = error "fromPrismRight: invalid Prism passed as APrism"
 
 -- | A function with access to a index. This constructor may be useful when you need to store
 -- an 'Indexable' in a container to avoid @ImpredicativeTypes@.
-newtype Indexed i a b = Indexed { unindexed :: i -> a -> b }
+--
+-- @index :: Indexed i a b -> i -> a -> b@
+newtype Indexed i a b = Indexed (i -> a -> b)
 
 instance Profunctor (Indexed i) where
   lmap ab (Indexed ibc) = Indexed (\i -> ibc i . ab)
@@ -565,5 +567,5 @@ instance Profunctor (Indexed i) where
 -- | Using an equality witness to avoid potential overlapping instances
 -- and aid dispatch.
 instance i ~ j => Indexable i (Indexed j) where
-  indexed = unindexed
+  indexed (Indexed iab) = iab
   {-# INLINE indexed #-}
