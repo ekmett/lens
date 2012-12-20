@@ -45,21 +45,21 @@ class NewtypeComposition a b where
 #ifndef SAFE
 #define COMPOSE(a, b, f, g) \
   instance NewtypeComposition (a) (b) where { \
-    _ # h = unsafeCoerce h; \
+    (#) _ = unsafeCoerce; \
     {-# INLINE (#) #-}; \
   }; \
   instance NewtypeComposition (b) (a) where { \
-    _ # h = unsafeCoerce h; \
+    (#) _ = unsafeCoerce; \
     {-# INLINE (#) #-}; \
   }
 #else
 #define COMPOSE(a, b, f, g) \
   instance NewtypeComposition (a) (b) where { \
-    _ # h = h `seq` \x -> (g) (h x); \
+    (#) _ = \h -> h `seq` \x -> (g) (h x); \
     {-# INLINE (#) #-}; \
   }; \
   instance NewtypeComposition (b) (a) where { \
-    _ # h = h `seq` \x -> (f) (h x); \
+    (#) _ = \h -> h `seq` \x -> (f) (h x); \
     {-# INLINE (#) #-}; \
   }
 #endif
