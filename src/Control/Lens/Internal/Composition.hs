@@ -28,6 +28,7 @@ module Control.Lens.Internal.Composition
 
 import Control.Applicative
 import Control.Applicative.Backwards
+import Control.Comonad
 import Data.Functor.Compose
 import Control.Lens.Internal
 import Data.Monoid
@@ -92,3 +93,4 @@ COMPOSE(FocusingErr e k s a, k (Err e s) a, FocusingErr, unfocusingErr)
 COMPOSE(Mutator a, a, Mutator, runMutator)
 COMPOSE(Backwards f a, f a, Backwards, forwards)
 COMPOSE(Compose f g a, f (g a), Compose, getCompose)
+COMPOSE(Cokleisli f a b, f a -> b, Cokleisli, runCokleisli)
