@@ -67,6 +67,7 @@ import           Data.HashMap.Strict (HashMap, (!))
 import qualified Data.HashSet as S
 import           Data.HashSet (HashSet)
 import           Data.IORef
+import           Data.Maybe
 import           Data.Monoid
 import           GHC.Exts (realWorld#)
 #endif
