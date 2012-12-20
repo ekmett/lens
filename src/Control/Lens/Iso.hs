@@ -134,6 +134,7 @@ newtype IsoChoice f a b = IsoChoice (Either a b)
 
 instance Functor (IsoChoice f a) where
   fmap f (IsoChoice e) = IsoChoice (fmap f e)
+  {-# INLINE fmap #-}
 
 chooseL :: a -> IsoChoice f a b
 chooseL = IsoChoice . Left
