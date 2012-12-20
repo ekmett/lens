@@ -39,29 +39,29 @@ import Unsafe.Coerce
 infixr 8 #
 
 class NewtypeComposition a b where
-  (#) :: (a -> b) -> (c -> a) -> c -> b
+  ( # ) :: (a -> b) -> (c -> a) -> c -> b
   f # g = f `seq` g `seq` \x -> f (g x)
-  {-# INLINE (#) #-}
+  {-# INLINE ( # ) #-}
 
 #ifndef SAFE
 #define COMPOSE(a, b, f, g) \
   instance NewtypeComposition (a) (b) where { \
-    (#) _ = unsafeCoerce; \
-    {-# INLINE (#) #-}; \
+    ( # ) _ = unsafeCoerce; \
+    {-# INLINE ( # ) #-}; \
   }; \
   instance NewtypeComposition (b) (a) where { \
-    (#) _ = unsafeCoerce; \
-    {-# INLINE (#) #-}; \
+    ( # ) _ = unsafeCoerce; \
+    {-# INLINE ( # ) #-}; \
   }
 #else
 #define COMPOSE(a, b, f, g) \
   instance NewtypeComposition (a) (b) where { \
-    (#) _ = \h -> h `seq` \x -> (g) (h x); \
-    {-# INLINE (#) #-}; \
+    ( # ) _ = \h -> h `seq` \x -> (g) (h x); \
+    {-# INLINE ( # ) #-}; \
   }; \
   instance NewtypeComposition (b) (a) where { \
-    (#) _ = \h -> h `seq` \x -> (f) (h x); \
-    {-# INLINE (#) #-}; \
+    ( # ) _ = \h -> h `seq` \x -> (f) (h x); \
+    {-# INLINE ( # ) #-}; \
   }
 #endif
 

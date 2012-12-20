@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ExistentialQuantification #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -38,6 +39,8 @@ import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.Maybe
 import Prelude hiding ((.),id)
+
+{-# ANN module "HLint: ignore Use foldl" #-}
 
 -- $setup
 -- >>> import Control.Lens
@@ -82,7 +85,7 @@ infixl 9 :>
 -- unpacked and stored in 'Coil' form. Only one value of type @_ ':>' _@ exists
 -- at any particular time for any particular 'Zipper'.
 data h :> a = Zipper (Coil h a) -- The 'Coil' storing the previous levels of the 'Zipper'.
-      {-# UNPACK #-} !Int       -- Number of items to the left.
+                     !Int       -- Number of items to the left.
                      [a]        -- Items to the left (stored reversed).
                      a          -- Focused item.
                      [a]        -- Items to the right.
@@ -99,17 +102,23 @@ type instance Zipped (h :> s) a = Zipped h s
 -- of a 'Coil' is known at compile time.
 --
 -- This is part of the internal structure of a zipper. You shouldn't need to manipulate this directly.
+data Coil t a
+  = (t ~ Top)      => Coil
+  | forall h s. (t ~ (h :> s)) => Snoc (Coil h s) (LensLike' (Bazaar a a) s a) !Int [s] ([a] -> s) [s]
+
+{-
 data Coil :: * -> * -> * where
   Coil :: Coil Top a
   Snoc :: Coil h s                        -- Previous 'Coil'.
        -> LensLike' (Bazaar a a) s a      -- The 'Traversal' used to descend into this level (used to build a 'Tape').
        -- The Zipper above us, unpacked:
-       -> {-# UNPACK #-} !Int             -- Number of items to the left.
+       -> !Int                            -- Number of items to the left.
        -> [s]                             -- Previous level's items to the left (stored reverse).
        -> ([a] -> s)                      -- Function to rebuild the previous level's focused item from the entire current level.
                                           --   (Since the current level always has a focus, the list must be nonempty.)
        -> [s]                             -- Previous level's items to the right.
        -> Coil (h :> s) a
+-}
 
 -- | This 'Lens' views the current target of the 'Zipper'.
 --
@@ -420,8 +429,7 @@ focusedContext z = Context (\a -> z & focus .~ a & rezip) (z^.focus)
 -----------------------------------------------------------------------------
 
 -- | A 'Tape' is a recorded path through the 'Traversal' chain of a 'Zipper'.
-data Tape k where
-  Tape :: Track h a -> {-# UNPACK #-} !Int -> Tape (h :> a)
+data Tape k = forall h a. k ~ (h :> a) => Tape (Track h a) !Int
 
 -- | Save the current path as as a 'Tape' we can play back later.
 saveTape :: (h :> a) -> Tape (h :> a)
@@ -464,9 +472,9 @@ peel Coil               = Track
 peel (Snoc h l n _ _ _) = Fork (peel h) n l
 
 -- | The 'Track' forms the bulk of a 'Tape'.
-data Track :: * -> * -> * where
-  Track :: Track Top a
-  Fork  :: Track h s -> {-# UNPACK #-} !Int -> LensLike' (Bazaar a a) s a -> Track (h :> s) a
+data Track t a
+  = t ~ Top                  => Track
+  | forall h s. t ~ (h :> s) => Fork (Track h s) !Int (LensLike' (Bazaar a a) s a)
 
 -- | Restore ourselves to a previously recorded position precisely.
 --

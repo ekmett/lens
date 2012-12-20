@@ -59,6 +59,8 @@ import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Maybe
 
+{-# ANN module "HLint: ignore Use on" #-}
+
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Data.Map as Map
@@ -119,7 +121,7 @@ type AnIso s t a b = Cokleisli (IsoChoice ()) a (IsoChoice a b) -> Cokleisli (Is
 -- @'from' ≡ 'withIso' ('flip' 'iso')@
 withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
 withIso k ai = k
-  (\s -> fromIsoLeft $ algebraic ai (IsoLeft . fromIsoRight) (IsoRight s))
+  (fromIsoLeft . algebraic ai (IsoLeft . fromIsoRight) . IsoRight)
   (\b -> fromIsoRight $ algebraic ai (\_ -> IsoRight b) (IsoLeft ()))
 {-# INLINE withIso #-}
 

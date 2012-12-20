@@ -55,6 +55,8 @@ import Control.Lens.Internal
 import Control.Lens.Type
 import Data.Proxy
 
+{-# ANN module "HLint: ignore Collapse lambdas" #-}
+
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Numeric.Natural
@@ -176,7 +178,6 @@ clonePrism = withPrism prism
 prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
 prism bt seta = unalgebraic $ \f -> either pure (fmap bt . f) . costrength . fmap seta
 {-# INLINE prism #-}
-
 
 -- | Build a 'Prism''.
 prism' :: (a -> s) -> (s -> Maybe a) -> Prism' s a

@@ -45,6 +45,7 @@ module Data.Data.Lens
 
 import           Control.Applicative
 import           Control.Exception as E
+import           Control.Lens.Combinators
 import           Control.Lens.Getter
 import           Control.Lens.Indexed
 import           Control.Lens.IndexedLens
@@ -69,6 +70,9 @@ import           Data.IORef
 import           Data.Monoid
 import           GHC.Exts (realWorld#)
 #endif
+
+{-# ANN module "HLint: ignore Eta reduce #-}
+{-# ANN module "HLint: ignore Use foldl #-}
 
 -- $setup
 -- >>> import Control.Lens
@@ -332,11 +336,13 @@ fixEq f = go where
        where x' = f x
 {-# INLINE fixEq #-}
 
+#ifndef HLINT
 -- | inlineable 'unsafePerformIO'
 inlinePerformIO :: IO a -> a
 inlinePerformIO (IO m) = case m realWorld# of
   (# _, r #) -> r
 {-# INLINE inlinePerformIO #-}
+#endif
 
 -------------------------------------------------------------------------------
 -- Cache
@@ -449,7 +455,7 @@ follower :: TypeRep -> TypeRep -> HitMap -> Follower
 follower a b m
   | S.null hit               = const False
   | S.null miss              = const True
-  | S.size hit < S.size miss = \k -> S.member k hit
+  | S.size hit < S.size miss = S.member ?? hit
   | otherwise = \k -> not (S.member k miss)
   where (hit, miss) = part (\x -> S.member b (m ! x)) (S.insert a (m ! a))
 
