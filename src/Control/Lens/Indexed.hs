@@ -59,7 +59,7 @@ withIndex l = l . Indexed
 --
 -- Mnemonically, the @>@ points to the indexing we want to preserve.
 --
--- Note, even if you use @(.)@, this gives you the most recent index.
+-- This is the same as @(.)@: @f.g@ gives you @g@'s index.
 (.>) :: (st -> r) -> (kab -> st) -> kab -> r
 (.>) = (.)
 {-# INLINE (.>) #-}
