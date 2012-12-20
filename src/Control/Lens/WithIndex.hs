@@ -71,7 +71,7 @@ import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Lens.Classes
 import Control.Lens.Fold
 import Control.Lens.Internal
-import Control.Lens.Internal.Combinators
+import Control.Lens.Internal.Composition
 import Control.Lens.Indexed
 import Control.Lens.IndexedFold
 import Control.Lens.IndexedSetter

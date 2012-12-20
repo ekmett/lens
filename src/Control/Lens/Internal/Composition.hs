@@ -6,7 +6,7 @@
 #endif
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Control.Lens.Internal.Combinators
+-- Module      :  Control.Lens.Internal.Compositon
 -- Copyright   :  (C) 2012 Edward Kmett, Shachaf Ben-Kiki, Elliott Hird
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
@@ -22,7 +22,7 @@
 -- Many micro-benchmarks are improved up to 50%, and larger benchmarks can
 -- win asymptotically.
 ----------------------------------------------------------------------------
-module Control.Lens.Internal.Combinators
+module Control.Lens.Internal.Composition
   ( NewtypeComposition(..)
   ) where
 

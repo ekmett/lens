@@ -87,7 +87,7 @@ import Control.Applicative.Backwards
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Internal
-import Control.Lens.Internal.Combinators
+import Control.Lens.Internal.Composition
 import Control.Lens.Type
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy

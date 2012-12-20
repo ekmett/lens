@@ -403,7 +403,6 @@ cloneLens f afb s = case f (Context id) s of
 {-# INLINE cloneLens #-}
 
 -------------------------------------------------------------------------------
-<<<<<<< HEAD
 -- Overloading function application
 -------------------------------------------------------------------------------
 
@@ -414,8 +413,6 @@ type Overloading p q f s t a b = p a (f b) -> q s (f t)
 type Overloading' p q f s a = Overloading p q f s s a a
 
 -------------------------------------------------------------------------------
-=======
->>>>>>> 518613bb365307d2518f7b2472ccf0aa729d65cd
 -- Setting and Remembering
 -------------------------------------------------------------------------------
 

@@ -94,7 +94,7 @@ import Control.Applicative.Backwards
 import Control.Lens.Classes
 import Control.Lens.Getter
 import Control.Lens.Internal
-import Control.Lens.Internal.Combinators
+import Control.Lens.Internal.Composition
 import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader

@@ -59,7 +59,7 @@ import Control.Lens.Classes
 import Control.Lens.Indexed
 import Control.Lens.IndexedGetter
 import Control.Lens.Internal
-import Control.Lens.Internal.Combinators
+import Control.Lens.Internal.Composition
 import Control.Lens.Type
 import Control.Monad
 import Data.Monoid

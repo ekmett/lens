@@ -37,7 +37,7 @@ module Control.Lens.IndexedSetter
 import Control.Lens.Classes
 import Control.Lens.Indexed
 import Control.Lens.Internal
-import Control.Lens.Internal.Combinators
+import Control.Lens.Internal.Composition
 import Control.Monad.State.Class as State
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}

@@ -23,7 +23,7 @@ module Control.Lens.IndexedGetter
 
 import Control.Lens.Indexed
 import Control.Lens.Internal
-import Control.Lens.Internal.Combinators
+import Control.Lens.Internal.Composition
 import Control.Lens.Classes
 import Control.Monad.Reader
 import Control.Monad.State

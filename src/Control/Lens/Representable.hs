@@ -96,7 +96,7 @@ import Control.Lens.IndexedFold
 import Control.Lens.IndexedSetter
 import Control.Lens.IndexedTraversal
 import Control.Lens.Internal
-import Control.Lens.Internal.Combinators
+import Control.Lens.Internal.Composition
 import Control.Lens.Type
 import Control.Lens.Wrapped
 import Data.Foldable         as Foldable
