@@ -24,6 +24,7 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Combinators
   ( Compose(..)
+  , (##)
   ) where
 
 import Control.Applicative
@@ -33,6 +34,11 @@ import Data.Monoid
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
+
+-- Temporary strict composition operator -- should be replaced with a Compose method.
+infixr 8 ##
+(##) :: (b -> c) -> (a -> b) -> a -> c
+f ## g = f `seq` g `seq` \x -> f (g x)
 
 infixr 8 #
 

@@ -1,7 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -51,10 +50,9 @@ module Control.Lens.Internal
   , Indexing(..)
   , Indexing64(..)
   -- * Overloadings
-  , Prismoid(..)
-  , Isoid(..)
+  , IsoChoice(..), fromIsoLeft, fromIsoRight
+  , PrismChoice(..), fromPrismLeft, fromPrismRight
   , Indexed(..)
-  , CoA, CoB
   ) where
 
 import Control.Applicative
@@ -502,73 +500,53 @@ sellT i = BazaarT (\k -> k i)
 {-# INLINE sellT #-}
 
 ------------------------------------------------------------------------------
--- Prism Internals
+-- Isomorphism and Prism Internals
 ------------------------------------------------------------------------------
 
-type family ArgOf (f_b :: *) :: *
-type instance ArgOf (f b) = b
+data IsoChoice a b = IsoLeft a | IsoRight b
 
--- | Extract @a@ from the type @a -> f b@
-type family CoA x :: *
+instance Functor (IsoChoice a) where
+  fmap _ (IsoLeft a) = IsoLeft a
+  fmap f (IsoRight b) = IsoRight (f b)
+  {-# INLINE fmap #-}
 
--- | Extract @b@ from the type @a -> f b@
-type family CoB x :: *
-type instance CoA (a -> f_b) = a
-type instance CoB (a -> f_b) = ArgOf f_b
+fromIsoLeft :: IsoChoice a b -> a
+fromIsoLeft (IsoLeft a) = a
+fromIsoLeft _ = error "fromIsoLeft: invalid Iso passed as AnIso"
+{-# INLINE fromIsoLeft #-}
 
--- | This data type is used to capture all of the information provided by the
--- 'Prismatic' class, so you can turn a 'Prism' around into a 'Getter' or
--- otherwise muck around with its internals.
---
--- If you see a function that expects a 'Prismoid' or 'APrism', it is probably
--- just expecting a 'Prism'.
-data Prismoid ab st where
-  Prismoid :: Prismoid x x
-  Prism :: (CoB x -> CoB y) -> (CoA y -> Either (CoB y) (CoA x)) -> Prismoid x y
+fromIsoRight :: IsoChoice a b -> b
+fromIsoRight (IsoRight b) = b
+fromIsoRight _ = error "fromIsoRight: invalid Iso passed as AnIso"
+{-# INLINE fromIsoRight #-}
 
-instance Category Prismoid where
-  id = Prismoid
-  {-# INLINE id #-}
+data PrismChoice a b = PrismLeft a | PrismRight b
 
-  x . Prismoid = x
-  Prismoid . x = x
-  Prism ty xeys . Prism bt seta = Prism (ty.bt) $ \x ->
-    case xeys x of
-      Left y  -> Left y
-      Right s -> case seta s of
-        Left t  -> Left (ty t)
-        Right a -> Right a
-  {-# INLINE (.) #-}
+instance Functor (PrismChoice a) where
+  fmap _ (PrismLeft a) = PrismLeft a
+  fmap f (PrismRight b) = PrismRight (f b)
+  {-# INLINE fmap #-}
 
-instance Isomorphic Prismoid where
-  iso sa bt = Prism bt (Right . sa)
-  {-# INLINE iso #-}
+instance Applicative (PrismChoice a) where
+  pure = PrismRight
+  {-# INLINE pure #-}
+  (<*>) = error "(<*>)ed PrismChoice"
 
-instance Prismatic Prismoid where
-  prism    = Prism
-  {-# INLINE prism #-}
+instance Costrong (PrismChoice a) where
+  costrength (PrismLeft a) = Right (PrismLeft a)
+  costrength (PrismRight (Left b)) = Left b
+  costrength (PrismRight (Right c)) = Right (PrismRight c)
+  {-# INLINE costrength #-}
 
-------------------------------------------------------------------------------
--- Isomorphism Internals
-------------------------------------------------------------------------------
+fromPrismLeft :: PrismChoice a b -> a
+fromPrismLeft (PrismLeft a) = a
+fromPrismLeft _ = error "fromPrismLeft: invalid Prism passed as APrism"
+{-# INLINE fromPrismLeft #-}
 
--- | Reify all of the information given to you by being 'Isomorphic'.
-data Isoid ab st where
-  Isoid :: Isoid ab ab
-  Iso   :: (CoA y -> CoA x) -> (CoB x -> CoB y) -> Isoid x y
-
-instance Category Isoid where
-  id = Isoid
-  {-# INLINE id #-}
-
-  Isoid . x = x
-  x . Isoid = x
-  Iso xs ty . Iso sa bt = Iso (sa.xs) (ty.bt)
-  {-# INLINE (.) #-}
-
-instance Isomorphic Isoid where
-  iso   = Iso
-  {-# INLINE iso #-}
+fromPrismRight :: PrismChoice a b -> b
+fromPrismRight (PrismRight b) = b
+fromPrismRight _ = error "fromPrismRight: invalid Prism passed as APrism"
+{-# INLINE fromPrismRight #-}
 
 ------------------------------------------------------------------------------
 -- Indexed Internals
