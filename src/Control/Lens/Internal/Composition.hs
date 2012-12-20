@@ -55,11 +55,11 @@ class NewtypeComposition a b where
 #else
 #define COMPOSE(a, b, f, g) \
   instance NewtypeComposition (a) (b) where { \
-    _ # h = h `seq` \x -> (f) (h x); \
-    {-# INLINE (#) #-}; \
-  } \
-  instance NewtypeComposition (b) (a) where { \
     _ # h = h `seq` \x -> (g) (h x); \
+    {-# INLINE (#) #-}; \
+  }; \
+  instance NewtypeComposition (b) (a) where { \
+    _ # h = h `seq` \x -> (f) (h x); \
     {-# INLINE (#) #-}; \
   }
 #endif
