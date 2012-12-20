@@ -153,11 +153,11 @@ instance Settable Identity where
 
 -- | 'Control.Lens.Fold.backwards'
 instance Settable f => Settable (Backwards f) where
-  untainted = untainted . forwards
+  untainted = untaintedDot forwards
   {-# INLINE untainted #-}
 
 instance (Settable f, Settable g) => Settable (Compose f g) where
-  untainted = untainted . untainted . getCompose
+  untainted = untaintedDot (untaintedDot getCompose)
   {-# INLINE untainted #-}
 
 -----------------------------------------------------------------------------
