@@ -47,17 +47,22 @@ module Control.Lens.Iso
   , Strict(..)
   -- * Deprecated
   , SimpleIso
+  -- * Implementation details
+  , IsoChoice
   ) where
 
 import Control.Comonad
 import Control.Lens.Classes
-import Control.Lens.Internal
 import Control.Lens.Type
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Maybe
+#ifndef SAFE
+import Unsafe.Coerce (unsafeCoerce)
+import GHC.Exts (Any)
+#endif
 
 -- $setup
 -- >>> import Control.Lens
@@ -112,6 +117,67 @@ type Iso s t a b = forall k g f. (Algebraic g k, Functor g, Functor f) => k a (f
 -- | When you see this as an argument to a function, it expects an 'Iso'.
 type AnIso s t a b = Cokleisli (IsoChoice ()) a (IsoChoice a b) -> Cokleisli (IsoChoice ()) s (IsoChoice a t)
 
+#ifdef SAFE
+
+-- | Used in the implementation of 'fromIso'.
+newtype IsoChoice a b = IsoChoice (Either a b)
+
+instance Functor (IsoChoice a) where
+  fmap f (IsoChoice e) = IsoChoice (fmap f e)
+
+chooseL :: a -> IsoChoice a b
+chooseL = IsoChoice . Left
+{-# INLINE chooseL #-}
+
+chooseR :: b -> IsoChoice a b
+chooseR = IsoChoice . Right
+{-# INLINE chooseR #-}
+
+fromL :: IsoChoice a b -> a
+fromL (IsoChoice (Left a)) = a
+fromL _ = error "Control.Lens.Iso.fromL: Right"
+{-# INLINE fromL #-}
+
+fromR :: IsoChoice a b -> b
+fromR (IsoChoice (Right b)) = b
+fromR _ = error "Control.Lens.Iso.fromR: Left"
+{-# INLINE fromR #-}
+
+rToL :: Either a b -> Either b c
+rToL = chooseL . fromR
+{-# INLINE rToL #-}
+
+#else
+
+-- | Used in the implementation of 'fromIso'.
+newtype IsoChoice a b = IsoChoice Any
+
+instance Functor (IsoChoice a) where
+  fmap f (IsoChoice x) = IsoChoice (unsafeCoerce (f (unsafeCoerce x)))
+  {-# INLINE fmap #-}
+
+chooseL :: a -> IsoChoice a b
+chooseL x = IsoChoice (unsafeCoerce x)
+{-# INLINE chooseL #-}
+
+chooseR :: b -> IsoChoice a b
+chooseR x = IsoChoice (unsafeCoerce x)
+{-# INLINE chooseR #-}
+
+fromL :: IsoChoice a b -> a
+fromL (IsoChoice x) = unsafeCoerce x
+{-# INLINE fromL #-}
+
+fromR :: IsoChoice a b -> b
+fromR (IsoChoice x) = unsafeCoerce x
+{-# INLINE fromR #-}
+
+rToL :: IsoChoice a b -> IsoChoice b c
+rToL = unsafeCoerce
+{-# INLINE rToL #-}
+
+#endif
+
 -- | Safely decompose 'AnIso'
 --
 -- @'cloneIso' ≡ 'withIso' 'iso'@
@@ -119,14 +185,13 @@ type AnIso s t a b = Cokleisli (IsoChoice ()) a (IsoChoice a b) -> Cokleisli (Is
 -- @'from' ≡ 'withIso' ('flip' 'iso')@
 withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
 withIso k ai = k
-  (\s -> fromIsoLeft $ algebraic ai (IsoLeft . fromIsoRight) (IsoRight s))
-  (\b -> fromIsoRight $ algebraic ai (\_ -> IsoRight b) (IsoLeft ()))
+  (\s -> fromL $ algebraic ai rToL (chooseR s))
+  (\b -> fromR $ algebraic ai (\_ -> chooseR b) (chooseL ()))
 {-# INLINE withIso #-}
 
 -- |
 -- @type 'Iso'' = 'Control.Lens.Type.Simple' 'Iso'@
 type Iso' s a = Iso s s a a
-
 
 -- | Based on 'Control.Lens.Wrapped.ala' from Conor McBride's work on Epigram.
 --
