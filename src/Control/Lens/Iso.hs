@@ -53,7 +53,6 @@ module Control.Lens.Iso
   ) where
 
 import Control.Comonad
-import Control.Lens.Classes
 import Control.Lens.Internal
 import Control.Lens.Type
 import Data.ByteString as StrictB

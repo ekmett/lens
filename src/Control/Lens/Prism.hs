@@ -47,9 +47,8 @@ module Control.Lens.Prism
 
 import Control.Applicative
 import Control.Arrow ((+++))
-import Control.Comonad
 import Control.Monad.Reader as Reader
-import Control.Monad.State as State
+import Control.Monad.State as State 
 import Control.Lens.Classes
 import Control.Lens.Combinators
 import Control.Lens.Getter
@@ -156,8 +155,8 @@ type APrism s t a b = Market a a (Identity b) -> Market a s (Identity t)
 
 -- | Safely decompose 'APrism'
 withPrism :: ((b -> t) -> (s -> Either t a) -> r) -> APrism s t a b -> r
-withPrism k ap = k bt seta where
-  go = ap . Market Right . Identity
+withPrism k p = k bt seta where
+  go = p . Market Right . Identity
   {-# INLINE go #-}
   bt = runIdentity . extort . go
   seta = either (Left . runIdentity) Right . market (go (error "withPrism: invalid Prism passed as APrism"))
