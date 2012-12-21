@@ -47,7 +47,7 @@ module Control.Lens.Prism
 import Control.Applicative
 import Control.Arrow ((+++))
 import Control.Monad.Reader as Reader
-import Control.Monad.State as State 
+import Control.Monad.State as State
 import Control.Lens.Classes
 import Control.Lens.Combinators
 import Control.Lens.Getter
