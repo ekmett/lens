@@ -198,7 +198,7 @@ rToL = unsafeCoerce
 withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
 withIso k ai = k
   (fromL . algebraic ai rToL . chooseR)
-  (\b -> fromR $ algebraic ai (\_ -> chooseR b) (chooseL ()))
+  (\b -> fromR $ algebraic ai (\_ -> chooseR b) (chooseL (error "withIso: invalid Iso passed as AnIso")))
 {-# INLINE withIso #-}
 
 -- |
