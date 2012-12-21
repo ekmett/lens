@@ -9,7 +9,7 @@
 * Added `wrapped'` and `unwrapped'` for scenarios where you need the help with type inference.
 * Added `prism'` to construct `SimplePrism`s.
 * Added `has` and `hasn't`.
-* Replaced each of the different `SimpleFoo` type aliases `Foo'` throughout.
+* Replaced each of the different `SimpleFoo` type aliases with `Foo'` throughout.
 * Made sweeping changes to the way indexed lenses, etc. work internally and where you place `indexed` in the resulting code.
 
 3.7.1.2 [maintenance release]
