@@ -51,13 +51,10 @@ module Control.Lens.Iso
   , SimpleIso
   ) where
 
-import Control.Comonad
 import Control.Lens.Internal
-import Control.Lens.Internal.Composition
 import Control.Lens.Type
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
-import Data.Functor.Identity
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Maybe
