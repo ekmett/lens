@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -62,6 +61,8 @@ import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Maybe
 import Data.Profunctor
+
+{-# ANN module "HLint: ignore Use on" #-}
 
 -- $setup
 -- >>> import Control.Lens
