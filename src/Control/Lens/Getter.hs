@@ -48,8 +48,8 @@ module Control.Lens.Getter
   -- * Building Getters
   , to
   -- * Combinators for Getters and Folds
-  , (^.), (^$)
-  , (&), (^&)
+  , (^.)
+  , (&)
   , view
   , views
   , use
@@ -79,9 +79,8 @@ import Control.Monad.State        as State
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
-infixl 8 ^., ^&
+infixl 8 ^.
 infixl 1 &
-infixr 0 ^$
 
 -------------------------------------------------------------------------------
 -- Pipelining
@@ -113,19 +112,6 @@ infixr 0 ^$
 (&) :: a -> (a -> b) -> b
 a & f = f a
 {-# INLINE (&) #-}
-
--- | A version of ('&') with much tighter precedence that can be interleaved with ('^.')
---
--- >>> a ^& f
--- f a
---
--- >>> "hello" ^& length
--- 5
---
--- >>> ("hello","world")^._1^&reverse^?!_head
--- 'o'
-(^&) :: a -> (a -> b) -> b
-a ^& f = f a
 
 -------------------------------------------------------------------------------
 -- Getters
@@ -272,32 +258,6 @@ view l = Reader.asks (runAccessor #. l Accessor)
 views :: MonadReader s m => Getting r s t a b -> (a -> r) -> m r
 views l f = Reader.asks (runAccessor #. l (Accessor #. f))
 {-# INLINE views #-}
-
--- | View the value pointed to by a 'Getter', 'Control.Lens.Iso.Iso' or
--- 'Control.Lens.Type.Lens' or the result of folding over all the results of a
--- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
--- at a monoidal values.
---
--- This is the same operation as 'view', only infix.
---
--- @'to' f '^$' x ≡ f x@
---
--- >>> to f ^$ x
--- f x
---
--- >>> _2 ^$ (1, "hello")
--- "hello"
---
--- @
--- ('^$') ::             'Getter' s a             -> s -> a
--- ('^$') :: 'Monoid' m => 'Control.Lens.Fold.Fold' s m               -> s -> m
--- ('^$') ::             'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a         -> s -> a
--- ('^$') ::             'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a        -> s -> a
--- ('^$') :: 'Monoid' m => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s m   -> s -> m
--- @
-(^$) :: Getting a s t a b -> s -> a
-l ^$ s = runAccessor (l Accessor s)
-{-# INLINE (^$) #-}
 
 -- | View the value pointed to by a 'Getter' or 'Control.Lens.Type.Lens' or the
 -- result of folding over all the results of a 'Control.Lens.Fold.Fold' or
