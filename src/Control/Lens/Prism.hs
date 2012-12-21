@@ -155,7 +155,7 @@ type APrism s t a b = Market a b a (Mutator b) -> Market a b s (Mutator t)
 
 -- | Safely decompose 'APrism'
 withPrism :: ((b -> t) -> (s -> Either t a) -> r) -> APrism s t a b -> r
-withPrism k p = market (p (Market (\j -> j Mutator Right))) k' where
+withPrism k p = runMarket (p (Market (\j -> j Mutator Right))) k' where
 #ifdef SAFE
   k' bt sa = k (runMutator #. bt) (either (Left . runMutator) Right . sa)
 #else

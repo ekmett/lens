@@ -524,32 +524,32 @@ instance Prismatic Review where
 -- instance Functor f => Profunctor (Exchange f)
 -- instance Applicative f => Prismatic (Exchange f)
 
-newtype Exchange a b s t = Exchange { exchange :: forall r. ((s -> a) -> (b -> t) -> r) -> r }
+newtype Exchange a b s t = Exchange { runExchange :: forall r. ((s -> a) -> (b -> t) -> r) -> r }
 
 instance Functor (Exchange a b s) where
-  fmap f x = exchange x $ \sa bt -> Exchange $ \k -> k sa (f . bt)
+  fmap f x = runExchange x $ \sa bt -> Exchange $ \k -> k sa (f . bt)
   {-# INLINE fmap #-}
 
 instance Profunctor (Exchange a b) where
-  lmap f x = exchange x $ \sa bt -> Exchange $ \k -> k (sa . f) bt
+  lmap f x = runExchange x $ \sa bt -> Exchange $ \k -> k (sa . f) bt
   {-# INLINE lmap #-}
   rmap = fmap
   {-# INLINE rmap #-}
 
-newtype Market a b s t = Market { market :: forall r. ((b -> t) -> (s -> Either t a) -> r) -> r }
+newtype Market a b s t = Market { runMarket :: forall r. ((b -> t) -> (s -> Either t a) -> r) -> r }
 
 instance Functor (Market a b s) where
-  fmap f x = market x $ \bt seta -> Market $ \k -> k (f . bt) (either (Left . f) Right . seta)
+  fmap f x = runMarket x $ \bt seta -> Market $ \k -> k (f . bt) (either (Left . f) Right . seta)
   {-# INLINE fmap #-}
 
 instance Profunctor (Market a b) where
-  lmap f x = market x $ \bt seta -> Market $ \k -> k bt (seta . f)
+  lmap f x = runMarket x $ \bt seta -> Market $ \k -> k bt (seta . f)
   {-# INLINE lmap #-}
   rmap = fmap
   {-# INLINE rmap #-}
 
 instance Prismatic (Market a b) where
-  prismatic f x = market x $ \bt seta -> Market $ \k -> k bt (either (Left . pure) seta . f)
+  prismatic f x = runMarket x $ \bt seta -> Market $ \k -> k bt (either (Left . pure) seta . f)
   {-# INLINE prismatic #-}
 
 ------------------------------------------------------------------------------

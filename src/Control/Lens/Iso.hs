@@ -122,7 +122,7 @@ type AnIso s t a b = Exchange a b a (Mutator b) -> Exchange a b s (Mutator t)
 --
 -- @'from' ≡ 'withIso' ('flip' 'iso')@
 withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
-withIso k ai = exchange (ai (Exchange (\j -> j id Mutator))) k' where
+withIso k ai = runExchange (ai (Exchange (\j -> j id Mutator))) k' where
 #ifdef SAFE
   k' sa bt = k sa (runMutator #. bt)
 #else
