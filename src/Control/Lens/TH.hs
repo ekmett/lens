@@ -329,64 +329,52 @@ deNewtype (NewtypeD ctx tyConName args c d) = DataD ctx tyConName args [c] d
 deNewtype d = d
 
 makePrismsForCons :: [Pred] -> Name -> [TyVarBndr] -> [Con] -> Q [Dec]
-makePrismsForCons ctx tyConName args cons =
+makePrismsForCons ctx tyConName args cons = do
   concat <$> mapM (makePrismForCon ctx tyConName args canModifyTypeVar cons) cons
   where
     conTypeVars = map (Set.fromList . toListOf typeVars) cons
     canModifyTypeVar = (`Set.member` typeVarsOnlyInOneCon) . view name
-    typeVarsOnlyInOneCon =
-      Set.fromList . concat . filter ((== 1) . length) .
-      List.group . List.sort . concat $
-      map toList conTypeVars
+    typeVarsOnlyInOneCon = Set.fromList . concat . filter (\xs -> length xs == 1) .  List.group . List.sort $ conTypeVars >>= toList
 
 makePrismForCon :: [Pred] -> Name -> [TyVarBndr] -> (TyVarBndr -> Bool) -> [Con] -> Con -> Q [Dec]
-makePrismForCon ctx tyConName args canModifyTypeVar allCons con =
-    return
-    [ SigD resName .
-      ForallT
+makePrismForCon ctx tyConName args canModifyTypeVar allCons con = do
+    remitterName <- newName "remitter"
+    reviewerName <- newName "reviewer"
+    xName <- newName "x"
+    let resName = mkName $ fromMaybe (error ("bad constructor name: " ++ show dataConName)) $ mLowerName $ nameBase dataConName
+    varNames <- for [0..length fieldTypes -1] $ \i -> newName ('x' : show i)
+    altArgsList <- forM (view name <$> filter isAltArg args) $ \arg ->
+      (,) arg <$> newName (nameBase arg)
+    let altArgs = Map.fromList altArgsList
+        hitClause =
+          clause [conP dataConName (fmap varP varNames)]
+          (normalB $ appE (conE 'Right) $ toTupleE $ varE <$> varNames) []
+        missClauses
+          | Map.null altArgs = [clause [varP xName] (normalB (appE (conE 'Left) (varE xName))) []]
+          | otherwise        = reviewerIdClause varNames <$> filter (/= con) allCons
+    Prelude.sequence [
+      sigD resName . forallT
         (args ++ (PlainTV <$> Map.elems altArgs))
-        (List.nub (ctx ++ substTypeVars altArgs ctx)) $
-      List.foldl1 AppT
-      [ ConT ''Prism
-      , List.foldl AppT (ConT tyConName) (VarT . view name <$> args)
-      , List.foldl AppT (ConT tyConName) (VarT . view name <$> substTypeVars altArgs args)
-      , toTupleT fieldTypes
-      , toTupleT $ substTypeVars altArgs fieldTypes
+        (return $ List.nub (ctx ++ substTypeVars altArgs ctx)) $
+          conT ''Prism `appsT`
+            [ appsT (conT tyConName) $ varT . view name <$> args
+            , appsT (conT tyConName) $ varT . view name <$> substTypeVars altArgs args
+            , toTupleT $ pure <$> fieldTypes
+            , toTupleT $ pure <$> substTypeVars altArgs fieldTypes
+            ]
+      , funD resName
+        [ clause []
+          (normalB (appsE [varE 'prism, varE remitterName, varE reviewerName]))
+          [ funD remitterName
+            [ clause [toTupleP (varP <$> varNames)] (normalB (appsE (conE dataConName : fmap varE varNames))) [] ]
+          , funD reviewerName $ hitClause : missClauses
+          ]
+        ]
       ]
-    , FunD resName
-      [ Clause []
-        (NormalB (List.foldl1 AppE [VarE 'prism, VarE remiterName, VarE reviewerName]))
-        [remiter, reviewer]
-      ]
-    ]
   where
     (dataConName, fieldTypes) = ctrNameAndFieldTypes con
-    resName =
-      mkName .
-      fromMaybe (error ("bad constructor name: " ++ show dataConName)) . mLowerName $
-      nameBase dataConName
-    altArgs = Map.fromList . map (mkAltArg . view name) $ filter isAltArg args
-    isAltArg arg = canModifyTypeVar arg && Set.member (arg ^. name) conArgs
-    conArgs = Set.fromList $ toListOf typeVars fieldTypes
-    mkAltArg arg = (arg, mkName (nameBase arg ++ "'"))
-    reviewerName = mkName "reviewer"
-    reviewer = FunD reviewerName $ hitClause : missClauses
-    hitClause =
-      Clause [ConP dataConName (VarP <$> varNames)]
-      ((NormalB . AppE (ConE 'Right) . toTupleE) (VarE <$> varNames)) []
-    missClauses
-      | Map.null altArgs =
-        [Clause [VarP xName] (NormalB (AppE (ConE 'Left) (VarE xName))) []]
-      | otherwise =
-        reviewerIdClause <$> filter (/= con) allCons
-    varNames = map (mkName . ('x' :) . show) [0 .. length fieldTypes - 1]
-    xName = mkName "x"
-    remiterName = mkName "remiter"
-    remiter =
-      FunD remiterName
-      [ Clause [toTupleP (VarP <$> varNames)]
-        (NormalB (List.foldl AppE (ConE dataConName) (VarE <$> varNames))) []
-      ]
+    conArgs = setOf typeVars fieldTypes
+    isAltArg arg = canModifyTypeVar arg && conArgs^.ix(arg^.name)
 
 ctrNameAndFieldTypes :: Con -> (Name, [Type])
 ctrNameAndFieldTypes (NormalC n ts) = (n, snd <$> ts)
@@ -396,25 +384,22 @@ ctrNameAndFieldTypes (ForallC _ _ c) = ctrNameAndFieldTypes c
 
 -- When a prism can change type variables it needs to pattern match on all
 -- other data constructors and rebuild the data so it will have the new type.
-reviewerIdClause :: Con -> Clause
-reviewerIdClause con =
-    Clause [ConP dataConName (VarP <$> varNames)]
-    ((NormalB . AppE (ConE 'Left)) (List.foldl AppE (ConE dataConName) (VarE <$> varNames))) []
-  where
-    (dataConName, fieldTypes) = ctrNameAndFieldTypes con
-    varNames = map (mkName . ('x' :) . show) [0 .. length fieldTypes - 1]
+reviewerIdClause :: [Name] -> Con -> ClauseQ
+reviewerIdClause varNames con =
+  clause [conP dataConName (fmap varP varNames)] (normalB $ appE (conE 'Left) $ appsE (conE dataConName :  fmap varE varNames)) []
+  where (dataConName, _) = ctrNameAndFieldTypes con
 
-toTupleT :: [Type] -> Type
+toTupleT :: [TypeQ] -> TypeQ
 toTupleT [x] = x
-toTupleT xs = List.foldl AppT (TupleT (length xs)) xs
+toTupleT xs = appsT (tupleT (length xs)) xs
 
-toTupleE :: [Exp] -> Exp
+toTupleE :: [ExpQ] -> ExpQ
 toTupleE [x] = x
-toTupleE xs = TupE xs
+toTupleE xs = tupE xs
 
-toTupleP :: [Pat] -> Pat
+toTupleP :: [PatQ] -> PatQ
 toTupleP [x] = x
-toTupleP xs = TupP xs
+toTupleP xs = tupP xs
 
 -- | Given a set of names, build a map from those names to a set of fresh names based on them.
 freshMap :: Set Name -> Q (Map Name Name)
