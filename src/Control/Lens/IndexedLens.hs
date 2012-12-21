@@ -51,7 +51,7 @@ infixr 4 %%@~, <%@~
 infix  4 %%@=, <%@=
 
 -- | Every 'IndexedLens' is a valid 'Lens' and a valid 'Control.Lens.IndexedTraversal.IndexedTraversal'.
-type IndexedLens i s t a b = forall f k. (Indexable i k, Functor f) => k a (f b) -> s -> f t
+type IndexedLens i s t a b = forall f p. (Indexable i p, Functor f) => p a (f b) -> s -> f t
 
 -- | @type 'IndexedLens'' i = 'Simple' ('IndexedLens' i)@
 type IndexedLens' i s a = IndexedLens i s s a a

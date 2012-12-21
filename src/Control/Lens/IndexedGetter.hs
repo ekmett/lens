@@ -33,7 +33,7 @@ import Control.Monad.State
 ------------------------------------------------------------------------------
 
 -- | Every 'IndexedGetter' is a valid 'Control.Lens.IndexedFold.IndexedFold' and 'Getter'.
-type IndexedGetter i s a = forall k f. (Indexable i k, Gettable f) => k a (f a) -> s -> f s
+type IndexedGetter i s a = forall p f. (Indexable i p, Gettable f) => p a (f a) -> s -> f s
 
 -- | Used to consume an 'Control.Lens.IndexedFold.IndexedFold'.
 type IndexedGetting i m s t a b = Indexed i a (Accessor m b) -> s -> Accessor m t

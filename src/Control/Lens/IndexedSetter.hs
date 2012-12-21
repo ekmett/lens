@@ -47,8 +47,8 @@ infix  4 %@=
 -- | Every 'IndexedSetter' is a valid 'Setter'
 --
 -- The 'Control.Lens.Setter.Setter' laws are still required to hold.
-type IndexedSetter i s t a b = forall f k.
-  (Indexable i k, Settable f) => k a (f b) -> s -> f t
+type IndexedSetter i s t a b = forall f p.
+  (Indexable i p, Settable f) => p a (f b) -> s -> f t
 
 -- |
 -- @type 'IndexedSetter'' i = 'Simple' ('IndexedSetter' i)@

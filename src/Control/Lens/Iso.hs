@@ -113,7 +113,7 @@ cloneIso = withIso iso
 -----------------------------------------------------------------------------
 
 -- | Isomorphism families can be composed with other lenses using ('.') and 'id'.
-type Iso s t a b = forall k f. (Profunctor k, Functor f) => k a (f b) -> k s (f t)
+type Iso s t a b = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f t)
 
 -- | When you see this as an argument to a function, it expects an 'Iso'.
 type AnIso s t a b = Exchange a b a (Mutator b) -> Exchange a b s (Mutator t)

@@ -87,7 +87,7 @@ import Data.Traversable
 -- directly as a 'Control.Lens.Traversal.Traversal'.
 --
 -- The 'Control.Lens.Traversal.Traversal' laws are still required to hold.
-type IndexedTraversal i s t a b = forall f k. (Indexable i k, Applicative f) => k a (f b) -> s -> f t
+type IndexedTraversal i s t a b = forall f p. (Indexable i p, Applicative f) => p a (f b) -> s -> f t
 
 -- | @type 'IndexedTraversal'' i = 'Simple' ('IndexedTraversal' i)@
 type IndexedTraversal' i s a = IndexedTraversal i s s a a
@@ -207,7 +207,7 @@ swap (a,b) = (b,a)
 -- 'iwhereOf' :: 'IndexedTraversal'' i s a -> (i -> 'Bool') -> 'IndexedTraversal'' i s a
 -- 'iwhereOf' :: 'IndexedSetter'' i s a    -> (i -> 'Bool') -> 'IndexedSetter'' i s a
 -- @
-iwhereOf :: (Indexable i k, Applicative f) => IndexedLensLike (Indexed i) f s t a a -> (i -> Bool) -> IndexedLensLike k f s t a a
+iwhereOf :: (Indexable i p, Applicative f) => IndexedLensLike (Indexed i) f s t a a -> (i -> Bool) -> IndexedLensLike p f s t a a
 iwhereOf l p f = withIndex l (\i a -> if p i then indexed f i a else pure a)
 {-# INLINE iwhereOf #-}
 
@@ -299,10 +299,10 @@ instance Ord k => TraverseMax k (Map k) where
 -- 'elementOf' :: 'Control.Lens.Traversal.Traversal'' s a -> Int -> 'IndexedTraversal'' 'Int' s a
 -- 'elementOf' :: 'Control.Lens.Fold.Fold' s a            -> Int -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s a
 -- @
-elementOf :: (Applicative f, Indexable Int k)
+elementOf :: (Applicative f, Indexable Int p)
           => LensLike (Indexing f) s t a a
           -> Int
-          -> IndexedLensLike k f s t a a
+          -> IndexedLensLike p f s t a a
 elementOf l p = elementsOf l (p ==)
 {-# INLINE elementOf #-}
 
@@ -319,10 +319,10 @@ element = elementOf traverse
 -- 'elementsOf' :: 'Control.Lens.Traversal.Traversal'' s a -> ('Int' -> 'Bool') -> 'IndexedTraversal'' 'Int' s a
 -- 'elementsOf' :: 'Control.Lens.Fold.Fold' s a            -> ('Int' -> 'Bool') -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s a
 -- @
-elementsOf :: (Applicative f, Indexable Int k)
+elementsOf :: (Applicative f, Indexable Int p)
            => LensLike (Indexing f) s t a a
            -> (Int -> Bool)
-           -> IndexedLensLike k f s t a a
+           -> IndexedLensLike p f s t a a
 elementsOf l p iafb s =
   case runIndexing (l (\a -> Indexing (\i -> i `seq` (if p i then indexed iafb i a else pure a, i + 1))) s) 0 of
     (r, _) -> r

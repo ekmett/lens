@@ -71,8 +71,8 @@ infixr 8 ^@..
 ------------------------------------------------------------------------------
 
 -- | Every 'IndexedFold' is a valid 'Control.Lens.Fold.Fold'.
-type IndexedFold i s a = forall k f.
-  (Indexable i k, Applicative f, Gettable f) => k a (f a) -> s -> f s
+type IndexedFold i s a = forall p f.
+  (Indexable i p, Applicative f, Gettable f) => p a (f a) -> s -> f s
 
 -- |
 -- Fold an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' by mapping indices and values to an arbitrary 'Monoid' with access
@@ -427,10 +427,10 @@ indicesOf l f = l @~ const . coerce . f
 -- When passed an 'Control.Lens.IndexedTraversal.IndexedTraversal', sadly the result is /not/ a legal 'Control.Lens.IndexedTraversal.IndexedTraversal'.
 --
 -- See 'Control.Lens.Fold.filtered' for a related counter-example.
-ifiltering :: (Applicative f, Indexable i k)
+ifiltering :: (Applicative f, Indexable i p)
            => (i -> a -> Bool)
            -> (Indexed i a (f a) -> s -> f t)
-           -> IndexedLensLike k f s t a a
+           -> IndexedLensLike p f s t a a
 ifiltering p l f = l @~ \ i c -> if p i c then indexed f i c else pure c
 {-# INLINE ifiltering #-}
 
@@ -439,20 +439,20 @@ ifiltering p l f = l @~ \ i c -> if p i c then indexed f i c else pure c
 -- 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens',
 -- 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
 -- while a predicate holds.
-itakingWhile :: (Gettable f, Applicative f, Indexable i k)
+itakingWhile :: (Gettable f, Applicative f, Indexable i p)
              => (i -> a -> Bool)
              -> IndexedGetting i (Endo (f s)) s s a a
-             -> IndexedLensLike' k f s a
+             -> IndexedLensLike' p f s a
 itakingWhile p l f =
   ifoldrOf l (\i a r -> if p i a then indexed f i a *> r else noEffect) noEffect
 {-# INLINE itakingWhile #-}
 
 
 -- | Obtain an 'IndexedFold' by dropping elements from another 'IndexedFold', 'Control.Lens.IndexedLens.IndexedLens', 'IndexedGetter' or 'Control.Lens.IndexedTraversal.IndexedTraversal' while a predicate holds.
-idroppingWhile :: (Gettable f, Applicative f, Indexable i k)
+idroppingWhile :: (Gettable f, Applicative f, Indexable i p)
               => (i -> a -> Bool)
               -> IndexedGetting i (Endo (f s, f s)) s s a a
-              -> IndexedLensLike' k f s a
+              -> IndexedLensLike' p f s a
 idroppingWhile p l f =
   fst . ifoldrOf l
                  (\i a r -> let s = indexed f i a *> snd r in if p i a then (fst r, s) else (s, s))
@@ -467,6 +467,6 @@ idroppingWhile p l f =
 newtype ReifiedIndexedFold i s a =
   ReifyIndexedFold { reflectIndexedFold :: IndexedFold i s a }
 
-ibackwards :: Profunctor k => IndexedLensLike k (Backwards f) s t a b -> IndexedLensLike k f s t a b
+ibackwards :: Profunctor p => IndexedLensLike p (Backwards f) s t a b -> IndexedLensLike p f s t a b
 ibackwards l f = forwards #. l (rmap Backwards f)
 {-# DEPRECATED ibackwards "use backwards" #-}
