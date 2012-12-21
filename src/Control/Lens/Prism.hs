@@ -41,6 +41,7 @@ module Control.Lens.Prism
   , _just
   -- * Implementation details
   , Prismatic(..)
+  , Market(..)
   , Review(..)
   -- * Simple
   , SimplePrism
