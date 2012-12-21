@@ -1,8 +1,5 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -145,7 +142,7 @@ import Unsafe.Coerce
 --
 -- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'
 -- -- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
-type Prism s t a b = forall k f. (Prismatic k, Applicative f) => k a (f b) -> k s (f t)
+type Prism s t a b = forall p f. (Prismatic p, Applicative f) => p a (f b) -> p s (f t)
 
 -- | A 'Simple' 'Prism'
 type Prism' s a = Prism s s a a

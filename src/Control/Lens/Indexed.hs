@@ -50,7 +50,7 @@ withIndex l = l . Indexed
 -- | Compose an 'Indexed' function with a non-indexed function.
 --
 -- Mnemonically, the @<@ points to the indexing we want to preserve.
-(<.) :: Indexable i k => (Indexed i s t -> r) -> ((a -> b) -> s -> t) -> k a b -> r
+(<.) :: Indexable i p => (Indexed i s t -> r) -> ((a -> b) -> s -> t) -> p a b -> r
 (<.) f g h = f @~ g . indexed h
 {-# INLINE (<.) #-}
 
@@ -63,23 +63,23 @@ withIndex l = l . Indexed
 (.>) = (.)
 {-# INLINE (.>) #-}
 
--- (.>)  :: Indexable i k => (b -> c) -> Indexed i a b -> k a c
+-- (.>)  :: Indexable i p => (b -> c) -> Indexed i a b -> p a c
 -- bc .> Indexed iab = indexed (bc . iab)
 
 -- | Remap the index.
-reindexed :: Indexable j k => (i -> j) -> (Indexed i a b -> r) -> k a b -> r
+reindexed :: Indexable j p => (i -> j) -> (Indexed i a b -> r) -> p a b -> r
 reindexed ij f g = f @~ indexed g . ij
 {-# INLINE reindexed #-}
 
 -- | Composition of 'Indexed' functions
 --
 -- Mnemonically, the @\<@ and @\>@ points to the fact that we want to preserve the indices.
-(<.>) :: Indexable (i, j) k => (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> k a b -> r
+(<.>) :: Indexable (i, j) p => (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> p a b -> r
 f <.> g = icompose (,) f g
 {-# INLINE (<.>) #-}
 
 -- | Composition of 'Indexed' functions with a user supplied function for combining indices
-icompose :: Indexable k c => (i -> j -> k) -> (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> c a b -> r
+icompose :: Indexable p c => (i -> j -> p) -> (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> c a b -> r
 icompose ijk istr jabst cab = istr @~ \i -> jabst @~ \j -> indexed cab $ ijk i j
 {-# INLINE icompose #-}
 
@@ -94,7 +94,7 @@ icompose ijk istr jabst cab = istr @~ \i -> jabst @~ \j -> indexed cab $ ijk i j
 -- 'indexing' :: 'Control.Lens.Fold.Fold' s t               -> 'Control.Lens.IndexedFold.IndexedFold' 'Int' s t
 -- 'indexing' :: 'Control.Lens.Getter.Getter' s t           -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int' s t a b
 -- @
-indexing :: Indexable Int k => ((a -> Indexing f b) -> s -> Indexing f t) -> k a (f b) -> s -> f t
+indexing :: Indexable Int p => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> s -> f t
 indexing l iafb s = case runIndexing (l (\a -> Indexing (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
   (r, _) -> r
 {-# INLINE indexing #-}
@@ -112,13 +112,13 @@ indexing l iafb s = case runIndexing (l (\a -> Indexing (\i -> i `seq` (indexed 
 -- 'indexing64' :: 'Control.Lens.Fold.Fold' s t               -> 'Control.Lens.IndexedFold.IndexedFold' 'Int64' s t
 -- 'indexing64' :: 'Control.Lens.Getter.Getter' s t           -> 'Control.Lens.IndexedGetter.IndexedGetter' 'Int64' s t a b
 -- @
-indexing64 :: Indexable Int64 k => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> k a (f b) -> s -> f t
+indexing64 :: Indexable Int64 p => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> s -> f t
 indexing64 l iafb s = case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
   (r, _) -> r
 {-# INLINE indexing64 #-}
 
 -- | Convenient alias for constructing indexed lenses and their ilk
-type IndexedLensLike k f s t a b = k a (f b) -> s -> f t
+type IndexedLensLike p f s t a b = p a (f b) -> s -> f t
 
 -- | Convenient alias for constructing simple indexed lenses and their ilk
-type IndexedLensLike' k f s a    = k a (f a) -> s -> f s
+type IndexedLensLike' p f s a    = p a (f a) -> s -> f s

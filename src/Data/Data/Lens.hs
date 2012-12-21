@@ -200,7 +200,7 @@ lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & index
 -- Second, the structure must not contain strict or unboxed fields of the same type that will be visited by 'Data'
 --
 -- @'upon' :: ('Data' s, 'Data' a) => (s -> a) -> 'IndexedTraversal'' [Int] s a@
-upon :: forall k f s a. (Indexable [Int] k, Applicative f, Data s, Data a) => (s -> a) -> k a (f a) -> s -> f s
+upon :: forall p f s a. (Indexable [Int] p, Applicative f, Data s, Data a) => (s -> a) -> p a (f a) -> s -> f s
 upon field f s = case lookupon template field s of
   Nothing -> pure s
   Just (i, Context k0 a0) ->
