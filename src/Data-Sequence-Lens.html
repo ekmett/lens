@@ -8,191 +8,190 @@
 </head>
 <body>
 <pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE Rank2Types #-}</span>
-<a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE TypeFamilies #-}</span>
-<a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE FlexibleContexts #-}</span>
-<a name="line-4"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-5"></a><span class='hs-comment'>-- |</span>
-<a name="line-6"></a><span class='hs-comment'>-- Module      :  Data.Sequence.Lens</span>
-<a name="line-7"></a><span class='hs-comment'>-- Copyright   :  (C) 2012 Edward Kmett</span>
-<a name="line-8"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
-<a name="line-9"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
-<a name="line-10"></a><span class='hs-comment'>-- Stability   :  experimental</span>
-<a name="line-11"></a><span class='hs-comment'>-- Portability :  non-portable</span>
-<a name="line-12"></a><span class='hs-comment'>--</span>
-<a name="line-13"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
-<a name="line-14"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Sequence</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-15"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>viewL</span><span class='hs-layout'>,</span> <span class='hs-varid'>viewR</span>
-<a name="line-16"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_head</span><span class='hs-layout'>,</span> <span class='hs-sel'>_tail</span>
-<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_last</span><span class='hs-layout'>,</span> <span class='hs-sel'>_init</span>
-<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>sliced</span><span class='hs-layout'>,</span> <span class='hs-varid'>slicedTo</span><span class='hs-layout'>,</span> <span class='hs-varid'>slicedFrom</span>
-<a name="line-19"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-20"></a>
-<a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
-<a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-23"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Monoid</span>
-<a name="line-24"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Sequence</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Seq</span>
-<a name="line-25"></a>
-<a name="line-26"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-27"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Expr</span>
-<a name="line-28"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Vars as Vars hiding (f,g)</span>
-<a name="line-29"></a><span class='hs-comment'>-- &gt;&gt;&gt; let f :: Expr -&gt; Expr; f = Debug.SimpleReflect.Vars.f</span>
-<a name="line-30"></a><span class='hs-comment'>-- &gt;&gt;&gt; let g :: Expr -&gt; Expr; g = Debug.SimpleReflect.Vars.g</span>
-<a name="line-31"></a>
-<a name="line-32"></a><span class='hs-comment'>-- * Sequence isomorphisms</span>
-<a name="line-33"></a>
-<a name="line-34"></a><a name="viewL"></a><span class='hs-comment'>-- | A 'Seq' is isomorphic to a 'ViewL'</span>
-<a name="line-35"></a><span class='hs-comment'>--</span>
-<a name="line-36"></a><span class='hs-comment'>-- @'viewl' m ≡ m '^.' 'viewL'@</span>
-<a name="line-37"></a><span class='hs-comment'>--</span>
-<a name="line-38"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b,c] ^. viewL</span>
-<a name="line-39"></a><span class='hs-comment'>-- a :&lt; fromList [b,c]</span>
-<a name="line-40"></a><span class='hs-comment'>--</span>
-<a name="line-41"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.empty ^. viewL</span>
-<a name="line-42"></a><span class='hs-comment'>-- EmptyL</span>
-<a name="line-43"></a><span class='hs-comment'>--</span>
-<a name="line-44"></a><span class='hs-comment'>-- &gt;&gt;&gt; EmptyL ^. from viewL</span>
-<a name="line-45"></a><span class='hs-comment'>-- fromList []</span>
-<a name="line-46"></a><span class='hs-comment'>--</span>
-<a name="line-47"></a><span class='hs-comment'>-- &gt;&gt;&gt; from viewL ^$ a :&lt; fromList [b,c]</span>
-<a name="line-48"></a><span class='hs-comment'>-- fromList [a,b,c]</span>
-<a name="line-49"></a><span class='hs-comment'>--</span>
-<a name="line-50"></a><span class='hs-definition'>viewL</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewL</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewL</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-51"></a><span class='hs-definition'>viewL</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>viewl</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>xs</span> <span class='hs-keyword'>of</span>
-<a name="line-52"></a>  <span class='hs-conid'>EmptyL</span> <span class='hs-keyglyph'>-&gt;</span>  <span class='hs-varid'>mempty</span>
-<a name="line-53"></a>  <span class='hs-varid'>a</span> <span class='hs-conop'>:&lt;</span> <span class='hs-keyword'>as</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;|</span> <span class='hs-keyword'>as</span>
-<a name="line-54"></a><span class='hs-comment'>{-# INLINE viewL #-}</span>
-<a name="line-55"></a>
-<a name="line-56"></a><a name="viewR"></a><span class='hs-comment'>-- | A 'Seq' is isomorphic to a 'ViewR'</span>
-<a name="line-57"></a><span class='hs-comment'>--</span>
-<a name="line-58"></a><span class='hs-comment'>-- @'viewr' m ≡ m '^.' 'viewR'@</span>
-<a name="line-59"></a><span class='hs-comment'>--</span>
-<a name="line-60"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b,c] ^. viewR</span>
-<a name="line-61"></a><span class='hs-comment'>-- fromList [a,b] :&gt; c</span>
-<a name="line-62"></a><span class='hs-comment'>--</span>
-<a name="line-63"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.empty ^. viewR</span>
-<a name="line-64"></a><span class='hs-comment'>-- EmptyR</span>
-<a name="line-65"></a><span class='hs-comment'>--</span>
-<a name="line-66"></a><span class='hs-comment'>-- &gt;&gt;&gt; EmptyR ^. from viewR</span>
-<a name="line-67"></a><span class='hs-comment'>-- fromList []</span>
-<a name="line-68"></a><span class='hs-comment'>--</span>
-<a name="line-69"></a><span class='hs-comment'>-- &gt;&gt;&gt; from viewR ^$ fromList [a,b] :&gt; c</span>
-<a name="line-70"></a><span class='hs-comment'>-- fromList [a,b,c]</span>
-<a name="line-71"></a><span class='hs-definition'>viewR</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewR</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewR</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-72"></a><span class='hs-definition'>viewR</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>viewr</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>xs</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>xs</span> <span class='hs-keyword'>of</span>
-<a name="line-73"></a>  <span class='hs-conid'>EmptyR</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>mempty</span>
-<a name="line-74"></a>  <span class='hs-keyword'>as</span> <span class='hs-conop'>:&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>as</span> <span class='hs-varop'>|&gt;</span> <span class='hs-varid'>a</span>
-<a name="line-75"></a><span class='hs-comment'>{-# INLINE viewR #-}</span>
-<a name="line-76"></a>
-<a name="line-77"></a><span class='hs-comment'>-- * Traversals</span>
-<a name="line-78"></a>
-<a name="line-79"></a><span class='hs-comment'>-- | Traverse the head of a 'Seq'</span>
-<a name="line-80"></a><span class='hs-comment'>--</span>
-<a name="line-81"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d] &amp; _head %~ f</span>
-<a name="line-82"></a><span class='hs-comment'>-- fromList [f a,b,c,d]</span>
-<a name="line-83"></a><span class='hs-comment'>--</span>
-<a name="line-84"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [] ^? _head</span>
-<a name="line-85"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-86"></a><span class='hs-comment'>--</span>
-<a name="line-87"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d] ^? _head</span>
-<a name="line-88"></a><span class='hs-comment'>-- Just a</span>
-<a name="line-89"></a><span class='hs-sel'>_head</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-90"></a><span class='hs-sel'>_head</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>viewl</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
-<a name="line-91"></a>  <span class='hs-varid'>a</span> <span class='hs-conop'>:&lt;</span> <span class='hs-keyword'>as</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;|</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-num'>0</span><span class='hs-keyglyph'>::</span><span class='hs-conid'>Int</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-92"></a>  <span class='hs-conid'>EmptyL</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>m</span>
-<a name="line-93"></a><span class='hs-comment'>{-# INLINE _head #-}</span>
-<a name="line-94"></a>
-<a name="line-95"></a><span class='hs-comment'>-- | Traverse the tail of a 'Seq'</span>
-<a name="line-96"></a><span class='hs-comment'>--</span>
-<a name="line-97"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b] &amp; _tail .~ fromList [c,d,e]</span>
-<a name="line-98"></a><span class='hs-comment'>-- fromList [a,c,d,e]</span>
-<a name="line-99"></a><span class='hs-comment'>--</span>
-<a name="line-100"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c] ^? _tail</span>
-<a name="line-101"></a><span class='hs-comment'>-- Just (fromList [b,c])</span>
-<a name="line-102"></a><span class='hs-comment'>--</span>
-<a name="line-103"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [] ^? _tail</span>
-<a name="line-104"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-105"></a><span class='hs-sel'>_tail</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Traversal'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-106"></a><span class='hs-sel'>_tail</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>viewl</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
-<a name="line-107"></a>  <span class='hs-varid'>a</span> <span class='hs-conop'>:&lt;</span> <span class='hs-keyword'>as</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varop'>&lt;|</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
-<a name="line-108"></a>  <span class='hs-conid'>EmptyL</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>m</span>
-<a name="line-109"></a><span class='hs-comment'>{-# INLINE _tail #-}</span>
-<a name="line-110"></a>
-<a name="line-111"></a><span class='hs-comment'>-- | Traverse the last element of a 'Seq'</span>
-<a name="line-112"></a><span class='hs-comment'>--</span>
-<a name="line-113"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d] &amp; _last %~ f</span>
-<a name="line-114"></a><span class='hs-comment'>-- fromList [a,b,c,f d]</span>
-<a name="line-115"></a><span class='hs-comment'>--</span>
-<a name="line-116"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d] ^? _last</span>
-<a name="line-117"></a><span class='hs-comment'>-- Just d</span>
-<a name="line-118"></a><span class='hs-comment'>--</span>
-<a name="line-119"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [] ^? _last</span>
-<a name="line-120"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-121"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-122"></a><span class='hs-sel'>_last</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>viewr</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
-<a name="line-123"></a>  <span class='hs-keyword'>as</span> <span class='hs-conop'>:&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-keyword'>as</span> <span class='hs-varop'>|&gt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span><span class='hs-varop'>.</span><span class='hs-varid'>length</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-124"></a>  <span class='hs-conid'>EmptyR</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>m</span>
-<a name="line-125"></a><span class='hs-comment'>{-# INLINE _last #-}</span>
-<a name="line-126"></a>
-<a name="line-127"></a><span class='hs-comment'>-- | Traverse all but the last element of a 'Seq'</span>
-<a name="line-128"></a><span class='hs-comment'>--</span>
-<a name="line-129"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [1,2,3] ^? _init</span>
-<a name="line-130"></a><span class='hs-comment'>-- Just (fromList [1,2])</span>
-<a name="line-131"></a><span class='hs-comment'>--</span>
-<a name="line-132"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d] &amp; _init.traverse %~ f</span>
-<a name="line-133"></a><span class='hs-comment'>-- fromList [f a,f b,f c,d]</span>
-<a name="line-134"></a><span class='hs-comment'>--</span>
-<a name="line-135"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [] &amp; _init .~ fromList [a,b,c]</span>
-<a name="line-136"></a><span class='hs-comment'>-- fromList []</span>
-<a name="line-137"></a><span class='hs-sel'>_init</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Traversal'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-138"></a><span class='hs-sel'>_init</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>viewr</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
-<a name="line-139"></a>  <span class='hs-keyword'>as</span> <span class='hs-conop'>:&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varop'>|&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
-<a name="line-140"></a>  <span class='hs-conid'>EmptyR</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>m</span>
-<a name="line-141"></a><span class='hs-comment'>{-# INLINE _init #-}</span>
-<a name="line-142"></a>
-<a name="line-143"></a><a name="slicedTo"></a><span class='hs-comment'>-- | Traverse the first @n@ elements of a 'Seq'</span>
-<a name="line-144"></a><span class='hs-comment'>--</span>
-<a name="line-145"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] ^.. slicedTo 2</span>
-<a name="line-146"></a><span class='hs-comment'>-- [a,b]</span>
-<a name="line-147"></a><span class='hs-comment'>--</span>
-<a name="line-148"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; slicedTo 2 %~ f</span>
-<a name="line-149"></a><span class='hs-comment'>-- fromList [f a,f b,c,d,e]</span>
-<a name="line-150"></a><span class='hs-comment'>--</span>
-<a name="line-151"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; slicedTo 10 .~ x</span>
-<a name="line-152"></a><span class='hs-comment'>-- fromList [x,x,x,x,x]</span>
-<a name="line-153"></a><span class='hs-definition'>slicedTo</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-154"></a><span class='hs-definition'>slicedTo</span> <span class='hs-varid'>n</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-conid'>Seq</span><span class='hs-varop'>.</span><span class='hs-varid'>splitAt</span> <span class='hs-varid'>n</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
-<a name="line-155"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>l</span><span class='hs-layout'>,</span><span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varop'>&gt;&lt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>itraverse</span> <span class='hs-layout'>(</span><span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>l</span>
-<a name="line-156"></a><span class='hs-comment'>{-# INLINE slicedTo #-}</span>
-<a name="line-157"></a>
-<a name="line-158"></a><a name="slicedFrom"></a><span class='hs-comment'>-- | Traverse all but the first @n@ elements of a 'Seq'</span>
-<a name="line-159"></a><span class='hs-comment'>--</span>
-<a name="line-160"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] ^.. slicedFrom 2</span>
-<a name="line-161"></a><span class='hs-comment'>-- [c,d,e]</span>
-<a name="line-162"></a><span class='hs-comment'>--</span>
-<a name="line-163"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; slicedFrom 2 %~ f</span>
-<a name="line-164"></a><span class='hs-comment'>-- fromList [a,b,f c,f d,f e]</span>
-<a name="line-165"></a><span class='hs-comment'>--</span>
-<a name="line-166"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; slicedFrom 10 .~ x</span>
-<a name="line-167"></a><span class='hs-comment'>-- fromList [a,b,c,d,e]</span>
-<a name="line-168"></a><span class='hs-definition'>slicedFrom</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-169"></a><span class='hs-definition'>slicedFrom</span> <span class='hs-varid'>n</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-conid'>Seq</span><span class='hs-varop'>.</span><span class='hs-varid'>splitAt</span> <span class='hs-varid'>n</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
-<a name="line-170"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>l</span><span class='hs-layout'>,</span><span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-varop'>&gt;&lt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>itraverse</span> <span class='hs-layout'>(</span><span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span><span class='hs-varid'>n</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>r</span>
-<a name="line-171"></a><span class='hs-comment'>{-# INLINE slicedFrom #-}</span>
-<a name="line-172"></a>
-<a name="line-173"></a><span class='hs-comment'>-- | Traverse all the elements numbered from @i@ to @j@ of a 'Seq'</span>
-<a name="line-174"></a><span class='hs-comment'>--</span>
-<a name="line-175"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; sliced 1 3 %~ f</span>
-<a name="line-176"></a><span class='hs-comment'>-- fromList [a,f b,f c,d,e]</span>
-<a name="line-177"></a>
-<a name="line-178"></a><a name="sliced"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] ^.. sliced 1 3</span>
-<a name="line-179"></a><span class='hs-comment'>-- [f b,f c]</span>
-<a name="line-180"></a><span class='hs-comment'>--</span>
-<a name="line-181"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; sliced 1 3 .~ x</span>
-<a name="line-182"></a><span class='hs-comment'>-- fromList [a,x,x,b,e]</span>
-<a name="line-183"></a><span class='hs-definition'>sliced</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-184"></a><span class='hs-definition'>sliced</span> <span class='hs-varid'>i</span> <span class='hs-varid'>j</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-conid'>Seq</span><span class='hs-varop'>.</span><span class='hs-varid'>splitAt</span> <span class='hs-varid'>i</span> <span class='hs-varid'>s</span> <span class='hs-keyword'>of</span>
-<a name="line-185"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>l</span><span class='hs-layout'>,</span><span class='hs-varid'>mr</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-conid'>Seq</span><span class='hs-varop'>.</span><span class='hs-varid'>splitAt</span> <span class='hs-layout'>(</span><span class='hs-varid'>j</span><span class='hs-comment'>-</span><span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-varid'>mr</span> <span class='hs-keyword'>of</span>
-<a name="line-186"></a>     <span class='hs-layout'>(</span><span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>itraverse</span> <span class='hs-layout'>(</span><span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span><span class='hs-varid'>i</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>m</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&gt;&lt;</span> <span class='hs-varid'>n</span> <span class='hs-varop'>&gt;&lt;</span> <span class='hs-varid'>r</span>
-<a name="line-187"></a><span class='hs-comment'>{-# INLINE sliced #-}</span>
+<a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE FlexibleContexts #-}</span>
+<a name="line-3"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-4"></a><span class='hs-comment'>-- |</span>
+<a name="line-5"></a><span class='hs-comment'>-- Module      :  Data.Sequence.Lens</span>
+<a name="line-6"></a><span class='hs-comment'>-- Copyright   :  (C) 2012 Edward Kmett</span>
+<a name="line-7"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
+<a name="line-8"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
+<a name="line-9"></a><span class='hs-comment'>-- Stability   :  experimental</span>
+<a name="line-10"></a><span class='hs-comment'>-- Portability :  non-portable</span>
+<a name="line-11"></a><span class='hs-comment'>--</span>
+<a name="line-12"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
+<a name="line-13"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Sequence</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-14"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>viewL</span><span class='hs-layout'>,</span> <span class='hs-varid'>viewR</span>
+<a name="line-15"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_head</span><span class='hs-layout'>,</span> <span class='hs-sel'>_tail</span>
+<a name="line-16"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_last</span><span class='hs-layout'>,</span> <span class='hs-sel'>_init</span>
+<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>sliced</span><span class='hs-layout'>,</span> <span class='hs-varid'>slicedTo</span><span class='hs-layout'>,</span> <span class='hs-varid'>slicedFrom</span>
+<a name="line-18"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-19"></a>
+<a name="line-20"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
+<a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Monoid</span>
+<a name="line-23"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Sequence</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Seq</span>
+<a name="line-24"></a>
+<a name="line-25"></a><span class='hs-comment'>-- $setup</span>
+<a name="line-26"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Expr</span>
+<a name="line-27"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Vars as Vars hiding (f,g)</span>
+<a name="line-28"></a><span class='hs-comment'>-- &gt;&gt;&gt; let f :: Expr -&gt; Expr; f = Debug.SimpleReflect.Vars.f</span>
+<a name="line-29"></a><span class='hs-comment'>-- &gt;&gt;&gt; let g :: Expr -&gt; Expr; g = Debug.SimpleReflect.Vars.g</span>
+<a name="line-30"></a>
+<a name="line-31"></a><span class='hs-comment'>-- * Sequence isomorphisms</span>
+<a name="line-32"></a>
+<a name="line-33"></a><a name="viewL"></a><span class='hs-comment'>-- | A 'Seq' is isomorphic to a 'ViewL'</span>
+<a name="line-34"></a><span class='hs-comment'>--</span>
+<a name="line-35"></a><span class='hs-comment'>-- @'viewl' m ≡ m '^.' 'viewL'@</span>
+<a name="line-36"></a><span class='hs-comment'>--</span>
+<a name="line-37"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b,c] ^. viewL</span>
+<a name="line-38"></a><span class='hs-comment'>-- a :&lt; fromList [b,c]</span>
+<a name="line-39"></a><span class='hs-comment'>--</span>
+<a name="line-40"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.empty ^. viewL</span>
+<a name="line-41"></a><span class='hs-comment'>-- EmptyL</span>
+<a name="line-42"></a><span class='hs-comment'>--</span>
+<a name="line-43"></a><span class='hs-comment'>-- &gt;&gt;&gt; EmptyL ^. from viewL</span>
+<a name="line-44"></a><span class='hs-comment'>-- fromList []</span>
+<a name="line-45"></a><span class='hs-comment'>--</span>
+<a name="line-46"></a><span class='hs-comment'>-- &gt;&gt;&gt; from viewL ^$ a :&lt; fromList [b,c]</span>
+<a name="line-47"></a><span class='hs-comment'>-- fromList [a,b,c]</span>
+<a name="line-48"></a><span class='hs-comment'>--</span>
+<a name="line-49"></a><span class='hs-definition'>viewL</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewL</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewL</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-50"></a><span class='hs-definition'>viewL</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>viewl</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>xs</span> <span class='hs-keyword'>of</span>
+<a name="line-51"></a>  <span class='hs-conid'>EmptyL</span> <span class='hs-keyglyph'>-&gt;</span>  <span class='hs-varid'>mempty</span>
+<a name="line-52"></a>  <span class='hs-varid'>a</span> <span class='hs-conop'>:&lt;</span> <span class='hs-keyword'>as</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;|</span> <span class='hs-keyword'>as</span>
+<a name="line-53"></a><span class='hs-comment'>{-# INLINE viewL #-}</span>
+<a name="line-54"></a>
+<a name="line-55"></a><a name="viewR"></a><span class='hs-comment'>-- | A 'Seq' is isomorphic to a 'ViewR'</span>
+<a name="line-56"></a><span class='hs-comment'>--</span>
+<a name="line-57"></a><span class='hs-comment'>-- @'viewr' m ≡ m '^.' 'viewR'@</span>
+<a name="line-58"></a><span class='hs-comment'>--</span>
+<a name="line-59"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b,c] ^. viewR</span>
+<a name="line-60"></a><span class='hs-comment'>-- fromList [a,b] :&gt; c</span>
+<a name="line-61"></a><span class='hs-comment'>--</span>
+<a name="line-62"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.empty ^. viewR</span>
+<a name="line-63"></a><span class='hs-comment'>-- EmptyR</span>
+<a name="line-64"></a><span class='hs-comment'>--</span>
+<a name="line-65"></a><span class='hs-comment'>-- &gt;&gt;&gt; EmptyR ^. from viewR</span>
+<a name="line-66"></a><span class='hs-comment'>-- fromList []</span>
+<a name="line-67"></a><span class='hs-comment'>--</span>
+<a name="line-68"></a><span class='hs-comment'>-- &gt;&gt;&gt; from viewR ^$ fromList [a,b] :&gt; c</span>
+<a name="line-69"></a><span class='hs-comment'>-- fromList [a,b,c]</span>
+<a name="line-70"></a><span class='hs-definition'>viewR</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewR</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewR</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-71"></a><span class='hs-definition'>viewR</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>viewr</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>xs</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>xs</span> <span class='hs-keyword'>of</span>
+<a name="line-72"></a>  <span class='hs-conid'>EmptyR</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>mempty</span>
+<a name="line-73"></a>  <span class='hs-keyword'>as</span> <span class='hs-conop'>:&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>as</span> <span class='hs-varop'>|&gt;</span> <span class='hs-varid'>a</span>
+<a name="line-74"></a><span class='hs-comment'>{-# INLINE viewR #-}</span>
+<a name="line-75"></a>
+<a name="line-76"></a><span class='hs-comment'>-- * Traversals</span>
+<a name="line-77"></a>
+<a name="line-78"></a><span class='hs-comment'>-- | Traverse the head of a 'Seq'</span>
+<a name="line-79"></a><span class='hs-comment'>--</span>
+<a name="line-80"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d] &amp; _head %~ f</span>
+<a name="line-81"></a><span class='hs-comment'>-- fromList [f a,b,c,d]</span>
+<a name="line-82"></a><span class='hs-comment'>--</span>
+<a name="line-83"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [] ^? _head</span>
+<a name="line-84"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-85"></a><span class='hs-comment'>--</span>
+<a name="line-86"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d] ^? _head</span>
+<a name="line-87"></a><span class='hs-comment'>-- Just a</span>
+<a name="line-88"></a><span class='hs-sel'>_head</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-89"></a><span class='hs-sel'>_head</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>viewl</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
+<a name="line-90"></a>  <span class='hs-varid'>a</span> <span class='hs-conop'>:&lt;</span> <span class='hs-keyword'>as</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;|</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-num'>0</span><span class='hs-keyglyph'>::</span><span class='hs-conid'>Int</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-91"></a>  <span class='hs-conid'>EmptyL</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>m</span>
+<a name="line-92"></a><span class='hs-comment'>{-# INLINE _head #-}</span>
+<a name="line-93"></a>
+<a name="line-94"></a><span class='hs-comment'>-- | Traverse the tail of a 'Seq'</span>
+<a name="line-95"></a><span class='hs-comment'>--</span>
+<a name="line-96"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b] &amp; _tail .~ fromList [c,d,e]</span>
+<a name="line-97"></a><span class='hs-comment'>-- fromList [a,c,d,e]</span>
+<a name="line-98"></a><span class='hs-comment'>--</span>
+<a name="line-99"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c] ^? _tail</span>
+<a name="line-100"></a><span class='hs-comment'>-- Just (fromList [b,c])</span>
+<a name="line-101"></a><span class='hs-comment'>--</span>
+<a name="line-102"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [] ^? _tail</span>
+<a name="line-103"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-104"></a><span class='hs-sel'>_tail</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Traversal'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-105"></a><span class='hs-sel'>_tail</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>viewl</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
+<a name="line-106"></a>  <span class='hs-varid'>a</span> <span class='hs-conop'>:&lt;</span> <span class='hs-keyword'>as</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varop'>&lt;|</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
+<a name="line-107"></a>  <span class='hs-conid'>EmptyL</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>m</span>
+<a name="line-108"></a><span class='hs-comment'>{-# INLINE _tail #-}</span>
+<a name="line-109"></a>
+<a name="line-110"></a><span class='hs-comment'>-- | Traverse the last element of a 'Seq'</span>
+<a name="line-111"></a><span class='hs-comment'>--</span>
+<a name="line-112"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d] &amp; _last %~ f</span>
+<a name="line-113"></a><span class='hs-comment'>-- fromList [a,b,c,f d]</span>
+<a name="line-114"></a><span class='hs-comment'>--</span>
+<a name="line-115"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d] ^? _last</span>
+<a name="line-116"></a><span class='hs-comment'>-- Just d</span>
+<a name="line-117"></a><span class='hs-comment'>--</span>
+<a name="line-118"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [] ^? _last</span>
+<a name="line-119"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-120"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-121"></a><span class='hs-sel'>_last</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>viewr</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
+<a name="line-122"></a>  <span class='hs-keyword'>as</span> <span class='hs-conop'>:&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-keyword'>as</span> <span class='hs-varop'>|&gt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span><span class='hs-varop'>.</span><span class='hs-varid'>length</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-123"></a>  <span class='hs-conid'>EmptyR</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>m</span>
+<a name="line-124"></a><span class='hs-comment'>{-# INLINE _last #-}</span>
+<a name="line-125"></a>
+<a name="line-126"></a><span class='hs-comment'>-- | Traverse all but the last element of a 'Seq'</span>
+<a name="line-127"></a><span class='hs-comment'>--</span>
+<a name="line-128"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [1,2,3] ^? _init</span>
+<a name="line-129"></a><span class='hs-comment'>-- Just (fromList [1,2])</span>
+<a name="line-130"></a><span class='hs-comment'>--</span>
+<a name="line-131"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d] &amp; _init.traverse %~ f</span>
+<a name="line-132"></a><span class='hs-comment'>-- fromList [f a,f b,f c,d]</span>
+<a name="line-133"></a><span class='hs-comment'>--</span>
+<a name="line-134"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [] &amp; _init .~ fromList [a,b,c]</span>
+<a name="line-135"></a><span class='hs-comment'>-- fromList []</span>
+<a name="line-136"></a><span class='hs-sel'>_init</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Traversal'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-137"></a><span class='hs-sel'>_init</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>viewr</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
+<a name="line-138"></a>  <span class='hs-keyword'>as</span> <span class='hs-conop'>:&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varop'>|&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
+<a name="line-139"></a>  <span class='hs-conid'>EmptyR</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>m</span>
+<a name="line-140"></a><span class='hs-comment'>{-# INLINE _init #-}</span>
+<a name="line-141"></a>
+<a name="line-142"></a><a name="slicedTo"></a><span class='hs-comment'>-- | Traverse the first @n@ elements of a 'Seq'</span>
+<a name="line-143"></a><span class='hs-comment'>--</span>
+<a name="line-144"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] ^.. slicedTo 2</span>
+<a name="line-145"></a><span class='hs-comment'>-- [a,b]</span>
+<a name="line-146"></a><span class='hs-comment'>--</span>
+<a name="line-147"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; slicedTo 2 %~ f</span>
+<a name="line-148"></a><span class='hs-comment'>-- fromList [f a,f b,c,d,e]</span>
+<a name="line-149"></a><span class='hs-comment'>--</span>
+<a name="line-150"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; slicedTo 10 .~ x</span>
+<a name="line-151"></a><span class='hs-comment'>-- fromList [x,x,x,x,x]</span>
+<a name="line-152"></a><span class='hs-definition'>slicedTo</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-153"></a><span class='hs-definition'>slicedTo</span> <span class='hs-varid'>n</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-conid'>Seq</span><span class='hs-varop'>.</span><span class='hs-varid'>splitAt</span> <span class='hs-varid'>n</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
+<a name="line-154"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>l</span><span class='hs-layout'>,</span><span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varop'>&gt;&lt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>itraverse</span> <span class='hs-layout'>(</span><span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>l</span>
+<a name="line-155"></a><span class='hs-comment'>{-# INLINE slicedTo #-}</span>
+<a name="line-156"></a>
+<a name="line-157"></a><a name="slicedFrom"></a><span class='hs-comment'>-- | Traverse all but the first @n@ elements of a 'Seq'</span>
+<a name="line-158"></a><span class='hs-comment'>--</span>
+<a name="line-159"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] ^.. slicedFrom 2</span>
+<a name="line-160"></a><span class='hs-comment'>-- [c,d,e]</span>
+<a name="line-161"></a><span class='hs-comment'>--</span>
+<a name="line-162"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; slicedFrom 2 %~ f</span>
+<a name="line-163"></a><span class='hs-comment'>-- fromList [a,b,f c,f d,f e]</span>
+<a name="line-164"></a><span class='hs-comment'>--</span>
+<a name="line-165"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; slicedFrom 10 .~ x</span>
+<a name="line-166"></a><span class='hs-comment'>-- fromList [a,b,c,d,e]</span>
+<a name="line-167"></a><span class='hs-definition'>slicedFrom</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-168"></a><span class='hs-definition'>slicedFrom</span> <span class='hs-varid'>n</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-conid'>Seq</span><span class='hs-varop'>.</span><span class='hs-varid'>splitAt</span> <span class='hs-varid'>n</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>of</span>
+<a name="line-169"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>l</span><span class='hs-layout'>,</span><span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-varop'>&gt;&lt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>itraverse</span> <span class='hs-layout'>(</span><span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span><span class='hs-varid'>n</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>r</span>
+<a name="line-170"></a><span class='hs-comment'>{-# INLINE slicedFrom #-}</span>
+<a name="line-171"></a>
+<a name="line-172"></a><span class='hs-comment'>-- | Traverse all the elements numbered from @i@ to @j@ of a 'Seq'</span>
+<a name="line-173"></a><span class='hs-comment'>--</span>
+<a name="line-174"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; sliced 1 3 %~ f</span>
+<a name="line-175"></a><span class='hs-comment'>-- fromList [a,f b,f c,d,e]</span>
+<a name="line-176"></a>
+<a name="line-177"></a><a name="sliced"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] ^.. sliced 1 3</span>
+<a name="line-178"></a><span class='hs-comment'>-- [f b,f c]</span>
+<a name="line-179"></a><span class='hs-comment'>--</span>
+<a name="line-180"></a><span class='hs-comment'>-- &gt;&gt;&gt; fromList [a,b,c,d,e] &amp; sliced 1 3 .~ x</span>
+<a name="line-181"></a><span class='hs-comment'>-- fromList [a,x,x,b,e]</span>
+<a name="line-182"></a><span class='hs-definition'>sliced</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-183"></a><span class='hs-definition'>sliced</span> <span class='hs-varid'>i</span> <span class='hs-varid'>j</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-conid'>Seq</span><span class='hs-varop'>.</span><span class='hs-varid'>splitAt</span> <span class='hs-varid'>i</span> <span class='hs-varid'>s</span> <span class='hs-keyword'>of</span>
+<a name="line-184"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>l</span><span class='hs-layout'>,</span><span class='hs-varid'>mr</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-conid'>Seq</span><span class='hs-varop'>.</span><span class='hs-varid'>splitAt</span> <span class='hs-layout'>(</span><span class='hs-varid'>j</span><span class='hs-comment'>-</span><span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-varid'>mr</span> <span class='hs-keyword'>of</span>
+<a name="line-185"></a>     <span class='hs-layout'>(</span><span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>itraverse</span> <span class='hs-layout'>(</span><span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-varop'>+</span><span class='hs-varid'>i</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>m</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>n</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&gt;&lt;</span> <span class='hs-varid'>n</span> <span class='hs-varop'>&gt;&lt;</span> <span class='hs-varid'>r</span>
+<a name="line-186"></a><span class='hs-comment'>{-# INLINE sliced #-}</span>
 </pre></body>
 </html>
