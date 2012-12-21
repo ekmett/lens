@@ -60,7 +60,7 @@ import Data.Proxy
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Numeric.Natural
--- >>> :set -XFlexibleContexts -XTypeFamilies
+-- >>> :set -XFlexibleContexts
 -- >>> let nat :: Simple Prism Integer Natural; nat = prism toInteger $ \i -> if i <= 0 then Left i else Right (fromInteger i)
 -- >>> let isLeft  (Left  _) = True; isLeft  _ = False
 -- >>> let isRight (Right _) = True; isRight _ = False
