@@ -7,7 +7,7 @@ before_install:
   - ./travis-cabal-apt-install --only-dependencies --force-reinstall $mode
 
 install:
-  - cabal configure $mode
+  - cabal configure --ghc-options='-Werror -Wall' $mode
   - cabal build
   - cabal install hlint
 
