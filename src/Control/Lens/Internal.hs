@@ -51,7 +51,7 @@ module Control.Lens.Internal
   , Indexing64(..)
   -- * Overloadings
   , Review(..)
-  , Exchange(..), exchange
+  , Exchange(..)
   , Market(..)
   , Indexed(..)
   ) where
@@ -524,42 +524,32 @@ instance Prismatic Review where
 -- instance Functor f => Profunctor (Exchange f)
 -- instance Applicative f => Prismatic (Exchange f)
 
-data Exchange r a b = Exchange (a -> r) b
+newtype Exchange a b s t = Exchange { exchange :: forall r. ((s -> a) -> (b -> t) -> r) -> r }
 
-exchange :: Exchange r a b -> a -> r
-exchange (Exchange ar _) = ar
-{-# INLINE exchange #-}
-
-instance Functor (Exchange r a) where
-  fmap bc (Exchange ar b) = Exchange ar (bc b)
+instance Functor (Exchange a b s) where
+  fmap f x = exchange x $ \sa bt -> Exchange $ \k -> k sa (f . bt)
   {-# INLINE fmap #-}
 
-instance Comonad (Exchange r a) where
-  extract (Exchange _ b) = b
-  {-# INLINE extract #-}
-  duplicate w@(Exchange ar _) = Exchange ar w
-  {-# INLINE duplicate #-}
-
-instance Profunctor (Exchange r) where
-  lmap ab (Exchange br c) = Exchange (br . ab) c
+instance Profunctor (Exchange a b) where
+  lmap f x = exchange x $ \sa bt -> Exchange $ \k -> k (sa . f) bt
   {-# INLINE lmap #-}
   rmap = fmap
   {-# INLINE rmap #-}
 
-data Market r a b = Market { market :: a -> Either b r, extort :: b }
+newtype Market a b s t = Market { market :: forall r. ((b -> t) -> (s -> Either t a) -> r) -> r }
 
-instance Functor (Market r a) where
-  fmap bc (Market aebr b) = Market (either (Left . bc) Right . aebr) (bc b)
+instance Functor (Market a b s) where
+  fmap f x = market x $ \bt seta -> Market $ \k -> k (f . bt) (either (Left . f) Right . seta)
   {-# INLINE fmap #-}
 
-instance Profunctor (Market r) where
-  lmap ab (Market becr c) = Market (becr . ab) c
+instance Profunctor (Market a b) where
+  lmap f x = market x $ \bt seta -> Market $ \k -> k bt (seta . f)
   {-# INLINE lmap #-}
   rmap = fmap
   {-# INLINE rmap #-}
 
-instance Prismatic (Market r) where
-  prismatic seta (Market aeftr ft) = Market (either (Left . pure) aeftr . seta) ft
+instance Prismatic (Market a b) where
+  prismatic f x = market x $ \bt seta -> Market $ \k -> k bt (either (Left . pure) seta . f)
   {-# INLINE prismatic #-}
 
 ------------------------------------------------------------------------------

@@ -53,6 +53,7 @@ module Control.Lens.Iso
 
 import Control.Comonad
 import Control.Lens.Internal
+import Control.Lens.Internal.Composition
 import Control.Lens.Type
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
@@ -61,6 +62,9 @@ import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Maybe
 import Data.Profunctor
+#ifndef SAFE
+import Unsafe.Coerce
+#endif
 
 {-# ANN module "HLint: ignore Use on" #-}
 
@@ -115,7 +119,7 @@ cloneIso = withIso iso
 type Iso s t a b = forall k f. (Profunctor k, Functor f) => k a (f b) -> k s (f t)
 
 -- | When you see this as an argument to a function, it expects an 'Iso'.
-type AnIso s t a b = Exchange a a (Identity b) -> Exchange a s (Identity t)
+type AnIso s t a b = Exchange a b a (Mutator b) -> Exchange a b s (Mutator t)
 
 -- | Safely decompose 'AnIso'
 --
@@ -123,10 +127,12 @@ type AnIso s t a b = Exchange a a (Identity b) -> Exchange a s (Identity t)
 --
 -- @'from' ≡ 'withIso' ('flip' 'iso')@
 withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
-withIso k ai = k sa bt where
-  go = ai . Exchange id . Identity
-  sa = exchange (go (error "withIso: invalid Iso passed as AnIso"))
-  bt = runIdentity . extract . go
+withIso k ai = exchange (ai (Exchange (\j -> j id Mutator))) k' where
+#ifdef SAFE
+  k' sa bt = k sa (runMutator #. bt)
+#else
+  k' = unsafeCoerce k
+#endif
 {-# INLINE withIso #-}
 
 -- |

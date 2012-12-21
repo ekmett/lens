@@ -54,6 +54,7 @@ import Control.Lens.Classes
 import Control.Lens.Combinators
 import Control.Lens.Getter
 import Control.Lens.Internal
+import Control.Lens.Internal.Composition
 import Control.Lens.Type
 import Data.Functor.Identity
 import Data.Profunctor
@@ -153,18 +154,15 @@ type Prism' s a = Prism s s a a
 type Reviewing s t a b = Overloading Review Review Identity s t a b
 
 -- | If you see this in a signature for a function, the function is expecting a 'Prism'.
-type APrism s t a b = Market a a (Identity b) -> Market a s (Identity t)
+type APrism s t a b = Market a b a (Mutator b) -> Market a b s (Mutator t)
 
 -- | Safely decompose 'APrism'
 withPrism :: ((b -> t) -> (s -> Either t a) -> r) -> APrism s t a b -> r
-withPrism k p = k bt seta where
-  go = p . Market Right . Identity
-  bt = runIdentity . extort . go
-  seta = erase (market (go (error "withPrism: invalid Prism passed as APrism")))
+withPrism k p = market (p (Market (\j -> j Mutator Right))) k' where
 #ifdef SAFE
-  erase f = either (Left . runIdentity) Right . f
+  k' bt sa = k (runMutator #. bt) (either (Left . runMutator) Right . sa)
 #else
-  erase = unsafeCoerce
+  k' = unsafeCoerce k
 #endif
 {-# INLINE withPrism #-}
 
