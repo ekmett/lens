@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Main where
 
@@ -10,7 +11,7 @@ import Data.Map as Map
 import Test.Framework.Providers.HUnit
 import Test.Framework.TH
 import Test.Framework
-import Test.HUnit
+import Test.HUnit hiding (test)
 
 -- The code attempts to enumerate common use cases rather than give an example
 -- of each available lens function. The tests here merely scratch the surface
@@ -226,13 +227,13 @@ case_read_maybe_state_map_entry =
   runState test trig @?= (Just "Origin", trig)
   where test = use $ labels.at origin
 
-case_read_map_entry = trig^.labels._at origin @?= "Origin"
+case_read_map_entry = trig^.labels.ix origin @?= "Origin"
 
 case_read_state_map_entry = runState test trig @?= ("Origin", trig)
-  where test = use $ labels._at origin
+  where test = use $ labels.ix origin
 
 case_modify_map_entry =
-  (trig & labels._at origin %~ List.map toUpper)
+  (trig & labels.ix origin %~ List.map toUpper)
     @?= trig { _labels = fromList [ (Point { _x = 0, _y = 0 }, "ORIGIN")
                                   , (Point { _x = 4, _y = 7 }, "Peak") ] }
 

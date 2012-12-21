@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -7,10 +8,7 @@
 module Main where
 
 import Control.Applicative
-import Control.Monad
 import Control.Lens
-import Data.Functor.Identity
-import System.Exit
 import Test.QuickCheck
 import Test.QuickCheck.Function
 import Test.Framework.TH
@@ -49,13 +47,13 @@ prism_yin l a = preview l (review l a) == Just a
 prism_yang :: Eq s => Prism' s a -> s -> Bool
 prism_yang l s = maybe s (review l) (preview l s) == s
 
-traverse_pure :: forall f s a. (Applicative f, Eq (f s)) => SimpleLensLike f s a -> s -> Bool
+traverse_pure :: forall f s a. (Applicative f, Eq (f s)) => LensLike' f s a -> s -> Bool
 traverse_pure l s = l pure s == (pure s :: f s)
 
-traverse_pureMaybe :: Eq s => SimpleLensLike Maybe s a -> s -> Bool
+traverse_pureMaybe :: Eq s => LensLike' Maybe s a -> s -> Bool
 traverse_pureMaybe = traverse_pure
 
-traverse_pureList :: Eq s => SimpleLensLike [] s a -> s -> Bool
+traverse_pureList :: Eq s => LensLike' [] s a -> s -> Bool
 traverse_pureList = traverse_pure
 
 traverse_compose :: (Applicative f, Applicative g, Eq (f (g s)))
