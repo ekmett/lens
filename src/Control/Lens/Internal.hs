@@ -52,7 +52,7 @@ module Control.Lens.Internal
   -- * Overloadings
   , Review(..)
   , Exchange(..), exchange
-  , Market(..), market, extort
+  , Market(..)
   , Indexed(..)
   ) where
 
@@ -548,15 +548,7 @@ instance Profunctor (Exchange r) where
   rmap = fmap
   {-# INLINE rmap #-}
 
-data Market r a b = Market (a -> Either b r) b
-
-market :: Market r a b -> a -> Either b r
-market (Market aebr _) = aebr
-{-# INLINE market #-}
-
-extort :: Market r a b -> b
-extort (Market _ b) = b
-{-# INLINE exort #-}
+data Market r a b = Market { market :: a -> Either b r, extort :: b }
 
 instance Functor (Market r a) where
   fmap bc (Market aebr b) = Market (either (Left . bc) Right . aebr) (bc b)

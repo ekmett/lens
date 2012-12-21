@@ -56,7 +56,6 @@ import           Control.Lens.Setter
 import           Control.Lens.Traversal
 import           Control.Lens.Type
 import           Data.Data
-import           Data.Maybe (fromMaybe)
 import           GHC.IO
 import           Unsafe.Coerce as Unsafe
 
@@ -68,8 +67,8 @@ import           Data.HashMap.Strict (HashMap, (!))
 import qualified Data.HashSet as S
 import           Data.HashSet (HashSet)
 import           Data.IORef
-import           Data.Maybe
 import           Data.Monoid
+import           Data.Maybe
 import           GHC.Exts (realWorld#)
 #endif
 
