@@ -556,7 +556,7 @@ market (Market aebr _) = aebr
 
 extort :: Market r a b -> b
 extort (Market _ b) = b
-{-# INLINE exort #-}
+{-# INLINE extort #-}
 
 instance Functor (Market r a) where
   fmap bc (Market aebr b) = Market (either (Left . bc) Right . aebr) (bc b)
