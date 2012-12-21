@@ -518,6 +518,7 @@ instance Profunctor Review where
 
 instance Prismatic Review where
   prismatic _ (Review ft) = Review ft
+  {-# INLINE #-}
 
 -- These are both specialisations of:
 --
