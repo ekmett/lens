@@ -65,6 +65,7 @@ import Data.Maybe
 #ifndef SAFE
 import Unsafe.Coerce (unsafeCoerce)
 import GHC.Exts (Any)
+import GHC.Conc (pseq)
 #endif
 
 {-# ANN module "HLint: ignore Use on" #-}
@@ -164,7 +165,7 @@ rToL = chooseL . fromR
 newtype IsoChoice f a b = IsoChoice Any
 
 instance Functor (IsoChoice f a) where
-  fmap = unsafeCoerce
+  fmap f = \x -> x `pseq` unsafeCoerce f x
   {-# INLINE fmap #-}
 
 chooseL :: a -> IsoChoice f a b
