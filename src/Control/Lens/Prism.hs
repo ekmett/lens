@@ -40,6 +40,7 @@ module Control.Lens.Prism
   , _right
   , _just
   -- * Implementation details
+  , Prismatic(..)
   , Review(..)
   -- * Simple
   , SimplePrism
