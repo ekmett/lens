@@ -125,7 +125,6 @@ type AnIso s t a b = Exchange a a (Identity b) -> Exchange a s (Identity t)
 withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
 withIso k ai = k sa bt where
   go = ai . Exchange id . Identity
-  {-# INLINE go #-}
   sa = exchange (go (error "withIso: invalid Iso passed as AnIso"))
   bt = runIdentity . extract . go
 {-# INLINE withIso #-}

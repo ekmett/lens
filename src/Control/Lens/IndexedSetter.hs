@@ -69,7 +69,7 @@ type IndexedSetting i s t a b = IndexedLensLike (Indexed i) Mutator s t a b
 -- 'iover' :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
 iover :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
-iover l f = runMutator # withIndex l (\i -> Mutator # f i)
+iover l f = runMutator #. withIndex l (\i -> Mutator #. f i)
 {-# INLINE iover #-}
 
 -- | Build an 'IndexedSetter' from an 'imap'-like function.
@@ -109,7 +109,7 @@ isets f g = taintedDot (f (\i -> untaintedDot (indexed g i)))
 -- ('%@~') :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
 (%@~) :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
-l %@~ f = runMutator # withIndex l (\i -> Mutator # f i)
+l %@~ f = runMutator #. withIndex l (\i -> Mutator #. f i)
 {-# INLINE (%@~) #-}
 
 -- | Adjust every target in the current state of an 'IndexedSetter', 'Control.Lens.IndexedLens.IndexedLens' or 'Control.Lens.IndexedTraversal.IndexedTraversal'
@@ -155,7 +155,7 @@ type ReifiedIndexedSetter' i s a = ReifiedIndexedSetter i s s a a
 -- 'imapOf' :: 'Control.Lens.IndexedTraversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
 imapOf :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
-imapOf l f = runMutator # withIndex l (\i -> Mutator # f i)
+imapOf l f = runMutator #. withIndex l (\i -> Mutator #. f i)
 {-# INLINE imapOf #-}
 {-# DEPRECATED imapOf "use iover" #-}
 
