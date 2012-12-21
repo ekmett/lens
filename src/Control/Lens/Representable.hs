@@ -312,7 +312,7 @@ rmapped f = taintedDot (rmap (\i -> untaintedDot (indexed f (Path i))))
 
 -- | An 'IndexedFold' that walks an 'Foldable' 'Representable' 'Functor' using a 'Path' for an index.
 rfolded :: (Representable f, Foldable f) => IndexedFold (Path f) (f a) a
-rfolded f =  coerce . getFolding . rfoldMap (\i -> Folding # indexed f (Path i))
+rfolded f =  coerce . getFolding . rfoldMap (\i -> Folding #. indexed f (Path i))
 {-# INLINE rfolded #-}
 
 -- | An 'IndexedTraversal' for a 'Traversable' 'Representable' 'Functor'.

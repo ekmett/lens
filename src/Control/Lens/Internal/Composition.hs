@@ -36,32 +36,45 @@ import Data.Monoid
 import Unsafe.Coerce
 #endif
 
-infixr 8 #
+infixr 9 #.
+infixl 8 .#
 
 class NewtypeComposition a b where
-  ( # ) :: (a -> b) -> (c -> a) -> c -> b
-  f # g = f `seq` g `seq` \x -> f (g x)
-  {-# INLINE ( # ) #-}
+  ( #. ) :: (a -> b) -> (c -> a) -> c -> b
+  ( #. ) = \f -> f `seq` \g -> g `seq` \x -> f (g x)
+  {-# INLINE ( #. ) #-}
+
+  ( .# ) :: (b -> c) -> (a -> b) -> a -> c
+  ( .# ) = \f -> f `seq` \g -> g `seq` \x -> f (g x)
+  {-# INLINE ( .# ) #-}
 
 #ifndef SAFE
 #define COMPOSE(a, b, f, g) \
   instance NewtypeComposition (a) (b) where { \
-    ( # ) _ = unsafeCoerce; \
-    {-# INLINE ( # ) #-}; \
+    ( #. ) = \_ -> unsafeCoerce; \
+    {-# INLINE ( #. ) #-}; \
+    ( .# ) = \h -> \_ -> unsafeCoerce h; \
+    {-# INLINE ( .# ) #-}; \
   }; \
   instance NewtypeComposition (b) (a) where { \
-    ( # ) _ = unsafeCoerce; \
-    {-# INLINE ( # ) #-}; \
+    ( #. ) = \_ -> unsafeCoerce; \
+    {-# INLINE ( #. ) #-}; \
+    ( .# ) = \h -> \_ -> unsafeCoerce h; \
+    {-# INLINE ( .# ) #-}; \
   }
 #else
 #define COMPOSE(a, b, f, g) \
   instance NewtypeComposition (a) (b) where { \
-    ( # ) _ = \h -> h `seq` \x -> (g) (h x); \
-    {-# INLINE ( # ) #-}; \
+    ( #. ) = \_ -> \h -> h `seq` \x -> (g) (h x); \
+    {-# INLINE ( #. ) #-}; \
+    ( .# ) = \h -> h `seq` \_ -> \x -> h ((g) x); \
+    {-# INLINE ( .# ) #-}; \
   }; \
   instance NewtypeComposition (b) (a) where { \
-    ( # ) _ = \h -> h `seq` \x -> (f) (h x); \
-    {-# INLINE ( # ) #-}; \
+    ( #. ) = \_ -> \h -> h `seq` \x -> (f) (h x); \
+    {-# INLINE ( #. ) #-}; \
+    ( .# ) = \h -> h `seq` \_ -> \x -> h ((f) x); \
+    {-# INLINE ( .# ) #-}; \
   }
 #endif
 

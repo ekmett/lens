@@ -60,12 +60,12 @@ type Acting m r s t a b = (a -> Effect m r b) -> s -> Effect m r t
 --
 -- @'perform' ≡ 'flip' ('^!')@
 perform :: Monad m => Acting m a s t a b -> s -> m a
-perform l = getEffect # l (Effect # return)
+perform l = getEffect #. l (Effect #. return)
 {-# INLINE perform #-}
 
 -- | Perform an 'Action' and modify the result.
 performs :: Monad m => Acting m e s t a b -> (a -> e) -> s -> m e
-performs l f = getEffect # l (Effect # return . f)
+performs l f = getEffect #. l (Effect #. return . f)
 
 -- | Perform an 'Action'
 --
@@ -73,7 +73,7 @@ performs l f = getEffect # l (Effect # return . f)
 -- hello
 -- world
 (^!) :: Monad m => s -> Acting m a s t a b -> m a
-a ^! l = getEffect (l (Effect # return) a)
+a ^! l = getEffect (l (Effect #. return) a)
 {-# INLINE (^!) #-}
 
 -- | Construct an 'Action' from a monadic side-effect
