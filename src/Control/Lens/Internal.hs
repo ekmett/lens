@@ -519,7 +519,6 @@ instance Profunctor Review where
 instance Prismatic Review where
   prismatic _ (Review ft) = Review ft
 
-
 -- These are both specialisations of:
 --
 -- data Exchange f a b = Exchange (a -> f b) b
