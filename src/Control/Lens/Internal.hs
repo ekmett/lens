@@ -519,6 +519,7 @@ instance Profunctor Review where
 instance Prismatic Review where
   prismatic _ (Review ft) = Review ft
 
+
 -- These are both specialisations of:
 --
 -- data Exchange f a b = Exchange (a -> f b) b
@@ -555,6 +556,7 @@ market (Market aebr _) = aebr
 
 extort :: Market r a b -> b
 extort (Market _ b) = b
+{-# INLINE exort #-}
 
 instance Functor (Market r a) where
   fmap bc (Market aebr b) = Market (either (Left . bc) Right . aebr) (bc b)
@@ -568,6 +570,7 @@ instance Profunctor (Market r) where
 
 instance Prismatic (Market r) where
   prismatic seta (Market aeftr ft) = Market (either (Left . pure) aeftr . seta) ft
+  {-# INLINE prismatic #-}
 
 ------------------------------------------------------------------------------
 -- Indexed Internals
