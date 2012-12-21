@@ -50,7 +50,9 @@ module Control.Lens.Internal
   , Indexing(..)
   , Indexing64(..)
   -- * Overloadings
-  , PrismChoice(..), fromPrismLeft, fromPrismRight
+  , Review(..)
+  , Exchange(..), exchange
+  , Market(..), market, extort
   , Indexed(..)
   ) where
 
@@ -499,36 +501,73 @@ sellT i = BazaarT (\k -> k i)
 {-# INLINE sellT #-}
 
 ------------------------------------------------------------------------------
--- Prism Internals
+-- Isomorphism and Prism Internals
 ------------------------------------------------------------------------------
 
-data PrismChoice a b = PrismLeft a | PrismRight b
+data Review a b = Review { reviewed :: b }
 
-instance Functor (PrismChoice a) where
-  fmap _ (PrismLeft a) = PrismLeft a
-  fmap f (PrismRight b) = PrismRight (f b)
+instance Functor (Review a) where
+  fmap bc (Review b) = Review (bc b)
   {-# INLINE fmap #-}
 
-instance Applicative (PrismChoice a) where
-  pure = PrismRight
-  {-# INLINE pure #-}
-  (<*>) = error "(<*>): invalid Prism passed as APrism"
+instance Profunctor Review where
+  lmap _ (Review c) = Review c
+  {-# INLINE lmap #-}
+  rmap = fmap
+  {-# INLINE rmap #-}
 
-instance Costrong (PrismChoice a) where
-  costrength (PrismLeft a) = Right (PrismLeft a)
-  costrength (PrismRight (Left b)) = Left b
-  costrength (PrismRight (Right c)) = Right (PrismRight c)
-  {-# INLINE costrength #-}
+instance Prismatic Review where
+  prismatic _ (Review ft) = Review ft
 
-fromPrismLeft :: PrismChoice a b -> a
-fromPrismLeft (PrismLeft a) = a
-fromPrismLeft _ = error "fromPrismLeft: invalid Prism passed as APrism"
-{-# INLINE fromPrismLeft #-}
+-- These are both specialisations of:
+--
+-- data Exchange f a b = Exchange (a -> f b) b
+-- instance Functor f => Profunctor (Exchange f)
+-- instance Applicative f => Prismatic (Exchange f)
 
-fromPrismRight :: PrismChoice a b -> b
-fromPrismRight (PrismRight b) = b
-fromPrismRight _ = error "fromPrismRight: invalid Prism passed as APrism"
-{-# INLINE fromPrismRight #-}
+data Exchange r a b = Exchange (a -> r) b
+
+exchange :: Exchange r a b -> a -> r
+exchange (Exchange ar _) = ar
+{-# INLINE exchange #-}
+
+instance Functor (Exchange r a) where
+  fmap bc (Exchange ar b) = Exchange ar (bc b)
+  {-# INLINE fmap #-}
+
+instance Comonad (Exchange r a) where
+  extract (Exchange _ b) = b
+  {-# INLINE extract #-}
+  duplicate w@(Exchange ar _) = Exchange ar w
+  {-# INLINE duplicate #-}
+
+instance Profunctor (Exchange r) where
+  lmap ab (Exchange br c) = Exchange (br . ab) c
+  {-# INLINE lmap #-}
+  rmap = fmap
+  {-# INLINE rmap #-}
+
+data Market r a b = Market (a -> Either b r) b
+
+market :: Market r a b -> a -> Either b r
+market (Market aebr _) = aebr
+{-# INLINE market #-}
+
+extort :: Market r a b -> b
+extort (Market _ b) = b
+
+instance Functor (Market r a) where
+  fmap bc (Market aebr b) = Market (either (Left . bc) Right . aebr) (bc b)
+  {-# INLINE fmap #-}
+
+instance Profunctor (Market r) where
+  lmap ab (Market becr c) = Market (becr . ab) c
+  {-# INLINE lmap #-}
+  rmap = fmap
+  {-# INLINE rmap #-}
+
+instance Prismatic (Market r) where
+  prismatic seta (Market aeftr ft) = Market (either (Left . pure) aeftr . seta) ft
 
 ------------------------------------------------------------------------------
 -- Indexed Internals

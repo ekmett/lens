@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 #ifndef MIN_VERSION_base
 #define MIN_VERSION_base(x,y,z) 1

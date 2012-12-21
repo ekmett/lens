@@ -46,28 +46,22 @@ module Control.Lens.Iso
   , enum
   , curried, uncurried
   , Strict(..)
+  -- * Implementation details
+  , Exchange(..)
   -- * Deprecated
   , SimpleIso
-  -- * Implementation details
-  , IsoChoice
-  , IsoF
-  , IsoG
   ) where
 
 import Control.Comonad
-import Control.Lens.Classes
+import Control.Lens.Internal
 import Control.Lens.Type
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
+import Data.Functor.Identity
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Maybe
-#ifndef SAFE
-import Unsafe.Coerce (unsafeCoerce)
-import GHC.Exts (Any)
-#endif
-
-{-# ANN module "HLint: ignore Use on" #-}
+import Data.Profunctor
 
 -- $setup
 -- >>> import Control.Lens
@@ -88,7 +82,7 @@ import GHC.Exts (Any)
 -- 'Control.Lens.Setter.set' ('Control.Lens.Iso.from' ('iso' f g)) h ≡ f '.' h '.' g
 -- @
 iso :: (s -> a) -> (b -> t) -> Iso s t a b
-iso sa bt = unalgebraic $ \f -> fmap bt . f . fmap sa
+iso sa bt = lmap sa . rmap (fmap bt)
 {-# INLINE iso #-}
 
 ----------------------------------------------------------------------------
@@ -117,76 +111,10 @@ cloneIso = withIso iso
 -----------------------------------------------------------------------------
 
 -- | Isomorphism families can be composed with other lenses using ('.') and 'id'.
-type Iso s t a b = forall k g f. (Algebraic g k, Functor g, Functor f) => k a (f b) -> k s (f t)
+type Iso s t a b = forall k f. (Profunctor k, Functor f) => k a (f b) -> k s (f t)
 
 -- | When you see this as an argument to a function, it expects an 'Iso'.
-type AnIso s t a b =
-  Cokleisli (IsoChoice IsoG ()) a (IsoChoice IsoF a b) ->
-  Cokleisli (IsoChoice IsoG ()) s (IsoChoice IsoF a t)
-
-data IsoF
-data IsoG
-
-#ifdef SAFE
-
--- | Used in the implementation of 'fromIso'.
-newtype IsoChoice f a b = IsoChoice (Either a b)
-
-instance Functor (IsoChoice f a) where
-  fmap f (IsoChoice e) = IsoChoice (fmap f e)
-
-chooseL :: a -> IsoChoice f a b
-chooseL = IsoChoice . Left
-{-# INLINE chooseL #-}
-
-chooseR :: b -> IsoChoice f a b
-chooseR = IsoChoice . Right
-{-# INLINE chooseR #-}
-
-fromL :: IsoChoice f a b -> a
-fromL (IsoChoice (Left a)) = a
-fromL _ = error "Control.Lens.Iso.fromL: Right"
-{-# INLINE fromL #-}
-
-fromR :: IsoChoice f a b -> b
-fromR (IsoChoice (Right b)) = b
-fromR _ = error "Control.Lens.Iso.fromR: Left"
-{-# INLINE fromR #-}
-
-rToL :: IsoChoice f a b -> IsoChoice g b c
-rToL = chooseL . fromR
-{-# INLINE rToL #-}
-
-#else
-
--- | Used in the implementation of 'fromIso'.
-newtype IsoChoice f a b = IsoChoice Any
-
-instance Functor (IsoChoice f a) where
-  fmap f (IsoChoice x) = IsoChoice (unsafeCoerce (f (unsafeCoerce x)))
-  {-# INLINE fmap #-}
-
-chooseL :: a -> IsoChoice f a b
-chooseL x = IsoChoice (unsafeCoerce x)
-{-# INLINE chooseL #-}
-
-chooseR :: b -> IsoChoice f a b
-chooseR x = IsoChoice (unsafeCoerce x)
-{-# INLINE chooseR #-}
-
-fromL :: IsoChoice f a b -> a
-fromL (IsoChoice x) = unsafeCoerce x
-{-# INLINE fromL #-}
-
-fromR :: IsoChoice f a b -> b
-fromR (IsoChoice x) = unsafeCoerce x
-{-# INLINE fromR #-}
-
-rToL :: IsoChoice f a b -> IsoChoice g b c
-rToL = unsafeCoerce
-{-# INLINE rToL #-}
-
-#endif
+type AnIso s t a b = Exchange a a (Identity b) -> Exchange a s (Identity t)
 
 -- | Safely decompose 'AnIso'
 --
@@ -194,9 +122,11 @@ rToL = unsafeCoerce
 --
 -- @'from' ≡ 'withIso' ('flip' 'iso')@
 withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
-withIso k ai = k
-  (fromL . algebraic ai rToL . chooseR)
-  (\b -> fromR $ algebraic ai (\_ -> chooseR b) (chooseL ()))
+withIso k ai = k sa bt where
+  go = ai . Exchange id . Identity
+  {-# INLINE go #-}
+  sa = exchange (go (error "withIso: invalid Iso passed as AnIso"))
+  bt = runIdentity . extract . go
 {-# INLINE withIso #-}
 
 -- |

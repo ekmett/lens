@@ -1,7 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
@@ -370,10 +369,10 @@ itoListOf :: IndexedGetting i (Endo [(i,a)]) s t a b -> s -> [(i,a)]
 itoListOf l = ifoldrOf l (\i a -> ((i,a):)) []
 {-# INLINE itoListOf #-}
 
--- | An infixed version of 'itoListOf'
+-- | An infix version of 'itoListOf'
 
 -- @
--- ('^@..' :: s -> 'IndexedGetter' i s a          -> [(i,a)]
+-- ('^@..') :: s -> 'IndexedGetter' i s a          -> [(i,a)]
 -- ('^@..') :: s -> 'IndexedFold' i s a            -> [(i,a)]
 -- ('^@..') :: s -> 'Control.Lens.IndexedLens.IndexedLens'' i s a      -> [(i,a)]
 -- ('^@..') :: s -> 'Control.Lens.IndexedTraversal.IndexedTraversal'' i s a -> [(i,a)]

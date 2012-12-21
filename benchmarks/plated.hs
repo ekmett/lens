@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
 {-# OPTIONS_GHC -funbox-strict-fields #-}
 import           Control.Applicative
