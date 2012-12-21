@@ -45,7 +45,6 @@ module Data.Data.Lens
 
 import           Control.Applicative
 import           Control.Exception as E
-import           Control.Lens.Combinators
 import           Control.Lens.Getter
 import           Control.Lens.Indexed
 import           Control.Lens.IndexedLens
@@ -58,9 +57,11 @@ import           Control.Lens.Type
 import           Data.Data
 import           GHC.IO
 import           Unsafe.Coerce as Unsafe
+import           Data.Maybe
 
 #ifndef SAFE
 import           Control.Arrow ((&&&))
+import           Control.Lens.Combinators
 import           Data.Foldable
 import qualified Data.HashMap.Strict as M
 import           Data.HashMap.Strict (HashMap, (!))
@@ -68,7 +69,6 @@ import qualified Data.HashSet as S
 import           Data.HashSet (HashSet)
 import           Data.IORef
 import           Data.Monoid
-import           Data.Maybe
 import           GHC.Exts (realWorld#)
 #endif
 
