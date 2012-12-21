@@ -39,6 +39,8 @@ module Control.Lens.Prism
   , _left
   , _right
   , _just
+  -- * Implementation details
+  , Review(..)
   -- * Simple
   , SimplePrism
   ) where
@@ -53,7 +55,8 @@ import Control.Lens.Combinators
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Type
-import Data.Proxy
+import Data.Functor.Identity
+import Data.Profunctor
 
 {-# ANN module "HLint: ignore Collapse lambdas" #-}
 
@@ -140,25 +143,24 @@ import Data.Proxy
 --
 -- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'
 -- -- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
-type Prism s t a b = forall k g f. (Algebraic g k, Costrong g, Applicative f) => k a (f b) -> k s (f t)
+type Prism s t a b = forall k f. (Prismatic k, Applicative f) => k a (f b) -> k s (f t)
 
 -- | A 'Simple' 'Prism'
 type Prism' s a = Prism s s a a
 
--- FIXME: Is Mutator correct here? (Should we use another name for Proxy?)
-type Reviewing s t a b = Cokleisli Proxy a (Mutator b) -> Cokleisli Proxy s (Mutator t)
+-- FIXME: Should we use another name for Identity?
+type Reviewing s t a b = Overloading Review Review Identity s t a b
 
--- | If you see this in a signature for a function, the function is expecting a 'Prism',
--- not some kind of alien invader.
-type APrism s t a b = Cokleisli (PrismChoice ()) a (PrismChoice a b) -> Cokleisli (PrismChoice ()) s (PrismChoice a t)
+-- | If you see this in a signature for a function, the function is expecting a 'Prism'.
+type APrism s t a b = Market a a (Identity b) -> Market a s (Identity t)
 
 -- | Safely decompose 'APrism'
 withPrism :: ((b -> t) -> (s -> Either t a) -> r) -> APrism s t a b -> r
-withPrism k p = k
-  (\b -> fromPrismRight $ algebraic p (\_ -> PrismRight b) (PrismLeft ()))
-  (\s -> case algebraic p (PrismLeft . fromPrismRight) (PrismRight s) of
-    PrismLeft a -> Right a
-    PrismRight t -> Left t)
+withPrism k ap = k bt seta where
+  go = ap . Market Right . Identity
+  {-# INLINE go #-}
+  bt = runIdentity . extort . go
+  seta = either (Left . runIdentity) Right . market (go (error "withPrism: invalid Prism passed as APrism"))
 {-# INLINE withPrism #-}
 
 -- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.
@@ -176,7 +178,7 @@ clonePrism = withPrism prism
 --
 -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
 prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
-prism bt seta = unalgebraic $ \f -> either pure (fmap bt . f) . costrength . fmap seta
+prism bt seta = prismatic seta . rmap (fmap bt)
 {-# INLINE prism #-}
 
 -- | Build a 'Prism''.
@@ -223,7 +225,7 @@ without = withPrism $ \bt seta -> withPrism $ \dv uevc ->
 -- 'remit' :: 'Iso' s t a b   -> 'Getter' b t
 -- @
 remit :: Reviewing s t a b -> Getter b t
-remit p = to $ \b -> runMutator $ algebraic p (\_ -> Mutator b) Proxy
+remit p = to (runIdentity . reviewed . p . Review . Identity)
 {-# INLINE remit #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.
@@ -249,7 +251,7 @@ remit p = to $ \b -> runMutator $ algebraic p (\_ -> Mutator b) Proxy
 -- 'review' :: 'MonadReader' a m => 'Prism'' s a -> m s
 -- @
 review :: MonadReader b m => Reviewing s t a b -> m t
-review p = asks $ \b -> runMutator $ algebraic p (\_ -> Mutator b) Proxy
+review p = asks (runIdentity . reviewed . p . Review . Identity)
 {-# INLINE review #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,
@@ -276,7 +278,7 @@ review p = asks $ \b -> runMutator $ algebraic p (\_ -> Mutator b) Proxy
 -- 'reviews' :: 'MonadReader' a m => 'Prism'' s a -> (s -> r) -> m r
 -- @
 reviews :: MonadReader b m => Reviewing s t a b -> (t -> r) -> m r
-reviews p tr = asks $ \b -> tr . runMutator $ algebraic p (\_ -> Mutator b) Proxy
+reviews p tr = asks (tr . runIdentity . reviewed . p . Review . Identity)
 {-# INLINE reviews #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.
@@ -291,7 +293,7 @@ reviews p tr = asks $ \b -> tr . runMutator $ algebraic p (\_ -> Mutator b) Prox
 -- 'reuse' :: 'MonadState' a m => 'Iso'' s a   -> m s
 -- @
 reuse :: MonadState b m => Reviewing s t a b -> m t
-reuse p = gets $ \b -> runMutator $ algebraic p (\_ -> Mutator b) Proxy
+reuse p = gets (runIdentity . reviewed . p . Review . Identity)
 {-# INLINE reuse #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,
@@ -307,7 +309,7 @@ reuse p = gets $ \b -> runMutator $ algebraic p (\_ -> Mutator b) Proxy
 -- 'reuses' :: 'MonadState' a m => 'Iso'' s a   -> (s -> r) -> m r
 -- @
 reuses :: MonadState b m => Reviewing s t a b -> (t -> r) -> m r
-reuses p tr = gets $ \b -> tr . runMutator $ algebraic p (\_ -> Mutator b) Proxy
+reuses p tr = gets (tr . runIdentity . reviewed . p . Review . Identity)
 {-# INLINE reuses #-}
 
 ------------------------------------------------------------------------------

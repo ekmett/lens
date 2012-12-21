@@ -26,10 +26,8 @@ module Control.Lens.Classes
   , Effective(..)
   -- * Setters
   , Settable(..)
-  -- * Costrong
-  , Costrong(..)
-  -- * Algebraics
-  , Algebraic(..)
+  -- * Prisms
+  , Prismatic(..)
   -- * Indexable
   , Indexable(..)
   ) where
@@ -43,7 +41,6 @@ import Data.Functor.Compose (Compose(..))
 import Data.Functor.Identity (Identity(..))
 import Data.Monoid (Dual(..))
 import Data.Profunctor
-import Data.Proxy
 import Prelude hiding ((.),id)
 #ifndef SAFE
 import Unsafe.Coerce (unsafeCoerce)
@@ -54,25 +51,6 @@ import Unsafe.Coerce (unsafeCoerce)
 #else
 #define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
 #endif
-
--------------------------------------------------------------------------------
--- Costrong Functors
--------------------------------------------------------------------------------
-
-class Functor f => Costrong f where
-  costrength :: f (Either a b) -> Either a (f b)
-
-instance Costrong Identity where
-  costrength = either Left (Right . Identity) . runIdentity
-  {-# INLINE costrength #-}
-
-instance Costrong (Const r) where
-  costrength = Right . coerce
-  {-# INLINE costrength #-}
-
-instance Costrong Proxy where
-  costrength = Right . coerce
-  {-# INLINE costrength #-}
 
 -------------------------------------------------------------------------------
 -- Gettables & Accessors
@@ -97,9 +75,6 @@ class Functor f => Gettable f where
 
 instance Gettable (Const r) where
   coerce (Const m) = Const m
-
-instance Gettable Proxy where
-  coerce = reproxy
 
 instance Gettable f => Gettable (Backwards f) where
   coerce = Backwards . coerce . forwards
@@ -160,41 +135,25 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
   {-# INLINE untainted #-}
 
 -----------------------------------------------------------------------------
--- Algebraic overloading
+-- Prism Internals
 -----------------------------------------------------------------------------
 
--- | Used to provide overloading of symmetric lenses as regular lenses.
---
--- There are two relevant instances: @(->)@ (for using an 'Control.Lens.Iso.Iso' or 'Control.Lens.Prism.Prism' as a
--- regular lens) and @'Cokleisli' g@ (for using it as a symmetric lens).
-class (Profunctor k, Functor g) => Algebraic g k | k -> g where
-  algebraic :: (k a b -> k s t) -> (g a -> b) -> g s -> t
-  unalgebraic :: ((g a -> b) -> g s -> t) -> k a b -> k s t
+class Profunctor p => Prismatic p where
+  prismatic :: Applicative f => (s -> Either t a) -> p a (f t) -> p s (f t)
 
--- FIXME: unsafeCoerce should be a valid instance in every case we care about.
-instance Algebraic Identity (->) where
-  algebraic l f = l (f . Identity) . runIdentity
-  {-# INLINE algebraic #-}
+instance Prismatic (->) where
+  prismatic seta aft = either pure aft . seta
+  {-# INLINE prismatic #-}
 
-  unalgebraic l f = l (f . runIdentity) . Identity
-  {-# INLINE unalgebraic #-}
-
-instance Functor g => Algebraic g (Cokleisli g) where
-  algebraic f = runCokleisli . f . Cokleisli
-  {-# INLINE algebraic #-}
-
-  unalgebraic f = Cokleisli . f . runCokleisli
-  {-# INLINE unalgebraic #-}
-
-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 -- Indexed Internals
 -----------------------------------------------------------------------------
 
 -- | This class permits overloading of function application for things that
 -- also admit a notion of a key or index.
-class Profunctor c => Indexable i c where
+class Profunctor p => Indexable i p where
   -- | Build a function from an 'Indexed' function
-  indexed :: c a b -> i -> a -> b
+  indexed :: p a b -> i -> a -> b
 
 instance Indexable i (->) where
   indexed = const
