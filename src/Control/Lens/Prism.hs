@@ -57,8 +57,9 @@ import Control.Lens.Internal
 import Control.Lens.Type
 import Data.Functor.Identity
 import Data.Profunctor
-
-{-# ANN module "HLint: ignore Collapse lambdas" #-}
+#ifndef SAFE
+import Unsafe.Coerce
+#endif
 
 -- $setup
 -- >>> import Control.Lens
@@ -158,9 +159,13 @@ type APrism s t a b = Market a a (Identity b) -> Market a s (Identity t)
 withPrism :: ((b -> t) -> (s -> Either t a) -> r) -> APrism s t a b -> r
 withPrism k p = k bt seta where
   go = p . Market Right . Identity
-  {-# INLINE go #-}
   bt = runIdentity . extort . go
-  seta = either (Left . runIdentity) Right . market (go (error "withPrism: invalid Prism passed as APrism"))
+  seta = erase (market (go (error "withPrism: invalid Prism passed as APrism")))
+#ifdef SAFE
+  erase f = either (Left . runIdentity) Right . f
+#else
+  erase = unsafeCoerce
+#endif
 {-# INLINE withPrism #-}
 
 -- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.
