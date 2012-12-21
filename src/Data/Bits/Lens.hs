@@ -1,4 +1,3 @@
-{-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Rank2Types #-}
 -----------------------------------------------------------------------------
@@ -70,7 +69,7 @@ l .&.~ n = over l (.&. n)
 -- ('.&.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m ()
 -- ('.&.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Traversal' s a -> a -> m ()
 -- @
-(.&.=):: (MonadState s m, Bits a) => Simple Setting s a -> a -> m ()
+(.&.=):: (MonadState s m, Bits a) => Setting' s a -> a -> m ()
 l .&.= a = modify (l .&.~ a)
 {-# INLINE (.&.=) #-}
 
@@ -85,7 +84,7 @@ l .&.= a = modify (l .&.~ a)
 -- ('.|.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m ()
 -- ('.|.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Traversal' s a -> a -> m ()
 -- @
-(.|.=) :: (MonadState s m, Bits a) => Simple Setting s a -> a -> m ()
+(.|.=) :: (MonadState s m, Bits a) => Setting' s a -> a -> m ()
 l .|.= a = modify (l .|.~ a)
 {-# INLINE (.|.=) #-}
 

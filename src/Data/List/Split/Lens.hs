@@ -1,6 +1,3 @@
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LiberalTypeSynonyms #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.List.Split.Lens

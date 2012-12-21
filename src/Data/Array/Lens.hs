@@ -1,6 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Array.Lens

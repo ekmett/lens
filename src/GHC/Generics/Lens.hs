@@ -2,7 +2,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  GHC.Generics.Lens
@@ -56,11 +55,11 @@ import           Generics.Deriving hiding (from, to)
 -- >>> "hello"^.generic.from generic :: String
 -- "hello"
 --
-generic :: Generic a => Simple Iso a (Rep a b)
+generic :: Generic a => Iso' a (Rep a b)
 generic = iso Generic.from Generic.to
 
 -- | Convert from the data type to its representation (or back)
-generic1 :: Generic1 f => Simple Iso (f a) (Rep1 f a)
+generic1 :: Generic1 f => Iso' (f a) (Rep1 f a)
 generic1 = iso from1 to1
 
 -- | A 'GHC.Generics.Generic' 'Traversal' that visits every occurrence
@@ -72,7 +71,7 @@ generic1 = iso from1 to1
 -- >>> mapMOf_ tinplate putStrLn ("hello",[(2 :: Int, "world!")])
 -- hello
 -- world!
-tinplate :: (Generic a, GTraversal (Rep a), Typeable b) => Simple Traversal a b
+tinplate :: (Generic a, GTraversal (Rep a), Typeable b) => Traversal' a b
 tinplate = generic . tinplated True
 
 maybeArg1Of :: Maybe c -> (c -> d) -> Maybe c
@@ -80,7 +79,7 @@ maybeArg1Of = const
 
 -- | Used to traverse 'Generic' data by 'uniplate'.
 class GTraversal f where
-  tinplated :: Typeable b => Bool -> Simple Traversal (f a) b
+  tinplated :: Typeable b => Bool -> Traversal' (f a) b
 
 instance (Generic a, GTraversal (Rep a), Typeable a) => GTraversal (K1 i a) where
   tinplated rec f (K1 a) = case cast a `maybeArg1Of` f of

@@ -1,5 +1,4 @@
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE LiberalTypeSynonyms #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Setter
