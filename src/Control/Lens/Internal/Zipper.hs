@@ -27,7 +27,7 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Zipper where
 
-import Control.Category
+import Control.Category ((>>>))
 import Control.Monad
 import Control.Lens.Classes
 import Control.Lens.Combinators
@@ -38,7 +38,6 @@ import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.Maybe
-import Prelude hiding ((.),id)
 
 {-# ANN module "HLint: ignore Use foldl" #-}
 

@@ -57,12 +57,10 @@ module Control.Lens.Internal
   ) where
 
 import Control.Applicative
-import Control.Category
 import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Lens.Classes
 import Control.Monad
-import Prelude hiding ((.),id)
 import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Int

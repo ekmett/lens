@@ -34,14 +34,11 @@ module Control.Lens.Classes
 
 import Control.Applicative
 import Control.Applicative.Backwards (Backwards(..))
-import Control.Category
-import Control.Comonad
 import Control.Monad (liftM)
 import Data.Functor.Compose (Compose(..))
 import Data.Functor.Identity (Identity(..))
 import Data.Monoid (Dual(..))
 import Data.Profunctor
-import Prelude hiding ((.),id)
 #ifndef SAFE
 import Unsafe.Coerce (unsafeCoerce)
 #endif
