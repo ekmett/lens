@@ -105,7 +105,7 @@ import Data.Monoid
 import Data.Profunctor
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
-{-# ANN module "Hlint: ignore Use camelCase" #-}
+{-# ANN module "HLint: ignore Use camelCase" #-}
 
 -- $setup
 -- >>> import Control.Lens

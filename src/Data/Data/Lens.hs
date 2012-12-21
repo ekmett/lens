@@ -74,7 +74,7 @@ import           GHC.Exts (realWorld#)
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
 {-# ANN module "HLint: ignore Use foldl" #-}
-{-# ANN module "Hlint: ignore Reduce duplication" #-}
+{-# ANN module "HLint: ignore Reduce duplication" #-}
 
 -- $setup
 -- >>> import Control.Lens
