@@ -252,7 +252,7 @@ rewrite = rewriteOf plate
 -- 'rewriteOf' :: 'Traversal'' a a -> (a -> 'Maybe' a) -> a -> a
 -- 'rewriteOf' :: 'Setter'' a a    -> (a -> 'Maybe' a) -> a -> a
 -- @
-rewriteOf :: Setting' a a -> (a -> Maybe a) -> a -> a
+rewriteOf :: ASetter' a a -> (a -> Maybe a) -> a -> a
 rewriteOf l f = go where
   go = transformOf l (\x -> maybe x go (f x))
 {-# INLINE rewriteOf #-}
@@ -263,9 +263,9 @@ rewriteOf l f = go where
 -- 'rewriteOn' :: 'Plated' a => 'Control.Lens.Iso.Iso'' s a       -> (a -> 'Maybe' a) -> s -> s
 -- 'rewriteOn' :: 'Plated' a => 'Lens'' s a      -> (a -> 'Maybe' a) -> s -> s
 -- 'rewriteOn' :: 'Plated' a => 'Traversal'' s a -> (a -> 'Maybe' a) -> s -> s
--- 'rewriteOn' :: 'Plated' a => 'Setting'' s a   -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOn' :: 'Plated' a => 'ASetter'' s a   -> (a -> 'Maybe' a) -> s -> s
 -- @
-rewriteOn :: Plated a => Setting s t a a -> (a -> Maybe a) -> s -> t
+rewriteOn :: Plated a => ASetter s t a a -> (a -> Maybe a) -> s -> t
 rewriteOn b = over b . rewrite
 {-# INLINE rewriteOn #-}
 
@@ -277,7 +277,7 @@ rewriteOn b = over b . rewrite
 -- 'rewriteOnOf' :: 'Plated' a => 'Traversal'' s a -> 'Traversal'' a a -> (a -> 'Maybe' a) -> s -> s
 -- 'rewriteOnOf' :: 'Plated' a => 'Setter'' s a    -> 'Setter'' a a    -> (a -> 'Maybe' a) -> s -> s
 -- @
-rewriteOnOf :: Setting s t a a -> Setting' a a -> (a -> Maybe a) -> s -> t
+rewriteOnOf :: ASetter s t a a -> ASetter' a a -> (a -> Maybe a) -> s -> t
 rewriteOnOf b l = over b . rewriteOf l
 {-# INLINE rewriteOnOf #-}
 
@@ -359,7 +359,7 @@ transform = transformOf plate
 -- 'transformOn' :: 'Plated' a => 'Traversal'' s a -> (a -> a) -> s -> s
 -- 'transformOn' :: 'Plated' a => 'Setter'' s a    -> (a -> a) -> s -> s
 -- @
-transformOn :: Plated a => Setting s t a a -> (a -> a) -> s -> t
+transformOn :: Plated a => ASetter s t a a -> (a -> a) -> s -> t
 transformOn b = over b . transform
 {-# INLINE transformOn #-}
 
@@ -369,7 +369,7 @@ transformOn b = over b . transform
 -- 'transformOf' :: 'Traversal'' a a -> (a -> a) -> a -> a
 -- 'transformOf' :: 'Setter'' a a    -> (a -> a) -> a -> a
 -- @
-transformOf :: Setting' a a -> (a -> a) -> a -> a
+transformOf :: ASetter' a a -> (a -> a) -> a -> a
 transformOf l f = go where
   go = f . over l go
 {-# INLINE transformOf #-}
@@ -381,7 +381,7 @@ transformOf l f = go where
 -- 'transformOnOf' :: 'Setter'' s a -> 'Traversal'' a a -> (a -> a) -> s -> s
 -- 'transformOnOf' :: 'Setter'' s a -> 'Setter'' a a    -> (a -> a) -> s -> s
 -- @
-transformOnOf :: Setting s t a a -> Setting' a a -> (a -> a) -> s -> t
+transformOnOf :: ASetter s t a a -> ASetter' a a -> (a -> a) -> s -> t
 transformOnOf b l = over b . transformOf l
 {-# INLINE transformOnOf #-}
 
