@@ -1,4 +1,14 @@
 {-# LANGUAGE Rank2Types #-}
+------------------------------------------------------------------------------
+-- |
+-- Module      :  Control.Lens.Reified
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  provisional
+-- Portability :  Rank2Types
+--
+------------------------------------------------------------------------------
 module Control.Lens.Reified where
 
 import Control.Lens.Type
