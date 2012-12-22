@@ -72,12 +72,15 @@ class Functor f => Gettable f where
 
 instance Gettable (Const r) where
   coerce (Const m) = Const m
+  {-# INLINE coerce #-}
 
 instance Gettable f => Gettable (Backwards f) where
   coerce = Backwards . coerce . forwards
+  {-# INLINE coerce #-}
 
 instance (Functor f, Gettable g) => Gettable (Compose f g) where
   coerce = Compose . fmap coerce . getCompose
+  {-# INLINE coerce #-}
 
 -- | The 'mempty' equivalent for a 'Gettable' 'Applicative' 'Functor'.
 noEffect :: (Applicative f, Gettable f) => f a
@@ -97,7 +100,9 @@ class (Monad m, Gettable f) => Effective m r f | f -> m r where
 
 instance Effective m r f => Effective m (Dual r) (Backwards f) where
   effective = Backwards . effective . liftM getDual
+  {-# INLINE effective #-}
   ineffective = liftM Dual . ineffective . forwards
+  {-# INLINE ineffective #-}
 
 -----------------------------------------------------------------------------
 -- Settable
@@ -109,9 +114,11 @@ class Applicative f => Settable f where
 
   untaintedDot :: (a -> f b) -> a -> b
   untaintedDot g = g `seq` \x -> untainted (g x)
+  {-# INLINE untaintedDot #-}
 
   taintedDot :: (a -> b) -> a -> f b
   taintedDot g = g `seq` \x -> pure (g x)
+  {-# INLINE taintedDot #-}
 
 -- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries
 instance Settable Identity where
