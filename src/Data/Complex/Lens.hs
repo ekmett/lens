@@ -43,9 +43,9 @@ import Data.Complex
 --
 -- @'_realPart' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
 #if MIN_VERSION_base(4,4,0)
-_realPart :: Simple Lens (Complex a) a
+_realPart :: Lens' (Complex a) a
 #else
-_realPart :: RealFloat a => Simple Lens (Complex a) a
+_realPart :: RealFloat a => Lens' (Complex a) a
 #endif
 _realPart f (a :+ b) = (:+ b) <$> f a
 
@@ -59,9 +59,9 @@ _realPart f (a :+ b) = (:+ b) <$> f a
 --
 -- @'_imagPart' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
 #if MIN_VERSION_base(4,4,0)
-_imagPart :: Simple Lens (Complex a) a
+_imagPart :: Lens' (Complex a) a
 #else
-_imagPart :: RealFloat a => Simple Lens (Complex a) a
+_imagPart :: RealFloat a => Lens' (Complex a) a
 #endif
 _imagPart f (a :+ b) = (a :+) <$> f b
 
@@ -75,7 +75,7 @@ _imagPart f (a :+ b) = (a :+) <$> f b
 -- that!
 --
 -- Otherwise, this is a perfectly cromulent 'Lens'.
-_polar :: RealFloat a => Simple Iso (Complex a) (a,a)
+_polar :: RealFloat a => Iso' (Complex a) (a,a)
 _polar = iso polar (uncurry mkPolar)
 
 -- | Access the 'magnitude' of a 'Complex' number
@@ -93,7 +93,7 @@ _polar = iso polar (uncurry mkPolar)
 -- Otherwise, this is a perfectly cromulent 'Lens'.
 --
 -- Setting the 'magnitude' of a zero 'Complex' number assumes the 'phase' is 0.
-_magnitude :: RealFloat a => Simple Lens (Complex a) a
+_magnitude :: RealFloat a => Lens' (Complex a) a
 _magnitude f c = setMag <$> f r
   where setMag r' | r /= 0    = c * (r' / r :+ 0)
                   | otherwise = r' :+ 0
@@ -112,7 +112,7 @@ _magnitude f c = setMag <$> f r
 -- The phase is always in that range when queried. So don't do that!
 --
 -- Otherwise, this is a perfectly cromulent 'Lens'.
-_phase :: RealFloat a => Simple Lens (Complex a) a
+_phase :: RealFloat a => Lens' (Complex a) a
 _phase f c = setPhase <$> f theta
   where setPhase theta' = c * cis (theta' - theta)
         theta = phase c
@@ -124,7 +124,7 @@ _phase f c = setPhase <$> f theta
 --
 -- >>> (mkPolar 10.0 2.0 ^. _conjugate . _phase) ≈ (-2.0)
 -- True
-_conjugate :: RealFloat a => Simple Iso (Complex a) (Complex a)
+_conjugate :: RealFloat a => Iso' (Complex a) (Complex a)
 _conjugate = iso conjugate conjugate
 
 -- | Traverse both the 'realPart' and the 'imagPart' of a 'Complex' number.
