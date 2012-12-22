@@ -411,7 +411,7 @@ type IndexedMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f,
 --
 -- @
 -- 'Data.Complex.Lens.imaginary' :: 'Simple' 'Lens' ('Data.Complex.Complex' a) a
--- 'Data.List.Lens.traverseHead' :: 'Simple' 'Traversal' [a] a
+-- 'Data.List.Lens._head' :: 'Simple' 'IndexedTraversal' Int [a] a
 -- @
 --
 -- Note: To use this alias in your own code with @'LensLike' f@ or
@@ -448,4 +448,3 @@ type IndexedLensLike p f s t a b = p a (f b) -> s -> f t
 
 -- | Convenient alias for constructing simple indexed lenses and their ilk
 type IndexedLensLike' p f s a    = p a (f a) -> s -> f s
-
