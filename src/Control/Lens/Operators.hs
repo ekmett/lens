@@ -38,7 +38,7 @@ module Control.Lens.Operators
   , (<.~), (<.=)
   , (<<.~), (<<.=)
   --- *** Loupes
-  , (#~), (#=)
+  , ( #~ ), ( #= )
   , (<#~), (<#=)
   -- *** Just
   , (?~), (?=)
@@ -49,7 +49,7 @@ module Control.Lens.Operators
   , (<%~), (<%=)
   , (<<%~), (<<%=)
   -- *** Loupes
-  , (#%~), (#%=)
+  , ( #%~ ), ( #%= )
   , (<#%~), (<#%=)
   -- *** with Indices
   , (%@~), (%@=)
@@ -58,7 +58,7 @@ module Control.Lens.Operators
   -- ** Traversing
   , (%%~), (%%=)
    --- *** Loupes
-  , (#%%~), (#%%=)
+  , ( #%%~ ), ( #%%= )
    --- *** with Indices
   , (%%@~), (%%@=)
 

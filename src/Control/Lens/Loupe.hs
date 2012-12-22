@@ -25,8 +25,8 @@ module Control.Lens.Loupe
     Loupe, Loupe'
   , storing
   , (^#)
-  , (#~), (#%~), (#%%~), (<#~), (<#%~)
-  , (#=), (#%=), (#%%=), (<#=), (<#%=)
+  , ( #~ ), ( #%~ ), ( #%%~ ), (<#~), (<#%~)
+  , ( #= ), ( #%= ), ( #%%= ), (<#=), (<#%=)
 
   -- * Deprecated
   , SimpleLoupe
@@ -99,32 +99,33 @@ storing l b s = case l (Context id) s of
 --
 -- >>> ("hello","there") & _2 #~ "world"
 -- ("hello","world")
-(#~) :: Loupe s t a b -> b -> s -> t
-(#~) l b s = case l (Context id ) s of
+( #~ ) :: Loupe s t a b -> b -> s -> t
+( #~ ) l b s = case l (Context id ) s of
   Context g _ -> g b
-{-# INLINE (#~) #-}
+{-# INLINE ( #~ ) #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Setter.%~')
 --
 -- >>> ("hello","world") & _2 #%~ length
 -- ("hello",5)
-(#%~) :: Loupe s t a b -> (a -> b) -> s -> t
-(#%~) l f s = case l (Context id) s of
+( #%~ ) :: Loupe s t a b -> (a -> b) -> s -> t
+( #%~ ) l f s = case l (Context id) s of
   Context g a -> g (f a)
-{-# INLINE (#%~) #-}
+{-# INLINE ( #%~ ) #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Type.%%~')
 --
 -- >>> ("hello","world") & _2 #%%~ \x -> (length x, x ++ "!")
 -- (5,("hello","world!"))
-(#%%~) :: Functor f => Loupe s t a b -> (a -> f b) -> s -> f t
-(#%%~) l f s = case l (Context id) s of
+( #%%~ ) :: Functor f => Loupe s t a b -> (a -> f b) -> s -> f t
+( #%%~ ) l f s = case l (Context id) s of
   Context g a -> g <$> f a
+{-# INLINE ( #%%~ ) #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Setter..=')
-(#=) :: MonadState s m => Loupe s s a b -> b -> m ()
+( #= ) :: MonadState s m => Loupe s s a b -> b -> m ()
 l #= f = modify (l #~ f)
-{-# INLINE (#=) #-}
+{-# INLINE ( #= ) #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Setter.%=')
 (#%=) :: MonadState s m => Loupe s s a b -> (a -> b) -> m ()
@@ -146,7 +147,7 @@ l <#%= f = l #%%= \a -> let b = f a in (b,b)
 {-# INLINE (<#%=) #-}
 
 -- | Modify the target of a 'Loupe' in the current monadic state, returning an auxiliary result.
-(#%%=) :: MonadState s m => Loupe s s a b -> (a -> (r, b)) -> m r
+( #%%= ) :: MonadState s m => Loupe s s a b -> (a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,1)
 l #%%= f = State.state $ \s -> case l (Context id) s of
   Context g a -> g <$> f a
