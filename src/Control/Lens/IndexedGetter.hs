@@ -17,6 +17,7 @@ module Control.Lens.IndexedGetter
   , IndexedGetting
   , ReifiedIndexedGetter(..)
   -- * Indexed Getter Combinators
+  , (^@.)
   , iview, iviews
   , iuse, iuses
   ) where
@@ -72,3 +73,24 @@ iuse l = gets (runAccessor #. withIndex l (\i -> Accessor #. (,) i))
 iuses :: MonadState s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
 iuses l f = gets (runAccessor #. withIndex l (\i -> Accessor #. f i))
 {-# INLINE iuses #-}
+
+-- | View the value pointed to by a 'Getter' or 'Control.Lens.Type.Lens'.
+--
+-- This is the same operation as 'iview' with the arguments flipped.
+--
+-- The fixity and semantics are such that subsequent field accesses can be
+-- performed with ('Prelude..')
+--
+-- >>> (a,b,c,d)^@._2
+-- (1,b)
+--
+-- >>> ("hello","world","!!!")^@._2
+-- (1,"world")
+--
+-- @
+-- ('^@.') :: s -> 'IndexedGetter' i s a             -> (i, a)
+-- ('^@.') :: s -> 'Control.Lens.IndexedLens.IndexedLens'' i s a        -> (i, a)
+-- @
+(^@.) :: s -> IndexedGetting i (i, a) s t a b -> (i, a)
+s ^@. l = runAccessor $ withIndex l (\i -> Accessor #. (,) i) s
+{-# INLINE (^@.) #-}

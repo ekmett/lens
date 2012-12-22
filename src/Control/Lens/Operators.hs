@@ -22,7 +22,7 @@ module Control.Lens.Operators
   , (<$!>), (<$!)
 
   -- * Getting
-  , (^.)
+  , (^.), (^@.)
   -- ** Loupes
   , (^#)
   -- ** with Effects
@@ -94,11 +94,12 @@ module Control.Lens.Operators
   , (@~)
   ) where
 
-import Control.Lens.Action 
+import Control.Lens.Action
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed
+import Control.Lens.IndexedGetter
 import Control.Lens.IndexedFold
 import Control.Lens.IndexedLens
 import Control.Lens.IndexedSetter
