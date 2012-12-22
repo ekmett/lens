@@ -16,14 +16,13 @@
 module Control.Lens.Prism
   (
   -- * Prisms
-    Prism
-  , Prism'
-  , APrism
+    Prism, Prism'
+  , APrism, APrism'
+  , Reviewing, Reviewing'
   -- * Constructing Prisms
   , prism
   , prism'
   -- * Consuming Prisms
-  , Reviewing
   , clonePrism
   , withPrism
   , remit
@@ -38,20 +37,15 @@ module Control.Lens.Prism
   , _just
   -- * Implementation details
   , Prismatic(..)
-  , Market(..)
-  , Review(..)
-  -- * Simple
-  , SimplePrism
   ) where
 
-import Control.Applicative
 import Control.Arrow ((+++))
 import Control.Monad.Reader as Reader
 import Control.Monad.State as State
 import Control.Lens.Combinators
 import Control.Lens.Getter
 import Control.Lens.Internal
-import Control.Lens.Lens
+import Control.Lens.Type
 import Data.Functor.Identity
 import Data.Profunctor
 #ifndef SAFE
@@ -70,87 +64,15 @@ import Unsafe.Coerce
 -- Prism Internals
 ------------------------------------------------------------------------------
 
--- | A 'Prism' @l@ is a 0-or-1 target 'Traversal' that can also be turned around with 'remit' to
--- obtain a 'Getter' in the opposite direction.
---
--- There are two laws that a 'Prism' should satisfy:
---
--- First, if I 'remit' or 'review' a value with a 'Prism' and then 'preview' or use ('^?'), I will get it back:
---
--- * @'preview' l ('review' l b) ≡ 'Just' b@
---
--- Second, if you can extract a value @a@ using a Prism @l@ from a value @s@, then the value @s@ is completely described my @l@ and @a@:
---
--- * If @'preview' l s ≡ 'Just' a@ then @'review' l a ≡ s@
---
--- These two laws imply that the 'Traversal' laws hold for every 'Prism' and that we 'traverse' at most 1 element:
---
--- @'Control.Lens.Fold.lengthOf' l x '<=' 1@
---
--- It may help to think of this as a 'Control.Lens.Iso.Iso' that can be partial in one direction.
---
--- Every 'Prism' is a valid 'Traversal'.
---
--- Every 'Control.Lens.Iso.Iso' is a valid 'Prism'.
---
--- For example, you might have a @'Prism'' 'Integer' Natural@ allows you to always
--- go from a 'Natural' to an 'Integer', and provide you with tools to check if an 'Integer' is
--- a 'Natural' and/or to edit one if it is.
---
---
--- @
--- 'nat' :: 'Prism'' 'Integer' 'Numeric.Natural.Natural'
--- 'nat' = 'prism' 'toInteger' '$' \\ i ->
---    if i '<' 0
---    then 'Left' i
---    else 'Right' ('fromInteger' i)
--- @
---
--- Now we can ask if an 'Integer' is a 'Natural'.
---
--- >>> 5^?nat
--- Just 5
---
--- >>> (-5)^?nat
--- Nothing
---
--- We can update the ones that are:
---
--- >>> (-3,4) & both.nat *~ 2
--- (-3,8)
---
--- And we can then convert from a 'Natural' to an 'Integer'.
---
--- >>> 5 ^. remit nat -- :: Natural
--- 5
---
--- Similarly we can use a 'Prism' to 'traverse' the left half of an 'Either':
---
--- >>> Left "hello" & _left %~ length
--- Left 5
---
--- or to construct an 'Either':
---
--- >>> 5^.remit _left
--- Left 5
---
--- such that if you query it with the 'Prism', you will get your original input back.
---
--- >>> 5^.remit _left ^? _left
--- Just 5
---
--- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'
--- -- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
-type Prism s t a b = forall p f. (Prismatic p, Applicative f) => p a (f b) -> p s (f t)
-
--- | A 'Simple' 'Prism'
-type Prism' s a = Prism s s a a
-
--- FIXME: Should we use another name for Identity?
+-- | If you see this in a signature for a function, the function is expecting a 'Prism'
 type Reviewing s t a b = Overloading Review Review Identity s t a b
+
+type Reviewing'  s a = Reviewing s s a a
 
 -- | If you see this in a signature for a function, the function is expecting a 'Prism'.
 type APrism s t a b = Market a b a (Mutator b) -> Market a b s (Mutator t)
+
+type APrism' s a = APrism s s a a
 
 -- | Safely decompose 'APrism'
 withPrism :: ((b -> t) -> (s -> Either t a) -> r) -> APrism s t a b -> r
@@ -375,7 +297,3 @@ _right = prism Right $ either (Left . Left) Right
 _just :: Prism (Maybe a) (Maybe b) a b
 _just = prism Just $ maybe (Left Nothing) Right
 {-# INLINE _just #-}
-
--- | A deprecated alias for @'Prism''@.
-type SimplePrism s a = Prism s s a a
-{-# DEPRECATED SimplePrism "use Prism'" #-}

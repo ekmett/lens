@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -18,7 +19,7 @@
 #endif
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Control.Lens.WithIndex
+-- Module      :  Control.Lens.Indexed
 -- Copyright   :  (C) 2012 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
@@ -27,10 +28,19 @@
 --
 -- (These need to be defined together for @DefaultSignatures@ to work.)
 -------------------------------------------------------------------------------
-module Control.Lens.WithIndex
+module Control.Lens.Indexed
   (
+  -- * Indexing
+    Indexable(..)
+  , Indexed(..)
+  , withIndex
+  , (<.), (<.>), (.>)
+  , reindexed
+  , icompose
+  , indexing
+  , indexing64
   -- * Indexed Functors
-    FunctorWithIndex(..)
+  , FunctorWithIndex(..)
   , imapped
   -- * Indexed Foldables
   , FoldableWithIndex(..)
@@ -69,7 +79,6 @@ import Control.Monad (void, liftM)
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Lens.Fold
 import Control.Lens.Internal
-import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Data.Foldable
@@ -84,8 +93,50 @@ import Data.Tuple (swap)
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 
+infixr 9 <.>, <., .>
+
 -- $setup
 -- >>> import Control.Lens
+
+withIndex :: (Indexed i s t -> r) -> (i -> s -> t) -> r
+withIndex l = l .# Indexed
+{-# INLINE withIndex #-}
+
+-- | Compose an 'Indexed' function with a non-indexed function.
+--
+-- Mnemonically, the @<@ points to the indexing we want to preserve.
+(<.) :: Indexable i p => (Indexed i s t -> r) -> ((a -> b) -> s -> t) -> p a b -> r
+(<.) f g h = f . Indexed $ g . indexed h
+{-# INLINE (<.) #-}
+
+-- | Compose a non-indexed function with an 'Indexed' function.
+--
+-- Mnemonically, the @>@ points to the indexing we want to preserve.
+--
+-- This is the same as @(.)@: @f.g@ gives you @g@'s index.
+(.>) :: (st -> r) -> (kab -> st) -> kab -> r
+(.>) = (.)
+{-# INLINE (.>) #-}
+
+-- (.>)  :: Indexable i p => (b -> c) -> Indexed i a b -> p a c
+-- bc .> Indexed iab = indexed (bc . iab)
+
+-- | Remap the index.
+reindexed :: Indexable j p => (i -> j) -> (Indexed i a b -> r) -> p a b -> r
+reindexed ij f g = f . Indexed $ indexed g . ij
+{-# INLINE reindexed #-}
+
+-- | Composition of 'Indexed' functions
+--
+-- Mnemonically, the @\<@ and @\>@ points to the fact that we want to preserve the indices.
+(<.>) :: Indexable (i, j) p => (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> p a b -> r
+f <.> g = icompose (,) f g
+{-# INLINE (<.>) #-}
+
+-- | Composition of 'Indexed' functions with a user supplied function for combining indices
+icompose :: Indexable p c => (i -> j -> p) -> (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> c a b -> r
+icompose ijk istr jabst cab = istr . Indexed $ \i -> jabst . Indexed $ \j -> indexed cab $ ijk i j
+{-# INLINE icompose #-}
 
 -------------------------------------------------------------------------------
 -- FunctorWithIndex

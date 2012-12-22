@@ -57,8 +57,8 @@ module Control.Lens.Internal
   , Folding(..)
   , Max(..), getMax
   , Min(..), getMin
-  , Indexing(..)
-  , Indexing64(..)
+  , Indexing(..), indexing
+  , Indexing64(..), indexing64
   -- * Common Types
   , Accessor(..)
   , Mutator(..)
@@ -337,6 +337,7 @@ COMPOSE(Mutator a, a, Mutator, runMutator)
 COMPOSE(Backwards f a, f a, Backwards, forwards)
 COMPOSE(Compose f g a, f (g a), Compose, getCompose)
 COMPOSE(Cokleisli f a b, f a -> b, Cokleisli, runCokleisli)
+COMPOSE(Indexed i s t, i -> s -> t, Indexed, runIndexed)
 
 ------------------------------------------------------------------------------
 -- Internal Types
@@ -457,6 +458,22 @@ instance Applicative f => Applicative (Indexing f) where
     (ff, j) -> case ma j of
        ~(fa, k) -> (ff <*> fa, k)
 
+-- | Transform a 'Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
+-- a 'Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
+--
+-- @
+-- 'indexing' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.Traversal.IndexedTraversal' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Prism.Prism' s t a b     -> 'Control.Lens.Traversal.IndexedTraversal' 'Int' s t a b
+-- 'indexing' :: 'Lens' s t a b      -> 'IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Iso.Iso' s t a b       -> 'IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.Fold.IndexedFold' 'Int' s t
+-- 'indexing' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.Getter.IndexedGetter' 'Int' s t a b
+-- @
+indexing :: Indexable Int p => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> s -> f t
+indexing l iafb s = case runIndexing (l (\a -> Indexing (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
+  (r, _) -> r
+{-# INLINE indexing #-}
+
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int64'@ with a 'Functor', used
 -- by 'Control.Lens.Indexed.indexed64'
 newtype Indexing64 f a = Indexing64 { runIndexing64 :: Int64 -> (f a, Int64) }
@@ -470,6 +487,24 @@ instance Applicative f => Applicative (Indexing64 f) where
   Indexing64 mf <*> Indexing64 ma = Indexing64 $ \i -> case mf i of
     (ff, j) -> case ma j of
        ~(fa, k) -> (ff <*> fa, k)
+
+-- | Transform a 'Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
+-- a 'Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
+--
+-- This combinator is like 'indexing' except that it handles large 'Traversal's and 'Fold's gracefully.
+--
+-- @
+-- 'indexing64' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.Traversal.IndexedTraversal' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Prism.Prism' s t a b     -> 'Control.Lens.Traversal.IndexedTraversal' 'Int64' s t a b
+-- 'indexing64' :: 'Lens' s t a b      -> 'IndexedLens' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Iso.Iso' s t a b       -> 'IndexedLens' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.Fold.IndexedFold' 'Int64' s t
+-- 'indexing64' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.Getter.IndexedGetter' 'Int64' s t a b
+-- @
+indexing64 :: Indexable Int64 p => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> s -> f t
+indexing64 l iafb s = case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
+  (r, _) -> r
+{-# INLINE indexing64 #-}
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
 newtype Traversed f = Traversed { getTraversed :: f () }
@@ -766,16 +801,16 @@ instance Prismatic (Market a b) where
 -- an 'Indexable' in a container to avoid @ImpredicativeTypes@.
 --
 -- @index :: Indexed i a b -> i -> a -> b@
-newtype Indexed i a b = Indexed (i -> a -> b)
+newtype Indexed i a b = Indexed { runIndexed :: i -> a -> b }
 
 instance Profunctor (Indexed i) where
-  lmap ab (Indexed ibc) = Indexed (\i -> ibc i . ab)
+  lmap ab ibc = Indexed (\i -> runIndexed ibc i . ab)
   {-# INLINE lmap #-}
-  rmap bc (Indexed iab) = Indexed (\i -> bc . iab i)
+  rmap bc iab = Indexed (\i -> bc . runIndexed iab i)
   {-# INLINE rmap #-}
 
 -- | Using an equality witness to avoid potential overlapping instances
 -- and aid dispatch.
 instance i ~ j => Indexable i (Indexed j) where
-  indexed (Indexed iab) = iab
+  indexed = runIndexed
   {-# INLINE indexed #-}

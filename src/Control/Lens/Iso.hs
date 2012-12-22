@@ -22,9 +22,8 @@
 module Control.Lens.Iso
   (
   -- * Isomorphism Lenses
-    Iso
-  , Iso'
-  , AnIso
+    Iso, Iso'
+  , AnIso, AnIso'
   -- * Isomorphism Construction
   , iso
   -- * Consuming Isomorphisms
@@ -43,14 +42,10 @@ module Control.Lens.Iso
   , enum
   , curried, uncurried
   , Strict(..)
-  -- * Implementation details
-  , Exchange(..)
-  -- * Deprecated
-  , SimpleIso
   ) where
 
 import Control.Lens.Internal
-import Control.Lens.Lens
+import Control.Lens.Type
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Text as StrictT
@@ -70,8 +65,15 @@ import Unsafe.Coerce
 -- >>> import Data.Monoid
 
 ----------------------------------------------------------------------------
--- Constructing Isomorphisms
+-- Isomorphisms
 -----------------------------------------------------------------------------
+
+-- | When you see this as an argument to a function, it expects an 'Iso'.
+type AnIso s t a b = Exchange a b a (Mutator b) -> Exchange a b s (Mutator t)
+
+-- | A 'Simple' 'AnIso'.
+type AnIso' s a = AnIso s s a a
+
 
 -- | Build a simple isomorphism from a pair of inverse functions
 --
@@ -110,12 +112,6 @@ cloneIso = withIso iso
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
 
--- | Isomorphism families can be composed with other lenses using ('.') and 'id'.
-type Iso s t a b = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f t)
-
--- | When you see this as an argument to a function, it expects an 'Iso'.
-type AnIso s t a b = Exchange a b a (Mutator b) -> Exchange a b s (Mutator t)
-
 -- | Safely decompose 'AnIso'
 --
 -- @'cloneIso' ≡ 'withIso' 'iso'@
@@ -129,10 +125,6 @@ withIso k ai = runExchange (ai (Exchange (\j -> j id Mutator))) k' where
   k' = unsafeCoerce k
 #endif
 {-# INLINE withIso #-}
-
--- |
--- @type 'Iso'' = 'Control.Lens.Type.Simple' 'Iso'@
-type Iso' s a = Iso s s a a
 
 -- | Based on 'Control.Lens.Wrapped.ala' from Conor McBride's work on Epigram.
 --
@@ -186,7 +178,7 @@ under = withIso $ \sa bt ts -> sa . ts . bt
 -- 'Enum' instances for 'Double', and 'Float' that exist solely for
 -- @[1.0 .. 4.0]@ sugar and the instances for those and 'Integer' don't
 -- cover all values in their range.
-enum :: Enum a => Simple Iso Int a
+enum :: Enum a => Iso' Int a
 enum = iso toEnum fromEnum
 {-# INLINE enum #-}
 
@@ -199,7 +191,7 @@ mapping = withIso $ \sa bt -> iso (fmap sa) (fmap bt)
 -- 'Control.Lens.Traversal.Traversal' or 'Iso' has a constraint on an unused
 -- argument to force that argument to agree with the
 -- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.
-simple :: Simple Iso a a
+simple :: Iso' a a
 simple = id
 {-# INLINE simple #-}
 
@@ -234,7 +226,7 @@ simple = id
 --
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
 -- fromList []
-non :: Eq a => a -> Simple Iso (Maybe a) a
+non :: Eq a => a -> Iso' (Maybe a) a
 non a = anon a (a==)
 {-# INLINE non #-}
 
@@ -247,7 +239,7 @@ non a = anon a (a==)
 --
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . anon Map.empty Map.null . at "world" .~ Nothing
 -- fromList []
-anon :: a -> (a -> Bool) -> Simple Iso (Maybe a) a
+anon :: a -> (a -> Bool) -> Iso' (Maybe a) a
 anon a p = iso (fromMaybe a) go where
   go b | p b       = Nothing
        | otherwise = Just b
@@ -272,7 +264,7 @@ uncurried = iso uncurry curry
 -- | Ad hoc conversion between \"strict\" and \"lazy\" versions of a structure,
 -- such as 'StrictT.Text' or 'StrictB.ByteString'.
 class Strict s a | s -> a, a -> s where
-  strict :: Simple Iso s a
+  strict :: Iso' s a
 
 instance Strict LazyB.ByteString StrictB.ByteString where
 #if MIN_VERSION_bytestring(0,10,0)
@@ -285,12 +277,3 @@ instance Strict LazyB.ByteString StrictB.ByteString where
 instance Strict LazyT.Text StrictT.Text where
   strict = iso LazyT.toStrict LazyT.fromStrict
   {-# INLINE strict #-}
-
-------------------------------------------------------------------------------
--- Deprecated
-------------------------------------------------------------------------------
-
--- |
--- @type 'SimpleIso' = 'Control.Lens.Type.Simple' 'Iso'@
-type SimpleIso s a = Iso s s a a
-{-# DEPRECATED SimpleIso "use Iso'" #-}

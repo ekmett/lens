@@ -38,29 +38,15 @@ module Control.Lens.Action
   , Effective
   ) where
 
-import Control.Applicative
+import Control.Lens.Indexed
 import Control.Lens.Internal
-import Control.Lens.Lens
+import Control.Lens.Type
 import Control.Monad.Trans.Class
 
 -- $setup
 -- >>> :m + Control.Lens
 
 infixr 8 ^!, ^@!
-
--- | An 'Action' is a 'Getter' enriched with access to a 'Monad' for side-effects.
---
--- Every 'Getter' can be used as an 'Action'
---
--- You can compose an 'Action' with another 'Action' using ('Prelude..') from the @Prelude@.
-type Action m s a = forall f r. Effective m r f => (a -> f a) -> s -> f s
-
--- | A 'MonadicFold' is a 'Fold' enriched with access to a 'Monad' for side-effects.
---
--- Every 'Fold' can be used as a 'MonadicFold', that simply ignores the access to the 'Monad'.
---
--- You can compose a 'MonadicFold' with another 'MonadicFold' using ('Prelude..') from the @Prelude@.
-type MonadicFold m s a = forall f r. (Effective m r f, Applicative f) => (a -> f a) -> s -> f s
 
 -- | Used to evaluate an 'Action'.
 type Acting m r s t a b = (a -> Effect m r b) -> s -> Effect m r t
@@ -111,20 +97,6 @@ liftAct l = act (lift . perform l)
 -----------------------------------------------------------------------------
 -- Indexed Actions
 ----------------------------------------------------------------------------
-
--- | An 'IndexedAction' is an 'IndexedGetter' enriched with access to a 'Monad' for side-effects.
---
--- Every 'Getter' can be used as an 'Action'
---
--- You can compose an 'Action' with another 'Action' using ('Prelude..') from the @Prelude@.
-type IndexedAction i m s a = forall p f r. (Indexable i p, Effective m r f) => p a (f a) -> s -> f s
-
--- | An 'IndexedMonadicFold' is an 'IndexedFold' enriched with access to a 'Monad' for side-effects.
---
--- Every 'IndexedFold' can be used as an 'IndexedMonadicFold', that simply ignores the access to the 'Monad'.
---
--- You can compose an 'IndexedMonadicFold' with another 'IndexedMonadicFold' using ('Prelude..') from the @Prelude@.
-type IndexedMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f, Applicative f) => p a (f a) -> s -> f s
 
 -- | Used to evaluate an 'IndexedAction'.
 type IndexedActing i m r s t a b = Indexed i a (Effect m r b) -> s -> Effect m r t

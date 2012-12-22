@@ -31,7 +31,8 @@ module Control.Lens.Each
 import Control.Applicative
 import Control.Lens.Internal
 import Control.Lens.Iso
-import Control.Lens.Lens as Lens
+import Control.Lens.Indexed as Lens (indexed)
+import Control.Lens.Type
 import Control.Lens.Traversal
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
@@ -197,19 +198,19 @@ instance Applicative f => Each Int f (Vector.Vector a) (Vector.Vector b) a b whe
 
 -- | @'each' :: ('Prim' a, 'Prim' b) => 'IndexedTraversal' 'Int' ('Prim.Vector' a) ('Prim.Vector' b) a b@
 instance (Applicative f, Prim a, Prim b) => Each Int f (Prim.Vector a) (Prim.Vector b) a b where
-  each f v = Prim.fromListN (Prim.length v) <$> withIndex traversed f' (Prim.toList v)
+  each f v = Prim.fromListN (Prim.length v) <$> traversed (Indexed f') (Prim.toList v)
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
 -- | @'each' :: ('Storable' a, 'Storable' b) => 'IndexedTraversal' 'Int' ('Storable.Vector' a) ('Storable.Vector' b) a b@
 instance (Applicative f, Storable a, Storable b) => Each Int f (Storable.Vector a) (Storable.Vector b) a b where
-  each f v = Storable.fromListN (Storable.length v) <$> withIndex traversed f' (Storable.toList v)
+  each f v = Storable.fromListN (Storable.length v) <$> traversed (Indexed f') (Storable.toList v)
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
 -- | @'each' :: ('Unbox' a, 'Unbox' b) => 'IndexedTraversal' 'Int' ('Unboxed.Vector' a) ('Unboxed.Vector' b) a b@
 instance (Applicative f, Unbox a, Unbox b) => Each Int f (Unboxed.Vector a) (Unboxed.Vector b) a b where
-  each f v = Unboxed.fromListN (Unboxed.length v) <$> withIndex traversed f' (Unboxed.toList v)
+  each f v = Unboxed.fromListN (Unboxed.length v) <$> traversed (Indexed f') (Unboxed.toList v)
     where f' = Lens.indexed f
   {-# INLINE each #-}
 

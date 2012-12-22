@@ -30,6 +30,6 @@ import Control.Lens
 -- exception :: ('Applicative' f, 'Exception' a, 'Exception' b)
 --           => (a -> f b) -> 'SomeException' -> f 'SomeException'
 -- @
-exception :: Exception a => Simple Prism SomeException a
+exception :: Exception a => Prism' SomeException a
 exception = prism toException $ \ e -> maybe (Left e) Right $ fromException e
 {-# INLINE exception #-}

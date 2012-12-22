@@ -46,8 +46,9 @@
 module Control.Lens.Traversal
   (
   -- * Traversals
-    Traversal
-  , Traversal'
+    Traversal, Traversal'
+  , IndexedTraversal, IndexedTraversal'
+  , ATraversal, ATraversal'
 
   -- * Traversing and Lensing
   , traverseOf, forOf, sequenceAOf
@@ -57,7 +58,6 @@ module Control.Lens.Traversal
   , scanr1Of, scanl1Of
 
   -- * Monomorphic Traversals
-  , ATraversal, ATraversal'
   , cloneTraversal
 
   -- * Parts and Holes
@@ -74,10 +74,8 @@ module Control.Lens.Traversal
   , dropping
 
   -- * Indexed Traversals
-  , IndexedTraversal
-  , IndexedTraversal'
 
-  -- ** Common Indexed Traversals
+  -- ** Common
   , iwhereOf
   , value
   , ignored
@@ -90,7 +88,7 @@ module Control.Lens.Traversal
   , elementsOf
   , elements
 
-  -- ** Indexed Traversal Combinators
+  -- ** Combinators
   , itraverseOf
   , iforOf
   , imapMOf
@@ -101,28 +99,16 @@ module Control.Lens.Traversal
   -- * Implementation Details
   , Bazaar(..)
   , loci
-
-  -- * Reified Traversals
-  , ReifiedTraversal(..)
-  , ReifiedTraversal'
-  , ReifiedIndexedTraversal(..)
-  , ReifiedIndexedTraversal'
-
-  -- * Deprecated
-  , SimpleTraversal
-  , SimpleReifiedTraversal
-  , SimpleIndexedTraversal
-  , SimpleReifiedIndexedTraversal
   ) where
 
-import Control.Applicative              as Applicative
+import Control.Applicative            as Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Internal
-import Control.Lens.Lens
-import Control.Monad.State.Class        as State
-import Control.Monad.Trans.State.Lazy   as Lazy
+import Control.Lens.Type
+import Control.Monad.State.Class      as State
+import Control.Monad.Trans.State.Lazy as Lazy
 import Data.Int
 import Data.IntMap as IntMap
 import Data.Map as Map
@@ -136,38 +122,8 @@ import Data.Tuple (swap)
 -- Traversals
 ------------------------------------------------------------------------------
 
--- | A 'Traversal' can be used directly as a 'Control.Lens.Setter.Setter' or a 'Fold' (but not as a 'Lens') and provides
--- the ability to both read and update multiple fields, subject to some relatively weak 'Traversal' laws.
---
--- These have also been known as multilenses, but they have the signature and spirit of
---
--- @'traverse' :: 'Traversable' f => 'Traversal' (f a) (f b) a b@
---
--- and the more evocative name suggests their application.
---
--- Most of the time the 'Traversal' you will want to use is just 'traverse', but you can also pass any
--- 'Lens' or 'Control.Lens.Iso.Iso' as a 'Traversal', and composition of a 'Traversal' (or 'Lens' or 'Control.Lens.Iso.Iso') with a 'Traversal' (or 'Lens' or 'Control.Lens.Iso.Iso')
--- using (.) forms a valid 'Traversal'.
---
--- The laws for a Traversal @t@ follow from the laws for Traversable as stated in \"The Essence of the Iterator Pattern\".
---
--- @
--- t 'pure' ≡ 'pure'
--- 'fmap' (t f) '.' t g ≡ 'Data.Functor.Compose.getCompose' '.' t ('Data.Functor.Compose.Compose' '.' 'fmap' f '.' g)
--- @
---
--- One consequence of this requirement is that a 'Traversal' needs to leave the same number of elements as a
--- candidate for subsequent 'Traversal' that it started with. Another testament to the strength of these laws
--- is that the caveat expressed in section 5.5 of the \"Essence of the Iterator Pattern\" about exotic
--- 'Traversable' instances that 'traverse' the same entry multiple times was actually already ruled out by the
--- second law in that same paper!
-type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
-
 -- | When you see this as an argument to a function, it expects a 'Traversal'.
 type ATraversal s t a b = LensLike (Bazaar a b) s t a b
-
--- | @type 'Traversal'' = 'Simple' 'Traversal'@
-type Traversal' s a = Traversal s s a a
 
 -- | @type 'ATraversal'' = 'Simple' 'ATraversal'@
 type ATraversal' s a = ATraversal s s a a
@@ -189,7 +145,7 @@ type ATraversal' s a = ATraversal s s a a
 -- @'traverse' ≡ 'traverseOf' 'traverse'@
 --
 -- @
--- 'traverseOf' :: 'Control.Lens.Iso.Iso' s t a b       -> (a -> f b) -> s -> f t
+-- 'traverseOf' :: 'Iso' s t a b       -> (a -> f b) -> s -> f t
 -- 'traverseOf' :: 'Lens' s t a b      -> (a -> f b) -> s -> f t
 -- 'traverseOf' :: 'Traversal' s t a b -> (a -> f b) -> s -> f t
 -- @
@@ -212,7 +168,7 @@ traverseOf = id
 -- @
 --
 -- @
--- 'forOf' :: 'Control.Lens.Iso.Iso' s t a b -> s -> (a -> f b) -> f t
+-- 'forOf' :: 'Iso' s t a b -> s -> (a -> f b) -> f t
 -- 'forOf' :: 'Lens' s t a b -> s -> (a -> f b) -> f t
 -- 'forOf' :: 'Traversal' s t a b -> s -> (a -> f b) -> f t
 -- @
@@ -230,7 +186,7 @@ forOf = flip
 -- @
 --
 -- @
--- 'sequenceAOf' ::                  'Control.Lens.Iso.Iso' s t (f b) b       -> s -> f t
+-- 'sequenceAOf' ::                  'Iso' s t (f b) b       -> s -> f t
 -- 'sequenceAOf' ::                  'Lens' s t (f b) b      -> s -> f t
 -- 'sequenceAOf' :: 'Applicative' f => 'Traversal' s t (f b) b -> s -> f t
 -- @
@@ -244,7 +200,7 @@ sequenceAOf l = l id
 -- @'mapM' ≡ 'mapMOf' 'traverse'@
 --
 -- @
--- 'mapMOf' ::            'Control.Lens.Iso.Iso' s t a b       -> (a -> m b) -> s -> m t
+-- 'mapMOf' ::            'Iso' s t a b       -> (a -> m b) -> s -> m t
 -- 'mapMOf' ::            'Lens' s t a b      -> (a -> m b) -> s -> m t
 -- 'mapMOf' :: 'Monad' m => 'Traversal' s t a b -> (a -> m b) -> s -> m t
 -- @
@@ -259,7 +215,7 @@ mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
 -- @
 --
 -- @
--- 'forMOf' ::            'Control.Lens.Iso.Iso' s t a b       -> s -> (a -> m b) -> m t
+-- 'forMOf' ::            'Iso' s t a b       -> s -> (a -> m b) -> m t
 -- 'forMOf' ::            'Lens' s t a b      -> s -> (a -> m b) -> m t
 -- 'forMOf' :: 'Monad' m => 'Traversal' s t a b -> s -> (a -> m b) -> m t
 -- @
@@ -276,7 +232,7 @@ forMOf l a cmd = unwrapMonad (l (WrapMonad #. cmd) a)
 -- @
 --
 -- @
--- 'sequenceOf' ::            'Control.Lens.Iso.Iso' s t (m b) b       -> s -> m t
+-- 'sequenceOf' ::            'Iso' s t (m b) b       -> s -> m t
 -- 'sequenceOf' ::            'Lens' s t (m b) b      -> s -> m t
 -- 'sequenceOf' :: 'Monad' m => 'Traversal' s t (m b) b -> s -> m t
 -- @
@@ -308,7 +264,7 @@ transposeOf l = getZipList #. l ZipList
 -- 'mapAccumROf' accumulates state from right to left.
 --
 -- @
--- 'mapAccumROf' :: 'Control.Lens.Iso.Iso' s t a b       -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+-- 'mapAccumROf' :: 'Iso' s t a b       -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumROf' :: 'Lens' s t a b      -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumROf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
@@ -323,7 +279,7 @@ mapAccumROf = mapAccumLOf . backwards
 -- 'mapAccumLOf' accumulates state from left to right.
 --
 -- @
--- 'mapAccumLOf' :: 'Control.Lens.Iso.Iso' s t a b       -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+-- 'mapAccumLOf' :: 'Iso' s t a b       -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumLOf' :: 'Lens' s t a b      -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumLOf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
@@ -340,7 +296,7 @@ mapAccumLOf l f acc0 s = swap (Lazy.runState (l (\a -> do (r,s') <- State.gets (
 -- @'scanr1' ≡ 'scanr1Of' 'traverse'@
 --
 -- @
--- 'scanr1Of' :: 'Control.Lens.Iso.Iso' s t a a       -> (a -> a -> a) -> s -> t
+-- 'scanr1Of' :: 'Iso' s t a a       -> (a -> a -> a) -> s -> t
 -- 'scanr1Of' :: 'Lens' s t a a      -> (a -> a -> a) -> s -> t
 -- 'scanr1Of' :: 'Traversal' s t a a -> (a -> a -> a) -> s -> t
 -- @
@@ -355,7 +311,7 @@ scanr1Of l f = snd . mapAccumROf l step Nothing where
 -- @'scanl1' ≡ 'scanl1Of' 'traverse'@
 --
 -- @
--- 'scanr1Of' :: 'Control.Lens.Iso.Iso' s t a a       -> (a -> a -> a) -> s -> t
+-- 'scanr1Of' :: 'Iso' s t a a       -> (a -> a -> a) -> s -> t
 -- 'scanr1Of' :: 'Lens' s t a a      -> (a -> a -> a) -> s -> t
 -- 'scanr1Of' :: 'Traversal' s t a a -> (a -> a -> a) -> s -> t
 -- @
@@ -382,14 +338,14 @@ loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafe
 --
 -- So technically, this is only a lens if you do not change the number of results it returns.
 --
--- When applied to a 'Fold' the result is merely a 'Control.Lens.Getter.Getter'.
+-- When applied to a 'Fold' the result is merely a 'Getter'.
 --
 -- @
--- 'partsOf' :: 'Control.Lens.Iso.Iso'' s a       -> 'Lens'' s [a]
+-- 'partsOf' :: 'Iso'' s a       -> 'Lens'' s [a]
 -- 'partsOf' :: 'Lens'' s a      -> 'Lens'' s [a]
 -- 'partsOf' :: 'Traversal'' s a -> 'Lens'' s [a]
--- 'partsOf' :: 'Fold' s a             -> 'Control.Lens.Getter.Getter' s [a]
--- 'partsOf' :: 'Control.Lens.Getter.Getter' s a           -> 'Control.Lens.Getter.Getter' s [a]
+-- 'partsOf' :: 'Fold' s a             -> 'Getter' s [a]
+-- 'partsOf' :: 'Getter' s a           -> 'Getter' s [a]
 -- @
 partsOf :: Functor f => LensLike (BazaarT a a f) s t a a -> LensLike f s t [a] [a]
 partsOf l f s = outsT b <$> f (insT b) where b = l sellT s
@@ -411,14 +367,14 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 -- This is unsafe because if you don't supply at least as many @b@'s as you were
 -- given @a@'s, then the reconstruction of @t@ /will/ result in an error!
 --
--- When applied to a 'Fold' the result is merely a 'Control.Lens.Getter.Getter' (and becomes safe).
+-- When applied to a 'Fold' the result is merely a 'Getter' (and becomes safe).
 --
 -- @
--- 'unsafePartsOf' :: 'Control.Lens.Iso.Iso' s t a b       -> 'Lens' s t [a] [b]
+-- 'unsafePartsOf' :: 'Iso' s t a b       -> 'Lens' s t [a] [b]
 -- 'unsafePartsOf' :: 'Lens' s t a b      -> 'Lens' s t [a] [b]
 -- 'unsafePartsOf' :: 'Traversal' s t a b -> 'Lens' s t [a] [b]
--- 'unsafePartsOf' :: 'Fold' s a          -> 'Control.Lens.Getter.Getter' s [a]
--- 'unsafePartsOf' :: 'Control.Lens.Getter.Getter' s a        -> 'Control.Lens.Getter.Getter' s [a]
+-- 'unsafePartsOf' :: 'Fold' s a          -> 'Getter' s [a]
+-- 'unsafePartsOf' :: 'Getter' s a        -> 'Getter' s [a]
 -- @
 unsafePartsOf :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t [a] [b]
 unsafePartsOf l f s = unsafeOutsT b <$> f (insT b) where b = l sellT s
@@ -438,7 +394,7 @@ unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 -- @
 --
 -- @
--- 'holesOf' :: 'Control.Lens.Iso.Iso'' s a       -> s -> ['Context' a a s]
+-- 'holesOf' :: 'Iso'' s a       -> s -> ['Context' a a s]
 -- 'holesOf' :: 'Lens'' s a      -> s -> ['Context' a a s]
 -- 'holesOf' :: 'Traversal'' s a -> s -> ['Context' a a s]
 -- @
@@ -450,15 +406,15 @@ holesOf l a = f (ins b) (outs b) where
 {-# INLINE holesOf #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can
--- also be used to transform a non-empty 'Fold' into a 'Control.Lens.Getter.Getter' or a non-empty 'Control.Lens.Action.MonadicFold' into an
+-- also be used to transform a non-empty 'Fold' into a 'Getter' or a non-empty 'Control.Lens.Action.MonadicFold' into an
 -- 'Control.Lens.Action.Action'.
 --
--- The resulting 'Lens', 'Control.Lens.Getter.Getter', or 'Control.Lens.Action.Action' will be partial if the supplied traversal returns
+-- The resulting 'Lens', 'Getter', or 'Control.Lens.Action.Action' will be partial if the supplied traversal returns
 -- no results.
 --
 -- @
 -- 'singular' :: 'Traversal' s t a a -> 'Lens' s t a a
--- 'singular' :: 'Fold' s a          -> 'Control.Lens.Getter.Getter' s a
+-- 'singular' :: 'Fold' s a          -> 'Getter' s a
 -- 'singular' :: 'Control.Lens.Action.MonadicFold' m s a -> 'Control.Lens.Action.Action' m s a
 -- @
 singular :: Functor f => LensLike (BazaarT a a f) s t a a -> LensLike f s t a a
@@ -467,14 +423,14 @@ singular l f = partsOf l $ \xs -> case xs of
   []     -> [] <$ f (error "singular: empty traversal")
 
 -- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be
--- used to transform a 'Fold' into a 'Control.Lens.Getter.Getter' or a 'Control.Lens.Action.MonadicFold' into an 'Control.Lens.Action.Action'.
+-- used to transform a 'Fold' into a 'Getter' or a 'Control.Lens.Action.MonadicFold' into an 'Control.Lens.Action.Action'.
 --
--- The resulting 'Lens', 'Control.Lens.Getter.Getter', or 'Control.Lens.Action.Action' will be partial if the Traversal targets nothing
+-- The resulting 'Lens', 'Getter', or 'Control.Lens.Action.Action' will be partial if the Traversal targets nothing
 -- or more than one element.
 --
 -- @
 -- 'unsafeSingular' :: 'Traversal' s t a b -> 'Lens' s t a b
--- 'unsafeSingular' :: 'Fold' s a          -> 'Control.Lens.Getter.Getter' s a
+-- 'unsafeSingular' :: 'Fold' s a          -> 'Getter' s a
 -- 'unsafeSingular' :: 'Control.Lens.Action.MonadicFold' m s a -> 'Control.Lens.Action.Action' m s a
 -- @
 unsafeSingular :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t a b
@@ -552,7 +508,7 @@ both :: Traversal (a,a) (b,b) a b
 both f ~(a,a') = (,) <$> f a <*> f a'
 {-# INLINE both #-}
 
--- | Apply a different 'Traversal' or 'Control.Lens.Fold.Fold' to each side of a tuple.
+-- | Apply a different 'Traversal' or 'Fold' to each side of a tuple.
 --
 -- >>> ("hello",["world","!!!"])^..beside id traverse
 -- ["hello","world","!!!"]
@@ -560,7 +516,7 @@ beside :: Applicative f => LensLike f s t a b -> LensLike f s' t' a b -> LensLik
 beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 {-# INLINE beside #-}
 
--- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Control.Lens.Getter.Getter' or 'Lens'.
+-- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
 --
 -- >>> [("hello","world"),("!!!","!!!")]^.. taking 2 (traverse.both)
 -- ["hello","world"]
@@ -574,7 +530,7 @@ taking :: Applicative f => Int -> LensLike' (BazaarT a a f) s a -> LensLike' f s
 taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sellT s
 {-# INLINE taking #-}
 
--- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Control.Lens.Getter.Getter' or 'Lens'.
+-- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
 --
 -- >>> ("hello","world") ^? dropping 1 both
 -- Just "world"
@@ -618,25 +574,13 @@ cloneTraversal l f = bazaar f . l sell
 -- Indexed Traversals
 ------------------------------------------------------------------------------
 
--- | Every indexed traversal is a valid 'Control.Lens.Traversal.Traversal' or
--- 'Control.Lens.Fold.IndexedFold'.
---
--- The 'Indexed' constraint is used to allow an 'IndexedTraversal' to be used
--- directly as a 'Control.Lens.Traversal.Traversal'.
---
--- The 'Control.Lens.Traversal.Traversal' laws are still required to hold.
-type IndexedTraversal i s t a b = forall f p. (Indexable i p, Applicative f) => p a (f b) -> s -> f t
-
--- | @type 'IndexedTraversal'' i = 'Simple' ('IndexedTraversal' i)@
-type IndexedTraversal' i s a = IndexedTraversal i s s a a
-
 -- | Traversal with an index.
 --
 -- /NB:/ When you don't need access to the index then you can just apply your 'IndexedTraversal'
 -- directly as a function!
 --
 -- @
--- 'itraverseOf' ≡ 'withIndex'
+-- 'itraverseOf' ≡ 'Control.Lens.Indexed.withIndex'
 -- 'Control.Lens.Traversal.traverseOf' l = 'itraverseOf' l '.' 'const' = 'id'
 -- @
 --
@@ -645,7 +589,7 @@ type IndexedTraversal' i s a = IndexedTraversal i s s a a
 -- 'itraverseOf' :: 'IndexedTraversal' i s t a b -> (i -> a -> f b) -> s -> f t
 -- @
 itraverseOf :: (Indexed i a (f b) -> s -> f t) -> (i -> a -> f b) -> s -> f t
-itraverseOf = withIndex
+itraverseOf l = l . Indexed
 {-# INLINE itraverseOf #-}
 
 -- |
@@ -661,7 +605,7 @@ itraverseOf = withIndex
 -- 'iforOf' :: 'IndexedTraversal' i s t a b -> s -> (i -> a -> f b) -> f t
 -- @
 iforOf :: (Indexed i a (f b) -> s -> f t) -> s -> (i -> a -> f b) -> f t
-iforOf = flip . withIndex
+iforOf l s f = l (Indexed f) s
 {-# INLINE iforOf #-}
 
 -- | Map each element of a structure targeted by a lens to a monadic action,
@@ -677,7 +621,7 @@ iforOf = flip . withIndex
 -- 'imapMOf' :: 'Monad' m => 'IndexedTraversal' i s t a b -> (i -> a -> m b) -> s -> m t
 -- @
 imapMOf :: (Indexed i a (WrappedMonad m b) -> s -> WrappedMonad m t) -> (i -> a -> m b) -> s -> m t
-imapMOf l f = unwrapMonad . withIndex l (\i -> WrapMonad . f i)
+imapMOf l f = unwrapMonad . l (Indexed $ \i -> WrapMonad . f i)
 {-# INLINE imapMOf #-}
 
 -- | Map each element of a structure targeted by a lens to a monadic action,
@@ -708,7 +652,7 @@ iforMOf = flip . imapMOf
 -- 'imapAccumROf' :: 'IndexedTraversal' i s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 -- @
 imapAccumROf :: (Indexed i a (Lazy.State s b) -> s -> Lazy.State s t) -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
-imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s -> swap (f i s c))) a) s0)
+imapAccumROf l f s0 a = swap (Lazy.runState (l (Indexed $ \i c -> Lazy.state (\s -> swap (f i s c))) a) s0)
 {-# INLINE imapAccumROf #-}
 
 -- | Generalizes 'Data.Traversable.mapAccumL' to an arbitrary 'IndexedTraversal' with access to the index.
@@ -722,7 +666,7 @@ imapAccumROf l f s0 a = swap (Lazy.runState (withIndex l (\i c -> Lazy.state (\s
 -- 'imapAccumLOf' :: 'IndexedTraversal' i s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
 -- @
 imapAccumLOf :: (Indexed i a (Backwards (Lazy.State s) b) -> s -> Backwards (Lazy.State s) t) -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
-imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (withIndex l (\i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)
+imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (l (Indexed $ \i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)
 {-# INLINE imapAccumLOf #-}
 
 ------------------------------------------------------------------------------
@@ -735,14 +679,14 @@ imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (withIndex l (\i c -> Back
 -- ["He","saw","desserts","O_o"]
 --
 -- @
--- 'iwhereOf' :: 'Control.Lens.Fold.IndexedFold' i s a            -> (i -> 'Bool') -> 'Control.Lens.Fold.IndexedFold' i s a
--- 'iwhereOf' :: 'IndexedGetter' i s a          -> (i -> 'Bool') -> 'Control.Lens.Fold.IndexedFold' i s a
+-- 'iwhereOf' :: 'IndexedFold' i s a       -> (i -> 'Bool') -> 'IndexedFold' i s a
+-- 'iwhereOf' :: 'IndexedGetter' i s a     -> (i -> 'Bool') -> 'IndexedFold' i s a
 -- 'iwhereOf' :: 'IndexedLens'' i s a      -> (i -> 'Bool') -> 'IndexedTraversal'' i s a
 -- 'iwhereOf' :: 'IndexedTraversal'' i s a -> (i -> 'Bool') -> 'IndexedTraversal'' i s a
 -- 'iwhereOf' :: 'IndexedSetter'' i s a    -> (i -> 'Bool') -> 'IndexedSetter'' i s a
 -- @
 iwhereOf :: (Indexable i p, Applicative f) => IndexedLensLike (Indexed i) f s t a a -> (i -> Bool) -> IndexedLensLike p f s t a a
-iwhereOf l p f = withIndex l (\i a -> if p i then indexed f i a else pure a)
+iwhereOf l p f = l . Indexed $ \i a -> if p i then indexed f i a else pure a
 {-# INLINE iwhereOf #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
@@ -755,7 +699,7 @@ traversed64 :: Traversable f => IndexedTraversal Int64 (f a) (f b) a b
 traversed64 = indexing64 traverse
 {-# INLINE traversed64 #-}
 
--- | This provides a 'Control.Lens.Traversal.Traversal' that checks a predicate on a key before
+-- | This provides a 'Traversal' that checks a predicate on a key before
 -- allowing you to traverse into a value.
 value :: (k -> Bool) -> IndexedTraversal' k (k, v) v
 value p f kv@(k,v)
@@ -814,8 +758,8 @@ instance Ord k => TraverseMax k (Map k) where
     Nothing          -> pure m
   {-# INLINE traverseMax #-}
 
--- | Traverse the /nth/ element 'elementOf' a 'Control.Lens.Traversal.Traversal', 'Lens' or
--- 'Control.Lens.Iso.Iso' if it exists.
+-- | Traverse the /nth/ element 'elementOf' a 'Traversal', 'Lens' or
+-- 'Iso' if it exists.
 --
 -- >>> [[1],[3,4]] & elementOf (traverse.traverse) 1 .~ 5
 -- [[1],[5,4]]
@@ -830,8 +774,8 @@ instance Ord k => TraverseMax k (Map k) where
 -- [0,1,2,16,4,5,6,7,8,9]
 --
 -- @
--- 'elementOf' :: 'Control.Lens.Traversal.Traversal'' s a -> Int -> 'IndexedTraversal'' 'Int' s a
--- 'elementOf' :: 'Control.Lens.Fold.Fold' s a            -> Int -> 'Control.Lens.Fold.IndexedFold' 'Int' s a
+-- 'elementOf' :: 'Traversal'' s a -> Int -> 'IndexedTraversal'' 'Int' s a
+-- 'elementOf' :: 'Fold' s a       -> Int -> 'IndexedFold' 'Int' s a
 -- @
 elementOf :: (Applicative f, Indexable Int p)
           => LensLike (Indexing f) s t a a
@@ -847,11 +791,11 @@ element :: Traversable t => Int -> IndexedTraversal' Int (t a) a
 element = elementOf traverse
 {-# INLINE element #-}
 
--- | Traverse (or fold) selected elements of a 'Control.Lens.Traversal.Traversal' (or 'Control.Lens.Fold.Fold') where their ordinal positions match a predicate.
+-- | Traverse (or fold) selected elements of a 'Traversal' (or 'Fold') where their ordinal positions match a predicate.
 --
 -- @
--- 'elementsOf' :: 'Control.Lens.Traversal.Traversal'' s a -> ('Int' -> 'Bool') -> 'IndexedTraversal'' 'Int' s a
--- 'elementsOf' :: 'Control.Lens.Fold.Fold' s a            -> ('Int' -> 'Bool') -> 'Control.Lens.Fold.IndexedFold' 'Int' s a
+-- 'elementsOf' :: 'Traversal'' s a -> ('Int' -> 'Bool') -> 'IndexedTraversal'' 'Int' s a
+-- 'elementsOf' :: 'Fold' s a       -> ('Int' -> 'Bool') -> 'IndexedFold' 'Int' s a
 -- @
 elementsOf :: (Applicative f, Indexable Int p)
            => LensLike (Indexing f) s t a a
@@ -868,41 +812,3 @@ elementsOf l p iafb s =
 elements :: Traversable t => (Int -> Bool) -> IndexedTraversal' Int (t a) a
 elements = elementsOf traverse
 {-# INLINE elements #-}
-
-------------------------------------------------------------------------------
--- Reifying Indexed Traversals
-------------------------------------------------------------------------------
-
--- | Useful for storage.
-newtype ReifiedIndexedTraversal i s t a b =
-  ReifyIndexedTraversal { reflectIndexedTraversal :: IndexedTraversal i s t a b }
-
--- | @type 'ReifiedIndexedTraversal'' i = 'Simple' ('ReifiedIndexedTraversal' i)@
-type ReifiedIndexedTraversal' i s a = ReifiedIndexedTraversal i s s a a
-
--- | A form of 'Traversal' that can be stored monomorphically in a container.
-data ReifiedTraversal s t a b = ReifyTraversal { reflectTraversal :: Traversal s t a b }
-
--- | @type 'ReifiedTraversal'' = 'Simple' 'ReifiedTraversal'@
-type ReifiedTraversal' s a = ReifiedTraversal s s a a
-
-------------------------------------------------------------------------------
--- Deprecated
-------------------------------------------------------------------------------
-
--- | A deprecated alias for 'ReifiedTraversal''
-type SimpleReifiedTraversal s a = ReifiedTraversal s s a a
-{-# DEPRECATED SimpleReifiedTraversal "use ReifiedTraversal'" #-}
-
--- | A deprecated alias for 'Traversal''
-type SimpleTraversal s a = Traversal s s a a
-{-# DEPRECATED SimpleTraversal "use Traversal'" #-}
-
--- | @type 'SimpleReifiedIndexedTraversal' i = 'Simple' ('ReifiedIndexedTraversal' i)@
-type SimpleReifiedIndexedTraversal i s a = ReifiedIndexedTraversal i s s a a
-{-# DEPRECATED SimpleReifiedIndexedTraversal "use ReifiedIndexedTraversal'" #-}
-
--- | @type 'SimpleIndexedTraversal' i = 'Simple' ('IndexedTraversal' i)@
-type SimpleIndexedTraversal i s a = IndexedTraversal i s s a a
-{-# DEPRECATED SimpleIndexedTraversal "use IndexedTraversal'" #-}
-

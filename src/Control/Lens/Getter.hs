@@ -43,7 +43,8 @@
 module Control.Lens.Getter
   (
   -- * Getters
-    Getter, Getting
+    Getter, IndexedGetter
+  , Getting, IndexedGetting
   -- * Building Getters
   , to
   -- * Combinators for Getters and Folds
@@ -51,10 +52,6 @@ module Control.Lens.Getter
   , view, views, view', views'
   , use, uses, use', uses'
   -- * Indexed Getters
-  , IndexedGetter, IndexedGetting
-  -- * Storing Getters
-  , ReifiedGetter(..)
-  , ReifiedIndexedGetter(..)
   -- ** Indexed Getter Combinators
   , (^@.)
   , iview, iviews
@@ -65,7 +62,7 @@ module Control.Lens.Getter
   ) where
 
 import Control.Lens.Internal
-import Control.Lens.Lens
+import Control.Lens.Type
 import Control.Monad.Reader.Class as Reader
 import Control.Monad.State        as State
 
@@ -82,17 +79,6 @@ infixl 8 ^., ^@.
 -------------------------------------------------------------------------------
 -- Getters
 -------------------------------------------------------------------------------
-
--- | A 'Getter' describes how to retrieve a single value in a way that can be
--- composed with other lens-like constructions.
---
--- Unlike a 'Lens' a 'Getter' is read-only. Since a 'Getter'
--- cannot be used to write back there are no lens laws that can be applied to
--- it. In fact, it is isomorphic to an arbitrary function from @(a -> s)@.
---
--- Moreover, a 'Getter' can be used directly as a 'Control.Lens.Fold.Fold',
--- since it just ignores the 'Applicative'.
-type Getter s a = forall f. Gettable f => (a -> f a) -> s -> f s
 
 -- | Build a 'Getter' from an arbitrary Haskell function.
 --
@@ -135,6 +121,9 @@ to f g = coerce . g . f
 -- 'Getter' or 'Lens'.
 --
 type Getting r s t a b = (a -> Accessor r b) -> s -> Accessor r t
+
+-- | Used to consume an 'Control.Lens.Fold.IndexedFold'.
+type IndexedGetting i m s t a b = Indexed i a (Accessor m b) -> s -> Accessor m t
 
 -------------------------------------------------------------------------------
 -- Getting Values
@@ -445,31 +434,15 @@ views' l f = Reader.asks (runAccessor #. l (Accessor #. f))
 {-# INLINE views' #-}
 
 ------------------------------------------------------------------------------
--- Reified Getters
-------------------------------------------------------------------------------
-
--- | Useful for storing getters in containers.
-newtype ReifiedGetter s a = ReifyGetter { reflectGetter :: Getter s a }
-
-------------------------------------------------------------------------------
 -- Indexed Getters
 ------------------------------------------------------------------------------
-
--- | Every 'IndexedGetter' is a valid 'Control.Lens.Fold.IndexedFold' and 'Getter'.
-type IndexedGetter i s a = forall p f. (Indexable i p, Gettable f) => p a (f a) -> s -> f s
-
--- | Used to consume an 'Control.Lens.Fold.IndexedFold'.
-type IndexedGetting i m s t a b = Indexed i a (Accessor m b) -> s -> Accessor m t
-
--- | Useful for storage.
-newtype ReifiedIndexedGetter i s a = ReifyIndexedGetter { reflectIndexedGetter :: IndexedGetter i s a }
 
 -- | View the index and value of an 'IndexedGetter' into the current environment as a pair.
 --
 -- When applied to an 'IndexedFold' the result will most likely be a nonsensical monoidal summary of
 -- the indices tupled with a monoidal summary of the values and probably not whatever it is you wanted.
 iview :: MonadReader s m => IndexedGetting i (i,a) s t a b -> m (i,a)
-iview l = asks (runAccessor #. withIndex l (\i -> Accessor #. (,) i))
+iview l = asks (runAccessor #. l (Indexed $ \i -> Accessor #. (,) i))
 {-# INLINE iview #-}
 
 -- | View a function of the index and value of an 'IndexedGetter' into the current environment
@@ -478,7 +451,7 @@ iview l = asks (runAccessor #. withIndex l (\i -> Accessor #. (,) i))
 --
 -- @'iviews' ≡ 'Control.Lens.Fold.ifoldMapOf'@
 iviews :: MonadReader s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
-iviews l f = asks (runAccessor #. withIndex l (\i -> Accessor #. f i))
+iviews l f = asks (runAccessor #. l (Indexed $ \i -> Accessor #. f i))
 {-# INLINE iviews #-}
 
 -- | Use the index and value of an 'IndexedGetter' into the current state as a pair.
@@ -486,14 +459,14 @@ iviews l f = asks (runAccessor #. withIndex l (\i -> Accessor #. f i))
 -- When applied to an 'IndexedFold' the result will most likely be a nonsensical monoidal summary of
 -- the indices tupled with a monoidal summary of the values and probably not whatever it is you wanted.
 iuse :: MonadState s m => IndexedGetting i (i,a) s t a b -> m (i,a)
-iuse l = gets (runAccessor #. withIndex l (\i -> Accessor #. (,) i))
+iuse l = gets (runAccessor #. l (Indexed $ \i -> Accessor #. (,) i))
 {-# INLINE iuse #-}
 
 -- | Use a function of the index and value of an 'IndexedGetter' into the current state.
 --
 -- When applied to an 'IndexedFold' the result will be a monoidal summary instead of a single answer.
 iuses :: MonadState s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
-iuses l f = gets (runAccessor #. withIndex l (\i -> Accessor #. f i))
+iuses l f = gets (runAccessor #. l (Indexed $ \i -> Accessor #. f i))
 {-# INLINE iuses #-}
 
 -- | View the value pointed to by a 'Getter' or 'Lens'.
@@ -514,5 +487,5 @@ iuses l f = gets (runAccessor #. withIndex l (\i -> Accessor #. f i))
 -- ('^@.') :: s -> 'IndexedLens'' i s a        -> (i, a)
 -- @
 (^@.) :: s -> IndexedGetting i (i, a) s t a b -> (i, a)
-s ^@. l = runAccessor $ withIndex l (\i -> Accessor #. (,) i) s
+s ^@. l = runAccessor $ l (Indexed $ \i -> Accessor #. (,) i) s
 {-# INLINE (^@.) #-}

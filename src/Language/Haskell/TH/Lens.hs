@@ -18,7 +18,7 @@ module Language.Haskell.TH.Lens
   ( HasName(..)
   , HasTypeVars(..)
   , SubstType(..)
-  , typeVars      -- :: HasTypeVars t => Simple Traversal t Name
+  , typeVars      -- :: HasTypeVars t => Traversal' t Name
   , substTypeVars -- :: HasTypeVars t => Map Name Name -> t -> t
   , conFields
   , conNamedFields
@@ -43,7 +43,7 @@ import Language.Haskell.TH.Syntax
 -- | Has a 'Name'
 class HasName t where
   -- | Extract (or modify) the 'Name' of something
-  name :: Simple Lens t Name
+  name :: Lens' t Name
 
 instance HasName TyVarBndr where
   name f (PlainTV n) = PlainTV <$> f n
@@ -63,7 +63,7 @@ class HasTypeVars t where
   -- | When performing substitution into this traversal you're not allowed
   -- to substitute in a name that is bound internally or you'll violate
   -- the 'Traversal' laws, when in doubt generate your names with 'newName'.
-  typeVarsEx :: Set Name -> Simple Traversal t Name
+  typeVarsEx :: Set Name -> Traversal' t Name
 
 instance HasTypeVars TyVarBndr where
   typeVarsEx s f b
@@ -99,7 +99,7 @@ instance HasTypeVars t => HasTypeVars [t] where
   typeVarsEx s = traverse . typeVarsEx s
 
 -- | Traverse /free/ type variables
-typeVars :: HasTypeVars t => Simple Traversal t Name
+typeVars :: HasTypeVars t => Traversal' t Name
 typeVars = typeVarsEx mempty
 
 -- | Substitute using a map of names in for /free/ type variables
@@ -127,7 +127,7 @@ instance SubstType Pred where
   substType m (EqualP l r)  = substType m (EqualP l r)
 
 -- | Provides a 'Traversal' of the types of each field of a constructor.
-conFields :: Simple Traversal Con StrictType
+conFields :: Traversal' Con StrictType
 conFields f (NormalC n fs)      = NormalC n <$> traverse f fs
 conFields f (RecC n fs)         = RecC n <$> traverse sans_var fs
   where sans_var (fn,s,t) = (\(s', t') -> (fn,s',t')) <$> f (s, t)
@@ -135,6 +135,6 @@ conFields f (InfixC l n r)      = InfixC <$> f l <*> pure n <*> f r
 conFields f (ForallC bds ctx c) = ForallC bds ctx <$> conFields f c
 
 -- | 'Traversal' of the types of the /named/ fields of a constructor.
-conNamedFields :: Simple Traversal Con VarStrictType
+conNamedFields :: Traversal' Con VarStrictType
 conNamedFields f (RecC n fs) = RecC n <$> traverse f fs
 conNamedFields _ c = pure c

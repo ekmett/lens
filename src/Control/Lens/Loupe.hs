@@ -22,8 +22,7 @@
 module Control.Lens.Loupe
   (
   -- * Lenses
-    Loupe
-  , Loupe'
+    Loupe, Loupe'
   , storing
   , (^#)
   , (#~), (#%~), (#%%~), (<#~), (<#%~)
@@ -33,10 +32,10 @@ module Control.Lens.Loupe
   , SimpleLoupe
   ) where
 
-import Control.Applicative              as Applicative
+import Control.Applicative       as Applicative
 import Control.Lens.Internal
-import Control.Lens.Lens
-import Control.Monad.State.Class        as State
+import Control.Lens.Type
+import Control.Monad.State.Class as State
 
 -- $setup
 -- >>> import Control.Lens

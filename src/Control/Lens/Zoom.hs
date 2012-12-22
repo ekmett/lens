@@ -24,7 +24,7 @@ module Control.Lens.Zoom
 
 import Control.Lens.Getter
 import Control.Lens.Internal
-import Control.Lens.Lens
+import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader.Class as Reader
 import Control.Monad.State as State

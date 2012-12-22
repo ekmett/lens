@@ -45,9 +45,9 @@ import           Control.Applicative
 import           Control.Exception as E
 import           Control.Lens.Combinators
 import           Control.Lens.Internal
-import           Control.Lens.Lens
 import           Control.Lens.Setter
 import           Control.Lens.Traversal
+import           Control.Lens.Type
 import           Data.Data
 import           GHC.IO
 import           Unsafe.Coerce as Unsafe

@@ -34,7 +34,8 @@ module Control.Lens.Tuple
   ) where
 
 import Control.Lens.Combinators
-import Control.Lens.Lens
+import Control.Lens.Indexed
+import Control.Lens.Type
 
 -- $setup
 -- >>> import Control.Lens

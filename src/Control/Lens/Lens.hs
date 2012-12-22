@@ -59,86 +59,52 @@ module Control.Lens.Lens
   (
   -- * Lenses
     Lens, Lens'
+  -- ** Concrete Lenses
   , ALens, ALens'
-  , Simple
 
+  -- * Combinators
   , lens
-  , (%%~)
-  , (%%=)
+  , (%%~), (%%=)
 
-  -- * Lateral Composition
+  -- * Indexed
+  , IndexedLens, IndexedLens'
+  , (%%@~), (%%@=)
+  , (<%@~), (<%@=)
+
+  -- ** Lateral Composition
   , choosing
   , chosen
   , alongside
   , inside
 
-  -- * Setting Functionally with Passthrough
+  -- ** Setting Functionally with Passthrough
   , (<%~), (<+~), (<-~), (<*~), (<//~)
   , (<^~), (<^^~), (<**~)
   , (<||~), (<&&~), (<<>~)
   , (<<%~), (<<.~)
 
-  -- * Setting State with Passthrough
+  -- ** Setting State with Passthrough
   , (<%=), (<+=), (<-=), (<*=), (<//=)
   , (<^=), (<^^=), (<**=)
   , (<||=), (<&&=), (<<>=)
   , (<<%=), (<<.=)
   , (<<~)
 
-  -- * Cloning Lenses
+  -- ** Cloning Lenses
   , cloneLens
-  , ReifiedLens(..), ReifiedLens'
 
   -- * Context
   , Context(..)
   , locus
-
-  -- * Indices
-  -- ** Indexed Functions
-  , Indexable(..)
-  , Indexed(..)
-  , (<.>), (<.), (.>)
-  , icompose
-  , reindexed
-  -- ** Indexing existing lenses, traversals, etc.
-  , indexing
-  , indexing64
-  -- ** withIndex
-  , (@~)
-  , withIndex
-  , IndexedLensLike
-  , IndexedLensLike'
-
-  -- * Indexed Lenses
-  , IndexedLens, IndexedLens'
-  -- * Indexed Lens Combinators
-  , (%%@~), (<%@~), (%%@=), (<%@=)
-  -- * Storing Indexed Lenses
-  , ReifiedIndexedLens(..)
-  , ReifiedIndexedLens'
-  -- * Deprecated
-  , SimpleIndexedLens
-  , SimpleReifiedIndexedLens
-
-  -- * Simplified and In-Progress
-  , LensLike
-  , LensLike'
-  , Overloading
-  , Overloading'
-
-  -- * Deprecated
-  , SimpleLens
-  , SimpleLensLike
-  , SimpleReifiedLens
   ) where
 
 import Control.Applicative
 import Control.Comonad.Store as Store
-import Control.Lens.Combinators ((<&>))
+import Control.Lens.Combinators
 import Control.Lens.Internal
+import Control.Lens.Type
 import Control.Monad.State as State
-import Data.Int
-import Data.Monoid (Monoid(mappend))
+import Data.Monoid
 
 {-# ANN module "HLint: ignore Use ***" #-}
 
@@ -152,8 +118,7 @@ import Data.Monoid (Monoid(mappend))
 -- >>> let getter :: Expr -> Expr; getter = fun "getter"
 -- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
 
-infixr 9 <.>, <., .>
-infixr 4 %%@~, <%@~, %%~, @~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <%~, <<%~, <<.~
+infixr 4 %%@~, <%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <%~, <<%~, <<.~
 infix  4 %%@=, <%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=
 infixr 2 <<~
 
@@ -161,73 +126,11 @@ infixr 2 <<~
 -- Lenses
 -------------------------------------------------------------------------------
 
--- | A 'Lens' is actually a lens family as described in
--- <http://comonad.com/reader/2012/mirrored-lenses/>.
---
--- With great power comes great responsibility and a 'Lens' is subject to the
--- three common sense lens laws:
---
--- 1) You get back what you put in:
---
--- @'Control.Lens.Getter.view' l ('Control.Lens.Setter.set' l b a)  ≡ b@
---
--- 2) Putting back what you got doesn't change anything:
---
--- @'Control.Lens.Setter.set' l ('Control.Lens.Getter.view' l a) a  ≡ a@
---
--- 3) Setting twice is the same as setting once:
---
--- @'Control.Lens.Setter.set' l c ('Control.Lens.Setter.set' l b a) ≡ 'Control.Lens.Setter.set' l c a@
---
--- These laws are strong enough that the 4 type parameters of a 'Lens' cannot
--- vary fully independently. For more on how they interact, read the \"Why is
--- it a Lens Family?\" section of
--- <http://comonad.com/reader/2012/mirrored-lenses/>.
---
--- Every 'Lens' can be used directly as a 'Control.Lens.Setter.Setter' or
--- 'Control.Lens.Traversal.Traversal'.
---
--- You can also use a 'Lens' for 'Control.Lens.Getter.Getting' as if it were a
--- 'Control.Lens.Fold.Fold' or 'Control.Lens.Getter.Getter'.
---
--- Since every lens is a valid 'Control.Lens.Traversal.Traversal', the
--- traversal laws are required of any lenses you create:
---
--- @
--- l 'pure' ≡ 'pure'
--- 'fmap' (l f) '.' l g ≡ 'Data.Functor.Compose.getCompose' '.' l ('Data.Functor.Compose.Compose' '.' 'fmap' f '.' g)
--- @
---
--- @type 'Lens' s t a b = forall f. 'Functor' f => 'LensLike' f s t a b@
-type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
-
 -- | When you see this as an argument to a function, it expects a 'Lens'.
 type ALens s t a b = LensLike (Context a b) s t a b
 
--- | A 'Simple' 'Lens', 'Simple' 'Control.Lens.Traversal.Traversal', ... can
--- be used instead of a 'Lens','Control.Lens.Traversal.Traversal', ...
--- whenever the type variables don't change upon setting a value.
---
--- @
--- 'Data.Complex.Lens.imaginary' :: 'Simple' 'Lens' ('Data.Complex.Complex' a) a
--- 'Data.List.Lens.traverseHead' :: 'Simple' 'Traversal' [a] a
--- @
---
--- Note: To use this alias in your own code with @'LensLike' f@ or
--- 'Control.Lens.Setter.Setter', you may have to turn on @LiberalTypeSynonyms@.
---
--- This is commonly abbreviated as a \"prime\" marker, /e.g./ 'Lens'' = 'Simple' 'Lens'.
-type Simple f s a = f s s a a
-
--- | @type 'Lens'' = 'Simple' 'Lens'@
-type Lens' s a = Lens s s a a
-
 -- | @type 'ALens'' = 'Simple' 'ALens'@
 type ALens' s a = ALens s s a a
-
--- | @type 'LensLike'' f = 'Simple' ('LensLike' f)@
-type LensLike' f s a = LensLike f s s a a
-
 
 --------------------------
 -- Constructing Lenses
@@ -248,24 +151,6 @@ type LensLike' f s a = LensLike f s s a a
 lens :: (s -> a) -> (s -> b -> t) -> Lens s t a b
 lens sa sbt afb s = sbt s <$> afb (sa s)
 {-# INLINE lens #-}
-
--------------------------------------------------------------------------------
--- LensLike
--------------------------------------------------------------------------------
-
--- |
--- Many combinators that accept a 'Lens' can also accept a
--- 'Control.Lens.Traversal.Traversal' in limited situations.
---
--- They do so by specializing the type of 'Functor' that they require of the
--- caller.
---
--- If a function accepts a @'LensLike' f s t a b@ for some 'Functor' @f@,
--- then they may be passed a 'Lens'.
---
--- Further, if @f@ is an 'Applicative', they may also be passed a
--- 'Control.Lens.Traversal.Traversal'.
-type LensLike f s t a b = (a -> f b) -> s -> f t
 
 -- | ('%%~') can be used in one of two scenarios:
 --
@@ -407,7 +292,7 @@ alongside l r f (s, s') = case l (Context id) s of
 -- @
 --
 -- @
--- 'locus' :: Simple Lens ('Context' s s a) s
+-- 'locus' :: 'Lens'' ('Context' s s a) s
 -- @
 locus :: ComonadStore s w => Simple Lens (w a) s
 locus f w = (`seek` w) <$> f (pos w)
@@ -429,16 +314,6 @@ cloneLens :: ALens s t a b -> Lens s t a b
 cloneLens f afb s = case f (Context id) s of
   Context bt a -> bt <$> afb a
 {-# INLINE cloneLens #-}
-
--------------------------------------------------------------------------------
--- Overloading function application
--------------------------------------------------------------------------------
-
--- | @type 'LensLike' f s t a b = 'Overloading' (->) (->) f s t a b@
-type Overloading p q f s t a b = p a (f b) -> q s (f t)
-
--- | @type 'Overloading'' p q f s a = 'Simple' ('Overloading' p q f) s a@
-type Overloading' p q f s a = Overloading p q f s s a a
 
 -------------------------------------------------------------------------------
 -- Setting and Remembering
@@ -803,117 +678,9 @@ l <<>~ m = l <%~ (`mappend` m)
 l <<>= r = l <%= (`mappend` r)
 {-# INLINE (<<>=) #-}
 
--- | Useful for storing lenses in containers.
-newtype ReifiedLens s t a b = ReifyLens { reflectLens :: Lens s t a b }
-
--- | @type 'ReifiedLens'' = 'Simple' 'ReifiedLens'@
-type ReifiedLens' s a = ReifiedLens s s a a
-
--- | A deprecated alias for 'ReifiedLens''
-type SimpleReifiedLens s a = ReifiedLens s s a a
-{-# DEPRECATED SimpleReifiedLens "use ReifiedLens'" #-}
-
--- | A deprecated alias for 'Lens''
-type SimpleLens s a = Lens s s a a
-{-# DEPRECATED SimpleLens "use Lens'" #-}
-
--- | A deprecated alias for 'LensLike''
-type SimpleLensLike f s a = LensLike f s s a a
-{-# DEPRECATED SimpleLensLike "use LensLike'" #-}
-
 ------------------------------------------------------------------------------
 -- Indexed
 ------------------------------------------------------------------------------
-
-withIndex :: (Indexed i s t -> r) -> (i -> s -> t) -> r
-withIndex l = l . Indexed
-{-# INLINE withIndex #-}
-
-(@~) :: (Indexed i s t -> r) -> (i -> s -> t) -> r
-(@~) = withIndex
-{-# INLINE (@~) #-}
-
--- | Compose an 'Indexed' function with a non-indexed function.
---
--- Mnemonically, the @<@ points to the indexing we want to preserve.
-(<.) :: Indexable i p => (Indexed i s t -> r) -> ((a -> b) -> s -> t) -> p a b -> r
-(<.) f g h = f @~ g . indexed h
-{-# INLINE (<.) #-}
-
--- | Compose a non-indexed function with an 'Indexed' function.
---
--- Mnemonically, the @>@ points to the indexing we want to preserve.
---
--- This is the same as @(.)@: @f.g@ gives you @g@'s index.
-(.>) :: (st -> r) -> (kab -> st) -> kab -> r
-(.>) = (.)
-{-# INLINE (.>) #-}
-
--- (.>)  :: Indexable i p => (b -> c) -> Indexed i a b -> p a c
--- bc .> Indexed iab = indexed (bc . iab)
-
--- | Remap the index.
-reindexed :: Indexable j p => (i -> j) -> (Indexed i a b -> r) -> p a b -> r
-reindexed ij f g = f @~ indexed g . ij
-{-# INLINE reindexed #-}
-
--- | Composition of 'Indexed' functions
---
--- Mnemonically, the @\<@ and @\>@ points to the fact that we want to preserve the indices.
-(<.>) :: Indexable (i, j) p => (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> p a b -> r
-f <.> g = icompose (,) f g
-{-# INLINE (<.>) #-}
-
--- | Composition of 'Indexed' functions with a user supplied function for combining indices
-icompose :: Indexable p c => (i -> j -> p) -> (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> c a b -> r
-icompose ijk istr jabst cab = istr @~ \i -> jabst @~ \j -> indexed cab $ ijk i j
-{-# INLINE icompose #-}
-
--- | Transform a 'Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
--- a 'Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
---
--- @
--- 'indexing' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.Traversal.IndexedTraversal' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Prism.Prism' s t a b     -> 'Control.Lens.Traversal.IndexedTraversal' 'Int' s t a b
--- 'indexing' :: 'Lens' s t a b      -> 'IndexedLens' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Iso.Iso' s t a b       -> 'IndexedLens' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.Fold.IndexedFold' 'Int' s t
--- 'indexing' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.Getter.IndexedGetter' 'Int' s t a b
--- @
-indexing :: Indexable Int p => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> s -> f t
-indexing l iafb s = case runIndexing (l (\a -> Indexing (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
-  (r, _) -> r
-{-# INLINE indexing #-}
-
--- | Transform a 'Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
--- a 'Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
---
--- This combinator is like 'indexing' except that it handles large 'Traversal's and 'Fold's gracefully.
---
--- @
--- 'indexing64' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.Traversal.IndexedTraversal' 'Int64' s t a b
--- 'indexing64' :: 'Control.Lens.Prism.Prism' s t a b     -> 'Control.Lens.Traversal.IndexedTraversal' 'Int64' s t a b
--- 'indexing64' :: 'Lens' s t a b      -> 'IndexedLens' 'Int64' s t a b
--- 'indexing64' :: 'Control.Lens.Iso.Iso' s t a b       -> 'IndexedLens' 'Int64' s t a b
--- 'indexing64' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.Fold.IndexedFold' 'Int64' s t
--- 'indexing64' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.Getter.IndexedGetter' 'Int64' s t a b
--- @
-indexing64 :: Indexable Int64 p => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> s -> f t
-indexing64 l iafb s = case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
-  (r, _) -> r
-{-# INLINE indexing64 #-}
-
--- | Convenient alias for constructing indexed lenses and their ilk
-type IndexedLensLike p f s t a b = p a (f b) -> s -> f t
-
--- | Convenient alias for constructing simple indexed lenses and their ilk
-type IndexedLensLike' p f s a    = p a (f a) -> s -> f s
-
--- | Every 'IndexedLens' is a valid 'Lens' and a valid 'Control.Lens.Traversal.IndexedTraversal'.
-type IndexedLens i s t a b = forall f p. (Indexable i p, Functor f) => p a (f b) -> s -> f t
-
--- | @type 'IndexedLens'' i = 'Simple' ('IndexedLens' i)@
-type IndexedLens' i s a = IndexedLens i s s a a
 
 -- | Adjust the target of an 'IndexedLens' returning the intermediate result, or
 -- adjust all of the targets of an 'Control.Lens.Traversal.IndexedTraversal' and return a monoidal summary
@@ -930,7 +697,7 @@ type IndexedLens' i s a = IndexedLens i s s a a
 -- ('<%@~') :: 'Monoid' b => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- @
 (<%@~) :: IndexedLensLike (Indexed i) ((,) b) s t a b -> (i -> a -> b) -> s -> (b, t)
-l <%@~ f = l @~ \i a -> let b = f i a in (b, b)
+l <%@~ f = l . Indexed $ \i a -> let b = f i a in (b, b)
 {-# INLINE (<%@~) #-}
 
 -- | Adjust the target of an 'IndexedLens' returning a supplementary result, or
@@ -952,7 +719,7 @@ l <%@~ f = l @~ \i a -> let b = f i a in (b, b)
 -- ('%%@~') :: 'Monoid' r => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> (r, b)) -> s -> (r, t)
 -- @
 (%%@~) :: IndexedLensLike (Indexed i) f s t a b -> (i -> a -> f b) -> s -> f t
-(%%@~) = withIndex
+(%%@~) l = l . Indexed
 {-# INLINE (%%@~) #-}
 
 -- | Adjust the target of an 'IndexedLens' returning a supplementary result, or
@@ -987,25 +754,3 @@ l %%@= f = do
 (<%@=) :: MonadState s m => IndexedLensLike (Indexed i) ((,) b) s s a b -> (i -> a -> b) -> m b
 l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 {-# INLINE (<%@=) #-}
-
-------------------------------------------------------------------------------
--- Reifying Indexed Lenses
-------------------------------------------------------------------------------
-
--- | Useful for storage.
-newtype ReifiedIndexedLens i s t a b = ReifyIndexedLens { reflectIndexedLens :: IndexedLens i s t a b }
-
--- | @type 'ReifiedIndexedLens'' i = 'Simple' ('ReifiedIndexedLens' i)@
-type ReifiedIndexedLens' i s a = ReifiedIndexedLens i s s a a
-
-------------------------------------------------------------------------------
--- Deprecated
-------------------------------------------------------------------------------
-
--- | @type 'SimpleIndexedLens' i = 'Simple' ('IndexedLens' i)@
-type SimpleIndexedLens i s a = IndexedLens i s s a a
-{-# DEPRECATED SimpleIndexedLens "use IndexedLens'" #-}
-
--- | @type 'SimpleReifiedIndexedLens' i = 'Simple' ('ReifiedIndexedLens' i)@
-type SimpleReifiedIndexedLens i s a = ReifiedIndexedLens i s s a a
-{-# DEPRECATED SimpleReifiedIndexedLens "use ReifiedIndexedLens'" #-}

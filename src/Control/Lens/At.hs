@@ -42,7 +42,8 @@ module Control.Lens.At
 import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Each
-import Control.Lens.Lens
+import Control.Lens.Indexed
+import Control.Lens.Type
 import Control.Lens.Traversal
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
