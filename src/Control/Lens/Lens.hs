@@ -875,11 +875,11 @@ icompose ijk istr jabst cab = istr @~ \i -> jabst @~ \j -> indexed cab $ ijk i j
 --
 -- @
 -- 'indexing' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.Traversal.IndexedTraversal' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Prism.Prism' s t a b         -> 'Control.Lens.Traversal.IndexedTraversal' 'Int' s t a b
--- 'indexing' :: 'Lens' s t a b           -> 'IndexedLens' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Iso.Iso' s t a b             -> 'IndexedLens' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Fold.Fold' s t               -> 'Control.Lens.Fold.IndexedFold' 'Int' s t
--- 'indexing' :: 'Control.Lens.Getter.Getter' s t           -> 'Control.Lens.Getter.IndexedGetter' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Prism.Prism' s t a b     -> 'Control.Lens.Traversal.IndexedTraversal' 'Int' s t a b
+-- 'indexing' :: 'Lens' s t a b      -> 'IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Iso.Iso' s t a b       -> 'IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.Fold.IndexedFold' 'Int' s t
+-- 'indexing' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.Getter.IndexedGetter' 'Int' s t a b
 -- @
 indexing :: Indexable Int p => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> s -> f t
 indexing l iafb s = case runIndexing (l (\a -> Indexing (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
@@ -893,11 +893,11 @@ indexing l iafb s = case runIndexing (l (\a -> Indexing (\i -> i `seq` (indexed 
 --
 -- @
 -- 'indexing64' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.Traversal.IndexedTraversal' 'Int64' s t a b
--- 'indexing64' :: 'Control.Lens.Prism.Prism' s t a b         -> 'Control.Lens.Traversal.IndexedTraversal' 'Int64' s t a b
--- 'indexing64' :: 'Lens' s t a b           -> 'IndexedLens' 'Int64' s t a b
--- 'indexing64' :: 'Control.Lens.Iso.Iso' s t a b             -> 'IndexedLens' 'Int64' s t a b
--- 'indexing64' :: 'Control.Lens.Fold.Fold' s t               -> 'Control.Lens.Fold.IndexedFold' 'Int64' s t
--- 'indexing64' :: 'Control.Lens.Getter.Getter' s t           -> 'Control.Lens.Getter.IndexedGetter' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Prism.Prism' s t a b     -> 'Control.Lens.Traversal.IndexedTraversal' 'Int64' s t a b
+-- 'indexing64' :: 'Lens' s t a b      -> 'IndexedLens' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Iso.Iso' s t a b       -> 'IndexedLens' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.Fold.IndexedFold' 'Int64' s t
+-- 'indexing64' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.Getter.IndexedGetter' 'Int64' s t a b
 -- @
 indexing64 :: Indexable Int64 p => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> s -> f t
 indexing64 l iafb s = case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
