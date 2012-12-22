@@ -211,6 +211,7 @@ library
     Control.Lens.Simple
     Control.Lens.Traversal
     Control.Lens.Tuple
+    Control.Lens.Type
     Control.Lens.Wrapped
     Control.Lens.Zipper
     Control.Lens.Zipper.Internal
