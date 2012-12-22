@@ -52,6 +52,9 @@ import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Maybe
 import Data.Profunctor
+#ifndef SAFE
+import Unsafe.Coerce
+#endif
 
 {-# ANN module "HLint: ignore Use on" #-}
 
@@ -117,8 +120,12 @@ cloneIso k = case withIso k of
 --
 -- @'from' ≡ 'withIso' ('flip' 'iso')@
 withIso :: AnIso s t a b -> (s -> a, b -> t)
+#ifdef SAFE
 withIso ai = case runExchange $ ai $ Exchange (id, Mutator) of
   (sa, bt) -> (sa, runMutator #. bt)
+#else
+withIso ai = unsafeCoerce (runExchange $ ai $ Exchange (id, Mutator))
+#endif
 
 {-# INLINE withIso #-}
 

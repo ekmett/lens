@@ -48,6 +48,10 @@ import Control.Lens.Internal
 import Control.Lens.Type
 import Data.Functor.Identity
 import Data.Profunctor
+#ifndef SAFE
+import Unsafe.Coerce
+#endif
+
 
 -- $setup
 -- >>> import Control.Lens
@@ -73,8 +77,12 @@ type APrism' s a = APrism s s a a
 
 -- | Safely decompose 'APrism'
 withPrism :: APrism s t a b -> (b -> t, s -> Either t a)
+#ifdef SAFE
 withPrism k = case runMarket (k (Market (Mutator, Right))) of
   (bt, sa) -> (runMutator #. bt,  either (Left . runMutator) Right . sa)
+#else
+withPrism k = unsafeCoerce (runMarket (k (Market (Mutator, Right))))
+#endif
 {-# INLINE withPrism #-}
 
 -- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.
