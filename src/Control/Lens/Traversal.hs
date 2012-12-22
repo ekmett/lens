@@ -38,6 +38,8 @@ module Control.Lens.Traversal
   -- * Lenses
     Traversal
   , Traversal'
+  , ATraversal
+  , ATraversal'
 
   -- * Traversing and Lensing
   , traverseOf, forOf, sequenceAOf
@@ -124,8 +126,14 @@ import Data.Traversable
 -- second law in that same paper!
 type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
 
+-- | When you see this as an argument to a function, it expects a 'Traversal'.
+type ATraversal s t a b = LensLike (Bazaar a b) s t a b
+
 -- | @type 'Traversal'' = 'Simple' 'Traversal'@
 type Traversal' s a = Traversal s s a a
+
+-- | @type 'ATraversal'' = 'Simple' 'ATraversal'@
+type ATraversal' s a = ATraversal s s a a
 
 --------------------------
 -- Traversal Combinators
@@ -355,7 +363,7 @@ partsOf l f s = outsT b <$> f (insT b) where b = l sellT s
 {-# INLINE partsOf #-}
 
 -- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
-partsOf' :: LensLike (Bazaar a a) s t a a -> Lens s t [a] [a]
+partsOf' :: ATraversal s t a a -> Lens s t [a] [a]
 partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 {-# INLINE partsOf' #-}
 
@@ -383,7 +391,7 @@ unsafePartsOf :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t
 unsafePartsOf l f s = unsafeOutsT b <$> f (insT b) where b = l sellT s
 {-# INLINE unsafePartsOf #-}
 
-unsafePartsOf' :: LensLike (Bazaar a b) s t a b -> Lens s t [a] [b]
+unsafePartsOf' :: ATraversal s t a b -> Lens s t [a] [b]
 unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 {-# INLINE unsafePartsOf' #-}
 
@@ -401,7 +409,7 @@ unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 -- 'holesOf' :: 'Lens'' s a      -> s -> ['Context' a a s]
 -- 'holesOf' :: 'Traversal'' s a -> s -> ['Context' a a s]
 -- @
-holesOf :: LensLike (Bazaar a a) s t a a -> s -> [Context a a t]
+holesOf :: ATraversal s t a a -> s -> [Context a a t]
 holesOf l a = f (ins b) (outs b) where
   b = l sell a
   f []     _ = []
@@ -569,7 +577,7 @@ dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> i `seq` (if i >= 
 -- ("helloworld",(10,10))
 --
 -- @'cloneTraversal' :: 'LensLike' ('Bazaar' a b) s t a b -> 'Traversal' s t a b@
-cloneTraversal :: Applicative f => ((a -> Bazaar a b b) -> s -> Bazaar a b t) -> (a -> f b) -> s -> f t
+cloneTraversal :: ATraversal s t a b -> Traversal s t a b
 cloneTraversal l f = bazaar f . l sell
 {-# INLINE cloneTraversal #-}
 

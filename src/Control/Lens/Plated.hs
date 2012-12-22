@@ -437,7 +437,7 @@ contexts = contextsOf plate
 -- @
 --
 -- @'contextsOf' :: 'Traversal'' a a -> a -> ['Context' a a]@
-contextsOf :: LensLike' (Bazaar a a) a a -> a -> [Context a a a]
+contextsOf :: ATraversal' a a -> a -> [Context a a a]
 contextsOf l x = Context id x : f (holesOf l x) where
   f xs = do
     Context ctx child <- xs
@@ -450,7 +450,7 @@ contextsOf l x = Context id x : f (holesOf l x) where
 -- @'contextsOn' b ≡ 'contextsOnOf' b 'plate'@
 --
 -- @'contextsOn' :: 'Plated' a => 'Traversal'' s a -> s -> ['Context' a a s]@
-contextsOn :: Plated a => LensLike (Bazaar a a) s t a a -> s -> [Context a a t]
+contextsOn :: Plated a => ATraversal s t a a -> s -> [Context a a t]
 contextsOn b = contextsOnOf b plate
 {-# INLINE contextsOn #-}
 
@@ -458,7 +458,7 @@ contextsOn b = contextsOnOf b plate
 -- another user-supplied 'Traversal' to walk each layer.
 --
 -- @'contextsOnOf' :: 'Traversal'' s a -> 'Traversal'' a a -> s -> ['Context' a a s]@
-contextsOnOf :: LensLike (Bazaar a a) s t a a -> LensLike' (Bazaar a a) a a -> s -> [Context a a t]
+contextsOnOf :: ATraversal s t a a -> ATraversal' a a -> s -> [Context a a t]
 contextsOnOf b l = f . holesOf b where
   f xs = do
     Context ctx child <- xs
@@ -489,7 +489,7 @@ holes = holesOf plate
 -- 'holesOn' :: 'Lens'' s a      -> s -> ['Context' a a s]
 -- 'holesOn' :: 'Traversal'' s a -> s -> ['Context' a a s]
 -- @
-holesOn :: LensLike (Bazaar a a) s t a a -> s -> [Context a a t]
+holesOn :: ATraversal s t a a -> s -> [Context a a t]
 holesOn = holesOf
 {-# INLINE holesOn #-}
 

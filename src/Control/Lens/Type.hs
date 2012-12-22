@@ -55,6 +55,8 @@ module Control.Lens.Type
   -- * Lenses
     Lens
   , Lens'
+  , ALens
+  , ALens'
   , Simple
 
   , lens
@@ -170,6 +172,9 @@ infixr 2 <<~
 -- @type 'Lens' s t a b = forall f. 'Functor' f => 'LensLike' f s t a b@
 type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
 
+-- | When you see this as an argument to a function, it expects a 'Lens'.
+type ALens s t a b = LensLike (Context a b) s t a b
+
 -- | A 'Simple' 'Lens', 'Simple' 'Control.Lens.Traversal.Traversal', ... can
 -- be used instead of a 'Lens','Control.Lens.Traversal.Traversal', ...
 -- whenever the type variables don't change upon setting a value.
@@ -187,6 +192,9 @@ type Simple f s a = f s s a a
 
 -- | @type 'Lens'' = 'Simple' 'Lens'@
 type Lens' s a = Lens s s a a
+
+-- | @type 'ALens'' = 'Simple' 'ALens'@
+type ALens' s a = ALens s s a a
 
 -- | @type 'LensLike'' f = 'Simple' ('LensLike' f)@
 type LensLike' f s a = LensLike f s s a a
@@ -300,7 +308,7 @@ l %%= f = do
 
 -- | Lift a 'Lens' so it can run under a function.
 --
-inside :: LensLike (Context a b) s t a b -> Lens (e -> s) (e -> t) (e -> a) (e -> b)
+inside :: ALens s t a b -> Lens (e -> s) (e -> t) (e -> a) (e -> b)
 inside l f es = o <$> f i where
   i e = case l (Context id) (es e) of Context _ a -> a
   o ea e = case l (Context id) (es e) of Context k _ -> k (ea e)
@@ -353,9 +361,7 @@ chosen f (Right a) = Right <$> f a
 -- (Left c,Right d)
 --
 -- @'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')@
-alongside :: LensLike (Context a b) s t a b
-           -> LensLike (Context a' b')  s' t' a' b'
-           -> Lens (s,s') (t,t') (a,a') (b,b')
+alongside :: ALens s t a b -> ALens s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
 alongside l r f (s, s') = case l (Context id) s of
   Context bt a -> case r (Context id) s' of
     Context bt' a' -> f (a,a') <&> \(b,b') -> (bt b, bt' b')
@@ -390,9 +396,7 @@ locus f w = (`seek` w) <$> f (pos w)
 --
 -- >>> let example l x = set (cloneLens l) (x^.cloneLens l + 1) x in example _2 ("hello",1,"you")
 -- ("hello",2,"you")
-cloneLens :: Functor f
-  => LensLike (Context a b) s t a b
-  -> (a -> f b) -> s -> f t
+cloneLens :: ALens s t a b -> Lens s t a b
 cloneLens f afb s = case f (Context id) s of
   Context bt a -> bt <$> afb a
 {-# INLINE cloneLens #-}
@@ -747,7 +751,7 @@ l <<.= b = l %%= \a -> (a,b)
 --
 -- NB: This is limited to taking an actual 'Lens' than admitting a 'Control.Lens.Traversal.Traversal' because
 -- there are potential loss of state issues otherwise.
-(<<~) :: MonadState s m => LensLike (Context a b) s s a b -> m b -> m b
+(<<~) :: MonadState s m => ALens s s a b -> m b -> m b
 l <<~ mb = do
   b <- mb
   modify $ \s -> case l (Context id) s of Context f _ -> f b
