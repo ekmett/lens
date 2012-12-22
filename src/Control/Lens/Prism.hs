@@ -277,10 +277,6 @@ _left = prism Left $ either Right (Left . Right)
 --
 -- >>> 5^.remit _right
 -- Right 5
---
--- (Unfortunately the instance for
--- @'Data.Traversable.Traversable' ('Either' c)@ is still missing from base,
--- so this can't just be 'Data.Traversable.traverse'.)
 _right :: Prism (Either c a) (Either c b) a b
 _right = prism Right $ either (Left . Left) Right
 {-# INLINE _right #-}

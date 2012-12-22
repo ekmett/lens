@@ -6,7 +6,7 @@ before_install:
   # Try installing some of the build-deps with apt-get for speed.
   - ./travis-cabal-apt-install --only-dependencies --force-reinstall $mode
 
-  # - sudo apt-get -q -y install hlint || cabal install hlint
+  - sudo apt-get -q -y install hlint || cabal install hlint
 
 install:
   - cabal configure $mode
@@ -14,7 +14,7 @@ install:
 
 script:
   - $script
-  # - hlint src -cpp-define HLINT
+  - hlint src --cpp-define HLINT
 
 branches:
   except:
