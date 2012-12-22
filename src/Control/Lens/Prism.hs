@@ -52,7 +52,7 @@ import Control.Lens.Classes
 import Control.Lens.Combinators
 import Control.Lens.Getter
 import Control.Lens.Internal
-import Control.Lens.Type
+import Control.Lens.Lens
 import Data.Functor.Identity
 import Data.Profunctor
 #ifndef SAFE

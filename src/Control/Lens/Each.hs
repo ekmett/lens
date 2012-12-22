@@ -31,8 +31,7 @@ module Control.Lens.Each
 import Control.Applicative
 import Control.Lens.Classes
 import Control.Lens.Iso
-import Control.Lens.Indexed as Lens
-import Control.Lens.IndexedTraversal
+import Control.Lens.Lens as Lens
 import Control.Lens.Traversal
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB

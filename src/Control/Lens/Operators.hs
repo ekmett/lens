@@ -98,15 +98,9 @@ import Control.Lens.Action
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
-import Control.Lens.Indexed
-import Control.Lens.IndexedAction
-import Control.Lens.IndexedGetter
-import Control.Lens.IndexedFold
-import Control.Lens.IndexedLens
-import Control.Lens.IndexedSetter
+import Control.Lens.Lens
 import Control.Lens.Loupe
 import Control.Lens.Setter
-import Control.Lens.Type
 import Control.Lens.Zipper
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}

@@ -35,7 +35,7 @@ module Control.Lens.Loupe
 
 import Control.Applicative              as Applicative
 import Control.Lens.Internal
-import Control.Lens.Type
+import Control.Lens.Lens
 import Control.Monad.State.Class        as State
 
 -- $setup

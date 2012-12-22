@@ -29,8 +29,8 @@ import Control.Lens.At
 import Control.Lens.Getter
 import Control.Lens.Setter
 import Control.Lens.Fold
+import Control.Lens.Lens
 import Control.Lens.Tuple
-import Control.Lens.Type
 import Control.Lens.Traversal
 import Data.Map as Map hiding (toList,map)
 import Data.Maybe (fromMaybe)

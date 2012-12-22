@@ -82,9 +82,9 @@ import           Control.Applicative
 import           Control.Lens.Fold
 import           Control.Lens.Getter
 import           Control.Lens.Internal
+import           Control.Lens.Lens
 import           Control.Lens.Setter
 import           Control.Lens.Traversal
-import           Control.Lens.Type
 import qualified Language.Haskell.TH as TH
 #ifdef DEFAULT_SIGNATURES
 import           Data.Data

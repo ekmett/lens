@@ -91,13 +91,13 @@ module Control.Lens.Representable
 import Control.Applicative
 import Control.Lens.At
 import Control.Lens.Classes
+import Control.Lens.Fold
 import Control.Lens.Getter
-import Control.Lens.IndexedFold
-import Control.Lens.IndexedSetter
-import Control.Lens.IndexedTraversal
 import Control.Lens.Internal
 import Control.Lens.Internal.Composition
-import Control.Lens.Type
+import Control.Lens.Lens
+import Control.Lens.Setter
+import Control.Lens.Traversal
 import Control.Lens.Wrapped
 import Data.Foldable         as Foldable
 import Data.Functor.Identity

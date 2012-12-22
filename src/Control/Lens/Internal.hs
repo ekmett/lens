@@ -82,7 +82,7 @@ import Unsafe.Coerce
 -- Functors
 -----------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.State.StateT'
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.State.StateT'
 newtype Focusing m s a = Focusing { unfocusing :: m (s, a) }
 
 instance Monad m => Functor (Focusing m s) where
@@ -97,7 +97,7 @@ instance (Monad m, Monoid s) => Applicative (Focusing m s) where
     (s', a) <- ma
     return (mappend s s', f a)
 
--- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.RWS.RWST'
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.RWS.RWST'
 newtype FocusingWith w m s a = FocusingWith { unfocusingWith :: m (s, a, w) }
 
 instance Monad m => Functor (FocusingWith w m s) where
@@ -112,7 +112,7 @@ instance (Monad m, Monoid s, Monoid w) => Applicative (FocusingWith w m s) where
     (s', a, w') <- ma
     return (mappend s s', f a, mappend w w')
 
--- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Writer.WriterT'.
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Writer.WriterT'.
 newtype FocusingPlus w k s a = FocusingPlus { unfocusingPlus :: k (s, w) a }
 
 instance Functor (k (s, w)) => Functor (FocusingPlus w k s) where
@@ -122,7 +122,7 @@ instance (Monoid w, Applicative (k (s, w))) => Applicative (FocusingPlus w k s) 
   pure = FocusingPlus . pure
   FocusingPlus kf <*> FocusingPlus ka = FocusingPlus (kf <*> ka)
 
--- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'
 newtype FocusingOn f k s a = FocusingOn { unfocusingOn :: k (f s) a }
 
 instance Functor (k (f s)) => Functor (FocusingOn f k s) where
@@ -141,7 +141,7 @@ instance Monoid a => Monoid (May a) where
   _ `mappend` May Nothing = May Nothing
   May (Just a) `mappend` May (Just b) = May (Just (mappend a b))
 
--- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Error.ErrorT'
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'
 newtype FocusingMay k s a = FocusingMay { unfocusingMay :: k (May s) a }
 
 instance Functor (k (May s)) => Functor (FocusingMay k s) where
@@ -160,7 +160,7 @@ instance Monoid a => Monoid (Err e a) where
   _ `mappend` Err (Left e) = Err (Left e)
   Err (Right a) `mappend` Err (Right b) = Err (Right (mappend a b))
 
--- | Used by 'Control.Lens.Type.Zoom' to 'Control.Lens.Type.zoom' into 'Control.Monad.Error.ErrorT'
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'
 newtype FocusingErr e k s a = FocusingErr { unfocusingErr :: k (Err e s) a }
 
 instance Functor (k (Err e s)) => Functor (FocusingErr e k s) where
@@ -248,14 +248,14 @@ getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
 
--- | The indexed store can be used to characterize a 'Control.Lens.Type.Lens'
--- and is used by 'Control.Lens.Type.clone'
+-- | The indexed store can be used to characterize a 'Control.Lens.Lens.Lens'
+-- and is used by 'Control.Lens.Lens.clone'
 --
 -- @'Context' a b t@ is isomorphic to
 -- @newtype Context a b t = Context { runContext :: forall f. Functor f => (a -> f b) -> f t }@,
--- and to @exists s. (s, 'Control.Lens.Type.Lens' s t a b)@.
+-- and to @exists s. (s, 'Control.Lens.Lens.Lens' s t a b)@.
 --
--- A 'Context' is like a 'Control.Lens.Type.Lens' that has already been applied to a some structure.
+-- A 'Context' is like a 'Control.Lens.Lens.Lens' that has already been applied to a some structure.
 data Context a b t = Context (b -> t) a
 
 instance Functor (Context a b) where

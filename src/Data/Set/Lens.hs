@@ -33,7 +33,7 @@ setmapped :: (Ord i, Ord j) => Setter (Set i) (Set j) i j
 setmapped = sets Set.map
 {-# INLINE setmapped #-}
 
--- | Construct a set from a 'Getter', 'Control.Lens.Fold.Fold', 'Control.Lens.Traversal.Traversal', 'Control.Lens.Type.Lens' or 'Control.Lens.Iso.Iso'.
+-- | Construct a set from a 'Getter', 'Control.Lens.Fold.Fold', 'Control.Lens.Traversal.Traversal', 'Control.Lens.Lens.Lens' or 'Control.Lens.Iso.Iso'.
 --
 -- >>> setOf (folded._2) [("hello",1),("world",2),("!!!",3)]
 -- fromList [1,2,3]
@@ -41,9 +41,9 @@ setmapped = sets Set.map
 -- @
 -- 'setOf' ::          'Getter' s a           -> s -> 'Set' a
 -- 'setOf' :: 'Ord' a => 'Control.Lens.Fold.Fold' s a             -> s -> 'Set' a
--- 'setOf' ::          'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> s -> 'Set' a
--- 'setOf' ::          'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> s -> 'Set' a
--- 'setOf' :: 'Ord' a => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Set' a
+-- 'setOf' ::          'Control.Lens.Lens.Simple' 'Control.Lens.Iso.Iso' s a       -> s -> 'Set' a
+-- 'setOf' ::          'Control.Lens.Lens.Simple' 'Control.Lens.Lens.Lens' s a      -> s -> 'Set' a
+-- 'setOf' :: 'Ord' a => 'Control.Lens.Lens.Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'Set' a
 -- @
 setOf :: Getting (Set a) s t a b -> s -> Set a
 setOf l = views l Set.singleton

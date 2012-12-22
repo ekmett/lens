@@ -36,14 +36,14 @@ setmapped :: (Eq i, Hashable i, Eq j, Hashable j) => Setter (HashSet i) (HashSet
 setmapped = sets HashSet.map
 {-# INLINE setmapped #-}
 
--- | Construct a set from a 'Getter', 'Control.Lens.Fold.Fold', 'Control.Lens.Traversal.Traversal', 'Control.Lens.Type.Lens' or 'Control.Lens.Iso.Iso'.
+-- | Construct a set from a 'Getter', 'Control.Lens.Fold.Fold', 'Control.Lens.Traversal.Traversal', 'Control.Lens.Lens.Lens' or 'Control.Lens.Iso.Iso'.
 --
 -- @
 -- 'setOf' :: 'Hashable' a         => 'Getter' s a           -> s -> 'HashSet' a
 -- 'setOf' :: ('Eq' a, 'Hashable' a) => 'Control.Lens.Fold.Fold' s a             -> s -> 'HashSet' a
--- 'setOf' :: 'Hashable' a         => 'Control.Lens.Type.Simple' 'Control.Lens.Iso.Iso' s a       -> s -> 'HashSet' a
--- 'setOf' :: 'Hashable' a         => 'Control.Lens.Type.Simple' 'Control.Lens.Type.Lens' s a      -> s -> 'HashSet' a
--- 'setOf' :: ('Eq' a, 'Hashable' a) => 'Control.Lens.Type.Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'HashSet' a
+-- 'setOf' :: 'Hashable' a         => 'Control.Lens.Lens.Simple' 'Control.Lens.Iso.Iso' s a       -> s -> 'HashSet' a
+-- 'setOf' :: 'Hashable' a         => 'Control.Lens.Lens.Simple' 'Control.Lens.Lens.Lens' s a      -> s -> 'HashSet' a
+-- 'setOf' :: ('Eq' a, 'Hashable' a) => 'Control.Lens.Lens.Simple' 'Control.Lens.Traversal.Traversal' s a -> s -> 'HashSet' a
 -- @
 setOf :: Hashable a => Getting (HashSet a) s t a b -> s -> HashSet a
 setOf l = views l HashSet.singleton

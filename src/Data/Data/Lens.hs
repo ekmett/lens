@@ -43,15 +43,11 @@ module Data.Data.Lens
 
 import           Control.Applicative
 import           Control.Exception as E
-import           Control.Lens.Getter
-import           Control.Lens.Indexed
-import           Control.Lens.IndexedLens
-import           Control.Lens.IndexedSetter
-import           Control.Lens.IndexedTraversal
+import           Control.Lens.Combinators
 import           Control.Lens.Internal
+import           Control.Lens.Lens
 import           Control.Lens.Setter
 import           Control.Lens.Traversal
-import           Control.Lens.Type
 import           Data.Data
 import           GHC.IO
 import           Unsafe.Coerce as Unsafe
@@ -59,7 +55,6 @@ import           Data.Maybe
 
 #ifndef SAFE
 import           Control.Arrow ((&&&))
-import           Control.Lens.Combinators
 import           Data.Foldable
 import qualified Data.HashMap.Strict as M
 import           Data.HashMap.Strict (HashMap, (!))

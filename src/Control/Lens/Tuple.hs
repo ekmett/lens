@@ -1,10 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -33,9 +33,9 @@ module Control.Lens.Tuple
   , Field9(..)
   ) where
 
+import Control.Lens.Classes
 import Control.Lens.Combinators
-import Control.Lens.Indexed
-import Control.Lens.IndexedLens
+import Control.Lens.Lens
 
 -- $setup
 -- >>> import Control.Lens

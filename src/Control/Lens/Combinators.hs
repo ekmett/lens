@@ -1,4 +1,4 @@
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Combinators
 -- Copyright   :  (C) 2012 Edward Kmett
@@ -7,9 +7,14 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
+-- These are general purpose combinators that provide utility for non-lens code
 -------------------------------------------------------------------------------
 module Control.Lens.Combinators
-  ( (<$!>), (<$!), (<&>), (??)
+  ( (&)
+  , (<&>)
+  , (<$!>)
+  , (<$!)
+  , (??)
   ) where
 
 import Data.Functor ((<$>))
@@ -18,7 +23,34 @@ import Data.Functor ((<$>))
 -- >>> import Control.Lens
 
 infixl 4 <$!>, <$!
-infixl 1 <&>, ??
+infixl 1 &, <&>, ??
+
+-- | Passes the result of the left side to the function on the right side (forward pipe operator).
+--
+-- This is the flipped version of ('$'), which is more common in languages like F# as (@|>@) where it is needed
+-- for inference. Here it is supplied for notational convenience and given a precedence that allows it
+-- to be nested inside uses of ('$').
+--
+-- >>> a & f
+-- f a
+--
+-- >>> "hello" & length & succ
+-- 6
+--
+-- This combinator is commonly used when applying multiple lens operations in sequence.
+--
+-- >>> ("hello","world") & _1.element 0 .~ 'j' & _1.element 4 .~ 'y'
+-- ("jelly","world")
+--
+-- This reads somewhat similar to:
+--
+-- >>> flip execState ("hello","world") $ do _1.element 0 .= 'j'; _1.element 4 .= 'y'
+-- ("jelly","world")
+--
+
+(&) :: a -> (a -> b) -> b
+a & f = f a
+{-# INLINE (&) #-}
 
 -- | A strict version of ('Data.Functor.<$>') for monads.
 --

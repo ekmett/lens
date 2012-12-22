@@ -7,7 +7,6 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Wrapped

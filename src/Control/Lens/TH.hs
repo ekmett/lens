@@ -4,7 +4,6 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
--- in case we're being loaded from ghci
 #ifndef MIN_VERSION_template_haskell
 #define MIN_VERSION_template_haskell(x,y,z) (defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706)
 #endif
@@ -15,7 +14,7 @@
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental
--- Portability :  TemplateHaskell
+-- Portability :  non-portable
 --
 -----------------------------------------------------------------------------
 module Control.Lens.TH
@@ -59,11 +58,11 @@ import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Iso
+import Control.Lens.Lens
 import Control.Lens.Prism
 import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
-import Control.Lens.Type
 import Data.Char (toLower)
 import Data.Either (lefts)
 import Data.Foldable hiding (concat)

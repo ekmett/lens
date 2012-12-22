@@ -13,7 +13,6 @@
 {-# LANGUAGE Trustworthy #-} -- vector, hashable
 #endif
 
-
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
@@ -72,10 +71,9 @@ import Control.Lens.Classes
 import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Internal.Composition
-import Control.Lens.Indexed
-import Control.Lens.IndexedFold
-import Control.Lens.IndexedSetter
-import Control.Lens.IndexedTraversal
+import Control.Lens.Lens
+import Control.Lens.Setter
+import Control.Lens.Traversal
 import Data.Foldable
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
@@ -84,6 +82,7 @@ import Data.Map as Map
 import Data.Monoid
 import Data.Sequence hiding (index)
 import Data.Traversable
+import Data.Tuple (swap)
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 
@@ -487,10 +486,6 @@ instance (Eq k, Hashable k) => TraversableWithIndex k (HashMap k) where
 -------------------------------------------------------------------------------
 -- Misc.
 -------------------------------------------------------------------------------
-
-swap :: (a,b) -> (b,a)
-swap (a,b) = (b,a)
-{-# INLINE swap #-}
 
 skip :: a -> ()
 skip _ = ()

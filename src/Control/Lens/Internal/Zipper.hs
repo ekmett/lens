@@ -32,11 +32,10 @@ import Control.Monad
 import Control.Lens.Classes
 import Control.Lens.Combinators
 import Control.Lens.Getter
-import Control.Lens.IndexedLens
 import Control.Lens.Internal
+import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Traversal
-import Control.Lens.Type
 import Data.Maybe
 
 {-# ANN module "HLint: ignore Use foldl" #-}

@@ -45,15 +45,11 @@ module Control.Lens.Zipper
   , focus
   , focusedContext
   -- ** Vertical Movement
-  , upward
-  , downward
-  , within
-  , withins
+  , upward, downward
+  , within, withins
   -- ** Lateral Movement
-  , leftward
-  , rightward
-  , leftmost
-  , rightmost
+  , leftward, rightward
+  , leftmost, rightmost
   -- ** Movement Combinators
   , tug
   , tugs
@@ -62,8 +58,7 @@ module Control.Lens.Zipper
   -- ** Absolute Positioning
   , tooth
   , teeth
-  , jerkTo
-  , tugTo
+  , jerkTo, tugTo
   -- ** Closing the zipper
   , rezip
   , Zipped

@@ -198,26 +198,18 @@ library
     Control.Lens.Each
     Control.Lens.Fold
     Control.Lens.Getter
-    Control.Lens.Indexed
-    Control.Lens.IndexedAction
-    Control.Lens.IndexedGetter
-    Control.Lens.IndexedFold
-    Control.Lens.IndexedLens
-    Control.Lens.IndexedSetter
-    Control.Lens.IndexedTraversal
     Control.Lens.Internal
     Control.Lens.Internal.Zipper
     Control.Lens.Iso
+    Control.Lens.Lens
     Control.Lens.Loupe
     Control.Lens.Operators
     Control.Lens.Plated
     Control.Lens.Prism
     Control.Lens.Representable
     Control.Lens.Setter
-    Control.Lens.Simple
     Control.Lens.Traversal
     Control.Lens.Tuple
-    Control.Lens.Type
     Control.Lens.WithIndex
     Control.Lens.Wrapped
     Control.Lens.Zipper

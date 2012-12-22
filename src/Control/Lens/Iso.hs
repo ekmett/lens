@@ -50,7 +50,7 @@ module Control.Lens.Iso
   ) where
 
 import Control.Lens.Internal
-import Control.Lens.Type
+import Control.Lens.Lens
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Text as StrictT

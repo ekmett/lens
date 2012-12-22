@@ -4,8 +4,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 #ifdef DEFAULT_SIGNATURES
 {-# LANGUAGE DefaultSignatures #-}
@@ -42,9 +42,7 @@ module Control.Lens.At
 import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Each
-import Control.Lens.Indexed
-import Control.Lens.IndexedLens
-import Control.Lens.IndexedTraversal
+import Control.Lens.Lens
 import Control.Lens.Traversal
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
