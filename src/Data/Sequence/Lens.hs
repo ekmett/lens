@@ -43,7 +43,7 @@ import Data.Sequence as Seq
 -- >>> EmptyL ^. from viewL
 -- fromList []
 --
--- >>> from viewL ^$ a :< fromList [b,c]
+-- >>> review viewL $ a :< fromList [b,c]
 -- fromList [a,b,c]
 --
 viewL :: Iso (Seq a) (Seq b) (ViewL a) (ViewL b)
@@ -65,7 +65,7 @@ viewL = iso viewl $ \ xs -> case xs of
 -- >>> EmptyR ^. from viewR
 -- fromList []
 --
--- >>> from viewR ^$ fromList [a,b] :> c
+-- >>> review viewR $ fromList [a,b] :> c
 -- fromList [a,b,c]
 viewR :: Iso (Seq a) (Seq b) (ViewR a) (ViewR b)
 viewR = iso viewr $ \xs -> case xs of
