@@ -29,6 +29,14 @@ import Control.Lens.Classes
 import Control.Monad.Reader
 import Control.Monad.State
 
+-- $setup
+-- >>> import Control.Lens
+-- >>> import Data.List.Lens
+-- >>> import Debug.SimpleReflect.Expr
+-- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
+-- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
+
 ------------------------------------------------------------------------------
 -- Indexed Getters
 ------------------------------------------------------------------------------

@@ -67,6 +67,14 @@ import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
 
+-- $setup
+-- >>> import Control.Lens
+-- >>> import Data.List.Lens
+-- >>> import Debug.SimpleReflect.Expr
+-- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
+-- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
+
 infixr 8 ^@.., ^@?, ^@?!
 
 ------------------------------------------------------------------------------
