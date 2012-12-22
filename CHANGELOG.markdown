@@ -10,7 +10,8 @@
 * Added `prism'` to construct `SimplePrism`s.
 * Added `has` and `hasn't`.
 * Replaced each of the different `SimpleFoo` type aliases with `Foo'` throughout.
-* Made sweeping changes to the way indexed lenses, etc. work internally and where you place `indexed` in the resulting code.
+* Made sweeping changes to `Iso` and `Prism` and `Indexed` lenses internally. They are now based on `profunctors`. This affects how you use `indexed` in the resulting code and dramatically changed the meaning of `Overloaded`.
+* Added `Control.Lens.Operators` for users who insist on qualified use, but want access to the operators.
 
 3.7.1.2 [maintenance release]
 -------
