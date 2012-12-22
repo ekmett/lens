@@ -7,7 +7,7 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<pre><a name="line-1"></a><span class='hs-comment'>--------------------------------------------------------------------------------</span>
 <a name="line-2"></a><span class='hs-comment'>-- |</span>
 <a name="line-3"></a><span class='hs-comment'>-- Module      :  Control.Lens.Combinators</span>
 <a name="line-4"></a><span class='hs-comment'>-- Copyright   :  (C) 2012 Edward Kmett</span>
@@ -16,55 +16,91 @@
 <a name="line-7"></a><span class='hs-comment'>-- Stability   :  provisional</span>
 <a name="line-8"></a><span class='hs-comment'>-- Portability :  portable</span>
 <a name="line-9"></a><span class='hs-comment'>--</span>
-<a name="line-10"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-11"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Combinators</span>
-<a name="line-12"></a>  <span class='hs-layout'>(</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&gt;</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>??</span><span class='hs-layout'>)</span>
-<a name="line-13"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-14"></a>
-<a name="line-15"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varop'>&lt;$&gt;</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-16"></a>
-<a name="line-17"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-18"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
+<a name="line-10"></a><span class='hs-comment'>-- These are general purpose combinators that provide utility for non-lens code</span>
+<a name="line-11"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-12"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Combinators</span>
+<a name="line-13"></a>  <span class='hs-layout'>(</span> <span class='hs-layout'>(</span><span class='hs-varop'>&amp;</span><span class='hs-layout'>)</span>
+<a name="line-14"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&gt;</span><span class='hs-layout'>)</span>
+<a name="line-15"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>)</span>
+<a name="line-16"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!</span><span class='hs-layout'>)</span>
+<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>??</span><span class='hs-layout'>)</span>
+<a name="line-18"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-19"></a>
-<a name="line-20"></a><span class='hs-keyword'>infixl</span> <span class='hs-num'>4</span> <span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>,</span> <span class='hs-varop'>&lt;$!</span>
-<a name="line-21"></a><span class='hs-keyword'>infixl</span> <span class='hs-num'>1</span> <span class='hs-varop'>&lt;&amp;&gt;</span><span class='hs-layout'>,</span> <span class='hs-varop'>??</span>
-<a name="line-22"></a>
-<a name="line-23"></a><a name="%3c$!%3e"></a><span class='hs-comment'>-- | A strict version of ('Data.Functor.&lt;$&gt;') for monads.</span>
-<a name="line-24"></a><span class='hs-comment'>--</span>
-<a name="line-25"></a><span class='hs-comment'>-- &gt;&gt;&gt; (+1) &lt;$!&gt; [1,2,3,4]</span>
-<a name="line-26"></a><span class='hs-comment'>-- [2,3,4,5]</span>
-<a name="line-27"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
-<a name="line-28"></a><a name="f"></a><span class='hs-definition'>f</span> <span class='hs-varop'>&lt;$!&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
-<a name="line-29"></a>  <span class='hs-varid'>a</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>m</span>
-<a name="line-30"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$!</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
-<a name="line-31"></a><span class='hs-comment'>{-# INLINE (&lt;$!&gt;) #-}</span>
-<a name="line-32"></a>
-<a name="line-33"></a><a name="%3c$!"></a><span class='hs-comment'>-- | A strict version of ('Data.Functor.&lt;$') for monads.</span>
-<a name="line-34"></a><span class='hs-comment'>--</span>
-<a name="line-35"></a><span class='hs-comment'>-- &gt;&gt;&gt; () &lt;$! [1,2,3,4]</span>
-<a name="line-36"></a><span class='hs-comment'>-- [(),(),(),()]</span>
-<a name="line-37"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
-<a name="line-38"></a><a name="b"></a><span class='hs-definition'>b</span> <span class='hs-varop'>&lt;$!</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
-<a name="line-39"></a>  <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>m</span>
-<a name="line-40"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$!</span> <span class='hs-varid'>b</span>
-<a name="line-41"></a><span class='hs-comment'>{-# INLINE (&lt;$!) #-}</span>
-<a name="line-42"></a>
-<a name="line-43"></a><a name="%3c&%3e"></a><span class='hs-comment'>-- | Infix flipped fmap.</span>
-<a name="line-44"></a><span class='hs-comment'>--</span>
-<a name="line-45"></a><span class='hs-comment'>-- @('&lt;&amp;&gt;') = 'flip' 'fmap'@</span>
-<a name="line-46"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
-<a name="line-47"></a><span class='hs-keyword'>as</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-keyword'>as</span>
-<a name="line-48"></a><span class='hs-comment'>{-# INLINE (&lt;&amp;&gt;) #-}</span>
-<a name="line-49"></a>
-<a name="line-50"></a><a name="??"></a><span class='hs-comment'>-- | This is convenient to 'flip' argument order of composite functions</span>
-<a name="line-51"></a><span class='hs-comment'>--</span>
-<a name="line-52"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _2 ?? ("hello","world") $ length</span>
-<a name="line-53"></a><span class='hs-comment'>-- ("hello",5)</span>
-<a name="line-54"></a><span class='hs-comment'>--</span>
-<a name="line-55"></a><span class='hs-comment'>-- &gt;&gt;&gt; over ?? length ?? ("hello","world") $ _2</span>
-<a name="line-56"></a><span class='hs-comment'>-- ("hello",5)</span>
-<a name="line-57"></a><span class='hs-layout'>(</span><span class='hs-varop'>??</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
-<a name="line-58"></a><a name="fab"></a><span class='hs-definition'>fab</span> <span class='hs-varop'>??</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>fmap</span> <span class='hs-layout'>(</span><span class='hs-varop'>$</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>fab</span>
-<a name="line-59"></a><span class='hs-comment'>{-# INLINE (??) #-}</span>
+<a name="line-20"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varop'>&lt;$&gt;</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-21"></a>
+<a name="line-22"></a><span class='hs-comment'>-- $setup</span>
+<a name="line-23"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
+<a name="line-24"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Monad.State</span>
+<a name="line-25"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Expr</span>
+<a name="line-26"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Vars as Vars hiding (f)</span>
+<a name="line-27"></a><span class='hs-comment'>-- &gt;&gt;&gt; let f :: Expr -&gt; Expr; f = Debug.SimpleReflect.Vars.f</span>
+<a name="line-28"></a>
+<a name="line-29"></a><span class='hs-keyword'>infixl</span> <span class='hs-num'>4</span> <span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>,</span> <span class='hs-varop'>&lt;$!</span>
+<a name="line-30"></a><span class='hs-keyword'>infixl</span> <span class='hs-num'>1</span> <span class='hs-varop'>&amp;</span><span class='hs-layout'>,</span> <span class='hs-varop'>&lt;&amp;&gt;</span><span class='hs-layout'>,</span> <span class='hs-varop'>??</span>
+<a name="line-31"></a>
+<a name="line-32"></a><span class='hs-comment'>-- | Passes the result of the left side to the function on the right side (forward pipe operator).</span>
+<a name="line-33"></a><span class='hs-comment'>--</span>
+<a name="line-34"></a><span class='hs-comment'>-- This is the flipped version of ('$'), which is more common in languages like F# as (@|&gt;@) where it is needed</span>
+<a name="line-35"></a><span class='hs-comment'>-- for inference. Here it is supplied for notational convenience and given a precedence that allows it</span>
+<a name="line-36"></a><span class='hs-comment'>-- to be nested inside uses of ('$').</span>
+<a name="line-37"></a><span class='hs-comment'>--</span>
+<a name="line-38"></a><span class='hs-comment'>-- &gt;&gt;&gt; a &amp; f</span>
+<a name="line-39"></a><span class='hs-comment'>-- f a</span>
+<a name="line-40"></a><span class='hs-comment'>--</span>
+<a name="line-41"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello" &amp; length &amp; succ</span>
+<a name="line-42"></a><span class='hs-comment'>-- 6</span>
+<a name="line-43"></a><span class='hs-comment'>--</span>
+<a name="line-44"></a><span class='hs-comment'>-- This combinator is commonly used when applying multiple lens operations in sequence.</span>
+<a name="line-45"></a><span class='hs-comment'>--</span>
+<a name="line-46"></a><span class='hs-comment'>-- &gt;&gt;&gt; ("hello","world") &amp; _1.element 0 .~ 'j' &amp; _1.element 4 .~ 'y'</span>
+<a name="line-47"></a><span class='hs-comment'>-- ("jelly","world")</span>
+<a name="line-48"></a><span class='hs-comment'>--</span>
+<a name="line-49"></a><span class='hs-comment'>-- This reads somewhat similar to:</span>
+<a name="line-50"></a><span class='hs-comment'>--</span>
+<a name="line-51"></a><span class='hs-comment'>-- &gt;&gt;&gt; flip execState ("hello","world") $ do _1.element 0 .= 'j'; _1.element 4 .= 'y'</span>
+<a name="line-52"></a><span class='hs-comment'>-- ("jelly","world")</span>
+<a name="line-53"></a><span class='hs-comment'>--</span>
+<a name="line-54"></a>
+<a name="line-55"></a><a name="&"></a><span class='hs-layout'>(</span><span class='hs-varop'>&amp;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
+<a name="line-56"></a><a name="a"></a><span class='hs-definition'>a</span> <span class='hs-varop'>&amp;</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
+<a name="line-57"></a><span class='hs-comment'>{-# INLINE (&amp;) #-}</span>
+<a name="line-58"></a>
+<a name="line-59"></a><a name="%3c$!%3e"></a><span class='hs-comment'>-- | A strict version of ('Data.Functor.&lt;$&gt;') for monads.</span>
+<a name="line-60"></a><span class='hs-comment'>--</span>
+<a name="line-61"></a><span class='hs-comment'>-- &gt;&gt;&gt; (+1) &lt;$!&gt; [1,2,3,4]</span>
+<a name="line-62"></a><span class='hs-comment'>-- [2,3,4,5]</span>
+<a name="line-63"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
+<a name="line-64"></a><a name="f"></a><span class='hs-definition'>f</span> <span class='hs-varop'>&lt;$!&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
+<a name="line-65"></a>  <span class='hs-varid'>a</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>m</span>
+<a name="line-66"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$!</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
+<a name="line-67"></a><span class='hs-comment'>{-# INLINE (&lt;$!&gt;) #-}</span>
+<a name="line-68"></a>
+<a name="line-69"></a><a name="%3c$!"></a><span class='hs-comment'>-- | A strict version of ('Data.Functor.&lt;$') for monads.</span>
+<a name="line-70"></a><span class='hs-comment'>--</span>
+<a name="line-71"></a><span class='hs-comment'>-- &gt;&gt;&gt; () &lt;$! [1,2,3,4]</span>
+<a name="line-72"></a><span class='hs-comment'>-- [(),(),(),()]</span>
+<a name="line-73"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;$!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>b</span>
+<a name="line-74"></a><a name="b"></a><span class='hs-definition'>b</span> <span class='hs-varop'>&lt;$!</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
+<a name="line-75"></a>  <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>m</span>
+<a name="line-76"></a>  <span class='hs-varid'>return</span> <span class='hs-varop'>$!</span> <span class='hs-varid'>b</span>
+<a name="line-77"></a><span class='hs-comment'>{-# INLINE (&lt;$!) #-}</span>
+<a name="line-78"></a>
+<a name="line-79"></a><a name="%3c&%3e"></a><span class='hs-comment'>-- | Infix flipped fmap.</span>
+<a name="line-80"></a><span class='hs-comment'>--</span>
+<a name="line-81"></a><span class='hs-comment'>-- @('&lt;&amp;&gt;') = 'flip' 'fmap'@</span>
+<a name="line-82"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&amp;&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
+<a name="line-83"></a><span class='hs-keyword'>as</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-keyword'>as</span>
+<a name="line-84"></a><span class='hs-comment'>{-# INLINE (&lt;&amp;&gt;) #-}</span>
+<a name="line-85"></a>
+<a name="line-86"></a><a name="??"></a><span class='hs-comment'>-- | This is convenient to 'flip' argument order of composite functions</span>
+<a name="line-87"></a><span class='hs-comment'>--</span>
+<a name="line-88"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _2 ?? ("hello","world") $ length</span>
+<a name="line-89"></a><span class='hs-comment'>-- ("hello",5)</span>
+<a name="line-90"></a><span class='hs-comment'>--</span>
+<a name="line-91"></a><span class='hs-comment'>-- &gt;&gt;&gt; over ?? length ?? ("hello","world") $ _2</span>
+<a name="line-92"></a><span class='hs-comment'>-- ("hello",5)</span>
+<a name="line-93"></a><span class='hs-layout'>(</span><span class='hs-varop'>??</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
+<a name="line-94"></a><a name="fab"></a><span class='hs-definition'>fab</span> <span class='hs-varop'>??</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>fmap</span> <span class='hs-layout'>(</span><span class='hs-varop'>$</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>fab</span>
+<a name="line-95"></a><span class='hs-comment'>{-# INLINE (??) #-}</span>
 </pre></body>
 </html>

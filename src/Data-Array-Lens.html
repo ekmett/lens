@@ -7,41 +7,39 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE MultiParamTypeClasses #-}</span>
-<a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE Rank2Types #-}</span>
-<a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE LiberalTypeSynonyms #-}</span>
-<a name="line-4"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-5"></a><span class='hs-comment'>-- |</span>
-<a name="line-6"></a><span class='hs-comment'>-- Module      :  Data.Array.Lens</span>
-<a name="line-7"></a><span class='hs-comment'>-- Copyright   :  (C) 2012 Edward Kmett</span>
-<a name="line-8"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
-<a name="line-9"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
-<a name="line-10"></a><span class='hs-comment'>-- Stability   :  provisional</span>
-<a name="line-11"></a><span class='hs-comment'>-- Portability :  MPTCs, Rank2Types, LiberalTypeSynonyms</span>
-<a name="line-12"></a><span class='hs-comment'>--</span>
-<a name="line-13"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
-<a name="line-14"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Array</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-15"></a>  <span class='hs-layout'>(</span>
-<a name="line-16"></a>  <span class='hs-comment'>-- * Setters</span>
-<a name="line-17"></a>    <span class='hs-varid'>ixmapped</span>
-<a name="line-18"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-19"></a>
-<a name="line-20"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Array</span><span class='hs-varop'>.</span><span class='hs-conid'>IArray</span> <span class='hs-varid'>hiding</span> <span class='hs-layout'>(</span><span class='hs-varid'>index</span><span class='hs-layout'>)</span>
-<a name="line-22"></a>
-<a name="line-23"></a><a name="ixmapped"></a><span class='hs-comment'>-- | This setter can be used to derive a new 'IArray' from an old array by</span>
-<a name="line-24"></a><span class='hs-comment'>-- applying a function to each of the indices to look it up in the old 'IArray'.</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE Rank2Types #-}</span>
+<a name="line-2"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-3"></a><span class='hs-comment'>-- |</span>
+<a name="line-4"></a><span class='hs-comment'>-- Module      :  Data.Array.Lens</span>
+<a name="line-5"></a><span class='hs-comment'>-- Copyright   :  (C) 2012 Edward Kmett</span>
+<a name="line-6"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
+<a name="line-7"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
+<a name="line-8"></a><span class='hs-comment'>-- Stability   :  provisional</span>
+<a name="line-9"></a><span class='hs-comment'>-- Portability :  MPTCs, Rank2Types, LiberalTypeSynonyms</span>
+<a name="line-10"></a><span class='hs-comment'>--</span>
+<a name="line-11"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
+<a name="line-12"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Array</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-13"></a>  <span class='hs-layout'>(</span>
+<a name="line-14"></a>  <span class='hs-comment'>-- * Setters</span>
+<a name="line-15"></a>    <span class='hs-varid'>ixmapped</span>
+<a name="line-16"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-17"></a>
+<a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-19"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Array</span><span class='hs-varop'>.</span><span class='hs-conid'>IArray</span> <span class='hs-varid'>hiding</span> <span class='hs-layout'>(</span><span class='hs-varid'>index</span><span class='hs-layout'>)</span>
+<a name="line-20"></a>
+<a name="line-21"></a><a name="ixmapped"></a><span class='hs-comment'>-- | This setter can be used to derive a new 'IArray' from an old array by</span>
+<a name="line-22"></a><span class='hs-comment'>-- applying a function to each of the indices to look it up in the old 'IArray'.</span>
+<a name="line-23"></a><span class='hs-comment'>--</span>
+<a name="line-24"></a><span class='hs-comment'>-- This is a /contravariant/ 'Setter'.</span>
 <a name="line-25"></a><span class='hs-comment'>--</span>
-<a name="line-26"></a><span class='hs-comment'>-- This is a /contravariant/ 'Setter'.</span>
-<a name="line-27"></a><span class='hs-comment'>--</span>
-<a name="line-28"></a><span class='hs-comment'>-- @</span>
-<a name="line-29"></a><span class='hs-comment'>-- 'ixmap' ≡ 'over' . 'ixmapped'</span>
-<a name="line-30"></a><span class='hs-comment'>-- 'ixmapped' ≡ 'sets' . 'ixmap'</span>
-<a name="line-31"></a><span class='hs-comment'>-- 'over' ('ixmapped' b) f arr '!' i ≡ arr '!' f i</span>
-<a name="line-32"></a><span class='hs-comment'>-- 'bounds' ('over' ('ixmapped' b) f arr) ≡ b</span>
-<a name="line-33"></a><span class='hs-comment'>-- @</span>
-<a name="line-34"></a><span class='hs-definition'>ixmapped</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>IArray</span> <span class='hs-varid'>a</span> <span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ix</span> <span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ix</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span><span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Setter</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varid'>j</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varid'>i</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-varid'>i</span> <span class='hs-varid'>j</span>
-<a name="line-35"></a><span class='hs-definition'>ixmapped</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sets</span> <span class='hs-varop'>.</span> <span class='hs-varid'>ixmap</span>
-<a name="line-36"></a><span class='hs-comment'>{-# INLINE ixmapped #-}</span>
+<a name="line-26"></a><span class='hs-comment'>-- @</span>
+<a name="line-27"></a><span class='hs-comment'>-- 'ixmap' ≡ 'over' . 'ixmapped'</span>
+<a name="line-28"></a><span class='hs-comment'>-- 'ixmapped' ≡ 'sets' . 'ixmap'</span>
+<a name="line-29"></a><span class='hs-comment'>-- 'over' ('ixmapped' b) f arr '!' i ≡ arr '!' f i</span>
+<a name="line-30"></a><span class='hs-comment'>-- 'bounds' ('over' ('ixmapped' b) f arr) ≡ b</span>
+<a name="line-31"></a><span class='hs-comment'>-- @</span>
+<a name="line-32"></a><span class='hs-definition'>ixmapped</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>IArray</span> <span class='hs-varid'>a</span> <span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ix</span> <span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ix</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span><span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Setter</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varid'>j</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varid'>i</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-varid'>i</span> <span class='hs-varid'>j</span>
+<a name="line-33"></a><span class='hs-definition'>ixmapped</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sets</span> <span class='hs-varop'>.</span> <span class='hs-varid'>ixmap</span>
+<a name="line-34"></a><span class='hs-comment'>{-# INLINE ixmapped #-}</span>
 </pre></body>
 </html>

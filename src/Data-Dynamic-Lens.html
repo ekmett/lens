@@ -28,7 +28,7 @@
 <a name="line-19"></a><a name="dynamic"></a><span class='hs-comment'>-- |</span>
 <a name="line-20"></a><span class='hs-comment'>-- Traverse the typed value contained in a 'Dynamic' where the type required by your function matches that</span>
 <a name="line-21"></a><span class='hs-comment'>-- of the contents of the 'Dynamic'.</span>
-<a name="line-22"></a><span class='hs-definition'>dynamic</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Typeable</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Prism</span> <span class='hs-conid'>Dynamic</span> <span class='hs-varid'>a</span>
+<a name="line-22"></a><span class='hs-definition'>dynamic</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Typeable</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>Dynamic</span> <span class='hs-varid'>a</span>
 <a name="line-23"></a><span class='hs-definition'>dynamic</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-varid'>toDyn</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>maybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-varid'>fromDynamic</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span>
 <a name="line-24"></a><span class='hs-comment'>{-# INLINE dynamic #-}</span>
 </pre></body>

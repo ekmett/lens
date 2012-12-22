@@ -52,7 +52,7 @@
 <a name="line-43"></a><span class='hs-comment'>-- &gt;&gt;&gt; EmptyL ^. from viewL</span>
 <a name="line-44"></a><span class='hs-comment'>-- fromList []</span>
 <a name="line-45"></a><span class='hs-comment'>--</span>
-<a name="line-46"></a><span class='hs-comment'>-- &gt;&gt;&gt; from viewL ^$ a :&lt; fromList [b,c]</span>
+<a name="line-46"></a><span class='hs-comment'>-- &gt;&gt;&gt; review viewL $ a :&lt; fromList [b,c]</span>
 <a name="line-47"></a><span class='hs-comment'>-- fromList [a,b,c]</span>
 <a name="line-48"></a><span class='hs-comment'>--</span>
 <a name="line-49"></a><span class='hs-definition'>viewL</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewL</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewL</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
@@ -74,7 +74,7 @@
 <a name="line-65"></a><span class='hs-comment'>-- &gt;&gt;&gt; EmptyR ^. from viewR</span>
 <a name="line-66"></a><span class='hs-comment'>-- fromList []</span>
 <a name="line-67"></a><span class='hs-comment'>--</span>
-<a name="line-68"></a><span class='hs-comment'>-- &gt;&gt;&gt; from viewR ^$ fromList [a,b] :&gt; c</span>
+<a name="line-68"></a><span class='hs-comment'>-- &gt;&gt;&gt; review viewR $ fromList [a,b] :&gt; c</span>
 <a name="line-69"></a><span class='hs-comment'>-- fromList [a,b,c]</span>
 <a name="line-70"></a><span class='hs-definition'>viewR</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewR</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>ViewR</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
 <a name="line-71"></a><span class='hs-definition'>viewR</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>viewr</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>xs</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>xs</span> <span class='hs-keyword'>of</span>
