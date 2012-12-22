@@ -328,7 +328,7 @@ deNewtype (NewtypeD ctx tyConName args c d) = DataD ctx tyConName args [c] d
 deNewtype d = d
 
 makePrismsForCons :: [Pred] -> Name -> [TyVarBndr] -> [Con] -> Q [Dec]
-makePrismsForCons ctx tyConName args cons = do
+makePrismsForCons ctx tyConName args cons =
   concat <$> mapM (makePrismForCon ctx tyConName args canModifyTypeVar cons) cons
   where
     conTypeVars = map (Set.fromList . toListOf typeVars) cons
