@@ -38,7 +38,7 @@ members = folding IntSet.toAscList
 --
 -- >>> over setmapped (+1) (fromList [1,2,3,4])
 -- fromList [2,3,4,5]
-setmapped :: Simple Setter IntSet Int
+setmapped :: Setter' IntSet Int
 setmapped = sets IntSet.map
 {-# INLINE setmapped #-}
 

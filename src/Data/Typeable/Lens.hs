@@ -24,14 +24,14 @@ import Data.Typeable
 import Data.Maybe
 
 -- | A 'Simple' 'Traversal' for working with a 'cast' of a 'Typeable' value.
-_cast :: (Typeable s, Typeable a) => Simple Traversal s a
+_cast :: (Typeable s, Typeable a) => Traversal' s a
 _cast f s = case cast s of
   Just a  -> fromMaybe (error "_cast: recast failed") . cast <$> f a
   Nothing -> pure s
 {-# INLINE _cast #-}
 
 -- | A 'Simple' 'Traversal' for working with a 'gcast' of a 'Typeable' value.
-_gcast :: (Typeable s, Typeable a) => Simple Traversal (c s) (c a)
+_gcast :: (Typeable s, Typeable a) => Traversal' (c s) (c a)
 _gcast f s = case gcast s of
   Just a  -> fromMaybe (error "_gcast: recast failed") . gcast <$> f a
   Nothing -> pure s

@@ -137,7 +137,7 @@ l <<.>= r = l <%= (<.> r)
 --
 -- >>> basename .~ "filename" $ "path/name.png"
 -- "path/filename.png"
-basename :: Simple Lens FilePath FilePath
+basename :: Lens' FilePath FilePath
 basename f p = (<.> takeExtension p) . (takeDirectory p </>) <$> f (takeBaseName p)
 {-# INLINE basename #-}
 
@@ -146,7 +146,7 @@ basename f p = (<.> takeExtension p) . (takeDirectory p </>) <$> f (takeBaseName
 --
 -- >>> "long/path/name.txt" ^. directory
 -- "long/path"
-directory :: Simple Lens FilePath FilePath
+directory :: Lens' FilePath FilePath
 directory f p = (</> takeFileName p) <$> f (takeDirectory p)
 {-# INLINE directory #-}
 
@@ -155,7 +155,7 @@ directory f p = (</> takeFileName p) <$> f (takeDirectory p)
 --
 -- >>> extension .~ ".png" $ "path/name.txt"
 -- "path/name.png"
-extension :: Simple Lens FilePath FilePath
+extension :: Lens' FilePath FilePath
 extension f p = (n <.>) <$> f e
  where
   (n, e) = splitExtension p
@@ -166,6 +166,6 @@ extension f p = (n <.>) <$> f e
 --
 -- >>> filename .~ "name.txt" $ "path/name.png"
 -- "path/name.txt"
-filename :: Simple Lens FilePath FilePath
+filename :: Lens' FilePath FilePath
 filename f p = (takeDirectory p </>) <$> f (takeFileName p)
 {-# INLINE filename #-}
