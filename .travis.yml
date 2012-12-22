@@ -9,7 +9,7 @@ before_install:
   # - sudo apt-get -q -y install hlint || cabal install hlint
 
 install:
-  - cabal configure --ghc-options='-Werror -Wall' $mode
+  - cabal configure $mode
   - cabal build
 
 script:
