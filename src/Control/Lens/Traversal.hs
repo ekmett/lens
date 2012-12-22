@@ -117,11 +117,9 @@ module Control.Lens.Traversal
 
 import Control.Applicative              as Applicative
 import Control.Applicative.Backwards
-import Control.Lens.Classes
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Internal
-import Control.Lens.Internal.Composition
 import Control.Lens.Lens
 import Control.Monad.State.Class        as State
 import Control.Monad.Trans.State.Lazy   as Lazy

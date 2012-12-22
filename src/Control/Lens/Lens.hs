@@ -134,7 +134,6 @@ module Control.Lens.Lens
 
 import Control.Applicative
 import Control.Comonad.Store as Store
-import Control.Lens.Classes
 import Control.Lens.Combinators ((<&>))
 import Control.Lens.Internal
 import Control.Monad.State as State

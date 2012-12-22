@@ -193,13 +193,11 @@ library
     Control.Lens
     Control.Lens.Action
     Control.Lens.At
-    Control.Lens.Classes
     Control.Lens.Combinators
     Control.Lens.Each
     Control.Lens.Fold
     Control.Lens.Getter
     Control.Lens.Internal
-    Control.Lens.Internal.Zipper
     Control.Lens.Iso
     Control.Lens.Lens
     Control.Lens.Loupe
@@ -213,6 +211,7 @@ library
     Control.Lens.WithIndex
     Control.Lens.Wrapped
     Control.Lens.Zipper
+    Control.Lens.Zipper.Internal
     Control.Lens.Zoom
     Data.Bits.Lens
     Data.ByteString.Lens
@@ -235,9 +234,6 @@ library
     Data.Vector.Lens
     Data.Vector.Generic.Lens
     GHC.Generics.Lens
-
-  other-modules:
-    Control.Lens.Internal.Composition
 
   if flag(template-haskell)
     build-depends: template-haskell >= 2.4 && < 2.9

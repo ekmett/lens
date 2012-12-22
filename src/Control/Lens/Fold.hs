@@ -122,10 +122,8 @@ module Control.Lens.Fold
 
 import Control.Applicative as Applicative
 import Control.Applicative.Backwards
-import Control.Lens.Classes
 import Control.Lens.Getter
 import Control.Lens.Internal
-import Control.Lens.Internal.Composition
 import Control.Lens.Lens
 import Control.Monad
 import Control.Monad.Reader

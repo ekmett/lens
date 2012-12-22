@@ -29,7 +29,7 @@ module Control.Lens.Each
   ) where
 
 import Control.Applicative
-import Control.Lens.Classes
+import Control.Lens.Internal
 import Control.Lens.Iso
 import Control.Lens.Lens as Lens
 import Control.Lens.Traversal

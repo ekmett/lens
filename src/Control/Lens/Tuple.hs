@@ -33,7 +33,6 @@ module Control.Lens.Tuple
   , Field9(..)
   ) where
 
-import Control.Lens.Classes
 import Control.Lens.Combinators
 import Control.Lens.Lens
 

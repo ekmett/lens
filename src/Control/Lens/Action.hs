@@ -39,9 +39,7 @@ module Control.Lens.Action
   ) where
 
 import Control.Applicative
-import Control.Lens.Classes
 import Control.Lens.Internal
-import Control.Lens.Internal.Composition
 import Control.Lens.Lens
 import Control.Monad.Trans.Class
 

@@ -73,9 +73,7 @@ module Control.Lens.Setter
   , SimpleReifiedIndexedSetter
   ) where
 
-import Control.Lens.Classes
 import Control.Lens.Internal
-import Control.Lens.Internal.Composition
 import Control.Lens.Lens
 import Control.Monad (liftM)
 import Control.Monad.State.Class as State

@@ -90,11 +90,9 @@ module Control.Lens.Representable
 
 import Control.Applicative
 import Control.Lens.At
-import Control.Lens.Classes
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal
-import Control.Lens.Internal.Composition
 import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Traversal

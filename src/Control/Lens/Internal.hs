@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -26,12 +27,24 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal
   (
+  -- * Internal Classes
+  -- ** Getters
+    Gettable(..)
+  , noEffect
+  -- ** Actions
+  , Effective(..)
+  -- ** Setters
+  , Settable(..)
+  -- * Prisms
+  , Prismatic(..)
+  -- ** Indexable
+  , Indexable(..)
+  -- ** Strict Composition
+  , NewtypeComposition(..)
   -- * Internal Types
-    May(..)
-  , Folding(..)
+  , May(..)
   , Effect(..)
   , EffectRWS(..)
-  , Accessor(..)
   , Err(..)
   , Traversed(..)
   , Sequenced(..)
@@ -41,15 +54,17 @@ module Control.Lens.Internal
   , FocusingOn(..)
   , FocusingMay(..)
   , FocusingErr(..)
-  , Mutator(..)
-  , Bazaar(..), bazaar, duplicateBazaar, sell
-  , BazaarT(..), bazaarT, duplicateBazaarT, sellT
-  , Context(..)
+  , Folding(..)
   , Max(..), getMax
   , Min(..), getMin
   , Indexing(..)
   , Indexing64(..)
-  -- * Overloadings
+  -- * Common Types
+  , Accessor(..)
+  , Mutator(..)
+  , Context(..)
+  , Bazaar(..), bazaar, duplicateBazaar, sell
+  , BazaarT(..), bazaarT, duplicateBazaarT, sellT
   , Review(..)
   , Exchange(..)
   , Market(..)
@@ -57,9 +72,9 @@ module Control.Lens.Internal
   ) where
 
 import Control.Applicative
+import Control.Applicative.Backwards
 import Control.Comonad
 import Control.Comonad.Store.Class
-import Control.Lens.Classes
 import Control.Monad
 import Data.Functor.Compose
 import Data.Functor.Identity
@@ -77,6 +92,264 @@ import Unsafe.Coerce
 #else
 #define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
 #endif
+
+infixr 9 #.
+infixl 8 .#
+
+-------------------------------------------------------------------------------
+-- Gettables & Accessors
+-------------------------------------------------------------------------------
+
+-- | Generalizing 'Const' so we can apply simple 'Applicative'
+-- transformations to it and so we can get nicer error messages
+--
+-- A 'Gettable' 'Functor' ignores its argument, which it carries solely as a
+-- phantom type parameter.
+--
+-- To ensure this, an instance of 'Gettable' is required to satisfy:
+--
+-- @'id' = 'fmap' f = 'coerce'@
+--
+-- Which is equivalent to making a @'Gettable' f@ an \"anyvariant\" functor.
+
+class Functor f => Gettable f where
+  -- | Replace the phantom type argument.
+  coerce :: f a -> f b
+
+instance Gettable (Const r) where
+  coerce (Const m) = Const m
+  {-# INLINE coerce #-}
+
+instance Gettable (Accessor r) where
+  coerce (Accessor m) = Accessor m
+  {-# INLINE coerce #-}
+
+instance Gettable f => Gettable (Backwards f) where
+  coerce = Backwards . coerce . forwards
+  {-# INLINE coerce #-}
+
+instance Gettable (Effect m r) where
+  coerce (Effect m) = Effect m
+  {-# INLINE coerce #-}
+
+instance Gettable (EffectRWS w st m s) where
+  coerce (EffectRWS m) = EffectRWS m
+  {-# INLINE coerce #-}
+
+instance (Functor f, Gettable g) => Gettable (Compose f g) where
+  coerce = Compose . fmap coerce . getCompose
+  {-# INLINE coerce #-}
+
+instance Gettable f => Gettable (Indexing f) where
+  coerce (Indexing m) = Indexing $ \i -> case m i of
+    (ff, j) -> (coerce ff, j)
+  {-# INLINE coerce #-}
+
+instance Gettable f => Gettable (Indexing64 f) where
+  coerce (Indexing64 m) = Indexing64 $ \i -> case m i of
+    (ff, j) -> (coerce ff, j)
+  {-# INLINE coerce #-}
+
+instance Gettable g => Gettable (BazaarT a b g) where
+  coerce = (<$) (error "coerced BazaarT")
+  {-# INLINE coerce #-}
+
+-- | The 'mempty' equivalent for a 'Gettable' 'Applicative' 'Functor'.
+noEffect :: (Applicative f, Gettable f) => f a
+noEffect = coerce $ pure ()
+{-# INLINE noEffect #-}
+
+-------------------------------------------------------------------------------
+-- Programming with Effects
+-------------------------------------------------------------------------------
+
+-- | An 'Effective' 'Functor' ignores its argument and is isomorphic to a 'Monad' wrapped around a value.
+--
+-- That said, the 'Monad' is possibly rather unrelated to any 'Applicative' structure.
+class (Monad m, Gettable f) => Effective m r f | f -> m r where
+  effective :: m r -> f a
+  ineffective :: f a -> m r
+
+instance Effective m r f => Effective m (Dual r) (Backwards f) where
+  effective = Backwards . effective . liftM getDual
+  {-# INLINE effective #-}
+  ineffective = liftM Dual . ineffective . forwards
+  {-# INLINE ineffective #-}
+
+instance Monad m => Effective m r (Effect m r) where
+  effective = Effect
+  {-# INLINE effective #-}
+  ineffective = getEffect
+  {-# INLINE ineffective #-}
+
+-- Effective EffectRWS ?
+
+instance Effective Identity r (Accessor r) where
+  effective = Accessor . runIdentity
+  {-# INLINE effective #-}
+  ineffective = Identity . runAccessor
+  {-# INLINE ineffective #-}
+
+-----------------------------------------------------------------------------
+-- Settable
+-----------------------------------------------------------------------------
+
+-- | Anything 'Settable' must be isomorphic to the 'Identity' 'Functor'.
+class Applicative f => Settable f where
+  untainted :: f a -> a
+
+  untaintedDot :: (a -> f b) -> a -> b
+  untaintedDot g = g `seq` \x -> untainted (g x)
+  {-# INLINE untaintedDot #-}
+
+  taintedDot :: (a -> b) -> a -> f b
+  taintedDot g = g `seq` \x -> pure (g x)
+  {-# INLINE taintedDot #-}
+
+-- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries
+instance Settable Identity where
+  untainted = runIdentity
+  {-# INLINE untainted #-}
+  untaintedDot = UNSAFELY(runIdentity)
+  {-# INLINE untaintedDot #-}
+  taintedDot = UNSAFELY(Identity)
+  {-# INLINE taintedDot #-}
+
+-- | 'Control.Lens.Fold.backwards'
+instance Settable f => Settable (Backwards f) where
+  untainted = untaintedDot forwards
+  {-# INLINE untainted #-}
+
+instance (Settable f, Settable g) => Settable (Compose f g) where
+  untainted = untaintedDot (untaintedDot getCompose)
+  {-# INLINE untainted #-}
+
+instance Settable Mutator where
+  untainted = runMutator
+  {-# INLINE untainted #-}
+  untaintedDot = UNSAFELY(runMutator)
+  {-# INLINE untaintedDot #-}
+  taintedDot = UNSAFELY(Mutator)
+  {-# INLINE taintedDot #-}
+
+-----------------------------------------------------------------------------
+-- Prism Internals
+-----------------------------------------------------------------------------
+
+class Profunctor p => Prismatic p where
+  prismatic :: Applicative f => (s -> Either t a) -> p a (f t) -> p s (f t)
+
+instance Prismatic (->) where
+  prismatic seta aft = either pure aft . seta
+  {-# INLINE prismatic #-}
+
+-----------------------------------------------------------------------------
+-- Indexed Internals
+-----------------------------------------------------------------------------
+
+-- | This class permits overloading of function application for things that
+-- also admit a notion of a key or index.
+class Profunctor p => Indexable i p where
+  -- | Build a function from an 'Indexed' function
+  indexed :: p a b -> i -> a -> b
+
+instance Indexable i (->) where
+  indexed = const
+  {-# INLINE indexed #-}
+
+-----------------------------------------------------------------------------
+-- Strict Composition
+-----------------------------------------------------------------------------
+
+-- $strict
+-- These combinators are used to reduce eta-expansion in the resulting code
+-- which could otherwise cause both a constant and asymptotic slowdown to
+-- code execution.
+--
+-- Many micro-benchmarks are improved up to 50%, and larger benchmarks can
+-- win asymptotically.
+
+class NewtypeComposition a b where
+  ( #. ) :: (a -> b) -> (c -> a) -> c -> b
+  ( #. ) = \f -> f `seq` \g -> g `seq` \x -> f (g x)
+  {-# INLINE ( #. ) #-}
+
+  ( .# ) :: (b -> c) -> (a -> b) -> a -> c
+  ( .# ) = \f -> f `seq` \g -> g `seq` \x -> f (g x)
+  {-# INLINE ( .# ) #-}
+
+#ifndef SAFE
+#define COMPOSE(a, b, f, g) \
+  instance NewtypeComposition (a) (b) where { \
+    ( #. ) = \_ -> unsafeCoerce; \
+    {-# INLINE ( #. ) #-}; \
+    ( .# ) = \h -> \_ -> unsafeCoerce h; \
+    {-# INLINE ( .# ) #-}; \
+  }; \
+  instance NewtypeComposition (b) (a) where { \
+    ( #. ) = \_ -> unsafeCoerce; \
+    {-# INLINE ( #. ) #-}; \
+    ( .# ) = \h -> \_ -> unsafeCoerce h; \
+    {-# INLINE ( .# ) #-}; \
+  }
+#else
+#define COMPOSE(a, b, f, g) \
+  instance NewtypeComposition (a) (b) where { \
+    ( #. ) = \_ -> \h -> h `seq` \x -> (g) (h x); \
+    {-# INLINE ( #. ) #-}; \
+    ( .# ) = \h -> h `seq` \_ -> \x -> h ((g) x); \
+    {-# INLINE ( .# ) #-}; \
+  }; \
+  instance NewtypeComposition (b) (a) where { \
+    ( #. ) = \_ -> \h -> h `seq` \x -> (f) (h x); \
+    {-# INLINE ( #. ) #-}; \
+    ( .# ) = \h -> h `seq` \_ -> \x -> h ((f) x); \
+    {-# INLINE ( .# ) #-}; \
+  }
+#endif
+
+COMPOSE(Const r a, r, Const, getConst)
+COMPOSE(ZipList a, [a], ZipList, getZipList)
+COMPOSE(WrappedMonad m a, m a, WrapMonad, unwrapMonad)
+COMPOSE(Last a, Maybe a, Last, getLast)
+COMPOSE(First a, Maybe a, First, getFirst)
+COMPOSE(Product a, a, Product, getProduct)
+COMPOSE(Sum a, a, Sum, getSum)
+COMPOSE(Any, Bool, Any, getAny)
+COMPOSE(All, Bool, All, getAll)
+COMPOSE(Dual a, a, Dual, getDual)
+COMPOSE(Endo a, a -> a, Endo, appEndo)
+COMPOSE(May a, Maybe a, May, getMay)
+COMPOSE(Folding f a, f a, Folding, getFolding)
+COMPOSE(Effect m r a, m r, Effect, getEffect)
+COMPOSE(EffectRWS w st m s a, st -> m (s, st, w), EffectRWS, getEffectRWS)
+COMPOSE(Accessor r a, r, Accessor, runAccessor)
+COMPOSE(Err e a, Either e a, Err, getErr)
+COMPOSE(Traversed f, f (), Traversed, getTraversed)
+COMPOSE(Sequenced f, f (), Sequenced, getSequenced)
+COMPOSE(Focusing m s a, m (s, a), Focusing, unfocusing)
+COMPOSE(FocusingWith w m s a, m (s, a, w), FocusingWith, unfocusingWith)
+COMPOSE(FocusingPlus w k s a, k (s, w) a, FocusingPlus, unfocusingPlus)
+COMPOSE(FocusingOn f k s a, k (f s) a, FocusingOn, unfocusingOn)
+COMPOSE(FocusingMay k s a, k (May s) a, FocusingMay, unfocusingMay)
+COMPOSE(FocusingErr e k s a, k (Err e s) a, FocusingErr, unfocusingErr)
+COMPOSE(Mutator a, a, Mutator, runMutator)
+COMPOSE(Backwards f a, f a, Backwards, forwards)
+COMPOSE(Compose f g a, f (g a), Compose, getCompose)
+COMPOSE(Cokleisli f a b, f a -> b, Cokleisli, runCokleisli)
+
+------------------------------------------------------------------------------
+-- Internal Types
+------------------------------------------------------------------------------
+
+-- | A 'Monoid' for a 'Gettable' 'Applicative'.
+newtype Folding f a = Folding { getFolding :: f a }
+
+instance (Gettable f, Applicative f) => Monoid (Folding f a) where
+  mempty = Folding noEffect
+  {-# INLINE mempty #-}
+  Folding fr `mappend` Folding fs = Folding (fr *> fs)
+  {-# INLINE mappend #-}
 
 -----------------------------------------------------------------------------
 -- Functors
@@ -184,10 +457,6 @@ instance Applicative f => Applicative (Indexing f) where
     (ff, j) -> case ma j of
        ~(fa, k) -> (ff <*> fa, k)
 
-instance Gettable f => Gettable (Indexing f) where
-  coerce (Indexing m) = Indexing $ \i -> case m i of
-    (ff, j) -> (coerce ff, j)
-
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int64'@ with a 'Functor', used
 -- by 'Control.Lens.Indexed.indexed64'
 newtype Indexing64 f a = Indexing64 { runIndexing64 :: Int64 -> (f a, Int64) }
@@ -201,10 +470,6 @@ instance Applicative f => Applicative (Indexing64 f) where
   Indexing64 mf <*> Indexing64 ma = Indexing64 $ \i -> case mf i of
     (ff, j) -> case ma j of
        ~(fa, k) -> (ff <*> fa, k)
-
-instance Gettable f => Gettable (Indexing64 f) where
-  coerce (Indexing64 m) = Indexing64 $ \i -> case m i of
-    (ff, j) -> (coerce ff, j)
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
 newtype Traversed f = Traversed { getTraversed :: f () }
@@ -343,52 +608,23 @@ instance (Monad m, Monoid r) => Applicative (Effect m r) where
   pure _ = Effect (return mempty)
   Effect ma <*> Effect mb = Effect (liftM2 mappend ma mb)
 
-instance Gettable (Effect m r) where
-  coerce (Effect m) = Effect m
-
-instance Monad m => Effective m r (Effect m r) where
-  effective = Effect
-  {-# INLINE effective #-}
-  ineffective = getEffect
-  {-# INLINE ineffective #-}
-
 -- | Wrap a monadic effect with a phantom type argument. Used when magnifying RWST.
 newtype EffectRWS w st m s a = EffectRWS { getEffectRWS :: st -> m (s,st,w) }
 
 instance Functor (EffectRWS w st m s) where
   fmap _ (EffectRWS m) = EffectRWS m
 
-instance Gettable (EffectRWS w st m s) where
-  coerce (EffectRWS m) = EffectRWS m
-
--- Effective EffectRWS
-
 instance (Monoid s, Monoid w, Monad m) => Applicative (EffectRWS w st m s) where
   pure _ = EffectRWS $ \st -> return (mempty, st, mempty)
   EffectRWS m <*> EffectRWS n = EffectRWS $ \st -> m st >>= \ (s,t,w) -> n t >>= \ (s',u,w') -> return (mappend s s', u, mappend w w')
-
-{-
--- | Wrap a monadic effect with a phantom type argument. Used when magnifying StateT.
-newtype EffectS st k s a = EffectS { runEffect :: st -> k (s, st) a }
-
-instance Functor (k (s, st)) => Functor (EffectS st m s) where
-  fmap f (EffectS m) = EffectS (fmap f . m)
-
-instance (Monoid s, Monad m) => Applicative (EffectS st m s) where
-  pure _ = EffectS $ \st -> return (mempty, st)
-  EffectS m <*> EffectS n = EffectS $ \st -> m st >>= \ (s,t) -> n st >>= \ (s', u) -> return (mappend s s', u)
--}
 
 -------------------------------------------------------------------------------
 -- Accessors
 -------------------------------------------------------------------------------
 
---instance Gettable (EffectS st m s) where
---  coerce (EffectS m) = EffectS m
-
 -- | Used instead of 'Const' to report
 --
--- @No instance of ('Control.Lens.Setter.Settable' 'Accessor')@
+-- @No instance of ('Settable' 'Accessor')@
 --
 -- when the user attempts to misuse a 'Control.Lens.Setter.Setter' as a
 -- 'Control.Lens.Getter.Getter', rather than a monolithic unification error.
@@ -400,24 +636,6 @@ instance Functor (Accessor r) where
 instance Monoid r => Applicative (Accessor r) where
   pure _ = Accessor mempty
   Accessor a <*> Accessor b = Accessor (mappend a b)
-
-instance Gettable (Accessor r) where
-  coerce (Accessor m) = Accessor m
-
-instance Effective Identity r (Accessor r) where
-  effective = Accessor . runIdentity
-  {-# INLINE effective #-}
-  ineffective = Identity . runAccessor
-  {-# INLINE ineffective #-}
-
--- | A 'Monoid' for a 'Gettable' 'Applicative'.
-newtype Folding f a = Folding { getFolding :: f a }
-
-instance (Gettable f, Applicative f) => Monoid (Folding f a) where
-  mempty = Folding noEffect
-  {-# INLINE mempty #-}
-  Folding fr `mappend` Folding fs = Folding (fr *> fs)
-  {-# INLINE mappend #-}
 
 -----------------------------------------------------------------------------
 -- Mutators
@@ -445,14 +663,6 @@ instance Monad Mutator where
     Mutator x >>= f = f x
     {-# INLINE (>>=) #-}
 
-instance Settable Mutator where
-  untainted = runMutator
-  {-# INLINE untainted #-}
-  untaintedDot = UNSAFELY(runMutator)
-  {-# INLINE untaintedDot #-}
-  taintedDot = UNSAFELY(Mutator)
-  {-# INLINE taintedDot #-}
-
 -- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance
 -- To protect this instance it relies on the soundness of another 'Gettable' type, and usage conventions.
 --
@@ -476,10 +686,6 @@ instance (a ~ b) => Comonad (BazaarT a b g) where
   {-# INLINE extract #-}
   duplicate = duplicateBazaarT
   {-# INLINE duplicate #-}
-
-instance Gettable g => Gettable (BazaarT a b g) where
-  coerce = (<$) (error "coerced BazaarT")
-  {-# INLINE coerce #-}
 
 -- | Extract from a 'BazaarT'.
 --
