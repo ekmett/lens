@@ -208,6 +208,7 @@ library
     Control.Lens.Internal.Zipper
     Control.Lens.Iso
     Control.Lens.Loupe
+    Control.Lens.Operators
     Control.Lens.Plated
     Control.Lens.Prism
     Control.Lens.Representable
