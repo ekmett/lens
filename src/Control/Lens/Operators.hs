@@ -26,7 +26,7 @@ module Control.Lens.Operators
   -- ** Loupes
   , (^#)
   -- ** with Effects
-  , (^!)
+  , (^!), (^@!)
   -- ** from Folds
   , (^..), (^@..)
   , (^?), (^@?)
@@ -99,6 +99,7 @@ import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed
+import Control.Lens.IndexedAction
 import Control.Lens.IndexedGetter
 import Control.Lens.IndexedFold
 import Control.Lens.IndexedLens
