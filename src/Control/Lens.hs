@@ -47,6 +47,7 @@ module Control.Lens
   , module Control.Lens.Fold
   , module Control.Lens.Getter
   , module Control.Lens.Indexed
+  , module Control.Lens.IndexedAction
   , module Control.Lens.IndexedFold
   , module Control.Lens.IndexedGetter
   , module Control.Lens.IndexedLens
@@ -70,13 +71,14 @@ module Control.Lens
   , module Control.Lens.Zoom
   ) where
 
-import Control.Lens.At
 import Control.Lens.Action
+import Control.Lens.At
 import Control.Lens.Combinators
 import Control.Lens.Each
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed
+import Control.Lens.IndexedAction
 import Control.Lens.IndexedFold
 import Control.Lens.IndexedGetter
 import Control.Lens.IndexedLens

@@ -26,6 +26,7 @@ module Control.Lens.Action
 
   -- * Implementation Details
   , Acting
+  , Effective
   ) where
 
 import Control.Applicative

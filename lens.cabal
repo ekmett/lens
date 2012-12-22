@@ -199,6 +199,7 @@ library
     Control.Lens.Fold
     Control.Lens.Getter
     Control.Lens.Indexed
+    Control.Lens.IndexedAction
     Control.Lens.IndexedGetter
     Control.Lens.IndexedFold
     Control.Lens.IndexedLens
