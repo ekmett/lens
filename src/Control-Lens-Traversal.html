@@ -353,8 +353,8 @@
 <a name="line-344"></a><span class='hs-comment'>-- 'partsOf' :: 'Iso'' s a       -&gt; 'Lens'' s [a]</span>
 <a name="line-345"></a><span class='hs-comment'>-- 'partsOf' :: 'Lens'' s a      -&gt; 'Lens'' s [a]</span>
 <a name="line-346"></a><span class='hs-comment'>-- 'partsOf' :: 'Traversal'' s a -&gt; 'Lens'' s [a]</span>
-<a name="line-347"></a><span class='hs-comment'>-- 'partsOf' :: 'Fold' s a             -&gt; 'Getter' s [a]</span>
-<a name="line-348"></a><span class='hs-comment'>-- 'partsOf' :: 'Getter' s a           -&gt; 'Getter' s [a]</span>
+<a name="line-347"></a><span class='hs-comment'>-- 'partsOf' :: 'Fold' s a       -&gt; 'Getter' s [a]</span>
+<a name="line-348"></a><span class='hs-comment'>-- 'partsOf' :: 'Getter' s a     -&gt; 'Getter' s [a]</span>
 <a name="line-349"></a><span class='hs-comment'>-- @</span>
 <a name="line-350"></a><span class='hs-definition'>partsOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>BazaarT</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
 <a name="line-351"></a><span class='hs-definition'>partsOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>outsT</span> <span class='hs-varid'>b</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>insT</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varid'>sellT</span> <span class='hs-varid'>s</span>
@@ -415,16 +415,16 @@
 <a name="line-406"></a><span class='hs-comment'>{-# INLINE holesOf #-}</span>
 <a name="line-407"></a>
 <a name="line-408"></a><a name="singular"></a><span class='hs-comment'>-- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can</span>
-<a name="line-409"></a><span class='hs-comment'>-- also be used to transform a non-empty 'Fold' into a 'Getter' or a non-empty 'Control.Lens.Action.MonadicFold' into an</span>
-<a name="line-410"></a><span class='hs-comment'>-- 'Control.Lens.Action.Action'.</span>
+<a name="line-409"></a><span class='hs-comment'>-- also be used to transform a non-empty 'Fold' into a 'Getter' or a non-empty 'MonadicFold' into an</span>
+<a name="line-410"></a><span class='hs-comment'>-- 'Action'.</span>
 <a name="line-411"></a><span class='hs-comment'>--</span>
-<a name="line-412"></a><span class='hs-comment'>-- The resulting 'Lens', 'Getter', or 'Control.Lens.Action.Action' will be partial if the supplied traversal returns</span>
+<a name="line-412"></a><span class='hs-comment'>-- The resulting 'Lens', 'Getter', or 'Action' will be partial if the supplied traversal returns</span>
 <a name="line-413"></a><span class='hs-comment'>-- no results.</span>
 <a name="line-414"></a><span class='hs-comment'>--</span>
 <a name="line-415"></a><span class='hs-comment'>-- @</span>
 <a name="line-416"></a><span class='hs-comment'>-- 'singular' :: 'Traversal' s t a a -&gt; 'Lens' s t a a</span>
 <a name="line-417"></a><span class='hs-comment'>-- 'singular' :: 'Fold' s a          -&gt; 'Getter' s a</span>
-<a name="line-418"></a><span class='hs-comment'>-- 'singular' :: 'Control.Lens.Action.MonadicFold' m s a -&gt; 'Control.Lens.Action.Action' m s a</span>
+<a name="line-418"></a><span class='hs-comment'>-- 'singular' :: 'MonadicFold' m s a -&gt; 'Action' m s a</span>
 <a name="line-419"></a><span class='hs-comment'>-- @</span>
 <a name="line-420"></a><span class='hs-definition'>singular</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>BazaarT</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
 <a name="line-421"></a><span class='hs-definition'>singular</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>partsOf</span> <span class='hs-varid'>l</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>xs</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>xs</span> <span class='hs-keyword'>of</span>
@@ -432,15 +432,15 @@
 <a name="line-423"></a>  <span class='hs-conid'>[]</span>     <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>[]</span> <span class='hs-varop'>&lt;$</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>error</span> <span class='hs-str'>"singular: empty traversal"</span><span class='hs-layout'>)</span>
 <a name="line-424"></a>
 <a name="line-425"></a><a name="unsafeSingular"></a><span class='hs-comment'>-- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be</span>
-<a name="line-426"></a><span class='hs-comment'>-- used to transform a 'Fold' into a 'Getter' or a 'Control.Lens.Action.MonadicFold' into an 'Control.Lens.Action.Action'.</span>
+<a name="line-426"></a><span class='hs-comment'>-- used to transform a 'Fold' into a 'Getter' or a 'MonadicFold' into an 'Action'.</span>
 <a name="line-427"></a><span class='hs-comment'>--</span>
-<a name="line-428"></a><span class='hs-comment'>-- The resulting 'Lens', 'Getter', or 'Control.Lens.Action.Action' will be partial if the Traversal targets nothing</span>
+<a name="line-428"></a><span class='hs-comment'>-- The resulting 'Lens', 'Getter', or 'Action' will be partial if the Traversal targets nothing</span>
 <a name="line-429"></a><span class='hs-comment'>-- or more than one element.</span>
 <a name="line-430"></a><span class='hs-comment'>--</span>
 <a name="line-431"></a><span class='hs-comment'>-- @</span>
 <a name="line-432"></a><span class='hs-comment'>-- 'unsafeSingular' :: 'Traversal' s t a b -&gt; 'Lens' s t a b</span>
 <a name="line-433"></a><span class='hs-comment'>-- 'unsafeSingular' :: 'Fold' s a          -&gt; 'Getter' s a</span>
-<a name="line-434"></a><span class='hs-comment'>-- 'unsafeSingular' :: 'Control.Lens.Action.MonadicFold' m s a -&gt; 'Control.Lens.Action.Action' m s a</span>
+<a name="line-434"></a><span class='hs-comment'>-- 'unsafeSingular' :: 'MonadicFold' m s a -&gt; 'Action' m s a</span>
 <a name="line-435"></a><span class='hs-comment'>-- @</span>
 <a name="line-436"></a><span class='hs-definition'>unsafeSingular</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>BazaarT</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
 <a name="line-437"></a><span class='hs-definition'>unsafeSingular</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unsafePartsOf</span> <span class='hs-varid'>l</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>xs</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>xs</span> <span class='hs-keyword'>of</span>
@@ -560,7 +560,7 @@
 <a name="line-551"></a><a name="cloneTraversal"></a><span class='hs-comment'>-- | A 'Traversal' is completely characterized by its behavior on a 'Bazaar'.</span>
 <a name="line-552"></a><span class='hs-comment'>--</span>
 <a name="line-553"></a><span class='hs-comment'>-- Cloning a 'Traversal' is one way to make sure you aren't given</span>
-<a name="line-554"></a><span class='hs-comment'>-- something weaker, such as a 'Control.Lens.Traversal.Fold' and can be</span>
+<a name="line-554"></a><span class='hs-comment'>-- something weaker, such as a 'Fold' and can be</span>
 <a name="line-555"></a><span class='hs-comment'>-- used as a way to pass around traversals that have to be monomorphic in @f@.</span>
 <a name="line-556"></a><span class='hs-comment'>--</span>
 <a name="line-557"></a><span class='hs-comment'>-- Note: This only accepts a proper 'Traversal' (or 'Lens'). To clone a 'Lens'</span>

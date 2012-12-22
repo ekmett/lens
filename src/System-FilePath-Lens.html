@@ -146,7 +146,7 @@
 <a name="line-137"></a><span class='hs-comment'>--</span>
 <a name="line-138"></a><span class='hs-comment'>-- &gt;&gt;&gt; basename .~ "filename" $ "path/name.png"</span>
 <a name="line-139"></a><span class='hs-comment'>-- "path/filename.png"</span>
-<a name="line-140"></a><span class='hs-definition'>basename</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Lens</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
+<a name="line-140"></a><span class='hs-definition'>basename</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
 <a name="line-141"></a><span class='hs-definition'>basename</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;.&gt;</span> <span class='hs-varid'>takeExtension</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeDirectory</span> <span class='hs-varid'>p</span> <span class='hs-varop'>&lt;/&gt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeBaseName</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span>
 <a name="line-142"></a><span class='hs-comment'>{-# INLINE basename #-}</span>
 <a name="line-143"></a>
@@ -155,7 +155,7 @@
 <a name="line-146"></a><span class='hs-comment'>--</span>
 <a name="line-147"></a><span class='hs-comment'>-- &gt;&gt;&gt; "long/path/name.txt" ^. directory</span>
 <a name="line-148"></a><span class='hs-comment'>-- "long/path"</span>
-<a name="line-149"></a><span class='hs-definition'>directory</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Lens</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
+<a name="line-149"></a><span class='hs-definition'>directory</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
 <a name="line-150"></a><span class='hs-definition'>directory</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;/&gt;</span> <span class='hs-varid'>takeFileName</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeDirectory</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span>
 <a name="line-151"></a><span class='hs-comment'>{-# INLINE directory #-}</span>
 <a name="line-152"></a>
@@ -164,7 +164,7 @@
 <a name="line-155"></a><span class='hs-comment'>--</span>
 <a name="line-156"></a><span class='hs-comment'>-- &gt;&gt;&gt; extension .~ ".png" $ "path/name.txt"</span>
 <a name="line-157"></a><span class='hs-comment'>-- "path/name.png"</span>
-<a name="line-158"></a><span class='hs-definition'>extension</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Lens</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
+<a name="line-158"></a><span class='hs-definition'>extension</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
 <a name="line-159"></a><span class='hs-definition'>extension</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>n</span> <span class='hs-varop'>&lt;.&gt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span>
 <a name="line-160"></a> <span class='hs-keyword'>where</span>
 <a name="line-161"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>n</span><span class='hs-layout'>,</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>splitExtension</span> <span class='hs-varid'>p</span>
@@ -175,7 +175,7 @@
 <a name="line-166"></a><span class='hs-comment'>--</span>
 <a name="line-167"></a><span class='hs-comment'>-- &gt;&gt;&gt; filename .~ "name.txt" $ "path/name.png"</span>
 <a name="line-168"></a><span class='hs-comment'>-- "path/name.txt"</span>
-<a name="line-169"></a><span class='hs-definition'>filename</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Lens</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
+<a name="line-169"></a><span class='hs-definition'>filename</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
 <a name="line-170"></a><span class='hs-definition'>filename</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeDirectory</span> <span class='hs-varid'>p</span> <span class='hs-varop'>&lt;/&gt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeFileName</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span>
 <a name="line-171"></a><span class='hs-comment'>{-# INLINE filename #-}</span>
 </pre></body>
