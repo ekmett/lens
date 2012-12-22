@@ -10,19 +10,19 @@ import Criterion.Config
 
 import GHC.Exts
 
-overS :: Setting s t a b -> (a -> b) -> s -> t
+overS :: ASetter s t a b -> (a -> b) -> s -> t
 overS l f = runMutator . l (Mutator . f)
 {-# INLINE overS #-}
 
-mappedS :: Setting [a] [b] a b
+mappedS :: ASetter [a] [b] a b
 mappedS f = Mutator . map (runMutator . f)
 {-# INLINE mappedS #-}
 
-overU :: Setting s t a b -> (a -> b) -> s -> t
+overU :: ASetter s t a b -> (a -> b) -> s -> t
 overU = over
 {-# INLINE overU #-}
 
-mappedU :: Setting [a] [b] a b
+mappedU :: ASetter [a] [b] a b
 mappedU = mapped
 {-# INLINE mappedU #-}
 

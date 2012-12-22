@@ -47,12 +47,13 @@ module Control.Lens.Setter
   , ReifiedSetter(..)
   , ReifiedSetter'
   -- * Setter Internals
-  , Setting
-  , Setting'
+  , ASetter
+  , ASetter'
   -- * Exported for legible error messages
   , Settable
   , Mutator
   -- * Deprecated
+  , Setting
   , SimpleSetting
   , SimpleSetter
   , SimpleReifiedSetter
@@ -137,7 +138,7 @@ type Setter s t a b = forall f. Settable f => (a -> f b) -> s -> f t
 -- user code will not need to use this type.
 --
 -- By choosing 'Mutator' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
-type Setting s t a b = (a -> Mutator b) -> s -> Mutator t
+type ASetter s t a b = (a -> Mutator b) -> s -> Mutator t
 
 -- |
 --
@@ -155,8 +156,8 @@ type Setter' s a = Setter s s a a
 --
 -- Most user code will never have to use this type.
 --
--- @type 'Setting'' m = 'Control.Lens.Type.Simple' 'Setting'@
-type Setting' s a = Setting s s a a
+-- @type 'ASetter'' m = 'Control.Lens.Type.Simple' 'ASetter'@
+type ASetter' s a = ASetter s s a a
 
 
 -----------------------------------------------------------------------------
@@ -268,12 +269,12 @@ sets f g = taintedDot (f (untaintedDot g))
 -- ("10",20)
 --
 -- @'over' :: 'Setter' s t a b -> (a -> b) -> s -> t@
-over :: Setting s t a b -> (a -> b) -> s -> t
+over :: ASetter s t a b -> (a -> b) -> s -> t
 over l f = runMutator #. l (Mutator #. f)
 {-# INLINE over #-}
 
 -- | 'mapOf' is a deprecated alias for 'over'.
-mapOf :: Setting s t a b -> (a -> b) -> s -> t
+mapOf :: ASetter s t a b -> (a -> b) -> s -> t
 mapOf = over
 {-# INLINE mapOf #-}
 {-# DEPRECATED mapOf "Use `over`" #-}
@@ -298,7 +299,7 @@ mapOf = over
 -- 'set' :: 'Control.Lens.Type.Lens' s t a b      -> b -> s -> t
 -- 'set' :: 'Control.Lens.Traversal.Traversal' s t a b -> b -> s -> t
 -- @
-set :: Setting s t a b -> b -> s -> t
+set :: ASetter s t a b -> b -> s -> t
 set l b = runMutator #. l (\_ -> Mutator b)
 {-# INLINE set #-}
 
@@ -326,7 +327,7 @@ set l b = runMutator #. l (\_ -> Mutator b)
 -- 'set'' :: 'Control.Lens.Type.Lens'' s a      -> a -> s -> s
 -- 'set'' :: 'Control.Lens.Traversal.Traversal'' s a -> a -> s -> s
 -- @
-set' :: Setting s s a a -> a -> s -> s
+set' :: ASetter s s a a -> a -> s -> s
 set' l b = runMutator #. l (\_ -> Mutator b)
 {-# INLINE set' #-}
 
@@ -364,7 +365,7 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 -- ('%~') :: 'Control.Lens.Type.Lens' s t a b      -> (a -> b) -> s -> t
 -- ('%~') :: 'Control.Lens.Traversal.Traversal' s t a b -> (a -> b) -> s -> t
 -- @
-(%~) :: Setting s t a b -> (a -> b) -> s -> t
+(%~) :: ASetter s t a b -> (a -> b) -> s -> t
 (%~) = over
 {-# INLINE (%~) #-}
 
@@ -390,7 +391,7 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 -- ('.~') :: 'Control.Lens.Type.Lens' s t a b      -> b -> s -> t
 -- ('.~') :: 'Control.Lens.Traversal.Traversal' s t a b -> b -> s -> t
 -- @
-(.~) :: Setting s t a b -> b -> s -> t
+(.~) :: ASetter s t a b -> b -> s -> t
 (.~) = set
 {-# INLINE (.~) #-}
 
@@ -410,7 +411,7 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 -- ('?~') :: 'Control.Lens.Type.Lens' s t a ('Maybe' b)      -> b -> s -> t
 -- ('?~') :: 'Control.Lens.Traversal.Traversal' s t a ('Maybe' b) -> b -> s -> t
 -- @
-(?~) :: Setting s t a (Maybe b) -> b -> s -> t
+(?~) :: ASetter s t a (Maybe b) -> b -> s -> t
 l ?~ b = set l (Just b)
 {-# INLINE (?~) #-}
 
@@ -435,7 +436,7 @@ l ?~ b = set l (Just b)
 -- ('<.~') :: 'Control.Lens.Type.Lens' s t a b      -> b -> s -> (b, t)
 -- ('<.~') :: 'Control.Lens.Traversal.Traversal' s t a b -> b -> s -> (b, t)
 -- @
-(<.~) :: Setting s t a b -> b -> s -> (b, t)
+(<.~) :: ASetter s t a b -> b -> s -> (b, t)
 l <.~ b = \s -> (b, set l b s)
 {-# INLINE (<.~) #-}
 
@@ -455,7 +456,7 @@ l <.~ b = \s -> (b, set l b s)
 -- ('<?~') :: 'Control.Lens.Type.Lens' s t a ('Maybe' b)      -> b -> s -> (b, t)
 -- ('<?~') :: 'Control.Lens.Traversal.Traversal' s t a ('Maybe' b) -> b -> s -> (b, t)
 -- @
-(<?~) :: Setting s t a (Maybe b) -> b -> s -> (b, t)
+(<?~) :: ASetter s t a (Maybe b) -> b -> s -> (b, t)
 l <?~ b = \s -> (b, set l (Just b) s)
 {-# INLINE (<?~) #-}
 
@@ -479,7 +480,7 @@ l <?~ b = \s -> (b, set l (Just b) s)
 -- ('+~') :: Num a => 'Control.Lens.Type.Lens'' s a -> a -> s -> s
 -- ('+~') :: Num a => 'Control.Lens.Traversal.Traversal'' s a -> a -> s -> s
 -- @
-(+~) :: Num a => Setting s t a a -> a -> s -> t
+(+~) :: Num a => ASetter s t a a -> a -> s -> t
 l +~ n = over l (+ n)
 {-# INLINE (+~) #-}
 
@@ -503,7 +504,7 @@ l +~ n = over l (+ n)
 -- ('*~') :: 'Num' a => 'Control.Lens.Type.Lens'' s a -> a -> s -> s
 -- ('*~') :: 'Num' a => 'Control.Lens.Traversal.Traversal'' s a -> a -> s -> s
 -- @
-(*~) :: Num a => Setting s t a a -> a -> s -> t
+(*~) :: Num a => ASetter s t a a -> a -> s -> t
 l *~ n = over l (* n)
 {-# INLINE (*~) #-}
 
@@ -527,7 +528,7 @@ l *~ n = over l (* n)
 -- ('-~') :: 'Num' a => 'Control.Lens.Type.Lens'' s a -> a -> s -> s
 -- ('-~') :: 'Num' a => 'Control.Lens.Traversal.Traversal'' s a -> a -> s -> s
 -- @
-(-~) :: Num a => Setting s t a a -> a -> s -> t
+(-~) :: Num a => ASetter s t a a -> a -> s -> t
 l -~ n = over l (subtract n)
 {-# INLINE (-~) #-}
 
@@ -548,7 +549,7 @@ l -~ n = over l (subtract n)
 -- ('//~') :: 'Fractional' a => 'Control.Lens.Type.Lens'' s a -> a -> s -> s
 -- ('//~') :: 'Fractional' a => 'Control.Lens.Traversal.Traversal'' s a -> a -> s -> s
 -- @
-(//~) :: Fractional s => Setting a b s s -> s -> a -> b
+(//~) :: Fractional s => ASetter a b s s -> s -> a -> b
 l //~ n = over l (/ n)
 
 -- | Raise the target(s) of a numerically valued 'Control.Lens.Type.Lens', 'Setter' or 'Control.Lens.Traversal.Traversal' to a non-negative integral power
@@ -562,7 +563,7 @@ l //~ n = over l (/ n)
 -- ('^~') :: ('Num' a, 'Integral' e) => 'Control.Lens.Type.Lens'' s a -> e -> s -> s
 -- ('^~') :: ('Num' a, 'Integral' e) => 'Control.Lens.Traversal.Traversal'' s a -> e -> s -> s
 -- @
-(^~) :: (Num a, Integral e) => Setting s t a a -> e -> s -> t
+(^~) :: (Num a, Integral e) => ASetter s t a a -> e -> s -> t
 l ^~ n = over l (^ n)
 {-# INLINE (^~) #-}
 
@@ -578,7 +579,7 @@ l ^~ n = over l (^ n)
 -- ('^^~') :: ('Fractional' a, 'Integral' e) => 'Control.Lens.Traversal.Traversal'' s a -> e -> s -> s
 -- @
 --
-(^^~) :: (Fractional a, Integral e) => Setting s t a a -> e -> s -> t
+(^^~) :: (Fractional a, Integral e) => ASetter s t a a -> e -> s -> t
 l ^^~ n = over l (^^ n)
 {-# INLINE (^^~) #-}
 
@@ -599,7 +600,7 @@ l ^^~ n = over l (^^ n)
 -- ('**~') :: 'Floating' a => 'Control.Lens.Type.Lens'' s a -> a -> s -> s
 -- ('**~') :: 'Floating' a => 'Control.Lens.Traversal.Traversal'' s a -> a -> s -> s
 -- @
-(**~) :: Floating a => Setting s t a a -> a -> s -> t
+(**~) :: Floating a => ASetter s t a a -> a -> s -> t
 l **~ n = over l (** n)
 {-# INLINE (**~) #-}
 
@@ -617,7 +618,7 @@ l **~ n = over l (** n)
 -- ('||~') :: 'Control.Lens.Type.Lens'' s 'Bool' -> 'Bool' -> s -> s
 -- ('||~') :: 'Control.Lens.Traversal.Traversal'' s 'Bool' -> 'Bool' -> s -> s
 -- @
-(||~):: Setting s t Bool Bool -> Bool -> s -> t
+(||~):: ASetter s t Bool Bool -> Bool -> s -> t
 l ||~ n = over l (|| n)
 {-# INLINE (||~) #-}
 
@@ -635,7 +636,7 @@ l ||~ n = over l (|| n)
 -- ('&&~') :: 'Control.Lens.Type.Lens'' s 'Bool' -> 'Bool' -> s -> s
 -- ('&&~') :: 'Control.Lens.Traversal.Traversal'' s 'Bool' -> 'Bool' -> s -> s
 -- @
-(&&~) :: Setting s t Bool Bool -> Bool -> s -> t
+(&&~) :: ASetter s t Bool Bool -> Bool -> s -> t
 l &&~ n = over l (&& n)
 {-# INLINE (&&~) #-}
 
@@ -660,7 +661,7 @@ l &&~ n = over l (&& n)
 -- 'assign' :: 'MonadState' s m => 'Control.Lens.Traversal.Traversal'' s a -> a -> m ()
 -- 'assign' :: 'MonadState' s m => 'Setter'' s a    -> a -> m ()
 -- @
-assign :: MonadState s m => Setting s s a b -> b -> m ()
+assign :: MonadState s m => ASetter s s a b -> b -> m ()
 assign l b = State.modify (set l b)
 {-# INLINE assign #-}
 
@@ -683,7 +684,7 @@ assign l b = State.modify (set l b)
 -- @
 --
 -- "It puts the state in the monad or it gets the hose again."
-(.=) :: MonadState s m => Setting s s a b -> b -> m ()
+(.=) :: MonadState s m => ASetter s s a b -> b -> m ()
 l .= b = State.modify (l .~ b)
 {-# INLINE (.=) #-}
 
@@ -701,7 +702,7 @@ l .= b = State.modify (l .~ b)
 -- ('%=') :: 'MonadState' s m => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m ()
 -- ('%=') :: 'MonadState' s m => 'Setter'' s a    -> (a -> a) -> m ()
 -- @
-(%=) :: MonadState s m => Setting s s a b -> (a -> b) -> m ()
+(%=) :: MonadState s m => ASetter s s a b -> (a -> b) -> m ()
 l %= f = State.modify (l %~ f)
 {-# INLINE (%=) #-}
 
@@ -720,7 +721,7 @@ l %= f = State.modify (l %~ f)
 -- ('?=') :: 'MonadState' s m => 'Control.Lens.Traversal.Traversal'' s ('Maybe' a) -> a -> m ()
 -- ('?=') :: 'MonadState' s m => 'Setter'' s ('Maybe' a)    -> a -> m ()
 -- @
-(?=) :: MonadState s m => Setting s s a (Maybe b) -> b -> m ()
+(?=) :: MonadState s m => ASetter s s a (Maybe b) -> b -> m ()
 l ?= b = State.modify (l ?~ b)
 {-# INLINE (?=) #-}
 
@@ -747,7 +748,7 @@ l ?= b = State.modify (l ?~ b)
 -- ('+=') :: ('MonadState' s m, 'Num' a) => 'Control.Lens.Type.Lens'' s a -> a -> m ()
 -- ('+=') :: ('MonadState' s m, 'Num' a) => 'Control.Lens.Traversal.Traversal'' s a -> a -> m ()
 -- @
-(+=) :: (MonadState s m, Num a) => Setting' s a -> a -> m ()
+(+=) :: (MonadState s m, Num a) => ASetter' s a -> a -> m ()
 l += b = State.modify (l +~ b)
 {-# INLINE (+=) #-}
 
@@ -762,7 +763,7 @@ l += b = State.modify (l +~ b)
 -- ('-=') :: ('MonadState' s m, 'Num' a) => 'Control.Lens.Type.Lens'' s a -> a -> m ()
 -- ('-=') :: ('MonadState' s m, 'Num' a) => 'Control.Lens.Traversal.Traversal'' s a -> a -> m ()
 -- @
-(-=) :: (MonadState s m, Num a) => Setting' s a -> a -> m ()
+(-=) :: (MonadState s m, Num a) => ASetter' s a -> a -> m ()
 l -= b = State.modify (l -~ b)
 {-# INLINE (-=) #-}
 
@@ -777,7 +778,7 @@ l -= b = State.modify (l -~ b)
 -- ('*=') :: ('MonadState' s m, 'Num' a) => 'Control.Lens.Type.Lens'' s a -> a -> m ()
 -- ('*=') :: ('MonadState' s m, 'Num' a) => 'Control.Lens.Traversal.Traversal'' s a -> a -> m ()
 -- @
-(*=) :: (MonadState s m, Num a) => Setting' s a -> a -> m ()
+(*=) :: (MonadState s m, Num a) => ASetter' s a -> a -> m ()
 l *= b = State.modify (l *~ b)
 {-# INLINE (*=) #-}
 
@@ -792,7 +793,7 @@ l *= b = State.modify (l *~ b)
 -- ('//=') :: ('MonadState' s m, 'Fractional' a) => 'Control.Lens.Type.Lens'' s a -> a -> m ()
 -- ('//=') :: ('MonadState' s m, 'Fractional' a) => 'Control.Lens.Traversal.Traversal'' s a -> a -> m ()
 -- @
-(//=) :: (MonadState s m, Fractional a) => Setting' s a -> a -> m ()
+(//=) :: (MonadState s m, Fractional a) => ASetter' s a -> a -> m ()
 l //= a = State.modify (l //~ a)
 {-# INLINE (//=) #-}
 
@@ -804,7 +805,7 @@ l //= a = State.modify (l //~ a)
 -- ('^=') ::  ('MonadState' s m, 'Num' a, 'Integral' e) => 'Control.Lens.Type.Lens'' s a -> e -> m ()
 -- ('^=') ::  ('MonadState' s m, 'Num' a, 'Integral' e) => 'Control.Lens.Traversal.Traversal'' s a -> e -> m ()
 -- @
-(^=) :: (MonadState s m, Num a, Integral e) => Setting' s a -> e -> m ()
+(^=) :: (MonadState s m, Num a, Integral e) => ASetter' s a -> e -> m ()
 l ^= e = State.modify (l ^~ e)
 {-# INLINE (^=) #-}
 
@@ -816,7 +817,7 @@ l ^= e = State.modify (l ^~ e)
 -- ('^^=') ::  ('MonadState' s m, 'Fractional' a, 'Integral' e) => 'Control.Lens.Type.Lens'' s a -> e -> m ()
 -- ('^^=') ::  ('MonadState' s m, 'Fractional' a, 'Integral' e) => 'Control.Lens.Traversal.Traversal'' s a -> e -> m ()
 -- @
-(^^=) :: (MonadState s m, Fractional a, Integral e) => Setting' s a -> e -> m ()
+(^^=) :: (MonadState s m, Fractional a, Integral e) => ASetter' s a -> e -> m ()
 l ^^= e = State.modify (l ^^~ e)
 {-# INLINE (^^=) #-}
 
@@ -831,7 +832,7 @@ l ^^= e = State.modify (l ^^~ e)
 -- ('**=') ::  ('MonadState' s m, 'Floating' a) => 'Control.Lens.Type.Lens'' s a -> a -> m ()
 -- ('**=') ::  ('MonadState' s m, 'Floating' a) => 'Control.Lens.Traversal.Traversal'' s a -> a -> m ()
 -- @
-(**=) :: (MonadState s m, Floating a) => Setting' s a -> a -> m ()
+(**=) :: (MonadState s m, Floating a) => ASetter' s a -> a -> m ()
 l **= a = State.modify (l **~ a)
 {-# INLINE (**=) #-}
 
@@ -846,7 +847,7 @@ l **= a = State.modify (l **~ a)
 -- ('&&=') :: 'MonadState' s m => 'Control.Lens.Type.Lens'' s 'Bool' -> 'Bool' -> m ()
 -- ('&&=') :: 'MonadState' s m => 'Control.Lens.Traversal.Traversal'' s 'Bool' -> 'Bool' -> m ()
 -- @
-(&&=):: MonadState s m => Setting' s Bool -> Bool -> m ()
+(&&=):: MonadState s m => ASetter' s Bool -> Bool -> m ()
 l &&= b = State.modify (l &&~ b)
 {-# INLINE (&&=) #-}
 
@@ -861,7 +862,7 @@ l &&= b = State.modify (l &&~ b)
 -- ('||=') :: 'MonadState' s m => 'Control.Lens.Type.Lens'' s 'Bool' -> 'Bool' -> m ()
 -- ('||=') :: 'MonadState' s m => 'Control.Lens.Traversal.Traversal'' s 'Bool' -> 'Bool' -> m ()
 -- @
-(||=) :: MonadState s m => Setting' s Bool -> Bool -> m ()
+(||=) :: MonadState s m => ASetter' s Bool -> Bool -> m ()
 l ||= b = State.modify (l ||~ b)
 {-# INLINE (||=) #-}
 
@@ -890,7 +891,7 @@ l ||= b = State.modify (l ||~ b)
 -- @
 --
 -- will store the result in a 'Control.Lens.Type.Lens', 'Setter', or 'Control.Lens.Traversal.Traversal'.
-(<~) :: MonadState s m => Setting s s a b -> m b -> m ()
+(<~) :: MonadState s m => ASetter s s a b -> m b -> m ()
 l <~ mb = mb >>= (l .=)
 {-# INLINE (<~) #-}
 
@@ -908,7 +909,7 @@ l <~ mb = mb >>= (l .=)
 -- ('<.=') :: 'MonadState' s m => 'Control.Lens.Type.Lens' s s a b -> b -> m b
 -- ('<.=') :: 'MonadState' s m => 'Control.Lens.Traversal.Traversal' s s a b -> b -> m b
 -- @
-(<.=) :: MonadState s m => Setting s s a b -> b -> m b
+(<.=) :: MonadState s m => ASetter s s a b -> b -> m b
 l <.= b = do
   l .= b
   return b
@@ -928,7 +929,7 @@ l <.= b = do
 -- ('<?=') :: 'MonadState' s m => 'Control.Lens.Type.Lens' s s a ('Maybe' b) -> b -> m b
 -- ('<?=') :: 'MonadState' s m => 'Control.Lens.Traversal.Traversal' s s a ('Maybe' b) -> b -> m b
 -- @
-(<?=) :: MonadState s m => Setting s s a (Maybe b) -> b -> m b
+(<?=) :: MonadState s m => ASetter s s a (Maybe b) -> b -> m b
 l <?= b = do
   l ?= b
   return b
@@ -951,7 +952,7 @@ l <?= b = do
 -- ('<>~') :: 'Monoid' a => 'Control.Lens.Type.Lens' s t a a -> a -> s -> t
 -- ('<>~') :: 'Monoid' a => 'Control.Lens.Traversal.Traversal' s t a a -> a -> s -> t
 -- @
-(<>~) :: Monoid a => Setting s t a a -> a -> s -> t
+(<>~) :: Monoid a => ASetter s t a a -> a -> s -> t
 l <>~ n = over l (`mappend` n)
 {-# INLINE (<>~) #-}
 
@@ -969,7 +970,7 @@ l <>~ n = over l (`mappend` n)
 -- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Type.Lens'' s a -> a -> m ()
 -- ('<>=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> a -> m ()
 -- @
-(<>=) :: (MonadState s m, Monoid a) => Setting' s a -> a -> m ()
+(<>=) :: (MonadState s m, Monoid a) => ASetter' s a -> a -> m ()
 l <>= a = State.modify (l <>~ a)
 {-# INLINE (<>=) #-}
 
@@ -991,6 +992,10 @@ type SimpleReifiedSetter s a = ReifiedSetter s s a a
 type SimpleSetter s a = Setter s s a a
 {-# DEPRECATED SimpleSetter "use Setter'" #-}
 
--- | A deprecated alias for 'Setting''
-type SimpleSetting s a = Setting s s a a
-{-# DEPRECATED SimpleSetting "use Setting'" #-}
+-- | A deprecated alias for 'ASetter'
+type Setting s a = ASetter s s a a
+{-# DEPRECATED Setting "use ASetter" #-}
+
+-- | A deprecated alias for 'ASetter''
+type SimpleSetting s a = ASetter s s a a
+{-# DEPRECATED SimpleSetting "use ASetter'" #-}

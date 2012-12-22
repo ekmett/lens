@@ -42,7 +42,7 @@ infix 4 </>=, <</>=, <.>=, <<.>=
 -- ('</>~') :: 'Lens' s a 'FilePath' 'FilePath' -> 'FilePath' -> s -> a
 -- ('</>~') :: 'Traversal' s a 'FilePath' 'FilePath' -> 'FilePath' -> s -> a
 -- @
-(</>~) :: Setting s t FilePath FilePath -> FilePath -> s -> t
+(</>~) :: ASetter s t FilePath FilePath -> FilePath -> s -> t
 l </>~ n = over l (</> n)
 {-# INLINE (</>~) #-}
 
@@ -58,7 +58,7 @@ l </>~ n = over l (</> n)
 -- ('</>=') :: 'MonadState' s m => 'Lens'' s 'FilePath' -> 'FilePath' -> m ()
 -- ('</>=') :: 'MonadState' s m => 'Traversal'' s 'FilePath' -> 'FilePath' -> m ()
 -- @
-(</>=) :: MonadState s m => Setting' s FilePath -> FilePath -> m ()
+(</>=) :: MonadState s m => ASetter' s FilePath -> FilePath -> m ()
 l </>= b = State.modify (l </>~ b)
 {-# INLINE (</>=) #-}
 
@@ -91,7 +91,7 @@ l <</>= r = l <%= (</> r)
 -- ('<.>~') :: 'Lens' s a 'FilePath' 'FilePath' -> 'String' -> s -> a
 -- ('<.>~') :: 'Traversal' s a 'FilePath' 'FilePath' -> 'String' -> s -> a
 -- @
-(<.>~) :: Setting s a FilePath FilePath -> String -> s -> a
+(<.>~) :: ASetter s a FilePath FilePath -> String -> s -> a
 l <.>~ n = over l (<.> n)
 {-# INLINE (<.>~) #-}
 
@@ -106,7 +106,7 @@ l <.>~ n = over l (<.> n)
 -- ('<.>=') :: 'MonadState' s m => 'Lens'' s 'FilePath' -> 'String' -> m ()
 -- ('<.>=') :: 'MonadState' s m => 'Traversal'' s 'FilePath' -> 'String' -> m ()
 -- @
-(<.>=) :: MonadState s m => Setting' s FilePath -> String -> m ()
+(<.>=) :: MonadState s m => ASetter' s FilePath -> String -> m ()
 l <.>= b = State.modify (l <.>~ b)
 {-# INLINE (<.>=) #-}
 

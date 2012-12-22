@@ -39,7 +39,7 @@ infix 4 .|.=, .&.=, <.|.=, <.&.=
 -- ('.|.~') :: 'Bits' a => 'Lens' s t a a -> a -> s -> t
 -- ('.|.~') :: ('Monoid a', 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
 -- @
-(.|.~):: Bits a => Setting s t a a -> a -> s -> t
+(.|.~):: Bits a => ASetter s t a a -> a -> s -> t
 l .|.~ n = over l (.|. n)
 {-# INLINE (.|.~) #-}
 
@@ -54,7 +54,7 @@ l .|.~ n = over l (.|. n)
 -- ('.&.~') :: 'Bits' a => 'Lens' s t a a -> a -> s -> t
 -- ('.&.~') :: ('Monoid a', 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
 -- @
-(.&.~) :: Bits a => Setting s t a a -> a -> s -> t
+(.&.~) :: Bits a => ASetter s t a a -> a -> s -> t
 l .&.~ n = over l (.&. n)
 {-# INLINE (.&.~) #-}
 
@@ -69,7 +69,7 @@ l .&.~ n = over l (.&. n)
 -- ('.&.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m ()
 -- ('.&.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Traversal' s a -> a -> m ()
 -- @
-(.&.=):: (MonadState s m, Bits a) => Setting' s a -> a -> m ()
+(.&.=):: (MonadState s m, Bits a) => ASetter' s a -> a -> m ()
 l .&.= a = modify (l .&.~ a)
 {-# INLINE (.&.=) #-}
 
@@ -84,7 +84,7 @@ l .&.= a = modify (l .&.~ a)
 -- ('.|.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Lens' s a -> a -> m ()
 -- ('.|.=') :: ('MonadState' s m, 'Bits' a) => 'Simple' 'Traversal' s a -> a -> m ()
 -- @
-(.|.=) :: (MonadState s m, Bits a) => Setting' s a -> a -> m ()
+(.|.=) :: (MonadState s m, Bits a) => ASetter' s a -> a -> m ()
 l .|.= a = modify (l .|.~ a)
 {-# INLINE (.|.=) #-}
 
