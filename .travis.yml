@@ -14,7 +14,7 @@ install:
 
 script:
   - $script
-  - timeout 30s hlint src --cpp-define HLINT || ([ "$?" = 124 ] && >&2 echo "Huh. HLint timed out.")
+  - hlint src --cpp-define HLINT
 
 branches:
   except:
