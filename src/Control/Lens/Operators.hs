@@ -28,9 +28,9 @@ module Control.Lens.Operators
   -- ** with Effects
   , (^!)
   -- ** from Folds
-  , (^..), (^?), (^?!)
-  -- ** with Indices
-  , (^@..)
+  , (^..), (^@..)
+  , (^?), (^@?)
+  , (^?!), (^@?!)
 
   -- * Common Operators
   -- ** Setting

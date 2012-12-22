@@ -17,6 +17,8 @@ module Control.Lens.IndexedFold
   -- * Indexed Folds
     IndexedFold
   , (^@..)
+  , (^@?)
+  , (^@?!)
 
   -- * Consuming Indexed Folds
   , ifoldMapOf
@@ -61,10 +63,11 @@ import Control.Lens.Internal
 import Control.Lens.Internal.Composition
 import Control.Lens.Type
 import Control.Monad
+import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
 
-infixr 8 ^@..
+infixr 8 ^@.., ^@?, ^@?!
 
 ------------------------------------------------------------------------------
 -- Indexed Folds
@@ -379,6 +382,36 @@ itoListOf l = ifoldrOf l (\i a -> ((i,a):)) []
 -- @
 (^@..) :: s -> IndexedGetting i (Endo [(i,a)]) s t a b -> [(i,a)]
 s ^@.. l = ifoldrOf l (\i a -> ((i,a):)) [] s
+
+-- | Perform a safe 'head' (with index) of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' or retrieve 'Just' the index and result
+-- from an 'IndexedGetter' or 'IndexedLens'.
+--
+-- When using a 'Control.Lens.IndexedTraversal.IndexedTraversal' as a partial 'Control.Lens.IndexedLens.IndexedLens', or an 'IndexedFold' as a partial 'IndexedGetter' this can be a convenient
+-- way to extract the optional value.
+--
+-- @
+-- ('^@?') :: s -> 'IndexedGetter' i s a           -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'IndexedFold' i s a             -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'IndexedLens'' i s a      -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'Control.Lens.Iso.Iso'' i s a       -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'Control.Lens.Traversal.Traversal'' i s a -> 'Maybe' (i, a)
+-- @
+(^@?) :: s -> IndexedGetting i (First (i, a)) s t a b -> Maybe (i, a)
+s ^@? l = getFirst $ ifoldMapOf l (\i a -> First (Just (i,a))) s
+{-# INLINE (^@?) #-}
+
+-- | Perform an *UNSAFE* 'head' (with index) of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' assuming that it is there.
+--
+-- @
+-- ('^@?!') :: s -> 'IndexedGetter' i s a           -> (i, a)
+-- ('^@?!') :: s -> 'IndexedFold' i s a             -> (i, a)
+-- ('^@?!') :: s -> 'Lens'' i s a      -> (i, a)
+-- ('^@?!') :: s -> 'Control.Lens.Iso.Iso'' i s a       -> (i, a)
+-- ('^@?!') :: s -> 'Control.Lens.Traversal.Traversal'' i s a -> (i, a)
+-- @
+(^@?!) :: s -> IndexedGetting i (First (i, a)) s t a b -> (i, a)
+s ^@?! l = fromMaybe (error "(^@?!): empty Fold") $ getFirst $ ifoldMapOf l (\i a -> First (Just (i,a))) s
+{-# INLINE (^@?!) #-}
 
 -------------------------------------------------------------------------------
 -- Converting to Folds
