@@ -39,7 +39,7 @@
 <a name="line-30"></a><span class='hs-comment'>-- exception :: ('Applicative' f, 'Exception' a, 'Exception' b)</span>
 <a name="line-31"></a><span class='hs-comment'>--           =&gt; (a -&gt; f b) -&gt; 'SomeException' -&gt; f 'SomeException'</span>
 <a name="line-32"></a><span class='hs-comment'>-- @</span>
-<a name="line-33"></a><span class='hs-definition'>exception</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Exception</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Simple</span> <span class='hs-conid'>Prism</span> <span class='hs-conid'>SomeException</span> <span class='hs-varid'>a</span>
+<a name="line-33"></a><span class='hs-definition'>exception</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Exception</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>SomeException</span> <span class='hs-varid'>a</span>
 <a name="line-34"></a><span class='hs-definition'>exception</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-varid'>toException</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>maybe</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-conid'>Right</span> <span class='hs-varop'>$</span> <span class='hs-varid'>fromException</span> <span class='hs-varid'>e</span>
 <a name="line-35"></a><span class='hs-comment'>{-# INLINE exception #-}</span>
 </pre></body>
