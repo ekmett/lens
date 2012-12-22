@@ -128,9 +128,9 @@ l #= f = modify (l #~ f)
 {-# INLINE ( #= ) #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Setter.%=')
-(#%=) :: MonadState s m => Loupe s s a b -> (a -> b) -> m ()
+( #%= ) :: MonadState s m => Loupe s s a b -> (a -> b) -> m ()
 l #%= f = modify (l #%~ f)
-{-# INLINE (#%=) #-}
+{-# INLINE ( #%= ) #-}
 
 -- | Modify the target of a 'Loupe' and return the result.
 --
