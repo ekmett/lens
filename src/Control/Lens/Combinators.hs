@@ -21,6 +21,10 @@ import Data.Functor ((<$>))
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Control.Monad.State
+-- >>> import Debug.SimpleReflect.Expr
+-- >>> import Debug.SimpleReflect.Vars as Vars hiding (f)
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 
 infixl 4 <$!>, <$!
 infixl 1 &, <&>, ??

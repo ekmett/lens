@@ -143,10 +143,6 @@ iperforms :: Monad m => IndexedActing i m e s t a b -> (i -> a -> e) -> s -> m e
 iperforms l f = getEffect #. withIndex l (\i a -> Effect (return (f i a)))
 
 -- | Perform an 'IndexedAction'
---
--- >>> ["hello","world"]^!traversed.iact putStrLn
--- (0,hello)
--- (1,world)
 (^@!) :: Monad m => s -> IndexedActing i m (i, a) s t a b -> m (i, a)
 s ^@! l = getEffect (withIndex l (\i a -> Effect (return (i, a))) s)
 {-# INLINE (^@!) #-}
