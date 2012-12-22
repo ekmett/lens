@@ -64,7 +64,7 @@ class (MonadState s m, MonadState t n) => Zoom m n k s t | m -> s k, n -> t k, m
   -- This is commonly used to lift actions in a simpler state monad into a
   -- state monad with a larger state type.
   --
-  -- When applied to a 'Simple 'Control.Lens.Traversal.Traversal' over
+  -- When applied to a 'Simple' 'Control.Lens.Traversal.Traversal' over
   -- multiple values, the actions for each target are executed sequentially
   -- and the results are aggregated.
   --
