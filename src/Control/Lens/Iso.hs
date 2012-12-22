@@ -52,9 +52,6 @@ import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Maybe
 import Data.Profunctor
-#ifndef SAFE
-import Unsafe.Coerce
-#endif
 
 {-# ANN module "HLint: ignore Use on" #-}
 
@@ -95,7 +92,8 @@ iso sa bt = lmap sa . rmap (fmap bt)
 --
 -- @'from' ('from' l) ≡ l@
 from :: AnIso s t a b -> Iso b a t s
-from = withIso (flip iso)
+from k = case withIso k of
+  (sa, bt) -> iso bt sa
 {-# INLINE from #-}
 
 -- | Convert from 'AnIso' back to any 'Iso'.
@@ -105,7 +103,8 @@ from = withIso (flip iso)
 --
 -- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
 cloneIso :: AnIso s t a b -> Iso s t a b
-cloneIso = withIso iso
+cloneIso k = case withIso k of
+  (sa, bt) -> iso sa bt
 {-# INLINE cloneIso #-}
 
 -----------------------------------------------------------------------------
@@ -117,13 +116,10 @@ cloneIso = withIso iso
 -- @'cloneIso' ≡ 'withIso' 'iso'@
 --
 -- @'from' ≡ 'withIso' ('flip' 'iso')@
-withIso :: ((s -> a) -> (b -> t) -> r) -> AnIso s t a b -> r
-withIso k ai = runExchange (ai (Exchange (\j -> j id Mutator))) k' where
-#ifdef SAFE
-  k' sa bt = k sa (runMutator #. bt)
-#else
-  k' = unsafeCoerce k
-#endif
+withIso :: AnIso s t a b -> (s -> a, b -> t)
+withIso ai = case runExchange $ ai $ Exchange (id, Mutator) of
+  (sa, bt) -> (sa, runMutator #. bt)
+
 {-# INLINE withIso #-}
 
 -- | Based on 'Control.Lens.Wrapped.ala' from Conor McBride's work on Epigram.
@@ -133,7 +129,8 @@ withIso k ai = runExchange (ai (Exchange (\j -> j id Mutator))) k' where
 -- >>> au (wrapping Sum) foldMap [1,2,3,4]
 -- 10
 au :: AnIso s t a b -> ((s -> a) -> e -> b) -> e -> t
-au = withIso $ \sa bt f e -> bt (f sa e)
+au k = case withIso k of
+  (sa, bt) -> \ f e -> bt (f sa e)
 {-# INLINE au #-}
 
 -- |
@@ -149,7 +146,8 @@ au = withIso $ \sa bt f e -> bt (f sa e)
 -- >>> auf (wrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
 -- 10
 auf :: AnIso s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
-auf = withIso $ \sa bt f g e -> bt (f (sa . g) e)
+auf k = case withIso k of
+  (sa, bt) -> \ f g e -> bt (f (sa . g) e)
 {-# INLINE auf #-}
 
 -- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
@@ -158,7 +156,8 @@ auf = withIso $ \sa bt f g e -> bt (f (sa . g) e)
 --
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
 under :: AnIso s t a b -> (t -> s) -> b -> a
-under = withIso $ \sa bt ts -> sa . ts . bt
+under k = case withIso k of
+  (sa, bt) -> \ts -> sa . ts . bt
 {-# INLINE under #-}
 
 -----------------------------------------------------------------------------
@@ -184,7 +183,8 @@ enum = iso toEnum fromEnum
 
 -- | This can be used to lift any 'Iso' into an arbitrary functor.
 mapping :: Functor f => AnIso s t a b -> Iso (f s) (f t) (f a) (f b)
-mapping = withIso $ \sa bt -> iso (fmap sa) (fmap bt)
+mapping k = case withIso k of
+  (sa, bt) -> iso (fmap sa) (fmap bt)
 {-# INLINE mapping #-}
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',

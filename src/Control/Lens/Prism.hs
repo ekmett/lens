@@ -48,9 +48,6 @@ import Control.Lens.Internal
 import Control.Lens.Type
 import Data.Functor.Identity
 import Data.Profunctor
-#ifndef SAFE
-import Unsafe.Coerce
-#endif
 
 -- $setup
 -- >>> import Control.Lens
@@ -75,20 +72,17 @@ type APrism s t a b = Market a b a (Mutator b) -> Market a b s (Mutator t)
 type APrism' s a = APrism s s a a
 
 -- | Safely decompose 'APrism'
-withPrism :: ((b -> t) -> (s -> Either t a) -> r) -> APrism s t a b -> r
-withPrism k p = runMarket (p (Market (\j -> j Mutator Right))) k' where
-#ifdef SAFE
-  k' bt sa = k (runMutator #. bt) (either (Left . runMutator) Right . sa)
-#else
-  k' = unsafeCoerce k
-#endif
+withPrism :: APrism s t a b -> (b -> t, s -> Either t a)
+withPrism k = case runMarket (k (Market (Mutator, Right))) of
+  (bt, sa) -> (runMutator #. bt,  either (Left . runMutator) Right . sa)
 {-# INLINE withPrism #-}
 
 -- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.
 --
 -- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.
 clonePrism :: APrism s t a b -> Prism s t a b
-clonePrism = withPrism prism
+clonePrism k = case withPrism k of
+  (bt, sa) -> prism bt sa
 {-# INLINE clonePrism #-}
 
 ------------------------------------------------------------------------------
@@ -111,14 +105,16 @@ prism' as sma = prism as (\s -> maybe (Left s) Right (sma s))
 --
 -- @'outside' :: 'Prism' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
 outside :: APrism s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
-outside = withPrism $ \bt seta -> \f tr -> f (tr.bt) <&> \ar -> either tr ar . seta
+outside k = case withPrism k of 
+  (bt,  seta) -> \f tr -> f (tr.bt) <&> \ar -> either tr ar . seta
 {-# INLINE outside #-}
 
 -- | Use a 'Prism' to work over part of a structure.
 aside :: APrism s t a b -> Prism (e, s) (e, t) (e, a) (e, b)
-aside = withPrism $ \bt seta -> prism (fmap bt) $ \(e,s) -> case seta s of
-  Left t -> Left (e,t)
-  Right a -> Right (e,a)
+aside k = case withPrism k of
+  (bt, seta) -> prism (fmap bt) $ \(e,s) -> case seta s of
+    Left t -> Left (e,t)
+    Right a -> Right (e,a)
 {-# INLINE aside #-}
 
 -- | Given a pair of prisms, project sums.
@@ -127,10 +123,12 @@ aside = withPrism $ \bt seta -> prism (fmap bt) $ \(e,s) -> case seta s of
 without :: APrism s t a b
         -> APrism u v c d
         -> Prism (Either s u) (Either t v) (Either a c) (Either b d)
-without = withPrism $ \bt seta -> withPrism $ \dv uevc ->
-  let go (Left s) = either (Left . Left) (Right . Left) (seta s)
-      go (Right u) = either (Left . Right) (Right . Right) (uevc u)
-  in prism (bt +++ dv) go
+without k = case withPrism k of
+  (bt, seta) -> \ k' -> case withPrism k' of
+    (dv, uevc) ->
+      let go (Left s) = either (Left . Left) (Right . Left) (seta s)
+          go (Right u) = either (Left . Right) (Right . Right) (uevc u)
+      in prism (bt +++ dv) go
 {-# INLINE without #-}
 
 -- | Turn a 'Prism' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
