@@ -24,7 +24,7 @@ module Control.Lens.Prism
   , prism'
   -- * Consuming Prisms
   , clonePrism
-  , withPrism
+  , runPrism
   , remit
   , review, reviews
   , reuse, reuses
@@ -75,20 +75,20 @@ type APrism s t a b = Market a b a (Mutator b) -> Market a b s (Mutator t)
 type APrism' s a = APrism s s a a
 
 -- | Safely decompose 'APrism'
-withPrism :: APrism s t a b -> (b -> t, s -> Either t a)
+runPrism :: APrism s t a b -> (b -> t, s -> Either t a)
 #ifdef SAFE
-withPrism k = case runMarket (k (Market (Mutator, Right))) of
+runPrism k = case runMarket (k (Market (Mutator, Right))) of
   (bt, sa) -> (runMutator #. bt,  either (Left . runMutator) Right . sa)
 #else
-withPrism k = unsafeCoerce (runMarket (k (Market (Mutator, Right))))
+runPrism k = unsafeCoerce (runMarket (k (Market (Mutator, Right))))
 #endif
-{-# INLINE withPrism #-}
+{-# INLINE runPrism #-}
 
 -- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.
 --
 -- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.
 clonePrism :: APrism s t a b -> Prism s t a b
-clonePrism k = case withPrism k of
+clonePrism k = case runPrism k of
   (bt, sa) -> prism bt sa
 {-# INLINE clonePrism #-}
 
@@ -112,13 +112,13 @@ prism' as sma = prism as (\s -> maybe (Left s) Right (sma s))
 --
 -- @'outside' :: 'Prism' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
 outside :: APrism s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
-outside k = case withPrism k of 
+outside k = case runPrism k of 
   (bt,  seta) -> \f tr -> f (tr.bt) <&> \ar -> either tr ar . seta
 {-# INLINE outside #-}
 
 -- | Use a 'Prism' to work over part of a structure.
 aside :: APrism s t a b -> Prism (e, s) (e, t) (e, a) (e, b)
-aside k = case withPrism k of
+aside k = case runPrism k of
   (bt, seta) -> prism (fmap bt) $ \(e,s) -> case seta s of
     Left t -> Left (e,t)
     Right a -> Right (e,a)
@@ -130,8 +130,8 @@ aside k = case withPrism k of
 without :: APrism s t a b
         -> APrism u v c d
         -> Prism (Either s u) (Either t v) (Either a c) (Either b d)
-without k = case withPrism k of
-  (bt, seta) -> \ k' -> case withPrism k' of
+without k = case runPrism k of
+  (bt, seta) -> \ k' -> case runPrism k' of
     (dv, uevc) ->
       let go (Left s) = either (Left . Left) (Right . Left) (seta s)
           go (Right u) = either (Left . Right) (Right . Right) (uevc u)

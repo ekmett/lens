@@ -29,7 +29,7 @@ module Control.Lens.Iso
   -- * Consuming Isomorphisms
   , from
   , cloneIso
-  , withIso
+  , runIso
   -- * Working with isomorphisms
   , au
   , auf
@@ -95,7 +95,7 @@ iso sa bt = lmap sa . rmap (fmap bt)
 --
 -- @'from' ('from' l) ≡ l@
 from :: AnIso s t a b -> Iso b a t s
-from k = case withIso k of
+from k = case runIso k of
   (sa, bt) -> iso bt sa
 {-# INLINE from #-}
 
@@ -106,7 +106,7 @@ from k = case withIso k of
 --
 -- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
 cloneIso :: AnIso s t a b -> Iso s t a b
-cloneIso k = case withIso k of
+cloneIso k = case runIso k of
   (sa, bt) -> iso sa bt
 {-# INLINE cloneIso #-}
 
@@ -116,18 +116,18 @@ cloneIso k = case withIso k of
 
 -- | Safely decompose 'AnIso'
 --
--- @'cloneIso' ≡ 'withIso' 'iso'@
+-- @'cloneIso' ≡ 'runIso' 'iso'@
 --
--- @'from' ≡ 'withIso' ('flip' 'iso')@
-withIso :: AnIso s t a b -> (s -> a, b -> t)
+-- @'from' ≡ 'runIso' ('flip' 'iso')@
+runIso :: AnIso s t a b -> (s -> a, b -> t)
 #ifdef SAFE
-withIso ai = case runExchange $ ai $ Exchange (id, Mutator) of
+runIso ai = case runExchange $ ai $ Exchange (id, Mutator) of
   (sa, bt) -> (sa, runMutator #. bt)
 #else
-withIso ai = unsafeCoerce (runExchange $ ai $ Exchange (id, Mutator))
+runIso ai = unsafeCoerce (runExchange $ ai $ Exchange (id, Mutator))
 #endif
 
-{-# INLINE withIso #-}
+{-# INLINE runIso #-}
 
 -- | Based on 'Control.Lens.Wrapped.ala' from Conor McBride's work on Epigram.
 --
@@ -136,7 +136,7 @@ withIso ai = unsafeCoerce (runExchange $ ai $ Exchange (id, Mutator))
 -- >>> au (wrapping Sum) foldMap [1,2,3,4]
 -- 10
 au :: AnIso s t a b -> ((s -> a) -> e -> b) -> e -> t
-au k = case withIso k of
+au k = case runIso k of
   (sa, bt) -> \ f e -> bt (f sa e)
 {-# INLINE au #-}
 
@@ -153,7 +153,7 @@ au k = case withIso k of
 -- >>> auf (wrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
 -- 10
 auf :: AnIso s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
-auf k = case withIso k of
+auf k = case runIso k of
   (sa, bt) -> \ f g e -> bt (f (sa . g) e)
 {-# INLINE auf #-}
 
@@ -163,7 +163,7 @@ auf k = case withIso k of
 --
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
 under :: AnIso s t a b -> (t -> s) -> b -> a
-under k = case withIso k of
+under k = case runIso k of
   (sa, bt) -> \ts -> sa . ts . bt
 {-# INLINE under #-}
 
@@ -190,7 +190,7 @@ enum = iso toEnum fromEnum
 
 -- | This can be used to lift any 'Iso' into an arbitrary functor.
 mapping :: Functor f => AnIso s t a b -> Iso (f s) (f t) (f a) (f b)
-mapping k = case withIso k of
+mapping k = case runIso k of
   (sa, bt) -> iso (fmap sa) (fmap bt)
 {-# INLINE mapping #-}
 
