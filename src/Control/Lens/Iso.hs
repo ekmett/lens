@@ -42,6 +42,8 @@ module Control.Lens.Iso
   , enum
   , curried, uncurried
   , Strict(..)
+  -- * Profunctors
+  , Profunctor(..)
   ) where
 
 import Control.Lens.Internal
