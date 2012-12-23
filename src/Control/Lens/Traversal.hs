@@ -415,8 +415,8 @@ unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 -- 'holesOf' :: 'Traversal'' s a -> s -> ['Context' a a s]
 -- @
 holesOf :: ATraversal s t a a -> s -> [Context a a t]
-holesOf l a = f (ins b) (outs b) where
-  b = l sell a
+holesOf l s = f (ins b) (outs b) where
+  b = l sell s
   f []     _ = []
   f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
 {-# INLINE holesOf #-}

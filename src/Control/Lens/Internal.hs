@@ -76,6 +76,7 @@ import Control.Applicative.Backwards
 import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Monad
+import Data.Bifunctor
 import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Int
@@ -763,6 +764,10 @@ data Review a b = Review { reviewed :: b }
 instance Functor (Review a) where
   fmap bc (Review b) = Review (bc b)
   {-# INLINE fmap #-}
+
+instance Bifunctor Review where
+  bimap _ g (Review b) = Review (g b)
+  {-# INLINE bimap #-}
 
 instance Profunctor Review where
   lmap _ (Review c) = Review c
