@@ -26,7 +26,6 @@ import Data.Functor ((<$>))
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 
-infixl 4 <$!>, <$!
 infixl 1 &, <&>, ??
 
 -- | Passes the result of the left side to the function on the right side (forward pipe operator).
@@ -50,31 +49,9 @@ infixl 1 &, <&>, ??
 --
 -- >>> flip execState ("hello","world") $ do _1.element 0 .= 'j'; _1.element 4 .= 'y'
 -- ("jelly","world")
---
-
 (&) :: a -> (a -> b) -> b
 a & f = f a
 {-# INLINE (&) #-}
-
--- | A strict version of ('Data.Functor.<$>') for monads.
---
--- >>> (+1) <$!> [1,2,3,4]
--- [2,3,4,5]
-(<$!>) :: Monad m => (a -> b) -> m a -> m b
-f <$!> m = do
-  a <- m
-  return $! f a
-{-# INLINE (<$!>) #-}
-
--- | A strict version of ('Data.Functor.<$') for monads.
---
--- >>> () <$! [1,2,3,4]
--- [(),(),(),()]
-(<$!) :: Monad m => b -> m a -> m b
-b <$! m = do
-  _ <- m
-  return $! b
-{-# INLINE (<$!) #-}
 
 -- | Infix flipped fmap.
 --

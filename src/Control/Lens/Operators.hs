@@ -16,10 +16,7 @@
 module Control.Lens.Operators
   (
   -- * General Purpose
-  -- ** Flipping
     (&), (<&>), (??)
-  -- ** Strictness
-  , (<$!>), (<$!)
 
   -- * Getting
   , (^.), (^@.)
