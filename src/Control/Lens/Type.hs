@@ -23,6 +23,7 @@ module Control.Lens.Type
   , Iso, Iso'
   , Prism , Prism'
   , Setter, Setter'
+  , Equality, Equality'
   , Getter
   , Fold
   , Action
@@ -322,6 +323,16 @@ type Prism s t a b = forall p f. (Prismatic p, Applicative f) => p a (f b) -> p 
 type Prism' s a = Prism s s a a
 
 -------------------------------------------------------------------------------
+-- Equality
+-------------------------------------------------------------------------------
+
+-- | A witness that @(a ~ s, b ~ t)@
+type Equality s t a b = forall p f. p a (f b) -> p s (f t)
+
+-- | A 'Simple' 'Equality'
+type Equality' s a = Equality s s a a
+
+-------------------------------------------------------------------------------
 -- Getters
 -------------------------------------------------------------------------------
 
@@ -361,6 +372,7 @@ type Fold s a = forall f. (Gettable f, Applicative f) => (a -> f a) -> s -> f s
 -- | Every 'IndexedFold' is a valid 'Control.Lens.Fold.Fold'.
 type IndexedFold i s a = forall p f.
   (Indexable i p, Applicative f, Gettable f) => p a (f a) -> s -> f s
+
 
 -------------------------------------------------------------------------------
 -- Actions
