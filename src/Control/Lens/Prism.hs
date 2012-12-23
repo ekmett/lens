@@ -40,19 +40,18 @@ module Control.Lens.Prism
   ) where
 
 import Control.Applicative
-import Control.Arrow ((+++))
 import Control.Monad.Reader as Reader
 import Control.Monad.State as State
 import Control.Lens.Combinators
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Type
+import Data.Bifunctor
 import Data.Functor.Identity
 import Data.Profunctor
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
-
 
 -- $setup
 -- >>> import Control.Lens
@@ -100,7 +99,7 @@ clonePrism k = case runPrism k of
 --
 -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
 prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
-prism bt seta = lmap (either (Left . pure) Right . seta) . prismatic . rmap (fmap bt)
+prism bt seta = lmap (first pure . seta) . prismatic . rmap (fmap bt)
 {-# INLINE prism #-}
 
 -- | Build a 'Prism''.
@@ -112,8 +111,8 @@ prism' as sma = prism as (\s -> maybe (Left s) Right (sma s))
 --
 -- @'outside' :: 'Prism' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
 outside :: APrism s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
-outside k = case runPrism k of 
-  (bt,  seta) -> \f tr -> f (tr.bt) <&> \ar -> either tr ar . seta
+outside k = case runPrism k of
+  (bt, seta) -> \f tr -> f (tr.bt) <&> \ar -> either tr ar . seta
 {-# INLINE outside #-}
 
 -- | Use a 'Prism' to work over part of a structure.
@@ -132,10 +131,9 @@ without :: APrism s t a b
         -> Prism (Either s u) (Either t v) (Either a c) (Either b d)
 without k = case runPrism k of
   (bt, seta) -> \ k' -> case runPrism k' of
-    (dv, uevc) ->
-      let go (Left s) = either (Left . Left) (Right . Left) (seta s)
-          go (Right u) = either (Left . Right) (Right . Right) (uevc u)
-      in prism (bt +++ dv) go
+    (dv, uevc) -> prism (bimap bt dv) $ \su -> case su of
+      Left s  -> bimap Left Left (seta s)
+      Right u -> bimap Right Right (uevc u)
 {-# INLINE without #-}
 
 -- | Turn a 'Prism' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
