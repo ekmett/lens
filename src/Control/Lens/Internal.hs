@@ -628,7 +628,7 @@ sell :: a -> Bazaar a b b
 sell i = Bazaar (\k -> k i)
 {-# INLINE sell #-}
 
-instance (a ~ b) => ComonadApply (Bazaar a b) where
+instance a ~ b => ComonadApply (Bazaar a b) where
   (<@>) = (<*>)
 
 -- | Wrap a monadic effect with a phantom type argument.
