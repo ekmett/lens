@@ -72,10 +72,14 @@ module Control.Lens.Internal
 
 import Control.Applicative
 import Control.Applicative.Backwards
+import Control.Arrow as Arrow
+import qualified Control.Category
+import Control.Category (Category)
 import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Monad
-import Data.Bifunctor
+import Control.Monad.Fix
+import Data.Bifunctor as Bifunctor
 import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Int
@@ -753,6 +757,8 @@ instance Bifunctor Review where
   {-# INLINE bimap #-}
 
 instance Profunctor Review where
+  dimap _ f (Review c) = Review (f c)
+  {-# INLINE dimap #-}
   lmap _ (Review c) = Review c
   {-# INLINE lmap #-}
   rmap = fmap
@@ -770,6 +776,9 @@ instance Functor (Exchange a b s) where
   {-# INLINE fmap #-}
 
 instance Profunctor (Exchange a b) where
+  dimap f g x = case runExchange x of
+    (sa, bt) -> Exchange (sa . f, g . bt)
+  {-# INLINE dimap #-}
   lmap f x = case runExchange x of
     (sa, bt) -> Exchange (sa . f, bt)
   {-# INLINE lmap #-}
@@ -788,6 +797,9 @@ instance Functor (Market a b s) where
   {-# INLINE fmap #-}
 
 instance Profunctor (Market a b) where
+  dimap f g x = case runMarket x of
+    (bt, seta) -> Market (g . bt, either (Left . g) Right . seta . f)
+  {-# INLINE dimap #-}
   lmap f x = case runMarket x of
     (bt, seta) -> Market (bt, seta . f)
   {-# INLINE lmap #-}
@@ -816,11 +828,69 @@ data Identical a b s t where
 -- @index :: Indexed i a b -> i -> a -> b@
 newtype Indexed i a b = Indexed { runIndexed :: i -> a -> b }
 
+instance Functor (Indexed i a) where
+  fmap g (Indexed f) = Indexed $ \i a -> g (f i a)
+  {-# INLINE fmap #-}
+
+instance Applicative (Indexed i a) where
+  pure b = Indexed $ \_ _ -> b
+  {-# INLINE pure #-}
+  Indexed f <*> Indexed g = Indexed $ \i a -> f i a (g i a)
+  {-# INLINE (<*>) #-}
+
+instance Monad (Indexed i a) where
+  return b = Indexed $ \_ _ -> b
+  {-# INLINE return #-}
+  Indexed f >>= k = Indexed $ \i a -> runIndexed (k (f i a)) i a
+  {-# INLINE (>>=) #-}
+
+instance MonadFix (Indexed i a) where
+  mfix f = Indexed $ \ i a -> let o = runIndexed (f o) i a in o
+  {-# INLINE mfix #-}
+
 instance Profunctor (Indexed i) where
+  dimap ab cd ibc = Indexed (\i -> cd . runIndexed ibc i . ab)
+  {-# INLINE dimap #-}
   lmap ab ibc = Indexed (\i -> runIndexed ibc i . ab)
   {-# INLINE lmap #-}
   rmap bc iab = Indexed (\i -> bc . runIndexed iab i)
   {-# INLINE rmap #-}
+
+instance Category (Indexed i) where
+  id = Indexed (const id)
+  {-# INLINE id #-}
+  Indexed f . Indexed g = Indexed $ \i -> f i . g i
+  {-# INLINE (.) #-}
+
+instance Arrow (Indexed i) where
+  arr f = Indexed (\_ -> f)
+  {-# INLINE arr #-}
+  first f = Indexed (Arrow.first . runIndexed f)
+  {-# INLINE first #-}
+  second f = Indexed (Arrow.second . runIndexed f)
+  {-# INLINE second #-}
+  Indexed f *** Indexed g = Indexed $ \i -> f i *** g i
+  {-# INLINE (***) #-}
+  Indexed f &&& Indexed g = Indexed $ \i -> f i &&& g i
+  {-# INLINE (&&&) #-}
+
+instance ArrowChoice (Indexed i) where
+  left f = Indexed (left . runIndexed f)
+  {-# INLINE left #-}
+  right f = Indexed (right . runIndexed f)
+  {-# INLINE right #-}
+  Indexed f +++ Indexed g = Indexed $ \i -> f i +++ g i
+  {-# INLINE (+++)  #-}
+  Indexed f ||| Indexed g = Indexed $ \i -> f i ||| g i
+  {-# INLINE (|||) #-}
+
+instance ArrowApply (Indexed i) where
+  app = Indexed $ \ i (f, b) -> runIndexed f i b
+  {-# INLINE app #-}
+
+instance ArrowLoop (Indexed i) where
+  loop (Indexed f) = Indexed $ \i b -> let (c,d) = f i (b, d) in c
+  {-# INLINE loop #-}
 
 -- | Using an equality witness to avoid potential overlapping instances
 -- and aid dispatch.
