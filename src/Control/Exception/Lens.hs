@@ -99,7 +99,6 @@ import Control.Exception
 import Control.Lens
 import Control.Lens.Internal
 import Data.Monoid
-import Data.Profunctor
 import GHC.Conc (ThreadId)
 
 -- |
