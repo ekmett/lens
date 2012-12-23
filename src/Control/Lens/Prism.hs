@@ -39,6 +39,7 @@ module Control.Lens.Prism
   , Prismatic(..)
   ) where
 
+import Control.Applicative
 import Control.Arrow ((+++))
 import Control.Monad.Reader as Reader
 import Control.Monad.State as State
@@ -99,7 +100,7 @@ clonePrism k = case withPrism k of
 --
 -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
 prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
-prism bt seta = prismatic seta . rmap (fmap bt)
+prism bt seta = lmap (either (Left . pure) Right . seta) . refract . rmap (fmap bt)
 {-# INLINE prism #-}
 
 -- | Build a 'Prism''.

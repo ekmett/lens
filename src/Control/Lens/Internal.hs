@@ -239,11 +239,11 @@ instance Settable Mutator where
 -----------------------------------------------------------------------------
 
 class Profunctor p => Prismatic p where
-  prismatic :: Applicative f => (s -> Either t a) -> p a (f t) -> p s (f t)
+  refract :: p a t -> p (Either t a) t
 
 instance Prismatic (->) where
-  prismatic seta aft = either pure aft . seta
-  {-# INLINE prismatic #-}
+  refract = either id
+  {-# INLINE refract #-}
 
 -----------------------------------------------------------------------------
 -- Indexed Internals
@@ -758,8 +758,8 @@ instance Profunctor Review where
   {-# INLINE rmap #-}
 
 instance Prismatic Review where
-  prismatic _ (Review ft) = Review ft
-  {-# INLINE prismatic #-}
+  refract (Review ab) = Review ab
+  {-# INLINE refract #-}
 
 newtype Exchange a b s t = Exchange { runExchange :: (s -> a, b -> t) }
 
@@ -790,9 +790,9 @@ instance Profunctor (Market a b) where
   {-# INLINE rmap #-}
 
 instance Prismatic (Market a b) where
-  prismatic f x = case runMarket x of
-    (bt, seta) -> Market (bt, either (Left . pure) seta . f)
-  {-# INLINE prismatic #-}
+  refract x = case runMarket x of
+    (bt, seta) -> Market (bt, either Left seta)
+  {-# INLINE refract #-}
 
 ------------------------------------------------------------------------------
 -- Indexed Internals
