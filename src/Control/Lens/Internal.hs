@@ -695,10 +695,10 @@ instance Applicative Mutator where
   {-# INLINE (<*>) #-}
 
 instance Monad Mutator where
-    return = Mutator
-    {-# INLINE return #-}
-    Mutator x >>= f = f x
-    {-# INLINE (>>=) #-}
+  return = Mutator
+  {-# INLINE return #-}
+  Mutator x >>= f = f x
+  {-# INLINE (>>=) #-}
 
 -- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance
 -- To protect this instance it relies on the soundness of another 'Gettable' type, and usage conventions.
@@ -758,7 +758,7 @@ instance Profunctor Review where
   {-# INLINE rmap #-}
 
 instance Prismatic Review where
-  refract (Review ab) = Review ab
+  refract (Review t) = Review t
   {-# INLINE refract #-}
 
 newtype Exchange a b s t = Exchange { runExchange :: (s -> a, b -> t) }
