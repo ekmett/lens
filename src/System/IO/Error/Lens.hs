@@ -15,7 +15,7 @@
 module System.IO.Error.Lens where
 
 import Control.Lens
-import Control.Exception.Lens as Lens
+import Control.Exception.Lens
 import GHC.IO.Exception
 import System.IO
 import Foreign.C.Types
