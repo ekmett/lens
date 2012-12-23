@@ -245,11 +245,11 @@ class AsIOException p f t where
 
 instance AsIOException p f IOException where
   ioErr = id
-  {-# INLINE ioException #-}
+  {-# INLINE ioErr #-}
 
 instance (Prismatic p, Applicative f) => AsIOException p f SomeException where
   ioErr = exception
-  {-# INLINE ioException #-}
+  {-# INLINE ioErr #-}
 
 ----------------------------------------------------------------------------
 -- ArithException
