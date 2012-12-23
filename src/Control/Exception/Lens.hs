@@ -60,11 +60,20 @@ module Control.Exception.Lens
   -- ** Non-Termination
   , AsNonTermination(..)
   , _nonTermination
-  -- ** Other Exceptions
+  -- ** Nested Atomically
   , AsNestedAtomically(..)
+  , _nestedAtomically
+  -- ** Blocked Indefinitely
+  -- *** on MVar
   , AsBlockedIndefinitelyOnMVar(..)
+  , _blockedIndefinitelyOnMVar
+  -- *** on STM
   , AsBlockedIndefinitelyOnSTM(..)
+  , _blockedIndefinitelyOnSTM
+  -- ** Deadlock
   , AsDeadlock(..)
+  , _deadlock
+  -- ** Other Exceptions
   , AsNoMethodError(..)
   , AsPatternMatchFail(..)
   , AsRecConError(..)
@@ -619,7 +628,7 @@ class AsBlockedIndefinitelyOnSTM p f t where
   --
   -- @
   -- 'blockedIndefinitelyOnSTM' :: 'Equality'' 'BlockedIndefinitelyOnSTM' 'BlockedIndefinitelyOnSTM'
-  -- 'blockedIndefinitelyOnSTM' :: 'Prism''    'SomeException'             'BlockedIndefinitelyOnSTM'
+  -- 'blockedIndefinitelyOnSTM' :: 'Prism''    'SomeException'            'BlockedIndefinitelyOnSTM'
   -- @
   blockedIndefinitelyOnSTM :: Overloaded' p f t BlockedIndefinitelyOnSTM
 
@@ -647,23 +656,35 @@ _blockedIndefinitelyOnSTM = blockedIndefinitelyOnSTM . iso (const ()) (const Blo
 -- Deadlock
 ----------------------------------------------------------------------------
 
-class AsDeadlock t where
+class AsDeadlock p f t where
   -- | There are no runnable threads, so the program is deadlocked. The Deadlock exception
   -- is raised in the main thread only.
-  deadlock :: Prism' t Deadlock
+  --
+  -- @
+  -- 'deadlock' :: 'Equality'' 'Deadlock'      'Deadlock'
+  -- 'deadlock' :: 'Prism''    'SomeException' 'Deadlock'
+  -- @
+  deadlock :: Overloaded' p f t Deadlock
 
-  -- | 'Deadlock' is isomorphic to ()
-  _deadlock :: Prism' t ()
-  _deadlock = deadlock . iso (const ()) (const Deadlock)
-  {-# INLINE _deadlock #-}
-
-instance AsDeadlock Deadlock where
+-- | @'deadlock' :: 'Equality'' 'Deadlock' 'Deadlock'@
+instance AsDeadlock p f Deadlock where
   deadlock = id
   {-# INLINE deadlock #-}
 
-instance AsDeadlock SomeException where
+-- | 'deadlock' :: 'Prism'' 'SomeException' 'Deadlock'@
+instance (Prismatic p, Applicative f) => AsDeadlock p f SomeException where
   deadlock = exception
   {-# INLINE deadlock #-}
+
+-- | 'Deadlock' is isomorphic to ()
+--
+-- @
+-- '_deadlock' :: 'Iso''   'Deadlock'      ()
+-- '_deadlock' :: 'Prism'' 'SomeException' ()
+-- @
+_deadlock :: (AsDeadlock p f t, Profunctor p, Functor f) => Overloaded' p f t ()
+_deadlock = deadlock . iso (const ()) (const Deadlock)
+{-# INLINE _deadlock #-}
 
 ----------------------------------------------------------------------------
 -- NoMethodError
