@@ -27,8 +27,8 @@ module Control.Lens.Equality
 import Control.Lens.Internal
 import Control.Lens.Type
 
-{-# ANN module "HLint: ignore Use id #-}
-{-# ANN module "HLint: ignore Eta reduce #-}
+{-# ANN module "HLint: ignore Use id" #-}
+{-# ANN module "HLint: ignore Eta reduce" #-}
 
 -- $setup
 -- >>> import Control.Lens
