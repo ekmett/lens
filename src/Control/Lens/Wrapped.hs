@@ -51,7 +51,6 @@ module Control.Lens.Wrapped
 import           Control.Applicative
 import           Control.Arrow
 import           Control.Applicative.Backwards
-import           Control.Applicative.Lift
 import           Control.Comonad.Trans.Traced
 import           Control.Exception
 import           Control.Lens.Iso
@@ -182,10 +181,6 @@ instance Wrapped a a' (Identity a) (Identity a') where
 
 instance Wrapped (m a) (m' a') (IdentityT m a) (IdentityT m' a') where
   wrapped = iso IdentityT runIdentityT
-  {-# INLINE wrapped #-}
-
-instance (Applicative f, Applicative g) => Wrapped (f a) (g b) (Lift f a) (Lift g b) where
-  wrapped = iso Other unLift
   {-# INLINE wrapped #-}
 
 instance Wrapped (m [a]) (m' [a']) (ListT m a) (ListT m' a') where
