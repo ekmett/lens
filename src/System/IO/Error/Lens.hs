@@ -27,7 +27,7 @@ import Foreign.C.Types
 -- 'location' :: 'Traversal'' 'SomeException' 'String'
 -- @
 location :: (AsIOException (->) f t, Functor f) => LensLike' f t String
-location f = ioErr . \ f s -> f (ioe_location s) <&> \e -> s { ioe_location = e }
+location = ioErr . \ f s -> f (ioe_location s) <&> \e -> s { ioe_location = e }
 
 -- | Error type specific information.
 --

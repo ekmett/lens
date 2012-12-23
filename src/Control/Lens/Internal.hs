@@ -35,8 +35,6 @@ module Control.Lens.Internal
   , Effective(..)
   -- ** Setters
   , Settable(..)
-  -- * Prisms
-  , Prismatic(..)
   -- ** Indexable
   , Indexable(..)
   -- ** Strict Composition
@@ -230,17 +228,6 @@ instance Settable Mutator where
   {-# INLINE untaintedDot #-}
   taintedDot = (Mutator #.)
   {-# INLINE taintedDot #-}
-
------------------------------------------------------------------------------
--- Prism Internals
------------------------------------------------------------------------------
-
-class Profunctor p => Prismatic p where
-  prismatic :: p a b -> p (Either b a) b
-
-instance Prismatic (->) where
-  prismatic = either id
-  {-# INLINE prismatic #-}
 
 -----------------------------------------------------------------------------
 -- Indexed Internals
