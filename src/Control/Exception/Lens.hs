@@ -341,7 +341,6 @@ ratioZeroDenominator = case runPrism arithException of
 {-# INLINE ratioZeroDenominator #-}
 #endif
 
-
 ----------------------------------------------------------------------------
 -- ArrayException
 ----------------------------------------------------------------------------
@@ -408,7 +407,7 @@ class AsAssertionFailed p f t where
 -- '_assertionFailed' :: 'Iso'' 'AssertionFailed' 'String'@
 -- '_assertionFailed' :: 'Prism'' 'SomeException' 'String'@
 -- @
-_assertionFailed :: (Profunctor p, Functor f, AsAssertionFailed p f t) => Overloaded' p f t String
+_assertionFailed :: (AsAssertionFailed p f t, Profunctor p, Functor f) => Overloaded' p f t String
 _assertionFailed = assertionFailed . unwrapped
 {-# INLINE _assertionFailed #-}
 
@@ -447,6 +446,11 @@ instance (Prismatic p, Applicative f) => AsAsyncException p f SomeException wher
 -- | The current thread's stack exceeded its limit. Since an exception has been
 -- raised, the thread's stack will certainly be below its limit again, but the
 -- programmer should take remedial action immediately.
+--
+-- @
+-- 'stackOverflow' :: 'Prism'' 'AssertionFailed' 'String'@
+-- 'stackOverflow' :: 'Prism'' 'SomeException'   'String'@
+-- @
 stackOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 stackOverflow = case runPrism asyncException of
   (bt, seta) | btu <- bt StackOverflow -> prism (const btu) $ \s -> case seta s of
@@ -463,6 +467,11 @@ stackOverflow = case runPrism asyncException of
 -- * It is undefined which thread receives this exception.
 --
 -- * GHC currently does not throw 'HeapOverflow' exceptions.
+--
+-- @
+-- 'heapOverflow' :: 'Prism'' 'AssertionFailed' 'String'@
+-- 'heapOverflow' :: 'Prism'' 'SomeException'   'String'@
+-- @
 heapOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 heapOverflow = case runPrism asyncException of
   (bt, seta) | btu <- bt HeapOverflow -> prism (const btu) $ \s -> case seta s of
@@ -473,6 +482,11 @@ heapOverflow = case runPrism asyncException of
 
 -- | This exception is raised by another thread calling 'killThread', or by the
 -- system if it needs to terminate the thread for some reason.
+--
+-- @
+-- 'threadKilled' :: 'Prism'' 'AssertionFailed' 'String'@
+-- 'threadKilled' :: 'Prism'' 'SomeException'   'String'@
+-- @
 threadKilled :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 threadKilled = case runPrism asyncException of
   (bt, seta) | btu <- bt ThreadKilled -> prism (const btu) $ \s -> case seta s of
@@ -484,6 +498,11 @@ threadKilled = case runPrism asyncException of
 -- | This exception is raised by default in the main thread of the program when
 -- the user requests to terminate the program via the usual mechanism(s)
 -- (/e.g./ Control-C in the console).
+--
+-- @
+-- 'userInterrupt' :: 'Prism'' 'AssertionFailed' 'String'@
+-- 'userInterrupt' :: 'Prism'' 'SomeException'   'String'@
+-- @
 userInterrupt :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 userInterrupt = case runPrism asyncException of
   (bt, seta) | btu <- bt UserInterrupt -> prism (const btu) $ \s -> case seta s of
@@ -502,90 +521,127 @@ class AsNonTermination p f t where
   -- will notice whether any given computation is guaranteed to terminate or not.
   nonTermination :: Overloaded' p f t NonTermination
 
--- | 'NonTermination' is isomorphic to ()
---
--- @
--- '_nonTermination' :: 'Iso'' 'NonTermination' ()
--- '_nonTermination' :: 'Prism'' 'SomeException' ()
--- @
-_nonTermination :: (Profunctor p, Functor f, AsNonTermination p f t) => Overloaded' p f t ()
-_nonTermination = nonTermination . iso (const ()) (const NonTermination)
-{-# INLINE _nonTermination #-}
-
+-- | @'nonTermination' :: 'Equality'' 'NonTermination' 'NonTermination'@
 instance AsNonTermination p f NonTermination where
   nonTermination = id
   {-# INLINE nonTermination #-}
 
+-- | @'nonTermination' :: 'Prism'' 'SomeException' 'NonTermination'@
 instance (Prismatic p, Applicative f) => AsNonTermination p f SomeException where
   nonTermination = exception
   {-# INLINE nonTermination #-}
+
+-- | 'NonTermination' is isomorphic to ()
+--
+-- @
+-- '_nonTermination' :: 'Iso''   'NonTermination' ()
+-- '_nonTermination' :: 'Prism'' 'SomeException'  ()
+-- @
+_nonTermination :: (AsNonTermination p f t, Profunctor p, Functor f) => Overloaded' p f t ()
+_nonTermination = nonTermination . iso (const ()) (const NonTermination)
+{-# INLINE _nonTermination #-}
 
 ----------------------------------------------------------------------------
 -- NestedAtomically
 ----------------------------------------------------------------------------
 
-class AsNestedAtomically t where
-  -- Thrown when the program attempts to call atomically, from the stm package,
+class AsNestedAtomically p f t where
+  -- | Thrown when the program attempts to call atomically, from the stm package,
   -- inside another call to atomically.
-  nestedAtomically :: Prism' t NestedAtomically
+  --
+  -- @
+  -- 'nestedAtomically' :: 'Equality'' 'SomeException' 'NestedAtomically'
+  -- 'nestedAtomically' :: 'Prism''    'SomeException' 'NestedAtomically'
+  -- @
+  nestedAtomically :: Overloaded' p f t NestedAtomically
 
-  -- | 'NestedAtomically' is isomorphic to ()
-  _nestedAtomically :: Prism' t ()
-  _nestedAtomically = nestedAtomically . iso (const ()) (const NestedAtomically)
-  {-# INLINE _nestedAtomically #-}
-
-instance AsNestedAtomically NestedAtomically where
+-- | @'nestedAtomically' :: 'Equality'' 'SomeException' 'NestedAtomically'@
+instance AsNestedAtomically p f NestedAtomically where
   nestedAtomically = id
   {-# INLINE nestedAtomically #-}
 
-instance AsNestedAtomically SomeException where
+-- | @'nestedAtomically' :: 'Prism'' 'SomeException' 'NestedAtomically'@
+instance (Prismatic p, Applicative f) => AsNestedAtomically p f SomeException where
   nestedAtomically = exception
   {-# INLINE nestedAtomically #-}
+
+-- | 'NestedAtomically' is isomorphic to ()
+--
+-- @
+-- '_nestedAtomically' :: 'Iso''   'NestedAtomically' ()
+-- '_nestedAtomically' :: 'Prism'' 'SomeException'  ()
+-- @
+_nestedAtomically :: (AsNestedAtomically p f t, Profunctor p, Functor f) => Overloaded' p f t ()
+_nestedAtomically = nestedAtomically . iso (const ()) (const NestedAtomically)
+{-# INLINE _nestedAtomically #-}
 
 ----------------------------------------------------------------------------
 -- BlockedIndefinitelyOnMVar
 ----------------------------------------------------------------------------
 
-class AsBlockedIndefinitelyOnMVar t where
+class AsBlockedIndefinitelyOnMVar p f t where
   -- | The thread is blocked on an MVar, but there are no other references
   -- to the MVar so it can't ever continue.
-  blockedIndefinitelyOnMVar :: Prism' t BlockedIndefinitelyOnMVar
+  --
+  -- @
+  -- 'blockedIndefinitelyOnMVar' :: 'Equality'' 'BlockedIndefinitelyOnMVar' 'BlockedIndefinitelyOnMVar'
+  -- 'blockedIndefinitelyOnMVar' :: 'Prism''    'SomeException'             'BlockedIndefinitelyOnMVar'
+  -- @
+  blockedIndefinitelyOnMVar :: Overloaded' p f t BlockedIndefinitelyOnMVar
 
-  -- | 'BlockedIndefinetelyOnMVar' is isomorphic to ()
-  _blockedIndefinitelyOnMVar :: Prism' t ()
-  _blockedIndefinitelyOnMVar = blockedIndefinitelyOnMVar . iso (const ()) (const BlockedIndefinitelyOnMVar)
-  {-# INLINE _blockedIndefinitelyOnMVar #-}
-
-instance AsBlockedIndefinitelyOnMVar BlockedIndefinitelyOnMVar where
+-- | @'blockedIndefinitelyOnMVar' :: 'Equality'' 'BlockedIndefinitelyOnMVar' 'BlockedIndefinitelyOnMVar'@
+instance AsBlockedIndefinitelyOnMVar p f BlockedIndefinitelyOnMVar where
   blockedIndefinitelyOnMVar = id
   {-# INLINE blockedIndefinitelyOnMVar #-}
 
-instance AsBlockedIndefinitelyOnMVar SomeException where
+-- | @'blockedIndefinitelyOnMVar' :: 'Prism'' 'SomeException' 'BlockedIndefinitelyOnMVar'@
+instance (Prismatic p, Applicative f) => AsBlockedIndefinitelyOnMVar p f SomeException where
   blockedIndefinitelyOnMVar = exception
   {-# INLINE blockedIndefinitelyOnMVar #-}
+
+-- | 'BlockedIndefinetelyOnMVar' is isomorphic to ()
+--
+-- @
+-- '_blockedIndefinitelyOnMVar' :: 'Iso''   'BlockedIndefinitelyOnMVar' ()
+-- '_blockedIndefinitelyOnMVar' :: 'Prism'' 'SomeException'  ()
+-- @
+_blockedIndefinitelyOnMVar :: (AsBlockedIndefinitelyOnMVar p f t, Profunctor p, Functor f) => Overloaded' p f t ()
+_blockedIndefinitelyOnMVar = blockedIndefinitelyOnMVar . iso (const ()) (const BlockedIndefinitelyOnMVar)
+{-# INLINE _blockedIndefinitelyOnMVar #-}
 
 ----------------------------------------------------------------------------
 -- BlockedIndefinitelyOnSTM
 ----------------------------------------------------------------------------
 
-class AsBlockedIndefinitelyOnSTM t where
+class AsBlockedIndefinitelyOnSTM p f t where
   -- | The thread is waiting to retry an STM transaction, but there are no
   -- other references to any TVars involved, so it can't ever continue.
+  --
+  -- @
+  -- 'blockedIndefinitelyOnSTM' :: 'Equality'' 'BlockedIndefinitelyOnSTM' 'BlockedIndefinitelyOnSTM'
+  -- 'blockedIndefinitelyOnSTM' :: 'Prism''    'SomeException'             'BlockedIndefinitelyOnSTM'
+  -- @
+  blockedIndefinitelyOnSTM :: Overloaded' p f t BlockedIndefinitelyOnSTM
 
-  blockedIndefinitelyOnSTM :: Prism' t BlockedIndefinitelyOnSTM
-
-  -- | 'BlockedIndefinetelyOnSTM' is isomorphic to ()
-  _blockedIndefinitelyOnSTM :: Prism' t ()
-  _blockedIndefinitelyOnSTM = blockedIndefinitelyOnSTM . iso (const ()) (const BlockedIndefinitelyOnSTM)
-  {-# INLINE _blockedIndefinitelyOnSTM #-}
-
-instance AsBlockedIndefinitelyOnSTM BlockedIndefinitelyOnSTM where
+-- | @'blockedIndefinitelyOnSTM' :: 'Equality'' 'BlockedIndefinitelyOnSTM' 'BlockedIndefinitelyOnSTM'@
+instance AsBlockedIndefinitelyOnSTM p f BlockedIndefinitelyOnSTM where
   blockedIndefinitelyOnSTM = id
   {-# INLINE blockedIndefinitelyOnSTM #-}
 
-instance AsBlockedIndefinitelyOnSTM SomeException where
+-- | @'blockedIndefinitelyOnSTM' :: 'Prism'' 'SomeException' 'BlockedIndefinitelyOnSTM'@
+instance (Prismatic p, Applicative f) => AsBlockedIndefinitelyOnSTM p f SomeException where
   blockedIndefinitelyOnSTM = exception
   {-# INLINE blockedIndefinitelyOnSTM #-}
+
+-- | 'BlockedIndefinetelyOnSTM' is isomorphic to ()
+--
+-- @
+-- '_blockedIndefinitelyOnSTM' :: 'Iso''   'BlockedIndefinitelyOnSTM' ()
+-- '_blockedIndefinitelyOnSTM' :: 'Prism'' 'SomeException'  ()
+-- @
+_blockedIndefinitelyOnSTM :: (AsBlockedIndefinitelyOnSTM p f t, Profunctor p, Functor f) => Overloaded' p f t ()
+_blockedIndefinitelyOnSTM = blockedIndefinitelyOnSTM . iso (const ()) (const BlockedIndefinitelyOnSTM)
+{-# INLINE _blockedIndefinitelyOnSTM #-}
 
 ----------------------------------------------------------------------------
 -- Deadlock
