@@ -88,6 +88,7 @@ import Unsafe.Coerce
 {-# ANN module "HLint: ignore Use >=>" #-}
 {-# ANN module "HLint: ignore Redundant lambda" #-}
 {-# ANN module "HLint: ignore Collapse lambdas" #-}
+{-# ANN module "HLint: ignore Use const" #-}
 
 #ifndef SAFE
 #define UNSAFELY(x) unsafeCoerce
