@@ -235,14 +235,17 @@ throwingTo tid l = reviews l (throwTo tid)
 
 -- Exceptions that occur in the IO monad. An IOException records a more specific error type, a descriptive string and maybe the handle that was used when the error was flagged.
 class AsIOException p f t where
+  -- |
+  -- @
+  -- 'ioException' :: 'Equality'' 'IOException' 'IOException'
+  -- 'ioException' :: 'Prism'' 'SomeException' 'IOException'
+  -- @
   ioException :: Overloaded' p f t IOException
 
--- | @'ioException' :: 'Equality'' 'IOException' 'IOException'@
 instance AsIOException p f IOException where
   ioException = id
   {-# INLINE ioException #-}
 
--- | @'ioException' :: 'Prism'' 'SomeException' 'IOException'@
 instance (Prismatic p, Applicative f) => AsIOException p f SomeException where
   ioException = exception
   {-# INLINE ioException #-}
@@ -260,12 +263,10 @@ class AsArithException p f t where
   -- @
   arithException :: Overloaded' p f t ArithException
 
--- | @'arithException' :: 'Equality'' 'ArithException' 'ArithException'@
 instance AsArithException p f ArithException where
   arithException = id
   {-# INLINE arithException #-}
 
--- | @'arithException' :: 'Prism'' 'SomeException' 'ArithException'@
 instance (Prismatic p, Applicative f) => AsArithException p f SomeException where
   arithException = exception
   {-# INLINE arithException #-}
@@ -375,12 +376,10 @@ class AsArrayException p f t where
   -- @
   arrayException :: Overloaded' p f t ArrayException
 
--- | @'arrayException' :: 'Equality'' 'ArrayException' 'ArrayException'@
 instance AsArrayException p f ArrayException where
   arrayException = id
   {-# INLINE arrayException #-}
 
--- | @'arrayException' :: 'Prism'' 'SomeException' 'ArrayException'@
 instance (Prismatic p, Applicative f) => AsArrayException p f SomeException where
   arrayException = exception
   {-# INLINE arrayException #-}
@@ -432,12 +431,10 @@ _assertionFailed :: (AsAssertionFailed p f t, Profunctor p, Functor f) => Overlo
 _assertionFailed = assertionFailed . unwrapped
 {-# INLINE _assertionFailed #-}
 
--- | @'assertionFailed' :: 'Equality'' 'AssertionFailed' 'AssertionFailed'@
 instance AsAssertionFailed p f AssertionFailed where
   assertionFailed = id
   {-# INLINE assertionFailed #-}
 
--- | @'assertionFailed' :: 'Prism'' 'SomeException' 'AssertionFailed'@
 instance (Prismatic p, Applicative f) => AsAssertionFailed p f SomeException where
   assertionFailed = exception
   {-# INLINE assertionFailed #-}
@@ -454,12 +451,10 @@ class AsAsyncException p f t where
   -- @
   asyncException :: Overloaded' p f t AsyncException
 
--- | @'asyncException' :: 'Equality'' 'AsyncException' 'AsyncException'@
 instance AsAsyncException p f AsyncException where
   asyncException = id
   {-# INLINE asyncException #-}
 
--- | @'asyncException' :: 'Prism'' 'SomeException' 'AsyncException'@
 instance (Prismatic p, Applicative f) => AsAsyncException p f SomeException where
   asyncException = exception
   {-# INLINE asyncException #-}
@@ -542,12 +537,10 @@ class AsNonTermination p f t where
   -- will notice whether any given computation is guaranteed to terminate or not.
   nonTermination :: Overloaded' p f t NonTermination
 
--- | @'nonTermination' :: 'Equality'' 'NonTermination' 'NonTermination'@
 instance AsNonTermination p f NonTermination where
   nonTermination = id
   {-# INLINE nonTermination #-}
 
--- | @'nonTermination' :: 'Prism'' 'SomeException' 'NonTermination'@
 instance (Prismatic p, Applicative f) => AsNonTermination p f SomeException where
   nonTermination = exception
   {-# INLINE nonTermination #-}
@@ -576,12 +569,10 @@ class AsNestedAtomically p f t where
   -- @
   nestedAtomically :: Overloaded' p f t NestedAtomically
 
--- | @'nestedAtomically' :: 'Equality'' 'SomeException' 'NestedAtomically'@
 instance AsNestedAtomically p f NestedAtomically where
   nestedAtomically = id
   {-# INLINE nestedAtomically #-}
 
--- | @'nestedAtomically' :: 'Prism'' 'SomeException' 'NestedAtomically'@
 instance (Prismatic p, Applicative f) => AsNestedAtomically p f SomeException where
   nestedAtomically = exception
   {-# INLINE nestedAtomically #-}
@@ -610,12 +601,10 @@ class AsBlockedIndefinitelyOnMVar p f t where
   -- @
   blockedIndefinitelyOnMVar :: Overloaded' p f t BlockedIndefinitelyOnMVar
 
--- | @'blockedIndefinitelyOnMVar' :: 'Equality'' 'BlockedIndefinitelyOnMVar' 'BlockedIndefinitelyOnMVar'@
 instance AsBlockedIndefinitelyOnMVar p f BlockedIndefinitelyOnMVar where
   blockedIndefinitelyOnMVar = id
   {-# INLINE blockedIndefinitelyOnMVar #-}
 
--- | @'blockedIndefinitelyOnMVar' :: 'Prism'' 'SomeException' 'BlockedIndefinitelyOnMVar'@
 instance (Prismatic p, Applicative f) => AsBlockedIndefinitelyOnMVar p f SomeException where
   blockedIndefinitelyOnMVar = exception
   {-# INLINE blockedIndefinitelyOnMVar #-}
@@ -644,12 +633,10 @@ class AsBlockedIndefinitelyOnSTM p f t where
   -- @
   blockedIndefinitelyOnSTM :: Overloaded' p f t BlockedIndefinitelyOnSTM
 
--- | @'blockedIndefinitelyOnSTM' :: 'Equality'' 'BlockedIndefinitelyOnSTM' 'BlockedIndefinitelyOnSTM'@
 instance AsBlockedIndefinitelyOnSTM p f BlockedIndefinitelyOnSTM where
   blockedIndefinitelyOnSTM = id
   {-# INLINE blockedIndefinitelyOnSTM #-}
 
--- | @'blockedIndefinitelyOnSTM' :: 'Prism'' 'SomeException' 'BlockedIndefinitelyOnSTM'@
 instance (Prismatic p, Applicative f) => AsBlockedIndefinitelyOnSTM p f SomeException where
   blockedIndefinitelyOnSTM = exception
   {-# INLINE blockedIndefinitelyOnSTM #-}
@@ -678,12 +665,10 @@ class AsDeadlock p f t where
   -- @
   deadlock :: Overloaded' p f t Deadlock
 
--- | @'deadlock' :: 'Equality'' 'Deadlock' 'Deadlock'@
 instance AsDeadlock p f Deadlock where
   deadlock = id
   {-# INLINE deadlock #-}
 
--- | 'deadlock' :: 'Prism'' 'SomeException' 'Deadlock'@
 instance (Prismatic p, Applicative f) => AsDeadlock p f SomeException where
   deadlock = exception
   {-# INLINE deadlock #-}
@@ -712,12 +697,10 @@ class AsNoMethodError p f t where
   -- @
   noMethodError :: Overloaded' p f t NoMethodError
 
--- | @'noMethodError' :: 'Equality'' 'NoMethodError' 'NoMethodError'@
 instance AsNoMethodError p f NoMethodError where
   noMethodError = id
   {-# INLINE noMethodError #-}
 
--- | @'noMethodError' :: 'Prism'' 'SomeException' 'NoMethodError'@
 instance (Prismatic p, Applicative f) => AsNoMethodError p f SomeException where
   noMethodError = exception
   {-# INLINE noMethodError #-}
@@ -747,12 +730,10 @@ class AsPatternMatchFail p f t where
   -- @
   patternMatchFail :: Overloaded' p f t PatternMatchFail
 
--- | @'patternMatchFail' :: 'Equality'' 'PatternMatchFail' 'PatternMatchFail'@
 instance AsPatternMatchFail p f PatternMatchFail where
   patternMatchFail = id
   {-# INLINE patternMatchFail #-}
 
--- | @'patternMatchFail' :: 'Prism'' 'SomeException' 'PatternMatchFail'@
 instance (Prismatic p, Applicative f) => AsPatternMatchFail p f SomeException where
   patternMatchFail = exception
   {-# INLINE patternMatchFail #-}
@@ -782,12 +763,10 @@ class AsRecConError p f t where
   -- @
   recConError :: Overloaded' p f t RecConError
 
--- | @'recConError' :: 'Equality'' 'RecConError' 'RecConError'@
 instance AsRecConError p f RecConError where
   recConError = id
   {-# INLINE recConError #-}
 
--- | @'recConError' :: 'Prism'' 'SomeException' 'RecConError'@
 instance (Prismatic p, Applicative f) => AsRecConError p f SomeException where
   recConError = exception
   {-# INLINE recConError #-}
@@ -819,12 +798,10 @@ class AsRecSelError p f t where
   -- @
   recSelError :: Overloaded' p f t RecSelError
 
--- | @'recSelError' :: 'Equality'' 'RecSelError' 'RecSelError'@
 instance AsRecSelError p f RecSelError where
   recSelError = id
   {-# INLINE recSelError #-}
 
--- | @'recSelError' :: 'Prism'' 'SomeException' 'RecSelError'@
 instance (Prismatic p, Applicative f) => AsRecSelError p f SomeException where
   recSelError = exception
   {-# INLINE recSelError #-}
@@ -856,12 +833,10 @@ class AsRecUpdError p f t where
   -- @
   recUpdError :: Overloaded' p f t RecUpdError
 
--- | @'recUpdError' :: 'Equality'' 'RecUpdError' 'RecUpdError'@
 instance AsRecUpdError p f RecUpdError where
   recUpdError = id
   {-# INLINE recUpdError #-}
 
--- | @'recUpdError' :: 'Prism'' 'SomeException' 'RecUpdError'@
 instance (Prismatic p, Applicative f) => AsRecUpdError p f SomeException where
   recUpdError = exception
   {-# INLINE recUpdError #-}
@@ -891,12 +866,10 @@ class AsErrorCall p f t where
   -- @
   errorCall :: Overloaded' p f t ErrorCall
 
--- | @'errorCall' :: 'Equality'' 'ErrorCall' 'ErrorCall'@
 instance AsErrorCall p f ErrorCall where
   errorCall = id
   {-# INLINE errorCall #-}
 
--- | @'errorCall' :: 'Prism'' 'SomeException' 'ErrorCall'@
 instance (Prismatic p, Applicative f) => AsErrorCall p f SomeException where
   errorCall = exception
   {-# INLINE errorCall #-}
