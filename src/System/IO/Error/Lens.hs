@@ -76,6 +76,6 @@ errno = ioErr . \f s -> f (ioe_errno s) <&> \e -> s { ioe_errno = e }
 -- 'errorType' :: 'Traversal'' 'SomeException' 'IOErrorType'
 -- @
 errorType :: (AsIOException (->) f t, Functor f) => LensLike' f t IOErrorType
-errorType = Lens.ioException . \f s -> f (ioe_type s) <&> \e -> s { ioe_type = e }
+errorType = ioErr . \f s -> f (ioe_type s) <&> \e -> s { ioe_type = e }
 
 makePrisms ''IOErrorType
