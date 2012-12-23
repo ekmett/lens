@@ -130,7 +130,7 @@ instance Gettable (Accessor r) where
   {-# INLINE coerce #-}
 
 instance Gettable f => Gettable (Backwards f) where
-  coerce = Backwards . coerce . forwards
+  coerce = Backwards #. coerce .# forwards
   {-# INLINE coerce #-}
 
 instance Gettable (Effect m r) where
@@ -142,7 +142,7 @@ instance Gettable (EffectRWS w st m s) where
   {-# INLINE coerce #-}
 
 instance (Functor f, Gettable g) => Gettable (Compose f g) where
-  coerce = Compose . fmap coerce . getCompose
+  coerce = Compose #. fmap coerce .# getCompose
   {-# INLINE coerce #-}
 
 instance Gettable f => Gettable (Indexing f) where
@@ -190,9 +190,9 @@ instance Monad m => Effective m r (Effect m r) where
 -- Effective EffectRWS ?
 
 instance Effective Identity r (Accessor r) where
-  effective = Accessor . runIdentity
+  effective = Accessor #. runIdentity
   {-# INLINE effective #-}
-  ineffective = Identity . runAccessor
+  ineffective = Identity #. runAccessor
   {-# INLINE ineffective #-}
 
 -----------------------------------------------------------------------------
@@ -215,9 +215,9 @@ class Applicative f => Settable f where
 instance Settable Identity where
   untainted = runIdentity
   {-# INLINE untainted #-}
-  untaintedDot = UNSAFELY(runIdentity)
+  untaintedDot = (runIdentity #.)
   {-# INLINE untaintedDot #-}
-  taintedDot = UNSAFELY(Identity)
+  taintedDot = (Identity #.)
   {-# INLINE taintedDot #-}
 
 -- | 'Control.Lens.Fold.backwards'
@@ -232,9 +232,9 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
 instance Settable Mutator where
   untainted = runMutator
   {-# INLINE untainted #-}
-  untaintedDot = UNSAFELY(runMutator)
+  untaintedDot = (runMutator #.)
   {-# INLINE untaintedDot #-}
-  taintedDot = UNSAFELY(Mutator)
+  taintedDot = (Mutator #.)
   {-# INLINE taintedDot #-}
 
 -----------------------------------------------------------------------------
@@ -339,6 +339,7 @@ COMPOSE(FocusingOn f k s a, k (f s) a, FocusingOn, unfocusingOn)
 COMPOSE(FocusingMay k s a, k (May s) a, FocusingMay, unfocusingMay)
 COMPOSE(FocusingErr e k s a, k (Err e s) a, FocusingErr, unfocusingErr)
 COMPOSE(Mutator a, a, Mutator, runMutator)
+COMPOSE(Identity a, a, Identity, runIdentity)
 COMPOSE(Backwards f a, f a, Backwards, forwards)
 COMPOSE(Compose f g a, f (g a), Compose, getCompose)
 COMPOSE(Cokleisli f a b, f a -> b, Cokleisli, runCokleisli)
