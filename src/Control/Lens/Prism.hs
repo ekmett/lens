@@ -35,7 +35,7 @@ module Control.Lens.Prism
   , _left
   , _right
   , _just
-  -- * Implementation details
+  -- * Prismatic profunctors
   , Prismatic(..)
   ) where
 
