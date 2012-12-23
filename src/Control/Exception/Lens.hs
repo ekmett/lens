@@ -10,7 +10,7 @@
 #endif
 
 #ifndef MIN_VERSION_base
-#defined MIN_VERSION_base(x,y,z) 1
+#define MIN_VERSION_base(x,y,z) 1
 #endif
 
 -----------------------------------------------------------------------------
