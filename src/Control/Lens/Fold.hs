@@ -817,8 +817,8 @@ a ^?! l = fromMaybe (error "(^?!): empty Fold") $ getFirst (foldMapOf l (First #
 -- 'firstOf' :: 'Iso'' s a       -> s -> 'Maybe' a
 -- 'firstOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-firstOf :: Getting (First a) s t a b -> s -> Maybe a
-firstOf l = getFirst #. foldMapOf l (First #. Just)
+firstOf :: Getting (Endo (Maybe a)) s t a b -> s -> Maybe a
+firstOf l = foldrOf l (\x y -> Just x) Nothing
 {-# INLINE firstOf #-}
 
 -- | Retrieve the 'Last' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
@@ -831,8 +831,8 @@ firstOf l = getFirst #. foldMapOf l (First #. Just)
 -- 'lastOf' :: 'Iso'' s a       -> s -> 'Maybe' a
 -- 'lastOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-lastOf :: Getting (Last a) s t a b -> s -> Maybe a
-lastOf l = getLast #. foldMapOf l (Last #. Just)
+lastOf :: Getting (Dual (Endo (Maybe a))) s t a b -> s -> Maybe a
+lastOf l = foldlOf l (\x y -> Just y) Nothing
 {-# INLINE lastOf #-}
 
 -- |
@@ -1160,8 +1160,8 @@ hasn't l = getAll #. views l (\_ -> All False)
 -- 'preview' :: MonadReader s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preview' :: MonadReader s m => 'Traversal'' s a -> m ('Maybe' a)
 -- @
-preview :: MonadReader s m => Getting (First a) s t a b -> m (Maybe a)
-preview l = asks (getFirst #. foldMapOf l (First #. Just))
+preview :: MonadReader s m => Getting (Endo (Maybe a)) s t a b -> m (Maybe a)
+preview l = asks (foldrOf l (\x _ -> Just x) Nothing)
 {-# INLINE preview #-}
 
 -- | Retrieve a function of the first value targeted by a 'Fold' or
@@ -1187,8 +1187,8 @@ preview l = asks (getFirst #. foldMapOf l (First #. Just))
 -- 'previews' :: MonadReader s m => 'Iso'' s a       -> (a -> r) -> m ('Maybe' r)
 -- 'previews' :: MonadReader s m => 'Traversal'' s a -> (a -> r) -> m ('Maybe' r)
 -- @
-previews :: MonadReader s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe r)
-previews l f = asks (getFirst #. foldMapOf l (First #. Just . f))
+previews :: MonadReader s m => Getting (Endo (Maybe r)) s t a b -> (a -> r) -> m (Maybe r)
+previews l f = asks (foldrOf l (\x _ -> Just (f x)) Nothing)
 {-# INLINE previews #-}
 
 
@@ -1206,8 +1206,8 @@ previews l f = asks (getFirst #. foldMapOf l (First #. Just . f))
 -- 'preuse' :: MonadState s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preuse' :: MonadState s m => 'Traversal'' s a -> m ('Maybe' a)
 -- @
-preuse :: MonadState s m => Getting (First a) s t a b -> m (Maybe a)
-preuse l = gets (getFirst #. foldMapOf l (First #. Just))
+preuse :: MonadState s m => Getting (Endo (Maybe a)) s t a b -> m (Maybe a)
+preuse l = gets (preview l)
 {-# INLINE preuse #-}
 
 -- | Retrieve a function of the first value targeted by a 'Fold' or
@@ -1220,8 +1220,8 @@ preuse l = gets (getFirst #. foldMapOf l (First #. Just))
 -- 'preuses' :: MonadState s m => 'Iso'' s a       -> (a -> r) -> m ('Maybe' r)
 -- 'preuses' :: MonadState s m => 'Traversal'' s a -> (a -> r) -> m ('Maybe' r)
 -- @
-preuses :: MonadState s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe r)
-preuses l f = gets (getFirst #. foldMapOf l (First #. Just . f))
+preuses :: MonadState s m => Getting (Endo (Maybe r)) s t a b -> (a -> r) -> m (Maybe r)
+preuses l f = gets (previews l f)
 {-# INLINE preuses #-}
 
 ------------------------------------------------------------------------------
