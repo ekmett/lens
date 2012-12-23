@@ -73,8 +73,9 @@ module Control.Exception.Lens
   -- ** Deadlock
   , AsDeadlock(..)
   , _deadlock
-  -- ** Other Exceptions
+  -- ** No Such Method
   , AsNoMethodError(..)
+  -- ** Other Exceptions
   , AsPatternMatchFail(..)
   , AsRecConError(..)
   , AsRecSelError(..)
@@ -690,25 +691,37 @@ _deadlock = deadlock . iso (const ()) (const Deadlock)
 -- NoMethodError
 ----------------------------------------------------------------------------
 
-class AsNoMethodError t where
+class AsNoMethodError p f t where
   -- | A class method without a definition (neither a default definition,
   -- nor a definition in the appropriate instance) was called.
-  noMethodError :: Prism' t NoMethodError
-
-  -- | Information about which method it was
   --
-  -- 'NoMethodError' is isomorphic to a 'String'
-  _noMethodError :: Prism' t String
-  _noMethodError = noMethodError . unwrapped
-  {-# INLINE _noMethodError #-}
+  -- @
+  -- 'noMethodError' :: 'Equality'' 'NoMethodError' 'NoMethodError'@
+  -- 'noMethodError' :: 'Prism''    'SomeException' 'NoMethodError'@
+  -- @
+  noMethodError :: Overloaded' p f t NoMethodError
 
-instance AsNoMethodError NoMethodError where
+-- | @'noMethodError' :: 'Equality'' 'NoMethodError' 'NoMethodError'@
+instance AsNoMethodError p f NoMethodError where
   noMethodError = id
   {-# INLINE noMethodError #-}
 
-instance AsNoMethodError SomeException where
+-- | @'noMethodError' :: 'Prism'' 'SomeException' 'NoMethodError'@
+instance (Prismatic p, Applicative f) => AsNoMethodError p f SomeException where
   noMethodError = exception
   {-# INLINE noMethodError #-}
+
+-- | Information about which method it was
+--
+-- 'NoMethodError' is isomorphic to a 'String'
+--
+-- @
+-- '_noMethodError' :: 'Iso''   'NoMethodError' 'String'
+-- '_noMethodError' :: 'Prism'' 'SomeException' 'String'
+-- @
+_noMethodError :: (AsNoMethodError p f t, Profunctor p, Functor f) => Overloaded' p f t String
+_noMethodError = noMethodError . unwrapped
+{-# INLINE _noMethodError #-}
 
 ----------------------------------------------------------------------------
 -- PatternMatchFail
