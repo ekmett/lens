@@ -176,7 +176,7 @@ handling_ l b = handling l (const b)
 --
 -- @'throwing' l ≡ 'reviews' l 'throw'@
 --
--- >>> throwing nonTermination ()
+-- >>> throwing _nonTermination ()
 -- *** Exception: <<loop>>
 --
 -- @
@@ -905,7 +905,7 @@ instance (Prismatic p, Applicative f) => AsErrorCall p f SomeException where
 --
 -- 'ErrorCall' is isomorphic to a 'String'
 --
--- >>> catching _errorCall return (error "touch down!")
+-- >>> catching _errorCall (error "touch down!") return
 -- "touch down!"
 --
 -- @
