@@ -92,12 +92,6 @@ import Unsafe.Coerce
 {-# ANN module "HLint: ignore Collapse lambdas" #-}
 {-# ANN module "HLint: ignore Use const" #-}
 
-#ifndef SAFE
-#define UNSAFELY(x) unsafeCoerce
-#else
-#define UNSAFELY(f) (\g -> g `seq` \x -> (f) (g x))
-#endif
-
 infixr 9 #.
 infixl 8 .#
 
