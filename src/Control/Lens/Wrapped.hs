@@ -49,9 +49,9 @@ module Control.Lens.Wrapped
   ) where
 
 import           Control.Applicative
+import           Control.Arrow
 import           Control.Applicative.Backwards
 import           Control.Applicative.Lift
-import           Control.Arrow
 import           Control.Comonad.Trans.Traced
 import           Control.Exception
 import           Control.Lens.Iso

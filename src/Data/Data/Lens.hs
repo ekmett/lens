@@ -54,7 +54,6 @@ import           Unsafe.Coerce as Unsafe
 import           Data.Maybe
 
 #ifndef SAFE
-import           Control.Arrow ((&&&))
 import           Data.Foldable
 import qualified Data.HashMap.Strict as M
 import           Data.HashMap.Strict (HashMap, (!))
@@ -438,7 +437,7 @@ uniplateData o f a0 = go a0 where
 -------------------------------------------------------------------------------
 
 part :: (a -> Bool) -> HashSet a -> (HashSet a, HashSet a)
-part p = S.filter p &&& S.filter (not . p)
+part p s = (S.filter p s, S.filter (not . p) s)
 {-# INLINE part #-}
 
 type Follower = TypeRep -> Bool
