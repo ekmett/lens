@@ -37,6 +37,7 @@ import Control.Lens
 import Control.Lens.Internal
 import Data.Monoid
 import Data.List.Split
+import Data.List.Split.Internals
 
 -- $setup
 -- >>> import Control.Lens
