@@ -151,7 +151,7 @@ instance Gettable f => Gettable (Indexing64 f) where
     (ff, j) -> (coerce ff, j)
   {-# INLINE coerce #-}
 
-instance Gettable g => Gettable (BazaarT a b g) where
+instance (Profunctor p, Gettable g) => Gettable (BazaarT p g a b) where
   coerce = (<$) (error "coerced BazaarT")
   {-# INLINE coerce #-}
 
@@ -762,42 +762,42 @@ instance Monad Mutator where
 -- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
 -- must be a better way!
 --
-newtype BazaarT a b (g :: * -> *) t = BazaarT { runBazaarT :: forall f. Applicative f => (a -> f b) -> f t }
+newtype BazaarT (p :: * -> * -> *) (g :: * -> *) a b t = BazaarT { runBazaarT :: forall f. Applicative f => p a (f b) -> f t }
 
-instance Functor (BazaarT a b g) where
+instance Functor (BazaarT p g a b) where
   fmap f (BazaarT k) = BazaarT (fmap f . k)
   {-# INLINE fmap #-}
 
-instance Applicative (BazaarT a b g) where
+instance Applicative (BazaarT p g a b) where
   pure a = BazaarT (\_ -> pure a)
   {-# INLINE pure #-}
   BazaarT mf <*> BazaarT ma = BazaarT (\k -> mf k <*> ma k)
   {-# INLINE (<*>) #-}
 
-instance (a ~ b) => Comonad (BazaarT a b g) where
+instance (a ~ b, p ~ (->)) => Comonad (BazaarT p g a b) where
   extract (BazaarT m) = runIdentity (m Identity)
   {-# INLINE extract #-}
   duplicate = duplicateBazaarT
   {-# INLINE duplicate #-}
 
--- | @type 'BazaarT'' a s = 'BazaarT' a a s@
-type BazaarT' a = BazaarT a a
+-- | @type 'BazaarT'' p g a s = 'BazaarT' p g a a s@
+type BazaarT' p g a = BazaarT p g a a
 
 -- | Extract from a 'BazaarT'.
 --
 -- @'bazaarT' = 'flip' 'runBazaarT'@
-bazaarT :: Applicative f => (a -> f b) -> BazaarT a b g t -> f t
+bazaarT :: Applicative f => p a (f b) -> BazaarT p g a b t -> f t
 bazaarT afb (BazaarT m) = m afb
 {-# INLINE bazaarT #-}
 
 -- | 'BazaarT' is an indexed 'Comonad'.
-duplicateBazaarT :: BazaarT a c f t -> BazaarT a b f (BazaarT b c f t)
+duplicateBazaarT :: BazaarT (->) f a c t -> BazaarT (->) f a b (BazaarT (->) f b c t)
 duplicateBazaarT (BazaarT m) = getCompose (m (Compose . fmap sellT . sellT))
 {-# INLINE duplicateBazaarT #-}
 
 -- | A trivial 'BazaarT'.
-sellT :: a -> BazaarT a b f b
-sellT i = BazaarT (\k -> k i)
+sellT :: a -> BazaarT (->) f a b b -- use corepresentable instead?
+sellT a = BazaarT (\k -> k a)
 {-# INLINE sellT #-}
 
 ------------------------------------------------------------------------------
@@ -913,6 +913,14 @@ instance Profunctor (Indexed i) where
   {-# INLINE lmap #-}
   rmap bc iab = Indexed (\i -> bc . runIndexed iab i)
   {-# INLINE rmap #-}
+
+instance Prismatic (Indexed i) where
+  prismatic (Indexed iab) = Indexed (either id . iab)
+  {-# INLINE prismatic #-}
+
+instance Lenticular (Indexed i) where
+  lenticular (Indexed iab) = Indexed $ \i a -> (a, iab i a)
+  {-# INLINE lenticular #-}
 
 instance Category (Indexed i) where
   id = Indexed (const id)
