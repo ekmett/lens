@@ -1,9 +1,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Equality
@@ -44,9 +41,8 @@ type AnEquality s t a b = Identical a (Mutator b) a (Mutator b) -> Identical a (
 type AnEquality' s a = AnEquality s s a a
 
 -- | Extract a witness of type equality
-runEq :: forall s t a b. AnEquality s t a b -> Identical s t a b
-runEq l = case l (Identical :: Identical a (Mutator b) a (Mutator b)) of
-  Identical -> Identical
+runEq :: AnEquality s t a b -> Identical s t a b
+runEq l = case l Identical of Identical -> Identical
 
 -- | Substituting types with equality
 substEq :: AnEquality s t a b -> ((s ~ a, t ~ b) => r) -> r
