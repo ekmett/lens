@@ -12,8 +12,6 @@
 module Control.Lens.Combinators
   ( (&)
   , (<&>)
-  , (<$!>)
-  , (<$!)
   , (??)
   ) where
 
