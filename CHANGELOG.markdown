@@ -12,6 +12,8 @@
 * Replaced each of the different `SimpleFoo` type aliases with `Foo'` throughout.
 * Made sweeping changes to `Iso` and `Prism` and `Indexed` lenses internally. They are now based on `profunctors`. This affects how you use `indexed` in the resulting code and dramatically changed the meaning of `Overloaded`.
 * Added `Control.Lens.Operators` for users who insist on qualified use, but want access to the operators.
+* Added `Control.Lens.Equality` for witnessing type equality, effectively a stronger form of `Iso` that can be used to safely cast.
+* Added combinators and prisms to `Control.Exception.Lens` that enable you to work with GHC's extensible exceptions more easily.
 
 3.7.1.2 [maintenance release]
 -------
