@@ -62,9 +62,9 @@ module Control.Lens.Internal
   -- * Common Types
   , Accessor(..)
   , Mutator(..)
-  , Context(..)
-  , Bazaar(..), bazaar, duplicateBazaar, sell
-  , BazaarT(..), bazaarT, duplicateBazaarT, sellT
+  , Context(..), Context'
+  , Bazaar(..), Bazaar', bazaar, duplicateBazaar, sell
+  , BazaarT(..), BazaarT', bazaarT, duplicateBazaarT, sellT
   , Review(..)
   , Exchange(..)
   , Market(..)
@@ -577,6 +577,9 @@ instance (a ~ b) => ComonadStore a (Context a b) where
   seeks f (Context g a) = Context g (f a)
   experiment f (Context g a) = g <$> f a
 
+-- | @type 'Context'' a s = 'Context' a a s
+type Context' a = Context a a
+
 -- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
 --
 -- a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed 'FunList'.
@@ -628,6 +631,9 @@ duplicateBazaar (Bazaar m) = getCompose (m (Compose . fmap sell . sell))
 sell :: a -> Bazaar a b b
 sell i = Bazaar (\k -> k i)
 {-# INLINE sell #-}
+
+-- | @type 'Bazaar'' a s = 'Bazaar' a a s
+type Bazaar' a = Bazaar a a
 
 instance a ~ b => ComonadApply (Bazaar a b) where
   (<@>) = (<*>)
@@ -727,6 +733,9 @@ instance (a ~ b) => Comonad (BazaarT a b g) where
   {-# INLINE extract #-}
   duplicate = duplicateBazaarT
   {-# INLINE duplicate #-}
+
+-- | @type 'BazaarT'' a s = 'BazaarT' a a s
+type BazaarT' a = BazaarT a a
 
 -- | Extract from a 'BazaarT'.
 --

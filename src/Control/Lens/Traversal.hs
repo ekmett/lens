@@ -49,6 +49,7 @@ module Control.Lens.Traversal
     Traversal, Traversal'
   , IndexedTraversal, IndexedTraversal'
   , ATraversal, ATraversal'
+  , Traversing, Traversing'
 
   -- * Traversing and Lensing
   , traverseOf, forOf, sequenceAOf
@@ -98,6 +99,7 @@ module Control.Lens.Traversal
 
   -- * Implementation Details
   , Bazaar(..)
+  , Bazaar'
   , loci
   ) where
 
@@ -127,6 +129,20 @@ type ATraversal s t a b = LensLike (Bazaar a b) s t a b
 
 -- | @type 'ATraversal'' = 'Simple' 'ATraversal'@
 type ATraversal' s a = ATraversal s s a a
+
+-- | When you see this as an argument to a function, it expects
+--
+--  * a 'Traversal' if 'f' is only 'Applicative',
+--
+--  * a 'Getter' if 'f' is only 'Gettable'
+--
+--  * a 'Lens' if 'f' is only a 'Functor'
+--
+--  * a 'Fold' if 'f' is 'Gettable' and 'Applicative'.
+type Traversing f s t a b = LensLike (BazaarT a b f) s t a b
+
+-- | @type 'Traversing'' f = 'Simple' ('Traversing' f)@
+type Traversing' f s a = Traversing f s s a a
 
 --------------------------
 -- Traversal Combinators
@@ -347,7 +363,7 @@ loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafe
 -- 'partsOf' :: 'Fold' s a       -> 'Getter' s [a]
 -- 'partsOf' :: 'Getter' s a     -> 'Getter' s [a]
 -- @
-partsOf :: Functor f => LensLike (BazaarT a a f) s t a a -> LensLike f s t [a] [a]
+partsOf :: Functor f => Traversing f s t a a -> LensLike f s t [a] [a]
 partsOf l f s = outsT b <$> f (insT b) where b = l sellT s
 {-# INLINE partsOf #-}
 
@@ -376,7 +392,7 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 -- 'unsafePartsOf' :: 'Fold' s a          -> 'Getter' s [a]
 -- 'unsafePartsOf' :: 'Getter' s a        -> 'Getter' s [a]
 -- @
-unsafePartsOf :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t [a] [b]
+unsafePartsOf :: Functor f => Traversing f s t a b -> LensLike f s t [a] [b]
 unsafePartsOf l f s = unsafeOutsT b <$> f (insT b) where b = l sellT s
 {-# INLINE unsafePartsOf #-}
 
@@ -417,7 +433,7 @@ holesOf l a = f (ins b) (outs b) where
 -- 'singular' :: 'Fold' s a          -> 'Getter' s a
 -- 'singular' :: 'MonadicFold' m s a -> 'Action' m s a
 -- @
-singular :: Functor f => LensLike (BazaarT a a f) s t a a -> LensLike f s t a a
+singular :: Functor f => Traversing f s t a a -> LensLike f s t a a
 singular l f = partsOf l $ \xs -> case xs of
   (a:as) -> (:as) <$> f a
   []     -> [] <$ f (error "singular: empty traversal")
@@ -433,7 +449,7 @@ singular l f = partsOf l $ \xs -> case xs of
 -- 'unsafeSingular' :: 'Fold' s a          -> 'Getter' s a
 -- 'unsafeSingular' :: 'MonadicFold' m s a -> 'Action' m s a
 -- @
-unsafeSingular :: Functor f => LensLike (BazaarT a b f) s t a b -> LensLike f s t a b
+unsafeSingular :: Functor f => Traversing f s t a b -> LensLike f s t a b
 unsafeSingular l f = unsafePartsOf l $ \xs -> case xs of
   [a] -> return <$> f a
   []  -> error "unsafeSingular: empty traversal"
@@ -446,7 +462,7 @@ ins :: Bazaar a b t -> [a]
 ins = toListOf bazaar
 {-# INLINE ins #-}
 
-outs :: Bazaar a a t -> [a] -> t
+outs :: Bazaar' a t -> [a] -> t
 #if MIN_VERSION_mtl(2,1,1)
 outs = evalState . bazaar (State.state . unconsWithDefault)
 #else
@@ -468,7 +484,7 @@ insT :: BazaarT a b f t -> [a]
 insT = toListOf bazaarT
 {-# INLINE insT #-}
 
-outsT :: BazaarT a a f t -> [a] -> t
+outsT :: BazaarT' a f t -> [a] -> t
 #if MIN_VERSION_mtl(2,1,1)
 outsT = evalState . bazaarT (State.state . unconsWithDefault)
 #else
@@ -526,7 +542,7 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 --
 -- >>> over (taking 5 traverse) succ "hello world"
 -- "ifmmp world"
-taking :: Applicative f => Int -> LensLike' (BazaarT a a f) s a -> LensLike' f s a
+taking :: Applicative f => Int -> Traversing' f s a -> LensLike' f s a
 taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sellT s
 {-# INLINE taking #-}
 

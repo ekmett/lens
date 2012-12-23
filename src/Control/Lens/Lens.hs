@@ -95,6 +95,7 @@ module Control.Lens.Lens
 
   -- * Context
   , Context(..)
+  , Context'
   , locus
   ) where
 
@@ -292,9 +293,9 @@ alongside l r f (s, s') = case l (Context id) s of
 -- @
 --
 -- @
--- 'locus' :: 'Lens'' ('Context' s s a) s
+-- 'locus' :: 'Lens'' ('Context'' a s) a
 -- @
-locus :: ComonadStore s w => Lens' (w a) s
+locus :: ComonadStore a w => Lens' (w s) a
 locus f w = (`seek` w) <$> f (pos w)
 
 -------------------------------------------------------------------------------
