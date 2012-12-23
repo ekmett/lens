@@ -23,14 +23,31 @@
 --
 ----------------------------------------------------------------------------
 module Control.Exception.Lens
-  ( exception
-  , catching, catching_
+  (
+  -- * Handling
+    catching, catching_
   , handling, handling_
+  -- * Throwing
   , throwing, throwingIO, throwingTo
-  -- * Prismatic Exception
+  -- * Exceptions
+  , exception
+  -- ** IOExceptions
   , AsIOException(..)
+  -- ** Arithmetic Exceptions
   , AsArithException(..)
+  , overflow
+  , underflow
+  , lossOfPrecision
+  , divideByZero
+  , denormal
+#if MIN_VERSION_base(4,6,0)
+  , ratioZeroDenominator
+#endif
+  -- ** Array Exceptions
   , AsArrayException(..)
+  , indexOutOfBounds
+  , undefinedElement
+  -- ** Other Exceptions
   , AsAssertionFailed(..)
   , AsAsyncException(..)
   , AsNonTermination(..)
@@ -49,6 +66,7 @@ module Control.Exception.Lens
 import Control.Applicative
 import Control.Exception
 import Control.Lens
+import Control.Lens.Internal
 import Data.Monoid
 import GHC.Conc (ThreadId)
 
@@ -185,15 +203,15 @@ throwingTo tid l = reviews l (throwTo tid)
 
 -- Exceptions that occur in the IO monad. An IOException records a more specific error type, a descriptive string and maybe the handle that was used when the error was flagged.
 class AsIOException p f t where
-  ioException :: Overloading' p p f t IOException
+  ioException :: Overloaded' p f t IOException
 
 -- | @'ioException' :: 'Equality'' 'IOException' 'IOException'@
-instance AsIOException k f IOException where
+instance AsIOException p f IOException where
   ioException = id
   {-# INLINE ioException #-}
 
 -- | @'ioException' :: 'Prism'' 'SomeException' 'IOException'@
-instance (Prismatic k, Applicative f) => AsIOException k f SomeException where
+instance (Prismatic p, Applicative f) => AsIOException p f SomeException where
   ioException = exception
   {-# INLINE ioException #-}
 
@@ -202,116 +220,161 @@ instance (Prismatic k, Applicative f) => AsIOException k f SomeException where
 ----------------------------------------------------------------------------
 
 -- | Arithmetic exceptions.
-class AsArithException t where
-  arithException :: Prism' t ArithException
-
+class AsArithException p f t where
   -- |
-  -- @'overflow' ≡ 'arithException' . 'overflow'@
-  overflow :: Prism' t ()
-  overflow = case runPrism arithException of
-    (bt, seta) | bto <- bt Overflow -> prism (const bto) $ \s -> case seta s of
-      Left t -> Left t
-      Right Overflow -> Right ()
-      Right a -> Left (bt a)
-  {-# INLINE overflow #-}
+  -- @
+  -- 'arithException' :: 'Equality'' 'ArithException' 'ArithException'
+  -- 'arithException' :: 'Prism''    'SomeException' 'ArithException'
+  -- @
+  arithException :: Overloaded' p f t ArithException
 
-  -- |
-  -- @'underflow' ≡ 'arithException' . 'underflow'@
-  underflow :: Prism' t ()
-  underflow = case runPrism arithException of
-    (bt, seta) | btu <- bt Underflow -> prism (const btu) $ \s -> case seta s of
-      Left t -> Left t
-      Right Underflow -> Right ()
-      Right a -> Left (bt a)
-  {-# INLINE underflow #-}
-
-  -- |
-  -- @'lossOfPrecision' ≡ 'arithException' . 'lossOfPrecision'@
-  lossOfPrecision :: Prism' t ()
-  lossOfPrecision = case runPrism arithException of
-    (bt, seta) | btu <- bt LossOfPrecision -> prism (const btu) $ \s -> case seta s of
-      Left t -> Left t
-      Right LossOfPrecision -> Right ()
-      Right a -> Left (bt a)
-  {-# INLINE lossOfPrecision #-}
-
-  -- |
-  -- @'divideByZero' ≡ 'arithException' . 'divideByZero'@
-  divideByZero :: Prism' t ()
-  divideByZero = case runPrism arithException of
-    (bt, seta) | btu <- bt DivideByZero -> prism (const btu) $ \s -> case seta s of
-      Left t -> Left t
-      Right DivideByZero -> Right ()
-      Right a -> Left (bt a)
-  {-# INLINE divideByZero #-}
-
-  -- |
-  -- @'denormal' ≡ 'arithException' . 'denormal'@
-  denormal :: Prism' t ()
-  denormal = case runPrism arithException of
-    (bt, seta) | btu <- bt Denormal -> prism (const btu) $ \s -> case seta s of
-      Left t -> Left t
-      Right Denormal -> Right ()
-      Right a -> Left (bt a)
-  {-# INLINE denormal #-}
-
-#if MIN_VERSION_base(4,6,0)
-  -- |
-  -- @'ratioZeroDenominator' ≡ 'arithException' . 'ratioZeroDenominator'@
-  ratioZeroDenominator :: Prism' t ()
-  ratioZeroDenominator = case runPrism arithException of
-    (bt, seta) | btu <- bt RatioZeroDenominator -> prism (const btu) $ \s -> case seta s of
-      Left t -> Left t
-      Right RatioZeroDenominator -> Right ()
-      Right a -> Left (bt a)
-  {-# INLINE ratioZeroDenominator #-}
-#endif
-
-instance AsArithException ArithException where
+-- | @'arithException' :: 'Equality'' 'ArithException' 'ArithException'@
+instance AsArithException p f ArithException where
   arithException = id
   {-# INLINE arithException #-}
 
-instance AsArithException SomeException where
+-- | @'arithException' :: 'Prism'' 'SomeException' 'ArithException'@
+instance (Prismatic p, Applicative f) => AsArithException p f SomeException where
   arithException = exception
   {-# INLINE arithException #-}
+
+-- |
+-- @'overflow' ≡ 'arithException' . 'overflow'@
+--
+-- @
+-- 'overflow' :: 'Prism'' 'SomeException' 'ArithException'
+-- 'overflow' :: 'Prism'' 'SomeException' 'ArithException'
+-- @
+overflow :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
+overflow = case runPrism arithException of
+  (bt, seta) | bto <- bt Overflow -> prism (const bto) $ \s -> case seta s of
+    Left t -> Left t
+    Right Overflow -> Right ()
+    Right a -> Left (bt a)
+{-# INLINE overflow #-}
+
+-- |
+-- @'underflow' ≡ 'arithException' . 'underflow'@
+--
+-- @
+-- 'underflow' :: 'Prism'' 'SomeException' 'ArithException'
+-- 'underflow' :: 'Prism'' 'SomeException' 'ArithException'
+-- @
+underflow :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
+underflow = case runPrism arithException of
+  (bt, seta) | btu <- bt Underflow -> prism (const btu) $ \s -> case seta s of
+    Left t -> Left t
+    Right Underflow -> Right ()
+    Right a -> Left (bt a)
+{-# INLINE underflow #-}
+
+-- |
+-- @'lossOfPrecision' ≡ 'arithException' . 'lossOfPrecision'@
+--
+-- @
+-- 'lossOfPrecision' :: 'Prism'' 'ArithException' 'ArithException'
+-- 'lossOfPrecision' :: 'Prism'' 'SomeException' 'ArithException'
+-- @
+lossOfPrecision :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
+lossOfPrecision = case runPrism arithException of
+  (bt, seta) | btu <- bt LossOfPrecision -> prism (const btu) $ \s -> case seta s of
+    Left t -> Left t
+    Right LossOfPrecision -> Right ()
+    Right a -> Left (bt a)
+{-# INLINE lossOfPrecision #-}
+
+-- |
+-- @'divideByZero' ≡ 'arithException' . 'divideByZero'@
+--
+-- @
+-- 'divideByZero' :: 'Prism'' 'ArithException' 'ArithException'
+-- 'divideByZero' :: 'Prism'' 'SomeException' 'ArithException'
+-- @
+divideByZero :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
+divideByZero = case runPrism arithException of
+  (bt, seta) | btu <- bt DivideByZero -> prism (const btu) $ \s -> case seta s of
+    Left t -> Left t
+    Right DivideByZero -> Right ()
+    Right a -> Left (bt a)
+{-# INLINE divideByZero #-}
+
+-- |
+-- @'denormal' ≡ 'arithException' . 'denormal'@
+--
+-- @
+-- 'denormal' :: 'Prism'' 'ArithException' 'ArithException'
+-- 'denormal' :: 'Prism'' 'SomeException' 'ArithException'
+-- @
+denormal :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
+denormal = case runPrism arithException of
+  (bt, seta) | btu <- bt Denormal -> prism (const btu) $ \s -> case seta s of
+    Left t -> Left t
+    Right Denormal -> Right ()
+    Right a -> Left (bt a)
+{-# INLINE denormal #-}
+
+#if MIN_VERSION_base(4,6,0)
+-- |
+-- @'ratioZeroDenominator' ≡ 'arithException' . 'ratioZeroDenominator'@
+--
+-- @
+-- 'ratioZeroDenominator' :: 'Prism'' 'ArithException' 'ArithException'
+-- 'ratioZeroDenominator' :: 'Prism'' 'SomeException' 'ArithException'
+-- @
+ratioZeroDenominator :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
+ratioZeroDenominator = case runPrism arithException of
+  (bt, seta) | btu <- bt RatioZeroDenominator -> prism (const btu) $ \s -> case seta s of
+    Left t -> Left t
+    Right RatioZeroDenominator -> Right ()
+    Right a -> Left (bt a)
+{-# INLINE ratioZeroDenominator #-}
+#endif
+
 
 ----------------------------------------------------------------------------
 -- ArrayException
 ----------------------------------------------------------------------------
 
 -- | Exceptions generated by array operations
-class AsArrayException t where
-  arrayException :: Prism' t ArrayException
+class AsArrayException p f t where
+  -- |
+  -- @
+  -- 'arrayException' :: 'Equality'' 'ArrayException' 'ArrayException'
+  -- 'arrayException' :: 'Prism'' 'SomeException' 'ArrayException'
+  -- @
+  arrayException :: Overloaded' p f t ArrayException
 
-  -- | An attempt was made to index an array outside its declared bounds.
-  --
-  -- @'indexOutOfBounds' ≡ 'arrayException' . 'indexOutOfBounds'@
-  indexOutOfBounds :: Prism' t String
-  indexOutOfBounds = case runPrism arrayException of
-    (bt, seta) -> prism (bt . IndexOutOfBounds) $ \s -> case seta s of
-      Left t -> Left t
-      Right (IndexOutOfBounds r) -> Right r
-      Right a -> Left (bt a)
-  {-# INLINE indexOutOfBounds #-}
-
-  -- | An attempt was made to evaluate an element of an array that had not been initialized.
-  --
-  -- @'undefinedElement' ≡ 'arrayException' . 'undefinedElement'@
-  undefinedElement :: Prism' t String
-  undefinedElement = case runPrism arrayException of
-    (bt, seta) -> prism (bt . UndefinedElement) $ \s -> case seta s of
-      Left t -> Left t
-      Right (UndefinedElement r) -> Right r
-      Right a -> Left (bt a)
-  {-# INLINE undefinedElement #-}
-
-instance AsArrayException ArrayException where
+-- | @'arrayException' :: 'Equality'' 'ArrayException' 'ArrayException'@
+instance AsArrayException p f ArrayException where
   arrayException = id
   {-# INLINE arrayException #-}
 
-instance AsArrayException SomeException where
+-- | @'arrayException' :: 'Prism'' 'SomeException' 'ArrayException'@
+instance (Prismatic p, Applicative f) => AsArrayException p f SomeException where
   arrayException = exception
   {-# INLINE arrayException #-}
+
+-- | An attempt was made to index an array outside its declared bounds.
+--
+-- @'indexOutOfBounds' ≡ 'arrayException' . 'indexOutOfBounds'@
+indexOutOfBounds :: AsArrayException (Market' ArrayException) Mutator t => Prism' t String
+indexOutOfBounds = case runPrism arrayException of
+  (bt, seta) -> prism (bt . IndexOutOfBounds) $ \s -> case seta s of
+    Left t -> Left t
+    Right (IndexOutOfBounds r) -> Right r
+    Right a -> Left (bt a)
+{-# INLINE indexOutOfBounds #-}
+
+-- | An attempt was made to evaluate an element of an array that had not been initialized.
+--
+-- @'undefinedElement' ≡ 'arrayException' . 'undefinedElement'@
+undefinedElement :: AsArrayException (Market' ArrayException) Mutator t => Prism' t String
+undefinedElement = case runPrism arrayException of
+  (bt, seta) -> prism (bt . UndefinedElement) $ \s -> case seta s of
+    Left t -> Left t
+    Right (UndefinedElement r) -> Right r
+    Right a -> Left (bt a)
+{-# INLINE undefinedElement #-}
 
 ----------------------------------------------------------------------------
 -- AssertionFailed

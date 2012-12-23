@@ -67,7 +67,7 @@ module Control.Lens.Internal
   , BazaarT(..), BazaarT', bazaarT, duplicateBazaarT, sellT
   , Review(..)
   , Exchange(..)
-  , Market(..)
+  , Market(..), Market'
   , Identical(..)
   , Indexed(..)
   ) where
@@ -579,7 +579,7 @@ instance (a ~ b) => ComonadStore a (Context a b) where
   seeks f (Context g a) = Context g (f a)
   experiment f (Context g a) = g <$> f a
 
--- | @type 'Context'' a s = 'Context' a a s
+-- | @type 'Context'' a s = 'Context' a a s@
 type Context' a = Context a a
 
 -- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
@@ -634,7 +634,7 @@ sell :: a -> Bazaar a b b
 sell i = Bazaar (\k -> k i)
 {-# INLINE sell #-}
 
--- | @type 'Bazaar'' a s = 'Bazaar' a a s
+-- | @type 'Bazaar'' a s = 'Bazaar' a a s@
 type Bazaar' a = Bazaar a a
 
 instance a ~ b => ComonadApply (Bazaar a b) where
@@ -736,7 +736,7 @@ instance (a ~ b) => Comonad (BazaarT a b g) where
   duplicate = duplicateBazaarT
   {-# INLINE duplicate #-}
 
--- | @type 'BazaarT'' a s = 'BazaarT' a a s
+-- | @type 'BazaarT'' a s = 'BazaarT' a a s@
 type BazaarT' a = BazaarT a a
 
 -- | Extract from a 'BazaarT'.
@@ -795,6 +795,10 @@ instance Profunctor (Exchange a b) where
   {-# INLINE rmap #-}
 
 newtype Market a b s t = Market { runMarket :: (b -> t, s -> Either t a) }
+
+-- |
+-- @type 'Market'' a s t = 'Market' a a s t@
+type Market' a = Market a a
 
 instance Functor (Market a b s) where
   fmap f x = case runMarket x of

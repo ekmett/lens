@@ -41,6 +41,7 @@ module Control.Lens.Type
   , LensLike, LensLike'
   , IndexedLensLike, IndexedLensLike'
   , Overloading, Overloading'
+  , Overloaded, Overloaded'
   ) where
 
 import Control.Applicative
@@ -434,6 +435,12 @@ type Overloading p q f s t a b = p a (f b) -> q s (f t)
 
 -- | @type 'Overloading'' p q f s a = 'Simple' ('Overloading' p q f) s a@
 type Overloading' p q f s a = Overloading p q f s s a a
+
+-- | @type 'LensLike' f s t a b = 'Overloaded' (->) f s t a b@
+type Overloaded p f s t a b = p a (f b) -> p s (f t)
+
+-- | @type 'Overloaded'' p q f s a = 'Simple' ('Overloaded' p q f) s a@
+type Overloaded' p f s a = Overloaded p f s s a a
 
 -- |
 -- Many combinators that accept a 'Lens' can also accept a
