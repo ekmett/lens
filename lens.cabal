@@ -196,6 +196,7 @@ library
     Control.Lens.At
     Control.Lens.Combinators
     Control.Lens.Each
+    Control.Lens.Equality
     Control.Lens.Fold
     Control.Lens.Getter
     Control.Lens.Indexed

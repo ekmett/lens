@@ -1,7 +1,9 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -44,6 +46,7 @@ module Control.Exception.Lens
   , AsErrorCall(..)
   ) where
 
+import Control.Applicative
 import Control.Exception
 import Control.Lens
 import Data.Monoid
@@ -181,14 +184,16 @@ throwingTo tid l = reviews l (throwTo tid)
 ----------------------------------------------------------------------------
 
 -- Exceptions that occur in the IO monad. An IOException records a more specific error type, a descriptive string and maybe the handle that was used when the error was flagged.
-class AsIOException t where
-  ioException :: Prism' t IOException
+class AsIOException p f t where
+  ioException :: Overloading' p p f t IOException
 
-instance AsIOException IOException where
+-- | @'ioException' :: 'Equality'' 'IOException' 'IOException'@
+instance AsIOException k f IOException where
   ioException = id
   {-# INLINE ioException #-}
 
-instance AsIOException SomeException where
+-- | @'ioException' :: 'Prism'' 'SomeException' 'IOException'@
+instance (Prismatic k, Applicative f) => AsIOException k f SomeException where
   ioException = exception
   {-# INLINE ioException #-}
 

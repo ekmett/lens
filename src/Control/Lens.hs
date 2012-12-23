@@ -44,6 +44,7 @@ module Control.Lens
   , module Control.Lens.At
   , module Control.Lens.Combinators
   , module Control.Lens.Each
+  , module Control.Lens.Equality
   , module Control.Lens.Fold
   , module Control.Lens.Getter
   , module Control.Lens.Indexed
@@ -71,6 +72,7 @@ import Control.Lens.Action
 import Control.Lens.At
 import Control.Lens.Combinators
 import Control.Lens.Each
+import Control.Lens.Equality
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed

@@ -68,6 +68,7 @@ module Control.Lens.Internal
   , Review(..)
   , Exchange(..)
   , Market(..)
+  , Identical(..)
   , Indexed(..)
   ) where
 
@@ -811,6 +812,13 @@ instance Prismatic (Market a b) where
   prismatic x = case runMarket x of
     (bt, seta) -> Market (bt, either Left seta)
   {-# INLINE prismatic #-}
+
+------------------------------------------------------------------------------
+-- Equality Internals
+------------------------------------------------------------------------------
+
+data Identical a b s t where
+  Identical :: Identical a b a b
 
 ------------------------------------------------------------------------------
 -- Indexed Internals
