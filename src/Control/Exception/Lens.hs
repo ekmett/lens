@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -47,9 +48,12 @@ module Control.Exception.Lens
   , AsArrayException(..)
   , indexOutOfBounds
   , undefinedElement
-  -- ** Other Exceptions
+  -- ** Assertion Failed
   , AsAssertionFailed(..)
+  , _assertionFailed
+  -- ** Async Exceptions
   , AsAsyncException(..)
+  -- ** Other Exceptions
   , AsNonTermination(..)
   , AsNestedAtomically(..)
   , AsBlockedIndefinitelyOnMVar(..)
@@ -68,6 +72,7 @@ import Control.Exception
 import Control.Lens
 import Control.Lens.Internal
 import Data.Monoid
+import Data.Profunctor
 import GHC.Conc (ThreadId)
 
 -- |
@@ -380,23 +385,30 @@ undefinedElement = case runPrism arrayException of
 -- AssertionFailed
 ----------------------------------------------------------------------------
 
-
 -- | 'assert' was applied to 'False'.
-class AsAssertionFailed t where
-  assertionFailed :: Prism' t AssertionFailed
+class AsAssertionFailed p f t where
+  assertionFailed :: Overloaded' p f t AssertionFailed
 
-  -- | Retrieve the text of a failed assertion
-  --
-  -- 'AssertionFailed' is isomorphic to a 'String'
-  _assertionFailed :: Prism' t String
-  _assertionFailed = assertionFailed . unwrapped
-  {-# INLINE _assertionFailed #-}
+-- | Retrieve the text of a failed assertion
+--
+-- 'AssertionFailed' is isomorphic to a 'String'
+-- _assertionFailed :: AsArrayException (Market' ArrayException) Mutator t => Prism' t String
+--
+-- @
+-- '_assertionFailed' :: 'Iso'' 'AssertionFailed' 'String'@
+-- '_assertionFailed' :: 'Prism'' 'SomeException' 'String'@
+-- @
+_assertionFailed :: (Profunctor p, Functor f, AsAssertionFailed p f t) => Overloaded' p f t String
+_assertionFailed = assertionFailed . unwrapped
+{-# INLINE _assertionFailed #-}
 
-instance AsAssertionFailed AssertionFailed where
+-- | @'assertionFailed' :: 'Equality'' 'AssertionFailed' 'AssertionFailed'@
+instance AsAssertionFailed p f AssertionFailed where
   assertionFailed = id
   {-# INLINE assertionFailed #-}
 
-instance AsAssertionFailed SomeException where
+-- | @'assertionFailed' :: 'Prsm'' 'SomeException' 'AssertionFailed'@
+instance (Prismatic p, Applicative f) => AsAssertionFailed p f SomeException where
   assertionFailed = exception
   {-# INLINE assertionFailed #-}
 
