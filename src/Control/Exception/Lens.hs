@@ -53,8 +53,14 @@ module Control.Exception.Lens
   , _assertionFailed
   -- ** Async Exceptions
   , AsAsyncException(..)
-  -- ** Other Exceptions
+  , stackOverflow
+  , heapOverflow
+  , threadKilled
+  , userInterrupt
+  -- ** Non-Termination
   , AsNonTermination(..)
+  , _nonTermination
+  -- ** Other Exceptions
   , AsNestedAtomically(..)
   , AsBlockedIndefinitelyOnMVar(..)
   , AsBlockedIndefinitelyOnSTM(..)
@@ -345,7 +351,7 @@ class AsArrayException p f t where
   -- |
   -- @
   -- 'arrayException' :: 'Equality'' 'ArrayException' 'ArrayException'
-  -- 'arrayException' :: 'Prism'' 'SomeException' 'ArrayException'
+  -- 'arrayException' :: 'Prism''    'SomeException'  'ArrayException'
   -- @
   arrayException :: Overloaded' p f t ArrayException
 
@@ -387,12 +393,16 @@ undefinedElement = case runPrism arrayException of
 
 -- | 'assert' was applied to 'False'.
 class AsAssertionFailed p f t where
+  -- |
+  -- @
+  -- 'assertionFailed' :: 'Equality'' 'AssertionFailed' 'AssertionFailed'
+  -- 'assertionFailed' :: 'Prism''    'SomeException'   'AssertionFailed'
+  -- @
   assertionFailed :: Overloaded' p f t AssertionFailed
 
 -- | Retrieve the text of a failed assertion
 --
 -- 'AssertionFailed' is isomorphic to a 'String'
--- _assertionFailed :: AsArrayException (Market' ArrayException) Mutator t => Prism' t String
 --
 -- @
 -- '_assertionFailed' :: 'Iso'' 'AssertionFailed' 'String'@
@@ -407,7 +417,7 @@ instance AsAssertionFailed p f AssertionFailed where
   assertionFailed = id
   {-# INLINE assertionFailed #-}
 
--- | @'assertionFailed' :: 'Prsm'' 'SomeException' 'AssertionFailed'@
+-- | @'assertionFailed' :: 'Prism'' 'SomeException' 'AssertionFailed'@
 instance (Prismatic p, Applicative f) => AsAssertionFailed p f SomeException where
   assertionFailed = exception
   {-# INLINE assertionFailed #-}
@@ -417,85 +427,96 @@ instance (Prismatic p, Applicative f) => AsAssertionFailed p f SomeException whe
 ----------------------------------------------------------------------------
 
 -- | Asynchronous exceptions.
-class AsAsyncException t where
-  asyncException :: Prism' t AsyncException
+class AsAsyncException p f t where
+  -- @
+  -- 'asyncException' :: 'Equality'' 'AsyncException' 'AsyncException'
+  -- 'asyncException' :: 'Prism''    'SomeException'  'AsyncException'
+  -- @
+  asyncException :: Overloaded' p f t AsyncException
 
-  -- | The current thread's stack exceeded its limit. Since an exception has been
-  -- raised, the thread's stack will certainly be below its limit again, but the
-  -- programmer should take remedial action immediately.
-  stackOverflow :: Prism' t ()
-  stackOverflow = case runPrism asyncException of
-    (bt, seta) | btu <- bt StackOverflow -> prism (const btu) $ \s -> case seta s of
-      Left t -> Left t
-      Right StackOverflow -> Right ()
-      Right a -> Left (bt a)
-  {-# INLINE stackOverflow #-}
-
-  -- | The program's heap is reaching its limit, and the program should take action
-  -- to reduce the amount of live data it has.
-  --
-  -- Notes:
-  --
-  -- * It is undefined which thread receives this exception.
-  --
-  -- * GHC currently does not throw 'HeapOverflow' exceptions.
-  heapOverflow :: Prism' t ()
-  heapOverflow = case runPrism asyncException of
-    (bt, seta) | btu <- bt HeapOverflow -> prism (const btu) $ \s -> case seta s of
-      Left t -> Left t
-      Right HeapOverflow -> Right ()
-      Right a -> Left (bt a)
-  {-# INLINE heapOverflow #-}
-
-  -- | This exception is raised by another thread calling 'killThread', or by the
-  -- system if it needs to terminate the thread for some reason.
-  threadKilled :: Prism' t ()
-  threadKilled = case runPrism asyncException of
-    (bt, seta) | btu <- bt ThreadKilled -> prism (const btu) $ \s -> case seta s of
-      Left t -> Left t
-      Right ThreadKilled -> Right ()
-      Right a -> Left (bt a)
-  {-# INLINE threadKilled #-}
-
-  -- | This exception is raised by default in the main thread of the program when
-  -- the user requests to terminate the program via the usual mechanism(s)
-  -- (/e.g./ Control-C in the console).
-  userInterrupt :: Prism' t ()
-  userInterrupt = case runPrism asyncException of
-    (bt, seta) | btu <- bt UserInterrupt -> prism (const btu) $ \s -> case seta s of
-      Left t -> Left t
-      Right UserInterrupt -> Right ()
-      Right a -> Left (bt a)
-  {-# INLINE userInterrupt #-}
-
-instance AsAsyncException AsyncException where
+-- | @'asyncException' :: 'Equality'' 'AsyncException' 'AsyncException'@
+instance AsAsyncException p f AsyncException where
   asyncException = id
   {-# INLINE asyncException #-}
 
-instance AsAsyncException SomeException where
+-- | @'asyncException' :: 'Prism'' 'SomeException' 'AsyncException'@
+instance (Prismatic p, Applicative f) => AsAsyncException p f SomeException where
   asyncException = exception
   {-# INLINE asyncException #-}
+
+-- | The current thread's stack exceeded its limit. Since an exception has been
+-- raised, the thread's stack will certainly be below its limit again, but the
+-- programmer should take remedial action immediately.
+stackOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
+stackOverflow = case runPrism asyncException of
+  (bt, seta) | btu <- bt StackOverflow -> prism (const btu) $ \s -> case seta s of
+    Left t -> Left t
+    Right StackOverflow -> Right ()
+    Right a -> Left (bt a)
+{-# INLINE stackOverflow #-}
+
+-- | The program's heap is reaching its limit, and the program should take action
+-- to reduce the amount of live data it has.
+--
+-- Notes:
+--
+-- * It is undefined which thread receives this exception.
+--
+-- * GHC currently does not throw 'HeapOverflow' exceptions.
+heapOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
+heapOverflow = case runPrism asyncException of
+  (bt, seta) | btu <- bt HeapOverflow -> prism (const btu) $ \s -> case seta s of
+    Left t -> Left t
+    Right HeapOverflow -> Right ()
+    Right a -> Left (bt a)
+{-# INLINE heapOverflow #-}
+
+-- | This exception is raised by another thread calling 'killThread', or by the
+-- system if it needs to terminate the thread for some reason.
+threadKilled :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
+threadKilled = case runPrism asyncException of
+  (bt, seta) | btu <- bt ThreadKilled -> prism (const btu) $ \s -> case seta s of
+    Left t -> Left t
+    Right ThreadKilled -> Right ()
+    Right a -> Left (bt a)
+{-# INLINE threadKilled #-}
+
+-- | This exception is raised by default in the main thread of the program when
+-- the user requests to terminate the program via the usual mechanism(s)
+-- (/e.g./ Control-C in the console).
+userInterrupt :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
+userInterrupt = case runPrism asyncException of
+  (bt, seta) | btu <- bt UserInterrupt -> prism (const btu) $ \s -> case seta s of
+    Left t -> Left t
+    Right UserInterrupt -> Right ()
+    Right a -> Left (bt a)
+{-# INLINE userInterrupt #-}
 
 ----------------------------------------------------------------------------
 -- AsyncException
 ----------------------------------------------------------------------------
 
-class AsNonTermination t where
+class AsNonTermination p f t where
   -- | Thrown when the runtime system detects that the computation is guaranteed
   -- not to terminate. Note that there is no guarantee that the runtime system
   -- will notice whether any given computation is guaranteed to terminate or not.
-  nonTermination :: Prism' t NonTermination
+  nonTermination :: Overloaded' p f t NonTermination
 
-  -- | 'NonTermination' is isomorphic to ()
-  _nonTermination :: Prism' t ()
-  _nonTermination = nonTermination . iso (const ()) (const NonTermination)
-  {-# INLINE _nonTermination #-}
+-- | 'NonTermination' is isomorphic to ()
+--
+-- @
+-- '_nonTermination' :: 'Iso'' 'NonTermination' ()
+-- '_nonTermination' :: 'Prism'' 'SomeException' ()
+-- @
+_nonTermination :: (Profunctor p, Functor f, AsNonTermination p f t) => Overloaded' p f t ()
+_nonTermination = nonTermination . iso (const ()) (const NonTermination)
+{-# INLINE _nonTermination #-}
 
-instance AsNonTermination NonTermination where
+instance AsNonTermination p f NonTermination where
   nonTermination = id
   {-# INLINE nonTermination #-}
 
-instance AsNonTermination SomeException where
+instance (Prismatic p, Applicative f) => AsNonTermination p f SomeException where
   nonTermination = exception
   {-# INLINE nonTermination #-}
 
