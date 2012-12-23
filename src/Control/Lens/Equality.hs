@@ -44,19 +44,19 @@ type AnEquality s t a b = Identical a (Mutator b) a (Mutator b) -> Identical a (
 type AnEquality' s a = AnEquality s s a a
 
 -- | Extract a witness of type equality
-runEq :: forall s t a b. Equality s t a b -> Identical s t a b
+runEq :: forall s t a b. AnEquality s t a b -> Identical s t a b
 runEq l = case l (Identical :: Identical a (Mutator b) a (Mutator b)) of
   Identical -> Identical
 
 -- | Substituting types with equality
-substEq :: Equality s t a b -> ((s ~ a, t ~ b) => r) -> r
+substEq :: AnEquality s t a b -> ((s ~ a, t ~ b) => r) -> r
 substEq l = case runEq l of
   Identical -> \r -> r
 
 -- | We can use equality to do substitution into anything
-mapEq :: Equality s t a b -> f s -> f a
+mapEq :: AnEquality s t a b -> f s -> f a
 mapEq l r = substEq l r
 
 -- | Equality is symmetric
-fromEq :: Equality s t a b -> Equality b a t s
+fromEq :: AnEquality s t a b -> Equality b a t s
 fromEq l = substEq l id
