@@ -118,9 +118,9 @@ _magnitude f c = setMag <$> f r
 -- Otherwise, this is a perfectly cromulent 'Lens'.
 _phase :: RealFloat a => Lens' (Complex a) a
 _phase f c = setPhase <$> f theta
-{-# INLINE _phase #-}
   where setPhase theta' = c * cis (theta' - theta)
         theta = phase c
+{-# INLINE _phase #-}
 
 -- | Access the 'conjugate' of a 'Complex' number
 --
