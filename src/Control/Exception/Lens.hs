@@ -235,19 +235,20 @@ throwingTo tid l = reviews l (throwTo tid)
 
 -- Exceptions that occur in the IO monad. An IOException records a more specific error type, a descriptive string and maybe the handle that was used when the error was flagged.
 class AsIOException p f t where
-  -- |
+  -- | Unfortunately ioException is taken by @base@ for throwing IOExceptions.
+  --
   -- @
-  -- 'ioException' :: 'Equality'' 'IOException' 'IOException'
-  -- 'ioException' :: 'Prism'' 'SomeException' 'IOException'
+  -- 'ioErr' :: 'Equality'' 'IOException' 'IOException'
+  -- 'ioErr' :: 'Prism'' 'SomeException' 'IOException'
   -- @
-  ioException :: Overloaded' p f t IOException
+  ioErr :: Overloaded' p f t IOException
 
 instance AsIOException p f IOException where
-  ioException = id
+  ioErr = id
   {-# INLINE ioException #-}
 
 instance (Prismatic p, Applicative f) => AsIOException p f SomeException where
-  ioException = exception
+  ioErr = exception
   {-# INLINE ioException #-}
 
 ----------------------------------------------------------------------------
