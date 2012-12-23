@@ -75,12 +75,23 @@ module Control.Exception.Lens
   , _deadlock
   -- ** No Such Method
   , AsNoMethodError(..)
-  -- ** Other Exceptions
+  , _noMethodError
+  -- ** Pattern Match Failure
   , AsPatternMatchFail(..)
+  , _patternMatchFail
+  -- ** Record
+  -- *** Constructor Error
   , AsRecConError(..)
+  , _recConError
+  -- *** Selection Error
   , AsRecSelError(..)
+  , _recSelError
+  -- *** Update Error
   , AsRecUpdError(..)
+  , _recUpdError
+  -- ** Error Call
   , AsErrorCall(..)
+  , _errorCall
   ) where
 
 import Control.Applicative
@@ -727,120 +738,180 @@ _noMethodError = noMethodError . unwrapped
 -- PatternMatchFail
 ----------------------------------------------------------------------------
 
-class AsPatternMatchFail t where
+class AsPatternMatchFail p f t where
   -- | A pattern match failed.
-  patternMatchFail :: Prism' t PatternMatchFail
-
-  -- | Information about the source location of the pattern
   --
-  -- 'PatternMatchFail' is isomorphic to a 'String'
-  _patternMatchFail :: Prism' t String
-  _patternMatchFail = patternMatchFail . unwrapped
-  {-# INLINE _patternMatchFail #-}
+  -- @
+  -- 'patternMatchFail' :: 'Equality'' 'PatternMatchFail' 'PatternMatchFail'
+  -- 'patternMatchFail' :: 'Prism''    'SomeException'    'PatternMatchFail'
+  -- @
+  patternMatchFail :: Overloaded' p f t PatternMatchFail
 
-instance AsPatternMatchFail PatternMatchFail where
+-- | @'patternMatchFail' :: 'Equality'' 'PatternMatchFail' 'PatternMatchFail'@
+instance AsPatternMatchFail p f PatternMatchFail where
   patternMatchFail = id
   {-# INLINE patternMatchFail #-}
 
-instance AsPatternMatchFail SomeException where
+-- | @'patternMatchFail' :: 'Prism'' 'SomeException' 'PatternMatchFail'@
+instance (Prismatic p, Applicative f) => AsPatternMatchFail p f SomeException where
   patternMatchFail = exception
   {-# INLINE patternMatchFail #-}
+
+-- | Information about the source location of the pattern
+--
+-- 'PatternMatchFail' is isomorphic to a 'String'
+--
+-- @
+-- '_patternMatchFail' :: 'Iso''   'PatternMatchFail' String
+-- '_patternMatchFail' :: 'Prism'' 'SomeException'    String
+-- @
+_patternMatchFail :: (AsPatternMatchFail p f t, Profunctor p, Functor f) => Overloaded' p f t String
+_patternMatchFail = patternMatchFail . unwrapped
+{-# INLINE _patternMatchFail #-}
 
 ----------------------------------------------------------------------------
 -- RecConError
 ----------------------------------------------------------------------------
 
-class AsRecConError t where
+class AsRecConError p f t where
   -- | An uninitialised record field was used.
-  recConError :: Prism' t RecConError
-
-  -- | Information about the source location where the record was constructed
   --
-  -- 'RecConError' is isomorphic to a 'String'
-  _recConError :: Prism' t String
-  _recConError = recConError . unwrapped
-  {-# INLINE _recConError #-}
+  -- @
+  -- 'recConError' :: 'Equality'' 'RecConError' 'RecConError'
+  -- 'recConError' :: 'Prism'' 'SomeException' 'RecConError'
+  -- @
+  recConError :: Overloaded' p f t RecConError
 
-instance AsRecConError RecConError where
+-- | @'recConError' :: 'Equality'' 'RecConError' 'RecConError'@
+instance AsRecConError p f RecConError where
   recConError = id
   {-# INLINE recConError #-}
 
-instance AsRecConError SomeException where
+-- | @'recConError' :: 'Prism'' 'SomeException' 'RecConError'@
+instance (Prismatic p, Applicative f) => AsRecConError p f SomeException where
   recConError = exception
   {-# INLINE recConError #-}
+
+-- | Information about the source location where the record was constructed
+--
+-- 'RecConError' is isomorphic to a 'String'
+--
+-- @
+-- '_recConError' :: 'Iso''   'RecConError'   String
+-- '_recConError' :: 'Prism'' 'SomeException' String
+-- @
+_recConError :: (AsRecConError p f t, Profunctor p, Functor f) => Overloaded' p f t String
+_recConError = recConError . unwrapped
+{-# INLINE _recConError #-}
 
 ----------------------------------------------------------------------------
 -- RecSelError
 ----------------------------------------------------------------------------
 
-class AsRecSelError t where
-  -- | A record selector was applied to a constructor without the appropriate
-  -- field. This can only happen with a datatype with multiple constructors,
-  -- where some fields are in one constructor but not another.
-  recSelError :: Prism' t RecSelError
+-- | A record selector was applied to a constructor without the appropriate
+-- field. This can only happen with a datatype with multiple constructors,
+-- where some fields are in one constructor but not another.
+class AsRecSelError p f t where
+  -- |
+  -- @
+  -- 'recSelError' :: 'Equality'' 'RecSelError' 'RecSelError'
+  -- 'recSelError' :: 'Prism'' 'SomeException' 'RecSelError'
+  -- @
+  recSelError :: Overloaded' p f t RecSelError
 
-  -- | Information about the source location of the record selector.
-  --
-  -- 'RecSelError' is isomorphic to a 'String'
-  _recSelError :: Prism' t String
-  _recSelError = recSelError . unwrapped
-  {-# INLINE _recSelError #-}
-
-instance AsRecSelError RecSelError where
+-- | @'recSelError' :: 'Equality'' 'RecSelError' 'RecSelError'@
+instance AsRecSelError p f RecSelError where
   recSelError = id
   {-# INLINE recSelError #-}
 
-instance AsRecSelError SomeException where
+-- | @'recSelError' :: 'Prism'' 'SomeException' 'RecSelError'@
+instance (Prismatic p, Applicative f) => AsRecSelError p f SomeException where
   recSelError = exception
   {-# INLINE recSelError #-}
+
+-- | Information about the source location where the record selection occurred
+--
+-- 'RecSelError' is isomorphic to a 'String'
+--
+-- @
+-- '_recSelError' :: 'Iso''   'RecSelError'   String
+-- '_recSelError' :: 'Prism'' 'SomeException' String
+-- @
+_recSelError :: (AsRecSelError p f t, Profunctor p, Functor f) => Overloaded' p f t String
+_recSelError = recSelError . unwrapped
+{-# INLINE _recSelError #-}
 
 ----------------------------------------------------------------------------
 -- RecUpdError
 ----------------------------------------------------------------------------
 
-class AsRecUpdError t where
-  -- | A record update was performed on a constructor without the
-  -- appropriate field. This can only happen with a datatype with multiple
-  -- constructors, where some fields are in one constructor but not another.
-  recUpdError :: Prism' t RecUpdError
+-- | A record update was performed on a constructor without the
+-- appropriate field. This can only happen with a datatype with multiple
+-- constructors, where some fields are in one constructor but not another.
+class AsRecUpdError p f t where
+  -- |
+  -- @
+  -- 'recUpdError' :: 'Equality'' 'RecUpdError' 'RecUpdError'
+  -- 'recUpdError' :: 'Prism'' 'SomeException' 'RecUpdError'
+  -- @
+  recUpdError :: Overloaded' p f t RecUpdError
 
-  -- | Information about the source location of the record update
-  --
-  -- 'RecUpdError' is isomorphic to a 'String'
-  _recUpdError :: Prism' t String
-  _recUpdError = recUpdError . unwrapped
-  {-# INLINE _recUpdError #-}
-
-instance AsRecUpdError RecUpdError where
+-- | @'recUpdError' :: 'Equality'' 'RecUpdError' 'RecUpdError'@
+instance AsRecUpdError p f RecUpdError where
   recUpdError = id
   {-# INLINE recUpdError #-}
 
-instance AsRecUpdError SomeException where
+-- | @'recUpdError' :: 'Prism'' 'SomeException' 'RecUpdError'@
+instance (Prismatic p, Applicative f) => AsRecUpdError p f SomeException where
   recUpdError = exception
   {-# INLINE recUpdError #-}
+
+-- | Information about the source location where the record was updated
+--
+-- 'RecUpdError' is isomorphic to a 'String'
+--
+-- @
+-- '_recUpdError' :: 'Iso''   'RecUpdError'   String
+-- '_recUpdError' :: 'Prism'' 'SomeException' String
+-- @
+_recUpdError :: (AsRecUpdError p f t, Profunctor p, Functor f) => Overloaded' p f t String
+_recUpdError = recUpdError . unwrapped
+{-# INLINE _recUpdError #-}
 
 ----------------------------------------------------------------------------
 -- ErrorCall
 ----------------------------------------------------------------------------
 
-class AsErrorCall t where
-  -- | This is thrown when the user calls 'error'.
-  errorCall :: Prism' t ErrorCall
+-- | This is thrown when the user calls 'error'.
+class AsErrorCall p f t where
+  -- |
+  -- @
+  -- 'errorCall' :: 'Equality'' 'ErrorCall'     'ErrorCall'
+  -- 'errorCall' :: 'Prism''    'SomeException' 'ErrorCall'
+  -- @
+  errorCall :: Overloaded' p f t ErrorCall
 
-  -- | Retrieve the argument given to 'error'.
-  --
-  -- 'ErrorCall' is isomorphic to a 'String'
-  --
-  -- >>> catching _errorCall return (error "touch down!")
-  -- "touch down!"
-  _errorCall :: Prism' t String
-  _errorCall = errorCall . unwrapped
-  {-# INLINE _errorCall #-}
-
-instance AsErrorCall ErrorCall where
+-- | @'errorCall' :: 'Equality'' 'ErrorCall' 'ErrorCall'@
+instance AsErrorCall p f ErrorCall where
   errorCall = id
   {-# INLINE errorCall #-}
 
-instance AsErrorCall SomeException where
+-- | @'errorCall' :: 'Prism'' 'SomeException' 'ErrorCall'@
+instance (Prismatic p, Applicative f) => AsErrorCall p f SomeException where
   errorCall = exception
   {-# INLINE errorCall #-}
+
+-- | Retrieve the argument given to 'error'.
+--
+-- 'ErrorCall' is isomorphic to a 'String'
+--
+-- >>> catching _errorCall return (error "touch down!")
+-- "touch down!"
+--
+-- @
+-- '_errorCall' :: 'Iso''   'ErrorCall'     'String'
+-- '_errorCall' :: 'Prism'' 'SomeException' 'String'
+-- @
+_errorCall :: (AsErrorCall p f t, Profunctor p, Functor f) => Overloaded' p f t String
+_errorCall = errorCall . unwrapped
+{-# INLINE _errorCall #-}
