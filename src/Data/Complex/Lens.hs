@@ -48,6 +48,7 @@ _realPart :: Lens' (Complex a) a
 _realPart :: RealFloat a => Lens' (Complex a) a
 #endif
 _realPart f (a :+ b) = (:+ b) <$> f a
+{-# INLINE _realPart #-}
 
 -- | Access the 'imagPart' of a 'Complex' number
 --
@@ -64,6 +65,7 @@ _imagPart :: Lens' (Complex a) a
 _imagPart :: RealFloat a => Lens' (Complex a) a
 #endif
 _imagPart f (a :+ b) = (a :+) <$> f b
+{-# INLINE _imagPart #-}
 
 -- | This isn't /quite/ a legal lens. Notably the
 --
@@ -77,6 +79,7 @@ _imagPart f (a :+ b) = (a :+) <$> f b
 -- Otherwise, this is a perfectly cromulent 'Lens'.
 _polar :: RealFloat a => Iso' (Complex a) (a,a)
 _polar = iso polar (uncurry mkPolar)
+{-# INLINE _polar #-}
 
 -- | Access the 'magnitude' of a 'Complex' number
 --
@@ -98,6 +101,7 @@ _magnitude f c = setMag <$> f r
   where setMag r' | r /= 0    = c * (r' / r :+ 0)
                   | otherwise = r' :+ 0
         r = magnitude c
+{-# INLINE _magnitude #-}
 
 -- | Access the 'phase' of a 'Complex' number
 --
@@ -116,6 +120,7 @@ _phase :: RealFloat a => Lens' (Complex a) a
 _phase f c = setPhase <$> f theta
   where setPhase theta' = c * cis (theta' - theta)
         theta = phase c
+{-# INLINE _phase #-}
 
 -- | Access the 'conjugate' of a 'Complex' number
 --
@@ -126,6 +131,7 @@ _phase f c = setPhase <$> f theta
 -- True
 _conjugate :: RealFloat a => Iso' (Complex a) (Complex a)
 _conjugate = iso conjugate conjugate
+{-# INLINE _conjugate #-}
 
 -- | Traverse both the 'realPart' and the 'imagPart' of a 'Complex' number.
 --
@@ -145,3 +151,4 @@ complex :: Traversal (Complex a) (Complex b) a b
 complex :: (RealFloat a, RealFloat b) => Traversal (Complex a) (Complex b) a b
 #endif
 complex f (a :+ b) = (:+) <$> f a <*> f b
+{-# INLINE complex #-}

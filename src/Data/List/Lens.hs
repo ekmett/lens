@@ -178,3 +178,4 @@ strippingPrefix :: Eq a => [a] -> Prism' [a] [a]
 strippingPrefix ps = prism (ps ++) $ \xs -> case stripPrefix ps xs of
   Nothing  -> Left xs
   Just xs' -> Right xs'
+{-# INLINE strippingPrefix #-}
