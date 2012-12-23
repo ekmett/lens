@@ -46,16 +46,20 @@ type AnEquality' s a = AnEquality s s a a
 -- | Extract a witness of type equality
 runEq :: AnEquality s t a b -> Identical s t a b
 runEq l = case l Identical of Identical -> Identical
+{-# INLINE runEq #-}
 
 -- | Substituting types with equality
 substEq :: AnEquality s t a b -> ((s ~ a, t ~ b) => r) -> r
 substEq l = case runEq l of
   Identical -> \r -> r
+{-# INLINE substEq #-}
 
 -- | We can use equality to do substitution into anything
 mapEq :: AnEquality s t a b -> f s -> f a
 mapEq l r = substEq l r
+{-# INLINE mapEq #-}
 
 -- | Equality is symmetric
 fromEq :: AnEquality s t a b -> Equality b a t s
 fromEq l = substEq l id
+{-# INLINE fromEq #-}

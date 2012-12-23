@@ -437,6 +437,7 @@ singular :: Functor f => Traversing f s t a a -> LensLike f s t a a
 singular l f = partsOf l $ \xs -> case xs of
   (a:as) -> (:as) <$> f a
   []     -> [] <$ f (error "singular: empty traversal")
+{-# INLINE singular #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be
 -- used to transform a 'Fold' into a 'Getter' or a 'MonadicFold' into an 'Action'.
@@ -454,6 +455,7 @@ unsafeSingular l f = unsafePartsOf l $ \xs -> case xs of
   [a] -> return <$> f a
   []  -> error "unsafeSingular: empty traversal"
   _   -> error "unsafeSingular: traversing multiple results"
+{-# INLINE unsafeSingular #-}
 
 ------------------------------------------------------------------------------
 -- Internal functions used by 'partsOf', 'holesOf', etc.

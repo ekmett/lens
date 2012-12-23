@@ -197,6 +197,7 @@ leftward (Zipper h n (l:ls) a rs) = return (Zipper h (n - 1) ls l (a:rs))
 -- "hella"
 leftmost :: (a :> b) -> a :> b
 leftmost = farthest leftward
+{-# INLINE leftmost #-}
 
 -- | Move to the rightmost position of the current 'Traversal'.
 --
@@ -206,6 +207,7 @@ leftmost = farthest leftward
 -- "jelly"
 rightmost :: (a :> b) -> a :> b
 rightmost = farthest rightward
+{-# INLINE rightmost #-}
 
 -- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'zipper'. This
 -- will attempt the move, and stay where it was if it fails.
@@ -378,6 +380,7 @@ withins l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
   Context k ys -> go k [] ys
   where go k xs (y:ys) = Zipper (Snoc h l n ls k rs) 0 xs y ys : go k (y:xs) ys
         go _ _  []     = []
+{-# INLINE withins #-}
 
 -- | Unsafely step down into a 'Traversal' that is /assumed/ to be non-empty.
 --
@@ -420,6 +423,7 @@ rezip (Zipper h _ ls a rs) = recoil h (reverseList ls ++ a : rs)
 -- | Extract the current 'focus' from a 'Zipper' as a 'Context'
 focusedContext :: Zipping h a => (h :> a) -> Context a a (Zipped h a)
 focusedContext z = Context (\a -> z & focus .~ a & rezip) (z^.focus)
+{-# INLINE focusedContext #-}
 
 -----------------------------------------------------------------------------
 -- * Tapes
@@ -467,6 +471,7 @@ unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> tugs rightward n
 peel :: Coil h a -> Track h a
 peel Coil               = Track
 peel (Snoc h l n _ _ _) = Fork (peel h) n l
+{-# INLINE peel #-}
 
 -- | The 'Track' forms the bulk of a 'Tape'.
 data Track t a

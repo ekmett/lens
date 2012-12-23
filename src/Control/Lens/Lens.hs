@@ -227,6 +227,7 @@ inside :: ALens s t a b -> Lens (e -> s) (e -> t) (e -> a) (e -> b)
 inside l f es = o <$> f i where
   i e = case l (Context id) (es e) of Context _ a -> a
   o ea e = case l (Context id) (es e) of Context k _ -> k (ea e)
+{-# INLINE inside #-}
 
 -- | Merge two lenses, getters, setters, folds or traversals.
 --
@@ -297,6 +298,7 @@ alongside l r f (s, s') = case l (Context id) s of
 -- @
 locus :: ComonadStore a w => Lens' (w s) a
 locus f w = (`seek` w) <$> f (pos w)
+{-# INLINE locus #-}
 
 -------------------------------------------------------------------------------
 -- Cloning Lenses

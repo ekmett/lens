@@ -61,6 +61,7 @@ perform l = getEffect #. l (Effect #. return)
 -- | Perform an 'Action' and modify the result.
 performs :: Monad m => Acting m e s t a b -> (a -> e) -> s -> m e
 performs l f = getEffect #. l (Effect #. return . f)
+{-# INLINE performs #-}
 
 -- | Perform an 'Action'
 --
@@ -111,6 +112,7 @@ iperform l = getEffect #. withIndex l (\i a -> Effect (return (i, a)))
 -- | Perform an 'IndexedAction' and modify the result.
 iperforms :: Monad m => IndexedActing i m e s t a b -> (i -> a -> e) -> s -> m e
 iperforms l f = getEffect #. withIndex l (\i a -> Effect (return (f i a)))
+{-# INLINE iperforms #-}
 
 -- | Perform an 'IndexedAction'
 (^@!) :: Monad m => s -> IndexedActing i m (i, a) s t a b -> m (i, a)
