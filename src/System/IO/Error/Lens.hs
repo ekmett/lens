@@ -20,7 +20,7 @@ import GHC.IO.Exception
 import System.IO
 import Foreign.C.Types
 
--- | where the error happened.
+-- | Where the error happened.
 --
 -- @
 -- 'location' :: 'Lens''      'IOException'   'String'
@@ -40,7 +40,7 @@ description :: (AsIOException (->) f t, Functor f) => LensLike' f t String
 description = ioErr . \f s -> f (ioe_description s) <&> \e -> s { ioe_description = e }
 {-# INLINE description #-}
 
--- | the handle used by the action flagging this error.
+-- | The handle used by the action flagging this error.
 --
 -- @
 -- 'handle' :: 'Lens''      'IOException'   ('Maybe' 'Handle')

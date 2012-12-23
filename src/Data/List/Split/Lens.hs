@@ -155,14 +155,15 @@ splittingPlacesBlanks :: (Applicative f, Gettable f, Integral n) => [n] -> Getti
 splittingPlacesBlanks s l f = coerce . traverse f . splitPlacesBlanks s . toListOf l
 {-# INLINE splittingPlacesBlanks #-}
 
-
 -- | Modify or retrieve the list of delimiters for a 'Splitter'.
 delimiters :: Lens (Splitter a) (Splitter b) [a -> Bool] [b -> Bool]
 delimiters f s@Splitter { delimiter = Delimiter ds } = f ds <&> \ds' -> s { delimiter = Delimiter ds' }
+{-# INLINE delimiters #-}
 
 -- | Modify or retrieve the policy for what a 'Splitter' to do with delimiters.
 delimiting :: Lens' (Splitter a) DelimPolicy
 delimiting f s@Splitter { delimPolicy = p } = f p <&> \p' -> s { delimPolicy = p' }
+{-# INLINE delimiting #-}
 
 -- | Modify or retrieve the policy for what a 'Splitter' should about consecutive delimiters.
 condensing :: Lens' (Splitter a) Bool
@@ -171,21 +172,26 @@ condensing f s@Splitter { condensePolicy = p } = f (o p) <&> \p' -> s { condense
   i False = KeepBlankFields
   o Condense = True
   o KeepBlankFields = False
+{-# INLINE condensing #-}
 
 -- | Modify or retrieve the policy for whether a 'Splitter' should drop an initial blank.
 keepInitialBlanks :: Lens' (Splitter a) Bool
 keepInitialBlanks f s@Splitter { initBlankPolicy = p } = f (keeps p) <&> \p' -> s { initBlankPolicy = end p' }
+{-# INLINE keepInitialBlanks #-}
 
 -- | Modify or retrieve the policy for whether a 'Splitter' should drop a final blank.
 keepFinalBlanks :: Lens' (Splitter a) Bool
 keepFinalBlanks f s@Splitter { finalBlankPolicy = p } = f (keeps p) <&> \p' -> s { finalBlankPolicy = end p' }
+{-# INLINE keepFinalBlanks #-}
 
 -- utilities
 
 end :: Bool -> EndPolicy
 end True  = KeepBlank
 end False = DropBlank
+{-# INLINE end #-}
 
 keeps :: EndPolicy -> Bool
 keeps KeepBlank = True
 keeps DropBlank = False
+{-# INLINE keeps #-}
