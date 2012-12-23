@@ -132,9 +132,9 @@ type ATraversal' s a = ATraversal s s a a
 
 -- | When you see this as an argument to a function, it expects
 --
---  * it is indexed if @p@ is an instance of 'Indexed i'
+--  * to be indexed if @p@ is an instance of 'Indexed i'
 --
---  * unindexed if @p@ is @(->)@
+--  * to be unindexed if @p@ is @(->)@
 --
 --  * a 'Traversal' if @f@ is 'Applicative',
 --
@@ -489,6 +489,10 @@ unsafeOuts = evalState . bazaar (\_-> do (r,s) <- State.gets (unconsWithDefault 
 insT :: BazaarT (->) f a b t -> [a]
 insT = toListOf bazaarT
 {-# INLINE insT #-}
+
+iinsT :: BazaarT (Indexed i) f a b t -> [(i, a)]
+iinsT = itoListOf bazaarT
+{-# INLINE iinsT #-}
 
 outsT :: BazaarT' (->) f a t -> [a] -> t
 #if MIN_VERSION_mtl(2,1,1)
