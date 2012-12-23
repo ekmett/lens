@@ -669,10 +669,13 @@ newtype Accessor r a = Accessor { runAccessor :: r }
 
 instance Functor (Accessor r) where
   fmap _ (Accessor m) = Accessor m
+  {-# INLINE fmap #-}
 
 instance Monoid r => Applicative (Accessor r) where
   pure _ = Accessor mempty
+  {-# INLINE pure #-}
   Accessor a <*> Accessor b = Accessor (mappend a b)
+  {-# INLINE (<*>) #-}
 
 -----------------------------------------------------------------------------
 -- Mutators
