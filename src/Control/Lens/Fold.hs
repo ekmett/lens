@@ -818,7 +818,7 @@ a ^?! l = fromMaybe (error "(^?!): empty Fold") $ getFirst (foldMapOf l (First #
 -- 'firstOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
 firstOf :: Getting (Endo (Maybe a)) s t a b -> s -> Maybe a
-firstOf l = foldrOf l (\x y -> Just x) Nothing
+firstOf l = foldrOf l (\x _ -> Just x) Nothing
 {-# INLINE firstOf #-}
 
 -- | Retrieve the 'Last' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
@@ -832,7 +832,7 @@ firstOf l = foldrOf l (\x y -> Just x) Nothing
 -- 'lastOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
 lastOf :: Getting (Dual (Endo (Maybe a))) s t a b -> s -> Maybe a
-lastOf l = foldlOf l (\x y -> Just y) Nothing
+lastOf l = foldlOf l (\_ y -> Just y) Nothing
 {-# INLINE lastOf #-}
 
 -- |
