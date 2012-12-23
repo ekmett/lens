@@ -354,13 +354,16 @@ instance Monad m => Functor (Focusing m s) where
   fmap f (Focusing m) = Focusing $ do
      (s, a) <- m
      return (s, f a)
+  {-# INLINE fmap #-}
 
 instance (Monad m, Monoid s) => Applicative (Focusing m s) where
   pure a = Focusing (return (mempty, a))
+  {-# INLINE pure #-}
   Focusing mf <*> Focusing ma = Focusing $ do
     (s, f) <- mf
     (s', a) <- ma
     return (mappend s s', f a)
+  {-# INLINE (<*>) #-}
 
 -- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.RWS.RWST'
 newtype FocusingWith w m s a = FocusingWith { unfocusingWith :: m (s, a, w) }
@@ -369,71 +372,90 @@ instance Monad m => Functor (FocusingWith w m s) where
   fmap f (FocusingWith m) = FocusingWith $ do
      (s, a, w) <- m
      return (s, f a, w)
+  {-# INLINE fmap #-}
 
 instance (Monad m, Monoid s, Monoid w) => Applicative (FocusingWith w m s) where
   pure a = FocusingWith (return (mempty, a, mempty))
+  {-# INLINE pure #-}
   FocusingWith mf <*> FocusingWith ma = FocusingWith $ do
     (s, f, w) <- mf
     (s', a, w') <- ma
     return (mappend s s', f a, mappend w w')
+  {-# INLINE (<*>) #-}
 
 -- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Writer.WriterT'.
 newtype FocusingPlus w k s a = FocusingPlus { unfocusingPlus :: k (s, w) a }
 
 instance Functor (k (s, w)) => Functor (FocusingPlus w k s) where
   fmap f (FocusingPlus as) = FocusingPlus (fmap f as)
+  {-# INLINE fmap #-}
 
 instance (Monoid w, Applicative (k (s, w))) => Applicative (FocusingPlus w k s) where
   pure = FocusingPlus . pure
+  {-# INLINE pure #-}
   FocusingPlus kf <*> FocusingPlus ka = FocusingPlus (kf <*> ka)
+  {-# INLINE (<*>) #-}
 
 -- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'
 newtype FocusingOn f k s a = FocusingOn { unfocusingOn :: k (f s) a }
 
 instance Functor (k (f s)) => Functor (FocusingOn f k s) where
   fmap f (FocusingOn as) = FocusingOn (fmap f as)
+  {-# INLINE fmap #-}
 
 instance Applicative (k (f s)) => Applicative (FocusingOn f k s) where
   pure = FocusingOn . pure
+  {-# INLINE pure #-}
   FocusingOn kf <*> FocusingOn ka = FocusingOn (kf <*> ka)
+  {-# INLINE (<*>) #-}
 
 -- | Make a monoid out of 'Maybe' for error handling
 newtype May a = May { getMay :: Maybe a }
 
 instance Monoid a => Monoid (May a) where
   mempty = May (Just mempty)
+  {-# INLINE mempty #-}
   May Nothing `mappend` _ = May Nothing
   _ `mappend` May Nothing = May Nothing
   May (Just a) `mappend` May (Just b) = May (Just (mappend a b))
+  {-# INLINE mappend #-}
 
 -- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'
 newtype FocusingMay k s a = FocusingMay { unfocusingMay :: k (May s) a }
 
 instance Functor (k (May s)) => Functor (FocusingMay k s) where
   fmap f (FocusingMay as) = FocusingMay (fmap f as)
+  {-# INLINE fmap #-}
 
 instance Applicative (k (May s)) => Applicative (FocusingMay k s) where
   pure = FocusingMay . pure
+  {-# INLINE pure #-}
   FocusingMay kf <*> FocusingMay ka = FocusingMay (kf <*> ka)
+  {-# INLINE (<*>) #-}
 
 -- | Make a monoid out of 'Either' for error handling
 newtype Err e a = Err { getErr :: Either e a }
 
 instance Monoid a => Monoid (Err e a) where
   mempty = Err (Right mempty)
+  {-# INLINE mempty #-}
   Err (Left e) `mappend` _ = Err (Left e)
   _ `mappend` Err (Left e) = Err (Left e)
   Err (Right a) `mappend` Err (Right b) = Err (Right (mappend a b))
+  {-# INLINE mappend #-}
 
 -- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'
 newtype FocusingErr e k s a = FocusingErr { unfocusingErr :: k (Err e s) a }
 
 instance Functor (k (Err e s)) => Functor (FocusingErr e k s) where
   fmap f (FocusingErr as) = FocusingErr (fmap f as)
+  {-# INLINE fmap #-}
 
 instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
   pure = FocusingErr . pure
+  {-# INLINE pure #-}
   FocusingErr kf <*> FocusingErr ka = FocusingErr (kf <*> ka)
+  {-# INLINE (<*>) #-}
 
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
 -- by 'Control.Lens.Indexed.indexed'
@@ -442,12 +464,15 @@ newtype Indexing f a = Indexing { runIndexing :: Int -> (f a, Int) }
 instance Functor f => Functor (Indexing f) where
   fmap f (Indexing m) = Indexing $ \i -> case m i of
     (x, j) -> (fmap f x, j)
+  {-# INLINE fmap #-}
 
 instance Applicative f => Applicative (Indexing f) where
   pure x = Indexing (\i -> (pure x, i))
+  {-# INLINE pure #-}
   Indexing mf <*> Indexing ma = Indexing $ \i -> case mf i of
     (ff, j) -> case ma j of
        ~(fa, k) -> (ff <*> fa, k)
+  {-# INLINE (<*>) #-}
 
 -- | Transform a 'Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
 -- a 'Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
@@ -472,12 +497,15 @@ newtype Indexing64 f a = Indexing64 { runIndexing64 :: Int64 -> (f a, Int64) }
 instance Functor f => Functor (Indexing64 f) where
   fmap f (Indexing64 m) = Indexing64 $ \i -> case m i of
     (x, j) -> (fmap f x, j)
+  {-# INLINE fmap #-}
 
 instance Applicative f => Applicative (Indexing64 f) where
   pure x = Indexing64 (\i -> (pure x, i))
+  {-# INLINE pure #-}
   Indexing64 mf <*> Indexing64 ma = Indexing64 $ \i -> case mf i of
     (ff, j) -> case ma j of
        ~(fa, k) -> (ff <*> fa, k)
+  {-# INLINE (<*>) #-}
 
 -- | Transform a 'Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
 -- a 'Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
@@ -502,42 +530,52 @@ newtype Traversed f = Traversed { getTraversed :: f () }
 
 instance Applicative f => Monoid (Traversed f) where
   mempty = Traversed (pure ())
+  {-# INLINE mempty #-}
   Traversed ma `mappend` Traversed mb = Traversed (ma *> mb)
+  {-# INLINE mappend #-}
 
 -- | Used internally by 'Control.Lens.Traversal.mapM_' and the like.
 newtype Sequenced m = Sequenced { getSequenced :: m () }
 
 instance Monad m => Monoid (Sequenced m) where
   mempty = Sequenced (return ())
+  {-# INLINE mempty #-}
   Sequenced ma `mappend` Sequenced mb = Sequenced (ma >> mb)
+  {-# INLINE mappend #-}
 
 -- | Used for 'Control.Lens.Fold.minimumOf'
 data Min a = NoMin | Min a
 
 instance Ord a => Monoid (Min a) where
   mempty = NoMin
+  {-# INLINE mempty #-}
   mappend NoMin m = m
   mappend m NoMin = m
   mappend (Min a) (Min b) = Min (min a b)
+  {-# INLINE mappend #-}
 
 -- | Obtain the minimum.
 getMin :: Min a -> Maybe a
 getMin NoMin   = Nothing
 getMin (Min a) = Just a
+{-# INLINE getMin #-}
 
 -- | Used for 'Control.Lens.Fold.maximumOf'
 data Max a = NoMax | Max a
 
 instance Ord a => Monoid (Max a) where
   mempty = NoMax
+  {-# INLINE mempty #-}
   mappend NoMax m = m
   mappend m NoMax = m
   mappend (Max a) (Max b) = Max (max a b)
+  {-# INLINE mappend #-}
 
 -- | Obtain the maximum
 getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
+{-# INLINE getMax #-}
 
 -- | The indexed store can be used to characterize a 'Control.Lens.Lens.Lens'
 -- and is used by 'Control.Lens.Lens.clone'
@@ -551,19 +589,29 @@ data Context a b t = Context (b -> t) a
 
 instance Functor (Context a b) where
   fmap f (Context g t) = Context (f . g) t
+  {-# INLINE fmap #-}
 
 instance (a ~ b) => Comonad (Context a b) where
   extract   (Context f a) = f a
+  {-# INLINE extract #-}
   duplicate (Context f a) = Context (Context f) a
+  {-# INLINE duplicate #-}
   extend g  (Context f a) = Context (g . Context f) a
+  {-# INLINE extend #-}
 
 instance (a ~ b) => ComonadStore a (Context a b) where
   pos (Context _ a) = a
+  {-# INLINE pos #-}
   peek b (Context g _) = g b
+  {-# INLINE peek #-}
   peeks f (Context g a) = g (f a)
+  {-# INLINE peeks #-}
   seek a (Context g _) = Context g a
+  {-# INLINE seek #-}
   seeks f (Context g a) = Context g (f a)
+  {-# INLINE seeks #-}
   experiment f (Context g a) = g <$> f a
+  {-# INLINE experiment #-}
 
 -- | @type 'Context'' a s = 'Context' a a s@
 type Context' a = Context a a
@@ -590,6 +638,7 @@ newtype Bazaar a b t = Bazaar { runBazaar :: forall f. Applicative f => (a -> f 
 
 instance Functor (Bazaar a b) where
   fmap f (Bazaar k) = Bazaar (fmap f . k)
+  {-# INLINE fmap #-}
 
 instance Applicative (Bazaar a b) where
   pure a = Bazaar (\_ -> pure a)
@@ -625,30 +674,39 @@ type Bazaar' a = Bazaar a a
 
 instance a ~ b => ComonadApply (Bazaar a b) where
   (<@>) = (<*>)
+  {-# INLINE (<@>) #-}
 
 -- | Wrap a monadic effect with a phantom type argument.
 newtype Effect m r a = Effect { getEffect :: m r }
 
 instance Functor (Effect m r) where
   fmap _ (Effect m) = Effect m
+  {-# INLINE fmap #-}
 
 instance (Monad m, Monoid r) => Monoid (Effect m r a) where
   mempty = Effect (return mempty)
+  {-# INLINE mempty #-}
   Effect ma `mappend` Effect mb = Effect (liftM2 mappend ma mb)
+  {-# INLINE mappend #-}
 
 instance (Monad m, Monoid r) => Applicative (Effect m r) where
   pure _ = Effect (return mempty)
+  {-# INLINE pure #-}
   Effect ma <*> Effect mb = Effect (liftM2 mappend ma mb)
+  {-# INLINE (<*>) #-}
 
 -- | Wrap a monadic effect with a phantom type argument. Used when magnifying RWST.
 newtype EffectRWS w st m s a = EffectRWS { getEffectRWS :: st -> m (s,st,w) }
 
 instance Functor (EffectRWS w st m s) where
   fmap _ (EffectRWS m) = EffectRWS m
+  {-# INLINE fmap #-}
 
 instance (Monoid s, Monoid w, Monad m) => Applicative (EffectRWS w st m s) where
   pure _ = EffectRWS $ \st -> return (mempty, st, mempty)
+  {-# INLINE pure #-}
   EffectRWS m <*> EffectRWS n = EffectRWS $ \st -> m st >>= \ (s,t,w) -> n t >>= \ (s',u,w') -> return (mappend s s', u, mappend w w')
+  {-# INLINE (<*>) #-}
 
 -------------------------------------------------------------------------------
 -- Accessors
