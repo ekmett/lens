@@ -239,7 +239,7 @@ instance Settable Mutator where
 -----------------------------------------------------------------------------
 
 class Profunctor p => Prismatic p where
-  refract :: p a t -> p (Either t a) t
+  refract :: p a b -> p (Either b a) b
 
 instance Prismatic (->) where
   refract = either id
@@ -758,7 +758,7 @@ instance Profunctor Review where
   {-# INLINE rmap #-}
 
 instance Prismatic Review where
-  refract (Review t) = Review t
+  refract (Review b) = Review b
   {-# INLINE refract #-}
 
 newtype Exchange a b s t = Exchange { runExchange :: (s -> a, b -> t) }
