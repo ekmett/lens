@@ -533,7 +533,7 @@ instance (Eq k, Hashable k) => TraversableWithIndex k (HashMap k) where
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex r ((->) r) where
-  imap = \f g x -> f x (g x)
+  imap f g x = f x (g x)
   {-# INLINE imap #-}
 
 -------------------------------------------------------------------------------
