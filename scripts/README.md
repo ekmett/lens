@@ -28,4 +28,6 @@
 ```
 
 * `spellcheck` grabs a list of files in the repository using Git and runs
-  [aspell][] against them. (TODO: only spellcheck comments from Haskell files.)
+  [Aspell][] against them. (TODO: only spellcheck comments from Haskell files.)
+
+[Aspell]: http://aspell.net/
