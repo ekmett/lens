@@ -516,7 +516,7 @@ outs b = evalState $ runBazaar b $ arr $
 #if MIN_VERSION_mtl(2,1,1)
   State.state . unconsWithDefault
 #else
-  \oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r)
+  \oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r
 #endif
 {-# INLINE outs #-}
 
