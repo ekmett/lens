@@ -424,8 +424,8 @@ class AsAssertionFailed p f t where
 -- 'AssertionFailed' is isomorphic to a 'String'
 --
 -- @
--- '_assertionFailed' :: 'Iso'' 'AssertionFailed' 'String'@
--- '_assertionFailed' :: 'Prism'' 'SomeException' 'String'@
+-- '_assertionFailed' :: 'Iso'' 'AssertionFailed' 'String'
+-- '_assertionFailed' :: 'Prism'' 'SomeException' 'String'
 -- @
 _assertionFailed :: (AsAssertionFailed p f t, Profunctor p, Functor f) => Overloaded' p f t String
 _assertionFailed = assertionFailed . unwrapped
@@ -464,8 +464,8 @@ instance (Prismatic p, Applicative f) => AsAsyncException p f SomeException wher
 -- programmer should take remedial action immediately.
 --
 -- @
--- 'stackOverflow' :: 'Prism'' 'AssertionFailed' 'String'@
--- 'stackOverflow' :: 'Prism'' 'SomeException'   'String'@
+-- 'stackOverflow' :: 'Prism'' 'AssertionFailed' 'String'
+-- 'stackOverflow' :: 'Prism'' 'SomeException'   'String'
 -- @
 stackOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 stackOverflow = case runPrism asyncException of
@@ -485,8 +485,8 @@ stackOverflow = case runPrism asyncException of
 -- * GHC currently does not throw 'HeapOverflow' exceptions.
 --
 -- @
--- 'heapOverflow' :: 'Prism'' 'AssertionFailed' 'String'@
--- 'heapOverflow' :: 'Prism'' 'SomeException'   'String'@
+-- 'heapOverflow' :: 'Prism'' 'AssertionFailed' 'String'
+-- 'heapOverflow' :: 'Prism'' 'SomeException'   'String'
 -- @
 heapOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 heapOverflow = case runPrism asyncException of
@@ -500,8 +500,8 @@ heapOverflow = case runPrism asyncException of
 -- system if it needs to terminate the thread for some reason.
 --
 -- @
--- 'threadKilled' :: 'Prism'' 'AssertionFailed' 'String'@
--- 'threadKilled' :: 'Prism'' 'SomeException'   'String'@
+-- 'threadKilled' :: 'Prism'' 'AssertionFailed' 'String'
+-- 'threadKilled' :: 'Prism'' 'SomeException'   'String'
 -- @
 threadKilled :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 threadKilled = case runPrism asyncException of
@@ -516,8 +516,8 @@ threadKilled = case runPrism asyncException of
 -- (/e.g./ Control-C in the console).
 --
 -- @
--- 'userInterrupt' :: 'Prism'' 'AssertionFailed' 'String'@
--- 'userInterrupt' :: 'Prism'' 'SomeException'   'String'@
+-- 'userInterrupt' :: 'Prism'' 'AssertionFailed' 'String'
+-- 'userInterrupt' :: 'Prism'' 'SomeException'   'String'
 -- @
 userInterrupt :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 userInterrupt = case runPrism asyncException of
@@ -692,8 +692,8 @@ class AsNoMethodError p f t where
   -- nor a definition in the appropriate instance) was called.
   --
   -- @
-  -- 'noMethodError' :: 'Equality'' 'NoMethodError' 'NoMethodError'@
-  -- 'noMethodError' :: 'Prism''    'SomeException' 'NoMethodError'@
+  -- 'noMethodError' :: 'Equality'' 'NoMethodError' 'NoMethodError'
+  -- 'noMethodError' :: 'Prism''    'SomeException' 'NoMethodError'
   -- @
   noMethodError :: Overloaded' p f t NoMethodError
 
