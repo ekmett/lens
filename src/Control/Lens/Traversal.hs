@@ -378,14 +378,14 @@ loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafe
 -- 'partsOf' :: 'Getter' s a     -> 'Getter' s [a]
 -- @
 partsOf :: Functor f => Traversing (->) f s t a a -> LensLike f s t [a] [a]
-partsOf l f s = outsT b <$> f (insT b) where b = l sellT s
+partsOf l f s = outsT b <$> f (insT b) where b = l sell s
 {-# INLINE partsOf #-}
 
 -- | An indexed version of 'partsOf' that receives the entire list of indices as its index.
 ipartsOf :: forall i p f s t a. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a a -> Overloading p (->) f s t [a] [a]
 ipartsOf l f s = outsT b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (iinsT b)
-  b = l sellT s
+  b = l sell s
 {-# INLINE ipartsOf #-}
 
 -- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
@@ -421,14 +421,14 @@ ipartsOf' l f s = outs b <$> indexed f (is :: [i]) as where
 -- 'unsafePartsOf' :: 'Getter' s a        -> 'Getter' s [a]
 -- @
 unsafePartsOf :: Functor f => Traversing (->) f s t a b -> LensLike f s t [a] [b]
-unsafePartsOf l f s = unsafeOutsT b <$> f (insT b) where b = l sellT s
+unsafePartsOf l f s = unsafeOutsT b <$> f (insT b) where b = l sell s
 {-# INLINE unsafePartsOf #-}
 
 -- | An indexed version of 'unsafePartsOf' that receives the entire list of indices as its index.
 iunsafePartsOf :: forall i p f s t a b. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a b -> Overloading p (->) f s t [a] [b]
 iunsafePartsOf l f s = unsafeOutsT b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (iinsT b)
-  b = l sellT s
+  b = l sell s
 {-# INLINE iunsafePartsOf #-}
 
 unsafePartsOf' :: ATraversal s t a b -> Lens s t [a] [b]
@@ -599,7 +599,7 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 -- >>> over (taking 5 traverse) succ "hello world"
 -- "ifmmp world"
 taking :: Applicative f => Int -> Traversing' (->) f s a -> LensLike' f s a
-taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sellT s
+taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sell s
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.

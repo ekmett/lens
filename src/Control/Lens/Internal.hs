@@ -62,21 +62,22 @@ module Control.Lens.Internal
   -- * Common Types
   , Accessor(..)
   , Mutator(..)
-  , Context(..), Context'
-  , Bazaar(..), Bazaar', bazaar, duplicateBazaar, sell
-  , BazaarT(..), BazaarT', bazaarT, duplicateBazaarT, sellT
   , Review(..)
   , Exchange(..)
   , Market(..), Market'
   , Identical(..)
   , Indexed(..)
+  , Context(..), Context'
+  , ContextT(..), ContextT', contextT
+  , Bazaar(..), Bazaar', bazaar
+  , BazaarT(..), BazaarT', bazaarT
+  , Sellable(..)
   ) where
 
 import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Arrow as Arrow
-import qualified Control.Category
-import Control.Category (Category)
+import Control.Category
 import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Monad
@@ -92,6 +93,7 @@ import Data.Profunctor.Corepresentable
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
+import Prelude hiding ((.),id)
 
 {-# ANN module "HLint: ignore Use >=>" #-}
 {-# ANN module "HLint: ignore Redundant lambda" #-}
@@ -243,13 +245,20 @@ instance Settable Mutator where
 
 -- | This class permits overloading of function application for things that
 -- also admit a notion of a key or index.
-class (Profunctor p, Prismatic p, Lenticular p, ArrowLoop p, ArrowChoice p, RepresentableProfunctor p, CorepresentableProfunctor p) => Indexable i p where
+class (Profunctor p, Prismatic p, Lenticular p, Distrib p, ArrowLoop p, ArrowChoice p, RepresentableProfunctor p, CorepresentableProfunctor p) => Indexable i p where
   -- | Build a function from an 'Indexed' function
-  indexed   :: p a b -> i -> a -> b
+  indexed :: p a b -> i -> a -> b
 
 instance Indexable i (->) where
   indexed = const
   {-# INLINE indexed #-}
+
+class Distrib p where
+  distrib :: Functor f => p a b -> p (f a) (f b)
+
+instance Distrib (->) where
+  distrib = fmap
+  {-# INLINE distrib #-}
 
 -----------------------------------------------------------------------------
 -- Strict Composition
@@ -581,103 +590,10 @@ getMax NoMax   = Nothing
 getMax (Max a) = Just a
 {-# INLINE getMax #-}
 
--- | The indexed store can be used to characterize a 'Control.Lens.Lens.Lens'
--- and is used by 'Control.Lens.Lens.clone'
---
--- @'Context' a b t@ is isomorphic to
--- @newtype Context a b t = Context { runContext :: forall f. Functor f => (a -> f b) -> f t }@,
--- and to @exists s. (s, 'Control.Lens.Lens.Lens' s t a b)@.
---
--- A 'Context' is like a 'Control.Lens.Lens.Lens' that has already been applied to a some structure.
-data Context a b t = Context (b -> t) a
 
-instance Functor (Context a b) where
-  fmap f (Context g t) = Context (f . g) t
-  {-# INLINE fmap #-}
-
-instance (a ~ b) => Comonad (Context a b) where
-  extract   (Context f a) = f a
-  {-# INLINE extract #-}
-  duplicate (Context f a) = Context (Context f) a
-  {-# INLINE duplicate #-}
-  extend g  (Context f a) = Context (g . Context f) a
-  {-# INLINE extend #-}
-
-instance (a ~ b) => ComonadStore a (Context a b) where
-  pos (Context _ a) = a
-  {-# INLINE pos #-}
-  peek b (Context g _) = g b
-  {-# INLINE peek #-}
-  peeks f (Context g a) = g (f a)
-  {-# INLINE peeks #-}
-  seek a (Context g _) = Context g a
-  {-# INLINE seek #-}
-  seeks f (Context g a) = Context g (f a)
-  {-# INLINE seeks #-}
-  experiment f (Context g a) = g <$> f a
-  {-# INLINE experiment #-}
-
--- | @type 'Context'' a s = 'Context' a a s@
-type Context' a = Context a a
-
--- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
---
--- a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed 'FunList'.
---
--- <http://twanvl.nl/blog/haskell/non-regular1>
---
--- @'Bazaar' a b t@ is isomorphic to @data Bazaar a b t = Buy t | Trade (Bazaar a b (b -> t)) a@,
--- and to @exists s. (s, 'Control.Lens.Traversal.Traversal' s t a b)@.
---
--- A 'Bazaar' is like a 'Control.Lens.Traversal.Traversal' that has already been applied to some structure.
---
--- Where a @'Context' a b t@ holds an @a@ and a function from @b@ to
--- @t@, a @'Bazaar' a b t@ holds N @a@s and a function from N
--- @b@s to @t@.
---
--- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
---
--- This is a final encoding of 'Bazaar'.
-newtype Bazaar p a b t = Bazaar { runBazaar :: forall f. Applicative f => p a (f b) -> f t }
-
-instance Functor (Bazaar p a b) where
-  fmap f (Bazaar k) = Bazaar (fmap f . k)
-  {-# INLINE fmap #-}
-
-instance Applicative (Bazaar p a b) where
-  pure a = Bazaar (\_ -> pure a)
-  {-# INLINE pure #-}
-  Bazaar mf <*> Bazaar ma = Bazaar (\k -> mf k <*> ma k)
-  {-# INLINE (<*>) #-}
-
-instance (a ~ b, p ~ (->)) => Comonad (Bazaar p a b) where
-  extract (Bazaar m) = runIdentity (m Identity)
-  {-# INLINE extract #-}
-  duplicate = duplicateBazaar
-  {-# INLINE duplicate #-}
-
-instance (a ~ b, p ~ (->)) => ComonadApply (Bazaar p a b) where
-  (<@>) = (<*>)
-  {-# INLINE (<@>) #-}
-
--- | Given an action to run for each matched pair, traverse a bazaar.
---
--- @'bazaar' :: 'Control.Lens.Traversal.Traversal' ('Bazaar' a b t) t a b@
-bazaar :: Applicative f => p a (f b) -> Bazaar p a b t -> f t
-bazaar afb (Bazaar m) = m afb
-{-# INLINE bazaar #-}
-
--- | 'Bazaar' is an indexed 'Comonad'.
-duplicateBazaar :: Bazaar (->)  a c t -> Bazaar (->) a b (Bazaar (->) b c t)
-duplicateBazaar (Bazaar m) = getCompose (m (Compose . fmap sell . sell))
-{-# INLINE duplicateBazaar #-}
-
-sell :: RepresentableProfunctor p => p a (Bazaar p a b b)
-sell = tabulatePro $ \ w -> Bazaar $ \k -> indexPro k w
-{-# INLINE sell #-}
-
--- | @type 'Bazaar'' p a s = 'Bazaar' p a a s@
-type Bazaar' p a = Bazaar p a a
+------------------------------------------------------------------------------
+-- Effect
+------------------------------------------------------------------------------
 
 -- | Wrap a monadic effect with a phantom type argument.
 newtype Effect m r a = Effect { getEffect :: m r }
@@ -758,49 +674,6 @@ instance Monad Mutator where
   {-# INLINE return #-}
   Mutator x >>= f = f x
   {-# INLINE (>>=) #-}
-
--- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance
--- To protect this instance it relies on the soundness of another 'Gettable' type, and usage conventions.
---
--- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
--- must be a better way!
---
-newtype BazaarT (p :: * -> * -> *) (g :: * -> *) a b t = BazaarT { runBazaarT :: forall f. Applicative f => p a (f b) -> f t }
-
-instance Functor (BazaarT p g a b) where
-  fmap f (BazaarT k) = BazaarT (fmap f . k)
-  {-# INLINE fmap #-}
-
-instance Applicative (BazaarT p g a b) where
-  pure a = BazaarT (\_ -> pure a)
-  {-# INLINE pure #-}
-  BazaarT mf <*> BazaarT ma = BazaarT (\k -> mf k <*> ma k)
-  {-# INLINE (<*>) #-}
-
-instance (a ~ b, p ~ (->)) => Comonad (BazaarT p g a b) where
-  extract (BazaarT m) = runIdentity (m Identity)
-  {-# INLINE extract #-}
-  duplicate = duplicateBazaarT
-  {-# INLINE duplicate #-}
-
--- | @type 'BazaarT'' p g a s = 'BazaarT' p g a a s@
-type BazaarT' p g a = BazaarT p g a a
-
--- | Extract from a 'BazaarT'.
---
--- @'bazaarT' = 'flip' 'runBazaarT'@
-bazaarT :: Applicative f => p a (f b) -> BazaarT p g a b t -> f t
-bazaarT afb (BazaarT m) = m afb
-{-# INLINE bazaarT #-}
-
--- | 'BazaarT' is an indexed 'Comonad'.
-duplicateBazaarT :: BazaarT (->) f a c t -> BazaarT (->) f a b (BazaarT (->) f b c t)
-duplicateBazaarT (BazaarT m) = getCompose (m (Compose . fmap sellT . sellT))
-{-# INLINE duplicateBazaarT #-}
-
-sellT :: RepresentableProfunctor p => p a (BazaarT p g a b b)
-sellT = tabulatePro $ \ w -> BazaarT $ \k -> indexPro k w
-{-# INLINE sellT #-}
 
 ------------------------------------------------------------------------------
 -- Isomorphism and Prism Internals
@@ -979,3 +852,205 @@ instance ArrowLoop (Indexed i) where
 instance i ~ j => Indexable i (Indexed j) where
   indexed = runIndexed
   {-# INLINE indexed #-}
+
+instance Distrib (Indexed i) where
+  distrib (Indexed iab) = Indexed (\i fa -> iab i <$> fa)
+  {-# INLINE distrib #-}
+
+------------------------------------------------------------------------------
+-- Context
+------------------------------------------------------------------------------
+
+-- | The indexed store can be used to characterize a 'Control.Lens.Lens.Lens'
+-- and is used by 'Control.Lens.Lens.clone'
+--
+-- @'Context' a b t@ is isomorphic to
+-- @newtype Context a b t = Context { runContext :: forall f. Functor f => (a -> f b) -> f t }@,
+-- and to @exists s. (s, 'Control.Lens.Lens.Lens' s t a b)@.
+--
+-- A 'Context' is like a 'Control.Lens.Lens.Lens' that has already been applied to a some structure.
+data Context a b t = Context (b -> t) a
+
+instance Functor (Context a b) where
+  fmap f (Context g t) = Context (f . g) t
+  {-# INLINE fmap #-}
+
+instance (a ~ b) => Comonad (Context a b) where
+  extract   (Context f a) = f a
+  {-# INLINE extract #-}
+  duplicate (Context f a) = Context (Context f) a
+  {-# INLINE duplicate #-}
+  extend g  (Context f a) = Context (g . Context f) a
+  {-# INLINE extend #-}
+
+instance (a ~ b) => ComonadStore a (Context a b) where
+  pos (Context _ a) = a
+  {-# INLINE pos #-}
+  peek b (Context g _) = g b
+  {-# INLINE peek #-}
+  peeks f (Context g a) = g (f a)
+  {-# INLINE peeks #-}
+  seek a (Context g _) = Context g a
+  {-# INLINE seek #-}
+  seeks f (Context g a) = Context g (f a)
+  {-# INLINE seeks #-}
+  experiment f (Context g a) = g <$> f a
+  {-# INLINE experiment #-}
+
+-- | @type 'Context'' a s = 'Context' a a s@
+type Context' a = Context a a
+
+------------------------------------------------------------------------------
+-- Bazaar
+------------------------------------------------------------------------------
+
+-- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
+--
+-- a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed 'FunList'.
+--
+-- <http://twanvl.nl/blog/haskell/non-regular1>
+--
+-- @'Bazaar' a b t@ is isomorphic to @data Bazaar a b t = Buy t | Trade (Bazaar a b (b -> t)) a@,
+-- and to @exists s. (s, 'Control.Lens.Traversal.Traversal' s t a b)@.
+--
+-- A 'Bazaar' is like a 'Control.Lens.Traversal.Traversal' that has already been applied to some structure.
+--
+-- Where a @'Context' a b t@ holds an @a@ and a function from @b@ to
+-- @t@, a @'Bazaar' a b t@ holds N @a@s and a function from N
+-- @b@s to @t@.
+--
+-- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
+--
+-- This is a final encoding of 'Bazaar'.
+newtype Bazaar p a b t = Bazaar { runBazaar :: forall f. Applicative f => p a (f b) -> f t }
+
+instance Functor (Bazaar p a b) where
+  fmap f (Bazaar k) = Bazaar (fmap f . k)
+  {-# INLINE fmap #-}
+
+instance Applicative (Bazaar p a b) where
+  pure a = Bazaar $ \_ -> pure a
+  {-# INLINE pure #-}
+  Bazaar mf <*> Bazaar ma = Bazaar $ \k -> mf k <*> ma k
+  {-# INLINE (<*>) #-}
+
+instance (a ~ b, Distrib p, RepresentableProfunctor p, Category p) => Comonad (Bazaar p a b) where
+  extract (Bazaar m) = runIdentity $ m (lmap Identity id)
+  {-# INLINE extract #-}
+  duplicate (Bazaar m) = getCompose $ m (rmap Compose (distrib sell) . sell)
+  {-# INLINE duplicate #-}
+
+instance (a ~ b, p ~ (->)) => ComonadApply (Bazaar p a b) where
+  (<@>) = (<*>)
+  {-# INLINE (<@>) #-}
+
+-- | Given an action to run for each matched pair, traverse a bazaar.
+--
+-- @'bazaar' :: 'Control.Lens.Traversal.Traversal' ('Bazaar' a b t) t a b@
+bazaar :: Applicative f => p a (f b) -> Bazaar p a b t -> f t
+bazaar afb (Bazaar m) = m afb
+{-# INLINE bazaar #-}
+
+-- | @type 'Bazaar'' p a s = 'Bazaar' p a a s@
+type Bazaar' p a = Bazaar p a a
+
+------------------------------------------------------------------------------
+-- ContextT
+------------------------------------------------------------------------------
+
+data ContextT p (g :: * -> *) a b t = ContextT { runContextT :: forall f. Functor f => p a (f b) -> f t }
+
+instance Functor (ContextT p g a b) where
+  fmap f (ContextT k) = ContextT (fmap f . k)
+  {-# INLINE fmap #-}
+
+instance (a ~ b, Distrib p, RepresentableProfunctor p, Arrow p) => Comonad (ContextT p g a b) where
+  extract (ContextT m) = runIdentity $ m (arr Identity)
+  {-# INLINE extract #-}
+  duplicate (ContextT m) = getCompose $ m (rmap Compose (distrib sell) . sell)
+  {-# INLINE duplicate #-}
+
+-- | @type 'ContextT'' p g a s = 'ContextT' p g a a s@
+type ContextT' p g a = ContextT p g a a
+
+instance (a ~ b, Distrib p, RepresentableProfunctor p, Arrow p) => ComonadStore a (ContextT p g a b) where
+  pos (ContextT m) = getConst $ m (arr Const)
+  {-# INLINE pos #-}
+  peek a (ContextT m) = runIdentity $ m $ arr (\_ -> Identity a)
+  {-# INLINE peek #-}
+  peeks f (ContextT m) = runIdentity $ m $ arr (Identity . f)
+  {-# INLINE peeks #-}
+  seek a (ContextT m) = ContextT (m . lmap (const a))
+  {-# INLINE seek #-}
+  seeks f (ContextT m) = ContextT (m . lmap f)
+  {-# INLINE seeks #-}
+  experiment f (ContextT m) = m (arr f)
+  {-# INLINE experiment #-}
+
+-- | Extract from a 'ContextT'.
+--
+-- @'contextT' = 'flip' 'runContextT'@
+contextT :: Applicative f => p a (f b) -> ContextT p g a b t -> f t
+contextT afb (ContextT m) = m afb
+{-# INLINE contextT #-}
+
+------------------------------------------------------------------------------
+-- BazaarT
+------------------------------------------------------------------------------
+
+-- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance
+-- To protect this instance it relies on the soundness of another 'Gettable' type, and usage conventions.
+--
+-- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
+-- must be a better way!
+--
+newtype BazaarT p (g :: * -> *) a b t = BazaarT { runBazaarT :: forall f. Applicative f => p a (f b) -> f t }
+
+instance Functor (BazaarT p g a b) where
+  fmap f (BazaarT k) = BazaarT (fmap f . k)
+  {-# INLINE fmap #-}
+
+instance Applicative (BazaarT p g a b) where
+  pure a = BazaarT (\_ -> pure a)
+  {-# INLINE pure #-}
+  BazaarT mf <*> BazaarT ma = BazaarT (\k -> mf k <*> ma k)
+  {-# INLINE (<*>) #-}
+
+instance (a ~ b, Distrib p, RepresentableProfunctor p, Category p) => Comonad (BazaarT p g a b) where
+  extract (BazaarT m) = runIdentity (m (lmap Identity id))
+  {-# INLINE extract #-}
+  duplicate (BazaarT m) = getCompose (m (rmap Compose (distrib sell) . sell))
+  {-# INLINE duplicate #-}
+
+-- | @type 'BazaarT'' p g a s = 'BazaarT' p g a a s@
+type BazaarT' p g a = BazaarT p g a a
+
+-- | Extract from a 'BazaarT'.
+--
+-- @'bazaarT' = 'flip' 'runBazaarT'@
+bazaarT :: Applicative f => p a (f b) -> BazaarT p g a b t -> f t
+bazaarT afb (BazaarT m) = m afb
+{-# INLINE bazaarT #-}
+
+------------------------------------------------------------------------------
+-- Sellable
+------------------------------------------------------------------------------
+
+class RepresentableProfunctor p => Sellable p k | k -> p where
+  sell :: p a (k a b b)
+
+instance RepresentableProfunctor p => Sellable p (Bazaar p) where
+  sell = tabulatePro $ \ w -> Bazaar $ \k -> indexPro k w
+  {-# INLINE sell #-}
+
+instance RepresentableProfunctor p => Sellable p (BazaarT p g) where
+  sell = tabulatePro $ \ w -> BazaarT $ \k -> indexPro k w
+  {-# INLINE sell #-}
+
+instance Sellable (->) Context where
+  sell = Context id
+  {-# INLINE sell #-}
+
+instance RepresentableProfunctor p => Sellable p (ContextT p g) where
+  sell = tabulatePro $ \ w -> ContextT $ \k -> indexPro k w
+  {-# INLINE sell #-}
