@@ -502,7 +502,7 @@ holesOn = holesOf
 -- 'holesOnOf' :: 'Lens'' s a      -> 'Lens'' a a      -> s -> ['Context' a a s]
 -- 'holesOnOf' :: 'Traversal'' s a -> 'Traversal'' a a -> s -> ['Context' a a s]
 -- @
-holesOnOf :: LensLike (Bazaar r r) s t a b -> LensLike (Bazaar r r) a b r r -> s -> [Context r r t]
+holesOnOf :: LensLike (Bazaar (->) r r) s t a b -> LensLike (Bazaar (->) r r) a b r r -> s -> [Context r r t]
 holesOnOf b l = holesOf (b.l)
 {-# INLINE holesOnOf #-}
 

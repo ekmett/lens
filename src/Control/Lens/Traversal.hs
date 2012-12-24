@@ -49,6 +49,7 @@ module Control.Lens.Traversal
     Traversal, Traversal'
   , IndexedTraversal, IndexedTraversal'
   , ATraversal, ATraversal'
+  , AnIndexedTraversal, AnIndexedTraversal'
   , Traversing, Traversing'
 
   -- * Traversing and Lensing
@@ -91,7 +92,9 @@ module Control.Lens.Traversal
 
   -- ** Combinators
   , ipartsOf
+  , ipartsOf'
   , iunsafePartsOf
+  , iunsafePartsOf'
   , itraverseOf
   , iforOf
   , imapMOf
@@ -119,7 +122,6 @@ import Data.IntMap as IntMap
 import Data.Map as Map
 import Data.Traversable
 import Data.Tuple (swap)
-import Data.Profunctor.Representable
 
 -- $setup
 -- >>> import Control.Lens
@@ -129,10 +131,14 @@ import Data.Profunctor.Representable
 ------------------------------------------------------------------------------
 
 -- | When you see this as an argument to a function, it expects a 'Traversal'.
-type ATraversal s t a b = LensLike (Bazaar a b) s t a b
+type ATraversal s t a b = LensLike (Bazaar (->) a b) s t a b
 
 -- | @type 'ATraversal'' = 'Simple' 'ATraversal'@
 type ATraversal' s a = ATraversal s s a a
+
+type AnIndexedTraversal i s t a b = LensLike (Bazaar (Indexed i) a b) s t a b
+
+type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
 
 -- | When you see this as an argument to a function, it expects
 --
@@ -346,7 +352,7 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 {-# INLINE scanl1Of #-}
 
 -- | This 'Traversal' allows you to 'traverse' the individual stores in a 'Bazaar'.
-loci :: Traversal (Bazaar a c s) (Bazaar b c s) a b
+loci :: Traversal (Bazaar (->) a c s) (Bazaar (->) b c s) a b
 loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafeOuts w
 {-# INLINE loci #-}
 
@@ -387,6 +393,13 @@ partsOf' :: ATraversal s t a a -> Lens s t [a] [a]
 partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 {-# INLINE partsOf' #-}
 
+-- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
+ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Overloading (Indexed i) (->) (Bazaar' (Indexed i) a) s t a a -> Overloading p (->) f s t [a] [a]
+ipartsOf' l f s = outs b <$> indexed f (is :: [i]) as where
+  (is,as) = unzip (iins b)
+  b = l sell s
+{-# INLINE ipartsOf' #-}
+
 -- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
 --
 -- If you do not need the types of @s@ and @t@ to be different, it is recommended that
@@ -421,6 +434,12 @@ iunsafePartsOf l f s = unsafeOutsT b <$> indexed f (is :: [i]) as where
 unsafePartsOf' :: ATraversal s t a b -> Lens s t [a] [b]
 unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 {-# INLINE unsafePartsOf' #-}
+
+iunsafePartsOf' :: forall i p s t a b. Indexable [i] p => Overloading (Indexed i) (->) (Bazaar (Indexed i) a b) s t a b -> IndexedLens [i] s t [a] [b]
+iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
+  (is,as) = unzip (iins b)
+  b = l sell s
+{-# INLINE iunsafePartsOf' #-}
 
 -- | The one-level version of 'contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
 --
@@ -482,23 +501,31 @@ unsafeSingular l f = unsafePartsOf l $ \xs -> case xs of
 ------------------------------------------------------------------------------
 -- Internal functions used by 'partsOf', 'holesOf', etc.
 ------------------------------------------------------------------------------
-ins :: Bazaar a b t -> [a]
+
+-- TODO: make unify ins and iins using Rep p a
+ins :: Bazaar (->) a b t -> [a]
 ins = toListOf bazaar
 {-# INLINE ins #-}
 
-outs :: Bazaar' a t -> [a] -> t
+iins :: Bazaar (Indexed i) a b t -> [(i, a)]
+iins = itoListOf bazaar
+{-# INLINE iins #-}
+
+outs :: Arrow p => Bazaar' p a t -> [a] -> t
+outs b = evalState $ runBazaar b $ arr $
 #if MIN_VERSION_mtl(2,1,1)
-outs = evalState . bazaar (State.state . unconsWithDefault)
+  State.state . unconsWithDefault
 #else
-outs = evalState . bazaar (\oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r)
+  \oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r)
 #endif
 {-# INLINE outs #-}
 
-unsafeOuts :: Bazaar a b t -> [b] -> t
+unsafeOuts :: Arrow p => Bazaar p a b t -> [b] -> t
+unsafeOuts b = evalState $ runBazaar b $ arr $
 #if MIN_VERSION_mtl(2,1,1)
-unsafeOuts = evalState . bazaar (\_ -> State.state (unconsWithDefault fakeVal))
+  \_ -> State.state (unconsWithDefault fakeVal)
 #else
-unsafeOuts = evalState . bazaar (\_-> do (r,s) <- State.gets (unconsWithDefault fakeVal); State.put s; return r)
+  \_-> do (r,s) <- State.gets (unconsWithDefault fakeVal); State.put s; return r
 #endif
   where fakeVal = error "unsafePartsOf': not enough elements were supplied"
 {-# INLINE unsafeOuts #-}
@@ -512,19 +539,20 @@ iinsT = itoListOf bazaarT
 {-# INLINE iinsT #-}
 
 outsT :: Arrow p => BazaarT' p f a t -> [a] -> t
+outsT b = evalState $ runBazaarT b $ arr $
 #if MIN_VERSION_mtl(2,1,1)
-outsT b = evalState $ runBazaarT b $ arr $ State.state . unconsWithDefault
+  State.state . unconsWithDefault
 #else
-outsT b = evalState $ runBazaarT b $ arr $ \oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r
+  \oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r
 #endif
 {-# INLINE outsT #-}
 
--- unsafeOutsT :: RepresentableProfunctor p => BazaarT p f a b t -> [b] -> t
 unsafeOutsT :: Arrow p => BazaarT p f a b t -> [b] -> t
+unsafeOutsT b = evalState $ runBazaarT b $ arr $
 #if MIN_VERSION_mtl(2,1,1)
-unsafeOutsT b = evalState $ runBazaarT b $ arr $ \ _ -> State.state (unconsWithDefault fakeVal)
+  \ _ -> State.state (unconsWithDefault fakeVal)
 #else
-unsafeOutsT b = evalState $ runBazaarT b $ arr $ \ _ -> do (r,s) <- State.gets (unconsWithDefault fakeVal); State.put s; return r
+  \ _ -> do (r,s) <- State.gets (unconsWithDefault fakeVal); State.put s; return r
 #endif
   where fakeVal = error "unsafePartsOf: not enough elements were supplied"
 {-# INLINE unsafeOutsT #-}

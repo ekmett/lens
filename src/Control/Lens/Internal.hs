@@ -41,8 +41,6 @@ module Control.Lens.Internal
   , Indexable(..)
   -- ** Strict Composition
   , NewtypeComposition(..)
-  -- ** Sellable
-  , Sellable(..)
   -- * Internal Types
   , May(..)
   , Effect(..)
@@ -66,7 +64,7 @@ module Control.Lens.Internal
   , Mutator(..)
   , Context(..), Context'
   , Bazaar(..), Bazaar', bazaar, duplicateBazaar, sell
-  , BazaarT(..), BazaarT', bazaarT, duplicateBazaarT, Sellable(..)
+  , BazaarT(..), BazaarT', bazaarT, duplicateBazaarT, sellT
   , Review(..)
   , Exchange(..)
   , Market(..), Market'
@@ -245,16 +243,12 @@ instance Settable Mutator where
 
 -- | This class permits overloading of function application for things that
 -- also admit a notion of a key or index.
-class Profunctor p => Indexable i p where
+class (Profunctor p, Prismatic p, Lenticular p, ArrowLoop p, ArrowChoice p, RepresentableProfunctor p, CorepresentableProfunctor p) => Indexable i p where
   -- | Build a function from an 'Indexed' function
   indexed   :: p a b -> i -> a -> b
 
-  -- | Build an 'indexed' function that ignores the index.
-  unindexed :: (a -> b) -> p a b
-
 instance Indexable i (->) where
   indexed = const
-  unindexed = id
   {-# INLINE indexed #-}
 
 -----------------------------------------------------------------------------
@@ -644,47 +638,46 @@ type Context' a = Context a a
 -- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
 --
 -- This is a final encoding of 'Bazaar'.
-newtype Bazaar a b t = Bazaar { runBazaar :: forall f. Applicative f => (a -> f b) -> f t }
+newtype Bazaar p a b t = Bazaar { runBazaar :: forall f. Applicative f => p a (f b) -> f t }
 
-instance Functor (Bazaar a b) where
+instance Functor (Bazaar p a b) where
   fmap f (Bazaar k) = Bazaar (fmap f . k)
   {-# INLINE fmap #-}
 
-instance Applicative (Bazaar a b) where
+instance Applicative (Bazaar p a b) where
   pure a = Bazaar (\_ -> pure a)
   {-# INLINE pure #-}
   Bazaar mf <*> Bazaar ma = Bazaar (\k -> mf k <*> ma k)
   {-# INLINE (<*>) #-}
 
-instance (a ~ b) => Comonad (Bazaar a b) where
+instance (a ~ b, p ~ (->)) => Comonad (Bazaar p a b) where
   extract (Bazaar m) = runIdentity (m Identity)
   {-# INLINE extract #-}
   duplicate = duplicateBazaar
   {-# INLINE duplicate #-}
 
+instance (a ~ b, p ~ (->)) => ComonadApply (Bazaar p a b) where
+  (<@>) = (<*>)
+  {-# INLINE (<@>) #-}
+
 -- | Given an action to run for each matched pair, traverse a bazaar.
 --
 -- @'bazaar' :: 'Control.Lens.Traversal.Traversal' ('Bazaar' a b t) t a b@
-bazaar :: Applicative f => (a -> f b) -> Bazaar a b t -> f t
+bazaar :: Applicative f => p a (f b) -> Bazaar p a b t -> f t
 bazaar afb (Bazaar m) = m afb
 {-# INLINE bazaar #-}
 
 -- | 'Bazaar' is an indexed 'Comonad'.
-duplicateBazaar :: Bazaar a c t -> Bazaar a b (Bazaar b c t)
+duplicateBazaar :: Bazaar (->)  a c t -> Bazaar (->) a b (Bazaar (->) b c t)
 duplicateBazaar (Bazaar m) = getCompose (m (Compose . fmap sell . sell))
 {-# INLINE duplicateBazaar #-}
 
--- | A trivial 'Bazaar'.
-sell :: a -> Bazaar a b b
-sell i = Bazaar (\k -> k i)
+sell :: RepresentableProfunctor p => p a (Bazaar p a b b)
+sell = tabulatePro $ \ w -> Bazaar $ \k -> indexPro k w
 {-# INLINE sell #-}
 
--- | @type 'Bazaar'' a s = 'Bazaar' a a s@
-type Bazaar' a = Bazaar a a
-
-instance a ~ b => ComonadApply (Bazaar a b) where
-  (<@>) = (<*>)
-  {-# INLINE (<@>) #-}
+-- | @type 'Bazaar'' p a s = 'Bazaar' p a a s@
+type Bazaar' p a = Bazaar p a a
 
 -- | Wrap a monadic effect with a phantom type argument.
 newtype Effect m r a = Effect { getEffect :: m r }
@@ -805,15 +798,9 @@ duplicateBazaarT :: BazaarT (->) f a c t -> BazaarT (->) f a b (BazaarT (->) f b
 duplicateBazaarT (BazaarT m) = getCompose (m (Compose . fmap sellT . sellT))
 {-# INLINE duplicateBazaarT #-}
 
-class Sellable p where
-  sellT :: p a (BazaarT p f a b b)
-
-instance Sellable (->) where
-  sellT a = BazaarT (\k -> k a)
-  {-# INLINE sellT #-}
-
-instance Sellable (Indexed i) where
-  sellT = Indexed $ \i a -> BazaarT $ \k -> runIndexed k i a
+sellT :: RepresentableProfunctor p => p a (BazaarT p g a b b)
+sellT = tabulatePro $ \ w -> BazaarT $ \k -> indexPro k w
+{-# INLINE sellT #-}
 
 ------------------------------------------------------------------------------
 -- Isomorphism and Prism Internals
@@ -992,5 +979,3 @@ instance ArrowLoop (Indexed i) where
 instance i ~ j => Indexable i (Indexed j) where
   indexed = runIndexed
   {-# INLINE indexed #-}
-  unindexed ab = Indexed $ \(_ :: j) a -> ab a
-  {-# INLINE unindexed #-}
