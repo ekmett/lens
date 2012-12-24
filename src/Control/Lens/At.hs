@@ -33,6 +33,7 @@ module Control.Lens.At
   , ixEach
   -- * Indexed Traversal
   , Ixed(ix)
+  , IxKey, IxValue
   -- * Deprecated
   , _at
   , contains
