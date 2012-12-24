@@ -144,7 +144,7 @@ type ATraversal' s a = ATraversal s s a a
 --
 --  * a 'Getter' if  @f@ is only 'Gettable'
 --
---  * a 'Lens' if @p@ is @(->)@ is only a 'Functor'
+--  * a 'Lens' if @p@ is only a 'Functor'
 --
 --  * a 'Fold' if 'f' is 'Gettable' and 'Applicative'.
 type Traversing p f s t a b = Overloading p (->) (BazaarT p f a b) s t a b

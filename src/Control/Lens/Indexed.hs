@@ -147,8 +147,8 @@ icompose ijk istr jabst cab = istr . Indexed $ \i -> jabst . Indexed $ \j -> ind
 -- Instances must satisfy a modified form of the 'Functor' laws:
 --
 -- @
--- 'imap' f '.' 'imap' g ≡ 'imap' (\i -> f i . g i)
--- 'imap' (\_ a -> a) ≡ 'id'
+-- 'imap' f '.' 'imap' g ≡ 'imap' (\\i -> f i . g i)
+-- 'imap' (\\_ a -> a) ≡ 'id'
 -- @
 class Functor f => FunctorWithIndex i f | f -> i where
   -- | Map with access to the index.
@@ -378,7 +378,7 @@ indices f = coerce . (getFolding #. ifoldMap (\i _ -> Folding (f i)))
 --
 -- @
 -- 'itraverse' ('const' 'Data.Functor.Identity.Identity') ≡ 'Data.Functor.Identity.Identity'
--- 'fmap' ('itraverse' f) '.' 'itraverse' g ≡ 'getCompose' '.' 'itraverse' (\i -> 'Compose' '.' 'fmap' (f i) '.' g i)
+-- 'fmap' ('itraverse' f) '.' 'itraverse' g ≡ 'getCompose' '.' 'itraverse' (\\i -> 'Compose' '.' 'fmap' (f i) '.' g i)
 -- @
 class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => TraversableWithIndex i t | t -> i where
   -- | Traverse an indexed container.
