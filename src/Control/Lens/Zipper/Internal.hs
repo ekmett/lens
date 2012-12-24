@@ -348,7 +348,7 @@ tugTo n z = case compare k n of
 -- 'downward' :: 'Iso'' s a  -> (h :> s) -> h :> s :> a
 -- @
 downward :: ALens' s a -> (h :> s) -> h :> s :> a
-downward l (Zipper h n ls s rs) = case l (Context id) s of
+downward l (Zipper h n ls s rs) = case context (l sell s) of
   Context k a -> Zipper (Snoc h (cloneLens l) n ls (k . head) rs) 0 [] a []
 {-# INLINE downward #-}
 

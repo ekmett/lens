@@ -61,6 +61,8 @@ module Control.Lens.Lens
     Lens, Lens'
   -- ** Concrete Lenses
   , ALens, ALens'
+  -- ** Implemented with Context
+  , Loupe, Loupe'
 
   -- * Combinators
   , lens
@@ -68,6 +70,8 @@ module Control.Lens.Lens
 
   -- * Indexed
   , IndexedLens, IndexedLens'
+  , AnIndexedLens, AnIndexedLens'
+
   , (%%@~), (%%@=)
   , (<%@~), (<%@=)
 
@@ -100,7 +104,6 @@ module Control.Lens.Lens
   ) where
 
 import Control.Applicative
-import Control.Comonad.Store as Store
 import Control.Lens.Combinators
 import Control.Lens.Internal
 import Control.Lens.Type
@@ -127,11 +130,43 @@ infixr 2 <<~
 -- Lenses
 -------------------------------------------------------------------------------
 
+-- |
+-- A @'Loupe' s t a b@ is almost a 'Lens'. It can be composed on the left of other lenses,
+-- you can use 'cloneLens' to promote it to a 'Lens', and it provides a minimalist lens-like
+-- interface. They can be used in an API where you need to pass around lenses inside containers
+-- or as monadic results. Unlike a 'ReifiedLens' they can be composed and used directly, but
+-- they are slightly lower performance.
+
+-- 1) You get back what you put in:
+--
+-- @'Control.Lens.Setter.set' l b a '^#' l ≡ b@
+--
+-- 2) Putting back what you got doesn't change anything:
+--
+-- @'storing' l (a '^#' l) a  ≡ a@
+--
+-- 3) Setting twice is the same as setting once:
+--
+-- @'storing' l c ('storing' l b a) ≡ 'storing' l c a@
+--
+-- These laws are strong enough that the 4 type parameters of a 'Loupe' cannot
+-- vary fully independently. For more on how they interact, read the \"Why is
+-- it a Lens Family?\" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
+
+type Loupe s t a b = LensLike (Context a b) s t a b
+
+-- | @type 'Loupe'' = 'Simple' 'Loupe'@
+type Loupe' s a = Loupe s s a a
+
 -- | When you see this as an argument to a function, it expects a 'Lens'.
-type ALens s t a b = LensLike (Context a b) s t a b
+type ALens s t a b = LensLike (Pretext (->) a b) s t a b
 
 -- | @type 'ALens'' = 'Simple' 'ALens'@
 type ALens' s a = ALens s s a a
+
+type AnIndexedLens i s t a b = LensLike (Pretext (Indexed i) a b) s t a b
+
+type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 
 --------------------------
 -- Constructing Lenses
@@ -225,8 +260,10 @@ l %%= f = do
 --
 inside :: ALens s t a b -> Lens (e -> s) (e -> t) (e -> a) (e -> b)
 inside l f es = o <$> f i where
-  i e = case l (Context id) (es e) of Context _ a -> a
-  o ea e = case l (Context id) (es e) of Context k _ -> k (ea e)
+  i e = ipos (l sell (es e))
+  o ea e = ipeek (ea e) (l sell (es e))
+--  i e = case l (Context id) (es e) of Context _ a -> a
+--  o ea e = case l (Context id) (es e) of Context k _ -> k (ea e)
 {-# INLINE inside #-}
 
 -- | Merge two lenses, getters, setters, folds or traversals.
@@ -277,27 +314,29 @@ chosen f (Right a) = Right <$> f a
 -- (Left c,Right d)
 --
 -- @'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')@
-alongside :: ALens s t a b -> ALens s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
+alongside :: Loupe s t a b -> Loupe s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
 alongside l r f (s, s') = case l (Context id) s of
   Context bt a -> case r (Context id) s' of
     Context bt' a' -> f (a,a') <&> \(b,b') -> (bt b, bt' b')
 {-# INLINE alongside #-}
 
--- | This 'Lens' lets you 'view' the current 'pos' of any 'Store'
--- 'Comonad' and 'seek' to a new position. This reduces the API
--- for working with a 'ComonadStore' instances to a single 'Lens'.
+-- | This 'Lens' lets you 'view' the current 'pos' of any indexed
+-- store comonad and 'seek' to a new position. This reduces the API
+-- for working these instances to a single 'Lens'.
 --
 -- @
--- 'pos' w ≡ w '^.' 'locus'
--- 'seek' s w ≡ w '&' 'locus' '.~' s
--- 'seeks' f w ≡ w '&' 'locus' '%~' f
+-- 'ipos' w ≡ w '^.' 'locus'
+-- 'iseek' s w ≡ w '&' 'locus' '.~' s
+-- 'iseeks' f w ≡ w '&' 'locus' '%~' f
 -- @
 --
 -- @
 -- 'locus' :: 'Lens'' ('Context'' a s) a
+-- 'locus' :: 'Lens'' ('Pretext'' p a s) a
+-- 'locus' :: 'Lens'' ('PretextT'' p g a s) a
 -- @
-locus :: ComonadStore a w => Lens' (w s) a
-locus f w = (`seek` w) <$> f (pos w)
+locus :: Contextual p => Lens (p a c s) (p b c s) a b
+locus f w = (`iseek` w) <$> f (ipos w)
 {-# INLINE locus #-}
 
 -------------------------------------------------------------------------------
@@ -314,9 +353,12 @@ locus f w = (`seek` w) <$> f (pos w)
 -- >>> let example l x = set (cloneLens l) (x^.cloneLens l + 1) x in example _2 ("hello",1,"you")
 -- ("hello",2,"you")
 cloneLens :: ALens s t a b -> Lens s t a b
+cloneLens l afb s = runPretext (l sell s) afb
+{-# INLINE cloneLens #-}
+{-
 cloneLens f afb s = case f (Context id) s of
   Context bt a -> bt <$> afb a
-{-# INLINE cloneLens #-}
+-}
 
 -------------------------------------------------------------------------------
 -- Setting and Remembering
@@ -661,7 +703,7 @@ l <<.= b = l %%= \a -> (a,b)
 (<<~) :: MonadState s m => ALens s s a b -> m b -> m b
 l <<~ mb = do
   b <- mb
-  modify $ \s -> case l (Context id) s of Context f _ -> f b
+  modify $ \s -> ipeek b (l sell s)
   return b
 {-# INLINE (<<~) #-}
 

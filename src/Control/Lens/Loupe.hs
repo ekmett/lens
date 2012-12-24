@@ -34,7 +34,7 @@ module Control.Lens.Loupe
 
 import Control.Applicative       as Applicative
 import Control.Lens.Internal
-import Control.Lens.Type
+import Control.Lens.Lens
 import Control.Monad.State.Class as State
 
 -- $setup
@@ -47,34 +47,6 @@ infix  4 <#=, #=, #%=, <#%=, #%%=
 -------------------------------------------------------------------------------
 -- Lenses
 -------------------------------------------------------------------------------
-
--- |
--- A @'Loupe' s t a b@ is almost a 'Lens'. It can be composed on the left of other lenses,
--- you can use 'cloneLens' to promote it to a 'Lens', and it provides a minimalist lens-like
--- interface. They can be used in an API where you need to pass around lenses inside containers
--- or as monadic results. Unlike a 'ReifiedLens' they can be composed and used directly, but
--- they are slightly lower performance.
-
--- 1) You get back what you put in:
---
--- @'Control.Lens.Setter.set' l b a '^#' l ≡ b@
---
--- 2) Putting back what you got doesn't change anything:
---
--- @'storing' l (a '^#' l) a  ≡ a@
---
--- 3) Setting twice is the same as setting once:
---
--- @'storing' l c ('storing' l b a) ≡ 'storing' l c a@
---
--- These laws are strong enough that the 4 type parameters of a 'Loupe' cannot
--- vary fully independently. For more on how they interact, read the \"Why is
--- it a Lens Family?\" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
-
-type Loupe s t a b = LensLike (Context a b) s t a b
-
--- | @type 'Loupe'' = 'Simple' 'Loupe'@
-type Loupe' s a = Loupe s s a a
 
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Getter.^.')

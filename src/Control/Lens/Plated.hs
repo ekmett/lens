@@ -441,8 +441,8 @@ contextsOf :: ATraversal' a a -> a -> [Context a a a]
 contextsOf l x = Context id x : f (holesOf l x) where
   f xs = do
     Context ctx child <- xs
-    Context context y <- contextsOf l child
-    return $ Context (ctx . context) y
+    Context cont y <- contextsOf l child
+    return $ Context (ctx . cont) y
 {-# INLINE contextsOf #-}
 
 -- | Return a list of all of the editable contexts for every location in the structure in an areas indicated by a user supplied 'Traversal', recursively using 'plate'.
@@ -462,8 +462,8 @@ contextsOnOf :: ATraversal s t a a -> ATraversal' a a -> s -> [Context a a t]
 contextsOnOf b l = f . holesOf b where
   f xs = do
     Context ctx child <- xs
-    Context context y <- contextsOf l child
-    return $ Context (ctx . context) y
+    Context cont y <- contextsOf l child
+    return $ Context (ctx . cont) y
 {-# INLINE contextsOnOf #-}
 
 -- | The one-level version of 'context'. This extracts a list of the immediate children as editable contexts.

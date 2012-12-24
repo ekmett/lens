@@ -504,11 +504,11 @@ unsafeSingular l f = unsafePartsOf l $ \xs -> case xs of
 
 -- TODO: make unify ins and iins using Rep p a
 ins :: Bazaar (->) a b t -> [a]
-ins = toListOf bazaar
+ins = toListOf (flip runBazaar)
 {-# INLINE ins #-}
 
 iins :: Bazaar (Indexed i) a b t -> [(i, a)]
-iins = itoListOf bazaar
+iins = itoListOf (flip runBazaar)
 {-# INLINE iins #-}
 
 outs :: Arrow p => Bazaar' p a t -> [a] -> t
@@ -531,11 +531,11 @@ unsafeOuts b = evalState $ runBazaar b $ arr $
 {-# INLINE unsafeOuts #-}
 
 insT :: BazaarT (->) f a b t -> [a]
-insT = toListOf bazaarT
+insT = toListOf (flip runBazaarT)
 {-# INLINE insT #-}
 
 iinsT :: BazaarT (Indexed i) f a b t -> [(i, a)]
-iinsT = itoListOf bazaarT
+iinsT = itoListOf (flip runBazaarT)
 {-# INLINE iinsT #-}
 
 outsT :: Arrow p => BazaarT' p f a t -> [a] -> t
@@ -639,7 +639,7 @@ dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> i `seq` (if i >= 
 --
 -- @'cloneTraversal' :: 'LensLike' ('Bazaar' a b) s t a b -> 'Traversal' s t a b@
 cloneTraversal :: ATraversal s t a b -> Traversal s t a b
-cloneTraversal l f = bazaar f . l sell
+cloneTraversal l f s = runBazaar (l sell s) f
 {-# INLINE cloneTraversal #-}
 
 ------------------------------------------------------------------------------
