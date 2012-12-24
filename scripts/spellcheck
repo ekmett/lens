@@ -1,0 +1,6 @@
+#!/bin/bash
+set -eu
+
+# The <() is a bashism.
+xargs -a <(git ls-tree -r -z --name-only --full-name HEAD) -0 -n 1 -t -- \
+      aspell check --lang=en --encoding=UTF-8 --run-together --dont-backup --

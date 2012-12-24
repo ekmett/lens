@@ -20,3 +20,12 @@
 [Gource]: http://code.google.com/p/gource/
 [avconv]: http://libav.org/avconv.html
 [MP4Box]: http://gpac.wp.mines-telecom.fr/mp4box/
+
+## Spellcheck
+
+```console
+% scripts/spellcheck
+```
+
+* `spellcheck` grabs a list of files in the repository using Git and runs
+  [aspell][] against them. (TODO: only spellcheck comments from Haskell files.)
