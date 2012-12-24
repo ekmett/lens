@@ -393,7 +393,7 @@ partsOf' :: ATraversal s t a a -> Lens s t [a] [a]
 partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 {-# INLINE partsOf' #-}
 
--- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
+-- | A type-restricted version of 'ipartsOf' that can only be used with an 'IndexedTraversal'.
 ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Overloading (Indexed i) (->) (Bazaar' (Indexed i) a) s t a a -> Overloading p (->) f s t [a] [a]
 ipartsOf' l f s = outs b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (iins b)
