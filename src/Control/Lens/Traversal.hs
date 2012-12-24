@@ -90,6 +90,8 @@ module Control.Lens.Traversal
   , elements
 
   -- ** Combinators
+  , ipartsOf
+  , iunsafePartsOf
   , itraverseOf
   , iforOf
   , imapMOf
@@ -103,6 +105,7 @@ module Control.Lens.Traversal
   , loci
   ) where
 
+import Control.Arrow
 import Control.Applicative            as Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Combinators
@@ -116,6 +119,7 @@ import Data.IntMap as IntMap
 import Data.Map as Map
 import Data.Traversable
 import Data.Tuple (swap)
+import Data.Profunctor.Representable
 
 -- $setup
 -- >>> import Control.Lens
@@ -143,7 +147,7 @@ type ATraversal' s a = ATraversal s s a a
 --  * a 'Lens' if @p@ is @(->)@ is only a 'Functor'
 --
 --  * a 'Fold' if 'f' is 'Gettable' and 'Applicative'.
-type Traversing p f s t a b = LensLike (BazaarT p f a b) s t a b
+type Traversing p f s t a b = Overloading p (->) (BazaarT p f a b) s t a b
 
 -- | @type 'Traversing'' f = 'Simple' ('Traversing' f)@
 type Traversing' p f s a = Traversing p f s s a a
@@ -371,6 +375,13 @@ partsOf :: Functor f => Traversing (->) f s t a a -> LensLike f s t [a] [a]
 partsOf l f s = outsT b <$> f (insT b) where b = l sellT s
 {-# INLINE partsOf #-}
 
+-- | An indexed version of 'partsOf' that receives the entire list of indices as its index.
+ipartsOf :: forall i p f s t a. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a a -> Overloading p (->) f s t [a] [a]
+ipartsOf l f s = outsT b <$> indexed f (is :: [i]) as where
+  (is,as) = unzip (iinsT b)
+  b = l sellT s
+{-# INLINE ipartsOf #-}
+
 -- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
 partsOf' :: ATraversal s t a a -> Lens s t [a] [a]
 partsOf' l f s = outs b <$> f (ins b) where b = l sell s
@@ -399,6 +410,13 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 unsafePartsOf :: Functor f => Traversing (->) f s t a b -> LensLike f s t [a] [b]
 unsafePartsOf l f s = unsafeOutsT b <$> f (insT b) where b = l sellT s
 {-# INLINE unsafePartsOf #-}
+
+-- | An indexed version of 'unsafePartsOf' that receives the entire list of indices as its index.
+iunsafePartsOf :: forall i p f s t a b. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a b -> Overloading p (->) f s t [a] [b]
+iunsafePartsOf l f s = unsafeOutsT b <$> indexed f (is :: [i]) as where
+  (is,as) = unzip (iinsT b)
+  b = l sellT s
+{-# INLINE iunsafePartsOf #-}
 
 unsafePartsOf' :: ATraversal s t a b -> Lens s t [a] [b]
 unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
@@ -476,7 +494,6 @@ outs = evalState . bazaar (\oldVal -> do (r,s) <- State.gets (unconsWithDefault 
 #endif
 {-# INLINE outs #-}
 
-
 unsafeOuts :: Bazaar a b t -> [b] -> t
 #if MIN_VERSION_mtl(2,1,1)
 unsafeOuts = evalState . bazaar (\_ -> State.state (unconsWithDefault fakeVal))
@@ -494,19 +511,20 @@ iinsT :: BazaarT (Indexed i) f a b t -> [(i, a)]
 iinsT = itoListOf bazaarT
 {-# INLINE iinsT #-}
 
-outsT :: BazaarT' (->) f a t -> [a] -> t
+outsT :: Arrow p => BazaarT' p f a t -> [a] -> t
 #if MIN_VERSION_mtl(2,1,1)
-outsT = evalState . bazaarT (State.state . unconsWithDefault)
+outsT b = evalState $ runBazaarT b $ arr $ State.state . unconsWithDefault
 #else
-outsT = evalState . bazaarT (\oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r)
+outsT b = evalState $ runBazaarT b $ arr $ \oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r
 #endif
 {-# INLINE outsT #-}
 
-unsafeOutsT :: BazaarT (->) f a b t -> [b] -> t
+-- unsafeOutsT :: RepresentableProfunctor p => BazaarT p f a b t -> [b] -> t
+unsafeOutsT :: Arrow p => BazaarT p f a b t -> [b] -> t
 #if MIN_VERSION_mtl(2,1,1)
-unsafeOutsT = evalState . bazaarT (\_ -> State.state (unconsWithDefault fakeVal))
+unsafeOutsT b = evalState $ runBazaarT b $ arr $ \ _ -> State.state (unconsWithDefault fakeVal)
 #else
-unsafeOutsT = evalState . bazaarT (\_-> do (r,s) <- State.gets (unconsWithDefault fakeVal); State.put s; return r)
+unsafeOutsT b = evalState $ runBazaarT b $ arr $ \ _ -> do (r,s) <- State.gets (unconsWithDefault fakeVal); State.put s; return r
 #endif
   where fakeVal = error "unsafePartsOf: not enough elements were supplied"
 {-# INLINE unsafeOutsT #-}

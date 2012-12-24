@@ -1,9 +1,11 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -39,6 +41,8 @@ module Control.Lens.Internal
   , Indexable(..)
   -- ** Strict Composition
   , NewtypeComposition(..)
+  -- ** Sellable
+  , Sellable(..)
   -- * Internal Types
   , May(..)
   , Effect(..)
@@ -62,7 +66,7 @@ module Control.Lens.Internal
   , Mutator(..)
   , Context(..), Context'
   , Bazaar(..), Bazaar', bazaar, duplicateBazaar, sell
-  , BazaarT(..), BazaarT', bazaarT, duplicateBazaarT, sellT
+  , BazaarT(..), BazaarT', bazaarT, duplicateBazaarT, Sellable(..)
   , Review(..)
   , Exchange(..)
   , Market(..), Market'
@@ -85,6 +89,8 @@ import Data.Functor.Identity
 import Data.Int
 import Data.Monoid
 import Data.Profunctor
+import Data.Profunctor.Representable
+import Data.Profunctor.Corepresentable
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
@@ -241,10 +247,14 @@ instance Settable Mutator where
 -- also admit a notion of a key or index.
 class Profunctor p => Indexable i p where
   -- | Build a function from an 'Indexed' function
-  indexed :: p a b -> i -> a -> b
+  indexed   :: p a b -> i -> a -> b
+
+  -- | Build an 'indexed' function that ignores the index.
+  unindexed :: (a -> b) -> p a b
 
 instance Indexable i (->) where
   indexed = const
+  unindexed = id
   {-# INLINE indexed #-}
 
 -----------------------------------------------------------------------------
@@ -795,10 +805,15 @@ duplicateBazaarT :: BazaarT (->) f a c t -> BazaarT (->) f a b (BazaarT (->) f b
 duplicateBazaarT (BazaarT m) = getCompose (m (Compose . fmap sellT . sellT))
 {-# INLINE duplicateBazaarT #-}
 
--- | A trivial 'BazaarT'.
-sellT :: a -> BazaarT (->) f a b b -- use corepresentable instead?
-sellT a = BazaarT (\k -> k a)
-{-# INLINE sellT #-}
+class Sellable p where
+  sellT :: p a (BazaarT p f a b b)
+
+instance Sellable (->) where
+  sellT a = BazaarT (\k -> k a)
+  {-# INLINE sellT #-}
+
+instance Sellable (Indexed i) where
+  sellT = Indexed $ \i a -> BazaarT $ \k -> runIndexed k i a
 
 ------------------------------------------------------------------------------
 -- Isomorphism and Prism Internals
@@ -914,6 +929,20 @@ instance Profunctor (Indexed i) where
   rmap bc iab = Indexed (\i -> bc . runIndexed iab i)
   {-# INLINE rmap #-}
 
+instance RepresentableProfunctor (Indexed i) where
+  type Rep (Indexed i) = (,) i
+  tabulatePro = Indexed . curry
+  {-# INLINE tabulatePro #-}
+  indexPro = uncurry . runIndexed
+  {-# INLINE indexPro #-}
+
+instance CorepresentableProfunctor (Indexed i) where
+  type Corep (Indexed i) = (->) i
+  cotabulatePro = Indexed . flip
+  {-# INLINE cotabulatePro #-}
+  coindexPro = flip . runIndexed
+  {-# INLINE coindexPro #-}
+
 instance Prismatic (Indexed i) where
   prismatic (Indexed iab) = Indexed (either id . iab)
   {-# INLINE prismatic #-}
@@ -963,3 +992,5 @@ instance ArrowLoop (Indexed i) where
 instance i ~ j => Indexable i (Indexed j) where
   indexed = runIndexed
   {-# INLINE indexed #-}
+  unindexed ab = Indexed $ \(_ :: j) a -> ab a
+  {-# INLINE unindexed #-}
