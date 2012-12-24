@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+
+image_dir="$1"; shift
+audio="$1"; shift
+base="$1"; shift
+
+gource --viewport '1920x1080!' --stop-at-end --seconds-per-day 2 \
+       --user-image-dir "$image_dir" --multi-sampling --no-vsync \
+       --max-user-speed 100 --hide mouse,progress --output-ppm-stream - \
+       --output-framerate 30 | \
+avconv -y \
+       -r:v 30 -f:v image2pipe -codec:v ppm -i:v - \
+       -i:a "$audio" \
+       -codec:v libx264 -pre:v ultrafast -crf:v 18 -codec:a copy \
+       -threads auto -shortest "$base.temp.mp4"
+
+MP4Box -inter 500 "$base.temp.mp4"
+
+mv -f "$base.temp.mp4" "$base.mp4"

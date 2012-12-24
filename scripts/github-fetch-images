@@ -1,0 +1,158 @@
+#!/usr/bin/env runhaskell
+
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
+module Main (main) where
+
+import           Prelude                      hiding (catch)
+
+import           Control.Applicative          ((<$>))
+import           Control.Exception            (IOException, catch)
+import           Control.Lens
+import           Control.Monad                (forM_)
+import           Control.Monad.IO.Class       (liftIO)
+import           Control.Monad.Trans.Resource (register)
+import           Data.Aeson
+import           Data.Conduit                 (ResourceT, ($$+-))
+import           Data.Conduit.Binary          (sinkFile)
+import           Data.Data                    (Data, Typeable)
+import           Data.Data.Lens               (uniplate)
+import           Data.List                    (delete)
+import qualified Data.Map                     as Map
+import qualified Data.Text.Lens               as T
+import           Network.HTTP.Conduit
+import           Network.HTTP.Types           (hContentType, parseQuery,
+                                               renderQuery)
+import           Network.Socket               (withSocketsDo)
+import           System.Environment           (getArgs, getProgName)
+import           System.Exit                  (exitFailure)
+import           System.FilePath              ((</>))
+import           System.IO                    (hPutStrLn, stderr)
+import           System.Posix.Files           (createSymbolicLink, removeLink,
+                                               rename)
+
+-- Evil orphan instance.
+deriving instance Data Value
+
+data Env = Env { envManager     :: Manager
+               , envLookupNames :: String -> Maybe [String]
+               , envOutputDir   :: String
+               }
+  deriving (Typeable)
+
+data Author = Author { authorLogin    :: String
+                     , authorImageURI :: String
+                     }
+  deriving (Eq, Ord, Show, Read, Typeable, Data)
+
+main :: IO ()
+main = withSocketsDo . withManager $ \man -> do
+  args <- liftIO getArgs
+  case args of
+    [jsonUri, nameMapPath, outputDir] -> do
+      namesList <- liftIO $ readIO =<< readFile nameMapPath
+
+      liftIO $ putStrLn ("Downloading: " ++ show jsonUri)
+      jsonReq  <- parseUrl jsonUri
+      jsonData <- responseBody <$> httpLbs jsonReq man
+      jsonDec  <- either fail return (eitherDecode jsonData)
+
+      let namesMap = Map.fromList namesList
+          env = Env { envManager     = man
+                    , envLookupNames = (`Map.lookup` namesMap)
+                    , envOutputDir   = outputDir
+                    }
+
+      mapM_ (downloadImage env) (jsonAuthors jsonDec)
+
+    _ -> liftIO $ do
+      name <- getProgName
+      hPutStrLn stderr . unlines
+        $ [ "USAGE: " ++ name ++ " <JSON-URI> <name-map-path> <output-dir>"
+          , ""
+          , "An example of JSON-URI: https://github.com/ekmett/lens/graphs/contributors-data"
+          ]
+      exitFailure
+
+jsonAuthors :: Value -> [Author]
+jsonAuthors val =
+  [ Author (login ^. unpacked) (gravatar ^. unpacked)
+  | Object obj      <- universeOf uniplate val
+  , String login    <- obj ^.. ix "login"
+  , String gravatar <- obj ^.. ix "gravatar"
+  ]
+  where
+    unpacked = from T.packed
+
+downloadImage :: Env -> Author -> ResourceT IO ()
+downloadImage (Env {..}) (Author {..}) =
+  case envLookupNames authorLogin of
+    Nothing ->
+      liftIO $ hPutStrLn stderr ("Unrecognized login: " ++ show authorLogin)
+
+    Just names -> do
+      liftIO $ putStrLn ("Downloading: " ++ show loginBase ++ ", " ++ show names)
+
+      req <- modImageReq <$> parseUrl authorImageURI
+      Response _ _ headers src <- http req envManager
+
+      suffix <-
+        case lookup hContentType headers of
+          Just "image/jpeg" -> return ".jpeg"
+          Just "image/png"  -> return ".png"
+          t -> fail ("Unhandled Content-Type: " ++ show t)
+
+      let loginImage      = loginBase   ++ suffix
+          loginImageD     = loginBaseD  ++ suffix
+          loginImageTempD = loginImageD ++ tempSuffix
+
+      -- Download.
+      _ <- register $ unlinkIfExists loginImageTempD
+      src $$+- sinkFile loginImageTempD
+
+      liftIO $ do
+        unlinkIfExists loginImageD
+        rename loginImageTempD loginImageD
+
+        -- Delete potential old versions with other suffixes.
+        forM_ (delete suffix suffixes) $ \otherSuf -> do
+          unlinkIfExists (loginBaseD ++ otherSuf)
+          forM_ names $ \name -> unlinkIfExists (envOutputDir </> name ++ otherSuf)
+
+        -- Link names to the login.
+        forM_ names $ \name -> do
+          let nameD = envOutputDir </> name ++ suffix
+          unlinkIfExists nameD
+          createSymbolicLink loginImage nameD
+  where
+    loginBase  = "github-" ++ authorLogin
+    loginBaseD = envOutputDir </> loginBase
+    suffixes   = [".jpeg", ".png"]
+    tempSuffix = ".temp"
+
+    unlinkIfExists path =
+      removeLink path `catch` \(_ :: IOException) -> return ()
+
+-- | Change/set the image size to 512 and the fallback image to identicon.
+modImageReq :: Request m -> Request m
+modImageReq req =
+  req & zipper
+
+      -- Request m :-> ByteString
+      & downward (lens queryString (\req' qs -> req' { queryString = qs }))
+
+      -- ByteString :<-> Map ByteString (Maybe ByteString)
+      & downward (iso parseQuery (renderQuery False) . wrapping Map.fromList)
+
+      & focus . at "s" ?~ Just "512"
+      & focus . at "d" ?~ Just "identicon"
+
+      & rezip
