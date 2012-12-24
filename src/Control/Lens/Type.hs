@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE KindSignatures #-}
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Type
@@ -328,7 +329,7 @@ type Prism' s a = Prism s s a a
 -------------------------------------------------------------------------------
 
 -- | A witness that @(a ~ s, b ~ t)@
-type Equality s t a b = forall p f. p a (f b) -> p s (f t)
+type Equality s t a b = forall p (f :: * -> *). p a (f b) -> p s (f t)
 
 -- | A 'Simple' 'Equality'
 type Equality' s a = Equality s s a a
