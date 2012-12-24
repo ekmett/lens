@@ -15,6 +15,6 @@ avconv -y \
        -codec:v libx264 -pre:v ultrafast -crf:v 18 -codec:a copy \
        -threads auto -shortest "$base.temp.mp4"
 
-MP4Box -inter 500 "$base.temp.mp4"
+MP4Box -inter 500 -tmp "$(dirname "$base")" "$base.temp.mp4"
 
 mv -f "$base.temp.mp4" "$base.mp4"
