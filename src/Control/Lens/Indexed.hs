@@ -319,10 +319,7 @@ iconcatMap = ifoldMap
 --
 -- @'find' ≡ 'ifind' '.' 'const'@
 ifind :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Maybe (i, a)
-ifind p = getFirst . ifoldMap step where
-  step i c
-    | p i c     = First $ Just (i, c)
-    | otherwise = First Nothing
+ifind p = ifoldr (\i a y -> if p i a then Just (i, a) else y) Nothing
 {-# INLINE ifind #-}
 
 -- | Monadic fold right over the elements of a structure with an index.

@@ -790,8 +790,8 @@ lengthOf l = getSum #. foldMapOf l (\_ -> Sum 1)
 -- ('^?') :: s -> 'Iso'' s a       -> 'Maybe' a
 -- ('^?') :: s -> 'Traversal'' s a -> 'Maybe' a
 -- @
-(^?) :: s -> Getting (First a) s t a b -> Maybe a
-a ^? l = getFirst (foldMapOf l (First #. Just) a)
+(^?) :: s -> Getting (Endo (Maybe a)) s t a b -> Maybe a
+s ^? l = foldrOf l (\x _ -> Just x) Nothing s
 {-# INLINE (^?) #-}
 
 -- | Perform an *UNSAFE* 'head' of a 'Fold' or 'Traversal' assuming that it is there.
@@ -803,8 +803,8 @@ a ^? l = getFirst (foldMapOf l (First #. Just) a)
 -- ('^?!') :: s -> 'Iso'' s a       -> a
 -- ('^?!') :: s -> 'Traversal'' s a -> a
 -- @
-(^?!) :: s -> Getting (First a) s t a b -> a
-a ^?! l = fromMaybe (error "(^?!): empty Fold") $ getFirst (foldMapOf l (First #. Just) a)
+(^?!) :: s -> Getting (Endo a) s t a b -> a
+s ^?! l = foldrOf l (\x _ -> x) (error "(^?!): empty Fold") s
 {-# INLINE (^?!) #-}
 
 -- | Retrieve the 'First' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
@@ -971,11 +971,8 @@ minimumByOf l cmp = foldrOf l step Nothing where
 -- 'findOf' :: 'Lens'' s a      -> (a -> 'Bool') -> s -> 'Maybe' a
 -- 'findOf' :: 'Traversal'' s a -> (a -> 'Bool') -> s -> 'Maybe' a
 -- @
-findOf :: Getting (First a) s t a b -> (a -> Bool) -> s -> Maybe a
-findOf l p = getFirst #. foldMapOf l step where
-  step a
-    | p a       = First (Just a)
-    | otherwise = First Nothing
+findOf :: Getting (Endo (Maybe a)) s t a b -> (a -> Bool) -> s -> Maybe a
+findOf l p = foldrOf l (\a y -> if p a then Just a else y) Nothing
 {-# INLINE findOf #-}
 
 -- |
@@ -1445,11 +1442,8 @@ iconcatMapOf = ifoldMapOf
 -- 'ifindOf' :: 'IndexedLens'' s a      -> (i -> a -> 'Bool') -> s -> 'Maybe' (i, a)
 -- 'ifindOf' :: 'IndexedTraversal'' s a -> (i -> a -> 'Bool') -> s -> 'Maybe' (i, a)
 -- @
-ifindOf :: IndexedGetting i (First (i, a)) s t a b -> (i -> a -> Bool) -> s -> Maybe (i, a)
-ifindOf l p = getFirst #. ifoldMapOf l step where
-  step i a
-    | p i a     = First $ Just (i, a)
-    | otherwise = First Nothing
+ifindOf :: IndexedGetting i (Endo (Maybe (i, a))) s t a b -> (i -> a -> Bool) -> s -> Maybe (i, a)
+ifindOf l p = ifoldrOf l (\i a y -> if p i a then Just (i, a) else y) Nothing
 {-# INLINE ifindOf #-}
 
 -- | /Strictly/ fold right over the elements of a structure with an index.
@@ -1560,8 +1554,8 @@ s ^@.. l = ifoldrOf l (\i a -> ((i,a):)) [] s
 -- ('^@?') :: s -> 'Iso'' i s a          -> 'Maybe' (i, a)
 -- ('^@?') :: s -> 'Traversal'' i s a    -> 'Maybe' (i, a)
 -- @
-(^@?) :: s -> IndexedGetting i (First (i, a)) s t a b -> Maybe (i, a)
-s ^@? l = getFirst $ ifoldMapOf l (\i a -> First (Just (i,a))) s
+(^@?) :: s -> IndexedGetting i (Endo (Maybe (i, a))) s t a b -> Maybe (i, a)
+s ^@? l = ifoldrOf l (\i x _ -> Just (i,x)) Nothing s
 {-# INLINE (^@?) #-}
 
 -- | Perform an *UNSAFE* 'head' (with index) of an 'IndexedFold' or 'IndexedTraversal' assuming that it is there.
@@ -1573,8 +1567,8 @@ s ^@? l = getFirst $ ifoldMapOf l (\i a -> First (Just (i,a))) s
 -- ('^@?!') :: s -> 'Iso'' i s a          -> (i, a)
 -- ('^@?!') :: s -> 'Traversal'' i s a    -> (i, a)
 -- @
-(^@?!) :: s -> IndexedGetting i (First (i, a)) s t a b -> (i, a)
-s ^@?! l = fromMaybe (error "(^@?!): empty Fold") $ getFirst $ ifoldMapOf l (\i a -> First (Just (i,a))) s
+(^@?!) :: s -> IndexedGetting i (Endo (i, a)) s t a b -> (i, a)
+s ^@?! l = ifoldrOf l (\i x _ -> (i,x)) (error "(^@?!): empty Fold") s
 {-# INLINE (^@?!) #-}
 
 -------------------------------------------------------------------------------
