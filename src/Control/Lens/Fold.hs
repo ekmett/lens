@@ -90,6 +90,7 @@ module Control.Lens.Fold
   , (^@?!)
 
   -- ** Indexed Folding
+  , whereby
   , ifoldMapOf
   , ifoldrOf
   , ifoldlOf
@@ -1625,6 +1626,8 @@ ifiltering :: (Applicative f, Indexable i p)
 ifiltering p l f = l . Indexed $ \ i c -> if p i c then indexed f i c else pure c
 {-# INLINE ifiltering #-}
 
+whereby :: Applicative f => (i -> Bool) -> Overloading' (Indexed i) (Indexed i) f a a
+whereby p f = Indexed $ \i a -> if p i then indexed f i a else pure a
 
 -- | Obtain an 'IndexedFold' by taking elements from another
 -- 'IndexedFold', 'IndexedLens',

@@ -182,6 +182,7 @@ library
     Control.Lens.Action
     Control.Lens.At
     Control.Lens.Combinators
+    Control.Lens.Compression
     Control.Lens.Each
     Control.Lens.Equality
     Control.Lens.Fold
