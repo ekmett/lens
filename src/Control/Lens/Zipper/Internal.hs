@@ -90,7 +90,7 @@ startl :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
 -- startl p0 (Ap m (Leaf a) r) kp = kp (ApL m p0 r) a -- Unrolled: The list case.
 startl p0 c0 kn kp = go p0 c0 where
   go p (Ap m nl nr l r)
-    | nl          = go (ApR m nl nr l p) r
+    | nullLeft l  = go (ApR m nl nr l p) r
     | otherwise   = go (ApL m nl nr p r) l
   go p (Leaf a)   = kp p a
   go _ Pure       = kn
@@ -100,7 +100,7 @@ startr :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
 -- startr p0 (Leaf a) kp = kp p0 a                       -- Unrolled: The lens case.
 startr p0 c0 kn kp = go p0 c0 where
   go p (Ap m nl nr l r)
-     | nr           = go (ApL m nl nr p r) l
+     | nullRight r = go (ApL m nl nr p r) l
      | otherwise   = go (ApR m nl nr l p) r
   go p (Leaf a)    = kp p a
   go _ Pure        = kn
@@ -111,7 +111,7 @@ movel p0 c0 kn kp = go p0 c0 where
   go Start _       = kn
   go (ApR m nl nr l q) r
     | nr          = go q (Ap m nl nr l r)
-    | otherwise   = startr (ApL m nl nr q r) l (error "movel: empty non-empty branch") kp
+    | otherwise   = startr (ApL m nl nr q r) l kn kp
   go (ApL m nl nr p r) l = go p (Ap m nl nr l r)
 {-# INLINE movel #-}
 
@@ -120,7 +120,7 @@ mover p0 c0 kn kp = go p0 c0 where
   go Start _         = kn
   go (ApL m nl nr q r) l
     | nl          = go q (Ap m nl nr l r)
-    | otherwise   = startl (ApR m nl nr l q) r (error "mover: empty non-empty branch") kp
+    | otherwise   = startl (ApR m nl nr l q) r kn kp
   go (ApR m nl nr l p) r = go p (Ap m nl nr l r)
 {-# INLINE mover #-}
 

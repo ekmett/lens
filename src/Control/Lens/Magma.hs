@@ -5,6 +5,8 @@ module Control.Lens.Magma
   , magmaIns
   , magmaOuts
   , magma
+  , nullLeft
+  , nullRight
   ) where
 
 import Control.Applicative
