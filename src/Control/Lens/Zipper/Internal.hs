@@ -76,8 +76,8 @@ pathsize = go 1 where
 -- (Ap (Leaf y) ...)). It should be safe to delete any of these cases.
 
 recompressLeaf :: Path a -> a -> Magma a
--- recompressLeaf Start a           = Leaf a              -- Unrolled: The lens case.
--- recompressLeaf (ApL m Start r) a = Ap m (Leaf a) r     -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
+recompressLeaf Start a           = Leaf a                      -- Unrolled: The lens case.
+recompressLeaf (ApL m nl nr Start r) a = Ap m nl nr (Leaf a) r -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
 recompressLeaf p a = recompress p (Leaf a)
 {-# INLINE recompressLeaf #-}
 
@@ -89,8 +89,8 @@ recompress (ApR m nl nr l q) r = recompress q (Ap m nl nr l r)
 
 -- walk down the compressed tree to the leftmost child.
 startl :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
--- startl p0 (Leaf a) kp          = kp p0 a           -- Unrolled: The lens case.
--- startl p0 (Ap m (Leaf a) r) kp = kp (ApL m p0 r) a -- Unrolled: The list case.
+startl p0 (Leaf a) _ kp                = kp p0 a                 -- Unrolled: The lens case.
+startl p0 (Ap m nl nr (Leaf a) r) _ kp = kp (ApL m nl nr p0 r) a -- Unrolled: The list case. (Is this one a good idea?)
 startl p0 c0 kn kp = go p0 c0 where
   go p (Ap m nl nr l r)
     | nullLeft l  = go (ApR m nl nr l p) r
@@ -100,7 +100,7 @@ startl p0 c0 kn kp = go p0 c0 where
 {-# INLINE startl #-}
 
 startr :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
--- startr p0 (Leaf a) kp = kp p0 a                       -- Unrolled: The lens case.
+startr p0 (Leaf a) _ kp = kp p0 a -- Unrolled: The lens case.
 startr p0 c0 kn kp = go p0 c0 where
   go p (Ap m nl nr l r)
      | nullRight r = go (ApL m nl nr p r) l
@@ -259,7 +259,7 @@ leftward (Zipper h p a) = movel p (Leaf a) mzero $ \q b -> return (Zipper h q b)
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
 -- "hella"
 leftmost :: (a :> b) -> a :> b
-leftmost (Zipper h p a) = startl Start (recompress p a) (error "leftmost: bad Magma structure") (Zipper h)
+leftmost (Zipper h p a) = startl Start (recompressLeaf p a) (error "leftmost: bad Magma structure") (Zipper h)
 {-# INLINE leftmost #-}
 
 -- | Move to the rightmost position of the current 'Traversal'.
@@ -269,7 +269,7 @@ leftmost (Zipper h p a) = startl Start (recompress p a) (error "leftmost: bad Ma
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
 -- "jelly"
 rightmost :: (a :> b) -> a :> b
-rightmost (Zipper h p a) = startr Start (recompress p a) (error "rightmost: bad Magma structure") (Zipper h)
+rightmost (Zipper h p a) = startr Start (recompressLeaf p a) (error "rightmost: bad Magma structure") (Zipper h)
 {-# INLINE rightmost #-}
 
 -- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'zipper'. This
