@@ -54,17 +54,20 @@ instance Functor Path where
   fmap f (ApL m n p q) = ApL m n (fmap f p) (fmap f q)
   fmap f (ApR m n p q) = ApR m n (fmap f p) (fmap f q)
   fmap _ Start = Start
+  {-# INLINE fmap #-}
 
 offset :: Path a -> Int
 offset Start         = 0
 offset (ApL _ _ q _) = offset q
 offset (ApR _ _ l q) = size l + offset q
+{-# INLINE offset #-}
 
 pathsize :: Path a -> Int
 pathsize = go 1 where
   go n Start = n
   go _ (ApL n _ p _) = go n p
   go _ (ApR n _ _ p) = go n p
+{-# INLINE pathsize #-}
 
 recompress :: Path a -> a -> Compressed a
 recompress p a = go p (Leaf a) where
