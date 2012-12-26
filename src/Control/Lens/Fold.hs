@@ -1626,6 +1626,8 @@ ifiltering :: (Applicative f, Indexable i p)
 ifiltering p l f = l . Indexed $ \ i c -> if p i c then indexed f i c else pure c
 {-# INLINE ifiltering #-}
 
+-- | This allows you to filter an 'IndexedFold', 'IndexedGetter', 'IndexedTraversal' or 'IndexedLens' based on an index.
+--
 whereby :: Applicative f => (i -> Bool) -> Overloading' (Indexed i) (Indexed i) f a a
 whereby p f = Indexed $ \i a -> if p i then indexed f i a else pure a
 
