@@ -568,22 +568,3 @@ restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs rightward n >>> with
 unsafelyRestoreTrack :: Track h a -> Zipped h a -> h :> a
 unsafelyRestoreTrack Track = zipper
 unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> tugs rightward n >>> fromWithin l
-
------------------------------------------------------------------------------
--- * Helper functions
------------------------------------------------------------------------------
-
--- | Reverse a list.
---
--- GHC doesn't optimize @reverse []@ into @[]@, so we'll nudge it with our own
--- reverse function.
---
--- This is relevant when descending into a lens, for example -- we know the
--- unzipped part of the level will be empty.
-reverseList :: [a] -> [a]
-reverseList [] = []
-reverseList (x:xs) = go [x] xs
-  where
-    go a [] = a
-    go a (y:ys) = go (y:a) ys
-{-# INLINE reverseList #-}
