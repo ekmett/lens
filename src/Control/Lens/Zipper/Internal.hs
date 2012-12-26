@@ -108,6 +108,18 @@ mover p0 c0 kn kp = go p0 c0 where
   go (ApR m n l p) r = go p (Ap m n l r)
 {-# INLINE mover #-}
 
+rightmostPath :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
+rightmostPath p0 c0 kn kp = go p0 c0 where
+  go (ApL m n q r) l = go q (Ap m n l r)
+  go p c             = startr p c kn kp
+{-# INLINE rightmostPath #-}
+
+leftmostPath :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
+leftmostPath p0 c0 kn kp = go p0 c0 where
+  go (ApR m n l p) r = go p (Ap m n l r)
+  go p c             = startl p c kn kp
+{-# INLINE leftmostPath #-}
+
 -----------------------------------------------------------------------------
 -- * Zippers
 -----------------------------------------------------------------------------
@@ -240,7 +252,7 @@ leftward (Zipper h p a) = movel p (Leaf a) mzero $ \q b -> return (Zipper h q b)
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
 -- "hella"
 leftmost :: (a :> b) -> a :> b
-leftmost = farthest leftward
+leftmost (Zipper h p a) = leftmostPath p (Leaf a) (error "leftmost: bad Compressed structure") (Zipper h)
 {-# INLINE leftmost #-}
 
 -- | Move to the rightmost position of the current 'Traversal'.
@@ -250,7 +262,7 @@ leftmost = farthest leftward
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
 -- "jelly"
 rightmost :: (a :> b) -> a :> b
-rightmost = farthest rightward
+rightmost (Zipper h p a) = rightmostPath p (Leaf a) (error "rightmost: bad Compressed structure") (Zipper h)
 {-# INLINE rightmost #-}
 
 -- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'zipper'. This
