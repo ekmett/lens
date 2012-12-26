@@ -69,7 +69,7 @@ instance Applicative (Decompression e) where
   pure a = Decompression $ \ _ _ -> a
   Decompression mf <*> Decompression ma = Decompression $ \ d s -> case s of
     Ap _ n l r | d == n      ->          mf 0  l (ma 0  r)
-    _          | d' <- d + 1 -> d'` seq` mf d' s (ma d' s)
+    _          | d' <- d + 1 -> d' `seq` mf d' s (ma d' s)
 
 compressedOuts :: Bazaar (->) a b t -> Compressed b -> t
 compressedOuts bz = runDecompression go 0 where
