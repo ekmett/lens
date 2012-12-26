@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE Rank2Types #-}
 module Control.Lens.Compression
   ( Compressed(..)
   , size

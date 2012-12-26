@@ -91,14 +91,14 @@ startr p0 c0 kn kp = go p0 c0 where
 movel :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
 movel p0 c0 kn kp = go p0 c0 where
   go Start _         = kn
-  go (ApR m n l q) r = startr q l (error "movel: bad Compressed structure") $ \ p a -> kp (ApL m n p r) a
+  go (ApR m n l q) r = startr (ApL m n q r) l (error "movel: bad Compressed structure") kp
   go (ApL m n p r) l = go p (Ap m n l r)
 {-# INLINE movel #-}
 
 mover :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
 mover p0 c0 kn kp = go p0 c0 where
   go Start _         = kn
-  go (ApL m n q r) l = startl q r (error "mover: bad Compressed structure") $ \ p a -> kp (ApR m n l p) a
+  go (ApL m n q r) l = startl (ApR m n l q) r (error "mover: bad Compressed structure") kp
   go (ApR m n l p) r = go p (Ap m n l r)
 {-# INLINE mover #-}
 
@@ -405,7 +405,7 @@ within l (Zipper h p s) = case compressed l (Context id) s of -- case partsOf' l
 
 -- | Step down into every entry of a 'Traversal' simultaneously.
 --
--- >>> zipper ("hello","world") & withins both >>= leftward >>= withins traverse >>= rightward <&> focus %~ toUpper <&> rezip
+-- >>> zipper ("hello","world") & withins both >>= leftward >>= withins traverse >>= rightward <&> focus %~ toUpper <&> rezip :: [(String,String)]
 -- [("hEllo","world"),("heLlo","world"),("helLo","world"),("hellO","world")]
 --
 -- @
