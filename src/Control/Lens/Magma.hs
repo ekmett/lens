@@ -18,6 +18,7 @@ import Data.Monoid
 import Data.Foldable
 
 type Size = Int -- computed lazily
+type Offset = Int -- computed lazily
 
 ------------------------------------------------------------------------------
 -- Magma
@@ -36,19 +37,19 @@ size Pure         = 0
 {-# INLINE size #-}
 
 nullLeft :: Magma a -> Bool
-nullLeft (Ap _ ltr _ _ _) = ltr
+nullLeft (Ap _ nl _ _ _) = nl
 nullLeft (Leaf _)         = False
 nullLeft Pure             = True
 {-# INLINE nullLeft #-}
 
 nullRight :: Magma a -> Bool
-nullRight (Ap _ _ rtl _ _) = rtl
+nullRight (Ap _ _ nr _ _) = nr
 nullRight (Leaf _)         = False
 nullRight Pure             = True
 {-# INLINE nullRight #-}
 
 instance Functor Magma where
-  fmap f (Ap m ltr rtl l r) = Ap m ltr rtl (fmap f l) (fmap f r)
+  fmap f (Ap m nl nr l r) = Ap m nl nr (fmap f l) (fmap f r)
   fmap f (Leaf a)           = Leaf (f a)
   fmap _ Pure               = Pure
   {-# INLINE fmap #-}
@@ -60,7 +61,7 @@ instance Foldable Magma where
   {-# INLINE foldMap #-}
 
 instance Traversable Magma where
-  traverse f (Ap m ltr rtl l r) = Ap m ltr rtl <$> traverse f l <*> traverse f r
+  traverse f (Ap m nl nr l r) = Ap m nl nr <$> traverse f l <*> traverse f r
   traverse f (Leaf a)           = Leaf <$> f a
   traverse _ Pure               = pure Pure
   {-# INLINE traverse #-}

@@ -51,8 +51,8 @@ data Path a
   deriving Show
 
 instance Functor Path where
-  fmap f (ApL m ltr rtl p q) = ApL m ltr rtl (fmap f p) (fmap f q)
-  fmap f (ApR m ltr rtl p q) = ApR m ltr rtl (fmap f p) (fmap f q)
+  fmap f (ApL m nl nr p q) = ApL m nl nr (fmap f p) (fmap f q)
+  fmap f (ApR m nl nr p q) = ApR m nl nr (fmap f p) (fmap f q)
   fmap _ Start = Start
   {-# INLINE fmap #-}
 
