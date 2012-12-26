@@ -75,16 +75,13 @@ pathsize = go 1 where
 -- "list case", where the traversal tree is right-biased, as in (Ap (Leaf x)
 -- (Ap (Leaf y) ...)). It should be safe to delete any of these cases.
 
-recompressLeaf :: Path a -> a -> Magma a
-recompressLeaf Start a           = Leaf a                      -- Unrolled: The lens case.
-recompressLeaf (ApL m nl nr Start r) a = Ap m nl nr (Leaf a) r -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
-recompressLeaf p a = recompress p (Leaf a)
-{-# INLINE recompressLeaf #-}
-
-recompress :: Path a -> Magma a -> Magma a
-recompress Start             q = q
-recompress (ApL m nl nr q r) l = recompress q (Ap m nl nr l r)
-recompress (ApR m nl nr l q) r = recompress q (Ap m nl nr l r)
+recompress :: Path a -> a -> Magma a
+recompress Start a                 = Leaf a                      -- Unrolled: The lens case.
+recompress (ApL m _ _ Start r) a = Ap m False False (Leaf a) r -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
+recompress p a = go p (Leaf a) where
+  go Start           q = q
+  go (ApL m _ _ q r) l = go q (Ap m False False l r)
+  go (ApR m _ _ l q) r = go q (Ap m False False l r)
 {-# INLINE recompress #-}
 
 -- walk down the compressed tree to the leftmost child.
@@ -93,7 +90,7 @@ startl p0 (Leaf a) _ kp                = kp p0 a                 -- Unrolled: Th
 startl p0 (Ap m nl nr (Leaf a) r) _ kp = kp (ApL m nl nr p0 r) a -- Unrolled: The list case. (Is this one a good idea?)
 startl p0 c0 kn kp = go p0 c0 where
   go p (Ap m nl nr l r)
-    | nullLeft l  = go (ApR m nl nr l p) r
+    | nullLeft l  = go (ApR m nl nr Pure p) r
     | otherwise   = go (ApL m nl nr p r) l
   go p (Leaf a)   = kp p a
   go _ Pure       = kn
@@ -103,7 +100,7 @@ startr :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
 startr p0 (Leaf a) _ kp = kp p0 a -- Unrolled: The lens case.
 startr p0 c0 kn kp = go p0 c0 where
   go p (Ap m nl nr l r)
-     | nullRight r = go (ApL m nl nr p r) l
+     | nullRight r = go (ApL m nl nr p Pure) l
      | otherwise   = go (ApR m nl nr l p) r
   go p (Leaf a)    = kp p a
   go _ Pure        = kn
@@ -112,19 +109,19 @@ startr p0 c0 kn kp = go p0 c0 where
 movel :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
 movel p0 c0 kn kp = go p0 c0 where
   go Start _       = kn
-  go (ApR m nl nr l q) r
-    | nullRight r = go q (Ap m nl nr l r)
-    | otherwise   = startr (ApL m nl nr q r) l kn kp
-  go (ApL m nl nr p r) l = go p (Ap m nl nr l r)
+  go (ApR m _ _ l q) r
+    | nullRight r = go q (Ap m False False l Pure)
+    | otherwise   = startr (ApL m False False q r) l kn kp
+  go (ApL m _ _ p r) l = go p (Ap m False False l r)
 {-# INLINE movel #-}
 
 mover :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
 mover p0 c0 kn kp = go p0 c0 where
   go Start _         = kn
-  go (ApL m nl nr q r) l
-    | nullLeft l  = go q (Ap m nl nr l r)
-    | otherwise   = startl (ApR m nl nr l q) r kn kp
-  go (ApR m nl nr l p) r = go p (Ap m nl nr l r)
+  go (ApL m _ _ q r) l
+    | nullLeft l  = go q (Ap m False False Pure r)
+    | otherwise   = startl (ApR m False False l q) r kn kp
+  go (ApR m _ _ l p) r = go p (Ap m False False l r)
 {-# INLINE mover #-}
 
 -----------------------------------------------------------------------------
@@ -209,7 +206,7 @@ tooth (Zipper _ p _) = offset p
 -- NB: Attempts to move upward from the 'Top' of the 'Zipper' will fail to typecheck.
 --
 upward :: (h :> s :> a) -> h :> s
-upward (Zipper (Snoc h _ p k) q x) = Zipper h p (k (recompress q (Leaf x)))
+upward (Zipper (Snoc h _ p k) q x) = Zipper h p (k (recompress q x))
 {-# INLINE upward #-}
 
 -- | Jerk the 'Zipper' one 'tooth' to the 'rightward' within the current 'Lens' or 'Traversal'.
@@ -259,7 +256,7 @@ leftward (Zipper h p a) = movel p (Leaf a) mzero $ \q b -> return (Zipper h q b)
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
 -- "hella"
 leftmost :: (a :> b) -> a :> b
-leftmost (Zipper h p a) = startl Start (recompressLeaf p a) (error "leftmost: bad Magma structure") (Zipper h)
+leftmost (Zipper h p a) = startl Start (recompress p a) (error "leftmost: bad Magma structure") (Zipper h)
 {-# INLINE leftmost #-}
 
 -- | Move to the rightmost position of the current 'Traversal'.
@@ -269,7 +266,7 @@ leftmost (Zipper h p a) = startl Start (recompressLeaf p a) (error "leftmost: ba
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
 -- "jelly"
 rightmost :: (a :> b) -> a :> b
-rightmost (Zipper h p a) = startr Start (recompressLeaf p a) (error "rightmost: bad Magma structure") (Zipper h)
+rightmost (Zipper h p a) = startr Start (recompress p a) (error "rightmost: bad Magma structure") (Zipper h)
 {-# INLINE rightmost #-}
 
 -- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'zipper'. This
@@ -475,12 +472,12 @@ instance Zipping Top a where
   {-# INLINE recoil #-}
 
 instance Zipping h s => Zipping (h :> s) a where
-  recoil (Snoc h _ p k) as = recoil h $ recompressLeaf p $ k as
+  recoil (Snoc h _ p k) as = recoil h $ recompress p $ k as
   {-# INLINE recoil #-}
 
 -- | Close something back up that you opened as a 'Zipper'.
 rezip :: Zipping h a => (h :> a) -> Zipped h a
-rezip (Zipper h p a) = recoil h (recompressLeaf p a)
+rezip (Zipper h p a) = recoil h (recompress p a)
 {-# INLINE rezip #-}
 
 -- | Extract the current 'focus' from a 'Zipper' as a 'Context'
