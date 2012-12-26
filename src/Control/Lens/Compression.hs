@@ -81,3 +81,52 @@ compressedOuts bz = runDecompression go 0 where
 compressed :: ATraversal s t a b -> Lens s t (Compressed a) (Compressed b)
 compressed l f s = compressedOuts bz <$> f (compressedIns bz) where
   bz = l sell s
+
+-- Manual evaluations some function calls to clarify what's going on:
+
+-- Evaluation of @compressedIns (both sell (0,1))@:
+--
+-- @
+-- compressedIns (both sell (0,1))
+-- compressedIns (both (\a -> Bazaar ($ a)) (0,1))
+-- compressedIns ((\f (a,b) -> (,) <$> f a <$> f b) (\a -> Bazaar ($ a)) (0,1))
+-- compressedIns (Bazaar (\f -> (,) <$> f 0 <*> f 1))
+-- foldMapOf (flip runBazaar) Leaf (Bazaar (\f -> (,) <$> f 0 <*> f 1))
+-- getConst $ flip runBazaar (Const . Leaf) (Bazaar (\f -> (,) <$> f 0 <*> f 1))
+-- getConst $ (\f -> (,) <$> f 0 <*> f 1) (Const . Leaf)
+-- getConst $ (,) <$> Const (Leaf 0) <*> Const (Leaf 1)
+-- Leaf 0 <> Leaf 1
+-- Ap 2 0 (Leaf 0) (Leaf 1)
+-- @
+
+-- Evaluation of @compressedOuts (_1 sell (0,1)) (Leaf 2)@:
+--
+-- @
+-- compressedOuts (_1 sell (0,1)) (Leaf 2)
+-- runDecompression (runBazaar (_1 sell (0,1)) (\_ -> Decompression (\_ (Leaf x) -> x))) 0 (Leaf 2)
+-- runDecompression ((\f -> _1 f (0,1)) (\_ -> Decompression (\_ (Leaf x) -> x))) 0 (Leaf 2)
+-- runDecompression (_1 (\_ -> Decompression (\_ (Leaf x) -> x)) (0,1)) 0 (Leaf 2)
+-- runDecompression ((\f -> (,1) <$> f 0) (\_ -> Decompression (\_ (Leaf x) -> x))) 0 (Leaf 2)
+-- runDecompression ((,1) <$> Decompression (\_ (Leaf x) -> x)) 0 (Leaf 2)
+-- runDecompression (Decompression (\d -> (,1) . (\_ (Leaf x) -> x) d)) 0 (Leaf 2)
+-- (\d -> (,1) . (\_ (Leaf x) -> x) d) 0 (Leaf 2)
+-- ((,1) . (\_ (Leaf x) -> x)) 0 (Leaf 2)
+-- ((,1) . (\(Leaf x) -> x)) (Leaf 2)
+-- (2,1)
+-- @
+
+-- Evaluation of @compressedOuts (both sell (0,1)) (Leaf 2 <> Leaf 3)@:
+--
+-- @
+-- compressedOuts (both sell (0,1)) (Leaf 2 <> Leaf 3)
+-- … (skipped almost identical steps to the previous one)
+-- runDecompression ((,) <$> Decompression (\_ (Leaf x) -> x) <*> Decompression (\_ (Leaf x) -> x)) 0 (Leaf 2 <> Leaf 3)
+-- runDecompression (Decompression (\d -> (,) . (\_ (Leaf x) -> x) d) <*> Decompression (\_ (Leaf x) -> x)) 0 (Leaf 2 <> Leaf 3)
+-- runDecompression (Decompression (\d s -> case s of …)) (Leaf 2 <> Leaf 3)
+-- (\d s -> case s of …) 0 (Leaf 2 <> Leaf 3)
+-- (\d s -> case s of …) 0 (Ap 2 0 (Leaf 2) (Leaf 3))
+-- (\s -> case s of Ap _ n l r | 0 == n -> ((,) . (\_ (Leaf x) -> x)) 0 l ((\_ (Leaf x) -> x) 0 r) | …) (Ap 2 0 (Leaf 2) (Leaf 3))
+-- (\s -> case s of Ap _ n l r | 0 == n -> ((,) . (\(Leaf x) -> x)) l ((\(Leaf x) -> x) r) | …) (Ap 2 0 (Leaf 2) (Leaf 3))
+-- ((,) . (\(Leaf x) -> x)) (Leaf 2) ((\(Leaf x) -> x) (Leaf 3))
+-- (2,3)
+-- @
