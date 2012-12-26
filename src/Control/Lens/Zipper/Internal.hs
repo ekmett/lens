@@ -30,6 +30,7 @@ module Control.Lens.Zipper.Internal where
 import Control.Category ((>>>))
 import Control.Monad
 import Control.Lens.Combinators
+import Control.Lens.Compression
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Lens
@@ -42,6 +43,64 @@ import Data.Maybe
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Data.Char
+
+data Path a
+  = ApL Int !Int !(Path a) !(Compressed a)
+  | ApR Int !Int !(Compressed a) !(Path a)
+  | Start
+  deriving Show
+
+instance Functor Path where
+  fmap f (ApL m n p q) = ApL m n (fmap f p) (fmap f q)
+  fmap f (ApR m n p q) = ApR m n (fmap f p) (fmap f q)
+  fmap _ Start = Start
+
+offset :: Path a -> Int
+offset Start         = 0
+offset (ApL _ _ q _) = offset q
+offset (ApR _ _ l q) = size l + offset q
+
+pathsize :: Path a -> Int
+pathsize = go 1 where
+  go n Start = n
+  go _ (ApL n _ p _) = go n p
+  go _ (ApR n _ _ p) = go n p
+
+recompress :: Path a -> a -> Compressed a
+recompress p a = go p (Leaf a) where
+  go Start         q = q
+  go (ApL m n q r) l = go q (Ap m n l r)
+  go (ApR m n l q) r = go q (Ap m n l r)
+{-# INLINE recompress #-}
+
+-- walk down the compressed tree to the leftmost child.
+startl :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
+startl p0 c0 kn kp = go p0 c0 where
+  go p (Ap m n l r) = go (ApL m n p r) l
+  go p (Leaf a)     = kp p a
+  go _ Pure         = kn
+{-# INLINE startl #-}
+
+startr :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
+startr p0 c0 kn kp = go p0 c0 where
+  go p (Ap m n l r) = go (ApR m n l p) r
+  go p (Leaf a)     = kp p a
+  go _ Pure         = kn
+{-# INLINE startr #-}
+
+movel :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
+movel p0 c0 kn kp = go p0 c0 where
+  go Start _         = kn
+  go (ApR m n l q) r = startr q l (error "movel: bad Compressed structure") $ \ p a -> kp (ApL m n p r) a
+  go (ApL m n p r) l = go p (Ap m n l r)
+{-# INLINE movel #-}
+
+mover :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
+mover p0 c0 kn kp = go p0 c0 where
+  go Start _         = kn
+  go (ApL m n q r) l = startl q r (error "mover: bad Compressed structure") $ \ p a -> kp (ApR m n l p) a
+  go (ApR m n l p) r = go p (Ap m n l r)
+{-# INLINE mover #-}
 
 -----------------------------------------------------------------------------
 -- * Zippers
@@ -81,11 +140,7 @@ infixl 9 :>
 -- of type @h ':>' s@ -- as we descend into a level, the previous level is
 -- unpacked and stored in 'Coil' form. Only one value of type @_ ':>' _@ exists
 -- at any particular time for any particular 'Zipper'.
-data h :> a = Zipper (Coil h a) -- The 'Coil' storing the previous levels of the 'Zipper'.
-                     !Int       -- Number of items to the left.
-                     [a]        -- Items to the left (stored reversed).
-                     a          -- Focused item.
-                     [a]        -- Items to the right.
+data h :> a = Zipper !(Coil h a) !(Path a) a
 
 -- | This is an alias for '(:>)'. Provided mostly for convenience
 type Zipper = (:>)
@@ -101,32 +156,18 @@ type instance Zipped (h :> s) a = Zipped h s
 -- This is part of the internal structure of a zipper. You shouldn't need to manipulate this directly.
 data Coil t a
   = (t ~ Top)      => Coil
-  | forall h s. (t ~ (h :> s)) => Snoc (Coil h s) (ATraversal' s a) !Int [s] ([a] -> s) [s]
-
-{-
-data Coil :: * -> * -> * where
-  Coil :: Coil Top a
-  Snoc :: Coil h s                        -- Previous 'Coil'.
-       -> ATraversal' s a                 -- The 'Traversal' used to descend into this level (used to build a 'Tape').
-       -- The Zipper above us, unpacked:
-       -> !Int                            -- Number of items to the left.
-       -> [s]                             -- Previous level's items to the left (stored reverse).
-       -> ([a] -> s)                      -- Function to rebuild the previous level's focused item from the entire current level.
-                                          --   (Since the current level always has a focus, the list must be nonempty.)
-       -> [s]                             -- Previous level's items to the right.
-       -> Coil (h :> s) a
--}
+  | forall h s. (t ~ (h :> s)) => Snoc !(Coil h s) (ATraversal' s a) !(Path s) (Compressed a -> s)
 
 -- | This 'Lens' views the current target of the 'Zipper'.
 --
 -- A 'Tape' that can be used to get to the current location is available as the index of this 'Lens'.
 focus :: IndexedLens' (Tape (h :> a)) (h :> a) a
-focus f (Zipper h n l a r) = indexed f (Tape (peel h) n) a <&> \a' -> Zipper h n l a' r
+focus f (Zipper h p a) = indexed f (Tape (peel h) (offset p)) a <&> \a' -> Zipper h p a'
 {-# INLINE focus #-}
 
 -- | Construct a 'Zipper' that can explore anything, and start it at the top.
 zipper :: a -> Top :> a
-zipper a = Zipper Coil 0 [] a []
+zipper a = Zipper Coil Start a
 {-# INLINE zipper #-}
 
 -- | Return the index into the current 'Traversal' within the current level of the 'Zipper'.
@@ -135,7 +176,7 @@ zipper a = Zipper Coil 0 [] a []
 --
 -- Mnemonically, zippers have a number of 'teeth' within each level. This is which 'tooth' you are currently at.
 tooth :: (h :> a) -> Int
-tooth (Zipper _ n _ _ _) = n
+tooth (Zipper _ p _) = offset p
 {-# INLINE tooth #-}
 
 -- | Move the 'Zipper' 'upward', closing the current level and focusing on the parent element.
@@ -143,8 +184,7 @@ tooth (Zipper _ n _ _ _) = n
 -- NB: Attempts to move upward from the 'Top' of the 'Zipper' will fail to typecheck.
 --
 upward :: (h :> s :> a) -> h :> s
-upward (Zipper (Snoc h _ un uls k urs) _ ls x rs) = Zipper h un uls ux urs
-  where ux = k (reverseList ls ++ x : rs)
+upward (Zipper (Snoc h _ p k) q x) = Zipper h p (k (recompress q x))
 {-# INLINE upward #-}
 
 -- | Jerk the 'Zipper' one 'tooth' to the 'rightward' within the current 'Lens' or 'Traversal'.
@@ -164,8 +204,7 @@ upward (Zipper (Snoc h _ un uls k urs) _ ls x rs) = Zipper h un uls ux urs
 -- >>> rezip $ zipper (1,2) & fromWithin both & tug rightward & focus .~ 3
 -- (1,3)
 rightward :: MonadPlus m => (h :> a) -> m (h :> a)
-rightward (Zipper _ _ _  _ []    ) = mzero
-rightward (Zipper h n ls a (r:rs)) = return (Zipper h (n + 1) (a:ls) r rs)
+rightward (Zipper h p a) = mover p (Leaf a) mzero $ \q b -> return (Zipper h q b)
 {-# INLINE rightward #-}
 
 -- | Jerk the 'zipper' 'leftward' one 'tooth' within the current 'Lens' or 'Traversal'.
@@ -185,8 +224,7 @@ rightward (Zipper h n ls a (r:rs)) = return (Zipper h (n + 1) (a:ls) r rs)
 -- >>> zipper "hello" & fromWithin traverse & tug rightward & tug leftward & view focus
 -- 'h'
 leftward :: MonadPlus m => (h :> a) -> m (h :> a)
-leftward (Zipper _ _ []     _ _ ) = mzero
-leftward (Zipper h n (l:ls) a rs) = return (Zipper h (n - 1) ls l (a:rs))
+leftward (Zipper h p a) = movel p (Leaf a) mzero $ \q b -> return (Zipper h q b)
 {-# INLINE leftward #-}
 
 -- | Move to the leftmost position of the current 'Traversal'.
@@ -297,7 +335,7 @@ jerks f n0
 -- >>> zipper ("hello","world") & fromWithin (both.traverse) & teeth
 -- 10
 teeth :: (h :> a) -> Int
-teeth (Zipper _ n _ _ rs) = n + 1 + length rs
+teeth (Zipper _ p _) = pathsize p
 {-# INLINE teeth #-}
 
 -- | Move the 'Zipper' horizontally to the element in the @n@th position in the
@@ -348,21 +386,21 @@ tugTo n z = case compare k n of
 -- 'downward' :: 'Iso'' s a  -> (h :> s) -> h :> s :> a
 -- @
 downward :: ALens' s a -> (h :> s) -> h :> s :> a
-downward l (Zipper h n ls s rs) = case context (l sell s) of
-  Context k a -> Zipper (Snoc h (cloneLens l) n ls (k . head) rs) 0 [] a []
+downward l (Zipper h p s) = case context (l sell s) of
+  Context k a -> Zipper (Snoc h (cloneLens l) p $ \xs -> case xs of Leaf b -> k b; _ -> error "downward: rezipping") Start a
 {-# INLINE downward #-}
 
 -- | Step down into the 'leftmost' entry of a 'Traversal'.
 --
 -- @
 -- 'within' :: 'Traversal'' s a -> (h :> s) -> Maybe (h :> s :> a)
+-- 'within' :: 'Prism'' s a     -> (h :> s) -> Maybe (h :> s :> a)
 -- 'within' :: 'Lens'' s a      -> (h :> s) -> Maybe (h :> s :> a)
 -- 'within' :: 'Iso'' s a       -> (h :> s) -> Maybe (h :> s :> a)
 -- @
 within :: MonadPlus m => ATraversal' s a -> (h :> s) -> m (h :> s :> a)
-within l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
-  Context _ []     -> mzero
-  Context k (a:as) -> return (Zipper (Snoc h l n ls k rs) 0 [] a as)
+within l (Zipper h p s) = case compressed l (Context id) s of -- case partsOf' l (Context id) s of
+  Context k xs     -> startl Start xs mzero $ \q a -> return $ Zipper (Snoc h l p k) q a
 {-# INLINE within #-}
 
 -- | Step down into every entry of a 'Traversal' simultaneously.
@@ -375,11 +413,13 @@ within l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
 -- 'withins' :: 'Lens'' s a      -> (h :> s) -> [h :> s :> a]
 -- 'withins' :: 'Iso'' s a       -> (h :> s) -> [h :> s :> a]
 -- @
-withins :: ATraversal' s a -> (h :> s) -> [h :> s :> a]
-withins l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
-  Context k ys -> go k [] ys
-  where go k xs (y:ys) = Zipper (Snoc h l n ls k rs) 0 xs y ys : go k (y:xs) ys
-        go _ _  []     = []
+withins :: MonadPlus m => ATraversal' s a -> (h :> s) -> m (h :> s :> a)
+withins t (Zipper h p s) = case compressed t (Context id) s of
+  Context k y -> let up = Snoc h t p k
+                     go q (Ap m n l r) = go (ApL m n q r) l `mplus` go (ApR m n l q) r
+                     go q (Leaf a)     = return $ Zipper up q a
+                     go _ Pure         = mzero
+                  in go Start y
 {-# INLINE withins #-}
 
 -- | Unsafely step down into a 'Traversal' that is /assumed/ to be non-empty.
@@ -395,29 +435,28 @@ withins l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
 -- You can reason about this function as if the definition was:
 --
 -- @'fromWithin' l ≡ 'fromJust' '.' 'within' l@
---
--- but it is lazier in such a way that if this invariant is violated, some code
--- can still succeed if it is lazy enough in the use of the focused value.
 fromWithin :: ATraversal' s a -> (h :> s) -> h :> s :> a
-fromWithin l (Zipper h n ls s rs) = case partsOf' l (Context id) s of
-  Context k ~(a:as) -> Zipper (Snoc h l n ls k rs) 0 [] a as
+fromWithin l (Zipper h p s) = case compressed l (Context id) s of
+  Context k xs -> let up = Snoc h l p k in
+   startl Start xs (Zipper up Start (error "fromWithin an empty Traversal")) (Zipper up)
 {-# INLINE fromWithin #-}
 
 -- | This enables us to pull the 'Zipper' back up to the 'Top'.
 class Zipping h a where
-  recoil :: Coil h a -> [a] -> Zipped h a
+  recoil :: Coil h a -> Compressed a -> Zipped h a
 
 instance Zipping Top a where
-  recoil Coil = head
+  recoil Coil (Leaf a) = a
+  recoil Coil _ = error "recoil: expected Leaf"
   {-# INLINE recoil #-}
 
 instance Zipping h s => Zipping (h :> s) a where
-  recoil (Snoc h _ _ ls k rs) as = recoil h (reverseList ls ++ k as : rs)
+  recoil (Snoc h _ p k) as = recoil h $ recompress p $ k as
   {-# INLINE recoil #-}
 
 -- | Close something back up that you opened as a 'Zipper'.
 rezip :: Zipping h a => (h :> a) -> Zipped h a
-rezip (Zipper h _ ls a rs) = recoil h (reverseList ls ++ a : rs)
+rezip (Zipper h p a) = recoil h (recompress p a)
 {-# INLINE rezip #-}
 
 -- | Extract the current 'focus' from a 'Zipper' as a 'Context'
@@ -430,11 +469,11 @@ focusedContext z = Context (\a -> z & focus .~ a & rezip) (z^.focus)
 -----------------------------------------------------------------------------
 
 -- | A 'Tape' is a recorded path through the 'Traversal' chain of a 'Zipper'.
-data Tape k = forall h a. k ~ (h :> a) => Tape (Track h a) !Int
+data Tape k = forall h a. k ~ (h :> a) => Tape (Track h a) Int
 
 -- | Save the current path as as a 'Tape' we can play back later.
 saveTape :: (h :> a) -> Tape (h :> a)
-saveTape (Zipper h n _ _ _) = Tape (peel h) n
+saveTape (Zipper h p _) = Tape (peel h) (offset p)
 {-# INLINE saveTape #-}
 
 -- | Restore ourselves to a previously recorded position precisely.
@@ -469,20 +508,20 @@ unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> tugs rightward n
 
 -- | This is used to peel off the path information from a 'Coil' for use when saving the current path for later replay.
 peel :: Coil h a -> Track h a
-peel Coil               = Track
-peel (Snoc h l n _ _ _) = Fork (peel h) n l
+peel Coil           = Track
+peel (Snoc h l p _) = Fork (peel h) (offset p) l
 {-# INLINE peel #-}
 
 -- | The 'Track' forms the bulk of a 'Tape'.
 data Track t a
   = t ~ Top                  => Track
-  | forall h s. t ~ (h :> s) => Fork (Track h s) !Int (ATraversal' s a )
+  | forall h s. t ~ (h :> s) => Fork (Track h s) Int (ATraversal' s a)
 
 -- | Restore ourselves to a previously recorded position precisely.
 --
 -- If the position does not exist, then fail.
 restoreTrack :: MonadPlus m => Track h a -> Zipped h a -> m (h :> a)
-restoreTrack Track = return . zipper
+restoreTrack Track        = return . zipper
 restoreTrack (Fork h n l) = restoreTrack h >=> jerks rightward n >=> within l
 
 -- | Restore ourselves to a location near our previously recorded position.
@@ -490,7 +529,7 @@ restoreTrack (Fork h n l) = restoreTrack h >=> jerks rightward n >=> within l
 -- When moving leftward to rightward through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
 restoreNearTrack :: MonadPlus m => Track h a -> Zipped h a -> m (h :> a)
-restoreNearTrack Track = return . zipper
+restoreNearTrack Track        = return . zipper
 restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs rightward n >>> within l
 
 -- | Restore ourselves to a previously recorded position.
