@@ -182,7 +182,6 @@ library
     Control.Lens.Action
     Control.Lens.At
     Control.Lens.Combinators
-    Control.Lens.Compression
     Control.Lens.Each
     Control.Lens.Equality
     Control.Lens.Fold
@@ -192,6 +191,7 @@ library
     Control.Lens.Iso
     Control.Lens.Lens
     Control.Lens.Loupe
+    Control.Lens.Magma
     Control.Lens.Operators
     Control.Lens.Plated
     Control.Lens.Prism

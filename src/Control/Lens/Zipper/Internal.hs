@@ -30,7 +30,7 @@ module Control.Lens.Zipper.Internal where
 import Control.Category ((>>>))
 import Control.Monad
 import Control.Lens.Combinators
-import Control.Lens.Compression
+import Control.Lens.Magma
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Lens
@@ -45,28 +45,28 @@ import Data.Maybe
 -- >>> import Data.Char
 
 data Path a
-  = ApL Int !Int !(Path a) !(Compressed a)
-  | ApR Int !Int !(Compressed a) !(Path a)
+  = ApL Int Bool Bool !(Path a) !(Magma a)
+  | ApR Int Bool Bool !(Magma a) !(Path a)
   | Start
   deriving Show
 
 instance Functor Path where
-  fmap f (ApL m n p q) = ApL m n (fmap f p) (fmap f q)
-  fmap f (ApR m n p q) = ApR m n (fmap f p) (fmap f q)
+  fmap f (ApL m ltr rtl p q) = ApL m ltr rtl (fmap f p) (fmap f q)
+  fmap f (ApR m ltr rtl p q) = ApR m ltr rtl (fmap f p) (fmap f q)
   fmap _ Start = Start
   {-# INLINE fmap #-}
 
 offset :: Path a -> Int
-offset Start         = 0
-offset (ApL _ _ q _) = offset q
-offset (ApR _ _ l q) = size l + offset q
+offset Start           = 0
+offset (ApL _ _ _ q _) = offset q
+offset (ApR _ _ _ l q) = size l + offset q
 {-# INLINE offset #-}
 
 pathsize :: Path a -> Int
 pathsize = go 1 where
   go n Start = n
-  go _ (ApL n _ p _) = go n p
-  go _ (ApR n _ _ p) = go n p
+  go _ (ApL n _ _ p _) = go n p
+  go _ (ApR n _ _ _ p) = go n p
 {-# INLINE pathsize #-}
 
 -- For several operations, we unroll the first step of the recursion (or part
@@ -75,55 +75,65 @@ pathsize = go 1 where
 -- "list case", where the traversal tree is right-biased, as in (Ap (Leaf x)
 -- (Ap (Leaf y) ...)). It should be safe to delete any of these cases.
 
-recompress :: Path a -> a -> Compressed a
-recompress Start a             = Leaf a                -- Unrolled: The lens case.
-recompress (ApL m n Start r) a = Ap m n (Leaf a) r     -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
+recompress :: Path a -> a -> Magma a
+-- recompress Start a           = Leaf a                -- Unrolled: The lens case.
+-- recompress (ApL m Start r) a = Ap m (Leaf a) r     -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
 recompress p a = go p (Leaf a) where
   go Start         q = q
-  go (ApL m n q r) l = go q (Ap m n l r)
-  go (ApR m n l q) r = go q (Ap m n l r)
+  go (ApL m nl nr q r) l = go q (Ap m nl nr l r)
+  go (ApR m nl nr l q) r = go q (Ap m nl nr l r)
 {-# INLINE recompress #-}
 
 -- walk down the compressed tree to the leftmost child.
-startl :: Path a -> Compressed a -> (Path a -> a -> r) -> r
-startl p0 (Leaf a) kp            = kp p0 a             -- Unrolled: The lens case.
-startl p0 (Ap m n (Leaf a) r) kp = kp (ApL m n p0 r) a -- Unrolled: The list case.
-startl p0 c0 kp = go p0 c0 where
-  go p (Ap m n l r) = go (ApL m n p r) l
-  go p (Leaf a)     = kp p a
+startl :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
+-- startl p0 (Leaf a) kp          = kp p0 a           -- Unrolled: The lens case.
+-- startl p0 (Ap m (Leaf a) r) kp = kp (ApL m p0 r) a -- Unrolled: The list case.
+startl p0 c0 kn kp = go p0 c0 where
+  go p (Ap m nl nr l r)
+    | nl          = go (ApR m nl nr l p) r
+    | otherwise   = go (ApL m nl nr p r) l
+  go p (Leaf a)   = kp p a
+  go _ Pure       = kn
 {-# INLINE startl #-}
 
-startr :: Path a -> Compressed a -> (Path a -> a -> r) -> r
-startr p0 (Leaf a) kp = kp p0 a                       -- Unrolled: The lens case.
-startr p0 c0 kp       = go p0 c0 where
-  go p (Ap m n l r) = go (ApR m n l p) r
-  go p (Leaf a)     = kp p a
+startr :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
+-- startr p0 (Leaf a) kp = kp p0 a                       -- Unrolled: The lens case.
+startr p0 c0 kn kp = go p0 c0 where
+  go p (Ap m nl nr l r)
+     | nr          = go (ApL m nl nr p r) l
+     | otherwise   = go (ApR m nl nr l p) r
+  go p (Leaf a)    = kp p a
+  go _ Pure        = kn
 {-# INLINE startr #-}
 
-movel :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
+movel :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
 movel p0 c0 kn kp = go p0 c0 where
-  go Start _         = kn
-  go (ApR m n l q) r = startr (ApL m n q r) l kp
-  go (ApL m n p r) l = go p (Ap m n l r)
+  go Start _       = kn
+  go (ApR m nl nr l q) r
+    | nr          = go q (Ap m nl nr l r)
+    | otherwise   = startr (ApL m nl nr q r) l (error "movel: empty non-empty branch") kp
+  go (ApL m nl nr p r) l = go p (Ap m nl nr l r)
 {-# INLINE movel #-}
 
-mover :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
+mover :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
 mover p0 c0 kn kp = go p0 c0 where
   go Start _         = kn
-  go (ApL m n q r) l = startl (ApR m n l q) r kp
-  go (ApR m n l p) r = go p (Ap m n l r)
+  go (ApL m nl nr q r) l
+    | nl          = go q (Ap m nl nr l r)
+    | otherwise   = startl (ApR m nl nr l q) r (error "mover: empty non-empty branch") kp
+  go (ApR m nl nr l p) r = go p (Ap m nl nr l r)
 {-# INLINE mover #-}
 
-rightmostPath :: Path a -> Compressed a -> (Path a -> a -> r) -> r
-rightmostPath p0 c0 kp = go p0 c0 where
-  go (ApL m n q r) l = go q (Ap m n l r)
-  go p c             = startr p c kp
+rightmostPath :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
+rightmostPath p0 c0 kn kp = go p0 c0 where
+  go (ApL m nl nr q r) l = go q (Ap m nl nr l r)
+  go p c                 = startr p c kn kp
 {-# INLINE rightmostPath #-}
 
-leftmostPath :: Path a -> Compressed a -> (Path a -> a -> r) -> r
-leftmostPath p0 c0 kp = go p0 c0 where
-  go (ApR m n l p) r = go p (Ap m n l r)
-  go p c             = startl p c kp
+leftmostPath :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
+leftmostPath p0 c0 kn kp = go p0 c0 where
+  go (ApR m nl nr l p) r = go p (Ap m nl nr l r)
+  go p c                 = startl p c kn kp
 {-# INLINE leftmostPath #-}
 
 -----------------------------------------------------------------------------
@@ -180,7 +190,7 @@ type instance Zipped (h :> s) a = Zipped h s
 -- This is part of the internal structure of a zipper. You shouldn't need to manipulate this directly.
 data Coil t a
   = (t ~ Top)      => Coil
-  | forall h s. (t ~ (h :> s)) => Snoc !(Coil h s) (ATraversal' s a) !(Path s) (Compressed a -> s)
+  | forall h s. (t ~ (h :> s)) => Snoc !(Coil h s) (ATraversal' s a) !(Path s) (Magma a -> s)
 
 -- | This 'Lens' views the current target of the 'Zipper'.
 --
@@ -258,7 +268,7 @@ leftward (Zipper h p a) = movel p (Leaf a) mzero $ \q b -> return (Zipper h q b)
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
 -- "hella"
 leftmost :: (a :> b) -> a :> b
-leftmost (Zipper h p a) = leftmostPath p (Leaf a) (error "leftmost: bad Compressed structure") (Zipper h)
+leftmost (Zipper h p a) = leftmostPath p (Leaf a) (error "leftmost: bad Magma structure") (Zipper h)
 {-# INLINE leftmost #-}
 
 -- | Move to the rightmost position of the current 'Traversal'.
@@ -268,7 +278,7 @@ leftmost (Zipper h p a) = leftmostPath p (Leaf a) (error "leftmost: bad Compress
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
 -- "jelly"
 rightmost :: (a :> b) -> a :> b
-rightmost (Zipper h p a) = rightmostPath p (Leaf a) (error "rightmost: bad Compressed structure") (Zipper h)
+rightmost (Zipper h p a) = rightmostPath p (Leaf a) (error "rightmost: bad Magma structure") (Zipper h)
 {-# INLINE rightmost #-}
 
 -- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'zipper'. This
@@ -423,9 +433,8 @@ downward l (Zipper h p s) = case context (l sell s) of
 -- 'within' :: 'Iso'' s a       -> (h :> s) -> Maybe (h :> s :> a)
 -- @
 within :: MonadPlus m => ATraversal' s a -> (h :> s) -> m (h :> s :> a)
-within l (Zipper h p s) = case compressed l (Context id) s of -- case partsOf' l (Context id) s of
-  Context _ Nothing   -> mzero
-  Context k (Just xs) -> startl Start xs $ \q a -> return $ Zipper (Snoc h l p (k . Just)) q a
+within l (Zipper h p s) = case magma l (Context id) s of -- case partsOf' l (Context id) s of
+  Context k xs -> startl Start xs mzero $ \q a -> return $ Zipper (Snoc h l p k) q a
 {-# INLINE within #-}
 
 -- | Step down into every entry of a 'Traversal' simultaneously.
@@ -439,12 +448,12 @@ within l (Zipper h p s) = case compressed l (Context id) s of -- case partsOf' l
 -- 'withins' :: 'Iso'' s a       -> (h :> s) -> [h :> s :> a]
 -- @
 withins :: MonadPlus m => ATraversal' s a -> (h :> s) -> m (h :> s :> a)
-withins t (Zipper h p s) = case compressed t (Context id) s of
-  Context _ Nothing  -> mzero
-  Context k (Just y) -> let up = Snoc h t p (k . Just)
-                            go q (Ap m n l r) = go (ApL m n q r) l `mplus` go (ApR m n l q) r
-                            go q (Leaf a)     = return $ Zipper up q a
-                        in  go Start y
+withins t (Zipper h p s) = case magma t (Context id) s of
+  Context k xs -> let up = Snoc h t p k
+                      go q (Ap m nl nr l r) = go (ApL m nl nr q r) l `mplus` go (ApR m nl nr l q) r
+                      go q (Leaf a)     = return $ Zipper up q a
+                      go _ Pure         = mzero
+                  in  go Start xs
 {-# INLINE withins #-}
 
 -- | Unsafely step down into a 'Traversal' that is /assumed/ to be non-empty.
@@ -461,14 +470,13 @@ withins t (Zipper h p s) = case compressed t (Context id) s of
 --
 -- @'fromWithin' l ≡ 'fromJust' '.' 'within' l@
 fromWithin :: ATraversal' s a -> (h :> s) -> h :> s :> a
-fromWithin l (Zipper h p s) = case compressed l (Context id) s of
-  Context k Nothing   -> Zipper (Snoc h l p (k . Just)) Start (error "fromWithin an empty Traversal")
-  Context k (Just xs) -> startl Start xs $ Zipper $ Snoc h l p (k . Just)
+fromWithin l (Zipper h p s) = case magma l (Context id) s of
+  Context k xs -> let up = Snoc h l p k in startl Start xs (Zipper up Start (error "fromWithin an empty Traversal")) (Zipper up)
 {-# INLINE fromWithin #-}
 
 -- | This enables us to pull the 'Zipper' back up to the 'Top'.
 class Zipping h a where
-  recoil :: Coil h a -> Compressed a -> Zipped h a
+  recoil :: Coil h a -> Magma a -> Zipped h a
 
 instance Zipping Top a where
   recoil Coil (Leaf a) = a
