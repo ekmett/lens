@@ -70,6 +70,7 @@ pathsize = go 1 where
 {-# INLINE pathsize #-}
 
 recompress :: Path a -> a -> Compressed a
+recompress Start a = Leaf a -- This case is not necessary but helps GHC optimize simple zipper operations, since it isn't recursive.
 recompress p a = go p (Leaf a) where
   go Start         q = q
   go (ApL m n q r) l = go q (Ap m n l r)
@@ -78,6 +79,7 @@ recompress p a = go p (Leaf a) where
 
 -- walk down the compressed tree to the leftmost child.
 startl :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
+startl p0 (Leaf a) _ kp = kp p0 a -- As above.
 startl p0 c0 kn kp = go p0 c0 where
   go p (Ap m n l r) = go (ApL m n p r) l
   go p (Leaf a)     = kp p a
@@ -85,6 +87,7 @@ startl p0 c0 kn kp = go p0 c0 where
 {-# INLINE startl #-}
 
 startr :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
+startr p0 (Leaf a) _ kp = kp p0 a -- As above.
 startr p0 c0 kn kp = go p0 c0 where
   go p (Ap m n l r) = go (ApR m n l p) r
   go p (Leaf a)     = kp p a
