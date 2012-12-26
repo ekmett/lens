@@ -39,11 +39,13 @@ nullLeft :: Magma a -> Bool
 nullLeft (Ap _ ltr _ _ _) = ltr
 nullLeft (Leaf _)         = False
 nullLeft Pure             = True
+{-# INLINE nullLeft #-}
 
 nullRight :: Magma a -> Bool
 nullRight (Ap _ _ rtl _ _) = rtl
 nullRight (Leaf _)         = False
 nullRight Pure             = True
+{-# INLINE nullRight #-}
 
 instance Functor Magma where
   fmap f (Ap m ltr rtl l r) = Ap m ltr rtl (fmap f l) (fmap f r)
