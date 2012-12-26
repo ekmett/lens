@@ -1,10 +1,11 @@
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable#-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE Rank2Types #-}
 module Control.Lens.Compression
   ( Compressed(..)
   , size
-  , compressedIns
-  , compressedOuts
+  , compressing
+  , decompressing
   , compressed
   ) where
 
@@ -19,127 +20,91 @@ import Data.Foldable
 type Depth = Int
 type Size = Int -- computed lazily
 
--- | A path-compressed traversal.
+------------------------------------------------------------------------------
+-- Non-Empty, Path-Compressed Data
+------------------------------------------------------------------------------
+
 data Compressed a
   = Ap Size !Depth (Compressed a) (Compressed a) -- size, depth, left, right
   | Leaf a
-  | Pure
   deriving Show
 
 size :: Compressed a -> Int
 size (Ap s _ _ _) = s
 size Leaf{}       = 1
-size Pure         = 0
 {-# INLINE size #-}
 
 instance Functor Compressed where
   fmap f (Ap m n l r) = Ap m n (fmap f l) (fmap f r)
   fmap f (Leaf a)     = Leaf (f a)
-  fmap _ Pure         = Pure
   {-# INLINE fmap #-}
 
 instance Foldable Compressed where
   foldMap f (Ap _ _ l r) = foldMap f l `mappend` foldMap f r
   foldMap f (Leaf a)     = f a
-  foldMap _ Pure         = mempty
   {-# INLINE foldMap #-}
 
 instance Traversable Compressed where
   traverse f (Ap m n l r) = Ap m n <$> traverse f l <*> traverse f r
   traverse f (Leaf a)     = Leaf <$> f a
-  traverse _ Pure         = pure Pure
   {-# INLINE traverse #-}
 
--- | This is an illegal Monoid.
-instance Monoid (Compressed a) where
-  mempty = Pure
+bump :: Compressed a -> Compressed a
+bump (Ap m n l r) = Ap m (n + 1) l r
+bump (Leaf a)     = Leaf a
+{-# INLINE bump #-}
+
+------------------------------------------------------------------------------
+-- Path-Compression
+------------------------------------------------------------------------------
+
+newtype Compressing a = Compressing { runCompressing :: Maybe (Compressed a) }
+  deriving (Functor, Foldable, Traversable)
+
+-- | An illegal 'Monoid'
+instance Monoid (Compressing a) where
+  mempty = Compressing Nothing
   {-# INLINE mempty #-}
 
-  Pure       `mappend` Pure       = Pure
-  Pure       `mappend` Ap m n l r = Ap m (n + 1) l r
-  Pure       `mappend` l@Leaf{}   = l
-  l@Leaf{}   `mappend` Pure       = l
-  Ap m n l r `mappend` Pure       = Ap m (n + 1) l r
-  l          `mappend` r          = Ap (size l + size r) 0 l r
+  Compressing Nothing  `mappend` Compressing Nothing  = Compressing Nothing
+  Compressing Nothing  `mappend` Compressing (Just r) = Compressing $ Just (bump r)
+  Compressing (Just l) `mappend` Compressing Nothing  = Compressing $ Just (bump l)
+  Compressing (Just l) `mappend` Compressing (Just r) = Compressing $ Just $ Ap (size l + size r) 0 l r
   {-# INLINE mappend #-}
 
-compressedIns :: Bazaar (->) a b t -> Compressed a
-compressedIns = foldMapOf (flip runBazaar) Leaf
-{-# INLINE compressedIns #-}
+-- | Attempt to compress a 'Traversable'
+compressing :: Bazaar (->) a b t -> Maybe (Compressed a)
+compressing = runCompressing . foldMapOf (flip runBazaar) (Compressing . Just . Leaf)
+{-# INLINE compressing #-}
 
-newtype Decompression e a = Decompression { runDecompression :: Depth -> Compressed e -> a }
+------------------------------------------------------------------------------
+-- Path-Decompression
+------------------------------------------------------------------------------
 
-instance Functor (Decompression e) where
-  fmap f (Decompression g) = Decompression $ \ d -> f . g d
+newtype Decompressing e a = Decompressing { runDecompressing :: Depth -> Maybe (Compressed e) -> a }
+
+instance Functor (Decompressing e) where
+  fmap f (Decompressing g) = Decompressing $ \ d -> f . g d
   {-# INLINE fmap #-}
 
--- | This is an illegal Applicative.
-instance Applicative (Decompression e) where
-  pure a = Decompression $ \ _ _ -> a
+-- | This is an illegal 'Applicative'.
+instance Applicative (Decompressing e) where
+  pure a = Decompressing $ \ _ _ -> a
   {-# INLINE pure #-}
-  Decompression mf <*> Decompression ma = Decompression $ \ d s -> case s of
-    Ap _ n l r | d == n      ->          mf 0  l (ma 0  r)
-    _          | d' <- d + 1 -> d' `seq` mf d' s (ma d' s)
+  Decompressing mf <*> Decompressing ma = Decompressing $ \ d s -> case s of
+    Just (Ap _ n l r) | d == n      ->          mf 0  (Just l) (ma 0 (Just r))
+    _                 | d' <- d + 1 -> d' `seq` mf d' s (ma d' s)
   {-# INLINE (<*>) #-}
 
-compressedOuts :: Bazaar (->) a b t -> Compressed b -> t
-compressedOuts bz = runDecompression go 0 where
-  go = runBazaar bz $ \_ -> Decompression $ \ _ t -> case t of
-    Leaf x -> x
-    _      -> error "compressedOuts: wrong shape"
-{-# INLINE compressedOuts #-}
+decompressing :: Bazaar (->) a b t -> Maybe (Compressed b) -> t
+decompressing bz = runDecompressing go 0 where
+  go = runBazaar bz $ \_ -> Decompressing $ \ _ t -> case t of
+    Just (Leaf x) -> x
+    _             -> error "decompressing: wrong shape"
+{-# INLINE decompressing #-}
 
--- | This is only a valid 'Lens' if you don't change the shape of the Compressed tree, etc.
-compressed :: ATraversal s t a b -> Lens s t (Compressed a) (Compressed b)
-compressed l f s = compressedOuts bz <$> f (compressedIns bz) where
+-- | This is only a valid 'Lens' if you don't change the shape of the 'Compressed' tree.
+compressed :: ATraversal s t a b -> Lens s t (Maybe (Compressed a)) (Maybe (Compressed b))
+compressed l f s = decompressing bz <$> f (compressing bz) where
   bz = l sell s
 {-# INLINE compressed #-}
-
--- Manual evaluations some function calls to clarify what's going on:
-
--- Evaluation of @compressedIns (both sell (0,1))@:
---
--- @
--- compressedIns (both sell (0,1))
--- compressedIns (both (\a -> Bazaar ($ a)) (0,1))
--- compressedIns ((\f (a,b) -> (,) <$> f a <$> f b) (\a -> Bazaar ($ a)) (0,1))
--- compressedIns (Bazaar (\f -> (,) <$> f 0 <*> f 1))
--- foldMapOf (flip runBazaar) Leaf (Bazaar (\f -> (,) <$> f 0 <*> f 1))
--- getConst $ flip runBazaar (Const . Leaf) (Bazaar (\f -> (,) <$> f 0 <*> f 1))
--- getConst $ (\f -> (,) <$> f 0 <*> f 1) (Const . Leaf)
--- getConst $ (,) <$> Const (Leaf 0) <*> Const (Leaf 1)
--- Leaf 0 <> Leaf 1
--- Ap 2 0 (Leaf 0) (Leaf 1)
--- @
-
--- Evaluation of @compressedOuts (_1 sell (0,1)) (Leaf 2)@:
---
--- @
--- compressedOuts (_1 sell (0,1)) (Leaf 2)
--- runDecompression (runBazaar (_1 sell (0,1)) (\_ -> Decompression (\_ (Leaf x) -> x))) 0 (Leaf 2)
--- runDecompression ((\f -> _1 f (0,1)) (\_ -> Decompression (\_ (Leaf x) -> x))) 0 (Leaf 2)
--- runDecompression (_1 (\_ -> Decompression (\_ (Leaf x) -> x)) (0,1)) 0 (Leaf 2)
--- runDecompression ((\f -> (,1) <$> f 0) (\_ -> Decompression (\_ (Leaf x) -> x))) 0 (Leaf 2)
--- runDecompression ((,1) <$> Decompression (\_ (Leaf x) -> x)) 0 (Leaf 2)
--- runDecompression (Decompression (\d -> (,1) . (\_ (Leaf x) -> x) d)) 0 (Leaf 2)
--- (\d -> (,1) . (\_ (Leaf x) -> x) d) 0 (Leaf 2)
--- ((,1) . (\_ (Leaf x) -> x)) 0 (Leaf 2)
--- ((,1) . (\(Leaf x) -> x)) (Leaf 2)
--- (2,1)
--- @
-
--- Evaluation of @compressedOuts (both sell (0,1)) (Leaf 2 <> Leaf 3)@:
---
--- @
--- compressedOuts (both sell (0,1)) (Leaf 2 <> Leaf 3)
--- … (skipped almost identical steps to the previous one)
--- runDecompression ((,) <$> Decompression (\_ (Leaf x) -> x) <*> Decompression (\_ (Leaf x) -> x)) 0 (Leaf 2 <> Leaf 3)
--- runDecompression (Decompression (\d -> (,) . (\_ (Leaf x) -> x) d) <*> Decompression (\_ (Leaf x) -> x)) 0 (Leaf 2 <> Leaf 3)
--- runDecompression (Decompression (\d s -> case s of …)) (Leaf 2 <> Leaf 3)
--- (\d s -> case s of …) 0 (Leaf 2 <> Leaf 3)
--- (\d s -> case s of …) 0 (Ap 2 0 (Leaf 2) (Leaf 3))
--- (\s -> case s of Ap _ n l r | 0 == n -> ((,) . (\_ (Leaf x) -> x)) 0 l ((\_ (Leaf x) -> x) 0 r) | …) (Ap 2 0 (Leaf 2) (Leaf 3))
--- (\s -> case s of Ap _ n l r | 0 == n -> ((,) . (\(Leaf x) -> x)) l ((\(Leaf x) -> x) r) | …) (Ap 2 0 (Leaf 2) (Leaf 3))
--- ((,) . (\(Leaf x) -> x)) (Leaf 2) ((\(Leaf x) -> x) (Leaf 3))
--- (2,3)
--- @
