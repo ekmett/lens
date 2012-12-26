@@ -170,7 +170,7 @@ focus f (Zipper h p a) = indexed f (Tape (peel h) (offset p)) a <&> \a' -> Zippe
 
 -- | Construct a 'Zipper' that can explore anything, and start it at the top.
 zipper :: a -> Top :> a
-zipper a = Zipper Coil Start a
+zipper = Zipper Coil Start
 {-# INLINE zipper #-}
 
 -- | Return the index into the current 'Traversal' within the current level of the 'Zipper'.
