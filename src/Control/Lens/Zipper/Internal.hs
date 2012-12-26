@@ -75,13 +75,16 @@ pathsize = go 1 where
 -- "list case", where the traversal tree is right-biased, as in (Ap (Leaf x)
 -- (Ap (Leaf y) ...)). It should be safe to delete any of these cases.
 
-recompress :: Path a -> a -> Magma a
--- recompress Start a           = Leaf a                -- Unrolled: The lens case.
--- recompress (ApL m Start r) a = Ap m (Leaf a) r     -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
-recompress p a = go p (Leaf a) where
-  go Start         q = q
-  go (ApL m nl nr q r) l = go q (Ap m nl nr l r)
-  go (ApR m nl nr l q) r = go q (Ap m nl nr l r)
+recompressLeaf :: Path a -> a -> Magma a
+-- recompressLeaf Start a           = Leaf a              -- Unrolled: The lens case.
+-- recompressLeaf (ApL m Start r) a = Ap m (Leaf a) r     -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
+recompressLeaf p a = recompress p (Leaf a)
+{-# INLINE recompressLeaf #-}
+
+recompress :: Path a -> Magma a -> Magma a
+recompress Start             q = q
+recompress (ApL m nl nr q r) l = recompress q (Ap m nl nr l r)
+recompress (ApR m nl nr l q) r = recompress q (Ap m nl nr l r)
 {-# INLINE recompress #-}
 
 -- walk down the compressed tree to the leftmost child.
@@ -110,7 +113,7 @@ movel :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
 movel p0 c0 kn kp = go p0 c0 where
   go Start _       = kn
   go (ApR m nl nr l q) r
-    | nr          = go q (Ap m nl nr l r)
+    | nullRight r = go q (Ap m nl nr l r)
     | otherwise   = startr (ApL m nl nr q r) l kn kp
   go (ApL m nl nr p r) l = go p (Ap m nl nr l r)
 {-# INLINE movel #-}
@@ -119,21 +122,17 @@ mover :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
 mover p0 c0 kn kp = go p0 c0 where
   go Start _         = kn
   go (ApL m nl nr q r) l
-    | nl          = go q (Ap m nl nr l r)
+    | nullLeft l  = go q (Ap m nl nr l r)
     | otherwise   = startl (ApR m nl nr l q) r kn kp
   go (ApR m nl nr l p) r = go p (Ap m nl nr l r)
 {-# INLINE mover #-}
 
 rightmostPath :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
-rightmostPath p0 c0 kn kp = go p0 c0 where
-  go (ApL m nl nr q r) l = go q (Ap m nl nr l r)
-  go p c                 = startr p c kn kp
+rightmostPath p0 c0 kn kp = startr Start (recompress p0 c0) kn kp
 {-# INLINE rightmostPath #-}
 
 leftmostPath :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
-leftmostPath p0 c0 kn kp = go p0 c0 where
-  go (ApR m nl nr l p) r = go p (Ap m nl nr l r)
-  go p c                 = startl p c kn kp
+leftmostPath p0 c0 kn kp = startl Start (recompress p0 c0) kn kp
 {-# INLINE leftmostPath #-}
 
 -----------------------------------------------------------------------------
@@ -218,7 +217,7 @@ tooth (Zipper _ p _) = offset p
 -- NB: Attempts to move upward from the 'Top' of the 'Zipper' will fail to typecheck.
 --
 upward :: (h :> s :> a) -> h :> s
-upward (Zipper (Snoc h _ p k) q x) = Zipper h p (k (recompress q x))
+upward (Zipper (Snoc h _ p k) q x) = Zipper h p (k (recompress q (Leaf x)))
 {-# INLINE upward #-}
 
 -- | Jerk the 'Zipper' one 'tooth' to the 'rightward' within the current 'Lens' or 'Traversal'.
@@ -484,12 +483,12 @@ instance Zipping Top a where
   {-# INLINE recoil #-}
 
 instance Zipping h s => Zipping (h :> s) a where
-  recoil (Snoc h _ p k) as = recoil h $ recompress p $ k as
+  recoil (Snoc h _ p k) as = recoil h $ recompressLeaf p $ k as
   {-# INLINE recoil #-}
 
 -- | Close something back up that you opened as a 'Zipper'.
 rezip :: Zipping h a => (h :> a) -> Zipped h a
-rezip (Zipper h p a) = recoil h (recompress p a)
+rezip (Zipper h p a) = recoil h (recompressLeaf p a)
 {-# INLINE rezip #-}
 
 -- | Extract the current 'focus' from a 'Zipper' as a 'Context'
