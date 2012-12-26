@@ -69,8 +69,15 @@ pathsize = go 1 where
   go _ (ApR n _ _ p) = go n p
 {-# INLINE pathsize #-}
 
+-- For several operations, we unroll the first step of the recursion (or part
+-- of it) so GHC can inline better. There are two specific cases that we care
+-- about: The "lens case", where the entire tree is just (Leaf x), and the
+-- "list case", where the traversal tree is right-biased, as in (Ap (Leaf x)
+-- (Ap (Leaf y) ...)). It should be safe to delete any of these cases.
+
 recompress :: Path a -> a -> Compressed a
-recompress Start a = Leaf a -- This case is not necessary but helps GHC optimize simple zipper operations, since it isn't recursive.
+recompress Start a = Leaf a -- Unrolled: The lens case.
+recompress (ApL m n Start r) a = Ap m n (Leaf a) r -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
 recompress p a = go p (Leaf a) where
   go Start         q = q
   go (ApL m n q r) l = go q (Ap m n l r)
@@ -79,7 +86,8 @@ recompress p a = go p (Leaf a) where
 
 -- walk down the compressed tree to the leftmost child.
 startl :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
-startl p0 (Leaf a) _ kp = kp p0 a -- As above.
+startl p0 (Leaf a) _ kp = kp p0 a -- Unrolled: The lens case.
+startl p0 (Ap m n (Leaf a) r) _ kp = kp (ApL m n p0 r) a -- Unrolled: The list case.
 startl p0 c0 kn kp = go p0 c0 where
   go p (Ap m n l r) = go (ApL m n p r) l
   go p (Leaf a)     = kp p a
@@ -87,7 +95,7 @@ startl p0 c0 kn kp = go p0 c0 where
 {-# INLINE startl #-}
 
 startr :: Path a -> Compressed a -> r -> (Path a -> a -> r) -> r
-startr p0 (Leaf a) _ kp = kp p0 a -- As above.
+startr p0 (Leaf a) _ kp = kp p0 a -- Unrolled: The lens case.
 startr p0 c0 kn kp = go p0 c0 where
   go p (Ap m n l r) = go (ApR m n l p) r
   go p (Leaf a)     = kp p a
