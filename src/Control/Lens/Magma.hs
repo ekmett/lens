@@ -22,7 +22,7 @@ type Size = Int -- computed lazily
 ------------------------------------------------------------------------------
 
 data Magma a
-  = Ap Size Bool Bool (Magma a) (Magma a) -- size, depth, left, right
+  = Ap Size Bool Bool (Magma a) (Magma a) -- size, left-to-right null check, right-to-left null check, left, right
   | Leaf a
   | Pure
   deriving Show
