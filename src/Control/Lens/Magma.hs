@@ -33,15 +33,15 @@ size Leaf{}       = 1
 size Pure         = 0
 {-# INLINE size #-}
 
-nonEmptyLeft :: Magma a -> Bool
-nonEmptyLeft (Ap _ ltr _ _ _) = ltr
-nonEmptyLeft (Leaf _)         = True
-nonEmptyLeft Pure             = False
+nullLeft :: Magma a -> Bool
+nullLeft (Ap _ ltr _ _ _) = ltr
+nullLeft (Leaf _)         = True
+nullLeft Pure             = False
 
-nonEmptyRight :: Magma a -> Bool
-nonEmptyRight (Ap _ _ rtl _ _) = rtl
-nonEmptyRight (Leaf _)         = True
-nonEmptyRight Pure             = False
+nullRight :: Magma a -> Bool
+nullRight (Ap _ _ rtl _ _) = rtl
+nullRight (Leaf _)         = True
+nullRight Pure             = False
 
 instance Functor Magma where
   fmap f (Ap m ltr rtl l r) = Ap m ltr rtl (fmap f l) (fmap f r)
@@ -66,7 +66,7 @@ instance Monoid (Magma a) where
   mempty = Pure
   {-# INLINE mempty #-}
 
-  l `mappend` r = Ap (size l + size r) (nonEmptyLeft l || nonEmptyLeft r) (nonEmptyRight r || nonEmptyRight l) l r
+  l `mappend` r = Ap (size l + size r) (nullLeft l && nullLeft r) (nullRight r && nullRight l) l r
   {-# INLINE mappend #-}
 
 -- | Attempt to compress a 'Traversable'
