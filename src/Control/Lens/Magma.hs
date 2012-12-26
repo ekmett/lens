@@ -35,13 +35,13 @@ size Pure         = 0
 
 nullLeft :: Magma a -> Bool
 nullLeft (Ap _ ltr _ _ _) = ltr
-nullLeft (Leaf _)         = True
-nullLeft Pure             = False
+nullLeft (Leaf _)         = False
+nullLeft Pure             = True
 
 nullRight :: Magma a -> Bool
 nullRight (Ap _ _ rtl _ _) = rtl
-nullRight (Leaf _)         = True
-nullRight Pure             = False
+nullRight (Leaf _)         = False
+nullRight Pure             = True
 
 instance Functor Magma where
   fmap f (Ap m ltr rtl l r) = Ap m ltr rtl (fmap f l) (fmap f r)
