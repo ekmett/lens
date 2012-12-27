@@ -18,7 +18,6 @@ import Data.Monoid
 import Data.Foldable
 
 type Size = Int -- computed lazily
-type Offset = Int -- computed lazily
 
 ------------------------------------------------------------------------------
 -- Magma
