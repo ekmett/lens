@@ -90,6 +90,7 @@ import Control.Comonad.Store.Class
 import Control.Monad
 import Control.Monad.Fix
 import Data.Bifunctor as Bifunctor
+import Data.Distributive
 import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Int
@@ -255,11 +256,12 @@ instance Settable Mutator where
 -- to the preservation of limits and colimits.
 class
   ( Profunctor p, Prismatic p, Lenticular p
-  , RepresentableProfunctor p, Comonad (Rep p)
-  , CorepresentableProfunctor p, Monad (Corep p)
+  , RepresentableProfunctor p, Comonad (Rep p) -- , Traversable (Rep p) -- (,) e  is missing an instance
+  , CorepresentableProfunctor p, Monad (Corep p), Distributive (Corep p)
   , ArrowLoop p, ArrowApply p, ArrowChoice p
   ) => SelfAdjoint p where
   distrib :: Functor f => p a b -> p (f a) (f b)
+  distrib = cotabulatePro . collect . coindexPro
 
 instance SelfAdjoint (->) where
   distrib = fmap
