@@ -5,6 +5,8 @@
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ExistentialQuantification #-}
 #ifdef TRUSTWORTHY
@@ -27,6 +29,7 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Zipper.Internal where
 
+import Control.Applicative
 import Control.Category ((>>>))
 import Control.Monad
 import Control.Lens.Combinators
@@ -36,7 +39,10 @@ import Control.Lens.Internal
 import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Traversal
+import Data.Functor.Identity
 import Data.Maybe
+import Data.Monoid
+import Data.Profunctor.Representable
 
 {-# ANN module "HLint: ignore Use foldl" #-}
 
@@ -44,84 +50,84 @@ import Data.Maybe
 -- >>> import Control.Lens
 -- >>> import Data.Char
 
-data Path a
-  = ApL Int Bool Bool !(Path a) !(Magma a)
-  | ApR Int Bool Bool !(Magma a) !(Path a)
+data Path i a
+  = ApL Int Bool Bool (Last i) !(Path i a) !(Magma i a)
+  | ApR Int Bool Bool (Last i) !(Magma i a) !(Path i a)
   | Start
   deriving Show
 
-instance Functor Path where
-  fmap f (ApL m nl nr p q) = ApL m nl nr (fmap f p) (fmap f q)
-  fmap f (ApR m nl nr p q) = ApR m nl nr (fmap f p) (fmap f q)
+instance Functor (Path i) where
+  fmap f (ApL m nl nr li p q) = ApL m nl nr li (fmap f p) (fmap f q)
+  fmap f (ApR m nl nr li p q) = ApR m nl nr li (fmap f p) (fmap f q)
   fmap _ Start = Start
   {-# INLINE fmap #-}
 
-offset :: Path a -> Int
+offset :: Path i a -> Int
 offset Start           = 0
-offset (ApL _ _ _ q _) = offset q
-offset (ApR _ _ _ l q) = size l + offset q
+offset (ApL _ _ _ _ q _) = offset q
+offset (ApR _ _ _ _ l q) = size l + offset q
 {-# INLINE offset #-}
 
-pathsize :: Path a -> Int
+pathsize :: Path i a -> Int
 pathsize = go 1 where
   go n Start = n
-  go _ (ApL n _ _ p _) = go n p
-  go _ (ApR n _ _ _ p) = go n p
+  go _ (ApL n _ _ _ p _) = go n p
+  go _ (ApR n _ _ _ _ p) = go n p
 {-# INLINE pathsize #-}
 
 -- For several operations, we unroll the first step of the recursion (or part
 -- of it) so GHC can inline better. There are two specific cases that we care
--- about: The "lens case", where the entire tree is just (Leaf x), and the
--- "list case", where the traversal tree is right-biased, as in (Ap (Leaf x)
--- (Ap (Leaf y) ...)). It should be safe to delete any of these cases.
+-- about: The "lens case", where the entire tree is just (Leaf (Identity x)), and the
+-- "list case", where the traversal tree is right-biased, as in (Ap (Leaf (Identity x))
+-- (Ap (Leaf (Identity y)) ...)). It should be safe to delete any of these cases.
 
-recompress :: Path a -> a -> Magma a
-recompress Start a                 = Leaf a                      -- Unrolled: The lens case.
-recompress (ApL m _ _ Start r) a = Ap m False False (Leaf a) r -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
-recompress p a = go p (Leaf a) where
-  go Start           q = q
-  go (ApL m _ _ q r) l = go q (Ap m False False l r)
-  go (ApR m _ _ l q) r = go q (Ap m False False l r)
+recompress :: Path i a -> i -> a -> Magma i a
+recompress Start i a = Leaf i a -- Unrolled: The lens case.
+recompress (ApL m _ _ li Start r) i a = Ap m False False li (Leaf i a) r -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
+recompress p i a = go p (Leaf i a) where
+  go Start              q = q
+  go (ApL m _ _ li q r) l = go q (Ap m False False li l r)
+  go (ApR m _ _ li l q) r = go q (Ap m False False li l r)
 {-# INLINE recompress #-}
 
 -- walk down the compressed tree to the leftmost child.
-startl :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
-startl p0 (Leaf a) _ kp                = kp p0 a                 -- Unrolled: The lens case.
-startl p0 (Ap m nl nr (Leaf a) r) _ kp = kp (ApL m nl nr p0 r) a -- Unrolled: The list case. (Is this one a good idea?)
+startl :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
+startl p0 (Leaf i a) _ kp = kp p0 i a -- Unrolled: The lens case.
+startl p0 (Ap m nl nr li (Leaf i a) r) _ kp = kp (ApL m nl nr li p0 r) i a -- Unrolled: The list case. (Is this one a good idea?)
 startl p0 c0 kn kp = go p0 c0 where
-  go p (Ap m nl nr l r)
-    | nullLeft l  = go (ApR m nl nr Pure p) r
-    | otherwise   = go (ApL m nl nr p r) l
-  go p (Leaf a)   = kp p a
+  go p (Ap m nl nr li l r)
+    | nullLeft l  = go (ApR m nl nr li Pure p) r
+    | otherwise   = go (ApL m nl nr li p r) l
+  go p (Leaf i a) = kp p i a
   go _ Pure       = kn
 {-# INLINE startl #-}
 
-startr :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
-startr p0 (Leaf a) _ kp = kp p0 a -- Unrolled: The lens case.
+startr :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
+startr p0 (Leaf i a) _ kp = kp p0 i a -- Unrolled: The lens case.
 startr p0 c0 kn kp = go p0 c0 where
-  go p (Ap m nl nr l r)
-     | nullRight r = go (ApL m nl nr p Pure) l
-     | otherwise   = go (ApR m nl nr l p) r
-  go p (Leaf a)    = kp p a
+  go p (Ap m nl nr li l r)
+     | nullRight r = go (ApL m nl nr li p Pure) l
+     | otherwise   = go (ApR m nl nr li l p) r
+  go p (Leaf i a)  = kp p i a
   go _ Pure        = kn
 {-# INLINE startr #-}
 
-movel :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
+movel :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
 movel p0 c0 kn kp = go p0 c0 where
-  go Start _       = kn
-  go (ApR m _ _ l q) r
-    | nullRight l = go q (Ap m False False l Pure)
-    | otherwise   = startr (ApL m False False q r) l kn kp
-  go (ApL m _ _ p r) l = go p (Ap m False False l r)
+  go Start _ = kn
+  go (ApR m _ _ li l q) r
+    | nullRight l = go q (Ap m False False li l Pure)
+    | otherwise   = startr (ApL m False False li q r) l kn kp
+  go (ApL m _ _ li p r) l = go p (Ap m False False li l r)
 {-# INLINE movel #-}
 
-mover :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
+mover :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
 mover p0 c0 kn kp = go p0 c0 where
-  go Start _         = kn
-  go (ApL m _ _ q r) l
-    | nullLeft r  = go q (Ap m False False Pure r)
-    | otherwise   = startl (ApR m False False l q) r kn kp
-  go (ApR m _ _ l p) r = go p (Ap m False False l r)
+  go Start _ = kn
+  go (ApL m _ _ li q r) l
+    | nullLeft r  = go q (Ap m False False li Pure r)
+    | otherwise   = startl (ApR m False False li l q) r kn kp
+  go (ApR m _ _ li l p) r = go p (Ap m False False li l r)
 {-# INLINE mover #-}
 
 -----------------------------------------------------------------------------
@@ -135,7 +141,6 @@ mover p0 c0 kn kp = go p0 c0 where
 -- /e.g./ @'Top' ':>' a@ is the type of the trivial 'Zipper'.
 data Top
 
-infixl 9 :>
 
 -- | This is the type of a 'Zipper'. It visually resembles a \"breadcrumb trail\" as
 -- used in website navigation. Each breadcrumb in the trail represents a level you
@@ -162,51 +167,71 @@ infixl 9 :>
 -- of type @h ':>' s@ -- as we descend into a level, the previous level is
 -- unpacked and stored in 'Coil' form. Only one value of type @_ ':>' _@ exists
 -- at any particular time for any particular 'Zipper'.
-data h :> a = Zipper !(Coil h a) !(Path a) a
 
--- | This is an alias for '(:>)'. Provided mostly for convenience
-type Zipper = (:>)
+data Zipper h i a = Zipper !(Coil h i a) !(Path i a) i a
+
+-- Top :>> Map String Int :> Int :@ String :>> Bool
+
+infixr 9 :@
+data (:@) a i
+
+infixl 8 :>
+type family (:>) h p
+type instance h :> (a :@ i) = Zipper h i a
+
+infixl 8 :>>
+type h :>> a = Zipper h Int a
 
 -- | This represents the type a 'Zipper' will have when it is fully 'Zipped' back up.
 type family Zipped h a
 type instance Zipped Top a      = a
-type instance Zipped (h :> s) a = Zipped h s
+type instance Zipped (Zipper h i s) a = Zipped h s
 
 -- | A 'Coil' is a linked list of the levels above the current one. The length
 -- of a 'Coil' is known at compile time.
 --
 -- This is part of the internal structure of a zipper. You shouldn't need to manipulate this directly.
-data Coil t a
-  = (t ~ Top)      => Coil
-  | forall h s. (t ~ (h :> s)) => Snoc !(Coil h s) (ATraversal' s a) !(Path s) (Magma a -> s)
+#ifndef HLINT
+data Coil t i a where
+  Coil :: Coil Top Int a
+  Snoc :: !(Coil h i s) -> AnIndexedTraversal' i s a -> !(Path i s) -> i -> (Magma j a -> s) -> Coil (Zipper h i s) j a
+#endif
 
 -- | This 'Lens' views the current target of the 'Zipper'.
---
--- A 'Tape' that can be used to get to the current location is available as the index of this 'Lens'.
-focus :: IndexedLens' (Tape (h :> a)) (h :> a) a
-focus f (Zipper h p a) = indexed f (Tape (peel h) (offset p)) a <&> \a' -> Zipper h p a'
+focus :: IndexedLens' i (Zipper h i a) a
+focus f (Zipper h p i a) = Zipper h p i <$> indexed f i a
 {-# INLINE focus #-}
 
 -- | Construct a 'Zipper' that can explore anything, and start it at the top.
-zipper :: a -> Top :> a
-zipper = Zipper Coil Start
+zipper :: a -> Top :>> a
+zipper = Zipper Coil Start 0
 {-# INLINE zipper #-}
+
+-- | Return the index of the focus.
+focalPoint :: Zipper h i a -> i
+focalPoint (Zipper _ _ i _) = i
+{-# INLINE focalPoint #-}
 
 -- | Return the index into the current 'Traversal' within the current level of the 'Zipper'.
 --
 -- @'jerkTo' ('tooth' l) l = Just'@
 --
 -- Mnemonically, zippers have a number of 'teeth' within each level. This is which 'tooth' you are currently at.
-tooth :: (h :> a) -> Int
-tooth (Zipper _ p _) = offset p
+--
+-- This is based on ordinal position regardless of the underlying index type. It may be excessively expensive for a list.
+--
+-- 'focalPoint' may be much cheaper if you have a 'Traversal' indexed by ordinal position!
+tooth :: Zipper h i a -> Int
+tooth (Zipper _ p _ _) = offset p
 {-# INLINE tooth #-}
 
 -- | Move the 'Zipper' 'upward', closing the current level and focusing on the parent element.
 --
 -- NB: Attempts to move upward from the 'Top' of the 'Zipper' will fail to typecheck.
 --
-upward :: (h :> s :> a) -> h :> s
-upward (Zipper (Snoc h _ p k) q x) = Zipper h p (k (recompress q x))
+upward :: h :> s:@j :> a:@i -> h :> s:@j
+-- upward :: Zipper (Zipper h i s) j a -> Zipper h i s
+upward (Zipper (Snoc h _ p j k) q i x) = Zipper h p j $ k $ recompress q i x
 {-# INLINE upward #-}
 
 -- | Jerk the 'Zipper' one 'tooth' to the 'rightward' within the current 'Lens' or 'Traversal'.
@@ -225,8 +250,8 @@ upward (Zipper (Snoc h _ p k) q x) = Zipper h p (k (recompress q x))
 --
 -- >>> rezip $ zipper (1,2) & fromWithin both & tug rightward & focus .~ 3
 -- (1,3)
-rightward :: MonadPlus m => (h :> a) -> m (h :> a)
-rightward (Zipper h p a) = mover p (Leaf a) mzero $ \q b -> return (Zipper h q b)
+rightward :: MonadPlus m => (h :> a:@i) -> m (h :> a:@i)
+rightward (Zipper h p i a) = mover p (Leaf i a) mzero $ \q j b -> return $ Zipper h q j b
 {-# INLINE rightward #-}
 
 -- | Jerk the 'zipper' 'leftward' one 'tooth' within the current 'Lens' or 'Traversal'.
@@ -245,8 +270,8 @@ rightward (Zipper h p a) = mover p (Leaf a) mzero $ \q b -> return (Zipper h q b
 --
 -- >>> zipper "hello" & fromWithin traverse & tug rightward & tug leftward & view focus
 -- 'h'
-leftward :: MonadPlus m => (h :> a) -> m (h :> a)
-leftward (Zipper h p a) = movel p (Leaf a) mzero $ \q b -> return (Zipper h q b)
+leftward :: MonadPlus m => (h :> a:@i) -> m (h :> a:@i)
+leftward (Zipper h p i a) = movel p (Leaf i a) mzero $ \q j b -> return $ Zipper h q j b
 {-# INLINE leftward #-}
 
 -- | Move to the leftmost position of the current 'Traversal'.
@@ -255,8 +280,8 @@ leftward (Zipper h p a) = movel p (Leaf a) mzero $ \q b -> return (Zipper h q b)
 --
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
 -- "hella"
-leftmost :: (a :> b) -> a :> b
-leftmost (Zipper h p a) = startl Start (recompress p a) (error "leftmost: bad Magma structure") (Zipper h)
+leftmost :: (a :> b:@i) -> a :> b:@i
+leftmost (Zipper h p i a) = startl Start (recompress p i a) (error "leftmost: bad Magma structure") (Zipper h)
 {-# INLINE leftmost #-}
 
 -- | Move to the rightmost position of the current 'Traversal'.
@@ -265,8 +290,8 @@ leftmost (Zipper h p a) = startl Start (recompress p a) (error "leftmost: bad Ma
 --
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
 -- "jelly"
-rightmost :: (a :> b) -> a :> b
-rightmost (Zipper h p a) = startr Start (recompress p a) (error "rightmost: bad Magma structure") (Zipper h)
+rightmost :: (a :> b:@i) -> a :> b:@i
+rightmost (Zipper h p i a) = startr Start (recompress p i a) (error "rightmost: bad Magma structure") (Zipper h)
 {-# INLINE rightmost #-}
 
 -- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'zipper'. This
@@ -356,8 +381,8 @@ jerks f n0
 --
 -- >>> zipper ("hello","world") & fromWithin (both.traverse) & teeth
 -- 10
-teeth :: (h :> a) -> Int
-teeth (Zipper _ p _) = pathsize p
+teeth :: h :> a:@i -> Int
+teeth (Zipper _ p _ _) = pathsize p
 {-# INLINE teeth #-}
 
 -- | Move the 'Zipper' horizontally to the element in the @n@th position in the
@@ -375,7 +400,7 @@ teeth (Zipper _ p _) = pathsize p
 --
 -- >>> fmap rezip $ zipper "not working" & within traverse >>= jerkTo 2 <&> focus .~ 'w'
 -- Just "now working"
-jerkTo :: MonadPlus m => Int -> (h :> a) -> m (h :> a)
+jerkTo :: MonadPlus m => Int -> (h :> a:@i) -> m (h :> a:@i)
 jerkTo n z = case compare k n of
   LT -> jerks rightward (n - k) z
   EQ -> return z
@@ -392,7 +417,7 @@ jerkTo n z = case compare k n of
 --
 -- >>> rezip $ zipper "not working." & fromWithin traverse & tugTo 100 & focus .~ '!' & tugTo 1 & focus .~ 'u'
 -- "nut working!"
-tugTo :: Int -> (h :> a) -> h :> a
+tugTo :: Int -> (h :> a:@i) -> h :> a:@i
 tugTo n z = case compare k n of
   LT -> tugs rightward (n - k) z
   EQ -> z
@@ -407,10 +432,18 @@ tugTo n z = case compare k n of
 -- 'downward' :: 'Lens'' s a -> (h :> s) -> h :> s :> a
 -- 'downward' :: 'Iso'' s a  -> (h :> s) -> h :> s :> a
 -- @
-downward :: ALens' s a -> (h :> s) -> h :> s :> a
-downward l (Zipper h p s) = case context (l sell s) of
-  Context k a -> Zipper (Snoc h (cloneLens l) p $ \xs -> case xs of Leaf b -> k b; _ -> error "downward: rezipping") Start a
+downward :: ALens' s a -> h :> s:@j -> h :> s:@j :>> a
+downward = undefined
+
+--downward l (Zipper h p s) = case context (l sell s) of
+--  Context k a -> Zipper (Snoc h (cloneLens l) p $ \xs -> case xs of Leaf _ b -> k b; _ -> error "downward: rezipping") Start a
 {-# INLINE downward #-}
+
+idownward :: AnIndexedLens' i s a -> h :> s:@j -> h :> s:@j :> a:@i
+idownward = undefined
+--idownward l (Zipper h p j s) = case l sell s of
+--  Context k a -> Zipper (Snoc h (cloneLens l) p j $ \xs -> case xs of Leaf _ b -> k b; _ -> error "downward: rezipping") Start a
+{-# INLINE idownward #-}
 
 -- | Step down into the 'leftmost' entry of a 'Traversal'.
 --
@@ -420,10 +453,14 @@ downward l (Zipper h p s) = case context (l sell s) of
 -- 'within' :: 'Lens'' s a      -> (h :> s) -> Maybe (h :> s :> a)
 -- 'within' :: 'Iso'' s a       -> (h :> s) -> Maybe (h :> s :> a)
 -- @
-within :: MonadPlus m => ATraversal' s a -> (h :> s) -> m (h :> s :> a)
-within l (Zipper h p s) = case magma l (Context id) s of -- case partsOf' l (Context id) s of
-  Context k xs -> startl Start xs mzero $ \q a -> return $ Zipper (Snoc h l p k) q a
+within :: MonadPlus m => ATraversal' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
+within = undefined
+--within l (Zipper h p s) = case magma l (Context id) s of -- case partsOf' l (Context id) s of
+--  Context k xs -> startl Start xs mzero $ \q a -> return $ Zipper (Snoc h l p k) q a
 {-# INLINE within #-}
+
+iwithin :: MonadPlus m => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
+iwithin = undefined
 
 -- | Step down into every entry of a 'Traversal' simultaneously.
 --
@@ -435,13 +472,19 @@ within l (Zipper h p s) = case magma l (Context id) s of -- case partsOf' l (Con
 -- 'withins' :: 'Lens'' s a      -> (h :> s) -> [h :> s :> a]
 -- 'withins' :: 'Iso'' s a       -> (h :> s) -> [h :> s :> a]
 -- @
-withins :: MonadPlus m => ATraversal' s a -> (h :> s) -> m (h :> s :> a)
+withins :: MonadPlus m => ATraversal' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
+withins = undefined
+
+iwithins :: MonadPlus m => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
+iwithins = undefined
+{-
 withins t (Zipper h p s) = case magma t (Context id) s of
   Context k xs -> let up = Snoc h t p k
                       go q (Ap m nl nr l r) = go (ApL m nl nr q r) l `mplus` go (ApR m nl nr l q) r
-                      go q (Leaf a)     = return $ Zipper up q a
+                      go q (Leaf (Identity a))     = return $ Zipper up q a
                       go _ Pure         = mzero
                   in  go Start xs
+-}
 {-# INLINE withins #-}
 
 -- | Unsafely step down into a 'Traversal' that is /assumed/ to be non-empty.
@@ -457,32 +500,36 @@ withins t (Zipper h p s) = case magma t (Context id) s of
 -- You can reason about this function as if the definition was:
 --
 -- @'fromWithin' l ≡ 'fromJust' '.' 'within' l@
-fromWithin :: ATraversal' s a -> (h :> s) -> h :> s :> a
-fromWithin l (Zipper h p s) = case magma l (Context id) s of
-  Context k xs -> let up = Snoc h l p k in startl Start xs (Zipper up Start (error "fromWithin an empty Traversal")) (Zipper up)
+fromWithin :: ATraversal' s a -> (h :> s:@j) -> h :> s:@j :>> a
+fromWithin = undefined
+
+ifromWithin :: AnIndexedTraversal' i s a -> (h :> s:@j) -> h :> s:@j :> a:@i
+ifromWithin = undefined
+--fromWithin l (Zipper h p s) = case magma l (Context id) s of
+--  Context k xs -> let up = Snoc h l p k in startl Start xs (Zipper up Start (error "fromWithin an empty Traversal")) (Zipper up)
 {-# INLINE fromWithin #-}
 
 -- | This enables us to pull the 'Zipper' back up to the 'Top'.
 class Zipping h a where
-  recoil :: Coil h a -> Magma a -> Zipped h a
+  recoil :: Coil h i a -> Magma i a -> Zipped h a
 
 instance Zipping Top a where
-  recoil Coil (Leaf a) = a
+  recoil Coil (Leaf i a) = a
   recoil Coil _ = error "recoil: expected Leaf"
   {-# INLINE recoil #-}
 
-instance Zipping h s => Zipping (h :> s) a where
-  recoil (Snoc h _ p k) as = recoil h $ recompress p $ k as
+instance Zipping h s => Zipping (Zipper h i s) a where
+  recoil (Snoc h _ p i k) as = recoil h $ recompress p i (k as)
   {-# INLINE recoil #-}
 
 -- | Close something back up that you opened as a 'Zipper'.
-rezip :: Zipping h a => (h :> a) -> Zipped h a
-rezip (Zipper h p a) = recoil h (recompress p a)
+rezip :: Zipping h a => (h :> a:@i) -> Zipped h a
+rezip (Zipper h p i a) = recoil h (recompress p i a)
 {-# INLINE rezip #-}
 
--- | Extract the current 'focus' from a 'Zipper' as a 'Context'
-focusedContext :: Zipping h a => (h :> a) -> Context a a (Zipped h a)
-focusedContext z = Context (\a -> z & focus .~ a & rezip) (z^.focus)
+-- | Extract the current 'focus' from a 'Zipper' as a 'Pretext', with access to the current index.
+focusedContext :: (Indexable i p, Zipping h a) => (h :> a:@i) -> Pretext p a a (Zipped h a)
+focusedContext (Zipper h p i a) = Pretext (\f -> rezip . Zipper h p i <$> indexed f i a)
 {-# INLINE focusedContext #-}
 
 -----------------------------------------------------------------------------
@@ -490,26 +537,29 @@ focusedContext z = Context (\a -> z & focus .~ a & rezip) (z^.focus)
 -----------------------------------------------------------------------------
 
 -- | A 'Tape' is a recorded path through the 'Traversal' chain of a 'Zipper'.
-data Tape k = forall h a. k ~ (h :> a) => Tape (Track h a) Int
+data Tape h i a where
+  Tape :: Track h i a -> i -> Tape h i a
 
 -- | Save the current path as as a 'Tape' we can play back later.
-saveTape :: (h :> a) -> Tape (h :> a)
-saveTape (Zipper h p _) = Tape (peel h) (offset p)
+saveTape :: Zipper h i a -> Tape h i a
+saveTape (Zipper h p i _) = Tape (peel h) i
 {-# INLINE saveTape #-}
 
 -- | Restore ourselves to a previously recorded position precisely.
 --
 -- If the position does not exist, then fail.
-restoreTape :: MonadPlus m => Tape (h :> a) -> Zipped h a -> m (h :> a)
-restoreTape (Tape h n) = restoreTrack h >=> jerks rightward n
+restoreTape :: MonadPlus m => Tape h i a -> Zipped h a -> m (Zipper h i a)
+restoreTape = undefined
+-- restoreTape (Tape h n) = restoreTrack h >=> jerks rightward n
 {-# INLINE restoreTape #-}
 
 -- | Restore ourselves to a location near our previously recorded position.
 --
 -- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
-restoreNearTape :: MonadPlus m => Tape (h :> a) -> Zipped h a -> m (h :> a)
-restoreNearTape (Tape h n) a = liftM (tugs rightward n) (restoreNearTrack h a)
+restoreNearTape :: MonadPlus m => Tape h i a -> Zipped h a -> m (Zipper h i a)
+restoreNearTape = undefined
+-- restoreNearTape (Tape h n) a = liftM (tugs rightward n) (restoreNearTrack h a)
 {-# INLINE restoreNearTape #-}
 
 -- | Restore ourselves to a previously recorded position.
@@ -519,8 +569,9 @@ restoreNearTape (Tape h n) a = liftM (tugs rightward n) (restoreNearTrack h a)
 -- Motions leftward or rightward are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
 --
 -- Violate these assumptions at your own risk!
-unsafelyRestoreTape :: Tape (h :> a) -> Zipped h a -> h :> a
-unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> tugs rightward n
+unsafelyRestoreTape :: Tape h i a -> Zipped h a -> Zipper h i a
+unsafelyRestoreTape = undefined
+-- unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> tugs rightward n
 {-# INLINE unsafelyRestoreTape #-}
 
 -----------------------------------------------------------------------------
@@ -528,30 +579,32 @@ unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> tugs rightward n
 -----------------------------------------------------------------------------
 
 -- | This is used to peel off the path information from a 'Coil' for use when saving the current path for later replay.
-peel :: Coil h a -> Track h a
-peel Coil           = Track
-peel (Snoc h l p _) = Fork (peel h) (offset p) l
+peel :: Coil h i a -> Track h i a
+peel Coil             = Top
+peel (Snoc h l _ i _) = Fork (peel h) i l
 {-# INLINE peel #-}
 
 -- | The 'Track' forms the bulk of a 'Tape'.
-data Track t a
-  = t ~ Top                  => Track
-  | forall h s. t ~ (h :> s) => Fork (Track h s) Int (ATraversal' s a)
+data Track t i a where
+  Top :: Track Top Int a
+  Fork :: Track h j s -> j -> AnIndexedTraversal' j s a -> Track (Zipper h j s) i a
 
 -- | Restore ourselves to a previously recorded position precisely.
 --
 -- If the position does not exist, then fail.
-restoreTrack :: MonadPlus m => Track h a -> Zipped h a -> m (h :> a)
-restoreTrack Track        = return . zipper
-restoreTrack (Fork h n l) = restoreTrack h >=> jerks rightward n >=> within l
+restoreTrack :: MonadPlus m => Track h i a -> Zipped h a -> m (Zipper h i a)
+restoreTrack = undefined
+--restoreTrack Track        = return . zipper
+--restoreTrack (Fork h n l) = restoreTrack h >=> jerks rightward n >=> within l
 
 -- | Restore ourselves to a location near our previously recorded position.
 --
 -- When moving leftward to rightward through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
-restoreNearTrack :: MonadPlus m => Track h a -> Zipped h a -> m (h :> a)
-restoreNearTrack Track        = return . zipper
-restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs rightward n >>> within l
+restoreNearTrack :: MonadPlus m => Track h i a -> Zipped h a -> m (Zipper h i a)
+restoreNearTrack = undefined
+--restoreNearTrack Track        = return . zipper
+--restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs rightward n >>> within l
 
 -- | Restore ourselves to a previously recorded position.
 --
@@ -560,6 +613,7 @@ restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs rightward n >>> with
 -- Motions leftward or rightward are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
 --
 -- Violate these assumptions at your own risk!
-unsafelyRestoreTrack :: Track h a -> Zipped h a -> h :> a
-unsafelyRestoreTrack Track = zipper
-unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> tugs rightward n >>> fromWithin l
+unsafelyRestoreTrack :: Track h i a -> Zipped h a -> Zipper h i a
+unsafelyRestoreTrack = undefined
+--unsafelyRestoreTrack Track = zipper
+--unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> tugs rightward n >>> fromWithin l

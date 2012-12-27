@@ -82,6 +82,7 @@ import Control.Lens.Internal
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Data.Foldable
+import Data.Functor.Identity
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.IntMap as IntMap
@@ -374,7 +375,7 @@ indices f = coerce . (getFolding #. ifoldMap (\i _ -> Folding (f i)))
 -- An instance must satisfy a (modified) form of the 'Traversable' laws:
 --
 -- @
--- 'itraverse' ('const' 'Data.Functor.Identity.Identity') ≡ 'Data.Functor.Identity.Identity'
+-- 'itraverse' ('const' 'Identity') ≡ 'Identity'
 -- 'fmap' ('itraverse' f) '.' 'itraverse' g ≡ 'getCompose' '.' 'itraverse' (\\i -> 'Compose' '.' 'fmap' (f i) '.' g i)
 -- @
 class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => TraversableWithIndex i t | t -> i where
@@ -454,6 +455,15 @@ iwhere p f = itraverse (\i c -> if p i then indexed f i c else pure c)
 -------------------------------------------------------------------------------
 -- Instances
 -------------------------------------------------------------------------------
+
+instance FunctorWithIndex () Identity where
+  imap f (Identity a) = Identity (f () a)
+
+instance FoldableWithIndex () Identity where
+  ifoldMap f (Identity a) = f () a
+
+instance TraversableWithIndex () Identity where
+  itraverse f (Identity a) = Identity <$> f () a
 
 instance FunctorWithIndex k ((,) k) where
   imap f (k,a) = (k, f k a)
