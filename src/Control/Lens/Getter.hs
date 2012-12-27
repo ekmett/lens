@@ -65,6 +65,7 @@ import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad.Reader.Class as Reader
 import Control.Monad.State        as State
+import Data.Profunctor
 
 -- $setup
 -- >>> import Control.Lens
@@ -97,8 +98,8 @@ infixl 8 ^., ^@.
 --
 -- >>> (0, -5)^._2.to abs
 -- 5
-to :: (s -> a) -> Getter s a
-to f g = coerce . g . f
+to :: (s -> a) -> IndexPreservingGetter s a
+to f = dimap f coerce
 {-# INLINE to #-}
 
 -- |

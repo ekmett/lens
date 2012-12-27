@@ -32,11 +32,12 @@ module Control.Lens.Type
   -- * Indexed Variants
   , IndexedLens, IndexedLens'
   , IndexedTraversal, IndexedTraversal'
-  , IndexedSetter, IndexedSetter'
-  , IndexedGetter
-  , IndexedFold
-  , IndexedAction
-  , IndexedMonadicFold
+  , IndexedSetter, IndexedSetter', IndexPreservingSetter
+  , IndexedGetter, IndexPreservingGetter
+  , IndexedFold, IndexPreservingFold
+  , IndexedAction, IndexPreservingAction
+  , IndexedMonadicFold, IndexPreservingMonadicFold
+  -- * Index-preservation
   -- * Common
   , Simple
   , LensLike, LensLike'
@@ -107,10 +108,6 @@ type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
 
 -- | @type 'Lens'' = 'Simple' 'Lens'@
 type Lens' s a = Lens s s a a
-
-------------------------------------------------------------------------------
--- Indexed Lenses
-------------------------------------------------------------------------------
 
 -- | Every 'IndexedLens' is a valid 'Lens' and a valid 'Control.Lens.Traversal.IndexedTraversal'.
 type IndexedLens i s t a b = forall f p. (Indexable i p, Functor f) => p a (f b) -> s -> f t
@@ -233,6 +230,10 @@ type IndexedSetter i s t a b = forall f p.
 -- @type 'IndexedSetter'' i = 'Simple' ('IndexedSetter' i)@
 type IndexedSetter' i s a = IndexedSetter i s s a a
 
+-- | An 'IndexPreservingSetter' can be composed with a 'IndexedSetter', 'IndexedTraversal' or 'IndexedLens'
+-- and leaves the index intact, yielding an 'IndexedSetter'.
+type IndexPreservingSetter s t a b = forall p f. (Profunctor p, Settable f) => p a (f b) -> p s (f t)
+
 -----------------------------------------------------------------------------
 -- Isomorphisms
 -----------------------------------------------------------------------------
@@ -349,8 +350,12 @@ type Equality' s a = Equality s s a a
 -- since it just ignores the 'Applicative'.
 type Getter s a = forall f. Gettable f => (a -> f a) -> s -> f s
 
--- | Every 'IndexedGetter' is a valid 'Control.Lens.Fold.IndexedFold' and 'Getter'.
+-- | Every 'IndexedGetter' is a valid 'Control.Lens.Fold.IndexedFold' and can be used for 'Getting' like a 'Getter'.
 type IndexedGetter i s a = forall p f. (Indexable i p, Gettable f) => p a (f a) -> s -> f s
+
+-- | An 'IndexPreservingGetter' can be used as a 'Getter', but when composed with an 'IndexedTraversal',
+-- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold', 'IndexedFold' or 'IndexedGetter' respectively.
+type IndexPreservingGetter s a = forall p f. (Profunctor p, Gettable f) => p a (f a) -> p s (f s)
 
 --------------------------
 -- Folds
@@ -371,10 +376,12 @@ type IndexedGetter i s a = forall p f. (Indexable i p, Gettable f) => p a (f a) 
 -- there are no lens laws that apply.
 type Fold s a = forall f. (Gettable f, Applicative f) => (a -> f a) -> s -> f s
 
--- | Every 'IndexedFold' is a valid 'Control.Lens.Fold.Fold'.
-type IndexedFold i s a = forall p f.
-  (Indexable i p, Applicative f, Gettable f) => p a (f a) -> s -> f s
+-- | Every 'IndexedFold' is a valid 'Control.Lens.Fold.Fold' and can be used for 'Getting'.
+type IndexedFold i s a = forall p f.  (Indexable i p, Applicative f, Gettable f) => p a (f a) -> s -> f s
 
+-- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',
+-- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
+type IndexPreservingFold s a = forall p f. (Profunctor p, Gettable f, Applicative f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- Actions
@@ -394,6 +401,10 @@ type Action m s a = forall f r. Effective m r f => (a -> f a) -> s -> f s
 -- You can compose an 'Action' with another 'Action' using ('Prelude..') from the @Prelude@.
 type IndexedAction i m s a = forall p f r. (Indexable i p, Effective m r f) => p a (f a) -> s -> f s
 
+-- | An 'IndexPreservingAction' can be used as a 'Action', but when composed with an 'IndexedTraversal',
+-- 'IndexedFold', or 'IndexedLens' yields an 'IndexedMonadicFold', 'IndexedMonadicFold' or 'IndexedAction' respectively.
+type IndexPreservingAction m s a = forall p f r. (Profunctor p, Effective m r f) => p a (f a) -> p s (f s)
+
 -------------------------------------------------------------------------------
 -- MonadicFolds
 -------------------------------------------------------------------------------
@@ -411,6 +422,10 @@ type MonadicFold m s a = forall f r. (Effective m r f, Applicative f) => (a -> f
 --
 -- You can compose an 'IndexedMonadicFold' with another 'IndexedMonadicFold' using ('Prelude..') from the @Prelude@.
 type IndexedMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f, Applicative f) => p a (f a) -> s -> f s
+
+-- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',
+-- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
+type IndexPreservingMonadicFold m s a = forall p f r. (Profunctor p, Effective m r f, Applicative f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- Simple Overloading
