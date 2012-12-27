@@ -455,6 +455,18 @@ iwhere p f = itraverse (\i c -> if p i then indexed f i c else pure c)
 -- Instances
 -------------------------------------------------------------------------------
 
+instance FunctorWithIndex k ((,) k) where
+  imap f (k,a) = (k, f k a)
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex k ((,) k) where
+  ifoldMap = uncurry
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex k ((,) k) where
+  itraverse f (k, a) = (,) k <$> f k a
+  {-# INLINE itraverse #-}
+
 -- | The position in the list is available as the index.
 instance FunctorWithIndex Int [] where
   imap = iover itraversed

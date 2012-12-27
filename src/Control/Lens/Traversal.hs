@@ -79,7 +79,6 @@ module Control.Lens.Traversal
 
   -- ** Common
   , iwhereOf
-  , value
   , ignored
   , TraverseMin(..)
   , TraverseMax(..)
@@ -770,14 +769,6 @@ traversed = indexing traverse
 traversed64 :: Traversable f => IndexedTraversal Int64 (f a) (f b) a b
 traversed64 = indexing64 traverse
 {-# INLINE traversed64 #-}
-
--- | This provides a 'Traversal' that checks a predicate on a key before
--- allowing you to traverse into a value.
-value :: (k -> Bool) -> IndexedTraversal' k (k, v) v
-value p f kv@(k,v)
-  | p k       = (,) k <$> indexed f k v
-  | otherwise = pure kv
-{-# INLINE value #-}
 
 -- | This is the trivial empty traversal.
 --

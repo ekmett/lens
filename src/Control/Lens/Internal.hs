@@ -12,6 +12,7 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal
@@ -26,6 +27,8 @@
 -- module directly, unless you are coming up with a whole new kind of
 -- \"Family\" and need to add instances.
 --
+-- This module also includes orphan instances for ((,) e) that should be
+-- supplied by base.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal
   (
@@ -91,6 +94,7 @@ import Control.Monad
 import Control.Monad.Fix
 import Data.Bifunctor as Bifunctor
 import Data.Distributive
+import Data.Foldable
 import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Int
@@ -98,6 +102,7 @@ import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Representable
 import Data.Profunctor.Corepresentable
+import Data.Traversable
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
@@ -256,7 +261,7 @@ instance Settable Mutator where
 -- to the preservation of limits and colimits.
 class
   ( Profunctor p, Prismatic p, Lenticular p
-  , RepresentableProfunctor p, Comonad (Rep p) -- , Traversable (Rep p) -- (,) e  is missing an instance
+  , RepresentableProfunctor p, Comonad (Rep p), Traversable (Rep p)
   , CorepresentableProfunctor p, Monad (Corep p), Distributive (Corep p)
   , ArrowLoop p, ArrowApply p, ArrowChoice p
   ) => SelfAdjoint p where
@@ -1197,3 +1202,21 @@ instance RepresentableProfunctor p => Sellable p (Pretext p) where
 instance RepresentableProfunctor p => Sellable p (PretextT p g) where
   sell = tabulatePro $ \ w -> PretextT $ \k -> indexPro k w
   {-# INLINE sell #-}
+
+-------------------------------------------------------------------------------
+-- Orphan Instances
+-------------------------------------------------------------------------------
+
+instance Foldable ((,) b) where
+  foldMap f (_, a) = f a
+
+instance Traversable ((,) b) where
+  traverse f (b, a) = (,) b <$> f a
+
+instance Foldable (Either a) where
+  foldMap _ (Left _) = mempty
+  foldMap f (Right a) = f a
+
+instance Traversable (Either a) where
+  traverse _ (Left b) = pure (Left b)
+  traverse f (Right a) = Right <$> f a
