@@ -177,8 +177,8 @@ type instance Zipped (h :> s) a = Zipped h s
 --
 -- This is part of the internal structure of a zipper. You shouldn't need to manipulate this directly.
 data Coil t a
-  = (t ~ Top)      => Coil
-  | forall h s. (t ~ (h :> s)) => Snoc !(Coil h s) (ATraversal' s a) !(Path s) (Magma a -> s)
+  = t ~ Top => Coil
+  | forall h s. t ~ (h :> s) => Snoc !(Coil h s) (ATraversal' s a) !(Path s) (Magma a -> s)
 
 -- | This 'Lens' views the current target of the 'Zipper'.
 --
