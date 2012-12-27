@@ -250,22 +250,30 @@ instance Settable Mutator where
 -- Indexed Internals
 -----------------------------------------------------------------------------
 
+-- This is a profunctor that is both corepresentable by @f@ and representable by @g@ such
+-- that @f@ is left Adoint to @g@. From this you can derive a lot of structure due
+-- to the preservation of limits and colimits.
+class
+  ( Profunctor p, Prismatic p, Lenticular p
+  , RepresentableProfunctor p, Comonad (Rep p)
+  , CorepresentableProfunctor p, Monad (Corep p)
+  , ArrowLoop p, ArrowApply p, ArrowChoice p
+  ) => SelfAdjoint p where
+  distrib :: Functor f => p a b -> p (f a) (f b)
+
+instance SelfAdjoint (->) where
+  distrib = fmap
+  {-# INLINE distrib #-}
+
 -- | This class permits overloading of function application for things that
 -- also admit a notion of a key or index.
-class (Profunctor p, Prismatic p, Lenticular p, Distrib p, ArrowLoop p, ArrowChoice p, RepresentableProfunctor p, CorepresentableProfunctor p) => Indexable i p where
+class SelfAdjoint p => Indexable i p where
   -- | Build a function from an 'Indexed' function
   indexed :: p a b -> i -> a -> b
 
 instance Indexable i (->) where
   indexed = const
   {-# INLINE indexed #-}
-
-class Distrib p where
-  distrib :: Functor f => p a b -> p (f a) (f b)
-
-instance Distrib (->) where
-  distrib = fmap
-  {-# INLINE distrib #-}
 
 -----------------------------------------------------------------------------
 -- Strict Composition
@@ -854,15 +862,16 @@ instance ArrowLoop (Indexed i) where
   loop (Indexed f) = Indexed $ \i b -> let (c,d) = f i (b, d) in c
   {-# INLINE loop #-}
 
+instance SelfAdjoint (Indexed i) where
+  distrib (Indexed iab) = Indexed (\i fa -> iab i <$> fa)
+  {-# INLINE distrib #-}
+
 -- | Using an equality witness to avoid potential overlapping instances
 -- and aid dispatch.
 instance i ~ j => Indexable i (Indexed j) where
   indexed = runIndexed
   {-# INLINE indexed #-}
 
-instance Distrib (Indexed i) where
-  distrib (Indexed iab) = Indexed (\i fa -> iab i <$> fa)
-  {-# INLINE distrib #-}
 
 ------------------------------------------------------------------------------
 -- Context
@@ -999,7 +1008,7 @@ instance Applicative (Bazaar p a b) where
   Bazaar mf <*> Bazaar ma = Bazaar $ \k -> mf k <*> ma k
   {-# INLINE (<*>) #-}
 
-instance (a ~ b, Distrib p, RepresentableProfunctor p, Category p) => Comonad (Bazaar p a b) where
+instance (a ~ b, SelfAdjoint p) => Comonad (Bazaar p a b) where
   extract (Bazaar m) = runIdentity $ m (lmap Identity id)
   {-# INLINE extract #-}
   duplicate (Bazaar m) = getCompose $ m (rmap Compose (distrib sell) . sell)
@@ -1022,13 +1031,13 @@ instance IndexedFunctor (Pretext p) where
   ifmap f (Pretext k) = Pretext (fmap f . k)
   {-# INLINE ifmap #-}
 
-instance (Distrib p, RepresentableProfunctor p, Arrow p) => IndexedComonad (Pretext p) where
+instance SelfAdjoint p => IndexedComonad (Pretext p) where
   iextract (Pretext m) = runIdentity $ m (arr Identity)
   {-# INLINE iextract #-}
   iduplicate (Pretext m) = getCompose $ m (rmap Compose (distrib sell) . sell)
   {-# INLINE iduplicate #-}
 
-instance (Distrib p, RepresentableProfunctor p, Arrow p) => Contextual (Pretext p) where
+instance SelfAdjoint p => Contextual (Pretext p) where
   ipos (Pretext m) = getConst $ m (arr Const)
   {-# INLINE ipos #-}
   ipeek a (Pretext m) = runIdentity $ m $ arr (\_ -> Identity a)
@@ -1047,7 +1056,7 @@ instance Functor (Pretext p a b) where
   fmap f (Pretext k) = Pretext (fmap f . k)
   {-# INLINE fmap #-}
 
-instance (a ~ b, Distrib p, RepresentableProfunctor p, Arrow p) => Comonad (Pretext p a b) where
+instance (a ~ b, SelfAdjoint p) => Comonad (Pretext p a b) where
   extract (Pretext m) = runIdentity $ m (arr Identity)
   {-# INLINE extract #-}
   duplicate (Pretext m) = getCompose $ m (rmap Compose (distrib sell) . sell)
@@ -1056,7 +1065,7 @@ instance (a ~ b, Distrib p, RepresentableProfunctor p, Arrow p) => Comonad (Pret
 -- | @type 'Pretext'' p g a s = 'Pretext' p g a a s@
 type Pretext' p a = Pretext p a a
 
-instance (a ~ b, Distrib p, RepresentableProfunctor p, Arrow p) => ComonadStore a (Pretext p a b) where
+instance (a ~ b, SelfAdjoint p) => ComonadStore a (Pretext p a b) where
   pos (Pretext m) = getConst $ m (arr Const)
   {-# INLINE pos #-}
   peek a (Pretext m) = runIdentity $ m $ arr (\_ -> Identity a)
@@ -1080,13 +1089,13 @@ instance IndexedFunctor (PretextT p g) where
   ifmap f (PretextT k) = PretextT (fmap f . k)
   {-# INLINE ifmap #-}
 
-instance (Distrib p, RepresentableProfunctor p, Arrow p) => IndexedComonad (PretextT p g) where
+instance SelfAdjoint p => IndexedComonad (PretextT p g) where
   iextract (PretextT m) = runIdentity $ m (arr Identity)
   {-# INLINE iextract #-}
   iduplicate (PretextT m) = getCompose $ m (rmap Compose (distrib sell) . sell)
   {-# INLINE iduplicate #-}
 
-instance (Distrib p, RepresentableProfunctor p, Arrow p) => Contextual (PretextT p g) where
+instance SelfAdjoint p => Contextual (PretextT p g) where
   ipos (PretextT m) = getConst $ m (arr Const)
   {-# INLINE ipos #-}
   ipeek a (PretextT m) = runIdentity $ m $ arr (\_ -> Identity a)
@@ -1106,7 +1115,7 @@ instance Functor (PretextT p g a b) where
   fmap f (PretextT k) = PretextT (fmap f . k)
   {-# INLINE fmap #-}
 
-instance (a ~ b, Distrib p, RepresentableProfunctor p, Arrow p) => Comonad (PretextT p g a b) where
+instance (a ~ b, SelfAdjoint p) => Comonad (PretextT p g a b) where
   extract (PretextT m) = runIdentity $ m (arr Identity)
   {-# INLINE extract #-}
   duplicate (PretextT m) = getCompose $ m (rmap Compose (distrib sell) . sell)
@@ -1115,7 +1124,7 @@ instance (a ~ b, Distrib p, RepresentableProfunctor p, Arrow p) => Comonad (Pret
 -- | @type 'PretextT'' p g a s = 'PretextT' p g a a s@
 type PretextT' p g a = PretextT p g a a
 
-instance (a ~ b, Distrib p, RepresentableProfunctor p, Arrow p) => ComonadStore a (PretextT p g a b) where
+instance (a ~ b, SelfAdjoint p) => ComonadStore a (PretextT p g a b) where
   pos = ipos
   {-# INLINE pos #-}
   peek = ipeek
@@ -1151,7 +1160,7 @@ instance Applicative (BazaarT p g a b) where
   BazaarT mf <*> BazaarT ma = BazaarT (\k -> mf k <*> ma k)
   {-# INLINE (<*>) #-}
 
-instance (a ~ b, Distrib p, RepresentableProfunctor p, Category p) => Comonad (BazaarT p g a b) where
+instance (a ~ b, SelfAdjoint p) => Comonad (BazaarT p g a b) where
   extract (BazaarT m) = runIdentity (m (lmap Identity id))
   {-# INLINE extract #-}
   duplicate (BazaarT m) = getCompose (m (rmap Compose (distrib sell) . sell))
