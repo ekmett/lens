@@ -110,10 +110,10 @@ prop_2_2                             = isLens (_2._2 :: Lens' (Int,(Int,Bool),Do
 prop_mapped                          = isSetter (mapped :: Setter' [Int] Int)
 prop_mapped_mapped                   = isSetter (mapped.mapped :: Setter' [Maybe Int] Int)
 
-prop_both                            = isTraversal (both    :: Traversal' (Int,Int) Int)
-prop_value (Fun _ k :: Fun Int Bool) = isTraversal (value k :: Traversal' (Int,Int) Int)
-prop_traverseLeft                    = isTraversal (_left   :: Traversal' (Either Int Bool) Int)
-prop_traverseRight                   = isTraversal (_right  :: Traversal' (Either Int Bool) Bool)
+prop_both                            = isTraversal (both     :: Traversal' (Int,Int) Int)
+prop_value (Fun _ k :: Fun Int Bool) = isTraversal (iwhere k :: Traversal' (Int,Int) Int)
+prop_traverseLeft                    = isTraversal (_left    :: Traversal' (Either Int Bool) Int)
+prop_traverseRight                   = isTraversal (_right   :: Traversal' (Either Int Bool) Bool)
 
 prop_simple                          = isIso (simple :: Iso' Int Int)
 --prop_enum                            = isIso (enum :: Iso' Int Char)
