@@ -110,7 +110,7 @@ movel :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
 movel p0 c0 kn kp = go p0 c0 where
   go Start _       = kn
   go (ApR m _ _ l q) r
-    | nullRight r = go q (Ap m False False l Pure)
+    | nullRight l = go q (Ap m False False l Pure)
     | otherwise   = startr (ApL m False False q r) l kn kp
   go (ApL m _ _ p r) l = go p (Ap m False False l r)
 {-# INLINE movel #-}
@@ -119,7 +119,7 @@ mover :: Path a -> Magma a -> r -> (Path a -> a -> r) -> r
 mover p0 c0 kn kp = go p0 c0 where
   go Start _         = kn
   go (ApL m _ _ q r) l
-    | nullLeft l  = go q (Ap m False False Pure r)
+    | nullLeft r  = go q (Ap m False False Pure r)
     | otherwise   = startl (ApR m False False l q) r kn kp
   go (ApR m _ _ l p) r = go p (Ap m False False l r)
 {-# INLINE mover #-}
