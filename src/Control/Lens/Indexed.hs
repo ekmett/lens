@@ -33,7 +33,6 @@ module Control.Lens.Indexed
   -- * Indexing
     Indexable(..)
   , Indexed(..)
-  , withIndex
   , (<.), (<.>), (.>)
   , reindexed
   , icompose
@@ -59,8 +58,8 @@ module Control.Lens.Indexed
   , ifoldlM
   , itoList
   -- * Converting to Folds
-  , withIndices
-  , indices
+  , withIndex
+  , index
   -- * Indexed Traversables
   , TraversableWithIndex(..)
   , itraversed
@@ -81,6 +80,7 @@ import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Setter
 import Control.Lens.Traversal
+import Control.Lens.Type
 import Data.Foldable
 import Data.Functor.Identity
 import Data.Hashable
@@ -98,10 +98,6 @@ infixr 9 <.>, <., .>
 
 -- $setup
 -- >>> import Control.Lens
-
-withIndex :: (Indexed i s t -> r) -> (i -> s -> t) -> r
-withIndex l = l .# Indexed
-{-# INLINE withIndex #-}
 
 -- | Compose an 'Indexed' function with a non-indexed function.
 --
@@ -138,6 +134,24 @@ f <.> g = icompose (,) f g
 icompose :: Indexable p c => (i -> j -> p) -> (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> c a b -> r
 icompose ijk istr jabst cab = istr . Indexed $ \i -> jabst . Indexed $ \j -> indexed cab $ ijk i j
 {-# INLINE icompose #-}
+
+-------------------------------------------------------------------------------
+-- Converting to Folds
+-------------------------------------------------------------------------------
+
+-- | Fold a container with indices returning both the indices and the values.
+--
+-- The result is only valid to compose in a 'Traversal', if you don't edit the
+-- index as edits to the index have no effect.
+withIndex :: (Indexable i p, Functor f) => Overloading p (Indexed i) f s t (i, s) (j, t)
+withIndex f = Indexed $ \i a -> snd <$> indexed f i (i, a)
+{-# INLINE withIndex #-}
+
+-- | When composed with an indexed fold or indexed traversal this yields an
+-- (indexed) fold of the indices.
+index :: (Indexable i p, Functor f, Gettable f) => Overloading' p (Indexed i) f s i
+index f = Indexed $ \i _ -> coerce (indexed f i i)
+{-# INLINE index #-}
 
 -------------------------------------------------------------------------------
 -- FunctorWithIndex
@@ -353,20 +367,6 @@ itoList = ifoldr (\i c -> ((i,c):)) []
 {-# INLINE itoList #-}
 
 -------------------------------------------------------------------------------
--- Converting to Folds
--------------------------------------------------------------------------------
-
--- | Fold a container with indices returning both the indices and the values.
-withIndices :: FoldableWithIndex i f => Fold (f a) (i,a)
-withIndices f = coerce . getFolding . ifoldMap (\i a -> Folding (f (i,a)))
-{-# INLINE withIndices #-}
-
--- | Fold a container with indices returning only the indices.
-indices :: FoldableWithIndex i f => Fold (f a) i
-indices f = coerce . (getFolding #. ifoldMap (\i _ -> Folding (f i)))
-{-# INLINE indices #-}
-
--------------------------------------------------------------------------------
 -- TraversableWithIndex
 -------------------------------------------------------------------------------
 
@@ -485,7 +485,7 @@ instance FoldableWithIndex Int [] where
   ifoldMap = ifoldMapOf itraversed
   {-# INLINE ifoldMap #-}
 instance TraversableWithIndex Int [] where
-  itraverse = withIndex traversed
+  itraverse = itraverseOf traversed
   {-# INLINE itraverse #-}
 
 -- | The position in the sequence is available as the index.
@@ -496,7 +496,7 @@ instance FoldableWithIndex Int Seq where
   ifoldMap = ifoldMapOf itraversed
   {-# INLINE ifoldMap #-}
 instance TraversableWithIndex Int Seq where
-  itraverse = withIndex traversed
+  itraverse = itraverseOf traversed
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex Int Vector where

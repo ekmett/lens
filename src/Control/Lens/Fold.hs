@@ -108,10 +108,6 @@ module Control.Lens.Fold
   , ifoldlMOf
   , itoListOf
 
-  -- ** Converting to Folds
-  , withIndicesOf
-  , indicesOf
-
   -- ** Building Indexed Folds
   , ifiltering
   , itakingWhile
@@ -1576,44 +1572,6 @@ s ^@?! l = ifoldrOf l (\i x _ -> (i,x)) (error "(^@?!): empty Fold") s
 -- Converting to Folds
 -------------------------------------------------------------------------------
 
--- | Transform an indexed fold into a fold of both the indices and the values.
---
--- @
--- 'withIndicesOf' :: 'IndexedFold' i s a       -> 'Fold' s (i, a)
--- 'withIndicesOf' :: 'IndexedLens'' i s a      -> 'Getter' s (i, a)
--- 'withIndicesOf' :: 'IndexedTraversal'' i s a -> 'Fold' s (i, a)
--- @
---
--- All 'Fold' operations are safe, and comply with the laws. However:
---
--- Passing this an 'IndexedTraversal' will still allow many
--- 'Traversal' combinators to type check on the result, but the result
--- can only be legally traversed by operations that do not edit the indices.
---
--- @
--- 'withIndicesOf' :: 'IndexedTraversal' i s t a b -> 'Traversal' s t (i, a) (j, b)
--- @
---
--- Change made to the indices will be discarded.
-withIndicesOf :: Functor f => IndexedLensLike (Indexed i) f s t a b -> LensLike f s t (i, a) (j, b)
-withIndicesOf l f = l . Indexed $ \i c -> snd <$> f (i,c)
-{-# INLINE withIndicesOf #-}
-
--- | Transform an indexed fold into a fold of the indices.
---
--- @
--- 'indicesOf' :: 'IndexedFold' i s a       -> 'Fold' s i
--- 'indicesOf' :: 'IndexedLens'' i s a      -> 'Getter' s i
--- 'indicesOf' :: 'IndexedTraversal'' i s a -> 'Fold' s i
--- @
-indicesOf :: Gettable f => IndexedLensLike (Indexed i) f s t a a -> LensLike f s t i j
-indicesOf l f = l . Indexed $ const . coerce . f
-{-# INLINE indicesOf #-}
-
--------------------------------------------------------------------------------
--- Converting to Folds
--------------------------------------------------------------------------------
-
 -- | Obtain an 'IndexedFold' by filtering an 'IndexedLens', 'IndexedGetter', or 'IndexedFold'.
 --
 -- When passed an 'IndexedTraversal', sadly the result is /not/ a legal 'IndexedTraversal'.
@@ -1628,7 +1586,9 @@ ifiltering p l f = l . Indexed $ \ i c -> if p i c then indexed f i c else pure 
 
 -- | This allows you to filter an 'IndexedFold', 'IndexedGetter', 'IndexedTraversal' or 'IndexedLens' based on an index.
 --
-whereby :: Applicative f => (i -> Bool) -> Overloading' (Indexed i) (Indexed i) f a a
+-- >>> ["hello","the","world","!!!"]^..traversed.whereby even
+-- ["hello","world"]
+whereby :: (Indexable i p, Applicative f) => (i -> Bool) -> Overloading' p (Indexed i) f a a
 whereby p f = Indexed $ \i a -> if p i then indexed f i a else pure a
 
 -- | Obtain an 'IndexedFold' by taking elements from another

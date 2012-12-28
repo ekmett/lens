@@ -106,17 +106,17 @@ type IndexedActing i m r s t a b = Indexed i a (Effect m r b) -> s -> Effect m r
 --
 -- @'perform' ≡ 'flip' ('^@!')@
 iperform :: Monad m => IndexedActing i m (i, a) s t a b -> s -> m (i, a)
-iperform l = getEffect #. withIndex l (\i a -> Effect (return (i, a)))
+iperform l = getEffect #. l (Indexed $ \i a -> Effect (return (i, a)))
 {-# INLINE iperform #-}
 
 -- | Perform an 'IndexedAction' and modify the result.
 iperforms :: Monad m => IndexedActing i m e s t a b -> (i -> a -> e) -> s -> m e
-iperforms l f = getEffect #. withIndex l (\i a -> Effect (return (f i a)))
+iperforms l f = getEffect #. l (Indexed $ \i a -> Effect (return (f i a)))
 {-# INLINE iperforms #-}
 
 -- | Perform an 'IndexedAction'
 (^@!) :: Monad m => s -> IndexedActing i m (i, a) s t a b -> m (i, a)
-s ^@! l = getEffect (withIndex l (\i a -> Effect (return (i, a))) s)
+s ^@! l = getEffect (l (Indexed $ \i a -> Effect (return (i, a))) s)
 {-# INLINE (^@!) #-}
 
 -- | Construct an 'IndexedAction' from a monadic side-effect
