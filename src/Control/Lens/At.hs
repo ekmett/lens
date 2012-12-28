@@ -80,11 +80,10 @@ type family IxValue (m :: *) :: *
 -- | This simple indexed traversal lets you 'traverse' the value at a given key in a map or element at an ordinal
 -- position in a list or sequence.
 class Ixed f m where
-  -- | What is the index type?
   -- | This simple indexed traversal lets you 'traverse' the value at a given key in a map.
   --
-  -- *NB:* _setting_ the value of this 'Traversal' will only set the value in the lens
-  -- if it is already present.
+  -- /NB:/ Setting the value of this 'Traversal' will only set the value in the
+  -- lens if it is already present.
   --
   -- If you want to be able to insert /missing/ values, you want 'at'.
   --
@@ -297,7 +296,7 @@ instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h, h ~ 
 --
 -- An instance of @At@ should satisfy:
 --
--- @'el' k ≡ 'at' k '<.' 'traverse'@
+-- @'ix' k ≡ 'at' k '<.' 'traverse'@
 class At m where
   -- |
   -- >>> Map.fromList [(1,"world")] ^.at 1
