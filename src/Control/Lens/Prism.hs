@@ -149,7 +149,7 @@ without k = case runPrism k of
 -- 'remit' :: 'Iso' s t a b   -> 'Getter' b t
 -- @
 remit :: Reviewing s t a b -> Getter b t
-remit p = to (runIdentity . reviewed . p . Review . Identity)
+remit p = to (runIdentity #. runReview #. p .# Review .# Identity)
 {-# INLINE remit #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.
@@ -175,7 +175,7 @@ remit p = to (runIdentity . reviewed . p . Review . Identity)
 -- 'review' :: 'MonadReader' a m => 'Prism'' s a -> m s
 -- @
 review :: MonadReader b m => Reviewing s t a b -> m t
-review p = asks (runIdentity . reviewed . p . Review . Identity)
+review p = asks (runIdentity #. runReview #. p .# Review .# Identity)
 {-# INLINE review #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,
@@ -202,7 +202,7 @@ review p = asks (runIdentity . reviewed . p . Review . Identity)
 -- 'reviews' :: 'MonadReader' a m => 'Prism'' s a -> (s -> r) -> m r
 -- @
 reviews :: MonadReader b m => Reviewing s t a b -> (t -> r) -> m r
-reviews p tr = asks (tr . runIdentity . reviewed . p . Review . Identity)
+reviews p tr = asks (tr . runIdentity #. runReview #. p .# Review .# Identity)
 {-# INLINE reviews #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.
@@ -217,7 +217,7 @@ reviews p tr = asks (tr . runIdentity . reviewed . p . Review . Identity)
 -- 'reuse' :: 'MonadState' a m => 'Iso'' s a   -> m s
 -- @
 reuse :: MonadState b m => Reviewing s t a b -> m t
-reuse p = gets (runIdentity . reviewed . p . Review . Identity)
+reuse p = gets (runIdentity #. runReview #. p .# Review .# Identity)
 {-# INLINE reuse #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,
@@ -233,7 +233,7 @@ reuse p = gets (runIdentity . reviewed . p . Review . Identity)
 -- 'reuses' :: 'MonadState' a m => 'Iso'' s a   -> (s -> r) -> m r
 -- @
 reuses :: MonadState b m => Reviewing s t a b -> (t -> r) -> m r
-reuses p tr = gets (tr . runIdentity . reviewed . p . Review . Identity)
+reuses p tr = gets (tr . runIdentity #. runReview #. p .# Review .# Identity)
 {-# INLINE reuses #-}
 
 ------------------------------------------------------------------------------

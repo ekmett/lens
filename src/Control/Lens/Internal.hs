@@ -364,6 +364,7 @@ COMPOSE(Backwards f a, f a, Backwards, forwards)
 COMPOSE(Compose f g a, f (g a), Compose, getCompose)
 COMPOSE(Cokleisli f a b, f a -> b, Cokleisli, runCokleisli)
 COMPOSE(Indexed i s t, i -> s -> t, Indexed, runIndexed)
+COMPOSE(Review a b, b, Review, runReview)
 
 ------------------------------------------------------------------------------
 -- Internal Types
@@ -701,7 +702,7 @@ instance Monad Mutator where
 -- Isomorphism and Prism Internals
 ------------------------------------------------------------------------------
 
-data Review a b = Review { reviewed :: b }
+data Review a b = Review { runReview :: b }
 
 instance Functor (Review a) where
   fmap bc (Review b) = Review (bc b)
