@@ -257,7 +257,7 @@ instance Settable Mutator where
 -----------------------------------------------------------------------------
 
 -- This is a profunctor that is both corepresentable by @f@ and representable by @g@ such
--- that @f@ is left Adoint to @g@. From this you can derive a lot of structure due
+-- that @f@ is left Adjoint to @g@. From this you can derive a lot of structure due
 -- to the preservation of limits and colimits.
 class
   ( Profunctor p, Prismatic p, Lenticular p
