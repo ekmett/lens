@@ -29,7 +29,12 @@ type Size = Int -- computed lazily
 ------------------------------------------------------------------------------
 
 data Magma i a
-  = Ap Size Bool Bool (Last i) (Magma i a) (Magma i a) -- size, left-to-right null check, right-to-left null check, left, right
+  = Ap Size        -- size
+       Bool        -- left-to-right null check
+       Bool        -- right-to-left null check
+       (Last i)
+       (Magma i a) -- left
+       (Magma i a) -- right
   | Leaf i a
   | Pure
   deriving Show
