@@ -61,6 +61,7 @@ module Control.Lens.Traversal
 
   -- * Monomorphic Traversals
   , cloneTraversal
+  , cloneIndexedTraversal
 
   -- * Parts and Holes
   , partsOf, partsOf'
@@ -640,6 +641,10 @@ dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> i `seq` (if i >= 
 cloneTraversal :: ATraversal s t a b -> Traversal s t a b
 cloneTraversal l f s = runBazaar (l sell s) f
 {-# INLINE cloneTraversal #-}
+
+cloneIndexedTraversal :: AnIndexedTraversal i s t a b -> IndexedTraversal i s t a b
+cloneIndexedTraversal l f s = runBazaar (l sell s) (Indexed (indexed f))
+{-# INLINE cloneIndexedTraversal #-}
 
 ------------------------------------------------------------------------------
 -- Indexed Traversals

@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ExistentialQuantification #-}
@@ -37,8 +38,10 @@ import Control.Lens.Magma
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Lens
+import Control.Lens.Loupe
 import Control.Lens.Setter
 import Control.Lens.Traversal
+import Control.Lens.Type
 import Data.Functor.Identity
 import Data.Maybe
 import Data.Monoid
@@ -194,8 +197,11 @@ type instance Zipped (Zipper h i s) a = Zipped h s
 #ifndef HLINT
 data Coil t i a where
   Coil :: Coil Top Int a
-  Snoc :: !(Coil h i s) -> AnIndexedTraversal' i s a -> !(Path i s) -> i -> (Magma j a -> s) -> Coil (Zipper h i s) j a
+  Snoc :: !(Coil h j s) -> AnIndexedTraversal' i s a -> !(Path j s) -> j -> (Magma i a -> s) -> Coil (Zipper h j s) i a
 #endif
+
+--downward :: forall j h s a. ALens' s a -> h :> s:@j -> h :> s:@j :> a:@Int
+--downward l (Zipper h p j s) = Zipper (Snoc h l' p j go) Start 0 (s^.l')
 
 -- | This 'Lens' views the current target of the 'Zipper'.
 focus :: IndexedLens' i (Zipper h i a) a
@@ -425,6 +431,10 @@ tugTo n z = case compare k n of
   where k = tooth z
 {-# INLINE tugTo #-}
 
+lensed :: ALens' s a -> IndexedLens' Int s a
+lensed l f = cloneLens l (indexed f (0 :: Int))
+{-# INLINE lensed #-}
+
 -- | Step down into a 'Lens'. This is a constrained form of 'fromWithin' for when you know
 -- there is precisely one target that can never fail.
 --
@@ -432,17 +442,21 @@ tugTo n z = case compare k n of
 -- 'downward' :: 'Lens'' s a -> (h :> s) -> h :> s :> a
 -- 'downward' :: 'Iso'' s a  -> (h :> s) -> h :> s :> a
 -- @
-downward :: ALens' s a -> h :> s:@j -> h :> s:@j :>> a
-downward = undefined
-
---downward l (Zipper h p s) = case context (l sell s) of
---  Context k a -> Zipper (Snoc h (cloneLens l) p $ \xs -> case xs of Leaf _ b -> k b; _ -> error "downward: rezipping") Start a
+downward :: forall j h s a. ALens' s a -> h :> s:@j -> h :> s:@j :>> a
+downward l (Zipper h p j s) = Zipper (Snoc h l' p j go) Start 0 (s^.l')
+  where l' :: IndexedLens' Int s a
+        l' = lensed l
+        go (Leaf _ b) = set l' b s
+        go _ = error "downward: rezipping"
 {-# INLINE downward #-}
 
-idownward :: AnIndexedLens' i s a -> h :> s:@j -> h :> s:@j :> a:@i
-idownward = undefined
---idownward l (Zipper h p j s) = case l sell s of
---  Context k a -> Zipper (Snoc h (cloneLens l) p j $ \xs -> case xs of Leaf _ b -> k b; _ -> error "downward: rezipping") Start a
+idownward :: forall i j h s a. AnIndexedLens' i s a -> h :> s:@j -> h :> s:@j :> a:@i
+idownward l (Zipper h p j s) = Zipper (Snoc h l' p j go) Start i a
+  where l' :: IndexedLens' i s a
+        l' = cloneIndexedLens l
+        (i, a) = iview l' s
+        go (Leaf _ b) = set l' b s
+        go _ = error "idownward: rezipping"
 {-# INLINE idownward #-}
 
 -- | Step down into the 'leftmost' entry of a 'Traversal'.
@@ -453,14 +467,19 @@ idownward = undefined
 -- 'within' :: 'Lens'' s a      -> (h :> s) -> Maybe (h :> s :> a)
 -- 'within' :: 'Iso'' s a       -> (h :> s) -> Maybe (h :> s :> a)
 -- @
-within :: MonadPlus m => ATraversal' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
-within = undefined
---within l (Zipper h p s) = case magma l (Context id) s of -- case partsOf' l (Context id) s of
---  Context k xs -> startl Start xs mzero $ \q a -> return $ Zipper (Snoc h l p k) q a
+
+-- within :: MonadPlus m => ATraversal' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
+within :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
+within = iwithin . indexing
 {-# INLINE within #-}
 
 iwithin :: MonadPlus m => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
 iwithin = undefined
+{-
+iwithin l (Zipper h p j s) = case context (magma l sell s) of
+  Context k xs -> startl Start xs mzero $ \q i a -> return $ Zipper (Snoc h l p j k) q i a
+-}
+{-# INLINE iwithin #-}
 
 -- | Step down into every entry of a 'Traversal' simultaneously.
 --
@@ -472,20 +491,21 @@ iwithin = undefined
 -- 'withins' :: 'Lens'' s a      -> (h :> s) -> [h :> s :> a]
 -- 'withins' :: 'Iso'' s a       -> (h :> s) -> [h :> s :> a]
 -- @
-withins :: MonadPlus m => ATraversal' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
+withins :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
 withins = undefined
+{-
+withins = iwithins . indexing
+{-# INLINE withins #-}
 
 iwithins :: MonadPlus m => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
-iwithins = undefined
-{-
-withins t (Zipper h p s) = case magma t (Context id) s of
-  Context k xs -> let up = Snoc h t p k
-                      go q (Ap m nl nr l r) = go (ApL m nl nr q r) l `mplus` go (ApR m nl nr l q) r
-                      go q (Leaf (Identity a))     = return $ Zipper up q a
-                      go _ Pure         = mzero
+iwithins t (Zipper h p j s) = case context (magma t sell s) of
+  Context k xs -> let up = Snoc h t p j k
+                      go q (Ap m nl nr li l r) = go (ApL m nl nr li q r) l `mplus` go (ApR m nl nr li l q) r
+                      go q (Leaf i a)       = return $ Zipper up q i a
+                      go _ Pure             = mzero
                   in  go Start xs
+{-# INLINE iwithins #-}
 -}
-{-# INLINE withins #-}
 
 -- | Unsafely step down into a 'Traversal' that is /assumed/ to be non-empty.
 --
@@ -587,7 +607,7 @@ peel (Snoc h l _ i _) = Fork (peel h) i l
 -- | The 'Track' forms the bulk of a 'Tape'.
 data Track t i a where
   Top :: Track Top Int a
-  Fork :: Track h j s -> j -> AnIndexedTraversal' j s a -> Track (Zipper h j s) i a
+  Fork :: Track h j s -> j -> AnIndexedTraversal' i s a -> Track (Zipper h j s) i a
 
 -- | Restore ourselves to a previously recorded position precisely.
 --

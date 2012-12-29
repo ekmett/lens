@@ -32,7 +32,6 @@ module Control.Lens.Loupe
   , SimpleLoupe
   ) where
 
-import Control.Applicative       as Applicative
 import Control.Lens.Internal
 import Control.Lens.Lens
 import Control.Monad.State.Class as State
@@ -48,59 +47,53 @@ infix  4 <#=, #=, #%=, <#%=, #%%=
 -- Lenses
 -------------------------------------------------------------------------------
 
-
 -- | A 'Loupe'-specific version of ('Control.Lens.Getter.^.')
 --
 -- >>> ("hello","world")^#_2
 -- "world"
-(^#) :: s -> Loupe s t a b -> a
-s ^# l = case l (Context id) s of
-  Context _ a -> a
+(^#) :: s -> ALens s t a b -> a
+s ^# l = ipos (l sell s)
 {-# INLINE (^#) #-}
 
 -- | A 'Loupe'-specific version of 'Control.Lens.Setter.set'
 --
 -- >>> storing _2 "world" ("hello","there")
 -- ("hello","world")
-storing :: Loupe s t a b -> b -> s -> t
-storing l b s = case l (Context id) s of
-  Context g _ -> g b
+storing :: ALens s t a b -> b -> s -> t
+storing l b s = ipeek b (l sell s)
 {-# INLINE storing #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Setter..~')
 --
 -- >>> ("hello","there") & _2 #~ "world"
 -- ("hello","world")
-( #~ ) :: Loupe s t a b -> b -> s -> t
-( #~ ) l b s = case l (Context id ) s of
-  Context g _ -> g b
+( #~ ) :: ALens s t a b -> b -> s -> t
+( #~ ) l b s = ipeek b (l sell s)
 {-# INLINE ( #~ ) #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Setter.%~')
 --
 -- >>> ("hello","world") & _2 #%~ length
 -- ("hello",5)
-( #%~ ) :: Loupe s t a b -> (a -> b) -> s -> t
-( #%~ ) l f s = case l (Context id) s of
-  Context g a -> g (f a)
+( #%~ ) :: ALens s t a b -> (a -> b) -> s -> t
+( #%~ ) l f s = ipeeks f (l sell s)
 {-# INLINE ( #%~ ) #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Type.%%~')
 --
 -- >>> ("hello","world") & _2 #%%~ \x -> (length x, x ++ "!")
 -- (5,("hello","world!"))
-( #%%~ ) :: Functor f => Loupe s t a b -> (a -> f b) -> s -> f t
-( #%%~ ) l f s = case l (Context id) s of
-  Context g a -> g <$> f a
+( #%%~ ) :: Functor f => ALens s t a b -> (a -> f b) -> s -> f t
+( #%%~ ) l f s = runPretext (l sell s) f
 {-# INLINE ( #%%~ ) #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Setter..=')
-( #= ) :: MonadState s m => Loupe s s a b -> b -> m ()
+( #= ) :: MonadState s m => ALens s s a b -> b -> m ()
 l #= f = modify (l #~ f)
 {-# INLINE ( #= ) #-}
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Setter.%=')
-( #%= ) :: MonadState s m => Loupe s s a b -> (a -> b) -> m ()
+( #%= ) :: MonadState s m => ALens s s a b -> (a -> b) -> m ()
 l #%= f = modify (l #%~ f)
 {-# INLINE ( #%= ) #-}
 
@@ -108,26 +101,24 @@ l #%= f = modify (l #%~ f)
 --
 -- >>> ("hello","world") & _2 <#%~ length
 -- (5,("hello",5))
-(<#%~) :: Loupe s t a b -> (a -> b) -> s -> (b, t)
-l <#%~ f = \s -> case l (Context id) s of
-  Context g a -> let b = f a in (b, g b)
+(<#%~) :: ALens s t a b -> (a -> b) -> s -> (b, t)
+l <#%~ f = \s -> runPretext (l sell s) $ \a -> let b = f a in (b, b)
 {-# INLINE (<#%~) #-}
 
 -- | Modify the target of a 'Loupe' into your monad's state by a user supplied function and return the result.
-(<#%=) :: MonadState s m => Loupe s s a b -> (a -> b) -> m b
-l <#%= f = l #%%= \a -> let b = f a in (b,b)
+(<#%=) :: MonadState s m => ALens s s a b -> (a -> b) -> m b
+l <#%= f = l #%%= \a -> let b = f a in (b, b)
 {-# INLINE (<#%=) #-}
 
 -- | Modify the target of a 'Loupe' in the current monadic state, returning an auxiliary result.
-( #%%= ) :: MonadState s m => Loupe s s a b -> (a -> (r, b)) -> m r
+( #%%= ) :: MonadState s m => ALens s s a b -> (a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,1)
-l #%%= f = State.state $ \s -> case l (Context id) s of
-  Context g a -> g <$> f a
+l #%%= f = State.state $ \s -> runPretext (l sell s) f
 #else
 l #%%= f = do
-  Context g a <- State.gets (l (Context id))
-  let (r, b) = f a
-  State.put (g b)
+  p <- State.gets (l sell)
+  let (r, t) = runPretext p f
+  State.put t
   return r
 #endif
 
@@ -135,11 +126,11 @@ l #%%= f = do
 --
 -- >>> ("hello","there") & _2 <#~ "world"
 -- ("world",("hello","world"))
-(<#~) :: Loupe s t a b -> b -> s -> (b, t)
+(<#~) :: ALens s t a b -> b -> s -> (b, t)
 l <#~ b = \s -> (b, storing l b s)
 
 -- | Replace the target of a 'Loupe' in the current monadic state, returning the new value.
-(<#=) :: MonadState s m => Loupe s s a b -> b -> m b
+(<#=) :: MonadState s m => ALens s s a b -> b -> m b
 l <#= b = do
   l #= b
   return b
@@ -150,4 +141,4 @@ l <#= b = do
 
 -- | @type 'SimpleLoupe' = 'Simple' 'Loupe'@
 type SimpleLoupe s a = Loupe s s a a
-{-# DEPRECATED SimpleLoupe "use Loupe'" #-}
+{-# DEPRECATED SimpleLoupe "use ALens'" #-}

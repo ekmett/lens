@@ -154,7 +154,7 @@ infixr 2 <<~
 -- vary fully independently. For more on how they interact, read the \"Why is
 -- it a Lens Family?\" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
 
-type Loupe s t a b = LensLike (Context a b) s t a b
+type Loupe s t a b = LensLike (Pretext (->) a b) s t a b
 
 -- | @type 'Loupe'' = 'Simple' 'Loupe'@
 type Loupe' s a = Loupe s s a a
@@ -316,8 +316,8 @@ chosen f (Right a) = Right <$> f a
 --
 -- @'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')@
 alongside :: Loupe s t a b -> Loupe s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
-alongside l r f (s, s') = case l (Context id) s of
-  Context bt a -> case r (Context id) s' of
+alongside l r f (s, s') = case context (l sell s) of
+  Context bt a -> case context (r sell s') of
     Context bt' a' -> f (a,a') <&> \(b,b') -> (bt b, bt' b')
 {-# INLINE alongside #-}
 
