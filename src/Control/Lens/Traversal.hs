@@ -66,7 +66,7 @@ module Control.Lens.Traversal
   -- * Parts and Holes
   , partsOf, partsOf'
   , unsafePartsOf, unsafePartsOf'
-  , holesOf
+  , holesOf, iholesOf
   , singular, unsafeSingular
 
   -- * Common Traversals
@@ -461,6 +461,14 @@ holesOf l s = f (ins b) (outs b) where
   f []     _ = []
   f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
 {-# INLINE holesOf #-}
+
+-- | The one-level version of 'contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
+iholesOf :: AnIndexedTraversal i s t a a -> s -> [Pretext (Indexed i) a a t]
+iholesOf l s = f (iins b) (outs b) where
+  b = l sell s
+  f [] _ = []
+  f ((i, x):xs) g = Pretext (\ixfy -> g . (:Prelude.map snd xs) <$> indexed ixfy i x) : f xs (g . (x:))
+{-# INLINE iholesOf #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can
 -- also be used to transform a non-empty 'Fold' into a 'Getter' or a non-empty 'MonadicFold' into an
