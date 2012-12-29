@@ -490,11 +490,6 @@ singular l pafb s = case pinsT b of
   where b = l sell s
 {-# INLINE singular #-}
 
--- singular :: Functor f => Traversing (->) f s t a a -> LensLike f s t a a
--- singular l f = partsOf l $ \xs -> case xs of
---  (a:as) -> (:as) <$> f a
---  []     -> [] <$ f (error "singular: empty traversal")
-
 -- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be
 -- used to transform a 'Fold' into a 'Getter' or a 'MonadicFold' into an 'Action'.
 --
@@ -505,12 +500,18 @@ singular l pafb s = case pinsT b of
 -- 'unsafeSingular' :: 'Traversal' s t a b -> 'Lens' s t a b
 -- 'unsafeSingular' :: 'Fold' s a          -> 'Getter' s a
 -- 'unsafeSingular' :: 'MonadicFold' m s a -> 'Action' m s a
+-- 'unsafeSingular' :: 'IndexedTraversal' i s t a b -> 'IndexedLens' i s t a b
+-- 'unsafeSingular' :: 'IndexedFold' i s a          -> 'IndexedGetter' i s a
+-- 'unsafeSingular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
-unsafeSingular :: Functor f => Traversing (->) f s t a b -> LensLike f s t a b
-unsafeSingular l f = unsafePartsOf l $ \xs -> case xs of
-  [a] -> return <$> f a
+unsafeSingular :: (RepresentableProfunctor p, Comonad (Rep p), Functor f)
+               => Overloading p (->) (BazaarT p f a b) s t a b
+               -> Overloading p (->) f s t a b
+unsafeSingular l pafb s = case pinsT b of
+  [w] -> unsafeOutsT b . return <$> indexPro pafb w
   []  -> error "unsafeSingular: empty traversal"
   _   -> error "unsafeSingular: traversing multiple results"
+  where b = l sell s
 {-# INLINE unsafeSingular #-}
 
 ------------------------------------------------------------------------------
