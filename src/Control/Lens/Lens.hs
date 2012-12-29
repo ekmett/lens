@@ -96,6 +96,7 @@ module Control.Lens.Lens
 
   -- ** Cloning Lenses
   , cloneLens
+  , cloneIndexedLens
 
   -- * Context
   , Context(..)
@@ -164,7 +165,7 @@ type ALens s t a b = LensLike (Pretext (->) a b) s t a b
 -- | @type 'ALens'' = 'Simple' 'ALens'@
 type ALens' s a = ALens s s a a
 
-type AnIndexedLens i s t a b = LensLike (Pretext (Indexed i) a b) s t a b
+type AnIndexedLens i s t a b = Overloading (Indexed i) (->) (Pretext (Indexed i) a b) s t a b
 
 type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 
@@ -355,10 +356,10 @@ locus f w = (`iseek` w) <$> f (ipos w)
 cloneLens :: ALens s t a b -> Lens s t a b
 cloneLens l afb s = runPretext (l sell s) afb
 {-# INLINE cloneLens #-}
-{-
-cloneLens f afb s = case f (Context id) s of
-  Context bt a -> bt <$> afb a
--}
+
+cloneIndexedLens :: AnIndexedLens i s t a b -> IndexedLens i s t a b
+cloneIndexedLens l f s = runPretext (l sell s) (Indexed (indexed f))
+{-# INLINE cloneIndexedLens #-}
 
 -------------------------------------------------------------------------------
 -- Setting and Remembering
