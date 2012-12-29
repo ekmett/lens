@@ -94,7 +94,6 @@ import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed
 import Control.Lens.Lens
-import Control.Lens.Loupe
 import Control.Lens.Setter
 import Control.Lens.Zipper
 
