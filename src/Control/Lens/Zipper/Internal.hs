@@ -435,7 +435,7 @@ moveToward i z@(Zipper h p0 j s0)
   where
     go _ Pure = z
     go p (Ap m nl nr li l r)
-      | Last (Just k) <- maximal l,k < i = go (ApL m nl nr li p r) l
+      | Last (Just k) <- maximal l, k >= i = go (ApL m nl nr li p r) l
       | otherwise      = go (ApR m nl nr li l p) r
     go p (Leaf k a) = Zipper h p k a
 {-# INLINE moveToward #-}
