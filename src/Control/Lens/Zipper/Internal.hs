@@ -171,7 +171,7 @@ data Top
 -- unpacked and stored in 'Coil' form. Only one value of type @_ ':>' _@ exists
 -- at any particular time for any particular 'Zipper'.
 
-data Zipper h i a = Zipper !(Coil h i a) !(Path i a) i a
+data Zipper h i a = Ord i => Zipper !(Coil h i a) !(Path i a) i a
 
 -- Top :>> Map String Int :> Int :@ String :>> Bool
 
@@ -197,7 +197,7 @@ type instance Zipped (Zipper h i s) a = Zipped h s
 #ifndef HLINT
 data Coil t i a where
   Coil :: Coil Top Int a
-  Snoc :: !(Coil h j s) -> AnIndexedTraversal' i s a -> !(Path j s) -> j -> (Magma i a -> s) -> Coil (Zipper h j s) i a
+  Snoc :: Ord i => !(Coil h j s) -> AnIndexedTraversal' i s a -> !(Path j s) -> j -> (Magma i a -> s) -> Coil (Zipper h j s) i a
 #endif
 
 --downward :: forall j h s a. ALens' s a -> h :> s:@j -> h :> s:@j :> a:@Int
@@ -235,7 +235,7 @@ tooth (Zipper _ p _ _) = offset p
 --
 -- NB: Attempts to move upward from the 'Top' of the 'Zipper' will fail to typecheck.
 --
-upward :: h :> s:@j :> a:@i -> h :> s:@j
+upward :: Ord j => h :> s:@j :> a:@i -> h :> s:@j
 -- upward :: Zipper (Zipper h i s) j a -> Zipper h i s
 upward (Zipper (Snoc h _ p j k) q i x) = Zipper h p j $ k $ recompress q i x
 {-# INLINE upward #-}
@@ -431,6 +431,14 @@ tugTo n z = case compare k n of
   where k = tooth z
 {-# INLINE tugTo #-}
 
+moveTo :: MonadPlus m => i -> (h :> a:@i) -> m (h :> a:@i)
+moveTo _ = return -- TODO
+{-# INLINE moveTo #-}
+
+moveToward :: i -> (h :> a:@i) -> h :> a:@i
+moveToward _ = id -- TODO
+{-# INLINE moveToward #-}
+
 lensed :: ALens' s a -> IndexedLens' Int s a
 lensed l f = cloneLens l (indexed f (0 :: Int))
 {-# INLINE lensed #-}
@@ -450,7 +458,7 @@ downward l (Zipper h p j s) = Zipper (Snoc h l' p j go) Start 0 (s^.l')
         go _ = error "downward: rezipping"
 {-# INLINE downward #-}
 
-idownward :: forall i j h s a. AnIndexedLens' i s a -> h :> s:@j -> h :> s:@j :> a:@i
+idownward :: forall i j h s a. Ord i => AnIndexedLens' i s a -> h :> s:@j -> h :> s:@j :> a:@i
 idownward l (Zipper h p j s) = Zipper (Snoc h l' p j go) Start i a
   where l' :: IndexedLens' i s a
         l' = cloneIndexedLens l
@@ -473,7 +481,7 @@ within :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (
 within = iwithin . indexing
 {-# INLINE within #-}
 
-iwithin :: MonadPlus m => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
+iwithin :: (MonadPlus m, Ord i) => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
 iwithin l (Zipper h p j s) = case magma l (Context id) s of
   Context k xs -> startl Start xs mzero $ \q i a -> return $ Zipper (Snoc h l p j k) q i a
 {-# INLINE iwithin #-}
@@ -492,7 +500,7 @@ withins :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> 
 withins = iwithins . indexing
 {-# INLINE withins #-}
 
-iwithins :: MonadPlus m => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
+iwithins :: (MonadPlus m, Ord i) => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
 iwithins t (Zipper h p j s) = case magma t (Context id) s of
   Context k xs -> let up = Snoc h t p j k
                       go q (Ap m nl nr li l r) = go (ApL m nl nr li q r) l `mplus` go (ApR m nl nr li l q) r
@@ -516,12 +524,13 @@ iwithins t (Zipper h p j s) = case magma t (Context id) s of
 -- @'fromWithin' l ≡ 'fromJust' '.' 'within' l@
 fromWithin :: ATraversal' s a -> (h :> s:@j) -> h :> s:@j :>> a
 fromWithin = undefined
+{-# INLINE fromWithin #-}
 
 ifromWithin :: AnIndexedTraversal' i s a -> (h :> s:@j) -> h :> s:@j :> a:@i
 ifromWithin = undefined
 --fromWithin l (Zipper h p s) = case magma l (Context id) s of
 --  Context k xs -> let up = Snoc h l p k in startl Start xs (Zipper up Start (error "fromWithin an empty Traversal")) (Zipper up)
-{-# INLINE fromWithin #-}
+{-# INLINE ifromWithin #-}
 
 -- | This enables us to pull the 'Zipper' back up to the 'Top'.
 class Zipping h a where
@@ -594,31 +603,29 @@ unsafelyRestoreTape = undefined
 
 -- | This is used to peel off the path information from a 'Coil' for use when saving the current path for later replay.
 peel :: Coil h i a -> Track h i a
-peel Coil             = Top
+peel Coil             = Track
 peel (Snoc h l _ i _) = Fork (peel h) i l
 {-# INLINE peel #-}
 
 -- | The 'Track' forms the bulk of a 'Tape'.
 data Track t i a where
-  Top :: Track Top Int a
-  Fork :: Track h j s -> j -> AnIndexedTraversal' i s a -> Track (Zipper h j s) i a
+  Track :: Track Top Int a
+  Fork  :: Ord i => Track h j s -> j -> AnIndexedTraversal' i s a -> Track (Zipper h j s) i a
 
 -- | Restore ourselves to a previously recorded position precisely.
 --
 -- If the position does not exist, then fail.
 restoreTrack :: MonadPlus m => Track h i a -> Zipped h a -> m (Zipper h i a)
-restoreTrack = undefined
---restoreTrack Track        = return . zipper
---restoreTrack (Fork h n l) = restoreTrack h >=> jerks rightward n >=> within l
+restoreTrack Track        = return . zipper
+restoreTrack (Fork h n l) = restoreTrack h >=> moveTo n >=> iwithin l
 
 -- | Restore ourselves to a location near our previously recorded position.
 --
 -- When moving leftward to rightward through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
 restoreNearTrack :: MonadPlus m => Track h i a -> Zipped h a -> m (Zipper h i a)
-restoreNearTrack = undefined
---restoreNearTrack Track        = return . zipper
---restoreNearTrack (Fork h n l) = restoreNearTrack h >=> tugs rightward n >>> within l
+restoreNearTrack Track        = return . zipper
+restoreNearTrack (Fork h n l) = restoreNearTrack h >=> moveToward n >>> iwithin l
 
 -- | Restore ourselves to a previously recorded position.
 --
@@ -628,6 +635,5 @@ restoreNearTrack = undefined
 --
 -- Violate these assumptions at your own risk!
 unsafelyRestoreTrack :: Track h i a -> Zipped h a -> Zipper h i a
-unsafelyRestoreTrack = undefined
---unsafelyRestoreTrack Track = zipper
---unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> tugs rightward n >>> fromWithin l
+unsafelyRestoreTrack Track = zipper
+unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> moveToward n >>> ifromWithin l
