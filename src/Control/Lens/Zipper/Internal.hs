@@ -474,11 +474,8 @@ within = iwithin . indexing
 {-# INLINE within #-}
 
 iwithin :: MonadPlus m => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
-iwithin = undefined
-{-
-iwithin l (Zipper h p j s) = case context (magma l sell s) of
+iwithin l (Zipper h p j s) = case magma l (Context id) s of
   Context k xs -> startl Start xs mzero $ \q i a -> return $ Zipper (Snoc h l p j k) q i a
--}
 {-# INLINE iwithin #-}
 
 -- | Step down into every entry of a 'Traversal' simultaneously.
@@ -492,20 +489,17 @@ iwithin l (Zipper h p j s) = case context (magma l sell s) of
 -- 'withins' :: 'Iso'' s a       -> (h :> s) -> [h :> s :> a]
 -- @
 withins :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
-withins = undefined
-{-
 withins = iwithins . indexing
 {-# INLINE withins #-}
 
 iwithins :: MonadPlus m => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
-iwithins t (Zipper h p j s) = case context (magma t sell s) of
+iwithins t (Zipper h p j s) = case magma t (Context id) s of
   Context k xs -> let up = Snoc h t p j k
                       go q (Ap m nl nr li l r) = go (ApL m nl nr li q r) l `mplus` go (ApR m nl nr li l q) r
                       go q (Leaf i a)       = return $ Zipper up q i a
                       go _ Pure             = mzero
                   in  go Start xs
 {-# INLINE iwithins #-}
--}
 
 -- | Unsafely step down into a 'Traversal' that is /assumed/ to be non-empty.
 --
