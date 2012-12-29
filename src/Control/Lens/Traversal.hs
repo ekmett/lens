@@ -108,9 +108,9 @@ module Control.Lens.Traversal
   , loci
   ) where
 
-import Control.Arrow
 import Control.Applicative            as Applicative
 import Control.Applicative.Backwards
+import Control.Category
 import Control.Comonad
 import Control.Lens.Combinators
 import Control.Lens.Fold
@@ -123,7 +123,9 @@ import Data.IntMap as IntMap
 import Data.Map as Map
 import Data.Traversable
 import Data.Tuple (swap)
+import Data.Profunctor
 import Data.Profunctor.Representable
+import Prelude hiding ((.),id)
 
 -- $setup
 -- >>> import Control.Lens
@@ -526,8 +528,12 @@ pins :: (Bizarre p w, RepresentableProfunctor p) => w a b t -> [Rep p a]
 pins = getConst . bazaar (tabulatePro $ \ra -> Const [ra])
 {-# INLINE pins #-}
 
-outs :: (Bizarre p w, Arrow p) => w a a t -> [a] -> t
-outs b = evalState $ flip bazaar b $ arr $
+parr :: (Profunctor p, Category p) => (a -> b) -> p a b
+parr f = lmap f id
+{-# INLINE parr #-}
+
+outs :: (Bizarre p w, Category p) => w a a t -> [a] -> t
+outs b = evalState $ flip bazaar b $ parr $
 #if MIN_VERSION_mtl(2,1,1)
   State.state . unconsWithDefault
 #else
@@ -586,9 +592,18 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 --
 -- >>> over (taking 5 traverse) succ "hello world"
 -- "ifmmp world"
-taking :: Applicative f => Int -> Traversing' (->) f s a -> LensLike' f s a
-taking n l f s = outs b <$> traverse f (take n $ ins b) where b = l sell s
+taking :: (RepresentableProfunctor p, Category p, Applicative f)
+       => Int
+       -> Overloading p (->) (BazaarT p f a a) s t a a
+       -> Overloading p (->) f s t a a
+taking n l pafb s = outs b <$> traverse (indexPro pafb) (take n $ pins b) where
+  b = l sell s
 {-# INLINE taking #-}
+
+-- taking :: Applicative f => Int -> Traversing' (->) f s a -> LensLike' f s a
+-- taking n l f s = outs b <$> traverse f (take n $ ins b) where b = l sell s
+-- {-# INLINE taking #-}
+
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
 --

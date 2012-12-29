@@ -1007,10 +1007,10 @@ type Context' a = Context a a
 -- This is a final encoding of 'Bazaar'.
 newtype Bazaar p a b t = Bazaar { runBazaar :: forall f. Applicative f => p a (f b) -> f t }
 
-class Bizarre p w | w -> p where
+class Profunctor p => Bizarre p w | w -> p where
   bazaar :: Applicative f => p a (f b) -> w a b t -> f t
 
-instance Bizarre p (Bazaar p) where
+instance Profunctor p => Bizarre p (Bazaar p) where
   bazaar = flip runBazaar
   {-# INLINE bazaar #-}
 
@@ -1166,7 +1166,7 @@ instance (a ~ b, SelfAdjoint p) => ComonadStore a (PretextT p g a b) where
 --
 newtype BazaarT p (g :: * -> *) a b t = BazaarT { runBazaarT :: forall f. Applicative f => p a (f b) -> f t }
 
-instance Bizarre p (BazaarT p g) where
+instance Profunctor p => Bizarre p (BazaarT p g) where
   bazaar = flip runBazaarT
   {-# INLINE bazaar #-}
 
