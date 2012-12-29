@@ -380,13 +380,13 @@ loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafe
 -- 'partsOf' :: 'Getter' s a     -> 'Getter' s [a]
 -- @
 partsOf :: Functor f => Traversing (->) f s t a a -> LensLike f s t [a] [a]
-partsOf l f s = outsT b <$> f (insT b) where b = l sell s
+partsOf l f s = outs b <$> f (ins b) where b = l sell s
 {-# INLINE partsOf #-}
 
 -- | An indexed version of 'partsOf' that receives the entire list of indices as its index.
 ipartsOf :: forall i p f s t a. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a a -> Overloading p (->) f s t [a] [a]
-ipartsOf l f s = outsT b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (iinsT b)
+ipartsOf l f s = outs b <$> indexed f (is :: [i]) as where
+  (is,as) = unzip (pins b)
   b = l sell s
 {-# INLINE ipartsOf #-}
 
@@ -398,7 +398,7 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 -- | A type-restricted version of 'ipartsOf' that can only be used with an 'IndexedTraversal'.
 ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Overloading (Indexed i) (->) (Bazaar' (Indexed i) a) s t a a -> Overloading p (->) f s t [a] [a]
 ipartsOf' l f s = outs b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (iins b)
+  (is,as) = unzip (pins b)
   b = l sell s
 {-# INLINE ipartsOf' #-}
 
@@ -423,13 +423,13 @@ ipartsOf' l f s = outs b <$> indexed f (is :: [i]) as where
 -- 'unsafePartsOf' :: 'Getter' s a        -> 'Getter' s [a]
 -- @
 unsafePartsOf :: Functor f => Traversing (->) f s t a b -> LensLike f s t [a] [b]
-unsafePartsOf l f s = unsafeOutsT b <$> f (insT b) where b = l sell s
+unsafePartsOf l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 {-# INLINE unsafePartsOf #-}
 
 -- | An indexed version of 'unsafePartsOf' that receives the entire list of indices as its index.
 iunsafePartsOf :: forall i p f s t a b. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a b -> Overloading p (->) f s t [a] [b]
-iunsafePartsOf l f s = unsafeOutsT b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (iinsT b)
+iunsafePartsOf l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
+  (is,as) = unzip (pins b)
   b = l sell s
 {-# INLINE iunsafePartsOf #-}
 
@@ -439,7 +439,7 @@ unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 
 iunsafePartsOf' :: forall i p s t a b. Indexable [i] p => Overloading (Indexed i) (->) (Bazaar (Indexed i) a b) s t a b -> IndexedLens [i] s t [a] [b]
 iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (iins b)
+  (is,as) = unzip (pins b)
   b = l sell s
 {-# INLINE iunsafePartsOf' #-}
 
@@ -484,9 +484,9 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 singular :: (RepresentableProfunctor p, Comonad (Rep p), Functor f)
          => Overloading p (->) (BazaarT p f a a) s t a a
          -> Overloading p (->) f s t a a
-singular l pafb s = case pinsT b of
-  (w:ws) -> unsafeOutsT b . (:Prelude.map extract ws) <$> indexPro pafb w
-  []     -> unsafeOutsT b . return                    <$> indexPro pafb (error "singular: empty traversal")
+singular l pafb s = case pins b of
+  (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> indexPro pafb w
+  []     -> unsafeOuts b . return                    <$> indexPro pafb (error "singular: empty traversal")
   where b = l sell s
 {-# INLINE singular #-}
 
@@ -507,8 +507,8 @@ singular l pafb s = case pinsT b of
 unsafeSingular :: (RepresentableProfunctor p, Comonad (Rep p), Functor f)
                => Overloading p (->) (BazaarT p f a b) s t a b
                -> Overloading p (->) f s t a b
-unsafeSingular l pafb s = case pinsT b of
-  [w] -> unsafeOutsT b . return <$> indexPro pafb w
+unsafeSingular l pafb s = case pins b of
+  [w] -> unsafeOuts b . return <$> indexPro pafb w
   []  -> error "unsafeSingular: empty traversal"
   _   -> error "unsafeSingular: traversing multiple results"
   where b = l sell s
@@ -518,25 +518,16 @@ unsafeSingular l pafb s = case pinsT b of
 -- Internal functions used by 'partsOf', 'holesOf', etc.
 ------------------------------------------------------------------------------
 
--- TODO: make unify ins and iins using Rep p a
-ins :: Bazaar (->) a b t -> [a]
+ins :: Bizarre (->) w => w a b t -> [a]
 ins = toListOf bazaar
 {-# INLINE ins #-}
 
-iins :: Bazaar (Indexed i) a b t -> [(i, a)]
-iins = itoListOf bazaar
-{-# INLINE iins #-}
-
-pins :: RepresentableProfunctor p => Bazaar p a b t -> [Rep p a]
+pins :: (Bizarre p w, RepresentableProfunctor p) => w a b t -> [Rep p a]
 pins = getConst . bazaar (tabulatePro $ \ra -> Const [ra])
 {-# INLINE pins #-}
 
-pinsT :: RepresentableProfunctor p => BazaarT p g a b t -> [Rep p a]
-pinsT = getConst . bazaarT (tabulatePro $ \ra -> Const [ra])
-{-# INLINE pinsT #-}
-
-outs :: Arrow p => Bazaar' p a t -> [a] -> t
-outs b = evalState $ runBazaar b $ arr $
+outs :: (Bizarre p w, Arrow p) => w a a t -> [a] -> t
+outs b = evalState $ flip bazaar b $ arr $
 #if MIN_VERSION_mtl(2,1,1)
   State.state . unconsWithDefault
 #else
@@ -544,8 +535,8 @@ outs b = evalState $ runBazaar b $ arr $
 #endif
 {-# INLINE outs #-}
 
-unsafeOuts :: RepresentableProfunctor p => Bazaar p a b t -> [b] -> t
-unsafeOuts b = evalState $ runBazaar b $ tabulatePro $
+unsafeOuts :: (Bizarre p w, RepresentableProfunctor p) => w a b t -> [b] -> t
+unsafeOuts b = evalState $ flip bazaar b $ tabulatePro $
 #if MIN_VERSION_mtl(2,1,1)
   \_ -> State.state (unconsWithDefault fakeVal)
 #else
@@ -553,33 +544,6 @@ unsafeOuts b = evalState $ runBazaar b $ tabulatePro $
 #endif
   where fakeVal = error "unsafePartsOf': not enough elements were supplied"
 {-# INLINE unsafeOuts #-}
-
-insT :: BazaarT (->) f a b t -> [a]
-insT = toListOf (flip runBazaarT)
-{-# INLINE insT #-}
-
-iinsT :: BazaarT (Indexed i) f a b t -> [(i, a)]
-iinsT = itoListOf (flip runBazaarT)
-{-# INLINE iinsT #-}
-
-outsT :: Arrow p => BazaarT' p f a t -> [a] -> t
-outsT b = evalState $ runBazaarT b $ arr $
-#if MIN_VERSION_mtl(2,1,1)
-  State.state . unconsWithDefault
-#else
-  \oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r
-#endif
-{-# INLINE outsT #-}
-
-unsafeOutsT :: RepresentableProfunctor p => BazaarT p f a b t -> [b] -> t
-unsafeOutsT b = evalState $ runBazaarT b $ tabulatePro $
-#if MIN_VERSION_mtl(2,1,1)
-  \ _ -> State.state (unconsWithDefault fakeVal)
-#else
-  \ _ -> do (r,s) <- State.gets (unconsWithDefault fakeVal); State.put s; return r
-#endif
-  where fakeVal = error "unsafePartsOf: not enough elements were supplied"
-{-# INLINE unsafeOutsT #-}
 
 unconsWithDefault :: a -> [a] -> (a,[a])
 unconsWithDefault d []     = (d,[])
@@ -623,7 +587,7 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 -- >>> over (taking 5 traverse) succ "hello world"
 -- "ifmmp world"
 taking :: Applicative f => Int -> Traversing' (->) f s a -> LensLike' f s a
-taking n l f s = outsT b <$> traverse f (take n $ insT b) where b = l sell s
+taking n l f s = outs b <$> traverse f (take n $ ins b) where b = l sell s
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.

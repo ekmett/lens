@@ -79,8 +79,9 @@ module Control.Lens.Internal
   , Context(..), Context'
   , Pretext(..), Pretext'
   , PretextT(..), PretextT'
-  , Bazaar(..), Bazaar', bazaar
-  , BazaarT(..), BazaarT', bazaarT
+  , Bizarre(..)
+  , Bazaar(..), Bazaar'
+  , BazaarT(..), BazaarT'
   , Sellable(..)
   ) where
 
@@ -1006,9 +1007,12 @@ type Context' a = Context a a
 -- This is a final encoding of 'Bazaar'.
 newtype Bazaar p a b t = Bazaar { runBazaar :: forall f. Applicative f => p a (f b) -> f t }
 
-bazaar :: Applicative f => p a (f b) -> Bazaar p a b t -> f t
-bazaar = flip runBazaar
-{-# INLINE bazaar #-}
+class Bizarre p w | w -> p where
+  bazaar :: Applicative f => p a (f b) -> w a b t -> f t
+
+instance Bizarre p (Bazaar p) where
+  bazaar = flip runBazaar
+  {-# INLINE bazaar #-}
 
 instance Functor (Bazaar p a b) where
   fmap f (Bazaar k) = Bazaar (fmap f . k)
@@ -1162,9 +1166,9 @@ instance (a ~ b, SelfAdjoint p) => ComonadStore a (PretextT p g a b) where
 --
 newtype BazaarT p (g :: * -> *) a b t = BazaarT { runBazaarT :: forall f. Applicative f => p a (f b) -> f t }
 
-bazaarT :: Applicative f => p a (f b) -> BazaarT p g a b t -> f t
-bazaarT = flip runBazaarT
-{-# INLINE bazaarT #-}
+instance Bizarre p (BazaarT p g) where
+  bazaar = flip runBazaarT
+  {-# INLINE bazaar #-}
 
 instance Functor (BazaarT p g a b) where
   fmap f (BazaarT k) = BazaarT (fmap f . k)
