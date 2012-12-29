@@ -66,37 +66,37 @@ module Control.Lens.Lens
   , lens
   , (%%~), (%%=)
 
-  -- * Indexed
+  -- * Indexed Lenses
   , IndexedLens, IndexedLens'
   , AnIndexedLens, AnIndexedLens'
 
   , (%%@~), (%%@=)
   , (<%@~), (<%@=)
 
-  -- ** Lateral Composition
+  -- * Lateral Composition
   , choosing
   , chosen
   , alongside
   , inside
 
-  -- ** Setting Functionally with Passthrough
+  -- * Setting Functionally with Passthrough
   , (<%~), (<+~), (<-~), (<*~), (<//~)
   , (<^~), (<^^~), (<**~)
   , (<||~), (<&&~), (<<>~)
   , (<<%~), (<<.~)
 
-  -- ** Setting State with Passthrough
+  -- * Setting State with Passthrough
   , (<%=), (<+=), (<-=), (<*=), (<//=)
   , (<^=), (<^^=), (<**=)
   , (<||=), (<&&=), (<<>=)
   , (<<%=), (<<.=)
   , (<<~)
 
-  -- ** Cloning Lenses
+  -- * Cloning Lenses
   , cloneLens
   , cloneIndexedLens
 
-  -- ** ALens Combinators
+  -- * ALens Combinators
   , storing
   , (^#)
   , ( #~ ), ( #%~ ), ( #%%~ ), (<#~), (<#%~)
