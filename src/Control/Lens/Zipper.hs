@@ -39,14 +39,18 @@ module Control.Lens.Zipper
   -- * Zippers
     Top()
   , (:>)()
+  , (:>>)()
+  , (:@)()
   , Zipper
   , zipper
   -- ** Focusing
   , focus
   , focusedContext
   -- ** Vertical Movement
-  , upward, downward
-  , within, withins
+  , upward
+  , downward, idownward
+  , within, iwithin
+  , withins, iwithins
   -- ** Lateral Movement
   , leftward, rightward
   , leftmost, rightmost
@@ -58,7 +62,10 @@ module Control.Lens.Zipper
   -- ** Absolute Positioning
   , tooth
   , teeth
-  , jerkTo, tugTo
+  , jerkTo
+  , tugTo
+  , moveTo
+  , moveToward
   -- ** Closing the zipper
   , rezip
   , Zipped
@@ -70,6 +77,7 @@ module Control.Lens.Zipper
   , restoreNearTape
   -- ** Unsafe Movement
   , fromWithin
+  , ifromWithin
   , unsafelyRestoreTape
   ) where
 

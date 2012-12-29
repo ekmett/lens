@@ -11,6 +11,7 @@ module Control.Lens.Magma
   , magma
   , nullLeft
   , nullRight
+  , maximal
   ) where
 
 import Control.Applicative

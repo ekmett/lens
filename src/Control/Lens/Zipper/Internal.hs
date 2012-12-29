@@ -428,27 +428,24 @@ tugTo n z = case compare k n of
   where k = tooth z
 {-# INLINE tugTo #-}
 
-goTo :: Ord i => i -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
-goTo = undefined -- TODO
+moveToward :: i -> h :> a:@i -> h :> a:@i
+moveToward i z@(Zipper h p0 j s0)
+  | i == j   = z
+  | otherwise = go Start (recompress p0 j s0)
+  where
+    go _ Pure = z
+    go p (Ap m nl nr li l r)
+      | Last (Just k) <- maximal l,k < i = go (ApL m nl nr li p r) l
+      | otherwise      = go (ApR m nl nr li l p) r
+    go p (Leaf k a) = Zipper h p k a
+{-# INLINE moveToward #-}
 
 moveTo :: MonadPlus m => i -> h :> a:@i -> m (h :> a:@i)
-moveTo i z@(Zipper h p0 j0 s0) = case compare i j0 of
-  GT -> upright p0 (Leaf j0 s0)
-  EQ -> return z
-  LT -> upleft p0 (Leaf j0 s0)
-  where
-    upright Start m = goTo i m mzero (\w u a -> return $ Zipper h w u a)
-    upright (ApL m nl nr li p r) l
-      | Last (Just k) <- li, k >= i = goTo i (Ap m nl nr li l r) mzero (\w u a -> return $ Zipper h w u a)
-      | otherwise = upright p (Ap m nl nr li l r)
-    upright (ApR m nl nr li l p) r = upright p (Ap m nl nr li l r)
-    upleft Start m = goTo i m mzero (\w u a -> return $ Zipper h w u a)
-    upleft _ _     = undefined -- TODO
+moveTo i z = case moveToward i z of
+  z'@(Zipper _ _ j _)
+    | i == j    -> return z'
+    | otherwise -> mzero
 {-# INLINE moveTo #-}
-
-moveToward :: i -> h :> a:@i -> h :> a:@i
-moveToward _ = id -- TODO
-{-# INLINE moveToward #-}
 
 lensed :: ALens' s a -> IndexedLens' Int s a
 lensed l f = cloneLens l (indexed f (0 :: Int))
