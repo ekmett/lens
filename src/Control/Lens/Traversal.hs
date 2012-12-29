@@ -592,6 +592,23 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 --
 -- >>> over (taking 5 traverse) succ "hello world"
 -- "ifmmp world"
+--
+-- @
+-- 'taking' :: 'Int' -> 'Traversal'' s a             -> 'Traversal'' s a
+-- 'taking' :: 'Int' -> 'Lens'' s a                  -> 'Traversal'' s a
+-- 'taking' :: 'Int' -> 'Iso'' s a                   -> 'Traversal'' s a
+-- 'taking' :: 'Int' -> 'Prism'' s a                 -> 'Traversal'' s a
+-- 'taking' :: 'Int' -> 'Getter' s a                 -> 'Fold'' s a
+-- 'taking' :: 'Int' -> 'Fold' s a                   -> 'Fold'' s a
+-- 'taking' :: 'Int' -> 'Action' m s a               -> 'MonadicFold'' m s a
+-- 'taking' :: 'Int' -> 'MonadicFold' m s a          -> 'MonadicFold'' m s a
+-- 'taking' :: 'Int' -> 'IndexedTraversal'' i s a    -> 'IndexedTraversal'' i s a
+-- 'taking' :: 'Int' -> 'IndexedLens'' i s a         -> 'IndexedTraversal'' i s a
+-- 'taking' :: 'Int' -> 'IndexedGetter' i s a        -> 'IndexedFold'' i s a
+-- 'taking' :: 'Int' -> 'IndexedFold' i s a          -> 'IndexedFold'' i s a
+-- 'taking' :: 'Int' -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold'' i m s a
+-- 'taking' :: 'Int' -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold'' i m s a
+-- @
 taking :: (RepresentableProfunctor p, Category p, Applicative f)
        => Int
        -> Overloading p (->) (BazaarT p f a a) s t a a
