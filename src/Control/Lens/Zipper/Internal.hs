@@ -518,14 +518,16 @@ iwithins t (Zipper h p j s) = case magma t (Context id) s of
 -- You can reason about this function as if the definition was:
 --
 -- @'fromWithin' l ≡ 'fromJust' '.' 'within' l@
-fromWithin :: ATraversal' s a -> (h :> s:@j) -> h :> s:@j :>> a
-fromWithin = undefined
+fromWithin :: LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> h :> s:@j :>> a
+fromWithin = ifromWithin . indexing
 {-# INLINE fromWithin #-}
 
-ifromWithin :: AnIndexedTraversal' i s a -> (h :> s:@j) -> h :> s:@j :> a:@i
-ifromWithin = undefined
---fromWithin l (Zipper h p s) = case magma l (Context id) s of
---  Context k xs -> let up = Snoc h l p k in startl Start xs (Zipper up Start (error "fromWithin an empty Traversal")) (Zipper up)
+ifromWithin :: Ord i => AnIndexedTraversal' i s a -> (h :> s:@j) -> h :> s:@j :> a:@i
+ifromWithin l (Zipper h p j s) = case magma l (Context id) s of
+  Context k xs -> let up = Snoc h l p j k in
+    startl Start xs (Zipper up Start (error "fromWithin an empty Traversal")
+                                     (error "fromWithin an empty Traversal"))
+                    (Zipper up)
 {-# INLINE ifromWithin #-}
 
 -- | This enables us to pull the 'Zipper' back up to the 'Top'.
@@ -533,7 +535,7 @@ class Zipping h a where
   recoil :: Coil h i a -> Magma i a -> Zipped h a
 
 instance Zipping Top a where
-  recoil Coil (Leaf i a) = a
+  recoil Coil (Leaf _ a) = a
   recoil Coil _ = error "recoil: expected Leaf"
   {-# INLINE recoil #-}
 
@@ -561,7 +563,7 @@ data Tape h i a where
 
 -- | Save the current path as as a 'Tape' we can play back later.
 saveTape :: Zipper h i a -> Tape h i a
-saveTape (Zipper h p i _) = Tape (peel h) i
+saveTape (Zipper h _ i _) = Tape (peel h) i
 {-# INLINE saveTape #-}
 
 -- | Restore ourselves to a previously recorded position precisely.
