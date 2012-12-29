@@ -266,7 +266,7 @@
 <a name="line-257"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-258"></a>
 <a name="line-259"></a><a name="SelfAdjoint"></a><span class='hs-comment'>-- This is a profunctor that is both corepresentable by @f@ and representable by @g@ such</span>
-<a name="line-260"></a><a name="SelfAdjoint"></a><span class='hs-comment'>-- that @f@ is left Adoint to @g@. From this you can derive a lot of structure due</span>
+<a name="line-260"></a><a name="SelfAdjoint"></a><span class='hs-comment'>-- that @f@ is left Adjoint to @g@. From this you can derive a lot of structure due</span>
 <a name="line-261"></a><a name="SelfAdjoint"></a><span class='hs-comment'>-- to the preservation of limits and colimits.</span>
 <a name="line-262"></a><a name="SelfAdjoint"></a><span class='hs-keyword'>class</span>
 <a name="line-263"></a>  <span class='hs-layout'>(</span> <span class='hs-conid'>Profunctor</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Prismatic</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Lenticular</span> <span class='hs-varid'>p</span>
@@ -711,7 +711,7 @@
 <a name="line-702"></a><span class='hs-comment'>-- Isomorphism and Prism Internals</span>
 <a name="line-703"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-704"></a>
-<a name="line-705"></a><a name="Review"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Review</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Review</span> <span class='hs-layout'>{</span> <span class='hs-varid'>runReview</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>b</span> <span class='hs-layout'>}</span>
+<a name="line-705"></a><a name="Review"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>Review</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Review</span> <span class='hs-layout'>{</span> <span class='hs-varid'>runReview</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>b</span> <span class='hs-layout'>}</span>
 <a name="line-706"></a>
 <a name="line-707"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>Review</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-708"></a>  <span class='hs-varid'>fmap</span> <span class='hs-varid'>bc</span> <span class='hs-layout'>(</span><span class='hs-conid'>Review</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Review</span> <span class='hs-layout'>(</span><span class='hs-varid'>bc</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
