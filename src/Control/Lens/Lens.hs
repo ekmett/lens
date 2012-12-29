@@ -61,8 +61,6 @@ module Control.Lens.Lens
     Lens, Lens'
   -- ** Concrete Lenses
   , ALens, ALens'
-  -- ** Implemented with Context
-  , Loupe, Loupe'
 
   -- * Combinators
   , lens
@@ -98,6 +96,12 @@ module Control.Lens.Lens
   , cloneLens
   , cloneIndexedLens
 
+  -- ** ALens Combinators
+  , storing
+  , (^#)
+  , ( #~ ), ( #%~ ), ( #%%~ ), (<#~), (<#%~)
+  , ( #= ), ( #%= ), ( #%%= ), (<#=), (<#%=)
+
   -- * Context
   , Context(..)
   , Context'
@@ -127,39 +131,19 @@ infixr 4 %%@~, <%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~
 infix  4 %%@=, <%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=
 infixr 2 <<~
 
+infixl 8 ^#
+infixr 4 <#~, #~, #%~, <#%~, #%%~
+infix  4 <#=, #=, #%=, <#%=, #%%=
+
 -------------------------------------------------------------------------------
 -- Lenses
 -------------------------------------------------------------------------------
 
--- |
--- A @'Loupe' s t a b@ is almost a 'Lens'. It can be composed on the left of other lenses,
--- you can use 'cloneLens' to promote it to a 'Lens', and it provides a minimalist lens-like
--- interface. They can be used in an API where you need to pass around lenses inside containers
--- or as monadic results. Unlike a 'ReifiedLens' they can be composed and used directly, but
--- they are slightly lower performance.
-
--- 1) You get back what you put in:
---
--- @'Control.Lens.Setter.set' l b a '^#' l ≡ b@
---
--- 2) Putting back what you got doesn't change anything:
---
--- @'storing' l (a '^#' l) a  ≡ a@
---
--- 3) Setting twice is the same as setting once:
---
--- @'storing' l c ('storing' l b a) ≡ 'storing' l c a@
---
--- These laws are strong enough that the 4 type parameters of a 'Loupe' cannot
--- vary fully independently. For more on how they interact, read the \"Why is
--- it a Lens Family?\" section of <http://comonad.com/reader/2012/mirrored-lenses/>.
-
-type Loupe s t a b = LensLike (Pretext (->) a b) s t a b
-
--- | @type 'Loupe'' = 'Simple' 'Loupe'@
-type Loupe' s a = Loupe s s a a
-
 -- | When you see this as an argument to a function, it expects a 'Lens'.
+--
+-- This type can also be used when you need to store a lens in a container,
+-- since it is rank-1. You can turn them back into a 'Lens' with 'cloneLens',
+-- or use it directly with combinators like 'storing' and ('^#').
 type ALens s t a b = LensLike (Pretext (->) a b) s t a b
 
 -- | @type 'ALens'' = 'Simple' 'ALens'@
@@ -315,7 +299,7 @@ chosen f (Right a) = Right <$> f a
 -- (Left c,Right d)
 --
 -- @'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')@
-alongside :: Loupe s t a b -> Loupe s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
+alongside :: ALens s t a b -> ALens s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
 alongside l r f (s, s') = case context (l sell s) of
   Context bt a -> case context (r sell s') of
     Context bt' a' -> f (a,a') <&> \(b,b') -> (bt b, bt' b')
@@ -800,3 +784,95 @@ l %%@= f = do
 (<%@=) :: MonadState s m => IndexedLensLike (Indexed i) ((,) b) s s a b -> (i -> a -> b) -> m b
 l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 {-# INLINE (<%@=) #-}
+
+------------------------------------------------------------------------------
+-- ALens Combinators
+------------------------------------------------------------------------------
+
+-- | A version of ('Control.Lens.Getter.^.') that works on 'ALens'.
+--
+-- >>> ("hello","world")^#_2
+-- "world"
+(^#) :: s -> ALens s t a b -> a
+s ^# l = ipos (l sell s)
+{-# INLINE (^#) #-}
+
+-- | A version of 'Control.Lens.Setter.set' that works on 'ALens'.
+--
+-- >>> storing _2 "world" ("hello","there")
+-- ("hello","world")
+storing :: ALens s t a b -> b -> s -> t
+storing l b s = ipeek b (l sell s)
+{-# INLINE storing #-}
+
+-- | A version of ('Control.Lens.Setter..~') that works on 'ALens'.
+--
+-- >>> ("hello","there") & _2 #~ "world"
+-- ("hello","world")
+( #~ ) :: ALens s t a b -> b -> s -> t
+( #~ ) l b s = ipeek b (l sell s)
+{-# INLINE ( #~ ) #-}
+
+-- | A version of ('Control.Lens.Setter.%~') that works on 'ALens'.
+--
+-- >>> ("hello","world") & _2 #%~ length
+-- ("hello",5)
+( #%~ ) :: ALens s t a b -> (a -> b) -> s -> t
+( #%~ ) l f s = ipeeks f (l sell s)
+{-# INLINE ( #%~ ) #-}
+
+-- | A version of ('%%~') that works on 'ALens'.
+--
+-- >>> ("hello","world") & _2 #%%~ \x -> (length x, x ++ "!")
+-- (5,("hello","world!"))
+( #%%~ ) :: Functor f => ALens s t a b -> (a -> f b) -> s -> f t
+( #%%~ ) l f s = runPretext (l sell s) f
+{-# INLINE ( #%%~ ) #-}
+
+-- | A version of ('Control.Lens.Setter..=') that works on 'ALens'.
+( #= ) :: MonadState s m => ALens s s a b -> b -> m ()
+l #= f = modify (l #~ f)
+{-# INLINE ( #= ) #-}
+
+-- | A version of ('Control.Lens.Setter.%=') that works on 'ALens'.
+( #%= ) :: MonadState s m => ALens s s a b -> (a -> b) -> m ()
+l #%= f = modify (l #%~ f)
+{-# INLINE ( #%= ) #-}
+
+-- | A version of ('<%~') that works on 'ALens'.
+--
+-- >>> ("hello","world") & _2 <#%~ length
+-- (5,("hello",5))
+(<#%~) :: ALens s t a b -> (a -> b) -> s -> (b, t)
+l <#%~ f = \s -> runPretext (l sell s) $ \a -> let b = f a in (b, b)
+{-# INLINE (<#%~) #-}
+
+-- | A version of ('<%=') that works on 'ALens'.
+(<#%=) :: MonadState s m => ALens s s a b -> (a -> b) -> m b
+l <#%= f = l #%%= \a -> let b = f a in (b, b)
+{-# INLINE (<#%=) #-}
+
+-- | A version of ('%%=') that works on 'ALens'.
+( #%%= ) :: MonadState s m => ALens s s a b -> (a -> (r, b)) -> m r
+#if MIN_VERSION_mtl(2,1,1)
+l #%%= f = State.state $ \s -> runPretext (l sell s) f
+#else
+l #%%= f = do
+  p <- State.gets (l sell)
+  let (r, t) = runPretext p f
+  State.put t
+  return r
+#endif
+
+-- | A version of ('Control.Lens.Setter.<.~') that works on 'ALens'.
+--
+-- >>> ("hello","there") & _2 <#~ "world"
+-- ("world",("hello","world"))
+(<#~) :: ALens s t a b -> b -> s -> (b, t)
+l <#~ b = \s -> (b, storing l b s)
+
+-- | A version of ('Control.Lens.Setter.<#=') that works on 'ALens'.
+(<#=) :: MonadState s m => ALens s s a b -> b -> m b
+l <#= b = do
+  l #= b
+  return b
