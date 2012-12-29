@@ -187,5 +187,6 @@
 <a name="line-178"></a><span class='hs-definition'>strippingPrefix</span> <span class='hs-varid'>ps</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>ps</span> <span class='hs-varop'>++</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>xs</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>stripPrefix</span> <span class='hs-varid'>ps</span> <span class='hs-varid'>xs</span> <span class='hs-keyword'>of</span>
 <a name="line-179"></a>  <span class='hs-conid'>Nothing</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Left</span> <span class='hs-varid'>xs</span>
 <a name="line-180"></a>  <span class='hs-conid'>Just</span> <span class='hs-varid'>xs'</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Right</span> <span class='hs-varid'>xs'</span>
+<a name="line-181"></a><span class='hs-comment'>{-# INLINE strippingPrefix #-}</span>
 </pre></body>
 </html>
