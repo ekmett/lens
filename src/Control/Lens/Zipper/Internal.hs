@@ -33,19 +33,15 @@ module Control.Lens.Zipper.Internal where
 import Control.Applicative
 import Control.Category ((>>>))
 import Control.Monad
-import Control.Lens.Combinators
 import Control.Lens.Magma
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Lens
-import Control.Lens.Loupe
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
-import Data.Functor.Identity
 import Data.Maybe
 import Data.Monoid
-import Data.Profunctor.Representable
 
 {-# ANN module "HLint: ignore Use foldl" #-}
 
@@ -572,8 +568,7 @@ saveTape (Zipper h p i _) = Tape (peel h) i
 --
 -- If the position does not exist, then fail.
 restoreTape :: MonadPlus m => Tape h i a -> Zipped h a -> m (Zipper h i a)
-restoreTape = undefined
--- restoreTape (Tape h n) = restoreTrack h >=> jerks rightward n
+restoreTape (Tape h n) = restoreTrack h >=> moveTo n
 {-# INLINE restoreTape #-}
 
 -- | Restore ourselves to a location near our previously recorded position.
@@ -581,8 +576,7 @@ restoreTape = undefined
 -- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
 restoreNearTape :: MonadPlus m => Tape h i a -> Zipped h a -> m (Zipper h i a)
-restoreNearTape = undefined
--- restoreNearTape (Tape h n) a = liftM (tugs rightward n) (restoreNearTrack h a)
+restoreNearTape (Tape h n) a = liftM (moveToward n) (restoreNearTrack h a)
 {-# INLINE restoreNearTape #-}
 
 -- | Restore ourselves to a previously recorded position.
@@ -593,8 +587,7 @@ restoreNearTape = undefined
 --
 -- Violate these assumptions at your own risk!
 unsafelyRestoreTape :: Tape h i a -> Zipped h a -> Zipper h i a
-unsafelyRestoreTape = undefined
--- unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> tugs rightward n
+unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> moveToward n
 {-# INLINE unsafelyRestoreTape #-}
 
 -----------------------------------------------------------------------------
