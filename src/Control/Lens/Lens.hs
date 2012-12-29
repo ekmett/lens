@@ -59,17 +59,14 @@ module Control.Lens.Lens
   (
   -- * Lenses
     Lens, Lens'
+  , IndexedLens, IndexedLens'
   -- ** Concrete Lenses
   , ALens, ALens'
-
-  -- * Combinators
-  , lens
-  , (%%~), (%%=)
-
-  -- * Indexed Lenses
-  , IndexedLens, IndexedLens'
   , AnIndexedLens, AnIndexedLens'
 
+  -- * Combinators
+  , lens, ilens
+  , (%%~), (%%=)
   , (%%@~), (%%@=)
   , (<%@~), (<%@=)
 
@@ -127,13 +124,10 @@ import Data.Monoid
 -- >>> let getter :: Expr -> Expr; getter = fun "getter"
 -- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
 
-infixr 4 %%@~, <%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <%~, <<%~, <<.~
-infix  4 %%@=, <%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=
-infixr 2 <<~
-
 infixl 8 ^#
-infixr 4 <#~, #~, #%~, <#%~, #%%~
-infix  4 <#=, #=, #%=, <#%=, #%%=
+infixr 4 %%@~, <%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <%~, <<%~, <<.~, <#~, #~, #%~, <#%~, #%%~
+infix  4 %%@=, <%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=, <#=, #=, #%=, <#%=, #%%=
+infixr 2 <<~
 
 -------------------------------------------------------------------------------
 -- Lenses
@@ -172,6 +166,11 @@ type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 lens :: (s -> a) -> (s -> b -> t) -> Lens s t a b
 lens sa sbt afb s = sbt s <$> afb (sa s)
 {-# INLINE lens #-}
+
+-- | Build an 'IndexedLens' from a getter and a setter.
+ilens :: (s -> (i, a)) -> (s -> b -> t) -> IndexedLens i s t a b
+ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
+{-# INLINE ilens #-}
 
 -- | ('%%~') can be used in one of two scenarios:
 --
