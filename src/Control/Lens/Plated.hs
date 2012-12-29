@@ -79,6 +79,7 @@ module Control.Lens.Plated
   where
 
 import           Control.Applicative
+import           Control.Comonad
 import           Control.Lens.Fold
 import           Control.Lens.Getter
 import           Control.Lens.Internal
@@ -91,6 +92,7 @@ import           Data.Data
 #endif
 import           Data.Data.Lens
 import           Data.Monoid
+import           Data.Profunctor.Representable
 import           Data.Tree
 
 {-# ANN module "HLint: ignore Reduce duplication" #-}
@@ -438,7 +440,7 @@ contexts = contextsOf plate
 --
 -- @'contextsOf' :: 'Traversal'' a a -> a -> ['Context' a a]@
 contextsOf :: ATraversal' a a -> a -> [Context a a a]
-contextsOf l x = sell x : f (holesOf l x) where
+contextsOf l x = sell x : f (map context (holesOf l x)) where
   f xs = do
     Context ctx child <- xs
     Context cont y <- contextsOf l child
@@ -459,7 +461,7 @@ contextsOn b = contextsOnOf b plate
 --
 -- @'contextsOnOf' :: 'Traversal'' s a -> 'Traversal'' a a -> s -> ['Context' a a s]@
 contextsOnOf :: ATraversal s t a a -> ATraversal' a a -> s -> [Context a a t]
-contextsOnOf b l = f . holesOf b where
+contextsOnOf b l = f . map context . holesOf b where
   f xs = do
     Context ctx child <- xs
     Context cont y <- contextsOf l child
@@ -476,7 +478,7 @@ contextsOnOf b l = f . holesOf b where
 -- @
 --
 -- @'holes' = 'holesOf' 'plate'@
-holes :: Plated a => a -> [Context a a a]
+holes :: Plated a => a -> [Pretext (->) a a a]
 holes = holesOf plate
 {-# INLINE holes #-}
 
@@ -485,11 +487,13 @@ holes = holesOf plate
 -- @'holesOn' ≡ 'holesOf'@
 --
 -- @
--- 'holesOn' :: 'Iso'' s a       -> s -> ['Context' a a s]
--- 'holesOn' :: 'Lens'' s a      -> s -> ['Context' a a s]
--- 'holesOn' :: 'Traversal'' s a -> s -> ['Context' a a s]
+-- 'holesOn' :: 'Iso'' s a                -> s -> ['Pretext' (->) a a s]
+-- 'holesOn' :: 'Lens'' s a               -> s -> ['Pretext' (->) a a s]
+-- 'holesOn' :: 'Traversal'' s a          -> s -> ['Pretext' (->) a a s]
+-- 'holesOn' :: 'IndexedLens'' i s a      -> s -> ['Pretext' ('Indexed' i) a a s]
+-- 'holesOn' :: 'IndexedTraversal'' i s a -> s -> ['Pretext' ('Indexed' i) a a s]
 -- @
-holesOn :: ATraversal s t a a -> s -> [Context a a t]
+holesOn :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
 holesOn = holesOf
 {-# INLINE holesOn #-}
 
@@ -498,12 +502,17 @@ holesOn = holesOf
 -- @'holesOnOf' b l ≡ 'holesOf' (b '.' l)@
 --
 -- @
--- 'holesOnOf' :: 'Iso'' s a       -> 'Iso'' a a       -> s -> ['Context' a a s]
--- 'holesOnOf' :: 'Lens'' s a      -> 'Lens'' a a      -> s -> ['Context' a a s]
--- 'holesOnOf' :: 'Traversal'' s a -> 'Traversal'' a a -> s -> ['Context' a a s]
+-- 'holesOnOf' :: 'Iso'' s a       -> 'Iso'' a a                -> s -> ['Pretext' (->) a a s]
+-- 'holesOnOf' :: 'Lens'' s a      -> 'Lens'' a a               -> s -> ['Pretext' (->) a a s]
+-- 'holesOnOf' :: 'Traversal'' s a -> 'Traversal'' a a          -> s -> ['Pretext' (->) a a s]
+-- 'holesOnOf' :: 'Lens'' s a      -> 'IndexedLens'' i a a      -> s -> ['Pretext' ('Indexed' i) a a s]
+-- 'holesOnOf' :: 'Traversal'' s a -> 'IndexedTraversal'' i a a -> s -> ['Pretext' ('Indexed' i) a a s]
 -- @
-holesOnOf :: LensLike (Bazaar (->) r r) s t a b -> LensLike (Bazaar (->) r r) a b r r -> s -> [Context r r t]
-holesOnOf b l = holesOf (b.l)
+holesOnOf :: (RepresentableProfunctor p, Comonad (Rep p))
+          => LensLike (Bazaar p r r) s t a b
+          -> Overloading p (->) (Bazaar p r r) a b r r
+          -> s -> [Pretext p r r t]
+holesOnOf b l = holesOf (b . l)
 {-# INLINE holesOnOf #-}
 
 -------------------------------------------------------------------------------

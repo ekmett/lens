@@ -66,7 +66,7 @@ module Control.Lens.Traversal
   -- * Parts and Holes
   , partsOf, partsOf'
   , unsafePartsOf, unsafePartsOf'
-  , holesOf, iholesOf
+  , holesOf
   , singular, unsafeSingular
 
   -- * Common Traversals
@@ -111,6 +111,7 @@ module Control.Lens.Traversal
 import Control.Arrow
 import Control.Applicative            as Applicative
 import Control.Applicative.Backwards
+import Control.Comonad
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Internal
@@ -122,6 +123,7 @@ import Data.IntMap as IntMap
 import Data.Map as Map
 import Data.Traversable
 import Data.Tuple (swap)
+import Data.Profunctor.Representable
 
 -- $setup
 -- >>> import Control.Lens
@@ -451,24 +453,18 @@ iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
 -- @
 --
 -- @
--- 'holesOf' :: 'Iso'' s a       -> s -> ['Context' a a s]
--- 'holesOf' :: 'Lens'' s a      -> s -> ['Context' a a s]
--- 'holesOf' :: 'Traversal'' s a -> s -> ['Context' a a s]
+-- 'holesOf' :: 'Iso'' s a                -> s -> ['Pretext'' (->) a s]
+-- 'holesOf' :: 'Lens'' s a               -> s -> ['Pretext'' (->) a s]
+-- 'holesOf' :: 'Traversal'' s a          -> s -> ['Pretext'' (->) a s]
+-- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
+-- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
 -- @
-holesOf :: ATraversal s t a a -> s -> [Context a a t]
-holesOf l s = f (ins b) (outs b) where
-  b = l sell s
-  f []     _ = []
-  f (x:xs) g = Context (g . (:xs)) x : f xs (g . (x:))
-{-# INLINE holesOf #-}
-
--- | The one-level version of 'contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
-iholesOf :: AnIndexedTraversal i s t a a -> s -> [Pretext (Indexed i) a a t]
-iholesOf l s = f (iins b) (outs b) where
+holesOf :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
+holesOf l s = f (pins b) (unsafeOuts b) where
   b = l sell s
   f [] _ = []
-  f ((i, x):xs) g = Pretext (\ixfy -> g . (:Prelude.map snd xs) <$> indexed ixfy i x) : f xs (g . (x:))
-{-# INLINE iholesOf #-}
+  f (wx:xs) g = Pretext (\wxfy -> g . (:Prelude.map extract xs) <$> indexPro wxfy wx) : f xs (g . (extract wx:))
+{-# INLINE holesOf #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can
 -- also be used to transform a non-empty 'Fold' into a 'Getter' or a non-empty 'MonadicFold' into an
@@ -512,12 +508,16 @@ unsafeSingular l f = unsafePartsOf l $ \xs -> case xs of
 
 -- TODO: make unify ins and iins using Rep p a
 ins :: Bazaar (->) a b t -> [a]
-ins = toListOf (flip runBazaar)
+ins = toListOf bazaar
 {-# INLINE ins #-}
 
 iins :: Bazaar (Indexed i) a b t -> [(i, a)]
-iins = itoListOf (flip runBazaar)
+iins = itoListOf bazaar
 {-# INLINE iins #-}
+
+pins :: RepresentableProfunctor p => Bazaar p a b t -> [Rep p a]
+pins = getConst . bazaar (tabulatePro $ \ra -> Const [ra])
+{-# INLINE pins #-}
 
 outs :: Arrow p => Bazaar' p a t -> [a] -> t
 outs b = evalState $ runBazaar b $ arr $
@@ -528,8 +528,8 @@ outs b = evalState $ runBazaar b $ arr $
 #endif
 {-# INLINE outs #-}
 
-unsafeOuts :: Arrow p => Bazaar p a b t -> [b] -> t
-unsafeOuts b = evalState $ runBazaar b $ arr $
+unsafeOuts :: RepresentableProfunctor p => Bazaar p a b t -> [b] -> t
+unsafeOuts b = evalState $ runBazaar b $ tabulatePro $
 #if MIN_VERSION_mtl(2,1,1)
   \_ -> State.state (unconsWithDefault fakeVal)
 #else
