@@ -419,7 +419,7 @@ jerkTo n z = case compare k n of
 --
 -- >>> rezip $ zipper "not working." & fromWithin traverse & tugTo 100 & focus .~ '!' & tugTo 1 & focus .~ 'u'
 -- "nut working!"
-tugTo :: Int -> (h :> a:@i) -> h :> a:@i
+tugTo :: Int -> h :> a:@i -> h :> a:@i
 tugTo n z = case compare k n of
   LT -> tugs rightward (n - k) z
   EQ -> z
@@ -427,11 +427,25 @@ tugTo n z = case compare k n of
   where k = tooth z
 {-# INLINE tugTo #-}
 
-moveTo :: MonadPlus m => i -> (h :> a:@i) -> m (h :> a:@i)
-moveTo _ = return -- TODO
+goTo :: Ord i => i -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
+goTo i m kp = undefined -- TODO
+
+moveTo :: MonadPlus m => i -> h :> a:@i -> m (h :> a:@i)
+moveTo i z@(Zipper h p0 j0 s0) = case compare i j0 of
+  GT -> upright p0 (Leaf j0 s0)
+  EQ -> return z
+  LT -> upleft p0 (Leaf j0 s0)
+  where
+    upright Start m = goTo i m mzero (\w u a -> return $ Zipper h w u a)
+    upright (ApL m nl nr li p r) l
+      | Last (Just k) <- li, k >= i = goTo i (Ap m nl nr li l r) mzero (\w u a -> return $ Zipper h w u a)
+      | otherwise = upright p (Ap m nl nr li l r)
+    upright (ApR m nl nr li l p) r = upright p (Ap m nl nr li l r)
+    upleft Start m = goTo i m mzero (\w u a -> return $ Zipper h w u a)
+    upleft _ _     = undefined -- TODO
 {-# INLINE moveTo #-}
 
-moveToward :: i -> (h :> a:@i) -> h :> a:@i
+moveToward :: i -> h :> a:@i -> h :> a:@i
 moveToward _ = id -- TODO
 {-# INLINE moveToward #-}
 
