@@ -474,15 +474,26 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 -- no results.
 --
 -- @
--- 'singular' :: 'Traversal' s t a a -> 'Lens' s t a a
--- 'singular' :: 'Fold' s a          -> 'Getter' s a
--- 'singular' :: 'MonadicFold' m s a -> 'Action' m s a
+-- 'singular' :: 'Traversal' s t a a          -> 'Lens' s t a a
+-- 'singular' :: 'Fold' s a                   -> 'Getter' s a
+-- 'singular' :: 'MonadicFold' m s a          -> 'Action' m s a
+-- 'singular' :: 'IndexedTraversal' i s t a a -> 'IndexedLens' i s t a a
+-- 'singular' :: 'IndexedFold' i s a          -> 'IndexedGetter' i s a
+-- 'singular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
-singular :: Functor f => Traversing (->) f s t a a -> LensLike f s t a a
-singular l f = partsOf l $ \xs -> case xs of
-  (a:as) -> (:as) <$> f a
-  []     -> [] <$ f (error "singular: empty traversal")
+singular :: (RepresentableProfunctor p, Comonad (Rep p), Functor f)
+         => Overloading p (->) (BazaarT p f a a) s t a a
+         -> Overloading p (->) f s t a a
+singular l pafb s = case pinsT b of
+  (w:ws) -> unsafeOutsT b . (:Prelude.map extract ws) <$> indexPro pafb w
+  []     -> unsafeOutsT b . return                    <$> indexPro pafb (error "singular: empty traversal")
+  where b = l sell s
 {-# INLINE singular #-}
+
+-- singular :: Functor f => Traversing (->) f s t a a -> LensLike f s t a a
+-- singular l f = partsOf l $ \xs -> case xs of
+--  (a:as) -> (:as) <$> f a
+--  []     -> [] <$ f (error "singular: empty traversal")
 
 -- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be
 -- used to transform a 'Fold' into a 'Getter' or a 'MonadicFold' into an 'Action'.
@@ -518,6 +529,10 @@ iins = itoListOf bazaar
 pins :: RepresentableProfunctor p => Bazaar p a b t -> [Rep p a]
 pins = getConst . bazaar (tabulatePro $ \ra -> Const [ra])
 {-# INLINE pins #-}
+
+pinsT :: RepresentableProfunctor p => BazaarT p g a b t -> [Rep p a]
+pinsT = getConst . bazaarT (tabulatePro $ \ra -> Const [ra])
+{-# INLINE pinsT #-}
 
 outs :: Arrow p => Bazaar' p a t -> [a] -> t
 outs b = evalState $ runBazaar b $ arr $
@@ -555,8 +570,8 @@ outsT b = evalState $ runBazaarT b $ arr $
 #endif
 {-# INLINE outsT #-}
 
-unsafeOutsT :: Arrow p => BazaarT p f a b t -> [b] -> t
-unsafeOutsT b = evalState $ runBazaarT b $ arr $
+unsafeOutsT :: RepresentableProfunctor p => BazaarT p f a b t -> [b] -> t
+unsafeOutsT b = evalState $ runBazaarT b $ tabulatePro $
 #if MIN_VERSION_mtl(2,1,1)
   \ _ -> State.state (unconsWithDefault fakeVal)
 #else
