@@ -438,7 +438,7 @@ contexts = contextsOf plate
 --
 -- @'contextsOf' :: 'Traversal'' a a -> a -> ['Context' a a]@
 contextsOf :: ATraversal' a a -> a -> [Context a a a]
-contextsOf l x = Context id x : f (holesOf l x) where
+contextsOf l x = sell x : f (holesOf l x) where
   f xs = do
     Context ctx child <- xs
     Context cont y <- contextsOf l child
