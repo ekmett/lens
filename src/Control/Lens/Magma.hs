@@ -140,7 +140,7 @@ magmaOuts bz = runFlow $ runBazaar bz $ Indexed $ \ _ _ -> Flow $ \ t -> case t 
 
 -- | This is only a valid 'Lens' if you don't change the shape of the 'Magma'
 --
--- magma :: (Indexed i a (Bazaar (Indexed i) a b b) -> s -> Bazaar (Indexed i) a b t) -> Lens s t (Magma i a) (Magma i b)
+-- @magma :: (Indexed i a (Bazaar (Indexed i) a b b) -> s -> Bazaar (Indexed i) a b t) -> Lens s t (Magma i a) (Magma i b)@
 magma :: AnIndexedTraversal i s t a b -> Lens s t (Magma i a) (Magma i b)
 magma l f s = magmaOuts bz <$> f (magmaIns bz) where
   bz = l sell s
