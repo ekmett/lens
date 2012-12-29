@@ -702,7 +702,7 @@ instance Monad Mutator where
 -- Isomorphism and Prism Internals
 ------------------------------------------------------------------------------
 
-data Review a b = Review { runReview :: b }
+newtype Review a b = Review { runReview :: b }
 
 instance Functor (Review a) where
   fmap bc (Review b) = Review (bc b)
