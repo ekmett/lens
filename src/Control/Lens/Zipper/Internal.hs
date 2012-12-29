@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -428,7 +430,7 @@ tugTo n z = case compare k n of
 {-# INLINE tugTo #-}
 
 goTo :: Ord i => i -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
-goTo i m kp = undefined -- TODO
+goTo = undefined -- TODO
 
 moveTo :: MonadPlus m => i -> h :> a:@i -> m (h :> a:@i)
 moveTo i z@(Zipper h p0 j0 s0) = case compare i j0 of
