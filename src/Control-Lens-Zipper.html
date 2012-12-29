@@ -48,43 +48,51 @@
 <a name="line-39"></a>  <span class='hs-comment'>-- * Zippers</span>
 <a name="line-40"></a>    <span class='hs-conid'>Top</span><span class='hs-conid'>()</span>
 <a name="line-41"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-conop'>:&gt;</span><span class='hs-layout'>)</span><span class='hs-conid'>()</span>
-<a name="line-42"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Zipper</span>
-<a name="line-43"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>zipper</span>
-<a name="line-44"></a>  <span class='hs-comment'>-- ** Focusing</span>
-<a name="line-45"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>focus</span>
-<a name="line-46"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>focusedContext</span>
-<a name="line-47"></a>  <span class='hs-comment'>-- ** Vertical Movement</span>
-<a name="line-48"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>upward</span><span class='hs-layout'>,</span> <span class='hs-varid'>downward</span>
-<a name="line-49"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>within</span><span class='hs-layout'>,</span> <span class='hs-varid'>withins</span>
-<a name="line-50"></a>  <span class='hs-comment'>-- ** Lateral Movement</span>
-<a name="line-51"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>leftward</span><span class='hs-layout'>,</span> <span class='hs-varid'>rightward</span>
-<a name="line-52"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>leftmost</span><span class='hs-layout'>,</span> <span class='hs-varid'>rightmost</span>
-<a name="line-53"></a>  <span class='hs-comment'>-- ** Movement Combinators</span>
-<a name="line-54"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tug</span>
-<a name="line-55"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tugs</span>
-<a name="line-56"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>jerks</span>
-<a name="line-57"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>farthest</span>
-<a name="line-58"></a>  <span class='hs-comment'>-- ** Absolute Positioning</span>
-<a name="line-59"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tooth</span>
-<a name="line-60"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>teeth</span>
-<a name="line-61"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>jerkTo</span><span class='hs-layout'>,</span> <span class='hs-varid'>tugTo</span>
-<a name="line-62"></a>  <span class='hs-comment'>-- ** Closing the zipper</span>
-<a name="line-63"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rezip</span>
-<a name="line-64"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Zipped</span>
-<a name="line-65"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Zipping</span><span class='hs-conid'>()</span>
-<a name="line-66"></a>  <span class='hs-comment'>-- ** Recording</span>
-<a name="line-67"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Tape</span><span class='hs-conid'>()</span>
-<a name="line-68"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>saveTape</span>
-<a name="line-69"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>restoreTape</span>
-<a name="line-70"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>restoreNearTape</span>
-<a name="line-71"></a>  <span class='hs-comment'>-- ** Unsafe Movement</span>
-<a name="line-72"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>fromWithin</span>
-<a name="line-73"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>unsafelyRestoreTape</span>
-<a name="line-74"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-75"></a>
-<a name="line-76"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Zipper</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span>
-<a name="line-77"></a>
-<a name="line-78"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-79"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens</span>
+<a name="line-42"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-conop'>:&gt;&gt;</span><span class='hs-layout'>)</span><span class='hs-conid'>()</span>
+<a name="line-43"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-conop'>:@</span><span class='hs-layout'>)</span><span class='hs-conid'>()</span>
+<a name="line-44"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Zipper</span>
+<a name="line-45"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>zipper</span>
+<a name="line-46"></a>  <span class='hs-comment'>-- ** Focusing</span>
+<a name="line-47"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>focus</span>
+<a name="line-48"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>focusedContext</span>
+<a name="line-49"></a>  <span class='hs-comment'>-- ** Vertical Movement</span>
+<a name="line-50"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>upward</span>
+<a name="line-51"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>downward</span><span class='hs-layout'>,</span> <span class='hs-varid'>idownward</span>
+<a name="line-52"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>within</span><span class='hs-layout'>,</span> <span class='hs-varid'>iwithin</span>
+<a name="line-53"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>withins</span><span class='hs-layout'>,</span> <span class='hs-varid'>iwithins</span>
+<a name="line-54"></a>  <span class='hs-comment'>-- ** Lateral Movement</span>
+<a name="line-55"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>leftward</span><span class='hs-layout'>,</span> <span class='hs-varid'>rightward</span>
+<a name="line-56"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>leftmost</span><span class='hs-layout'>,</span> <span class='hs-varid'>rightmost</span>
+<a name="line-57"></a>  <span class='hs-comment'>-- ** Movement Combinators</span>
+<a name="line-58"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tug</span>
+<a name="line-59"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tugs</span>
+<a name="line-60"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>jerks</span>
+<a name="line-61"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>farthest</span>
+<a name="line-62"></a>  <span class='hs-comment'>-- ** Absolute Positioning</span>
+<a name="line-63"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tooth</span>
+<a name="line-64"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>teeth</span>
+<a name="line-65"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>jerkTo</span>
+<a name="line-66"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>tugTo</span>
+<a name="line-67"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>moveTo</span>
+<a name="line-68"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>moveToward</span>
+<a name="line-69"></a>  <span class='hs-comment'>-- ** Closing the zipper</span>
+<a name="line-70"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>rezip</span>
+<a name="line-71"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Zipped</span>
+<a name="line-72"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Zipping</span><span class='hs-conid'>()</span>
+<a name="line-73"></a>  <span class='hs-comment'>-- ** Recording</span>
+<a name="line-74"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Tape</span><span class='hs-conid'>()</span>
+<a name="line-75"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>saveTape</span>
+<a name="line-76"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>restoreTape</span>
+<a name="line-77"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>restoreNearTape</span>
+<a name="line-78"></a>  <span class='hs-comment'>-- ** Unsafe Movement</span>
+<a name="line-79"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>fromWithin</span>
+<a name="line-80"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>ifromWithin</span>
+<a name="line-81"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>unsafelyRestoreTape</span>
+<a name="line-82"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-83"></a>
+<a name="line-84"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Zipper</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span>
+<a name="line-85"></a>
+<a name="line-86"></a><span class='hs-comment'>-- $setup</span>
+<a name="line-87"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Control.Lens</span>
 </pre></body>
 </html>
