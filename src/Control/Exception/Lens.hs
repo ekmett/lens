@@ -175,9 +175,6 @@ handling_ l b = handling l (const b)
 --
 -- @'throwing' l ≡ 'reviews' l 'throw'@
 --
--- >>> throwing _nonTermination ()
--- *** Exception: <<loop>>
---
 -- @
 -- 'throwing' :: 'Prism'' 'SomeException' t -> t -> a
 -- 'throwing' :: 'Iso'' 'SomeException' t   -> t -> a

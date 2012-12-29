@@ -45,7 +45,6 @@ import Data.Sequence as Seq
 --
 -- >>> review viewL $ a :< fromList [b,c]
 -- fromList [a,b,c]
---
 viewL :: Iso (Seq a) (Seq b) (ViewL a) (ViewL b)
 viewL = iso viewl $ \ xs -> case xs of
   EmptyL ->  mempty
