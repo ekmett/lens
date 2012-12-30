@@ -253,20 +253,15 @@ filtered p f = tabulatePro $ \ wa -> let a = extract wa in if p a then indexPro 
 -- @
 -- 'takingWhile' :: (a -> 'Bool') -> 'Fold' s a                -> 'Fold' s a
 -- 'takingWhile' :: (a -> 'Bool') -> 'Getter' s a              -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Traversal'' s a          -> 'Fold' s a          -- see notes
--- 'takingWhile' :: (a -> 'Bool') -> 'Lens'' s a               -> 'Fold' s a          -- see notes
--- 'takingWhile' :: (a -> 'Bool') -> 'Prism'' s a              -> 'Fold' s a          -- see notes
--- 'takingWhile' :: (a -> 'Bool') -> 'Iso'' s a                -> 'Fold' s a          -- see notes
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a -> 'IndexedFold' i s a -- see notes
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a      -> 'IndexedFold' i s a -- see notes
+-- 'takingWhile' :: (a -> 'Bool') -> 'Traversal'' s a          -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Lens'' s a               -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Prism'' s a              -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Iso'' s a                -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a      -> 'IndexedFold' i s a
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a       -> 'IndexedFold' i s a
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a     -> 'IndexedFold' i s a
 -- @
---
--- Note: Many uses of this combinator will yield something that meets the types, but not the laws of a valid
--- 'Traversal' or 'IndexedTraversal'. The 'Traversal' and 'IndexedTraversal' laws are only satisfied if the
--- new values you assign also pass the predicate! Otherwise subsequent traversals will visit fewer elements
--- and 'Traversal' fusion is not sound.
 takingWhile :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f, Gettable f)
          => (a -> Bool)
          -> Overloading p (->) (Accessor (Endo (f s))) s s a a
