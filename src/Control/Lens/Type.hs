@@ -323,7 +323,7 @@ type Iso' s a = Iso s s a a
 -- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'
 -- -- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
 --
--- Note: Composition with an 'Iso' is index-preserving.
+-- Note: Composition with a 'Prism' is index-preserving.
 type Prism s t a b = forall p f. (Prismatic p, Applicative f) => p a (f b) -> p s (f t)
 
 -- | A 'Simple' 'Prism'
