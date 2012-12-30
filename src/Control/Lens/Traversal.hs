@@ -631,9 +631,27 @@ taking n l pafb s = outs b <$> traverse (indexPro pafb) (take n $ pins b) where
 --
 -- >>> [1..]^? dropping 1 folded
 -- Just 2
-dropping :: Applicative f => Int -> LensLike' (Indexing f) s a -> LensLike' f s a
-dropping n l f s = case runIndexing (l (\a -> Indexing $ \i -> i `seq` (if i >= n then f a else pure a, i + 1)) s) 0 of
-  (r, _) -> r
+--
+-- @
+-- 'dropping' :: 'Int' -> 'Traversal'' s a             -> 'Traversal'' s a
+-- 'dropping' :: 'Int' -> 'Lens'' s a                  -> 'Traversal'' s a
+-- 'dropping' :: 'Int' -> 'Iso'' s a                   -> 'Traversal'' s a
+-- 'dropping' :: 'Int' -> 'Prism'' s a                 -> 'Traversal'' s a
+-- 'dropping' :: 'Int' -> 'Fold' s a                   -> 'Fold' s a
+-- 'dropping' :: 'Int' -> 'Getter' s a                 -> 'Fold' s a
+-- 'dropping' :: 'Int' -> 'Action' m s a               -> 'MonadicFold'' m s a
+-- 'dropping' :: 'Int' -> 'MonadicFold' m s a          -> 'MonadicFold'' m s a
+-- 'dropping' :: 'Int' -> 'IndexedTraversal'' i s a    -> 'IndexedTraversal'' i s a
+-- 'dropping' :: 'Int' -> 'IndexedLens'' i s a         -> 'IndexedTraversal'' i s a
+-- 'dropping' :: 'Int' -> 'IndexedFold' i s a          -> 'IndexedFold' s a
+-- 'dropping' :: 'Int' -> 'IndexedGetter' i s a        -> 'IndexedFold' s a
+-- 'dropping' :: 'Int' -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold'' i m s a
+-- 'dropping' :: 'Int' -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold'' i m s a
+-- @
+
+dropping :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f) => Int -> Overloading p (->) (Indexing f) s t a a -> Overloading p (->) f s t a a
+dropping n l pafb s = fst $ runIndexing (l paifb s) 0 where
+  paifb = tabulatePro $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (if i <= n then pure (extract wa) else indexPro pafb wa, i')
 {-# INLINE dropping #-}
 
 ------------------------------------------------------------------------------
