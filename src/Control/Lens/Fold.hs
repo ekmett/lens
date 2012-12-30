@@ -278,16 +278,6 @@ takingWhile p l f s = evalState (getCompose (l g s)) True where
     in (if b' then indexPro f wa else pure a, b')
 {-# INLINE takingWhile #-}
 
-
-{-
-takingWhile :: (Gettable f, Applicative f)
-            => (a -> Bool)
-            -> Getting (Endo (f s)) s s a a
-            -> LensLike f s s a a
-takingWhile p l f = foldrOf l (\a r -> if p a then f a *> r else noEffect) noEffect
--}
-
-
 -- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
 --
 -- @'dropWhile' p ≡ 'toListOf' ('droppingWhile' p 'folded')@
@@ -297,11 +287,33 @@ takingWhile p l f = foldrOf l (\a r -> if p a then f a *> r else noEffect) noEff
 --
 -- >>> toListOf (droppingWhile (<=3) folded) [1,6,1]
 -- [6,1]
-droppingWhile :: (Gettable f, Applicative f)
+--
+-- @
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Fold' s a                -> 'Fold' s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Getter' s a              -> 'Fold' s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Traversal'' s a          -> 'Fold' s a          -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Lens'' s a               -> 'Fold' s a          -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Prism'' s a              -> 'Fold' s a          -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Iso'' s a                -> 'Fold' s a          -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a -> 'IndexedFold' i s a -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a      -> 'IndexedFold' i s a -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a       -> 'IndexedFold' i s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a     -> 'IndexedFold' i s a
+-- @
+--
+-- Note: Many uses of this combinator will yield something that meets the types, but not the laws of a valid
+-- 'Traversal' or 'IndexedTraversal'. The 'Traversal' and 'IndexedTraversal' laws are only satisfied if the
+-- new values you assign also pass the predicate! Otherwise subsequent traversals will visit fewer elements
+-- and 'Traversal' fusion is not sound.
+droppingWhile :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f)
               => (a -> Bool)
-              -> Getting (Endo (f s, f s)) s s a a
-              -> LensLike f s s a a
-droppingWhile p l f = fst . foldrOf l (\a r -> let s = f a *> snd r in (if p a then fst r else s, s)) (noEffect, noEffect)
+              -> Overloading p (->) (Compose (State Bool) f) s t a a
+              -> Overloading p (->) f s t a a
+droppingWhile p l f s = evalState (getCompose (l g s)) True where
+  g = tabulatePro $ \wa -> Compose $ state $ \b -> let
+      a = extract wa
+      b' = b && p a
+    in (if b' then pure a else indexPro f wa, b')
 {-# INLINE droppingWhile #-}
 
 --------------------------
