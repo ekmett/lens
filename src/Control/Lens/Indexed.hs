@@ -59,6 +59,9 @@ module Control.Lens.Indexed
   , itoList
   -- * Converting to Folds
   , withIndex
+  , asIndex
+  -- * Restricting by Index
+  , indices
   , index
   -- * Indexed Traversables
   , TraversableWithIndex(..)
@@ -148,9 +151,34 @@ withIndex f = Indexed $ \i a -> snd <$> indexed f i (i, a)
 
 -- | When composed with an indexed fold or indexed traversal this yields an
 -- (indexed) fold of the indices.
-index :: (Indexable i p, Functor f, Gettable f) => Overloading' p (Indexed i) f s i
-index f = Indexed $ \i _ -> coerce (indexed f i i)
+asIndex :: (Indexable i p, Functor f, Gettable f) => Overloading' p (Indexed i) f s i
+asIndex f = Indexed $ \i _ -> coerce (indexed f i i)
+{-# INLINE asIndex #-}
+
+-------------------------------------------------------------------------------
+-- Restricting by index
+-------------------------------------------------------------------------------
+
+-- | This allows you to filter an 'IndexedFold', 'IndexedGetter', 'IndexedTraversal' or 'IndexedLens' based on a predicate
+-- on the indices.
+--
+-- >>> ["hello","the","world","!!!"]^..traversed.indices even
+-- ["hello","world"]
+--
+-- >>> over (traversed.indices (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
+-- ["He","saw","desserts","O_o"]
+indices :: (Indexable i p, Applicative f) => (i -> Bool) -> Overloading' p (Indexed i) f a a
+indices p f = Indexed $ \i a -> if p i then indexed f i a else pure a
+{-# INLINE indices #-}
+
+-- | This allows you to filter an 'IndexedFold', 'IndexedGetter', 'IndexedTraversal' or 'IndexedLens' based on an index.
+--
+-- >>> ["hello","the","world","!!!"]^?traversed.index 2
+-- Just "world"
+index :: (Indexable i p, Eq i, Applicative f) => i -> Overloading' p (Indexed i) f a a
+index j f = Indexed $ \i a -> if j == i then indexed f i a else pure a
 {-# INLINE index #-}
+
 
 -------------------------------------------------------------------------------
 -- FunctorWithIndex
