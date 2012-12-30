@@ -235,7 +235,7 @@ iterated f g a0 = go a0 where
 --
 -- So, in order for this to qualify as a legal 'Traversal' you can only use it for actions that preserve the result of the predicate!
 --
--- >>> [1..10]^.folded.filtered even
+-- >>> [1..10]^..folded.filtered even
 -- [2,4,6,8,10]
 --
 -- This will preserve an index if it is present.

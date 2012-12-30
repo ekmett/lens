@@ -650,7 +650,7 @@ taking n l pafb s = outs b <$> traverse (indexPro pafb) (take n $ pins b) where
 
 dropping :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f) => Int -> Overloading p (->) (Indexing f) s t a a -> Overloading p (->) f s t a a
 dropping n l pafb s = fst $ runIndexing (l paifb s) 0 where
-  paifb = tabulatePro $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (if i <= n then pure (extract wa) else indexPro pafb wa, i')
+  paifb = tabulatePro $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (if i < n then pure (extract wa) else indexPro pafb wa, i')
 {-# INLINE dropping #-}
 
 ------------------------------------------------------------------------------
