@@ -13,9 +13,12 @@ import Test.QuickCheck
 import Test.QuickCheck.Function
 import Test.Framework.TH
 import Test.Framework.Providers.QuickCheck2
+import Data.Char (toUpper)
 import Data.Text.Strict.Lens
 import Data.List.Lens
 import Data.Functor.Compose
+import Numeric (showHex, showOct, showSigned)
+import Numeric.Lens
 
 
 -- The first setter law:
@@ -128,6 +131,28 @@ prop_strippingPrefix s               = isPrism (strippingPrefix s :: Prism' Stri
 -- Data.Text.Lens
 prop_text s                          = s^.packed.from packed == s
 --prop_text                           = isIso packed
+
+-- Numeric.Lens
+prop_int_show (n :: Integer) =
+  conjoin [ show n == n ^. remit (_int 10)
+          , showSigned showOct 0 n "" == n ^. remit (_int 8)
+          , showSigned showHex 0 n "" == n ^. remit (_int 16)
+          ]
+prop_int_read (n :: Integer) =
+  conjoin [ show n ^? _int 10 == Just n
+          , showSigned showOct 0 n "" ^? _int 8  == Just n
+          , showSigned showHex 0 n "" ^? _int 16 == Just n
+          , map toUpper (showSigned showHex 0 n "") ^? _int 16 == Just n
+          ]
+prop_int_readFail (s :: String) =
+  forAll (choose (2,36)) $ \base ->
+    not isValid ==> s ^? _int base == Nothing
+  where
+    isValid = (not . null) sPos && all isValidChar sPos
+    sPos = case s of { ('-':s') -> s'; _ -> s }
+    isValidChar c =  (c >= '0' && c <= '9')
+                  || (c >= 'a' && c <= 'z')
+                  || (c >= 'A' && c <= 'Z')
 
 main :: IO ()
 main = $defaultMainGenerator

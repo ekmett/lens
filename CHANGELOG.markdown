@@ -14,6 +14,7 @@
 * Added `Control.Lens.Operators` for users who insist on qualified use, but want access to the operators.
 * Added `Control.Lens.Equality` for witnessing type equality, effectively a stronger form of `Iso` that can be used to safely cast.
 * Added combinators and prisms to `Control.Exception.Lens` that enable you to work with GHC's extensible exceptions more easily.
+* Added Numeric.Lens: `_int` shows and reads integers at base-2 through base-36.
 
 3.7.1.2 [maintenance release]
 -------
