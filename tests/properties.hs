@@ -13,7 +13,7 @@ import Test.QuickCheck
 import Test.QuickCheck.Function
 import Test.Framework.TH
 import Test.Framework.Providers.QuickCheck2
-import Data.Char (toUpper)
+import Data.Char (isAlphaNum, isAscii, toUpper)
 import Data.Text.Strict.Lens
 import Data.List.Lens
 import Data.Functor.Compose
@@ -150,9 +150,7 @@ prop_int_readFail (s :: String) =
   where
     isValid = (not . null) sPos && all isValidChar sPos
     sPos = case s of { ('-':s') -> s'; _ -> s }
-    isValidChar c =  (c >= '0' && c <= '9')
-                  || (c >= 'a' && c <= 'z')
-                  || (c >= 'A' && c <= 'Z')
+    isValidChar c = isAscii c && isAlphaNum c
 
 main :: IO ()
 main = $defaultMainGenerator

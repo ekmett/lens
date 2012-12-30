@@ -10,7 +10,8 @@
 module Numeric.Lens (_int) where
 
 import Control.Lens
-import Data.Char (chr, ord)
+import Data.Char (chr, ord, isAsciiLower, isAsciiUpper, isDigit)
+import Data.Maybe (fromMaybe)
 import Numeric (readInt, showIntAtBase)
 
 -- | A prism that shows and reads integers in base-2 through base-36
@@ -43,16 +44,15 @@ intToDigit' i
 
 -- | Like 'Data.Char.digitToInt', but handles up to base-36
 digitToInt' :: Char -> Int
-digitToInt' c = case digitToIntMay c of
-  Just i  -> i
-  Nothing -> error ("digitToInt': Invalid digit " ++ show c)
+digitToInt' c = fromMaybe (error ("digitToInt': Invalid digit " ++ show c))
+                          (digitToIntMay c)
 
 -- | A safe variant of 'digitToInt''
 digitToIntMay :: Char -> Maybe Int
 digitToIntMay c
-  | c >= '0' && c <= '9' = Just (ord c - ord '0')
-  | c >= 'a' && c <= 'z' = Just (ord c - ord 'a' + 10)
-  | c >= 'A' && c <= 'Z' = Just (ord c - ord 'A' + 10)
+  | isDigit c      = Just (ord c - ord '0')
+  | isAsciiLower c = Just (ord c - ord 'a' + 10)
+  | isAsciiUpper c = Just (ord c - ord 'A' + 10)
   | otherwise = Nothing
   
 -- | Select digits that fall into the given base
