@@ -1624,27 +1624,48 @@ ifiltering p l f = l . Indexed $ \ i c -> if p i c then indexed f i c else pure 
 {-# INLINE ifiltering #-}
 
 -- | Obtain an 'IndexedFold' by taking elements from another
--- 'IndexedFold', 'IndexedLens',
--- 'IndexedGetter' or 'IndexedTraversal'
--- while a predicate holds.
-itakingWhile :: (Gettable f, Applicative f, Indexable i p)
-             => (i -> a -> Bool)
-             -> IndexedGetting i (Endo (f s)) s s a a
-             -> IndexedLensLike' p f s a
-itakingWhile p l f =
-  ifoldrOf l (\i a r -> if p i a then indexed f i a *> r else noEffect) noEffect
+-- 'IndexedFold', 'IndexedLens', 'IndexedGetter' or 'IndexedTraversal' while a predicate holds.
+--
+-- @
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedFold' i s a          -> 'IndexedFold' i s a
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedTraversal'' i s a    -> 'IndexedFold' i s a
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedLens'' i s a         -> 'IndexedFold' i s a
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold' i m s a
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold' i m s a
+-- @
+itakingWhile :: (Indexable i p, Applicative f, Gettable f)
+         => (i -> a -> Bool)
+         -> Overloading (Indexed i) (->) (Accessor (Endo (f s))) s s a a
+         -> Overloading p (->) f s s a a
+itakingWhile p l f s = appEndo (runAccessor (l g s)) noEffect where
+  g = Indexed $ \i a -> Accessor . Endo $
+    if p i a then (indexed f i a *>) else const noEffect
 {-# INLINE itakingWhile #-}
 
 
 -- | Obtain an 'IndexedFold' by dropping elements from another 'IndexedFold', 'IndexedLens', 'IndexedGetter' or 'IndexedTraversal' while a predicate holds.
-idroppingWhile :: (Gettable f, Applicative f, Indexable i p)
+--
+-- @
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedFold' i s a          -> 'IndexedFold' i s a
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedTraversal'' i s a    -> 'IndexedFold' i s a -- see notes
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedLens'' i s a         -> 'IndexedFold' i s a -- see notes
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold' i m s a
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold' i m s a
+-- @
+--
+-- Applying 'idroppingWhile' to an 'IndexedLens' or 'IndexedTraversal' will still allow you to use it as a
+-- pseudo-'IndexedTraversal', but if you change the value of the targets to ones where the predicate returns
+-- 'True', then you will break the 'Traversal' laws and 'Traversal' fusion will no longer be sound.
+idroppingWhile :: (Indexable i p, Applicative f)
               => (i -> a -> Bool)
-              -> IndexedGetting i (Endo (f s, f s)) s s a a
-              -> IndexedLensLike' p f s a
-idroppingWhile p l f =
-  fst . ifoldrOf l
-                 (\i a r -> let s = indexed f i a *> snd r in if p i a then (fst r, s) else (s, s))
-                 (noEffect, noEffect)
+              -> Overloading (Indexed i) (->) (Compose (State Bool) f) s t a a
+              -> Overloading p (->) f s t a a
+idroppingWhile p l f s = evalState (getCompose (l g s)) True where
+  g = Indexed $ \ i a -> Compose $ state $ \b -> let
+      b' = b && p i a
+    in (if b' then pure a else indexed f i a, b')
 {-# INLINE idroppingWhile #-}
 
 ------------------------------------------------------------------------------
