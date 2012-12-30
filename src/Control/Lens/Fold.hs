@@ -235,11 +235,12 @@ iterated f g a0 = go a0 where
 --
 -- So, in order for this to qualify as a legal 'Traversal' you can only use it for actions that preserve the result of the predicate!
 --
--- @'filtered' :: (a -> 'Bool') -> 'Fold' a a@
-filtered :: Applicative f => (a -> Bool) -> LensLike' f a a
-filtered p f a
-  | p a       = f a
-  | otherwise = pure a
+-- >>> [1..10]^.folded.filtered even
+-- [2,4,6,8,10]
+--
+-- This will preserve an index if it is present.
+filtered :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f) => (a -> Bool) -> Overloaded' p f a a
+filtered p f = tabulatePro $ \ wa -> let a = extract wa in if p a then indexPro f wa else pure a
 {-# INLINE filtered #-}
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
