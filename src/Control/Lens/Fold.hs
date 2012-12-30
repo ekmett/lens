@@ -267,15 +267,13 @@ filtered p f = tabulatePro $ \ wa -> let a = extract wa in if p a then indexPro 
 -- 'Traversal' or 'IndexedTraversal'. The 'Traversal' and 'IndexedTraversal' laws are only satisfied if the
 -- new values you assign also pass the predicate! Otherwise subsequent traversals will visit fewer elements
 -- and 'Traversal' fusion is not sound.
-takingWhile :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f)
+takingWhile :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f, Gettable f)
          => (a -> Bool)
-         -> Overloading p (->) (Compose (State Bool) f) s t a a
-         -> Overloading p (->) f s t a a
-takingWhile p l f s = evalState (getCompose (l g s)) True where
-  g = tabulatePro $ \wa -> Compose $ state $ \b -> let
-      a = extract wa
-      b' = b && p a
-    in (if b' then indexPro f wa else pure a, b')
+         -> Overloading p (->) (Accessor (Endo (f s))) s s a a
+         -> Overloading p (->) f s s a a
+takingWhile p l f s = appEndo (runAccessor (l g s)) noEffect where
+  g = tabulatePro $ \wa -> Accessor . Endo $
+    if p (extract wa) then (indexPro f wa *>) else const noEffect
 {-# INLINE takingWhile #-}
 
 -- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
