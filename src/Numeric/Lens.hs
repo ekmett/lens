@@ -7,7 +7,7 @@
 -- Stability   :  provisional
 -- Portability :  portable
 -------------------------------------------------------------------------------
-module Numeric.Lens (_int) where
+module Numeric.Lens (base) where
 
 import Control.Lens
 import Data.Char (chr, ord, isAsciiLower, isAsciiUpper, isDigit)
@@ -16,22 +16,22 @@ import Numeric (readInt, showIntAtBase)
 
 -- | A prism that shows and reads integers in base-2 through base-36
 --
--- >>> "100" ^? _int 16
+-- >>> "100" ^? base 16
 -- Just 256
 --
--- >>> 1767707668033969 ^. remit (_int 36)
+-- >>> 1767707668033969 ^. remit (base 36)
 -- "helloworld"
-_int :: (Integral a, Show a) => a -> Prism' String a
-_int base = validateBase `seq` prism intShow intRead
+base :: (Integral a, Show a) => a -> Prism' String a
+base b = validateBase `seq` prism intShow intRead
   where
     validateBase
-      | base >= 2 && base <= 36 = ()
-      | otherwise = error ("_int: Invalid base " ++ show base)
+      | b >= 2 && b <= 36 = ()
+      | otherwise = error ("base: Invalid base " ++ show b)
 
-    intShow n = showSigned' (showIntAtBase base intToDigit') n ""
+    intShow n = showSigned' (showIntAtBase b intToDigit') n ""
 
     intRead s =
-      case readSigned' (readInt base (isDigit' base) digitToInt') s of
+      case readSigned' (readInt b (isDigit' b) digitToInt') s of
         [(n,"")] -> Right n
         _ -> Left s
 
@@ -57,8 +57,8 @@ digitToIntMay c
   
 -- | Select digits that fall into the given base
 isDigit' :: Integral a => a -> Char -> Bool
-isDigit' base c = case digitToIntMay c of
-  Just i | fromIntegral i < base -> True
+isDigit' b c = case digitToIntMay c of
+  Just i | fromIntegral i < b -> True
   _ -> False
 
 -- | A simpler variant of 'Numeric.showSigned' that only prepends a dash and
