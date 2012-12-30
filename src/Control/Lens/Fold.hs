@@ -274,7 +274,7 @@ takingWhile :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f)
 takingWhile p l f s = evalState (getCompose (l g s)) True where
   g = tabulatePro $ \wa -> Compose $ state $ \b -> let
       a = extract wa
-      b' = b || p a
+      b' = b && p a
     in (if b' then indexPro f wa else pure a, b')
 {-# INLINE takingWhile #-}
 
