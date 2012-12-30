@@ -13,9 +13,12 @@ import Test.QuickCheck
 import Test.QuickCheck.Function
 import Test.Framework.TH
 import Test.Framework.Providers.QuickCheck2
+import Data.Char (isAlphaNum, isAscii, toUpper)
 import Data.Text.Strict.Lens
 import Data.List.Lens
 import Data.Functor.Compose
+import Numeric (showHex, showOct, showSigned)
+import Numeric.Lens
 
 
 -- The first setter law:
@@ -128,6 +131,26 @@ prop_strippingPrefix s               = isPrism (strippingPrefix s :: Prism' Stri
 -- Data.Text.Lens
 prop_text s                          = s^.packed.from packed == s
 --prop_text                           = isIso packed
+
+-- Numeric.Lens
+prop_base_show (n :: Integer) =
+  conjoin [ show n == n ^. remit (base 10)
+          , showSigned showOct 0 n "" == n ^. remit (base 8)
+          , showSigned showHex 0 n "" == n ^. remit (base 16)
+          ]
+prop_base_read (n :: Integer) =
+  conjoin [ show n ^? base 10 == Just n
+          , showSigned showOct 0 n "" ^? base 8  == Just n
+          , showSigned showHex 0 n "" ^? base 16 == Just n
+          , map toUpper (showSigned showHex 0 n "") ^? base 16 == Just n
+          ]
+prop_base_readFail (s :: String) =
+  forAll (choose (2,36)) $ \b ->
+    not isValid ==> s ^? base b == Nothing
+  where
+    isValid = (not . null) sPos && all isValidChar sPos
+    sPos = case s of { ('-':s') -> s'; _ -> s }
+    isValidChar c = isAscii c && isAlphaNum c
 
 main :: IO ()
 main = $defaultMainGenerator

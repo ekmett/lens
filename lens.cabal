@@ -235,6 +235,7 @@ library
     System.FilePath.Lens
     System.IO.Error.Lens
     Language.Haskell.TH.Lens
+    Numeric.Lens
 
   if flag(safe)
     cpp-options: -DSAFE=1
