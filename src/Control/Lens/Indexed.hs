@@ -69,7 +69,6 @@ module Control.Lens.Indexed
   , iforM
   , imapAccumR
   , imapAccumL
-  , iwhere
   ) where
 
 import Control.Applicative
@@ -443,14 +442,6 @@ imapAccumR f s0 a = swap (Lazy.runState (itraverse (\i c -> Lazy.state (\s -> sw
 imapAccumL :: TraversableWithIndex i t => (i -> s -> a -> (s, b)) -> s -> t a -> (s, t b)
 imapAccumL f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)
 {-# INLINE imapAccumL #-}
-
--- | Access the element of an indexed container where the index matches a predicate.
---
--- >>> over (iwhere (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
--- ["He","saw","desserts","O_o"]
-iwhere :: TraversableWithIndex i t => (i -> Bool) -> IndexedTraversal' i (t a) a
-iwhere p f = itraverse (\i c -> if p i then indexed f i c else pure c)
-{-# INLINE iwhere #-}
 
 -------------------------------------------------------------------------------
 -- Instances

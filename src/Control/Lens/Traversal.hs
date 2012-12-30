@@ -79,7 +79,6 @@ module Control.Lens.Traversal
   -- * Indexed Traversals
 
   -- ** Common
-  , iwhereOf
   , ignored
   , TraverseMin(..)
   , TraverseMax(..)
@@ -786,22 +785,6 @@ imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (l (Indexed $ \i c -> Back
 ------------------------------------------------------------------------------
 -- Common Indexed Traversals
 ------------------------------------------------------------------------------
-
--- | Access the element of an 'IndexedTraversal' where the index matches a predicate.
---
--- >>> over (iwhereOf traversed (>0)) reverse ["He","was","stressed","o_O"]
--- ["He","saw","desserts","O_o"]
---
--- @
--- 'iwhereOf' :: 'IndexedFold' i s a       -> (i -> 'Bool') -> 'IndexedFold' i s a
--- 'iwhereOf' :: 'IndexedGetter' i s a     -> (i -> 'Bool') -> 'IndexedFold' i s a
--- 'iwhereOf' :: 'IndexedLens'' i s a      -> (i -> 'Bool') -> 'IndexedTraversal'' i s a
--- 'iwhereOf' :: 'IndexedTraversal'' i s a -> (i -> 'Bool') -> 'IndexedTraversal'' i s a
--- 'iwhereOf' :: 'IndexedSetter'' i s a    -> (i -> 'Bool') -> 'IndexedSetter'' i s a
--- @
-iwhereOf :: (Indexable i p, Applicative f) => IndexedLensLike (Indexed i) f s t a a -> (i -> Bool) -> IndexedLensLike p f s t a a
-iwhereOf l p f = l . Indexed $ \i a -> if p i then indexed f i a else pure a
-{-# INLINE iwhereOf #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
 traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b

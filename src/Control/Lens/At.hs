@@ -43,6 +43,7 @@ module Control.Lens.At
 import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Each
+import Control.Lens.Fold
 import Control.Lens.Indexed
 import Control.Lens.Type
 import Control.Lens.Traversal
@@ -121,7 +122,7 @@ ixAt i = at i <. traverse
 
 -- | A definition of 'ix' for types with an 'Each' instance.
 ixEach :: (Indexable (IxKey m) p, Applicative f, Eq (IxKey m), Each (IxKey m) f m m (IxValue m) (IxValue m)) => IxKey m -> IndexedLensLike' p f m (IxValue m)
-ixEach i = iwhereOf each (i ==)
+ixEach i = each.whereby (i ==)
 {-# INLINE ixEach #-}
 
 type instance IxKey [a] = Int
