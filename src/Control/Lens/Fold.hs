@@ -90,7 +90,7 @@ module Control.Lens.Fold
   , (^@?!)
 
   -- ** Indexed Folding
-  , whereby
+  , given
   , ifoldMapOf
   , ifoldrOf
   , ifoldlOf
@@ -1586,13 +1586,13 @@ ifiltering p l f = l . Indexed $ \ i c -> if p i c then indexed f i c else pure 
 
 -- | This allows you to filter an 'IndexedFold', 'IndexedGetter', 'IndexedTraversal' or 'IndexedLens' based on an index.
 --
--- >>> ["hello","the","world","!!!"]^..traversed.whereby even
+-- >>> ["hello","the","world","!!!"]^..traversed.given even
 -- ["hello","world"]
 --
--- >>> over (traversed.whereby (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
+-- >>> over (traversed.given (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
-whereby :: (Indexable i p, Applicative f) => (i -> Bool) -> Overloading' p (Indexed i) f a a
-whereby p f = Indexed $ \i a -> if p i then indexed f i a else pure a
+given :: (Indexable i p, Applicative f) => (i -> Bool) -> Overloading' p (Indexed i) f a a
+given p f = Indexed $ \i a -> if p i then indexed f i a else pure a
 
 -- | Obtain an 'IndexedFold' by taking elements from another
 -- 'IndexedFold', 'IndexedLens',

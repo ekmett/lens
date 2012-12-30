@@ -15,7 +15,7 @@
 * Added `Control.Lens.Equality` for witnessing type equality, effectively a stronger form of `Iso` that can be used to safely cast.
 * Added combinators and prisms to `Control.Exception.Lens` that enable you to work with GHC's extensible exceptions more easily.
 * Added Numeric.Lens: `base` shows and reads integers at base-2 through base-36.
-* Added `whereby`, and removed `iwhere` and `iwhereOf`.
+* Added `given`, and removed `iwhere` and `iwhereOf`. Use `itraversed.given foo` and `bar.given foo` instead.
 * Generalized combinators to pass through indices unmodified wherever possible.
 
 3.7.1.2 [maintenance release]
