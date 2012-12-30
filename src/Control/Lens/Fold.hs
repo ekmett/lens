@@ -119,6 +119,7 @@ module Control.Lens.Fold
 
 import Control.Applicative as Applicative
 import Control.Applicative.Backwards
+import Control.Comonad
 import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Type
@@ -126,9 +127,11 @@ import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Foldable as Foldable
+import Data.Functor.Compose
 import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
+import Data.Profunctor.Representable
 
 -- $setup
 -- >>> import Control.Lens
@@ -246,12 +249,43 @@ filtered p f a
 --
 -- >>> toListOf (takingWhile (<=3) folded) [1..]
 -- [1,2,3]
+--
+-- @
+-- 'takingWhile' :: (a -> 'Bool') -> 'Fold' s a                -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Getter' s a              -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Traversal'' s a          -> 'Fold' s a          -- see notes
+-- 'takingWhile' :: (a -> 'Bool') -> 'Lens'' s a               -> 'Fold' s a          -- see notes
+-- 'takingWhile' :: (a -> 'Bool') -> 'Prism'' s a              -> 'Fold' s a          -- see notes
+-- 'takingWhile' :: (a -> 'Bool') -> 'Iso'' s a                -> 'Fold' s a          -- see notes
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a -> 'IndexedFold' i s a -- see notes
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a      -> 'IndexedFold' i s a -- see notes
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a       -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a     -> 'IndexedFold' i s a
+-- @
+--
+-- Note: Many uses of this combinator will yield something that meets the types, but not the laws of a valid
+-- 'Traversal' or 'IndexedTraversal'. The 'Traversal' and 'IndexedTraversal' laws are only satisfied if the
+-- new values you assign also pass the predicate! Otherwise subsequent traversals will visit fewer elements
+-- and 'Traversal' fusion is not sound.
+takingWhile :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f)
+         => (a -> Bool)
+         -> Overloading p (->) (Compose (State Bool) f) s t a a
+         -> Overloading p (->) f s t a a
+takingWhile p l f s = evalState (getCompose (l g s)) True where
+  g = tabulatePro $ \wa -> Compose $ state $ \b -> let
+      a = extract wa
+      b' = b || p a
+    in (if b' then indexPro f wa else pure a, b')
+{-# INLINE takingWhile #-}
+
+
+{-
 takingWhile :: (Gettable f, Applicative f)
             => (a -> Bool)
             -> Getting (Endo (f s)) s s a a
             -> LensLike f s s a a
 takingWhile p l f = foldrOf l (\a r -> if p a then f a *> r else noEffect) noEffect
-{-# INLINE takingWhile #-}
+-}
 
 
 -- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
@@ -801,7 +835,7 @@ s ^? l = foldrOf l (\x _ -> Just x) Nothing s
 -- ('^?!') :: s -> 'Traversal'' s a -> a
 -- @
 (^?!) :: s -> Getting (Endo a) s t a b -> a
-s ^?! l = foldrOf l (\x _ -> x) (error "(^?!): empty Fold") s
+s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 {-# INLINE (^?!) #-}
 
 -- | Retrieve the 'First' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result

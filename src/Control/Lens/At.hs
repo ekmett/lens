@@ -122,7 +122,7 @@ ixAt i = at i <. traverse
 
 -- | A definition of 'ix' for types with an 'Each' instance.
 ixEach :: (Indexable (IxKey m) p, Applicative f, Eq (IxKey m), Each (IxKey m) f m m (IxValue m) (IxValue m)) => IxKey m -> IndexedLensLike' p f m (IxValue m)
-ixEach i = each.whereby (i ==)
+ixEach i = each.given (i ==)
 {-# INLINE ixEach #-}
 
 type instance IxKey [a] = Int
