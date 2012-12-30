@@ -239,6 +239,8 @@ type IndexPreservingSetter s t a b = forall p f. (Profunctor p, Settable f) => p
 -----------------------------------------------------------------------------
 
 -- | Isomorphism families can be composed with other lenses using ('.') and 'id'.
+--
+-- Note: Composition with an 'Iso' is index-preserving.
 type Iso s t a b = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f t)
 
 -- |
@@ -320,6 +322,8 @@ type Iso' s a = Iso s s a a
 --
 -- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'
 -- -- a /co/-'Lens', so to speak. This is what permits the construction of 'outside'.
+--
+-- Note: Composition with an 'Iso' is index-preserving.
 type Prism s t a b = forall p f. (Prismatic p, Applicative f) => p a (f b) -> p s (f t)
 
 -- | A 'Simple' 'Prism'
@@ -330,6 +334,8 @@ type Prism' s a = Prism s s a a
 -------------------------------------------------------------------------------
 
 -- | A witness that @(a ~ s, b ~ t)@
+--
+-- Note: Composition with an 'Equality' is index-preserving.
 type Equality s t a b = forall p (f :: * -> *). p a (f b) -> p s (f t)
 
 -- | A 'Simple' 'Equality'
