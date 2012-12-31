@@ -234,7 +234,7 @@ type IndexedSetter' i s a = IndexedSetter i s s a a
 
 -- | An 'IndexPreservingSetter' can be composed with a 'IndexedSetter', 'IndexedTraversal' or 'IndexedLens'
 -- and leaves the index intact, yielding an 'IndexedSetter'.
-type IndexPreservingSetter s t a b = forall p f. (Profunctor p, Settable f) => p a (f b) -> p s (f t)
+type IndexPreservingSetter s t a b = forall p f. (RepresentableProfunctor p, Comonad (Rep p), Settable f) => p a (f b) -> p s (f t)
 
 -----------------------------------------------------------------------------
 -- Isomorphisms

@@ -33,8 +33,11 @@ module Control.Lens.Setter
     Setter, Setter'
   , IndexedSetter, IndexedSetter'
   , ASetter, ASetter'
+  , AnIndexedSetter, AnIndexedSetter'
   -- * Building Setters
   , sets
+  , cloneSetter
+  , cloneIndexedSetter
   -- * Common Setters
   , mapped, lifted
   -- * Functional Combinators
@@ -60,12 +63,15 @@ module Control.Lens.Setter
   , mapOf
   ) where
 
+import Control.Applicative
+import Control.Comonad
 import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad (liftM)
 import Control.Monad.State.Class as State
 import Data.Monoid
 import Data.Profunctor
+import Data.Profunctor.Representable
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
@@ -103,8 +109,19 @@ type ASetter s t a b = (a -> Mutator b) -> s -> Mutator t
 --
 -- Most user code will never have to use this type.
 --
--- @type 'ASetter'' m = 'Simple' 'ASetter'@
+-- @type 'ASetter'' = 'Simple' 'ASetter'@
 type ASetter' s a = ASetter s s a a
+
+-- Running an 'IndexedSetter' instantiates it to a concrete type.
+--
+-- When consuming a setter directly to perform a mapping, you can use this type, but most
+-- user code will not need to use this type.
+--
+-- By choosing 'Mutator' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
+type AnIndexedSetter i s t a b = Indexed i a (Mutator b) -> s -> Mutator t
+
+-- @type 'AnIndexedSetter'' i = 'Simple' ('AnIndexedSetter' i)@
+type AnIndexedSetter' i s a = AnIndexedSetter i s s a a
 
 -----------------------------------------------------------------------------
 -- Setters
@@ -172,9 +189,21 @@ lifted = sets liftM
 --
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
-sets :: ((a -> b) -> s -> t) -> Setter s t a b
-sets f g = taintedDot (f (untaintedDot g))
+--
+-- sets :: ((a -> b) -> s -> t) -> Setter s t a b
+sets :: (Profunctor p, Profunctor q, Settable f) => (p a b -> q s t) -> Overloading p q f s t a b
+sets f g = pure `rmap` f (rmap untainted g)
 {-# INLINE sets #-}
+
+-- | 'cloneSetter' :: (a -> 'Mutator' b) -> s -> 'Mutator' t) -> IndexPreservingSetter s t a b
+cloneSetter :: ASetter s t a b -> IndexPreservingSetter s t a b
+cloneSetter l pafb = tabulatePro $ \ws ->
+    pure . runMutator $ l (\a -> Mutator (untainted (indexPro pafb (a <$ ws)))) (extract ws)
+{-# INLINE cloneSetter #-}
+
+cloneIndexedSetter :: AnIndexedSetter i s t a b -> IndexedSetter i s t a b
+cloneIndexedSetter l pafb = (pure .# runMutator) . l (Indexed $ \i a -> Mutator #. untainted $ indexed pafb i a)
+{-# INLINE cloneIndexedSetter #-}
 
 -----------------------------------------------------------------------------
 -- Using Setters
