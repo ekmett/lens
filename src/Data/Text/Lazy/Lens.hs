@@ -17,6 +17,7 @@
 module Data.Text.Lazy.Lens
   ( packed
   , text
+  , build
   ) where
 
 import Control.Lens
