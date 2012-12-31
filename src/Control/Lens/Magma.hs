@@ -133,14 +133,14 @@ instance Applicative (Flow i b) where
     _              -> mf s (ma s)
   {-# INLINE (<*>) #-}
 
-magmaOuts :: Bazaar (Indexed i) a b t -> Magma i b -> t
+magmaOuts :: Bazaar (Indexed i) a b t -> Magma j b -> t
 magmaOuts bz = runFlow $ runBazaar bz $ Indexed $ \ _ _ -> Flow $ \ t -> case t of
   Leaf _ a -> a
   _        -> error "magmaOuts: wrong shape"
 {-# INLINE magmaOuts #-}
 
 -- | This is only a valid 'Lens' if you don't change the shape of the 'Magma'
-magma :: AnIndexedTraversal i s t a b -> Lens s t (Magma i a) (Magma i b)
+magma :: AnIndexedTraversal i s t a b -> Lens s t (Magma i a) (Magma j b)
 magma l f s = magmaOuts bz <$> f (magmaIns bz) where
   bz = l sell s
 {-# INLINE magma #-}
