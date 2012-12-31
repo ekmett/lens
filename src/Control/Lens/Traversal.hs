@@ -182,7 +182,7 @@ type Traversing' p f s a = Traversing p f s s a a
 -- 'traverseOf' :: 'Lens' s t a b      -> (a -> f b) -> s -> f t
 -- 'traverseOf' :: 'Traversal' s t a b -> (a -> f b) -> s -> f t
 -- @
-traverseOf :: LensLike f s t a b -> (a -> f b) -> s -> f t
+traverseOf :: Overloading p q f s t a b -> p a (f b) -> q s (f t)
 traverseOf = id
 {-# INLINE traverseOf #-}
 
@@ -205,7 +205,7 @@ traverseOf = id
 -- 'forOf' :: 'Lens' s t a b -> s -> (a -> f b) -> f t
 -- 'forOf' :: 'Traversal' s t a b -> s -> (a -> f b) -> f t
 -- @
-forOf :: LensLike f s t a b -> s -> (a -> f b) -> f t
+forOf :: Overloading p (->) f s t a b -> s -> p a (f b) -> f t
 forOf = flip
 {-# INLINE forOf #-}
 
@@ -237,8 +237,8 @@ sequenceAOf l = l id
 -- 'mapMOf' ::            'Lens' s t a b      -> (a -> m b) -> s -> m t
 -- 'mapMOf' :: 'Monad' m => 'Traversal' s t a b -> (a -> m b) -> s -> m t
 -- @
-mapMOf :: LensLike (WrappedMonad m) s t a b -> (a -> m b) -> s -> m t
-mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
+mapMOf :: (Profunctor p, Profunctor q) => Overloading p q (WrappedMonad m) s t a b -> p a (m b) -> q s (m t)
+mapMOf l cmd = unwrapMonad `rmap` l (rmap WrapMonad cmd)
 {-# INLINE mapMOf #-}
 
 -- | 'forMOf' is a flipped version of 'mapMOf', consistent with the definition of 'forM'.
@@ -252,8 +252,8 @@ mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
 -- 'forMOf' ::            'Lens' s t a b      -> s -> (a -> m b) -> m t
 -- 'forMOf' :: 'Monad' m => 'Traversal' s t a b -> s -> (a -> m b) -> m t
 -- @
-forMOf :: LensLike (WrappedMonad m) s t a b -> s -> (a -> m b) -> m t
-forMOf l a cmd = unwrapMonad (l (WrapMonad #. cmd) a)
+forMOf :: Profunctor p => Overloading p (->) (WrappedMonad m) s t a b -> s -> p a (m b) -> m t
+forMOf l a cmd = unwrapMonad (l (rmap WrapMonad cmd) a)
 {-# INLINE forMOf #-}
 
 -- | Sequence the (monadic) effects targeted by a lens in a container from left to right.
