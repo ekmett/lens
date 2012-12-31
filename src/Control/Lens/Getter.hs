@@ -210,8 +210,12 @@ view l = Reader.asks (runAccessor #. l Accessor)
 -- 'view' :: 'MonadReader' s m             => 'Lens'' s a      -> m a
 -- 'view' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> m a
 -- @
-views :: MonadReader s m => Getting r s t a b -> (a -> r) -> m r
-views l f = Reader.asks (runAccessor #. l (Accessor #. f))
+--
+-- @
+-- views :: MonadReader s m => Getting r s t a b -> (a -> r) -> m r
+-- @
+views :: (Profunctor p, MonadReader s m) => Overloading p (->) (Accessor r) s t a b -> p a r -> m r
+views l f = Reader.asks (runAccessor #. l (rmap Accessor f))
 {-# INLINE views #-}
 
 -- | View the value pointed to by a 'Getter' or 'Lens' or the
@@ -287,7 +291,9 @@ use l = State.gets (view l)
 -- 'uses' :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> (a -> r) -> m r
 -- 'uses' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> r) -> m r
 -- @
-uses :: MonadState s m => Getting r s t a b -> (a -> r) -> m r
+--
+-- @'uses' :: 'MonadState' s m => 'Getting' r s t a b -> (a -> r) -> m r@
+uses :: (Profunctor p, MonadState s m) => Overloading p (->) (Accessor r) s t a b -> p a r -> m r
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}
 
@@ -342,7 +348,9 @@ use' l = State.gets (view' l)
 -- 'uses'' :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> (a -> r) -> m r
 -- 'uses'' :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> r) -> m r
 -- @
-uses' :: MonadState s m => Getting r s s a a -> (a -> r) -> m r
+--
+-- @'uses'' :: 'MonadState' s m => 'Getting' r s s a a -> (a -> r) -> m r@
+uses' :: (Profunctor p, MonadState s m) => Overloading' p (->) (Accessor r) s a -> p a r -> m r
 uses' l f = State.gets (views' l f)
 {-# INLINE uses' #-}
 
@@ -430,8 +438,10 @@ view' l = Reader.asks (runAccessor #. l Accessor)
 -- 'views'' :: 'MonadReader' s m             => 'Lens'' s a      -> (a -> r) -> m r
 -- 'views'' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> r) -> m r
 -- @
-views' :: MonadReader s m => Getting r s s a a -> (a -> r) -> m r
-views' l f = Reader.asks (runAccessor #. l (Accessor #. f))
+--
+-- @'views'' :: 'MonadReader' s m => 'Getting' r s s a a -> (a -> r) -> m r@
+views' :: (Profunctor p, MonadReader s m) => Overloading' p (->) (Accessor r) s a -> p a r -> m r
+views' l f = Reader.asks (runAccessor #. l (rmap Accessor f))
 {-# INLINE views' #-}
 
 ------------------------------------------------------------------------------
@@ -452,7 +462,7 @@ iview l = asks (runAccessor #. l (Indexed $ \i -> Accessor #. (,) i))
 --
 -- @'iviews' ≡ 'Control.Lens.Fold.ifoldMapOf'@
 iviews :: MonadReader s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
-iviews l f = asks (runAccessor #. l (Indexed $ \i -> Accessor #. f i))
+iviews l = views l .# Indexed
 {-# INLINE iviews #-}
 
 -- | Use the index and value of an 'IndexedGetter' into the current state as a pair.
@@ -467,7 +477,7 @@ iuse l = gets (runAccessor #. l (Indexed $ \i -> Accessor #. (,) i))
 --
 -- When applied to an 'IndexedFold' the result will be a monoidal summary instead of a single answer.
 iuses :: MonadState s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
-iuses l f = gets (runAccessor #. l (Indexed $ \i -> Accessor #. f i))
+iuses l = uses l .# Indexed
 {-# INLINE iuses #-}
 
 -- | View the value pointed to by a 'Getter' or 'Lens'.
@@ -487,6 +497,8 @@ iuses l f = gets (runAccessor #. l (Indexed $ \i -> Accessor #. f i))
 -- ('^@.') :: s -> 'IndexedGetter' i s a             -> (i, a)
 -- ('^@.') :: s -> 'IndexedLens'' i s a        -> (i, a)
 -- @
+--
+-- The result probably doesn't have much meaning when applied to an 'IndexedFold'.
 (^@.) :: s -> IndexedGetting i (i, a) s t a b -> (i, a)
 s ^@. l = runAccessor $ l (Indexed $ \i -> Accessor #. (,) i) s
 {-# INLINE (^@.) #-}
