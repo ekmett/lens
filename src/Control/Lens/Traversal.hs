@@ -702,7 +702,7 @@ cloneIndexedTraversal l f s = runBazaar (l sell s) (Indexed (indexed f))
 -- 'itraverseOf' :: 'IndexedTraversal' i s t a b -> (i -> a -> f b) -> s -> f t
 -- @
 itraverseOf :: (Indexed i a (f b) -> s -> f t) -> (i -> a -> f b) -> s -> f t
-itraverseOf l = l . Indexed
+itraverseOf l = l .# Indexed
 {-# INLINE itraverseOf #-}
 
 -- |
@@ -718,7 +718,7 @@ itraverseOf l = l . Indexed
 -- 'iforOf' :: 'IndexedTraversal' i s t a b -> s -> (i -> a -> f b) -> f t
 -- @
 iforOf :: (Indexed i a (f b) -> s -> f t) -> s -> (i -> a -> f b) -> f t
-iforOf l s f = l (Indexed f) s
+iforOf = flip . itraverseOf
 {-# INLINE iforOf #-}
 
 -- | Map each element of a structure targeted by a lens to a monadic action,
@@ -734,7 +734,7 @@ iforOf l s f = l (Indexed f) s
 -- 'imapMOf' :: 'Monad' m => 'IndexedTraversal' i s t a b -> (i -> a -> m b) -> s -> m t
 -- @
 imapMOf :: (Indexed i a (WrappedMonad m b) -> s -> WrappedMonad m t) -> (i -> a -> m b) -> s -> m t
-imapMOf l f = unwrapMonad . l (Indexed $ \i -> WrapMonad . f i)
+imapMOf l = mapMOf l .# Indexed
 {-# INLINE imapMOf #-}
 
 -- | Map each element of a structure targeted by a lens to a monadic action,
@@ -761,11 +761,11 @@ iforMOf = flip . imapMOf
 -- @'Control.Lens.Traversal.mapAccumROf' l ≡ 'imapAccumROf' l '.' 'const'@
 --
 -- @
--- 'imapAccumROf' :: 'IndexedLens' i s t a b      -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
--- 'imapAccumROf' :: 'IndexedTraversal' i s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
+-- 'imapAccumROf' :: 'IndexedLens' i s t a b      -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+-- 'imapAccumROf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-imapAccumROf :: (Indexed i a (Lazy.State s b) -> s -> Lazy.State s t) -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
-imapAccumROf l f s0 a = swap (Lazy.runState (l (Indexed $ \i c -> Lazy.state (\s -> swap (f i s c))) a) s0)
+imapAccumROf :: Overloading (Indexed i) (->) (Lazy.State acc) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+imapAccumROf l f acc0 a = swap (Lazy.runState (l (Indexed $ \i c -> Lazy.state (\acc -> swap (f i acc c))) a) acc0)
 {-# INLINE imapAccumROf #-}
 
 -- | Generalizes 'Data.Traversable.mapAccumL' to an arbitrary 'IndexedTraversal' with access to the index.
@@ -775,11 +775,11 @@ imapAccumROf l f s0 a = swap (Lazy.runState (l (Indexed $ \i c -> Lazy.state (\s
 -- @'Control.Lens.Traversal.mapAccumLOf' l ≡ 'imapAccumLOf' l '.' 'const'@
 --
 -- @
--- 'imapAccumLOf' :: 'IndexedLens' i s t a b      -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
--- 'imapAccumLOf' :: 'IndexedTraversal' i s t a b -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
+-- 'imapAccumLOf' :: 'IndexedLens' i s t a b      -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+-- 'imapAccumLOf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-imapAccumLOf :: (Indexed i a (Backwards (Lazy.State s) b) -> s -> Backwards (Lazy.State s) t) -> (i -> s -> a -> (s, b)) -> s -> s -> (s, t)
-imapAccumLOf l f s0 a = swap (Lazy.runState (forwards (l (Indexed $ \i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)
+imapAccumLOf :: Overloading (Indexed i) (->) (Backwards (Lazy.State acc)) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+imapAccumLOf l f acc0 a = swap (Lazy.runState (forwards (l (Indexed $ \i c -> Backwards (Lazy.state (\acc -> swap (f i acc c)))) a)) acc0)
 {-# INLINE imapAccumLOf #-}
 
 ------------------------------------------------------------------------------
