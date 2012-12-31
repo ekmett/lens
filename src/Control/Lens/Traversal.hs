@@ -319,7 +319,7 @@ mapAccumROf = mapAccumLOf . backwards
 -- mapAccumLOf l f acc0 s = swap (runState (l (\a -> state (\acc -> swap (f acc a))) s) acc0)
 -- @
 --
-mapAccumLOf :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (State acc) s t a b -> (p acc (a -> (acc, b))) -> acc -> s -> (acc, t)
+mapAccumLOf :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (State acc) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumLOf l f acc0 s = swap (runState (l g s) acc0) where
    g = tabulatePro $ \wa -> state $ \acc -> swap (indexPro f (acc <$ wa) (extract wa))
 -- This would be much cleaner if the argument order for the function was swapped.
