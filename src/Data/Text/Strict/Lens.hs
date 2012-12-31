@@ -15,21 +15,35 @@
 ----------------------------------------------------------------------------
 module Data.Text.Strict.Lens
   ( packed
+  , builder
   , text
   ) where
 
 import Control.Lens
 import Data.Text
+import Data.Text.Lazy (toStrict)
+import Data.Text.Lazy.Builder
 
 -- | 'pack' (or 'unpack') strict 'Text'.
 --
 -- @
--- 'pack' x = x '^.' 'packed'
--- 'unpack' x = x '^.' 'from' 'packed'
+-- 'pack' x ≡ x '^.' 'packed'
+-- 'unpack' x ≡ x '^.' 'from' 'packed'
 -- @
 packed :: Iso' String Text
 packed = iso pack unpack
 {-# INLINE packed #-}
+
+
+-- | Convert between strict 'Text' and 'Builder' .
+--
+-- @
+-- 'fromText' x ≡ x '^.' 'builder'
+-- 'toStrict' ('toLazyText' x) ≡ x '^.' 'from' 'builder'
+-- @
+builder :: Iso' Text Builder
+builder = iso fromText (toStrict . toLazyText)
+{-# INLINE builder #-}
 
 -- | Traverse the individual characters in strict 'Text'.
 --
