@@ -11,10 +11,6 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
-#ifndef MIN_VERSION_mtl
-#define MIN_VERSION_mtl(x,y,z) 1
-#endif
-
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
@@ -115,8 +111,7 @@ import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Internal
 import Control.Lens.Type
-import Control.Monad.State.Class      as State
-import Control.Monad.Trans.State.Lazy as Lazy
+import Control.Monad.Trans.State.Lazy
 import Data.Int
 import Data.IntMap as IntMap
 import Data.Map as Map
@@ -301,7 +296,7 @@ transposeOf l = getZipList #. l ZipList
 -- 'mapAccumROf' :: 'Lens' s t a b      -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumROf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-mapAccumROf :: LensLike (Backwards (Lazy.State acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumROf :: LensLike (Backwards (State acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumROf = mapAccumLOf . backwards
 {-# INLINE mapAccumROf #-}
 
@@ -316,12 +311,8 @@ mapAccumROf = mapAccumLOf . backwards
 -- 'mapAccumLOf' :: 'Lens' s t a b      -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumLOf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-mapAccumLOf :: LensLike (Lazy.State acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-#if MIN_VERSION_mtl(2,1,1)
-mapAccumLOf l f acc0 s = swap (Lazy.runState (l (\a -> State.state (\acc -> swap (f acc a))) s) acc0)
-#else
-mapAccumLOf l f acc0 s = swap (Lazy.runState (l (\a -> do (r,s') <- State.gets (\acc -> swap (f acc a)); State.put s'; return r) s) acc0)
-#endif
+mapAccumLOf :: LensLike (State acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumLOf l f acc0 s = swap (runState (l (\a -> state (\acc -> swap (f acc a))) s) acc0)
 {-# INLINE mapAccumLOf #-}
 
 -- | This permits the use of 'scanr1' over an arbitrary 'Traversal' or 'Lens'.
@@ -333,7 +324,7 @@ mapAccumLOf l f acc0 s = swap (Lazy.runState (l (\a -> do (r,s') <- State.gets (
 -- 'scanr1Of' :: 'Lens' s t a a      -> (a -> a -> a) -> s -> t
 -- 'scanr1Of' :: 'Traversal' s t a a -> (a -> a -> a) -> s -> t
 -- @
-scanr1Of :: LensLike (Backwards (Lazy.State (Maybe a))) s t a a -> (a -> a -> a) -> s -> t
+scanr1Of :: LensLike (Backwards (State (Maybe a))) s t a a -> (a -> a -> a) -> s -> t
 scanr1Of l f = snd . mapAccumROf l step Nothing where
   step Nothing a  = (Just a, a)
   step (Just s) a = (Just r, r) where r = f a s
@@ -348,7 +339,7 @@ scanr1Of l f = snd . mapAccumROf l step Nothing where
 -- 'scanr1Of' :: 'Lens' s t a a      -> (a -> a -> a) -> s -> t
 -- 'scanr1Of' :: 'Traversal' s t a a -> (a -> a -> a) -> s -> t
 -- @
-scanl1Of :: LensLike (Lazy.State (Maybe a)) s t a a -> (a -> a -> a) -> s -> t
+scanl1Of :: LensLike (State (Maybe a)) s t a a -> (a -> a -> a) -> s -> t
 scanl1Of l f = snd . mapAccumLOf l step Nothing where
   step Nothing a  = (Just a, a)
   step (Just s) a = (Just r, r) where r = f s a
@@ -532,21 +523,12 @@ parr f = lmap f id
 {-# INLINE parr #-}
 
 outs :: (Bizarre p w, Category p) => w a a t -> [a] -> t
-outs b = evalState $ flip bazaar b $ parr $
-#if MIN_VERSION_mtl(2,1,1)
-  State.state . unconsWithDefault
-#else
-  \oldVal -> do (r,s) <- State.gets (unconsWithDefault oldVal); State.put s; return r
-#endif
+outs b = evalState $ flip bazaar b $ parr $ state . unconsWithDefault
 {-# INLINE outs #-}
 
 unsafeOuts :: (Bizarre p w, RepresentableProfunctor p) => w a b t -> [b] -> t
 unsafeOuts b = evalState $ flip bazaar b $ tabulatePro $
-#if MIN_VERSION_mtl(2,1,1)
-  \_ -> State.state (unconsWithDefault fakeVal)
-#else
-  \_-> do (r,s) <- State.gets (unconsWithDefault fakeVal); State.put s; return r
-#endif
+  \_ -> state (unconsWithDefault fakeVal)
   where fakeVal = error "unsafePartsOf': not enough elements were supplied"
 {-# INLINE unsafeOuts #-}
 
@@ -764,8 +746,8 @@ iforMOf = flip . imapMOf
 -- 'imapAccumROf' :: 'IndexedLens' i s t a b      -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'imapAccumROf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-imapAccumROf :: Overloading (Indexed i) (->) (Backwards (Lazy.State acc)) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-imapAccumROf l f acc0 a = swap (Lazy.runState (forwards (l (Indexed $ \i c -> Backwards (Lazy.state (\acc -> swap (f i acc c)))) a)) acc0)
+imapAccumROf :: Overloading (Indexed i) (->) (Backwards (State acc)) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+imapAccumROf l f acc0 a = swap (runState (forwards (l (Indexed $ \i c -> Backwards (state (\acc -> swap (f i acc c)))) a)) acc0)
 {-# INLINE imapAccumROf #-}
 
 -- | Generalizes 'Data.Traversable.mapAccumL' to an arbitrary 'IndexedTraversal' with access to the index.
@@ -778,8 +760,8 @@ imapAccumROf l f acc0 a = swap (Lazy.runState (forwards (l (Indexed $ \i c -> Ba
 -- 'imapAccumLOf' :: 'IndexedLens' i s t a b      -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'imapAccumLOf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-imapAccumLOf :: Overloading (Indexed i) (->) (Lazy.State acc) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-imapAccumLOf l f acc0 a = swap (Lazy.runState (l (Indexed $ \i c -> Lazy.state (\acc -> swap (f i acc c))) a) acc0)
+imapAccumLOf :: Overloading (Indexed i) (->) (State acc) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+imapAccumLOf l f acc0 a = swap (runState (l (Indexed $ \i c -> state (\acc -> swap (f i acc c))) a) acc0)
 {-# INLINE imapAccumLOf #-}
 
 ------------------------------------------------------------------------------
