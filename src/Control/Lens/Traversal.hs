@@ -764,8 +764,8 @@ iforMOf = flip . imapMOf
 -- 'imapAccumROf' :: 'IndexedLens' i s t a b      -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'imapAccumROf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-imapAccumROf :: Overloading (Indexed i) (->) (Lazy.State acc) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-imapAccumROf l f acc0 a = swap (Lazy.runState (l (Indexed $ \i c -> Lazy.state (\acc -> swap (f i acc c))) a) acc0)
+imapAccumROf :: Overloading (Indexed i) (->) (Backwards (Lazy.State acc)) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+imapAccumROf l f acc0 a = swap (Lazy.runState (forwards (l (Indexed $ \i c -> Backwards (Lazy.state (\acc -> swap (f i acc c)))) a)) acc0)
 {-# INLINE imapAccumROf #-}
 
 -- | Generalizes 'Data.Traversable.mapAccumL' to an arbitrary 'IndexedTraversal' with access to the index.
@@ -778,8 +778,8 @@ imapAccumROf l f acc0 a = swap (Lazy.runState (l (Indexed $ \i c -> Lazy.state (
 -- 'imapAccumLOf' :: 'IndexedLens' i s t a b      -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'imapAccumLOf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-imapAccumLOf :: Overloading (Indexed i) (->) (Backwards (Lazy.State acc)) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-imapAccumLOf l f acc0 a = swap (Lazy.runState (forwards (l (Indexed $ \i c -> Backwards (Lazy.state (\acc -> swap (f i acc c)))) a)) acc0)
+imapAccumLOf :: Overloading (Indexed i) (->) (Lazy.State acc) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+imapAccumLOf l f acc0 a = swap (Lazy.runState (l (Indexed $ \i c -> Lazy.state (\acc -> swap (f i acc c))) a) acc0)
 {-# INLINE imapAccumLOf #-}
 
 ------------------------------------------------------------------------------
