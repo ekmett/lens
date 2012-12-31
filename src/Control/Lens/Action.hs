@@ -1,4 +1,5 @@
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
@@ -38,10 +39,13 @@ module Control.Lens.Action
   , Effective
   ) where
 
+import Control.Comonad
 import Control.Lens.Indexed
 import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad.Trans.Class
+import Data.Profunctor
+import Data.Profunctor.Representable
 
 -- $setup
 -- >>> :m + Control.Lens
@@ -59,8 +63,12 @@ perform l = getEffect #. l (Effect #. return)
 {-# INLINE perform #-}
 
 -- | Perform an 'Action' and modify the result.
-performs :: Monad m => Acting m e s t a b -> (a -> e) -> s -> m e
-performs l f = getEffect #. l (Effect #. return . f)
+--
+-- @
+-- 'performs' :: 'Monad' m => 'Acting' m e s t a b -> (a -> e) -> s -> m e
+-- @
+performs :: (Profunctor p, Profunctor q, Monad m) => Overloading p q (Effect m e) s t a b -> p a e -> q s (m e)
+performs l f = getEffect `rmap` l (rmap (Effect #. return) f)
 {-# INLINE performs #-}
 
 -- | Perform an 'Action'
@@ -76,8 +84,15 @@ a ^! l = getEffect (l (Effect #. return) a)
 --
 -- >>> ["hello","world"]^!folded.act (\x -> [x,x ++ "!"])
 -- ["helloworld","helloworld!","hello!world","hello!world!"]
-act :: Monad m => (s -> m a) -> Action m s a
-act sma afb a = effective (sma a >>= ineffective . afb)
+--
+-- @
+-- 'act' :: 'Monad' m => (s -> m a) -> 'Action' m s a
+-- act sma afb a = effective (sma a >>= ineffective . afb)
+-- @
+act :: Monad m => (s -> m a) -> IndexPreservingAction m s a
+act sma pafb = tabulatePro $ \ws -> effective $ do
+   a <- sma (extract ws)
+   ineffective (indexPro pafb (a <$ ws))
 {-# INLINE act #-}
 
 -- | A self-running 'Action', analogous to 'Control.Monad.join'.
@@ -111,7 +126,7 @@ iperform l = getEffect #. l (Indexed $ \i a -> Effect (return (i, a)))
 
 -- | Perform an 'IndexedAction' and modify the result.
 iperforms :: Monad m => IndexedActing i m e s t a b -> (i -> a -> e) -> s -> m e
-iperforms l f = getEffect #. l (Indexed $ \i a -> Effect (return (f i a)))
+iperforms l = performs l .# Indexed
 {-# INLINE iperforms #-}
 
 -- | Perform an 'IndexedAction'

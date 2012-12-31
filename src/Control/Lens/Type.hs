@@ -47,8 +47,10 @@ module Control.Lens.Type
   ) where
 
 import Control.Applicative
+import Control.Comonad
 import Control.Lens.Internal
 import Data.Profunctor
+import Data.Profunctor.Representable
 
 -- $setup
 -- >>> import Control.Lens
@@ -409,7 +411,7 @@ type IndexedAction i m s a = forall p f r. (Indexable i p, Effective m r f) => p
 
 -- | An 'IndexPreservingAction' can be used as a 'Action', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedMonadicFold', 'IndexedMonadicFold' or 'IndexedAction' respectively.
-type IndexPreservingAction m s a = forall p f r. (Profunctor p, Effective m r f) => p a (f a) -> p s (f s)
+type IndexPreservingAction m s a = forall p f r. (RepresentableProfunctor p, Comonad (Rep p), Effective m r f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- MonadicFolds
@@ -431,7 +433,7 @@ type IndexedMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f,
 
 -- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
-type IndexPreservingMonadicFold m s a = forall p f r. (Profunctor p, Effective m r f, Applicative f) => p a (f a) -> p s (f s)
+type IndexPreservingMonadicFold m s a = forall p f r. (RepresentableProfunctor p, Comonad (Rep p), Effective m r f, Applicative f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- Simple Overloading
