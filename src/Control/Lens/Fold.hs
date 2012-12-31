@@ -316,7 +316,10 @@ droppingWhile p l f s = evalState (getCompose (l g s)) True where
 -- |
 -- @'Data.Foldable.foldMap' = 'foldMapOf' 'folded'@
 --
--- @'foldMapOf' ≡ 'views'@
+-- @
+-- 'foldMapOf' ≡ 'views'
+-- 'ifoldMapOf' l = 'foldMapOf' l . 'Indexed'
+-- @
 --
 -- @
 -- 'foldMapOf' ::             'Getter' s a     -> (a -> r) -> s -> r
@@ -326,8 +329,10 @@ droppingWhile p l f s = evalState (getCompose (l g s)) True where
 -- 'foldMapOf' :: 'Monoid' r => 'Traversal'' s a -> (a -> r) -> s -> r
 -- 'foldMapOf' :: 'Monoid' r => 'Prism'' s a     -> (a -> r) -> s -> r
 -- @
-foldMapOf :: Getting r s t a b -> (a -> r) -> s -> r
-foldMapOf l f = runAccessor #. l (Accessor #. f)
+--
+-- 'foldMapOf' :: 'Getting' r s t a b -> (a -> r) -> s -> r
+foldMapOf :: (Profunctor p, Profunctor q) => Overloading p q (Accessor r) s t a b -> p a r -> q s r
+foldMapOf l f = runAccessor `rmap` l (rmap Accessor f)
 {-# INLINE foldMapOf #-}
 
 -- |
@@ -343,8 +348,12 @@ foldMapOf l f = runAccessor #. l (Accessor #. f)
 -- 'foldOf' :: 'Monoid' m => 'Traversal'' s m -> s -> m
 -- 'foldOf' :: 'Monoid' m => 'Prism'' s m     -> s -> m
 -- @
-foldOf :: Getting a s t a b -> s -> a
-foldOf l = runAccessor #. l Accessor
+--
+-- @
+-- 'foldOf' :: Getting a s t a b -> s -> a
+-- @
+foldOf :: Profunctor q => Overloading (->) q (Accessor a) s t a b -> q s a
+foldOf l = runAccessor `rmap` l Accessor
 {-# INLINE foldOf #-}
 
 -- |
@@ -360,8 +369,12 @@ foldOf l = runAccessor #. l Accessor
 -- 'foldrOf' :: 'Traversal'' s a -> (a -> r -> r) -> r -> s -> r
 -- 'foldrOf' :: 'Prism'' s a     -> (a -> r -> r) -> r -> s -> r
 -- @
-foldrOf :: Getting (Endo r) s t a b -> (a -> r -> r) -> r -> s -> r
-foldrOf l f z t = appEndo (foldMapOf l (Endo #. f) t) z
+--
+-- @'ifoldrOf' l ≡ 'foldrOf' l '.' 'Indexed'@
+--
+-- @'foldrOf' :: 'Getting' ('Endo' r) s t a b -> (a -> r -> r) -> r -> s -> r@
+foldrOf :: Profunctor p => Overloading p (->) (Accessor (Endo r)) s t a b -> p a (r -> r) -> r -> s -> r
+foldrOf l f z t = foldMapOf l (rmap Endo f) t `appEndo` z
 {-# INLINE foldrOf #-}
 
 -- |
@@ -448,8 +461,8 @@ s ^.. l = toListOf l s
 -- 'andOf' :: 'Traversal'' s 'Bool' -> s -> 'Bool'
 -- 'andOf' :: 'Prism'' s 'Bool'     -> s -> 'Bool'
 -- @
-andOf :: Getting All s t Bool b -> s -> Bool
-andOf l = getAll #. foldMapOf l All
+andOf :: Profunctor q => Overloading (->) q (Accessor All) s t Bool b -> q s Bool
+andOf l = getAll `rmap` foldMapOf l All
 {-# INLINE andOf #-}
 
 -- | Returns 'True' if any target of a 'Fold' is 'True'.
@@ -469,8 +482,8 @@ andOf l = getAll #. foldMapOf l All
 -- 'orOf' :: 'Traversal'' s 'Bool' -> s -> 'Bool'
 -- 'orOf' :: 'Prism'' s 'Bool'     -> s -> 'Bool'
 -- @
-orOf :: Getting Any s t Bool b -> s -> Bool
-orOf l = getAny #. foldMapOf l Any
+orOf :: Profunctor q => Overloading (->) q (Accessor Any) s t Bool b -> q s Bool
+orOf l = getAny `rmap` foldMapOf l Any
 {-# INLINE orOf #-}
 
 -- | Returns 'True' if any target of a 'Fold' satisfies a predicate.
@@ -483,6 +496,8 @@ orOf l = getAny #. foldMapOf l Any
 --
 -- @'Data.Foldable.any' ≡ 'anyOf' 'folded'@
 --
+-- @'ianyOf' l ≡ 'allOf' l . 'Indexed'@
+--
 -- @
 -- 'anyOf' :: 'Getter' s a     -> (a -> 'Bool') -> s -> 'Bool'
 -- 'anyOf' :: 'Fold' s a       -> (a -> 'Bool') -> s -> 'Bool'
@@ -491,8 +506,8 @@ orOf l = getAny #. foldMapOf l Any
 -- 'anyOf' :: 'Traversal'' s a -> (a -> 'Bool') -> s -> 'Bool'
 -- 'anyOf' :: 'Prism'' s a     -> (a -> 'Bool') -> s -> 'Bool'
 -- @
-anyOf :: Getting Any s t a b -> (a -> Bool) -> s -> Bool
-anyOf l f = getAny #. foldMapOf l (Any #. f)
+anyOf :: (Profunctor p, Profunctor q) => Overloading p q (Accessor Any) s t a b -> p a Bool -> q s Bool
+anyOf l f = getAny `rmap` foldMapOf l (rmap Any f)
 {-# INLINE anyOf #-}
 
 -- | Returns 'True' if every target of a 'Fold' satisfies a predicate.
@@ -504,6 +519,8 @@ anyOf l f = getAny #. foldMapOf l (Any #. f)
 --
 -- @'Data.Foldable.all' ≡ 'allOf' 'folded'@
 --
+-- @'iallOf' l = 'allOf' l . 'Indexed'@
+--
 -- @
 -- 'allOf' :: 'Getter' s a     -> (a -> 'Bool') -> s -> 'Bool'
 -- 'allOf' :: 'Fold' s a       -> (a -> 'Bool') -> s -> 'Bool'
@@ -512,8 +529,8 @@ anyOf l f = getAny #. foldMapOf l (Any #. f)
 -- 'allOf' :: 'Traversal'' s a -> (a -> 'Bool') -> s -> 'Bool'
 -- 'allOf' :: 'Prism'' s a     -> (a -> 'Bool') -> s -> 'Bool'
 -- @
-allOf :: Getting All s t a b -> (a -> Bool) -> s -> Bool
-allOf l f = getAll #. foldMapOf l (All #. f)
+allOf :: (Profunctor p, Profunctor q) => Overloading p q (Accessor All) s t a b -> p a Bool -> q s Bool
+allOf l f = getAll `rmap` foldMapOf l (rmap All f)
 {-# INLINE allOf #-}
 
 -- | Calculate the product of every number targeted by a 'Fold'
@@ -533,8 +550,8 @@ allOf l f = getAll #. foldMapOf l (All #. f)
 -- 'productOf' :: 'Num' a => 'Traversal'' s a -> s -> a
 -- 'productOf' :: 'Num' a => 'Prism'' s a     -> s -> a
 -- @
-productOf :: Getting (Product a) s t a b -> s -> a
-productOf l = getProduct #. foldMapOf l Product
+productOf :: Profunctor q => Overloading (->) q (Accessor (Product a)) s t a b -> q s a
+productOf l = getProduct `rmap` foldMapOf l Product
 {-# INLINE productOf #-}
 
 -- | Calculate the sum of every number targeted by a 'Fold'.
@@ -564,8 +581,8 @@ productOf l = getProduct #. foldMapOf l Product
 -- 'sumOf' :: 'Num' a => 'Traversal'' s a -> s -> a
 -- 'sumOf' :: 'Num' a => 'Prism'' s a     -> s -> a
 -- @
-sumOf :: Getting (Sum a) s t a b -> s -> a
-sumOf l = getSum #. foldMapOf l Sum
+sumOf :: Profunctor q => Overloading (->) q (Accessor (Sum a)) s t a b -> q s a
+sumOf l = getSum `rmap` foldMapOf l Sum
 {-# INLINE sumOf #-}
 
 -- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor') -based answer,
@@ -586,6 +603,8 @@ sumOf l = getSum #. foldMapOf l Sum
 -- 'traverseOf_' 'Data.Either.Lens.traverseLeft' :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ()
 -- @
 --
+-- @'itraverseOf_' l ≡ 'traverseOf_' l . 'Indexed'@
+--
 -- The rather specific signature of 'traverseOf_' allows it to be used as if the signature was any of:
 --
 -- @
@@ -596,8 +615,8 @@ sumOf l = getSum #. foldMapOf l Sum
 -- 'traverseOf_' :: 'Applicative' f => 'Traversal'' s a -> (a -> f r) -> s -> f ()
 -- 'traverseOf_' :: 'Applicative' f => 'Prism'' s a     -> (a -> f r) -> s -> f ()
 -- @
-traverseOf_ :: Functor f => Getting (Traversed f) s t a b -> (a -> f r) -> s -> f ()
-traverseOf_ l f = getTraversed #. foldMapOf l (Traversed #. void . f)
+traverseOf_ :: (Profunctor p, Profunctor q, Functor f) => Overloading p q (Accessor (Traversed f)) s t a b -> p a (f r) -> q s (f ())
+traverseOf_ l f = getTraversed `rmap` foldMapOf l (rmap (Traversed . void) f)
 {-# INLINE traverseOf_ #-}
 
 -- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor') -based answer,
@@ -611,6 +630,8 @@ traverseOf_ l f = getTraversed #. foldMapOf l (Traversed #. void . f)
 --
 -- The rather specific signature of 'forOf_' allows it to be used as if the signature was any of:
 --
+-- @'iforOf_' l s ≡ 'forOf_' l s . 'Indexed'@
+--
 -- @
 -- 'forOf_' :: 'Functor' f     => 'Getter' s a     -> s -> (a -> f r) -> f ()
 -- 'forOf_' :: 'Applicative' f => 'Fold' s a       -> s -> (a -> f r) -> f ()
@@ -619,7 +640,7 @@ traverseOf_ l f = getTraversed #. foldMapOf l (Traversed #. void . f)
 -- 'forOf_' :: 'Applicative' f => 'Traversal'' s a -> s -> (a -> f r) -> f ()
 -- 'forOf_' :: 'Applicative' f => 'Prism'' s a     -> s -> (a -> f r) -> f ()
 -- @
-forOf_ :: Functor f => Getting (Traversed f) s t a b -> s -> (a -> f r) -> f ()
+forOf_ :: (Profunctor p, Functor f) => Overloading p (->) (Accessor (Traversed f)) s t a b -> s -> p a (f r) -> f ()
 forOf_ = flip . traverseOf_
 {-# INLINE forOf_ #-}
 
@@ -1611,10 +1632,15 @@ s ^@?! l = ifoldrOf l (\i x _ -> (i,x)) (error "(^@?!): empty Fold") s
 -- Converting to Folds
 -------------------------------------------------------------------------------
 
--- | Filter an 'IndexedFold', 'IndexedLens', 'IndexedGetter' or 'IndexedTraversal' or 'IndexedSetter'.
+-- | Filter an 'IndexedFold' or 'IndexedGetter', obtaining an 'IndexedFold'.
 --
 -- >>> [0,0,0,5,5,5]^..traversed.ifiltered (\i a -> i <= a)
 -- [0,5,5,5]
+--
+-- Compose with 'filtered' to filter another 'IndexedLens', 'IndexedIso', 'IndexedGetter', 'IndexedFold' (or 'IndexedTraversal') with
+-- access to both the value and the index.
+--
+-- Note: As with 'filtered', this is /not/ a legal 'IndexedTraversal', unless you are very careful not to invalidate the predicate on the target!
 ifiltered :: (Indexable i p, Applicative f) => (i -> a -> Bool) -> Overloading' p (Indexed i) f a a
 ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 {-# INLINE ifiltered #-}
