@@ -296,7 +296,9 @@ transposeOf l = getZipList #. l ZipList
 -- 'mapAccumROf' :: 'Lens' s t a b      -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumROf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-mapAccumROf :: LensLike (Backwards (State acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+--
+-- @'mapAccumROf' :: 'LensLike' ('Backwards' ('State' acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)@
+mapAccumROf :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (Backwards (State acc)) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumROf = mapAccumLOf . backwards
 {-# INLINE mapAccumROf #-}
 
@@ -311,8 +313,16 @@ mapAccumROf = mapAccumLOf . backwards
 -- 'mapAccumLOf' :: 'Lens' s t a b      -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'mapAccumLOf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-mapAccumLOf :: LensLike (State acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-mapAccumLOf l f acc0 s = swap (runState (l (\a -> state (\acc -> swap (f acc a))) s) acc0)
+--
+-- @
+-- mapAccumLOf :: LensLike (State acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+-- mapAccumLOf l f acc0 s = swap (runState (l (\a -> state (\acc -> swap (f acc a))) s) acc0)
+-- @
+--
+mapAccumLOf :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (State acc) s t a b -> (p acc (a -> (acc, b))) -> acc -> s -> (acc, t)
+mapAccumLOf l f acc0 s = swap (runState (l g s) acc0) where
+   g = tabulatePro $ \wa -> state $ \acc -> swap (indexPro f (acc <$ wa) (extract wa))
+-- This would be much cleaner if the argument order for the function was swapped.
 {-# INLINE mapAccumLOf #-}
 
 -- | This permits the use of 'scanr1' over an arbitrary 'Traversal' or 'Lens'.
@@ -747,7 +757,7 @@ iforMOf = flip . imapMOf
 -- 'imapAccumROf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
 imapAccumROf :: Overloading (Indexed i) (->) (Backwards (State acc)) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-imapAccumROf l f acc0 a = swap (runState (forwards (l (Indexed $ \i c -> Backwards (state (\acc -> swap (f i acc c)))) a)) acc0)
+imapAccumROf l = mapAccumROf l .# Indexed
 {-# INLINE imapAccumROf #-}
 
 -- | Generalizes 'Data.Traversable.mapAccumL' to an arbitrary 'IndexedTraversal' with access to the index.
@@ -761,7 +771,7 @@ imapAccumROf l f acc0 a = swap (runState (forwards (l (Indexed $ \i c -> Backwar
 -- 'imapAccumLOf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
 imapAccumLOf :: Overloading (Indexed i) (->) (State acc) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-imapAccumLOf l f acc0 a = swap (runState (l (Indexed $ \i c -> state (\acc -> swap (f i acc c))) a) acc0)
+imapAccumLOf l = mapAccumLOf l .# Indexed
 {-# INLINE imapAccumLOf #-}
 
 ------------------------------------------------------------------------------
