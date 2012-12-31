@@ -47,10 +47,8 @@ module Control.Lens.Type
   ) where
 
 import Control.Applicative
-import Control.Comonad
 import Control.Lens.Internal
 import Data.Profunctor
-import Data.Profunctor.Representable
 
 -- $setup
 -- >>> import Control.Lens
@@ -234,7 +232,7 @@ type IndexedSetter' i s a = IndexedSetter i s s a a
 
 -- | An 'IndexPreservingSetter' can be composed with a 'IndexedSetter', 'IndexedTraversal' or 'IndexedLens'
 -- and leaves the index intact, yielding an 'IndexedSetter'.
-type IndexPreservingSetter s t a b = forall p f. (RepresentableProfunctor p, Comonad (Rep p), Settable f) => p a (f b) -> p s (f t)
+type IndexPreservingSetter s t a b = forall p f. (SelfAdjoint p, Settable f) => p a (f b) -> p s (f t)
 
 -----------------------------------------------------------------------------
 -- Isomorphisms
@@ -363,7 +361,7 @@ type IndexedGetter i s a = forall p f. (Indexable i p, Gettable f) => p a (f a) 
 
 -- | An 'IndexPreservingGetter' can be used as a 'Getter', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold', 'IndexedFold' or 'IndexedGetter' respectively.
-type IndexPreservingGetter s a = forall p f. (Profunctor p, Gettable f) => p a (f a) -> p s (f s)
+type IndexPreservingGetter s a = forall p f. (SelfAdjoint p, Gettable f) => p a (f a) -> p s (f s)
 
 --------------------------
 -- Folds
@@ -389,7 +387,7 @@ type IndexedFold i s a = forall p f.  (Indexable i p, Applicative f, Gettable f)
 
 -- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
-type IndexPreservingFold s a = forall p f. (Profunctor p, Gettable f, Applicative f) => p a (f a) -> p s (f s)
+type IndexPreservingFold s a = forall p f. (SelfAdjoint p, Gettable f, Applicative f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- Actions
@@ -411,7 +409,7 @@ type IndexedAction i m s a = forall p f r. (Indexable i p, Effective m r f) => p
 
 -- | An 'IndexPreservingAction' can be used as a 'Action', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedMonadicFold', 'IndexedMonadicFold' or 'IndexedAction' respectively.
-type IndexPreservingAction m s a = forall p f r. (RepresentableProfunctor p, Comonad (Rep p), Effective m r f) => p a (f a) -> p s (f s)
+type IndexPreservingAction m s a = forall p f r. (SelfAdjoint p, Effective m r f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- MonadicFolds
@@ -433,7 +431,7 @@ type IndexedMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f,
 
 -- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
-type IndexPreservingMonadicFold m s a = forall p f r. (RepresentableProfunctor p, Comonad (Rep p), Effective m r f, Applicative f) => p a (f a) -> p s (f s)
+type IndexPreservingMonadicFold m s a = forall p f r. (SelfAdjoint p, Effective m r f, Applicative f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- Simple Overloading

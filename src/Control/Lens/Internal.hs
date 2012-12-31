@@ -41,6 +41,7 @@ module Control.Lens.Internal
   -- ** Setters
   , Settable(..)
   -- ** Indexable
+  , SelfAdjoint(..)
   , Indexable(..)
   -- ** Strict Composition
   , NewtypeComposition(..)
