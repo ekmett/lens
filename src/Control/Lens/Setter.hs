@@ -65,6 +65,7 @@ import Control.Lens.Type
 import Control.Monad (liftM)
 import Control.Monad.State.Class as State
 import Data.Monoid
+import Data.Profunctor
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
@@ -213,9 +214,12 @@ sets f g = taintedDot (f (untaintedDot g))
 -- >>> over _1 show (10,20)
 -- ("10",20)
 --
--- @'over' :: 'Setter' s t a b -> (a -> b) -> s -> t@
-over :: ASetter s t a b -> (a -> b) -> s -> t
-over l f = runMutator #. l (Mutator #. f)
+-- @
+-- 'over' :: 'Setter' s t a b -> (a -> b) -> s -> t
+-- 'over' :: ASetter s t a b -> (a -> b) -> s -> t
+-- @
+over :: (Profunctor p, Profunctor q) => Overloading p q Mutator s t a b -> p a b -> q s t
+over l f = runMutator `rmap` l (rmap Mutator f)
 {-# INLINE over #-}
 
 -- | 'mapOf' is a deprecated alias for 'over'.
@@ -310,7 +314,7 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 -- ('%~') :: 'Lens' s t a b      -> (a -> b) -> s -> t
 -- ('%~') :: 'Traversal' s t a b -> (a -> b) -> s -> t
 -- @
-(%~) :: ASetter s t a b -> (a -> b) -> s -> t
+(%~) :: Profunctor p => Overloading p (->) Mutator s t a b -> p a b -> s -> t
 (%~) = over
 {-# INLINE (%~) #-}
 
@@ -647,7 +651,11 @@ l .= b = State.modify (l .~ b)
 -- ('%=') :: 'MonadState' s m => 'Traversal'' s a -> (a -> a) -> m ()
 -- ('%=') :: 'MonadState' s m => 'Setter'' s a    -> (a -> a) -> m ()
 -- @
-(%=) :: MonadState s m => ASetter s s a b -> (a -> b) -> m ()
+--
+-- @
+-- ('%=') :: 'MonadState' s m => 'ASetter' s s a b -> (a -> b) -> m ()
+-- @
+(%=) :: (Profunctor p, MonadState s m) => Overloading p (->) Mutator s s a b -> p a b -> m ()
 l %= f = State.modify (l %~ f)
 {-# INLINE (%=) #-}
 
@@ -930,7 +938,10 @@ type IndexedSetting i s t a b = IndexedLensLike (Indexed i) Mutator s t a b
 --
 -- When you do not need access to the index, then 'over' is more liberal in what it can accept.
 --
--- @'over' l ≡ 'iover' l '.' 'const'@
+-- @
+-- 'over' l ≡ 'iover' l '.' 'const'
+-- 'iover' l ≡ 'over' l . 'Indexed'
+-- @
 --
 -- @
 -- 'iover' :: 'IndexedSetter' i s t a b    -> (i -> a -> b) -> s -> t
@@ -938,7 +949,7 @@ type IndexedSetting i s t a b = IndexedLensLike (Indexed i) Mutator s t a b
 -- 'iover' :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
 iover :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
-iover l f = runMutator #. l (Indexed $ \i -> Mutator #. f i)
+iover l = over l .# Indexed
 {-# INLINE iover #-}
 
 -- | Build an 'IndexedSetter' from an 'imap'-like function.
@@ -978,7 +989,7 @@ isets f g = taintedDot (f (\i -> untaintedDot (indexed g i)))
 -- ('%@~') :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
 (%@~) :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
-l %@~ f = runMutator #. l (Indexed $ \i -> Mutator #. f i)
+l %@~ f = l %~ Indexed f
 {-# INLINE (%@~) #-}
 
 -- | Adjust every target in the current state of an 'IndexedSetter', 'IndexedLens' or 'IndexedTraversal'
