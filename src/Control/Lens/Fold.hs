@@ -1341,7 +1341,7 @@ ifoldMapOf l = foldMapOf l .# Indexed
 -- 'ifoldrOf' :: 'IndexedTraversal'' i s a -> (i -> a -> r -> r) -> r -> s -> r
 -- @
 ifoldrOf :: IndexedGetting i (Endo r) s t a b -> (i -> a -> r -> r) -> r -> s -> r
-ifoldrOf l f z t = appEndo (ifoldMapOf l (\i -> Endo #. f i) t) z
+ifoldrOf l = foldrOf l .# Indexed
 {-# INLINE ifoldrOf #-}
 
 -- |
@@ -1377,7 +1377,7 @@ ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> Dual #. Endo #. flip (f
 -- 'ianyOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
 ianyOf :: IndexedGetting i Any s t a b -> (i -> a -> Bool) -> s -> Bool
-ianyOf l f = getAny #. ifoldMapOf l (\i -> Any #. f i)
+ianyOf l = anyOf l .# Indexed
 {-# INLINE ianyOf #-}
 
 -- |
@@ -1395,7 +1395,7 @@ ianyOf l f = getAny #. ifoldMapOf l (\i -> Any #. f i)
 -- 'iallOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
 iallOf :: IndexedGetting i All s t a b -> (i -> a -> Bool) -> s -> Bool
-iallOf l f = getAll #. ifoldMapOf l (\i -> All #. f i)
+iallOf l = allOf l .# Indexed
 {-# INLINE iallOf #-}
 
 -- |
@@ -1412,7 +1412,7 @@ iallOf l f = getAll #. ifoldMapOf l (\i -> All #. f i)
 -- 'itraverseOf_' :: 'Applicative' f => 'IndexedTraversal'' i s a -> (i -> a -> f r) -> s -> f ()
 -- @
 itraverseOf_ :: Functor f => IndexedGetting i (Traversed f) s t a b -> (i -> a -> f r) -> s -> f ()
-itraverseOf_ l f = getTraversed #. ifoldMapOf l (\i -> Traversed #. void . f i)
+itraverseOf_ l = traverseOf_ l .# Indexed
 {-# INLINE itraverseOf_ #-}
 
 -- |
@@ -1450,7 +1450,7 @@ iforOf_ = flip . itraverseOf_
 -- 'imapMOf_' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> a -> m r) -> s -> m ()
 -- @
 imapMOf_ :: Monad m => IndexedGetting i (Sequenced m) s t a b -> (i -> a -> m r) -> s -> m ()
-imapMOf_ l f = getSequenced #. ifoldMapOf l (\i -> Sequenced #. liftM skip . f i)
+imapMOf_ l = mapMOf_ l .# Indexed
 {-# INLINE imapMOf_ #-}
 
 -- |
@@ -1508,8 +1508,8 @@ iconcatMapOf = ifoldMapOf
 -- 'ifindOf' :: 'IndexedLens'' s a      -> (i -> a -> 'Bool') -> s -> 'Maybe' (i, a)
 -- 'ifindOf' :: 'IndexedTraversal'' s a -> (i -> a -> 'Bool') -> s -> 'Maybe' (i, a)
 -- @
-ifindOf :: IndexedGetting i (Endo (Maybe (i, a))) s t a b -> (i -> a -> Bool) -> s -> Maybe (i, a)
-ifindOf l p = ifoldrOf l (\i a y -> if p i a then Just (i, a) else y) Nothing
+ifindOf :: IndexedGetting i (Endo (Maybe a)) s t a b -> (i -> a -> Bool) -> s -> Maybe a
+ifindOf l = findOf l .# Indexed
 {-# INLINE ifindOf #-}
 
 -- | /Strictly/ fold right over the elements of a structure with an index.
