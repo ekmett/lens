@@ -586,7 +586,7 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 -- >>> [("hello","world"),("!!!","!!!")]^.. taking 2 (traverse.both)
 -- ["hello","world"]
 --
--- >>> (take 3 [1..] ++ undefined) ^.. taking 3 traverse
+-- >>> ([1..3] ++ undefined) ^.. taking 3 traverse
 -- [1,2,3]
 --
 -- >>> over (taking 5 traverse) succ "hello world"
@@ -628,7 +628,7 @@ taking n l pafb s = outs b <$> traverse (indexPro pafb) (take n $ pins b) where
 --
 -- Dropping works on infinite traversals as well:
 --
--- >>> (take 2 [1..] ++ undefined) ^? dropping 1 folded
+-- >>> [1..] ^? dropping 1 folded
 -- Just 2
 --
 -- @
@@ -856,10 +856,10 @@ instance Ord k => TraverseMax k (Map k) where
 -- >>> [[1],[3,4]] ^? elementOf (folded.folded) 1
 -- Just 3
 --
--- >>> (take 6 [0..] ++ undefined) ^?! elementOf folded 5
--- 5
+-- >>> ("abcdefg" ++ undefined) ^?! elementOf folded 5
+-- 'f'
 --
--- >>> take 10 $ elementOf traverse 3 .~ 16 $ take 10 [0..] ++ undefined
+-- >>> take 10 $ elementOf traverse 3 .~ 16 $ [0..9] ++ undefined
 -- [0,1,2,16,4,5,6,7,8,9]
 --
 -- @

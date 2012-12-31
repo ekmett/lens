@@ -247,7 +247,7 @@ filtered p f = tabulatePro $ \ wa -> let a = extract wa in if p a then indexPro 
 --
 -- @'takeWhile' p ≡ 'toListOf' ('takingWhile' p 'folded')@
 --
--- >>> toListOf (takingWhile (<=3) folded) $ take 4 [1..] ++ undefined
+-- >>> toListOf (takingWhile (<=3) folded) ([1..3] ++ undefined)
 -- [1,2,3]
 --
 -- @
