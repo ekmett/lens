@@ -9,7 +9,7 @@ before_install:
   - sudo apt-get -q -y install hlint || cabal install hlint
 
 install:
-  - cabal configure $mode
+  - cabal configure -flib-Werror $mode
   - cabal build
 
 script:

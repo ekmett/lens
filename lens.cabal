@@ -149,6 +149,10 @@ flag trustworthy
   default: True
   manual: True
 
+flag lib-Werror
+  default: False
+  manual: True
+
 library
   build-depends:
     array                     >= 0.3.0.2  && < 0.5,
@@ -256,6 +260,9 @@ library
   if impl(ghc>=7.2)
     other-extensions: Trustworthy
     cpp-options: -DDEFAULT_SIGNATURES=1
+
+  if flag(lib-Werror)
+    ghc-options: -Werror
 
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: src
