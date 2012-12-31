@@ -108,7 +108,7 @@ module Control.Lens.Fold
   , itoListOf
 
   -- ** Building Indexed Folds
-  , ifiltering
+  , ifiltered
   , itakingWhile
   , idroppingWhile
 
@@ -1611,17 +1611,13 @@ s ^@?! l = ifoldrOf l (\i x _ -> (i,x)) (error "(^@?!): empty Fold") s
 -- Converting to Folds
 -------------------------------------------------------------------------------
 
--- | Obtain an 'IndexedFold' by filtering an 'IndexedLens', 'IndexedGetter', or 'IndexedFold'.
+-- | Filter an 'IndexedFold', 'IndexedLens', 'IndexedGetter' or 'IndexedTraversal' or 'IndexedSetter'.
 --
--- When passed an 'IndexedTraversal', sadly the result is /not/ a legal 'IndexedTraversal'.
---
--- See 'Control.Lens.Fold.filtered' for a related counter-example.
-ifiltering :: (Applicative f, Indexable i p)
-           => (i -> a -> Bool)
-           -> (Indexed i a (f a) -> s -> f t)
-           -> IndexedLensLike p f s t a a
-ifiltering p l f = l . Indexed $ \ i c -> if p i c then indexed f i c else pure c
-{-# INLINE ifiltering #-}
+-- >>> [0,0,0,5,5,5]^..traversed.ifiltered (\i a -> i <= a)
+-- [0,5,5]
+ifiltered :: (Indexable i p, Applicative f) => (i -> a -> Bool) -> Overloading' p (Indexed i) f a a
+ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
+{-# INLINE ifiltered #-}
 
 -- | Obtain an 'IndexedFold' by taking elements from another
 -- 'IndexedFold', 'IndexedLens', 'IndexedGetter' or 'IndexedTraversal' while a predicate holds.
