@@ -247,7 +247,7 @@ filtered p f = tabulatePro $ \ wa -> let a = extract wa in if p a then indexPro 
 --
 -- @'takeWhile' p ≡ 'toListOf' ('takingWhile' p 'folded')@
 --
--- >>> toListOf (takingWhile (<=3) folded) ([1..3] ++ undefined)
+-- >>> toListOf (takingWhile (<=3) folded) ([1..4] ++ undefined)
 -- [1,2,3]
 --
 -- @
@@ -1614,7 +1614,7 @@ s ^@?! l = ifoldrOf l (\i x _ -> (i,x)) (error "(^@?!): empty Fold") s
 -- | Filter an 'IndexedFold', 'IndexedLens', 'IndexedGetter' or 'IndexedTraversal' or 'IndexedSetter'.
 --
 -- >>> [0,0,0,5,5,5]^..traversed.ifiltered (\i a -> i <= a)
--- [0,5,5]
+-- [0,5,5,5]
 ifiltered :: (Indexable i p, Applicative f) => (i -> a -> Bool) -> Overloading' p (Indexed i) f a a
 ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 {-# INLINE ifiltered #-}
