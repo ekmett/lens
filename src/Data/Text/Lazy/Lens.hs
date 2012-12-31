@@ -21,6 +21,7 @@ module Data.Text.Lazy.Lens
 
 import Control.Lens
 import Data.Text.Lazy
+import Data.Text.Lazy.Builder
 
 -- | Pack (or unpack) lazy 'Text'.
 --
@@ -31,6 +32,16 @@ import Data.Text.Lazy
 packed :: Iso' String Text
 packed = iso pack unpack
 {-# INLINE packed #-}
+
+-- | Convert between lazy 'Text' and 'Builder' .
+--
+-- @
+-- 'fromLazyText' x = x '^.' 'build'
+-- 'toLazyText' x = x '^.' 'from' 'build'
+-- @
+build :: Iso' Text Builder
+build = iso fromLazyText toLazyText
+{-# INLINE build #-}
 
 -- | Traverse the individual characters in a 'Text'.
 --
