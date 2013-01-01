@@ -25,10 +25,10 @@ import Data.Array.IArray hiding (index)
 --
 -- @
 -- 'ixmap' ≡ 'over' . 'ixmapped'
--- 'ixmapped' ≡ 'sets' . 'ixmap'
+-- 'ixmapped' ≡ 'setting' . 'ixmap'
 -- 'over' ('ixmapped' b) f arr '!' i ≡ arr '!' f i
 -- 'bounds' ('over' ('ixmapped' b) f arr) ≡ b
 -- @
-ixmapped :: (IArray a e, Ix i, Ix j) => (i,i) -> Setter (a j e) (a i e) i j
-ixmapped = sets . ixmap
+ixmapped :: (IArray a e, Ix i, Ix j) => (i,i) -> IndexPreservingSetter (a j e) (a i e) i j
+ixmapped = setting . ixmap
 {-# INLINE ixmapped #-}
