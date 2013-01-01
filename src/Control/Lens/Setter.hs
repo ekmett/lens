@@ -150,8 +150,8 @@ type AnIndexedSetter' i s a = AnIndexedSetter i s s a a
 --
 -- >>> over (mapped._2) length [("hello","world"),("leaders","!!!")]
 -- [("hello",5),("leaders",3)]
-mapped :: Functor f => Setter (f a) (f b) a b
-mapped = sets fmap
+mapped :: Functor f => IndexPreservingSetter (f a) (f b) a b
+mapped = setting fmap
 {-# INLINE mapped #-}
 
 -- | This setter can be used to modify all of the values in a 'Monad'.
@@ -168,11 +168,11 @@ mapped = sets fmap
 --
 -- >>> set lifted b (Just a)
 -- Just b
-lifted :: Monad m => Setter (m a) (m b) a b
-lifted = sets liftM
+lifted :: Monad m => IndexPreservingSetter (m a) (m b) a b
+lifted = setting liftM
 {-# INLINE lifted #-}
 
--- | Build a Setter from a map-like function.
+-- | Build an index-preserving setter from a map-like function.
 --
 -- Your supplied function @f@ is required to satisfy:
 --
@@ -184,17 +184,26 @@ lifted = sets liftM
 -- Equational reasoning:
 --
 -- @
--- 'sets' '.' 'over' ≡ 'id'
--- 'over' '.' 'sets' ≡ 'id'
+-- 'setting' '.' 'over' ≡ 'id'
+-- 'over' '.' 'setting' ≡ 'id'
 -- @
 --
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
 --
--- sets :: ((a -> b) -> s -> t) -> Setter s t a b
+-- @'setting' :: ((a -> b) -> s -> t) -> 'Setter' s t a b@
+setting :: ((a -> b) -> s -> t) -> IndexPreservingSetter s t a b
+setting l pafb = tabulatePro $ \ws -> pure $ l (\a -> untainted (indexPro pafb (a <$ ws))) (extract ws)
+{-# INLINE setting #-}
+
+-- | Build a 'Setter', 'IndexedSetter' or 'IndexPreservingSetter' depending on your choice of profunctor.
+--
+-- @'sets' :: ((a -> b) -> s -> t) -> 'Setter' s t a b@
 sets :: (Profunctor p, Profunctor q, Settable f) => (p a b -> q s t) -> Overloading p q f s t a b
 sets f g = pure `rmap` f (rmap untainted g)
 {-# INLINE sets #-}
+
+-- | Build an index-preserving setter
 
 -- | 'cloneSetter' :: (a -> 'Mutator' b) -> s -> 'Mutator' t) -> IndexPreservingSetter s t a b
 cloneSetter :: ASetter s t a b -> Setter s t a b
@@ -1006,7 +1015,7 @@ iover l = over l .# Indexed
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
 isets :: ((i -> a -> b) -> s -> t) -> IndexedSetter i s t a b
-isets f g = taintedDot (f (\i -> untaintedDot (indexed g i)))
+isets f = sets (f . indexed)
 {-# INLINE isets #-}
 
 -- | Adjust every target of an 'IndexedSetter', 'IndexedLens' or 'IndexedTraversal'
