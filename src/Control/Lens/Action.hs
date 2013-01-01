@@ -136,5 +136,7 @@ s ^@! l = getEffect (l (Indexed $ \i a -> Effect (return (i, a))) s)
 
 -- | Construct an 'IndexedAction' from a monadic side-effect
 iact :: Monad m => (s -> m (i, a)) -> IndexedAction i m s a
-iact sma iafb a = effective (sma a >>= ineffective . uncurry (indexed iafb))
+iact smia iafb s = effective $ do
+  (i, a) <- smia s
+  ineffective (indexed iafb i a)
 {-# INLINE iact #-}
