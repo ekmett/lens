@@ -155,7 +155,6 @@ mover p0 c0 kn kp = go p0 c0 where
 -- /e.g./ @'Top' ':>>' a@ is the type of the trivial 'Zipper'.
 data Top
 
-
 -- | This is the type of a 'Zipper'. It visually resembles a \"breadcrumb trail\" as
 -- used in website navigation. Each breadcrumb in the trail represents a level you
 -- can move up to.
@@ -182,7 +181,7 @@ data Top
 -- unpacked and stored in 'Coil' form. Only one value of type @_ ':>' _@ exists
 -- at any particular time for any particular 'Zipper'.
 
-data Zipper h i a = Ord i => Zipper !(Coil h i a) !(Path i a) i a
+data Zipper h i a = Ord i => Zipper !(Coil h i a) Int !Int !(Path i a) i a
 
 -- Top :>> Map String Int :> Int :@ String :>> Bool
 
@@ -208,22 +207,22 @@ type instance Zipped (Zipper h i s) a = Zipped h s
 #ifndef HLINT
 data Coil t i a where
   Coil :: Coil Top Int a
-  Snoc :: Ord i => !(Coil h j s) -> AnIndexedTraversal' i s a -> !(Path j s) -> j -> (Magma i a -> s) -> Coil (Zipper h j s) i a
+  Snoc :: Ord i => !(Coil h j s) -> AnIndexedTraversal' i s a -> Int -> !Int -> !(Path j s) -> j -> (Magma i a -> s) -> Coil (Zipper h j s) i a
 #endif
 
 -- | This 'Lens' views the current target of the 'Zipper'.
 focus :: IndexedLens' i (Zipper h i a) a
-focus f (Zipper h p i a) = Zipper h p i <$> indexed f i a
+focus f (Zipper h t o p i a) = Zipper h t o p i <$> indexed f i a
 {-# INLINE focus #-}
 
 -- | Construct a 'Zipper' that can explore anything, and start it at the top.
 zipper :: a -> Top :>> a
-zipper = Zipper Coil Start 0
+zipper = Zipper Coil 0 0 Start 0
 {-# INLINE zipper #-}
 
 -- | Return the index of the focus.
 focalPoint :: Zipper h i a -> i
-focalPoint (Zipper _ _ i _) = i
+focalPoint (Zipper _ _ _ _ i _) = i
 {-# INLINE focalPoint #-}
 
 -- | Return the index into the current 'Traversal' within the current level of the 'Zipper'.
@@ -236,7 +235,7 @@ focalPoint (Zipper _ _ i _) = i
 --
 -- 'focalPoint' may be much cheaper if you have a 'Traversal' indexed by ordinal position!
 tooth :: Zipper h i a -> Int
-tooth (Zipper _ p _ _) = offset p
+tooth (Zipper _ t o _ _ _) = t + o
 {-# INLINE tooth #-}
 
 -- | Move the 'Zipper' 'upward', closing the current level and focusing on the parent element.
@@ -244,7 +243,7 @@ tooth (Zipper _ p _ _) = offset p
 -- NB: Attempts to move upward from the 'Top' of the 'Zipper' will fail to typecheck.
 --
 upward :: Ord j => h :> s:@j :> a:@i -> h :> s:@j
-upward (Zipper (Snoc h _ p j k) q i x) = Zipper h p j $ k $ recompress q i x
+upward (Zipper (Snoc h _ t o p j k) _ _ q i x) = Zipper h t o p j $ k $ recompress q i x
 {-# INLINE upward #-}
 
 -- | Jerk the 'Zipper' one 'tooth' to the 'rightward' within the current 'Lens' or 'Traversal'.
@@ -264,7 +263,7 @@ upward (Zipper (Snoc h _ p j k) q i x) = Zipper h p j $ k $ recompress q i x
 -- >>> rezip $ zipper (1,2) & fromWithin both & tug rightward & focus .~ 3
 -- (1,3)
 rightward :: MonadPlus m => h :> a:@i -> m (h :> a:@i)
-rightward (Zipper h p i a) = mover p (Leaf i a) mzero $ \q j b -> return $ Zipper h q j b
+rightward (Zipper h t o p i a) = mover p (Leaf i a) mzero $ \q j b -> return $ Zipper h t (o + 1) q j b where
 {-# INLINE rightward #-}
 
 -- | Jerk the 'zipper' 'leftward' one 'tooth' within the current 'Lens' or 'Traversal'.
@@ -284,7 +283,7 @@ rightward (Zipper h p i a) = mover p (Leaf i a) mzero $ \q j b -> return $ Zippe
 -- >>> zipper "hello" & fromWithin traverse & tug rightward & tug leftward & view focus
 -- 'h'
 leftward :: MonadPlus m => h :> a:@i -> m (h :> a:@i)
-leftward (Zipper h p i a) = movel p (Leaf i a) mzero $ \q j b -> return $ Zipper h q j b
+leftward (Zipper h t o p i a) = movel p (Leaf i a) mzero $ \q j b -> return $ Zipper h t (o - 1) q j b
 {-# INLINE leftward #-}
 
 -- | Move to the leftmost position of the current 'Traversal'.
@@ -294,7 +293,7 @@ leftward (Zipper h p i a) = movel p (Leaf i a) mzero $ \q j b -> return $ Zipper
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
 -- "hella"
 leftmost :: a :> b:@i -> a :> b:@i
-leftmost (Zipper h p i a) = startl Start (recompress p i a) (error "leftmost: bad Magma structure") (Zipper h)
+leftmost (Zipper h _ _ p i a) = startl Start (recompress p i a) (error "leftmost: bad Magma structure") (Zipper h 0 0)
 {-# INLINE leftmost #-}
 
 -- | Move to the rightmost position of the current 'Traversal'.
@@ -304,7 +303,7 @@ leftmost (Zipper h p i a) = startl Start (recompress p i a) (error "leftmost: ba
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
 -- "jelly"
 rightmost :: a :> b:@i -> a :> b:@i
-rightmost (Zipper h p i a) = startr Start (recompress p i a) (error "rightmost: bad Magma structure") (Zipper h)
+rightmost (Zipper h _ _ p i a) = startr Start (recompress p i a) (error "rightmost: bad Magma structure") (\q -> Zipper h (offset q) 0 q)
 {-# INLINE rightmost #-}
 
 -- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'zipper'. This
@@ -397,7 +396,7 @@ jerks f n0
 -- >>> zipper ("hello","world") & fromWithin (both.traverse) & teeth
 -- 10
 teeth :: h :> a:@i -> Int
-teeth (Zipper _ p _ _) = pathsize p
+teeth (Zipper _ _ _ p _ _) = pathsize p
 {-# INLINE teeth #-}
 
 -- | Move the 'Zipper' horizontally to the element in the @n@th position in the
@@ -441,7 +440,7 @@ tugTo n z = case compare k n of
 {-# INLINE tugTo #-}
 
 moveToward :: i -> h :> a:@i -> h :> a:@i
-moveToward i z@(Zipper h p0 j s0)
+moveToward i z@(Zipper h _ _ p0 j s0)
   | i == j   = z
   | otherwise = go Start (recompress p0 j s0)
   where
@@ -449,12 +448,12 @@ moveToward i z@(Zipper h p0 j s0)
     go p (Ap m nl nr li l r)
       | Last (Just k) <- maximal l, k >= i = go (ApL m nl nr li p r) l
       | otherwise      = go (ApR m nl nr li l p) r
-    go p (Leaf k a) = Zipper h p k a
+    go p (Leaf k a) = Zipper h (offset p) 0 p k a
 {-# INLINE moveToward #-}
 
 moveTo :: MonadPlus m => i -> h :> a:@i -> m (h :> a:@i)
 moveTo i z = case moveToward i z of
-  z'@(Zipper _ _ j _)
+  z'@(Zipper _ _ _ _ j _)
     | i == j    -> return z'
     | otherwise -> mzero
 {-# INLINE moveTo #-}
@@ -471,7 +470,7 @@ lensed l f = cloneLens l (indexed f (0 :: Int))
 -- 'downward' :: 'Iso'' s a  -> (h :> s) -> h :> s :> a
 -- @
 downward :: forall j h s a. ALens' s a -> h :> s:@j -> h :> s:@j :>> a
-downward l (Zipper h p j s) = Zipper (Snoc h l' p j go) Start 0 (s^.l')
+downward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start 0 (s^.l')
   where l' :: IndexedLens' Int s a
         l' = lensed l
         go (Leaf _ b) = set l' b s
@@ -479,7 +478,7 @@ downward l (Zipper h p j s) = Zipper (Snoc h l' p j go) Start 0 (s^.l')
 {-# INLINE downward #-}
 
 idownward :: forall i j h s a. Ord i => AnIndexedLens' i s a -> h :> s:@j -> h :> s:@j :> a:@i
-idownward l (Zipper h p j s) = Zipper (Snoc h l' p j go) Start i a
+idownward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start i a
   where l' :: IndexedLens' i s a
         l' = cloneIndexedLens l
         (i, a) = iview l' s
@@ -502,8 +501,8 @@ within = iwithin . indexing
 {-# INLINE within #-}
 
 iwithin :: (MonadPlus m, Ord i) => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
-iwithin l (Zipper h p j s) = case magma l (Context id) s of
-  Context k xs -> startl Start xs mzero $ \q i a -> return $ Zipper (Snoc h l p j k) q i a
+iwithin l (Zipper h t o p j s) = case magma l (Context id) s of
+  Context k xs -> startl Start xs mzero $ \q i a -> return $ Zipper (Snoc h l t o p j k) 0 0 q i a
 {-# INLINE iwithin #-}
 
 -- | Step down into every entry of a 'Traversal' simultaneously.
@@ -521,10 +520,10 @@ withins = iwithins . indexing
 {-# INLINE withins #-}
 
 iwithins :: (MonadPlus m, Ord i) => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
-iwithins t (Zipper h p j s) = case magma t (Context id) s of
-  Context k xs -> let up = Snoc h t p j k
+iwithins z (Zipper h t o p j s) = case magma z (Context id) s of
+  Context k xs -> let up = Snoc h z t o p j k
                       go q (Ap m nl nr li l r) = go (ApL m nl nr li q r) l `mplus` go (ApR m nl nr li l q) r
-                      go q (Leaf i a)       = return $ Zipper up q i a
+                      go q (Leaf i a)       = return $ Zipper up (offset q) 0 q i a
                       go _ Pure             = mzero
                   in  go Start xs
 {-# INLINE iwithins #-}
@@ -547,11 +546,11 @@ fromWithin = ifromWithin . indexing
 {-# INLINE fromWithin #-}
 
 ifromWithin :: Ord i => AnIndexedTraversal' i s a -> (h :> s:@j) -> h :> s:@j :> a:@i
-ifromWithin l (Zipper h p j s) = case magma l (Context id) s of
-  Context k xs -> let up = Snoc h l p j k in
-    startl Start xs (Zipper up Start (error "fromWithin an empty Traversal")
-                                     (error "fromWithin an empty Traversal"))
-                    (Zipper up)
+ifromWithin l (Zipper h t o p j s) = case magma l (Context id) s of
+  Context k xs -> let up = Snoc h l t o p j k in
+    startl Start xs (Zipper up 0 0 Start (error "fromWithin an empty Traversal")
+                                         (error "fromWithin an empty Traversal"))
+                    (Zipper up 0 0)
 {-# INLINE ifromWithin #-}
 
 -- | This enables us to pull the 'Zipper' back up to the 'Top'.
@@ -564,17 +563,17 @@ instance Zipping Top a where
   {-# INLINE recoil #-}
 
 instance Zipping h s => Zipping (Zipper h i s) a where
-  recoil (Snoc h _ p i k) as = recoil h $ recompress p i (k as)
+  recoil (Snoc h _ _ _ p i k) as = recoil h $ recompress p i (k as)
   {-# INLINE recoil #-}
 
 -- | Close something back up that you opened as a 'Zipper'.
 rezip :: Zipping h a => (h :> a:@i) -> Zipped h a
-rezip (Zipper h p i a) = recoil h (recompress p i a)
+rezip (Zipper h _ _ p i a) = recoil h (recompress p i a)
 {-# INLINE rezip #-}
 
 -- | Extract the current 'focus' from a 'Zipper' as a 'Pretext', with access to the current index.
 focusedContext :: (Indexable i p, Zipping h a) => (h :> a:@i) -> Pretext p a a (Zipped h a)
-focusedContext (Zipper h p i a) = Pretext (\f -> rezip . Zipper h p i <$> indexed f i a)
+focusedContext (Zipper h t o p i a) = Pretext (\f -> rezip . Zipper h t o p i <$> indexed f i a)
 {-# INLINE focusedContext #-}
 
 -----------------------------------------------------------------------------
@@ -587,7 +586,7 @@ data Tape h i a where
 
 -- | Save the current path as as a 'Tape' we can play back later.
 saveTape :: Zipper h i a -> Tape h i a
-saveTape (Zipper h _ i _) = Tape (peel h) i
+saveTape (Zipper h _ _ _ i _) = Tape (peel h) i
 {-# INLINE saveTape #-}
 
 -- | Restore ourselves to a previously recorded position precisely.
@@ -623,7 +622,7 @@ unsafelyRestoreTape (Tape h n) = unsafelyRestoreTrack h >>> moveToward n
 -- | This is used to peel off the path information from a 'Coil' for use when saving the current path for later replay.
 peel :: Coil h i a -> Track h i a
 peel Coil             = Track
-peel (Snoc h l _ i _) = Fork (peel h) i l
+peel (Snoc h l _ _ _ i _) = Fork (peel h) i l
 {-# INLINE peel #-}
 
 -- | The 'Track' forms the bulk of a 'Tape'.
