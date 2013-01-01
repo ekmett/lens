@@ -24,28 +24,42 @@
 <a name="line-15"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
 <a name="line-16"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
 <a name="line-17"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>packed</span>
-<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>text</span>
-<a name="line-19"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-20"></a>
-<a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span>
-<a name="line-23"></a>
-<a name="line-24"></a><a name="packed"></a><span class='hs-comment'>-- | 'pack' (or 'unpack') strict 'Text'.</span>
-<a name="line-25"></a><span class='hs-comment'>--</span>
-<a name="line-26"></a><span class='hs-comment'>-- @</span>
-<a name="line-27"></a><span class='hs-comment'>-- 'pack' x = x '^.' 'packed'</span>
-<a name="line-28"></a><span class='hs-comment'>-- 'unpack' x = x '^.' 'from' 'packed'</span>
+<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>builder</span>
+<a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>text</span>
+<a name="line-20"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-21"></a>
+<a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-23"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span>
+<a name="line-24"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span> <span class='hs-layout'>(</span><span class='hs-varid'>toStrict</span><span class='hs-layout'>)</span>
+<a name="line-25"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span>
+<a name="line-26"></a>
+<a name="line-27"></a><a name="packed"></a><span class='hs-comment'>-- | 'pack' (or 'unpack') strict 'Text'.</span>
+<a name="line-28"></a><span class='hs-comment'>--</span>
 <a name="line-29"></a><span class='hs-comment'>-- @</span>
-<a name="line-30"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>String</span> <span class='hs-conid'>Text</span>
-<a name="line-31"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>pack</span> <span class='hs-varid'>unpack</span>
-<a name="line-32"></a><span class='hs-comment'>{-# INLINE packed #-}</span>
-<a name="line-33"></a>
-<a name="line-34"></a><a name="text"></a><span class='hs-comment'>-- | Traverse the individual characters in strict 'Text'.</span>
-<a name="line-35"></a><span class='hs-comment'>--</span>
-<a name="line-36"></a><span class='hs-comment'>-- &gt;&gt;&gt; anyOf text (=='o') $ "hello"^.packed</span>
-<a name="line-37"></a><span class='hs-comment'>-- True</span>
-<a name="line-38"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>Char</span>
-<a name="line-39"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packed</span> <span class='hs-varop'>.</span> <span class='hs-varid'>itraversed</span>
-<a name="line-40"></a><span class='hs-comment'>{-# INLINE text #-}</span>
+<a name="line-30"></a><span class='hs-comment'>-- 'pack' x ≡ x '^.' 'packed'</span>
+<a name="line-31"></a><span class='hs-comment'>-- 'unpack' x ≡ x '^.' 'from' 'packed'</span>
+<a name="line-32"></a><span class='hs-comment'>-- @</span>
+<a name="line-33"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>String</span> <span class='hs-conid'>Text</span>
+<a name="line-34"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>pack</span> <span class='hs-varid'>unpack</span>
+<a name="line-35"></a><span class='hs-comment'>{-# INLINE packed #-}</span>
+<a name="line-36"></a>
+<a name="line-37"></a>
+<a name="line-38"></a><a name="builder"></a><span class='hs-comment'>-- | Convert between strict 'Text' and 'Builder' .</span>
+<a name="line-39"></a><span class='hs-comment'>--</span>
+<a name="line-40"></a><span class='hs-comment'>-- @</span>
+<a name="line-41"></a><span class='hs-comment'>-- 'fromText' x ≡ x '^.' 'builder'</span>
+<a name="line-42"></a><span class='hs-comment'>-- 'toStrict' ('toLazyText' x) ≡ x '^.' 'from' 'builder'</span>
+<a name="line-43"></a><span class='hs-comment'>-- @</span>
+<a name="line-44"></a><span class='hs-definition'>builder</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>Builder</span>
+<a name="line-45"></a><span class='hs-definition'>builder</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>fromText</span> <span class='hs-layout'>(</span><span class='hs-varid'>toStrict</span> <span class='hs-varop'>.</span> <span class='hs-varid'>toLazyText</span><span class='hs-layout'>)</span>
+<a name="line-46"></a><span class='hs-comment'>{-# INLINE builder #-}</span>
+<a name="line-47"></a>
+<a name="line-48"></a><a name="text"></a><span class='hs-comment'>-- | Traverse the individual characters in strict 'Text'.</span>
+<a name="line-49"></a><span class='hs-comment'>--</span>
+<a name="line-50"></a><span class='hs-comment'>-- &gt;&gt;&gt; anyOf text (=='o') $ "hello"^.packed</span>
+<a name="line-51"></a><span class='hs-comment'>-- True</span>
+<a name="line-52"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>Char</span>
+<a name="line-53"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packed</span> <span class='hs-varop'>.</span> <span class='hs-varid'>itraversed</span>
+<a name="line-54"></a><span class='hs-comment'>{-# INLINE text #-}</span>
 </pre></body>
 </html>
