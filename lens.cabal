@@ -61,7 +61,7 @@ description:
   .
   You can define lenses such as
   .
-  > -- bar :: Simple Lens (Foo a) Int
+  > -- bar :: Lens' (Foo a) Int
   > bar :: Functor f => (Int -> f Int) -> Foo a -> f (Foo a)
   > bar f (Foo a b c) = fmap (\a' -> Foo a' b c) (f a)
   .
@@ -73,7 +73,7 @@ description:
   .
   And you can define a traversal of multiple fields with 'Control.Applicative.Applicative':
   .
-  > -- traverseBarAndBaz :: Simple Traversal (Foo a) Int
+  > -- traverseBarAndBaz :: Traversal' (Foo a) Int
   > traverseBarAndBaz :: Applicative f => (Int -> f Int) -> Foo a -> f (Foo a)
   > traverseBarAndBaz f (Foo a b c) = Foo <$> f a <*> f b <*> pure c
   .

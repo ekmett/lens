@@ -21,7 +21,7 @@
 -- This defines the following lenses:
 --
 -- @
--- fooArgs :: 'Simple' 'Lens' (Foo a) ['String']
+-- fooArgs :: 'Lens'' (Foo a) ['String']
 -- fooValue :: 'Lens' (Foo a) (Foo b) a b
 -- @
 --

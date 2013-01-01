@@ -35,7 +35,7 @@ module Control.Lens.Setter
   , ASetter, ASetter'
   , AnIndexedSetter, AnIndexedSetter'
   -- * Building Setters
-  , sets
+  , sets, setting
   , cloneSetter
   , cloneIndexPreservingSetter
   , cloneIndexedSetter
