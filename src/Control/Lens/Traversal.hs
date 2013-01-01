@@ -174,7 +174,11 @@ type Traversing' p f s a = Traversing p f s s a a
 --
 -- This function is only provided for consistency, 'id' is strictly more general.
 --
--- @'traverseOf' ≡ 'id'@
+-- @
+-- 'traverseOf' ≡ 'id'
+-- 'itraverseOf' l ≡ 'traverseOf' l . 'Indexed'
+-- @
+--
 --
 -- This yields the obvious law:
 --
@@ -195,6 +199,7 @@ traverseOf = id
 --
 -- @
 -- 'for' ≡ 'forOf' 'traverse'
+-- 'ifor' l s ≡ 'for' l s . 'Indexed'
 -- @
 --
 -- This function is only provided for consistency, 'flip' is strictly more general.
@@ -233,7 +238,10 @@ sequenceAOf l = l id
 -- | Map each element of a structure targeted by a lens to a monadic action,
 -- evaluate these actions from left to right, and collect the results.
 --
--- @'mapM' ≡ 'mapMOf' 'traverse'@
+-- @
+-- 'mapM' ≡ 'mapMOf' 'traverse'
+-- 'imapMOf' l ≡ 'forM' l . 'Indexed'
+-- @
 --
 -- @
 -- 'mapMOf' ::            'Iso' s t a b       -> (a -> m b) -> s -> m t
@@ -248,6 +256,7 @@ mapMOf l cmd = unwrapMonad `rmap` l (rmap WrapMonad cmd)
 -- @
 -- 'forM' ≡ 'forMOf' 'traverse'
 -- 'forMOf' l ≡ 'flip' ('mapMOf' l)
+-- 'iforMOf' l s ≡ 'forM' l s . 'Indexed'
 -- @
 --
 -- @
