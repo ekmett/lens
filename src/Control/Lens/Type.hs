@@ -21,26 +21,40 @@
 -------------------------------------------------------------------------------
 module Control.Lens.Type
   (
-  -- * Lenses, Folds and Traversals
-    Lens, Lens'
-  , Traversal, Traversal'
+  -- * Other
+    Equality, Equality'
   , Iso, Iso'
   , Prism , Prism'
+  -- * Lenses, Folds and Traversals
+  , Lens, Lens'
+  , Traversal, Traversal'
   , Setter, Setter'
-  , Equality, Equality'
-  , Getter
-  , Fold
-  , Action
-  , MonadicFold
-  -- * Indexed Variants
-  , IndexedLens, IndexedLens', IndexPreservingLens, IndexPreservingLens'
-  , IndexedTraversal, IndexedTraversal', IndexPreservingTraversal, IndexPreservingTraversal'
-  , IndexedSetter, IndexedSetter', IndexPreservingSetter, IndexPreservingSetter'
-  , IndexedGetter, IndexPreservingGetter
-  , IndexedFold, IndexPreservingFold
-  , IndexedAction, IndexPreservingAction
-  , IndexedMonadicFold, IndexPreservingMonadicFold
-  -- * Index-preservation
+  , Getter, Fold
+  , Action, MonadicFold
+  -- * Indexed
+  , IndexedLens, IndexedLens'
+  , IndexedTraversal, IndexedTraversal'
+  , IndexedSetter, IndexedSetter'
+  , IndexedGetter, IndexedFold
+  , IndexedAction, IndexedMonadicFold
+  -- * Index-Preserving
+  , IndexPreservingLens, IndexPreservingLens'
+  , IndexPreservingTraversal, IndexPreservingTraversal'
+  , IndexPreservingSetter, IndexPreservingSetter'
+  , IndexPreservingGetter, IndexPreservingFold
+  , IndexPreservingAction, IndexPreservingMonadicFold
+  -- * Measured
+  , MeasuredLens, MeasuredLens'
+  , MeasuredTraversal, MeasuredTraversal'
+  , MeasuredSetter, MeasuredSetter'
+  , MeasuredGetter, MeasuredFold
+  , MeasuredAction, MeasuredMonadicFold
+  -- * Indexed and Measured
+  , IndexedMeasuredLens, IndexedMeasuredLens'
+  , IndexedMeasuredTraversal, IndexedMeasuredTraversal'
+  , IndexedMeasuredSetter, IndexedMeasuredSetter'
+  , IndexedMeasuredGetter, IndexedMeasuredFold
+  , IndexedMeasuredAction, IndexedMeasuredMonadicFold
   -- * Common
   , Simple
   , LensLike, LensLike'
@@ -124,6 +138,14 @@ type IndexPreservingLens s t a b = forall p f. (SelfAdjoint p, Functor f) => p a
 -- | @type 'IndexPreservingLens'' = 'Simple' 'IndexPreservingLens'@
 type IndexPreservingLens' s a = IndexPreservingLens s s a a
 
+type MeasuredLens m s t a b = forall q f. (Measurable m q, Functor f) => (a -> f b) -> q s (f t)
+
+type MeasuredLens' m s a = MeasuredLens m s s a a
+
+type IndexedMeasuredLens i m s t a b = forall p q f. (Indexable i p, Measurable m q, Functor f) => p a (f b) -> q s (f t)
+
+type IndexedMeasuredLens' i m s a = IndexedMeasuredLens i m s s a a
+
 ------------------------------------------------------------------------------
 -- Traversals
 ------------------------------------------------------------------------------
@@ -158,10 +180,6 @@ type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
 -- | @type 'Traversal'' = 'Simple' 'Traversal'@
 type Traversal' s a = Traversal s s a a
 
-------------------------------------------------------------------------------
--- Indexed Traversals
-------------------------------------------------------------------------------
-
 -- | Every indexed traversal is a valid 'Control.Lens.Traversal.Traversal' or
 -- 'Control.Lens.Fold.IndexedFold'.
 --
@@ -179,6 +197,14 @@ type IndexPreservingTraversal s t a b = forall p f. (SelfAdjoint p, Applicative 
 
 -- | @type 'IndexPreservingTraversal'' = 'Simple' 'IndexPreservingTraversal'@
 type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
+
+type MeasuredTraversal m s t a b = forall q f. (Measurable m q, Applicative f) => (a -> f b) -> q s (f t)
+
+type MeasuredTraversal' m s a = MeasuredTraversal m s s a a
+
+type IndexedMeasuredTraversal i m s t a b = forall p q f. (Indexable i p, Measurable m q, Applicative f) => p a (f b) -> q s (f t)
+
+type IndexedMeasuredTraversal' i m s a = IndexedMeasuredTraversal i m s s a a
 
 ------------------------------------------------------------------------------
 -- Setters
@@ -251,13 +277,21 @@ type IndexPreservingSetter s t a b = forall p f. (SelfAdjoint p, Settable f) => 
 
 type IndexPreservingSetter' s a = IndexPreservingSetter s s a a
 
+type MeasuredSetter m s t a b = forall q f. (Measurable m q, Settable f) => (a -> f b) -> q s (f t)
+
+type MeasuredSetter' m s a = MeasuredSetter m s s a a
+
+type IndexedMeasuredSetter i m s t a b = forall p q f. (Indexable i p, Measurable m q, Settable f) => p a (f b) -> q s (f t)
+
+type IndexedMeasuredSetter' i m s a = IndexedMeasuredSetter i m s s a a
+
 -----------------------------------------------------------------------------
 -- Isomorphisms
 -----------------------------------------------------------------------------
 
 -- | Isomorphism families can be composed with other lenses using ('.') and 'id'.
 --
--- Note: Composition with an 'Iso' is index-preserving.
+-- Note: Composition with an 'Iso' is index- and measure- preserving.
 type Iso s t a b = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f t)
 
 -- |
@@ -380,6 +414,10 @@ type IndexedGetter i s a = forall p f. (Indexable i p, Gettable f) => p a (f a) 
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold', 'IndexedFold' or 'IndexedGetter' respectively.
 type IndexPreservingGetter s a = forall p f. (SelfAdjoint p, Gettable f) => p a (f a) -> p s (f s)
 
+type MeasuredGetter m s a = forall q f. (Measurable m q, Gettable f) => (a -> f a) -> q s (f s)
+
+type IndexedMeasuredGetter i m s a = forall p q f. (Indexable i p, Measurable m q, Gettable f) => p a (f a) -> q s (f s)
+
 --------------------------
 -- Folds
 --------------------------
@@ -406,6 +444,10 @@ type IndexedFold i s a = forall p f.  (Indexable i p, Applicative f, Gettable f)
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
 type IndexPreservingFold s a = forall p f. (SelfAdjoint p, Gettable f, Applicative f) => p a (f a) -> p s (f s)
 
+type MeasuredFold m s a = forall q f. (Measurable m q, Gettable f, Applicative f) => (a -> f a) -> q s (f s)
+
+type IndexedMeasuredFold i m s a = forall p q f. (Indexable i p, Measurable m q, Gettable f, Applicative f) => p a (f a) -> q s (f s)
+
 -------------------------------------------------------------------------------
 -- Actions
 -------------------------------------------------------------------------------
@@ -428,6 +470,10 @@ type IndexedAction i m s a = forall p f r. (Indexable i p, Effective m r f) => p
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedMonadicFold', 'IndexedMonadicFold' or 'IndexedAction' respectively.
 type IndexPreservingAction m s a = forall p f r. (SelfAdjoint p, Effective m r f) => p a (f a) -> p s (f s)
 
+type MeasuredAction u m s a = forall q f r. (Measurable u q, Effective m r f) => (a -> f a) -> q s (f s)
+
+type IndexedMeasuredAction i u m s a = forall q p f r. (Indexable i p, Measurable u q, Effective m r f) => p a (f a) -> q s (f s)
+
 -------------------------------------------------------------------------------
 -- MonadicFolds
 -------------------------------------------------------------------------------
@@ -449,6 +495,10 @@ type IndexedMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f,
 -- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
 type IndexPreservingMonadicFold m s a = forall p f r. (SelfAdjoint p, Effective m r f, Applicative f) => p a (f a) -> p s (f s)
+
+type MeasuredMonadicFold u m s a = forall q f r. (Measurable u q, Effective m r f, Applicative f) => (a -> f a) -> q s (f s)
+
+type IndexedMeasuredMonadicFold i u m s a = forall q p f r. (Indexable i p, Measurable u q, Effective m r f, Applicative f) => p a (f a) -> q s (f s)
 
 -------------------------------------------------------------------------------
 -- Simple Overloading
