@@ -140,8 +140,10 @@ type ATraversal s t a b = LensLike (Bazaar (->) a b) s t a b
 -- | @type 'ATraversal'' = 'Simple' 'ATraversal'@
 type ATraversal' s a = ATraversal s s a a
 
+-- | When you see this as an argument to a function, it expects an 'IndexedTraversal'.
 type AnIndexedTraversal i s t a b = IndexedLensLike (Indexed i) (Bazaar (Indexed i) a b) s t a b
 
+-- | @type 'AnIndexedTraversal'' = 'Simple' ('AnIndexedTraversal' i)@
 type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
 
 -- | When you see this as an argument to a function, it expects
