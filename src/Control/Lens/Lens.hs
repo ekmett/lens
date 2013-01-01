@@ -91,6 +91,7 @@ module Control.Lens.Lens
 
   -- * Cloning Lenses
   , cloneLens
+  , cloneIndexPreservingLens
   , cloneIndexedLens
 
   -- * ALens Combinators
@@ -106,11 +107,13 @@ module Control.Lens.Lens
   ) where
 
 import Control.Applicative
+import Control.Comonad
 import Control.Lens.Combinators
 import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad.State as State
 import Data.Monoid
+import Data.Profunctor.Representable
 
 {-# ANN module "HLint: ignore Use ***" #-}
 
@@ -339,6 +342,10 @@ locus f w = (`iseek` w) <$> f (ipos w)
 cloneLens :: ALens s t a b -> Lens s t a b
 cloneLens l afb s = runPretext (l sell s) afb
 {-# INLINE cloneLens #-}
+
+cloneIndexPreservingLens :: ALens s t a b -> IndexPreservingLens s t a b
+cloneIndexPreservingLens l pafb = tabulatePro $ \ws -> runPretext (l sell (extract ws)) $ \a -> indexPro pafb (a <$ ws)
+{-# INLINE cloneIndexPreservingLens #-}
 
 cloneIndexedLens :: AnIndexedLens i s t a b -> IndexedLens i s t a b
 cloneIndexedLens l f s = runPretext (l sell s) (Indexed (indexed f))

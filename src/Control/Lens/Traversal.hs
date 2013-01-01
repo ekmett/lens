@@ -57,6 +57,7 @@ module Control.Lens.Traversal
 
   -- * Monomorphic Traversals
   , cloneTraversal
+  , cloneIndexPreservingTraversal
   , cloneIndexedTraversal
 
   -- * Parts and Holes
@@ -670,6 +671,11 @@ dropping n l pafb s = fst $ runIndexing (l paifb s) 0 where
 cloneTraversal :: ATraversal s t a b -> Traversal s t a b
 cloneTraversal l f s = runBazaar (l sell s) f
 {-# INLINE cloneTraversal #-}
+
+cloneIndexPreservingTraversal :: ATraversal s t a b -> IndexPreservingTraversal s t a b
+cloneIndexPreservingTraversal l pafb = tabulatePro $ \ws -> runBazaar (l sell (extract ws)) $ \a -> indexPro pafb (a <$ ws)
+{-# INLINE cloneIndexPreservingTraversal #-}
+
 
 cloneIndexedTraversal :: AnIndexedTraversal i s t a b -> IndexedTraversal i s t a b
 cloneIndexedTraversal l f s = runBazaar (l sell s) (Indexed (indexed f))

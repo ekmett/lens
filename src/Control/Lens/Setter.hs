@@ -37,6 +37,7 @@ module Control.Lens.Setter
   -- * Building Setters
   , sets
   , cloneSetter
+  , cloneIndexPreservingSetter
   , cloneIndexedSetter
   -- * Common Setters
   , mapped, lifted
@@ -196,10 +197,15 @@ sets f g = pure `rmap` f (rmap untainted g)
 {-# INLINE sets #-}
 
 -- | 'cloneSetter' :: (a -> 'Mutator' b) -> s -> 'Mutator' t) -> IndexPreservingSetter s t a b
-cloneSetter :: ASetter s t a b -> IndexPreservingSetter s t a b
-cloneSetter l pafb = tabulatePro $ \ws ->
-    pure . runMutator $ l (\a -> Mutator (untainted (indexPro pafb (a <$ ws)))) (extract ws)
+cloneSetter :: ASetter s t a b -> Setter s t a b
+cloneSetter l afb = taintedDot $ runMutator #. l (Mutator #. untaintedDot afb)
 {-# INLINE cloneSetter #-}
+
+-- | 'cloneSetter' :: (a -> 'Mutator' b) -> s -> 'Mutator' t) -> IndexPreservingSetter s t a b
+cloneIndexPreservingSetter :: ASetter s t a b -> IndexPreservingSetter s t a b
+cloneIndexPreservingSetter l pafb = tabulatePro $ \ws ->
+    pure . runMutator $ l (\a -> Mutator (untainted (indexPro pafb (a <$ ws)))) (extract ws)
+{-# INLINE cloneIndexPreservingSetter #-}
 
 cloneIndexedSetter :: AnIndexedSetter i s t a b -> IndexedSetter i s t a b
 cloneIndexedSetter l pafb = (pure .# runMutator) . l (Indexed $ \i a -> Mutator #. untainted $ indexed pafb i a)

@@ -30,9 +30,9 @@ module Control.Lens.Type
   , Action
   , MonadicFold
   -- * Indexed Variants
-  , IndexedLens, IndexedLens'
-  , IndexedTraversal, IndexedTraversal'
-  , IndexedSetter, IndexedSetter', IndexPreservingSetter
+  , IndexedLens, IndexedLens', IndexPreservingLens, IndexPreservingLens'
+  , IndexedTraversal, IndexedTraversal', IndexPreservingTraversal, IndexPreservingTraversal'
+  , IndexedSetter, IndexedSetter', IndexPreservingSetter, IndexPreservingSetter'
   , IndexedGetter, IndexPreservingGetter
   , IndexedFold, IndexPreservingFold
   , IndexedAction, IndexPreservingAction
@@ -115,6 +115,10 @@ type IndexedLens i s t a b = forall f p. (Indexable i p, Functor f) => p a (f b)
 -- | @type 'IndexedLens'' i = 'Simple' ('IndexedLens' i)@
 type IndexedLens' i s a = IndexedLens i s s a a
 
+type IndexPreservingLens s t a b = forall p f. (SelfAdjoint p, Functor f) => p a (f b) -> p s (f t)
+
+type IndexPreservingLens' s a = IndexPreservingLens s s a a
+
 ------------------------------------------------------------------------------
 -- Traversals
 ------------------------------------------------------------------------------
@@ -160,10 +164,14 @@ type Traversal' s a = Traversal s s a a
 -- directly as a 'Control.Lens.Traversal.Traversal'.
 --
 -- The 'Control.Lens.Traversal.Traversal' laws are still required to hold.
-type IndexedTraversal i s t a b = forall f p. (Indexable i p, Applicative f) => p a (f b) -> s -> f t
+type IndexedTraversal i s t a b = forall p f. (Indexable i p, Applicative f) => p a (f b) -> s -> f t
 
 -- | @type 'IndexedTraversal'' i = 'Simple' ('IndexedTraversal' i)@
 type IndexedTraversal' i s a = IndexedTraversal i s s a a
+
+type IndexPreservingTraversal s t a b = forall p f. (SelfAdjoint p, Applicative f) => p a (f b) -> p s (f t)
+
+type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
 
 ------------------------------------------------------------------------------
 -- Setters
@@ -233,6 +241,8 @@ type IndexedSetter' i s a = IndexedSetter i s s a a
 -- | An 'IndexPreservingSetter' can be composed with a 'IndexedSetter', 'IndexedTraversal' or 'IndexedLens'
 -- and leaves the index intact, yielding an 'IndexedSetter'.
 type IndexPreservingSetter s t a b = forall p f. (SelfAdjoint p, Settable f) => p a (f b) -> p s (f t)
+
+type IndexPreservingSetter' s a = IndexPreservingSetter s s a a
 
 -----------------------------------------------------------------------------
 -- Isomorphisms
