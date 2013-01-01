@@ -143,7 +143,7 @@ import Data.Profunctor.Representable
 -- >>> import Control.Exception (evaluate)
 -- >>> import Data.Maybe (fromMaybe)
 -- >>> import System.Timeout (timeout)
--- >>> let timeouting :: NFData a => a -> IO a; timeouting = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
+-- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
 {-# ANN module "HLint: ignore Use camelCase" #-}
@@ -182,7 +182,7 @@ folded f = coerce . getFolding . foldMap (Folding #. f)
 --
 -- @'repeat' ≡ 'toListOf' 'repeated'@
 --
--- >>> timeouting $ 5^..taking 20 repeated
+-- >>> timingOut $ 5^..taking 20 repeated
 -- [5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5]
 repeated :: Fold a a
 repeated f a = as where as = f a *> as
@@ -203,7 +203,7 @@ replicated n0 f a = go n0 where
 
 -- | Transform a fold into a fold that loops over its elements over and over.
 --
--- >>> timeouting $ [1,2,3]^..taking 7 (cycled traverse)
+-- >>> timingOut $ [1,2,3]^..taking 7 (cycled traverse)
 -- [1,2,3,1,2,3,1]
 cycled :: (Applicative f, Gettable f) => LensLike f s t a b -> LensLike f s t a b
 cycled l f a = as where as = l f a *> as
@@ -252,7 +252,7 @@ filtered p f = tabulatePro $ \ wa -> let a = extract wa in if p a then indexPro 
 --
 -- @'takeWhile' p ≡ 'toListOf' ('takingWhile' p 'folded')@
 --
--- >>> timeouting $ toListOf (takingWhile (<=3) folded) [1..]
+-- >>> timingOut $ toListOf (takingWhile (<=3) folded) [1..]
 -- [1,2,3]
 --
 -- @
