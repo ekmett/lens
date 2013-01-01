@@ -203,19 +203,18 @@ sets :: (Profunctor p, Profunctor q, Settable f) => (p a b -> q s t) -> Overload
 sets f g = pure `rmap` f (rmap untainted g)
 {-# INLINE sets #-}
 
--- | Build an index-preserving setter
-
--- | 'cloneSetter' :: (a -> 'Mutator' b) -> s -> 'Mutator' t) -> IndexPreservingSetter s t a b
+-- | Restore 'ASetter' to a full 'Setter'.
 cloneSetter :: ASetter s t a b -> Setter s t a b
 cloneSetter l afb = taintedDot $ runMutator #. l (Mutator #. untaintedDot afb)
 {-# INLINE cloneSetter #-}
 
--- | 'cloneSetter' :: (a -> 'Mutator' b) -> s -> 'Mutator' t) -> IndexPreservingSetter s t a b
+-- | Build an 'IndexPreservingSetter' from any 'Setter'.
 cloneIndexPreservingSetter :: ASetter s t a b -> IndexPreservingSetter s t a b
 cloneIndexPreservingSetter l pafb = tabulatePro $ \ws ->
     pure . runMutator $ l (\a -> Mutator (untainted (indexPro pafb (a <$ ws)))) (extract ws)
 {-# INLINE cloneIndexPreservingSetter #-}
 
+-- | Clone an 'IndexedSetter'.
 cloneIndexedSetter :: AnIndexedSetter i s t a b -> IndexedSetter i s t a b
 cloneIndexedSetter l pafb = (pure .# runMutator) . l (Indexed $ \i a -> Mutator #. untainted $ indexed pafb i a)
 {-# INLINE cloneIndexedSetter #-}
@@ -265,12 +264,6 @@ cloneIndexedSetter l pafb = (pure .# runMutator) . l (Indexed $ \i a -> Mutator 
 over :: (Profunctor p, Profunctor q) => Overloading p q Mutator s t a b -> p a b -> q s t
 over l f = runMutator `rmap` l (rmap Mutator f)
 {-# INLINE over #-}
-
--- | 'mapOf' is a deprecated alias for 'over'.
-mapOf :: ASetter s t a b -> (a -> b) -> s -> t
-mapOf = over
-{-# INLINE mapOf #-}
-{-# DEPRECATED mapOf "Use `over`" #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
 -- or 'Traversal' with a constant value.
@@ -1056,6 +1049,13 @@ l %@= f = State.modify (l %@~ f)
 -- Deprecated
 ------------------------------------------------------------------------------
 
+-- | 'mapOf' is a deprecated alias for 'over'.
+mapOf :: ASetter s t a b -> (a -> b) -> s -> t
+mapOf = over
+{-# INLINE mapOf #-}
+{-# DEPRECATED mapOf "Use `over`" #-}
+
+
 -- | Map with index. (Deprecated alias for 'iover')
 --
 -- When you do not need access to the index, then 'mapOf' is more liberal in what it can accept.
@@ -1070,4 +1070,4 @@ l %@= f = State.modify (l %@~ f)
 imapOf :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
 imapOf l f = runMutator #. l (Indexed $ \i -> Mutator #. f i)
 {-# INLINE imapOf #-}
-{-# DEPRECATED imapOf "use iover" #-}
+{-# DEPRECATED imapOf "Use `iover`" #-}
