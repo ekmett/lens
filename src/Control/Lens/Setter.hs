@@ -113,7 +113,7 @@ type ASetter s t a b = (a -> Mutator b) -> s -> Mutator t
 -- @type 'ASetter'' = 'Simple' 'ASetter'@
 type ASetter' s a = ASetter s s a a
 
--- Running an 'IndexedSetter' instantiates it to a concrete type.
+-- | Running an 'IndexedSetter' instantiates it to a concrete type.
 --
 -- When consuming a setter directly to perform a mapping, you can use this type, but most
 -- user code will not need to use this type.
@@ -121,7 +121,7 @@ type ASetter' s a = ASetter s s a a
 -- By choosing 'Mutator' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
 type AnIndexedSetter i s t a b = Indexed i a (Mutator b) -> s -> Mutator t
 
--- @type 'AnIndexedSetter'' i = 'Simple' ('AnIndexedSetter' i)@
+-- | @type 'AnIndexedSetter'' i = 'Simple' ('AnIndexedSetter' i)@
 type AnIndexedSetter' i s a = AnIndexedSetter i s s a a
 
 -----------------------------------------------------------------------------
@@ -968,8 +968,6 @@ l <>= a = State.modify (l <>~ a)
 -- Indexed Setters
 ----------------------------------------------------------------------------
 
--- | Used to consume an 'IndexedSetter'
-type IndexedSetting i s t a b = IndexedLensLike (Indexed i) Mutator s t a b
 
 -- | Map with index. This is an alias for 'imapOf'.
 --
@@ -985,7 +983,7 @@ type IndexedSetting i s t a b = IndexedLensLike (Indexed i) Mutator s t a b
 -- 'iover' :: 'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- 'iover' :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
-iover :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
+iover :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
 iover l = over l .# Indexed
 {-# INLINE iover #-}
 
@@ -1025,7 +1023,7 @@ isets f = sets (f . indexed)
 -- ('%@~') :: 'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- ('%@~') :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
-(%@~) :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
+(%@~) :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
 l %@~ f = l %~ Indexed f
 {-# INLINE (%@~) #-}
 
@@ -1041,7 +1039,7 @@ l %@~ f = l %~ Indexed f
 -- ('%@=') :: 'MonadState' s m => 'IndexedLens' i s s a b      -> (i -> a -> b) -> m ()
 -- ('%@=') :: 'MonadState' s m => 'IndexedTraversal' i s t a b -> (i -> a -> b) -> m ()
 -- @
-(%@=) :: MonadState s m => IndexedSetting i s s a b -> (i -> a -> b) -> m ()
+(%@=) :: MonadState s m => AnIndexedSetter i s s a b -> (i -> a -> b) -> m ()
 l %@= f = State.modify (l %@~ f)
 {-# INLINE (%@=) #-}
 
@@ -1067,7 +1065,7 @@ mapOf = over
 -- 'imapOf' :: 'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- 'imapOf' :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
-imapOf :: IndexedSetting i s t a b -> (i -> a -> b) -> s -> t
+imapOf :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
 imapOf l f = runMutator #. l (Indexed $ \i -> Mutator #. f i)
 {-# INLINE imapOf #-}
 {-# DEPRECATED imapOf "Use `iover`" #-}
