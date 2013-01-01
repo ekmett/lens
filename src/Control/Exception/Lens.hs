@@ -22,6 +22,11 @@
 -- Stability   :  provisional
 -- Portability :  Control.Exception
 --
+-- @Control.Exception@ provides an example of a large open hierarchy
+-- that we can model with prisms and isomorphisms.
+--
+-- Additional combinators for working with 'IOException' results can
+-- be found in "System.IO.Error.Lens".
 ----------------------------------------------------------------------------
 module Control.Exception.Lens
   (
@@ -101,6 +106,10 @@ import Control.Lens.Internal
 import Data.Monoid
 import GHC.Conc (ThreadId)
 
+-- $setup
+-- >>> import Data.List
+-- >>> import Control.Monad
+
 -- |
 -- Traverse the strongly typed 'Exception' contained in 'SomeException' where the type of your function matches
 -- the desired 'Exception'.
@@ -113,7 +122,11 @@ exception :: Exception a => Prism' SomeException a
 exception = prism toException $ \ e -> maybe (Left e) Right $ fromException e
 {-# INLINE exception #-}
 
--- |
+-- | Catch exceptions that match a given 'Prism' (or any 'Getter', really).
+--
+-- >>> catching assertionFailed (assert False (return "uncaught")) $ \ _ -> return "caught"
+-- "caught"
+--
 -- @
 -- 'catching' :: 'Prism'' 'SomeException' a     -> 'IO' r -> (a -> 'IO' r) -> 'IO' r
 -- 'catching' :: 'Lens'' 'SomeException' a      -> 'IO' r -> (a -> 'IO' r) -> 'IO' r
@@ -126,7 +139,14 @@ catching :: Getting (Endo (Maybe a)) SomeException t a b -> IO r -> (a -> IO r) 
 catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
--- |
+-- | Catch exceptions that match a given 'Prism' (or any 'Getter'), discarding
+-- the information about the match. This is particuarly useful when you have
+-- a @'Prism'' 'SomeException' ()@ where the result of the prism or fold isn't
+-- particularly valuable, just the fact that it matches.
+--
+-- >>> catching_ assertionFailed (assert False (return "uncaught")) $ return "caught"
+-- "caught"
+--
 -- @
 -- 'catching_' :: 'Prism'' 'SomeException' a     -> 'IO' r -> 'IO' r -> 'IO' r
 -- 'catching_' :: 'Lens'' 'SomeException' a      -> 'IO' r -> 'IO' r -> 'IO' r
@@ -139,7 +159,11 @@ catching_ :: Getting (Endo (Maybe a)) SomeException t a b -> IO r -> IO r -> IO 
 catching_ l a b = catchJust (preview l) a (const b)
 {-# INLINE catching_ #-}
 
--- |
+-- | A version of 'catching' with the arguments swapped around; useful in
+-- situations where the code for the handler is shorter.
+--
+-- >>> handling nonTermination (\_ -> return "caught") $ throwIO NonTermination
+-- "caught"
 --
 -- @
 -- 'handling' :: 'Prism'' 'SomeException' a     -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
@@ -153,7 +177,9 @@ handling :: Getting (Endo (Maybe a)) SomeException t a b -> (a -> IO r) -> IO r 
 handling l = handleJust (preview l)
 {-# INLINE handling #-}
 
--- |
+-- | A version of 'catching_' with the arguments swapped around; useful in
+-- situations where the code for the handler is shorter.
+--
 -- >>> handling_ nonTermination (return "caught") $ throwIO NonTermination
 -- "caught"
 --
@@ -229,14 +255,20 @@ throwingTo tid l = reviews l (throwTo tid)
 -- IOException
 ----------------------------------------------------------------------------
 
--- Exceptions that occur in the IO monad. An IOException records a more specific error type, a descriptive string and maybe the handle that was used when the error was flagged.
+-- Exceptions that occur in the IO monad. An IOException records a more
+-- specific error type, a descriptive string and maybe the handle that was
+-- used when the error was flagged.
 class AsIOException p f t where
-  -- | Unfortunately ioException is taken by @base@ for throwing IOExceptions.
+  -- | Unfortunately the name 'ioException' is taken by @base@ for
+  -- throwing IOExceptions.
   --
   -- @
   -- 'ioErr' :: 'Equality'' 'IOException' 'IOException'
   -- 'ioErr' :: 'Prism'' 'SomeException' 'IOException'
   -- @
+  --
+  -- Many combinators for working with an 'IOException' are available
+  -- in "System.IO.Error.Lens".
   ioErr :: Overloaded' p f t IOException
 
 instance AsIOException p f IOException where
@@ -268,7 +300,8 @@ instance (Prismatic p, Applicative f) => AsArithException p f SomeException wher
   arithException = exception
   {-# INLINE arithException #-}
 
--- |
+-- | Handle arithmetic overflow.
+--
 -- @'overflow' ≡ 'arithException' . 'overflow'@
 --
 -- @
@@ -283,7 +316,8 @@ overflow = case runPrism arithException of
     Right a -> Left (bt a)
 {-# INLINE overflow #-}
 
--- |
+-- | Handle arithmetic underflow.
+--
 -- @'underflow' ≡ 'arithException' . 'underflow'@
 --
 -- @
@@ -298,7 +332,8 @@ underflow = case runPrism arithException of
     Right a -> Left (bt a)
 {-# INLINE underflow #-}
 
--- |
+-- | Handle arithmetic loss of precision.
+--
 -- @'lossOfPrecision' ≡ 'arithException' . 'lossOfPrecision'@
 --
 -- @
@@ -313,7 +348,8 @@ lossOfPrecision = case runPrism arithException of
     Right a -> Left (bt a)
 {-# INLINE lossOfPrecision #-}
 
--- |
+-- | Handle division by zero.
+--
 -- @'divideByZero' ≡ 'arithException' . 'divideByZero'@
 --
 -- @
@@ -328,7 +364,8 @@ divideByZero = case runPrism arithException of
     Right a -> Left (bt a)
 {-# INLINE divideByZero #-}
 
--- |
+-- | Handle exceptional denormalized floating point.
+--
 -- @'denormal' ≡ 'arithException' . 'denormal'@
 --
 -- @
@@ -344,7 +381,10 @@ denormal = case runPrism arithException of
 {-# INLINE denormal #-}
 
 #if MIN_VERSION_base(4,6,0)
--- |
+-- | Added in @base@ 4.6 in response to this libraries discussion:
+--
+-- <http://haskell.1045720.n5.nabble.com/Data-Ratio-and-exceptions-td5711246.html>
+--
 -- @'ratioZeroDenominator' ≡ 'arithException' . 'ratioZeroDenominator'@
 --
 -- @
@@ -366,7 +406,8 @@ ratioZeroDenominator = case runPrism arithException of
 
 -- | Exceptions generated by array operations
 class AsArrayException p f t where
-  -- |
+  -- | Extract information about an array exception.
+  --
   -- @
   -- 'arrayException' :: 'Equality'' 'ArrayException' 'ArrayException'
   -- 'arrayException' :: 'Prism''    'SomeException'  'ArrayException'
@@ -409,16 +450,20 @@ undefinedElement = case runPrism arrayException of
 
 -- | 'assert' was applied to 'False'.
 class AsAssertionFailed p f t where
-  -- |
+  -- | Exception for failed assertions
+  --
   -- @
   -- 'assertionFailed' :: 'Equality'' 'AssertionFailed' 'AssertionFailed'
   -- 'assertionFailed' :: 'Prism''    'SomeException'   'AssertionFailed'
   -- @
   assertionFailed :: Overloaded' p f t AssertionFailed
 
--- | Retrieve the text of a failed assertion
+-- | Retrieve the text of a failed assertion.
 --
 -- 'AssertionFailed' is isomorphic to a 'String'
+--
+-- >>> handling _assertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
+-- "caught"
 --
 -- @
 -- '_assertionFailed' :: 'Iso'' 'AssertionFailed' 'String'
