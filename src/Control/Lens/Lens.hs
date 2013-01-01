@@ -113,6 +113,7 @@ import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad.State as State
 import Data.Monoid
+import Data.Profunctor
 import Data.Profunctor.Representable
 
 {-# ANN module "HLint: ignore Use ***" #-}
@@ -294,9 +295,16 @@ choosing _ r f (Right a') = Right <$> r f a'
 --
 -- >>> Right a & chosen *~ b
 -- Right (a * b)
-chosen :: Lens (Either a a) (Either b b) a b
-chosen f (Left a) = Left <$> f a
-chosen f (Right a) = Right <$> f a
+--
+-- @
+-- 'chosen' :: 'Lens' ('Either' a a) ('Either' b b) a b
+-- 'chosen' f ('Left' a)  = 'Left' '<$>' f a
+-- 'chosen' f ('Right' a) = 'Right' '<$>' f a
+-- @
+chosen :: IndexPreservingLens (Either a a) (Either b b) a b
+chosen pafb = tabulatePro $ \weaa -> indexPro (either id id `lmap` pafb) weaa <&> \b -> case extract weaa of
+  Left _  -> Left  b
+  Right _ -> Right b
 {-# INLINE chosen #-}
 
 -- | 'alongside' makes a 'Lens' from two other lenses.
