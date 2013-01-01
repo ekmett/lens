@@ -50,6 +50,9 @@ import Data.Monoid
 -- >>> import Control.Lens
 -- >>> import Data.Char
 
+-- * Paths
+
+-- | A Path into a 'Magma' that ends at a 'Leaf'
 data Path i a
   = ApL Int Bool Bool (Last i) !(Path i a) !(Magma i a)
   | ApR Int Bool Bool (Last i) !(Magma i a) !(Path i a)
@@ -62,12 +65,17 @@ instance Functor (Path i) where
   fmap _ Start = Start
   {-# INLINE fmap #-}
 
+-- | Calculate the absolute position of the leaf targeted by a 'Path'.
+--
+-- This can be quite expensive for right-biased traversals such as you
+-- receive from a list.
 offset :: Path i a -> Int
 offset Start           = 0
 offset (ApL _ _ _ _ q _) = offset q
 offset (ApR _ _ _ _ l q) = size l + offset q
 {-# INLINE offset #-}
 
+-- | Return the total number of children in the 'Magma' by walking the path to the root.
 pathsize :: Path i a -> Int
 pathsize = go 1 where
   go n Start = n
@@ -75,12 +83,15 @@ pathsize = go 1 where
   go _ (ApR n _ _ _ _ p) = go n p
 {-# INLINE pathsize #-}
 
+-- * Recursion
+--
 -- For several operations, we unroll the first step of the recursion (or part
 -- of it) so GHC can inline better. There are two specific cases that we care
 -- about: The "lens case", where the entire tree is just (Leaf (Identity x)), and the
 -- "list case", where the traversal tree is right-biased, as in (Ap (Leaf (Identity x))
 -- (Ap (Leaf (Identity y)) ...)). It should be safe to delete any of these cases.
 
+-- | Reconstruct a 'Magma' from a 'Path'
 recompress :: Path i a -> i -> a -> Magma i a
 recompress Start i a = Leaf i a -- Unrolled: The lens case.
 recompress (ApL m _ _ li Start r) i a = Ap m False False li (Leaf i a) r -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
@@ -90,7 +101,7 @@ recompress p i a = go p (Leaf i a) where
   go (ApR m _ _ li l q) r = go q (Ap m False False li l r)
 {-# INLINE recompress #-}
 
--- walk down the compressed tree to the leftmost child.
+-- | Walk down the tree to the leftmost child.
 startl :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
 startl p0 (Leaf i a) _ kp = kp p0 i a -- Unrolled: The lens case.
 startl p0 (Ap m nl nr li (Leaf i a) r) _ kp = kp (ApL m nl nr li p0 r) i a -- Unrolled: The list case. (Is this one a good idea?)
@@ -102,6 +113,7 @@ startl p0 c0 kn kp = go p0 c0 where
   go _ Pure       = kn
 {-# INLINE startl #-}
 
+-- | Walk down the tree to the rightmost child.
 startr :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
 startr p0 (Leaf i a) _ kp = kp p0 i a -- Unrolled: The lens case.
 startr p0 c0 kn kp = go p0 c0 where
@@ -112,6 +124,7 @@ startr p0 c0 kn kp = go p0 c0 where
   go _ Pure        = kn
 {-# INLINE startr #-}
 
+-- | Move left one leaf.
 movel :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
 movel p0 c0 kn kp = go p0 c0 where
   go Start _ = kn
@@ -121,6 +134,7 @@ movel p0 c0 kn kp = go p0 c0 where
   go (ApL m _ _ li p r) l = go p (Ap m False False li l r)
 {-# INLINE movel #-}
 
+-- | Move right one leaf.
 mover :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
 mover p0 c0 kn kp = go p0 c0 where
   go Start _ = kn
@@ -138,7 +152,7 @@ mover p0 c0 kn kp = go p0 c0 where
 --
 -- Every 'Zipper' starts with 'Top'.
 --
--- /e.g./ @'Top' ':>' a@ is the type of the trivial 'Zipper'.
+-- /e.g./ @'Top' ':>>' a@ is the type of the trivial 'Zipper'.
 data Top
 
 
@@ -148,7 +162,7 @@ data Top
 --
 -- This type operator associates to the left, so you can use a type like
 --
--- @'Top' ':>' ('String','Double') ':>' 'String' ':>' 'Char'@
+-- @'Top' ':>>' ('String','Double') ':>>' 'String' ':>>' 'Char'@
 --
 -- to represent a zipper from @('String','Double')@ down to 'Char' that has an intermediate
 -- crumb for the 'String' containing the 'Char'.
@@ -197,9 +211,6 @@ data Coil t i a where
   Snoc :: Ord i => !(Coil h j s) -> AnIndexedTraversal' i s a -> !(Path j s) -> j -> (Magma i a -> s) -> Coil (Zipper h j s) i a
 #endif
 
---downward :: forall j h s a. ALens' s a -> h :> s:@j -> h :> s:@j :> a:@Int
---downward l (Zipper h p j s) = Zipper (Snoc h l' p j go) Start 0 (s^.l')
-
 -- | This 'Lens' views the current target of the 'Zipper'.
 focus :: IndexedLens' i (Zipper h i a) a
 focus f (Zipper h p i a) = Zipper h p i <$> indexed f i a
@@ -233,7 +244,6 @@ tooth (Zipper _ p _ _) = offset p
 -- NB: Attempts to move upward from the 'Top' of the 'Zipper' will fail to typecheck.
 --
 upward :: Ord j => h :> s:@j :> a:@i -> h :> s:@j
--- upward :: Zipper (Zipper h i s) j a -> Zipper h i s
 upward (Zipper (Snoc h _ p j k) q i x) = Zipper h p j $ k $ recompress q i x
 {-# INLINE upward #-}
 
@@ -253,7 +263,7 @@ upward (Zipper (Snoc h _ p j k) q i x) = Zipper h p j $ k $ recompress q i x
 --
 -- >>> rezip $ zipper (1,2) & fromWithin both & tug rightward & focus .~ 3
 -- (1,3)
-rightward :: MonadPlus m => (h :> a:@i) -> m (h :> a:@i)
+rightward :: MonadPlus m => h :> a:@i -> m (h :> a:@i)
 rightward (Zipper h p i a) = mover p (Leaf i a) mzero $ \q j b -> return $ Zipper h q j b
 {-# INLINE rightward #-}
 
@@ -273,7 +283,7 @@ rightward (Zipper h p i a) = mover p (Leaf i a) mzero $ \q j b -> return $ Zippe
 --
 -- >>> zipper "hello" & fromWithin traverse & tug rightward & tug leftward & view focus
 -- 'h'
-leftward :: MonadPlus m => (h :> a:@i) -> m (h :> a:@i)
+leftward :: MonadPlus m => h :> a:@i -> m (h :> a:@i)
 leftward (Zipper h p i a) = movel p (Leaf i a) mzero $ \q j b -> return $ Zipper h q j b
 {-# INLINE leftward #-}
 
@@ -283,7 +293,7 @@ leftward (Zipper h p i a) = movel p (Leaf i a) mzero $ \q j b -> return $ Zipper
 --
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
 -- "hella"
-leftmost :: (a :> b:@i) -> a :> b:@i
+leftmost :: a :> b:@i -> a :> b:@i
 leftmost (Zipper h p i a) = startl Start (recompress p i a) (error "leftmost: bad Magma structure") (Zipper h)
 {-# INLINE leftmost #-}
 
@@ -293,7 +303,7 @@ leftmost (Zipper h p i a) = startl Start (recompress p i a) (error "leftmost: ba
 --
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
 -- "jelly"
-rightmost :: (a :> b:@i) -> a :> b:@i
+rightmost :: a :> b:@i -> a :> b:@i
 rightmost (Zipper h p i a) = startr Start (recompress p i a) (error "rightmost: bad Magma structure") (Zipper h)
 {-# INLINE rightmost #-}
 
@@ -366,6 +376,8 @@ jerks f n0
 -- @'teeth' z '>=' 1@
 --
 -- /NB:/ If the current 'Traversal' targets an infinite number of elements then this may not terminate.
+--
+-- This is also a particularly expensive operation to perform on an unbalanced tree.
 --
 -- >>> zipper ("hello","world") & teeth
 -- 1
