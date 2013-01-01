@@ -15,6 +15,9 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
+-- This module exports the majority of the types that need to appear in user
+-- signatures or in documentation when talking about lenses. The remaining types
+-- for consuming lenses are distributed across various modules in the hierarchy.
 -------------------------------------------------------------------------------
 module Control.Lens.Type
   (
@@ -115,8 +118,10 @@ type IndexedLens i s t a b = forall f p. (Indexable i p, Functor f) => p a (f b)
 -- | @type 'IndexedLens'' i = 'Simple' ('IndexedLens' i)@
 type IndexedLens' i s a = IndexedLens i s s a a
 
+-- | An 'IndexPreservingLens' leaves any index it is composed with alone.
 type IndexPreservingLens s t a b = forall p f. (SelfAdjoint p, Functor f) => p a (f b) -> p s (f t)
 
+-- | @type 'IndexPreservingLens'' = 'Simple' 'IndexPreservingLens'@
 type IndexPreservingLens' s a = IndexPreservingLens s s a a
 
 ------------------------------------------------------------------------------
@@ -169,8 +174,10 @@ type IndexedTraversal i s t a b = forall p f. (Indexable i p, Applicative f) => 
 -- | @type 'IndexedTraversal'' i = 'Simple' ('IndexedTraversal' i)@
 type IndexedTraversal' i s a = IndexedTraversal i s s a a
 
+-- | An 'IndexPreservingLens' leaves any index it is composed with alone.
 type IndexPreservingTraversal s t a b = forall p f. (SelfAdjoint p, Applicative f) => p a (f b) -> p s (f t)
 
+-- | @type 'IndexPreservingTraversal'' = 'Simple' 'IndexPreservingTraversal'@
 type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
 
 ------------------------------------------------------------------------------
