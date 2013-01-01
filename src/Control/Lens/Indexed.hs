@@ -459,7 +459,7 @@ iforM = flip imapM
 --
 -- @'Control.Lens.Traversal.mapAccumR' ≡ 'imapAccumR' '.' 'const'@
 imapAccumR :: TraversableWithIndex i t => (i -> s -> a -> (s, b)) -> s -> t a -> (s, t b)
-imapAccumR f s0 a = swap (Lazy.runState (itraverse (\i c -> Lazy.state (\s -> swap (f i s c))) a) s0)
+imapAccumR f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)
 {-# INLINE imapAccumR #-}
 
 -- | Generalizes 'Data.Traversable.mapAccumL' to add access to the index.
@@ -468,7 +468,7 @@ imapAccumR f s0 a = swap (Lazy.runState (itraverse (\i c -> Lazy.state (\s -> sw
 --
 -- @'Control.Lens.Traversal.mapAccumLOf' ≡ 'imapAccumL' '.' 'const'@
 imapAccumL :: TraversableWithIndex i t => (i -> s -> a -> (s, b)) -> s -> t a -> (s, t b)
-imapAccumL f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)
+imapAccumL f s0 a = swap (Lazy.runState (itraverse (\i c -> Lazy.state (\s -> swap (f i s c))) a) s0)
 {-# INLINE imapAccumL #-}
 
 -------------------------------------------------------------------------------
