@@ -116,6 +116,7 @@ import Control.Monad.Trans.State.Lazy
 import Data.Int
 import Data.IntMap as IntMap
 import Data.Map as Map
+import Data.Monoid
 import Data.Traversable
 import Data.Tuple (swap)
 import Data.Profunctor
@@ -658,8 +659,8 @@ taking n l pafb s = outs b <$> traverse (indexPro pafb) (take n $ pins b) where
 -- @
 
 dropping :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f) => Int -> Overloading p (->) (Indexing f) s t a a -> Overloading p (->) f s t a a
-dropping n l pafb s = fst $ runIndexing (l paifb s) 0 where
-  paifb = tabulatePro $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (if i < n then pure (extract wa) else indexPro pafb wa, i')
+dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
+  paifb = tabulatePro $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (i', if i < n then pure (extract wa) else indexPro pafb wa)
 {-# INLINE dropping #-}
 
 ------------------------------------------------------------------------------
@@ -801,12 +802,12 @@ imapAccumLOf l = mapAccumLOf l .# Indexed
 ------------------------------------------------------------------------------
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
-traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b
+traversed :: Traversable f => IndexedMeasuredTraversal Int (Sum Int) (f a) (f b) a b
 traversed = indexing traverse
 {-# INLINE traversed #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
-traversed64 :: Traversable f => IndexedTraversal Int64 (f a) (f b) a b
+traversed64 :: Traversable f => IndexedMeasuredTraversal Int64 (Sum Int64) (f a) (f b) a b
 traversed64 = indexing64 traverse
 {-# INLINE traversed64 #-}
 
@@ -904,9 +905,7 @@ elementsOf :: (Applicative f, Indexable Int p)
            => LensLike (Indexing f) s t a a
            -> (Int -> Bool)
            -> IndexedLensLike p f s t a a
-elementsOf l p iafb s =
-  case runIndexing (l (\a -> Indexing (\i -> i `seq` (if p i then indexed iafb i a else pure a, i + 1))) s) 0 of
-    (r, _) -> r
+elementsOf l p iafb s = snd $ runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, if p i then indexed iafb i a else pure a))) s) 0
 {-# INLINE elementsOf #-}
 
 -- | Traverse elements of a 'Traversable' container where their ordinal positions matches a predicate.

@@ -169,12 +169,12 @@ instance (Functor f, Gettable g) => Gettable (Compose f g) where
 
 instance Gettable f => Gettable (Indexing f) where
   coerce (Indexing m) = Indexing $ \i -> case m i of
-    (ff, j) -> (coerce ff, j)
+    (j, ff) -> (j, coerce ff)
   {-# INLINE coerce #-}
 
 instance Gettable f => Gettable (Indexing64 f) where
   coerce (Indexing64 m) = Indexing64 $ \i -> case m i of
-    (ff, j) -> (coerce ff, j)
+    (j, ff) -> (j, coerce ff)
   {-# INLINE coerce #-}
 
 instance (Profunctor p, Gettable g) => Gettable (BazaarT p g a b) where
@@ -749,52 +749,54 @@ instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
 
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
 -- by 'Control.Lens.Indexed.indexed'
-newtype Indexing f a = Indexing { runIndexing :: Int -> (f a, Int) }
+newtype Indexing f a = Indexing { runIndexing :: Int -> (Int, f a) }
 
 instance Functor f => Functor (Indexing f) where
   fmap f (Indexing m) = Indexing $ \i -> case m i of
-    (x, j) -> (fmap f x, j)
+    (j, x) -> (j, fmap f x)
   {-# INLINE fmap #-}
 
 instance Applicative f => Applicative (Indexing f) where
-  pure x = Indexing (\i -> (pure x, i))
+  pure x = Indexing $ \i -> (i, pure x)
   {-# INLINE pure #-}
   Indexing mf <*> Indexing ma = Indexing $ \i -> case mf i of
-    (ff, j) -> case ma j of
-       ~(fa, k) -> (ff <*> fa, k)
+    (j, ff) -> case ma j of
+       ~(k, fa) -> (k, ff <*> fa)
   {-# INLINE (<*>) #-}
 
 -- | Transform a 'Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
 -- a 'Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
 --
 -- @
--- 'indexing' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.Traversal.IndexedTraversal' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Prism.Prism' s t a b     -> 'Control.Lens.Traversal.IndexedTraversal' 'Int' s t a b
--- 'indexing' :: 'Lens' s t a b      -> 'IndexedLens' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Iso.Iso' s t a b       -> 'IndexedLens' 'Int' s t a b
--- 'indexing' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.Fold.IndexedFold' 'Int' s t
--- 'indexing' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.Getter.IndexedGetter' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int' ('Sum' 'Int') s t a b
+-- 'indexing' :: 'Control.Lens.Type.Prism' s t a b     -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int' ('Sum' 'Int') s t a b
+-- 'indexing' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int' ('Sum' 'Int') s t a b
+-- 'indexing' :: 'Control.Lens.Type.Iso' s t a b       -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int' ('Sum' 'Int') s t a b
+-- 'indexing' :: 'Control.Lens.Type.Fold' s t          -> 'Control.Lens.Type.IndexedMeasuredFold' 'Int' ('Sum' 'Int') s t
+-- 'indexing' :: 'Control.Lens.Type.Getter' s t        -> 'Control.Lens.Type.IndexedMeasuredGetter' 'Int' ('Sum' 'Int') s t a b
 -- @
-indexing :: Indexable Int p => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> s -> f t
-indexing l iafb s = case runIndexing (l (\a -> Indexing (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
-  (r, _) -> r
+--
+-- @'indexing' :: ('Indexable' 'Int' p, 'Measured' ('Sum' 'Int') q) => 'Control.Lens.Type.LensLike' ('Indexing' f) s t a b -> 'Control.Lens.Type.Overloading' p q f s t a b@
+indexing :: (Indexable Int p, Measurable (Sum Int) q) => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> q s (f t)
+indexing l iafb = measured $ \ s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0 of
+  ~(i, r) -> (Sum i, r)
 {-# INLINE indexing #-}
 
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int64'@ with a 'Functor', used
 -- by 'Control.Lens.Indexed.indexed64'
-newtype Indexing64 f a = Indexing64 { runIndexing64 :: Int64 -> (f a, Int64) }
+newtype Indexing64 f a = Indexing64 { runIndexing64 :: Int64 -> (Int64, f a) }
 
 instance Functor f => Functor (Indexing64 f) where
   fmap f (Indexing64 m) = Indexing64 $ \i -> case m i of
-    (x, j) -> (fmap f x, j)
+    (j, x) -> (j, fmap f x)
   {-# INLINE fmap #-}
 
 instance Applicative f => Applicative (Indexing64 f) where
-  pure x = Indexing64 (\i -> (pure x, i))
+  pure x = Indexing64 $ \i -> (i, pure x)
   {-# INLINE pure #-}
   Indexing64 mf <*> Indexing64 ma = Indexing64 $ \i -> case mf i of
-    (ff, j) -> case ma j of
-       ~(fa, k) -> (ff <*> fa, k)
+    (j, ff) -> case ma j of
+       ~(k, fa) -> (k, ff <*> fa)
   {-# INLINE (<*>) #-}
 
 -- | Transform a 'Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
@@ -803,16 +805,18 @@ instance Applicative f => Applicative (Indexing64 f) where
 -- This combinator is like 'indexing' except that it handles large 'Traversal's and 'Fold's gracefully.
 --
 -- @
--- 'indexing64' :: 'Control.Lens.Traversal.Traversal' s t a b -> 'Control.Lens.Traversal.IndexedTraversal' 'Int64' s t a b
--- 'indexing64' :: 'Control.Lens.Prism.Prism' s t a b     -> 'Control.Lens.Traversal.IndexedTraversal' 'Int64' s t a b
--- 'indexing64' :: 'Lens' s t a b      -> 'IndexedLens' 'Int64' s t a b
--- 'indexing64' :: 'Control.Lens.Iso.Iso' s t a b       -> 'IndexedLens' 'Int64' s t a b
--- 'indexing64' :: 'Control.Lens.Fold.Fold' s t          -> 'Control.Lens.Fold.IndexedFold' 'Int64' s t
--- 'indexing64' :: 'Control.Lens.Getter.Getter' s t        -> 'Control.Lens.Getter.IndexedGetter' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int64' ('Sum' 'Int64') s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Prism' s t a b     -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int64' ('Sum' 'Int64') s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int64' ('Sum' 'Int64') s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Iso' s t a b       -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int64' ('Sum' 'Int64') s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Fold' s t          -> 'Control.Lens.Type.IndexedMeasuredFold' 'Int64' ('Sum' 'Int64') s t
+-- 'indexing64' :: 'Control.Lens.Type.Getter' s t        -> 'Control.Lens.Type.IndexedMeasuredGetter' 'Int64' ('Sum' 'Int64') s t a b
 -- @
-indexing64 :: Indexable Int64 p => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> s -> f t
-indexing64 l iafb s = case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (indexed iafb i a, i + 1))) s) 0 of
-  (r, _) -> r
+--
+-- @'indexing64' :: ('Indexable' 'Int64' p, 'Measured' ('Sum' 'Int64') q) => 'Control.Lens.Type.LensLike' ('Indexing64' f) s t a b -> 'Control.Lens.Type.Overloading' p q f s t a b@
+indexing64 :: (Indexable Int64 p, Measurable (Sum Int64) q) => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> q s (f t)
+indexing64 l iafb = measured $ \ s -> case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0 of
+  ~(i, r) -> (Sum i, r)
 {-# INLINE indexing64 #-}
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
