@@ -43,6 +43,9 @@ module Control.Lens.Internal
   -- ** Indexable
   , SelfAdjoint(..)
   , Indexable(..)
+  -- ** Measurable
+  , Measurable(..)
+  , Measured(..)
   -- ** Strict Composition
   , NewtypeComposition(..)
   -- ** Indexed Functors
@@ -94,6 +97,8 @@ import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Monad
 import Control.Monad.Fix
+import Control.Monad.Reader.Class
+import Control.Monad.Writer.Class
 import Data.Bifunctor as Bifunctor
 import Data.Distributive
 import Data.Foldable
@@ -283,6 +288,253 @@ class SelfAdjoint p => Indexable i p where
 instance Indexable i (->) where
   indexed = const
   {-# INLINE indexed #-}
+
+-- | A function with access to a index. This constructor may be useful when you need to store
+-- an 'Indexable' in a container to avoid @ImpredicativeTypes@.
+--
+-- @index :: Indexed i a b -> i -> a -> b@
+newtype Indexed i a b = Indexed { runIndexed :: i -> a -> b }
+
+instance Functor (Indexed i a) where
+  fmap g (Indexed f) = Indexed $ \i a -> g (f i a)
+  {-# INLINE fmap #-}
+
+instance Applicative (Indexed i a) where
+  pure b = Indexed $ \_ _ -> b
+  {-# INLINE pure #-}
+  Indexed f <*> Indexed g = Indexed $ \i a -> f i a (g i a)
+  {-# INLINE (<*>) #-}
+
+instance Monad (Indexed i a) where
+  return b = Indexed $ \_ _ -> b
+  {-# INLINE return #-}
+  Indexed f >>= k = Indexed $ \i a -> runIndexed (k (f i a)) i a
+  {-# INLINE (>>=) #-}
+
+instance MonadFix (Indexed i a) where
+  mfix f = Indexed $ \ i a -> let o = runIndexed (f o) i a in o
+  {-# INLINE mfix #-}
+
+instance Profunctor (Indexed i) where
+  dimap ab cd ibc = Indexed (\i -> cd . runIndexed ibc i . ab)
+  {-# INLINE dimap #-}
+  lmap ab ibc = Indexed (\i -> runIndexed ibc i . ab)
+  {-# INLINE lmap #-}
+  rmap bc iab = Indexed (\i -> bc . runIndexed iab i)
+  {-# INLINE rmap #-}
+
+instance RepresentableProfunctor (Indexed i) where
+  type Rep (Indexed i) = (,) i
+  tabulatePro = Indexed . curry
+  {-# INLINE tabulatePro #-}
+  indexPro = uncurry . runIndexed
+  {-# INLINE indexPro #-}
+
+instance CorepresentableProfunctor (Indexed i) where
+  type Corep (Indexed i) = (->) i
+  cotabulatePro = Indexed . flip
+  {-# INLINE cotabulatePro #-}
+  coindexPro = flip . runIndexed
+  {-# INLINE coindexPro #-}
+
+instance Prismatic (Indexed i) where
+  prismatic (Indexed iab) = Indexed (either id . iab)
+  {-# INLINE prismatic #-}
+
+instance Lenticular (Indexed i) where
+  lenticular (Indexed iab) = Indexed $ \i a -> (a, iab i a)
+  {-# INLINE lenticular #-}
+
+instance Category (Indexed i) where
+  id = Indexed (const id)
+  {-# INLINE id #-}
+  Indexed f . Indexed g = Indexed $ \i -> f i . g i
+  {-# INLINE (.) #-}
+
+instance Arrow (Indexed i) where
+  arr f = Indexed (\_ -> f)
+  {-# INLINE arr #-}
+  first f = Indexed (Arrow.first . runIndexed f)
+  {-# INLINE first #-}
+  second f = Indexed (Arrow.second . runIndexed f)
+  {-# INLINE second #-}
+  Indexed f *** Indexed g = Indexed $ \i -> f i *** g i
+  {-# INLINE (***) #-}
+  Indexed f &&& Indexed g = Indexed $ \i -> f i &&& g i
+  {-# INLINE (&&&) #-}
+
+instance ArrowChoice (Indexed i) where
+  left f = Indexed (left . runIndexed f)
+  {-# INLINE left #-}
+  right f = Indexed (right . runIndexed f)
+  {-# INLINE right #-}
+  Indexed f +++ Indexed g = Indexed $ \i -> f i +++ g i
+  {-# INLINE (+++)  #-}
+  Indexed f ||| Indexed g = Indexed $ \i -> f i ||| g i
+  {-# INLINE (|||) #-}
+
+instance ArrowApply (Indexed i) where
+  app = Indexed $ \ i (f, b) -> runIndexed f i b
+  {-# INLINE app #-}
+
+instance ArrowLoop (Indexed i) where
+  loop (Indexed f) = Indexed $ \i b -> let (c,d) = f i (b, d) in c
+  {-# INLINE loop #-}
+
+instance SelfAdjoint (Indexed i) where
+  distrib (Indexed iab) = Indexed (\i fa -> iab i <$> fa)
+  {-# INLINE distrib #-}
+
+-- | Using an equality witness to avoid potential overlapping instances
+-- and aid dispatch.
+instance i ~ j => Indexable i (Indexed j) where
+  indexed = runIndexed
+  {-# INLINE indexed #-}
+
+-----------------------------------------------------------------------------
+-- Measured Internals
+-----------------------------------------------------------------------------
+
+-- | Given @'Monoid' m@, we also get:
+-- @('Prismatic' q, 'ArrowApply' q, 'ArrowChoice' p, 'ArrowLoop' q)@
+class (CorepresentableProfunctor q, Lenticular q) => Measurable m q where
+  measured :: (a -> (m, b)) -> q a b
+
+instance Measurable m (->) where
+  measured f = snd . f
+  {-# INLINE measured #-}
+
+newtype Measured m a b = Measured { runMeasured :: a -> (m, b) }
+
+instance m ~ n => Measurable m (Measured n) where
+  measured = Measured
+
+instance Functor (Measured m a) where
+  fmap f (Measured g) = Measured (fmap f . g)
+  {-# INLINE fmap #-}
+
+instance Monoid m => Applicative (Measured m a) where
+  pure b = Measured $ \_ -> (mempty, b)
+  {-# INLINE pure #-}
+  Measured ff <*> Measured fa = Measured $ \e -> let
+      ~(m, f) = ff e
+      ~(n, a) = fa e
+    in (mappend m n, f a)
+  {-# INLINE (<*>) #-}
+  Measured fa <* Measured fb = Measured $ \e -> let
+     ~(m, a) = fa e
+     ~(n, _) = fb e
+    in (mappend m n, a)
+  {-# INLINE (<*) #-}
+  Measured fa *> Measured fb = Measured $ \e -> let 
+     ~(m, _) = fa e
+     ~(n, b) = fb e
+    in (mappend m n, b)
+  {-# INLINE (*>) #-}
+
+instance Monoid m => Monad (Measured m a) where
+  return b = Measured $ \_ -> (mempty, b)
+  {-# INLINE return #-}
+  Measured h >>= k = Measured $ \a -> let
+      ~(m, b) = h a
+      ~(n, c) = runMeasured (k b) a
+    in (mappend m n, c)
+  {-# INLINE (>>=) #-}
+
+instance Monoid m => MonadReader a (Measured m a) where
+  ask = Measured $ (,) mempty
+  {-# INLINE ask #-}
+  local f (Measured h) = Measured (h . f)
+  {-# INLINE local #-}
+
+instance Monoid m => MonadWriter m (Measured m a) where
+  tell m = Measured $ \_ -> (m, ())
+  {-# INLINE tell #-}
+  listen (Measured h) = Measured $ \a -> case h a of
+    (m, b) -> (m, (b, m))
+  {-# INLINE listen #-}
+  pass (Measured h) = Measured $ \ a -> case h a of
+    (m, (b, f)) -> (f m, b)
+  {-# INLINE pass #-}
+
+instance Monoid m => Category (Measured m) where
+  id = Measured ((,) mempty)
+  {-# INLINE id #-}
+  Measured f . Measured g = Measured $ \a -> case g a of
+    (m, b) -> case f b of
+      (n, c) -> (mappend n m, c)
+  {-# INLINE (.) #-}
+
+instance Profunctor (Measured m) where
+  dimap f g (Measured h) = Measured (fmap g . h . f)
+  {-# INLINE dimap #-}
+  lmap f (Measured h) = Measured (h . f)
+  {-# INLINE lmap #-}
+  rmap g (Measured h) = Measured (fmap g . h)
+  {-# INLINE rmap #-}
+
+instance Lenticular (Measured m) where
+  lenticular (Measured h) = Measured $ \a -> fmap ((,) a) (h a)
+  {-# INLINE lenticular #-}
+
+instance Monoid m => Prismatic (Measured m) where
+  prismatic = Measured . either ((,) mempty) . runMeasured
+  {-# INLINE prismatic #-}
+
+instance CorepresentableProfunctor (Measured m) where
+  type Corep (Measured m) = (,) m
+  cotabulatePro = Measured
+  {-# INLINE cotabulatePro #-}
+  coindexPro = runMeasured
+  {-# INLINE coindexPro #-}
+
+instance Monoid m => Arrow (Measured m) where
+  arr f = Measured $ \a -> (mempty, f a)
+  {-# INLINE arr #-}
+  first (Measured h) = Measured $ \(a,c) -> case h a of
+    (m, b) -> (m, (b, c))
+  {-# INLINE first #-}
+  second (Measured h) = Measured $ \(c,a) -> case h a of
+    (m, b) -> (m, (c, b))
+  {-# INLINE second #-}
+  Measured l *** Measured r = Measured $ \(a,b) -> let
+      (m, c) = l a
+      (n, d) = r b
+    in (mappend m n, (c, d))
+  {-# INLINE (***) #-}
+  Measured l &&& Measured r = Measured $ \a -> let
+      (m, b) = l a
+      (n, c) = r a
+    in (mappend m n, (b, c))
+  {-# INLINE (&&&) #-}
+
+instance Monoid m => ArrowChoice (Measured m) where
+  left (Measured h) = Measured $ \e -> case e of
+    Left a -> Left <$> h a
+    Right b -> (mempty, Right b)
+  {-# INLINE left #-}
+  right (Measured h) = Measured $ \e -> case e of
+    Left a -> (mempty, Left a)
+    Right b -> Right <$> h b
+  {-# INLINE right #-}
+  Measured l +++ Measured r = Measured $ \e -> case e of
+    Left a -> Left <$> l a
+    Right b -> Right <$> r b
+  {-# INLINE (+++) #-}
+  Measured l ||| Measured r = Measured (either l r)
+  {-# INLINE (|||) #-}
+
+instance Monoid m => ArrowApply (Measured m) where
+  app = Measured $ \(Measured f, a) -> f a
+  {-# INLINE app #-}
+
+instance Monoid m => ArrowLoop (Measured m) where
+  loop (Measured f) = Measured $ \ b -> let (m, (c, d)) = f (b,d) in (m, c)
+  {-# INLINE loop #-}
+
+instance Monoid m => MonadFix (Measured m a) where
+  mfix f = Measured $ \ a -> let (m, o) = runMeasured (f o) a in (m, o)
+  {-# INLINE mfix #-}
 
 -----------------------------------------------------------------------------
 -- Strict Composition
@@ -775,113 +1027,6 @@ instance Prismatic (Market a b) where
 
 data Identical a b s t where
   Identical :: Identical a b a b
-
-------------------------------------------------------------------------------
--- Indexed Internals
-------------------------------------------------------------------------------
-
--- | A function with access to a index. This constructor may be useful when you need to store
--- an 'Indexable' in a container to avoid @ImpredicativeTypes@.
---
--- @index :: Indexed i a b -> i -> a -> b@
-newtype Indexed i a b = Indexed { runIndexed :: i -> a -> b }
-
-instance Functor (Indexed i a) where
-  fmap g (Indexed f) = Indexed $ \i a -> g (f i a)
-  {-# INLINE fmap #-}
-
-instance Applicative (Indexed i a) where
-  pure b = Indexed $ \_ _ -> b
-  {-# INLINE pure #-}
-  Indexed f <*> Indexed g = Indexed $ \i a -> f i a (g i a)
-  {-# INLINE (<*>) #-}
-
-instance Monad (Indexed i a) where
-  return b = Indexed $ \_ _ -> b
-  {-# INLINE return #-}
-  Indexed f >>= k = Indexed $ \i a -> runIndexed (k (f i a)) i a
-  {-# INLINE (>>=) #-}
-
-instance MonadFix (Indexed i a) where
-  mfix f = Indexed $ \ i a -> let o = runIndexed (f o) i a in o
-  {-# INLINE mfix #-}
-
-instance Profunctor (Indexed i) where
-  dimap ab cd ibc = Indexed (\i -> cd . runIndexed ibc i . ab)
-  {-# INLINE dimap #-}
-  lmap ab ibc = Indexed (\i -> runIndexed ibc i . ab)
-  {-# INLINE lmap #-}
-  rmap bc iab = Indexed (\i -> bc . runIndexed iab i)
-  {-# INLINE rmap #-}
-
-instance RepresentableProfunctor (Indexed i) where
-  type Rep (Indexed i) = (,) i
-  tabulatePro = Indexed . curry
-  {-# INLINE tabulatePro #-}
-  indexPro = uncurry . runIndexed
-  {-# INLINE indexPro #-}
-
-instance CorepresentableProfunctor (Indexed i) where
-  type Corep (Indexed i) = (->) i
-  cotabulatePro = Indexed . flip
-  {-# INLINE cotabulatePro #-}
-  coindexPro = flip . runIndexed
-  {-# INLINE coindexPro #-}
-
-instance Prismatic (Indexed i) where
-  prismatic (Indexed iab) = Indexed (either id . iab)
-  {-# INLINE prismatic #-}
-
-instance Lenticular (Indexed i) where
-  lenticular (Indexed iab) = Indexed $ \i a -> (a, iab i a)
-  {-# INLINE lenticular #-}
-
-instance Category (Indexed i) where
-  id = Indexed (const id)
-  {-# INLINE id #-}
-  Indexed f . Indexed g = Indexed $ \i -> f i . g i
-  {-# INLINE (.) #-}
-
-instance Arrow (Indexed i) where
-  arr f = Indexed (\_ -> f)
-  {-# INLINE arr #-}
-  first f = Indexed (Arrow.first . runIndexed f)
-  {-# INLINE first #-}
-  second f = Indexed (Arrow.second . runIndexed f)
-  {-# INLINE second #-}
-  Indexed f *** Indexed g = Indexed $ \i -> f i *** g i
-  {-# INLINE (***) #-}
-  Indexed f &&& Indexed g = Indexed $ \i -> f i &&& g i
-  {-# INLINE (&&&) #-}
-
-instance ArrowChoice (Indexed i) where
-  left f = Indexed (left . runIndexed f)
-  {-# INLINE left #-}
-  right f = Indexed (right . runIndexed f)
-  {-# INLINE right #-}
-  Indexed f +++ Indexed g = Indexed $ \i -> f i +++ g i
-  {-# INLINE (+++)  #-}
-  Indexed f ||| Indexed g = Indexed $ \i -> f i ||| g i
-  {-# INLINE (|||) #-}
-
-instance ArrowApply (Indexed i) where
-  app = Indexed $ \ i (f, b) -> runIndexed f i b
-  {-# INLINE app #-}
-
-instance ArrowLoop (Indexed i) where
-  loop (Indexed f) = Indexed $ \i b -> let (c,d) = f i (b, d) in c
-  {-# INLINE loop #-}
-
-instance SelfAdjoint (Indexed i) where
-  distrib (Indexed iab) = Indexed (\i fa -> iab i <$> fa)
-  {-# INLINE distrib #-}
-
--- | Using an equality witness to avoid potential overlapping instances
--- and aid dispatch.
-instance i ~ j => Indexable i (Indexed j) where
-  indexed = runIndexed
-  {-# INLINE indexed #-}
-
 
 ------------------------------------------------------------------------------
 -- Context
