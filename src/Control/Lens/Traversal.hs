@@ -124,6 +124,11 @@ import Prelude hiding ((.),id)
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Control.DeepSeq (NFData (..), force)
+-- >>> import Control.Exception (evaluate)
+-- >>> import Data.Maybe (fromMaybe)
+-- >>> import System.Timeout (timeout)
+-- >>> let timeouting :: NFData a => a -> IO a; timeouting = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
 
 ------------------------------------------------------------------------------
 -- Traversals
@@ -579,7 +584,7 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 -- >>> [("hello","world"),("!!!","!!!")]^.. taking 2 (traverse.both)
 -- ["hello","world"]
 --
--- >>> ([1..3] ++ undefined) ^.. taking 3 traverse
+-- >>> timeouting $ [1..] ^.. taking 3 traverse
 -- [1,2,3]
 --
 -- >>> over (taking 5 traverse) succ "hello world"
@@ -854,10 +859,10 @@ instance Ord k => TraverseMax k (Map k) where
 -- >>> [[1],[3,4]] ^? elementOf (folded.folded) 1
 -- Just 3
 --
--- >>> ("abcdefg" ++ undefined) ^?! elementOf folded 5
+-- >>> timeouting $ ['a'..] ^?! elementOf folded 5
 -- 'f'
 --
--- >>> take 10 $ elementOf traverse 3 .~ 16 $ [0..9] ++ undefined
+-- >>> timeouting $ take 10 $ elementOf traverse 3 .~ 16 $ [0..]
 -- [0,1,2,16,4,5,6,7,8,9]
 --
 -- @

@@ -326,6 +326,7 @@ test-suite doctests
     bytestring,
     containers,
     directory >= 1.0,
+    deepseq,
     doctest >= 0.9.1,
     filepath,
     mtl,
