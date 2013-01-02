@@ -1377,7 +1377,9 @@ backwards l = rmap forwards . l . rmap Backwards
 -- 'ifoldMapOf' ::             'IndexedLens'' i a s      -> (i -> s -> m) -> a -> m
 -- 'ifoldMapOf' :: 'Monoid' m => 'IndexedTraversal'' i a s -> (i -> s -> m) -> a -> m
 -- @
-ifoldMapOf :: IndexedGetting i m s t a b -> (i -> a -> m) -> s -> m
+--
+-- @'ifoldMapOf' :: 'IndexedGetting' i m s t a b -> (i -> a -> m) -> s -> m@
+ifoldMapOf :: Profunctor q => Overloading (Indexed i) q (Accessor m) s t a b -> (i -> a -> m) -> q s m
 ifoldMapOf l = foldMapOf l .# Indexed
 {-# INLINE ifoldMapOf #-}
 
@@ -1395,7 +1397,9 @@ ifoldMapOf l = foldMapOf l .# Indexed
 -- 'ifoldrOf' :: 'IndexedLens'' i s a      -> (i -> a -> r -> r) -> r -> s -> r
 -- 'ifoldrOf' :: 'IndexedTraversal'' i s a -> (i -> a -> r -> r) -> r -> s -> r
 -- @
-ifoldrOf :: IndexedGetting i (Endo r) s t a b -> (i -> a -> r -> r) -> r -> s -> r
+--
+-- @'ifoldrOf' :: 'IndexedGetting' i ('Endo' r) s t a b -> (i -> a -> r -> r) -> r -> s -> r@
+ifoldrOf :: Profunctor q => Overloading (Indexed i) q (Accessor (Endo r)) s t a b -> (i -> a -> r -> r) -> r -> q s r
 ifoldrOf l = foldrOf l .# Indexed
 {-# INLINE ifoldrOf #-}
 
@@ -1413,8 +1417,10 @@ ifoldrOf l = foldrOf l .# Indexed
 -- 'ifoldlOf' :: 'IndexedLens'' i s a      -> (i -> r -> a -> r) -> r -> s -> r
 -- 'ifoldlOf' :: 'IndexedTraversal'' i s a -> (i -> r -> a -> r) -> r -> s -> r
 -- @
-ifoldlOf :: IndexedGetting i (Dual (Endo r)) s t a b -> (i -> r -> a -> r) -> r -> s -> r
-ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> Dual #. Endo #. flip (f i)) t)) z
+--
+-- @'ifoldlOf' :: 'IndexedGetting' i ('Dual' ('Endo' r)) s t a b -> (i -> r -> a -> r) -> r -> s -> r@
+ifoldlOf :: Profunctor q => Overloading (Indexed i) q (Accessor (Dual (Endo r))) s t a b -> (i -> r -> a -> r) -> r -> q s r
+ifoldlOf l f z = (flip appEndo z .# getDual) `rmap` ifoldMapOf l (\i -> Dual #. Endo #. flip (f i))
 {-# INLINE ifoldlOf #-}
 
 -- |
@@ -1431,7 +1437,7 @@ ifoldlOf l f z t = appEndo (getDual (ifoldMapOf l (\i -> Dual #. Endo #. flip (f
 -- 'ianyOf' :: 'IndexedLens'' i s a      -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- 'ianyOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
-ianyOf :: IndexedGetting i Any s t a b -> (i -> a -> Bool) -> s -> Bool
+ianyOf :: Profunctor q => Overloading (Indexed i) q (Accessor Any) s t a b -> (i -> a -> Bool) -> q s Bool
 ianyOf l = anyOf l .# Indexed
 {-# INLINE ianyOf #-}
 
@@ -1449,7 +1455,7 @@ ianyOf l = anyOf l .# Indexed
 -- 'iallOf' :: 'IndexedLens'' i s a      -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- 'iallOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
-iallOf :: IndexedGetting i All s t a b -> (i -> a -> Bool) -> s -> Bool
+iallOf :: Profunctor q => Overloading (Indexed i) q (Accessor All) s t a b -> (i -> a -> Bool) -> q s Bool
 iallOf l = allOf l .# Indexed
 {-# INLINE iallOf #-}
 
@@ -1466,7 +1472,7 @@ iallOf l = allOf l .# Indexed
 -- 'itraverseOf_' :: 'Functor' f     => 'IndexedLens'' i s a      -> (i -> a -> f r) -> s -> f ()
 -- 'itraverseOf_' :: 'Applicative' f => 'IndexedTraversal'' i s a -> (i -> a -> f r) -> s -> f ()
 -- @
-itraverseOf_ :: Functor f => IndexedGetting i (Traversed f) s t a b -> (i -> a -> f r) -> s -> f ()
+itraverseOf_ :: (Profunctor q, Functor f) => Overloading (Indexed i) q (Accessor (Traversed f)) s t a b -> (i -> a -> f r) -> q s (f ())
 itraverseOf_ l = traverseOf_ l .# Indexed
 {-# INLINE itraverseOf_ #-}
 
