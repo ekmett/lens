@@ -721,8 +721,8 @@ l ?= b = State.modify (l ?~ b)
 -- Example:
 --
 -- @
--- fresh :: MonadState Int m => m Int
--- fresh = do
+-- 'fresh' :: 'MonadState' 'Int' m => m 'Int'
+-- 'fresh' = do
 --   'id' '+=' 1
 --   'use' 'id'
 -- @
