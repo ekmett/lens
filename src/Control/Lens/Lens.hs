@@ -504,8 +504,8 @@ l <&&~ b = l <%~ (&& b)
 -- ('<<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> (a -> b) -> s -> (b, t)
 -- ('<<%~') :: 'Monoid' b => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> b) -> s -> (b, t)
 -- @
-(<<%~) :: LensLike ((,)a) s t a b -> (a -> b) -> s -> (a, t)
-l <<%~ f = l $ \a -> (a, f a)
+(<<%~) :: Lenticular p => Overloading p (->) ((,)a) s t a b -> p a b -> s -> (a, t)
+(<<%~) l = l . lenticular
 {-# INLINE (<<%~) #-}
 
 -- | Modify the target of a 'Lens', but return the old value.
