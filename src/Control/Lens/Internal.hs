@@ -44,9 +44,6 @@ module Control.Lens.Internal
   -- ** Indexable
   , SelfAdjoint(..)
   , Indexable(..)
-  -- ** Measurable
-  , Measurable(..)
-  , Measured(..)
   -- ** Strict Composition
   , NewtypeComposition(..)
   -- ** Indexed Functors
@@ -88,8 +85,6 @@ module Control.Lens.Internal
   , Bazaar(..), Bazaar'
   , BazaarT(..), BazaarT'
   , Sellable(..)
-  , Size(..)
-  , Size64(..)
   ) where
 
 import Control.Applicative
@@ -100,8 +95,6 @@ import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Monad
 import Control.Monad.Fix
-import Control.Monad.Reader.Class
-import Control.Monad.Writer.Class
 import Data.Bifunctor as Bifunctor
 import Data.Distributive
 import Data.Foldable
@@ -390,151 +383,6 @@ instance i ~ j => Indexable i (Indexed j) where
   indexed = runIndexed
   {-# INLINE indexed #-}
 
------------------------------------------------------------------------------
--- Measured Internals
------------------------------------------------------------------------------
-
--- | Given @'Monoid' m@, we also get:
--- @('Prismatic' q, 'ArrowApply' q, 'ArrowChoice' p, 'ArrowLoop' q)@
-class (CorepresentableProfunctor q, Lenticular q) => Measurable m q where
-  measured :: (a -> (m, b)) -> q a b
-
-instance Measurable m (->) where
-  measured f = snd . f
-  {-# INLINE measured #-}
-
-newtype Measured m a b = Measured { runMeasured :: a -> (m, b) }
-
-instance m ~ n => Measurable m (Measured n) where
-  measured = Measured
-
-instance Functor (Measured m a) where
-  fmap f (Measured g) = Measured (fmap f . g)
-  {-# INLINE fmap #-}
-
-instance Monoid m => Applicative (Measured m a) where
-  pure b = Measured $ \_ -> (mempty, b)
-  {-# INLINE pure #-}
-  Measured ff <*> Measured fa = Measured $ \e -> let
-      ~(m, f) = ff e
-      ~(n, a) = fa e
-    in (mappend m n, f a)
-  {-# INLINE (<*>) #-}
-  Measured fa <* Measured fb = Measured $ \e -> let
-     ~(m, a) = fa e
-     ~(n, _) = fb e
-    in (mappend m n, a)
-  {-# INLINE (<*) #-}
-  Measured fa *> Measured fb = Measured $ \e -> let 
-     ~(m, _) = fa e
-     ~(n, b) = fb e
-    in (mappend m n, b)
-  {-# INLINE (*>) #-}
-
-instance Monoid m => Monad (Measured m a) where
-  return b = Measured $ \_ -> (mempty, b)
-  {-# INLINE return #-}
-  Measured h >>= k = Measured $ \a -> let
-      ~(m, b) = h a
-      ~(n, c) = runMeasured (k b) a
-    in (mappend m n, c)
-  {-# INLINE (>>=) #-}
-
-instance Monoid m => MonadReader a (Measured m a) where
-  ask = Measured $ (,) mempty
-  {-# INLINE ask #-}
-  local f (Measured h) = Measured (h . f)
-  {-# INLINE local #-}
-
-instance Monoid m => MonadWriter m (Measured m a) where
-  tell m = Measured $ \_ -> (m, ())
-  {-# INLINE tell #-}
-  listen (Measured h) = Measured $ \a -> case h a of
-    (m, b) -> (m, (b, m))
-  {-# INLINE listen #-}
-  pass (Measured h) = Measured $ \ a -> case h a of
-    (m, (b, f)) -> (f m, b)
-  {-# INLINE pass #-}
-
-instance Monoid m => Category (Measured m) where
-  id = Measured ((,) mempty)
-  {-# INLINE id #-}
-  Measured f . Measured g = Measured $ \a -> case g a of
-    (m, b) -> case f b of
-      (n, c) -> (mappend n m, c)
-  {-# INLINE (.) #-}
-
-instance Profunctor (Measured m) where
-  dimap f g (Measured h) = Measured (fmap g . h . f)
-  {-# INLINE dimap #-}
-  lmap f (Measured h) = Measured (h . f)
-  {-# INLINE lmap #-}
-  rmap g (Measured h) = Measured (fmap g . h)
-  {-# INLINE rmap #-}
-
-instance Lenticular (Measured m) where
-  lenticular (Measured h) = Measured $ \a -> fmap ((,) a) (h a)
-  {-# INLINE lenticular #-}
-
-instance Monoid m => Prismatic (Measured m) where
-  prismatic = Measured . either ((,) mempty) . runMeasured
-  {-# INLINE prismatic #-}
-
-instance CorepresentableProfunctor (Measured m) where
-  type Corep (Measured m) = (,) m
-  cotabulatePro = Measured
-  {-# INLINE cotabulatePro #-}
-  coindexPro = runMeasured
-  {-# INLINE coindexPro #-}
-
-instance Monoid m => Arrow (Measured m) where
-  arr f = Measured $ \a -> (mempty, f a)
-  {-# INLINE arr #-}
-  first (Measured h) = Measured $ \(a,c) -> case h a of
-    (m, b) -> (m, (b, c))
-  {-# INLINE first #-}
-  second (Measured h) = Measured $ \(c,a) -> case h a of
-    (m, b) -> (m, (c, b))
-  {-# INLINE second #-}
-  Measured l *** Measured r = Measured $ \(a,b) -> let
-      (m, c) = l a
-      (n, d) = r b
-    in (mappend m n, (c, d))
-  {-# INLINE (***) #-}
-  Measured l &&& Measured r = Measured $ \a -> let
-      (m, b) = l a
-      (n, c) = r a
-    in (mappend m n, (b, c))
-  {-# INLINE (&&&) #-}
-
-instance Monoid m => ArrowChoice (Measured m) where
-  left (Measured h) = Measured $ \e -> case e of
-    Left a -> Left <$> h a
-    Right b -> (mempty, Right b)
-  {-# INLINE left #-}
-  right (Measured h) = Measured $ \e -> case e of
-    Left a -> (mempty, Left a)
-    Right b -> Right <$> h b
-  {-# INLINE right #-}
-  Measured l +++ Measured r = Measured $ \e -> case e of
-    Left a -> Left <$> l a
-    Right b -> Right <$> r b
-  {-# INLINE (+++) #-}
-  Measured l ||| Measured r = Measured (either l r)
-  {-# INLINE (|||) #-}
-
-instance Monoid m => ArrowApply (Measured m) where
-  app = Measured $ \(Measured f, a) -> f a
-  {-# INLINE app #-}
-
-instance Monoid m => ArrowLoop (Measured m) where
-  loop (Measured f) = Measured $ \ b -> let (m, (c, d)) = f (b,d) in (m, c)
-  {-# INLINE loop #-}
-
-instance Monoid m => MonadFix (Measured m a) where
-  mfix f = Measured $ \ a -> let (m, o) = runMeasured (f o) a in (m, o)
-  {-# INLINE mfix #-}
-
 ------------------------------------------------------------------------------
 -- Sellable
 ------------------------------------------------------------------------------
@@ -600,8 +448,6 @@ COMPOSE(Last a, Maybe a, Last, getLast)
 COMPOSE(First a, Maybe a, First, getFirst)
 COMPOSE(Product a, a, Product, getProduct)
 COMPOSE(Sum a, a, Sum, getSum)
-COMPOSE(Size, Int, Size, getSize)
-COMPOSE(Size64, Int64, Size64, getSize64)
 COMPOSE(Any, Bool, Any, getAny)
 COMPOSE(All, Bool, All, getAll)
 COMPOSE(Dual a, a, Dual, getDual)
@@ -776,18 +622,17 @@ instance Applicative f => Applicative (Indexing f) where
 -- a 'Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
 --
 -- @
--- 'indexing' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int' ('Sum' 'Int') s t a b
--- 'indexing' :: 'Control.Lens.Type.Prism' s t a b     -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int' ('Sum' 'Int') s t a b
--- 'indexing' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int' ('Sum' 'Int') s t a b
--- 'indexing' :: 'Control.Lens.Type.Iso' s t a b       -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int' ('Sum' 'Int') s t a b
--- 'indexing' :: 'Control.Lens.Type.Fold' s t          -> 'Control.Lens.Type.IndexedMeasuredFold' 'Int' ('Sum' 'Int') s t
--- 'indexing' :: 'Control.Lens.Type.Getter' s t        -> 'Control.Lens.Type.IndexedMeasuredGetter' 'Int' ('Sum' 'Int') s t a b
+-- 'indexing' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedTraversal' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Type.Prism' s t a b     -> 'Control.Lens.Type.IndexedTraversal' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.Type.IndexedLens' 'Int'  s t a b
+-- 'indexing' :: 'Control.Lens.Type.Iso' s t a b       -> 'Control.Lens.Type.IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Type.Fold' s a          -> 'Control.Lens.Type.IndexedFold' 'Int' s a
+-- 'indexing' :: 'Control.Lens.Type.Getter' s a        -> 'Control.Lens.Type.IndexedGetter' 'Int' s a
 -- @
 --
--- @'indexing' :: ('Indexable' 'Int' p, 'Measured' ('Sum' 'Int') q) => 'Control.Lens.Type.LensLike' ('Indexing' f) s t a b -> 'Control.Lens.Type.Overloading' p q f s t a b@
-indexing :: (Indexable Int p, Measurable Size q) => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> q s (f t)
-indexing l iafb = measured $ \ s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0 of
-  ~(i, r) -> (Size i, r)
+-- @'indexing' :: 'Indexable' 'Int' p => 'Control.Lens.Type.LensLike' ('Indexing' f) s t a b -> 'Control.Lens.Type.Overloading' p (->) f s t a b@
+indexing :: Indexable Int p => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> s -> f t
+indexing l iafb s = snd $ runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0
 {-# INLINE indexing #-}
 
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int64'@ with a 'Functor', used
@@ -813,18 +658,17 @@ instance Applicative f => Applicative (Indexing64 f) where
 -- This combinator is like 'indexing' except that it handles large 'Traversal's and 'Fold's gracefully.
 --
 -- @
--- 'indexing64' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int64' ('Sum' 'Int64') s t a b
--- 'indexing64' :: 'Control.Lens.Type.Prism' s t a b     -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int64' ('Sum' 'Int64') s t a b
--- 'indexing64' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int64' ('Sum' 'Int64') s t a b
--- 'indexing64' :: 'Control.Lens.Type.Iso' s t a b       -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int64' ('Sum' 'Int64') s t a b
--- 'indexing64' :: 'Control.Lens.Type.Fold' s t          -> 'Control.Lens.Type.IndexedMeasuredFold' 'Int64' ('Sum' 'Int64') s t
--- 'indexing64' :: 'Control.Lens.Type.Getter' s t        -> 'Control.Lens.Type.IndexedMeasuredGetter' 'Int64' ('Sum' 'Int64') s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedTraversal' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Prism' s t a b     -> 'Control.Lens.Type.IndexedTraversal' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.Type.IndexedLens' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Iso' s t a b       -> 'Control.Lens.Type.IndexedLens' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Fold' s a          -> 'Control.Lens.Type.IndexedFold' 'Int64' s a
+-- 'indexing64' :: 'Control.Lens.Type.Getter' s a        -> 'Control.Lens.Type.IndexedGetter' 'Int64' s a
 -- @
 --
--- @'indexing64' :: ('Indexable' 'Int64' p, 'Measured' ('Sum' 'Int64') q) => 'Control.Lens.Type.LensLike' ('Indexing64' f) s t a b -> 'Control.Lens.Type.Overloading' p q f s t a b@
-indexing64 :: (Indexable Int64 p, Measurable Size64 q) => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> q s (f t)
-indexing64 l iafb = measured $ \ s -> case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0 of
-  ~(i, r) -> (Size64 i, r)
+-- @'indexing64' :: 'Indexable' 'Int64' p => 'Control.Lens.Type.LensLike' ('Indexing64' f) s t a b -> 'Control.Lens.Type.Overloading' p (->) f s t a b@
+indexing64 :: Indexable Int64 p => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> s -> f t
+indexing64 l iafb s = snd $ runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0
 {-# INLINE indexing64 #-}
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
@@ -1402,23 +1246,6 @@ instance (Profunctor p, Profunctor q, Gettable g) => Gettable (BazaarT p q g a b
   coerce = (<$) (error "coerced BazaarT")
   {-# INLINE coerce #-}
 
--------------------------------------------------------------------------------
--- Size
--------------------------------------------------------------------------------
-
-newtype Size = Size { getSize :: Int }
-  deriving (Eq,Ord,Show,Read)
-
-instance Monoid Size where
-  mempty = Size 0
-  mappend (Size m) (Size n) = Size (m + n)
-
-newtype Size64 = Size64 { getSize64 :: Int64 }
-  deriving (Eq,Ord,Show,Read)
-
-instance Monoid Size64 where
-  mempty = Size64 0
-  mappend (Size64 m) (Size64 n) = Size64 (m + n)
 
 -------------------------------------------------------------------------------
 -- Orphan Instances
