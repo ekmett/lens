@@ -16,7 +16,9 @@
 * Added combinators and prisms to `Control.Exception.Lens` that enable you to work with GHC's extensible exceptions more easily.
 * Added Numeric.Lens: `base` shows and reads integers at base-2 through base-36.
 * Added `index` and `indices`, and removed `iwhere` and `iwhereOf`. Use `itraversed.indices even` and `bar.indices (>3)` instead.
-* Generalized combinators to pass through indices unmodified wherever possible.
+* Added a notion of `Measured` traversals, folds, getters, setters, actions, etc.
+* Generalized combinators to pass through measures and indices unmodified wherever possible.
+* Converted `Zipper` to walk a `Magma` based on the original structure and to use indices from indexed traversals when restoring from tape. This also means that when zipping around within a balanced structure with ascending keys `moveTo` can operate in logarithmic time.
 
 3.7.1.2 [maintenance release]
 -------
