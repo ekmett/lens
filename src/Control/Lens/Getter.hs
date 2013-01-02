@@ -211,9 +211,7 @@ view l = Reader.asks (runAccessor #. l Accessor)
 -- 'view' :: ('MonadReader' s m, 'Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> m a
 -- @
 --
--- @
--- 'views' :: 'MonadReader' s m => 'Getting' r s t a b -> (a -> r) -> m r
--- @
+-- @'views' :: 'MonadReader' s m => 'Getting' r s t a b -> (a -> r) -> m r@
 views :: (Profunctor p, MonadReader s m) => Overloading p (->) (Accessor r) s t a b -> p a r -> m r
 views l f = Reader.asks (runAccessor #. l (rmap Accessor f))
 {-# INLINE views #-}

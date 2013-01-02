@@ -262,9 +262,7 @@ makeClassy = makeLensesWith classyRules
 --
 -- will create
 --
--- @
--- 'list' :: 'Iso' [a] [b] ('List' a) ('List' b)
--- @
+-- @'list' :: 'Iso' [a] [b] ('List' a) ('List' b)@
 --
 -- > makeIso = makeLensesWith isoRules
 makeIso :: Name -> Q [Dec]
