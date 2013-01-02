@@ -22,14 +22,12 @@ import Control.Lens.Traversal
 import Data.Monoid
 import Data.Foldable
 
-type Size = Int -- computed lazily
-
 ------------------------------------------------------------------------------
 -- Magma
 ------------------------------------------------------------------------------
 
 data Magma i a
-  = Ap Size        -- size
+  = Ap Int         -- size
        Bool        -- left-to-right null check
        Bool        -- right-to-left null check
        (Last i)

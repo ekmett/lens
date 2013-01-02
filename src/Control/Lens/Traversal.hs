@@ -102,6 +102,8 @@ module Control.Lens.Traversal
   , Bazaar(..)
   , Bazaar'
   , loci
+  , Size(..)
+  , Size64(..)
   ) where
 
 import Control.Applicative            as Applicative
@@ -116,7 +118,6 @@ import Control.Monad.Trans.State.Lazy
 import Data.Int
 import Data.IntMap as IntMap
 import Data.Map as Map
-import Data.Monoid
 import Data.Traversable
 import Data.Tuple (swap)
 import Data.Profunctor
@@ -811,12 +812,12 @@ imapAccumLOf l = mapAccumLOf l .# Indexed
 ------------------------------------------------------------------------------
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
-traversed :: Traversable f => IndexedMeasuredTraversal Int (Sum Int) (f a) (f b) a b
+traversed :: Traversable f => IndexedMeasuredTraversal Int Size (f a) (f b) a b
 traversed = indexing traverse
 {-# INLINE traversed #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
-traversed64 :: Traversable f => IndexedMeasuredTraversal Int64 (Sum Int64) (f a) (f b) a b
+traversed64 :: Traversable f => IndexedMeasuredTraversal Int64 Size64 (f a) (f b) a b
 traversed64 = indexing64 traverse
 {-# INLINE traversed64 #-}
 

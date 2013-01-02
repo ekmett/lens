@@ -88,6 +88,8 @@ module Control.Lens.Internal
   , Bazaar(..), Bazaar'
   , BazaarT(..), BazaarT'
   , Sellable(..)
+  , Size(..)
+  , Size64(..)
   ) where
 
 import Control.Applicative
@@ -598,6 +600,8 @@ COMPOSE(Last a, Maybe a, Last, getLast)
 COMPOSE(First a, Maybe a, First, getFirst)
 COMPOSE(Product a, a, Product, getProduct)
 COMPOSE(Sum a, a, Sum, getSum)
+COMPOSE(Size, Int, Size, getSize)
+COMPOSE(Size64, Int64, Size64, getSize64)
 COMPOSE(Any, Bool, Any, getAny)
 COMPOSE(All, Bool, All, getAll)
 COMPOSE(Dual a, a, Dual, getDual)
@@ -781,9 +785,9 @@ instance Applicative f => Applicative (Indexing f) where
 -- @
 --
 -- @'indexing' :: ('Indexable' 'Int' p, 'Measured' ('Sum' 'Int') q) => 'Control.Lens.Type.LensLike' ('Indexing' f) s t a b -> 'Control.Lens.Type.Overloading' p q f s t a b@
-indexing :: (Indexable Int p, Measurable (Sum Int) q) => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> q s (f t)
+indexing :: (Indexable Int p, Measurable Size q) => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> q s (f t)
 indexing l iafb = measured $ \ s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0 of
-  ~(i, r) -> (Sum i, r)
+  ~(i, r) -> (Size i, r)
 {-# INLINE indexing #-}
 
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int64'@ with a 'Functor', used
@@ -818,9 +822,9 @@ instance Applicative f => Applicative (Indexing64 f) where
 -- @
 --
 -- @'indexing64' :: ('Indexable' 'Int64' p, 'Measured' ('Sum' 'Int64') q) => 'Control.Lens.Type.LensLike' ('Indexing64' f) s t a b -> 'Control.Lens.Type.Overloading' p q f s t a b@
-indexing64 :: (Indexable Int64 p, Measurable (Sum Int64) q) => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> q s (f t)
+indexing64 :: (Indexable Int64 p, Measurable Size64 q) => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> q s (f t)
 indexing64 l iafb = measured $ \ s -> case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0 of
-  ~(i, r) -> (Sum i, r)
+  ~(i, r) -> (Size64 i, r)
 {-# INLINE indexing64 #-}
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
@@ -1397,6 +1401,24 @@ instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), 
 instance (Profunctor p, Profunctor q, Gettable g) => Gettable (BazaarT p q g a b) where
   coerce = (<$) (error "coerced BazaarT")
   {-# INLINE coerce #-}
+
+-------------------------------------------------------------------------------
+-- Size
+-------------------------------------------------------------------------------
+
+newtype Size = Size { getSize :: Int }
+  deriving (Eq,Ord,Show,Read)
+
+instance Monoid Size where
+  mempty = Size 0
+  mappend (Size m) (Size n) = Size (m + n)
+
+newtype Size64 = Size64 { getSize64 :: Int64 }
+  deriving (Eq,Ord,Show,Read)
+
+instance Monoid Size64 where
+  mempty = Size64 0
+  mappend (Size64 m) (Size64 n) = Size64 (m + n)
 
 -------------------------------------------------------------------------------
 -- Orphan Instances
