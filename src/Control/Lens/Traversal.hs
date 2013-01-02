@@ -606,14 +606,19 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 -- 'taking' :: 'Int' -> 'Lens'' s a                  -> 'Traversal'' s a
 -- 'taking' :: 'Int' -> 'Iso'' s a                   -> 'Traversal'' s a
 -- 'taking' :: 'Int' -> 'Prism'' s a                 -> 'Traversal'' s a
+--
 -- 'taking' :: 'Int' -> 'Getter' s a                 -> 'Fold'' s a
 -- 'taking' :: 'Int' -> 'Fold' s a                   -> 'Fold'' s a
+--
 -- 'taking' :: 'Int' -> 'Action' m s a               -> 'MonadicFold'' m s a
 -- 'taking' :: 'Int' -> 'MonadicFold' m s a          -> 'MonadicFold'' m s a
+--
 -- 'taking' :: 'Int' -> 'IndexedTraversal'' i s a    -> 'IndexedTraversal'' i s a
 -- 'taking' :: 'Int' -> 'IndexedLens'' i s a         -> 'IndexedTraversal'' i s a
+--
 -- 'taking' :: 'Int' -> 'IndexedGetter' i s a        -> 'IndexedFold'' i s a
 -- 'taking' :: 'Int' -> 'IndexedFold' i s a          -> 'IndexedFold'' i s a
+--
 -- 'taking' :: 'Int' -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold'' i m s a
 -- 'taking' :: 'Int' -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold'' i m s a
 -- @
@@ -645,14 +650,19 @@ taking n l pafb s = outs b <$> traverse (indexPro pafb) (take n $ pins b) where
 -- 'dropping' :: 'Int' -> 'Lens'' s a                  -> 'Traversal'' s a
 -- 'dropping' :: 'Int' -> 'Iso'' s a                   -> 'Traversal'' s a
 -- 'dropping' :: 'Int' -> 'Prism'' s a                 -> 'Traversal'' s a
+--
 -- 'dropping' :: 'Int' -> 'Fold' s a                   -> 'Fold' s a
 -- 'dropping' :: 'Int' -> 'Getter' s a                 -> 'Fold' s a
+--
 -- 'dropping' :: 'Int' -> 'Action' m s a               -> 'MonadicFold'' m s a
 -- 'dropping' :: 'Int' -> 'MonadicFold' m s a          -> 'MonadicFold'' m s a
+--
 -- 'dropping' :: 'Int' -> 'IndexedTraversal'' i s a    -> 'IndexedTraversal'' i s a
 -- 'dropping' :: 'Int' -> 'IndexedLens'' i s a         -> 'IndexedTraversal'' i s a
+--
 -- 'dropping' :: 'Int' -> 'IndexedFold' i s a          -> 'IndexedFold' s a
 -- 'dropping' :: 'Int' -> 'IndexedGetter' i s a        -> 'IndexedFold' s a
+--
 -- 'dropping' :: 'Int' -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold'' i m s a
 -- 'dropping' :: 'Int' -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold'' i m s a
 -- @
