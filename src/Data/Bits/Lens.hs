@@ -200,7 +200,8 @@ bitAt n f b = indexed f n (testBit b n) <&> \x -> if x then setBit b n else clea
 byteAt :: (Integral b, Bits b) => Int -> IndexedLens' Int b Word8
 byteAt i f b = back <$> indexed f i (fromIntegral (255 .&. shiftR b offset)) where
   offset = bitSize b - (i + 1) * 8
-  back w8 = b `xor` shiftL 255 offset .|. shiftL (fromIntegral w8) offset
+  back w8 = b .&. complement (255 `shiftL` offset)
+    .|. (fromIntegral w8 `shiftL` offset)
 
 -- | Traverse over all bits in a numeric type.
 --
