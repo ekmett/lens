@@ -468,9 +468,8 @@ foldlOf l f z = (flip appEndo z .# getDual) `rmap` foldMapOf l (Dual #. Endo #. 
 -- 'toListOf' :: 'Traversal'' s a -> s -> [a]
 -- 'toListOf' :: 'Prism'' s a     -> s -> [a]
 -- @
-toListOf :: Getting (Endo [a]) s t a b -> s -> [a]
+toListOf :: Profunctor q => Overloading (->) q (Accessor (Endo [a])) s t a b -> q s [a]
 toListOf l = foldrOf l (:) []
--- toListOf l = foldMapOf l return
 {-# INLINE toListOf #-}
 
 -- |
@@ -517,7 +516,7 @@ s ^.. l = toListOf l s
 -- 'andOf' :: 'Traversal'' s 'Bool' -> s -> 'Bool'
 -- 'andOf' :: 'Prism'' s 'Bool'     -> s -> 'Bool'
 -- @
-andOf :: Getting All s t Bool b -> s -> Bool
+andOf :: Profunctor q => Overloading (->) q (Accessor All) s t Bool b -> q s Bool
 andOf l = getAll `rmap` foldMapOf l All
 {-# INLINE andOf #-}
 
@@ -538,8 +537,8 @@ andOf l = getAll `rmap` foldMapOf l All
 -- 'orOf' :: 'Traversal'' s 'Bool' -> s -> 'Bool'
 -- 'orOf' :: 'Prism'' s 'Bool'     -> s -> 'Bool'
 -- @
-orOf :: Getting Any s t Bool b -> s -> Bool
-orOf l = getAny #. foldMapOf l Any
+orOf :: Profunctor q => Overloading (->) q (Accessor Any) s t Bool b -> q s Bool
+orOf l = getAny `rmap` foldMapOf l Any
 {-# INLINE orOf #-}
 
 -- | Returns 'True' if any target of a 'Fold' satisfies a predicate.
@@ -606,8 +605,8 @@ allOf l f = getAll `rmap` foldMapOf l (rmap All f)
 -- 'productOf' :: 'Num' a => 'Traversal'' s a -> s -> a
 -- 'productOf' :: 'Num' a => 'Prism'' s a     -> s -> a
 -- @
-productOf :: Getting (Product a) s t a b -> s -> a
-productOf l = getProduct #. foldMapOf l Product
+productOf :: Profunctor q => Overloading (->) q (Accessor (Product a)) s t a b -> q s a
+productOf l = getProduct `rmap` foldMapOf l Product
 {-# INLINE productOf #-}
 
 -- | Calculate the sum of every number targeted by a 'Fold'.
@@ -637,8 +636,8 @@ productOf l = getProduct #. foldMapOf l Product
 -- 'sumOf' :: 'Num' a => 'Traversal'' s a -> s -> a
 -- 'sumOf' :: 'Num' a => 'Prism'' s a     -> s -> a
 -- @
-sumOf :: Getting (Sum a) s t a b -> s -> a
-sumOf l = getSum #. foldMapOf l Sum
+sumOf :: Profunctor q => Overloading (->) q (Accessor (Sum a)) s t a b -> q s a
+sumOf l = getSum `rmap` foldMapOf l Sum
 {-# INLINE sumOf #-}
 
 -- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor') -based answer,
@@ -712,8 +711,8 @@ forOf_ = flip . traverseOf_
 -- 'sequenceAOf_' :: 'Applicative' f => 'Traversal'' s (f a) -> s -> f ()
 -- 'sequenceAOf_' :: 'Applicative' f => 'Prism'' s (f a)     -> s -> f ()
 -- @
-sequenceAOf_ :: Functor f => Getting (Traversed f) s t (f a) b -> s -> f ()
-sequenceAOf_ l = getTraversed #. foldMapOf l (Traversed #. void)
+sequenceAOf_ :: (Profunctor q, Functor f) => Overloading (->) q (Accessor (Traversed f)) s t (f a) b -> q s (f ())
+sequenceAOf_ l = getTraversed `rmap` foldMapOf l (Traversed #. void)
 {-# INLINE sequenceAOf_ #-}
 
 -- | Map each target of a 'Fold' on a structure to a monadic action, evaluate these actions from left to right, and ignore the results.
@@ -760,8 +759,8 @@ forMOf_ = flip . mapMOf_
 -- 'sequenceOf_' :: 'Monad' m => 'Traversal'' s (m a) -> s -> m ()
 -- 'sequenceOf_' :: 'Monad' m => 'Prism'' s (m a)     -> s -> m ()
 -- @
-sequenceOf_ :: Monad m => Getting (Sequenced m) s t (m a) b -> s -> m ()
-sequenceOf_ l = getSequenced #. foldMapOf l (Sequenced #. liftM skip)
+sequenceOf_ :: (Profunctor q, Monad m) => Overloading (->) q (Accessor (Sequenced m)) s t (m a) b -> q s (m ())
+sequenceOf_ l = getSequenced `rmap` foldMapOf l (Sequenced #. liftM skip)
 {-# INLINE sequenceOf_ #-}
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
@@ -776,7 +775,7 @@ sequenceOf_ l = getSequenced #. foldMapOf l (Sequenced #. liftM skip)
 -- 'asumOf' :: 'Alternative' f => 'Traversal'' s a -> s -> f a
 -- 'asumOf' :: 'Alternative' f => 'Prism'' s a     -> s -> f a
 -- @
-asumOf :: Alternative f => Getting (Endo (f a)) s t (f a) b -> s -> f a
+asumOf :: (Profunctor q, Alternative f) => Overloading (->) q (Accessor (Endo (f a))) s t (f a) b -> q s (f a)
 asumOf l = foldrOf l (<|>) Applicative.empty
 {-# INLINE asumOf #-}
 
@@ -792,7 +791,7 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 -- 'msumOf' :: 'MonadPlus' m => 'Traversal'' s a -> s -> m a
 -- 'msumOf' :: 'MonadPlus' m => 'Prism'' s a     -> s -> m a
 -- @
-msumOf :: MonadPlus m => Getting (Endo (m a)) s t (m a) b -> s -> m a
+msumOf :: (Profunctor q, MonadPlus m) => Overloading (->) q (Accessor (Endo (m a))) s t (m a) b -> q s (m a)
 msumOf l = foldrOf l mplus mzero
 {-# INLINE msumOf #-}
 
@@ -811,7 +810,7 @@ msumOf l = foldrOf l mplus mzero
 -- 'elemOf' :: 'Eq' a => 'Traversal'' s a -> a -> s -> 'Bool'
 -- 'elemOf' :: 'Eq' a => 'Prism'' s a     -> a -> s -> 'Bool'
 -- @
-elemOf :: Eq a => Getting Any s t a b -> a -> s -> Bool
+elemOf :: (Profunctor q, Eq a) => Overloading (->) q (Accessor Any) s t a b -> a -> q s Bool
 elemOf l = anyOf l . (==)
 {-# INLINE elemOf #-}
 
@@ -827,7 +826,7 @@ elemOf l = anyOf l . (==)
 -- 'notElemOf' :: 'Eq' a => 'Traversal'' s a -> a -> s -> 'Bool'
 -- 'notElemOf' :: 'Eq' a => 'Prism'' s a     -> a -> s -> 'Bool'
 -- @
-notElemOf :: Eq a => Getting All s t a b -> a -> s -> Bool
+notElemOf :: (Profunctor q, Eq a) => Overloading (->) q (Accessor All) s t a b -> a -> q s Bool
 notElemOf l = allOf l . (/=)
 {-# INLINE notElemOf #-}
 
@@ -863,8 +862,8 @@ concatMapOf l ces = runAccessor `rmap` l (rmap Accessor ces)
 -- 'concatOf' :: 'Lens'' s [r]      -> s -> [r]
 -- 'concatOf' :: 'Traversal'' s [r] -> s -> [r]
 -- @
-concatOf :: Getting [r] s t [r] b -> s -> [r]
-concatOf = view
+concatOf :: Profunctor q => Overloading (->) q (Accessor [r]) s t [r] b -> q s [r]
+concatOf l = runAccessor `rmap` l Accessor
 {-# INLINE concatOf #-}
 
 -- |
@@ -884,8 +883,8 @@ concatOf = view
 -- 'lengthOf' :: 'Iso'' s a       -> s -> 'Int'
 -- 'lengthOf' :: 'Traversal'' s a -> s -> 'Int'
 -- @
-lengthOf :: Getting (Sum Int) s t a b -> s -> Int
-lengthOf l = getSum #. foldMapOf l (\_ -> Sum 1)
+lengthOf :: Profunctor q => Overloading (->) q (Accessor (Sum Int)) s t a b -> q s Int
+lengthOf l = getSum `rmap` foldMapOf l (\_ -> Sum 1)
 {-# INLINE lengthOf #-}
 
 -- | Perform a safe 'head' of a 'Fold' or 'Traversal' or retrieve 'Just' the result
@@ -930,7 +929,7 @@ s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 -- 'firstOf' :: 'Iso'' s a       -> s -> 'Maybe' a
 -- 'firstOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-firstOf :: Getting (Endo (Maybe a)) s t a b -> s -> Maybe a
+firstOf :: Profunctor q => Overloading (->) q (Accessor (Endo (Maybe a))) s t a b -> q s (Maybe a)
 firstOf l = foldrOf l (\x _ -> Just x) Nothing
 {-# INLINE firstOf #-}
 
@@ -944,7 +943,7 @@ firstOf l = foldrOf l (\x _ -> Just x) Nothing
 -- 'lastOf' :: 'Iso'' s a       -> s -> 'Maybe' a
 -- 'lastOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-lastOf :: Getting (Dual (Endo (Maybe a))) s t a b -> s -> Maybe a
+lastOf :: Profunctor q => Overloading (->) q (Accessor (Dual (Endo (Maybe a)))) s t a b -> q s (Maybe a)
 lastOf l = foldlOf l (\_ y -> Just y) Nothing
 {-# INLINE lastOf #-}
 
@@ -969,8 +968,8 @@ lastOf l = foldlOf l (\_ y -> Just y) Nothing
 -- 'nullOf' :: 'Lens'' s a      -> s -> 'Bool'
 -- 'nullOf' :: 'Traversal'' s a -> s -> 'Bool'
 -- @
-nullOf :: Getting All s t a b -> s -> Bool
-nullOf l = getAll #. foldMapOf l (\_ -> All False)
+nullOf :: Profunctor q => Overloading (->) q (Accessor All) s t a b -> q s Bool
+nullOf l = getAll `rmap` foldMapOf l (\_ -> All False)
 {-# INLINE nullOf #-}
 
 
@@ -995,8 +994,8 @@ nullOf l = getAll #. foldMapOf l (\_ -> All False)
 -- 'notNullOf' :: 'Lens'' s a      -> s -> 'Bool'
 -- 'notNullOf' :: 'Traversal'' s a -> s -> 'Bool'
 -- @
-notNullOf :: Getting Any s t a b -> s -> Bool
-notNullOf l = getAny #. foldMapOf l (\_ -> Any True)
+notNullOf :: Profunctor q => Overloading (->) q (Accessor Any) s t a b -> q s Bool
+notNullOf l = getAny `rmap` foldMapOf l (\_ -> Any True)
 {-# INLINE notNullOf #-}
 
 -- |
@@ -1013,8 +1012,8 @@ notNullOf l = getAny #. foldMapOf l (\_ -> Any True)
 -- 'maximumOf' ::          'Lens'' s a      -> s -> 'Maybe' a
 -- 'maximumOf' :: 'Ord' a => 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-maximumOf :: Getting (Max a) s t a b -> s -> Maybe a
-maximumOf l = getMax . foldMapOf l Max
+maximumOf :: Profunctor q => Overloading (->) q (Accessor (Max a)) s t a b -> q s (Maybe a)
+maximumOf l = getMax `rmap` foldMapOf l Max
 {-# INLINE maximumOf #-}
 
 -- |
@@ -1031,8 +1030,8 @@ maximumOf l = getMax . foldMapOf l Max
 -- 'minimumOf' ::          'Lens'' s a      -> s -> 'Maybe' a
 -- 'minimumOf' :: 'Ord' a => 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-minimumOf :: Getting (Min a) s t a b -> s -> Maybe a
-minimumOf l = getMin . foldMapOf l Min
+minimumOf :: Profunctor q => Overloading (->) q (Accessor (Min a)) s t a b -> q s (Maybe a)
+minimumOf l = getMin `rmap` foldMapOf l Min
 {-# INLINE minimumOf #-}
 
 -- |
@@ -1048,7 +1047,7 @@ minimumOf l = getMin . foldMapOf l Min
 -- 'maximumByOf' :: 'Lens'' s a      -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- 'maximumByOf' :: 'Traversal'' s a -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- @
-maximumByOf :: Getting (Endo (Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
+maximumByOf :: Profunctor q => Overloading (->) q (Accessor (Endo (Maybe a))) s t a b -> (a -> a -> Ordering) -> q s (Maybe a)
 maximumByOf l cmp = foldrOf l step Nothing where
   step a Nothing  = Just a
   step a (Just b) = Just (if cmp a b == GT then a else b)
@@ -1067,7 +1066,7 @@ maximumByOf l cmp = foldrOf l step Nothing where
 -- 'minimumByOf' :: 'Lens'' s a      -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- 'minimumByOf' :: 'Traversal'' s a -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- @
-minimumByOf :: Getting (Endo (Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
+minimumByOf :: Profunctor q => Overloading (->) q (Accessor (Endo (Maybe a))) s t a b -> (a -> a -> Ordering) -> q s (Maybe a)
 minimumByOf l cmp = foldrOf l step Nothing where
   step a Nothing  = Just a
   step a (Just b) = Just (if cmp a b == GT then b else a)
@@ -1093,7 +1092,7 @@ minimumByOf l cmp = foldrOf l step Nothing where
 -- findOf :: Getting (Endo (Maybe a)) s t a b -> (a -> Bool) -> s -> Maybe a
 -- findOf l p = foldrOf l (\a y -> if p a then Just a else y) Nothing
 -- @
-findOf :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (Accessor (Endo (Maybe a))) s t a b -> p a Bool -> s -> Maybe a
+findOf :: (RepresentableProfunctor p, Profunctor q, Comonad (Rep p)) => Overloading p q (Accessor (Endo (Maybe a))) s t a b -> p a Bool -> q s (Maybe a)
 findOf l p = foldrOf l (tabulatePro $ \wa y -> if indexPro p wa then Just (extract wa) else y) Nothing
 {-# INLINE findOf #-}
 
@@ -1235,8 +1234,8 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 -- 'has' :: 'Lens'' s a      -> s -> 'Bool'
 -- 'has' :: 'Traversal'' s a -> s -> 'Bool'
 -- @
-has :: Getting Any s t a b -> s -> Bool
-has l = getAny #. views l (\_ -> Any True)
+has :: Profunctor q => Overloading (->) q (Accessor Any) s t a b -> q s Bool
+has l = getAny `rmap` foldMapOf l (\_ -> Any True)
 {-# INLINE has #-}
 
 -- | Check to see if this 'Fold' or 'Traversal' has no matches.
@@ -1246,8 +1245,8 @@ has l = getAny #. views l (\_ -> Any True)
 --
 -- >>> hasn't _left (Left 12)
 -- False
-hasn't :: Getting All s t a b -> s -> Bool
-hasn't l = getAll #. views l (\_ -> All False)
+hasn't :: Profunctor q => Overloading (->) q (Accessor All) s t a b -> q s Bool
+hasn't l = getAll `rmap` foldMapOf l (\_ -> All False)
 {-# INLINE hasn't #-}
 
 ------------------------------------------------------------------------------
@@ -1357,7 +1356,7 @@ preuses l f = gets (previews l f)
 -- /NB:/ To write back through an 'Iso', you want to use 'Control.Lens.Isomorphic.from'.
 -- Similarly, to write back through an 'Prism', you want to use 'Control.Lens.Prism.remit'.
 backwards :: (Profunctor p, Profunctor q) => Overloading p q (Backwards f) s t a b -> Overloading p q f s t a b
-backwards l f = rmap forwards (l (rmap Backwards f))
+backwards l = rmap forwards . l . rmap Backwards
 {-# INLINE backwards #-}
 
 ------------------------------------------------------------------------------
