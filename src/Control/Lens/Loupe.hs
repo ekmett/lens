@@ -8,7 +8,7 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
--- This module is deprecated; use 'Control.Lens.ALens' instead.
+-- This module is deprecated; use 'Control.Lens.Lens.ALens' instead.
 -------------------------------------------------------------------------------
 module Control.Lens.Loupe
   (
