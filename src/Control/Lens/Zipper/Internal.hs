@@ -495,7 +495,7 @@ idownward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start i a
 -- 'within' :: 'Iso'' s a       -> (h :> s) -> Maybe (h :> s :> a)
 -- @
 
--- within :: MonadPlus m => ATraversal' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
+-- @'within' :: 'MonadPlus' m => 'ATraversal'' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)@
 within :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) (->) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
 within = iwithin . indexing
 {-# INLINE within #-}

@@ -256,14 +256,14 @@ makeClassy = makeLensesWith classyRules
 -- /e.g./
 --
 -- @
--- newtype List a = List [a]
--- makeIso ''List
+-- newtype 'List' a = 'List' [a]
+-- 'makeIso' ''List
 -- @
 --
 -- will create
 --
 -- @
--- list :: Iso [a] [b] ('List' a) ('List' b)
+-- 'list' :: 'Iso' [a] [b] ('List' a) ('List' b)
 -- @
 --
 -- > makeIso = makeLensesWith isoRules
