@@ -29,7 +29,7 @@ can do so without incurring a dependency on this (or any other) lens package at 
 </p><p><em>e.g.</em> for a data type:
 </p><pre> data Foo a = Foo Int Int a
 </pre><p>You can define lenses such as
-</p><pre> -- bar :: Simple Lens (Foo a) Int
+</p><pre> -- bar :: Lens' (Foo a) Int
  bar :: Functor f =&gt; (Int -&gt; f Int) -&gt; Foo a -&gt; f (Foo a)
  bar f (Foo a b c) = fmap (\a' -&gt; Foo a' b c) (f a)
 </pre><pre> -- baz :: Lens (Foo a) (Foo b) a b
@@ -37,7 +37,7 @@ can do so without incurring a dependency on this (or any other) lens package at 
  quux f (Foo a b c) = fmap (Foo a b) (f c)
 </pre><p>without the need to use any type that isn't already defined in the <code>Prelude</code>.
 </p><p>And you can define a traversal of multiple fields with <code>Applicative</code>:
-</p><pre> -- traverseBarAndBaz :: Simple Traversal (Foo a) Int
+</p><pre> -- traverseBarAndBaz :: Traversal' (Foo a) Int
  traverseBarAndBaz :: Applicative f =&gt; (Int -&gt; f Int) -&gt; Foo a -&gt; f (Foo a)
  traverseBarAndBaz f (Foo a b c) = Foo &lt;$&gt; f a &lt;*&gt; f b &lt;*&gt; pure c
 </pre><p>What is provided in this library is a number of stock lenses and traversals for
