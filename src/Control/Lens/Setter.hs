@@ -160,9 +160,7 @@ mapped = setting fmap
 -- You sometimes have to use this, rather than 'mapped', because due to
 -- temporary insanity 'Functor' is not a superclass of 'Monad'.
 --
--- @
--- 'liftM' ≡ 'over' 'lifted'
--- @
+-- @'liftM' ≡ 'over' 'lifted'@
 --
 -- >>> over lifted f [a,b,c]
 -- [f a,f b,f c]
@@ -690,9 +688,7 @@ l .= b = State.modify (l .~ b)
 -- ('%=') :: 'MonadState' s m => 'Setter'' s a    -> (a -> a) -> m ()
 -- @
 --
--- @
--- ('%=') :: 'MonadState' s m => 'ASetter' s s a b -> (a -> b) -> m ()
--- @
+-- @('%=') :: 'MonadState' s m => 'ASetter' s s a b -> (a -> b) -> m ()@
 (%=) :: (Profunctor p, MonadState s m) => Overloading p (->) Mutator s s a b -> p a b -> m ()
 l %= f = State.modify (l %~ f)
 {-# INLINE (%=) #-}
