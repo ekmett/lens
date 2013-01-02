@@ -72,6 +72,7 @@ import Control.Monad (liftM)
 import Control.Monad.State.Class as State
 import Data.Monoid
 import Data.Profunctor
+import Data.Profunctor.Corepresentable
 import Data.Profunctor.Representable
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
@@ -285,8 +286,8 @@ over l f = runMutator `rmap` l (rmap Mutator f)
 -- 'set' :: 'Lens' s t a b      -> b -> s -> t
 -- 'set' :: 'Traversal' s t a b -> b -> s -> t
 -- @
-set :: ASetter s t a b -> b -> s -> t
-set l b = runMutator #. l (\_ -> Mutator b)
+set :: Profunctor q => Overloading (->) q Mutator s t a b -> b -> q s t
+set l b = runMutator `rmap` l (\_ -> Mutator b)
 {-# INLINE set #-}
 
 -- |
@@ -313,8 +314,8 @@ set l b = runMutator #. l (\_ -> Mutator b)
 -- 'set'' :: 'Lens'' s a      -> a -> s -> s
 -- 'set'' :: 'Traversal'' s a -> a -> s -> s
 -- @
-set' :: ASetter s s a a -> a -> s -> s
-set' l b = runMutator #. l (\_ -> Mutator b)
+set' :: Profunctor q => Overloading' (->) q Mutator s a -> a -> q s s
+set' l b = runMutator `rmap` l (\_ -> Mutator b)
 {-# INLINE set' #-}
 
 -- | Modifies the target of a 'Lens' or all of the targets of a 'Setter' or
@@ -351,7 +352,7 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 -- ('%~') :: 'Lens' s t a b      -> (a -> b) -> s -> t
 -- ('%~') :: 'Traversal' s t a b -> (a -> b) -> s -> t
 -- @
-(%~) :: Profunctor p => Overloading p (->) Mutator s t a b -> p a b -> s -> t
+(%~) :: (Profunctor p, Profunctor q) => Overloading p q Mutator s t a b -> p a b -> q s t
 (%~) = over
 {-# INLINE (%~) #-}
 
@@ -377,7 +378,7 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 -- ('.~') :: 'Lens' s t a b      -> b -> s -> t
 -- ('.~') :: 'Traversal' s t a b -> b -> s -> t
 -- @
-(.~) :: ASetter s t a b -> b -> s -> t
+(.~) :: Profunctor q => Overloading (->) q Mutator s t a b -> b -> q s t
 (.~) = set
 {-# INLINE (.~) #-}
 
@@ -397,7 +398,7 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 -- ('?~') :: 'Lens' s t a ('Maybe' b)      -> b -> s -> t
 -- ('?~') :: 'Traversal' s t a ('Maybe' b) -> b -> s -> t
 -- @
-(?~) :: ASetter s t a (Maybe b) -> b -> s -> t
+(?~) :: Profunctor q => Overloading (->) q Mutator s t a (Maybe b) -> b -> q s t
 l ?~ b = set l (Just b)
 {-# INLINE (?~) #-}
 
@@ -422,8 +423,8 @@ l ?~ b = set l (Just b)
 -- ('<.~') :: 'Lens' s t a b      -> b -> s -> (b, t)
 -- ('<.~') :: 'Traversal' s t a b -> b -> s -> (b, t)
 -- @
-(<.~) :: ASetter s t a b -> b -> s -> (b, t)
-l <.~ b = \s -> (b, set l b s)
+(<.~) :: CorepresentableProfunctor q => Overloading (->) q Mutator s t a b -> b -> q s (b, t)
+l <.~ b = cotabulatePro $ \s -> (,) b <$> coindexPro (set l b) s
 {-# INLINE (<.~) #-}
 
 -- | Set to 'Just' a value with pass-through
@@ -442,8 +443,8 @@ l <.~ b = \s -> (b, set l b s)
 -- ('<?~') :: 'Lens' s t a ('Maybe' b)      -> b -> s -> (b, t)
 -- ('<?~') :: 'Traversal' s t a ('Maybe' b) -> b -> s -> (b, t)
 -- @
-(<?~) :: ASetter s t a (Maybe b) -> b -> s -> (b, t)
-l <?~ b = \s -> (b, set l (Just b) s)
+(<?~) :: CorepresentableProfunctor q => Overloading (->) q Mutator s t a (Maybe b) -> b -> q s (b, t)
+l <?~ b = cotabulatePro $ \s -> (,) b <$> coindexPro (set l (Just b)) s
 {-# INLINE (<?~) #-}
 
 -- | Increment the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
@@ -466,7 +467,7 @@ l <?~ b = \s -> (b, set l (Just b) s)
 -- ('+~') :: Num a => 'Lens'' s a      -> a -> s -> s
 -- ('+~') :: Num a => 'Traversal'' s a -> a -> s -> s
 -- @
-(+~) :: Num a => ASetter s t a a -> a -> s -> t
+(+~) :: (Profunctor q, Num a) => Overloading (->) q Mutator s t a a -> a -> q s t
 l +~ n = over l (+ n)
 {-# INLINE (+~) #-}
 
@@ -490,7 +491,7 @@ l +~ n = over l (+ n)
 -- ('*~') :: 'Num' a => 'Lens'' s a      -> a -> s -> s
 -- ('*~') :: 'Num' a => 'Traversal'' s a -> a -> s -> s
 -- @
-(*~) :: Num a => ASetter s t a a -> a -> s -> t
+(*~) :: (Profunctor q, Num a) => Overloading (->) q Mutator s t a a -> a -> q s t
 l *~ n = over l (* n)
 {-# INLINE (*~) #-}
 
@@ -514,7 +515,7 @@ l *~ n = over l (* n)
 -- ('-~') :: 'Num' a => 'Lens'' s a      -> a -> s -> s
 -- ('-~') :: 'Num' a => 'Traversal'' s a -> a -> s -> s
 -- @
-(-~) :: Num a => ASetter s t a a -> a -> s -> t
+(-~) :: (Profunctor q, Num a) => Overloading (->) q Mutator s t a a -> a -> q s t
 l -~ n = over l (subtract n)
 {-# INLINE (-~) #-}
 
@@ -535,7 +536,7 @@ l -~ n = over l (subtract n)
 -- ('//~') :: 'Fractional' a => 'Lens'' s a      -> a -> s -> s
 -- ('//~') :: 'Fractional' a => 'Traversal'' s a -> a -> s -> s
 -- @
-(//~) :: Fractional s => ASetter a b s s -> s -> a -> b
+(//~) :: (Profunctor q, Fractional a) => Overloading (->) q Mutator s t a a -> a -> q s t
 l //~ n = over l (/ n)
 
 -- | Raise the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal' to a non-negative integral power
@@ -549,7 +550,7 @@ l //~ n = over l (/ n)
 -- ('^~') :: ('Num' a, 'Integral' e) => 'Lens'' s a      -> e -> s -> s
 -- ('^~') :: ('Num' a, 'Integral' e) => 'Traversal'' s a -> e -> s -> s
 -- @
-(^~) :: (Num a, Integral e) => ASetter s t a a -> e -> s -> t
+(^~) :: (Profunctor q, Num a, Integral e) => Overloading (->) q Mutator s t a a -> e -> q s t
 l ^~ n = over l (^ n)
 {-# INLINE (^~) #-}
 
@@ -565,7 +566,7 @@ l ^~ n = over l (^ n)
 -- ('^^~') :: ('Fractional' a, 'Integral' e) => 'Traversal'' s a -> e -> s -> s
 -- @
 --
-(^^~) :: (Fractional a, Integral e) => ASetter s t a a -> e -> s -> t
+(^^~) :: (Profunctor q, Fractional a, Integral e) => Overloading (->) q Mutator s t a a -> e -> q s t
 l ^^~ n = over l (^^ n)
 {-# INLINE (^^~) #-}
 
@@ -586,7 +587,7 @@ l ^^~ n = over l (^^ n)
 -- ('**~') :: 'Floating' a => 'Lens'' s a      -> a -> s -> s
 -- ('**~') :: 'Floating' a => 'Traversal'' s a -> a -> s -> s
 -- @
-(**~) :: Floating a => ASetter s t a a -> a -> s -> t
+(**~) :: (Profunctor q, Floating a) => Overloading (->) q Mutator s t a a -> a -> q s t
 l **~ n = over l (** n)
 {-# INLINE (**~) #-}
 
@@ -604,7 +605,7 @@ l **~ n = over l (** n)
 -- ('||~') :: 'Lens'' s 'Bool'      -> 'Bool' -> s -> s
 -- ('||~') :: 'Traversal'' s 'Bool' -> 'Bool' -> s -> s
 -- @
-(||~):: ASetter s t Bool Bool -> Bool -> s -> t
+(||~):: Profunctor q => Overloading (->) q Mutator s t Bool Bool -> Bool -> q s t
 l ||~ n = over l (|| n)
 {-# INLINE (||~) #-}
 
@@ -622,7 +623,7 @@ l ||~ n = over l (|| n)
 -- ('&&~') :: 'Lens'' s 'Bool'      -> 'Bool' -> s -> s
 -- ('&&~') :: 'Traversal'' s 'Bool' -> 'Bool' -> s -> s
 -- @
-(&&~) :: ASetter s t Bool Bool -> Bool -> s -> t
+(&&~) :: Profunctor q => Overloading (->) q Mutator s t Bool Bool -> Bool -> q s t
 l &&~ n = over l (&& n)
 {-# INLINE (&&~) #-}
 
@@ -942,7 +943,7 @@ l <?= b = do
 -- ('<>~') :: 'Monoid' a => 'Lens' s t a a      -> a -> s -> t
 -- ('<>~') :: 'Monoid' a => 'Traversal' s t a a -> a -> s -> t
 -- @
-(<>~) :: Monoid a => ASetter s t a a -> a -> s -> t
+(<>~) :: (Profunctor q, Monoid a) => Overloading (->) q Mutator s t a a -> a -> q s t
 l <>~ n = over l (`mappend` n)
 {-# INLINE (<>~) #-}
 
@@ -983,7 +984,7 @@ l <>= a = State.modify (l <>~ a)
 -- 'iover' :: 'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- 'iover' :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
-iover :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
+iover :: Profunctor q => Overloading (Indexed i) q Mutator s t a b -> (i -> a -> b) -> q s t
 iover l = over l .# Indexed
 {-# INLINE iover #-}
 
@@ -1023,7 +1024,7 @@ isets f = sets (f . indexed)
 -- ('%@~') :: 'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- ('%@~') :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
-(%@~) :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
+(%@~) :: Profunctor q => Overloading (Indexed i) q Mutator s t a b -> (i -> a -> b) -> q s t
 l %@~ f = l %~ Indexed f
 {-# INLINE (%@~) #-}
 
@@ -1048,7 +1049,7 @@ l %@= f = State.modify (l %@~ f)
 ------------------------------------------------------------------------------
 
 -- | 'mapOf' is a deprecated alias for 'over'.
-mapOf :: ASetter s t a b -> (a -> b) -> s -> t
+mapOf :: (Profunctor p, Profunctor q) => Overloading p q Mutator s t a b -> p a b -> q s t
 mapOf = over
 {-# INLINE mapOf #-}
 {-# DEPRECATED mapOf "Use `over`" #-}
@@ -1065,7 +1066,7 @@ mapOf = over
 -- 'imapOf' :: 'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> t
 -- 'imapOf' :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
-imapOf :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
-imapOf l f = runMutator #. l (Indexed $ \i -> Mutator #. f i)
+imapOf :: Profunctor q => Overloading (Indexed i) q Mutator s t a b -> (i -> a -> b) -> q s t
+imapOf = iover
 {-# INLINE imapOf #-}
 {-# DEPRECATED imapOf "Use `iover`" #-}

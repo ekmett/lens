@@ -214,7 +214,7 @@ ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 -- ('%%~') ::             'Lens' s t a b      -> (a -> (r, b)) -> s -> (r, t)
 -- ('%%~') :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> (m, b)) -> s -> (m, t)
 -- @
-(%%~) :: Overloading p (->) f s t a b -> p a (f b) -> s -> f t
+(%%~) :: Overloading p q f s t a b -> p a (f b) -> q s (f t)
 (%%~) = id
 {-# INLINE (%%~) #-}
 
@@ -379,7 +379,7 @@ cloneIndexedLens l f s = runPretext (l sell s) (Indexed (indexed f))
 -- ('<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> (a -> b) -> s -> (b, t)
 -- ('<%~') :: 'Monoid' b => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> b) -> s -> (b, t)
 -- @
-(<%~) :: Profunctor p => Overloading p (->) ((,) b) s t a b -> p a b -> s -> (b, t)
+(<%~) :: Profunctor p => Overloading p q ((,) b) s t a b -> p a b -> q s (b, t)
 l <%~ f = l $ rmap (\t -> (t, t)) f
 {-# INLINE (<%~) #-}
 
@@ -391,7 +391,7 @@ l <%~ f = l $ rmap (\t -> (t, t)) f
 -- ('<+~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
 -- ('<+~') :: 'Num' a => 'Control.Lens.Iso.Iso'' s a  -> a -> s -> (a, s)
 -- @
-(<+~) :: Num a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
+(<+~) :: Num a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <+~ a = l <%~ (+ a)
 {-# INLINE (<+~) #-}
 
@@ -403,7 +403,7 @@ l <+~ a = l <%~ (+ a)
 -- ('<-~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
 -- ('<-~') :: 'Num' a => 'Control.Lens.Iso.Iso'' s a  -> a -> s -> (a, s)
 -- @
-(<-~) :: Num a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
+(<-~) :: Num a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <-~ a = l <%~ subtract a
 {-# INLINE (<-~) #-}
 
@@ -416,7 +416,7 @@ l <-~ a = l <%~ subtract a
 -- ('<*~') :: 'Num' b => 'Lens'' s a -> a -> a -> (s, a)
 -- ('<*~') :: 'Num' b => 'Control.Lens.Iso.Iso''  s a -> a -> a -> (s, a)
 -- @
-(<*~) :: Num a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
+(<*~) :: Num a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <*~ a = l <%~ (* a)
 {-# INLINE (<*~) #-}
 
@@ -428,7 +428,7 @@ l <*~ a = l <%~ (* a)
 -- ('<//~') :: 'Fractional' b => 'Lens'' s a -> a -> a -> (s, a)
 -- ('<//~') :: 'Fractional' b => 'Control.Lens.Iso.Iso''  s a -> a -> a -> (s, a)
 -- @
-(<//~) :: Fractional a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
+(<//~) :: Fractional a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <//~ a = l <%~ (/ a)
 {-# INLINE (<//~) #-}
 
@@ -441,7 +441,7 @@ l <//~ a = l <%~ (/ a)
 -- ('<^~') :: ('Num' b, 'Integral' e) => 'Lens'' s a -> e -> a -> (a, s)
 -- ('<^~') :: ('Num' b, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a -> e -> a -> (a, s)
 -- @
-(<^~) :: (Num a, Integral e) => LensLike ((,)a) s t a a -> e -> s -> (a, t)
+(<^~) :: (Num a, Integral e) => Overloading (->) q ((,)a) s t a a -> e -> q s (a, t)
 l <^~ e = l <%~ (^ e)
 {-# INLINE (<^~) #-}
 
@@ -454,7 +454,7 @@ l <^~ e = l <%~ (^ e)
 -- ('<^^~') :: ('Fractional' b, 'Integral' e) => 'Lens'' s a -> e -> a -> (a, s)
 -- ('<^^~') :: ('Fractional' b, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a -> e -> a -> (a, s)
 -- @
-(<^^~) :: (Fractional a, Integral e) => LensLike ((,)a) s t a a -> e -> s -> (a, t)
+(<^^~) :: (Fractional a, Integral e) => Overloading (->) q ((,)a) s t a a -> e -> q s (a, t)
 l <^^~ e = l <%~ (^^ e)
 {-# INLINE (<^^~) #-}
 
@@ -467,7 +467,7 @@ l <^^~ e = l <%~ (^^ e)
 -- ('<**~') :: 'Floating' a => 'Lens'' s a -> a -> s -> (a, s)
 -- ('<**~') :: 'Floating' a => 'Control.Lens.Iso.Iso'' s a  -> a -> s -> (a, s)
 -- @
-(<**~) :: Floating a => LensLike ((,)a) s t a a -> a -> s -> (a, t)
+(<**~) :: Floating a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <**~ a = l <%~ (** a)
 {-# INLINE (<**~) #-}
 
@@ -479,7 +479,7 @@ l <**~ a = l <%~ (** a)
 -- ('<||~') :: 'Lens'' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
 -- ('<||~') :: 'Control.Lens.Iso.Iso'' s 'Bool'  -> 'Bool' -> s -> ('Bool', s)
 -- @
-(<||~) :: LensLike ((,)Bool) s t Bool Bool -> Bool -> s -> (Bool, t)
+(<||~) :: Overloading (->) q ((,)Bool) s t Bool Bool -> Bool -> q s (Bool, t)
 l <||~ b = l <%~ (|| b)
 {-# INLINE (<||~) #-}
 
@@ -491,7 +491,7 @@ l <||~ b = l <%~ (|| b)
 -- ('<&&~') :: 'Lens'' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
 -- ('<&&~') :: 'Control.Lens.Iso.Iso'' s 'Bool'  -> 'Bool' -> s -> ('Bool', s)
 -- @
-(<&&~) :: LensLike ((,)Bool) s t Bool Bool -> Bool -> s -> (Bool, t)
+(<&&~) :: Overloading (->) q ((,)Bool) s t Bool Bool -> Bool -> q s (Bool, t)
 l <&&~ b = l <%~ (&& b)
 {-# INLINE (<&&~) #-}
 
@@ -504,7 +504,7 @@ l <&&~ b = l <%~ (&& b)
 -- ('<<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> (a -> b) -> s -> (b, t)
 -- ('<<%~') :: 'Monoid' b => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> b) -> s -> (b, t)
 -- @
-(<<%~) :: Lenticular p => Overloading p (->) ((,)a) s t a b -> p a b -> s -> (a, t)
+(<<%~) :: Lenticular p => Overloading p q ((,)a) s t a b -> p a b -> q s (a, t)
 (<<%~) l = l . lenticular
 {-# INLINE (<<%~) #-}
 
@@ -517,7 +517,7 @@ l <&&~ b = l <%~ (&& b)
 -- ('<<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> b -> s -> (a, t)
 -- ('<<%~') :: 'Monoid' b => 'Control.Lens.Traversal.Traversal' s t a b -> b -> s -> (a, t)
 -- @
-(<<.~) :: LensLike ((,)a) s t a b -> b -> s -> (a, t)
+(<<.~) :: Overloading (->) q ((,)a) s t a b -> b -> q s (a, t)
 l <<.~ b = l $ \a -> (a, b)
 {-# INLINE (<<.~) #-}
 
@@ -719,7 +719,7 @@ l <<~ mb = do
 -- return the result
 --
 -- When you do not need the result of the operation, ('<>~') is more flexible.
-(<<>~) :: Monoid m => LensLike ((,)m) s t m m -> m -> s -> (m, t)
+(<<>~) :: Monoid m => Overloading (->) q ((,)m) s t m m -> m -> q s (m, t)
 l <<>~ m = l <%~ (`mappend` m)
 {-# INLINE (<<>~) #-}
 
@@ -749,7 +749,7 @@ l <<>= r = l <%= (`mappend` r)
 -- ('<%@~') ::             'IndexedLens' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- ('<%@~') :: 'Monoid' b => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- @
-(<%@~) :: IndexedLensLike (Indexed i) ((,) b) s t a b -> (i -> a -> b) -> s -> (b, t)
+(<%@~) :: Overloading (Indexed i) q ((,) b) s t a b -> (i -> a -> b) -> q s (b, t)
 l <%@~ f = l (Indexed $ \i a -> let b = f i a in (b, b))
 {-# INLINE (<%@~) #-}
 
@@ -771,7 +771,7 @@ l <%@~ f = l (Indexed $ \i a -> let b = f i a in (b, b))
 -- ('%%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> (r, b)) -> s -> (r, t)
 -- ('%%@~') :: 'Monoid' r => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> (r, b)) -> s -> (r, t)
 -- @
-(%%@~) :: IndexedLensLike (Indexed i) f s t a b -> (i -> a -> f b) -> s -> f t
+(%%@~) :: Overloading (Indexed i) q f s t a b -> (i -> a -> f b) -> q s (f t)
 (%%@~) l = l .# Indexed
 {-# INLINE (%%@~) #-}
 
