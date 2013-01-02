@@ -282,8 +282,8 @@ forMOf l a cmd = unwrapMonad (l (rmap WrapMonad cmd) a)
 -- 'sequenceOf' ::            'Lens' s t (m b) b      -> s -> m t
 -- 'sequenceOf' :: 'Monad' m => 'Traversal' s t (m b) b -> s -> m t
 -- @
-sequenceOf :: LensLike (WrappedMonad m) s t (m b) b -> s -> m t
-sequenceOf l = unwrapMonad #. l WrapMonad
+sequenceOf :: Profunctor q => Overloading (->) q (WrappedMonad m) s t (m b) b -> q s (m t)
+sequenceOf l = unwrapMonad `rmap` l WrapMonad
 {-# INLINE sequenceOf #-}
 
 -- | This generalizes 'Data.List.transpose' to an arbitrary 'Traversal'.
@@ -299,8 +299,8 @@ sequenceOf l = unwrapMonad #. l WrapMonad
 -- monadic strength as well:
 --
 -- @'transposeOf' '_2' :: (b, [a]) -> [(b, a)]@
-transposeOf :: LensLike ZipList s t [a] a -> s -> [t]
-transposeOf l = getZipList #. l ZipList
+transposeOf :: Profunctor q => Overloading (->) q ZipList s t [a] a -> q s [t]
+transposeOf l = getZipList `rmap` l ZipList
 {-# INLINE transposeOf #-}
 
 -- | This generalizes 'Data.Traversable.mapAccumR' to an arbitrary 'Traversal'.
@@ -542,21 +542,20 @@ ins :: Bizarre (->) (->) w => w a b t -> [a]
 ins = toListOf bazaar
 {-# INLINE ins #-}
 
-pins :: (Bizarre p (->) w, RepresentableProfunctor p) => w a b t -> [Rep p a]
-pins = getConst . bazaar (tabulatePro $ \ra -> Const [ra])
+pins :: (Bizarre p q w, RepresentableProfunctor p) => q (w a b t) [Rep p a]
+pins = getConst `rmap` bazaar (tabulatePro $ \ra -> Const [ra])
 {-# INLINE pins #-}
 
 parr :: (Profunctor p, Category p) => (a -> b) -> p a b
 parr f = lmap f id
 {-# INLINE parr #-}
 
-outs :: (Bizarre p (->) w, Category p) => w a a t -> [a] -> t
-outs b = evalState $ flip bazaar b $ parr $ state . unconsWithDefault
+outs :: (Bizarre p q w, Category p) => q (w a a t) ([a] -> t)
+outs = evalState `rmap` bazaar (parr (state . unconsWithDefault))
 {-# INLINE outs #-}
 
-unsafeOuts :: (Bizarre p (->) w, RepresentableProfunctor p) => w a b t -> [b] -> t
-unsafeOuts b = evalState $ flip bazaar b $ tabulatePro $
-  \_ -> state (unconsWithDefault fakeVal)
+unsafeOuts :: (Bizarre p q w, RepresentableProfunctor p) => q (w a b t) ([b] -> t)
+unsafeOuts = evalState `rmap` bazaar (tabulatePro (\_ -> state (unconsWithDefault fakeVal)))
   where fakeVal = error "unsafePartsOf': not enough elements were supplied"
 {-# INLINE unsafeOuts #-}
 
