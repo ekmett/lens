@@ -404,9 +404,7 @@ foldMapOf l f = runAccessor `rmap` l (rmap Accessor f)
 -- 'foldOf' :: 'Monoid' m => 'Prism'' s m     -> s -> m
 -- @
 --
--- @
--- 'foldOf' :: 'Getting' a s t a b -> s -> a
--- @
+-- @'foldOf' :: 'Getting' a s t a b -> s -> a@
 foldOf :: Profunctor q => Overloading (->) q (Accessor a) s t a b -> q s a
 foldOf l = runAccessor `rmap` l Accessor
 {-# INLINE foldOf #-}

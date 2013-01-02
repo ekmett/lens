@@ -206,9 +206,7 @@ traverseOf = id
 --
 -- This function is only provided for consistency, 'flip' is strictly more general.
 --
--- @
--- 'forOf' ≡ 'flip'
--- @
+-- @'forOf' ≡ 'flip'@
 --
 -- @
 -- 'forOf' :: 'Iso' s t a b -> s -> (a -> f b) -> f t

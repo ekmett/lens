@@ -51,8 +51,8 @@ nullLeft Pure              = True
 
 nullRight :: Magma i a -> Bool
 nullRight (Ap _ _ nr _ _ _) = nr
-nullRight (Leaf _ _)      = False
-nullRight Pure            = True
+nullRight (Leaf _ _)        = False
+nullRight Pure              = True
 {-# INLINE nullRight #-}
 
 maximal :: Magma i a -> Last i
@@ -63,8 +63,8 @@ maximal Pure              = Last Nothing
 
 instance Functor (Magma i) where
   fmap f (Ap m nl nr li l r) = Ap m nl nr li (fmap f l) (fmap f r)
-  fmap f (Leaf i a)       = Leaf i (f a)
-  fmap _ Pure             = Pure
+  fmap f (Leaf i a)          = Leaf i (f a)
+  fmap _ Pure                = Pure
   {-# INLINE fmap #-}
 
 instance Foldable (Magma i) where
