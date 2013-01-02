@@ -214,7 +214,7 @@ ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 -- ('%%~') ::             'Lens' s t a b      -> (a -> (r, b)) -> s -> (r, t)
 -- ('%%~') :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> (m, b)) -> s -> (m, t)
 -- @
-(%%~) :: LensLike f s t a b -> (a -> f b) -> s -> f t
+(%%~) :: Overloading p (->) f s t a b -> p a (f b) -> s -> f t
 (%%~) = id
 {-# INLINE (%%~) #-}
 
@@ -236,7 +236,7 @@ ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 -- ('%%=') :: 'MonadState' s m             => 'Lens' s s a b      -> (a -> (r, b)) -> m r
 -- ('%%=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Traversal.Traversal' s s a b -> (a -> (r, b)) -> m r
 -- @
-(%%=) :: MonadState s m => LensLike ((,) r) s s a b -> (a -> (r, b)) -> m r
+(%%=) :: MonadState s m => Overloading p (->) ((,) r) s s a b -> p a (r, b) -> m r
 #if MIN_VERSION_mtl(2,1,1)
 l %%= f = State.state (l f)
 #else
@@ -379,8 +379,8 @@ cloneIndexedLens l f s = runPretext (l sell s) (Indexed (indexed f))
 -- ('<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> (a -> b) -> s -> (b, t)
 -- ('<%~') :: 'Monoid' b => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> b) -> s -> (b, t)
 -- @
-(<%~) :: LensLike ((,)b) s t a b -> (a -> b) -> s -> (b, t)
-l <%~ f = l $ \s -> let t = f s in (t, t)
+(<%~) :: Profunctor p => Overloading p (->) ((,) b) s t a b -> p a b -> s -> (b, t)
+l <%~ f = l $ rmap (\t -> (t, t)) f
 {-# INLINE (<%~) #-}
 
 -- | Increment the target of a numerically valued 'Lens' and return the result
@@ -538,8 +538,8 @@ l <<.~ b = l $ \a -> (a, b)
 -- ('<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a      -> (a -> a) -> m a
 -- ('<%=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
 -- @
-(<%=) :: MonadState s m => LensLike ((,)b) s s a b -> (a -> b) -> m b
-l <%= f = l %%= \a -> let b = f a in (b,b)
+(<%=) :: (Profunctor p, MonadState s m) => Overloading p (->) ((,)b) s s a b -> p a b -> m b
+l <%= f = l %%= rmap (\b -> (b, b)) f
 {-# INLINE (<%=) #-}
 
 
@@ -676,8 +676,10 @@ l <&&= b = l <%= (&& b)
 -- ('<<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a      -> (a -> a) -> m a
 -- ('<<%=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
 -- @
-(<<%=) :: MonadState s m => LensLike ((,)a) s s a b -> (a -> b) -> m a
-l <<%= f = l %%= \a -> (a, f a)
+--
+-- @('<<%=') :: 'MonadState' s m => 'LensLike' ((,)a) s s a b -> (a -> b) -> m a@
+(<<%=) :: (Lenticular p, MonadState s m) => Overloading p (->) ((,)a) s s a b -> p a b -> m a
+l <<%= f = l %%= lenticular f
 {-# INLINE (<<%=) #-}
 
 -- | Modify the target of a 'Lens' into your monad's state by a user supplied
