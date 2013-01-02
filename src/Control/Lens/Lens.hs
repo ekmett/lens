@@ -337,7 +337,7 @@ alongside l r f (s, s') = case context (l sell s) of
 -- 'locus' :: 'Lens'' ('Pretext'' p a s) a
 -- 'locus' :: 'Lens'' ('PretextT'' p g a s) a
 -- @
-locus :: Contextual p => Lens (p a c s) (p b c s) a b
+locus :: IndexedComonadStore p => Lens (p a c s) (p b c s) a b
 locus f w = (`iseek` w) <$> f (ipos w)
 {-# INLINE locus #-}
 

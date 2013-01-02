@@ -54,7 +54,7 @@ module Control.Lens.Internal
   -- ** Indexed Comonads
   , IndexedComonad(..)
   -- ** Indexed Store Comonad
-  , Contextual(..)
+  , IndexedComonadStore(..)
   -- * Internal Types
   , May(..)
   , Effect(..)
@@ -532,6 +532,13 @@ instance Monoid m => ArrowLoop (Measured m) where
 instance Monoid m => MonadFix (Measured m a) where
   mfix f = Measured $ \ a -> let (m, o) = runMeasured (f o) a in (m, o)
   {-# INLINE mfix #-}
+
+------------------------------------------------------------------------------
+-- Sellable
+------------------------------------------------------------------------------
+
+class RepresentableProfunctor p => Sellable p k | k -> p where
+  sell :: p a (k a b b)
 
 -----------------------------------------------------------------------------
 -- Strict Composition
@@ -1045,7 +1052,7 @@ class IndexedFunctor w => IndexedComonad w where
   iextend :: (w b c t -> r) -> w a c t -> w a b r
   iextend f = ifmap f . iduplicate
 
-class IndexedComonad w => Contextual w where
+class IndexedComonad w => IndexedComonadStore w where
   ipos :: w a c t -> a
 
   ipeek :: c  -> w a c t -> t
@@ -1085,7 +1092,7 @@ instance IndexedComonad Context where
   iextend g  (Context f a) = Context (g . Context f) a
   {-# INLINE iextend #-}
 
-instance Contextual Context where
+instance IndexedComonadStore Context where
   ipos (Context _ a) = a
   {-# INLINE ipos #-}
   ipeek b (Context g _) = g b
@@ -1126,6 +1133,10 @@ instance (a ~ b) => ComonadStore a (Context a b) where
   {-# INLINE seeks #-}
   experiment = iexperiment
   {-# INLINE experiment #-}
+
+instance Sellable (->) Context where
+  sell = Context id
+  {-# INLINE sell #-}
 
 -- | @type 'Context'' a s = 'Context' a a s@
 type Context' a = Context a a
@@ -1230,7 +1241,7 @@ instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), 
   duplicate = iduplicate
   {-# INLINE duplicate #-}
 
-instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Contextual (Pretext p q) where
+instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonadStore (Pretext p q) where
   ipos (Pretext m) = getConst $ coarr m $ arr Const
   {-# INLINE ipos #-}
   ipeek a (Pretext m) = runIdentity $ coarr m $ arr (\_ -> Identity a)
@@ -1293,7 +1304,7 @@ instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), 
   duplicate = iduplicate
   {-# INLINE duplicate #-}
 
-instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Contextual (PretextT p q g) where
+instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonadStore (PretextT p q g) where
   ipos (PretextT m) = getConst $ coarr m $ arr Const
   {-# INLINE ipos #-}
   ipeek a (PretextT m) = runIdentity $ coarr m $ arr (\_ -> Identity a)
@@ -1386,18 +1397,6 @@ instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), 
 instance (Profunctor p, Profunctor q, Gettable g) => Gettable (BazaarT p q g a b) where
   coerce = (<$) (error "coerced BazaarT")
   {-# INLINE coerce #-}
-
-
-------------------------------------------------------------------------------
--- Sellable
-------------------------------------------------------------------------------
-
-class RepresentableProfunctor p => Sellable p k | k -> p where
-  sell :: p a (k a b b)
-
-instance Sellable (->) Context where
-  sell = Context id
-  {-# INLINE sell #-}
 
 -------------------------------------------------------------------------------
 -- Orphan Instances
