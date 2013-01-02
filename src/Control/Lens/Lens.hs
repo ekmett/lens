@@ -750,7 +750,7 @@ l <<>= r = l <%= (`mappend` r)
 -- ('<%@~') :: 'Monoid' b => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- @
 (<%@~) :: IndexedLensLike (Indexed i) ((,) b) s t a b -> (i -> a -> b) -> s -> (b, t)
-l <%@~ f = l . Indexed $ \i a -> let b = f i a in (b, b)
+l <%@~ f = l (Indexed $ \i a -> let b = f i a in (b, b))
 {-# INLINE (<%@~) #-}
 
 -- | Adjust the target of an 'IndexedLens' returning a supplementary result, or
@@ -772,7 +772,7 @@ l <%@~ f = l . Indexed $ \i a -> let b = f i a in (b, b)
 -- ('%%@~') :: 'Monoid' r => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> (r, b)) -> s -> (r, t)
 -- @
 (%%@~) :: IndexedLensLike (Indexed i) f s t a b -> (i -> a -> f b) -> s -> f t
-(%%@~) l = l . Indexed
+(%%@~) l = l .# Indexed
 {-# INLINE (%%@~) #-}
 
 -- | Adjust the target of an 'IndexedLens' returning a supplementary result, or
