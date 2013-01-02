@@ -114,6 +114,7 @@ import Control.Lens.Type
 import Control.Monad.State as State
 import Data.Monoid
 import Data.Profunctor
+import Data.Profunctor.Corepresentable
 import Data.Profunctor.Representable
 
 {-# ANN module "HLint: ignore Use ***" #-}
@@ -316,10 +317,12 @@ chosen pafb = tabulatePro $ \weaa -> indexPro (either id id `lmap` pafb) weaa <&
 -- (Left c,Right d)
 --
 -- @'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')@
-alongside :: ALens s t a b -> ALens s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
-alongside l r f (s, s') = case context (l sell s) of
-  Context bt a -> case context (r sell s') of
-    Context bt' a' -> f (a,a') <&> \(b,b') -> (bt b, bt' b')
+alongside :: (CorepresentableProfunctor q, Applicative (Corep q), Comonad (Corep q), Functor f)
+          => Overloading (->) q (Pretext (->) q a b) s t a b ->
+             Overloading (->) q (Pretext (->) q a' b') s' t' a' b' ->
+             Overloading (->) q f (s,s') (t,t') (a,a') (b,b')
+alongside l r f = cotabulatePro $ \ (s, s') -> go <$> coindexPro (l sell) s <*> coindexPro (r sell) s' where
+  go ls rs = f (ipos ls, ipos rs) <&> \(b, b') -> (ipeek b ls, ipeek b' rs)
 {-# INLINE alongside #-}
 
 -- | This 'Lens' lets you 'view' the current 'pos' of any indexed
