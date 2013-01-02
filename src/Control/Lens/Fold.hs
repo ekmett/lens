@@ -313,27 +313,51 @@ takingWhile p l f = (flip appEndo noEffect .# runAccessor) `rmap` l g where
 -- [6,1]
 --
 -- @
--- 'droppingWhile' :: (a -> 'Bool') -> 'Fold' s a                -> 'Fold' s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'Getter' s a              -> 'Fold' s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'Traversal'' s a          -> 'Fold' s a          -- see notes
--- 'droppingWhile' :: (a -> 'Bool') -> 'Lens'' s a               -> 'Fold' s a          -- see notes
--- 'droppingWhile' :: (a -> 'Bool') -> 'Prism'' s a              -> 'Fold' s a          -- see notes
--- 'droppingWhile' :: (a -> 'Bool') -> 'Iso'' s a                -> 'Fold' s a          -- see notes
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a -> 'IndexedFold' i s a -- see notes
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a      -> 'IndexedFold' i s a -- see notes
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a       -> 'IndexedFold' i s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a     -> 'IndexedFold' i s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Fold' s a                   -> 'Fold' s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Getter' s a                 -> 'Fold' s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Traversal'' s a             -> 'Fold' s a          -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Lens'' s a                  -> 'Fold' s a          -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Prism'' s a                 -> 'Fold' s a          -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Iso'' s a                   -> 'Fold' s a          -- see notes
+--
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingTraversal'' s a    -> 'IndexPreservingFold' s a -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingLens'' s a         -> 'IndexPreservingFold' s a -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingGetter' s a        -> 'IndexPreservingFold' s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a      -> 'IndexPreservingFold' m s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s a
+--
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a    -> 'IndexedFold' i s a -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a         -> 'IndexedFold' i s a -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a          -> 'IndexedFold' i s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a      -> 'IndexedFold' i m s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold' i m s a
+--
+-- 'droppingWhile' :: (a -> 'Bool') -> 'MeasuredTraversal'' u s a    -> 'MeasuredFold' u s a -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'MeasuredLens'' u s a         -> 'MeasuredFold' u s a -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'MeasuredGetter' u s a        -> 'MeasuredFold' u s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'MeasuredFold' u s a          -> 'MeasuredFold' u s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'MeasuredAction' u m s a      -> 'MeasuredFold' u m s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'MeasuredMonadicFold' u m s a -> 'MeasuredMonadicFold' u m s a
+--
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredTraversal'' i u s a    -> 'IndexedMeasuredFold' i u s a -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredLens'' i u s a         -> 'IndexedMeasuredFold' i u s a -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredGetter' i u s a        -> 'IndexedMeasuredFold' i u s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredFold' i u s a          -> 'IndexedMeasuredFold' i u s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredAction' i u m s a      -> 'IndexedMeasuredFold' i u m s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredMonadicFold' i u m s a -> 'IndexedMeasuredMonadicFold' i u m s a
 -- @
 --
 -- Note: Many uses of this combinator will yield something that meets the types, but not the laws of a valid
 -- 'Traversal' or 'IndexedTraversal'. The 'Traversal' and 'IndexedTraversal' laws are only satisfied if the
 -- new values you assign also pass the predicate! Otherwise subsequent traversals will visit fewer elements
 -- and 'Traversal' fusion is not sound.
-droppingWhile :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f)
+droppingWhile :: (RepresentableProfunctor p, Comonad (Rep p), Profunctor q, Applicative f)
               => (a -> Bool)
-              -> Overloading p (->) (Compose (State Bool) f) s t a a
-              -> Overloading p (->) f s t a a
-droppingWhile p l f s = evalState (getCompose (l g s)) True where
+              -> Overloading p q (Compose (State Bool) f) s t a a
+              -> Overloading p q f s t a a
+droppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
   g = tabulatePro $ \wa -> Compose $ state $ \b -> let
       a = extract wa
       b' = b && p a
@@ -383,8 +407,8 @@ foldMapOf l f = runAccessor `rmap` l (rmap Accessor f)
 -- @
 -- 'foldOf' :: Getting a s t a b -> s -> a
 -- @
-foldOf :: Getting a s t a b -> s -> a
-foldOf l = runAccessor #. l Accessor
+foldOf :: Profunctor q => Overloading (->) q (Accessor a) s t a b -> q s a
+foldOf l = runAccessor `rmap` l Accessor
 {-# INLINE foldOf #-}
 
 -- |
@@ -404,8 +428,8 @@ foldOf l = runAccessor #. l Accessor
 -- @'ifoldrOf' l ≡ 'foldrOf' l '.' 'Indexed'@
 --
 -- @'foldrOf' :: 'Getting' ('Endo' r) s t a b -> (a -> r -> r) -> r -> s -> r@
-foldrOf :: Profunctor p => Overloading p (->) (Accessor (Endo r)) s t a b -> p a (r -> r) -> r -> s -> r
-foldrOf l f z t = foldMapOf l (rmap Endo f) t `appEndo` z
+foldrOf :: (Profunctor p, Profunctor q) => Overloading p q (Accessor (Endo r)) s t a b -> p a (r -> r) -> r -> q s r
+foldrOf l f z = flip appEndo z `rmap` foldMapOf l (rmap Endo f)
 {-# INLINE foldrOf #-}
 
 -- |
@@ -421,8 +445,9 @@ foldrOf l f z t = foldMapOf l (rmap Endo f) t `appEndo` z
 -- 'foldlOf' :: 'Traversal'' s a -> (r -> a -> r) -> r -> s -> r
 -- 'foldlOf' :: 'Prism'' s a     -> (r -> a -> r) -> r -> s -> r
 -- @
-foldlOf :: Getting (Dual (Endo r)) s t a b -> (r -> a -> r) -> r -> s -> r
-foldlOf l f z t = appEndo (getDual (foldMapOf l (Dual #. Endo #. flip f) t)) z
+foldlOf :: Profunctor q => Overloading (->) q (Accessor (Dual (Endo r))) s t a b -> (r -> a -> r) -> r -> q s r
+foldlOf l f z = (flip appEndo z .# getDual) `rmap` foldMapOf l (Dual #. Endo #. flip f)
+
 {-# INLINE foldlOf #-}
 
 -- | Extract a list of the targets of a 'Fold'. See also ('^..').
@@ -1695,16 +1720,21 @@ ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 -- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
 -- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold' i m s a
 -- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold' i m s a
+--
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedMeasuredFold' i u s a          -> 'IndexedMeasuredFold' i u s a
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedMeasuredTraversal'' i u s a    -> 'IndexedMeasuredFold' i u s a
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedMeasuredLens'' i u s a         -> 'IndexedMeasuredFold' i u s a
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedMeasuredGetter' i u s a        -> 'IndexedMeasuredFold' i u s a
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedMeasuredMonadicFold' i u m s a -> 'IndexedMeasuredMonadicFold' i u m s a
+-- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedMesuredAction' i u m s a      -> 'IndexedMeasuredMonadicFold' i u m s a
 -- @
-itakingWhile :: (Indexable i p, Applicative f, Gettable f)
+itakingWhile :: (Indexable i p, Profunctor q, Applicative f, Gettable f)
          => (i -> a -> Bool)
-         -> Overloading (Indexed i) (->) (Accessor (Endo (f s))) s s a a
-         -> Overloading p (->) f s s a a
-itakingWhile p l f s = appEndo (runAccessor (l g s)) noEffect where
-  g = Indexed $ \i a -> Accessor . Endo $
-    if p i a then (indexed f i a *>) else const noEffect
+         -> Overloading (Indexed i) q (Accessor (Endo (f s))) s s a a
+         -> Overloading p q f s s a a
+itakingWhile p l f = (flip appEndo noEffect .# runAccessor) `rmap` l g where
+  g = Indexed $ \i a -> Accessor . Endo $ if p i a then (indexed f i a *>) else const noEffect
 {-# INLINE itakingWhile #-}
-
 
 -- | Obtain an 'IndexedFold' by dropping elements from another 'IndexedFold', 'IndexedLens', 'IndexedGetter' or 'IndexedTraversal' while a predicate holds.
 --
@@ -1715,16 +1745,23 @@ itakingWhile p l f s = appEndo (runAccessor (l g s)) noEffect where
 -- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
 -- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold' i m s a
 -- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold' i m s a
+--
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedMeasuredFold' i u s a          -> 'IndexedMeasuredFold' i u s a
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedMeasuredTraversal'' i u s a    -> 'IndexedMeasuredFold' i u s a -- see notes
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedMeasuredLens'' i u s a         -> 'IndexedMeasuredFold' i u s a -- see notes
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedMeasuredGetter' i u s a        -> 'IndexedMeasuredFold' i u s a
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedMeasuredMonadicFold' i u m s a -> 'IndexedMeasuredMonadicFold' i u m s a
+-- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedMesuredAction' i u m s a       -> 'IndexedMeasuredMonadicFold' i u m s a
 -- @
 --
 -- Applying 'idroppingWhile' to an 'IndexedLens' or 'IndexedTraversal' will still allow you to use it as a
 -- pseudo-'IndexedTraversal', but if you change the value of the targets to ones where the predicate returns
 -- 'True', then you will break the 'Traversal' laws and 'Traversal' fusion will no longer be sound.
-idroppingWhile :: (Indexable i p, Applicative f)
+idroppingWhile :: (Indexable i p, Profunctor q, Applicative f)
               => (i -> a -> Bool)
-              -> Overloading (Indexed i) (->) (Compose (State Bool) f) s t a a
-              -> Overloading p (->) f s t a a
-idroppingWhile p l f s = evalState (getCompose (l g s)) True where
+              -> Overloading (Indexed i) q (Compose (State Bool) f) s t a a
+              -> Overloading p q f s t a a
+idroppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
   g = Indexed $ \ i a -> Compose $ state $ \b -> let
       b' = b && p i a
     in (if b' then pure a else indexed f i a, b')
@@ -1735,8 +1772,8 @@ idroppingWhile p l f s = evalState (getCompose (l g s)) True where
 ------------------------------------------------------------------------------
 
 -- | A deprecated alias for 'firstOf'
-headOf :: Getting (First a) s t a b -> s -> Maybe a
-headOf l = getFirst #. foldMapOf l (First #. Just)
+headOf :: Profunctor q => Overloading (->) q (Accessor (First a)) s t a b -> q s (Maybe a)
+headOf l = getFirst `rmap` foldMapOf l (First #. Just)
 {-# INLINE headOf #-}
 {-# DEPRECATED headOf "`headOf' will be removed in 3.8. (Use `preview' or `firstOf')" #-}
 
