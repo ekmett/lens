@@ -85,7 +85,7 @@ a ^! l = getEffect (l (Effect #. return) a)
 --
 -- @
 -- 'act' :: 'Monad' m => (s -> m a) -> 'Action' m s a
--- act sma afb a = effective (sma a >>= ineffective . afb)
+-- 'act' sma afb a = 'effective' (sma a >>= 'ineffective' . afb)
 -- @
 act :: Monad m => (s -> m a) -> IndexPreservingAction m s a
 act sma pafb = tabulatePro $ \ws -> effective $ do
