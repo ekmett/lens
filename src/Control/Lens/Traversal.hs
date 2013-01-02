@@ -136,13 +136,13 @@ import Prelude hiding ((.),id)
 ------------------------------------------------------------------------------
 
 -- | When you see this as an argument to a function, it expects a 'Traversal'.
-type ATraversal s t a b = LensLike (Bazaar (->) a b) s t a b
+type ATraversal s t a b = LensLike (Bazaar (->) (->) a b) s t a b
 
 -- | @type 'ATraversal'' = 'Simple' 'ATraversal'@
 type ATraversal' s a = ATraversal s s a a
 
 -- | When you see this as an argument to a function, it expects an 'IndexedTraversal'.
-type AnIndexedTraversal i s t a b = IndexedLensLike (Indexed i) (Bazaar (Indexed i) a b) s t a b
+type AnIndexedTraversal i s t a b = IndexedLensLike (Indexed i) (Bazaar (Indexed i) (->) a b) s t a b
 
 -- | @type 'AnIndexedTraversal'' = 'Simple' ('AnIndexedTraversal' i)@
 type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
@@ -160,7 +160,7 @@ type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
 --  * a 'Lens' if @p@ is only a 'Functor'
 --
 --  * a 'Fold' if 'f' is 'Gettable' and 'Applicative'.
-type Traversing p f s t a b = Overloading p (->) (BazaarT p f a b) s t a b
+type Traversing p f s t a b = Overloading p (->) (BazaarT p (->) f a b) s t a b
 
 -- | @type 'Traversing'' f = 'Simple' ('Traversing' f)@
 type Traversing' p f s a = Traversing p f s s a a
@@ -232,7 +232,7 @@ forOf = flip
 -- 'sequenceAOf' ::                  'Lens' s t (f b) b      -> s -> f t
 -- 'sequenceAOf' :: 'Applicative' f => 'Traversal' s t (f b) b -> s -> f t
 -- @
-sequenceAOf :: LensLike f s t (f b) b -> s -> f t
+sequenceAOf :: Overloading (->) q f s t (f b) b -> q s (f t)
 sequenceAOf l = l id
 {-# INLINE sequenceAOf #-}
 
@@ -374,7 +374,7 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 {-# INLINE scanl1Of #-}
 
 -- | This 'Traversal' allows you to 'traverse' the individual stores in a 'Bazaar'.
-loci :: Traversal (Bazaar (->) a c s) (Bazaar (->) b c s) a b
+loci :: Traversal (Bazaar (->) (->) a c s) (Bazaar (->) (->) b c s) a b
 loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafeOuts w
 {-# INLINE loci #-}
 
@@ -416,7 +416,7 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 {-# INLINE partsOf' #-}
 
 -- | A type-restricted version of 'ipartsOf' that can only be used with an 'IndexedTraversal'.
-ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Overloading (Indexed i) (->) (Bazaar' (Indexed i) a) s t a a -> Overloading p (->) f s t [a] [a]
+ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Overloading (Indexed i) (->) (Bazaar' (Indexed i) (->) a) s t a a -> Overloading p (->) f s t [a] [a]
 ipartsOf' l f s = outs b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (pins b)
   b = l sell s
@@ -457,7 +457,7 @@ unsafePartsOf' :: ATraversal s t a b -> Lens s t [a] [b]
 unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 {-# INLINE unsafePartsOf' #-}
 
-iunsafePartsOf' :: forall i p s t a b. Indexable [i] p => Overloading (Indexed i) (->) (Bazaar (Indexed i) a b) s t a b -> IndexedLens [i] s t [a] [b]
+iunsafePartsOf' :: forall i p s t a b. Indexable [i] p => Overloading (Indexed i) (->) (Bazaar (Indexed i) (->) a b) s t a b -> IndexedLens [i] s t [a] [b]
 iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (pins b)
   b = l sell s
@@ -479,7 +479,7 @@ iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
 -- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
 -- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
 -- @
-holesOf :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
+holesOf :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (Bazaar p (->) a a) s t a a -> s -> [Pretext p (->) a a t]
 holesOf l s = f (pins b) (unsafeOuts b) where
   b = l sell s
   f [] _ = []
@@ -502,7 +502,7 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 -- 'singular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
 singular :: (RepresentableProfunctor p, Comonad (Rep p), Functor f)
-         => Overloading p (->) (BazaarT p f a a) s t a a
+         => Overloading p (->) (BazaarT p (->) f a a) s t a a
          -> Overloading p (->) f s t a a
 singular l pafb s = case pins b of
   (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> indexPro pafb w
@@ -525,7 +525,7 @@ singular l pafb s = case pins b of
 -- 'unsafeSingular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
 unsafeSingular :: (RepresentableProfunctor p, Comonad (Rep p), Functor f)
-               => Overloading p (->) (BazaarT p f a b) s t a b
+               => Overloading p (->) (BazaarT p (->) f a b) s t a b
                -> Overloading p (->) f s t a b
 unsafeSingular l pafb s = case pins b of
   [w] -> unsafeOuts b . return <$> indexPro pafb w
@@ -538,11 +538,11 @@ unsafeSingular l pafb s = case pins b of
 -- Internal functions used by 'partsOf', 'holesOf', etc.
 ------------------------------------------------------------------------------
 
-ins :: Bizarre (->) w => w a b t -> [a]
+ins :: Bizarre (->) (->) w => w a b t -> [a]
 ins = toListOf bazaar
 {-# INLINE ins #-}
 
-pins :: (Bizarre p w, RepresentableProfunctor p) => w a b t -> [Rep p a]
+pins :: (Bizarre p (->) w, RepresentableProfunctor p) => w a b t -> [Rep p a]
 pins = getConst . bazaar (tabulatePro $ \ra -> Const [ra])
 {-# INLINE pins #-}
 
@@ -550,11 +550,11 @@ parr :: (Profunctor p, Category p) => (a -> b) -> p a b
 parr f = lmap f id
 {-# INLINE parr #-}
 
-outs :: (Bizarre p w, Category p) => w a a t -> [a] -> t
+outs :: (Bizarre p (->) w, Category p) => w a a t -> [a] -> t
 outs b = evalState $ flip bazaar b $ parr $ state . unconsWithDefault
 {-# INLINE outs #-}
 
-unsafeOuts :: (Bizarre p w, RepresentableProfunctor p) => w a b t -> [b] -> t
+unsafeOuts :: (Bizarre p (->) w, RepresentableProfunctor p) => w a b t -> [b] -> t
 unsafeOuts b = evalState $ flip bazaar b $ tabulatePro $
   \_ -> state (unconsWithDefault fakeVal)
   where fakeVal = error "unsafePartsOf': not enough elements were supplied"
@@ -620,7 +620,7 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 -- @
 taking :: (RepresentableProfunctor p, Category p, Applicative f)
        => Int
-       -> Overloading p (->) (BazaarT p f a a) s t a a
+       -> Overloading p (->) (BazaarT p (->) f a a) s t a a
        -> Overloading p (->) f s t a a
 taking n l pafb s = outs b <$> traverse (indexPro pafb) (take n $ pins b) where
   b = l sell s

@@ -2,6 +2,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -175,10 +176,6 @@ instance Gettable f => Gettable (Indexing f) where
 instance Gettable f => Gettable (Indexing64 f) where
   coerce (Indexing64 m) = Indexing64 $ \i -> case m i of
     (j, ff) -> (j, coerce ff)
-  {-# INLINE coerce #-}
-
-instance (Profunctor p, Gettable g) => Gettable (BazaarT p g a b) where
-  coerce = (<$) (error "coerced BazaarT")
   {-# INLINE coerce #-}
 
 -- | The 'mempty' equivalent for a 'Gettable' 'Applicative' 'Functor'.
@@ -1136,6 +1133,12 @@ type Context' a = Context a a
 ------------------------------------------------------------------------------
 -- Bazaar
 ------------------------------------------------------------------------------
+coarr :: (CorepresentableProfunctor q, Comonad (Corep q)) => q a b -> a -> b
+coarr qab = extract . coindexPro qab
+{-# INLINE coarr #-}
+
+class (Profunctor p, Profunctor q) => Bizarre p q w | w -> p q where
+  bazaar :: Applicative f => p a (f b) -> q (w a b t) (f t)
 
 -- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
 --
@@ -1155,142 +1158,95 @@ type Context' a = Context a a
 -- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
 --
 -- This is a final encoding of 'Bazaar'.
-newtype Bazaar p a b t = Bazaar { runBazaar :: forall f. Applicative f => p a (f b) -> f t }
+-- This is a final encoding of 'Bazaar'.
+newtype Bazaar p q a b t = Bazaar { runBazaar :: forall f. Applicative f => p a (f b) `q` f t }
 
-class Profunctor p => Bizarre p w | w -> p where
-  bazaar :: Applicative f => p a (f b) -> w a b t -> f t
+type Bazaar' p q a = Bazaar p q a a
 
-instance Profunctor p => Bizarre p (Bazaar p) where
-  bazaar = flip runBazaar
+instance Profunctor q => IndexedFunctor (Bazaar p q) where
+  ifmap f (Bazaar k) = Bazaar (fmap f `rmap` k)
+  {-# INLINE ifmap #-}
+
+instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonad (Bazaar p q) where
+  iextract (Bazaar m) = runIdentity $ coarr m (arr Identity)
+  {-# INLINE iextract #-}
+  iduplicate (Bazaar m) = getCompose $ coarr m (rmap Compose (distrib sell) . sell)
+  {-# INLINE iduplicate #-}
+
+instance (RepresentableProfunctor p, CorepresentableProfunctor q, Applicative (Corep q))  => Sellable p (Bazaar p q) where
+  sell = tabulatePro $ \ w -> Bazaar $ cotabulatePro $ \k -> pure (indexPro k w)
+  {-# INLINE sell #-}
+
+instance (Profunctor p, CorepresentableProfunctor q) => Bizarre p q (Bazaar p q) where
+  bazaar g = cotabulatePro $ \ f -> coindexPro (runBazaar f) g
   {-# INLINE bazaar #-}
 
-instance Functor (Bazaar p a b) where
-  fmap f (Bazaar k) = Bazaar (fmap f . k)
+instance Profunctor q => Functor (Bazaar p q a b) where
+  fmap = ifmap
   {-# INLINE fmap #-}
 
-instance Applicative (Bazaar p a b) where
-  pure a = Bazaar $ \_ -> pure a
+instance (CorepresentableProfunctor q, Applicative (Corep q)) => Applicative (Bazaar p q a b) where
+  pure a = Bazaar $ cotabulatePro $ \_ -> pure (pure a)
   {-# INLINE pure #-}
-  Bazaar mf <*> Bazaar ma = Bazaar $ \k -> mf k <*> ma k
+  Bazaar mf <*> Bazaar ma = Bazaar $ cotabulatePro $ \ pafb -> (<*>) <$> coindexPro mf pafb <*> coindexPro ma pafb
   {-# INLINE (<*>) #-}
 
-instance (a ~ b, SelfAdjoint p) => Comonad (Bazaar p a b) where
-  extract (Bazaar m) = runIdentity $ m (lmap Identity id)
+instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Comonad (Bazaar p q a b) where
+  extract = iextract
   {-# INLINE extract #-}
-  duplicate (Bazaar m) = getCompose $ m (rmap Compose (distrib sell) . sell)
+  duplicate = iduplicate
   {-# INLINE duplicate #-}
 
-instance (a ~ b, p ~ (->)) => ComonadApply (Bazaar p a b) where
+instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => ComonadApply (Bazaar p q a b) where
   (<@>) = (<*>)
   {-# INLINE (<@>) #-}
-
--- | @type 'Bazaar'' p a s = 'Bazaar' p a a s@
-type Bazaar' p a = Bazaar p a a
 
 ------------------------------------------------------------------------------
 -- Pretext
 ------------------------------------------------------------------------------
 
-data Pretext p a b t = Pretext { runPretext :: forall f. Functor f => p a (f b) -> f t }
+newtype Pretext p q a b t = Pretext { runPretext :: forall f. Functor f => p a (f b) `q` f t }
 
-instance IndexedFunctor (Pretext p) where
-  ifmap f (Pretext k) = Pretext (fmap f . k)
+-- | @type 'Pretext'' p q a s = 'Pretext' p q a a s@
+type Pretext' p q a = Pretext p q a a
+
+instance Profunctor q => IndexedFunctor (Pretext p q) where
+  ifmap f (Pretext k) = Pretext (fmap f `rmap` k)
   {-# INLINE ifmap #-}
 
-instance SelfAdjoint p => IndexedComonad (Pretext p) where
-  iextract (Pretext m) = runIdentity $ m (arr Identity)
-  {-# INLINE iextract #-}
-  iduplicate (Pretext m) = getCompose $ m (rmap Compose (distrib sell) . sell)
-  {-# INLINE iduplicate #-}
-
-instance SelfAdjoint p => Contextual (Pretext p) where
-  ipos (Pretext m) = getConst $ m (arr Const)
-  {-# INLINE ipos #-}
-  ipeek a (Pretext m) = runIdentity $ m $ arr (\_ -> Identity a)
-  {-# INLINE ipeek #-}
-  ipeeks f (Pretext m) = runIdentity $ m $ arr (Identity . f)
-  {-# INLINE ipeeks #-}
-  iseek a (Pretext m) = Pretext (m . lmap (const a))
-  {-# INLINE iseek #-}
-  iseeks f (Pretext m) = Pretext (m . lmap f)
-  {-# INLINE iseeks #-}
-  iexperiment f (Pretext m) = m (arr f)
-  {-# INLINE iexperiment #-}
-  context (Pretext m) = m (arr sell)
-  {-# INLINE context #-}
-instance Functor (Pretext p a b) where
-  fmap f (Pretext k) = Pretext (fmap f . k)
+instance Profunctor q => Functor (Pretext p q a b) where
+  fmap = ifmap
   {-# INLINE fmap #-}
 
-instance (a ~ b, SelfAdjoint p) => Comonad (Pretext p a b) where
-  extract (Pretext m) = runIdentity $ m (arr Identity)
-  {-# INLINE extract #-}
-  duplicate (Pretext m) = getCompose $ m (rmap Compose (distrib sell) . sell)
-  {-# INLINE duplicate #-}
-
--- | @type 'Pretext'' p g a s = 'Pretext' p g a a s@
-type Pretext' p a = Pretext p a a
-
-instance (a ~ b, SelfAdjoint p) => ComonadStore a (Pretext p a b) where
-  pos (Pretext m) = getConst $ m (arr Const)
-  {-# INLINE pos #-}
-  peek a (Pretext m) = runIdentity $ m $ arr (\_ -> Identity a)
-  {-# INLINE peek #-}
-  peeks f (Pretext m) = runIdentity $ m $ arr (Identity . f)
-  {-# INLINE peeks #-}
-  seek a (Pretext m) = Pretext (m . lmap (const a))
-  {-# INLINE seek #-}
-  seeks f (Pretext m) = Pretext (m . lmap f)
-  {-# INLINE seeks #-}
-  experiment f (Pretext m) = m (arr f)
-  {-# INLINE experiment #-}
-
-------------------------------------------------------------------------------
--- PretextT
-------------------------------------------------------------------------------
-
-data PretextT p (g :: * -> *) a b t = PretextT { runPretextT :: forall f. Functor f => p a (f b) -> f t }
-
-instance IndexedFunctor (PretextT p g) where
-  ifmap f (PretextT k) = PretextT (fmap f . k)
-  {-# INLINE ifmap #-}
-
-instance SelfAdjoint p => IndexedComonad (PretextT p g) where
-  iextract (PretextT m) = runIdentity $ m (arr Identity)
+instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonad (Pretext p q) where
+  iextract (Pretext m) = runIdentity $ coarr m (arr Identity)
   {-# INLINE iextract #-}
-  iduplicate (PretextT m) = getCompose $ m (rmap Compose (distrib sell) . sell)
+  iduplicate (Pretext m) = getCompose $ coarr m (rmap Compose (distrib sell) . sell)
   {-# INLINE iduplicate #-}
 
-instance SelfAdjoint p => Contextual (PretextT p g) where
-  ipos (PretextT m) = getConst $ m (arr Const)
-  {-# INLINE ipos #-}
-  ipeek a (PretextT m) = runIdentity $ m $ arr (\_ -> Identity a)
-  {-# INLINE ipeek #-}
-  ipeeks f (PretextT m) = runIdentity $ m $ arr (Identity . f)
-  {-# INLINE ipeeks #-}
-  iseek a (PretextT m) = PretextT (m . lmap (const a))
-  {-# INLINE iseek #-}
-  iseeks f (PretextT m) = PretextT (m . lmap f)
-  {-# INLINE iseeks #-}
-  iexperiment f (PretextT m) = m (arr f)
-  {-# INLINE iexperiment #-}
-  context (PretextT m) = m (arr sell)
-  {-# INLINE context #-}
-
-instance Functor (PretextT p g a b) where
-  fmap f (PretextT k) = PretextT (fmap f . k)
-  {-# INLINE fmap #-}
-
-instance (a ~ b, SelfAdjoint p) => Comonad (PretextT p g a b) where
-  extract (PretextT m) = runIdentity $ m (arr Identity)
+instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Comonad (Pretext p q a b) where
+  extract = iextract
   {-# INLINE extract #-}
-  duplicate (PretextT m) = getCompose $ m (rmap Compose (distrib sell) . sell)
+  duplicate = iduplicate
   {-# INLINE duplicate #-}
 
--- | @type 'PretextT'' p g a s = 'PretextT' p g a a s@
-type PretextT' p g a = PretextT p g a a
+instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Contextual (Pretext p q) where
+  ipos (Pretext m) = getConst $ coarr m $ arr Const
+  {-# INLINE ipos #-}
+  ipeek a (Pretext m) = runIdentity $ coarr m $ arr (\_ -> Identity a)
+  {-# INLINE ipeek #-}
+  ipeeks f (Pretext m) = runIdentity $ coarr m $ arr (Identity . f)
+  {-# INLINE ipeeks #-}
+  iseek a (Pretext m) = Pretext (lmap (lmap (const a)) m)
+  {-# INLINE iseek #-}
+  iseeks f (Pretext m) = Pretext (lmap (lmap f) m)
+  {-# INLINE iseeks #-}
+  iexperiment f (Pretext m) = coarr m (arr f)
+  {-# INLINE iexperiment #-}
+  context (Pretext m) = coarr m (arr sell)
+  {-# INLINE context #-}
 
-instance (a ~ b, SelfAdjoint p) => ComonadStore a (PretextT p g a b) where
+instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => ComonadStore a (Pretext p q a b) where
   pos = ipos
   {-# INLINE pos #-}
   peek = ipeek
@@ -1304,6 +1260,77 @@ instance (a ~ b, SelfAdjoint p) => ComonadStore a (PretextT p g a b) where
   experiment = iexperiment
   {-# INLINE experiment #-}
 
+instance (RepresentableProfunctor p, CorepresentableProfunctor q, Applicative (Corep q))  => Sellable p (Pretext p q) where
+  sell = tabulatePro $ \ w -> Pretext $ cotabulatePro $ \k -> pure (indexPro k w)
+  {-# INLINE sell #-}
+
+------------------------------------------------------------------------------
+-- PretextT
+------------------------------------------------------------------------------
+
+newtype PretextT p q (g :: * -> *) a b t = PretextT { runPretextT :: forall f. Functor f => p a (f b) `q` f t }
+
+-- | @type 'PretextT'' p q g a s = 'PretextT' p q g a a s@
+type PretextT' p q g a = PretextT p q g a a
+
+instance Profunctor q => IndexedFunctor (PretextT p q g) where
+  ifmap f (PretextT k) = PretextT (fmap f `rmap` k)
+  {-# INLINE ifmap #-}
+
+instance Profunctor q => Functor (PretextT p q g a b) where
+  fmap = ifmap
+  {-# INLINE fmap #-}
+
+instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonad (PretextT p q g) where
+  iextract (PretextT m) = runIdentity $ coarr m (arr Identity)
+  {-# INLINE iextract #-}
+  iduplicate (PretextT m) = getCompose $ coarr m (rmap Compose (distrib sell) . sell)
+  {-# INLINE iduplicate #-}
+
+instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Comonad (PretextT p q g a b) where
+  extract = iextract
+  {-# INLINE extract #-}
+  duplicate = iduplicate
+  {-# INLINE duplicate #-}
+
+instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Contextual (PretextT p q g) where
+  ipos (PretextT m) = getConst $ coarr m $ arr Const
+  {-# INLINE ipos #-}
+  ipeek a (PretextT m) = runIdentity $ coarr m $ arr (\_ -> Identity a)
+  {-# INLINE ipeek #-}
+  ipeeks f (PretextT m) = runIdentity $ coarr m $ arr (Identity . f)
+  {-# INLINE ipeeks #-}
+  iseek a (PretextT m) = PretextT (lmap (lmap (const a)) m)
+  {-# INLINE iseek #-}
+  iseeks f (PretextT m) = PretextT (lmap (lmap f) m)
+  {-# INLINE iseeks #-}
+  iexperiment f (PretextT m) = coarr m (arr f)
+  {-# INLINE iexperiment #-}
+  context (PretextT m) = coarr m (arr sell)
+  {-# INLINE context #-}
+
+instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => ComonadStore a (PretextT p q g a b) where
+  pos = ipos
+  {-# INLINE pos #-}
+  peek = ipeek
+  {-# INLINE peek #-}
+  peeks = ipeeks
+  {-# INLINE peeks #-}
+  seek = iseek
+  {-# INLINE seek #-}
+  seeks = iseeks
+  {-# INLINE seeks #-}
+  experiment = iexperiment
+  {-# INLINE experiment #-}
+
+instance (RepresentableProfunctor p, CorepresentableProfunctor q, Applicative (Corep q))  => Sellable p (PretextT p q g) where
+  sell = tabulatePro $ \ w -> PretextT $ cotabulatePro $ \k -> pure (indexPro k w)
+  {-# INLINE sell #-}
+
+instance (Profunctor p, Profunctor q, Gettable g) => Gettable (PretextT p q g a b) where
+  coerce = (<$) (error "coerced PretextT")
+  {-# INLINE coerce #-}
+
 ------------------------------------------------------------------------------
 -- BazaarT
 ------------------------------------------------------------------------------
@@ -1313,31 +1340,53 @@ instance (a ~ b, SelfAdjoint p) => ComonadStore a (PretextT p g a b) where
 --
 -- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
 -- must be a better way!
---
-newtype BazaarT p (g :: * -> *) a b t = BazaarT { runBazaarT :: forall f. Applicative f => p a (f b) -> f t }
 
-instance Profunctor p => Bizarre p (BazaarT p g) where
-  bazaar = flip runBazaarT
+newtype BazaarT p q (g :: * -> *) a b t = BazaarT { runBazaarT :: forall f. Applicative f => p a (f b) `q` f t }
+
+type BazaarT' p q g a = BazaarT p q g a a
+
+instance Profunctor q => IndexedFunctor (BazaarT p q g) where
+  ifmap f (BazaarT k) = BazaarT (fmap f `rmap` k)
+  {-# INLINE ifmap #-}
+
+instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonad (BazaarT p q g) where
+  iextract (BazaarT m) = runIdentity $ coarr m (arr Identity)
+  {-# INLINE iextract #-}
+  iduplicate (BazaarT m) = getCompose $ coarr m (rmap Compose (distrib sell) . sell)
+  {-# INLINE iduplicate #-}
+
+instance (RepresentableProfunctor p, CorepresentableProfunctor q, Applicative (Corep q))  => Sellable p (BazaarT p q g) where
+  sell = tabulatePro $ \ w -> BazaarT $ cotabulatePro $ \k -> pure (indexPro k w)
+  {-# INLINE sell #-}
+
+instance (Profunctor p, CorepresentableProfunctor q) => Bizarre p q (BazaarT p q g) where
+  bazaar g = cotabulatePro $ \ f -> coindexPro (runBazaarT f) g
   {-# INLINE bazaar #-}
 
-instance Functor (BazaarT p g a b) where
-  fmap f (BazaarT k) = BazaarT (fmap f . k)
+instance Profunctor q => Functor (BazaarT p q g a b) where
+  fmap = ifmap
   {-# INLINE fmap #-}
 
-instance Applicative (BazaarT p g a b) where
-  pure a = BazaarT (\_ -> pure a)
+instance (CorepresentableProfunctor q, Applicative (Corep q)) => Applicative (BazaarT p q g a b) where
+  pure a = BazaarT $ cotabulatePro $ \_ -> pure (pure a)
   {-# INLINE pure #-}
-  BazaarT mf <*> BazaarT ma = BazaarT (\k -> mf k <*> ma k)
+  BazaarT mf <*> BazaarT ma = BazaarT $ cotabulatePro $ \ pafb -> (<*>) <$> coindexPro mf pafb <*> coindexPro ma pafb
   {-# INLINE (<*>) #-}
 
-instance (a ~ b, SelfAdjoint p) => Comonad (BazaarT p g a b) where
-  extract (BazaarT m) = runIdentity (m (lmap Identity id))
+instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Comonad (BazaarT p q g a b) where
+  extract = iextract
   {-# INLINE extract #-}
-  duplicate (BazaarT m) = getCompose (m (rmap Compose (distrib sell) . sell))
+  duplicate = iduplicate
   {-# INLINE duplicate #-}
 
--- | @type 'BazaarT'' p g a s = 'BazaarT' p g a a s@
-type BazaarT' p g a = BazaarT p g a a
+instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => ComonadApply (BazaarT p q g a b) where
+  (<@>) = (<*>)
+  {-# INLINE (<@>) #-}
+
+instance (Profunctor p, Profunctor q, Gettable g) => Gettable (BazaarT p q g a b) where
+  coerce = (<$) (error "coerced BazaarT")
+  {-# INLINE coerce #-}
+
 
 ------------------------------------------------------------------------------
 -- Sellable
@@ -1346,24 +1395,8 @@ type BazaarT' p g a = BazaarT p g a a
 class RepresentableProfunctor p => Sellable p k | k -> p where
   sell :: p a (k a b b)
 
-instance RepresentableProfunctor p => Sellable p (Bazaar p) where
-  sell = tabulatePro $ \ w -> Bazaar $ \k -> indexPro k w
-  {-# INLINE sell #-}
-
-instance RepresentableProfunctor p => Sellable p (BazaarT p g) where
-  sell = tabulatePro $ \ w -> BazaarT $ \k -> indexPro k w
-  {-# INLINE sell #-}
-
 instance Sellable (->) Context where
   sell = Context id
-  {-# INLINE sell #-}
-
-instance RepresentableProfunctor p => Sellable p (Pretext p) where
-  sell = tabulatePro $ \ w -> Pretext $ \k -> indexPro k w
-  {-# INLINE sell #-}
-
-instance RepresentableProfunctor p => Sellable p (PretextT p g) where
-  sell = tabulatePro $ \ w -> PretextT $ \k -> indexPro k w
   {-# INLINE sell #-}
 
 -------------------------------------------------------------------------------

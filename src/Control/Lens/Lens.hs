@@ -142,12 +142,12 @@ infixr 2 <<~
 -- This type can also be used when you need to store a lens in a container,
 -- since it is rank-1. You can turn them back into a 'Lens' with 'cloneLens',
 -- or use it directly with combinators like 'storing' and ('^#').
-type ALens s t a b = LensLike (Pretext (->) a b) s t a b
+type ALens s t a b = LensLike (Pretext (->) (->) a b) s t a b
 
 -- | @type 'ALens'' = 'Simple' 'ALens'@
 type ALens' s a = ALens s s a a
 
-type AnIndexedLens i s t a b = Overloading (Indexed i) (->) (Pretext (Indexed i) a b) s t a b
+type AnIndexedLens i s t a b = Overloading (Indexed i) (->) (Pretext (Indexed i) (->) a b) s t a b
 
 type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 

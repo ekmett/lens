@@ -110,7 +110,7 @@ instance Monoid (Magma i a) where
   mappend l r = Ap (size l + size r) (nullLeft l && nullLeft r) (nullRight r && nullRight l) (maximal l <> maximal r) l r
   {-# INLINE mappend #-}
 
-magmaIns :: Bazaar (Indexed i) a b t -> Magma i a
+magmaIns :: Bazaar (Indexed i) (->) a b t -> Magma i a
 magmaIns (Bazaar bz) = runAccessor $ bz $ Indexed (\i -> Accessor #. Leaf i)
 {-# INLINE magmaIns #-}
 
@@ -133,7 +133,7 @@ instance Applicative (Flow i b) where
     _              -> mf s (ma s)
   {-# INLINE (<*>) #-}
 
-magmaOuts :: Bazaar (Indexed i) a b t -> Magma j b -> t
+magmaOuts :: Bazaar (Indexed i) (->) a b t -> Magma j b -> t
 magmaOuts bz = runFlow $ runBazaar bz $ Indexed $ \ _ _ -> Flow $ \ t -> case t of
   Leaf _ a -> a
   _        -> error "magmaOuts: wrong shape"
