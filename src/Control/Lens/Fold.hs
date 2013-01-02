@@ -256,22 +256,48 @@ filtered p f = tabulatePro $ \ wa -> let a = extract wa in if p a then indexPro 
 -- [1,2,3]
 --
 -- @
--- 'takingWhile' :: (a -> 'Bool') -> 'Fold' s a                -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Getter' s a              -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Traversal'' s a          -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Lens'' s a               -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Prism'' s a              -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Iso'' s a                -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a -> 'IndexedFold' i s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a      -> 'IndexedFold' i s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a       -> 'IndexedFold' i s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a     -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Fold' s a                             -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Getter' s a                           -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Traversal'' s a                       -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Lens'' s a                            -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Prism'' s a                           -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Iso'' s a                             -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Action' m s a                         -> 'MonadicFold' m s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'MonadicFold' m s a                    -> 'MonadicFold' m s a
+--
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a              -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a                   -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a                    -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a                  -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a                -> 'IndexedMonadicFold' i m s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedMonadicFold' i m s a           -> 'IndexedMonadicFold' i m s a
+--
+-- 'takingWhile' :: (a -> 'Bool') -> 'MeasuredTraversal'' u s a             -> 'MeasuredFold' u s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'MeasuredLens'' u s a                  -> 'MeasuredFold' u s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'MeasuredFold' u s a                   -> 'MeasuredFold' u s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'MeasuredGetter' u s a                 -> 'MeasuredFold' u s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'MeasuredAction' u m s a               -> 'MeasuredMonadicFold' u m s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'MeasuredMonadicFold' u m s a          -> 'MeasuredMonadicFold' u m s a
+--
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingTraversal'' s a        -> 'IndexPreservingFold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingLens'' s a             -> 'IndexPreservingFold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingFold' s a              -> 'IndexPreservingFold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingGetter' s a            -> 'IndexPreservingFold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a          -> 'IndexPreservingMonadicFold' m s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingMonadicFold' m s a     -> 'IndexPreservingMonadicFold' m s a
+--
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredTraversal'' i u s a    -> 'IndexedMeasuredFold' i u s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredLens'' i u s a         -> 'IndexedMeasuredFold' i u s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredFold' i u s a          -> 'IndexedMeasuredFold' i u s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredGetter' i u s a        -> 'IndexedMeasuredFold' i u s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredAction' i u m s a      -> 'IndexedMeasuredMonadicFold' i u m s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedMeasuredMonadicFold' i u m s a -> 'IndexedMeasuredMonadicFold' i u m s a
 -- @
-takingWhile :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f, Gettable f)
+takingWhile :: (RepresentableProfunctor p, Profunctor q, Comonad (Rep p), Applicative f, Gettable f)
          => (a -> Bool)
-         -> Overloading p (->) (Accessor (Endo (f s))) s s a a
-         -> Overloading p (->) f s s a a
-takingWhile p l f s = appEndo (runAccessor (l g s)) noEffect where
+         -> Overloading p q (Accessor (Endo (f s))) s s a a
+         -> Overloading p q f s s a a
+takingWhile p l f = (flip appEndo noEffect .# runAccessor) `rmap` l g where
   g = tabulatePro $ \wa -> Accessor . Endo $
     if p (extract wa) then (indexPro f wa *>) else const noEffect
 {-# INLINE takingWhile #-}
