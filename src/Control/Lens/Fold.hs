@@ -1510,7 +1510,7 @@ iforOf_ = flip . itraverseOf_
 -- 'imapMOf_' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> a -> m r) -> s -> m ()
 -- 'imapMOf_' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> a -> m r) -> s -> m ()
 -- @
-imapMOf_ :: Monad m => IndexedGetting i (Sequenced m) s t a b -> (i -> a -> m r) -> s -> m ()
+imapMOf_ :: (Profunctor q, Monad m) => Overloading (Indexed i) q (Accessor (Sequenced m)) s t a b -> (i -> a -> m r) -> q s (m ())
 imapMOf_ l = mapMOf_ l .# Indexed
 {-# INLINE imapMOf_ #-}
 
@@ -1551,7 +1551,7 @@ iforMOf_ = flip . imapMOf_
 -- 'iconcatMapOf' :: 'IndexedLens'' i s a      -> (i -> a -> [r]) -> s -> [r]
 -- 'iconcatMapOf' :: 'IndexedTraversal'' i s a -> (i -> a -> [r]) -> s -> [r]
 -- @
-iconcatMapOf :: IndexedGetting i [r] s t a b -> (i -> a -> [r]) -> s -> [r]
+iconcatMapOf :: Profunctor q => Overloading (Indexed i) q (Accessor [r]) s t a b -> (i -> a -> [r]) -> q s [r]
 iconcatMapOf = ifoldMapOf
 {-# INLINE iconcatMapOf #-}
 
@@ -1564,12 +1564,12 @@ iconcatMapOf = ifoldMapOf
 -- @'findOf' l ≡ 'ifindOf' l '.' 'const'@
 --
 -- @
--- 'ifindOf' :: 'IndexedGetter' s a     -> (i -> a -> 'Bool') -> s -> 'Maybe' (i, a)
--- 'ifindOf' :: 'IndexedFold' s a       -> (i -> a -> 'Bool') -> s -> 'Maybe' (i, a)
--- 'ifindOf' :: 'IndexedLens'' s a      -> (i -> a -> 'Bool') -> s -> 'Maybe' (i, a)
--- 'ifindOf' :: 'IndexedTraversal'' s a -> (i -> a -> 'Bool') -> s -> 'Maybe' (i, a)
+-- 'ifindOf' :: 'IndexedGetter' s a     -> (i -> a -> 'Bool') -> s -> 'Maybe' a
+-- 'ifindOf' :: 'IndexedFold' s a       -> (i -> a -> 'Bool') -> s -> 'Maybe' a
+-- 'ifindOf' :: 'IndexedLens'' s a      -> (i -> a -> 'Bool') -> s -> 'Maybe' a
+-- 'ifindOf' :: 'IndexedTraversal'' s a -> (i -> a -> 'Bool') -> s -> 'Maybe' a
 -- @
-ifindOf :: IndexedGetting i (Endo (Maybe a)) s t a b -> (i -> a -> Bool) -> s -> Maybe a
+ifindOf :: Profunctor q => Overloading (Indexed i) q (Accessor (Endo (Maybe a))) s t a b -> (i -> a -> Bool) -> q s (Maybe a)
 ifindOf l = findOf l .# Indexed
 {-# INLINE ifindOf #-}
 
@@ -1653,7 +1653,7 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 -- 'itoListOf' :: 'IndexedLens'' i s a      -> s -> [(i,a)]
 -- 'itoListOf' :: 'IndexedTraversal'' i s a -> s -> [(i,a)]
 -- @
-itoListOf :: IndexedGetting i (Endo [(i,a)]) s t a b -> s -> [(i,a)]
+itoListOf :: Profunctor q => Overloading (Indexed i) q (Accessor (Endo [(i,a)])) s t a b -> q s [(i,a)]
 itoListOf l = ifoldrOf l (\i a -> ((i,a):)) []
 {-# INLINE itoListOf #-}
 
