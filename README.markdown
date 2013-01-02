@@ -51,7 +51,7 @@ ghci> set (_2._1) 42 ("hello",("world","!!!"))
 ("hello",(42,"!!!"))
 ```
 
-You can make a `Getter` out of a pure functions with `to`.
+You can make a `Getter` out of a pure function with `to`.
 
 ```haskell
 ghci> "hello"^.to length
