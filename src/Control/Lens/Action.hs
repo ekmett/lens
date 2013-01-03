@@ -65,9 +65,7 @@ perform l = getEffect #. l (Effect #. return)
 
 -- | Perform an 'Action' and modify the result.
 --
--- @
--- 'performs' :: 'Monad' m => 'Acting' m e s t a b -> (a -> e) -> s -> m e
--- @
+-- @'performs' :: 'Monad' m => 'Acting' m e s t a b -> (a -> e) -> s -> m e@
 performs :: (Profunctor p, Profunctor q, Monad m) => Overloading p q (Effect m e) s t a b -> p a e -> q s (m e)
 performs l f = getEffect `rmap` l (rmap (Effect #. return) f)
 {-# INLINE performs #-}
@@ -88,7 +86,7 @@ a ^! l = getEffect (l (Effect #. return) a)
 --
 -- @
 -- 'act' :: 'Monad' m => (s -> m a) -> 'Action' m s a
--- act sma afb a = effective (sma a >>= ineffective . afb)
+-- 'act' sma afb a = 'effective' (sma a >>= 'ineffective' . afb)
 -- @
 act :: Monad m => (s -> m a) -> IndexPreservingAction m s a
 act sma pafb = cotabulate $ \ws -> effective $ do

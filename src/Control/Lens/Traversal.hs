@@ -205,9 +205,7 @@ traverseOf = id
 --
 -- This function is only provided for consistency, 'flip' is strictly more general.
 --
--- @
--- 'forOf' ≡ 'flip'
--- @
+-- @'forOf' ≡ 'flip'@
 --
 -- @
 -- 'forOf' :: 'Iso' s t a b -> s -> (a -> f b) -> f t
@@ -333,8 +331,8 @@ mapAccumROf = mapAccumLOf . backwards
 -- @
 --
 -- @
--- mapAccumLOf :: LensLike (State acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
--- mapAccumLOf l f acc0 s = swap (runState (l (\a -> state (\acc -> swap (f acc a))) s) acc0)
+-- 'mapAccumLOf' :: 'LensLike' ('State' acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+-- 'mapAccumLOf' l f acc0 s = 'swap' ('runState' (l (\a -> 'state' (\acc -> 'swap' (f acc a))) s) acc0)
 -- @
 --
 mapAccumLOf :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (State acc) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
@@ -630,8 +628,8 @@ taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where
   b = l sell s
 {-# INLINE taking #-}
 
--- taking :: Applicative f => Int -> Traversing' (->) f s a -> LensLike' f s a
--- taking n l f s = outs b <$> traverse f (take n $ ins b) where b = l sell s
+-- 'taking' :: 'Applicative' f => 'Int' -> 'Traversing'' (->) f s a -> 'LensLike'' f s a
+-- 'taking' n l f s = 'outs' b <$> 'traverse' f ('take' n $ 'ins' b) where b = l 'sell' s
 -- {-# INLINE taking #-}
 
 

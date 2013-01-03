@@ -376,9 +376,7 @@ foldMapOf l f = runAccessor `rmap` l (rmap Accessor f)
 -- 'foldOf' :: 'Monoid' m => 'Prism'' s m     -> s -> m
 -- @
 --
--- @
--- 'foldOf' :: Getting a s t a b -> s -> a
--- @
+-- @'foldOf' :: 'Getting' a s t a b -> s -> a@
 foldOf :: Profunctor q => Overloading (->) q (Accessor a) s t a b -> q s a
 foldOf l = runAccessor `rmap` l Accessor
 {-# INLINE foldOf #-}
@@ -1061,8 +1059,8 @@ minimumByOf l cmp = foldrOf l step Nothing where
 -- A simpler version that didn't permit indexing, would be:
 --
 -- @
--- findOf :: Getting (Endo (Maybe a)) s t a b -> (a -> Bool) -> s -> Maybe a
--- findOf l p = foldrOf l (\a y -> if p a then Just a else y) Nothing
+-- 'findOf' :: 'Getting' ('Endo' ('Maybe' a)) s t a b -> (a -> 'Bool') -> s -> 'Maybe' a
+-- 'findOf' l p = 'foldrOf' l (\a y -> if p a then 'Just' a else y) 'Nothing'
 -- @
 findOf :: (Corepresentable p, Profunctor q, Comonad (Corep p)) => Overloading p q (Accessor (Endo (Maybe a))) s t a b -> p a Bool -> q s (Maybe a)
 findOf l p = foldrOf l (cotabulate $ \wa y -> if corep p wa then Just (extract wa) else y) Nothing

@@ -777,8 +777,7 @@ instance Profunctor (Exchange a b) where
 
 newtype Market a b s t = Market { runMarket :: (b -> t, s -> Either t a) }
 
--- |
--- @type 'Market'' a s t = 'Market' a a s t@
+-- | @type 'Market'' a s t = 'Market' a a s t@
 type Market' a = Market a a
 
 instance Functor (Market a b s) where
