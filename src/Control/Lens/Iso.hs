@@ -159,9 +159,9 @@ auf k = case runIso k of
   (sa, bt) -> \ f g e -> bt (f (sa . g) e)
 {-# INLINE auf #-}
 
--- | The opposite of working 'over' a Setter is working 'under' an Isomorphism.
+-- | The opposite of working 'Control.Lens.Setter.over' a 'Setter' is working 'under' an isomorphism.
 --
--- @'under' ≡ 'over' '.' 'from'@
+-- @'under' ≡ 'Control.Lens.Setter.over' '.' 'from'@
 --
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
 under :: AnIso s t a b -> (t -> s) -> b -> a
@@ -190,7 +190,7 @@ enum :: Enum a => Iso' Int a
 enum = iso toEnum fromEnum
 {-# INLINE enum #-}
 
--- | This can be used to lift any 'Iso' into an arbitrary functor.
+-- | This can be used to lift any 'Iso' into an arbitrary 'Functor'.
 mapping :: Functor f => AnIso s t a b -> Iso (f s) (f t) (f a) (f b)
 mapping k = case runIso k of
   (sa, bt) -> iso (fmap sa) (fmap bt)
@@ -204,12 +204,12 @@ simple :: Iso' a a
 simple = id
 {-# INLINE simple #-}
 
--- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @non v@ is an isomorphism from
--- @Maybe a'@ to @a@.
+-- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @'non' v@ is an isomorphism from
+-- @'Maybe' a'@ to @a@.
 --
 -- Keep in mind this is only a real isomorphism if you treat the domain as being @'Maybe' (a sans v)@
 --
--- This is practically quite useful when you want to have a map where all the entries should have non-zero values.
+-- This is practically quite useful when you want to have a 'Data.Map.Map' where all the entries should have non-zero values.
 --
 -- >>> Map.fromList [("hello",1)] & at "hello" . non 0 +~ 2
 -- fromList [("hello",3)]
@@ -225,12 +225,12 @@ simple = id
 --
 -- This combinator is also particularly useful when working with nested maps.
 --
--- /e.g./ When you want to create the nested map when it is missing:
+-- /e.g./ When you want to create the nested 'Data.Map.Map' when it is missing:
 --
 -- >>> Map.empty & at "hello" . non Map.empty . at "world" ?~ "!!!"
 -- fromList [("hello",fromList [("world","!!!")])]
 --
--- and when have deleting the last entry from the nested map mean that we
+-- and when have deleting the last entry from the nested 'Data.Map.Map' mean that we
 -- should delete its entry from the surrounding one:
 --
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
@@ -241,7 +241,7 @@ non a = anon a (a==)
 
 -- | @'anon' a p@ generalizes @'non' a@ to take any value and a predicate.
 --
--- This function assumes that @p a@ holds @True@ and generates an isomorphism between @'Maybe' (a | not (p a))@ and @a@
+-- This function assumes that @p a@ holds @'True'@ and generates an isomorphism between @'Maybe' (a | 'not' (p a))@ and @a@
 --
 -- >>> Map.empty & at "hello" . anon Map.empty Map.null . at "world" ?~ "!!!"
 -- fromList [("hello",fromList [("world","!!!")])]

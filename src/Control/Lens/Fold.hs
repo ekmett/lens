@@ -999,7 +999,7 @@ notNullOf l = getAny `rmap` foldMapOf l (\_ -> Any True)
 -- |
 -- Obtain the maximum element (if any) targeted by a 'Fold' or 'Traversal'
 --
--- Note: maximumOf on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
+-- Note: 'maximumOf' on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
 --
 -- @'maximum' ≡ 'fromMaybe' ('error' \"empty\") '.' 'maximumOf' 'folded'@
 --
@@ -1017,7 +1017,7 @@ maximumOf l = getMax `rmap` foldMapOf l Max
 -- |
 -- Obtain the minimum element (if any) targeted by a 'Fold' or 'Traversal'
 --
--- Note: minimumOf on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
+-- Note: 'minimumOf' on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
 --
 -- @'minimum' ≡ 'Data.Maybe.fromMaybe' ('error' \"empty\") '.' 'minimumOf' 'folded'@
 --

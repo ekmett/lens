@@ -106,7 +106,7 @@ partialLenses     :: Lens' LensRules Bool
 partialLenses      = lensFlags.ix PartialLenses
 
 -- | In the situations that a lens would be partial, when 'partialLenses' is
--- used, this flag instead causes traversals to be generated.  Only one can be
+-- used, this flag instead causes traversals to be generated. Only one can be
 -- used, and if neither are, then compile-time errors are generated.
 buildTraversals   :: Lens' LensRules Bool
 buildTraversals    = lensFlags.ix BuildTraversals

@@ -112,7 +112,7 @@ infixr 9 <.>, <., .>
 --
 -- Mnemonically, the @>@ points to the indexing we want to preserve.
 --
--- This is the same as @(.)@: @f.g@ gives you @g@'s index.
+-- This is the same as @('.')@: @f '.' g@ gives you @g@'s index.
 (.>) :: (st -> r) -> (kab -> st) -> kab -> r
 (.>) = (.)
 {-# INLINE (.>) #-}
@@ -270,7 +270,7 @@ ifolded f = coerce . getFolding . ifoldMap (\i -> Folding #. indexed f i)
 
 -- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
 --
--- This can be useful to lift operations from @Data.List@ and elsewhere into a 'Fold'.
+-- This can be useful to lift operations from @'Data.List'@ and elsewhere into a 'Fold'.
 ifolding :: FoldableWithIndex i f => (s -> f a) -> IndexedFold i s a
 ifolding sfa iagb = coerce . itraverse_ (indexed iagb) . sfa
 {-# INLINE ifolding #-}

@@ -150,7 +150,7 @@ type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
 
 -- | When you see this as an argument to a function, it expects
 --
---  * to be indexed if @p@ is an instance of 'Indexed i'
+--  * to be indexed if @p@ is an instance of 'Indexed' i
 --
 --  * to be unindexed if @p@ is @(->)@
 --
@@ -170,8 +170,7 @@ type Traversing' p f s a = Traversing p f s s a a
 -- Traversal Combinators
 --------------------------
 
--- |
--- Map each element of a structure targeted by a Lens or Traversal,
+-- | Map each element of a structure targeted by a 'Lens' or 'Traversal',
 -- evaluate these actions from left to right, and collect the results.
 --
 -- This function is only provided for consistency, 'id' is strictly more general.
@@ -223,7 +222,7 @@ forOf = flip
 --
 -- @
 -- 'sequenceA' ≡ 'sequenceAOf' 'traverse' ≡ 'traverse' 'id'
--- 'sequenceAOf' l ≡ 'traverseOf' l id ≡ l id
+-- 'sequenceAOf' l ≡ 'traverseOf' l 'id' ≡ l 'id'
 -- @
 --
 -- @
@@ -886,8 +885,8 @@ instance Ord k => TraverseMax k (Map k) where
 -- [0,1,2,16,4,5,6,7,8,9]
 --
 -- @
--- 'elementOf' :: 'Traversal'' s a -> Int -> 'IndexedTraversal'' 'Int' s a
--- 'elementOf' :: 'Fold' s a       -> Int -> 'IndexedFold' 'Int' s a
+-- 'elementOf' :: 'Traversal'' s a -> 'Int' -> 'IndexedTraversal'' 'Int' s a
+-- 'elementOf' :: 'Fold' s a       -> 'Int' -> 'IndexedFold' 'Int' s a
 -- @
 elementOf :: (Applicative f, Indexable Int p)
           => LensLike (Indexing f) s t a a

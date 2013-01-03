@@ -13,12 +13,12 @@
 -- Stability   :  provisional
 -- Portability :  RankNTypes
 --
--- Corepresentable endofunctors represented by their polymorphic lenses
+-- Corepresentable endofunctors represented by their polymorphic lenses.
 --
 -- The polymorphic lenses of the form @(forall x. 'Lens' (f x) x)@ each
--- represent a distinct path into a functor @f@. If the functor is entirely
--- characterized by assigning values to these paths, then the functor is
--- representable.
+-- represent a distinct path into a 'Functor' @f@. If the 'Functor' is entirely
+-- characterized by assigning values to these paths, then the 'Functor' is
+-- 'representable'.
 --
 -- Consider the following example.
 --
@@ -27,7 +27,7 @@
 --
 -- > data Pair a = Pair { _x :: a, _y :: a }
 --
--- @ 'Control.Lens.TH.makeLenses' \'\'Pair@
+-- @'Control.Lens.TH.makeLenses' \'\'Pair@
 --
 -- @
 -- instance 'Representable' Pair where
@@ -104,7 +104,7 @@ import Data.Traversable      as Traversable
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
--- | The representation of a 'Representable' 'Functor' as Lenses
+-- | The representation of a 'Representable' 'Functor' as Lenses.
 type Rep f = forall a. Lens' (f a) a
 
 -- | Representable Functors.
@@ -133,7 +133,7 @@ instance Eq e => Representable ((->) e) where
   rep f e = f (ix e)
 
 -- | 'fmapRep' is a valid default definition for 'fmap' for a 'Representable'
--- functor.
+-- 'Functor'.
 --
 -- @'fmapRep' f m = 'rep' '$' \\i -> f (m '^.' i)@
 --
@@ -148,7 +148,7 @@ fmapRep f m = rep $ \i -> f (m^.i)
 {-# INLINE fmapRep #-}
 
 -- | 'pureRep' is a valid default definition for 'pure' and 'return' for a
--- 'Representable' functor.
+-- 'Representable' 'Functor'.
 --
 -- @'pureRep' = 'rep' . 'const'@
 --
@@ -170,7 +170,7 @@ pureRep = rep . const
 {-# INLINE pureRep #-}
 
 -- | 'apRep' is a valid default definition for ('<*>') for a 'Representable'
--- functor.
+-- 'Functor'.
 --
 -- @'apRep' mf ma = 'rep' '$' \\i -> mf '^.' i '$' ma '^.' i@
 --
@@ -185,8 +185,8 @@ apRep :: Representable f => f (a -> b) -> f a -> f b
 apRep mf ma = rep $ \i -> mf^.i $ ma^.i
 {-# INLINE apRep #-}
 
--- | 'bindRep' is a valid default default definition for '(>>=)' for a
--- representable functor.
+-- | 'bindRep' is a valid default default definition for ('>>=') for a
+-- 'Representable' 'Functor'.
 --
 -- @'bindRep' m f = 'rep' '$' \\i -> f (m '^.' i) '^.' i@
 --
@@ -201,7 +201,7 @@ bindRep :: Representable f => f a -> (a -> f b) -> f b
 bindRep m f = rep $ \i -> f(m^.i)^.i
 {-# INLINE bindRep #-}
 
--- | A default definition for 'Data.Distributive.distribute' for a 'Representable' 'Functor'
+-- | A default definition for 'Data.Distributive.distribute' for a 'Representable' 'Functor'.
 --
 -- @'distributeRep' wf = 'rep' '$' \\i -> 'fmap' ('^.' i) wf@
 --
@@ -226,7 +226,7 @@ distributeRep wf = rep $ \i -> fmap (^.i) wf
 newtype Path f = Path { walk :: Rep f }
 
 -- | A 'Representable' 'Functor' has a fixed shape. This fills each position
--- in it with a 'Path'
+-- in it with a 'Path'.
 paths :: Representable f => f (Path f)
 paths = rep Path
 {-# INLINE paths #-}
@@ -241,63 +241,63 @@ tabulated f = rep (f . Path)
 -- Traversal
 -----------------------------------------------------------------------------
 
--- | Map over a 'Representable' functor with access to the 'Lens' for the
--- current position
+-- | Map over a 'Representable' 'Functor' with access to the 'Lens' for the
+-- current position.
 --
 -- @'rover' f m = 'rep' '$' \\i -> f i (m '^.' i)@
 rover :: Representable f => (Rep f -> a -> b) -> f a -> f b
 rover f m = rep $ \i -> f i (m^.i)
 {-# INLINE rover #-}
 
--- | Traverse a 'Representable' functor with access to the current path
+-- | Traverse a 'Representable' 'Functor' with access to the current path
 rtraverse :: (Representable f, Traversable f, Applicative g)
           => (Rep f -> a -> g b) -> f a -> g (f b)
 rtraverse f m = sequenceA (rover f m)
 {-# INLINE rtraverse #-}
 
--- | Traverse a 'Representable' functor with access to the current path
--- as a 'Lens', discarding the result
+-- | Traverse a 'Representable' 'Functor' with access to the current path
+-- as a 'Lens', discarding the result.
 rtraverse_ :: (Representable f, Foldable f, Applicative g)
            => (Rep f -> a -> g b) -> f a -> g ()
 rtraverse_ f m = sequenceA_ (rover f m)
 {-# INLINE rtraverse_ #-}
 
--- | Traverse a 'Representable' functor with access to the current path
--- and a 'Lens' (and the arguments flipped)
+-- | Traverse a 'Representable' 'Functor' with access to the current path
+-- and a 'Lens' (and the arguments flipped).
 rfor :: (Representable f, Traversable f, Applicative g)
      => f a -> (Rep f -> a -> g b) -> g (f b)
 rfor m f = sequenceA (rover f m)
 {-# INLINE rfor #-}
 
--- | 'mapM' over a 'Representable' functor with access to the current path
--- as a 'Lens'
+-- | 'mapM' over a 'Representable' 'Functor' with access to the current path
+-- as a 'Lens'.
 rmapM :: (Representable f, Traversable f, Monad m)
       => (Rep f -> a -> m b) -> f a -> m (f b)
 rmapM f m = Traversable.sequence (rover f m)
 {-# INLINE rmapM #-}
 
--- | 'mapM' over a 'Representable' functor with access to the current path
--- as a 'Lens', discarding the result
+-- | 'mapM' over a 'Representable' 'Functor' with access to the current path
+-- as a 'Lens', discarding the result.
 rmapM_ :: (Representable f, Foldable f, Monad m)
        => (Rep f -> a -> m b) -> f a -> m ()
 rmapM_ f m = Foldable.sequence_ (rover f m)
 {-# INLINE rmapM_ #-}
 
--- | 'mapM' over a 'Representable' functor with access to the current path
--- as a 'Lens' (with the arguments flipped)
+-- | 'mapM' over a 'Representable' 'Functor' with access to the current path
+-- as a 'Lens' (with the arguments flipped).
 rforM :: (Representable f, Traversable f, Monad m)
       => f a -> (Rep f -> a -> m b) -> m (f b)
 rforM m f = Traversable.sequence (rover f m)
 {-# INLINE rforM #-}
 
--- | Fold over a 'Representable' functor with access to the current path
--- as a 'Lens', yielding a 'Monoid'
+-- | Fold over a 'Representable' 'Functor' with access to the current path
+-- as a 'Lens', yielding a 'Monoid'.
 rfoldMap :: (Representable f, Foldable f, Monoid m)
          => (Rep f -> a -> m) -> f a -> m
 rfoldMap f m = fold (rover f m)
 {-# INLINE rfoldMap #-}
 
--- | Fold over a 'Representable' functor with access to the current path
+-- | Fold over a 'Representable' 'Functor' with access to the current path
 -- as a 'Lens'.
 rfoldr :: (Representable f, Foldable f) => (Rep f -> a -> b -> b) -> b -> f a -> b
 rfoldr f b m = Foldable.foldr id b (rover f m)

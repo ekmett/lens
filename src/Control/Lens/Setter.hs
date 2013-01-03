@@ -17,7 +17,7 @@
 --
 -- A @'Setter' s t a b@ is a generalization of 'fmap' from 'Functor'. It allows you to map into a
 -- structure and change out the contents, but it isn't strong enough to allow you to
--- enumerate those contents. Starting with @fmap :: 'Functor' f => (a -> b) -> f a -> f b@
+-- enumerate those contents. Starting with @'fmap' :: 'Functor' f => (a -> b) -> f a -> f b@
 -- we monomorphize the type to obtain @(a -> b) -> s -> t@ and then decorate it with 'Data.Functor.Identity.Identity' to obtain
 --
 -- @type 'Setter' s t a b = (a -> 'Data.Functor.Identity.Identity' b) -> s -> 'Data.Functor.Identity.Identity' t@
@@ -97,7 +97,6 @@ infixr 2 <~
 -- Setters
 ------------------------------------------------------------------------------
 
--- |
 -- Running a 'Setter' instantiates it to a concrete type.
 --
 -- When consuming a setter directly to perform a mapping, you can use this type, but most
@@ -195,7 +194,7 @@ setting :: ((a -> b) -> s -> t) -> IndexPreservingSetter s t a b
 setting l pafb = tabulatePro $ \ws -> pure $ l (\a -> untainted (indexPro pafb (a <$ ws))) (extract ws)
 {-# INLINE setting #-}
 
--- | Build a 'Setter', 'IndexedSetter' or 'IndexPreservingSetter' depending on your choice of profunctor.
+-- | Build a 'Setter', 'IndexedSetter' or 'IndexPreservingSetter' depending on your choice of 'Profunctor'.
 --
 -- @'sets' :: ((a -> b) -> s -> t) -> 'Setter' s t a b@
 sets :: (Profunctor p, Profunctor q, Settable f) => (p a b -> q s t) -> Overloading p q f s t a b
@@ -258,7 +257,7 @@ cloneIndexedSetter l pafb = (pure .# runMutator) . l (Indexed $ \i a -> Mutator 
 --
 -- @
 -- 'over' :: 'Setter' s t a b -> (a -> b) -> s -> t
--- 'over' :: ASetter s t a b -> (a -> b) -> s -> t
+-- 'over' :: 'ASetter' s t a b -> (a -> b) -> s -> t
 -- @
 over :: (Profunctor p, Profunctor q) => Overloading p q Mutator s t a b -> p a b -> q s t
 over l f = runMutator `rmap` l (rmap Mutator f)
@@ -400,9 +399,9 @@ set' l b = runMutator `rmap` l (\_ -> Mutator b)
 l ?~ b = set l (Just b)
 {-# INLINE (?~) #-}
 
--- | Set with pass-through
+-- | Set with pass-through.
 --
--- This is mostly present for consistency, but may be useful for for chaining assignments
+-- This is mostly present for consistency, but may be useful for for chaining assignments.
 --
 -- If you do not need a copy of the intermediate result, then using @l '.~' t@ directly is a good idea.
 --
@@ -425,9 +424,9 @@ l ?~ b = set l (Just b)
 l <.~ b = cotabulatePro $ \s -> (,) b <$> coindexPro (set l b) s
 {-# INLINE (<.~) #-}
 
--- | Set to 'Just' a value with pass-through
+-- | Set to 'Just' a value with pass-through.
 --
--- This is mostly present for consistency, but may be useful for for chaining assignments
+-- This is mostly present for consistency, but may be useful for for chaining assignments.
 --
 -- If you do not need a copy of the intermediate result, then using @l '?~' d@ directly is a good idea.
 --
@@ -445,7 +444,7 @@ l <.~ b = cotabulatePro $ \s -> (,) b <$> coindexPro (set l b) s
 l <?~ b = cotabulatePro $ \s -> (,) b <$> coindexPro (set l (Just b)) s
 {-# INLINE (<?~) #-}
 
--- | Increment the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'
+-- | Increment the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'.
 --
 -- >>> (a,b) & _1 +~ c
 -- (a + c,b)
@@ -460,16 +459,16 @@ l <?~ b = cotabulatePro $ \s -> (,) b <$> coindexPro (set l (Just b)) s
 -- [(a + e,b + e),(c + e,d + e)]
 --
 -- @
--- ('+~') :: Num a => 'Setter'' s a    -> a -> s -> s
--- ('+~') :: Num a => 'Iso'' s a       -> a -> s -> s
--- ('+~') :: Num a => 'Lens'' s a      -> a -> s -> s
--- ('+~') :: Num a => 'Traversal'' s a -> a -> s -> s
+-- ('+~') :: 'Num' a => 'Setter'' s a    -> a -> s -> s
+-- ('+~') :: 'Num' a => 'Iso'' s a       -> a -> s -> s
+-- ('+~') :: 'Num' a => 'Lens'' s a      -> a -> s -> s
+-- ('+~') :: 'Num' a => 'Traversal'' s a -> a -> s -> s
 -- @
 (+~) :: (Profunctor q, Num a) => Overloading (->) q Mutator s t a a -> a -> q s t
 l +~ n = over l (+ n)
 {-# INLINE (+~) #-}
 
--- | Multiply the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'
+-- | Multiply the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'.
 --
 -- >>> (a,b) & _1 *~ c
 -- (a * c,b)
@@ -493,7 +492,7 @@ l +~ n = over l (+ n)
 l *~ n = over l (* n)
 {-# INLINE (*~) #-}
 
--- | Decrement the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'
+-- | Decrement the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'.
 --
 -- >>> (a,b) & _1 -~ c
 -- (a - c,b)
@@ -517,7 +516,7 @@ l *~ n = over l (* n)
 l -~ n = over l (subtract n)
 {-# INLINE (-~) #-}
 
--- | Divide the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'
+-- | Divide the target(s) of a numerically valued 'Lens', 'Iso', 'Setter' or 'Traversal'.
 --
 -- >>> (a,b) & _1 //~ c
 -- (a / c,b)
@@ -537,7 +536,7 @@ l -~ n = over l (subtract n)
 (//~) :: (Profunctor q, Fractional a) => Overloading (->) q Mutator s t a a -> a -> q s t
 l //~ n = over l (/ n)
 
--- | Raise the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal' to a non-negative integral power
+-- | Raise the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal' to a non-negative integral power.
 --
 -- >>> (1,3) & _2 ^~ 2
 -- (1,9)
@@ -1051,7 +1050,7 @@ mapOf = over
 {-# DEPRECATED mapOf "Use `over`" #-}
 
 
--- | Map with index. (Deprecated alias for 'iover')
+-- | Map with index. (Deprecated alias for 'iover').
 --
 -- When you do not need access to the index, then 'mapOf' is more liberal in what it can accept.
 --
