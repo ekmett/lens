@@ -309,10 +309,10 @@ instance Profunctor (Indexed i) where
   {-# INLINE lmap #-}
   rmap bc iab = Indexed (\i -> bc . runIndexed iab i)
   {-# INLINE rmap #-}
-  (.#) ibc _ = unsafeCoerce ibc
-  {-# INLINE (.#) #-}
-  (#.) _ = unsafeCoerce
-  {-# INLINE (#.) #-}
+  ( .# ) ibc _ = unsafeCoerce ibc
+  {-# INLINE ( .# ) #-}
+  ( #. ) _ = unsafeCoerce
+  {-# INLINE ( #. ) #-}
 
 instance Corepresentable (Indexed i) where
   type Corep (Indexed i) = (,) i
@@ -745,9 +745,9 @@ instance Profunctor Review where
   rmap = fmap
   {-# INLINE rmap #-}
   Review b .# _ = Review b
-  {-# INLINE (.#) #-}
+  {-# INLINE ( .# ) #-}
   ( #. ) _ = unsafeCoerce
-  {-# INLINE (#.) #-}
+  {-# INLINE ( #. ) #-}
 
 instance Prismatic Review where
   prismatic (Review b) = Review b
