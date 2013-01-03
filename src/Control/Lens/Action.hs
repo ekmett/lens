@@ -67,7 +67,7 @@ perform l = getEffect #. l (Effect #. return)
 --
 -- @'performs' :: 'Monad' m => 'Acting' m e s t a b -> (a -> e) -> s -> m e@
 performs :: (Profunctor p, Profunctor q, Monad m) => Overloading p q (Effect m e) s t a b -> p a e -> q s (m e)
-performs l f = getEffect `rmap` l (rmap (Effect #. return) f)
+performs l f = getEffect #. l (rmap (Effect #. return) f)
 {-# INLINE performs #-}
 
 -- | Perform an 'Action'

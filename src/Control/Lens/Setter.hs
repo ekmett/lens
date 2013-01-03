@@ -198,7 +198,7 @@ setting l pafb = cotabulate $ \ws -> pure $ l (\a -> untainted (corep pafb (a <$
 --
 -- @'sets' :: ((a -> b) -> s -> t) -> 'Setter' s t a b@
 sets :: (Profunctor p, Profunctor q, Settable f) => (p a b -> q s t) -> Overloading p q f s t a b
-sets f g = pure `rmap` f (untaintedDot g)
+sets f g = taintedDot (f (untaintedDot g))
 {-# INLINE sets #-}
 
 -- | Restore 'ASetter' to a full 'Setter'.
