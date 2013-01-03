@@ -1325,7 +1325,7 @@ preuses l f = gets (previews l f)
 -- /NB:/ To write back through an 'Iso', you want to use 'Control.Lens.Isomorphic.from'.
 -- Similarly, to write back through an 'Prism', you want to use 'Control.Lens.Prism.remit'.
 backwards :: (Profunctor p, Profunctor q) => Overloading p q (Backwards f) s t a b -> Overloading p q f s t a b
-backwards f = forwards #. l (Backwards #. f)
+backwards l f = forwards #. l (Backwards #. f)
 {-# INLINE backwards #-}
 
 ------------------------------------------------------------------------------
