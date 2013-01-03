@@ -171,32 +171,17 @@ bitAt n f b = indexed f n (testBit b n) <&> \x -> if x then setBit b n else clea
 --
 -- @'byteAt' n@ is only a legal 'Lens' into @b@ if @0 <= n < ('bitSize' ('undefined' :: b) `div` 8)@
 --
--- >>> (0xff :: Word8)^.byteAt 0
--- 255
---
--- >>> byteAt 0 .~ 123 $ 0xff :: Word8
--- 123
---
 -- >>> (0xff00 :: Word16)^.byteAt 0
--- 255
---
--- >>> (0xff00 :: Word16)^.byteAt 1
 -- 0
 --
--- >>> (0xaabbccdd :: Word32)^.byteAt 0
--- 170
+-- >>> (0xff00 :: Word16)^.byteAt 1
+-- 255
 --
--- >>> (0xaabbccdd :: Word32)^.byteAt 1
--- 187
+-- >>> byteAt 1 .~ 0 $ 0xff00 :: Word16
+-- 0
 --
--- >>> (0xaabbccdd :: Word32)^.byteAt 2
--- 204
---
--- >>> (0xaabbccdd :: Word32)^.byteAt 3
--- 221
---
--- >>> byteAt 3 .~ 99 $ 0 :: Word32
--- 99
+-- >>> byteAt 0 .~ 0xff $ 0 :: Word16
+-- 255
 byteAt :: (Integral b, Bits b) => Int -> IndexedLens' Int b Word8
 byteAt i f b = back <$> indexed f i (forward b) where
   back w8 = (fromIntegral w8 `shiftL` (i * 8))
