@@ -318,7 +318,6 @@ takingWhile p l f = (flip appEndo noEffect .# runAccessor) `rmap` l g where
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a          -> 'IndexedFold' i s a
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a      -> 'IndexedFold' i m s a
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold' i m s a
---
 -- @
 --
 -- Note: Many uses of this combinator will yield something that meets the types, but not the laws of a valid
