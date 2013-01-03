@@ -598,11 +598,11 @@ both f ~(a,a') = (,) <$> f a <*> f a'
 --
 -- >>> ("hello",["world","!!!"])^..beside id traverse
 -- ["hello","world","!!!"]
-beside :: Applicative f
-       => Overloading p (->) f s t a b
-       -> Overloading p (->) f s' t' a b
-       -> Overloading p (->) f (s,s') (t,t') a b
-beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
+beside :: (Representable q, Applicative (Rep q), Applicative f)
+       => Overloading p q f s t a b
+       -> Overloading p q f s' t' a b
+       -> Overloading p q f (s,s') (t,t') a b
+beside l r f = tabulate $ \ ~(s,s') -> liftA2 (,) <$> rep (l f) s <*> rep (r f) s'
 {-# INLINE beside #-}
 
 -- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
