@@ -40,6 +40,7 @@ import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Data.Monoid
+import Data.Profunctor.Unsafe
 
 -- $setup
 -- >>> import Control.Lens

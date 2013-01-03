@@ -49,6 +49,7 @@ import Control.Lens.Type
 import Data.Bifunctor
 import Data.Functor.Identity
 import Data.Profunctor
+import Data.Profunctor.Unsafe
 #ifndef SAFE
 import Unsafe.Coerce
 #endif

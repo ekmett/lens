@@ -72,8 +72,8 @@ import Control.Monad (liftM)
 import Control.Monad.State.Class as State
 import Data.Monoid
 import Data.Profunctor
-import Data.Profunctor.Corepresentable
-import Data.Profunctor.Representable
+import Data.Profunctor.Rep
+import Data.Profunctor.Unsafe
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
@@ -194,7 +194,7 @@ lifted = setting liftM
 --
 -- @'setting' :: ((a -> b) -> s -> t) -> 'Setter' s t a b@
 setting :: ((a -> b) -> s -> t) -> IndexPreservingSetter s t a b
-setting l pafb = tabulatePro $ \ws -> pure $ l (\a -> untainted (indexPro pafb (a <$ ws))) (extract ws)
+setting l pafb = cotabulate $ \ws -> pure $ l (\a -> untainted (corep pafb (a <$ ws))) (extract ws)
 {-# INLINE setting #-}
 
 -- | Build a 'Setter', 'IndexedSetter' or 'IndexPreservingSetter' depending on your choice of profunctor.
@@ -211,8 +211,8 @@ cloneSetter l afb = taintedDot $ runMutator #. l (Mutator #. untaintedDot afb)
 
 -- | Build an 'IndexPreservingSetter' from any 'Setter'.
 cloneIndexPreservingSetter :: ASetter s t a b -> IndexPreservingSetter s t a b
-cloneIndexPreservingSetter l pafb = tabulatePro $ \ws ->
-    pure . runMutator $ l (\a -> Mutator (untainted (indexPro pafb (a <$ ws)))) (extract ws)
+cloneIndexPreservingSetter l pafb = cotabulate $ \ws ->
+    pure . runMutator $ l (\a -> Mutator (untainted (corep pafb (a <$ ws)))) (extract ws)
 {-# INLINE cloneIndexPreservingSetter #-}
 
 -- | Clone an 'IndexedSetter'.
@@ -423,8 +423,8 @@ l ?~ b = set l (Just b)
 -- ('<.~') :: 'Lens' s t a b      -> b -> s -> (b, t)
 -- ('<.~') :: 'Traversal' s t a b -> b -> s -> (b, t)
 -- @
-(<.~) :: CorepresentableProfunctor q => Overloading (->) q Mutator s t a b -> b -> q s (b, t)
-l <.~ b = cotabulatePro $ \s -> (,) b <$> coindexPro (set l b) s
+(<.~) :: Representable q => Overloading (->) q Mutator s t a b -> b -> q s (b, t)
+l <.~ b = tabulate $ \s -> (,) b <$> rep (set l b) s
 {-# INLINE (<.~) #-}
 
 -- | Set to 'Just' a value with pass-through
@@ -443,8 +443,8 @@ l <.~ b = cotabulatePro $ \s -> (,) b <$> coindexPro (set l b) s
 -- ('<?~') :: 'Lens' s t a ('Maybe' b)      -> b -> s -> (b, t)
 -- ('<?~') :: 'Traversal' s t a ('Maybe' b) -> b -> s -> (b, t)
 -- @
-(<?~) :: CorepresentableProfunctor q => Overloading (->) q Mutator s t a (Maybe b) -> b -> q s (b, t)
-l <?~ b = cotabulatePro $ \s -> (,) b <$> coindexPro (set l (Just b)) s
+(<?~) :: Representable q => Overloading (->) q Mutator s t a (Maybe b) -> b -> q s (b, t)
+l <?~ b = tabulate $ \s -> (,) b <$> rep (set l (Just b)) s
 {-# INLINE (<?~) #-}
 
 -- | Increment the target(s) of a numerically valued 'Lens', 'Setter' or 'Traversal'

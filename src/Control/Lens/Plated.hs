@@ -92,7 +92,7 @@ import           Data.Data
 #endif
 import           Data.Data.Lens
 import           Data.Monoid
-import           Data.Profunctor.Representable
+import           Data.Profunctor.Rep
 import           Data.Tree
 
 {-# ANN module "HLint: ignore Reduce duplication" #-}
@@ -493,7 +493,7 @@ holes = holesOf plate
 -- 'holesOn' :: 'IndexedLens'' i s a      -> s -> ['Pretext' ('Indexed' i) a a s]
 -- 'holesOn' :: 'IndexedTraversal'' i s a -> s -> ['Pretext' ('Indexed' i) a a s]
 -- @
-holesOn :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (Bazaar p (->) a a) s t a a -> s -> [Pretext p (->) a a t]
+holesOn :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (Bazaar p (->) a a) s t a a -> s -> [Pretext p (->) a a t]
 holesOn = holesOf
 {-# INLINE holesOn #-}
 
@@ -508,7 +508,7 @@ holesOn = holesOf
 -- 'holesOnOf' :: 'Lens'' s a      -> 'IndexedLens'' i a a      -> s -> ['Pretext' ('Indexed' i) a a s]
 -- 'holesOnOf' :: 'Traversal'' s a -> 'IndexedTraversal'' i a a -> s -> ['Pretext' ('Indexed' i) a a s]
 -- @
-holesOnOf :: (RepresentableProfunctor p, Comonad (Rep p))
+holesOnOf :: (Corepresentable p, Comonad (Corep p))
           => LensLike (Bazaar p (->) r r) s t a b
           -> Overloading p (->) (Bazaar p (->) r r) a b r r
           -> s -> [Pretext p (->) r r t]
