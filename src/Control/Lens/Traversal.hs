@@ -646,6 +646,13 @@ beside l r f = tabulate $ \ ~(s,s') -> liftA2 (,) <$> rep (l f) s <*> rep (r f) 
 -- 'taking' :: 'Int' -> 'IndexPreservingAction' m s a      -> 'IndexPreservingMonadicFold'' m s a
 -- 'taking' :: 'Int' -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold'' m s a
 -- @
+--
+-- With fewer generalizations, you'd have:
+--
+-- @
+-- 'taking' :: 'Applicative' f => 'Int' -> 'Traversing'' (->) f s a -> 'LensLike'' f s a
+-- 'taking' n l f s = 'outs' b <$> 'traverse' f ('take' n $ 'ins' b) where b = l 'sell' s
+-- @
 taking :: (Corepresentable p, Category p, Representable q, Applicative (Rep q), Monad (Rep q), Applicative f)
        => Int
        -> Overloading p q (BazaarT p q f a a) s t a a
@@ -657,9 +664,6 @@ taking n l pafb = tabulate $ \s -> do
   return $ outs' <$> traverse (corep pafb) (take n xs)
 {-# INLINE taking #-}
 
--- 'taking' :: 'Applicative' f => 'Int' -> 'Traversing'' (->) f s a -> 'LensLike'' f s a
--- 'taking' n l f s = 'outs' b <$> 'traverse' f ('take' n $ 'ins' b) where b = l 'sell' s
--- {-# INLINE taking #-}
 
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
@@ -728,7 +732,6 @@ cloneTraversal l f s = runBazaar (l sell s) f
 cloneIndexPreservingTraversal :: ATraversal s t a b -> IndexPreservingTraversal s t a b
 cloneIndexPreservingTraversal l pafb = cotabulate $ \ws -> runBazaar (l sell (extract ws)) $ \a -> corep pafb (a <$ ws)
 {-# INLINE cloneIndexPreservingTraversal #-}
-
 
 cloneIndexedTraversal :: AnIndexedTraversal i s t a b -> IndexedTraversal i s t a b
 cloneIndexedTraversal l f s = runBazaar (l sell s) (Indexed (indexed f))
