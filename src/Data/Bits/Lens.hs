@@ -167,41 +167,27 @@ bitAt :: Bits b => Int -> IndexedLens' Int b Bool
 bitAt n f b = indexed f n (testBit b n) <&> \x -> if x then setBit b n else clearBit b n
 {-# INLINE bitAt #-}
 
--- | Get the nth byte, counting from the high-end and starting from 0.
+-- | Get the nth byte, counting from the low end.
 --
 -- @'byteAt' n@ is only a legal 'Lens' into @b@ if @0 <= n < ('bitSize' ('undefined' :: b) `div` 8)@
 --
--- >>> (0xff :: Word8)^.byteAt 0
--- 255
---
--- >>> byteAt 0 .~ 123 $ 0xff :: Word8
--- 123
---
 -- >>> (0xff00 :: Word16)^.byteAt 0
--- 255
---
--- >>> (0xff00 :: Word16)^.byteAt 1
 -- 0
 --
--- >>> (0xaabbccdd :: Word32)^.byteAt 0
--- 170
+-- >>> (0xff00 :: Word16)^.byteAt 1
+-- 255
 --
--- >>> (0xaabbccdd :: Word32)^.byteAt 1
--- 187
+-- >>> byteAt 1 .~ 0 $ 0xff00 :: Word16
+-- 0
 --
--- >>> (0xaabbccdd :: Word32)^.byteAt 2
--- 204
---
--- >>> (0xaabbccdd :: Word32)^.byteAt 3
--- 221
---
--- >>> byteAt 3 .~ 99 $ 0 :: Word32
--- 99
+-- >>> byteAt 0 .~ 0xff $ 0 :: Word16
+-- 255
 byteAt :: (Integral b, Bits b) => Int -> IndexedLens' Int b Word8
-byteAt i f b = back <$> indexed f i (fromIntegral (255 .&. shiftR b offset)) where
-  offset = bitSize b - (i + 1) * 8
-  back w8 = b .&. complement (255 `shiftL` offset)
-    .|. (fromIntegral w8 `shiftL` offset)
+byteAt i f b = back <$> indexed f i (forward b) where
+  back w8 = (fromIntegral w8 `shiftL` (i * 8))
+    .|. (complement (255 `shiftL` (i * 8)) .&. b)
+  forward = fromIntegral . (.&.) 0xff . flip shiftR (i * 8)
+
 
 -- | Traverse over all bits in a numeric type.
 --
