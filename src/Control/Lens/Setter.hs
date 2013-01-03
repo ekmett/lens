@@ -198,7 +198,7 @@ setting l pafb = cotabulate $ \ws -> pure $ l (\a -> untainted (corep pafb (a <$
 --
 -- @'sets' :: ((a -> b) -> s -> t) -> 'Setter' s t a b@
 sets :: (Profunctor p, Profunctor q, Settable f) => (p a b -> q s t) -> Overloading p q f s t a b
-sets f g = pure `rmap` f (rmap untainted g)
+sets f g = pure `rmap` f (untaintedDot g)
 {-# INLINE sets #-}
 
 -- | Restore 'ASetter' to a full 'Setter'.
@@ -209,12 +209,12 @@ cloneSetter l afb = taintedDot $ runMutator #. l (Mutator #. untaintedDot afb)
 -- | Build an 'IndexPreservingSetter' from any 'Setter'.
 cloneIndexPreservingSetter :: ASetter s t a b -> IndexPreservingSetter s t a b
 cloneIndexPreservingSetter l pafb = cotabulate $ \ws ->
-    pure . runMutator $ l (\a -> Mutator (untainted (corep pafb (a <$ ws)))) (extract ws)
+    taintedDot runMutator $ l (\a -> Mutator (untainted (corep pafb (a <$ ws)))) (extract ws)
 {-# INLINE cloneIndexPreservingSetter #-}
 
 -- | Clone an 'IndexedSetter'.
 cloneIndexedSetter :: AnIndexedSetter i s t a b -> IndexedSetter i s t a b
-cloneIndexedSetter l pafb = (pure .# runMutator) . l (Indexed $ \i a -> Mutator #. untainted $ indexed pafb i a)
+cloneIndexedSetter l pafb = taintedDot (runMutator #. l (Indexed $ \i -> Mutator #. untaintedDot (indexed pafb i)))
 {-# INLINE cloneIndexedSetter #-}
 
 -----------------------------------------------------------------------------
@@ -260,7 +260,7 @@ cloneIndexedSetter l pafb = (pure .# runMutator) . l (Indexed $ \i a -> Mutator 
 -- 'over' :: 'ASetter' s t a b -> (a -> b) -> s -> t
 -- @
 over :: (Profunctor p, Profunctor q) => Overloading p q Mutator s t a b -> p a b -> q s t
-over l f = runMutator `rmap` l (rmap Mutator f)
+over l f = runMutator #. l (Mutator #. f)
 {-# INLINE over #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
@@ -284,7 +284,7 @@ over l f = runMutator `rmap` l (rmap Mutator f)
 -- 'set' :: 'Traversal' s t a b -> b -> s -> t
 -- @
 set :: Profunctor q => Overloading (->) q Mutator s t a b -> b -> q s t
-set l b = runMutator `rmap` l (\_ -> Mutator b)
+set l b = runMutator #. l (\_ -> Mutator b)
 {-# INLINE set #-}
 
 -- |
@@ -312,7 +312,7 @@ set l b = runMutator `rmap` l (\_ -> Mutator b)
 -- 'set'' :: 'Traversal'' s a -> a -> s -> s
 -- @
 set' :: Profunctor q => Overloading' (->) q Mutator s a -> a -> q s s
-set' l b = runMutator `rmap` l (\_ -> Mutator b)
+set' l b = runMutator #. l (\_ -> Mutator b)
 {-# INLINE set' #-}
 
 -- | Modifies the target of a 'Lens' or all of the targets of a 'Setter' or

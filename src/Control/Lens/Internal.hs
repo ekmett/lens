@@ -212,12 +212,12 @@ instance Effective Identity r (Accessor r) where
 class Applicative f => Settable f where
   untainted :: f a -> a
 
-  untaintedDot :: (a -> f b) -> a -> b
-  untaintedDot g = g `seq` \x -> untainted (g x)
+  untaintedDot :: Profunctor p => p a (f b) -> p a b
+  untaintedDot g = g `seq` rmap untainted g
   {-# INLINE untaintedDot #-}
 
-  taintedDot :: (a -> b) -> a -> f b
-  taintedDot g = g `seq` \x -> pure (g x)
+  taintedDot :: Profunctor p => p a b -> p a (f b)
+  taintedDot g = g `seq` rmap pure g
   {-# INLINE taintedDot #-}
 
 -- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries
