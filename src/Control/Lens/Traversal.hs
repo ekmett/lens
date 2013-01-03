@@ -581,9 +581,27 @@ both f ~(a,a') = (,) <$> f a <*> f a'
 
 -- | Apply a different 'Traversal' or 'Fold' to each side of a tuple.
 --
+-- @
+-- 'beside' :: 'Traversal' s t a b          -> 'Traversal' s' t' a b          -> 'Traversal' (s,s') (t,t') a b
+-- 'beside' :: 'Lens' s t a b               -> 'Lens' s' t' a b               -> 'Traversal' (s,s') (t,t') a b
+-- 'beside' :: 'Fold' s a                   -> 'Fold' s' a                    -> 'Fold' (s,s') a
+-- 'beside' :: 'Getter' s a                 -> 'Getter' s' a                  -> 'Traversal' (s,s') a
+-- 'beside' :: 'Action' m s a               -> 'Action' m s' a                -> 'MonadicFold' m (s,s') a
+-- 'beside' :: 'MonadicFold' m s a          -> 'MonadicFold' m s' a           -> 'MonadicFold' m (s,s') a
+-- 'beside' :: 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s' t' a b -> 'IndexedTraversal' i (s,s') (t,t') a b
+-- 'beside' :: 'IndexedLens' i s t a b      -> 'IndexedLens' i s' t' a b      -> 'IndexedTraversal' i (s,s') (t,t') a b
+-- 'beside' :: 'IndexedFold' i s a          -> 'IndexedFold' i s' a           -> 'IndexedFold' i (s,s') a
+-- 'beside' :: 'IndexedGetter' i s a        -> 'IndexedGetter' i s' a         -> 'IndexedTraversal' i (s,s') a
+-- 'beside' :: 'IndexedAction' i m s a      -> 'IndexedAction' i m s' a       -> 'IndexedMonadicFold' i m (s,s') a
+-- 'beside' :: 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold' i m s' a  -> 'IndexedMonadicFold' i m (s,s') a
+-- @
+--
 -- >>> ("hello",["world","!!!"])^..beside id traverse
 -- ["hello","world","!!!"]
-beside :: Applicative f => LensLike f s t a b -> LensLike f s' t' a b -> LensLike f (s,s') (t,t') a b
+beside :: Applicative f
+       => Overloading p (->) f s t a b
+       -> Overloading p (->) f s' t' a b
+       -> Overloading p (->) f (s,s') (t,t') a b
 beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 {-# INLINE beside #-}
 
