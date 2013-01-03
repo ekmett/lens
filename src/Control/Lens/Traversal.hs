@@ -625,32 +625,36 @@ beside l r f = tabulate $ \ ~(s,s') -> liftA2 (,) <$> rep (l f) s <*> rep (r f) 
 -- "ifmmp world"
 --
 -- @
--- 'taking' :: 'Int' -> 'Traversal'' s a             -> 'Traversal'' s a
--- 'taking' :: 'Int' -> 'Lens'' s a                  -> 'Traversal'' s a
--- 'taking' :: 'Int' -> 'Iso'' s a                   -> 'Traversal'' s a
--- 'taking' :: 'Int' -> 'Prism'' s a                 -> 'Traversal'' s a
---
--- 'taking' :: 'Int' -> 'Getter' s a                 -> 'Fold'' s a
--- 'taking' :: 'Int' -> 'Fold' s a                   -> 'Fold'' s a
---
--- 'taking' :: 'Int' -> 'Action' m s a               -> 'MonadicFold'' m s a
--- 'taking' :: 'Int' -> 'MonadicFold' m s a          -> 'MonadicFold'' m s a
---
--- 'taking' :: 'Int' -> 'IndexedTraversal'' i s a    -> 'IndexedTraversal'' i s a
--- 'taking' :: 'Int' -> 'IndexedLens'' i s a         -> 'IndexedTraversal'' i s a
---
--- 'taking' :: 'Int' -> 'IndexedGetter' i s a        -> 'IndexedFold'' i s a
--- 'taking' :: 'Int' -> 'IndexedFold' i s a          -> 'IndexedFold'' i s a
---
--- 'taking' :: 'Int' -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold'' i m s a
--- 'taking' :: 'Int' -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold'' i m s a
+-- 'taking' :: 'Int' -> 'Traversal'' s a                   -> 'Traversal'' s a
+-- 'taking' :: 'Int' -> 'Lens'' s a                        -> 'Traversal'' s a
+-- 'taking' :: 'Int' -> 'Iso'' s a                         -> 'Traversal'' s a
+-- 'taking' :: 'Int' -> 'Prism'' s a                       -> 'Traversal'' s a
+-- 'taking' :: 'Int' -> 'Getter' s a                       -> 'Fold'' s a
+-- 'taking' :: 'Int' -> 'Fold' s a                         -> 'Fold'' s a
+-- 'taking' :: 'Int' -> 'Action' m s a                     -> 'MonadicFold'' m s a
+-- 'taking' :: 'Int' -> 'MonadicFold' m s a                -> 'MonadicFold'' m s a
+-- 'taking' :: 'Int' -> 'IndexedTraversal'' i s a          -> 'IndexedTraversal'' i s a
+-- 'taking' :: 'Int' -> 'IndexedLens'' i s a               -> 'IndexedTraversal'' i s a
+-- 'taking' :: 'Int' -> 'IndexedGetter' i s a              -> 'IndexedFold'' i s a
+-- 'taking' :: 'Int' -> 'IndexedFold' i s a                -> 'IndexedFold'' i s a
+-- 'taking' :: 'Int' -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold'' i m s a
+-- 'taking' :: 'Int' -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold'' i m s a
+-- 'taking' :: 'Int' -> 'IndexPreservingTraversal'' s a    -> 'IndexPreservingTraversal'' s a
+-- 'taking' :: 'Int' -> 'IndexPreservingLens'' s a         -> 'IndexPreservingTraversal'' s a
+-- 'taking' :: 'Int' -> 'IndexPreservingGetter' s a        -> 'IndexPreservingFold'' s a
+-- 'taking' :: 'Int' -> 'IndexPreservingFold' s a          -> 'IndexPreservingFold'' s a
+-- 'taking' :: 'Int' -> 'IndexPreservingAction' m s a      -> 'IndexPreservingMonadicFold'' m s a
+-- 'taking' :: 'Int' -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold'' m s a
 -- @
-taking :: (Corepresentable p, Category p, Applicative f)
+taking :: (Corepresentable p, Category p, Representable q, Applicative (Rep q), Monad (Rep q), Applicative f)
        => Int
-       -> Overloading p (->) (BazaarT p (->) f a a) s t a a
-       -> Overloading p (->) f s t a a
-taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where
-  b = l sell s
+       -> Overloading p q (BazaarT p q f a a) s t a a
+       -> Overloading p q f s t a a
+taking n l pafb = tabulate $ \s -> do
+  b  <- rep (l sell) s
+  xs <- rep pins b
+  outs' <- rep outs b
+  return $ outs' <$> traverse (corep pafb) (take n xs)
 {-# INLINE taking #-}
 
 -- 'taking' :: 'Applicative' f => 'Int' -> 'Traversing'' (->) f s a -> 'LensLike'' f s a
