@@ -353,7 +353,7 @@ takingWhile p l f = (flip appEndo noEffect .# runAccessor) `rmap` l g where
 -- 'Traversal' or 'IndexedTraversal'. The 'Traversal' and 'IndexedTraversal' laws are only satisfied if the
 -- new values you assign also pass the predicate! Otherwise subsequent traversals will visit fewer elements
 -- and 'Traversal' fusion is not sound.
-droppingWhile :: (RepresentableProfunctor p, Comonad (Rep p), Profunctor q, Applicative f)
+droppingWhile :: (RepresentableProfunctor p, Profunctor q, Comonad (Rep p), Applicative f)
               => (a -> Bool)
               -> Overloading p q (Compose (State Bool) f) s t a a
               -> Overloading p q f s t a a
