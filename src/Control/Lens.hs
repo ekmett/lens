@@ -54,7 +54,6 @@ module Control.Lens
   , module Control.Lens.Plated
   , module Control.Lens.Prism
   , module Control.Lens.Reified
-  , module Control.Lens.Representable
   , module Control.Lens.Setter
   , module Control.Lens.Simple
 #ifndef DISABLE_TEMPLATE_HASKELL
@@ -82,7 +81,6 @@ import Control.Lens.Loupe
 import Control.Lens.Plated
 import Control.Lens.Prism
 import Control.Lens.Reified
-import Control.Lens.Representable
 import Control.Lens.Setter
 import Control.Lens.Simple
 #ifndef DISABLE_TEMPLATE_HASKELL

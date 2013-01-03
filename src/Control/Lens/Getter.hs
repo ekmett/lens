@@ -66,6 +66,7 @@ import Control.Lens.Type
 import Control.Monad.Reader.Class as Reader
 import Control.Monad.State        as State
 import Data.Profunctor
+import Data.Profunctor.Unsafe
 
 -- $setup
 -- >>> import Control.Lens

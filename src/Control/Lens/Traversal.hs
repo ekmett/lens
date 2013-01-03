@@ -102,8 +102,6 @@ module Control.Lens.Traversal
   , Bazaar(..)
   , Bazaar'
   , loci
-  , Size(..)
-  , Size64(..)
   ) where
 
 import Control.Applicative            as Applicative
@@ -121,7 +119,8 @@ import Data.Map as Map
 import Data.Traversable
 import Data.Tuple (swap)
 import Data.Profunctor
-import Data.Profunctor.Representable
+import Data.Profunctor.Rep
+import Data.Profunctor.Unsafe
 import Prelude hiding ((.),id)
 
 -- $setup
@@ -314,7 +313,7 @@ transposeOf l = getZipList `rmap` l ZipList
 -- @
 --
 -- @'mapAccumROf' :: 'LensLike' ('Backwards' ('State' acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)@
-mapAccumROf :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (Backwards (State acc)) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumROf :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (Backwards (State acc)) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumROf = mapAccumLOf . backwards
 {-# INLINE mapAccumROf #-}
 
@@ -335,9 +334,9 @@ mapAccumROf = mapAccumLOf . backwards
 -- 'mapAccumLOf' l f acc0 s = 'swap' ('runState' (l (\a -> 'state' (\acc -> 'swap' (f acc a))) s) acc0)
 -- @
 --
-mapAccumLOf :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (State acc) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumLOf :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (State acc) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumLOf l f acc0 s = swap (runState (l g s) acc0) where
-   g = tabulatePro $ \wa -> state $ \acc -> swap (indexPro f (acc <$ wa) (extract wa))
+   g = cotabulate $ \wa -> state $ \acc -> swap (corep f (acc <$ wa) (extract wa))
 -- This would be much cleaner if the argument order for the function was swapped.
 {-# INLINE mapAccumLOf #-}
 
@@ -477,11 +476,11 @@ iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
 -- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
 -- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
 -- @
-holesOf :: (RepresentableProfunctor p, Comonad (Rep p)) => Overloading p (->) (Bazaar p (->) a a) s t a a -> s -> [Pretext p (->) a a t]
+holesOf :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (Bazaar p (->) a a) s t a a -> s -> [Pretext p (->) a a t]
 holesOf l s = f (pins b) (unsafeOuts b) where
   b = l sell s
   f [] _ = []
-  f (wx:xs) g = Pretext (\wxfy -> g . (:Prelude.map extract xs) <$> indexPro wxfy wx) : f xs (g . (extract wx:))
+  f (wx:xs) g = Pretext (\wxfy -> g . (:Prelude.map extract xs) <$> corep wxfy wx) : f xs (g . (extract wx:))
 {-# INLINE holesOf #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can
@@ -499,12 +498,12 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 -- 'singular' :: 'IndexedFold' i s a          -> 'IndexedGetter' i s a
 -- 'singular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
-singular :: (RepresentableProfunctor p, Comonad (Rep p), Functor f)
+singular :: (Corepresentable p, Comonad (Corep p), Functor f)
          => Overloading p (->) (BazaarT p (->) f a a) s t a a
          -> Overloading p (->) f s t a a
 singular l pafb s = case pins b of
-  (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> indexPro pafb w
-  []     -> unsafeOuts b . return                    <$> indexPro pafb (error "singular: empty traversal")
+  (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> corep pafb w
+  []     -> unsafeOuts b . return                    <$> corep pafb (error "singular: empty traversal")
   where b = l sell s
 {-# INLINE singular #-}
 
@@ -522,11 +521,11 @@ singular l pafb s = case pins b of
 -- 'unsafeSingular' :: 'IndexedFold' i s a          -> 'IndexedGetter' i s a
 -- 'unsafeSingular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
-unsafeSingular :: (RepresentableProfunctor p, Comonad (Rep p), Functor f)
+unsafeSingular :: (Corepresentable p, Comonad (Corep p), Functor f)
                => Overloading p (->) (BazaarT p (->) f a b) s t a b
                -> Overloading p (->) f s t a b
 unsafeSingular l pafb s = case pins b of
-  [w] -> unsafeOuts b . return <$> indexPro pafb w
+  [w] -> unsafeOuts b . return <$> corep pafb w
   []  -> error "unsafeSingular: empty traversal"
   _   -> error "unsafeSingular: traversing multiple results"
   where b = l sell s
@@ -540,8 +539,8 @@ ins :: Bizarre (->) (->) w => w a b t -> [a]
 ins = toListOf bazaar
 {-# INLINE ins #-}
 
-pins :: (Bizarre p q w, RepresentableProfunctor p) => q (w a b t) [Rep p a]
-pins = getConst `rmap` bazaar (tabulatePro $ \ra -> Const [ra])
+pins :: (Bizarre p q w, Corepresentable p) => q (w a b t) [Corep p a]
+pins = getConst `rmap` bazaar (cotabulate $ \ra -> Const [ra])
 {-# INLINE pins #-}
 
 parr :: (Profunctor p, Category p) => (a -> b) -> p a b
@@ -552,8 +551,8 @@ outs :: (Bizarre p q w, Category p) => q (w a a t) ([a] -> t)
 outs = evalState `rmap` bazaar (parr (state . unconsWithDefault))
 {-# INLINE outs #-}
 
-unsafeOuts :: (Bizarre p q w, RepresentableProfunctor p) => q (w a b t) ([b] -> t)
-unsafeOuts = evalState `rmap` bazaar (tabulatePro (\_ -> state (unconsWithDefault fakeVal)))
+unsafeOuts :: (Bizarre p q w, Corepresentable p) => q (w a b t) ([b] -> t)
+unsafeOuts = evalState `rmap` bazaar (cotabulate (\_ -> state (unconsWithDefault fakeVal)))
   where fakeVal = error "unsafePartsOf': not enough elements were supplied"
 {-# INLINE unsafeOuts #-}
 
@@ -620,11 +619,11 @@ beside l r f ~(s,s') = (,) <$> l f s <*> r f s'
 -- 'taking' :: 'Int' -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold'' i m s a
 -- 'taking' :: 'Int' -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold'' i m s a
 -- @
-taking :: (RepresentableProfunctor p, Category p, Applicative f)
+taking :: (Corepresentable p, Category p, Applicative f)
        => Int
        -> Overloading p (->) (BazaarT p (->) f a a) s t a a
        -> Overloading p (->) f s t a a
-taking n l pafb s = outs b <$> traverse (indexPro pafb) (take n $ pins b) where
+taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where
   b = l sell s
 {-# INLINE taking #-}
 
@@ -665,9 +664,9 @@ taking n l pafb s = outs b <$> traverse (indexPro pafb) (take n $ pins b) where
 -- 'dropping' :: 'Int' -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold'' i m s a
 -- @
 
-dropping :: (RepresentableProfunctor p, Comonad (Rep p), Applicative f) => Int -> Overloading p (->) (Indexing f) s t a a -> Overloading p (->) f s t a a
+dropping :: (Corepresentable p, Comonad (Corep p), Applicative f) => Int -> Overloading p (->) (Indexing f) s t a a -> Overloading p (->) f s t a a
 dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
-  paifb = tabulatePro $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (i', if i < n then pure (extract wa) else indexPro pafb wa)
+  paifb = cotabulate $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (i', if i < n then pure (extract wa) else corep pafb wa)
 {-# INLINE dropping #-}
 
 ------------------------------------------------------------------------------
@@ -697,7 +696,7 @@ cloneTraversal l f s = runBazaar (l sell s) f
 {-# INLINE cloneTraversal #-}
 
 cloneIndexPreservingTraversal :: ATraversal s t a b -> IndexPreservingTraversal s t a b
-cloneIndexPreservingTraversal l pafb = tabulatePro $ \ws -> runBazaar (l sell (extract ws)) $ \a -> indexPro pafb (a <$ ws)
+cloneIndexPreservingTraversal l pafb = cotabulate $ \ws -> runBazaar (l sell (extract ws)) $ \a -> corep pafb (a <$ ws)
 {-# INLINE cloneIndexPreservingTraversal #-}
 
 
@@ -809,12 +808,12 @@ imapAccumLOf l = mapAccumLOf l .# Indexed
 ------------------------------------------------------------------------------
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
-traversed :: Traversable f => IndexedMeasuredTraversal Int Size (f a) (f b) a b
+traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b
 traversed = indexing traverse
 {-# INLINE traversed #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
-traversed64 :: Traversable f => IndexedMeasuredTraversal Int64 Size64 (f a) (f b) a b
+traversed64 :: Traversable f => IndexedTraversal Int64 (f a) (f b) a b
 traversed64 = indexing64 traverse
 {-# INLINE traversed64 #-}
 

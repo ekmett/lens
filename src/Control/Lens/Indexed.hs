@@ -90,6 +90,7 @@ import Data.HashMap.Lazy as HashMap
 import Data.IntMap as IntMap
 import Data.Map as Map
 import Data.Monoid
+import Data.Profunctor.Unsafe
 import Data.Sequence hiding (index)
 import Data.Traversable
 import Data.Tuple (swap)

@@ -114,8 +114,8 @@ import Control.Lens.Type
 import Control.Monad.State as State
 import Data.Monoid
 import Data.Profunctor
-import Data.Profunctor.Corepresentable
-import Data.Profunctor.Representable
+import Data.Profunctor.Rep
+import Data.Profunctor.Unsafe
 
 {-# ANN module "HLint: ignore Use ***" #-}
 
@@ -176,7 +176,7 @@ type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 -- 'lens' sa sbt afb s = sbt s '<$>' afb (sa s)
 -- @
 lens :: (s -> a) -> (s -> b -> t) -> IndexPreservingLens s t a b
-lens sa sbt pafb = tabulatePro $ \ws -> sbt (extract ws) <$> indexPro pafb (sa <$> ws)
+lens sa sbt pafb = cotabulate $ \ws -> sbt (extract ws) <$> corep pafb (sa <$> ws)
 {-# INLINE lens #-}
 
 -- | Build an 'IndexedLens' from a getter and a setter.
@@ -303,7 +303,7 @@ choosing _ r f (Right a') = Right <$> r f a'
 -- 'chosen' f ('Right' a) = 'Right' '<$>' f a
 -- @
 chosen :: IndexPreservingLens (Either a a) (Either b b) a b
-chosen pafb = tabulatePro $ \weaa -> indexPro (either id id `lmap` pafb) weaa <&> \b -> case extract weaa of
+chosen pafb = cotabulate $ \weaa -> corep (either id id `lmap` pafb) weaa <&> \b -> case extract weaa of
   Left _  -> Left  b
   Right _ -> Right b
 {-# INLINE chosen #-}
@@ -317,11 +317,11 @@ chosen pafb = tabulatePro $ \weaa -> indexPro (either id id `lmap` pafb) weaa <&
 -- (Left c,Right d)
 --
 -- @'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')@
-alongside :: (CorepresentableProfunctor q, Applicative (Corep q), Comonad (Corep q), Functor f)
+alongside :: (Representable q, Applicative (Rep q), Comonad (Rep q), Functor f)
           => Overloading (->) q (Pretext (->) q a b) s t a b ->
              Overloading (->) q (Pretext (->) q a' b') s' t' a' b' ->
              Overloading (->) q f (s,s') (t,t') (a,a') (b,b')
-alongside l r f = cotabulatePro $ \ (s, s') -> go <$> coindexPro (l sell) s <*> coindexPro (r sell) s' where
+alongside l r f = tabulate $ \ (s, s') -> go <$> rep (l sell) s <*> rep (r sell) s' where
   go ls rs = f (ipos ls, ipos rs) <&> \(b, b') -> (ipeek b ls, ipeek b' rs)
 {-# INLINE alongside #-}
 
@@ -362,7 +362,7 @@ cloneLens l afb s = runPretext (l sell s) afb
 {-# INLINE cloneLens #-}
 
 cloneIndexPreservingLens :: ALens s t a b -> IndexPreservingLens s t a b
-cloneIndexPreservingLens l pafb = tabulatePro $ \ws -> runPretext (l sell (extract ws)) $ \a -> indexPro pafb (a <$ ws)
+cloneIndexPreservingLens l pafb = cotabulate $ \ws -> runPretext (l sell (extract ws)) $ \a -> corep pafb (a <$ ws)
 {-# INLINE cloneIndexPreservingLens #-}
 
 cloneIndexedLens :: AnIndexedLens i s t a b -> IndexedLens i s t a b

@@ -39,7 +39,7 @@ module GHC.Generics.Lens
   ) where
 
 import           Control.Applicative
-import           Control.Lens hiding (Rep)
+import           Control.Lens
 import           Data.Maybe (fromJust)
 import           Data.Typeable
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702

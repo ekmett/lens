@@ -44,11 +44,6 @@ module Control.Lens.Internal
   -- ** Indexable
   , SelfAdjoint(..)
   , Indexable(..)
-  -- ** Measurable
-  , Measurable(..)
-  , Measured(..)
-  -- ** Strict Composition
-  , NewtypeComposition(..)
   -- ** Indexed Functors
   , IndexedFunctor(..)
   -- ** Indexed Comonads
@@ -88,8 +83,6 @@ module Control.Lens.Internal
   , Bazaar(..), Bazaar'
   , BazaarT(..), BazaarT'
   , Sellable(..)
-  , Size(..)
-  , Size64(..)
   ) where
 
 import Control.Applicative
@@ -100,8 +93,6 @@ import Control.Comonad
 import Control.Comonad.Store.Class
 import Control.Monad
 import Control.Monad.Fix
-import Control.Monad.Reader.Class
-import Control.Monad.Writer.Class
 import Data.Bifunctor as Bifunctor
 import Data.Distributive
 import Data.Foldable
@@ -110,8 +101,8 @@ import Data.Functor.Identity
 import Data.Int
 import Data.Monoid
 import Data.Profunctor
-import Data.Profunctor.Representable
-import Data.Profunctor.Corepresentable
+import Data.Profunctor.Rep
+import Data.Profunctor.Unsafe
 import Data.Traversable
 #ifndef SAFE
 import Unsafe.Coerce
@@ -122,9 +113,6 @@ import Prelude hiding ((.),id)
 {-# ANN module "HLint: ignore Redundant lambda" #-}
 {-# ANN module "HLint: ignore Collapse lambdas" #-}
 {-# ANN module "HLint: ignore Use const" #-}
-
-infixr 9 #.
-infixl 8 .#
 
 -------------------------------------------------------------------------------
 -- Gettables & Accessors
@@ -267,12 +255,12 @@ instance Settable Mutator where
 -- to the preservation of limits and colimits.
 class
   ( Profunctor p, Prismatic p, Lenticular p
-  , RepresentableProfunctor p, Comonad (Rep p), Traversable (Rep p)
-  , CorepresentableProfunctor p, Monad (Corep p), Distributive (Corep p)
+  , Corepresentable p, Comonad (Corep p), Traversable (Corep p)
+  , Representable p, Monad (Rep p), Distributive (Rep p)
   , ArrowLoop p, ArrowApply p, ArrowChoice p
   ) => SelfAdjoint p where
   distrib :: Functor f => p a b -> p (f a) (f b)
-  distrib = cotabulatePro . collect . coindexPro
+  distrib = tabulate . collect . rep
 
 instance SelfAdjoint (->) where
   distrib = fmap
@@ -321,20 +309,24 @@ instance Profunctor (Indexed i) where
   {-# INLINE lmap #-}
   rmap bc iab = Indexed (\i -> bc . runIndexed iab i)
   {-# INLINE rmap #-}
+  ( .# ) ibc _ = unsafeCoerce ibc
+  {-# INLINE ( .# ) #-}
+  ( #. ) _ = unsafeCoerce
+  {-# INLINE ( #. ) #-}
 
-instance RepresentableProfunctor (Indexed i) where
-  type Rep (Indexed i) = (,) i
-  tabulatePro = Indexed . curry
-  {-# INLINE tabulatePro #-}
-  indexPro = uncurry . runIndexed
-  {-# INLINE indexPro #-}
+instance Corepresentable (Indexed i) where
+  type Corep (Indexed i) = (,) i
+  cotabulate = Indexed . curry
+  {-# INLINE cotabulate #-}
+  corep = uncurry . runIndexed
+  {-# INLINE corep #-}
 
-instance CorepresentableProfunctor (Indexed i) where
-  type Corep (Indexed i) = (->) i
-  cotabulatePro = Indexed . flip
-  {-# INLINE cotabulatePro #-}
-  coindexPro = flip . runIndexed
-  {-# INLINE coindexPro #-}
+instance Representable (Indexed i) where
+  type Rep (Indexed i) = (->) i
+  tabulate = Indexed . flip
+  {-# INLINE tabulate #-}
+  rep = flip . runIndexed
+  {-# INLINE rep #-}
 
 instance Prismatic (Indexed i) where
   prismatic (Indexed iab) = Indexed (either id . iab)
@@ -390,243 +382,12 @@ instance i ~ j => Indexable i (Indexed j) where
   indexed = runIndexed
   {-# INLINE indexed #-}
 
------------------------------------------------------------------------------
--- Measured Internals
------------------------------------------------------------------------------
-
--- | Given @'Monoid' m@, we also get:
--- @('Prismatic' q, 'ArrowApply' q, 'ArrowChoice' p, 'ArrowLoop' q)@
-class (CorepresentableProfunctor q, Lenticular q) => Measurable m q where
-  measured :: (a -> (m, b)) -> q a b
-
-instance Measurable m (->) where
-  measured f = snd . f
-  {-# INLINE measured #-}
-
-newtype Measured m a b = Measured { runMeasured :: a -> (m, b) }
-
-instance m ~ n => Measurable m (Measured n) where
-  measured = Measured
-
-instance Functor (Measured m a) where
-  fmap f (Measured g) = Measured (fmap f . g)
-  {-# INLINE fmap #-}
-
-instance Monoid m => Applicative (Measured m a) where
-  pure b = Measured $ \_ -> (mempty, b)
-  {-# INLINE pure #-}
-  Measured ff <*> Measured fa = Measured $ \e -> let
-      ~(m, f) = ff e
-      ~(n, a) = fa e
-    in (mappend m n, f a)
-  {-# INLINE (<*>) #-}
-  Measured fa <* Measured fb = Measured $ \e -> let
-     ~(m, a) = fa e
-     ~(n, _) = fb e
-    in (mappend m n, a)
-  {-# INLINE (<*) #-}
-  Measured fa *> Measured fb = Measured $ \e -> let 
-     ~(m, _) = fa e
-     ~(n, b) = fb e
-    in (mappend m n, b)
-  {-# INLINE (*>) #-}
-
-instance Monoid m => Monad (Measured m a) where
-  return b = Measured $ \_ -> (mempty, b)
-  {-# INLINE return #-}
-  Measured h >>= k = Measured $ \a -> let
-      ~(m, b) = h a
-      ~(n, c) = runMeasured (k b) a
-    in (mappend m n, c)
-  {-# INLINE (>>=) #-}
-
-instance Monoid m => MonadReader a (Measured m a) where
-  ask = Measured $ (,) mempty
-  {-# INLINE ask #-}
-  local f (Measured h) = Measured (h . f)
-  {-# INLINE local #-}
-
-instance Monoid m => MonadWriter m (Measured m a) where
-  tell m = Measured $ \_ -> (m, ())
-  {-# INLINE tell #-}
-  listen (Measured h) = Measured $ \a -> case h a of
-    (m, b) -> (m, (b, m))
-  {-# INLINE listen #-}
-  pass (Measured h) = Measured $ \ a -> case h a of
-    (m, (b, f)) -> (f m, b)
-  {-# INLINE pass #-}
-
-instance Monoid m => Category (Measured m) where
-  id = Measured ((,) mempty)
-  {-# INLINE id #-}
-  Measured f . Measured g = Measured $ \a -> case g a of
-    (m, b) -> case f b of
-      (n, c) -> (mappend n m, c)
-  {-# INLINE (.) #-}
-
-instance Profunctor (Measured m) where
-  dimap f g (Measured h) = Measured (fmap g . h . f)
-  {-# INLINE dimap #-}
-  lmap f (Measured h) = Measured (h . f)
-  {-# INLINE lmap #-}
-  rmap g (Measured h) = Measured (fmap g . h)
-  {-# INLINE rmap #-}
-
-instance Lenticular (Measured m) where
-  lenticular (Measured h) = Measured $ \a -> fmap ((,) a) (h a)
-  {-# INLINE lenticular #-}
-
-instance Monoid m => Prismatic (Measured m) where
-  prismatic = Measured . either ((,) mempty) . runMeasured
-  {-# INLINE prismatic #-}
-
-instance CorepresentableProfunctor (Measured m) where
-  type Corep (Measured m) = (,) m
-  cotabulatePro = Measured
-  {-# INLINE cotabulatePro #-}
-  coindexPro = runMeasured
-  {-# INLINE coindexPro #-}
-
-instance Monoid m => Arrow (Measured m) where
-  arr f = Measured $ \a -> (mempty, f a)
-  {-# INLINE arr #-}
-  first (Measured h) = Measured $ \(a,c) -> case h a of
-    (m, b) -> (m, (b, c))
-  {-# INLINE first #-}
-  second (Measured h) = Measured $ \(c,a) -> case h a of
-    (m, b) -> (m, (c, b))
-  {-# INLINE second #-}
-  Measured l *** Measured r = Measured $ \(a,b) -> let
-      (m, c) = l a
-      (n, d) = r b
-    in (mappend m n, (c, d))
-  {-# INLINE (***) #-}
-  Measured l &&& Measured r = Measured $ \a -> let
-      (m, b) = l a
-      (n, c) = r a
-    in (mappend m n, (b, c))
-  {-# INLINE (&&&) #-}
-
-instance Monoid m => ArrowChoice (Measured m) where
-  left (Measured h) = Measured $ \e -> case e of
-    Left a -> Left <$> h a
-    Right b -> (mempty, Right b)
-  {-# INLINE left #-}
-  right (Measured h) = Measured $ \e -> case e of
-    Left a -> (mempty, Left a)
-    Right b -> Right <$> h b
-  {-# INLINE right #-}
-  Measured l +++ Measured r = Measured $ \e -> case e of
-    Left a -> Left <$> l a
-    Right b -> Right <$> r b
-  {-# INLINE (+++) #-}
-  Measured l ||| Measured r = Measured (either l r)
-  {-# INLINE (|||) #-}
-
-instance Monoid m => ArrowApply (Measured m) where
-  app = Measured $ \(Measured f, a) -> f a
-  {-# INLINE app #-}
-
-instance Monoid m => ArrowLoop (Measured m) where
-  loop (Measured f) = Measured $ \ b -> let (m, (c, d)) = f (b,d) in (m, c)
-  {-# INLINE loop #-}
-
-instance Monoid m => MonadFix (Measured m a) where
-  mfix f = Measured $ \ a -> let (m, o) = runMeasured (f o) a in (m, o)
-  {-# INLINE mfix #-}
-
 ------------------------------------------------------------------------------
 -- Sellable
 ------------------------------------------------------------------------------
 
-class RepresentableProfunctor p => Sellable p k | k -> p where
+class Corepresentable p => Sellable p k | k -> p where
   sell :: p a (k a b b)
-
------------------------------------------------------------------------------
--- Strict Composition
------------------------------------------------------------------------------
-
--- $strict
--- These combinators are used to reduce eta-expansion in the resulting code
--- which could otherwise cause both a constant and asymptotic slowdown to
--- code execution.
---
--- Many micro-benchmarks are improved up to 50%, and larger benchmarks can
--- win asymptotically.
-
-class NewtypeComposition a b where
-  ( #. ) :: (a -> b) -> (c -> a) -> c -> b
-  ( #. ) = \f -> f `seq` \g -> g `seq` \x -> f (g x)
-  {-# INLINE ( #. ) #-}
-
-  ( .# ) :: (b -> c) -> (a -> b) -> a -> c
-  ( .# ) = \f -> f `seq` \g -> g `seq` \x -> f (g x)
-  {-# INLINE ( .# ) #-}
-
-#ifndef SAFE
-#define COMPOSE(a, b, f, g) \
-  instance NewtypeComposition (a) (b) where { \
-    ( #. ) = \_ -> unsafeCoerce; \
-    {-# INLINE ( #. ) #-}; \
-    ( .# ) = \h -> \_ -> unsafeCoerce h; \
-    {-# INLINE ( .# ) #-}; \
-  }; \
-  instance NewtypeComposition (b) (a) where { \
-    ( #. ) = \_ -> unsafeCoerce; \
-    {-# INLINE ( #. ) #-}; \
-    ( .# ) = \h -> \_ -> unsafeCoerce h; \
-    {-# INLINE ( .# ) #-}; \
-  }
-#else
-#define COMPOSE(a, b, f, g) \
-  instance NewtypeComposition (a) (b) where { \
-    ( #. ) = \_ -> \h -> h `seq` \x -> (g) (h x); \
-    {-# INLINE ( #. ) #-}; \
-    ( .# ) = \h -> h `seq` \_ -> \x -> h ((g) x); \
-    {-# INLINE ( .# ) #-}; \
-  }; \
-  instance NewtypeComposition (b) (a) where { \
-    ( #. ) = \_ -> \h -> h `seq` \x -> (f) (h x); \
-    {-# INLINE ( #. ) #-}; \
-    ( .# ) = \h -> h `seq` \_ -> \x -> h ((f) x); \
-    {-# INLINE ( .# ) #-}; \
-  }
-#endif
-
-COMPOSE(Const r a, r, Const, getConst)
-COMPOSE(ZipList a, [a], ZipList, getZipList)
-COMPOSE(WrappedMonad m a, m a, WrapMonad, unwrapMonad)
-COMPOSE(Last a, Maybe a, Last, getLast)
-COMPOSE(First a, Maybe a, First, getFirst)
-COMPOSE(Product a, a, Product, getProduct)
-COMPOSE(Sum a, a, Sum, getSum)
-COMPOSE(Size, Int, Size, getSize)
-COMPOSE(Size64, Int64, Size64, getSize64)
-COMPOSE(Any, Bool, Any, getAny)
-COMPOSE(All, Bool, All, getAll)
-COMPOSE(Dual a, a, Dual, getDual)
-COMPOSE(Endo a, a -> a, Endo, appEndo)
-COMPOSE(May a, Maybe a, May, getMay)
-COMPOSE(Folding f a, f a, Folding, getFolding)
-COMPOSE(Effect m r a, m r, Effect, getEffect)
-COMPOSE(EffectRWS w st m s a, st -> m (s, st, w), EffectRWS, getEffectRWS)
-COMPOSE(Accessor r a, r, Accessor, runAccessor)
-COMPOSE(Err e a, Either e a, Err, getErr)
-COMPOSE(Traversed f, f (), Traversed, getTraversed)
-COMPOSE(Sequenced f, f (), Sequenced, getSequenced)
-COMPOSE(Focusing m s a, m (s, a), Focusing, unfocusing)
-COMPOSE(FocusingWith w m s a, m (s, a, w), FocusingWith, unfocusingWith)
-COMPOSE(FocusingPlus w k s a, k (s, w) a, FocusingPlus, unfocusingPlus)
-COMPOSE(FocusingOn f k s a, k (f s) a, FocusingOn, unfocusingOn)
-COMPOSE(FocusingMay k s a, k (May s) a, FocusingMay, unfocusingMay)
-COMPOSE(FocusingErr e k s a, k (Err e s) a, FocusingErr, unfocusingErr)
-COMPOSE(Mutator a, a, Mutator, runMutator)
-COMPOSE(Identity a, a, Identity, runIdentity)
-COMPOSE(Backwards f a, f a, Backwards, forwards)
-COMPOSE(Compose f g a, f (g a), Compose, getCompose)
-COMPOSE(Cokleisli f a b, f a -> b, Cokleisli, runCokleisli)
-COMPOSE(Indexed i s t, i -> s -> t, Indexed, runIndexed)
-COMPOSE(Review a b, b, Review, runReview)
 
 ------------------------------------------------------------------------------
 -- Internal Types
@@ -776,18 +537,17 @@ instance Applicative f => Applicative (Indexing f) where
 -- a 'Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
 --
 -- @
--- 'indexing' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int' ('Sum' 'Int') s t a b
--- 'indexing' :: 'Control.Lens.Type.Prism' s t a b     -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int' ('Sum' 'Int') s t a b
--- 'indexing' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int' ('Sum' 'Int') s t a b
--- 'indexing' :: 'Control.Lens.Type.Iso' s t a b       -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int' ('Sum' 'Int') s t a b
--- 'indexing' :: 'Control.Lens.Type.Fold' s t          -> 'Control.Lens.Type.IndexedMeasuredFold' 'Int' ('Sum' 'Int') s t
--- 'indexing' :: 'Control.Lens.Type.Getter' s t        -> 'Control.Lens.Type.IndexedMeasuredGetter' 'Int' ('Sum' 'Int') s t a b
+-- 'indexing' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedTraversal' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Type.Prism' s t a b     -> 'Control.Lens.Type.IndexedTraversal' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.Type.IndexedLens' 'Int'  s t a b
+-- 'indexing' :: 'Control.Lens.Type.Iso' s t a b       -> 'Control.Lens.Type.IndexedLens' 'Int' s t a b
+-- 'indexing' :: 'Control.Lens.Type.Fold' s a          -> 'Control.Lens.Type.IndexedFold' 'Int' s a
+-- 'indexing' :: 'Control.Lens.Type.Getter' s a        -> 'Control.Lens.Type.IndexedGetter' 'Int' s a
 -- @
 --
--- @'indexing' :: ('Indexable' 'Int' p, 'Measured' ('Sum' 'Int') q) => 'Control.Lens.Type.LensLike' ('Indexing' f) s t a b -> 'Control.Lens.Type.Overloading' p q f s t a b@
-indexing :: (Indexable Int p, Measurable Size q) => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> q s (f t)
-indexing l iafb = measured $ \ s -> case runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0 of
-  ~(i, r) -> (Size i, r)
+-- @'indexing' :: 'Indexable' 'Int' p => 'Control.Lens.Type.LensLike' ('Indexing' f) s t a b -> 'Control.Lens.Type.Overloading' p (->) f s t a b@
+indexing :: Indexable Int p => ((a -> Indexing f b) -> s -> Indexing f t) -> p a (f b) -> s -> f t
+indexing l iafb s = snd $ runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0
 {-# INLINE indexing #-}
 
 -- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int64'@ with a 'Functor', used
@@ -813,18 +573,17 @@ instance Applicative f => Applicative (Indexing64 f) where
 -- This combinator is like 'indexing' except that it handles large 'Traversal's and 'Fold's gracefully.
 --
 -- @
--- 'indexing64' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int64' ('Sum' 'Int64') s t a b
--- 'indexing64' :: 'Control.Lens.Type.Prism' s t a b     -> 'Control.Lens.Type.IndexedMeasuredTraversal' 'Int64' ('Sum' 'Int64') s t a b
--- 'indexing64' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int64' ('Sum' 'Int64') s t a b
--- 'indexing64' :: 'Control.Lens.Type.Iso' s t a b       -> 'Control.Lens.Type.IndexedMeasuredLens' 'Int64' ('Sum' 'Int64') s t a b
--- 'indexing64' :: 'Control.Lens.Type.Fold' s t          -> 'Control.Lens.Type.IndexedMeasuredFold' 'Int64' ('Sum' 'Int64') s t
--- 'indexing64' :: 'Control.Lens.Type.Getter' s t        -> 'Control.Lens.Type.IndexedMeasuredGetter' 'Int64' ('Sum' 'Int64') s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedTraversal' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Prism' s t a b     -> 'Control.Lens.Type.IndexedTraversal' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Lens' s t a b      -> 'Control.Lens.Type.IndexedLens' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Iso' s t a b       -> 'Control.Lens.Type.IndexedLens' 'Int64' s t a b
+-- 'indexing64' :: 'Control.Lens.Type.Fold' s a          -> 'Control.Lens.Type.IndexedFold' 'Int64' s a
+-- 'indexing64' :: 'Control.Lens.Type.Getter' s a        -> 'Control.Lens.Type.IndexedGetter' 'Int64' s a
 -- @
 --
--- @'indexing64' :: ('Indexable' 'Int64' p, 'Measured' ('Sum' 'Int64') q) => 'Control.Lens.Type.LensLike' ('Indexing64' f) s t a b -> 'Control.Lens.Type.Overloading' p q f s t a b@
-indexing64 :: (Indexable Int64 p, Measurable Size64 q) => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> q s (f t)
-indexing64 l iafb = measured $ \ s -> case runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0 of
-  ~(i, r) -> (Size64 i, r)
+-- @'indexing64' :: 'Indexable' 'Int64' p => 'Control.Lens.Type.LensLike' ('Indexing64' f) s t a b -> 'Control.Lens.Type.Overloading' p (->) f s t a b@
+indexing64 :: Indexable Int64 p => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> s -> f t
+indexing64 l iafb s = snd $ runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0
 {-# INLINE indexing64 #-}
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
@@ -985,6 +744,10 @@ instance Profunctor Review where
   {-# INLINE lmap #-}
   rmap = fmap
   {-# INLINE rmap #-}
+  Review b .# _ = Review b
+  {-# INLINE ( .# ) #-}
+  ( #. ) _ = unsafeCoerce
+  {-# INLINE ( #. ) #-}
 
 instance Prismatic Review where
   prismatic (Review b) = Review b
@@ -1006,6 +769,11 @@ instance Profunctor (Exchange a b) where
   {-# INLINE lmap #-}
   rmap = fmap
   {-# INLINE rmap #-}
+  ( #. ) _ = unsafeCoerce
+  {-# INLINE ( #. ) #-}
+  ( .# ) p _ = unsafeCoerce p
+  {-# INLINE ( .# ) #-}
+
 
 newtype Market a b s t = Market { runMarket :: (b -> t, s -> Either t a) }
 
@@ -1026,6 +794,10 @@ instance Profunctor (Market a b) where
   {-# INLINE lmap #-}
   rmap = fmap
   {-# INLINE rmap #-}
+  ( #. ) _ = unsafeCoerce
+  {-# INLINE ( #. ) #-}
+  ( .# ) p _ = unsafeCoerce p
+  {-# INLINE ( .# ) #-}
 
 instance Prismatic (Market a b) where
   prismatic x = case runMarket x of
@@ -1147,8 +919,8 @@ type Context' a = Context a a
 ------------------------------------------------------------------------------
 -- Bazaar
 ------------------------------------------------------------------------------
-coarr :: (CorepresentableProfunctor q, Comonad (Corep q)) => q a b -> a -> b
-coarr qab = extract . coindexPro qab
+coarr :: (Representable q, Comonad (Rep q)) => q a b -> a -> b
+coarr qab = extract . rep qab
 {-# INLINE coarr #-}
 
 class (Profunctor p, Profunctor q) => Bizarre p q w | w -> p q where
@@ -1181,37 +953,37 @@ instance Profunctor q => IndexedFunctor (Bazaar p q) where
   ifmap f (Bazaar k) = Bazaar (fmap f `rmap` k)
   {-# INLINE ifmap #-}
 
-instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonad (Bazaar p q) where
+instance (SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => IndexedComonad (Bazaar p q) where
   iextract (Bazaar m) = runIdentity $ coarr m (arr Identity)
   {-# INLINE iextract #-}
-  iduplicate (Bazaar m) = getCompose $ coarr m (rmap Compose (distrib sell) . sell)
+  iduplicate (Bazaar m) = getCompose $ coarr m (Compose #. distrib sell . sell)
   {-# INLINE iduplicate #-}
 
-instance (RepresentableProfunctor p, CorepresentableProfunctor q, Applicative (Corep q))  => Sellable p (Bazaar p q) where
-  sell = tabulatePro $ \ w -> Bazaar $ cotabulatePro $ \k -> pure (indexPro k w)
+instance (Corepresentable p, Representable q, Applicative (Rep q))  => Sellable p (Bazaar p q) where
+  sell = cotabulate $ \ w -> Bazaar $ tabulate $ \k -> pure (corep k w)
   {-# INLINE sell #-}
 
-instance (Profunctor p, CorepresentableProfunctor q) => Bizarre p q (Bazaar p q) where
-  bazaar g = cotabulatePro $ \ f -> coindexPro (runBazaar f) g
+instance (Profunctor p, Representable q) => Bizarre p q (Bazaar p q) where
+  bazaar g = tabulate $ \ f -> rep (runBazaar f) g
   {-# INLINE bazaar #-}
 
 instance Profunctor q => Functor (Bazaar p q a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
 
-instance (CorepresentableProfunctor q, Applicative (Corep q)) => Applicative (Bazaar p q a b) where
-  pure a = Bazaar $ cotabulatePro $ \_ -> pure (pure a)
+instance (Representable q, Applicative (Rep q)) => Applicative (Bazaar p q a b) where
+  pure a = Bazaar $ tabulate $ \_ -> pure (pure a)
   {-# INLINE pure #-}
-  Bazaar mf <*> Bazaar ma = Bazaar $ cotabulatePro $ \ pafb -> (<*>) <$> coindexPro mf pafb <*> coindexPro ma pafb
+  Bazaar mf <*> Bazaar ma = Bazaar $ tabulate $ \ pafb -> (<*>) <$> rep mf pafb <*> rep ma pafb
   {-# INLINE (<*>) #-}
 
-instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Comonad (Bazaar p q a b) where
+instance (a ~ b, SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => Comonad (Bazaar p q a b) where
   extract = iextract
   {-# INLINE extract #-}
   duplicate = iduplicate
   {-# INLINE duplicate #-}
 
-instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => ComonadApply (Bazaar p q a b) where
+instance (a ~ b, SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => ComonadApply (Bazaar p q a b) where
   (<@>) = (<*>)
   {-# INLINE (<@>) #-}
 
@@ -1232,19 +1004,19 @@ instance Profunctor q => Functor (Pretext p q a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
 
-instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonad (Pretext p q) where
+instance (SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => IndexedComonad (Pretext p q) where
   iextract (Pretext m) = runIdentity $ coarr m (arr Identity)
   {-# INLINE iextract #-}
-  iduplicate (Pretext m) = getCompose $ coarr m (rmap Compose (distrib sell) . sell)
+  iduplicate (Pretext m) = getCompose $ coarr m (Compose #. distrib sell . sell)
   {-# INLINE iduplicate #-}
 
-instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Comonad (Pretext p q a b) where
+instance (a ~ b, SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => Comonad (Pretext p q a b) where
   extract = iextract
   {-# INLINE extract #-}
   duplicate = iduplicate
   {-# INLINE duplicate #-}
 
-instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonadStore (Pretext p q) where
+instance (SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => IndexedComonadStore (Pretext p q) where
   ipos (Pretext m) = getConst $ coarr m $ arr Const
   {-# INLINE ipos #-}
   ipeek a (Pretext m) = runIdentity $ coarr m $ arr (\_ -> Identity a)
@@ -1260,7 +1032,7 @@ instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applica
   context (Pretext m) = coarr m (arr sell)
   {-# INLINE context #-}
 
-instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => ComonadStore a (Pretext p q a b) where
+instance (a ~ b, SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => ComonadStore a (Pretext p q a b) where
   pos = ipos
   {-# INLINE pos #-}
   peek = ipeek
@@ -1274,8 +1046,8 @@ instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), 
   experiment = iexperiment
   {-# INLINE experiment #-}
 
-instance (RepresentableProfunctor p, CorepresentableProfunctor q, Applicative (Corep q))  => Sellable p (Pretext p q) where
-  sell = tabulatePro $ \ w -> Pretext $ cotabulatePro $ \k -> pure (indexPro k w)
+instance (Corepresentable p, Representable q, Applicative (Rep q))  => Sellable p (Pretext p q) where
+  sell = cotabulate $ \ w -> Pretext $ tabulate $ \k -> pure (corep k w)
   {-# INLINE sell #-}
 
 ------------------------------------------------------------------------------
@@ -1295,19 +1067,19 @@ instance Profunctor q => Functor (PretextT p q g a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
 
-instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonad (PretextT p q g) where
+instance (SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => IndexedComonad (PretextT p q g) where
   iextract (PretextT m) = runIdentity $ coarr m (arr Identity)
   {-# INLINE iextract #-}
-  iduplicate (PretextT m) = getCompose $ coarr m (rmap Compose (distrib sell) . sell)
+  iduplicate (PretextT m) = getCompose $ coarr m (Compose #. distrib sell . sell)
   {-# INLINE iduplicate #-}
 
-instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Comonad (PretextT p q g a b) where
+instance (a ~ b, SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => Comonad (PretextT p q g a b) where
   extract = iextract
   {-# INLINE extract #-}
   duplicate = iduplicate
   {-# INLINE duplicate #-}
 
-instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonadStore (PretextT p q g) where
+instance (SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => IndexedComonadStore (PretextT p q g) where
   ipos (PretextT m) = getConst $ coarr m $ arr Const
   {-# INLINE ipos #-}
   ipeek a (PretextT m) = runIdentity $ coarr m $ arr (\_ -> Identity a)
@@ -1323,7 +1095,7 @@ instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applica
   context (PretextT m) = coarr m (arr sell)
   {-# INLINE context #-}
 
-instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => ComonadStore a (PretextT p q g a b) where
+instance (a ~ b, SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => ComonadStore a (PretextT p q g a b) where
   pos = ipos
   {-# INLINE pos #-}
   peek = ipeek
@@ -1337,8 +1109,8 @@ instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), 
   experiment = iexperiment
   {-# INLINE experiment #-}
 
-instance (RepresentableProfunctor p, CorepresentableProfunctor q, Applicative (Corep q))  => Sellable p (PretextT p q g) where
-  sell = tabulatePro $ \ w -> PretextT $ cotabulatePro $ \k -> pure (indexPro k w)
+instance (Corepresentable p, Representable q, Applicative (Rep q))  => Sellable p (PretextT p q g) where
+  sell = cotabulate $ \ w -> PretextT $ tabulate $ \k -> pure (corep k w)
   {-# INLINE sell #-}
 
 instance (Profunctor p, Profunctor q, Gettable g) => Gettable (PretextT p q g a b) where
@@ -1363,37 +1135,37 @@ instance Profunctor q => IndexedFunctor (BazaarT p q g) where
   ifmap f (BazaarT k) = BazaarT (fmap f `rmap` k)
   {-# INLINE ifmap #-}
 
-instance (SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => IndexedComonad (BazaarT p q g) where
+instance (SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => IndexedComonad (BazaarT p q g) where
   iextract (BazaarT m) = runIdentity $ coarr m (arr Identity)
   {-# INLINE iextract #-}
-  iduplicate (BazaarT m) = getCompose $ coarr m (rmap Compose (distrib sell) . sell)
+  iduplicate (BazaarT m) = getCompose $ coarr m (Compose #. distrib sell . sell)
   {-# INLINE iduplicate #-}
 
-instance (RepresentableProfunctor p, CorepresentableProfunctor q, Applicative (Corep q))  => Sellable p (BazaarT p q g) where
-  sell = tabulatePro $ \ w -> BazaarT $ cotabulatePro $ \k -> pure (indexPro k w)
+instance (Corepresentable p, Representable q, Applicative (Rep q))  => Sellable p (BazaarT p q g) where
+  sell = cotabulate $ \ w -> BazaarT $ tabulate $ \k -> pure (corep k w)
   {-# INLINE sell #-}
 
-instance (Profunctor p, CorepresentableProfunctor q) => Bizarre p q (BazaarT p q g) where
-  bazaar g = cotabulatePro $ \ f -> coindexPro (runBazaarT f) g
+instance (Profunctor p, Representable q) => Bizarre p q (BazaarT p q g) where
+  bazaar g = tabulate $ \ f -> rep (runBazaarT f) g
   {-# INLINE bazaar #-}
 
 instance Profunctor q => Functor (BazaarT p q g a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
 
-instance (CorepresentableProfunctor q, Applicative (Corep q)) => Applicative (BazaarT p q g a b) where
-  pure a = BazaarT $ cotabulatePro $ \_ -> pure (pure a)
+instance (Representable q, Applicative (Rep q)) => Applicative (BazaarT p q g a b) where
+  pure a = BazaarT $ tabulate $ \_ -> pure (pure a)
   {-# INLINE pure #-}
-  BazaarT mf <*> BazaarT ma = BazaarT $ cotabulatePro $ \ pafb -> (<*>) <$> coindexPro mf pafb <*> coindexPro ma pafb
+  BazaarT mf <*> BazaarT ma = BazaarT $ tabulate $ \ pafb -> (<*>) <$> rep mf pafb <*> rep ma pafb
   {-# INLINE (<*>) #-}
 
-instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => Comonad (BazaarT p q g a b) where
+instance (a ~ b, SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => Comonad (BazaarT p q g a b) where
   extract = iextract
   {-# INLINE extract #-}
   duplicate = iduplicate
   {-# INLINE duplicate #-}
 
-instance (a ~ b, SelfAdjoint p, CorepresentableProfunctor q, Comonad (Corep q), Applicative (Corep q)) => ComonadApply (BazaarT p q g a b) where
+instance (a ~ b, SelfAdjoint p, Representable q, Comonad (Rep q), Applicative (Rep q)) => ComonadApply (BazaarT p q g a b) where
   (<@>) = (<*>)
   {-# INLINE (<@>) #-}
 
@@ -1401,23 +1173,6 @@ instance (Profunctor p, Profunctor q, Gettable g) => Gettable (BazaarT p q g a b
   coerce = (<$) (error "coerced BazaarT")
   {-# INLINE coerce #-}
 
--------------------------------------------------------------------------------
--- Size
--------------------------------------------------------------------------------
-
-newtype Size = Size { getSize :: Int }
-  deriving (Eq,Ord,Show,Read)
-
-instance Monoid Size where
-  mempty = Size 0
-  mappend (Size m) (Size n) = Size (m + n)
-
-newtype Size64 = Size64 { getSize64 :: Int64 }
-  deriving (Eq,Ord,Show,Read)
-
-instance Monoid Size64 where
-  mempty = Size64 0
-  mappend (Size64 m) (Size64 n) = Size64 (m + n)
 
 -------------------------------------------------------------------------------
 -- Orphan Instances

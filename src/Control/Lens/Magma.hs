@@ -21,6 +21,7 @@ import Control.Lens.Lens
 import Control.Lens.Traversal
 import Data.Monoid
 import Data.Foldable
+import Data.Profunctor.Unsafe
 
 ------------------------------------------------------------------------------
 -- Magma

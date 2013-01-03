@@ -45,7 +45,8 @@ import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad.Trans.Class
 import Data.Profunctor
-import Data.Profunctor.Representable
+import Data.Profunctor.Rep
+import Data.Profunctor.Unsafe
 
 -- $setup
 -- >>> :m + Control.Lens
@@ -88,9 +89,9 @@ a ^! l = getEffect (l (Effect #. return) a)
 -- 'act' sma afb a = 'effective' (sma a >>= 'ineffective' . afb)
 -- @
 act :: Monad m => (s -> m a) -> IndexPreservingAction m s a
-act sma pafb = tabulatePro $ \ws -> effective $ do
+act sma pafb = cotabulate $ \ws -> effective $ do
    a <- sma (extract ws)
-   ineffective (indexPro pafb (a <$ ws))
+   ineffective (corep pafb (a <$ ws))
 {-# INLINE act #-}
 
 -- | A self-running 'Action', analogous to 'Control.Monad.join'.
