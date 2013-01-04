@@ -17,6 +17,7 @@ module Data.List.Lens
   , _tail
   , _last
   , _init
+  , _find
   , strippingPrefix
   ) where
 
@@ -162,6 +163,41 @@ _init :: Traversal' [a] [a]
 _init _ [] = pure []
 _init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
 {-# INLINE _init #-}
+
+-- | A 'Traversal' reading and replacing  the first element to match a predicate.
+--
+-- >>> [1,4,5,3,7,2]^?_find (>5)
+-- Just [a,b,c]
+--
+-- >>> []^?_find f
+-- Nothing
+--
+-- >>> "abrakadabra" & _find (=='k') .~ 'c'
+-- "abracadabra"
+--
+-- >>> [] & _find f .~ a
+-- []
+--
+-- >>> [9,4,5,2,1]& _find (<5) %~ f
+-- [9,f 4,5,2,1]
+--
+-- >>> [1,4,5,3,7,2]^?_find (>100)
+-- Nothing
+--
+-- >>> [1,4,5,3,7,2]^?!_find (>5)
+-- 7
+--
+-- >>> "hello"^.._find (>'h')
+-- "l"
+--
+-- >>> ""^._find f
+-- ""
+_find :: (a -> Bool) -> Simple Traversal [a] a                                   
+_find _ _ [] = pure []                                                           
+_find p f (a:as) = if p a                                                  
+                       then (: as) <$> f a                                       
+                       else (a:) <$> (_find p f as) 
+{-# INLINE _find #-}
 
 -- | A 'Prism' stripping a prefix from a list when used as a 'Traversal', or
 -- prepending that prefix when run backwards:
