@@ -186,9 +186,17 @@ data Zipper h i a = Ord i => Zipper !(Coil h i a) Int !Int !(Path i a) i a
 -- Top :>> Map String Int :> Int :@ String :>> Bool
 
 infixr 9 :@
+-- | An empty data type, used to represent the pairing of a position in
+-- a 'Zipper' with an index. See ':>'.
 data (:@) a i
 
 infixl 8 :>
+-- | This type family represents a 'Zipper' with the @p@ variable
+-- abstracting over the position and the index, in terms of ':@'. You
+-- can visually see it in type signatures as:
+--
+-- @h ':>' (a ':@' i) = 'Zipper' h i a@
+--
 type family (:>) h p
 type instance h :> (a :@ i) = Zipper h i a
 
@@ -439,6 +447,7 @@ tugTo n z = case compare k n of
   where k = tooth z
 {-# INLINE tugTo #-}
 
+-- | Move towards a particular index in the current 'Traversal'.
 moveToward :: i -> h :> a:@i -> h :> a:@i
 moveToward i z@(Zipper h _ _ p0 j s0)
   | i == j   = z
@@ -451,6 +460,16 @@ moveToward i z@(Zipper h _ _ p0 j s0)
     go p (Leaf k a) = Zipper h (offset p) 0 p k a
 {-# INLINE moveToward #-}
 
+-- | Move horizontally to a particular index @i@ in the current
+-- 'Traversal'. In the case of simple zippers, the index is 'Int' and
+-- we can move between traverals fairly easily:
+--
+-- >>> zipper (42, 32) & fromWithin both & moveTo 0 <&> view focus
+-- 42
+--
+-- >>> zipper (42, 32) & fromWithin both & moveTo 1 <&> view focus
+-- 32
+--
 moveTo :: MonadPlus m => i -> h :> a:@i -> m (h :> a:@i)
 moveTo i z = case moveToward i z of
   z'@(Zipper _ _ _ _ j _)

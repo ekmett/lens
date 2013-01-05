@@ -764,7 +764,7 @@ itraverseOf l = l .# Indexed
 --
 -- @
 -- 'Control.Lens.Traversal.forOf' l a ≡ 'iforOf' l a '.' 'const'
--- 'iforOf' ≡ 'flip' . 'itraverseOf'
+-- 'iforOf' ≡ 'flip' '.' 'itraverseOf'
 -- @
 --
 -- @

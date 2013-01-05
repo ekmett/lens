@@ -348,7 +348,7 @@ type Prism' s a = Prism s s a a
 -- Equality
 -------------------------------------------------------------------------------
 
--- | A witness that @(a ~ s, b ~ t)@
+-- | A witness that @(a ~ s, b ~ t)@.
 --
 -- Note: Composition with an 'Equality' is index-preserving.
 type Equality s t a b = forall p (f :: * -> *). p a (f b) -> p s (f t)
@@ -371,7 +371,7 @@ type Equality' s a = Equality s s a a
 -- since it just ignores the 'Applicative'.
 type Getter s a = forall f. Gettable f => (a -> f a) -> s -> f s
 
--- | Every 'IndexedGetter' is a valid 'Control.Lens.Fold.IndexedFold' and can be used for 'Getting' like a 'Getter'.
+-- | Every 'IndexedGetter' is a valid 'Control.Lens.Fold.IndexedFold' and can be used for 'Control.Lens.Getter.Getting' like a 'Getter'.
 type IndexedGetter i s a = forall p f. (Indexable i p, Gettable f) => p a (f a) -> s -> f s
 
 -- | An 'IndexPreservingGetter' can be used as a 'Getter', but when composed with an 'IndexedTraversal',
@@ -385,19 +385,19 @@ type IndexPreservingGetter s a = forall p f. (SelfAdjoint p, Gettable f) => p a 
 -- | A 'Fold' describes how to retrieve multiple values in a way that can be composed
 -- with other lens-like constructions.
 --
--- A @'Fold' s a@ provides a structure with operations very similar to those of the 'Foldable'
--- typeclass, see 'foldMapOf' and the other 'Fold' combinators.
+-- A @'Fold' s a@ provides a structure with operations very similar to those of the 'Data.Foldable.Foldable'
+-- typeclass, see 'Control.Lens.Fold.foldMapOf' and the other 'Fold' combinators.
 --
--- By convention, if there exists a 'foo' method that expects a @'Foldable' (f a)@, then there should be a
+-- By convention, if there exists a 'foo' method that expects a @'Data.Foldable.Foldable' (f a)@, then there should be a
 -- @fooOf@ method that takes a @'Fold' s a@ and a value of type @s@.
 --
--- A 'Getter' is a legal 'Fold' that just ignores the supplied 'Monoid'
+-- A 'Getter' is a legal 'Fold' that just ignores the supplied 'Data.Monoid.Monoid'.
 --
 -- Unlike a 'Control.Lens.Traversal.Traversal' a 'Fold' is read-only. Since a 'Fold' cannot be used to write back
 -- there are no lens laws that apply.
 type Fold s a = forall f. (Gettable f, Applicative f) => (a -> f a) -> s -> f s
 
--- | Every 'IndexedFold' is a valid 'Control.Lens.Fold.Fold' and can be used for 'Getting'.
+-- | Every 'IndexedFold' is a valid 'Control.Lens.Fold.Fold' and can be used for 'Control.Lens.Getter.Getting'.
 type IndexedFold i s a = forall p f.  (Indexable i p, Applicative f, Gettable f) => p a (f a) -> s -> f s
 
 -- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',

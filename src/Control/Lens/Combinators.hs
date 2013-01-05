@@ -38,7 +38,7 @@ infixl 1 &, <&>, ??
 -- >>> "hello" & length & succ
 -- 6
 --
--- This combinator is commonly used when applying multiple lens operations in sequence.
+-- This combinator is commonly used when applying multiple 'Lens' operations in sequence.
 --
 -- >>> ("hello","world") & _1.element 0 .~ 'j' & _1.element 4 .~ 'y'
 -- ("jelly","world")
@@ -51,14 +51,14 @@ infixl 1 &, <&>, ??
 a & f = f a
 {-# INLINE (&) #-}
 
--- | Infix flipped fmap.
+-- | Infix flipped 'fmap'.
 --
 -- @('<&>') = 'flip' 'fmap'@
 (<&>) :: Functor f => f a -> (a -> b) -> f b
 as <&> f = f <$> as
 {-# INLINE (<&>) #-}
 
--- | This is convenient to 'flip' argument order of composite functions
+-- | This is convenient to 'flip' argument order of composite functions.
 --
 -- >>> over _2 ?? ("hello","world") $ length
 -- ("hello",5)

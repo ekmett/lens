@@ -118,9 +118,9 @@ cloneIso k = case runIso k of
 
 -- | Safely decompose 'AnIso'
 --
--- @'cloneIso' ≡ 'uncurry' 'iso' . 'runIso'@
+-- @'cloneIso' ≡ 'uncurry' 'iso' '.' 'runIso'@
 --
--- @'from' ≡ 'uncurry' ('flip' 'iso') . 'runIso'@
+-- @'from' ≡ 'uncurry' ('flip' 'iso') '.' 'runIso'@
 runIso :: AnIso s t a b -> (s -> a, b -> t)
 #ifdef SAFE
 runIso ai = case runExchange $ ai $ Exchange (id, Mutator) of

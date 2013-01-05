@@ -15,6 +15,7 @@ import Test.Framework.TH
 import Test.Framework.Providers.QuickCheck2
 import Data.Char (isAlphaNum, isAscii, toUpper)
 import Data.Text.Strict.Lens
+import Data.Maybe
 import Data.List.Lens
 import Data.Functor.Compose
 import Numeric (showHex, showOct, showSigned)
@@ -151,6 +152,31 @@ prop_base_readFail (s :: String) =
     isValid = (not . null) sPos && all isValidChar sPos
     sPos = case s of { ('-':s') -> s'; _ -> s }
     isValidChar c = isAscii c && isAlphaNum c
+
+-- Control.Lens.Zipper
+
+prop_zipper_id (NonEmpty (s :: String)) =
+  (zipper s & fromWithin traverse & rezip) == s &&
+  over traverse id s == s
+
+prop_zipper_rightmost (NonEmpty (s :: String)) =
+  (zipper s & fromWithin traverse & rightmost & view focus) ==
+  (zipper s & fromWithin traverse & farthest rightward & view focus)
+
+prop_zipper_leftmost (NonEmpty (s :: String)) =
+  (zipper s & fromWithin traverse & leftmost & view focus) ==
+  (zipper s & fromWithin traverse & farthest leftward & view focus)
+
+prop_zipper_rightward_fails (NonEmpty (s :: String)) =
+  isNothing (zipper s & rightmost & rightward) &&
+  isNothing (zipper s & fromWithin traverse & rightmost & rightward)
+
+prop_zipper_leftward_fails (NonEmpty (s :: String)) =
+  isNothing (zipper s & leftmost & leftward) &&
+  isNothing (zipper s & fromWithin traverse & leftmost & leftward)
+
+prop_zipper_tooth_id (NonEmpty (s :: String)) =
+  let z = zipper s in isJust (jerkTo (tooth z) z)
 
 main :: IO ()
 main = $defaultMainGenerator

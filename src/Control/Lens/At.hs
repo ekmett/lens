@@ -290,11 +290,11 @@ instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h, h ~ 
   ix = ixEach
   {-# INLINE ix #-}
 
--- | 'At' provides a lens that can be used to read,
--- write or delete the value associated with a key in a map-like
+-- | 'At' provides a 'Lens' that can be used to read,
+-- write or delete the value associated with a key in a 'Map'-like
 -- container on an ad hoc basis.
 --
--- An instance of @At@ should satisfy:
+-- An instance of 'At' should satisfy:
 --
 -- @'ix' k ≡ 'at' k '<.' 'traverse'@
 class At m where

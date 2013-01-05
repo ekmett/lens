@@ -133,7 +133,7 @@ reindexed ij f g = f . Indexed $ indexed g . ij
 f <.> g = icompose (,) f g
 {-# INLINE (<.>) #-}
 
--- | Composition of 'Indexed' functions with a user supplied function for combining indices
+-- | Composition of 'Indexed' functions with a user supplied function for combining indices.
 icompose :: Indexable p c => (i -> j -> p) -> (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> c a b -> r
 icompose ijk istr jabst cab = istr . Indexed $ \i -> jabst . Indexed $ \j -> indexed cab $ ijk i j
 {-# INLINE icompose #-}
@@ -348,7 +348,7 @@ iforM_ = flip imapM_
 -- When you don't need access to the index then 'concatMap' is more flexible in what it accepts.
 --
 -- @
--- 'concatMap' ≡ 'iconcatMap' . 'const'
+-- 'concatMap' ≡ 'iconcatMap' '.' 'const'
 -- 'iconcatMap' ≡ 'ifoldMap'
 -- @
 iconcatMap :: FoldableWithIndex i f => (i -> a -> [b]) -> f a -> [b]
