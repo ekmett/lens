@@ -212,7 +212,7 @@ cycled l f a = as where as = l f a *> as
 
 -- | Build a 'Fold' that unfolds its values from a seed.
 --
--- @'Prelude.unfoldr' ≡ 'toListOf' . 'unfolded'@
+-- @'Prelude.unfoldr' ≡ 'toListOf' '.' 'unfolded'@
 --
 -- >>> 10^..unfolded (\b -> if b == 0 then Nothing else Just (b, b-1))
 -- [10,9,8,7,6,5,4,3,2,1]
@@ -594,7 +594,7 @@ productOf l = getProduct #. foldMapOf l Product
 --
 -- @
 -- 'sumOf' '_1' :: (a, b) -> a
--- 'sumOf' ('folded' . '_1') :: ('Foldable' f, 'Num' a) => f (a, b) -> a
+-- 'sumOf' ('folded' '.' '_1') :: ('Foldable' f, 'Num' a) => f (a, b) -> a
 -- @
 --
 -- @
@@ -843,7 +843,7 @@ concatOf l = runAccessor #. l Accessor
 -- >>> lengthOf _1 ("hello",())
 -- 1
 --
--- @'lengthOf' ('folded' . 'folded') :: 'Foldable' f => f (g a) -> 'Int'@
+-- @'lengthOf' ('folded' '.' 'folded') :: 'Foldable' f => f (g a) -> 'Int'@
 --
 -- @
 -- 'lengthOf' :: 'Getter' s a     -> s -> 'Int'

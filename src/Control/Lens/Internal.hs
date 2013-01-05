@@ -273,7 +273,7 @@ instance SelfAdjoint (->) where
 -- | This class permits overloading of function application for things that
 -- also admit a notion of a key or index.
 class SelfAdjoint p => Indexable i p where
-  -- | Build a function from an 'Indexed' function
+  -- | Build a function from an 'Indexed' function.
   indexed :: p a b -> i -> a -> b
 
 instance Indexable i (->) where
@@ -537,8 +537,8 @@ instance Applicative f => Applicative (Indexing f) where
        ~(k, fa) -> (k, ff <*> fa)
   {-# INLINE (<*>) #-}
 
--- | Transform a 'Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
--- a 'Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
+-- | Transform a 'Control.Lens.Traversal.Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
+-- a 'Control.Lens.Fold.Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
 --
 -- @
 -- 'indexing' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedTraversal' 'Int' s t a b
@@ -571,10 +571,10 @@ instance Applicative f => Applicative (Indexing64 f) where
        ~(k, fa) -> (k, ff <*> fa)
   {-# INLINE (<*>) #-}
 
--- | Transform a 'Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
--- a 'Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
+-- | Transform a 'Control.Lens.Traversal.Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
+-- a 'Control.Lens.Fold.Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
 --
--- This combinator is like 'indexing' except that it handles large 'Traversal's and 'Fold's gracefully.
+-- This combinator is like 'indexing' except that it handles large 'Control.Lens.Traversal.Traversal's and 'Control.Lens.Fold.Fold's gracefully.
 --
 -- @
 -- 'indexing64' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedTraversal' 'Int64' s t a b

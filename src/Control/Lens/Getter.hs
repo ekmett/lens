@@ -364,7 +364,7 @@ uses' l f = State.gets (views' l f)
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
 -- at a monoidal values.
 --
--- @'view'' . 'to' ≡ 'id'@
+-- @'view'' '.' 'to' ≡ 'id'@
 --
 -- >>> view' (to f) a
 -- f a
