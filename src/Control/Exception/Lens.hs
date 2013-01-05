@@ -205,7 +205,7 @@ handling_ l b = handling l (const b)
 -- 'throwing' :: 'Prism'' 'SomeException' t -> t -> a
 -- 'throwing' :: 'Iso'' 'SomeException' t   -> t -> a
 -- @
-throwing :: Reviewing' SomeException t -> t -> a
+throwing :: AReview s SomeException a b -> b -> a
 throwing l = reviews l throw
 {-# INLINE throwing #-}
 
@@ -233,7 +233,7 @@ throwing l = reviews l throw
 -- 'throwingIO' :: 'Prism'' 'SomeException' t -> t -> 'IO' a
 -- 'throwingIO' :: 'Iso'' 'SomeException' t   -> t -> 'IO' a
 -- @
-throwingIO :: Reviewing' SomeException t -> t -> IO a
+throwingIO :: AReview s SomeException a b -> b -> IO a
 throwingIO l = reviews l throwIO
 {-# INLINE throwingIO #-}
 
@@ -247,7 +247,7 @@ throwingIO l = reviews l throwIO
 -- 'throwingTo' :: 'ThreadId' -> 'Prism'' 'SomeException' t -> t -> 'IO' a
 -- 'throwingTo' :: 'ThreadId' -> 'Iso'' 'SomeException' t   -> t -> 'IO' a
 -- @
-throwingTo :: ThreadId -> Reviewing' SomeException t -> t -> IO ()
+throwingTo :: ThreadId -> AReview s SomeException a b -> b -> IO ()
 throwingTo tid l = reviews l (throwTo tid)
 {-# INLINE throwingTo #-}
 

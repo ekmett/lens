@@ -54,7 +54,7 @@ import           Control.Applicative.Backwards
 import           Control.Comonad.Trans.Traced
 import           Control.Exception
 import           Control.Lens.Iso
-import           Control.Lens.Prism
+import           Control.Lens.Review
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
 import           Control.Monad.Trans.Identity

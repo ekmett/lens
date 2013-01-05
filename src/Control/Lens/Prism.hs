@@ -18,16 +18,12 @@ module Control.Lens.Prism
   -- * Prisms
     Prism, Prism'
   , APrism, APrism'
-  , Reviewing, Reviewing'
   -- * Constructing Prisms
   , prism
   , prism'
   -- * Consuming Prisms
   , clonePrism
   , runPrism
-  , remit
-  , review, reviews
-  , reuse, reuses
   , outside
   , aside
   , without
@@ -40,16 +36,11 @@ module Control.Lens.Prism
   ) where
 
 import Control.Applicative
-import Control.Monad.Reader as Reader
-import Control.Monad.State as State
 import Control.Lens.Combinators
-import Control.Lens.Getter
 import Control.Lens.Internal
 import Control.Lens.Type
 import Data.Bifunctor
-import Data.Functor.Identity
 import Data.Profunctor
-import Data.Profunctor.Unsafe
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
@@ -64,10 +55,6 @@ import Unsafe.Coerce
 -- Prism Internals
 ------------------------------------------------------------------------------
 
--- | If you see this in a signature for a function, the function is expecting a 'Prism'
-type Reviewing s t a b = Overloading Review Review Identity s t a b
-
-type Reviewing'  s a = Reviewing s s a a
 
 -- | If you see this in a signature for a function, the function is expecting a 'Prism'.
 type APrism s t a b = Market a b a (Mutator b) -> Market a b s (Mutator t)
@@ -136,106 +123,6 @@ without k = case runPrism k of
       Left s  -> bimap Left Left (seta s)
       Right u -> bimap Right Right (uevc u)
 {-# INLINE without #-}
-
--- | Turn a 'Prism' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
---
--- If you have an 'Control.Lens.Iso.Iso', 'Control.Lens.Iso.from' is a more powerful version of this function
--- that will return an 'Control.Lens.Iso.Iso' instead of a mere 'Getter'.
---
--- >>> 5 ^.remit _left
--- Left 5
---
--- @
--- 'remit' :: 'Prism' s t a b -> 'Getter' b t
--- 'remit' :: 'Iso' s t a b   -> 'Getter' b t
--- @
-remit :: Reviewing s t a b -> Getter b t
-remit p = to (runIdentity #. runReview #. p .# Review .# Identity)
-{-# INLINE remit #-}
-
--- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.
---
--- @'review' ≡ 'view' '.' 'remit'@
---
--- >>> review _left "mustard"
--- Left "mustard"
---
--- Usually 'review' is used in the @(->)@ monad with a 'Prism'' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
--- it as having one of these more restricted type signatures:
---
--- @
--- 'review' :: 'Iso'' s a        -> a -> s
--- 'review' :: 'Prism'' s a -> a -> s
--- @
---
--- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of
--- these more slightly more liberal type signatures may be beneficial to think of it as having:
---
--- @
--- 'review' :: 'MonadReader' a m => 'Iso'' s a        -> m s
--- 'review' :: 'MonadReader' a m => 'Prism'' s a -> m s
--- @
-review :: MonadReader b m => Reviewing s t a b -> m t
-review p = asks (runIdentity #. runReview #. p .# Review .# Identity)
-{-# INLINE review #-}
-
--- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,
--- applying a function.
---
--- @'reviews' ≡ 'views' '.' 'remit'@
---
--- >>> reviews _left isRight "mustard"
--- False
---
--- Usually this function is used in the @(->)@ monad with a 'Prism'' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
--- it as having one of these more restricted type signatures:
---
--- @
--- 'reviews' :: 'Iso'' s a        -> (s -> r) -> a -> r
--- 'reviews' :: 'Prism'' s a -> (s -> r) -> a -> r
--- @
---
--- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of
--- these more slightly more liberal type signatures may be beneficial to think of it as having:
---
--- @
--- 'reviews' :: 'MonadReader' a m => 'Iso'' s a   -> (s -> r) -> m r
--- 'reviews' :: 'MonadReader' a m => 'Prism'' s a -> (s -> r) -> m r
--- @
-reviews :: MonadReader b m => Reviewing s t a b -> (t -> r) -> m r
-reviews p tr = asks (tr . runIdentity #. runReview #. p .# Review .# Identity)
-{-# INLINE reviews #-}
-
--- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.
---
--- @'reuse' ≡ 'use' '.' 'remit'@
---
--- >>> evalState (reuse _left) 5
--- Left 5
---
--- @
--- 'reuse' :: 'MonadState' a m => 'Prism'' s a -> m s
--- 'reuse' :: 'MonadState' a m => 'Iso'' s a   -> m s
--- @
-reuse :: MonadState b m => Reviewing s t a b -> m t
-reuse p = gets (runIdentity #. runReview #. p .# Review .# Identity)
-{-# INLINE reuse #-}
-
--- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,
--- applying a function.
---
--- @'reuses' ≡ 'uses' '.' 'remit'@
---
--- >>> evalState (reuses _left isLeft) (5 :: Int)
--- True
---
--- @
--- 'reuses' :: 'MonadState' a m => 'Prism'' s a -> (s -> r) -> m r
--- 'reuses' :: 'MonadState' a m => 'Iso'' s a   -> (s -> r) -> m r
--- @
-reuses :: MonadState b m => Reviewing s t a b -> (t -> r) -> m r
-reuses p tr = gets (tr . runIdentity #. runReview #. p .# Review .# Identity)
-{-# INLINE reuses #-}
 
 ------------------------------------------------------------------------------
 -- Common Prisms

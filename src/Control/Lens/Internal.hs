@@ -41,6 +41,8 @@ module Control.Lens.Internal
   , Effective(..)
   -- ** Setters
   , Settable(..)
+  -- ** Reviewable
+  , Reviewable(..)
   -- ** Indexable
   , SelfAdjoint(..)
   , Indexable(..)
@@ -71,7 +73,7 @@ module Control.Lens.Internal
   -- * Common Types
   , Accessor(..)
   , Mutator(..)
-  , Review(..)
+  , Reviewed(..)
   , Exchange(..)
   , Market(..), Market'
   , Identical(..)
@@ -106,6 +108,7 @@ import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
+import Data.Tagged
 import Data.Traversable
 import Data.Word
 #ifndef SAFE
@@ -249,6 +252,20 @@ instance Settable Mutator where
   {-# INLINE untaintedDot #-}
   taintedDot = (Mutator #.)
   {-# INLINE taintedDot #-}
+
+-----------------------------------------------------------------------------
+-- Indexed Internals
+-----------------------------------------------------------------------------
+
+class Profunctor p => Reviewable p where
+  retagged :: p a b -> p s b
+  -- retaggedDot, dotRetagged?
+
+instance Reviewable Tagged where
+  retagged = retag
+
+instance Reviewable Reviewed where
+  retagged (Reviewed b) = Reviewed b
 
 -----------------------------------------------------------------------------
 -- Indexed Internals
@@ -740,34 +757,38 @@ instance Traversable Mutator where
   {-# INLINE traverse #-}
 
 ------------------------------------------------------------------------------
--- Isomorphism and Prism Internals
+-- Review: Reviewed
 ------------------------------------------------------------------------------
 
-newtype Review a b = Review { runReview :: b }
+newtype Reviewed a b = Reviewed { runReviewed :: b }
 
-instance Functor (Review a) where
-  fmap bc (Review b) = Review (bc b)
+instance Functor (Reviewed a) where
+  fmap bc (Reviewed b) = Reviewed (bc b)
   {-# INLINE fmap #-}
 
-instance Bifunctor Review where
-  bimap _ g (Review b) = Review (g b)
+instance Bifunctor Reviewed where
+  bimap _ g (Reviewed b) = Reviewed (g b)
   {-# INLINE bimap #-}
 
-instance Profunctor Review where
-  dimap _ f (Review c) = Review (f c)
+instance Profunctor Reviewed where
+  dimap _ f (Reviewed c) = Reviewed (f c)
   {-# INLINE dimap #-}
-  lmap _ (Review c) = Review c
+  lmap _ (Reviewed c) = Reviewed c
   {-# INLINE lmap #-}
   rmap = fmap
   {-# INLINE rmap #-}
-  Review b .# _ = Review b
+  Reviewed b .# _ = Reviewed b
   {-# INLINE ( .# ) #-}
   ( #. ) _ = unsafeCoerce
   {-# INLINE ( #. ) #-}
 
-instance Prismatic Review where
-  prismatic (Review b) = Review b
+instance Prismatic Reviewed where
+  prismatic (Reviewed b) = Reviewed b
   {-# INLINE prismatic #-}
+
+------------------------------------------------------------------------------
+-- Isomorphism: Exchange
+------------------------------------------------------------------------------
 
 newtype Exchange a b s t = Exchange { runExchange :: (s -> a, b -> t) }
 
@@ -790,6 +811,9 @@ instance Profunctor (Exchange a b) where
   ( .# ) p _ = unsafeCoerce p
   {-# INLINE ( .# ) #-}
 
+------------------------------------------------------------------------------
+-- Prism: Market
+------------------------------------------------------------------------------
 
 newtype Market a b s t = Market { runMarket :: (b -> t, s -> Either t a) }
 

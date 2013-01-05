@@ -174,6 +174,7 @@ library
     profunctor-extras         == 3.2.*,
     semigroups                >= 0.8.4    && < 0.9,
     split                     == 0.2.*,
+    tagged                    >= 0.4.4    && < 0.5,
     template-haskell          >= 2.4      && < 2.9,
     text                      >= 0.11     && < 0.12,
     transformers              >= 0.2      && < 0.4,
@@ -202,6 +203,7 @@ library
     Control.Lens.Plated
     Control.Lens.Prism
     Control.Lens.Reified
+    Control.Lens.Review
     Control.Lens.Setter
     Control.Lens.Simple
     Control.Lens.TH
