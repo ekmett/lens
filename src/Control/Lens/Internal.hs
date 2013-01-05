@@ -213,7 +213,7 @@ instance Effective Identity r (Accessor r) where
 -----------------------------------------------------------------------------
 
 -- | Anything 'Settable' must be isomorphic to the 'Identity' 'Functor'.
-class Applicative f => Settable f where
+class (Applicative f, Distributive f, Traversable f) => Settable f where
   untainted :: f a -> a
 
   untaintedDot :: Profunctor p => p a (f b) -> p a b
@@ -727,6 +727,18 @@ instance Monad Mutator where
   Mutator x >>= f = f x
   {-# INLINE (>>=) #-}
 
+instance Distributive Mutator where
+  distribute = Mutator . fmap runMutator
+  {-# INLINE distribute #-}
+
+instance Foldable Mutator where
+  foldMap f (Mutator a) = f a
+  {-# INLINE foldMap #-}
+
+instance Traversable Mutator where
+  traverse f (Mutator a) = Mutator <$> f a
+  {-# INLINE traverse #-}
+
 ------------------------------------------------------------------------------
 -- Isomorphism and Prism Internals
 ------------------------------------------------------------------------------
@@ -1178,24 +1190,6 @@ instance (Profunctor p, Profunctor q, Gettable g) => Gettable (BazaarT p q g a b
   {-# INLINE coerce #-}
 
 
--------------------------------------------------------------------------------
--- Orphan Instances
--------------------------------------------------------------------------------
-
-instance Foldable ((,) b) where
-  foldMap f (_, a) = f a
-
-instance Traversable ((,) b) where
-  traverse f (b, a) = (,) b <$> f a
-
-instance Foldable (Either a) where
-  foldMap _ (Left _) = mempty
-  foldMap f (Right a) = f a
-
-instance Traversable (Either a) where
-  traverse _ (Left b) = pure (Left b)
-  traverse f (Right a) = Right <$> f a
-
 ------------------------------------------------------------------------------
 -- Levels
 ------------------------------------------------------------------------------
@@ -1286,3 +1280,23 @@ instance Applicative (Flows i b) where
     (_:xs)         -> mf (triml <$> xs) $ ma (trimr <$> xs)
   {-# INLINE (<*>) #-}
 
+-------------------------------------------------------------------------------
+-- Orphan Instances
+-------------------------------------------------------------------------------
+
+instance Foldable ((,) b) where
+  foldMap f (_, a) = f a
+
+instance Traversable ((,) b) where
+  traverse f (b, a) = (,) b <$> f a
+
+instance Foldable (Either a) where
+  foldMap _ (Left _) = mempty
+  foldMap f (Right a) = f a
+
+instance Traversable (Either a) where
+  traverse _ (Left b) = pure (Left b)
+  traverse f (Right a) = Right <$> f a
+
+instance Distributive f => Distributive (Backwards f) where
+  distribute = Backwards . collect forwards
