@@ -195,6 +195,7 @@ library
     Control.Lens.Internal
     Control.Lens.Iso
     Control.Lens.Lens
+    Control.Lens.Level
     Control.Lens.Loupe
     Control.Lens.Magma
     Control.Lens.Operators

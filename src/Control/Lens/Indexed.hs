@@ -575,6 +575,27 @@ instance FunctorWithIndex r ((->) r) where
   imap f g x = f x (g x)
   {-# INLINE imap #-}
 
+instance FunctorWithIndex i (Level i) where
+  imap f = go where
+    go (Two n l r) = Two n (go l) (go r)
+    go (One i a)   = One i (f i a)
+    go Zero        = Zero
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex i (Level i) where
+  ifoldMap f = go where
+    go (Two _ l r) = go l `mappend` go r
+    go (One i a) = f i a
+    go Zero = mempty
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex i (Level i) where
+  itraverse f = go where
+    go (Two n l r) = Two n <$> go l <*> go r
+    go (One i a) = One i <$> f i a
+    go Zero = pure Zero
+  {-# INLINE itraverse #-}
+
 -------------------------------------------------------------------------------
 -- Misc.
 -------------------------------------------------------------------------------
@@ -582,3 +603,4 @@ instance FunctorWithIndex r ((->) r) where
 skip :: a -> ()
 skip _ = ()
 {-# INLINE skip #-}
+
