@@ -70,7 +70,7 @@ performs :: (Profunctor p, Profunctor q, Monad m) => Overloading p q (Effect m e
 performs l f = getEffect #. l (rmap (Effect #. return) f)
 {-# INLINE performs #-}
 
--- | Perform an 'Action'
+-- | Perform an 'Action'.
 --
 -- >>> ["hello","world"]^!folded.act putStrLn
 -- hello
@@ -79,7 +79,7 @@ performs l f = getEffect #. l (rmap (Effect #. return) f)
 a ^! l = getEffect (l (Effect #. return) a)
 {-# INLINE (^!) #-}
 
--- | Construct an 'Action' from a monadic side-effect
+-- | Construct an 'Action' from a monadic side-effect.
 --
 -- >>> ["hello","world"]^!folded.act (\x -> [x,x ++ "!"])
 -- ["helloworld","helloworld!","hello!world","hello!world!"]
@@ -128,12 +128,12 @@ iperforms :: Monad m => IndexedActing i m e s t a b -> (i -> a -> e) -> s -> m e
 iperforms l = performs l .# Indexed
 {-# INLINE iperforms #-}
 
--- | Perform an 'IndexedAction'
+-- | Perform an 'IndexedAction'.
 (^@!) :: Monad m => s -> IndexedActing i m (i, a) s t a b -> m (i, a)
 s ^@! l = getEffect (l (Indexed $ \i a -> Effect (return (i, a))) s)
 {-# INLINE (^@!) #-}
 
--- | Construct an 'IndexedAction' from a monadic side-effect
+-- | Construct an 'IndexedAction' from a monadic side-effect.
 iact :: Monad m => (s -> m (i, a)) -> IndexedAction i m s a
 iact smia iafb s = effective $ do
   (i, a) <- smia s
