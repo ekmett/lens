@@ -67,7 +67,7 @@ import Data.Array.IArray as IArray
 -- >>> (1,2,3) & each *~ 10
 -- (10,20,30)
 --
--- It can also be used on monomorphic containers like 'StrictT.Text' or 'StrictB.ByteString'
+-- It can also be used on monomorphic containers like 'StrictT.Text' or 'StrictB.ByteString'.
 --
 -- >>> over each Char.toUpper ("hello"^.Text.packed)
 -- "HELLO"

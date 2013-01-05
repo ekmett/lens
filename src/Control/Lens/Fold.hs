@@ -18,7 +18,7 @@
 -- A @'Fold' s a@ is a generalization of something 'Foldable'. It allows
 -- you to extract multiple results from a container. A 'Foldable' container
 -- can be characterized by the behavior of
--- @foldMap :: ('Foldable' t, 'Monoid' m) => (a -> m) -> t a -> m@.
+-- @'Data.Foldable.foldMap' :: ('Foldable' t, 'Monoid' m) => (a -> m) -> t a -> m@.
 -- Since we want to be able to work with monomorphic containers, we could
 -- generalize this signature to @forall m. 'Monoid' m => (a -> m) -> s -> m@,
 -- and then decorate it with 'Accessor' to obtain
@@ -189,7 +189,7 @@ repeated :: Fold a a
 repeated f a = as where as = f a *> as
 {-# INLINE repeated #-}
 
--- | A fold that replicates its input @n@ times.
+-- | A 'Fold' that replicates its input @n@ times.
 --
 -- @'replicate' n ≡ 'toListOf' ('replicated' n)@
 --
@@ -202,7 +202,7 @@ replicated n0 f a = go n0 where
   go n = m *> go (n - 1)
 {-# INLINE replicated #-}
 
--- | Transform a fold into a fold that loops over its elements over and over.
+-- | Transform a 'Fold' into a 'Fold' that loops over its elements over and over.
 --
 -- >>> timingOut $ [1,2,3]^..taking 7 (cycled traverse)
 -- [1,2,3,1,2,3,1]
@@ -210,7 +210,7 @@ cycled :: (Applicative f, Gettable f) => LensLike f s t a b -> LensLike f s t a 
 cycled l f a = as where as = l f a *> as
 {-# INLINE cycled #-}
 
--- | Build a fold that unfolds its values from a seed.
+-- | Build a 'Fold' that unfolds its values from a seed.
 --
 -- @'Prelude.unfoldr' ≡ 'toListOf' . 'unfolded'@
 --
@@ -223,7 +223,7 @@ unfolded f g b0 = go b0 where
     Nothing      -> noEffect
 {-# INLINE unfolded #-}
 
--- | @x ^. 'iterated' f@ Return an infinite fold of repeated applications of @f@ to @x@.
+-- | @x '^.' 'iterated' f@ Return an infinite fold of repeated applications of @f@ to @x@.
 --
 -- @'toListOf' ('iterated' f) a ≡ 'iterate' f a@
 iterated :: (a -> a) -> Fold a a
@@ -231,13 +231,13 @@ iterated f g a0 = go a0 where
   go a = g a *> go (f a)
 {-# INLINE iterated #-}
 
--- | Obtain a 'Fold' that can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal')
+-- | Obtain a 'Fold' that can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal').
 --
 -- Note: This is /not/ a legal 'Traversal', unless you are very careful not to invalidate the predicate on the target.
 --
 -- As a counter example, consider that given @evens = 'filtered' 'even'@ the second 'Traversal' law is violated:
 --
--- @'over' evens 'succ' '.' 'over' evens 'succ' /= 'over' evens ('succ' '.' 'succ')@
+-- @'Control.Lens.Setter.over' evens 'succ' '.' 'Control.Lens.Setter.over' evens 'succ' /= 'Control.Lens.Setter.over' evens ('succ' '.' 'succ')@
 --
 -- So, in order for this to qualify as a legal 'Traversal' you can only use it for actions that preserve the result of the predicate!
 --
@@ -609,7 +609,7 @@ sumOf :: Profunctor q => Overloading (->) q (Accessor (Sum a)) s t a b -> q s a
 sumOf l = getSum #. foldMapOf l Sum
 {-# INLINE sumOf #-}
 
--- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor') -based answer,
+-- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor')-based answer,
 -- but unlike 'Control.Lens.Traversal.traverseOf' do not construct a new structure. 'traverseOf_' generalizes
 -- 'Data.Foldable.traverse_' to work over any 'Fold'.
 --
@@ -643,7 +643,7 @@ traverseOf_ :: (Profunctor p, Profunctor q, Functor f) => Overloading p q (Acces
 traverseOf_ l f = getTraversed #. foldMapOf l (rmap (Traversed #. void) f)
 {-# INLINE traverseOf_ #-}
 
--- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor') -based answer,
+-- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor')-based answer,
 -- but unlike 'Control.Lens.Traversal.forOf' do not construct a new structure. 'forOf_' generalizes
 -- 'Data.Foldable.for_' to work over any 'Fold'.
 --
@@ -919,7 +919,7 @@ lastOf l = foldlOf l (\_ y -> Just y) Nothing
 -- |
 -- Returns 'True' if this 'Fold' or 'Traversal' has no targets in the given container.
 --
--- Note: 'nullOf' on a valid 'Iso', 'Lens' or 'Getter' should always return 'False'
+-- Note: 'nullOf' on a valid 'Iso', 'Lens' or 'Getter' should always return 'False'.
 --
 -- @'null' ≡ 'nullOf' 'folded'@
 --
@@ -945,11 +945,11 @@ nullOf l = getAll #. foldMapOf l (\_ -> All False)
 -- |
 -- Returns 'True' if this 'Fold' or 'Traversal' has any targets in the given container.
 --
--- Note: 'notNullOf' on a valid 'Iso', 'Lens' or 'Getter' should always return 'True'
+-- Note: 'notNullOf' on a valid 'Iso', 'Lens' or 'Getter' should always return 'True'.
 --
 -- @'null' ≡ 'notNullOf' 'folded'@
 --
--- This may be rather inefficient compared to the @'not' . 'null'@ check of many containers.
+-- This may be rather inefficient compared to the @'not' '.' 'null'@ check of many containers.
 --
 -- >>> notNullOf _1 (1,2)
 -- True
@@ -968,7 +968,7 @@ notNullOf l = getAny #. foldMapOf l (\_ -> Any True)
 {-# INLINE notNullOf #-}
 
 -- |
--- Obtain the maximum element (if any) targeted by a 'Fold' or 'Traversal'
+-- Obtain the maximum element (if any) targeted by a 'Fold' or 'Traversal'.
 --
 -- Note: 'maximumOf' on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
 --
@@ -986,7 +986,7 @@ maximumOf l = getMax `rmap` foldMapOf l Max
 {-# INLINE maximumOf #-}
 
 -- |
--- Obtain the minimum element (if any) targeted by a 'Fold' or 'Traversal'
+-- Obtain the minimum element (if any) targeted by a 'Fold' or 'Traversal'.
 --
 -- Note: 'minimumOf' on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
 --
@@ -1090,7 +1090,7 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
 {-# INLINE foldr1Of #-}
 
 -- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and structures such
--- that the lens views at least one element of the structure.
+-- that the 'Lens' views at least one element of the structure.
 --
 -- @
 -- 'foldl1Of' l f ≡ 'Prelude.foldl1Of' l f . 'toList'
@@ -1180,7 +1180,7 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
   where f' x k z = f z x >>= k
 {-# INLINE foldlMOf #-}
 
--- | Check to see if this 'Fold' or 'Traversal' matches 1 or more entries
+-- | Check to see if this 'Fold' or 'Traversal' matches 1 or more entries.
 --
 -- >>> has (element 0) []
 -- False
@@ -1191,7 +1191,7 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 -- >>> has _right (Left 12)
 -- False
 --
--- This will always return True for a 'Lens' or 'Getter'
+-- This will always return 'True' for a 'Lens' or 'Getter'.
 --
 -- >>> has _1 ("hello","world")
 -- True
@@ -1241,11 +1241,11 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 -- a monad transformer stack:
 --
 -- @
--- 'preview' :: MonadReader s m => 'Getter' s a     -> m ('Maybe' a)
--- 'preview' :: MonadReader s m => 'Fold' s a       -> m ('Maybe' a)
--- 'preview' :: MonadReader s m => 'Lens'' s a      -> m ('Maybe' a)
--- 'preview' :: MonadReader s m => 'Iso'' s a       -> m ('Maybe' a)
--- 'preview' :: MonadReader s m => 'Traversal'' s a -> m ('Maybe' a)
+-- 'preview' :: 'MonadReader' s m => 'Getter' s a     -> m ('Maybe' a)
+-- 'preview' :: 'MonadReader' s m => 'Fold' s a       -> m ('Maybe' a)
+-- 'preview' :: 'MonadReader' s m => 'Lens'' s a      -> m ('Maybe' a)
+-- 'preview' :: 'MonadReader' s m => 'Iso'' s a       -> m ('Maybe' a)
+-- 'preview' :: 'MonadReader' s m => 'Traversal'' s a -> m ('Maybe' a)
 -- @
 preview :: MonadReader s m => Getting (Endo (Maybe a)) s t a b -> m (Maybe a)
 preview l = asks (foldrOf l (\x _ -> Just x) Nothing)
@@ -1268,11 +1268,11 @@ preview l = asks (foldrOf l (\x _ -> Just x) Nothing)
 -- a monad transformer stack:
 --
 -- @
--- 'previews' :: MonadReader s m => 'Getter' s a     -> (a -> r) -> m ('Maybe' r)
--- 'previews' :: MonadReader s m => 'Fold' s a       -> (a -> r) -> m ('Maybe' r)
--- 'previews' :: MonadReader s m => 'Lens'' s a      -> (a -> r) -> m ('Maybe' r)
--- 'previews' :: MonadReader s m => 'Iso'' s a       -> (a -> r) -> m ('Maybe' r)
--- 'previews' :: MonadReader s m => 'Traversal'' s a -> (a -> r) -> m ('Maybe' r)
+-- 'previews' :: 'MonadReader' s m => 'Getter' s a     -> (a -> r) -> m ('Maybe' r)
+-- 'previews' :: 'MonadReader' s m => 'Fold' s a       -> (a -> r) -> m ('Maybe' r)
+-- 'previews' :: 'MonadReader' s m => 'Lens'' s a      -> (a -> r) -> m ('Maybe' r)
+-- 'previews' :: 'MonadReader' s m => 'Iso'' s a       -> (a -> r) -> m ('Maybe' r)
+-- 'previews' :: 'MonadReader' s m => 'Traversal'' s a -> (a -> r) -> m ('Maybe' r)
 -- @
 previews :: MonadReader s m => Getting (Endo (Maybe r)) s t a b -> (a -> r) -> m (Maybe r)
 previews l f = asks (foldrOf l (\x _ -> Just (f x)) Nothing)
@@ -1287,11 +1287,11 @@ previews l f = asks (foldrOf l (\x _ -> Just (f x)) Nothing)
 -- from a 'Getter' or 'Lens') into the current state.
 --
 -- @
--- 'preuse' :: MonadState s m => 'Getter' s a     -> m ('Maybe' a)
--- 'preuse' :: MonadState s m => 'Fold' s a       -> m ('Maybe' a)
--- 'preuse' :: MonadState s m => 'Lens'' s a      -> m ('Maybe' a)
--- 'preuse' :: MonadState s m => 'Iso'' s a       -> m ('Maybe' a)
--- 'preuse' :: MonadState s m => 'Traversal'' s a -> m ('Maybe' a)
+-- 'preuse' :: 'MonadState' s m => 'Getter' s a     -> m ('Maybe' a)
+-- 'preuse' :: 'MonadState' s m => 'Fold' s a       -> m ('Maybe' a)
+-- 'preuse' :: 'MonadState' s m => 'Lens'' s a      -> m ('Maybe' a)
+-- 'preuse' :: 'MonadState' s m => 'Iso'' s a       -> m ('Maybe' a)
+-- 'preuse' :: 'MonadState' s m => 'Traversal'' s a -> m ('Maybe' a)
 -- @
 preuse :: MonadState s m => Getting (Endo (Maybe a)) s t a b -> m (Maybe a)
 preuse l = gets (preview l)
@@ -1301,11 +1301,11 @@ preuse l = gets (preview l)
 -- 'Traversal' (or 'Just' the result from a 'Getter' or 'Lens') into the current state.
 --
 -- @
--- 'preuses' :: MonadState s m => 'Getter' s a     -> (a -> r) -> m ('Maybe' r)
--- 'preuses' :: MonadState s m => 'Fold' s a       -> (a -> r) -> m ('Maybe' r)
--- 'preuses' :: MonadState s m => 'Lens'' s a      -> (a -> r) -> m ('Maybe' r)
--- 'preuses' :: MonadState s m => 'Iso'' s a       -> (a -> r) -> m ('Maybe' r)
--- 'preuses' :: MonadState s m => 'Traversal'' s a -> (a -> r) -> m ('Maybe' r)
+-- 'preuses' :: 'MonadState' s m => 'Getter' s a     -> (a -> r) -> m ('Maybe' r)
+-- 'preuses' :: 'MonadState' s m => 'Fold' s a       -> (a -> r) -> m ('Maybe' r)
+-- 'preuses' :: 'MonadState' s m => 'Lens'' s a      -> (a -> r) -> m ('Maybe' r)
+-- 'preuses' :: 'MonadState' s m => 'Iso'' s a       -> (a -> r) -> m ('Maybe' r)
+-- 'preuses' :: 'MonadState' s m => 'Traversal'' s a -> (a -> r) -> m ('Maybe' r)
 -- @
 preuses :: MonadState s m => Getting (Endo (Maybe r)) s t a b -> (a -> r) -> m (Maybe r)
 preuses l f = gets (previews l f)
@@ -1626,7 +1626,7 @@ itoListOf :: Profunctor q => Overloading (Indexed i) q (Accessor (Endo [(i,a)]))
 itoListOf l = ifoldrOf l (\i a -> ((i,a):)) []
 {-# INLINE itoListOf #-}
 
--- | An infix version of 'itoListOf'
+-- | An infix version of 'itoListOf'.
 
 -- @
 -- ('^@..') :: s -> 'IndexedGetter' i s a     -> [(i,a)]
@@ -1731,7 +1731,7 @@ idroppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
 -- Deprecated
 ------------------------------------------------------------------------------
 
--- | A deprecated alias for 'firstOf'
+-- | A deprecated alias for 'firstOf'.
 headOf :: Profunctor q => Overloading (->) q (Accessor (First a)) s t a b -> q s (Maybe a)
 headOf l = getFirst #. foldMapOf l (First #. Just)
 {-# INLINE headOf #-}
