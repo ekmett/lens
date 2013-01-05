@@ -52,12 +52,12 @@ catching l = catchJust (preview l)
 -- particularly valuable, just the fact that it matches.
 --
 -- @
--- 'catching_' :: 'MonadError' e m => 'Prism'' e a     -> 'IO' r -> 'IO' r -> 'IO' r
--- 'catching_' :: 'MonadError' e m => 'Lens'' e a      -> 'IO' r -> 'IO' r -> 'IO' r
--- 'catching_' :: 'MonadError' e m => 'Traversal'' e a -> 'IO' r -> 'IO' r -> 'IO' r
--- 'catching_' :: 'MonadError' e m => 'Iso'' e a       -> 'IO' r -> 'IO' r -> 'IO' r
--- 'catching_' :: 'MonadError' e m => 'Getter' e a     -> 'IO' r -> 'IO' r -> 'IO' r
--- 'catching_' :: 'MonadError' e m => 'Fold' e a       -> 'IO' r -> 'IO' r -> 'IO' r
+-- 'catching_' :: 'MonadError' e m => 'Prism'' e a     -> m r -> m r -> m r
+-- 'catching_' :: 'MonadError' e m => 'Lens'' e a      -> m r -> m r -> m r
+-- 'catching_' :: 'MonadError' e m => 'Traversal'' e a -> m r -> m r -> m r
+-- 'catching_' :: 'MonadError' e m => 'Iso'' e a       -> m r -> m r -> m r
+-- 'catching_' :: 'MonadError' e m => 'Getter' e a     -> m r -> m r -> m r
+-- 'catching_' :: 'MonadError' e m => 'Fold' e a       -> m r -> m r -> m r
 -- @
 catching_ :: MonadError e m => Getting (Endo (Maybe a)) e t a b -> m r -> m r -> m r
 catching_ l a b = catchJust (preview l) a (const b)
@@ -67,12 +67,12 @@ catching_ l a b = catchJust (preview l) a (const b)
 -- situations where the code for the handler is shorter.
 --
 -- @
--- 'handling' :: 'MonadError' e m => 'Prism'' e a     -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
--- 'handling' :: 'MonadError' e m => 'Lens'' e a      -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
--- 'handling' :: 'MonadError' e m => 'Traversal'' e a -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
--- 'handling' :: 'MonadError' e m => 'Iso'' e a       -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
--- 'handling' :: 'MonadError' e m => 'Fold' e a       -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
--- 'handling' :: 'MonadError' e m => 'Getter' e a     -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
+-- 'handling' :: 'MonadError' e m => 'Prism'' e a     -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadError' e m => 'Lens'' e a      -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadError' e m => 'Traversal'' e a -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadError' e m => 'Iso'' e a       -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadError' e m => 'Fold' e a       -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadError' e m => 'Getter' e a     -> (a -> m r) -> m r -> m r
 -- @
 handling :: MonadError e m => Getting (Endo (Maybe a)) e t a b -> (a -> m r) -> m r -> m r
 handling l = flip (catching l)
@@ -82,12 +82,12 @@ handling l = flip (catching l)
 -- situations where the code for the handler is shorter.
 --
 -- @
--- 'handling_' :: 'MonadError' e m => 'Prism'' e a     -> 'IO' r -> 'IO' r -> 'IO' r
--- 'handling_' :: 'MonadError' e m => 'Lens'' e a      -> 'IO' r -> 'IO' r -> 'IO' r
--- 'handling_' :: 'MonadError' e m => 'Traversal'' e a -> 'IO' r -> 'IO' r -> 'IO' r
--- 'handling_' :: 'MonadError' e m => 'Iso'' e a       -> 'IO' r -> 'IO' r -> 'IO' r
--- 'handling_' :: 'MonadError' e m => 'Getter' e a     -> 'IO' r -> 'IO' r -> 'IO' r
--- 'handling_' :: 'MonadError' e m => 'Fold' e a       -> 'IO' r -> 'IO' r -> 'IO' r
+-- 'handling_' :: 'MonadError' e m => 'Prism'' e a     -> m r -> m r -> m r
+-- 'handling_' :: 'MonadError' e m => 'Lens'' e a      -> m r -> m r -> m r
+-- 'handling_' :: 'MonadError' e m => 'Traversal'' e a -> m r -> m r -> m r
+-- 'handling_' :: 'MonadError' e m => 'Iso'' e a       -> m r -> m r -> m r
+-- 'handling_' :: 'MonadError' e m => 'Getter' e a     -> m r -> m r -> m r
+-- 'handling_' :: 'MonadError' e m => 'Fold' e a       -> m r -> m r -> m r
 -- @
 handling_ :: MonadError e m => Getting (Endo (Maybe a)) e t a b -> m r -> m r -> m r
 handling_ l = flip (catching_ l)
