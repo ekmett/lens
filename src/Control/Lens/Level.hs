@@ -9,13 +9,7 @@ module Control.Lens.Level
 import Control.Applicative
 import Control.Lens.Internal
 import Control.Lens.Traversal
-import Control.Lens.Type
-import Data.Profunctor
-import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
-import Data.Foldable
-import Data.Monoid
-import Data.Word
 
 levelIns :: Bazaar (->) (->) a b t -> [Level () a]
 levelIns = go 0 . (runAccessor #. bazaar (Accessor #. deepening ())) where
