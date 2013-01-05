@@ -371,7 +371,7 @@ type Equality' s a = Equality s s a a
 -- since it just ignores the 'Applicative'.
 type Getter s a = forall f. Gettable f => (a -> f a) -> s -> f s
 
--- | Every 'IndexedGetter' is a valid 'Control.Lens.Fold.IndexedFold' and can be used for 'Getting' like a 'Getter'.
+-- | Every 'IndexedGetter' is a valid 'Control.Lens.Fold.IndexedFold' and can be used for 'Control.Lens.Getter.Getting' like a 'Getter'.
 type IndexedGetter i s a = forall p f. (Indexable i p, Gettable f) => p a (f a) -> s -> f s
 
 -- | An 'IndexPreservingGetter' can be used as a 'Getter', but when composed with an 'IndexedTraversal',
