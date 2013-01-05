@@ -172,8 +172,8 @@ instance Applicative f => Each Int f [a] [b] a b where
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' ('Identity' a) ('Identity' b) a b@
-instance Applicative f => Each Int f (Identity a) (Identity b) a b where
-  each = traversed
+instance Functor f => Each Int f (Identity a) (Identity b) a b where
+  each f (Identity a) = Identity <$> Lens.indexed f (0 :: Int) a
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' ('Maybe' a) ('Maybe' b) a b@
