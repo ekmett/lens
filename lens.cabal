@@ -212,6 +212,7 @@ library
     Control.Lens.Zipper
     Control.Lens.Zipper.Internal
     Control.Lens.Zoom
+    Control.Monad.Error.Lens
     Control.Parallel.Strategies.Lens
     Control.Seq.Lens
     Data.Array.Lens
