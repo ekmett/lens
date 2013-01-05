@@ -7,3 +7,7 @@ wip
 .DS_Store
 .*.swp
 .*.swo
+*.o
+*.hi
+*~
+*#
