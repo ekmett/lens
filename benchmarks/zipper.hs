@@ -11,6 +11,7 @@ main = defaultMain
       [ bench "rezip"             $ nf tugAndRezip1 ['a'..'z']
       , bench "farthest leftward" $ nf tugAndRezip2 ['a'..'z']
       , bench "leftmost"          $ nf tugAndRezip3 ['a'..'z']
+      , bench "tugTo"             $ nf tugAndRezip4 ['a'..'z']
       ]
   , bgroup "zipper creation"
       [ bench "over traverse id"  $ nf (over traverse id) ['a'..'z']
@@ -27,6 +28,7 @@ tugAndRezip1, tugAndRezip2, tugAndRezip3 :: String -> String
 tugAndRezip1 xs = zipntugs 25 xs & focus .~ 'a' & rezip
 tugAndRezip2 xs = zipntugs 25 xs & focus .~ 'b' & farthest leftward & rezip
 tugAndRezip3 xs = zipntugs 25 xs & focus .~ 'c' & leftmost & rezip
+tugAndRezip4 xs = zipntugs 25 xs & focus .~ 'd' & tugTo 0 & rezip
 
 zipntugs i x = zipper x & fromWithin traverse & tugs rightward i
 
