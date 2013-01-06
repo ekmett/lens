@@ -52,7 +52,9 @@ type AReview s t a b = Overloaded Reviewed Identity s t a b
 type AReview' t b = AReview t t b b
 
 -- | An analogue of 'to' for 'review'.
-unto :: (b -> t) -> Review' t b
+--
+-- @'unto' :: (b -> t) -> 'Review'' t b@
+unto :: (Reviewable p, Functor f) => (b -> t) -> Overloaded p f s t a b
 unto f = retagged . rmap (fmap f)
 
 -- | Turn a 'Prism' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
