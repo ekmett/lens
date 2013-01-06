@@ -63,7 +63,7 @@ instance Profunctor (Form m) where
   lmap _ (Form mb) = Form mb
   rmap bc (Form mb) = Form (bc . mb)
   Form mb .# _ = Form mb
-  (#.) _ = unsafeCoerce
+  ( #. ) _ = unsafeCoerce
 
 instance Corepresentable (Form m) where
   type Corep (Form m) = Const m
