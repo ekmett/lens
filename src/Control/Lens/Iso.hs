@@ -41,6 +41,7 @@ module Control.Lens.Iso
   , anon
   , enum
   , curried, uncurried
+  , flipped
   , Strict(..)
   -- * Profunctors
   , Profunctor(..)
@@ -269,6 +270,11 @@ curried = iso curry uncurry
 uncurried :: Iso (a -> b -> c) (d -> e -> f) ((a,b) -> c) ((d,e) -> f)
 uncurried = iso uncurry curry
 {-# INLINE uncurried #-}
+
+-- | The isomorphism for flipping a function.
+flipped :: Iso (a -> b -> c) (a' -> b' -> c') (b -> a -> c) (b' -> a' -> c')
+flipped = iso flip flip
+{-# INLINE flipped #-}
 
 -- | Ad hoc conversion between \"strict\" and \"lazy\" versions of a structure,
 -- such as 'StrictT.Text' or 'StrictB.ByteString'.
