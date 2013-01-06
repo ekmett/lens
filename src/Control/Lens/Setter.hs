@@ -42,6 +42,7 @@ module Control.Lens.Setter
   -- * Common Setters
   , mapped, lifted
   , contramapped
+  , argument
   -- * Functional Combinators
   , over
   , set
@@ -82,6 +83,7 @@ import Data.Profunctor.Unsafe
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State
+-- >>> import Data.Char
 -- >>> import Data.Map as Map
 -- >>> import Debug.SimpleReflect.Expr as Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars
@@ -189,8 +191,33 @@ lifted = setting liftM
 --
 contramapped :: Contravariant f => Setter (f b) (f a) a b
 contramapped = sets contramap
+{-# INLINE contramapped #-}
 
--- | Build an index-preserving setter from a map-like function.
+-- | This 'Setter' can be used to map over the input of a 'Profunctor'.
+--
+-- The most common 'Profunctor' to use this with is ('->').
+--
+-- >>> (argument %~ f) g x
+-- g (f x)
+--
+-- >>> (argument %~ show) length [1,2,3]
+-- 7
+--
+-- >>> (argument %~ f) h x y
+-- h (f x) y
+--
+-- Map over the argument of the result of a function -- i.e., its second
+-- argument:
+--
+-- >>> (mapped.argument %~ f) h x y
+-- h x (f y)
+--
+-- @'argument' :: 'Setter' (b -> r) (a -> r) a b@
+argument :: Profunctor p => Setter (p b r) (p a r) a b
+argument = sets lmap
+{-# INLINE argument #-}
+
+-- | Build an index-preserving 'Setter' from a map-like function.
 --
 -- Your supplied function @f@ is required to satisfy:
 --
