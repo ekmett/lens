@@ -1321,6 +1321,3 @@ instance Foldable (Either a) where
 instance Traversable (Either a) where
   traverse _ (Left b) = pure (Left b)
   traverse f (Right a) = Right <$> f a
-
-instance Distributive f => Distributive (Backwards f) where
-  distribute = Backwards . collect forwards
