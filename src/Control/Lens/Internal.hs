@@ -886,10 +886,10 @@ class IndexedComonad w => IndexedComonadStore w where
   context wabt = Context (`ipeek` wabt) (ipos wabt)
 
 -- | The indexed store can be used to characterize a 'Control.Lens.Lens.Lens'
--- and is used by 'Control.Lens.Lens.clone'
+-- and is used by 'Control.Lens.Lens.clone'.
 --
 -- @'Context' a b t@ is isomorphic to
--- @newtype Context a b t = Context { runContext :: forall f. Functor f => (a -> f b) -> f t }@,
+-- @newtype 'Context' a b t = 'Context' { runContext :: forall f. 'Functor' f => (a -> f b) -> f t }@,
 -- and to @exists s. (s, 'Control.Lens.Lens.Lens' s t a b)@.
 --
 -- A 'Context' is like a 'Control.Lens.Lens.Lens' that has already been applied to a some structure.

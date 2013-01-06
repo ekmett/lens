@@ -360,9 +360,9 @@ scanr1Of l f = snd . mapAccumROf l step Nothing where
 -- @'scanl1' ≡ 'scanl1Of' 'traverse'@
 --
 -- @
--- 'scanr1Of' :: 'Iso' s t a a       -> (a -> a -> a) -> s -> t
--- 'scanr1Of' :: 'Lens' s t a a      -> (a -> a -> a) -> s -> t
--- 'scanr1Of' :: 'Traversal' s t a a -> (a -> a -> a) -> s -> t
+-- 'scanl1Of' :: 'Iso' s t a a       -> (a -> a -> a) -> s -> t
+-- 'scanl1Of' :: 'Lens' s t a a      -> (a -> a -> a) -> s -> t
+-- 'scanl1Of' :: 'Traversal' s t a a -> (a -> a -> a) -> s -> t
 -- @
 scanl1Of :: LensLike (State (Maybe a)) s t a a -> (a -> a -> a) -> s -> t
 scanl1Of l f = snd . mapAccumLOf l step Nothing where

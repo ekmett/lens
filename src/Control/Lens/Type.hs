@@ -100,8 +100,8 @@ import Data.Profunctor
 -- You can also use a 'Lens' for 'Control.Lens.Getter.Getting' as if it were a
 -- 'Fold' or 'Getter'.
 --
--- Since every lens is a valid 'Traversal', the
--- traversal laws are required of any lenses you create:
+-- Since every 'Lens' is a valid 'Traversal', the
+-- 'Traversal' laws are required of any lenses you create:
 --
 -- @
 -- l 'pure' ≡ 'pure'
