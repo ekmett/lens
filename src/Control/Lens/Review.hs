@@ -37,6 +37,8 @@ import Data.Profunctor.Unsafe
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> let isLeft  (Left  _) = True; isLeft  _ = False
+-- >>> let isRight (Right _) = True; isRight _ = False
 
 ------------------------------------------------------------------------------
 -- Review
