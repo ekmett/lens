@@ -19,6 +19,8 @@
 * Added a notion of `Measured` traversals, folds, getters, setters, actions, etc.
 * Generalized combinators to pass through measures and indices unmodified wherever possible.
 * Converted `Zipper` to walk a `Magma` based on the original structure and to use indices from indexed traversals when restoring from tape. This also means that when zipping around within a balanced structure with ascending keys `moveTo` can operate in logarithmic time.
+* Added `Control.Lens.Level` which provides the breadth-first-search Traversals `levels` and `ilevels` which can be used to do (optionally depth-limited) breadth-first searches through arbitrary traversals reaching all leaves at finite depth in finite time. To use these in full accordance with the laws you should restrict yourself to commutative operations and finite containers, but they are useful even in the absence of these properties.
+* Added `Control.Lens.Review` which factors the `review` functionality out of `Prism` and exposes `unto`, which is to `review` what `to` is to `view`.
 
 3.7.1.2 [maintenance release]
 -------
