@@ -78,7 +78,7 @@ type AnIso s t a b = Exchange a b a (Mutator b) -> Exchange a b s (Mutator t)
 type AnIso' s a = AnIso s s a a
 
 
--- | Build a simple isomorphism from a pair of inverse functions
+-- | Build a simple isomorphism from a pair of inverse functions.
 --
 -- @
 -- 'Control.Lens.Getter.view' ('iso' f g) ≡ f
@@ -107,7 +107,7 @@ from k = case runIso k of
 -- This is useful when you need to store an isomorphism as a data type inside a container
 -- and later reconstitute it as an overloaded function.
 --
--- See 'cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
+-- See 'Control.Lens.Lens.cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
 cloneIso :: AnIso s t a b -> Iso s t a b
 cloneIso k = case runIso k of
   (sa, bt) -> iso sa bt
@@ -117,7 +117,7 @@ cloneIso k = case runIso k of
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
 
--- | Safely decompose 'AnIso'
+-- | Safely decompose 'AnIso'.
 --
 -- @'cloneIso' ≡ 'uncurry' 'iso' '.' 'runIso'@
 --
@@ -208,7 +208,7 @@ simple = id
 -- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @'non' v@ is an isomorphism from
 -- @'Maybe' a'@ to @a@.
 --
--- Keep in mind this is only a real isomorphism if you treat the domain as being @'Maybe' (a sans v)@
+-- Keep in mind this is only a real isomorphism if you treat the domain as being @'Maybe' (a sans v)@.
 --
 -- This is practically quite useful when you want to have a 'Data.Map.Map' where all the entries should have non-zero values.
 --
@@ -242,7 +242,7 @@ non a = anon a (a==)
 
 -- | @'anon' a p@ generalizes @'non' a@ to take any value and a predicate.
 --
--- This function assumes that @p a@ holds @'True'@ and generates an isomorphism between @'Maybe' (a | 'not' (p a))@ and @a@
+-- This function assumes that @p a@ holds @'True'@ and generates an isomorphism between @'Maybe' (a | 'not' (p a))@ and @a@.
 --
 -- >>> Map.empty & at "hello" . anon Map.empty Map.null . at "world" ?~ "!!!"
 -- fromList [("hello",fromList [("world","!!!")])]

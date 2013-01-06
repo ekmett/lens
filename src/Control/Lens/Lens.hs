@@ -42,7 +42,7 @@
 -- the 'Functor' part of the 'Applicative' it is supplied.
 --
 -- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a valid
--- 'Control.Lens.Getter.Getter', since 'Functor' is a superclass of 'Control.Lens.Getter.Gettable'
+-- 'Control.Lens.Getter.Getter', since 'Functor' is a superclass of 'Control.Lens.Getter.Gettable'.
 --
 -- Since every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a
 -- valid 'Control.Lens.Getter.Getter' it follows that it must view exactly one element in the
@@ -189,8 +189,8 @@ ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 -- When applied to a 'Lens', it can edit the target of the 'Lens' in a
 -- structure, extracting a functorial result.
 --
--- When applied to a 'Control.Lens.Traversal.Traversal', it can edit the
--- targets of the 'Traversals', extracting an applicative summary of its
+-- When applied to a 'Traversal', it can edit the
+-- targets of the 'Traversal's, extracting an applicative summary of its
 -- actions.
 --
 -- For all that the definition of this combinator is just:
@@ -204,10 +204,10 @@ ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 -- @
 --
 -- It may be beneficial to think about it as if it had these even more
--- restrictive types, however:
+-- restricted types, however:
 --
--- When applied to a 'Control.Lens.Traversal.Traversal', it can edit the
--- targets of the 'Traversals', extracting a supplemental monoidal summary
+-- When applied to a 'Traversal', it can edit the
+-- targets of the 'Traversal's, extracting a supplemental monoidal summary
 -- of its actions, by choosing @f = ((,) m)@
 --
 -- @
@@ -267,8 +267,8 @@ inside l f es = o <$> f i where
 -- @'chosen' ≡ 'choosing' 'id' 'id'@
 --
 -- @
--- 'choosing' :: 'Control.Lens.Getter.Getter' s a           -> 'Control.Lens.Getter.Getter' s' a           -> 'Control.Lens.Getter.Getter' ('Either' s s') a
--- 'choosing' :: 'Control.Lens.Fold.Fold' s a             -> 'Control.Lens.Fold.Fold' s' a             -> 'Control.Lens.Fold.Fold' ('Either' s s') a
+-- 'choosing' :: 'Control.Lens.Getter.Getter' s a     -> 'Control.Lens.Getter.Getter' s' a     -> 'Control.Lens.Getter.Getter' ('Either' s s') a
+-- 'choosing' :: 'Control.Lens.Fold.Fold' s a       -> 'Control.Lens.Fold.Fold' s' a       -> 'Control.Lens.Fold.Fold' ('Either' s s') a
 -- 'choosing' :: 'Lens'' s a      -> 'Lens'' s' a      -> 'Lens'' ('Either' s s') a
 -- 'choosing' :: 'Control.Lens.Traversal.Traversal'' s a -> 'Control.Lens.Traversal.Traversal'' s' a -> 'Control.Lens.Traversal.Traversal'' ('Either' s s') a
 -- 'choosing' :: 'Control.Lens.Setter.Setter'' s a    -> 'Control.Lens.Setter.Setter'' s' a    -> 'Control.Lens.Setter.Setter'' ('Either' s s') a
@@ -373,7 +373,7 @@ cloneIndexedLens l f s = runPretext (l sell s) (Indexed (indexed f))
 -- Setting and Remembering
 -------------------------------------------------------------------------------
 
--- | Modify the target of a 'Lens' and return the result
+-- | Modify the target of a 'Lens' and return the result.
 --
 -- When you do not need the result of the addition, ('Control.Lens.Setter.%~') is more flexible.
 --
@@ -386,7 +386,7 @@ cloneIndexedLens l f s = runPretext (l sell s) (Indexed (indexed f))
 l <%~ f = l $ rmap (\t -> (t, t)) f
 {-# INLINE (<%~) #-}
 
--- | Increment the target of a numerically valued 'Lens' and return the result
+-- | Increment the target of a numerically valued 'Lens' and return the result.
 --
 -- When you do not need the result of the addition, ('Control.Lens.Setter.+~') is more flexible.
 --
@@ -398,7 +398,7 @@ l <%~ f = l $ rmap (\t -> (t, t)) f
 l <+~ a = l <%~ (+ a)
 {-# INLINE (<+~) #-}
 
--- | Decrement the target of a numerically valued 'Lens' and return the result
+-- | Decrement the target of a numerically valued 'Lens' and return the result.
 --
 -- When you do not need the result of the subtraction, ('Control.Lens.Setter.-~') is more flexible.
 --
@@ -410,7 +410,7 @@ l <+~ a = l <%~ (+ a)
 l <-~ a = l <%~ subtract a
 {-# INLINE (<-~) #-}
 
--- | Multiply the target of a numerically valued 'Lens' and return the result
+-- | Multiply the target of a numerically valued 'Lens' and return the result.
 --
 -- When you do not need the result of the multiplication, ('Control.Lens.Setter.*~') is more
 -- flexible.
@@ -436,7 +436,7 @@ l <//~ a = l <%~ (/ a)
 {-# INLINE (<//~) #-}
 
 -- | Raise the target of a numerically valued 'Lens' to a non-negative
--- 'Integral' power and return the result
+-- 'Integral' power and return the result.
 --
 -- When you do not need the result of the division, ('Control.Lens.Setter.^~') is more flexible.
 --
@@ -474,7 +474,7 @@ l <^^~ e = l <%~ (^^ e)
 l <**~ a = l <%~ (** a)
 {-# INLINE (<**~) #-}
 
--- | Logically '||' a Boolean valued 'Lens' and return the result
+-- | Logically '||' a Boolean valued 'Lens' and return the result.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.||~') is more flexible.
 --
@@ -486,7 +486,7 @@ l <**~ a = l <%~ (** a)
 l <||~ b = l <%~ (|| b)
 {-# INLINE (<||~) #-}
 
--- | Logically '&&' a Boolean valued 'Lens' and return the result
+-- | Logically '&&' a Boolean valued 'Lens' and return the result.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.&&~') is more flexible.
 --
@@ -537,8 +537,8 @@ l <<.~ b = l $ \a -> (a, b)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.
 --
 -- @
--- ('<%=') :: 'MonadState' s m             => 'Lens'' s a     -> (a -> a) -> m a
--- ('<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a      -> (a -> a) -> m a
+-- ('<%=') :: 'MonadState' s m             => 'Lens'' s a      -> (a -> a) -> m a
+-- ('<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> (a -> a) -> m a
 -- ('<%=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
 -- @
 (<%=) :: (Profunctor p, MonadState s m) => Overloading p (->) ((,)b) s s a b -> p a b -> m b
@@ -675,8 +675,8 @@ l <&&= b = l <%= (&& b)
 -- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.
 --
 -- @
--- ('<<%=') :: 'MonadState' s m             => 'Lens'' s a     -> (a -> a) -> m a
--- ('<<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a      -> (a -> a) -> m a
+-- ('<<%=') :: 'MonadState' s m             => 'Lens'' s a      -> (a -> a) -> m a
+-- ('<<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> (a -> a) -> m a
 -- ('<<%=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
 -- @
 --
@@ -694,8 +694,8 @@ l <<%= f = l %%= lenticular f
 -- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.
 --
 -- @
--- ('<<%=') :: 'MonadState' s m             => 'Lens'' s a     -> (a -> a) -> m a
--- ('<<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a      -> (a -> a) -> m a
+-- ('<<%=') :: 'MonadState' s m             => 'Lens'' s a      -> (a -> a) -> m a
+-- ('<<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> (a -> a) -> m a
 -- ('<<%=') :: ('MonadState' s m, 'Monoid' t) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
 -- @
 (<<.=) :: MonadState s m => LensLike ((,)a) s s a b -> b -> m a
@@ -719,9 +719,9 @@ l <<~ mb = do
 {-# INLINE (<<~) #-}
 
 -- | 'mappend' a monoidal value onto the end of the target of a 'Lens' and
--- return the result
+-- return the result.
 --
--- When you do not need the result of the operation, ('<>~') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.<>~') is more flexible.
 (<<>~) :: Monoid m => Overloading (->) q ((,)m) s t m m -> m -> q s (m, t)
 l <<>~ m = l <%~ (`mappend` m)
 {-# INLINE (<<>~) #-}
@@ -729,7 +729,7 @@ l <<>~ m = l <%~ (`mappend` m)
 -- | 'mappend' a monoidal value onto the end of the target of a 'Lens' into
 -- your monad's state and return the result.
 --
--- When you do not need the result of the operation, ('<>=') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.<>=') is more flexible.
 (<<>=) :: (MonadState s m, Monoid r) => LensLike' ((,)r) s r -> r -> m r
 l <<>= r = l <%= (`mappend` r)
 {-# INLINE (<<>=) #-}
@@ -746,10 +746,10 @@ l <<>= r = l <%= (`mappend` r)
 --
 -- When you do not need access to the index then ('<%~') is more liberal in what it can accept.
 --
--- If you do not need the intermediate result, you can use ('%@~') or even ('%~').
+-- If you do not need the intermediate result, you can use ('Control.Lens.Setter.%@~') or even ('Control.Lens.Setter.%~').
 --
 -- @
--- ('<%@~') ::             'IndexedLens' i s t a b -> (i -> a -> b) -> s -> (b, t)
+-- ('<%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> (b, t)
 -- ('<%@~') :: 'Monoid' b => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- @
 (<%@~) :: Overloading (Indexed i) q ((,) b) s t a b -> (i -> a -> b) -> q s (b, t)
@@ -768,7 +768,7 @@ l <%@~ f = l (Indexed $ \i a -> let b = f i a in (b, b))
 -- @
 --
 -- In particular, it is often useful to think of this function as having one of these even more
--- restrictive type signatures
+-- restricted type signatures:
 --
 -- @
 -- ('%%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> (r, b)) -> s -> (r, t)
