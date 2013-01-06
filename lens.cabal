@@ -191,6 +191,7 @@ library
     Control.Lens.Each
     Control.Lens.Equality
     Control.Lens.Fold
+    Control.Lens.Format
     Control.Lens.Getter
     Control.Lens.Indexed
     Control.Lens.Internal
