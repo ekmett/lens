@@ -41,6 +41,7 @@ module Control.Lens.Setter
   , cloneIndexedSetter
   -- * Common Setters
   , mapped, lifted
+  , contramapped
   -- * Functional Combinators
   , over
   , set
@@ -70,6 +71,7 @@ import Control.Lens.Internal
 import Control.Lens.Type
 import Control.Monad (liftM)
 import Control.Monad.State.Class as State
+import Data.Functor.Contravariant
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
@@ -128,7 +130,7 @@ type AnIndexedSetter' i s a = AnIndexedSetter i s s a a
 -- Setters
 -----------------------------------------------------------------------------
 
--- | This setter can be used to map over all of the values in a 'Functor'.
+-- | This 'Setter' can be used to map over all of the values in a 'Functor'.
 --
 -- @
 -- 'fmap' ≡ 'over' 'mapped'
@@ -150,6 +152,8 @@ type AnIndexedSetter' i s a = AnIndexedSetter i s s a a
 --
 -- >>> over (mapped._2) length [("hello","world"),("leaders","!!!")]
 -- [("hello",5),("leaders",3)]
+--
+-- @'mapped' :: 'Functor' f => 'Setter' (f a) (f b) a b@
 mapped :: Functor f => IndexPreservingSetter (f a) (f b) a b
 mapped = setting fmap
 {-# INLINE mapped #-}
@@ -169,6 +173,22 @@ mapped = setting fmap
 lifted :: Monad m => IndexPreservingSetter (m a) (m b) a b
 lifted = setting liftM
 {-# INLINE lifted #-}
+
+-- | This 'Setter' can be used to map over all of the inputs to a 'Contravariant'.
+--
+-- @'contramap' ≡ 'over' 'contramapped'@
+--
+-- >>> getPredicate (over contramapped (*2) (Predicate even)) 5
+-- True
+--
+-- >>> getOp (over contramapped (*5) (Op show)) 100
+-- "500"
+--
+-- >>> Prelude.map ($ 1) $ over (mapped . wrapping Op . contramapped) (*12) [(*2),(+1),(^3)]
+-- [24,13,1728]
+--
+contramapped :: Contravariant f => Setter (f b) (f a) a b
+contramapped = sets contramap
 
 -- | Build an index-preserving setter from a map-like function.
 --

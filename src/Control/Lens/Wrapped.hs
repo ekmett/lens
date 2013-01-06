@@ -69,6 +69,8 @@ import qualified Control.Monad.Trans.Writer.Lazy   as Lazy
 import qualified Control.Monad.Trans.Writer.Strict as Strict
 import           Data.Foldable as Foldable
 import           Data.Functor.Compose
+import           Data.Functor.Contravariant
+import qualified Data.Functor.Contravariant.Compose as Contravariant
 import           Data.Functor.Constant
 import           Data.Functor.Coproduct
 import           Data.Functor.Identity
@@ -263,6 +265,29 @@ instance (Ord a, Ord b) => Wrapped [a] [b] (Set a) (Set b) where
 
 instance Wrapped [a] [b] (Seq a) (Seq b) where
   wrapped = iso Seq.fromList Foldable.toList
+
+-- * contravariant
+
+instance Wrapped (a -> Bool) (a' -> Bool) (Predicate a) (Predicate a') where
+  wrapped = iso Predicate getPredicate
+
+instance Wrapped (a -> a -> Ordering) (a' -> a' -> Ordering) (Comparison a) (Comparison a') where
+  wrapped = iso Comparison getComparison
+
+instance Wrapped (a -> a -> Bool) (a' -> a' -> Bool) (Equivalence a) (Equivalence a') where
+  wrapped = iso Equivalence getEquivalence
+
+instance Wrapped (b -> a) (b' -> a') (Op a b) (Op a' b') where
+  wrapped = iso Op getOp
+
+instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.Compose f g a) (Contravariant.Compose f' g' a') where
+  wrapped = iso Contravariant.Compose Contravariant.getCompose
+
+instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeFC f g a) (Contravariant.ComposeFC f' g' a') where
+  wrapped = iso Contravariant.ComposeFC Contravariant.getComposeFC
+
+instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeCF f g a) (Contravariant.ComposeFC f' g' a') where
+  wrapped = iso Contravariant.ComposeCF Contravariant.getComposeFC
 
 -- * Control.Exception
 
