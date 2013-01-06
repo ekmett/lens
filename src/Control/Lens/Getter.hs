@@ -152,7 +152,7 @@ type IndexedGetting i m s t a b = Indexed i a (Accessor m b) -> s -> Accessor m 
 --
 --
 -- As @views@ is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
--- It may be useful to think of it as having one of these more restrictive signatures:
+-- It may be useful to think of it as having one of these more restricted signatures:
 --
 -- @
 -- 'view' ::             'Getter' s a     -> s -> a
@@ -180,7 +180,7 @@ view l = Reader.asks (runAccessor #. l Accessor)
 -- the targets of a 'Control.Lens.Fold.Fold' or
 -- 'Control.Lens.Traversal.Traversal'.
 --
--- It may be useful to think of 'views' as having these more restrictive
+-- It may be useful to think of 'views' as having these more restricted
 -- signatures:
 --
 -- @'views' l f ≡ 'view' (l '.' 'to' f)@
@@ -192,7 +192,7 @@ view l = Reader.asks (runAccessor #. l Accessor)
 -- 5
 --
 -- As @views@ is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
--- It may be useful to think of it as having one of these more restrictive signatures:
+-- It may be useful to think of it as having one of these more restricted signatures:
 --
 -- @
 -- 'views' ::             'Getter' s a     -> (a -> r) -> s -> r
@@ -379,7 +379,7 @@ uses' l f = State.gets (views' l f)
 -- "world"
 --
 -- As 'view'' is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
--- It may be useful to think of it as having one of these more restrictive signatures:
+-- It may be useful to think of it as having one of these more restricted signatures:
 --
 -- @
 -- 'view'' ::             'Getter' s a     -> s -> a
@@ -409,7 +409,7 @@ view' l = Reader.asks (runAccessor #. l Accessor)
 -- the targets of a 'Control.Lens.Fold.Fold' or
 -- 'Control.Lens.Traversal.Traversal'.
 --
--- It may be useful to think of 'perviews' as having these more restrictive
+-- It may be useful to think of 'perviews' as having these more restricted
 -- signatures:
 --
 -- @'views'' l f ≡ 'view'' (l '.' 'to' f)@
@@ -418,7 +418,7 @@ view' l = Reader.asks (runAccessor #. l Accessor)
 -- 5
 --
 -- As 'views'' is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
--- It may be useful to think of it as having one of these more restrictive signatures:
+-- It may be useful to think of it as having one of these more restricted signatures:
 --
 -- @
 -- 'views'' ::             'Getter' s a     -> (a -> r) -> s -> r
