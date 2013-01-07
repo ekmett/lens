@@ -134,7 +134,7 @@ type IndexedGetting i m s t a b = Indexed i a (Accessor m b) -> s -> Accessor m 
 -- | View the value pointed to by a 'Getter', 'Control.Lens.Iso.Iso' or
 -- 'Lens' or the result of folding over all the results of a
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
--- at a monoidal values.
+-- at a monoidal value.
 --
 -- @'view' '.' 'to' ≡ 'id'@
 --

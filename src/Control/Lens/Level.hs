@@ -1,5 +1,15 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Control.Lens.Level
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  provisional
+-- Portability :  Rank2Types
+--
+----------------------------------------------------------------------------
 module Control.Lens.Level
   ( Level
   , levels
@@ -20,7 +30,7 @@ levelIns = go 0 . (runAccessor #. bazaar (Accessor #. deepening ())) where
 levelOuts :: Bazaar (->) (->) a b t -> [Level j b] -> t
 levelOuts bz = runFlows $ runBazaar bz $ \ _ -> Flows $ \t -> case t of
   One _ a : _ -> a
-  _            -> error "levelOuts: wrong shape"
+  _           -> error "levelOuts: wrong shape"
 {-# INLINE levelOuts #-}
 
 levels :: ATraversal s t a b -> IndexedTraversal Int s t (Level () a) (Level () b)
@@ -37,7 +47,7 @@ ilevelIns = go 0 . (runAccessor #. bazaar (Indexed $ \ i -> Accessor #. deepenin
 ilevelOuts :: Bazaar (Indexed i) (->) a b t -> [Level j b] -> t
 ilevelOuts bz = runFlows $ runBazaar bz $ Indexed $ \ _ _ -> Flows $ \t -> case t of
   One _ a : _ -> a
-  _            -> error "ilevelOuts: wrong shape"
+  _           -> error "ilevelOuts: wrong shape"
 {-# INLINE ilevelOuts #-}
 
 ilevels :: AnIndexedTraversal i s t a b -> IndexedTraversal Int s t (Level i a) (Level j b)

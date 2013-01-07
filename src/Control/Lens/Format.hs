@@ -7,7 +7,17 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Control.Lens.Format
+-- Copyright   :  (C) 2013 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
 -- Experimental formatting
+----------------------------------------------------------------------------
 module Control.Lens.Format
   (
   -- * Formats

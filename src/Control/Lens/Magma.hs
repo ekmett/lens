@@ -3,6 +3,17 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Control.Lens.Magma
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+----------------------------------------------------------------------------
 module Control.Lens.Magma
   ( Magma(..)
   , size
@@ -138,7 +149,7 @@ magmaOuts bz = runFlow $ runBazaar bz $ Indexed $ \ _ _ -> Flow $ \ t -> case t 
   _        -> error "magmaOuts: wrong shape"
 {-# INLINE magmaOuts #-}
 
--- | This is only a valid 'Lens' if you don't change the shape of the 'Magma'
+-- | This is only a valid 'Lens' if you don't change the shape of the 'Magma'.
 magma :: AnIndexedTraversal i s t a b -> Lens s t (Magma i a) (Magma j b)
 magma l f s = magmaOuts bz <$> f (magmaIns bz) where
   bz = l sell s
