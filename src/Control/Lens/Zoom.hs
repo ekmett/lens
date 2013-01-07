@@ -31,7 +31,7 @@ import Control.Lens.Internal
 import Control.Lens.Internal.Combinators
 import Control.Lens.Type
 import Control.Monad
-import Control.Monad.Reader.Class as Reader
+import Control.Monad.Reader as Reader
 import Control.Monad.State as State
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
@@ -39,7 +39,6 @@ import Control.Monad.Trans.Writer.Lazy as Lazy
 import Control.Monad.Trans.Writer.Strict as Strict
 import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
-import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Error
 import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
@@ -48,6 +47,7 @@ import Data.Monoid
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Data.List.Lens (_tail)
 -- >>> import Control.Monad.State
 -- >>> import Data.Map as Map
 -- >>> import Debug.SimpleReflect.Expr as Expr
@@ -159,6 +159,15 @@ class (MonadReader b m, MonadReader a n) => Magnify m n k b a | m -> b k, n -> a
   -- This is commonly used to lift actions in a simpler Reader monad into a monad with a larger environment type.
   --
   -- This can be used to edit pretty much any monad transformer stack with an environment in it:
+  --
+  -- >>> (1,2) & magnify _2 (+1)
+  -- 3
+  --
+  -- >>> flip Reader.runReader (1,2) $ magnify _1 Reader.ask
+  -- 1
+  --
+  -- >>> flip Reader.runReader (1,2,[10..20]) $ magnify (_3._tail) Reader.ask
+  -- [11,12,13,14,15,16,17,18,19,20]
   --
   -- @
   -- 'magnify' ::             'Getter' s a -> (a -> r) -> s -> r
