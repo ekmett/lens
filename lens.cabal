@@ -157,6 +157,11 @@ flag trustworthy
   default: True
   manual: True
 
+flag old-semigroups
+  default: False
+  manual: False
+
+
 library
   build-depends:
     base                 >= 4.3      && < 5,
@@ -167,13 +172,20 @@ library
     containers           >= 0.4.0    && < 0.6,
     hashable             >= 1.1.2.3  && < 1.3,
     mtl                  >= 2.0.1    && < 2.2,
-    semigroups           >= 0.8.4,
     split                == 0.2.*,
     text                 >= 0.11     && < 0.12,
     transformers         >= 0.2      && < 0.4,
     transformers-compat  >= 0.1,
     unordered-containers >= 0.2      && < 0.3,
     vector               >= 0.9      && < 0.11
+
+  if flag(old-semigroups)
+    build-depends:
+      semigroups >= 0.8.4 && < 0.9
+  else
+    build-depends:
+      nats >= 0.1,
+      semigroups >= 0.9
 
   exposed-modules:
     Control.Exception.Lens
