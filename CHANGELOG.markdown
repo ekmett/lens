@@ -23,6 +23,12 @@
 * Added `Control.Lens.Review` which factors the `review` functionality out of `Prism` and exposes `unto`, which is to `review` what `to` is to `view`.
 * Added `contramapped` and `argument` for mapping over inputs.
 
+3.7.3 [maintenance release]
+-----
+* Removed my intra-package dependency upper bounds for my own packages. In particular this enables us to work with `semigroups` 0.9.
+* Switched to `transformers-compat` to avoid having unbuilding modules at the top of the documentation, and to ease 3rd party compatibility.
+* Updated `Setup.lhs` to be compatible with Cabal 1.17
+
 3.7.2 [maintenance release]
 -----
 * Bug fix for `Magnify`. It was missing functional dependencies to determine its `k` parameter from `m` or `n`.
