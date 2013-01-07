@@ -151,7 +151,7 @@ instance (Error e, Zoom m n k s t) => Zoom (ErrorT e m) (ErrorT e n) (FocusingEr
 -- many different monad transformers. Unlike 'zoom' this can change the environment of a deeply nested monad transformer.
 --
 -- Also, unlike 'zoom', this can be used with any valid 'Getter', but cannot be used with a 'Traversal' or 'Fold'.
-class (MonadReader b m, MonadReader a n) => Magnify m n k b a | m -> b, n -> a, m a -> n, n b -> m where
+class (MonadReader b m, MonadReader a n) => Magnify m n k b a | m -> b k, n -> a k, m a -> n, n b -> m where
   -- | Run a monadic action in a larger environment than it was defined in, using a 'Getter'.
   --
   -- This acts like 'Control.Monad.Reader.Class.local', but can in many cases change the type of the environment as well.
