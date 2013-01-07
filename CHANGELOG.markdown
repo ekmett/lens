@@ -1,3 +1,7 @@
+3.7.2 [maintenance release]
+-----
+* Bug fix for `Magnify`. It was missing functional dependencies to determine its `k` parameter from `m` or `n`.
+
 3.7.1.2 [maintenance release]
 -------
 * Made the doctest test suite hide all but the exact versions of packages used to build this package to avoid problems with complicated user environments.
