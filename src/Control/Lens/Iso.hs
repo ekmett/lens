@@ -42,6 +42,7 @@ module Control.Lens.Iso
   , enum
   , curried, uncurried
   , flipped
+  , Swapped(..)
   , Strict(..)
   -- * Profunctors
   , Profunctor(..)
@@ -49,10 +50,12 @@ module Control.Lens.Iso
 
 import Control.Lens.Internal
 import Control.Lens.Type
+import Data.Bifunctor
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
+import Data.Tuple (swap)
 import Data.Maybe
 import Data.Profunctor
 #ifndef SAFE
@@ -275,6 +278,23 @@ uncurried = iso uncurry curry
 flipped :: Iso (a -> b -> c) (a' -> b' -> c') (b -> a -> c) (b' -> a' -> c')
 flipped = iso flip flip
 {-# INLINE flipped #-}
+
+-- | This class provides for symmetric bifunctors
+--
+-- @
+-- 'swapped' . 'swapped' ≡ 'id'
+-- 'first' f . 'swapped' = 'swapped' . 'second' f
+-- 'second' g . 'swapped' = 'swapped' . 'first' g
+-- 'bimap' f g . 'swapped' = 'swapped' . 'bimap' g f@
+-- @
+class Bifunctor p => Swapped p where
+  swapped :: Iso (p a b) (p c d) (p b a) (p d c)
+
+instance Swapped (,) where
+  swapped = iso swap swap
+
+instance Swapped Either where
+  swapped = iso (either Right Left) (either Right Left)
 
 -- | Ad hoc conversion between \"strict\" and \"lazy\" versions of a structure,
 -- such as 'StrictT.Text' or 'StrictB.ByteString'.
