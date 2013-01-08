@@ -4,6 +4,9 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706
+{-# LANGUAGE PolyKinds #-}
+#endif
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -53,6 +56,7 @@ import           Control.Arrow
 import           Control.Applicative.Backwards
 import           Control.Comonad.Trans.Traced
 import           Control.Exception
+import           Control.Lens.Internal
 import           Control.Lens.Iso
 import           Control.Lens.Review
 import           Control.Monad.Trans.Cont
@@ -84,6 +88,7 @@ import           Data.Map as Map
 import           Data.Monoid
 import           Data.Sequence as Seq hiding (length)
 import           Data.Set as Set
+import           Data.Tagged
 
 -- $setup
 -- >>> import Control.Lens
@@ -153,6 +158,12 @@ instance Wrapped (Maybe a) (Maybe b) (Last a) (Last b) where
 
 instance (ArrowApply m, ArrowApply n) => Wrapped (m () a) (n () b) (ArrowMonad m a) (ArrowMonad n b) where
   wrapped = iso ArrowMonad getArrowMonad
+  {-# INLINE wrapped #-}
+
+-- * lens
+
+instance Wrapped a b (Reviewed s a) (Reviewed t b) where
+  wrapped = iso Reviewed runReviewed
   {-# INLINE wrapped #-}
 
 -- * transformers
@@ -288,6 +299,12 @@ instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeFC f g a) (Contrav
 
 instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeCF f g a) (Contravariant.ComposeFC f' g' a') where
   wrapped = iso Contravariant.ComposeCF Contravariant.getComposeFC
+
+-- * tagged
+
+instance Wrapped a b (Tagged s a) (Tagged t b) where
+  wrapped = iso Tagged unTagged
+  {-# INLINE wrapped #-}
 
 -- * Control.Exception
 
