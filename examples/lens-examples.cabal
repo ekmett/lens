@@ -26,7 +26,7 @@ flag pong
 flag brainfuck
   default: True
 
-executable pong
+executable lens-pong
   if !flag(pong)
     buildable: False
 
@@ -39,7 +39,7 @@ executable pong
     random     == 1.0.*
   main-is: Pong.hs
 
-executable brainfuck
+executable lens-brainfuck
   if !flag(brainfuck)
     buildable: False
 
