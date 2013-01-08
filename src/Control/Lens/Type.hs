@@ -185,25 +185,25 @@ type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
 -- |
 -- The only 'Lens'-like law that can apply to a 'Setter' @l@ is that
 --
--- @'set' l y ('set' l x a) ≡ 'set' l y a@
+-- @'Control.Lens.Setter.set' l y ('Control.Lens.Setter.set' l x a) ≡ 'Control.Lens.Setter.set' l y a@
 --
--- You can't 'view' a 'Setter' in general, so the other two laws are irrelevant.
+-- You can't 'Control.Lens.Getter.view' a 'Setter' in general, so the other two laws are irrelevant.
 --
 -- However, two 'Functor' laws apply to a 'Setter':
 --
 -- @
--- 'over' l 'id' ≡ 'id'
--- 'over' l f '.' 'over' l g ≡ 'over' l (f '.' g)
+-- 'Control.Lens.Setter.over' l 'id' ≡ 'id'
+-- 'Control.Lens.Setter.over' l f '.' 'Control.Lens.Setter.over' l g ≡ 'Control.Lens.Setter.over' l (f '.' g)
 -- @
 --
 -- These an be stated more directly:
 --
 -- @
 -- l 'pure' ≡ 'pure'
--- l f . 'untainted' . l g ≡ l (f . 'untainted' . g)
+-- l f '.' 'untainted' '.' l g ≡ l (f '.' 'untainted' '.' g)
 -- @
 --
--- You can compose a 'Setter' with a 'Lens' or a 'Traversal' using ('.') from the Prelude
+-- You can compose a 'Setter' with a 'Lens' or a 'Traversal' using ('.') from the @Prelude@
 -- and the result is always only a 'Setter' and nothing more.
 --
 -- >>> over traverse f [a,b,c,d]
@@ -233,7 +233,7 @@ type Setter s t a b = forall f. Settable f => (a -> f b) -> s -> f t
 -- @type 'Setter'' = 'Setter''@
 type Setter' s a = Setter s s a a
 
--- | Every 'IndexedSetter' is a valid 'Setter'
+-- | Every 'IndexedSetter' is a valid 'Setter'.
 --
 -- The 'Setter' laws are still required to hold.
 type IndexedSetter i s t a b = forall f p.

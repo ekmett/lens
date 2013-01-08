@@ -195,7 +195,7 @@ contramapped = sets contramap
 
 -- | This 'Setter' can be used to map over the input of a 'Profunctor'.
 --
--- The most common 'Profunctor' to use this with is ('->').
+-- The most common 'Profunctor' to use this with is @(->)@.
 --
 -- >>> (argument %~ f) g x
 -- g (f x)
@@ -280,7 +280,7 @@ cloneIndexedSetter l pafb = taintedDot (runMutator #. l (Indexed $ \i -> Mutator
 --
 -- Given any valid 'Setter' @l@, you can also rely on the law:
 --
--- @'over' l f . 'over' l g = 'over' l (f . g)@
+-- @'over' l f '.' 'over' l g = 'over' l (f '.' g)@
 --
 -- /e.g./
 --
@@ -365,11 +365,11 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 -- | Modifies the target of a 'Lens' or all of the targets of a 'Setter' or
 -- 'Traversal' with a user supplied function.
 --
--- This is an infix version of 'over'
+-- This is an infix version of 'over'.
 --
 -- @
 -- 'fmap' f ≡ 'mapped' '%~' f
--- 'Data.Traversable.fmapDefault' f ≡ 'traverse' '%~' f
+-- 'Data.Traversable.fmapDefault' f ≡ 'Data.Traversable.traverse' '%~' f
 -- @
 --
 -- >>> (a,b,c) & _3 %~ f
@@ -403,7 +403,7 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
 -- or 'Traversal' with a constant value.
 --
--- This is an infix version of 'set', provided for consistency with ('.=')
+-- This is an infix version of 'set', provided for consistency with ('.=').
 --
 -- @f '<$' a ≡ 'mapped' '.~' f '$' a@
 --
@@ -598,7 +598,7 @@ l //~ n = over l (/ n)
 l ^~ n = over l (^ n)
 {-# INLINE (^~) #-}
 
--- | Raise the target(s) of a fractionally valued 'Lens', 'Setter' or 'Traversal' to an integral power
+-- | Raise the target(s) of a fractionally valued 'Lens', 'Setter' or 'Traversal' to an integral power.
 --
 -- >>> (1,2) & _2 ^^~ (-1)
 -- (1,0.5)
@@ -635,7 +635,7 @@ l ^^~ n = over l (^^ n)
 l **~ n = over l (** n)
 {-# INLINE (**~) #-}
 
--- | Logically '||' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+-- | Logically '||' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'.
 --
 -- >>> both ||~ True $ (False,True)
 -- (True,True)
@@ -653,7 +653,7 @@ l **~ n = over l (** n)
 l ||~ n = over l (|| n)
 {-# INLINE (||~) #-}
 
--- | Logically '&&' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'
+-- | Logically '&&' the target(s) of a 'Bool'-valued 'Lens' or 'Setter'.
 --
 -- >>> both &&~ True $ (False, True)
 -- (False,True)
@@ -758,7 +758,7 @@ l %= f = State.modify (l %~ f)
 l ?= b = State.modify (l ?~ b)
 {-# INLINE (?=) #-}
 
--- | Modify the target(s) of a 'Lens'', 'Iso', 'Setter' or 'Traversal' by adding a value
+-- | Modify the target(s) of a 'Lens'', 'Iso', 'Setter' or 'Traversal' by adding a value.
 --
 -- Example:
 --
@@ -766,7 +766,7 @@ l ?= b = State.modify (l ?~ b)
 -- 'fresh' :: 'MonadState' 'Int' m => m 'Int'
 -- 'fresh' = do
 --   'id' '+=' 1
---   'use' 'id'
+--   'Control.Lens.Getter.use' 'id'
 -- @
 --
 -- >>> execState (do _1 += c; _2 += d) (a,b)
@@ -785,7 +785,7 @@ l ?= b = State.modify (l ?~ b)
 l += b = State.modify (l +~ b)
 {-# INLINE (+=) #-}
 
--- | Modify the target(s) of a 'Lens'', 'Iso', 'Setter' or 'Traversal' by subtracting a value
+-- | Modify the target(s) of a 'Lens'', 'Iso', 'Setter' or 'Traversal' by subtracting a value.
 --
 -- >>> execState (do _1 -= c; _2 -= d) (a,b)
 -- (a - c,b - d)
@@ -869,7 +869,7 @@ l ^^= e = State.modify (l ^^~ e)
 l **= a = State.modify (l **~ a)
 {-# INLINE (**=) #-}
 
--- | Modify the target(s) of a 'Lens'', 'Iso', 'Setter' or 'Traversal' by taking their logical '&&' with a value
+-- | Modify the target(s) of a 'Lens'', 'Iso', 'Setter' or 'Traversal' by taking their logical '&&' with a value.
 --
 -- >>> execState (do _1 &&= True; _2 &&= False; _3 &&= True; _4 &&= False) (True,True,False,False)
 -- (True,False,False,False)
@@ -884,7 +884,7 @@ l **= a = State.modify (l **~ a)
 l &&= b = State.modify (l &&~ b)
 {-# INLINE (&&=) #-}
 
--- | Modify the target(s) of a 'Lens'', 'Iso, 'Setter' or 'Traversal' by taking their logical '||' with a value
+-- | Modify the target(s) of a 'Lens'', 'Iso, 'Setter' or 'Traversal' by taking their logical '||' with a value.
 --
 -- >>> execState (do _1 ||= True; _2 ||= False; _3 ||= True; _4 ||= False) (True,True,False,False)
 -- (True,True,True,False)
@@ -932,9 +932,9 @@ l <~ mb = mb >>= (l .=)
 --
 -- This is useful for chaining assignment without round-tripping through your monad stack.
 --
--- @do x <- '_2' <.= ninety_nine_bottles_of_beer_on_the_wall@
+-- @do x <- 'Control.Lens.Tuple._2' '<.=' ninety_nine_bottles_of_beer_on_the_wall@
 --
--- If you do not need a copy of the intermediate result, then using @l .= d@ will avoid unused binding warnings
+-- If you do not need a copy of the intermediate result, then using @l '.=' d@ will avoid unused binding warnings.
 --
 -- @
 -- ('<.=') :: 'MonadState' s m => 'Setter' s s a b    -> b -> m b
@@ -952,9 +952,9 @@ l <.= b = do
 --
 -- This is useful for chaining assignment without round-tripping through your monad stack.
 --
--- @do x <- at "foo" <?= ninety_nine_bottles_of_beer_on_the_wall@
+-- @do x <- 'Control.Lens.At.at' "foo" '<?=' ninety_nine_bottles_of_beer_on_the_wall@
 --
--- If you do not need a copy of the intermediate result, then using @l ?= d@ will avoid unused binding warnings
+-- If you do not need a copy of the intermediate result, then using @l '?=' d@ will avoid unused binding warnings.
 --
 -- @
 -- ('<?=') :: 'MonadState' s m => 'Setter' s s a ('Maybe' b)    -> b -> m b
@@ -1018,7 +1018,7 @@ l <>= a = State.modify (l <>~ a)
 --
 -- @
 -- 'over' l ≡ 'iover' l '.' 'const'
--- 'iover' l ≡ 'over' l . 'Indexed'
+-- 'iover' l ≡ 'over' l '.' 'Indexed'
 -- @
 --
 -- @
@@ -1030,7 +1030,7 @@ iover :: Profunctor q => Overloading (Indexed i) q Mutator s t a b -> (i -> a ->
 iover l = over l .# Indexed
 {-# INLINE iover #-}
 
--- | Build an 'IndexedSetter' from an 'imap'-like function.
+-- | Build an 'IndexedSetter' from an 'Control.Lens.Indexed.imap'-like function.
 --
 -- Your supplied function @f@ is required to satisfy:
 --
