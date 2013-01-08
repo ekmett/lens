@@ -55,7 +55,7 @@ digitToIntMay c
   | isAsciiLower c = Just (ord c - ord 'a' + 10)
   | isAsciiUpper c = Just (ord c - ord 'A' + 10)
   | otherwise = Nothing
-  
+
 -- | Select digits that fall into the given base
 isDigit' :: Integral a => a -> Char -> Bool
 isDigit' b c = case digitToIntMay c of

@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 -- | A simple Turtle-graphics demonstration for modeling the location of a turtle.
 --
--- This is based on the code presented by Seth Tisue at the Boston Area Scala 
+-- This is based on the code presented by Seth Tisue at the Boston Area Scala
 -- Enthusiasts meeting during his lens talk.
 --
 -- Usage:

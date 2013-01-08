@@ -214,7 +214,7 @@ throwing l = reviews l throw
 --
 -- @'throwingIO' l ≡ 'reviews' l 'throwIO'@
 --
--- Although 'throwingIO' has a type that is a specialization of the type of 
+-- Although 'throwingIO' has a type that is a specialization of the type of
 -- 'throwing', the two functions are subtly different:
 --
 -- @
