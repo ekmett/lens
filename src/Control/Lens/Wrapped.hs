@@ -251,54 +251,68 @@ instance Wrapped (w (m -> a)) (w' (m' -> a')) (TracedT m w a) (TracedT m' w' a')
 -- | Use @'wrapping' HashMap.fromList'@. Unwrapping returns some permutation of the list.
 instance (Hashable k, Eq k, Hashable k', Eq k') => Wrapped [(k, a)] [(k', b)] (HashMap k a) (HashMap k' b) where
   wrapped = iso HashMap.fromList HashMap.toList
+  {-# INLINE wrapped #-}
 
 -- | Use @'wrapping' HashSet.fromList'@. Unwrapping returns some permutation of the list.
 instance (Hashable a, Eq a, Hashable b, Eq b) => Wrapped [a] [b] (HashSet a) (HashSet b) where
   wrapped = iso HashSet.fromList HashSet.toList
+  {-# INLINE wrapped #-}
 
 -- * containers
 
 -- | Use @'wrapping' 'IntMap.fromList'@. unwrapping returns a /sorted/ list.
 instance Wrapped [(Int, a)] [(Int, b)] (IntMap a) (IntMap b) where
   wrapped = iso IntMap.fromList IntMap.toAscList
+  {-# INLINE wrapped #-}
 
 -- | Use @'wrapping' 'IntSet.fromList'@. unwrapping returns a /sorted/ list.
 instance Wrapped [Int] [Int] IntSet IntSet where
   wrapped = iso IntSet.fromList IntSet.toAscList
+  {-# INLINE wrapped #-}
 
 -- | Use @'wrapping' 'Map.fromList'@. unwrapping returns a /sorted/ list.
 instance (Ord k, Ord k') => Wrapped [(k, a)] [(k', b)] (Map k a) (Map k' b) where
   wrapped = iso Map.fromList Map.toAscList
+  {-# INLINE wrapped #-}
 
 -- | Use @'wrapping' 'Set.fromList'@. unwrapping returns a /sorted/ list.
 instance (Ord a, Ord b) => Wrapped [a] [b] (Set a) (Set b) where
   wrapped = iso Set.fromList Set.toAscList
+  {-# INLINE wrapped #-}
 
 instance Wrapped [a] [b] (Seq a) (Seq b) where
   wrapped = iso Seq.fromList Foldable.toList
+  {-# INLINE wrapped #-}
 
 -- * contravariant
 
 instance Wrapped (a -> Bool) (a' -> Bool) (Predicate a) (Predicate a') where
   wrapped = iso Predicate getPredicate
+  {-# INLINE wrapped #-}
 
 instance Wrapped (a -> a -> Ordering) (a' -> a' -> Ordering) (Comparison a) (Comparison a') where
   wrapped = iso Comparison getComparison
+  {-# INLINE wrapped #-}
 
 instance Wrapped (a -> a -> Bool) (a' -> a' -> Bool) (Equivalence a) (Equivalence a') where
   wrapped = iso Equivalence getEquivalence
+  {-# INLINE wrapped #-}
 
 instance Wrapped (b -> a) (b' -> a') (Op a b) (Op a' b') where
   wrapped = iso Op getOp
+  {-# INLINE wrapped #-}
 
 instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.Compose f g a) (Contravariant.Compose f' g' a') where
   wrapped = iso Contravariant.Compose Contravariant.getCompose
+  {-# INLINE wrapped #-}
 
 instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeFC f g a) (Contravariant.ComposeFC f' g' a') where
   wrapped = iso Contravariant.ComposeFC Contravariant.getComposeFC
+  {-# INLINE wrapped #-}
 
 instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeCF f g a) (Contravariant.ComposeFC f' g' a') where
   wrapped = iso Contravariant.ComposeCF Contravariant.getComposeFC
+  {-# INLINE wrapped #-}
 
 -- * tagged
 
