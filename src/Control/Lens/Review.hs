@@ -48,7 +48,7 @@ type Review s t a b = forall p f. (Reviewable p, Settable f) => Overloaded p f s
 
 type Review' t b = Review t t b b
 
--- | If you see this in a signature for a function, the function is expecting a 'Prism'
+-- | If you see this in a signature for a function, the function is expecting a 'Prism'.
 type AReview s t a b = Overloaded Reviewed Identity s t a b
 
 type AReview' t b = AReview t t b b
@@ -86,7 +86,7 @@ remit p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- it as having one of these more restricted type signatures:
 --
 -- @
--- 'review' :: 'Iso'' s a        -> a -> s
+-- 'review' :: 'Iso'' s a   -> a -> s
 -- 'review' :: 'Prism'' s a -> a -> s
 -- @
 --
@@ -94,7 +94,7 @@ remit p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- these more slightly more liberal type signatures may be beneficial to think of it as having:
 --
 -- @
--- 'review' :: 'MonadReader' a m => 'Iso'' s a        -> m s
+-- 'review' :: 'MonadReader' a m => 'Iso'' s a   -> m s
 -- 'review' :: 'MonadReader' a m => 'Prism'' s a -> m s
 -- @
 review :: MonadReader b m => AReview s t a b -> m t
@@ -113,7 +113,7 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- it as having one of these more restricted type signatures:
 --
 -- @
--- 'reviews' :: 'Iso'' s a        -> (s -> r) -> a -> r
+-- 'reviews' :: 'Iso'' s a   -> (s -> r) -> a -> r
 -- 'reviews' :: 'Prism'' s a -> (s -> r) -> a -> r
 -- @
 --
