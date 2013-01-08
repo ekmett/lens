@@ -46,7 +46,7 @@ executable brainfuck
   build-depends:
     base,
     lens,
-    free       >= 3.0 && < 3.3,
+    free       >= 3.0,
     bytestring,
     mtl        >= 2.0.1 && < 2.2,
     streams    == 3.0.*

@@ -79,7 +79,7 @@ bracket cs (x:xs) = over _1 (Free . f x) (bracket cs xs)
 type Cell   = Word8
 type Input  = S.Stream Cell
 type Output = [Cell]
-type Memory = Top :> [Cell] :> Cell -- list zipper
+type Memory = Top :>> [Cell] :>> Cell -- list zipper
 
 type Interpreter = RWS Input Output Memory ()
 
@@ -112,7 +112,7 @@ run (Free f) = case f of
     run $ case c of 0 -> z; _ -> n
 
 -- | Zipper helpers
-wrapRight, wrapLeft :: (a :> b) -> (a :> b)
+wrapRight, wrapLeft :: (a :>> b) -> (a :>> b)
 wrapRight = liftM2 fromMaybe leftmost rightward
 wrapLeft  = liftM2 fromMaybe rightmost leftward
 
