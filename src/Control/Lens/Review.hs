@@ -82,7 +82,7 @@ remit p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- >>> review _left "mustard"
 -- Left "mustard"
 --
--- Usually 'review' is used in the @(->)@ monad with a 'Prism'' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
+-- Usually 'review' is used in the @(->)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
 -- it as having one of these more restricted type signatures:
 --
 -- @
@@ -109,7 +109,7 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- >>> reviews _left isRight "mustard"
 -- False
 --
--- Usually this function is used in the @(->)@ monad with a 'Prism'' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
+-- Usually this function is used in the @(->)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
 -- it as having one of these more restricted type signatures:
 --
 -- @
