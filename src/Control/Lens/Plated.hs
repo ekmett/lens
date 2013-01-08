@@ -29,7 +29,7 @@
 -- <http://community.haskell.org/~ndm/uniplate/>
 --
 -- The combinators in here are designed to be compatible with and subsume the
--- 'uniplate' API with the notion of a 'Traversal' replacing
+-- @uniplate@ API with the notion of a 'Traversal' replacing
 -- a 'Data.Data.Lens.uniplate' or 'Data.Data.Lens.biplate'.
 --
 -- By implementing these combinators in terms of 'plate' instead of

@@ -33,8 +33,9 @@
 --
 -- @type 'Traversal' s t a b = forall f. 'Applicative' f => (a -> f b) -> s -> f t@
 --
--- While a 'Traversal' isn't quite a 'Fold', it _can_ be used for 'Getting'
--- like a 'Fold', because given a 'Monoid' @m@, we have an 'Applicative'
+-- While a 'Traversal' isn't quite a 'Fold', it _can_ be used for
+-- 'Control.Lens.Getter.Getting' like a 'Fold', because given a
+-- 'Data.Monoid.Monoid' @m@, we have an 'Applicative'
 -- for @('Const' m)@. Everything you know how to do with a 'Traversable'
 -- container, you can with with a 'Traversal', and here we provide
 -- combinators that generalize the usual 'Traversable' operations.
@@ -104,7 +105,7 @@ module Control.Lens.Traversal
   , loci
   ) where
 
-import Control.Applicative            as Applicative
+import Control.Applicative as Applicative
 import Control.Applicative.Backwards
 import Control.Category
 import Control.Comonad
@@ -149,15 +150,15 @@ type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
 
 -- | When you see this as an argument to a function, it expects
 --
---  * to be indexed if @p@ is an instance of 'Indexed' i
+--  * to be indexed if @p@ is an instance of 'Indexed' i,
 --
---  * to be unindexed if @p@ is @(->)@
+--  * to be unindexed if @p@ is @(->)@,
 --
 --  * a 'Traversal' if @f@ is 'Applicative',
 --
---  * a 'Getter' if  @f@ is only 'Gettable'
+--  * a 'Getter' if  @f@ is only 'Gettable',
 --
---  * a 'Lens' if @p@ is only a 'Functor'
+--  * a 'Lens' if @p@ is only a 'Functor',
 --
 --  * a 'Fold' if 'f' is 'Gettable' and 'Applicative'.
 type Traversing p f s t a b = Overloading p (->) (BazaarT p (->) f a b) s t a b
@@ -176,7 +177,7 @@ type Traversing' p f s a = Traversing p f s s a a
 --
 -- @
 -- 'traverseOf' ≡ 'id'
--- 'itraverseOf' l ≡ 'traverseOf' l . 'Indexed'
+-- 'itraverseOf' l ≡ 'traverseOf' l '.' 'Indexed'
 -- @
 --
 --
@@ -199,7 +200,7 @@ traverseOf = id
 --
 -- @
 -- 'for' ≡ 'forOf' 'traverse'
--- 'ifor' l s ≡ 'for' l s . 'Indexed'
+-- 'Control.Lens.Indexed.ifor' l s ≡ 'for' l s '.' 'Indexed'
 -- @
 --
 -- This function is only provided for consistency, 'flip' is strictly more general.
@@ -233,7 +234,7 @@ sequenceAOf :: Overloading (->) q f s t (f b) b -> q s (f t)
 sequenceAOf l = l id
 {-# INLINE sequenceAOf #-}
 
--- | Map each element of a structure targeted by a lens to a monadic action,
+-- | Map each element of a structure targeted by a 'Lens' to a monadic action,
 -- evaluate these actions from left to right, and collect the results.
 --
 -- @
@@ -251,10 +252,11 @@ mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
 {-# INLINE mapMOf #-}
 
 -- | 'forMOf' is a flipped version of 'mapMOf', consistent with the definition of 'forM'.
+--
 -- @
 -- 'forM' ≡ 'forMOf' 'traverse'
 -- 'forMOf' l ≡ 'flip' ('mapMOf' l)
--- 'iforMOf' l s ≡ 'forM' l s . 'Indexed'
+-- 'iforMOf' l s ≡ 'forM' l s '.' 'Indexed'
 -- @
 --
 -- @
@@ -266,12 +268,12 @@ forMOf :: Profunctor p => Overloading p (->) (WrappedMonad m) s t a b -> s -> p 
 forMOf l a cmd = unwrapMonad (l (WrapMonad #. cmd) a)
 {-# INLINE forMOf #-}
 
--- | Sequence the (monadic) effects targeted by a lens in a container from left to right.
+-- | Sequence the (monadic) effects targeted by a 'Lens' in a container from left to right.
 --
 -- @
 -- 'sequence' ≡ 'sequenceOf' 'traverse'
--- 'sequenceOf' l ≡ 'mapMOf' l id
--- 'sequenceOf' l ≡ 'unwrapMonad' . l 'WrapMonad'
+-- 'sequenceOf' l ≡ 'mapMOf' l 'id'
+-- 'sequenceOf' l ≡ 'unwrapMonad' '.' l 'WrapMonad'
 -- @
 --
 -- @
@@ -379,13 +381,13 @@ loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafe
 -- Parts and Holes
 -------------------------------------------------------------------------------
 
--- | 'partsOf' turns a 'Traversal' into a 'Lens' that resembles an early version of the @uniplate@ (or @biplate@) type.
+-- | 'partsOf' turns a 'Traversal' into a 'Lens' that resembles an early version of the 'Data.Data.Lens.uniplate' (or 'Data.Data.Lens.biplate') type.
 --
 -- /Note:/ You should really try to maintain the invariant of the number of children in the list.
 --
 -- Any extras will be lost. If you do not supply enough, then the remainder will come from the original structure.
 --
--- So technically, this is only a lens if you do not change the number of results it returns.
+-- So technically, this is only a 'Lens' if you do not change the number of results it returns.
 --
 -- When applied to a 'Fold' the result is merely a 'Getter'.
 --
@@ -419,10 +421,10 @@ ipartsOf' l f s = outs b <$> indexed f (is :: [i]) as where
   b = l sell s
 {-# INLINE ipartsOf' #-}
 
--- | 'unsafePartsOf' turns a 'Traversal' into a @uniplate@ (or @biplate@) family.
+-- | 'unsafePartsOf' turns a 'Traversal' into a 'Data.Data.Lens.uniplate' (or 'Data.Data.Lens.biplate') family.
 --
 -- If you do not need the types of @s@ and @t@ to be different, it is recommended that
--- you use 'partsOf'
+-- you use 'partsOf'.
 --
 -- It is generally safer to traverse with the 'Bazaar' rather than use this
 -- combinator. However, it is sometimes convenient.
@@ -460,13 +462,13 @@ iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
   b = l sell s
 {-# INLINE iunsafePartsOf' #-}
 
--- | The one-level version of 'contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
+-- | The one-level version of 'Control.Lens.Plated.contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
 --
--- Given a context you can use 'pos' to see the values, 'peek' at what the structure would be like with an edited result, or simply 'extract' the original structure.
+-- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the values, 'Control.Comonad.Store.Class.peek' at what the structure would be like with an edited result, or simply 'extract' the original structure.
 --
 -- @
--- propChildren l x = 'childrenOf' l x '==' 'map' 'pos' ('holesOf' l x)
--- propId l x = 'all' ('==' x) [extract w | w <- 'holesOf' l x]
+-- propChildren l x = 'childrenOf' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holesOf' l x)
+-- propId l x = 'all' ('==' x) ['extract' w | w <- 'holesOf' l x]
 -- @
 --
 -- @
@@ -487,7 +489,7 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 -- also be used to transform a non-empty 'Fold' into a 'Getter' or a non-empty 'MonadicFold' into an
 -- 'Action'.
 --
--- The resulting 'Lens', 'Getter', or 'Action' will be partial if the supplied traversal returns
+-- The resulting 'Lens', 'Getter', or 'Action' will be partial if the supplied 'Traversal' returns
 -- no results.
 --
 -- @
@@ -510,13 +512,13 @@ singular l pafb s = case pins b of
 -- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be
 -- used to transform a 'Fold' into a 'Getter' or a 'MonadicFold' into an 'Action'.
 --
--- The resulting 'Lens', 'Getter', or 'Action' will be partial if the Traversal targets nothing
+-- The resulting 'Lens', 'Getter', or 'Action' will be partial if the 'Traversal' targets nothing
 -- or more than one element.
 --
 -- @
--- 'unsafeSingular' :: 'Traversal' s t a b -> 'Lens' s t a b
--- 'unsafeSingular' :: 'Fold' s a          -> 'Getter' s a
--- 'unsafeSingular' :: 'MonadicFold' m s a -> 'Action' m s a
+-- 'unsafeSingular' :: 'Traversal' s t a b          -> 'Lens' s t a b
+-- 'unsafeSingular' :: 'Fold' s a                   -> 'Getter' s a
+-- 'unsafeSingular' :: 'MonadicFold' m s a          -> 'Action' m s a
 -- 'unsafeSingular' :: 'IndexedTraversal' i s t a b -> 'IndexedLens' i s t a b
 -- 'unsafeSingular' :: 'IndexedFold' i s a          -> 'IndexedGetter' i s a
 -- 'unsafeSingular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
@@ -588,14 +590,18 @@ both f ~(a,a') = (,) <$> f a <*> f a'
 -- 'beside' :: 'Getter' s a                       -> 'Getter' s' a                        -> 'Traversal' (s,s') a
 -- 'beside' :: 'Action' m s a                     -> 'Action' m s' a                      -> 'MonadicFold' m (s,s') a
 -- 'beside' :: 'MonadicFold' m s a                -> 'MonadicFold' m s' a                 -> 'MonadicFold' m (s,s') a
+-- @
 --
+-- @
 -- 'beside' :: 'IndexedTraversal' i s t a b       -> 'IndexedTraversal' i s' t' a b       -> 'IndexedTraversal' i (s,s') (t,t') a b
 -- 'beside' :: 'IndexedLens' i s t a b            -> 'IndexedLens' i s' t' a b            -> 'IndexedTraversal' i (s,s') (t,t') a b
 -- 'beside' :: 'IndexedFold' i s a                -> 'IndexedFold' i s' a                 -> 'IndexedFold' i (s,s') a
 -- 'beside' :: 'IndexedGetter' i s a              -> 'IndexedGetter' i s' a               -> 'IndexedTraversal' i (s,s') a
 -- 'beside' :: 'IndexedAction' i m s a            -> 'IndexedAction' i m s' a             -> 'IndexedMonadicFold' i m (s,s') a
 -- 'beside' :: 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s' a        -> 'IndexedMonadicFold' i m (s,s') a
+-- @
 --
+-- @
 -- 'beside' :: 'IndexPreservingTraversal' s t a b -> 'IndexPreservingTraversal' s' t' a b -> 'IndexPreservingTraversal' (s,s') (t,t') a b
 -- 'beside' :: 'IndexPreservingLens' s t a b      -> 'IndexPreservingLens' s' t' a b      -> 'IndexPreservingTraversal' (s,s') (t,t') a b
 -- 'beside' :: 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s' a           -> 'IndexPreservingFold' (s,s') a
@@ -629,29 +635,29 @@ beside l r f = tabulate $ \ ~(s,s') -> liftA2 (,) <$> rep (l f) s <*> rep (r f) 
 -- 'taking' :: 'Int' -> 'Lens'' s a                        -> 'Traversal'' s a
 -- 'taking' :: 'Int' -> 'Iso'' s a                         -> 'Traversal'' s a
 -- 'taking' :: 'Int' -> 'Prism'' s a                       -> 'Traversal'' s a
--- 'taking' :: 'Int' -> 'Getter' s a                       -> 'Fold'' s a
--- 'taking' :: 'Int' -> 'Fold' s a                         -> 'Fold'' s a
--- 'taking' :: 'Int' -> 'Action' m s a                     -> 'MonadicFold'' m s a
--- 'taking' :: 'Int' -> 'MonadicFold' m s a                -> 'MonadicFold'' m s a
+-- 'taking' :: 'Int' -> 'Getter' s a                       -> 'Fold' s a
+-- 'taking' :: 'Int' -> 'Fold' s a                         -> 'Fold' s a
+-- 'taking' :: 'Int' -> 'Action' m s a                     -> 'MonadicFold' m s a
+-- 'taking' :: 'Int' -> 'MonadicFold' m s a                -> 'MonadicFold' m s a
 -- 'taking' :: 'Int' -> 'IndexedTraversal'' i s a          -> 'IndexedTraversal'' i s a
 -- 'taking' :: 'Int' -> 'IndexedLens'' i s a               -> 'IndexedTraversal'' i s a
--- 'taking' :: 'Int' -> 'IndexedGetter' i s a              -> 'IndexedFold'' i s a
--- 'taking' :: 'Int' -> 'IndexedFold' i s a                -> 'IndexedFold'' i s a
--- 'taking' :: 'Int' -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold'' i m s a
--- 'taking' :: 'Int' -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold'' i m s a
+-- 'taking' :: 'Int' -> 'IndexedGetter' i s a              -> 'IndexedFold' i s a
+-- 'taking' :: 'Int' -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
+-- 'taking' :: 'Int' -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold' i m s a
+-- 'taking' :: 'Int' -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- 'taking' :: 'Int' -> 'IndexPreservingTraversal'' s a    -> 'IndexPreservingTraversal'' s a
 -- 'taking' :: 'Int' -> 'IndexPreservingLens'' s a         -> 'IndexPreservingTraversal'' s a
--- 'taking' :: 'Int' -> 'IndexPreservingGetter' s a        -> 'IndexPreservingFold'' s a
--- 'taking' :: 'Int' -> 'IndexPreservingFold' s a          -> 'IndexPreservingFold'' s a
--- 'taking' :: 'Int' -> 'IndexPreservingAction' m s a      -> 'IndexPreservingMonadicFold'' m s a
--- 'taking' :: 'Int' -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold'' m s a
+-- 'taking' :: 'Int' -> 'IndexPreservingGetter' s a        -> 'IndexPreservingFold' s a
+-- 'taking' :: 'Int' -> 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s a
+-- 'taking' :: 'Int' -> 'IndexPreservingAction' m s a      -> 'IndexPreservingMonadicFold' m s a
+-- 'taking' :: 'Int' -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s a
 -- @
 --
 -- With fewer generalizations, you'd have:
 --
 -- @
 -- 'taking' :: 'Applicative' f => 'Int' -> 'Traversing'' (->) f s a -> 'LensLike'' f s a
--- 'taking' n l f s = 'outs' b <$> 'traverse' f ('take' n $ 'ins' b) where b = l 'sell' s
+-- 'taking' n l f s = @outs@ b <$> 'traverse' f ('take' n '$' @ins@ b) where b = l 'sell' s
 -- @
 taking :: (Corepresentable p, Category p, Representable q, Applicative (Rep q), Monad (Rep q), Applicative f)
        => Int
@@ -677,27 +683,21 @@ taking n l pafb = tabulate $ \s -> do
 -- Just 2
 --
 -- @
--- 'dropping' :: 'Int' -> 'Traversal'' s a             -> 'Traversal'' s a
--- 'dropping' :: 'Int' -> 'Lens'' s a                  -> 'Traversal'' s a
--- 'dropping' :: 'Int' -> 'Iso'' s a                   -> 'Traversal'' s a
--- 'dropping' :: 'Int' -> 'Prism'' s a                 -> 'Traversal'' s a
---
--- 'dropping' :: 'Int' -> 'Fold' s a                   -> 'Fold' s a
--- 'dropping' :: 'Int' -> 'Getter' s a                 -> 'Fold' s a
---
--- 'dropping' :: 'Int' -> 'Action' m s a               -> 'MonadicFold'' m s a
--- 'dropping' :: 'Int' -> 'MonadicFold' m s a          -> 'MonadicFold'' m s a
---
--- 'dropping' :: 'Int' -> 'IndexedTraversal'' i s a    -> 'IndexedTraversal'' i s a
--- 'dropping' :: 'Int' -> 'IndexedLens'' i s a         -> 'IndexedTraversal'' i s a
---
--- 'dropping' :: 'Int' -> 'IndexedFold' i s a          -> 'IndexedFold' s a
--- 'dropping' :: 'Int' -> 'IndexedGetter' i s a        -> 'IndexedFold' s a
---
--- 'dropping' :: 'Int' -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold'' i m s a
--- 'dropping' :: 'Int' -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold'' i m s a
+-- 'dropping' :: 'Int' -> 'Traversal'' s a                   -> 'Traversal'' s a
+-- 'dropping' :: 'Int' -> 'Lens'' s a                        -> 'Traversal'' s a
+-- 'dropping' :: 'Int' -> 'Iso'' s a                         -> 'Traversal'' s a
+-- 'dropping' :: 'Int' -> 'Prism'' s a                       -> 'Traversal'' s a
+-- 'dropping' :: 'Int' -> 'Getter' s a                       -> 'Fold' s a
+-- 'dropping' :: 'Int' -> 'Fold' s a                         -> 'Fold' s a
+-- 'dropping' :: 'Int' -> 'Action' m s a                     -> 'MonadicFold' m s a
+-- 'dropping' :: 'Int' -> 'MonadicFold' m s a                -> 'MonadicFold' m s a
+-- 'dropping' :: 'Int' -> 'IndexedTraversal'' i s a          -> 'IndexedTraversal'' i s a
+-- 'dropping' :: 'Int' -> 'IndexedLens'' i s a               -> 'IndexedTraversal'' i s a
+-- 'dropping' :: 'Int' -> 'IndexedGetter' i s a              -> 'IndexedFold' i s a
+-- 'dropping' :: 'Int' -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
+-- 'dropping' :: 'Int' -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold' i m s a
+-- 'dropping' :: 'Int' -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- @
-
 dropping :: (Corepresentable p, Comonad (Corep p), Applicative f) => Int -> Overloading p (->) (Indexing f) s t a a -> Overloading p (->) f s t a a
 dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
   paifb = cotabulate $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (i', if i < n then pure (extract wa) else corep pafb wa)
@@ -714,11 +714,12 @@ dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
 -- used as a way to pass around traversals that have to be monomorphic in @f@.
 --
 -- Note: This only accepts a proper 'Traversal' (or 'Lens'). To clone a 'Lens'
--- as such, use 'cloneLens'
+-- as such, use 'Control.Lens.Lens.cloneLens'.
 --
--- Note: It is usually better to 'ReifyTraversal' and use 'reflectTraversal'
--- than to 'cloneTraversal'. The former can execute at full speed, while the
--- latter needs to round trip through the 'Bazaar'.
+-- Note: It is usually better to use 'Control.Lens.Reified.ReifiedTraversal' and
+-- 'Control.Lens.Reified.reflectTraversal' than to 'cloneTraversal'. The
+-- former can execute at full speed, while the latter needs to round trip through
+-- the 'Bazaar'.
 --
 -- >>> let foo l a = (view (cloneTraversal l) a, set (cloneTraversal l) 10 a)
 -- >>> foo both ("hello","world")
@@ -759,8 +760,7 @@ itraverseOf :: (Indexed i a (f b) -> s -> f t) -> (i -> a -> f b) -> s -> f t
 itraverseOf l = l .# Indexed
 {-# INLINE itraverseOf #-}
 
--- |
--- Traverse with an index (and the arguments flipped)
+-- | Traverse with an index (and the arguments flipped).
 --
 -- @
 -- 'Control.Lens.Traversal.forOf' l a ≡ 'iforOf' l a '.' 'const'
@@ -781,7 +781,9 @@ iforOf = flip . itraverseOf
 --
 -- When you don't need access to the index 'mapMOf' is more liberal in what it can accept.
 --
--- @'Control.Lens.Traversal.mapMOf' l ≡ 'imapMOf' l '.' 'const'@
+-- @
+-- 'Control.Lens.Traversal.mapMOf' l ≡ 'imapMOf' l '.' 'const'
+-- @
 --
 -- @
 -- 'imapMOf' :: 'Monad' m => 'IndexedLens'      i s t a b -> (i -> a -> m b) -> s -> m t
