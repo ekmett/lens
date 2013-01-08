@@ -55,13 +55,12 @@ import Unsafe.Coerce
 -- Prism Internals
 ------------------------------------------------------------------------------
 
-
 -- | If you see this in a signature for a function, the function is expecting a 'Prism'.
 type APrism s t a b = Market a b a (Mutator b) -> Market a b s (Mutator t)
 
 type APrism' s a = APrism s s a a
 
--- | Safely decompose 'APrism'
+-- | Safely decompose 'APrism'.
 runPrism :: APrism s t a b -> (b -> t, s -> Either t a)
 #ifdef SAFE
 runPrism k = case runMarket (k (Market (Mutator, Right))) of
@@ -73,7 +72,7 @@ runPrism k = unsafeCoerce (runMarket (k (Market (Mutator, Right))))
 
 -- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.
 --
--- See 'cloneLens' and 'cloneTraversal' for examples of why you might want to do this.
+-- See 'Control.Lens.Lens.cloneLens' and 'Control.Lens.Traversal.cloneTraversal' for examples of why you might want to do this.
 clonePrism :: APrism s t a b -> Prism s t a b
 clonePrism k = case runPrism k of
   (bt, sa) -> prism bt sa
@@ -111,9 +110,9 @@ aside k = case runPrism k of
     Right a -> Right (e,a)
 {-# INLINE aside #-}
 
--- | Given a pair of prisms, project sums.
+-- | Given a pair of 'Prism's, project sums.
 --
--- Viewing a 'Prism' as a co-lens, this combinator can be seen to be dual to 'alongside'.
+-- Viewing a 'Prism' as a co-'Lens', this combinator can be seen to be dual to 'Control.Lens.Lens.alongside'.
 without :: APrism s t a b
         -> APrism u v c d
         -> Prism (Either s u) (Either t v) (Either a c) (Either b d)
@@ -128,7 +127,7 @@ without k = case runPrism k of
 -- Common Prisms
 ------------------------------------------------------------------------------
 
--- | This prism provides a traversal for tweaking the left-hand value of an 'Either':
+-- | This 'Prism' provides a traversal for tweaking the left-hand value of an 'Either':
 --
 -- >>> over _left (+1) (Left 2)
 -- Left 3
@@ -150,7 +149,7 @@ _left :: Prism (Either a c) (Either b c) a b
 _left = prism Left $ either Right (Left . Right)
 {-# INLINE _left #-}
 
--- | This prism provides a traversal for tweaking the right-hand value of an 'Either':
+-- | This 'Prism' provides a traversal for tweaking the right-hand value of an 'Either':
 --
 -- >>> over _right (+1) (Left 2)
 -- Left 2
@@ -172,7 +171,7 @@ _right :: Prism (Either c a) (Either c b) a b
 _right = prism Right $ either (Left . Left) Right
 {-# INLINE _right #-}
 
--- | This prism provides a traversal for tweaking the target of the value of 'Just' in a 'Maybe'.
+-- | This 'Prism' provides a traversal for tweaking the target of the value of 'Just' in a 'Maybe'.
 --
 -- >>> over _just (+1) (Just 2)
 -- Just 3
