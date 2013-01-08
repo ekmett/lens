@@ -29,12 +29,13 @@
 -- <http://community.haskell.org/~ndm/uniplate/>
 --
 -- The combinators in here are designed to be compatible with and subsume the
--- 'uniplate' API with the notion of a 'Traversal' replacing a uniplate or
--- biplate.
+-- 'uniplate' API with the notion of a 'Traversal' replacing
+-- a 'Data.Data.Lens.uniplate' or 'Data.Data.Lens.biplate'.
 --
--- By implementing these combinators in terms of 'plate' instead of 'uniplate'
--- additional type safety is gained, as the user is no longer responsible for
--- maintaining invariants such as the number of children they received.
+-- By implementing these combinators in terms of 'plate' instead of
+-- 'Data.Data.Lens.uniplate' additional type safety is gained, as the user is
+-- no longer responsible for maintaining invariants such as the number of
+-- children they received.
 --
 -- Note: The @Biplate@ is /deliberately/ excluded from the API here, with the
 -- intention that you replace them with either explicit traversals, or by using the
@@ -230,7 +231,7 @@ children = toListOf plate
 -- | Rewrite by applying a rule everywhere you can. Ensures that the rule cannot
 -- be applied anywhere in the result:
 --
--- @propRewrite r x = 'all' ('Data.Just.isNothing' . r) ('universe' ('rewrite' r x))@
+-- @propRewrite r x = 'all' ('Data.Just.isNothing' '.' r) ('universe' ('rewrite' r x))@
 --
 -- Usually 'transform' is more appropriate, but 'rewrite' can give better
 -- compositionality. Given two single transformations @f@ and @g@, you can
@@ -242,7 +243,7 @@ rewrite = rewriteOf plate
 -- | Rewrite by applying a rule everywhere you can. Ensures that the rule cannot
 -- be applied anywhere in the result:
 --
--- @propRewriteOf l r x = 'all' ('Data.Just.isNothing' . r) ('universeOf' l ('rewriteOf' l r x))@
+-- @propRewriteOf l r x = 'all' ('Data.Just.isNothing' '.' r) ('universeOf' l ('rewriteOf' l r x))@
 --
 -- Usually 'transformOf' is more appropriate, but 'rewriteOf' can give better
 -- compositionality. Given two single transformations @f@ and @g@, you can
@@ -422,8 +423,8 @@ transformMOnOf b l = mapMOf b . transformMOf l
 -- | Return a list of all of the editable contexts for every location in the structure, recursively.
 --
 -- @
--- propUniverse x = 'universe' x == 'map' 'pos' ('contexts' x)
--- propId x = 'all' ('==' x) [extract w | w <- 'contexts' x]
+-- propUniverse x = 'universe' x == 'map' 'Control.Comonad.Store.Class.pos' ('contexts' x)
+-- propId x = 'all' ('==' x) ['extract' w | w <- 'contexts' x]
 -- @
 --
 -- @'contexts' ≡ 'contextsOf' 'plate'@
@@ -434,8 +435,8 @@ contexts = contextsOf plate
 -- | Return a list of all of the editable contexts for every location in the structure, recursively, using a user-specified 'Traversal' to walk each layer.
 --
 -- @
--- propUniverse l x = 'universeOf' l x == 'map' 'pos' ('contextsOf' l x)
--- propId l x = 'all' ('==' x) [extract w | w <- 'contextsOf' l x]
+-- propUniverse l x = 'universeOf' l x == 'map' 'Control.Comonad.Store.Class.pos' ('contextsOf' l x)
+-- propId l x = 'all' ('==' x) ['extract' w | w <- 'contextsOf' l x]
 -- @
 --
 -- @'contextsOf' :: 'Traversal'' a a -> a -> ['Context' a a]@
@@ -470,11 +471,11 @@ contextsOnOf b l = f . map context . holesOf b where
 
 -- | The one-level version of 'context'. This extracts a list of the immediate children as editable contexts.
 --
--- Given a context you can use 'pos' to see the values, 'peek' at what the structure would be like with an edited result, or simply 'extract' the original structure.
+-- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the values, 'Control.Comonad.Store.Class.peek' at what the structure would be like with an edited result, or simply 'extract' the original structure.
 --
 -- @
--- propChildren x = 'children' l x '==' 'map' 'pos' ('holes' l x)
--- propId x = 'all' ('==' x) [extract w | w <- 'holes' l x]
+-- propChildren x = 'children' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holes' l x)
+-- propId x = 'all' ('==' x) ['extract' w | w <- 'holes' l x]
 -- @
 --
 -- @'holes' = 'holesOf' 'plate'@
@@ -568,8 +569,8 @@ composOpFold z c f = foldrOf plate (c . f) z
 --
 -- @'parts' ≡ 'partsOf' 'plate'@
 --
--- The resulting lens is safer to use as it ignores 'over-application' and deals gracefully with under-application,
--- but it is only a proper lens if you don't change the list 'length'!
+-- The resulting 'Lens' is safer to use as it ignores 'over-application' and deals gracefully with under-application,
+-- but it is only a proper 'Lens' if you don't change the list 'length'!
 parts :: Plated a => Lens' a [a]
 parts = partsOf plate
 {-# INLINE parts #-}
