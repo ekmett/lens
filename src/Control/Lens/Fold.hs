@@ -82,6 +82,7 @@ module Control.Lens.Fold
   , findOf
   , foldrOf', foldlOf'
   , foldr1Of, foldl1Of
+  , foldr1Of', foldl1Of'
   , foldrMOf, foldlMOf
 
   -- * Indexed Folds
@@ -1093,7 +1094,7 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
 -- that the 'Lens' views at least one element of the structure.
 --
 -- @
--- 'foldl1Of' l f ≡ 'Prelude.foldl1Of' l f . 'toList'
+-- 'foldl1Of' l f ≡ 'Prelude.foldl1' f . 'toListOf' l
 -- 'Data.Foldable.foldl1' ≡ 'foldl1Of' 'folded'
 -- @
 --
@@ -1141,6 +1142,45 @@ foldlOf' :: Getting (Endo (r -> r)) s t a b -> (r -> a -> r) -> r -> s -> r
 foldlOf' l f z0 xs = foldrOf l f' id xs z0
   where f' x k z = k $! f z x
 {-# INLINE foldlOf' #-}
+
+-- |
+-- A variant of 'foldrOf'' that has no base case and thus may only be applied
+-- to folds and structures such that the fold views at least one element of the
+-- structure.
+--
+-- @'foldr1Of' l f ≡ 'Prelude.foldr1' f '.' 'toListOf' l@
+--
+-- @
+-- 'foldr1Of'' :: 'Getter' s a     -> (a -> a -> a) -> s -> a
+-- 'foldr1Of'' :: 'Fold' s a       -> (a -> a -> a) -> s -> a
+-- 'foldr1Of'' :: 'Iso'' s a       -> (a -> a -> a) -> s -> a
+-- 'foldr1Of'' :: 'Lens'' s a      -> (a -> a -> a) -> s -> a
+-- 'foldr1Of'' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
+-- @
+foldr1Of' :: Getting (Dual (Endo (Maybe a -> Maybe a))) s t a b -> (a -> a -> a) -> s -> a
+foldr1Of' l f xs = fromMaybe (error "foldr1Of': empty structure") (foldrOf' l mf Nothing xs) where
+  mf x Nothing = Just $! x
+  mf x (Just y) = Just $! f x y
+{-# INLINE foldr1Of' #-}
+
+-- | A variant of 'foldlOf'' that has no base case and thus may only be applied
+-- to folds and structures such that the 'Fold' views at least one element of
+-- the structure.
+--
+-- @'foldl1Of'' l f ≡ 'foldl1'' f . 'toListOf' l@
+--
+-- @
+-- 'foldl1Of'' :: 'Getter' s a     -> (a -> a -> a) -> s -> a
+-- 'foldl1Of'' :: 'Fold' s a       -> (a -> a -> a) -> s -> a
+-- 'foldl1Of'' :: 'Iso'' s a       -> (a -> a -> a) -> s -> a
+-- 'foldl1Of'' :: 'Lens'' s a      -> (a -> a -> a) -> s -> a
+-- 'foldl1Of'' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
+-- @
+foldl1Of' :: Getting (Endo (Maybe a -> Maybe a)) s t a b -> (a -> a -> a) -> s -> a
+foldl1Of' l f xs = fromMaybe (error "foldl1Of': empty structure") (foldlOf' l mf Nothing xs) where
+  mf Nothing y = Just $! y
+  mf (Just x) y = Just $! f x y
+{-# INLINE foldl1Of' #-}
 
 -- | Monadic fold over the elements of a structure, associating to the right,
 -- i.e. from right to left.
