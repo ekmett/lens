@@ -1,7 +1,6 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Brainfuck
@@ -34,13 +33,6 @@ import System.IO
 memoryCellNum :: Int
 memoryCellNum = 30000
 
--- Missing Fix-point stuff
-
-newtype Fix f = Fix (f (Fix f))
-
-cata :: Functor f => (f a -> a) -> Fix f -> a
-cata f (Fix m) = f $ cata f <$> m
-
 -- Low level syntax form
 
 data Instr = Plus | Minus | Right | Left | Comma | Dot | Open | Close
@@ -53,37 +45,33 @@ parse = mapMaybe (`lookup` symbols)
 
 -- Higher level semantic graph
 
-data Brainfuck n
-  = Succ n | Pred n  -- Increment or decrement the current value
-  | Next n | Prev n  -- Shift memory left or right
-  | Read n | Write n -- Input or output the current value
-  | Halt             -- End execution
+data Program
+  = Succ Program | Pred Program  -- Increment or decrement the current value
+  | Next Program | Prev Program  -- Shift memory left or right
+  | Read Program | Write Program -- Input or output the current value
+  | Halt                         -- End execution
 
   -- Branching semantic, used for both sides of loops
-  | Branch { zero :: n, nonzero :: n }
-
-  deriving Functor
-
-type Program = Fix Brainfuck
+  | Branch { zero :: Program, nonzero :: Program }
 
 compile :: Code -> Program
 compile = fst . bracket []
 
 bracket :: [Program] -> Code -> (Program, [Program])
-bracket [] []        = (Fix Halt, [])
+bracket [] []        = (Halt, [])
 bracket _  []        = error "Mismatched opening bracket"
 bracket [] (Close:_) = error "Mismatched closing bracket"
 
 -- Match a closing bracket: Pop a forward continuation, push backwards
-bracket (c:cs) (Close : xs) = (Fix (Branch n c), n:bs)
+bracket (c:cs) (Close : xs) = (Branch n c, n:bs)
   where (n, bs) = bracket cs xs
 
 -- Match an opening bracket: Pop a backwards continuation, push forwards
-bracket cs (Open : xs) = (Fix (Branch b n), bs)
+bracket cs (Open : xs) = (Branch b n, bs)
   where (n, b:bs) = bracket (n:cs) xs
 
 -- Match any other symbol in the trivial way
-bracket cs (x:xs) = over _1 (Fix . f x) (bracket cs xs)
+bracket cs (x:xs) = over _1 (f x) (bracket cs xs)
   where
     f Plus  = Succ; f Minus = Pred
     f Right = Next; f Left  = Prev
@@ -112,26 +100,22 @@ interpret i = execWriter . flip execStateT (initial i) . run
 
 -- | Evaluation function
 run :: Program -> Interpreter
-run = cata $ \case
-    Halt   -> return ()
-    Succ n -> memory.focus += 1   >> n
-    Pred n -> memory.focus -= 1   >> n
-    Next n -> memory %= wrapRight >> n
-    Prev n -> memory %= wrapLeft  >> n
-
-    Read n -> do
-      memory.focus <~ uses input head
-      input %= tail
-      n
-
-    Write n -> do
-      x <- use (memory.focus)
-      tell [x]
-      n
-
-    Branch z n -> do
-      c <- use (memory.focus)
-      if c == 0 then z else n
+run Halt     = return ()
+run (Succ n) = memory.focus += 1   >> run n
+run (Pred n) = memory.focus -= 1   >> run n
+run (Next n) = memory %= wrapRight >> run n
+run (Prev n) = memory %= wrapLeft  >> run n
+run (Read n) = do
+  memory.focus <~ uses input head
+  input %= tail
+  run n
+run (Write n) = do
+  x <- use (memory.focus)
+  tell [x]
+  run n
+run (Branch z n) = do
+  c <- use (memory.focus)
+  run $ if c == 0 then z else n
 
 -- | Zipper helpers
 wrapRight, wrapLeft :: (a :>> b) -> (a :>> b)
