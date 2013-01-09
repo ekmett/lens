@@ -38,14 +38,6 @@ memoryCellNum = 30000
 
 -- Low level syntax form
 
-data Instr = Plus | Minus | Right | Left | Comma | Dot | Open | Close
-type Code = [Instr]
-
-parse :: String -> Code
-parse = mapMaybe (`lookup` symbols)
-  where symbols = [ ('+', Plus ), ('-', Minus), ('<', Left), ('>', Right)
-                  , (',', Comma), ('.', Dot  ), ('[', Open), (']', Close) ]
-
 -- Higher level semantic graph
 
 -- * State/Writer-based interpreter
@@ -63,7 +55,7 @@ makeLenses ''MachineState
 
 type Program = StateT MachineState (Writer Output) ()
 
-compile :: Code -> Program
+compile :: String -> Program
 compile = fst . bracket []
 
 branch :: Program -> Program -> Program
@@ -71,32 +63,32 @@ branch z n = do
   c <- use (memory.focus)
   if c == 0 then z else n
 
-bracket :: [Program] -> Code -> (Program, [Program])
-bracket [] []        = (return () , [])
-bracket _  []        = error "Mismatched opening bracket"
-bracket [] (Close:_) = error "Mismatched closing bracket"
+bracket :: [Program] -> String -> (Program, [Program])
+bracket [] ""      = (return () , [])
+bracket _  ""      = error "Mismatched opening bracket"
+bracket [] (']':_) = error "Mismatched closing bracket"
 
 -- Match a closing bracket: Pop a forward continuation, push backwards
-bracket (c:cs) (Close : xs) = (branch n c, n:bs) where
+bracket (c:cs) (']': xs) = (branch n c, n:bs) where
   (n, bs) = bracket cs xs
 
 -- Match an opening bracket: Pop a backwards continuation, push forwards
-bracket cs (Open : xs) = (branch b n, bs) where
+bracket cs ('[': xs) = (branch b n, bs) where
   (n, b:bs) = bracket (n:cs) xs
 
 -- Match any other symbol in the trivial way
-bracket cs (x:xs) = over _1 (f x >>) (bracket cs xs)
-  where
-    f Plus  = memory.focus += 1
-    f Minus = memory.focus -= 1
-    f Right = memory %= wrapRight
-    f Left  = memory %= wrapLeft
-    f Comma = do
-      memory.focus <~ uses input head
-      input %= tail
-    f Dot   = do
-      x <- use (memory.focus)
-      tell [x]
+bracket cs (x:xs) = over _1 (f x >>) (bracket cs xs) where
+  f '+' = memory.focus += 1
+  f '-' = memory.focus -= 1
+  f '>' = memory %= wrapRight
+  f '<' = memory %= wrapLeft
+  f ',' = do
+    memory.focus <~ uses input head
+    input %= tail
+  f '.' = do
+    x <- use (memory.focus)
+    tell [x]
+  f _   = return ()
 
 -- | Initial memory configuration
 initial :: Input -> MachineState
@@ -129,7 +121,7 @@ main = do
     _ -> putStrLn "Usage: brainfuck [program]"
 
 eval :: Input -> String -> IO ()
-eval i = mapM_ putByte . interpret i . compile . parse
+eval i = mapM_ putByte . interpret i . compile
   where putByte = BS.putStr . BS.pack . return
 
 -- | EOF is represented as 0
