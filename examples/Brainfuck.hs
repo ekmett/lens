@@ -1,4 +1,7 @@
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Brainfuck
@@ -17,17 +20,26 @@ import Prelude hiding (Either(..))
 
 import Control.Lens
 import Control.Applicative
-import Control.Monad.Free
-import Control.Monad.RWS
+import Control.Monad.State
+import Control.Monad.Writer
 
 import qualified Data.ByteString.Lazy as BS
-import Data.Maybe (fromMaybe)
-import qualified Data.Stream.Infinite as S
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Word (Word8)
 
 import System.Environment (getArgs)
 import System.IO
 
+-- | Brainfuck is defined to have a memory of 30000 cells.
+memoryCellNum :: Int
+memoryCellNum = 30000
+
+-- Missing Fix-point stuff
+
+newtype Fix f = Fix (f (Fix f))
+
+cata :: Functor f => (f a -> a) -> Fix f -> a
+cata f (Fix m) = f $ cata f <$> m
 
 -- Low level syntax form
 
@@ -35,7 +47,7 @@ data Instr = Plus | Minus | Right | Left | Comma | Dot | Open | Close
 type Code = [Instr]
 
 parse :: String -> Code
-parse = concatMap (maybe [] return . (`lookup` symbols))
+parse = mapMaybe (`lookup` symbols)
   where symbols = [ ('+', Plus ), ('-', Minus), ('<', Left), ('>', Right)
                   , (',', Comma), ('.', Dot  ), ('[', Open), (']', Close) ]
 
@@ -45,71 +57,81 @@ data Brainfuck n
   = Succ n | Pred n  -- Increment or decrement the current value
   | Next n | Prev n  -- Shift memory left or right
   | Read n | Write n -- Input or output the current value
+  | Halt             -- End execution
 
   -- Branching semantic, used for both sides of loops
   | Branch { zero :: n, nonzero :: n }
 
-type Program = Free Brainfuck ()
+  deriving Functor
+
+type Program = Fix Brainfuck
 
 compile :: Code -> Program
 compile = fst . bracket []
 
 bracket :: [Program] -> Code -> (Program, [Program])
-bracket [] []        = (Pure (), [])
+bracket [] []        = (Fix Halt, [])
 bracket _  []        = error "Mismatched opening bracket"
 bracket [] (Close:_) = error "Mismatched closing bracket"
 
 -- Match a closing bracket: Pop a forward continuation, push backwards
-bracket (c:cs) (Close : xs) = (Free (Branch n c), n:bs)
+bracket (c:cs) (Close : xs) = (Fix (Branch n c), n:bs)
   where (n, bs) = bracket cs xs
 
 -- Match an opening bracket: Pop a backwards continuation, push forwards
-bracket cs (Open : xs) = (Free (Branch b n), bs)
+bracket cs (Open : xs) = (Fix (Branch b n), bs)
   where (n, b:bs) = bracket (n:cs) xs
 
 -- Match any other symbol in the trivial way
-bracket cs (x:xs) = over _1 (Free . f x) (bracket cs xs)
+bracket cs (x:xs) = over _1 (Fix . f x) (bracket cs xs)
   where
     f Plus  = Succ; f Minus = Pred
     f Right = Next; f Left  = Prev
     f Comma = Read; f Dot   = Write
 
--- * RWS-based interpreter
+-- * State/Writer-based interpreter
 
 type Cell   = Word8
-type Input  = S.Stream Cell
+type Input  = [Cell]
 type Output = [Cell]
 type Memory = Top :>> [Cell] :>> Cell -- list zipper
 
-type Interpreter = RWS Input Output Memory ()
+data MachineState = MachineState
+  { _input  :: [Cell]
+  , _memory :: Memory }
+makeLenses ''MachineState
+
+type Interpreter = StateT MachineState (Writer Output) ()
 
 -- | Initial memory configuration
-initial :: Memory
-initial = zipper (replicate 30000 0) & fromWithin traverse
+initial :: Input -> MachineState
+initial i = MachineState i (zipper (replicate memoryCellNum 0) & fromWithin traverse)
 
 interpret :: Input -> Program -> Output
-interpret i p = snd $ execRWS (run p) i initial
+interpret i = execWriter . flip execStateT (initial i) . run
 
 -- | Evaluation function
 run :: Program -> Interpreter
-run (Pure _) = return ()
-run (Free f) = case f of
-  Succ n -> focus += 1       >> run n
-  Pred n -> focus -= 1       >> run n
-  Next n -> modify wrapRight >> run n
-  Prev n -> modify wrapLeft  >> run n
+run = cata $ \case
+    Halt   -> return ()
+    Succ n -> memory.focus += 1   >> n
+    Pred n -> memory.focus -= 1   >> n
+    Next n -> memory %= wrapRight >> n
+    Prev n -> memory %= wrapLeft  >> n
 
-  Read n -> do
-    focus <~ asks S.head
-    local S.tail $ run n
+    Read n -> do
+      memory.focus <~ uses input head
+      input %= tail
+      n
 
-  Write n -> do
-    tell . return =<< use focus
-    run n
+    Write n -> do
+      x <- use (memory.focus)
+      tell [x]
+      n
 
-  Branch z n -> do
-    c <- use focus
-    run $ case c of 0 -> z; _ -> n
+    Branch z n -> do
+      c <- use (memory.focus)
+      if c == 0 then z else n
 
 -- | Zipper helpers
 wrapRight, wrapLeft :: (a :>> b) -> (a :>> b)
@@ -141,7 +163,7 @@ eval i = mapM_ putByte . interpret i . compile . parse
 -- | EOF is represented as 0
 getInput :: IO Input
 getInput = f <$> BS.getContents
-  where f s = S.fromList (BS.unpack s ++ repeat 0)
+  where f s = BS.unpack s ++ repeat 0
 
 noInput :: Input
-noInput = S.repeat 0
+noInput = repeat 0
