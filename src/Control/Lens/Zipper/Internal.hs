@@ -274,7 +274,7 @@ rightward :: MonadPlus m => h :> a:@i -> m (h :> a:@i)
 rightward (Zipper h t o p i a) = mover p (Leaf i a) mzero $ \q j b -> return $ Zipper h t (o + 1) q j b where
 {-# INLINE rightward #-}
 
--- | Jerk the 'zipper' 'leftward' one 'tooth' within the current 'Lens' or 'Traversal'.
+-- | Jerk the 'Zipper' 'leftward' one 'tooth' within the current 'Lens' or 'Traversal'.
 --
 -- Attempts to move past the end of the current 'Traversal' (or trivially, the current 'Lens')
 -- will return 'Nothing'.
@@ -314,7 +314,7 @@ rightmost :: a :> b:@i -> a :> b:@i
 rightmost (Zipper h _ _ p i a) = startr Start (recompress p i a) (error "rightmost: bad Magma structure") (\q -> Zipper h (offset q) 0 q)
 {-# INLINE rightmost #-}
 
--- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'zipper'. This
+-- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'Zipper'. This
 -- will attempt the move, and stay where it was if it fails.
 --
 -- The more general signature allows its use in other circumstances, however.
@@ -330,7 +330,7 @@ tug :: (a -> Maybe a) -> a -> a
 tug f a = fromMaybe a (f a)
 {-# INLINE tug #-}
 
--- | This allows you to safely @'tug' 'leftward'@ or @'tug' 'rightward'@ multiple times on a 'zipper',
+-- | This allows you to safely @'tug' 'leftward'@ or @'tug' 'rightward'@ multiple times on a 'Zipper',
 -- moving multiple steps in a given direction and stopping at the last place you
 -- couldn't move from. This lets you safely move a zipper, because it will stop at either end.
 --
@@ -350,7 +350,7 @@ tugs f n0
 
 -- | Move in a direction as far as you can go, then stop there.
 --
--- This repeatedly applies a function until it returns Nothing, and then returns the last answer.
+-- This repeatedly applies a function until it returns 'Nothing', and then returns the last answer.
 --
 -- >>> fmap rezip $ zipper ("hello","world") & downward _1 & within traverse <&> rightmost <&> focus .~ 'a'
 -- ("hella","world")
@@ -362,7 +362,7 @@ farthest f = go where
   go a = maybe a go (f a)
 {-# INLINE farthest #-}
 
--- | This allows for you to repeatedly pull a 'zipper' in a given direction, failing if it falls off the end.
+-- | This allows for you to repeatedly pull a 'Zipper' in a given direction, failing if it falls off the end.
 --
 -- >>> isNothing $ zipper "hello" & within traverse >>= jerks rightward 10
 -- True
@@ -378,7 +378,7 @@ jerks f n0
     go n a = f a >>= go (n - 1)
 {-# INLINE jerks #-}
 
--- | Returns the number of siblings at the current level in the 'zipper'.
+-- | Returns the number of siblings at the current level in the 'Zipper'.
 --
 -- @'teeth' z '>=' 1@
 --
