@@ -23,12 +23,10 @@ import Numeric (readInt, showIntAtBase)
 -- >>> 1767707668033969 ^. remit (base 36)
 -- "helloworld"
 base :: (Integral a, Show a) => a -> Prism' String a
-base b = validateBase `seq` prism intShow intRead
+base b
+  | b < 2 || b > 36 = error ("base: Invalid base " ++ show b)
+  | otherwise       = prism intShow intRead
   where
-    validateBase
-      | b >= 2 && b <= 36 = ()
-      | otherwise = error ("base: Invalid base " ++ show b)
-
     intShow n = showSigned' (showIntAtBase b intToDigit') n ""
 
     intRead s =
