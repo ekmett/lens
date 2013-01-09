@@ -22,6 +22,7 @@
 * Added `Control.Lens.Level` which provides the breadth-first-search Traversals `levels` and `ilevels` which can be used to do (optionally depth-limited) breadth-first searches through arbitrary traversals reaching all leaves at finite depth in finite time. To use these in full accordance with the laws you should restrict yourself to commutative operations and finite containers, but they are useful even in the absence of these properties.
 * Added `Control.Lens.Review` which factors the `review` functionality out of `Prism` and exposes `unto`, which is to `review` what `to` is to `view`.
 * Added `contramapped` and `argument` for mapping over inputs.
+* Added `foldr1Of'` and `foldl1Of'`.
 
 3.7.3 [maintenance release]
 -----
