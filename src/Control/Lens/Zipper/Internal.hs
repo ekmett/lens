@@ -163,12 +163,12 @@ data Top
 --
 -- @'Top' ':>>' ('String','Double') ':>>' 'String' ':>>' 'Char'@
 --
--- to represent a zipper from @('String','Double')@ down to 'Char' that has an intermediate
+-- to represent a 'Zipper' from @('String','Double')@ down to 'Char' that has an intermediate
 -- crumb for the 'String' containing the 'Char'.
 --
--- You can construct a zipper into *any* data structure with 'zipper'.
+-- You can construct a 'Zipper' into *any* data structure with 'zipper'.
 --
--- You can repackage up the contents of a zipper with 'rezip'.
+-- You can repackage up the contents of a 'Zipper' with 'rezip'.
 --
 -- >>> rezip $ zipper 42
 -- 42
@@ -237,7 +237,7 @@ focalPoint (Zipper _ _ _ _ i _) = i
 --
 -- @'jerkTo' ('tooth' l) l = Just'@
 --
--- Mnemonically, zippers have a number of 'teeth' within each level. This is which 'tooth' you are currently at.
+-- Mnemonically, 'Zipper's have a number of 'teeth' within each level. This is which 'tooth' you are currently at.
 --
 -- This is based on ordinal position regardless of the underlying index type. It may be excessively expensive for a list.
 --
@@ -412,7 +412,7 @@ teeth (Zipper _ _ _ p _ _) = pathsize p
 --
 -- This returns 'Nothing' if the target element doesn't exist.
 --
--- @'jerkTo' n ≡ 'jerks' 'rightward' n . 'farthest' 'leftward'@
+-- @'jerkTo' n ≡ 'jerks' 'rightward' n '.' 'farthest' 'leftward'@
 --
 -- >>> isNothing $ zipper "not working." & jerkTo 20
 -- True
@@ -433,9 +433,9 @@ jerkTo n z = case compare k n of
 -- | Move the 'Zipper' horizontally to the element in the @n@th position of the
 -- current level, absolutely indexed, starting with the 'farthest' 'leftward' as @0@.
 --
--- If the element at that position doesn't exist, then this will clamp to the range @0 <= n < 'teeth'@.
+-- If the element at that position doesn't exist, then this will clamp to the range @0 '<=' n '<' 'teeth'@.
 --
--- @'tugTo' n ≡ 'tugs' 'rightward' n . 'farthest' 'leftward'@
+-- @'tugTo' n ≡ 'tugs' 'rightward' n '.' 'farthest' 'leftward'@
 --
 -- >>> rezip $ zipper "not working." & fromWithin traverse & tugTo 100 & focus .~ '!' & tugTo 1 & focus .~ 'u'
 -- "nut working!"
@@ -461,7 +461,7 @@ moveToward i z@(Zipper h _ _ p0 j s0)
 {-# INLINE moveToward #-}
 
 -- | Move horizontally to a particular index @i@ in the current
--- 'Traversal'. In the case of simple zippers, the index is 'Int' and
+-- 'Traversal'. In the case of simple 'Zipper's, the index is 'Int' and
 -- we can move between traverals fairly easily:
 --
 -- >>> zipper (42, 32) & fromWithin both & moveTo 0 <&> view focus
@@ -508,10 +508,10 @@ idownward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start i a
 -- | Step down into the 'leftmost' entry of a 'Traversal'.
 --
 -- @
--- 'within' :: 'Traversal'' s a -> (h :> s) -> Maybe (h :> s :> a)
--- 'within' :: 'Prism'' s a     -> (h :> s) -> Maybe (h :> s :> a)
--- 'within' :: 'Lens'' s a      -> (h :> s) -> Maybe (h :> s :> a)
--- 'within' :: 'Iso'' s a       -> (h :> s) -> Maybe (h :> s :> a)
+-- 'within' :: 'Traversal'' s a -> (h :> s) -> 'Maybe' (h :> s :> a)
+-- 'within' :: 'Prism'' s a     -> (h :> s) -> 'Maybe' (h :> s :> a)
+-- 'within' :: 'Lens'' s a      -> (h :> s) -> 'Maybe' (h :> s :> a)
+-- 'within' :: 'Iso'' s a       -> (h :> s) -> 'Maybe' (h :> s :> a)
 -- @
 
 -- @'within' :: 'MonadPlus' m => 'ATraversal'' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)@
@@ -617,7 +617,7 @@ restoreTape (Tape h n) = restoreTrack h >=> moveTo n
 
 -- | Restore ourselves to a location near our previously recorded position.
 --
--- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
+-- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 '<=' k '<' teeth@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
 restoreNearTape :: MonadPlus m => Tape h i a -> Zipped h a -> m (Zipper h i a)
 restoreNearTape (Tape h n) a = liftM (moveToward n) (restoreNearTrack h a)

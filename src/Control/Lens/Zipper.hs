@@ -24,8 +24,8 @@
 --   'Data.Tree.Tree' with an intermediate bookmarked 'Data.Tree.Tree',
 --   focusing in yet another 'Data.Tree.Tree'.
 --
--- Since individual levels of a 'Zipper' are managed by an arbitrary 'IndexedTraversal',
--- you can move left and right through the 'IndexedTraversal' selecting neighboring elements.
+-- Since individual levels of a 'Zipper' are managed by an arbitrary 'Control.Lens.Type.IndexedTraversal',
+-- you can move left and right through the 'Control.Lens.Type.IndexedTraversal' selecting neighboring elements.
 --
 -- >>> zipper ("hello","world") & downward _1 & fromWithin traverse & focus .~ 'J' & rightmost & focus .~ 'y' & rezip
 -- ("Jelly","world")
@@ -36,7 +36,7 @@
 --
 -- Given keys in ascending order you can jump directly to a given key with 'moveTo'.
 -- When used with indexed traversals for balanced tree-like structures such as
--- an 'IntMap' or 'Map', searching for a key with 'moveTo' can be done in
+-- an 'Data.IntMap.IntMap' or 'Data.Map.Map', searching for a key with 'moveTo' can be done in
 -- logarithmic time.
 -----------------------------------------------------------------------------
 module Control.Lens.Zipper
