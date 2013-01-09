@@ -23,7 +23,7 @@ module Control.Lens.Format
     Format
   , Formatting, Formatting'
   -- * Composable Formats
-  , run
+  , format
   , now
   , later
   -- * Implementation Details
@@ -99,8 +99,8 @@ type Formatting' m n t b = Formatting m n t t b b
 later :: (Formattable m p, Reviewable p, Distributive f) => (x -> m) -> Overloaded' p f (x -> b) b
 later f = unto (. f) . rmap distribute . formatted
 
-run :: Monoid m => Formatting b m s t a b -> t
-run l = (runMutator #. runFormatted (l (Formatted Mutator))) mempty
+format :: Monoid m => Formatting b m s t a b -> t
+format l = (runMutator #. runFormatted (l (Formatted Mutator))) mempty
 
 now :: Formattable m p => m -> Overloaded p f a b a b
 now m = rmap ($ m) . formatted
