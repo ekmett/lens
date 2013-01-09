@@ -33,6 +33,7 @@ base b
       case readSigned' (readInt b (isDigit' b) digitToInt') s of
         [(n,"")] -> Right n
         _ -> Left s
+{-# INLINE base #-}
 
 -- | Like 'Data.Char.intToDigit', but handles up to base-36
 intToDigit' :: Int -> Char
