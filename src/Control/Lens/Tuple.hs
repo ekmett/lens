@@ -71,7 +71,7 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- @
   _1 :: IndexedLens Int s t a b
 
--- | @'_1' k ~(a,b) = (\\a' -> (a',b)) '<$>' k a@
+-- | @'_1' k ~(a,b) = (\\a' -> (a',b)) 'Data.Functor.<$>' k a@
 instance Field1 (a,b) (a',b) a a' where
   _1 k ~(a,b) = indexed k (0 :: Int) a <&> \a' -> (a',b)
   {-# INLINE _1 #-}
@@ -104,9 +104,9 @@ instance Field1 (a,b,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a' where
   _1 k ~(a,b,c,d,e,f,g,h,i) = indexed k (0 :: Int) a <&> \a' -> (a',b,c,d,e,f,g,h,i)
   {-# INLINE _1 #-}
 
--- | Provides access to the 2nd field of a tuple
+-- | Provides access to the 2nd field of a tuple.
 class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  -- | Access the 2nd field of a tuple
+  -- | Access the 2nd field of a tuple.
   --
   -- >>> _2 .~ "hello" $ (1,(),3,4)
   -- (1,"hello",3,4)
@@ -120,12 +120,12 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   --
   -- @
   -- 'Control.Lens.Fold.anyOf' '_2' :: (s -> 'Bool') -> (a, s) -> 'Bool'
-  -- 'Data.Traversable.traverse' '.' '_2' :: ('Applicative' f, 'Data.Traversable.Traversable' t) => (a -> f b) -> t (s, a) -> f (t (s, b))
+  -- 'Data.Traversable.traverse' '.' '_2' :: ('Control.Applicative.Applicative' f, 'Data.Traversable.Traversable' t) => (a -> f b) -> t (s, a) -> f (t (s, b))
   -- 'Control.Lens.Fold.foldMapOf' ('Data.Traversable.traverse' '.' '_2') :: ('Data.Traversable.Traversable' t, 'Data.Monoid.Monoid' m) => (s -> m) -> t (b, s) -> m
   -- @
   _2 :: IndexedLens Int s t a b
 
--- | @'_2' k ~(a,b) = (\\b' -> (a,b')) '<$>' k b@
+-- | @'_2' k ~(a,b) = (\\b' -> (a,b')) 'Data.Functor.<$>' k b@
 instance Field2 (a,b) (a,b') b b' where
   _2 k ~(a,b) = indexed k (1 :: Int) b <&> \b' -> (a,b')
   {-# INLINE _2 #-}
@@ -158,9 +158,9 @@ instance Field2 (a,b,c,d,e,f,g,h,i) (a,b',c,d,e,f,g,h,i) b b' where
   _2 k ~(a,b,c,d,e,f,g,h,i) = indexed k (1 :: Int) b <&> \b' -> (a,b',c,d,e,f,g,h,i)
   {-# INLINE _2 #-}
 
--- | Provides access to the 3rd field of a tuple
+-- | Provides access to the 3rd field of a tuple.
 class Field3 s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  -- | Access the 3rd field of a tuple
+  -- | Access the 3rd field of a tuple.
   _3 :: IndexedLens Int s t a b
 
 instance Field3 (a,b,c) (a,b,c') c c' where
@@ -191,9 +191,9 @@ instance Field3 (a,b,c,d,e,f,g,h,i) (a,b,c',d,e,f,g,h,i) c c' where
   _3 k ~(a,b,c,d,e,f,g,h,i) = indexed k (2 :: Int) c <&> \c' -> (a,b,c',d,e,f,g,h,i)
   {-# INLINE _3 #-}
 
--- | Provide access to the 4th field of a tuple
+-- | Provide access to the 4th field of a tuple.
 class Field4 s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  -- | Access the 4th field of a tuple
+  -- | Access the 4th field of a tuple.
   _4 :: IndexedLens Int s t a b
 
 instance Field4 (a,b,c,d) (a,b,c,d') d d' where
@@ -220,9 +220,9 @@ instance Field4 (a,b,c,d,e,f,g,h,i) (a,b,c,d',e,f,g,h,i) d d' where
   _4 k ~(a,b,c,d,e,f,g,h,i) = indexed k (3 :: Int) d <&> \d' -> (a,b,c,d',e,f,g,h,i)
   {-# INLINE _4 #-}
 
--- | Provides access to the 5th field of a tuple
+-- | Provides access to the 5th field of a tuple.
 class Field5 s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  -- | Access the 5th field of a tuple
+  -- | Access the 5th field of a tuple.
   _5 :: IndexedLens Int s t a b
 
 instance Field5 (a,b,c,d,e) (a,b,c,d,e') e e' where
@@ -245,9 +245,9 @@ instance Field5 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e',f,g,h,i) e e' where
   _5 k ~(a,b,c,d,e,f,g,h,i) = indexed k (4 :: Int) e <&> \e' -> (a,b,c,d,e',f,g,h,i)
   {-# INLINE _5 #-}
 
--- | Provides access to the 6th element of a tuple
+-- | Provides access to the 6th element of a tuple.
 class Field6 s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  -- | Access the 6th field of a tuple
+  -- | Access the 6th field of a tuple.
   _6 :: IndexedLens Int s t a b
 
 instance Field6 (a,b,c,d,e,f) (a,b,c,d,e,f') f f' where
@@ -266,9 +266,9 @@ instance Field6 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f',g,h,i) f f' where
   _6 k ~(a,b,c,d,e,f,g,h,i) = indexed k (5 :: Int) f <&> \f' -> (a,b,c,d,e,f',g,h,i)
   {-# INLINE _6 #-}
 
--- | Provide access to the 7th field of a tuple
+-- | Provide access to the 7th field of a tuple.
 class Field7 s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  -- | Access the 7th field of a tuple
+  -- | Access the 7th field of a tuple.
   _7 :: IndexedLens Int s t a b
 
 instance Field7 (a,b,c,d,e,f,g) (a,b,c,d,e,f,g') g g' where
@@ -283,9 +283,9 @@ instance Field7 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g',h,i) g g' where
   _7 k ~(a,b,c,d,e,f,g,h,i) = indexed k (6 :: Int) g <&> \g' -> (a,b,c,d,e,f,g',h,i)
   {-# INLINE _7 #-}
 
--- | Provide access to the 8th field of a tuple
+-- | Provide access to the 8th field of a tuple.
 class Field8 s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  -- | Access the 8th field of a tuple
+  -- | Access the 8th field of a tuple.
   _8 :: IndexedLens Int s t a b
 
 instance Field8 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f,g,h') h h' where
@@ -296,9 +296,9 @@ instance Field8 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h',i) h h' where
   _8 k ~(a,b,c,d,e,f,g,h,i) = indexed k (7 :: Int) h <&> \h' -> (a,b,c,d,e,f,g,h',i)
   {-# INLINE _8 #-}
 
--- | Provides access to the 9th field of a tuple
+-- | Provides access to the 9th field of a tuple.
 class Field9 s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  -- | Access the 9th field of a tuple
+  -- | Access the 9th field of a tuple.
   _9 :: IndexedLens Int s t a b
 
 instance Field9 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h,i') i i' where
