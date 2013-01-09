@@ -101,7 +101,7 @@ import Data.Profunctor
 -- 'Fold' or 'Getter'.
 --
 -- Since every 'Lens' is a valid 'Traversal', the
--- 'Traversal' laws are required of any lenses you create:
+-- 'Traversal' laws are required of any 'Lens' you create:
 --
 -- @
 -- l 'pure' ≡ 'pure'
@@ -135,15 +135,15 @@ type IndexPreservingLens' s a = IndexPreservingLens s s a a
 --
 -- These have also been known as multilenses, but they have the signature and spirit of
 --
--- @'traverse' :: 'Traversable' f => 'Traversal' (f a) (f b) a b@
+-- @'Data.Traversable.traverse' :: 'Data.Traversable.Traversable' f => 'Traversal' (f a) (f b) a b@
 --
 -- and the more evocative name suggests their application.
 --
--- Most of the time the 'Traversal' you will want to use is just 'traverse', but you can also pass any
+-- Most of the time the 'Traversal' you will want to use is just 'Data.Traversable.traverse', but you can also pass any
 -- 'Lens' or 'Iso' as a 'Traversal', and composition of a 'Traversal' (or 'Lens' or 'Iso') with a 'Traversal' (or 'Lens' or 'Iso')
--- using (.) forms a valid 'Traversal'.
+-- using ('.') forms a valid 'Traversal'.
 --
--- The laws for a Traversal @t@ follow from the laws for Traversable as stated in \"The Essence of the Iterator Pattern\".
+-- The laws for a 'Traversal' @t@ follow from the laws for 'Data.Traversable.Traversable' as stated in \"The Essence of the Iterator Pattern\".
 --
 -- @
 -- t 'pure' ≡ 'pure'
@@ -153,14 +153,14 @@ type IndexPreservingLens' s a = IndexPreservingLens s s a a
 -- One consequence of this requirement is that a 'Traversal' needs to leave the same number of elements as a
 -- candidate for subsequent 'Traversal' that it started with. Another testament to the strength of these laws
 -- is that the caveat expressed in section 5.5 of the \"Essence of the Iterator Pattern\" about exotic
--- 'Traversable' instances that 'traverse' the same entry multiple times was actually already ruled out by the
+-- 'Data.Traversable.Traversable' instances that 'Data.Traversable.traverse' the same entry multiple times was actually already ruled out by the
 -- second law in that same paper!
 type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
 
 -- | @type 'Traversal'' = 'Simple' 'Traversal'@
 type Traversal' s a = Traversal s s a a
 
--- | Every indexed traversal is a valid 'Control.Lens.Traversal.Traversal' or
+-- | Every IndexedTraversal is a valid 'Control.Lens.Traversal.Traversal' or
 -- 'Control.Lens.Fold.IndexedFold'.
 --
 -- The 'Indexed' constraint is used to allow an 'IndexedTraversal' to be used
@@ -253,7 +253,7 @@ type IndexPreservingSetter' s a = IndexPreservingSetter s s a a
 -- Isomorphisms
 -----------------------------------------------------------------------------
 
--- | Isomorphism families can be composed with other lenses using ('.') and 'id'.
+-- | Isomorphism families can be composed with another 'Lens' using ('.') and 'id'.
 --
 -- Note: Composition with an 'Iso' is index- and measure- preserving.
 type Iso s t a b = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f t)
@@ -280,7 +280,7 @@ type Iso' s a = Iso s s a a
 --
 -- * If @'Control.Lens.Prism.preview' l s ≡ 'Just' a@ then @'Control.Lens.Prism.review' l a ≡ s@
 --
--- These two laws imply that the 'Traversal' laws hold for every 'Prism' and that we 'traverse' at most 1 element:
+-- These two laws imply that the 'Traversal' laws hold for every 'Prism' and that we 'Data.Traversable.traverse' at most 1 element:
 --
 -- @'Control.Lens.Fold.lengthOf' l x '<=' 1@
 --
@@ -290,20 +290,20 @@ type Iso' s a = Iso s s a a
 --
 -- Every 'Iso' is a valid 'Prism'.
 --
--- For example, you might have a @'Prism'' 'Integer' Natural@ allows you to always
--- go from a 'Natural' to an 'Integer', and provide you with tools to check if an 'Integer' is
--- a 'Natural' and/or to edit one if it is.
+-- For example, you might have a @'Prism'' 'Integer' 'Numeric.Natural.Natural'@ allows you to always
+-- go from a 'Numeric.Natural.Natural' to an 'Integer', and provide you with tools to check if an 'Integer' is
+-- a 'Numeric.Natural.Natural' and/or to edit one if it is.
 --
 --
 -- @
 -- 'nat' :: 'Prism'' 'Integer' 'Numeric.Natural.Natural'
--- 'nat' = 'prism' 'toInteger' '$' \\ i ->
+-- 'nat' = 'Control.Lens.Prism.prism' 'toInteger' '$' \\ i ->
 --    if i '<' 0
 --    then 'Left' i
 --    else 'Right' ('fromInteger' i)
 -- @
 --
--- Now we can ask if an 'Integer' is a 'Natural'.
+-- Now we can ask if an 'Integer' is a 'Numeric.Natural.Natural'.
 --
 -- >>> 5^?nat
 -- Just 5
@@ -316,12 +316,12 @@ type Iso' s a = Iso s s a a
 -- >>> (-3,4) & both.nat *~ 2
 -- (-3,8)
 --
--- And we can then convert from a 'Natural' to an 'Integer'.
+-- And we can then convert from a 'Numeric.Natural.Natural' to an 'Integer'.
 --
 -- >>> 5 ^. remit nat -- :: Natural
 -- 5
 --
--- Similarly we can use a 'Prism' to 'traverse' the left half of an 'Either':
+-- Similarly we can use a 'Prism' to 'Data.Traversable.traverse' the left half of an 'Either':
 --
 -- >>> Left "hello" & _left %~ length
 -- Left 5
@@ -362,10 +362,10 @@ type Equality' s a = Equality s s a a
 -------------------------------------------------------------------------------
 
 -- | A 'Getter' describes how to retrieve a single value in a way that can be
--- composed with other lens-like constructions.
+-- composed with other 'Lens'-like constructions.
 --
 -- Unlike a 'Lens' a 'Getter' is read-only. Since a 'Getter'
--- cannot be used to write back there are no lens laws that can be applied to
+-- cannot be used to write back there are no 'Lens' laws that can be applied to
 -- it. In fact, it is isomorphic to an arbitrary function from @(a -> s)@.
 --
 -- Moreover, a 'Getter' can be used directly as a 'Control.Lens.Fold.Fold',
@@ -384,7 +384,7 @@ type IndexPreservingGetter s a = forall p f. (SelfAdjoint p, Gettable f) => p a 
 --------------------------
 
 -- | A 'Fold' describes how to retrieve multiple values in a way that can be composed
--- with other lens-like constructions.
+-- with other 'Lens'-like constructions.
 --
 -- A @'Fold' s a@ provides a structure with operations very similar to those of the 'Data.Foldable.Foldable'
 -- typeclass, see 'Control.Lens.Fold.foldMapOf' and the other 'Fold' combinators.
@@ -395,7 +395,7 @@ type IndexPreservingGetter s a = forall p f. (SelfAdjoint p, Gettable f) => p a 
 -- A 'Getter' is a legal 'Fold' that just ignores the supplied 'Data.Monoid.Monoid'.
 --
 -- Unlike a 'Control.Lens.Traversal.Traversal' a 'Fold' is read-only. Since a 'Fold' cannot be used to write back
--- there are no lens laws that apply.
+-- there are no 'Lens' laws that apply.
 type Fold s a = forall f. (Gettable f, Applicative f) => (a -> f a) -> s -> f s
 
 -- | Every 'IndexedFold' is a valid 'Control.Lens.Fold.Fold' and can be used for 'Control.Lens.Getter.Getting'.
@@ -411,14 +411,14 @@ type IndexPreservingFold s a = forall p f. (SelfAdjoint p, Gettable f, Applicati
 
 -- | An 'Action' is a 'Getter' enriched with access to a 'Monad' for side-effects.
 --
--- Every 'Getter' can be used as an 'Action'
+-- Every 'Getter' can be used as an 'Action'.
 --
 -- You can compose an 'Action' with another 'Action' using ('Prelude..') from the @Prelude@.
 type Action m s a = forall f r. Effective m r f => (a -> f a) -> s -> f s
 
 -- | An 'IndexedAction' is an 'IndexedGetter' enriched with access to a 'Monad' for side-effects.
 --
--- Every 'Getter' can be used as an 'Action'
+-- Every 'Getter' can be used as an 'Action'.
 --
 -- You can compose an 'Action' with another 'Action' using ('Prelude..') from the @Prelude@.
 type IndexedAction i m s a = forall p f r. (Indexable i p, Effective m r f) => p a (f a) -> s -> f s
@@ -459,7 +459,7 @@ type IndexPreservingMonadicFold m s a = forall p f r. (SelfAdjoint p, Effective 
 --
 -- @
 -- 'Data.Complex.Lens.imaginary' :: 'Simple' 'Lens' ('Data.Complex.Complex' a) a
--- 'Data.List.Lens._head' :: 'Simple' 'IndexedTraversal' Int [a] a
+-- 'Data.List.Lens._head' :: 'Simple' 'IndexedTraversal' 'Int' [a] a
 -- @
 --
 -- Note: To use this alias in your own code with @'LensLike' f@ or
@@ -497,8 +497,8 @@ type LensLike f s t a b = (a -> f b) -> s -> f t
 -- | @type 'LensLike'' f = 'Simple' ('LensLike' f)@
 type LensLike' f s a = LensLike f s s a a
 
--- | Convenient alias for constructing indexed lenses and their ilk
+-- | Convenient alias for constructing indexed lenses and their ilk.
 type IndexedLensLike p f s t a b = p a (f b) -> s -> f t
 
--- | Convenient alias for constructing simple indexed lenses and their ilk
+-- | Convenient alias for constructing simple indexed lenses and their ilk.
 type IndexedLensLike' p f s a    = p a (f a) -> s -> f s
