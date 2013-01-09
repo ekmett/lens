@@ -552,9 +552,9 @@ iwithins z (Zipper h t o p j s) = case magma z (Context id) s of
 -- If this invariant is not met then this will usually result in an error!
 --
 -- @
--- 'fromWithin' :: 'Traversal'' s a -> (h :> s) -> h :> s :> a
--- 'fromWithin' :: 'Lens'' s a      -> (h :> s) -> h :> s :> a
--- 'fromWithin' :: 'Iso'' s a       -> (h :> s) -> h :> s :> a
+-- 'fromWithin' :: 'Traversal'' s a -> (h ':>' s) -> h ':>' s ':>' a
+-- 'fromWithin' :: 'Lens'' s a      -> (h ':>' s) -> h ':>' s ':>' a
+-- 'fromWithin' :: 'Iso'' s a       -> (h ':>' s) -> h ':>' s ':>' a
 -- @
 --
 -- You can reason about this function as if the definition was:
@@ -617,7 +617,7 @@ restoreTape (Tape h n) = restoreTrack h >=> moveTo n
 
 -- | Restore ourselves to a location near our previously recorded position.
 --
--- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 '<=' k '<' teeth@,
+-- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 '<=' k '<' 'teeth'@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
 restoreNearTape :: MonadPlus m => Tape h i a -> Zipped h a -> m (Zipper h i a)
 restoreNearTape (Tape h n) a = liftM (moveToward n) (restoreNearTrack h a)
