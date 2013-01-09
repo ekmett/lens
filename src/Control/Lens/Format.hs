@@ -28,7 +28,7 @@ module Control.Lens.Format
   , later
   -- * Implementation Details
   , Formattable(..)
-  , Form(..)
+  , Formatted(..)
   ) where
 
 import Control.Applicative
@@ -59,28 +59,28 @@ instance (m ~ n, Monoid n) => Formattable n (Indexed m) where
 -- Reviewable
 ------------------------------------------------------------------------------
 
-newtype Form m a b = Form { runForm :: m -> b }
+newtype Formatted m a b = Formatted { runFormatted :: m -> b }
 
-instance (m ~ n, Monoid n) => Formattable n (Form m) where
-  formatted (Form mb) = Form (\m n -> mb (mappend m n))
+instance (m ~ n, Monoid n) => Formattable n (Formatted m) where
+  formatted (Formatted mb) = Formatted (\m n -> mb (mappend m n))
   {-# INLINE formatted #-}
 
-instance Reviewable (Form m) where
-  retagged (Form m) = Form m
+instance Reviewable (Formatted m) where
+  retagged (Formatted m) = Formatted m
 
-instance Profunctor (Form m) where
-  lmap _ (Form mb) = Form mb
-  rmap bc (Form mb) = Form (bc . mb)
-  Form mb .# _ = Form mb
+instance Profunctor (Formatted m) where
+  lmap _ (Formatted mb) = Formatted mb
+  rmap bc (Formatted mb) = Formatted (bc . mb)
+  Formatted mb .# _ = Formatted mb
   ( #. ) _ = unsafeCoerce
 
-instance Corepresentable (Form m) where
-  type Corep (Form m) = Const m
-  cotabulate f = Form (f .# Const)
-  corep (Form k) = k .# getConst
+instance Corepresentable (Formatted m) where
+  type Corep (Formatted m) = Const m
+  cotabulate f = Formatted (f .# Const)
+  corep (Formatted k) = k .# getConst
 
-instance Prismatic (Form m) where
-  prismatic (Form k) = Form k
+instance Prismatic (Formatted m) where
+  prismatic (Formatted k) = Formatted k
 
 ------------------------------------------------------------------------------
 -- Formats
@@ -88,7 +88,7 @@ instance Prismatic (Form m) where
 
 type Format m t b = forall p f. (Reviewable p, Formattable m p, Settable f) => Overloaded' p f t b
 
-type Formatting m n s t a b = Overloading (Form m) (Form n) Mutator s t a b
+type Formatting m n s t a b = Overloading (Formatted m) (Formatted n) Mutator s t a b
 
 type Formatting' m n t b = Formatting m n t t b b
 
@@ -100,7 +100,7 @@ later :: (Formattable m p, Reviewable p, Distributive f) => (x -> m) -> Overload
 later f = unto (. f) . rmap distribute . formatted
 
 run :: Monoid m => Formatting b m s t a b -> t
-run l = (runMutator #. runForm (l (Form Mutator))) mempty
+run l = (runMutator #. runFormatted (l (Formatted Mutator))) mempty
 
 now :: Formattable m p => m -> Overloaded p f a b a b
 now m = rmap ($ m) . formatted
@@ -110,7 +110,7 @@ lighter :: (Formattable m p, Reviewable p, Distributive f) => ((m -> b) -> t) ->
 lighter f = unto f . rmap distribute . formatted
 
 resume :: Formatting b m s t a b -> m -> t
-resume l = runMutator #. runForm (l (Form Mutator))
+resume l = runMutator #. runFormatted (l (Formatted Mutator))
 
 rip :: Monoid m => Overloading (Indexed n) (Indexed m) f s t a b -> (n -> a -> f b) -> s -> f t
 rip l f = runIndexed (l (Indexed f)) mempty
