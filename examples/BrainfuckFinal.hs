@@ -36,10 +36,6 @@ import System.IO
 memoryCellNum :: Int
 memoryCellNum = 30000
 
--- Low level syntax form
-
--- Higher level semantic graph
-
 -- * State/Writer-based interpreter
 
 type Cell   = Word8
