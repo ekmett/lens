@@ -51,3 +51,16 @@ executable lens-brainfuck
     mtl        >= 2.0.1 && < 2.2,
     streams    == 3.0.*
   main-is: Brainfuck.hs
+
+executable lens-brainfuck-final
+  if !flag(brainfuck)
+    buildable: False
+
+  build-depends:
+    base,
+    lens,
+    free       >= 3.0,
+    bytestring,
+    mtl        >= 2.0.1 && < 2.2,
+    streams    == 3.0.*
+  main-is: BrainfuckFinal.hs
