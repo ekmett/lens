@@ -26,10 +26,10 @@
 -- they can be done with the 'Iso' directly:
 --
 -- @
--- Control.Newtype.over 'Sum' f ≡ 'wrapping' 'Sum' '%~' f
--- Control.Newtype.under 'Sum' f ≡ 'unwrapping' 'Sum' '%~' f
--- Control.Newtype.overF 'Sum' f ≡ 'mapping' ('wrapping' 'Sum') '%~' f
--- Control.Newtype.underF 'Sum' f ≡ 'mapping' ('unwrapping' 'Sum') '%~' f
+-- Control.Newtype.over 'Sum' f ≡ 'wrapping' 'Sum' 'Control.Lens.Setter.%~' f
+-- Control.Newtype.under 'Sum' f ≡ 'unwrapping' 'Sum' 'Control.Lens.Setter.%~' f
+-- Control.Newtype.overF 'Sum' f ≡ 'mapping' ('wrapping' 'Sum') 'Control.Lens.Setter.%~' f
+-- Control.Newtype.underF 'Sum' f ≡ 'mapping' ('unwrapping' 'Sum') 'Control.Lens.Setter.%~' f
 -- @
 --
 -- 'under' can also be used with 'wrapping' to provide the equivalent of
@@ -248,12 +248,12 @@ instance Wrapped (w (m -> a)) (w' (m' -> a')) (TracedT m w a) (TracedT m' w' a')
 
 -- * unordered-containers
 
--- | Use @'wrapping' HashMap.fromList'@. Unwrapping returns some permutation of the list.
+-- | Use @'wrapping' 'HashMap.fromList'@. Unwrapping returns some permutation of the list.
 instance (Hashable k, Eq k, Hashable k', Eq k') => Wrapped [(k, a)] [(k', b)] (HashMap k a) (HashMap k' b) where
   wrapped = iso HashMap.fromList HashMap.toList
   {-# INLINE wrapped #-}
 
--- | Use @'wrapping' HashSet.fromList'@. Unwrapping returns some permutation of the list.
+-- | Use @'wrapping' 'HashSet.fromList'@. Unwrapping returns some permutation of the list.
 instance (Hashable a, Eq a, Hashable b, Eq b) => Wrapped [a] [b] (HashSet a) (HashSet b) where
   wrapped = iso HashSet.fromList HashSet.toList
   {-# INLINE wrapped #-}
@@ -382,10 +382,10 @@ getArrowMonad :: ArrowApply m  => ArrowMonad m a -> m () a
 getArrowMonad (ArrowMonad x) = x
 {-# INLINE getArrowMonad #-}
 
--- | Given the constructor for a @Wrapped@ type, return a
+-- | Given the constructor for a 'Wrapped' type, return a
 -- deconstructor that is its inverse.
 --
--- Assuming the @Wrapped@ instance is legal, these laws hold:
+-- Assuming the 'Wrapped' instance is legal, these laws hold:
 --
 -- @
 -- 'op' f '.' f ≡ 'id'
@@ -402,7 +402,7 @@ op :: Wrapped s s a a => (s -> a) -> a -> s
 op f = review (wrapping f)
 {-# INLINE op #-}
 
--- | This is a convenient alias for @'from' 'wrapped'@
+-- | This is a convenient alias for @'from' 'wrapped'@.
 --
 -- >>> Const "hello" & unwrapped %~ length & getConst
 -- 5
@@ -410,12 +410,12 @@ unwrapped :: Wrapped t s b a => Iso a b s t
 unwrapped = from wrapped
 {-# INLINE unwrapped #-}
 
--- | A convenient type-restricted version of 'wrapped' for aiding type inference
+-- | A convenient type-restricted version of 'wrapped' for aiding type inference.
 wrapped' :: Wrapped s s a a => Iso' s a
 wrapped' = wrapped
 {-# INLINE wrapped' #-}
 
--- | A convenient type-restricted version of 'unwrapped' for aiding type inference
+-- | A convenient type-restricted version of 'unwrapped' for aiding type inference.
 unwrapped' :: Wrapped s s a a => Iso' a s
 unwrapped' = unwrapped
 {-# INLINE unwrapped' #-}
