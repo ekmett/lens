@@ -31,12 +31,10 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-TH.html")
 </p><p>The supplied name is required to be for a type with a single constructor that has a single argument
 </p><p><em>e.g.</em>
 </p><pre>
- newtype List a = List [a]
- makeIso ''List
+ newtype <code>List</code> a = <code>List</code> [a]
+ <code><a href="Control-Lens-TH.html#v:makeIso">makeIso</a></code> ''List
 </pre><p>will create
-</p><pre>
- list :: Iso [a] [b] (<code>List</code> a) (<code>List</code> b)
-</pre><pre> makeIso = makeLensesWith isoRules
+</p><pre><code>list</code> :: <code><a href="Control-Lens-Type.html#t:Iso">Iso</a></code> [a] [b] (<code>List</code> a) (<code>List</code> b)</pre><pre> makeIso = makeLensesWith isoRules
 </pre></div></div><div class="top"><p class="src"><a name="v:makePrisms" class="def">makePrisms</a> :: <a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/template-haskell-2.7.0.0/Language-Haskell-TH-Syntax.html#t:Name">Name</a> -&gt; <a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/template-haskell-2.7.0.0/Language-Haskell-TH-Syntax.html#t:Q">Q</a> [<a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/template-haskell-2.7.0.0/Language-Haskell-TH-Syntax.html#t:Dec">Dec</a>]<a href="src/Control-Lens-TH.html#makePrisms" class="link">Source</a></p></div><h1 id="g:2">Configuring Lenses
 </h1><div class="top"><p class="src"><a name="v:makeLensesWith" class="def">makeLensesWith</a> :: <a href="Control-Lens-TH.html#t:LensRules">LensRules</a> -&gt; <a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/template-haskell-2.7.0.0/Language-Haskell-TH-Syntax.html#t:Name">Name</a> -&gt; <a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/template-haskell-2.7.0.0/Language-Haskell-TH-Syntax.html#t:Q">Q</a> [<a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/template-haskell-2.7.0.0/Language-Haskell-TH-Syntax.html#t:Dec">Dec</a>]<a href="src/Control-Lens-TH.html#makeLensesWith" class="link">Source</a></p><div class="doc"><p>Build lenses with a custom configuration.
 </p></div></div><div class="top"><p class="src"><a name="v:defaultRules" class="def">defaultRules</a> :: <a href="Control-Lens-TH.html#t:LensRules">LensRules</a><a href="src/Control-Lens-TH.html#defaultRules" class="link">Source</a></p><div class="doc"><p>Default lens rules
@@ -61,7 +59,7 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-TH.html")
  occurs when the constructor lacks the field, or has multiple fields mapped
  to the same lens.
 </p></div></div><div class="top"><p class="src"><a name="v:buildTraversals" class="def">buildTraversals</a> :: <a href="Control-Lens-Type.html#t:Lens-39-">Lens'</a> <a href="Control-Lens-TH.html#t:LensRules">LensRules</a> <a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.0.0/Data-Bool.html#t:Bool">Bool</a><a href="src/Control-Lens-TH.html#buildTraversals" class="link">Source</a></p><div class="doc"><p>In the situations that a lens would be partial, when <code><a href="Control-Lens-TH.html#v:partialLenses">partialLenses</a></code> is
- used, this flag instead causes traversals to be generated.  Only one can be
+ used, this flag instead causes traversals to be generated. Only one can be
  used, and if neither are, then compile-time errors are generated.
 </p></div></div><div class="top"><p class="src"><a name="v:handleSingletons" class="def">handleSingletons</a> :: <a href="Control-Lens-Type.html#t:Lens-39-">Lens'</a> <a href="Control-Lens-TH.html#t:LensRules">LensRules</a> <a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.0.0/Data-Bool.html#t:Bool">Bool</a><a href="src/Control-Lens-TH.html#handleSingletons" class="link">Source</a></p><div class="doc"><p>Handle singleton constructors specially.
 </p></div></div><div class="top"><p class="src"><a name="v:singletonIso" class="def">singletonIso</a> :: <a href="Control-Lens-Type.html#t:Lens-39-">Lens'</a> <a href="Control-Lens-TH.html#t:LensRules">LensRules</a> <a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.0.0/Data-Bool.html#t:Bool">Bool</a><a href="src/Control-Lens-TH.html#singletonIso" class="link">Source</a></p><div class="doc"><p>Use <code><a href="Control-Lens-Type.html#t:Iso">Iso</a></code> for singleton constructors.

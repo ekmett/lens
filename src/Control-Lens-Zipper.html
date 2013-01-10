@@ -33,8 +33,8 @@
 <a name="line-24"></a><span class='hs-comment'>--   'Data.Tree.Tree' with an intermediate bookmarked 'Data.Tree.Tree',</span>
 <a name="line-25"></a><span class='hs-comment'>--   focusing in yet another 'Data.Tree.Tree'.</span>
 <a name="line-26"></a><span class='hs-comment'>--</span>
-<a name="line-27"></a><span class='hs-comment'>-- Since individual levels of a 'Zipper' are managed by an arbitrary 'IndexedTraversal',</span>
-<a name="line-28"></a><span class='hs-comment'>-- you can move left and right through the 'IndexedTraversal' selecting neighboring elements.</span>
+<a name="line-27"></a><span class='hs-comment'>-- Since individual levels of a 'Zipper' are managed by an arbitrary 'Control.Lens.Type.IndexedTraversal',</span>
+<a name="line-28"></a><span class='hs-comment'>-- you can move left and right through the 'Control.Lens.Type.IndexedTraversal' selecting neighboring elements.</span>
 <a name="line-29"></a><span class='hs-comment'>--</span>
 <a name="line-30"></a><span class='hs-comment'>-- &gt;&gt;&gt; zipper ("hello","world") &amp; downward _1 &amp; fromWithin traverse &amp; focus .~ 'J' &amp; rightmost &amp; focus .~ 'y' &amp; rezip</span>
 <a name="line-31"></a><span class='hs-comment'>-- ("Jelly","world")</span>
@@ -45,7 +45,7 @@
 <a name="line-36"></a><span class='hs-comment'>--</span>
 <a name="line-37"></a><span class='hs-comment'>-- Given keys in ascending order you can jump directly to a given key with 'moveTo'.</span>
 <a name="line-38"></a><span class='hs-comment'>-- When used with indexed traversals for balanced tree-like structures such as</span>
-<a name="line-39"></a><span class='hs-comment'>-- an 'IntMap' or 'Map', searching for a key with 'moveTo' can be done in</span>
+<a name="line-39"></a><span class='hs-comment'>-- an 'Data.IntMap.IntMap' or 'Data.Map.Map', searching for a key with 'moveTo' can be done in</span>
 <a name="line-40"></a><span class='hs-comment'>-- logarithmic time.</span>
 <a name="line-41"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-42"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Zipper</span>
