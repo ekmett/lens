@@ -190,7 +190,7 @@ type Traversing' p f s a = Traversing p f s s a a
 -- 'traverseOf' :: 'Lens' s t a b      -> (a -> f b) -> s -> f t
 -- 'traverseOf' :: 'Traversal' s t a b -> (a -> f b) -> s -> f t
 -- @
-traverseOf :: Overloading p q f s t a b -> p a (f b) -> q s (f t)
+traverseOf :: Overloading p (->) f s t a b -> p a (f b) -> s -> f t
 traverseOf = id
 {-# INLINE traverseOf #-}
 
@@ -230,7 +230,7 @@ forOf = flip
 -- 'sequenceAOf' ::                  'Lens' s t (f b) b      -> s -> f t
 -- 'sequenceAOf' :: 'Applicative' f => 'Traversal' s t (f b) b -> s -> f t
 -- @
-sequenceAOf :: Overloading (->) q f s t (f b) b -> q s (f t)
+sequenceAOf :: LensLike f s t (f b) b -> s -> f t
 sequenceAOf l = l id
 {-# INLINE sequenceAOf #-}
 
@@ -247,7 +247,7 @@ sequenceAOf l = l id
 -- 'mapMOf' ::            'Lens' s t a b      -> (a -> m b) -> s -> m t
 -- 'mapMOf' :: 'Monad' m => 'Traversal' s t a b -> (a -> m b) -> s -> m t
 -- @
-mapMOf :: (Profunctor p, Profunctor q) => Overloading p q (WrappedMonad m) s t a b -> p a (m b) -> q s (m t)
+mapMOf :: Profunctor p => Overloading p (->) (WrappedMonad m) s t a b -> p a (m b) -> s -> m t
 mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
 {-# INLINE mapMOf #-}
 
@@ -281,7 +281,7 @@ forMOf l a cmd = unwrapMonad (l (WrapMonad #. cmd) a)
 -- 'sequenceOf' ::            'Lens' s t (m b) b      -> s -> m t
 -- 'sequenceOf' :: 'Monad' m => 'Traversal' s t (m b) b -> s -> m t
 -- @
-sequenceOf :: Profunctor q => Overloading (->) q (WrappedMonad m) s t (m b) b -> q s (m t)
+sequenceOf :: LensLike (WrappedMonad m) s t (m b) b -> s -> m t
 sequenceOf l = unwrapMonad #. l WrapMonad
 {-# INLINE sequenceOf #-}
 
@@ -298,7 +298,7 @@ sequenceOf l = unwrapMonad #. l WrapMonad
 -- monadic strength as well:
 --
 -- @'transposeOf' '_2' :: (b, [a]) -> [(b, a)]@
-transposeOf :: Profunctor q => Overloading (->) q ZipList s t [a] a -> q s [t]
+transposeOf :: LensLike ZipList s t [a] a -> s -> [t]
 transposeOf l = getZipList #. l ZipList
 {-# INLINE transposeOf #-}
 
