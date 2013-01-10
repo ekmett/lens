@@ -16,7 +16,6 @@ module Data.List.Lens
   ( strippingPrefix
   ) where
 
-import Control.Applicative
 import Control.Lens
 import Data.List
 
@@ -38,7 +37,5 @@ import Data.List
 -- >>> "amble"^.re (strippingPrefix "pre")
 -- "preamble"
 strippingPrefix :: Eq a => [a] -> Prism' [a] [a]
-strippingPrefix ps = prism (ps ++) $ \xs -> case stripPrefix ps xs of
-  Nothing  -> Left xs
-  Just xs' -> Right xs'
+strippingPrefix ps = prism' (ps ++) (stripPrefix ps)
 {-# INLINE strippingPrefix #-}
