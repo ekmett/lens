@@ -156,8 +156,10 @@ type AnIndexedSetter' i s a = AnIndexedSetter i s s a a
 -- [("hello",5),("leaders",3)]
 --
 -- @'mapped' :: 'Functor' f => 'Setter' (f a) (f b) a b@
-mapped :: Functor f => IndexPreservingSetter (f a) (f b) a b
-mapped = setting fmap
+--
+-- If you want an 'IndexPreservingSetter' use 'setting fmap'
+mapped :: Functor f => Setter (f a) (f b) a b
+mapped = sets fmap
 {-# INLINE mapped #-}
 
 -- | This setter can be used to modify all of the values in a 'Monad'.
@@ -172,8 +174,10 @@ mapped = setting fmap
 --
 -- >>> set lifted b (Just a)
 -- Just b
-lifted :: Monad m => IndexPreservingSetter (m a) (m b) a b
-lifted = setting liftM
+--
+-- If you want an 'IndexPreservingSetter' use 'setting liftM'
+lifted :: Monad m => Setter (m a) (m b) a b
+lifted = sets liftM
 {-# INLINE lifted #-}
 
 -- | This 'Setter' can be used to map over all of the inputs to a 'Contravariant'.
