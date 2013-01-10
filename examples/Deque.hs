@@ -44,7 +44,7 @@ check lf f lr r
   | lr > 3*lf + 1, j <- div (lf + lr) 2, (r',r'') <- splitAt j r = BD (lf + lr - j) (f ++ reverse r'') j r'
   | otherwise = BD lf f lr r
 
-instance Cons (Deque a) (Deque b) a b where
+instance (Prismatic p, Applicative f) => Cons p f (Deque a) (Deque b) a b where
   _Cons = prism (\(x,BD lf f lr r) -> check (lf + 1) (x : f) lr r) $ \ (BD lf f lr r) ->
     if lf + lr == 0
     then Left def
@@ -52,7 +52,7 @@ instance Cons (Deque a) (Deque b) a b where
       []     -> (head r, def)
       (x:xs) -> (x, check (lf - 1) xs lr r)
 
-instance Snoc (Deque a) (Deque b) a b where
+instance (Prismatic p, Applicative f) => Snoc p f (Deque a) (Deque b) a b where
   _Snoc = prism (\(BD lf f lr r,x) -> check lf f (lr + 1) (x : r)) $ \ (BD lf f lr r) ->
     if lf + lr == 0
     then Left def
