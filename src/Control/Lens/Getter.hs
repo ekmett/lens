@@ -45,6 +45,7 @@ module Control.Lens.Getter
   -- * Getters
     Getter, IndexedGetter
   , Getting, IndexedGetting
+  , Accessing
   -- * Building Getters
   , to
   -- * Combinators for Getters and Folds
@@ -126,6 +127,8 @@ type Getting r s t a b = (a -> Accessor r b) -> s -> Accessor r t
 
 -- | Used to consume an 'Control.Lens.Fold.IndexedFold'.
 type IndexedGetting i m s t a b = Indexed i a (Accessor m b) -> s -> Accessor m t
+
+type Accessing p m s t a b = p a (Accessor m b) -> s -> Accessor m t
 
 -------------------------------------------------------------------------------
 -- Getting Values

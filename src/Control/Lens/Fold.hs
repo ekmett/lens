@@ -358,7 +358,7 @@ droppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
 -- @
 --
 -- 'foldMapOf' :: 'Getting' r s t a b -> (a -> r) -> s -> r
-foldMapOf :: (Profunctor p, Profunctor q) => Overloading p q (Accessor r) s t a b -> p a r -> q s r
+foldMapOf :: Profunctor p => Overloading p (->) (Accessor r) s t a b -> p a r -> s -> r
 foldMapOf l f = runAccessor #. l (Accessor #. f)
 {-# INLINE foldMapOf #-}
 
@@ -375,9 +375,7 @@ foldMapOf l f = runAccessor #. l (Accessor #. f)
 -- 'foldOf' :: 'Monoid' m => 'Traversal'' s m -> s -> m
 -- 'foldOf' :: 'Monoid' m => 'Prism'' s m     -> s -> m
 -- @
---
--- @'foldOf' :: 'Getting' a s t a b -> s -> a@
-foldOf :: Profunctor q => Overloading (->) q (Accessor a) s t a b -> q s a
+foldOf :: Getting a s t a b -> s -> a
 foldOf l = runAccessor #. l Accessor
 {-# INLINE foldOf #-}
 
@@ -398,7 +396,7 @@ foldOf l = runAccessor #. l Accessor
 -- @'ifoldrOf' l ≡ 'foldrOf' l '.' 'Indexed'@
 --
 -- @'foldrOf' :: 'Getting' ('Endo' r) s t a b -> (a -> r -> r) -> r -> s -> r@
-foldrOf :: (Profunctor p, Profunctor q) => Overloading p q (Accessor (Endo r)) s t a b -> p a (r -> r) -> r -> q s r
+foldrOf :: Profunctor p => Accessing p (Endo r) s t a b -> p a (r -> r) -> r -> s -> r
 foldrOf l f z = flip appEndo z `rmap` foldMapOf l (Endo #. f)
 {-# INLINE foldrOf #-}
 
@@ -415,9 +413,8 @@ foldrOf l f z = flip appEndo z `rmap` foldMapOf l (Endo #. f)
 -- 'foldlOf' :: 'Traversal'' s a -> (r -> a -> r) -> r -> s -> r
 -- 'foldlOf' :: 'Prism'' s a     -> (r -> a -> r) -> r -> s -> r
 -- @
-foldlOf :: Profunctor q => Overloading (->) q (Accessor (Dual (Endo r))) s t a b -> (r -> a -> r) -> r -> q s r
+foldlOf :: Getting (Dual (Endo r)) s t a b -> (r -> a -> r) -> r -> s -> r
 foldlOf l f z = (flip appEndo z .# getDual) `rmap` foldMapOf l (Dual #. Endo #. flip f)
-
 {-# INLINE foldlOf #-}
 
 -- | Extract a list of the targets of a 'Fold'. See also ('^..').
@@ -438,7 +435,7 @@ foldlOf l f z = (flip appEndo z .# getDual) `rmap` foldMapOf l (Dual #. Endo #. 
 -- 'toListOf' :: 'Traversal'' s a -> s -> [a]
 -- 'toListOf' :: 'Prism'' s a     -> s -> [a]
 -- @
-toListOf :: Profunctor q => Overloading (->) q (Accessor (Endo [a])) s t a b -> q s [a]
+toListOf :: Getting (Endo [a]) s t a b -> s -> [a]
 toListOf l = foldrOf l (:) []
 {-# INLINE toListOf #-}
 
@@ -486,7 +483,7 @@ s ^.. l = toListOf l s
 -- 'andOf' :: 'Traversal'' s 'Bool' -> s -> 'Bool'
 -- 'andOf' :: 'Prism'' s 'Bool'     -> s -> 'Bool'
 -- @
-andOf :: Profunctor q => Overloading (->) q (Accessor All) s t Bool b -> q s Bool
+andOf :: Getting All s t Bool b -> s -> Bool
 andOf l = getAll #. foldMapOf l All
 {-# INLINE andOf #-}
 
@@ -507,7 +504,7 @@ andOf l = getAll #. foldMapOf l All
 -- 'orOf' :: 'Traversal'' s 'Bool' -> s -> 'Bool'
 -- 'orOf' :: 'Prism'' s 'Bool'     -> s -> 'Bool'
 -- @
-orOf :: Profunctor q => Overloading (->) q (Accessor Any) s t Bool b -> q s Bool
+orOf :: Getting Any s t Bool b -> s -> Bool
 orOf l = getAny #. foldMapOf l Any
 {-# INLINE orOf #-}
 
@@ -531,7 +528,7 @@ orOf l = getAny #. foldMapOf l Any
 -- 'anyOf' :: 'Traversal'' s a -> (a -> 'Bool') -> s -> 'Bool'
 -- 'anyOf' :: 'Prism'' s a     -> (a -> 'Bool') -> s -> 'Bool'
 -- @
-anyOf :: (Profunctor p, Profunctor q) => Overloading p q (Accessor Any) s t a b -> p a Bool -> q s Bool
+anyOf :: Profunctor p => Accessing p Any s t a b -> p a Bool -> s -> Bool
 anyOf l f = getAny #. foldMapOf l (Any #. f)
 {-# INLINE anyOf #-}
 
@@ -554,7 +551,7 @@ anyOf l f = getAny #. foldMapOf l (Any #. f)
 -- 'allOf' :: 'Traversal'' s a -> (a -> 'Bool') -> s -> 'Bool'
 -- 'allOf' :: 'Prism'' s a     -> (a -> 'Bool') -> s -> 'Bool'
 -- @
-allOf :: (Profunctor p, Profunctor q) => Overloading p q (Accessor All) s t a b -> p a Bool -> q s Bool
+allOf :: Profunctor p => Accessing p All s t a b -> p a Bool -> s -> Bool
 allOf l f = getAll #. foldMapOf l (All #. f)
 {-# INLINE allOf #-}
 
@@ -575,7 +572,7 @@ allOf l f = getAll #. foldMapOf l (All #. f)
 -- 'productOf' :: 'Num' a => 'Traversal'' s a -> s -> a
 -- 'productOf' :: 'Num' a => 'Prism'' s a     -> s -> a
 -- @
-productOf :: Profunctor q => Overloading (->) q (Accessor (Product a)) s t a b -> q s a
+productOf :: Getting (Product a) s t a b -> s -> a
 productOf l = getProduct #. foldMapOf l Product
 {-# INLINE productOf #-}
 
@@ -606,7 +603,7 @@ productOf l = getProduct #. foldMapOf l Product
 -- 'sumOf' :: 'Num' a => 'Traversal'' s a -> s -> a
 -- 'sumOf' :: 'Num' a => 'Prism'' s a     -> s -> a
 -- @
-sumOf :: Profunctor q => Overloading (->) q (Accessor (Sum a)) s t a b -> q s a
+sumOf :: Getting (Sum a) s t a b -> s -> a
 sumOf l = getSum #. foldMapOf l Sum
 {-# INLINE sumOf #-}
 
@@ -640,7 +637,7 @@ sumOf l = getSum #. foldMapOf l Sum
 -- 'traverseOf_' :: 'Applicative' f => 'Traversal'' s a -> (a -> f r) -> s -> f ()
 -- 'traverseOf_' :: 'Applicative' f => 'Prism'' s a     -> (a -> f r) -> s -> f ()
 -- @
-traverseOf_ :: (Profunctor p, Profunctor q, Functor f) => Overloading p q (Accessor (Traversed f)) s t a b -> p a (f r) -> q s (f ())
+traverseOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed f) s t a b -> p a (f r) -> s -> f ()
 traverseOf_ l f = getTraversed #. foldMapOf l (rmap (Traversed #. void) f)
 {-# INLINE traverseOf_ #-}
 
@@ -665,7 +662,7 @@ traverseOf_ l f = getTraversed #. foldMapOf l (rmap (Traversed #. void) f)
 -- 'forOf_' :: 'Applicative' f => 'Traversal'' s a -> s -> (a -> f r) -> f ()
 -- 'forOf_' :: 'Applicative' f => 'Prism'' s a     -> s -> (a -> f r) -> f ()
 -- @
-forOf_ :: (Profunctor p, Functor f) => Overloading p (->) (Accessor (Traversed f)) s t a b -> s -> p a (f r) -> f ()
+forOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed f) s t a b -> s -> p a (f r) -> f ()
 forOf_ = flip . traverseOf_
 {-# INLINE forOf_ #-}
 
@@ -681,7 +678,7 @@ forOf_ = flip . traverseOf_
 -- 'sequenceAOf_' :: 'Applicative' f => 'Traversal'' s (f a) -> s -> f ()
 -- 'sequenceAOf_' :: 'Applicative' f => 'Prism'' s (f a)     -> s -> f ()
 -- @
-sequenceAOf_ :: (Profunctor q, Functor f) => Overloading (->) q (Accessor (Traversed f)) s t (f a) b -> q s (f ())
+sequenceAOf_ :: Functor f => Getting (Traversed f) s t (f a) b -> s -> f ()
 sequenceAOf_ l = getTraversed #. foldMapOf l (Traversed #. void)
 {-# INLINE sequenceAOf_ #-}
 
@@ -697,7 +694,7 @@ sequenceAOf_ l = getTraversed #. foldMapOf l (Traversed #. void)
 -- 'mapMOf_' :: 'Monad' m => 'Traversal'' s a -> (a -> m r) -> s -> m ()
 -- 'mapMOf_' :: 'Monad' m => 'Prism'' s a     -> (a -> m r) -> s -> m ()
 -- @
-mapMOf_ :: (Profunctor p, Profunctor q, Monad m) => Overloading p q (Accessor (Sequenced m)) s t a b -> p a (m r) -> q s (m ())
+mapMOf_ :: (Profunctor p, Monad m) => Accessing p (Sequenced m) s t a b -> p a (m r) -> s -> m ()
 mapMOf_ l f = getSequenced #. foldMapOf l (rmap (Sequenced #. liftM skip) f)
 {-# INLINE mapMOf_ #-}
 
@@ -713,7 +710,7 @@ mapMOf_ l f = getSequenced #. foldMapOf l (rmap (Sequenced #. liftM skip) f)
 -- 'forMOf_' :: 'Monad' m => 'Traversal'' s a -> s -> (a -> m r) -> m ()
 -- 'forMOf_' :: 'Monad' m => 'Prism'' s a     -> s -> (a -> m r) -> m ()
 -- @
-forMOf_ :: (Profunctor p, Monad m) => Overloading p (->) (Accessor (Sequenced m)) s t a b -> s -> p a (m r) -> m ()
+forMOf_ :: (Profunctor p, Monad m) => Accessing p (Sequenced m) s t a b -> s -> p a (m r) -> m ()
 forMOf_ = flip . mapMOf_
 {-# INLINE forMOf_ #-}
 
@@ -729,7 +726,7 @@ forMOf_ = flip . mapMOf_
 -- 'sequenceOf_' :: 'Monad' m => 'Traversal'' s (m a) -> s -> m ()
 -- 'sequenceOf_' :: 'Monad' m => 'Prism'' s (m a)     -> s -> m ()
 -- @
-sequenceOf_ :: (Profunctor q, Monad m) => Overloading (->) q (Accessor (Sequenced m)) s t (m a) b -> q s (m ())
+sequenceOf_ :: Monad m => Getting (Sequenced m) s t (m a) b -> s -> m ()
 sequenceOf_ l = getSequenced #. foldMapOf l (Sequenced #. liftM skip)
 {-# INLINE sequenceOf_ #-}
 
@@ -745,7 +742,7 @@ sequenceOf_ l = getSequenced #. foldMapOf l (Sequenced #. liftM skip)
 -- 'asumOf' :: 'Alternative' f => 'Traversal'' s a -> s -> f a
 -- 'asumOf' :: 'Alternative' f => 'Prism'' s a     -> s -> f a
 -- @
-asumOf :: (Profunctor q, Alternative f) => Overloading (->) q (Accessor (Endo (f a))) s t (f a) b -> q s (f a)
+asumOf :: Alternative f => Getting (Endo (f a)) s t (f a) b -> s -> f a
 asumOf l = foldrOf l (<|>) Applicative.empty
 {-# INLINE asumOf #-}
 
@@ -761,7 +758,7 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 -- 'msumOf' :: 'MonadPlus' m => 'Traversal'' s a -> s -> m a
 -- 'msumOf' :: 'MonadPlus' m => 'Prism'' s a     -> s -> m a
 -- @
-msumOf :: (Profunctor q, MonadPlus m) => Overloading (->) q (Accessor (Endo (m a))) s t (m a) b -> q s (m a)
+msumOf :: MonadPlus m => Getting (Endo (m a)) s t (m a) b -> s -> m a
 msumOf l = foldrOf l mplus mzero
 {-# INLINE msumOf #-}
 
@@ -780,7 +777,7 @@ msumOf l = foldrOf l mplus mzero
 -- 'elemOf' :: 'Eq' a => 'Traversal'' s a -> a -> s -> 'Bool'
 -- 'elemOf' :: 'Eq' a => 'Prism'' s a     -> a -> s -> 'Bool'
 -- @
-elemOf :: (Profunctor q, Eq a) => Overloading (->) q (Accessor Any) s t a b -> a -> q s Bool
+elemOf :: Eq a => Getting Any s t a b -> a -> s -> Bool
 elemOf l = anyOf l . (==)
 {-# INLINE elemOf #-}
 
@@ -796,7 +793,7 @@ elemOf l = anyOf l . (==)
 -- 'notElemOf' :: 'Eq' a => 'Traversal'' s a -> a -> s -> 'Bool'
 -- 'notElemOf' :: 'Eq' a => 'Prism'' s a     -> a -> s -> 'Bool'
 -- @
-notElemOf :: (Profunctor q, Eq a) => Overloading (->) q (Accessor All) s t a b -> a -> q s Bool
+notElemOf :: Eq a => Getting All s t a b -> a -> s -> Bool
 notElemOf l = allOf l . (/=)
 {-# INLINE notElemOf #-}
 
@@ -811,7 +808,7 @@ notElemOf l = allOf l . (/=)
 -- 'concatMapOf' :: 'Iso'' s a       -> (a -> [r]) -> s -> [r]
 -- 'concatMapOf' :: 'Traversal'' s a -> (a -> [r]) -> s -> [r]
 -- @
-concatMapOf :: (Profunctor p, Profunctor q) => Overloading p q (Accessor [r]) s t a b -> p a [r] -> q s [r]
+concatMapOf :: Profunctor p => Accessing p [r] s t a b -> p a [r] -> s -> [r]
 concatMapOf l ces = runAccessor #. l (Accessor #. ces)
 {-# INLINE concatMapOf #-}
 
@@ -832,7 +829,7 @@ concatMapOf l ces = runAccessor #. l (Accessor #. ces)
 -- 'concatOf' :: 'Lens'' s [r]      -> s -> [r]
 -- 'concatOf' :: 'Traversal'' s [r] -> s -> [r]
 -- @
-concatOf :: Profunctor q => Overloading (->) q (Accessor [r]) s t [r] b -> q s [r]
+concatOf :: Getting [r] s t [r] b -> s -> [r]
 concatOf l = runAccessor #. l Accessor
 {-# INLINE concatOf #-}
 
@@ -853,7 +850,7 @@ concatOf l = runAccessor #. l Accessor
 -- 'lengthOf' :: 'Iso'' s a       -> s -> 'Int'
 -- 'lengthOf' :: 'Traversal'' s a -> s -> 'Int'
 -- @
-lengthOf :: Profunctor q => Overloading (->) q (Accessor (Sum Int)) s t a b -> q s Int
+lengthOf :: Getting (Sum Int) s t a b -> s -> Int
 lengthOf l = getSum #. foldMapOf l (\_ -> Sum 1)
 {-# INLINE lengthOf #-}
 
@@ -899,7 +896,7 @@ s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 -- 'firstOf' :: 'Iso'' s a       -> s -> 'Maybe' a
 -- 'firstOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-firstOf :: Profunctor q => Overloading (->) q (Accessor (Endo (Maybe a))) s t a b -> q s (Maybe a)
+firstOf :: Getting (Endo (Maybe a)) s t a b -> s -> Maybe a
 firstOf l = foldrOf l (\x _ -> Just x) Nothing
 {-# INLINE firstOf #-}
 
@@ -913,7 +910,7 @@ firstOf l = foldrOf l (\x _ -> Just x) Nothing
 -- 'lastOf' :: 'Iso'' s a       -> s -> 'Maybe' a
 -- 'lastOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-lastOf :: Profunctor q => Overloading (->) q (Accessor (Dual (Endo (Maybe a)))) s t a b -> q s (Maybe a)
+lastOf :: Getting (Dual (Endo (Maybe a))) s t a b -> s -> Maybe a
 lastOf l = foldlOf l (\_ y -> Just y) Nothing
 {-# INLINE lastOf #-}
 
@@ -938,7 +935,7 @@ lastOf l = foldlOf l (\_ y -> Just y) Nothing
 -- 'nullOf' :: 'Lens'' s a      -> s -> 'Bool'
 -- 'nullOf' :: 'Traversal'' s a -> s -> 'Bool'
 -- @
-nullOf :: Profunctor q => Overloading (->) q (Accessor All) s t a b -> q s Bool
+nullOf :: Getting All s t a b -> s -> Bool
 nullOf l = getAll #. foldMapOf l (\_ -> All False)
 {-# INLINE nullOf #-}
 
@@ -964,7 +961,7 @@ nullOf l = getAll #. foldMapOf l (\_ -> All False)
 -- 'notNullOf' :: 'Lens'' s a      -> s -> 'Bool'
 -- 'notNullOf' :: 'Traversal'' s a -> s -> 'Bool'
 -- @
-notNullOf :: Profunctor q => Overloading (->) q (Accessor Any) s t a b -> q s Bool
+notNullOf :: Getting Any s t a b -> s -> Bool
 notNullOf l = getAny #. foldMapOf l (\_ -> Any True)
 {-# INLINE notNullOf #-}
 
@@ -982,7 +979,7 @@ notNullOf l = getAny #. foldMapOf l (\_ -> Any True)
 -- 'maximumOf' ::          'Lens'' s a      -> s -> 'Maybe' a
 -- 'maximumOf' :: 'Ord' a => 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-maximumOf :: Profunctor q => Overloading (->) q (Accessor (Max a)) s t a b -> q s (Maybe a)
+maximumOf :: Getting (Max a) s t a b -> s -> Maybe a
 maximumOf l = getMax `rmap` foldMapOf l Max
 {-# INLINE maximumOf #-}
 
@@ -1000,7 +997,7 @@ maximumOf l = getMax `rmap` foldMapOf l Max
 -- 'minimumOf' ::          'Lens'' s a      -> s -> 'Maybe' a
 -- 'minimumOf' :: 'Ord' a => 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-minimumOf :: Profunctor q => Overloading (->) q (Accessor (Min a)) s t a b -> q s (Maybe a)
+minimumOf :: Getting (Min a) s t a b -> s -> Maybe a
 minimumOf l = getMin `rmap` foldMapOf l Min
 {-# INLINE minimumOf #-}
 
@@ -1017,7 +1014,7 @@ minimumOf l = getMin `rmap` foldMapOf l Min
 -- 'maximumByOf' :: 'Lens'' s a      -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- 'maximumByOf' :: 'Traversal'' s a -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- @
-maximumByOf :: Profunctor q => Overloading (->) q (Accessor (Endo (Maybe a))) s t a b -> (a -> a -> Ordering) -> q s (Maybe a)
+maximumByOf :: Getting (Endo (Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
 maximumByOf l cmp = foldrOf l step Nothing where
   step a Nothing  = Just a
   step a (Just b) = Just (if cmp a b == GT then a else b)
@@ -1036,7 +1033,7 @@ maximumByOf l cmp = foldrOf l step Nothing where
 -- 'minimumByOf' :: 'Lens'' s a      -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- 'minimumByOf' :: 'Traversal'' s a -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- @
-minimumByOf :: Profunctor q => Overloading (->) q (Accessor (Endo (Maybe a))) s t a b -> (a -> a -> Ordering) -> q s (Maybe a)
+minimumByOf :: Getting (Endo (Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
 minimumByOf l cmp = foldrOf l step Nothing where
   step a Nothing  = Just a
   step a (Just b) = Just (if cmp a b == GT then b else a)
@@ -1062,7 +1059,7 @@ minimumByOf l cmp = foldrOf l step Nothing where
 -- 'findOf' :: 'Getting' ('Endo' ('Maybe' a)) s t a b -> (a -> 'Bool') -> s -> 'Maybe' a
 -- 'findOf' l p = 'foldrOf' l (\a y -> if p a then 'Just' a else y) 'Nothing'
 -- @
-findOf :: (Corepresentable p, Profunctor q, Comonad (Corep p)) => Overloading p q (Accessor (Endo (Maybe a))) s t a b -> p a Bool -> q s (Maybe a)
+findOf :: (Corepresentable p, Comonad (Corep p)) => Accessing p (Endo (Maybe a)) s t a b -> p a Bool -> s -> Maybe a
 findOf l p = foldrOf l (cotabulate $ \wa y -> if corep p wa then Just (extract wa) else y) Nothing
 {-# INLINE findOf #-}
 
@@ -1243,7 +1240,7 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 -- 'has' :: 'Lens'' s a      -> s -> 'Bool'
 -- 'has' :: 'Traversal'' s a -> s -> 'Bool'
 -- @
-has :: Profunctor q => Overloading (->) q (Accessor Any) s t a b -> q s Bool
+has :: Getting Any s t a b -> s -> Bool
 has l = getAny #. foldMapOf l (\_ -> Any True)
 {-# INLINE has #-}
 
@@ -1254,7 +1251,7 @@ has l = getAny #. foldMapOf l (\_ -> Any True)
 --
 -- >>> hasn't _left (Left 12)
 -- False
-hasn't :: Profunctor q => Overloading (->) q (Accessor All) s t a b -> q s Bool
+hasn't :: Getting All s t a b -> s -> Bool
 hasn't l = getAll #. foldMapOf l (\_ -> All False)
 {-# INLINE hasn't #-}
 
@@ -1381,14 +1378,13 @@ backwards l f = forwards #. l (Backwards #. f)
 -- @'foldMapOf' l ≡ 'ifoldMapOf' l '.' 'const'@
 --
 -- @
--- 'ifoldMapOf' ::             'IndexedGetter' i a s     -> (i -> s -> m) -> a -> m
--- 'ifoldMapOf' :: 'Monoid' m => 'IndexedFold' i a s       -> (i -> s -> m) -> a -> m
--- 'ifoldMapOf' ::             'IndexedLens'' i a s      -> (i -> s -> m) -> a -> m
--- 'ifoldMapOf' :: 'Monoid' m => 'IndexedTraversal'' i a s -> (i -> s -> m) -> a -> m
+-- 'ifoldMapOf' ::             'IndexedGetter' i s a     -> (i -> a -> m) -> s -> m
+-- 'ifoldMapOf' :: 'Monoid' m => 'IndexedFold' i s a       -> (i -> a -> m) -> s -> m
+-- 'ifoldMapOf' ::             'IndexedLens'' i s a      -> (i -> a -> m) -> s -> m
+-- 'ifoldMapOf' :: 'Monoid' m => 'IndexedTraversal'' i s a -> (i -> a -> m) -> s -> m
 -- @
 --
--- @'ifoldMapOf' :: 'IndexedGetting' i m s t a b -> (i -> a -> m) -> s -> m@
-ifoldMapOf :: Profunctor q => Overloading (Indexed i) q (Accessor m) s t a b -> (i -> a -> m) -> q s m
+ifoldMapOf :: IndexedGetting i m s t a b -> (i -> a -> m) -> s -> m
 ifoldMapOf l = foldMapOf l .# Indexed
 {-# INLINE ifoldMapOf #-}
 
@@ -1406,9 +1402,7 @@ ifoldMapOf l = foldMapOf l .# Indexed
 -- 'ifoldrOf' :: 'IndexedLens'' i s a      -> (i -> a -> r -> r) -> r -> s -> r
 -- 'ifoldrOf' :: 'IndexedTraversal'' i s a -> (i -> a -> r -> r) -> r -> s -> r
 -- @
---
--- @'ifoldrOf' :: 'IndexedGetting' i ('Endo' r) s t a b -> (i -> a -> r -> r) -> r -> s -> r@
-ifoldrOf :: Profunctor q => Overloading (Indexed i) q (Accessor (Endo r)) s t a b -> (i -> a -> r -> r) -> r -> q s r
+ifoldrOf :: IndexedGetting i (Endo r) s t a b -> (i -> a -> r -> r) -> r -> s -> r
 ifoldrOf l = foldrOf l .# Indexed
 {-# INLINE ifoldrOf #-}
 
@@ -1426,9 +1420,7 @@ ifoldrOf l = foldrOf l .# Indexed
 -- 'ifoldlOf' :: 'IndexedLens'' i s a      -> (i -> r -> a -> r) -> r -> s -> r
 -- 'ifoldlOf' :: 'IndexedTraversal'' i s a -> (i -> r -> a -> r) -> r -> s -> r
 -- @
---
--- @'ifoldlOf' :: 'IndexedGetting' i ('Dual' ('Endo' r)) s t a b -> (i -> r -> a -> r) -> r -> s -> r@
-ifoldlOf :: Profunctor q => Overloading (Indexed i) q (Accessor (Dual (Endo r))) s t a b -> (i -> r -> a -> r) -> r -> q s r
+ifoldlOf :: IndexedGetting i (Dual (Endo r)) s t a b -> (i -> r -> a -> r) -> r -> s -> r
 ifoldlOf l f z = (flip appEndo z .# getDual) `rmap` ifoldMapOf l (\i -> Dual #. Endo #. flip (f i))
 {-# INLINE ifoldlOf #-}
 
@@ -1446,7 +1438,7 @@ ifoldlOf l f z = (flip appEndo z .# getDual) `rmap` ifoldMapOf l (\i -> Dual #. 
 -- 'ianyOf' :: 'IndexedLens'' i s a      -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- 'ianyOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
-ianyOf :: Profunctor q => Overloading (Indexed i) q (Accessor Any) s t a b -> (i -> a -> Bool) -> q s Bool
+ianyOf :: IndexedGetting i Any s t a b -> (i -> a -> Bool) -> s -> Bool
 ianyOf l = anyOf l .# Indexed
 {-# INLINE ianyOf #-}
 
@@ -1464,7 +1456,7 @@ ianyOf l = anyOf l .# Indexed
 -- 'iallOf' :: 'IndexedLens'' i s a      -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- 'iallOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
-iallOf :: Profunctor q => Overloading (Indexed i) q (Accessor All) s t a b -> (i -> a -> Bool) -> q s Bool
+iallOf :: IndexedGetting i All s t a b -> (i -> a -> Bool) -> s -> Bool
 iallOf l = allOf l .# Indexed
 {-# INLINE iallOf #-}
 
@@ -1481,7 +1473,7 @@ iallOf l = allOf l .# Indexed
 -- 'itraverseOf_' :: 'Functor' f     => 'IndexedLens'' i s a      -> (i -> a -> f r) -> s -> f ()
 -- 'itraverseOf_' :: 'Applicative' f => 'IndexedTraversal'' i s a -> (i -> a -> f r) -> s -> f ()
 -- @
-itraverseOf_ :: (Profunctor q, Functor f) => Overloading (Indexed i) q (Accessor (Traversed f)) s t a b -> (i -> a -> f r) -> q s (f ())
+itraverseOf_ :: Functor f => IndexedGetting i (Traversed f) s t a b -> (i -> a -> f r) -> s -> f ()
 itraverseOf_ l = traverseOf_ l .# Indexed
 {-# INLINE itraverseOf_ #-}
 
@@ -1519,7 +1511,7 @@ iforOf_ = flip . itraverseOf_
 -- 'imapMOf_' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> a -> m r) -> s -> m ()
 -- 'imapMOf_' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> a -> m r) -> s -> m ()
 -- @
-imapMOf_ :: (Profunctor q, Monad m) => Overloading (Indexed i) q (Accessor (Sequenced m)) s t a b -> (i -> a -> m r) -> q s (m ())
+imapMOf_ :: Monad m => IndexedGetting i (Sequenced m) s t a b -> (i -> a -> m r) -> s -> m ()
 imapMOf_ l = mapMOf_ l .# Indexed
 {-# INLINE imapMOf_ #-}
 
@@ -1560,7 +1552,7 @@ iforMOf_ = flip . imapMOf_
 -- 'iconcatMapOf' :: 'IndexedLens'' i s a      -> (i -> a -> [r]) -> s -> [r]
 -- 'iconcatMapOf' :: 'IndexedTraversal'' i s a -> (i -> a -> [r]) -> s -> [r]
 -- @
-iconcatMapOf :: Profunctor q => Overloading (Indexed i) q (Accessor [r]) s t a b -> (i -> a -> [r]) -> q s [r]
+iconcatMapOf :: IndexedGetting i [r] s t a b -> (i -> a -> [r]) -> s -> [r]
 iconcatMapOf = ifoldMapOf
 {-# INLINE iconcatMapOf #-}
 
@@ -1578,7 +1570,7 @@ iconcatMapOf = ifoldMapOf
 -- 'ifindOf' :: 'IndexedLens'' s a      -> (i -> a -> 'Bool') -> s -> 'Maybe' a
 -- 'ifindOf' :: 'IndexedTraversal'' s a -> (i -> a -> 'Bool') -> s -> 'Maybe' a
 -- @
-ifindOf :: Profunctor q => Overloading (Indexed i) q (Accessor (Endo (Maybe a))) s t a b -> (i -> a -> Bool) -> q s (Maybe a)
+ifindOf :: IndexedGetting i (Endo (Maybe a)) s t a b -> (i -> a -> Bool) -> s -> Maybe a
 ifindOf l = findOf l .# Indexed
 {-# INLINE ifindOf #-}
 
@@ -1662,7 +1654,7 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 -- 'itoListOf' :: 'IndexedLens'' i s a      -> s -> [(i,a)]
 -- 'itoListOf' :: 'IndexedTraversal'' i s a -> s -> [(i,a)]
 -- @
-itoListOf :: Profunctor q => Overloading (Indexed i) q (Accessor (Endo [(i,a)])) s t a b -> q s [(i,a)]
+itoListOf :: IndexedGetting i (Endo [(i,a)]) s t a b -> s -> [(i,a)]
 itoListOf l = ifoldrOf l (\i a -> ((i,a):)) []
 {-# INLINE itoListOf #-}
 
@@ -1772,10 +1764,10 @@ idroppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
 ------------------------------------------------------------------------------
 
 -- | A deprecated alias for 'firstOf'.
-headOf :: Profunctor q => Overloading (->) q (Accessor (First a)) s t a b -> q s (Maybe a)
+headOf :: Getting (First a) s t a b -> s -> Maybe a
 headOf l = getFirst #. foldMapOf l (First #. Just)
 {-# INLINE headOf #-}
-{-# DEPRECATED headOf "`headOf' will be removed in 3.8. (Use `preview' or `firstOf')" #-}
+{-# DEPRECATED headOf "`headOf' will be removed in 3.9. (Use `preview' or `firstOf')" #-}
 
 ------------------------------------------------------------------------------
 -- Misc.
@@ -1784,4 +1776,3 @@ headOf l = getFirst #. foldMapOf l (First #. Just)
 skip :: a -> ()
 skip _ = ()
 {-# INLINE skip #-}
-
