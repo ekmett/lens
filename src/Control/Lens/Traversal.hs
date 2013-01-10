@@ -143,7 +143,7 @@ type ATraversal s t a b = LensLike (Bazaar (->) (->) a b) s t a b
 type ATraversal' s a = ATraversal s s a a
 
 -- | When you see this as an argument to a function, it expects an 'IndexedTraversal'.
-type AnIndexedTraversal i s t a b = IndexedLensLike (Indexed i) (Bazaar (Indexed i) (->) a b) s t a b
+type AnIndexedTraversal i s t a b = Lensing (Indexed i) (Bazaar (Indexed i) (->) a b) s t a b
 
 -- | @type 'AnIndexedTraversal'' = 'Simple' ('AnIndexedTraversal' i)@
 type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
@@ -922,10 +922,10 @@ instance Ord k => TraverseMax k (Map k) where
 -- 'elementOf' :: 'Traversal'' s a -> 'Int' -> 'IndexedTraversal'' 'Int' s a
 -- 'elementOf' :: 'Fold' s a       -> 'Int' -> 'IndexedFold' 'Int' s a
 -- @
-elementOf :: (Applicative f, Indexable Int p)
+elementOf :: Applicative f
           => LensLike (Indexing f) s t a a
           -> Int
-          -> IndexedLensLike p f s t a a
+          -> IndexedLensLike Int f s t a a
 elementOf l p = elementsOf l (p ==)
 {-# INLINE elementOf #-}
 
@@ -942,10 +942,10 @@ element = elementOf traverse
 -- 'elementsOf' :: 'Traversal'' s a -> ('Int' -> 'Bool') -> 'IndexedTraversal'' 'Int' s a
 -- 'elementsOf' :: 'Fold' s a       -> ('Int' -> 'Bool') -> 'IndexedFold' 'Int' s a
 -- @
-elementsOf :: (Applicative f, Indexable Int p)
+elementsOf :: Applicative f
            => LensLike (Indexing f) s t a a
            -> (Int -> Bool)
-           -> IndexedLensLike p f s t a a
+           -> IndexedLensLike Int f s t a a
 elementsOf l p iafb s = snd $ runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, if p i then indexed iafb i a else pure a))) s) 0
 {-# INLINE elementsOf #-}
 
