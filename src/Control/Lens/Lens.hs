@@ -169,14 +169,11 @@ type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 -- >>> s & lens getter setter %~ f
 -- setter s (f (getter s))
 --
--- If we didn't want index-preserving behavior to be the default, we could use:
---
--- @
 lens :: (s -> a) -> (s -> b -> t) -> Lens s t a b
 lens sa sbt afb s = sbt s <$> afb (sa s)
 {-# INLINE lens #-}
 
--- @
+-- | Build an index-preserving 'Lens' from a getter and a setter.
 -- @
 -- 'lens' :: (s -> a) -> (s -> b -> t) -> 'Lens' s t a b
 -- 'lens' sa sbt afb s = sbt s '<$>' afb (sa s)
