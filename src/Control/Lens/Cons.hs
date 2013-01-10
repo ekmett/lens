@@ -9,11 +9,15 @@ module Control.Lens.Cons
   (
   -- * Cons
     Cons(..)
-  , (<|), uncons
+  , (<|)
+  , cons
+  , uncons
   , _head, _tail
   -- * Snoc
   , Snoc(..)
-  , (|>), unsnoc
+  , (|>)
+  , snoc
+  , unsnoc
   , _init, _last
   ) where
 
@@ -46,8 +50,8 @@ import           Data.Word
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
-infixr 5 <|
-infixl 5 |>
+infixr 5 <|, `cons`
+infixl 5 |>, `snoc`
 
 ------------------------------------------------------------------------------
 -- Cons
@@ -110,10 +114,16 @@ instance (Unbox a, Unbox b) => Cons (Unbox.Vector a) (Unbox.Vector b) a b where
     else Right (Unbox.unsafeHead v, Unbox.unsafeTail v)
   {-# INLINE _Cons #-}
 
--- | Cons an element onto a container.
+-- | 'cons' an element onto a container.
+--
+-- This is an infix alias for 'cons'
 (<|) :: Cons s s a a => a -> s -> s
 (<|) = curry (simply review _Cons)
 {-# INLINE (<|) #-}
+
+-- | Cons an element onto a container.
+cons :: Cons s s a a => a -> s -> s
+cons = curry (simply review _Cons)
 
 -- | Attempt to extract the left-most element from a container, and a version of the container without that element.
 uncons :: Cons s s a a => s -> Maybe (a, s)
@@ -349,12 +359,20 @@ _last :: Snoc s s a a => Traversal' s a
 _last = _Snoc._2
 {-# INLINE _last #-}
 
--- | \"snoc\" an element onto the end of a container.
+-- | 'snoc' an element onto the end of a container.
+--
+-- This is an infix alias for 'snoc'
 (|>) :: Snoc s s a a => s -> a -> s
 (|>) = curry (simply review _Snoc)
 {-# INLINE (|>) #-}
+
+-- | 'snoc' an element onto the end of a container.
+snoc  :: Snoc s s a a => s -> a -> s
+snoc = curry (simply review _Snoc)
+{-# INLINE snoc #-}
 
 -- | Attempt to extract the right-most element from a container, and a version of the container without that element.
 unsnoc :: Snoc s s a a => s -> Maybe (s, a)
 unsnoc s = simply preview _Snoc s
 {-# INLINE unsnoc #-}
+
