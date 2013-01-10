@@ -237,6 +237,8 @@ iterated f g a0 = go a0 where
 --
 -- Note: This is /not/ a legal 'Traversal', unless you are very careful not to invalidate the predicate on the target.
 --
+-- Note: This is also /not/ a legal 'Prism', unless you are very careful not to inject a value that matches the predicate.
+--
 -- As a counter example, consider that given @evens = 'filtered' 'even'@ the second 'Traversal' law is violated:
 --
 -- @'Control.Lens.Setter.over' evens 'succ' '.' 'Control.Lens.Setter.over' evens 'succ' /= 'Control.Lens.Setter.over' evens ('succ' '.' 'succ')@
@@ -247,9 +249,8 @@ iterated f g a0 = go a0 where
 -- [2,4,6,8,10]
 --
 -- This will preserve an index if it is present.
-filtered :: (Corepresentable p, Comonad (Corep p), Applicative f) => (a -> Bool) -> Overloaded' p f a a
-filtered p f = cotabulate $ \ wa -> let a = extract wa in if p a then corep f wa else pure a
-{-# INLINE filtered #-}
+filtered :: (Prismatic p, Applicative f) => (a -> Bool) -> Overloaded' p f a a
+filtered p = lmap (\x -> if p x then Right x else Left (pure x)) . prismatic
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
 --
