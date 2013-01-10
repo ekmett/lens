@@ -28,9 +28,9 @@ module Control.Lens.Prism
   , aside
   , without
   -- * Common Prisms
-  , _left
-  , _right
-  , _just
+  , _Left
+  , _Right
+  , _Just
   -- * Prismatic profunctors
   , Prismatic(..)
   ) where
@@ -129,57 +129,57 @@ without k = case runPrism k of
 
 -- | This 'Prism' provides a traversal for tweaking the left-hand value of an 'Either':
 --
--- >>> over _left (+1) (Left 2)
+-- >>> over _Left (+1) (Left 2)
 -- Left 3
 --
--- >>> over _left (+1) (Right 2)
+-- >>> over _Left (+1) (Right 2)
 -- Right 2
 --
--- >>> Right 42 ^._left :: String
+-- >>> Right 42 ^._Left :: String
 -- ""
 --
--- >>> Left "hello" ^._left
+-- >>> Left "hello" ^._Left
 -- "hello"
 --
 -- It also can be turned around to obtain the embedding into the 'Left' half of an 'Either':
 --
--- >>> 5^.re _left
+-- >>> 5^.re _Left
 -- Left 5
-_left :: Prism (Either a c) (Either b c) a b
-_left = prism Left $ either Right (Left . Right)
-{-# INLINE _left #-}
+_Left :: Prism (Either a c) (Either b c) a b
+_Left = prism Left $ either Right (Left . Right)
+{-# INLINE _Left #-}
 
 -- | This 'Prism' provides a traversal for tweaking the right-hand value of an 'Either':
 --
--- >>> over _right (+1) (Left 2)
+-- >>> over _Right (+1) (Left 2)
 -- Left 2
 --
--- >>> over _right (+1) (Right 2)
+-- >>> over _Right (+1) (Right 2)
 -- Right 3
 --
--- >>> Right "hello" ^._right
+-- >>> Right "hello" ^._Right
 -- "hello"
 --
--- >>> Left "hello" ^._right :: [Double]
+-- >>> Left "hello" ^._Right :: [Double]
 -- []
 --
 -- It also can be turned around to obtain the embedding into the 'Right' half of an 'Either':
 --
--- >>> 5^.re _right
+-- >>> 5^.re _Right
 -- Right 5
-_right :: Prism (Either c a) (Either c b) a b
-_right = prism Right $ either (Left . Left) Right
-{-# INLINE _right #-}
+_Right :: Prism (Either c a) (Either c b) a b
+_Right = prism Right $ either (Left . Left) Right
+{-# INLINE _Right #-}
 
 -- | This 'Prism' provides a traversal for tweaking the target of the value of 'Just' in a 'Maybe'.
 --
--- >>> over _just (+1) (Just 2)
+-- >>> over _Just (+1) (Just 2)
 -- Just 3
 --
 -- Unlike 'Data.Traversable.traverse' this is a 'Prism', and so you can use it to inject as well:
 --
--- >>> 5^.re _just
+-- >>> 5^.re _Just
 -- Just 5
-_just :: Prism (Maybe a) (Maybe b) a b
-_just = prism Just $ maybe (Left Nothing) Right
-{-# INLINE _just #-}
+_Just :: Prism (Maybe a) (Maybe b) a b
+_Just = prism Just $ maybe (Left Nothing) Right
+{-# INLINE _Just #-}

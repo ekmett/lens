@@ -64,7 +64,7 @@ unto f = retagged . rmap (fmap f)
 -- If you have an 'Control.Lens.Iso.Iso', 'Control.Lens.Iso.from' is a more powerful version of this function
 -- that will return an 'Control.Lens.Iso.Iso' instead of a mere 'Getter'.
 --
--- >>> 5 ^.re _left
+-- >>> 5 ^.re _Left
 -- Left 5
 --
 -- @
@@ -79,7 +79,7 @@ re p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 --
 -- @'review' ≡ 'view' '.' 're'@
 --
--- >>> review _left "mustard"
+-- >>> review _Left "mustard"
 -- Left "mustard"
 --
 -- Usually 'review' is used in the @(->)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
@@ -106,7 +106,7 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 --
 -- @'reviews' ≡ 'views' '.' 're'@
 --
--- >>> reviews _left isRight "mustard"
+-- >>> reviews _Left isRight "mustard"
 -- False
 --
 -- Usually this function is used in the @(->)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
@@ -132,7 +132,7 @@ reviews p tr = asks (tr . runIdentity #. runReviewed #. p .# Reviewed .# Identit
 --
 -- @'reuse' ≡ 'use' '.' 're'@
 --
--- >>> evalState (reuse _left) 5
+-- >>> evalState (reuse _Left) 5
 -- Left 5
 --
 -- @
@@ -148,7 +148,7 @@ reuse p = gets (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 --
 -- @'reuses' ≡ 'uses' '.' 're'@
 --
--- >>> evalState (reuses _left isLeft) (5 :: Int)
+-- >>> evalState (reuses _Left isLeft) (5 :: Int)
 -- True
 --
 -- @

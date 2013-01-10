@@ -1223,10 +1223,10 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 -- >>> has (element 0) []
 -- False
 --
--- >>> has _left (Left 12)
+-- >>> has _Left (Left 12)
 -- True
 --
--- >>> has _right (Left 12)
+-- >>> has _Right (Left 12)
 -- False
 --
 -- This will always return 'True' for a 'Lens' or 'Getter'.
@@ -1247,10 +1247,10 @@ has l = getAny #. foldMapOf l (\_ -> Any True)
 
 -- | Check to see if this 'Fold' or 'Traversal' has no matches.
 --
--- >>> hasn't _left (Right 12)
+-- >>> hasn't _Left (Right 12)
 -- True
 --
--- >>> hasn't _left (Left 12)
+-- >>> hasn't _Left (Left 12)
 -- False
 hasn't :: Getting All s t a b -> s -> Bool
 hasn't l = getAll #. foldMapOf l (\_ -> All False)
