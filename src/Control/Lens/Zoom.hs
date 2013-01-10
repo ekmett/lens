@@ -43,7 +43,6 @@ import Data.Profunctor.Unsafe
 
 -- $setup
 -- >>> import Control.Lens
--- >>> import Data.List.Lens (_tail)
 -- >>> import Control.Monad.State
 -- >>> import Data.Map as Map
 -- >>> import Debug.SimpleReflect.Expr as Expr

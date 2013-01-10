@@ -45,6 +45,7 @@ import qualified Data.Vector.Unboxed as Unbox
 import           Data.Word
 
 -- $setup
+-- >>> import Control.Lens
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
