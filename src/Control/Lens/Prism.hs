@@ -176,7 +176,7 @@ _right = prism Right $ either (Left . Left) Right
 -- >>> over _just (+1) (Just 2)
 -- Just 3
 --
--- Unlike 'traverse' this is a 'Prism', and so you can use it to inject as well:
+-- Unlike 'Data.Traversable.traverse' this is a 'Prism', and so you can use it to inject as well:
 --
 -- >>> 5^.remit _just
 -- Just 5

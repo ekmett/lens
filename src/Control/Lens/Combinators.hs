@@ -38,7 +38,7 @@ infixl 1 &, <&>, ??
 -- >>> "hello" & length & succ
 -- 6
 --
--- This combinator is commonly used when applying multiple 'Lens' operations in sequence.
+-- This combinator is commonly used when applying multiple 'Control.Lens.Lens.Lens' operations in sequence.
 --
 -- >>> ("hello","world") & _1.element 0 .~ 'j' & _1.element 4 .~ 'y'
 -- ("jelly","world")
