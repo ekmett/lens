@@ -99,6 +99,7 @@ module Control.Exception.Lens
   , _errorCall
   ) where
 
+import Control.Applicative
 import Control.Exception
 import Control.Lens
 import Control.Lens.Internal
@@ -106,9 +107,8 @@ import Data.Monoid
 import GHC.Conc (ThreadId)
 
 -- $setup
--- >>> import Control.Applicative
--- >>> import Control.Monad
 -- >>> import Data.List
+-- >>> import Control.Monad
 
 -- |
 -- Traverse the strongly typed 'Exception' contained in 'SomeException' where the type of your function matches
@@ -275,7 +275,7 @@ instance AsIOException p f IOException where
   ioErr = id
   {-# INLINE ioErr #-}
 
-instance Prismal p f => AsIOException p f SomeException where
+instance (Prismatic p, Applicative f) => AsIOException p f SomeException where
   ioErr = exception
   {-# INLINE ioErr #-}
 
@@ -296,7 +296,7 @@ instance AsArithException p f ArithException where
   arithException = id
   {-# INLINE arithException #-}
 
-instance Prismal p f => AsArithException p f SomeException where
+instance (Prismatic p, Applicative f) => AsArithException p f SomeException where
   arithException = exception
   {-# INLINE arithException #-}
 
@@ -418,7 +418,7 @@ instance AsArrayException p f ArrayException where
   arrayException = id
   {-# INLINE arrayException #-}
 
-instance Prismal p f => AsArrayException p f SomeException where
+instance (Prismatic p, Applicative f) => AsArrayException p f SomeException where
   arrayException = exception
   {-# INLINE arrayException #-}
 
@@ -477,7 +477,7 @@ instance AsAssertionFailed p f AssertionFailed where
   assertionFailed = id
   {-# INLINE assertionFailed #-}
 
-instance Prismal p f => AsAssertionFailed p f SomeException where
+instance (Prismatic p, Applicative f) => AsAssertionFailed p f SomeException where
   assertionFailed = exception
   {-# INLINE assertionFailed #-}
 
@@ -497,7 +497,7 @@ instance AsAsyncException p f AsyncException where
   asyncException = id
   {-# INLINE asyncException #-}
 
-instance Prismal p f => AsAsyncException p f SomeException where
+instance (Prismatic p, Applicative f) => AsAsyncException p f SomeException where
   asyncException = exception
   {-# INLINE asyncException #-}
 
@@ -583,7 +583,7 @@ instance AsNonTermination p f NonTermination where
   nonTermination = id
   {-# INLINE nonTermination #-}
 
-instance Prismal p f => AsNonTermination p f SomeException where
+instance (Prismatic p, Applicative f) => AsNonTermination p f SomeException where
   nonTermination = exception
   {-# INLINE nonTermination #-}
 
@@ -615,7 +615,7 @@ instance AsNestedAtomically p f NestedAtomically where
   nestedAtomically = id
   {-# INLINE nestedAtomically #-}
 
-instance Prismal p f => AsNestedAtomically p f SomeException where
+instance (Prismatic p, Applicative f) => AsNestedAtomically p f SomeException where
   nestedAtomically = exception
   {-# INLINE nestedAtomically #-}
 
@@ -647,7 +647,7 @@ instance AsBlockedIndefinitelyOnMVar p f BlockedIndefinitelyOnMVar where
   blockedIndefinitelyOnMVar = id
   {-# INLINE blockedIndefinitelyOnMVar #-}
 
-instance Prismal p f => AsBlockedIndefinitelyOnMVar p f SomeException where
+instance (Prismatic p, Applicative f) => AsBlockedIndefinitelyOnMVar p f SomeException where
   blockedIndefinitelyOnMVar = exception
   {-# INLINE blockedIndefinitelyOnMVar #-}
 
@@ -679,7 +679,7 @@ instance AsBlockedIndefinitelyOnSTM p f BlockedIndefinitelyOnSTM where
   blockedIndefinitelyOnSTM = id
   {-# INLINE blockedIndefinitelyOnSTM #-}
 
-instance Prismal p f => AsBlockedIndefinitelyOnSTM p f SomeException where
+instance (Prismatic p, Applicative f) => AsBlockedIndefinitelyOnSTM p f SomeException where
   blockedIndefinitelyOnSTM = exception
   {-# INLINE blockedIndefinitelyOnSTM #-}
 
@@ -711,7 +711,7 @@ instance AsDeadlock p f Deadlock where
   deadlock = id
   {-# INLINE deadlock #-}
 
-instance Prismal p f => AsDeadlock p f SomeException where
+instance (Prismatic p, Applicative f) => AsDeadlock p f SomeException where
   deadlock = exception
   {-# INLINE deadlock #-}
 
@@ -743,7 +743,7 @@ instance AsNoMethodError p f NoMethodError where
   noMethodError = id
   {-# INLINE noMethodError #-}
 
-instance Prismal p f => AsNoMethodError p f SomeException where
+instance (Prismatic p, Applicative f) => AsNoMethodError p f SomeException where
   noMethodError = exception
   {-# INLINE noMethodError #-}
 
@@ -776,7 +776,7 @@ instance AsPatternMatchFail p f PatternMatchFail where
   patternMatchFail = id
   {-# INLINE patternMatchFail #-}
 
-instance Prismal p f => AsPatternMatchFail p f SomeException where
+instance (Prismatic p, Applicative f) => AsPatternMatchFail p f SomeException where
   patternMatchFail = exception
   {-# INLINE patternMatchFail #-}
 
@@ -809,7 +809,7 @@ instance AsRecConError p f RecConError where
   recConError = id
   {-# INLINE recConError #-}
 
-instance Prismal p f => AsRecConError p f SomeException where
+instance (Prismatic p, Applicative f) => AsRecConError p f SomeException where
   recConError = exception
   {-# INLINE recConError #-}
 
@@ -844,7 +844,7 @@ instance AsRecSelError p f RecSelError where
   recSelError = id
   {-# INLINE recSelError #-}
 
-instance Prismal p f => AsRecSelError p f SomeException where
+instance (Prismatic p, Applicative f) => AsRecSelError p f SomeException where
   recSelError = exception
   {-# INLINE recSelError #-}
 
@@ -879,7 +879,7 @@ instance AsRecUpdError p f RecUpdError where
   recUpdError = id
   {-# INLINE recUpdError #-}
 
-instance Prismal p f => AsRecUpdError p f SomeException where
+instance (Prismatic p, Applicative f) => AsRecUpdError p f SomeException where
   recUpdError = exception
   {-# INLINE recUpdError #-}
 
@@ -912,7 +912,7 @@ instance AsErrorCall p f ErrorCall where
   errorCall = id
   {-# INLINE errorCall #-}
 
-instance Prismal p f => AsErrorCall p f SomeException where
+instance (Prismatic p, Applicative f) => AsErrorCall p f SomeException where
   errorCall = exception
   {-# INLINE errorCall #-}
 
