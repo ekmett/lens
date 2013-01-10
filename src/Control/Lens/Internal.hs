@@ -43,6 +43,8 @@ module Control.Lens.Internal
   , Settable(..)
   -- ** Reviewable
   , Reviewable(..)
+  -- ** Prismal
+  , Prismal
   -- ** Indexable
   , SelfAdjoint(..)
   , Indexable(..)
@@ -254,6 +256,16 @@ instance Settable Mutator where
   {-# INLINE taintedDot #-}
 
 -----------------------------------------------------------------------------
+-- Prismatic
+-----------------------------------------------------------------------------
+
+-- | This lets us "undo the damage" caused by 
+-- Twan-style lens compatibility.
+class (Prismatic p, Applicative f) => Prismal p f
+
+instance Applicative f => Prismal (->) f
+
+-----------------------------------------------------------------------------
 -- Indexed Internals
 -----------------------------------------------------------------------------
 
@@ -352,6 +364,8 @@ instance Representable (Indexed i) where
 instance Prismatic (Indexed i) where
   prismatic (Indexed iab) = Indexed (either id . iab)
   {-# INLINE prismatic #-}
+
+instance Applicative f => Prismal (Indexed i) f
 
 instance Lenticular (Indexed i) where
   lenticular (Indexed iab) = Indexed $ \i a -> (a, iab i a)
@@ -786,6 +800,8 @@ instance Prismatic Reviewed where
   prismatic (Reviewed b) = Reviewed b
   {-# INLINE prismatic #-}
 
+instance Applicative f => Prismal Reviewed f
+
 ------------------------------------------------------------------------------
 -- Isomorphism: Exchange
 ------------------------------------------------------------------------------
@@ -843,6 +859,8 @@ instance Prismatic (Market a b) where
   prismatic x = case runMarket x of
     (bt, seta) -> Market (bt, either Left seta)
   {-# INLINE prismatic #-}
+
+instance Settable f => Prismal (Market a b) f
 
 ------------------------------------------------------------------------------
 -- Equality Internals

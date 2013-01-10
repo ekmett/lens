@@ -340,7 +340,7 @@ type Iso' s a = Iso s s a a
 -- -- a /co/-'Lens', so to speak. This is what permits the construction of 'Control.Lens.Prism.outside'.
 --
 -- Note: Composition with a 'Prism' is index-preserving.
-type Prism s t a b = forall p f. (Prismatic p, Applicative f) => p a (f b) -> p s (f t)
+type Prism s t a b = forall p f. Prismal p f => p a (f b) -> p s (f t)
 
 -- | A 'Simple' 'Prism'.
 type Prism' s a = Prism s s a a
