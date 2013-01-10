@@ -65,7 +65,7 @@ module Control.Lens.Lens
   , AnIndexedLens, AnIndexedLens'
 
   -- * Combinators
-  , lens, ilens
+  , lens, ilens, iplens
   , (%%~), (%%=)
   , (%%@~), (%%@=)
   , (<%@~), (<%@=)
@@ -172,12 +172,18 @@ type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 -- If we didn't want index-preserving behavior to be the default, we could use:
 --
 -- @
+lens :: (s -> a) -> (s -> b -> t) -> Lens s t a b
+lens sa sbt afb s = sbt s <$> afb (sa s)
+{-# INLINE lens #-}
+
+-- @
+-- @
 -- 'lens' :: (s -> a) -> (s -> b -> t) -> 'Lens' s t a b
 -- 'lens' sa sbt afb s = sbt s '<$>' afb (sa s)
 -- @
-lens :: (s -> a) -> (s -> b -> t) -> IndexPreservingLens s t a b
-lens sa sbt pafb = cotabulate $ \ws -> sbt (extract ws) <$> corep pafb (sa <$> ws)
-{-# INLINE lens #-}
+iplens :: (SelfAdjoint p, Functor f) => (s -> a) -> (s -> b -> t) -> Overloaded p f s t a b
+iplens sa sbt pafb = cotabulate $ \ws -> sbt (extract ws) <$> corep pafb (sa <$> ws)
+{-# INLINE iplens #-}
 
 -- | Build an 'IndexedLens' from a getter and a setter.
 ilens :: (s -> (i, a)) -> (s -> b -> t) -> IndexedLens i s t a b
