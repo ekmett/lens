@@ -1,0 +1,360 @@
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
+#endif
+module Control.Lens.Cons
+  (
+  -- * Cons
+    Cons(..)
+  , (<|), uncons
+  , _head, _tail
+  -- * Snoc
+  , Snoc(..)
+  , (|>), unsnoc
+  , _init, _last
+  ) where
+
+import Control.Lens.Fold
+import Control.Lens.Equality (simply)
+import Control.Lens.Prism
+import Control.Lens.Review
+import Control.Lens.Tuple
+import Control.Lens.Type
+import qualified Data.ByteString      as StrictB
+import qualified Data.ByteString.Lazy as LazyB
+import           Data.Monoid
+import qualified Data.Sequence as Seq
+import           Data.Sequence hiding ((<|), (|>))
+import qualified Data.Text      as StrictT
+import qualified Data.Text.Lazy as LazyT
+import           Data.Vector (Vector)
+import qualified Data.Vector as Vector
+import           Data.Vector.Storable (Storable)
+import qualified Data.Vector.Storable as Storable
+import           Data.Vector.Primitive (Prim)
+import qualified Data.Vector.Primitive as Prim
+import           Data.Vector.Unboxed (Unbox)
+import qualified Data.Vector.Unboxed as Unbox
+import           Data.Word
+
+-- $setup
+-- >>> import Debug.SimpleReflect.Expr
+-- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
+-- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
+
+infixr 5 <|
+infixl 5 |>
+
+------------------------------------------------------------------------------
+-- Cons
+------------------------------------------------------------------------------
+
+-- | This class provides a way to attach or detach elements on the left
+-- side of a structure in a flexible manner.
+class Cons s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  _Cons :: Prism s t (a,s) (b,t)
+
+instance Cons [a] [b] a b where
+  _Cons = prism (uncurry (:)) $ \ aas -> case aas of
+    (a:as) -> Right (a, as)
+    []     -> Left  []
+  {-# INLINE _Cons #-}
+
+instance Cons (Seq a) (Seq b) a b where
+  _Cons = prism (uncurry (Seq.<|)) $ \aas -> case viewl aas of
+    a :< as -> Right (a, as)
+    EmptyL  -> Left mempty
+  {-# INLINE _Cons #-}
+
+instance Cons StrictB.ByteString StrictB.ByteString Word8 Word8 where
+  _Cons = prism' (uncurry StrictB.cons) StrictB.uncons
+
+instance Cons LazyB.ByteString LazyB.ByteString Word8 Word8 where
+  _Cons = prism' (uncurry LazyB.cons) LazyB.uncons
+
+instance Cons StrictT.Text StrictT.Text Char Char where
+  _Cons = prism' (uncurry StrictT.cons) StrictT.uncons
+
+instance Cons LazyT.Text LazyT.Text Char Char where
+  _Cons = prism' (uncurry LazyT.cons) LazyT.uncons
+
+instance Cons (Vector a) (Vector b) a b where
+  _Cons = prism (uncurry Vector.cons) $ \v ->
+    if Vector.null v
+    then Left Vector.empty
+    else Right (Vector.unsafeHead v, Vector.unsafeTail v)
+  {-# INLINE _Cons #-}
+
+instance (Prim a, Prim b) => Cons (Prim.Vector a) (Prim.Vector b) a b where
+  _Cons = prism (uncurry Prim.cons) $ \v ->
+    if Prim.null v
+    then Left Prim.empty
+    else Right (Prim.unsafeHead v, Prim.unsafeTail v)
+  {-# INLINE _Cons #-}
+
+instance (Storable a, Storable b) => Cons (Storable.Vector a) (Storable.Vector b) a b where
+  _Cons = prism (uncurry Storable.cons) $ \v ->
+    if Storable.null v
+    then Left Storable.empty
+    else Right (Storable.unsafeHead v, Storable.unsafeTail v)
+  {-# INLINE _Cons #-}
+
+instance (Unbox a, Unbox b) => Cons (Unbox.Vector a) (Unbox.Vector b) a b where
+  _Cons = prism (uncurry Unbox.cons) $ \v ->
+    if Unbox.null v
+    then Left Unbox.empty
+    else Right (Unbox.unsafeHead v, Unbox.unsafeTail v)
+  {-# INLINE _Cons #-}
+
+-- | Cons an element onto a container.
+(<|) :: Cons s s a a => a -> s -> s
+(<|) = curry (simply review _Cons)
+{-# INLINE (<|) #-}
+
+-- | Attempt to extract the left-most element from a container, and a version of the container without that element.
+uncons :: Cons s s a a => s -> Maybe (a, s)
+uncons = simply preview _Cons
+{-# INLINE uncons #-}
+
+-- | A 'Traversal' reading and writing to the 'head' of a /non-empty/ container.
+--
+-- >>> [a,b,c]^? _head
+-- Just a
+--
+-- >>> [a,b,c] & _head .~ d
+-- [d,b,c]
+--
+-- >>> [a,b,c] & _head %~ f
+-- [f a,b,c]
+--
+-- >>> [] & _head %~ f
+-- []
+--
+-- >>> [1,2,3]^?!_head
+-- 1
+--
+-- >>> []^?_head
+-- Nothing
+--
+-- >>> [1,2]^?_head
+-- Just 1
+--
+-- >>> [] & _head .~ 1
+-- []
+--
+-- >>> [0] & _head .~ 2
+-- [2]
+--
+-- >>> [0,1] & _head .~ 2
+-- [2,1]
+--
+-- This isn't limited to lists.
+--
+-- For instance you can also 'traverse' the head of a 'Seq'
+--
+-- >>> Seq.fromList [a,b,c,d] & _head %~ f
+-- fromList [f a,b,c,d]
+--
+-- >>> Seq.fromList [] ^? _head
+-- Nothing
+--
+-- >>> Seq.fromList [a,b,c,d] ^? _head
+-- Just a
+_head :: Cons s s a a => Traversal' s a
+_head = _Cons._1
+{-# INLINE _head #-}
+
+-- | A 'Traversal' reading and writing to the 'tail' of a /non-empty/ container
+--
+-- >>> [a,b] & _tail .~ [c,d,e]
+-- [a,c,d,e]
+--
+-- >>> [] & _tail .~ [a,b]
+-- []
+--
+-- >>> [a,b,c,d,e] & _tail.traverse %~ f
+-- [a,f b,f c,f d,f e]
+--
+-- >>> [1,2] & _tail .~ [3,4,5]
+-- [1,3,4,5]
+--
+-- >>> [] & _tail .~ [1,2]
+-- []
+--
+-- >>> [a,b,c]^?_tail
+-- Just [b,c]
+--
+-- >>> [1,2]^?!_tail
+-- [2]
+--
+-- >>> "hello"^._tail
+-- "ello"
+--
+-- >>> ""^._tail
+-- ""
+--
+-- This isn't limited to lists. For instance you can also traverse the tail of a 'Seq'.
+--
+-- >>> Seq.fromList [a,b] & _tail .~ Seq.fromList [c,d,e]
+-- fromList [a,c,d,e]
+--
+-- >>> Seq.fromList [a,b,c] ^? _tail
+-- Just (fromList [b,c])
+--
+-- >>> Seq.fromList [] ^? _tail
+-- Nothing
+_tail :: Cons s s a a => Traversal' s s
+_tail = _Cons._2
+{-# INLINE _tail #-}
+
+------------------------------------------------------------------------------
+-- Snoc
+------------------------------------------------------------------------------
+
+-- | This class provides a way to attach or detach elements on the right
+-- side of a structure in a flexible manner.
+class Snoc s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  _Snoc :: Prism s t (s,a) (t,b)
+
+instance Snoc [a] [b] a b where
+  _Snoc = prism (\(as,a) -> as Prelude.++ [a]) $ \aas -> if Prelude.null aas
+    then Left []
+    else Right (Prelude.init aas, Prelude.last aas)
+  {-# INLINE _Snoc #-}
+
+instance Snoc (Seq a) (Seq b) a b where
+  _Snoc = prism (uncurry (Seq.|>)) $ \aas -> case viewr aas of
+    as :> a -> Right (as, a)
+    EmptyR  -> Left mempty
+  {-# INLINE _Snoc #-}
+
+instance Snoc (Vector a) (Vector b) a b where
+  _Snoc = prism (uncurry Vector.snoc) $ \v -> if Vector.null v
+    then Left Vector.empty
+    else Right (Vector.unsafeInit v, Vector.unsafeLast v)
+  {-# INLINE _Snoc #-}
+
+instance (Prim a, Prim b) => Snoc (Prim.Vector a) (Prim.Vector b) a b where
+  _Snoc = prism (uncurry Prim.snoc) $ \v -> if Prim.null v
+    then Left Prim.empty
+    else Right (Prim.unsafeInit v, Prim.unsafeLast v)
+  {-# INLINE _Snoc #-}
+
+instance (Storable a, Storable b) => Snoc (Storable.Vector a) (Storable.Vector b) a b where
+  _Snoc = prism (uncurry Storable.snoc) $ \v -> if Storable.null v
+    then Left Storable.empty
+    else Right (Storable.unsafeInit v, Storable.unsafeLast v)
+  {-# INLINE _Snoc #-}
+
+instance (Unbox a, Unbox b) => Snoc (Unbox.Vector a) (Unbox.Vector b) a b where
+  _Snoc = prism (uncurry Unbox.snoc) $ \v -> if Unbox.null v
+    then Left Unbox.empty
+    else Right (Unbox.unsafeInit v, Unbox.unsafeLast v)
+  {-# INLINE _Snoc #-}
+
+instance Snoc StrictB.ByteString StrictB.ByteString Word8 Word8 where
+  _Snoc = prism (uncurry StrictB.snoc) $ \v -> if StrictB.null v
+    then Left StrictB.empty
+    else Right (StrictB.init v, StrictB.last v)
+  {-# INLINE _Snoc #-}
+
+instance Snoc LazyB.ByteString LazyB.ByteString Word8 Word8 where
+  _Snoc = prism (uncurry LazyB.snoc) $ \v -> if LazyB.null v
+    then Left LazyB.empty
+    else Right (LazyB.init v, LazyB.last v)
+  {-# INLINE _Snoc #-}
+
+instance Snoc StrictT.Text StrictT.Text Char Char where
+  _Snoc = prism (uncurry StrictT.snoc) $ \v -> if StrictT.null v
+    then Left StrictT.empty
+    else Right (StrictT.init v, StrictT.last v)
+  {-# INLINE _Snoc #-}
+
+instance Snoc LazyT.Text LazyT.Text Char Char where
+  _Snoc = prism (uncurry LazyT.snoc) $ \v -> if LazyT.null v
+    then Left LazyT.empty
+    else Right (LazyT.init v, LazyT.last v)
+  {-# INLINE _Snoc #-}
+
+-- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ container
+--
+-- >>> [a,b,c,d]^?_init
+-- Just [a,b,c]
+--
+-- >>> []^?_init
+-- Nothing
+--
+-- >>> [a,b] & _init .~ [c,d,e]
+-- [c,d,e,b]
+--
+-- >>> [] & _init .~ [a,b]
+-- []
+--
+-- >>> [a,b,c,d] & _init.traverse %~ f
+-- [f a,f b,f c,d]
+--
+-- >>> [1,2,3]^?_init
+-- Just [1,2]
+--
+-- >>> [1,2,3,4]^?!_init
+-- [1,2,3]
+--
+-- >>> "hello"^._init
+-- "hell"
+--
+-- >>> ""^._init
+-- ""
+_init :: Snoc s s a a => Traversal' s s
+_init = _Snoc._1
+{-# INLINE _init #-}
+
+-- | A 'Traversal' reading and writing to the last element of a /non-empty/ container
+--
+-- >>> [a,b,c]^?!_last
+-- c
+--
+-- >>> []^?_last
+-- Nothing
+--
+-- >>> [a,b,c] & _last %~ f
+-- [a,b,f c]
+--
+-- >>> [1,2]^?_last
+-- Just 2
+--
+-- >>> [] & _last .~ 1
+-- []
+--
+-- >>> [0] & _last .~ 2
+-- [2]
+--
+-- >>> [0,1] & _last .~ 2
+-- [0,2]
+--
+-- This 'Traversal' is not limited to lists, however. We can also work with other containers, such as a 'Vector'
+--
+-- >>> Vector.fromList "abcde" ^? _last
+-- Just 'e'
+--
+-- >>> Vector.empty ^? _last
+-- Nothing
+--
+-- >>> Vector.fromList "abcde" & _last .~ 'Q'
+-- fromList "abcdQ"
+_last :: Snoc s s a a => Traversal' s a
+_last = _Snoc._2
+{-# INLINE _last #-}
+
+-- | \"snoc\" an element onto the end of a container.
+(|>) :: Snoc s s a a => s -> a -> s
+(|>) = curry (simply review _Snoc)
+{-# INLINE (|>) #-}
+
+-- | Attempt to extract the right-most element from a container, and a version of the container without that element.
+unsnoc :: Snoc s s a a => s -> Maybe (s, a)
+unsnoc s = simply preview _Snoc s
+{-# INLINE unsnoc #-}

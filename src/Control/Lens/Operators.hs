@@ -86,10 +86,14 @@ module Control.Lens.Operators
 
   -- * Zippers
   , (:>)()
+
+  -- * Cons and Snoc
+  , (<|), (|>)
   ) where
 
 import Control.Lens.Action
 import Control.Lens.Combinators
+import Control.Lens.Cons
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed
