@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -21,15 +22,19 @@ module Control.Lens.Cons
   , _init, _last
   ) where
 
-import Control.Lens.Fold
+import Control.Applicative
 import Control.Lens.Equality (simply)
+import Control.Lens.Fold
+import Control.Lens.Internal
 import Control.Lens.Prism
 import Control.Lens.Review
 import Control.Lens.Tuple
 import Control.Lens.Type
 import qualified Data.ByteString      as StrictB
 import qualified Data.ByteString.Lazy as LazyB
+import           Data.Functor.Identity
 import           Data.Monoid
+import           Data.Profunctor
 import qualified Data.Sequence as Seq
 import           Data.Sequence hiding ((<|), (|>))
 import qualified Data.Text      as StrictT
@@ -60,55 +65,68 @@ infixl 5 |>, `snoc`
 
 -- | This class provides a way to attach or detach elements on the left
 -- side of a structure in a flexible manner.
-class Cons s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  _Cons :: Prism s t (a,s) (b,t)
+class (Profunctor p, Functor f) => Cons p f s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Most of the time this is a 'Prism'.
+  --
+  -- @
+  -- '_Cons' :: 'Prism' [a] [b] (a, [a]) (b, [b])
+  -- '_Cons' :: 'Prism' ('Seq' a) ('Seq' b) (a, 'Seq' a) (b, 'Seq' b)
+  -- '_Cons' :: 'Prism' ('Vector' a) ('Vector' b) (a, 'Vector' a) (b, 'Vector' b)
+  -- '_Cons' :: 'Prism'' 'String' ('Char', 'String')
+  -- '_Cons' :: 'Prism'' 'StrictT.Text' ('Char', 'StrictT.Text')
+  -- '_Cons' :: 'Prism'' 'StrictB.ByteString' ('Word8', 'StrictB.ByteString')
+  -- @
+  --
+  -- However, by including @p@ and @f@ in the class you can write instances that only permit 'uncons'
+  -- or which only permit 'cons', or where '_head' and '_tail' are lenses not traversals.
+  _Cons :: Overloaded p f s t (a,s) (b,t)
 
-instance Cons [a] [b] a b where
+instance (Prismatic p, Applicative f) => Cons p f [a] [b] a b where
   _Cons = prism (uncurry (:)) $ \ aas -> case aas of
     (a:as) -> Right (a, as)
     []     -> Left  []
   {-# INLINE _Cons #-}
 
-instance Cons (Seq a) (Seq b) a b where
+instance (Prismatic p, Applicative f) => Cons p f (Seq a) (Seq b) a b where
   _Cons = prism (uncurry (Seq.<|)) $ \aas -> case viewl aas of
     a :< as -> Right (a, as)
     EmptyL  -> Left mempty
   {-# INLINE _Cons #-}
 
-instance Cons StrictB.ByteString StrictB.ByteString Word8 Word8 where
+instance (Prismatic p, Applicative f) => Cons p f StrictB.ByteString StrictB.ByteString Word8 Word8 where
   _Cons = prism' (uncurry StrictB.cons) StrictB.uncons
 
-instance Cons LazyB.ByteString LazyB.ByteString Word8 Word8 where
+instance (Prismatic p, Applicative f) => Cons p f LazyB.ByteString LazyB.ByteString Word8 Word8 where
   _Cons = prism' (uncurry LazyB.cons) LazyB.uncons
 
-instance Cons StrictT.Text StrictT.Text Char Char where
+instance (Prismatic p, Applicative f) => Cons p f StrictT.Text StrictT.Text Char Char where
   _Cons = prism' (uncurry StrictT.cons) StrictT.uncons
 
-instance Cons LazyT.Text LazyT.Text Char Char where
+instance (Prismatic p, Applicative f) => Cons p f LazyT.Text LazyT.Text Char Char where
   _Cons = prism' (uncurry LazyT.cons) LazyT.uncons
 
-instance Cons (Vector a) (Vector b) a b where
+instance (Prismatic p, Applicative f) => Cons p f (Vector a) (Vector b) a b where
   _Cons = prism (uncurry Vector.cons) $ \v ->
     if Vector.null v
     then Left Vector.empty
     else Right (Vector.unsafeHead v, Vector.unsafeTail v)
   {-# INLINE _Cons #-}
 
-instance (Prim a, Prim b) => Cons (Prim.Vector a) (Prim.Vector b) a b where
+instance (Prismatic p, Applicative f, Prim a, Prim b) => Cons p f (Prim.Vector a) (Prim.Vector b) a b where
   _Cons = prism (uncurry Prim.cons) $ \v ->
     if Prim.null v
     then Left Prim.empty
     else Right (Prim.unsafeHead v, Prim.unsafeTail v)
   {-# INLINE _Cons #-}
 
-instance (Storable a, Storable b) => Cons (Storable.Vector a) (Storable.Vector b) a b where
+instance (Prismatic p, Applicative f, Storable a, Storable b) => Cons p f (Storable.Vector a) (Storable.Vector b) a b where
   _Cons = prism (uncurry Storable.cons) $ \v ->
     if Storable.null v
     then Left Storable.empty
     else Right (Storable.unsafeHead v, Storable.unsafeTail v)
   {-# INLINE _Cons #-}
 
-instance (Unbox a, Unbox b) => Cons (Unbox.Vector a) (Unbox.Vector b) a b where
+instance (Prismatic p, Applicative f, Unbox a, Unbox b) => Cons p f (Unbox.Vector a) (Unbox.Vector b) a b where
   _Cons = prism (uncurry Unbox.cons) $ \v ->
     if Unbox.null v
     then Left Unbox.empty
@@ -118,16 +136,16 @@ instance (Unbox a, Unbox b) => Cons (Unbox.Vector a) (Unbox.Vector b) a b where
 -- | 'cons' an element onto a container.
 --
 -- This is an infix alias for 'cons'
-(<|) :: Cons s s a a => a -> s -> s
+(<|) :: Cons Reviewed Identity s s a a => a -> s -> s
 (<|) = curry (simply review _Cons)
 {-# INLINE (<|) #-}
 
 -- | Cons an element onto a container.
-cons :: Cons s s a a => a -> s -> s
+cons :: Cons Reviewed Identity s s a a => a -> s -> s
 cons = curry (simply review _Cons)
 
 -- | Attempt to extract the left-most element from a container, and a version of the container without that element.
-uncons :: Cons s s a a => s -> Maybe (a, s)
+uncons :: Cons (->) (Accessor (Endo (Maybe (a, s)))) s s a a => s -> Maybe (a, s)
 uncons = simply preview _Cons
 {-# INLINE uncons #-}
 
@@ -175,7 +193,13 @@ uncons = simply preview _Cons
 --
 -- >>> Seq.fromList [a,b,c,d] ^? _head
 -- Just a
-_head :: Cons s s a a => Traversal' s a
+--
+-- @
+-- '_head' :: 'Traversal'' [a] a
+-- '_head' :: 'Traversal'' ('Seq' a) a
+-- '_head' :: 'Traversal'' ('Vector' a) a
+-- @
+_head :: Cons (->) f s s a a => LensLike' f s a
 _head = _Cons._1
 {-# INLINE _head #-}
 
@@ -218,7 +242,13 @@ _head = _Cons._1
 --
 -- >>> Seq.fromList [] ^? _tail
 -- Nothing
-_tail :: Cons s s a a => Traversal' s s
+--
+-- @
+-- '_tail' :: 'Traversal'' [a] [a]
+-- '_tail' :: 'Traversal'' ('Seq' a) ('Seq' a)
+-- '_tail' :: 'Traversal'' ('Vector' a) ('Vector' a)
+-- @
+_tail :: Cons (->) f s s a a => LensLike' f s s
 _tail = _Cons._2
 {-# INLINE _tail #-}
 
@@ -228,64 +258,77 @@ _tail = _Cons._2
 
 -- | This class provides a way to attach or detach elements on the right
 -- side of a structure in a flexible manner.
-class Snoc s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  _Snoc :: Prism s t (s,a) (t,b)
+class (Profunctor p, Functor f) => Snoc p f s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Most of the time this is a 'Prism'.
+  --
+  -- @
+  -- '_Snoc' :: 'Prism' [a] [b] (a, [a]) (b, [b])
+  -- '_Snoc' :: 'Prism' ('Seq' a) ('Seq' b) ('Seq' a, a) ('Seq' b, b)
+  -- '_Snoc' :: 'Prism' ('Vector' a) ('Vector' b) ('Vector' a, a) ('Vector' b, b)
+  -- '_Snoc' :: 'Prism'' 'String' ('String', 'Char')
+  -- '_Snoc' :: 'Prism'' 'StrictT.Text' ('StrictT.Text', 'Char')
+  -- '_Snoc' :: 'Prism'' 'StrictB.ByteString' ('StrictB.ByteString', 'Word8')
+  -- @
+  --
+  -- However, by including @p@ and @f@ in the class you can write instances that only permit 'unsnoc'
+  -- or which only permit 'snoc' or where '_init' and '_last' are lenses and not traversals.
+  _Snoc :: Overloaded p f s t (s,a) (t,b)
 
-instance Snoc [a] [b] a b where
+instance (Prismatic p, Applicative f) => Snoc p f [a] [b] a b where
   _Snoc = prism (\(as,a) -> as Prelude.++ [a]) $ \aas -> if Prelude.null aas
     then Left []
     else Right (Prelude.init aas, Prelude.last aas)
   {-# INLINE _Snoc #-}
 
-instance Snoc (Seq a) (Seq b) a b where
+instance (Prismatic p, Applicative f) => Snoc p f (Seq a) (Seq b) a b where
   _Snoc = prism (uncurry (Seq.|>)) $ \aas -> case viewr aas of
     as :> a -> Right (as, a)
     EmptyR  -> Left mempty
   {-# INLINE _Snoc #-}
 
-instance Snoc (Vector a) (Vector b) a b where
+instance (Prismatic p, Applicative f) => Snoc p f (Vector a) (Vector b) a b where
   _Snoc = prism (uncurry Vector.snoc) $ \v -> if Vector.null v
     then Left Vector.empty
     else Right (Vector.unsafeInit v, Vector.unsafeLast v)
   {-# INLINE _Snoc #-}
 
-instance (Prim a, Prim b) => Snoc (Prim.Vector a) (Prim.Vector b) a b where
+instance (Prismatic p, Applicative f, Prim a, Prim b) => Snoc p f (Prim.Vector a) (Prim.Vector b) a b where
   _Snoc = prism (uncurry Prim.snoc) $ \v -> if Prim.null v
     then Left Prim.empty
     else Right (Prim.unsafeInit v, Prim.unsafeLast v)
   {-# INLINE _Snoc #-}
 
-instance (Storable a, Storable b) => Snoc (Storable.Vector a) (Storable.Vector b) a b where
+instance (Prismatic p, Applicative f, Storable a, Storable b) => Snoc p f (Storable.Vector a) (Storable.Vector b) a b where
   _Snoc = prism (uncurry Storable.snoc) $ \v -> if Storable.null v
     then Left Storable.empty
     else Right (Storable.unsafeInit v, Storable.unsafeLast v)
   {-# INLINE _Snoc #-}
 
-instance (Unbox a, Unbox b) => Snoc (Unbox.Vector a) (Unbox.Vector b) a b where
+instance (Prismatic p, Applicative f, Unbox a, Unbox b) => Snoc p f (Unbox.Vector a) (Unbox.Vector b) a b where
   _Snoc = prism (uncurry Unbox.snoc) $ \v -> if Unbox.null v
     then Left Unbox.empty
     else Right (Unbox.unsafeInit v, Unbox.unsafeLast v)
   {-# INLINE _Snoc #-}
 
-instance Snoc StrictB.ByteString StrictB.ByteString Word8 Word8 where
+instance (Prismatic p, Applicative f) => Snoc p f StrictB.ByteString StrictB.ByteString Word8 Word8 where
   _Snoc = prism (uncurry StrictB.snoc) $ \v -> if StrictB.null v
     then Left StrictB.empty
     else Right (StrictB.init v, StrictB.last v)
   {-# INLINE _Snoc #-}
 
-instance Snoc LazyB.ByteString LazyB.ByteString Word8 Word8 where
+instance (Prismatic p, Applicative f) => Snoc p f LazyB.ByteString LazyB.ByteString Word8 Word8 where
   _Snoc = prism (uncurry LazyB.snoc) $ \v -> if LazyB.null v
     then Left LazyB.empty
     else Right (LazyB.init v, LazyB.last v)
   {-# INLINE _Snoc #-}
 
-instance Snoc StrictT.Text StrictT.Text Char Char where
+instance (Prismatic p, Applicative f) => Snoc p f StrictT.Text StrictT.Text Char Char where
   _Snoc = prism (uncurry StrictT.snoc) $ \v -> if StrictT.null v
     then Left StrictT.empty
     else Right (StrictT.init v, StrictT.last v)
   {-# INLINE _Snoc #-}
 
-instance Snoc LazyT.Text LazyT.Text Char Char where
+instance (Prismatic p, Applicative f) => Snoc p f LazyT.Text LazyT.Text Char Char where
   _Snoc = prism (uncurry LazyT.snoc) $ \v -> if LazyT.null v
     then Left LazyT.empty
     else Right (LazyT.init v, LazyT.last v)
@@ -319,7 +362,13 @@ instance Snoc LazyT.Text LazyT.Text Char Char where
 --
 -- >>> ""^._init
 -- ""
-_init :: Snoc s s a a => Traversal' s s
+--
+-- @
+-- '_init' :: 'Traversal'' [a] a
+-- '_init' :: 'Traversal'' ('Seq' a) a
+-- '_init' :: 'Traversal'' ('Vector' a) a
+-- @
+_init :: Snoc (->) f s s a a => LensLike' f s s
 _init = _Snoc._1
 {-# INLINE _init #-}
 
@@ -356,24 +405,29 @@ _init = _Snoc._1
 --
 -- >>> Vector.fromList "abcde" & _last .~ 'Q'
 -- fromList "abcdQ"
-_last :: Snoc s s a a => Traversal' s a
+--
+-- @
+-- '_last' :: 'Traversal'' [a] [a]
+-- '_last' :: 'Traversal'' ('Seq' a) ('Seq' a)
+-- '_last' :: 'Traversal'' ('Vector' a) ('Vector' a)
+-- @
+_last :: Snoc (->) f s s a a => LensLike' f s a
 _last = _Snoc._2
 {-# INLINE _last #-}
 
 -- | 'snoc' an element onto the end of a container.
 --
 -- This is an infix alias for 'snoc'
-(|>) :: Snoc s s a a => s -> a -> s
+(|>) :: Snoc Reviewed Identity s s a a => s -> a -> s
 (|>) = curry (simply review _Snoc)
 {-# INLINE (|>) #-}
 
 -- | 'snoc' an element onto the end of a container.
-snoc  :: Snoc s s a a => s -> a -> s
+snoc  :: Snoc Reviewed Identity s s a a => s -> a -> s
 snoc = curry (simply review _Snoc)
 {-# INLINE snoc #-}
 
 -- | Attempt to extract the right-most element from a container, and a version of the container without that element.
-unsnoc :: Snoc s s a a => s -> Maybe (s, a)
+unsnoc :: Snoc (->) (Accessor (Endo (Maybe (s, a)))) s s a a => s -> Maybe (s, a)
 unsnoc s = simply preview _Snoc s
 {-# INLINE unsnoc #-}
-
