@@ -135,9 +135,9 @@ prop_text s                          = s^.packed.from packed == s
 
 -- Numeric.Lens
 prop_base_show (n :: Integer) =
-  conjoin [ show n == n ^. remit (base 10)
-          , showSigned showOct 0 n "" == n ^. remit (base 8)
-          , showSigned showHex 0 n "" == n ^. remit (base 16)
+  conjoin [ show n == n ^. re (base 10)
+          , showSigned showOct 0 n "" == n ^. re (base 8)
+          , showSigned showHex 0 n "" == n ^. re (base 16)
           ]
 prop_base_read (n :: Integer) =
   conjoin [ show n ^? base 10 == Just n

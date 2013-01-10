@@ -319,7 +319,7 @@ type Iso' s a = Iso s s a a
 --
 -- And we can then convert from a 'Numeric.Natural.Natural' to an 'Integer'.
 --
--- >>> 5 ^. remit nat -- :: Natural
+-- >>> 5 ^. re nat -- :: Natural
 -- 5
 --
 -- Similarly we can use a 'Prism' to 'Data.Traversable.traverse' the left half of an 'Either':
@@ -329,12 +329,12 @@ type Iso' s a = Iso s s a a
 --
 -- or to construct an 'Either':
 --
--- >>> 5^.remit _left
+-- >>> 5^.re _left
 -- Left 5
 --
 -- such that if you query it with the 'Prism', you will get your original input back.
 --
--- >>> 5^.remit _left ^? _left
+-- >>> 5^.re _left ^? _left
 -- Just 5
 --
 -- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'

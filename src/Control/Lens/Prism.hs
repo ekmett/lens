@@ -143,7 +143,7 @@ without k = case runPrism k of
 --
 -- It also can be turned around to obtain the embedding into the 'Left' half of an 'Either':
 --
--- >>> 5^.remit _left
+-- >>> 5^.re _left
 -- Left 5
 _left :: Prism (Either a c) (Either b c) a b
 _left = prism Left $ either Right (Left . Right)
@@ -165,7 +165,7 @@ _left = prism Left $ either Right (Left . Right)
 --
 -- It also can be turned around to obtain the embedding into the 'Right' half of an 'Either':
 --
--- >>> 5^.remit _right
+-- >>> 5^.re _right
 -- Right 5
 _right :: Prism (Either c a) (Either c b) a b
 _right = prism Right $ either (Left . Left) Right
@@ -178,7 +178,7 @@ _right = prism Right $ either (Left . Left) Right
 --
 -- Unlike 'Data.Traversable.traverse' this is a 'Prism', and so you can use it to inject as well:
 --
--- >>> 5^.remit _just
+-- >>> 5^.re _just
 -- Just 5
 _just :: Prism (Maybe a) (Maybe b) a b
 _just = prism Just $ maybe (Left Nothing) Right

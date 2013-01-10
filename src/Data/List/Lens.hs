@@ -172,7 +172,7 @@ _init f as = (++ [Prelude.last as]) <$> f (Prelude.init as)
 -- >>> "review" ^? strippingPrefix "pre"
 -- Nothing
 --
--- >>> "amble"^.remit (strippingPrefix "pre")
+-- >>> "amble"^.re (strippingPrefix "pre")
 -- "preamble"
 strippingPrefix :: Eq a => [a] -> Prism' [a] [a]
 strippingPrefix ps = prism (ps ++) $ \xs -> case stripPrefix ps xs of
