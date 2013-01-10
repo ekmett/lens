@@ -48,11 +48,6 @@ module Control.Lens.Internal
   -- ** Indexable
   , SelfAdjoint(..)
   , Indexable(..)
-  -- ** Un
-  , Unprismatic(..)
-  , Unlenticular(..)
-  , Un(..)
-  , runUn
   -- ** Indexed Functors
   , IndexedFunctor(..)
   -- ** Indexed Comonads
@@ -421,36 +416,6 @@ instance SelfAdjoint (Indexed i) where
 instance i ~ j => Indexable i (Indexed j) where
   indexed = runIndexed
   {-# INLINE indexed #-}
-
-------------------------------------------------------------------------------
--- Un
-------------------------------------------------------------------------------
-
-class Profunctor p => Unlenticular p where
-  unlenticular :: p (a,b) a -> p b a
-
-class Profunctor p => Unprismatic p where
-  unprismatic :: p b (Either b a) -> p b a
-
-newtype Un p a b s t = Un { unUn :: p t s -> p b a }
-
-runUn :: (Un p a b a b -> Un p a b s t) -> p t s -> p b a
-runUn k = unUn $ k (Un id)
-
-instance Profunctor p => Profunctor (Un p a b) where
-  dimap f g (Un k) = Un (k . dimap g f)
-
-instance Lenticular p => Unlenticular (Un p a b) where
-  unlenticular (Un k) = Un (k . lenticular)
-
-instance Prismatic p => Unprismatic (Un p a b) where
-  unprismatic (Un k) = Un (k . prismatic)
-
-instance Unlenticular p => Lenticular (Un p a b) where
-  lenticular (Un k) = Un (k . unlenticular)
-
-instance Unprismatic p => Prismatic (Un p a b) where
-  prismatic (Un k) = Un (k . unprismatic)
 
 ------------------------------------------------------------------------------
 -- Sellable
