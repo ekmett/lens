@@ -27,7 +27,7 @@ import Foreign.C.Types
 -- 'location' :: 'Traversal'' 'SomeException' 'String'
 -- @
 location :: (AsIOException (->) f t, Functor f) => LensLike' f t String
-location = ioErr . \ f s -> f (ioe_location s) <&> \e -> s { ioe_location = e }
+location f = _IOException $ \s -> f (ioe_location s) <&> \e -> s { ioe_location = e }
 {-# INLINE location #-}
 
 -- | Error type specific information.
@@ -37,7 +37,7 @@ location = ioErr . \ f s -> f (ioe_location s) <&> \e -> s { ioe_location = e }
 -- 'description' :: 'Traversal'' 'SomeException' 'String'
 -- @
 description :: (AsIOException (->) f t, Functor f) => LensLike' f t String
-description = ioErr . \f s -> f (ioe_description s) <&> \e -> s { ioe_description = e }
+description f = _IOException $ \s -> f (ioe_description s) <&> \e -> s { ioe_description = e }
 {-# INLINE description #-}
 
 -- | The handle used by the action flagging this error.
@@ -47,7 +47,7 @@ description = ioErr . \f s -> f (ioe_description s) <&> \e -> s { ioe_descriptio
 -- 'handle' :: 'Traversal'' 'SomeException' ('Maybe' 'Handle')
 -- @
 handle :: (AsIOException (->) f t, Functor f) => LensLike' f t (Maybe Handle)
-handle = ioErr . \f s -> f (ioe_handle s) <&> \e -> s { ioe_handle = e }
+handle f = _IOException $ \s -> f (ioe_handle s) <&> \e -> s { ioe_handle = e }
 {-# INLINE handle #-}
 
 -- | 'fileName' the error is related to.
@@ -57,7 +57,7 @@ handle = ioErr . \f s -> f (ioe_handle s) <&> \e -> s { ioe_handle = e }
 -- 'fileName' :: 'Traversal'' 'SomeException' ('Maybe' 'FilePath')
 -- @
 fileName :: (AsIOException (->) f t, Functor f) => LensLike' f t (Maybe FilePath)
-fileName = ioErr . \f s -> f (ioe_filename s) <&> \e -> s { ioe_filename = e }
+fileName f = _IOException $ \s -> f (ioe_filename s) <&> \e -> s { ioe_filename = e }
 {-# INLINE fileName #-}
 
 -- | 'errno' leading to this error, if any.
@@ -67,7 +67,7 @@ fileName = ioErr . \f s -> f (ioe_filename s) <&> \e -> s { ioe_filename = e }
 -- 'errno' :: 'Traversal'' 'SomeException' ('Maybe' 'FilePath')
 -- @
 errno :: (AsIOException (->) f t, Functor f) => LensLike' f t (Maybe CInt)
-errno = ioErr . \f s -> f (ioe_errno s) <&> \e -> s { ioe_errno = e }
+errno f = _IOException $ \s -> f (ioe_errno s) <&> \e -> s { ioe_errno = e }
 {-# INLINE errno #-}
 
 ------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ errno = ioErr . \f s -> f (ioe_errno s) <&> \e -> s { ioe_errno = e }
 -- 'errorType' :: 'Traversal'' 'SomeException' 'IOErrorType'
 -- @
 errorType :: (AsIOException (->) f t, Functor f) => LensLike' f t IOErrorType
-errorType = ioErr . \f s -> f (ioe_type s) <&> \e -> s { ioe_type = e }
+errorType f = _IOException $ \s -> f (ioe_type s) <&> \e -> s { ioe_type = e }
 {-# INLINE errorType #-}
 
 makePrisms ''IOErrorType

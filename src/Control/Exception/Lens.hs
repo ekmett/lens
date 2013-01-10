@@ -41,68 +41,52 @@ module Control.Exception.Lens
   , AsIOException(..)
   -- ** Arithmetic Exceptions
   , AsArithException(..)
-  , overflow
-  , underflow
-  , lossOfPrecision
-  , divideByZero
-  , denormal
+  , _Overflow
+  , _Underflow
+  , _LossOfPrecision
+  , _DivideByZero
+  , _Denormal
 #if MIN_VERSION_base(4,6,0)
-  , ratioZeroDenominator
+  , _RatioZeroDenominator
 #endif
   -- ** Array Exceptions
   , AsArrayException(..)
-  , indexOutOfBounds
-  , undefinedElement
+  , _IndexOutOfBounds
+  , _UndefinedElement
   -- ** Assertion Failed
   , AsAssertionFailed(..)
-  , _assertionFailed
   -- ** Async Exceptions
   , AsAsyncException(..)
-  , stackOverflow
-  , heapOverflow
-  , threadKilled
-  , userInterrupt
+  , _StackOverflow
+  , _HeapOverflow
+  , _ThreadKilled
+  , _UserInterrupt
   -- ** Non-Termination
   , AsNonTermination(..)
-  , _nonTermination
   -- ** Nested Atomically
   , AsNestedAtomically(..)
-  , _nestedAtomically
   -- ** Blocked Indefinitely
   -- *** on MVar
   , AsBlockedIndefinitelyOnMVar(..)
-  , _blockedIndefinitelyOnMVar
   -- *** on STM
   , AsBlockedIndefinitelyOnSTM(..)
-  , _blockedIndefinitelyOnSTM
   -- ** Deadlock
   , AsDeadlock(..)
-  , _deadlock
   -- ** No Such Method
   , AsNoMethodError(..)
-  , _noMethodError
   -- ** Pattern Match Failure
   , AsPatternMatchFail(..)
-  , _patternMatchFail
   -- ** Record
-  -- *** Constructor Error
   , AsRecConError(..)
-  , _recConError
-  -- *** Selection Error
   , AsRecSelError(..)
-  , _recSelError
-  -- *** Update Error
   , AsRecUpdError(..)
-  , _recUpdError
   -- ** Error Call
   , AsErrorCall(..)
-  , _errorCall
   ) where
 
 import Control.Applicative
 import Control.Exception
 import Control.Lens
-import Control.Lens.Internal
 import Data.Monoid
 import GHC.Conc (ThreadId)
 
@@ -124,7 +108,7 @@ exception = prism toException $ \ e -> maybe (Left e) Right $ fromException e
 
 -- | Catch exceptions that match a given 'Prism' (or any 'Getter', really).
 --
--- >>> catching assertionFailed (assert False (return "uncaught")) $ \ _ -> return "caught"
+-- >>> catching _AssertionFailed (assert False (return "uncaught")) $ \ _ -> return "caught"
 -- "caught"
 --
 -- @
@@ -144,7 +128,7 @@ catching l = catchJust (preview l)
 -- a @'Prism'' 'SomeException' ()@ where the result of the prism or fold isn't
 -- particularly valuable, just the fact that it matches.
 --
--- >>> catching_ assertionFailed (assert False (return "uncaught")) $ return "caught"
+-- >>> catching_ _AssertionFailed (assert False (return "uncaught")) $ return "caught"
 -- "caught"
 --
 -- @
@@ -162,7 +146,7 @@ catching_ l a b = catchJust (preview l) a (const b)
 -- | A version of 'catching' with the arguments swapped around; useful in
 -- situations where the code for the handler is shorter.
 --
--- >>> handling nonTermination (\_ -> return "caught") $ throwIO NonTermination
+-- >>> handling _NonTermination (\_ -> return "caught") $ throwIO NonTermination
 -- "caught"
 --
 -- @
@@ -180,7 +164,7 @@ handling l = handleJust (preview l)
 -- | A version of 'catching_' with the arguments swapped around; useful in
 -- situations where the code for the handler is shorter.
 --
--- >>> handling_ nonTermination (return "caught") $ throwIO NonTermination
+-- >>> handling_ _NonTermination (return "caught") $ throwIO NonTermination
 -- "caught"
 --
 -- @
@@ -255,149 +239,132 @@ throwingTo tid l = reviews l (throwTo tid)
 -- IOException
 ----------------------------------------------------------------------------
 
--- Exceptions that occur in the IO monad. An IOException records a more
+-- | Exceptions that occur in the IO monad. An IOException records a more
 -- specific error type, a descriptive string and maybe the handle that was
 -- used when the error was flagged.
+--
+-- Due to their richer structure relative to other exceptions, these have
+-- a more carefully overloaded signature.
 class AsIOException p f t where
   -- | Unfortunately the name 'ioException' is taken by @base@ for
   -- throwing IOExceptions.
   --
   -- @
-  -- 'ioErr' :: 'Equality'' 'IOException' 'IOException'
-  -- 'ioErr' :: 'Prism'' 'SomeException' 'IOException'
+  -- '_IOException' :: 'Equality'' 'IOException'   'IOException'
+  -- '_IOException' :: 'Prism'' 'SomeException' 'IOException'
   -- @
   --
   -- Many combinators for working with an 'IOException' are available
   -- in "System.IO.Error.Lens".
-  ioErr :: Overloaded' p f t IOException
+  _IOException :: Overloaded' p f t IOException
 
 instance AsIOException p f IOException where
-  ioErr = id
-  {-# INLINE ioErr #-}
+  _IOException = id
+  {-# INLINE _IOException #-}
 
 instance (Prismatic p, Applicative f) => AsIOException p f SomeException where
-  ioErr = exception
-  {-# INLINE ioErr #-}
+  _IOException = exception
+  {-# INLINE _IOException #-}
 
 ----------------------------------------------------------------------------
 -- ArithException
 ----------------------------------------------------------------------------
 
 -- | Arithmetic exceptions.
-class AsArithException p f t where
-  -- |
-  -- @
-  -- 'arithException' :: 'Equality'' 'ArithException' 'ArithException'
-  -- 'arithException' :: 'Prism''    'SomeException' 'ArithException'
-  -- @
-  arithException :: Overloaded' p f t ArithException
+class AsArithException t where
+  _ArithException :: Prism' t ArithException
 
-instance AsArithException p f ArithException where
-  arithException = id
-  {-# INLINE arithException #-}
+instance AsArithException ArithException where
+  _ArithException = id
+  {-# INLINE _ArithException #-}
 
-instance (Prismatic p, Applicative f) => AsArithException p f SomeException where
-  arithException = exception
-  {-# INLINE arithException #-}
+instance AsArithException SomeException where
+  _ArithException = exception
+  {-# INLINE _ArithException #-}
 
--- | Handle arithmetic overflow.
+-- | Handle arithmetic '_Overflow'.
 --
--- @'overflow' ≡ 'arithException' . 'overflow'@
+-- @'_Overflow' ≡ '_ArithException' . '_Overflow'@
 --
 -- @
--- 'overflow' :: 'Prism'' 'SomeException' 'ArithException'
--- 'overflow' :: 'Prism'' 'SomeException' 'ArithException'
+-- '_Overflow' :: 'Prism'' 'ArithException' 'ArithException'
+-- '_Overflow' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-overflow :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-overflow = case runPrism arithException of
+_Overflow :: AsArithException t => Prism' t ()
+_Overflow = case runPrism _ArithException of
   (bt, seta) | bto <- bt Overflow -> prism (const bto) $ \s -> case seta s of
     Left t -> Left t
     Right Overflow -> Right ()
     Right a -> Left (bt a)
-{-# INLINE overflow #-}
+{-# INLINE _Overflow #-}
 
--- | Handle arithmetic underflow.
+-- | Handle arithmetic '_Underflow'.
 --
--- @'underflow' ≡ 'arithException' . 'underflow'@
+-- @'_Underflow' ≡ '_ArithException' . '_Underflow'@
 --
 -- @
--- 'underflow' :: 'Prism'' 'SomeException' 'ArithException'
--- 'underflow' :: 'Prism'' 'SomeException' 'ArithException'
+-- '_Underflow' :: 'Prism'' 'ArithException' 'ArithException'
+-- '_Underflow' :: 'Prism'' 'SomeException' 'ArithException'
 -- @
-underflow :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-underflow = case runPrism arithException of
+_Underflow :: AsArithException t => Prism' t ()
+_Underflow = case runPrism _ArithException of
   (bt, seta) | btu <- bt Underflow -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right Underflow -> Right ()
     Right a -> Left (bt a)
-{-# INLINE underflow #-}
+{-# INLINE _Underflow #-}
 
 -- | Handle arithmetic loss of precision.
 --
--- @'lossOfPrecision' ≡ 'arithException' . 'lossOfPrecision'@
+-- @'_LossOfPrecision' ≡ '_ArithException' . '_LossOfPrecision'@
 --
 -- @
--- 'lossOfPrecision' :: 'Prism'' 'ArithException' 'ArithException'
--- 'lossOfPrecision' :: 'Prism'' 'SomeException' 'ArithException'
+-- '_LossOfPrecision' :: 'Prism'' 'ArithException' 'ArithException'
+-- '_LossOfPrecision' :: 'Prism'' 'SomeException' 'ArithException'
 -- @
-lossOfPrecision :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-lossOfPrecision = case runPrism arithException of
+_LossOfPrecision :: AsArithException t => Prism' t ()
+_LossOfPrecision = case runPrism _ArithException of
   (bt, seta) | btu <- bt LossOfPrecision -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right LossOfPrecision -> Right ()
     Right a -> Left (bt a)
-{-# INLINE lossOfPrecision #-}
+{-# INLINE _LossOfPrecision #-}
 
 -- | Handle division by zero.
 --
--- @'divideByZero' ≡ 'arithException' . 'divideByZero'@
---
--- @
--- 'divideByZero' :: 'Prism'' 'ArithException' 'ArithException'
--- 'divideByZero' :: 'Prism'' 'SomeException' 'ArithException'
--- @
-divideByZero :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-divideByZero = case runPrism arithException of
+-- @'_DivideByZero' ≡ '_ArithException' . '_DivideByZero'@
+_DivideByZero :: AsArithException t => Prism' t ()
+_DivideByZero = case runPrism _ArithException of
   (bt, seta) | btu <- bt DivideByZero -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right DivideByZero -> Right ()
     Right a -> Left (bt a)
-{-# INLINE divideByZero #-}
+{-# INLINE _DivideByZero #-}
 
--- | Handle exceptional denormalized floating point.
+-- | Handle exceptional _Denormalized floating point.
 --
--- @'denormal' ≡ 'arithException' . 'denormal'@
---
--- @
--- 'denormal' :: 'Prism'' 'ArithException' 'ArithException'
--- 'denormal' :: 'Prism'' 'SomeException' 'ArithException'
--- @
-denormal :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-denormal = case runPrism arithException of
+-- @'_Denormal' ≡ '_ArithException' . '_Denormal'@
+_Denormal :: AsArithException t => Prism' t ()
+_Denormal = case runPrism _ArithException of
   (bt, seta) | btu <- bt Denormal -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right Denormal -> Right ()
     Right a -> Left (bt a)
-{-# INLINE denormal #-}
+{-# INLINE _Denormal #-}
 
 #if MIN_VERSION_base(4,6,0)
 -- | Added in @base@ 4.6 in response to this libraries discussion:
 --
 -- <http://haskell.1045720.n5.nabble.com/Data-Ratio-and-exceptions-td5711246.html>
 --
--- @'ratioZeroDenominator' ≡ 'arithException' . 'ratioZeroDenominator'@
---
--- @
--- 'ratioZeroDenominator' :: 'Prism'' 'ArithException' 'ArithException'
--- 'ratioZeroDenominator' :: 'Prism'' 'SomeException' 'ArithException'
--- @
-ratioZeroDenominator :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-ratioZeroDenominator = case runPrism arithException of
+-- @'_RatioZeroDenominator' ≡ '_ArithException' . '_RatioZeroDenominator'@
+_RatioZeroDenominator :: AsArithException t => Prism' t ()
+_RatioZeroDenominator = case runPrism _ArithException of
   (bt, seta) | btu <- bt RatioZeroDenominator -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right RatioZeroDenominator -> Right ()
     Right a -> Left (bt a)
-{-# INLINE ratioZeroDenominator #-}
+{-# INLINE _RatioZeroDenominator #-}
 #endif
 
 ----------------------------------------------------------------------------
@@ -405,117 +372,85 @@ ratioZeroDenominator = case runPrism arithException of
 ----------------------------------------------------------------------------
 
 -- | Exceptions generated by array operations
-class AsArrayException p f t where
+class AsArrayException t where
   -- | Extract information about an array exception.
-  --
-  -- @
-  -- 'arrayException' :: 'Equality'' 'ArrayException' 'ArrayException'
-  -- 'arrayException' :: 'Prism''    'SomeException'  'ArrayException'
-  -- @
-  arrayException :: Overloaded' p f t ArrayException
+  _ArrayException :: Prism' t ArrayException
 
-instance AsArrayException p f ArrayException where
-  arrayException = id
-  {-# INLINE arrayException #-}
+instance AsArrayException ArrayException where
+  _ArrayException = id
+  {-# INLINE _ArrayException #-}
 
-instance (Prismatic p, Applicative f) => AsArrayException p f SomeException where
-  arrayException = exception
-  {-# INLINE arrayException #-}
+instance AsArrayException SomeException where
+  _ArrayException = exception
+  {-# INLINE _ArrayException #-}
 
 -- | An attempt was made to index an array outside its declared bounds.
 --
--- @'indexOutOfBounds' ≡ 'arrayException' . 'indexOutOfBounds'@
-indexOutOfBounds :: AsArrayException (Market' ArrayException) Mutator t => Prism' t String
-indexOutOfBounds = case runPrism arrayException of
+-- @'_IndexOutOfBounds' ≡ '_ArrayException' . '_IndexOutOfBounds'@
+_IndexOutOfBounds :: AsArrayException t => Prism' t String
+_IndexOutOfBounds = case runPrism _ArrayException of
   (bt, seta) -> prism (bt . IndexOutOfBounds) $ \s -> case seta s of
     Left t -> Left t
     Right (IndexOutOfBounds r) -> Right r
     Right a -> Left (bt a)
-{-# INLINE indexOutOfBounds #-}
+{-# INLINE _IndexOutOfBounds #-}
 
 -- | An attempt was made to evaluate an element of an array that had not been initialized.
 --
--- @'undefinedElement' ≡ 'arrayException' . 'undefinedElement'@
-undefinedElement :: AsArrayException (Market' ArrayException) Mutator t => Prism' t String
-undefinedElement = case runPrism arrayException of
+-- @'_UndefinedElement' ≡ '_ArrayException' . '_UndefinedElement'@
+_UndefinedElement :: AsArrayException t => Prism' t String
+_UndefinedElement = case runPrism _ArrayException of
   (bt, seta) -> prism (bt . UndefinedElement) $ \s -> case seta s of
     Left t -> Left t
     Right (UndefinedElement r) -> Right r
     Right a -> Left (bt a)
-{-# INLINE undefinedElement #-}
+{-# INLINE _UndefinedElement #-}
 
 ----------------------------------------------------------------------------
 -- AssertionFailed
 ----------------------------------------------------------------------------
 
 -- | 'assert' was applied to 'False'.
-class AsAssertionFailed p f t where
-  -- | Exception for failed assertions
-  --
-  -- @
-  -- 'assertionFailed' :: 'Equality'' 'AssertionFailed' 'AssertionFailed'
-  -- 'assertionFailed' :: 'Prism''    'SomeException'   'AssertionFailed'
-  -- @
-  assertionFailed :: Overloaded' p f t AssertionFailed
+class AsAssertionFailed t where
+  -- |
+  -- >>> handling _AssertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
+  -- "caught"
+  _AssertionFailed :: Prism' t String
 
--- | Retrieve the text of a failed assertion.
---
--- 'AssertionFailed' is isomorphic to a 'String'
---
--- >>> handling _assertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
--- "caught"
---
--- @
--- '_assertionFailed' :: 'Iso'' 'AssertionFailed' 'String'
--- '_assertionFailed' :: 'Prism'' 'SomeException' 'String'
--- @
-_assertionFailed :: (AsAssertionFailed p f t, Profunctor p, Functor f) => Overloaded' p f t String
-_assertionFailed = assertionFailed . unwrapped
-{-# INLINE _assertionFailed #-}
+instance AsAssertionFailed AssertionFailed where
+  _AssertionFailed = unwrapping AssertionFailed
+  {-# INLINE _AssertionFailed #-}
 
-instance AsAssertionFailed p f AssertionFailed where
-  assertionFailed = id
-  {-# INLINE assertionFailed #-}
-
-instance (Prismatic p, Applicative f) => AsAssertionFailed p f SomeException where
-  assertionFailed = exception
-  {-# INLINE assertionFailed #-}
+instance AsAssertionFailed SomeException where
+  _AssertionFailed = exception.unwrapping AssertionFailed
+  {-# INLINE _AssertionFailed #-}
 
 ----------------------------------------------------------------------------
 -- AsyncException
 ----------------------------------------------------------------------------
 
 -- | Asynchronous exceptions.
-class AsAsyncException p f t where
-  -- @
-  -- 'asyncException' :: 'Equality'' 'AsyncException' 'AsyncException'
-  -- 'asyncException' :: 'Prism''    'SomeException'  'AsyncException'
-  -- @
-  asyncException :: Overloaded' p f t AsyncException
+class AsAsyncException t where
+  _AsyncException :: Prism' t AsyncException
 
-instance AsAsyncException p f AsyncException where
-  asyncException = id
-  {-# INLINE asyncException #-}
+instance AsAsyncException AsyncException where
+  _AsyncException = id
+  {-# INLINE _AsyncException #-}
 
-instance (Prismatic p, Applicative f) => AsAsyncException p f SomeException where
-  asyncException = exception
-  {-# INLINE asyncException #-}
+instance AsAsyncException SomeException where
+  _AsyncException = exception
+  {-# INLINE _AsyncException #-}
 
 -- | The current thread's stack exceeded its limit. Since an exception has been
 -- raised, the thread's stack will certainly be below its limit again, but the
 -- programmer should take remedial action immediately.
---
--- @
--- 'stackOverflow' :: 'Prism'' 'AssertionFailed' 'String'
--- 'stackOverflow' :: 'Prism'' 'SomeException'   'String'
--- @
-stackOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
-stackOverflow = case runPrism asyncException of
+_StackOverflow :: AsAsyncException t => Prism' t ()
+_StackOverflow = case runPrism _AsyncException of
   (bt, seta) | btu <- bt StackOverflow -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right StackOverflow -> Right ()
     Right a -> Left (bt a)
-{-# INLINE stackOverflow #-}
+{-# INLINE _StackOverflow #-}
 
 -- | The program's heap is reaching its limit, and the program should take action
 -- to reduce the amount of live data it has.
@@ -525,305 +460,173 @@ stackOverflow = case runPrism asyncException of
 -- * It is undefined which thread receives this exception.
 --
 -- * GHC currently does not throw 'HeapOverflow' exceptions.
---
--- @
--- 'heapOverflow' :: 'Prism'' 'AssertionFailed' 'String'
--- 'heapOverflow' :: 'Prism'' 'SomeException'   'String'
--- @
-heapOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
-heapOverflow = case runPrism asyncException of
+_HeapOverflow :: AsAsyncException t => Prism' t ()
+_HeapOverflow = case runPrism _AsyncException of
   (bt, seta) | btu <- bt HeapOverflow -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right HeapOverflow -> Right ()
     Right a -> Left (bt a)
-{-# INLINE heapOverflow #-}
+{-# INLINE _HeapOverflow #-}
 
 -- | This exception is raised by another thread calling 'killThread', or by the
 -- system if it needs to terminate the thread for some reason.
---
--- @
--- 'threadKilled' :: 'Prism'' 'AssertionFailed' 'String'
--- 'threadKilled' :: 'Prism'' 'SomeException'   'String'
--- @
-threadKilled :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
-threadKilled = case runPrism asyncException of
+_ThreadKilled :: AsAsyncException t => Prism' t ()
+_ThreadKilled = case runPrism _AsyncException of
   (bt, seta) | btu <- bt ThreadKilled -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right ThreadKilled -> Right ()
     Right a -> Left (bt a)
-{-# INLINE threadKilled #-}
+{-# INLINE _ThreadKilled #-}
 
 -- | This exception is raised by default in the main thread of the program when
 -- the user requests to terminate the program via the usual mechanism(s)
 -- (/e.g./ Control-C in the console).
---
--- @
--- 'userInterrupt' :: 'Prism'' 'AssertionFailed' 'String'
--- 'userInterrupt' :: 'Prism'' 'SomeException'   'String'
--- @
-userInterrupt :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
-userInterrupt = case runPrism asyncException of
+_UserInterrupt :: AsAsyncException t => Prism' t ()
+_UserInterrupt = case runPrism _AsyncException of
   (bt, seta) | btu <- bt UserInterrupt -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right UserInterrupt -> Right ()
     Right a -> Left (bt a)
-{-# INLINE userInterrupt #-}
+{-# INLINE _UserInterrupt #-}
 
 ----------------------------------------------------------------------------
 -- AsyncException
 ----------------------------------------------------------------------------
 
-class AsNonTermination p f t where
+class AsNonTermination t where
   -- | Thrown when the runtime system detects that the computation is guaranteed
   -- not to terminate. Note that there is no guarantee that the runtime system
   -- will notice whether any given computation is guaranteed to terminate or not.
-  nonTermination :: Overloaded' p f t NonTermination
+  _NonTermination :: Prism' t ()
 
-instance AsNonTermination p f NonTermination where
-  nonTermination = id
-  {-# INLINE nonTermination #-}
+instance AsNonTermination NonTermination where
+  _NonTermination = trivial NonTermination
+  {-# INLINE _NonTermination #-}
 
-instance (Prismatic p, Applicative f) => AsNonTermination p f SomeException where
-  nonTermination = exception
-  {-# INLINE nonTermination #-}
-
--- | 'NonTermination' is isomorphic to ()
---
--- @
--- '_nonTermination' :: 'Iso''   'NonTermination' ()
--- '_nonTermination' :: 'Prism'' 'SomeException'  ()
--- @
-_nonTermination :: (AsNonTermination p f t, Profunctor p, Functor f) => Overloaded' p f t ()
-_nonTermination = nonTermination . iso (const ()) (const NonTermination)
-{-# INLINE _nonTermination #-}
+instance AsNonTermination SomeException where
+  _NonTermination = exception.trivial NonTermination
+  {-# INLINE _NonTermination #-}
 
 ----------------------------------------------------------------------------
 -- NestedAtomically
 ----------------------------------------------------------------------------
 
-class AsNestedAtomically p f t where
+class AsNestedAtomically t where
   -- | Thrown when the program attempts to call atomically, from the stm package,
   -- inside another call to atomically.
-  --
-  -- @
-  -- 'nestedAtomically' :: 'Equality'' 'SomeException' 'NestedAtomically'
-  -- 'nestedAtomically' :: 'Prism''    'SomeException' 'NestedAtomically'
-  -- @
-  nestedAtomically :: Overloaded' p f t NestedAtomically
+  _NestedAtomically :: Prism' t ()
 
-instance AsNestedAtomically p f NestedAtomically where
-  nestedAtomically = id
-  {-# INLINE nestedAtomically #-}
+instance AsNestedAtomically NestedAtomically where
+  _NestedAtomically = trivial NestedAtomically
+  {-# INLINE _NestedAtomically #-}
 
-instance (Prismatic p, Applicative f) => AsNestedAtomically p f SomeException where
-  nestedAtomically = exception
-  {-# INLINE nestedAtomically #-}
-
--- | 'NestedAtomically' is isomorphic to ()
---
--- @
--- '_nestedAtomically' :: 'Iso''   'NestedAtomically' ()
--- '_nestedAtomically' :: 'Prism'' 'SomeException'  ()
--- @
-_nestedAtomically :: (AsNestedAtomically p f t, Profunctor p, Functor f) => Overloaded' p f t ()
-_nestedAtomically = nestedAtomically . iso (const ()) (const NestedAtomically)
-{-# INLINE _nestedAtomically #-}
+instance AsNestedAtomically SomeException where
+  _NestedAtomically = exception.trivial NestedAtomically
+  {-# INLINE _NestedAtomically #-}
 
 ----------------------------------------------------------------------------
 -- BlockedIndefinitelyOnMVar
 ----------------------------------------------------------------------------
 
-class AsBlockedIndefinitelyOnMVar p f t where
+class AsBlockedIndefinitelyOnMVar t where
   -- | The thread is blocked on an MVar, but there are no other references
   -- to the MVar so it can't ever continue.
-  --
-  -- @
-  -- 'blockedIndefinitelyOnMVar' :: 'Equality'' 'BlockedIndefinitelyOnMVar' 'BlockedIndefinitelyOnMVar'
-  -- 'blockedIndefinitelyOnMVar' :: 'Prism''    'SomeException'             'BlockedIndefinitelyOnMVar'
-  -- @
-  blockedIndefinitelyOnMVar :: Overloaded' p f t BlockedIndefinitelyOnMVar
+  _BlockedIndefinitelyOnMVar :: Prism' t ()
 
-instance AsBlockedIndefinitelyOnMVar p f BlockedIndefinitelyOnMVar where
-  blockedIndefinitelyOnMVar = id
-  {-# INLINE blockedIndefinitelyOnMVar #-}
+instance AsBlockedIndefinitelyOnMVar BlockedIndefinitelyOnMVar where
+  _BlockedIndefinitelyOnMVar = trivial BlockedIndefinitelyOnMVar
+  {-# INLINE _BlockedIndefinitelyOnMVar #-}
 
-instance (Prismatic p, Applicative f) => AsBlockedIndefinitelyOnMVar p f SomeException where
-  blockedIndefinitelyOnMVar = exception
-  {-# INLINE blockedIndefinitelyOnMVar #-}
-
--- | 'BlockedIndefinetelyOnMVar' is isomorphic to ()
---
--- @
--- '_blockedIndefinitelyOnMVar' :: 'Iso''   'BlockedIndefinitelyOnMVar' ()
--- '_blockedIndefinitelyOnMVar' :: 'Prism'' 'SomeException'  ()
--- @
-_blockedIndefinitelyOnMVar :: (AsBlockedIndefinitelyOnMVar p f t, Profunctor p, Functor f) => Overloaded' p f t ()
-_blockedIndefinitelyOnMVar = blockedIndefinitelyOnMVar . iso (const ()) (const BlockedIndefinitelyOnMVar)
-{-# INLINE _blockedIndefinitelyOnMVar #-}
+instance AsBlockedIndefinitelyOnMVar SomeException where
+  _BlockedIndefinitelyOnMVar = exception.trivial BlockedIndefinitelyOnMVar
+  {-# INLINE _BlockedIndefinitelyOnMVar #-}
 
 ----------------------------------------------------------------------------
 -- BlockedIndefinitelyOnSTM
 ----------------------------------------------------------------------------
 
-class AsBlockedIndefinitelyOnSTM p f t where
+class AsBlockedIndefinitelyOnSTM t where
   -- | The thread is waiting to retry an STM transaction, but there are no
   -- other references to any TVars involved, so it can't ever continue.
-  --
-  -- @
-  -- 'blockedIndefinitelyOnSTM' :: 'Equality'' 'BlockedIndefinitelyOnSTM' 'BlockedIndefinitelyOnSTM'
-  -- 'blockedIndefinitelyOnSTM' :: 'Prism''    'SomeException'            'BlockedIndefinitelyOnSTM'
-  -- @
-  blockedIndefinitelyOnSTM :: Overloaded' p f t BlockedIndefinitelyOnSTM
+  _BlockedIndefinitelyOnSTM :: Prism' t ()
 
-instance AsBlockedIndefinitelyOnSTM p f BlockedIndefinitelyOnSTM where
-  blockedIndefinitelyOnSTM = id
-  {-# INLINE blockedIndefinitelyOnSTM #-}
+instance AsBlockedIndefinitelyOnSTM BlockedIndefinitelyOnSTM where
+  _BlockedIndefinitelyOnSTM = trivial BlockedIndefinitelyOnSTM
+  {-# INLINE _BlockedIndefinitelyOnSTM #-}
 
-instance (Prismatic p, Applicative f) => AsBlockedIndefinitelyOnSTM p f SomeException where
-  blockedIndefinitelyOnSTM = exception
-  {-# INLINE blockedIndefinitelyOnSTM #-}
-
--- | 'BlockedIndefinetelyOnSTM' is isomorphic to ()
---
--- @
--- '_blockedIndefinitelyOnSTM' :: 'Iso''   'BlockedIndefinitelyOnSTM' ()
--- '_blockedIndefinitelyOnSTM' :: 'Prism'' 'SomeException'  ()
--- @
-_blockedIndefinitelyOnSTM :: (AsBlockedIndefinitelyOnSTM p f t, Profunctor p, Functor f) => Overloaded' p f t ()
-_blockedIndefinitelyOnSTM = blockedIndefinitelyOnSTM . iso (const ()) (const BlockedIndefinitelyOnSTM)
-{-# INLINE _blockedIndefinitelyOnSTM #-}
+instance AsBlockedIndefinitelyOnSTM SomeException where
+  _BlockedIndefinitelyOnSTM = exception.trivial BlockedIndefinitelyOnSTM
+  {-# INLINE _BlockedIndefinitelyOnSTM #-}
 
 ----------------------------------------------------------------------------
 -- Deadlock
 ----------------------------------------------------------------------------
 
-class AsDeadlock p f t where
-  -- | There are no runnable threads, so the program is deadlocked. The Deadlock exception
+class AsDeadlock t where
+  -- | There are no runnable threads, so the program is deadlocked. The 'Deadlock' exception
   -- is raised in the main thread only.
-  --
-  -- @
-  -- 'deadlock' :: 'Equality'' 'Deadlock'      'Deadlock'
-  -- 'deadlock' :: 'Prism''    'SomeException' 'Deadlock'
-  -- @
-  deadlock :: Overloaded' p f t Deadlock
+  _Deadlock :: Prism' t ()
 
-instance AsDeadlock p f Deadlock where
-  deadlock = id
-  {-# INLINE deadlock #-}
+instance AsDeadlock Deadlock where
+  _Deadlock = trivial Deadlock
+  {-# INLINE _Deadlock #-}
 
-instance (Prismatic p, Applicative f) => AsDeadlock p f SomeException where
-  deadlock = exception
-  {-# INLINE deadlock #-}
-
--- | 'Deadlock' is isomorphic to ()
---
--- @
--- '_deadlock' :: 'Iso''   'Deadlock'      ()
--- '_deadlock' :: 'Prism'' 'SomeException' ()
--- @
-_deadlock :: (AsDeadlock p f t, Profunctor p, Functor f) => Overloaded' p f t ()
-_deadlock = deadlock . iso (const ()) (const Deadlock)
-{-# INLINE _deadlock #-}
+instance AsDeadlock SomeException where
+  _Deadlock = exception.trivial Deadlock
+  {-# INLINE _Deadlock #-}
 
 ----------------------------------------------------------------------------
 -- NoMethodError
 ----------------------------------------------------------------------------
 
-class AsNoMethodError p f t where
+class AsNoMethodError t where
   -- | A class method without a definition (neither a default definition,
   -- nor a definition in the appropriate instance) was called.
-  --
-  -- @
-  -- 'noMethodError' :: 'Equality'' 'NoMethodError' 'NoMethodError'
-  -- 'noMethodError' :: 'Prism''    'SomeException' 'NoMethodError'
-  -- @
-  noMethodError :: Overloaded' p f t NoMethodError
+  _NoMethodError :: Prism' t String
 
-instance AsNoMethodError p f NoMethodError where
-  noMethodError = id
-  {-# INLINE noMethodError #-}
+instance AsNoMethodError NoMethodError where
+  _NoMethodError = unwrapping NoMethodError
+  {-# INLINE _NoMethodError #-}
 
-instance (Prismatic p, Applicative f) => AsNoMethodError p f SomeException where
-  noMethodError = exception
-  {-# INLINE noMethodError #-}
-
--- | Information about which method it was
---
--- 'NoMethodError' is isomorphic to a 'String'
---
--- @
--- '_noMethodError' :: 'Iso''   'NoMethodError' 'String'
--- '_noMethodError' :: 'Prism'' 'SomeException' 'String'
--- @
-_noMethodError :: (AsNoMethodError p f t, Profunctor p, Functor f) => Overloaded' p f t String
-_noMethodError = noMethodError . unwrapped
-{-# INLINE _noMethodError #-}
+instance AsNoMethodError SomeException where
+  _NoMethodError = exception.unwrapping NoMethodError
+  {-# INLINE _NoMethodError #-}
 
 ----------------------------------------------------------------------------
 -- PatternMatchFail
 ----------------------------------------------------------------------------
 
-class AsPatternMatchFail p f t where
+class AsPatternMatchFail t where
   -- | A pattern match failed.
   --
-  -- @
-  -- 'patternMatchFail' :: 'Equality'' 'PatternMatchFail' 'PatternMatchFail'
-  -- 'patternMatchFail' :: 'Prism''    'SomeException'    'PatternMatchFail'
-  -- @
-  patternMatchFail :: Overloaded' p f t PatternMatchFail
+  -- Information about the source location of the pattern
+  _PatternMatchFail :: Prism' t String
 
-instance AsPatternMatchFail p f PatternMatchFail where
-  patternMatchFail = id
-  {-# INLINE patternMatchFail #-}
+instance AsPatternMatchFail PatternMatchFail where
+  _PatternMatchFail = unwrapping PatternMatchFail
+  {-# INLINE _PatternMatchFail #-}
 
-instance (Prismatic p, Applicative f) => AsPatternMatchFail p f SomeException where
-  patternMatchFail = exception
-  {-# INLINE patternMatchFail #-}
-
--- | Information about the source location of the pattern
---
--- 'PatternMatchFail' is isomorphic to a 'String'
---
--- @
--- '_patternMatchFail' :: 'Iso''   'PatternMatchFail' String
--- '_patternMatchFail' :: 'Prism'' 'SomeException'    String
--- @
-_patternMatchFail :: (AsPatternMatchFail p f t, Profunctor p, Functor f) => Overloaded' p f t String
-_patternMatchFail = patternMatchFail . unwrapped
-{-# INLINE _patternMatchFail #-}
+instance AsPatternMatchFail SomeException where
+  _PatternMatchFail = exception.unwrapping PatternMatchFail
+  {-# INLINE _PatternMatchFail #-}
 
 ----------------------------------------------------------------------------
 -- RecConError
 ----------------------------------------------------------------------------
 
-class AsRecConError p f t where
+class AsRecConError t where
   -- | An uninitialised record field was used.
   --
-  -- @
-  -- 'recConError' :: 'Equality'' 'RecConError' 'RecConError'
-  -- 'recConError' :: 'Prism'' 'SomeException' 'RecConError'
-  -- @
-  recConError :: Overloaded' p f t RecConError
+  -- Information about the source location where the record was constructed
+  _RecConError :: Prism' t String
 
-instance AsRecConError p f RecConError where
-  recConError = id
-  {-# INLINE recConError #-}
+instance AsRecConError RecConError where
+  _RecConError = unwrapping RecConError
+  {-# INLINE _RecConError #-}
 
-instance (Prismatic p, Applicative f) => AsRecConError p f SomeException where
-  recConError = exception
-  {-# INLINE recConError #-}
-
--- | Information about the source location where the record was constructed
---
--- 'RecConError' is isomorphic to a 'String'
---
--- @
--- '_recConError' :: 'Iso''   'RecConError'   String
--- '_recConError' :: 'Prism'' 'SomeException' String
--- @
-_recConError :: (AsRecConError p f t, Profunctor p, Functor f) => Overloaded' p f t String
-_recConError = recConError . unwrapped
-{-# INLINE _recConError #-}
+instance AsRecConError SomeException where
+  _RecConError = exception.unwrapping RecConError
+  {-# INLINE _RecConError #-}
 
 ----------------------------------------------------------------------------
 -- RecSelError
@@ -832,33 +635,17 @@ _recConError = recConError . unwrapped
 -- | A record selector was applied to a constructor without the appropriate
 -- field. This can only happen with a datatype with multiple constructors,
 -- where some fields are in one constructor but not another.
-class AsRecSelError p f t where
-  -- |
-  -- @
-  -- 'recSelError' :: 'Equality'' 'RecSelError' 'RecSelError'
-  -- 'recSelError' :: 'Prism'' 'SomeException' 'RecSelError'
-  -- @
-  recSelError :: Overloaded' p f t RecSelError
+class AsRecSelError t where
+  -- | Information about the source location where the record selection occurred
+  _RecSelError :: Prism' t String
 
-instance AsRecSelError p f RecSelError where
-  recSelError = id
-  {-# INLINE recSelError #-}
+instance AsRecSelError RecSelError where
+  _RecSelError = unwrapping RecSelError
+  {-# INLINE _RecSelError #-}
 
-instance (Prismatic p, Applicative f) => AsRecSelError p f SomeException where
-  recSelError = exception
-  {-# INLINE recSelError #-}
-
--- | Information about the source location where the record selection occurred
---
--- 'RecSelError' is isomorphic to a 'String'
---
--- @
--- '_recSelError' :: 'Iso''   'RecSelError'   String
--- '_recSelError' :: 'Prism'' 'SomeException' String
--- @
-_recSelError :: (AsRecSelError p f t, Profunctor p, Functor f) => Overloaded' p f t String
-_recSelError = recSelError . unwrapped
-{-# INLINE _recSelError #-}
+instance AsRecSelError SomeException where
+  _RecSelError = exception.unwrapping RecSelError
+  {-# INLINE _RecSelError #-}
 
 ----------------------------------------------------------------------------
 -- RecUpdError
@@ -867,66 +654,43 @@ _recSelError = recSelError . unwrapped
 -- | A record update was performed on a constructor without the
 -- appropriate field. This can only happen with a datatype with multiple
 -- constructors, where some fields are in one constructor but not another.
-class AsRecUpdError p f t where
-  -- |
-  -- @
-  -- 'recUpdError' :: 'Equality'' 'RecUpdError' 'RecUpdError'
-  -- 'recUpdError' :: 'Prism'' 'SomeException' 'RecUpdError'
-  -- @
-  recUpdError :: Overloaded' p f t RecUpdError
+class AsRecUpdError t where
+  -- | Information about the source location where the record was updated
+  _RecUpdError :: Prism' t String
 
-instance AsRecUpdError p f RecUpdError where
-  recUpdError = id
-  {-# INLINE recUpdError #-}
+instance AsRecUpdError RecUpdError where
+  _RecUpdError = unwrapping RecUpdError
+  {-# INLINE _RecUpdError #-}
 
-instance (Prismatic p, Applicative f) => AsRecUpdError p f SomeException where
-  recUpdError = exception
-  {-# INLINE recUpdError #-}
-
--- | Information about the source location where the record was updated
---
--- 'RecUpdError' is isomorphic to a 'String'
---
--- @
--- '_recUpdError' :: 'Iso''   'RecUpdError'   String
--- '_recUpdError' :: 'Prism'' 'SomeException' String
--- @
-_recUpdError :: (AsRecUpdError p f t, Profunctor p, Functor f) => Overloaded' p f t String
-_recUpdError = recUpdError . unwrapped
-{-# INLINE _recUpdError #-}
+instance AsRecUpdError SomeException where
+  _RecUpdError = exception.unwrapping RecUpdError
+  {-# INLINE _RecUpdError #-}
 
 ----------------------------------------------------------------------------
 -- ErrorCall
 ----------------------------------------------------------------------------
 
 -- | This is thrown when the user calls 'error'.
-class AsErrorCall p f t where
-  -- |
-  -- @
-  -- 'errorCall' :: 'Equality'' 'ErrorCall'     'ErrorCall'
-  -- 'errorCall' :: 'Prism''    'SomeException' 'ErrorCall'
-  -- @
-  errorCall :: Overloaded' p f t ErrorCall
+class AsErrorCall t where
+  -- | Retrieve the argument given to 'error'.
+  --
+  -- 'ErrorCall' is isomorphic to a 'String'
+  --
+  -- >>> catching _ErrorCall (error "touch down!") return
+  -- "touch down!"
+  _ErrorCall :: Prism' t String
 
-instance AsErrorCall p f ErrorCall where
-  errorCall = id
-  {-# INLINE errorCall #-}
+instance AsErrorCall ErrorCall where
+  _ErrorCall = unwrapping ErrorCall
+  {-# INLINE _ErrorCall #-}
 
-instance (Prismatic p, Applicative f) => AsErrorCall p f SomeException where
-  errorCall = exception
-  {-# INLINE errorCall #-}
+instance AsErrorCall SomeException where
+  _ErrorCall = exception.unwrapping ErrorCall
+  {-# INLINE _ErrorCall #-}
 
--- | Retrieve the argument given to 'error'.
---
--- 'ErrorCall' is isomorphic to a 'String'
---
--- >>> catching _errorCall (error "touch down!") return
--- "touch down!"
---
--- @
--- '_errorCall' :: 'Iso''   'ErrorCall'     'String'
--- '_errorCall' :: 'Prism'' 'SomeException' 'String'
--- @
-_errorCall :: (AsErrorCall p f t, Profunctor p, Functor f) => Overloaded' p f t String
-_errorCall = errorCall . unwrapped
-{-# INLINE _errorCall #-}
+------------------------------------------------------------------------------
+-- Helper Functions
+------------------------------------------------------------------------------
+
+trivial :: t -> Iso' t ()
+trivial t = const () `iso` const t
