@@ -652,13 +652,6 @@ beside l r f = tabulate $ \ ~(s,s') -> liftA2 (,) <$> rep (l f) s <*> rep (r f) 
 -- 'taking' :: 'Int' -> 'IndexPreservingAction' m s a      -> 'IndexPreservingMonadicFold' m s a
 -- 'taking' :: 'Int' -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s a
 -- @
---
--- With fewer generalizations, you'd have:
---
--- @
--- 'taking' :: 'Applicative' f => 'Int' -> 'Traversing'' (->) f s a -> 'LensLike'' f s a
--- 'taking' n l f s = @outs@ b <$> 'traverse' f ('take' n '$' @ins@ b) where b = l 'sell' s
--- @
 taking :: (Corepresentable p, Category p, Representable q, Applicative (Rep q), Monad (Rep q), Applicative f)
        => Int
        -> Overloading p q (BazaarT p q f a a) s t a a
