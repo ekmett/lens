@@ -82,6 +82,8 @@ instance Corepresentable (Formatted m) where
 instance Prismatic (Formatted m) where
   prismatic (Formatted k) = Formatted k
 
+instance Applicative f => Prismal (Formatted m) f
+
 ------------------------------------------------------------------------------
 -- Formats
 ------------------------------------------------------------------------------
