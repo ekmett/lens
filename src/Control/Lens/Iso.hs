@@ -282,10 +282,10 @@ flipped = iso flip flip
 -- | This class provides for symmetric bifunctors.
 --
 -- @
--- 'swapped' . 'swapped' ≡ 'id'
--- 'first' f . 'swapped' = 'swapped' . 'second' f
--- 'second' g . 'swapped' = 'swapped' . 'first' g
--- 'bimap' f g . 'swapped' = 'swapped' . 'bimap' g f
+-- 'swapped' '.' 'swapped' ≡ 'id'
+-- 'first' f '.' 'swapped' = 'swapped' '.' 'second' f
+-- 'second' g '.' 'swapped' = 'swapped' '.' 'first' g
+-- 'bimap' f g '.' 'swapped' = 'swapped' '.' 'bimap' g f
 -- @
 class Bifunctor p => Swapped p where
   swapped :: Iso (p a b) (p c d) (p b a) (p d c)
