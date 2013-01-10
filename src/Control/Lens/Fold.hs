@@ -45,6 +45,7 @@ module Control.Lens.Fold
   , (^..)
   , (^?)
   , (^?!)
+  , pre
   , preview, previews
   , preuse, preuses
   , has, hasn't
@@ -1256,6 +1257,15 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 {-# INLINE hasn't #-}
 
 ------------------------------------------------------------------------------
+-- Pre
+------------------------------------------------------------------------------
+
+-- | This converts a 'Fold' to a 'Getter' that returns the first element if it
+-- exists as a 'Maybe'
+pre :: Getting (Endo r) s t a b -> Getting r s t (Maybe a) (Maybe b)
+pre l f = (Accessor #. flip appEndo (runAccessor (f Nothing)) .# runAccessor) `rmap` l (dimap Just (Accessor #. Endo #. const .# runAccessor) f)
+
+------------------------------------------------------------------------------
 -- Preview
 ------------------------------------------------------------------------------
 
@@ -1265,6 +1275,8 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 -- @'Data.Maybe.listToMaybe' '.' 'toList' ≡ 'preview' 'folded'@
 --
 -- This is usually applied in the reader monad @(->) s@.
+--
+-- @'preview' = 'view' . 'pre'@
 --
 -- @
 -- 'preview' :: 'Getter' s a     -> s -> 'Maybe' a
@@ -1292,6 +1304,8 @@ preview l = asks (foldrOf l (\x _ -> Just x) Nothing)
 -- 'Traversal' (or 'Just' the result from a 'Getter' or 'Lens').
 --
 -- This is usually applied in the reader monad @(->) s@.
+
+-- @'previews' = 'views' . 'pre'@
 --
 -- @
 -- 'previews' :: 'Getter' s a     -> (a -> r) -> s -> 'Maybe' a
@@ -1323,6 +1337,8 @@ previews l f = asks (foldrOf l (\x _ -> Just (f x)) Nothing)
 -- | Retrieve the first value targeted by a 'Fold' or 'Traversal' (or 'Just' the result
 -- from a 'Getter' or 'Lens') into the current state.
 --
+-- @'preuse' = 'use' . 'pre'@
+--
 -- @
 -- 'preuse' :: 'MonadState' s m => 'Getter' s a     -> m ('Maybe' a)
 -- 'preuse' :: 'MonadState' s m => 'Fold' s a       -> m ('Maybe' a)
@@ -1336,6 +1352,8 @@ preuse l = gets (preview l)
 
 -- | Retrieve a function of the first value targeted by a 'Fold' or
 -- 'Traversal' (or 'Just' the result from a 'Getter' or 'Lens') into the current state.
+--
+-- @'preuses' = 'uses' . 'pre'@
 --
 -- @
 -- 'preuses' :: 'MonadState' s m => 'Getter' s a     -> (a -> r) -> m ('Maybe' r)
