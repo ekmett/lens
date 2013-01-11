@@ -11,7 +11,8 @@
 --
 -- The code here is inspired by Brandon Simmons' @zippo@ package, but uses
 -- a different approach to represent the 'Zipper' that makes the whole thing
--- look like his breadcrumb trail, and can move side-to-side through traversals.
+-- look like his breadcrumb trail, and can move side-to-side through
+-- 'Control.Lens.Type.Traversal's.
 --
 -- Some examples types:
 --
@@ -24,8 +25,9 @@
 --   'Data.Tree.Tree' with an intermediate bookmarked 'Data.Tree.Tree',
 --   focusing in yet another 'Data.Tree.Tree'.
 --
--- Since individual levels of a 'Zipper' are managed by an arbitrary 'Control.Lens.Type.IndexedTraversal',
--- you can move left and right through the 'Control.Lens.Type.IndexedTraversal' selecting neighboring elements.
+-- Since individual levels of a 'Zipper' are managed by an arbitrary
+-- 'Control.Lens.Type.IndexedTraversal', you can move left and right through
+-- the 'Control.Lens.Type.IndexedTraversal' selecting neighboring elements.
 --
 -- >>> zipper ("hello","world") & downward _1 & fromWithin traverse & focus .~ 'J' & rightmost & focus .~ 'y' & rezip
 -- ("Jelly","world")
@@ -34,10 +36,10 @@
 -- 'Data.Data.Lens.uniplate' or 'Data.Data.Lens.biplate' for walking down into
 -- self-similar children in syntax trees and other structures.
 --
--- Given keys in ascending order you can jump directly to a given key with 'moveTo'.
--- When used with indexed traversals for balanced tree-like structures such as
--- an 'Data.IntMap.IntMap' or 'Data.Map.Map', searching for a key with 'moveTo' can be done in
--- logarithmic time.
+-- Given keys in ascending order you can jump directly to a given key with
+-- 'moveTo'. When used with 'Control.Lens.Type.IndexedTraversal's for balanced
+-- tree-like structures such as an 'Data.IntMap.IntMap' or 'Data.Map.Map',
+-- searching for a key with 'moveTo' can be done in logarithmic time.
 -----------------------------------------------------------------------------
 module Control.Lens.Zipper
   (

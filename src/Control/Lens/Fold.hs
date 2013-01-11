@@ -912,8 +912,8 @@ firstOf l = foldrOf l (\x _ -> Just x) Nothing
 -- 'lastOf' :: 'Iso'' s a       -> s -> 'Maybe' a
 -- 'lastOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-lastOf :: Getting (Dual (Endo (Maybe a))) s t a b -> s -> Maybe a
-lastOf l = foldlOf l (\_ y -> Just y) Nothing
+lastOf :: Getting (Endo (Maybe a -> Maybe a)) s t a b -> s -> Maybe a
+lastOf l = foldlOf' l (\_ y -> Just y) Nothing
 {-# INLINE lastOf #-}
 
 -- |

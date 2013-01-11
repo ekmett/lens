@@ -198,7 +198,8 @@ offset (ApL _ _ _ _ q _) = offset q
 offset (ApR _ _ _ _ l q) = size l + offset q
 {-# INLINE offset #-}
 
--- | Return the total number of children in the 'Magma' by walking the path to the root.
+-- | Return the total number of children in the 'Magma' by walking the path to
+-- the root.
 pathsize :: Path i a -> Int
 pathsize = go 1 where
   go n Start = n
@@ -296,8 +297,8 @@ data Top
 -- >>> rezip $ zipper 42
 -- 42
 --
--- The combinators in this module provide lot of things you can do to the zipper while you
--- have it open.
+-- The combinators in this module provide lot of things you can do to the
+-- 'Zipper' while you have it open.
 --
 -- Note that a value of type @h ':>' s ':>' a@ doesn't actually contain a value
 -- of type @h ':>' s@ -- as we descend into a level, the previous level is
@@ -437,8 +438,8 @@ rightmost :: a :> b:@i -> a :> b:@i
 rightmost (Zipper h _ _ p i a) = startr Start (recompress p i a) (error "rightmost: bad Magma structure") (\q -> Zipper h (offset q) 0 q)
 {-# INLINE rightmost #-}
 
--- | This allows you to safely 'tug leftward' or 'tug rightward' on a 'Zipper'. This
--- will attempt the move, and stay where it was if it fails.
+-- | This allows you to safely 'tug' 'leftward' or 'tug' 'rightward' on a
+-- 'Zipper'. This will attempt the move, and stay where it was if it fails.
 --
 -- The more general signature allows its use in other circumstances, however.
 --
@@ -453,9 +454,10 @@ tug :: (a -> Maybe a) -> a -> a
 tug f a = fromMaybe a (f a)
 {-# INLINE tug #-}
 
--- | This allows you to safely @'tug' 'leftward'@ or @'tug' 'rightward'@ multiple times on a 'Zipper',
--- moving multiple steps in a given direction and stopping at the last place you
--- couldn't move from. This lets you safely move a zipper, because it will stop at either end.
+-- | This allows you to safely @'tug' 'leftward'@ or @'tug' 'rightward'@
+-- multiple times on a 'Zipper', moving multiple steps in a given direction
+-- and stopping at the last place you couldn't move from. This lets you safely
+-- move a 'Zipper', because it will stop at either end.
 --
 -- >>> fmap rezip $ zipper "stale" & within traverse <&> tugs rightward 2 <&> focus .~ 'y'
 -- "style"
@@ -585,7 +587,7 @@ moveToward i z@(Zipper h _ _ p0 j s0)
 
 -- | Move horizontally to a particular index @i@ in the current
 -- 'Traversal'. In the case of simple 'Zipper's, the index is 'Int' and
--- we can move between traverals fairly easily:
+-- we can move between 'Control.Lens.Type.Traversal's fairly easily:
 --
 -- >>> zipper (42, 32) & fromWithin both & moveTo 0 <&> view focus
 -- 42
@@ -740,8 +742,9 @@ restoreTape (Tape h n) = restoreTrack h >=> moveTo n
 
 -- | Restore ourselves to a location near our previously recorded position.
 --
--- When moving left to right through a 'Traversal', if this will clamp at each level to the range @0 '<=' k '<' 'teeth'@,
--- so the only failures will occur when one of the sequence of downward traversals find no targets.
+-- When moving left to right through a 'Traversal', if this will clamp at each
+-- level to the range @0 '<=' k '<' 'teeth'@, so the only failures will occur
+-- when one of the sequence of downward 'Traversal's find no targets.
 restoreNearTape :: MonadPlus m => Tape h i a -> Zipped h a -> m (Zipper h i a)
 restoreNearTape (Tape h n) a = liftM (moveToward n) (restoreNearTrack h a)
 {-# INLINE restoreNearTape #-}
@@ -750,7 +753,7 @@ restoreNearTape (Tape h n) a = liftM (moveToward n) (restoreNearTrack h a)
 --
 -- This *assumes* that nothing has been done in the meantime to affect the existence of anything on the entire path.
 --
--- Motions leftward or rightward are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
+-- Motions 'leftward' or 'rightward' are clamped, but all 'Traversal's included on the 'Tape' are assumed to be non-empty.
 --
 -- Violate these assumptions at your own risk!
 unsafelyRestoreTape :: Tape h i a -> Zipped h a -> Zipper h i a

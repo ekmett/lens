@@ -23,7 +23,6 @@ module Control.Lens.Prism
   , prism'
   -- * Consuming Prisms
   , clonePrism
-  , runPrism
   , outside
   , aside
   , without
@@ -60,7 +59,6 @@ type APrism s t a b = Market a b a (Mutator b) -> Market a b s (Mutator t)
 
 type APrism' s a = APrism s s a a
 
--- | Safely decompose 'APrism'.
 runPrism :: APrism s t a b -> Market a b s t
 #ifdef SAFE
 runPrism k = case k (Market Mutator Right) of

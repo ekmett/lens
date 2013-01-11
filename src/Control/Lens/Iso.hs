@@ -29,7 +29,6 @@ module Control.Lens.Iso
   -- * Consuming Isomorphisms
   , from
   , cloneIso
-  , runIso
   -- * Working with isomorphisms
   , au
   , auf
@@ -120,7 +119,6 @@ cloneIso k = case runIso k of
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
 
--- | Safely decompose 'AnIso'.
 runIso :: AnIso s t a b -> Exchange a b s t
 #ifdef SAFE
 runIso ai = case ai (Exchange id Mutator) of

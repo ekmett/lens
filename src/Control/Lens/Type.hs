@@ -76,7 +76,7 @@ import Data.Profunctor
 -- <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
 -- With great power comes great responsibility and a 'Lens' is subject to the
--- three common sense lens laws:
+-- three common sense 'Lens' laws:
 --
 -- 1) You get back what you put in:
 --
@@ -161,7 +161,7 @@ type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
 -- | @type 'Traversal'' = 'Simple' 'Traversal'@
 type Traversal' s a = Traversal s s a a
 
--- | Every IndexedTraversal is a valid 'Control.Lens.Traversal.Traversal' or
+-- | Every 'IndexedTraversal' is a valid 'Control.Lens.Traversal.Traversal' or
 -- 'Control.Lens.Fold.IndexedFold'.
 --
 -- The 'Indexed' constraint is used to allow an 'IndexedTraversal' to be used
@@ -197,7 +197,7 @@ type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
 -- 'Control.Lens.Setter.over' l f '.' 'Control.Lens.Setter.over' l g ≡ 'Control.Lens.Setter.over' l (f '.' g)
 -- @
 --
--- These an be stated more directly:
+-- These can be stated more directly:
 --
 -- @
 -- l 'pure' ≡ 'pure'
@@ -355,7 +355,7 @@ type Prism' s a = Prism s s a a
 -- Note: Composition with an 'Equality' is index-preserving.
 type Equality s t a b = forall p (f :: * -> *). p a (f b) -> p s (f t)
 
--- | A 'Simple' 'Equality'
+-- | A 'Simple' 'Equality'.
 type Equality' s a = Equality s s a a
 
 -------------------------------------------------------------------------------
@@ -498,10 +498,10 @@ type LensLike f s t a b = (a -> f b) -> s -> f t
 -- | @type 'LensLike'' f = 'Simple' ('LensLike' f)@
 type LensLike' f s a = LensLike f s s a a
 
--- | Convenient alias for constructing indexed lenses and their ilk.
+-- | Convenient alias for constructing 'IndexedLens'es and their ilk.
 type IndexedLensLike i f s t a b = forall p. Indexable i p => p a (f b) -> s -> f t
 
--- | Convenient alias for constructing simple indexed lenses and their ilk.
+-- | Convenient alias for constructing simple 'IndexedLens'es and their ilk.
 type IndexedLensLike' i f s a = IndexedLensLike i f s s a a
 
 type Lensing p f s t a b = p a (f b) -> s -> f t

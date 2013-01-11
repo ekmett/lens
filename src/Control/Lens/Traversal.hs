@@ -24,8 +24,8 @@
 -- Portability :  Rank2Types
 --
 -- A @'Traversal' s t a b@ is a generalization of 'traverse' from
--- 'Traversable'. It allows you to traverse over a structure and change out
--- its contents with monadic or applicative side-effects. Starting from
+-- 'Traversable'. It allows you to 'traverse' over a structure and change out
+-- its contents with monadic or 'Applicative' side-effects. Starting from
 --
 -- @'traverse' :: ('Traversable' t, 'Applicative' f) => (a -> f b) -> t a -> f (t b)@
 --
@@ -306,7 +306,7 @@ transposeOf l = getZipList #. l ZipList
 --
 -- @'mapAccumR' ≡ 'mapAccumROf' 'traverse'@
 --
--- 'mapAccumROf' accumulates state from right to left.
+-- 'mapAccumROf' accumulates 'State' from right to left.
 --
 -- @
 -- 'mapAccumROf' :: 'Iso' s t a b       -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
@@ -323,7 +323,7 @@ mapAccumROf = mapAccumLOf . backwards
 --
 -- @'mapAccumL' ≡ 'mapAccumLOf' 'traverse'@
 --
--- 'mapAccumLOf' accumulates state from left to right.
+-- 'mapAccumLOf' accumulates 'State' from left to right.
 --
 -- @
 -- 'mapAccumLOf' :: 'Iso' s t a b       -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
@@ -658,7 +658,7 @@ taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where b =
 -- >>> ("hello","world") ^? dropping 1 both
 -- Just "world"
 --
--- Dropping works on infinite traversals as well:
+-- Dropping works on infinite 'Traversal's as well:
 --
 -- >>> [1..] ^? dropping 1 folded
 -- Just 2
@@ -692,7 +692,7 @@ dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
 --
 -- Cloning a 'Traversal' is one way to make sure you aren't given
 -- something weaker, such as a 'Fold' and can be
--- used as a way to pass around traversals that have to be monomorphic in @f@.
+-- used as a way to pass around 'Traversal's that have to be monomorphic in @f@.
 --
 -- Note: This only accepts a proper 'Traversal' (or 'Lens'). To clone a 'Lens'
 -- as such, use 'Control.Lens.Lens.cloneLens'.
