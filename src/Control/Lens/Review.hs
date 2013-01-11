@@ -19,7 +19,7 @@ module Control.Lens.Review
     Review, Review'
   , AReview, AReview'
   , unto
-  , remit
+  , re
   , review, reviews
   , reuse, reuses
   -- * Reviewable Profunctors
@@ -64,22 +64,22 @@ unto f = retagged . rmap (fmap f)
 -- If you have an 'Control.Lens.Iso.Iso', 'Control.Lens.Iso.from' is a more powerful version of this function
 -- that will return an 'Control.Lens.Iso.Iso' instead of a mere 'Getter'.
 --
--- >>> 5 ^.remit _left
+-- >>> 5 ^.re _Left
 -- Left 5
 --
 -- @
--- 'remit' :: 'Prism' s t a b -> 'Getter' b t
--- 'remit' :: 'Iso' s t a b   -> 'Getter' b t
+-- 're' :: 'Prism' s t a b -> 'Getter' b t
+-- 're' :: 'Iso' s t a b   -> 'Getter' b t
 -- @
-remit :: AReview s t a b -> Getter b t
-remit p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
-{-# INLINE remit #-}
+re :: AReview s t a b -> Getter b t
+re p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
+{-# INLINE re #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.
 --
--- @'review' ≡ 'view' '.' 'remit'@
+-- @'review' ≡ 'view' '.' 're'@
 --
--- >>> review _left "mustard"
+-- >>> review _Left "mustard"
 -- Left "mustard"
 --
 -- Usually 'review' is used in the @(->)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
@@ -104,9 +104,9 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,
 -- applying a function.
 --
--- @'reviews' ≡ 'views' '.' 'remit'@
+-- @'reviews' ≡ 'views' '.' 're'@
 --
--- >>> reviews _left isRight "mustard"
+-- >>> reviews _Left isRight "mustard"
 -- False
 --
 -- Usually this function is used in the @(->)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
@@ -130,9 +130,9 @@ reviews p tr = asks (tr . runIdentity #. runReviewed #. p .# Reviewed .# Identit
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.
 --
--- @'reuse' ≡ 'use' '.' 'remit'@
+-- @'reuse' ≡ 'use' '.' 're'@
 --
--- >>> evalState (reuse _left) 5
+-- >>> evalState (reuse _Left) 5
 -- Left 5
 --
 -- @
@@ -146,9 +146,9 @@ reuse p = gets (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,
 -- applying a function.
 --
--- @'reuses' ≡ 'uses' '.' 'remit'@
+-- @'reuses' ≡ 'uses' '.' 're'@
 --
--- >>> evalState (reuses _left isLeft) (5 :: Int)
+-- >>> evalState (reuses _Left isLeft) (5 :: Int)
 -- True
 --
 -- @

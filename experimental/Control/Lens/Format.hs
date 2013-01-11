@@ -26,6 +26,7 @@ module Control.Lens.Format
   , format
   , now
   , later
+  , say
   -- * Implementation Details
   , Formattable(..)
   , Formatted(..)
@@ -34,6 +35,7 @@ module Control.Lens.Format
 import Control.Applicative
 import Control.Lens
 import Control.Lens.Internal
+import Control.Monad.Writer
 import Data.Distributive
 import Data.Monoid
 import Data.Profunctor.Unsafe
@@ -96,12 +98,18 @@ type Formatting' m n t b = Formatting m n t t b b
 -- Formattable
 ------------------------------------------------------------------------------
 
+-- later :: (x -> m) -> (m -> b) -> m -> x -> b
 later :: (Formattable m p, Reviewable p, Distributive f) => (x -> m) -> Overloaded' p f (x -> b) b
 later f = unto (. f) . rmap distribute . formatted
 
+-- Monoid m => ((b -> b) -> m -> t) -> t
 format :: Monoid m => Formatting b m s t a b -> t
 format l = (runMutator #. runFormatted (l (Formatted Mutator))) mempty
 
+say :: (MonadWriter u m, Monoid v) => Formatting u v s t a (m ()) -> t
+say l = (runMutator #. runFormatted (l (Formatted (Mutator #. tell)))) mempty
+
+-- now :: m -> (m -> b) -> m -> b
 now :: Formattable m p => m -> Overloaded p f a b a b
 now m = rmap ($ m) . formatted
 

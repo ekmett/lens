@@ -479,7 +479,7 @@ contextsOnOf b l = f . map context . holesOf b where
 -- @
 --
 -- @'holes' = 'holesOf' 'plate'@
-holes :: Plated a => a -> [Pretext (->) (->) a a a]
+holes :: Plated a => a -> [Pretext (->) a a a]
 holes = holesOf plate
 {-# INLINE holes #-}
 
@@ -494,7 +494,7 @@ holes = holesOf plate
 -- 'holesOn' :: 'IndexedLens'' i s a      -> s -> ['Pretext' ('Indexed' i) a a s]
 -- 'holesOn' :: 'IndexedTraversal'' i s a -> s -> ['Pretext' ('Indexed' i) a a s]
 -- @
-holesOn :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (Bazaar p (->) a a) s t a a -> s -> [Pretext p (->) a a t]
+holesOn :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
 holesOn = holesOf
 {-# INLINE holesOn #-}
 
@@ -510,9 +510,9 @@ holesOn = holesOf
 -- 'holesOnOf' :: 'Traversal'' s a -> 'IndexedTraversal'' i a a -> s -> ['Pretext' ('Indexed' i) a a s]
 -- @
 holesOnOf :: (Corepresentable p, Comonad (Corep p))
-          => LensLike (Bazaar p (->) r r) s t a b
-          -> Overloading p (->) (Bazaar p (->) r r) a b r r
-          -> s -> [Pretext p (->) r r t]
+          => LensLike (Bazaar p  r r) s t a b
+          -> Overloading p (->) (Bazaar p r r) a b r r
+          -> s -> [Pretext p r r t]
 holesOnOf b l = holesOf (b . l)
 {-# INLINE holesOnOf #-}
 

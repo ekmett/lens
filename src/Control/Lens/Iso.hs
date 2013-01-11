@@ -29,7 +29,6 @@ module Control.Lens.Iso
   -- * Consuming Isomorphisms
   , from
   , cloneIso
-  , runIso
   -- * Working with isomorphisms
   , au
   , auf
@@ -102,7 +101,7 @@ iso sa bt = dimap sa (fmap bt)
 -- @'from' ('from' l) ≡ l@
 from :: AnIso s t a b -> Iso b a t s
 from k = case runIso k of
-  (sa, bt) -> iso bt sa
+  Exchange sa bt -> iso bt sa
 {-# INLINE from #-}
 
 -- | Convert from 'AnIso' back to any 'Iso'.
@@ -113,24 +112,19 @@ from k = case runIso k of
 -- See 'Control.Lens.Lens.cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
 cloneIso :: AnIso s t a b -> Iso s t a b
 cloneIso k = case runIso k of
-  (sa, bt) -> iso sa bt
+  Exchange sa bt -> iso sa bt
 {-# INLINE cloneIso #-}
 
 -----------------------------------------------------------------------------
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
 
--- | Safely decompose 'AnIso'.
---
--- @'cloneIso' ≡ 'uncurry' 'iso' '.' 'runIso'@
---
--- @'from' ≡ 'uncurry' ('flip' 'iso') '.' 'runIso'@
-runIso :: AnIso s t a b -> (s -> a, b -> t)
+runIso :: AnIso s t a b -> Exchange a b s t
 #ifdef SAFE
-runIso ai = case runExchange $ ai $ Exchange (id, Mutator) of
-  (sa, bt) -> (sa, runMutator #. bt)
+runIso ai = case ai (Exchange id Mutator) of
+  Exchange sa bt -> Exchange sa (runMutator #. bt)
 #else
-runIso ai = unsafeCoerce (runExchange $ ai $ Exchange (id, Mutator))
+runIso ai = unsafeCoerce $ ai $ Exchange id Mutator
 #endif
 
 {-# INLINE runIso #-}
@@ -143,7 +137,7 @@ runIso ai = unsafeCoerce (runExchange $ ai $ Exchange (id, Mutator))
 -- 10
 au :: AnIso s t a b -> ((s -> a) -> e -> b) -> e -> t
 au k = case runIso k of
-  (sa, bt) -> \ f e -> bt (f sa e)
+  Exchange sa bt -> \ f e -> bt (f sa e)
 {-# INLINE au #-}
 
 -- |
@@ -160,7 +154,7 @@ au k = case runIso k of
 -- 10
 auf :: AnIso s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
 auf k = case runIso k of
-  (sa, bt) -> \ f g e -> bt (f (sa . g) e)
+  Exchange sa bt -> \ f g e -> bt (f (sa . g) e)
 {-# INLINE auf #-}
 
 -- | The opposite of working 'Control.Lens.Setter.over' a 'Setter' is working 'under' an isomorphism.
@@ -170,7 +164,7 @@ auf k = case runIso k of
 -- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
 under :: AnIso s t a b -> (t -> s) -> b -> a
 under k = case runIso k of
-  (sa, bt) -> \ts -> sa . ts . bt
+  Exchange sa bt -> \ts -> sa . ts . bt
 {-# INLINE under #-}
 
 -----------------------------------------------------------------------------
@@ -197,7 +191,7 @@ enum = iso toEnum fromEnum
 -- | This can be used to lift any 'Iso' into an arbitrary 'Functor'.
 mapping :: Functor f => AnIso s t a b -> Iso (f s) (f t) (f a) (f b)
 mapping k = case runIso k of
-  (sa, bt) -> iso (fmap sa) (fmap bt)
+  Exchange sa bt -> iso (fmap sa) (fmap bt)
 {-# INLINE mapping #-}
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',

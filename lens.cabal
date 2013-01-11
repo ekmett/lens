@@ -189,10 +189,10 @@ library
     Control.Lens.Action
     Control.Lens.At
     Control.Lens.Combinators
+    Control.Lens.Cons
     Control.Lens.Each
     Control.Lens.Equality
     Control.Lens.Fold
-    Control.Lens.Format
     Control.Lens.Getter
     Control.Lens.Indexed
     Control.Lens.Internal
@@ -200,7 +200,6 @@ library
     Control.Lens.Lens
     Control.Lens.Level
     Control.Lens.Loupe
-    Control.Lens.Magma
     Control.Lens.Operators
     Control.Lens.Plated
     Control.Lens.Prism

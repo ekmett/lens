@@ -20,7 +20,7 @@ import Numeric (readInt, showIntAtBase)
 -- >>> "100" ^? base 16
 -- Just 256
 --
--- >>> 1767707668033969 ^. remit (base 36)
+-- >>> 1767707668033969 ^. re (base 36)
 -- "helloworld"
 base :: (Integral a, Show a) => a -> Prism' String a
 base b

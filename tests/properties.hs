@@ -116,15 +116,15 @@ prop_mapped_mapped                   = isSetter (mapped.mapped :: Setter' [Maybe
 
 prop_both                            = isTraversal (both           :: Traversal' (Int,Int) Int)
 prop_value (Fun _ k :: Fun Int Bool) = isTraversal (each.indices k :: Traversal' (Int, Int) Int)
-prop_traverseLeft                    = isTraversal (_left          :: Traversal' (Either Int Bool) Int)
-prop_traverseRight                   = isTraversal (_right         :: Traversal' (Either Int Bool) Bool)
+prop_traverseLeft                    = isTraversal (_Left          :: Traversal' (Either Int Bool) Int)
+prop_traverseRight                   = isTraversal (_Right         :: Traversal' (Either Int Bool) Bool)
 
 prop_simple                          = isIso (simple :: Iso' Int Int)
 --prop_enum                            = isIso (enum :: Iso' Int Char)
 
-prop__left                           = isPrism (_left :: Prism' (Either Int Bool) Int)
-prop__right                          = isPrism (_right :: Prism' (Either Int Bool) Bool)
-prop__just                           = isPrism (_just :: Prism' (Maybe Int) Int)
+prop__Left                           = isPrism (_Left :: Prism' (Either Int Bool) Int)
+prop__Right                          = isPrism (_Right :: Prism' (Either Int Bool) Bool)
+prop__Just                           = isPrism (_Just :: Prism' (Maybe Int) Int)
 
 -- Data.List.Lens
 prop_strippingPrefix s               = isPrism (strippingPrefix s :: Prism' String String)
@@ -135,9 +135,9 @@ prop_text s                          = s^.packed.from packed == s
 
 -- Numeric.Lens
 prop_base_show (n :: Integer) =
-  conjoin [ show n == n ^. remit (base 10)
-          , showSigned showOct 0 n "" == n ^. remit (base 8)
-          , showSigned showHex 0 n "" == n ^. remit (base 16)
+  conjoin [ show n == n ^. re (base 10)
+          , showSigned showOct 0 n "" == n ^. re (base 8)
+          , showSigned showHex 0 n "" == n ^. re (base 16)
           ]
 prop_base_read (n :: Integer) =
   conjoin [ show n ^? base 10 == Just n
@@ -159,19 +159,19 @@ prop_zipper_id (NonEmpty (s :: String)) =
   (zipper s & fromWithin traverse & rezip) == s &&
   over traverse id s == s
 
-prop_zipper_rightmost (NonEmpty (s :: String)) =
+prop_zipper_Rightmost (NonEmpty (s :: String)) =
   (zipper s & fromWithin traverse & rightmost & view focus) ==
   (zipper s & fromWithin traverse & farthest rightward & view focus)
 
-prop_zipper_leftmost (NonEmpty (s :: String)) =
+prop_zipper_Leftmost (NonEmpty (s :: String)) =
   (zipper s & fromWithin traverse & leftmost & view focus) ==
   (zipper s & fromWithin traverse & farthest leftward & view focus)
 
-prop_zipper_rightward_fails (NonEmpty (s :: String)) =
+prop_zipper_Rightward_fails (NonEmpty (s :: String)) =
   isNothing (zipper s & rightmost & rightward) &&
   isNothing (zipper s & fromWithin traverse & rightmost & rightward)
 
-prop_zipper_leftward_fails (NonEmpty (s :: String)) =
+prop_zipper_Leftward_fails (NonEmpty (s :: String)) =
   isNothing (zipper s & leftmost & leftward) &&
   isNothing (zipper s & fromWithin traverse & leftmost & leftward)
 

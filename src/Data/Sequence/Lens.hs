@@ -12,8 +12,6 @@
 ----------------------------------------------------------------------------
 module Data.Sequence.Lens
   ( viewL, viewR
-  , _head, _tail
-  , _last, _init
   , sliced, slicedTo, slicedFrom
   ) where
 
@@ -48,7 +46,7 @@ import Data.Sequence as Seq
 viewL :: Iso (Seq a) (Seq b) (ViewL a) (ViewL b)
 viewL = iso viewl $ \ xs -> case xs of
   EmptyL ->  mempty
-  a :< as -> a <| as
+  a :< as -> a Seq.<| as
 {-# INLINE viewL #-}
 
 -- | A 'Seq' is isomorphic to a 'ViewR'
@@ -69,74 +67,8 @@ viewL = iso viewl $ \ xs -> case xs of
 viewR :: Iso (Seq a) (Seq b) (ViewR a) (ViewR b)
 viewR = iso viewr $ \xs -> case xs of
   EmptyR  -> mempty
-  as :> a -> as |> a
+  as :> a -> as Seq.|> a
 {-# INLINE viewR #-}
-
--- * Traversals
-
--- | Traverse the head of a 'Seq'
---
--- >>> fromList [a,b,c,d] & _head %~ f
--- fromList [f a,b,c,d]
---
--- >>> fromList [] ^? _head
--- Nothing
---
--- >>> fromList [a,b,c,d] ^? _head
--- Just a
-_head :: IndexedTraversal' Int (Seq a) a
-_head f m = case viewl m of
-  a :< as -> (<| as) <$> indexed f (0::Int) a
-  EmptyL  -> pure m
-{-# INLINE _head #-}
-
--- | Traverse the tail of a 'Seq'
---
--- >>> fromList [a,b] & _tail .~ fromList [c,d,e]
--- fromList [a,c,d,e]
---
--- >>> fromList [a,b,c] ^? _tail
--- Just (fromList [b,c])
---
--- >>> fromList [] ^? _tail
--- Nothing
-_tail :: Traversal' (Seq a) (Seq a)
-_tail f m = case viewl m of
-  a :< as -> (a <|) <$> f as
-  EmptyL  -> pure m
-{-# INLINE _tail #-}
-
--- | Traverse the last element of a 'Seq'
---
--- >>> fromList [a,b,c,d] & _last %~ f
--- fromList [a,b,c,f d]
---
--- >>> fromList [a,b,c,d] ^? _last
--- Just d
---
--- >>> fromList [] ^? _last
--- Nothing
-_last :: IndexedTraversal' Int (Seq a) a
-_last f m = case viewr m of
-  as :> a -> (as |>) <$> indexed f (Seq.length as) a
-  EmptyR  -> pure m
-{-# INLINE _last #-}
-
--- | Traverse all but the last element of a 'Seq'
---
--- >>> fromList [1,2,3] ^? _init
--- Just (fromList [1,2])
---
--- >>> fromList [a,b,c,d] & _init.traverse %~ f
--- fromList [f a,f b,f c,d]
---
--- >>> fromList [] & _init .~ fromList [a,b,c]
--- fromList []
-_init :: Traversal' (Seq a) (Seq a)
-_init f m = case viewr m of
-  as :> a -> (|> a) <$> f as
-  EmptyR  -> pure m
-{-# INLINE _init #-}
 
 -- | Traverse the first @n@ elements of a 'Seq'
 --

@@ -45,6 +45,7 @@ module Control.Lens.Fold
   , (^..)
   , (^?)
   , (^?!)
+  , pre
   , preview, previews
   , preuse, preuses
   , has, hasn't
@@ -236,6 +237,8 @@ iterated f g a0 = go a0 where
 --
 -- Note: This is /not/ a legal 'Traversal', unless you are very careful not to invalidate the predicate on the target.
 --
+-- Note: This is also /not/ a legal 'Prism', unless you are very careful not to inject a value that matches the predicate.
+--
 -- As a counter example, consider that given @evens = 'filtered' 'even'@ the second 'Traversal' law is violated:
 --
 -- @'Control.Lens.Setter.over' evens 'succ' '.' 'Control.Lens.Setter.over' evens 'succ' /= 'Control.Lens.Setter.over' evens ('succ' '.' 'succ')@
@@ -246,9 +249,8 @@ iterated f g a0 = go a0 where
 -- [2,4,6,8,10]
 --
 -- This will preserve an index if it is present.
-filtered :: (Corepresentable p, Comonad (Corep p), Applicative f) => (a -> Bool) -> Overloaded' p f a a
-filtered p f = cotabulate $ \ wa -> let a = extract wa in if p a then corep f wa else pure a
-{-# INLINE filtered #-}
+filtered :: (Prismatic p, Applicative f) => (a -> Bool) -> Overloaded' p f a a
+filtered p = lmap (\x -> if p x then Right x else Left (pure x)) . prismatic
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
 --
@@ -910,8 +912,8 @@ firstOf l = foldrOf l (\x _ -> Just x) Nothing
 -- 'lastOf' :: 'Iso'' s a       -> s -> 'Maybe' a
 -- 'lastOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-lastOf :: Getting (Dual (Endo (Maybe a))) s t a b -> s -> Maybe a
-lastOf l = foldlOf l (\_ y -> Just y) Nothing
+lastOf :: Getting (Endo (Maybe a -> Maybe a)) s t a b -> s -> Maybe a
+lastOf l = foldlOf' l (\_ y -> Just y) Nothing
 {-# INLINE lastOf #-}
 
 -- |
@@ -1222,10 +1224,10 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 -- >>> has (element 0) []
 -- False
 --
--- >>> has _left (Left 12)
+-- >>> has _Left (Left 12)
 -- True
 --
--- >>> has _right (Left 12)
+-- >>> has _Right (Left 12)
 -- False
 --
 -- This will always return 'True' for a 'Lens' or 'Getter'.
@@ -1246,14 +1248,23 @@ has l = getAny #. foldMapOf l (\_ -> Any True)
 
 -- | Check to see if this 'Fold' or 'Traversal' has no matches.
 --
--- >>> hasn't _left (Right 12)
+-- >>> hasn't _Left (Right 12)
 -- True
 --
--- >>> hasn't _left (Left 12)
+-- >>> hasn't _Left (Left 12)
 -- False
 hasn't :: Getting All s t a b -> s -> Bool
 hasn't l = getAll #. foldMapOf l (\_ -> All False)
 {-# INLINE hasn't #-}
+
+------------------------------------------------------------------------------
+-- Pre
+------------------------------------------------------------------------------
+
+-- | This converts a 'Fold' to a 'Getter' that returns the first element if it
+-- exists as a 'Maybe'
+pre :: Getting (Endo r) s t a b -> Getting r s t (Maybe a) (Maybe b)
+pre l f = (Accessor #. flip appEndo (runAccessor (f Nothing)) .# runAccessor) `rmap` l (dimap Just (Accessor #. Endo #. const .# runAccessor) f)
 
 ------------------------------------------------------------------------------
 -- Preview
@@ -1265,6 +1276,8 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 -- @'Data.Maybe.listToMaybe' '.' 'toList' ≡ 'preview' 'folded'@
 --
 -- This is usually applied in the reader monad @(->) s@.
+--
+-- @'preview' = 'view' . 'pre'@
 --
 -- @
 -- 'preview' :: 'Getter' s a     -> s -> 'Maybe' a
@@ -1292,6 +1305,8 @@ preview l = asks (foldrOf l (\x _ -> Just x) Nothing)
 -- 'Traversal' (or 'Just' the result from a 'Getter' or 'Lens').
 --
 -- This is usually applied in the reader monad @(->) s@.
+
+-- @'previews' = 'views' . 'pre'@
 --
 -- @
 -- 'previews' :: 'Getter' s a     -> (a -> r) -> s -> 'Maybe' a
@@ -1323,6 +1338,8 @@ previews l f = asks (foldrOf l (\x _ -> Just (f x)) Nothing)
 -- | Retrieve the first value targeted by a 'Fold' or 'Traversal' (or 'Just' the result
 -- from a 'Getter' or 'Lens') into the current state.
 --
+-- @'preuse' = 'use' . 'pre'@
+--
 -- @
 -- 'preuse' :: 'MonadState' s m => 'Getter' s a     -> m ('Maybe' a)
 -- 'preuse' :: 'MonadState' s m => 'Fold' s a       -> m ('Maybe' a)
@@ -1336,6 +1353,8 @@ preuse l = gets (preview l)
 
 -- | Retrieve a function of the first value targeted by a 'Fold' or
 -- 'Traversal' (or 'Just' the result from a 'Getter' or 'Lens') into the current state.
+--
+-- @'preuses' = 'uses' . 'pre'@
 --
 -- @
 -- 'preuses' :: 'MonadState' s m => 'Getter' s a     -> (a -> r) -> m ('Maybe' r)

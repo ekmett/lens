@@ -20,6 +20,7 @@ module Control.Lens.Equality
   , substEq
   , mapEq
   , fromEq
+  , simply
   -- * Implementation Details
   , Identical(..)
   ) where
@@ -63,3 +64,7 @@ mapEq l r = substEq l r
 fromEq :: AnEquality s t a b -> Equality b a t s
 fromEq l = substEq l id
 {-# INLINE fromEq #-}
+
+simply :: (Overloaded' p f s a -> r) -> Overloaded' p f s a -> r
+simply = id
+{-# INLINE simply #-}

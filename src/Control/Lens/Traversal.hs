@@ -137,13 +137,13 @@ import Prelude hiding ((.),id)
 ------------------------------------------------------------------------------
 
 -- | When you see this as an argument to a function, it expects a 'Traversal'.
-type ATraversal s t a b = LensLike (Bazaar (->) (->) a b) s t a b
+type ATraversal s t a b = LensLike (Bazaar (->) a b) s t a b
 
 -- | @type 'ATraversal'' = 'Simple' 'ATraversal'@
 type ATraversal' s a = ATraversal s s a a
 
 -- | When you see this as an argument to a function, it expects an 'IndexedTraversal'.
-type AnIndexedTraversal i s t a b = Lensing (Indexed i) (Bazaar (Indexed i) (->) a b) s t a b
+type AnIndexedTraversal i s t a b = Lensing (Indexed i) (Bazaar (Indexed i) a b) s t a b
 
 -- | @type 'AnIndexedTraversal'' = 'Simple' ('AnIndexedTraversal' i)@
 type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
@@ -161,7 +161,7 @@ type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
 --  * a 'Lens' if @p@ is only a 'Functor',
 --
 --  * a 'Fold' if 'f' is 'Gettable' and 'Applicative'.
-type Traversing p f s t a b = Overloading p (->) (BazaarT p (->) f a b) s t a b
+type Traversing p f s t a b = Overloading p (->) (BazaarT p f a b) s t a b
 
 -- | @type 'Traversing'' f = 'Simple' ('Traversing' f)@
 type Traversing' p f s a = Traversing p f s s a a
@@ -373,7 +373,7 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 {-# INLINE scanl1Of #-}
 
 -- | This 'Traversal' allows you to 'traverse' the individual stores in a 'Bazaar'.
-loci :: Traversal (Bazaar (->) (->) a c s) (Bazaar (->) (->) b c s) a b
+loci :: Traversal (Bazaar (->) a c s) (Bazaar (->) b c s) a b
 loci f w = traverse f (ins w) <&> \xs -> Bazaar $ \g -> traverse g xs <&> unsafeOuts w
 {-# INLINE loci #-}
 
@@ -415,7 +415,7 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 {-# INLINE partsOf' #-}
 
 -- | A type-restricted version of 'ipartsOf' that can only be used with an 'IndexedTraversal'.
-ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Overloading (Indexed i) (->) (Bazaar' (Indexed i) (->) a) s t a a -> Overloading p (->) f s t [a] [a]
+ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Overloading (Indexed i) (->) (Bazaar' (Indexed i) a) s t a a -> Overloading p (->) f s t [a] [a]
 ipartsOf' l f s = outs b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (pins b)
   b = l sell s
@@ -456,7 +456,7 @@ unsafePartsOf' :: ATraversal s t a b -> Lens s t [a] [b]
 unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 {-# INLINE unsafePartsOf' #-}
 
-iunsafePartsOf' :: forall i p s t a b. Indexable [i] p => Overloading (Indexed i) (->) (Bazaar (Indexed i) (->) a b) s t a b -> IndexedLens [i] s t [a] [b]
+iunsafePartsOf' :: forall i p s t a b. Indexable [i] p => Overloading (Indexed i) (->) (Bazaar (Indexed i) a b) s t a b -> IndexedLens [i] s t [a] [b]
 iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (pins b)
   b = l sell s
@@ -478,7 +478,7 @@ iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
 -- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
 -- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
 -- @
-holesOf :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (Bazaar p (->) a a) s t a a -> s -> [Pretext p (->) a a t]
+holesOf :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
 holesOf l s = f (pins b) (unsafeOuts b) where
   b = l sell s
   f [] _ = []
@@ -501,7 +501,7 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 -- 'singular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
 singular :: (Corepresentable p, Comonad (Corep p), Functor f)
-         => Overloading p (->) (BazaarT p (->) f a a) s t a a
+         => Overloading p (->) (BazaarT p f a a) s t a a
          -> Overloading p (->) f s t a a
 singular l pafb s = case pins b of
   (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> corep pafb w
@@ -524,7 +524,7 @@ singular l pafb s = case pins b of
 -- 'unsafeSingular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
 unsafeSingular :: (Corepresentable p, Comonad (Corep p), Functor f)
-               => Overloading p (->) (BazaarT p (->) f a b) s t a b
+               => Overloading p (->) (BazaarT p f a b) s t a b
                -> Overloading p (->) f s t a b
 unsafeSingular l pafb s = case pins b of
   [w] -> unsafeOuts b . return <$> corep pafb w
@@ -537,11 +537,11 @@ unsafeSingular l pafb s = case pins b of
 -- Internal functions used by 'partsOf', 'holesOf', etc.
 ------------------------------------------------------------------------------
 
-ins :: Bizarre (->) (->) w => w a b t -> [a]
+ins :: Bizarre (->) w => w a b t -> [a]
 ins = toListOf bazaar
 {-# INLINE ins #-}
 
-pins :: (Bizarre p q w, Corepresentable p) => q (w a b t) [Corep p a]
+pins :: (Bizarre p w, Corepresentable p) => w a b t -> [Corep p a]
 pins = getConst #. bazaar (cotabulate $ \ra -> Const [ra])
 {-# INLINE pins #-}
 
@@ -549,11 +549,11 @@ parr :: (Profunctor p, Category p) => (a -> b) -> p a b
 parr f = lmap f id
 {-# INLINE parr #-}
 
-outs :: (Bizarre p q w, Category p) => q (w a a t) ([a] -> t)
+outs :: (Bizarre p w, Category p) => w a a t -> [a] -> t
 outs = evalState `rmap` bazaar (parr (state . unconsWithDefault))
 {-# INLINE outs #-}
 
-unsafeOuts :: (Bizarre p q w, Corepresentable p) => q (w a b t) ([b] -> t)
+unsafeOuts :: (Bizarre p w, Corepresentable p) => w a b t -> [b] -> t
 unsafeOuts = evalState `rmap` bazaar (cotabulate (\_ -> state (unconsWithDefault fakeVal)))
   where fakeVal = error "unsafePartsOf': not enough elements were supplied"
 {-# INLINE unsafeOuts #-}
@@ -645,25 +645,13 @@ beside l r f = tabulate $ \ ~(s,s') -> liftA2 (,) <$> rep (l f) s <*> rep (r f) 
 -- 'taking' :: 'Int' -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
 -- 'taking' :: 'Int' -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold' i m s a
 -- 'taking' :: 'Int' -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
--- 'taking' :: 'Int' -> 'IndexPreservingTraversal'' s a    -> 'IndexPreservingTraversal'' s a
--- 'taking' :: 'Int' -> 'IndexPreservingLens'' s a         -> 'IndexPreservingTraversal'' s a
--- 'taking' :: 'Int' -> 'IndexPreservingGetter' s a        -> 'IndexPreservingFold' s a
--- 'taking' :: 'Int' -> 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s a
--- 'taking' :: 'Int' -> 'IndexPreservingAction' m s a      -> 'IndexPreservingMonadicFold' m s a
--- 'taking' :: 'Int' -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s a
 -- @
-taking :: (Corepresentable p, Category p, Representable q, Applicative (Rep q), Monad (Rep q), Applicative f)
-       => Int
-       -> Overloading p q (BazaarT p q f a a) s t a a
-       -> Overloading p q f s t a a
-taking n l pafb = tabulate $ \s -> do
-  b  <- rep (l sell) s
-  xs <- rep pins b
-  outs' <- rep outs b
-  return $ outs' <$> traverse (corep pafb) (take n xs)
+taking :: (Corepresentable p, Category p, Applicative f)
+        => Int
+       -> Overloading p (->) (BazaarT p f a a) s t a a
+       -> Overloading p (->) f s t a a
+taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where b = l sell s
 {-# INLINE taking #-}
-
-
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
 --

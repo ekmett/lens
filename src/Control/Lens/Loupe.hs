@@ -23,7 +23,7 @@ import Control.Lens.Internal
 import Control.Lens.Lens
 import Control.Lens.Type
 
-type Loupe s t a b = LensLike (Pretext (->) (->) a b) s t a b
+type Loupe s t a b = LensLike (Pretext (->) a b) s t a b
 {-# DEPRECATED Loupe "use ALens" #-}
 
 -- | @type 'SimpleLoupe' = 'Simple' 'Loupe'@
