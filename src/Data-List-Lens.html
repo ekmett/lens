@@ -25,31 +25,28 @@
 <a name="line-16"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>strippingPrefix</span>
 <a name="line-17"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-18"></a>
-<a name="line-19"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
-<a name="line-20"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>List</span>
-<a name="line-22"></a>
-<a name="line-23"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-24"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Expr</span>
-<a name="line-25"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Vars as Vars hiding (f,g)</span>
-<a name="line-26"></a><span class='hs-comment'>-- &gt;&gt;&gt; let f :: Expr -&gt; Expr; f = Debug.SimpleReflect.Vars.f</span>
-<a name="line-27"></a><span class='hs-comment'>-- &gt;&gt;&gt; let g :: Expr -&gt; Expr; g = Debug.SimpleReflect.Vars.g</span>
-<a name="line-28"></a>
-<a name="line-29"></a><a name="strippingPrefix"></a><span class='hs-comment'>-- | A 'Prism' stripping a prefix from a list when used as a 'Traversal', or</span>
-<a name="line-30"></a><span class='hs-comment'>-- prepending that prefix when run backwards:</span>
-<a name="line-31"></a><span class='hs-comment'>--</span>
-<a name="line-32"></a><span class='hs-comment'>-- &gt;&gt;&gt; "preview" ^? strippingPrefix "pre"</span>
-<a name="line-33"></a><span class='hs-comment'>-- Just "view"</span>
-<a name="line-34"></a><span class='hs-comment'>--</span>
-<a name="line-35"></a><span class='hs-comment'>-- &gt;&gt;&gt; "review" ^? strippingPrefix "pre"</span>
-<a name="line-36"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-37"></a><span class='hs-comment'>--</span>
-<a name="line-38"></a><span class='hs-comment'>-- &gt;&gt;&gt; "amble"^.re (strippingPrefix "pre")</span>
-<a name="line-39"></a><span class='hs-comment'>-- "preamble"</span>
-<a name="line-40"></a><span class='hs-definition'>strippingPrefix</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism'</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-41"></a><span class='hs-definition'>strippingPrefix</span> <span class='hs-varid'>ps</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>ps</span> <span class='hs-varop'>++</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>xs</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>stripPrefix</span> <span class='hs-varid'>ps</span> <span class='hs-varid'>xs</span> <span class='hs-keyword'>of</span>
-<a name="line-42"></a>  <span class='hs-conid'>Nothing</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Left</span> <span class='hs-varid'>xs</span>
-<a name="line-43"></a>  <span class='hs-conid'>Just</span> <span class='hs-varid'>xs'</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Right</span> <span class='hs-varid'>xs'</span>
-<a name="line-44"></a><span class='hs-comment'>{-# INLINE strippingPrefix #-}</span>
+<a name="line-19"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-20"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>List</span>
+<a name="line-21"></a>
+<a name="line-22"></a><span class='hs-comment'>-- $setup</span>
+<a name="line-23"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Expr</span>
+<a name="line-24"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Vars as Vars hiding (f,g)</span>
+<a name="line-25"></a><span class='hs-comment'>-- &gt;&gt;&gt; let f :: Expr -&gt; Expr; f = Debug.SimpleReflect.Vars.f</span>
+<a name="line-26"></a><span class='hs-comment'>-- &gt;&gt;&gt; let g :: Expr -&gt; Expr; g = Debug.SimpleReflect.Vars.g</span>
+<a name="line-27"></a>
+<a name="line-28"></a><a name="strippingPrefix"></a><span class='hs-comment'>-- | A 'Prism' stripping a prefix from a list when used as a 'Traversal', or</span>
+<a name="line-29"></a><span class='hs-comment'>-- prepending that prefix when run backwards:</span>
+<a name="line-30"></a><span class='hs-comment'>--</span>
+<a name="line-31"></a><span class='hs-comment'>-- &gt;&gt;&gt; "preview" ^? strippingPrefix "pre"</span>
+<a name="line-32"></a><span class='hs-comment'>-- Just "view"</span>
+<a name="line-33"></a><span class='hs-comment'>--</span>
+<a name="line-34"></a><span class='hs-comment'>-- &gt;&gt;&gt; "review" ^? strippingPrefix "pre"</span>
+<a name="line-35"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-36"></a><span class='hs-comment'>--</span>
+<a name="line-37"></a><span class='hs-comment'>-- &gt;&gt;&gt; "amble"^.re (strippingPrefix "pre")</span>
+<a name="line-38"></a><span class='hs-comment'>-- "preamble"</span>
+<a name="line-39"></a><span class='hs-definition'>strippingPrefix</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism'</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-40"></a><span class='hs-definition'>strippingPrefix</span> <span class='hs-varid'>ps</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism'</span> <span class='hs-layout'>(</span><span class='hs-varid'>ps</span> <span class='hs-varop'>++</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>stripPrefix</span> <span class='hs-varid'>ps</span><span class='hs-layout'>)</span>
+<a name="line-41"></a><span class='hs-comment'>{-# INLINE strippingPrefix #-}</span>
 </pre></body>
 </html>
