@@ -52,23 +52,24 @@ import Data.Profunctor.Unsafe
 -- >>> let g :: Expr -> Expr; g = Vars.g
 -- >>> let h :: Expr -> Expr -> Expr; h = Vars.h
 
--- Chosen so that they have lower fixity than ('%='), and to match ('<~')
+-- Chosen so that they have lower fixity than ('%='), and to match ('<~').
 infixr 2 `zoom`, `magnify`
 
--- | This class allows us to use 'zoom' in, changing the State supplied by
--- many different monad transformers, potentially quite deep in a monad transformer stack.
+-- | This class allows us to use 'zoom' in, changing the 'State' supplied by
+-- many different 'Control.Monad.Monad' transformers, potentially quite
+-- deep in a 'Monad' transformer stack.
 class (MonadState s m, MonadState t n) => Zoom m n k s t | m -> s k, n -> t k, m t -> n, n s -> m where
-  -- | Run a monadic action in a larger state than it was defined in,
+  -- | Run a monadic action in a larger 'State' than it was defined in,
   -- using a 'Lens'' or 'Control.Lens.Traversal.Traversal''.
   --
-  -- This is commonly used to lift actions in a simpler state monad into a
-  -- state monad with a larger state type.
+  -- This is commonly used to lift actions in a simpler 'State'
+  -- 'Monad' into a 'State' 'Monad' with a larger 'State' type.
   --
   -- When applied to a 'Simple' 'Control.Lens.Traversal.Traversal' over
   -- multiple values, the actions for each target are executed sequentially
   -- and the results are aggregated.
   --
-  -- This can be used to edit pretty much any monad transformer stack with a state in it!
+  -- This can be used to edit pretty much any 'Monad' transformer stack with a 'State' in it!
   --
   -- >>> flip State.evalState (a,b) $ zoom _1 $ use id
   -- a
@@ -144,7 +145,7 @@ instance (Error e, Zoom m n k s t) => Zoom (ErrorT e m) (ErrorT e n) (FocusingEr
 
 
 -- | This class allows us to use 'magnify' part of the environment, changing the environment supplied by
--- many different monad transformers. Unlike 'zoom' this can change the environment of a deeply nested monad transformer.
+-- many different 'Monad' transformers. Unlike 'zoom' this can change the environment of a deeply nested 'Monad' transformer.
 --
 -- Also, unlike 'zoom', this can be used with any valid 'Getter', but cannot be used with a 'Traversal' or 'Fold'.
 class (MonadReader b m, MonadReader a n) => Magnify m n k b a | m -> b k, n -> a k, m a -> n, n b -> m where
@@ -152,9 +153,9 @@ class (MonadReader b m, MonadReader a n) => Magnify m n k b a | m -> b k, n -> a
   --
   -- This acts like 'Control.Monad.Reader.Class.local', but can in many cases change the type of the environment as well.
   --
-  -- This is commonly used to lift actions in a simpler Reader monad into a monad with a larger environment type.
+  -- This is commonly used to lift actions in a simpler 'Reader' 'Monad' into a 'Monad' with a larger environment type.
   --
-  -- This can be used to edit pretty much any monad transformer stack with an environment in it:
+  -- This can be used to edit pretty much any 'Monad' transformer stack with an environment in it:
   --
   -- >>> (1,2) & magnify _2 (+1)
   -- 3
@@ -168,6 +169,9 @@ class (MonadReader b m, MonadReader a n) => Magnify m n k b a | m -> b k, n -> a
   -- @
   -- 'magnify' ::             'Getter' s a -> (a -> r) -> s -> r
   -- 'magnify' :: 'Monoid' c => 'Fold' s a   -> (a -> r) -> s -> r
+  -- @
+  --
+  -- @
   -- 'magnify' :: 'Monoid' w                'Getter' s t -> 'RWST' s w st c -> 'RWST' t w st c
   -- 'magnify' :: ('Monoid' w, 'Monoid' c) => 'Fold' s t   -> 'RWST' s w st c -> 'RWST' t w st c
   -- ...
