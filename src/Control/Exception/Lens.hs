@@ -296,7 +296,7 @@ instance (Prismatic p, Applicative f) => AsArithException p f SomeException wher
 -- @
 _Overflow :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
 _Overflow = case runPrism _ArithException of
-  (bt, seta) | bto <- bt Overflow -> prism (const bto) $ \s -> case seta s of
+  Market bt seta | bto <- bt Overflow -> prism (const bto) $ \s -> case seta s of
     Left t -> Left t
     Right Overflow -> Right ()
     Right a -> Left (bt a)
@@ -312,7 +312,7 @@ _Overflow = case runPrism _ArithException of
 -- @
 _Underflow :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
 _Underflow = case runPrism _ArithException of
-  (bt, seta) | btu <- bt Underflow -> prism (const btu) $ \s -> case seta s of
+  Market bt seta | btu <- bt Underflow -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right Underflow -> Right ()
     Right a -> Left (bt a)
@@ -328,7 +328,7 @@ _Underflow = case runPrism _ArithException of
 -- @
 _LossOfPrecision :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
 _LossOfPrecision = case runPrism _ArithException of
-  (bt, seta) | btu <- bt LossOfPrecision -> prism (const btu) $ \s -> case seta s of
+  Market bt seta | btu <- bt LossOfPrecision -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right LossOfPrecision -> Right ()
     Right a -> Left (bt a)
@@ -344,7 +344,7 @@ _LossOfPrecision = case runPrism _ArithException of
 -- @
 _DivideByZero :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
 _DivideByZero = case runPrism _ArithException of
-  (bt, seta) | btu <- bt DivideByZero -> prism (const btu) $ \s -> case seta s of
+  Market bt seta | btu <- bt DivideByZero -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right DivideByZero -> Right ()
     Right a -> Left (bt a)
@@ -360,7 +360,7 @@ _DivideByZero = case runPrism _ArithException of
 -- @
 _Denormal :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
 _Denormal = case runPrism _ArithException of
-  (bt, seta) | btu <- bt Denormal -> prism (const btu) $ \s -> case seta s of
+  Market bt seta | btu <- bt Denormal -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right Denormal -> Right ()
     Right a -> Left (bt a)
@@ -379,7 +379,7 @@ _Denormal = case runPrism _ArithException of
 -- @
 _RatioZeroDenominator :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
 _RatioZeroDenominator = case runPrism _ArithException of
-  (bt, seta) | btu <- bt RatioZeroDenominator -> prism (const btu) $ \s -> case seta s of
+  Market bt seta | btu <- bt RatioZeroDenominator -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right RatioZeroDenominator -> Right ()
     Right a -> Left (bt a)
@@ -418,7 +418,7 @@ instance (Prismatic p, Applicative f) => AsArrayException p f SomeException wher
 -- @
 _IndexOutOfBounds :: AsArrayException (Market' ArrayException) Mutator t => Prism' t String
 _IndexOutOfBounds = case runPrism _ArrayException of
-  (bt, seta) -> prism (bt . IndexOutOfBounds) $ \s -> case seta s of
+  Market bt seta -> prism (bt . IndexOutOfBounds) $ \s -> case seta s of
     Left t -> Left t
     Right (IndexOutOfBounds r) -> Right r
     Right a -> Left (bt a)
@@ -434,7 +434,7 @@ _IndexOutOfBounds = case runPrism _ArrayException of
 -- @
 _UndefinedElement :: AsArrayException (Market' ArrayException) Mutator t => Prism' t String
 _UndefinedElement = case runPrism _ArrayException of
-  (bt, seta) -> prism (bt . UndefinedElement) $ \s -> case seta s of
+  Market bt seta -> prism (bt . UndefinedElement) $ \s -> case seta s of
     Left t -> Left t
     Right (UndefinedElement r) -> Right r
     Right a -> Left (bt a)
@@ -495,7 +495,7 @@ instance (Prismatic p, Applicative f) => AsAsyncException p f SomeException wher
 -- @
 _StackOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 _StackOverflow = case runPrism _AsyncException of
-  (bt, seta) | btu <- bt StackOverflow -> prism (const btu) $ \s -> case seta s of
+  Market bt seta | btu <- bt StackOverflow -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right StackOverflow -> Right ()
     Right a -> Left (bt a)
@@ -516,7 +516,7 @@ _StackOverflow = case runPrism _AsyncException of
 -- @
 _HeapOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 _HeapOverflow = case runPrism _AsyncException of
-  (bt, seta) | btu <- bt HeapOverflow -> prism (const btu) $ \s -> case seta s of
+  Market bt seta | btu <- bt HeapOverflow -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right HeapOverflow -> Right ()
     Right a -> Left (bt a)
@@ -531,7 +531,7 @@ _HeapOverflow = case runPrism _AsyncException of
 -- @
 _ThreadKilled :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 _ThreadKilled = case runPrism _AsyncException of
-  (bt, seta) | btu <- bt ThreadKilled -> prism (const btu) $ \s -> case seta s of
+  Market bt seta | btu <- bt ThreadKilled -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right ThreadKilled -> Right ()
     Right a -> Left (bt a)
@@ -547,7 +547,7 @@ _ThreadKilled = case runPrism _AsyncException of
 -- @
 _UserInterrupt :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
 _UserInterrupt = case runPrism _AsyncException of
-  (bt, seta) | btu <- bt UserInterrupt -> prism (const btu) $ \s -> case seta s of
+  Market bt seta | btu <- bt UserInterrupt -> prism (const btu) $ \s -> case seta s of
     Left t -> Left t
     Right UserInterrupt -> Right ()
     Right a -> Left (bt a)

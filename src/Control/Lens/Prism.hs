@@ -61,12 +61,12 @@ type APrism s t a b = Market a b a (Mutator b) -> Market a b s (Mutator t)
 type APrism' s a = APrism s s a a
 
 -- | Safely decompose 'APrism'.
-runPrism :: APrism s t a b -> (b -> t, s -> Either t a)
+runPrism :: APrism s t a b -> Market a b s t
 #ifdef SAFE
-runPrism k = case runMarket (k (Market (Mutator, Right))) of
-  (bt, sa) -> (runMutator #. bt,  either (Left . runMutator) Right . sa)
+runPrism k = case k (Market Mutator Right) of
+  Market bt sa -> Market (runMutator #. bt) (either (Left . runMutator) Right . sa)
 #else
-runPrism k = unsafeCoerce (runMarket (k (Market (Mutator, Right))))
+runPrism k = unsafeCoerce (k (Market Mutator Right))
 #endif
 {-# INLINE runPrism #-}
 
@@ -75,7 +75,7 @@ runPrism k = unsafeCoerce (runMarket (k (Market (Mutator, Right))))
 -- See 'Control.Lens.Lens.cloneLens' and 'Control.Lens.Traversal.cloneTraversal' for examples of why you might want to do this.
 clonePrism :: APrism s t a b -> Prism s t a b
 clonePrism k = case runPrism k of
-  (bt, sa) -> prism bt sa
+  Market bt sa -> prism bt sa
 {-# INLINE clonePrism #-}
 
 ------------------------------------------------------------------------------
@@ -99,13 +99,13 @@ prism' as sma = prism as (\s -> maybe (Left s) Right (sma s))
 -- @'outside' :: 'Prism' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
 outside :: APrism s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
 outside k = case runPrism k of
-  (bt, seta) -> \f tr -> f (tr.bt) <&> \ar -> either tr ar . seta
+  Market bt seta -> \f tr -> f (tr.bt) <&> \ar -> either tr ar . seta
 {-# INLINE outside #-}
 
 -- | Use a 'Prism' to work over part of a structure.
 aside :: APrism s t a b -> Prism (e, s) (e, t) (e, a) (e, b)
 aside k = case runPrism k of
-  (bt, seta) -> prism (fmap bt) $ \(e,s) -> case seta s of
+  Market bt seta -> prism (fmap bt) $ \(e,s) -> case seta s of
     Left t -> Left (e,t)
     Right a -> Right (e,a)
 {-# INLINE aside #-}
@@ -117,8 +117,8 @@ without :: APrism s t a b
         -> APrism u v c d
         -> Prism (Either s u) (Either t v) (Either a c) (Either b d)
 without k = case runPrism k of
-  (bt, seta) -> \ k' -> case runPrism k' of
-    (dv, uevc) -> prism (bimap bt dv) $ \su -> case su of
+  Market bt seta -> \ k' -> case runPrism k' of
+    Market dv uevc -> prism (bimap bt dv) $ \su -> case su of
       Left s  -> bimap Left Left (seta s)
       Right u -> bimap Right Right (uevc u)
 {-# INLINE without #-}

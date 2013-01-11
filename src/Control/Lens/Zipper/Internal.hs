@@ -515,7 +515,7 @@ idownward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start i a
 -- @
 
 -- @'within' :: 'MonadPlus' m => 'ATraversal'' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)@
-within :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) (->) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
+within :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
 within = iwithin . indexing
 {-# INLINE within #-}
 
@@ -534,7 +534,7 @@ iwithin l (Zipper h t o p j s) = case magma l (Context id) s of
 -- 'withins' :: 'Lens'' s a      -> (h :> s) -> [h :> s :> a]
 -- 'withins' :: 'Iso'' s a       -> (h :> s) -> [h :> s :> a]
 -- @
-withins :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) (->) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
+withins :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
 withins = iwithins . indexing
 {-# INLINE withins #-}
 
@@ -560,7 +560,7 @@ iwithins z (Zipper h t o p j s) = case magma z (Context id) s of
 -- You can reason about this function as if the definition was:
 --
 -- @'fromWithin' l ≡ 'fromJust' '.' 'within' l@
-fromWithin :: LensLike' (Indexing (Bazaar' (Indexed Int) (->) a)) s a -> (h :> s:@j) -> h :> s:@j :>> a
+fromWithin :: LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> h :> s:@j :>> a
 fromWithin = ifromWithin . indexing
 {-# INLINE fromWithin #-}
 
@@ -591,7 +591,7 @@ rezip (Zipper h _ _ p i a) = recoil h (recompress p i a)
 {-# INLINE rezip #-}
 
 -- | Extract the current 'focus' from a 'Zipper' as a 'Pretext', with access to the current index.
-focusedContext :: (Indexable i p, Zipping h a) => (h :> a:@i) -> Pretext p (->) a a (Zipped h a)
+focusedContext :: (Indexable i p, Zipping h a) => (h :> a:@i) -> Pretext p a a (Zipped h a)
 focusedContext (Zipper h t o p i a) = Pretext (\f -> rezip . Zipper h t o p i <$> indexed f i a)
 {-# INLINE focusedContext #-}
 

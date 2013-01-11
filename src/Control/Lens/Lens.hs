@@ -143,12 +143,12 @@ infixr 2 <<~
 -- This type can also be used when you need to store a lens in a container,
 -- since it is rank-1. You can turn them back into a 'Lens' with 'cloneLens',
 -- or use it directly with combinators like 'storing' and ('^#').
-type ALens s t a b = LensLike (Pretext (->) (->) a b) s t a b
+type ALens s t a b = LensLike (Pretext (->) a b) s t a b
 
 -- | @type 'ALens'' = 'Simple' 'ALens'@
 type ALens' s a = ALens s s a a
 
-type AnIndexedLens i s t a b = Overloading (Indexed i) (->) (Pretext (Indexed i) (->) a b) s t a b
+type AnIndexedLens i s t a b = Overloading (Indexed i) (->) (Pretext (Indexed i) a b) s t a b
 
 type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 
@@ -320,12 +320,10 @@ chosen pafb = cotabulate $ \weaa -> corep (either id id `lmap` pafb) weaa <&> \b
 -- (Left c,Right d)
 --
 -- @'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')@
-alongside :: (Representable q, Applicative (Rep q), Comonad (Rep q), Functor f)
-          => Overloading (->) q (Pretext (->) q a b) s t a b ->
-             Overloading (->) q (Pretext (->) q a' b') s' t' a' b' ->
-             Overloading (->) q f (s,s') (t,t') (a,a') (b,b')
-alongside l r f = tabulate $ \ (s, s') -> go <$> rep (l sell) s <*> rep (r sell) s' where
-  go ls rs = f (ipos ls, ipos rs) <&> \(b, b') -> (ipeek b ls, ipeek b' rs)
+alongside :: ALens s t a b -> ALens s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
+alongside l r f (s, s') = f (ipos ls, ipos rs) <&> \(b, b') -> (ipeek b ls, ipeek b' rs) where
+  ls = l sell s
+  rs = r sell s'
 {-# INLINE alongside #-}
 
 -- | This 'Lens' lets you 'view' the current 'pos' of any indexed
