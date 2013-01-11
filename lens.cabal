@@ -240,6 +240,7 @@ library
     Data.Vector.Lens
     Data.Vector.Generic.Lens
     GHC.Generics.Lens
+    System.Exit.Lens
     System.FilePath.Lens
     System.IO.Error.Lens
     Language.Haskell.TH.Lens
