@@ -13,6 +13,8 @@
 ----------------------------------------------------------------------------
 module System.Exit.Lens
   ( AsExitCode(..)
+  , _ExitFailure
+  , _ExitSuccess
   ) where
 
 import Control.Applicative
