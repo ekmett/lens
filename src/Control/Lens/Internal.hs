@@ -407,7 +407,7 @@ instance i ~ j => Indexable i (Indexed j) where
 -- Sellable
 ------------------------------------------------------------------------------
 
-class Corepresentable p => Sellable p k | k -> p where
+class Corepresentable p => Sellable p k where
   sell :: p a (k a b b)
 
 ------------------------------------------------------------------------------
@@ -941,7 +941,7 @@ instance (a ~ b) => ComonadStore a (Context a b) where
   experiment = iexperiment
   {-# INLINE experiment #-}
 
-instance Sellable (->) Context where
+instance (p ~ (->)) => Sellable p Context where
   sell = Context id
   {-# INLINE sell #-}
 
@@ -987,7 +987,7 @@ instance SelfAdjoint p => IndexedComonad (Bazaar p) where
   iduplicate (Bazaar m) = getCompose $ m (Compose #. distrib sell . sell)
   {-# INLINE iduplicate #-}
 
-instance Corepresentable p => Sellable p (Bazaar p) where
+instance (Corepresentable p, p ~ p') => Sellable p' (Bazaar p) where
   sell = cotabulate $ \ w -> Bazaar $ tabulate $ \k -> pure (corep k w)
   {-# INLINE sell #-}
 
@@ -1074,7 +1074,7 @@ instance (a ~ b, SelfAdjoint p) => ComonadStore a (Pretext p a b) where
   experiment = iexperiment
   {-# INLINE experiment #-}
 
-instance Corepresentable p => Sellable p (Pretext p) where
+instance (Corepresentable p, p ~ p') => Sellable p' (Pretext p) where
   sell = cotabulate $ \ w -> Pretext (`corep` w)
   {-# INLINE sell #-}
 
@@ -1137,7 +1137,7 @@ instance (a ~ b, SelfAdjoint p) => ComonadStore a (PretextT p g a b) where
   experiment = iexperiment
   {-# INLINE experiment #-}
 
-instance Corepresentable p => Sellable p (PretextT p g) where
+instance (Corepresentable p, p ~ p') => Sellable p' (PretextT p g) where
   sell = cotabulate $ \ w -> PretextT (`corep` w)
   {-# INLINE sell #-}
 
@@ -1169,7 +1169,7 @@ instance SelfAdjoint p => IndexedComonad (BazaarT p g) where
   iduplicate (BazaarT m) = getCompose $ m (Compose #. distrib sell . sell)
   {-# INLINE iduplicate #-}
 
-instance Corepresentable p  => Sellable p (BazaarT p g) where
+instance (Corepresentable p, p ~ p') => Sellable p' (BazaarT p g) where
   sell = cotabulate $ \ w -> BazaarT (`corep` w)
   {-# INLINE sell #-}
 
