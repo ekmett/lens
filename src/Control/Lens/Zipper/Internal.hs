@@ -464,7 +464,7 @@ moveToward i z@(Zipper h _ _ p0 j s0)
 
 -- | Move horizontally to a particular index @i@ in the current
 -- 'Traversal'. In the case of simple 'Zipper's, the index is 'Int' and
--- we can move between 'Traversal's fairly easily:
+-- we can move between 'Control.Lens.Type.Traversal's fairly easily:
 --
 -- >>> zipper (42, 32) & fromWithin both & moveTo 0 <&> view focus
 -- 42

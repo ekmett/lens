@@ -1260,7 +1260,7 @@ instance Traversable (Level i) where
 
 newtype Deepening i a = Deepening { runDeepening :: forall r. Int -> (Level i a -> Bool -> r) -> r }
 
--- | This is an illegal 'Monoid'
+-- | This is an illegal 'Monoid'.
 instance Monoid (Deepening i a) where
   mempty = Deepening $ \ _ k -> k Zero False
   {-# INLINE mempty #-}
