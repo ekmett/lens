@@ -88,7 +88,6 @@ module Control.Exception.Lens
 import Control.Applicative
 import Control.Exception
 import Control.Lens
-import Control.Lens.Internal
 import Data.Monoid
 import GHC.Conc (ThreadId)
 
@@ -294,12 +293,10 @@ instance (Prismatic p, Applicative f) => AsArithException p f SomeException wher
 -- '_Overflow' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Overflow' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Overflow :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-_Overflow = case runPrism _ArithException of
-  Market bt seta | bto <- bt Overflow -> prism (const bto) $ \s -> case seta s of
-    Left t -> Left t
-    Right Overflow -> Right ()
-    Right a -> Left (bt a)
+_Overflow :: (AsArithException p f t, Prismatic p, Applicative f) => Overloaded' p f t ()
+_Overflow = _ArithException . lmap seta . prismatic . rmap (Overflow <$) where
+  seta Overflow = Right ()
+  seta t        = Left  (pure t)
 {-# INLINE _Overflow #-}
 
 -- | Handle arithmetic '_Underflow'.
@@ -310,12 +307,10 @@ _Overflow = case runPrism _ArithException of
 -- '_Underflow' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Underflow' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Underflow :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-_Underflow = case runPrism _ArithException of
-  Market bt seta | btu <- bt Underflow -> prism (const btu) $ \s -> case seta s of
-    Left t -> Left t
-    Right Underflow -> Right ()
-    Right a -> Left (bt a)
+_Underflow :: (AsArithException p f t, Prismatic p, Applicative f) => Overloaded' p f t ()
+_Underflow = _ArithException . lmap seta . prismatic . rmap (Underflow <$) where
+  seta Underflow = Right ()
+  seta t        = Left  (pure t)
 {-# INLINE _Underflow #-}
 
 -- | Handle arithmetic loss of precision.
@@ -326,12 +321,10 @@ _Underflow = case runPrism _ArithException of
 -- '_LossOfPrecision' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_LossOfPrecision' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_LossOfPrecision :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-_LossOfPrecision = case runPrism _ArithException of
-  Market bt seta | btu <- bt LossOfPrecision -> prism (const btu) $ \s -> case seta s of
-    Left t -> Left t
-    Right LossOfPrecision -> Right ()
-    Right a -> Left (bt a)
+_LossOfPrecision :: (AsArithException p f t, Prismatic p, Applicative f) => Overloaded' p f t ()
+_LossOfPrecision = _ArithException . lmap seta . prismatic . rmap (LossOfPrecision <$) where
+  seta LossOfPrecision = Right ()
+  seta t        = Left  (pure t)
 {-# INLINE _LossOfPrecision #-}
 
 -- | Handle division by zero.
@@ -342,12 +335,10 @@ _LossOfPrecision = case runPrism _ArithException of
 -- '_DivideByZero' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_DivideByZero' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_DivideByZero :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-_DivideByZero = case runPrism _ArithException of
-  Market bt seta | btu <- bt DivideByZero -> prism (const btu) $ \s -> case seta s of
-    Left t -> Left t
-    Right DivideByZero -> Right ()
-    Right a -> Left (bt a)
+_DivideByZero :: (AsArithException p f t, Prismatic p, Applicative f) => Overloaded' p f t ()
+_DivideByZero = _ArithException . lmap seta . prismatic . rmap (DivideByZero <$) where
+  seta DivideByZero = Right ()
+  seta t        = Left  (pure t)
 {-# INLINE _DivideByZero #-}
 
 -- | Handle exceptional _Denormalized floating point.
@@ -358,12 +349,10 @@ _DivideByZero = case runPrism _ArithException of
 -- '_Denormal' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Denormal' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Denormal :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-_Denormal = case runPrism _ArithException of
-  Market bt seta | btu <- bt Denormal -> prism (const btu) $ \s -> case seta s of
-    Left t -> Left t
-    Right Denormal -> Right ()
-    Right a -> Left (bt a)
+_Denormal :: (AsArithException p f t, Prismatic p, Applicative f) => Overloaded' p f t ()
+_Denormal = _ArithException . lmap seta . prismatic . rmap (Denormal <$) where
+  seta Denormal = Right ()
+  seta t        = Left  (pure t)
 {-# INLINE _Denormal #-}
 
 #if MIN_VERSION_base(4,6,0)
@@ -377,13 +366,12 @@ _Denormal = case runPrism _ArithException of
 -- '_RatioZeroDenominator' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_RatioZeroDenominator' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_RatioZeroDenominator :: AsArithException (Market' ArithException) Mutator t => Prism' t ()
-_RatioZeroDenominator = case runPrism _ArithException of
-  Market bt seta | btu <- bt RatioZeroDenominator -> prism (const btu) $ \s -> case seta s of
-    Left t -> Left t
-    Right RatioZeroDenominator -> Right ()
-    Right a -> Left (bt a)
+_RatioZeroDenominator :: (AsArithException p f t, Prismatic p, Applicative f) => Overloaded' p f t ()
+_RatioZeroDenominator = _ArithException . lmap seta . prismatic . rmap (RatioZeroDenominator <$) where
+  seta RatioZeroDenominator = Right ()
+  seta t        = Left  (pure t)
 {-# INLINE _RatioZeroDenominator #-}
+
 #endif
 
 ----------------------------------------------------------------------------
@@ -416,12 +404,10 @@ instance (Prismatic p, Applicative f) => AsArrayException p f SomeException wher
 -- '_IndexOutOfBounds' :: 'Prism'' 'ArrayException' 'String'
 -- '_IndexOutOfBounds' :: 'Prism'' 'SomeException'  'String'
 -- @
-_IndexOutOfBounds :: AsArrayException (Market' ArrayException) Mutator t => Prism' t String
-_IndexOutOfBounds = case runPrism _ArrayException of
-  Market bt seta -> prism (bt . IndexOutOfBounds) $ \s -> case seta s of
-    Left t -> Left t
-    Right (IndexOutOfBounds r) -> Right r
-    Right a -> Left (bt a)
+_IndexOutOfBounds :: (AsArrayException p f t, Prismatic p, Applicative f) => Overloaded' p f t String
+_IndexOutOfBounds = _ArrayException . lmap seta . prismatic . rmap (fmap IndexOutOfBounds) where
+  seta (IndexOutOfBounds r) = Right r
+  seta t                    = Left  (pure t)
 {-# INLINE _IndexOutOfBounds #-}
 
 -- | An attempt was made to evaluate an element of an array that had not been initialized.
@@ -432,12 +418,10 @@ _IndexOutOfBounds = case runPrism _ArrayException of
 -- '_UndefinedElement' :: 'Prism'' 'ArrayException' 'String'
 -- '_UndefinedElement' :: 'Prism'' 'SomeException'  'String'
 -- @
-_UndefinedElement :: AsArrayException (Market' ArrayException) Mutator t => Prism' t String
-_UndefinedElement = case runPrism _ArrayException of
-  Market bt seta -> prism (bt . UndefinedElement) $ \s -> case seta s of
-    Left t -> Left t
-    Right (UndefinedElement r) -> Right r
-    Right a -> Left (bt a)
+_UndefinedElement :: (AsArrayException p f t, Prismatic p, Applicative f) => Overloaded' p f t String
+_UndefinedElement = _ArrayException . lmap seta . prismatic . rmap (fmap UndefinedElement) where
+  seta (UndefinedElement r) = Right r
+  seta t                    = Left  (pure t)
 {-# INLINE _UndefinedElement #-}
 
 ----------------------------------------------------------------------------
@@ -493,12 +477,10 @@ instance (Prismatic p, Applicative f) => AsAsyncException p f SomeException wher
 -- '_StackOverflow' :: 'Prism'' 'AsyncException' ()
 -- '_StackOverflow' :: 'Prism'' 'SomeException'  ()
 -- @
-_StackOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
-_StackOverflow = case runPrism _AsyncException of
-  Market bt seta | btu <- bt StackOverflow -> prism (const btu) $ \s -> case seta s of
-    Left t -> Left t
-    Right StackOverflow -> Right ()
-    Right a -> Left (bt a)
+_StackOverflow :: (AsAsyncException p f t, Prismatic p, Applicative f) => Overloaded' p f t ()
+_StackOverflow = _AsyncException . lmap seta . prismatic . rmap (StackOverflow <$) where
+  seta StackOverflow = Right ()
+  seta t             = Left  (pure t)
 {-# INLINE _StackOverflow #-}
 
 -- | The program's heap is reaching its limit, and the program should take action
@@ -514,12 +496,10 @@ _StackOverflow = case runPrism _AsyncException of
 -- '_HeapOverflow' :: 'Prism'' 'AsyncException' ()
 -- '_HeapOverflow' :: 'Prism'' 'SomeException'  ()
 -- @
-_HeapOverflow :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
-_HeapOverflow = case runPrism _AsyncException of
-  Market bt seta | btu <- bt HeapOverflow -> prism (const btu) $ \s -> case seta s of
-    Left t -> Left t
-    Right HeapOverflow -> Right ()
-    Right a -> Left (bt a)
+_HeapOverflow :: (AsAsyncException p f t, Prismatic p, Applicative f) => Overloaded' p f t ()
+_HeapOverflow = _AsyncException . lmap seta . prismatic . rmap (HeapOverflow <$) where
+  seta HeapOverflow = Right ()
+  seta t             = Left  (pure t)
 {-# INLINE _HeapOverflow #-}
 
 -- | This exception is raised by another thread calling 'killThread', or by the
@@ -529,12 +509,10 @@ _HeapOverflow = case runPrism _AsyncException of
 -- '_ThreadKilled' :: 'Prism'' 'AsyncException' ()
 -- '_ThreadKilled' :: 'Prism'' 'SomeException'  ()
 -- @
-_ThreadKilled :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
-_ThreadKilled = case runPrism _AsyncException of
-  Market bt seta | btu <- bt ThreadKilled -> prism (const btu) $ \s -> case seta s of
-    Left t -> Left t
-    Right ThreadKilled -> Right ()
-    Right a -> Left (bt a)
+_ThreadKilled :: (AsAsyncException p f t, Prismatic p, Applicative f) => Overloaded' p f t ()
+_ThreadKilled = _AsyncException . lmap seta . prismatic . rmap (ThreadKilled <$) where
+  seta ThreadKilled = Right ()
+  seta t             = Left  (pure t)
 {-# INLINE _ThreadKilled #-}
 
 -- | This exception is raised by default in the main thread of the program when
@@ -545,12 +523,10 @@ _ThreadKilled = case runPrism _AsyncException of
 -- '_UserInterrupt' :: 'Prism'' 'AsyncException' ()
 -- '_UserInterrupt' :: 'Prism'' 'SomeException'  ()
 -- @
-_UserInterrupt :: AsAsyncException (Market' AsyncException) Mutator t => Prism' t ()
-_UserInterrupt = case runPrism _AsyncException of
-  Market bt seta | btu <- bt UserInterrupt -> prism (const btu) $ \s -> case seta s of
-    Left t -> Left t
-    Right UserInterrupt -> Right ()
-    Right a -> Left (bt a)
+_UserInterrupt :: (AsAsyncException p f t, Prismatic p, Applicative f) => Overloaded' p f t ()
+_UserInterrupt = _AsyncException . lmap seta . prismatic . rmap (UserInterrupt <$) where
+  seta UserInterrupt = Right ()
+  seta t             = Left  (pure t)
 {-# INLINE _UserInterrupt #-}
 
 ----------------------------------------------------------------------------
