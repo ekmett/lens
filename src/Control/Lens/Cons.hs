@@ -25,7 +25,8 @@ module Control.Lens.Cons
 import Control.Applicative
 import Control.Lens.Equality (simply)
 import Control.Lens.Fold
-import Control.Lens.Internal
+import Control.Lens.Internal.Getter
+import Control.Lens.Internal.Review
 import Control.Lens.Prism
 import Control.Lens.Review
 import Control.Lens.Tuple

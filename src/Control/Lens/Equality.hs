@@ -25,7 +25,7 @@ module Control.Lens.Equality
   , Identical(..)
   ) where
 
-import Control.Lens.Internal
+import Control.Lens.Internal.Setter
 import Control.Lens.Type
 
 {-# ANN module "HLint: ignore Use id" #-}

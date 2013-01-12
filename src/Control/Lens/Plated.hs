@@ -83,7 +83,7 @@ import           Control.Applicative
 import           Control.Comonad
 import           Control.Lens.Fold
 import           Control.Lens.Getter
-import           Control.Lens.Internal
+import           Control.Lens.Internal.Context
 import           Control.Lens.Type
 import           Control.Lens.Setter
 import           Control.Lens.Traversal

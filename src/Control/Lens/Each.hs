@@ -29,9 +29,9 @@ module Control.Lens.Each
   ) where
 
 import Control.Applicative
-import Control.Lens.Internal
+import Control.Lens.Internal.Setter
+import Control.Lens.Indexed as Lens
 import Control.Lens.Iso
-import Control.Lens.Indexed as Lens (indexed)
 import Control.Lens.Type
 import Control.Lens.Traversal
 import Data.ByteString as StrictB

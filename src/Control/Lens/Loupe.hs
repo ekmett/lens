@@ -19,7 +19,7 @@ module Control.Lens.Loupe
   , ( #= ), ( #%= ), ( #%%= ), (<#=), (<#%=)
   ) where
 
-import Control.Lens.Internal
+import Control.Lens.Internal.Context
 import Control.Lens.Lens
 import Control.Lens.Type
 

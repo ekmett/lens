@@ -51,7 +51,11 @@ module Control.Lens.Iso
   , Profunctor(..)
   ) where
 
-import Control.Lens.Internal
+import Control.Lens.Internal.Context
+import Control.Lens.Internal.Indexed
+import Control.Lens.Internal.Iso
+import Control.Lens.Internal.Magma
+import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Data.Bifunctor
 import Data.ByteString as StrictB

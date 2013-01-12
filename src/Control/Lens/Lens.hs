@@ -109,7 +109,8 @@ module Control.Lens.Lens
 import Control.Applicative
 import Control.Comonad
 import Control.Lens.Combinators
-import Control.Lens.Internal
+import Control.Lens.Internal.Context
+import Control.Lens.Internal.Indexed
 import Control.Lens.Type
 import Control.Monad.State as State
 import Data.Monoid

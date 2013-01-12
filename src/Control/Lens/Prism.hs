@@ -36,7 +36,8 @@ module Control.Lens.Prism
 
 import Control.Applicative
 import Control.Lens.Combinators
-import Control.Lens.Internal
+import Control.Lens.Internal.Prism
+import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Data.Bifunctor
 import Data.Profunctor

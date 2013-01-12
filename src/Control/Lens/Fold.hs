@@ -122,7 +122,9 @@ import Control.Applicative as Applicative
 import Control.Applicative.Backwards
 import Control.Comonad
 import Control.Lens.Getter
-import Control.Lens.Internal
+import Control.Lens.Internal.Fold
+import Control.Lens.Internal.Getter
+import Control.Lens.Internal.Indexed
 import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader

@@ -17,7 +17,11 @@ module Control.Lens.Level
   ) where
 
 import Control.Applicative
-import Control.Lens.Internal
+import Control.Lens.Internal.Bazaar
+import Control.Lens.Internal.Context
+import Control.Lens.Internal.Getter
+import Control.Lens.Internal.Indexed
+import Control.Lens.Internal.Magma
 import Control.Lens.Traversal
 import Data.Profunctor.Unsafe
 
