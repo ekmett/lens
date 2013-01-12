@@ -46,8 +46,8 @@ module Control.Lens.Fold
   , (^?)
   , (^?!)
   , pre, ipre
-  , preview, previews
-  , preuse, preuses
+  , preview, previews, ipreview, ipreviews
+  , preuse, preuses, ipreuse, ipreuses
 
   , has, hasn't
 
@@ -1335,6 +1335,10 @@ preview :: MonadReader s m => Getting (Leftmost a) s t a b -> m (Maybe a)
 preview l = asks (getLeftmost . foldMapOf l LLeaf)
 {-# INLINE preview #-}
 
+ipreview :: MonadReader s m => IndexedGetting i (Leftmost (i, a)) s t a b -> m (Maybe (i, a))
+ipreview l = asks (getLeftmost . ifoldMapOf l (\i a -> LLeaf (i, a)))
+{-# INLINE ipreview #-}
+
 -- | Retrieve a function of the first value targeted by a 'Fold' or
 -- 'Traversal' (or 'Just' the result from a 'Getter' or 'Lens').
 --
@@ -1365,6 +1369,9 @@ previews :: MonadReader s m => Getting (Leftmost r) s t a b -> (a -> r) -> m (Ma
 previews l f = asks (getLeftmost . foldMapOf l (LLeaf . f))
 {-# INLINE previews #-}
 
+ipreviews :: MonadReader s m => IndexedGetting i (Leftmost r) s t a b -> (i -> a -> r) -> m (Maybe r)
+ipreviews l f = asks (getLeftmost . ifoldMapOf l (\i -> LLeaf . f i))
+{-# INLINE ipreviews #-}
 
 ------------------------------------------------------------------------------
 -- Preuse
@@ -1386,6 +1393,10 @@ preuse :: MonadState s m => Getting (Leftmost a) s t a b -> m (Maybe a)
 preuse l = gets (preview l)
 {-# INLINE preuse #-}
 
+ipreuse :: MonadState s m => IndexedGetting i (Leftmost (i, a)) s t a b -> m (Maybe (i, a))
+ipreuse l = gets (ipreview l)
+{-# INLINE ipreuse #-}
+
 -- | Retrieve a function of the first value targeted by a 'Fold' or
 -- 'Traversal' (or 'Just' the result from a 'Getter' or 'Lens') into the current state.
 --
@@ -1401,6 +1412,10 @@ preuse l = gets (preview l)
 preuses :: MonadState s m => Getting (Leftmost r) s t a b -> (a -> r) -> m (Maybe r)
 preuses l f = gets (previews l f)
 {-# INLINE preuses #-}
+
+ipreuses :: MonadState s m => IndexedGetting i (Leftmost r) s t a b -> (i -> a -> r) -> m (Maybe r)
+ipreuses l f = gets (ipreviews l f)
+{-# INLINE ipreuses #-}
 
 ------------------------------------------------------------------------------
 -- Profunctors
