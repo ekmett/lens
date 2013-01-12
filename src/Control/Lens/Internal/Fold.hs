@@ -20,10 +20,12 @@ module Control.Lens.Internal.Fold
   , Sequenced(..)
   , Max(..), getMax
   , Min(..), getMin
+  , Rightmost(..), getRightmost
   ) where
 
 import Control.Applicative
 import Control.Lens.Internal.Getter
+import Data.Maybe
 import Data.Monoid
 
 ------------------------------------------------------------------------------
@@ -106,3 +108,31 @@ getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
 {-# INLINE getMax #-}
+
+------------------------------------------------------------------------------
+-- Rightmost
+------------------------------------------------------------------------------
+
+-- | Used for 'Control.Lens.Fold.lastOf'
+data Rightmost a = RPure | RLeaf a | RStep (Rightmost a)
+
+instance Monoid (Rightmost a) where
+  mempty = RPure
+  {-# INLINE mempty #-}
+  mappend x y = RStep $ case y of
+    RPure    -> x
+    RLeaf _  -> y
+    RStep y' -> case x of
+      -- The last two cases make lastOf produce a Just as soon as any element
+      -- is encountered, and possibly serve as a micro-optimisation; this
+      -- behaviour can be disabled by replacing them with _ -> mappend x y'.
+      -- Note that this means that lastOf folded [1..] is Just _|_.
+      RPure    -> y'
+      RLeaf a  -> RLeaf $ fromMaybe a (getRightmost y')
+      RStep x' -> mappend x' y'
+
+getRightmost :: Rightmost a -> Maybe a
+getRightmost RPure = Nothing
+getRightmost (RLeaf a) = Just a
+getRightmost (RStep x) = getRightmost x
+
