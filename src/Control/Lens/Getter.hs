@@ -58,8 +58,8 @@ module Control.Lens.Getter
   , iview, iviews
   , iuse, iuses
   -- * Implementation Details
-  , Gettable
-  , Accessor
+  , Gettable(..)
+  , Accessor(..)
   ) where
 
 import Control.Lens.Internal.Getter

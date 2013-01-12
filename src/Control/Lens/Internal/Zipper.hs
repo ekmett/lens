@@ -37,7 +37,6 @@ import Control.Monad
 import Control.Lens.Getter
 import Control.Lens.Indexed
 import Control.Lens.Internal.Context
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Lens.Lens
 import Control.Lens.Setter

@@ -34,7 +34,6 @@ module Data.List.Split.Lens
 
 import Control.Applicative
 import Control.Lens
-import Control.Lens.Internal
 import Data.Monoid
 import Data.List.Split
 import Data.List.Split.Internals
