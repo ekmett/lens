@@ -17,7 +17,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Control.Lens.Zipper.Internal
+-- Module      :  Control.Lens.Internal.Zipper
 -- Copyright   :  (C) 2012 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
@@ -29,14 +29,16 @@
 -- exported types can be used to break 'Zipper' invariants.
 --
 ----------------------------------------------------------------------------
-module Control.Lens.Zipper.Internal where
+module Control.Lens.Internal.Zipper where
 
 import Control.Applicative
 import Control.Category ((>>>))
 import Control.Monad
 import Control.Lens.Getter
 import Control.Lens.Indexed
-import Control.Lens.Internal
+import Control.Lens.Internal.Context
+import Control.Lens.Internal.Getter
+import Control.Lens.Internal.Indexed
 import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Traversal

@@ -79,7 +79,10 @@ import Control.Applicative.Backwards
 import Control.Monad (void, liftM)
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Lens.Fold
-import Control.Lens.Internal
+import Control.Lens.Internal.Fold
+import Control.Lens.Internal.Getter
+import Control.Lens.Internal.Indexed
+import Control.Lens.Internal.Magma
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type

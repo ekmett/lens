@@ -183,6 +183,7 @@ library
     unordered-containers      >= 0.2      && < 0.3,
     vector                    >= 0.9      && < 0.11
 
+  -- Control.Lens.Internal
   exposed-modules:
     Control.Exception.Lens
     Control.Lens
@@ -195,7 +196,20 @@ library
     Control.Lens.Fold
     Control.Lens.Getter
     Control.Lens.Indexed
-    Control.Lens.Internal
+    Control.Lens.Internal.Action
+    Control.Lens.Internal.Bazaar
+    Control.Lens.Internal.Context
+    Control.Lens.Internal.Fold
+    Control.Lens.Internal.Getter
+    Control.Lens.Internal.Indexed
+    Control.Lens.Internal.Instances
+    Control.Lens.Internal.Iso
+    Control.Lens.Internal.Magma
+    Control.Lens.Internal.Prism
+    Control.Lens.Internal.Review
+    Control.Lens.Internal.Setter
+    Control.Lens.Internal.Zipper
+    Control.Lens.Internal.Zoom
     Control.Lens.Iso
     Control.Lens.Lens
     Control.Lens.Level
@@ -213,7 +227,6 @@ library
     Control.Lens.Type
     Control.Lens.Wrapped
     Control.Lens.Zipper
-    Control.Lens.Zipper.Internal
     Control.Lens.Zoom
     Control.Monad.Error.Lens
     Control.Parallel.Strategies.Lens

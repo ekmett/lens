@@ -122,7 +122,7 @@ type IndexedLens i s t a b = forall f p. (Indexable i p, Functor f) => p a (f b)
 type IndexedLens' i s a = IndexedLens i s s a a
 
 -- | An 'IndexPreservingLens' leaves any index it is composed with alone.
-type IndexPreservingLens s t a b = forall p f. (SelfAdjoint p, Functor f) => p a (f b) -> p s (f t)
+type IndexPreservingLens s t a b = forall p f. (Conjoined p, Functor f) => p a (f b) -> p s (f t)
 
 -- | @type 'IndexPreservingLens'' = 'Simple' 'IndexPreservingLens'@
 type IndexPreservingLens' s a = IndexPreservingLens s s a a
@@ -174,7 +174,7 @@ type IndexedTraversal i s t a b = forall p f. (Indexable i p, Applicative f) => 
 type IndexedTraversal' i s a = IndexedTraversal i s s a a
 
 -- | An 'IndexPreservingLens' leaves any index it is composed with alone.
-type IndexPreservingTraversal s t a b = forall p f. (SelfAdjoint p, Applicative f) => p a (f b) -> p s (f t)
+type IndexPreservingTraversal s t a b = forall p f. (Conjoined p, Applicative f) => p a (f b) -> p s (f t)
 
 -- | @type 'IndexPreservingTraversal'' = 'Simple' 'IndexPreservingTraversal'@
 type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
@@ -246,7 +246,7 @@ type IndexedSetter' i s a = IndexedSetter i s s a a
 
 -- | An 'IndexPreservingSetter' can be composed with a 'IndexedSetter', 'IndexedTraversal' or 'IndexedLens'
 -- and leaves the index intact, yielding an 'IndexedSetter'.
-type IndexPreservingSetter s t a b = forall p f. (SelfAdjoint p, Settable f) => p a (f b) -> p s (f t)
+type IndexPreservingSetter s t a b = forall p f. (Conjoined p, Settable f) => p a (f b) -> p s (f t)
 
 type IndexPreservingSetter' s a = IndexPreservingSetter s s a a
 
@@ -378,7 +378,7 @@ type IndexedGetter i s a = forall p f. (Indexable i p, Gettable f) => p a (f a) 
 
 -- | An 'IndexPreservingGetter' can be used as a 'Getter', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold', 'IndexedFold' or 'IndexedGetter' respectively.
-type IndexPreservingGetter s a = forall p f. (SelfAdjoint p, Gettable f) => p a (f a) -> p s (f s)
+type IndexPreservingGetter s a = forall p f. (Conjoined p, Gettable f) => p a (f a) -> p s (f s)
 
 --------------------------
 -- Folds
@@ -404,7 +404,7 @@ type IndexedFold i s a = forall p f.  (Indexable i p, Applicative f, Gettable f)
 
 -- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
-type IndexPreservingFold s a = forall p f. (SelfAdjoint p, Gettable f, Applicative f) => p a (f a) -> p s (f s)
+type IndexPreservingFold s a = forall p f. (Conjoined p, Gettable f, Applicative f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- Actions
@@ -426,7 +426,7 @@ type IndexedAction i m s a = forall p f r. (Indexable i p, Effective m r f) => p
 
 -- | An 'IndexPreservingAction' can be used as a 'Action', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedMonadicFold', 'IndexedMonadicFold' or 'IndexedAction' respectively.
-type IndexPreservingAction m s a = forall p f r. (SelfAdjoint p, Effective m r f) => p a (f a) -> p s (f s)
+type IndexPreservingAction m s a = forall p f r. (Conjoined p, Effective m r f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- MonadicFolds
@@ -448,7 +448,7 @@ type IndexedMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f,
 
 -- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
-type IndexPreservingMonadicFold m s a = forall p f r. (SelfAdjoint p, Effective m r f, Applicative f) => p a (f a) -> p s (f s)
+type IndexPreservingMonadicFold m s a = forall p f r. (Conjoined p, Effective m r f, Applicative f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- Simple Overloading

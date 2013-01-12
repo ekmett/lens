@@ -38,6 +38,9 @@ import Control.Lens.Type
 -- Equality
 -----------------------------------------------------------------------------
 
+data Identical a b s t where
+  Identical :: Identical a b a b
+
 -- | When you see this as an argument to a function, it expects an 'Equality'.
 type AnEquality s t a b = Identical a (Mutator b) a (Mutator b) -> Identical a (Mutator b) s (Mutator t)
 

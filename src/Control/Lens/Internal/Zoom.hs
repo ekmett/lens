@@ -1,0 +1,200 @@
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE UndecidableInstances #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
+#endif
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Control.Lens.Internal.Zoom
+-- Copyright   :  (C) 2012-2013 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+----------------------------------------------------------------------------
+module Control.Lens.Internal.Zoom
+  (
+  -- * Zoom
+    Focusing(..)
+  , FocusingWith(..)
+  , FocusingPlus(..)
+  , FocusingOn(..)
+  , FocusingMay(..), May(..)
+  , FocusingErr(..), Err(..)
+  -- * Magnify
+  , EffectRWS(..)
+  ) where
+
+import Control.Applicative
+import Control.Category
+import Control.Comonad
+import Control.Lens.Internal.Getter
+import Control.Monad
+import Data.Monoid
+import Prelude hiding ((.),id)
+
+------------------------------------------------------------------------------
+-- Focusing
+------------------------------------------------------------------------------
+
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.State.StateT'
+newtype Focusing m s a = Focusing { unfocusing :: m (s, a) }
+
+instance Monad m => Functor (Focusing m s) where
+  fmap f (Focusing m) = Focusing $ do
+     (s, a) <- m
+     return (s, f a)
+  {-# INLINE fmap #-}
+
+instance (Monad m, Monoid s) => Applicative (Focusing m s) where
+  pure a = Focusing (return (mempty, a))
+  {-# INLINE pure #-}
+  Focusing mf <*> Focusing ma = Focusing $ do
+    (s, f) <- mf
+    (s', a) <- ma
+    return (mappend s s', f a)
+  {-# INLINE (<*>) #-}
+
+------------------------------------------------------------------------------
+-- FocusingWith
+------------------------------------------------------------------------------
+
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.RWS.RWST'
+newtype FocusingWith w m s a = FocusingWith { unfocusingWith :: m (s, a, w) }
+
+instance Monad m => Functor (FocusingWith w m s) where
+  fmap f (FocusingWith m) = FocusingWith $ do
+     (s, a, w) <- m
+     return (s, f a, w)
+  {-# INLINE fmap #-}
+
+instance (Monad m, Monoid s, Monoid w) => Applicative (FocusingWith w m s) where
+  pure a = FocusingWith (return (mempty, a, mempty))
+  {-# INLINE pure #-}
+  FocusingWith mf <*> FocusingWith ma = FocusingWith $ do
+    (s, f, w) <- mf
+    (s', a, w') <- ma
+    return (mappend s s', f a, mappend w w')
+  {-# INLINE (<*>) #-}
+
+------------------------------------------------------------------------------
+-- FocusingPlus
+------------------------------------------------------------------------------
+
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Writer.WriterT'.
+newtype FocusingPlus w k s a = FocusingPlus { unfocusingPlus :: k (s, w) a }
+
+instance Functor (k (s, w)) => Functor (FocusingPlus w k s) where
+  fmap f (FocusingPlus as) = FocusingPlus (fmap f as)
+  {-# INLINE fmap #-}
+
+instance (Monoid w, Applicative (k (s, w))) => Applicative (FocusingPlus w k s) where
+  pure = FocusingPlus . pure
+  {-# INLINE pure #-}
+  FocusingPlus kf <*> FocusingPlus ka = FocusingPlus (kf <*> ka)
+  {-# INLINE (<*>) #-}
+
+------------------------------------------------------------------------------
+-- FocusingOn
+------------------------------------------------------------------------------
+
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'
+newtype FocusingOn f k s a = FocusingOn { unfocusingOn :: k (f s) a }
+
+instance Functor (k (f s)) => Functor (FocusingOn f k s) where
+  fmap f (FocusingOn as) = FocusingOn (fmap f as)
+  {-# INLINE fmap #-}
+
+instance Applicative (k (f s)) => Applicative (FocusingOn f k s) where
+  pure = FocusingOn . pure
+  {-# INLINE pure #-}
+  FocusingOn kf <*> FocusingOn ka = FocusingOn (kf <*> ka)
+  {-# INLINE (<*>) #-}
+
+------------------------------------------------------------------------------
+-- May
+------------------------------------------------------------------------------
+
+-- | Make a monoid out of 'Maybe' for error handling
+newtype May a = May { getMay :: Maybe a }
+
+instance Monoid a => Monoid (May a) where
+  mempty = May (Just mempty)
+  {-# INLINE mempty #-}
+  May Nothing `mappend` _ = May Nothing
+  _ `mappend` May Nothing = May Nothing
+  May (Just a) `mappend` May (Just b) = May (Just (mappend a b))
+  {-# INLINE mappend #-}
+
+------------------------------------------------------------------------------
+-- FocusingMay
+------------------------------------------------------------------------------
+
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'
+newtype FocusingMay k s a = FocusingMay { unfocusingMay :: k (May s) a }
+
+instance Functor (k (May s)) => Functor (FocusingMay k s) where
+  fmap f (FocusingMay as) = FocusingMay (fmap f as)
+  {-# INLINE fmap #-}
+
+instance Applicative (k (May s)) => Applicative (FocusingMay k s) where
+  pure = FocusingMay . pure
+  {-# INLINE pure #-}
+  FocusingMay kf <*> FocusingMay ka = FocusingMay (kf <*> ka)
+  {-# INLINE (<*>) #-}
+
+------------------------------------------------------------------------------
+-- Err
+------------------------------------------------------------------------------
+
+-- | Make a monoid out of 'Either' for error handling
+newtype Err e a = Err { getErr :: Either e a }
+
+instance Monoid a => Monoid (Err e a) where
+  mempty = Err (Right mempty)
+  {-# INLINE mempty #-}
+  Err (Left e) `mappend` _ = Err (Left e)
+  _ `mappend` Err (Left e) = Err (Left e)
+  Err (Right a) `mappend` Err (Right b) = Err (Right (mappend a b))
+  {-# INLINE mappend #-}
+
+------------------------------------------------------------------------------
+-- FocusingErr
+------------------------------------------------------------------------------
+
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'
+newtype FocusingErr e k s a = FocusingErr { unfocusingErr :: k (Err e s) a }
+
+instance Functor (k (Err e s)) => Functor (FocusingErr e k s) where
+  fmap f (FocusingErr as) = FocusingErr (fmap f as)
+  {-# INLINE fmap #-}
+
+instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
+  pure = FocusingErr . pure
+  {-# INLINE pure #-}
+  FocusingErr kf <*> FocusingErr ka = FocusingErr (kf <*> ka)
+  {-# INLINE (<*>) #-}
+
+------------------------------------------------------------------------------
+-- EffectRWS
+------------------------------------------------------------------------------
+
+-- | Wrap a monadic effect with a phantom type argument. Used when magnifying RWST.
+newtype EffectRWS w st m s a = EffectRWS { getEffectRWS :: st -> m (s,st,w) }
+
+instance Functor (EffectRWS w st m s) where
+  fmap _ (EffectRWS m) = EffectRWS m
+  {-# INLINE fmap #-}
+
+instance (Monoid s, Monoid w, Monad m) => Applicative (EffectRWS w st m s) where
+  pure _ = EffectRWS $ \st -> return (mempty, st, mempty)
+  {-# INLINE pure #-}
+  EffectRWS m <*> EffectRWS n = EffectRWS $ \st -> m st >>= \ (s,t,w) -> n t >>= \ (s',u,w') -> return (mappend s s', u, mappend w w')
+  {-# INLINE (<*>) #-}
+
+instance Gettable (EffectRWS w st m s) where
+  coerce (EffectRWS m) = EffectRWS m
+  {-# INLINE coerce #-}

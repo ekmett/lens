@@ -88,7 +88,7 @@ module Control.Lens.Zipper
   , unsafelyRestoreTape
   ) where
 
-import Control.Lens.Zipper.Internal
+import Control.Lens.Internal.Zipper
 
 -- $setup
 -- >>> :m + Control.Lens
