@@ -68,7 +68,8 @@ module Control.Lens.Setter
 
 import Control.Applicative
 import Control.Comonad
-import Control.Lens.Internal
+import Control.Lens.Internal.Indexed
+import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Control.Monad (liftM)
 import Control.Monad.State.Class as State

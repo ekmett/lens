@@ -29,7 +29,8 @@ module Control.Lens.Review
 import Control.Monad.Reader as Reader
 import Control.Monad.State as State
 import Control.Lens.Getter
-import Control.Lens.Internal
+import Control.Lens.Internal.Review
+import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Data.Functor.Identity
 import Data.Profunctor

@@ -56,7 +56,7 @@ import           Control.Arrow
 import           Control.Applicative.Backwards
 import           Control.Comonad.Trans.Traced
 import           Control.Exception
-import           Control.Lens.Internal
+import           Control.Lens.Internal.Review
 import           Control.Lens.Iso
 import           Control.Lens.Review
 import           Control.Monad.Trans.Cont
