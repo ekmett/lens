@@ -912,8 +912,8 @@ firstOf l = foldrOf l (\x _ -> Just x) Nothing
 -- 'lastOf' :: 'Iso'' s a       -> s -> 'Maybe' a
 -- 'lastOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-lastOf :: Getting (Endo (Maybe a -> Maybe a)) s t a b -> s -> Maybe a
-lastOf l = foldlOf' l (\_ y -> Just y) Nothing
+lastOf :: Getting (Rightmost a) s t a b -> s -> Maybe a
+lastOf l = getRightmost . foldMapOf l RLeaf
 {-# INLINE lastOf #-}
 
 -- |

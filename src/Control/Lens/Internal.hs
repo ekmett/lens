@@ -68,6 +68,7 @@ module Control.Lens.Internal
   , Folding(..)
   , Max(..), getMax
   , Min(..), getMin
+  , Rightmost(..), getRightmost
   , Indexing(..), indexing
   , Indexing64(..), indexing64
   -- * Common Types
@@ -107,6 +108,7 @@ import Data.Foldable
 import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Int
+import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
@@ -661,6 +663,29 @@ getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
 {-# INLINE getMax #-}
+
+-- | Used for 'Control.Lens.Fold.lastOf'
+data Rightmost a = RPure | RLeaf a | RStep (Rightmost a)
+
+instance Monoid (Rightmost a) where
+  mempty = RPure
+  {-# INLINE mempty #-}
+  mappend x y = RStep $ case y of
+    RPure    -> x
+    RLeaf _  -> y
+    RStep y' -> case x of
+      -- The last two cases make lastOf produce a Just as soon as any element
+      -- is encountered, and possibly serve as a micro-optimisation; this
+      -- behaviour can be disabled by replacing them with _ -> mappend x y'.
+      -- Note that this means that lastOf folded [1..] is Just _|_.
+      RPure    -> y'
+      RLeaf a  -> RLeaf $ fromMaybe a (getRightmost y')
+      RStep x' -> mappend x' y'
+
+getRightmost :: Rightmost a -> Maybe a
+getRightmost RPure = Nothing
+getRightmost (RLeaf a) = Just a
+getRightmost (RStep x) = getRightmost x
 
 ------------------------------------------------------------------------------
 -- Effect
