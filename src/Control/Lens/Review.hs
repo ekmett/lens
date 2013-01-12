@@ -68,6 +68,13 @@ unto f = retagged . rmap (fmap f)
 -- Left 5
 --
 -- @
+-- 'review'  ≡ 'view'  '.' 're'
+-- 'reviews' ≡ 'views' '.' 're'
+-- 'reuse'   ≡ 'use'   '.' 're'
+-- 'reuses'  ≡ 'uses'  '.' 're'
+-- @
+--
+-- @
 -- 're' :: 'Prism' s t a b -> 'Getter' b t
 -- 're' :: 'Iso' s t a b   -> 'Getter' b t
 -- @
