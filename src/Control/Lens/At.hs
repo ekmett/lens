@@ -67,7 +67,7 @@ import Data.Vector.Storable as Storable
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
--- | A deprecated alias for 'ix'
+-- | A deprecated alias for 'ix'.
 contains, _at, resultAt :: Ixed f m => IxKey m -> IndexedLensLike' (IxKey m) f m (IxValue m)
 contains = ix
 _at      = ix
@@ -83,7 +83,7 @@ class Ixed f m where
   -- | This simple indexed traversal lets you 'traverse' the value at a given key in a map.
   --
   -- /NB:/ Setting the value of this 'Traversal' will only set the value in the
-  -- lens if it is already present.
+  -- 'Lens' if it is already present.
   --
   -- If you want to be able to insert /missing/ values, you want 'at'.
   --
@@ -182,8 +182,8 @@ type instance IxKey (UArray i e) = i
 type instance IxValue (UArray i e) = e
 -- |
 -- @
--- arr '!' i ≡ arr '^.' 'ix' i
--- arr '//' [(i,e)] ≡ 'ix' i '.~' e '$' arr
+-- arr '!' i ≡ arr 'Control.Lens.Getter.^.' 'ix' i
+-- arr '//' [(i,e)] ≡ 'ix' i 'Control.Lens.Setter.~' e '$' arr
 -- @
 instance (Applicative f, IArray UArray e, Ix i) => Ixed f (UArray i e) where
   ix i f arr
