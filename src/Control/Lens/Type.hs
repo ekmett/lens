@@ -183,8 +183,7 @@ type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
 -- Setters
 ------------------------------------------------------------------------------
 
--- |
--- The only 'Lens'-like law that can apply to a 'Setter' @l@ is that
+-- | The only 'Lens'-like law that can apply to a 'Setter' @l@ is that
 --
 -- @'Control.Lens.Setter.set' l y ('Control.Lens.Setter.set' l x a) ≡ 'Control.Lens.Setter.set' l y a@
 --
@@ -223,9 +222,7 @@ type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
 -- [(f a,f b),(f c,f d)]
 type Setter s t a b = forall f. Settable f => (a -> f b) -> s -> f t
 
--- |
---
--- A 'Setter'' is just a 'Setter' that doesn't change the types.
+-- | A 'Setter'' is just a 'Setter' that doesn't change the types.
 --
 -- These are particularly common when talking about monomorphic containers. /e.g./
 --
@@ -240,8 +237,7 @@ type Setter' s a = Setter s s a a
 type IndexedSetter i s t a b = forall f p.
   (Indexable i p, Settable f) => p a (f b) -> s -> f t
 
--- |
--- @type 'IndexedSetter'' i = 'Simple' ('IndexedSetter' i)@
+-- | @type 'IndexedSetter'' i = 'Simple' ('IndexedSetter' i)@
 type IndexedSetter' i s a = IndexedSetter i s s a a
 
 -- | An 'IndexPreservingSetter' can be composed with a 'IndexedSetter', 'IndexedTraversal' or 'IndexedLens'
@@ -259,8 +255,7 @@ type IndexPreservingSetter' s a = IndexPreservingSetter s s a a
 -- Note: Composition with an 'Iso' is index- and measure- preserving.
 type Iso s t a b = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f t)
 
--- |
--- @type 'Iso'' = 'Control.Lens.Type.Simple' 'Iso'@
+-- | @type 'Iso'' = 'Control.Lens.Type.Simple' 'Iso'@
 type Iso' s a = Iso s s a a
 
 ------------------------------------------------------------------------------
@@ -481,8 +476,7 @@ type Overloaded p f s t a b = p a (f b) -> p s (f t)
 -- | @type 'Overloaded'' p q f s a = 'Simple' ('Overloaded' p q f) s a@
 type Overloaded' p f s a = Overloaded p f s s a a
 
--- |
--- Many combinators that accept a 'Lens' can also accept a
+-- | Many combinators that accept a 'Lens' can also accept a
 -- 'Traversal' in limited situations.
 --
 -- They do so by specializing the type of 'Functor' that they require of the

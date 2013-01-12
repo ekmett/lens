@@ -72,7 +72,7 @@ import Data.Array.IArray as IArray
 -- >>> over each Char.toUpper ("hello"^.Text.packed)
 -- "HELLO"
 --
--- 'each' is an indexed traversal, so it can be used to access keys in many containers:
+-- 'each' is an 'IndexedTraversal', so it can be used to access keys in many containers:
 --
 -- >>> itoListOf each $ Map.fromList [("hello",2),("world",4)]
 -- [("hello",2),("world",4)]

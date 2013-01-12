@@ -490,8 +490,7 @@ ala :: Wrapped s s a a => (s -> a) -> ((s -> a) -> e -> a) -> e -> s
 ala = au . wrapping
 {-# INLINE ala #-}
 
--- |
--- This combinator is based on @ala'@ from Conor McBride's work on Epigram.
+-- | This combinator is based on @ala'@ from Conor McBride's work on Epigram.
 --
 -- As with 'wrapping', the user supplied function for the newtype is /ignored/.
 --

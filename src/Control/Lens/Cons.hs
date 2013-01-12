@@ -135,7 +135,7 @@ instance (Prismatic p, Applicative f, Unbox a, Unbox b) => Cons p f (Unbox.Vecto
 
 -- | 'cons' an element onto a container.
 --
--- This is an infix alias for 'cons'
+-- This is an infix alias for 'cons'.
 (<|) :: Cons Reviewed Identity s s a a => a -> s -> s
 (<|) = curry (simply review _Cons)
 {-# INLINE (<|) #-}
@@ -183,7 +183,7 @@ uncons = simply preview _Cons
 --
 -- This isn't limited to lists.
 --
--- For instance you can also 'traverse' the head of a 'Seq'
+-- For instance you can also 'Data.Traversable.traverse' the head of a 'Seq':
 --
 -- >>> Seq.fromList [a,b,c,d] & _head %~ f
 -- fromList [f a,b,c,d]
@@ -203,7 +203,7 @@ _head :: Cons (->) f s s a a => LensLike' f s a
 _head = _Cons._1
 {-# INLINE _head #-}
 
--- | A 'Traversal' reading and writing to the 'tail' of a /non-empty/ container
+-- | A 'Traversal' reading and writing to the 'tail' of a /non-empty/ container.
 --
 -- >>> [a,b] & _tail .~ [c,d,e]
 -- [a,c,d,e]
@@ -232,7 +232,7 @@ _head = _Cons._1
 -- >>> ""^._tail
 -- ""
 --
--- This isn't limited to lists. For instance you can also traverse the tail of a 'Seq'.
+-- This isn't limited to lists. For instance you can also 'Control.Traversable.traverse' the tail of a 'Seq'.
 --
 -- >>> Seq.fromList [a,b] & _tail .~ Seq.fromList [c,d,e]
 -- fromList [a,c,d,e]
@@ -334,7 +334,7 @@ instance (Prismatic p, Applicative f) => Snoc p f LazyT.Text LazyT.Text Char Cha
     else Right (LazyT.init v, LazyT.last v)
   {-# INLINE _Snoc #-}
 
--- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ container
+-- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ container.
 --
 -- >>> [a,b,c,d]^?_init
 -- Just [a,b,c]
@@ -372,7 +372,7 @@ _init :: Snoc (->) f s s a a => LensLike' f s s
 _init = _Snoc._1
 {-# INLINE _init #-}
 
--- | A 'Traversal' reading and writing to the last element of a /non-empty/ container
+-- | A 'Traversal' reading and writing to the last element of a /non-empty/ container.
 --
 -- >>> [a,b,c]^?!_last
 -- c
@@ -395,7 +395,7 @@ _init = _Snoc._1
 -- >>> [0,1] & _last .~ 2
 -- [0,2]
 --
--- This 'Traversal' is not limited to lists, however. We can also work with other containers, such as a 'Vector'
+-- This 'Traversal' is not limited to lists, however. We can also work with other containers, such as a 'Vector'.
 --
 -- >>> Vector.fromList "abcde" ^? _last
 -- Just 'e'
@@ -417,7 +417,7 @@ _last = _Snoc._2
 
 -- | 'snoc' an element onto the end of a container.
 --
--- This is an infix alias for 'snoc'
+-- This is an infix alias for 'snoc'.
 (|>) :: Snoc Reviewed Identity s s a a => s -> a -> s
 (|>) = curry (simply review _Snoc)
 {-# INLINE (|>) #-}

@@ -44,7 +44,7 @@ data Identical a b s t where
 -- | When you see this as an argument to a function, it expects an 'Equality'.
 type AnEquality s t a b = Identical a (Mutator b) a (Mutator b) -> Identical a (Mutator b) s (Mutator t)
 
--- | A 'Simple' 'AnEquality'
+-- | A 'Simple' 'AnEquality'.
 type AnEquality' s a = AnEquality s s a a
 
 -- | Extract a witness of type equality.
