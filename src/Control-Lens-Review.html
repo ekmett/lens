@@ -77,95 +77,102 @@
 <a name="line-68"></a><span class='hs-comment'>-- Left 5</span>
 <a name="line-69"></a><span class='hs-comment'>--</span>
 <a name="line-70"></a><span class='hs-comment'>-- @</span>
-<a name="line-71"></a><span class='hs-comment'>-- 're' :: 'Prism' s t a b -&gt; 'Getter' b t</span>
-<a name="line-72"></a><span class='hs-comment'>-- 're' :: 'Iso' s t a b   -&gt; 'Getter' b t</span>
-<a name="line-73"></a><span class='hs-comment'>-- @</span>
-<a name="line-74"></a><span class='hs-definition'>re</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Getter</span> <span class='hs-varid'>b</span> <span class='hs-varid'>t</span>
-<a name="line-75"></a><span class='hs-definition'>re</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>to</span> <span class='hs-layout'>(</span><span class='hs-varid'>runIdentity</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>runReviewed</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>p</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Reviewed</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Identity</span><span class='hs-layout'>)</span>
-<a name="line-76"></a><span class='hs-comment'>{-# INLINE re #-}</span>
-<a name="line-77"></a>
-<a name="line-78"></a><a name="review"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.</span>
-<a name="line-79"></a><span class='hs-comment'>--</span>
-<a name="line-80"></a><span class='hs-comment'>-- @'review' ≡ 'view' '.' 're'@</span>
-<a name="line-81"></a><span class='hs-comment'>--</span>
-<a name="line-82"></a><span class='hs-comment'>-- &gt;&gt;&gt; review _Left "mustard"</span>
-<a name="line-83"></a><span class='hs-comment'>-- Left "mustard"</span>
-<a name="line-84"></a><span class='hs-comment'>--</span>
-<a name="line-85"></a><span class='hs-comment'>-- Usually 'review' is used in the @(-&gt;)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
-<a name="line-86"></a><span class='hs-comment'>-- it as having one of these more restricted type signatures:</span>
-<a name="line-87"></a><span class='hs-comment'>--</span>
-<a name="line-88"></a><span class='hs-comment'>-- @</span>
-<a name="line-89"></a><span class='hs-comment'>-- 'review' :: 'Iso'' s a   -&gt; a -&gt; s</span>
-<a name="line-90"></a><span class='hs-comment'>-- 'review' :: 'Prism'' s a -&gt; a -&gt; s</span>
-<a name="line-91"></a><span class='hs-comment'>-- @</span>
-<a name="line-92"></a><span class='hs-comment'>--</span>
-<a name="line-93"></a><span class='hs-comment'>-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of</span>
-<a name="line-94"></a><span class='hs-comment'>-- these more slightly more liberal type signatures may be beneficial to think of it as having:</span>
-<a name="line-95"></a><span class='hs-comment'>--</span>
-<a name="line-96"></a><span class='hs-comment'>-- @</span>
-<a name="line-97"></a><span class='hs-comment'>-- 'review' :: 'MonadReader' a m =&gt; 'Iso'' s a   -&gt; m s</span>
-<a name="line-98"></a><span class='hs-comment'>-- 'review' :: 'MonadReader' a m =&gt; 'Prism'' s a -&gt; m s</span>
-<a name="line-99"></a><span class='hs-comment'>-- @</span>
-<a name="line-100"></a><span class='hs-definition'>review</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
-<a name="line-101"></a><span class='hs-definition'>review</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>asks</span> <span class='hs-layout'>(</span><span class='hs-varid'>runIdentity</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>runReviewed</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>p</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Reviewed</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Identity</span><span class='hs-layout'>)</span>
-<a name="line-102"></a><span class='hs-comment'>{-# INLINE review #-}</span>
-<a name="line-103"></a>
-<a name="line-104"></a><a name="reviews"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,</span>
-<a name="line-105"></a><span class='hs-comment'>-- applying a function.</span>
-<a name="line-106"></a><span class='hs-comment'>--</span>
-<a name="line-107"></a><span class='hs-comment'>-- @'reviews' ≡ 'views' '.' 're'@</span>
-<a name="line-108"></a><span class='hs-comment'>--</span>
-<a name="line-109"></a><span class='hs-comment'>-- &gt;&gt;&gt; reviews _Left isRight "mustard"</span>
-<a name="line-110"></a><span class='hs-comment'>-- False</span>
-<a name="line-111"></a><span class='hs-comment'>--</span>
-<a name="line-112"></a><span class='hs-comment'>-- Usually this function is used in the @(-&gt;)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
-<a name="line-113"></a><span class='hs-comment'>-- it as having one of these more restricted type signatures:</span>
-<a name="line-114"></a><span class='hs-comment'>--</span>
-<a name="line-115"></a><span class='hs-comment'>-- @</span>
-<a name="line-116"></a><span class='hs-comment'>-- 'reviews' :: 'Iso'' s a   -&gt; (s -&gt; r) -&gt; a -&gt; r</span>
-<a name="line-117"></a><span class='hs-comment'>-- 'reviews' :: 'Prism'' s a -&gt; (s -&gt; r) -&gt; a -&gt; r</span>
-<a name="line-118"></a><span class='hs-comment'>-- @</span>
-<a name="line-119"></a><span class='hs-comment'>--</span>
-<a name="line-120"></a><span class='hs-comment'>-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of</span>
-<a name="line-121"></a><span class='hs-comment'>-- these more slightly more liberal type signatures may be beneficial to think of it as having:</span>
-<a name="line-122"></a><span class='hs-comment'>--</span>
-<a name="line-123"></a><span class='hs-comment'>-- @</span>
-<a name="line-124"></a><span class='hs-comment'>-- 'reviews' :: 'MonadReader' a m =&gt; 'Iso'' s a   -&gt; (s -&gt; r) -&gt; m r</span>
-<a name="line-125"></a><span class='hs-comment'>-- 'reviews' :: 'MonadReader' a m =&gt; 'Prism'' s a -&gt; (s -&gt; r) -&gt; m r</span>
-<a name="line-126"></a><span class='hs-comment'>-- @</span>
-<a name="line-127"></a><span class='hs-definition'>reviews</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
-<a name="line-128"></a><span class='hs-definition'>reviews</span> <span class='hs-varid'>p</span> <span class='hs-varid'>tr</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>asks</span> <span class='hs-layout'>(</span><span class='hs-varid'>tr</span> <span class='hs-varop'>.</span> <span class='hs-varid'>runIdentity</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>runReviewed</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>p</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Reviewed</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Identity</span><span class='hs-layout'>)</span>
-<a name="line-129"></a><span class='hs-comment'>{-# INLINE reviews #-}</span>
-<a name="line-130"></a>
-<a name="line-131"></a><a name="reuse"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.</span>
-<a name="line-132"></a><span class='hs-comment'>--</span>
-<a name="line-133"></a><span class='hs-comment'>-- @'reuse' ≡ 'use' '.' 're'@</span>
-<a name="line-134"></a><span class='hs-comment'>--</span>
-<a name="line-135"></a><span class='hs-comment'>-- &gt;&gt;&gt; evalState (reuse _Left) 5</span>
-<a name="line-136"></a><span class='hs-comment'>-- Left 5</span>
-<a name="line-137"></a><span class='hs-comment'>--</span>
-<a name="line-138"></a><span class='hs-comment'>-- @</span>
-<a name="line-139"></a><span class='hs-comment'>-- 'reuse' :: 'MonadState' a m =&gt; 'Prism'' s a -&gt; m s</span>
-<a name="line-140"></a><span class='hs-comment'>-- 'reuse' :: 'MonadState' a m =&gt; 'Iso'' s a   -&gt; m s</span>
-<a name="line-141"></a><span class='hs-comment'>-- @</span>
-<a name="line-142"></a><span class='hs-definition'>reuse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
-<a name="line-143"></a><span class='hs-definition'>reuse</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>gets</span> <span class='hs-layout'>(</span><span class='hs-varid'>runIdentity</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>runReviewed</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>p</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Reviewed</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Identity</span><span class='hs-layout'>)</span>
-<a name="line-144"></a><span class='hs-comment'>{-# INLINE reuse #-}</span>
-<a name="line-145"></a>
-<a name="line-146"></a><a name="reuses"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,</span>
-<a name="line-147"></a><span class='hs-comment'>-- applying a function.</span>
-<a name="line-148"></a><span class='hs-comment'>--</span>
-<a name="line-149"></a><span class='hs-comment'>-- @'reuses' ≡ 'uses' '.' 're'@</span>
-<a name="line-150"></a><span class='hs-comment'>--</span>
-<a name="line-151"></a><span class='hs-comment'>-- &gt;&gt;&gt; evalState (reuses _Left isLeft) (5 :: Int)</span>
-<a name="line-152"></a><span class='hs-comment'>-- True</span>
-<a name="line-153"></a><span class='hs-comment'>--</span>
-<a name="line-154"></a><span class='hs-comment'>-- @</span>
-<a name="line-155"></a><span class='hs-comment'>-- 'reuses' :: 'MonadState' a m =&gt; 'Prism'' s a -&gt; (s -&gt; r) -&gt; m r</span>
-<a name="line-156"></a><span class='hs-comment'>-- 'reuses' :: 'MonadState' a m =&gt; 'Iso'' s a   -&gt; (s -&gt; r) -&gt; m r</span>
-<a name="line-157"></a><span class='hs-comment'>-- @</span>
-<a name="line-158"></a><span class='hs-definition'>reuses</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
-<a name="line-159"></a><span class='hs-definition'>reuses</span> <span class='hs-varid'>p</span> <span class='hs-varid'>tr</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>gets</span> <span class='hs-layout'>(</span><span class='hs-varid'>tr</span> <span class='hs-varop'>.</span> <span class='hs-varid'>runIdentity</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>runReviewed</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>p</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Reviewed</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Identity</span><span class='hs-layout'>)</span>
-<a name="line-160"></a><span class='hs-comment'>{-# INLINE reuses #-}</span>
+<a name="line-71"></a><span class='hs-comment'>-- 'review'  ≡ 'view'  '.' 're'</span>
+<a name="line-72"></a><span class='hs-comment'>-- 'reviews' ≡ 'views' '.' 're'</span>
+<a name="line-73"></a><span class='hs-comment'>-- 'reuse'   ≡ 'use'   '.' 're'</span>
+<a name="line-74"></a><span class='hs-comment'>-- 'reuses'  ≡ 'uses'  '.' 're'</span>
+<a name="line-75"></a><span class='hs-comment'>-- @</span>
+<a name="line-76"></a><span class='hs-comment'>--</span>
+<a name="line-77"></a><span class='hs-comment'>-- @</span>
+<a name="line-78"></a><span class='hs-comment'>-- 're' :: 'Prism' s t a b -&gt; 'Getter' b t</span>
+<a name="line-79"></a><span class='hs-comment'>-- 're' :: 'Iso' s t a b   -&gt; 'Getter' b t</span>
+<a name="line-80"></a><span class='hs-comment'>-- @</span>
+<a name="line-81"></a><span class='hs-definition'>re</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Getter</span> <span class='hs-varid'>b</span> <span class='hs-varid'>t</span>
+<a name="line-82"></a><span class='hs-definition'>re</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>to</span> <span class='hs-layout'>(</span><span class='hs-varid'>runIdentity</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>runReviewed</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>p</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Reviewed</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Identity</span><span class='hs-layout'>)</span>
+<a name="line-83"></a><span class='hs-comment'>{-# INLINE re #-}</span>
+<a name="line-84"></a>
+<a name="line-85"></a><a name="review"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.</span>
+<a name="line-86"></a><span class='hs-comment'>--</span>
+<a name="line-87"></a><span class='hs-comment'>-- @'review' ≡ 'view' '.' 're'@</span>
+<a name="line-88"></a><span class='hs-comment'>--</span>
+<a name="line-89"></a><span class='hs-comment'>-- &gt;&gt;&gt; review _Left "mustard"</span>
+<a name="line-90"></a><span class='hs-comment'>-- Left "mustard"</span>
+<a name="line-91"></a><span class='hs-comment'>--</span>
+<a name="line-92"></a><span class='hs-comment'>-- Usually 'review' is used in the @(-&gt;)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
+<a name="line-93"></a><span class='hs-comment'>-- it as having one of these more restricted type signatures:</span>
+<a name="line-94"></a><span class='hs-comment'>--</span>
+<a name="line-95"></a><span class='hs-comment'>-- @</span>
+<a name="line-96"></a><span class='hs-comment'>-- 'review' :: 'Iso'' s a   -&gt; a -&gt; s</span>
+<a name="line-97"></a><span class='hs-comment'>-- 'review' :: 'Prism'' s a -&gt; a -&gt; s</span>
+<a name="line-98"></a><span class='hs-comment'>-- @</span>
+<a name="line-99"></a><span class='hs-comment'>--</span>
+<a name="line-100"></a><span class='hs-comment'>-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of</span>
+<a name="line-101"></a><span class='hs-comment'>-- these more slightly more liberal type signatures may be beneficial to think of it as having:</span>
+<a name="line-102"></a><span class='hs-comment'>--</span>
+<a name="line-103"></a><span class='hs-comment'>-- @</span>
+<a name="line-104"></a><span class='hs-comment'>-- 'review' :: 'MonadReader' a m =&gt; 'Iso'' s a   -&gt; m s</span>
+<a name="line-105"></a><span class='hs-comment'>-- 'review' :: 'MonadReader' a m =&gt; 'Prism'' s a -&gt; m s</span>
+<a name="line-106"></a><span class='hs-comment'>-- @</span>
+<a name="line-107"></a><span class='hs-definition'>review</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
+<a name="line-108"></a><span class='hs-definition'>review</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>asks</span> <span class='hs-layout'>(</span><span class='hs-varid'>runIdentity</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>runReviewed</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>p</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Reviewed</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Identity</span><span class='hs-layout'>)</span>
+<a name="line-109"></a><span class='hs-comment'>{-# INLINE review #-}</span>
+<a name="line-110"></a>
+<a name="line-111"></a><a name="reviews"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,</span>
+<a name="line-112"></a><span class='hs-comment'>-- applying a function.</span>
+<a name="line-113"></a><span class='hs-comment'>--</span>
+<a name="line-114"></a><span class='hs-comment'>-- @'reviews' ≡ 'views' '.' 're'@</span>
+<a name="line-115"></a><span class='hs-comment'>--</span>
+<a name="line-116"></a><span class='hs-comment'>-- &gt;&gt;&gt; reviews _Left isRight "mustard"</span>
+<a name="line-117"></a><span class='hs-comment'>-- False</span>
+<a name="line-118"></a><span class='hs-comment'>--</span>
+<a name="line-119"></a><span class='hs-comment'>-- Usually this function is used in the @(-&gt;)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
+<a name="line-120"></a><span class='hs-comment'>-- it as having one of these more restricted type signatures:</span>
+<a name="line-121"></a><span class='hs-comment'>--</span>
+<a name="line-122"></a><span class='hs-comment'>-- @</span>
+<a name="line-123"></a><span class='hs-comment'>-- 'reviews' :: 'Iso'' s a   -&gt; (s -&gt; r) -&gt; a -&gt; r</span>
+<a name="line-124"></a><span class='hs-comment'>-- 'reviews' :: 'Prism'' s a -&gt; (s -&gt; r) -&gt; a -&gt; r</span>
+<a name="line-125"></a><span class='hs-comment'>-- @</span>
+<a name="line-126"></a><span class='hs-comment'>--</span>
+<a name="line-127"></a><span class='hs-comment'>-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of</span>
+<a name="line-128"></a><span class='hs-comment'>-- these more slightly more liberal type signatures may be beneficial to think of it as having:</span>
+<a name="line-129"></a><span class='hs-comment'>--</span>
+<a name="line-130"></a><span class='hs-comment'>-- @</span>
+<a name="line-131"></a><span class='hs-comment'>-- 'reviews' :: 'MonadReader' a m =&gt; 'Iso'' s a   -&gt; (s -&gt; r) -&gt; m r</span>
+<a name="line-132"></a><span class='hs-comment'>-- 'reviews' :: 'MonadReader' a m =&gt; 'Prism'' s a -&gt; (s -&gt; r) -&gt; m r</span>
+<a name="line-133"></a><span class='hs-comment'>-- @</span>
+<a name="line-134"></a><span class='hs-definition'>reviews</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadReader</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
+<a name="line-135"></a><span class='hs-definition'>reviews</span> <span class='hs-varid'>p</span> <span class='hs-varid'>tr</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>asks</span> <span class='hs-layout'>(</span><span class='hs-varid'>tr</span> <span class='hs-varop'>.</span> <span class='hs-varid'>runIdentity</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>runReviewed</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>p</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Reviewed</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Identity</span><span class='hs-layout'>)</span>
+<a name="line-136"></a><span class='hs-comment'>{-# INLINE reviews #-}</span>
+<a name="line-137"></a>
+<a name="line-138"></a><a name="reuse"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.</span>
+<a name="line-139"></a><span class='hs-comment'>--</span>
+<a name="line-140"></a><span class='hs-comment'>-- @'reuse' ≡ 'use' '.' 're'@</span>
+<a name="line-141"></a><span class='hs-comment'>--</span>
+<a name="line-142"></a><span class='hs-comment'>-- &gt;&gt;&gt; evalState (reuse _Left) 5</span>
+<a name="line-143"></a><span class='hs-comment'>-- Left 5</span>
+<a name="line-144"></a><span class='hs-comment'>--</span>
+<a name="line-145"></a><span class='hs-comment'>-- @</span>
+<a name="line-146"></a><span class='hs-comment'>-- 'reuse' :: 'MonadState' a m =&gt; 'Prism'' s a -&gt; m s</span>
+<a name="line-147"></a><span class='hs-comment'>-- 'reuse' :: 'MonadState' a m =&gt; 'Iso'' s a   -&gt; m s</span>
+<a name="line-148"></a><span class='hs-comment'>-- @</span>
+<a name="line-149"></a><span class='hs-definition'>reuse</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
+<a name="line-150"></a><span class='hs-definition'>reuse</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>gets</span> <span class='hs-layout'>(</span><span class='hs-varid'>runIdentity</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>runReviewed</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>p</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Reviewed</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Identity</span><span class='hs-layout'>)</span>
+<a name="line-151"></a><span class='hs-comment'>{-# INLINE reuse #-}</span>
+<a name="line-152"></a>
+<a name="line-153"></a><a name="reuses"></a><span class='hs-comment'>-- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,</span>
+<a name="line-154"></a><span class='hs-comment'>-- applying a function.</span>
+<a name="line-155"></a><span class='hs-comment'>--</span>
+<a name="line-156"></a><span class='hs-comment'>-- @'reuses' ≡ 'uses' '.' 're'@</span>
+<a name="line-157"></a><span class='hs-comment'>--</span>
+<a name="line-158"></a><span class='hs-comment'>-- &gt;&gt;&gt; evalState (reuses _Left isLeft) (5 :: Int)</span>
+<a name="line-159"></a><span class='hs-comment'>-- True</span>
+<a name="line-160"></a><span class='hs-comment'>--</span>
+<a name="line-161"></a><span class='hs-comment'>-- @</span>
+<a name="line-162"></a><span class='hs-comment'>-- 'reuses' :: 'MonadState' a m =&gt; 'Prism'' s a -&gt; (s -&gt; r) -&gt; m r</span>
+<a name="line-163"></a><span class='hs-comment'>-- 'reuses' :: 'MonadState' a m =&gt; 'Iso'' s a   -&gt; (s -&gt; r) -&gt; m r</span>
+<a name="line-164"></a><span class='hs-comment'>-- @</span>
+<a name="line-165"></a><span class='hs-definition'>reuses</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>b</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
+<a name="line-166"></a><span class='hs-definition'>reuses</span> <span class='hs-varid'>p</span> <span class='hs-varid'>tr</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>gets</span> <span class='hs-layout'>(</span><span class='hs-varid'>tr</span> <span class='hs-varop'>.</span> <span class='hs-varid'>runIdentity</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>runReviewed</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>p</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Reviewed</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Identity</span><span class='hs-layout'>)</span>
+<a name="line-167"></a><span class='hs-comment'>{-# INLINE reuses #-}</span>
 </pre></body>
 </html>
