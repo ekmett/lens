@@ -1214,6 +1214,9 @@ data Level i a
   | Zero
   deriving (Eq,Ord,Show,Read)
 
+instance Leaf i (Level i) where
+  leaf = One
+
 lappend :: Level i a -> Level i a -> Level i a
 lappend Zero        Zero        = Zero
 lappend Zero        r@One{}     = r
