@@ -84,7 +84,7 @@ instance Comonad (Reviewed a) where
   {-# INLINE extract #-}
   duplicate = Reviewed
   {-# INLINE duplicate #-}
-  extend = (#.) Reviewed
+  extend = ( #. ) Reviewed
   {-# INLINE extend #-}
 
 instance ComonadApply (Reviewed a) where
