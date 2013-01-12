@@ -27,20 +27,11 @@ module Control.Lens.Internal.Action
 
 import Control.Applicative
 import Control.Applicative.Backwards
-import Control.Arrow as Arrow
-import Control.Comonad
 import Control.Lens.Internal.Getter
 import Control.Monad
-import Control.Monad.Fix
-import Data.Distributive
 import Data.Functor.Identity
-import Data.Functor.Compose
 import Data.Monoid
-import Data.Profunctor
-import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
-import Data.Tagged
-import Data.Traversable
 
 -------------------------------------------------------------------------------
 -- Programming with Effects
