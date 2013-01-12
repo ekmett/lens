@@ -48,7 +48,7 @@ module Control.Lens.Iso
   , iscoria
   , Scoria
   -- * Profunctors
-  , Profunctor(..)
+  , Profunctor(dimap,rmap,lmap)
   ) where
 
 import Control.Lens.Internal.Context
