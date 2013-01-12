@@ -43,6 +43,10 @@ module Control.Lens.Iso
   , flipped
   , Swapped(..)
   , Strict(..)
+  -- ** Uncommon Isomorphisms
+  , scoria
+  , iscoria
+  , Scoria
   -- * Profunctors
   , Profunctor(..)
   ) where
@@ -57,6 +61,7 @@ import Data.Text.Lazy as LazyT
 import Data.Tuple (swap)
 import Data.Maybe
 import Data.Profunctor
+import Data.Profunctor.Unsafe
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
@@ -306,3 +311,13 @@ instance Strict LazyB.ByteString StrictB.ByteString where
 instance Strict LazyT.Text StrictT.Text where
   strict = iso LazyT.toStrict LazyT.fromStrict
   {-# INLINE strict #-}
+
+------------------------------------------------------------------------------
+-- Scoria
+------------------------------------------------------------------------------
+
+scoria :: LensLike (Molten () a b) s t a b -> Iso s t (Scoria () t b a) (Scoria j t b b)
+scoria l = iso (runMolten #. l (Molten #. leaf ())) (iextract .# Molten)
+
+iscoria :: Overloading (Indexed i) (->) (Molten i a b) s t a b -> Iso s t' (Scoria i t b a) (Scoria j t' c c)
+iscoria l = iso (runMolten #. l sell) (iextract .# Molten)
