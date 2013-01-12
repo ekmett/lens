@@ -94,7 +94,7 @@ class IndexedComonad w => IndexedComonadStore w where
 -- Sellable
 ------------------------------------------------------------------------------
 
-class Corepresentable p => Sellable p w where -- | w -> p where
+class Corepresentable p => Sellable p w where
   sell :: p a (w a b b)
 
 ------------------------------------------------------------------------------
