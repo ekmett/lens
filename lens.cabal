@@ -183,7 +183,6 @@ library
     unordered-containers      >= 0.2      && < 0.3,
     vector                    >= 0.9      && < 0.11
 
-  -- Control.Lens.Internal
   exposed-modules:
     Control.Exception.Lens
     Control.Lens
@@ -196,6 +195,7 @@ library
     Control.Lens.Fold
     Control.Lens.Getter
     Control.Lens.Indexed
+    Control.Lens.Internal
     Control.Lens.Internal.Action
     Control.Lens.Internal.Bazaar
     Control.Lens.Internal.Context
