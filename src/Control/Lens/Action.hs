@@ -40,8 +40,8 @@ module Control.Lens.Action
   ) where
 
 import Control.Comonad
-import Control.Lens.Indexed
-import Control.Lens.Internal
+import Control.Lens.Internal.Indexed
+import Control.Lens.Internal.Action
 import Control.Lens.Type
 import Control.Monad.Trans.Class
 import Data.Profunctor

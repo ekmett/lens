@@ -62,7 +62,8 @@ module Control.Lens.Getter
   , Accessor
   ) where
 
-import Control.Lens.Internal
+import Control.Lens.Internal.Getter
+import Control.Lens.Internal.Indexed
 import Control.Lens.Type
 import Control.Monad.Reader.Class as Reader
 import Control.Monad.State        as State
