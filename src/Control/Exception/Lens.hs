@@ -87,7 +87,6 @@ module Control.Exception.Lens
 import Control.Applicative
 import Control.Exception
 import Control.Lens
-import Data.Monoid
 import GHC.Conc (ThreadId)
 
 -- $setup
@@ -119,7 +118,7 @@ exception = prism toException $ \ e -> maybe (Left e) Right $ fromException e
 -- 'catching' :: 'Getter' 'SomeException' a     -> 'IO' r -> (a -> 'IO' r) -> 'IO' r
 -- 'catching' :: 'Fold' 'SomeException' a       -> 'IO' r -> (a -> 'IO' r) -> 'IO' r
 -- @
-catching :: Getting (Endo (Maybe a)) SomeException t a b -> IO r -> (a -> IO r) -> IO r
+catching :: Getting (Leftmost a) SomeException t a b -> IO r -> (a -> IO r) -> IO r
 catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
@@ -139,7 +138,7 @@ catching l = catchJust (preview l)
 -- 'catching_' :: 'Getter' 'SomeException' a     -> 'IO' r -> 'IO' r -> 'IO' r
 -- 'catching_' :: 'Fold' 'SomeException' a       -> 'IO' r -> 'IO' r -> 'IO' r
 -- @
-catching_ :: Getting (Endo (Maybe a)) SomeException t a b -> IO r -> IO r -> IO r
+catching_ :: Getting (Leftmost a) SomeException t a b -> IO r -> IO r -> IO r
 catching_ l a b = catchJust (preview l) a (const b)
 {-# INLINE catching_ #-}
 
@@ -157,7 +156,7 @@ catching_ l a b = catchJust (preview l) a (const b)
 -- 'handling' :: 'Fold' 'SomeException' a       -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
 -- 'handling' :: 'Getter' 'SomeException' a     -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
 -- @
-handling :: Getting (Endo (Maybe a)) SomeException t a b -> (a -> IO r) -> IO r -> IO r
+handling :: Getting (Leftmost a) SomeException t a b -> (a -> IO r) -> IO r -> IO r
 handling l = handleJust (preview l)
 {-# INLINE handling #-}
 
@@ -175,7 +174,7 @@ handling l = handleJust (preview l)
 -- 'handling_' :: 'Getter' 'SomeException' a     -> 'IO' r -> 'IO' r -> 'IO' r
 -- 'handling_' :: 'Fold' 'SomeException' a       -> 'IO' r -> 'IO' r -> 'IO' r
 -- @
-handling_ :: Getting (Endo (Maybe a)) SomeException t a b -> IO r -> IO r -> IO r
+handling_ :: Getting (Leftmost a) SomeException t a b -> IO r -> IO r -> IO r
 handling_ l b = handling l (const b)
 {-# INLINE handling_ #-}
 

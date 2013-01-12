@@ -45,9 +45,10 @@ module Control.Lens.Fold
   , (^..)
   , (^?)
   , (^?!)
-  , pre
+  , pre, ipre
   , preview, previews
   , preuse, preuses
+
   , has, hasn't
 
   -- ** Building Folds
@@ -116,6 +117,12 @@ module Control.Lens.Fold
 
   -- * Deprecated
   , headOf
+
+  -- * Internal types
+  , Leftmost
+  , Rightmost
+  , Traversed
+  , Sequenced
   ) where
 
 import Control.Applicative as Applicative
@@ -1276,8 +1283,21 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 
 -- | This converts a 'Fold' to a 'Getter' that returns the first element if it
 -- exists as a 'Maybe'.
-pre :: Getting (Leftmost r) s t a b -> Getting r s t (Maybe a) (Maybe b)
-pre l f = (Accessor #. flip appEndo (runAccessor (f Nothing)) .# runAccessor) `rmap` l (dimap Just (Accessor #. Endo #. const .# runAccessor) f)
+--
+-- @
+-- 'pre' :: 'Getter' s a        -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Fold' s a          -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Traversal' s t a b -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Lens' s t a b      -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Iso' s t a b       -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Prism' s t a b     -> 'IndexPreservingGetter' s ('Maybe' a)
+-- @
+
+pre :: Getting (Leftmost a) s t a b -> IndexPreservingGetter s (Maybe a)
+pre l = dimap (getLeftmost . runAccessor #. l (Accessor #. LLeaf)) coerce
+
+ipre :: IndexedGetting i (Leftmost (i, a)) s t a b -> IndexPreservingGetter s (Maybe (i, a))
+ipre l = dimap (getLeftmost . runAccessor #. l (Indexed $ \i a -> Accessor (LLeaf (i, a)))) coerce
 
 ------------------------------------------------------------------------------
 -- Preview
@@ -1341,8 +1361,8 @@ preview l = asks (getLeftmost . foldMapOf l LLeaf)
 -- 'previews' :: 'MonadReader' s m => 'Iso'' s a       -> (a -> r) -> m ('Maybe' r)
 -- 'previews' :: 'MonadReader' s m => 'Traversal'' s a -> (a -> r) -> m ('Maybe' r)
 -- @
-previews :: MonadReader s m => Getting (Endo (Maybe r)) s t a b -> (a -> r) -> m (Maybe r)
-previews l f = asks (foldrOf l (\x _ -> Just (f x)) Nothing)
+previews :: MonadReader s m => Getting (Leftmost r) s t a b -> (a -> r) -> m (Maybe r)
+previews l f = asks (getLeftmost . foldMapOf l (LLeaf . f))
 {-# INLINE previews #-}
 
 
@@ -1362,7 +1382,7 @@ previews l f = asks (foldrOf l (\x _ -> Just (f x)) Nothing)
 -- 'preuse' :: 'MonadState' s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preuse' :: 'MonadState' s m => 'Traversal'' s a -> m ('Maybe' a)
 -- @
-preuse :: MonadState s m => Getting (Endo (Maybe a)) s t a b -> m (Maybe a)
+preuse :: MonadState s m => Getting (Leftmost a) s t a b -> m (Maybe a)
 preuse l = gets (preview l)
 {-# INLINE preuse #-}
 
@@ -1378,7 +1398,7 @@ preuse l = gets (preview l)
 -- 'preuses' :: 'MonadState' s m => 'Iso'' s a       -> (a -> r) -> m ('Maybe' r)
 -- 'preuses' :: 'MonadState' s m => 'Traversal'' s a -> (a -> r) -> m ('Maybe' r)
 -- @
-preuses :: MonadState s m => Getting (Endo (Maybe r)) s t a b -> (a -> r) -> m (Maybe r)
+preuses :: MonadState s m => Getting (Leftmost r) s t a b -> (a -> r) -> m (Maybe r)
 preuses l f = gets (previews l f)
 {-# INLINE preuses #-}
 

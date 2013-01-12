@@ -24,7 +24,6 @@ module Control.Monad.Error.Lens
 
 import Control.Lens
 import Control.Monad.Error
-import Data.Monoid
 
 -- | Helper function to provide conditional catch behavior.
 catchJust :: MonadError e m => (e -> Maybe t) -> m a -> (t -> m a) -> m a
@@ -42,7 +41,7 @@ catchJust f m k = catchError m $ \ e -> case f e of
 -- 'catching' :: 'MonadError' e m => 'Getter' e a     -> m r -> (a -> m r) -> m r
 -- 'catching' :: 'MonadError' e m => 'Fold' e a       -> m r -> (a -> m r) -> m r
 -- @
-catching :: MonadError e m => Getting (Endo (Maybe a)) e t a b -> m r -> (a -> m r) -> m r
+catching :: MonadError e m => Getting (Leftmost a) e t a b -> m r -> (a -> m r) -> m r
 catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
@@ -59,7 +58,7 @@ catching l = catchJust (preview l)
 -- 'catching_' :: 'MonadError' e m => 'Getter' e a     -> m r -> m r -> m r
 -- 'catching_' :: 'MonadError' e m => 'Fold' e a       -> m r -> m r -> m r
 -- @
-catching_ :: MonadError e m => Getting (Endo (Maybe a)) e t a b -> m r -> m r -> m r
+catching_ :: MonadError e m => Getting (Leftmost a) e t a b -> m r -> m r -> m r
 catching_ l a b = catchJust (preview l) a (const b)
 {-# INLINE catching_ #-}
 
@@ -74,7 +73,7 @@ catching_ l a b = catchJust (preview l) a (const b)
 -- 'handling' :: 'MonadError' e m => 'Fold' e a       -> (a -> m r) -> m r -> m r
 -- 'handling' :: 'MonadError' e m => 'Getter' e a     -> (a -> m r) -> m r -> m r
 -- @
-handling :: MonadError e m => Getting (Endo (Maybe a)) e t a b -> (a -> m r) -> m r -> m r
+handling :: MonadError e m => Getting (Leftmost a) e t a b -> (a -> m r) -> m r -> m r
 handling l = flip (catching l)
 {-# INLINE handling #-}
 
@@ -89,7 +88,7 @@ handling l = flip (catching l)
 -- 'handling_' :: 'MonadError' e m => 'Getter' e a     -> m r -> m r -> m r
 -- 'handling_' :: 'MonadError' e m => 'Fold' e a       -> m r -> m r -> m r
 -- @
-handling_ :: MonadError e m => Getting (Endo (Maybe a)) e t a b -> m r -> m r -> m r
+handling_ :: MonadError e m => Getting (Leftmost a) e t a b -> m r -> m r -> m r
 handling_ l = flip (catching_ l)
 {-# INLINE handling_ #-}
 

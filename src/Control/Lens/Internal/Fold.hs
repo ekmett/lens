@@ -121,16 +121,16 @@ instance Monoid (Leftmost a) where
   mempty = LPure
   {-# INLINE mempty #-}
   mappend x y = LStep $ case x of
-    RPure    -> y
-    RLeaf _  -> x
-    RStep x' -> case y of
+    LPure    -> y
+    LLeaf _  -> x
+    LStep x' -> case y of
       -- The last two cases make firstOf produce a Just as soon as any element
       -- is encountered, and possibly serve as a micro-optimisation; this
       -- behaviour can be disabled by replacing them with _ -> mappend x y'.
       -- Note that this means that firstOf (backwards folded) [1..] is Just _|_.
       LPure    -> x'
       LLeaf a  -> LLeaf $ fromMaybe a (getLeftmost x')
-      LStep x' -> mappend x' y'
+      LStep y' -> mappend x' y'
 
 getLeftmost :: Leftmost a -> Maybe a
 getLeftmost LPure = Nothing

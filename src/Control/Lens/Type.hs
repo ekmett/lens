@@ -54,7 +54,6 @@ module Control.Lens.Type
 
 import Control.Applicative
 import Control.Lens.Internal.Action
-import Control.Lens.Internal.Context
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Setter
 import Control.Lens.Internal.Indexed
