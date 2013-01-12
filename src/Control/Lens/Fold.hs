@@ -932,8 +932,8 @@ firstOf l = foldrOf l (\x _ -> Just x) Nothing
 -- 'lastOf' :: 'Iso'' s a       -> s -> 'Maybe' a
 -- 'lastOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-lastOf :: Getting (Dual (Endo (Maybe a))) s t a b -> s -> Maybe a
-lastOf l = flip appEndo Nothing . (getDual #. foldMapOf l (Dual #. Endo #. const . Just))
+lastOf :: Getting (Rightmost a) s t a b -> s -> Maybe a
+lastOf l = getRightmost . foldMapOf l RLeaf
 {-# INLINE lastOf #-}
 
 -- | Returns 'True' if this 'Fold' or 'Traversal' has no targets in the given container.
