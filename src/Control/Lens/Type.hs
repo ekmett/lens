@@ -267,12 +267,12 @@ type Iso' s a = Iso s s a a
 ------------------------------------------------------------------------------
 
 -- | A 'Prism' @l@ is a 0-or-1 target 'Traversal' that can also be turned
--- around with 'Control.Lens.Review.remit' to obtain a 'Getter' in the
+-- around with 'Control.Lens.Review.re' to obtain a 'Getter' in the
 -- opposite direction.
 --
 -- There are two laws that a 'Prism' should satisfy:
 --
--- First, if I 'Control.Lens.Review.remit' or 'Control.Lens.Prism.review' a value with a 'Prism' and then 'Control.Lens.Prism.preview' or use ('Control.Lens.Fold.^?'), I will get it back:
+-- First, if I 'Control.Lens.Review.re' or 'Control.Lens.Prism.review' a value with a 'Prism' and then 'Control.Lens.Prism.preview' or use ('Control.Lens.Fold.^?'), I will get it back:
 --
 -- * @'Control.Lens.Prism.preview' l ('Control.Lens.Prism.review' l b) ≡ 'Just' b@
 --

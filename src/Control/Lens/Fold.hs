@@ -1276,7 +1276,7 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 
 -- | This converts a 'Fold' to a 'Getter' that returns the first element if it
 -- exists as a 'Maybe'.
-pre :: Getting (Endo r) s t a b -> Getting r s t (Maybe a) (Maybe b)
+pre :: Getting (Leftmost r) s t a b -> Getting r s t (Maybe a) (Maybe b)
 pre l f = (Accessor #. flip appEndo (runAccessor (f Nothing)) .# runAccessor) `rmap` l (dimap Just (Accessor #. Endo #. const .# runAccessor) f)
 
 ------------------------------------------------------------------------------
@@ -1311,8 +1311,8 @@ pre l f = (Accessor #. flip appEndo (runAccessor (f Nothing)) .# runAccessor) `r
 -- 'preview' :: 'MonadReader' s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Traversal'' s a -> m ('Maybe' a)
 -- @
-preview :: MonadReader s m => Getting (Endo (Maybe a)) s t a b -> m (Maybe a)
-preview l = asks (foldrOf l (\x _ -> Just x) Nothing)
+preview :: MonadReader s m => Getting (Leftmost a) s t a b -> m (Maybe a)
+preview l = asks (getLeftmost . foldMapOf l LLeaf)
 {-# INLINE preview #-}
 
 -- | Retrieve a function of the first value targeted by a 'Fold' or
@@ -1394,7 +1394,7 @@ preuses l f = gets (previews l f)
 -- This has no practical impact on a 'Getter', 'Setter', 'Lens' or 'Iso'.
 --
 -- /NB:/ To write back through an 'Iso', you want to use 'Control.Lens.Isomorphic.from'.
--- Similarly, to write back through an 'Prism', you want to use 'Control.Lens.Prism.remit'.
+-- Similarly, to write back through an 'Prism', you want to use 'Control.Lens.Review.re'.
 backwards :: (Profunctor p, Profunctor q) => Overloading p q (Backwards f) s t a b -> Overloading p q f s t a b
 backwards l f = forwards #. l (Backwards #. f)
 {-# INLINE backwards #-}
