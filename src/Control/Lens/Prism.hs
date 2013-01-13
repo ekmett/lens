@@ -109,7 +109,7 @@ aside k = case runPrism k of
     Right a -> Right (e,a)
 {-# INLINE aside #-}
 
--- | Given a pair of 'Prism's, project sums.
+-- | Given a pair of prisms, project sums.
 --
 -- Viewing a 'Prism' as a co-'Lens', this combinator can be seen to be dual to 'Control.Lens.Lens.alongside'.
 without :: APrism s t a b

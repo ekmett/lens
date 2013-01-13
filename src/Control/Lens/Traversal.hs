@@ -660,7 +660,7 @@ taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where b =
 -- >>> ("hello","world") ^? dropping 1 both
 -- Just "world"
 --
--- Dropping works on infinite 'Traversal's as well:
+-- Dropping works on infinite traversals as well:
 --
 -- >>> [1..] ^? dropping 1 folded
 -- Just 2
@@ -694,7 +694,7 @@ dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
 --
 -- Cloning a 'Traversal' is one way to make sure you aren't given
 -- something weaker, such as a 'Fold' and can be
--- used as a way to pass around 'Traversal's that have to be monomorphic in @f@.
+-- used as a way to pass around traversals that have to be monomorphic in @f@.
 --
 -- Note: This only accepts a proper 'Traversal' (or 'Lens'). To clone a 'Lens'
 -- as such, use 'Control.Lens.Lens.cloneLens'.

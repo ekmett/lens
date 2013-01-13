@@ -194,7 +194,7 @@ ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 -- structure, extracting a functorial result.
 --
 -- When applied to a 'Traversal', it can edit the
--- targets of the 'Traversal's, extracting an applicative summary of its
+-- targets of the traversals, extracting an applicative summary of its
 -- actions.
 --
 -- For all that the definition of this combinator is just:
@@ -211,7 +211,7 @@ ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 -- restricted types, however:
 --
 -- When applied to a 'Traversal', it can edit the
--- targets of the 'Traversal's, extracting a supplemental monoidal summary
+-- targets of the traversals, extracting a supplemental monoidal summary
 -- of its actions, by choosing @f = ((,) m)@
 --
 -- @
