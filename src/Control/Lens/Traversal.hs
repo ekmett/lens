@@ -660,7 +660,7 @@ taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where b =
 -- >>> ("hello","world") ^? dropping 1 both
 -- Just "world"
 --
--- Dropping works on infinite 'Traversal's as well:
+-- Dropping works on infinite traversals as well:
 --
 -- >>> [1..] ^? dropping 1 folded
 -- Just 2
@@ -694,7 +694,7 @@ dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
 --
 -- Cloning a 'Traversal' is one way to make sure you aren't given
 -- something weaker, such as a 'Fold' and can be
--- used as a way to pass around 'Traversal's that have to be monomorphic in @f@.
+-- used as a way to pass around traversals that have to be monomorphic in @f@.
 --
 -- Note: This only accepts a proper 'Traversal' (or 'Lens'). To clone a 'Lens'
 -- as such, use 'Control.Lens.Lens.cloneLens'.
@@ -758,7 +758,7 @@ iforOf :: (Indexed i a (f b) -> s -> f t) -> s -> (i -> a -> f b) -> f t
 iforOf = flip . itraverseOf
 {-# INLINE iforOf #-}
 
--- | Map each element of a structure targeted by a lens to a monadic action,
+-- | Map each element of a structure targeted by a 'Lens' to a monadic action,
 -- evaluate these actions from left to right, and collect the results, with access
 -- its position.
 --
@@ -776,7 +776,7 @@ imapMOf :: (Indexed i a (WrappedMonad m b) -> s -> WrappedMonad m t) -> (i -> a 
 imapMOf l = mapMOf l .# Indexed
 {-# INLINE imapMOf #-}
 
--- | Map each element of a structure targeted by a lens to a monadic action,
+-- | Map each element of a structure targeted by a 'Lens' to a monadic action,
 -- evaluate these actions from left to right, and collect the results, with access
 -- its position (and the arguments flipped).
 --

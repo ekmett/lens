@@ -159,6 +159,7 @@ import Data.Profunctor.Unsafe
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
 {-# ANN module "HLint: ignore Use camelCase" #-}
+{-# ANN module "HLint: ignore Use curry" #-}
 
 infixl 8 ^.., ^?, ^?!, ^@.., ^@?, ^@?!
 
@@ -1357,7 +1358,7 @@ ipreview l = asks (getLeftmost . ifoldMapOf l (\i a -> LLeaf (i, a)))
 -- @
 --
 -- However, it may be useful to think of its full generality when working with
--- a monad transformer stack:
+-- a 'Monad' transformer stack:
 --
 -- @
 -- 'previews' :: 'MonadReader' s m => 'Getter' s a     -> (a -> r) -> m ('Maybe' r)

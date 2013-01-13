@@ -339,9 +339,8 @@ set :: Profunctor q => Overloading (->) q Mutator s t a b -> b -> q s t
 set l b = runMutator #. l (\_ -> Mutator b)
 {-# INLINE set #-}
 
--- |
--- Replace the target of a 'Lens' or all of the targets of a 'Setter''
--- or 'Traversal'' with a constant value, without changing its type.
+-- | Replace the target of a 'Lens' or all of the targets of a 'Setter''
+-- or 'Traversal' with a constant value, without changing its type.
 --
 -- This is a type restricted version of 'set', which retains the type of the original.
 --
@@ -701,8 +700,9 @@ assign :: MonadState s m => ASetter s s a b -> b -> m ()
 assign l b = State.modify (set l b)
 {-# INLINE assign #-}
 
--- | Replace the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal' in our monadic
--- state with a new value, irrespective of the old.
+-- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
+-- or 'Traversal' in our monadic state with a new value, irrespective of the
+-- old.
 --
 -- This is an infix version of 'assign'.
 --
@@ -913,7 +913,7 @@ l ||= b = State.modify (l ||~ b)
 -- ('<~') :: 'MonadState' s m => 'Setter' s s a b    -> m b -> m ()
 -- @
 --
--- As a reasonable mnemonic, this lets you store the result of a monadic action in a lens rather than
+-- As a reasonable mnemonic, this lets you store the result of a monadic action in a 'Lens' rather than
 -- in a local variable.
 --
 -- @
@@ -935,7 +935,7 @@ l <~ mb = mb >>= (l .=)
 
 -- | Set with pass-through
 --
--- This is useful for chaining assignment without round-tripping through your monad stack.
+-- This is useful for chaining assignment without round-tripping through your 'Monad' stack.
 --
 -- @do x <- 'Control.Lens.Tuple._2' '<.=' ninety_nine_bottles_of_beer_on_the_wall@
 --
@@ -955,7 +955,7 @@ l <.= b = do
 
 -- | Set 'Just' a value with pass-through
 --
--- This is useful for chaining assignment without round-tripping through your monad stack.
+-- This is useful for chaining assignment without round-tripping through your 'Monad' stack.
 --
 -- @do x <- 'Control.Lens.At.at' "foo" '<?=' ninety_nine_bottles_of_beer_on_the_wall@
 --

@@ -745,7 +745,7 @@ restoreTape (Tape h n) = restoreTrack h >=> moveTo n
 --
 -- When moving left to right through a 'Traversal', if this will clamp at each
 -- level to the range @0 '<=' k '<' 'teeth'@, so the only failures will occur
--- when one of the sequence of downward 'Traversal's find no targets.
+-- when one of the sequence of downward traversals find no targets.
 restoreNearTape :: MonadPlus m => Tape h i a -> Zipped h a -> m (Zipper h i a)
 restoreNearTape (Tape h n) a = liftM (moveToward n) (restoreNearTrack h a)
 {-# INLINE restoreNearTape #-}
@@ -754,7 +754,7 @@ restoreNearTape (Tape h n) a = liftM (moveToward n) (restoreNearTrack h a)
 --
 -- This *assumes* that nothing has been done in the meantime to affect the existence of anything on the entire path.
 --
--- Motions 'leftward' or 'rightward' are clamped, but all 'Traversal's included on the 'Tape' are assumed to be non-empty.
+-- Motions 'leftward' or 'rightward' are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
 --
 -- Violate these assumptions at your own risk!
 unsafelyRestoreTape :: Tape h i a -> Zipped h a -> Zipper h i a

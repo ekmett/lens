@@ -166,7 +166,7 @@ type Accessing p m s t a b = p a (Accessor m b) -> s -> Accessor m t
 -- 'view' :: 'Data.Monoid.Monoid' m => 'Control.Lens.Traversal.Traversal'' s m -> s -> m
 -- @
 --
--- In a more general setting, such as when working with a monad transformer stack you can use:
+-- In a more general setting, such as when working with a 'Monad' transformer stack you can use:
 --
 -- @
 -- 'view' :: 'MonadReader' s m             => 'Getter' s a     -> m a
@@ -206,7 +206,7 @@ view l = Reader.asks (runAccessor #. l Accessor)
 -- 'views' :: 'Data.Monoid.Monoid' m => 'Control.Lens.Traversal.Traversal'' s a -> (a -> m) -> s -> m
 -- @
 --
--- In a more general setting, such as when working with a monad transformer stack you can use:
+-- In a more general setting, such as when working with a 'Monad' transformer stack you can use:
 --
 -- @
 -- 'view' :: 'MonadReader' s m             => 'Getter' s a     -> m a
@@ -393,7 +393,7 @@ uses' l f = State.gets (views' l f)
 -- 'view'' :: 'Data.Monoid.Monoid' m => 'Control.Lens.Traversal.Traversal'' s m -> s -> m
 -- @
 --
--- In a more general setting, such as when working with a monad transformer stack you can use:
+-- In a more general setting, such as when working with a 'Monad' transformer stack you can use:
 --
 -- @
 -- 'view'' :: 'MonadReader' s m             => 'Getter' s a     -> m a
@@ -432,7 +432,7 @@ view' l = Reader.asks (runAccessor #. l Accessor)
 -- 'views'' :: 'Data.Monoid.Monoid' m => 'Control.Lens.Traversal.Traversal'' s a -> (a -> m) -> s -> m
 -- @
 --
--- In a more general setting, such as when working with a monad transformer stack you can use:
+-- In a more general setting, such as when working with a 'Monad' transformer stack you can use:
 --
 -- @
 -- 'views'' :: 'MonadReader' s m             => 'Getter' s a     -> (a -> r) -> m r

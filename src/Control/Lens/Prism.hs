@@ -109,7 +109,7 @@ aside k = case runPrism k of
     Right a -> Right (e,a)
 {-# INLINE aside #-}
 
--- | Given a pair of 'Prism's, project sums.
+-- | Given a pair of prisms, project sums.
 --
 -- Viewing a 'Prism' as a co-'Lens', this combinator can be seen to be dual to 'Control.Lens.Lens.alongside'.
 without :: APrism s t a b
@@ -126,7 +126,7 @@ without k = case runPrism k of
 -- Common Prisms
 ------------------------------------------------------------------------------
 
--- | This 'Prism' provides a traversal for tweaking the left-hand value of an 'Either':
+-- | This 'Prism' provides a 'Traversal' for tweaking the left-hand value of an 'Either':
 --
 -- >>> over _Left (+1) (Left 2)
 -- Left 3
@@ -148,7 +148,7 @@ _Left :: Prism (Either a c) (Either b c) a b
 _Left = prism Left $ either Right (Left . Right)
 {-# INLINE _Left #-}
 
--- | This 'Prism' provides a traversal for tweaking the right-hand value of an 'Either':
+-- | This 'Prism' provides a 'Traversal' for tweaking the right-hand value of an 'Either':
 --
 -- >>> over _Right (+1) (Left 2)
 -- Left 2
@@ -170,7 +170,7 @@ _Right :: Prism (Either c a) (Either c b) a b
 _Right = prism Right $ either (Left . Left) Right
 {-# INLINE _Right #-}
 
--- | This 'Prism' provides a traversal for tweaking the target of the value of 'Just' in a 'Maybe'.
+-- | This 'Prism' provides a 'Traversal' for tweaking the target of the value of 'Just' in a 'Maybe'.
 --
 -- >>> over _Just (+1) (Just 2)
 -- Just 3

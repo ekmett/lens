@@ -173,7 +173,7 @@ import           Data.Tree
 --
 -- If you want to find something unplated and non-recursive with 'Data.Data.Lens.biplate'
 -- use the @...OnOf@ variant with 'ignored', though those usecases are much better served
--- in most cases by using the existing lens combinators! e.g.
+-- in most cases by using the existing 'Lens' combinators! e.g.
 --
 -- @'toListOf' 'biplate' ≡ 'universeOnOf' 'biplate' 'ignored'@.
 --
