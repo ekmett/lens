@@ -48,6 +48,19 @@ instance Profunctor (Market a b) where
   ( .# ) p _ = unsafeCoerce p
   {-# INLINE ( .# ) #-}
 
-instance Prismatic (Market a b) where
-  prismatic (Market bt seta) = Market bt (either Left seta)
-  {-# INLINE prismatic #-}
+instance Choice (Market a b) where
+  -- left' :: Market a b s t -> Market a b (Either s c) (Either t c)
+  -- seta :: s -> Either t a
+  -- result :: Either s c -> Either (Either t c) a
+  left' (Market bt seta) = Market (Left . bt) $ \sc -> case sc of
+    Left s -> case seta s of
+      Left t -> Left (Left t)
+      Right a -> Right a
+    Right c -> Left (Right c)
+  {-# INLINE left' #-}
+  right' (Market bt seta) = Market (Right . bt) $ \cs -> case cs of
+    Left c -> Left (Left c)
+    Right s -> case seta s of
+      Left t -> Left (Right t)
+      Right a -> Right a
+  {-# INLINE right' #-}

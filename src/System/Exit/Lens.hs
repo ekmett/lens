@@ -36,7 +36,7 @@ instance AsExitCode p f ExitCode where
   _ExitCode = id
   {-# INLINE _ExitCode #-}
 
-instance (Prismatic p, Applicative f) => AsExitCode p f SomeException where
+instance (Choice p, Applicative f) => AsExitCode p f SomeException where
   _ExitCode = exception
   {-# INLINE _ExitCode #-}
 
@@ -46,8 +46,8 @@ instance (Prismatic p, Applicative f) => AsExitCode p f SomeException where
 -- '_ExitSuccess' :: 'Prism'' 'ExitCode'      ()
 -- '_ExitSuccess' :: 'Prism'' 'SomeException' ()
 -- @
-_ExitSuccess :: (AsExitCode p f t, Prismatic p, Applicative f) => Overloaded' p f t ()
-_ExitSuccess = _ExitCode . lmap seta . prismatic . rmap (ExitSuccess <$) where
+_ExitSuccess :: (AsExitCode p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_ExitSuccess = _ExitCode . dimap seta (either id id) . right' . rmap (ExitSuccess <$) where
   seta ExitSuccess = Right ()
   seta t           = Left  (pure t)
 {-# INLINE _ExitSuccess #-}
@@ -58,8 +58,8 @@ _ExitSuccess = _ExitCode . lmap seta . prismatic . rmap (ExitSuccess <$) where
 -- '_ExitFailure' :: 'Prism'' 'ExitCode'      'Int'
 -- '_ExitFailure' :: 'Prism'' 'SomeException' 'Int'
 -- @
-_ExitFailure :: (AsExitCode p f t, Prismatic p, Applicative f) => Overloaded' p f t Int
-_ExitFailure = _ExitCode . lmap seta . prismatic . rmap (fmap ExitFailure) where
+_ExitFailure :: (AsExitCode p f t, Choice p, Applicative f) => Overloaded' p f t Int
+_ExitFailure = _ExitCode . dimap seta (either id id) . right' . rmap (fmap ExitFailure) where
   seta (ExitFailure i) = Right i
   seta t               = Left  (pure t)
 {-# INLINE _ExitFailure #-}

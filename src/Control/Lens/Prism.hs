@@ -31,7 +31,7 @@ module Control.Lens.Prism
   , _Right
   , _Just
   -- * Prismatic profunctors
-  , Prismatic(..)
+  , Choice(..)
   ) where
 
 import Control.Applicative
@@ -85,7 +85,7 @@ clonePrism k = case runPrism k of
 --
 -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
 prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
-prism bt seta = lmap (first pure . seta) . prismatic . rmap (fmap bt)
+prism bt seta = dimap (first pure . seta) (either id id) . right' . rmap (fmap bt)
 {-# INLINE prism #-}
 
 -- | Build a 'Prism''.
