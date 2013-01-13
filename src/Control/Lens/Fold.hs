@@ -159,6 +159,7 @@ import Data.Profunctor.Unsafe
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
 {-# ANN module "HLint: ignore Use camelCase" #-}
+{-# ANN module "HLint: ignore Use curry" #-}
 
 infixl 8 ^.., ^?, ^?!, ^@.., ^@?, ^@?!
 
