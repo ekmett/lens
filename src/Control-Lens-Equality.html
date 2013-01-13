@@ -34,7 +34,7 @@
 <a name="line-25"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Identical</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-26"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-27"></a>
-<a name="line-28"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span>
+<a name="line-28"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Setter</span>
 <a name="line-29"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
 <a name="line-30"></a>
 <a name="line-31"></a><span class='hs-comment'>{-# ANN module "HLint: ignore Use id" #-}</span>
@@ -53,7 +53,7 @@
 <a name="line-44"></a><a name="AnEquality"></a><span class='hs-comment'>-- | When you see this as an argument to a function, it expects an 'Equality'.</span>
 <a name="line-45"></a><a name="AnEquality"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Mutator</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Mutator</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Mutator</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-layout'>(</span><span class='hs-conid'>Mutator</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
 <a name="line-46"></a>
-<a name="line-47"></a><a name="AnEquality'"></a><span class='hs-comment'>-- | A 'Simple' 'AnEquality'</span>
+<a name="line-47"></a><a name="AnEquality'"></a><span class='hs-comment'>-- | A 'Simple' 'AnEquality'.</span>
 <a name="line-48"></a><a name="AnEquality'"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>AnEquality'</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
 <a name="line-49"></a>
 <a name="line-50"></a><a name="runEq"></a><span class='hs-comment'>-- | Extract a witness of type equality.</span>

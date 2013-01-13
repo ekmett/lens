@@ -76,7 +76,7 @@
 <a name="line-67"></a><span class='hs-comment'>-- &gt;&gt;&gt; let f :: Expr -&gt; Expr; f = Debug.SimpleReflect.Vars.f</span>
 <a name="line-68"></a><span class='hs-comment'>-- &gt;&gt;&gt; let g :: Expr -&gt; Expr; g = Debug.SimpleReflect.Vars.g</span>
 <a name="line-69"></a>
-<a name="line-70"></a><a name="contains"></a><span class='hs-comment'>-- | A deprecated alias for 'ix'</span>
+<a name="line-70"></a><a name="contains"></a><span class='hs-comment'>-- | A deprecated alias for 'ix'.</span>
 <a name="line-71"></a><span class='hs-definition'>contains</span><span class='hs-layout'>,</span> <span class='hs-sel'>_at</span><span class='hs-layout'>,</span> <span class='hs-varid'>resultAt</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Ixed</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>IxKey</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedLensLike'</span> <span class='hs-layout'>(</span><span class='hs-conid'>IxKey</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>IxValue</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span>
 <a name="line-72"></a><span class='hs-definition'>contains</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ix</span>
 <a name="line-73"></a><span class='hs-sel'>_at</span>      <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ix</span>
@@ -92,7 +92,7 @@
 <a name="line-83"></a>  <span class='hs-comment'>-- | This simple indexed traversal lets you 'traverse' the value at a given key in a map.</span>
 <a name="line-84"></a>  <span class='hs-comment'>--</span>
 <a name="line-85"></a>  <span class='hs-comment'>-- /NB:/ Setting the value of this 'Traversal' will only set the value in the</span>
-<a name="line-86"></a>  <span class='hs-comment'>-- lens if it is already present.</span>
+<a name="line-86"></a>  <span class='hs-comment'>-- 'Lens' if it is already present.</span>
 <a name="line-87"></a>  <span class='hs-comment'>--</span>
 <a name="line-88"></a>  <span class='hs-comment'>-- If you want to be able to insert /missing/ values, you want 'at'.</span>
 <a name="line-89"></a>  <span class='hs-comment'>--</span>
@@ -191,8 +191,8 @@
 <a name="line-182"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>IxValue</span> <span class='hs-layout'>(</span><span class='hs-conid'>UArray</span> <span class='hs-varid'>i</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span>
 <a name="line-183"></a><span class='hs-comment'>-- |</span>
 <a name="line-184"></a><span class='hs-comment'>-- @</span>
-<a name="line-185"></a><span class='hs-comment'>-- arr '!' i ≡ arr '^.' 'ix' i</span>
-<a name="line-186"></a><span class='hs-comment'>-- arr '//' [(i,e)] ≡ 'ix' i '.~' e '$' arr</span>
+<a name="line-185"></a><span class='hs-comment'>-- arr '!' i ≡ arr 'Control.Lens.Getter.^.' 'ix' i</span>
+<a name="line-186"></a><span class='hs-comment'>-- arr '//' [(i,e)] ≡ 'ix' i 'Control.Lens.Setter.~' e '$' arr</span>
 <a name="line-187"></a><span class='hs-comment'>-- @</span>
 <a name="line-188"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>IArray</span> <span class='hs-conid'>UArray</span> <span class='hs-varid'>e</span><span class='hs-layout'>,</span> <span class='hs-conid'>Ix</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Ixed</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>UArray</span> <span class='hs-varid'>i</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-189"></a>  <span class='hs-varid'>ix</span> <span class='hs-varid'>i</span> <span class='hs-varid'>f</span> <span class='hs-varid'>arr</span>

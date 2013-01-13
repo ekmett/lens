@@ -65,7 +65,7 @@
 <a name="line-56"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span><span class='hs-varop'>.</span><span class='hs-conid'>Backwards</span>
 <a name="line-57"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Comonad</span><span class='hs-varop'>.</span><span class='hs-conid'>Trans</span><span class='hs-varop'>.</span><span class='hs-conid'>Traced</span>
 <a name="line-58"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Exception</span>
-<a name="line-59"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span>
+<a name="line-59"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Review</span>
 <a name="line-60"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Iso</span>
 <a name="line-61"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Review</span>
 <a name="line-62"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span><span class='hs-varop'>.</span><span class='hs-conid'>Trans</span><span class='hs-varop'>.</span><span class='hs-conid'>Cont</span>
@@ -499,15 +499,14 @@
 <a name="line-490"></a><span class='hs-definition'>ala</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>au</span> <span class='hs-varop'>.</span> <span class='hs-varid'>wrapping</span>
 <a name="line-491"></a><span class='hs-comment'>{-# INLINE ala #-}</span>
 <a name="line-492"></a>
-<a name="line-493"></a><a name="alaf"></a><span class='hs-comment'>-- |</span>
-<a name="line-494"></a><span class='hs-comment'>-- This combinator is based on @ala'@ from Conor McBride's work on Epigram.</span>
-<a name="line-495"></a><span class='hs-comment'>--</span>
-<a name="line-496"></a><span class='hs-comment'>-- As with 'wrapping', the user supplied function for the newtype is /ignored/.</span>
-<a name="line-497"></a><span class='hs-comment'>--</span>
-<a name="line-498"></a><span class='hs-comment'>-- &gt;&gt;&gt; alaf Sum foldMap length ["hello","world"]</span>
-<a name="line-499"></a><span class='hs-comment'>-- 10</span>
-<a name="line-500"></a><span class='hs-definition'>alaf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Wrapped</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span>
-<a name="line-501"></a><span class='hs-definition'>alaf</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>auf</span> <span class='hs-varop'>.</span> <span class='hs-varid'>wrapping</span>
-<a name="line-502"></a><span class='hs-comment'>{-# INLINE alaf #-}</span>
+<a name="line-493"></a><a name="alaf"></a><span class='hs-comment'>-- | This combinator is based on @ala'@ from Conor McBride's work on Epigram.</span>
+<a name="line-494"></a><span class='hs-comment'>--</span>
+<a name="line-495"></a><span class='hs-comment'>-- As with 'wrapping', the user supplied function for the newtype is /ignored/.</span>
+<a name="line-496"></a><span class='hs-comment'>--</span>
+<a name="line-497"></a><span class='hs-comment'>-- &gt;&gt;&gt; alaf Sum foldMap length ["hello","world"]</span>
+<a name="line-498"></a><span class='hs-comment'>-- 10</span>
+<a name="line-499"></a><span class='hs-definition'>alaf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Wrapped</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span>
+<a name="line-500"></a><span class='hs-definition'>alaf</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>auf</span> <span class='hs-varop'>.</span> <span class='hs-varid'>wrapping</span>
+<a name="line-501"></a><span class='hs-comment'>{-# INLINE alaf #-}</span>
 </pre></body>
 </html>

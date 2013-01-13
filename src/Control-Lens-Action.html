@@ -49,8 +49,8 @@
 <a name="line-40"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-41"></a>
 <a name="line-42"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Comonad</span>
-<a name="line-43"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Indexed</span>
-<a name="line-44"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span>
+<a name="line-43"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Indexed</span>
+<a name="line-44"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span>
 <a name="line-45"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
 <a name="line-46"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span><span class='hs-varop'>.</span><span class='hs-conid'>Trans</span><span class='hs-varop'>.</span><span class='hs-conid'>Class</span>
 <a name="line-47"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Profunctor</span>
@@ -95,7 +95,7 @@
 <a name="line-86"></a><span class='hs-comment'>--</span>
 <a name="line-87"></a><span class='hs-comment'>-- @</span>
 <a name="line-88"></a><span class='hs-comment'>-- 'act' :: 'Monad' m =&gt; (s -&gt; m a) -&gt; 'Action' m s a</span>
-<a name="line-89"></a><span class='hs-comment'>-- 'act' sma afb a = 'effective' (sma a &gt;&gt;= 'ineffective' . afb)</span>
+<a name="line-89"></a><span class='hs-comment'>-- 'act' sma afb a = 'effective' (sma a '&gt;&gt;=' 'ineffective' '.' afb)</span>
 <a name="line-90"></a><span class='hs-comment'>-- @</span>
 <a name="line-91"></a><span class='hs-definition'>act</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexPreservingAction</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
 <a name="line-92"></a><span class='hs-definition'>act</span> <span class='hs-varid'>sma</span> <span class='hs-varid'>pafb</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>cotabulate</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>ws</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>effective</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>

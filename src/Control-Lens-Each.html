@@ -38,9 +38,9 @@
 <a name="line-29"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-30"></a>
 <a name="line-31"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
-<a name="line-32"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span>
-<a name="line-33"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Iso</span>
-<a name="line-34"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Indexed</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Lens</span> <span class='hs-layout'>(</span><span class='hs-varid'>indexed</span><span class='hs-layout'>)</span>
+<a name="line-32"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Setter</span>
+<a name="line-33"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Indexed</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Lens</span>
+<a name="line-34"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Iso</span>
 <a name="line-35"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
 <a name="line-36"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Traversal</span>
 <a name="line-37"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>StrictB</span>
@@ -81,7 +81,7 @@
 <a name="line-72"></a><a name="Each"></a><span class='hs-comment'>-- &gt;&gt;&gt; over each Char.toUpper ("hello"^.Text.packed)</span>
 <a name="line-73"></a><a name="Each"></a><span class='hs-comment'>-- "HELLO"</span>
 <a name="line-74"></a><a name="Each"></a><span class='hs-comment'>--</span>
-<a name="line-75"></a><a name="Each"></a><span class='hs-comment'>-- 'each' is an indexed traversal, so it can be used to access keys in many containers:</span>
+<a name="line-75"></a><a name="Each"></a><span class='hs-comment'>-- 'each' is an 'IndexedTraversal', so it can be used to access keys in many containers:</span>
 <a name="line-76"></a><a name="Each"></a><span class='hs-comment'>--</span>
 <a name="line-77"></a><a name="Each"></a><span class='hs-comment'>-- &gt;&gt;&gt; itoListOf each $ Map.fromList [("hello",2),("world",4)]</span>
 <a name="line-78"></a><a name="Each"></a><span class='hs-comment'>-- [("hello",2),("world",4)]</span>
