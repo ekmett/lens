@@ -48,7 +48,7 @@
 -- valid 'Control.Lens.Getter.Getter' it follows that it must view exactly one element in the
 -- structure.
 --
--- The lens laws follow from this property and the desire for it to act like
+-- The 'Lens' laws follow from this property and the desire for it to act like
 -- a 'Data.Traversable.Traversable' when used as a
 -- 'Control.Lens.Traversal.Traversal'.
 --
@@ -141,7 +141,7 @@ infixr 2 <<~
 
 -- | When you see this as an argument to a function, it expects a 'Lens'.
 --
--- This type can also be used when you need to store a lens in a container,
+-- This type can also be used when you need to store a 'Lens' in a container,
 -- since it is rank-1. You can turn them back into a 'Lens' with 'cloneLens',
 -- or use it directly with combinators like 'storing' and ('^#').
 type ALens s t a b = LensLike (Pretext (->) a b) s t a b

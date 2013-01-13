@@ -77,10 +77,11 @@ resultAt = ix
 type family IxKey (m :: *) :: *
 type family IxValue (m :: *) :: *
 
--- | This simple indexed traversal lets you 'traverse' the value at a given key in a map or element at an ordinal
--- position in a list or sequence.
+-- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
+-- key in a map or element at an ordinal position in a list or sequence.
 class Ixed f m where
-  -- | This simple indexed traversal lets you 'traverse' the value at a given key in a map.
+  -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
+  -- key in a map.
   --
   -- /NB:/ Setting the value of this 'Traversal' will only set the value in the
   -- 'Lens' if it is already present.

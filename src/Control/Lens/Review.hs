@@ -90,7 +90,7 @@ re p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- >>> review _Left "mustard"
 -- Left "mustard"
 --
--- Usually 'review' is used in the @(->)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
+-- Usually 'review' is used in the @(->)@ 'Monad' with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
 -- it as having one of these more restricted type signatures:
 --
 -- @
@@ -98,7 +98,7 @@ re p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- 'review' :: 'Prism'' s a -> a -> s
 -- @
 --
--- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of
+-- However, when working with a 'Monad' transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of
 -- these more slightly more liberal type signatures may be beneficial to think of it as having:
 --
 -- @
@@ -117,7 +117,7 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- >>> reviews _Left isRight "mustard"
 -- False
 --
--- Usually this function is used in the @(->)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
+-- Usually this function is used in the @(->)@ 'Monad' with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
 -- it as having one of these more restricted type signatures:
 --
 -- @
@@ -125,7 +125,7 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- 'reviews' :: 'Prism'' s a -> (s -> r) -> a -> r
 -- @
 --
--- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of
+-- However, when working with a 'Monad' transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of
 -- these more slightly more liberal type signatures may be beneficial to think of it as having:
 --
 -- @

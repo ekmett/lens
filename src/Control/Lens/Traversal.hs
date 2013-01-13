@@ -758,7 +758,7 @@ iforOf :: (Indexed i a (f b) -> s -> f t) -> s -> (i -> a -> f b) -> f t
 iforOf = flip . itraverseOf
 {-# INLINE iforOf #-}
 
--- | Map each element of a structure targeted by a lens to a monadic action,
+-- | Map each element of a structure targeted by a 'Lens' to a monadic action,
 -- evaluate these actions from left to right, and collect the results, with access
 -- its position.
 --
@@ -776,7 +776,7 @@ imapMOf :: (Indexed i a (WrappedMonad m b) -> s -> WrappedMonad m t) -> (i -> a 
 imapMOf l = mapMOf l .# Indexed
 {-# INLINE imapMOf #-}
 
--- | Map each element of a structure targeted by a lens to a monadic action,
+-- | Map each element of a structure targeted by a 'Lens' to a monadic action,
 -- evaluate these actions from left to right, and collect the results, with access
 -- its position (and the arguments flipped).
 --

@@ -79,7 +79,7 @@ import Language.Haskell.TH.Lens
 
 {-# ANN module "HLint: ignore Use foldl" #-}
 
--- | Flags for lens construction
+-- | Flags for 'Lens' construction
 data LensFlag
   = SimpleLenses
   | PartialLenses
@@ -94,18 +94,18 @@ data LensFlag
   | GenerateSignatures
   deriving (Eq,Ord,Show,Read)
 
--- | Only Generate valid 'Simple' 'Lens' lenses.
+-- | Only Generate valid 'Control.Lens.Type.Simple' lenses.
 simpleLenses      :: Lens' LensRules Bool
 simpleLenses       = lensFlags.ix SimpleLenses
 
 -- | Enables the generation of partial lenses, generating runtime errors for
--- every constructor that does not have a valid definition for the lens. This
+-- every constructor that does not have a valid definition for the 'Lens'. This
 -- occurs when the constructor lacks the field, or has multiple fields mapped
--- to the same lens.
+-- to the same 'Lens'.
 partialLenses     :: Lens' LensRules Bool
 partialLenses      = lensFlags.ix PartialLenses
 
--- | In the situations that a lens would be partial, when 'partialLenses' is
+-- | In the situations that a 'Lens' would be partial, when 'partialLenses' is
 -- used, this flag instead causes traversals to be generated. Only one can be
 -- used, and if neither are, then compile-time errors are generated.
 buildTraversals   :: Lens' LensRules Bool
@@ -115,8 +115,8 @@ buildTraversals    = lensFlags.ix BuildTraversals
 handleSingletons  :: Lens' LensRules Bool
 handleSingletons   = lensFlags.ix HandleSingletons
 
--- | When building a singleton 'Iso' (or 'Lens') for a record constructor, build both
--- the 'Iso' (or 'Lens') for the record and the one for the field.
+-- | When building a singleton 'Iso' (or 'Lens') for a record constructor, build
+-- both the 'Iso' (or 'Lens') for the record and the one for the field.
 singletonAndField :: Lens' LensRules Bool
 singletonAndField  = lensFlags.ix SingletonAndField
 
@@ -128,11 +128,11 @@ singletonIso       = lensFlags.ix SingletonIso
 singletonRequired :: Lens' LensRules Bool
 singletonRequired  = lensFlags.ix SingletonRequired
 
--- | Create the class if the constructor is simple and the 'lensClass' rule matches.
+-- | Create the class if the constructor is 'Simple' and the 'lensClass' rule matches.
 createClass       :: Lens' LensRules Bool
 createClass        = lensFlags.ix CreateClass
 
--- | Create the instance if the constructor is simple and the 'lensClass' rule matches.
+-- | Create the instance if the constructor is 'Simple' and the 'lensClass' rule matches.
 createInstance    :: Lens' LensRules Bool
 createInstance     = lensFlags.ix CreateInstance
 
@@ -140,14 +140,16 @@ createInstance     = lensFlags.ix CreateInstance
 classRequired     :: Lens' LensRules Bool
 classRequired      = lensFlags.ix ClassRequired
 
--- | Indicate whether or not to supply the signatures for the generated lenses.
+-- | Indicate whether or not to supply the signatures for the generated
+-- lenses.
 --
--- Disabling this can be useful if you want to provide a more restricted type signature
--- or if you want to supply hand-written haddocks.
+-- Disabling this can be useful if you want to provide a more restricted type
+-- signature or if you want to supply hand-written haddocks.
 generateSignatures :: Lens' LensRules Bool
 generateSignatures = lensFlags.ix GenerateSignatures
 
--- | This configuration describes the options we'll be using to make isomorphisms or lenses.
+-- | This configuration describes the options we'll be using to make
+-- isomorphisms or lenses.
 data LensRules = LensRules
   { _lensIso   :: String -> Maybe String
   , _lensField :: String -> Maybe String
@@ -155,13 +157,14 @@ data LensRules = LensRules
   , _lensFlags :: Set LensFlag
   }
 
--- | Lens to access the convention for naming top level isomorphisms in our lens rules.
+-- | 'Lens'' to access the convention for naming top level isomorphisms in our
+-- 'LensRules'.
 --
 -- Defaults to lowercasing the first letter of the constructor.
 lensIso :: Lens' LensRules (String -> Maybe String)
 lensIso f (LensRules i n c o) = f i <&> \i' -> LensRules i' n c o
 
--- | Lens to access the convention for naming fields in our lens rules.
+-- | 'Lens'' to access the convention for naming fields in our 'LensRules'.
 --
 -- Defaults to stripping the _ off of the field name, lowercasing the name, and
 -- rejecting the field if it doesn't start with an '_'.
@@ -178,7 +181,7 @@ lensClass f (LensRules i n c o) = f c <&> \c' -> LensRules i n c' o
 lensFlags :: Lens' LensRules (Set LensFlag)
 lensFlags f (LensRules i n c o) = f o <&> LensRules i n c
 
--- | Default lens rules
+-- | Default 'LensRules'.
 defaultRules :: LensRules
 defaultRules = LensRules mLowerName fld (const Nothing) $
     Set.fromList [SingletonIso, SingletonAndField, CreateClass, CreateInstance, BuildTraversals, GenerateSignatures]
@@ -200,7 +203,7 @@ lensRules = defaultRules
   & partialLenses    .~ False
   & buildTraversals  .~ True
 
--- | Rules for making lenses and traversals that precompose another lens.
+-- | Rules for making lenses and traversals that precompose another 'Lens'.
 classyRules :: LensRules
 classyRules = defaultRules
   & lensIso .~ const Nothing
@@ -227,7 +230,8 @@ isoRules = defaultRules
 makeLenses :: Name -> Q [Dec]
 makeLenses = makeLensesWith lensRules
 
--- | Make lenses and traversals for a type, and create a class when the type has no arguments.
+-- | Make lenses and traversals for a type, and create a class when the
+-- type has no arguments.
 --
 -- /e.g./
 --
@@ -251,7 +255,8 @@ makeClassy = makeLensesWith classyRules
 
 -- | Make a top level isomorphism injecting /into/ the type.
 --
--- The supplied name is required to be for a type with a single constructor that has a single argument
+-- The supplied name is required to be for a type with a single constructor
+-- that has a single argument.
 --
 -- /e.g./
 --
@@ -268,9 +273,11 @@ makeClassy = makeLensesWith classyRules
 makeIso :: Name -> Q [Dec]
 makeIso = makeLensesWith isoRules
 
--- | Derive lenses and traversals, specifying explicit pairings of @(fieldName, lensName)@.
+-- | Derive lenses and traversals, specifying explicit pairings
+-- of @(fieldName, lensName)@.
 --
--- If you map multiple names to the same label, and it is present in the same constructor then this will generate a 'Traversal'.
+-- If you map multiple names to the same label, and it is present in the same
+-- constructor then this will generate a 'Traversal'.
 --
 -- /e.g./
 --
@@ -279,8 +286,8 @@ makeIso = makeLensesWith isoRules
 makeLensesFor :: [(String, String)] -> Name -> Q [Dec]
 makeLensesFor fields = makeLensesWith $ lensRules & lensField .~ (`Prelude.lookup` fields)
 
--- | Derive lenses and traversals, using a named wrapper class, and specifying
--- explicit pairings of @(fieldName, traversalName)@.
+-- | Derive lenses and traversals, using a named wrapper class, and
+-- specifying explicit pairings of @(fieldName, traversalName)@.
 --
 -- Example usage:
 --
@@ -320,7 +327,7 @@ makePrisms nm = do
 -- Internal TH Implementation
 -----------------------------------------------------------------------------
 
--- | Transform @NewtypeD@s declarations to @DataD@s
+-- | Transform @NewtypeD@s declarations to @DataD@s.
 deNewtype :: Dec -> Dec
 deNewtype (NewtypeD ctx tyConName args c d) = DataD ctx tyConName args [c] d
 deNewtype d = d
@@ -379,7 +386,7 @@ ctrNameAndFieldTypes (RecC n ts) = (n, view _3 <$> ts)
 ctrNameAndFieldTypes (InfixC l n r) = (n, [snd l, snd r])
 ctrNameAndFieldTypes (ForallC _ _ c) = ctrNameAndFieldTypes c
 
--- When a prism can change type variables it needs to pattern match on all
+-- When a 'Prism' can change type variables it needs to pattern match on all
 -- other data constructors and rebuild the data so it will have the new type.
 reviewerIdClause :: [Name] -> Con -> ClauseQ
 reviewerIdClause varNames con =
@@ -398,7 +405,8 @@ toTupleP :: [PatQ] -> PatQ
 toTupleP [x] = x
 toTupleP xs = tupP xs
 
--- | Given a set of names, build a map from those names to a set of fresh names based on them.
+-- | Given a set of names, build a map from those names to a set of fresh names
+-- based on them.
 freshMap :: Set Name -> Q (Map Name Name)
 freshMap ns = Map.fromList <$> for (toList ns) (\ n -> (,) n <$> newName (nameBase n))
 
@@ -632,7 +640,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
             ]]
         ++ filter (\_ -> not $ cfg^.createClass) (map return defs)
 
--- | Gets @[(lens name, (constructor name, field name, type))]@ from a record constructor
+-- | Gets @[(lens name, (constructor name, field name, type))]@ from a record constructor.
 getLensFields :: (String -> Maybe String) -> Con -> Q [(Name, (Name, Name, Type))]
 getLensFields f (RecC cn fs)
   = return . catMaybes

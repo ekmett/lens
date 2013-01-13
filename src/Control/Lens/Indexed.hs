@@ -153,8 +153,8 @@ withIndex :: (Indexable i p, Functor f) => Overloading p (Indexed i) f s t (i, s
 withIndex f = Indexed $ \i a -> snd <$> indexed f i (i, a)
 {-# INLINE withIndex #-}
 
--- | When composed with an indexed fold or indexed traversal this yields an
--- (indexed) fold of the indices.
+-- | When composed with an 'IndexedFold' or 'IndexedTraversal' this yields an
+-- ('Indexed') 'Fold' of the indices.
 asIndex :: (Indexable i p, Functor f, Gettable f) => Overloading' p (Indexed i) f s i
 asIndex f = Indexed $ \i _ -> coerce (indexed f i i)
 {-# INLINE asIndex #-}
