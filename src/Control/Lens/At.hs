@@ -78,10 +78,10 @@ type family IxKey (m :: *) :: *
 type family IxValue (m :: *) :: *
 
 -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
--- key in a map or element at an ordinal position in a list or sequence.
+-- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
 class Ixed f m where
   -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
-  -- key in a map.
+  -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
   --
   -- /NB:/ Setting the value of this 'Traversal' will only set the value in the
   -- 'Lens' if it is already present.
@@ -170,8 +170,8 @@ type instance IxKey (Array i e) = i
 type instance IxValue (Array i e) = e
 -- |
 -- @
--- arr '!' i ≡ arr '^.' 'ix' i
--- arr '//' [(i,e)] ≡ 'ix' i '.~' e '$' arr
+-- arr '!' i ≡ arr 'Control.Lens.Getter.^.' 'ix' i
+-- arr '//' [(i,e)] ≡ 'ix' i 'Control.Lens.Setter..~' e '$' arr
 -- @
 instance (Applicative f, Ix i) => Ixed f (Array i e) where
   ix i f arr
@@ -184,7 +184,7 @@ type instance IxValue (UArray i e) = e
 -- |
 -- @
 -- arr '!' i ≡ arr 'Control.Lens.Getter.^.' 'ix' i
--- arr '//' [(i,e)] ≡ 'ix' i 'Control.Lens.Setter.~' e '$' arr
+-- arr '//' [(i,e)] ≡ 'ix' i 'Control.Lens.Setter..~' e '$' arr
 -- @
 instance (Applicative f, IArray UArray e, Ix i) => Ixed f (UArray i e) where
   ix i f arr

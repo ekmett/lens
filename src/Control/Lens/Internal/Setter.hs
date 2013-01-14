@@ -46,7 +46,7 @@ class (Applicative f, Distributive f, Traversable f) => Settable f where
   taintedDot g = g `seq` rmap pure g
   {-# INLINE taintedDot #-}
 
--- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other 'Lens' libraries
+-- | So you can pass our 'Control.Lens.Setter.Setter' into combinators from other lens libraries.
 instance Settable Identity where
   untainted = runIdentity
   {-# INLINE untainted #-}
@@ -69,7 +69,7 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
 -----------------------------------------------------------------------------
 
 -- | 'Mutator' is just a renamed 'Identity' 'Functor' to give better error
--- messages when someone attempts to use a 'Getter' as a 'Setter'.
+-- messages when someone attempts to use a 'Control.Lens.Getter.Getter' as a 'Control.Lens.Setter.Setter'.
 --
 -- Most user code will never need to see this type.
 newtype Mutator a = Mutator { runMutator :: a }

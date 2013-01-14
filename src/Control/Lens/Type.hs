@@ -186,7 +186,7 @@ type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
 -- Setters
 ------------------------------------------------------------------------------
 
--- | The only 'Lens'-like law that can apply to a 'Setter' @l@ is that
+-- | The only 'LensLike' law that can apply to a 'Setter' @l@ is that
 --
 -- @'Control.Lens.Setter.set' l y ('Control.Lens.Setter.set' l x a) ≡ 'Control.Lens.Setter.set' l y a@
 --
@@ -361,7 +361,7 @@ type Equality' s a = Equality s s a a
 -------------------------------------------------------------------------------
 
 -- | A 'Getter' describes how to retrieve a single value in a way that can be
--- composed with other 'Lens'-like constructions.
+-- composed with other 'LensLike' constructions.
 --
 -- Unlike a 'Lens' a 'Getter' is read-only. Since a 'Getter'
 -- cannot be used to write back there are no 'Lens' laws that can be applied to
@@ -383,7 +383,7 @@ type IndexPreservingGetter s a = forall p f. (Conjoined p, Gettable f) => p a (f
 --------------------------
 
 -- | A 'Fold' describes how to retrieve multiple values in a way that can be composed
--- with other 'Lens'-like constructions.
+-- with other 'LensLike' constructions.
 --
 -- A @'Fold' s a@ provides a structure with operations very similar to those of the 'Data.Foldable.Foldable'
 -- typeclass, see 'Control.Lens.Fold.foldMapOf' and the other 'Fold' combinators.
@@ -495,10 +495,10 @@ type LensLike f s t a b = (a -> f b) -> s -> f t
 -- | @type 'LensLike'' f = 'Simple' ('LensLike' f)@
 type LensLike' f s a = LensLike f s s a a
 
--- | Convenient alias for constructing 'IndexedLens'es and their ilk.
+-- | Convenient alias for constructing indexed lenses and their ilk.
 type IndexedLensLike i f s t a b = forall p. Indexable i p => p a (f b) -> s -> f t
 
--- | Convenient alias for constructing simple 'IndexedLens'es and their ilk.
+-- | Convenient alias for constructing simple indexed lenses and their ilk.
 type IndexedLensLike' i f s a = IndexedLensLike i f s s a a
 
 type Lensing p f s t a b = p a (f b) -> s -> f t

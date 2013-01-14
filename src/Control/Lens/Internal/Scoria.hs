@@ -84,7 +84,7 @@ instance (Show i, Show a) => Show (Scoria i t b a) where
 -- Molten
 ------------------------------------------------------------------------------
 
--- | A non-reassociating initially encoded version of 'Bazaar'
+-- | A non-reassociating initially encoded version of 'Bazaar'.
 newtype Molten i a b t = Molten { runMolten :: Scoria i t b a }
 
 instance Functor (Molten i a b) where

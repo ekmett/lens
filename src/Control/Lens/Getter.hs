@@ -154,7 +154,7 @@ type Accessing p m s t a b = p a (Accessor m b) -> s -> Accessor m t
 -- "world"
 --
 --
--- As @views@ is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
+-- As 'view' is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
 -- It may be useful to think of it as having one of these more restricted signatures:
 --
 -- @
@@ -183,9 +183,6 @@ view l = Reader.asks (runAccessor #. l Accessor)
 -- the targets of a 'Control.Lens.Fold.Fold' or
 -- 'Control.Lens.Traversal.Traversal'.
 --
--- It may be useful to think of 'views' as having these more restricted
--- signatures:
---
 -- @'views' l f ≡ 'view' (l '.' 'to' f)@
 --
 -- >>> views (to f) g a
@@ -194,7 +191,7 @@ view l = Reader.asks (runAccessor #. l Accessor)
 -- >>> views _2 length (1,"hello")
 -- 5
 --
--- As @views@ is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
+-- As 'views' is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
 -- It may be useful to think of it as having one of these more restricted signatures:
 --
 -- @
@@ -408,9 +405,6 @@ view' l = Reader.asks (runAccessor #. l Accessor)
 -- the targets of a 'Control.Lens.Fold.Fold' or
 -- 'Control.Lens.Traversal.Traversal'.
 --
--- It may be useful to think of 'perviews' as having these more restricted
--- signatures:
---
 -- @'views'' l f ≡ 'view'' (l '.' 'to' f)@
 --
 -- >>> views' _2 length (1,"hello")
@@ -483,7 +477,7 @@ iuses l = uses l .# Indexed
 -- This is the same operation as 'iview' with the arguments flipped.
 --
 -- The fixity and semantics are such that subsequent field accesses can be
--- performed with ('Prelude..')
+-- performed with ('Prelude..').
 --
 -- >>> (a,b,c,d)^@._2
 -- (1,b)

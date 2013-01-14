@@ -58,7 +58,7 @@ class Profunctor p => Bizarre p w | w -> p where
 --
 -- Where a @'Context' a b t@ holds an @a@ and a function from @b@ to
 -- @t@, a @'Bazaar' a b t@ holds @N@ @a@s and a function from @N@
--- @b@s to @t@, (where @N@ might be infinite)
+-- @b@s to @t@, (where @N@ might be infinite).
 --
 -- Mnemonically, a 'Bazaar' holds many stores and you can easily add more.
 --

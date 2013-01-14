@@ -7,8 +7,8 @@
 -- Stability   :  experimental
 -- Portability :  Rank2Types
 --
--- These are some of the explicit Functor instances that leak into the
--- type signatures of Control.Lens. You shouldn't need to import this
+-- These are some of the explicit 'Functor' instances that leak into the
+-- type signatures of @Control.Lens@. You shouldn't need to import this
 -- module directly for most use-cases.
 --
 ----------------------------------------------------------------------------

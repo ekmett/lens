@@ -40,7 +40,7 @@ import Prelude hiding ((.),id)
 -- Focusing
 ------------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.State.StateT'
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.State.StateT'.
 newtype Focusing m s a = Focusing { unfocusing :: m (s, a) }
 
 instance Monad m => Functor (Focusing m s) where
@@ -62,7 +62,7 @@ instance (Monad m, Monoid s) => Applicative (Focusing m s) where
 -- FocusingWith
 ------------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.RWS.RWST'
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.RWS.RWST'.
 newtype FocusingWith w m s a = FocusingWith { unfocusingWith :: m (s, a, w) }
 
 instance Monad m => Functor (FocusingWith w m s) where
@@ -101,7 +101,7 @@ instance (Monoid w, Applicative (k (s, w))) => Applicative (FocusingPlus w k s) 
 -- FocusingOn
 ------------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'.
 newtype FocusingOn f k s a = FocusingOn { unfocusingOn :: k (f s) a }
 
 instance Functor (k (f s)) => Functor (FocusingOn f k s) where
@@ -118,7 +118,7 @@ instance Applicative (k (f s)) => Applicative (FocusingOn f k s) where
 -- May
 ------------------------------------------------------------------------------
 
--- | Make a monoid out of 'Maybe' for error handling
+-- | Make a 'Monoid' out of 'Maybe' for error handling.
 newtype May a = May { getMay :: Maybe a }
 
 instance Monoid a => Monoid (May a) where
@@ -133,7 +133,7 @@ instance Monoid a => Monoid (May a) where
 -- FocusingMay
 ------------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'.
 newtype FocusingMay k s a = FocusingMay { unfocusingMay :: k (May s) a }
 
 instance Functor (k (May s)) => Functor (FocusingMay k s) where
@@ -150,7 +150,7 @@ instance Applicative (k (May s)) => Applicative (FocusingMay k s) where
 -- Err
 ------------------------------------------------------------------------------
 
--- | Make a monoid out of 'Either' for error handling
+-- | Make a 'Monoid' out of 'Either' for error handling.
 newtype Err e a = Err { getErr :: Either e a }
 
 instance Monoid a => Monoid (Err e a) where
@@ -165,7 +165,7 @@ instance Monoid a => Monoid (Err e a) where
 -- FocusingErr
 ------------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'
+-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'.
 newtype FocusingErr e k s a = FocusingErr { unfocusingErr :: k (Err e s) a }
 
 instance Functor (k (Err e s)) => Functor (FocusingErr e k s) where
@@ -182,7 +182,7 @@ instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
 -- EffectRWS
 ------------------------------------------------------------------------------
 
--- | Wrap a monadic effect with a phantom type argument. Used when magnifying RWST.
+-- | Wrap a monadic effect with a phantom type argument. Used when magnifying 'Control.Monad.RWS.RWST'.
 newtype EffectRWS w st m s a = EffectRWS { getEffectRWS :: st -> m (s,st,w) }
 
 instance Functor (EffectRWS w st m s) where

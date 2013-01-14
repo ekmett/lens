@@ -116,7 +116,7 @@ infixr 9 <.>, <., .>
 --
 -- Mnemonically, the @>@ points to the indexing we want to preserve.
 --
--- This is the same as @('.')@: @f '.' g@ gives you @g@'s index.
+-- This is the same as @('.')@. @f '.' g@ gives you the index of @g@.
 (.>) :: (st -> r) -> (kab -> st) -> kab -> r
 (.>) = (.)
 {-# INLINE (.>) #-}
@@ -129,7 +129,7 @@ reindexed :: Indexable j p => (i -> j) -> (Indexed i a b -> r) -> p a b -> r
 reindexed ij f g = f . Indexed $ indexed g . ij
 {-# INLINE reindexed #-}
 
--- | Composition of 'Indexed' functions
+-- | Composition of 'Indexed' functions.
 --
 -- Mnemonically, the @\<@ and @\>@ points to the fact that we want to preserve the indices.
 (<.>) :: Indexable (i, j) p => (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> p a b -> r
@@ -193,7 +193,7 @@ index j f = Indexed $ \i a -> if j == i then indexed f i a else pure a
 -- Instances must satisfy a modified form of the 'Functor' laws:
 --
 -- @
--- 'imap' f '.' 'imap' g ≡ 'imap' (\\i -> f i . g i)
+-- 'imap' f '.' 'imap' g ≡ 'imap' (\\i -> f i '.' g i)
 -- 'imap' (\\_ a -> a) ≡ 'id'
 -- @
 class Functor f => FunctorWithIndex i f | f -> i where
@@ -398,7 +398,7 @@ itoList = ifoldr (\i c -> ((i,c):)) []
 --
 -- @
 -- 'itraverse' ('const' 'Identity') ≡ 'Identity'
--- 'fmap' ('itraverse' f) '.' 'itraverse' g ≡ 'getCompose' '.' 'itraverse' (\\i -> 'Compose' '.' 'fmap' (f i) '.' g i)
+-- 'fmap' ('itraverse' f) '.' 'itraverse' g ≡ 'Data.Functor.Compose.getCompose' '.' 'itraverse' (\\i -> 'Data.Functor.Compose.Compose' '.' 'fmap' (f i) '.' g i)
 -- @
 class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => TraversableWithIndex i t | t -> i where
   -- | Traverse an indexed container.
@@ -414,7 +414,7 @@ itraversed :: TraversableWithIndex i f => IndexedTraversal i (f a) (f b) a b
 itraversed = itraverse . indexed
 {-# INLINE itraversed #-}
 
--- | Traverse with an index (and the arguments flipped)
+-- | Traverse with an index (and the arguments flipped).
 --
 -- @
 -- 'for' a ≡ 'ifor' a '.' 'const'
@@ -501,7 +501,7 @@ instance TraversableWithIndex Int [] where
   itraverse = itraverseOf traversed
   {-# INLINE itraverse #-}
 
--- | The position in the sequence is available as the index.
+-- | The position in the 'Seq' is available as the index.
 instance FunctorWithIndex Int Seq where
   imap = iover itraversed
   {-# INLINE imap #-}

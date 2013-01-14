@@ -85,7 +85,7 @@ clonePrism k = case runPrism k of
 --
 -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
 prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
-prism bt seta = dimap (first pure . seta) (either id id) . right' . rmap (fmap bt)
+prism bt seta = dimap seta (either pure (fmap bt)) . right'
 {-# INLINE prism #-}
 
 -- | Build a 'Prism''.
