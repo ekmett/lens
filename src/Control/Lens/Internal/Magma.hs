@@ -50,6 +50,68 @@ import Prelude hiding ((.),id)
 class Leaf i t | t -> i where
   leaf :: i -> a -> t a
 
+
+------------------------------------------------------------------------------
+-- Jacket
+------------------------------------------------------------------------------
+
+ltr :: Jacket i x b a -> Maybe x
+ltr (JacketAp _ nl _ _ _) = nl
+ltr (JacketPure x)        = Just x
+ltr (JacketLeaf _ _)      = Nothing
+{-# INLINE ltr #-}
+
+rtl :: Jacket i x b a -> Maybe x
+rtl (JacketAp _ _ nr _ _) = nr
+rtl (JacketPure x)        = Just x
+rtl (JacketLeaf _ _)      = Nothing
+{-# INLINE rtl #-}
+
+data Jacket i t b a where
+  JacketAp   :: Int -> Int -> Maybe y -> Maybe y -> Jacket i (x -> y) b a -> Jacket i x b a -> Jacket i y b a
+  JacketPure :: x -> Jacket i x b a
+  JacketLeaf :: Int -> i -> a -> Jacket i b b a
+
+instance Functor (Jacket i t b) where
+  fmap f (JacketAp i j m n x y) = JacketAp i j m n (fmap f x) (fmap f y)
+  fmap _ (JacketPure x) = JacketPure x
+  fmap f (JacketLeaf i a) = JacketLeaf i (f a)
+
+instance Foldable (Jacket i t b) where
+  foldMap f (JacketAp _ _ _ x y)   = foldMap f x `mappend` foldMap f y
+  foldMap _ JacketPure{}     = mempty
+  foldMap f (JacketLeaf _ a) = f a
+
+instance Traversable (Jacket i t b) where
+  traverse f (JacketAp i m n x y) = JacketAp i m n <$> traverse f x <*> traverse f y
+  traverse _ (JacketPure x) = pure (JacketPure x)
+  traverse f (JacketLeaf i a) = JacketLeaf i <$> f a
+
+instance b ~ t => Leaf i (Jacket i t b) where
+  leaf = JacketLeaf
+
+instance (Show i, Show a) => Show (Jacket i t b a) where
+  showsPrec d (JacketAp _ _ _ x y) = showParen (d > 4) $
+    showsPrec 4 x . showString " <*> " . showsPrec 5 y
+  showsPrec d (JacketPure _) = showParen (d > 10) $
+    showString "pure .."
+  showsPrec d (JacketLeaf i a) = showParen (d > 10) $
+    showString "leaf " . showsPrec 11 i . showChar ' ' . showsPrec 11 a
+
+------------------------------------------------------------------------------
+-- Tailor
+------------------------------------------------------------------------------
+
+newtype Tailor i a b t = Tailor Int (Int -> Jacket i t b a)
+
+instance Functor (Tailor i a b) where
+  fmap f (Tailor w k) = Tailor w $ \o -> let ko = k o in JacketAp m (ltr ko) (rtl ko) (JacketPure f) ko
+
+instance Applicative (Molten i a b) where
+  pure a = Tailor 0 $ \_ -> Pure a
+  Molten xs <*> Molten ys = Molten (ScoriaAp xs ys)
+
+
 ------------------------------------------------------------------------------
 -- Scoria
 ------------------------------------------------------------------------------
@@ -78,7 +140,7 @@ instance Traversable (Scoria i t b) where
   traverse f (ScoriaFmap xy x) = ScoriaFmap xy <$> traverse f x
   traverse f (ScoriaLeaf i a) = ScoriaLeaf i <$> f a
 
-instance b ~ t => Leaf i (Scoria i b t) where
+instance b ~ t => Leaf i (Scoria i t b) where
   leaf = ScoriaLeaf
 
 instance (Show i, Show a) => Show (Scoria i t b a) where
@@ -90,6 +152,10 @@ instance (Show i, Show a) => Show (Scoria i t b a) where
     showString ".. <$> " . showsPrec 5 x
   showsPrec d (ScoriaLeaf i a) = showParen (d > 10) $
     showString "leaf " . showsPrec 11 i . showChar ' ' . showsPrec 11 a
+
+------------------------------------------------------------------------------
+-- Molten
+------------------------------------------------------------------------------
 
 -- | A non-reassociating initially encoded version of 'Bazaar'
 newtype Molten i a b t = Molten { runMolten :: Scoria i t b a }
