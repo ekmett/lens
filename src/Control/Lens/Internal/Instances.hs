@@ -8,7 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
--- This module includes orphan instances for (,), 'Either' and 'Const' that
+-- This module includes orphan instances for @(,)@, 'Either' and 'Const' that
 -- should be supplied by base.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Instances () where

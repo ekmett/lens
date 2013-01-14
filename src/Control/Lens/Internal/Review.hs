@@ -47,7 +47,7 @@ import Unsafe.Coerce
 -- Reviewable
 ----------------------------------------------------------------------------
 
--- | This provides a dual notion to that of 'Gettable'.
+-- | This provides a dual notion to that of 'Control.Lens.Getter.Gettable'.
 class Profunctor p => Reviewable p where
   retagged :: p a b -> p s b
   -- retaggedDot, dotRetagged?

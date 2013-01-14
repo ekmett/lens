@@ -145,7 +145,7 @@ instance Comonad (Zipper h i b a) where
 -- | A 'Coil' is a linked list of the levels above the current one. The length
 -- of a 'Coil' is known at compile time.
 --
--- This is part of the internal structure of a zipper. You shouldn't need to manipulate this directly.
+-- This is part of the internal structure of a 'Zipper'. You shouldn't need to manipulate this directly.
 #ifndef HLINT
 data Coil h i t b a where
   Coil :: Coil Top Int b b a
@@ -399,8 +399,8 @@ moveToward i z@(Zipper h _ _ p0 j s0)
 {-# INLINE moveToward #-}
 
 -- | Move horizontally to a particular index @i@ in the current
--- 'Traversal'. In the case of simple 'Zipper's, the index is 'Int' and
--- we can move between 'Control.Lens.Type.Traversal's fairly easily:
+-- 'Traversal'. In the case of simple zippers, the index is 'Int' and
+-- we can move between traversals fairly easily:
 --
 -- -- >>> zipper (42, 32) & fromWithin both & moveTo 0 <&> view focus
 -- 42

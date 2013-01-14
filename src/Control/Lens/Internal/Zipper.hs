@@ -176,7 +176,7 @@ magma l f s = magmaOuts bz <$> f (magmaIns bz) where
 
 -- * Paths
 
--- | A Path into a 'Magma' that ends at a 'Leaf'
+-- | A 'Path' into a 'Magma' that ends at a 'Leaf'.
 data Path i a
   = ApL Int Bool Bool (Last i) !(Path i a) !(Magma i a)
   | ApR Int Bool Bool (Last i) !(Magma i a) !(Path i a)
@@ -189,7 +189,7 @@ instance Functor (Path i) where
   fmap _ Start = Start
   {-# INLINE fmap #-}
 
--- | Calculate the absolute position of the leaf targeted by a 'Path'.
+-- | Calculate the absolute position of the 'Leaf' targeted by a 'Path'.
 --
 -- This can be quite expensive for right-biased traversals such as you
 -- receive from a list.
@@ -199,8 +199,8 @@ offset (ApL _ _ _ _ q _) = offset q
 offset (ApR _ _ _ _ l q) = size l + offset q
 {-# INLINE offset #-}
 
--- | Return the total number of children in the 'Magma' by walking the path to
--- the root.
+-- | Return the total number of children in the 'Magma' by walking the
+-- 'Path' to the root.
 pathsize :: Path i a -> Int
 pathsize = go 1 where
   go n Start = n
@@ -216,7 +216,7 @@ pathsize = go 1 where
 -- "list case", where the traversal tree is right-biased, as in (Ap (Leaf (Identity x))
 -- (Ap (Leaf (Identity y)) ...)). It should be safe to delete any of these cases.
 
--- | Reconstruct a 'Magma' from a 'Path'
+-- | Reconstruct a 'Magma' from a 'Path'.
 recompress :: Path i a -> i -> a -> Magma i a
 recompress Start i a = Leaf i a -- Unrolled: The lens case.
 recompress (ApL m _ _ li Start r) i a = Ap m False False li (Leaf i a) r -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
@@ -249,7 +249,7 @@ startr p0 c0 kn kp = go p0 c0 where
   go _ Pure        = kn
 {-# INLINE startr #-}
 
--- | Move left one leaf.
+-- | Move left one 'Leaf'.
 movel :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
 movel p0 c0 kn kp = go p0 c0 where
   go Start _ = kn
@@ -259,7 +259,7 @@ movel p0 c0 kn kp = go p0 c0 where
   go (ApL m _ _ li p r) l = go p (Ap m False False li l r)
 {-# INLINE movel #-}
 
--- | Move right one leaf.
+-- | Move right one 'Leaf'.
 mover :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
 mover p0 c0 kn kp = go p0 c0 where
   go Start _ = kn
@@ -336,7 +336,7 @@ type instance Zipped (Zipper h i s) a = Zipped h s
 -- | A 'Coil' is a linked list of the levels above the current one. The length
 -- of a 'Coil' is known at compile time.
 --
--- This is part of the internal structure of a zipper. You shouldn't need to manipulate this directly.
+-- This is part of the internal structure of a 'Zipper'. You shouldn't need to manipulate this directly.
 #ifndef HLINT
 data Coil t i a where
   Coil :: Coil Top Int a
@@ -348,7 +348,7 @@ focus :: IndexedLens' i (Zipper h i a) a
 focus f (Zipper h t o p i a) = Zipper h t o p i <$> indexed f i a
 {-# INLINE focus #-}
 
--- | Construct a 'Zipper' that can explore anything, and start it at the top.
+-- | Construct a 'Zipper' that can explore anything, and start it at the 'Top'.
 zipper :: a -> Top :>> a
 zipper = Zipper Coil 0 0 Start 0
 {-# INLINE zipper #-}
@@ -362,7 +362,7 @@ focalPoint (Zipper _ _ _ _ i _) = i
 --
 -- @'jerkTo' ('tooth' l) l = Just'@
 --
--- Mnemonically, 'Zipper's have a number of 'teeth' within each level. This is which 'tooth' you are currently at.
+-- Mnemonically, zippers have a number of 'teeth' within each level. This is which 'tooth' you are currently at.
 --
 -- This is based on ordinal position regardless of the underlying index type. It may be excessively expensive for a list.
 --
@@ -587,8 +587,8 @@ moveToward i z@(Zipper h _ _ p0 j s0)
 {-# INLINE moveToward #-}
 
 -- | Move horizontally to a particular index @i@ in the current
--- 'Traversal'. In the case of simple 'Zipper's, the index is 'Int' and
--- we can move between 'Control.Lens.Type.Traversal's fairly easily:
+-- 'Traversal'. In the case of simple zippers, the index is 'Int' and
+-- we can move between traversals fairly easily:
 --
 -- >>> zipper (42, 32) & fromWithin both & moveTo 0 <&> view focus
 -- 42
@@ -785,7 +785,7 @@ restoreTrack (Fork h n l) = restoreTrack h >=> moveTo n >=> iwithin l
 
 -- | Restore ourselves to a location near our previously recorded position.
 --
--- When moving leftward to rightward through a 'Traversal', if this will clamp at each level to the range @0 <= k < teeth@,
+-- When moving 'leftward' to 'rightward' through a 'Traversal', if this will clamp at each level to the range @0 '<=' k '<' 'teeth'@,
 -- so the only failures will occur when one of the sequence of downward traversals find no targets.
 restoreNearTrack :: MonadPlus m => Track h i a -> Zipped h a -> m (Zipper h i a)
 restoreNearTrack Track        = return . zipper
@@ -793,9 +793,9 @@ restoreNearTrack (Fork h n l) = restoreNearTrack h >=> moveToward n >>> iwithin 
 
 -- | Restore ourselves to a previously recorded position.
 --
--- This *assumes* that nothing has been done in the meantime to affect the existence of anything on the entire path.
+-- This *assumes* that nothing has been done in the meantime to affect the existence of anything on the entire 'Path'.
 --
--- Motions leftward or rightward are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
+-- Motions 'leftward' or 'rightward' are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.
 --
 -- Violate these assumptions at your own risk!
 unsafelyRestoreTrack :: Track h i a -> Zipped h a -> Zipper h i a

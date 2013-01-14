@@ -104,7 +104,7 @@ instance Ord a => Monoid (Max a) where
   mappend (Max a) (Max b) = Max (max a b)
   {-# INLINE mappend #-}
 
--- | Obtain the maximum
+-- | Obtain the maximum.
 getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a

@@ -198,8 +198,8 @@ instance i ~ j => Indexable i (Indexed j) where
 -- Indexing
 ------------------------------------------------------------------------------
 
--- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
--- by 'Control.Lens.Indexed.indexed'
+-- | 'Applicative' composition of @'Control.Monad.Trans.State.Lazy.State' 'Int'@ with a 'Functor', used
+-- by 'Control.Lens.Indexed.indexed'.
 newtype Indexing f a = Indexing { runIndexing :: Int -> (Int, f a) }
 
 instance Functor f => Functor (Indexing f) where
@@ -242,8 +242,8 @@ indexing l iafb s = snd $ runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, 
 ------------------------------------------------------------------------------
 
 
--- | Applicative composition of @'Control.Monad.Trans.State.Lazy.State' 'Int64'@ with a 'Functor', used
--- by 'Control.Lens.Indexed.indexed64'
+-- | 'Applicative' composition of @'Control.Monad.Trans.State.Lazy.State' 'Int64'@ with a 'Functor', used
+-- by 'Control.Lens.Indexed.indexed64'.
 newtype Indexing64 f a = Indexing64 { runIndexing64 :: Int64 -> (Int64, f a) }
 
 instance Functor f => Functor (Indexing64 f) where
@@ -267,7 +267,7 @@ instance Gettable f => Gettable (Indexing64 f) where
 -- | Transform a 'Control.Lens.Traversal.Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
 -- a 'Control.Lens.Fold.Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
 --
--- This combinator is like 'indexing' except that it handles large 'Control.Lens.Traversal.Traversal's and 'Control.Lens.Fold.Fold's gracefully.
+-- This combinator is like 'indexing' except that it handles large traversals and folds gracefully.
 --
 -- @
 -- 'indexing64' :: 'Control.Lens.Type.Traversal' s t a b -> 'Control.Lens.Type.IndexedTraversal' 'Int64' s t a b

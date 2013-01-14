@@ -12,7 +12,7 @@
 -- The code here is inspired by Brandon Simmons' @zippo@ package, but uses
 -- a different approach to represent the 'Zipper' that makes the whole thing
 -- look like his breadcrumb trail, and can move side-to-side through
--- 'Control.Lens.Type.Traversal's.
+-- traversals.
 --
 -- Some examples types:
 --
@@ -37,7 +37,7 @@
 -- self-similar children in syntax trees and other structures.
 --
 -- Given keys in ascending order you can jump directly to a given key with
--- 'moveTo'. When used with 'Control.Lens.Type.IndexedTraversal's for balanced
+-- 'moveTo'. When used with traversals for balanced
 -- tree-like structures such as an 'Data.IntMap.IntMap' or 'Data.Map.Map',
 -- searching for a key with 'moveTo' can be done in logarithmic time.
 -----------------------------------------------------------------------------

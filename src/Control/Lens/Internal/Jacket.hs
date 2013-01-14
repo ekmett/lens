@@ -25,7 +25,7 @@
 --
 -- This module provides internal types and functions used in the implementation
 -- of @Control.Lens.Zipper@. You shouldn't need to import it directly, and the
--- exported types can be used to break 'Zipper' invariants.
+-- exported types can be used to break 'Control.Lens.Zipper.Zipper' invariants.
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Jacket
@@ -207,7 +207,7 @@ ijacket l = iso (tailored `rmap` l (Indexed $ \i a -> Tailor 1 $ \o -> JacketLea
 ------------------------------------------------------------------------------
 
 #ifndef HLINT
--- | A Path into a 'Jacket' that ends at a 'JacketLeaf'
+-- | A 'Path' into a 'Jacket' that ends at a 'JacketLeaf'.
 data Path :: * -> * -> * -> * -> * -> * where
   ApL :: Int -> Int -> !(Path i t y b a) -> !(Jacket i x b a) -> Path i t (x -> y) b a
   ApR :: Int -> Int -> !(Jacket i (x -> y) b a) -> !(Path i t y b a) -> Path i t x b a
@@ -241,11 +241,12 @@ instance FunctorWithIndex i (Path i t y b) where
 -- "list case", where the traversal tree is right-biased, as in (Ap (Leaf (Identity x))
 -- (Ap (Leaf (Identity y)) ...)). It should be safe to delete any of these cases.
 
--- | Reconstruct a 'Jacket' from a 'Path' to a leaf and a new value for the leaf.
--- recompress :: Path i z t b a -> Int -> i -> a -> Jacket i z b a
+-- | Reconstruct a 'Jacket' from a 'Path' to a 'JacketLeaf' and a new value for the 'JacketLeaf'.
+
+-- @'recompress' :: 'Path' i z t b a -> 'Int' -> i -> a -> 'Jacket' i z b a@
 
 recompress :: Path i t b b a -> Int -> i -> a -> Jacket i t b a
-recompress Start              o i a = JacketLeaf o i a -- Unrolled: The lens case.
+recompress Start              o i a = JacketLeaf o i a -- Unrolled: The 'Lens' case.
 recompress (ApL s oa Start r) o i a = JacketAp s oa (Left i) (Left ((id ||| const i) $ jackr r)) (JacketLeaf o i a) r -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
 recompress p o0 i a = go p (JacketLeaf o0 i a) where
   go :: Path i t x b a -> Jacket i x b a -> Jacket i t b a
@@ -254,7 +255,7 @@ recompress p o0 i a = go p (JacketLeaf o0 i a) where
   go (ApR s oa l q) r = go q (jack s oa l r)
 {-# INLINE recompress #-}
 
--- reassemble a jacket. Note: upon reassembly, both 'jackl' and 'jackr' will both be 'Right', so we could improve this a lot
+-- reassemble a 'Jacket'. Note: upon reassembly, both 'jackl' and 'jackr' will both be 'Right', so we could improve this a lot.
 jack :: Int -> Int -> Jacket i (x -> y) b a -> Jacket i x b a -> Jacket i y b a
 jack s o l r = JacketAp s o (Right (fromRight (jackl l <*> jackl r))) (Right (fromRight ((&) <$> jackr r <*> jackr l))) l r
 {-# INLINE jack #-}
@@ -265,12 +266,12 @@ fromRight (Right b) = b
 {-# INLINE fromRight #-}
 
 startl :: forall a b i r x y. Path i y x b a -> Jacket i x b a -> r -> (Path i y b b a -> Int -> i -> a -> r) -> r
-startl p0 (JacketLeaf o i a) _ kp = kp p0 o i a -- Unrolled: The lens case.
+startl p0 (JacketLeaf o i a) _ kp = kp p0 o i a -- Unrolled: The 'Lens' case.
 startl p0 (JacketAp s oa _ _ (JacketLeaf o i a) r) _ kp = kp (ApL s oa p0 r) o i a -- Unrolled: The list case. (Is this one a good idea?)
 startl p0 c0 kn kp = go p0 c0 where
   go :: Path i y x' b a -> Jacket i x' b a -> r
   go p (JacketAp s oa _ _ l r) = case jackl l of
-    Right xy -> go (ApR s oa (JacketPure xy) p) r -- skip the empty side, and record it as pure
+    Right xy -> go (ApR s oa (JacketPure xy) p) r -- skip the empty side, and record it as pure.
     Left _   -> go (ApL s oa p r) l
   go p (JacketLeaf o i a) = kp p o i a
   go _ (JacketPure _) = kn
@@ -287,18 +288,18 @@ startr p0 c0 kn kp = go p0 c0 where
   go _ (JacketPure _) = kn
 {-# INLINE startr #-}
 
--- | Move left one leaf
+-- | Move left one 'JacketLeaf'.
 movel :: forall a b i r x y. Path i y x b a -> Jacket i x b a -> r -> (Path i y b b a -> Int -> i -> a -> r) -> r
 movel p0 c0 kn kp = go p0 c0 where
   go :: Path i y x' b a -> Jacket i x' b a -> r
   go Start _ = kn
   go (ApR s oa l q) r = case jackr l of
-    Right xy -> go q (jack s oa (JacketPure xy) r) -- l is pure
-    Left _   -> startr (ApL s oa q r) l kn kp      -- l has a rightmost element, descend into it
+    Right xy -> go q (jack s oa (JacketPure xy) r) -- l is pure.
+    Left _   -> startr (ApL s oa q r) l kn kp      -- l has a rightmost element, descend into it.
   go (ApL s oa p r) l = go p (jack s oa l r)
 {-# INLINE movel #-}
 
--- | Move right one leaf
+-- | Move right one 'JacketLeaf'.
 mover :: forall a b i r x y. Path i y x b a -> Jacket i x b a -> r -> (Path i y b b a -> Int -> i -> a -> r) -> r
 mover p0 c0 kn kp = go p0 c0 where
   go :: Path i y x' b a -> Jacket i x' b a -> r
