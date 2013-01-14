@@ -72,7 +72,7 @@ instance Monad m => Monoid (Sequenced m) where
 -- Min
 ------------------------------------------------------------------------------
 
--- | Used for 'Control.Lens.Fold.minimumOf'
+-- | Used for 'Control.Lens.Fold.minimumOf'.
 data Min a = NoMin | Min a
 
 instance Ord a => Monoid (Min a) where
@@ -93,7 +93,7 @@ getMin (Min a) = Just a
 -- Max
 ------------------------------------------------------------------------------
 
--- | Used for 'Control.Lens.Fold.maximumOf'
+-- | Used for 'Control.Lens.Fold.maximumOf'.
 data Max a = NoMax | Max a
 
 instance Ord a => Monoid (Max a) where
@@ -114,7 +114,7 @@ getMax (Max a) = Just a
 -- Leftmost and Rightmost
 ------------------------------------------------------------------------------
 
--- | Used for 'Control.Lens.Fold.preview'
+-- | Used for 'Control.Lens.Fold.preview'.
 data Leftmost a = LPure | LLeaf a | LStep (Leftmost a)
 
 instance Monoid (Leftmost a) where
@@ -137,7 +137,7 @@ getLeftmost LPure = Nothing
 getLeftmost (LLeaf a) = Just a
 getLeftmost (LStep x) = getLeftmost x
 
--- | Used for 'Control.Lens.Fold.lastOf'
+-- | Used for 'Control.Lens.Fold.lastOf'.
 data Rightmost a = RPure | RLeaf a | RStep (Rightmost a)
 
 instance Monoid (Rightmost a) where

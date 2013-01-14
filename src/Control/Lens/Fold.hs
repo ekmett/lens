@@ -191,7 +191,7 @@ folded :: Foldable f => Fold (f a) a
 folded f = coerce . getFolding . foldMap (Folding #. f)
 {-# INLINE folded #-}
 
--- | Fold by repeating the input forever.
+-- | 'Fold' by repeating the input forever.
 --
 -- @'repeat' ≡ 'toListOf' 'repeated'@
 --
@@ -271,41 +271,41 @@ filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . ri
 -- [1,2,3]
 --
 -- @
--- 'takingWhile' :: (a -> 'Bool') -> 'Fold' s a                             -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Getter' s a                           -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Traversal'' s a                       -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Lens'' s a                            -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Prism'' s a                           -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Iso'' s a                             -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Fold' s a                         -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Getter' s a                       -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Traversal'' s a                   -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Lens'' s a                        -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Prism'' s a                       -> 'Fold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Iso'' s a                         -> 'Fold' s a
 -- @
 --
 -- @
--- 'takingWhile' :: (a -> 'Bool') -> 'Action' m s a                         -> 'MonadicFold' m s a
--- 'takingWhile' :: (a -> 'Bool') -> 'MonadicFold' m s a                    -> 'MonadicFold' m s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'Action' m s a                     -> 'MonadicFold' m s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'MonadicFold' m s a                -> 'MonadicFold' m s a
 -- @
 --
 -- @
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a              -> 'IndexedFold' i s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a                   -> 'IndexedFold' i s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a                    -> 'IndexedFold' i s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a                  -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a          -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a               -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a              -> 'IndexedFold' i s a
 -- @
 --
 -- @
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a                -> 'IndexedMonadicFold' i m s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedMonadicFold' i m s a           -> 'IndexedMonadicFold' i m s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold' i m s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- @
 --
 -- @
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingTraversal'' s a        -> 'IndexPreservingFold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingLens'' s a             -> 'IndexPreservingFold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingFold' s a              -> 'IndexPreservingFold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingGetter' s a            -> 'IndexPreservingFold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingTraversal'' s a    -> 'IndexPreservingFold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingLens'' s a         -> 'IndexPreservingFold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingGetter' s a        -> 'IndexPreservingFold' s a
 -- @
 --
 -- @
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a          -> 'IndexPreservingMonadicFold' m s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingMonadicFold' m s a     -> 'IndexPreservingMonadicFold' m s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a      -> 'IndexPreservingMonadicFold' m s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s a
 -- @
 takingWhile :: (Corepresentable p, Profunctor q, Comonad (Corep p), Applicative f, Gettable f)
          => (a -> Bool)
@@ -327,12 +327,12 @@ takingWhile p l f = (flip appEndo noEffect .# runAccessor) `rmap` l g where
 -- [6,1]
 --
 -- @
--- 'droppingWhile' :: (a -> 'Bool') -> 'Fold' s a                   -> 'Fold' s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'Getter' s a                 -> 'Fold' s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'Traversal'' s a             -> 'Fold' s a          -- see notes
--- 'droppingWhile' :: (a -> 'Bool') -> 'Lens'' s a                  -> 'Fold' s a          -- see notes
--- 'droppingWhile' :: (a -> 'Bool') -> 'Prism'' s a                 -> 'Fold' s a          -- see notes
--- 'droppingWhile' :: (a -> 'Bool') -> 'Iso'' s a                   -> 'Fold' s a          -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Fold' s a                         -> 'Fold' s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Getter' s a                       -> 'Fold' s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Traversal'' s a                   -> 'Fold' s a                -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Lens'' s a                        -> 'Fold' s a                -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Prism'' s a                       -> 'Fold' s a                -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'Iso'' s a                         -> 'Fold' s a                -- see notes
 -- @
 --
 -- @
@@ -348,15 +348,15 @@ takingWhile p l f = (flip appEndo noEffect .# runAccessor) `rmap` l g where
 -- @
 --
 -- @
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a    -> 'IndexedFold' i s a -- see notes
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a         -> 'IndexedFold' i s a -- see notes
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a          -> 'IndexedFold' i s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a      -> 'IndexedFold' i m s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a          -> 'IndexedFold' i s a       -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a               -> 'IndexedFold' i s a       -- see notes
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a              -> 'IndexedFold' i s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a            -> 'IndexedFold' i m s a
 -- @
 --
 -- @
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold' i m s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- @
 --
 -- Note: Many uses of this combinator will yield something that meets the types, but not the laws of a valid
@@ -573,7 +573,7 @@ anyOf l f = getAny #. foldMapOf l (Any #. f)
 --
 -- @'Data.Foldable.all' ≡ 'allOf' 'folded'@
 --
--- @'iallOf' l = 'allOf' l . 'Indexed'@
+-- @'iallOf' l = 'allOf' l '.' 'Indexed'@
 --
 -- @
 -- 'allOf' :: 'Getter' s a     -> (a -> 'Bool') -> s -> 'Bool'
@@ -624,7 +624,7 @@ productOf l = getProduct #. foldMapOf l Product
 --
 -- @
 -- 'sumOf' '_1' :: (a, b) -> a
--- 'sumOf' ('folded' '.' '_1') :: ('Foldable' f, 'Num' a) => f (a, b) -> a
+-- 'sumOf' ('folded' '.' 'Control.Lens.Tuple._1') :: ('Foldable' f, 'Num' a) => f (a, b) -> a
 -- @
 --
 -- @
@@ -1029,7 +1029,7 @@ minimumOf l = getMin `rmap` foldMapOf l Min
 {-# INLINE minimumOf #-}
 
 -- | Obtain the maximum element (if any) targeted by a 'Fold', 'Traversal', 'Lens', 'Iso',
--- or 'Getter' according to a user supplied ordering.
+-- or 'Getter' according to a user supplied 'Ordering'.
 --
 -- @'Data.Foldable.maximumBy' cmp ≡ 'Data.Maybe.fromMaybe' ('error' \"empty\") '.' 'maximumByOf' 'folded' cmp@
 --
@@ -1047,7 +1047,7 @@ maximumByOf l cmp = foldrOf l step Nothing where
 {-# INLINE maximumByOf #-}
 
 -- | Obtain the minimum element (if any) targeted by a 'Fold', 'Traversal', 'Lens', 'Iso'
--- or 'Getter' according to a user supplied ordering.
+-- or 'Getter' according to a user supplied 'Ordering'.
 --
 -- @'minimumBy' cmp ≡ 'Data.Maybe.fromMaybe' ('error' \"empty\") '.' 'minimumByOf' 'folded' cmp@
 --
@@ -1076,7 +1076,7 @@ minimumByOf l cmp = foldrOf l step Nothing where
 -- 'findOf' :: 'Traversal'' s a -> (a -> 'Bool') -> s -> 'Maybe' a
 -- @
 --
--- @'ifindOf' l = 'findOf' l . 'Indexed'@
+-- @'ifindOf' l = 'findOf' l '.' 'Indexed'@
 --
 -- A simpler version that didn't permit indexing, would be:
 --
@@ -1184,10 +1184,10 @@ foldr1Of' l f xs = fromMaybe (error "foldr1Of': empty structure") (foldrOf' l mf
 {-# INLINE foldr1Of' #-}
 
 -- | A variant of 'foldlOf'' that has no base case and thus may only be applied
--- to folds and structures such that the 'Fold' views at least one element of
+-- to folds and structures such that the fold views at least one element of
 -- the structure.
 --
--- @'foldl1Of'' l f ≡ 'foldl1'' f . 'toListOf' l@
+-- @'foldl1Of'' l f ≡ 'foldl1'' f '.' 'toListOf' l@
 --
 -- @
 -- 'foldl1Of'' :: 'Getter' s a     -> (a -> a -> a) -> s -> a
@@ -1425,7 +1425,7 @@ ipreuses l f = gets (ipreviews l f)
 
 -- | This allows you to 'Control.Traversable.traverse' the elements of a pretty much any 'LensLike' construction in the opposite order.
 --
--- This will preserve indexes on indexed types and will give you the elements of a (finite) 'Fold' or 'Traversal' in the opposite order.
+-- This will preserve indexes on 'Indexed' types and will give you the elements of a (finite) 'Fold' or 'Traversal' in the opposite order.
 --
 -- This has no practical impact on a 'Getter', 'Setter', 'Lens' or 'Iso'.
 --
