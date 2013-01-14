@@ -110,8 +110,7 @@ infixr 2 <~
 -- By choosing 'Mutator' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
 type ASetter s t a b = (a -> Mutator b) -> s -> Mutator t
 
--- |
--- This is a useful alias for use when consuming a 'Setter''.
+-- | This is a useful alias for use when consuming a 'Setter''.
 --
 -- Most user code will never have to use this type.
 --

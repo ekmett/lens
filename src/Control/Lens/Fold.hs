@@ -1163,8 +1163,7 @@ foldlOf' l f z0 xs = foldrOf l f' id xs z0
   where f' x k z = k $! f z x
 {-# INLINE foldlOf' #-}
 
--- |
--- A variant of 'foldrOf'' that has no base case and thus may only be applied
+-- | A variant of 'foldrOf'' that has no base case and thus may only be applied
 -- to folds and structures such that the fold views at least one element of the
 -- structure.
 --
