@@ -72,8 +72,8 @@ rtl (JacketLeaf _ i _)      = Left i
 {-# INLINE rtl #-}
 
 data Jacket i t b a where
-  JacketAp   :: Int -- ^ overall size
-             -> Int -- ^ prefix-sum including left branch
+  JacketAp   :: Int -- overall size
+             -> Int -- prefix-sum including left branch
              -> Either i y -- ltr with leftmost i
              -> Either i y -- rtl with rightmost i
              -> Jacket i (x -> y) b a
