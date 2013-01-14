@@ -181,7 +181,7 @@ import           Data.Tree
 -- analogue to uniplate's @Biplate@.
 --
 -- Moreover, since we can allow custom traversals, we implement reasonable defaults for
--- polymorphic data types, that only traverse into themselves, and /not/ their
+-- polymorphic data types, that only 'Control.Traversable.traverse' into themselves, and /not/ their
 -- polymorphic arguments.
 
 class Plated a where
@@ -272,7 +272,7 @@ rewriteOn :: Plated a => ASetter s t a a -> (a -> Maybe a) -> s -> t
 rewriteOn b = over b . rewrite
 {-# INLINE rewriteOn #-}
 
--- | Rewrite recursively over part of a larger structure using a specified setter.
+-- | Rewrite recursively over part of a larger structure using a specified 'Setter'.
 --
 -- @
 -- 'rewriteOnOf' :: 'Plated' a => 'Control.Lens.Iso.Iso'' s a       -> 'Control.Lens.Iso.Iso'' a a       -> (a -> 'Maybe' a) -> s -> s
@@ -318,7 +318,7 @@ universe :: Plated a => a -> [a]
 universe = universeOf plate
 {-# INLINE universe #-}
 
--- | Given a fold that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself.
+-- | Given a 'Fold' that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself.
 --
 -- @'universeOf' :: 'Fold' a a -> a -> [a]@
 universeOf :: Getting [a] a b a b -> a -> [a]
@@ -423,7 +423,7 @@ transformMOnOf b l = mapMOf b . transformMOf l
 -- | Return a list of all of the editable contexts for every location in the structure, recursively.
 --
 -- @
--- propUniverse x = 'universe' x == 'map' 'Control.Comonad.Store.Class.pos' ('contexts' x)
+-- propUniverse x = 'universe' x '==' 'map' 'Control.Comonad.Store.Class.pos' ('contexts' x)
 -- propId x = 'all' ('==' x) ['extract' w | w <- 'contexts' x]
 -- @
 --
@@ -491,14 +491,14 @@ holes = holesOf plate
 -- 'holesOn' :: 'Iso'' s a                -> s -> ['Pretext' (->) a a s]
 -- 'holesOn' :: 'Lens'' s a               -> s -> ['Pretext' (->) a a s]
 -- 'holesOn' :: 'Traversal'' s a          -> s -> ['Pretext' (->) a a s]
--- 'holesOn' :: 'IndexedLens'' i s a      -> s -> ['Pretext' ('Indexed' i) a a s]
--- 'holesOn' :: 'IndexedTraversal'' i s a -> s -> ['Pretext' ('Indexed' i) a a s]
+-- 'holesOn' :: 'IndexedLens'' i s a      -> s -> ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]
+-- 'holesOn' :: 'IndexedTraversal'' i s a -> s -> ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]
 -- @
 holesOn :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
 holesOn = holesOf
 {-# INLINE holesOn #-}
 
--- | Extract one level of holes from a container in a region specified by one 'Traversal', using another.
+-- | Extract one level of 'holes' from a container in a region specified by one 'Traversal', using another.
 --
 -- @'holesOnOf' b l ≡ 'holesOf' (b '.' l)@
 --
@@ -506,8 +506,8 @@ holesOn = holesOf
 -- 'holesOnOf' :: 'Iso'' s a       -> 'Iso'' a a                -> s -> ['Pretext' (->) a a s]
 -- 'holesOnOf' :: 'Lens'' s a      -> 'Lens'' a a               -> s -> ['Pretext' (->) a a s]
 -- 'holesOnOf' :: 'Traversal'' s a -> 'Traversal'' a a          -> s -> ['Pretext' (->) a a s]
--- 'holesOnOf' :: 'Lens'' s a      -> 'IndexedLens'' i a a      -> s -> ['Pretext' ('Indexed' i) a a s]
--- 'holesOnOf' :: 'Traversal'' s a -> 'IndexedTraversal'' i a a -> s -> ['Pretext' ('Indexed' i) a a s]
+-- 'holesOnOf' :: 'Lens'' s a      -> 'IndexedLens'' i a a      -> s -> ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]
+-- 'holesOnOf' :: 'Traversal'' s a -> 'IndexedTraversal'' i a a -> s -> ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]
 -- @
 holesOnOf :: (Corepresentable p, Comonad (Corep p))
           => LensLike (Bazaar p  r r) s t a b

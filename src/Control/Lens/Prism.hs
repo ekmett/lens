@@ -126,7 +126,7 @@ without k = case runPrism k of
 -- Common Prisms
 ------------------------------------------------------------------------------
 
--- | This 'Prism' provides a 'Traversal' for tweaking the left-hand value of an 'Either':
+-- | This 'Prism' provides a 'Traversal' for tweaking the 'Left' half of an 'Either':
 --
 -- >>> over _Left (+1) (Left 2)
 -- Left 3
@@ -148,7 +148,7 @@ _Left :: Prism (Either a c) (Either b c) a b
 _Left = prism Left $ either Right (Left . Right)
 {-# INLINE _Left #-}
 
--- | This 'Prism' provides a 'Traversal' for tweaking the right-hand value of an 'Either':
+-- | This 'Prism' provides a 'Traversal' for tweaking the 'Right' half of an 'Either':
 --
 -- >>> over _Right (+1) (Left 2)
 -- Left 2
