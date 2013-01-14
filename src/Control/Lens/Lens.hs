@@ -157,8 +157,7 @@ type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 -- Constructing Lenses
 --------------------------
 
--- | Build a 'Lens' from a 'Control.Lens.Getter.Getter' and
--- a 'Control.Lens.Setter.Setter'.
+-- | Build a 'Lens' from a getter and a setter.
 --
 -- @'lens' :: 'Functor' f => (s -> a) -> (s -> b -> t) -> (a -> f b) -> s -> f t@
 --
