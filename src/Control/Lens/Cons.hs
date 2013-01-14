@@ -79,7 +79,7 @@ class (Profunctor p, Functor f) => Cons p f s t a b | s -> a, t -> b, s b -> t, 
   -- @
   --
   -- However, by including @p@ and @f@ in the class you can write instances that only permit 'uncons'
-  -- or which only permit 'cons', or where '_head' and '_tail' are lenses not traversals.
+  -- or which only permit 'cons', or where '_head' and '_tail' are lenses and not traversals.
   _Cons :: Overloaded p f s t (a,s) (b,t)
 
 instance (Choice p, Applicative f) => Cons p f [a] [b] a b where
@@ -141,7 +141,7 @@ instance (Choice p, Applicative f, Unbox a, Unbox b) => Cons p f (Unbox.Vector a
 (<|) = curry (simply review _Cons)
 {-# INLINE (<|) #-}
 
--- | Cons an element onto a container.
+-- | 'cons' an element onto a container.
 cons :: Cons Reviewed Identity s s a a => a -> s -> s
 cons = curry (simply review _Cons)
 

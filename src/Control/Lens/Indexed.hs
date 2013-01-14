@@ -501,7 +501,7 @@ instance TraversableWithIndex Int [] where
   itraverse = itraverseOf traversed
   {-# INLINE itraverse #-}
 
--- | The position in the sequence is available as the index.
+-- | The position in the 'Seq' is available as the index.
 instance FunctorWithIndex Int Seq where
   imap = iover itraversed
   {-# INLINE imap #-}
