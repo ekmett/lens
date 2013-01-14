@@ -33,8 +33,10 @@ module Control.Lens.Internal.Jacket
   -- * Jackets
     Jacket(..)
   , jackl, jackr
+  , jacket, ijacket
   -- * Tailoring
   , Tailor(..)
+  , tailored
   -- * Path
   , Path(..)
   , recompress
@@ -48,9 +50,11 @@ import Control.Lens.Combinators
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
+import Control.Lens.Iso
+import Control.Lens.Traversal
+import Control.Lens.Type
 import Data.Foldable
 import Data.Monoid
-import Data.Traversable
 
 {-# ANN module "HLint: ignore Use foldl" #-}
 
@@ -110,11 +114,19 @@ jackr (JacketPure x)          = Right x
 jackr (JacketLeaf _ i _)      = Left i
 {-# INLINE jackr #-}
 
+unjack :: Jacket i t a a -> t
+unjack (JacketAp _ _ _ _ l r) = unjack l (unjack r)
+unjack (JacketPure x)         = x
+unjack (JacketLeaf _ _ a)     = a
+
 ------------------------------------------------------------------------------
 -- Tailor
 ------------------------------------------------------------------------------
 
 data Tailor i a b t = Tailor Int (Int -> Jacket i t b a)
+
+tailored :: Tailor i a b t -> Jacket i t b a
+tailored (Tailor _ k) = k 0
 
 instance Functor (Tailor i a b) where
   fmap f (Tailor w k) = Tailor w $ \o -> let ko = k o in JacketAp w o (f <$> jackl ko) (f <$> jackr ko) (JacketPure f) ko
@@ -166,6 +178,14 @@ instance a ~ b => Comonad (Tailor i a b) where
   extend    = iextend
   duplicate = iduplicate
 -}
+
+jacket :: LensLike (Tailor Int a b) s t a b -> Iso s u (Jacket Int t b a) (Jacket j u c c)
+jacket l = iso (tailored `rmap` l (\a -> Tailor 1 $ \o -> JacketLeaf o o a)) unjack
+{-# INLINE jacket #-}
+
+ijacket :: Overloading (Indexed i) (->) (Tailor i a b) s t a b -> Iso s u (Jacket i t b a) (Jacket j u c c)
+ijacket l = iso (tailored `rmap` l (Indexed $ \i a -> Tailor 1 $ \o -> JacketLeaf o i a)) unjack
+{-# INLINE ijacket #-}
 
 ------------------------------------------------------------------------------
 -- Paths
