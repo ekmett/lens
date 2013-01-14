@@ -115,8 +115,10 @@ data Top
 -- unpacked and stored in 'Coil' form. Only one value of type @_ ':>' _@ exists
 -- at any particular time for any particular 'Zipper'.
 
+#ifndef HLINT
 data Zipper h i b a x where
   Zipper :: Ord i => !(Coil h i t b a) -> Int -> !(Path i t b b x) -> Int -> i -> x -> Zipper h i b a x
+#endif
 
 instance Functor (Zipper h i b a) where
   fmap f (Zipper h n p o i a) = Zipper h n (fmap f p) o i (f a)
