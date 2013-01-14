@@ -104,7 +104,7 @@ data Top
 --
 -- You can repackage up the contents of a 'Zipper' with 'rezip'.
 --
--- >>> rezip $ zipper 42
+-- -- >>> rezip $ zipper 42
 -- 42
 --
 -- The combinators in this module provide lot of things you can do to the
@@ -192,16 +192,16 @@ upward (Zipper (Snoc h n _ p d j k) _ q o i x) = Zipper h n p d j $ k $ recompre
 -- Attempts to move past the start of the current 'Traversal' (or trivially, the current 'Lens')
 -- will return 'Nothing'.
 --
--- >>> isNothing $ zipper "hello" & rightward
+-- -- >>> isNothing $ zipper "hello" & rightward
 -- True
 --
--- >>> zipper "hello" & fromWithin traverse & rightward <&> view focus
+-- -- >>> zipper "hello" & fromWithin traverse & rightward <&> view focus
 -- 'e'
 --
--- >>> zipper "hello" & fromWithin traverse & rightward <&> focus .~ 'u' <&> rezip
+-- -- >>> zipper "hello" & fromWithin traverse & rightward <&> focus .~ 'u' <&> rezip
 -- "hullo"
 --
--- >>> rezip $ zipper (1,2) & fromWithin both & tug rightward & focus .~ 3
+-- -- >>> rezip $ zipper (1,2) & fromWithin both & tug rightward & focus .~ 3
 -- (1,3)
 rightward :: MonadPlus m => Zipper h i b a x -> m (Zipper h i b a x)
 rightward (Zipper h n p o i a) = mover p (JacketLeaf o i a) mzero $ \q o' j b -> return $ Zipper h n q o' j b
@@ -212,16 +212,16 @@ rightward (Zipper h n p o i a) = mover p (JacketLeaf o i a) mzero $ \q o' j b ->
 -- Attempts to move past the end of the current 'Traversal' (or trivially, the current 'Lens')
 -- will return 'Nothing'.
 --
--- >>> isNothing $ zipper "hello" & leftward
+-- -- >>> isNothing $ zipper "hello" & leftward
 -- True
 
--- >>> isNothing $ zipper "hello" & within traverse >>= leftward
+-- -- >>> isNothing $ zipper "hello" & within traverse >>= leftward
 -- True
 --
--- >>> zipper "hello" & within traverse <&> tug leftward
+-- -- >>> zipper "hello" & within traverse <&> tug leftward
 -- Just 'h'
 --
--- >>> zipper "hello" & fromWithin traverse & tug rightward & tug leftward & view focus
+-- -- >>> zipper "hello" & fromWithin traverse & tug rightward & tug leftward & view focus
 -- 'h'
 leftward :: MonadPlus m => Zipper h i b a x -> m (Zipper h i b a x)
 leftward (Zipper h n p o i a) = movel p (JacketLeaf o i a) mzero $ \q o' j b -> return $ Zipper h n q o' j b
@@ -231,7 +231,7 @@ leftward (Zipper h n p o i a) = movel p (JacketLeaf o i a) mzero $ \q o' j b -> 
 --
 -- This is just a convenient alias for @'farthest' 'leftward'@.
 --
--- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
+-- -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
 -- "hella"
 leftmost :: Zipper h i b a x -> Zipper h i b a x
 leftmost (Zipper h n p o i a) = startl Start (recompress p o i a) (error "leftmost: bad Magma structure") (Zipper h n)
@@ -241,7 +241,7 @@ leftmost (Zipper h n p o i a) = startl Start (recompress p o i a) (error "leftmo
 --
 -- This is just a convenient alias for @'farthest' 'rightward'@.
 --
--- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
+-- -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
 -- "jelly"
 rightmost :: Zipper h i b a x -> Zipper h i b a x
 rightmost (Zipper h n p o i a) = startr Start (recompress p o i a) (error "rightmost: bad Magma structure") (Zipper h n)
@@ -254,10 +254,10 @@ rightmost (Zipper h n p o i a) = startr Start (recompress p o i a) (error "right
 --
 -- @'tug' f x ≡ 'fromMaybe' a (f a)@
 --
--- >>> fmap rezip $ zipper "hello" & within traverse <&> tug leftward <&> focus .~ 'j'
+-- -- >>> fmap rezip $ zipper "hello" & within traverse <&> tug leftward <&> focus .~ 'j'
 -- "jello"
 --
--- >>> fmap rezip $ zipper "hello" & within traverse <&> tug rightward <&> focus .~ 'u'
+-- -- >>> fmap rezip $ zipper "hello" & within traverse <&> tug rightward <&> focus .~ 'u'
 -- "hullo"
 tug :: (a -> Maybe a) -> a -> a
 tug f a = fromMaybe a (f a)
@@ -268,10 +268,10 @@ tug f a = fromMaybe a (f a)
 -- and stopping at the last place you couldn't move from. This lets you safely
 -- move a 'Zipper', because it will stop at either end.
 --
--- >>> fmap rezip $ zipper "stale" & within traverse <&> tugs rightward 2 <&> focus .~ 'y'
+-- -- >>> fmap rezip $ zipper "stale" & within traverse <&> tugs rightward 2 <&> focus .~ 'y'
 -- "style"
 --
--- >>> rezip $ zipper "want" & fromWithin traverse & tugs rightward 2 & focus .~ 'r' & tugs leftward 100 & focus .~ 'c'
+-- -- >>> rezip $ zipper "want" & fromWithin traverse & tugs rightward 2 & focus .~ 'r' & tugs leftward 100 & focus .~ 'c'
 -- "cart"
 tugs :: (a -> Maybe a) -> Int -> a -> a
 tugs f n0
@@ -286,10 +286,10 @@ tugs f n0
 --
 -- This repeatedly applies a function until it returns 'Nothing', and then returns the last answer.
 --
--- >>> fmap rezip $ zipper ("hello","world") & downward _1 & within traverse <&> rightmost <&> focus .~ 'a'
+-- -- >>> fmap rezip $ zipper ("hello","world") & downward _1 & within traverse <&> rightmost <&> focus .~ 'a'
 -- ("hella","world")
 --
--- >>> rezip $ zipper ("hello","there") & fromWithin (both.traverse) & rightmost & focus .~ 'm'
+-- -- >>> rezip $ zipper ("hello","there") & fromWithin (both.traverse) & rightmost & focus .~ 'm'
 -- ("hello","therm")
 farthest :: (a -> Maybe a) -> a -> a
 farthest f = go where
@@ -298,10 +298,10 @@ farthest f = go where
 
 -- | This allows for you to repeatedly pull a 'Zipper' in a given direction, failing if it falls off the end.
 --
--- >>> isNothing $ zipper "hello" & within traverse >>= jerks rightward 10
+-- -- >>> isNothing $ zipper "hello" & within traverse >>= jerks rightward 10
 -- True
 --
--- >>> fmap rezip $ zipper "silly" & within traverse >>= jerks rightward 3 <&> focus .~ 'k'
+-- -- >>> fmap rezip $ zipper "silly" & within traverse >>= jerks rightward 3 <&> focus .~ 'k'
 -- "silky"
 jerks :: Monad m => (a -> m a) -> Int -> a -> m a
 jerks f n0
@@ -320,22 +320,22 @@ jerks f n0
 --
 -- This is also a particularly expensive operation to perform on an unbalanced tree.
 --
--- >>> zipper ("hello","world") & teeth
+-- -- >>> zipper ("hello","world") & teeth
 -- 1
 --
--- >>> zipper ("hello","world") & fromWithin both & teeth
+-- -- >>> zipper ("hello","world") & fromWithin both & teeth
 -- 2
 --
--- >>> zipper ("hello","world") & downward _1 & teeth
+-- -- >>> zipper ("hello","world") & downward _1 & teeth
 -- 1
 --
--- >>> zipper ("hello","world") & downward _1 & fromWithin traverse & teeth
+-- -- >>> zipper ("hello","world") & downward _1 & fromWithin traverse & teeth
 -- 5
 --
--- >>> zipper ("hello","world") & fromWithin (_1.traverse) & teeth
+-- -- >>> zipper ("hello","world") & fromWithin (_1.traverse) & teeth
 -- 5
 --
--- >>> zipper ("hello","world") & fromWithin (both.traverse) & teeth
+-- -- >>> zipper ("hello","world") & fromWithin (both.traverse) & teeth
 -- 10
 teeth :: Zipper h i b a x -> Int
 teeth (Zipper _ n _ _ _ _) = n
@@ -348,13 +348,13 @@ teeth (Zipper _ n _ _ _ _) = n
 --
 -- @'jerkTo' n ≡ 'jerks' 'rightward' n '.' 'farthest' 'leftward'@
 --
--- >>> isNothing $ zipper "not working." & jerkTo 20
+-- -- >>> isNothing $ zipper "not working." & jerkTo 20
 -- True
 
--- >>> isNothing $ zipper "not working." & fromWithin traverse & jerkTo 20
+-- -- >>> isNothing $ zipper "not working." & fromWithin traverse & jerkTo 20
 -- True
 --
--- >>> fmap rezip $ zipper "not working" & within traverse >>= jerkTo 2 <&> focus .~ 'w'
+-- -- >>> fmap rezip $ zipper "not working" & within traverse >>= jerkTo 2 <&> focus .~ 'w'
 -- Just "now working"
 jerkTo :: MonadPlus m => Int -> Zipper h i b a x -> m (Zipper h i b a x)
 jerkTo n z = case compare k n of
@@ -371,7 +371,7 @@ jerkTo n z = case compare k n of
 --
 -- @'tugTo' n ≡ 'tugs' 'rightward' n '.' 'farthest' 'leftward'@
 --
--- >>> rezip $ zipper "not working." & fromWithin traverse & tugTo 100 & focus .~ '!' & tugTo 1 & focus .~ 'u'
+-- -- >>> rezip $ zipper "not working." & fromWithin traverse & tugTo 100 & focus .~ '!' & tugTo 1 & focus .~ 'u'
 -- "nut working!"
 tugTo :: Int -> Zipper h i b a x -> Zipper h i b a x
 tugTo n z = case compare k n of
@@ -400,10 +400,10 @@ moveToward i z@(Zipper h _ _ p0 j s0)
 -- 'Traversal'. In the case of simple 'Zipper's, the index is 'Int' and
 -- we can move between 'Control.Lens.Type.Traversal's fairly easily:
 --
--- >>> zipper (42, 32) & fromWithin both & moveTo 0 <&> view focus
+-- -- >>> zipper (42, 32) & fromWithin both & moveTo 0 <&> view focus
 -- 42
 --
--- >>> zipper (42, 32) & fromWithin both & moveTo 1 <&> view focus
+-- -- >>> zipper (42, 32) & fromWithin both & moveTo 1 <&> view focus
 -- 32
 --
 moveTo :: MonadPlus m => i -> h :> a:@i -> m (h :> a:@i)
@@ -462,7 +462,7 @@ iwithin l (Zipper h t o p j s) = case magma l (Context id) s of
 
 -- | Step down into every entry of a 'Traversal' simultaneously.
 --
--- >>> zipper ("hello","world") & withins both >>= leftward >>= withins traverse >>= rightward <&> focus %~ toUpper <&> rezip :: [(String,String)]
+-- -- >>> zipper ("hello","world") & withins both >>= leftward >>= withins traverse >>= rightward <&> focus %~ toUpper <&> rezip :: [(String,String)]
 -- [("hEllo","world"),("heLlo","world"),("helLo","world"),("hellO","world")]
 --
 -- @
