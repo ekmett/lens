@@ -149,8 +149,7 @@ au k = case runIso k of
   Exchange sa bt -> \ f e -> bt (f sa e)
 {-# INLINE au #-}
 
--- |
--- Based on @ala'@ from Conor McBride's work on Epigram.
+-- | Based on @ala'@ from Conor McBride's work on Epigram.
 --
 -- This version is generalized to accept any 'Iso', not just a @newtype@.
 --

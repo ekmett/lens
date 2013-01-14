@@ -105,8 +105,7 @@ to :: (s -> a) -> IndexPreservingGetter s a
 to f = dimap f coerce
 {-# INLINE to #-}
 
--- |
--- When you see this in a type signature it indicates that you can
+-- | When you see this in a type signature it indicates that you can
 -- pass the function a 'Lens', 'Getter',
 -- 'Control.Lens.Traversal.Traversal', 'Control.Lens.Fold.Fold',
 -- 'Control.Lens.Prism.Prism', 'Control.Lens.Iso.Iso', or one of
@@ -255,8 +254,7 @@ s ^. l = runAccessor (l Accessor s)
 -- MonadState
 -------------------------------------------------------------------------------
 
--- |
--- Use the target of a 'Lens', 'Control.Lens.Iso.Iso', or
+-- | Use the target of a 'Lens', 'Control.Lens.Iso.Iso', or
 -- 'Getter' in the current state, or use a summary of a
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
 -- to a monoidal value.
@@ -278,8 +276,7 @@ use :: MonadState s m => Getting a s t a b -> m a
 use l = State.gets (view l)
 {-# INLINE use #-}
 
--- |
--- Use the target of a 'Lens', 'Control.Lens.Iso.Iso' or
+-- | Use the target of a 'Lens', 'Control.Lens.Iso.Iso' or
 -- 'Getter' in the current state, or use a summary of a
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that
 -- points to a monoidal value.
@@ -304,8 +301,7 @@ uses l f = State.gets (views l f)
 -- Accessing State, Simplified
 ------------------------------------------------------------------------------
 
--- |
--- This is a type restricted version of 'use' that expects a 'Simple' 'Getter'.
+-- | This is a type restricted version of 'use' that expects a 'Simple' 'Getter'.
 --
 -- Use the target of a 'Lens'', 'Control.Lens.Iso.Iso', or
 -- 'Getter' in the current state, or use a summary of a
@@ -333,8 +329,7 @@ use' :: MonadState s m => Getting a s s a a -> m a
 use' l = State.gets (view' l)
 {-# INLINE use' #-}
 
--- |
--- This is a type restricted version of 'uses' that expects a 'Simple' 'Getter'.
+-- | This is a type restricted version of 'uses' that expects a 'Simple' 'Getter'.
 --
 -- Use the target of a 'Lens', 'Control.Lens.Iso.Iso' or
 -- 'Getter' in the current state, or use a summary of a

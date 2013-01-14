@@ -350,8 +350,7 @@ locus f w = (`iseek` w) <$> f (ipos w)
 -- Cloning Lenses
 -------------------------------------------------------------------------------
 
--- |
--- Cloning a 'Lens' is one way to make sure you aren't given
+-- | Cloning a 'Lens' is one way to make sure you aren't given
 -- something weaker, such as a 'Control.Lens.Traversal.Traversal' and can be
 -- used as a way to pass around lenses that have to be monomorphic in @f@.
 --

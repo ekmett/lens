@@ -219,8 +219,7 @@ imapped = isets imap
 -- | A container that supports folding with an additional index.
 class Foldable f => FoldableWithIndex i f | f -> i where
   --
-  -- |
-  -- Fold a container by mapping value to an arbitrary 'Monoid' with access to the index @i@.
+  -- | Fold a container by mapping value to an arbitrary 'Monoid' with access to the index @i@.
   --
   -- When you don't need access to the index then 'foldMap' is more flexible in what it accepts.
   --
@@ -240,8 +239,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   ifoldr   :: (i -> a -> b -> b) -> b -> f a -> b
   ifoldr f z t = appEndo (ifoldMap (\i -> Endo #. f i) t) z
 
-  -- |
-  -- Left-associative fold of an indexed container with access to the index @i@.
+  -- | Left-associative fold of an indexed container with access to the index @i@.
   --
   -- When you don't need access to the index then 'Data.Foldable.foldl' is more flexible in what it accepts.
   --
@@ -272,15 +270,14 @@ ifolded :: FoldableWithIndex i f => IndexedFold i (f a) a
 ifolded f = coerce . getFolding . ifoldMap (\i -> Folding #. indexed f i)
 {-# INLINE ifolded #-}
 
--- | Obtain a 'Fold' by lifting an operation that returns a foldable result.
+-- | Obtain a 'Fold' by lifting an operation that returns a 'Foldable' result.
 --
 -- This can be useful to lift operations from @'Data.List'@ and elsewhere into a 'Fold'.
 ifolding :: FoldableWithIndex i f => (s -> f a) -> IndexedFold i s a
 ifolding sfa iagb = coerce . itraverse_ (indexed iagb) . sfa
 {-# INLINE ifolding #-}
 
--- |
--- Return whether or not any element in a container satisfies a predicate, with access to the index @i@.
+-- | Return whether or not any element in a container satisfies a predicate, with access to the index @i@.
 --
 -- When you don't need access to the index then 'any' is more flexible in what it accepts.
 --
@@ -289,8 +286,7 @@ iany :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
 iany f = getAny #. ifoldMap (\i -> Any #. f i)
 {-# INLINE iany #-}
 
--- |
--- Return whether or not all elements in a container satisfy a predicate, with access to the index @i@.
+-- | Return whether or not all elements in a container satisfy a predicate, with access to the index @i@.
 --
 -- When you don't need access to the index then 'all' is more flexible in what it accepts.
 --
@@ -299,8 +295,7 @@ iall :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
 iall f = getAll #. ifoldMap (\i -> All #. f i)
 {-# INLINE iall #-}
 
--- |
--- Traverse elements with access to the index @i@, discarding the results.
+-- | Traverse elements with access to the index @i@, discarding the results.
 --
 -- When you don't need access to the index then 'traverse_' is more flexible in what it accepts.
 --
@@ -309,8 +304,7 @@ itraverse_ :: (FoldableWithIndex i t, Applicative f) => (i -> a -> f b) -> t a -
 itraverse_ f = getTraversed #. ifoldMap (\i -> Traversed #. void . f i)
 {-# INLINE itraverse_ #-}
 
--- |
--- Traverse elements with access to the index @i@, discarding the results (with the arguments flipped).
+-- | Traverse elements with access to the index @i@, discarding the results (with the arguments flipped).
 --
 -- @'ifor_' ≡ 'flip' 'itraverse_'@
 --
@@ -321,8 +315,7 @@ ifor_ :: (FoldableWithIndex i t, Applicative f) => t a -> (i -> a -> f b) -> f (
 ifor_ = flip itraverse_
 {-# INLINE ifor_ #-}
 
--- |
--- Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
+-- | Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
 -- discarding the results.
 --
 -- When you don't need access to the index then 'Control.Lens.Fold.mapMOf_' is more flexible in what it accepts.
@@ -332,8 +325,7 @@ imapM_ :: (FoldableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m ()
 imapM_ f = getSequenced #. ifoldMap (\i -> Sequenced #. liftM skip . f i)
 {-# INLINE imapM_ #-}
 
--- |
--- Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
+-- | Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
 -- discarding the results (with the arguments flipped).
 --
 -- @'iforM_' ≡ 'flip' 'imapM_'@
@@ -345,8 +337,7 @@ iforM_ :: (FoldableWithIndex i t, Monad m) => t a -> (i -> a -> m b) -> m ()
 iforM_ = flip imapM_
 {-# INLINE iforM_ #-}
 
--- |
--- Concatenate the results of a function of the elements of an indexed container with access to the index.
+-- | Concatenate the results of a function of the elements of an indexed container with access to the index.
 --
 -- When you don't need access to the index then 'concatMap' is more flexible in what it accepts.
 --
@@ -423,8 +414,7 @@ itraversed :: TraversableWithIndex i f => IndexedTraversal i (f a) (f b) a b
 itraversed = itraverse . indexed
 {-# INLINE itraversed #-}
 
--- |
--- Traverse with an index (and the arguments flipped)
+-- | Traverse with an index (and the arguments flipped)
 --
 -- @
 -- 'for' a ≡ 'ifor' a '.' 'const'

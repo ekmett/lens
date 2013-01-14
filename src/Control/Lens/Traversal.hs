@@ -218,8 +218,7 @@ forOf :: Overloading p (->) f s t a b -> s -> p a (f b) -> f t
 forOf = flip
 {-# INLINE forOf #-}
 
--- |
--- Evaluate each action in the structure from left to right, and collect
+-- | Evaluate each action in the structure from left to right, and collect
 -- the results.
 --
 -- @
