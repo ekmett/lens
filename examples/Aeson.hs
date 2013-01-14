@@ -14,12 +14,12 @@ import Data.Aeson
 import Data.ByteString.Lazy
 
 -- |
--- >>> 5^.by aeson
+-- >>> review aeson 5
 -- "5"
--- >>> [1,2,3]^.by aeson
+-- >>> [1,2,3]^.re aeson
 -- "[1,2,3]"
--- >>> aeson.both +~ 2 $ (2,3)^.by aeson
+-- >>> aeson.both +~ 2 $ (2,3)^.re aeson
 -- "[4,5]"
-aeson, aeson' :: (FromJSON c, ToJSON d) => Projection ByteString ByteString c d
-aeson  = projection encode decode
-aeson' = projection encode decode'
+aeson, aeson' :: (FromJSON a, ToJSON a) => Prism' ByteString a
+aeson  = prism' encode decode
+aeson' = prism' encode decode'
