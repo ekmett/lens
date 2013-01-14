@@ -257,13 +257,13 @@ recompress p o0 i a = go p (JacketLeaf o0 i a) where
 
 -- reassemble a 'Jacket'. Note: upon reassembly, both 'jackl' and 'jackr' will both be 'Right', so we could improve this a lot.
 jack :: Int -> Int -> Jacket i (x -> y) b a -> Jacket i x b a -> Jacket i y b a
-jack s o l r = JacketAp s o (Right (fromRight (jackl l <*> jackl r))) (Right (fromRight ((&) <$> jackr r <*> jackr l))) l r
+jack s o l r = JacketAp s o (Left (fromLeft (jackl l <*> jackl r))) (Left (fromLeft ((&) <$> jackr r <*> jackr l))) l r
 {-# INLINE jack #-}
 
-fromRight :: Either a b -> b
-fromRight (Left _)  = error "zipper: panic: missing element"
-fromRight (Right b) = b
-{-# INLINE fromRight #-}
+fromLeft :: Either a b -> a
+fromLeft (Right _)  = error "zipper: panic: missing element"
+fromLeft (Left b) = b
+{-# INLINE fromLeft #-}
 
 startl :: forall a b i r x y. Path i y x b a -> Jacket i x b a -> r -> (Path i y b b a -> Int -> i -> a -> r) -> r
 startl p0 (JacketLeaf o i a) _ kp = kp p0 o i a -- Unrolled: The 'Lens' case.
