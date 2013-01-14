@@ -171,11 +171,13 @@ instance a ~ b => Comonad (Tailor i a b) where
 -- Paths
 ------------------------------------------------------------------------------
 
+#ifndef HLINT
 -- | A Path into a 'Jacket' that ends at a 'JacketLeaf'
 data Path :: * -> * -> * -> * -> * -> * where
   ApL :: Int -> Int -> !(Path i t y b a) -> !(Jacket i x b a) -> Path i t (x -> y) b a
   ApR :: Int -> Int -> !(Jacket i (x -> y) b a) -> !(Path i t y b a) -> Path i t x b a
   Start :: Path i t t b a
+#endif
 
 instance (Show i, Show a) => Show (Path i t y b a) where
   showsPrec d (ApL _ _ l r) = showParen (d > 4) $
