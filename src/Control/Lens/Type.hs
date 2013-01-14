@@ -273,11 +273,11 @@ type Iso' s a = Iso s s a a
 --
 -- First, if I 'Control.Lens.Review.re' or 'Control.Lens.Prism.review' a value with a 'Prism' and then 'Control.Lens.Prism.preview' or use ('Control.Lens.Fold.^?'), I will get it back:
 --
--- * @'Control.Lens.Prism.preview' l ('Control.Lens.Prism.review' l b) ≡ 'Just' b@
+-- @'Control.Lens.Prism.preview' l ('Control.Lens.Prism.review' l b) ≡ 'Just' b@
 --
 -- Second, if you can extract a value @a@ using a 'Prism' @l@ from a value @s@, then the value @s@ is completely described my @l@ and @a@:
 --
--- * If @'Control.Lens.Prism.preview' l s ≡ 'Just' a@ then @'Control.Lens.Prism.review' l a ≡ s@
+-- If @'Control.Lens.Prism.preview' l s ≡ 'Just' a@ then @'Control.Lens.Prism.review' l a ≡ s@
 --
 -- These two laws imply that the 'Traversal' laws hold for every 'Prism' and that we 'Data.Traversable.traverse' at most 1 element:
 --

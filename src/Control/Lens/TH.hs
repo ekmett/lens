@@ -79,7 +79,7 @@ import Language.Haskell.TH.Lens
 
 {-# ANN module "HLint: ignore Use foldl" #-}
 
--- | Flags for 'Lens' construction.
+-- | Flags for 'Lens' construction
 data LensFlag
   = SimpleLenses
   | PartialLenses

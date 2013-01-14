@@ -298,7 +298,7 @@ sequenceOf l = unwrapMonad #. l WrapMonad
 -- Since every 'Lens' is a 'Traversal', we can use this as a form of
 -- monadic strength as well:
 --
--- @'transposeOf' '_2' :: (b, [a]) -> [(b, a)]@
+-- @'transposeOf' 'Control.Lens.Tuple._2' :: (b, [a]) -> [(b, a)]@
 transposeOf :: LensLike ZipList s t [a] a -> s -> [t]
 transposeOf l = getZipList #. l ZipList
 {-# INLINE transposeOf #-}
@@ -468,7 +468,7 @@ iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
 -- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the values, 'Control.Comonad.Store.Class.peek' at what the structure would be like with an edited result, or simply 'extract' the original structure.
 --
 -- @
--- propChildren l x = 'childrenOf' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holesOf' l x)
+-- propChildren l x = childrenOf l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holesOf' l x)
 -- propId l x = 'all' ('==' x) ['extract' w | w <- 'holesOf' l x]
 -- @
 --
@@ -834,7 +834,7 @@ traversed64 :: Traversable f => IndexedTraversal Int64 (f a) (f b) a b
 traversed64 = indexing64 traverse
 {-# INLINE traversed64 #-}
 
--- | This is the trivial empty traversal.
+-- | This is the trivial empty 'Traversal'.
 --
 -- @'ignored' :: 'IndexedTraversal' i s s a b@
 --
