@@ -32,7 +32,7 @@ import Data.Profunctor.Unsafe
 -------------------------------------------------------------------------------
 
 -- | Generalizing 'Const' so we can apply simple 'Applicative'
--- transformations to it and so we can get nicer error messages
+-- transformations to it and so we can get nicer error messages.
 --
 -- A 'Gettable' 'Functor' ignores its argument, which it carries solely as a
 -- phantom type parameter.
@@ -41,7 +41,8 @@ import Data.Profunctor.Unsafe
 --
 -- @'id' = 'fmap' f = 'coerce'@
 --
--- Which is equivalent to making a @'Gettable' f@ an \"anyvariant\" functor.
+-- Which is equivalent to making a @'Gettable' f@ an \"anyvariant\"
+-- 'Functor'.
 
 class Functor f => Gettable f where
   -- | Replace the phantom type argument.
@@ -70,7 +71,7 @@ noEffect = coerce $ pure ()
 
 -- | Used instead of 'Const' to report
 --
--- @No instance of ('Settable' 'Accessor')@
+-- @No instance for ('Control.Lens.Setter.Internal.Settable' 'Accessor')@
 --
 -- when the user attempts to misuse a 'Control.Lens.Setter.Setter' as a
 -- 'Control.Lens.Getter.Getter', rather than a monolithic unification error.
