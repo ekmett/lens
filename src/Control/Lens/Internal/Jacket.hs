@@ -47,9 +47,9 @@ module Control.Lens.Internal.Jacket
 import Control.Applicative
 import Control.Arrow
 import Control.Lens.Combinators
+import Control.Lens.Indexed
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
-import Control.Lens.Internal.Indexed
 import Control.Lens.Iso
 import Control.Lens.Traversal
 import Control.Lens.Type
@@ -82,15 +82,30 @@ instance Functor (Jacket i t b) where
   fmap _ (JacketPure x)         = JacketPure x
   fmap f (JacketLeaf o i a)     = JacketLeaf o i (f a)
 
+instance FunctorWithIndex i (Jacket i t b) where
+  imap f (JacketAp s o m n x y) = JacketAp s o m n (imap f x) (imap f y)
+  imap _ (JacketPure x)         = JacketPure x
+  imap f (JacketLeaf o i a)     = JacketLeaf o i (f i a)
+
 instance Foldable (Jacket i t b) where
   foldMap f (JacketAp _ _ _ _ x y) = foldMap f x `mappend` foldMap f y
   foldMap _ JacketPure{}           = mempty
   foldMap f (JacketLeaf _ _ a)     = f a
 
+instance FoldableWithIndex i (Jacket i t b) where
+  ifoldMap f (JacketAp _ _ _ _ x y) = ifoldMap f x `mappend` ifoldMap f y
+  ifoldMap _ JacketPure{}           = mempty
+  ifoldMap f (JacketLeaf _ i a)     = f i a
+
 instance Traversable (Jacket i t b) where
   traverse f (JacketAp s o m n x y) = JacketAp s o m n <$> traverse f x <*> traverse f y
-  traverse _ (JacketPure x) = pure (JacketPure x)
-  traverse f (JacketLeaf o i a) = JacketLeaf o i <$> f a
+  traverse _ (JacketPure x)         = pure (JacketPure x)
+  traverse f (JacketLeaf o i a)     = JacketLeaf o i <$> f a
+
+instance TraversableWithIndex i (Jacket i t b) where
+  itraverse f (JacketAp s o m n x y) = JacketAp s o m n <$> itraverse f x <*> itraverse f y
+  itraverse _ (JacketPure x)         = pure (JacketPure x)
+  itraverse f (JacketLeaf o i a)     = JacketLeaf o i <$> f i a
 
 instance (Show i, Show a) => Show (Jacket i t b a) where
   showsPrec d (JacketAp _ _ _ _ x y) = showParen (d > 4) $
@@ -211,6 +226,12 @@ instance Functor (Path i t y b) where
   fmap f (ApR s o p q) = ApR s o (fmap f p) (fmap f q)
   fmap _ Start         = Start
   {-# INLINE fmap #-}
+
+instance FunctorWithIndex i (Path i t y b) where
+  imap f (ApL s o p q) = ApL s o (imap f p) (imap f q)
+  imap f (ApR s o p q) = ApR s o (imap f p) (imap f q)
+  imap _ Start         = Start
+  {-# INLINE imap #-}
 
 -- * Recursion
 --
