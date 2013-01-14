@@ -82,7 +82,7 @@ import Control.Lens.Fold
 import Control.Lens.Internal.Fold
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
-import Control.Lens.Internal.Magma
+import Control.Lens.Internal.Level
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type

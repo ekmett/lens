@@ -21,7 +21,7 @@ import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
-import Control.Lens.Internal.Magma
+import Control.Lens.Internal.Level
 import Control.Lens.Traversal
 import Data.Profunctor.Unsafe
 
