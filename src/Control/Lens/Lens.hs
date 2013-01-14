@@ -508,8 +508,8 @@ l <&&~ b = l <%~ (&& b)
 -- ('<<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> (a -> b) -> s -> (b, t)
 -- ('<<%~') :: 'Monoid' b => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> b) -> s -> (b, t)
 -- @
-(<<%~) :: Lenticular p => Overloading p q ((,)a) s t a b -> p a b -> q s (a, t)
-(<<%~) l = l . lenticular
+(<<%~) :: Strong p => Overloading p q ((,)a) s t a b -> p a b -> q s (a, t)
+(<<%~) l = l . lmap (\a -> (a, a)) . second'
 {-# INLINE (<<%~) #-}
 
 -- | Modify the target of a 'Lens', but return the old value.
@@ -682,8 +682,8 @@ l <&&= b = l <%= (&& b)
 -- @
 --
 -- @('<<%=') :: 'MonadState' s m => 'LensLike' ((,)a) s s a b -> (a -> b) -> m a@
-(<<%=) :: (Lenticular p, MonadState s m) => Overloading p (->) ((,)a) s s a b -> p a b -> m a
-l <<%= f = l %%= lenticular f
+(<<%=) :: (Strong p, MonadState s m) => Overloading p (->) ((,)a) s s a b -> p a b -> m a
+l <<%= f = l %%= lmap (\a -> (a,a)) (second' f)
 {-# INLINE (<<%=) #-}
 
 -- | Modify the target of a 'Lens' into your monad's state by a user supplied

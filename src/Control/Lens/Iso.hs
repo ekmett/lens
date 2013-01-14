@@ -54,7 +54,7 @@ module Control.Lens.Iso
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Iso
-import Control.Lens.Internal.Magma
+import Control.Lens.Internal.Scoria
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Data.Bifunctor

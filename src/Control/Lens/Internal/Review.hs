@@ -145,9 +145,11 @@ instance Profunctor Reviewed where
   {-# INLINE ( #. ) #-}
 #endif
 
-instance Prismatic Reviewed where
-  prismatic (Reviewed b) = Reviewed b
-  {-# INLINE prismatic #-}
+instance Choice Reviewed where
+  left' (Reviewed b) = Reviewed (Left b)
+  {-# INLINE left' #-}
+  right' (Reviewed b) = Reviewed (Right b)
+  {-# INLINE right' #-}
 
 instance Corepresentable Reviewed where
   type Corep Reviewed = Proxy

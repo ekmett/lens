@@ -58,7 +58,7 @@ import Unsafe.Coerce
 -- that @f@ is left adjoint to @g@. From this you can derive a lot of structure due
 -- to the preservation of limits and colimits.
 class
-  ( Profunctor p, Prismatic p, Lenticular p
+  ( Profunctor p, Choice p, Strong p
   , Corepresentable p, Comonad (Corep p), Traversable (Corep p)
   , Representable p, Monad (Rep p), MonadFix (Rep p), Distributive (Rep p)
   , ArrowLoop p, ArrowApply p, ArrowChoice p
@@ -142,13 +142,13 @@ instance Representable (Indexed i) where
   rep = flip . runIndexed
   {-# INLINE rep #-}
 
-instance Prismatic (Indexed i) where
-  prismatic (Indexed iab) = Indexed (either id . iab)
-  {-# INLINE prismatic #-}
+instance Choice (Indexed i) where
+  right' = right
+  {-# INLINE right' #-}
 
-instance Lenticular (Indexed i) where
-  lenticular (Indexed iab) = Indexed $ \i a -> (a, iab i a)
-  {-# INLINE lenticular #-}
+instance Strong (Indexed i) where
+  second' = second
+  {-# INLINE second' #-}
 
 instance Category (Indexed i) where
   id = Indexed (const id)
@@ -193,13 +193,6 @@ instance Conjoined (Indexed i) where
 instance i ~ j => Indexable i (Indexed j) where
   indexed = runIndexed
   {-# INLINE indexed #-}
-
-
-
-
-
-
-
 
 ------------------------------------------------------------------------------
 -- Indexing

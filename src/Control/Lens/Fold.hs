@@ -259,8 +259,9 @@ iterated f g a0 = go a0 where
 -- [2,4,6,8,10]
 --
 -- This will preserve an index if it is present.
-filtered :: (Prismatic p, Applicative f) => (a -> Bool) -> Overloaded' p f a a
-filtered p = lmap (\x -> if p x then Right x else Left (pure x)) . prismatic
+filtered :: (Choice p, Applicative f) => (a -> Bool) -> Overloaded' p f a a
+filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . right'
+{-# INLINE filtered #-}
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
 --
