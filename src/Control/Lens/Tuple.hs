@@ -57,17 +57,17 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- hello
   -- ((),"world")
   --
-  -- This can also be used on larger tuples as well
+  -- This can also be used on larger tuples as well:
   --
   -- >>> _1 +~ 41 $ (1,2,3,4,5)
   -- (42,2,3,4,5)
   --
   -- @
-  -- _1 :: 'Lens' (a,b) (a',b) a a'
-  -- _1 :: 'Lens' (a,b,c) (a',b,c) a a'
-  -- _1 :: 'Lens' (a,b,c,d) (a',b,c,d) a a'
+  -- '_1' :: 'Lens' (a,b) (a',b) a a'
+  -- '_1' :: 'Lens' (a,b,c) (a',b,c) a a'
+  -- '_1' :: 'Lens' (a,b,c,d) (a',b,c,d) a a'
   -- ...
-  -- _1 :: 'Lens' (a,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a'
+  -- '_1' :: 'Lens' (a,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a'
   -- @
   _1 :: IndexedLens Int s t a b
 

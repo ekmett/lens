@@ -18,7 +18,7 @@
 -- A @'Setter' s t a b@ is a generalization of 'fmap' from 'Functor'. It allows you to map into a
 -- structure and change out the contents, but it isn't strong enough to allow you to
 -- enumerate those contents. Starting with @'fmap' :: 'Functor' f => (a -> b) -> f a -> f b@
--- we monomorphize the type to obtain @(a -> b) -> s -> t@ and then decorate it with 'Data.Functor.Identity.Identity' to obtain
+-- we monomorphize the type to obtain @(a -> b) -> s -> t@ and then decorate it with 'Data.Functor.Identity.Identity' to obtain:
 --
 -- @type 'Setter' s t a b = (a -> 'Data.Functor.Identity.Identity' b) -> s -> 'Data.Functor.Identity.Identity' t@
 --
@@ -157,14 +157,14 @@ type AnIndexedSetter' i s a = AnIndexedSetter i s s a a
 --
 -- @'mapped' :: 'Functor' f => 'Setter' (f a) (f b) a b@
 --
--- If you want an 'IndexPreservingSetter' use 'setting fmap'
+-- If you want an 'IndexPreservingSetter' use @'setting' 'fmap'@.
 mapped :: Functor f => Setter (f a) (f b) a b
 mapped = sets fmap
 {-# INLINE mapped #-}
 
--- | This setter can be used to modify all of the values in a 'Monad'.
+-- | This 'setter' can be used to modify all of the values in a 'Monad'.
 --
--- You sometimes have to use this, rather than 'mapped', because due to
+-- You sometimes have to use this rather than 'mapped' -- due to
 -- temporary insanity 'Functor' is not a superclass of 'Monad'.
 --
 -- @'liftM' ≡ 'over' 'lifted'@
@@ -175,7 +175,7 @@ mapped = sets fmap
 -- >>> set lifted b (Just a)
 -- Just b
 --
--- If you want an 'IndexPreservingSetter' use 'setting liftM'
+-- If you want an 'IndexPreservingSetter' use @'setting' 'liftM'@.
 lifted :: Monad m => Setter (m a) (m b) a b
 lifted = sets liftM
 {-# INLINE lifted #-}

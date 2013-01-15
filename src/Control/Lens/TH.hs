@@ -128,11 +128,11 @@ singletonIso       = lensFlags.ix SingletonIso
 singletonRequired :: Lens' LensRules Bool
 singletonRequired  = lensFlags.ix SingletonRequired
 
--- | Create the class if the constructor is 'Simple' and the 'lensClass' rule matches.
+-- | Create the class if the constructor is 'Control.Lens.Type.Simple' and the 'lensClass' rule matches.
 createClass       :: Lens' LensRules Bool
 createClass        = lensFlags.ix CreateClass
 
--- | Create the instance if the constructor is 'Simple' and the 'lensClass' rule matches.
+-- | Create the instance if the constructor is 'Control.Lens.Type.Simple' and the 'lensClass' rule matches.
 createInstance    :: Lens' LensRules Bool
 createInstance     = lensFlags.ix CreateInstance
 
@@ -217,7 +217,7 @@ classyRules = defaultRules
     classy n@(a:as) = Just ("Has" ++ n, toLower a:as)
     classy _ = Nothing
 
--- | Rules for making an isomorphism from a data type
+-- | Rules for making an isomorphism from a data type.
 isoRules :: LensRules
 isoRules = defaultRules
   & handleSingletons  .~ True
@@ -226,7 +226,7 @@ isoRules = defaultRules
 
 -- | Build lenses (and traversals) with a sensible default configuration.
 --
--- > makeLenses = makeLensesWith lensRules
+-- @'makeLenses' = 'makeLensesWith' 'lensRules'@
 makeLenses :: Name -> Q [Dec]
 makeLenses = makeLensesWith lensRules
 
@@ -244,12 +244,12 @@ makeLenses = makeLensesWith lensRules
 --
 -- @
 -- class HasFoo t where
---   foo :: 'Simple' 'Lens' t Foo
+--   foo :: 'Control.Lens.Type.Simple' 'Lens' t Foo
 -- instance HasFoo Foo where foo = 'id'
--- fooX, fooY :: HasFoo t => 'Simple' 'Lens' t 'Int'
+-- fooX, fooY :: HasFoo t => 'Control.Lens.Type.Simple' 'Lens' t 'Int'
 -- @
 --
--- > makeClassy = makeLensesWith classyRules
+-- @'makeClassy' = 'makeLensesWith' 'classyRules'@
 makeClassy :: Name -> Q [Dec]
 makeClassy = makeLensesWith classyRules
 
@@ -269,7 +269,7 @@ makeClassy = makeLensesWith classyRules
 --
 -- @'list' :: 'Iso' [a] [b] ('List' a) ('List' b)@
 --
--- > makeIso = makeLensesWith isoRules
+-- @'makeIso' = 'makeLensesWith' 'isoRules'@
 makeIso :: Name -> Q [Dec]
 makeIso = makeLensesWith isoRules
 
@@ -281,8 +281,10 @@ makeIso = makeLensesWith isoRules
 --
 -- /e.g./
 --
--- > makeLensesFor [("_foo", "fooLens"), ("baz", "lbaz")] ''Foo
--- > makeLensesFor [("_barX", "bar"), ("_barY", "bar)] ''Bar
+-- @
+-- 'makeLensesFor' [(\"_foo\", \"fooLens\"), (\"baz\", \"lbaz\")] ''Foo
+-- 'makeLensesFor' [(\"_barX\", \"bar\"), (\"_barY\", \"bar\")] ''Bar
+-- @
 makeLensesFor :: [(String, String)] -> Name -> Q [Dec]
 makeLensesFor fields = makeLensesWith $ lensRules & lensField .~ (`Prelude.lookup` fields)
 
@@ -291,7 +293,7 @@ makeLensesFor fields = makeLensesWith $ lensRules & lensField .~ (`Prelude.looku
 --
 -- Example usage:
 --
--- > makeClassyFor "HasFoo" "foo" [("_foo", "fooLens"), ("bar", "lbar")] ''Foo
+-- @'makeClassyFor' \"HasFoo\" \"foo\" [(\"_foo\", \"fooLens\"), (\"bar\", \"lbar\")] ''Foo@
 makeClassyFor :: String -> String -> [(String, String)] -> Name -> Q [Dec]
 makeClassyFor clsName funName fields = makeLensesWith $ classyRules
   & lensClass .~ const (Just (clsName,funName))
