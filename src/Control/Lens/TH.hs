@@ -24,6 +24,7 @@ module Control.Lens.TH
   , makeClassy, makeClassyFor
   , makeIso
   , makePrisms
+  , makeWrapped
   -- * Configuring Lenses
   , makeLensesWith
   , defaultRules
@@ -63,6 +64,7 @@ import Control.Lens.Prism
 import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
+import Control.Lens.Wrapped
 import Data.Char (toLower)
 import Data.Either (lefts)
 import Data.Foldable hiding (concat)
@@ -661,6 +663,47 @@ getLensFields _ _
 -- (This leaves us open to inscrutable compile errors in the generated code)
 unifyTypes :: [TyVarBndr] -> [Type] -> Q ([TyVarBndr], Type)
 unifyTypes tvs tys = return (tvs, head tys)
+
+-- | Build 'Wrapped' instance for a given newtype
+makeWrapped :: Name -> DecsQ
+makeWrapped newtypeName = do
+  inf <- reify newtypeName
+  case inf of
+    TyConI (NewtypeD _ctx _name tyvars con _deriving) ->
+         makeWrappedInstance newtypeName tyvars con
+    _ -> fail "makeWrapped: Expected newtype constructor"
+
+makeWrappedInstance :: Name -> [TyVarBndr] -> Con -> DecsQ
+makeWrappedInstance newtypeName tyArgs con = do
+  let tyNames = view name <$> tyArgs
+
+  tyNameRemap <- for tyNames $ \ tyName -> do
+                   tyName1 <- newName (show tyName)
+                   return (tyName, tyName1)
+
+  let (newtypeConName, [fieldType]) = ctrNameAndFieldTypes con
+
+      outer1 = conT newtypeName `appsT` fmap varT tyNames
+      inner1 = return fieldType
+
+      outer2 = conT newtypeName `appsT` fmap (varT . snd) tyNameRemap
+      inner2 = rewriteTypeNames tyNameRemap fieldType
+
+  dec <- instanceD (cxt [])
+             (conT ''Wrapped `appsT` [inner1, inner2, outer1, outer2])
+             [makeIsoBody 'wrapped newtypeConName makeIsoFrom makeIsoTo]
+
+  return [dec]
+
+rewriteTypeNames :: [(Name, Name)] -> Type -> TypeQ
+rewriteTypeNames nameMap t = case t of
+  ForallT _ _ _ -> fail "rewriteTypeNames: Wrapper doesn't support rank N types"
+  AppT a b -> AppT <$> rewriteTypeNames nameMap a <*> rewriteTypeNames nameMap b
+  SigT a k -> SigT <$> rewriteTypeNames nameMap a <*> pure k
+  VarT v   -> VarT <$> case List.lookup v nameMap of
+                         Nothing -> fail "rewriteTypeNames: missing type name"
+                         Just u  -> pure u
+  _        -> return t
 
 #if !(MIN_VERSION_template_haskell(2,7,0))
 -- | The orphan instance for old versions is bad, but programming without 'Applicative' is worse.
