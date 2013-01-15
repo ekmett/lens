@@ -357,9 +357,11 @@ makePrismForCon ctx tyConName args canModifyTypeVar allCons con = do
         hitClause =
           clause [conP dataConName (fmap varP varNames)]
           (normalB $ appE (conE 'Right) $ toTupleE $ varE <$> varNames) []
+        otherCons = filter (/= con) allCons
         missClauses
+          | List.null otherCons   = []
           | Map.null altArgs = [clause [varP xName] (normalB (appE (conE 'Left) (varE xName))) []]
-          | otherwise        = reviewerIdClause <$> filter (/= con) allCons
+          | otherwise        = reviewerIdClause <$> otherCons
     Prelude.sequence [
       sigD resName . forallT
         (args ++ (PlainTV <$> Map.elems altArgs))
