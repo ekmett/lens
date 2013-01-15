@@ -33,7 +33,7 @@ import Data.Complex
 -- >>> import Debug.SimpleReflect
 -- >>> let { a ≈ b = abs (a - b) < 1e-6; infix 4 ≈ }
 
--- | Access the 'realPart' of a 'Complex' number
+-- | Access the 'realPart' of a 'Complex' number.
 --
 -- >>> (a :+ b)^._realPart
 -- a
@@ -50,7 +50,7 @@ _realPart :: RealFloat a => Lens' (Complex a) a
 _realPart f (a :+ b) = (:+ b) <$> f a
 {-# INLINE _realPart #-}
 
--- | Access the 'imagPart' of a 'Complex' number
+-- | Access the 'imagPart' of a 'Complex' number.
 --
 -- >>> (a :+ b)^._imagPart
 -- b
@@ -67,7 +67,7 @@ _imagPart :: RealFloat a => Lens' (Complex a) a
 _imagPart f (a :+ b) = (a :+) <$> f b
 {-# INLINE _imagPart #-}
 
--- | This isn't /quite/ a legal lens. Notably the
+-- | This isn't /quite/ a legal 'Lens'. Notably the
 --
 -- @'view' l ('set' l b a) = b@
 --
@@ -81,12 +81,12 @@ _polar :: RealFloat a => Iso' (Complex a) (a,a)
 _polar = iso polar (uncurry mkPolar)
 {-# INLINE _polar #-}
 
--- | Access the 'magnitude' of a 'Complex' number
+-- | Access the 'magnitude' of a 'Complex' number.
 --
 -- >>> (10.0 :+ 20.0) & _magnitude *~ 2
 -- 20.0 :+ 40.0
 --
--- This isn't /quite/ a legal lens. Notably the
+-- This isn't /quite/ a legal 'Lens'. Notably the
 --
 -- @'view' l ('set' l b a) = b@
 --
@@ -103,12 +103,12 @@ _magnitude f c = setMag <$> f r
         r = magnitude c
 {-# INLINE _magnitude #-}
 
--- | Access the 'phase' of a 'Complex' number
+-- | Access the 'phase' of a 'Complex' number.
 --
 -- >>> (mkPolar 10 (2-pi) & _phase +~ pi & view _phase) ≈ 2
 -- True
 --
--- This isn't /quite/ a legal lens. Notably the
+-- This isn't /quite/ a legal 'Lens'. Notably the
 --
 -- @'view' l ('set' l b a) = b@
 --
@@ -122,7 +122,7 @@ _phase f c = setPhase <$> f theta
         theta = phase c
 {-# INLINE _phase #-}
 
--- | Access the 'conjugate' of a 'Complex' number
+-- | Access the 'conjugate' of a 'Complex' number.
 --
 -- >>> (2.0 :+ 3.0) & _conjugate . _imagPart -~ 1
 -- 2.0 :+ 4.0
