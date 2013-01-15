@@ -615,11 +615,13 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
             else "The following constructors failed this criterion for the " ++ pprint lensName ++ " lens:"
           ] ++ map showCon conList
 
-    --TODO: consider detecting simpleLenses, and generating signatures involving "Simple"?
-    let decl = SigD lensName
-             . ForallT tvs' qs
-             . apps (ConT (if isTraversal then ''Traversal else ''Lens))
-             $ if cfg^.simpleLenses || isJust maybeClassName then [aty,aty,cty,cty] else [aty,bty,cty,dty]
+    let decl = SigD lensName $ ForallT tvs' qs vars
+          where
+          vars
+            | aty == bty && cty == dty || cfg^.simpleLenses || isJust maybeClassName
+               = apps (ConT (if isTraversal then ''Traversal' else ''Lens')) [aty,cty]
+            | otherwise
+               = apps (ConT (if isTraversal then ''Traversal else ''Lens)) [aty,bty,cty,dty]
 
     body <- makeFieldLensBody isTraversal lensName conList maybeMethodName
 #ifndef INLINING
