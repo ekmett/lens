@@ -13,16 +13,19 @@
 * Made sweeping changes to `Iso` and `Prism` and `Indexed` lenses internally. They are now based on `profunctors`. This affects how you use `indexed` in the resulting code and dramatically changed the meaning of `Overloaded`.
 * Added `Control.Lens.Operators` for users who insist on qualified use, but want access to the operators.
 * Added `Control.Lens.Equality` for witnessing type equality, effectively a stronger form of `Iso` that can be used to safely cast.
-* Added combinators and prisms to `Control.Exception.Lens` that enable you to work with GHC's extensible exceptions more easily.
+* Added combinators and prisms to `Control.Exception.Lens` that enable you to work with GHC's extensible exceptions more easily. There are knock-on effects in `Data.Dynamic.Lens`, `System.Exit.Lens`, and `System.IO.Error.Lens`.
 * Added Numeric.Lens: `base` shows and reads integers at base-2 through base-36.
 * Added `index` and `indices`, and removed `iwhere` and `iwhereOf`. Use `itraversed.indices even` and `bar.indices (>3)` instead.
-* Added a notion of `Measured` traversals, folds, getters, setters, actions, etc.
-* Generalized combinators to pass through measures and indices unmodified wherever possible.
+* Generalized combinators to pass through indices unmodified wherever possible.
 * Converted `Zipper` to walk a `Magma` based on the original structure and to use indices from indexed traversals when restoring from tape. This also means that when zipping around within a balanced structure with ascending keys `moveTo` can operate in logarithmic time.
 * Added `Control.Lens.Level` which provides the breadth-first-search Traversals `levels` and `ilevels` which can be used to do (optionally depth-limited) breadth-first searches through arbitrary traversals reaching all leaves at finite depth in finite time. To use these in full accordance with the laws you should restrict yourself to commutative operations and finite containers, but they are useful even in the absence of these properties.
+* Added `scoria` and `iscoria` which can be used to provide a 'debugging view' of a `Traversal`.
 * Added `Control.Lens.Review` which factors the `review` functionality out of `Prism` and exposes `unto`, which is to `review` what `to` is to `view`.
 * Added `contramapped` and `argument` for mapping over inputs.
 * Added `foldr1Of'` and `foldl1Of'`.
+* `makeLenses` now generates `Lens'` and `Traversal'` where appropriate
+* Added `makePrisms` as a generalized `makeIso` that automatically generates a `Prism` for each constructor.
+* `Data.ByteString.Lazy.Lens` now uses `Int64`-based indexing.
 
 3.7.3 [maintenance release]
 -----
@@ -98,6 +101,7 @@
 * Readded `leftmost` and `rightmost` due to the verbosity of `farthest leftward`/`farthest rightward`.
 * Added `preview`/`previews`/`firstOf` and deprecated `headOf`.
 * Added `iview`/`iviews`/`iuse`/`iuses` to `Control.Lens.IndexedGetter`.
+* We've generalized the type of Bazaar and provided generalized variants of `partsOf`, etc. that used it.
 
 3.6.0.4 [maintenance release]
 -------
@@ -186,6 +190,7 @@
 * Fixed a bug that caused `resultAt` to give wrong answers most of the time.
 * Changed `resultAt` to an `IndexedLens` and moved it to `Control.Lens.IndexedLens`
 * Changed `ignored` to an `IndexedTraversal` and moved it to `Control.Lens.IndexedTraversal`
+* We've relinquished the name `value`.
 
 3.2
 ---
