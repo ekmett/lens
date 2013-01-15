@@ -43,10 +43,10 @@ levelOuts bz = runFlows $ runBazaar bz $ \ _ -> Flows $ \t -> case t of
   _           -> error "levelOuts: wrong shape"
 {-# INLINE levelOuts #-}
 
--- | This provides a breadth-first traversal of the individual 'levels' of any other 'Traversal'
+-- | This provides a breadth-first 'Traversal' of the individual 'levels' of any other 'Traversal'
 -- via iterative deepening depth-first search. The levels are returned to you in a compressed format.
 --
--- This can permit us to extract the levels directly:
+-- This can permit us to extract the 'levels' directly:
 --
 -- >>> ["hello","world"]^..levels (traverse.traverse)
 -- [Zero,Zero,One () 'h',Two 0 (One () 'e') (One () 'w'),Two 0 (One () 'l') (One () 'o'),Two 0 (One () 'l') (One () 'r'),Two 0 (One () 'o') (One () 'l'),One () 'd']
@@ -56,18 +56,18 @@ levelOuts bz = runFlows $ runBazaar bz $ \ _ -> Flows $ \t -> case t of
 -- >>> ["hello","world"]^..levels (traverse.traverse).traverse
 -- "hewlolrold"
 --
--- We can use this to traverse to a fixed depth in the tree of (<*>)'s used in the 'Traversal':
+-- We can use this to traverse to a fixed depth in the tree of ('<*>') used in the 'Traversal':
 --
 -- >>> ["hello","world"] & taking 4 (levels (traverse.traverse)).traverse %~ toUpper
 -- ["HEllo","World"]
 --
--- Or we can use it to traverse the first n elements in found in that traversal regardless of the depth
+-- Or we can use it to traverse the first @n@ elements in found in that 'Traversal' regardless of the depth
 -- at which they were found.
 --
 -- >>> ["hello","world"] & taking 4 (levels (traverse.traverse).traverse) %~ toUpper
 -- ["HELlo","World"]
 --
--- The resulting 'Traversal' of the levels which is indexed by the depth of each 'Level'.
+-- The resulting 'Traversal' of the 'levels' which is indexed by the depth of each 'Level'.
 --
 -- >>> ["dog","cat"]^@..levels (traverse.traverse) <. traverse
 -- [(2,'d'),(3,'o'),(3,'c'),(4,'g'),(4,'a'),(5,'t')]
@@ -91,7 +91,7 @@ ilevelOuts bz = runFlows $ runBazaar bz $ Indexed $ \ _ _ -> Flows $ \t -> case 
   _           -> error "ilevelOuts: wrong shape"
 {-# INLINE ilevelOuts #-}
 
--- | This provides a breadth-first traversal of the individual 'levels' of any other 'Traversal'
+-- | This provides a breadth-first 'Traversal' of the individual levels of any other 'Traversal'
 -- via iterative deepening depth-first search. The levels are returned to you in a compressed format.
 --
 -- This is similar to 'levels', but retains the index of the original 'IndexedTraversal', so you can
