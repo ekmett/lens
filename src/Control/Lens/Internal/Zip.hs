@@ -185,7 +185,7 @@ tooth (Zipper _ _ _ o _ _) = o
 -- NB: Attempts to move upward from the 'Top' of the 'Zipper' will fail to typecheck.
 --
 -- upward :: Ord j => Zipper h j t s :> a:@i -> Zipper h j t s
-upward :: Ord j => Zipper (h :> s:@j) i b a b -> h :> s:@j
+upward :: Ord j => Zipper (Zipper h j s t s) i b a b  -> Zipper h j s t s
 upward (Zipper (Snoc h n _ p d j k) _ q o i x) = Zipper h n p d j $ k $ recompress q o i x
 {-# INLINE upward #-}
 
