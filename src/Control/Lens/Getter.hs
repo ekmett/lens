@@ -52,11 +52,13 @@ module Control.Lens.Getter
   , (^.)
   , view, views, view', views'
   , use, uses, use', uses'
+  , listening, listenings
   -- * Indexed Getters
   -- ** Indexed Getter Combinators
   , (^@.)
   , iview, iviews
   , iuse, iuses
+  , ilistening, ilistenings
   -- * Implementation Details
   , Gettable(..)
   , Accessor(..)
@@ -67,6 +69,7 @@ import Control.Lens.Internal.Indexed
 import Control.Lens.Type
 import Control.Monad.Reader.Class as Reader
 import Control.Monad.State        as State
+import Control.Monad.Writer       as Writer
 import Data.Profunctor
 import Data.Profunctor.Unsafe
 
@@ -178,7 +181,6 @@ view :: MonadReader s m => Getting a s t a b -> m a
 view l = Reader.asks (runAccessor #. l Accessor)
 {-# INLINE view #-}
 
--- | View the value of a 'Getter', 'Control.Lens.Iso.Iso',
 -- 'Lens' or the result of folding over the result of mapping
 -- the targets of a 'Control.Lens.Fold.Fold' or
 -- 'Control.Lens.Traversal.Traversal'.
@@ -293,6 +295,80 @@ use l = State.gets (view l)
 uses :: (Profunctor p, MonadState s m) => Overloading p (->) (Accessor r) s t a b -> p a r -> m r
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}
+
+-- | This is a generalized form of 'listen' that only extracts the portion of
+-- the log that is focused on by a 'Getter'. If given a 'Fold' or a 'Traversal'
+-- then a monoidal summary of the parts of the log that are visited will be
+-- returned.
+--
+-- @
+-- 'listening' :: 'MonadWriter' w m             => 'Getter' w u     -> m a -> m (a, u)
+-- 'listening' :: 'MonadWriter' w m             => 'Lens'' w u      -> m a -> m (a, u)
+-- 'listening' :: 'MonadWriter' w m             => 'Iso'' w u       -> m a -> m (a, u)
+-- 'listening' :: ('MonadWriter' w m, 'Monoid' u) => 'Fold' w u       -> m a -> m (a, u)
+-- 'listening' :: ('MonadWriter' w m, 'Monoid' u) => 'Traversal'' w u -> m a -> m (a, u)
+-- 'listening' :: ('MonadWriter' w m, 'Monoid' u) => 'Prism'' w u     -> m a -> m (a, u)
+-- @
+listening :: MonadWriter w m => Getting u w t u b -> m a -> m (a, u)
+listening l m = do
+  (a, w) <- listen m
+  return (a, view l w)
+{-# INLINE listening #-}
+
+-- | This is a generalized form of 'listen' that only extracts the portion of
+-- the log that is focused on by a 'Getter'. If given a 'Fold' or a 'Traversal'
+-- then a monoidal summary of the parts of the log that are visited will be
+-- returned.
+--
+-- @
+-- 'ilistening' :: 'MonadWriter' w m             => 'IndexedGetter' i w u     -> m a -> m (a, (i, u))
+-- 'ilistening' :: 'MonadWriter' w m             => 'IndexedLens'' i w u      -> m a -> m (a, (i, u))
+-- 'ilistening' :: ('MonadWriter' w m, 'Monoid' u) => 'IndexedFold' i w u       -> m a -> m (a, (i, u))
+-- 'ilistening' :: ('MonadWriter' w m, 'Monoid' u) => 'IndexedTraversal'' i w u -> m a -> m (a, (i, u))
+-- @
+ilistening :: MonadWriter w m => IndexedGetting i (i, u) w t u b -> m a -> m (a, (i, u))
+ilistening l m = do
+  (a, w) <- listen m
+  return (a, iview l w)
+{-# INLINE ilistening #-}
+
+-- | This is a generalized form of 'listen' that only extracts the portion of
+-- the log that is focused on by a 'Getter'. If given a 'Fold' or a 'Traversal'
+-- then a monoidal summary of the parts of the log that are visited will be
+-- returned.
+--
+-- @
+-- 'listenings' :: 'MonadWriter' w m             => 'Getter' w u     -> (u -> v) -> m a -> m (a, v)
+-- 'listenings' :: 'MonadWriter' w m             => 'Lens'' w u      -> (u -> v) -> m a -> m (a, v)
+-- 'listenings' :: 'MonadWriter' w m             => 'Iso'' w u       -> (u -> v) -> m a -> m (a, v)
+-- 'listenings' :: ('MonadWriter' w m, 'Monoid' v) => 'Fold' w u       -> (u -> v) -> m a -> m (a, v)
+-- 'listenings' :: ('MonadWriter' w m, 'Monoid' v) => 'Traversal'' w u -> (u -> v) -> m a -> m (a, v)
+-- 'listenings' :: ('MonadWriter' w m, 'Monoid' v) => 'Prism'' w u     -> (u -> v) -> m a -> m (a, v)
+-- @
+listenings :: MonadWriter w m => Getting v w t u b -> (u -> v) -> m a -> m (a, v)
+listenings l uv m = do
+  (a, w) <- listen m
+  return (a, views l uv w)
+{-# INLINE listenings #-}
+
+-- | This is a generalized form of 'listen' that only extracts the portion of
+-- the log that is focused on by a 'Getter'. If given a 'Fold' or a 'Traversal'
+-- then a monoidal summary of the parts of the log that are visited will be
+-- returned.
+--
+-- @
+-- 'ilistenings' :: 'MonadWriter' w m             => 'IndexedGetter' w u     -> (i -> u -> v) -> m a -> m (a, v)
+-- 'ilistenings' :: 'MonadWriter' w m             => 'IndexedLens'' w u      -> (i -> u -> v) -> m a -> m (a, v)
+-- 'ilistenings' :: ('MonadWriter' w m, 'Monoid' v) => 'IndexedFold' w u       -> (i -> u -> v) -> m a -> m (a, v)
+-- 'ilistenings' :: ('MonadWriter' w m, 'Monoid' v) => 'IndexedTraversal'' w u -> (i -> u -> v) -> m a -> m (a, v)
+-- @
+ilistenings :: MonadWriter w m => IndexedGetting i v w t u b -> (i -> u -> v) -> m a -> m (a, v)
+ilistenings l iuv m = do
+  (a, w) <- listen m
+  return (a, iviews l iuv w)
+{-# INLINE ilistenings #-}
+
+-- | View the value of a 'Getter', 'Control.Lens.Iso.Iso',
 
 ------------------------------------------------------------------------------
 -- Accessing State, Simplified
