@@ -54,7 +54,7 @@ packedChars = iso Char8.pack Char8.unpack
 -- When writing back to the 'ByteString' it is assumed that every 'Char'
 -- lies between '\x00' and '\xff'.
 --
--- @'chars' = 'from' 'packedChars' . 'traverse'@
+-- @'chars' = 'from' 'packedChars' '.' 'traverse'@
 --
 -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
 chars :: IndexedTraversal' Int ByteString Char

@@ -93,8 +93,7 @@ import GHC.Conc (ThreadId)
 -- >>> import Data.List
 -- >>> import Control.Monad
 
--- |
--- Traverse the strongly typed 'Exception' contained in 'SomeException' where the type of your function matches
+-- | Traverse the strongly typed 'Exception' contained in 'SomeException' where the type of your function matches
 -- the desired 'Exception'.
 --
 -- @
@@ -124,8 +123,8 @@ catching l = catchJust (preview l)
 
 -- | Catch exceptions that match a given 'Prism' (or any 'Getter'), discarding
 -- the information about the match. This is particuarly useful when you have
--- a @'Prism'' 'SomeException' ()@ where the result of the prism or fold isn't
--- particularly valuable, just the fact that it matches.
+-- a @'Prism'' 'SomeException' ()@ where the result of the 'Prism' or 'Fold'
+-- isn't particularly valuable, just the fact that it matches.
 --
 -- >>> catching_ _AssertionFailed (assert False (return "uncaught")) $ return "caught"
 -- "caught"
@@ -178,9 +177,8 @@ handling_ :: Getting (Leftmost a) SomeException t a b -> IO r -> IO r -> IO r
 handling_ l b = handling l (const b)
 {-# INLINE handling_ #-}
 
--- |
--- Throw an 'Exception' described by a 'Prism'. Exceptions may be thrown from
--- purely functional code, but may only be caught within the 'IO' monad.
+-- | Throw an 'Exception' described by a 'Prism'. Exceptions may be thrown from
+-- purely functional code, but may only be caught within the 'IO' 'Monad'.
 --
 -- @'throwing' l ≡ 'reviews' l 'throw'@
 --
@@ -192,8 +190,7 @@ throwing :: AReview s SomeException a b -> b -> a
 throwing l = reviews l throw
 {-# INLINE throwing #-}
 
--- |
--- A variant of 'throwing' that can only be used within the 'IO' monad.
+-- | A variant of 'throwing' that can only be used within the 'IO' 'Monad'.
 --
 -- @'throwingIO' l ≡ 'reviews' l 'throwIO'@
 --
@@ -201,16 +198,16 @@ throwing l = reviews l throw
 -- 'throwing', the two functions are subtly different:
 --
 -- @
--- throwing l e `seq` x   ≡ throwing e
--- throwingIO l e `seq` x ≡ x
+-- 'throwing' l e `seq` x   ≡ 'throwing' e
+-- 'throwingIO' l e `seq` x ≡ x
 -- @
 --
--- The first example will cause the exception @e@ to be raised, whereas the
--- second one won't. In fact, 'throwingIO' will only cause an exception to be
--- raised when it is used within the 'IO' monad. The 'throwingIO' variant should
--- be used in preference to 'throwing' to raise an exception within the 'IO' monad
--- because it guarantees ordering with respect to other 'IO' operations, whereas
--- 'throwing' does not.
+-- The first example will cause the 'Exception' @e@ to be raised, whereas the
+-- second one won't. In fact, 'throwingIO' will only cause an 'Exception' to
+-- be raised when it is used within the 'IO' 'Monad'. The 'throwingIO' variant
+-- should be used in preference to 'throwing' to raise an 'Exception' within
+-- the 'IO' 'Monad' because it guarantees ordering with respect to other 'IO'
+-- operations, whereas 'throwing' does not.
 --
 -- @
 -- 'throwingIO' :: 'Prism'' 'SomeException' t -> t -> 'IO' a
@@ -220,8 +217,7 @@ throwingIO :: AReview s SomeException a b -> b -> IO a
 throwingIO l = reviews l throwIO
 {-# INLINE throwingIO #-}
 
--- |
--- 'throwingTo' raises an exception specified by a 'Prism' in the target thread
+-- | 'throwingTo' raises an 'Exception' specified by a 'Prism' in the target thread.
 --
 -- @'throwingTo' thread l ≡ 'reviews' l ('throwTo' thread)@
 --
@@ -238,8 +234,8 @@ throwingTo tid l = reviews l (throwTo tid)
 -- IOException
 ----------------------------------------------------------------------------
 
--- | Exceptions that occur in the IO monad. An IOException records a more
--- specific error type, a descriptive string and maybe the handle that was
+-- | Exceptions that occur in the 'IO' 'Monad'. An 'IOException' records a
+-- more specific error type, a descriptive string and maybe the handle that was
 -- used when the error was flagged.
 --
 -- Due to their richer structure relative to other exceptions, these have
@@ -249,7 +245,7 @@ class AsIOException p f t where
   -- throwing IOExceptions.
   --
   -- @
-  -- '_IOException' :: 'Equality'' 'IOException'   'IOException'
+  -- '_IOException' :: 'Equality'' 'IOException' 'IOException'
   -- '_IOException' :: 'Prism'' 'SomeException' 'IOException'
   -- @
   --
@@ -285,7 +281,7 @@ instance (Choice p, Applicative f) => AsArithException p f SomeException where
 
 -- | Handle arithmetic '_Overflow'.
 --
--- @'_Overflow' ≡ '_ArithException' . '_Overflow'@
+-- @'_Overflow' ≡ '_ArithException' '.' '_Overflow'@
 --
 -- @
 -- '_Overflow' :: 'Prism'' 'ArithException' 'ArithException'
@@ -299,7 +295,7 @@ _Overflow = _ArithException . dimap seta (either id id) . right' . rmap (Overflo
 
 -- | Handle arithmetic '_Underflow'.
 --
--- @'_Underflow' ≡ '_ArithException' . '_Underflow'@
+-- @'_Underflow' ≡ '_ArithException' '.' '_Underflow'@
 --
 -- @
 -- '_Underflow' :: 'Prism'' 'ArithException' 'ArithException'
@@ -313,7 +309,7 @@ _Underflow = _ArithException . dimap seta (either id id) . right' . rmap (Underf
 
 -- | Handle arithmetic loss of precision.
 --
--- @'_LossOfPrecision' ≡ '_ArithException' . '_LossOfPrecision'@
+-- @'_LossOfPrecision' ≡ '_ArithException' '.' '_LossOfPrecision'@
 --
 -- @
 -- '_LossOfPrecision' :: 'Prism'' 'ArithException' 'ArithException'
@@ -327,7 +323,7 @@ _LossOfPrecision = _ArithException . dimap seta (either id id) . right' . rmap (
 
 -- | Handle division by zero.
 --
--- @'_DivideByZero' ≡ '_ArithException' . '_DivideByZero'@
+-- @'_DivideByZero' ≡ '_ArithException' '.' '_DivideByZero'@
 --
 -- @
 -- '_DivideByZero' :: 'Prism'' 'ArithException' 'ArithException'
@@ -341,7 +337,7 @@ _DivideByZero = _ArithException . dimap seta (either id id) . right' . rmap (Div
 
 -- | Handle exceptional _Denormalized floating point.
 --
--- @'_Denormal' ≡ '_ArithException' . '_Denormal'@
+-- @'_Denormal' ≡ '_ArithException' '.' '_Denormal'@
 --
 -- @
 -- '_Denormal' :: 'Prism'' 'ArithException' 'ArithException'
@@ -358,7 +354,7 @@ _Denormal = _ArithException . dimap seta (either id id) . right' . rmap (Denorma
 --
 -- <http://haskell.1045720.n5.nabble.com/Data-Ratio-and-exceptions-td5711246.html>
 --
--- @'_RatioZeroDenominator' ≡ '_ArithException' . '_RatioZeroDenominator'@
+-- @'_RatioZeroDenominator' ≡ '_ArithException' '.' '_RatioZeroDenominator'@
 --
 -- @
 -- '_RatioZeroDenominator' :: 'Prism'' 'ArithException' 'ArithException'
@@ -376,9 +372,9 @@ _RatioZeroDenominator = _ArithException . dimap seta (either id id) . right' . r
 -- ArrayException
 ----------------------------------------------------------------------------
 
--- | Exceptions generated by array operations
+-- | Exceptions generated by array operations.
 class AsArrayException p f t where
-  -- | Extract information about an array exception.
+  -- | Extract information about an 'ArrayException'.
   --
   -- @
   -- '_ArrayException' :: 'Equality'' 'ArrayException' 'ArrayException'
@@ -396,7 +392,7 @@ instance (Choice p, Applicative f) => AsArrayException p f SomeException where
 
 -- | An attempt was made to index an array outside its declared bounds.
 --
--- @'_IndexOutOfBounds' ≡ '_ArrayException' . '_IndexOutOfBounds'@
+-- @'_IndexOutOfBounds' ≡ '_ArrayException' '.' '_IndexOutOfBounds'@
 --
 -- @
 -- '_IndexOutOfBounds' :: 'Prism'' 'ArrayException' 'String'
@@ -410,7 +406,7 @@ _IndexOutOfBounds = _ArrayException . dimap seta (either id id) . right' . rmap 
 
 -- | An attempt was made to evaluate an element of an array that had not been initialized.
 --
--- @'_UndefinedElement' ≡ '_ArrayException' . '_UndefinedElement'@
+-- @'_UndefinedElement' ≡ '_ArrayException' '.' '_UndefinedElement'@
 --
 -- @
 -- '_UndefinedElement' :: 'Prism'' 'ArrayException' 'String'
@@ -467,9 +463,9 @@ instance (Choice p, Applicative f) => AsAsyncException p f SomeException where
   _AsyncException = exception
   {-# INLINE _AsyncException #-}
 
--- | The current thread's stack exceeded its limit. Since an exception has been
--- raised, the thread's stack will certainly be below its limit again, but the
--- programmer should take remedial action immediately.
+-- | The current thread's stack exceeded its limit. Since an 'Exception' has
+-- been raised, the thread's stack will certainly be below its limit again,
+-- but the programmer should take remedial action immediately.
 --
 -- @
 -- '_StackOverflow' :: 'Prism'' 'AsyncException' ()
@@ -486,7 +482,7 @@ _StackOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (St
 --
 -- Notes:
 --
--- * It is undefined which thread receives this exception.
+-- * It is undefined which thread receives this 'Exception'.
 --
 -- * GHC currently does not throw 'HeapOverflow' exceptions.
 --
@@ -500,7 +496,7 @@ _HeapOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (Hea
   seta t             = Left  (pure t)
 {-# INLINE _HeapOverflow #-}
 
--- | This exception is raised by another thread calling 'killThread', or by the
+-- | This 'Exception' is raised by another thread calling 'killThread', or by the
 -- system if it needs to terminate the thread for some reason.
 --
 -- @
@@ -513,7 +509,7 @@ _ThreadKilled = _AsyncException . dimap seta (either id id) . right' . rmap (Thr
   seta t             = Left  (pure t)
 {-# INLINE _ThreadKilled #-}
 
--- | This exception is raised by default in the main thread of the program when
+-- | This 'Exception' is raised by default in the main thread of the program when
 -- the user requests to terminate the program via the usual mechanism(s)
 -- (/e.g./ Control-C in the console).
 --
@@ -567,8 +563,9 @@ instance (Choice p, Applicative f) => AsNestedAtomically p f SomeException where
 ----------------------------------------------------------------------------
 
 class (Profunctor p, Functor f) => AsBlockedIndefinitelyOnMVar p f t where
-  -- | The thread is blocked on an MVar, but there are no other references
-  -- to the MVar so it can't ever continue.
+  -- | The thread is blocked on an 'Control.Concurrent.MVar.MVar', but there
+  -- are no other references to the 'Control.Concurrent.MVar.MVar' so it can't
+  -- ever continue.
   _BlockedIndefinitelyOnMVar :: Overloaded' p f t ()
 
 instance (Profunctor p, Functor f) => AsBlockedIndefinitelyOnMVar p f BlockedIndefinitelyOnMVar where
@@ -584,8 +581,9 @@ instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnMVar p f SomeExcept
 ----------------------------------------------------------------------------
 
 class (Profunctor p, Functor f) => AsBlockedIndefinitelyOnSTM p f t where
-  -- | The thread is waiting to retry an STM transaction, but there are no
-  -- other references to any TVars involved, so it can't ever continue.
+  -- | The thread is waiting to retry an 'Control.Monad.STM.STM' transaction,
+  -- but there are no other references to any TVars involved, so it can't ever
+  -- continue.
   _BlockedIndefinitelyOnSTM :: Overloaded' p f t ()
 
 instance (Profunctor p, Functor f) => AsBlockedIndefinitelyOnSTM p f BlockedIndefinitelyOnSTM where
@@ -637,7 +635,7 @@ instance (Choice p, Applicative f) => AsNoMethodError p f SomeException where
 class (Profunctor p, Functor f) => AsPatternMatchFail p f t where
   -- | A pattern match failed.
   --
-  -- Information about the source location of the pattern
+  -- Information about the source location of the pattern.
   _PatternMatchFail :: Overloaded' p f t String
 
 instance (Profunctor p, Functor f) => AsPatternMatchFail p f PatternMatchFail where
@@ -655,7 +653,8 @@ instance (Choice p, Applicative f) => AsPatternMatchFail p f SomeException where
 class (Profunctor p, Functor f) => AsRecConError p f t where
   -- | An uninitialised record field was used.
   --
-  -- Information about the source location where the record was constructed
+  -- Information about the source location where the record was
+  -- constructed.
   _RecConError :: Overloaded' p f t String
 
 instance (Profunctor p, Functor f) => AsRecConError p f RecConError where
@@ -674,7 +673,7 @@ instance (Choice p, Applicative f) => AsRecConError p f SomeException where
 -- field. This can only happen with a datatype with multiple constructors,
 -- where some fields are in one constructor but not another.
 class (Profunctor p, Functor f) => AsRecSelError p f t where
-  -- | Information about the source location where the record selection occurred
+  -- | Information about the source location where the record selection occurred.
   _RecSelError :: Overloaded' p f t String
 
 instance (Profunctor p, Functor f) => AsRecSelError p f RecSelError where
@@ -693,7 +692,7 @@ instance (Choice p, Applicative f) => AsRecSelError p f SomeException where
 -- appropriate field. This can only happen with a datatype with multiple
 -- constructors, where some fields are in one constructor but not another.
 class (Profunctor p, Functor f) => AsRecUpdError p f t where
-  -- | Information about the source location where the record was updated
+  -- | Information about the source location where the record was updated.
   _RecUpdError :: Overloaded' p f t String
 
 instance (Profunctor p, Functor f) => AsRecUpdError p f RecUpdError where

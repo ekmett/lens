@@ -22,14 +22,14 @@ import qualified Data.ByteString.Lazy.Lens as Lazy
 
 -- | Traversals for ByteStrings.
 class IsByteString t where
-  -- | 'Data.ByteString.pack' (or 'Data.ByteString.unpack') a list of bytes into a strict or lazy 'ByteString'
+  -- | 'Data.ByteString.pack' (or 'Data.ByteString.unpack') a list of bytes into a strict or lazy 'ByteString'.
   --
   -- @'Data.ByteString.pack' x = x '^.' 'packedBytes'@
   --
   -- @'Data.ByteString.unpack' x = x '^.' 'from' 'packedBytes'@
   packedBytes :: Iso' [Word8] t
 
-  -- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a strict or lazy 'ByteString'
+  -- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a strict or lazy 'ByteString'.
   --
   -- When writing back to the 'ByteString' it is assumed that every 'Char'
   -- lies between '\x00' and '\xff'.
@@ -53,7 +53,7 @@ class IsByteString t where
   -- When writing back to the 'ByteString' it is assumed that every 'Char'
   -- lies between '\x00' and '\xff'.
   --
-  -- @'chars' = 'from' 'packedChars' . 'traverse'@
+  -- @'chars' = 'from' 'packedChars' '.' 'traverse'@
   --
   -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
   chars :: IndexedTraversal' Int t Char

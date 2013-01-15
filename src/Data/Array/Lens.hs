@@ -18,14 +18,14 @@ module Data.Array.Lens
 import Control.Lens
 import Data.Array.IArray hiding (index)
 
--- | This setter can be used to derive a new 'IArray' from an old array by
+-- | This 'setter' can be used to derive a new 'IArray' from an old 'IAarray' by
 -- applying a function to each of the indices to look it up in the old 'IArray'.
 --
 -- This is a /contravariant/ 'Setter'.
 --
 -- @
--- 'ixmap' ≡ 'over' . 'ixmapped'
--- 'ixmapped' ≡ 'setting' . 'ixmap'
+-- 'ixmap' ≡ 'over' '.' 'ixmapped'
+-- 'ixmapped' ≡ 'setting' '.' 'ixmap'
 -- 'over' ('ixmapped' b) f arr '!' i ≡ arr '!' f i
 -- 'bounds' ('over' ('ixmapped' b) f arr) ≡ b
 -- @

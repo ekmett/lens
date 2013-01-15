@@ -24,6 +24,7 @@ module Control.Lens.TH
   , makeClassy, makeClassyFor
   , makeIso
   , makePrisms
+  , makeWrapped
   -- * Configuring Lenses
   , makeLensesWith
   , defaultRules
@@ -63,6 +64,7 @@ import Control.Lens.Prism
 import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
+import Control.Lens.Wrapped
 import Data.Char (toLower)
 import Data.Either (lefts)
 import Data.Foldable hiding (concat)
@@ -355,9 +357,11 @@ makePrismForCon ctx tyConName args canModifyTypeVar allCons con = do
         hitClause =
           clause [conP dataConName (fmap varP varNames)]
           (normalB $ appE (conE 'Right) $ toTupleE $ varE <$> varNames) []
+        otherCons = filter (/= con) allCons
         missClauses
+          | List.null otherCons   = []
           | Map.null altArgs = [clause [varP xName] (normalB (appE (conE 'Left) (varE xName))) []]
-          | otherwise        = reviewerIdClause varNames <$> filter (/= con) allCons
+          | otherwise        = reviewerIdClause <$> otherCons
     Prelude.sequence [
       sigD resName . forallT
         (args ++ (PlainTV <$> Map.elems altArgs))
@@ -390,10 +394,14 @@ ctrNameAndFieldTypes (ForallC _ _ c) = ctrNameAndFieldTypes c
 
 -- When a 'Prism' can change type variables it needs to pattern match on all
 -- other data constructors and rebuild the data so it will have the new type.
-reviewerIdClause :: [Name] -> Con -> ClauseQ
-reviewerIdClause varNames con =
-  clause [conP dataConName (fmap varP varNames)] (normalB $ appE (conE 'Left) $ appsE (conE dataConName :  fmap varE varNames)) []
-  where (dataConName, _) = ctrNameAndFieldTypes con
+reviewerIdClause :: Con -> ClauseQ
+reviewerIdClause con = do
+  let (dataConName, fieldTypes) = ctrNameAndFieldTypes con
+  varNames <- for [0 .. length fieldTypes - 1] $ \i ->
+                newName ('x' : show i)
+  clause [conP dataConName (fmap varP varNames)]
+         (normalB $ appE (conE 'Left) $ appsE (conE dataConName : fmap varE varNames))
+         []
 
 toTupleT :: [TypeQ] -> TypeQ
 toTupleT [x] = x
@@ -657,6 +665,45 @@ getLensFields _ _
 -- (This leaves us open to inscrutable compile errors in the generated code)
 unifyTypes :: [TyVarBndr] -> [Type] -> Q ([TyVarBndr], Type)
 unifyTypes tvs tys = return (tvs, head tys)
+
+-- | Build 'Wrapped' instance for a given newtype
+makeWrapped :: Name -> DecsQ
+makeWrapped nm = do
+  inf <- reify nm
+  case inf of
+    TyConI decl ->
+      case deNewtype decl of
+        DataD _ tyConName args [con] _ -> makeWrappedInstance tyConName args con
+        _                              -> fail "makeWrapped: Unsupported data type"
+    _ -> fail "makeWrapped: Expected the name of a newtype or datatype"
+
+makeWrappedInstance :: Name -> [TyVarBndr] -> Con -> DecsQ
+makeWrappedInstance tyConName tyArgs con = do
+  let tyNames = view name <$> tyArgs
+
+  tyNameRemap <- makeNameRemap tyNames
+
+  (newtypeConName, fieldType) <- case ctrNameAndFieldTypes con of
+    (a,[b]) -> return (a,b)
+    _       -> fail "makeWrappedInstance: Constructor must have a single field"
+
+  let outer1 = conT tyConName `appsT` fmap varT tyNames
+      inner1 = return fieldType
+
+      outer2 = conT tyConName `appsT` fmap (varT . snd) tyNameRemap
+      inner2 = return $ substTypeVars (Map.fromList tyNameRemap) fieldType
+
+  dec <- instanceD (cxt [])
+             (conT ''Wrapped `appsT` [inner1, inner2, outer1, outer2])
+             [makeIsoBody 'wrapped newtypeConName makeIsoFrom makeIsoTo]
+
+  return [dec]
+  where
+  -- Return list to preserve order, convert to Map later
+  makeNameRemap tyNames
+    = for tyNames $ \ tyName -> do
+        tyName1 <- newName (show tyName)
+        return (tyName, tyName1)
 
 #if !(MIN_VERSION_template_haskell(2,7,0))
 -- | The orphan instance for old versions is bad, but programming without 'Applicative' is worse.

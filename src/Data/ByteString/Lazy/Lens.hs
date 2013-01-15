@@ -21,7 +21,7 @@ import Data.ByteString.Lazy.Char8 as Char8
 import Data.Word (Word8)
 import Data.Int (Int64)
 
--- | 'Data.ByteString.Lazy.pack' (or 'Data.ByteString.Lazy.unpack') a list of bytes into a 'ByteString'
+-- | 'Data.ByteString.Lazy.pack' (or 'Data.ByteString.Lazy.unpack') a list of bytes into a 'ByteString'.
 --
 -- @'Data.ByteString.Lazy.pack' x = x '^.' 'packedBytes'@
 --
@@ -30,16 +30,16 @@ packedBytes :: Iso' [Word8] ByteString
 packedBytes = iso Words.pack Words.unpack
 {-# INLINE packedBytes #-}
 
--- | Traverse the individual bytes in a 'ByteString'
+-- | Traverse the individual bytes in a 'ByteString'.
 --
--- @'bytes' = 'from' 'packedBytes' . 'itraversed'@
+-- @'bytes' = 'from' 'packedBytes' '.' 'itraversed'@
 --
 -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
 bytes :: IndexedTraversal' Int64 ByteString Word8
 bytes = from packedBytes . traversed64
 {-# INLINE bytes #-}
 
--- | 'Data.ByteString.Lazy.Char8.pack' (or 'Data.ByteString.Lazy.Char8.unpack') a list of characters into a 'ByteString'
+-- | 'Data.ByteString.Lazy.Char8.pack' (or 'Data.ByteString.Lazy.Char8.unpack') a list of characters into a 'ByteString'.
 --
 -- When writing back to the 'ByteString' it is assumed that every 'Char'
 -- lies between '\x00' and '\xff'.
