@@ -53,6 +53,7 @@ module Control.Lens.Setter
   , (.=), (%=)
   , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (<>=), (&&=), (<.=), (?=), (<?=)
   , (<~)
+  , scribe
   -- * Simplified State Setting
   , set'
   -- * Indexed Setters
@@ -73,6 +74,7 @@ import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Control.Monad (liftM)
 import Control.Monad.State.Class as State
+import Control.Monad.Writer.Class as Writer
 import Data.Functor.Contravariant
 import Data.Monoid
 import Data.Profunctor
@@ -698,6 +700,11 @@ l &&~ n = over l (&& n)
 assign :: MonadState s m => ASetter s s a b -> b -> m ()
 assign l b = State.modify (set l b)
 {-# INLINE assign #-}
+
+-- | Write to a fragment of a larger 'Writer' format.
+scribe :: (MonadWriter t m, Monoid s) => ASetter s t a b -> b -> m ()
+scribe l b = tell (set l b mempty)
+{-# INLINE scribe #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
 -- or 'Traversal' in our monadic state with a new value, irrespective of the
