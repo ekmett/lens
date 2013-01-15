@@ -668,15 +668,17 @@ unifyTypes tvs tys = return (tvs, head tys)
 
 -- | Build 'Wrapped' instance for a given newtype
 makeWrapped :: Name -> DecsQ
-makeWrapped newtypeName = do
-  inf <- reify newtypeName
+makeWrapped nm = do
+  inf <- reify nm
   case inf of
-    TyConI (NewtypeD _ctx _name tyvars con _deriving) ->
-         makeWrappedInstance newtypeName tyvars con
-    _ -> fail "makeWrapped: Expected newtype constructor"
+    TyConI decl ->
+      case deNewtype decl of
+        DataD _ tyConName args [con] _ -> makeWrappedInstance tyConName args con
+        _                              -> fail "makeWrapped: Unsupported data type"
+    _ -> fail "makeWrapped: Expected the name of a newtype or datatype"
 
 makeWrappedInstance :: Name -> [TyVarBndr] -> Con -> DecsQ
-makeWrappedInstance newtypeName tyArgs con = do
+makeWrappedInstance tyConName tyArgs con = do
   let tyNames = view name <$> tyArgs
 
   tyNameRemap <- for tyNames $ \ tyName -> do
@@ -685,10 +687,10 @@ makeWrappedInstance newtypeName tyArgs con = do
 
   let (newtypeConName, [fieldType]) = ctrNameAndFieldTypes con
 
-      outer1 = conT newtypeName `appsT` fmap varT tyNames
+      outer1 = conT tyConName `appsT` fmap varT tyNames
       inner1 = return fieldType
 
-      outer2 = conT newtypeName `appsT` fmap (varT . snd) tyNameRemap
+      outer2 = conT tyConName `appsT` fmap (varT . snd) tyNameRemap
       inner2 = rewriteTypeNames tyNameRemap fieldType
 
   dec <- instanceD (cxt [])
