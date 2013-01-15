@@ -681,33 +681,29 @@ makeWrappedInstance :: Name -> [TyVarBndr] -> Con -> DecsQ
 makeWrappedInstance tyConName tyArgs con = do
   let tyNames = view name <$> tyArgs
 
-  tyNameRemap <- for tyNames $ \ tyName -> do
-                   tyName1 <- newName (show tyName)
-                   return (tyName, tyName1)
+  tyNameRemap <- makeNameRemap tyNames
 
-  let (newtypeConName, [fieldType]) = ctrNameAndFieldTypes con
+  (newtypeConName, fieldType) <- case ctrNameAndFieldTypes con of
+    (a,[b]) -> return (a,b)
+    _       -> fail "makeWrappedInstance: Constructor must have a single field"
 
-      outer1 = conT tyConName `appsT` fmap varT tyNames
+  let outer1 = conT tyConName `appsT` fmap varT tyNames
       inner1 = return fieldType
 
       outer2 = conT tyConName `appsT` fmap (varT . snd) tyNameRemap
-      inner2 = rewriteTypeNames tyNameRemap fieldType
+      inner2 = return $ substTypeVars (Map.fromList tyNameRemap) fieldType
 
   dec <- instanceD (cxt [])
              (conT ''Wrapped `appsT` [inner1, inner2, outer1, outer2])
              [makeIsoBody 'wrapped newtypeConName makeIsoFrom makeIsoTo]
 
   return [dec]
-
-rewriteTypeNames :: [(Name, Name)] -> Type -> TypeQ
-rewriteTypeNames nameMap t = case t of
-  ForallT _ _ _ -> fail "rewriteTypeNames: Wrapper doesn't support rank N types"
-  AppT a b -> AppT <$> rewriteTypeNames nameMap a <*> rewriteTypeNames nameMap b
-  SigT a k -> SigT <$> rewriteTypeNames nameMap a <*> pure k
-  VarT v   -> VarT <$> case List.lookup v nameMap of
-                         Nothing -> fail "rewriteTypeNames: missing type name"
-                         Just u  -> pure u
-  _        -> return t
+  where
+  -- Return list to preserve order, convert to Map later
+  makeNameRemap tyNames
+    = for tyNames $ \ tyName -> do
+        tyName1 <- newName (show tyName)
+        return (tyName, tyName1)
 
 #if !(MIN_VERSION_template_haskell(2,7,0))
 -- | The orphan instance for old versions is bad, but programming without 'Applicative' is worse.
