@@ -357,7 +357,7 @@ makePrismForCon ctx tyConName args canModifyTypeVar allCons con = do
           (normalB $ appE (conE 'Right) $ toTupleE $ varE <$> varNames) []
         missClauses
           | Map.null altArgs = [clause [varP xName] (normalB (appE (conE 'Left) (varE xName))) []]
-          | otherwise        = reviewerIdClause varNames <$> filter (/= con) allCons
+          | otherwise        = reviewerIdClause <$> filter (/= con) allCons
     Prelude.sequence [
       sigD resName . forallT
         (args ++ (PlainTV <$> Map.elems altArgs))
@@ -390,10 +390,14 @@ ctrNameAndFieldTypes (ForallC _ _ c) = ctrNameAndFieldTypes c
 
 -- When a 'Prism' can change type variables it needs to pattern match on all
 -- other data constructors and rebuild the data so it will have the new type.
-reviewerIdClause :: [Name] -> Con -> ClauseQ
-reviewerIdClause varNames con =
-  clause [conP dataConName (fmap varP varNames)] (normalB $ appE (conE 'Left) $ appsE (conE dataConName :  fmap varE varNames)) []
-  where (dataConName, _) = ctrNameAndFieldTypes con
+reviewerIdClause :: Con -> ClauseQ
+reviewerIdClause con = do
+  let (dataConName, fieldTypes) = ctrNameAndFieldTypes con
+  varNames <- for [0 .. length fieldTypes - 1] $ \i ->
+                newName ('x' : show i)
+  clause [conP dataConName (fmap varP varNames)]
+         (normalB $ appE (conE 'Left) $ appsE (conE dataConName : fmap varE varNames))
+         []
 
 toTupleT :: [TypeQ] -> TypeQ
 toTupleT [x] = x
