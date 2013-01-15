@@ -30,7 +30,7 @@ import Data.Word
 infixr 4 .|.~, .&.~, <.|.~, <.&.~
 infix 4 .|.=, .&.=, <.|.=, <.&.=
 
--- | Bitwise '.|.' the target(s) of a 'Lens' or 'Setter'
+-- | Bitwise '.|.' the target(s) of a 'Lens' or 'Setter'.
 --
 -- >>> _2 .|.~ 6 $ ("hello",3)
 -- ("hello",7)
@@ -39,13 +39,13 @@ infix 4 .|.=, .&.=, <.|.=, <.&.=
 -- ('.|.~') :: 'Bits' a             => 'Setter' s t a a    -> a -> s -> t
 -- ('.|.~') :: 'Bits' a             => 'Iso' s t a a       -> a -> s -> t
 -- ('.|.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> t
--- ('.|.~') :: ('Monoid a', 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
+-- ('.|.~') :: ('Data.Monoid.Monoid' a, 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
 -- @
 (.|.~):: (Profunctor q, Bits a) => Overloading (->) q Mutator s t a a -> a -> q s t
 l .|.~ n = over l (.|. n)
 {-# INLINE (.|.~) #-}
 
--- | Bitwise '.&.' the target(s) of a 'Lens' or 'Setter'
+-- | Bitwise '.&.' the target(s) of a 'Lens' or 'Setter'.
 --
 -- >>> _2 .&.~ 7 $ ("hello",254)
 -- ("hello",6)
@@ -54,7 +54,7 @@ l .|.~ n = over l (.|. n)
 -- ('.&.~') :: 'Bits' a             => 'Setter' s t a a    -> a -> s -> t
 -- ('.&.~') :: 'Bits' a             => 'Iso' s t a a       -> a -> s -> t
 -- ('.&.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> t
--- ('.&.~') :: ('Monoid a', 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
+-- ('.&.~') :: ('Data.Monoid.Monoid' a, 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
 -- @
 (.&.~) :: (Profunctor q, Bits a) => Overloading (->) q Mutator s t a a -> a -> q s t
 l .&.~ n = over l (.&. n)
@@ -97,9 +97,9 @@ l .|.= a = modify (l .|.~ a)
 -- (7,("hello",7))
 --
 -- @
--- ('<.|.~') :: 'Bits' a            => 'Iso' s t a a       -> a -> s -> (a, t)
--- ('<.|.~') :: 'Bits' a            => 'Lens' s t a a      -> a -> s -> (a, t)
--- ('<.|.~') :: ('Bits' a, 'Monoid a) => 'Traversal' s t a a -> a -> s -> (a, t)
+-- ('<.|.~') :: 'Bits' a             => 'Iso' s t a a       -> a -> s -> (a, t)
+-- ('<.|.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> (a, t)
+-- ('<.|.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
 -- @
 (<.|.~):: (Profunctor q, Bits a) => Overloading (->) q ((,) a) s t a a -> a -> q s (a, t)
 l <.|.~ n = l <%~ (.|. n)
@@ -112,45 +112,45 @@ l <.|.~ n = l <%~ (.|. n)
 -- (6,("hello",6))
 --
 -- @
--- ('<.&.~') :: 'Bits' a            => 'Iso'       s t a a -> a -> s -> (a, t)
--- ('<.&.~') :: 'Bits' a            => 'Lens'      s t a a -> a -> s -> (a, t)
--- ('<.&.~') :: ('Bits' a, 'Monoid a) => 'Traversal' s t a a -> a -> s -> (a, t)
+-- ('<.&.~') :: 'Bits' a             => 'Iso'       s t a a -> a -> s -> (a, t)
+-- ('<.&.~') :: 'Bits' a             => 'Lens'      s t a a -> a -> s -> (a, t)
+-- ('<.&.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
 -- @
 (<.&.~) :: (Profunctor q, Bits a) => Overloading (->) q ((,) a) s t a a -> a -> q s (a, t)
 l <.&.~ n = l <%~ (.&. n)
 {-# INLINE (<.&.~) #-}
 
 -- | Modify the target(s) of a 'Lens'' (or 'Traversal'') by computing its bitwise '.&.' with another value,
--- returning the result (or a monoidal summary of all of the results traversed)
+-- returning the result (or a monoidal summary of all of the results traversed).
 --
 -- >>> runState (_1 <.&.= 15) (31,0)
 -- (15,(15,0))
 --
 -- @
 -- ('<.&.=') :: ('MonadState' s m, 'Bits' a)           => 'Lens'' s a      -> a -> m a
--- ('<.&.=') :: ('MonadState' s m, 'Bits' a, 'Monoid' a) => 'Traversal'' s a -> a -> m a
+-- ('<.&.=') :: ('MonadState' s m, 'Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal'' s a -> a -> m a
 -- @
 (<.&.=):: (MonadState s m, Bits a) => LensLike' ((,)a) s a -> a -> m a
 l <.&.= b = l <%= (.&. b)
 {-# INLINE (<.&.=) #-}
 
 -- | Modify the target(s) of a 'Lens'', (or 'Traversal') by computing its bitwise '.|.' with another value,
--- returning the result (or a monoidal summary of all of the results traversed)
+-- returning the result (or a monoidal summary of all of the results traversed).
 --
 -- >>> runState (_1 <.|.= 7) (28,0)
 -- (31,(31,0))
 --
 -- @
 -- ('<.|.=') :: ('MonadState' s m, 'Bits' a)           => 'Lens'' s a      -> a -> m a
--- ('<.|.=') :: ('MonadState' s m, 'Bits' a, 'Monoid' a) => 'Traversal'' s a -> a -> m a
+-- ('<.|.=') :: ('MonadState' s m, 'Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal'' s a -> a -> m a
 -- @
 (<.|.=) :: (MonadState s m, Bits a) => LensLike' ((,)a) s a -> a -> m a
 l <.|.= b = l <%= (.|. b)
 {-# INLINE (<.|.=) #-}
 
--- | This lens can be used to access the value of the nth bit in a number.
+-- | This 'Lens' can be used to access the value of the nth bit in a number.
 --
--- @'bitAt' n@ is only a legal 'Lens' into @b@ if @0 <= n < 'bitSize' ('undefined' :: b)@
+-- @'bitAt' n@ is only a legal 'Lens' into @b@ if @0 '<=' n '<' 'bitSize' ('undefined' :: b)@.
 --
 -- >>> 16^.bitAt 4
 -- True
@@ -169,7 +169,7 @@ bitAt n f b = indexed f n (testBit b n) <&> \x -> if x then setBit b n else clea
 
 -- | Get the nth byte, counting from the low end.
 --
--- @'byteAt' n@ is only a legal 'Lens' into @b@ if @0 <= n < ('bitSize' ('undefined' :: b) `div` 8)@
+-- @'byteAt' n@ is only a legal 'Lens' into @b@ if @0 '<=' n '<' ('bitSize' ('undefined' :: b) `div` 8)@
 --
 -- >>> (0xff00 :: Word16)^.byteAt 0
 -- 0

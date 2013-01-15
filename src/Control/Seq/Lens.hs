@@ -7,7 +7,7 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- A 'Fold' can be used to take the role of 'Foldable' in @Control.Seq@
+-- A 'Fold' can be used to take the role of 'Foldable' in @Control.Seq@.
 ----------------------------------------------------------------------------
 module Control.Seq.Lens
   ( seqOf

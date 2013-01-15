@@ -47,7 +47,7 @@ catching l = catchJust (preview l)
 
 -- | Catch exceptions that match a given 'Prism' (or any 'Getter'), discarding
 -- the information about the match. This is particuarly useful when you have
--- a @'Prism'' e ()@ where the result of the prism or fold isn't
+-- a @'Prism'' e ()@ where the result of the 'Prism' or 'Fold' isn't
 -- particularly valuable, just the fact that it matches.
 --
 -- @
@@ -92,8 +92,8 @@ handling_ :: MonadError e m => Getting (Leftmost a) e t a b -> m r -> m r -> m r
 handling_ l = flip (catching_ l)
 {-# INLINE handling_ #-}
 
--- |
--- Throw an exception described by a 'Prism'.
+-- | Throw an 'Exception' described by a 'Prism'.
+--
 -- @'throwing' l ≡ 'reviews' l 'throwError'@
 --
 -- @
