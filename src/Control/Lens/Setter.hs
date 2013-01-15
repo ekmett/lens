@@ -53,7 +53,10 @@ module Control.Lens.Setter
   , (.=), (%=)
   , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (<>=), (&&=), (<.=), (?=), (<?=)
   , (<~)
+  -- * Writer Combinators
   , scribe
+  , passing, ipassing
+  , censoring, icensoring
   -- * Simplified State Setting
   , set'
   -- * Indexed Setters
@@ -701,11 +704,6 @@ assign :: MonadState s m => ASetter s s a b -> b -> m ()
 assign l b = State.modify (set l b)
 {-# INLINE assign #-}
 
--- | Write to a fragment of a larger 'Writer' format.
-scribe :: (MonadWriter t m, Monoid s) => ASetter s t a b -> b -> m ()
-scribe l b = tell (set l b mempty)
-{-# INLINE scribe #-}
-
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
 -- or 'Traversal' in our monadic state with a new value, irrespective of the
 -- old.
@@ -1017,6 +1015,45 @@ l <>~ n = over l (`mappend` n)
 (<>=) :: (MonadState s m, Monoid a) => ASetter' s a -> a -> m ()
 l <>= a = State.modify (l <>~ a)
 {-# INLINE (<>=) #-}
+
+-----------------------------------------------------------------------------
+-- Writer Operations
+----------------------------------------------------------------------------
+
+-- | Write to a fragment of a larger 'Writer' format.
+scribe :: (MonadWriter t m, Monoid s) => ASetter s t a b -> b -> m ()
+scribe l b = tell (set l b mempty)
+{-# INLINE scribe #-}
+
+-- | This is a generalization of 'pass' that alows you to modify just a
+-- portion of the resulting 'MonadWriter'.
+passing :: MonadWriter w m => Setter w w u v -> m (a, u -> v) -> m a
+passing l m = pass $ do
+  (a, uv) <- m
+  return (a, over l uv)
+{-# INLINE passing #-}
+
+-- | This is a generalization of 'pass' that alows you to modify just a
+-- portion of the resulting 'MonadWriter' with access to the index of an
+-- 'IndexedSetter'.
+ipassing :: MonadWriter w m => IndexedSetter i w w u v -> m (a, i -> u -> v) -> m a
+ipassing l m = pass $ do
+  (a, uv) <- m
+  return (a, iover l uv)
+{-# INLINE ipassing #-}
+
+-- | This is a generalization of 'censor' that alows you to 'censor' just a
+-- portion of the resulting 'MonadWriter'.
+censoring :: MonadWriter w m => Setter w w u v -> (u -> v) -> m a -> m a
+censoring l uv = censor (over l uv)
+{-# INLINE censoring #-}
+
+-- | This is a generalization of 'censor' that alows you to 'censor' just a
+-- portion of the resulting 'MonadWriter', with access to the index of an
+-- 'IndexedSetter'.
+icensoring :: MonadWriter w m => IndexedSetter i w w u v -> (i -> u -> v) -> m a -> m a
+icensoring l uv = censor (iover l uv)
+{-# INLINE icensoring #-}
 
 -----------------------------------------------------------------------------
 -- Indexed Setters
