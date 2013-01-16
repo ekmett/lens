@@ -203,9 +203,8 @@ instance Functor (TakingWhile p f a b) where
 instance Applicative (TakingWhile p f a b) where
   pure a = TakingWhile True a $ \_ -> MagmaPure a
   {-# INLINE pure #-}
-  TakingWhile wf tf mf <*> TakingWhile wa ta ma = TakingWhile (wf && wa) (tf ta) $ \o -> case o of
-    False -> MagmaPure (tf ta)
-    True  -> MagmaAp (mf True) (ma wf)
+  TakingWhile wf tf mf <*> TakingWhile wa ta ma = TakingWhile (wf && wa) (tf ta) $ \o ->
+    if o then MagmaAp (mf True) (ma wf) else MagmaPure (tf ta)
   {-# INLINE (<*>) #-}
 
 instance Corepresentable p => Bizarre p (TakingWhile p g) where
