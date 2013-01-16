@@ -34,6 +34,7 @@ module Control.Lens.Setter
   , IndexedSetter, IndexedSetter'
   , ASetter, ASetter'
   , AnIndexedSetter, AnIndexedSetter'
+  , Setting, Setting'
   -- * Building Setters
   , sets, setting
   , cloneSetter
@@ -132,6 +133,10 @@ type AnIndexedSetter i s t a b = Indexed i a (Mutator b) -> s -> Mutator t
 
 -- | @type 'AnIndexedSetter'' i = 'Simple' ('AnIndexedSetter' i)@
 type AnIndexedSetter' i s a = AnIndexedSetter i s s a a
+
+type Setting p s t a b = p a (Mutator b) -> s -> Mutator t
+
+type Setting' p s a = Setting p s s a a
 
 -----------------------------------------------------------------------------
 -- Setters
@@ -315,7 +320,7 @@ cloneIndexedSetter l pafb = taintedDot (runMutator #. l (Indexed $ \i -> Mutator
 -- 'over' :: 'Setter' s t a b -> (a -> b) -> s -> t
 -- 'over' :: 'ASetter' s t a b -> (a -> b) -> s -> t
 -- @
-over :: Profunctor p => Overloading p (->) Mutator s t a b -> p a b -> s -> t
+over :: Profunctor p => Setting p s t a b -> p a b -> s -> t
 over l f = runMutator #. l (Mutator #. f)
 {-# INLINE over #-}
 
@@ -404,7 +409,7 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 -- ('%~') :: 'Lens' s t a b      -> (a -> b) -> s -> t
 -- ('%~') :: 'Traversal' s t a b -> (a -> b) -> s -> t
 -- @
-(%~) :: Profunctor p => Overloading p (->) Mutator s t a b -> p a b -> s -> t
+(%~) :: Profunctor p => Setting p s t a b -> p a b -> s -> t
 (%~) = over
 {-# INLINE (%~) #-}
 
@@ -745,7 +750,7 @@ l .= b = State.modify (l .~ b)
 -- @
 --
 -- @('%=') :: 'MonadState' s m => 'ASetter' s s a b -> (a -> b) -> m ()@
-(%=) :: (Profunctor p, MonadState s m) => Overloading p (->) Mutator s s a b -> p a b -> m ()
+(%=) :: (Profunctor p, MonadState s m) => Setting p s s a b -> p a b -> m ()
 l %= f = State.modify (l %~ f)
 {-# INLINE (%=) #-}
 
@@ -1140,7 +1145,7 @@ l %@= f = State.modify (l %@~ f)
 ------------------------------------------------------------------------------
 
 -- | 'mapOf' is a deprecated alias for 'over'.
-mapOf :: Profunctor p => Overloading p (->) Mutator s t a b -> p a b -> s -> t
+mapOf :: Profunctor p => Setting p s t a b -> p a b -> s -> t
 mapOf = over
 {-# INLINE mapOf #-}
 {-# DEPRECATED mapOf "Use `over`" #-}
