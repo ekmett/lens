@@ -43,12 +43,6 @@ type SimpleReifiedSetter s a = ReifiedSetter s s a a
 type SimpleSetter s a = Setter s s a a
 {-# DEPRECATED SimpleSetter "use Setter'" #-}
 
-type Setting s a = ASetter s s a a
-{-# DEPRECATED Setting "use ASetter" #-}
-
-type SimpleSetting s a = ASetter s s a a
-{-# DEPRECATED SimpleSetting "use ASetter'" #-}
-
 type SimpleReifiedIndexedSetter i s a = ReifiedIndexedSetter i s s a a
 {-# DEPRECATED SimpleReifiedIndexedSetter "use ReifiedIndexedSetter'" #-}
 

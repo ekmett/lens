@@ -54,7 +54,7 @@ import Data.Profunctor.Unsafe
 infixr 8 ^!, ^@!
 
 -- | Used to evaluate an 'Action'.
-type Acting m r s t a b = (a -> Effect m r b) -> s -> Effect m r t
+type Acting m r s t a b = LensLike (Effect m r) s t a b
 
 -- | Perform an 'Action'.
 --
@@ -66,7 +66,7 @@ perform l = getEffect #. l (Effect #. return)
 -- | Perform an 'Action' and modify the result.
 --
 -- @'performs' :: 'Monad' m => 'Acting' m e s t a b -> (a -> e) -> s -> m e@
-performs :: (Profunctor p, Monad m) => Overloading p (->) (Effect m e) s t a b -> p a e -> s -> m e
+performs :: (Profunctor p, Monad m) => Over p (Effect m e) s t a b -> p a e -> s -> m e
 performs l f = getEffect #. l (rmap (Effect #. return) f)
 {-# INLINE performs #-}
 
@@ -114,7 +114,7 @@ liftAct l = act (lift . perform l)
 ----------------------------------------------------------------------------
 
 -- | Used to evaluate an 'IndexedAction'.
-type IndexedActing i m r s t a b = Indexed i a (Effect m r b) -> s -> Effect m r t
+type IndexedActing i m r s t a b = Over (Indexed i) (Effect m r) s t a b
 
 -- | Perform an 'IndexedAction'.
 --
