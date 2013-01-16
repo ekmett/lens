@@ -26,6 +26,7 @@ module Control.Lens.Prism
   , outside
   , aside
   , without
+  , isn't
   -- * Common Prisms
   , _Left
   , _Right
@@ -63,7 +64,7 @@ type APrism' s a = APrism s s a a
 runPrism :: APrism s t a b -> Market a b s t
 #ifdef SAFE
 runPrism k = case k (Market Mutator Right) of
-  Market bt sa -> Market (runMutator #. bt) (either (Left . runMutator) Right . sa)
+  Market bt seta -> Market (runMutator #. bt) (either (Left . runMutator) Right . seta)
 #else
 runPrism k = unsafeCoerce (k (Market Mutator Right))
 #endif
@@ -74,7 +75,7 @@ runPrism k = unsafeCoerce (k (Market Mutator Right))
 -- See 'Control.Lens.Lens.cloneLens' and 'Control.Lens.Traversal.cloneTraversal' for examples of why you might want to do this.
 clonePrism :: APrism s t a b -> Prism s t a b
 clonePrism k = case runPrism k of
-  Market bt sa -> prism bt sa
+  Market bt seta -> prism bt seta
 {-# INLINE clonePrism #-}
 
 ------------------------------------------------------------------------------
@@ -121,6 +122,20 @@ without k = case runPrism k of
       Left s  -> bimap Left Left (seta s)
       Right u -> bimap Right Right (uevc u)
 {-# INLINE without #-}
+
+-- | Check to see if this 'Prism' doesn't match.
+--
+-- >>> isn't _Left (Right 12)
+-- True
+--
+-- >>> isn't _Left (Left 12)
+-- False
+isn't :: APrism s t a b -> s -> Bool
+isn't k s = case runPrism k of
+  Market _ seta -> case seta s of
+    Left _ -> True
+    Right _ -> False
+{-# INLINE isn't #-}
 
 ------------------------------------------------------------------------------
 -- Common Prisms
