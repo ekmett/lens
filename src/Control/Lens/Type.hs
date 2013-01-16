@@ -46,7 +46,7 @@ module Control.Lens.Type
   -- * Common
   , Simple
   , LensLike, LensLike'
-  , Lensing, Lensing'
+  , Over, Over'
   , IndexedLensLike, IndexedLensLike'
   , Overloading, Overloading'
   , Overloaded, Overloaded'
@@ -501,6 +501,6 @@ type IndexedLensLike i f s t a b = forall p. Indexable i p => p a (f b) -> s -> 
 -- | Convenient alias for constructing simple indexed lenses and their ilk.
 type IndexedLensLike' i f s a = IndexedLensLike i f s s a a
 
-type Lensing p f s t a b = p a (f b) -> s -> f t
+type Over p f s t a b = p a (f b) -> s -> f t
 
-type Lensing' p f s a = Lensing p f s s a a
+type Over' p f s a = Over p f s s a a

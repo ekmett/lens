@@ -395,7 +395,7 @@ droppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
 -- @
 --
 -- @'foldMapOf' :: 'Getting' r s t a b -> (a -> r) -> s -> r@
-foldMapOf :: Profunctor p => Overloading p (->) (Accessor r) s t a b -> p a r -> s -> r
+foldMapOf :: Profunctor p => Accessing p r s t a b -> p a r -> s -> r
 foldMapOf l f = runAccessor #. l (Accessor #. f)
 {-# INLINE foldMapOf #-}
 

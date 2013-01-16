@@ -145,7 +145,7 @@ type ATraversal s t a b = LensLike (Bazaar (->) a b) s t a b
 type ATraversal' s a = ATraversal s s a a
 
 -- | When you see this as an argument to a function, it expects an 'IndexedTraversal'.
-type AnIndexedTraversal i s t a b = Lensing (Indexed i) (Bazaar (Indexed i) a b) s t a b
+type AnIndexedTraversal i s t a b = Over (Indexed i) (Bazaar (Indexed i) a b) s t a b
 
 -- | @type 'AnIndexedTraversal'' = 'Simple' ('AnIndexedTraversal' i)@
 type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
@@ -163,7 +163,7 @@ type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
 --  * a 'Lens' if @p@ is only a 'Functor',
 --
 --  * a 'Fold' if 'f' is 'Gettable' and 'Applicative'.
-type Traversing p f s t a b = Overloading p (->) (BazaarT p f a b) s t a b
+type Traversing p f s t a b = Over p (BazaarT p f a b) s t a b
 
 -- | @type 'Traversing'' f = 'Simple' ('Traversing' f)@
 type Traversing' p f s a = Traversing p f s s a a
@@ -192,7 +192,7 @@ type Traversing' p f s a = Traversing p f s s a a
 -- 'traverseOf' :: 'Lens' s t a b      -> (a -> f b) -> s -> f t
 -- 'traverseOf' :: 'Traversal' s t a b -> (a -> f b) -> s -> f t
 -- @
-traverseOf :: Overloading p (->) f s t a b -> p a (f b) -> s -> f t
+traverseOf :: Over p f s t a b -> p a (f b) -> s -> f t
 traverseOf = id
 {-# INLINE traverseOf #-}
 
@@ -214,7 +214,7 @@ traverseOf = id
 -- 'forOf' :: 'Lens' s t a b -> s -> (a -> f b) -> f t
 -- 'forOf' :: 'Traversal' s t a b -> s -> (a -> f b) -> f t
 -- @
-forOf :: Overloading p (->) f s t a b -> s -> p a (f b) -> f t
+forOf :: Over p f s t a b -> s -> p a (f b) -> f t
 forOf = flip
 {-# INLINE forOf #-}
 
@@ -248,7 +248,7 @@ sequenceAOf l = l id
 -- 'mapMOf' ::            'Lens' s t a b      -> (a -> m b) -> s -> m t
 -- 'mapMOf' :: 'Monad' m => 'Traversal' s t a b -> (a -> m b) -> s -> m t
 -- @
-mapMOf :: Profunctor p => Overloading p (->) (WrappedMonad m) s t a b -> p a (m b) -> s -> m t
+mapMOf :: Profunctor p => Over p (WrappedMonad m) s t a b -> p a (m b) -> s -> m t
 mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
 {-# INLINE mapMOf #-}
 
@@ -265,7 +265,7 @@ mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
 -- 'forMOf' ::            'Lens' s t a b      -> s -> (a -> m b) -> m t
 -- 'forMOf' :: 'Monad' m => 'Traversal' s t a b -> s -> (a -> m b) -> m t
 -- @
-forMOf :: Profunctor p => Overloading p (->) (WrappedMonad m) s t a b -> s -> p a (m b) -> m t
+forMOf :: Profunctor p => Over p (WrappedMonad m) s t a b -> s -> p a (m b) -> m t
 forMOf l a cmd = unwrapMonad (l (WrapMonad #. cmd) a)
 {-# INLINE forMOf #-}
 
@@ -316,7 +316,7 @@ transposeOf l = getZipList #. l ZipList
 -- @
 --
 -- @'mapAccumROf' :: 'LensLike' ('Backwards' ('State' acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)@
-mapAccumROf :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (Backwards (State acc)) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumROf :: (Corepresentable p, Comonad (Corep p)) => Over p (Backwards (State acc)) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumROf = mapAccumLOf . backwards
 {-# INLINE mapAccumROf #-}
 
@@ -337,7 +337,7 @@ mapAccumROf = mapAccumLOf . backwards
 -- 'mapAccumLOf' l f acc0 s = 'swap' ('runState' (l (\a -> 'state' (\acc -> 'swap' (f acc a))) s) acc0)
 -- @
 --
-mapAccumLOf :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (State acc) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumLOf :: (Corepresentable p, Comonad (Corep p)) => Over p (State acc) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumLOf l f acc0 s = swap (runState (l g s) acc0) where
    g = cotabulate $ \wa -> state $ \acc -> swap (corep f (acc <$ wa) (extract wa))
 -- This would be much cleaner if the argument order for the function was swapped.
@@ -404,7 +404,7 @@ partsOf l f s = outs b <$> f (ins b) where b = l sell s
 {-# INLINE partsOf #-}
 
 -- | An indexed version of 'partsOf' that receives the entire list of indices as its index.
-ipartsOf :: forall i p f s t a. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a a -> Overloading p (->) f s t [a] [a]
+ipartsOf :: forall i p f s t a. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a a -> Over p f s t [a] [a]
 ipartsOf l f s = outs b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (pins b)
   b = l sell s
@@ -416,7 +416,7 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 {-# INLINE partsOf' #-}
 
 -- | A type-restricted version of 'ipartsOf' that can only be used with an 'IndexedTraversal'.
-ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Overloading (Indexed i) (->) (Bazaar' (Indexed i) a) s t a a -> Overloading p (->) f s t [a] [a]
+ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Over (Indexed i) (Bazaar' (Indexed i) a) s t a a -> Over p f s t [a] [a]
 ipartsOf' l f s = outs b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (pins b)
   b = l sell s
@@ -447,7 +447,7 @@ unsafePartsOf l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 {-# INLINE unsafePartsOf #-}
 
 -- | An indexed version of 'unsafePartsOf' that receives the entire list of indices as its index.
-iunsafePartsOf :: forall i p f s t a b. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a b -> Overloading p (->) f s t [a] [b]
+iunsafePartsOf :: forall i p f s t a b. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a b -> Over p f s t [a] [b]
 iunsafePartsOf l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (pins b)
   b = l sell s
@@ -457,7 +457,7 @@ unsafePartsOf' :: ATraversal s t a b -> Lens s t [a] [b]
 unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 {-# INLINE unsafePartsOf' #-}
 
-iunsafePartsOf' :: forall i p s t a b. Indexable [i] p => Overloading (Indexed i) (->) (Bazaar (Indexed i) a b) s t a b -> IndexedLens [i] s t [a] [b]
+iunsafePartsOf' :: forall i p s t a b. Indexable [i] p => Over (Indexed i) (Bazaar (Indexed i) a b) s t a b -> IndexedLens [i] s t [a] [b]
 iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (pins b)
   b = l sell s
@@ -479,7 +479,7 @@ iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
 -- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
 -- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
 -- @
-holesOf :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
+holesOf :: (Corepresentable p, Comonad (Corep p)) => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
 holesOf l s = f (pins b) (unsafeOuts b) where
   b = l sell s
   f [] _ = []
@@ -502,8 +502,8 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 -- 'singular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
 singular :: (Corepresentable p, Comonad (Corep p), Functor f)
-         => Overloading p (->) (BazaarT p f a a) s t a a
-         -> Overloading p (->) f s t a a
+         => Over p (BazaarT p f a a) s t a a
+         -> Over p f s t a a
 singular l pafb s = case pins b of
   (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> corep pafb w
   []     -> unsafeOuts b . return                    <$> corep pafb (error "singular: empty traversal")
@@ -525,8 +525,8 @@ singular l pafb s = case pins b of
 -- 'unsafeSingular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
 unsafeSingular :: (Corepresentable p, Comonad (Corep p), Functor f)
-               => Overloading p (->) (BazaarT p f a b) s t a b
-               -> Overloading p (->) f s t a b
+               => Over p (BazaarT p f a b) s t a b
+               -> Over p f s t a b
 unsafeSingular l pafb s = case pins b of
   [w] -> unsafeOuts b . return <$> corep pafb w
   []  -> error "unsafeSingular: empty traversal"
@@ -649,8 +649,8 @@ beside l r f = tabulate $ \ ~(s,s') -> liftA2 (,) <$> rep (l f) s <*> rep (r f) 
 -- @
 taking :: (Corepresentable p, Category p, Applicative f)
         => Int
-       -> Overloading p (->) (BazaarT p f a a) s t a a
-       -> Overloading p (->) f s t a a
+       -> Over p (BazaarT p f a a) s t a a
+       -> Over p f s t a a
 taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where b = l sell s
 {-# INLINE taking #-}
 
@@ -680,7 +680,7 @@ taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where b =
 -- 'dropping' :: 'Int' -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold' i m s a
 -- 'dropping' :: 'Int' -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- @
-dropping :: (Corepresentable p, Comonad (Corep p), Applicative f) => Int -> Overloading p (->) (Indexing f) s t a a -> Overloading p (->) f s t a a
+dropping :: (Corepresentable p, Comonad (Corep p), Applicative f) => Int -> Over p (Indexing f) s t a a -> Over p f s t a a
 dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
   paifb = cotabulate $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (i', if i < n then pure (extract wa) else corep pafb wa)
 {-# INLINE dropping #-}
@@ -802,7 +802,7 @@ iforMOf = flip . imapMOf
 -- 'imapAccumROf' :: 'IndexedLens' i s t a b      -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'imapAccumROf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-imapAccumROf :: Overloading (Indexed i) (->) (Backwards (State acc)) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+imapAccumROf :: Over (Indexed i) (Backwards (State acc)) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 imapAccumROf l = mapAccumROf l .# Indexed
 {-# INLINE imapAccumROf #-}
 
@@ -816,7 +816,7 @@ imapAccumROf l = mapAccumROf l .# Indexed
 -- 'imapAccumLOf' :: 'IndexedLens' i s t a b      -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- 'imapAccumLOf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-imapAccumLOf :: Overloading (Indexed i) (->) (State acc) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+imapAccumLOf :: Over (Indexed i) (State acc) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 imapAccumLOf l = mapAccumLOf l .# Indexed
 {-# INLINE imapAccumLOf #-}
 

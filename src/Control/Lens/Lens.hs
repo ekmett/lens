@@ -777,7 +777,7 @@ l <%@~ f = l (Indexed $ \i a -> let b = f i a in (b, b))
 -- ('%%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> (r, b)) -> s -> (r, t)
 -- ('%%@~') :: 'Monoid' r => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> (r, b)) -> s -> (r, t)
 -- @
-(%%@~) :: Lensing (Indexed i) f s t a b -> (i -> a -> f b) -> s -> f t
+(%%@~) :: IndexedLensLike i f s t a b -> (i -> a -> f b) -> s -> f t
 (%%@~) l = l .# Indexed
 {-# INLINE (%%@~) #-}
 
@@ -791,7 +791,7 @@ l <%@~ f = l (Indexed $ \i a -> let b = f i a in (b, b))
 -- ('%%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> (r, b)) -> s -> m r
 -- ('%%@=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> (r, b)) -> s -> m r
 -- @
-(%%@=) :: MonadState s m => Lensing (Indexed i) ((,) r) s s a b -> (i -> a -> (r, b)) -> m r
+(%%@=) :: MonadState s m => IndexedLensLike i ((,) r) s s a b -> (i -> a -> (r, b)) -> m r
 #if MIN_VERSION_mtl(2,1,0)
 l %%@= f = State.state (l %%@~ f)
 #else
@@ -810,7 +810,7 @@ l %%@= f = do
 -- ('<%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> b) -> m b
 -- ('<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m b
 -- @
-(<%@=) :: MonadState s m => Lensing (Indexed i) ((,) b) s s a b -> (i -> a -> b) -> m b
+(<%@=) :: MonadState s m => IndexedLensLike i ((,) b) s s a b -> (i -> a -> b) -> m b
 l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 {-# INLINE (<%@=) #-}
 
