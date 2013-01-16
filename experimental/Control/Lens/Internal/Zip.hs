@@ -30,6 +30,7 @@
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Zip where
+{-
 
 import Control.Applicative
 -- import Control.Comonad
@@ -68,19 +69,27 @@ infixl 8 :>
 -- @h ':>' (a ':@' i) = 'Zipper' h i a@
 --
 type family (:>) h p
-type instance h :> (a :@ i) = Zipper h i a a a
+type instance h :> (a :@ i) = Zipper T h i a a a
+
+infixl 8 :>#
+type h :># a = Zipper T h Int a a a
 
 infixl 8 :>>
-type h :>> a = Zipper h Int a a a
+type h :># a = Zipper L h () a a a
 
 -- | This represents the type a 'Zipper' will have when it is fully 'Zipped' back up.
 type family Zipped h a
 type instance Zipped Top a      = a
 type instance Zipped (Zipper h i t s x) a = Zipped h x
 
-data SomeTraversal i s t a b where
-  SomeTraversal        :: ATraversal s t a b -> SomeTraversal Int s t a b
-  SomeIndexedTraversal :: AnIndexedTraversal i s t a b -> SomeTraversal i s t a b
+data T
+data L
+
+data SomeTraversal l i s t a b where
+  Traversal        :: ATraversal s t a b           -> SomeTraversal T Int s t a b
+  IndexedTraversal :: AnIndexedTraversal i s t a b -> SomeTraversal T i s t a b
+  Lens             :: ALens s t a b           -> SomeLens L () s t a b
+  IndexedLens      :: AnIndexedLens i s t a b -> SomeLens L i s t a b
 
 -- | This is used to represent the 'Top' of the 'Zipper'.
 --
@@ -116,14 +125,14 @@ data Top
 -- at any particular time for any particular 'Zipper'.
 
 #ifndef HLINT
-data Zipper h i b a x where
-  Zipper :: Ord i => !(Coil h i t b a) -> Int -> !(Path i t b b x) -> Int -> i -> x -> Zipper h i b a x
+data Zipper l h i b a x where
+  Zipper :: Ord i => !(Coil l h i t b a) -> Int -> !(Path i t b b x) -> Int -> i -> x -> Zipper l h i b a x
 #endif
 
-instance Functor (Zipper h i b a) where
+instance Functor (Zipper l h i b a) where
   fmap f (Zipper h n p o i a) = Zipper h n (fmap f p) o i (f a)
 
-instance FunctorWithIndex i (Zipper h i b a) where
+instance FunctorWithIndex i (Zipper l h i b a) where
   imap f (Zipper h n p o i a) = Zipper h n (imap f p) o i (f i a)
 
 -- instance Foldable (Zipper h i b) where
@@ -147,15 +156,24 @@ instance Comonad (Zipper h i b a) where
 --
 -- This is part of the internal structure of a 'Zipper'. You shouldn't need to manipulate this directly.
 #ifndef HLINT
-data Coil h i t b a where
-  Coil :: Coil Top Int b b a
-  Snoc :: Ord i => !(Coil h j v t s) -> Int -> SomeTraversal i s t a b -> !(Path j v t t s) -> Int -> j -> (Jacket i s b b -> s) -> Coil (Zipper h j t s s) i t b a
+data Coil :: (* -> * -> * -> * -> * -> *) -> * -> * -> * -> * -> * -> * where
+  Coil :: Coil SomeLens Top Int b b a
+  Snoc :: Ord i => !(Coil l' h j v t s) -> Int -> SomeTraversal l i s t a b -> !(Path j v t t s) -> Int -> j -> (Jacket i s b b -> s) -> Coil l (Zipper l' h j t s s) i t b a
 #endif
 
--- | This 'Lens' views the current target of the 'Zipper'.
-focus :: IndexedLens' i (Zipper h i b a x) x
-focus f (Zipper h n p o i x) = Zipper h n p o i <$> indexed f i x
-{-# INLINE focus #-}
+-- | This enables changing the type of the focus to change the current level's type if we're viewing through a lens.
+class Focused t x y where
+  -- | This 'Lens' views the current target of the 'Zipper'.
+  focus :: IndexedLens (Zipper t h i b a x) (Zipper t h i b a y) x y
+
+instance x ~ y => Focused T x y where
+  focus f (Zipper h n p o i x) = Zipper h n p o i <$> indexed f i x
+  {-# INLINE focus #-}
+
+instance Focused L x y where
+  focus f (Zipper h n p o i x) = Zipper h n (unsafeCoerce p) o i <$> indexed f i x
+  {-# INLINE focus #-}
+
 
 -- | Construct a 'Zipper' that can explore anything, and start it at the top.
 zipper :: a -> Top :>> a
@@ -163,7 +181,7 @@ zipper = Zipper Coil 1 Start 0 0
 {-# INLINE zipper #-}
 
 -- | Return the index of the focus.
-focalPoint :: Zipper h i b a x -> i
+focalPoint :: Zipper l h i b a x -> i
 focalPoint (Zipper _ _ _ _ i _) = i
 {-# INLINE focalPoint #-}
 
@@ -176,7 +194,7 @@ focalPoint (Zipper _ _ _ _ i _) = i
 -- This is based on ordinal position regardless of the underlying index type. It may be excessively expensive for a list.
 --
 -- 'focalPoint' may be much cheaper if you have a 'Traversal' indexed by ordinal position!
-tooth :: Zipper h i b a x -> Int
+tooth :: Zipper l h i b a x -> Int
 tooth (Zipper _ _ _ o _ _) = o
 {-# INLINE tooth #-}
 
@@ -185,7 +203,7 @@ tooth (Zipper _ _ _ o _ _) = o
 -- NB: Attempts to move upward from the 'Top' of the 'Zipper' will fail to typecheck.
 --
 -- upward :: Ord j => Zipper h j t s :> a:@i -> Zipper h j t s
-upward :: Ord j => Zipper (Zipper h j s t s) i b a b  -> Zipper h j s t s
+upward :: Ord j => Zipper l (Zipper l' h j s t s) i b a b  -> Zipper l' h j s t s
 upward (Zipper (Snoc h n _ p d j k) _ q o i x) = Zipper h n p d j $ k $ recompress q o i x
 {-# INLINE upward #-}
 
@@ -205,7 +223,7 @@ upward (Zipper (Snoc h n _ p d j k) _ q o i x) = Zipper h n p d j $ k $ recompre
 --
 -- -- >>> rezip $ zipper (1,2) & fromWithin both & tug rightward & focus .~ 3
 -- (1,3)
-rightward :: MonadPlus m => Zipper h i b a x -> m (Zipper h i b a x)
+rightward :: MonadPlus m => Zipper T h i b a x -> m (Zipper T h i b a x)
 rightward (Zipper h n p o i a) = mover p (JacketLeaf o i a) mzero $ \q o' j b -> return $ Zipper h n q o' j b
 {-# INLINE rightward #-}
 
@@ -225,7 +243,7 @@ rightward (Zipper h n p o i a) = mover p (JacketLeaf o i a) mzero $ \q o' j b ->
 --
 -- -- >>> zipper "hello" & fromWithin traverse & tug rightward & tug leftward & view focus
 -- 'h'
-leftward :: MonadPlus m => Zipper h i b a x -> m (Zipper h i b a x)
+leftward :: MonadPlus m => Zipper T h i b a x -> m (Zipper T h i b a x)
 leftward (Zipper h n p o i a) = movel p (JacketLeaf o i a) mzero $ \q o' j b -> return $ Zipper h n q o' j b
 {-# INLINE leftward #-}
 
@@ -235,7 +253,7 @@ leftward (Zipper h n p o i a) = movel p (JacketLeaf o i a) mzero $ \q o' j b -> 
 --
 -- -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
 -- "hella"
-leftmost :: Zipper h i b a x -> Zipper h i b a x
+leftmost :: Zipper T h i b a x -> Zipper T h i b a x
 leftmost (Zipper h n p o i a) = startl Start (recompress p o i a) (error "leftmost: bad Magma structure") (Zipper h n)
 {-# INLINE leftmost #-}
 
@@ -245,7 +263,7 @@ leftmost (Zipper h n p o i a) = startl Start (recompress p o i a) (error "leftmo
 --
 -- -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
 -- "jelly"
-rightmost :: Zipper h i b a x -> Zipper h i b a x
+rightmost :: Zipper T h i b a x -> Zipper T h i b a x
 rightmost (Zipper h n p o i a) = startr Start (recompress p o i a) (error "rightmost: bad Magma structure") (Zipper h n)
 {-# INLINE rightmost #-}
 
@@ -339,7 +357,7 @@ jerks f n0
 --
 -- -- >>> zipper ("hello","world") & fromWithin (both.traverse) & teeth
 -- 10
-teeth :: Zipper h i b a x -> Int
+teeth :: Zipper l h i b a x -> Int
 teeth (Zipper _ n _ _ _ _) = n
 {-# INLINE teeth #-}
 
@@ -358,7 +376,8 @@ teeth (Zipper _ n _ _ _ _) = n
 --
 -- -- >>> fmap rezip $ zipper "not working" & within traverse >>= jerkTo 2 <&> focus .~ 'w'
 -- Just "now working"
-jerkTo :: MonadPlus m => Int -> Zipper h i b a x -> m (Zipper h i b a x)
+jerkTo :: MonadPlus m => Int -> Zipper T h i b a x -> m (Zipper T h i b a x)
+-- TODO: use the offset to implement this more efficiently
 jerkTo n z = case compare k n of
   LT -> jerks rightward (n - k) z
   EQ -> return z
@@ -375,7 +394,8 @@ jerkTo n z = case compare k n of
 --
 -- -- >>> rezip $ zipper "not working." & fromWithin traverse & tugTo 100 & focus .~ '!' & tugTo 1 & focus .~ 'u'
 -- "nut working!"
-tugTo :: Int -> Zipper h i b a x -> Zipper h i b a x
+tugTo :: Int -> Zipper T h i b a x -> Zipper T h i b a x
+-- TODO: use the offset to implement this more efficiently
 tugTo n z = case compare k n of
   LT -> tugs rightward (n - k) z
   EQ -> z
@@ -418,7 +438,9 @@ moveTo i z = case moveToward i z of
 lensed :: ALens' s a -> IndexedLens' Int s a
 lensed l f = cloneLens l (indexed f (0 :: Int))
 {-# INLINE lensed #-}
+-}
 
+{-
 -- | Step down into a 'Lens'. This is a constrained form of 'fromWithin' for when you know
 -- there is precisely one target that can never fail.
 --
@@ -452,7 +474,7 @@ idownward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start i a
 -- 'within' :: 'Iso'' s a       -> (h :> s) -> 'Maybe' (h :> s :> a)
 -- @
 
--- @'within' :: 'MonadPlus' m => 'ATraversal'' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)@
+-- @'within' :: 'MonadPlus' m => 'ATraversal'' s a -> (h :> s:@j) -> m (h :> s:@j :> a:@Int)@
 within :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
 within = iwithin . indexing
 {-# INLINE within #-}
@@ -614,4 +636,5 @@ unsafelyRestoreTrack :: Track h i a -> Zipped h a -> Zipper h i a
 unsafelyRestoreTrack Track = zipper
 unsafelyRestoreTrack (Fork h n l) = unsafelyRestoreTrack h >>> moveToward n >>> ifromWithin l
 
+-}
 -}

@@ -20,7 +20,6 @@ module Control.Lens.Internal
   , module Control.Lens.Internal.Getter
   , module Control.Lens.Internal.Indexed
   , module Control.Lens.Internal.Iso
---  , module Control.Lens.Internal.Jacket
   , module Control.Lens.Internal.Level
   , module Control.Lens.Internal.Prism
   , module Control.Lens.Internal.Review
@@ -37,7 +36,6 @@ import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Instances ()
 import Control.Lens.Internal.Iso
--- import Control.Lens.Internal.Jacket
 import Control.Lens.Internal.Level
 import Control.Lens.Internal.Prism
 import Control.Lens.Internal.Review

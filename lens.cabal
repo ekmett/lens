@@ -204,7 +204,6 @@ library
     Control.Lens.Internal.Indexed
     Control.Lens.Internal.Instances
     Control.Lens.Internal.Iso
-    Control.Lens.Internal.Jacket
     Control.Lens.Internal.Level
     Control.Lens.Internal.Prism
     Control.Lens.Internal.Review
