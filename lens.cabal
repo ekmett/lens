@@ -20,32 +20,24 @@ description:
   families of getters, folds, isomorphisms, traversals, setters and lenses and their
   indexed variants.
   .
-  An overview, with a large number of examples can be found in the @README@:
+  An overview, with a large number of examples can be found in the @README@: <https://github.com/ekmett/lens#lens-lenses-folds-and-traversals>
   .
-  <https://github.com/ekmett/lens#lens-lenses-folds-and-traversals>
-  .
-  A video on how to use lenses and how they are constructed is available from youtube:
-  .
-  <http://youtu.be/cefnmjtAolY?hd=1>
+  A video on how to use lenses and how they are constructed is available from youtube: <http://youtu.be/cefnmjtAolY?hd=1>
   .
   Slides can be obtained here: <http://comonad.com/haskell/Lenses-Folds-and-Traversals-NYC.pdf>
   .
   More information on the care and feeding of lenses, including a brief tutorial and motivation
-  for their types can be found on the lens wiki:
+  for their types can be found on the lens wiki: <https://github.com/ekmett/lens/wiki>
   .
-  <https://github.com/ekmett/lens/wiki>
-  .
-  A small game that manages its state using lenses can be found in the example folder:
-  .
-  <https://github.com/ekmett/lens/blob/master/examples/Pong.hs>
+  A small game of @pong@ and other more complex examples that manage their state using lenses can be found in the example folder: <https://github.com/ekmett/lens/blob/master/examples/>
   .
   /Lenses, Folds and Traversals/
   .
-  The core of this hierarchy looks like:
+  The core of the hierarchy of lens-like constructions looks like:
   .
   <<http://i.imgur.com/RFi75.png>>
   .
-  You can compose any two elements of the hierarchy above using (.) from the Prelude, and you can
+  You can compose any two elements of the hierarchy above using @(.)@ from the @Prelude@, and you can
   use any element of the hierarchy as any type it linked to above it.
   .
   The result is their lowest upper bound in the hierarchy (or an error if that bound doesn't exist).
@@ -100,6 +92,8 @@ extra-source-files:
   examples/*.hs
   examples/*.lhs
   examples/bf-examples/*.bf
+  travis/cabal-apt-install
+  travis/config
   README.markdown
   CHANGELOG.markdown
 
