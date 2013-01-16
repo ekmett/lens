@@ -40,7 +40,7 @@
 <a name="line-31"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_Right</span>
 <a name="line-32"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_Just</span>
 <a name="line-33"></a>  <span class='hs-comment'>-- * Prismatic profunctors</span>
-<a name="line-34"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Prismatic</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
+<a name="line-34"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Choice</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
 <a name="line-35"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-36"></a>
 <a name="line-37"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
@@ -94,7 +94,7 @@
 <a name="line-85"></a><span class='hs-comment'>--</span>
 <a name="line-86"></a><span class='hs-comment'>-- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.</span>
 <a name="line-87"></a><span class='hs-definition'>prism</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Either</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-88"></a><span class='hs-definition'>prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lmap</span> <span class='hs-layout'>(</span><span class='hs-varid'>first</span> <span class='hs-varid'>pure</span> <span class='hs-varop'>.</span> <span class='hs-varid'>seta</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span> <span class='hs-varid'>prismatic</span> <span class='hs-varop'>.</span> <span class='hs-varid'>rmap</span> <span class='hs-layout'>(</span><span class='hs-varid'>fmap</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span>
+<a name="line-88"></a><span class='hs-definition'>prism</span> <span class='hs-varid'>bt</span> <span class='hs-varid'>seta</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>dimap</span> <span class='hs-varid'>seta</span> <span class='hs-layout'>(</span><span class='hs-varid'>either</span> <span class='hs-varid'>pure</span> <span class='hs-layout'>(</span><span class='hs-varid'>fmap</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span> <span class='hs-varid'>right'</span>
 <a name="line-89"></a><span class='hs-comment'>{-# INLINE prism #-}</span>
 <a name="line-90"></a>
 <a name="line-91"></a><a name="prism'"></a><span class='hs-comment'>-- | Build a 'Prism''.</span>
@@ -118,7 +118,7 @@
 <a name="line-109"></a>    <span class='hs-conid'>Right</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span><span class='hs-layout'>,</span><span class='hs-varid'>a</span><span class='hs-layout'>)</span>
 <a name="line-110"></a><span class='hs-comment'>{-# INLINE aside #-}</span>
 <a name="line-111"></a>
-<a name="line-112"></a><a name="without"></a><span class='hs-comment'>-- | Given a pair of 'Prism's, project sums.</span>
+<a name="line-112"></a><a name="without"></a><span class='hs-comment'>-- | Given a pair of prisms, project sums.</span>
 <a name="line-113"></a><span class='hs-comment'>--</span>
 <a name="line-114"></a><span class='hs-comment'>-- Viewing a 'Prism' as a co-'Lens', this combinator can be seen to be dual to 'Control.Lens.Lens.alongside'.</span>
 <a name="line-115"></a><span class='hs-definition'>without</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>APrism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
@@ -135,7 +135,7 @@
 <a name="line-126"></a><span class='hs-comment'>-- Common Prisms</span>
 <a name="line-127"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-128"></a>
-<a name="line-129"></a><span class='hs-comment'>-- | This 'Prism' provides a traversal for tweaking the left-hand value of an 'Either':</span>
+<a name="line-129"></a><span class='hs-comment'>-- | This 'Prism' provides a 'Traversal' for tweaking the 'Left' half of an 'Either':</span>
 <a name="line-130"></a><span class='hs-comment'>--</span>
 <a name="line-131"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _Left (+1) (Left 2)</span>
 <a name="line-132"></a><span class='hs-comment'>-- Left 3</span>
@@ -157,7 +157,7 @@
 <a name="line-148"></a><span class='hs-sel'>_Left</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-conid'>Left</span> <span class='hs-varop'>$</span> <span class='hs-varid'>either</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Right</span><span class='hs-layout'>)</span>
 <a name="line-149"></a><span class='hs-comment'>{-# INLINE _Left #-}</span>
 <a name="line-150"></a>
-<a name="line-151"></a><span class='hs-comment'>-- | This 'Prism' provides a traversal for tweaking the right-hand value of an 'Either':</span>
+<a name="line-151"></a><span class='hs-comment'>-- | This 'Prism' provides a 'Traversal' for tweaking the 'Right' half of an 'Either':</span>
 <a name="line-152"></a><span class='hs-comment'>--</span>
 <a name="line-153"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _Right (+1) (Left 2)</span>
 <a name="line-154"></a><span class='hs-comment'>-- Left 2</span>
@@ -179,7 +179,7 @@
 <a name="line-170"></a><span class='hs-sel'>_Right</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-conid'>Right</span> <span class='hs-varop'>$</span> <span class='hs-varid'>either</span> <span class='hs-layout'>(</span><span class='hs-conid'>Left</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Left</span><span class='hs-layout'>)</span> <span class='hs-conid'>Right</span>
 <a name="line-171"></a><span class='hs-comment'>{-# INLINE _Right #-}</span>
 <a name="line-172"></a>
-<a name="line-173"></a><span class='hs-comment'>-- | This 'Prism' provides a traversal for tweaking the target of the value of 'Just' in a 'Maybe'.</span>
+<a name="line-173"></a><span class='hs-comment'>-- | This 'Prism' provides a 'Traversal' for tweaking the target of the value of 'Just' in a 'Maybe'.</span>
 <a name="line-174"></a><span class='hs-comment'>--</span>
 <a name="line-175"></a><span class='hs-comment'>-- &gt;&gt;&gt; over _Just (+1) (Just 2)</span>
 <a name="line-176"></a><span class='hs-comment'>-- Just 3</span>

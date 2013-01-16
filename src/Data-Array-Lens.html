@@ -27,14 +27,14 @@
 <a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
 <a name="line-19"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Array</span><span class='hs-varop'>.</span><span class='hs-conid'>IArray</span> <span class='hs-varid'>hiding</span> <span class='hs-layout'>(</span><span class='hs-varid'>index</span><span class='hs-layout'>)</span>
 <a name="line-20"></a>
-<a name="line-21"></a><a name="ixmapped"></a><span class='hs-comment'>-- | This setter can be used to derive a new 'IArray' from an old array by</span>
+<a name="line-21"></a><a name="ixmapped"></a><span class='hs-comment'>-- | This 'setter' can be used to derive a new 'IArray' from an old 'IAarray' by</span>
 <a name="line-22"></a><span class='hs-comment'>-- applying a function to each of the indices to look it up in the old 'IArray'.</span>
 <a name="line-23"></a><span class='hs-comment'>--</span>
 <a name="line-24"></a><span class='hs-comment'>-- This is a /contravariant/ 'Setter'.</span>
 <a name="line-25"></a><span class='hs-comment'>--</span>
 <a name="line-26"></a><span class='hs-comment'>-- @</span>
-<a name="line-27"></a><span class='hs-comment'>-- 'ixmap' ≡ 'over' . 'ixmapped'</span>
-<a name="line-28"></a><span class='hs-comment'>-- 'ixmapped' ≡ 'setting' . 'ixmap'</span>
+<a name="line-27"></a><span class='hs-comment'>-- 'ixmap' ≡ 'over' '.' 'ixmapped'</span>
+<a name="line-28"></a><span class='hs-comment'>-- 'ixmapped' ≡ 'setting' '.' 'ixmap'</span>
 <a name="line-29"></a><span class='hs-comment'>-- 'over' ('ixmapped' b) f arr '!' i ≡ arr '!' f i</span>
 <a name="line-30"></a><span class='hs-comment'>-- 'bounds' ('over' ('ixmapped' b) f arr) ≡ b</span>
 <a name="line-31"></a><span class='hs-comment'>-- @</span>

@@ -30,7 +30,7 @@
 <a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Word</span> <span class='hs-layout'>(</span><span class='hs-conid'>Word8</span><span class='hs-layout'>)</span>
 <a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Int</span> <span class='hs-layout'>(</span><span class='hs-conid'>Int64</span><span class='hs-layout'>)</span>
 <a name="line-23"></a>
-<a name="line-24"></a><a name="packedBytes"></a><span class='hs-comment'>-- | 'Data.ByteString.Lazy.pack' (or 'Data.ByteString.Lazy.unpack') a list of bytes into a 'ByteString'</span>
+<a name="line-24"></a><a name="packedBytes"></a><span class='hs-comment'>-- | 'Data.ByteString.Lazy.pack' (or 'Data.ByteString.Lazy.unpack') a list of bytes into a 'ByteString'.</span>
 <a name="line-25"></a><span class='hs-comment'>--</span>
 <a name="line-26"></a><span class='hs-comment'>-- @'Data.ByteString.Lazy.pack' x = x '^.' 'packedBytes'@</span>
 <a name="line-27"></a><span class='hs-comment'>--</span>
@@ -39,16 +39,16 @@
 <a name="line-30"></a><span class='hs-definition'>packedBytes</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-conid'>Words</span><span class='hs-varop'>.</span><span class='hs-varid'>pack</span> <span class='hs-conid'>Words</span><span class='hs-varop'>.</span><span class='hs-varid'>unpack</span>
 <a name="line-31"></a><span class='hs-comment'>{-# INLINE packedBytes #-}</span>
 <a name="line-32"></a>
-<a name="line-33"></a><a name="bytes"></a><span class='hs-comment'>-- | Traverse the individual bytes in a 'ByteString'</span>
+<a name="line-33"></a><a name="bytes"></a><span class='hs-comment'>-- | Traverse the individual bytes in a 'ByteString'.</span>
 <a name="line-34"></a><span class='hs-comment'>--</span>
-<a name="line-35"></a><span class='hs-comment'>-- @'bytes' = 'from' 'packedBytes' . 'itraversed'@</span>
+<a name="line-35"></a><span class='hs-comment'>-- @'bytes' = 'from' 'packedBytes' '.' 'itraversed'@</span>
 <a name="line-36"></a><span class='hs-comment'>--</span>
 <a name="line-37"></a><span class='hs-comment'>-- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -&gt; 'Bool'@</span>
 <a name="line-38"></a><span class='hs-definition'>bytes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int64</span> <span class='hs-conid'>ByteString</span> <span class='hs-conid'>Word8</span>
 <a name="line-39"></a><span class='hs-definition'>bytes</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedBytes</span> <span class='hs-varop'>.</span> <span class='hs-varid'>traversed64</span>
 <a name="line-40"></a><span class='hs-comment'>{-# INLINE bytes #-}</span>
 <a name="line-41"></a>
-<a name="line-42"></a><a name="packedChars"></a><span class='hs-comment'>-- | 'Data.ByteString.Lazy.Char8.pack' (or 'Data.ByteString.Lazy.Char8.unpack') a list of characters into a 'ByteString'</span>
+<a name="line-42"></a><a name="packedChars"></a><span class='hs-comment'>-- | 'Data.ByteString.Lazy.Char8.pack' (or 'Data.ByteString.Lazy.Char8.unpack') a list of characters into a 'ByteString'.</span>
 <a name="line-43"></a><span class='hs-comment'>--</span>
 <a name="line-44"></a><span class='hs-comment'>-- When writing back to the 'ByteString' it is assumed that every 'Char'</span>
 <a name="line-45"></a><span class='hs-comment'>-- lies between '\x00' and '\xff'.</span>

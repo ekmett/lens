@@ -66,17 +66,17 @@
 <a name="line-57"></a>  <span class='hs-comment'>-- hello</span>
 <a name="line-58"></a>  <span class='hs-comment'>-- ((),"world")</span>
 <a name="line-59"></a>  <span class='hs-comment'>--</span>
-<a name="line-60"></a>  <span class='hs-comment'>-- This can also be used on larger tuples as well</span>
+<a name="line-60"></a>  <span class='hs-comment'>-- This can also be used on larger tuples as well:</span>
 <a name="line-61"></a>  <span class='hs-comment'>--</span>
 <a name="line-62"></a>  <span class='hs-comment'>-- &gt;&gt;&gt; _1 +~ 41 $ (1,2,3,4,5)</span>
 <a name="line-63"></a>  <span class='hs-comment'>-- (42,2,3,4,5)</span>
 <a name="line-64"></a>  <span class='hs-comment'>--</span>
 <a name="line-65"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-66"></a>  <span class='hs-comment'>-- _1 :: 'Lens' (a,b) (a',b) a a'</span>
-<a name="line-67"></a>  <span class='hs-comment'>-- _1 :: 'Lens' (a,b,c) (a',b,c) a a'</span>
-<a name="line-68"></a>  <span class='hs-comment'>-- _1 :: 'Lens' (a,b,c,d) (a',b,c,d) a a'</span>
+<a name="line-66"></a>  <span class='hs-comment'>-- '_1' :: 'Lens' (a,b) (a',b) a a'</span>
+<a name="line-67"></a>  <span class='hs-comment'>-- '_1' :: 'Lens' (a,b,c) (a',b,c) a a'</span>
+<a name="line-68"></a>  <span class='hs-comment'>-- '_1' :: 'Lens' (a,b,c,d) (a',b,c,d) a a'</span>
 <a name="line-69"></a>  <span class='hs-comment'>-- ...</span>
-<a name="line-70"></a>  <span class='hs-comment'>-- _1 :: 'Lens' (a,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a'</span>
+<a name="line-70"></a>  <span class='hs-comment'>-- '_1' :: 'Lens' (a,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a'</span>
 <a name="line-71"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-72"></a>  <span class='hs-sel'>_1</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedLens</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
 <a name="line-73"></a>

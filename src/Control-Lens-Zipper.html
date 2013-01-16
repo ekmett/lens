@@ -21,7 +21,7 @@
 <a name="line-12"></a><span class='hs-comment'>-- The code here is inspired by Brandon Simmons' @zippo@ package, but uses</span>
 <a name="line-13"></a><span class='hs-comment'>-- a different approach to represent the 'Zipper' that makes the whole thing</span>
 <a name="line-14"></a><span class='hs-comment'>-- look like his breadcrumb trail, and can move side-to-side through</span>
-<a name="line-15"></a><span class='hs-comment'>-- 'Control.Lens.Type.Traversal's.</span>
+<a name="line-15"></a><span class='hs-comment'>-- traversals.</span>
 <a name="line-16"></a><span class='hs-comment'>--</span>
 <a name="line-17"></a><span class='hs-comment'>-- Some examples types:</span>
 <a name="line-18"></a><span class='hs-comment'>--</span>
@@ -46,7 +46,7 @@
 <a name="line-37"></a><span class='hs-comment'>-- self-similar children in syntax trees and other structures.</span>
 <a name="line-38"></a><span class='hs-comment'>--</span>
 <a name="line-39"></a><span class='hs-comment'>-- Given keys in ascending order you can jump directly to a given key with</span>
-<a name="line-40"></a><span class='hs-comment'>-- 'moveTo'. When used with 'Control.Lens.Type.IndexedTraversal's for balanced</span>
+<a name="line-40"></a><span class='hs-comment'>-- 'moveTo'. When used with traversals for balanced</span>
 <a name="line-41"></a><span class='hs-comment'>-- tree-like structures such as an 'Data.IntMap.IntMap' or 'Data.Map.Map',</span>
 <a name="line-42"></a><span class='hs-comment'>-- searching for a key with 'moveTo' can be done in logarithmic time.</span>
 <a name="line-43"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>

@@ -31,14 +31,14 @@
 <a name="line-22"></a>
 <a name="line-23"></a><a name="IsByteString"></a><span class='hs-comment'>-- | Traversals for ByteStrings.</span>
 <a name="line-24"></a><a name="IsByteString"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>IsByteString</span> <span class='hs-varid'>t</span> <span class='hs-keyword'>where</span>
-<a name="line-25"></a>  <span class='hs-comment'>-- | 'Data.ByteString.pack' (or 'Data.ByteString.unpack') a list of bytes into a strict or lazy 'ByteString'</span>
+<a name="line-25"></a>  <span class='hs-comment'>-- | 'Data.ByteString.pack' (or 'Data.ByteString.unpack') a list of bytes into a strict or lazy 'ByteString'.</span>
 <a name="line-26"></a>  <span class='hs-comment'>--</span>
 <a name="line-27"></a>  <span class='hs-comment'>-- @'Data.ByteString.pack' x = x '^.' 'packedBytes'@</span>
 <a name="line-28"></a>  <span class='hs-comment'>--</span>
 <a name="line-29"></a>  <span class='hs-comment'>-- @'Data.ByteString.unpack' x = x '^.' 'from' 'packedBytes'@</span>
 <a name="line-30"></a>  <span class='hs-varid'>packedBytes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Word8</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>t</span>
 <a name="line-31"></a>
-<a name="line-32"></a>  <span class='hs-comment'>-- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a strict or lazy 'ByteString'</span>
+<a name="line-32"></a>  <span class='hs-comment'>-- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a strict or lazy 'ByteString'.</span>
 <a name="line-33"></a>  <span class='hs-comment'>--</span>
 <a name="line-34"></a>  <span class='hs-comment'>-- When writing back to the 'ByteString' it is assumed that every 'Char'</span>
 <a name="line-35"></a>  <span class='hs-comment'>-- lies between '\x00' and '\xff'.</span>
@@ -62,7 +62,7 @@
 <a name="line-53"></a>  <span class='hs-comment'>-- When writing back to the 'ByteString' it is assumed that every 'Char'</span>
 <a name="line-54"></a>  <span class='hs-comment'>-- lies between '\x00' and '\xff'.</span>
 <a name="line-55"></a>  <span class='hs-comment'>--</span>
-<a name="line-56"></a>  <span class='hs-comment'>-- @'chars' = 'from' 'packedChars' . 'traverse'@</span>
+<a name="line-56"></a>  <span class='hs-comment'>-- @'chars' = 'from' 'packedChars' '.' 'traverse'@</span>
 <a name="line-57"></a>  <span class='hs-comment'>--</span>
 <a name="line-58"></a>  <span class='hs-comment'>-- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -&gt; 'Bool'@</span>
 <a name="line-59"></a>  <span class='hs-varid'>chars</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>t</span> <span class='hs-conid'>Char</span>

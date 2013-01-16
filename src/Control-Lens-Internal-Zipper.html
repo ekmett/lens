@@ -185,7 +185,7 @@
 <a name="line-176"></a>
 <a name="line-177"></a><span class='hs-comment'>-- * Paths</span>
 <a name="line-178"></a>
-<a name="line-179"></a><a name="Path"></a><span class='hs-comment'>-- | A Path into a 'Magma' that ends at a 'Leaf'</span>
+<a name="line-179"></a><a name="Path"></a><span class='hs-comment'>-- | A 'Path' into a 'Magma' that ends at a 'Leaf'.</span>
 <a name="line-180"></a><a name="Path"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Path</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span>
 <a name="line-181"></a>  <span class='hs-keyglyph'>=</span> <span class='hs-conid'>ApL</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>Bool</span> <span class='hs-layout'>(</span><span class='hs-conid'>Last</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>Path</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>Magma</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
 <a name="line-182"></a>  <span class='hs-keyglyph'>|</span> <span class='hs-conid'>ApR</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>Bool</span> <span class='hs-conid'>Bool</span> <span class='hs-layout'>(</span><span class='hs-conid'>Last</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>Magma</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varop'>!</span><span class='hs-layout'>(</span><span class='hs-conid'>Path</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
@@ -198,7 +198,7 @@
 <a name="line-189"></a>  <span class='hs-varid'>fmap</span> <span class='hs-keyword'>_</span> <span class='hs-conid'>Start</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Start</span>
 <a name="line-190"></a>  <span class='hs-comment'>{-# INLINE fmap #-}</span>
 <a name="line-191"></a>
-<a name="line-192"></a><a name="offset"></a><span class='hs-comment'>-- | Calculate the absolute position of the leaf targeted by a 'Path'.</span>
+<a name="line-192"></a><a name="offset"></a><span class='hs-comment'>-- | Calculate the absolute position of the 'Leaf' targeted by a 'Path'.</span>
 <a name="line-193"></a><span class='hs-comment'>--</span>
 <a name="line-194"></a><span class='hs-comment'>-- This can be quite expensive for right-biased traversals such as you</span>
 <a name="line-195"></a><span class='hs-comment'>-- receive from a list.</span>
@@ -208,8 +208,8 @@
 <a name="line-199"></a><span class='hs-definition'>offset</span> <span class='hs-layout'>(</span><span class='hs-conid'>ApR</span> <span class='hs-keyword'>_</span> <span class='hs-keyword'>_</span> <span class='hs-keyword'>_</span> <span class='hs-keyword'>_</span> <span class='hs-varid'>l</span> <span class='hs-varid'>q</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>size</span> <span class='hs-varid'>l</span> <span class='hs-varop'>+</span> <span class='hs-varid'>offset</span> <span class='hs-varid'>q</span>
 <a name="line-200"></a><span class='hs-comment'>{-# INLINE offset #-}</span>
 <a name="line-201"></a>
-<a name="line-202"></a><a name="pathsize"></a><span class='hs-comment'>-- | Return the total number of children in the 'Magma' by walking the path to</span>
-<a name="line-203"></a><span class='hs-comment'>-- the root.</span>
+<a name="line-202"></a><a name="pathsize"></a><span class='hs-comment'>-- | Return the total number of children in the 'Magma' by walking the</span>
+<a name="line-203"></a><span class='hs-comment'>-- 'Path' to the root.</span>
 <a name="line-204"></a><span class='hs-definition'>pathsize</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Path</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Int</span>
 <a name="line-205"></a><span class='hs-definition'>pathsize</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-num'>1</span> <span class='hs-keyword'>where</span>
 <a name="line-206"></a>  <span class='hs-varid'>go</span> <span class='hs-varid'>n</span> <span class='hs-conid'>Start</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>n</span>
@@ -225,7 +225,7 @@
 <a name="line-216"></a><span class='hs-comment'>-- "list case", where the traversal tree is right-biased, as in (Ap (Leaf (Identity x))</span>
 <a name="line-217"></a><span class='hs-comment'>-- (Ap (Leaf (Identity y)) ...)). It should be safe to delete any of these cases.</span>
 <a name="line-218"></a>
-<a name="line-219"></a><a name="recompress"></a><span class='hs-comment'>-- | Reconstruct a 'Magma' from a 'Path'</span>
+<a name="line-219"></a><a name="recompress"></a><span class='hs-comment'>-- | Reconstruct a 'Magma' from a 'Path'.</span>
 <a name="line-220"></a><span class='hs-definition'>recompress</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Path</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Magma</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span>
 <a name="line-221"></a><span class='hs-definition'>recompress</span> <span class='hs-conid'>Start</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Leaf</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-comment'>-- Unrolled: The lens case.</span>
 <a name="line-222"></a><span class='hs-definition'>recompress</span> <span class='hs-layout'>(</span><span class='hs-conid'>ApL</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>_</span> <span class='hs-keyword'>_</span> <span class='hs-varid'>li</span> <span class='hs-conid'>Start</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Ap</span> <span class='hs-varid'>m</span> <span class='hs-conid'>False</span> <span class='hs-conid'>False</span> <span class='hs-varid'>li</span> <span class='hs-layout'>(</span><span class='hs-conid'>Leaf</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>r</span> <span class='hs-comment'>-- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.</span>
@@ -258,7 +258,7 @@
 <a name="line-249"></a>  <span class='hs-varid'>go</span> <span class='hs-keyword'>_</span> <span class='hs-conid'>Pure</span>        <span class='hs-keyglyph'>=</span> <span class='hs-varid'>kn</span>
 <a name="line-250"></a><span class='hs-comment'>{-# INLINE startr #-}</span>
 <a name="line-251"></a>
-<a name="line-252"></a><a name="movel"></a><span class='hs-comment'>-- | Move left one leaf.</span>
+<a name="line-252"></a><a name="movel"></a><span class='hs-comment'>-- | Move left one 'Leaf'.</span>
 <a name="line-253"></a><span class='hs-definition'>movel</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Path</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Magma</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Path</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
 <a name="line-254"></a><span class='hs-definition'>movel</span> <span class='hs-varid'>p0</span> <span class='hs-varid'>c0</span> <span class='hs-varid'>kn</span> <span class='hs-varid'>kp</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-varid'>p0</span> <span class='hs-varid'>c0</span> <span class='hs-keyword'>where</span>
 <a name="line-255"></a>  <span class='hs-varid'>go</span> <span class='hs-conid'>Start</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>kn</span>
@@ -268,7 +268,7 @@
 <a name="line-259"></a>  <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>ApL</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>_</span> <span class='hs-keyword'>_</span> <span class='hs-varid'>li</span> <span class='hs-varid'>p</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-varid'>p</span> <span class='hs-layout'>(</span><span class='hs-conid'>Ap</span> <span class='hs-varid'>m</span> <span class='hs-conid'>False</span> <span class='hs-conid'>False</span> <span class='hs-varid'>li</span> <span class='hs-varid'>l</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
 <a name="line-260"></a><span class='hs-comment'>{-# INLINE movel #-}</span>
 <a name="line-261"></a>
-<a name="line-262"></a><a name="mover"></a><span class='hs-comment'>-- | Move right one leaf.</span>
+<a name="line-262"></a><a name="mover"></a><span class='hs-comment'>-- | Move right one 'Leaf'.</span>
 <a name="line-263"></a><span class='hs-definition'>mover</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Path</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Magma</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Path</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
 <a name="line-264"></a><span class='hs-definition'>mover</span> <span class='hs-varid'>p0</span> <span class='hs-varid'>c0</span> <span class='hs-varid'>kn</span> <span class='hs-varid'>kp</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-varid'>p0</span> <span class='hs-varid'>c0</span> <span class='hs-keyword'>where</span>
 <a name="line-265"></a>  <span class='hs-varid'>go</span> <span class='hs-conid'>Start</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>kn</span>
@@ -339,13 +339,13 @@
 <a name="line-330"></a>
 <a name="line-331"></a><span class='hs-comment'>-- | This represents the type a 'Zipper' will have when it is fully 'Zipped' back up.</span>
 <a name="line-332"></a><span class='hs-keyword'>type</span> <span class='hs-varid'>family</span> <span class='hs-conid'>Zipped</span> <span class='hs-varid'>h</span> <span class='hs-varid'>a</span>
-<a name="line-333"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>Zipped</span> <span class='hs-conid'>Top</span> <span class='hs-varid'>a</span>      <span class='hs-keyglyph'>=</span> <span class='hs-varid'>a</span>
-<a name="line-334"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>Zipped</span> <span class='hs-layout'>(</span><span class='hs-conid'>Zipper</span> <span class='hs-varid'>h</span> <span class='hs-varid'>i</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Zipped</span> <span class='hs-varid'>h</span> <span class='hs-varid'>s</span>
+<a name="line-333"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>Zipped</span> <span class='hs-conid'>Top</span> <span class='hs-varid'>a</span>            <span class='hs-keyglyph'>=</span> <span class='hs-varid'>a</span>
+<a name="line-334"></a><span class='hs-keyword'>type</span> <span class='hs-keyword'>instance</span> <span class='hs-conid'>Zipped</span> <span class='hs-layout'>(</span><span class='hs-conid'>Zipper</span> <span class='hs-varid'>h</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Zipped</span> <span class='hs-varid'>h</span> <span class='hs-varid'>a</span>
 <a name="line-335"></a>
 <a name="line-336"></a><span class='hs-comment'>-- | A 'Coil' is a linked list of the levels above the current one. The length</span>
 <a name="line-337"></a><span class='hs-comment'>-- of a 'Coil' is known at compile time.</span>
 <a name="line-338"></a><span class='hs-comment'>--</span>
-<a name="line-339"></a><span class='hs-comment'>-- This is part of the internal structure of a zipper. You shouldn't need to manipulate this directly.</span>
+<a name="line-339"></a><span class='hs-comment'>-- This is part of the internal structure of a 'Zipper'. You shouldn't need to manipulate this directly.</span>
 <a name="line-340"></a><span class='hs-cpp'>#ifndef HLINT</span>
 <a name="line-341"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Coil</span> <span class='hs-varid'>t</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>where</span>
 <a name="line-342"></a>  <span class='hs-conid'>Coil</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Coil</span> <span class='hs-conid'>Top</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>a</span>
@@ -357,7 +357,7 @@
 <a name="line-348"></a><span class='hs-definition'>focus</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Zipper</span> <span class='hs-varid'>h</span> <span class='hs-varid'>t</span> <span class='hs-varid'>o</span> <span class='hs-varid'>p</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Zipper</span> <span class='hs-varid'>h</span> <span class='hs-varid'>t</span> <span class='hs-varid'>o</span> <span class='hs-varid'>p</span> <span class='hs-varid'>i</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span>
 <a name="line-349"></a><span class='hs-comment'>{-# INLINE focus #-}</span>
 <a name="line-350"></a>
-<a name="line-351"></a><a name="zipper"></a><span class='hs-comment'>-- | Construct a 'Zipper' that can explore anything, and start it at the top.</span>
+<a name="line-351"></a><a name="zipper"></a><span class='hs-comment'>-- | Construct a 'Zipper' that can explore anything, and start it at the 'Top'.</span>
 <a name="line-352"></a><span class='hs-definition'>zipper</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Top</span> <span class='hs-conop'>:&gt;&gt;</span> <span class='hs-varid'>a</span>
 <a name="line-353"></a><span class='hs-definition'>zipper</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Zipper</span> <span class='hs-conid'>Coil</span> <span class='hs-num'>0</span> <span class='hs-num'>0</span> <span class='hs-conid'>Start</span> <span class='hs-num'>0</span>
 <a name="line-354"></a><span class='hs-comment'>{-# INLINE zipper #-}</span>
@@ -371,7 +371,7 @@
 <a name="line-362"></a><span class='hs-comment'>--</span>
 <a name="line-363"></a><span class='hs-comment'>-- @'jerkTo' ('tooth' l) l = Just'@</span>
 <a name="line-364"></a><span class='hs-comment'>--</span>
-<a name="line-365"></a><span class='hs-comment'>-- Mnemonically, 'Zipper's have a number of 'teeth' within each level. This is which 'tooth' you are currently at.</span>
+<a name="line-365"></a><span class='hs-comment'>-- Mnemonically, zippers have a number of 'teeth' within each level. This is which 'tooth' you are currently at.</span>
 <a name="line-366"></a><span class='hs-comment'>--</span>
 <a name="line-367"></a><span class='hs-comment'>-- This is based on ordinal position regardless of the underlying index type. It may be excessively expensive for a list.</span>
 <a name="line-368"></a><span class='hs-comment'>--</span>
@@ -596,8 +596,8 @@
 <a name="line-587"></a><span class='hs-comment'>{-# INLINE moveToward #-}</span>
 <a name="line-588"></a>
 <a name="line-589"></a><a name="moveTo"></a><span class='hs-comment'>-- | Move horizontally to a particular index @i@ in the current</span>
-<a name="line-590"></a><span class='hs-comment'>-- 'Traversal'. In the case of simple 'Zipper's, the index is 'Int' and</span>
-<a name="line-591"></a><span class='hs-comment'>-- we can move between 'Control.Lens.Type.Traversal's fairly easily:</span>
+<a name="line-590"></a><span class='hs-comment'>-- 'Traversal'. In the case of simple zippers, the index is 'Int' and</span>
+<a name="line-591"></a><span class='hs-comment'>-- we can move between traversals fairly easily:</span>
 <a name="line-592"></a><span class='hs-comment'>--</span>
 <a name="line-593"></a><span class='hs-comment'>-- &gt;&gt;&gt; zipper (42, 32) &amp; fromWithin both &amp; moveTo 0 &lt;&amp;&gt; view focus</span>
 <a name="line-594"></a><span class='hs-comment'>-- 42</span>
@@ -754,7 +754,7 @@
 <a name="line-745"></a><span class='hs-comment'>--</span>
 <a name="line-746"></a><span class='hs-comment'>-- When moving left to right through a 'Traversal', if this will clamp at each</span>
 <a name="line-747"></a><span class='hs-comment'>-- level to the range @0 '&lt;=' k '&lt;' 'teeth'@, so the only failures will occur</span>
-<a name="line-748"></a><span class='hs-comment'>-- when one of the sequence of downward 'Traversal's find no targets.</span>
+<a name="line-748"></a><span class='hs-comment'>-- when one of the sequence of downward traversals find no targets.</span>
 <a name="line-749"></a><span class='hs-definition'>restoreNearTape</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadPlus</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Tape</span> <span class='hs-varid'>h</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Zipped</span> <span class='hs-varid'>h</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Zipper</span> <span class='hs-varid'>h</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
 <a name="line-750"></a><span class='hs-definition'>restoreNearTape</span> <span class='hs-layout'>(</span><span class='hs-conid'>Tape</span> <span class='hs-varid'>h</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>liftM</span> <span class='hs-layout'>(</span><span class='hs-varid'>moveToward</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>restoreNearTrack</span> <span class='hs-varid'>h</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
 <a name="line-751"></a><span class='hs-comment'>{-# INLINE restoreNearTape #-}</span>
@@ -763,7 +763,7 @@
 <a name="line-754"></a><span class='hs-comment'>--</span>
 <a name="line-755"></a><span class='hs-comment'>-- This *assumes* that nothing has been done in the meantime to affect the existence of anything on the entire path.</span>
 <a name="line-756"></a><span class='hs-comment'>--</span>
-<a name="line-757"></a><span class='hs-comment'>-- Motions 'leftward' or 'rightward' are clamped, but all 'Traversal's included on the 'Tape' are assumed to be non-empty.</span>
+<a name="line-757"></a><span class='hs-comment'>-- Motions 'leftward' or 'rightward' are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.</span>
 <a name="line-758"></a><span class='hs-comment'>--</span>
 <a name="line-759"></a><span class='hs-comment'>-- Violate these assumptions at your own risk!</span>
 <a name="line-760"></a><span class='hs-definition'>unsafelyRestoreTape</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Tape</span> <span class='hs-varid'>h</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Zipped</span> <span class='hs-varid'>h</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Zipper</span> <span class='hs-varid'>h</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span>
@@ -794,7 +794,7 @@
 <a name="line-785"></a>
 <a name="line-786"></a><a name="restoreNearTrack"></a><span class='hs-comment'>-- | Restore ourselves to a location near our previously recorded position.</span>
 <a name="line-787"></a><span class='hs-comment'>--</span>
-<a name="line-788"></a><span class='hs-comment'>-- When moving leftward to rightward through a 'Traversal', if this will clamp at each level to the range @0 &lt;= k &lt; teeth@,</span>
+<a name="line-788"></a><span class='hs-comment'>-- When moving 'leftward' to 'rightward' through a 'Traversal', if this will clamp at each level to the range @0 '&lt;=' k '&lt;' 'teeth'@,</span>
 <a name="line-789"></a><span class='hs-comment'>-- so the only failures will occur when one of the sequence of downward traversals find no targets.</span>
 <a name="line-790"></a><span class='hs-definition'>restoreNearTrack</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadPlus</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Track</span> <span class='hs-varid'>h</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Zipped</span> <span class='hs-varid'>h</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Zipper</span> <span class='hs-varid'>h</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
 <a name="line-791"></a><span class='hs-definition'>restoreNearTrack</span> <span class='hs-conid'>Track</span>        <span class='hs-keyglyph'>=</span> <span class='hs-varid'>return</span> <span class='hs-varop'>.</span> <span class='hs-varid'>zipper</span>
@@ -802,9 +802,9 @@
 <a name="line-793"></a>
 <a name="line-794"></a><a name="unsafelyRestoreTrack"></a><span class='hs-comment'>-- | Restore ourselves to a previously recorded position.</span>
 <a name="line-795"></a><span class='hs-comment'>--</span>
-<a name="line-796"></a><span class='hs-comment'>-- This *assumes* that nothing has been done in the meantime to affect the existence of anything on the entire path.</span>
+<a name="line-796"></a><span class='hs-comment'>-- This *assumes* that nothing has been done in the meantime to affect the existence of anything on the entire 'Path'.</span>
 <a name="line-797"></a><span class='hs-comment'>--</span>
-<a name="line-798"></a><span class='hs-comment'>-- Motions leftward or rightward are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.</span>
+<a name="line-798"></a><span class='hs-comment'>-- Motions 'leftward' or 'rightward' are clamped, but all traversals included on the 'Tape' are assumed to be non-empty.</span>
 <a name="line-799"></a><span class='hs-comment'>--</span>
 <a name="line-800"></a><span class='hs-comment'>-- Violate these assumptions at your own risk!</span>
 <a name="line-801"></a><span class='hs-definition'>unsafelyRestoreTrack</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Track</span> <span class='hs-varid'>h</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Zipped</span> <span class='hs-varid'>h</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Zipper</span> <span class='hs-varid'>h</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span>

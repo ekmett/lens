@@ -56,7 +56,7 @@
 <a name="line-47"></a>
 <a name="line-48"></a><a name="catching_"></a><span class='hs-comment'>-- | Catch exceptions that match a given 'Prism' (or any 'Getter'), discarding</span>
 <a name="line-49"></a><span class='hs-comment'>-- the information about the match. This is particuarly useful when you have</span>
-<a name="line-50"></a><span class='hs-comment'>-- a @'Prism'' e ()@ where the result of the prism or fold isn't</span>
+<a name="line-50"></a><span class='hs-comment'>-- a @'Prism'' e ()@ where the result of the 'Prism' or 'Fold' isn't</span>
 <a name="line-51"></a><span class='hs-comment'>-- particularly valuable, just the fact that it matches.</span>
 <a name="line-52"></a><span class='hs-comment'>--</span>
 <a name="line-53"></a><span class='hs-comment'>-- @</span>
@@ -101,8 +101,8 @@
 <a name="line-92"></a><span class='hs-definition'>handling_</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>flip</span> <span class='hs-layout'>(</span><span class='hs-varid'>catching_</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
 <a name="line-93"></a><span class='hs-comment'>{-# INLINE handling_ #-}</span>
 <a name="line-94"></a>
-<a name="line-95"></a><a name="throwing"></a><span class='hs-comment'>-- |</span>
-<a name="line-96"></a><span class='hs-comment'>-- Throw an exception described by a 'Prism'.</span>
+<a name="line-95"></a><a name="throwing"></a><span class='hs-comment'>-- | Throw an 'Exception' described by a 'Prism'.</span>
+<a name="line-96"></a><span class='hs-comment'>--</span>
 <a name="line-97"></a><span class='hs-comment'>-- @'throwing' l ≡ 'reviews' l 'throwError'@</span>
 <a name="line-98"></a><span class='hs-comment'>--</span>
 <a name="line-99"></a><span class='hs-comment'>-- @</span>

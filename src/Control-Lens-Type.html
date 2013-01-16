@@ -195,7 +195,7 @@
 <a name="line-186"></a><span class='hs-comment'>-- Setters</span>
 <a name="line-187"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-188"></a>
-<a name="line-189"></a><a name="Setter"></a><span class='hs-comment'>-- | The only 'Lens'-like law that can apply to a 'Setter' @l@ is that</span>
+<a name="line-189"></a><a name="Setter"></a><span class='hs-comment'>-- | The only 'LensLike' law that can apply to a 'Setter' @l@ is that</span>
 <a name="line-190"></a><a name="Setter"></a><span class='hs-comment'>--</span>
 <a name="line-191"></a><a name="Setter"></a><span class='hs-comment'>-- @'Control.Lens.Setter.set' l y ('Control.Lens.Setter.set' l x a) ≡ 'Control.Lens.Setter.set' l y a@</span>
 <a name="line-192"></a><a name="Setter"></a><span class='hs-comment'>--</span>
@@ -282,11 +282,11 @@
 <a name="line-273"></a><a name="Prism"></a><span class='hs-comment'>--</span>
 <a name="line-274"></a><a name="Prism"></a><span class='hs-comment'>-- First, if I 'Control.Lens.Review.re' or 'Control.Lens.Prism.review' a value with a 'Prism' and then 'Control.Lens.Prism.preview' or use ('Control.Lens.Fold.^?'), I will get it back:</span>
 <a name="line-275"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-276"></a><a name="Prism"></a><span class='hs-comment'>-- * @'Control.Lens.Prism.preview' l ('Control.Lens.Prism.review' l b) ≡ 'Just' b@</span>
+<a name="line-276"></a><a name="Prism"></a><span class='hs-comment'>-- @'Control.Lens.Prism.preview' l ('Control.Lens.Prism.review' l b) ≡ 'Just' b@</span>
 <a name="line-277"></a><a name="Prism"></a><span class='hs-comment'>--</span>
 <a name="line-278"></a><a name="Prism"></a><span class='hs-comment'>-- Second, if you can extract a value @a@ using a 'Prism' @l@ from a value @s@, then the value @s@ is completely described my @l@ and @a@:</span>
 <a name="line-279"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-280"></a><a name="Prism"></a><span class='hs-comment'>-- * If @'Control.Lens.Prism.preview' l s ≡ 'Just' a@ then @'Control.Lens.Prism.review' l a ≡ s@</span>
+<a name="line-280"></a><a name="Prism"></a><span class='hs-comment'>-- If @'Control.Lens.Prism.preview' l s ≡ 'Just' a@ then @'Control.Lens.Prism.review' l a ≡ s@</span>
 <a name="line-281"></a><a name="Prism"></a><span class='hs-comment'>--</span>
 <a name="line-282"></a><a name="Prism"></a><span class='hs-comment'>-- These two laws imply that the 'Traversal' laws hold for every 'Prism' and that we 'Data.Traversable.traverse' at most 1 element:</span>
 <a name="line-283"></a><a name="Prism"></a><span class='hs-comment'>--</span>
@@ -329,7 +329,7 @@
 <a name="line-320"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; 5 ^. re nat -- :: Natural</span>
 <a name="line-321"></a><a name="Prism"></a><span class='hs-comment'>-- 5</span>
 <a name="line-322"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-323"></a><a name="Prism"></a><span class='hs-comment'>-- Similarly we can use a 'Prism' to 'Data.Traversable.traverse' the left half of an 'Either':</span>
+<a name="line-323"></a><a name="Prism"></a><span class='hs-comment'>-- Similarly we can use a 'Prism' to 'Data.Traversable.traverse' the 'Left' half of an 'Either':</span>
 <a name="line-324"></a><a name="Prism"></a><span class='hs-comment'>--</span>
 <a name="line-325"></a><a name="Prism"></a><span class='hs-comment'>-- &gt;&gt;&gt; Left "hello" &amp; _Left %~ length</span>
 <a name="line-326"></a><a name="Prism"></a><span class='hs-comment'>-- Left 5</span>
@@ -345,10 +345,10 @@
 <a name="line-336"></a><a name="Prism"></a><span class='hs-comment'>-- Just 5</span>
 <a name="line-337"></a><a name="Prism"></a><span class='hs-comment'>--</span>
 <a name="line-338"></a><a name="Prism"></a><span class='hs-comment'>-- Another interesting way to think of a 'Prism' is as the categorical dual of a 'Lens'</span>
-<a name="line-339"></a><a name="Prism"></a><span class='hs-comment'>-- -- a /co/-'Lens', so to speak. This is what permits the construction of 'Control.Lens.Prism.outside'.</span>
+<a name="line-339"></a><a name="Prism"></a><span class='hs-comment'>-- -- a co-'Lens', so to speak. This is what permits the construction of 'Control.Lens.Prism.outside'.</span>
 <a name="line-340"></a><a name="Prism"></a><span class='hs-comment'>--</span>
 <a name="line-341"></a><a name="Prism"></a><span class='hs-comment'>-- Note: Composition with a 'Prism' is index-preserving.</span>
-<a name="line-342"></a><a name="Prism"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>forall</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span><span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prismatic</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>p</span> <span class='hs-varid'>s</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-342"></a><a name="Prism"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>forall</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span><span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>p</span> <span class='hs-varid'>s</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
 <a name="line-343"></a>
 <a name="line-344"></a><a name="Prism'"></a><span class='hs-comment'>-- | A 'Simple' 'Prism'.</span>
 <a name="line-345"></a><a name="Prism'"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Prism'</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prism</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
@@ -370,7 +370,7 @@
 <a name="line-361"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
 <a name="line-362"></a>
 <a name="line-363"></a><a name="Getter"></a><span class='hs-comment'>-- | A 'Getter' describes how to retrieve a single value in a way that can be</span>
-<a name="line-364"></a><a name="Getter"></a><span class='hs-comment'>-- composed with other 'Lens'-like constructions.</span>
+<a name="line-364"></a><a name="Getter"></a><span class='hs-comment'>-- composed with other 'LensLike' constructions.</span>
 <a name="line-365"></a><a name="Getter"></a><span class='hs-comment'>--</span>
 <a name="line-366"></a><a name="Getter"></a><span class='hs-comment'>-- Unlike a 'Lens' a 'Getter' is read-only. Since a 'Getter'</span>
 <a name="line-367"></a><a name="Getter"></a><span class='hs-comment'>-- cannot be used to write back there are no 'Lens' laws that can be applied to</span>
@@ -392,7 +392,7 @@
 <a name="line-383"></a><span class='hs-comment'>--------------------------</span>
 <a name="line-384"></a>
 <a name="line-385"></a><a name="Fold"></a><span class='hs-comment'>-- | A 'Fold' describes how to retrieve multiple values in a way that can be composed</span>
-<a name="line-386"></a><a name="Fold"></a><span class='hs-comment'>-- with other 'Lens'-like constructions.</span>
+<a name="line-386"></a><a name="Fold"></a><span class='hs-comment'>-- with other 'LensLike' constructions.</span>
 <a name="line-387"></a><a name="Fold"></a><span class='hs-comment'>--</span>
 <a name="line-388"></a><a name="Fold"></a><span class='hs-comment'>-- A @'Fold' s a@ provides a structure with operations very similar to those of the 'Data.Foldable.Foldable'</span>
 <a name="line-389"></a><a name="Fold"></a><span class='hs-comment'>-- typeclass, see 'Control.Lens.Fold.foldMapOf' and the other 'Fold' combinators.</span>
@@ -504,10 +504,10 @@
 <a name="line-495"></a><a name="LensLike'"></a><span class='hs-comment'>-- | @type 'LensLike'' f = 'Simple' ('LensLike' f)@</span>
 <a name="line-496"></a><a name="LensLike'"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>LensLike'</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
 <a name="line-497"></a>
-<a name="line-498"></a><a name="IndexedLensLike"></a><span class='hs-comment'>-- | Convenient alias for constructing 'IndexedLens'es and their ilk.</span>
+<a name="line-498"></a><a name="IndexedLensLike"></a><span class='hs-comment'>-- | Convenient alias for constructing indexed lenses and their ilk.</span>
 <a name="line-499"></a><a name="IndexedLensLike"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>IndexedLensLike</span> <span class='hs-varid'>i</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>forall</span> <span class='hs-varid'>p</span><span class='hs-varop'>.</span> <span class='hs-conid'>Indexable</span> <span class='hs-varid'>i</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>t</span>
 <a name="line-500"></a>
-<a name="line-501"></a><a name="IndexedLensLike'"></a><span class='hs-comment'>-- | Convenient alias for constructing simple 'IndexedLens'es and their ilk.</span>
+<a name="line-501"></a><a name="IndexedLensLike'"></a><span class='hs-comment'>-- | Convenient alias for constructing simple indexed lenses and their ilk.</span>
 <a name="line-502"></a><a name="IndexedLensLike'"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>IndexedLensLike'</span> <span class='hs-varid'>i</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>IndexedLensLike</span> <span class='hs-varid'>i</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
 <a name="line-503"></a>
 <a name="line-504"></a><a name="Lensing"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Lensing</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>t</span>

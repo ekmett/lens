@@ -49,7 +49,7 @@
 <a name="line-40"></a><span class='hs-comment'>-- Focusing</span>
 <a name="line-41"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-42"></a>
-<a name="line-43"></a><a name="Focusing"></a><span class='hs-comment'>-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.State.StateT'</span>
+<a name="line-43"></a><a name="Focusing"></a><span class='hs-comment'>-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.State.StateT'.</span>
 <a name="line-44"></a><a name="Focusing"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>Focusing</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Focusing</span> <span class='hs-layout'>{</span> <span class='hs-varid'>unfocusing</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>}</span>
 <a name="line-45"></a>
 <a name="line-46"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>Focusing</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -71,7 +71,7 @@
 <a name="line-62"></a><span class='hs-comment'>-- FocusingWith</span>
 <a name="line-63"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-64"></a>
-<a name="line-65"></a><a name="FocusingWith"></a><span class='hs-comment'>-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.RWS.RWST'</span>
+<a name="line-65"></a><a name="FocusingWith"></a><span class='hs-comment'>-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.RWS.RWST'.</span>
 <a name="line-66"></a><a name="FocusingWith"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>FocusingWith</span> <span class='hs-varid'>w</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>FocusingWith</span> <span class='hs-layout'>{</span> <span class='hs-varid'>unfocusingWith</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>w</span><span class='hs-layout'>)</span> <span class='hs-layout'>}</span>
 <a name="line-67"></a>
 <a name="line-68"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>FocusingWith</span> <span class='hs-varid'>w</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -110,7 +110,7 @@
 <a name="line-101"></a><span class='hs-comment'>-- FocusingOn</span>
 <a name="line-102"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-103"></a>
-<a name="line-104"></a><a name="FocusingOn"></a><span class='hs-comment'>-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'</span>
+<a name="line-104"></a><a name="FocusingOn"></a><span class='hs-comment'>-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'.</span>
 <a name="line-105"></a><a name="FocusingOn"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>FocusingOn</span> <span class='hs-varid'>f</span> <span class='hs-varid'>k</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>FocusingOn</span> <span class='hs-layout'>{</span> <span class='hs-varid'>unfocusingOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-layout'>}</span>
 <a name="line-106"></a>
 <a name="line-107"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>FocusingOn</span> <span class='hs-varid'>f</span> <span class='hs-varid'>k</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -127,7 +127,7 @@
 <a name="line-118"></a><span class='hs-comment'>-- May</span>
 <a name="line-119"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-120"></a>
-<a name="line-121"></a><a name="May"></a><span class='hs-comment'>-- | Make a monoid out of 'Maybe' for error handling</span>
+<a name="line-121"></a><a name="May"></a><span class='hs-comment'>-- | Make a 'Monoid' out of 'Maybe' for error handling.</span>
 <a name="line-122"></a><a name="May"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>May</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>May</span> <span class='hs-layout'>{</span> <span class='hs-varid'>getMay</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span> <span class='hs-layout'>}</span>
 <a name="line-123"></a>
 <a name="line-124"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monoid</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Monoid</span> <span class='hs-layout'>(</span><span class='hs-conid'>May</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -142,7 +142,7 @@
 <a name="line-133"></a><span class='hs-comment'>-- FocusingMay</span>
 <a name="line-134"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-135"></a>
-<a name="line-136"></a><a name="FocusingMay"></a><span class='hs-comment'>-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'</span>
+<a name="line-136"></a><a name="FocusingMay"></a><span class='hs-comment'>-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'.</span>
 <a name="line-137"></a><a name="FocusingMay"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>FocusingMay</span> <span class='hs-varid'>k</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>FocusingMay</span> <span class='hs-layout'>{</span> <span class='hs-varid'>unfocusingMay</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-conid'>May</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-layout'>}</span>
 <a name="line-138"></a>
 <a name="line-139"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-conid'>May</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>FocusingMay</span> <span class='hs-varid'>k</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -159,7 +159,7 @@
 <a name="line-150"></a><span class='hs-comment'>-- Err</span>
 <a name="line-151"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-152"></a>
-<a name="line-153"></a><a name="Err"></a><span class='hs-comment'>-- | Make a monoid out of 'Either' for error handling</span>
+<a name="line-153"></a><a name="Err"></a><span class='hs-comment'>-- | Make a 'Monoid' out of 'Either' for error handling.</span>
 <a name="line-154"></a><a name="Err"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>Err</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Err</span> <span class='hs-layout'>{</span> <span class='hs-varid'>getErr</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Either</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-layout'>}</span>
 <a name="line-155"></a>
 <a name="line-156"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monoid</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Monoid</span> <span class='hs-layout'>(</span><span class='hs-conid'>Err</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -174,7 +174,7 @@
 <a name="line-165"></a><span class='hs-comment'>-- FocusingErr</span>
 <a name="line-166"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-167"></a>
-<a name="line-168"></a><a name="FocusingErr"></a><span class='hs-comment'>-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'</span>
+<a name="line-168"></a><a name="FocusingErr"></a><span class='hs-comment'>-- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'.</span>
 <a name="line-169"></a><a name="FocusingErr"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>FocusingErr</span> <span class='hs-varid'>e</span> <span class='hs-varid'>k</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>FocusingErr</span> <span class='hs-layout'>{</span> <span class='hs-varid'>unfocusingErr</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-conid'>Err</span> <span class='hs-varid'>e</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-layout'>}</span>
 <a name="line-170"></a>
 <a name="line-171"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-varid'>k</span> <span class='hs-layout'>(</span><span class='hs-conid'>Err</span> <span class='hs-varid'>e</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>FocusingErr</span> <span class='hs-varid'>e</span> <span class='hs-varid'>k</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -191,7 +191,7 @@
 <a name="line-182"></a><span class='hs-comment'>-- EffectRWS</span>
 <a name="line-183"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-184"></a>
-<a name="line-185"></a><a name="EffectRWS"></a><span class='hs-comment'>-- | Wrap a monadic effect with a phantom type argument. Used when magnifying RWST.</span>
+<a name="line-185"></a><a name="EffectRWS"></a><span class='hs-comment'>-- | Wrap a monadic effect with a phantom type argument. Used when magnifying 'Control.Monad.RWS.RWST'.</span>
 <a name="line-186"></a><a name="EffectRWS"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>EffectRWS</span> <span class='hs-varid'>w</span> <span class='hs-varid'>st</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>EffectRWS</span> <span class='hs-layout'>{</span> <span class='hs-varid'>getEffectRWS</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>st</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span><span class='hs-layout'>,</span><span class='hs-varid'>st</span><span class='hs-layout'>,</span><span class='hs-varid'>w</span><span class='hs-layout'>)</span> <span class='hs-layout'>}</span>
 <a name="line-187"></a>
 <a name="line-188"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>EffectRWS</span> <span class='hs-varid'>w</span> <span class='hs-varid'>st</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>

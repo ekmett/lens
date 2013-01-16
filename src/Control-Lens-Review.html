@@ -99,7 +99,7 @@
 <a name="line-90"></a><span class='hs-comment'>-- &gt;&gt;&gt; review _Left "mustard"</span>
 <a name="line-91"></a><span class='hs-comment'>-- Left "mustard"</span>
 <a name="line-92"></a><span class='hs-comment'>--</span>
-<a name="line-93"></a><span class='hs-comment'>-- Usually 'review' is used in the @(-&gt;)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
+<a name="line-93"></a><span class='hs-comment'>-- Usually 'review' is used in the @(-&gt;)@ 'Monad' with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
 <a name="line-94"></a><span class='hs-comment'>-- it as having one of these more restricted type signatures:</span>
 <a name="line-95"></a><span class='hs-comment'>--</span>
 <a name="line-96"></a><span class='hs-comment'>-- @</span>
@@ -107,7 +107,7 @@
 <a name="line-98"></a><span class='hs-comment'>-- 'review' :: 'Prism'' s a -&gt; a -&gt; s</span>
 <a name="line-99"></a><span class='hs-comment'>-- @</span>
 <a name="line-100"></a><span class='hs-comment'>--</span>
-<a name="line-101"></a><span class='hs-comment'>-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of</span>
+<a name="line-101"></a><span class='hs-comment'>-- However, when working with a 'Monad' transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of</span>
 <a name="line-102"></a><span class='hs-comment'>-- these more slightly more liberal type signatures may be beneficial to think of it as having:</span>
 <a name="line-103"></a><span class='hs-comment'>--</span>
 <a name="line-104"></a><span class='hs-comment'>-- @</span>
@@ -126,7 +126,7 @@
 <a name="line-117"></a><span class='hs-comment'>-- &gt;&gt;&gt; reviews _Left isRight "mustard"</span>
 <a name="line-118"></a><span class='hs-comment'>-- False</span>
 <a name="line-119"></a><span class='hs-comment'>--</span>
-<a name="line-120"></a><span class='hs-comment'>-- Usually this function is used in the @(-&gt;)@ monad with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
+<a name="line-120"></a><span class='hs-comment'>-- Usually this function is used in the @(-&gt;)@ 'Monad' with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of</span>
 <a name="line-121"></a><span class='hs-comment'>-- it as having one of these more restricted type signatures:</span>
 <a name="line-122"></a><span class='hs-comment'>--</span>
 <a name="line-123"></a><span class='hs-comment'>-- @</span>
@@ -134,7 +134,7 @@
 <a name="line-125"></a><span class='hs-comment'>-- 'reviews' :: 'Prism'' s a -&gt; (s -&gt; r) -&gt; a -&gt; r</span>
 <a name="line-126"></a><span class='hs-comment'>-- @</span>
 <a name="line-127"></a><span class='hs-comment'>--</span>
-<a name="line-128"></a><span class='hs-comment'>-- However, when working with a monad transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of</span>
+<a name="line-128"></a><span class='hs-comment'>-- However, when working with a 'Monad' transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case one of</span>
 <a name="line-129"></a><span class='hs-comment'>-- these more slightly more liberal type signatures may be beneficial to think of it as having:</span>
 <a name="line-130"></a><span class='hs-comment'>--</span>
 <a name="line-131"></a><span class='hs-comment'>-- @</span>

@@ -55,7 +55,7 @@
 <a name="line-46"></a>  <span class='hs-varid'>taintedDot</span> <span class='hs-varid'>g</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>g</span> <span class='hs-varop'>`seq`</span> <span class='hs-varid'>rmap</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>g</span>
 <a name="line-47"></a>  <span class='hs-comment'>{-# INLINE taintedDot #-}</span>
 <a name="line-48"></a>
-<a name="line-49"></a><span class='hs-comment'>-- | so you can pass our a 'Control.Lens.Setter.Setter' into combinators from other lens libraries</span>
+<a name="line-49"></a><span class='hs-comment'>-- | So you can pass our 'Control.Lens.Setter.Setter' into combinators from other lens libraries.</span>
 <a name="line-50"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Settable</span> <span class='hs-conid'>Identity</span> <span class='hs-keyword'>where</span>
 <a name="line-51"></a>  <span class='hs-varid'>untainted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>runIdentity</span>
 <a name="line-52"></a>  <span class='hs-comment'>{-# INLINE untainted #-}</span>
@@ -77,8 +77,8 @@
 <a name="line-68"></a><span class='hs-comment'>-- Mutator</span>
 <a name="line-69"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-70"></a>
-<a name="line-71"></a><a name="Mutator"></a><span class='hs-comment'>-- | 'Mutator' is just a renamed 'Identity' functor to give better error</span>
-<a name="line-72"></a><a name="Mutator"></a><span class='hs-comment'>-- messages when someone attempts to use a getter as a setter.</span>
+<a name="line-71"></a><a name="Mutator"></a><span class='hs-comment'>-- | 'Mutator' is just a renamed 'Identity' 'Functor' to give better error</span>
+<a name="line-72"></a><a name="Mutator"></a><span class='hs-comment'>-- messages when someone attempts to use a 'Control.Lens.Getter.Getter' as a 'Control.Lens.Setter.Setter'.</span>
 <a name="line-73"></a><a name="Mutator"></a><span class='hs-comment'>--</span>
 <a name="line-74"></a><a name="Mutator"></a><span class='hs-comment'>-- Most user code will never need to see this type.</span>
 <a name="line-75"></a><a name="Mutator"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>Mutator</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Mutator</span> <span class='hs-layout'>{</span> <span class='hs-varid'>runMutator</span> <span class='hs-keyglyph'>::</span> <span class='hs-varid'>a</span> <span class='hs-layout'>}</span>
