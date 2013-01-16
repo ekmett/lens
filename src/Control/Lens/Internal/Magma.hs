@@ -23,8 +23,13 @@ module Control.Lens.Internal.Magma
   (
   -- * Magma
     Magma(..)
-  , Molten(..)
+  , runMagma
   , leaf
+  -- * Molten
+  , Molten(..)
+  -- * Mafic
+  , Mafic(..)
+  , runMafic
   ) where
 
 import Control.Applicative
@@ -80,6 +85,12 @@ instance (Show i, Show a) => Show (Magma i t b a) where
   showsPrec d (MagmaLeaf i a) = showParen (d > 10) $
     showString "leaf " . showsPrec 11 i . showChar ' ' . showsPrec 11 a
 
+runMagma :: Magma i t a a -> t
+runMagma (MagmaAp l r)   = runMagma l (runMagma r)
+runMagma (MagmaFmap f r) = f (runMagma r)
+runMagma (MagmaPure x)   = x
+runMagma (MagmaLeaf _ a) = a
+
 ------------------------------------------------------------------------------
 -- Molten
 ------------------------------------------------------------------------------
@@ -126,3 +137,43 @@ instance a ~ b => Comonad (Molten i a b) where
   extract   = iextract
   extend    = iextend
   duplicate = iduplicate
+
+------------------------------------------------------------------------------
+-- Mafic
+------------------------------------------------------------------------------
+
+-- | This is used to generate an indexed magma from an unindexed source
+--
+-- By constructing it this way we avoid infinite reassociations in sums where possible.
+data Mafic a b t = Mafic Int (Int -> Magma Int t b a)
+
+runMafic :: Mafic a b t -> Magma Int t b a
+runMafic (Mafic _ k) = k 0
+
+instance Functor (Mafic a b) where
+  fmap f (Mafic w k) = Mafic w (MagmaFmap f . k)
+  {-# INLINE fmap #-}
+
+instance Applicative (Mafic a b) where
+  pure a = Mafic 0 $ \_ -> MagmaPure a
+  {-# INLINE pure #-}
+  Mafic wf mf <*> Mafic wa ma = Mafic (wf + wa) $ \o -> MagmaAp (mf o) (ma (o + wf))
+  {-# INLINE (<*>) #-}
+
+instance p ~ (->) => Sellable p Mafic where
+  sell a = Mafic 1 $ \ i -> MagmaLeaf i a
+  {-# INLINE sell #-}
+
+instance Indexable Int p => Bizarre p Mafic where
+  bazaar (pafb :: p a (f b)) (Mafic _ k) = go (k 0) where
+    go :: Applicative f => Magma Int t b a -> f t
+    go (MagmaAp x y)   = go x <*> go y
+    go (MagmaFmap f x) = f <$> go x
+    go (MagmaPure x)   = pure x
+    go (MagmaLeaf i a) = indexed pafb i a
+  {-# INLINE bazaar #-}
+
+instance IndexedFunctor Mafic where
+  ifmap f (Mafic w k) = Mafic w (MagmaFmap f . k)
+  {-# INLINE ifmap #-}
+
