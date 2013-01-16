@@ -307,7 +307,7 @@ filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . ri
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a      -> 'IndexPreservingMonadicFold' m s a
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s a
 -- @
-takingWhile :: (Corepresentable p, Profunctor q, Comonad (Corep p), Applicative f, Gettable f)
+takingWhile :: (Conjoined p, Profunctor q, Applicative f, Gettable f)
          => (a -> Bool)
          -> Overloading p q (Accessor (Endo (f s))) s s a a
          -> Overloading p q f s s a a
@@ -363,7 +363,7 @@ takingWhile p l f = (flip appEndo noEffect .# runAccessor) `rmap` l g where
 -- 'Traversal' or 'IndexedTraversal'. The 'Traversal' and 'IndexedTraversal' laws are only satisfied if the
 -- new values you assign also pass the predicate! Otherwise subsequent traversals will visit fewer elements
 -- and 'Traversal' fusion is not sound.
-droppingWhile :: (Corepresentable p, Comonad (Corep p), Profunctor q, Applicative f)
+droppingWhile :: (Conjoined p, Profunctor q, Applicative f)
               => (a -> Bool)
               -> Overloading p q (Compose (State Bool) f) s t a a
               -> Overloading p q f s t a a
