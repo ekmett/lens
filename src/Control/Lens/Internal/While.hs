@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -35,6 +36,7 @@ import Control.Category
 import Control.Comonad
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
+import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Data.Foldable
 import Data.Monoid
@@ -94,22 +96,22 @@ runWhile (WhileLeaf _ wa) = extract wa
 -- | This is used to generate an indexed magma from an unindexed source
 --
 -- By constructing it this way we avoid infinite reassociations in sums where possible.
-data TakingWhile p a b t = TakingWhile Bool (Bool -> While p t b a)
+data TakingWhile p (f :: * -> *) a b t = TakingWhile Bool (Bool -> While p t b a)
 
-runTakingWhile :: TakingWhile p a b t -> While p t b a
+runTakingWhile :: TakingWhile p f a b t -> While p t b a
 runTakingWhile (TakingWhile _ k) = k True
 
-instance Functor (TakingWhile p a b) where
+instance Functor (TakingWhile p f a b) where
   fmap f (TakingWhile w k) = TakingWhile w (WhileFmap f . k)
   {-# INLINE fmap #-}
 
-instance (a ~ b) => Applicative (TakingWhile p a b) where
+instance (a ~ b) => Applicative (TakingWhile p f a b) where
   pure a = TakingWhile True $ \_ -> WhilePure a
   {-# INLINE pure #-}
   TakingWhile wf mf <*> TakingWhile wa ma = TakingWhile (wf && wa) $ \o -> let owf = o && wf in WhileAp owf (mf o) (ma owf)
   {-# INLINE (<*>) #-}
 
-instance Corepresentable p => Bizarre p (TakingWhile p) where
+instance Corepresentable p => Bizarre p (TakingWhile p g) where
   bazaar (pafb :: p a (f b)) (TakingWhile _ k) = go (k True) where
     go :: Applicative f => While p t b a -> f t
     go (WhileAp _ x y)  = go x <*> go y
@@ -118,6 +120,9 @@ instance Corepresentable p => Bizarre p (TakingWhile p) where
     go (WhileLeaf _ wa) = corep pafb wa
   {-# INLINE bazaar #-}
 
-instance Corepresentable p => IndexedFunctor (TakingWhile p) where
+instance Gettable f => Gettable (TakingWhile p f a b) where
+  coerce = (<$) (error "coerced TakingWhile")
+
+instance Corepresentable p => IndexedFunctor (TakingWhile p f) where
   ifmap f (TakingWhile w k) = TakingWhile w (WhileFmap f . k)
   {-# INLINE ifmap #-}
