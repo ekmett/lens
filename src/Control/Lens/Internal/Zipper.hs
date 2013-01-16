@@ -50,77 +50,77 @@ import Data.Profunctor.Unsafe
 {-# ANN module "HLint: ignore Use foldl" #-}
 
 ------------------------------------------------------------------------------
--- Magma
+-- Jacket
 ------------------------------------------------------------------------------
 
-data Magma i a
+data Jacket i a
   = Ap Int         -- size
        Bool        -- left-to-right null check
        Bool        -- right-to-left null check
        (Last i)
-       (Magma i a) -- left
-       (Magma i a) -- right
+       (Jacket i a) -- left
+       (Jacket i a) -- right
   | Leaf i a
   | Pure
   deriving Show
 
-size :: Magma i a -> Int
+size :: Jacket i a -> Int
 size (Ap s _ _ _ _ _) = s
 size Leaf{}           = 1
 size Pure             = 0
 {-# INLINE size #-}
 
-nullLeft :: Magma i a -> Bool
+nullLeft :: Jacket i a -> Bool
 nullLeft (Ap _ nl _ _ _ _) = nl
 nullLeft (Leaf _ _)        = False
 nullLeft Pure              = True
 {-# INLINE nullLeft #-}
 
-nullRight :: Magma i a -> Bool
+nullRight :: Jacket i a -> Bool
 nullRight (Ap _ _ nr _ _ _) = nr
 nullRight (Leaf _ _)        = False
 nullRight Pure              = True
 {-# INLINE nullRight #-}
 
-maximal :: Magma i a -> Last i
+maximal :: Jacket i a -> Last i
 maximal (Ap _ _ _ li _ _) = li
 maximal (Leaf i _)        = Last (Just i)
 maximal Pure              = Last Nothing
 {-# INLINE maximal #-}
 
-instance Functor (Magma i) where
+instance Functor (Jacket i) where
   fmap f (Ap m nl nr li l r) = Ap m nl nr li (fmap f l) (fmap f r)
   fmap f (Leaf i a)          = Leaf i (f a)
   fmap _ Pure                = Pure
   {-# INLINE fmap #-}
 
-instance Foldable (Magma i) where
+instance Foldable (Jacket i) where
   foldMap f (Ap _ _ _ _ l r) = foldMap f l `mappend` foldMap f r
   foldMap f (Leaf _ a)       = f a
   foldMap _ Pure             = mempty
   {-# INLINE foldMap #-}
 
-instance Traversable (Magma i) where
+instance Traversable (Jacket i) where
   traverse f (Ap m nl nr li l r) = Ap m nl nr li <$> traverse f l <*> traverse f r
   traverse f (Leaf i a)          = Leaf i <$> f a
   traverse _ Pure                = pure Pure
   {-# INLINE traverse #-}
 
-instance FunctorWithIndex i (Magma i) where
+instance FunctorWithIndex i (Jacket i) where
   imap f = go where
     go (Ap m nl nr li l r) = Ap m nl nr li (go l) (go r)
     go (Leaf i a)          = Leaf i (f i a)
     go Pure                = Pure
   {-# INLINE imap #-}
 
-instance FoldableWithIndex i (Magma i) where
+instance FoldableWithIndex i (Jacket i) where
   ifoldMap f = go where
     go (Ap _ _ _ _ l r) = go l `mappend` go r
     go (Leaf i a)       = f i a
     go Pure             = mempty
   {-# INLINE ifoldMap #-}
 
-instance TraversableWithIndex i (Magma i) where
+instance TraversableWithIndex i (Jacket i) where
   itraverse f = go where
     go (Ap m nl nr li l r) = Ap m nl nr li <$> go l <*> go r
     go (Leaf i a)          = Leaf i <$> f i a
@@ -128,22 +128,22 @@ instance TraversableWithIndex i (Magma i) where
   {-# INLINE itraverse #-}
 
 -- | This is an illegal 'Monoid'.
-instance Monoid (Magma i a) where
+instance Monoid (Jacket i a) where
   mempty = Pure
   {-# INLINE mempty #-}
 
   mappend l r = Ap (size l + size r) (nullLeft l && nullLeft r) (nullRight r && nullRight l) (maximal l <> maximal r) l r
   {-# INLINE mappend #-}
 
-magmaIns :: Bazaar (Indexed i) a b t -> Magma i a
-magmaIns (Bazaar bz) = runAccessor $ bz $ Indexed (\i -> Accessor #. Leaf i)
-{-# INLINE magmaIns #-}
+jacketIns :: Bazaar (Indexed i) a b t -> Jacket i a
+jacketIns (Bazaar bz) = runAccessor $ bz $ Indexed (\i -> Accessor #. Leaf i)
+{-# INLINE jacketIns #-}
 
 ------------------------------------------------------------------------------
 -- Putting it back in the tree
 ------------------------------------------------------------------------------
 
-newtype Flow i b a = Flow { runFlow :: Magma i b -> a }
+newtype Flow i b a = Flow { runFlow :: Jacket i b -> a }
 
 instance Functor (Flow i b) where
   fmap f (Flow g) = Flow (f . g)
@@ -158,17 +158,17 @@ instance Applicative (Flow i b) where
     _              -> mf s (ma s)
   {-# INLINE (<*>) #-}
 
-magmaOuts :: Bazaar (Indexed i) a b t -> Magma j b -> t
-magmaOuts bz = runFlow $ runBazaar bz $ Indexed $ \ _ _ -> Flow $ \ t -> case t of
+jacketOuts :: Bazaar (Indexed i) a b t -> Jacket j b -> t
+jacketOuts bz = runFlow $ runBazaar bz $ Indexed $ \ _ _ -> Flow $ \ t -> case t of
   Leaf _ a -> a
-  _        -> error "magmaOuts: wrong shape"
-{-# INLINE magmaOuts #-}
+  _        -> error "jacketOuts: wrong shape"
+{-# INLINE jacketOuts #-}
 
--- | This is only a valid 'Lens' if you don't change the shape of the 'Magma'.
-magma :: AnIndexedTraversal i s t a b -> Lens s t (Magma i a) (Magma j b)
-magma l f s = magmaOuts bz <$> f (magmaIns bz) where
+-- | This is only a valid 'Lens' if you don't change the shape of the 'Jacket'.
+jacket :: AnIndexedTraversal i s t a b -> Lens s t (Jacket i a) (Jacket j b)
+jacket l f s = jacketOuts bz <$> f (jacketIns bz) where
   bz = l sell s
-{-# INLINE magma #-}
+{-# INLINE jacket #-}
 
 -- $setup
 -- >>> import Control.Lens
@@ -176,10 +176,10 @@ magma l f s = magmaOuts bz <$> f (magmaIns bz) where
 
 -- * Paths
 
--- | A 'Path' into a 'Magma' that ends at a 'Leaf'.
+-- | A 'Path' into a 'Jacket' that ends at a 'Leaf'.
 data Path i a
-  = ApL Int Bool Bool (Last i) !(Path i a) !(Magma i a)
-  | ApR Int Bool Bool (Last i) !(Magma i a) !(Path i a)
+  = ApL Int Bool Bool (Last i) !(Path i a) !(Jacket i a)
+  | ApR Int Bool Bool (Last i) !(Jacket i a) !(Path i a)
   | Start
   deriving Show
 
@@ -199,7 +199,7 @@ offset (ApL _ _ _ _ q _) = offset q
 offset (ApR _ _ _ _ l q) = size l + offset q
 {-# INLINE offset #-}
 
--- | Return the total number of children in the 'Magma' by walking the
+-- | Return the total number of children in the 'Jacket' by walking the
 -- 'Path' to the root.
 pathsize :: Path i a -> Int
 pathsize = go 1 where
@@ -216,8 +216,8 @@ pathsize = go 1 where
 -- "list case", where the traversal tree is right-biased, as in (Ap (Leaf (Identity x))
 -- (Ap (Leaf (Identity y)) ...)). It should be safe to delete any of these cases.
 
--- | Reconstruct a 'Magma' from a 'Path'.
-recompress :: Path i a -> i -> a -> Magma i a
+-- | Reconstruct a 'Jacket' from a 'Path'.
+recompress :: Path i a -> i -> a -> Jacket i a
 recompress Start i a = Leaf i a -- Unrolled: The lens case.
 recompress (ApL m _ _ li Start r) i a = Ap m False False li (Leaf i a) r -- Unrolled: The list case. In particular, a right-biased tree that we haven't moved rightward in.
 recompress p i a = go p (Leaf i a) where
@@ -227,7 +227,7 @@ recompress p i a = go p (Leaf i a) where
 {-# INLINE recompress #-}
 
 -- | Walk down the tree to the leftmost child.
-startl :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
+startl :: Path i a -> Jacket i a -> r -> (Path i a -> i -> a -> r) -> r
 startl p0 (Leaf i a) _ kp = kp p0 i a -- Unrolled: The lens case.
 startl p0 (Ap m nl nr li (Leaf i a) r) _ kp = kp (ApL m nl nr li p0 r) i a -- Unrolled: The list case. (Is this one a good idea?)
 startl p0 c0 kn kp = go p0 c0 where
@@ -239,7 +239,7 @@ startl p0 c0 kn kp = go p0 c0 where
 {-# INLINE startl #-}
 
 -- | Walk down the tree to the rightmost child.
-startr :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
+startr :: Path i a -> Jacket i a -> r -> (Path i a -> i -> a -> r) -> r
 startr p0 (Leaf i a) _ kp = kp p0 i a -- Unrolled: The lens case.
 startr p0 c0 kn kp = go p0 c0 where
   go p (Ap m nl nr li l r)
@@ -250,7 +250,7 @@ startr p0 c0 kn kp = go p0 c0 where
 {-# INLINE startr #-}
 
 -- | Move left one 'Leaf'.
-movel :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
+movel :: Path i a -> Jacket i a -> r -> (Path i a -> i -> a -> r) -> r
 movel p0 c0 kn kp = go p0 c0 where
   go Start _ = kn
   go (ApR m _ _ li l q) r
@@ -260,7 +260,7 @@ movel p0 c0 kn kp = go p0 c0 where
 {-# INLINE movel #-}
 
 -- | Move right one 'Leaf'.
-mover :: Path i a -> Magma i a -> r -> (Path i a -> i -> a -> r) -> r
+mover :: Path i a -> Jacket i a -> r -> (Path i a -> i -> a -> r) -> r
 mover p0 c0 kn kp = go p0 c0 where
   go Start _ = kn
   go (ApL m _ _ li q r) l
@@ -340,7 +340,7 @@ type instance Zipped (Zipper h i a) s = Zipped h a
 #ifndef HLINT
 data Coil t i a where
   Coil :: Coil Top Int a
-  Snoc :: Ord i => !(Coil h j s) -> AnIndexedTraversal' i s a -> Int -> !Int -> !(Path j s) -> j -> (Magma i a -> s) -> Coil (Zipper h j s) i a
+  Snoc :: Ord i => !(Coil h j s) -> AnIndexedTraversal' i s a -> Int -> !Int -> !(Path j s) -> j -> (Jacket i a -> s) -> Coil (Zipper h j s) i a
 #endif
 
 -- | This 'Lens' views the current target of the 'Zipper'.
@@ -426,7 +426,7 @@ leftward (Zipper h t o p i a) = movel p (Leaf i a) mzero $ \q j b -> return $ Zi
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
 -- "hella"
 leftmost :: a :> b:@i -> a :> b:@i
-leftmost (Zipper h _ _ p i a) = startl Start (recompress p i a) (error "leftmost: bad Magma structure") (Zipper h 0 0)
+leftmost (Zipper h _ _ p i a) = startl Start (recompress p i a) (error "leftmost: bad Jacket structure") (Zipper h 0 0)
 {-# INLINE leftmost #-}
 
 -- | Move to the rightmost position of the current 'Traversal'.
@@ -436,7 +436,7 @@ leftmost (Zipper h _ _ p i a) = startl Start (recompress p i a) (error "leftmost
 -- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'y' & leftmost & focus .~ 'j' & rezip
 -- "jelly"
 rightmost :: a :> b:@i -> a :> b:@i
-rightmost (Zipper h _ _ p i a) = startr Start (recompress p i a) (error "rightmost: bad Magma structure") (\q -> Zipper h (offset q) 0 q)
+rightmost (Zipper h _ _ p i a) = startr Start (recompress p i a) (error "rightmost: bad Jacket structure") (\q -> Zipper h (offset q) 0 q)
 {-# INLINE rightmost #-}
 
 -- | This allows you to safely 'tug' 'leftward' or 'tug' 'rightward' on a
@@ -646,7 +646,7 @@ within = iwithin . indexing
 {-# INLINE within #-}
 
 iwithin :: (MonadPlus m, Ord i) => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
-iwithin l (Zipper h t o p j s) = case magma l (Context id) s of
+iwithin l (Zipper h t o p j s) = case jacket l (Context id) s of
   Context k xs -> startl Start xs mzero $ \q i a -> return $ Zipper (Snoc h l t o p j k) 0 0 q i a
 {-# INLINE iwithin #-}
 
@@ -665,7 +665,7 @@ withins = iwithins . indexing
 {-# INLINE withins #-}
 
 iwithins :: (MonadPlus m, Ord i) => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
-iwithins z (Zipper h t o p j s) = case magma z (Context id) s of
+iwithins z (Zipper h t o p j s) = case jacket z (Context id) s of
   Context k xs -> let up = Snoc h z t o p j k
                       go q (Ap m nl nr li l r) = go (ApL m nl nr li q r) l `mplus` go (ApR m nl nr li l q) r
                       go q (Leaf i a)       = return $ Zipper up (offset q) 0 q i a
@@ -691,7 +691,7 @@ fromWithin = ifromWithin . indexing
 {-# INLINE fromWithin #-}
 
 ifromWithin :: Ord i => AnIndexedTraversal' i s a -> (h :> s:@j) -> h :> s:@j :> a:@i
-ifromWithin l (Zipper h t o p j s) = case magma l (Context id) s of
+ifromWithin l (Zipper h t o p j s) = case jacket l (Context id) s of
   Context k xs -> let up = Snoc h l t o p j k in
     startl Start xs (Zipper up 0 0 Start (error "fromWithin an empty Traversal")
                                          (error "fromWithin an empty Traversal"))
@@ -700,7 +700,7 @@ ifromWithin l (Zipper h t o p j s) = case magma l (Context id) s of
 
 -- | This enables us to pull the 'Zipper' back up to the 'Top'.
 class Zipping h a where
-  recoil :: Coil h i a -> Magma i a -> Zipped h a
+  recoil :: Coil h i a -> Jacket i a -> Zipped h a
 
 instance Zipping Top a where
   recoil Coil (Leaf _ a) = a

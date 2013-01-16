@@ -44,9 +44,9 @@ module Control.Lens.Iso
   , Swapped(..)
   , Strict(..)
   -- ** Uncommon Isomorphisms
-  , scoria
-  , iscoria
-  , Scoria
+  , magma
+  , imagma
+  , Magma
   -- * Profunctors
   , Profunctor(dimap,rmap,lmap)
   ) where
@@ -54,7 +54,7 @@ module Control.Lens.Iso
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Iso
-import Control.Lens.Internal.Scoria
+import Control.Lens.Internal.Magma
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Data.Bifunctor
@@ -316,11 +316,11 @@ instance Strict LazyT.Text StrictT.Text where
   {-# INLINE strict #-}
 
 ------------------------------------------------------------------------------
--- Scoria
+-- Magma
 ------------------------------------------------------------------------------
 
-scoria :: LensLike (Molten () a b) s t a b -> Iso s t (Scoria () t b a) (Scoria j t b b)
-scoria l = iso (runMolten #. l (Molten #. leaf ())) (iextract .# Molten)
+magma :: LensLike (Molten () a b) s t a b -> Iso s t (Magma () t b a) (Magma j t b b)
+magma l = iso (runMolten #. l (Molten #. leaf ())) (iextract .# Molten)
 
-iscoria :: Overloading (Indexed i) (->) (Molten i a b) s t a b -> Iso s t' (Scoria i t b a) (Scoria j t' c c)
-iscoria l = iso (runMolten #. l sell) (iextract .# Molten)
+imagma :: Overloading (Indexed i) (->) (Molten i a b) s t a b -> Iso s t' (Magma i t b a) (Magma j t' c c)
+imagma l = iso (runMolten #. l sell) (iextract .# Molten)

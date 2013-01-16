@@ -21,10 +21,10 @@ module Control.Lens.Internal
   , module Control.Lens.Internal.Indexed
   , module Control.Lens.Internal.Iso
   , module Control.Lens.Internal.Level
+  , module Control.Lens.Internal.Magma
   , module Control.Lens.Internal.Prism
   , module Control.Lens.Internal.Review
   , module Control.Lens.Internal.Setter
-  , module Control.Lens.Internal.Scoria
   , module Control.Lens.Internal.Zoom
   ) where
 
@@ -37,9 +37,9 @@ import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Instances ()
 import Control.Lens.Internal.Iso
 import Control.Lens.Internal.Level
+import Control.Lens.Internal.Magma
 import Control.Lens.Internal.Prism
 import Control.Lens.Internal.Review
-import Control.Lens.Internal.Scoria
 import Control.Lens.Internal.Setter
 import Control.Lens.Internal.Zoom
 

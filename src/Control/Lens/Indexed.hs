@@ -84,7 +84,7 @@ import Control.Lens.Internal.Fold
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Level
-import Control.Lens.Internal.Scoria
+import Control.Lens.Internal.Magma
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
@@ -591,25 +591,25 @@ instance TraversableWithIndex i (Level i) where
     go Zero = pure Zero
   {-# INLINE itraverse #-}
 
-instance FunctorWithIndex i (Scoria i t b) where
-  imap f (ScoriaAp x y)    = ScoriaAp (imap f x) (imap f y)
-  imap _ (ScoriaPure x)    = ScoriaPure x
-  imap f (ScoriaFmap xy x) = ScoriaFmap xy (imap f x)
-  imap f (ScoriaLeaf i a)  = ScoriaLeaf i (f i a)
+instance FunctorWithIndex i (Magma i t b) where
+  imap f (MagmaAp x y)    = MagmaAp (imap f x) (imap f y)
+  imap _ (MagmaPure x)    = MagmaPure x
+  imap f (MagmaFmap xy x) = MagmaFmap xy (imap f x)
+  imap f (MagmaLeaf i a)  = MagmaLeaf i (f i a)
   {-# INLINE imap #-}
 
-instance FoldableWithIndex i (Scoria i t b) where
-  ifoldMap f (ScoriaAp x y)   = ifoldMap f x `mappend` ifoldMap f y
-  ifoldMap _ ScoriaPure{}     = mempty
-  ifoldMap f (ScoriaFmap _ x) = ifoldMap f x
-  ifoldMap f (ScoriaLeaf i a) = f i a
+instance FoldableWithIndex i (Magma i t b) where
+  ifoldMap f (MagmaAp x y)   = ifoldMap f x `mappend` ifoldMap f y
+  ifoldMap _ MagmaPure{}     = mempty
+  ifoldMap f (MagmaFmap _ x) = ifoldMap f x
+  ifoldMap f (MagmaLeaf i a) = f i a
   {-# INLINE ifoldMap #-}
 
-instance TraversableWithIndex i (Scoria i t b) where
-  itraverse f (ScoriaAp x y)    = ScoriaAp <$> itraverse f x <*> itraverse f y
-  itraverse _ (ScoriaPure x)    = pure (ScoriaPure x)
-  itraverse f (ScoriaFmap xy x) = ScoriaFmap xy <$> itraverse f x
-  itraverse f (ScoriaLeaf i a)  = ScoriaLeaf i <$> f i a
+instance TraversableWithIndex i (Magma i t b) where
+  itraverse f (MagmaAp x y)    = MagmaAp <$> itraverse f x <*> itraverse f y
+  itraverse _ (MagmaPure x)    = pure (MagmaPure x)
+  itraverse f (MagmaFmap xy x) = MagmaFmap xy <$> itraverse f x
+  itraverse f (MagmaLeaf i a)  = MagmaLeaf i <$> f i a
   {-# INLINE itraverse #-}
 
 -------------------------------------------------------------------------------
