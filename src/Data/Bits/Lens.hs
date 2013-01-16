@@ -41,7 +41,7 @@ infix 4 .|.=, .&.=, <.|.=, <.&.=
 -- ('.|.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> t
 -- ('.|.~') :: ('Data.Monoid.Monoid' a, 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
 -- @
-(.|.~):: (Profunctor q, Bits a) => Overloading (->) q Mutator s t a a -> a -> q s t
+(.|.~):: Bits a => ASetter s t a a -> a -> s -> t
 l .|.~ n = over l (.|. n)
 {-# INLINE (.|.~) #-}
 
@@ -56,7 +56,7 @@ l .|.~ n = over l (.|. n)
 -- ('.&.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> t
 -- ('.&.~') :: ('Data.Monoid.Monoid' a, 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
 -- @
-(.&.~) :: (Profunctor q, Bits a) => Overloading (->) q Mutator s t a a -> a -> q s t
+(.&.~) :: Bits a => ASetter s t a a -> a -> s -> t
 l .&.~ n = over l (.&. n)
 {-# INLINE (.&.~) #-}
 
@@ -101,7 +101,7 @@ l .|.= a = modify (l .|.~ a)
 -- ('<.|.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> (a, t)
 -- ('<.|.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
 -- @
-(<.|.~):: (Profunctor q, Bits a) => Overloading (->) q ((,) a) s t a a -> a -> q s (a, t)
+(<.|.~):: Bits a => LensLike ((,) a) s t a a -> a -> s -> (a, t)
 l <.|.~ n = l <%~ (.|. n)
 {-# INLINE (<.|.~) #-}
 
@@ -116,7 +116,7 @@ l <.|.~ n = l <%~ (.|. n)
 -- ('<.&.~') :: 'Bits' a             => 'Lens'      s t a a -> a -> s -> (a, t)
 -- ('<.&.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
 -- @
-(<.&.~) :: (Profunctor q, Bits a) => Overloading (->) q ((,) a) s t a a -> a -> q s (a, t)
+(<.&.~) :: Bits a => LensLike ((,) a) s t a a -> a -> s -> (a, t)
 l <.&.~ n = l <%~ (.&. n)
 {-# INLINE (<.&.~) #-}
 
