@@ -330,8 +330,8 @@ type h :>> a = Zipper h Int a
 
 -- | This represents the type a 'Zipper' will have when it is fully 'Zipped' back up.
 type family Zipped h a
-type instance Zipped Top a      = a
-type instance Zipped (Zipper h i s) a = Zipped h s
+type instance Zipped Top a            = a
+type instance Zipped (Zipper h i a) s = Zipped h a
 
 -- | A 'Coil' is a linked list of the levels above the current one. The length
 -- of a 'Coil' is known at compile time.
