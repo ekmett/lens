@@ -71,7 +71,7 @@ import Data.Foldable hiding (concat)
 import Data.Function (on)
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
-import Data.Maybe (isNothing,isJust,catMaybes,fromJust,fromMaybe)
+import Data.Maybe (isNothing,isJust,catMaybes,fromJust)
 import Data.Ord (comparing)
 import Data.Set as Set hiding (toList,map,filter)
 import Data.Set.Lens
@@ -349,7 +349,7 @@ makePrismForCon ctx tyConName args canModifyTypeVar allCons con = do
     remitterName <- newName "remitter"
     reviewerName <- newName "reviewer"
     xName <- newName "x"
-    let resName = mkName $ fromMaybe (error ("bad constructor name: " ++ show dataConName)) $ mLowerName $ nameBase dataConName
+    let resName = mkName $ '_': nameBase dataConName
     varNames <- for [0..length fieldTypes -1] $ \i -> newName ('x' : show i)
     altArgsList <- forM (view name <$> filter isAltArg args) $ \arg ->
       (,) arg <$> newName (nameBase arg)
