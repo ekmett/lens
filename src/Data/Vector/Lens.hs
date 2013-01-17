@@ -14,7 +14,8 @@
 -- Stability   :  provisional
 -- Portability :  non-portable
 --
--- This module provides lenses and traversals for working with generic vectors.
+-- This module provides lenses and traversals for working with generic
+-- vectors.
 -------------------------------------------------------------------------------
 module Data.Vector.Lens
   ( toVectorOf
@@ -35,11 +36,14 @@ import Prelude hiding ((++), length, null, head, tail, init, last, map, reverse)
 import Data.List (nub)
 import Data.Monoid
 
--- | @sliced i n@ provides a lens that edits the @n@ elements starting at index @i@ from a lens.
+-- | @sliced i n@ provides a 'Lens' that edits the @n@ elements starting
+-- at index @i@ from a 'Lens'.
 --
--- This is only a valid lens if you do not change the length of the resulting 'Vector'.
+-- This is only a valid 'Lens' if you do not change the length of the
+-- resulting 'Vector'.
 --
--- Attempting to return a longer or shorter vector will result in violations of the 'Lens' laws.
+-- Attempting to return a longer or shorter vector will result in
+-- violations of the 'Lens' laws.
 --
 -- >>> Vector.fromList [1..10] ^. sliced 2 5
 -- fromList [3,4,5,6,7]
@@ -74,7 +78,8 @@ vector :: Iso [a] [b] (Vector a) (Vector b)
 vector = iso fromList toList
 {-# INLINE vector #-}
 
--- | Convert a 'Vector' to a version with all the elements in the reverse order
+-- | Convert a 'Vector' to a version with all the elements in the
+-- reverse order.
 --
 -- >>> Vector.fromList [1,2,3] ^. reversed
 -- fromList [3,2,1]
@@ -82,12 +87,14 @@ reversed :: Iso (Vector a) (Vector b) (Vector a) (Vector b)
 reversed = iso reverse reverse
 {-# INLINE reversed #-}
 
--- | Convert a 'Vector' to a version that doesn't retain any extra memory.
+-- | Convert a 'Vector' to a version that doesn't retain any extra
+-- memory.
 forced :: Iso (Vector a) (Vector b) (Vector a) (Vector b)
 forced = iso force force
 {-# INLINE forced #-}
 
--- | This 'Traversal' will ignore any duplicates in the supplied list of indices.
+-- | This 'Traversal' will ignore any duplicates in the supplied list
+-- of indices.
 --
 -- >>> toListOf (ordinals [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
 -- [4,8,6,12,20,22]
