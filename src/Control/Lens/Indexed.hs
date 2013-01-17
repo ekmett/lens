@@ -7,7 +7,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 #ifdef DEFAULT_SIGNATURES
 {-# LANGUAGE DefaultSignatures #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ > 706
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706
 #define MPTC_DEFAULTS
 #endif
 #endif
