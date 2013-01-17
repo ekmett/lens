@@ -2,7 +2,6 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Monad.Error.Lens
@@ -15,9 +14,12 @@
 ----------------------------------------------------------------------------
 module Control.Monad.Error.Lens
   (
-  -- * Handling
+  -- * Catching
     catching, catching_
+  -- * Handling
   , handling, handling_
+  -- * Trying
+  , trying
   -- * Throwing
   , throwing
   ) where
@@ -25,12 +27,9 @@ module Control.Monad.Error.Lens
 import Control.Lens
 import Control.Monad.Error
 
--- | Helper function to provide conditional catch behavior.
-catchJust :: MonadError e m => (e -> Maybe t) -> m a -> (t -> m a) -> m a
-catchJust f m k = catchError m $ \ e -> case f e of
-  Nothing -> throwError e
-  Just x  -> k x
-{-# INLINE catchJust #-}
+------------------------------------------------------------------------------
+-- Catching
+------------------------------------------------------------------------------
 
 -- | Catch exceptions that match a given 'Prism' (or any 'Getter', really).
 --
@@ -63,6 +62,10 @@ catching_ :: MonadError e m => Getting (Leftmost a) e t a b -> m r -> m r -> m r
 catching_ l a b = catchJust (preview l) a (const b)
 {-# INLINE catching_ #-}
 
+------------------------------------------------------------------------------
+-- Handling
+------------------------------------------------------------------------------
+
 -- | A version of 'catching' with the arguments swapped around; useful in
 -- situations where the code for the handler is shorter.
 --
@@ -93,6 +96,28 @@ handling_ :: MonadError e m => Getting (Leftmost a) e t a b -> m r -> m r -> m r
 handling_ l = flip (catching_ l)
 {-# INLINE handling_ #-}
 
+------------------------------------------------------------------------------
+-- Trying
+------------------------------------------------------------------------------
+
+-- 'trying' takes a 'Prism' (or any 'Getter') to select which exceptions are caught 
+-- If the 'Exception' does not match the predicate, it is re-thrown.
+--
+-- @
+-- 'trying' :: 'MonadError' e m => 'Prism'' e a     -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadError' e m => 'Lens'' e a      -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadError' e m => 'Traversal'' e a -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadError' e m => 'Iso'' e a       -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadError' e m => 'Getter'' e a    -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadError' e m => 'Fold'' e a      -> m r -> m ('Either' a r)
+-- @
+trying :: MonadError e m => Getting (Leftmost a) e t a b -> m r -> m (Either a r)
+trying l m = catching l (liftM Right m) (return . Left)
+
+------------------------------------------------------------------------------
+-- Throwing
+------------------------------------------------------------------------------
+
 -- | Throw an 'Exception' described by a 'Prism'.
 --
 -- @'throwing' l ≡ 'reviews' l 'throwError'@
@@ -104,3 +129,15 @@ handling_ l = flip (catching_ l)
 throwing :: MonadError e m => AReview e e t t -> t -> m x
 throwing l = reviews l throwError
 {-# INLINE throwing #-}
+
+------------------------------------------------------------------------------
+-- Misc.
+------------------------------------------------------------------------------
+
+-- | Helper function to provide conditional catch behavior.
+catchJust :: MonadError e m => (e -> Maybe t) -> m a -> (t -> m a) -> m a
+catchJust f m k = catchError m $ \ e -> case f e of
+  Nothing -> throwError e
+  Just x  -> k x
+{-# INLINE catchJust #-}
+
