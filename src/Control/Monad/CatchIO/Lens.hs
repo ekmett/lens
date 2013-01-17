@@ -30,6 +30,8 @@ import Control.Monad.CatchIO as CatchIO hiding (try, tryJust)
 import Control.Exception (SomeException)
 import Prelude (asTypeOf, const, flip, undefined, ($), (.),  Maybe(..), Either(..), Functor(..))
 
+{-# ANN module "HLint: ignore Use Control.Exception.catch" #-}
+
 ------------------------------------------------------------------------------
 -- Catching
 ------------------------------------------------------------------------------
