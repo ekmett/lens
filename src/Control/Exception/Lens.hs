@@ -27,6 +27,10 @@
 --
 -- Additional combinators for working with 'IOException' results can
 -- be found in "System.IO.Error.Lens".
+--
+-- The combinators in this module have been generalized to work with
+-- 'MonadCatchIO' instead of just 'IO'. This enables them to be used
+-- more easily in 'Monad' transformer stacks.
 ----------------------------------------------------------------------------
 module Control.Exception.Lens
   (
@@ -36,7 +40,9 @@ module Control.Exception.Lens
   -- * Trying
   , trying
   -- * Throwing
-  , throwing, throwingIO, throwingTo
+  , throwing
+  , throwingM
+  , throwingTo
   -- * Exceptions
   , exception
   -- ** IOExceptions
@@ -87,9 +93,19 @@ module Control.Exception.Lens
   ) where
 
 import Control.Applicative
-import Control.Exception
+import Control.Monad
+import Control.Monad.IO.Class
+import Control.Monad.CatchIO as CatchIO hiding (try, tryJust)
+import Control.Exception as Exception hiding (try, tryJust, catchJust)
 import Control.Lens
 import GHC.Conc (ThreadId)
+import Prelude
+  ( asTypeOf, const, either, flip, id, maybe, undefined
+  , ($), (.)
+  ,  Maybe(..), Either(..), Functor(..), String
+  )
+
+{-# ANN module "HLint: ignore Use Control.Exception.catch" #-}
 
 -- $setup
 -- >>> import Data.List
@@ -120,36 +136,43 @@ exception = prism toException $ \ e -> maybe (Left e) Right $ fromException e
 -- "caught"
 --
 -- @
--- 'catching' :: 'Prism'' 'SomeException' a     -> 'IO' r -> (a -> 'IO' r) -> 'IO' r
--- 'catching' :: 'Lens'' 'SomeException' a      -> 'IO' r -> (a -> 'IO' r) -> 'IO' r
--- 'catching' :: 'Traversal'' 'SomeException' a -> 'IO' r -> (a -> 'IO' r) -> 'IO' r
--- 'catching' :: 'Iso'' 'SomeException' a       -> 'IO' r -> (a -> 'IO' r) -> 'IO' r
--- 'catching' :: 'Getter' 'SomeException' a     -> 'IO' r -> (a -> 'IO' r) -> 'IO' r
--- 'catching' :: 'Fold' 'SomeException' a       -> 'IO' r -> (a -> 'IO' r) -> 'IO' r
+-- 'catching' :: 'MonadCatchIO' m => 'Prism'' 'SomeException' a     -> m r -> (a -> m r) -> m r
+-- 'catching' :: 'MonadCatchIO' m => 'Lens'' 'SomeException' a      -> m r -> (a -> m r) -> m r
+-- 'catching' :: 'MonadCatchIO' m => 'Traversal'' 'SomeException' a -> m r -> (a -> m r) -> m r
+-- 'catching' :: 'MonadCatchIO' m => 'Iso'' 'SomeException' a       -> m r -> (a -> m r) -> m r
+-- 'catching' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> (a -> m r) -> m r
+-- 'catching' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> (a -> m r) -> m r
 -- @
-catching :: Getting (Leftmost a) SomeException t a b -> IO r -> (a -> IO r) -> IO r
+catching :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> m r -> (a -> m r) -> m r
 catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
 -- | Catch exceptions that match a given 'Prism' (or any 'Getter'), discarding
 -- the information about the match. This is particuarly useful when you have
--- a @'Prism'' 'SomeException' ()@ where the result of the 'Prism' or 'Fold'
--- isn't particularly valuable, just the fact that it matches.
+-- a @'Prism'' e ()@ where the result of the 'Prism' or 'Fold' isn't
+-- particularly valuable, just the fact that it matches.
 --
 -- >>> catching_ _AssertionFailed (assert False (return "uncaught")) $ return "caught"
 -- "caught"
 --
 -- @
--- 'catching_' :: 'Prism'' 'SomeException' a     -> 'IO' r -> 'IO' r -> 'IO' r
--- 'catching_' :: 'Lens'' 'SomeException' a      -> 'IO' r -> 'IO' r -> 'IO' r
--- 'catching_' :: 'Traversal'' 'SomeException' a -> 'IO' r -> 'IO' r -> 'IO' r
--- 'catching_' :: 'Iso'' 'SomeException' a       -> 'IO' r -> 'IO' r -> 'IO' r
--- 'catching_' :: 'Getter' 'SomeException' a     -> 'IO' r -> 'IO' r -> 'IO' r
--- 'catching_' :: 'Fold' 'SomeException' a       -> 'IO' r -> 'IO' r -> 'IO' r
+-- 'catching_' :: 'MonadCatchIO' m => 'Prism'' 'SomeException' a     -> m r -> m r -> m r
+-- 'catching_' :: 'MonadCatchIO' m => 'Lens'' 'SomeException' a      -> m r -> m r -> m r
+-- 'catching_' :: 'MonadCatchIO' m => 'Traversal'' 'SomeException' a -> m r -> m r -> m r
+-- 'catching_' :: 'MonadCatchIO' m => 'Iso'' 'SomeException' a       -> m r -> m r -> m r
+-- 'catching_' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> m r -> m r
+-- 'catching_' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> m r -> m r
 -- @
-catching_ :: Getting (Leftmost a) SomeException t a b -> IO r -> IO r -> IO r
+catching_ :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> m r -> m r -> m r
 catching_ l a b = catchJust (preview l) a (const b)
 {-# INLINE catching_ #-}
+
+-- | A helper function to provide conditional catch behavior.
+catchJust :: (MonadCatchIO m, Exception e) => (e -> Maybe t) -> m a -> (t -> m a) -> m a
+catchJust f m k = CatchIO.catch m $ \ e -> case f e of
+  Nothing -> liftIO (throwIO e)
+  Just x  -> k x
+{-# INLINE catchJust #-}
 
 ------------------------------------------------------------------------------
 -- Handling
@@ -162,15 +185,15 @@ catching_ l a b = catchJust (preview l) a (const b)
 -- "caught"
 --
 -- @
--- 'handling' :: 'Prism'' 'SomeException' a     -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
--- 'handling' :: 'Lens'' 'SomeException' a      -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
--- 'handling' :: 'Traversal'' 'SomeException' a -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
--- 'handling' :: 'Iso'' 'SomeException' a       -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
--- 'handling' :: 'Fold' 'SomeException' a       -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
--- 'handling' :: 'Getter' 'SomeException' a     -> (a -> 'IO' r) -> 'IO' r -> 'IO' r
+-- 'handling' :: 'MonadCatchIO' m => 'Prism'' 'SomeException' a     -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadCatchIO' m => 'Lens'' 'SomeException' a      -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadCatchIO' m => 'Traversal'' 'SomeException' a -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadCatchIO' m => 'Iso'' 'SomeException' a       -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> (a -> m r) -> m r -> m r
+-- 'handling' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> (a -> m r) -> m r -> m r
 -- @
-handling :: Getting (Leftmost a) SomeException t a b -> (a -> IO r) -> IO r -> IO r
-handling l = handleJust (preview l)
+handling :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> (a -> m r) -> m r -> m r
+handling l = flip (catching l)
 {-# INLINE handling #-}
 
 -- | A version of 'catching_' with the arguments swapped around; useful in
@@ -180,35 +203,49 @@ handling l = handleJust (preview l)
 -- "caught"
 --
 -- @
--- 'handling_' :: 'Prism'' 'SomeException' a     -> 'IO' r -> 'IO' r -> 'IO' r
--- 'handling_' :: 'Lens'' 'SomeException' a      -> 'IO' r -> 'IO' r -> 'IO' r
--- 'handling_' :: 'Traversal'' 'SomeException' a -> 'IO' r -> 'IO' r -> 'IO' r
--- 'handling_' :: 'Iso'' 'SomeException' a       -> 'IO' r -> 'IO' r -> 'IO' r
--- 'handling_' :: 'Getter' 'SomeException' a     -> 'IO' r -> 'IO' r -> 'IO' r
--- 'handling_' :: 'Fold' 'SomeException' a       -> 'IO' r -> 'IO' r -> 'IO' r
+-- 'handling_' :: 'MonadCatchIO' m => 'Prism'' 'SomeException' a     -> m r -> m r -> m r
+-- 'handling_' :: 'MonadCatchIO' m => 'Lens'' 'SomeException' a      -> m r -> m r -> m r
+-- 'handling_' :: 'MonadCatchIO' m => 'Traversal'' 'SomeException' a -> m r -> m r -> m r
+-- 'handling_' :: 'MonadCatchIO' m => 'Iso'' 'SomeException' a       -> m r -> m r -> m r
+-- 'handling_' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> m r -> m r
+-- 'handling_' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> m r -> m r
 -- @
-handling_ :: Getting (Leftmost a) SomeException t a b -> IO r -> IO r -> IO r
-handling_ l b = handling l (const b)
+handling_ :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> m r -> m r -> m r
+handling_ l = flip (catching_ l)
 {-# INLINE handling_ #-}
 
 ------------------------------------------------------------------------------
 -- Trying
 ------------------------------------------------------------------------------
 
--- A variant of 'try' that takes an 'Prism' (or any 'Getter') to select which
+-- | A variant of 'CatchIO.try' that takes an 'Prism' (or any 'Getter') to select which
 -- exceptions are caught (c.f. 'tryJust', 'catchJust'). If the 'Exception' does
 -- not match the predicate, it is re-thrown.
 --
 -- @
--- 'trying' :: 'Prism''     'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
--- 'trying' :: 'Lens''      'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
--- 'trying' :: 'Traversal'' 'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
--- 'trying' :: 'Iso''       'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
--- 'trying' :: 'Getter''    'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
--- 'trying' :: 'Fold''      'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
+-- 'trying' :: 'MonadCatchIO' m => 'Prism''     'SomeException' a -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadCatchIO' m => 'Lens''      'SomeException' a -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadCatchIO' m => 'Traversal'' 'SomeException' a -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadCatchIO' m => 'Iso''       'SomeException' a -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadCatchIO' m => 'Getter''    'SomeException' a -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadCatchIO' m => 'Fold''      'SomeException' a -> m r -> m ('Either' a r)
 -- @
-trying :: Getting (Leftmost a) SomeException t a b -> IO r -> IO (Either a r)
+trying :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> m r -> m (Either a r)
 trying l = tryJust (preview l)
+
+-- | A helper version of 'CatchIO.try' that doesn't needlessly require 'Functor'.
+try :: (MonadCatchIO m, Exception e) => m a -> m (Either e a)
+try a = CatchIO.catch (liftM Right a) (return . Left)
+
+-- | A helper version of 'CatchIO.tryJust' that doesn't needlessly require 'Functor'.
+tryJust :: (MonadCatchIO m, Exception e) => (e -> Maybe b) -> m a -> m (Either b a)
+tryJust p a = do
+  r <- try a
+  case r of
+    Right v -> return (Right v)
+    Left  e -> case p e of
+      Nothing -> CatchIO.throw e `asTypeOf` return (Left undefined)
+      Just b  -> return (Left b)
 
 ------------------------------------------------------------------------------
 -- Throwing
@@ -224,35 +261,37 @@ trying l = tryJust (preview l)
 -- 'throwing' :: 'Iso'' 'SomeException' t   -> t -> a
 -- @
 throwing :: AReview s SomeException a b -> b -> a
-throwing l = reviews l throw
+throwing l = reviews l Exception.throw
 {-# INLINE throwing #-}
 
--- | A variant of 'throwing' that can only be used within the 'IO' 'Monad'.
+-- | A variant of 'throwing' that can only be used within the 'IO' 'Monad'
+-- (or any other 'MonadCatchIO' instance) to throw an 'Exception' described 
+-- by a 'Prism'.
 --
--- @'throwingIO' l ≡ 'reviews' l 'throwIO'@
---
--- Although 'throwingIO' has a type that is a specialization of the type of
+-- Although 'throwingM' has a type that is a specialization of the type of
 -- 'throwing', the two functions are subtly different:
 --
 -- @
 -- 'throwing' l e `seq` x   ≡ 'throwing' e
--- 'throwingIO' l e `seq` x ≡ x
+-- 'throwingM' l e `seq` x ≡ x
 -- @
 --
 -- The first example will cause the 'Exception' @e@ to be raised, whereas the
--- second one won't. In fact, 'throwingIO' will only cause an 'Exception' to
--- be raised when it is used within the 'IO' 'Monad'. The 'throwingIO' variant
--- should be used in preference to 'throwing' to raise an 'Exception' within
--- the 'IO' 'Monad' because it guarantees ordering with respect to other 'IO'
--- operations, whereas 'throwing' does not.
+-- second one won't. In fact, 'throwingM' will only cause an 'Exception' to
+-- be raised when it is used within the 'MonadCatchIO' instance. The 'throwingM'
+-- variant should be used in preference to 'throwing' to raise an 'Exception'
+-- within the 'Monad' because it guarantees ordering with respect to other
+-- monadic operations, whereas 'throwing' does not.
+--
+-- @'throwingM' l ≡ 'reviews' l 'CatchIO.throw'@
 --
 -- @
--- 'throwingIO' :: 'Prism'' 'SomeException' t -> t -> 'IO' a
--- 'throwingIO' :: 'Iso'' 'SomeException' t   -> t -> 'IO' a
+-- 'throwingM' :: 'MonadCatchIO' m => 'Prism'' 'SomeException' t -> t -> m a
+-- 'throwingM' :: 'MonadCatchIO' m => 'Iso'' 'SomeException' t   -> t -> m a
 -- @
-throwingIO :: AReview s SomeException a b -> b -> IO a
-throwingIO l = reviews l throwIO
-{-# INLINE throwingIO #-}
+throwingM :: MonadCatchIO m => AReview s SomeException a b -> b -> m a
+throwingM l = reviews l (liftIO . throwIO)
+{-# INLINE throwingM #-}
 
 -- | 'throwingTo' raises an 'Exception' specified by a 'Prism' in the target thread.
 --
@@ -260,11 +299,11 @@ throwingIO l = reviews l throwIO
 --
 --
 -- @
--- 'throwingTo' :: 'ThreadId' -> 'Prism'' 'SomeException' t -> t -> 'IO' a
--- 'throwingTo' :: 'ThreadId' -> 'Iso'' 'SomeException' t   -> t -> 'IO' a
+-- 'throwingTo' :: 'ThreadId' -> 'Prism'' 'SomeException' t -> t -> m a
+-- 'throwingTo' :: 'ThreadId' -> 'Iso'' 'SomeException' t   -> t -> m a
 -- @
-throwingTo :: ThreadId -> AReview s SomeException a b -> b -> IO ()
-throwingTo tid l = reviews l (throwTo tid)
+throwingTo :: MonadIO m => ThreadId -> AReview s SomeException a b -> b -> m ()
+throwingTo tid l = reviews l (liftIO . throwTo tid)
 {-# INLINE throwingTo #-}
 
 ----------------------------------------------------------------------------

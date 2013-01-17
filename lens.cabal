@@ -230,7 +230,6 @@ library
     Control.Lens.Wrapped
     Control.Lens.Zipper
     Control.Lens.Zoom
-    Control.Monad.CatchIO.Lens
     Control.Monad.Error.Lens
     Control.Parallel.Strategies.Lens
     Control.Seq.Lens
