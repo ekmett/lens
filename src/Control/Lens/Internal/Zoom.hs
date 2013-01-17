@@ -1,4 +1,6 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
 #ifdef TRUSTWORTHY
@@ -18,23 +20,53 @@
 module Control.Lens.Internal.Zoom
   (
   -- * Zoom
-    Focusing(..)
+    Zoomed
+  , Focusing(..)
   , FocusingWith(..)
   , FocusingPlus(..)
   , FocusingOn(..)
   , FocusingMay(..), May(..)
   , FocusingErr(..), Err(..)
   -- * Magnify
+  , Magnified
   , EffectRWS(..)
   ) where
 
 import Control.Applicative
 import Control.Category
 import Control.Comonad
+import Control.Lens.Internal.Action
 import Control.Lens.Internal.Getter
-import Control.Monad
+import Control.Monad.Reader as Reader
+import Control.Monad.Trans.State.Lazy as Lazy
+import Control.Monad.Trans.State.Strict as Strict
+import Control.Monad.Trans.Writer.Lazy as Lazy
+import Control.Monad.Trans.Writer.Strict as Strict
+import Control.Monad.Trans.RWS.Lazy as Lazy
+import Control.Monad.Trans.RWS.Strict as Strict
+import Control.Monad.Trans.Error
+import Control.Monad.Trans.List
+import Control.Monad.Trans.Identity
+import Control.Monad.Trans.Maybe
 import Data.Monoid
 import Prelude hiding ((.),id)
+
+------------------------------------------------------------------------------
+-- Zoomed
+------------------------------------------------------------------------------
+
+type family Zoomed (m :: * -> *) :: * -> * -> *
+type instance Zoomed (Strict.StateT s z) = Focusing z
+type instance Zoomed (Lazy.StateT s z) = Focusing z
+type instance Zoomed (ReaderT e m) = Zoomed m
+type instance Zoomed (IdentityT m) = Zoomed m
+type instance Zoomed (Strict.RWST r w s z) = FocusingWith w z
+type instance Zoomed (Lazy.RWST r w s z) = FocusingWith w z
+type instance Zoomed (Strict.WriterT w m) = FocusingPlus w (Zoomed m)
+type instance Zoomed (Lazy.WriterT w m) = FocusingPlus w (Zoomed m)
+type instance Zoomed (ListT m) = FocusingOn [] (Zoomed m)
+type instance Zoomed (MaybeT m) = FocusingMay (Zoomed m)
+type instance Zoomed (ErrorT e m) = FocusingErr e (Zoomed m)
 
 ------------------------------------------------------------------------------
 -- Focusing
@@ -177,6 +209,17 @@ instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
   {-# INLINE pure #-}
   FocusingErr kf <*> FocusingErr ka = FocusingErr (kf <*> ka)
   {-# INLINE (<*>) #-}
+
+------------------------------------------------------------------------------
+-- Magnified
+------------------------------------------------------------------------------
+
+type family Magnified (m :: * -> *) :: * -> * -> *
+type instance Magnified (ReaderT b m) = Effect m
+type instance Magnified ((->)b) = Accessor
+type instance Magnified (Strict.RWST a w s m) = EffectRWS w s m
+type instance Magnified (Lazy.RWST a w s m) = EffectRWS w s m
+type instance Magnified (IdentityT m) = Magnified m
 
 ------------------------------------------------------------------------------
 -- EffectRWS
