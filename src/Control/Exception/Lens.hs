@@ -226,8 +226,8 @@ handling_ l = flip (catching_ l)
 -- 'trying' :: 'MonadCatchIO' m => 'Lens''      'SomeException' a -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadCatchIO' m => 'Traversal'' 'SomeException' a -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadCatchIO' m => 'Iso''       'SomeException' a -> m r -> m ('Either' a r)
--- 'trying' :: 'MonadCatchIO' m => 'Getter''    'SomeException' a -> m r -> m ('Either' a r)
--- 'trying' :: 'MonadCatchIO' m => 'Fold''      'SomeException' a -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadCatchIO' m => 'Getter'     'SomeException' a -> m r -> m ('Either' a r)
+-- 'trying' :: 'MonadCatchIO' m => 'Fold'       'SomeException' a -> m r -> m ('Either' a r)
 -- @
 trying :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> m r -> m (Either a r)
 trying l = tryJust (preview l)
@@ -271,8 +271,8 @@ throwing l = reviews l Exception.throw
 -- 'throwing', the two functions are subtly different:
 --
 -- @
--- 'throwing' l e `seq` x   ≡ 'throwing' e
--- 'throwingM' l e `seq` x ≡ x
+-- 'throwing' l e \`seq\` x   ≡ 'throwing' e
+-- 'throwingM' l e \`seq\` x ≡ x
 -- @
 --
 -- The first example will cause the 'Exception' @e@ to be raised, whereas the
@@ -497,7 +497,7 @@ _UndefinedElement = _ArrayException . dimap seta (either id id) . right' . rmap 
 -- AssertionFailed
 ----------------------------------------------------------------------------
 
--- | 'assert' was applied to 'False'.
+-- | 'assert' was applied to 'Prelude.False'.
 class AsAssertionFailed p f t where
   -- |
   -- >>> handling _AssertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
@@ -571,8 +571,9 @@ _HeapOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (Hea
   seta t             = Left  (pure t)
 {-# INLINE _HeapOverflow #-}
 
--- | This 'Exception' is raised by another thread calling 'killThread', or by the
--- system if it needs to terminate the thread for some reason.
+-- | This 'Exception' is raised by another thread calling
+-- 'Control.Concurrent.killThread', or by the system if it needs to terminate
+-- the thread for some reason.
 --
 -- @
 -- '_ThreadKilled' :: 'Prism'' 'AsyncException' ()
@@ -621,8 +622,8 @@ instance (Choice p, Applicative f) => AsNonTermination p f SomeException where
 ----------------------------------------------------------------------------
 
 class (Profunctor p, Functor f) => AsNestedAtomically p f t where
-  -- | Thrown when the program attempts to call atomically, from the stm package,
-  -- inside another call to atomically.
+  -- | Thrown when the program attempts to call atomically, from the
+  -- 'Control.Monad.STM' package, inside another call to atomically.
   _NestedAtomically :: Overloaded' p f t ()
 
 instance (Profunctor p, Functor f) => AsNestedAtomically p f NestedAtomically where
@@ -674,8 +675,8 @@ instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnSTM p f SomeExcepti
 ----------------------------------------------------------------------------
 
 class (Profunctor p, Functor f) => AsDeadlock p f t where
-  -- | There are no runnable threads, so the program is deadlocked. The 'Deadlock' exception
-  -- is raised in the main thread only.
+  -- | There are no runnable threads, so the program is deadlocked. The
+  -- 'Deadlock' 'Exception' is raised in the main thread only.
   _Deadlock :: Overloaded' p f t ()
 
 instance (Profunctor p, Functor f) => AsDeadlock p f Deadlock where
@@ -782,11 +783,11 @@ instance (Choice p, Applicative f) => AsRecUpdError p f SomeException where
 -- ErrorCall
 ----------------------------------------------------------------------------
 
--- | This is thrown when the user calls 'error'.
+-- | This is thrown when the user calls 'Prelude.error'.
 class (Profunctor p, Functor f) => AsErrorCall p f t where
-  -- | Retrieve the argument given to 'error'.
+  -- | Retrieve the argument given to 'Prelude.error'.
   --
-  -- 'ErrorCall' is isomorphic to a 'String'
+  -- 'ErrorCall' is isomorphic to a 'String'.
   --
   -- >>> catching _ErrorCall (error "touch down!") return
   -- "touch down!"
