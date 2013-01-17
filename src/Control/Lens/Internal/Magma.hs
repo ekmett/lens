@@ -197,18 +197,18 @@ runTakingWhile :: Corepresentable p => TakingWhile p f a b t -> Magma () t b (Co
 runTakingWhile (TakingWhile _ _ k) = k True
 
 instance Functor (TakingWhile p f a b) where
-  fmap f (TakingWhile w t k) = let ft = f t in TakingWhile w ft $ \b -> if b then MagmaFmap f (k b) else MagmaPure ft
+  fmap f ~(TakingWhile w t k) = let ft = f t in TakingWhile w ft $ \b -> if b then MagmaFmap f (k b) else MagmaPure ft
   {-# INLINE fmap #-}
 
 instance Applicative (TakingWhile p f a b) where
   pure a = TakingWhile True a $ \_ -> MagmaPure a
   {-# INLINE pure #-}
-  TakingWhile wf tf mf <*> TakingWhile wa ta ma = TakingWhile (wf && wa) (tf ta) $ \o ->
+  ~(TakingWhile wf tf mf) <*> ~(TakingWhile wa ta ma) = TakingWhile (wf && wa) (tf ta) $ \o ->
     if o then MagmaAp (mf True) (ma wf) else MagmaPure (tf ta)
   {-# INLINE (<*>) #-}
 
 instance Corepresentable p => Bizarre p (TakingWhile p g) where
-  bazaar (pafb :: p a (f b)) (TakingWhile _ _ k) = go (k True) where
+  bazaar (pafb :: p a (f b)) ~(TakingWhile _ _ k) = go (k True) where
     go :: Applicative f => Magma () t b (Corep p a) -> f t
     go (MagmaAp x y)  = go x <*> go y
     go (MagmaFmap f x)  = f <$> go x

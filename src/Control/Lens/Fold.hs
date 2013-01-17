@@ -132,7 +132,7 @@ import Control.Lens.Getter
 import Control.Lens.Internal.Fold
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
--- import Control.Lens.Internal.Magma
+import Control.Lens.Internal.Magma
 import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader
@@ -144,7 +144,7 @@ import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
--- import Data.Traversable
+import Data.Traversable
 
 -- $setup
 -- >>> import Control.Lens
@@ -309,6 +309,7 @@ filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . ri
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a      -> 'IndexPreservingMonadicFold' m s a
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s a
 -- @
+{-
 takingWhile :: (Conjoined p, Profunctor q, Applicative f, Gettable f)
          => (a -> Bool)
          -> Overloading p q (Accessor (Endo (f s))) s s a a
@@ -317,15 +318,14 @@ takingWhile p l f = (flip appEndo noEffect .# runAccessor) `rmap` l g where
   g = cotabulate $ \wa -> Accessor . Endo $
     if p (extract wa) then (corep f wa *>) else const noEffect
 {-# INLINE takingWhile #-}
+-}
 
-{-
 takingWhile :: (Conjoined p, Applicative f) => (a -> Bool) -> Over p (TakingWhile p f a a) s t a a -> Over p f s t a a
 takingWhile p l pafb = fmap runMagma . traverse (corep pafb) . runTakingWhile . l flag where
   flag = cotabulate $ \wa -> let a = extract wa; r = p a in TakingWhile r a $ \pr -> case pr of
     False -> MagmaPure a
     True  -> if r then MagmaLeaf () wa else MagmaPure a
 {-# INLINE takingWhile #-}
--}
 
 -- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
 --
