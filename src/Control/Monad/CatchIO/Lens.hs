@@ -105,7 +105,7 @@ handling_ l = flip (catching_ l)
 -- Trying
 ------------------------------------------------------------------------------
 
--- A variant of 'try' that takes an 'Prism' (or any 'Getter') to select which
+-- | A variant of 'try' that takes an 'Prism' (or any 'Getter') to select which
 -- exceptions are caught (c.f. 'tryJust', 'catchJust'). If the 'Exception' does
 -- not match the predicate, it is re-thrown.
 --
@@ -119,7 +119,6 @@ handling_ l = flip (catching_ l)
 -- @
 trying :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> m r -> m (Either a r)
 trying l = tryJust (preview l)
-
 
 ------------------------------------------------------------------------------
 -- Throwing
