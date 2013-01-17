@@ -275,56 +275,27 @@ filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . ri
 -- @
 -- 'takingWhile' :: (a -> 'Bool') -> 'Fold' s a                         -> 'Fold' s a
 -- 'takingWhile' :: (a -> 'Bool') -> 'Getter' s a                       -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Traversal'' s a                   -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Lens'' s a                        -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Prism'' s a                       -> 'Fold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'Iso'' s a                         -> 'Fold' s a
--- @
---
--- @
+-- 'takingWhile' :: (a -> 'Bool') -> 'Traversal'' s a                   -> 'Fold' s a -- * See note below
+-- 'takingWhile' :: (a -> 'Bool') -> 'Lens'' s a                        -> 'Fold' s a -- * See note below
+-- 'takingWhile' :: (a -> 'Bool') -> 'Prism'' s a                       -> 'Fold' s a -- * See note below
+-- 'takingWhile' :: (a -> 'Bool') -> 'Iso'' s a                         -> 'Fold' s a -- * See note below
 -- 'takingWhile' :: (a -> 'Bool') -> 'Action' m s a                     -> 'MonadicFold' m s a
 -- 'takingWhile' :: (a -> 'Bool') -> 'MonadicFold' m s a                -> 'MonadicFold' m s a
--- @
---
--- @
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a          -> 'IndexedFold' i s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a               -> 'IndexedFold' i s a
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a          -> 'IndexedFold' i s a -- * See note below
+-- 'takingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a               -> 'IndexedFold' i s a -- * See note below
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a              -> 'IndexedFold' i s a
--- @
---
--- @
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold' i m s a
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- @
 --
--- @
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingTraversal'' s a    -> 'IndexPreservingFold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingLens'' s a         -> 'IndexPreservingFold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingGetter' s a        -> 'IndexPreservingFold' s a
--- @
---
--- @
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a      -> 'IndexPreservingMonadicFold' m s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s a
--- @
-{-
-takingWhile :: (Conjoined p, Profunctor q, Applicative f, Gettable f)
-         => (a -> Bool)
-         -> Overloading p q (Accessor (Endo (f s))) s s a a
-         -> Overloading p q f s s a a
-takingWhile p l f = (flip appEndo noEffect .# runAccessor) `rmap` l g where
-  g = cotabulate $ \wa -> Accessor . Endo $
-    if p (extract wa) then (corep f wa *>) else const noEffect
-{-# INLINE takingWhile #-}
--}
-
+-- /Note:/ When applied to a 'Traversal', 'takingWhile' yields something that can be used as if it were a 'Traversal', but
+-- which is not a 'Traversal' per the laws, unless you are careful to ensure that you do not invalidate the predicate when
+-- writing back through it.
 takingWhile :: (Conjoined p, Applicative f) => (a -> Bool) -> Over p (TakingWhile p f a a) s t a a -> Over p f s t a a
 takingWhile p l pafb = fmap runMagma . traverse (corep pafb) . runTakingWhile . l flag where
-  flag = cotabulate $ \wa -> let a = extract wa; r = p a in TakingWhile r a $ \pr -> case pr of
-    False -> MagmaPure a
-    True  -> if r then MagmaLeaf () wa else MagmaPure a
+  flag = cotabulate $ \wa -> let a = extract wa; r = p a in TakingWhile r a $ \pr ->
+    if pr && r then MagmaLeaf () wa else MagmaPure a
 {-# INLINE takingWhile #-}
 
 -- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
