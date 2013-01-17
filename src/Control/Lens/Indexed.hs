@@ -27,7 +27,7 @@
 -- Stability   :  provisional
 -- Portability :  Rank2Types
 --
--- (These need to be defined together for @DefaultSignatures@ to work.)
+-- (The classes in here need to be defined together for @DefaultSignatures@ to work.)
 -------------------------------------------------------------------------------
 module Control.Lens.Indexed
   (
