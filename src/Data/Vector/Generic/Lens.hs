@@ -13,7 +13,8 @@
 -- Stability   :  provisional
 -- Portability :  non-portable
 --
--- This module provides lenses and traversals for working with generic vectors.
+-- This module provides lenses and traversals for working with generic
+-- vectors.
 -------------------------------------------------------------------------------
 module Data.Vector.Generic.Lens
   ( toVectorOf
@@ -42,10 +43,10 @@ import Prelude hiding ((++), length, null, head, tail, init, last, map, reverse)
 -- $setup
 -- >>> import Data.Vector as Vector
 
--- | @sliced i n@ provides a 'Lens'' that edits the @n@ elements starting
--- at index @i@ from a 'Lens''.
+-- | @sliced i n@ provides a 'Lens' that edits the @n@ elements starting
+-- at index @i@ from a 'Lens'.
 --
--- This is only a valid lens if you do not change the length of the
+-- This is only a valid 'Lens' if you do not change the length of the
 -- resulting 'Vector'.
 --
 -- Attempting to return a longer or shorter vector will result in
@@ -56,9 +57,10 @@ import Prelude hiding ((++), length, null, head, tail, init, last, map, reverse)
 --
 -- >>> Vector.fromList [1..10] & sliced 2 5 . mapped .~ 0
 -- fromList [1,2,0,0,0,0,0,8,9,10]
-sliced :: Vector v a => Int -- ^ @i@ starting index
-          -> Int -- ^ @n@ length
-          -> Lens' (v a) (v a)
+sliced :: Vector v a
+       => Int -- ^ @i@ starting index
+       -> Int -- ^ @n@ length
+       -> Lens' (v a) (v a)
 sliced i n f v = f (slice i n v) <&> \ v0 -> v // zip [i..i+n-1] (V.toList v0)
 {-# INLINE sliced #-}
 
@@ -70,7 +72,7 @@ toVectorOf :: Vector v a => Getting (Endo [a]) s t a b -> s -> v a
 toVectorOf l s = fromList (toListOf l s)
 {-# INLINE toVectorOf #-}
 
--- | Convert a list to a 'Vector' (or back)
+-- | Convert a list to a 'Vector' (or back.)
 --
 -- >>> [1,2,3] ^. vector :: Vector.Vector Int
 -- fromList [1,2,3]
@@ -81,12 +83,13 @@ vector :: Vector v a => Iso' [a] (v a)
 vector = iso fromList V.toList
 {-# INLINE vector #-}
 
--- | Convert a 'Vector' to a finite 'Stream' (or back)
+-- | Convert a 'Vector' to a finite 'Stream' (or back.)
 asStream :: Vector v a => Iso' (v a) (Stream a)
 asStream = iso stream unstream
 {-# INLINE asStream #-}
 
--- | Convert a 'Vector' to a finite 'Stream' from right to left (or back.)
+-- | Convert a 'Vector' to a finite 'Stream' from right to left (or
+-- back.)
 asStreamR :: Vector v a => Iso' (v a) (Stream a)
 asStreamR = iso streamR unstreamR
 {-# INLINE asStreamR #-}
@@ -103,7 +106,8 @@ forced :: Vector v a => Iso' (v a) (v a)
 forced = iso force force
 {-# INLINE forced #-}
 
--- | Convert a 'Vector' to a version with all the elements in the reverse order
+-- | Convert a 'Vector' to a version with all the elements in the
+-- reverse order.
 --
 -- >>> Vector.fromList [1,2,3] ^. reversed
 -- fromList [3,2,1]
