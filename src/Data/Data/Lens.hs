@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Data.Lens
--- Copyright   :  (C) 2012 Edward Kmett, (C) 2006-2012 Neil Mitchell
+-- Copyright   :  (C) 2012-13 Edward Kmett, (C) 2006-2012-13 Neil Mitchell
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental

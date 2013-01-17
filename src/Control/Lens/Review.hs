@@ -6,12 +6,14 @@
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Review
--- Copyright   :  (C) 2012 Edward Kmett
+-- Copyright   :  (C) 2012-13 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional
 -- Portability :  non-portable
 --
+-- A 'Review' is a type-restricted form of a 'Prism' that can only be used for
+-- writing back via 're', 'review', 'reuse'.
 -------------------------------------------------------------------------------
 module Control.Lens.Review
   (
@@ -45,13 +47,22 @@ import Data.Profunctor.Unsafe
 -- Review
 ------------------------------------------------------------------------------
 
+-- | This is a limited form of a 'Prism' that can only be used for 're' operations.
+--
+-- Like with a 'Getter', there are no laws to state for a 'Review'.
+--
+-- You can generate a 'Review' by using 'unto'. You can also use any 'Prism' or 'Iso'
+-- directly as a 'Review'
 type Review s t a b = forall p f. (Reviewable p, Settable f) => Overloaded p f s t a b
 
+-- | A 'Simple' 'Review'
 type Review' t b = Review t t b b
 
--- | If you see this in a signature for a function, the function is expecting a 'Prism'.
+-- | If you see this in a signature for a function, the function is expecting a 'Review'
+-- (in practice, this usually means a 'Prism').
 type AReview s t a b = Overloaded Reviewed Identity s t a b
 
+-- | A 'Simple' 'AReview'
 type AReview' t b = AReview t t b b
 
 -- | An analogue of 'to' for 'review'.

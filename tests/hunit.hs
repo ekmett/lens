@@ -1,5 +1,21 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# LANGUAGE TemplateHaskell #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Main (hunit)
+-- Copyright   :  (C) 2012-13 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  provisional
+-- Portability :  portable
+--
+-- This module provides a simple hunit test suite for lens.
+--
+-- The code attempts to enumerate common use cases rather than give an example
+-- of each available lens function. The tests here merely scratch the surface
+-- of what is possible using the lens package; there are a great many use cases
+-- (and lens functions) that aren't covered.
+-----------------------------------------------------------------------------
 module Main where
 
 import Control.Lens
@@ -13,10 +29,6 @@ import Test.Framework.TH
 import Test.Framework
 import Test.HUnit hiding (test)
 
--- The code attempts to enumerate common use cases rather than give an example
--- of each available lens function. The tests here merely scratch the surface
--- of what is possible using the lens package; there are a great many use cases
--- (and lens functions) that aren't covered.
 
 data Point =
   Point

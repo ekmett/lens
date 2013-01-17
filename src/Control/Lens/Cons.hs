@@ -6,6 +6,16 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Control.Lens.Cons
+-- Copyright   :  (C) 2012-13 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-----------------------------------------------------------------------------
 module Control.Lens.Cons
   (
   -- * Cons

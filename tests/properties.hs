@@ -5,7 +5,20 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Main (properties)
+-- Copyright   :  (C) 2012-13 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- This module provides a set of QuickCheck properties that can be run through
+-- test-framework to validate a number of expected behaviors of the library.
+-----------------------------------------------------------------------------
 module Main where
+
 
 import Control.Applicative
 import Control.Lens

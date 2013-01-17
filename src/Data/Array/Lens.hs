@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Array.Lens
--- Copyright   :  (C) 2012 Edward Kmett
+-- Copyright   :  (C) 2012-13 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional

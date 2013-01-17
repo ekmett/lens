@@ -3,7 +3,20 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
--- | The commented code summarizes what will be auto-generated below
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Main (templates)
+-- Copyright   :  (C) 2012-13 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- This test suite validates that we are able to generate usable lenses with 
+-- template haskell.
+--
+-- The commented code summarizes what will be auto-generated below
+-----------------------------------------------------------------------------
 module Main where
 
 import Control.Lens
