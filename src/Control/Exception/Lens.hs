@@ -108,8 +108,7 @@ import Prelude
 {-# ANN module "HLint: ignore Use Control.Exception.catch" #-}
 
 -- $setup
--- >>> import Data.List
--- >>> import Control.Monad
+-- >>> :m + Control.Exception Control.Monad Data.List Prelude
 
 ------------------------------------------------------------------------------
 -- Exceptions as Prisms
