@@ -42,11 +42,14 @@ import Prelude hiding ((++), length, null, head, tail, init, last, map, reverse)
 -- $setup
 -- >>> import Data.Vector as Vector
 
--- | @sliced i n@ provides a lens that edits the @n@ elements starting at index @i@ from a lens.
+-- | @sliced i n@ provides a 'Lens'' that edits the @n@ elements starting
+-- at index @i@ from a 'Lens''.
 --
--- This is only a valid lens if you do not change the length of the resulting 'Vector'.
+-- This is only a valid lens if you do not change the length of the
+-- resulting 'Vector'.
 --
--- Attempting to return a longer or shorter vector will result in violations of the 'Lens' laws.
+-- Attempting to return a longer or shorter vector will result in
+-- violations of the 'Lens' laws.
 --
 -- >>> Vector.fromList [1..10] ^. sliced 2 5
 -- fromList [3,4,5,6,7]
@@ -83,17 +86,19 @@ asStream :: Vector v a => Iso' (v a) (Stream a)
 asStream = iso stream unstream
 {-# INLINE asStream #-}
 
--- | Convert a 'Vector' to a finite 'Stream' from right to left (or back)
+-- | Convert a 'Vector' to a finite 'Stream' from right to left (or back.)
 asStreamR :: Vector v a => Iso' (v a) (Stream a)
 asStreamR = iso streamR unstreamR
 {-# INLINE asStreamR #-}
 
--- | Convert a 'Vector' back and forth to an initializer that when run produces a copy of the 'Vector'.
+-- | Convert a 'Vector' back and forth to an initializer that when run
+-- produces a copy of the 'Vector'.
 cloned :: Vector v a => Iso' (v a) (New v a)
 cloned = iso clone new
 {-# INLINE cloned #-}
 
--- | Convert a 'Vector' to a version that doesn't retain any extra memory.
+-- | Convert a 'Vector' to a version that doesn't retain any extra
+-- memory.
 forced :: Vector v a => Iso' (v a) (v a)
 forced = iso force force
 {-# INLINE forced #-}
@@ -106,11 +111,11 @@ reversed :: Vector v a => Iso' (v a) (v a)
 reversed = iso reverse reverse
 {-# INLINE reversed #-}
 
--- | This 'Traversal' will ignore any duplicates in the supplied list of indices.
+-- | This 'Traversal' will ignore any duplicates in the supplied list
+-- of indices.
 --
 -- >>> toListOf (ordinals [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
 -- [4,8,6,12,20,22]
-
 ordinals :: Vector v a => [Int] -> IndexedTraversal' Int (v a) a
 ordinals is f v = fmap (v //) $ traverse (\i -> (,) i <$> indexed f i (v ! i)) $ nub $ filter (\i -> 0 <= i && i < l) is where
   l = length v
