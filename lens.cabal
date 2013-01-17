@@ -10,6 +10,8 @@ stability:     provisional
 homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012-2013 Edward A. Kmett
+build-type:    Custom
+tested-with:   GHC == 7.0.4, GHC == 7.4.1, GHC == 7.4.2, GHC == 7.6.1, GHC == 7.7.20121213
 synopsis:      Lenses, Folds and Traversals
 description:
   This package comes \"Batteries Included\" with many useful lenses for the types
@@ -79,8 +81,6 @@ description:
   common haskell types, a wide array of combinators for working them, and more
   exotic functionality, (/e.g./ getters, setters, indexed folds, isomorphisms).
 
-build-type:    Custom
-tested-with:   GHC == 7.0.4, GHC == 7.4.1, GHC == 7.4.2, GHC == 7.6.1
 extra-source-files:
   .travis.yml
   .ghci
