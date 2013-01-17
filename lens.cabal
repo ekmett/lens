@@ -169,6 +169,7 @@ library
     generic-deriving          == 1.4.*,
     ghc-prim,
     hashable                  >= 1.1.2.3  && < 1.3,
+    MonadCatchIO-transformers >= 0.3      && < 0.4,
     mtl                       >= 2.0.1    && < 2.2,
     parallel                  >= 3.1.0.1  && < 3.3,
     profunctors               >= 3.2,
@@ -229,6 +230,7 @@ library
     Control.Lens.Wrapped
     Control.Lens.Zipper
     Control.Lens.Zoom
+    Control.Monad.CatchIO.Lens
     Control.Monad.Error.Lens
     Control.Parallel.Strategies.Lens
     Control.Seq.Lens
