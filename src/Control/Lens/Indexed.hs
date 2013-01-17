@@ -407,7 +407,7 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
   itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
 #ifdef MPTC_DEFAULTS
   default itraverse :: Applicative f => (Int -> a -> f b) -> t a -> f (t b)
-  itraverse = withIndex traversed
+  itraverse = traversed .# Indexed
   {-# INLINE itraverse #-}
 #endif
 
