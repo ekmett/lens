@@ -33,6 +33,8 @@ module Control.Exception.Lens
   -- * Handling
     catching, catching_
   , handling, handling_
+  -- * Trying
+  , trying
   -- * Throwing
   , throwing, throwingIO, throwingTo
   -- * Exceptions
@@ -93,6 +95,10 @@ import GHC.Conc (ThreadId)
 -- >>> import Data.List
 -- >>> import Control.Monad
 
+------------------------------------------------------------------------------
+-- Exceptions as Prisms
+------------------------------------------------------------------------------
+
 -- | Traverse the strongly typed 'Exception' contained in 'SomeException' where the type of your function matches
 -- the desired 'Exception'.
 --
@@ -103,6 +109,10 @@ import GHC.Conc (ThreadId)
 exception :: Exception a => Prism' SomeException a
 exception = prism toException $ \ e -> maybe (Left e) Right $ fromException e
 {-# INLINE exception #-}
+
+------------------------------------------------------------------------------
+-- Catching
+------------------------------------------------------------------------------
 
 -- | Catch exceptions that match a given 'Prism' (or any 'Getter', really).
 --
@@ -141,6 +151,10 @@ catching_ :: Getting (Leftmost a) SomeException t a b -> IO r -> IO r -> IO r
 catching_ l a b = catchJust (preview l) a (const b)
 {-# INLINE catching_ #-}
 
+------------------------------------------------------------------------------
+-- Handling
+------------------------------------------------------------------------------
+
 -- | A version of 'catching' with the arguments swapped around; useful in
 -- situations where the code for the handler is shorter.
 --
@@ -176,6 +190,29 @@ handling l = handleJust (preview l)
 handling_ :: Getting (Leftmost a) SomeException t a b -> IO r -> IO r -> IO r
 handling_ l b = handling l (const b)
 {-# INLINE handling_ #-}
+
+------------------------------------------------------------------------------
+-- Trying
+------------------------------------------------------------------------------
+
+-- A variant of 'try' that takes an 'Prism' (or any 'Getter') to select which
+-- exceptions are caught (c.f. 'tryJust', 'catchJust'). If the 'Exception' does
+-- not match the predicate, it is re-thrown.
+--
+-- @
+-- 'trying' :: 'Prism''     'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
+-- 'trying' :: 'Lens''      'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
+-- 'trying' :: 'Traversal'' 'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
+-- 'trying' :: 'Iso''       'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
+-- 'trying' :: 'Getter''    'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
+-- 'trying' :: 'Fold''      'SomeException' a -> 'IO' r -> 'IO' ('Either' a r)
+-- @
+trying :: Getting (Leftmost a) SomeException t a b -> IO r -> IO (Either a r)
+trying l = tryJust (preview l)
+
+------------------------------------------------------------------------------
+-- Throwing
+------------------------------------------------------------------------------
 
 -- | Throw an 'Exception' described by a 'Prism'. Exceptions may be thrown from
 -- purely functional code, but may only be caught within the 'IO' 'Monad'.
