@@ -651,8 +651,8 @@ sumOf l = getSum #. foldMapOf l Sum
 -- 'traverseOf_' :: 'Applicative' f => 'Traversal'' s a -> (a -> f r) -> s -> f ()
 -- 'traverseOf_' :: 'Applicative' f => 'Prism'' s a     -> (a -> f r) -> s -> f ()
 -- @
-traverseOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed f) s t a b -> p a (f r) -> s -> f ()
-traverseOf_ l f = getTraversed #. foldMapOf l (rmap (Traversed #. void) f)
+traverseOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed r f) s t a b -> p a (f r) -> s -> f ()
+traverseOf_ l f = void . getTraversed #. foldMapOf l (Traversed #. f)
 {-# INLINE traverseOf_ #-}
 
 -- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor')-based answer,
@@ -676,7 +676,7 @@ traverseOf_ l f = getTraversed #. foldMapOf l (rmap (Traversed #. void) f)
 -- 'forOf_' :: 'Applicative' f => 'Traversal'' s a -> s -> (a -> f r) -> f ()
 -- 'forOf_' :: 'Applicative' f => 'Prism'' s a     -> s -> (a -> f r) -> f ()
 -- @
-forOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed f) s t a b -> s -> p a (f r) -> f ()
+forOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed r f) s t a b -> s -> p a (f r) -> f ()
 forOf_ = flip . traverseOf_
 {-# INLINE forOf_ #-}
 
@@ -692,8 +692,8 @@ forOf_ = flip . traverseOf_
 -- 'sequenceAOf_' :: 'Applicative' f => 'Traversal'' s (f a) -> s -> f ()
 -- 'sequenceAOf_' :: 'Applicative' f => 'Prism'' s (f a)     -> s -> f ()
 -- @
-sequenceAOf_ :: Functor f => Getting (Traversed f) s t (f a) b -> s -> f ()
-sequenceAOf_ l = getTraversed #. foldMapOf l (Traversed #. void)
+sequenceAOf_ :: Functor f => Getting (Traversed a f) s t (f a) b -> s -> f ()
+sequenceAOf_ l = void . getTraversed #. foldMapOf l Traversed
 {-# INLINE sequenceAOf_ #-}
 
 -- | Map each target of a 'Fold' on a structure to a monadic action, evaluate these actions from left to right, and ignore the results.
@@ -708,8 +708,8 @@ sequenceAOf_ l = getTraversed #. foldMapOf l (Traversed #. void)
 -- 'mapMOf_' :: 'Monad' m => 'Traversal'' s a -> (a -> m r) -> s -> m ()
 -- 'mapMOf_' :: 'Monad' m => 'Prism'' s a     -> (a -> m r) -> s -> m ()
 -- @
-mapMOf_ :: (Profunctor p, Monad m) => Accessing p (Sequenced m) s t a b -> p a (m r) -> s -> m ()
-mapMOf_ l f = getSequenced #. foldMapOf l (rmap (Sequenced #. liftM skip) f)
+mapMOf_ :: (Profunctor p, Monad m) => Accessing p (Sequenced r m) s t a b -> p a (m r) -> s -> m ()
+mapMOf_ l f = liftM skip . getSequenced #. foldMapOf l (Sequenced #. f)
 {-# INLINE mapMOf_ #-}
 
 -- | 'forMOf_' is 'mapMOf_' with two of its arguments flipped.
@@ -724,7 +724,7 @@ mapMOf_ l f = getSequenced #. foldMapOf l (rmap (Sequenced #. liftM skip) f)
 -- 'forMOf_' :: 'Monad' m => 'Traversal'' s a -> s -> (a -> m r) -> m ()
 -- 'forMOf_' :: 'Monad' m => 'Prism'' s a     -> s -> (a -> m r) -> m ()
 -- @
-forMOf_ :: (Profunctor p, Monad m) => Accessing p (Sequenced m) s t a b -> s -> p a (m r) -> m ()
+forMOf_ :: (Profunctor p, Monad m) => Accessing p (Sequenced r m) s t a b -> s -> p a (m r) -> m ()
 forMOf_ = flip . mapMOf_
 {-# INLINE forMOf_ #-}
 
@@ -740,8 +740,8 @@ forMOf_ = flip . mapMOf_
 -- 'sequenceOf_' :: 'Monad' m => 'Traversal'' s (m a) -> s -> m ()
 -- 'sequenceOf_' :: 'Monad' m => 'Prism'' s (m a)     -> s -> m ()
 -- @
-sequenceOf_ :: Monad m => Getting (Sequenced m) s t (m a) b -> s -> m ()
-sequenceOf_ l = getSequenced #. foldMapOf l (Sequenced #. liftM skip)
+sequenceOf_ :: Monad m => Getting (Sequenced a m) s t (m a) b -> s -> m ()
+sequenceOf_ l = liftM skip . getSequenced #. foldMapOf l Sequenced
 {-# INLINE sequenceOf_ #-}
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
@@ -1519,7 +1519,7 @@ iallOf l = allOf l .# Indexed
 -- 'itraverseOf_' :: 'Functor' f     => 'IndexedLens'' i s a      -> (i -> a -> f r) -> s -> f ()
 -- 'itraverseOf_' :: 'Applicative' f => 'IndexedTraversal'' i s a -> (i -> a -> f r) -> s -> f ()
 -- @
-itraverseOf_ :: Functor f => IndexedGetting i (Traversed f) s t a b -> (i -> a -> f r) -> s -> f ()
+itraverseOf_ :: Functor f => IndexedGetting i (Traversed r f) s t a b -> (i -> a -> f r) -> s -> f ()
 itraverseOf_ l = traverseOf_ l .# Indexed
 {-# INLINE itraverseOf_ #-}
 
@@ -1538,7 +1538,7 @@ itraverseOf_ l = traverseOf_ l .# Indexed
 -- 'iforOf_' :: 'Functor' f     => 'IndexedLens'' i s a      -> s -> (i -> a -> f r) -> f ()
 -- 'iforOf_' :: 'Applicative' f => 'IndexedTraversal'' i s a -> s -> (i -> a -> f r) -> f ()
 -- @
-iforOf_ :: Functor f => IndexedGetting i (Traversed f) s t a b -> s -> (i -> a -> f r) -> f ()
+iforOf_ :: Functor f => IndexedGetting i (Traversed r f) s t a b -> s -> (i -> a -> f r) -> f ()
 iforOf_ = flip . itraverseOf_
 {-# INLINE iforOf_ #-}
 
@@ -1555,7 +1555,7 @@ iforOf_ = flip . itraverseOf_
 -- 'imapMOf_' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> a -> m r) -> s -> m ()
 -- 'imapMOf_' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> a -> m r) -> s -> m ()
 -- @
-imapMOf_ :: Monad m => IndexedGetting i (Sequenced m) s t a b -> (i -> a -> m r) -> s -> m ()
+imapMOf_ :: Monad m => IndexedGetting i (Sequenced r m) s t a b -> (i -> a -> m r) -> s -> m ()
 imapMOf_ l = mapMOf_ l .# Indexed
 {-# INLINE imapMOf_ #-}
 
@@ -1574,7 +1574,7 @@ imapMOf_ l = mapMOf_ l .# Indexed
 -- 'iforMOf_' :: 'Monad' m => 'IndexedLens'' i s a      -> s -> (i -> a -> m r) -> m ()
 -- 'iforMOf_' :: 'Monad' m => 'IndexedTraversal'' i s a -> s -> (i -> a -> m r) -> m ()
 -- @
-iforMOf_ :: Monad m => IndexedGetting i (Sequenced m) s t a b -> s -> (i -> a -> m r) -> m ()
+iforMOf_ :: Monad m => IndexedGetting i (Sequenced r m) s t a b -> s -> (i -> a -> m r) -> m ()
 iforMOf_ = flip . imapMOf_
 {-# INLINE iforMOf_ #-}
 

@@ -47,10 +47,12 @@ instance (Gettable f, Applicative f) => Monoid (Folding f a) where
 ------------------------------------------------------------------------------
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
-newtype Traversed f = Traversed { getTraversed :: f () }
+--
+-- The argument 'a' of the result should not be used!
+newtype Traversed a f = Traversed { getTraversed :: f a }
 
-instance Applicative f => Monoid (Traversed f) where
-  mempty = Traversed (pure ())
+instance Applicative f => Monoid (Traversed a f) where
+  mempty = Traversed (pure (error "Traversed: value used"))
   {-# INLINE mempty #-}
   Traversed ma `mappend` Traversed mb = Traversed (ma *> mb)
   {-# INLINE mappend #-}
@@ -60,10 +62,12 @@ instance Applicative f => Monoid (Traversed f) where
 ------------------------------------------------------------------------------
 
 -- | Used internally by 'Control.Lens.Traversal.mapM_' and the like.
-newtype Sequenced m = Sequenced { getSequenced :: m () }
+--
+-- The argument 'a' of the result should not be used!
+newtype Sequenced a m = Sequenced { getSequenced :: m a }
 
-instance Monad m => Monoid (Sequenced m) where
-  mempty = Sequenced (return ())
+instance Monad m => Monoid (Sequenced a m) where
+  mempty = Sequenced (return (error "Sequenced: value used"))
   {-# INLINE mempty #-}
   Sequenced ma `mappend` Sequenced mb = Sequenced (ma >> mb)
   {-# INLINE mappend #-}
