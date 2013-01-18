@@ -183,7 +183,6 @@ instance IndexedFunctor Mafic where
   ifmap f (Mafic w k) = Mafic w (MagmaFmap f . k)
   {-# INLINE ifmap #-}
 
-
 ------------------------------------------------------------------------------
 -- TakingWhile
 ------------------------------------------------------------------------------

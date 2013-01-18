@@ -21,6 +21,8 @@ module Control.Lens.Action
   , performs
   , liftAct
   , (^!)
+  , (^!!)
+  , (^!?)
 
   -- * Indexed Actions
   , IndexedAction
@@ -28,6 +30,8 @@ module Control.Lens.Action
   , iperform
   , iperforms
   , (^@!)
+  , (^@!!)
+  , (^@!?)
 
   -- * Folds with Effects
   , MonadicFold
@@ -40,9 +44,11 @@ module Control.Lens.Action
   ) where
 
 import Control.Comonad
-import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Action
+import Control.Lens.Internal.Fold
+import Control.Lens.Internal.Indexed
 import Control.Lens.Type
+import Control.Monad (liftM)
 import Control.Monad.Trans.Class
 import Data.Profunctor
 import Data.Profunctor.Rep
@@ -51,7 +57,7 @@ import Data.Profunctor.Unsafe
 -- $setup
 -- >>> :m + Control.Lens
 
-infixr 8 ^!, ^@!
+infixr 8 ^!, ^!!, ^@!, ^@!!, ^!?, ^@!?
 
 -- | Used to evaluate an 'Action'.
 type Acting m r s t a b = LensLike (Effect m r) s t a b
@@ -78,6 +84,18 @@ performs l f = getEffect #. l (rmap (Effect #. return) f)
 (^!) :: Monad m => s -> Acting m a s t a b -> m a
 a ^! l = getEffect (l (Effect #. return) a)
 {-# INLINE (^!) #-}
+
+-- | Perform a 'MonadicFold' and collect all of the results in a list.
+(^!!) :: Monad m => s -> Acting m [a] s t a b -> m [a]
+a ^!! l = getEffect (l (Effect #. return . return) a)
+{-# INLINE (^!!) #-}
+
+-- | Perform a 'MonadicFold' and collect the leftmost result.
+--
+-- /Note:/ this still causes all effects for all elements.
+(^!?) :: Monad m => s -> Acting m (Leftmost a) s t a b -> m (Maybe a)
+a ^!?  l = liftM getLeftmost .# getEffect $ l (Effect #. return . LLeaf) a
+{-# INLINE (^!?) #-}
 
 -- | Construct an 'Action' from a monadic side-effect.
 --
@@ -132,6 +150,18 @@ iperforms l = performs l .# Indexed
 (^@!) :: Monad m => s -> IndexedActing i m (i, a) s t a b -> m (i, a)
 s ^@! l = getEffect (l (Indexed $ \i a -> Effect (return (i, a))) s)
 {-# INLINE (^@!) #-}
+
+-- | Obtain a list of all of the results of an 'IndexedMonadicFold'.
+(^@!!) :: Monad m => s -> IndexedActing i m [(i, a)] s t a b -> m [(i, a)]
+s ^@!! l = getEffect (l (Indexed $ \i a -> Effect (return [(i, a)])) s)
+{-# INLINE (^@!!) #-}
+
+-- | Perform an 'IndexedMonadicFold' and collect the 'Leftmost' result.
+--
+-- /Note:/ this still causes all effects for all elements.
+(^@!?) :: Monad m => s -> IndexedActing i m (Leftmost (i, a)) s t a b -> m (Maybe (i, a))
+a ^@!?  l = liftM getLeftmost .# getEffect $ l (Indexed $ \i -> Effect #. return . LLeaf . (,) i) a
+{-# INLINE (^@!?) #-}
 
 -- | Construct an 'IndexedAction' from a monadic side-effect.
 iact :: Monad m => (s -> m (i, a)) -> IndexedAction i m s a
