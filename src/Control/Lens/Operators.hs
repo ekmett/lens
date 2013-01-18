@@ -24,6 +24,8 @@ module Control.Lens.Operators
   , (^#)
   -- ** with Effects
   , (^!), (^@!)
+  , (^!!), (^@!!)
+  , (^!?), (^@!?)
   -- ** from Folds
   , (^..), (^@..)
   , (^?), (^@?)
