@@ -569,7 +569,7 @@ allOf :: Profunctor p => Accessing p All s t a b -> p a Bool -> s -> Bool
 allOf l f = getAll #. foldMapOf l (All #. f)
 {-# INLINE allOf #-}
 
--- | Calculate the product of every number targeted by a 'Fold'.
+-- | Calculate the 'Product' of every number targeted by a 'Fold'.
 --
 -- >>> productOf both (4,5)
 -- 20
@@ -590,7 +590,7 @@ productOf :: Getting (Product a) s t a b -> s -> a
 productOf l = getProduct #. foldMapOf l Product
 {-# INLINE productOf #-}
 
--- | Calculate the sum of every number targeted by a 'Fold'.
+-- | Calculate the 'Sum' of every number targeted by a 'Fold'.
 --
 -- >>> sumOf both (5,6)
 -- 11
