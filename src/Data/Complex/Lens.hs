@@ -142,7 +142,7 @@ _conjugate = iso conjugate conjugate
 -- a * 2 :+ b * 2
 --
 -- >>> sumOf complex (a :+ b)
--- a + b
+-- 0 + a + b
 --
 -- @'complex' :: 'Applicative' f => (a -> f b) -> 'Complex' a -> f ('Complex' b)@
 #if MIN_VERSION_base(4,4,0)
