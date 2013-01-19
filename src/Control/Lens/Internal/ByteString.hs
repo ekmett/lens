@@ -53,11 +53,10 @@ traversedStrict i0 pafb (BI.PS fp off len) =
    go2 _  []     = return ()
    -- TODO: use a balanced tree (up to some grain size)
    go !i !p !q
-     -- | p == q = pure []
-     | p == q = BI.inlinePerformIO $ do { touchForeignPtr fp; return (pure []) }
+     | p == q = pure []
      | otherwise = let !x = BI.inlinePerformIO $ do
                               x' <- peek p
-                              --touchForeignPtr fp
+                              touchForeignPtr fp
                               return x'
                    in (:) <$> indexed pafb (i :: Int) x <*> go (i + 1) (p `plusPtr` 1) q
 {-# INLINE traversedStrict #-}
