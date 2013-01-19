@@ -1161,7 +1161,7 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
 -- @
 foldl1Of :: Getting (Dual (Endo (Maybe a))) s t a b -> (a -> a -> a) -> s -> a
 foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf Nothing xs) where
-  mf mx y = = Just $ case mx of
+  mf mx y = Just $ case mx of
     Nothing -> y
     Just x  -> (f x y)
 {-# INLINE foldl1Of #-}
