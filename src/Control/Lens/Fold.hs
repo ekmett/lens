@@ -873,6 +873,9 @@ lengthOf l = getSum #. foldMapOf l (\_ -> Sum 1)
 -- When using a 'Traversal' as a partial 'Lens', or a 'Fold' as a partial 'Getter' this can be a convenient
 -- way to extract the optional value.
 --
+-- Note: if you get stack overflows due to this, you may want to use 'firstOf' instead, which can deal
+-- more gracefully with heavily left-biased trees.
+--
 -- @('^?') ≡ 'flip' 'preview'@
 --
 -- @
@@ -882,8 +885,8 @@ lengthOf l = getSum #. foldMapOf l (\_ -> Sum 1)
 -- ('^?') :: s -> 'Iso'' s a       -> 'Maybe' a
 -- ('^?') :: s -> 'Traversal'' s a -> 'Maybe' a
 -- @
-(^?) :: s -> Getting (Endo (Maybe a)) s t a b -> Maybe a
-s ^? l = foldrOf l (\x _ -> Just x) Nothing s
+(^?) :: s -> Getting (First a) s t a b -> Maybe a
+s ^? l = getFirst (foldMapOf l (First #. Just) s)
 {-# INLINE (^?) #-}
 
 -- | Perform an *UNSAFE* 'head' of a 'Fold' or 'Traversal' assuming that it is there.
@@ -902,6 +905,10 @@ s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 -- | Retrieve the 'First' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
 --
+-- The answer is computed in a manner that leaks space less than @'ala' 'First' '.' 'foldMapOf'@
+-- and gives you back access to the outermost 'Just' constructor more quickly, but may have worse
+-- constant factors.
+--
 -- @
 -- 'firstOf' :: 'Getter' s a     -> s -> 'Maybe' a
 -- 'firstOf' :: 'Fold' s a       -> s -> 'Maybe' a
@@ -909,12 +916,16 @@ s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 -- 'firstOf' :: 'Iso'' s a       -> s -> 'Maybe' a
 -- 'firstOf' :: 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-firstOf :: Getting (Endo (Maybe a)) s t a b -> s -> Maybe a
-firstOf l = foldrOf l (\x _ -> Just x) Nothing
+firstOf :: Getting (Leftmost a) s t a b -> s -> Maybe a
+firstOf l = getLeftmost . foldMapOf l LLeaf
 {-# INLINE firstOf #-}
 
 -- | Retrieve the 'Last' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
+--
+-- The answer is computed in a manner that leaks space less than @'ala' 'Last' '.' 'foldMapOf'@
+-- and gives you back access to the outermost 'Just' constructor more quickly, but may have worse
+-- constant factors.
 --
 -- @
 -- 'lastOf' :: 'Getter' s a     -> s -> 'Maybe' a
@@ -1276,11 +1287,11 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 -- 'pre' :: 'Prism' s t a b     -> 'IndexPreservingGetter' s ('Maybe' a)
 -- @
 
-pre :: Getting (Leftmost a) s t a b -> IndexPreservingGetter s (Maybe a)
-pre l = dimap (getLeftmost . runAccessor #. l (Accessor #. LLeaf)) coerce
+pre :: Getting (First a) s t a b -> IndexPreservingGetter s (Maybe a)
+pre l = dimap (getFirst . runAccessor #. l (Accessor #. First #. Just)) coerce
 
-ipre :: IndexedGetting i (Leftmost (i, a)) s t a b -> IndexPreservingGetter s (Maybe (i, a))
-ipre l = dimap (getLeftmost . runAccessor #. l (Indexed $ \i a -> Accessor (LLeaf (i, a)))) coerce
+ipre :: IndexedGetting i (First (i, a)) s t a b -> IndexPreservingGetter s (Maybe (i, a))
+ipre l = dimap (getFirst . runAccessor #. l (Indexed $ \i a -> Accessor (First (Just (i, a))))) coerce
 
 ------------------------------------------------------------------------------
 -- Preview
@@ -1314,12 +1325,12 @@ ipre l = dimap (getLeftmost . runAccessor #. l (Indexed $ \i a -> Accessor (LLea
 -- 'preview' :: 'MonadReader' s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preview' :: 'MonadReader' s m => 'Traversal'' s a -> m ('Maybe' a)
 -- @
-preview :: MonadReader s m => Getting (Leftmost a) s t a b -> m (Maybe a)
-preview l = asks (getLeftmost . foldMapOf l LLeaf)
+preview :: MonadReader s m => Getting (First a) s t a b -> m (Maybe a)
+preview l = asks (getFirst #. foldMapOf l (First #. Just))
 {-# INLINE preview #-}
 
-ipreview :: MonadReader s m => IndexedGetting i (Leftmost (i, a)) s t a b -> m (Maybe (i, a))
-ipreview l = asks (getLeftmost . ifoldMapOf l (\i a -> LLeaf (i, a)))
+ipreview :: MonadReader s m => IndexedGetting i (First (i, a)) s t a b -> m (Maybe (i, a))
+ipreview l = asks (getFirst #. ifoldMapOf l (\i a -> First (Just (i, a))))
 {-# INLINE ipreview #-}
 
 -- | Retrieve a function of the first value targeted by a 'Fold' or
@@ -1348,12 +1359,12 @@ ipreview l = asks (getLeftmost . ifoldMapOf l (\i a -> LLeaf (i, a)))
 -- 'previews' :: 'MonadReader' s m => 'Iso'' s a       -> (a -> r) -> m ('Maybe' r)
 -- 'previews' :: 'MonadReader' s m => 'Traversal'' s a -> (a -> r) -> m ('Maybe' r)
 -- @
-previews :: MonadReader s m => Getting (Leftmost r) s t a b -> (a -> r) -> m (Maybe r)
-previews l f = asks (getLeftmost . foldMapOf l (LLeaf . f))
+previews :: MonadReader s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe r)
+previews l f = asks (getFirst . foldMapOf l (First #. Just . f))
 {-# INLINE previews #-}
 
-ipreviews :: MonadReader s m => IndexedGetting i (Leftmost r) s t a b -> (i -> a -> r) -> m (Maybe r)
-ipreviews l f = asks (getLeftmost . ifoldMapOf l (\i -> LLeaf . f i))
+ipreviews :: MonadReader s m => IndexedGetting i (First r) s t a b -> (i -> a -> r) -> m (Maybe r)
+ipreviews l f = asks (getFirst . ifoldMapOf l (\i -> First #. Just . f i))
 {-# INLINE ipreviews #-}
 
 ------------------------------------------------------------------------------
@@ -1372,11 +1383,11 @@ ipreviews l f = asks (getLeftmost . ifoldMapOf l (\i -> LLeaf . f i))
 -- 'preuse' :: 'MonadState' s m => 'Iso'' s a       -> m ('Maybe' a)
 -- 'preuse' :: 'MonadState' s m => 'Traversal'' s a -> m ('Maybe' a)
 -- @
-preuse :: MonadState s m => Getting (Leftmost a) s t a b -> m (Maybe a)
+preuse :: MonadState s m => Getting (First a) s t a b -> m (Maybe a)
 preuse l = gets (preview l)
 {-# INLINE preuse #-}
 
-ipreuse :: MonadState s m => IndexedGetting i (Leftmost (i, a)) s t a b -> m (Maybe (i, a))
+ipreuse :: MonadState s m => IndexedGetting i (First (i, a)) s t a b -> m (Maybe (i, a))
 ipreuse l = gets (ipreview l)
 {-# INLINE ipreuse #-}
 
@@ -1392,11 +1403,11 @@ ipreuse l = gets (ipreview l)
 -- 'preuses' :: 'MonadState' s m => 'Iso'' s a       -> (a -> r) -> m ('Maybe' r)
 -- 'preuses' :: 'MonadState' s m => 'Traversal'' s a -> (a -> r) -> m ('Maybe' r)
 -- @
-preuses :: MonadState s m => Getting (Leftmost r) s t a b -> (a -> r) -> m (Maybe r)
+preuses :: MonadState s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe r)
 preuses l f = gets (previews l f)
 {-# INLINE preuses #-}
 
-ipreuses :: MonadState s m => IndexedGetting i (Leftmost r) s t a b -> (i -> a -> r) -> m (Maybe r)
+ipreuses :: MonadState s m => IndexedGetting i (First r) s t a b -> (i -> a -> r) -> m (Maybe r)
 ipreuses l f = gets (ipreviews l f)
 {-# INLINE ipreuses #-}
 

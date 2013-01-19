@@ -26,6 +26,7 @@ module Control.Monad.Error.Lens
 
 import Control.Lens
 import Control.Monad.Error
+import Data.Monoid
 
 ------------------------------------------------------------------------------
 -- Catching
@@ -41,7 +42,7 @@ import Control.Monad.Error
 -- 'catching' :: 'MonadError' e m => 'Getter' e a     -> m r -> (a -> m r) -> m r
 -- 'catching' :: 'MonadError' e m => 'Fold' e a       -> m r -> (a -> m r) -> m r
 -- @
-catching :: MonadError e m => Getting (Leftmost a) e t a b -> m r -> (a -> m r) -> m r
+catching :: MonadError e m => Getting (First a) e t a b -> m r -> (a -> m r) -> m r
 catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
@@ -58,7 +59,7 @@ catching l = catchJust (preview l)
 -- 'catching_' :: 'MonadError' e m => 'Getter' e a     -> m r -> m r -> m r
 -- 'catching_' :: 'MonadError' e m => 'Fold' e a       -> m r -> m r -> m r
 -- @
-catching_ :: MonadError e m => Getting (Leftmost a) e t a b -> m r -> m r -> m r
+catching_ :: MonadError e m => Getting (First a) e t a b -> m r -> m r -> m r
 catching_ l a b = catchJust (preview l) a (const b)
 {-# INLINE catching_ #-}
 
@@ -77,7 +78,7 @@ catching_ l a b = catchJust (preview l) a (const b)
 -- 'handling' :: 'MonadError' e m => 'Fold' e a       -> (a -> m r) -> m r -> m r
 -- 'handling' :: 'MonadError' e m => 'Getter' e a     -> (a -> m r) -> m r -> m r
 -- @
-handling :: MonadError e m => Getting (Leftmost a) e t a b -> (a -> m r) -> m r -> m r
+handling :: MonadError e m => Getting (First a) e t a b -> (a -> m r) -> m r -> m r
 handling l = flip (catching l)
 {-# INLINE handling #-}
 
@@ -92,7 +93,7 @@ handling l = flip (catching l)
 -- 'handling_' :: 'MonadError' e m => 'Getter' e a     -> m r -> m r -> m r
 -- 'handling_' :: 'MonadError' e m => 'Fold' e a       -> m r -> m r -> m r
 -- @
-handling_ :: MonadError e m => Getting (Leftmost a) e t a b -> m r -> m r -> m r
+handling_ :: MonadError e m => Getting (First a) e t a b -> m r -> m r -> m r
 handling_ l = flip (catching_ l)
 {-# INLINE handling_ #-}
 
@@ -111,7 +112,7 @@ handling_ l = flip (catching_ l)
 -- 'trying' :: 'MonadError' e m => 'Getter' e a     -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadError' e m => 'Fold' e a       -> m r -> m ('Either' a r)
 -- @
-trying :: MonadError e m => Getting (Leftmost a) e t a b -> m r -> m (Either a r)
+trying :: MonadError e m => Getting (First a) e t a b -> m r -> m (Either a r)
 trying l m = catching l (liftM Right m) (return . Left)
 
 ------------------------------------------------------------------------------

@@ -98,6 +98,7 @@ import Control.Monad.IO.Class
 import Control.Monad.CatchIO as CatchIO hiding (try, tryJust)
 import Control.Exception as Exception hiding (try, tryJust, catchJust)
 import Control.Lens
+import Data.Monoid
 import GHC.Conc (ThreadId)
 import Prelude
   ( asTypeOf, const, either, flip, id, maybe, undefined
@@ -142,7 +143,7 @@ exception = prism toException $ \ e -> maybe (Left e) Right $ fromException e
 -- 'catching' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> (a -> m r) -> m r
 -- 'catching' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> (a -> m r) -> m r
 -- @
-catching :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> m r -> (a -> m r) -> m r
+catching :: MonadCatchIO m => Getting (First a) SomeException t a b -> m r -> (a -> m r) -> m r
 catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
@@ -162,7 +163,7 @@ catching l = catchJust (preview l)
 -- 'catching_' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> m r -> m r
 -- 'catching_' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> m r -> m r
 -- @
-catching_ :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> m r -> m r -> m r
+catching_ :: MonadCatchIO m => Getting (First a) SomeException t a b -> m r -> m r -> m r
 catching_ l a b = catchJust (preview l) a (const b)
 {-# INLINE catching_ #-}
 
@@ -191,7 +192,7 @@ catchJust f m k = CatchIO.catch m $ \ e -> case f e of
 -- 'handling' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> (a -> m r) -> m r -> m r
 -- 'handling' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> (a -> m r) -> m r -> m r
 -- @
-handling :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> (a -> m r) -> m r -> m r
+handling :: MonadCatchIO m => Getting (First a) SomeException t a b -> (a -> m r) -> m r -> m r
 handling l = flip (catching l)
 {-# INLINE handling #-}
 
@@ -209,7 +210,7 @@ handling l = flip (catching l)
 -- 'handling_' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> m r -> m r
 -- 'handling_' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> m r -> m r
 -- @
-handling_ :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> m r -> m r -> m r
+handling_ :: MonadCatchIO m => Getting (First a) SomeException t a b -> m r -> m r -> m r
 handling_ l = flip (catching_ l)
 {-# INLINE handling_ #-}
 
@@ -229,7 +230,7 @@ handling_ l = flip (catching_ l)
 -- 'trying' :: 'MonadCatchIO' m => 'Getter'     'SomeException' a -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadCatchIO' m => 'Fold'       'SomeException' a -> m r -> m ('Either' a r)
 -- @
-trying :: MonadCatchIO m => Getting (Leftmost a) SomeException t a b -> m r -> m (Either a r)
+trying :: MonadCatchIO m => Getting (First a) SomeException t a b -> m r -> m (Either a r)
 trying l = tryJust (preview l)
 
 -- | A helper version of 'CatchIO.try' that doesn't needlessly require 'Functor'.

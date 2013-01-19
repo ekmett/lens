@@ -156,7 +156,7 @@ cons :: Cons Reviewed Identity s s a a => a -> s -> s
 cons = curry (simply review _Cons)
 
 -- | Attempt to extract the left-most element from a container, and a version of the container without that element.
-uncons :: Cons (->) (Accessor (Leftmost (a, s))) s s a a => s -> Maybe (a, s)
+uncons :: Cons (->) (Accessor (First (a, s))) s s a a => s -> Maybe (a, s)
 uncons = simply preview _Cons
 {-# INLINE uncons #-}
 
@@ -439,6 +439,6 @@ snoc = curry (simply review _Snoc)
 {-# INLINE snoc #-}
 
 -- | Attempt to extract the right-most element from a container, and a version of the container without that element.
-unsnoc :: Snoc (->) (Accessor (Leftmost (s, a))) s s a a => s -> Maybe (s, a)
+unsnoc :: Snoc (->) (Accessor (First (s, a))) s s a a => s -> Maybe (s, a)
 unsnoc s = simply preview _Snoc s
 {-# INLINE unsnoc #-}
