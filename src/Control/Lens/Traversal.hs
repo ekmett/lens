@@ -317,7 +317,7 @@ transposeOf l = getZipList #. l ZipList
 -- @
 --
 -- @'mapAccumROf' :: 'LensLike' ('Backwards' ('State' acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)@
-mapAccumROf :: (Corepresentable p, Comonad (Corep p)) => Over p (Backwards (State acc)) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumROf :: Conjoined p => Over p (Backwards (State acc)) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumROf = mapAccumLOf . backwards
 {-# INLINE mapAccumROf #-}
 
@@ -338,7 +338,7 @@ mapAccumROf = mapAccumLOf . backwards
 -- 'mapAccumLOf' l f acc0 s = 'swap' ('runState' (l (\a -> 'state' (\acc -> 'swap' (f acc a))) s) acc0)
 -- @
 --
-mapAccumLOf :: (Corepresentable p, Comonad (Corep p)) => Over p (State acc) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumLOf :: Conjoined p => Over p (State acc) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumLOf l f acc0 s = swap (runState (l g s) acc0) where
    g = cotabulate $ \wa -> state $ \acc -> swap (corep f (acc <$ wa) (extract wa))
 -- This would be much cleaner if the argument order for the function was swapped.
@@ -480,7 +480,7 @@ iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
 -- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
 -- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
 -- @
-holesOf :: (Corepresentable p, Comonad (Corep p)) => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
+holesOf :: Conjoined p => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
 holesOf l s = f (pins b) (unsafeOuts b) where
   b = l sell s
   f [] _ = []
@@ -502,7 +502,7 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 -- 'singular' :: 'IndexedFold' i s a          -> 'IndexedGetter' i s a
 -- 'singular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
-singular :: (Corepresentable p, Comonad (Corep p), Functor f)
+singular :: (Conjoined p, Functor f)
          => Over p (BazaarT p f a a) s t a a
          -> Over p f s t a a
 singular l pafb s = case pins b of
@@ -525,7 +525,7 @@ singular l pafb s = case pins b of
 -- 'unsafeSingular' :: 'IndexedFold' i s a          -> 'IndexedGetter' i s a
 -- 'unsafeSingular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
-unsafeSingular :: (Corepresentable p, Comonad (Corep p), Functor f)
+unsafeSingular :: (Conjoined p, Functor f)
                => Over p (BazaarT p f a b) s t a b
                -> Over p f s t a b
 unsafeSingular l pafb s = case pins b of
@@ -648,7 +648,7 @@ beside l r f = tabulate $ \ ~(s,s') -> liftA2 (,) <$> rep (l f) s <*> rep (r f) 
 -- 'taking' :: 'Int' -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold' i m s a
 -- 'taking' :: 'Int' -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- @
-taking :: (Corepresentable p, Category p, Applicative f)
+taking :: (Conjoined p, Applicative f)
         => Int
        -> Over p (BazaarT p f a a) s t a a
        -> Over p f s t a a
@@ -681,7 +681,7 @@ taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where b =
 -- 'dropping' :: 'Int' -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold' i m s a
 -- 'dropping' :: 'Int' -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- @
-dropping :: (Corepresentable p, Comonad (Corep p), Applicative f) => Int -> Over p (Indexing f) s t a a -> Over p f s t a a
+dropping :: (Conjoined p, Applicative f) => Int -> Over p (Indexing f) s t a a -> Over p f s t a a
 dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
   paifb = cotabulate $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (i', if i < n then pure (extract wa) else corep pafb wa)
 {-# INLINE dropping #-}

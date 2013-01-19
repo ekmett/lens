@@ -33,6 +33,7 @@ module Control.Lens.Indexed
   (
   -- * Indexing
     Indexable(..)
+  , Conjoined(..)
   , Indexed(..)
   , (<.), (<.>), (.>)
   , reindexed

@@ -80,9 +80,9 @@ module Control.Lens.Plated
   where
 
 import           Control.Applicative
-import           Control.Comonad
 import           Control.Lens.Fold
 import           Control.Lens.Getter
+import           Control.Lens.Indexed
 import           Control.Lens.Internal.Context
 import           Control.Lens.Type
 import           Control.Lens.Setter
@@ -93,7 +93,6 @@ import           Data.Data
 #endif
 import           Data.Data.Lens
 import           Data.Monoid
-import           Data.Profunctor.Rep
 import           Data.Tree
 
 {-# ANN module "HLint: ignore Reduce duplication" #-}
@@ -494,7 +493,7 @@ holes = holesOf plate
 -- 'holesOn' :: 'IndexedLens'' i s a      -> s -> ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]
 -- 'holesOn' :: 'IndexedTraversal'' i s a -> s -> ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]
 -- @
-holesOn :: (Corepresentable p, Comonad (Corep p)) => Overloading p (->) (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
+holesOn :: Conjoined p => Overloading p (->) (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
 holesOn = holesOf
 {-# INLINE holesOn #-}
 
@@ -509,7 +508,7 @@ holesOn = holesOf
 -- 'holesOnOf' :: 'Lens'' s a      -> 'IndexedLens'' i a a      -> s -> ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]
 -- 'holesOnOf' :: 'Traversal'' s a -> 'IndexedTraversal'' i a a -> s -> ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]
 -- @
-holesOnOf :: (Corepresentable p, Comonad (Corep p))
+holesOnOf :: Conjoined p
           => LensLike (Bazaar p  r r) s t a b
           -> Overloading p (->) (Bazaar p r r) a b r r
           -> s -> [Pretext p r r t]
