@@ -25,11 +25,9 @@ module Control.Lens.Internal.ByteString
 import Control.Applicative
 import Control.Lens
 import qualified Data.ByteString               as B
-import qualified Data.ByteString.Char8         as B8
 import qualified Data.ByteString.Lazy          as BL
 import qualified Data.ByteString.Lazy.Char8    as BL8
 import qualified Data.ByteString.Internal      as BI
-import qualified Data.ByteString.Lazy.Internal as BLI
 import Data.Char
 import Data.Int (Int64)
 import Data.Word (Word8)
