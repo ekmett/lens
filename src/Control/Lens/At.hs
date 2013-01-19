@@ -68,18 +68,32 @@ import Data.Vector.Storable as Storable
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
 -- | A deprecated alias for 'ix'.
-contains, _at, resultAt :: Ixed f m => IxKey m -> IndexedLensLike' (IxKey m) f m (IxValue m)
-contains = ix
+_at, resultAt :: Ixed f m => IxKey m -> IndexedLensLike' (IxKey m) f m (IxValue m)
 _at      = ix
 resultAt = ix
 {-# DEPRECATED _at, contains, resultAt "use 'ix'. This function will be removed in version 3.9" #-}
+
+type family ContainsKey (m :: *) :: *
+
+class Functor f => Contains f m where
+  -- |
+  -- >>> IntSet.fromList [1,2,3,4] ^. contains 3
+  -- True
+  --
+  -- >>> IntSet.fromList [1,2,3,4] ^. contains 5
+  -- False
+  --
+  -- >>> IntSet.fromList [1,2,3,4] & contains 3 .~ False
+  -- fromList [1,2,4]
+  contains :: ContainsKey m -> IndexedLensLike' (ContainsKey m) f m Bool
+
 
 type family IxKey (m :: *) :: *
 type family IxValue (m :: *) :: *
 
 -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
 -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
-class Ixed f m where
+class Functor f => Ixed f m where
   -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
   -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
   --
@@ -100,14 +114,6 @@ class Ixed f m where
   -- >>> Seq.fromList [] ^? ix 2
   -- Nothing
   --
-  -- >>> IntSet.fromList [1,2,3,4] & ix 3 .~ False
-  -- fromList [1,2,4]
-  --
-  -- >>> IntSet.fromList [1,2,3,4] ^. ix 3
-  -- True
-
-  -- >>> IntSet.fromList [1,2,3,4] ^. ix 5
-  -- False
   ix :: IxKey m -> IndexedLensLike' (IxKey m) f m (IxValue m)
 #ifdef DEFAULT_SIGNATURES
   default ix :: (Applicative f, At m) => IxKey m -> IndexedLensLike' (IxKey m) f m (IxValue m)
