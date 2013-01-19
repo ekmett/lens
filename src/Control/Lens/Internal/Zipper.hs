@@ -360,7 +360,7 @@ focalPoint (Zipper _ _ _ _ i _) = i
 
 -- | Return the index into the current 'Traversal' within the current level of the 'Zipper'.
 --
--- @'jerkTo' ('tooth' l) l = Just'@
+-- @'jerkTo' ('tooth' l) l = 'Just'@
 --
 -- Mnemonically, zippers have a number of 'teeth' within each level. This is which 'tooth' you are currently at.
 --
@@ -423,8 +423,8 @@ leftward (Zipper h t o p i a) = movel p (Leaf i a) mzero $ \q j b -> return $ Zi
 --
 -- This is just a convenient alias for @'farthest' 'leftward'@.
 --
--- >>> zipper "hello" & fromWithin traverse & rightmost & focus .~ 'a' & rezip
--- "hella"
+-- >>> zipper "hello" & fromWithin traverse & leftmost & focus .~ 'a' & rezip
+-- "aello"
 leftmost :: a :> b:@i -> a :> b:@i
 leftmost (Zipper h _ _ p i a) = startl Start (recompress p i a) (error "leftmost: bad Jacket structure") (Zipper h 0 0)
 {-# INLINE leftmost #-}
@@ -611,8 +611,8 @@ lensed l f = cloneLens l (indexed f (0 :: Int))
 -- there is precisely one target that can never fail.
 --
 -- @
--- 'downward' :: 'Lens'' s a -> (h :> s) -> h :> s :> a
--- 'downward' :: 'Iso'' s a  -> (h :> s) -> h :> s :> a
+-- 'downward' :: 'Lens'' s a -> (h ':>' s) -> h ':>' s ':>' a
+-- 'downward' :: 'Iso'' s a  -> (h ':>' s) -> h ':>' s ':>' a
 -- @
 downward :: forall j h s a. ALens' s a -> h :> s:@j -> h :> s:@j :>> a
 downward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start 0 (s^.l')
@@ -634,10 +634,10 @@ idownward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start i a
 -- | Step down into the 'leftmost' entry of a 'Traversal'.
 --
 -- @
--- 'within' :: 'Traversal'' s a -> (h :> s) -> 'Maybe' (h :> s :> a)
--- 'within' :: 'Prism'' s a     -> (h :> s) -> 'Maybe' (h :> s :> a)
--- 'within' :: 'Lens'' s a      -> (h :> s) -> 'Maybe' (h :> s :> a)
--- 'within' :: 'Iso'' s a       -> (h :> s) -> 'Maybe' (h :> s :> a)
+-- 'within' :: 'Traversal'' s a -> (h ':>' s) -> 'Maybe' (h ':>' s ':>' a)
+-- 'within' :: 'Prism'' s a     -> (h ':>' s) -> 'Maybe' (h ':>' s ':>' a)
+-- 'within' :: 'Lens'' s a      -> (h ':>' s) -> 'Maybe' (h ':>' s ':>' a)
+-- 'within' :: 'Iso'' s a       -> (h ':>' s) -> 'Maybe' (h ':>' s ':>' a)
 -- @
 
 -- @'within' :: 'MonadPlus' m => 'ATraversal'' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)@
@@ -656,9 +656,9 @@ iwithin l (Zipper h t o p j s) = case jacket l (Context id) s of
 -- [("hEllo","world"),("heLlo","world"),("helLo","world"),("hellO","world")]
 --
 -- @
--- 'withins' :: 'Traversal'' s a -> (h :> s) -> [h :> s :> a]
--- 'withins' :: 'Lens'' s a      -> (h :> s) -> [h :> s :> a]
--- 'withins' :: 'Iso'' s a       -> (h :> s) -> [h :> s :> a]
+-- 'withins' :: 'Traversal'' s a -> (h ':>' s) -> [h ':>' s ':>' a]
+-- 'withins' :: 'Lens'' s a      -> (h ':>' s) -> [h ':>' s ':>' a]
+-- 'withins' :: 'Iso'' s a       -> (h ':>' s) -> [h ':>' s ':>' a]
 -- @
 withins :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
 withins = iwithins . indexing
