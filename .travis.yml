@@ -13,12 +13,7 @@ install:
   - cabal build
 
 script:
-  - $script
-  - hlint src --cpp-define HLINT
-
-branches:
-  except:
-    - symmetric
+  - $script && hlint src --cpp-define HLINT
 
 notifications:
   irc:
