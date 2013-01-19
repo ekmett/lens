@@ -16,7 +16,8 @@ module Data.ByteString.Lazy.Lens
   ) where
 
 import Control.Lens
-import Data.ByteString.Lazy as Words
+import Control.Lens.Internal.ByteString
+import Data.ByteString.Lazy       as Words
 import Data.ByteString.Lazy.Char8 as Char8
 import Data.Word (Word8)
 import Data.Int (Int64)
@@ -27,7 +28,7 @@ import Data.Int (Int64)
 --
 -- @'Data.ByteString.Lazy.unpack' x = x '^.' 'from' 'packedBytes'@
 packedBytes :: Iso' [Word8] ByteString
-packedBytes = iso Words.pack Words.unpack
+packedBytes = iso Words.pack unpackLazy
 {-# INLINE packedBytes #-}
 
 -- | Traverse the individual bytes in a 'ByteString'.
@@ -36,7 +37,7 @@ packedBytes = iso Words.pack Words.unpack
 --
 -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
 bytes :: IndexedTraversal' Int64 ByteString Word8
-bytes = from packedBytes . traversed64
+bytes = traversedLazy
 {-# INLINE bytes #-}
 
 -- | 'Data.ByteString.Lazy.Char8.pack' (or 'Data.ByteString.Lazy.Char8.unpack') a list of characters into a 'ByteString'.
@@ -48,7 +49,7 @@ bytes = from packedBytes . traversed64
 --
 -- @'Data.ByteString.Lazy.Char8.unpack' x = x '^.' 'from' 'packedChars'@
 packedChars :: Iso' String ByteString
-packedChars = iso Char8.pack Char8.unpack
+packedChars = iso Char8.pack unpackLazy8
 {-# INLINE packedChars #-}
 
 -- | Traverse the individual bytes in a 'ByteString' as characters.
@@ -60,5 +61,5 @@ packedChars = iso Char8.pack Char8.unpack
 --
 -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
 chars :: IndexedTraversal' Int64 ByteString Char
-chars = from packedChars . traversed64
+chars = traversedLazy8
 {-# INLINE chars #-}

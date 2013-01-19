@@ -199,6 +199,7 @@ library
     Control.Lens.Internal
     Control.Lens.Internal.Action
     Control.Lens.Internal.Bazaar
+    Control.Lens.Internal.ByteString
     Control.Lens.Internal.Context
     Control.Lens.Internal.Fold
     Control.Lens.Internal.Getter
