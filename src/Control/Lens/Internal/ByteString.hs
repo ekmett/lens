@@ -25,11 +25,9 @@ module Control.Lens.Internal.ByteString
 import Control.Applicative
 import Control.Lens
 import qualified Data.ByteString               as B
-import qualified Data.ByteString.Char8         as B8
 import qualified Data.ByteString.Lazy          as BL
 import qualified Data.ByteString.Lazy.Char8    as BL8
 import qualified Data.ByteString.Internal      as BI
-import qualified Data.ByteString.Lazy.Internal as BLI
 import Data.Char
 import Data.Int (Int64)
 import Data.Word (Word8)
@@ -53,11 +51,10 @@ traversedStrict i0 pafb (BI.PS fp off len) =
    go2 _  []     = return ()
    -- TODO: use a balanced tree (up to some grain size)
    go !i !p !q
-     -- | p == q = pure []
-     | p == q = BI.inlinePerformIO $ do { touchForeignPtr fp; return (pure []) }
+     | p == q = pure []
      | otherwise = let !x = BI.inlinePerformIO $ do
                               x' <- peek p
-                              --touchForeignPtr fp
+                              touchForeignPtr fp
                               return x'
                    in (:) <$> indexed pafb (i :: Int) x <*> go (i + 1) (p `plusPtr` 1) q
 {-# INLINE traversedStrict #-}
@@ -66,7 +63,7 @@ traversedStrict i0 pafb (BI.PS fp off len) =
 traversedStrict8 :: Int -> IndexedTraversal' Int B.ByteString Char
 traversedStrict8 i0 pafb (BI.PS fp off len) =
   let p = unsafeForeignPtrToPtr fp
-   in fmap (rebuild len) (go 0 (p `plusPtr` off) (p `plusPtr` (off+len)))
+   in fmap (rebuild len) (go i0 (p `plusPtr` off) (p `plusPtr` (off+len)))
  where
    rebuild n = \xs -> unsafeCreate n $ \p -> go2 p xs
    go2 !p (x:xs) = poke p (c2w x) >> go2 (p `plusPtr` 1) xs
