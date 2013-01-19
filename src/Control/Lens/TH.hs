@@ -486,6 +486,8 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
       lensOnly = not $ cfg^.singletonIso
       isoCon   | lensOnly  = ConT ''Lens
                | otherwise = ConT ''Iso
+      isoCon'  | lensOnly  = ConT ''Lens'
+               | otherwise = ConT ''Iso'
       makeBody | lensOnly  = makeLensBody
                | otherwise = makeIsoBody
   isoDecls <- flip (maybe (return [])) maybeIsoName $ \isoName -> do
@@ -501,9 +503,10 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
   accessorDecls <- case mkName <$> (maybeFieldName >>= view lensField cfg . nameBase) of
     jfn@(Just lensName)
       | (jfn /= maybeIsoName) && (isNothing maybeIsoName || cfg^.singletonAndField) -> do
-      let decl = SigD lensName $ quantified $ isoCon `apps`
-                   if cfg^.simpleLenses then [cty,cty,aty,aty]
-                                        else [cty,dty,aty,bty]
+      let decl = SigD lensName $ quantified $
+            if cfg^.simpleLenses || Map.null m
+            then isoCon' `apps` [cty,aty]
+            else isoCon `apps` [cty,dty,aty,bty]
       body <- makeBody lensName dataConName makeIsoTo makeIsoFrom
 #ifndef INLINING
       return $ if cfg^.generateSignatures then [decl, body] else [body]
