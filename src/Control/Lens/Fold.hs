@@ -577,17 +577,20 @@ allOf l f = getAll #. foldMapOf l (All #. f)
 -- 120
 --
 -- @'Data.Foldable.product' ≡ 'productOf' 'folded'@
+
+-- This operation may be more strict than you would expect. If you
+-- want a lazier version use @'ala' 'Sum' '.' 'foldMapOf'@
 --
 -- @
--- 'productOf' ::          'Getter' s a     -> s -> a
+-- 'productOf' :: 'Num' a => 'Getter' s a     -> s -> a
 -- 'productOf' :: 'Num' a => 'Fold' s a       -> s -> a
--- 'productOf' ::          'Lens'' s a      -> s -> a
--- 'productOf' ::          'Iso'' s a       -> s -> a
+-- 'productOf' :: 'Num' a => 'Lens'' s a      -> s -> a
+-- 'productOf' :: 'Num' a => 'Iso'' s a       -> s -> a
 -- 'productOf' :: 'Num' a => 'Traversal'' s a -> s -> a
 -- 'productOf' :: 'Num' a => 'Prism'' s a     -> s -> a
 -- @
-productOf :: Getting (Product a) s t a b -> s -> a
-productOf l = getProduct #. foldMapOf l Product
+productOf :: Num a => Getting (Endo (a -> a)) s t a b -> s -> a
+productOf l = foldlOf' l (*) 1
 {-# INLINE productOf #-}
 
 -- | Calculate the 'Sum' of every number targeted by a 'Fold'.
@@ -604,21 +607,24 @@ productOf l = getProduct #. foldMapOf l Product
 --
 -- @'Data.Foldable.sum' ≡ 'sumOf' 'folded'@
 --
+-- This operation may be more strict than you would expect. If you
+-- want a lazier version use @'ala' 'Sum' '.' 'foldMapOf'@
+--
 -- @
 -- 'sumOf' '_1' :: (a, b) -> a
 -- 'sumOf' ('folded' '.' 'Control.Lens.Tuple._1') :: ('Foldable' f, 'Num' a) => f (a, b) -> a
 -- @
 --
 -- @
--- 'sumOf' ::          'Getter' s a     -> s -> a
+-- 'sumOf' :: 'Num' a => 'Getter' s a     -> s -> a
 -- 'sumOf' :: 'Num' a => 'Fold' s a       -> s -> a
--- 'sumOf' ::          'Lens'' s a      -> s -> a
--- 'sumOf' ::          'Iso'' s a       -> s -> a
+-- 'sumOf' :: 'Num' a => 'Lens'' s a      -> s -> a
+-- 'sumOf' :: 'Num' a => 'Iso'' s a       -> s -> a
 -- 'sumOf' :: 'Num' a => 'Traversal'' s a -> s -> a
 -- 'sumOf' :: 'Num' a => 'Prism'' s a     -> s -> a
 -- @
-sumOf :: Getting (Sum a) s t a b -> s -> a
-sumOf l = getSum #. foldMapOf l Sum
+sumOf :: Num a => Getting (Endo (a -> a)) s t a b -> s -> a
+sumOf l = foldlOf' l (+) 0
 {-# INLINE sumOf #-}
 
 -- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor')-based answer,
