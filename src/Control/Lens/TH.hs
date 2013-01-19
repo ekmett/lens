@@ -650,7 +650,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
       Prelude.sequence $
         filter (\_ -> cfg^.createClass) [
           classD (return []) clsName (PlainTV t : tyArgs) (if List.null tyArgs then [] else [FunDep [t] (view name <$> tyArgs)]) (
-            sigD methodName (appsT (conT ''Lens) [varT t, varT t, appliedCon, appliedCon]) :
+            sigD methodName (appsT (conT ''Lens') [varT t, appliedCon]) :
             map return defs)]
         ++ filter (\_ -> cfg^.createInstance) [
           instanceD (return []) ((conT clsName `appT` appliedCon) `appsT` varArgs) [
