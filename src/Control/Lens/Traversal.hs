@@ -458,7 +458,7 @@ unsafePartsOf' :: ATraversal s t a b -> Lens s t [a] [b]
 unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 {-# INLINE unsafePartsOf' #-}
 
-iunsafePartsOf' :: forall i p s t a b. Indexable [i] p => Over (Indexed i) (Bazaar (Indexed i) a b) s t a b -> IndexedLens [i] s t [a] [b]
+iunsafePartsOf' :: forall i s t a b. Over (Indexed i) (Bazaar (Indexed i) a b) s t a b -> IndexedLens [i] s t [a] [b]
 iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
   (is,as) = unzip (pins b)
   b = l sell s
