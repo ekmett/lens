@@ -853,7 +853,10 @@ concatOf :: Getting [r] s t [r] b -> s -> [r]
 concatOf l = runAccessor #. l Accessor
 {-# INLINE concatOf #-}
 
--- | Note: this can be rather inefficient for large containers.
+-- | Calculate the number of targets there are for a 'Fold' in a given container.
+--
+-- /Note:/ This can be rather inefficient for large containers and just like 'length',
+-- this will not terminate for infinite folds.
 --
 -- @'length' ≡ 'lengthOf' 'folded'@
 --
@@ -869,8 +872,8 @@ concatOf l = runAccessor #. l Accessor
 -- 'lengthOf' :: 'Iso'' s a       -> s -> 'Int'
 -- 'lengthOf' :: 'Traversal'' s a -> s -> 'Int'
 -- @
-lengthOf :: Getting (Sum Int) s t a b -> s -> Int
-lengthOf l = getSum #. foldMapOf l (\_ -> Sum 1)
+lengthOf :: Getting (Endo (Int -> Int)) s t a b -> s -> Int
+lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 {-# INLINE lengthOf #-}
 
 -- | Perform a safe 'head' of a 'Fold' or 'Traversal' or retrieve 'Just' the result
