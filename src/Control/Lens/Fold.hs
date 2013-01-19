@@ -996,42 +996,60 @@ notNullOf :: Getting Any s t a b -> s -> Bool
 notNullOf l = getAny #. foldMapOf l (\_ -> Any True)
 {-# INLINE notNullOf #-}
 
--- | Obtain the maximum element (if any) targeted by a 'Fold' or 'Traversal'.
+-- | Obtain the maximum element (if any) targeted by a 'Fold' or 'Traversal' safely.
 --
 -- Note: 'maximumOf' on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
 --
 -- @'maximum' ≡ 'fromMaybe' ('error' \"empty\") '.' 'maximumOf' 'folded'@
 --
+-- In the interest of efficiency, This operation has semantics more strict than strictly necessary.
+-- @'rmap' 'getMax' ('foldMapOf' l 'Max')@ has lazier semantics but could leak memory.
+--
 -- @
--- 'maximumOf' ::          'Getter' s a     -> s -> 'Maybe' a
+-- 'maximumOf' :: 'Ord' a => 'Getter' s a     -> s -> 'Maybe' a
 -- 'maximumOf' :: 'Ord' a => 'Fold' s a       -> s -> 'Maybe' a
--- 'maximumOf' ::          'Iso'' s a       -> s -> 'Maybe' a
--- 'maximumOf' ::          'Lens'' s a      -> s -> 'Maybe' a
+-- 'maximumOf' :: 'Ord' a => 'Iso'' s a       -> s -> 'Maybe' a
+-- 'maximumOf' :: 'Ord' a => 'Lens'' s a      -> s -> 'Maybe' a
 -- 'maximumOf' :: 'Ord' a => 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-maximumOf :: Getting (Max a) s t a b -> s -> Maybe a
-maximumOf l = getMax `rmap` foldMapOf l Max
+maximumOf :: Ord a => Getting (Endo (Maybe a -> Maybe a)) s t a b -> s -> Maybe a
+maximumOf l = foldlOf' l mf Nothing where
+  mf Nothing y = Just $! y
+  mf (Just x) y = Just $! max x y
+
 {-# INLINE maximumOf #-}
 
--- | Obtain the minimum element (if any) targeted by a 'Fold' or 'Traversal'.
+-- | Obtain the minimum element (if any) targeted by a 'Fold' or 'Traversal' safely.
 --
 -- Note: 'minimumOf' on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
 --
 -- @'minimum' ≡ 'Data.Maybe.fromMaybe' ('error' \"empty\") '.' 'minimumOf' 'folded'@
 --
+-- In the interest of efficiency, This operation has semantics more strict than strictly necessary.
+-- @'rmap' 'getMin' ('foldMapOf' l 'Min')@ has lazier semantics but could leak memory.
+--
+--
 -- @
--- 'minimumOf' ::          'Getter' s a     -> s -> 'Maybe' a
+-- 'minimumOf' :: 'Ord' a => 'Getter' s a     -> s -> 'Maybe' a
 -- 'minimumOf' :: 'Ord' a => 'Fold' s a       -> s -> 'Maybe' a
--- 'minimumOf' ::          'Iso'' s a       -> s -> 'Maybe' a
--- 'minimumOf' ::          'Lens'' s a      -> s -> 'Maybe' a
+-- 'minimumOf' :: 'Ord' a => 'Iso'' s a       -> s -> 'Maybe' a
+-- 'minimumOf' :: 'Ord' a => 'Lens'' s a      -> s -> 'Maybe' a
 -- 'minimumOf' :: 'Ord' a => 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-minimumOf :: Getting (Min a) s t a b -> s -> Maybe a
-minimumOf l = getMin `rmap` foldMapOf l Min
+
+minimumOf :: Ord a => Getting (Endo (Maybe a -> Maybe a)) s t a b -> s -> Maybe a
+minimumOf l = foldlOf' l mf Nothing where
+  mf Nothing y = Just $! y
+  mf (Just x) y = Just $! min x y
+
+-- minimumOf :: Getting (Min a) s t a b -> s -> Maybe a
+-- minimumOf l = getMin `rmap` foldMapOf l Min
 {-# INLINE minimumOf #-}
 
 -- | Obtain the maximum element (if any) targeted by a 'Fold', 'Traversal', 'Lens', 'Iso',
 -- or 'Getter' according to a user supplied 'Ordering'.
+--
+-- In the interest of efficiency, This operation has semantics more strict than strictly necessary.
 --
 -- @'Data.Foldable.maximumBy' cmp ≡ 'Data.Maybe.fromMaybe' ('error' \"empty\") '.' 'maximumByOf' 'folded' cmp@
 --
@@ -1042,14 +1060,21 @@ minimumOf l = getMin `rmap` foldMapOf l Min
 -- 'maximumByOf' :: 'Lens'' s a      -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- 'maximumByOf' :: 'Traversal'' s a -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- @
-maximumByOf :: Getting (Endo (Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
-maximumByOf l cmp = foldrOf l step Nothing where
-  step a Nothing  = Just a
-  step a (Just b) = Just (if cmp a b == GT then a else b)
+maximumByOf :: Getting (Endo (Maybe a -> Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
+maximumByOf l cmp = foldlOf' l mf Nothing where
+  mf Nothing y = Just $! y
+  mf (Just x) y = Just $! if cmp x y == GT then x else y
+
+-- maximumByOf :: Getting (Endo (Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
+-- maximumByOf l cmp = foldrOf l step Nothing where
+--   step a Nothing  = Just a
+--   step a (Just b) = Just (if cmp a b == GT then a else b)
 {-# INLINE maximumByOf #-}
 
 -- | Obtain the minimum element (if any) targeted by a 'Fold', 'Traversal', 'Lens', 'Iso'
 -- or 'Getter' according to a user supplied 'Ordering'.
+--
+-- In the interest of efficiency, This operation has semantics more strict than strictly necessary.
 --
 -- @'minimumBy' cmp ≡ 'Data.Maybe.fromMaybe' ('error' \"empty\") '.' 'minimumByOf' 'folded' cmp@
 --
@@ -1060,10 +1085,15 @@ maximumByOf l cmp = foldrOf l step Nothing where
 -- 'minimumByOf' :: 'Lens'' s a      -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- 'minimumByOf' :: 'Traversal'' s a -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- @
-minimumByOf :: Getting (Endo (Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
-minimumByOf l cmp = foldrOf l step Nothing where
-  step a Nothing  = Just a
-  step a (Just b) = Just (if cmp a b == GT then b else a)
+minimumByOf :: Getting (Endo (Maybe a -> Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
+minimumByOf l cmp = foldlOf' l mf Nothing where
+  mf Nothing y = Just $! y
+  mf (Just x) y = Just $! if cmp x y == GT then y else x
+
+-- minimumByOf :: Getting (Endo (Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
+-- minimumByOf l cmp = foldrOf l step Nothing where
+--   step a Nothing  = Just a
+--   step a (Just b) = Just (if cmp a b == GT then b else a)
 {-# INLINE minimumByOf #-}
 
 -- | The 'findOf' function takes a 'Lens' (or 'Getter', 'Iso', 'Fold', or 'Traversal'),
