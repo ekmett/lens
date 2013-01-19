@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE Rank2Types #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ByteString.Strict.Lens
@@ -40,26 +41,30 @@ import GHC.Base (unsafeChr)
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 import GHC.IO (unsafeDupablePerformIO)
 
-traversedStrict :: IndexedTraversal' Int B.ByteString Word8
-traversedStrict pafb (BI.PS fp off len) =
+
+-- Takes an argument for the initial index
+traversedStrict :: Int -> IndexedTraversal' Int B.ByteString Word8
+traversedStrict i0 pafb (BI.PS fp off len) =
   let p = unsafeForeignPtrToPtr fp
-   in fmap (rebuild len) (go 0 (p `plusPtr` off) (p `plusPtr` (off+len)))
+   in fmap (rebuild len) (go i0 (p `plusPtr` off) (p `plusPtr` (off+len)))
  where
    rebuild n = \xs -> unsafeCreate n $ \p -> go2 p xs
    go2 !p (x:xs) = poke p x >> go2 (p `plusPtr` 1) xs
    go2 _  []     = return ()
    -- TODO: use a balanced tree (up to some grain size)
    go !i !p !q
-     | p == q = pure []
+     -- | p == q = pure []
+     | p == q = BI.inlinePerformIO $ do { touchForeignPtr fp; return (pure []) }
      | otherwise = let !x = BI.inlinePerformIO $ do
                               x' <- peek p
-                              touchForeignPtr fp
+                              --touchForeignPtr fp
                               return x'
                    in (:) <$> indexed pafb (i :: Int) x <*> go (i + 1) (p `plusPtr` 1) q
 {-# INLINE traversedStrict #-}
 
-traversedStrict8 :: IndexedTraversal' Int B.ByteString Char
-traversedStrict8 pafb (BI.PS fp off len) =
+-- Takes an argument for the initial index
+traversedStrict8 :: Int -> IndexedTraversal' Int B.ByteString Char
+traversedStrict8 i0 pafb (BI.PS fp off len) =
   let p = unsafeForeignPtrToPtr fp
    in fmap (rebuild len) (go 0 (p `plusPtr` off) (p `plusPtr` (off+len)))
  where
