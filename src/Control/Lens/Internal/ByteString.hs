@@ -65,7 +65,7 @@ traversedStrict i0 pafb (BI.PS fp off len) =
 traversedStrict8 :: Int -> IndexedTraversal' Int B.ByteString Char
 traversedStrict8 i0 pafb (BI.PS fp off len) =
   let p = unsafeForeignPtrToPtr fp
-   in fmap (rebuild len) (go 0 (p `plusPtr` off) (p `plusPtr` (off+len)))
+   in fmap (rebuild len) (go i0 (p `plusPtr` off) (p `plusPtr` (off+len)))
  where
    rebuild n = \xs -> unsafeCreate n $ \p -> go2 p xs
    go2 !p (x:xs) = poke p (c2w x) >> go2 (p `plusPtr` 1) xs
