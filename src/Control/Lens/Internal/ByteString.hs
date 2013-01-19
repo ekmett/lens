@@ -16,8 +16,8 @@
 -- Haskell Platforms and to improve constant factors in our performance.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.ByteString
-  ( unpackStrict, traversedStrict
-  , unpackStrict8, traversedStrict8
+  ( unpackStrict, traversedStrict, traversedStrictTree
+  , unpackStrict8, traversedStrict8, traversedStrictTree8
   , unpackLazy, traversedLazy
   , unpackLazy8, traversedLazy8
   ) where
@@ -80,6 +80,45 @@ traversedStrict8 i0 pafb (BI.PS fp off len) =
                               return x'
                    in (:) <$> indexed pafb (i :: Int) (w2c x) <*> go (i + 1) (p `plusPtr` 1) q
 {-# INLINE traversedStrict8 #-}
+
+grain :: Int
+grain = 16
+
+-- Takes an argument for the initial index
+traversedStrictTree :: Int -> IndexedTraversal' Int B.ByteString Word8
+traversedStrictTree i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + len)
+ where
+   p = unsafeForeignPtrToPtr fp `plusPtr` (off - i0)
+   rebuild n f = unsafeCreate n $ \q -> f q
+   go !i !j
+     | i + grain < j, k <- i + div (j - i) 2 = (\l r q -> l q >> r q) <$> go i k <*> go k j
+     | otherwise = run i j
+   run !i !j
+     | i == j    = pure (\_ -> return ())
+     | otherwise = let !x = BI.inlinePerformIO $ do
+                          x' <- peekByteOff p i
+                          touchForeignPtr fp
+                          return x'
+                   in (\y ys q -> poke (q `plusPtr` i) y >> ys q) <$> indexed pafb (i :: Int) x <*> run (i + 1) j
+{-# INLINE traversedStrictTree #-}
+
+-- Takes an argument for the initial index
+traversedStrictTree8 :: Int -> IndexedTraversal' Int B.ByteString Char
+traversedStrictTree8 i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + len)
+ where
+   p = unsafeForeignPtrToPtr fp `plusPtr` (off - i0)
+   rebuild n f = unsafeCreate n $ \q -> f q
+   go !i !j
+     | i + grain < j, k <- i + div (j - i) 2 = (\l r q -> l q >> r q) <$> go i k <*> go k j
+     | otherwise = run i j
+   run !i !j
+     | i == j    = pure (\_ -> return ())
+     | otherwise = let !x = BI.inlinePerformIO $ do
+                          x' <- peekByteOff p i
+                          touchForeignPtr fp
+                          return x'
+                   in (\y ys q -> poke (q `plusPtr` i) (c2w y) >> ys q) <$> indexed pafb (i :: Int) (w2c x) <*> run (i + 1) j
+{-# INLINE traversedStrictTree8 #-}
 
 unpackLazy :: BL.ByteString -> [Word8]
 unpackLazy = BL.unpack
