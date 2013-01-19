@@ -1139,8 +1139,9 @@ findOf l p = foldrOf l (cotabulate $ \wa y -> if corep p wa then Just (extract w
 foldr1Of :: Getting (Endo (Maybe a)) s t a b -> (a -> a -> a) -> s -> a
 foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
                             (foldrOf l mf Nothing xs) where
-  mf x Nothing = Just x
-  mf x (Just y) = Just (f x y)
+  mf x my = Just $ case my of
+    Nothing -> x
+    Just y -> f x y
 {-# INLINE foldr1Of #-}
 
 -- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and structures such
