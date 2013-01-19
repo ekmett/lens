@@ -22,8 +22,8 @@ module Data.ByteString.Strict.Lens
 import Control.Applicative
 import Control.Lens
 import qualified Data.ByteString as B
-import Data.ByteString as Words
-import Data.ByteString.Char8 as Char8
+import Data.ByteString as Words hiding (unpack)
+import Data.ByteString.Char8 as Char8 hiding (unpack)
 import qualified Data.ByteString.Internal as BI
 import Data.Char
 import Data.Word
@@ -44,7 +44,7 @@ import GHC.IO (unsafeDupablePerformIO)
 --
 -- @'Data.ByteString.unpack' x = x '^.' 'from' 'packedBytes'@
 packedBytes :: Iso' [Word8] ByteString
-packedBytes = iso B.pack unpack09
+packedBytes = iso B.pack unpack
 {-# INLINE packedBytes #-}
 
 -- | Traverse each 'Word8' in a 'ByteString'.
@@ -79,7 +79,7 @@ bytes pafb (BI.PS fp off len) =
 --
 -- @'Data.ByteString.Char8.unpack' x = x '^.' 'from' 'packedChars'@
 packedChars :: Iso' String ByteString
-packedChars = iso Char8.pack unpackChars09
+packedChars = iso Char8.pack unpackChars
 {-# INLINE packedChars #-}
 
 -- | Traverse the individual bytes in a 'ByteString' as characters.
@@ -127,8 +127,8 @@ c2w = fromIntegral . ord
 -- Since we don't use foldr on its own except for creating a list, we can just
 -- create a list directly. But maybe we should either (a) inline the whole
 -- traversal or (b) create the list in chunks, like unpackBytes does in 0.10?
-unpack09 :: B.ByteString -> [Word8]
-unpack09 (BI.PS fp off len) =
+unpack :: B.ByteString -> [Word8]
+unpack (BI.PS fp off len) =
       let p = unsafeForeignPtrToPtr fp
        in go (p `plusPtr` off) (p `plusPtr` (off+len))
     where
@@ -138,13 +138,13 @@ unpack09 (BI.PS fp off len) =
                                         touchForeignPtr fp
                                         return x'
                              in x : go (p `plusPtr` 1) q
-{-# INLINE unpack09 #-}
+{-# INLINE unpack #-}
 
 -- Since we don't use foldr on its own except for creating a list, we can just
 -- create a list directly. But maybe we should either (a) inline the whole
 -- traversal or (b) create the list in chunks, like unpackBytes does in 0.10?
-unpackChars09 :: B.ByteString -> String
-unpackChars09 (BI.PS fp off len) =
+unpackChars :: B.ByteString -> String
+unpackChars (BI.PS fp off len) =
       let p = unsafeForeignPtrToPtr fp
        in go (p `plusPtr` off) (p `plusPtr` (off+len))
     where
@@ -154,7 +154,7 @@ unpackChars09 (BI.PS fp off len) =
                                         touchForeignPtr fp
                                         return x'
                              in w2c x : go (p `plusPtr` 1) q
-{-# INLINE unpackChars09 #-}
+{-# INLINE unpackChars #-}
 
 
 -- | A way of creating ByteStrings outside the IO monad. The @Int@
