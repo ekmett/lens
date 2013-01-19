@@ -13,7 +13,8 @@ install:
   - cabal build
 
 script:
-  - $script && hlint src --cpp-define HLINT
+  - $script
+  - hlint src --cpp-define HLINT
 
 branches:
   except:
