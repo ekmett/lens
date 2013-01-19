@@ -840,7 +840,7 @@ traversed64 = indexing64 traverse
 -- @'ignored' :: 'IndexedTraversal' i s s a b@
 --
 -- @'ignored' ≡ 'const' 'pure'@
-ignored :: Applicative f => kafb -> s -> f s
+ignored :: Applicative f => pafb -> s -> f s
 ignored _ = pure
 {-# INLINE ignored #-}
 
