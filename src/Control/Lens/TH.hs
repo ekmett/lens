@@ -491,8 +491,10 @@ makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
       makeBody | lensOnly  = makeLensBody
                | otherwise = makeIsoBody
   isoDecls <- flip (maybe (return [])) maybeIsoName $ \isoName -> do
-    let decl = SigD isoName $ quantified $ isoCon `apps`
-          if cfg^.simpleLenses then [aty,aty,cty,cty] else [aty,bty,cty,dty]
+    let decl = SigD isoName $ quantified $
+          if cfg^.simpleLenses || Map.null m
+          then isoCon' `apps` [aty,cty]
+          else isoCon `apps` [aty,bty,cty,dty]
     body <- makeBody isoName dataConName makeIsoFrom makeIsoTo
 #ifndef INLINING
     return $ if cfg^.generateSignatures then [decl, body] else [body]
