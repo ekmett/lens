@@ -114,7 +114,7 @@ instance Applicative (Molten i a b) where
 instance (p ~ Indexed i) => Sellable p (Molten i) where
   sell = Indexed (\i -> Molten #. MagmaLeaf i)
 
-instance Indexable i p => Bizarre p (Molten i) where
+instance Bizarre (Indexed i) (Molten i) where
   bazaar f (Molten (MagmaAp x y))   = bazaar f (Molten x) <*> bazaar f (Molten y)
   bazaar f (Molten (MagmaFmap g x)) = g <$> bazaar f (Molten x)
   bazaar _ (Molten (MagmaPure x))   = pure x
@@ -170,13 +170,13 @@ instance p ~ (->) => Sellable p Mafic where
   sell a = Mafic 1 $ \ i -> MagmaLeaf i a
   {-# INLINE sell #-}
 
-instance Indexable Int p => Bizarre p Mafic where
-  bazaar (pafb :: p a (f b)) (Mafic _ k) = go (k 0) where
+instance Bizarre (Indexed Int) Mafic where
+  bazaar (pafb :: Indexed Int a (f b)) (Mafic _ k) = go (k 0) where
     go :: Applicative f => Magma Int t b a -> f t
     go (MagmaAp x y)   = go x <*> go y
     go (MagmaFmap f x) = f <$> go x
     go (MagmaPure x)   = pure x
-    go (MagmaLeaf i a) = indexed pafb i a
+    go (MagmaLeaf i a) = indexed pafb (i :: Int) a
   {-# INLINE bazaar #-}
 
 instance IndexedFunctor Mafic where
