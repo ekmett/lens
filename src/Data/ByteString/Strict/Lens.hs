@@ -40,7 +40,7 @@ packedBytes = iso Words.pack unpackStrict
 --
 -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
 bytes :: IndexedTraversal' Int ByteString Word8
-bytes = traversedStrict 0
+bytes = traversedStrictTree 0
 {-# INLINE bytes #-}
 
 -- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a 'ByteString'
@@ -64,5 +64,5 @@ packedChars = iso Char8.pack unpackStrict8
 --
 -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
 chars :: IndexedTraversal' Int ByteString Char
-chars = traversedStrict8 0
+chars = traversedStrictTree8 0
 {-# INLINE chars #-}

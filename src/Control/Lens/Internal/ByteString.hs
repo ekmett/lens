@@ -40,7 +40,6 @@ import GHC.Base (unsafeChr)
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 import GHC.IO (unsafeDupablePerformIO)
 
-
 -- Takes an argument for the initial index
 traversedStrict :: Int -> IndexedTraversal' Int B.ByteString Word8
 traversedStrict i0 pafb (BI.PS fp off len) =
