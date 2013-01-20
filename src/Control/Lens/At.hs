@@ -15,6 +15,9 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.At
@@ -27,10 +30,8 @@
 ----------------------------------------------------------------------------
 module Control.Lens.At
   (
-  -- * Keys
-    Key
   -- * Contains
-  , Contains(..)
+    Contains(..)
   , containsIx, containsAt, containsLength, containsN, containsTest, containsLookup
   -- * Ixed
   , Value
@@ -53,6 +54,10 @@ import Control.Lens.Type
 import Control.Lens.Traversal
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
+import Data.ByteString as StrictB
+import Data.ByteString.Lazy as LazyB
+import Data.Complex
+import Data.Functor.Identity
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.HashSet as HashSet
@@ -63,9 +68,14 @@ import Data.Maybe
 import Data.Monoid
 import Data.Set as Set
 import Data.Sequence as Seq
+import Data.Text as StrictT
+import Data.Text.Lazy as LazyT
+import Data.Tree
 import Data.Vector as Vector hiding (indexed)
 import Data.Vector.Primitive as Prim
 import Data.Vector.Storable as Storable
+import Data.Vector.Unboxed as Unboxed
+import Data.Word
 
 -- $setup
 -- >>> import Control.Lens
@@ -79,8 +89,6 @@ _at, resultAt :: Ixed f m => Key m -> IndexedLensLike' (Key m) f m (Value m)
 _at      = ix
 resultAt = ix
 {-# DEPRECATED _at, resultAt "use 'ix'. This function will be removed in version 3.9" #-}
-
-type family Key (m :: *) :: *
 
 class Functor f => Contains f m where
   -- |
@@ -104,140 +112,161 @@ class Functor f => Contains f m where
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
 containsIx :: (Gettable f, Ixed (Accessor Any) m) => Key m -> IndexedLensLike' (Key m) f m Bool
-containsIx i f = coerce . indexed f i . has (ix i)
+containsIx i f = coerce . Lens.indexed f i . has (ix i)
 {-# INLINE containsIx #-}
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
 containsAt :: (Gettable f, At m) => Key m -> IndexedLensLike' (Key m) f m Bool
-containsAt i f = coerce . indexed f i . views (at i) isJust
+containsAt i f = coerce . Lens.indexed f i . views (at i) isJust
 {-# INLINE containsAt #-}
 
 containsLength :: forall i s. (Ord i, Num i) => (s -> i) -> i -> IndexedGetter i s Bool
-containsLength sn = \ i pafb s -> coerce $ indexed pafb (i :: i) (0 <= i && i < sn s)
+containsLength sn = \ i pafb s -> coerce $ Lens.indexed pafb (i :: i) (0 <= i && i < sn s)
 {-# INLINE containsLength #-}
 
 containsN :: Int -> Int -> IndexedGetter Int s Bool
-containsN n = \ i pafb _ -> coerce $ indexed pafb (i :: Int) (0 <= i && i < n)
+containsN n = \ i pafb _ -> coerce $ Lens.indexed pafb (i :: Int) (0 <= i && i < n)
 {-# INLINE containsN #-}
 
 containsTest :: forall i s. (i -> s -> Bool) -> i -> IndexedGetter i s Bool
-containsTest isb = \i pafb s -> coerce $ indexed pafb (i :: i) (isb i s)
+containsTest isb = \i pafb s -> coerce $ Lens.indexed pafb (i :: i) (isb i s)
 {-# INLINE containsTest #-}
 
 containsLookup :: forall i s a. (i -> s -> Maybe a) -> i -> IndexedGetter i s Bool
-containsLookup isb = \i pafb s -> coerce $ indexed pafb (i :: i) (isJust (isb i s))
+containsLookup isb = \i pafb s -> coerce $ Lens.indexed pafb (i :: i) (isJust (isb i s))
 {-# INLINE containsLookup #-}
 
-type instance Key (e -> a) = e
 instance Gettable f => Contains f (e -> a) where
-  contains i f _ = coerce (indexed f i True)
+  contains i f _ = coerce (Lens.indexed f i True)
   {-# INLINE contains #-}
 
-type instance Key IntSet = Int
 instance Functor f => Contains f IntSet where
-  contains k f s = indexed f k (IntSet.member k s) <&> \b ->
+  contains k f s = Lens.indexed f k (IntSet.member k s) <&> \b ->
     if b then IntSet.insert k s else IntSet.delete k s
   {-# INLINE contains #-}
 
-type instance Key (Set a) = a
 instance (Functor f, Ord a) => Contains f (Set a) where
-  contains k f s = indexed f k (Set.member k s) <&> \b ->
+  contains k f s = Lens.indexed f k (Set.member k s) <&> \b ->
     if b then Set.insert k s else Set.delete k s
   {-# INLINE contains #-}
 
-type instance Key (HashSet a) = a
 instance (Functor f, Eq a, Hashable a) => Contains f (HashSet a) where
-  contains k f s = indexed f k (HashSet.member k s) <&> \b ->
+  contains k f s = Lens.indexed f k (HashSet.member k s) <&> \b ->
     if b then HashSet.insert k s else HashSet.delete k s
   {-# INLINE contains #-}
 
-type instance Key [a] = Int
 instance Gettable f => Contains f [a] where
   contains = containsLength Prelude.length
   {-# INLINE contains #-}
 
-type instance Key (Seq a) = Int
 instance Gettable f => Contains f (Seq a) where
   contains = containsLength Seq.length
   {-# INLINE contains #-}
 
-type instance Key (a,b) = Int
+#if MIN_VERSION_base(4,4,0)
+instance Gettable f => Contains f (Complex a) where
+  contains = containsN 2
+#else
+instance (Gettable f, RealFloat a) => Contains f (Complex a) where
+  contains = containsN 2
+#endif
+
+-- | @'each' :: 'IndexedTraversal' ['Int'] ('Tree' a) ('Tree' b) a b@
+instance Gettable f => Contains f (Tree a) where
+  contains xs0 pafb = coerce . Lens.indexed pafb xs0 . go xs0 where
+    go [] (Node _ _) = True
+    go (i:is) (Node _ as) = goto i is as where
+    goto 0 is (a:_) = go is a
+    goto _ _  []     = False
+    goto n is (_:as) = (goto $! n - 1) is as
+
+instance Gettable k => Contains k (Identity a) where
+  contains () f _ = coerce (Lens.indexed f () True)
+
 instance Gettable k => Contains k (a,b) where
   contains = containsN 2
   {-# INLINE contains #-}
 
-type instance Key (a,b,c) = Int
 instance Gettable k => Contains k (a,b,c) where
   contains = containsN 3
   {-# INLINE contains #-}
 
-type instance Key (a,b,c,d) = Int
 instance Gettable k => Contains k (a,b,c,d) where
   contains = containsN 4
   {-# INLINE contains #-}
 
-type instance Key (a,b,c,d,e) = Int
 instance Gettable k => Contains k (a,b,c,d,e) where
   contains = containsN 5
   {-# INLINE contains #-}
 
-type instance Key (a,b,c,d,e,f) = Int
 instance Gettable k => Contains k (a,b,c,d,e,f) where
   contains = containsN 6
   {-# INLINE contains #-}
 
-type instance Key (a,b,c,d,e,f,g) = Int
 instance Gettable k => Contains k (a,b,c,d,e,f,g) where
   contains = containsN 7
   {-# INLINE contains #-}
 
-type instance Key (a,b,c,d,e,f,g,h) = Int
 instance Gettable k => Contains k (a,b,c,d,e,f,g,h) where
   contains = containsN 8
   {-# INLINE contains #-}
 
-type instance Key (a,b,c,d,e,f,g,h,i) = Int
 instance Gettable k => Contains k (a,b,c,d,e,f,g,h,i) where
   contains = containsN 9
   {-# INLINE contains #-}
 
-type instance Key (IntMap a) = Int
 instance Gettable k => Contains k (IntMap a) where
   contains = containsLookup IntMap.lookup
   {-# INLINE contains #-}
 
-type instance Key (Map k a) = k
 instance (Gettable f, Ord k) => Contains f (Map k a) where
   contains = containsLookup Map.lookup
   {-# INLINE contains #-}
 
-type instance Key (HashMap k a) = k
 instance (Gettable f, Eq k, Hashable k) => Contains f (HashMap k a) where
   contains = containsLookup HashMap.lookup
   {-# INLINE contains #-}
 
-type instance Key (Array i e) = i
 instance (Gettable f, Ix i) => Contains f (Array i e) where
   contains = containsTest $ \i s -> inRange (bounds s) i
   {-# INLINE contains #-}
 
-type instance Key (UArray i e) = i
 instance (Gettable f, IArray UArray e, Ix i) => Contains f (UArray i e) where
   contains = containsTest $ \i s -> inRange (bounds s) i
   {-# INLINE contains #-}
 
-type instance Key (Vector.Vector a) = Int
 instance Gettable f => Contains f (Vector.Vector a) where
   contains = containsLength Vector.length
+  {-# INLINE contains #-}
 
-type instance Key (Prim.Vector a) = Int
 instance (Gettable f, Prim a) => Contains f (Prim.Vector a) where
   contains = containsLength Prim.length
+  {-# INLINE contains #-}
 
-type instance Key (Storable.Vector a) = Int
 instance (Gettable f, Storable a) => Contains f (Storable.Vector a) where
   contains = containsLength Storable.length
+  {-# INLINE contains #-}
+
+instance (Gettable f, Unbox a) => Contains f (Unboxed.Vector a) where
+  contains = containsLength Unboxed.length
+  {-# INLINE contains #-}
+
+instance Gettable f => Contains f StrictT.Text where
+  contains = containsTest $ \i s -> StrictT.compareLength s i == GT
+  {-# INLINE contains #-}
+
+instance Gettable f => Contains f LazyT.Text where
+  contains = containsTest $ \i s -> LazyT.compareLength s i == GT
+  {-# INLINE contains #-}
+
+instance Gettable f => Contains f StrictB.ByteString where
+  contains = containsLength StrictB.length
+  {-# INLINE contains #-}
+
+instance Gettable f => Contains f LazyB.ByteString where
+  contains = containsTest $ \i s -> not (LazyB.null (LazyB.drop i s))
+  {-# INLINE contains #-}
 
 type family Value (m :: *) :: *
 
@@ -276,7 +305,7 @@ ixAt i = at i <. traverse
 {-# INLINE ixAt #-}
 
 -- | A definition of 'ix' for types with an 'Each' instance.
-ixEach :: (Applicative f, Eq (Key m), Each (Key m) f m m (Value m) (Value m)) => Key m -> IndexedLensLike' (Key m) f m (Value m)
+ixEach :: (Applicative f, Eq (Key m), Each f m m (Value m) (Value m)) => Key m -> IndexedLensLike' (Key m) f m (Value m)
 ixEach i = each . Lens.index i
 {-# INLINE ixEach #-}
 
@@ -284,35 +313,50 @@ type instance Value [a] = a
 instance Applicative f => Ixed f [a] where
   ix k f xs0 = go xs0 k where
     go [] _ = pure []
-    go (a:as) 0 = indexed f k a <&> (:as)
+    go (a:as) 0 = Lens.indexed f k a <&> (:as)
     go (a:as) i = (a:) <$> (go as $! i - 1)
+  {-# INLINE ix #-}
+
+type instance Value (Identity a) = a
+instance Functor f => Ixed f (Identity a) where
+  ix () f (Identity a) = Identity <$> Lens.indexed f () a
+  {-# INLINE ix #-}
+
+type instance Value (Tree a) = a
+instance Applicative f => Ixed f (Tree a) where
+  ix xs0 f = go xs0 where
+    go [] (Node a as) = Lens.indexed f xs0 a <&> \a' -> Node a' as
+    go (i:is) (Node a as) = Node a <$> goto is as i
+    goto is (a:as) 0 = go is a <&> (:as)
+    goto is (_:as) n = goto is as $! n - 1
+    goto _  []     _ = pure []
   {-# INLINE ix #-}
 
 type instance Value (Seq a) = a
 instance Applicative f => Ixed f (Seq a) where
   ix i f m
-    | 0 <= i && i < Seq.length m = indexed f i (Seq.index m i) <&> \a -> Seq.update i a m
+    | 0 <= i && i < Seq.length m = Lens.indexed f i (Seq.index m i) <&> \a -> Seq.update i a m
     | otherwise                  = pure m
   {-# INLINE ix #-}
 
 type instance Value (IntMap a) = a
 instance Applicative f => Ixed f (IntMap a) where
   ix k f m = case IntMap.lookup k m of
-     Just v -> indexed f k v <&> \v' -> IntMap.insert k v' m
+     Just v -> Lens.indexed f k v <&> \v' -> IntMap.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
 type instance Value (Map k a) = a
 instance (Applicative f, Ord k) => Ixed f (Map k a) where
   ix k f m = case Map.lookup k m of
-     Just v  -> indexed f k v <&> \v' -> Map.insert k v' m
+     Just v  -> Lens.indexed f k v <&> \v' -> Map.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
 type instance Value (HashMap k a) = a
 instance (Applicative f, Eq k, Hashable k) => Ixed f (HashMap k a) where
   ix k f m = case HashMap.lookup k m of
-     Just v  -> indexed f k v <&> \v' -> HashMap.insert k v' m
+     Just v  -> Lens.indexed f k v <&> \v' -> HashMap.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
@@ -324,7 +368,7 @@ type instance Value (Array i e) = e
 -- @
 instance (Applicative f, Ix i) => Ixed f (Array i e) where
   ix i f arr
-    | inRange (bounds arr) i = indexed f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
+    | inRange (bounds arr) i = Lens.indexed f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
     | otherwise              = pure arr
   {-# INLINE ix #-}
 
@@ -336,54 +380,75 @@ type instance Value (UArray i e) = e
 -- @
 instance (Applicative f, IArray UArray e, Ix i) => Ixed f (UArray i e) where
   ix i f arr
-    | inRange (bounds arr) i = indexed f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
+    | inRange (bounds arr) i = Lens.indexed f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
     | otherwise              = pure arr
   {-# INLINE ix #-}
 
 type instance Value (Vector.Vector a) = a
 instance Applicative f => Ixed f (Vector.Vector a) where
   ix i f v
-    | 0 <= i && i < Vector.length v = indexed f i (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
+    | 0 <= i && i < Vector.length v = Lens.indexed f i (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
     | otherwise                     = pure v
   {-# INLINE ix #-}
 
 type instance Value (Prim.Vector a) = a
 instance (Applicative f, Prim a) => Ixed f (Prim.Vector a) where
   ix i f v
-    | 0 <= i && i < Prim.length v = indexed f i (v Prim.! i) <&> \a -> v Prim.// [(i, a)]
+    | 0 <= i && i < Prim.length v = Lens.indexed f i (v Prim.! i) <&> \a -> v Prim.// [(i, a)]
     | otherwise                   = pure v
   {-# INLINE ix #-}
 
 type instance Value (Storable.Vector a) = a
 instance (Applicative f, Storable a) => Ixed f (Storable.Vector a) where
   ix i f v
-    | 0 <= i && i < Storable.length v = indexed f i (v Storable.! i) <&> \a -> v Storable.// [(i, a)]
+    | 0 <= i && i < Storable.length v = Lens.indexed f i (v Storable.! i) <&> \a -> v Storable.// [(i, a)]
     | otherwise                       = pure v
   {-# INLINE ix #-}
 
-{-
-type instance Value IntSet = Bool
-instance Functor f => Ixed f IntSet where
-  ix k f s = indexed f k (IntSet.member k s) <&> \b ->
-    if b then IntSet.insert k s else IntSet.delete k s
+type instance Value (Unboxed.Vector a) = a
+instance (Applicative f, Unbox a) => Ixed f (Unboxed.Vector a) where
+  ix i f v
+    | 0 <= i && i < Unboxed.length v = Lens.indexed f i (v Unboxed.! i) <&> \a -> v Unboxed.// [(i, a)]
+    | otherwise                      = pure v
   {-# INLINE ix #-}
 
-type instance Value (Set a) = Bool
-instance (Functor f, Ord a) => Ixed f (Set a) where
-  ix k f s = indexed f k (Set.member k s) <&> \b ->
-    if b then Set.insert k s else Set.delete k s
+type instance Value StrictT.Text = Char
+instance Applicative f => Ixed f StrictT.Text where
+  ix e f s = case StrictT.splitAt e s of
+     (l, mr) -> case StrictT.uncons mr of
+       Nothing      -> pure s
+       Just (c, xs) -> Lens.indexed f e c <&> \d -> StrictT.concat [l, StrictT.singleton d, xs]
   {-# INLINE ix #-}
 
-type instance Value (HashSet a) = Bool
-instance (Functor f, Eq a, Hashable a) => Ixed f (HashSet a) where
-  ix k f s = indexed f k (HashSet.member k s) <&> \b ->
-    if b then HashSet.insert k s else HashSet.delete k s
+type instance Value LazyT.Text = Char
+instance Applicative f => Ixed f LazyT.Text where
+  ix e f s = case LazyT.splitAt e s of
+     (l, mr) -> case LazyT.uncons mr of
+       Nothing      -> pure s
+       Just (c, xs) -> Lens.indexed f e c <&> \d -> LazyT.append l (LazyT.cons d xs)
   {-# INLINE ix #-}
--}
+
+type instance Value StrictB.ByteString = Word8
+instance Applicative f => Ixed f StrictB.ByteString where
+  ix e f s = case StrictB.splitAt e s of
+     (l, mr) -> case StrictB.uncons mr of
+       Nothing      -> pure s
+       Just (c, xs) -> Lens.indexed f e c <&> \d -> StrictB.concat [l, StrictB.singleton d, xs]
+  {-# INLINE ix #-}
+
+type instance Value LazyB.ByteString = Word8
+instance Applicative f => Ixed f LazyB.ByteString where
+  -- TODO: we could be lazier, returning each chunk as it is passed
+  ix e f s = case LazyB.splitAt e s of
+     (l, mr) -> case LazyB.uncons mr of
+       Nothing      -> pure s
+       Just (c, xs) -> Lens.indexed f e c <&> \d -> LazyB.append l (LazyB.cons d xs)
+  {-# INLINE ix #-}
+
 
 type instance Value (k -> a) = a
 instance (Functor f, Eq k) => Ixed f (k -> a) where
-  ix e g f = indexed g e (f e) <&> \a' e' -> if e == e' then a' else f e'
+  ix e g f = Lens.indexed g e (f e) <&> \a' e' -> if e == e' then a' else f e'
   {-# INLINE ix #-}
 
 type instance Value (a,a) = a
@@ -446,21 +511,21 @@ class At m where
   at :: Key m -> IndexedLens' (Key m) m (Maybe (Value m))
 
 instance At (IntMap a) where
-  at k f m = indexed f k mv <&> \r -> case r of
+  at k f m = Lens.indexed f k mv <&> \r -> case r of
     Nothing -> maybe m (const (IntMap.delete k m)) mv
     Just v' -> IntMap.insert k v' m
     where mv = IntMap.lookup k m
   {-# INLINE at #-}
 
 instance Ord k => At (Map k a) where
-  at k f m = indexed f k mv <&> \r -> case r of
+  at k f m = Lens.indexed f k mv <&> \r -> case r of
     Nothing -> maybe m (const (Map.delete k m)) mv
     Just v' -> Map.insert k v' m
     where mv = Map.lookup k m
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At (HashMap k a) where
-  at k f m = indexed f k mv <&> \r -> case r of
+  at k f m = Lens.indexed f k mv <&> \r -> case r of
     Nothing -> maybe m (const (HashMap.delete k m)) mv
     Just v' -> HashMap.insert k v' m
     where mv = HashMap.lookup k m
