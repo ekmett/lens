@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FunctionalDependencies #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -24,7 +25,10 @@ module Control.Lens.TH
   , makeClassy, makeClassyFor
   , makeIso
   , makePrisms
+<<<<<<< HEAD
   , makeWrapped
+=======
+>>>>>>> 683fb51b2c09adda86e759f60127142a98bc32cb
   , makeClassier
   -- * Configuring Lenses
   , makeLensesWith
@@ -746,7 +750,10 @@ inlinePragma methodName = pragInlD methodName $ inlineSpecNoPhase True False
 
 #endif
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 683fb51b2c09adda86e759f60127142a98bc32cb
 unqualify :: String -> String
 unqualify = tail . dropWhile (/= '.')
 
@@ -756,6 +763,12 @@ verboseLenses src = do
     TyConI (DataD _ _ _ [RecC _ rs] _) <- reify src
     makeLensesFor (map (\ (n', _, _) -> let n = unqualify (show n') in (n, n ++ "_lens")) rs) src
 
+<<<<<<< HEAD
+=======
+-- | For each field of a data type, generate a Has_<field> class and instance for it.
+-- Fields have to be in the format *_<Type>_<fieldname>*.
+-- This allows multiple records to share the same lenses.
+>>>>>>> 683fb51b2c09adda86e759f60127142a98bc32cb
 hasClassAndInstance :: Name -> Q [Dec]
 hasClassAndInstance src = do
     TyConI (DataD _ _ _ [RecC _ rs] _) <- reify src
@@ -802,8 +815,12 @@ hasClassAndInstance src = do
     where c = mkName "c"
           e = mkName "e"
 
+<<<<<<< HEAD
 -- | For each field of a data type, generate a Has_<field> class and instance for it.
 -- Fields have to be in the format *_<Type>_<fieldname>*.
 -- This allows multiple records to share the same lenses.
+=======
+-- | Generate lenses that ac
+>>>>>>> 683fb51b2c09adda86e759f60127142a98bc32cb
 makeClassier :: Name -> Q [Dec]
 makeClassier n = liftA2 (++) (verboseLenses n) (hasClassAndInstance n)
