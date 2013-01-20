@@ -12,8 +12,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
--- This module spends a lot of time fiddling around with 'ByteString' internals
--- to work around <http://hackage.haskell.org/trac/ghc/ticket/7556> only older
+-- This module spends a lot of time fiddling around with 'Data.ByteString' internals
+-- to work around <http://hackage.haskell.org/trac/ghc/ticket/7556> on older
 -- Haskell Platforms and to improve constant and asymptotic factors in our performance.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.ByteString
@@ -125,7 +125,7 @@ traversedLazy :: IndexedTraversal' Int64 BL.ByteString Word8
 traversedLazy = iso unpackLazy BL.pack . traversed64
 {-# INLINE traversedLazy #-}
 
-unpackLazy8 :: BL.ByteString -> [Char]
+unpackLazy8 :: BL.ByteString -> String
 unpackLazy8 = BL8.unpack
 {-# INLINE unpackLazy8 #-}
 
