@@ -11,7 +11,7 @@ homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012-2013 Edward A. Kmett
 build-type:    Custom
-tested-with:   GHC == 7.0.4, GHC == 7.4.1, GHC == 7.4.2, GHC == 7.6.1, GHC == 7.7.20121213
+tested-with:   GHC == 7.0.4, GHC == 7.4.1, GHC == 7.4.2, GHC == 7.6.1, GHC == 7.7.20121213, GHC == 7.7.20130117
 synopsis:      Lenses, Folds and Traversals
 description:
   This package comes \"Batteries Included\" with many useful lenses for the types
@@ -127,6 +127,11 @@ flag old-inline-pragmas
 -- Make the test suites dump their template-haskell splices.
 flag dump-splices
   default: False
+  manual: True
+
+-- You can disable the doctests test suite with -f-test-doctests
+flag test-doctests
+  default: True
   manual: True
 
 -- You can disable the hunit test suite with -f-test-hunit
@@ -342,22 +347,25 @@ test-suite hunit
 test-suite doctests
   type:    exitcode-stdio-1.0
   main-is: doctests.hs
-  build-depends:
-    base,
-    bytestring,
-    containers,
-    directory >= 1.0,
-    deepseq,
-    doctest >= 0.9.1,
-    filepath,
-    mtl,
-    nats,
-    parallel,
-    simple-reflect >= 0.3.1,
-    split,
-    text,
-    unordered-containers,
-    vector
+  if !flag(test-doctests)
+    buildable: False
+  else
+    build-depends:
+      base,
+      bytestring,
+      containers,
+      directory >= 1.0,
+      deepseq,
+      doctest >= 0.9.1,
+      filepath,
+      mtl,
+      nats,
+      parallel,
+      simple-reflect >= 0.3.1,
+      split,
+      text,
+      unordered-containers,
+      vector
   ghc-options: -Wall -threaded
   if impl(ghc<7.6.1)
     ghc-options: -Werror
