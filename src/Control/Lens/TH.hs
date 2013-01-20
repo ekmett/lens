@@ -73,7 +73,7 @@ import Data.Foldable hiding (concat)
 import Data.Function (on)
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
-import Data.Maybe (isNothing,isJust,catMaybes,fromJust)
+import Data.Maybe as Maybe (isNothing,isJust,catMaybes,fromJust, mapMaybe)
 import Data.Ord (comparing)
 import Data.Set as Set hiding (toList,map,filter)
 import Data.Set.Lens
@@ -770,7 +770,7 @@ hasClassAndInstance src = do
                 then Just (full, its !! 2)
                 else Nothing
 
-        names = catMaybes (map getName rs)
+        names = Maybe.mapMaybe getName rs
 
     -- 'full' looks like "_Type_field"
     -- 'nice' looks like "field"
