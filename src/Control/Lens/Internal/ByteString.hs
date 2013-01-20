@@ -14,7 +14,7 @@
 --
 -- This module spends a lot of time fiddling around with 'ByteString' internals
 -- to work around <http://hackage.haskell.org/trac/ghc/ticket/7556> only older
--- Haskell Platforms and to improve constant factors in our performance.
+-- Haskell Platforms and to improve constant and asymptotic factors in our performance.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.ByteString
   ( unpackStrict, traversedStrict, traversedStrictTree
