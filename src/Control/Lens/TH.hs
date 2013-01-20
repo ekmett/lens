@@ -26,7 +26,7 @@ module Control.Lens.TH
   , makeIso
   , makePrisms
   , makeWrapped
-  , makeClassier
+  , makeFields
   -- * Configuring Lenses
   , makeLensesWith
   , defaultRules
@@ -763,11 +763,11 @@ hasClassAndInstance :: Name -> Q [Dec]
 hasClassAndInstance src = do
     TyConI (DataD _ _ _ [RecC _ rs] _) <- reify src
 
-    let getName (n, _, _) = 
-            let full = unqualify (show n) 
-                its  = iterate (tail . dropWhile (/= '_')) full       
+    let getName (n, _, _) =
+            let full = unqualify (show n)
+                its  = iterate (tail . dropWhile (/= '_')) full
             in if unqualify (show src) `isInfixOf` (its !! 1)
-                then Just (full, its !! 2) 
+                then Just (full, its !! 2)
                 else Nothing
 
         names = catMaybes (map getName rs)
@@ -778,10 +778,10 @@ hasClassAndInstance src = do
         let className    = mkName $ "Has_" ++ nice
             lensName     = mkName nice
             fullLensName = mkName (full ++ "_lens")
- 
+
         classHas <- classD
-            (return []) 
-            className 
+            (return [])
+            className
             [ PlainTV c, PlainTV e ]
             [ FunDep [c] [e] ]
             [ sigD lensName [t| Lens' $(varT c) $(varT e) |] ]
@@ -792,11 +792,11 @@ hasClassAndInstance src = do
         instanceHas <- instanceD
             (return [])
             [t| $(conT className) $(conT src) $(conT fieldType) |]
-            [ 
+            [
 #ifdef INLINING
-              inlinePragma lensName, 
+              inlinePragma lensName,
 #endif
-              funD lensName [ clause [] (return (NormalB actualLens)) [] ] 
+              funD lensName [ clause [] (return (NormalB actualLens)) [] ]
             ]
 
         classAlreadyExists <- isJust `fmap` lookupTypeName (show className)
@@ -808,5 +808,5 @@ hasClassAndInstance src = do
 -- | For each field of a data type, generate a Has_<field> class and instance for it.
 -- Fields have to be in the format *_<Type>_<fieldname>*.
 -- This allows multiple records to share the same lenses.
-makeClassier :: Name -> Q [Dec]
-makeClassier n = liftA2 (++) (verboseLenses n) (hasClassAndInstance n)
+makeFields :: Name -> Q [Dec]
+makeFields n = liftA2 (++) (verboseLenses n) (hasClassAndInstance n)
