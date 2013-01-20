@@ -8,12 +8,23 @@
 -- Stability   :  provisional
 -- Portability :  portable
 -------------------------------------------------------------------------------
-module Numeric.Lens (base) where
+module Numeric.Lens (base, integral) where
 
 import Control.Lens
 import Data.Char (chr, ord, isAsciiLower, isAsciiUpper, isDigit)
 import Data.Maybe (fromMaybe)
 import Numeric (readInt, showIntAtBase)
+
+-- | This 'Prism' extracts can be used to model the fact that every 'Integral'
+-- type is a subset of 'Integer'.
+--
+-- Embedding through the 'Prism' only succeeds if the 'Integer' would pass
+-- through unmodified when re-extracted.
+integral :: (Integral a, Integral b) => Prism Integer Integer a b
+integral = prism toInteger $ \ i -> let a = fromInteger i in
+  if toInteger a == i
+  then Right a
+  else Left i
 
 -- | A prism that shows and reads integers in base-2 through base-36
 --

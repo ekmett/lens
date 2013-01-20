@@ -3,6 +3,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 #ifdef DEFAULT_SIGNATURES
@@ -91,6 +92,7 @@ import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.Foldable
 import Data.Functor.Identity
+import Data.Functor.Reverse
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.IntMap as IntMap
@@ -471,6 +473,24 @@ imapAccumL f s0 a = swap (Lazy.runState (itraverse (\i c -> Lazy.state (\s -> sw
 -------------------------------------------------------------------------------
 -- Instances
 -------------------------------------------------------------------------------
+
+instance FunctorWithIndex i f => FunctorWithIndex i (Backwards f) where
+  imap f  = Backwards . imap f . forwards
+
+instance FoldableWithIndex i f => FoldableWithIndex i (Backwards f) where
+  ifoldMap f = ifoldMap f . forwards
+
+instance TraversableWithIndex i f => TraversableWithIndex i (Backwards f) where
+  itraverse f = fmap Backwards . itraverse f . forwards
+
+instance FunctorWithIndex i f => FunctorWithIndex i (Reverse f) where
+  imap f = Reverse . imap f . getReverse
+
+instance FoldableWithIndex i f => FoldableWithIndex i (Reverse f) where
+  ifoldMap f = getDual . ifoldMap (\i -> Dual #. f i) . getReverse
+
+instance TraversableWithIndex i f => TraversableWithIndex i (Reverse f) where
+  itraverse f = fmap Reverse . forwards . itraverse (\i -> Backwards . f i) . getReverse
 
 instance FunctorWithIndex () Identity where
   imap f (Identity a) = Identity (f () a)
