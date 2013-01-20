@@ -25,6 +25,7 @@ module Control.Lens.TH
   , makeIso
   , makePrisms
   , makeWrapped
+  , makeClassier
   -- * Configuring Lenses
   , makeLensesWith
   , defaultRules
@@ -744,3 +745,65 @@ inlinePragma methodName = pragInlD methodName $ inlineSpecNoPhase True False
 #endif
 
 #endif
+
+
+unqualify :: String -> String
+unqualify = tail . dropWhile (/= '.')
+
+-- | Generate lenses with names suffixed by "_lens"
+verboseLenses :: Name -> Q [Dec]
+verboseLenses src = do
+    TyConI (DataD _ _ _ [RecC _ rs] _) <- reify src
+    makeLensesFor (map (\ (n', _, _) -> let n = unqualify (show n') in (n, n ++ "_lens")) rs) src
+
+hasClassAndInstance :: Name -> Q [Dec]
+hasClassAndInstance src = do
+    TyConI (DataD _ _ _ [RecC _ rs] _) <- reify src
+
+    let getName (n, _, _) = 
+            let full = unqualify (show n) 
+                its  = iterate (tail . dropWhile (/= '_')) full       
+            in if unqualify (show src) `isInfixOf` (its !! 1)
+                then Just (full, its !! 2) 
+                else Nothing
+
+        names = catMaybes (map getName rs)
+
+    -- 'full' looks like "_Type_field"
+    -- 'nice' looks like "field"
+    fmap concat $ forM names $ \ (full, nice) -> do
+        let className    = mkName $ "Has_" ++ nice
+            lensName     = mkName nice
+            fullLensName = mkName (full ++ "_lens")
+ 
+        classHas <- classD
+            (return []) 
+            className 
+            [ PlainTV c, PlainTV e ]
+            [ FunDep [c] [e] ]
+            [ sigD lensName [t| Simple Lens $(varT c) $(varT e) |] ]
+
+        actualLens <- global fullLensName
+        VarI _ (AppT _ (ConT fieldType)) _ _ <- reify (mkName full)
+
+        instanceHas <- instanceD
+            (return [])
+            [t| $(conT className) $(conT src) $(conT fieldType) |]
+            [ 
+#ifdef INLINING
+              inlinePragma lensName, 
+#endif
+              funD lensName [ clause [] (return (NormalB actualLens)) [] ] 
+            ]
+
+        classAlreadyExists <- isJust `fmap` lookupTypeName (show className)
+        return (if classAlreadyExists then [instanceHas] else [classHas, instanceHas])
+
+    where c = mkName "c"
+          e = mkName "e"
+
+-- | For each field of a data type, generate a Has_<field> class and instance for it.
+-- Fields have to be in the format *_<Type>_<fieldname>*.
+-- This allows multiple records to share the same lenses.
+makeClassier :: Name -> Q [Dec]
+makeClassier n = liftA2 (++) (verboseLenses n) (hasClassAndInstance n)
