@@ -280,6 +280,9 @@ library
     if flag(old-inline-pragmas)
       cpp-options: -DOLD_INLINE_PRAGMAS=1
 
+  if flag(inlining)
+    cpp-options: -DINLINING
+
   if !flag(inlining)
     cpp-options: -DOMIT_INLINING=1
 
