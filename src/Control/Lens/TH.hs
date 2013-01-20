@@ -25,10 +25,7 @@ module Control.Lens.TH
   , makeClassy, makeClassyFor
   , makeIso
   , makePrisms
-<<<<<<< HEAD
   , makeWrapped
-=======
->>>>>>> 683fb51b2c09adda86e759f60127142a98bc32cb
   , makeClassier
   -- * Configuring Lenses
   , makeLensesWith
