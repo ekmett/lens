@@ -167,12 +167,13 @@ instance Gettable f => Contains f (Seq a) where
 #if MIN_VERSION_base(4,4,0)
 instance Gettable f => Contains f (Complex a) where
   contains = containsN 2
+  {-# INLINE contains #-}
 #else
 instance (Gettable f, RealFloat a) => Contains f (Complex a) where
   contains = containsN 2
+  {-# INLINE contains #-}
 #endif
 
--- | @'each' :: 'IndexedTraversal' ['Int'] ('Tree' a) ('Tree' b) a b@
 instance Gettable f => Contains f (Tree a) where
   contains xs0 pafb = coerce . Lens.indexed pafb xs0 . go xs0 where
     go [] (Node _ _) = True
@@ -180,9 +181,11 @@ instance Gettable f => Contains f (Tree a) where
     goto 0 is (a:_) = go is a
     goto _ _  []     = False
     goto n is (_:as) = (goto $! n - 1) is as
+  {-# INLINE contains #-}
 
 instance Gettable k => Contains k (Identity a) where
   contains () f _ = coerce (Lens.indexed f () True)
+  {-# INLINE contains #-}
 
 instance Gettable k => Contains k (a,b) where
   contains = containsN 2
@@ -296,6 +299,7 @@ class Contains (Accessor (Value m)) m => Ixed f m where
 #ifdef DEFAULT_SIGNATURES
   default ix :: (Applicative f, At m) => Key m -> IndexedLensLike' (Key m) f m (Value m)
   ix = ixAt
+  {-# INLINE ix #-}
 #endif
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
@@ -450,6 +454,17 @@ type instance Value (k -> a) = a
 instance (Functor f, Eq k) => Ixed f (k -> a) where
   ix e g f = Lens.indexed g e (f e) <&> \a' e' -> if e == e' then a' else f e'
   {-# INLINE ix #-}
+
+#if MIN_VERSION_base(4,4,0)
+type instance Value (Complex a) = a
+instance Applicative f => Ixed f (Complex a) where
+  ix = ixEach
+  {-# INLINE ix #-}
+#else
+instance (Applicative f, RealFloat a) => Ixed f (Complex a) where
+  ix = ixEach
+  {-# INLINE ix #-}
+#endif
 
 type instance Value (a,a) = a
 instance (Applicative f, a ~ b) => Ixed f (a,b) where
