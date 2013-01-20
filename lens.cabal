@@ -86,7 +86,6 @@ extra-source-files:
   .ghci
   .gitignore
   .vim.custom
-  config
   examples/LICENSE
   examples/lens-examples.cabal
   examples/*.hs
