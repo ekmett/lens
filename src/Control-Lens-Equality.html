@@ -77,8 +77,10 @@
 <a name="line-68"></a><span class='hs-definition'>fromEq</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>substEq</span> <span class='hs-varid'>l</span> <span class='hs-varid'>id</span>
 <a name="line-69"></a><span class='hs-comment'>{-# INLINE fromEq #-}</span>
 <a name="line-70"></a>
-<a name="line-71"></a><a name="simply"></a><span class='hs-definition'>simply</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Overloaded'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Overloaded'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
-<a name="line-72"></a><span class='hs-definition'>simply</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>id</span>
-<a name="line-73"></a><span class='hs-comment'>{-# INLINE simply #-}</span>
+<a name="line-71"></a><a name="simply"></a><span class='hs-comment'>-- | This is an adverb that can be used to modify many other lens combinators to make them require</span>
+<a name="line-72"></a><span class='hs-comment'>-- simple lenses, simple traversals, simple prisms or simple isos as input.</span>
+<a name="line-73"></a><span class='hs-definition'>simply</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Overloaded'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Overloaded'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
+<a name="line-74"></a><span class='hs-definition'>simply</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>id</span>
+<a name="line-75"></a><span class='hs-comment'>{-# INLINE simply #-}</span>
 </pre></body>
 </html>

@@ -107,49 +107,49 @@
 <a name="line-98"></a>
 <a name="line-99"></a><a name="simpleLenses"></a><span class='hs-comment'>-- | Only Generate valid 'Control.Lens.Type.Simple' lenses.</span>
 <a name="line-100"></a><span class='hs-definition'>simpleLenses</span>      <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>LensRules</span> <span class='hs-conid'>Bool</span>
-<a name="line-101"></a><span class='hs-definition'>simpleLenses</span>       <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>ix</span> <span class='hs-conid'>SimpleLenses</span>
+<a name="line-101"></a><span class='hs-definition'>simpleLenses</span>       <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>contains</span> <span class='hs-conid'>SimpleLenses</span>
 <a name="line-102"></a>
 <a name="line-103"></a><a name="partialLenses"></a><span class='hs-comment'>-- | Enables the generation of partial lenses, generating runtime errors for</span>
 <a name="line-104"></a><span class='hs-comment'>-- every constructor that does not have a valid definition for the 'Lens'. This</span>
 <a name="line-105"></a><span class='hs-comment'>-- occurs when the constructor lacks the field, or has multiple fields mapped</span>
 <a name="line-106"></a><span class='hs-comment'>-- to the same 'Lens'.</span>
 <a name="line-107"></a><span class='hs-definition'>partialLenses</span>     <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>LensRules</span> <span class='hs-conid'>Bool</span>
-<a name="line-108"></a><span class='hs-definition'>partialLenses</span>      <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>ix</span> <span class='hs-conid'>PartialLenses</span>
+<a name="line-108"></a><span class='hs-definition'>partialLenses</span>      <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>contains</span> <span class='hs-conid'>PartialLenses</span>
 <a name="line-109"></a>
 <a name="line-110"></a><a name="buildTraversals"></a><span class='hs-comment'>-- | In the situations that a 'Lens' would be partial, when 'partialLenses' is</span>
 <a name="line-111"></a><span class='hs-comment'>-- used, this flag instead causes traversals to be generated. Only one can be</span>
 <a name="line-112"></a><span class='hs-comment'>-- used, and if neither are, then compile-time errors are generated.</span>
 <a name="line-113"></a><span class='hs-definition'>buildTraversals</span>   <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>LensRules</span> <span class='hs-conid'>Bool</span>
-<a name="line-114"></a><span class='hs-definition'>buildTraversals</span>    <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>ix</span> <span class='hs-conid'>BuildTraversals</span>
+<a name="line-114"></a><span class='hs-definition'>buildTraversals</span>    <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>contains</span> <span class='hs-conid'>BuildTraversals</span>
 <a name="line-115"></a>
 <a name="line-116"></a><a name="handleSingletons"></a><span class='hs-comment'>-- | Handle singleton constructors specially.</span>
 <a name="line-117"></a><span class='hs-definition'>handleSingletons</span>  <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>LensRules</span> <span class='hs-conid'>Bool</span>
-<a name="line-118"></a><span class='hs-definition'>handleSingletons</span>   <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>ix</span> <span class='hs-conid'>HandleSingletons</span>
+<a name="line-118"></a><span class='hs-definition'>handleSingletons</span>   <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>contains</span> <span class='hs-conid'>HandleSingletons</span>
 <a name="line-119"></a>
 <a name="line-120"></a><a name="singletonAndField"></a><span class='hs-comment'>-- | When building a singleton 'Iso' (or 'Lens') for a record constructor, build</span>
 <a name="line-121"></a><span class='hs-comment'>-- both the 'Iso' (or 'Lens') for the record and the one for the field.</span>
 <a name="line-122"></a><span class='hs-definition'>singletonAndField</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>LensRules</span> <span class='hs-conid'>Bool</span>
-<a name="line-123"></a><span class='hs-definition'>singletonAndField</span>  <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>ix</span> <span class='hs-conid'>SingletonAndField</span>
+<a name="line-123"></a><span class='hs-definition'>singletonAndField</span>  <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>contains</span> <span class='hs-conid'>SingletonAndField</span>
 <a name="line-124"></a>
 <a name="line-125"></a><a name="singletonIso"></a><span class='hs-comment'>-- | Use 'Iso' for singleton constructors.</span>
 <a name="line-126"></a><span class='hs-definition'>singletonIso</span>      <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>LensRules</span> <span class='hs-conid'>Bool</span>
-<a name="line-127"></a><span class='hs-definition'>singletonIso</span>       <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>ix</span> <span class='hs-conid'>SingletonIso</span>
+<a name="line-127"></a><span class='hs-definition'>singletonIso</span>       <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>contains</span> <span class='hs-conid'>SingletonIso</span>
 <a name="line-128"></a>
 <a name="line-129"></a><a name="singletonRequired"></a><span class='hs-comment'>-- | Expect a single constructor, single field newtype or data type.</span>
 <a name="line-130"></a><span class='hs-definition'>singletonRequired</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>LensRules</span> <span class='hs-conid'>Bool</span>
-<a name="line-131"></a><span class='hs-definition'>singletonRequired</span>  <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>ix</span> <span class='hs-conid'>SingletonRequired</span>
+<a name="line-131"></a><span class='hs-definition'>singletonRequired</span>  <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>contains</span> <span class='hs-conid'>SingletonRequired</span>
 <a name="line-132"></a>
 <a name="line-133"></a><a name="createClass"></a><span class='hs-comment'>-- | Create the class if the constructor is 'Control.Lens.Type.Simple' and the 'lensClass' rule matches.</span>
 <a name="line-134"></a><span class='hs-definition'>createClass</span>       <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>LensRules</span> <span class='hs-conid'>Bool</span>
-<a name="line-135"></a><span class='hs-definition'>createClass</span>        <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>ix</span> <span class='hs-conid'>CreateClass</span>
+<a name="line-135"></a><span class='hs-definition'>createClass</span>        <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>contains</span> <span class='hs-conid'>CreateClass</span>
 <a name="line-136"></a>
 <a name="line-137"></a><a name="createInstance"></a><span class='hs-comment'>-- | Create the instance if the constructor is 'Control.Lens.Type.Simple' and the 'lensClass' rule matches.</span>
 <a name="line-138"></a><span class='hs-definition'>createInstance</span>    <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>LensRules</span> <span class='hs-conid'>Bool</span>
-<a name="line-139"></a><span class='hs-definition'>createInstance</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>ix</span> <span class='hs-conid'>CreateInstance</span>
+<a name="line-139"></a><span class='hs-definition'>createInstance</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>contains</span> <span class='hs-conid'>CreateInstance</span>
 <a name="line-140"></a>
 <a name="line-141"></a><a name="classRequired"></a><span class='hs-comment'>-- | Die if the 'lensClass' fails to match.</span>
 <a name="line-142"></a><span class='hs-definition'>classRequired</span>     <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>LensRules</span> <span class='hs-conid'>Bool</span>
-<a name="line-143"></a><span class='hs-definition'>classRequired</span>      <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>ix</span> <span class='hs-conid'>ClassRequired</span>
+<a name="line-143"></a><span class='hs-definition'>classRequired</span>      <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>contains</span> <span class='hs-conid'>ClassRequired</span>
 <a name="line-144"></a>
 <a name="line-145"></a><a name="generateSignatures"></a><span class='hs-comment'>-- | Indicate whether or not to supply the signatures for the generated</span>
 <a name="line-146"></a><span class='hs-comment'>-- lenses.</span>
@@ -157,7 +157,7 @@
 <a name="line-148"></a><span class='hs-comment'>-- Disabling this can be useful if you want to provide a more restricted type</span>
 <a name="line-149"></a><span class='hs-comment'>-- signature or if you want to supply hand-written haddocks.</span>
 <a name="line-150"></a><span class='hs-definition'>generateSignatures</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>LensRules</span> <span class='hs-conid'>Bool</span>
-<a name="line-151"></a><span class='hs-definition'>generateSignatures</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>ix</span> <span class='hs-conid'>GenerateSignatures</span>
+<a name="line-151"></a><span class='hs-definition'>generateSignatures</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>lensFlags</span><span class='hs-varop'>.</span><span class='hs-varid'>contains</span> <span class='hs-conid'>GenerateSignatures</span>
 <a name="line-152"></a>
 <a name="line-153"></a><a name="LensRules"></a><span class='hs-comment'>-- | This configuration describes the options we'll be using to make</span>
 <a name="line-154"></a><a name="LensRules"></a><span class='hs-comment'>-- isomorphisms or lenses.</span>
@@ -399,7 +399,7 @@
 <a name="line-390"></a>  <span class='hs-keyword'>where</span>
 <a name="line-391"></a>    <span class='hs-layout'>(</span><span class='hs-varid'>dataConName</span><span class='hs-layout'>,</span> <span class='hs-varid'>fieldTypes</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>ctrNameAndFieldTypes</span> <span class='hs-varid'>con</span>
 <a name="line-392"></a>    <span class='hs-varid'>conArgs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>setOf</span> <span class='hs-varid'>typeVars</span> <span class='hs-varid'>fieldTypes</span>
-<a name="line-393"></a>    <span class='hs-varid'>isAltArg</span> <span class='hs-varid'>arg</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>canModifyTypeVar</span> <span class='hs-varid'>arg</span> <span class='hs-varop'>&amp;&amp;</span> <span class='hs-varid'>conArgs</span><span class='hs-varop'>^.</span><span class='hs-varid'>ix</span><span class='hs-layout'>(</span><span class='hs-varid'>arg</span><span class='hs-varop'>^.</span><span class='hs-varid'>name</span><span class='hs-layout'>)</span>
+<a name="line-393"></a>    <span class='hs-varid'>isAltArg</span> <span class='hs-varid'>arg</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>canModifyTypeVar</span> <span class='hs-varid'>arg</span> <span class='hs-varop'>&amp;&amp;</span> <span class='hs-varid'>conArgs</span><span class='hs-varop'>^.</span><span class='hs-varid'>contains</span><span class='hs-layout'>(</span><span class='hs-varid'>arg</span><span class='hs-varop'>^.</span><span class='hs-varid'>name</span><span class='hs-layout'>)</span>
 <a name="line-394"></a>
 <a name="line-395"></a><a name="ctrNameAndFieldTypes"></a><span class='hs-definition'>ctrNameAndFieldTypes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Con</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Name</span><span class='hs-layout'>,</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Type</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span>
 <a name="line-396"></a><span class='hs-definition'>ctrNameAndFieldTypes</span> <span class='hs-layout'>(</span><span class='hs-conid'>NormalC</span> <span class='hs-varid'>n</span> <span class='hs-varid'>ts</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>n</span><span class='hs-layout'>,</span> <span class='hs-varid'>snd</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>ts</span><span class='hs-layout'>)</span>
@@ -600,7 +600,7 @@
 <a name="line-591"></a>        <span class='hs-varid'>dty</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>substTypeVars</span> <span class='hs-varid'>m</span> <span class='hs-varid'>cty</span>
 <a name="line-592"></a>
 <a name="line-593"></a>        <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>setOf</span> <span class='hs-varid'>folded</span> <span class='hs-varid'>m</span>
-<a name="line-594"></a>        <span class='hs-varid'>relevantBndr</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>s</span><span class='hs-varop'>^.</span><span class='hs-varid'>ix</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span><span class='hs-varop'>^.</span><span class='hs-varid'>name</span><span class='hs-layout'>)</span>
+<a name="line-594"></a>        <span class='hs-varid'>relevantBndr</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>s</span><span class='hs-varop'>^.</span><span class='hs-varid'>contains</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span><span class='hs-varop'>^.</span><span class='hs-varid'>name</span><span class='hs-layout'>)</span>
 <a name="line-595"></a>        <span class='hs-varid'>relevantCtx</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>not</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Set</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Set</span><span class='hs-varop'>.</span><span class='hs-varid'>intersection</span> <span class='hs-varid'>s</span> <span class='hs-varop'>.</span> <span class='hs-varid'>setOf</span> <span class='hs-varid'>typeVars</span>
 <a name="line-596"></a>        <span class='hs-varid'>tvs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>tyArgs'</span> <span class='hs-varop'>++</span> <span class='hs-varid'>filter</span> <span class='hs-varid'>relevantBndr</span> <span class='hs-layout'>(</span><span class='hs-varid'>substTypeVars</span> <span class='hs-varid'>m</span> <span class='hs-varid'>tyArgs'</span><span class='hs-layout'>)</span>
 <a name="line-597"></a>        <span class='hs-varid'>ps</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>filter</span> <span class='hs-varid'>relevantCtx</span> <span class='hs-layout'>(</span><span class='hs-varid'>substTypeVars</span> <span class='hs-varid'>m</span> <span class='hs-varid'>ctx</span><span class='hs-layout'>)</span>

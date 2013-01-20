@@ -76,12 +76,12 @@
 <a name="line-67"></a>
 <a name="line-68"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>HasTypeVars</span> <span class='hs-conid'>TyVarBndr</span> <span class='hs-keyword'>where</span>
 <a name="line-69"></a>  <span class='hs-varid'>typeVarsEx</span> <span class='hs-varid'>s</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
-<a name="line-70"></a>    <span class='hs-keyglyph'>|</span> <span class='hs-varid'>s</span><span class='hs-varop'>^.</span><span class='hs-varid'>ix</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span><span class='hs-varop'>^.</span><span class='hs-varid'>name</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>b</span>
+<a name="line-70"></a>    <span class='hs-keyglyph'>|</span> <span class='hs-varid'>s</span><span class='hs-varop'>^.</span><span class='hs-varid'>contains</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span><span class='hs-varop'>^.</span><span class='hs-varid'>name</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>b</span>
 <a name="line-71"></a>    <span class='hs-keyglyph'>|</span> <span class='hs-varid'>otherwise</span>             <span class='hs-keyglyph'>=</span> <span class='hs-varid'>name</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span>
 <a name="line-72"></a>
 <a name="line-73"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>HasTypeVars</span> <span class='hs-conid'>Name</span> <span class='hs-keyword'>where</span>
 <a name="line-74"></a>  <span class='hs-varid'>typeVarsEx</span> <span class='hs-varid'>s</span> <span class='hs-varid'>f</span> <span class='hs-varid'>n</span>
-<a name="line-75"></a>    <span class='hs-keyglyph'>|</span> <span class='hs-varid'>s</span><span class='hs-varop'>^.</span><span class='hs-varid'>ix</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>n</span>
+<a name="line-75"></a>    <span class='hs-keyglyph'>|</span> <span class='hs-varid'>s</span><span class='hs-varop'>^.</span><span class='hs-varid'>contains</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pure</span> <span class='hs-varid'>n</span>
 <a name="line-76"></a>    <span class='hs-keyglyph'>|</span> <span class='hs-varid'>otherwise</span>     <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>n</span>
 <a name="line-77"></a>
 <a name="line-78"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>HasTypeVars</span> <span class='hs-conid'>Type</span> <span class='hs-keyword'>where</span>
