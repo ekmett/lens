@@ -283,9 +283,6 @@ library
   if flag(inlining)
     cpp-options: -DINLINING
 
-  if !flag(inlining)
-    cpp-options: -DOMIT_INLINING=1
-
   if impl(ghc>=7.2)
     other-extensions: Trustworthy
     cpp-options: -DDEFAULT_SIGNATURES=1
