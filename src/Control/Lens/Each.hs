@@ -26,7 +26,7 @@
 --
 -----------------------------------------------------------------------------
 module Control.Lens.Each
-  ( Key
+  ( Index
   , Each(..)
   ) where
 
@@ -45,7 +45,7 @@ import Data.Functor.Identity
 import Data.HashMap.Lazy as HashMap
 import Data.HashSet
 import Data.Int
-import Data.IntMap as IntMap hiding (Key)
+import Data.IntMap as IntMap
 import Data.IntSet
 import Data.Map as Map
 import Data.Set
@@ -63,38 +63,38 @@ import qualified Data.Vector.Unboxed as Unboxed
 import Data.Vector.Unboxed (Unbox)
 import Data.Word
 
-type family Key (s :: *) :: *
-type instance Key (e -> a) = e
-type instance Key IntSet = Int
-type instance Key (Set a) = a
-type instance Key (HashSet a) = a
-type instance Key [a] = Int
-type instance Key (Seq a) = Int
-type instance Key (a,b) = Int
-type instance Key (a,b,c) = Int
-type instance Key (a,b,c,d) = Int
-type instance Key (a,b,c,d,e) = Int
-type instance Key (a,b,c,d,e,f) = Int
-type instance Key (a,b,c,d,e,f,g) = Int
-type instance Key (a,b,c,d,e,f,g,h) = Int
-type instance Key (a,b,c,d,e,f,g,h,i) = Int
-type instance Key (IntMap a) = Int
-type instance Key (Map k a) = k
-type instance Key (HashMap k a) = k
-type instance Key (Array i e) = i
-type instance Key (UArray i e) = i
-type instance Key (Vector.Vector a) = Int
-type instance Key (Prim.Vector a) = Int
-type instance Key (Storable.Vector a) = Int
-type instance Key (Unboxed.Vector a) = Int
-type instance Key (Complex a) = Int
-type instance Key (Identity a) = ()
-type instance Key (Maybe a) = ()
-type instance Key (Tree a) = [Int]
-type instance Key StrictT.Text = Int
-type instance Key LazyT.Text = Int64
-type instance Key StrictB.ByteString = Int
-type instance Key LazyB.ByteString = Int64
+type family Index (s :: *) :: *
+type instance Index (e -> a) = e
+type instance Index IntSet = Int
+type instance Index (Set a) = a
+type instance Index (HashSet a) = a
+type instance Index [a] = Int
+type instance Index (Seq a) = Int
+type instance Index (a,b) = Int
+type instance Index (a,b,c) = Int
+type instance Index (a,b,c,d) = Int
+type instance Index (a,b,c,d,e) = Int
+type instance Index (a,b,c,d,e,f) = Int
+type instance Index (a,b,c,d,e,f,g) = Int
+type instance Index (a,b,c,d,e,f,g,h) = Int
+type instance Index (a,b,c,d,e,f,g,h,i) = Int
+type instance Index (IntMap a) = Int
+type instance Index (Map k a) = k
+type instance Index (HashMap k a) = k
+type instance Index (Array i e) = i
+type instance Index (UArray i e) = i
+type instance Index (Vector.Vector a) = Int
+type instance Index (Prim.Vector a) = Int
+type instance Index (Storable.Vector a) = Int
+type instance Index (Unboxed.Vector a) = Int
+type instance Index (Complex a) = Int
+type instance Index (Identity a) = ()
+type instance Index (Maybe a) = ()
+type instance Index (Tree a) = [Int]
+type instance Index StrictT.Text = Int
+type instance Index LazyT.Text = Int64
+type instance Index StrictB.ByteString = Int
+type instance Index LazyB.ByteString = Int64
 
 -- $setup
 -- >>> import Control.Lens
@@ -120,10 +120,10 @@ type instance Key LazyB.ByteString = Int64
 --
 -- >>> ("hello","world") & each.each %~ Char.toUpper
 -- ("HELLO","WORLD")
-class (Functor f, Key s ~ Key t) => Each f s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  each :: IndexedLensLike (Key s) f s t a b
+class (Functor f, Index s ~ Index t) => Each f s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  each :: IndexedLensLike (Index s) f s t a b
 #ifdef DEFAULT_SIGNATURES
-  default each :: (Applicative f, Traversable g, s ~ g a, t ~ g b, Key s ~ Int, Key t ~ Int) => IndexedLensLike Int f s t a b
+  default each :: (Applicative f, Traversable g, s ~ g a, t ~ g b, Index s ~ Int, Index t ~ Int) => IndexedLensLike Int f s t a b
   each = traversed
   {-# INLINE each #-}
 #endif

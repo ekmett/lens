@@ -61,7 +61,7 @@ import Data.Functor.Identity
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.HashSet as HashSet
-import Data.IntMap as IntMap hiding (Key)
+import Data.IntMap as IntMap
 import Data.IntSet as IntSet
 import Data.Map as Map
 import Data.Maybe
@@ -85,7 +85,7 @@ import Data.Word
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
 -- | A deprecated alias for 'ix'.
-_at, resultAt :: Ixed f m => Key m -> IndexedLensLike' (Key m) f m (Value m)
+_at, resultAt :: Ixed f m => Index m -> IndexedLensLike' (Index m) f m (Value m)
 _at      = ix
 resultAt = ix
 {-# DEPRECATED _at, resultAt "use 'ix'. This function will be removed in version 3.9" #-}
@@ -103,21 +103,21 @@ class Functor f => Contains f m where
   --
   -- >>> IntSet.fromList [1,2,3,4] & contains 3 .~ False
   -- fromList [1,2,4]
-  contains :: Key m -> IndexedLensLike' (Key m) f m Bool
+  contains :: Index m -> IndexedLensLike' (Index m) f m Bool
 #ifdef DEFAULT_SIGNATURES
-  default contains :: (Gettable f, At m) => Key m -> IndexedLensLike' (Key m) f m Bool
+  default contains :: (Gettable f, At m) => Index m -> IndexedLensLike' (Index m) f m Bool
   contains = containsAt
 #endif
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
-containsIx :: (Gettable f, Ixed (Accessor Any) m) => Key m -> IndexedLensLike' (Key m) f m Bool
+containsIx :: (Gettable f, Ixed (Accessor Any) m) => Index m -> IndexedLensLike' (Index m) f m Bool
 containsIx i f = coerce . Lens.indexed f i . has (ix i)
 {-# INLINE containsIx #-}
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
-containsAt :: (Gettable f, At m) => Key m -> IndexedLensLike' (Key m) f m Bool
+containsAt :: (Gettable f, At m) => Index m -> IndexedLensLike' (Index m) f m Bool
 containsAt i f = coerce . Lens.indexed f i . views (at i) isJust
 {-# INLINE containsAt #-}
 
@@ -295,21 +295,21 @@ class (Functor f, Contains (Accessor (Value m)) m) => Ixed f m where
   --
   -- >>> Seq.fromList [] ^? ix 2
   -- Nothing
-  ix :: Key m -> IndexedLensLike' (Key m) f m (Value m)
+  ix :: Index m -> IndexedLensLike' (Index m) f m (Value m)
 #ifdef DEFAULT_SIGNATURES
-  default ix :: (Applicative f, At m) => Key m -> IndexedLensLike' (Key m) f m (Value m)
+  default ix :: (Applicative f, At m) => Index m -> IndexedLensLike' (Index m) f m (Value m)
   ix = ixAt
   {-# INLINE ix #-}
 #endif
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
-ixAt :: (Applicative f, At m) => Key m -> IndexedLensLike' (Key m) f m (Value m)
+ixAt :: (Applicative f, At m) => Index m -> IndexedLensLike' (Index m) f m (Value m)
 ixAt i = at i <. traverse
 {-# INLINE ixAt #-}
 
 -- | A definition of 'ix' for types with an 'Each' instance.
-ixEach :: (Applicative f, Eq (Key m), Each f m m (Value m) (Value m)) => Key m -> IndexedLensLike' (Key m) f m (Value m)
+ixEach :: (Applicative f, Eq (Index m), Each f m m (Value m) (Value m)) => Index m -> IndexedLensLike' (Index m) f m (Value m)
 ixEach i = each . Lens.index i
 {-# INLINE ixEach #-}
 
@@ -523,7 +523,7 @@ class At m where
   --
   -- /Note:/ 'Map'-like containers form a reasonable instance, but not 'Array'-like ones, where
   -- you cannot satisfy the 'Lens' laws.
-  at :: Key m -> IndexedLens' (Key m) m (Maybe (Value m))
+  at :: Index m -> IndexedLens' (Index m) m (Maybe (Value m))
 
 instance At (IntMap a) where
   at k f m = Lens.indexed f k mv <&> \r -> case r of
