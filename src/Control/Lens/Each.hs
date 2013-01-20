@@ -31,6 +31,8 @@ module Control.Lens.Each
   ) where
 
 import Control.Applicative
+import Control.Lens.Cons as Lens
+import Control.Lens.Internal.Deque
 import Control.Lens.Internal.Setter
 import Control.Lens.Indexed as Lens
 import Control.Lens.Iso
@@ -41,6 +43,7 @@ import Data.Array.IArray as IArray
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Complex
+import Data.Foldable as Foldable
 import Data.Functor.Identity
 import Data.HashMap.Lazy as HashMap
 import Data.HashSet
@@ -230,8 +233,8 @@ instance Applicative f => Each f (Seq a) (Seq b) a b where
 
 -- | @'each' :: 'IndexedTraversal' ['Int'] ('Tree' a) ('Tree' b) a b@
 instance Applicative f => Each f (Tree a) (Tree b) a b where
-  each pafb = go [] where -- TODO use a banker's deque to calculate a running reversal more efficiently?
-    go is (Node a as) = Node <$> Lens.indexed pafb (Prelude.reverse is) a <*> itraverse (\i n -> go (i:is) n) as
+  each pafb = go (BD 0 [] 0 []) where
+    go dq (Node a as) = Node <$> Lens.indexed pafb (Foldable.toList dq) a <*> itraverse (\i n -> go (Lens.snoc dq i) n) as
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' ('Vector.Vector' a) ('Vector.Vector' b) a b@

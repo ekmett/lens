@@ -205,6 +205,7 @@ library
     Control.Lens.Internal.Bazaar
     Control.Lens.Internal.ByteString
     Control.Lens.Internal.Context
+    Control.Lens.Internal.Deque
     Control.Lens.Internal.Fold
     Control.Lens.Internal.Getter
     Control.Lens.Internal.Indexed
