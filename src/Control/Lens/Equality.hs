@@ -68,6 +68,8 @@ fromEq :: AnEquality s t a b -> Equality b a t s
 fromEq l = substEq l id
 {-# INLINE fromEq #-}
 
+-- | This is an adverb that can be used to modify many other lens combinators to make them require
+-- simple lenses, simple traversals, simple prisms or simple isos as input.
 simply :: (Overloaded' p f s a -> r) -> Overloaded' p f s a -> r
 simply = id
 {-# INLINE simply #-}
