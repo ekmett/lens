@@ -98,49 +98,49 @@ data LensFlag
 
 -- | Only Generate valid 'Control.Lens.Type.Simple' lenses.
 simpleLenses      :: Lens' LensRules Bool
-simpleLenses       = lensFlags.ix SimpleLenses
+simpleLenses       = lensFlags.contains SimpleLenses
 
 -- | Enables the generation of partial lenses, generating runtime errors for
 -- every constructor that does not have a valid definition for the 'Lens'. This
 -- occurs when the constructor lacks the field, or has multiple fields mapped
 -- to the same 'Lens'.
 partialLenses     :: Lens' LensRules Bool
-partialLenses      = lensFlags.ix PartialLenses
+partialLenses      = lensFlags.contains PartialLenses
 
 -- | In the situations that a 'Lens' would be partial, when 'partialLenses' is
 -- used, this flag instead causes traversals to be generated. Only one can be
 -- used, and if neither are, then compile-time errors are generated.
 buildTraversals   :: Lens' LensRules Bool
-buildTraversals    = lensFlags.ix BuildTraversals
+buildTraversals    = lensFlags.contains BuildTraversals
 
 -- | Handle singleton constructors specially.
 handleSingletons  :: Lens' LensRules Bool
-handleSingletons   = lensFlags.ix HandleSingletons
+handleSingletons   = lensFlags.contains HandleSingletons
 
 -- | When building a singleton 'Iso' (or 'Lens') for a record constructor, build
 -- both the 'Iso' (or 'Lens') for the record and the one for the field.
 singletonAndField :: Lens' LensRules Bool
-singletonAndField  = lensFlags.ix SingletonAndField
+singletonAndField  = lensFlags.contains SingletonAndField
 
 -- | Use 'Iso' for singleton constructors.
 singletonIso      :: Lens' LensRules Bool
-singletonIso       = lensFlags.ix SingletonIso
+singletonIso       = lensFlags.contains SingletonIso
 
 -- | Expect a single constructor, single field newtype or data type.
 singletonRequired :: Lens' LensRules Bool
-singletonRequired  = lensFlags.ix SingletonRequired
+singletonRequired  = lensFlags.contains SingletonRequired
 
 -- | Create the class if the constructor is 'Control.Lens.Type.Simple' and the 'lensClass' rule matches.
 createClass       :: Lens' LensRules Bool
-createClass        = lensFlags.ix CreateClass
+createClass        = lensFlags.contains CreateClass
 
 -- | Create the instance if the constructor is 'Control.Lens.Type.Simple' and the 'lensClass' rule matches.
 createInstance    :: Lens' LensRules Bool
-createInstance     = lensFlags.ix CreateInstance
+createInstance     = lensFlags.contains CreateInstance
 
 -- | Die if the 'lensClass' fails to match.
 classRequired     :: Lens' LensRules Bool
-classRequired      = lensFlags.ix ClassRequired
+classRequired      = lensFlags.contains ClassRequired
 
 -- | Indicate whether or not to supply the signatures for the generated
 -- lenses.
@@ -148,7 +148,7 @@ classRequired      = lensFlags.ix ClassRequired
 -- Disabling this can be useful if you want to provide a more restricted type
 -- signature or if you want to supply hand-written haddocks.
 generateSignatures :: Lens' LensRules Bool
-generateSignatures = lensFlags.ix GenerateSignatures
+generateSignatures = lensFlags.contains GenerateSignatures
 
 -- | This configuration describes the options we'll be using to make
 -- isomorphisms or lenses.
@@ -390,7 +390,7 @@ makePrismForCon ctx tyConName args canModifyTypeVar allCons con = do
   where
     (dataConName, fieldTypes) = ctrNameAndFieldTypes con
     conArgs = setOf typeVars fieldTypes
-    isAltArg arg = canModifyTypeVar arg && conArgs^.ix(arg^.name)
+    isAltArg arg = canModifyTypeVar arg && conArgs^.contains(arg^.name)
 
 ctrNameAndFieldTypes :: Con -> (Name, [Type])
 ctrNameAndFieldTypes (NormalC n ts) = (n, snd <$> ts)
@@ -591,7 +591,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
         dty = substTypeVars m cty
 
         s = setOf folded m
-        relevantBndr b = s^.ix (b^.name)
+        relevantBndr b = s^.contains (b^.name)
         relevantCtx = not . Set.null . Set.intersection s . setOf typeVars
         tvs = tyArgs' ++ filter relevantBndr (substTypeVars m tyArgs')
         ps = filter relevantCtx (substTypeVars m ctx)

@@ -27,22 +27,27 @@
 ----------------------------------------------------------------------------
 module Control.Lens.At
   (
-  -- * Indexed Lens
-    At(at)
-  , ixAt
-  , ixEach
-  -- * Indexed Traversal
+  -- * Keys
+    Key
+  -- * Contains
+  , Contains(..)
+  , containsIx, containsAt, containsLength, containsN, containsTest, containsLookup
+  -- * Ixed
+  , Value
   , Ixed(ix)
-  , IxKey, IxValue
+  , ixAt, ixEach
+  -- * At
+  , At(at)
   -- * Deprecated
   , _at
-  , contains
   , resultAt
   ) where
 
 import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Each
+import Control.Lens.Fold
+import Control.Lens.Getter
 import Control.Lens.Indexed as Lens
 import Control.Lens.Type
 import Control.Lens.Traversal
@@ -51,9 +56,11 @@ import Data.Array.Unboxed
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.HashSet as HashSet
-import Data.IntMap as IntMap
+import Data.IntMap as IntMap hiding (Key)
 import Data.IntSet as IntSet
 import Data.Map as Map
+import Data.Maybe
+import Data.Monoid
 import Data.Set as Set
 import Data.Sequence as Seq
 import Data.Vector as Vector hiding (indexed)
@@ -68,18 +75,175 @@ import Data.Vector.Storable as Storable
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
 -- | A deprecated alias for 'ix'.
-contains, _at, resultAt :: Ixed f m => IxKey m -> IndexedLensLike' (IxKey m) f m (IxValue m)
-contains = ix
+_at, resultAt :: Ixed f m => Key m -> IndexedLensLike' (Key m) f m (Value m)
 _at      = ix
 resultAt = ix
-{-# DEPRECATED _at, contains, resultAt "use 'ix'. This function will be removed in version 3.9" #-}
+{-# DEPRECATED _at, resultAt "use 'ix'. This function will be removed in version 3.9" #-}
 
-type family IxKey (m :: *) :: *
-type family IxValue (m :: *) :: *
+type family Key (m :: *) :: *
+
+class Functor f => Contains f m where
+  -- |
+  -- This simple 'IndexedTraversal' lets you view (and sometimes modify) whether
+  -- or not a map (or set) contains a given key.
+  --
+  -- >>> IntSet.fromList [1,2,3,4] ^. contains 3
+  -- True
+  --
+  -- >>> IntSet.fromList [1,2,3,4] ^. contains 5
+  -- False
+  --
+  -- >>> IntSet.fromList [1,2,3,4] & contains 3 .~ False
+  -- fromList [1,2,4]
+  contains :: Key m -> IndexedLensLike' (Key m) f m Bool
+#ifdef DEFAULT_SIGNATURES
+  default contains :: (Gettable f, At m) => Key m -> IndexedLensLike' (Key m) f m Bool
+  contains = containsAt
+#endif
+
+-- | A definition of 'ix' for types with an 'At' instance. This is the default
+-- if you don't specify a definition for 'ix'.
+containsIx :: (Gettable f, Ixed (Accessor Any) m) => Key m -> IndexedLensLike' (Key m) f m Bool
+containsIx i f = coerce . indexed f i . has (ix i)
+{-# INLINE containsIx #-}
+
+-- | A definition of 'ix' for types with an 'At' instance. This is the default
+-- if you don't specify a definition for 'ix'.
+containsAt :: (Gettable f, At m) => Key m -> IndexedLensLike' (Key m) f m Bool
+containsAt i f = coerce . indexed f i . views (at i) isJust
+{-# INLINE containsAt #-}
+
+containsLength :: forall i s. (Ord i, Num i) => (s -> i) -> i -> IndexedGetter i s Bool
+containsLength sn = \ i pafb s -> coerce $ indexed pafb (i :: i) (0 <= i && i < sn s)
+{-# INLINE containsLength #-}
+
+containsN :: Int -> Int -> IndexedGetter Int s Bool
+containsN n = \ i pafb _ -> coerce $ indexed pafb (i :: Int) (0 <= i && i < n)
+{-# INLINE containsN #-}
+
+containsTest :: forall i s. (i -> s -> Bool) -> i -> IndexedGetter i s Bool
+containsTest isb = \i pafb s -> coerce $ indexed pafb (i :: i) (isb i s)
+{-# INLINE containsTest #-}
+
+containsLookup :: forall i s a. (i -> s -> Maybe a) -> i -> IndexedGetter i s Bool
+containsLookup isb = \i pafb s -> coerce $ indexed pafb (i :: i) (isJust (isb i s))
+{-# INLINE containsLookup #-}
+
+type instance Key (e -> a) = e
+instance Gettable f => Contains f (e -> a) where
+  contains i f _ = coerce (indexed f i True)
+  {-# INLINE contains #-}
+
+type instance Key IntSet = Int
+instance Functor f => Contains f IntSet where
+  contains k f s = indexed f k (IntSet.member k s) <&> \b ->
+    if b then IntSet.insert k s else IntSet.delete k s
+  {-# INLINE contains #-}
+
+type instance Key (Set a) = a
+instance (Functor f, Ord a) => Contains f (Set a) where
+  contains k f s = indexed f k (Set.member k s) <&> \b ->
+    if b then Set.insert k s else Set.delete k s
+  {-# INLINE contains #-}
+
+type instance Key (HashSet a) = a
+instance (Functor f, Eq a, Hashable a) => Contains f (HashSet a) where
+  contains k f s = indexed f k (HashSet.member k s) <&> \b ->
+    if b then HashSet.insert k s else HashSet.delete k s
+  {-# INLINE contains #-}
+
+type instance Key [a] = Int
+instance Gettable f => Contains f [a] where
+  contains = containsLength Prelude.length
+  {-# INLINE contains #-}
+
+type instance Key (Seq a) = Int
+instance Gettable f => Contains f (Seq a) where
+  contains = containsLength Seq.length
+  {-# INLINE contains #-}
+
+type instance Key (a,b) = Int
+instance Gettable k => Contains k (a,b) where
+  contains = containsN 2
+  {-# INLINE contains #-}
+
+type instance Key (a,b,c) = Int
+instance Gettable k => Contains k (a,b,c) where
+  contains = containsN 3
+  {-# INLINE contains #-}
+
+type instance Key (a,b,c,d) = Int
+instance Gettable k => Contains k (a,b,c,d) where
+  contains = containsN 4
+  {-# INLINE contains #-}
+
+type instance Key (a,b,c,d,e) = Int
+instance Gettable k => Contains k (a,b,c,d,e) where
+  contains = containsN 5
+  {-# INLINE contains #-}
+
+type instance Key (a,b,c,d,e,f) = Int
+instance Gettable k => Contains k (a,b,c,d,e,f) where
+  contains = containsN 6
+  {-# INLINE contains #-}
+
+type instance Key (a,b,c,d,e,f,g) = Int
+instance Gettable k => Contains k (a,b,c,d,e,f,g) where
+  contains = containsN 7
+  {-# INLINE contains #-}
+
+type instance Key (a,b,c,d,e,f,g,h) = Int
+instance Gettable k => Contains k (a,b,c,d,e,f,g,h) where
+  contains = containsN 8
+  {-# INLINE contains #-}
+
+type instance Key (a,b,c,d,e,f,g,h,i) = Int
+instance Gettable k => Contains k (a,b,c,d,e,f,g,h,i) where
+  contains = containsN 9
+  {-# INLINE contains #-}
+
+type instance Key (IntMap a) = Int
+instance Gettable k => Contains k (IntMap a) where
+  contains = containsLookup IntMap.lookup
+  {-# INLINE contains #-}
+
+type instance Key (Map k a) = k
+instance (Gettable f, Ord k) => Contains f (Map k a) where
+  contains = containsLookup Map.lookup
+  {-# INLINE contains #-}
+
+type instance Key (HashMap k a) = k
+instance (Gettable f, Eq k, Hashable k) => Contains f (HashMap k a) where
+  contains = containsLookup HashMap.lookup
+  {-# INLINE contains #-}
+
+type instance Key (Array i e) = i
+instance (Gettable f, Ix i) => Contains f (Array i e) where
+  contains = containsTest $ \i s -> inRange (bounds s) i
+  {-# INLINE contains #-}
+
+type instance Key (UArray i e) = i
+instance (Gettable f, IArray UArray e, Ix i) => Contains f (UArray i e) where
+  contains = containsTest $ \i s -> inRange (bounds s) i
+  {-# INLINE contains #-}
+
+type instance Key (Vector.Vector a) = Int
+instance Gettable f => Contains f (Vector.Vector a) where
+  contains = containsLength Vector.length
+
+type instance Key (Prim.Vector a) = Int
+instance (Gettable f, Prim a) => Contains f (Prim.Vector a) where
+  contains = containsLength Prim.length
+
+type instance Key (Storable.Vector a) = Int
+instance (Gettable f, Storable a) => Contains f (Storable.Vector a) where
+  contains = containsLength Storable.length
+
+type family Value (m :: *) :: *
 
 -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
 -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
-class Ixed f m where
+class Contains (Accessor (Value m)) m => Ixed f m where
   -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
   -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
   --
@@ -99,34 +263,24 @@ class Ixed f m where
   --
   -- >>> Seq.fromList [] ^? ix 2
   -- Nothing
-  --
-  -- >>> IntSet.fromList [1,2,3,4] & ix 3 .~ False
-  -- fromList [1,2,4]
-  --
-  -- >>> IntSet.fromList [1,2,3,4] ^. ix 3
-  -- True
-
-  -- >>> IntSet.fromList [1,2,3,4] ^. ix 5
-  -- False
-  ix :: IxKey m -> IndexedLensLike' (IxKey m) f m (IxValue m)
+  ix :: Key m -> IndexedLensLike' (Key m) f m (Value m)
 #ifdef DEFAULT_SIGNATURES
-  default ix :: (Applicative f, At m) => IxKey m -> IndexedLensLike' (IxKey m) f m (IxValue m)
+  default ix :: (Applicative f, At m) => Key m -> IndexedLensLike' (Key m) f m (Value m)
   ix = ixAt
 #endif
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
-ixAt :: (Applicative f, At m) => IxKey m -> IndexedLensLike' (IxKey m) f m (IxValue m)
+ixAt :: (Applicative f, At m) => Key m -> IndexedLensLike' (Key m) f m (Value m)
 ixAt i = at i <. traverse
 {-# INLINE ixAt #-}
 
 -- | A definition of 'ix' for types with an 'Each' instance.
-ixEach :: (Applicative f, Eq (IxKey m), Each (IxKey m) f m m (IxValue m) (IxValue m)) => IxKey m -> IndexedLensLike' (IxKey m) f m (IxValue m)
+ixEach :: (Applicative f, Eq (Key m), Each (Key m) f m m (Value m) (Value m)) => Key m -> IndexedLensLike' (Key m) f m (Value m)
 ixEach i = each . Lens.index i
 {-# INLINE ixEach #-}
 
-type instance IxKey [a] = Int
-type instance IxValue [a] = a
+type instance Value [a] = a
 instance Applicative f => Ixed f [a] where
   ix k f xs0 = go xs0 k where
     go [] _ = pure []
@@ -134,40 +288,35 @@ instance Applicative f => Ixed f [a] where
     go (a:as) i = (a:) <$> (go as $! i - 1)
   {-# INLINE ix #-}
 
-type instance IxKey (Seq a) = Int
-type instance IxValue (Seq a) = a
+type instance Value (Seq a) = a
 instance Applicative f => Ixed f (Seq a) where
   ix i f m
     | 0 <= i && i < Seq.length m = indexed f i (Seq.index m i) <&> \a -> Seq.update i a m
     | otherwise                  = pure m
   {-# INLINE ix #-}
 
-type instance IxKey (IntMap a) = Int
-type instance IxValue (IntMap a) = a
+type instance Value (IntMap a) = a
 instance Applicative f => Ixed f (IntMap a) where
   ix k f m = case IntMap.lookup k m of
      Just v -> indexed f k v <&> \v' -> IntMap.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
-type instance IxKey (Map k a) = k
-type instance IxValue (Map k a) = a
+type instance Value (Map k a) = a
 instance (Applicative f, Ord k) => Ixed f (Map k a) where
   ix k f m = case Map.lookup k m of
      Just v  -> indexed f k v <&> \v' -> Map.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
-type instance IxKey (HashMap k a) = k
-type instance IxValue (HashMap k a) = a
+type instance Value (HashMap k a) = a
 instance (Applicative f, Eq k, Hashable k) => Ixed f (HashMap k a) where
   ix k f m = case HashMap.lookup k m of
      Just v  -> indexed f k v <&> \v' -> HashMap.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
-type instance IxKey (Array i e) = i
-type instance IxValue (Array i e) = e
+type instance Value (Array i e) = e
 -- |
 -- @
 -- arr '!' i ≡ arr 'Control.Lens.Getter.^.' 'ix' i
@@ -179,8 +328,7 @@ instance (Applicative f, Ix i) => Ixed f (Array i e) where
     | otherwise              = pure arr
   {-# INLINE ix #-}
 
-type instance IxKey (UArray i e) = i
-type instance IxValue (UArray i e) = e
+type instance Value (UArray i e) = e
 -- |
 -- @
 -- arr '!' i ≡ arr 'Control.Lens.Getter.^.' 'ix' i
@@ -192,101 +340,88 @@ instance (Applicative f, IArray UArray e, Ix i) => Ixed f (UArray i e) where
     | otherwise              = pure arr
   {-# INLINE ix #-}
 
-type instance IxKey (Vector.Vector a) = Int
-type instance IxValue (Vector.Vector a) = a
+type instance Value (Vector.Vector a) = a
 instance Applicative f => Ixed f (Vector.Vector a) where
   ix i f v
     | 0 <= i && i < Vector.length v = indexed f i (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
     | otherwise                     = pure v
   {-# INLINE ix #-}
 
-type instance IxKey (Prim.Vector a) = Int
-type instance IxValue (Prim.Vector a) = a
+type instance Value (Prim.Vector a) = a
 instance (Applicative f, Prim a) => Ixed f (Prim.Vector a) where
   ix i f v
     | 0 <= i && i < Prim.length v = indexed f i (v Prim.! i) <&> \a -> v Prim.// [(i, a)]
     | otherwise                   = pure v
   {-# INLINE ix #-}
 
-type instance IxKey (Storable.Vector a) = Int
-type instance IxValue (Storable.Vector a) = a
+type instance Value (Storable.Vector a) = a
 instance (Applicative f, Storable a) => Ixed f (Storable.Vector a) where
   ix i f v
     | 0 <= i && i < Storable.length v = indexed f i (v Storable.! i) <&> \a -> v Storable.// [(i, a)]
     | otherwise                       = pure v
   {-# INLINE ix #-}
 
-type instance IxKey IntSet = Int
-type instance IxValue IntSet = Bool
+{-
+type instance Value IntSet = Bool
 instance Functor f => Ixed f IntSet where
   ix k f s = indexed f k (IntSet.member k s) <&> \b ->
     if b then IntSet.insert k s else IntSet.delete k s
   {-# INLINE ix #-}
 
-type instance IxKey (Set a) = a
-type instance IxValue (Set a) = Bool
+type instance Value (Set a) = Bool
 instance (Functor f, Ord a) => Ixed f (Set a) where
   ix k f s = indexed f k (Set.member k s) <&> \b ->
     if b then Set.insert k s else Set.delete k s
   {-# INLINE ix #-}
 
-type instance IxKey (HashSet a) = a
-type instance IxValue (HashSet a) = Bool
+type instance Value (HashSet a) = Bool
 instance (Functor f, Eq a, Hashable a) => Ixed f (HashSet a) where
   ix k f s = indexed f k (HashSet.member k s) <&> \b ->
     if b then HashSet.insert k s else HashSet.delete k s
   {-# INLINE ix #-}
+-}
 
-type instance IxKey (k -> a) = k
-type instance IxValue (k -> a) = a
+type instance Value (k -> a) = a
 instance (Functor f, Eq k) => Ixed f (k -> a) where
   ix e g f = indexed g e (f e) <&> \a' e' -> if e == e' then a' else f e'
   {-# INLINE ix #-}
 
-type instance IxKey (a,a) = Int
-type instance IxValue (a,a) = a
+type instance Value (a,a) = a
 instance (Applicative f, a ~ b) => Ixed f (a,b) where
   ix = ixEach
   {-# INLINE ix #-}
 
-type instance IxKey (a,a,a) = Int
-type instance IxValue (a,a,a) = a
+type instance Value (a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c) => Ixed f (a,b,c) where
   ix = ixEach
   {-# INLINE ix #-}
 
-type instance IxKey (a,a,a,a) = Int
-type instance IxValue (a,a,a,a) = a
+type instance Value (a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d) => Ixed f (a,b,c,d) where
   ix = ixEach
   {-# INLINE ix #-}
 
-type instance IxKey (a,a,a,a,a) = Int
-type instance IxValue (a,a,a,a,a) = a
+type instance Value (a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e) => Ixed f (a,b,c,d,e) where
   ix = ixEach
   {-# INLINE ix #-}
 
-type instance IxKey (a,a,a,a,a,a) = Int
-type instance IxValue (a,a,a,a,a,a) = a
+type instance Value (a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f') => Ixed f (a,b,c,d,e,f') where
   ix = ixEach
   {-# INLINE ix #-}
 
-type instance IxKey (a,a,a,a,a,a,a) = Int
-type instance IxValue (a,a,a,a,a,a,a) = a
+type instance Value (a,a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g) => Ixed f (a,b,c,d,e,f',g) where
   ix = ixEach
   {-# INLINE ix #-}
 
-type instance IxKey (a,a,a,a,a,a,a,a) = Int
-type instance IxValue (a,a,a,a,a,a,a,a) = a
+type instance Value (a,a,a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h) => Ixed f (a,b,c,d,e,f',g,h) where
   ix = ixEach
   {-# INLINE ix #-}
 
-type instance IxKey (a,a,a,a,a,a,a,a,a) = Int
-type instance IxValue (a,a,a,a,a,a,a,a,a) = a
+type instance Value (a,a,a,a,a,a,a,a,a) = a
 instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h, h ~ i) => Ixed f (a,b,c,d,e,f',g,h,i) where
   ix = ixEach
   {-# INLINE ix #-}
@@ -308,7 +443,7 @@ class At m where
   --
   -- /Note:/ 'Map'-like containers form a reasonable instance, but not 'Array'-like ones, where
   -- you cannot satisfy the 'Lens' laws.
-  at :: IxKey m -> IndexedLens' (IxKey m) m (Maybe (IxValue m))
+  at :: Key m -> IndexedLens' (Key m) m (Maybe (Value m))
 
 instance At (IntMap a) where
   at k f m = indexed f k mv <&> \r -> case r of

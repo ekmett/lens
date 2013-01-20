@@ -67,12 +67,12 @@ class HasTypeVars t where
 
 instance HasTypeVars TyVarBndr where
   typeVarsEx s f b
-    | s^.ix (b^.name) = pure b
+    | s^.contains (b^.name) = pure b
     | otherwise             = name f b
 
 instance HasTypeVars Name where
   typeVarsEx s f n
-    | s^.ix n = pure n
+    | s^.contains n = pure n
     | otherwise     = f n
 
 instance HasTypeVars Type where
