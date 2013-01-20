@@ -129,6 +129,11 @@ flag dump-splices
   default: False
   manual: True
 
+-- You can disable the doctests test suite with -f-test-doctests
+flag test-doctests
+  default: True
+  manual: True
+
 -- You can disable the hunit test suite with -f-test-hunit
 flag test-hunit
   default: True
@@ -342,22 +347,25 @@ test-suite hunit
 test-suite doctests
   type:    exitcode-stdio-1.0
   main-is: doctests.hs
-  build-depends:
-    base,
-    bytestring,
-    containers,
-    directory >= 1.0,
-    deepseq,
-    doctest >= 0.9.1,
-    filepath,
-    mtl,
-    nats,
-    parallel,
-    simple-reflect >= 0.3.1,
-    split,
-    text,
-    unordered-containers,
-    vector
+  if !flag(test-doctests)
+    buildable: False
+  else
+    build-depends:
+      base,
+      bytestring,
+      containers,
+      directory >= 1.0,
+      deepseq,
+      doctest >= 0.9.1,
+      filepath,
+      mtl,
+      nats,
+      parallel,
+      simple-reflect >= 0.3.1,
+      split,
+      text,
+      unordered-containers,
+      vector
   ghc-options: -Wall -threaded
   if impl(ghc<7.6.1)
     ghc-options: -Werror
