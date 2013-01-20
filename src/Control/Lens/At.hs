@@ -275,7 +275,7 @@ type family Value (m :: *) :: *
 
 -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
 -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
-class Contains (Accessor (Value m)) m => Ixed f m where
+class (Functor f, Contains (Accessor (Value m)) m) => Ixed f m where
   -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
   -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
   --
