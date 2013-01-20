@@ -33,9 +33,11 @@ module Control.Lens.Tuple
   , Field9(..)
   ) where
 
+import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Indexed
 import Control.Lens.Type
+import Data.Functor.Identity
 
 -- $setup
 -- >>> import Control.Lens
@@ -70,6 +72,9 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- '_1' :: 'Lens' (a,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a'
   -- @
   _1 :: IndexedLens Int s t a b
+
+instance Field1 (Identity a) (Identity b) a b where
+  _1 f (Identity a) = Identity <$> indexed f (0 :: Int) a
 
 -- | @'_1' k ~(a,b) = (\\a' -> (a',b)) 'Data.Functor.<$>' k a@
 instance Field1 (a,b) (a',b) a a' where
