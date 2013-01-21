@@ -59,8 +59,12 @@ import Unsafe.Coerce
 -- | If you see this in a signature for a function, the function is expecting a 'Prism'.
 type APrism s t a b = Market a b a (Mutator b) -> Market a b s (Mutator t)
 
+-- | @
+-- type APrism' = 'Simple' 'APrism'
+-- @
 type APrism' s a = APrism s s a a
 
+-- | Convert 'APrism' to the pair of functions that characterize it.
 runPrism :: APrism s t a b -> Market a b s t
 #ifdef SAFE
 runPrism k = case k (Market Mutator Right) of
