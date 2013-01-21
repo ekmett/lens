@@ -146,11 +146,19 @@ infixr 2 <<~
 -- or use it directly with combinators like 'storing' and ('^#').
 type ALens s t a b = LensLike (Pretext (->) a b) s t a b
 
--- | @type 'ALens'' = 'Simple' 'ALens'@
+-- |
+-- @
+-- type 'ALens'' = 'Simple' 'ALens'
+-- @
 type ALens' s a = ALens s s a a
 
+-- | When you see this as an argument to a function, it expects an 'IndexedLens'
 type AnIndexedLens i s t a b = Overloading (Indexed i) (->) (Pretext (Indexed i) a b) s t a b
 
+-- |
+-- @
+-- type 'AnIndexedLens'' = 'Simple' ('AnIndexedLens' i)
+-- @
 type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 
 --------------------------
@@ -159,7 +167,9 @@ type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 
 -- | Build a 'Lens' from a getter and a setter.
 --
--- @'lens' :: 'Functor' f => (s -> a) -> (s -> b -> t) -> (a -> f b) -> s -> f t@
+-- @
+-- 'lens' :: 'Functor' f => (s -> a) -> (s -> b -> t) -> (a -> f b) -> s -> f t
+-- @
 --
 -- >>> s ^. lens getter setter
 -- getter s
@@ -201,7 +211,9 @@ ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 --
 -- For all that the definition of this combinator is just:
 --
--- @('%%~') ≡ 'id'@
+-- @
+-- ('%%~') ≡ 'id'
+-- @
 --
 -- It may be beneficial to think about it as if it had these even more
 -- restricted types, however:
@@ -233,7 +245,9 @@ ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 -- >>> runState (_1 %%= \x -> (f x, g x)) (a,b)
 -- (f a,(g a,b))
 --
--- @('%%=') ≡ ('state' '.')@
+-- @
+-- ('%%=') ≡ ('state' '.')
+-- @
 --
 -- It may be useful to think of ('%%='), instead, as having either of the
 -- following more restricted type signatures:
@@ -270,7 +284,9 @@ inside l f es = o <$> f i where
 
 -- | Merge two lenses, getters, setters, folds or traversals.
 --
--- @'chosen' ≡ 'choosing' 'id' 'id'@
+-- @
+-- 'chosen' ≡ 'choosing' 'id' 'id'
+-- @
 --
 -- @
 -- 'choosing' :: 'Control.Lens.Getter.Getter' s a     -> 'Control.Lens.Getter.Getter' s' a     -> 'Control.Lens.Getter.Getter' ('Either' s s') a
@@ -289,7 +305,9 @@ choosing _ r f (Right a') = Right <$> r f a'
 
 -- | This is a 'Lens' that updates either side of an 'Either', where both sides have the same type.
 --
--- @'chosen' ≡ 'choosing' 'id' 'id'@
+-- @
+-- 'chosen' ≡ 'choosing' 'id' 'id'
+-- @
 --
 -- >>> Left a^.chosen
 -- a
@@ -322,7 +340,9 @@ chosen pafb = cotabulate $ \weaa -> corep (either id id `lmap` pafb) weaa <&> \b
 -- >>> (Left a, Right b) & alongside chosen chosen .~ (c,d)
 -- (Left c,Right d)
 --
--- @'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')@
+-- @
+-- 'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')
+-- @
 alongside :: ALens s t a b -> ALens s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
 alongside l r f (s, s') = f (ipos ls, ipos rs) <&> \(b, b') -> (ipeek b ls, ipeek b' rs) where
   ls = l sell s

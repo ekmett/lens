@@ -319,13 +319,16 @@ instance Strict LazyT.Text StrictT.Text where
 -- Magma
 ------------------------------------------------------------------------------
 
--- magma :: LensLike (Molten () a b) s t a b -> Iso s t (Magma () t b a) (Magma j t b b)
--- magma l = iso (runMolten #. l (Molten #. leaf ())) (iextract .# Molten)
-
+-- | This isomorphism can be used to inspect a 'Traversal' to see how it associates
+-- the structure and it can also be used to bake the 'Traversal' into a 'Magma' so
+-- that you can traverse over it multiple times.
 magma :: LensLike (Mafic a b) s t a b -> Iso s u (Magma Int t b a) (Magma j u c c)
 magma l = iso (runMafic `rmap` l sell) runMagma
 {-# INLINE magma #-}
 
+-- | This isomorphism can be used to inspect an 'IndexedTraversal' to see how it associates
+-- the structure and it can also be used to bake the 'IndexedTraversal' into a 'Magma' so
+-- that you can traverse over it multiple times with access to the original indices.
 imagma :: Overloading (Indexed i) (->) (Molten i a b) s t a b -> Iso s t' (Magma i t b a) (Magma j t' c c)
 imagma l = iso (runMolten #. l sell) (iextract .# Molten)
 {-# INLINE imagma #-}
