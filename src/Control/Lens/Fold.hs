@@ -307,7 +307,7 @@ filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . ri
 takingWhile :: (Conjoined p, Applicative f) => (a -> Bool) -> Over p (TakingWhile p f a a) s t a a -> Over p f s t a a
 takingWhile p l pafb = fmap runMagma . traverse (corep pafb) . runTakingWhile . l flag where
   flag = cotabulate $ \wa -> let a = extract wa; r = p a in TakingWhile r a $ \pr ->
-    if pr && r then MagmaLeaf () wa else MagmaPure a
+    if pr && r then Magma () wa else MagmaPure a
 {-# INLINE takingWhile #-}
 
 -- | Obtain a 'Fold' by dropping elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
