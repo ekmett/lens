@@ -22,7 +22,6 @@ module Data.Complex.Lens
   , _magnitude
   , _phase
   , _conjugate
-  , complex
   ) where
 
 import Control.Applicative
@@ -132,23 +131,3 @@ _phase f c = setPhase <$> f theta
 _conjugate :: RealFloat a => Iso' (Complex a) (Complex a)
 _conjugate = iso conjugate conjugate
 {-# INLINE _conjugate #-}
-
--- | Traverse both the 'realPart' and the 'imagPart' of a 'Complex' number.
---
--- >>> a :+ b & complex .~ c
--- c :+ c
---
--- >>> a :+ b & complex *~ 2
--- a * 2 :+ b * 2
---
--- >>> sumOf complex (a :+ b)
--- 0 + a + b
---
--- @'complex' :: 'Applicative' f => (a -> f b) -> 'Complex' a -> f ('Complex' b)@
-#if MIN_VERSION_base(4,4,0)
-complex :: Traversal (Complex a) (Complex b) a b
-#else
-complex :: (RealFloat a, RealFloat b) => Traversal (Complex a) (Complex b) a b
-#endif
-complex f (a :+ b) = (:+) <$> f a <*> f b
-{-# INLINE complex #-}
