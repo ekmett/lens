@@ -166,6 +166,8 @@ instance Monoid (Leftmost a) where
       LLeaf a  -> LLeaf $ fromMaybe a (getLeftmost x')
       LStep y' -> mappend x' y'
 
+-- | Extract the 'Leftmost' element. This will fairly eagerly determine that it can return 'Just'
+-- the moment it sees any element at all.
 getLeftmost :: Leftmost a -> Maybe a
 getLeftmost LPure = Nothing
 getLeftmost (LLeaf a) = Just a
@@ -193,6 +195,8 @@ instance Monoid (Rightmost a) where
       RLeaf a  -> RLeaf $ fromMaybe a (getRightmost y')
       RStep x' -> mappend x' y'
 
+-- | Extract the 'Rightmost' element. This will fairly eagerly determine that it can return 'Just'
+-- the moment it sees any element at all.
 getRightmost :: Rightmost a -> Maybe a
 getRightmost RPure = Nothing
 getRightmost (RLeaf a) = Just a
