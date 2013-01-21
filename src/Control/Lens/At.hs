@@ -84,17 +84,17 @@ import Data.Word
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
--- | A deprecated alias for 'ix'.
+-- | Deprecated aliases for 'ix'.
 _at, resultAt :: Ixed f m => Index m -> IndexedLensLike' (Index m) f m (IxValue m)
 _at      = ix
 resultAt = ix
 {-# DEPRECATED _at, resultAt "use 'ix'. This function will be removed in version 3.9" #-}
 
+-- |
+-- This class provides a simple 'IndexedFold' (or 'IndexedTraversal') that lets you view (and modify)
+-- information about whether or not a container contains a given 'Index'.
 class Functor f => Contains f m where
   -- |
-  -- This simple 'IndexedTraversal' lets you view (and sometimes modify) whether
-  -- or not a map (or set) contains a given key.
-  --
   -- >>> IntSet.fromList [1,2,3,4] ^. contains 3
   -- True
   --
@@ -109,30 +109,33 @@ class Functor f => Contains f m where
   contains = containsAt
 #endif
 
--- | A definition of 'ix' for types with an 'At' instance. This is the default
--- if you don't specify a definition for 'ix'.
+-- | A definition of 'contains' for types with an 'Ix' instance.
 containsIx :: (Gettable f, Ixed (Accessor Any) m) => Index m -> IndexedLensLike' (Index m) f m Bool
 containsIx i f = coerce . Lens.indexed f i . has (ix i)
 {-# INLINE containsIx #-}
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
--- if you don't specify a definition for 'ix'.
+-- if you don't specify a definition for 'contains' and you are on GHC >= 7.0.2
 containsAt :: (Gettable f, At m) => Index m -> IndexedLensLike' (Index m) f m Bool
 containsAt i f = coerce . Lens.indexed f i . views (at i) isJust
 {-# INLINE containsAt #-}
 
+-- | Construct a 'contains' check based on some notion of 'Prelude.length' for the container.
 containsLength :: forall i s. (Ord i, Num i) => (s -> i) -> i -> IndexedGetter i s Bool
 containsLength sn = \ i pafb s -> coerce $ Lens.indexed pafb (i :: i) (0 <= i && i < sn s)
 {-# INLINE containsLength #-}
 
+-- | Construct a 'contains' check for a fixed number of elements.
 containsN :: Int -> Int -> IndexedGetter Int s Bool
 containsN n = \ i pafb _ -> coerce $ Lens.indexed pafb (i :: Int) (0 <= i && i < n)
 {-# INLINE containsN #-}
 
+-- | Construct a 'contains' check that uses an arbitrary test.
 containsTest :: forall i s. (i -> s -> Bool) -> i -> IndexedGetter i s Bool
 containsTest isb = \i pafb s -> coerce $ Lens.indexed pafb (i :: i) (isb i s)
 {-# INLINE containsTest #-}
 
+-- | Construct a 'contains' check that uses an arbitrary 'Map.lookup' function.
 containsLookup :: forall i s a. (i -> s -> Maybe a) -> i -> IndexedGetter i s Bool
 containsLookup isb = \i pafb s -> coerce $ Lens.indexed pafb (i :: i) (isJust (isb i s))
 {-# INLINE containsLookup #-}
@@ -271,6 +274,7 @@ instance Gettable f => Contains f LazyB.ByteString where
   contains = containsTest $ \i s -> not (LazyB.null (LazyB.drop i s))
   {-# INLINE contains #-}
 
+-- | This provides a common notion of a value at an index that is shared by both 'Ixed' and 'At'.
 type family IxValue (m :: *) :: *
 
 -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
@@ -448,7 +452,6 @@ instance Applicative f => Ixed f LazyB.ByteString where
        Nothing      -> pure s
        Just (c, xs) -> Lens.indexed f e c <&> \d -> LazyB.append l (LazyB.cons d xs)
   {-# INLINE ix #-}
-
 
 type instance IxValue (k -> a) = a
 instance (Functor f, Eq k) => Ixed f (k -> a) where
