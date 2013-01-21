@@ -61,6 +61,10 @@ instance Reviewable Tagged where
 -- Review: Reviewed
 ------------------------------------------------------------------------------
 
+-- | This is a profunctor used internally to implement "Review"
+--
+-- It plays a role similar to that of 'Control.Lens.Internal.Getter.Accessor'
+-- or 'Const' do for "Control.Lens.Getter"
 newtype Reviewed a b = Reviewed { runReviewed :: b }
 
 instance Reviewable Reviewed where

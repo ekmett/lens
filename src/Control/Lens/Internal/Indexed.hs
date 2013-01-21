@@ -15,6 +15,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
+-- Internal implementation details for 'Indexed' lens-likes
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Indexed
   (
@@ -65,6 +66,9 @@ class
   , ArrowLoop p, ArrowApply p, ArrowChoice p
   ) => Conjoined p where
 
+  -- | 'Conjoined' is strong enough to let us distribute every 'Conjoined'
+  -- 'Profunctor' over every Haskell 'Functor'. This is effectively a
+  -- generalization of 'fmap'.
   distrib :: Functor f => p a b -> p (f a) (f b)
   distrib = tabulate . collect . rep
   {-# INLINE distrib #-}
