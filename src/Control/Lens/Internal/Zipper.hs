@@ -656,13 +656,15 @@ idownward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start i a
 -- | Step down into the 'leftmost' entry of a 'Traversal'.
 --
 -- @
--- 'within' :: 'Traversal'' s a -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>>' a)
--- 'within' :: 'Prism'' s a     -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>>' a)
--- 'within' :: 'Lens'' s a      -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>>' a)
--- 'within' :: 'Iso'' s a       -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>>' a)
+-- 'within' :: 'Traversal'' s a -> (h ':>' s:\@j) -> 'Maybe' (h ':>' s:\@j ':>>' a)
+-- 'within' :: 'Prism'' s a     -> (h ':>' s:\@j) -> 'Maybe' (h ':>' s:\@j ':>>' a)
+-- 'within' :: 'Lens'' s a      -> (h ':>' s:\@j) -> 'Maybe' (h ':>' s:\@j ':>>' a)
+-- 'within' :: 'Iso'' s a       -> (h ':>' s:\@j) -> 'Maybe' (h ':>' s:\@j ':>>' a)
 -- @
 --
--- @'within' :: 'MonadPlus' m => 'ATraversal'' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)@
+-- @
+-- 'within' :: 'MonadPlus' m => 'ATraversal'' s a -> (h ':>' s:\@j) -> m (h ':>' s:\@j ':>>' a)
+-- @
 within :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
 within = iwithin . indexing
 {-# INLINE within #-}
@@ -672,11 +674,13 @@ within = iwithin . indexing
 -- /Note:/ The index is assumed to be ordered and must increase monotonically or else you cannot (safely) 'moveTo' or 'moveToward' or use tapes.
 --
 -- @
--- 'iwithin' :: 'IndexedTraversal'' i s a -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>' a:@i)
--- 'iwithin' :: 'IndexedLens'' i s a      -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>' a:@i)
+-- 'iwithin' :: 'IndexedTraversal'' i s a -> (h ':>' s:\@j) -> 'Maybe' (h ':>' s:\@j ':>' a:\@i)
+-- 'iwithin' :: 'IndexedLens'' i s a      -> (h ':>' s:\@j) -> 'Maybe' (h ':>' s:\@j ':>' a:\@i)
 -- @
 --
--- @'iwithin' :: 'MonadPlus' m => 'ATraversal'' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)@
+-- @
+-- 'iwithin' :: 'MonadPlus' m => 'ATraversal'' s a -> (h ':>' s:\@j) -> m (h ':>' s:\@j ':>>' a)
+-- @
 iwithin :: (MonadPlus m, Ord i) => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
 iwithin l (Zipper h t o p j s) = case jacket l (Context id) s of
   Context k xs -> startl Start xs mzero $ \q i a -> return $ Zipper (Snoc h l t o p j k) 0 0 q i a
@@ -688,9 +692,9 @@ iwithin l (Zipper h t o p j s) = case jacket l (Context id) s of
 -- [("hEllo","world"),("heLlo","world"),("helLo","world"),("hellO","world")]
 --
 -- @
--- 'withins' :: 'Traversal'' s a -> (h ':>' s:@j) -> [h ':>' s:@j ':>>' a]
--- 'withins' :: 'Lens'' s a      -> (h ':>' s:@j) -> [h ':>' s:@j ':>>' a]
--- 'withins' :: 'Iso'' s a       -> (h ':>' s:@j) -> [h ':>' s:@j ':>>' a]
+-- 'withins' :: 'Traversal'' s a -> (h ':>' s:\@j) -> [h ':>' s:\@j ':>>' a]
+-- 'withins' :: 'Lens'' s a      -> (h ':>' s:\@j) -> [h ':>' s:\@j ':>>' a]
+-- 'withins' :: 'Iso'' s a       -> (h ':>' s:\@j) -> [h ':>' s:\@j ':>>' a]
 -- @
 withins :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
 withins = iwithins . indexing
@@ -701,8 +705,8 @@ withins = iwithins . indexing
 -- /Note:/ The index is assumed to be ordered and must increase monotonically or else you cannot (safely) 'moveTo' or 'moveToward' or use tapes.
 --
 -- @
--- 'iwithins' :: 'IndexedTraversal'' i s a -> (h ':>' s:@j) -> [h ':>' s:@j ':>' a:@i]
--- 'iwithins' :: 'IndexedLens'' i s a      -> (h ':>' s:@j) -> [h ':>' s:@j ':>' a:@i]
+-- 'iwithins' :: 'IndexedTraversal'' i s a -> (h ':>' s:\@j) -> [h ':>' s:\@j ':>' a:\@i]
+-- 'iwithins' :: 'IndexedLens'' i s a      -> (h ':>' s:\@j) -> [h ':>' s:\@j ':>' a:\@i]
 -- @
 iwithins :: (MonadPlus m, Ord i) => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
 iwithins z (Zipper h t o p j s) = case jacket z (Context id) s of
@@ -718,14 +722,16 @@ iwithins z (Zipper h t o p j s) = case jacket z (Context id) s of
 -- If this invariant is not met then this will usually result in an error!
 --
 -- @
--- 'fromWithin' :: 'Traversal'' s a -> (h ':>' s:@j) -> h ':>' s:@j ':>>' a
--- 'fromWithin' :: 'Lens'' s a      -> (h ':>' s:@j) -> h ':>' s:@j ':>>' a
--- 'fromWithin' :: 'Iso'' s a       -> (h ':>' s:@j) -> h ':>' s:@j ':>>' a
+-- 'fromWithin' :: 'Traversal'' s a -> (h ':>' s:\@j) -> h ':>' s:\@j ':>>' a
+-- 'fromWithin' :: 'Lens'' s a      -> (h ':>' s:\@j) -> h ':>' s:\@j ':>>' a
+-- 'fromWithin' :: 'Iso'' s a       -> (h ':>' s:\@j) -> h ':>' s:\@j ':>>' a
 -- @
 --
 -- You can reason about this function as if the definition was:
 --
--- @'fromWithin' l ≡ 'fromJust' '.' 'within' l@
+-- @
+-- 'fromWithin' l ≡ 'fromJust' '.' 'within' l
+-- @
 fromWithin :: LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> h :> s:@j :>> a
 fromWithin = ifromWithin . indexing
 {-# INLINE fromWithin #-}
@@ -735,13 +741,15 @@ fromWithin = ifromWithin . indexing
 -- If this invariant is not met then this will usually result in an error!
 --
 -- @
--- 'ifromWithin' :: 'IndexedTraversal'' i s a -> (h ':>' s:@j) -> h ':>' s:@j ':>' a:@i
--- 'ifromWithin' :: 'IndexedLens'' i s a      -> (h ':>' s:@j) -> h ':>' s:@j ':>' a:@i
+-- 'ifromWithin' :: 'IndexedTraversal'' i s a -> (h ':>' s:\@j) -> h ':>' s:\@j ':>' a:\@i
+-- 'ifromWithin' :: 'IndexedLens'' i s a      -> (h ':>' s:\@j) -> h ':>' s:\@j ':>' a:\@i
 -- @
 --
 -- You can reason about this function as if the definition was:
 --
--- @'fromWithin' l ≡ 'fromJust' '.' 'within' l@
+-- @
+-- 'fromWithin' l ≡ 'fromJust' '.' 'within' l
+-- @
 ifromWithin :: Ord i => AnIndexedTraversal' i s a -> (h :> s:@j) -> h :> s:@j :> a:@i
 ifromWithin l (Zipper h t o p j s) = case jacket l (Context id) s of
   Context k xs -> let up = Snoc h l t o p j k in
