@@ -15,7 +15,7 @@ Many people have contributed patches, bug reports and massive quantities of code
 * [Alexander Altman](mailto:alexanderaltman@me.com) @phtariensflame
 * [Austin Seipp](mailto:mad.one@gmail.com) @thoughtpolice
 * [Dag Odenhall](mailto:dag.odenhall@gmail.com) @dag
-* Aristid Breitkreuz @aristidb
+* [Aristid Breitkreuz](mailto:aristidb+lens@gmail.com) @aristidb
 * [Simon Hengel](mailto:sol@typeful.net) @sol
 * @startling
 * Mike Ledger @mikepus64
