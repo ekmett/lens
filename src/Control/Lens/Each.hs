@@ -66,6 +66,7 @@ import qualified Data.Vector.Unboxed as Unboxed
 import Data.Vector.Unboxed (Unbox)
 import Data.Word
 
+-- | This is a common 'Index' type shared by 'Each', 'Control.Lens.At.At', 'Control.Lens.At.Contains' and 'Control.Lens.At.Ixed'.
 type family Index (s :: *) :: *
 type instance Index (e -> a) = e
 type instance Index IntSet = Int
