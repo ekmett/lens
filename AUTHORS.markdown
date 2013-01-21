@@ -8,7 +8,7 @@ Many people have contributed patches, bug reports and massive quantities of code
 
 * [Shachaf Ben-Kiki](mailto:shachaf@gmail.com) @shachaf
 * Elliott Hird @ehird
-* [Johan Kiviniemi](mailto:johan@kiviniemi.name) @ion1
+* [Johan Kiviniemi](mailto:lens@johan.kiviniemi.name) @ion1
 * [Bas Dirks](mailto:ik@basdirks.eu) @basdirks
 * [Eric Mertens](mailto:emertens@gmail.com) @glguy
 * [Michael Sloan](mailto:mgsloan@gmail.com) @mgsloan
