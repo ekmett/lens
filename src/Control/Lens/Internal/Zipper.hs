@@ -348,6 +348,7 @@ type family (:>) h p
 type instance h :> (a :@ i) = Zipper h i a
 
 infixl 8 :>>
+-- | Many zippers are indexed by Int keys. This type alias is convenient for reducing syntactic noise for talking about these boring indices.
 type h :>> a = Zipper h Int a
 
 -- | This represents the type a 'Zipper' will have when it is fully 'Zipped' back up.
@@ -625,6 +626,7 @@ moveTo i z = case moveToward i z of
     | otherwise -> mzero
 {-# INLINE moveTo #-}
 
+-- | Construct an 'IndexedLens' from 'ALens' where the index is fixed to @0@.
 lensed :: ALens' s a -> IndexedLens' Int s a
 lensed l f = cloneLens l (indexed f (0 :: Int))
 {-# INLINE lensed #-}
@@ -644,6 +646,12 @@ downward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start 0 (s^.
         go _ = error "downward: rezipping"
 {-# INLINE downward #-}
 
+-- | Step down into a 'IndexedLens'. This is a constrained form of 'ifromWithin' for when you know
+-- there is precisely one target that can never fail.
+--
+-- @
+-- 'idownward' :: 'IndexedLens'' i s a -> (h ':>' s:\@j) -> h ':>' s:\@j ':>' a:\@i
+-- @
 idownward :: forall i j h s a. Ord i => AnIndexedLens' i s a -> h :> s:@j -> h :> s:@j :> a:@i
 idownward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start i a
   where l' :: IndexedLens' i s a
