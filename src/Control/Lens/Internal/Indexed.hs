@@ -56,7 +56,7 @@ import Unsafe.Coerce
 -- Conjoined
 ------------------------------------------------------------------------------
 
--- This is a 'Profunctor' that is both 'Corepresentable' by @f@ and 'Representable' by @g@ such
+-- | This is a 'Profunctor' that is both 'Corepresentable' by @f@ and 'Representable' by @g@ such
 -- that @f@ is left adjoint to @g@. From this you can derive a lot of structure due
 -- to the preservation of limits and colimits.
 class
@@ -259,7 +259,6 @@ indexing l iafb s = snd $ runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, 
 ------------------------------------------------------------------------------
 -- Indexing64
 ------------------------------------------------------------------------------
-
 
 -- | 'Applicative' composition of @'Control.Monad.Trans.State.Lazy.State' 'Int64'@ with a 'Functor', used
 -- by 'Control.Lens.Indexed.indexed64'.
