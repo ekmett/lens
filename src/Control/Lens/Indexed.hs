@@ -126,9 +126,6 @@ infixr 9 <.>, <., .>
 (.>) = (.)
 {-# INLINE (.>) #-}
 
--- (.>)  :: Indexable i p => (b -> c) -> Indexed i a b -> p a c
--- bc .> Indexed iab = indexed (bc . iab)
-
 -- | Remap the index.
 reindexed :: Indexable j p => (i -> j) -> (Indexed i a b -> r) -> p a b -> r
 reindexed ij f g = f . Indexed $ indexed g . ij
