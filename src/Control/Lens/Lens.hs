@@ -30,7 +30,9 @@
 --
 -- 'Functor', however is the superclass of both.
 --
--- @type 'Lens' s t a b = forall f. 'Functor' f => (a -> f b) -> s -> f t@
+-- @
+-- type 'Lens' s t a b = forall f. 'Functor' f => (a -> f b) -> s -> f t
+-- @
 --
 -- Every 'Lens' is a valid 'Control.Lens.Setter.Setter'.
 --
@@ -146,8 +148,7 @@ infixr 2 <<~
 -- or use it directly with combinators like 'storing' and ('^#').
 type ALens s t a b = LensLike (Pretext (->) a b) s t a b
 
--- |
--- @
+-- | @
 -- type 'ALens'' = 'Simple' 'ALens'
 -- @
 type ALens' s a = ALens s s a a
@@ -155,8 +156,7 @@ type ALens' s a = ALens s s a a
 -- | When you see this as an argument to a function, it expects an 'IndexedLens'
 type AnIndexedLens i s t a b = Overloading (Indexed i) (->) (Pretext (Indexed i) a b) s t a b
 
--- |
--- @
+-- | @
 -- type 'AnIndexedLens'' = 'Simple' ('AnIndexedLens' i)
 -- @
 type AnIndexedLens' i s a  = AnIndexedLens i s s a a

@@ -89,9 +89,13 @@ infixl 8 ^., ^@.
 
 -- | Build a 'Getter' from an arbitrary Haskell function.
 --
--- @'to' f '.' 'to' g ≡ 'to' (g '.' f)@
+-- @
+-- 'to' f '.' 'to' g ≡ 'to' (g '.' f)
+-- @
 --
--- @a '^.' 'to' f ≡ f a@
+-- @
+-- a '^.' 'to' f ≡ f a
+-- @
 --
 -- >>> a ^.to f
 -- f a
@@ -142,7 +146,9 @@ type Accessing p m s t a b = p a (Accessor m b) -> s -> Accessor m t
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
 -- at a monoidal value.
 --
--- @'view' '.' 'to' ≡ 'id'@
+-- @
+-- 'view' '.' 'to' ≡ 'id'
+-- @
 --
 -- >>> view (to f) a
 -- f a
@@ -185,7 +191,9 @@ view l = Reader.asks (runAccessor #. l Accessor)
 -- the targets of a 'Control.Lens.Fold.Fold' or
 -- 'Control.Lens.Traversal.Traversal'.
 --
--- @'views' l f ≡ 'view' (l '.' 'to' f)@
+-- @
+-- 'views' l f ≡ 'view' (l '.' 'to' f)
+-- @
 --
 -- >>> views (to f) g a
 -- g (f a)
@@ -214,7 +222,9 @@ view l = Reader.asks (runAccessor #. l Accessor)
 -- 'view' :: ('MonadReader' s m, 'Data.Monoid.Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> m a
 -- @
 --
--- @'views' :: 'MonadReader' s m => 'Getting' r s t a b -> (a -> r) -> m r@
+-- @
+-- 'views' :: 'MonadReader' s m => 'Getting' r s t a b -> (a -> r) -> m r
+-- @
 views :: (Profunctor p, MonadReader s m) => Overloading p (->) (Accessor r) s t a b -> p a r -> m r
 views l f = Reader.asks (runAccessor #. l (rmap Accessor f))
 {-# INLINE views #-}
@@ -291,7 +301,9 @@ use l = State.gets (view l)
 -- 'uses' :: ('MonadState' s m, 'Data.Monoid.Monoid' r) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> r) -> m r
 -- @
 --
--- @'uses' :: 'MonadState' s m => 'Getting' r s t a b -> (a -> r) -> m r@
+-- @
+-- 'uses' :: 'MonadState' s m => 'Getting' r s t a b -> (a -> r) -> m r
+-- @
 uses :: (Profunctor p, MonadState s m) => Overloading p (->) (Accessor r) s t a b -> p a r -> m r
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}
@@ -420,7 +432,9 @@ use' l = State.gets (view' l)
 -- 'uses'' :: ('MonadState' s m, 'Data.Monoid.Monoid' r) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> r) -> m r
 -- @
 --
--- @'uses'' :: 'MonadState' s m => 'Getting' r s s a a -> (a -> r) -> m r@
+-- @
+-- 'uses'' :: 'MonadState' s m => 'Getting' r s s a a -> (a -> r) -> m r
+-- @
 uses' :: (Profunctor p, MonadState s m) => Overloading' p (->) (Accessor r) s a -> p a r -> m r
 uses' l f = State.gets (views' l f)
 {-# INLINE uses' #-}
@@ -436,7 +450,9 @@ uses' l f = State.gets (views' l f)
 -- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
 -- at a monoidal values.
 --
--- @'view'' '.' 'to' ≡ 'id'@
+-- @
+-- 'view'' '.' 'to' ≡ 'id'
+-- @
 --
 -- >>> view' (to f) a
 -- f a
@@ -481,7 +497,9 @@ view' l = Reader.asks (runAccessor #. l Accessor)
 -- the targets of a 'Control.Lens.Fold.Fold' or
 -- 'Control.Lens.Traversal.Traversal'.
 --
--- @'views'' l f ≡ 'view'' (l '.' 'to' f)@
+-- @
+-- 'views'' l f ≡ 'view'' (l '.' 'to' f)
+-- @
 --
 -- >>> views' _2 length (1,"hello")
 -- 5
@@ -507,7 +525,9 @@ view' l = Reader.asks (runAccessor #. l Accessor)
 -- 'views'' :: ('MonadReader' s m, 'Data.Monoid.Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> r) -> m r
 -- @
 --
--- @'views'' :: 'MonadReader' s m => 'Getting' r s s a a -> (a -> r) -> m r@
+-- @
+-- 'views'' :: 'MonadReader' s m => 'Getting' r s s a a -> (a -> r) -> m r
+-- @
 views' :: (Profunctor p, MonadReader s m) => Overloading' p (->) (Accessor r) s a -> p a r -> m r
 views' l f = Reader.asks (runAccessor #. l (rmap Accessor f))
 {-# INLINE views' #-}
@@ -528,7 +548,9 @@ iview l = asks (runAccessor #. l (Indexed $ \i -> Accessor #. (,) i))
 --
 -- When applied to an 'IndexedFold' the result will be a monoidal summary instead of a single answer.
 --
--- @'iviews' ≡ 'Control.Lens.Fold.ifoldMapOf'@
+-- @
+-- 'iviews' ≡ 'Control.Lens.Fold.ifoldMapOf'
+-- @
 iviews :: MonadReader s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
 iviews l = views l .# Indexed
 {-# INLINE iviews #-}

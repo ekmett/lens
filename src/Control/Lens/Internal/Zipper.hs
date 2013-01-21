@@ -340,7 +340,9 @@ infixl 8 :>
 -- abstracting over the position and the index, in terms of ':@'. You
 -- can visually see it in type signatures as:
 --
--- @h ':>' (a ':@' i) = 'Zipper' h i a@
+-- @
+-- h ':>' (a ':@' i) = 'Zipper' h i a
+-- @
 --
 type family (:>) h p
 type instance h :> (a :@ i) = Zipper h i a

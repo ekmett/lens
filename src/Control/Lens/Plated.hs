@@ -174,7 +174,9 @@ import           Data.Tree
 -- use the @...OnOf@ variant with 'ignored', though those usecases are much better served
 -- in most cases by using the existing 'Lens' combinators! e.g.
 --
--- @'toListOf' 'biplate' ≡ 'universeOnOf' 'biplate' 'ignored'@.
+-- @
+-- 'toListOf' 'biplate' ≡ 'universeOnOf' 'biplate' 'ignored'
+-- @
 --
 -- This same ability to explicitly pass the 'Traversal' in question is why there is no
 -- analogue to uniplate's @Biplate@.
@@ -218,7 +220,9 @@ instance Plated TH.Pat where plate = uniplate
 
 -- | Extract the immediate descendants of a 'Plated' container.
 --
--- @'children' ≡ 'toListOf' 'plate'@
+-- @
+-- 'children' ≡ 'toListOf' 'plate'
+-- @
 children :: Plated a => a -> [a]
 children = toListOf plate
 {-# INLINE children #-}
@@ -230,7 +234,9 @@ children = toListOf plate
 -- | Rewrite by applying a rule everywhere you can. Ensures that the rule cannot
 -- be applied anywhere in the result:
 --
--- @propRewrite r x = 'all' ('Data.Just.isNothing' '.' r) ('universe' ('rewrite' r x))@
+-- @
+-- propRewrite r x = 'all' ('Data.Just.isNothing' '.' r) ('universe' ('rewrite' r x))
+-- @
 --
 -- Usually 'transform' is more appropriate, but 'rewrite' can give better
 -- compositionality. Given two single transformations @f@ and @g@, you can
@@ -242,7 +248,9 @@ rewrite = rewriteOf plate
 -- | Rewrite by applying a rule everywhere you can. Ensures that the rule cannot
 -- be applied anywhere in the result:
 --
--- @propRewriteOf l r x = 'all' ('Data.Just.isNothing' '.' r) ('universeOf' l ('rewriteOf' l r x))@
+-- @
+-- propRewriteOf l r x = 'all' ('Data.Just.isNothing' '.' r) ('universeOf' l ('rewriteOf' l r x))
+-- @
 --
 -- Usually 'transformOf' is more appropriate, but 'rewriteOf' can give better
 -- compositionality. Given two single transformations @f@ and @g@, you can
@@ -319,7 +327,9 @@ universe = universeOf plate
 
 -- | Given a 'Fold' that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself.
 --
--- @'universeOf' :: 'Fold' a a -> a -> [a]@
+-- @
+-- 'universeOf' :: 'Fold' a a -> a -> [a]
+-- @
 universeOf :: Getting [a] a b a b -> a -> [a]
 universeOf l = go where
   go a = a : foldMapOf l go a
@@ -333,7 +343,9 @@ universeOn b = universeOnOf b plate
 -- | Given a 'Fold' that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself that lie
 -- in a region indicated by another 'Fold'.
 --
--- @'toListOf' l ≡ 'universeOnOf' l 'ignored'@
+-- @
+-- 'toListOf' l ≡ 'universeOnOf' l 'ignored'
+-- @
 universeOnOf :: Getting [a] s t a b -> Getting [a] a b a b -> s -> [a]
 universeOnOf b = foldMapOf b . universeOf
 {-# INLINE universeOnOf #-}
@@ -394,14 +406,18 @@ transformM = transformMOf plate
 
 -- | Transform every element in the tree in a region indicated by a supplied 'Traversal', in a bottom-up manner, monadically.
 --
--- @'transformMOn' :: ('Monad' m, 'Plated' a) => 'Traversal'' s a -> (a -> m a) -> s -> m s@
+-- @
+-- 'transformMOn' :: ('Monad' m, 'Plated' a) => 'Traversal'' s a -> (a -> m a) -> s -> m s
+-- @
 transformMOn :: (Monad m, Plated a) => LensLike (WrappedMonad m) s t a a -> (a -> m a) -> s -> m t
 transformMOn b = mapMOf b . transformM
 {-# INLINE transformMOn #-}
 
 -- | Transform every element in a tree using a user supplied 'Traversal' in a bottom-up manner with a monadic effect.
 --
--- @'transformMOf' :: 'Monad' m => 'Traversal'' a a -> (a -> m a) -> a -> m a@
+-- @
+-- 'transformMOf' :: 'Monad' m => 'Traversal'' a a -> (a -> m a) -> a -> m a
+-- @
 transformMOf :: Monad m => LensLike' (WrappedMonad m) a a -> (a -> m a) -> a -> m a
 transformMOf l f = go where
   go t = mapMOf l go t >>= f
@@ -410,7 +426,9 @@ transformMOf l f = go where
 -- | Transform every element in a tree that lies in a region indicated by a supplied 'Traversal', walking with a user supplied 'Traversal' in
 -- a bottom-up manner with a monadic effect.
 --
--- @'transformMOnOf' :: 'Monad' m => 'Traversal'' s a -> 'Traversal'' a a -> (a -> m a) -> s -> m s@
+-- @
+-- 'transformMOnOf' :: 'Monad' m => 'Traversal'' s a -> 'Traversal'' a a -> (a -> m a) -> s -> m s
+-- @
 transformMOnOf :: Monad m => LensLike (WrappedMonad m) s a a a -> LensLike' (WrappedMonad m) a a -> (a -> m a) -> s -> m a
 transformMOnOf b l = mapMOf b . transformMOf l
 {-# INLINE transformMOnOf #-}
@@ -423,10 +441,12 @@ transformMOnOf b l = mapMOf b . transformMOf l
 --
 -- @
 -- propUniverse x = 'universe' x '==' 'map' 'Control.Comonad.Store.Class.pos' ('contexts' x)
--- propId x = 'all' ('==' x) ['extract' w | w <- 'contexts' x]
+-- propId x = 'all' ('==' x) ['Control.Lens.Internal.Context.extract' w | w <- 'contexts' x]
 -- @
 --
--- @'contexts' ≡ 'contextsOf' 'plate'@
+-- @
+-- 'contexts' ≡ 'contextsOf' 'plate'
+-- @
 contexts :: Plated a => a -> [Context a a a]
 contexts = contextsOf plate
 {-# INLINE contexts #-}
@@ -434,11 +454,13 @@ contexts = contextsOf plate
 -- | Return a list of all of the editable contexts for every location in the structure, recursively, using a user-specified 'Traversal' to walk each layer.
 --
 -- @
--- propUniverse l x = 'universeOf' l x == 'map' 'Control.Comonad.Store.Class.pos' ('contextsOf' l x)
--- propId l x = 'all' ('==' x) ['extract' w | w <- 'contextsOf' l x]
+-- propUniverse l x = 'universeOf' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('contextsOf' l x)
+-- propId l x = 'all' ('==' x) ['Control.Lens.Internal.Context.extract' w | w <- 'contextsOf' l x]
 -- @
 --
--- @'contextsOf' :: 'Traversal'' a a -> a -> ['Context' a a]@
+-- @
+-- 'contextsOf' :: 'Traversal'' a a -> a -> ['Context' a a]
+-- @
 contextsOf :: ATraversal' a a -> a -> [Context a a a]
 contextsOf l x = sell x : f (map context (holesOf l x)) where
   f xs = do
@@ -449,9 +471,13 @@ contextsOf l x = sell x : f (map context (holesOf l x)) where
 
 -- | Return a list of all of the editable contexts for every location in the structure in an areas indicated by a user supplied 'Traversal', recursively using 'plate'.
 --
--- @'contextsOn' b ≡ 'contextsOnOf' b 'plate'@
+-- @
+-- 'contextsOn' b ≡ 'contextsOnOf' b 'plate'
+-- @
 --
--- @'contextsOn' :: 'Plated' a => 'Traversal'' s a -> s -> ['Context' a a s]@
+-- @
+-- 'contextsOn' :: 'Plated' a => 'Traversal'' s a -> s -> ['Context' a a s]
+-- @
 contextsOn :: Plated a => ATraversal s t a a -> s -> [Context a a t]
 contextsOn b = contextsOnOf b plate
 {-# INLINE contextsOn #-}
@@ -459,7 +485,9 @@ contextsOn b = contextsOnOf b plate
 -- | Return a list of all of the editable contexts for every location in the structure in an areas indicated by a user supplied 'Traversal', recursively using
 -- another user-supplied 'Traversal' to walk each layer.
 --
--- @'contextsOnOf' :: 'Traversal'' s a -> 'Traversal'' a a -> s -> ['Context' a a s]@
+-- @
+-- 'contextsOnOf' :: 'Traversal'' s a -> 'Traversal'' a a -> s -> ['Context' a a s]
+-- @
 contextsOnOf :: ATraversal s t a a -> ATraversal' a a -> s -> [Context a a t]
 contextsOnOf b l = f . map context . holesOf b where
   f xs = do
@@ -470,21 +498,25 @@ contextsOnOf b l = f . map context . holesOf b where
 
 -- | The one-level version of 'context'. This extracts a list of the immediate children as editable contexts.
 --
--- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the values, 'Control.Comonad.Store.Class.peek' at what the structure would be like with an edited result, or simply 'extract' the original structure.
+-- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the values, 'Control.Comonad.Store.Class.peek' at what the structure would be like with an edited result, or simply 'Control.Lens.Internal.Context.extract' the original structure.
 --
 -- @
 -- propChildren x = 'children' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holes' l x)
--- propId x = 'all' ('==' x) ['extract' w | w <- 'holes' l x]
+-- propId x = 'all' ('==' x) ['Control.Lens.Internal.Context.extract' w | w <- 'holes' l x]
 -- @
 --
--- @'holes' = 'holesOf' 'plate'@
+-- @
+-- 'holes' = 'holesOf' 'plate'
+-- @
 holes :: Plated a => a -> [Pretext (->) a a a]
 holes = holesOf plate
 {-# INLINE holes #-}
 
 -- | An alias for 'holesOf', provided for consistency with the other combinators.
 --
--- @'holesOn' ≡ 'holesOf'@
+-- @
+-- 'holesOn' ≡ 'holesOf'
+-- @
 --
 -- @
 -- 'holesOn' :: 'Iso'' s a                -> s -> ['Pretext' (->) a a s]
@@ -499,7 +531,9 @@ holesOn = holesOf
 
 -- | Extract one level of 'holes' from a container in a region specified by one 'Traversal', using another.
 --
--- @'holesOnOf' b l ≡ 'holesOf' (b '.' l)@
+-- @
+-- 'holesOnOf' b l ≡ 'holesOf' (b '.' l)
+-- @
 --
 -- @
 -- 'holesOnOf' :: 'Iso'' s a       -> 'Iso'' a a                -> s -> ['Pretext' (->) a a s]
@@ -521,7 +555,9 @@ holesOnOf b l = holesOf (b . l)
 
 -- | Perform a fold-like computation on each value, technically a paramorphism.
 --
--- @'paraOf' :: 'Fold' a a -> (a -> [r] -> r) -> a -> r@
+-- @
+-- 'paraOf' :: 'Fold' a a -> (a -> [r] -> r) -> a -> r
+-- @
 paraOf :: Getting (Endo [a]) a b a b -> (a -> [r] -> r) -> a -> r
 paraOf l f = go where
   go a = f a (go <$> toListOf l a)
@@ -529,7 +565,9 @@ paraOf l f = go where
 
 -- | Perform a fold-like computation on each value, technically a paramorphism.
 --
--- @'para' ≡ 'paraOf' 'plate'@
+-- @
+-- 'para' ≡ 'paraOf' 'plate'
+-- @
 para :: Plated a => (a -> [r] -> r) -> a -> r
 para = paraOf plate
 {-# INLINE para #-}
@@ -555,7 +593,9 @@ para = paraOf plate
 
 -- | Fold the immediate children of a 'Plated' container.
 --
--- @'composOpFold' z c f = 'foldrOf' 'plate' (c '.' f) z@
+-- @
+-- 'composOpFold' z c f = 'foldrOf' 'plate' (c '.' f) z
+-- @
 composOpFold :: Plated a => b -> (b -> b -> b) -> (a -> b) -> a -> b
 composOpFold z c f = foldrOf plate (c . f) z
 {-# INLINE composOpFold #-}
@@ -566,7 +606,9 @@ composOpFold z c f = foldrOf plate (c . f) z
 
 -- | The original @uniplate@ combinator, implemented in terms of 'Plated' as a 'Lens'.
 --
--- @'parts' ≡ 'partsOf' 'plate'@
+-- @
+-- 'parts' ≡ 'partsOf' 'plate'
+-- @
 --
 -- The resulting 'Lens' is safer to use as it ignores 'over-application' and deals gracefully with under-application,
 -- but it is only a proper 'Lens' if you don't change the list 'length'!

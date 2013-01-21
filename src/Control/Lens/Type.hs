@@ -83,15 +83,21 @@ import Data.Profunctor
 --
 -- 1) You get back what you put in:
 --
--- @'Control.Lens.Getter.view' l ('Control.Lens.Setter.set' l b a)  ≡ b@
+-- @
+-- 'Control.Lens.Getter.view' l ('Control.Lens.Setter.set' l b a)  ≡ b
+-- @
 --
 -- 2) Putting back what you got doesn't change anything:
 --
--- @'Control.Lens.Setter.set' l ('Control.Lens.Getter.view' l a) a  ≡ a@
+-- @
+-- 'Control.Lens.Setter.set' l ('Control.Lens.Getter.view' l a) a  ≡ a
+-- @
 --
 -- 3) Setting twice is the same as setting once:
 --
--- @'Control.Lens.Setter.set' l c ('Control.Lens.Setter.set' l b a) ≡ 'Control.Lens.Setter.set' l c a@
+-- @
+-- 'Control.Lens.Setter.set' l c ('Control.Lens.Setter.set' l b a) ≡ 'Control.Lens.Setter.set' l c a
+-- @
 --
 -- These laws are strong enough that the 4 type parameters of a 'Lens' cannot
 -- vary fully independently. For more on how they interact, read the \"Why is
@@ -112,22 +118,30 @@ import Data.Profunctor
 -- 'fmap' (l f) '.' l g ≡ 'Data.Functor.Compose.getCompose' '.' l ('Data.Functor.Compose.Compose' '.' 'fmap' f '.' g)
 -- @
 --
--- @type 'Lens' s t a b = forall f. 'Functor' f => 'LensLike' f s t a b@
+-- @
+-- type 'Lens' s t a b = forall f. 'Functor' f => 'LensLike' f s t a b
+-- @
 type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
 
--- | @type 'Lens'' = 'Simple' 'Lens'@
+-- | @
+-- type 'Lens'' = 'Simple' 'Lens'
+-- @
 type Lens' s a = Lens s s a a
 
 -- | Every 'IndexedLens' is a valid 'Lens' and a valid 'Control.Lens.Traversal.IndexedTraversal'.
 type IndexedLens i s t a b = forall f p. (Indexable i p, Functor f) => p a (f b) -> s -> f t
 
--- | @type 'IndexedLens'' i = 'Simple' ('IndexedLens' i)@
+-- | @
+-- type 'IndexedLens'' i = 'Simple' ('IndexedLens' i)
+-- @
 type IndexedLens' i s a = IndexedLens i s s a a
 
 -- | An 'IndexPreservingLens' leaves any index it is composed with alone.
 type IndexPreservingLens s t a b = forall p f. (Conjoined p, Functor f) => p a (f b) -> p s (f t)
 
--- | @type 'IndexPreservingLens'' = 'Simple' 'IndexPreservingLens'@
+-- | @
+-- type 'IndexPreservingLens'' = 'Simple' 'IndexPreservingLens'
+-- @
 type IndexPreservingLens' s a = IndexPreservingLens s s a a
 
 ------------------------------------------------------------------------------
@@ -139,7 +153,9 @@ type IndexPreservingLens' s a = IndexPreservingLens s s a a
 --
 -- These have also been known as multilenses, but they have the signature and spirit of
 --
--- @'Data.Traversable.traverse' :: 'Data.Traversable.Traversable' f => 'Traversal' (f a) (f b) a b@
+-- @
+-- 'Data.Traversable.traverse' :: 'Data.Traversable.Traversable' f => 'Traversal' (f a) (f b) a b
+-- @
 --
 -- and the more evocative name suggests their application.
 --
@@ -161,7 +177,9 @@ type IndexPreservingLens' s a = IndexPreservingLens s s a a
 -- second law in that same paper!
 type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
 
--- | @type 'Traversal'' = 'Simple' 'Traversal'@
+-- | @
+-- type 'Traversal'' = 'Simple' 'Traversal'
+-- @
 type Traversal' s a = Traversal s s a a
 
 -- | Every 'IndexedTraversal' is a valid 'Control.Lens.Traversal.Traversal' or
@@ -173,13 +191,17 @@ type Traversal' s a = Traversal s s a a
 -- The 'Control.Lens.Traversal.Traversal' laws are still required to hold.
 type IndexedTraversal i s t a b = forall p f. (Indexable i p, Applicative f) => p a (f b) -> s -> f t
 
--- | @type 'IndexedTraversal'' i = 'Simple' ('IndexedTraversal' i)@
+-- | @
+-- type 'IndexedTraversal'' i = 'Simple' ('IndexedTraversal' i)
+-- @
 type IndexedTraversal' i s a = IndexedTraversal i s s a a
 
 -- | An 'IndexPreservingLens' leaves any index it is composed with alone.
 type IndexPreservingTraversal s t a b = forall p f. (Conjoined p, Applicative f) => p a (f b) -> p s (f t)
 
--- | @type 'IndexPreservingTraversal'' = 'Simple' 'IndexPreservingTraversal'@
+-- | @
+-- type 'IndexPreservingTraversal'' = 'Simple' 'IndexPreservingTraversal'
+-- @
 type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
 
 ------------------------------------------------------------------------------
@@ -188,7 +210,9 @@ type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
 
 -- | The only 'LensLike' law that can apply to a 'Setter' @l@ is that
 --
--- @'Control.Lens.Setter.set' l y ('Control.Lens.Setter.set' l x a) ≡ 'Control.Lens.Setter.set' l y a@
+-- @
+-- 'Control.Lens.Setter.set' l y ('Control.Lens.Setter.set' l x a) ≡ 'Control.Lens.Setter.set' l y a
+-- @
 --
 -- You can't 'Control.Lens.Getter.view' a 'Setter' in general, so the other two laws are irrelevant.
 --
@@ -229,9 +253,13 @@ type Setter s t a b = forall f. Settable f => (a -> f b) -> s -> f t
 --
 -- These are particularly common when talking about monomorphic containers. /e.g./
 --
--- @'sets' Data.Text.map :: 'Setter'' 'Data.Text.Internal.Text' 'Char'@
+-- @
+-- 'sets' Data.Text.map :: 'Setter'' 'Data.Text.Internal.Text' 'Char'
+-- @
 --
--- @type 'Setter'' = 'Setter''@
+-- @
+-- type 'Setter'' = 'Setter''
+-- @
 type Setter' s a = Setter s s a a
 
 -- | Every 'IndexedSetter' is a valid 'Setter'.
@@ -240,7 +268,9 @@ type Setter' s a = Setter s s a a
 type IndexedSetter i s t a b = forall f p.
   (Indexable i p, Settable f) => p a (f b) -> s -> f t
 
--- | @type 'IndexedSetter'' i = 'Simple' ('IndexedSetter' i)@
+-- | @
+-- type 'IndexedSetter'' i = 'Simple' ('IndexedSetter' i)
+-- @
 type IndexedSetter' i s a = IndexedSetter i s s a a
 
 -- | An 'IndexPreservingSetter' can be composed with a 'IndexedSetter', 'IndexedTraversal' or 'IndexedLens'
@@ -258,7 +288,9 @@ type IndexPreservingSetter' s a = IndexPreservingSetter s s a a
 -- Note: Composition with an 'Iso' is index- and measure- preserving.
 type Iso s t a b = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f t)
 
--- | @type 'Iso'' = 'Control.Lens.Type.Simple' 'Iso'@
+-- | @
+-- type 'Iso'' = 'Control.Lens.Type.Simple' 'Iso'
+-- @
 type Iso' s a = Iso s s a a
 
 ------------------------------------------------------------------------------
@@ -273,7 +305,9 @@ type Iso' s a = Iso s s a a
 --
 -- First, if I 'Control.Lens.Review.re' or 'Control.Lens.Prism.review' a value with a 'Prism' and then 'Control.Lens.Prism.preview' or use ('Control.Lens.Fold.^?'), I will get it back:
 --
--- @'Control.Lens.Prism.preview' l ('Control.Lens.Prism.review' l b) ≡ 'Just' b@
+-- @
+-- 'Control.Lens.Prism.preview' l ('Control.Lens.Prism.review' l b) ≡ 'Just' b
+-- @
 --
 -- Second, if you can extract a value @a@ using a 'Prism' @l@ from a value @s@, then the value @s@ is completely described my @l@ and @a@:
 --
@@ -281,7 +315,9 @@ type Iso' s a = Iso s s a a
 --
 -- These two laws imply that the 'Traversal' laws hold for every 'Prism' and that we 'Data.Traversable.traverse' at most 1 element:
 --
--- @'Control.Lens.Fold.lengthOf' l x '<=' 1@
+-- @
+-- 'Control.Lens.Fold.lengthOf' l x '<=' 1
+-- @
 --
 -- It may help to think of this as a 'Iso' that can be partial in one direction.
 --
@@ -467,16 +503,24 @@ type IndexPreservingMonadicFold m s a = forall p f r. (Conjoined p, Effective m 
 -- This is commonly abbreviated as a \"prime\" marker, /e.g./ 'Lens'' = 'Simple' 'Lens'.
 type Simple f s a = f s s a a
 
--- | @type 'LensLike' f s t a b = 'Overloading' (->) (->) f s t a b@
+-- | @
+-- type 'LensLike' f s t a b = 'Overloading' (->) (->) f s t a b
+-- @
 type Overloading p q f s t a b = p a (f b) -> q s (f t)
 
--- | @type 'Overloading'' p q f s a = 'Simple' ('Overloading' p q f) s a@
+-- | @
+-- type 'Overloading'' p q f s a = 'Simple' ('Overloading' p q f) s a
+-- @
 type Overloading' p q f s a = Overloading p q f s s a a
 
--- | @type 'LensLike' f s t a b = 'Overloaded' (->) f s t a b@
+-- | @
+-- type 'LensLike' f s t a b = 'Overloaded' (->) f s t a b
+-- @
 type Overloaded p f s t a b = p a (f b) -> p s (f t)
 
--- | @type 'Overloaded'' p q f s a = 'Simple' ('Overloaded' p q f) s a@
+-- | @
+-- type 'Overloaded'' p q f s a = 'Simple' ('Overloaded' p q f) s a
+-- @
 type Overloaded' p f s a = Overloaded p f s s a a
 
 -- | Many combinators that accept a 'Lens' can also accept a
@@ -492,7 +536,9 @@ type Overloaded' p f s a = Overloaded p f s s a a
 -- 'Traversal'.
 type LensLike f s t a b = (a -> f b) -> s -> f t
 
--- | @type 'LensLike'' f = 'Simple' ('LensLike' f)@
+-- | @
+-- type 'LensLike'' f = 'Simple' ('LensLike' f)
+-- @
 type LensLike' f s a = LensLike f s s a a
 
 -- | Convenient alias for constructing indexed lenses and their ilk.

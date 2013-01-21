@@ -107,7 +107,9 @@ iso sa bt = dimap sa (fmap bt)
 
 -- | Invert an isomorphism.
 --
--- @'from' ('from' l) ≡ l@
+-- @
+-- 'from' ('from' l) ≡ l
+-- @
 from :: AnIso s t a b -> Iso b a t s
 from k = case runIso k of
   Exchange sa bt -> iso bt sa
@@ -167,9 +169,13 @@ auf k = case runIso k of
 
 -- | The opposite of working 'Control.Lens.Setter.over' a 'Setter' is working 'under' an isomorphism.
 --
--- @'under' ≡ 'Control.Lens.Setter.over' '.' 'from'@
+-- @
+-- 'under' ≡ 'Control.Lens.Setter.over' '.' 'from'
+-- @
 --
--- @'under' :: 'Iso' s t a b -> (s -> t) -> a -> b@
+-- @
+-- 'under' :: 'Iso' s t a b -> (s -> t) -> a -> b
+-- @
 under :: AnIso s t a b -> (t -> s) -> b -> a
 under k = case runIso k of
   Exchange sa bt -> \ts -> sa . ts . bt
@@ -262,16 +268,22 @@ anon a p = iso (fromMaybe a) go where
 
 -- | The canonical isomorphism for currying and uncurrying a function.
 --
--- @'curried' = 'iso' 'curry' 'uncurry'@
+-- @
+-- 'curried' = 'iso' 'curry' 'uncurry'
+-- @
 curried :: Iso ((a,b) -> c) ((d,e) -> f) (a -> b -> c) (d -> e -> f)
 curried = iso curry uncurry
 {-# INLINE curried #-}
 
 -- | The canonical isomorphism for uncurrying and currying a function.
 --
--- @'uncurried' = 'iso' 'uncurry' 'curry'@
+-- @
+-- 'uncurried' = 'iso' 'uncurry' 'curry'
+-- @
 --
--- @'uncurried' = 'from' 'curried'@
+-- @
+-- 'uncurried' = 'from' 'curried'
+-- @
 uncurried :: Iso (a -> b -> c) (d -> e -> f) ((a,b) -> c) ((d,e) -> f)
 uncurried = iso uncurry curry
 {-# INLINE uncurried #-}

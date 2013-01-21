@@ -76,7 +76,9 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 instance Field1 (Identity a) (Identity b) a b where
   _1 f (Identity a) = Identity <$> indexed f (0 :: Int) a
 
--- | @'_1' k ~(a,b) = (\\a' -> (a',b)) 'Data.Functor.<$>' k a@
+-- | @
+-- '_1' k ~(a,b) = (\\a' -> (a',b)) 'Data.Functor.<$>' k a
+-- @
 instance Field1 (a,b) (a',b) a a' where
   _1 k ~(a,b) = indexed k (0 :: Int) a <&> \a' -> (a',b)
   {-# INLINE _1 #-}
@@ -130,7 +132,9 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- @
   _2 :: IndexedLens Int s t a b
 
--- | @'_2' k ~(a,b) = (\\b' -> (a,b')) 'Data.Functor.<$>' k b@
+-- | @
+-- '_2' k ~(a,b) = (\\b' -> (a,b')) 'Data.Functor.<$>' k b
+-- @
 instance Field2 (a,b) (a,b') b b' where
   _2 k ~(a,b) = indexed k (1 :: Int) b <&> \b' -> (a,b')
   {-# INLINE _2 #-}

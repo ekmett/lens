@@ -20,7 +20,9 @@
 -- enumerate those contents. Starting with @'fmap' :: 'Functor' f => (a -> b) -> f a -> f b@
 -- we monomorphize the type to obtain @(a -> b) -> s -> t@ and then decorate it with 'Data.Functor.Identity.Identity' to obtain:
 --
--- @type 'Setter' s t a b = (a -> 'Data.Functor.Identity.Identity' b) -> s -> 'Data.Functor.Identity.Identity' t@
+-- @
+-- type 'Setter' s t a b = (a -> 'Data.Functor.Identity.Identity' b) -> s -> 'Data.Functor.Identity.Identity' t
+-- @
 --
 -- Every 'Traversal' is a valid 'Setter', since 'Data.Functor.Identity.Identity' is 'Applicative'.
 --
@@ -120,7 +122,9 @@ type ASetter s t a b = (a -> Mutator b) -> s -> Mutator t
 --
 -- Most user code will never have to use this type.
 --
--- @type 'ASetter'' = 'Simple' 'ASetter'@
+-- @
+-- type 'ASetter'' = 'Simple' 'ASetter'
+-- @
 type ASetter' s a = ASetter s s a a
 
 -- | Running an 'IndexedSetter' instantiates it to a concrete type.
@@ -131,7 +135,9 @@ type ASetter' s a = ASetter s s a a
 -- By choosing 'Mutator' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
 type AnIndexedSetter i s t a b = Indexed i a (Mutator b) -> s -> Mutator t
 
--- | @type 'AnIndexedSetter'' i = 'Simple' ('AnIndexedSetter' i)@
+-- | @
+-- type 'AnIndexedSetter'' i = 'Simple' ('AnIndexedSetter' i)
+-- @
 type AnIndexedSetter' i s a = AnIndexedSetter i s s a a
 
 type Setting p s t a b = p a (Mutator b) -> s -> Mutator t
@@ -165,7 +171,9 @@ type Setting' p s a = Setting p s s a a
 -- >>> over (mapped._2) length [("hello","world"),("leaders","!!!")]
 -- [("hello",5),("leaders",3)]
 --
--- @'mapped' :: 'Functor' f => 'Setter' (f a) (f b) a b@
+-- @
+-- 'mapped' :: 'Functor' f => 'Setter' (f a) (f b) a b
+-- @
 --
 -- If you want an 'IndexPreservingSetter' use @'setting' 'fmap'@.
 mapped :: Functor f => Setter (f a) (f b) a b
@@ -177,7 +185,9 @@ mapped = sets fmap
 -- You sometimes have to use this rather than 'mapped' -- due to
 -- temporary insanity 'Functor' is not a superclass of 'Monad'.
 --
--- @'liftM' ≡ 'over' 'lifted'@
+-- @
+-- 'liftM' ≡ 'over' 'lifted'
+-- @
 --
 -- >>> over lifted f [a,b,c]
 -- [f a,f b,f c]
@@ -192,7 +202,9 @@ lifted = sets liftM
 
 -- | This 'Setter' can be used to map over all of the inputs to a 'Contravariant'.
 --
--- @'contramap' ≡ 'over' 'contramapped'@
+-- @
+-- 'contramap' ≡ 'over' 'contramapped'
+-- @
 --
 -- >>> getPredicate (over contramapped (*2) (Predicate even)) 5
 -- True
@@ -226,7 +238,9 @@ contramapped = sets contramap
 -- >>> (mapped.argument %~ f) h x y
 -- h x (f y)
 --
--- @'argument' :: 'Setter' (b -> r) (a -> r) a b@
+-- @
+-- 'argument' :: 'Setter' (b -> r) (a -> r) a b
+-- @
 argument :: Profunctor p => Setter (p b r) (p a r) a b
 argument = sets lmap
 {-# INLINE argument #-}
@@ -250,14 +264,18 @@ argument = sets lmap
 -- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
 -- and transforms it into a 'Setter'.
 --
--- @'setting' :: ((a -> b) -> s -> t) -> 'Setter' s t a b@
+-- @
+-- 'setting' :: ((a -> b) -> s -> t) -> 'Setter' s t a b
+-- @
 setting :: ((a -> b) -> s -> t) -> IndexPreservingSetter s t a b
 setting l pafb = cotabulate $ \ws -> pure $ l (\a -> untainted (corep pafb (a <$ ws))) (extract ws)
 {-# INLINE setting #-}
 
 -- | Build a 'Setter', 'IndexedSetter' or 'IndexPreservingSetter' depending on your choice of 'Profunctor'.
 --
--- @'sets' :: ((a -> b) -> s -> t) -> 'Setter' s t a b@
+-- @
+-- 'sets' :: ((a -> b) -> s -> t) -> 'Setter' s t a b
+-- @
 sets :: (Profunctor p, Profunctor q, Settable f) => (p a b -> q s t) -> Overloading p q f s t a b
 sets f g = taintedDot (f (untaintedDot g))
 {-# INLINE sets #-}
@@ -294,7 +312,9 @@ cloneIndexedSetter l pafb = taintedDot (runMutator #. l (Indexed $ \i -> Mutator
 --
 -- Given any valid 'Setter' @l@, you can also rely on the law:
 --
--- @'over' l f '.' 'over' l g = 'over' l (f '.' g)@
+-- @
+-- 'over' l f '.' 'over' l g = 'over' l (f '.' g)
+-- @
 --
 -- /e.g./
 --
@@ -327,7 +347,9 @@ over l f = runMutator #. l (Mutator #. f)
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
 -- or 'Traversal' with a constant value.
 --
--- @('<$') ≡ 'set' 'mapped'@
+-- @
+-- ('<$') ≡ 'set' 'mapped'
+-- @
 --
 -- >>> set _2 "hello" (1,())
 -- (1,"hello")
@@ -418,7 +440,9 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 --
 -- This is an infix version of 'set', provided for consistency with ('.=').
 --
--- @f '<$' a ≡ 'mapped' '.~' f '$' a@
+-- @
+-- f '<$' a ≡ 'mapped' '.~' f '$' a
+-- @
 --
 -- >>> (a,b,c,d) & _4 .~ e
 -- (a,b,c,e)
@@ -441,7 +465,9 @@ set' l b = runMutator #. l (\_ -> Mutator b)
 
 -- | Set the target of a 'Lens', 'Traversal' or 'Setter' to 'Just' a value.
 --
--- @l '?~' t ≡ 'set' l ('Just' t)@
+-- @
+-- l '?~' t ≡ 'set' l ('Just' t)
+-- @
 --
 -- >>> Nothing & id ?~ a
 -- Just a
@@ -749,7 +775,9 @@ l .= b = State.modify (l .~ b)
 -- ('%=') :: 'MonadState' s m => 'Setter'' s a    -> (a -> a) -> m ()
 -- @
 --
--- @('%=') :: 'MonadState' s m => 'ASetter' s s a b -> (a -> b) -> m ()@
+-- @
+-- ('%=') :: 'MonadState' s m => 'ASetter' s s a b -> (a -> b) -> m ()
+-- @
 (%=) :: (Profunctor p, MonadState s m) => Setting p s s a b -> p a b -> m ()
 l %= f = State.modify (l %~ f)
 {-# INLINE (%=) #-}
@@ -947,7 +975,9 @@ l <~ mb = mb >>= (l .=)
 --
 -- This is useful for chaining assignment without round-tripping through your 'Monad' stack.
 --
--- @do x <- 'Control.Lens.Tuple._2' '<.=' ninety_nine_bottles_of_beer_on_the_wall@
+-- @
+-- do x <- 'Control.Lens.Tuple._2' '<.=' ninety_nine_bottles_of_beer_on_the_wall
+-- @
 --
 -- If you do not need a copy of the intermediate result, then using @l '.=' d@ will avoid unused binding warnings.
 --
@@ -967,7 +997,9 @@ l <.= b = do
 --
 -- This is useful for chaining assignment without round-tripping through your 'Monad' stack.
 --
--- @do x <- 'Control.Lens.At.at' "foo" '<?=' ninety_nine_bottles_of_beer_on_the_wall@
+-- @
+-- do x <- 'Control.Lens.At.at' "foo" '<?=' ninety_nine_bottles_of_beer_on_the_wall
+-- @
 --
 -- If you do not need a copy of the intermediate result, then using @l '?=' d@ will avoid unused binding warnings.
 --
@@ -1109,11 +1141,15 @@ isets f = sets (f . indexed)
 -- | Adjust every target of an 'IndexedSetter', 'IndexedLens' or 'IndexedTraversal'
 -- with access to the index.
 --
--- @('%@~') ≡ 'imapOf'@
+-- @
+-- ('%@~') ≡ 'imapOf'
+-- @
 --
 -- When you do not need access to the index then ('%@~') is more liberal in what it can accept.
 --
--- @l '%~' f ≡ l '%@~' 'const' f@
+-- @
+-- l '%~' f ≡ l '%@~' 'const' f
+-- @
 --
 -- @
 -- ('%@~') :: 'IndexedSetter' i s t a b    -> (i -> a -> b) -> s -> t
@@ -1129,7 +1165,9 @@ l %@~ f = l %~ Indexed f
 --
 -- When you do not need access to the index then ('%=') is more liberal in what it can accept.
 --
--- @l '%=' f ≡ l '%@=' 'const' f@
+-- @
+-- l '%=' f ≡ l '%@=' 'const' f
+-- @
 --
 -- @
 -- ('%@=') :: 'MonadState' s m => 'IndexedSetter' i s s a b    -> (i -> a -> b) -> m ()
@@ -1154,7 +1192,9 @@ mapOf = over
 --
 -- When you do not need access to the index, then 'mapOf' is more liberal in what it can accept.
 --
--- @'mapOf' l ≡ 'imapOf' l '.' 'const'@
+-- @
+-- 'mapOf' l ≡ 'imapOf' l '.' 'const'
+-- @
 --
 -- @
 -- 'imapOf' :: 'IndexedSetter' i s t a b    -> (i -> a -> b) -> s -> t
