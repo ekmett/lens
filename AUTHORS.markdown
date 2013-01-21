@@ -8,7 +8,7 @@ Many people have contributed patches, bug reports and massive quantities of code
 
 * [Shachaf Ben-Kiki](mailto:shachaf@gmail.com) [@shachaf](http://github.com/shachaf)
 * Elliott Hird [@ehird](http://github.com/ehird)
-* [Johan Kiviniemi](mailto:johan@kiviniemi.name) [@ion](http://github.com/ion)1
+* [Johan Kiviniemi](mailto:lens@johan.kiviniemi.name) [@ion](http://github.com/ion)1
 * [Bas Dirks](mailto:ik@basdirks.eu) [@basdirks](http://github.com/basdirks)
 * [Eric Mertens](mailto:emertens@gmail.com) [@glguy](http://github.com/glguy)
 * [Michael Sloan](mailto:mgsloan@gmail.com) [@mgsloan](http://github.com/mgsloan)
@@ -38,6 +38,6 @@ Many people have contributed patches, bug reports and massive quantities of code
 
 Omission from this list is by no means an attempt to discount your contributions.
 
-Thank you for all of your help.
+Thank you for all of your help!
 
 -Edward Kmett
