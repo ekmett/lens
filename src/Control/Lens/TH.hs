@@ -757,7 +757,7 @@ verboseLenses src = do
     makeLensesFor (map (\ (n', _, _) -> let n = unqualify (show n') in (n, n ++ "_lens")) rs) src
 
 -- | For each field of a data type, generate a Has_<field> class and instance for it.
--- Fields have to be in the format *_<Type>_<fieldname>*.
+-- Fields have to be in the format *_<prefix>_<fieldname>*. The prefix has to be the same for each field to be accepted.
 -- This allows multiple records to share the same lenses.
 hasClassAndInstance :: Name -> Q [Dec]
 hasClassAndInstance src = do
