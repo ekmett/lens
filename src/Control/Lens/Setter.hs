@@ -110,7 +110,7 @@ infixr 2 <~
 -- Setters
 ------------------------------------------------------------------------------
 
--- Running a 'Setter' instantiates it to a concrete type.
+-- | Running a 'Setter' instantiates it to a concrete type.
 --
 -- When consuming a setter directly to perform a mapping, you can use this type, but most
 -- user code will not need to use this type.
@@ -140,8 +140,14 @@ type AnIndexedSetter i s t a b = Indexed i a (Mutator b) -> s -> Mutator t
 -- @
 type AnIndexedSetter' i s a = AnIndexedSetter i s s a a
 
+-- | This is a convenient alias when defining highly polymorphic code that takes both
+-- 'ASetter' and 'AnIndexedSetter' as appropriate. If a function takes this it is
+-- expecting one of those two things based on context.
 type Setting p s t a b = p a (Mutator b) -> s -> Mutator t
 
+-- | This is a convenient alias when defining highly polymorphic code that takes both
+-- 'ASetter'' and 'AnIndexedSetter'' as appropriate. If a function takes this it is
+-- expecting one of those two things based on context.
 type Setting' p s a = Setting p s s a a
 
 -----------------------------------------------------------------------------
