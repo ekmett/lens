@@ -54,7 +54,7 @@ import Prelude hiding ((.),id)
 -- Magma
 ------------------------------------------------------------------------------
 
--- | This provides a way to peek at the internal structure of a 
+-- | This provides a way to peek at the internal structure of a
 -- 'Control.Lens.Traversal.Traversal' or 'Control.Lens.Traversal.IndexedTraversal'
 data Magma i t b a where
   MagmaAp   :: Magma i (x -> y) b a -> Magma i x b a -> Magma i y b a
@@ -90,6 +90,8 @@ instance (Show i, Show a) => Show (Magma i t b a) where
   showsPrec d (Magma i a) = showParen (d > 10) $
     showString "Magma " . showsPrec 11 i . showChar ' ' . showsPrec 11 a
 
+-- | Run a 'Magma' where all the individual leaves have been converted to the
+-- expected type
 runMagma :: Magma i t a a -> t
 runMagma (MagmaAp l r)   = runMagma l (runMagma r)
 runMagma (MagmaFmap f r) = f (runMagma r)
@@ -100,7 +102,7 @@ runMagma (Magma _ a) = a
 -- Molten
 ------------------------------------------------------------------------------
 
--- | A non-reassociating initially encoded version of 'Bazaar'.
+-- | This is a a non-reassociating initially encoded version of 'Bazaar'.
 newtype Molten i a b t = Molten { runMolten :: Magma i t b a }
 
 instance Functor (Molten i a b) where
@@ -164,6 +166,7 @@ instance a ~ b => Comonad (Molten i a b) where
 -- By constructing it this way we avoid infinite reassociations in sums where possible.
 data Mafic a b t = Mafic Int (Int -> Magma Int t b a)
 
+-- | Generate a 'Magma' using from a prefix sum.
 runMafic :: Mafic a b t -> Magma Int t b a
 runMafic (Mafic _ k) = k 0
 
@@ -172,13 +175,13 @@ instance Functor (Mafic a b) where
   {-# INLINE fmap #-}
 
 instance Apply (Mafic a b) where
-  Mafic wf mf <.> Mafic wa ma = Mafic (wf + wa) $ \o -> MagmaAp (mf o) (ma (o + wf))
+  Mafic wf mf <.> ~(Mafic wa ma) = Mafic (wf + wa) $ \o -> MagmaAp (mf o) (ma (o + wf))
   {-# INLINE (<.>) #-}
 
 instance Applicative (Mafic a b) where
   pure a = Mafic 0 $ \_ -> MagmaPure a
   {-# INLINE pure #-}
-  Mafic wf mf <*> Mafic wa ma = Mafic (wf + wa) $ \o -> MagmaAp (mf o) (ma (o + wf))
+  Mafic wf mf <*> ~(Mafic wa ma) = Mafic (wf + wa) $ \o -> MagmaAp (mf o) (ma (o + wf))
   {-# INLINE (<*>) #-}
 
 instance Sellable (->) Mafic where
