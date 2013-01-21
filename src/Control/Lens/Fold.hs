@@ -1370,6 +1370,30 @@ preview :: MonadReader s m => Getting (First a) s t a b -> m (Maybe a)
 preview l = asks (getFirst #. foldMapOf l (First #. Just))
 {-# INLINE preview #-}
 
+-- | Retrieve the first index and value targeted by a 'Fold' or 'Traversal' (or 'Just' the result
+-- from a 'Getter' or 'Lens'). See also ('^@?').
+--
+-- @'ipreview' = 'view' . 'ipre'@
+--
+-- This is usually applied in the 'Control.Monad.Reader.Reader'
+-- 'Control.Monad.Monad' @(->) s@.
+--
+-- @
+-- 'ipreview' :: 'IndexedGetter' i s a     -> s -> 'Maybe' (i, a)
+-- 'ipreview' :: 'IndexedFold' i s a       -> s -> 'Maybe' (i, a)
+-- 'ipreview' :: 'IndexedLens'' i s a      -> s -> 'Maybe' (i, a)
+-- 'ipreview' :: 'IndexedTraversal'' i s a -> s -> 'Maybe' (i, a)
+-- @
+--
+-- However, it may be useful to think of its full generality when working with
+-- a 'Control.Monad.Monad' transformer stack:
+--
+-- @
+-- 'ipreview' :: 'MonadReader' s m => 'IndexedGetter' s a     -> m ('Maybe' (i, a))
+-- 'ipreview' :: 'MonadReader' s m => 'IndexedFold' s a       -> m ('Maybe' (i, a))
+-- 'ipreview' :: 'MonadReader' s m => 'IndexedLens'' s a      -> m ('Maybe' (i, a))
+-- 'ipreview' :: 'MonadReader' s m => 'IndexedTraversal'' s a -> m ('Maybe' (i, a))
+-- @
 ipreview :: MonadReader s m => IndexedGetting i (First (i, a)) s t a b -> m (Maybe (i, a))
 ipreview l = asks (getFirst #. ifoldMapOf l (\i a -> First (Just (i, a))))
 {-# INLINE ipreview #-}
@@ -1383,11 +1407,11 @@ ipreview l = asks (getFirst #. ifoldMapOf l (\i a -> First (Just (i, a))))
 -- @'previews' = 'views' '.' 'pre'@
 --
 -- @
--- 'previews' :: 'Getter' s a     -> (a -> r) -> s -> 'Maybe' a
--- 'previews' :: 'Fold' s a       -> (a -> r) -> s -> 'Maybe' a
--- 'previews' :: 'Lens'' s a      -> (a -> r) -> s -> 'Maybe' a
--- 'previews' :: 'Iso'' s a       -> (a -> r) -> s -> 'Maybe' a
--- 'previews' :: 'Traversal'' s a -> (a -> r) -> s -> 'Maybe' a
+-- 'previews' :: 'Getter' s a     -> (a -> r) -> s -> 'Maybe' r
+-- 'previews' :: 'Fold' s a       -> (a -> r) -> s -> 'Maybe' r
+-- 'previews' :: 'Lens'' s a      -> (a -> r) -> s -> 'Maybe' r
+-- 'previews' :: 'Iso'' s a       -> (a -> r) -> s -> 'Maybe' r
+-- 'previews' :: 'Traversal'' s a -> (a -> r) -> s -> 'Maybe' r
 -- @
 --
 -- However, it may be useful to think of its full generality when working with
@@ -1404,6 +1428,31 @@ previews :: MonadReader s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe
 previews l f = asks (getFirst . foldMapOf l (First #. Just . f))
 {-# INLINE previews #-}
 
+-- | Retrieve a function of the first index and value targeted by a 'Fold' or
+-- 'Traversal' (or 'Just' the result from a 'Getter' or 'Lens').
+-- from a 'Getter' or 'Lens'). See also ('^@?').
+--
+-- @'ipreviews' = 'views' . 'ipre'@
+--
+-- This is usually applied in the 'Control.Monad.Reader.Reader'
+-- 'Control.Monad.Monad' @(->) s@.
+--
+-- @
+-- 'ipreviews' :: 'IndexedGetter' i s a     -> (i -> a -> r) -> s -> 'Maybe' r
+-- 'ipreviews' :: 'IndexedFold' i s a       -> (i -> a -> r) -> s -> 'Maybe' r
+-- 'ipreviews' :: 'IndexedLens'' i s a      -> (i -> a -> r) -> s -> 'Maybe' r
+-- 'ipreviews' :: 'IndexedTraversal'' i s a -> (i -> a -> r) -> s -> 'Maybe' r
+-- @
+--
+-- However, it may be useful to think of its full generality when working with
+-- a 'Control.Monad.Monad' transformer stack:
+--
+-- @
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedGetter' s a     -> (i -> a -> r) -> m ('Maybe' r)
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedFold' s a       -> (i -> a -> r) -> m ('Maybe' r)
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedLens'' s a      -> (i -> a -> r) -> m ('Maybe' r)
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedTraversal'' s a -> (i -> a -> r) -> m ('Maybe' r)
+-- @
 ipreviews :: MonadReader s m => IndexedGetting i (First r) s t a b -> (i -> a -> r) -> m (Maybe r)
 ipreviews l f = asks (getFirst . ifoldMapOf l (\i -> First #. Just . f i))
 {-# INLINE ipreviews #-}
