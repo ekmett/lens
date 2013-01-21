@@ -91,7 +91,7 @@ traversedStrictTree i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + len
    p = unsafeForeignPtrToPtr fp `plusPtr` (off - i0)
    rebuild n f = unsafeCreate n $ \q -> f (q `plusPtr` (off - i0))
    go !i !j
-     | i + grain < j, k <- i + div (j - i) 2 = (\l r q -> l q >> r q) <$> go i k <*> go k j
+     | i + grain < j, k <- i + quot (j - i) 2 = (\l r q -> l q >> r q) <$> go i k <*> go k j
      | otherwise = run i j
    run !i !j
      | i == j    = pure (\_ -> return ())
@@ -110,7 +110,7 @@ traversedStrictTree8 i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + le
    p = unsafeForeignPtrToPtr fp `plusPtr` (off - i0)
    rebuild n f = unsafeCreate n $ \q -> f (q `plusPtr` (off - i0))
    go !i !j
-     | i + grain < j, k <- i + div (j - i) 2 = (\l r q -> l q >> r q) <$> go i k <*> go k j
+     | i + grain < j, k <- i + quot (j - i) 2 = (\l r q -> l q >> r q) <$> go i k <*> go k j
      | otherwise = run i j
    run !i !j
      | i == j    = pure (\_ -> return ())
