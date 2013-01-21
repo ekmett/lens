@@ -1477,6 +1477,17 @@ preuse :: MonadState s m => Getting (First a) s t a b -> m (Maybe a)
 preuse l = gets (preview l)
 {-# INLINE preuse #-}
 
+-- | Retrieve the first index and value targeted by an 'IndexedFold' or 'IndexedTraversal' (or 'Just' the index 
+-- and result from an 'IndexedGetter' or 'IndexedLens') into the current state.
+--
+-- @'ipreuse' = 'use' '.' 'ipre'@
+--
+-- @
+-- 'ipreuse' :: 'MonadState' s m => 'IndexedGetter' i s a     -> m ('Maybe' (i, a))
+-- 'ipreuse' :: 'MonadState' s m => 'IndexedFold' i s a       -> m ('Maybe' (i, a))
+-- 'ipreuse' :: 'MonadState' s m => 'IndexedLens'' i s a      -> m ('Maybe' (i, a))
+-- 'ipreuse' :: 'MonadState' s m => 'IndexedTraversal'' i s a -> m ('Maybe' (i, a))
+-- @
 ipreuse :: MonadState s m => IndexedGetting i (First (i, a)) s t a b -> m (Maybe (i, a))
 ipreuse l = gets (ipreview l)
 {-# INLINE ipreuse #-}
@@ -1497,6 +1508,18 @@ preuses :: MonadState s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe r
 preuses l f = gets (previews l f)
 {-# INLINE preuses #-}
 
+-- | Retrieve a function of the first index and value targeted by an 'IndexedFold' or
+-- 'IndexedTraversal' (or a function of 'Just' the index and result from an 'IndexedGetter'
+-- or 'IndexedLens') into the current state.
+--
+-- @'ipreuses' = 'uses' '.' 'ipre'@
+--
+-- @
+-- 'preuses' :: 'MonadState' s m => 'IndexedGetter' i s a     -> (i -> a -> r) -> m ('Maybe' r)
+-- 'preuses' :: 'MonadState' s m => 'IndexedFold' i s a       -> (i -> a -> r) -> m ('Maybe' r)
+-- 'preuses' :: 'MonadState' s m => 'IndexedLens'' i s a      -> (i -> a -> r) -> m ('Maybe' r)
+-- 'preuses' :: 'MonadState' s m => 'IndexedTraversal'' i s a -> (i -> a -> r) -> m ('Maybe' r)
+-- @
 ipreuses :: MonadState s m => IndexedGetting i (First r) s t a b -> (i -> a -> r) -> m (Maybe r)
 ipreuses l f = gets (ipreviews l f)
 {-# INLINE ipreuses #-}
