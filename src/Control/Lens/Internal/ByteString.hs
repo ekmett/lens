@@ -40,7 +40,7 @@ import GHC.Base (unsafeChr)
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 import GHC.IO (unsafeDupablePerformIO)
 
--- Takes an argument for the initial index
+-- | Traverse a strict 'B.ByteString' from left to right in a biased fashion.
 traversedStrict :: Int -> IndexedTraversal' Int B.ByteString Word8
 traversedStrict i0 pafb (BI.PS fp off len) =
   let p = unsafeForeignPtrToPtr fp
@@ -59,7 +59,8 @@ traversedStrict i0 pafb (BI.PS fp off len) =
                    in (:) <$> indexed pafb (i :: Int) x <*> go (i + 1) (p `plusPtr` 1) q
 {-# INLINE traversedStrict #-}
 
--- Takes an argument for the initial index
+-- | Traverse a strict 'B.ByteString' from left to right in a biased fashion
+-- pretending the bytes are characters.
 traversedStrict8 :: Int -> IndexedTraversal' Int B.ByteString Char
 traversedStrict8 i0 pafb (BI.PS fp off len) =
   let p = unsafeForeignPtrToPtr fp
@@ -79,9 +80,11 @@ traversedStrict8 i0 pafb (BI.PS fp off len) =
 {-# INLINE traversedStrict8 #-}
 
 grain :: Int
-grain = 16
+grain = 4
+{-# INLINE grain #-}
 
--- Takes an argument for the initial index
+-- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
+-- elements at the leaves.
 traversedStrictTree :: Int -> IndexedTraversal' Int B.ByteString Word8
 traversedStrictTree i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + len)
  where
@@ -99,7 +102,8 @@ traversedStrictTree i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + len
                    in (\y ys q -> poke (q `plusPtr` i) y >> ys q) <$> indexed pafb (i :: Int) x <*> run (i + 1) j
 {-# INLINE traversedStrictTree #-}
 
--- Takes an argument for the initial index
+-- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
+-- elements at the leaves, pretending the bytes are chars.
 traversedStrictTree8 :: Int -> IndexedTraversal' Int B.ByteString Char
 traversedStrictTree8 i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + len)
  where
@@ -117,18 +121,22 @@ traversedStrictTree8 i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + le
                    in (\y ys q -> poke (q `plusPtr` i) (c2w y) >> ys q) <$> indexed pafb (i :: Int) (w2c x) <*> run (i + 1) j
 {-# INLINE traversedStrictTree8 #-}
 
+-- | Unpack a lazy 'Bytestring'
 unpackLazy :: BL.ByteString -> [Word8]
 unpackLazy = BL.unpack
 {-# INLINE unpackLazy #-}
 
+-- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString'
 traversedLazy :: IndexedTraversal' Int64 BL.ByteString Word8
 traversedLazy = iso unpackLazy BL.pack . traversed64
 {-# INLINE traversedLazy #-}
 
+-- | Unpack a lazy 'BL.ByteString' pretending the bytes are chars.
 unpackLazy8 :: BL.ByteString -> String
 unpackLazy8 = BL8.unpack
 {-# INLINE unpackLazy8 #-}
 
+-- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString' pretending the bytes are chars.
 traversedLazy8 :: IndexedTraversal' Int64 BL.ByteString Char
 traversedLazy8 = iso unpackLazy8 BL8.pack . traversed64
 {-# INLINE traversedLazy8 #-}
@@ -150,6 +158,8 @@ c2w = fromIntegral . ord
 {-# INLINE c2w #-}
 
 -- TODO: Should this create the list in chunks, like unpackBytes does in 0.10?
+
+-- | Unpack a strict 'B.Bytestring'
 unpackStrict :: B.ByteString -> [Word8]
 unpackStrict (BI.PS fp off len) =
       let p = unsafeForeignPtrToPtr fp
@@ -164,6 +174,8 @@ unpackStrict (BI.PS fp off len) =
 {-# INLINE unpackStrict #-}
 
 -- TODO: Should this create the list in chunks, like unpackBytes does in 0.10?
+
+-- | Unpack a strict 'B.Bytestring', pretending the bytes are chars.
 unpackStrict8 :: B.ByteString -> String
 unpackStrict8 (BI.PS fp off len) =
       let p = unsafeForeignPtrToPtr fp

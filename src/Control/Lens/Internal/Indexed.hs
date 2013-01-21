@@ -15,6 +15,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
+-- Internal implementation details for 'Indexed' lens-likes
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Indexed
   (
@@ -55,7 +56,7 @@ import Unsafe.Coerce
 -- Conjoined
 ------------------------------------------------------------------------------
 
--- This is a 'Profunctor' that is both 'Corepresentable' by @f@ and 'Representable' by @g@ such
+-- | This is a 'Profunctor' that is both 'Corepresentable' by @f@ and 'Representable' by @g@ such
 -- that @f@ is left adjoint to @g@. From this you can derive a lot of structure due
 -- to the preservation of limits and colimits.
 class
@@ -65,6 +66,9 @@ class
   , ArrowLoop p, ArrowApply p, ArrowChoice p
   ) => Conjoined p where
 
+  -- | 'Conjoined' is strong enough to let us distribute every 'Conjoined'
+  -- 'Profunctor' over every Haskell 'Functor'. This is effectively a
+  -- generalization of 'fmap'.
   distrib :: Functor f => p a b -> p (f a) (f b)
   distrib = tabulate . collect . rep
   {-# INLINE distrib #-}
@@ -255,7 +259,6 @@ indexing l iafb s = snd $ runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, 
 ------------------------------------------------------------------------------
 -- Indexing64
 ------------------------------------------------------------------------------
-
 
 -- | 'Applicative' composition of @'Control.Monad.Trans.State.Lazy.State' 'Int64'@ with a 'Functor', used
 -- by 'Control.Lens.Indexed.indexed64'.

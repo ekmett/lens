@@ -742,15 +742,18 @@ dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
 -- 'cloneTraversal' :: 'LensLike' ('Bazaar' a b) s t a b -> 'Traversal' s t a b
 -- @
 cloneTraversal :: ATraversal s t a b -> Traversal s t a b
-cloneTraversal l f s = runBazaar (l sell s) f
+cloneTraversal l f = bazaar f . l sell
 {-# INLINE cloneTraversal #-}
 
+-- | Clone a 'Traversal' yielding an 'IndexPreservingTraversal' that passes through
+-- whatever index it is composed with.
 cloneIndexPreservingTraversal :: ATraversal s t a b -> IndexPreservingTraversal s t a b
 cloneIndexPreservingTraversal l pafb = cotabulate $ \ws -> runBazaar (l sell (extract ws)) $ \a -> corep pafb (a <$ ws)
 {-# INLINE cloneIndexPreservingTraversal #-}
 
+-- | Clone an 'IndexedTraversal' yielding an 'IndexedTraversal' with the same index.
 cloneIndexedTraversal :: AnIndexedTraversal i s t a b -> IndexedTraversal i s t a b
-cloneIndexedTraversal l f s = runBazaar (l sell s) (Indexed (indexed f))
+cloneIndexedTraversal l f = bazaar (Indexed (indexed f)) . l sell
 {-# INLINE cloneIndexedTraversal #-}
 
 ------------------------------------------------------------------------------

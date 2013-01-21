@@ -26,6 +26,8 @@ import Unsafe.Coerce
 -- Isomorphism: Exchange
 ------------------------------------------------------------------------------
 
+-- | This is used internally by the 'Control.Lens.Iso.Iso' code to provide
+-- efficient access to the two functions that make up an isomorphism.
 data Exchange a b s t = Exchange (s -> a) (b -> t)
 
 instance Functor (Exchange a b s) where

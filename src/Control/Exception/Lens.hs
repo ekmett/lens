@@ -500,7 +500,8 @@ _UndefinedElement = _ArrayException . dimap seta (either id id) . right' . rmap 
 
 -- | 'assert' was applied to 'Prelude.False'.
 class AsAssertionFailed p f t where
-  -- |
+  -- | This exception contains provides information about what assertion failed in the string.
+  --
   -- >>> handling _AssertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
   -- "caught"
   --
@@ -524,7 +525,8 @@ instance (Choice p, Applicative f) => AsAssertionFailed p f SomeException where
 
 -- | Asynchronous exceptions.
 class AsAsyncException p f t where
-  -- |
+  -- | There are several types of 'AsyncException'.
+  --
   -- @
   -- '_AsyncException' :: 'Equality'' 'AsyncException' 'AsyncException'
   -- '_AsyncException' :: 'Prism''    'SomeException'  'AsyncException'
@@ -604,10 +606,16 @@ _UserInterrupt = _AsyncException . dimap seta (either id id) . right' . rmap (Us
 -- AsyncException
 ----------------------------------------------------------------------------
 
+-- | Thrown when the runtime system detects that the computation is guaranteed
+-- not to terminate. Note that there is no guarantee that the runtime system
+-- will notice whether any given computation is guaranteed to terminate or not.
 class (Profunctor p, Functor f) => AsNonTermination p f t where
-  -- | Thrown when the runtime system detects that the computation is guaranteed
-  -- not to terminate. Note that there is no guarantee that the runtime system
-  -- will notice whether any given computation is guaranteed to terminate or not.
+  -- | There is no additional information carried in a 'NonTermination' exception.
+  --
+  -- @
+  -- '_NonTermination' :: 'Iso''   'NonTermination' ()
+  -- '_NonTermination' :: 'Prism'' 'SomeException'  ()
+  -- @
   _NonTermination :: Overloaded' p f t ()
 
 instance (Profunctor p, Functor f) => AsNonTermination p f NonTermination where
@@ -622,9 +630,15 @@ instance (Choice p, Applicative f) => AsNonTermination p f SomeException where
 -- NestedAtomically
 ----------------------------------------------------------------------------
 
+-- | Thrown when the program attempts to call atomically, from the
+-- 'Control.Monad.STM' package, inside another call to atomically.
 class (Profunctor p, Functor f) => AsNestedAtomically p f t where
-  -- | Thrown when the program attempts to call atomically, from the
-  -- 'Control.Monad.STM' package, inside another call to atomically.
+  -- | There is no additional information carried in a 'NestedAtomically' exception.
+  --
+  -- @
+  -- '_NestedAtomically' :: 'Iso''   'NestedAtomically' ()
+  -- '_NestedAtomically' :: 'Prism'' 'SomeException'    ()
+  -- @
   _NestedAtomically :: Overloaded' p f t ()
 
 instance (Profunctor p, Functor f) => AsNestedAtomically p f NestedAtomically where
@@ -639,10 +653,16 @@ instance (Choice p, Applicative f) => AsNestedAtomically p f SomeException where
 -- BlockedIndefinitelyOnMVar
 ----------------------------------------------------------------------------
 
+-- | The thread is blocked on an 'Control.Concurrent.MVar.MVar', but there
+-- are no other references to the 'Control.Concurrent.MVar.MVar' so it can't
+-- ever continue.
 class (Profunctor p, Functor f) => AsBlockedIndefinitelyOnMVar p f t where
-  -- | The thread is blocked on an 'Control.Concurrent.MVar.MVar', but there
-  -- are no other references to the 'Control.Concurrent.MVar.MVar' so it can't
-  -- ever continue.
+  -- | There is no additional information carried in a 'BlockedIndefinitelyOnMVar' exception.
+  --
+  -- @
+  -- '_BlockedIndefinitelyOnMVar' :: 'Iso''   'BlockedIndefinitelyOnMVar' ()
+  -- '_BlockedIndefinitelyOnMVar' :: 'Prism'' 'SomeException'             ()
+  -- @
   _BlockedIndefinitelyOnMVar :: Overloaded' p f t ()
 
 instance (Profunctor p, Functor f) => AsBlockedIndefinitelyOnMVar p f BlockedIndefinitelyOnMVar where
@@ -657,10 +677,16 @@ instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnMVar p f SomeExcept
 -- BlockedIndefinitelyOnSTM
 ----------------------------------------------------------------------------
 
+-- | The thread is waiting to retry an 'Control.Monad.STM.STM' transaction,
+-- but there are no other references to any TVars involved, so it can't ever
+-- continue.
 class (Profunctor p, Functor f) => AsBlockedIndefinitelyOnSTM p f t where
-  -- | The thread is waiting to retry an 'Control.Monad.STM.STM' transaction,
-  -- but there are no other references to any TVars involved, so it can't ever
-  -- continue.
+  -- | There is no additional information carried in a 'BlockedIndefinitelyOnSTM' exception.
+  --
+  -- @
+  -- '_BlockedIndefinitelyOnSTM' :: 'Iso''   'BlockedIndefinitelyOnSTM' ()
+  -- '_BlockedIndefinitelyOnSTM' :: 'Prism'' 'SomeException'            ()
+  -- @
   _BlockedIndefinitelyOnSTM :: Overloaded' p f t ()
 
 instance (Profunctor p, Functor f) => AsBlockedIndefinitelyOnSTM p f BlockedIndefinitelyOnSTM where
@@ -675,9 +701,15 @@ instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnSTM p f SomeExcepti
 -- Deadlock
 ----------------------------------------------------------------------------
 
+-- | There are no runnable threads, so the program is deadlocked. The
+-- 'Deadlock' 'Exception' is raised in the main thread only.
 class (Profunctor p, Functor f) => AsDeadlock p f t where
-  -- | There are no runnable threads, so the program is deadlocked. The
-  -- 'Deadlock' 'Exception' is raised in the main thread only.
+  -- | There is no information carried in a 'Deadlock' exception.
+  --
+  -- @
+  -- '_Deadlock' :: 'Iso''   'Deadlock'      ()
+  -- '_Deadlock' :: 'Prism'' 'SomeException' ()
+  -- @
   _Deadlock :: Overloaded' p f t ()
 
 instance (Profunctor p, Functor f) => AsDeadlock p f Deadlock where
@@ -692,9 +724,15 @@ instance (Choice p, Applicative f) => AsDeadlock p f SomeException where
 -- NoMethodError
 ----------------------------------------------------------------------------
 
+-- | A class method without a definition (neither a default definition,
+-- nor a definition in the appropriate instance) was called.
 class (Profunctor p, Functor f) => AsNoMethodError p f t where
-  -- | A class method without a definition (neither a default definition,
-  -- nor a definition in the appropriate instance) was called.
+  -- | Extract a description of the missing method.
+  --
+  -- @
+  -- '_NoMethodError' :: 'Iso''   'NoMethodError' 'String'
+  -- '_NoMethodError' :: 'Prism'' 'SomeException' 'String'
+  -- @
   _NoMethodError :: Overloaded' p f t String
 
 instance (Profunctor p, Functor f) => AsNoMethodError p f NoMethodError where
@@ -709,10 +747,14 @@ instance (Choice p, Applicative f) => AsNoMethodError p f SomeException where
 -- PatternMatchFail
 ----------------------------------------------------------------------------
 
+-- | A pattern match failed.
 class (Profunctor p, Functor f) => AsPatternMatchFail p f t where
-  -- | A pattern match failed.
+  -- | Information about the source location of the pattern.
   --
-  -- Information about the source location of the pattern.
+  -- @
+  -- '_PatternMatchFail' :: 'Iso''   'PatternMatchFail' 'String'
+  -- '_PatternMatchFail' :: 'Prism'' 'SomeException'    'String'
+  -- @
   _PatternMatchFail :: Overloaded' p f t String
 
 instance (Profunctor p, Functor f) => AsPatternMatchFail p f PatternMatchFail where
@@ -727,11 +769,15 @@ instance (Choice p, Applicative f) => AsPatternMatchFail p f SomeException where
 -- RecConError
 ----------------------------------------------------------------------------
 
+-- | An uninitialised record field was used.
 class (Profunctor p, Functor f) => AsRecConError p f t where
-  -- | An uninitialised record field was used.
-  --
-  -- Information about the source location where the record was
+  -- | Information about the source location where the record was
   -- constructed.
+  --
+  -- @
+  -- '_RecConError' :: 'Iso''   'RecConError'   'String'
+  -- '_RecConError' :: 'Prism'' 'SomeException' 'String'
+  -- @
   _RecConError :: Overloaded' p f t String
 
 instance (Profunctor p, Functor f) => AsRecConError p f RecConError where

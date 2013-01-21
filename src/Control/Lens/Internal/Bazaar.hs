@@ -42,6 +42,8 @@ import Prelude hiding ((.),id)
 -- Bizarre
 ------------------------------------------------------------------------------
 
+-- | This class is used to run the various 'Bazaar' variants used in this
+-- library.
 class Profunctor p => Bizarre p w | w -> p where
   bazaar :: Applicative f => p a (f b) -> w a b t -> f t
 
@@ -66,6 +68,11 @@ class Profunctor p => Bizarre p w | w -> p where
 -- This is a final encoding of 'Bazaar'.
 newtype Bazaar p a b t = Bazaar { runBazaar :: forall f. Applicative f => p a (f b) -> f t }
 
+-- | This alias is helpful when it comes to reducing repetition in type signatures.
+--
+-- @
+-- type 'Bazaar'' p a t = 'Bazaar' p a a t
+-- @
 type Bazaar' p a = Bazaar p a a
 
 instance IndexedFunctor (Bazaar p) where
@@ -119,9 +126,13 @@ instance (a ~ b, Conjoined p) => ComonadApply (Bazaar p a b) where
 --
 -- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
 -- must be a better way!
-
 newtype BazaarT p (g :: * -> *) a b t = BazaarT { runBazaarT :: forall f. Applicative f => p a (f b) -> f t }
 
+-- | This alias is helpful when it comes to reducing repetition in type signatures.
+--
+-- @
+-- type 'BazaarT'' p g a t = 'BazaarT' p g a a t
+-- @
 type BazaarT' p g a = BazaarT p g a a
 
 instance IndexedFunctor (BazaarT p g) where
