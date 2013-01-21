@@ -205,6 +205,9 @@ type Context' a = Context a a
 -- Pretext
 ------------------------------------------------------------------------------
 
+-- | This is a generalized form of 'Context' that can be repeatedly cloned with less
+-- impact on its performance, and which permits the use of an arbitrary 'Conjoined'
+-- 'Profunctor'
 newtype Pretext p a b t = Pretext { runPretext :: forall f. Functor f => p a (f b) -> f t }
 
 -- | @type 'Pretext'' p a s = 'Pretext' p a a s@
@@ -268,6 +271,14 @@ instance Corepresentable p => Sellable p (Pretext p) where
 -- PretextT
 ------------------------------------------------------------------------------
 
+-- | This is a generalized form of 'Context' that can be repeatedly cloned with less
+-- impact on its performance, and which permits the use of an arbitrary 'Conjoined'
+-- 'Profunctor'.
+--
+-- The extra phantom 'Functor' is used to let us lie and claim a 'Gettable' instance under
+-- limited circumstances. This is used internally to permit a number of combinators to
+-- gracefully degrade when applied to a 'Control.Lens.Fold.Fold', 'Control.Lens.Getter.Getter'
+-- or 'Control.Lens.Action.Action'.
 newtype PretextT p (g :: * -> *) a b t = PretextT { runPretextT :: forall f. Functor f => p a (f b) -> f t }
 
 -- | @type 'PretextT'' p g a s = 'PretextT' p g a a s@
@@ -335,6 +346,8 @@ instance (Profunctor p, Gettable g) => Gettable (PretextT p g a b) where
 -- Utilities
 ------------------------------------------------------------------------------
 
+-- | We can convert any 'Conjoined' 'Profunctor' to a function,
+-- possibly losing information about an index in the process.
 coarr :: (Representable q, Comonad (Rep q)) => q a b -> a -> b
 coarr qab = extract . rep qab
 {-# INLINE coarr #-}
