@@ -73,9 +73,19 @@ class
   distrib = tabulate . collect . rep
   {-# INLINE distrib #-}
 
+  -- | This permits us to make a decision at an outermost point about whether or not we use an index.
+  --
+  -- Ideally any use of this function should be done in such a way so that you compute the same answer,
+  -- but this cannot be enforced at the type level.
+  conjoined :: q (a -> b) r -> q (p a b) r -> q (p a b) r
+  conjoined _ r = r
+  {-# INLINE conjoined #-}
+
 instance Conjoined (->) where
   distrib = fmap
   {-# INLINE distrib #-}
+  conjoined l _ = l
+  {-# INLINE conjoined #-}
 
 ----------------------------------------------------------------------------
 -- Indexable
