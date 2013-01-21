@@ -40,6 +40,7 @@ import Control.Lens.Internal.Instances ()
 import Control.Monad
 import Control.Monad.Fix
 import Data.Distributive
+import Data.Functor.Bind
 import Data.Int
 import Data.Profunctor
 import Data.Profunctor.Rep
@@ -100,11 +101,19 @@ instance Functor (Indexed i a) where
   fmap g (Indexed f) = Indexed $ \i a -> g (f i a)
   {-# INLINE fmap #-}
 
+instance Apply (Indexed i a) where
+  Indexed f <.> Indexed g = Indexed $ \i a -> f i a (g i a)
+  {-# INLINE (<.>) #-}
+
 instance Applicative (Indexed i a) where
   pure b = Indexed $ \_ _ -> b
   {-# INLINE pure #-}
   Indexed f <*> Indexed g = Indexed $ \i a -> f i a (g i a)
   {-# INLINE (<*>) #-}
+
+instance Bind (Indexed i a) where
+  Indexed f >>- k = Indexed $ \i a -> runIndexed (k (f i a)) i a
+  {-# INLINE (>>-) #-}
 
 instance Monad (Indexed i a) where
   return b = Indexed $ \_ _ -> b
@@ -207,6 +216,12 @@ instance Functor f => Functor (Indexing f) where
     (j, x) -> (j, fmap f x)
   {-# INLINE fmap #-}
 
+instance Apply f => Apply (Indexing f) where
+  Indexing mf <.> Indexing ma = Indexing $ \i -> case mf i of
+    (j, ff) -> case ma j of
+       ~(k, fa) -> (k, ff <.> fa)
+  {-# INLINE (<.>) #-}
+
 instance Applicative f => Applicative (Indexing f) where
   pure x = Indexing $ \i -> (i, pure x)
   {-# INLINE pure #-}
@@ -250,6 +265,12 @@ instance Functor f => Functor (Indexing64 f) where
   fmap f (Indexing64 m) = Indexing64 $ \i -> case m i of
     (j, x) -> (j, fmap f x)
   {-# INLINE fmap #-}
+
+instance Apply f => Apply (Indexing64 f) where
+  Indexing64 mf <.> Indexing64 ma = Indexing64 $ \i -> case mf i of
+    (j, ff) -> case ma j of
+       ~(k, fa) -> (k, ff <.> fa)
+  {-# INLINE (<.>) #-}
 
 instance Applicative f => Applicative (Indexing64 f) where
   pure x = Indexing64 $ \i -> (i, pure x)
