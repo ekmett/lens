@@ -48,12 +48,19 @@ import Data.Maybe
 import Data.Monoid
 import Data.Profunctor.Unsafe
 
+-- $setup
+-- >>> import Control.Lens
+-- >>> import Data.Char
+
 {-# ANN module "HLint: ignore Use foldl" #-}
 
 ------------------------------------------------------------------------------
--- Jacket
+-- * Jacket
 ------------------------------------------------------------------------------
 
+-- | A 'Jacket' is used to store the contents of a 'Traversal' in a way
+-- that we do not have to re-asocciate the elements. This enables us to
+-- more gracefully deal with infinite traversals.
 data Jacket i a
   = Ap Int         -- size
        Bool        -- left-to-right null check
@@ -65,6 +72,7 @@ data Jacket i a
   | Pure
   deriving Show
 
+-- | Return the number of children in a jacket
 size :: Jacket i a -> Int
 size (Ap s _ _ _ _ _) = s
 size Leaf{}           = 1
@@ -136,14 +144,17 @@ instance Monoid (Jacket i a) where
   mappend l r = Ap (size l + size r) (nullLeft l && nullLeft r) (nullRight r && nullRight l) (maximal l <> maximal r) l r
   {-# INLINE mappend #-}
 
+-- | Construct a 'Jacket' from a 'Bazaar'
 jacketIns :: Bazaar (Indexed i) a b t -> Jacket i a
 jacketIns (Bazaar bz) = runAccessor $ bz $ Indexed (\i -> Accessor #. Leaf i)
 {-# INLINE jacketIns #-}
 
 ------------------------------------------------------------------------------
--- Putting it back in the tree
+-- * Flow
 ------------------------------------------------------------------------------
 
+-- | Once we've updated a 'Zipper' we need to put the values back into the original
+-- shape. 'Flow' is an illegal 'Applicative' that is used to put the values back.
 newtype Flow i b a = Flow { runFlow :: Jacket i b -> a }
 
 instance Functor (Flow i b) where
@@ -163,23 +174,23 @@ instance Applicative (Flow i b) where
     _              -> mf s (ma s)
   {-# INLINE (<*>) #-}
 
+-- | Given a 'Bazaar' and a 'Jacket' build from that 'Bazaar' with 'jacketIns',
+-- refill the 'Bazaar' with its new contents.
 jacketOuts :: Bazaar (Indexed i) a b t -> Jacket j b -> t
 jacketOuts bz = runFlow $ runBazaar bz $ Indexed $ \ _ _ -> Flow $ \ t -> case t of
   Leaf _ a -> a
   _        -> error "jacketOuts: wrong shape"
 {-# INLINE jacketOuts #-}
 
--- | This is only a valid 'Lens' if you don't change the shape of the 'Jacket'.
+-- | This is only a valid 'Lens' if you don't change the shape of the 'Jacket'!
 jacket :: AnIndexedTraversal i s t a b -> Lens s t (Jacket i a) (Jacket j b)
 jacket l f s = jacketOuts bz <$> f (jacketIns bz) where
   bz = l sell s
 {-# INLINE jacket #-}
 
--- $setup
--- >>> import Control.Lens
--- >>> import Data.Char
-
+------------------------------------------------------------------------------
 -- * Paths
+------------------------------------------------------------------------------
 
 -- | A 'Path' into a 'Jacket' that ends at a 'Leaf'.
 data Path i a
@@ -639,17 +650,27 @@ idownward l (Zipper h t o p j s) = Zipper (Snoc h l' t o p j go) 0 0 Start i a
 -- | Step down into the 'leftmost' entry of a 'Traversal'.
 --
 -- @
--- 'within' :: 'Traversal'' s a -> (h ':>' s) -> 'Maybe' (h ':>' s ':>' a)
--- 'within' :: 'Prism'' s a     -> (h ':>' s) -> 'Maybe' (h ':>' s ':>' a)
--- 'within' :: 'Lens'' s a      -> (h ':>' s) -> 'Maybe' (h ':>' s ':>' a)
--- 'within' :: 'Iso'' s a       -> (h ':>' s) -> 'Maybe' (h ':>' s ':>' a)
+-- 'within' :: 'Traversal'' s a -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>>' a)
+-- 'within' :: 'Prism'' s a     -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>>' a)
+-- 'within' :: 'Lens'' s a      -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>>' a)
+-- 'within' :: 'Iso'' s a       -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>>' a)
 -- @
-
+--
 -- @'within' :: 'MonadPlus' m => 'ATraversal'' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)@
 within :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
 within = iwithin . indexing
 {-# INLINE within #-}
 
+-- | Step down into the 'leftmost' entry of an 'IndexedTraversal'.
+--
+-- /Note:/ The index is assumed to be ordered and must increase monotonically or else you cannot (safely) 'moveTo' or 'moveToward' or use tapes.
+--
+-- @
+-- 'iwithin' :: 'IndexedTraversal'' i s a -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>' a:@i)
+-- 'iwithin' :: 'IndexedLens'' i s a      -> (h ':>' s:@j) -> 'Maybe' (h ':>' s:@j ':>' a:@i)
+-- @
+--
+-- @'iwithin' :: 'MonadPlus' m => 'ATraversal'' s a -> (h :> s:@j) -> m (h :> s:@j :>> a)@
 iwithin :: (MonadPlus m, Ord i) => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
 iwithin l (Zipper h t o p j s) = case jacket l (Context id) s of
   Context k xs -> startl Start xs mzero $ \q i a -> return $ Zipper (Snoc h l t o p j k) 0 0 q i a
@@ -661,14 +682,22 @@ iwithin l (Zipper h t o p j s) = case jacket l (Context id) s of
 -- [("hEllo","world"),("heLlo","world"),("helLo","world"),("hellO","world")]
 --
 -- @
--- 'withins' :: 'Traversal'' s a -> (h ':>' s) -> [h ':>' s ':>' a]
--- 'withins' :: 'Lens'' s a      -> (h ':>' s) -> [h ':>' s ':>' a]
--- 'withins' :: 'Iso'' s a       -> (h ':>' s) -> [h ':>' s ':>' a]
+-- 'withins' :: 'Traversal'' s a -> (h ':>' s:@j) -> [h ':>' s:@j ':>>' a]
+-- 'withins' :: 'Lens'' s a      -> (h ':>' s:@j) -> [h ':>' s:@j ':>>' a]
+-- 'withins' :: 'Iso'' s a       -> (h ':>' s:@j) -> [h ':>' s:@j ':>>' a]
 -- @
 withins :: MonadPlus m => LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) -> m (h :> s:@j :>> a)
 withins = iwithins . indexing
 {-# INLINE withins #-}
 
+-- | Step down into every entry of an 'IndexedTraversal' simultaneously.
+--
+-- /Note:/ The index is assumed to be ordered and must increase monotonically or else you cannot (safely) 'moveTo' or 'moveToward' or use tapes.
+--
+-- @
+-- 'iwithins' :: 'IndexedTraversal'' i s a -> (h ':>' s:@j) -> [h ':>' s:@j ':>' a:@i]
+-- 'iwithins' :: 'IndexedLens'' i s a      -> (h ':>' s:@j) -> [h ':>' s:@j ':>' a:@i]
+-- @
 iwithins :: (MonadPlus m, Ord i) => AnIndexedTraversal' i s a -> (h :> s:@j) -> m (h :> s:@j :> a:@i)
 iwithins z (Zipper h t o p j s) = case jacket z (Context id) s of
   Context k xs -> let up = Snoc h z t o p j k
@@ -683,9 +712,9 @@ iwithins z (Zipper h t o p j s) = case jacket z (Context id) s of
 -- If this invariant is not met then this will usually result in an error!
 --
 -- @
--- 'fromWithin' :: 'Traversal'' s a -> (h ':>' s) -> h ':>' s ':>' a
--- 'fromWithin' :: 'Lens'' s a      -> (h ':>' s) -> h ':>' s ':>' a
--- 'fromWithin' :: 'Iso'' s a       -> (h ':>' s) -> h ':>' s ':>' a
+-- 'fromWithin' :: 'Traversal'' s a -> (h ':>' s:@j) -> h ':>' s:@j ':>>' a
+-- 'fromWithin' :: 'Lens'' s a      -> (h ':>' s:@j) -> h ':>' s:@j ':>>' a
+-- 'fromWithin' :: 'Iso'' s a       -> (h ':>' s:@j) -> h ':>' s:@j ':>>' a
 -- @
 --
 -- You can reason about this function as if the definition was:
@@ -695,6 +724,18 @@ fromWithin :: LensLike' (Indexing (Bazaar' (Indexed Int) a)) s a -> (h :> s:@j) 
 fromWithin = ifromWithin . indexing
 {-# INLINE fromWithin #-}
 
+-- | Unsafey step down into an 'IndexedTraversal' that is /assumed/ to be non-empty
+--
+-- If this invariant is not met then this will usually result in an error!
+--
+-- @
+-- 'ifromWithin' :: 'IndexedTraversal'' i s a -> (h ':>' s:@j) -> h ':>' s:@j ':>' a:@i
+-- 'ifromWithin' :: 'IndexedLens'' i s a      -> (h ':>' s:@j) -> h ':>' s:@j ':>' a:@i
+-- @
+--
+-- You can reason about this function as if the definition was:
+--
+-- @'fromWithin' l ≡ 'fromJust' '.' 'within' l@
 ifromWithin :: Ord i => AnIndexedTraversal' i s a -> (h :> s:@j) -> h :> s:@j :> a:@i
 ifromWithin l (Zipper h t o p j s) = case jacket l (Context id) s of
   Context k xs -> let up = Snoc h l t o p j k in
@@ -730,7 +771,7 @@ focusedContext (Zipper h t o p i a) = Pretext (\f -> rezip . Zipper h t o p i <$
 -- * Tapes
 -----------------------------------------------------------------------------
 
--- | A 'Tape' is a recorded path through the 'Traversal' chain of a 'Zipper'.
+-- | A 'Tape' is a recorded path through the (indexed) 'Traversal' chain of a 'Zipper'.
 data Tape h i a where
   Tape :: Track h i a -> i -> Tape h i a
 
