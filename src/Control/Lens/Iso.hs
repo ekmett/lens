@@ -130,6 +130,8 @@ cloneIso k = case runIso k of
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
 
+-- | Extract the two functions, one from @s -> a@ and one from @b -> t@ that characterize
+-- an 'Iso'.
 runIso :: AnIso s t a b -> Exchange a b s t
 #ifdef SAFE
 runIso ai = case ai (Exchange id Mutator) of
