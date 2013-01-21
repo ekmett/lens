@@ -53,7 +53,9 @@ a & f = f a
 
 -- | Infix flipped 'fmap'.
 --
--- @('<&>') = 'flip' 'fmap'@
+-- @
+-- ('<&>') = 'flip' 'fmap'
+-- @
 (<&>) :: Functor f => f a -> (a -> b) -> f b
 as <&> f = f <$> as
 {-# INLINE (<&>) #-}
