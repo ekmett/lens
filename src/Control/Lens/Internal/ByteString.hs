@@ -89,7 +89,7 @@ traversedStrictTree :: Int -> IndexedTraversal' Int B.ByteString Word8
 traversedStrictTree i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + len)
  where
    p = unsafeForeignPtrToPtr fp `plusPtr` (off - i0)
-   rebuild n f = unsafeCreate n $ \q -> f q
+   rebuild n f = unsafeCreate n $ \q -> f (q `plusPtr` (off - i0))
    go !i !j
      | i + grain < j, k <- i + div (j - i) 2 = (\l r q -> l q >> r q) <$> go i k <*> go k j
      | otherwise = run i j
@@ -108,7 +108,7 @@ traversedStrictTree8 :: Int -> IndexedTraversal' Int B.ByteString Char
 traversedStrictTree8 i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + len)
  where
    p = unsafeForeignPtrToPtr fp `plusPtr` (off - i0)
-   rebuild n f = unsafeCreate n $ \q -> f q
+   rebuild n f = unsafeCreate n $ \q -> f (q `plusPtr` (off - i0))
    go !i !j
      | i + grain < j, k <- i + div (j - i) 2 = (\l r q -> l q >> r q) <$> go i k <*> go k j
      | otherwise = run i j
