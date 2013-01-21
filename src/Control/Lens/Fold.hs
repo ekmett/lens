@@ -1428,9 +1428,9 @@ previews :: MonadReader s m => Getting (First r) s t a b -> (a -> r) -> m (Maybe
 previews l f = asks (getFirst . foldMapOf l (First #. Just . f))
 {-# INLINE previews #-}
 
--- | Retrieve a function of the first index and value targeted by a 'Fold' or
--- 'Traversal' (or 'Just' the result from a 'Getter' or 'Lens').
--- from a 'Getter' or 'Lens'). See also ('^@?').
+-- | Retrieve a function of the first index and value targeted by an 'IndexedFold' or
+-- 'IndexedTraversal' (or 'Just' the result from an 'IndexedGetter' or 'IndexedLens').
+-- See also ('^@?').
 --
 -- @'ipreviews' = 'views' . 'ipre'@
 --
