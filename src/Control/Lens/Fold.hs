@@ -1424,7 +1424,7 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 -- Pre
 ------------------------------------------------------------------------------
 
--- | This converts a 'Fold' to a 'Getter' that returns the first element if it
+-- | This converts a 'Fold' to a 'IndexPreservingGetter' that returns the first element if it
 -- exists as a 'Maybe'.
 --
 -- @
@@ -1435,10 +1435,19 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 -- 'pre' :: 'Iso' s t a b       -> 'IndexPreservingGetter' s ('Maybe' a)
 -- 'pre' :: 'Prism' s t a b     -> 'IndexPreservingGetter' s ('Maybe' a)
 -- @
-
 pre :: Getting (First a) s t a b -> IndexPreservingGetter s (Maybe a)
 pre l = dimap (getFirst . runAccessor #. l (Accessor #. First #. Just)) coerce
 
+
+-- | This converts an 'IndexedFold' to an 'IndexPreservingGetter' that returns the first index
+-- and element if it exists as a 'Maybe'.
+--
+-- @
+-- 'ipre' :: 'IndexedGetter' i s a        -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- 'ipre' :: 'IndexedFold' i s a          -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- 'ipre' :: 'IndexedTraversal' i s t a b -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- 'ipre' :: 'IndexedLens' i s t a b      -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- @
 ipre :: IndexedGetting i (First (i, a)) s t a b -> IndexPreservingGetter s (Maybe (i, a))
 ipre l = dimap (getFirst . runAccessor #. l (Indexed $ \i a -> Accessor (First (Just (i, a))))) coerce
 
