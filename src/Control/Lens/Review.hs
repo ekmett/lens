@@ -52,7 +52,7 @@ import Data.Profunctor.Unsafe
 -- Like with a 'Getter', there are no laws to state for a 'Review'.
 --
 -- You can generate a 'Review' by using 'unto'. You can also use any 'Prism' or 'Iso'
--- directly as a 'Review'
+-- directly as a 'Review'.
 type Review s t a b = forall p f. (Reviewable p, Settable f) => Overloaded p f s t a b
 
 -- | A 'Simple' 'Review'
@@ -67,7 +67,9 @@ type AReview' t b = AReview t t b b
 
 -- | An analogue of 'to' for 'review'.
 --
--- @'unto' :: (b -> t) -> 'Review'' t b@
+-- @
+-- 'unto' :: (b -> t) -> 'Review'' t b
+-- @
 unto :: (Reviewable p, Functor f) => (b -> t) -> Overloaded p f s t a b
 unto f = retagged . rmap (fmap f)
 
@@ -96,7 +98,9 @@ re p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.
 --
--- @'review' ≡ 'view' '.' 're'@
+-- @
+-- 'review' ≡ 'view' '.' 're'
+-- @
 --
 -- >>> review _Left "mustard"
 -- Left "mustard"
@@ -123,7 +127,9 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,
 -- applying a function.
 --
--- @'reviews' ≡ 'views' '.' 're'@
+-- @
+-- 'reviews' ≡ 'views' '.' 're'
+-- @
 --
 -- >>> reviews _Left isRight "mustard"
 -- False

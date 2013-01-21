@@ -27,11 +27,15 @@
 -- 'Traversable'. It allows you to 'traverse' over a structure and change out
 -- its contents with monadic or 'Applicative' side-effects. Starting from
 --
--- @'traverse' :: ('Traversable' t, 'Applicative' f) => (a -> f b) -> t a -> f (t b)@
+-- @
+-- 'traverse' :: ('Traversable' t, 'Applicative' f) => (a -> f b) -> t a -> f (t b)
+-- @
 --
 -- we monomorphize the contents and result to obtain
 --
--- @type 'Traversal' s t a b = forall f. 'Applicative' f => (a -> f b) -> s -> f t@
+-- @
+-- type 'Traversal' s t a b = forall f. 'Applicative' f => (a -> f b) -> s -> f t
+-- @
 --
 -- While a 'Traversal' isn't quite a 'Fold', it _can_ be used for
 -- 'Control.Lens.Getter.Getting' like a 'Fold', because given a
@@ -142,13 +146,17 @@ import Prelude hiding ((.),id)
 -- | When you see this as an argument to a function, it expects a 'Traversal'.
 type ATraversal s t a b = LensLike (Bazaar (->) a b) s t a b
 
--- | @type 'ATraversal'' = 'Simple' 'ATraversal'@
+-- | @
+-- type 'ATraversal'' = 'Simple' 'ATraversal'
+-- @
 type ATraversal' s a = ATraversal s s a a
 
 -- | When you see this as an argument to a function, it expects an 'IndexedTraversal'.
 type AnIndexedTraversal i s t a b = Over (Indexed i) (Bazaar (Indexed i) a b) s t a b
 
--- | @type 'AnIndexedTraversal'' = 'Simple' ('AnIndexedTraversal' i)@
+-- | @
+-- type 'AnIndexedTraversal'' = 'Simple' ('AnIndexedTraversal' i)
+-- @
 type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
 
 -- | When you see this as an argument to a function, it expects
@@ -166,7 +174,9 @@ type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
 --  * a 'Fold' if 'f' is 'Gettable' and 'Applicative'.
 type Traversing p f s t a b = Over p (BazaarT p f a b) s t a b
 
--- | @type 'Traversing'' f = 'Simple' ('Traversing' f)@
+-- | @
+-- type 'Traversing'' f = 'Simple' ('Traversing' f)
+-- @
 type Traversing' p f s a = Traversing p f s s a a
 
 --------------------------
@@ -186,7 +196,9 @@ type Traversing' p f s a = Traversing p f s s a a
 --
 -- This yields the obvious law:
 --
--- @'traverse' ≡ 'traverseOf' 'traverse'@
+-- @
+-- 'traverse' ≡ 'traverseOf' 'traverse'
+-- @
 --
 -- @
 -- 'traverseOf' :: 'Iso' s t a b       -> (a -> f b) -> s -> f t
@@ -199,7 +211,9 @@ traverseOf = id
 
 -- | A version of 'traverseOf' with the arguments flipped, such that:
 --
--- @'forOf' l ≡ 'flip' ('traverseOf' l)@
+-- @
+-- 'forOf' l ≡ 'flip' ('traverseOf' l)
+-- @
 --
 -- @
 -- 'for' ≡ 'forOf' 'traverse'
@@ -208,7 +222,9 @@ traverseOf = id
 --
 -- This function is only provided for consistency, 'flip' is strictly more general.
 --
--- @'forOf' ≡ 'flip'@
+-- @
+-- 'forOf' ≡ 'flip'
+-- @
 --
 -- @
 -- 'forOf' :: 'Iso' s t a b -> s -> (a -> f b) -> f t
@@ -241,7 +257,7 @@ sequenceAOf l = l id
 --
 -- @
 -- 'mapM' ≡ 'mapMOf' 'traverse'
--- 'imapMOf' l ≡ 'forM' l . 'Indexed'
+-- 'imapMOf' l ≡ 'forM' l '.' 'Indexed'
 -- @
 --
 -- @
@@ -291,7 +307,9 @@ sequenceOf l = unwrapMonad #. l WrapMonad
 --
 -- Note: 'Data.List.transpose' handles ragged inputs more intelligently, but for non-ragged inputs:
 --
--- @'Data.List.transpose' ≡ 'transposeOf' 'traverse'@
+-- @
+-- 'Data.List.transpose' ≡ 'transposeOf' 'traverse'
+-- @
 --
 -- >>> transposeOf traverse [[1,2,3],[4,5,6]]
 -- [[1,4],[2,5],[3,6]]
@@ -299,14 +317,18 @@ sequenceOf l = unwrapMonad #. l WrapMonad
 -- Since every 'Lens' is a 'Traversal', we can use this as a form of
 -- monadic strength as well:
 --
--- @'transposeOf' 'Control.Lens.Tuple._2' :: (b, [a]) -> [(b, a)]@
+-- @
+-- 'transposeOf' 'Control.Lens.Tuple._2' :: (b, [a]) -> [(b, a)]
+-- @
 transposeOf :: LensLike ZipList s t [a] a -> s -> [t]
 transposeOf l = getZipList #. l ZipList
 {-# INLINE transposeOf #-}
 
 -- | This generalizes 'Data.Traversable.mapAccumR' to an arbitrary 'Traversal'.
 --
--- @'mapAccumR' ≡ 'mapAccumROf' 'traverse'@
+-- @
+-- 'mapAccumR' ≡ 'mapAccumROf' 'traverse'
+-- @
 --
 -- 'mapAccumROf' accumulates 'State' from right to left.
 --
@@ -316,14 +338,18 @@ transposeOf l = getZipList #. l ZipList
 -- 'mapAccumROf' :: 'Traversal' s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
 --
--- @'mapAccumROf' :: 'LensLike' ('Backwards' ('State' acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)@
+-- @
+-- 'mapAccumROf' :: 'LensLike' ('Backwards' ('State' acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
+-- @
 mapAccumROf :: Conjoined p => Over p (Backwards (State acc)) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumROf = mapAccumLOf . backwards
 {-# INLINE mapAccumROf #-}
 
 -- | This generalizes 'Data.Traversable.mapAccumL' to an arbitrary 'Traversal'.
 --
--- @'mapAccumL' ≡ 'mapAccumLOf' 'traverse'@
+-- @
+-- 'mapAccumL' ≡ 'mapAccumLOf' 'traverse'
+-- @
 --
 -- 'mapAccumLOf' accumulates 'State' from left to right.
 --
@@ -346,7 +372,9 @@ mapAccumLOf l f acc0 s = swap (runState (l g s) acc0) where
 
 -- | This permits the use of 'scanr1' over an arbitrary 'Traversal' or 'Lens'.
 --
--- @'scanr1' ≡ 'scanr1Of' 'traverse'@
+-- @
+-- 'scanr1' ≡ 'scanr1Of' 'traverse'
+-- @
 --
 -- @
 -- 'scanr1Of' :: 'Iso' s t a a       -> (a -> a -> a) -> s -> t
@@ -361,7 +389,9 @@ scanr1Of l f = snd . mapAccumROf l step Nothing where
 
 -- | This permits the use of 'scanl1' over an arbitrary 'Traversal' or 'Lens'.
 --
--- @'scanl1' ≡ 'scanl1Of' 'traverse'@
+-- @
+-- 'scanl1' ≡ 'scanl1Of' 'traverse'
+-- @
 --
 -- @
 -- 'scanl1Of' :: 'Iso' s t a a       -> (a -> a -> a) -> s -> t
@@ -708,7 +738,9 @@ dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
 -- >>> foo both ("hello","world")
 -- ("helloworld",(10,10))
 --
--- @'cloneTraversal' :: 'LensLike' ('Bazaar' a b) s t a b -> 'Traversal' s t a b@
+-- @
+-- 'cloneTraversal' :: 'LensLike' ('Bazaar' a b) s t a b -> 'Traversal' s t a b
+-- @
 cloneTraversal :: ATraversal s t a b -> Traversal s t a b
 cloneTraversal l f s = runBazaar (l sell s) f
 {-# INLINE cloneTraversal #-}
@@ -797,7 +829,9 @@ iforMOf = flip . imapMOf
 --
 -- 'imapAccumROf' accumulates state from right to left.
 --
--- @'Control.Lens.Traversal.mapAccumROf' l ≡ 'imapAccumROf' l '.' 'const'@
+-- @
+-- 'Control.Lens.Traversal.mapAccumROf' l ≡ 'imapAccumROf' l '.' 'const'
+-- @
 --
 -- @
 -- 'imapAccumROf' :: 'IndexedLens' i s t a b      -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
@@ -811,7 +845,9 @@ imapAccumROf l = mapAccumROf l .# Indexed
 --
 -- 'imapAccumLOf' accumulates state from left to right.
 --
--- @'Control.Lens.Traversal.mapAccumLOf' l ≡ 'imapAccumLOf' l '.' 'const'@
+-- @
+-- 'Control.Lens.Traversal.mapAccumLOf' l ≡ 'imapAccumLOf' l '.' 'const'
+-- @
 --
 -- @
 -- 'imapAccumLOf' :: 'IndexedLens' i s t a b      -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
@@ -837,9 +873,13 @@ traversed64 = indexing64 traverse
 
 -- | This is the trivial empty 'Traversal'.
 --
--- @'ignored' :: 'IndexedTraversal' i s s a b@
+-- @
+-- 'ignored' :: 'IndexedTraversal' i s s a b
+-- @
 --
--- @'ignored' ≡ 'const' 'pure'@
+-- @
+-- 'ignored' ≡ 'const' 'pure'
+-- @
 ignored :: Applicative f => pafb -> s -> f s
 ignored _ = pure
 {-# INLINE ignored #-}
@@ -914,7 +954,9 @@ elementOf l p = elementsOf l (p ==)
 
 -- | Traverse the /nth/ element of a 'Traversable' container.
 --
--- @'element' ≡ 'elementOf' 'traverse'@
+-- @
+-- 'element' ≡ 'elementOf' 'traverse'
+-- @
 element :: Traversable t => Int -> IndexedTraversal' Int (t a) a
 element = elementOf traverse
 {-# INLINE element #-}
@@ -934,7 +976,9 @@ elementsOf l p iafb s = snd $ runIndexing (l (\a -> Indexing (\i -> i `seq` (i +
 
 -- | Traverse elements of a 'Traversable' container where their ordinal positions matches a predicate.
 --
--- @'elements' ≡ 'elementsOf' 'traverse'@
+-- @
+-- 'elements' ≡ 'elementsOf' 'traverse'
+-- @
 elements :: Traversable t => (Int -> Bool) -> IndexedTraversal' Int (t a) a
 elements = elementsOf traverse
 {-# INLINE elements #-}

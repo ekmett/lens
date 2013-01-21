@@ -230,7 +230,9 @@ isoRules = defaultRules
 
 -- | Build lenses (and traversals) with a sensible default configuration.
 --
--- @'makeLenses' = 'makeLensesWith' 'lensRules'@
+-- @
+-- 'makeLenses' = 'makeLensesWith' 'lensRules'
+-- @
 makeLenses :: Name -> Q [Dec]
 makeLenses = makeLensesWith lensRules
 
@@ -253,7 +255,9 @@ makeLenses = makeLensesWith lensRules
 -- fooX, fooY :: HasFoo t => 'Control.Lens.Type.Simple' 'Lens' t 'Int'
 -- @
 --
--- @'makeClassy' = 'makeLensesWith' 'classyRules'@
+-- @
+-- 'makeClassy' = 'makeLensesWith' 'classyRules'
+-- @
 makeClassy :: Name -> Q [Dec]
 makeClassy = makeLensesWith classyRules
 
@@ -271,9 +275,13 @@ makeClassy = makeLensesWith classyRules
 --
 -- will create
 --
--- @'list' :: 'Iso' [a] [b] ('List' a) ('List' b)@
+-- @
+-- 'list' :: 'Iso' [a] [b] ('List' a) ('List' b)
+-- @
 --
--- @'makeIso' = 'makeLensesWith' 'isoRules'@
+-- @
+-- 'makeIso' = 'makeLensesWith' 'isoRules'
+-- @
 makeIso :: Name -> Q [Dec]
 makeIso = makeLensesWith isoRules
 
@@ -297,7 +305,9 @@ makeLensesFor fields = makeLensesWith $ lensRules & lensField .~ (`Prelude.looku
 --
 -- Example usage:
 --
--- @'makeClassyFor' \"HasFoo\" \"foo\" [(\"_foo\", \"fooLens\"), (\"bar\", \"lbar\")] ''Foo@
+-- @
+-- 'makeClassyFor' \"HasFoo\" \"foo\" [(\"_foo\", \"fooLens\"), (\"bar\", \"lbar\")] ''Foo
+-- @
 makeClassyFor :: String -> String -> [(String, String)] -> Name -> Q [Dec]
 makeClassyFor clsName funName fields = makeLensesWith $ classyRules
   & lensClass .~ const (Just (clsName,funName))

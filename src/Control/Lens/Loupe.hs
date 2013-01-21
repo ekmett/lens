@@ -34,7 +34,9 @@ import Control.Lens.Type
 type Loupe s t a b = LensLike (Pretext (->) a b) s t a b
 {-# DEPRECATED Loupe "use ALens" #-}
 
--- | @type 'SimpleLoupe' = 'Simple' 'Loupe'@
+-- | @
+-- type 'SimpleLoupe' = 'Simple' 'Loupe'
+-- @
 --
 -- Deprecated for two reasons. 'Loupe' is now 'ALens', and we no longer use the verbose @SimpleFoo@ naming
 -- convention, this has since been renamed to 'ALens'' for consistency.

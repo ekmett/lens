@@ -182,7 +182,9 @@ instance Monad m => Magnify (ReaderT b m) (ReaderT a m) b a where
   magnify l (ReaderT m) = ReaderT $ getEffect #. l (Effect #. m)
   {-# INLINE magnify #-}
 
--- | @'magnify' = 'views'@
+-- | @
+-- 'magnify' = 'views'
+-- @
 instance Magnify ((->) b) ((->) a) b a where
   magnify = views
   {-# INLINE magnify #-}
