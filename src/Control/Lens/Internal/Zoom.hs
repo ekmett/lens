@@ -56,6 +56,7 @@ import Prelude hiding ((.),id)
 -- Zoomed
 ------------------------------------------------------------------------------
 
+-- | This type family is used by 'Control.Lens.Zoom.Zoom' to describe the common effect type.
 type family Zoomed (m :: * -> *) :: * -> * -> *
 type instance Zoomed (Strict.StateT s z) = Focusing z
 type instance Zoomed (Lazy.StateT s z) = Focusing z
@@ -257,6 +258,7 @@ instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
 -- Magnified
 ------------------------------------------------------------------------------
 
+-- | This type family is used by 'Control.Lens.Zoom.Magnify' to describe the common effect type.
 type family Magnified (m :: * -> *) :: * -> * -> *
 type instance Magnified (ReaderT b m) = Effect m
 type instance Magnified ((->)b) = Accessor
