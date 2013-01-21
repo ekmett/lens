@@ -24,8 +24,9 @@ import Control.Applicative.Backwards
 import Control.Comonad
 import Data.Distributive
 import Data.Foldable
-import Data.Functor.Identity
+import Data.Functor.Bind
 import Data.Functor.Compose
+import Data.Functor.Identity
 import Data.Profunctor
 import Data.Profunctor.Unsafe
 import Data.Traversable
@@ -78,11 +79,19 @@ instance Functor Mutator where
   fmap f (Mutator a) = Mutator (f a)
   {-# INLINE fmap #-}
 
+instance Apply Mutator where
+  Mutator f <.> Mutator a = Mutator (f a)
+  {-# INLINE (<.>) #-}
+
 instance Applicative Mutator where
   pure = Mutator
   {-# INLINE pure #-}
   Mutator f <*> Mutator a = Mutator (f a)
   {-# INLINE (<*>) #-}
+
+instance Bind Mutator where
+  Mutator x >>- f = f x
+  {-# INLINE (>>-) #-}
 
 instance Monad Mutator where
   return = Mutator
