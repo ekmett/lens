@@ -384,10 +384,13 @@ cloneLens :: ALens s t a b -> Lens s t a b
 cloneLens l afb s = runPretext (l sell s) afb
 {-# INLINE cloneLens #-}
 
+-- | Clone a 'Lens' as an 'IndexedPreservingLens' that just passes through whatever
+-- index is on any 'IndexedLens', 'IndexedFold', 'IndexedGetter' or  'IndexedTraversal' it is composed with.
 cloneIndexPreservingLens :: ALens s t a b -> IndexPreservingLens s t a b
 cloneIndexPreservingLens l pafb = cotabulate $ \ws -> runPretext (l sell (extract ws)) $ \a -> corep pafb (a <$ ws)
 {-# INLINE cloneIndexPreservingLens #-}
 
+-- | Clone an 'IndexedLens' as an 'IndexedLens' with the same index.
 cloneIndexedLens :: AnIndexedLens i s t a b -> IndexedLens i s t a b
 cloneIndexedLens l f s = runPretext (l sell s) (Indexed (indexed f))
 {-# INLINE cloneIndexedLens #-}
