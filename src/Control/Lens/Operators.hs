@@ -87,7 +87,7 @@ module Control.Lens.Operators
   , (<~), (<<~)
 
   -- * Zippers
-  , (:>)()
+  , (:>)(), (:>>)()
 
   -- * Cons and Snoc
   , (<|), (|>)
