@@ -31,8 +31,9 @@ import Control.Applicative
 import Control.Category
 import Control.Comonad
 import Data.Foldable
+import Data.Functor.Apply
 import Data.Int
-import Data.Monoid
+import Data.Semigroup
 import Data.Traversable
 import Data.Word
 import Prelude hiding ((.),id)
@@ -83,6 +84,12 @@ instance Traversable (Level i) where
 
 newtype Deepening i a = Deepening { runDeepening :: forall r. Int -> (Level i a -> Bool -> r) -> r }
 
+instance Semigroup (Deepening i a) where
+  Deepening l <> Deepening r = Deepening $ \ n k -> case n of
+    0 -> k Zero True
+    _ -> let n' = n - 1 in l n' $ \x a -> r n' $ \y b -> k (lappend x y) (a || b)
+  {-# INLINE (<>) #-}
+
 -- | This is an illegal 'Monoid'.
 instance Monoid (Deepening i a) where
   mempty = Deepening $ \ _ k -> k Zero False
@@ -117,6 +124,12 @@ trimr (Two 0 _ r) = r
 trimr (Two n l r) = Two (n - 1) l r
 trimr x           = x
 {-# INLINE trimr #-}
+
+instance Apply (Flows i b) where
+  Flows mf <.> Flows ma = Flows $ \ xss -> case xss of
+    []             -> mf [] (ma [])
+    (_:xs)         -> mf (triml <$> xs) $ ma (trimr <$> xs)
+  {-# INLINE (<.>) #-}
 
 -- | This is an illegal 'Applicative'.
 instance Applicative (Flows i b) where

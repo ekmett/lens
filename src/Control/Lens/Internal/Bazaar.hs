@@ -30,6 +30,7 @@ import Control.Comonad
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
+import Data.Functor.Apply
 import Data.Functor.Compose
 import Data.Functor.Identity
 import Data.Profunctor
@@ -89,6 +90,10 @@ instance Functor (Bazaar p a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
 
+instance Apply (Bazaar p a b) where
+  Bazaar mf <.> Bazaar ma = Bazaar $ \ pafb -> mf pafb <*> ma pafb
+  {-# INLINE (<.>) #-}
+
 instance Applicative (Bazaar p a b) where
   pure a = Bazaar $ \_ -> pure a
   {-# INLINE pure #-}
@@ -140,6 +145,10 @@ instance Profunctor p => Bizarre p (BazaarT p g) where
 instance Functor (BazaarT p g a b) where
   fmap = ifmap
   {-# INLINE fmap #-}
+
+instance Apply (BazaarT p g a b) where
+  BazaarT mf <.> BazaarT ma = BazaarT $ \ pafb -> mf pafb <*> ma pafb
+  {-# INLINE (<.>) #-}
 
 instance Applicative (BazaarT p g a b) where
   pure a = BazaarT $ tabulate $ \_ -> pure (pure a)

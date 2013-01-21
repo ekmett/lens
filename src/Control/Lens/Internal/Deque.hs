@@ -28,14 +28,16 @@ import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Cons
 import Control.Lens.Fold
-import Control.Lens.Indexed
+import Control.Lens.Indexed hiding ((<.>))
 import Control.Lens.Prism
 import Control.Monad
 import Data.Foldable as Foldable
 import Data.Function
+import Data.Functor.Bind
+import Data.Functor.Plus
 import Data.Functor.Reverse
 import Data.Traversable as Traversable
-import Data.Monoid
+import Data.Semigroup
 import Data.Profunctor.Unsafe
 import Prelude hiding (null)
 
@@ -75,11 +77,25 @@ instance FunctorWithIndex Int Deque where
   imap h (BD lf f lr r) = BD lf (imap h f) lr (imap (\j -> h (n - j)) r)
     where !n = lf + lr
 
+instance Apply Deque where
+  fs <.> as = fromList (toList fs <.> toList as)
+  {-# INLINE (<.>) #-}
+
 instance Applicative Deque where
   pure a = BD 1 [a] 0 []
   {-# INLINE pure #-}
   fs <*> as = fromList (toList fs <*> toList as)
   {-# INLINE (<*>) #-}
+
+instance Alt Deque where
+  xs <!> ys
+    | size xs < size ys = Foldable.foldr cons ys xs
+    | otherwise         = Foldable.foldl snoc xs ys
+  {-# INLINE (<!>) #-}
+
+instance Plus Deque where
+  zero = BD 0 [] 0 []
+  {-# INLINE zero #-}
 
 instance Alternative Deque where
   empty = BD 0 [] 0 []
@@ -89,11 +105,9 @@ instance Alternative Deque where
     | otherwise         = Foldable.foldl snoc xs ys
   {-# INLINE (<|>) #-}
 
-instance MonadPlus Deque where
-  mzero = empty
-  {-# INLINE mzero #-}
-  mplus = (<|>)
-  {-# INLINE mplus #-}
+instance Bind Deque where
+  ma >>- k = fromList (toList ma >>= toList . k)
+  {-# INLINE (>>-) #-}
 
 instance Monad Deque where
   return a = BD 1 [a] 0 []
@@ -101,12 +115,18 @@ instance Monad Deque where
   ma >>= k = fromList (toList ma >>= toList . k)
   {-# INLINE (>>=) #-}
 
+instance MonadPlus Deque where
+  mzero = empty
+  {-# INLINE mzero #-}
+  mplus = (<|>)
+  {-# INLINE mplus #-}
+
 instance Foldable Deque where
-  foldMap h (BD _ f _ r) = foldMap h f <> getDual (foldMap (Dual #. h) r)
+  foldMap h (BD _ f _ r) = foldMap h f `mappend` getDual (foldMap (Dual #. h) r)
   {-# INLINE foldMap #-}
 
 instance FoldableWithIndex Int Deque where
-  ifoldMap h (BD lf f lr r) = ifoldMap h f <> getDual (ifoldMap (\j -> Dual #. h (n - j)) r)
+  ifoldMap h (BD lf f lr r) = ifoldMap h f `mappend` getDual (ifoldMap (\j -> Dual #. h (n - j)) r)
     where !n = lf + lr
   {-# INLINE ifoldMap #-}
 
@@ -118,6 +138,12 @@ instance TraversableWithIndex Int Deque where
   itraverse h (BD lf f lr r) = (\f' r' -> BD lr f' lr (getReverse r')) <$> itraverse h f <*> itraverse (\j -> h (n - j)) (Reverse r)
     where !n = lf + lr
   {-# INLINE itraverse #-}
+
+instance Semigroup (Deque a) where
+  xs <> ys
+    | size xs < size ys = Foldable.foldr cons ys xs
+    | otherwise         = Foldable.foldl snoc xs ys
+  {-# INLINE (<>) #-}
 
 instance Monoid (Deque a) where
   mempty = BD 0 [] 0 []

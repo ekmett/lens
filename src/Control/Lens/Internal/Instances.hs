@@ -16,6 +16,8 @@ module Control.Lens.Internal.Instances () where
 import Control.Applicative
 import Data.Foldable
 import Data.Monoid
+import Data.Semigroup.Foldable
+import Data.Semigroup.Traversable
 import Data.Traversable
 
 -------------------------------------------------------------------------------
@@ -25,8 +27,14 @@ import Data.Traversable
 instance Foldable ((,) b) where
   foldMap f (_, a) = f a
 
+instance Foldable1 ((,) b) where
+  foldMap1 f (_, a) = f a
+
 instance Traversable ((,) b) where
   traverse f (b, a) = (,) b <$> f a
+
+instance Traversable1 ((,) b) where
+  traverse1 f (b, a) = (,) b <$> f a
 
 instance Foldable (Either a) where
   foldMap _ (Left _) = mempty
