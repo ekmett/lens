@@ -189,8 +189,8 @@ view :: MonadReader s m => Getting a s t a b -> m a
 view l = Reader.asks (runAccessor #. l Accessor)
 {-# INLINE view #-}
 
--- 'Lens' or the result of folding over the result of mapping
--- the targets of a 'Control.Lens.Fold.Fold' or
+-- | View a function of the value pointed to by a 'Getter' or 'Lens' or the result of
+-- folding over the result of mapping the targets of a 'Control.Lens.Fold.Fold' or
 -- 'Control.Lens.Traversal.Traversal'.
 --
 -- @
