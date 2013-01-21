@@ -305,14 +305,14 @@
 <a name="line-296"></a><span class='hs-comment'>{-# INLINE flipped #-}</span>
 <a name="line-297"></a>
 <a name="line-298"></a><a name="Swapped"></a><span class='hs-comment'>-- | This class provides for symmetric bifunctors.</span>
-<a name="line-299"></a><a name="Swapped"></a><span class='hs-comment'>--</span>
-<a name="line-300"></a><a name="Swapped"></a><span class='hs-comment'>-- @</span>
-<a name="line-301"></a><a name="Swapped"></a><span class='hs-comment'>-- 'swapped' '.' 'swapped' ≡ 'id'</span>
-<a name="line-302"></a><a name="Swapped"></a><span class='hs-comment'>-- 'first' f '.' 'swapped' = 'swapped' '.' 'second' f</span>
-<a name="line-303"></a><a name="Swapped"></a><span class='hs-comment'>-- 'second' g '.' 'swapped' = 'swapped' '.' 'first' g</span>
-<a name="line-304"></a><a name="Swapped"></a><span class='hs-comment'>-- 'bimap' f g '.' 'swapped' = 'swapped' '.' 'bimap' g f</span>
-<a name="line-305"></a><a name="Swapped"></a><span class='hs-comment'>-- @</span>
-<a name="line-306"></a><a name="Swapped"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Bifunctor</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Swapped</span> <span class='hs-varid'>p</span> <span class='hs-keyword'>where</span>
+<a name="line-299"></a><a name="Swapped"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Bifunctor</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Swapped</span> <span class='hs-varid'>p</span> <span class='hs-keyword'>where</span>
+<a name="line-300"></a>  <span class='hs-comment'>-- |</span>
+<a name="line-301"></a>  <span class='hs-comment'>-- @</span>
+<a name="line-302"></a>  <span class='hs-comment'>-- 'swapped' '.' 'swapped' ≡ 'id'</span>
+<a name="line-303"></a>  <span class='hs-comment'>-- 'first' f '.' 'swapped' = 'swapped' '.' 'second' f</span>
+<a name="line-304"></a>  <span class='hs-comment'>-- 'second' g '.' 'swapped' = 'swapped' '.' 'first' g</span>
+<a name="line-305"></a>  <span class='hs-comment'>-- 'bimap' f g '.' 'swapped' = 'swapped' '.' 'bimap' g f</span>
+<a name="line-306"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-307"></a>  <span class='hs-varid'>swapped</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso</span> <span class='hs-layout'>(</span><span class='hs-varid'>p</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>p</span> <span class='hs-varid'>c</span> <span class='hs-varid'>d</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>p</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>p</span> <span class='hs-varid'>d</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span>
 <a name="line-308"></a>
 <a name="line-309"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Swapped</span> <span class='hs-conid'>(,)</span> <span class='hs-keyword'>where</span>
