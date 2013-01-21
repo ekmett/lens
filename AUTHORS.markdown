@@ -4,7 +4,7 @@ Lens started as a one man project by
 
 But it has been greatly enriched by opening it up to community development.
 
-Many people have contributed patches, documentation, wiki pages, bug reports and massive quantities of code to `lens` including (among others):
+Many people have contributed patches, documentation, wiki pages, bug reports, test cases and massive quantities of code to `lens` including (among others):
 
 * [Shachaf Ben-Kiki](mailto:shachaf@gmail.com) [@shachaf](https://github.com/shachaf)
 * Elliott Hird [@ehird](https://github.com/ehird)
