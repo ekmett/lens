@@ -48,7 +48,8 @@ import Control.Monad.Trans.Error
 import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
-import Data.Monoid
+import Data.Functor.Bind
+import Data.Semigroup
 import Prelude hiding ((.),id)
 
 ------------------------------------------------------------------------------
@@ -81,6 +82,13 @@ instance Monad m => Functor (Focusing m s) where
      return (s, f a)
   {-# INLINE fmap #-}
 
+instance (Monad m, Semigroup s) => Apply (Focusing m s) where
+  Focusing mf <.> Focusing ma = Focusing $ do
+    (s, f) <- mf
+    (s', a) <- ma
+    return (s <> s', f a)
+  {-# INLINE (<.>) #-}
+
 instance (Monad m, Monoid s) => Applicative (Focusing m s) where
   pure a = Focusing (return (mempty, a))
   {-# INLINE pure #-}
@@ -103,6 +111,13 @@ instance Monad m => Functor (FocusingWith w m s) where
      return (s, f a, w)
   {-# INLINE fmap #-}
 
+instance (Monad m, Semigroup s, Semigroup w) => Apply (FocusingWith w m s) where
+  FocusingWith mf <.> FocusingWith ma = FocusingWith $ do
+    (s, f, w) <- mf
+    (s', a, w') <- ma
+    return (s <> s', f a, w <> w')
+  {-# INLINE (<.>) #-}
+
 instance (Monad m, Monoid s, Monoid w) => Applicative (FocusingWith w m s) where
   pure a = FocusingWith (return (mempty, a, mempty))
   {-# INLINE pure #-}
@@ -123,7 +138,11 @@ instance Functor (k (s, w)) => Functor (FocusingPlus w k s) where
   fmap f (FocusingPlus as) = FocusingPlus (fmap f as)
   {-# INLINE fmap #-}
 
-instance (Monoid w, Applicative (k (s, w))) => Applicative (FocusingPlus w k s) where
+instance Apply (k (s, w)) => Apply (FocusingPlus w k s) where
+  FocusingPlus kf <.> FocusingPlus ka = FocusingPlus (kf <.> ka)
+  {-# INLINE (<.>) #-}
+
+instance Applicative (k (s, w)) => Applicative (FocusingPlus w k s) where
   pure = FocusingPlus . pure
   {-# INLINE pure #-}
   FocusingPlus kf <*> FocusingPlus ka = FocusingPlus (kf <*> ka)
@@ -140,6 +159,10 @@ instance Functor (k (f s)) => Functor (FocusingOn f k s) where
   fmap f (FocusingOn as) = FocusingOn (fmap f as)
   {-# INLINE fmap #-}
 
+instance Apply (k (f s)) => Apply (FocusingOn f k s) where
+  FocusingOn kf <.> FocusingOn ka = FocusingOn (kf <.> ka)
+  {-# INLINE (<.>) #-}
+
 instance Applicative (k (f s)) => Applicative (FocusingOn f k s) where
   pure = FocusingOn . pure
   {-# INLINE pure #-}
@@ -152,6 +175,12 @@ instance Applicative (k (f s)) => Applicative (FocusingOn f k s) where
 
 -- | Make a 'Monoid' out of 'Maybe' for error handling.
 newtype May a = May { getMay :: Maybe a }
+
+instance Semigroup a => Semigroup (May a) where
+  May Nothing <> _ = May Nothing
+  _ <> May Nothing = May Nothing
+  May (Just a) <> May (Just b) = May (Just (a <> b))
+  {-# INLINE (<>) #-}
 
 instance Monoid a => Monoid (May a) where
   mempty = May (Just mempty)
@@ -172,6 +201,10 @@ instance Functor (k (May s)) => Functor (FocusingMay k s) where
   fmap f (FocusingMay as) = FocusingMay (fmap f as)
   {-# INLINE fmap #-}
 
+instance Apply (k (May s)) => Apply (FocusingMay k s) where
+  FocusingMay kf <.> FocusingMay ka = FocusingMay (kf <.> ka)
+  {-# INLINE (<.>) #-}
+
 instance Applicative (k (May s)) => Applicative (FocusingMay k s) where
   pure = FocusingMay . pure
   {-# INLINE pure #-}
@@ -184,6 +217,12 @@ instance Applicative (k (May s)) => Applicative (FocusingMay k s) where
 
 -- | Make a 'Monoid' out of 'Either' for error handling.
 newtype Err e a = Err { getErr :: Either e a }
+
+instance Semigroup a => Semigroup (Err e a) where
+  Err (Left e) <> _ = Err (Left e)
+  _ <> Err (Left e) = Err (Left e)
+  Err (Right a) <> Err (Right b) = Err (Right (a <> b))
+  {-# INLINE (<>) #-}
 
 instance Monoid a => Monoid (Err e a) where
   mempty = Err (Right mempty)
@@ -203,6 +242,10 @@ newtype FocusingErr e k s a = FocusingErr { unfocusingErr :: k (Err e s) a }
 instance Functor (k (Err e s)) => Functor (FocusingErr e k s) where
   fmap f (FocusingErr as) = FocusingErr (fmap f as)
   {-# INLINE fmap #-}
+
+instance Apply (k (Err e s)) => Apply (FocusingErr e k s) where
+  FocusingErr kf <.> FocusingErr ka = FocusingErr (kf <.> ka)
+  {-# INLINE (<.>) #-}
 
 instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
   pure = FocusingErr . pure
@@ -231,6 +274,10 @@ newtype EffectRWS w st m s a = EffectRWS { getEffectRWS :: st -> m (s,st,w) }
 instance Functor (EffectRWS w st m s) where
   fmap _ (EffectRWS m) = EffectRWS m
   {-# INLINE fmap #-}
+
+instance (Semigroup s, Semigroup w, Bind m) => Apply (EffectRWS w st m s) where
+  EffectRWS m <.> EffectRWS n = EffectRWS $ \st -> m st >>- \ (s,t,w) -> fmap (\(s',u,w') -> (s <> s', u, w <> w')) (n t)
+  {-# INLINE (<.>) #-}
 
 instance (Monoid s, Monoid w, Monad m) => Applicative (EffectRWS w st m s) where
   pure _ = EffectRWS $ \st -> return (mempty, st, mempty)
