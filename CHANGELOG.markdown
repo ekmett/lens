@@ -37,7 +37,7 @@
   * In the interest of consistency, the `Loupe` alias has been deprecated in favor of `ALens`.
   * `Loupe` (and `ALens`) are now defined in terms of `Pretext` rather than `Context`. This permits them to be cloned at a reduced cost reducing the call for `ReifiedLens`.
 * `Control.Lens.Operators`
-  * Added this module for users who insist on qualified use, but want access to the operators. They can `import Control.Lens as Lens` and `import Control.Lens.Operators` unqualified.
+  * Added this module for users who insist on qualified use, but want access to the operators. They can `import qualified Control.Lens as Lens` and `import Control.Lens.Operators` unqualified.
 * `Control.Lens.Prism`
   * Added `prism'` to construct `SimplePrism`s.
 * `Control.Lens.Reified`
