@@ -64,14 +64,18 @@ type Acting m r s t a b = LensLike (Effect m r) s t a b
 
 -- | Perform an 'Action'.
 --
--- @'perform' ≡ 'flip' ('^!')@
+-- @
+-- 'perform' ≡ 'flip' ('^!')
+-- @
 perform :: Monad m => Acting m a s t a b -> s -> m a
 perform l = getEffect #. l (Effect #. return)
 {-# INLINE perform #-}
 
 -- | Perform an 'Action' and modify the result.
 --
--- @'performs' :: 'Monad' m => 'Acting' m e s t a b -> (a -> e) -> s -> m e@
+-- @
+-- 'performs' :: 'Monad' m => 'Acting' m e s t a b -> (a -> e) -> s -> m e
+-- @
 performs :: (Profunctor p, Monad m) => Over p (Effect m e) s t a b -> p a e -> s -> m e
 performs l f = getEffect #. l (rmap (Effect #. return) f)
 {-# INLINE performs #-}
@@ -114,7 +118,9 @@ act sma pafb = cotabulate $ \ws -> effective $ do
 
 -- | A self-running 'Action', analogous to 'Control.Monad.join'.
 --
--- @'acts' ≡ 'act' 'id'@
+-- @
+-- 'acts' ≡ 'act' 'id'
+-- @
 --
 -- >>> (1,"hello")^!_2.acts.to succ
 -- "ifmmp"
@@ -136,7 +142,9 @@ type IndexedActing i m r s t a b = Over (Indexed i) (Effect m r) s t a b
 
 -- | Perform an 'IndexedAction'.
 --
--- @'perform' ≡ 'flip' ('^@!')@
+-- @
+-- 'iperform' ≡ 'flip' ('^@!')
+-- @
 iperform :: Monad m => IndexedActing i m (i, a) s t a b -> s -> m (i, a)
 iperform l = getEffect #. l (Indexed $ \i a -> Effect (return (i, a)))
 {-# INLINE iperform #-}

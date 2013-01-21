@@ -512,7 +512,9 @@ instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h, h ~ 
 --
 -- An instance of 'At' should satisfy:
 --
--- @'ix' k ≡ 'at' k '<.' 'traverse'@
+-- @
+-- 'ix' k ≡ 'at' k '<.' 'traverse'
+-- @
 class At m where
   -- |
   -- >>> Map.fromList [(1,"world")] ^.at 1
