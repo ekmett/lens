@@ -27,6 +27,8 @@ import Unsafe.Coerce
 -- Prism: Market
 ------------------------------------------------------------------------------
 
+-- | This type is used internally by the 'Control.Lens.Prism.Prism' code to
+-- provide efficient access to the two parts of a 'Prism'.
 data Market a b s t = Market (b -> t) (s -> Either t a)
 
 -- | @type 'Market'' a s t = 'Market' a a s t@
