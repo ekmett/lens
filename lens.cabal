@@ -93,6 +93,7 @@ extra-source-files:
   examples/bf-examples/*.bf
   travis/cabal-apt-install
   travis/config
+  AUTHORS.markdown
   README.markdown
   CHANGELOG.markdown
 
