@@ -18,6 +18,9 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
+-- This module provides implementation details of the combinators in
+-- "Control.Lens.Level", which provides for the breadth-first 'Control.Lens.Traversal.Traversal' of
+-- an arbitrary 'Control.Lens.Traversal.Traversal'.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Level
   (
@@ -115,6 +118,7 @@ instance Monoid (Deepening i a) where
     _ -> let n' = n - 1 in l n' $ \x a -> r n' $ \y b -> k (lappend x y) (a || b)
   {-# INLINE mappend #-}
 
+-- | Generate the leaf of a given 'Deepening' based on whether or not we're at the correct depth.
 deepening :: i -> a -> Deepening i a
 deepening i a = Deepening $ \n k -> k (if n == 0 then One i a else Zero) False
 {-# INLINE deepening #-}
