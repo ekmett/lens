@@ -27,7 +27,7 @@ Many people have contributed patches, documentation, wiki pages, bug reports, te
 * Liyang HU [@liyang](https://github.com/liyang)
 * [Carter Schonwald](mailto:carter.schonwald@gmail.com) [@cartazio](https://github.com/cartazio)
 * [Mark Wright](mailto:gienah@gentoo.org) [@markwright](https://github.com/markwright)
-* Nathan van Doorn [@Taneb](https://github.com/Taneb)
+* [Nathan van Doorn](mailto:nvd1234@gmail.com) [@Taneb](https://github.com/Taneb)
 * Ville Tirronen [@aleator](https://github.com/aleator)
 * [Mikhail Vorozhtsov](mailto:mikhail.vorozhtsov@gmail.com) [@mvv](https://github.com/mvv)
 * [Brent Yorgey](mailto:byorgey@gmail.com) [@byorgey](https://github.com/byorgey)
