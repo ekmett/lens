@@ -15,6 +15,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
+-- This module is designed to be imported qualified.
 -----------------------------------------------------------------------------
 module Control.Lens.Internal.Deque
   ( Deque(..)
@@ -45,18 +46,31 @@ import Prelude hiding (null)
 data Deque a = BD !Int [a] !Int [a]
   deriving Show
 
+-- | /O(1)/. Determine of a 'Deque' is 'empty'.
+--
+-- >>> null empty
+-- True
+--
+-- >>> null (singleton 1)
+-- False
 null :: Deque a -> Bool
 null (BD lf _ lr _) = lf + lr == 0
 {-# INLINE null #-}
 
+-- | /O(1)/. Generate a singleton 'Deque'
+--
+-- >>> singleton 1
+-- fromList [1]
 singleton :: a -> Deque a
 singleton a = BD 1 [a] 0 []
 {-# INLINE singleton #-}
 
+-- | /O(1)/. Calculate the size of a 'Deque'
 size :: Deque a -> Int
 size (BD lf _ lr _) = lf + lr
 {-# INLINE size #-}
 
+-- | /O(n)/ amortized. Construct a 'Deque' from a list of values.
 fromList :: [a] -> Deque a
 fromList = Prelude.foldr cons empty
 {-# INLINE fromList #-}
@@ -153,6 +167,7 @@ instance Monoid (Deque a) where
     | otherwise         = Foldable.foldl snoc xs ys
   {-# INLINE mappend #-}
 
+-- | Check that a 'Deque' satisfies the balance invariants and rebalance if not.
 check :: Int -> [a] -> Int -> [a] -> Deque a
 check lf f lr r
   | lf > 3*lr + 1, i <- div (lf + lr) 2, (f',f'') <- splitAt i f = BD i f' (lf + lr - i) (r ++ reverse f'')
