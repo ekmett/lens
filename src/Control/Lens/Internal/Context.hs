@@ -46,6 +46,10 @@ import Prelude hiding ((.),id)
 -- IndexedFunctor
 ------------------------------------------------------------------------------
 
+-- | This is a Bob Atkey -style 2-argument indexed functor.
+--
+-- It exists as a superclass for 'IndexedComonad' and expresses the functoriality
+-- of an 'IndexedComonad' in its third argument.
 class IndexedFunctor w where
   ifmap :: (s -> t) -> w a b s -> w a b t
 
@@ -53,13 +57,24 @@ class IndexedFunctor w where
 -- IndexedComonad
 ------------------------------------------------------------------------------
 
+-- | This is a Bob Atkey -style 2-argument indexed comonad.
+--
+-- It exists as a superclass for 'IndexedComonad' and expresses the functoriality
+-- of an 'IndexedComonad' in its third argument.
+--
+-- The notion of indexed monads is covered in more depth in Bob Atkey's
+-- "Parameterized Notions of Computation" <http://bentnib.org/paramnotions-jfp.pdf>
+-- and that construction is dualized here.
 class IndexedFunctor w => IndexedComonad w where
+  -- | extract from an indexed comonadic value when the indices match.
   iextract :: w a a t -> t
 
+  -- | duplicate an indexed comonadic value splitting the index.
   iduplicate :: w a c t -> w a b (w b c t)
   iduplicate = iextend id
   {-# INLINE iduplicate #-}
 
+  -- | extend a indexed comonadic computation splitting the index.
   iextend :: (w b c t -> r) -> w a c t -> w a b r
   iextend f = ifmap f . iduplicate
   {-# INLINE iextend #-}
@@ -68,24 +83,35 @@ class IndexedFunctor w => IndexedComonad w where
 -- IndexedComonadStore
 ------------------------------------------------------------------------------
 
+-- | This is an indexed analogue to 'ComonadStore' for when you are working with an 
+-- 'IndexedComonad'.
 class IndexedComonad w => IndexedComonadStore w where
+  -- | This is the generalization of 'pos' to an indexed comonad store.
   ipos :: w a c t -> a
 
+  -- | This is the generalization of 'peek' to an indexed comonad store.
   ipeek :: c  -> w a c t -> t
   ipeek c = iextract . iseek c
   {-# INLINE ipeek #-}
 
+  -- | This is the generalization of 'peeks' to an indexed comonad store.
   ipeeks :: (a -> c) -> w a c t -> t
   ipeeks f = iextract . iseeks f
   {-# INLINE ipeeks #-}
 
+  -- | This is the generalization of 'seek' to an indexed comonad store.
   iseek :: b  -> w a c t -> w b c t
+
+  -- | This is the generalization of 'seeks' to an indexed comonad store.
   iseeks :: (a -> b) -> w a c t -> w b c t
 
+  -- | This is the generalization of 'experiment' to an indexed comonad store.
   iexperiment :: Functor f => (b -> f c) -> w b c t -> f t
   iexperiment bfc wbct = (`ipeek` wbct) <$> bfc (ipos wbct)
   {-# INLINE iexperiment #-}
 
+  -- | We can always forget the rest of the structure of 'w' and obtain a simpler
+  -- indexed comonad store model called 'Context'.
   context :: w a b t -> Context a b t
   context wabt = Context (`ipeek` wabt) (ipos wabt)
   {-# INLINE context #-}
@@ -94,6 +120,8 @@ class IndexedComonad w => IndexedComonadStore w where
 -- Sellable
 ------------------------------------------------------------------------------
 
+-- | This is used internally to construct a 'Control.Lens.Internal.Bazaar.Bazaar', 'Context' or 'Pretext'
+-- from a singleton value.
 class Corepresentable p => Sellable p w where
   sell :: p a (w a b b)
 
