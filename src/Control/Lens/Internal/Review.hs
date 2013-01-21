@@ -33,6 +33,7 @@ import Data.Bifunctor
 import Data.Bitraversable
 import Data.Distributive
 import Data.Foldable
+import Data.Functor.Bind
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
@@ -70,6 +71,14 @@ instance Functor (Reviewed a) where
   fmap bc (Reviewed b) = Reviewed (bc b)
   {-# INLINE fmap #-}
 
+instance Apply (Reviewed a) where
+  (<.>) a = Reviewed #. runReviewed a .# runReviewed
+  {-# INLINE (<.>) #-}
+  a <. _ = a
+  {-# INLINE (<.) #-}
+  _ .> b = b
+  {-# INLINE (.>) #-}
+
 instance Applicative (Reviewed a) where
   pure = Reviewed
   (<*>) a = Reviewed #. runReviewed a .# runReviewed
@@ -94,6 +103,10 @@ instance ComonadApply (Reviewed a) where
   {-# INLINE (<@) #-}
   _ @> b = b
   {-# INLINE (@>) #-}
+
+instance Bind (Reviewed a) where
+  Reviewed a >>- f = f a
+  {-# INLINE (>>-) #-}
 
 instance Monad (Reviewed a) where
   return = Reviewed
