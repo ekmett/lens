@@ -178,7 +178,7 @@
 <a name="line-169"></a>
 <a name="line-170"></a><a name="byteAt"></a><span class='hs-comment'>-- | Get the nth byte, counting from the low end.</span>
 <a name="line-171"></a><span class='hs-comment'>--</span>
-<a name="line-172"></a><span class='hs-comment'>-- @'byteAt' n@ is only a legal 'Lens' into @b@ if @0 '&lt;=' n '&lt;' ('bitSize' ('undefined' :: b) `div` 8)@</span>
+<a name="line-172"></a><span class='hs-comment'>-- @'byteAt' n@ is a legal 'Lens' into @b@ iff @0 '&lt;=' n '&lt;' 'div' ('bitSize' ('undefined' :: b)) 8@</span>
 <a name="line-173"></a><span class='hs-comment'>--</span>
 <a name="line-174"></a><span class='hs-comment'>-- &gt;&gt;&gt; (0xff00 :: Word16)^.byteAt 0</span>
 <a name="line-175"></a><span class='hs-comment'>-- 0</span>
