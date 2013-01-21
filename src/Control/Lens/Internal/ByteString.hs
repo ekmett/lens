@@ -27,6 +27,7 @@ import Control.Applicative
 import Control.Lens
 import qualified Data.ByteString               as B
 import qualified Data.ByteString.Lazy          as BL
+import qualified Data.ByteString.Lazy.Internal as BLI
 import qualified Data.ByteString.Lazy.Char8    as BL8
 import qualified Data.ByteString.Internal      as BI
 import Data.Char
@@ -128,8 +129,12 @@ unpackLazy = BL.unpack
 
 -- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString'
 traversedLazy :: IndexedTraversal' Int64 BL.ByteString Word8
-traversedLazy = iso unpackLazy BL.pack . traversed64
+traversedLazy pafb = go 0 where
+  go _ BLI.Empty        = pure BLI.Empty
+  go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (fromIntegral :: Int -> Int64) (traversedStrictTree (fromIntegral i)) pafb b <*> go i' bs
+    where i' = i + B.length b
 {-# INLINE traversedLazy #-}
+
 
 -- | Unpack a lazy 'BL.ByteString' pretending the bytes are chars.
 unpackLazy8 :: BL.ByteString -> String
@@ -138,7 +143,10 @@ unpackLazy8 = BL8.unpack
 
 -- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString' pretending the bytes are chars.
 traversedLazy8 :: IndexedTraversal' Int64 BL.ByteString Char
-traversedLazy8 = iso unpackLazy8 BL8.pack . traversed64
+traversedLazy8 pafb = go 0 where
+  go _ BLI.Empty = pure BLI.Empty
+  go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (fromIntegral :: Int -> Int64) (traversedStrictTree8 (fromIntegral i)) pafb b <*> go i' bs
+    where i' = i + B.length b
 {-# INLINE traversedLazy8 #-}
 
 ------------------------------------------------------------------------------
