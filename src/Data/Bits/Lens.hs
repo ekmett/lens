@@ -169,7 +169,7 @@ bitAt n f b = indexed f n (testBit b n) <&> \x -> if x then setBit b n else clea
 
 -- | Get the nth byte, counting from the low end.
 --
--- @'byteAt' n@ is only a legal 'Lens' into @b@ if @0 '<=' n '<' ('bitSize' ('undefined' :: b) `div` 8)@
+-- @'byteAt' n@ is a legal 'Lens' into @b@ iff @0 '<=' n '<' 'div' ('bitSize' ('undefined' :: b)) 8@
 --
 -- >>> (0xff00 :: Word16)^.byteAt 0
 -- 0
