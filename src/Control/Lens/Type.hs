@@ -277,6 +277,9 @@ type IndexedSetter' i s a = IndexedSetter i s s a a
 -- and leaves the index intact, yielding an 'IndexedSetter'.
 type IndexPreservingSetter s t a b = forall p f. (Conjoined p, Settable f) => p a (f b) -> p s (f t)
 
+-- | @
+-- type 'IndexedPreservingSetter'' i = 'Simple' 'IndexedPreservingSetter'
+-- @
 type IndexPreservingSetter' s a = IndexPreservingSetter s s a a
 
 -----------------------------------------------------------------------------
@@ -547,6 +550,12 @@ type IndexedLensLike i f s t a b = forall p. Indexable i p => p a (f b) -> s -> 
 -- | Convenient alias for constructing simple indexed lenses and their ilk.
 type IndexedLensLike' i f s a = IndexedLensLike i f s s a a
 
+-- | This is a convenient alias for use when you need to consume either indexed or non-indexed lens-likes based on context.
 type Over p f s t a b = p a (f b) -> s -> f t
 
+-- | This is a convenient alias for use when you need to consume either indexed or non-indexed lens-likes based on context.
+--
+-- @
+-- type 'Over'' p f = 'Simple' ('Over' p f)
+-- @
 type Over' p f s a = Over p f s s a a
