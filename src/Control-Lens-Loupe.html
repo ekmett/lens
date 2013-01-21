@@ -17,26 +17,37 @@
 <a name="line-8"></a><span class='hs-comment'>-- Stability   :  provisional</span>
 <a name="line-9"></a><span class='hs-comment'>-- Portability :  Rank2Types</span>
 <a name="line-10"></a><span class='hs-comment'>--</span>
-<a name="line-11"></a><span class='hs-comment'>-- This module is deprecated; use 'Control.Lens.Lens.ALens' instead.</span>
-<a name="line-12"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-13"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Loupe</span>
-<a name="line-14"></a>  <span class='hs-layout'>(</span>
-<a name="line-15"></a>    <span class='hs-conid'>Loupe</span><span class='hs-layout'>,</span> <span class='hs-conid'>SimpleLoupe</span>
-<a name="line-16"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>storing</span>
-<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^#</span><span class='hs-layout'>)</span>
-<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#~</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#%~</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#%%~</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;#~</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;#%~</span><span class='hs-layout'>)</span>
-<a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#=</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#%=</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#%%=</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;#=</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;#%=</span><span class='hs-layout'>)</span>
-<a name="line-20"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-21"></a>
-<a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Context</span>
-<a name="line-23"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-24"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
+<a name="line-11"></a><span class='hs-comment'>-- This module exports a minimalist API for working with lenses in highly</span>
+<a name="line-12"></a><span class='hs-comment'>-- monomorphic settings.</span>
+<a name="line-13"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-14"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Loupe</span>
+<a name="line-15"></a>  <span class='hs-layout'>(</span>
+<a name="line-16"></a>    <span class='hs-conid'>ALens</span><span class='hs-layout'>,</span> <span class='hs-conid'>ALens'</span>
+<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>cloneLens</span>
+<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>storing</span>
+<a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^#</span><span class='hs-layout'>)</span>
+<a name="line-20"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#~</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#%~</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#%%~</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;#~</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;#%~</span><span class='hs-layout'>)</span>
+<a name="line-21"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#=</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#%=</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span> <span class='hs-cpp'>#%%=</span> <span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;#=</span><span class='hs-layout'>)</span><span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;#%=</span><span class='hs-layout'>)</span>
+<a name="line-22"></a>  <span class='hs-comment'>-- * Deprecated Aliases</span>
+<a name="line-23"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Loupe</span><span class='hs-layout'>,</span> <span class='hs-conid'>SimpleLoupe</span>
+<a name="line-24"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-25"></a>
-<a name="line-26"></a><a name="Loupe"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Loupe</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>Pretext</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-27"></a><span class='hs-comment'>{-# DEPRECATED Loupe "use ALens" #-}</span>
-<a name="line-28"></a>
-<a name="line-29"></a><a name="SimpleLoupe"></a><span class='hs-comment'>-- | @type 'SimpleLoupe' = 'Simple' 'Loupe'@</span>
-<a name="line-30"></a><a name="SimpleLoupe"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleLoupe</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Loupe</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
-<a name="line-31"></a><span class='hs-comment'>{-# DEPRECATED SimpleLoupe "use ALens'" #-}</span>
+<a name="line-26"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Context</span>
+<a name="line-27"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-28"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
+<a name="line-29"></a>
+<a name="line-30"></a><a name="Loupe"></a><span class='hs-comment'>-- | This is an older alias for a type-restricted form of lens that is able to be passed around</span>
+<a name="line-31"></a><a name="Loupe"></a><span class='hs-comment'>-- in containers monomorphically.</span>
+<a name="line-32"></a><a name="Loupe"></a><span class='hs-comment'>--</span>
+<a name="line-33"></a><a name="Loupe"></a><span class='hs-comment'>-- Deprecated. This has since been renamed to 'ALens' for consistency.</span>
+<a name="line-34"></a><a name="Loupe"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Loupe</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>Pretext</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-35"></a><span class='hs-comment'>{-# DEPRECATED Loupe "use ALens" #-}</span>
+<a name="line-36"></a>
+<a name="line-37"></a><a name="SimpleLoupe"></a><span class='hs-comment'>-- | @type 'SimpleLoupe' = 'Simple' 'Loupe'@</span>
+<a name="line-38"></a><a name="SimpleLoupe"></a><span class='hs-comment'>--</span>
+<a name="line-39"></a><a name="SimpleLoupe"></a><span class='hs-comment'>-- Deprecated for two reasons. 'Loupe' is now 'ALens', and we no longer use the verbose @SimpleFoo@ naming</span>
+<a name="line-40"></a><a name="SimpleLoupe"></a><span class='hs-comment'>-- convention, this has since been renamed to 'ALens'' for consistency.</span>
+<a name="line-41"></a><a name="SimpleLoupe"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>SimpleLoupe</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Loupe</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
+<a name="line-42"></a><span class='hs-comment'>{-# DEPRECATED SimpleLoupe "use ALens'" #-}</span>
 </pre></body>
 </html>

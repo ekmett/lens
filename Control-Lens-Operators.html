@@ -377,7 +377,9 @@ world
  targets of the traversals, extracting an applicative summary of its
  actions.
 </p><p>For all that the definition of this combinator is just:
-</p><pre>(<code><a href="Control-Lens-Operators.html#v:-37--37--126-">%%~</a></code>) &#8801; <code><a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.0.0/Prelude.html#v:id">id</a></code></pre><p>It may be beneficial to think about it as if it had these even more
+</p><pre>
+ (<code><a href="Control-Lens-Operators.html#v:-37--37--126-">%%~</a></code>) &#8801; <code><a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.0.0/Prelude.html#v:id">id</a></code>
+</pre><p>It may be beneficial to think about it as if it had these even more
  restricted types, however:
 </p><pre>
  (<code><a href="Control-Lens-Operators.html#v:-37--37--126-">%%~</a></code>) :: <code><a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.0.0/Control-Monad.html#t:Functor">Functor</a></code> f =&gt;     <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s t a b       -&gt; (a -&gt; f b) -&gt; s -&gt; f t
@@ -396,7 +398,9 @@ world
  information of type <code>r</code> and return a monoidal summary of the changes.
 </p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>runState (_1 %%= \x -&gt; (f x, g x)) (a,b)
 </code></strong>(f a,(g a,b))
-</pre><pre>(<code><a href="Control-Lens-Operators.html#v:-37--37--61-">%%=</a></code>) &#8801; (<code><a href="/Library/Haskell/ghc-7.4.1/lib/mtl-2.1.1/doc/html/Control-Monad-State-Class.html#v:state">state</a></code> <code><a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.0.0/Prelude.html#v:.">.</a></code>)</pre><p>It may be useful to think of (<code><a href="Control-Lens-Operators.html#v:-37--37--61-">%%=</a></code>), instead, as having either of the
+</pre><pre>
+ (<code><a href="Control-Lens-Operators.html#v:-37--37--61-">%%=</a></code>) &#8801; (<code><a href="/Library/Haskell/ghc-7.4.1/lib/mtl-2.1.1/doc/html/Control-Monad-State-Class.html#v:state">state</a></code> <code><a href="/Library/Frameworks/GHC.framework/Versions/7.4.1-x86_64/usr/share/doc/ghc/html/libraries/base-4.5.0.0/Prelude.html#v:.">.</a></code>)
+</pre><p>It may be useful to think of (<code><a href="Control-Lens-Operators.html#v:-37--37--61-">%%=</a></code>), instead, as having either of the
  following more restricted type signatures:
 </p><pre>
  (<code><a href="Control-Lens-Operators.html#v:-37--37--61-">%%=</a></code>) :: <code><a href="/Library/Haskell/ghc-7.4.1/lib/mtl-2.1.1/doc/html/Control-Monad-State-Class.html#t:MonadState">MonadState</a></code> s m             =&gt; <code><a href="Control-Lens-Iso.html#t:Iso">Iso</a></code> s s a b       -&gt; (a -&gt; (r, b)) -&gt; m r
