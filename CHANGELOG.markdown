@@ -1,45 +1,25 @@
 3.8
 ---
 * Overall:
-
-** Replaced each of the different `SimpleFoo` type aliases with `Foo'` throughout. The various `Simple` aliases can still be found in `Control.Lens.Simple` but are now deprecated.
-
-** Made sweeping changes to `Iso` and `Prism` and `Indexed` lenses internally. They are now based on `profunctors`. This affects how you use `indexed` in the resulting code and dramatically changed the meaning of `Overloaded`.
-
-** Generalized combinators to pass through indices unmodified wherever possible and added indexed variants to existing combinators. There are hundreds of these changes and they would swamp this list.
-
+  * Replaced each of the different `SimpleFoo` type aliases with `Foo'` throughout. The various `Simple` aliases can still be found in `Control.Lens.Simple` but are now deprecated.
+  * Made sweeping changes to `Iso` and `Prism` and `Indexed` lenses internally. They are now based on `profunctors`. This affects how you use `indexed` in the resulting code and dramatically changed the meaning of `Overloaded`.
+  * Generalized combinators to pass through indices unmodified wherever possible and added indexed variants to existing combinators. There are hundreds of these changes and they would swamp this list.
 * `Control.Exception.Lens`
-
-** This module was created to add combinators and prisms that make it possible to wor with GHC's extensible exceptions and monad transformer stacks more easily. There are knock-on changes in `Data.Dynamic.Lens`, `System.Exit.Lens`, and `System.IO.Error.Lens`.
-
+  * This module was created to add combinators and prisms that make it possible to wor with GHC's extensible exceptions and monad transformer stacks more easily. There are knock-on changes in `Data.Dynamic.Lens`, `System.Exit.Lens`, and `System.IO.Error.Lens`.
 * `Control.Lens.At`
-
-** Moved `At(at)` and `Contains(contains)` and factored out `Ixed(ix)`.
-
-** Deprecated `_at` and `resultAt`.
-
-** Removed various `ordinal` and `ix` combinators, which are subsumed by `Ixed(ix)`.
-
+  * Moved `At(at)` and `Contains(contains)` and factored out `Ixed(ix)`.
+  * Deprecated `_at` and `resultAt`.
+  * Removed various `ordinal` and `ix` combinators, which are subsumed by `Ixed(ix)`.
 * `Control.Lens.Cons`
-
-** Consoldiated the various `_head`, `_tail`, `_init` and `_last` traversals that were scattered around the place into a pair of `Cons` and `Snoc` classes that provide `_Cons` and `_Snoc` prisms respectively, and combinators that build on top.
-
+  * Consoldiated the various `_head`, `_tail`, `_init` and `_last` traversals that were scattered around the place into a pair of `Cons` and `Snoc` classes that provide `_Cons` and `_Snoc` prisms respectively, and combinators that build on top.
 * `Control.Lens.Each`
-
-** Generalized the signature of `Each` to permit it to provide an `IndexedSetter` for `((->) e)`.
-
-** `Each` now uses an `Index` type family that is shared with `At`, `Ixed` and `Contains` to indicate these operations are related.
-
+  * Generalized the signature of `Each` to permit it to provide an `IndexedSetter` for `((->) e)`.
+  * `Each` now uses an `Index` type family that is shared with `At`, `Ixed` and `Contains` to indicate these operations are related.
 * `Control Lens Equality`
-
-** Added as a stronger form of `Iso` that can be used to safely cast.
-
+  * Added as a stronger form of `Iso` that can be used to safely cast.
 * `Control.Lens.Fold`
-
-** Added `foldr1Of'` and `foldl1Of'`.
-
-** Added `has` and `hasn't`.
-
+  * Added `foldr1Of'` and `foldl1Of'`.
+  * Added `has` and `hasn't`.
 * `Control.Lens.Indexed`
 
 ** The various indexed combinators for each type were distributed to their respective modules. This module grew to encompass the remaining index-specifics.
