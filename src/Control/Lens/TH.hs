@@ -787,11 +787,12 @@ hasClassAndInstance src = do
             [ sigD lensName (appsT (conT ''Lens') [varT c, varT e])]
 
         actualLens <- global fullLensName
-        VarI _ (AppT _ (ConT fieldType)) _ _ <- reify (mkName full)
+
+        VarI _ (AppT _ fieldType) _ _ <-  reify (mkName full)
 
         instanceHas <- instanceD
             (return [])
-            (conT className `appsT` [conT src, conT fieldType])
+            (conT className `appsT` [conT src, return fieldType])
             [
 #ifdef INLINING
               inlinePragma lensName,
