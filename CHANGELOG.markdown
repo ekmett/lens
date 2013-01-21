@@ -15,7 +15,7 @@
 * `Control.Lens.Each`
   * Generalized the signature of `Each` to permit it to provide an `IndexedSetter` for `((->) e)`.
   * `Each` now uses an `Index` type family that is shared with `At`, `Ixed` and `Contains` to indicate these operations are related.
-* `Control Lens Equality`
+* `Control.Lens.Equality`
   * Added as a stronger form of `Iso` that can be used to safely cast.
   * Added the adverb `simply`, which can be used to simplify the types of most combinators in the library so they only take a simple lens, simple traversal, etc as their first argument instead. e.g. `simply view` forces `a ~ b`, `s ~ t` in the argument to `view`.
 * `Control.Lens.Fold`
