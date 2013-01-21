@@ -210,6 +210,7 @@ instance IndexedFunctor Mafic where
 -- By constructing it this way we avoid infinite reassociations where possible.
 data TakingWhile p (g :: * -> *) a b t = TakingWhile Bool t (Bool -> Magma () t b (Corep p a))
 
+-- Generate a 'Magma' with leaves only while the predicate holds from left to right.
 runTakingWhile :: Corepresentable p => TakingWhile p f a b t -> Magma () t b (Corep p a)
 runTakingWhile (TakingWhile _ _ k) = k True
 
