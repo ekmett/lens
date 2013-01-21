@@ -73,7 +73,7 @@ import Data.Foldable hiding (concat)
 import Data.Function (on)
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
-import Data.Maybe as Maybe (isNothing,isJust,catMaybes,fromJust, mapMaybe)
+import Data.Maybe as Maybe (isNothing,isJust,catMaybes,fromJust)
 import Data.Ord (comparing)
 import Data.Set as Set hiding (toList,map,filter)
 import Data.Set.Lens
@@ -757,20 +757,30 @@ verboseLenses src = do
     makeLensesFor (map (\ (n', _, _) -> let n = unqualify (show n') in (n, n ++ "_lens")) rs) src
 
 -- | For each field of a data type, generate a Has_<field> class and instance for it.
--- Fields have to be in the format *_<Type>_<fieldname>*.
+-- Fields have to be in the format *_<prefix>_<fieldname>*. The prefix has to be the same for each field to be accepted.
 -- This allows multiple records to share the same lenses.
 hasClassAndInstance :: Name -> Q [Dec]
 hasClassAndInstance src = do
     TyConI (DataD _ _ _ [RecC _ rs] _) <- reify src
 
-    let getName (n, _, _) =
-            let full = unqualify (show n)
-                its  = iterate (tail . dropWhile (/= '_')) full
-            in if unqualify (show src) `isInfixOf` (its !! 1)
-                then Just (full, its !! 2)
-                else Nothing
+    let -- Get the prefix of something in the form _prefix_foo
+        prefix ('_':xs) | '_' `List.elem` xs = Just (takeWhile (/= '_') xs)
+        prefix _                             = Nothing
 
-        names = Maybe.mapMaybe getName rs
+        -- tail being non-total is annoying
+        suffix ('_':xs) = case dropWhile (/= '_') xs of
+            ('_':s) -> Just s
+            _       -> Nothing
+        suffix _        = Nothing
+
+        getName (n, _, _) (p', ns) = 
+            let full = unqualify (show n)
+                fs   = liftA2 (,) (prefix full) (suffix full)
+            in maybe (p', ns) (\ (p, nice) -> case p' of
+                Just lastprefix -> (p', if p == lastprefix then (full, nice) : ns else ns)
+                _               -> (Just p, (full, nice) : ns)) fs
+
+        names = snd $ List.foldr getName (Nothing, []) rs
 
     -- 'full' looks like "_Type_field"
     -- 'nice' looks like "field"
@@ -787,11 +797,12 @@ hasClassAndInstance src = do
             [ sigD lensName (appsT (conT ''Lens') [varT c, varT e])]
 
         actualLens <- global fullLensName
-        VarI _ (AppT _ (ConT fieldType)) _ _ <- reify (mkName full)
+
+        VarI _ (AppT _ fieldType) _ _ <-  reify (mkName full)
 
         instanceHas <- instanceD
             (return [])
-            (conT className `appsT` [conT src, conT fieldType])
+            (conT className `appsT` [conT src, return fieldType])
             [
 #ifdef INLINING
               inlinePragma lensName,
@@ -806,7 +817,7 @@ hasClassAndInstance src = do
           e = mkName "e"
 
 -- | For each field of a data type, generate a Has_<field> class and instance for it.
--- Fields have to be in the format *_<Type>_<fieldname>*.
+-- Fields have to be in the format *_<prefix>_<fieldname>*. The prefix has to be the same for each field to be accepted.
 -- This allows multiple records to share the same lenses.
 makeFields :: Name -> Q [Dec]
 makeFields n = liftA2 (++) (verboseLenses n) (hasClassAndInstance n)

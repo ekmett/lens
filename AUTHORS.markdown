@@ -18,7 +18,7 @@ Many people have contributed patches, documentation, wiki pages, bug reports, te
 * [Aristid Breitkreuz](mailto:aristidb+lens@gmail.com) [@aristidb](https://github.com/aristidb)
 * [Simon Hengel](mailto:sol@typeful.net) [@sol](https://github.com/sol)
 * [@startling](https://github.com/startling)
-* Mike Ledger [@mikeplus64](https://github.com/mikeplus64)
+* [Mike Ledger](mailto:eleventynine@gmail.com) [@mikeplus64](https://github.com/mikeplus64)
 * `nand` [@nandykins](https://github.com/nandykins)
 * [Adrian Keet](mailto:arkeet@gmail.com) [@arkeet](https://github.com/arkeet)
 * [Matvey B. Aksenov](mailto:matvey.aksenov@gmail.com) [@supki](https://github.com/supki)
