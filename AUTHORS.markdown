@@ -8,7 +8,7 @@ Many people have contributed patches, bug reports and massive quantities of code
 
 * [Shachaf Ben-Kiki](mailto:shachaf@gmail.com) [@shachaf](http://github.com/shachaf)
 * Elliott Hird [@ehird](http://github.com/ehird)
-* [Johan Kiviniemi](mailto:lens@johan.kiviniemi.name) [@ion](http://github.com/ion)1
+* [Johan Kiviniemi](mailto:lens@johan.kiviniemi.name) [@ion1](http://github.com/ion1)
 * [Bas Dirks](mailto:ik@basdirks.eu) [@basdirks](http://github.com/basdirks)
 * [Eric Mertens](mailto:emertens@gmail.com) [@glguy](http://github.com/glguy)
 * [Michael Sloan](mailto:mgsloan@gmail.com) [@mgsloan](http://github.com/mgsloan)
@@ -18,16 +18,16 @@ Many people have contributed patches, bug reports and massive quantities of code
 * [Aristid Breitkreuz](mailto:aristidb+lens@gmail.com) [@aristidb](http://github.com/aristidb)
 * [Simon Hengel](mailto:sol@typeful.net) [@sol](http://github.com/sol)
 * [@startling](http://github.com/startling)
-* Mike Ledger [@mikepus](http://github.com/mikepus)64
+* Mike Ledger [@mikeplus](http://github.com/mikeplus)
 * `nand` [@nandykins](http://github.com/nandykins)
 * [Adrian Keet](mailto:arkeet@gmail.com) [@arkeet](http://github.com/arkeet)
 * [Matvey B. Aksenov](mailto:matvey.aksenov@gmail.com) [@supki](http://github.com/supki)
-* [Eyal Lotem](mailto:eyal.lotem+github@gmail.com) [@](http://github.com/)Peaker
+* [Eyal Lotem](mailto:eyal.lotem+github@gmail.com) [@Peaker](http://github.com/Peaker)
 * [Oliver Charles](mailto:ollie@ocharles.org.uk) [@ocharles](http://github.com/ocharles)
 * Liyang HU [@liyang](http://github.com/liyang)
 * [Carter Schonwald](mailto:carter.schonwald@gmail.com) [@cartazio](http://github.com/cartazio)
 * [Mark Wright](mailto:gienah@gentoo.org) [@markwright](http://github.com/markwright)
-* Nathan van Doorn [@](http://github.com/)Taneb
+* Nathan van Doorn [@Taneb](http://github.com/Taneb)
 * Ville Tirronen [@aleator](http://github.com/aleator)
 * [Mikhail Vorozhtsov](mailto:mikhail.vorozhtsov@gmail.com) [@mvv](http://github.com/mvv)
 * [Brent Yorgey](mailto:byorgey@gmail.com) [@byorgey](http://github.com/byorgey)
