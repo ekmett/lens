@@ -25,7 +25,6 @@ module Control.Lens.Internal.Magma
   -- * Magma
     Magma(..)
   , runMagma
-  , leaf
   -- * Molten
   , Molten(..)
   -- * Mafic
@@ -55,32 +54,31 @@ import Prelude hiding ((.),id)
 -- Magma
 ------------------------------------------------------------------------------
 
+-- | This provides a way to peek at the internal structure of a 
+-- 'Control.Lens.Traversal.Traversal' or 'Control.Lens.Traversal.IndexedTraversal'
 data Magma i t b a where
   MagmaAp   :: Magma i (x -> y) b a -> Magma i x b a -> Magma i y b a
   MagmaPure :: x -> Magma i x b a
   MagmaFmap :: (x -> y) -> Magma i x b a -> Magma i y b a
-  MagmaLeaf :: i -> a -> Magma i b b a
+  Magma :: i -> a -> Magma i b b a
 
 instance Functor (Magma i t b) where
   fmap f (MagmaAp x y)    = MagmaAp (fmap f x) (fmap f y)
   fmap _ (MagmaPure x)    = MagmaPure x
   fmap f (MagmaFmap xy x) = MagmaFmap xy (fmap f x)
-  fmap f (MagmaLeaf i a)  = MagmaLeaf i (f a)
+  fmap f (Magma i a)  = Magma i (f a)
 
 instance Foldable (Magma i t b) where
   foldMap f (MagmaAp x y)   = foldMap f x `mappend` foldMap f y
   foldMap _ MagmaPure{}     = mempty
   foldMap f (MagmaFmap _ x) = foldMap f x
-  foldMap f (MagmaLeaf _ a) = f a
+  foldMap f (Magma _ a) = f a
 
 instance Traversable (Magma i t b) where
   traverse f (MagmaAp x y)    = MagmaAp <$> traverse f x <*> traverse f y
   traverse _ (MagmaPure x)    = pure (MagmaPure x)
   traverse f (MagmaFmap xy x) = MagmaFmap xy <$> traverse f x
-  traverse f (MagmaLeaf i a)  = MagmaLeaf i <$> f a
-
-leaf :: i -> a -> Magma i b b a
-leaf = MagmaLeaf
+  traverse f (Magma i a)  = Magma i <$> f a
 
 instance (Show i, Show a) => Show (Magma i t b a) where
   showsPrec d (MagmaAp x y) = showParen (d > 4) $
@@ -89,14 +87,14 @@ instance (Show i, Show a) => Show (Magma i t b a) where
     showString "pure .."
   showsPrec d (MagmaFmap _ x) = showParen (d > 4) $
     showString ".. <$> " . showsPrec 5 x
-  showsPrec d (MagmaLeaf i a) = showParen (d > 10) $
-    showString "leaf " . showsPrec 11 i . showChar ' ' . showsPrec 11 a
+  showsPrec d (Magma i a) = showParen (d > 10) $
+    showString "Magma " . showsPrec 11 i . showChar ' ' . showsPrec 11 a
 
 runMagma :: Magma i t a a -> t
 runMagma (MagmaAp l r)   = runMagma l (runMagma r)
 runMagma (MagmaFmap f r) = f (runMagma r)
 runMagma (MagmaPure x)   = x
-runMagma (MagmaLeaf _ a) = a
+runMagma (Magma _ a) = a
 
 ------------------------------------------------------------------------------
 -- Molten
@@ -120,14 +118,14 @@ instance Applicative (Molten i a b) where
   {-# INLINE (<*>) #-}
 
 instance Sellable (Indexed i) (Molten i) where
-  sell = Indexed (\i -> Molten #. MagmaLeaf i)
+  sell = Indexed (\i -> Molten #. Magma i)
   {-# INLINE sell #-}
 
 instance Bizarre (Indexed i) (Molten i) where
   bazaar f (Molten (MagmaAp x y))   = bazaar f (Molten x) <*> bazaar f (Molten y)
   bazaar f (Molten (MagmaFmap g x)) = g <$> bazaar f (Molten x)
   bazaar _ (Molten (MagmaPure x))   = pure x
-  bazaar f (Molten (MagmaLeaf i a)) = indexed f i a
+  bazaar f (Molten (Magma i a)) = indexed f i a
 
 instance IndexedFunctor (Molten i) where
   ifmap f (Molten xs) = Molten (MagmaFmap f xs)
@@ -137,14 +135,14 @@ instance IndexedComonad (Molten i) where
   iextract (Molten (MagmaAp x y))   = iextract (Molten x) (iextract (Molten y))
   iextract (Molten (MagmaFmap f y)) = f (iextract (Molten y))
   iextract (Molten (MagmaPure x))   = x
-  iextract (Molten (MagmaLeaf _ a)) = a
+  iextract (Molten (Magma _ a)) = a
 
-  iduplicate (Molten (MagmaLeaf i a)) = Molten #. MagmaLeaf i <$> Molten (MagmaLeaf i a)
+  iduplicate (Molten (Magma i a)) = Molten #. Magma i <$> Molten (Magma i a)
   iduplicate (Molten (MagmaPure x))   = pure (pure x)
   iduplicate (Molten (MagmaFmap f y)) = iextend (fmap f) (Molten y)
   iduplicate (Molten (MagmaAp x y))   = iextend (<*>) (Molten x) <*> iduplicate (Molten y)
 
-  iextend k (Molten (MagmaLeaf i a)) = (k .# Molten) . MagmaLeaf i <$> Molten (MagmaLeaf i a)
+  iextend k (Molten (Magma i a)) = (k .# Molten) . Magma i <$> Molten (Magma i a)
   iextend k (Molten (MagmaPure x))   = pure (k (pure x))
   iextend k (Molten (MagmaFmap f y)) = iextend (k . fmap f) (Molten y)
   iextend k (Molten (MagmaAp x y))   = iextend (\x' y' -> k $ x' <*> y') (Molten x) <*> iduplicate (Molten y)
@@ -184,7 +182,7 @@ instance Applicative (Mafic a b) where
   {-# INLINE (<*>) #-}
 
 instance Sellable (->) Mafic where
-  sell a = Mafic 1 $ \ i -> MagmaLeaf i a
+  sell a = Mafic 1 $ \ i -> Magma i a
   {-# INLINE sell #-}
 
 instance Bizarre (Indexed Int) Mafic where
@@ -193,7 +191,7 @@ instance Bizarre (Indexed Int) Mafic where
     go (MagmaAp x y)   = go x <*> go y
     go (MagmaFmap f x) = f <$> go x
     go (MagmaPure x)   = pure x
-    go (MagmaLeaf i a) = indexed pafb (i :: Int) a
+    go (Magma i a) = indexed pafb (i :: Int) a
   {-# INLINE bazaar #-}
 
 instance IndexedFunctor Mafic where
@@ -234,7 +232,7 @@ instance Corepresentable p => Bizarre p (TakingWhile p g) where
     go (MagmaAp x y)  = go x <*> go y
     go (MagmaFmap f x)  = f <$> go x
     go (MagmaPure x)    = pure x
-    go (MagmaLeaf _ wa) = corep pafb wa
+    go (Magma _ wa) = corep pafb wa
   {-# INLINE bazaar #-}
 
 instance Gettable f => Gettable (TakingWhile p f a b) where
