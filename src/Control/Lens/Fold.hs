@@ -633,7 +633,7 @@ allOf l f = getAll #. foldMapOf l (All #. f)
 -- 'productOf' :: 'Num' a => 'Traversal'' s a -> s -> a
 -- 'productOf' :: 'Num' a => 'Prism'' s a     -> s -> a
 -- @
-productOf :: Num a => Getting (Endo (a -> a)) s t a b -> s -> a
+productOf :: Num a => Getting (Endo (Endo a)) s t a b -> s -> a
 productOf l = foldlOf' l (*) 1
 {-# INLINE productOf #-}
 
@@ -669,7 +669,7 @@ productOf l = foldlOf' l (*) 1
 -- 'sumOf' :: 'Num' a => 'Traversal'' s a -> s -> a
 -- 'sumOf' :: 'Num' a => 'Prism'' s a     -> s -> a
 -- @
-sumOf :: Num a => Getting (Endo (a -> a)) s t a b -> s -> a
+sumOf :: Num a => Getting (Endo (Endo a)) s t a b -> s -> a
 sumOf l = foldlOf' l (+) 0
 {-# INLINE sumOf #-}
 
@@ -948,7 +948,7 @@ concatOf l = runAccessor #. l Accessor
 -- 'lengthOf' :: 'Iso'' s a       -> s -> 'Int'
 -- 'lengthOf' :: 'Traversal'' s a -> s -> 'Int'
 -- @
-lengthOf :: Getting (Endo (Int -> Int)) s t a b -> s -> Int
+lengthOf :: Getting (Endo (Endo Int)) s t a b -> s -> Int
 lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 {-# INLINE lengthOf #-}
 
@@ -1100,7 +1100,7 @@ notNullOf l = getAny #. foldMapOf l (\_ -> Any True)
 -- 'maximumOf' :: 'Ord' a => 'Lens'' s a      -> s -> 'Maybe' a
 -- 'maximumOf' :: 'Ord' a => 'Traversal'' s a -> s -> 'Maybe' a
 -- @
-maximumOf :: Ord a => Getting (Endo (Maybe a -> Maybe a)) s t a b -> s -> Maybe a
+maximumOf :: Ord a => Getting (Endo (Endo (Maybe a))) s t a b -> s -> Maybe a
 maximumOf l = foldlOf' l mf Nothing where
   mf Nothing y = Just $! y
   mf (Just x) y = Just $! max x y
@@ -1127,7 +1127,7 @@ maximumOf l = foldlOf' l mf Nothing where
 -- 'minimumOf' :: 'Ord' a => 'Traversal'' s a -> s -> 'Maybe' a
 -- @
 
-minimumOf :: Ord a => Getting (Endo (Maybe a -> Maybe a)) s t a b -> s -> Maybe a
+minimumOf :: Ord a => Getting (Endo (Endo (Maybe a))) s t a b -> s -> Maybe a
 minimumOf l = foldlOf' l mf Nothing where
   mf Nothing y = Just $! y
   mf (Just x) y = Just $! min x y
@@ -1152,7 +1152,7 @@ minimumOf l = foldlOf' l mf Nothing where
 -- 'maximumByOf' :: 'Lens'' s a      -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- 'maximumByOf' :: 'Traversal'' s a -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- @
-maximumByOf :: Getting (Endo (Maybe a -> Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
+maximumByOf :: Getting (Endo (Endo (Maybe a))) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
 maximumByOf l cmp = foldlOf' l mf Nothing where
   mf Nothing y = Just $! y
   mf (Just x) y = Just $! if cmp x y == GT then x else y
@@ -1179,7 +1179,7 @@ maximumByOf l cmp = foldlOf' l mf Nothing where
 -- 'minimumByOf' :: 'Lens'' s a      -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- 'minimumByOf' :: 'Traversal'' s a -> (a -> a -> 'Ordering') -> s -> 'Maybe' a
 -- @
-minimumByOf :: Getting (Endo (Maybe a -> Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
+minimumByOf :: Getting (Endo (Endo (Maybe a))) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
 minimumByOf l cmp = foldlOf' l mf Nothing where
   mf Nothing y = Just $! y
   mf (Just x) y = Just $! if cmp x y == GT then y else x
@@ -1275,9 +1275,9 @@ foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf No
 -- 'foldrOf'' :: 'Lens'' s a      -> (a -> r -> r) -> r -> s -> r
 -- 'foldrOf'' :: 'Traversal'' s a -> (a -> r -> r) -> r -> s -> r
 -- @
-foldrOf' :: Getting (Dual (Endo (r -> r))) s t a b -> (a -> r -> r) -> r -> s -> r
-foldrOf' l f z0 xs = foldlOf l f' id xs z0
-  where f' k x z = k $! f x z
+foldrOf' :: Getting (Dual (Endo (Endo r))) s t a b -> (a -> r -> r) -> r -> s -> r
+foldrOf' l f z0 xs = foldlOf l f' (Endo id) xs `appEndo` z0
+  where f' (Endo k) x = Endo $ \ z -> k $! f x z
 {-# INLINE foldrOf' #-}
 
 -- | Fold over the elements of a structure, associating to the left, but strictly.
@@ -1293,9 +1293,9 @@ foldrOf' l f z0 xs = foldlOf l f' id xs z0
 -- 'foldlOf'' :: 'Lens'' s a      -> (r -> a -> r) -> r -> s -> r
 -- 'foldlOf'' :: 'Traversal'' s a -> (r -> a -> r) -> r -> s -> r
 -- @
-foldlOf' :: Getting (Endo (r -> r)) s t a b -> (r -> a -> r) -> r -> s -> r
-foldlOf' l f z0 xs = foldrOf l f' id xs z0
-  where f' x k z = k $! f z x
+foldlOf' :: Getting (Endo (Endo r)) s t a b -> (r -> a -> r) -> r -> s -> r
+foldlOf' l f z0 xs = foldrOf l f' (Endo id) xs `appEndo` z0
+  where f' x (Endo k) = Endo $ \z -> k $! f z x
 {-# INLINE foldlOf' #-}
 
 -- | A variant of 'foldrOf'' that has no base case and thus may only be applied
@@ -1313,7 +1313,7 @@ foldlOf' l f z0 xs = foldrOf l f' id xs z0
 -- 'foldr1Of'' :: 'Lens'' s a      -> (a -> a -> a) -> s -> a
 -- 'foldr1Of'' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
 -- @
-foldr1Of' :: Getting (Dual (Endo (Maybe a -> Maybe a))) s t a b -> (a -> a -> a) -> s -> a
+foldr1Of' :: Getting (Dual (Endo (Endo (Maybe a)))) s t a b -> (a -> a -> a) -> s -> a
 foldr1Of' l f xs = fromMaybe (error "foldr1Of': empty structure") (foldrOf' l mf Nothing xs) where
   mf x Nothing = Just $! x
   mf x (Just y) = Just $! f x y
@@ -1334,7 +1334,7 @@ foldr1Of' l f xs = fromMaybe (error "foldr1Of': empty structure") (foldrOf' l mf
 -- 'foldl1Of'' :: 'Lens'' s a      -> (a -> a -> a) -> s -> a
 -- 'foldl1Of'' :: 'Traversal'' s a -> (a -> a -> a) -> s -> a
 -- @
-foldl1Of' :: Getting (Endo (Maybe a -> Maybe a)) s t a b -> (a -> a -> a) -> s -> a
+foldl1Of' :: Getting (Endo (Endo (Maybe a))) s t a b -> (a -> a -> a) -> s -> a
 foldl1Of' l f xs = fromMaybe (error "foldl1Of': empty structure") (foldlOf' l mf Nothing xs) where
   mf Nothing y = Just $! y
   mf (Just x) y = Just $! f x y
