@@ -1,96 +1,136 @@
 3.8
 ---
 * Overall:
+
 ** Replaced each of the different `SimpleFoo` type aliases with `Foo'` throughout. The various `Simple` aliases can still be found in `Control.Lens.Simple` but are now deprecated.
+
 ** Made sweeping changes to `Iso` and `Prism` and `Indexed` lenses internally. They are now based on `profunctors`. This affects how you use `indexed` in the resulting code and dramatically changed the meaning of `Overloaded`.
+
 ** Generalized combinators to pass through indices unmodified wherever possible and added indexed variants to existing combinators. There are hundreds of these changes and they would swamp this list.
 
 * `Control.Exception.Lens`
+
 ** This module was created to add combinators and prisms that make it possible to wor with GHC's extensible exceptions and monad transformer stacks more easily. There are knock-on changes in `Data.Dynamic.Lens`, `System.Exit.Lens`, and `System.IO.Error.Lens`.
 
 * `Control.Lens.At`
+
 ** Moved `At(at)` and `Contains(contains)` and factored out `Ixed(ix)`.
+
 ** Deprecated `_at` and `resultAt`.
+
 ** Removed various `ordinal` and `ix` combinators, which are subsumed by `Ixed(ix)`.
 
 * `Control.Lens.Cons`
+
 ** Consoldiated the various `_head`, `_tail`, `_init` and `_last` traversals that were scattered around the place into a pair of `Cons` and `Snoc` classes that provide `_Cons` and `_Snoc` prisms respectively, and combinators that build on top.
 
 * `Control.Lens.Each`
+
 ** Generalized the signature of `Each` to permit it to provide an `IndexedSetter` for `((->) e)`.
+
 ** `Each` now uses an `Index` type family that is shared with `At`, `Ixed` and `Contains` to indicate these operations are related.
 
-* `Control Lens Equality`: Added as a stronger form of `Iso` that can be used to safely cast.
+* `Control Lens Equality`
+
+** Added as a stronger form of `Iso` that can be used to safely cast.
 
 * `Control.Lens.Fold`
+
 ** Added `foldr1Of'` and `foldl1Of'`.
+
 ** Added `has` and `hasn't`.
 
 * `Control.Lens.Indexed`
+
 ** The various indexed combinators for each type were distributed to their respective modules. This module grew to encompass the remaining index-specifics.
+
 ** Added `index` and `indices`, and removed `iwhere` and `iwhereOf`. Use `itraversed.indices even` and `bar.indices (>3)` instead.
 
 * `Control.Lens.Internal`
+
 ** This module was exploded into more manageable component modules.
 
 * `Control.Lens.Iso`
+
 ** `Strict(strict)` is now a `Simple Iso`.
+
 ** Added `magma` and `imagma` which can be used to provide a 'debugging view' of a `Traversal`.
 
 * `Control.Lens.Lens`
+
 ** Restructuring split this module out from `Control.Lens.Type` and merged the contents `Control.Lens.IndexedLens`.
 
 * `Control.Lens.Level`
+
 ** This module was created to provide the breadth-first-search Traversals `levels` and `ilevels` which can be used to do (optionally depth-limited) breadth-first searches through arbitrary traversals reaching all leaves at finite depth in finite time. To use these in full accordance with the laws you should restrict yourself to commutative operations and finite containers, but they are useful even in the absence of these properties.
 
 * `Control.Lens.Loupe`
+
 ** In the interest of consistency, the `Loupe` alias has been deprecated in favor of `ALens`.
+
 ** `Loupe` (and `ALens`) are now defined in terms of `Pretext` rather than `Context`. This permits them to be cloned at a reduced cost reducing the call for `ReifiedLens`.
 
 * `Control.Lens.Operators`
+
 ** Added this module for users who insist on qualified use, but want access to the operators. They can `import Control.Lens as Lens` and `import Control.Lens.Operators` unqualified.
 
 * `Control.Lens.Prism`
+
 ** Added `prism'` to construct `SimplePrism`s.
 
 * `Control.Lens.Reified`
+
 ** Consolidated the various `ReifiedFoo` definitions into one module.
 
 * `Control.Lens.Representable`
+
 ** This module was removed. Its functionality may be split out into a separate package, but currently the `linear` package exports is own `Linear.Core` module to provide this functionality. It was taking lots of useful names for little functionality and didn't feel like the rest of the API.
 
 * `Control.Lens.Review`
+
 ** This module now factors the `review` functionality out of `Prism` and exposes `unto`, which is to `review` what `to` is to `view`.
 
 * `Control.Lens.Setter`
+
 ** Added `contramapped` and `argument` for mapping over inputs.
 
 * `Control.Lens.Simple`
+
 ** Removed the infix lens aliases and repurposed the module to house the now deprecated `SimpleFoo` type aliases, which were replaced universally with `Foo'`.
 
 * `Control.Lens.TH`
+
 ** `makeLenses` now generates `Lens'` and `Traversal'` where appropriate
+
 ** Added `makePrisms` as a generalized `makeIso` that automatically generates a `Prism` for each constructor. `makePrisms` generates names with an `_Foo` convention. This was consolidated upon throughout the library to reduce namespace conflicts between prisms and lenses.
+
 ** Added `makeFields`, which generates classes for each individual field in a data type.
+
 ** Added `makeWrapped`, which automatically generates a `Wrapped` instance for a newtype.
 
 * `Control.Lens.Type`
 ** This module was repurposed to provide a single home for all the standard lens-like type aliases used when producing lenses. You still need to go to their respective modules to find the types for consuming lens-likes if you want to generate your own lens combinators
 
 * `Control.Lens.Wrapped`
+
 ** Added `wrapped'` and `unwrapped'` for scenarios where you need the help with type inference.
 
 * `Control.Lens.Zipper`
+
 ** Converted `Zipper` to walk a magma based on the original structure and to use indices from indexed traversals when restoring from tape. This also means that when zipping around within a balanced structure with ascending keys `moveTo` can operate in logarithmic time, but required changing the `Zipper` type to add the index type.
 
 * `Data.Bits.Lens`
+
 ** Added `byteAt`.
 
 * `Data.ByteString.Lens`
+
 ** `Data.ByteString.Lazy.Lens` now uses `Int64`-based indexing.
+
 ** The `Traversal` for strict `ByteStrings` now construct a balanced tree up to a given grain size. This permits zipper based seeking to operate in logarithmic time and speeds up many traversals.
 
 * `Numeric.Lens`
+
 **  Created. `base` shows and reads integers at base-2 through base-36. `integral` can be used as a safe `fromInteger`/`toInteger`.
 
 3.7.3 [maintenance release]
