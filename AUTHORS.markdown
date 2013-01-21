@@ -36,7 +36,9 @@ Many people have contributed patches, documentation, wiki pages, bug reports, te
 * [Michael Thompson](mailto:what_is_it_to_do_anything@yahoo.com) [@michaelt](https://github.com/michaelt)
 * [John Wiegley](mailto:johnw@newartisans.com) [@jwiegley](https://github.com/jwiegley)
 
-Omission from this list is by no means an attempt to discount your contributions.
+You can watch them carry on the quest for bragging rights in the [contributors graph](https://github.com/ekmett/lens/graphs/contributors).
+
+Omission from this list is by no means an attempt to discount your contributions!
 
 Thank you for all of your help!
 
