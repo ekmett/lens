@@ -318,8 +318,8 @@ makeLensesWith :: LensRules -> Name -> Q [Dec]
 makeLensesWith cfg nm = do
     inf <- reify nm
     case inf of
-      (TyConI decl) -> case deNewtype decl of
-        (DataD ctx tyConName args cons _) -> case cons of
+      TyConI decl -> case deNewtype decl of
+        DataD ctx tyConName args cons _ -> case cons of
           [NormalC dataConName [(    _,ty)]]
             | cfg^.handleSingletons  -> makeIsoLenses cfg ctx tyConName args dataConName Nothing ty
           [RecC    dataConName [(fld,_,ty)]]
@@ -329,6 +329,7 @@ makeLensesWith cfg nm = do
         _ -> fail "makeLensesWith: Unsupported data type"
       _ -> fail "makeLensesWith: Expected the name of a data type or newtype"
 
+-- | Generate a 'Prism' for each constructor of a data type.
 makePrisms :: Name -> Q [Dec]
 makePrisms nm = do
     inf <- reify nm
