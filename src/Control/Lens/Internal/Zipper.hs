@@ -43,6 +43,7 @@ import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.Foldable
+import Data.Functor.Apply
 import Data.Maybe
 import Data.Monoid
 import Data.Profunctor.Unsafe
@@ -148,6 +149,10 @@ newtype Flow i b a = Flow { runFlow :: Jacket i b -> a }
 instance Functor (Flow i b) where
   fmap f (Flow g) = Flow (f . g)
   {-# INLINE fmap #-}
+
+instance Apply (Flow i b) where
+  (<.>) = (<*>)
+  {- INLINE (<.>) #-}
 
 -- | This is an illegal 'Applicative'.
 instance Applicative (Flow i b) where
