@@ -30,15 +30,15 @@
 ----------------------------------------------------------------------------
 module Control.Lens.At
   (
-  -- * Contains
-    Contains(..)
-  , containsIx, containsAt, containsLength, containsN, containsTest, containsLookup
+  -- * At
+    At(at)
   -- * Ixed
   , IxValue
   , Ixed(ix)
   , ixAt, ixEach
-  -- * At
-  , At(at)
+  -- * Contains
+  , Contains(..)
+  , containsIx, containsAt, containsLength, containsN, containsTest, containsLookup
   -- * Deprecated
   , _at
   , resultAt

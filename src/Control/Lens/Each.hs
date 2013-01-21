@@ -26,7 +26,10 @@
 --
 -----------------------------------------------------------------------------
 module Control.Lens.Each
-  ( Index
+  (
+  -- * Indices
+    Index
+  -- * Each
   , Each(..)
   ) where
 
