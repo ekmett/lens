@@ -135,6 +135,8 @@ type Getting r s t a b = (a -> Accessor r b) -> s -> Accessor r t
 -- | Used to consume an 'Control.Lens.Fold.IndexedFold'.
 type IndexedGetting i m s t a b = Indexed i a (Accessor m b) -> s -> Accessor m t
 
+-- | This is a convenient alias used when consuming (indexed) getters and (indexed) folds
+-- in a highly general fashion.
 type Accessing p m s t a b = p a (Accessor m b) -> s -> Accessor m t
 
 -------------------------------------------------------------------------------
