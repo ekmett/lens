@@ -44,6 +44,7 @@ import Control.Lens.Internal.Context
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Data.Foldable
+import Data.Functor.Apply
 import Data.Monoid
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
@@ -106,13 +107,21 @@ newtype Molten i a b t = Molten { runMolten :: Magma i t b a }
 
 instance Functor (Molten i a b) where
   fmap f (Molten xs) = Molten (MagmaFmap f xs)
+  {-# INLINE fmap #-}
+
+instance Apply (Molten i a b) where
+  (<.>) = (<*>)
+  {-# INLINE (<.>) #-}
 
 instance Applicative (Molten i a b) where
   pure  = Molten #. MagmaPure
+  {-# INLINE pure #-}
   Molten xs <*> Molten ys = Molten (MagmaAp xs ys)
+  {-# INLINE (<*>) #-}
 
 instance (p ~ Indexed i) => Sellable p (Molten i) where
   sell = Indexed (\i -> Molten #. MagmaLeaf i)
+  {-# INLINE sell #-}
 
 instance Bizarre (Indexed i) (Molten i) where
   bazaar f (Molten (MagmaAp x y))   = bazaar f (Molten x) <*> bazaar f (Molten y)
@@ -122,6 +131,7 @@ instance Bizarre (Indexed i) (Molten i) where
 
 instance IndexedFunctor (Molten i) where
   ifmap f (Molten xs) = Molten (MagmaFmap f xs)
+  {-# INLINE ifmap #-}
 
 instance IndexedComonad (Molten i) where
   iextract (Molten (MagmaAp x y))   = iextract (Molten x) (iextract (Molten y))
@@ -141,8 +151,11 @@ instance IndexedComonad (Molten i) where
 
 instance a ~ b => Comonad (Molten i a b) where
   extract   = iextract
+  {-# INLINE extract #-}
   extend    = iextend
+  {-# INLINE extend #-}
   duplicate = iduplicate
+  {-# INLINE duplicate #-}
 
 ------------------------------------------------------------------------------
 -- Mafic
@@ -159,6 +172,10 @@ runMafic (Mafic _ k) = k 0
 instance Functor (Mafic a b) where
   fmap f (Mafic w k) = Mafic w (MagmaFmap f . k)
   {-# INLINE fmap #-}
+
+instance Apply (Mafic a b) where
+  Mafic wf mf <.> Mafic wa ma = Mafic (wf + wa) $ \o -> MagmaAp (mf o) (ma (o + wf))
+  {-# INLINE (<.>) #-}
 
 instance Applicative (Mafic a b) where
   pure a = Mafic 0 $ \_ -> MagmaPure a
@@ -198,6 +215,11 @@ runTakingWhile (TakingWhile _ _ k) = k True
 instance Functor (TakingWhile p f a b) where
   fmap f (TakingWhile w t k) = let ft = f t in TakingWhile w ft $ \b -> if b then MagmaFmap f (k b) else MagmaPure ft
   {-# INLINE fmap #-}
+
+instance Apply (TakingWhile p f a b) where
+  TakingWhile wf tf mf <.> ~(TakingWhile wa ta ma) = TakingWhile (wf && wa) (tf ta) $ \o ->
+    if o then MagmaAp (mf True) (ma wf) else MagmaPure (tf ta)
+  {-# INLINE (<.>) #-}
 
 instance Applicative (TakingWhile p f a b) where
   pure a = TakingWhile True a $ \_ -> MagmaPure a
