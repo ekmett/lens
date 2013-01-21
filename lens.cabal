@@ -93,6 +93,7 @@ extra-source-files:
   examples/bf-examples/*.bf
   travis/cabal-apt-install
   travis/config
+  AUTHORS.markdown
   README.markdown
   CHANGELOG.markdown
 
@@ -161,11 +162,11 @@ library
   build-depends:
     array                     >= 0.3.0.2  && < 0.5,
     base                      >= 4.3      && < 5,
-    bifunctors                >= 3,
+    bifunctors                >= 3        && < 4,
     bytestring                >= 0.9.1.10 && < 0.11,
-    comonad                   >= 3,
-    comonad-transformers      >= 3,
-    comonads-fd               >= 3,
+    comonad                   >= 3        && < 4,
+    comonad-transformers      >= 3        && < 4,
+    comonads-fd               >= 3        && < 4,
     contravariant             >= 0.2.0.2,
     containers                >= 0.4.0    && < 0.6,
     distributive              >= 0.3,
@@ -176,15 +177,16 @@ library
     MonadCatchIO-transformers >= 0.3      && < 0.4,
     mtl                       >= 2.0.1    && < 2.2,
     parallel                  >= 3.1.0.1  && < 3.3,
-    profunctors               >= 3.2,
-    profunctor-extras         >= 3.3,
-    semigroups                >= 0.8.4,
+    profunctors               >= 3.2      && < 4,
+    profunctor-extras         >= 3.3      && < 4,
+    semigroupoids             >= 3        && < 4,
+    semigroups                >= 0.8.4    && < 1,
     split                     == 0.2.*,
-    tagged                    >= 0.4.4,
+    tagged                    >= 0.4.4    && < 1,
     template-haskell          >= 2.4      && < 2.10,
     text                      >= 0.11     && < 0.12,
     transformers              >= 0.2      && < 0.4,
-    transformers-compat       >= 0.1,
+    transformers-compat       >= 0.1      && < 1,
     unordered-containers      >= 0.2      && < 0.3,
     vector                    >= 0.9      && < 0.11
 

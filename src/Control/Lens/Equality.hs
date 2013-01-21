@@ -38,6 +38,7 @@ import Control.Lens.Type
 -- Equality
 -----------------------------------------------------------------------------
 
+-- | Provides witness that @(s ~ a, b ~ t)@ holds.
 data Identical a b s t where
   Identical :: Identical a b a b
 

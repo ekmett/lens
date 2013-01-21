@@ -29,9 +29,10 @@ import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Lens.Internal.Getter
 import Control.Monad
+import Data.Functor.Bind
 import Data.Functor.Identity
-import Data.Monoid
 import Data.Profunctor.Unsafe
+import Data.Semigroup
 
 -------------------------------------------------------------------------------
 -- Programming with Effects
@@ -77,11 +78,19 @@ instance Monad m => Effective m r (Effect m r) where
   ineffective = getEffect
   {-# INLINE ineffective #-}
 
+instance (Apply m, Semigroup r) => Semigroup (Effect m r a) where
+  Effect ma <> Effect mb = Effect (liftF2 (<>) ma mb)
+  {-# INLINE (<>) #-}
+
 instance (Monad m, Monoid r) => Monoid (Effect m r a) where
   mempty = Effect (return mempty)
   {-# INLINE mempty #-}
   Effect ma `mappend` Effect mb = Effect (liftM2 mappend ma mb)
   {-# INLINE mappend #-}
+
+instance (Apply m, Semigroup r) => Apply (Effect m r) where
+  Effect ma <.> Effect mb = Effect (liftF2 (<>) ma mb)
+  {-# INLINE (<.>) #-}
 
 instance (Monad m, Monoid r) => Applicative (Effect m r) where
   pure _ = Effect (return mempty)

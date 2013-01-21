@@ -23,9 +23,10 @@ module Control.Lens.Internal.Getter
 
 import Control.Applicative
 import Control.Applicative.Backwards
+import Data.Functor.Apply
 import Data.Functor.Compose
-import Data.Monoid
 import Data.Profunctor.Unsafe
+import Data.Semigroup
 
 -------------------------------------------------------------------------------
 -- Gettables & Accessors
@@ -80,6 +81,10 @@ newtype Accessor r a = Accessor { runAccessor :: r }
 instance Functor (Accessor r) where
   fmap _ (Accessor m) = Accessor m
   {-# INLINE fmap #-}
+
+instance Semigroup r => Apply (Accessor r) where
+  Accessor a <.> Accessor b = Accessor (a <> b)
+  {-# INLINE (<.>) #-}
 
 instance Monoid r => Applicative (Accessor r) where
   pure _ = Accessor mempty
