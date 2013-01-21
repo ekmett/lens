@@ -79,18 +79,22 @@ size Leaf{}           = 1
 size Pure             = 0
 {-# INLINE size #-}
 
+-- | This is an internal function used to check from left-to-right if a 'Jacket' has any 'Leaf' nots or not.
 nullLeft :: Jacket i a -> Bool
 nullLeft (Ap _ nl _ _ _ _) = nl
 nullLeft (Leaf _ _)        = False
 nullLeft Pure              = True
 {-# INLINE nullLeft #-}
 
+-- | This is an internal function used to check from right-to-left if a 'Jacket' has any 'Leaf' nots or not.
 nullRight :: Jacket i a -> Bool
 nullRight (Ap _ _ nr _ _ _) = nr
 nullRight (Leaf _ _)        = False
 nullRight Pure              = True
 {-# INLINE nullRight #-}
 
+-- | This is used to extract the maximal key from a 'Jacket'. This is used by 'moveTo' and 'moveToward' to
+-- seek specific keys, borrowing the asympotic guarantees of the original structure in many cases!
 maximal :: Jacket i a -> Last i
 maximal (Ap _ _ _ li _ _) = li
 maximal (Leaf i _)        = Last (Just i)
