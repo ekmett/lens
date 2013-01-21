@@ -18,7 +18,7 @@ Many people have contributed patches, documentation, wiki pages, bug reports and
 * [Aristid Breitkreuz](mailto:aristidb+lens@gmail.com) [@aristidb](http://github.com/aristidb)
 * [Simon Hengel](mailto:sol@typeful.net) [@sol](http://github.com/sol)
 * [@startling](http://github.com/startling)
-* Mike Ledger [@mikeplus](http://github.com/mikeplus)
+* Mike Ledger [@mikeplus64](http://github.com/mikeplus64)
 * `nand` [@nandykins](http://github.com/nandykins)
 * [Adrian Keet](mailto:arkeet@gmail.com) [@arkeet](http://github.com/arkeet)
 * [Matvey B. Aksenov](mailto:matvey.aksenov@gmail.com) [@supki](http://github.com/supki)
@@ -34,7 +34,7 @@ Many people have contributed patches, documentation, wiki pages, bug reports and
 * [Dan Rosén](mailto:danr@fripost.org) [@danr](http://github.com/danr)
 * Yair Chuchem [@yairchu](http://github.com/yairchu)
 * [Michael Thompson](mailto:what_is_it_to_do_anything@yahoo.com) [@michaelt](http://github.com/michaelt)
-* [John Weigley](mailto:johnw@newartisans.com) [@jwiegley](http://github.com/jwiegley)
+* [John Wiegley](mailto:johnw@newartisans.com) [@jwiegley](http://github.com/jwiegley)
 
 Omission from this list is by no means an attempt to discount your contributions.
 
