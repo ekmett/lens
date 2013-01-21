@@ -27,7 +27,8 @@ module Control.Lens.Internal.Fold
 import Control.Applicative
 import Control.Lens.Internal.Getter
 import Data.Maybe
-import Data.Monoid
+import Data.Functor.Bind
+import Data.Semigroup hiding (Min, getMin, Max, getMax)
 
 ------------------------------------------------------------------------------
 -- Folding
@@ -36,11 +37,16 @@ import Data.Monoid
 -- | A 'Monoid' for a 'Gettable' 'Applicative'.
 newtype Folding f a = Folding { getFolding :: f a }
 
+instance (Gettable f, Apply f) => Semigroup (Folding f a) where
+  Folding fr <> Folding fs = Folding (fr .> fs)
+  {-# INLINE (<>) #-}
+
 instance (Gettable f, Applicative f) => Monoid (Folding f a) where
   mempty = Folding noEffect
   {-# INLINE mempty #-}
   Folding fr `mappend` Folding fs = Folding (fr *> fs)
   {-# INLINE mappend #-}
+
 
 ------------------------------------------------------------------------------
 -- Traversed
@@ -50,6 +56,10 @@ instance (Gettable f, Applicative f) => Monoid (Folding f a) where
 --
 -- The argument 'a' of the result should not be used!
 newtype Traversed a f = Traversed { getTraversed :: f a }
+
+instance Apply f => Semigroup (Traversed a f) where
+  Traversed ma <> Traversed mb = Traversed (ma .> mb)
+  {-# INLINE (<>) #-}
 
 instance Applicative f => Monoid (Traversed a f) where
   mempty = Traversed (pure (error "Traversed: value used"))
@@ -66,6 +76,10 @@ instance Applicative f => Monoid (Traversed a f) where
 -- The argument 'a' of the result should not be used!
 newtype Sequenced a m = Sequenced { getSequenced :: m a }
 
+instance Apply m => Semigroup (Sequenced a m) where
+  Sequenced ma <> Sequenced mb = Sequenced (ma .> mb)
+  {-# INLINE (<>) #-}
+
 instance Monad m => Monoid (Sequenced a m) where
   mempty = Sequenced (return (error "Sequenced: value used"))
   {-# INLINE mempty #-}
@@ -78,6 +92,12 @@ instance Monad m => Monoid (Sequenced a m) where
 
 -- | Used for 'Control.Lens.Fold.minimumOf'.
 data Min a = NoMin | Min a
+
+instance Ord a => Semigroup (Min a) where
+  NoMin <> m     = m
+  m <> NoMin     = m
+  Min a <> Min b = Min (min a b)
+  {-# INLINE (<>) #-}
 
 instance Ord a => Monoid (Min a) where
   mempty = NoMin
@@ -100,6 +120,12 @@ getMin (Min a) = Just a
 -- | Used for 'Control.Lens.Fold.maximumOf'.
 data Max a = NoMax | Max a
 
+instance Ord a => Semigroup (Max a) where
+  NoMax <> m = m
+  m <> NoMax = m
+  Max a <> Max b = Max (max a b)
+  {-# INLINE (<>) #-}
+
 instance Ord a => Monoid (Max a) where
   mempty = NoMax
   {-# INLINE mempty #-}
@@ -120,6 +146,10 @@ getMax (Max a) = Just a
 
 -- | Used for 'Control.Lens.Fold.preview'.
 data Leftmost a = LPure | LLeaf a | LStep (Leftmost a)
+
+instance Semigroup (Leftmost a) where
+  (<>) = mappend
+  {-# INLINE (<>) #-}
 
 instance Monoid (Leftmost a) where
   mempty = LPure
@@ -143,6 +173,10 @@ getLeftmost (LStep x) = getLeftmost x
 
 -- | Used for 'Control.Lens.Fold.lastOf'.
 data Rightmost a = RPure | RLeaf a | RStep (Rightmost a)
+
+instance Semigroup (Rightmost a) where
+  (<>) = mappend
+  {-# INLINE (<>) #-}
 
 instance Monoid (Rightmost a) where
   mempty = RPure
