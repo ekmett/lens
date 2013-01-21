@@ -60,17 +60,23 @@ null (BD lf _ lr _) = lf + lr == 0
 -- | /O(1)/. Generate a singleton 'Deque'
 --
 -- >>> singleton 1
--- fromList [1]
+-- BD 1 [1] 0 []
 singleton :: a -> Deque a
 singleton a = BD 1 [a] 0 []
 {-# INLINE singleton #-}
 
 -- | /O(1)/. Calculate the size of a 'Deque'
+--
+-- >>> size (fromList [1,4,6])
+-- 3
 size :: Deque a -> Int
 size (BD lf _ lr _) = lf + lr
 {-# INLINE size #-}
 
 -- | /O(n)/ amortized. Construct a 'Deque' from a list of values.
+--
+-- >>> fromList [1,2]
+-- BD 1 [1] 1 [2]
 fromList :: [a] -> Deque a
 fromList = Prelude.foldr cons empty
 {-# INLINE fromList #-}
