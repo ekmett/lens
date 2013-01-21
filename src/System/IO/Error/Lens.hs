@@ -20,6 +20,8 @@ import GHC.IO.Exception
 import System.IO
 import Foreign.C.Types
 
+-- * IOException Lenses
+
 -- | Where the error happened.
 --
 -- @
@@ -83,5 +85,9 @@ errno f = _IOException $ \s -> f (ioe_errno s) <&> \e -> s { ioe_errno = e }
 errorType :: (AsIOException (->) f t, Functor f) => LensLike' f t IOErrorType
 errorType f = _IOException $ \s -> f (ioe_type s) <&> \e -> s { ioe_type = e }
 {-# INLINE errorType #-}
+
+-- * IOErrorType Prisms
+--
+-- (These prisms are generated automatically)
 
 makePrisms ''IOErrorType
