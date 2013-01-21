@@ -175,36 +175,40 @@
 <a name="line-166"></a>      <span class='hs-conid'>LLeaf</span> <span class='hs-varid'>a</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LLeaf</span> <span class='hs-varop'>$</span> <span class='hs-varid'>fromMaybe</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-varid'>getLeftmost</span> <span class='hs-varid'>x'</span><span class='hs-layout'>)</span>
 <a name="line-167"></a>      <span class='hs-conid'>LStep</span> <span class='hs-varid'>y'</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>mappend</span> <span class='hs-varid'>x'</span> <span class='hs-varid'>y'</span>
 <a name="line-168"></a>
-<a name="line-169"></a><a name="getLeftmost"></a><span class='hs-definition'>getLeftmost</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Leftmost</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span>
-<a name="line-170"></a><span class='hs-definition'>getLeftmost</span> <span class='hs-conid'>LPure</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
-<a name="line-171"></a><span class='hs-definition'>getLeftmost</span> <span class='hs-layout'>(</span><span class='hs-conid'>LLeaf</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Just</span> <span class='hs-varid'>a</span>
-<a name="line-172"></a><span class='hs-definition'>getLeftmost</span> <span class='hs-layout'>(</span><span class='hs-conid'>LStep</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getLeftmost</span> <span class='hs-varid'>x</span>
-<a name="line-173"></a>
-<a name="line-174"></a><a name="Rightmost"></a><span class='hs-comment'>-- | Used for 'Control.Lens.Fold.lastOf'.</span>
-<a name="line-175"></a><a name="Rightmost"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Rightmost</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>RPure</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RLeaf</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RStep</span> <span class='hs-layout'>(</span><span class='hs-conid'>Rightmost</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-176"></a>
-<a name="line-177"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Semigroup</span> <span class='hs-layout'>(</span><span class='hs-conid'>Rightmost</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-178"></a>  <span class='hs-layout'>(</span><span class='hs-varop'>&lt;&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mappend</span>
-<a name="line-179"></a>  <span class='hs-comment'>{-# INLINE (&lt;&gt;) #-}</span>
-<a name="line-180"></a>
-<a name="line-181"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monoid</span> <span class='hs-layout'>(</span><span class='hs-conid'>Rightmost</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-182"></a>  <span class='hs-varid'>mempty</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>RPure</span>
-<a name="line-183"></a>  <span class='hs-comment'>{-# INLINE mempty #-}</span>
-<a name="line-184"></a>  <span class='hs-varid'>mappend</span> <span class='hs-varid'>x</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>RStep</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>y</span> <span class='hs-keyword'>of</span>
-<a name="line-185"></a>    <span class='hs-conid'>RPure</span>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>x</span>
-<a name="line-186"></a>    <span class='hs-conid'>RLeaf</span> <span class='hs-keyword'>_</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>y</span>
-<a name="line-187"></a>    <span class='hs-conid'>RStep</span> <span class='hs-varid'>y'</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>x</span> <span class='hs-keyword'>of</span>
-<a name="line-188"></a>      <span class='hs-comment'>-- The last two cases make lastOf produce a Just as soon as any element</span>
-<a name="line-189"></a>      <span class='hs-comment'>-- is encountered, and possibly serve as a micro-optimisation; this</span>
-<a name="line-190"></a>      <span class='hs-comment'>-- behaviour can be disabled by replacing them with _ -&gt; mappend x y'.</span>
-<a name="line-191"></a>      <span class='hs-comment'>-- Note that this means that lastOf folded [1..] is Just _|_.</span>
-<a name="line-192"></a>      <span class='hs-conid'>RPure</span>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>y'</span>
-<a name="line-193"></a>      <span class='hs-conid'>RLeaf</span> <span class='hs-varid'>a</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>RLeaf</span> <span class='hs-varop'>$</span> <span class='hs-varid'>fromMaybe</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-varid'>getRightmost</span> <span class='hs-varid'>y'</span><span class='hs-layout'>)</span>
-<a name="line-194"></a>      <span class='hs-conid'>RStep</span> <span class='hs-varid'>x'</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>mappend</span> <span class='hs-varid'>x'</span> <span class='hs-varid'>y'</span>
-<a name="line-195"></a>
-<a name="line-196"></a><a name="getRightmost"></a><span class='hs-definition'>getRightmost</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Rightmost</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span>
-<a name="line-197"></a><span class='hs-definition'>getRightmost</span> <span class='hs-conid'>RPure</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
-<a name="line-198"></a><span class='hs-definition'>getRightmost</span> <span class='hs-layout'>(</span><span class='hs-conid'>RLeaf</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Just</span> <span class='hs-varid'>a</span>
-<a name="line-199"></a><span class='hs-definition'>getRightmost</span> <span class='hs-layout'>(</span><span class='hs-conid'>RStep</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getRightmost</span> <span class='hs-varid'>x</span>
+<a name="line-169"></a><a name="getLeftmost"></a><span class='hs-comment'>-- | Extract the 'Leftmost' element. This will fairly eagerly determine that it can return 'Just'</span>
+<a name="line-170"></a><span class='hs-comment'>-- the moment it sees any element at all.</span>
+<a name="line-171"></a><span class='hs-definition'>getLeftmost</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Leftmost</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span>
+<a name="line-172"></a><span class='hs-definition'>getLeftmost</span> <span class='hs-conid'>LPure</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
+<a name="line-173"></a><span class='hs-definition'>getLeftmost</span> <span class='hs-layout'>(</span><span class='hs-conid'>LLeaf</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Just</span> <span class='hs-varid'>a</span>
+<a name="line-174"></a><span class='hs-definition'>getLeftmost</span> <span class='hs-layout'>(</span><span class='hs-conid'>LStep</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getLeftmost</span> <span class='hs-varid'>x</span>
+<a name="line-175"></a>
+<a name="line-176"></a><a name="Rightmost"></a><span class='hs-comment'>-- | Used for 'Control.Lens.Fold.lastOf'.</span>
+<a name="line-177"></a><a name="Rightmost"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Rightmost</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>RPure</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RLeaf</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>|</span> <span class='hs-conid'>RStep</span> <span class='hs-layout'>(</span><span class='hs-conid'>Rightmost</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-178"></a>
+<a name="line-179"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Semigroup</span> <span class='hs-layout'>(</span><span class='hs-conid'>Rightmost</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-180"></a>  <span class='hs-layout'>(</span><span class='hs-varop'>&lt;&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mappend</span>
+<a name="line-181"></a>  <span class='hs-comment'>{-# INLINE (&lt;&gt;) #-}</span>
+<a name="line-182"></a>
+<a name="line-183"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monoid</span> <span class='hs-layout'>(</span><span class='hs-conid'>Rightmost</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-184"></a>  <span class='hs-varid'>mempty</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>RPure</span>
+<a name="line-185"></a>  <span class='hs-comment'>{-# INLINE mempty #-}</span>
+<a name="line-186"></a>  <span class='hs-varid'>mappend</span> <span class='hs-varid'>x</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>RStep</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>y</span> <span class='hs-keyword'>of</span>
+<a name="line-187"></a>    <span class='hs-conid'>RPure</span>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>x</span>
+<a name="line-188"></a>    <span class='hs-conid'>RLeaf</span> <span class='hs-keyword'>_</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>y</span>
+<a name="line-189"></a>    <span class='hs-conid'>RStep</span> <span class='hs-varid'>y'</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>x</span> <span class='hs-keyword'>of</span>
+<a name="line-190"></a>      <span class='hs-comment'>-- The last two cases make lastOf produce a Just as soon as any element</span>
+<a name="line-191"></a>      <span class='hs-comment'>-- is encountered, and possibly serve as a micro-optimisation; this</span>
+<a name="line-192"></a>      <span class='hs-comment'>-- behaviour can be disabled by replacing them with _ -&gt; mappend x y'.</span>
+<a name="line-193"></a>      <span class='hs-comment'>-- Note that this means that lastOf folded [1..] is Just _|_.</span>
+<a name="line-194"></a>      <span class='hs-conid'>RPure</span>    <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>y'</span>
+<a name="line-195"></a>      <span class='hs-conid'>RLeaf</span> <span class='hs-varid'>a</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>RLeaf</span> <span class='hs-varop'>$</span> <span class='hs-varid'>fromMaybe</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-varid'>getRightmost</span> <span class='hs-varid'>y'</span><span class='hs-layout'>)</span>
+<a name="line-196"></a>      <span class='hs-conid'>RStep</span> <span class='hs-varid'>x'</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>mappend</span> <span class='hs-varid'>x'</span> <span class='hs-varid'>y'</span>
+<a name="line-197"></a>
+<a name="line-198"></a><a name="getRightmost"></a><span class='hs-comment'>-- | Extract the 'Rightmost' element. This will fairly eagerly determine that it can return 'Just'</span>
+<a name="line-199"></a><span class='hs-comment'>-- the moment it sees any element at all.</span>
+<a name="line-200"></a><span class='hs-definition'>getRightmost</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Rightmost</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span>
+<a name="line-201"></a><span class='hs-definition'>getRightmost</span> <span class='hs-conid'>RPure</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span>
+<a name="line-202"></a><span class='hs-definition'>getRightmost</span> <span class='hs-layout'>(</span><span class='hs-conid'>RLeaf</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Just</span> <span class='hs-varid'>a</span>
+<a name="line-203"></a><span class='hs-definition'>getRightmost</span> <span class='hs-layout'>(</span><span class='hs-conid'>RStep</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getRightmost</span> <span class='hs-varid'>x</span>
 </pre></body>
 </html>
