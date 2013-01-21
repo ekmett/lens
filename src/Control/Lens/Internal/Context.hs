@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -122,7 +123,7 @@ class IndexedComonad w => IndexedComonadStore w where
 
 -- | This is used internally to construct a 'Control.Lens.Internal.Bazaar.Bazaar', 'Context' or 'Pretext'
 -- from a singleton value.
-class Corepresentable p => Sellable p w where
+class Corepresentable p => Sellable p w | w -> p where
   sell :: p a (w a b b)
 
 ------------------------------------------------------------------------------
@@ -171,7 +172,7 @@ instance Functor (Context a b) where
   fmap f (Context g t) = Context (f . g) t
   {-# INLINE fmap #-}
 
-instance (a ~ b) => Comonad (Context a b) where
+instance a ~ b => Comonad (Context a b) where
   extract   (Context f a) = f a
   {-# INLINE extract #-}
   duplicate (Context f a) = Context (Context f) a
@@ -179,7 +180,7 @@ instance (a ~ b) => Comonad (Context a b) where
   extend g  (Context f a) = Context (g . Context f) a
   {-# INLINE extend #-}
 
-instance (a ~ b) => ComonadStore a (Context a b) where
+instance a ~ b => ComonadStore a (Context a b) where
   pos = ipos
   {-# INLINE pos #-}
   peek = ipeek
@@ -193,7 +194,7 @@ instance (a ~ b) => ComonadStore a (Context a b) where
   experiment = iexperiment
   {-# INLINE experiment #-}
 
-instance (p ~ (->)) => Sellable p Context where
+instance Sellable (->) Context where
   sell = Context id
   {-# INLINE sell #-}
 
@@ -259,7 +260,7 @@ instance (a ~ b, Conjoined p) => ComonadStore a (Pretext p a b) where
   experiment = iexperiment
   {-# INLINE experiment #-}
 
-instance (Corepresentable p, p ~ p') => Sellable p' (Pretext p) where
+instance Corepresentable p => Sellable p (Pretext p) where
   sell = cotabulate $ \ w -> Pretext (`corep` w)
   {-# INLINE sell #-}
 
@@ -322,7 +323,7 @@ instance (a ~ b, Conjoined p) => ComonadStore a (PretextT p g a b) where
   experiment = iexperiment
   {-# INLINE experiment #-}
 
-instance (Corepresentable p, p ~ p') => Sellable p' (PretextT p g) where
+instance Corepresentable p => Sellable p (PretextT p g) where
   sell = cotabulate $ \ w -> PretextT (`corep` w)
   {-# INLINE sell #-}
 

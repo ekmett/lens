@@ -78,7 +78,7 @@ instance Conjoined p => IndexedComonad (Bazaar p) where
   iduplicate (Bazaar m) = getCompose $ m (Compose #. distrib sell . sell)
   {-# INLINE iduplicate #-}
 
-instance (Corepresentable p, p ~ p') => Sellable p' (Bazaar p) where
+instance Corepresentable p => Sellable p (Bazaar p) where
   sell = cotabulate $ \ w -> Bazaar $ tabulate $ \k -> pure (corep k w)
   {-# INLINE sell #-}
 
@@ -134,7 +134,7 @@ instance Conjoined p => IndexedComonad (BazaarT p g) where
   iduplicate (BazaarT m) = getCompose $ m (Compose #. distrib sell . sell)
   {-# INLINE iduplicate #-}
 
-instance (Corepresentable p, p ~ p') => Sellable p' (BazaarT p g) where
+instance Corepresentable p => Sellable p (BazaarT p g) where
   sell = cotabulate $ \ w -> BazaarT (`corep` w)
   {-# INLINE sell #-}
 

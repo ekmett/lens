@@ -119,7 +119,7 @@ instance Applicative (Molten i a b) where
   Molten xs <*> Molten ys = Molten (MagmaAp xs ys)
   {-# INLINE (<*>) #-}
 
-instance (p ~ Indexed i) => Sellable p (Molten i) where
+instance Sellable (Indexed i) (Molten i) where
   sell = Indexed (\i -> Molten #. MagmaLeaf i)
   {-# INLINE sell #-}
 
@@ -183,7 +183,7 @@ instance Applicative (Mafic a b) where
   Mafic wf mf <*> Mafic wa ma = Mafic (wf + wa) $ \o -> MagmaAp (mf o) (ma (o + wf))
   {-# INLINE (<*>) #-}
 
-instance p ~ (->) => Sellable p Mafic where
+instance Sellable (->) Mafic where
   sell a = Mafic 1 $ \ i -> MagmaLeaf i a
   {-# INLINE sell #-}
 
