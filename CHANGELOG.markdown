@@ -1,3 +1,7 @@
+3.8.1
+-----
+* Fixed a bug in `makeFields` in hierarchical modules.
+
 3.8.0.2
 -------
 * Fixed an issue with running the `doctests` test suite when an older version of `semigroups` is installed.
