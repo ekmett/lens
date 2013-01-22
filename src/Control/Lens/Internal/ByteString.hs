@@ -81,7 +81,7 @@ traversedStrict8 i0 pafb (BI.PS fp off len) =
 {-# INLINE traversedStrict8 #-}
 
 grain :: Int
-grain = 4
+grain = 32
 {-# INLINE grain #-}
 
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
