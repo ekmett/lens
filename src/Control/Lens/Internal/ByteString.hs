@@ -30,6 +30,7 @@ import qualified Data.ByteString.Lazy          as BL
 import qualified Data.ByteString.Lazy.Internal as BLI
 import qualified Data.ByteString.Lazy.Char8    as BL8
 import qualified Data.ByteString.Internal      as BI
+import Data.Bits
 import Data.Char
 import Data.Int (Int64)
 import Data.Word (Word8)
@@ -81,7 +82,7 @@ traversedStrict8 i0 pafb (BI.PS fp off len) =
 {-# INLINE traversedStrict8 #-}
 
 grain :: Int
-grain = 4
+grain = 32
 {-# INLINE grain #-}
 
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
@@ -92,7 +93,7 @@ traversedStrictTree i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + len
    p = unsafeForeignPtrToPtr fp `plusPtr` (off - i0)
    rebuild n f = unsafeCreate n $ \q -> f (q `plusPtr` (off - i0))
    go !i !j
-     | i + grain < j, k <- i + quot (j - i) 2 = (\l r q -> l q >> r q) <$> go i k <*> go k j
+     | i + grain < j, k <- i + shiftR (j - i) 1 = (\l r q -> l q >> r q) <$> go i k <*> go k j
      | otherwise = run i j
    run !i !j
      | i == j    = pure (\_ -> return ())
@@ -111,7 +112,7 @@ traversedStrictTree8 i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + le
    p = unsafeForeignPtrToPtr fp `plusPtr` (off - i0)
    rebuild n f = unsafeCreate n $ \q -> f (q `plusPtr` (off - i0))
    go !i !j
-     | i + grain < j, k <- i + quot (j - i) 2 = (\l r q -> l q >> r q) <$> go i k <*> go k j
+     | i + grain < j, k <- i + shiftR (j - i) 1 = (\l r q -> l q >> r q) <$> go i k <*> go k j
      | otherwise = run i j
    run !i !j
      | i == j    = pure (\_ -> return ())

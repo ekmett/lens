@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       3.8
+version:       3.8.1
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -363,11 +363,13 @@ test-suite doctests
       mtl,
       nats,
       parallel,
+      semigroups >= 0.9,
       simple-reflect >= 0.3.1,
       split,
       text,
       unordered-containers,
       vector
+
   ghc-options: -Wall -threaded
   if impl(ghc<7.6.1)
     ghc-options: -Werror
