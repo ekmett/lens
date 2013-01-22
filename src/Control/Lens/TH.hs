@@ -803,7 +803,7 @@ camelCaseFields = FieldRules prefix rawLens niceLens classNaming
     sep x = case break isUpper x of
         (p, s) | List.null p || List.null s -> Nothing
                | otherwise                  -> Just (p,s)
-    prefix      x = fst <$> sep x
+    prefix      x = do ('_':xs,_) <- sep x; return xs
     rawLens     x = x ++ "Lens"
     niceLens    x = overHead toLower . snd <$> sep x
     classNaming x = niceLens x <&> \ (n:ns) -> "Has" ++ toUpper n : ns
