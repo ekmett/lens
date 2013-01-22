@@ -98,17 +98,9 @@ class Conjoined p => Indexable i p where
   -- | Build a function from an 'indexed' function.
   indexed :: p a b -> i -> a -> b
 
-  -- | A more refined version of 'conjoined' that also provides refinement for the non-@(->)@ case.
-  indexable :: (p ~ (->) => q (a -> b) r)
-            -> (p ~ Indexed i => q (Indexed i a b) r)
-            -> q (p a b) r
-
 instance Indexable i (->) where
   indexed = const
   {-# INLINE indexed #-}
-
-  indexable l _ = l
-  {-# INLINE indexable #-}
 
 -----------------------------------------------------------------------------
 -- Indexed Internals
@@ -225,9 +217,6 @@ instance Conjoined (Indexed i) where
 instance i ~ j => Indexable i (Indexed j) where
   indexed = runIndexed
   {-# INLINE indexed #-}
-
-  indexable _ r = r
-  {-# INLINE indexable #-}
 
 ------------------------------------------------------------------------------
 -- Indexing
