@@ -78,7 +78,7 @@ import Data.Foldable hiding (concat)
 import Data.Function (on)
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
-import Data.Maybe as Maybe (isNothing,isJust,catMaybes,fromJust,mapMaybe,fromMaybe)
+import Data.Maybe as Maybe (isNothing,isJust,catMaybes,fromJust,mapMaybe)
 import Data.Ord (comparing)
 import Data.Set as Set hiding (toList,map,filter)
 import Data.Set.Lens
