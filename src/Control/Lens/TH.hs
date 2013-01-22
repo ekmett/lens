@@ -29,8 +29,13 @@ module Control.Lens.TH
   , makeFields
   -- * Configuring Lenses
   , makeLensesWith
+  , makeFieldsWith
   , defaultRules
+  , defaultFieldRules
+  , camelCaseFields
+  , underscoreFields
   , LensRules(LensRules)
+  , FieldRules(FieldRules)
   , lensRules
   , classyRules
   , isoRules
@@ -67,18 +72,19 @@ import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
 import Control.Lens.Wrapped
-import Data.Char (toLower)
+import Data.Char (toLower, toUpper, isUpper)
 import Data.Either (lefts)
 import Data.Foldable hiding (concat)
 import Data.Function (on)
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
-import Data.Maybe as Maybe (isNothing,isJust,catMaybes,fromJust)
+import Data.Maybe as Maybe (isNothing,isJust,catMaybes,fromJust,mapMaybe)
 import Data.Ord (comparing)
 import Data.Set as Set hiding (toList,map,filter)
 import Data.Set.Lens
 import Data.Traversable hiding (mapM)
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.Lens
 
 {-# ANN module "HLint: ignore Use foldl" #-}
@@ -758,48 +764,77 @@ inlinePragma methodName = pragInlD methodName $ inlineSpecNoPhase True False
 
 #endif
 
+data FieldRules = FieldRules
+    { _getPrefix          :: String -> Maybe String
+    , _rawLensNaming      :: String -> String
+    , _niceLensNaming     :: String -> Maybe String
+    , _classNaming        :: String -> Maybe String
+    }
+
+data Field = Field
+    { _fieldName          :: Name
+    , _fieldLensPrefix    :: String
+    , _fieldLensName      :: Name
+    , _fieldClassName     :: Name
+    , _fieldClassLensName :: Name
+    }
+
 unqualify :: String -> String
 unqualify = tail . dropWhile (/= '.')
 
--- | Generate lenses with names suffixed by "_lens"
-verboseLenses :: Name -> Q [Dec]
-verboseLenses src = do
+overHead :: (a -> a) -> [a] -> [a]
+overHead _ []     = []
+overHead f (x:xs) = f x : xs
+
+-- | Field rules for fields in the form @ _prefix_fieldname @
+underscoreFields :: FieldRules
+underscoreFields = FieldRules prefix rawLens niceLens classNaming
+  where
+    prefix ('_':xs) | '_' `List.elem` xs = Just (takeWhile (/= '_') xs)
+    prefix _                             = Nothing
+    rawLens     x = x ++ "_lens"
+    niceLens    x = prefix   x <&> \n -> drop (length n + 2) n
+    classNaming x = niceLens x <&> ("Has_" ++)
+
+-- | Field rules for fields in the form @ prefixFieldname @
+camelCaseFields :: FieldRules
+camelCaseFields = FieldRules prefix rawLens niceLens classNaming
+  where
+    sep x = case break isUpper x of
+        (p, s) | List.null p || List.null s -> Nothing
+               | otherwise                  -> Just (p,s)
+    prefix      x = fst <$> sep x
+    rawLens     x = x ++ "Lens"
+    niceLens    x = overHead toLower . snd <$> sep x
+    classNaming x = niceLens x <&> \ (n:ns) -> "Has" ++ toUpper n : ns
+
+verboseLenses :: FieldRules -> Name -> Q [Dec]
+verboseLenses c src = do
     TyConI (DataD _ _ _ [RecC _ rs] _) <- reify src
-    makeLensesFor (map (\ (n', _, _) -> let n = unqualify (show n') in (n, n ++ "_lens")) rs) src
+    flip makeLensesFor src
+        $ mkFields c rs
+        & map (\(Field n _ l _ _) -> (show n, show l))
 
--- | For each field of a data type, generate a Has_<field> class and instance for it.
--- Fields have to be in the format *_<prefix>_<fieldname>*. The prefix has to be the same for each field to be accepted.
--- This allows multiple records to share the same lenses.
-hasClassAndInstance :: Name -> Q [Dec]
-hasClassAndInstance src = do
+mkFields :: FieldRules -> [VarStrictType] -> [Field]
+mkFields (FieldRules prefix' raw' nice' clas') rs
+    = Maybe.mapMaybe namer rs
+    & List.groupBy (on (==) _fieldLensPrefix)
+    & (\ gs -> case gs of 
+        x:_ -> x
+        _   -> [])
+  where
+    namer (n', _, _) = do
+        let field   = unqualify (show n')
+            rawlens = mkName (raw' field)
+        prefix <- prefix' field
+        nice   <- mkName <$> nice' field
+        clas   <- mkName <$> clas' field
+        return (Field (mkName field) prefix rawlens clas nice)
+
+hasClassAndInstance :: FieldRules -> Name -> Q [Dec]
+hasClassAndInstance cfg src = do
     TyConI (DataD _ _ _ [RecC _ rs] _) <- reify src
-
-    let -- Get the prefix of something in the form _prefix_foo
-        prefix ('_':xs) | '_' `List.elem` xs = Just (takeWhile (/= '_') xs)
-        prefix _                             = Nothing
-
-        -- tail being non-total is annoying
-        suffix ('_':xs) = case dropWhile (/= '_') xs of
-            ('_':s) -> Just s
-            _       -> Nothing
-        suffix _        = Nothing
-
-        getName (n, _, _) (p', ns) = 
-            let full = unqualify (show n)
-                fs   = liftA2 (,) (prefix full) (suffix full)
-            in maybe (p', ns) (\ (p, nice) -> case p' of
-                Just lastprefix -> (p', if p == lastprefix then (full, nice) : ns else ns)
-                _               -> (Just p, (full, nice) : ns)) fs
-
-        names = snd $ List.foldr getName (Nothing, []) rs
-
-    -- 'full' looks like "_Type_field"
-    -- 'nice' looks like "field"
-    fmap concat $ forM names $ \ (full, nice) -> do
-        let className    = mkName $ "Has_" ++ nice
-            lensName     = mkName nice
-            fullLensName = mkName (full ++ "_lens")
-
+    fmap concat . forM (mkFields cfg rs) $ \(Field field _ fullLensName className lensName) -> do
         classHas <- classD
             (return [])
             className
@@ -807,9 +842,7 @@ hasClassAndInstance src = do
             [ FunDep [c] [e] ]
             [ sigD lensName (appsT (conT ''Lens') [varT c, varT e])]
 
-        actualLens <- global fullLensName
-
-        VarI _ (AppT _ fieldType) _ _ <-  reify (mkName full)
+        VarI _ (AppT _ fieldType) _ _ <-  reify field
 
         instanceHas <- instanceD
             (return [])
@@ -818,7 +851,7 @@ hasClassAndInstance src = do
 #ifdef INLINING
               inlinePragma lensName,
 #endif
-              funD lensName [ clause [] (return (NormalB actualLens)) [] ]
+              funD lensName [ clause [] (normalB (global fullLensName)) [] ]
             ]
 
         classAlreadyExists <- isJust `fmap` lookupTypeName (show className)
@@ -827,8 +860,14 @@ hasClassAndInstance src = do
     where c = mkName "c"
           e = mkName "e"
 
--- | For each field of a data type, generate a Has_<field> class and instance for it.
--- Fields have to be in the format *_<prefix>_<fieldname>*. The prefix has to be the same for each field to be accepted.
--- This allows multiple records to share the same lenses.
+-- | Make fields with the specified 'FieldRules'.
+makeFieldsWith :: FieldRules -> Name -> Q [Dec]
+makeFieldsWith c n = liftA2 (++) (verboseLenses c n) (hasClassAndInstance c n)
+
+-- | @ makeFields = 'makeFieldsWith' 'defaultFieldRules' @
 makeFields :: Name -> Q [Dec]
-makeFields n = liftA2 (++) (verboseLenses n) (hasClassAndInstance n)
+makeFields = makeFieldsWith defaultFieldRules
+
+-- | @ defaultFieldRules = 'camelCaseFields' @
+defaultFieldRules :: FieldRules
+defaultFieldRules = camelCaseFields
