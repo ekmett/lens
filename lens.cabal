@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       3.8
+version:       3.8.0.1
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -157,6 +157,10 @@ flag trustworthy
 flag lib-Werror
   default: False
   manual: True
+
+flag old-semigroups
+  default: False
+  manual: False
 
 library
   build-depends:
@@ -361,13 +365,17 @@ test-suite doctests
       doctest >= 0.9.1,
       filepath,
       mtl,
-      nats,
       parallel,
       simple-reflect >= 0.3.1,
       split,
       text,
       unordered-containers,
       vector
+
+  if !flag(old-semigroups)
+    build-depends: semigroups >= 0.8.4 && < 0.9
+  else
+    build-depends: semigroups >= 0.9, nats
   ghc-options: -Wall -threaded
   if impl(ghc<7.6.1)
     ghc-options: -Werror
