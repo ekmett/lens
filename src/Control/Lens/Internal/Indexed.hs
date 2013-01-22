@@ -61,9 +61,8 @@ import Unsafe.Coerce
 -- that @f@ is left adjoint to @g@. From this you can derive a lot of structure due
 -- to the preservation of limits and colimits.
 class
-  ( Profunctor p, Choice p, Strong p
-  , Corepresentable p, Comonad (Corep p), Traversable (Corep p)
-  , Representable p, Monad (Rep p), MonadFix (Rep p), Distributive (Rep p)
+  ( Choice p, Corepresentable p, Comonad (Corep p), Traversable (Corep p)
+  , Strong p, Representable p, Monad (Rep p), MonadFix (Rep p), Distributive (Rep p)
   , ArrowLoop p, ArrowApply p, ArrowChoice p
   ) => Conjoined p where
 
