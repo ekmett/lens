@@ -1212,7 +1212,7 @@ minimumByOf l cmp = foldlOf' l mf Nothing where
 -- 'findOf' :: 'Getting' ('Endo' ('Maybe' a)) s t a b -> (a -> 'Bool') -> s -> 'Maybe' a
 -- 'findOf' l p = 'foldrOf' l (\a y -> if p a then 'Just' a else y) 'Nothing'
 -- @
-findOf :: (Corepresentable p, Comonad (Corep p)) => Accessing p (Endo (Maybe a)) s t a b -> p a Bool -> s -> Maybe a
+findOf :: Conjoined p => Accessing p (Endo (Maybe a)) s t a b -> p a Bool -> s -> Maybe a
 findOf l p = foldrOf l (cotabulate $ \wa y -> if corep p wa then Just (extract wa) else y) Nothing
 {-# INLINE findOf #-}
 

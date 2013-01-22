@@ -866,12 +866,12 @@ imapAccumLOf l = mapAccumLOf l .# Indexed
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
 traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b
-traversed = indexing traverse
+traversed = conjoined traverse (indexing traverse)
 {-# INLINE traversed #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
 traversed64 :: Traversable f => IndexedTraversal Int64 (f a) (f b) a b
-traversed64 = indexing64 traverse
+traversed64 = conjoined traverse (indexing64 traverse)
 {-# INLINE traversed64 #-}
 
 -- | This is the trivial empty 'Traversal'.

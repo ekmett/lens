@@ -132,7 +132,7 @@ traversedLazy :: IndexedTraversal' Int64 BL.ByteString Word8
 traversedLazy pafb = go 0 where
   go _ BLI.Empty        = pure BLI.Empty
   go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (fromIntegral :: Int -> Int64) (traversedStrictTree (fromIntegral i)) pafb b <*> go i' bs
-    where i' = i + B.length b
+    where !i' = i + B.length b
 {-# INLINE traversedLazy #-}
 
 
@@ -146,7 +146,7 @@ traversedLazy8 :: IndexedTraversal' Int64 BL.ByteString Char
 traversedLazy8 pafb = go 0 where
   go _ BLI.Empty = pure BLI.Empty
   go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (fromIntegral :: Int -> Int64) (traversedStrictTree8 (fromIntegral i)) pafb b <*> go i' bs
-    where i' = i + B.length b
+    where !i' = i + B.length b
 {-# INLINE traversedLazy8 #-}
 
 ------------------------------------------------------------------------------

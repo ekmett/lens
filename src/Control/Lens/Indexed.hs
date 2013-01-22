@@ -43,10 +43,8 @@ module Control.Lens.Indexed
   , indexing64
   -- * Indexed Functors
   , FunctorWithIndex(..)
-  , imapped
   -- * Indexed Foldables
   , FoldableWithIndex(..)
-  , ifolded
   , ifolding
   -- ** Indexed Foldable Combinators
   , iany
@@ -68,7 +66,6 @@ module Control.Lens.Indexed
   , index
   -- * Indexed Traversables
   , TraversableWithIndex(..)
-  , itraversed
   -- * Indexed Traversable Combinators
   , ifor
   , imapM
@@ -121,7 +118,10 @@ infixr 9 <.>, <., .>
 --
 -- Mnemonically, the @>@ points to the indexing we want to preserve.
 --
--- This is the same as @('.')@. @f '.' g@ gives you the index of @g@.
+-- This is the same as @('.')@. 
+--
+-- @f '.' g@ (and @f '.>' g@) gives you the index of @g@ unless @g@ is index-preserving, like a
+-- 'Prism', 'Iso' or 'Equality', in which case it'll pass through the index of @f@.
 (.>) :: (st -> r) -> (kab -> st) -> kab -> r
 (.>) = (.)
 {-# INLINE (.>) #-}
@@ -207,12 +207,12 @@ class Functor f => FunctorWithIndex i f | f -> i where
   {-# INLINE imap #-}
 #endif
 
--- | The 'IndexedSetter' for a 'FunctorWithIndex'.
---
--- If you don't need access to the index, then 'mapped' is more flexible in what it accepts.
-imapped :: FunctorWithIndex i f => IndexedSetter i (f a) (f b) a b
-imapped = isets imap
-{-# INLINE imapped #-}
+  -- | The 'IndexedSetter' for a 'FunctorWithIndex'.
+  --
+  -- If you don't need access to the index, then 'mapped' is more flexible in what it accepts.
+  imapped :: FunctorWithIndex i f => IndexedSetter i (f a) (f b) a b
+  imapped = conjoined mapped (isets imap)
+  {-# INLINE imapped #-}
 
 -------------------------------------------------------------------------------
 -- FoldableWithIndex
@@ -234,6 +234,11 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   ifoldMap = ifoldMapOf itraversed
   {-# INLINE ifoldMap #-}
 #endif
+
+  -- | The 'IndexedFold' of a 'FoldableWithIndex' container.
+  ifolded :: IndexedFold i (f a) a
+  ifolded = conjoined folded $ \f -> coerce . getFolding . ifoldMap (\i -> Folding #. indexed f i)
+  {-# INLINE ifolded #-}
 
   -- | Right-associative fold of an indexed container with access to the index @i@.
   --
@@ -276,11 +281,6 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   ifoldl' :: (i -> b -> a -> b) -> b -> f a -> b
   ifoldl' f z0 xs = ifoldr f' id xs z0
     where f' i x k z = k $! f i z x
-
--- | The 'IndexedFold' of a 'FoldableWithIndex' container.
-ifolded :: FoldableWithIndex i f => IndexedFold i (f a) a
-ifolded f = coerce . getFolding . ifoldMap (\i -> Folding #. indexed f i)
-{-# INLINE ifolded #-}
 
 -- | Obtain a 'Fold' by lifting an operation that returns a 'Foldable' result.
 --
@@ -445,10 +445,11 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
   {-# INLINE itraverse #-}
 #endif
 
--- | The 'IndexedTraversal' of a 'TraversableWithIndex' container.
-itraversed :: TraversableWithIndex i f => IndexedTraversal i (f a) (f b) a b
-itraversed = itraverse . indexed
-{-# INLINE itraversed #-}
+  -- | The 'IndexedTraversal' of a 'TraversableWithIndex' container.
+  itraversed :: IndexedTraversal i (t a) (t b) a b
+  itraversed = conjoined traverse (itraverse . indexed)
+  {-# INLINE itraversed #-}
+
 
 -- | Traverse with an index (and the arguments flipped).
 --
