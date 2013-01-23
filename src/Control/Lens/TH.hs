@@ -830,20 +830,27 @@ mkFields (FieldRules prefix' raw' nice' clas') rs
 
 hasClassAndInstance :: FieldRules -> Name -> Q [Dec]
 hasClassAndInstance cfg src = do
-    TyConI (DataD _ _ _ [RecC _ rs] _) <- reify src
+    c <- newName "c"
+    e <- newName "e"
+    TyConI (DataD _ _ vs [RecC _ rs] _) <- reify src
     fmap concat . forM (mkFields cfg rs) $ \(Field field _ fullLensName className lensName) -> do
         classHas <- classD
             (return [])
             className
             [ PlainTV c, PlainTV e ]
             [ FunDep [c] [e] ]
-            [ sigD lensName (appsT (conT ''Lens') [varT c, varT e])]
+            [ sigD lensName (conT ''Lens' `appsT` [varT c, varT e])]
 
-        VarI _ (AppT _ fieldType) _ _ <-  reify field
+        fieldType <- do
+            VarI _ t _ _ <- reify field
+            case t of
+                AppT    _    fieldType             -> return fieldType
+                ForallT tvs' [] (AppT _ fieldType) -> return fieldType
+                _                                  -> error "Cannot get fieldType"
 
         instanceHas <- instanceD
             (return [])
-            (conT className `appsT` [conT src, return fieldType])
+            (conT className `appsT` [conT src `appsT` map (varT.view name) vs, return fieldType])
             [
 #ifdef INLINING
               inlinePragma lensName,
@@ -853,9 +860,6 @@ hasClassAndInstance cfg src = do
 
         classAlreadyExists <- isJust `fmap` lookupTypeName (show className)
         return (if classAlreadyExists then [instanceHas] else [classHas, instanceHas])
-
-    where c = mkName "c"
-          e = mkName "e"
 
 -- | Make fields with the specified 'FieldRules'.
 makeFieldsWith :: FieldRules -> Name -> Q [Dec]
