@@ -832,13 +832,6 @@ hasClassAndInstance :: FieldRules -> Name -> Q [Dec]
 hasClassAndInstance cfg src = do
     c <- newName "c"
     e <- newName "e"
-    (vs, rs) <- do
-        s <- reify src
-        case s of 
-            TyConI (DataD _ _ vs' [Rec _ rs''] _) -> case rs'' of 
-                [Rec _ rs'] -> return (vs', rs')
-                _           -> error "Can't makeFields for sum types."
-            _ -> error "Invalid source type."
     TyConI (DataD _ _ vs [RecC _ rs] _) <- reify src
     fmap concat . forM (mkFields cfg rs) $ \(Field field _ fullLensName className lensName) -> do
         classHas <- classD
@@ -850,9 +843,9 @@ hasClassAndInstance cfg src = do
         fieldType <- do
             VarI _ t _ _ <- reify field
             case t of
-                AppT    _    fieldType             -> return fieldType
-                ForallT tvs' [] (AppT _ fieldType) -> return fieldType
-                _                                  -> error "Cannot get fieldType"
+                AppT    _    fieldType          -> return fieldType
+                ForallT _ [] (AppT _ fieldType) -> return fieldType
+                _                               -> error "Cannot get fieldType"
         instanceHas <- instanceD
             (return [])
             (conT className `appsT` [conT src `appsT` map (varT.view name) vs, return fieldType])
