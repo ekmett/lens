@@ -94,5 +94,39 @@ instance HasMono Nucleosis Int where
 data Foo = Foo { _fooX, _fooY :: Int }
 makeClassy ''Foo
 
+
+data Dude = Dude
+    { _dudeLevel        :: Int
+    , _dudeAlias        :: String
+    , _dudeLife         :: ()
+    }
+data Lebowski = Lebowski
+    { _lebowskiAlias    :: String
+    , _lebowskiLife     :: Int
+    , _lebowskiMansion  :: String
+    }
+makeFields ''Dude
+makeFields ''Lebowski
+-- class HasLevel c e | c -> e where
+--   level :: Lens' c e
+-- instance HasLevel Dude Int where
+--   level = _dudeLevelLens
+-- class HasAlias c e | c -> e where
+--   alias :: Lens' c e
+-- instance HasAlias Dude String where
+--   alias = _dudeAliasLens
+-- class HasLife c e | c -> e where
+--   life :: Lens' c e
+-- instance HasLife Dude () where
+--   life = _dudeLifeLens
+-- instance HasAlias Lebowski String where
+--   alias = _lebowskiAliasLens
+-- instance HasLife Lebowski Int where
+--   life = _lebowskiLifeLens
+-- class HasMansion c e | c -> e where
+--   mansion :: Lens' c e
+-- instance HasMansion Lebowski String where
+--   mansion = _lebowskiMansionLens
+
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
