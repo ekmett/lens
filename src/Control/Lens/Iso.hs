@@ -273,6 +273,12 @@ anon a p = iso (fromMaybe a) go where
 -- @
 -- 'curried' = 'iso' 'curry' 'uncurry'
 -- @
+--
+-- >>> (fst^.curried) 3 4
+-- 3
+--
+-- >>> view curried fst 3 4
+-- 3
 curried :: Iso ((a,b) -> c) ((d,e) -> f) (a -> b -> c) (d -> e -> f)
 curried = iso curry uncurry
 {-# INLINE curried #-}
@@ -286,11 +292,17 @@ curried = iso curry uncurry
 -- @
 -- 'uncurried' = 'from' 'curried'
 -- @
+--
+-- >>> ((+)^.uncurried) (1,2)
+-- 3
 uncurried :: Iso (a -> b -> c) (d -> e -> f) ((a,b) -> c) ((d,e) -> f)
 uncurried = iso uncurry curry
 {-# INLINE uncurried #-}
 
 -- | The isomorphism for flipping a function.
+--
+-- >>>((,)^.flipped) 1 2
+-- (2,1)
 flipped :: Iso (a -> b -> c) (a' -> b' -> c') (b -> a -> c) (b' -> a' -> c')
 flipped = iso flip flip
 {-# INLINE flipped #-}
@@ -304,6 +316,9 @@ class Bifunctor p => Swapped p where
   -- 'second' g '.' 'swapped' = 'swapped' '.' 'first' g
   -- 'bimap' f g '.' 'swapped' = 'swapped' '.' 'bimap' g f
   -- @
+  --
+  -- >>> (1,2)^.swapped
+  -- (2,1)
   swapped :: Iso (p a b) (p c d) (p b a) (p d c)
 
 instance Swapped (,) where
