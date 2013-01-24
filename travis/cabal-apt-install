@@ -1,16 +1,27 @@
-#!/bin/sh
+#! /bin/bash
 set -eu
 
-sudo apt-get -q update
-sudo apt-get -q -y install dctrl-tools
+APT="sudo apt-get -q -y"
+CABAL_INSTALL_DEPS="cabal install --only-dependencies --force-reinstall"
 
-# Try installing some of the build-deps with apt-get for speed.
-eval "$(
-  printf '%s' "grep-aptavail -n -sPackage '(' -FFALSE -X FALSE ')'"
-  2>/dev/null cabal install "$@" --dry-run -v | \
-  sed -nre "s/^([^ ]+)-[0-9.]+ \(.*$/ -o '(' -FPackage -X libghc-\1-dev ')'/p" | \
-  xargs -d'\n'
-)" | sort -u | xargs -d'\n' sudo apt-get -q -y install -- libghc-quickcheck2-dev
+$APT update
+$APT install dctrl-tools
 
-# Install whatever is still needed with cabal.
-cabal install "$@"
+# Find potential system packages to satisfy cabal dependencies
+deps()
+{
+	local M='^\([^ ]\+\)-[0-9.]\+ (.*$'
+	local G=' -o ( -FPackage -X libghc-\L\1\E-dev )'
+	local E="$($CABAL_INSTALL_DEPS "$@" --dry-run -v 2> /dev/null \
+		| sed -ne "s/$M/$G/p" | sort -u)"
+	grep-aptavail -n -sPackage \( -FNone -X None \) $E | sort -u
+}
+
+$APT install $(deps "$@") libghc-quickcheck2-dev # QuickCheck is special
+$CABAL_INSTALL_DEPS "$@" # Install the rest via Hackage
+
+if ! $APT install hlint ; then
+	$APT install $(deps hlint)
+	cabal install hlint
+fi
+
