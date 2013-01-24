@@ -4,9 +4,7 @@ before_install:
   # - mkdir -p ~/.cabal && cp travis/config ~/.cabal/config && cabal update
 
   # Try installing some of the build-deps with apt-get for speed.
-  - travis/cabal-apt-install --only-dependencies --force-reinstall $mode
-
-  - sudo apt-get -q -y install hlint || cabal install hlint
+  - travis/cabal-apt-install $mode
 
 install:
   - cabal configure -flib-Werror $mode
