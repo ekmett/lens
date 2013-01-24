@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
@@ -45,6 +46,10 @@ module Control.Exception.Lens
   , throwingTo
   -- * Exceptions
   , exception
+  -- * Handlers
+  , IsHandler(..)
+  , handled
+  , handled_
   -- ** IOExceptions
   , AsIOException(..)
   -- ** Arithmetic Exceptions
@@ -98,12 +103,15 @@ import Control.Monad.IO.Class
 import Control.Monad.CatchIO as CatchIO hiding (try, tryJust)
 import Control.Exception as Exception hiding (try, tryJust, catchJust)
 import Control.Lens
+import Control.Lens.Internal.Exception
 import Data.Monoid
+import Data.Reflection
+import Data.Proxy
 import GHC.Conc (ThreadId)
 import Prelude
   ( asTypeOf, const, either, flip, id, maybe, undefined
   , ($), (.)
-  ,  Maybe(..), Either(..), Functor(..), String
+  ,  Maybe(..), Either(..), Functor(..), String, IO
   )
 
 {-# ANN module "HLint: ignore Use Control.Exception.catch" #-}
@@ -854,3 +862,83 @@ instance (Choice p, Applicative f) => AsErrorCall p f SomeException where
 
 trivial :: t -> Iso' t ()
 trivial t = const () `iso` const t
+
+------------------------------------------------------------------------------
+-- Handlers
+------------------------------------------------------------------------------
+
+-- | Both @MonadCatchIO-transformers@ and "Control.Exception" provide a 'Handler' type.
+--
+-- This lets us write combinators to build handlers that are agnostic about the choice of
+-- which of these they use.
+class Monad m => IsHandler m h | h -> m where
+  -- |
+  -- @
+  -- 'handler' :: 'Exception' e => (e -> 'IO' a) -> 'Exception.Handler' a
+  -- 'handler' :: ('MonadCatchIO' m, 'Exception' e) => (e -> m a) -> 'CatchIO.Handler' m a
+  -- @
+  handler :: Exception e => (e -> m a) -> h a
+
+instance IsHandler IO Exception.Handler where
+  handler = Exception.Handler
+
+instance Monad m => IsHandler m (CatchIO.Handler m) where
+  handler = CatchIO.Handler
+
+-- | This builds a 'Handler' for just the targets of a given 'Prism' (or any 'Getter', really)
+--
+-- @
+-- ... `catches` [ 'handled' '_AssertionFailed' (\s -> print $ "Assertion Failed\n" ++ s)
+--               , 'handled' '_ErrorCall' (\s -> print $ "Error\n" ++ s)
+--               ]
+-- @
+--
+-- This works ith both the 'Exception.Handler' type provided by @Control.Exception@:
+--
+-- @
+-- 'handled' :: 'Getter'    'SomeException' a -> (a -> 'IO' r) -> 'Exception.Handler' r
+-- 'handled' :: 'Prism'     'SomeException' a -> (a -> 'IO' r) -> 'Exception.Handler' r
+-- 'handled' :: 'Lens'      'SomeException' a -> (a -> 'IO' r) -> 'Exception.Handler' r
+-- 'handled' :: 'Traversal' 'SomeException' a -> (a -> 'IO' r) -> 'Exception.Handler' r
+-- @
+--
+-- and with the 'CatchIO.Handler' type provided by @Control.Monad.CatchIO@:
+--
+-- @
+-- 'handled' :: 'Getter'    'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
+-- 'handled' :: 'Prism'     'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
+-- 'handled' :: 'Lens'      'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
+-- 'handled' :: 'Traversal' 'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
+-- @
+
+handled :: forall m h t a b r. IsHandler m h => Getting (First a) SomeException t a b -> (a -> m r) -> h r
+handled l f = reify (preview l) $ \ (_ :: Proxy s) -> handler (\(Handling a :: Handling a s m) -> f a)
+
+-- | This builds a 'Handler' for just the targets of a given 'Prism' (or any 'Getter', really)
+-- that ignores its input and just recovers with the stated monadic action.
+--
+-- @
+-- ... `catches` [ 'handled_' '_NonTermination' ('return' "looped")
+--               , 'handled_' '_StackOverflow' ('return' "overflow")
+--               ]
+-- @
+--
+-- This works with both the 'Exception.Handler' type provided by @Control.Exception@:
+--
+-- @
+-- 'handled_' :: 'Getter'    'SomeException' a -> 'IO' r -> 'Exception.Handler' r
+-- 'handled_' :: 'Prism'     'SomeException' a -> 'IO' r -> 'Exception.Handler' r
+-- 'handled_' :: 'Lens'      'SomeException' a -> 'IO' r -> 'Exception.Handler' r
+-- 'handled_' :: 'Traversal' 'SomeException' a -> 'IO' r -> 'Exception.Handler' r
+-- @
+--
+-- and with the 'CatchIO.Handler' type provided by @Control.Monad.CatchIO@:
+--
+-- @
+-- 'handled_' :: 'Getter'    'SomeException' a -> m r -> 'CatchIO.Handler' m r
+-- 'handled_' :: 'Prism'     'SomeException' a -> m r -> 'CatchIO.Handler' m r
+-- 'handled_' :: 'Lens'      'SomeException' a -> m r -> 'CatchIO.Handler' m r
+-- 'handled_' :: 'Traversal' 'SomeException' a -> m r -> 'CatchIO.Handler' m r
+-- @
+handled_ :: forall m h t a b r. IsHandler m h => Getting (First a) SomeException t a b -> m r -> h r
+handled_ l m = reify (preview l) $ \ (_ :: Proxy s) -> handler (\(_ :: Handling a s m) -> m)
