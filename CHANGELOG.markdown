@@ -1,3 +1,7 @@
+3.8.2
+-----
+* Added `handled`, `handled_`, and `IsHandler(..)` to `Control.Exception.Lens` to facilitate working with `catches` from either `Control.Exception` and `Control.Monad.CatchIO`.
+
 3.8.1
 -----
 * Fixed a bug in `makeFields` in hierarchical modules.
