@@ -162,7 +162,7 @@ catches m hs = catchError m go where
 -- Handlers
 ------------------------------------------------------------------------------
 
--- You need this when using 'catches'.
+-- | You need this when using 'catches'.
 data Handler e m r = forall a. Handler (e -> Maybe a) (a -> m r)
 
 instance Monad m => Functor (Handler e m) where
