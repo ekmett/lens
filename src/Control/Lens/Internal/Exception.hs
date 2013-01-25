@@ -1,11 +1,14 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE KindSignatures #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 702
-{-# LANGUAGE Unsafe #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
 #endif
 -----------------------------------------------------------------------------
 -- |
@@ -16,23 +19,139 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
+-- This module uses dirty tricks to generate a 'Handler' from an arbitrary
+-- 'Fold'.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Exception
-  ( Handling(..)
+  ( Handleable(..)
+  , HandlingException(..)
   ) where
 
-import Control.Exception
+import Control.Exception as Exception
+import Control.Lens.Fold
+import Control.Lens.Getter
+import Control.Lens.Type
+import Control.Monad.CatchIO as CatchIO
+import Data.IORef
+import Data.Monoid
+import Data.Proxy
 import Data.Reflection
 import Data.Typeable
-import Data.Proxy
 import System.IO.Unsafe
-import Data.IORef
 
+------------------------------------------------------------------------------
+-- Handlers
+------------------------------------------------------------------------------
+
+-- | Both @MonadCatchIO-transformers@ and "Control.Exception" provide a 'Handler' type.
+--
+-- This lets us write combinators to build handlers that are agnostic about the choice of
+-- which of these they use.
+class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
+  -- | This builds a 'Handler' for just the targets of a given 'Prism' (or any 'Getter', really)
+  --
+  -- @
+  -- ... `catches` [ 'handler' 'Control.Exception.Lens._AssertionFailed' (\s -> print $ "Assertion Failed\n" ++ s)
+  --               , 'handler' 'Control.Exception.Lens._ErrorCall' (\s -> print $ "Error\n" ++ s)
+  --               ]
+  -- @
+  --
+  -- This works ith both the 'Exception.Handler' type provided by @Control.Exception@:
+  --
+  -- @
+  -- 'handler' :: 'Getter'    'SomeException' a -> (a -> 'IO' r) -> 'Exception.Handler' r
+  -- 'handler' :: 'Prism'     'SomeException' a -> (a -> 'IO' r) -> 'Exception.Handler' r
+  -- 'handler' :: 'Lens'      'SomeException' a -> (a -> 'IO' r) -> 'Exception.Handler' r
+  -- 'handler' :: 'Traversal' 'SomeException' a -> (a -> 'IO' r) -> 'Exception.Handler' r
+  -- @
+  --
+  -- and with the 'CatchIO.Handler' type provided by @Control.Monad.CatchIO@:
+  --
+  -- @
+  -- 'handler' :: 'Getter'    'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
+  -- 'handler' :: 'Prism'     'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
+  -- 'handler' :: 'Lens'      'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
+  -- 'handler' :: 'Traversal' 'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
+  -- @
+  --
+  -- and with the 'Control.Monad.Error.Lens.Handler' type provided by @Control.Monad.Error.Lens@:
+  --
+  -- @
+  -- 'handler' :: 'Getter'    e a -> (a -> m r) -> 'Control.Monad.Error.Lens.Handler' e m r
+  -- 'handler' :: 'Prism'     e a -> (a -> m r) -> 'Control.Monad.Error.Lens.Handler' e m r
+  -- 'handler' :: 'Lens'      e a -> (a -> m r) -> 'Control.Monad.Error.Lens.Handler' e m r
+  -- 'handler' :: 'Traversal' e a -> (a -> m r) -> 'Control.Monad.Error.Lens.Handler' e m r
+  -- @
+  handler :: Getting (First a) e t a b -> (a -> m r) -> h r
+
+  -- | This builds a 'Handler' for just the targets of a given 'Prism' (or any 'Getter', really)
+  -- that ignores its input and just recovers with the stated monadic action.
+  --
+  -- @
+  -- ... `catches` [ 'handler_' 'Control.Exception.Lens._NonTermination' ('return' "looped")
+  --               , 'handler_' 'Control.Exception.Lens._StackOverflow' ('return' "overflow")
+  --               ]
+  -- @
+  --
+  -- This works with the 'Exception.Handler' type provided by @Control.Exception@:
+  --
+  -- @
+  -- 'handler_' :: 'Getter'    'SomeException' a -> 'IO' r -> 'Exception.Handler' r
+  -- 'handler_' :: 'Prism'     'SomeException' a -> 'IO' r -> 'Exception.Handler' r
+  -- 'handler_' :: 'Lens'      'SomeException' a -> 'IO' r -> 'Exception.Handler' r
+  -- 'handler_' :: 'Traversal' 'SomeException' a -> 'IO' r -> 'Exception.Handler' r
+  -- @
+  --
+  -- and with the 'CatchIO.Handler' type provided by @Control.Monad.CatchIO@:
+  --
+  -- @
+  -- 'handler_' :: 'Getter'    'SomeException' a -> m r -> 'CatchIO.Handler' m r
+  -- 'handler_' :: 'Prism'     'SomeException' a -> m r -> 'CatchIO.Handler' m r
+  -- 'handler_' :: 'Lens'      'SomeException' a -> m r -> 'CatchIO.Handler' m r
+  -- 'handler_' :: 'Traversal' 'SomeException' a -> m r -> 'CatchIO.Handler' m r
+  -- @
+  --
+  -- and with the 'Control.Monad.Error.Lens.Handler' type provided by @Control.Monad.Error.Lens@:
+  --
+  -- @
+  -- 'handler_' :: 'Getter'    e a -> m r -> 'Control.Monad.Error.Lens.Handler' e m r
+  -- 'handler_' :: 'Prism'     e a -> m r -> 'Control.Monad.Error.Lens.Handler' e m r
+  -- 'handler_' :: 'Lens'      e a -> m r -> 'Control.Monad.Error.Lens.Handler' e m r
+  -- 'handler_' :: 'Traversal' e a -> m r -> 'Control.Monad.Error.Lens.Handler' e m r
+  -- @
+  handler_ :: Getting (First a) e t a b -> m r -> h r
+  handler_ l = handler l . const
+  {-# INLINE handler_ #-}
+
+instance Handleable SomeException IO Exception.Handler where
+  handler = handlerIO
+
+instance Handleable SomeException m (CatchIO.Handler m) where
+  handler = handlerCatchIO
+
+handlerIO :: forall t a b r. Getting (First a) SomeException t a b -> (a -> IO r) -> Exception.Handler r
+handlerIO l f = reify (preview l) $ \ (_ :: Proxy s) -> Exception.Handler (\(Handling a :: Handling a s IO) -> f a)
+
+handlerCatchIO :: forall m t a b r. Getting (First a) SomeException t a b -> (a -> m r) -> CatchIO.Handler m r
+handlerCatchIO l f = reify (preview l) $ \ (_ :: Proxy s) -> CatchIO.Handler (\(Handling a :: Handling a s m) -> f a)
+
+------------------------------------------------------------------------------
+-- Helpers
+------------------------------------------------------------------------------
+
+-- | There was exception caused by abusing the internals of a 'Handler'.
+data HandlingException = HandlingException deriving (Show,Typeable)
+
+instance Exception HandlingException
+
+-- | This supplies a globally unique set of IDs so we can hack around the default use of 'cast' in 'SomeException'
+-- if someone, somehow, somewhere decides to reach in and catch and rethrow a 'Handling' exception by existentially
+-- opening a 'Handler' that uses it.
 supply :: IORef Int
 supply = unsafePerformIO $ newIORef 0
 {-# NOINLINE supply #-}
 
--- | This permits the construction of a 'Control.Exception.Handler' that matches only if some function does.
+-- | This permits the construction of an \"impossible\" 'Control.Exception.Handler' that matches only if some function does.
 newtype Handling a s (m :: * -> *) = Handling a
 
 -- the m parameter exists simply to break the Typeable1 pattern, so we can provide this without overlap.
@@ -43,13 +162,13 @@ instance Typeable (Handling a s m) where
     return $ mkTyConApp (mkTyCon3 "lens" "Control.Lens.Internal.Exception" ("Handling" ++ show i)) []
   {-# INLINE typeOf #-}
 
--- The 'Handling' wrapper is uninteresting, and is never thrown, so you won't get much benefit here.
+-- The 'Handling' wrapper is uninteresting, and should never be thrown, so you won't get much benefit here.
 instance Show (Handling a s m) where
   showsPrec d _ = showParen (d > 10) $ showString "Handling ..."
   {-# INLINE showsPrec #-}
 
 instance Reifies s (SomeException -> Maybe a) => Exception (Handling a s m) where
-  toException = error "Handling: toException"
+  toException _ = SomeException HandlingException
   {-# INLINE toException #-}
   fromException = fmap Handling . reflect (Proxy :: Proxy s)
   {-# INLINE fromException #-}

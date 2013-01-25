@@ -1,7 +1,6 @@
-{-# LANGUAGE CPP #-}
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-}
-#endif
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Monad.Error.Lens
@@ -20,13 +19,21 @@ module Control.Monad.Error.Lens
   , handling, handling_
   -- * Trying
   , trying
+  -- * Handlers
+  , catches
+  , Handler(..)
+  , Handleable(..)
   -- * Throwing
   , throwing
   ) where
 
+import Control.Applicative
 import Control.Lens
+import Control.Lens.Internal.Exception
 import Control.Monad.Error
+import Data.Functor.Plus
 import Data.Monoid
+import Data.Semigroup (Semigroup(..))
 
 ------------------------------------------------------------------------------
 -- Catching
@@ -114,6 +121,79 @@ handling_ l = flip (catching_ l)
 -- @
 trying :: MonadError e m => Getting (First a) e t a b -> m r -> m (Either a r)
 trying l m = catching l (liftM Right m) (return . Left)
+
+------------------------------------------------------------------------------
+-- Catches
+------------------------------------------------------------------------------
+
+-- |
+-- This function exists to remedy a gap between the functionality of @Control.Exception@
+-- and @Control.Monad.Error@. @Control.Exception@ supplies 'Control.Exception.catches' and
+-- a notion of 'Control.Exception.Handler', which we duplicate here in a form suitable for
+-- working with any 'MonadError' instance.
+--
+-- Sometimes you want to catch two different sorts of error. You could
+-- do something like
+--
+-- @
+-- f = 'handling' _Foo handleFoo ('handling' _Bar handleBar expr)
+-- @
+--
+--
+-- However, there are a couple of problems with this approach. The first is
+-- that having two exception handlers is inefficient. However, the more
+-- serious issue is that the second exception handler will catch exceptions
+-- in the first, e.g. in the example above, if @handleFoo@ uses 'throwError'
+-- then the second exception handler will catch it.
+--
+-- Instead, we provide a function 'catches', which would be used thus:
+--
+-- @
+-- f = expr `catches` [ handler _Foo handleFoo
+--                    , handler _Bar handleBar
+--                    ]
+-- @
+catches :: MonadError e m => m a -> [Handler e m a] -> m a
+catches m hs = catchError m go where
+  go e = foldr tryHandler (throwError e) hs where
+    tryHandler (Handler ema amr) res = maybe res amr (ema e)
+
+------------------------------------------------------------------------------
+-- Handlers
+------------------------------------------------------------------------------
+
+-- You need this when using 'catches'.
+data Handler e m r = forall a. Handler (e -> Maybe a) (a -> m r)
+
+instance Monad m => Functor (Handler e m) where
+  fmap f (Handler ema amr) = Handler ema $ \a -> do
+     r <- amr a
+     return (f r)
+  {-# INLINE fmap #-}
+
+instance Monad m => Semigroup (Handler e m a) where
+  (<>) = mappend
+  {-# INLINE (<>) #-}
+
+instance Monad m => Alt (Handler e m) where
+  Handler ema amr <!> Handler emb bmr = Handler emab abmr where
+    emab e = Left <$> ema e <|> Right <$> emb e
+    abmr = either amr bmr
+  {-# INLINE (<!>) #-}
+
+instance Monad m => Plus (Handler e m) where
+  zero = Handler (const Nothing) undefined
+  {-# INLINE zero #-}
+
+instance Monad m => Monoid (Handler e m a) where
+  mempty = zero
+  {-# INLINE mempty #-}
+  mappend = (<!>)
+  {-# INLINE mappend #-}
+
+instance Handleable e m (Handler e m) where
+  handler = Handler . preview
+  {-# INLINE handler #-}
 
 ------------------------------------------------------------------------------
 -- Throwing
