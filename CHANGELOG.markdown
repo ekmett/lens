@@ -1,3 +1,7 @@
+3.8.3
+-----
+* Added `strippingSuffix` to `Data.Data.Lens`
+
 3.8.2
 -----
 * Added a notion of `Handleable(handler, handler_)` to `Control.Exception.Lens` to facilitate constructing a `Handler` from an arbitrary `Fold` or `Prism`.
