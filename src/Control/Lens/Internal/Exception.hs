@@ -50,8 +50,8 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
   -- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Type.Prism' (or any 'Getter', really)
   --
   -- @
-  -- 'catches' ... [ 'handler' 'Control.Exception.Lens._AssertionFailed' (\s -> print $ "Assertion Failed\n" ++ s)
-  --             , 'handler' 'Control.Exception.Lens._ErrorCall' (\s -> print $ "Error\n" ++ s)
+  -- 'catches' ... [ 'handler' 'Control.Exception.Lens._AssertionFailed' (\s -> print $ \"Assertion Failed\\n\" ++ s)
+  --             , 'handler' 'Control.Exception.Lens._ErrorCall' (\s -> print $ \"Error\\n\" ++ s)
   --             ]
   -- @
   --
@@ -90,8 +90,8 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
   -- that ignores its input and just recovers with the stated monadic action.
   --
   -- @
-  -- 'catches' ... [ 'handler_' 'Control.Exception.Lens._NonTermination' ('return' "looped")
-  --             , 'handler_' 'Control.Exception.Lens._StackOverflow' ('return' "overflow")
+  -- 'catches' ... [ 'handler_' 'Control.Exception.Lens._NonTermination' ('return' \"looped\")
+  --             , 'handler_' 'Control.Exception.Lens._StackOverflow' ('return' \"overflow\")
   --             ]
   -- @
   --
