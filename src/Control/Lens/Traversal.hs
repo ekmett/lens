@@ -188,6 +188,12 @@ type Traversing' p f s a = Traversing p f s s a a
 --
 -- This function is only provided for consistency, 'id' is strictly more general.
 --
+-- >>> traverseOf each print (1,2,3)
+-- 1
+-- 2
+-- 3
+-- ((),(),())
+--
 -- @
 -- 'traverseOf' ≡ 'id'
 -- 'itraverseOf' l ≡ 'traverseOf' l '.' 'Indexed'
@@ -211,19 +217,22 @@ traverseOf = id
 
 -- | A version of 'traverseOf' with the arguments flipped, such that:
 --
--- @
--- 'forOf' l ≡ 'flip' ('traverseOf' l)
--- @
---
--- @
--- 'for' ≡ 'forOf' 'traverse'
--- 'Control.Lens.Indexed.ifor' l s ≡ 'for' l s '.' 'Indexed'
--- @
+-- >>> forOf each (1,2,3) print
+-- 1
+-- 2
+-- 3
+-- ((),(),())
 --
 -- This function is only provided for consistency, 'flip' is strictly more general.
 --
 -- @
 -- 'forOf' ≡ 'flip'
+-- 'forOf' ≡ 'flip' . 'traverseOf'
+-- @
+--
+-- @
+-- 'for' ≡ 'forOf' 'traverse'
+-- 'Control.Lens.Indexed.ifor' l s ≡ 'for' l s '.' 'Indexed'
 -- @
 --
 -- @
@@ -237,6 +246,9 @@ forOf = flip
 
 -- | Evaluate each action in the structure from left to right, and collect
 -- the results.
+--
+-- >>> sequenceAOf both ([1,2],[3,4])
+-- [(1,3),(1,4),(2,3),(2,4)]
 --
 -- @
 -- 'sequenceA' ≡ 'sequenceAOf' 'traverse' ≡ 'traverse' 'id'
@@ -255,6 +267,9 @@ sequenceAOf l = l id
 -- | Map each element of a structure targeted by a 'Lens' to a monadic action,
 -- evaluate these actions from left to right, and collect the results.
 --
+-- >>> mapMOf both (\x -> [x, x + 1]) (1,3)
+-- [(1,3),(1,4),(2,3),(2,4)]
+--
 -- @
 -- 'mapM' ≡ 'mapMOf' 'traverse'
 -- 'imapMOf' l ≡ 'forM' l '.' 'Indexed'
@@ -270,6 +285,9 @@ mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
 {-# INLINE mapMOf #-}
 
 -- | 'forMOf' is a flipped version of 'mapMOf', consistent with the definition of 'forM'.
+--
+-- >>> forMOf both (1,3) $ \x -> [x, x + 1]
+-- [(1,3),(1,4),(2,3),(2,4)]
 --
 -- @
 -- 'forM' ≡ 'forMOf' 'traverse'
@@ -287,6 +305,9 @@ forMOf l a cmd = unwrapMonad (l (WrapMonad #. cmd) a)
 {-# INLINE forMOf #-}
 
 -- | Sequence the (monadic) effects targeted by a 'Lens' in a container from left to right.
+--
+-- >>> sequenceOf each ([1,2],[3,4],[5,6])
+-- [(1,3,5),(1,3,6),(1,4,5),(1,4,6),(2,3,5),(2,3,6),(2,4,5),(2,4,6)]
 --
 -- @
 -- 'sequence' ≡ 'sequenceOf' 'traverse'
@@ -307,12 +328,12 @@ sequenceOf l = unwrapMonad #. l WrapMonad
 --
 -- Note: 'Data.List.transpose' handles ragged inputs more intelligently, but for non-ragged inputs:
 --
+-- >>> transposeOf traverse [[1,2,3],[4,5,6]]
+-- [[1,4],[2,5],[3,6]]
+--
 -- @
 -- 'Data.List.transpose' ≡ 'transposeOf' 'traverse'
 -- @
---
--- >>> transposeOf traverse [[1,2,3],[4,5,6]]
--- [[1,4],[2,5],[3,6]]
 --
 -- Since every 'Lens' is a 'Traversal', we can use this as a form of
 -- monadic strength as well:
