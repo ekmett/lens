@@ -30,7 +30,6 @@ module Control.Lens.Internal.Exception
 import Control.Exception as Exception
 import Control.Lens.Fold
 import Control.Lens.Getter
-import Control.Lens.Type
 import Control.Monad.CatchIO as CatchIO
 import Data.IORef
 import Data.Monoid
