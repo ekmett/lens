@@ -149,9 +149,9 @@ trying l m = catching l (liftM Right m) (return . Left)
 -- Instead, we provide a function 'catches', which would be used thus:
 --
 -- @
--- f = expr `catches` [ handler _Foo handleFoo
---                    , handler _Bar handleBar
---                    ]
+-- f = 'catches' expr [ 'handler' _Foo handleFoo
+--                  , 'handler' _Bar handleBar
+--                  ]
 -- @
 catches :: MonadError e m => m a -> [Handler e m a] -> m a
 catches m hs = catchError m go where
