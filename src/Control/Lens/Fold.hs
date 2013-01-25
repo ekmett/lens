@@ -148,6 +148,7 @@ import Data.Traversable
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Data.Function
 -- >>> import Data.List.Lens
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
@@ -722,6 +723,10 @@ traverseOf_ l f = void . getTraversed #. foldMapOf l (Traversed #. f)
 -- 'for_' ≡ 'forOf_' 'folded'
 -- @
 --
+-- >>> forOf_ both ("hello","world") putStrLn
+-- hello
+-- world
+--
 -- The rather specific signature of 'forOf_' allows it to be used as if the signature was any of:
 --
 -- @
@@ -746,6 +751,10 @@ forOf_ = flip . traverseOf_
 -- 'sequenceA_' ≡ 'sequenceAOf_' 'folded'
 -- @
 --
+-- >>> sequenceAOf_ both (putStrLn "hello",putStrLn "world")
+-- hello
+-- world
+--
 -- @
 -- 'sequenceAOf_' :: 'Functor' f     => 'Getter' s (f a)     -> s -> f ()
 -- 'sequenceAOf_' :: 'Applicative' f => 'Fold' s (f a)       -> s -> f ()
@@ -759,6 +768,10 @@ sequenceAOf_ l = void . getTraversed #. foldMapOf l Traversed
 {-# INLINE sequenceAOf_ #-}
 
 -- | Map each target of a 'Fold' on a structure to a monadic action, evaluate these actions from left to right, and ignore the results.
+--
+-- >>> mapMOf_ both putStrLn ("hello","world")
+-- hello
+-- world
 --
 -- @
 -- 'Data.Foldable.mapM_' ≡ 'mapMOf_' 'folded'
@@ -778,6 +791,10 @@ mapMOf_ l f = liftM skip . getSequenced #. foldMapOf l (Sequenced #. f)
 
 -- | 'forMOf_' is 'mapMOf_' with two of its arguments flipped.
 --
+-- >>> forMOf_ both ("hello","world") putStrLn
+-- hello
+-- world
+--
 -- @
 -- 'Data.Foldable.forM_' ≡ 'forMOf_' 'folded'
 -- @
@@ -795,6 +812,10 @@ forMOf_ = flip . mapMOf_
 {-# INLINE forMOf_ #-}
 
 -- | Evaluate each monadic action referenced by a 'Fold' on the structure from left to right, and ignore the results.
+--
+-- >>> sequenceOf_ both (putStrLn "hello",putStrLn "world")
+-- hello
+-- world
 --
 -- @
 -- 'Data.Foldable.sequence_' ≡ 'sequenceOf_' 'folded'
@@ -814,6 +835,12 @@ sequenceOf_ l = liftM skip . getSequenced #. foldMapOf l Sequenced
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
 --
+-- >>> asumOf both ("hello","world")
+-- "helloworld"
+--
+-- >>> asumOf each (Nothing, Just "hello", Nothing)
+-- Just "hello"
+--
 -- @
 -- 'asum' ≡ 'asumOf' 'folded'
 -- @
@@ -831,6 +858,12 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 {-# INLINE asumOf #-}
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
+--
+-- >>> msumOf both ("hello","world")
+-- "helloworld"
+--
+-- >>> msumOf each (Nothing, Just "hello", Nothing)
+-- Just "hello"
 --
 -- @
 -- 'msum' ≡ 'msumOf' 'folded'
@@ -871,6 +904,12 @@ elemOf l = anyOf l . (==)
 
 -- | Does the element not occur anywhere within a given 'Fold' of the structure?
 --
+-- >>> notElemOf each 'd' ('a','b','c')
+-- True
+--
+-- >>> notElemOf each 'a' ('a','b','c')
+-- False
+--
 -- @
 -- 'notElem' ≡ 'notElemOf' 'folded'
 -- @
@@ -888,6 +927,9 @@ notElemOf l = allOf l . (/=)
 {-# INLINE notElemOf #-}
 
 -- | Map a function over all the targets of a 'Fold' of a container and concatenate the resulting lists.
+--
+-- >>> concatMapOf both (\x -> [x, x + 1]) (1,3)
+-- [1,2,3,4]
 --
 -- @
 -- 'concatMap' ≡ 'concatMapOf' 'folded'
@@ -937,6 +979,12 @@ concatOf l = runAccessor #. l Accessor
 -- >>> lengthOf _1 ("hello",())
 -- 1
 --
+-- >>> lengthOf traverse [1..10]
+-- 10
+--
+-- >>> lengthOf (traverse.traverse) [[1,2],[3,4],[5,6]]
+-- 6
+--
 -- @
 -- 'lengthOf' ('folded' '.' 'folded') :: 'Foldable' f => f (g a) -> 'Int'
 -- @
@@ -961,6 +1009,18 @@ lengthOf l = foldlOf' l (\a _ -> a + 1) 0
 -- Note: if you get stack overflows due to this, you may want to use 'firstOf' instead, which can deal
 -- more gracefully with heavily left-biased trees.
 --
+-- >>> Left 4 ^?_Left
+-- Just 4
+--
+-- >>> Right 4 ^?_Left
+-- Nothing
+--
+-- >>> "world" ^? ix 3
+-- Just 'l'
+--
+-- >>> "world" ^? ix 20
+-- Nothing
+--
 -- @
 -- ('^?') ≡ 'flip' 'preview'
 -- @
@@ -977,6 +1037,12 @@ s ^? l = getFirst (foldMapOf l (First #. Just) s)
 {-# INLINE (^?) #-}
 
 -- | Perform an *UNSAFE* 'head' of a 'Fold' or 'Traversal' assuming that it is there.
+--
+-- >>> Left 4 ^?! _Left
+-- 4
+--
+-- >>> "world" ^?! ix 3
+-- 'l'
 --
 -- @
 -- ('^?!') :: s -> 'Getter' s a     -> a
@@ -996,6 +1062,15 @@ s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 -- and gives you back access to the outermost 'Just' constructor more quickly, but may have worse
 -- constant factors.
 --
+-- >>> firstOf traverse [1..10]
+-- Just 1
+--
+-- >>> firstOf both (1,2)
+-- Just 1
+--
+-- >>> firstOf ignored ()
+-- Nothing
+--
 -- @
 -- 'firstOf' :: 'Getter' s a     -> s -> 'Maybe' a
 -- 'firstOf' :: 'Fold' s a       -> s -> 'Maybe' a
@@ -1013,6 +1088,15 @@ firstOf l = getLeftmost . foldMapOf l LLeaf
 -- The answer is computed in a manner that leaks space less than @'ala' 'Last' '.' 'foldMapOf'@
 -- and gives you back access to the outermost 'Just' constructor more quickly, but may have worse
 -- constant factors.
+--
+-- >>> lastOf traverse [1..10]
+-- Just 10
+--
+-- >>> lastOf both (1,2)
+-- Just 2
+--
+-- >>> lastOf ignored ()
+-- Nothing
 --
 -- @
 -- 'lastOf' :: 'Getter' s a     -> s -> 'Maybe' a
@@ -1038,6 +1122,15 @@ lastOf l = getRightmost . foldMapOf l RLeaf
 -- >>> nullOf _1 (1,2)
 -- False
 --
+-- >>> nullOf ignored ()
+-- True
+--
+-- >>> nullOf traverse []
+-- True
+--
+-- >>> nullOf (element 20) [1..10]
+-- True
+--
 -- @
 -- 'nullOf' ('folded' '.' '_1' '.' 'folded') :: 'Foldable' f => f (g a, b) -> 'Bool'
 -- @
@@ -1056,6 +1149,8 @@ nullOf l = getAll #. foldMapOf l (\_ -> All False)
 
 -- | Returns 'True' if this 'Fold' or 'Traversal' has any targets in the given container.
 --
+-- A more \"conversational\" alias for this combinator is 'has'.
+--
 -- Note: 'notNullOf' on a valid 'Iso', 'Lens' or 'Getter' should always return 'True'.
 --
 -- @
@@ -1066,6 +1161,15 @@ nullOf l = getAll #. foldMapOf l (\_ -> All False)
 --
 -- >>> notNullOf _1 (1,2)
 -- True
+--
+-- >>> notNullOf traverse [1..10]
+-- True
+--
+-- >>> notNullOf folded []
+-- False
+--
+-- >>> notNullOf (element 20) [1..10]
+-- False
 --
 -- @
 -- 'notNullOf' ('folded' '.' '_1' '.' 'folded') :: 'Foldable' f => f (g a, b) -> 'Bool'
@@ -1085,6 +1189,15 @@ notNullOf l = getAny #. foldMapOf l (\_ -> Any True)
 -- | Obtain the maximum element (if any) targeted by a 'Fold' or 'Traversal' safely.
 --
 -- Note: 'maximumOf' on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
+--
+-- >>> maximumOf traverse [1..10]
+-- Just 10
+--
+-- >>> maximumOf traverse []
+-- Nothing
+--
+-- >>> maximumOf (folded.filtered even) [1,4,3,6,7,9,2]
+-- Just 6
 --
 -- @
 -- 'maximum' ≡ 'fromMaybe' ('error' \"empty\") '.' 'maximumOf' 'folded'
@@ -1110,6 +1223,15 @@ maximumOf l = foldlOf' l mf Nothing where
 -- | Obtain the minimum element (if any) targeted by a 'Fold' or 'Traversal' safely.
 --
 -- Note: 'minimumOf' on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
+--
+-- >>> minimumOf traverse [1..10]
+-- Just 1
+--
+-- >>> minimumOf traverse []
+-- Nothing
+--
+-- >>> minimumOf (folded.filtered even) [1,4,3,6,7,9,2]
+-- Just 2
 --
 -- @
 -- 'minimum' ≡ 'Data.Maybe.fromMaybe' ('error' \"empty\") '.' 'minimumOf' 'folded'
@@ -1139,6 +1261,9 @@ minimumOf l = foldlOf' l mf Nothing where
 -- | Obtain the maximum element (if any) targeted by a 'Fold', 'Traversal', 'Lens', 'Iso',
 -- or 'Getter' according to a user supplied 'Ordering'.
 --
+-- >>> maximumByOf traverse (compare `on` length) ["mustard","relish","ham"]
+-- Just "mustard"
+--
 -- In the interest of efficiency, This operation has semantics more strict than strictly necessary.
 --
 -- @
@@ -1156,17 +1281,15 @@ maximumByOf :: Getting (Endo (Endo (Maybe a))) s t a b -> (a -> a -> Ordering) -
 maximumByOf l cmp = foldlOf' l mf Nothing where
   mf Nothing y = Just $! y
   mf (Just x) y = Just $! if cmp x y == GT then x else y
-
--- maximumByOf :: Getting (Endo (Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
--- maximumByOf l cmp = foldrOf l step Nothing where
---   step a Nothing  = Just a
---   step a (Just b) = Just (if cmp a b == GT then a else b)
 {-# INLINE maximumByOf #-}
 
 -- | Obtain the minimum element (if any) targeted by a 'Fold', 'Traversal', 'Lens', 'Iso'
 -- or 'Getter' according to a user supplied 'Ordering'.
 --
 -- In the interest of efficiency, This operation has semantics more strict than strictly necessary.
+--
+-- >>> minimumByOf traverse (compare `on` length) ["mustard","relish","ham"]
+-- Just "ham"
 --
 -- @
 -- 'minimumBy' cmp ≡ 'Data.Maybe.fromMaybe' ('error' \"empty\") '.' 'minimumByOf' 'folded' cmp
@@ -1183,16 +1306,17 @@ minimumByOf :: Getting (Endo (Endo (Maybe a))) s t a b -> (a -> a -> Ordering) -
 minimumByOf l cmp = foldlOf' l mf Nothing where
   mf Nothing y = Just $! y
   mf (Just x) y = Just $! if cmp x y == GT then y else x
-
--- minimumByOf :: Getting (Endo (Maybe a)) s t a b -> (a -> a -> Ordering) -> s -> Maybe a
--- minimumByOf l cmp = foldrOf l step Nothing where
---   step a Nothing  = Just a
---   step a (Just b) = Just (if cmp a b == GT then b else a)
 {-# INLINE minimumByOf #-}
 
 -- | The 'findOf' function takes a 'Lens' (or 'Getter', 'Iso', 'Fold', or 'Traversal'),
 -- a predicate and a structure and returns the leftmost element of the structure
 -- matching the predicate, or 'Nothing' if there is no such element.
+--
+-- >>> findOf each even (1,3,4,6)
+-- Just 4
+--
+-- >>> findOf folded even [1,3,5,7]
+-- Nothing
 --
 -- @
 -- 'findOf' :: 'Getter' s a     -> (a -> 'Bool') -> s -> 'Maybe' a
@@ -1203,7 +1327,8 @@ minimumByOf l cmp = foldlOf' l mf Nothing where
 -- @
 --
 -- @
--- 'ifindOf' l = 'findOf' l '.' 'Indexed'
+-- 'Data.Foldable.find' ≡ 'findOf' 'folded'
+-- 'ifindOf' l ≡ 'findOf' l '.' 'Indexed'
 -- @
 --
 -- A simpler version that didn't permit indexing, would be:
@@ -1219,6 +1344,9 @@ findOf l p = foldrOf l (cotabulate $ \wa y -> if corep p wa then Just (extract w
 -- | A variant of 'foldrOf' that has no base case and thus may only be applied
 -- to lenses and structures such that the 'Lens' views at least one element of
 -- the structure.
+--
+-- >>> foldr1Of each (+) (1,2,3,4)
+-- 10
 --
 -- @
 -- 'foldr1Of' l f ≡ 'Prelude.foldr1' f '.' 'toListOf' l
@@ -1242,6 +1370,9 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
 
 -- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and structures such
 -- that the 'Lens' views at least one element of the structure.
+--
+-- >>> foldl1Of each (+) (1,2,3,4)
+-- 10
 --
 -- @
 -- 'foldl1Of' l f ≡ 'Prelude.foldl1' f '.' 'toListOf' l
