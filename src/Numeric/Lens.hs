@@ -33,12 +33,12 @@ integral = prism toInteger $ \ i -> let a = fromInteger i in
 --
 -- >>> 1767707668033969 ^. re (base 36)
 -- "helloworld"
-base :: (Integral a, Show a) => a -> Prism' String a
+base :: Integral a => a -> Prism' String a
 base b
-  | b < 2 || b > 36 = error ("base: Invalid base " ++ show b)
+  | b < 2 || b > 36 = error ("base: Invalid base " ++ show (toInteger b))
   | otherwise       = prism intShow intRead
   where
-    intShow n = showSigned' (showIntAtBase b intToDigit') n ""
+    intShow n = showSigned' (showIntAtBase (toInteger b) intToDigit') (toInteger n) ""
 
     intRead s =
       case readSigned' (readInt b (isDigit' b) digitToInt') s of
