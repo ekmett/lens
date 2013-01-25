@@ -81,6 +81,9 @@ unto f = retagged . rmap (fmap f)
 -- >>> 5 ^.re _Left
 -- Left 5
 --
+-- >>> 6 ^.re (_Left.unto succ)
+-- Left 7
+--
 -- @
 -- 'review'  ≡ 'view'  '.' 're'
 -- 'reviews' ≡ 'views' '.' 're'
@@ -100,10 +103,14 @@ re p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 --
 -- @
 -- 'review' ≡ 'view' '.' 're'
+-- 'review' . 'unto' ≡ 'id'
 -- @
 --
 -- >>> review _Left "mustard"
 -- Left "mustard"
+--
+-- >>> review (unto succ) 5
+-- 6
 --
 -- Usually 'review' is used in the @(->)@ 'Monad' with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
 -- it as having one of these more restricted type signatures:
@@ -129,10 +136,14 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 --
 -- @
 -- 'reviews' ≡ 'views' '.' 're'
+-- 'reviews' ('unto' f) g ≡ g '.' f
 -- @
 --
 -- >>> reviews _Left isRight "mustard"
 -- False
+--
+-- >>> reviews (unto succ) (*2) 3
+-- 8
 --
 -- Usually this function is used in the @(->)@ 'Monad' with a 'Prism' or 'Control.Lens.Iso.Iso', in which case it may be useful to think of
 -- it as having one of these more restricted type signatures:
@@ -155,10 +166,16 @@ reviews p tr = asks (tr . runIdentity #. runReviewed #. p .# Reviewed .# Identit
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.
 --
--- @'reuse' ≡ 'use' '.' 're'@
+-- @
+-- 'reuse' ≡ 'use' '.' 're'
+-- 'reuse' '.' 'unto' ≡ 'gets'
+-- @
 --
 -- >>> evalState (reuse _Left) 5
 -- Left 5
+--
+-- >>> evalState (reuse (unto succ)) 5
+-- 6
 --
 -- @
 -- 'reuse' :: 'MonadState' a m => 'Prism'' s a -> m s
@@ -171,7 +188,10 @@ reuse p = gets (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,
 -- applying a function.
 --
--- @'reuses' ≡ 'uses' '.' 're'@
+-- @
+-- 'reuses' ≡ 'uses' '.' 're'
+-- 'reuses' ('unto' f) g ≡ 'gets' (g '.' f)
+-- @
 --
 -- >>> evalState (reuses _Left isLeft) (5 :: Int)
 -- True
