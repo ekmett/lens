@@ -1,6 +1,9 @@
 3.8.2
 -----
-* Added `handled`, `handled_`, and `IsHandler(..)` to `Control.Exception.Lens` to facilitate working with `catches` from either `Control.Exception` and `Control.Monad.CatchIO`.
+* Added a notion of `Handleable(handler, handler_)` to `Control.Exception.Lens` to facilitate constructing a `Handler` from an arbitrary `Fold` or `Prism`.
+* Added a notion of `Handler` and `catches` to and `Control.Monad.Error.Lens` to mirror the `Control.Exception` and `Control.Monad.CatchIO` constructions.
+* Added additional doctests and documentation.
+* Improved error messages and support for types with arguments in `makeFields`.
 
 3.8.1
 -----
