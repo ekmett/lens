@@ -149,14 +149,14 @@ data HandlingException = HandlingException deriving (Show,Typeable)
 
 instance Exception HandlingException
 
--- This supplies a globally unique set of IDs so we can hack around the default use of 'cast' in 'SomeException'
--- if someone, somehow, somewhere decides to reach in and catch and rethrow a 'Handling' exception by existentially
+-- | This supplies a globally unique set of IDs so we can hack around the default use of 'cast' in 'SomeException'
+-- if someone, somehow, somewhere decides to reach in and catch and rethrow a @Handling@ 'Exception' by existentially
 -- opening a 'Handler' that uses it.
 supply :: IORef Int
 supply = unsafePerformIO $ newIORef 0
 {-# NOINLINE supply #-}
 
--- This permits the construction of an \"impossible\" 'Control.Exception.Handler' that matches only if some function does.
+-- | This permits the construction of an \"impossible\" 'Control.Exception.Handler' that matches only if some function does.
 newtype Handling a s (m :: * -> *) = Handling a
 
 -- the m parameter exists simply to break the Typeable1 pattern, so we can provide this without overlap.
@@ -167,7 +167,7 @@ instance Typeable (Handling a s m) where
     return $ mkTyConApp (mkTyCon3 "lens" "Control.Lens.Internal.Exception" ("Handling" ++ show i)) []
   {-# INLINE typeOf #-}
 
--- The 'Handling' wrapper is uninteresting, and should never be thrown, so you won't get much benefit here.
+-- The @Handling@ wrapper is uninteresting, and should never be thrown, so you won't get much benefit here.
 instance Show (Handling a s m) where
   showsPrec d _ = showParen (d > 10) $ showString "Handling ..."
   {-# INLINE showsPrec #-}
