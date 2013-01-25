@@ -47,11 +47,11 @@ import System.IO.Unsafe
 -- This lets us write combinators to build handlers that are agnostic about the choice of
 -- which of these they use.
 class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
-  -- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Type.Prism' (or any 'Getter', really)
+  -- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Type.Prism' (or any 'Getter', really).
   --
   -- @
-  -- 'catches' ... [ 'handler' 'Control.Exception.Lens._AssertionFailed' (\s -> print $ \"Assertion Failed\\n\" ++ s)
-  --             , 'handler' 'Control.Exception.Lens._ErrorCall' (\s -> print $ \"Error\\n\" ++ s)
+  -- 'catches' ... [ 'handler' 'Control.Exception.Lens._AssertionFailed' (\s -> 'print' '$' \"Assertion Failed\\n\" '++' s)
+  --             , 'handler' 'Control.Exception.Lens._ErrorCall' (\s -> 'print' '$' \"Error\\n\" '++' s)
   --             ]
   -- @
   --
@@ -86,7 +86,7 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
   -- @
   handler :: Getting (First a) e t a b -> (a -> m r) -> h r
 
-  -- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Prism.Prism' (or any 'Getter', really)
+  -- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Prism.Prism' (or any 'Getter', really).
   -- that ignores its input and just recovers with the stated monadic action.
   --
   -- @
@@ -144,19 +144,19 @@ handlerCatchIO l f = reify (preview l) $ \ (_ :: Proxy s) -> CatchIO.Handler (\(
 -- Helpers
 ------------------------------------------------------------------------------
 
--- | There was exception caused by abusing the internals of a 'Handler'.
+-- | There was an 'Exception' caused by abusing the internals of a 'Handler'.
 data HandlingException = HandlingException deriving (Show,Typeable)
 
 instance Exception HandlingException
 
--- | This supplies a globally unique set of IDs so we can hack around the default use of 'cast' in 'SomeException'
+-- This supplies a globally unique set of IDs so we can hack around the default use of 'cast' in 'SomeException'
 -- if someone, somehow, somewhere decides to reach in and catch and rethrow a 'Handling' exception by existentially
 -- opening a 'Handler' that uses it.
 supply :: IORef Int
 supply = unsafePerformIO $ newIORef 0
 {-# NOINLINE supply #-}
 
--- | This permits the construction of an \"impossible\" 'Control.Exception.Handler' that matches only if some function does.
+-- This permits the construction of an \"impossible\" 'Control.Exception.Handler' that matches only if some function does.
 newtype Handling a s (m :: * -> *) = Handling a
 
 -- the m parameter exists simply to break the Typeable1 pattern, so we can provide this without overlap.

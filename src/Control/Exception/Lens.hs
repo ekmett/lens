@@ -125,7 +125,7 @@ import Prelude
 -- the desired 'Exception'.
 --
 -- @
--- exception :: ('Applicative' f, 'Exception' a, 'Exception' b)
+-- 'exception' :: ('Applicative' f, 'Exception' a, 'Exception' b)
 --           => (a -> f b) -> 'SomeException' -> f 'SomeException'
 -- @
 exception :: Exception a => Prism' SomeException a
@@ -224,9 +224,9 @@ handling_ l = flip (catching_ l)
 -- Trying
 ------------------------------------------------------------------------------
 
--- | A variant of 'CatchIO.try' that takes an 'Prism' (or any 'Getter') to select which
--- exceptions are caught (c.f. 'tryJust', 'catchJust'). If the 'Exception' does
--- not match the predicate, it is re-thrown.
+-- | A variant of 'Control.Exception.try' that takes a 'Prism' (or any 'Getter') to select which
+-- exceptions are caught (c.f. 'Control.Exception.tryJust', 'Control.Exception.catchJust'). If the
+-- 'Exception' does not match the predicate, it is re-thrown.
 --
 -- @
 -- 'trying' :: 'MonadCatchIO' m => 'Prism''     'SomeException' a -> m r -> m ('Either' a r)
@@ -239,11 +239,11 @@ handling_ l = flip (catching_ l)
 trying :: MonadCatchIO m => Getting (First a) SomeException t a b -> m r -> m (Either a r)
 trying l = tryJust (preview l)
 
--- | A helper version of 'CatchIO.try' that doesn't needlessly require 'Functor'.
+-- | A helper version of 'Control.Exception.try' that doesn't needlessly require 'Functor'.
 try :: (MonadCatchIO m, Exception e) => m a -> m (Either e a)
 try a = CatchIO.catch (liftM Right a) (return . Left)
 
--- | A helper version of 'CatchIO.tryJust' that doesn't needlessly require 'Functor'.
+-- | A helper version of 'Control.Exception.tryJust' that doesn't needlessly require 'Functor'.
 tryJust :: (MonadCatchIO m, Exception e) => (e -> Maybe b) -> m a -> m (Either b a)
 tryJust p a = do
   r <- try a
@@ -260,7 +260,9 @@ tryJust p a = do
 -- | Throw an 'Exception' described by a 'Prism'. Exceptions may be thrown from
 -- purely functional code, but may only be caught within the 'IO' 'Monad'.
 --
--- @'throwing' l ≡ 'reviews' l 'throw'@
+-- @
+-- 'throwing' l ≡ 'reviews' l 'throw'
+-- @
 --
 -- @
 -- 'throwing' :: 'Prism'' 'SomeException' t -> t -> a
@@ -278,7 +280,7 @@ throwing l = reviews l Exception.throw
 -- 'throwing', the two functions are subtly different:
 --
 -- @
--- 'throwing' l e \`seq\` x   ≡ 'throwing' e
+-- 'throwing' l e \`seq\` x  ≡ 'throwing' e
 -- 'throwingM' l e \`seq\` x ≡ x
 -- @
 --
@@ -289,7 +291,9 @@ throwing l = reviews l Exception.throw
 -- within the 'Monad' because it guarantees ordering with respect to other
 -- monadic operations, whereas 'throwing' does not.
 --
--- @'throwingM' l ≡ 'reviews' l 'CatchIO.throw'@
+-- @
+-- 'throwingM' l ≡ 'reviews' l 'CatchIO.throw'
+-- @
 --
 -- @
 -- 'throwingM' :: 'MonadCatchIO' m => 'Prism'' 'SomeException' t -> t -> m a
@@ -301,8 +305,9 @@ throwingM l = reviews l (liftIO . throwIO)
 
 -- | 'throwingTo' raises an 'Exception' specified by a 'Prism' in the target thread.
 --
--- @'throwingTo' thread l ≡ 'reviews' l ('throwTo' thread)@
---
+-- @
+-- 'throwingTo' thread l ≡ 'reviews' l ('throwTo' thread)
+-- @
 --
 -- @
 -- 'throwingTo' :: 'ThreadId' -> 'Prism'' 'SomeException' t -> t -> m a
@@ -363,7 +368,9 @@ instance (Choice p, Applicative f) => AsArithException p f SomeException where
 
 -- | Handle arithmetic '_Overflow'.
 --
--- @'_Overflow' ≡ '_ArithException' '.' '_Overflow'@
+-- @
+-- '_Overflow' ≡ '_ArithException' '.' '_Overflow'
+-- @
 --
 -- @
 -- '_Overflow' :: 'Prism'' 'ArithException' 'ArithException'
@@ -377,7 +384,9 @@ _Overflow = _ArithException . dimap seta (either id id) . right' . rmap (Overflo
 
 -- | Handle arithmetic '_Underflow'.
 --
--- @'_Underflow' ≡ '_ArithException' '.' '_Underflow'@
+-- @
+-- '_Underflow' ≡ '_ArithException' '.' '_Underflow'
+-- @
 --
 -- @
 -- '_Underflow' :: 'Prism'' 'ArithException' 'ArithException'
@@ -391,7 +400,9 @@ _Underflow = _ArithException . dimap seta (either id id) . right' . rmap (Underf
 
 -- | Handle arithmetic loss of precision.
 --
--- @'_LossOfPrecision' ≡ '_ArithException' '.' '_LossOfPrecision'@
+-- @
+-- '_LossOfPrecision' ≡ '_ArithException' '.' '_LossOfPrecision'
+-- @
 --
 -- @
 -- '_LossOfPrecision' :: 'Prism'' 'ArithException' 'ArithException'
@@ -405,7 +416,9 @@ _LossOfPrecision = _ArithException . dimap seta (either id id) . right' . rmap (
 
 -- | Handle division by zero.
 --
--- @'_DivideByZero' ≡ '_ArithException' '.' '_DivideByZero'@
+-- @
+-- '_DivideByZero' ≡ '_ArithException' '.' '_DivideByZero'
+-- @
 --
 -- @
 -- '_DivideByZero' :: 'Prism'' 'ArithException' 'ArithException'
@@ -419,7 +432,9 @@ _DivideByZero = _ArithException . dimap seta (either id id) . right' . rmap (Div
 
 -- | Handle exceptional _Denormalized floating point.
 --
--- @'_Denormal' ≡ '_ArithException' '.' '_Denormal'@
+-- @
+-- '_Denormal' ≡ '_ArithException' '.' '_Denormal'
+-- @
 --
 -- @
 -- '_Denormal' :: 'Prism'' 'ArithException' 'ArithException'
@@ -436,7 +451,9 @@ _Denormal = _ArithException . dimap seta (either id id) . right' . rmap (Denorma
 --
 -- <http://haskell.1045720.n5.nabble.com/Data-Ratio-and-exceptions-td5711246.html>
 --
--- @'_RatioZeroDenominator' ≡ '_ArithException' '.' '_RatioZeroDenominator'@
+-- @
+-- '_RatioZeroDenominator' ≡ '_ArithException' '.' '_RatioZeroDenominator'
+-- @
 --
 -- @
 -- '_RatioZeroDenominator' :: 'Prism'' 'ArithException' 'ArithException'
@@ -474,7 +491,9 @@ instance (Choice p, Applicative f) => AsArrayException p f SomeException where
 
 -- | An attempt was made to index an array outside its declared bounds.
 --
--- @'_IndexOutOfBounds' ≡ '_ArrayException' '.' '_IndexOutOfBounds'@
+-- @
+-- '_IndexOutOfBounds' ≡ '_ArrayException' '.' '_IndexOutOfBounds'
+-- @
 --
 -- @
 -- '_IndexOutOfBounds' :: 'Prism'' 'ArrayException' 'String'
@@ -488,7 +507,9 @@ _IndexOutOfBounds = _ArrayException . dimap seta (either id id) . right' . rmap 
 
 -- | An attempt was made to evaluate an element of an array that had not been initialized.
 --
--- @'_UndefinedElement' ≡ '_ArrayException' '.' '_UndefinedElement'@
+-- @
+-- '_UndefinedElement' ≡ '_ArrayException' '.' '_UndefinedElement'
+-- @
 --
 -- @
 -- '_UndefinedElement' :: 'Prism'' 'ArrayException' 'String'
@@ -506,7 +527,7 @@ _UndefinedElement = _ArrayException . dimap seta (either id id) . right' . rmap 
 
 -- | 'assert' was applied to 'Prelude.False'.
 class AsAssertionFailed p f t where
-  -- | This exception contains provides information about what assertion failed in the string.
+  -- | This 'Exception' contains provides information about what assertion failed in the 'String'.
   --
   -- >>> handling _AssertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
   -- "caught"
@@ -616,7 +637,7 @@ _UserInterrupt = _AsyncException . dimap seta (either id id) . right' . rmap (Us
 -- not to terminate. Note that there is no guarantee that the runtime system
 -- will notice whether any given computation is guaranteed to terminate or not.
 class (Profunctor p, Functor f) => AsNonTermination p f t where
-  -- | There is no additional information carried in a 'NonTermination' exception.
+  -- | There is no additional information carried in a 'NonTermination' 'Exception'.
   --
   -- @
   -- '_NonTermination' :: 'Iso''   'NonTermination' ()
@@ -639,7 +660,7 @@ instance (Choice p, Applicative f) => AsNonTermination p f SomeException where
 -- | Thrown when the program attempts to call atomically, from the
 -- 'Control.Monad.STM' package, inside another call to atomically.
 class (Profunctor p, Functor f) => AsNestedAtomically p f t where
-  -- | There is no additional information carried in a 'NestedAtomically' exception.
+  -- | There is no additional information carried in a 'NestedAtomically' 'Exception'.
   --
   -- @
   -- '_NestedAtomically' :: 'Iso''   'NestedAtomically' ()
@@ -663,7 +684,7 @@ instance (Choice p, Applicative f) => AsNestedAtomically p f SomeException where
 -- are no other references to the 'Control.Concurrent.MVar.MVar' so it can't
 -- ever continue.
 class (Profunctor p, Functor f) => AsBlockedIndefinitelyOnMVar p f t where
-  -- | There is no additional information carried in a 'BlockedIndefinitelyOnMVar' exception.
+  -- | There is no additional information carried in a 'BlockedIndefinitelyOnMVar' 'Exception'.
   --
   -- @
   -- '_BlockedIndefinitelyOnMVar' :: 'Iso''   'BlockedIndefinitelyOnMVar' ()
@@ -687,7 +708,7 @@ instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnMVar p f SomeExcept
 -- but there are no other references to any TVars involved, so it can't ever
 -- continue.
 class (Profunctor p, Functor f) => AsBlockedIndefinitelyOnSTM p f t where
-  -- | There is no additional information carried in a 'BlockedIndefinitelyOnSTM' exception.
+  -- | There is no additional information carried in a 'BlockedIndefinitelyOnSTM' 'Exception'.
   --
   -- @
   -- '_BlockedIndefinitelyOnSTM' :: 'Iso''   'BlockedIndefinitelyOnSTM' ()
@@ -710,7 +731,7 @@ instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnSTM p f SomeExcepti
 -- | There are no runnable threads, so the program is deadlocked. The
 -- 'Deadlock' 'Exception' is raised in the main thread only.
 class (Profunctor p, Functor f) => AsDeadlock p f t where
-  -- | There is no information carried in a 'Deadlock' exception.
+  -- | There is no information carried in a 'Deadlock' 'Exception'.
   --
   -- @
   -- '_Deadlock' :: 'Iso''   'Deadlock'      ()
@@ -858,10 +879,10 @@ instance (Choice p, Applicative f) => AsErrorCall p f SomeException where
 -- HandlingException
 ------------------------------------------------------------------------------
 
--- | This exception is thrown by @lens@ when the user somehow manages to rethrow
--- an internal handling exception.
+-- | This 'Exception' is thrown by @lens@ when the user somehow manages to rethrow
+-- an internal 'HandlingException'.
 class (Profunctor p, Functor f) => AsHandlingException p f t where
-  -- | There is no information carried in a 'HandlingException' exception.
+  -- | There is no information carried in a 'HandlingException'.
   --
   -- @
   -- '_HandlingException' :: 'Iso''   'HandlingException' ()
