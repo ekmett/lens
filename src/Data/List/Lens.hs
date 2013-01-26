@@ -13,8 +13,12 @@
 --
 ----------------------------------------------------------------------------
 module Data.List.Lens
-  ( strippingPrefix
-  , strippingSuffix, stripSuffix
+  ( prefixed
+  , suffixed
+  , stripSuffix
+  -- * Deprecated
+  , strippingPrefix
+  , strippingSuffix
   ) where
 
 import Control.Monad (guard)
@@ -31,32 +35,36 @@ import Data.List
 -- | A 'Prism' stripping a prefix from a list when used as a 'Traversal', or
 -- prepending that prefix when run backwards:
 --
--- >>> "preview" ^? strippingPrefix "pre"
+-- >>> "preview" ^? prefixed "pre"
 -- Just "view"
 --
--- >>> "review" ^? strippingPrefix "pre"
+-- >>> "review" ^? prefixed "pre"
 -- Nothing
 --
--- >>> "amble"^.re (strippingPrefix "pre")
+-- >>> prefixed "pre" # "amble"
 -- "preamble"
-strippingPrefix :: Eq a => [a] -> Prism' [a] [a]
-strippingPrefix ps = prism' (ps ++) (stripPrefix ps)
-{-# INLINE strippingPrefix #-}
+prefixed :: Eq a => [a] -> Prism' [a] [a]
+prefixed ps = prism' (ps ++) (stripPrefix ps)
+{-# INLINE prefixed #-}
 
 -- | A 'Prism' stripping a suffix from a list when used as a 'Traversal', or
 -- prepending that prefix when run backwards:
 --
--- >>> "review" ^? strippingSuffix "view"
+-- >>> "review" ^? suffixed "view"
 -- Just "re"
 --
--- >>> "review" ^? strippingSuffix "tire"
+-- >>> "review" ^? suffixed "tire"
 -- Nothing
 --
--- >>> "hello"^.re (strippingSuffix ".o")
+-- >>> suffixed ".o" # "hello"
 -- "hello.o"
-strippingSuffix :: Eq a => [a] -> Prism' [a] [a]
-strippingSuffix qs = prism' (++ qs) (stripSuffix qs)
-{-# INLINE strippingSuffix #-}
+suffixed :: Eq a => [a] -> Prism' [a] [a]
+suffixed qs = prism' (++ qs) (stripSuffix qs)
+{-# INLINE suffixed #-}
+
+------------------------------------------------------------------------------
+-- Util
+------------------------------------------------------------------------------
 
 stripSuffix :: Eq a => [a] -> [a] -> Maybe [a]
 stripSuffix qs xs0 = go xs0 zs
@@ -69,3 +77,16 @@ stripSuffix qs xs0 = go xs0 zs
     go xs [] = zipWith const xs0 zs <$ guard (xs == qs)
     go [] _  = Nothing -- impossible
 {-# INLINE stripSuffix #-}
+
+-- | This is a deprecated alias for 'prefixed'.
+strippingPrefix :: Eq a => [a] -> Prism' [a] [a]
+strippingPrefix = prefixed
+{-# INLINE strippingPrefix #-}
+{-# DEPRECATED strippingPrefix "Use 'prefixed'." #-}
+
+-- | This is a deprecated alias for 'suffixed'.
+strippingSuffix :: Eq a => [a] -> Prism' [a] [a]
+strippingSuffix = suffixed
+{-# INLINE strippingSuffix #-}
+{-# DEPRECATED strippingSuffix "Use 'suffixed'." #-}
+
