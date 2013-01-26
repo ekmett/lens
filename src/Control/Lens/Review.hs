@@ -24,6 +24,7 @@ module Control.Lens.Review
   , re
   , review, reviews
   , reuse, reuses
+  , (#)
   -- * Reviewable Profunctors
   , Reviewable(..)
   ) where
@@ -42,6 +43,8 @@ import Data.Profunctor.Unsafe
 -- >>> import Control.Lens
 -- >>> let isLeft  (Left  _) = True; isLeft  _ = False
 -- >>> let isRight (Right _) = True; isRight _ = False
+
+infixr 9 #
 
 ------------------------------------------------------------------------------
 -- Review
@@ -130,6 +133,13 @@ re p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 review :: MonadReader b m => AReview s t a b -> m t
 review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 {-# INLINE review #-}
+
+-- | An infix alias for 'review'.
+--
+-- >>> _Left # 4
+-- Left 4
+(#) :: AReview s t a b -> b -> t
+(#) p = runIdentity #. runReviewed #. p .# Reviewed .# Identity
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,
 -- applying a function.
