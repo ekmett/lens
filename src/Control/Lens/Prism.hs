@@ -47,6 +47,7 @@ import Unsafe.Coerce
 #endif
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Numeric.Natural
 -- >>> import Debug.SimpleReflect.Expr

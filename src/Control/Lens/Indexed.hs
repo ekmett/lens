@@ -105,6 +105,7 @@ import qualified Data.Vector as V
 infixr 9 <.>, <., .>
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 
 -- | Compose an 'Indexed' function with a non-indexed function.

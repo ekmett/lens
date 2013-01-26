@@ -40,6 +40,7 @@ import Data.Profunctor
 import Data.Profunctor.Unsafe
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Numeric.Lens
 -- >>> let isLeft  (Left  _) = True; isLeft  _ = False

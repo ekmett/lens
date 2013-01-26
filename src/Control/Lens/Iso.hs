@@ -73,6 +73,7 @@ import Unsafe.Coerce
 {-# ANN module "HLint: ignore Use on" #-}
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Data.Map as Map
 -- >>> import Data.Foldable
