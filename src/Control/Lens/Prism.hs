@@ -208,7 +208,7 @@ _Right = prism Right $ either (Left . Left) Right
 -- Unlike 'Data.Traversable.traverse' this is a 'Prism', and so you can use it to inject as well:
 --
 -- >>> _Just # 5
--- Just
+-- Just 5
 --
 -- >>> 5^.re _Just
 -- Just 5
