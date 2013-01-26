@@ -138,8 +138,8 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- | An infix alias for 'review'.
 --
 -- @
--- 'unto' f '#' x ≡ f x
--- l '#' x ≡ x '^.' 're' l
+-- 'unto' f # x ≡ f x
+-- l # x ≡ x '^.' 're' l
 -- @
 --
 -- This is commonly used when using a 'Prism' as a smart constructor.
@@ -153,10 +153,10 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- "7b"
 --
 -- @
--- ('#') :: 'Iso''      s a -> a -> s
--- ('#') :: 'Prism''    s a -> a -> s
--- ('#') :: 'Review''   s a -> a -> s
--- ('#') :: 'Equality'' s a -> a -> s
+-- (#) :: 'Iso''      s a -> a -> s
+-- (#) :: 'Prism''    s a -> a -> s
+-- (#) :: 'Review''   s a -> a -> s
+-- (#) :: 'Equality'' s a -> a -> s
 -- @
 ( # ) :: AReview s t a b -> b -> t
 ( # ) p = runIdentity #. runReviewed #. p .# Reviewed .# Identity
