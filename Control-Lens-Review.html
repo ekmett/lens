@@ -92,8 +92,8 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Review.ht
  <code><a href="Control-Lens-Review.html#v:reuses">reuses</a></code> :: <code><a href="/Library/Haskell/ghc-7.4.1/lib/mtl-2.1.1/doc/html/Control-Monad-State-Class.html#t:MonadState">MonadState</a></code> a m =&gt; <code><a href="Control-Lens-Type.html#t:Iso-39-">Iso'</a></code> s a   -&gt; (s -&gt; r) -&gt; m r
 </pre></div></div><div class="top"><p class="src"><a name="v:-35-" class="def">(#)</a> ::  <a href="Control-Lens-Review.html#t:AReview">AReview</a> s t a b -&gt; b -&gt; t<a href="src/Control-Lens-Review.html#%23" class="link">Source</a></p><div class="doc"><p>An infix alias for <code><a href="Control-Lens-Review.html#v:review">review</a></code>.
 </p><pre>
- <code><a href="Control-Lens-Review.html#v:unto">unto</a></code> f '#' x &#8801; f x
- l '#' x &#8801; x <code><a href="Control-Lens-Getter.html#v:-94-.">^.</a></code> <code><a href="Control-Lens-Review.html#v:re">re</a></code> l
+ <code><a href="Control-Lens-Review.html#v:unto">unto</a></code> f # x &#8801; f x
+ l # x &#8801; x <code><a href="Control-Lens-Getter.html#v:-94-.">^.</a></code> <code><a href="Control-Lens-Review.html#v:re">re</a></code> l
 </pre><p>This is commonly used when using a <code><a href="Control-Lens-Type.html#t:Prism">Prism</a></code> as a smart constructor.
 </p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_Left # 4
 </code></strong>Left 4
@@ -101,10 +101,10 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Review.ht
 </p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>base 16 # 123
 </code></strong>&quot;7b&quot;
 </pre><pre>
- ('#') :: <code><a href="Control-Lens-Type.html#t:Iso-39-">Iso'</a></code>      s a -&gt; a -&gt; s
- ('#') :: <code><a href="Control-Lens-Type.html#t:Prism-39-">Prism'</a></code>    s a -&gt; a -&gt; s
- ('#') :: <code><a href="Control-Lens-Review.html#t:Review-39-">Review'</a></code>   s a -&gt; a -&gt; s
- ('#') :: <code><a href="Control-Lens-Type.html#t:Equality-39-">Equality'</a></code> s a -&gt; a -&gt; s
+ (#) :: <code><a href="Control-Lens-Type.html#t:Iso-39-">Iso'</a></code>      s a -&gt; a -&gt; s
+ (#) :: <code><a href="Control-Lens-Type.html#t:Prism-39-">Prism'</a></code>    s a -&gt; a -&gt; s
+ (#) :: <code><a href="Control-Lens-Review.html#t:Review-39-">Review'</a></code>   s a -&gt; a -&gt; s
+ (#) :: <code><a href="Control-Lens-Type.html#t:Equality-39-">Equality'</a></code> s a -&gt; a -&gt; s
 </pre></div></div><h1 id="g:2">Reviewable Profunctors
 </h1><div class="top"><p class="src"><span class="keyword">class</span> <a href="Control-Lens-Iso.html#t:Profunctor">Profunctor</a> p =&gt; <a name="t:Reviewable" class="def">Reviewable</a> p  <span class="keyword">where</span><a href="src/Control-Lens-Internal-Review.html#Reviewable" class="link">Source</a></p><div class="doc"><p>This provides a dual notion to that of <code><a href="Control-Lens-Getter.html#t:Gettable">Gettable</a></code>.
 </p></div><div class="subs methods"><p class="caption">Methods</p><p class="src"><a name="v:retagged" class="def">retagged</a> ::  p a b -&gt; p s b<a href="src/Control-Lens-Internal-Review.html#retagged" class="link">Source</a></p></div><div class="subs instances"><p id="control.i:Reviewable" class="caption collapser" onclick="toggleSection('i:Reviewable')">Instances</p><div id="section.i:Reviewable" class="show"><table><tr><td class="src"><a href="Control-Lens-Review.html#t:Reviewable">Reviewable</a> Tagged</td><td class="doc empty">&nbsp;</td></tr><tr><td class="src"><a href="Control-Lens-Review.html#t:Reviewable">Reviewable</a> <a href="Control-Lens-Internal-Review.html#t:Reviewed">Reviewed</a></td><td class="doc empty">&nbsp;</td></tr></table></div></div></div></div></div><div id="footer"><p>Produced by <a href="http://www.haskell.org/haddock/">Haddock</a> version 2.10.0</p></div></body></html>

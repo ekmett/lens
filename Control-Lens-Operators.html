@@ -171,8 +171,8 @@ world
 </pre></div></div><h1 id="g:6">Reviewing
 </h1><div class="top"><p class="src"><a name="v:-35-" class="def">(#)</a> ::  <a href="Control-Lens-Review.html#t:AReview">AReview</a> s t a b -&gt; b -&gt; t<a href="src/Control-Lens-Review.html#%23" class="link">Source</a></p><div class="doc"><p>An infix alias for <code><a href="Control-Lens-Review.html#v:review">review</a></code>.
 </p><pre>
- <code><a href="Control-Lens-Review.html#v:unto">unto</a></code> f '#' x &#8801; f x
- l '#' x &#8801; x <code><a href="Control-Lens-Operators.html#v:-94-.">^.</a></code> <code><a href="Control-Lens-Review.html#v:re">re</a></code> l
+ <code><a href="Control-Lens-Review.html#v:unto">unto</a></code> f # x &#8801; f x
+ l # x &#8801; x <code><a href="Control-Lens-Operators.html#v:-94-.">^.</a></code> <code><a href="Control-Lens-Review.html#v:re">re</a></code> l
 </pre><p>This is commonly used when using a <code><a href="Control-Lens-Type.html#t:Prism">Prism</a></code> as a smart constructor.
 </p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>_Left # 4
 </code></strong>Left 4
@@ -180,10 +180,10 @@ world
 </p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>base 16 # 123
 </code></strong>&quot;7b&quot;
 </pre><pre>
- ('#') :: <code><a href="Control-Lens-Type.html#t:Iso-39-">Iso'</a></code>      s a -&gt; a -&gt; s
- ('#') :: <code><a href="Control-Lens-Type.html#t:Prism-39-">Prism'</a></code>    s a -&gt; a -&gt; s
- ('#') :: <code><a href="Control-Lens-Review.html#t:Review-39-">Review'</a></code>   s a -&gt; a -&gt; s
- ('#') :: <code><a href="Control-Lens-Type.html#t:Equality-39-">Equality'</a></code> s a -&gt; a -&gt; s
+ (#) :: <code><a href="Control-Lens-Type.html#t:Iso-39-">Iso'</a></code>      s a -&gt; a -&gt; s
+ (#) :: <code><a href="Control-Lens-Type.html#t:Prism-39-">Prism'</a></code>    s a -&gt; a -&gt; s
+ (#) :: <code><a href="Control-Lens-Review.html#t:Review-39-">Review'</a></code>   s a -&gt; a -&gt; s
+ (#) :: <code><a href="Control-Lens-Type.html#t:Equality-39-">Equality'</a></code> s a -&gt; a -&gt; s
 </pre></div></div><h1 id="g:7">Common Operators
 </h1><h2 id="g:8">Setting
 </h2><div class="top"><p class="src"><a name="v:.-126-" class="def">(.~)</a> ::  <a href="Control-Lens-Setter.html#t:ASetter">ASetter</a> s t a b -&gt; b -&gt; s -&gt; t<a href="src/Control-Lens-Setter.html#.~" class="link">Source</a></p><div class="doc"><p>Replace the target of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> or all of the targets of a <code><a href="Control-Lens-Type.html#t:Setter">Setter</a></code>
