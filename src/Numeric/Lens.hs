@@ -15,6 +15,9 @@ import Data.Char (chr, ord, isAsciiLower, isAsciiUpper, isDigit)
 import Data.Maybe (fromMaybe)
 import Numeric (readInt, showIntAtBase)
 
+-- $setup
+-- >>> :set -XNoOverloadedStrings
+
 -- | This 'Prism' extracts can be used to model the fact that every 'Integral'
 -- type is a subset of 'Integer'.
 --

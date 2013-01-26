@@ -19,8 +19,10 @@ import Control.Lens.Setter ( setting )
 import Control.Lens.Type
 import Data.Set as Set
 
+
 -- $setup
--- >>> :m + Data.Set.Lens Control.Lens
+-- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
 
 -- | This 'Setter' can be used to change the type of a 'Set' by mapping
 -- the elements to new values.

@@ -25,7 +25,8 @@ import Data.HashSet as HashSet
 import Data.Hashable
 
 -- $setup
--- >>> :m + Data.HashSet Control.Lens
+-- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
 
 -- | This 'Setter' can be used to change the type of a 'HashSet' by mapping
 -- the elements to new values.

@@ -28,6 +28,9 @@ import System.FilePath
 
 import Control.Lens hiding ((<.>))
 
+-- $setup
+-- >>> :set -XNoOverloadedStrings
+
 infixr 4 </>~, <</>~, <.>~, <<.>~
 infix 4 </>=, <</>=, <.>=, <<.>=
 

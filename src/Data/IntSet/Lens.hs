@@ -19,7 +19,8 @@ import Control.Lens
 import Data.IntSet as IntSet
 
 -- $setup
--- >>> :m + Data.IntSet.Lens Control.Lens
+-- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
 
 -- | IntSet isn't Foldable, but this 'Fold' can be used to access the members of an 'IntSet'.
 --

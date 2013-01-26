@@ -91,8 +91,8 @@ import           Data.Set as Set
 import           Data.Tagged
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
--- >>> import Data.Foldable
 
 -- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes or
 -- data types with one constructor.

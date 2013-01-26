@@ -25,6 +25,7 @@ import Data.Functor
 import Data.Word
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Data.Word
 
 infixr 4 .|.~, .&.~, <.|.~, <.&.~
