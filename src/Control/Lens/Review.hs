@@ -24,7 +24,7 @@ module Control.Lens.Review
   , re
   , review, reviews
   , reuse, reuses
-  , (#)
+  , ( # )
   -- * Reviewable Profunctors
   , Reviewable(..)
   ) where
@@ -158,8 +158,9 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- ('#') :: 'Review''   s a -> a -> s
 -- ('#') :: 'Equality'' s a -> a -> s
 -- @
-(#) :: AReview s t a b -> b -> t
-(#) p = runIdentity #. runReviewed #. p .# Reviewed .# Identity
+( # ) :: AReview s t a b -> b -> t
+( # ) p = runIdentity #. runReviewed #. p .# Reviewed .# Identity
+{-# INLINE ( # ) #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,
 -- applying a function.

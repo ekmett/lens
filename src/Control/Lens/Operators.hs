@@ -32,7 +32,7 @@ module Control.Lens.Operators
   , (^?!), (^@?!)
 
   -- * Reviewing
-  , (#)
+  , ( # )
 
   -- * Common Operators
   -- ** Setting
