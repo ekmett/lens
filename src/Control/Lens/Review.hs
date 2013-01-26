@@ -41,6 +41,7 @@ import Data.Profunctor.Unsafe
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Numeric.Lens
 -- >>> let isLeft  (Left  _) = True; isLeft  _ = False
 -- >>> let isRight (Right _) = True; isRight _ = False
 
@@ -136,8 +137,27 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 
 -- | An infix alias for 'review'.
 --
+-- @
+-- 'unto' f '#' x ≡ f x
+-- l '#' x ≡ x '^.' 're' l
+-- @
+--
+-- This is commonly used when using a 'Prism' as a smart constructor.
+--
 -- >>> _Left # 4
 -- Left 4
+--
+-- But it can be used for any 'Prism'
+--
+-- >>> base 16 # 123
+-- "7b"
+--
+-- @
+-- ('#') :: 'Iso''      s a -> a -> s
+-- ('#') :: 'Prism''    s a -> a -> s
+-- ('#') :: 'Review''   s a -> a -> s
+-- ('#') :: 'Equality'' s a -> a -> s
+-- @
 (#) :: AReview s t a b -> b -> t
 (#) p = runIdentity #. runReviewed #. p .# Reviewed .# Identity
 
