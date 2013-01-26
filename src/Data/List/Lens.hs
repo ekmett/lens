@@ -14,7 +14,7 @@
 ----------------------------------------------------------------------------
 module Data.List.Lens
   ( strippingPrefix
-  , strippingSuffix
+  , strippingSuffix, stripSuffix
   ) where
 
 import Control.Monad (guard)
