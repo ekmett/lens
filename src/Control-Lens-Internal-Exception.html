@@ -56,11 +56,11 @@
 <a name="line-47"></a><a name="Handleable"></a><span class='hs-comment'>-- This lets us write combinators to build handlers that are agnostic about the choice of</span>
 <a name="line-48"></a><a name="Handleable"></a><span class='hs-comment'>-- which of these they use.</span>
 <a name="line-49"></a><a name="Handleable"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Handleable</span> <span class='hs-varid'>e</span> <span class='hs-layout'>(</span><span class='hs-varid'>m</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>*</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varop'>*</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>h</span> <span class='hs-keyglyph'>::</span> <span class='hs-varop'>*</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varop'>*</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>|</span> <span class='hs-varid'>h</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyword'>where</span>
-<a name="line-50"></a>  <span class='hs-comment'>-- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Type.Prism' (or any 'Getter', really)</span>
+<a name="line-50"></a>  <span class='hs-comment'>-- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Type.Prism' (or any 'Getter', really).</span>
 <a name="line-51"></a>  <span class='hs-comment'>--</span>
 <a name="line-52"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-53"></a>  <span class='hs-comment'>-- 'catches' ... [ 'handler' 'Control.Exception.Lens._AssertionFailed' (\s -&gt; print $ "Assertion Failed\n" ++ s)</span>
-<a name="line-54"></a>  <span class='hs-comment'>--             , 'handler' 'Control.Exception.Lens._ErrorCall' (\s -&gt; print $ "Error\n" ++ s)</span>
+<a name="line-53"></a>  <span class='hs-comment'>-- 'catches' ... [ 'handler' 'Control.Exception.Lens._AssertionFailed' (\s -&gt; 'print' '$' \"Assertion Failed\\n\" '++' s)</span>
+<a name="line-54"></a>  <span class='hs-comment'>--             , 'handler' 'Control.Exception.Lens._ErrorCall' (\s -&gt; 'print' '$' \"Error\\n\" '++' s)</span>
 <a name="line-55"></a>  <span class='hs-comment'>--             ]</span>
 <a name="line-56"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-57"></a>  <span class='hs-comment'>--</span>
@@ -95,12 +95,12 @@
 <a name="line-86"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-87"></a>  <span class='hs-varid'>handler</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>h</span> <span class='hs-varid'>r</span>
 <a name="line-88"></a>
-<a name="line-89"></a>  <span class='hs-comment'>-- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Prism.Prism' (or any 'Getter', really)</span>
+<a name="line-89"></a>  <span class='hs-comment'>-- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Prism.Prism' (or any 'Getter', really).</span>
 <a name="line-90"></a>  <span class='hs-comment'>-- that ignores its input and just recovers with the stated monadic action.</span>
 <a name="line-91"></a>  <span class='hs-comment'>--</span>
 <a name="line-92"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-93"></a>  <span class='hs-comment'>-- 'catches' ... [ 'handler_' 'Control.Exception.Lens._NonTermination' ('return' "looped")</span>
-<a name="line-94"></a>  <span class='hs-comment'>--             , 'handler_' 'Control.Exception.Lens._StackOverflow' ('return' "overflow")</span>
+<a name="line-93"></a>  <span class='hs-comment'>-- 'catches' ... [ 'handler_' 'Control.Exception.Lens._NonTermination' ('return' \"looped\")</span>
+<a name="line-94"></a>  <span class='hs-comment'>--             , 'handler_' 'Control.Exception.Lens._StackOverflow' ('return' \"overflow\")</span>
 <a name="line-95"></a>  <span class='hs-comment'>--             ]</span>
 <a name="line-96"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-97"></a>  <span class='hs-comment'>--</span>
@@ -153,13 +153,13 @@
 <a name="line-144"></a><span class='hs-comment'>-- Helpers</span>
 <a name="line-145"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-146"></a>
-<a name="line-147"></a><a name="HandlingException"></a><span class='hs-comment'>-- | There was exception caused by abusing the internals of a 'Handler'.</span>
+<a name="line-147"></a><a name="HandlingException"></a><span class='hs-comment'>-- | There was an 'Exception' caused by abusing the internals of a 'Handler'.</span>
 <a name="line-148"></a><a name="HandlingException"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>HandlingException</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>HandlingException</span> <span class='hs-keyword'>deriving</span> <span class='hs-layout'>(</span><span class='hs-conid'>Show</span><span class='hs-layout'>,</span><span class='hs-conid'>Typeable</span><span class='hs-layout'>)</span>
 <a name="line-149"></a>
 <a name="line-150"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Exception</span> <span class='hs-conid'>HandlingException</span>
 <a name="line-151"></a>
 <a name="line-152"></a><a name="supply"></a><span class='hs-comment'>-- | This supplies a globally unique set of IDs so we can hack around the default use of 'cast' in 'SomeException'</span>
-<a name="line-153"></a><span class='hs-comment'>-- if someone, somehow, somewhere decides to reach in and catch and rethrow a 'Handling' exception by existentially</span>
+<a name="line-153"></a><span class='hs-comment'>-- if someone, somehow, somewhere decides to reach in and catch and rethrow a @Handling@ 'Exception' by existentially</span>
 <a name="line-154"></a><span class='hs-comment'>-- opening a 'Handler' that uses it.</span>
 <a name="line-155"></a><span class='hs-definition'>supply</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IORef</span> <span class='hs-conid'>Int</span>
 <a name="line-156"></a><span class='hs-definition'>supply</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unsafePerformIO</span> <span class='hs-varop'>$</span> <span class='hs-varid'>newIORef</span> <span class='hs-num'>0</span>
@@ -176,7 +176,7 @@
 <a name="line-167"></a>    <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-varid'>mkTyConApp</span> <span class='hs-layout'>(</span><span class='hs-varid'>mkTyCon3</span> <span class='hs-str'>"lens"</span> <span class='hs-str'>"Control.Lens.Internal.Exception"</span> <span class='hs-layout'>(</span><span class='hs-str'>"Handling"</span> <span class='hs-varop'>++</span> <span class='hs-varid'>show</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-conid'>[]</span>
 <a name="line-168"></a>  <span class='hs-comment'>{-# INLINE typeOf #-}</span>
 <a name="line-169"></a>
-<a name="line-170"></a><span class='hs-comment'>-- The 'Handling' wrapper is uninteresting, and should never be thrown, so you won't get much benefit here.</span>
+<a name="line-170"></a><span class='hs-comment'>-- The @Handling@ wrapper is uninteresting, and should never be thrown, so you won't get much benefit here.</span>
 <a name="line-171"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Show</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handling</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-172"></a>  <span class='hs-varid'>showsPrec</span> <span class='hs-varid'>d</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>showParen</span> <span class='hs-layout'>(</span><span class='hs-varid'>d</span> <span class='hs-varop'>&gt;</span> <span class='hs-num'>10</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-varid'>showString</span> <span class='hs-str'>"Handling ..."</span>
 <a name="line-173"></a>  <span class='hs-comment'>{-# INLINE showsPrec #-}</span>

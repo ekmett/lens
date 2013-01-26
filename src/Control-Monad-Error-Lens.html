@@ -158,9 +158,9 @@
 <a name="line-149"></a><span class='hs-comment'>-- Instead, we provide a function 'catches', which would be used thus:</span>
 <a name="line-150"></a><span class='hs-comment'>--</span>
 <a name="line-151"></a><span class='hs-comment'>-- @</span>
-<a name="line-152"></a><span class='hs-comment'>-- f = expr `catches` [ handler _Foo handleFoo</span>
-<a name="line-153"></a><span class='hs-comment'>--                    , handler _Bar handleBar</span>
-<a name="line-154"></a><span class='hs-comment'>--                    ]</span>
+<a name="line-152"></a><span class='hs-comment'>-- f = 'catches' expr [ 'handler' _Foo handleFoo</span>
+<a name="line-153"></a><span class='hs-comment'>--                  , 'handler' _Bar handleBar</span>
+<a name="line-154"></a><span class='hs-comment'>--                  ]</span>
 <a name="line-155"></a><span class='hs-comment'>-- @</span>
 <a name="line-156"></a><span class='hs-definition'>catches</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
 <a name="line-157"></a><span class='hs-definition'>catches</span> <span class='hs-varid'>m</span> <span class='hs-varid'>hs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>catchError</span> <span class='hs-varid'>m</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
@@ -171,7 +171,7 @@
 <a name="line-162"></a><span class='hs-comment'>-- Handlers</span>
 <a name="line-163"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-164"></a>
-<a name="line-165"></a><a name="Handler"></a><span class='hs-comment'>-- You need this when using 'catches'.</span>
+<a name="line-165"></a><a name="Handler"></a><span class='hs-comment'>-- | You need this when using 'catches'.</span>
 <a name="line-166"></a><a name="Handler"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>forall</span> <span class='hs-varid'>a</span><span class='hs-varop'>.</span> <span class='hs-conid'>Handler</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
 <a name="line-167"></a>
 <a name="line-168"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
