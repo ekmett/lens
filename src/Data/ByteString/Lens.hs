@@ -11,6 +11,8 @@
 ----------------------------------------------------------------------------
 module Data.ByteString.Lens
   ( IsByteString(..)
+  , unpackedBytes
+  , unpackedChars
   ) where
 
 import           Control.Lens
@@ -24,9 +26,11 @@ import qualified Data.ByteString.Lazy.Lens as Lazy
 class IsByteString t where
   -- | 'Data.ByteString.pack' (or 'Data.ByteString.unpack') a list of bytes into a strict or lazy 'ByteString'.
   --
-  -- @'Data.ByteString.pack' x = x '^.' 'packedBytes'@
-  --
-  -- @'Data.ByteString.unpack' x = x '^.' 'from' 'packedBytes'@
+  -- @
+  -- 'Data.ByteString.pack' x ≡ x '^.' 'packedBytes'
+  -- 'Data.ByteString.unpack' x ≡ x '^.' 'from' 'packedBytes'
+  -- 'packedBytes' ≡ 'from' 'unpackedBytes'
+  -- @
   packedBytes :: Iso' [Word8] t
 
   -- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a strict or lazy 'ByteString'.
@@ -34,16 +38,22 @@ class IsByteString t where
   -- When writing back to the 'ByteString' it is assumed that every 'Char'
   -- lies between '\x00' and '\xff'.
   --
-  -- @'Data.ByteString.Char8.pack' x = x '^.' 'packedChars'@
-  --
-  -- @'Data.ByteString.Char8.unpack' x = x '^.' 'from' 'packedChars'@
+  -- @
+  -- 'Data.ByteString.Char8.pack' x ≡ x '^.' 'packedChars'
+  -- 'Data.ByteString.Char8.unpack' x ≡ x '^.' 'from' 'packedChars'
+  -- 'packedChars' ≡ 'from' 'unpackedChars'
+  -- @
   packedChars :: Iso' String t
 
   -- | Traverse each 'Word8' in a strict or lazy 'ByteString'
   --
-  -- @'bytes' = 'from' 'packedBytes' '.' 'itraversed'@
+  -- @
+  -- 'bytes' ≡ 'unpackedBytes' '.' 'itraversed'
+  -- @
   --
-  -- @'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'@
+  -- @
+  -- 'anyOf' 'bytes' ('==' 0x80) :: 'ByteString' -> 'Bool'
+  -- @
   bytes :: IndexedTraversal' Int t Word8
   bytes = from packedBytes . traversed
   {-# INLINE bytes #-}
@@ -53,12 +63,51 @@ class IsByteString t where
   -- When writing back to the 'ByteString' it is assumed that every 'Char'
   -- lies between '\x00' and '\xff'.
   --
-  -- @'chars' = 'from' 'packedChars' '.' 'traverse'@
+  -- @
+  -- 'chars' ≡ 'unpackedChars' '.' 'traverse'
+  -- @
   --
-  -- @'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'@
+  -- @
+  -- 'anyOf' 'chars' ('==' \'c\') :: 'ByteString' -> 'Bool'
+  -- @
   chars :: IndexedTraversal' Int t Char
   chars = from packedChars . traversed
   {-# INLINE chars #-}
+
+-- | 'Data.ByteString.unpack' (or 'Data.ByteString.pack') a 'ByteString' into a list of bytes
+--
+-- @
+-- 'unpackedBytes' ≡ 'from' 'packedBytes'
+-- 'Data.ByteString.unpack' x ≡ x '^.' 'unpackedBytes'
+-- 'Data.ByteString.pack' x ≡  x '^.' 'from' 'unpackedBytes'
+-- @
+--
+-- @
+-- 'unpackedBytes' :: 'Iso'' 'Data.ByteString.ByteString' ['Word8']
+-- 'unpackedBytes' :: 'Iso'' 'Data.ByteString.Lazy.ByteString' ['Word8']
+-- @
+unpackedBytes :: IsByteString t => Iso' t [Word8]
+unpackedBytes = from packedBytes
+{-# INLINE unpackedBytes #-}
+
+-- | 'Data.ByteString.Char8.unpack' (or 'Data.ByteString.Char8.pack') a list of characters into a strict (or lazy) 'ByteString'
+--
+-- When writing back to the 'ByteString' it is assumed that every 'Char'
+-- lies between '\x00' and '\xff'.
+--
+-- @
+-- 'unpackedChars' ≡ 'from' 'packedChars'
+-- 'Data.ByteString.Char8.unpack' x ≡ x '^.' 'unpackedChars'
+-- 'Data.ByteString.Char8.pack' x ≡ x '^.' 'from' 'unpackedChars'
+-- @
+--
+-- @
+-- 'unpackedChars' :: 'Iso'' 'Data.ByteString.ByteString' 'String'
+-- 'unpackedChars' :: 'Iso'' 'Data.ByteString.Lazy.ByteString' 'String'
+-- @
+unpackedChars :: IsByteString t => Iso' t String
+unpackedChars = from packedChars
+{-# INLINE unpackedChars #-}
 
 instance IsByteString Strict.ByteString where
   packedBytes = Strict.packedBytes
