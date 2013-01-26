@@ -1,3 +1,8 @@
+3.8.4
+-----
+* Renamed `strippingPrefix` to `prefixed`, `strippingSuffix` to `suffixed`. Left the old names as deprecated aliases.
+* Fixed issues with the test suite caused by `doctests` carrying flags from the $setup block between modules.
+
 3.8.3
 -----
 * Added `strippingSuffix` and `stripSuffix` to `Data.Data.Lens`
