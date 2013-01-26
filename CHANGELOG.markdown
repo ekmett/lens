@@ -3,6 +3,7 @@
 * Added `strippingSuffix` and `stripSuffix` to `Data.Data.Lens`
 * Added `unpackedBytes` and `unpackedChars` to `Data.ByteString.*.Lens`
 * Added `unpacked` to `Data.Text.*.Lens`
+* Added `(#)` as an infix form of `review` to ease using a `Prism` like a smart constructor in `Control.Lens.Review`.
 
 3.8.2
 -----
