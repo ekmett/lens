@@ -49,8 +49,12 @@ import Unsafe.Coerce
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Numeric.Natural
+-- >>> import Debug.SimpleReflect.Expr
+-- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let isLeft  (Left  _) = True; isLeft  _ = False
 -- >>> let isRight (Right _) = True; isRight _ = False
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
+-- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
 ------------------------------------------------------------------------------
 -- Prism Internals
