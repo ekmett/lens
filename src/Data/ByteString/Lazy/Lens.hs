@@ -35,7 +35,7 @@ import Data.Int (Int64)
 -- @
 --
 -- >>> [104,101,108,108,111]^.packedBytes
--- "hello"
+-- Chunk "hello" Empty
 packedBytes :: Iso' [Word8] ByteString
 packedBytes = iso Words.pack unpackLazy
 {-# INLINE packedBytes #-}
@@ -100,7 +100,7 @@ packedChars = iso Char8.pack unpackLazy8
 -- @
 --
 -- >>> [104,101,108,108,111]^.packedBytes.unpackedChars
--- Chunk "hello" Empty
+-- "hello"
 unpackedChars :: Iso' ByteString String
 unpackedChars = from packedChars
 {-# INLINE unpackedChars #-}
