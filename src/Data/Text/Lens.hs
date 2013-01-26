@@ -14,7 +14,7 @@
 --
 ----------------------------------------------------------------------------
 module Data.Text.Lens
-  ( IsText(..)
+  ( IsText(..), unpacked
   ) where
 
 import           Control.Lens
@@ -26,25 +26,47 @@ import           Data.Text.Lazy.Builder
 
 -- | Traversals for strict or lazy 'Text'
 class IsText t where
-  -- | 'pack' (or 'unpack') strict or lazy 'Text'.
+  -- | This isomorphism can be used to 'pack' (or 'unpack') strict or lazy 'Text'.
   --
   -- @
-  -- 'pack' x = x '^.' 'packed'
-  -- 'unpack' x = x '^.' 'from' 'packed'
+  -- 'pack' x ≡ x '^.' 'packed'
+  -- 'unpack' x ≡ x '^.' 'from' 'packed'
+  -- 'packed' ≡ 'from' 'unpacked'
   -- @
   packed :: Iso' String t
 
   -- | Convert between strict or lazy 'Text' and a 'Builder'.
   --
   -- @
-  -- 'fromText' x = x '^.' 'builder'
+  -- 'fromText' x ≡ x '^.' 'builder'
   -- @
   builder :: Iso' t Builder
 
   -- | Traverse the individual characters in strict or lazy 'Text'.
+  --
+  -- @
+  -- 'text' = 'unpacked' . 'traversed'
+  -- @
   text :: IndexedTraversal' Int t Char
-  text = from packed . itraversed
+  text = unpacked . traversed
   {-# INLINE text #-}
+
+-- | This isomorphism can be used to 'unpack' (or 'pack') both strict or lazy 'Text'.
+--
+-- @
+-- 'unpack' x ≡ x '^.' 'unpacked'
+-- 'pack' x ≡ x '^.' 'from' 'unpacked'
+-- @
+--
+-- This 'Iso' is provided for notational convenience rather than out of great need, since
+--
+-- @
+-- 'unpacked' ≡ 'from' 'packed'
+-- @
+--
+unpacked :: IsText t => Iso' t String
+unpacked = from packed
+{-# INLINE unpacked #-}
 
 instance IsText Strict.Text where
   packed = Strict.packed
