@@ -1,7 +1,11 @@
+3.8.5
+-----
+* Fixed more sporadic issues in doctests, caused by carrying flags from `$setup` between modules.
+
 3.8.4
 -----
 * Renamed `strippingPrefix` to `prefixed`, `strippingSuffix` to `suffixed`. Left the old names as deprecated aliases.
-* Fixed issues with the test suite caused by `doctests` carrying flags from the $setup block between modules.
+* Fixed issues with the test suite caused by `doctests` carrying flags from the `$setup` block between modules.
 * Benchmarks now use `generic-deriving` rather than `ghc-prim` directly, like the rest of the package.
 * Added `Generics.Deriving.Lens`, which is now simply re-exported from `GHC.Generics.Lens`.
 

@@ -104,6 +104,7 @@ type instance Index StrictB.ByteString = Int
 type instance Index LazyB.ByteString = Int64
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Data.Text.Strict.Lens as Text
 -- >>> import Data.Char as Char

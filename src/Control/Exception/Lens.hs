@@ -115,6 +115,7 @@ import Prelude
 {-# ANN module "HLint: ignore Use Control.Exception.catch" #-}
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> :m + Control.Exception Control.Monad Data.List Prelude
 
 ------------------------------------------------------------------------------

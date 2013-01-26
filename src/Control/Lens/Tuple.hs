@@ -40,6 +40,7 @@ import Control.Lens.Type
 import Data.Functor.Identity
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 
 -- | Provides access to 1st field of a tuple.
