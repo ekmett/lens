@@ -52,8 +52,13 @@ unpackedBytes = from packedBytes
 
 -- | Traverse the individual bytes in a 'ByteString'.
 --
+-- This 'Traversal' walks each strict 'ByteString' chunk in a tree-like fashion
+-- enable zippers to seek to locations more quickly and accelerate
+-- many monoidal queries, but up to associativity (and constant factors) it is
+-- equivalent to the much slower:
+--
 -- @
--- 'bytes' ≡ 'from' 'packedBytes' '.' 'itraversed'
+-- 'bytes' ≡ 'unpackedBytes' '.' 'traversed'
 -- @
 --
 -- >>> anyOf bytes (== 0x80) (Char8.pack "hello")
@@ -101,9 +106,13 @@ unpackedChars = from packedChars
 -- When writing back to the 'ByteString' it is assumed that every 'Char'
 -- lies between '\x00' and '\xff'.
 --
+-- This 'Traversal' walks each strict 'ByteString' chunk in a tree-like fashion
+-- enable zippers to seek to locations more quickly and accelerate
+-- many monoidal queries, but up to associativity (and constant factors) it is
+-- equivalent to:
 --
 -- @
--- 'chars' = 'from' 'packedChars' '.' 'traverse'
+-- 'chars' = 'unpackedChars' '.' 'traversed'
 -- @
 --
 -- >>> anyOf chars (== 'h') "hello"
