@@ -24,6 +24,7 @@ import Data.Word
 
 -- $setup
 -- >>> import Control.Lens
+-- >>> import Numeric.Lens
 
 -- | 'Data.ByteString.pack' (or 'Data.ByteString.unpack') a list of bytes into a 'ByteString'
 --

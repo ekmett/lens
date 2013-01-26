@@ -100,7 +100,7 @@ packedChars = iso Char8.pack unpackLazy8
 -- @
 --
 -- >>> [104,101,108,108,111]^.packedBytes.unpackedChars
--- "hello"
+-- Chunk "hello" Empty
 unpackedChars :: Iso' ByteString String
 unpackedChars = from packedChars
 {-# INLINE unpackedChars #-}
