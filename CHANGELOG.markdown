@@ -1,6 +1,8 @@
 3.8.3
 -----
-* Added `strippingSuffix` to `Data.Data.Lens`
+* Added `strippingSuffix` and `stripSuffix` to `Data.Data.Lens`
+* Added `unpackedBytes` and `unpackedChars` to `Data.ByteString.*.Lens`
+* Added `unpacked` to `Data.Text.*.Lens`
 
 3.8.2
 -----
