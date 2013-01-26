@@ -71,7 +71,7 @@ bytes = traversedStrictTree 0
 -- lies between '\x00' and '\xff'.
 --
 -- @
--- 'packedChars ≡ 'from' 'unpackedChars'
+-- 'packedChars' ≡ 'from' 'unpackedChars'
 -- 'Data.ByteString.Char8.pack' x ≡ x '^.' 'packedChars'
 -- 'Data.ByteString.Char8.unpack' x ≡ x '^.' 'from' 'packedChars'
 -- @
@@ -88,7 +88,7 @@ packedChars = iso Char8.pack unpackStrict8
 -- lies between '\x00' and '\xff'.
 --
 -- @
--- 'unpackedChars ≡ 'from' 'packedChars'
+-- 'unpackedChars' ≡ 'from' 'packedChars'
 -- 'Data.ByteString.Char8.unpack' x ≡ x '^.' 'unpackedChars'
 -- 'Data.ByteString.Char8.pack' x ≡ x '^.' 'from' 'unpackedChars'
 -- @
