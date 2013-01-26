@@ -89,6 +89,7 @@ clonePrism k = case runPrism k of
 -- | Build a 'Control.Lens.Prism.Prism'.
 --
 -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
+--
 prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
 prism bt seta = dimap seta (either pure (fmap bt)) . right'
 {-# INLINE prism #-}
@@ -161,6 +162,9 @@ isn't k s = case runPrism k of
 --
 -- It also can be turned around to obtain the embedding into the 'Left' half of an 'Either':
 --
+-- >>> _Left # 5
+-- Left 5
+--
 -- >>> 5^.re _Left
 -- Left 5
 _Left :: Prism (Either a c) (Either b c) a b
@@ -183,6 +187,9 @@ _Left = prism Left $ either Right (Left . Right)
 --
 -- It also can be turned around to obtain the embedding into the 'Right' half of an 'Either':
 --
+-- >>> _Right # 5
+-- Right 5
+--
 -- >>> 5^.re _Right
 -- Right 5
 _Right :: Prism (Either c a) (Either c b) a b
@@ -196,8 +203,23 @@ _Right = prism Right $ either (Left . Left) Right
 --
 -- Unlike 'Data.Traversable.traverse' this is a 'Prism', and so you can use it to inject as well:
 --
+-- >>> _Just # 5
+-- Just
+--
 -- >>> 5^.re _Just
 -- Just 5
+--
+-- Interestingly,
+--
+-- @
+-- m '^?' '_Just' ≡ m
+-- @
+--
+-- >>> Just x ^? _Just
+-- Just x
+--
+-- >>> Nothing ^? _Just
+-- Nothing
 _Just :: Prism (Maybe a) (Maybe b) a b
 _Just = prism Just $ maybe (Left Nothing) Right
 {-# INLINE _Just #-}
