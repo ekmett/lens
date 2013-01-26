@@ -368,6 +368,7 @@ test-suite doctests
       deepseq,
       doctest        >= 0.9.1,
       filepath,
+      generic-deriving,
       mtl,
       nats,
       parallel,
