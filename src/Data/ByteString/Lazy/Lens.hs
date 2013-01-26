@@ -22,6 +22,10 @@ import Data.ByteString.Lazy.Char8 as Char8
 import Data.Word (Word8)
 import Data.Int (Int64)
 
+-- $setup
+-- >>> :set -XOverloadedStrings
+-- >>> import Numeric.Lens
+
 -- | 'Data.ByteString.Lazy.pack' (or 'Data.ByteString.Lazy.unpack') a list of bytes into a 'ByteString'.
 --
 -- @
@@ -78,7 +82,7 @@ bytes = traversedLazy
 -- 'Data.ByteString.Char8.unpack' x ≡ x '^.' 'from' 'packedChars'
 -- @
 --
--- >>> "hello"^.packedChars.each.re (base 16 . enum).to (\x -> if length x == 1 then '0':x else x)
+-- >>> "hello"^.packedChars.each.re (base 16 . enum).to (\x -> if Prelude.length x == 1 then '0':x else x)
 -- "68656c6c6f"
 packedChars :: Iso' String ByteString
 packedChars = iso Char8.pack unpackLazy8

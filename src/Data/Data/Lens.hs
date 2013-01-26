@@ -70,6 +70,7 @@ import           GHC.Exts (realWorld#)
 {-# ANN module "HLint: ignore Reduce duplication" #-}
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 
 -------------------------------------------------------------------------------

@@ -22,6 +22,7 @@ import Data.Functor ((<$>))
 -- >>> import Control.Monad.State
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f)
+-- >>> :set -XNoOverloadedStrings
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 
 infixl 1 &, <&>, ??

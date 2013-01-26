@@ -28,6 +28,7 @@ import Control.Lens.Traversal
 import Data.Profunctor.Unsafe
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Data.Char
 

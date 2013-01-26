@@ -91,4 +91,5 @@ module Control.Lens.Zipper
 import Control.Lens.Internal.Zipper
 
 -- $setup
--- >>> :m + Control.Lens
+-- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens

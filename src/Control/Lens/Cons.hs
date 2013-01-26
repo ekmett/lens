@@ -61,6 +61,7 @@ import qualified Data.Vector.Unboxed as Unbox
 import           Data.Word
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)

@@ -101,6 +101,7 @@ import Data.Profunctor.Unsafe
 -- >>> let h :: Expr -> Expr -> Expr; h = Vars.h
 -- >>> let getter :: Expr -> Expr; getter = fun "getter"
 -- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
+-- >>> :set -XNoOverloadedStrings
 
 infixr 4 %@~, .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, ||~, %~, <.~, ?~, <?~
 infix  4 %@=, .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, <>=, ||=, %=, <.=, ?=, <?=

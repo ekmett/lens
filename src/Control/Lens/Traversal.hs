@@ -132,6 +132,7 @@ import Data.Profunctor.Unsafe
 import Prelude hiding ((.),id)
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Control.DeepSeq (NFData (..), force)
 -- >>> import Control.Exception (evaluate)

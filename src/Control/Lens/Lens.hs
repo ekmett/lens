@@ -123,6 +123,7 @@ import Data.Profunctor.Unsafe
 {-# ANN module "HLint: ignore Use ***" #-}
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)

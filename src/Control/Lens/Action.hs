@@ -55,7 +55,8 @@ import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 
 -- $setup
--- >>> :m + Control.Lens
+-- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
 
 infixr 8 ^!, ^!!, ^@!, ^@!!, ^!?, ^@!?
 

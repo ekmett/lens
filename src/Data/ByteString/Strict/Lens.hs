@@ -81,7 +81,7 @@ bytes = traversedStrictTree 0
 -- 'Data.ByteString.Char8.unpack' x ≡ x '^.' 'from' 'packedChars'
 -- @
 --
--- >>> "hello"^.packedChars.each.re (base 16 . enum).to (\x -> if length x == 1 then '0':x else x)
+-- >>> "hello"^.packedChars.each.re (base 16 . enum).to (\x -> if Prelude.length x == 1 then '0':x else x)
 -- "68656c6c6f"
 packedChars :: Iso' String ByteString
 packedChars = iso Char8.pack unpackStrict8

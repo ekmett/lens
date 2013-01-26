@@ -27,6 +27,7 @@ import Data.Functor
 import Data.List
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
