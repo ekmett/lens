@@ -275,24 +275,23 @@ library
     cpp-options: -DSAFE=1
 
   if flag(trustworthy) && impl(ghc>=7.2)
+    other-extensions: Trustworthy
     cpp-options: -DTRUSTWORTHY=1
 
-  if impl(ghc<7.4)
-    ghc-options: -fno-spec-constr-count
-
-  if impl(ghc>=7.6.0.20120810)
-    if flag(old-inline-pragmas)
+  if flag(old-inline-pragmas) && impl(ghc>=7.6.0.20120810)
       cpp-options: -DOLD_INLINE_PRAGMAS=1
 
   if flag(inlining)
     cpp-options: -DINLINING
 
-  if impl(ghc>=7.2)
-    other-extensions: Trustworthy
-    cpp-options: -DDEFAULT_SIGNATURES=1
-
   if flag(lib-Werror)
     ghc-options: -Werror
+
+  if impl(ghc<7.4)
+    ghc-options: -fno-spec-constr-count
+
+  if impl(ghc>=7.2)
+    cpp-options: -DDEFAULT_SIGNATURES=1
 
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
   hs-source-dirs: src
@@ -301,15 +300,16 @@ library
 test-suite templates
   type: exitcode-stdio-1.0
   main-is: templates.hs
-  build-depends:
-    base,
-    lens
+  build-depends: base, lens
   ghc-options: -Wall -threaded
+  hs-source-dirs: tests
+
   if flag(dump-splices)
     ghc-options: -ddump-splices
+
   if impl(ghc<7.6.1)
     ghc-options: -Werror
-  hs-source-dirs: tests
+
 
 -- Verify the properties of lenses with QuickCheck
 test-suite properties
@@ -317,6 +317,7 @@ test-suite properties
   main-is: properties.hs
   ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: tests
+
   if !flag(test-properties)
     buildable: False
   else
@@ -334,6 +335,7 @@ test-suite hunit
   main-is: hunit.hs
   ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: tests
+
   if !flag(test-hunit)
     buildable: False
   else
@@ -349,8 +351,11 @@ test-suite hunit
 
 -- Verify the results of the examples
 test-suite doctests
-  type:    exitcode-stdio-1.0
-  main-is: doctests.hs
+  type:           exitcode-stdio-1.0
+  main-is:        doctests.hs
+  ghc-options:    -Wall -threaded
+  hs-source-dirs: tests
+
   if !flag(test-doctests)
     buildable: False
   else
@@ -358,50 +363,49 @@ test-suite doctests
       base,
       bytestring,
       containers,
-      directory >= 1.0,
+      directory      >= 1.0,
       deepseq,
-      doctest >= 0.9.1,
+      doctest        >= 0.9.1,
       filepath,
       mtl,
       nats,
       parallel,
-      semigroups >= 0.9,
+      semigroups     >= 0.9,
       simple-reflect >= 0.3.1,
       split,
       text,
       unordered-containers,
       vector
 
-  ghc-options: -Wall -threaded
   if impl(ghc<7.6.1)
     ghc-options: -Werror
-  hs-source-dirs: tests
+
 
 -- Basic benchmarks for the uniplate-style combinators
 benchmark plated
-  type: exitcode-stdio-1.0
-  main-is: plated.hs
+  type:           exitcode-stdio-1.0
+  main-is:        plated.hs
+  ghc-options:    -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs: benchmarks
   build-depends:
     base,
     comonad,
     criterion,
     deepseq,
+    generic-deriving,
     lens,
     transformers
-  if impl(ghc>=7.2)
-    build-depends: ghc-prim
-  else
-    build-depends: generic-deriving
-  ghc-options: -Wall -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+
   if flag(benchmark-uniplate)
     build-depends: uniplate >= 1.6.7 && < 1.7
     cpp-options: -DBENCHMARK_UNIPLATE
 
 -- Benchmarking alongside variants
 benchmark alongside
-  type: exitcode-stdio-1.0
-  main-is: alongside.hs
+  type:           exitcode-stdio-1.0
+  main-is:        alongside.hs
+  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs: benchmarks
   build-depends:
     base,
     comonad,
@@ -410,37 +414,36 @@ benchmark alongside
     deepseq,
     lens,
     transformers
-  ghc-options: -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
 
 -- Benchmarking unsafe implementation strategies
 benchmark unsafe
-  type: exitcode-stdio-1.0
-  main-is: unsafe.hs
+  type:           exitcode-stdio-1.0
+  main-is:        unsafe.hs
+  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs: benchmarks
   build-depends:
     base,
     comonad,
     comonads-fd,
     criterion,
     deepseq,
-    ghc-prim,
+    generic-deriving,
     lens,
     transformers
-  ghc-options: -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
+
 
 -- Benchmarking zipper usage
 benchmark zipper
-  type: exitcode-stdio-1.0
-  main-is: zipper.hs
+  type:           exitcode-stdio-1.0
+  main-is:        zipper.hs
+  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs: benchmarks
   build-depends:
     base,
     comonad,
     comonads-fd,
     criterion,
     deepseq,
-    ghc-prim,
+    generic-deriving,
     lens,
     transformers
-  ghc-options: -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
