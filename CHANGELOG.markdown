@@ -2,6 +2,7 @@
 -----
 * Renamed `strippingPrefix` to `prefixed`, `strippingSuffix` to `suffixed`. Left the old names as deprecated aliases.
 * Fixed issues with the test suite caused by `doctests` carrying flags from the $setup block between modules.
+* Benchmarks now use `generic-deriving` rather than `ghc-prim` directly, like the rest of the package.
 
 3.8.3
 -----
