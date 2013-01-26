@@ -36,7 +36,7 @@ class IsByteString t where
   -- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a strict or lazy 'ByteString'.
   --
   -- When writing back to the 'ByteString' it is assumed that every 'Char'
-  -- lies between '\x00' and '\xff'.
+  -- lies between @'\x00'@ and @'\xff'@.
   --
   -- @
   -- 'Data.ByteString.Char8.pack' x ≡ x '^.' 'packedChars'
@@ -67,7 +67,7 @@ class IsByteString t where
   -- | Traverse the individual bytes in a strict or lazy 'ByteString' as characters.
   --
   -- When writing back to the 'ByteString' it is assumed that every 'Char'
-  -- lies between '\x00' and '\xff'.
+  -- lies between @'\x00'@ and @'\xff'@.
   --
   -- This 'Traversal' walks each strict 'ByteString' chunk in a tree-like fashion
   -- enable zippers to seek to locations more quickly and accelerate
@@ -104,7 +104,7 @@ unpackedBytes = from packedBytes
 -- | 'Data.ByteString.Char8.unpack' (or 'Data.ByteString.Char8.pack') a list of characters into a strict (or lazy) 'ByteString'
 --
 -- When writing back to the 'ByteString' it is assumed that every 'Char'
--- lies between '\x00' and '\xff'.
+-- lies between @'\x00'@ and @'\xff'@.
 --
 -- @
 -- 'unpackedChars' ≡ 'from' 'packedChars'
