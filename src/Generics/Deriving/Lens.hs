@@ -40,6 +40,9 @@ import           Data.Typeable
 import qualified Generics.Deriving as Generic
 import           Generics.Deriving hiding (from, to)
 
+-- $setup
+-- >>> :set -XNoOverloadedStrings
+
 -- | Convert from the data type to its representation (or back)
 --
 -- >>> "hello"^.generic.from generic :: String
