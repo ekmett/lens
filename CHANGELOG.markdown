@@ -1,3 +1,7 @@
+3.8.6
+-----
+* Added `_Nothing` to `Control.Lens.Prism`.
+
 3.8.5
 -----
 * Fixed more sporadic issues in doctests, caused by carrying flags from `$setup` between modules.
