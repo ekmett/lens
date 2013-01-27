@@ -47,6 +47,8 @@ import Data.Profunctor
 import Unsafe.Coerce
 #endif
 
+{-# ANN module "HLint: ignore Use camelCase" #-}
+
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
@@ -235,7 +237,7 @@ _Just = prism Just $ maybe (Left Nothing) Right
 -- >>> Nothing ^? _Nothing
 -- Just ()
 --
--- >>> Just () ^? Nothing
+-- >>> Just () ^? _Nothing
 -- Nothing
 --
 -- But you can turn it around and use it to construct 'Nothing' as well:
