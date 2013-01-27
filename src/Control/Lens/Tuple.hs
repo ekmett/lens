@@ -62,7 +62,7 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   --
   -- This can also be used on larger tuples as well:
   --
-  -- >>> _1 +~ 41 $ (1,2,3,4,5)
+  -- >>> (1,2,3,4,5) & _1 +~ 41
   -- (42,2,3,4,5)
   --
   -- @
