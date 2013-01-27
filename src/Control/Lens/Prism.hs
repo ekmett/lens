@@ -31,6 +31,7 @@ module Control.Lens.Prism
   , _Left
   , _Right
   , _Just
+  , _Nothing
   -- * Prismatic profunctors
   , Choice(..)
   ) where
@@ -228,3 +229,19 @@ _Right = prism Right $ either (Left . Left) Right
 _Just :: Prism (Maybe a) (Maybe b) a b
 _Just = prism Just $ maybe (Left Nothing) Right
 {-# INLINE _Just #-}
+
+-- | This 'Prism' provides the 'Traversal' of a 'Nothing' in a 'Maybe'.
+--
+-- >>> Nothing ^? _Nothing
+-- Just ()
+--
+-- >>> Just () ^? Nothing
+-- Nothing
+--
+-- But you can turn it around and use it to construct 'Nothing' as well:
+--
+-- >>> _Nothing # ()
+-- Nothing
+_Nothing :: Prism' (Maybe a) ()
+_Nothing = prism' (const Nothing) $ maybe (Just ()) (const Nothing)
+{-# INLINE _Nothing #-}
