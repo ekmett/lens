@@ -244,6 +244,6 @@ _Just = prism Just $ maybe (Left Nothing) Right
 --
 -- >>> _Nothing # ()
 -- Nothing
-_Nothing :: Prism' (Maybe a) ()
+_Nothing :: Prism (Maybe a) (Maybe b) () ()
 _Nothing = prism' (const Nothing) $ maybe (Just ()) (const Nothing)
 {-# INLINE _Nothing #-}
