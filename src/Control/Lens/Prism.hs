@@ -235,7 +235,7 @@ _Just = prism Just $ maybe (Left Nothing) Right
 -- >>> Nothing ^? _Nothing
 -- Just ()
 --
--- >>> Just () ^? Nothing
+-- >>> Just () ^? _Nothing
 -- Nothing
 --
 -- But you can turn it around and use it to construct 'Nothing' as well:
