@@ -34,8 +34,8 @@ import Data.Int (Int64)
 -- 'Data.ByteString.unpack' x ≡ x '^.' 'from' 'packedBytes'
 -- @
 --
--- >>> [104,101,108,108,111]^.packedBytes
--- Chunk "hello" Empty
+-- >>> [104,101,108,108,111]^.packedBytes == Char8.pack "hello"
+-- True
 packedBytes :: Iso' [Word8] ByteString
 packedBytes = iso Words.pack unpackLazy
 {-# INLINE packedBytes #-}
