@@ -213,7 +213,9 @@ class Functor f => FunctorWithIndex i f | f -> i where
   -- If you don't need access to the index, then 'mapped' is more flexible in what it accepts.
   imapped :: FunctorWithIndex i f => IndexedSetter i (f a) (f b) a b
   imapped = conjoined mapped (isets imap)
-  {-# INLINE imapped #-}
+  {-# INLINE [0] imapped #-}
+
+{-# RULES "imapped/mapped" imapped = mapped :: Functor f => Setter (f a) (f b) a b #-}
 
 -------------------------------------------------------------------------------
 -- FoldableWithIndex
@@ -239,7 +241,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- | The 'IndexedFold' of a 'FoldableWithIndex' container.
   ifolded :: IndexedFold i (f a) a
   ifolded = conjoined folded $ \f -> coerce . getFolding . ifoldMap (\i -> Folding #. indexed f i)
-  {-# INLINE ifolded #-}
+  {-# INLINE[0] ifolded #-} -- see RULES below
 
   -- | Right-associative fold of an indexed container with access to the index @i@.
   --
@@ -250,6 +252,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- @
   ifoldr   :: (i -> a -> b -> b) -> b -> f a -> b
   ifoldr f z t = appEndo (ifoldMap (\i -> Endo #. f i) t) z
+  {-# INLINE ifoldr #-}
 
   -- | Left-associative fold of an indexed container with access to the index @i@.
   --
@@ -260,6 +263,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- @
   ifoldl :: (i -> b -> a -> b) -> b -> f a -> b
   ifoldl f z t = appEndo (getDual (ifoldMap (\i -> Dual #. Endo #. flip (f i)) t)) z
+  {-# INLINE ifoldl #-}
 
   -- | /Strictly/ fold right over the elements of a structure with access to the index @i@.
   --
@@ -271,6 +275,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   ifoldr' :: (i -> a -> b -> b) -> b -> f a -> b
   ifoldr' f z0 xs = ifoldl f' id xs z0
     where f' i k x z = k $! f i x z
+  {-# INLINE ifoldr' #-}
 
   -- | Fold over the elements of a structure with an index, associating to the left, but /strictly/.
   --
@@ -282,6 +287,9 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   ifoldl' :: (i -> b -> a -> b) -> b -> f a -> b
   ifoldl' f z0 xs = ifoldr f' id xs z0
     where f' i x k z = k $! f i z x
+  {-# INLINE ifoldl' #-}
+
+{-# RULES "ifolded/folded" ifolded = folded :: Foldable f => Fold (f a) a #-}
 
 -- | Obtain a 'Fold' by lifting an operation that returns a 'Foldable' result.
 --
@@ -449,8 +457,26 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
   -- | The 'IndexedTraversal' of a 'TraversableWithIndex' container.
   itraversed :: IndexedTraversal i (t a) (t b) a b
   itraversed = conjoined traverse (itraverse . indexed)
-  {-# INLINE itraversed #-}
+  {-# INLINE[0] itraversed #-}
 
+{-# RULES
+"itraversed/imapped"  itraversed = imapped :: FunctorWithIndex i f => IndexedLensLike i Mutator (f a) (f b) a b
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor Any) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor All) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor [r]) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Endo r)) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Dual (Endo r))) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Last r)) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (First r)) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Sum Int)) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Sum Integer)) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Sum Double)) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Sum Float)) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Product Int)) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Product Integer)) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Product Double)) (f a) a
+"itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Product Float)) (f a) a
+"itraversed/traverse" itraversed = traverse #-}
 
 -- | Traverse with an index (and the arguments flipped).
 --
@@ -515,30 +541,39 @@ imapAccumL f s0 a = swap (Lazy.runState (itraverse (\i c -> Lazy.state (\s -> sw
 
 instance FunctorWithIndex i f => FunctorWithIndex i (Backwards f) where
   imap f  = Backwards . imap f . forwards
+  {-# INLINE imap #-}
 
 instance FoldableWithIndex i f => FoldableWithIndex i (Backwards f) where
   ifoldMap f = ifoldMap f . forwards
+  {-# INLINE ifoldMap #-}
 
 instance TraversableWithIndex i f => TraversableWithIndex i (Backwards f) where
   itraverse f = fmap Backwards . itraverse f . forwards
+  {-# INLINE itraverse #-}
 
 instance FunctorWithIndex i f => FunctorWithIndex i (Reverse f) where
   imap f = Reverse . imap f . getReverse
+  {-# INLINE imap #-}
 
 instance FoldableWithIndex i f => FoldableWithIndex i (Reverse f) where
   ifoldMap f = getDual . ifoldMap (\i -> Dual #. f i) . getReverse
+  {-# INLINE ifoldMap #-}
 
 instance TraversableWithIndex i f => TraversableWithIndex i (Reverse f) where
   itraverse f = fmap Reverse . forwards . itraverse (\i -> Backwards . f i) . getReverse
+  {-# INLINE itraverse #-}
 
 instance FunctorWithIndex () Identity where
   imap f (Identity a) = Identity (f () a)
+  {-# INLINE imap #-}
 
 instance FoldableWithIndex () Identity where
   ifoldMap f (Identity a) = f () a
+  {-# INLINE ifoldMap #-}
 
 instance TraversableWithIndex () Identity where
   itraverse f (Identity a) = Identity <$> f () a
+  {-# INLINE itraverse #-}
 
 instance FunctorWithIndex k ((,) k) where
   imap f (k,a) = (k, f k a)
@@ -581,9 +616,13 @@ instance FoldableWithIndex Int Vector where
   ifoldMap = ifoldMapOf itraversed
   {-# INLINE ifoldMap #-}
   ifoldr = V.ifoldr
+  {-# INLINE ifoldr #-}
   ifoldl = V.ifoldl . flip
+  {-# INLINE ifoldl #-}
   ifoldr' = V.ifoldr'
+  {-# INLINE ifoldr' #-}
   ifoldl' = V.ifoldl' . flip
+  {-# INLINE ifoldl' #-}
 instance TraversableWithIndex Int Vector where
   itraverse f = sequenceA . V.imap f
   {-# INLINE itraverse #-}
