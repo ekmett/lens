@@ -88,20 +88,19 @@ grain = 32
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
 -- elements at the leaves.
 traversedStrictTree :: Int -> IndexedTraversal' Int B.ByteString Word8
-traversedStrictTree i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + len)
+traversedStrictTree i0 pafb (BI.PS fp off len) = rebuild len <$> go (unsafeForeignPtrToPtr fp `plusPtr` (off - i0)) i0 (i0 + len)
  where
-   p = unsafeForeignPtrToPtr fp `plusPtr` (off - i0)
-   rebuild n f = unsafeCreate n $ \q -> f (q `plusPtr` (off - i0))
-   go !i !j
-     | i + grain < j, k <- i + shiftR (j - i) 1 = (\l r q -> l q >> r q) <$> go i k <*> go k j
-     | otherwise = run i j
-   run !i !j
+   rebuild n f = unsafeCreate n $ \q -> f $! (q `plusPtr` (off - i0))
+   go !p !i !j
+     | i + grain < j, k <- i + shiftR (j - i) 1 = (\l r q -> l q >> r q) <$> go p i k <*> go p k j
+     | otherwise = run p i j
+   run !p !i !j
      | i == j    = pure (\_ -> return ())
      | otherwise = let !x = BI.inlinePerformIO $ do
                           x' <- peekByteOff p i
                           touchForeignPtr fp
                           return x'
-                   in (\y ys q -> poke (q `plusPtr` i) y >> ys q) <$> indexed pafb (i :: Int) x <*> run (i + 1) j
+                   in (\y ys !q -> pokeByteOff q i y >> ys q) <$> indexed pafb (i :: Int) x <*> run p (i + 1) j
 {-# INLINE traversedStrictTree #-}
 
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
