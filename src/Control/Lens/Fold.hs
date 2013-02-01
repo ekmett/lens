@@ -6,6 +6,7 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Fold
@@ -193,6 +194,22 @@ folding sfa agb = coerce . traverse_ agb . sfa
 -- [1,2,3,4]
 folded :: Foldable f => Fold (f a) a
 folded f = coerce . getFolding . foldMap (Folding #. f)
+{-# RULES
+"traverse/folded/All"       traverse = folded :: Foldable f => (a -> Accessor All a) -> f a -> Accessor All (f a)
+"traverse/folded/Any"       traverse = folded :: Foldable f => (a -> Accessor Any a) -> f a -> Accessor Any (f a)
+"traverse/folded/List"      traverse = folded :: Foldable f => (a -> Accessor [r] a) -> f a -> Accessor [r] (f a)
+"traverse/folded/Dual/Endo" traverse = folded :: Foldable f => (a -> Accessor (Dual (Endo r)) a) -> f a -> Accessor (Dual (Endo r)) (f a)
+"traverse/folded/Endo"      traverse = folded :: Foldable f => (a -> Accessor (Endo r) a) -> f a -> Accessor (Endo r) (f a)
+"traverse/folded/Last"      traverse = folded :: Foldable f => (a -> Accessor (Last r) a) -> f a -> Accessor (Last r) (f a)
+"traverse/folded/First"     traverse = folded :: Foldable f => (a -> Accessor (First r) a) -> f a -> Accessor (First r) (f a)
+"traverse/folded/Sum"       traverse = folded :: Foldable f => (a -> Accessor (Sum Int) a) -> f a -> Accessor (Sum Int) (f a)
+"traverse/folded/Sum"       traverse = folded :: Foldable f => (a -> Accessor (Sum Integer) a) -> f a -> Accessor (Sum Integer) (f a)
+"traverse/folded/Sum"       traverse = folded :: Foldable f => (a -> Accessor (Sum Double) a) -> f a -> Accessor (Sum Double) (f a)
+"traverse/folded/Sum"       traverse = folded :: Foldable f => (a -> Accessor (Sum Float) a) -> f a -> Accessor (Sum Float) (f a)
+"traverse/folded/Product"   traverse = folded :: Foldable f => (a -> Accessor (Product Int) a) -> f a -> Accessor (Product Int) (f a)
+"traverse/folded/Product"   traverse = folded :: Foldable f => (a -> Accessor (Product Integer) a) -> f a -> Accessor (Product Integer) (f a)
+"traverse/folded/Product"   traverse = folded :: Foldable f => (a -> Accessor (Product Double) a) -> f a -> Accessor (Product Double) (f a)
+"traverse/folded/Product"   traverse = folded :: Foldable f => (a -> Accessor (Product Float) a) -> f a -> Accessor (Product Float) (f a) #-}
 {-# INLINE folded #-}
 
 -- | 'Fold' by repeating the input forever.
