@@ -155,6 +155,7 @@ instance (Choice p, Applicative f, Unbox a, Unbox b) => Cons p f (Unbox.Vector a
 -- | 'cons' an element onto a container.
 cons :: Cons Reviewed Identity s s a a => a -> s -> s
 cons = curry (simply review _Cons)
+{-# INLINE cons #-}
 
 -- | Attempt to extract the left-most element from a container, and a version of the container without that element.
 uncons :: Cons (->) (Accessor (First (a, s))) s s a a => s -> Maybe (a, s)
