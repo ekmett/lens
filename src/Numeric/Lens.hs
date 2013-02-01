@@ -8,7 +8,22 @@
 -- Stability   :  provisional
 -- Portability :  portable
 -------------------------------------------------------------------------------
-module Numeric.Lens (base, integral) where
+module Numeric.Lens
+  ( base
+  , integral
+  , -- * Predefined bases
+  , binary
+  , ternary
+  , trinary
+  , quarternary
+  , quinary
+  , senary
+  , septenary
+  , octal
+  , nonary
+  , decimal
+  , hex
+  ) where
 
 import Control.Lens
 import Data.Char (chr, ord, isAsciiLower, isAsciiUpper, isDigit)
@@ -87,3 +102,47 @@ showSigned' f n
 readSigned' :: Real a => ReadS a -> ReadS a
 readSigned' f ('-':xs) = f xs & mapped . _1 %~ negate
 readSigned' f xs       = f xs
+
+-- | @'binary' = 'base' 2@
+binary :: Integral a => Prism' String a
+binary = base 2
+
+-- | @'ternary' = 'base' 3@
+ternary :: Integral a => Prism' String a
+ternary = base 3
+
+-- | @'trinary' = 'base' 3@
+trinary :: Integral a => Prism' String a
+trinary = base 3
+
+-- | @'quarternary' = 'base' 4@
+quarternary :: Integral a => Prism' String a
+quarternary = base 4
+
+-- | @'quinary' = 'base' 5@
+quinary :: Integral a => Prism' String a
+quinary = base 5
+
+-- | @'senary' = 'base' 6@
+senary :: Integral a => Prism' String a
+senary = base 6
+
+-- | @'septenary' = 'base' 7@
+septenary :: Integral a => Prism' String a
+septenary = base 7
+
+-- | @'octal' = 'base' 8@
+octal :: Integral a => Prism' String a
+octal = base 8
+
+-- | @'nonary' = 'base' 9@
+nonary :: Integral a => Prism' String a
+nonary = base 9
+
+-- | @'decimal' = 'base' 10@
+decimal :: Integral a => Prism' String a
+decimal = base 10
+
+-- | @'hex' = 'base' 16@
+hex :: Integral a => Prism' String a
+hex = base 16
