@@ -8,7 +8,15 @@
 -- Stability   :  provisional
 -- Portability :  portable
 -------------------------------------------------------------------------------
-module Numeric.Lens (base, integral) where
+module Numeric.Lens
+  ( base
+  , integral
+    -- * Predefined bases
+  , binary
+  , octal
+  , decimal
+  , hex
+  ) where
 
 import Control.Lens
 import Data.Char (chr, ord, isAsciiLower, isAsciiUpper, isDigit)
@@ -87,3 +95,19 @@ showSigned' f n
 readSigned' :: Real a => ReadS a -> ReadS a
 readSigned' f ('-':xs) = f xs & mapped . _1 %~ negate
 readSigned' f xs       = f xs
+
+-- | @'binary' = 'base' 2@
+binary :: Integral a => Prism' String a
+binary = base 2
+
+-- | @'octal' = 'base' 8@
+octal :: Integral a => Prism' String a
+octal = base 8
+
+-- | @'decimal' = 'base' 10@
+decimal :: Integral a => Prism' String a
+decimal = base 10
+
+-- | @'hex' = 'base' 16@
+hex :: Integral a => Prism' String a
+hex = base 16
