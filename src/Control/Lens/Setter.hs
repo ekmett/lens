@@ -86,6 +86,7 @@ import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
+import Data.Traversable
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
@@ -185,6 +186,7 @@ type Setting' p s a = Setting p s s a a
 -- If you want an 'IndexPreservingSetter' use @'setting' 'fmap'@.
 mapped :: Functor f => Setter (f a) (f b) a b
 mapped = sets fmap
+{-# RULES "traverse/mapped" traverse = mapped :: Functor f => (a -> Mutator b) -> f a -> Mutator (f b) #-}
 {-# INLINE mapped #-}
 
 -- | This 'setter' can be used to modify all of the values in a 'Monad'.

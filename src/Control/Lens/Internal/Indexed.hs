@@ -79,7 +79,9 @@ class
   -- but this cannot be enforced at the type level.
   conjoined :: ((p ~ (->)) => q (a -> b) r) -> q (p a b) r -> q (p a b) r
   conjoined _ r = r
-  {-# INLINE conjoined #-}
+  {-# INLINE [0] conjoined #-}
+
+{-# RULES "conjoined/fun" [1] forall f g. conjoined f g = f #-}
 
 instance Conjoined (->) where
   distrib = fmap

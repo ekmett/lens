@@ -118,6 +118,7 @@ import Control.Lens.Fold
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Indexed
+import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy
 import Data.Functor.Compose
@@ -889,12 +890,18 @@ imapAccumLOf l = mapAccumLOf l .# Indexed
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
 traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b
 traversed = conjoined traverse (indexing traverse)
-{-# INLINE traversed #-}
+{-# RULES
+"traversed/mapped"   [2] traversed = (mapped :: Functor f => (a -> Mutator b) -> f a -> Mutator (f b))
+"traversed/traverse" [1] traversed = traverse #-}
+{-# INLINE [0] traversed #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
 traversed64 :: Traversable f => IndexedTraversal Int64 (f a) (f b) a b
 traversed64 = conjoined traverse (indexing64 traverse)
-{-# INLINE traversed64 #-}
+{-# RULES
+"traversed/mapped"     [2] traversed = (mapped :: Functor f => (a -> Mutator b) -> f a -> Mutator (f b))
+"traversed64/traverse" [1] traversed64 = traverse #-}
+{-# INLINE[0] traversed64 #-}
 
 -- | This is the trivial empty 'Traversal'.
 --
