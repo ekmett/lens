@@ -6,6 +6,7 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+{-# OPTIONS_GHC -fno-warn-orphans #-} -- orphan traverse/mapped RULES
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Setter
