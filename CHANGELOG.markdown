@@ -1,4 +1,4 @@
-3.8.6
+3.9
 -----
 * Added `_Nothing` to `Control.Lens.Prism`.
 * Added `involuted` to `Control.Lens.Iso`.
