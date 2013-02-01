@@ -15,28 +15,27 @@
 
 module Data.Text.Encoding.Lens where
 
-import           Control.Lens             
-import qualified Data.ByteString          as B
-import qualified Data.Text                as T
-import qualified Data.Text.Encoding       as T
+import Control.Lens
+import Data.ByteString
+import Data.Text
+import Data.Text.Encoding as T
 
-
-utf8 :: Iso' T.Text B.ByteString
-utf8 = iso T.encodeUtf8 T.decodeUtf8
+utf8 :: Iso' Text ByteString
+utf8 = iso encodeUtf8 decodeUtf8
 {-#INLINE utf8#-}
 
-utf16LE :: Iso' T.Text B.ByteString
-utf16LE = iso T.encodeUtf16LE T.decodeUtf16LE
+utf16LE :: Iso' Text ByteString
+utf16LE = iso encodeUtf16LE decodeUtf16LE
 {-#INLINE utf16LE#-}
 
-utf16BE :: Iso' T.Text B.ByteString
-utf16BE = iso T.encodeUtf16BE T.decodeUtf16BE
+utf16BE :: Iso' Text ByteString
+utf16BE = iso encodeUtf16BE decodeUtf16BE
 {-#INLINE utf16BE#-}
 
-utf32LE :: Iso' T.Text B.ByteString
-utf32LE = iso T.encodeUtf32LE T.decodeUtf32LE
+utf32LE :: Iso' Text ByteString
+utf32LE = iso encodeUtf32LE decodeUtf32LE
 {-#INLINE utf32LE#-}
 
-utf32BE :: Iso' T.Text B.ByteString
-utf32BE = iso T.encodeUtf32BE T.decodeUtf32BE
+utf32BE :: Iso' Text ByteString
+utf32BE = iso encodeUtf32BE decodeUtf32BE
 {-#INLINE utf32BE#-}
