@@ -44,6 +44,7 @@ module Control.Lens.Iso
   , Swapped(..)
   , Strict(..)
   , Reversing(..), reversed
+  , involuted
   -- ** Uncommon Isomorphisms
   , magma
   , imagma
@@ -59,10 +60,10 @@ import Control.Lens.Internal.Magma
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Data.Bifunctor
-import Data.ByteString as StrictB
-import Data.ByteString.Lazy as LazyB
-import Data.Text as StrictT
-import Data.Text.Lazy as LazyT
+import Data.ByteString as StrictB hiding (reverse)
+import Data.ByteString.Lazy as LazyB hiding (reverse)
+import Data.Text as StrictT hiding (reverse)
+import Data.Text.Lazy as LazyT hiding (reverse)
 import Data.Tuple (swap)
 import Data.Maybe
 import Data.Profunctor
@@ -355,6 +356,20 @@ instance Strict LazyT.Text StrictT.Text where
 -- "lived"
 reversed :: (Reversing s, Reversing t) => Iso s t s t
 reversed = iso Iso.reversing Iso.reversing
+
+-- | Given a function that is its own inverse, this gives you an 'Iso' using it in both directions.
+--
+-- @
+-- 'involuted' ≡ 'Control.Monad.join' 'iso'
+-- @
+--
+-- >>> "live" ^. involuted reverse
+-- "evil"
+--
+-- >>> "live & involuted reverse %~ ('d':)
+-- "lived"
+involuted :: (a -> a) -> Iso' a a
+involuted a = iso a a
 
 ------------------------------------------------------------------------------
 -- Magma
