@@ -21,7 +21,6 @@ module Data.Vector.Lens
   ( toVectorOf
   -- * Isomorphisms
   , vector
-  , reversed
   , forced
   -- * Lenses
   , sliced
@@ -77,15 +76,6 @@ toVectorOf l s = fromList (toListOf l s)
 vector :: Iso [a] [b] (Vector a) (Vector b)
 vector = iso fromList toList
 {-# INLINE vector #-}
-
--- | Convert a 'Vector' to a version with all the elements in the
--- reverse order.
---
--- >>> Vector.fromList [1,2,3] ^. reversed
--- fromList [3,2,1]
-reversed :: Iso (Vector a) (Vector b) (Vector a) (Vector b)
-reversed = iso reverse reverse
-{-# INLINE reversed #-}
 
 -- | Convert a 'Vector' to a version that doesn't retain any extra
 -- memory.

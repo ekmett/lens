@@ -30,6 +30,7 @@ import Control.Lens.Combinators
 import Control.Lens.Cons
 import Control.Lens.Fold
 import Control.Lens.Indexed hiding ((<.>))
+import Control.Lens.Iso
 import Control.Lens.Prism
 import Control.Monad
 import Data.Foldable as Foldable
@@ -124,6 +125,10 @@ instance Alternative Deque where
     | size xs < size ys = Foldable.foldr cons ys xs
     | otherwise         = Foldable.foldl snoc xs ys
   {-# INLINE (<|>) #-}
+
+instance Reversing (Deque a) where
+  reversing (BD lf f lr r) = BD lr r lf f
+  {-# INLINE reversing #-}
 
 instance Bind Deque where
   ma >>- k = fromList (toList ma >>= toList . k)

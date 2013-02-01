@@ -13,8 +13,7 @@
 --
 ----------------------------------------------------------------------------
 module Data.List.Lens
-  ( reversed
-  , prefixed
+  ( prefixed
   , suffixed
   , stripSuffix
   -- * Deprecated
@@ -33,16 +32,6 @@ import Data.List
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
-
--- | An 'Iso' between a list and its reversal.
---
--- >>> "live" ^. reversed
--- "evil"
---
--- >>> "live" & reversed %~ ('d':)
--- "lived"
-reversed :: Iso [a] [b] [a] [b]
-reversed = iso reverse reverse
 
 -- | A 'Prism' stripping a prefix from a list when used as a 'Traversal', or
 -- prepending that prefix when run backwards:

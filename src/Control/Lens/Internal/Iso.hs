@@ -14,6 +14,7 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Iso
   ( Exchange(..)
+  , Reversing(..)
   ) where
 
 import Data.Profunctor
@@ -21,6 +22,15 @@ import Data.Profunctor.Unsafe
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
+import Data.ByteString       as StrictB
+import Data.ByteString.Lazy  as LazyB
+import Data.Text             as StrictT
+import Data.Text.Lazy        as LazyT
+import Data.Vector           as Vector
+import Data.Vector.Primitive as Prim
+import Data.Vector.Storable  as Storable
+import Data.Vector.Unboxed   as Unbox
+import Data.Sequence         as Seq
 
 ------------------------------------------------------------------------------
 -- Isomorphism: Exchange
@@ -45,3 +55,41 @@ instance Profunctor (Exchange a b) where
   {-# INLINE ( #. ) #-}
   ( .# ) p _ = unsafeCoerce p
   {-# INLINE ( .# ) #-}
+
+------------------------------------------------------------------------------
+-- Reversible
+------------------------------------------------------------------------------
+
+-- | This class provides a generalized notion of list reversal extended to other containers.
+class Reversing t where
+  reversing :: t -> t
+
+instance Reversing [a] where
+  reversing = Prelude.reverse
+
+instance Reversing StrictB.ByteString where
+  reversing = StrictB.reverse
+
+instance Reversing LazyB.ByteString where
+  reversing = LazyB.reverse
+
+instance Reversing StrictT.Text where
+  reversing = StrictT.reverse
+
+instance Reversing LazyT.Text where
+  reversing = LazyT.reverse
+
+instance Reversing (Vector.Vector a) where
+  reversing = Vector.reverse
+
+instance Reversing (Seq a) where
+  reversing = Seq.reverse
+
+instance Prim a => Reversing (Prim.Vector a) where
+  reversing = Prim.reverse
+
+instance Unbox a => Reversing (Unbox.Vector a) where
+  reversing = Unbox.reverse
+
+instance Storable a => Reversing (Storable.Vector a) where
+  reversing = Storable.reverse

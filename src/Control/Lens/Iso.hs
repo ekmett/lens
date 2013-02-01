@@ -43,6 +43,7 @@ module Control.Lens.Iso
   , flipped
   , Swapped(..)
   , Strict(..)
+  , Reversing(..), reversed
   -- ** Uncommon Isomorphisms
   , magma
   , imagma
@@ -53,7 +54,7 @@ module Control.Lens.Iso
 
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
-import Control.Lens.Internal.Iso
+import Control.Lens.Internal.Iso as Iso
 import Control.Lens.Internal.Magma
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
@@ -344,6 +345,16 @@ instance Strict LazyB.ByteString StrictB.ByteString where
 instance Strict LazyT.Text StrictT.Text where
   strict = iso LazyT.toStrict LazyT.fromStrict
   {-# INLINE strict #-}
+
+-- | An 'Iso' between a list, 'ByteString', 'Text' fragment, etc. and its reversal.
+--
+-- >>> "live" ^. reversed
+-- "evil"
+--
+-- >>> "live" & reversed %~ ('d':)
+-- "lived"
+reversed :: (Reversing s, Reversing t) => Iso s t s t
+reversed = iso Iso.reversing Iso.reversing
 
 ------------------------------------------------------------------------------
 -- Magma

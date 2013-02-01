@@ -24,7 +24,6 @@ module Data.Vector.Generic.Lens
   , asStream
   , asStreamR
   , cloned
-  , reversed
   -- * Lenses
   , sliced
   -- * Traversal of individual indices
@@ -105,15 +104,6 @@ cloned = iso clone new
 forced :: Vector v a => Iso' (v a) (v a)
 forced = iso force force
 {-# INLINE forced #-}
-
--- | Convert a 'Vector' to a version with all the elements in the
--- reverse order.
---
--- >>> Vector.fromList [1,2,3] ^. reversed
--- fromList [3,2,1]
-reversed :: Vector v a => Iso' (v a) (v a)
-reversed = iso reverse reverse
-{-# INLINE reversed #-}
 
 -- | This 'Traversal' will ignore any duplicates in the supplied list
 -- of indices.
