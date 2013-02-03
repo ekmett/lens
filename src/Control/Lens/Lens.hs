@@ -102,6 +102,9 @@ module Control.Lens.Lens
   , ( #~ ), ( #%~ ), ( #%%~ ), (<#~), (<#%~)
   , ( #= ), ( #%= ), ( #%%= ), (<#=), (<#%=)
 
+  -- * Common Lenses
+  , devoid
+
   -- * Context
   , Context(..)
   , Context'
@@ -119,6 +122,7 @@ import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
+import Data.Void
 
 {-# ANN module "HLint: ignore Use ***" #-}
 
@@ -916,6 +920,7 @@ l #%%= f = do
   State.put t
   return r
 #endif
+{-# INLINE ( #%%= ) #-}
 
 -- | A version of ('Control.Lens.Setter.<.~') that works on 'ALens'.
 --
@@ -923,9 +928,16 @@ l #%%= f = do
 -- ("world",("hello","world"))
 (<#~) :: ALens s t a b -> b -> s -> (b, t)
 l <#~ b = \s -> (b, storing l b s)
+{-# INLINE (<#~) #-}
 
 -- | A version of ('Control.Lens.Setter.<#=') that works on 'ALens'.
 (<#=) :: MonadState s m => ALens s s a b -> b -> m b
 l <#= b = do
   l #= b
   return b
+{-# INLINE (<#=) #-}
+
+-- | There is a field for every type in the 'Void'. Very zen.
+devoid :: Lens Void Void a b
+devoid _ = absurd
+{-# INLINE devoid #-}
