@@ -280,7 +280,7 @@ library
 
   if flag(rules)
     cpp-options: -DUSE_RULES=1
-    ghc-options: -frewrite-rules
+    ghc-options: -fenable-rewrite-rules
 
   if flag(safe)
     cpp-options: -DSAFE=1
