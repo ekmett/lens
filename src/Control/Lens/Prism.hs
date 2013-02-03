@@ -103,7 +103,7 @@ prism bt seta = dimap seta (either pure (fmap bt)) . right'
 {-# INLINE prism #-}
 
 -- | Build a 'Prism''.
-prism' :: (a -> s) -> (s -> Maybe a) -> Prism' s a
+prism' :: (b -> s) -> (s -> Maybe a) -> Prism s s a b
 prism' as sma = prism as (\s -> maybe (Left s) Right (sma s))
 {-# INLINE prism' #-}
 
