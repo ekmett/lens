@@ -2,6 +2,7 @@
 -----
 * Fixed an issue with `DefaultSignatures` being used outside of the appropriate `#ifdef` that caused compilation issues on GHC 7.0.2.
 * Generalized the signature of `prism'`
+* Added `\_Void` to `Control.Lens.Prism` and `devoid` to `Control.Lens.Lens`.
 
 3.8.5
 -----
