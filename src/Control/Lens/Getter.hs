@@ -142,7 +142,7 @@ type Getting' r s a = Getting r s s a a
 type IndexedGetting i m s t a b = Indexed i a (Accessor m b) -> s -> Accessor m t
 
 -- | @'Simple' ('IndexedGetting' i r)@
-type IndexedGetting' i r s a = Getting i r s s a a
+type IndexedGetting' i r s a = IndexedGetting i r s s a a
 
 -- | This is a convenient alias used when consuming (indexed) getters and (indexed) folds
 -- in a highly general fashion.
