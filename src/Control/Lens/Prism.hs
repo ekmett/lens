@@ -102,7 +102,8 @@ prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
 prism bt seta = dimap seta (either pure (fmap bt)) . right'
 {-# INLINE prism #-}
 
--- | Build a 'Prism''.
+-- | This is usually used to build a 'Prism'', when you have to use an operation like
+-- 'Data.Typeable.cast' which already returns a 'Maybe'.
 prism' :: (b -> s) -> (s -> Maybe a) -> Prism s s a b
 prism' as sma = prism as (\s -> maybe (Left s) Right (sma s))
 {-# INLINE prism' #-}
