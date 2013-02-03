@@ -1,7 +1,3 @@
-{-# LANGUAGE CPP #-}
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Getter
@@ -16,53 +12,36 @@ module Control.Lens.Internal.Getter
   (
   -- * Internal Classes
   -- ** Getters
-    Gettable(..)
+    coerce
   , noEffect
   , Accessor(..)
   ) where
 
 import Control.Applicative
-import Control.Applicative.Backwards
 import Data.Functor.Apply
-import Data.Functor.Compose
-import Data.Profunctor.Unsafe
+import Data.Functor.Contravariant
 import Data.Semigroup
+import Data.Void
 
 -------------------------------------------------------------------------------
 -- Gettables & Accessors
 -------------------------------------------------------------------------------
 
--- | Generalizing 'Const' so we can apply simple 'Applicative'
+-- | This Generalizes 'Const' so we can apply simple 'Applicative'
 -- transformations to it and so we can get nicer error messages.
 --
--- A 'Gettable' 'Functor' ignores its argument, which it carries solely as a
+-- A 'Functor' you can 'coerce' ignores its argument, which it carries solely as a
 -- phantom type parameter.
 --
--- To ensure this, an instance of 'Gettable' is required to satisfy:
+-- By the 'Functor' and 'Contravariant' laws, an instance of 'Gettable' will necessarily satisfy:
 --
--- @'id' = 'fmap' f = 'coerce'@
---
--- Which is equivalent to making a @'Gettable' f@ an \"anyvariant\"
--- 'Functor'.
-
-class Functor f => Gettable f where
-  -- | Replace the phantom type argument.
-  coerce :: f a -> f b
-
-instance Gettable (Const r) where
-  coerce (Const m) = Const m
-  {-# INLINE coerce #-}
-
-instance Gettable f => Gettable (Backwards f) where
-  coerce = Backwards #. coerce .# forwards
-  {-# INLINE coerce #-}
-
-instance (Functor f, Gettable g) => Gettable (Compose f g) where
-  coerce = Compose #. fmap coerce .# getCompose
-  {-# INLINE coerce #-}
+-- @'id' = 'fmap' f = 'coerce' = 'contramap' g@
+coerce :: (Contravariant f, Functor f) => f a -> f b
+coerce a = absurd <$> contramap absurd a
+{-# INLINE [1] coerce #-} -- give RULES a chance to fire in "gentle" and [2]
 
 -- | The 'mempty' equivalent for a 'Gettable' 'Applicative' 'Functor'.
-noEffect :: (Applicative f, Gettable f) => f a
+noEffect :: (Contravariant f, Applicative f) => f a
 noEffect = coerce $ pure ()
 {-# INLINE noEffect #-}
 
@@ -82,6 +61,10 @@ instance Functor (Accessor r) where
   fmap _ (Accessor m) = Accessor m
   {-# INLINE fmap #-}
 
+instance Contravariant (Accessor r) where
+  contramap _ (Accessor m) = Accessor m
+  {-# INLINE contramap #-}
+
 instance Semigroup r => Apply (Accessor r) where
   Accessor a <.> Accessor b = Accessor (a <> b)
   {-# INLINE (<.>) #-}
@@ -91,7 +74,3 @@ instance Monoid r => Applicative (Accessor r) where
   {-# INLINE pure #-}
   Accessor a <*> Accessor b = Accessor (mappend a b)
   {-# INLINE (<*>) #-}
-
-instance Gettable (Accessor r) where
-  coerce (Accessor m) = Accessor m
-  {-# INLINE coerce #-}

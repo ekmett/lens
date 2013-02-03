@@ -30,6 +30,7 @@ import Control.Applicative.Backwards
 import Control.Lens.Internal.Getter
 import Control.Monad
 import Data.Functor.Bind
+import Data.Functor.Contravariant
 import Data.Functor.Identity
 import Data.Profunctor.Unsafe
 import Data.Semigroup
@@ -41,7 +42,7 @@ import Data.Semigroup
 -- | An 'Effective' 'Functor' ignores its argument and is isomorphic to a 'Monad' wrapped around a value.
 --
 -- That said, the 'Monad' is possibly rather unrelated to any 'Applicative' structure.
-class (Monad m, Gettable f) => Effective m r f | f -> m r where
+class (Monad m, Functor f, Contravariant f) => Effective m r f | f -> m r where
   effective :: m r -> f a
   ineffective :: f a -> m r
 
@@ -68,9 +69,9 @@ instance Functor (Effect m r) where
   fmap _ (Effect m) = Effect m
   {-# INLINE fmap #-}
 
-instance Gettable (Effect m r) where
-  coerce (Effect m) = Effect m
-  {-# INLINE coerce #-}
+instance Contravariant (Effect m r) where
+  contramap _ (Effect m) = Effect m
+  {-# INLINE contramap #-}
 
 instance Monad m => Effective m r (Effect m r) where
   effective = Effect

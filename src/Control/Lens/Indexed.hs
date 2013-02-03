@@ -88,6 +88,7 @@ import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.Foldable
+import Data.Functor.Contravariant
 import Data.Functor.Identity
 import Data.Functor.Reverse
 import Data.Hashable
@@ -158,7 +159,7 @@ withIndex f = Indexed $ \i a -> snd <$> indexed f i (i, a)
 
 -- | When composed with an 'IndexedFold' or 'IndexedTraversal' this yields an
 -- ('Indexed') 'Fold' of the indices.
-asIndex :: (Indexable i p, Functor f, Gettable f) => Overloading' p (Indexed i) f s i
+asIndex :: (Indexable i p, Contravariant f, Functor f) => Overloading' p (Indexed i) f s i
 asIndex f = Indexed $ \i _ -> coerce (indexed f i i)
 {-# INLINE asIndex #-}
 

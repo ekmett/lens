@@ -54,9 +54,9 @@ module Control.Lens.Type
 
 import Control.Applicative
 import Control.Lens.Internal.Action
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Setter
 import Control.Lens.Internal.Indexed
+import Data.Functor.Contravariant
 import Data.Profunctor
 
 -- $setup
@@ -409,14 +409,14 @@ type Equality' s a = Equality s s a a
 --
 -- Moreover, a 'Getter' can be used directly as a 'Control.Lens.Fold.Fold',
 -- since it just ignores the 'Applicative'.
-type Getter s a = forall f. Gettable f => (a -> f a) -> s -> f s
+type Getter s a = forall f. (Contravariant f, Functor f) => (a -> f a) -> s -> f s
 
 -- | Every 'IndexedGetter' is a valid 'Control.Lens.Fold.IndexedFold' and can be used for 'Control.Lens.Getter.Getting' like a 'Getter'.
-type IndexedGetter i s a = forall p f. (Indexable i p, Gettable f) => p a (f a) -> s -> f s
+type IndexedGetter i s a = forall p f. (Indexable i p, Contravariant f, Functor f) => p a (f a) -> s -> f s
 
 -- | An 'IndexPreservingGetter' can be used as a 'Getter', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold', 'IndexedFold' or 'IndexedGetter' respectively.
-type IndexPreservingGetter s a = forall p f. (Conjoined p, Gettable f) => p a (f a) -> p s (f s)
+type IndexPreservingGetter s a = forall p f. (Conjoined p, Contravariant f, Functor f) => p a (f a) -> p s (f s)
 
 --------------------------
 -- Folds
@@ -435,14 +435,14 @@ type IndexPreservingGetter s a = forall p f. (Conjoined p, Gettable f) => p a (f
 --
 -- Unlike a 'Control.Lens.Traversal.Traversal' a 'Fold' is read-only. Since a 'Fold' cannot be used to write back
 -- there are no 'Lens' laws that apply.
-type Fold s a = forall f. (Gettable f, Applicative f) => (a -> f a) -> s -> f s
+type Fold s a = forall f. (Contravariant f, Applicative f) => (a -> f a) -> s -> f s
 
 -- | Every 'IndexedFold' is a valid 'Control.Lens.Fold.Fold' and can be used for 'Control.Lens.Getter.Getting'.
-type IndexedFold i s a = forall p f.  (Indexable i p, Applicative f, Gettable f) => p a (f a) -> s -> f s
+type IndexedFold i s a = forall p f.  (Indexable i p, Contravariant f, Applicative f) => p a (f a) -> s -> f s
 
 -- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
-type IndexPreservingFold s a = forall p f. (Conjoined p, Gettable f, Applicative f) => p a (f a) -> p s (f s)
+type IndexPreservingFold s a = forall p f. (Conjoined p, Contravariant f, Applicative f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- Actions

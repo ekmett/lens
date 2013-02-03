@@ -34,9 +34,9 @@ import Control.Arrow
 import Control.Category
 import Control.Comonad
 import Control.Comonad.Store.Class
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Data.Functor.Compose
+import Data.Functor.Contravariant
 import Data.Functor.Identity
 import Data.Profunctor
 import Data.Profunctor.Rep
@@ -338,9 +338,9 @@ instance Corepresentable p => Sellable p (PretextT p g) where
   sell = cotabulate $ \ w -> PretextT (`corep` w)
   {-# INLINE sell #-}
 
-instance (Profunctor p, Gettable g) => Gettable (PretextT p g a b) where
-  coerce = (<$) (error "coerced PretextT")
-  {-# INLINE coerce #-}
+instance (Profunctor p, Contravariant g) => Contravariant (PretextT p g a b) where
+  contramap _ = (<$) (error "contramap: PretextT")
+  {-# INLINE contramap #-}
 
 ------------------------------------------------------------------------------
 -- Utilities

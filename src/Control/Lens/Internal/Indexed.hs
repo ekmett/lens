@@ -37,12 +37,12 @@ import Control.Applicative
 import Control.Arrow as Arrow
 import Control.Category
 import Control.Comonad
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Instances ()
 import Control.Monad
 import Control.Monad.Fix
 import Data.Distributive
 import Data.Functor.Bind
+import Data.Functor.Contravariant
 import Data.Int
 import Data.Profunctor
 import Data.Profunctor.Rep
@@ -248,10 +248,10 @@ instance Applicative f => Applicative (Indexing f) where
        ~(k, fa) -> (k, ff <*> fa)
   {-# INLINE (<*>) #-}
 
-instance Gettable f => Gettable (Indexing f) where
-  coerce (Indexing m) = Indexing $ \i -> case m i of
-    (j, ff) -> (j, coerce ff)
-  {-# INLINE coerce #-}
+instance Contravariant f => Contravariant (Indexing f) where
+  contramap f (Indexing m) = Indexing $ \i -> case m i of
+    (j, ff) -> (j, contramap f ff)
+  {-# INLINE contramap #-}
 
 -- | Transform a 'Control.Lens.Traversal.Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
 -- a 'Control.Lens.Fold.Fold' into an 'Control.Lens.Fold.IndexedFold', etc.
@@ -297,10 +297,10 @@ instance Applicative f => Applicative (Indexing64 f) where
        ~(k, fa) -> (k, ff <*> fa)
   {-# INLINE (<*>) #-}
 
-instance Gettable f => Gettable (Indexing64 f) where
-  coerce (Indexing64 m) = Indexing64 $ \i -> case m i of
-    (j, ff) -> (j, coerce ff)
-  {-# INLINE coerce #-}
+instance Contravariant f => Contravariant (Indexing64 f) where
+  contramap f (Indexing64 m) = Indexing64 $ \i -> case m i of
+    (j, ff) -> (j, contramap f ff)
+  {-# INLINE contramap #-}
 
 -- | Transform a 'Control.Lens.Traversal.Traversal' into an 'Control.Lens.Traversal.IndexedTraversal' or
 -- a 'Control.Lens.Fold.Fold' into an 'Control.Lens.Fold.IndexedFold', etc.

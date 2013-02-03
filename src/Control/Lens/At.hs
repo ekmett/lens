@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 #ifdef DEFAULT_SIGNATURES
 {-# LANGUAGE DefaultSignatures #-}
@@ -106,18 +107,18 @@ class Functor f => Contains f m where
   -- fromList [1,2,4]
   contains :: Index m -> IndexedLensLike' (Index m) f m Bool
 #ifdef DEFAULT_SIGNATURES
-  default contains :: (Gettable f, At m) => Index m -> IndexedLensLike' (Index m) f m Bool
+  default contains :: (Contravariant f, Functor f, At m) => Index m -> IndexedLensLike' (Index m) f m Bool
   contains = containsAt
 #endif
 
 -- | A definition of 'contains' for types with an 'Ix' instance.
-containsIx :: (Gettable f, Ixed (Accessor Any) m) => Index m -> IndexedLensLike' (Index m) f m Bool
+containsIx :: (Contravariant f, Functor f, Ixed (Accessor Any) m) => Index m -> IndexedLensLike' (Index m) f m Bool
 containsIx i f = coerce . Lens.indexed f i . has (ix i)
 {-# INLINE containsIx #-}
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'contains' and you are on GHC >= 7.0.2
-containsAt :: (Gettable f, At m) => Index m -> IndexedLensLike' (Index m) f m Bool
+containsAt :: (Contravariant f, Functor f, At m) => Index m -> IndexedLensLike' (Index m) f m Bool
 containsAt i f = coerce . Lens.indexed f i . views (at i) isJust
 {-# INLINE containsAt #-}
 
@@ -141,7 +142,7 @@ containsLookup :: forall i s a. (i -> s -> Maybe a) -> i -> IndexedGetter i s Bo
 containsLookup isb = \i pafb s -> coerce $ Lens.indexed pafb (i :: i) (isJust (isb i s))
 {-# INLINE containsLookup #-}
 
-instance Gettable f => Contains f (e -> a) where
+instance (Functor f, Contravariant f) => Contains f (e -> a) where
   contains i f _ = coerce (Lens.indexed f i True)
   {-# INLINE contains #-}
 
@@ -160,25 +161,25 @@ instance (Functor f, Eq a, Hashable a) => Contains f (HashSet a) where
     if b then HashSet.insert k s else HashSet.delete k s
   {-# INLINE contains #-}
 
-instance Gettable f => Contains f [a] where
+instance (Contravariant f, Functor f) => Contains f [a] where
   contains = containsLength Prelude.length
   {-# INLINE contains #-}
 
-instance Gettable f => Contains f (Seq a) where
+instance (Contravariant f, Functor f) => Contains f (Seq a) where
   contains = containsLength Seq.length
   {-# INLINE contains #-}
 
 #if MIN_VERSION_base(4,4,0)
-instance Gettable f => Contains f (Complex a) where
+instance (Contravariant f, Functor f) => Contains f (Complex a) where
   contains = containsN 2
   {-# INLINE contains #-}
 #else
-instance (Gettable f, RealFloat a) => Contains f (Complex a) where
+instance (Contravariant f, Functor f, RealFloat a) => Contains f (Complex a) where
   contains = containsN 2
   {-# INLINE contains #-}
 #endif
 
-instance Gettable f => Contains f (Tree a) where
+instance (Contravariant f, Functor f) => Contains f (Tree a) where
   contains xs0 pafb = coerce . Lens.indexed pafb xs0 . go xs0 where
     go [] (Node _ _) = True
     go (i:is) (Node _ as) = goto i is as
@@ -187,91 +188,91 @@ instance Gettable f => Contains f (Tree a) where
     goto n is (_:as) = (goto $! n - 1) is as
   {-# INLINE contains #-}
 
-instance Gettable k => Contains k (Identity a) where
+instance (Contravariant k, Functor k) => Contains k (Identity a) where
   contains () f _ = coerce (Lens.indexed f () True)
   {-# INLINE contains #-}
 
-instance Gettable k => Contains k (a,b) where
+instance (Contravariant k, Functor k) => Contains k (a,b) where
   contains = containsN 2
   {-# INLINE contains #-}
 
-instance Gettable k => Contains k (a,b,c) where
+instance (Contravariant k, Functor k) => Contains k (a,b,c) where
   contains = containsN 3
   {-# INLINE contains #-}
 
-instance Gettable k => Contains k (a,b,c,d) where
+instance (Contravariant k, Functor k) => Contains k (a,b,c,d) where
   contains = containsN 4
   {-# INLINE contains #-}
 
-instance Gettable k => Contains k (a,b,c,d,e) where
+instance (Contravariant k, Functor k) => Contains k (a,b,c,d,e) where
   contains = containsN 5
   {-# INLINE contains #-}
 
-instance Gettable k => Contains k (a,b,c,d,e,f) where
+instance (Contravariant k, Functor k) => Contains k (a,b,c,d,e,f) where
   contains = containsN 6
   {-# INLINE contains #-}
 
-instance Gettable k => Contains k (a,b,c,d,e,f,g) where
+instance (Contravariant k, Functor k) => Contains k (a,b,c,d,e,f,g) where
   contains = containsN 7
   {-# INLINE contains #-}
 
-instance Gettable k => Contains k (a,b,c,d,e,f,g,h) where
+instance (Contravariant k, Functor k) => Contains k (a,b,c,d,e,f,g,h) where
   contains = containsN 8
   {-# INLINE contains #-}
 
-instance Gettable k => Contains k (a,b,c,d,e,f,g,h,i) where
+instance (Contravariant k, Functor k) => Contains k (a,b,c,d,e,f,g,h,i) where
   contains = containsN 9
   {-# INLINE contains #-}
 
-instance Gettable k => Contains k (IntMap a) where
+instance (Contravariant k, Functor k) => Contains k (IntMap a) where
   contains = containsLookup IntMap.lookup
   {-# INLINE contains #-}
 
-instance (Gettable f, Ord k) => Contains f (Map k a) where
+instance (Contravariant f, Functor f, Ord k) => Contains f (Map k a) where
   contains = containsLookup Map.lookup
   {-# INLINE contains #-}
 
-instance (Gettable f, Eq k, Hashable k) => Contains f (HashMap k a) where
+instance (Contravariant f, Functor f, Eq k, Hashable k) => Contains f (HashMap k a) where
   contains = containsLookup HashMap.lookup
   {-# INLINE contains #-}
 
-instance (Gettable f, Ix i) => Contains f (Array i e) where
+instance (Contravariant f, Functor f, Ix i) => Contains f (Array i e) where
   contains = containsTest $ \i s -> inRange (bounds s) i
   {-# INLINE contains #-}
 
-instance (Gettable f, IArray UArray e, Ix i) => Contains f (UArray i e) where
+instance (Contravariant f, Functor f, IArray UArray e, Ix i) => Contains f (UArray i e) where
   contains = containsTest $ \i s -> inRange (bounds s) i
   {-# INLINE contains #-}
 
-instance Gettable f => Contains f (Vector.Vector a) where
+instance (Contravariant f, Functor f) => Contains f (Vector.Vector a) where
   contains = containsLength Vector.length
   {-# INLINE contains #-}
 
-instance (Gettable f, Prim a) => Contains f (Prim.Vector a) where
+instance (Contravariant f, Functor f, Prim a) => Contains f (Prim.Vector a) where
   contains = containsLength Prim.length
   {-# INLINE contains #-}
 
-instance (Gettable f, Storable a) => Contains f (Storable.Vector a) where
+instance (Contravariant f, Functor f, Storable a) => Contains f (Storable.Vector a) where
   contains = containsLength Storable.length
   {-# INLINE contains #-}
 
-instance (Gettable f, Unbox a) => Contains f (Unboxed.Vector a) where
+instance (Contravariant f, Functor f, Unbox a) => Contains f (Unboxed.Vector a) where
   contains = containsLength Unboxed.length
   {-# INLINE contains #-}
 
-instance Gettable f => Contains f StrictT.Text where
+instance (Contravariant f, Functor f) => Contains f StrictT.Text where
   contains = containsTest $ \i s -> StrictT.compareLength s i == GT
   {-# INLINE contains #-}
 
-instance Gettable f => Contains f LazyT.Text where
+instance (Contravariant f, Functor f) => Contains f LazyT.Text where
   contains = containsTest $ \i s -> LazyT.compareLength s i == GT
   {-# INLINE contains #-}
 
-instance Gettable f => Contains f StrictB.ByteString where
+instance (Contravariant f, Functor f) => Contains f StrictB.ByteString where
   contains = containsLength StrictB.length
   {-# INLINE contains #-}
 
-instance Gettable f => Contains f LazyB.ByteString where
+instance (Contravariant f, Functor f) => Contains f LazyB.ByteString where
   contains = containsTest $ \i s -> not (LazyB.null (LazyB.drop i s))
   {-# INLINE contains #-}
 

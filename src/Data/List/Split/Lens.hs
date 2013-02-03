@@ -46,7 +46,7 @@ import Data.List.Split.Internals
 -- @
 -- 'splitting' :: 'Splitter' a -> 'Fold' i s a -> 'Fold' [i] s [a]
 -- @
-splitting :: (Applicative f, Gettable f) => Splitter a -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
+splitting :: (Contravariant f, Applicative f) => Splitter a -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
 splitting s l f = coerce . traverse f . split s . toListOf l
 {-# INLINE splitting #-}
 
@@ -57,7 +57,7 @@ splitting s l f = coerce . traverse f . split s . toListOf l
 -- @
 -- 'splittingOn' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splittingOn :: (Applicative f, Gettable f, Eq a) => [a] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
+splittingOn :: (Contravariant f, Applicative f, Eq a) => [a] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
 splittingOn s l f = coerce . traverse f . splitOn s . toListOf l
 {-# INLINE splittingOn #-}
 
@@ -68,7 +68,7 @@ splittingOn s l f = coerce . traverse f . splitOn s . toListOf l
 -- @
 -- 'splittingOn' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splittingOneOf :: (Applicative f, Gettable f, Eq a) => [a] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
+splittingOneOf :: (Contravariant f, Applicative f, Eq a) => [a] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
 splittingOneOf s l f = coerce . traverse f . splitOneOf s . toListOf l
 {-# INLINE splittingOneOf #-}
 
@@ -79,7 +79,7 @@ splittingOneOf s l f = coerce . traverse f . splitOneOf s . toListOf l
 -- @
 -- 'splittingOn' :: (a -> 'Bool') -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splittingWhen :: (Applicative f, Gettable f, Eq a) => (a -> Bool) -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
+splittingWhen :: (Contravariant f, Applicative f, Eq a) => (a -> Bool) -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
 splittingWhen s l f = coerce . traverse f . splitWhen s . toListOf l
 {-# INLINE splittingWhen #-}
 
@@ -90,7 +90,7 @@ splittingWhen s l f = coerce . traverse f . splitWhen s . toListOf l
 -- @
 -- 'endingBy' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-endingBy :: (Applicative f, Gettable f, Eq a) => [a] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
+endingBy :: (Contravariant f, Applicative f, Eq a) => [a] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
 endingBy s l f = coerce . traverse f . endBy s . toListOf l
 {-# INLINE endingBy #-}
 
@@ -101,7 +101,7 @@ endingBy s l f = coerce . traverse f . endBy s . toListOf l
 -- @
 -- 'endingByOneOf' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-endingByOneOf :: (Applicative f, Gettable f, Eq a) => [a] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
+endingByOneOf :: (Contravariant f, Applicative f, Eq a) => [a] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
 endingByOneOf s l f = coerce . traverse f . endByOneOf s . toListOf l
 {-# INLINE endingByOneOf #-}
 
@@ -112,7 +112,7 @@ endingByOneOf s l f = coerce . traverse f . endByOneOf s . toListOf l
 -- @
 -- 'wordingBy' :: (a -> 'Bool') -> 'Fold' a -> 'Fold' s [a]
 -- @
-wordingBy :: (Applicative f, Gettable f, Eq a) => (a -> Bool) -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
+wordingBy :: (Contravariant f, Applicative f, Eq a) => (a -> Bool) -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
 wordingBy s l f = coerce . traverse f . wordsBy s . toListOf l
 {-# INLINE wordingBy #-}
 
@@ -123,7 +123,7 @@ wordingBy s l f = coerce . traverse f . wordsBy s . toListOf l
 -- @
 -- 'liningBy' :: (a -> 'Bool') -> 'Fold' s a -> 'Fold' s [a]
 -- @
-liningBy :: (Applicative f, Gettable f, Eq a) => (a -> Bool) -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
+liningBy :: (Contravariant f, Applicative f, Eq a) => (a -> Bool) -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
 liningBy s l f = coerce . traverse f . linesBy s . toListOf l
 {-# INLINE liningBy #-}
 
@@ -132,7 +132,7 @@ liningBy s l f = coerce . traverse f . linesBy s . toListOf l
 -- @
 -- 'chunkingOf' :: 'Int' -> 'Fold' s a -> 'Fold' s [a]
 -- @
-chunking :: (Applicative f, Gettable f) => Int -- ^ @n@
+chunking :: (Contravariant f, Applicative f) => Int -- ^ @n@
             -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
 chunking s l f = coerce . traverse f . chunksOf s . toListOf l
 {-# INLINE chunking #-}
@@ -142,7 +142,7 @@ chunking s l f = coerce . traverse f . chunksOf s . toListOf l
 -- @
 -- 'splittingPlaces' :: 'Integral' n => [n] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splittingPlaces :: (Applicative f, Gettable f, Integral n) => [n] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
+splittingPlaces :: (Contravariant f, Applicative f, Integral n) => [n] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
 splittingPlaces s l f = coerce . traverse f . splitPlaces s . toListOf l
 {-# INLINE splittingPlaces #-}
 
@@ -151,7 +151,7 @@ splittingPlaces s l f = coerce . traverse f . splitPlaces s . toListOf l
 -- @
 -- 'splittingPlacesBlanks' :: 'Integral' n => [n] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splittingPlacesBlanks :: (Applicative f, Gettable f, Integral n) => [n] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
+splittingPlacesBlanks :: (Contravariant f, Applicative f, Integral n) => [n] -> Getting (Endo [a]) s s a a -> LensLike f s s [a] [a]
 splittingPlacesBlanks s l f = coerce . traverse f . splitPlacesBlanks s . toListOf l
 {-# INLINE splittingPlacesBlanks #-}
 

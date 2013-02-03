@@ -26,27 +26,27 @@ module Control.Lens.Internal.Fold
 
 import Control.Applicative
 import Control.Lens.Internal.Getter
-import Data.Maybe
 import Data.Functor.Bind
+import Data.Functor.Contravariant
+import Data.Maybe
 import Data.Semigroup hiding (Min, getMin, Max, getMax)
 
 ------------------------------------------------------------------------------
 -- Folding
 ------------------------------------------------------------------------------
 
--- | A 'Monoid' for a 'Gettable' 'Applicative'.
+-- | A 'Monoid' for a 'Contravariant' 'Applicative'.
 newtype Folding f a = Folding { getFolding :: f a }
 
-instance (Gettable f, Apply f) => Semigroup (Folding f a) where
+instance (Contravariant f, Apply f) => Semigroup (Folding f a) where
   Folding fr <> Folding fs = Folding (fr .> fs)
   {-# INLINE (<>) #-}
 
-instance (Gettable f, Applicative f) => Monoid (Folding f a) where
+instance (Contravariant f, Applicative f) => Monoid (Folding f a) where
   mempty = Folding noEffect
   {-# INLINE mempty #-}
   Folding fr `mappend` Folding fs = Folding (fr *> fs)
   {-# INLINE mappend #-}
-
 
 ------------------------------------------------------------------------------
 -- Traversed

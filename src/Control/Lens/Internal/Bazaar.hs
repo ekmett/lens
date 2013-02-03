@@ -28,10 +28,10 @@ import Control.Arrow as Arrow
 import Control.Category
 import Control.Comonad
 import Control.Lens.Internal.Context
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Data.Functor.Apply
 import Data.Functor.Compose
+import Data.Functor.Contravariant
 import Data.Functor.Identity
 import Data.Profunctor
 import Data.Profunctor.Rep
@@ -121,8 +121,8 @@ instance (a ~ b, Conjoined p) => ComonadApply (Bazaar p a b) where
 -- BazaarT
 ------------------------------------------------------------------------------
 
--- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Gettable' instance
--- To protect this instance it relies on the soundness of another 'Gettable' type, and usage conventions.
+-- | 'BazaarT' is like 'Bazaar', except that it provides a questionable 'Contravariant' instance
+-- To protect this instance it relies on the soundness of another 'Contravariant' type, and usage conventions.
 --
 -- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
 -- must be a better way!
@@ -177,6 +177,6 @@ instance (a ~ b, Conjoined p) => ComonadApply (BazaarT p g a b) where
   (<@>) = (<*>)
   {-# INLINE (<@>) #-}
 
-instance (Profunctor p, Gettable g) => Gettable (BazaarT p g a b) where
-  coerce = (<$) (error "coerced BazaarT")
-  {-# INLINE coerce #-}
+instance (Profunctor p, Contravariant g) => Contravariant (BazaarT p g a b) where
+  contramap _ = (<$) (error "contramap: BazaarT")
+  {-# INLINE contramap #-}

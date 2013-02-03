@@ -60,7 +60,8 @@ module Control.Lens.Getter
   , iuse, iuses
   , ilistening, ilistenings
   -- * Implementation Details
-  , Gettable(..)
+  , Contravariant(..)
+  , coerce
   , Accessor(..)
   ) where
 
@@ -70,6 +71,7 @@ import Control.Lens.Type
 import Control.Monad.Reader.Class as Reader
 import Control.Monad.State        as State
 import Control.Monad.Writer       as Writer
+import Data.Functor.Contravariant
 import Data.Profunctor
 import Data.Profunctor.Unsafe
 

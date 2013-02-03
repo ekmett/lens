@@ -49,6 +49,7 @@ import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Data.Functor.Bind
+import Data.Functor.Contravariant
 import Data.Semigroup
 import Prelude hiding ((.),id)
 
@@ -287,6 +288,6 @@ instance (Monoid s, Monoid w, Monad m) => Applicative (EffectRWS w st m s) where
   EffectRWS m <*> EffectRWS n = EffectRWS $ \st -> m st >>= \ (s,t,w) -> n t >>= \ (s',u,w') -> return (mappend s s', u, mappend w w')
   {-# INLINE (<*>) #-}
 
-instance Gettable (EffectRWS w st m s) where
-  coerce (EffectRWS m) = EffectRWS m
-  {-# INLINE coerce #-}
+instance Contravariant (EffectRWS w st m s) where
+  contramap _ (EffectRWS m) = EffectRWS m
+  {-# INLINE contramap #-}

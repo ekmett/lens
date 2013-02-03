@@ -40,10 +40,10 @@ import Control.Category
 import Control.Comonad
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Data.Foldable
 import Data.Functor.Apply
+import Data.Functor.Contravariant
 import Data.Monoid
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
@@ -239,8 +239,9 @@ instance Corepresentable p => Bizarre p (TakingWhile p g) where
     go (Magma _ wa) = corep pafb wa
   {-# INLINE bazaar #-}
 
-instance Gettable f => Gettable (TakingWhile p f a b) where
-  coerce = (<$) (error "coerced TakingWhile")
+instance Contravariant f => Contravariant (TakingWhile p f a b) where
+  contramap _ = (<$) (error "contramap: TakingWhile")
+  {-# INLINE contramap #-}
 
 instance IndexedFunctor (TakingWhile p f) where
   ifmap = fmap

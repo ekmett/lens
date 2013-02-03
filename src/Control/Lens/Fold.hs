@@ -178,7 +178,7 @@ infixl 8 ^.., ^?, ^?!, ^@.., ^@?, ^@?!
 --
 -- >>> [1,2,3,4]^..folding tail
 -- [2,3,4]
-folding :: (Foldable f, Applicative g, Gettable g) => (s -> f a) -> LensLike g s t a b
+folding :: (Foldable f, Contravariant g, Applicative g) => (s -> f a) -> LensLike g s t a b
 folding sfa agb = coerce . traverse_ agb . sfa
 {-# INLINE folding #-}
 
@@ -245,7 +245,7 @@ replicated n0 f a = go n0 where
 --
 -- >>> timingOut $ [1,2,3]^..taking 7 (cycled traverse)
 -- [1,2,3,1,2,3,1]
-cycled :: (Applicative f, Gettable f) => LensLike f s t a b -> LensLike f s t a b
+cycled :: (Contravariant f, Applicative f) => LensLike f s t a b -> LensLike f s t a b
 cycled l f a = as where as = l f a *> as
 {-# INLINE cycled #-}
 
@@ -2213,7 +2213,7 @@ ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 -- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold' i m s a
 -- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold' i m s a
 -- @
-itakingWhile :: (Indexable i p, Profunctor q, Applicative f, Gettable f)
+itakingWhile :: (Indexable i p, Profunctor q, Contravariant f, Applicative f)
          => (i -> a -> Bool)
          -> Overloading (Indexed i) q (Accessor (Endo (f s))) s s a a
          -> Overloading p q f s s a a
