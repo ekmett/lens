@@ -164,293 +164,294 @@
 <a name="line-155"></a><a name="cons"></a><span class='hs-comment'>-- | 'cons' an element onto a container.</span>
 <a name="line-156"></a><span class='hs-definition'>cons</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Cons</span> <span class='hs-conid'>Reviewed</span> <span class='hs-conid'>Identity</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span>
 <a name="line-157"></a><span class='hs-definition'>cons</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curry</span> <span class='hs-layout'>(</span><span class='hs-varid'>simply</span> <span class='hs-varid'>review</span> <span class='hs-sel'>_Cons</span><span class='hs-layout'>)</span>
-<a name="line-158"></a>
-<a name="line-159"></a><a name="uncons"></a><span class='hs-comment'>-- | Attempt to extract the left-most element from a container, and a version of the container without that element.</span>
-<a name="line-160"></a><span class='hs-definition'>uncons</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Cons</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Accessor</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
-<a name="line-161"></a><span class='hs-definition'>uncons</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>simply</span> <span class='hs-varid'>preview</span> <span class='hs-sel'>_Cons</span>
-<a name="line-162"></a><span class='hs-comment'>{-# INLINE uncons #-}</span>
-<a name="line-163"></a>
-<a name="line-164"></a><span class='hs-comment'>-- | A 'Traversal' reading and writing to the 'head' of a /non-empty/ container.</span>
-<a name="line-165"></a><span class='hs-comment'>--</span>
-<a name="line-166"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c]^? _head</span>
-<a name="line-167"></a><span class='hs-comment'>-- Just a</span>
-<a name="line-168"></a><span class='hs-comment'>--</span>
-<a name="line-169"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c] &amp; _head .~ d</span>
-<a name="line-170"></a><span class='hs-comment'>-- [d,b,c]</span>
-<a name="line-171"></a><span class='hs-comment'>--</span>
-<a name="line-172"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c] &amp; _head %~ f</span>
-<a name="line-173"></a><span class='hs-comment'>-- [f a,b,c]</span>
-<a name="line-174"></a><span class='hs-comment'>--</span>
-<a name="line-175"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _head %~ f</span>
-<a name="line-176"></a><span class='hs-comment'>-- []</span>
-<a name="line-177"></a><span class='hs-comment'>--</span>
-<a name="line-178"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2,3]^?!_head</span>
-<a name="line-179"></a><span class='hs-comment'>-- 1</span>
-<a name="line-180"></a><span class='hs-comment'>--</span>
-<a name="line-181"></a><span class='hs-comment'>-- &gt;&gt;&gt; []^?_head</span>
-<a name="line-182"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-183"></a><span class='hs-comment'>--</span>
-<a name="line-184"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2]^?_head</span>
-<a name="line-185"></a><span class='hs-comment'>-- Just 1</span>
-<a name="line-186"></a><span class='hs-comment'>--</span>
-<a name="line-187"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _head .~ 1</span>
-<a name="line-188"></a><span class='hs-comment'>-- []</span>
-<a name="line-189"></a><span class='hs-comment'>--</span>
-<a name="line-190"></a><span class='hs-comment'>-- &gt;&gt;&gt; [0] &amp; _head .~ 2</span>
-<a name="line-191"></a><span class='hs-comment'>-- [2]</span>
-<a name="line-192"></a><span class='hs-comment'>--</span>
-<a name="line-193"></a><span class='hs-comment'>-- &gt;&gt;&gt; [0,1] &amp; _head .~ 2</span>
-<a name="line-194"></a><span class='hs-comment'>-- [2,1]</span>
-<a name="line-195"></a><span class='hs-comment'>--</span>
-<a name="line-196"></a><span class='hs-comment'>-- This isn't limited to lists.</span>
-<a name="line-197"></a><span class='hs-comment'>--</span>
-<a name="line-198"></a><span class='hs-comment'>-- For instance you can also 'Data.Traversable.traverse' the head of a 'Seq':</span>
-<a name="line-199"></a><span class='hs-comment'>--</span>
-<a name="line-200"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b,c,d] &amp; _head %~ f</span>
-<a name="line-201"></a><span class='hs-comment'>-- fromList [f a,b,c,d]</span>
-<a name="line-202"></a><span class='hs-comment'>--</span>
-<a name="line-203"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [] ^? _head</span>
-<a name="line-204"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-205"></a><span class='hs-comment'>--</span>
-<a name="line-206"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b,c,d] ^? _head</span>
-<a name="line-207"></a><span class='hs-comment'>-- Just a</span>
-<a name="line-208"></a><span class='hs-comment'>--</span>
-<a name="line-209"></a><span class='hs-comment'>-- @</span>
-<a name="line-210"></a><span class='hs-comment'>-- '_head' :: 'Traversal'' [a] a</span>
-<a name="line-211"></a><span class='hs-comment'>-- '_head' :: 'Traversal'' ('Seq' a) a</span>
-<a name="line-212"></a><span class='hs-comment'>-- '_head' :: 'Traversal'' ('Vector' a) a</span>
-<a name="line-213"></a><span class='hs-comment'>-- @</span>
-<a name="line-214"></a><span class='hs-sel'>_head</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Cons</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
-<a name="line-215"></a><span class='hs-sel'>_head</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_Cons</span><span class='hs-varop'>.</span><span class='hs-sel'>_1</span>
-<a name="line-216"></a><span class='hs-comment'>{-# INLINE _head #-}</span>
-<a name="line-217"></a>
-<a name="line-218"></a><span class='hs-comment'>-- | A 'Traversal' reading and writing to the 'tail' of a /non-empty/ container.</span>
-<a name="line-219"></a><span class='hs-comment'>--</span>
-<a name="line-220"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b] &amp; _tail .~ [c,d,e]</span>
-<a name="line-221"></a><span class='hs-comment'>-- [a,c,d,e]</span>
-<a name="line-222"></a><span class='hs-comment'>--</span>
-<a name="line-223"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _tail .~ [a,b]</span>
-<a name="line-224"></a><span class='hs-comment'>-- []</span>
-<a name="line-225"></a><span class='hs-comment'>--</span>
-<a name="line-226"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c,d,e] &amp; _tail.traverse %~ f</span>
-<a name="line-227"></a><span class='hs-comment'>-- [a,f b,f c,f d,f e]</span>
-<a name="line-228"></a><span class='hs-comment'>--</span>
-<a name="line-229"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2] &amp; _tail .~ [3,4,5]</span>
-<a name="line-230"></a><span class='hs-comment'>-- [1,3,4,5]</span>
-<a name="line-231"></a><span class='hs-comment'>--</span>
-<a name="line-232"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _tail .~ [1,2]</span>
-<a name="line-233"></a><span class='hs-comment'>-- []</span>
-<a name="line-234"></a><span class='hs-comment'>--</span>
-<a name="line-235"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c]^?_tail</span>
-<a name="line-236"></a><span class='hs-comment'>-- Just [b,c]</span>
-<a name="line-237"></a><span class='hs-comment'>--</span>
-<a name="line-238"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2]^?!_tail</span>
-<a name="line-239"></a><span class='hs-comment'>-- [2]</span>
-<a name="line-240"></a><span class='hs-comment'>--</span>
-<a name="line-241"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello"^._tail</span>
-<a name="line-242"></a><span class='hs-comment'>-- "ello"</span>
-<a name="line-243"></a><span class='hs-comment'>--</span>
-<a name="line-244"></a><span class='hs-comment'>-- &gt;&gt;&gt; ""^._tail</span>
-<a name="line-245"></a><span class='hs-comment'>-- ""</span>
-<a name="line-246"></a><span class='hs-comment'>--</span>
-<a name="line-247"></a><span class='hs-comment'>-- This isn't limited to lists. For instance you can also 'Control.Traversable.traverse' the tail of a 'Seq'.</span>
-<a name="line-248"></a><span class='hs-comment'>--</span>
-<a name="line-249"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b] &amp; _tail .~ Seq.fromList [c,d,e]</span>
-<a name="line-250"></a><span class='hs-comment'>-- fromList [a,c,d,e]</span>
-<a name="line-251"></a><span class='hs-comment'>--</span>
-<a name="line-252"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b,c] ^? _tail</span>
-<a name="line-253"></a><span class='hs-comment'>-- Just (fromList [b,c])</span>
-<a name="line-254"></a><span class='hs-comment'>--</span>
-<a name="line-255"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [] ^? _tail</span>
-<a name="line-256"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-257"></a><span class='hs-comment'>--</span>
-<a name="line-258"></a><span class='hs-comment'>-- @</span>
-<a name="line-259"></a><span class='hs-comment'>-- '_tail' :: 'Traversal'' [a] [a]</span>
-<a name="line-260"></a><span class='hs-comment'>-- '_tail' :: 'Traversal'' ('Seq' a) ('Seq' a)</span>
-<a name="line-261"></a><span class='hs-comment'>-- '_tail' :: 'Traversal'' ('Vector' a) ('Vector' a)</span>
-<a name="line-262"></a><span class='hs-comment'>-- @</span>
-<a name="line-263"></a><span class='hs-sel'>_tail</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Cons</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span>
-<a name="line-264"></a><span class='hs-sel'>_tail</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_Cons</span><span class='hs-varop'>.</span><span class='hs-sel'>_2</span>
-<a name="line-265"></a><span class='hs-comment'>{-# INLINE _tail #-}</span>
-<a name="line-266"></a>
-<a name="line-267"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-268"></a><span class='hs-comment'>-- Snoc</span>
-<a name="line-269"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-270"></a>
-<a name="line-271"></a><a name="Snoc"></a><span class='hs-comment'>-- | This class provides a way to attach or detach elements on the right</span>
-<a name="line-272"></a><a name="Snoc"></a><span class='hs-comment'>-- side of a structure in a flexible manner.</span>
-<a name="line-273"></a><a name="Snoc"></a><span class='hs-keyword'>class</span> <span class='hs-layout'>(</span><span class='hs-conid'>Profunctor</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>|</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>,</span> <span class='hs-varid'>s</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span><span class='hs-layout'>,</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyword'>where</span>
-<a name="line-274"></a>  <span class='hs-comment'>-- | Most of the time this is a 'Prism'.</span>
-<a name="line-275"></a>  <span class='hs-comment'>--</span>
-<a name="line-276"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-277"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism' [a] [b] (a, [a]) (b, [b])</span>
-<a name="line-278"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism' ('Seq' a) ('Seq' b) ('Seq' a, a) ('Seq' b, b)</span>
-<a name="line-279"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism' ('Vector' a) ('Vector' b) ('Vector' a, a) ('Vector' b, b)</span>
-<a name="line-280"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism'' 'String' ('String', 'Char')</span>
-<a name="line-281"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism'' 'StrictT.Text' ('StrictT.Text', 'Char')</span>
-<a name="line-282"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism'' 'StrictB.ByteString' ('StrictB.ByteString', 'Word8')</span>
-<a name="line-283"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-284"></a>  <span class='hs-comment'>--</span>
-<a name="line-285"></a>  <span class='hs-comment'>-- However, by including @p@ and @f@ in the class you can write instances that only permit 'unsnoc'</span>
-<a name="line-286"></a>  <span class='hs-comment'>-- or which only permit 'snoc' or where '_init' and '_last' are lenses and not traversals.</span>
-<a name="line-287"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Overloaded</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span><span class='hs-layout'>,</span><span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span><span class='hs-layout'>,</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-288"></a>
-<a name="line-289"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>b</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
-<a name="line-290"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-layout'>(</span><span class='hs-keyword'>as</span><span class='hs-layout'>,</span><span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Prelude</span><span class='hs-varop'>.++</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>aas</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>aas</span>
-<a name="line-291"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>[]</span>
-<a name="line-292"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-varid'>aas</span><span class='hs-layout'>,</span> <span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-varid'>aas</span><span class='hs-layout'>)</span>
-<a name="line-293"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
-<a name="line-294"></a>
-<a name="line-295"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
-<a name="line-296"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span><span class='hs-varop'>.|&gt;</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>aas</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>viewr</span> <span class='hs-varid'>aas</span> <span class='hs-keyword'>of</span>
-<a name="line-297"></a>    <span class='hs-keyword'>as</span> <span class='hs-conop'>:&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-keyword'>as</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-298"></a>    <span class='hs-conid'>EmptyR</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Left</span> <span class='hs-varid'>mempty</span>
-<a name="line-299"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
-<a name="line-300"></a>
-<a name="line-301"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
-<a name="line-302"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>Vector</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>Vector</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
-<a name="line-303"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>Vector</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
-<a name="line-304"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vector</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeInit</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>Vector</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeLast</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
-<a name="line-305"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
-<a name="line-306"></a>
-<a name="line-307"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Prim</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-conid'>Prim</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
-<a name="line-308"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
-<a name="line-309"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
-<a name="line-310"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeInit</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeLast</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
-<a name="line-311"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
-<a name="line-312"></a>
-<a name="line-313"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Storable</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-conid'>Storable</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
-<a name="line-314"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
-<a name="line-315"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
-<a name="line-316"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeInit</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeLast</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
-<a name="line-317"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
-<a name="line-318"></a>
-<a name="line-319"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Unbox</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-conid'>Unbox</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
-<a name="line-320"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
-<a name="line-321"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
-<a name="line-322"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeInit</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeLast</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
-<a name="line-323"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
-<a name="line-324"></a>
-<a name="line-325"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-conid'>Word8</span> <span class='hs-conid'>Word8</span> <span class='hs-keyword'>where</span>
-<a name="line-326"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
-<a name="line-327"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
-<a name="line-328"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
-<a name="line-329"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
-<a name="line-330"></a>
-<a name="line-331"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-conid'>Word8</span> <span class='hs-conid'>Word8</span> <span class='hs-keyword'>where</span>
-<a name="line-332"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
-<a name="line-333"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
-<a name="line-334"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
-<a name="line-335"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
-<a name="line-336"></a>
-<a name="line-337"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-conid'>Char</span> <span class='hs-conid'>Char</span> <span class='hs-keyword'>where</span>
-<a name="line-338"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
-<a name="line-339"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
-<a name="line-340"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
-<a name="line-341"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
-<a name="line-342"></a>
-<a name="line-343"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-conid'>Char</span> <span class='hs-conid'>Char</span> <span class='hs-keyword'>where</span>
-<a name="line-344"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
-<a name="line-345"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
-<a name="line-346"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
-<a name="line-347"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
-<a name="line-348"></a>
-<a name="line-349"></a><span class='hs-comment'>-- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ container.</span>
-<a name="line-350"></a><span class='hs-comment'>--</span>
-<a name="line-351"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c,d]^?_init</span>
-<a name="line-352"></a><span class='hs-comment'>-- Just [a,b,c]</span>
-<a name="line-353"></a><span class='hs-comment'>--</span>
-<a name="line-354"></a><span class='hs-comment'>-- &gt;&gt;&gt; []^?_init</span>
-<a name="line-355"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-356"></a><span class='hs-comment'>--</span>
-<a name="line-357"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b] &amp; _init .~ [c,d,e]</span>
-<a name="line-358"></a><span class='hs-comment'>-- [c,d,e,b]</span>
-<a name="line-359"></a><span class='hs-comment'>--</span>
-<a name="line-360"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _init .~ [a,b]</span>
-<a name="line-361"></a><span class='hs-comment'>-- []</span>
-<a name="line-362"></a><span class='hs-comment'>--</span>
-<a name="line-363"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c,d] &amp; _init.traverse %~ f</span>
-<a name="line-364"></a><span class='hs-comment'>-- [f a,f b,f c,d]</span>
-<a name="line-365"></a><span class='hs-comment'>--</span>
-<a name="line-366"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2,3]^?_init</span>
-<a name="line-367"></a><span class='hs-comment'>-- Just [1,2]</span>
-<a name="line-368"></a><span class='hs-comment'>--</span>
-<a name="line-369"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2,3,4]^?!_init</span>
-<a name="line-370"></a><span class='hs-comment'>-- [1,2,3]</span>
-<a name="line-371"></a><span class='hs-comment'>--</span>
-<a name="line-372"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello"^._init</span>
-<a name="line-373"></a><span class='hs-comment'>-- "hell"</span>
-<a name="line-374"></a><span class='hs-comment'>--</span>
-<a name="line-375"></a><span class='hs-comment'>-- &gt;&gt;&gt; ""^._init</span>
-<a name="line-376"></a><span class='hs-comment'>-- ""</span>
-<a name="line-377"></a><span class='hs-comment'>--</span>
-<a name="line-378"></a><span class='hs-comment'>-- @</span>
-<a name="line-379"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' [a] a</span>
-<a name="line-380"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' ('Seq' a) a</span>
-<a name="line-381"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' ('Vector' a) a</span>
-<a name="line-382"></a><span class='hs-comment'>-- @</span>
-<a name="line-383"></a><span class='hs-sel'>_init</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span>
-<a name="line-384"></a><span class='hs-sel'>_init</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_Snoc</span><span class='hs-varop'>.</span><span class='hs-sel'>_1</span>
-<a name="line-385"></a><span class='hs-comment'>{-# INLINE _init #-}</span>
-<a name="line-386"></a>
-<a name="line-387"></a><span class='hs-comment'>-- | A 'Traversal' reading and writing to the last element of a /non-empty/ container.</span>
-<a name="line-388"></a><span class='hs-comment'>--</span>
-<a name="line-389"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c]^?!_last</span>
-<a name="line-390"></a><span class='hs-comment'>-- c</span>
-<a name="line-391"></a><span class='hs-comment'>--</span>
-<a name="line-392"></a><span class='hs-comment'>-- &gt;&gt;&gt; []^?_last</span>
-<a name="line-393"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-394"></a><span class='hs-comment'>--</span>
-<a name="line-395"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c] &amp; _last %~ f</span>
-<a name="line-396"></a><span class='hs-comment'>-- [a,b,f c]</span>
-<a name="line-397"></a><span class='hs-comment'>--</span>
-<a name="line-398"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2]^?_last</span>
-<a name="line-399"></a><span class='hs-comment'>-- Just 2</span>
-<a name="line-400"></a><span class='hs-comment'>--</span>
-<a name="line-401"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _last .~ 1</span>
-<a name="line-402"></a><span class='hs-comment'>-- []</span>
-<a name="line-403"></a><span class='hs-comment'>--</span>
-<a name="line-404"></a><span class='hs-comment'>-- &gt;&gt;&gt; [0] &amp; _last .~ 2</span>
-<a name="line-405"></a><span class='hs-comment'>-- [2]</span>
-<a name="line-406"></a><span class='hs-comment'>--</span>
-<a name="line-407"></a><span class='hs-comment'>-- &gt;&gt;&gt; [0,1] &amp; _last .~ 2</span>
-<a name="line-408"></a><span class='hs-comment'>-- [0,2]</span>
-<a name="line-409"></a><span class='hs-comment'>--</span>
-<a name="line-410"></a><span class='hs-comment'>-- This 'Traversal' is not limited to lists, however. We can also work with other containers, such as a 'Vector'.</span>
-<a name="line-411"></a><span class='hs-comment'>--</span>
-<a name="line-412"></a><span class='hs-comment'>-- &gt;&gt;&gt; Vector.fromList "abcde" ^? _last</span>
-<a name="line-413"></a><span class='hs-comment'>-- Just 'e'</span>
-<a name="line-414"></a><span class='hs-comment'>--</span>
-<a name="line-415"></a><span class='hs-comment'>-- &gt;&gt;&gt; Vector.empty ^? _last</span>
-<a name="line-416"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-417"></a><span class='hs-comment'>--</span>
-<a name="line-418"></a><span class='hs-comment'>-- &gt;&gt;&gt; Vector.fromList "abcde" &amp; _last .~ 'Q'</span>
-<a name="line-419"></a><span class='hs-comment'>-- fromList "abcdQ"</span>
-<a name="line-420"></a><span class='hs-comment'>--</span>
-<a name="line-421"></a><span class='hs-comment'>-- @</span>
-<a name="line-422"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' [a] [a]</span>
-<a name="line-423"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' ('Seq' a) ('Seq' a)</span>
-<a name="line-424"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' ('Vector' a) ('Vector' a)</span>
-<a name="line-425"></a><span class='hs-comment'>-- @</span>
-<a name="line-426"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
-<a name="line-427"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_Snoc</span><span class='hs-varop'>.</span><span class='hs-sel'>_2</span>
-<a name="line-428"></a><span class='hs-comment'>{-# INLINE _last #-}</span>
-<a name="line-429"></a>
-<a name="line-430"></a><a name="%7c%3e"></a><span class='hs-comment'>-- | 'snoc' an element onto the end of a container.</span>
-<a name="line-431"></a><span class='hs-comment'>--</span>
-<a name="line-432"></a><span class='hs-comment'>-- This is an infix alias for 'snoc'.</span>
-<a name="line-433"></a><span class='hs-layout'>(</span><span class='hs-varop'>|&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-conid'>Reviewed</span> <span class='hs-conid'>Identity</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span>
-<a name="line-434"></a><span class='hs-layout'>(</span><span class='hs-varop'>|&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curry</span> <span class='hs-layout'>(</span><span class='hs-varid'>simply</span> <span class='hs-varid'>review</span> <span class='hs-sel'>_Snoc</span><span class='hs-layout'>)</span>
-<a name="line-435"></a><span class='hs-comment'>{-# INLINE (|&gt;) #-}</span>
-<a name="line-436"></a>
-<a name="line-437"></a><a name="snoc"></a><span class='hs-comment'>-- | 'snoc' an element onto the end of a container.</span>
-<a name="line-438"></a><span class='hs-definition'>snoc</span>  <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-conid'>Reviewed</span> <span class='hs-conid'>Identity</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span>
-<a name="line-439"></a><span class='hs-definition'>snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curry</span> <span class='hs-layout'>(</span><span class='hs-varid'>simply</span> <span class='hs-varid'>review</span> <span class='hs-sel'>_Snoc</span><span class='hs-layout'>)</span>
-<a name="line-440"></a><span class='hs-comment'>{-# INLINE snoc #-}</span>
-<a name="line-441"></a>
-<a name="line-442"></a><a name="unsnoc"></a><span class='hs-comment'>-- | Attempt to extract the right-most element from a container, and a version of the container without that element.</span>
-<a name="line-443"></a><span class='hs-definition'>unsnoc</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Accessor</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-444"></a><span class='hs-definition'>unsnoc</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>simply</span> <span class='hs-varid'>preview</span> <span class='hs-sel'>_Snoc</span> <span class='hs-varid'>s</span>
-<a name="line-445"></a><span class='hs-comment'>{-# INLINE unsnoc #-}</span>
+<a name="line-158"></a><span class='hs-comment'>{-# INLINE cons #-}</span>
+<a name="line-159"></a>
+<a name="line-160"></a><a name="uncons"></a><span class='hs-comment'>-- | Attempt to extract the left-most element from a container, and a version of the container without that element.</span>
+<a name="line-161"></a><span class='hs-definition'>uncons</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Cons</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Accessor</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
+<a name="line-162"></a><span class='hs-definition'>uncons</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>simply</span> <span class='hs-varid'>preview</span> <span class='hs-sel'>_Cons</span>
+<a name="line-163"></a><span class='hs-comment'>{-# INLINE uncons #-}</span>
+<a name="line-164"></a>
+<a name="line-165"></a><span class='hs-comment'>-- | A 'Traversal' reading and writing to the 'head' of a /non-empty/ container.</span>
+<a name="line-166"></a><span class='hs-comment'>--</span>
+<a name="line-167"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c]^? _head</span>
+<a name="line-168"></a><span class='hs-comment'>-- Just a</span>
+<a name="line-169"></a><span class='hs-comment'>--</span>
+<a name="line-170"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c] &amp; _head .~ d</span>
+<a name="line-171"></a><span class='hs-comment'>-- [d,b,c]</span>
+<a name="line-172"></a><span class='hs-comment'>--</span>
+<a name="line-173"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c] &amp; _head %~ f</span>
+<a name="line-174"></a><span class='hs-comment'>-- [f a,b,c]</span>
+<a name="line-175"></a><span class='hs-comment'>--</span>
+<a name="line-176"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _head %~ f</span>
+<a name="line-177"></a><span class='hs-comment'>-- []</span>
+<a name="line-178"></a><span class='hs-comment'>--</span>
+<a name="line-179"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2,3]^?!_head</span>
+<a name="line-180"></a><span class='hs-comment'>-- 1</span>
+<a name="line-181"></a><span class='hs-comment'>--</span>
+<a name="line-182"></a><span class='hs-comment'>-- &gt;&gt;&gt; []^?_head</span>
+<a name="line-183"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-184"></a><span class='hs-comment'>--</span>
+<a name="line-185"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2]^?_head</span>
+<a name="line-186"></a><span class='hs-comment'>-- Just 1</span>
+<a name="line-187"></a><span class='hs-comment'>--</span>
+<a name="line-188"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _head .~ 1</span>
+<a name="line-189"></a><span class='hs-comment'>-- []</span>
+<a name="line-190"></a><span class='hs-comment'>--</span>
+<a name="line-191"></a><span class='hs-comment'>-- &gt;&gt;&gt; [0] &amp; _head .~ 2</span>
+<a name="line-192"></a><span class='hs-comment'>-- [2]</span>
+<a name="line-193"></a><span class='hs-comment'>--</span>
+<a name="line-194"></a><span class='hs-comment'>-- &gt;&gt;&gt; [0,1] &amp; _head .~ 2</span>
+<a name="line-195"></a><span class='hs-comment'>-- [2,1]</span>
+<a name="line-196"></a><span class='hs-comment'>--</span>
+<a name="line-197"></a><span class='hs-comment'>-- This isn't limited to lists.</span>
+<a name="line-198"></a><span class='hs-comment'>--</span>
+<a name="line-199"></a><span class='hs-comment'>-- For instance you can also 'Data.Traversable.traverse' the head of a 'Seq':</span>
+<a name="line-200"></a><span class='hs-comment'>--</span>
+<a name="line-201"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b,c,d] &amp; _head %~ f</span>
+<a name="line-202"></a><span class='hs-comment'>-- fromList [f a,b,c,d]</span>
+<a name="line-203"></a><span class='hs-comment'>--</span>
+<a name="line-204"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [] ^? _head</span>
+<a name="line-205"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-206"></a><span class='hs-comment'>--</span>
+<a name="line-207"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b,c,d] ^? _head</span>
+<a name="line-208"></a><span class='hs-comment'>-- Just a</span>
+<a name="line-209"></a><span class='hs-comment'>--</span>
+<a name="line-210"></a><span class='hs-comment'>-- @</span>
+<a name="line-211"></a><span class='hs-comment'>-- '_head' :: 'Traversal'' [a] a</span>
+<a name="line-212"></a><span class='hs-comment'>-- '_head' :: 'Traversal'' ('Seq' a) a</span>
+<a name="line-213"></a><span class='hs-comment'>-- '_head' :: 'Traversal'' ('Vector' a) a</span>
+<a name="line-214"></a><span class='hs-comment'>-- @</span>
+<a name="line-215"></a><span class='hs-sel'>_head</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Cons</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
+<a name="line-216"></a><span class='hs-sel'>_head</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_Cons</span><span class='hs-varop'>.</span><span class='hs-sel'>_1</span>
+<a name="line-217"></a><span class='hs-comment'>{-# INLINE _head #-}</span>
+<a name="line-218"></a>
+<a name="line-219"></a><span class='hs-comment'>-- | A 'Traversal' reading and writing to the 'tail' of a /non-empty/ container.</span>
+<a name="line-220"></a><span class='hs-comment'>--</span>
+<a name="line-221"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b] &amp; _tail .~ [c,d,e]</span>
+<a name="line-222"></a><span class='hs-comment'>-- [a,c,d,e]</span>
+<a name="line-223"></a><span class='hs-comment'>--</span>
+<a name="line-224"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _tail .~ [a,b]</span>
+<a name="line-225"></a><span class='hs-comment'>-- []</span>
+<a name="line-226"></a><span class='hs-comment'>--</span>
+<a name="line-227"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c,d,e] &amp; _tail.traverse %~ f</span>
+<a name="line-228"></a><span class='hs-comment'>-- [a,f b,f c,f d,f e]</span>
+<a name="line-229"></a><span class='hs-comment'>--</span>
+<a name="line-230"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2] &amp; _tail .~ [3,4,5]</span>
+<a name="line-231"></a><span class='hs-comment'>-- [1,3,4,5]</span>
+<a name="line-232"></a><span class='hs-comment'>--</span>
+<a name="line-233"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _tail .~ [1,2]</span>
+<a name="line-234"></a><span class='hs-comment'>-- []</span>
+<a name="line-235"></a><span class='hs-comment'>--</span>
+<a name="line-236"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c]^?_tail</span>
+<a name="line-237"></a><span class='hs-comment'>-- Just [b,c]</span>
+<a name="line-238"></a><span class='hs-comment'>--</span>
+<a name="line-239"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2]^?!_tail</span>
+<a name="line-240"></a><span class='hs-comment'>-- [2]</span>
+<a name="line-241"></a><span class='hs-comment'>--</span>
+<a name="line-242"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello"^._tail</span>
+<a name="line-243"></a><span class='hs-comment'>-- "ello"</span>
+<a name="line-244"></a><span class='hs-comment'>--</span>
+<a name="line-245"></a><span class='hs-comment'>-- &gt;&gt;&gt; ""^._tail</span>
+<a name="line-246"></a><span class='hs-comment'>-- ""</span>
+<a name="line-247"></a><span class='hs-comment'>--</span>
+<a name="line-248"></a><span class='hs-comment'>-- This isn't limited to lists. For instance you can also 'Control.Traversable.traverse' the tail of a 'Seq'.</span>
+<a name="line-249"></a><span class='hs-comment'>--</span>
+<a name="line-250"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b] &amp; _tail .~ Seq.fromList [c,d,e]</span>
+<a name="line-251"></a><span class='hs-comment'>-- fromList [a,c,d,e]</span>
+<a name="line-252"></a><span class='hs-comment'>--</span>
+<a name="line-253"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [a,b,c] ^? _tail</span>
+<a name="line-254"></a><span class='hs-comment'>-- Just (fromList [b,c])</span>
+<a name="line-255"></a><span class='hs-comment'>--</span>
+<a name="line-256"></a><span class='hs-comment'>-- &gt;&gt;&gt; Seq.fromList [] ^? _tail</span>
+<a name="line-257"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-258"></a><span class='hs-comment'>--</span>
+<a name="line-259"></a><span class='hs-comment'>-- @</span>
+<a name="line-260"></a><span class='hs-comment'>-- '_tail' :: 'Traversal'' [a] [a]</span>
+<a name="line-261"></a><span class='hs-comment'>-- '_tail' :: 'Traversal'' ('Seq' a) ('Seq' a)</span>
+<a name="line-262"></a><span class='hs-comment'>-- '_tail' :: 'Traversal'' ('Vector' a) ('Vector' a)</span>
+<a name="line-263"></a><span class='hs-comment'>-- @</span>
+<a name="line-264"></a><span class='hs-sel'>_tail</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Cons</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span>
+<a name="line-265"></a><span class='hs-sel'>_tail</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_Cons</span><span class='hs-varop'>.</span><span class='hs-sel'>_2</span>
+<a name="line-266"></a><span class='hs-comment'>{-# INLINE _tail #-}</span>
+<a name="line-267"></a>
+<a name="line-268"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-269"></a><span class='hs-comment'>-- Snoc</span>
+<a name="line-270"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-271"></a>
+<a name="line-272"></a><a name="Snoc"></a><span class='hs-comment'>-- | This class provides a way to attach or detach elements on the right</span>
+<a name="line-273"></a><a name="Snoc"></a><span class='hs-comment'>-- side of a structure in a flexible manner.</span>
+<a name="line-274"></a><a name="Snoc"></a><span class='hs-keyword'>class</span> <span class='hs-layout'>(</span><span class='hs-conid'>Profunctor</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Functor</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>|</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>,</span> <span class='hs-varid'>s</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span><span class='hs-layout'>,</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyword'>where</span>
+<a name="line-275"></a>  <span class='hs-comment'>-- | Most of the time this is a 'Prism'.</span>
+<a name="line-276"></a>  <span class='hs-comment'>--</span>
+<a name="line-277"></a>  <span class='hs-comment'>-- @</span>
+<a name="line-278"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism' [a] [b] (a, [a]) (b, [b])</span>
+<a name="line-279"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism' ('Seq' a) ('Seq' b) ('Seq' a, a) ('Seq' b, b)</span>
+<a name="line-280"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism' ('Vector' a) ('Vector' b) ('Vector' a, a) ('Vector' b, b)</span>
+<a name="line-281"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism'' 'String' ('String', 'Char')</span>
+<a name="line-282"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism'' 'StrictT.Text' ('StrictT.Text', 'Char')</span>
+<a name="line-283"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism'' 'StrictB.ByteString' ('StrictB.ByteString', 'Word8')</span>
+<a name="line-284"></a>  <span class='hs-comment'>-- @</span>
+<a name="line-285"></a>  <span class='hs-comment'>--</span>
+<a name="line-286"></a>  <span class='hs-comment'>-- However, by including @p@ and @f@ in the class you can write instances that only permit 'unsnoc'</span>
+<a name="line-287"></a>  <span class='hs-comment'>-- or which only permit 'snoc' or where '_init' and '_last' are lenses and not traversals.</span>
+<a name="line-288"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Overloaded</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span><span class='hs-layout'>,</span><span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span><span class='hs-layout'>,</span><span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-289"></a>
+<a name="line-290"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>b</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
+<a name="line-291"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-layout'>(</span><span class='hs-keyword'>as</span><span class='hs-layout'>,</span><span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Prelude</span><span class='hs-varop'>.++</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>aas</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>aas</span>
+<a name="line-292"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>[]</span>
+<a name="line-293"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-varid'>aas</span><span class='hs-layout'>,</span> <span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-varid'>aas</span><span class='hs-layout'>)</span>
+<a name="line-294"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
+<a name="line-295"></a>
+<a name="line-296"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
+<a name="line-297"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-layout'>(</span><span class='hs-conid'>Seq</span><span class='hs-varop'>.|&gt;</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>aas</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>viewr</span> <span class='hs-varid'>aas</span> <span class='hs-keyword'>of</span>
+<a name="line-298"></a>    <span class='hs-keyword'>as</span> <span class='hs-conop'>:&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-keyword'>as</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-299"></a>    <span class='hs-conid'>EmptyR</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Left</span> <span class='hs-varid'>mempty</span>
+<a name="line-300"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
+<a name="line-301"></a>
+<a name="line-302"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
+<a name="line-303"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>Vector</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>Vector</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
+<a name="line-304"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>Vector</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
+<a name="line-305"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Vector</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeInit</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>Vector</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeLast</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-306"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
+<a name="line-307"></a>
+<a name="line-308"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Prim</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-conid'>Prim</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
+<a name="line-309"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
+<a name="line-310"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
+<a name="line-311"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeInit</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>Prim</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeLast</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-312"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
+<a name="line-313"></a>
+<a name="line-314"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Storable</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-conid'>Storable</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
+<a name="line-315"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
+<a name="line-316"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
+<a name="line-317"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeInit</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>Storable</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeLast</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-318"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
+<a name="line-319"></a>
+<a name="line-320"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Unbox</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-conid'>Unbox</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-conid'>Vector</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
+<a name="line-321"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
+<a name="line-322"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
+<a name="line-323"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeInit</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>Unbox</span><span class='hs-varop'>.</span><span class='hs-varid'>unsafeLast</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-324"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
+<a name="line-325"></a>
+<a name="line-326"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-conid'>Word8</span> <span class='hs-conid'>Word8</span> <span class='hs-keyword'>where</span>
+<a name="line-327"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
+<a name="line-328"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
+<a name="line-329"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>StrictB</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-330"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
+<a name="line-331"></a>
+<a name="line-332"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-conid'>Word8</span> <span class='hs-conid'>Word8</span> <span class='hs-keyword'>where</span>
+<a name="line-333"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
+<a name="line-334"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
+<a name="line-335"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>LazyB</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-336"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
+<a name="line-337"></a>
+<a name="line-338"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-conid'>Char</span> <span class='hs-conid'>Char</span> <span class='hs-keyword'>where</span>
+<a name="line-339"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
+<a name="line-340"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
+<a name="line-341"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>StrictT</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-342"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
+<a name="line-343"></a>
+<a name="line-344"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Snoc</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-conid'>Char</span> <span class='hs-conid'>Char</span> <span class='hs-keyword'>where</span>
+<a name="line-345"></a>  <span class='hs-sel'>_Snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism</span> <span class='hs-layout'>(</span><span class='hs-varid'>uncurry</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-varid'>snoc</span><span class='hs-layout'>)</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>v</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>if</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-varid'>null</span> <span class='hs-varid'>v</span>
+<a name="line-346"></a>    <span class='hs-keyword'>then</span> <span class='hs-conid'>Left</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-varid'>empty</span>
+<a name="line-347"></a>    <span class='hs-keyword'>else</span> <span class='hs-conid'>Right</span> <span class='hs-layout'>(</span><span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-varid'>init</span> <span class='hs-varid'>v</span><span class='hs-layout'>,</span> <span class='hs-conid'>LazyT</span><span class='hs-varop'>.</span><span class='hs-varid'>last</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span>
+<a name="line-348"></a>  <span class='hs-comment'>{-# INLINE _Snoc #-}</span>
+<a name="line-349"></a>
+<a name="line-350"></a><span class='hs-comment'>-- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ container.</span>
+<a name="line-351"></a><span class='hs-comment'>--</span>
+<a name="line-352"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c,d]^?_init</span>
+<a name="line-353"></a><span class='hs-comment'>-- Just [a,b,c]</span>
+<a name="line-354"></a><span class='hs-comment'>--</span>
+<a name="line-355"></a><span class='hs-comment'>-- &gt;&gt;&gt; []^?_init</span>
+<a name="line-356"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-357"></a><span class='hs-comment'>--</span>
+<a name="line-358"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b] &amp; _init .~ [c,d,e]</span>
+<a name="line-359"></a><span class='hs-comment'>-- [c,d,e,b]</span>
+<a name="line-360"></a><span class='hs-comment'>--</span>
+<a name="line-361"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _init .~ [a,b]</span>
+<a name="line-362"></a><span class='hs-comment'>-- []</span>
+<a name="line-363"></a><span class='hs-comment'>--</span>
+<a name="line-364"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c,d] &amp; _init.traverse %~ f</span>
+<a name="line-365"></a><span class='hs-comment'>-- [f a,f b,f c,d]</span>
+<a name="line-366"></a><span class='hs-comment'>--</span>
+<a name="line-367"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2,3]^?_init</span>
+<a name="line-368"></a><span class='hs-comment'>-- Just [1,2]</span>
+<a name="line-369"></a><span class='hs-comment'>--</span>
+<a name="line-370"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2,3,4]^?!_init</span>
+<a name="line-371"></a><span class='hs-comment'>-- [1,2,3]</span>
+<a name="line-372"></a><span class='hs-comment'>--</span>
+<a name="line-373"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello"^._init</span>
+<a name="line-374"></a><span class='hs-comment'>-- "hell"</span>
+<a name="line-375"></a><span class='hs-comment'>--</span>
+<a name="line-376"></a><span class='hs-comment'>-- &gt;&gt;&gt; ""^._init</span>
+<a name="line-377"></a><span class='hs-comment'>-- ""</span>
+<a name="line-378"></a><span class='hs-comment'>--</span>
+<a name="line-379"></a><span class='hs-comment'>-- @</span>
+<a name="line-380"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' [a] a</span>
+<a name="line-381"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' ('Seq' a) a</span>
+<a name="line-382"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' ('Vector' a) a</span>
+<a name="line-383"></a><span class='hs-comment'>-- @</span>
+<a name="line-384"></a><span class='hs-sel'>_init</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span>
+<a name="line-385"></a><span class='hs-sel'>_init</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_Snoc</span><span class='hs-varop'>.</span><span class='hs-sel'>_1</span>
+<a name="line-386"></a><span class='hs-comment'>{-# INLINE _init #-}</span>
+<a name="line-387"></a>
+<a name="line-388"></a><span class='hs-comment'>-- | A 'Traversal' reading and writing to the last element of a /non-empty/ container.</span>
+<a name="line-389"></a><span class='hs-comment'>--</span>
+<a name="line-390"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c]^?!_last</span>
+<a name="line-391"></a><span class='hs-comment'>-- c</span>
+<a name="line-392"></a><span class='hs-comment'>--</span>
+<a name="line-393"></a><span class='hs-comment'>-- &gt;&gt;&gt; []^?_last</span>
+<a name="line-394"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-395"></a><span class='hs-comment'>--</span>
+<a name="line-396"></a><span class='hs-comment'>-- &gt;&gt;&gt; [a,b,c] &amp; _last %~ f</span>
+<a name="line-397"></a><span class='hs-comment'>-- [a,b,f c]</span>
+<a name="line-398"></a><span class='hs-comment'>--</span>
+<a name="line-399"></a><span class='hs-comment'>-- &gt;&gt;&gt; [1,2]^?_last</span>
+<a name="line-400"></a><span class='hs-comment'>-- Just 2</span>
+<a name="line-401"></a><span class='hs-comment'>--</span>
+<a name="line-402"></a><span class='hs-comment'>-- &gt;&gt;&gt; [] &amp; _last .~ 1</span>
+<a name="line-403"></a><span class='hs-comment'>-- []</span>
+<a name="line-404"></a><span class='hs-comment'>--</span>
+<a name="line-405"></a><span class='hs-comment'>-- &gt;&gt;&gt; [0] &amp; _last .~ 2</span>
+<a name="line-406"></a><span class='hs-comment'>-- [2]</span>
+<a name="line-407"></a><span class='hs-comment'>--</span>
+<a name="line-408"></a><span class='hs-comment'>-- &gt;&gt;&gt; [0,1] &amp; _last .~ 2</span>
+<a name="line-409"></a><span class='hs-comment'>-- [0,2]</span>
+<a name="line-410"></a><span class='hs-comment'>--</span>
+<a name="line-411"></a><span class='hs-comment'>-- This 'Traversal' is not limited to lists, however. We can also work with other containers, such as a 'Vector'.</span>
+<a name="line-412"></a><span class='hs-comment'>--</span>
+<a name="line-413"></a><span class='hs-comment'>-- &gt;&gt;&gt; Vector.fromList "abcde" ^? _last</span>
+<a name="line-414"></a><span class='hs-comment'>-- Just 'e'</span>
+<a name="line-415"></a><span class='hs-comment'>--</span>
+<a name="line-416"></a><span class='hs-comment'>-- &gt;&gt;&gt; Vector.empty ^? _last</span>
+<a name="line-417"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-418"></a><span class='hs-comment'>--</span>
+<a name="line-419"></a><span class='hs-comment'>-- &gt;&gt;&gt; Vector.fromList "abcde" &amp; _last .~ 'Q'</span>
+<a name="line-420"></a><span class='hs-comment'>-- fromList "abcdQ"</span>
+<a name="line-421"></a><span class='hs-comment'>--</span>
+<a name="line-422"></a><span class='hs-comment'>-- @</span>
+<a name="line-423"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' [a] [a]</span>
+<a name="line-424"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' ('Seq' a) ('Seq' a)</span>
+<a name="line-425"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' ('Vector' a) ('Vector' a)</span>
+<a name="line-426"></a><span class='hs-comment'>-- @</span>
+<a name="line-427"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
+<a name="line-428"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_Snoc</span><span class='hs-varop'>.</span><span class='hs-sel'>_2</span>
+<a name="line-429"></a><span class='hs-comment'>{-# INLINE _last #-}</span>
+<a name="line-430"></a>
+<a name="line-431"></a><a name="%7c%3e"></a><span class='hs-comment'>-- | 'snoc' an element onto the end of a container.</span>
+<a name="line-432"></a><span class='hs-comment'>--</span>
+<a name="line-433"></a><span class='hs-comment'>-- This is an infix alias for 'snoc'.</span>
+<a name="line-434"></a><span class='hs-layout'>(</span><span class='hs-varop'>|&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-conid'>Reviewed</span> <span class='hs-conid'>Identity</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span>
+<a name="line-435"></a><span class='hs-layout'>(</span><span class='hs-varop'>|&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curry</span> <span class='hs-layout'>(</span><span class='hs-varid'>simply</span> <span class='hs-varid'>review</span> <span class='hs-sel'>_Snoc</span><span class='hs-layout'>)</span>
+<a name="line-436"></a><span class='hs-comment'>{-# INLINE (|&gt;) #-}</span>
+<a name="line-437"></a>
+<a name="line-438"></a><a name="snoc"></a><span class='hs-comment'>-- | 'snoc' an element onto the end of a container.</span>
+<a name="line-439"></a><span class='hs-definition'>snoc</span>  <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-conid'>Reviewed</span> <span class='hs-conid'>Identity</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span>
+<a name="line-440"></a><span class='hs-definition'>snoc</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>curry</span> <span class='hs-layout'>(</span><span class='hs-varid'>simply</span> <span class='hs-varid'>review</span> <span class='hs-sel'>_Snoc</span><span class='hs-layout'>)</span>
+<a name="line-441"></a><span class='hs-comment'>{-# INLINE snoc #-}</span>
+<a name="line-442"></a>
+<a name="line-443"></a><a name="unsnoc"></a><span class='hs-comment'>-- | Attempt to extract the right-most element from a container, and a version of the container without that element.</span>
+<a name="line-444"></a><span class='hs-definition'>unsnoc</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Accessor</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-445"></a><span class='hs-definition'>unsnoc</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>simply</span> <span class='hs-varid'>preview</span> <span class='hs-sel'>_Snoc</span> <span class='hs-varid'>s</span>
+<a name="line-446"></a><span class='hs-comment'>{-# INLINE unsnoc #-}</span>
 </pre></body>
 </html>

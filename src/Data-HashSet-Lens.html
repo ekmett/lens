@@ -34,28 +34,29 @@
 <a name="line-25"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Hashable</span>
 <a name="line-26"></a>
 <a name="line-27"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-28"></a><span class='hs-comment'>-- &gt;&gt;&gt; :m + Data.HashSet Control.Lens</span>
-<a name="line-29"></a>
-<a name="line-30"></a><a name="setmapped"></a><span class='hs-comment'>-- | This 'Setter' can be used to change the type of a 'HashSet' by mapping</span>
-<a name="line-31"></a><span class='hs-comment'>-- the elements to new values.</span>
-<a name="line-32"></a><span class='hs-comment'>--</span>
-<a name="line-33"></a><span class='hs-comment'>-- Sadly, you can't create a valid 'Traversal' for a 'Set', but you can</span>
-<a name="line-34"></a><span class='hs-comment'>-- manipulate it by reading using 'Control.Lens.Fold.folded' and reindexing it via 'setmapped'.</span>
-<a name="line-35"></a><span class='hs-definition'>setmapped</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span> <span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-conid'>Hashable</span> <span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>j</span><span class='hs-layout'>,</span> <span class='hs-conid'>Hashable</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>IndexPreservingSetter</span> <span class='hs-layout'>(</span><span class='hs-conid'>HashSet</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>HashSet</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-varid'>i</span> <span class='hs-varid'>j</span>
-<a name="line-36"></a><span class='hs-definition'>setmapped</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>setting</span> <span class='hs-conid'>HashSet</span><span class='hs-varop'>.</span><span class='hs-varid'>map</span>
-<a name="line-37"></a><span class='hs-comment'>{-# INLINE setmapped #-}</span>
-<a name="line-38"></a>
-<a name="line-39"></a><a name="setOf"></a><span class='hs-comment'>-- | Construct a set from a 'Getter', 'Control.Lens.Fold.Fold', 'Control.Lens.Traversal.Traversal', 'Control.Lens.Lens.Lens' or 'Control.Lens.Iso.Iso'.</span>
-<a name="line-40"></a><span class='hs-comment'>--</span>
-<a name="line-41"></a><span class='hs-comment'>-- @</span>
-<a name="line-42"></a><span class='hs-comment'>-- 'setOf' :: 'Hashable' a         =&gt; 'Getter' s a     -&gt; s -&gt; 'HashSet' a</span>
-<a name="line-43"></a><span class='hs-comment'>-- 'setOf' :: ('Eq' a, 'Hashable' a) =&gt; 'Fold' s a       -&gt; s -&gt; 'HashSet' a</span>
-<a name="line-44"></a><span class='hs-comment'>-- 'setOf' :: 'Hashable' a         =&gt; 'Iso'' s a       -&gt; s -&gt; 'HashSet' a</span>
-<a name="line-45"></a><span class='hs-comment'>-- 'setOf' :: 'Hashable' a         =&gt; 'Lens'' s a      -&gt; s -&gt; 'HashSet' a</span>
-<a name="line-46"></a><span class='hs-comment'>-- 'setOf' :: ('Eq' a, 'Hashable' a) =&gt; 'Traversal'' s a -&gt; s -&gt; 'HashSet' a</span>
-<a name="line-47"></a><span class='hs-comment'>-- @</span>
-<a name="line-48"></a><span class='hs-definition'>setOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Hashable</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>HashSet</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>HashSet</span> <span class='hs-varid'>a</span>
-<a name="line-49"></a><span class='hs-definition'>setOf</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>views</span> <span class='hs-varid'>l</span> <span class='hs-conid'>HashSet</span><span class='hs-varop'>.</span><span class='hs-varid'>singleton</span>
-<a name="line-50"></a><span class='hs-comment'>{-# INLINE setOf #-}</span>
+<a name="line-28"></a><span class='hs-comment'>-- &gt;&gt;&gt; :set -XNoOverloadedStrings</span>
+<a name="line-29"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
+<a name="line-30"></a>
+<a name="line-31"></a><a name="setmapped"></a><span class='hs-comment'>-- | This 'Setter' can be used to change the type of a 'HashSet' by mapping</span>
+<a name="line-32"></a><span class='hs-comment'>-- the elements to new values.</span>
+<a name="line-33"></a><span class='hs-comment'>--</span>
+<a name="line-34"></a><span class='hs-comment'>-- Sadly, you can't create a valid 'Traversal' for a 'Set', but you can</span>
+<a name="line-35"></a><span class='hs-comment'>-- manipulate it by reading using 'Control.Lens.Fold.folded' and reindexing it via 'setmapped'.</span>
+<a name="line-36"></a><span class='hs-definition'>setmapped</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span> <span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-conid'>Hashable</span> <span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>j</span><span class='hs-layout'>,</span> <span class='hs-conid'>Hashable</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>IndexPreservingSetter</span> <span class='hs-layout'>(</span><span class='hs-conid'>HashSet</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>HashSet</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-varid'>i</span> <span class='hs-varid'>j</span>
+<a name="line-37"></a><span class='hs-definition'>setmapped</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>setting</span> <span class='hs-conid'>HashSet</span><span class='hs-varop'>.</span><span class='hs-varid'>map</span>
+<a name="line-38"></a><span class='hs-comment'>{-# INLINE setmapped #-}</span>
+<a name="line-39"></a>
+<a name="line-40"></a><a name="setOf"></a><span class='hs-comment'>-- | Construct a set from a 'Getter', 'Control.Lens.Fold.Fold', 'Control.Lens.Traversal.Traversal', 'Control.Lens.Lens.Lens' or 'Control.Lens.Iso.Iso'.</span>
+<a name="line-41"></a><span class='hs-comment'>--</span>
+<a name="line-42"></a><span class='hs-comment'>-- @</span>
+<a name="line-43"></a><span class='hs-comment'>-- 'setOf' :: 'Hashable' a         =&gt; 'Getter' s a     -&gt; s -&gt; 'HashSet' a</span>
+<a name="line-44"></a><span class='hs-comment'>-- 'setOf' :: ('Eq' a, 'Hashable' a) =&gt; 'Fold' s a       -&gt; s -&gt; 'HashSet' a</span>
+<a name="line-45"></a><span class='hs-comment'>-- 'setOf' :: 'Hashable' a         =&gt; 'Iso'' s a       -&gt; s -&gt; 'HashSet' a</span>
+<a name="line-46"></a><span class='hs-comment'>-- 'setOf' :: 'Hashable' a         =&gt; 'Lens'' s a      -&gt; s -&gt; 'HashSet' a</span>
+<a name="line-47"></a><span class='hs-comment'>-- 'setOf' :: ('Eq' a, 'Hashable' a) =&gt; 'Traversal'' s a -&gt; s -&gt; 'HashSet' a</span>
+<a name="line-48"></a><span class='hs-comment'>-- @</span>
+<a name="line-49"></a><span class='hs-definition'>setOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Hashable</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>HashSet</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>HashSet</span> <span class='hs-varid'>a</span>
+<a name="line-50"></a><span class='hs-definition'>setOf</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>views</span> <span class='hs-varid'>l</span> <span class='hs-conid'>HashSet</span><span class='hs-varop'>.</span><span class='hs-varid'>singleton</span>
+<a name="line-51"></a><span class='hs-comment'>{-# INLINE setOf #-}</span>
 </pre></body>
 </html>

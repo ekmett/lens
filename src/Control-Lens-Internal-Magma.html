@@ -49,10 +49,10 @@
 <a name="line-40"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Comonad</span>
 <a name="line-41"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Bazaar</span>
 <a name="line-42"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Context</span>
-<a name="line-43"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Getter</span>
-<a name="line-44"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Indexed</span>
-<a name="line-45"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Foldable</span>
-<a name="line-46"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Functor</span><span class='hs-varop'>.</span><span class='hs-conid'>Apply</span>
+<a name="line-43"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Indexed</span>
+<a name="line-44"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Foldable</span>
+<a name="line-45"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Functor</span><span class='hs-varop'>.</span><span class='hs-conid'>Apply</span>
+<a name="line-46"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Functor</span><span class='hs-varop'>.</span><span class='hs-conid'>Contravariant</span>
 <a name="line-47"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Monoid</span>
 <a name="line-48"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Profunctor</span><span class='hs-varop'>.</span><span class='hs-conid'>Rep</span>
 <a name="line-49"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Profunctor</span><span class='hs-varop'>.</span><span class='hs-conid'>Unsafe</span>
@@ -248,11 +248,12 @@
 <a name="line-239"></a>    <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Magma</span> <span class='hs-keyword'>_</span> <span class='hs-varid'>wa</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>corep</span> <span class='hs-varid'>pafb</span> <span class='hs-varid'>wa</span>
 <a name="line-240"></a>  <span class='hs-comment'>{-# INLINE bazaar #-}</span>
 <a name="line-241"></a>
-<a name="line-242"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Gettable</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Gettable</span> <span class='hs-layout'>(</span><span class='hs-conid'>TakingWhile</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-243"></a>  <span class='hs-varid'>coerce</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>error</span> <span class='hs-str'>"coerced TakingWhile"</span><span class='hs-layout'>)</span>
-<a name="line-244"></a>
-<a name="line-245"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IndexedFunctor</span> <span class='hs-layout'>(</span><span class='hs-conid'>TakingWhile</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-246"></a>  <span class='hs-varid'>ifmap</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>fmap</span>
-<a name="line-247"></a>  <span class='hs-comment'>{-# INLINE ifmap #-}</span>
+<a name="line-242"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Contravariant</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Contravariant</span> <span class='hs-layout'>(</span><span class='hs-conid'>TakingWhile</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-243"></a>  <span class='hs-varid'>contramap</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>error</span> <span class='hs-str'>"contramap: TakingWhile"</span><span class='hs-layout'>)</span>
+<a name="line-244"></a>  <span class='hs-comment'>{-# INLINE contramap #-}</span>
+<a name="line-245"></a>
+<a name="line-246"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IndexedFunctor</span> <span class='hs-layout'>(</span><span class='hs-conid'>TakingWhile</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-247"></a>  <span class='hs-varid'>ifmap</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>fmap</span>
+<a name="line-248"></a>  <span class='hs-comment'>{-# INLINE ifmap #-}</span>
 </pre></body>
 </html>
