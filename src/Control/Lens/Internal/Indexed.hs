@@ -81,7 +81,9 @@ class
   conjoined _ r = r
   {-# INLINE [0] conjoined #-}
 
+#ifdef USE_RULES
 {-# RULES "conjoined/fun" [1] forall f g. conjoined f g = f #-}
+#endif
 
 instance Conjoined (->) where
   distrib = fmap

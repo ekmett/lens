@@ -215,7 +215,9 @@ class Functor f => FunctorWithIndex i f | f -> i where
   imapped = conjoined mapped (isets imap)
   {-# INLINE [0] imapped #-}
 
+#ifdef USE_RULES
 {-# RULES "imapped/mapped" imapped = mapped :: Functor f => Setter (f a) (f b) a b #-}
+#endif
 
 -------------------------------------------------------------------------------
 -- FoldableWithIndex
@@ -289,7 +291,9 @@ class Foldable f => FoldableWithIndex i f | f -> i where
     where f' i x k z = k $! f i z x
   {-# INLINE ifoldl' #-}
 
+#ifdef USE_RULES
 {-# RULES "ifolded/folded" ifolded = folded :: Foldable f => Fold (f a) a #-}
+#endif
 
 -- | Obtain a 'Fold' by lifting an operation that returns a 'Foldable' result.
 --
@@ -459,6 +463,7 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
   itraversed = conjoined traverse (itraverse . indexed)
   {-# INLINE[0] itraversed #-}
 
+#ifdef USE_RULES
 {-# RULES
 "itraversed/imapped"  itraversed = imapped :: FunctorWithIndex i f => IndexedLensLike i Mutator (f a) (f b) a b
 "itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor Any) (f a) a
@@ -477,6 +482,7 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
 "itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Product Double)) (f a) a
 "itraversed/ifolded"  itraversed = ifolded :: FoldableWithIndex i f => IndexedLensLike' i (Accessor (Product Float)) (f a) a
 "itraversed/traverse" itraversed = traverse #-}
+#endif
 
 -- | Traverse with an index (and the arguments flipped).
 --

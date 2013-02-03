@@ -158,6 +158,11 @@ flag lib-Werror
   default: False
   manual: True
 
+-- Enable RULES pragmas. Disable with -f-rules
+flag rules
+  default: True
+  manual: True
+
 library
   build-depends:
     array                     >= 0.3.0.2  && < 0.5,
@@ -272,6 +277,10 @@ library
     System.IO.Error.Lens
     Language.Haskell.TH.Lens
     Numeric.Lens
+
+  if flag(rules)
+    cpp-options: -DUSE_RULES=1
+    ghc-options: -frewrite-rules
 
   if flag(safe)
     cpp-options: -DSAFE=1

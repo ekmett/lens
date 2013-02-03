@@ -187,7 +187,9 @@ type Setting' p s a = Setting p s s a a
 -- If you want an 'IndexPreservingSetter' use @'setting' 'fmap'@.
 mapped :: Functor f => Setter (f a) (f b) a b
 mapped = sets fmap
+#ifdef USE_RULES
 {-# RULES "traverse/mapped" traverse = mapped :: Functor f => (a -> Mutator b) -> f a -> Mutator (f b) #-}
+#endif
 {-# INLINE mapped #-}
 
 -- | This 'setter' can be used to modify all of the values in a 'Monad'.

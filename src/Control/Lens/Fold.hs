@@ -194,7 +194,7 @@ folding sfa agb = coerce . traverse_ agb . sfa
 -- [1,2,3,4]
 folded :: Foldable f => Fold (f a) a
 folded f = coerce . getFolding . foldMap (Folding #. f)
--- "traverse/folded/All"       traverse = folded :: Foldable f => (a -> Accessor All a) -> f a -> Accessor All (f a)
+#ifdef USE_RULES
 {-# RULES
 "traverse/folded/All"       traverse = folded :: Foldable f => LensLike' (Accessor All) (f a) a
 "traverse/folded/Any"       traverse = folded :: Foldable f => LensLike' (Accessor Any) (f a) a
@@ -211,6 +211,7 @@ folded f = coerce . getFolding . foldMap (Folding #. f)
 "traverse/folded/Product"   traverse = folded :: Foldable f => LensLike' (Accessor (Product Integer)) (f a) a
 "traverse/folded/Product"   traverse = folded :: Foldable f => LensLike' (Accessor (Product Double)) (f a) a
 "traverse/folded/Product"   traverse = folded :: Foldable f => LensLike' (Accessor (Product Float)) (f a) a #-}
+#endif
 {-# INLINE folded #-}
 
 -- | 'Fold' by repeating the input forever.
