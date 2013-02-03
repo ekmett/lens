@@ -33,6 +33,7 @@ module Control.Lens.Prism
   , _Just
   , _Nothing
   , _Void
+  , only
   -- * Prismatic profunctors
   , Choice(..)
   ) where
@@ -42,6 +43,7 @@ import Control.Lens.Combinators
 import Control.Lens.Internal.Prism
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
+import Control.Monad
 import Data.Bifunctor
 import Data.Profunctor
 import Data.Void
@@ -257,3 +259,13 @@ _Nothing = prism' (const Nothing) $ maybe (Just ()) (const Nothing)
 _Void :: Prism s s a Void
 _Void = prism absurd Left
 {-# INLINE _Void #-}
+
+-- | This 'Prism' compares for exact equality with a given value.
+--
+-- >>> only 4 # ()
+-- 4
+--
+-- >>> 5 ^? only 4
+-- Nothing
+only :: Eq a => a -> Prism' a ()
+only a = prism' (\() -> a) $ guard . (a ==)

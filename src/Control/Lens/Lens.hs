@@ -104,6 +104,7 @@ module Control.Lens.Lens
 
   -- * Common Lenses
   , devoid
+  , united
 
   -- * Context
   , Context(..)
@@ -938,6 +939,27 @@ l <#= b = do
 {-# INLINE (<#=) #-}
 
 -- | There is a field for every type in the 'Void'. Very zen.
-devoid :: Lens Void Void a b
+--
+-- >>> [] & mapped.devoid +~ 1
+-- []
+--
+-- Nothing & mapped.devoid %~ abs
+-- Nothing
+--
+-- @
+-- 'devoid' :: 'Lens'' 'Void' a
+-- @
+devoid :: Over p f Void Void a b
 devoid _ = absurd
 {-# INLINE devoid #-}
+
+-- | We can always retrieve a @()@ from any type.
+--
+-- >>> "hello"^.united
+-- ()
+--
+-- >>> "hello" & united .~ ()
+-- "hello"
+united :: Lens' a ()
+united f v = f () <&> \ () -> v
+{-# INLINE united #-}
