@@ -45,7 +45,8 @@ module Control.Lens.Getter
   -- * Getters
     Getter, IndexedGetter
   , Getting, IndexedGetting
-  , Accessing
+  , Getting', IndexedGetting'
+  , Accessing, Accessing'
   -- * Building Getters
   , to
   -- * Combinators for Getters and Folds
@@ -132,15 +133,23 @@ to f = dimap f coerce
 -- you can pass a 'Control.Lens.Fold.Fold' (or
 -- 'Control.Lens.Traversal.Traversal'), otherwise you can only pass this a
 -- 'Getter' or 'Lens'.
---
 type Getting r s t a b = (a -> Accessor r b) -> s -> Accessor r t
+
+-- | @'Simple' ('Getting' r)@
+type Getting' r s a = Getting r s s a a
 
 -- | Used to consume an 'Control.Lens.Fold.IndexedFold'.
 type IndexedGetting i m s t a b = Indexed i a (Accessor m b) -> s -> Accessor m t
 
+-- | @'Simple' ('IndexedGetting' i r)@
+type IndexedGetting' i r s a = Getting i r s s a a
+
 -- | This is a convenient alias used when consuming (indexed) getters and (indexed) folds
 -- in a highly general fashion.
 type Accessing p m s t a b = p a (Accessor m b) -> s -> Accessor m t
+
+-- | @'Simple' ('Accessing' p m)@
+type Accessing' p m s a = Accessing p m s s a a
 
 -------------------------------------------------------------------------------
 -- Getting Values
