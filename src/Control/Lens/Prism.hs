@@ -32,6 +32,7 @@ module Control.Lens.Prism
   , _Right
   , _Just
   , _Nothing
+  , _Void
   -- * Prismatic profunctors
   , Choice(..)
   ) where
@@ -43,6 +44,7 @@ import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Data.Bifunctor
 import Data.Profunctor
+import Data.Void
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
@@ -248,3 +250,10 @@ _Just = prism Just $ maybe (Left Nothing) Right
 _Nothing :: Prism' (Maybe a) ()
 _Nothing = prism' (const Nothing) $ maybe (Just ()) (const Nothing)
 {-# INLINE _Nothing #-}
+
+-- | 'Void' is a logically uninhabited data type.
+--
+-- This is a 'Prism' that will always fail to match.
+_Void :: Prism s s a Void
+_Void = prism absurd Left
+{-# INLINE _Void #-}
