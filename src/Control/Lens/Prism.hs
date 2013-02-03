@@ -31,6 +31,11 @@ module Control.Lens.Prism
   , _Left
   , _Right
   , _Just
+<<<<<<< HEAD
+=======
+  , _Nothing
+  , _Void
+>>>>>>> 28024f8... Looked into the _Void
   -- * Prismatic profunctors
   , Choice(..)
   ) where
@@ -42,6 +47,7 @@ import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Data.Bifunctor
 import Data.Profunctor
+import Data.Void
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
@@ -229,3 +235,29 @@ _Right = prism Right $ either (Left . Left) Right
 _Just :: Prism (Maybe a) (Maybe b) a b
 _Just = prism Just $ maybe (Left Nothing) Right
 {-# INLINE _Just #-}
+<<<<<<< HEAD
+=======
+
+-- | This 'Prism' provides the 'Traversal' of a 'Nothing' in a 'Maybe'.
+--
+-- >>> Nothing ^? _Nothing
+-- Just ()
+--
+-- >>> Just () ^? _Nothing
+-- Nothing
+--
+-- But you can turn it around and use it to construct 'Nothing' as well:
+--
+-- >>> _Nothing # ()
+-- Nothing
+_Nothing :: Prism' (Maybe a) ()
+_Nothing = prism' (const Nothing) $ maybe (Just ()) (const Nothing)
+{-# INLINE _Nothing #-}
+
+-- | 'Void' is a logically uninhabited data type.
+--
+-- This is a 'Prism' that will always fail to match.
+_Void :: Prism s s a Void
+_Void = prism absurd Left
+{-# INLINE _Void #-}
+>>>>>>> 28024f8... Looked into the _Void
