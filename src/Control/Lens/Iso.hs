@@ -366,7 +366,7 @@ reversed = iso Iso.reversing Iso.reversing
 -- >>> "live" ^. involuted reverse
 -- "evil"
 --
--- >>> "live & involuted reverse %~ ('d':)
+-- >>> "live" & involuted reverse %~ ('d':)
 -- "lived"
 involuted :: (a -> a) -> Iso' a a
 involuted a = iso a a
