@@ -354,8 +354,8 @@ instance Strict LazyT.Text StrictT.Text where
 --
 -- >>> "live" & reversed %~ ('d':)
 -- "lived"
-reversed :: (Reversing s, Reversing t) => Iso s t s t
-reversed = iso Iso.reversing Iso.reversing
+reversed :: Reversing a => Iso' a a
+reversed = involuted Iso.reversing
 
 -- | Given a function that is its own inverse, this gives you an 'Iso' using it in both directions.
 --
