@@ -102,7 +102,7 @@ cloned = iso clone new
 -- | Convert a 'Vector' to a version that doesn't retain any extra
 -- memory.
 forced :: Vector v a => Iso' (v a) (v a)
-forced = iso force force
+forced = involuted force
 {-# INLINE forced #-}
 
 -- | This 'Traversal' will ignore any duplicates in the supplied list
