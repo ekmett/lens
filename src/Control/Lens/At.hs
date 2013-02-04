@@ -40,9 +40,6 @@ module Control.Lens.At
   -- * Contains
   , Contains(..)
   , containsIx, containsAt, containsLength, containsN, containsTest, containsLookup
-  -- * Deprecated
-  , _at
-  , resultAt
   ) where
 
 import Control.Applicative
@@ -85,12 +82,6 @@ import Data.Word
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
-
--- | Deprecated aliases for 'ix'.
-_at, resultAt :: Ixed f m => Index m -> IndexedLensLike' (Index m) f m (IxValue m)
-_at      = ix
-resultAt = ix
-{-# DEPRECATED _at, resultAt "use 'ix'. This function will be removed in version 3.9" #-}
 
 -- |
 -- This class provides a simple 'IndexedFold' (or 'IndexedTraversal') that lets you view (and modify)
