@@ -349,7 +349,7 @@ instance Strict LazyT.Text StrictT.Text where
 
 -- | An 'Iso' between a list, 'ByteString', 'Text' fragment, etc. and its reversal.
 --
--- >>> "live" ^. reversed
+-- >>> "live" ^. reversed . simple
 -- "evil"
 --
 -- >>> "live" & reversed %~ ('d':)
