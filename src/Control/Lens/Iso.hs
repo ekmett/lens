@@ -370,6 +370,7 @@ reversed = involuted Iso.reversing
 -- "lived"
 involuted :: (a -> a) -> Iso' a a
 involuted a = iso a a
+{-# INLINE involuted #-}
 
 ------------------------------------------------------------------------------
 -- Magma
