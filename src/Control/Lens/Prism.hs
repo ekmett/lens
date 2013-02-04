@@ -269,3 +269,4 @@ _Void = prism absurd Left
 -- Nothing
 only :: Eq a => a -> Prism' a ()
 only a = prism' (\() -> a) $ guard . (a ==)
+{-# INLINE only #-}
