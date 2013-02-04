@@ -4,8 +4,8 @@
 * Added `involuted` to `Control.Lens.Iso`.
 * New `RULES` pragmas now avoid performing work for features you aren't using in a given `Traversal`, such as the index, etc.
 * Factored out a common `reversed` definition from all the various forms of it around the library and placed it in `Control.Lens.Iso`.
-* Added `binary, `octal`, `decimal` and `hex` to `Numeric.Lens`.
-* Added `\_Void` and `only` to `Control.Lens.Prism`
+* Added `binary`, `octal`, `decimal` and `hex` to `Numeric.Lens`.
+* Added `_Void` and `only` to `Control.Lens.Prism`.
 * Added `devoid` and `united` to `Control.Lens.Lens`.
 * Improved interoperability:
   * Removed `Gettable`. We now use `Contravariant` and `Functor` together to derive `Getter` and `Fold`.
