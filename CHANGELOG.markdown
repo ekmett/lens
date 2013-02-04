@@ -7,8 +7,10 @@
 * Added `binary, `octal`, `decimal` and `hex` to `Numeric.Lens`.
 * Added `\_Void` and `only` to `Control.Lens.Prism`
 * Added `devoid` and `united` to `Control.Lens.Lens`.
-* Removed `Gettable`. We now use `Contravariant` and `Functor` together to derive `Getter` and `Fold`. This enables these to be defined
-  without incurring a dependency on the `lens` package!
+* Improved interoperability:
+  * Removed `Gettable`. We now use `Contravariant` and `Functor` together to derive `Getter` and `Fold`.
+  * Removed `Reviewable`. We now use `Bifunctor` and `Profunctor` together to derive `Review`.
+  * These changes enables more types to be defined without incurring a dependency on the `lens` package!
 
 3.8.5
 -----

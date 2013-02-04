@@ -35,9 +35,11 @@ import Control.Lens.Getter
 import Control.Lens.Internal.Review
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
+import Data.Bifunctor
 import Data.Functor.Identity
 import Data.Profunctor
 import Data.Profunctor.Unsafe
+import Data.Void
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -58,7 +60,7 @@ infixr 9 #
 --
 -- You can generate a 'Review' by using 'unto'. You can also use any 'Prism' or 'Iso'
 -- directly as a 'Review'.
-type Review s t a b = forall p f. (Reviewable p, Settable f) => Overloaded p f s t a b
+type Review s t a b = forall p f. (Profunctor p, Bifunctor p, Settable f) => Overloaded p f s t a b
 
 -- | A 'Simple' 'Review'
 type Review' t b = Review t t b b
@@ -75,8 +77,9 @@ type AReview' t b = AReview t t b b
 -- @
 -- 'unto' :: (b -> t) -> 'Review'' t b
 -- @
-unto :: (Reviewable p, Functor f) => (b -> t) -> Overloaded p f s t a b
-unto f = retagged . rmap (fmap f)
+unto :: (Profunctor p, Bifunctor p, Functor f) => (b -> t) -> Overloaded p f s t a b
+unto f = first absurd . lmap absurd . rmap (fmap f)
+{-# INLINE unto #-}
 
 -- | Turn a 'Prism' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
 --
