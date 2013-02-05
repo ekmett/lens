@@ -91,6 +91,7 @@ extra-source-files:
   examples/*.hs
   examples/*.lhs
   examples/bf-examples/*.bf
+  includes/*.x
   travis/cabal-apt-install
   travis/config
   AUTHORS.markdown
@@ -305,6 +306,7 @@ library
 
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields -fmax-simplifier-iterations=10
   hs-source-dirs: src
+  include-dirs: includes
 
 -- Verify that Template Haskell expansion works
 test-suite templates
