@@ -919,7 +919,7 @@ forMOf_ :: (Profunctor p, Monad m) => Accessing p (Sequenced r m) s t a b -> s -
 forMOf_ = flip . mapMOf_
 #ifdef USE_RULES
 {-# RULES
-"forMOf_ folded x3/forM_" forall s f. forMOf_ (folded.folded.folded) s f = Foldable.mapM_ (Foldable.mapM_ f) s
+"forMOf_ folded x3/forM_" forall s f. forMOf_ (folded.folded.folded) s f = Foldable.mapM_ (Foldable.mapM_ (Foldable.mapM_ f)) s
 "forMOf_ folded x2/forM_" forall s f. forMOf_ (folded.folded) s f = Foldable.mapM_ (Foldable.mapM_ f) s
 "forMOf_ folded/forM_" forMOf_ folded = Monad.forM_
 "forMOf_ folded/forM_" forMOf_ folded = Foldable.forM_
