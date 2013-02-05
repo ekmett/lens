@@ -943,7 +943,7 @@ l <#= b = do
 -- >>> [] & mapped.devoid +~ 1
 -- []
 --
--- Nothing & mapped.devoid %~ abs
+-- >>> Nothing & mapped.devoid %~ abs
 -- Nothing
 --
 -- @

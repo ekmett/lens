@@ -349,7 +349,7 @@ instance Strict LazyT.Text StrictT.Text where
 
 -- | An 'Iso' between a list, 'ByteString', 'Text' fragment, etc. and its reversal.
 --
--- >>> "live" ^. reversed . simple
+-- >>> "live" ^. reversed
 -- "evil"
 --
 -- >>> "live" & reversed %~ ('d':)
@@ -370,6 +370,7 @@ reversed = involuted Iso.reversing
 -- "lived"
 involuted :: (a -> a) -> Iso' a a
 involuted a = iso a a
+{-# INLINE involuted #-}
 
 ------------------------------------------------------------------------------
 -- Magma

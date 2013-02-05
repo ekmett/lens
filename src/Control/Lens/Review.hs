@@ -48,7 +48,7 @@ import Data.Void
 -- >>> let isLeft  (Left  _) = True; isLeft  _ = False
 -- >>> let isRight (Right _) = True; isRight _ = False
 
-infixr 9 #
+infixr 8 #
 
 ------------------------------------------------------------------------------
 -- Review

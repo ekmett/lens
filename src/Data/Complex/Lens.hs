@@ -129,5 +129,5 @@ _phase f c = setPhase <$> f theta
 -- >>> (mkPolar 10.0 2.0 ^. _conjugate . _phase) ≈ (-2.0)
 -- True
 _conjugate :: RealFloat a => Iso' (Complex a) (Complex a)
-_conjugate = iso conjugate conjugate
+_conjugate = involuted conjugate
 {-# INLINE _conjugate #-}
