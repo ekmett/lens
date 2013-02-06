@@ -87,7 +87,7 @@ makeClassy ''Nucleosis
 -- instance HasNucleosis Nucleosis
 -- nuclear :: HasNucleosis t => Simple Lens t Mono
 
-instance HasMono Nucleosis Int where
+instance HasMono Nucleosis Nucleosis Int Int where
   mono = nuclear
 
 -- Dodek's example
