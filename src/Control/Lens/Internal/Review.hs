@@ -19,10 +19,7 @@
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Review
-  (
-  -- ** Reviewing
-    Reviewable(..)
-  , Reviewed(..)
+  ( Reviewed(..)
   ) where
 
 import Control.Applicative
@@ -38,24 +35,10 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Proxy
-import Data.Tagged
 import Data.Traversable
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
-
------------------------------------------------------------------------------
--- Reviewable
-----------------------------------------------------------------------------
-
--- | This provides a dual notion to that of 'Control.Lens.Getter.Gettable'.
-class Profunctor p => Reviewable p where
-  retagged :: p a b -> p s b
-  -- retaggedDot, dotRetagged?
-
-instance Reviewable Tagged where
-  retagged = retag
-  {-# INLINE retagged #-}
 
 ------------------------------------------------------------------------------
 -- Review: Reviewed
@@ -66,10 +49,6 @@ instance Reviewable Tagged where
 -- It plays a role similar to that of 'Control.Lens.Internal.Getter.Accessor'
 -- or 'Const' do for "Control.Lens.Getter"
 newtype Reviewed a b = Reviewed { runReviewed :: b }
-
-instance Reviewable Reviewed where
-  retagged (Reviewed b) = Reviewed b
-  {-# INLINE retagged #-}
 
 instance Functor (Reviewed a) where
   fmap bc (Reviewed b) = Reviewed (bc b)
