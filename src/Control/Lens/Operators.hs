@@ -56,6 +56,7 @@ module Control.Lens.Operators
   -- *** with Indices
   , (%@~), (%@=)
   , (<%@~), (<%@=)
+  , (<<%@~), (<<%@=)
 
   -- ** Traversing
   , (%%~), (%%=)
