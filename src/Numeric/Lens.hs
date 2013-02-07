@@ -44,15 +44,15 @@ integral = prism toInteger $ \ i -> let a = fromInteger i in
 --
 -- >>> 1767707668033969 ^. re (base 36)
 -- "helloworld"
-base :: Integral a => a -> Prism' String a
+base :: Integral a => Int -> Prism' String a
 base b
-  | b < 2 || b > 36 = error ("base: Invalid base " ++ show (toInteger b))
+  | b < 2 || b > 36 = error ("base: Invalid base " ++ show b)
   | otherwise       = prism intShow intRead
   where
     intShow n = showSigned' (showIntAtBase (toInteger b) intToDigit') (toInteger n) ""
 
     intRead s =
-      case readSigned' (readInt b (isDigit' b) digitToInt') s of
+      case readSigned' (readInt (fromIntegral b) (isDigit' b) digitToInt') s of
         [(n,"")] -> Right n
         _ -> Left s
 {-# INLINE base #-}
@@ -78,9 +78,9 @@ digitToIntMay c
   | otherwise = Nothing
 
 -- | Select digits that fall into the given base
-isDigit' :: Integral a => a -> Char -> Bool
+isDigit' :: Int -> Char -> Bool
 isDigit' b c = case digitToIntMay c of
-  Just i | fromIntegral i < b -> True
+  Just i -> i < b
   _ -> False
 
 -- | A simpler variant of 'Numeric.showSigned' that only prepends a dash and
