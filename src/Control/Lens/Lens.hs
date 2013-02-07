@@ -71,6 +71,7 @@ module Control.Lens.Lens
   , (%%~), (%%=)
   , (%%@~), (%%@=)
   , (<%@~), (<%@=)
+  , (<<%@~), (<<%@=)
 
   -- * Lateral Composition
   , choosing
@@ -139,8 +140,8 @@ import Data.Void
 -- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
 
 infixl 8 ^#
-infixr 4 %%@~, <%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <%~, <<%~, <<.~, <#~, #~, #%~, <#%~, #%%~
-infix  4 %%@=, <%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=, <#=, #=, #%=, <#%=, #%%=
+infixr 4 %%@~, <%@~, <<%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <%~, <<%~, <<.~, <#~, #~, #%~, <#%~, #%%~
+infix  4 %%@=, <%@=, <<%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=, <#=, #=, #%=, <#%=, #%%=
 infixr 2 <<~
 
 -------------------------------------------------------------------------------
@@ -788,6 +789,19 @@ l <<>= r = l <%= (`mappend` r)
 l <%@~ f = l (Indexed $ \i a -> let b = f i a in (b, b))
 {-# INLINE (<%@~) #-}
 
+-- | Adjust the target of an 'IndexedLens' returning the old value, or
+-- adjust all of the targets of an 'Control.Lens.Traversal.IndexedTraversal' and return a monoidal summary
+-- of the old values along with the answer.
+--
+-- @
+-- ('<<%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> (a, t)
+-- ('<<%@~') :: 'Monoid' b => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> (a, t)
+-- @
+(<<%@~) :: Overloading (Indexed i) q ((,) a) s t a b -> (i -> a -> b) -> q s (a, t)
+l <<%@~ f = l $ Indexed $ \i a -> second' (f i) (a,a)
+
+{-# INLINE (<<%@~) #-}
+
 -- | Adjust the target of an 'IndexedLens' returning a supplementary result, or
 -- adjust all of the targets of an 'Control.Lens.Traversal.IndexedTraversal' and return a monoidal summary
 -- of the supplementary results and the answer.
@@ -842,6 +856,25 @@ l %%@= f = do
 (<%@=) :: MonadState s m => IndexedLensLike i ((,) b) s s a b -> (i -> a -> b) -> m b
 l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 {-# INLINE (<%@=) #-}
+
+-- | Adjust the target of an 'IndexedLens' returning the old value, or
+-- adjust all of the targets of an 'Control.Lens.Traversal.IndexedTraversal' within the current state, and
+-- return a monoidal summary of the old values.
+--
+-- @
+-- ('<<%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> b) -> m a
+-- ('<<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m a
+-- @
+(<<%@=) :: MonadState s m => IndexedLensLike i ((,) a) s s a b -> (i -> a -> b) -> m a
+#if MIN_VERSION_mtl(2,1,0)
+l <<%@= f = State.state (l (Indexed $ \ i a -> (a, f i a)))
+#else
+l <<%@= f = do
+  (r, s) <- State.gets (l (Indexed $ \ i a -> (a, f i a)))
+  State.put s
+  return r
+#endif
+{-# INLINE (<<%@=) #-}
 
 ------------------------------------------------------------------------------
 -- ALens Combinators
