@@ -5,6 +5,10 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+#if __GLASGOW_HASKELL__ && __GLASGOW_HASKELL__ >= 704
+{-# LANGUAGE NoPolyKinds #-}
+{-# LANGUAGE NoDataKinds #-}
+#endif
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Getter
