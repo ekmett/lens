@@ -107,6 +107,7 @@ module Control.Lens.Traversal
   , Bazaar(..)
   , Bazaar'
   , loci
+  , iloci
   ) where
 
 import Control.Applicative as Applicative
@@ -431,6 +432,12 @@ scanl1Of l f = snd . mapAccumLOf l step Nothing where
 loci :: Traversal (Bazaar (->) a c s) (Bazaar (->) b c s) a b
 loci f w = getCompose (runBazaar w (Compose #. fmap sell . f))
 {-# INLINE loci #-}
+
+-- | This 'IndexedTraversal' allows you to 'traverse' the individual stores in
+-- a 'Bazaar' with access to their indices.
+iloci :: IndexedTraversal i (Bazaar (Indexed i) a c s) (Bazaar (Indexed i) b c s) a b
+iloci f w = getCompose (runBazaar w (Compose #. Indexed (\i -> fmap (indexed sell i) . indexed f i)))
+{-# INLINE iloci #-}
 
 -------------------------------------------------------------------------------
 -- Parts and Holes
