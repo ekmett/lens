@@ -583,8 +583,8 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
   let tyArgs = map plain tyArgs0
       maybeLensClass = view lensClass cfg $ nameBase tyConName
       maybeClassName = fmap (^._1.to mkName) maybeLensClass
-  s <- newName "s"
   t <- newName "t"
+  a <- newName "a"
 
   --TODO: there's probably a more efficient way to do this.
   lensFields <- map (\xs -> (fst $ head xs, map snd xs))
@@ -606,21 +606,22 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
     m <- freshMap . Set.difference varSet $ Set.fromList otherVars
     let aty | isJust maybeClassName = VarT t
             | otherwise             = appArgs (ConT tyConName) tyArgs'
-        bty | isJust maybeClassName = VarT s
-            | otherwise             = substTypeVars m aty
+        bty = substTypeVars m aty
         dty = substTypeVars m cty
 
-        mSet = setOf folded m
-        relevantBndr b = mSet^.contains (b^.name)
-        relevantCtx = not . Set.null . Set.intersection mSet . setOf typeVars
+        s = setOf folded m
+        relevantBndr b = s^.contains (b^.name)
+        relevantCtx = not . Set.null . Set.intersection s . setOf typeVars
         tvs = tyArgs' ++ filter relevantBndr (substTypeVars m tyArgs')
         ps = filter relevantCtx (substTypeVars m ctx)
         qs = case maybeClassName of
-           Just n -> ClassP n (aty:bty:map VarT (toListOf typeVars (tyArgs'++map (substTypeVars m)tyArgs'))) : (ctx ++ ps)
-           _      -> ctx ++ ps
+           Just n | not (cfg^.createClass) -> ClassP n [VarT t] : (ctx ++ ps)
+                  | otherwise              -> ps
+           _                               -> ctx ++ ps
         tvs' = case maybeClassName of
-           Just _ -> PlainTV s:PlainTV t:tvs
-           _      -> tvs
+           Just _ | not (cfg^.createClass) -> PlainTV t : tvs
+                  | otherwise              -> []
+           _                               -> tvs
 
         --TODO: Better way to write this?
         fieldMap = fromListWith (++) $ map (\(cn,fn,_) -> (cn, [fn])) fields
@@ -647,10 +648,11 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
     let decl = SigD lensName $ ForallT tvs' qs vars
           where
           vars
-            | aty == bty && cty == dty || cfg^.simpleLenses
+            | aty == bty && cty == dty || cfg^.simpleLenses || isJust maybeClassName
                = apps (ConT (if isTraversal then ''Traversal' else ''Lens')) [aty,cty]
             | otherwise
                = apps (ConT (if isTraversal then ''Traversal else ''Lens)) [aty,bty,cty,dty]
+
     body <- makeFieldLensBody isTraversal lensName conList maybeMethodName
 #ifndef INLINING
     return $ if cfg^.generateSignatures then [decl, body] else [body]
@@ -658,71 +660,27 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
     inlining <- inlinePragma lensName
     return $ if cfg^.generateSignatures then [decl, body, inlining] else [body, inlining]
 #endif
-
-  cls <- case maybeLensClass of
-    Nothing -> return []
-    Just (clsNameString, methodNameString) ->
+  let defs = Prelude.concat bodies
+  case maybeLensClass of
+    Nothing -> return defs
+    Just (clsNameString, methodNameString) -> do
       let clsName    = mkName clsNameString
           methodName = mkName methodNameString
-      in mkClass cfg clsName tyConName methodName tyArgs
-
-  return (cls ++ Prelude.concat bodies)
-
--- Conditionally generate the class and instance for "classy" lenses.
-mkClass :: LensRules -> Name -> Name -> Name -> [TyVarBndr] -> DecsQ
-mkClass cfg className typeName methodName vars = do
-
-  s <- newName "s"
-  t <- newName "t"
-
-  aMap <- mkSubst "s" (map (view name) vars)
-  bMap <- mkSubst "t" (map (view name) vars)
-
-  let aVars = substTypeVars aMap vars
-      bVars = substTypeVars bMap vars
-
-  let aNames = map (view name) aVars
-      bNames = map (view name) bVars
-
-  let classDec = classD (cxt []) className classVars classFunDeps [sigD methodName methodType]
-        where
-        classFunDeps
-          | Prelude.null vars = []
-          | otherwise = [FunDep [s] aNames , FunDep [t] bNames]
-
-        methodType = conT ''Lens
-             `appsT` [ varT s
-                     , varT t
-                     , conT typeName `appsT` map varT aNames
-                     , conT typeName `appsT` map varT bNames
-                     ]
-
-        classVars = PlainTV s : PlainTV t : aVars ++ bVars
-
-  let instanceDec = instanceD (cxt []) instanceType
-                         [ methodDef
-# ifdef INLINING
-                         , inlinePragma methodName
-# endif
-                         ]
-        where
-        instanceType = appsT (conT className)
-                     $ appsT (conT typeName) (map varT aNames)
-                     : appsT (conT typeName) (map varT bNames)
-                     : map varT (aNames ++ bNames)
-
-        methodDef    = do x <- newName "x"
-                          funD methodName [clause [varP x] (normalB (varE x)) []]
-
-  sequenceA $ [classDec    | cfg^.createClass   ]
-           ++ [instanceDec | cfg^.createInstance]
-
-mkSubst :: String -> [Name] -> Q (Map Name Name)
-mkSubst prefix xs = Map.fromList <$> traverse aux xs
-  where
-  aux k = do
-    v <- newName (prefix ++ nameBase k)
-    return (k,v)
+          varArgs    = varT . view name <$> tyArgs
+          appliedCon = conT tyConName `appsT` varArgs
+      Prelude.sequence $
+        filter (\_ -> cfg^.createClass) [
+          classD (return []) clsName (PlainTV t : tyArgs) (if List.null tyArgs then [] else [FunDep [t] (view name <$> tyArgs)]) (
+            sigD methodName (appsT (conT ''Lens') [varT t, appliedCon]) :
+            map return defs)]
+        ++ filter (\_ -> cfg^.createInstance) [
+          instanceD (return []) ((conT clsName `appT` appliedCon) `appsT` varArgs) [
+            funD methodName [clause [varP a] (normalB (varE a)) []]
+#ifdef INLINING
+            , inlinePragma methodName
+#endif
+            ]]
+        ++ filter (\_ -> not $ cfg^.createClass) (map return defs)
 
 -- | Gets @[(lens name, (constructor name, field name, type))]@ from a record constructor.
 getLensFields :: (String -> Maybe String) -> Con -> Q [(Name, (Name, Name, Type))]
