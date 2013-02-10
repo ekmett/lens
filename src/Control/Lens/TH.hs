@@ -684,15 +684,11 @@ mkClass cfg className typeName methodName vars = do
   let aNames = map (view name) aVars
       bNames = map (view name) bVars
 
-  let classDec = classD (cxt []) className classVars (classFunDeps1 ++ classFunDeps2) [sigD methodName methodType]
+  let classDec = classD (cxt []) className classVars classFunDeps [sigD methodName methodType]
         where
-        classFunDeps1
+        classFunDeps
           | Prelude.null vars = []
-          | otherwise = [ FunDep [s] aNames
-                        , FunDep [t] bNames ]
-        classFunDeps2 = [ FunDep (s : bNames) [t]
-                        , FunDep (t : aNames) [s]
-                        ]
+          | otherwise = [FunDep [s] aNames , FunDep [t] bNames]
 
         methodType = conT ''Lens
              `appsT` [ varT s
