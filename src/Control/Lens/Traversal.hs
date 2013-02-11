@@ -210,8 +210,8 @@ type Traversing' p f s a = Traversing p f s s a a
 -- @
 --
 -- @
--- 'traverseOf' :: 'Applicative' f => 'Iso' s t a b       -> (a -> f b) -> s -> f t
--- 'traverseOf' :: 'Applicative' f => 'Lens' s t a b      -> (a -> f b) -> s -> f t
+-- 'traverseOf' :: 'Functor' f => 'Iso' s t a b       -> (a -> f b) -> s -> f t
+-- 'traverseOf' :: 'Functor' f => 'Lens' s t a b      -> (a -> f b) -> s -> f t
 -- 'traverseOf' :: 'Applicative' f => 'Traversal' s t a b -> (a -> f b) -> s -> f t
 -- @
 traverseOf :: Over p f s t a b -> p a (f b) -> s -> f t
@@ -239,8 +239,8 @@ traverseOf = id
 -- @
 --
 -- @
--- 'forOf' :: 'Applicative' f => 'Iso' s t a b -> s -> (a -> f b) -> f t
--- 'forOf' :: 'Applicative' f => 'Lens' s t a b -> s -> (a -> f b) -> f t
+-- 'forOf' :: 'Functor' f => 'Iso' s t a b -> s -> (a -> f b) -> f t
+-- 'forOf' :: 'Functor' f => 'Lens' s t a b -> s -> (a -> f b) -> f t
 -- 'forOf' :: 'Applicative' f => 'Traversal' s t a b -> s -> (a -> f b) -> f t
 -- @
 forOf :: Over p f s t a b -> s -> p a (f b) -> f t
@@ -259,8 +259,8 @@ forOf = flip
 -- @
 --
 -- @
--- 'sequenceAOf' :: 'Applicative' f => 'Iso' s t (f b) b       -> s -> f t
--- 'sequenceAOf' :: 'Applicative' f => 'Lens' s t (f b) b      -> s -> f t
+-- 'sequenceAOf' :: 'Functor' f => 'Iso' s t (f b) b       -> s -> f t
+-- 'sequenceAOf' :: 'Functor' f => 'Lens' s t (f b) b      -> s -> f t
 -- 'sequenceAOf' :: 'Applicative' f => 'Traversal' s t (f b) b -> s -> f t
 -- @
 sequenceAOf :: LensLike f s t (f b) b -> s -> f t
@@ -801,7 +801,7 @@ cloneIndexedTraversal l f = bazaar (Indexed (indexed f)) . l sell
 -- @
 --
 -- @
--- 'itraverseOf' :: 'Applicative' f => 'IndexedLens' i s t a b      -> (i -> a -> f b) -> s -> f t
+-- 'itraverseOf' :: 'Functor' f     => 'IndexedLens' i s t a b      -> (i -> a -> f b) -> s -> f t
 -- 'itraverseOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b -> (i -> a -> f b) -> s -> f t
 -- @
 itraverseOf :: (Indexed i a (f b) -> s -> f t) -> (i -> a -> f b) -> s -> f t
@@ -816,7 +816,7 @@ itraverseOf l = l .# Indexed
 -- @
 --
 -- @
--- 'iforOf' :: 'Applicative' f => 'IndexedLens' i s t a b      -> s -> (i -> a -> f b) -> f t
+-- 'iforOf' :: 'Functor' f => 'IndexedLens' i s t a b      -> s -> (i -> a -> f b) -> f t
 -- 'iforOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b -> s -> (i -> a -> f b) -> f t
 -- @
 iforOf :: (Indexed i a (f b) -> s -> f t) -> s -> (i -> a -> f b) -> f t
