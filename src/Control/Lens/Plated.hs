@@ -429,7 +429,7 @@ transformMOf l f = go where
 -- @
 -- 'transformMOnOf' :: 'Monad' m => 'Traversal'' s a -> 'Traversal'' a a -> (a -> m a) -> s -> m s
 -- @
-transformMOnOf :: Monad m => LensLike (WrappedMonad m) s a a a -> LensLike' (WrappedMonad m) a a -> (a -> m a) -> s -> m a
+transformMOnOf :: Monad m => LensLike (WrappedMonad m) s t a a -> LensLike' (WrappedMonad m) a a -> (a -> m a) -> s -> m t
 transformMOnOf b l = mapMOf b . transformMOf l
 {-# INLINE transformMOnOf #-}
 
