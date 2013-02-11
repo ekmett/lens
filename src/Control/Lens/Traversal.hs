@@ -769,7 +769,7 @@ dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
 -- ("helloworld",(10,10))
 --
 -- @
--- 'cloneTraversal' :: 'LensLike' ('Bazaar' a b) s t a b -> 'Traversal' s t a b
+-- 'cloneTraversal' :: 'LensLike' ('Bazaar' (->) a b) s t a b -> 'Traversal' s t a b
 -- @
 cloneTraversal :: ATraversal s t a b -> Traversal s t a b
 cloneTraversal l f = bazaar f . l sell

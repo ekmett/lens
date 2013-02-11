@@ -1959,10 +1959,10 @@ previews l f = asks (getFirst . foldMapOf l (First #. Just . f))
 -- a 'Control.Monad.Monad' transformer stack:
 --
 -- @
--- 'ipreviews' :: 'MonadReader' s m => 'IndexedGetter' s a     -> (i -> a -> r) -> m ('Maybe' r)
--- 'ipreviews' :: 'MonadReader' s m => 'IndexedFold' s a       -> (i -> a -> r) -> m ('Maybe' r)
--- 'ipreviews' :: 'MonadReader' s m => 'IndexedLens'' s a      -> (i -> a -> r) -> m ('Maybe' r)
--- 'ipreviews' :: 'MonadReader' s m => 'IndexedTraversal'' s a -> (i -> a -> r) -> m ('Maybe' r)
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedGetter' i s a     -> (i -> a -> r) -> m ('Maybe' r)
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedFold' i s a       -> (i -> a -> r) -> m ('Maybe' r)
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedLens'' i s a      -> (i -> a -> r) -> m ('Maybe' r)
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedTraversal'' i s a -> (i -> a -> r) -> m ('Maybe' r)
 -- @
 ipreviews :: MonadReader s m => IndexedGetting i (First r) s t a b -> (i -> a -> r) -> m (Maybe r)
 ipreviews l f = asks (getFirst . ifoldMapOf l (\i -> First #. Just . f i))
