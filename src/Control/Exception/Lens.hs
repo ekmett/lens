@@ -126,11 +126,11 @@ import Prelude
 -- the desired 'Exception'.
 --
 -- @
--- 'exception' :: ('Applicative' f, 'Exception' a, 'Exception' b)
---           => (a -> f b) -> 'SomeException' -> f 'SomeException'
+-- 'exception' :: ('Applicative' f, 'Exception' a)
+--           => (a -> f a) -> 'SomeException' -> f 'SomeException'
 -- @
 exception :: Exception a => Prism' SomeException a
-exception = prism toException $ \ e -> maybe (Left e) Right $ fromException e
+exception = prism' toException fromException
 {-# INLINE exception #-}
 
 ------------------------------------------------------------------------------
