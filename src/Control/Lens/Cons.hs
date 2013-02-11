@@ -377,9 +377,9 @@ instance (Choice p, Applicative f) => Snoc p f LazyT.Text LazyT.Text Char Char w
 -- ""
 --
 -- @
--- '_init' :: 'Traversal'' [a] a
--- '_init' :: 'Traversal'' ('Seq' a) a
--- '_init' :: 'Traversal'' ('Vector' a) a
+-- '_init' :: 'Traversal'' [a] [a]
+-- '_init' :: 'Traversal'' ('Seq' a) ('Seq' a)
+-- '_init' :: 'Traversal'' ('Vector' a) ('Vector' a)
 -- @
 _init :: Snoc (->) f s s a a => LensLike' f s s
 _init = _Snoc._1
@@ -420,9 +420,9 @@ _init = _Snoc._1
 -- fromList "abcdQ"
 --
 -- @
--- '_last' :: 'Traversal'' [a] [a]
--- '_last' :: 'Traversal'' ('Seq' a) ('Seq' a)
--- '_last' :: 'Traversal'' ('Vector' a) ('Vector' a)
+-- '_last' :: 'Traversal'' [a] a
+-- '_last' :: 'Traversal'' ('Seq' a) a
+-- '_last' :: 'Traversal'' ('Vector' a) a
 -- @
 _last :: Snoc (->) f s s a a => LensLike' f s a
 _last = _Snoc._2

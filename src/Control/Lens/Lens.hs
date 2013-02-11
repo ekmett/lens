@@ -368,8 +368,8 @@ alongside l r f (s, s') = f (ipos ls, ipos rs) <&> \(b, b') -> (ipeek b ls, ipee
 --
 -- @
 -- 'locus' :: 'Lens'' ('Context'' a s) a
--- 'locus' :: 'Lens'' ('Pretext'' p a s) a
--- 'locus' :: 'Lens'' ('PretextT'' p g a s) a
+-- 'locus' :: 'Conjoined' p => 'Lens'' ('Pretext'' p a s) a
+-- 'locus' :: 'Conjoined' p => 'Lens'' ('PretextT'' p g a s) a
 -- @
 locus :: IndexedComonadStore p => Lens (p a c s) (p b c s) a b
 locus f w = (`iseek` w) <$> f (ipos w)

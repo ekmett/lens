@@ -974,12 +974,12 @@ sequenceOf_ l = liftM skip . getSequenced #. foldMapOf l Sequenced
 -- @
 --
 -- @
--- 'asumOf' :: 'Alternative' f => 'Getter' s a     -> s -> f a
--- 'asumOf' :: 'Alternative' f => 'Fold' s a       -> s -> f a
--- 'asumOf' :: 'Alternative' f => 'Lens'' s a      -> s -> f a
--- 'asumOf' :: 'Alternative' f => 'Iso'' s a       -> s -> f a
--- 'asumOf' :: 'Alternative' f => 'Traversal'' s a -> s -> f a
--- 'asumOf' :: 'Alternative' f => 'Prism'' s a     -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Getter' s (f a)     -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Fold' s (f a)       -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Lens'' s (f a)      -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Iso'' s (f a)       -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Traversal'' s (f a) -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Prism'' s (f a)     -> s -> f a
 -- @
 asumOf :: Alternative f => Getting (Endo (f a)) s t (f a) b -> s -> f a
 asumOf l = foldrOf l (<|>) Applicative.empty
@@ -1003,12 +1003,12 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 -- @
 --
 -- @
--- 'msumOf' :: 'MonadPlus' m => 'Getter' s a     -> s -> m a
--- 'msumOf' :: 'MonadPlus' m => 'Fold' s a       -> s -> m a
--- 'msumOf' :: 'MonadPlus' m => 'Lens'' s a      -> s -> m a
--- 'msumOf' :: 'MonadPlus' m => 'Iso'' s a       -> s -> m a
--- 'msumOf' :: 'MonadPlus' m => 'Traversal'' s a -> s -> m a
--- 'msumOf' :: 'MonadPlus' m => 'Prism'' s a     -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Getter' s (m a)     -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Fold' s (m a)       -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Lens'' s (m a)      -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Iso'' s (m a)       -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Traversal'' s (m a) -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Prism'' s (m a)     -> s -> m a
 -- @
 msumOf :: MonadPlus m => Getting (Endo (m a)) s t (m a) b -> s -> m a
 msumOf l = foldrOf l mplus mzero
@@ -2330,10 +2330,10 @@ ifoldlOf' l f z0 xs = ifoldrOf l f' id xs z0
 -- @
 --
 -- @
--- 'ifoldrMOf' :: 'Monad' m => 'IndexedGetter' i s a     -> (i -> a -> r -> m r) -> r -> s -> r
--- 'ifoldrMOf' :: 'Monad' m => 'IndexedFold' i s a       -> (i -> a -> r -> m r) -> r -> s -> r
--- 'ifoldrMOf' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> a -> r -> m r) -> r -> s -> r
--- 'ifoldrMOf' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> a -> r -> m r) -> r -> s -> r
+-- 'ifoldrMOf' :: 'Monad' m => 'IndexedGetter' i s a     -> (i -> a -> r -> m r) -> r -> s -> m r
+-- 'ifoldrMOf' :: 'Monad' m => 'IndexedFold' i s a       -> (i -> a -> r -> m r) -> r -> s -> m r
+-- 'ifoldrMOf' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> a -> r -> m r) -> r -> s -> m r
+-- 'ifoldrMOf' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> a -> r -> m r) -> r -> s -> m r
 -- @
 ifoldrMOf :: Monad m => IndexedGetting i (Dual (Endo (r -> m r))) s t a b -> (i -> a -> r -> m r) -> r -> s -> m r
 ifoldrMOf l f z0 xs = ifoldlOf l f' return xs z0
@@ -2349,10 +2349,10 @@ ifoldrMOf l f z0 xs = ifoldlOf l f' return xs z0
 -- @
 --
 -- @
--- 'ifoldlOf'' :: 'Monad' m => 'IndexedGetter' i s a     -> (i -> r -> a -> m r) -> r -> s -> r
--- 'ifoldlOf'' :: 'Monad' m => 'IndexedFold' i s a       -> (i -> r -> a -> m r) -> r -> s -> r
--- 'ifoldlOf'' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> r -> a -> m r) -> r -> s -> r
--- 'ifoldlOf'' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> r -> a -> m r) -> r -> s -> r
+-- 'ifoldlMOf' :: 'Monad' m => 'IndexedGetter' i s a     -> (i -> r -> a -> m r) -> r -> s -> m r
+-- 'ifoldlMOf' :: 'Monad' m => 'IndexedFold' i s a       -> (i -> r -> a -> m r) -> r -> s -> m r
+-- 'ifoldlMOf' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> r -> a -> m r) -> r -> s -> m r
+-- 'ifoldlMOf' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> r -> a -> m r) -> r -> s -> m r
 -- @
 ifoldlMOf :: Monad m => IndexedGetting i (Endo (r -> m r)) s t a b -> (i -> r -> a -> m r) -> r -> s -> m r
 ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0

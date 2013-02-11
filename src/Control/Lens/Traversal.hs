@@ -210,9 +210,9 @@ type Traversing' p f s a = Traversing p f s s a a
 -- @
 --
 -- @
--- 'traverseOf' :: 'Iso' s t a b       -> (a -> f b) -> s -> f t
--- 'traverseOf' :: 'Lens' s t a b      -> (a -> f b) -> s -> f t
--- 'traverseOf' :: 'Traversal' s t a b -> (a -> f b) -> s -> f t
+-- 'traverseOf' :: 'Applicative' f => 'Iso' s t a b       -> (a -> f b) -> s -> f t
+-- 'traverseOf' :: 'Applicative' f => 'Lens' s t a b      -> (a -> f b) -> s -> f t
+-- 'traverseOf' :: 'Applicative' f => 'Traversal' s t a b -> (a -> f b) -> s -> f t
 -- @
 traverseOf :: Over p f s t a b -> p a (f b) -> s -> f t
 traverseOf = id
@@ -239,9 +239,9 @@ traverseOf = id
 -- @
 --
 -- @
--- 'forOf' :: 'Iso' s t a b -> s -> (a -> f b) -> f t
--- 'forOf' :: 'Lens' s t a b -> s -> (a -> f b) -> f t
--- 'forOf' :: 'Traversal' s t a b -> s -> (a -> f b) -> f t
+-- 'forOf' :: 'Applicative' f => 'Iso' s t a b -> s -> (a -> f b) -> f t
+-- 'forOf' :: 'Applicative' f => 'Lens' s t a b -> s -> (a -> f b) -> f t
+-- 'forOf' :: 'Applicative' f => 'Traversal' s t a b -> s -> (a -> f b) -> f t
 -- @
 forOf :: Over p f s t a b -> s -> p a (f b) -> f t
 forOf = flip
@@ -259,8 +259,8 @@ forOf = flip
 -- @
 --
 -- @
--- 'sequenceAOf' ::                  'Iso' s t (f b) b       -> s -> f t
--- 'sequenceAOf' ::                  'Lens' s t (f b) b      -> s -> f t
+-- 'sequenceAOf' :: 'Applicative' f => 'Iso' s t (f b) b       -> s -> f t
+-- 'sequenceAOf' :: 'Applicative' f => 'Lens' s t (f b) b      -> s -> f t
 -- 'sequenceAOf' :: 'Applicative' f => 'Traversal' s t (f b) b -> s -> f t
 -- @
 sequenceAOf :: LensLike f s t (f b) b -> s -> f t
@@ -279,8 +279,8 @@ sequenceAOf l = l id
 -- @
 --
 -- @
--- 'mapMOf' ::            'Iso' s t a b       -> (a -> m b) -> s -> m t
--- 'mapMOf' ::            'Lens' s t a b      -> (a -> m b) -> s -> m t
+-- 'mapMOf' :: 'Monad' m => 'Iso' s t a b       -> (a -> m b) -> s -> m t
+-- 'mapMOf' :: 'Monad' m => 'Lens' s t a b      -> (a -> m b) -> s -> m t
 -- 'mapMOf' :: 'Monad' m => 'Traversal' s t a b -> (a -> m b) -> s -> m t
 -- @
 mapMOf :: Profunctor p => Over p (WrappedMonad m) s t a b -> p a (m b) -> s -> m t
@@ -299,8 +299,8 @@ mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
 -- @
 --
 -- @
--- 'forMOf' ::            'Iso' s t a b       -> s -> (a -> m b) -> m t
--- 'forMOf' ::            'Lens' s t a b      -> s -> (a -> m b) -> m t
+-- 'forMOf' :: 'Monad' m => 'Iso' s t a b       -> s -> (a -> m b) -> m t
+-- 'forMOf' :: 'Monad' m => 'Lens' s t a b      -> s -> (a -> m b) -> m t
 -- 'forMOf' :: 'Monad' m => 'Traversal' s t a b -> s -> (a -> m b) -> m t
 -- @
 forMOf :: Profunctor p => Over p (WrappedMonad m) s t a b -> s -> p a (m b) -> m t
@@ -319,8 +319,8 @@ forMOf l a cmd = unwrapMonad (l (WrapMonad #. cmd) a)
 -- @
 --
 -- @
--- 'sequenceOf' ::            'Iso' s t (m b) b       -> s -> m t
--- 'sequenceOf' ::            'Lens' s t (m b) b      -> s -> m t
+-- 'sequenceOf' :: 'Monad' m => 'Iso' s t (m b) b       -> s -> m t
+-- 'sequenceOf' :: 'Monad' m => 'Lens' s t (m b) b      -> s -> m t
 -- 'sequenceOf' :: 'Monad' m => 'Traversal' s t (m b) b -> s -> m t
 -- @
 sequenceOf :: LensLike (WrappedMonad m) s t (m b) b -> s -> m t
@@ -801,8 +801,8 @@ cloneIndexedTraversal l f = bazaar (Indexed (indexed f)) . l sell
 -- @
 --
 -- @
--- 'itraverseOf' :: 'IndexedLens' i s t a b      -> (i -> a -> f b) -> s -> f t
--- 'itraverseOf' :: 'IndexedTraversal' i s t a b -> (i -> a -> f b) -> s -> f t
+-- 'itraverseOf' :: 'Applicative' f => 'IndexedLens' i s t a b      -> (i -> a -> f b) -> s -> f t
+-- 'itraverseOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b -> (i -> a -> f b) -> s -> f t
 -- @
 itraverseOf :: (Indexed i a (f b) -> s -> f t) -> (i -> a -> f b) -> s -> f t
 itraverseOf l = l .# Indexed
@@ -816,8 +816,8 @@ itraverseOf l = l .# Indexed
 -- @
 --
 -- @
--- 'iforOf' :: 'IndexedLens' i s t a b      -> s -> (i -> a -> f b) -> f t
--- 'iforOf' :: 'IndexedTraversal' i s t a b -> s -> (i -> a -> f b) -> f t
+-- 'iforOf' :: 'Applicative' f => 'IndexedLens' i s t a b      -> s -> (i -> a -> f b) -> f t
+-- 'iforOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b -> s -> (i -> a -> f b) -> f t
 -- @
 iforOf :: (Indexed i a (f b) -> s -> f t) -> s -> (i -> a -> f b) -> f t
 iforOf = flip . itraverseOf
