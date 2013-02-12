@@ -669,7 +669,7 @@ both f ~(a,a') = (,) <$> f a <*> f a'
 -- 'beside' :: 'IndexPreservingTraversal' s t a b -> 'IndexPreservingTraversal' s' t' a b -> 'IndexPreservingTraversal' (s,s') (t,t') a b
 -- 'beside' :: 'IndexPreservingLens' s t a b      -> 'IndexPreservingLens' s' t' a b      -> 'IndexPreservingTraversal' (s,s') (t,t') a b
 -- 'beside' :: 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s' a           -> 'IndexPreservingFold' (s,s') a
--- 'beside' :: 'IndexPreservingGetter' s a        -> 'IndexPreservingGetter' s' a         -> 'IndexPreservingTraversal'' (s,s') a
+-- 'beside' :: 'IndexPreservingGetter' s a        -> 'IndexPreservingGetter' s' a         -> 'IndexPreservingFold' (s,s') a
 -- 'beside' :: 'IndexPreservingAction' m s a      -> 'IndexPreservingAction' m s' a       -> 'IndexPreservingMonadicFold' m (s,s') a
 -- 'beside' :: 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s' a  -> 'IndexPreservingMonadicFold' m (s,s') a
 -- @
