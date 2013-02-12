@@ -18,6 +18,13 @@ import Prelude hiding (concatMap, mapM, mapM_, concat, elem, notElem)
 imports =
   [ "Control.Applicative"
   , "Control.Applicative.Backwards (Backwards)"
+  , "Control.Exception"
+  , "Data.Typeable (Typeable)"
+  , "Data.Dynamic (Dynamic)"
+  , "Data.Dynamic.Lens"
+  , "Data.Hashable (Hashable)"
+  , "Data.HashSet (HashSet)"
+  , "Data.Typeable.Lens"
   , "Control.Lens"
   , "Control.Lens.Internal"
   , "Control.Monad.RWS"
@@ -26,10 +33,19 @@ imports =
   , "Control.Monad.Trans.Error (Error,ErrorT)"
   , "Control.Monad.Writer"
   , "Data.Foldable (Foldable)"
+  , "Data.ByteString.Lens"
   , "Data.Sequence (Seq)"
   , "Data.Vector (Vector)"
   , "Data.Void (Void)"
   , "Data.Word (Word8)"
+  , "Data.Bits (Bits)"
+  , "Data.Bits.Lens"
+  , "Data.ByteString (ByteString)"
+  , "Data.Set (Set)"
+  , "Data.IntSet (IntSet)"
+  , "Data.List.Split"
+  , "Data.List.Split.Lens"
+  , "Data.Set.Lens"
   , "qualified Control.Lens.Cons"
   , "qualified Control.Lens.Fold"
   , "qualified Control.Lens.Getter"
@@ -40,6 +56,7 @@ imports =
   , "qualified Control.Lens.Traversal"
   , "qualified Control.Lens.Tuple"
   , "qualified Data.ByteString as StrictB"
+  , "qualified Data.ByteString.Lazy"
   , "qualified Data.Complex"
   , "qualified Data.Complex.Lens"
   , "qualified Data.List.Lens"
@@ -85,7 +102,7 @@ myParserMode = defaultParseMode
                ]
   }
 
-processCpp = readProcess "cpp" ["-P","-include","dist/build/autogen/cabal_macros.h","-Iincludes"]
+processCpp = readProcess "cpp" ["-P","-include","dist/build/autogen/cabal_macros.h","-Iincludes","-DHLINT"]
 
 main :: IO ()
 main = do
