@@ -449,8 +449,8 @@ l <-~ a = l <%~ subtract a
 -- flexible.
 --
 -- @
--- ('<*~') :: 'Num' b => 'Lens'' s a -> a -> a -> (s, a)
--- ('<*~') :: 'Num' b => 'Control.Lens.Iso.Iso''  s a -> a -> a -> (s, a)
+-- ('<*~') :: 'Num' a => 'Lens'' s a -> a -> a -> (s, a)
+-- ('<*~') :: 'Num' a => 'Control.Lens.Iso.Iso''  s a -> a -> a -> (s, a)
 -- @
 (<*~) :: Num a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <*~ a = l <%~ (* a)
@@ -461,8 +461,8 @@ l <*~ a = l <%~ (* a)
 -- When you do not need the result of the division, ('Control.Lens.Setter.//~') is more flexible.
 --
 -- @
--- ('<//~') :: 'Fractional' b => 'Lens'' s a -> a -> a -> (s, a)
--- ('<//~') :: 'Fractional' b => 'Control.Lens.Iso.Iso''  s a -> a -> a -> (s, a)
+-- ('<//~') :: 'Fractional' a => 'Lens'' s a -> a -> a -> (s, a)
+-- ('<//~') :: 'Fractional' a => 'Control.Lens.Iso.Iso''  s a -> a -> a -> (s, a)
 -- @
 (<//~) :: Fractional a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <//~ a = l <%~ (/ a)
@@ -474,8 +474,8 @@ l <//~ a = l <%~ (/ a)
 -- When you do not need the result of the division, ('Control.Lens.Setter.^~') is more flexible.
 --
 -- @
--- ('<^~') :: ('Num' b, 'Integral' e) => 'Lens'' s a -> e -> a -> (a, s)
--- ('<^~') :: ('Num' b, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a -> e -> a -> (a, s)
+-- ('<^~') :: ('Num' a, 'Integral' e) => 'Lens'' s a -> e -> a -> (a, s)
+-- ('<^~') :: ('Num' a, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a -> e -> a -> (a, s)
 -- @
 (<^~) :: (Num a, Integral e) => Overloading (->) q ((,)a) s t a a -> e -> q s (a, t)
 l <^~ e = l <%~ (^ e)
@@ -487,8 +487,8 @@ l <^~ e = l <%~ (^ e)
 -- When you do not need the result of the division, ('Control.Lens.Setter.^^~') is more flexible.
 --
 -- @
--- ('<^^~') :: ('Fractional' b, 'Integral' e) => 'Lens'' s a -> e -> a -> (a, s)
--- ('<^^~') :: ('Fractional' b, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a -> e -> a -> (a, s)
+-- ('<^^~') :: ('Fractional' a, 'Integral' e) => 'Lens'' s a -> e -> a -> (a, s)
+-- ('<^^~') :: ('Fractional' a, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a -> e -> a -> (a, s)
 -- @
 (<^^~) :: (Fractional a, Integral e) => Overloading (->) q ((,)a) s t a a -> e -> q s (a, t)
 l <^^~ e = l <%~ (^^ e)
@@ -831,7 +831,7 @@ l <<%@~ f = l $ Indexed $ \i a -> second' (f i) (a,a)
 -- @l '%%@=' f ≡ 'state' (l '%%@~' f)@
 --
 -- @
--- ('%%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> (r, b)) -> s -> m r
+-- ('%%@=') :: 'MonadState' s m                 => 'IndexedLens' i s s a b      -> (i -> a -> (r, b)) -> s -> m r
 -- ('%%@=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> (r, b)) -> s -> m r
 -- @
 (%%@=) :: MonadState s m => IndexedLensLike i ((,) r) s s a b -> (i -> a -> (r, b)) -> m r
@@ -850,7 +850,7 @@ l %%@= f = do
 -- return a monoidal summary of the intermediate results.
 --
 -- @
--- ('<%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> b) -> m b
+-- ('<%@=') :: 'MonadState' s m                 => 'IndexedLens' i s s a b      -> (i -> a -> b) -> m b
 -- ('<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m b
 -- @
 (<%@=) :: MonadState s m => IndexedLensLike i ((,) b) s s a b -> (i -> a -> b) -> m b
@@ -862,7 +862,7 @@ l <%@= f = l %%@= \ i a -> let b = f i a in (b, b)
 -- return a monoidal summary of the old values.
 --
 -- @
--- ('<<%@=') :: 'MonadState' s m                'IndexedLens' i s s a b      -> (i -> a -> b) -> m a
+-- ('<<%@=') :: 'MonadState' s m                 => 'IndexedLens' i s s a b      -> (i -> a -> b) -> m a
 -- ('<<%@=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.IndexedTraversal' i s s a b -> (i -> a -> b) -> m a
 -- @
 (<<%@=) :: MonadState s m => IndexedLensLike i ((,) a) s s a b -> (i -> a -> b) -> m a

@@ -738,7 +738,7 @@ productOf l = foldlOf' l (*) 1
 -- want a lazier version use @'ala' 'Sum' '.' 'foldMapOf'@
 --
 -- @
--- 'sumOf' '_1' :: (a, b) -> a
+-- 'sumOf' '_1' :: 'Num' a => (a, b) -> a
 -- 'sumOf' ('folded' '.' 'Control.Lens.Tuple._1') :: ('Foldable' f, 'Num' a) => f (a, b) -> a
 -- @
 --
@@ -778,7 +778,7 @@ sumOf l = foldlOf' l (+) 0
 --
 -- @
 -- 'traverseOf_' '_2' :: 'Functor' f => (c -> f r) -> (d, c) -> f ()
--- 'traverseOf_' 'Data.Either.Lens.traverseLeft' :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ()
+-- 'traverseOf_' 'Control.Lens.Prism._Left' :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ()
 -- @
 --
 -- @
@@ -1164,7 +1164,7 @@ concatOf l = runAccessor #. l Accessor
 -- 6
 --
 -- @
--- 'lengthOf' ('folded' '.' 'folded') :: 'Foldable' f => f (g a) -> 'Int'
+-- 'lengthOf' ('folded' '.' 'folded') :: ('Foldable' f, 'Foldable' g) => f (g a) -> 'Int'
 -- @
 --
 -- @
@@ -1315,7 +1315,7 @@ lastOf l = getRightmost . foldMapOf l RLeaf
 -- True
 --
 -- @
--- 'nullOf' ('folded' '.' '_1' '.' 'folded') :: 'Foldable' f => f (g a, b) -> 'Bool'
+-- 'nullOf' ('folded' '.' '_1' '.' 'folded') :: ('Foldable' f, 'Foldable' g) => f (g a, b) -> 'Bool'
 -- @
 --
 -- @
@@ -1354,7 +1354,7 @@ nullOf = hasn't
 -- False
 --
 -- @
--- 'notNullOf' ('folded' '.' '_1' '.' 'folded') :: 'Foldable' f => f (g a, b) -> 'Bool'
+-- 'notNullOf' ('folded' '.' '_1' '.' 'folded') :: ('Foldable' f, 'Foldable' g) => f (g a, b) -> 'Bool'
 -- @
 --
 -- @
@@ -2396,11 +2396,10 @@ s ^@.. l = ifoldrOf l (\i a -> ((i,a):)) [] s
 -- way to extract the optional value.
 --
 -- @
--- ('^@?') :: s -> 'IndexedGetter' i s a -> 'Maybe' (i, a)
--- ('^@?') :: s -> 'IndexedFold' i s a   -> 'Maybe' (i, a)
--- ('^@?') :: s -> 'IndexedLens'' i s a  -> 'Maybe' (i, a)
--- ('^@?') :: s -> 'Iso'' i s a          -> 'Maybe' (i, a)
--- ('^@?') :: s -> 'Traversal'' i s a    -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'IndexedGetter' i s a     -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'IndexedFold' i s a       -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'IndexedLens'' i s a      -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'IndexedTraversal'' i s a -> 'Maybe' (i, a)
 -- @
 (^@?) :: s -> IndexedGetting i (Endo (Maybe (i, a))) s t a b -> Maybe (i, a)
 s ^@? l = ifoldrOf l (\i x _ -> Just (i,x)) Nothing s
@@ -2409,11 +2408,10 @@ s ^@? l = ifoldrOf l (\i x _ -> Just (i,x)) Nothing s
 -- | Perform an *UNSAFE* 'head' (with index) of an 'IndexedFold' or 'IndexedTraversal' assuming that it is there.
 --
 -- @
--- ('^@?!') :: s -> 'IndexedGetter' i s a -> (i, a)
--- ('^@?!') :: s -> 'IndexedFold' i s a   -> (i, a)
--- ('^@?!') :: s -> 'Lens'' i s a         -> (i, a)
--- ('^@?!') :: s -> 'Iso'' i s a          -> (i, a)
--- ('^@?!') :: s -> 'Traversal'' i s a    -> (i, a)
+-- ('^@?!') :: s -> 'IndexedGetter' i s a     -> (i, a)
+-- ('^@?!') :: s -> 'IndexedFold' i s a       -> (i, a)
+-- ('^@?!') :: s -> 'IndexedLens'' i s a      -> (i, a)
+-- ('^@?!') :: s -> 'IndexedTraversal'' i s a -> (i, a)
 -- @
 (^@?!) :: s -> IndexedGetting i (Endo (i, a)) s t a b -> (i, a)
 s ^@?! l = ifoldrOf l (\i x _ -> (i,x)) (error "(^@?!): empty Fold") s

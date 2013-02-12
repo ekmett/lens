@@ -275,7 +275,7 @@ class (Profunctor p, Functor f) => Snoc p f s t a b | s -> a, t -> b, s b -> t, 
   -- | Most of the time this is a 'Prism'.
   --
   -- @
-  -- '_Snoc' :: 'Prism' [a] [b] (a, [a]) (b, [b])
+  -- '_Snoc' :: 'Prism' [a] [b] ([a], a) ([b], b)
   -- '_Snoc' :: 'Prism' ('Seq' a) ('Seq' b) ('Seq' a, a) ('Seq' b, b)
   -- '_Snoc' :: 'Prism' ('Vector' a) ('Vector' b) ('Vector' a, a) ('Vector' b, b)
   -- '_Snoc' :: 'Prism'' 'String' ('String', 'Char')

@@ -649,7 +649,7 @@ both f ~(a,a') = (,) <$> f a <*> f a'
 -- 'beside' :: 'Traversal' s t a b                -> 'Traversal' s' t' a b                -> 'Traversal' (s,s') (t,t') a b
 -- 'beside' :: 'Lens' s t a b                     -> 'Lens' s' t' a b                     -> 'Traversal' (s,s') (t,t') a b
 -- 'beside' :: 'Fold' s a                         -> 'Fold' s' a                          -> 'Fold' (s,s') a
--- 'beside' :: 'Getter' s a                       -> 'Getter' s' a                        -> 'Traversal' (s,s') a
+-- 'beside' :: 'Getter' s a                       -> 'Getter' s' a                        -> 'Traversal'' (s,s') a
 -- 'beside' :: 'Action' m s a                     -> 'Action' m s' a                      -> 'MonadicFold' m (s,s') a
 -- 'beside' :: 'MonadicFold' m s a                -> 'MonadicFold' m s' a                 -> 'MonadicFold' m (s,s') a
 -- @
@@ -658,7 +658,7 @@ both f ~(a,a') = (,) <$> f a <*> f a'
 -- 'beside' :: 'IndexedTraversal' i s t a b       -> 'IndexedTraversal' i s' t' a b       -> 'IndexedTraversal' i (s,s') (t,t') a b
 -- 'beside' :: 'IndexedLens' i s t a b            -> 'IndexedLens' i s' t' a b            -> 'IndexedTraversal' i (s,s') (t,t') a b
 -- 'beside' :: 'IndexedFold' i s a                -> 'IndexedFold' i s' a                 -> 'IndexedFold' i (s,s') a
--- 'beside' :: 'IndexedGetter' i s a              -> 'IndexedGetter' i s' a               -> 'IndexedTraversal' i (s,s') a
+-- 'beside' :: 'IndexedGetter' i s a              -> 'IndexedGetter' i s' a               -> 'IndexedTraversal'' i (s,s') a
 -- 'beside' :: 'IndexedAction' i m s a            -> 'IndexedAction' i m s' a             -> 'IndexedMonadicFold' i m (s,s') a
 -- 'beside' :: 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s' a        -> 'IndexedMonadicFold' i m (s,s') a
 -- @
@@ -667,7 +667,7 @@ both f ~(a,a') = (,) <$> f a <*> f a'
 -- 'beside' :: 'IndexPreservingTraversal' s t a b -> 'IndexPreservingTraversal' s' t' a b -> 'IndexPreservingTraversal' (s,s') (t,t') a b
 -- 'beside' :: 'IndexPreservingLens' s t a b      -> 'IndexPreservingLens' s' t' a b      -> 'IndexPreservingTraversal' (s,s') (t,t') a b
 -- 'beside' :: 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s' a           -> 'IndexPreservingFold' (s,s') a
--- 'beside' :: 'IndexPreservingGetter' s a        -> 'IndexPreservingGetter' s' a         -> 'IndexPreservingTraversal' (s,s') a
+-- 'beside' :: 'IndexPreservingGetter' s a        -> 'IndexPreservingGetter' s' a         -> 'IndexPreservingTraversal'' (s,s') a
 -- 'beside' :: 'IndexPreservingAction' m s a      -> 'IndexPreservingAction' m s' a       -> 'IndexPreservingMonadicFold' m (s,s') a
 -- 'beside' :: 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s' a  -> 'IndexPreservingMonadicFold' m (s,s') a
 -- @
