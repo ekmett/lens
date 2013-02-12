@@ -342,7 +342,7 @@ takingWhile p l pafb = fmap runMagma . traverse (corep pafb) . runTakingWhile . 
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingLens'' s a         -> 'IndexPreservingFold' s a -- see notes
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingGetter' s a        -> 'IndexPreservingFold' s a
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a      -> 'IndexPreservingFold' m s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a      -> 'IndexPreservingFold' s a
 -- @
 --
 -- @
@@ -354,7 +354,7 @@ takingWhile p l pafb = fmap runMagma . traverse (corep pafb) . runTakingWhile . 
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a               -> 'IndexedFold' i s a       -- see notes
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a              -> 'IndexedFold' i s a
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a            -> 'IndexedFold' i m s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a            -> 'IndexedFold' i s a
 -- @
 --
 -- @
@@ -2274,10 +2274,10 @@ iconcatMapOf = ifoldMapOf
 -- @
 --
 -- @
--- 'ifindOf' :: 'IndexedGetter' s a     -> (i -> a -> 'Bool') -> s -> 'Maybe' a
--- 'ifindOf' :: 'IndexedFold' s a       -> (i -> a -> 'Bool') -> s -> 'Maybe' a
--- 'ifindOf' :: 'IndexedLens'' s a      -> (i -> a -> 'Bool') -> s -> 'Maybe' a
--- 'ifindOf' :: 'IndexedTraversal'' s a -> (i -> a -> 'Bool') -> s -> 'Maybe' a
+-- 'ifindOf' :: 'IndexedGetter' i s a     -> (i -> a -> 'Bool') -> s -> 'Maybe' a
+-- 'ifindOf' :: 'IndexedFold' i s a       -> (i -> a -> 'Bool') -> s -> 'Maybe' a
+-- 'ifindOf' :: 'IndexedLens'' i s a      -> (i -> a -> 'Bool') -> s -> 'Maybe' a
+-- 'ifindOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Maybe' a
 -- @
 ifindOf :: IndexedGetting i (Endo (Maybe a)) s t a b -> (i -> a -> Bool) -> s -> Maybe a
 ifindOf l = findOf l .# Indexed
