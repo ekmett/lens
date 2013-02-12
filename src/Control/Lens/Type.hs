@@ -498,7 +498,7 @@ type IndexPreservingMonadicFold m s a = forall p f r. (Conjoined p, Effective m 
 --
 -- @
 -- 'Data.Complex.Lens._imagPart' :: 'Simple' 'Lens' ('Data.Complex.Complex' a) a
--- 'Control.Lens.Cons._head' :: 'Simple' ('IndexedTraversal' 'Int') [a] a
+-- 'Control.Lens.Traversal.traversed' :: 'Simple' ('IndexedTraversal' 'Int') [a] a
 -- @
 --
 -- Note: To use this alias in your own code with @'LensLike' f@ or
