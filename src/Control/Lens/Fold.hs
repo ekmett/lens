@@ -138,14 +138,16 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Foldable as Foldable
 import Data.Functor.Compose
-import Data.Functor.Identity
-import Data.List as List
 import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Traversable
+#ifdef USE_RULES
+import Data.Functor.Identity
+import Data.List as List
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

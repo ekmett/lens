@@ -119,7 +119,6 @@ import Control.Lens.Fold
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Indexed
-import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy
 import Data.Functor.Compose
@@ -132,6 +131,9 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Prelude hiding ((.),id)
+#ifdef USE_RULES
+import Control.Lens.Setter
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
