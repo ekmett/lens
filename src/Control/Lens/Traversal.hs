@@ -926,6 +926,9 @@ traversed64 = conjoined traverse (indexing64 traverse)
 -- @
 -- 'ignored' ≡ 'const' 'pure'
 -- @
+--
+-- >>> 6 & ignored %~ absurd
+-- 6
 ignored :: Applicative f => pafb -> s -> f s
 ignored _ = pure
 {-# INLINE ignored #-}
