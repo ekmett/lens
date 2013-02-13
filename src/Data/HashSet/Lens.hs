@@ -46,6 +46,6 @@ setmapped = setting HashSet.map
 -- 'setOf' :: 'Hashable' a         => 'Lens'' s a      -> s -> 'HashSet' a
 -- 'setOf' :: ('Eq' a, 'Hashable' a) => 'Traversal'' s a -> s -> 'HashSet' a
 -- @
-setOf :: Hashable a => Getting (HashSet a) s t a b -> s -> HashSet a
+setOf :: Hashable a => Getting (HashSet a) s a -> s -> HashSet a
 setOf l = views l HashSet.singleton
 {-# INLINE setOf #-}

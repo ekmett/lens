@@ -84,7 +84,7 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
   -- 'handler' :: 'Control.Lens.Lens.Lens''      e a -> (a -> m r) -> 'Control.Monad.Error.Lens.Handler' e m r
   -- 'handler' :: 'Control.Lens.Traversal.Traversal'' e a -> (a -> m r) -> 'Control.Monad.Error.Lens.Handler' e m r
   -- @
-  handler :: Getting (First a) e t a b -> (a -> m r) -> h r
+  handler :: Getting (First a) e a -> (a -> m r) -> h r
 
   -- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Prism.Prism' (or any 'Getter', really).
   -- that ignores its input and just recovers with the stated monadic action.
@@ -124,7 +124,7 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
   -- 'handler_' :: 'Control.Lens.Lens.Lens''      e a -> m r -> 'Control.Monad.Error.Lens.Handler' e m r
   -- 'handler_' :: 'Control.Lens.Traversal.Traversal'' e a -> m r -> 'Control.Monad.Error.Lens.Handler' e m r
   -- @
-  handler_ :: Getting (First a) e t a b -> m r -> h r
+  handler_ :: Getting (First a) e a -> m r -> h r
   handler_ l = handler l . const
   {-# INLINE handler_ #-}
 
@@ -134,10 +134,10 @@ instance Handleable SomeException IO Exception.Handler where
 instance Handleable SomeException m (CatchIO.Handler m) where
   handler = handlerCatchIO
 
-handlerIO :: forall t a b r. Getting (First a) SomeException t a b -> (a -> IO r) -> Exception.Handler r
+handlerIO :: forall a r. Getting (First a) SomeException a -> (a -> IO r) -> Exception.Handler r
 handlerIO l f = reify (preview l) $ \ (_ :: Proxy s) -> Exception.Handler (\(Handling a :: Handling a s IO) -> f a)
 
-handlerCatchIO :: forall m t a b r. Getting (First a) SomeException t a b -> (a -> m r) -> CatchIO.Handler m r
+handlerCatchIO :: forall m a r. Getting (First a) SomeException a -> (a -> m r) -> CatchIO.Handler m r
 handlerCatchIO l f = reify (preview l) $ \ (_ :: Proxy s) -> CatchIO.Handler (\(Handling a :: Handling a s m) -> f a)
 
 ------------------------------------------------------------------------------

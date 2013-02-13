@@ -51,6 +51,6 @@ setmapped = setting Set.map
 -- 'setOf' ::          'Lens'' s a      -> s -> 'Set' a
 -- 'setOf' :: 'Ord' a => 'Traversal'' s a -> s -> 'Set' a
 -- @
-setOf :: Getting (Set a) s t a b -> s -> Set a
+setOf :: Getting (Set a) s a -> s -> Set a
 setOf l = views l Set.singleton
 {-# INLINE setOf #-}

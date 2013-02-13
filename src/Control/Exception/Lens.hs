@@ -150,7 +150,7 @@ exception = prism' toException fromException
 -- 'catching' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> (a -> m r) -> m r
 -- 'catching' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> (a -> m r) -> m r
 -- @
-catching :: MonadCatchIO m => Getting (First a) SomeException t a b -> m r -> (a -> m r) -> m r
+catching :: MonadCatchIO m => Getting (First a) SomeException a -> m r -> (a -> m r) -> m r
 catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
@@ -170,7 +170,7 @@ catching l = catchJust (preview l)
 -- 'catching_' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> m r -> m r
 -- 'catching_' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> m r -> m r
 -- @
-catching_ :: MonadCatchIO m => Getting (First a) SomeException t a b -> m r -> m r -> m r
+catching_ :: MonadCatchIO m => Getting (First a) SomeException a -> m r -> m r -> m r
 catching_ l a b = catchJust (preview l) a (const b)
 {-# INLINE catching_ #-}
 
@@ -199,7 +199,7 @@ catchJust f m k = CatchIO.catch m $ \ e -> case f e of
 -- 'handling' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> (a -> m r) -> m r -> m r
 -- 'handling' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> (a -> m r) -> m r -> m r
 -- @
-handling :: MonadCatchIO m => Getting (First a) SomeException t a b -> (a -> m r) -> m r -> m r
+handling :: MonadCatchIO m => Getting (First a) SomeException a -> (a -> m r) -> m r -> m r
 handling l = flip (catching l)
 {-# INLINE handling #-}
 
@@ -217,7 +217,7 @@ handling l = flip (catching l)
 -- 'handling_' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> m r -> m r
 -- 'handling_' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> m r -> m r
 -- @
-handling_ :: MonadCatchIO m => Getting (First a) SomeException t a b -> m r -> m r -> m r
+handling_ :: MonadCatchIO m => Getting (First a) SomeException a -> m r -> m r -> m r
 handling_ l = flip (catching_ l)
 {-# INLINE handling_ #-}
 
@@ -237,7 +237,7 @@ handling_ l = flip (catching_ l)
 -- 'trying' :: 'MonadCatchIO' m => 'Getter'     'SomeException' a -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadCatchIO' m => 'Fold'       'SomeException' a -> m r -> m ('Either' a r)
 -- @
-trying :: MonadCatchIO m => Getting (First a) SomeException t a b -> m r -> m (Either a r)
+trying :: MonadCatchIO m => Getting (First a) SomeException a -> m r -> m (Either a r)
 trying l = tryJust (preview l)
 
 -- | A helper version of 'Control.Exception.try' that doesn't needlessly require 'Functor'.

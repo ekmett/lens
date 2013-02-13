@@ -49,14 +49,13 @@ module Control.Lens.Getter
   -- * Getters
     Getter, IndexedGetter
   , Getting, IndexedGetting
-  , Getting', IndexedGetting'
-  , Accessing, Accessing'
+  , Accessing
   -- * Building Getters
   , to
   -- * Combinators for Getters and Folds
   , (^.)
-  , view, views, view', views'
-  , use, uses, use', uses'
+  , view, views
+  , use, uses
   , listening, listenings
   -- * Indexed Getters
   -- ** Indexed Getter Combinators
@@ -66,7 +65,7 @@ module Control.Lens.Getter
   , ilistening, ilistenings
   -- * Implementation Details
   , Contravariant(..)
-  , coerce
+  , coerce, coerced
   , Accessor(..)
   , Gettable
   ) where
@@ -138,23 +137,14 @@ to f = dimap f coerce
 -- you can pass a 'Control.Lens.Fold.Fold' (or
 -- 'Control.Lens.Traversal.Traversal'), otherwise you can only pass this a
 -- 'Getter' or 'Lens'.
-type Getting r s t a b = (a -> Accessor r b) -> s -> Accessor r t
-
--- | @'Simple' ('Getting' r)@
-type Getting' r s a = Getting r s s a a
+type Getting r s a = (a -> Accessor r a) -> s -> Accessor r s
 
 -- | Used to consume an 'Control.Lens.Fold.IndexedFold'.
-type IndexedGetting i m s t a b = Indexed i a (Accessor m b) -> s -> Accessor m t
-
--- | @'Simple' ('IndexedGetting' i r)@
-type IndexedGetting' i r s a = IndexedGetting i r s s a a
+type IndexedGetting i m s a = Indexed i a (Accessor m a) -> s -> Accessor m s
 
 -- | This is a convenient alias used when consuming (indexed) getters and (indexed) folds
 -- in a highly general fashion.
-type Accessing p m s t a b = p a (Accessor m b) -> s -> Accessor m t
-
--- | @'Simple' ('Accessing' p m)@
-type Accessing' p m s a = Accessing p m s s a a
+type Accessing p m s a = p a (Accessor m a) -> s -> Accessor m s
 
 -------------------------------------------------------------------------------
 -- Getting Values
@@ -202,7 +192,7 @@ type Accessing' p m s a = Accessing p m s s a a
 -- 'view' :: 'MonadReader' s m             => 'Lens'' s a      -> m a
 -- 'view' :: ('MonadReader' s m, 'Data.Monoid.Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> m a
 -- @
-view :: MonadReader s m => Getting a s t a b -> m a
+view :: MonadReader s m => Getting a s a -> m a
 view l = Reader.asks (runAccessor #. l Accessor)
 {-# INLINE view #-}
 
@@ -242,9 +232,9 @@ view l = Reader.asks (runAccessor #. l Accessor)
 -- @
 --
 -- @
--- 'views' :: 'MonadReader' s m => 'Getting' r s t a b -> (a -> r) -> m r
+-- 'views' :: 'MonadReader' s m => 'Getting' r s a -> (a -> r) -> m r
 -- @
-views :: (Profunctor p, MonadReader s m) => Overloading p (->) (Accessor r) s t a b -> p a r -> m r
+views :: (Profunctor p, MonadReader s m) => Overloading p (->) (Accessor r) s s a a -> p a r -> m r
 views l f = Reader.asks (runAccessor #. l (Accessor #. f))
 {-# INLINE views #-}
 
@@ -274,7 +264,7 @@ views l f = Reader.asks (runAccessor #. l (Accessor #. f))
 -- ('^.') ::             s -> 'Lens'' s a      -> a
 -- ('^.') :: 'Data.Monoid.Monoid' m => s -> 'Control.Lens.Traversal.Traversal'' s m -> m
 -- @
-(^.) :: s -> Getting a s t a b -> a
+(^.) :: s -> Getting a s a -> a
 s ^. l = runAccessor (l Accessor s)
 {-# INLINE (^.) #-}
 
@@ -300,7 +290,7 @@ s ^. l = runAccessor (l Accessor s)
 -- 'use' :: 'MonadState' s m             => 'Lens'' s a      -> m a
 -- 'use' :: ('MonadState' s m, 'Data.Monoid.Monoid' r) => 'Control.Lens.Traversal.Traversal'' s r -> m r
 -- @
-use :: MonadState s m => Getting a s t a b -> m a
+use :: MonadState s m => Getting a s a -> m a
 use l = State.gets (view l)
 {-# INLINE use #-}
 
@@ -323,7 +313,7 @@ use l = State.gets (view l)
 -- @
 -- 'uses' :: 'MonadState' s m => 'Getting' r s t a b -> (a -> r) -> m r
 -- @
-uses :: (Profunctor p, MonadState s m) => Overloading p (->) (Accessor r) s t a b -> p a r -> m r
+uses :: (Profunctor p, MonadState s m) => Overloading p (->) (Accessor r) s s a a -> p a r -> m r
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}
 
@@ -340,7 +330,7 @@ uses l f = State.gets (views l f)
 -- 'listening' :: ('MonadWriter' w m, 'Monoid' u) => 'Traversal'' w u -> m a -> m (a, u)
 -- 'listening' :: ('MonadWriter' w m, 'Monoid' u) => 'Prism'' w u     -> m a -> m (a, u)
 -- @
-listening :: MonadWriter w m => Getting u w t u b -> m a -> m (a, u)
+listening :: MonadWriter w m => Getting u w u -> m a -> m (a, u)
 listening l m = do
   (a, w) <- listen m
   return (a, view l w)
@@ -357,7 +347,7 @@ listening l m = do
 -- 'ilistening' :: ('MonadWriter' w m, 'Monoid' u) => 'IndexedFold' i w u       -> m a -> m (a, (i, u))
 -- 'ilistening' :: ('MonadWriter' w m, 'Monoid' u) => 'IndexedTraversal'' i w u -> m a -> m (a, (i, u))
 -- @
-ilistening :: MonadWriter w m => IndexedGetting i (i, u) w t u b -> m a -> m (a, (i, u))
+ilistening :: MonadWriter w m => IndexedGetting i (i, u) w u -> m a -> m (a, (i, u))
 ilistening l m = do
   (a, w) <- listen m
   return (a, iview l w)
@@ -376,7 +366,7 @@ ilistening l m = do
 -- 'listenings' :: ('MonadWriter' w m, 'Monoid' v) => 'Traversal'' w u -> (u -> v) -> m a -> m (a, v)
 -- 'listenings' :: ('MonadWriter' w m, 'Monoid' v) => 'Prism'' w u     -> (u -> v) -> m a -> m (a, v)
 -- @
-listenings :: MonadWriter w m => Getting v w t u b -> (u -> v) -> m a -> m (a, v)
+listenings :: MonadWriter w m => Getting v w u -> (u -> v) -> m a -> m (a, v)
 listenings l uv m = do
   (a, w) <- listen m
   return (a, views l uv w)
@@ -393,163 +383,11 @@ listenings l uv m = do
 -- 'ilistenings' :: ('MonadWriter' w m, 'Monoid' v) => 'IndexedFold' w u       -> (i -> u -> v) -> m a -> m (a, v)
 -- 'ilistenings' :: ('MonadWriter' w m, 'Monoid' v) => 'IndexedTraversal'' w u -> (i -> u -> v) -> m a -> m (a, v)
 -- @
-ilistenings :: MonadWriter w m => IndexedGetting i v w t u b -> (i -> u -> v) -> m a -> m (a, v)
+ilistenings :: MonadWriter w m => IndexedGetting i v w u -> (i -> u -> v) -> m a -> m (a, v)
 ilistenings l iuv m = do
   (a, w) <- listen m
   return (a, iviews l iuv w)
 {-# INLINE ilistenings #-}
-
--- | View the value of a 'Getter', 'Control.Lens.Iso.Iso',
-
-------------------------------------------------------------------------------
--- Accessing State, Simplified
-------------------------------------------------------------------------------
-
--- | This is a type restricted version of 'use' that expects a 'Simple' 'Getter'.
---
--- Use the target of a 'Lens'', 'Control.Lens.Iso.Iso', or
--- 'Getter' in the current state, or use a summary of a
--- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
--- to a monoidal value.
---
--- This use of this combinator may aid type-inference when working with lenses or traversals that
--- have non-defaultable typeclass constraints on their arguments.
---
--- >>> evalState (use' _1) (a,b)
--- a
---
---
--- >>> evalState (use' _1) ("hello","world")
--- "hello"
---
--- @
--- 'use'' :: 'MonadState' s m             => 'Getter' s a     -> m a
--- 'use'' :: ('MonadState' s m, 'Data.Monoid.Monoid' r) => 'Control.Lens.Fold.Fold' s r       -> m r
--- 'use'' :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> m a
--- 'use'' :: 'MonadState' s m             => 'Lens'' s a      -> m a
--- 'use'' :: ('MonadState' s m, 'Data.Monoid.Monoid' r) => 'Control.Lens.Traversal.Traversal'' s r -> m r
--- @
-use' :: MonadState s m => Getting a s s a a -> m a
-use' l = State.gets (view' l)
-{-# INLINE use' #-}
-
--- | This is a type restricted version of 'uses' that expects a 'Simple' 'Getter'.
---
--- Use the target of a 'Lens', 'Control.Lens.Iso.Iso' or
--- 'Getter' in the current state, or use a summary of a
--- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that
--- points to a monoidal value.
---
--- >>> evalState (uses' _1 length) ("hello","world")
--- 5
---
--- @
--- 'uses'' :: 'MonadState' s m             => 'Getter' s a     -> (a -> r) -> m r
--- 'uses'' :: ('MonadState' s m, 'Data.Monoid.Monoid' r) => 'Control.Lens.Fold.Fold' s a       -> (a -> r) -> m r
--- 'uses'' :: 'MonadState' s m             => 'Lens'' s a      -> (a -> r) -> m r
--- 'uses'' :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> (a -> r) -> m r
--- 'uses'' :: ('MonadState' s m, 'Data.Monoid.Monoid' r) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> r) -> m r
--- @
---
--- @
--- 'uses'' :: 'MonadState' s m => 'Getting' r s s a a -> (a -> r) -> m r
--- @
-uses' :: (Profunctor p, MonadState s m) => Overloading' p (->) (Accessor r) s a -> p a r -> m r
-uses' l f = State.gets (views' l f)
-{-# INLINE uses' #-}
-
-------------------------------------------------------------------------------
--- Viewing, Simplified
-------------------------------------------------------------------------------
-
--- | This is a type restricted version of 'view' that expects a 'Simple' 'Getter'.
---
--- View the value pointed to by a 'Getter', 'Control.Lens.Iso.Iso' or
--- 'Lens' or the result of folding over all the results of a
--- 'Control.Lens.Fold.Fold' or 'Control.Lens.Traversal.Traversal' that points
--- at a monoidal values.
---
--- @
--- 'view'' '.' 'to' ≡ 'id'
--- @
---
--- >>> view' (to f) a
--- f a
---
--- >>> view' _2 (1,"hello")
--- "hello"
---
--- >>> view' (to succ) 5
--- 6
---
--- >>> view' (_2._1) ("hello",("world","!!!"))
--- "world"
---
--- As 'view'' is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
--- It may be useful to think of it as having one of these more restricted signatures:
---
--- @
--- 'view'' ::             'Getter' s a     -> s -> a
--- 'view'' :: 'Data.Monoid.Monoid' m => 'Control.Lens.Fold.Fold' s m       -> s -> m
--- 'view'' ::             'Control.Lens.Iso.Iso'' s a       -> s -> a
--- 'view'' ::             'Lens'' s a      -> s -> a
--- 'view'' :: 'Data.Monoid.Monoid' m => 'Control.Lens.Traversal.Traversal'' s m -> s -> m
--- @
---
--- In a more general setting, such as when working with a 'Monad' transformer stack you can use:
---
--- @
--- 'view'' :: 'MonadReader' s m             => 'Getter' s a     -> m a
--- 'view'' :: ('MonadReader' s m, 'Data.Monoid.Monoid' a) => 'Control.Lens.Fold.Fold' s a       -> m a
--- 'view'' :: 'MonadReader' s m             => 'Control.Lens.Iso.Iso'' s a       -> m a
--- 'view'' :: 'MonadReader' s m             => 'Lens'' s a      -> m a
--- 'view'' :: ('MonadReader' s m, 'Data.Monoid.Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> m a
--- @
-view' :: MonadReader s m => Getting a s s a a -> m a
-view' l = Reader.asks (runAccessor #. l Accessor)
-{-# INLINE view' #-}
-
--- | This is a type restricted version of 'views' that expects a 'Simple' 'Getter'.
---
--- View the value of a 'Getter', 'Control.Lens.Iso.Iso',
--- 'Lens' or the result of folding over the result of mapping
--- the targets of a 'Control.Lens.Fold.Fold' or
--- 'Control.Lens.Traversal.Traversal'.
---
--- @
--- 'views'' l f ≡ 'view'' (l '.' 'to' f)
--- @
---
--- >>> views' _2 length (1,"hello")
--- 5
---
--- As 'views'' is commonly used to access the target of a 'Getter' or obtain a monoidal summary of the targets of a 'Fold',
--- It may be useful to think of it as having one of these more restricted signatures:
---
--- @
--- 'views'' ::             'Getter' s a     -> (a -> r) -> s -> r
--- 'views'' :: 'Data.Monoid.Monoid' m => 'Control.Lens.Fold.Fold' s a       -> (a -> m) -> s -> m
--- 'views'' ::             'Control.Lens.Iso.Iso'' s a       -> (a -> r) -> s -> r
--- 'views'' ::             'Lens'' s a      -> (a -> r) -> s -> r
--- 'views'' :: 'Data.Monoid.Monoid' m => 'Control.Lens.Traversal.Traversal'' s a -> (a -> m) -> s -> m
--- @
---
--- In a more general setting, such as when working with a 'Monad' transformer stack you can use:
---
--- @
--- 'views'' :: 'MonadReader' s m             => 'Getter' s a     -> (a -> r) -> m r
--- 'views'' :: ('MonadReader' s m, 'Data.Monoid.Monoid' a) => 'Control.Lens.Fold.Fold' s a       -> (a -> r) -> m r
--- 'views'' :: 'MonadReader' s m             => 'Control.Lens.Iso.Iso'' s a       -> (a -> r) -> m r
--- 'views'' :: 'MonadReader' s m             => 'Lens'' s a      -> (a -> r) -> m r
--- 'views'' :: ('MonadReader' s m, 'Data.Monoid.Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> r) -> m r
--- @
---
--- @
--- 'views'' :: 'MonadReader' s m => 'Getting' r s s a a -> (a -> r) -> m r
--- @
-views' :: (Profunctor p, MonadReader s m) => Overloading' p (->) (Accessor r) s a -> p a r -> m r
-views' l f = Reader.asks (runAccessor #. l (Accessor #. f))
-{-# INLINE views' #-}
 
 ------------------------------------------------------------------------------
 -- Indexed Getters
@@ -559,7 +397,7 @@ views' l f = Reader.asks (runAccessor #. l (Accessor #. f))
 --
 -- When applied to an 'IndexedFold' the result will most likely be a nonsensical monoidal summary of
 -- the indices tupled with a monoidal summary of the values and probably not whatever it is you wanted.
-iview :: MonadReader s m => IndexedGetting i (i,a) s t a b -> m (i,a)
+iview :: MonadReader s m => IndexedGetting i (i,a) s a -> m (i,a)
 iview l = asks (runAccessor #. l (Indexed $ \i -> Accessor #. (,) i))
 {-# INLINE iview #-}
 
@@ -570,7 +408,7 @@ iview l = asks (runAccessor #. l (Indexed $ \i -> Accessor #. (,) i))
 -- @
 -- 'iviews' ≡ 'Control.Lens.Fold.ifoldMapOf'
 -- @
-iviews :: MonadReader s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
+iviews :: MonadReader s m => IndexedGetting i r s a -> (i -> a -> r) -> m r
 iviews l = views l .# Indexed
 {-# INLINE iviews #-}
 
@@ -578,14 +416,14 @@ iviews l = views l .# Indexed
 --
 -- When applied to an 'IndexedFold' the result will most likely be a nonsensical monoidal summary of
 -- the indices tupled with a monoidal summary of the values and probably not whatever it is you wanted.
-iuse :: MonadState s m => IndexedGetting i (i,a) s t a b -> m (i,a)
+iuse :: MonadState s m => IndexedGetting i (i,a) s a -> m (i,a)
 iuse l = gets (runAccessor #. l (Indexed $ \i -> Accessor #. (,) i))
 {-# INLINE iuse #-}
 
 -- | Use a function of the index and value of an 'IndexedGetter' into the current state.
 --
 -- When applied to an 'IndexedFold' the result will be a monoidal summary instead of a single answer.
-iuses :: MonadState s m => IndexedGetting i r s t a b -> (i -> a -> r) -> m r
+iuses :: MonadState s m => IndexedGetting i r s a -> (i -> a -> r) -> m r
 iuses l = uses l .# Indexed
 {-# INLINE iuses #-}
 
@@ -608,6 +446,11 @@ iuses l = uses l .# Indexed
 -- @
 --
 -- The result probably doesn't have much meaning when applied to an 'IndexedFold'.
-(^@.) :: s -> IndexedGetting i (i, a) s t a b -> (i, a)
+(^@.) :: s -> IndexedGetting i (i, a) s a -> (i, a)
 s ^@. l = runAccessor $ l (Indexed $ \i -> Accessor #. (,) i) s
 {-# INLINE (^@.) #-}
+
+-- | Coerce a 'Gettable' 'LensLike' to a 'Simple' 'LensLike'. This is useful
+-- when using a 'Traversal' that is not simple as a 'Getter' or a 'Fold'.
+coerced :: (Functor f, Contravariant f) => LensLike f s t a b -> LensLike' f s a
+coerced l f = coerce . l (coerce . f)

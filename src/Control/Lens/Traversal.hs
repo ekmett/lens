@@ -116,8 +116,9 @@ import Control.Category
 import Control.Comonad
 import Control.Lens.Combinators
 import Control.Lens.Fold
-import Control.Lens.Internal.Context
+import Control.Lens.Getter (coerced)
 import Control.Lens.Internal.Bazaar
+import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy
@@ -602,7 +603,7 @@ unsafeSingular l pafb s = case pins b of
 ------------------------------------------------------------------------------
 
 ins :: Bizarre (->) w => w a b t -> [a]
-ins = toListOf bazaar
+ins = toListOf (coerced bazaar)
 {-# INLINE ins #-}
 
 pins :: (Bizarre p w, Corepresentable p) => w a b t -> [Corep p a]
@@ -766,7 +767,7 @@ dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
 -- former can execute at full speed, while the latter needs to round trip through
 -- the 'Bazaar'.
 --
--- >>> let foo l a = (view (cloneTraversal l) a, set (cloneTraversal l) 10 a)
+-- >>> let foo l a = (view (coerced (cloneTraversal l)) a, set (cloneTraversal l) 10 a)
 -- >>> foo both ("hello","world")
 -- ("helloworld",(10,10))
 --
