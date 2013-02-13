@@ -67,7 +67,7 @@ sliced i n f v = f (slice i n v) <&> \ v0 -> v // zip [i..i+n-1] (V.toList v0)
 --
 -- >>> toVectorOf both (8,15) :: Vector.Vector Int
 -- fromList [8,15]
-toVectorOf :: Vector v a => Getting (Endo [a]) s t a b -> s -> v a
+toVectorOf :: Vector v a => Getting (Endo [a]) s a -> s -> v a
 toVectorOf l s = fromList (toListOf l s)
 {-# INLINE toVectorOf #-}
 

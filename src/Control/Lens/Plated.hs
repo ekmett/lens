@@ -330,13 +330,13 @@ universe = universeOf plate
 -- @
 -- 'universeOf' :: 'Fold' a a -> a -> [a]
 -- @
-universeOf :: Getting [a] a b a b -> a -> [a]
+universeOf :: Getting [a] a a -> a -> [a]
 universeOf l = go where
   go a = a : foldMapOf l go a
 {-# INLINE universeOf #-}
 
 -- | Given a 'Fold' that knows how to find 'Plated' parts of a container retrieve them and all of their descendants, recursively.
-universeOn ::  Plated a => Getting [a] s t a a -> s -> [a]
+universeOn ::  Plated a => Getting [a] s a -> s -> [a]
 universeOn b = universeOnOf b plate
 {-# INLINE universeOn #-}
 
@@ -346,7 +346,7 @@ universeOn b = universeOnOf b plate
 -- @
 -- 'toListOf' l ≡ 'universeOnOf' l 'ignored'
 -- @
-universeOnOf :: Getting [a] s t a b -> Getting [a] a b a b -> s -> [a]
+universeOnOf :: Getting [a] s a -> Getting [a] a a -> s -> [a]
 universeOnOf b = foldMapOf b . universeOf
 {-# INLINE universeOnOf #-}
 
@@ -558,7 +558,7 @@ holesOnOf b l = holesOf (b . l)
 -- @
 -- 'paraOf' :: 'Fold' a a -> (a -> [r] -> r) -> a -> r
 -- @
-paraOf :: Getting (Endo [a]) a b a b -> (a -> [r] -> r) -> a -> r
+paraOf :: Getting (Endo [a]) a a -> (a -> [r] -> r) -> a -> r
 paraOf l f = go where
   go a = f a (go <$> toListOf l a)
 {-# INLINE paraOf #-}

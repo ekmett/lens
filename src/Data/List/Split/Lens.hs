@@ -46,7 +46,7 @@ import Data.List.Split.Internals
 -- @
 -- 'splitting' :: 'Splitter' a -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splitting :: Splitter a -> Getting' (Endo [a]) s a -> Fold s [a]
+splitting :: Splitter a -> Getting (Endo [a]) s a -> Fold s [a]
 splitting s l f = coerce . traverse f . split s . toListOf l
 {-# INLINE splitting #-}
 
@@ -57,7 +57,7 @@ splitting s l f = coerce . traverse f . split s . toListOf l
 -- @
 -- 'splittingOn' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splittingOn :: Eq a => [a] -> Getting' (Endo [a]) s a -> Fold s [a]
+splittingOn :: Eq a => [a] -> Getting (Endo [a]) s a -> Fold s [a]
 splittingOn s l f = coerce . traverse f . splitOn s . toListOf l
 {-# INLINE splittingOn #-}
 
@@ -68,7 +68,7 @@ splittingOn s l f = coerce . traverse f . splitOn s . toListOf l
 -- @
 -- 'splittingOn' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splittingOneOf :: Eq a => [a] -> Getting' (Endo [a]) s a -> Fold s [a]
+splittingOneOf :: Eq a => [a] -> Getting (Endo [a]) s a -> Fold s [a]
 splittingOneOf s l f = coerce . traverse f . splitOneOf s . toListOf l
 {-# INLINE splittingOneOf #-}
 
@@ -79,7 +79,7 @@ splittingOneOf s l f = coerce . traverse f . splitOneOf s . toListOf l
 -- @
 -- 'splittingWhen' :: (a -> 'Bool') -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splittingWhen :: (a -> Bool) -> Getting' (Endo [a]) s a -> Fold s [a]
+splittingWhen :: (a -> Bool) -> Getting (Endo [a]) s a -> Fold s [a]
 splittingWhen s l f = coerce . traverse f . splitWhen s . toListOf l
 {-# INLINE splittingWhen #-}
 
@@ -90,7 +90,7 @@ splittingWhen s l f = coerce . traverse f . splitWhen s . toListOf l
 -- @
 -- 'endingBy' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-endingBy :: Eq a => [a] -> Getting' (Endo [a]) s a -> Fold s [a]
+endingBy :: Eq a => [a] -> Getting (Endo [a]) s a -> Fold s [a]
 endingBy s l f = coerce . traverse f . endBy s . toListOf l
 {-# INLINE endingBy #-}
 
@@ -101,7 +101,7 @@ endingBy s l f = coerce . traverse f . endBy s . toListOf l
 -- @
 -- 'endingByOneOf' :: 'Eq' a => [a] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-endingByOneOf :: Eq a => [a] -> Getting' (Endo [a]) s a -> Fold s [a]
+endingByOneOf :: Eq a => [a] -> Getting (Endo [a]) s a -> Fold s [a]
 endingByOneOf s l f = coerce . traverse f . endByOneOf s . toListOf l
 {-# INLINE endingByOneOf #-}
 
@@ -112,7 +112,7 @@ endingByOneOf s l f = coerce . traverse f . endByOneOf s . toListOf l
 -- @
 -- 'wordingBy' :: (a -> 'Bool') -> 'Fold' s a -> 'Fold' s [a]
 -- @
-wordingBy :: (a -> Bool) -> Getting' (Endo [a]) s a -> Fold s [a]
+wordingBy :: (a -> Bool) -> Getting (Endo [a]) s a -> Fold s [a]
 wordingBy s l f = coerce . traverse f . wordsBy s . toListOf l
 {-# INLINE wordingBy #-}
 
@@ -123,7 +123,7 @@ wordingBy s l f = coerce . traverse f . wordsBy s . toListOf l
 -- @
 -- 'liningBy' :: (a -> 'Bool') -> 'Fold' s a -> 'Fold' s [a]
 -- @
-liningBy :: (a -> Bool) -> Getting' (Endo [a]) s a -> Fold s [a]
+liningBy :: (a -> Bool) -> Getting (Endo [a]) s a -> Fold s [a]
 liningBy s l f = coerce . traverse f . linesBy s . toListOf l
 {-# INLINE liningBy #-}
 
@@ -133,7 +133,7 @@ liningBy s l f = coerce . traverse f . linesBy s . toListOf l
 -- 'chunking' :: 'Int' -> 'Fold' s a -> 'Fold' s [a]
 -- @
 chunking :: Int -- ^ @n@
-            -> Getting' (Endo [a]) s a -> Fold s [a]
+            -> Getting (Endo [a]) s a -> Fold s [a]
 chunking s l f = coerce . traverse f . chunksOf s . toListOf l
 {-# INLINE chunking #-}
 
@@ -142,7 +142,7 @@ chunking s l f = coerce . traverse f . chunksOf s . toListOf l
 -- @
 -- 'splittingPlaces' :: 'Integral' n => [n] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splittingPlaces :: Integral n => [n] -> Getting' (Endo [a]) s a -> Fold s [a]
+splittingPlaces :: Integral n => [n] -> Getting (Endo [a]) s a -> Fold s [a]
 splittingPlaces s l f = coerce . traverse f . splitPlaces s . toListOf l
 {-# INLINE splittingPlaces #-}
 
@@ -151,7 +151,7 @@ splittingPlaces s l f = coerce . traverse f . splitPlaces s . toListOf l
 -- @
 -- 'splittingPlacesBlanks' :: 'Integral' n => [n] -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splittingPlacesBlanks :: Integral n => [n] -> Getting' (Endo [a]) s a -> Fold s [a]
+splittingPlacesBlanks :: Integral n => [n] -> Getting (Endo [a]) s a -> Fold s [a]
 splittingPlacesBlanks s l f = coerce . traverse f . splitPlacesBlanks s . toListOf l
 {-# INLINE splittingPlacesBlanks #-}
 

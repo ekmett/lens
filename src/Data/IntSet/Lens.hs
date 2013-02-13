@@ -58,6 +58,6 @@ setmapped = setting IntSet.map
 -- 'setOf' :: 'Lens'' s 'Int'      -> s -> 'IntSet'
 -- 'setOf' :: 'Traversal'' s 'Int' -> s -> 'IntSet'
 -- @
-setOf :: Getting IntSet s t Int b -> s -> IntSet
+setOf :: Getting IntSet s Int -> s -> IntSet
 setOf l = views l IntSet.singleton
 {-# INLINE setOf #-}
