@@ -9,11 +9,12 @@ import Control.Lens
 import Data.Maybe
 import Data.Traversable
 import Data.Foldable
-import Data.List (isInfixOf)
+import Data.List (isInfixOf, dropWhileEnd)
 import System.Environment
 import Language.Haskell.Exts
 import System.Process
 import Prelude hiding (concatMap, mapM, mapM_, concat, elem, notElem)
+import Debug.Trace
 
 imports =
   [ "Control.Applicative"
@@ -56,16 +57,32 @@ imports =
   , "qualified Control.Lens.Traversal"
   , "qualified Control.Lens.Tuple"
   , "qualified Data.ByteString as StrictB"
+  , "qualified Data.ByteString.Lazy as LazyB"
   , "qualified Data.ByteString.Lazy"
   , "qualified Data.Complex"
+  , "Data.Complex (Complex)"
+  , "Data.Array (Array, Ix)"
+  , "Data.Map (Map)"
+  , "Data.Functor.Identity (Identity)"
+  , "qualified Data.Vector as Vector"
+  , "qualified Data.Vector.Unboxed as Unboxed"
+  , "qualified Data.Vector.Storable as Storable"
+  , "Data.Vector.Primitive (Prim)"
+  , "qualified Data.Vector.Primitive as Prim"
+  , "Data.HashMap.Lazy (HashMap)"
+  , "Data.Tree (Tree)"
+  , "Foreign.Storable (Storable)"
+  , "Data.Int (Int64)"
   , "qualified Data.Complex.Lens"
   , "qualified Data.List.Lens"
   , "qualified Data.Monoid"
   , "qualified Data.Text as StrictT"
+  , "qualified Data.Text.Lazy as LazyT"
   , "qualified Data.Text"
   , "qualified Data.Text.Internal"
   , "qualified Data.Traversable"
   , "qualified Numeric.Natural"
+  , "Data.Vector.Unboxed (Unbox)"
   ]
 
 usedExtensions =
@@ -122,7 +139,7 @@ main = do
 
 asType (Comment _ _ str)
   | "::" `isInfixOf` str =
-    case cleanQuotes True str of
+    case cleanQuotes True (filterAts str) of
       Nothing -> error ("!"++str)
       Just clean -> case parseExp clean of
             ParseFailed _ err -> Left (str ++ " : " ++ err)
@@ -130,7 +147,7 @@ asType (Comment _ _ str)
             ParseOk     _ -> Left str
   | otherwise = Left str
 
-render _ (Left _) = []
+render _ (Left s) = []
 render i (Right (l,r)) | prettyPrint l `elem` valueBlacklist = []
 render i (Right (l,r)) =
   [ "check_" ++ show i ++ " :: " ++ prettyPrint r
@@ -165,3 +182,5 @@ isEndEligible ')' = True
 isEndEligible ']' = True
 isEndEligible ' ' = True
 isEndEligible _   = False
+
+filterAts = dropWhileEnd (=='@') . dropWhileEnd isSpace . dropWhile (=='@') . dropWhile isSpace . dropWhile (=='|') . dropWhile isSpace
