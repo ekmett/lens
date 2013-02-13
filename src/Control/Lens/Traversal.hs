@@ -927,6 +927,7 @@ traversed64 = conjoined traverse (indexing64 traverse)
 -- 'ignored' ≡ 'const' 'pure'
 -- @
 --
+-- >>> import Data.Void
 -- >>> 6 & ignored %~ absurd
 -- 6
 ignored :: Applicative f => pafb -> s -> f s
