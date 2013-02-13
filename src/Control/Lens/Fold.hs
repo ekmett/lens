@@ -1809,8 +1809,8 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 -- Pre
 ------------------------------------------------------------------------------
 
--- | This converts a 'Fold' to a 'IndexPreservingGetter' that returns the first element if it
--- exists as a 'Maybe'.
+-- | This converts a 'Fold' to a 'IndexPreservingGetter' that returns the first element, if it
+-- exists, as a 'Maybe'.
 --
 -- @
 -- 'pre' :: 'Getter' s a           -> 'IndexPreservingGetter' s ('Maybe' a)
@@ -1825,7 +1825,7 @@ pre l = dimap (getFirst . runAccessor #. l (Accessor #. First #. Just)) coerce
 {-# INLINE pre #-}
 
 -- | This converts an 'IndexedFold' to an 'IndexPreservingGetter' that returns the first index
--- and element if it exists as a 'Maybe'.
+-- and element, if they exist, as a 'Maybe'.
 --
 -- @
 -- 'ipre' :: 'IndexedGetter' i s a             -> 'IndexPreservingGetter' s ('Maybe' (i, a))
