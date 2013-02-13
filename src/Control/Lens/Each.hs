@@ -204,7 +204,7 @@ instance Applicative f => Each f (Map c a) (Map c b) a b where
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' ('Map' c a) ('Map' c b) a b@
+-- | @'each' :: 'IndexedTraversal' c ('Map' c a) ('Map' c b) a b@
 instance Applicative f => Each f (IntMap a) (IntMap b) a b where
   each f m = sequenceA $ IntMap.mapWithKey f' m
     where f' = Lens.indexed f
@@ -220,12 +220,12 @@ instance Applicative f => Each f [a] [b] a b where
   each = traversed
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' ('Identity' a) ('Identity' b) a b@
+-- | @'each' :: 'IndexedTraversal' () ('Identity' a) ('Identity' b) a b@
 instance Functor f => Each f (Identity a) (Identity b) a b where
   each f (Identity a) = Identity <$> Lens.indexed f () a
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' ('Maybe' a) ('Maybe' b) a b@
+-- | @'each' :: 'IndexedTraversal' () ('Maybe' a) ('Maybe' b) a b@
 instance Applicative f => Each f (Maybe a) (Maybe b) a b where
   each f (Just a) = Just <$> Lens.indexed f () a
   each _ Nothing  = pure Nothing
@@ -275,12 +275,12 @@ instance Applicative f => Each f LazyT.Text LazyT.Text Char Char where
   each = iso LazyT.unpack LazyT.pack . traversed64
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' 'StrictB.ByteString' 'StrictB.ByteString' 'Char' 'Char'@
+-- | @'each' :: 'IndexedTraversal' 'Int' 'StrictB.ByteString' 'StrictB.ByteString' 'Word8' 'Word8'@
 instance Applicative f => Each f StrictB.ByteString StrictB.ByteString Word8 Word8 where
   each = iso StrictB.unpack StrictB.pack . traversed
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int64' 'LazyB.ByteString' 'LazyB.ByteString' 'Char' 'Char'@
+-- | @'each' :: 'IndexedTraversal' 'Int64' 'LazyB.ByteString' 'LazyB.ByteString' 'Word8' 'Word8'@
 instance Applicative f => Each f LazyB.ByteString LazyB.ByteString Word8 Word8 where
   each = iso LazyB.unpack LazyB.pack . traversed64
   {-# INLINE each #-}
@@ -295,7 +295,7 @@ instance (Applicative f, Ix i, IArray UArray a, IArray UArray b) => Each f (UArr
   each f arr = array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> Lens.indexed f i a) (IArray.assocs arr)
   {-# INLINE each #-}
 
--- | @'each' :: 'Control.Lens.IndexedSetter.IndexedSetter' i (i -> a) (i -> b) a b@
+-- | @'each' :: 'Control.Lens.IndexedSetter' i (i -> a) (i -> b) a b@
 instance Settable f => Each f (i -> a) (i -> b) a b where
   each f g = pure (\i -> untaintedDot (Lens.indexed f i) (g i))
   {-# INLINE each #-}
