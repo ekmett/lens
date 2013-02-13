@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Getter
@@ -11,8 +13,9 @@
 module Control.Lens.Internal.Getter
   (
   -- * Internal Classes
+    Gettable
   -- ** Getters
-    coerce
+  , coerce
   , noEffect
   , Accessor(..)
   ) where
@@ -22,6 +25,11 @@ import Data.Functor.Apply
 import Data.Functor.Contravariant
 import Data.Semigroup
 import Data.Void
+
+-- | This class is provided mostly for backwards compatibility with lens 3.8,
+-- but it can also shorten type signatures.
+class (Contravariant f, Functor f) => Gettable f
+instance (Contravariant f, Functor f) => Gettable f
 
 -------------------------------------------------------------------------------
 -- Gettables & Accessors

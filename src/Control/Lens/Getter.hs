@@ -68,6 +68,7 @@ module Control.Lens.Getter
   , Contravariant(..)
   , coerce
   , Accessor(..)
+  , Gettable
   ) where
 
 import Control.Lens.Internal.Getter
