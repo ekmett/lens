@@ -44,7 +44,7 @@ import Data.List.Split.Internals
 -- | Obtain a 'Fold' by splitting another 'Fold', 'Lens', 'Getter' or 'Traversal' according to the given splitting strategy.
 --
 -- @
--- 'splitting' :: 'Splitter' a -> 'Fold' i s a -> 'Fold' [i] s [a]
+-- 'splitting' :: 'Splitter' a -> 'Fold' s a -> 'Fold' s [a]
 -- @
 splitting :: Splitter a -> Getting' (Endo [a]) s a -> Fold s [a]
 splitting s l f = coerce . traverse f . split s . toListOf l
@@ -77,9 +77,9 @@ splittingOneOf s l f = coerce . traverse f . splitOneOf s . toListOf l
 -- Equivalent to @'splitting' '.' 'dropDelims' '.' 'whenElt'@.
 --
 -- @
--- 'splittingOn' :: (a -> 'Bool') -> 'Fold' s a -> 'Fold' s [a]
+-- 'splittingWhen' :: (a -> 'Bool') -> 'Fold' s a -> 'Fold' s [a]
 -- @
-splittingWhen :: Eq a => (a -> Bool) -> Getting' (Endo [a]) s a -> Fold s [a]
+splittingWhen :: (a -> Bool) -> Getting' (Endo [a]) s a -> Fold s [a]
 splittingWhen s l f = coerce . traverse f . splitWhen s . toListOf l
 {-# INLINE splittingWhen #-}
 
@@ -110,9 +110,9 @@ endingByOneOf s l f = coerce . traverse f . endByOneOf s . toListOf l
 -- Equivalent to @'splitting' '.' 'dropBlanks' '.' 'dropDelims' '.' 'whenElt'@.
 --
 -- @
--- 'wordingBy' :: (a -> 'Bool') -> 'Fold' a -> 'Fold' s [a]
+-- 'wordingBy' :: (a -> 'Bool') -> 'Fold' s a -> 'Fold' s [a]
 -- @
-wordingBy :: Eq a => (a -> Bool) -> Getting' (Endo [a]) s a -> Fold s [a]
+wordingBy :: (a -> Bool) -> Getting' (Endo [a]) s a -> Fold s [a]
 wordingBy s l f = coerce . traverse f . wordsBy s . toListOf l
 {-# INLINE wordingBy #-}
 
@@ -123,14 +123,14 @@ wordingBy s l f = coerce . traverse f . wordsBy s . toListOf l
 -- @
 -- 'liningBy' :: (a -> 'Bool') -> 'Fold' s a -> 'Fold' s [a]
 -- @
-liningBy :: Eq a => (a -> Bool) -> Getting' (Endo [a]) s a -> Fold s [a]
+liningBy :: (a -> Bool) -> Getting' (Endo [a]) s a -> Fold s [a]
 liningBy s l f = coerce . traverse f . linesBy s . toListOf l
 {-# INLINE liningBy #-}
 
 -- | Obtain a 'Fold' by splitting another 'Fold', 'Lens', 'Getter' or 'Traversal' into length-@n@ pieces.
 --
 -- @
--- 'chunkingOf' :: 'Int' -> 'Fold' s a -> 'Fold' s [a]
+-- 'chunking' :: 'Int' -> 'Fold' s a -> 'Fold' s [a]
 -- @
 chunking :: Int -- ^ @n@
             -> Getting' (Endo [a]) s a -> Fold s [a]

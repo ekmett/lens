@@ -429,7 +429,7 @@ transformMOf l f = go where
 -- @
 -- 'transformMOnOf' :: 'Monad' m => 'Traversal'' s a -> 'Traversal'' a a -> (a -> m a) -> s -> m s
 -- @
-transformMOnOf :: Monad m => LensLike (WrappedMonad m) s a a a -> LensLike' (WrappedMonad m) a a -> (a -> m a) -> s -> m a
+transformMOnOf :: Monad m => LensLike (WrappedMonad m) s t a a -> LensLike' (WrappedMonad m) a a -> (a -> m a) -> s -> m t
 transformMOnOf b l = mapMOf b . transformMOf l
 {-# INLINE transformMOnOf #-}
 
@@ -459,7 +459,7 @@ contexts = contextsOf plate
 -- @
 --
 -- @
--- 'contextsOf' :: 'Traversal'' a a -> a -> ['Context' a a]
+-- 'contextsOf' :: 'Traversal'' a a -> a -> ['Context' a a a]
 -- @
 contextsOf :: ATraversal' a a -> a -> [Context a a a]
 contextsOf l x = sell x : f (map context (holesOf l x)) where

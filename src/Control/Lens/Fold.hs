@@ -138,14 +138,16 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Foldable as Foldable
 import Data.Functor.Compose
-import Data.Functor.Identity
-import Data.List as List
 import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Traversable
+#ifdef USE_RULES
+import Data.Functor.Identity
+import Data.List as List
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -342,7 +344,7 @@ takingWhile p l pafb = fmap runMagma . traverse (corep pafb) . runTakingWhile . 
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingLens'' s a         -> 'IndexPreservingFold' s a -- see notes
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingGetter' s a        -> 'IndexPreservingFold' s a
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a      -> 'IndexPreservingFold' m s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a      -> 'IndexPreservingFold' s a
 -- @
 --
 -- @
@@ -354,7 +356,7 @@ takingWhile p l pafb = fmap runMagma . traverse (corep pafb) . runTakingWhile . 
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a               -> 'IndexedFold' i s a       -- see notes
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a              -> 'IndexedFold' i s a
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a            -> 'IndexedFold' i m s a
+-- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a            -> 'IndexedFold' i s a
 -- @
 --
 -- @
@@ -738,7 +740,7 @@ productOf l = foldlOf' l (*) 1
 -- want a lazier version use @'ala' 'Sum' '.' 'foldMapOf'@
 --
 -- @
--- 'sumOf' '_1' :: (a, b) -> a
+-- 'sumOf' '_1' :: 'Num' a => (a, b) -> a
 -- 'sumOf' ('folded' '.' 'Control.Lens.Tuple._1') :: ('Foldable' f, 'Num' a) => f (a, b) -> a
 -- @
 --
@@ -778,7 +780,7 @@ sumOf l = foldlOf' l (+) 0
 --
 -- @
 -- 'traverseOf_' '_2' :: 'Functor' f => (c -> f r) -> (d, c) -> f ()
--- 'traverseOf_' 'Data.Either.Lens.traverseLeft' :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ()
+-- 'traverseOf_' 'Control.Lens.Prism._Left' :: 'Applicative' f => (a -> f b) -> 'Either' a c -> f ()
 -- @
 --
 -- @
@@ -974,12 +976,12 @@ sequenceOf_ l = liftM skip . getSequenced #. foldMapOf l Sequenced
 -- @
 --
 -- @
--- 'asumOf' :: 'Alternative' f => 'Getter' s a     -> s -> f a
--- 'asumOf' :: 'Alternative' f => 'Fold' s a       -> s -> f a
--- 'asumOf' :: 'Alternative' f => 'Lens'' s a      -> s -> f a
--- 'asumOf' :: 'Alternative' f => 'Iso'' s a       -> s -> f a
--- 'asumOf' :: 'Alternative' f => 'Traversal'' s a -> s -> f a
--- 'asumOf' :: 'Alternative' f => 'Prism'' s a     -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Getter' s (f a)     -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Fold' s (f a)       -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Lens'' s (f a)      -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Iso'' s (f a)       -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Traversal'' s (f a) -> s -> f a
+-- 'asumOf' :: 'Alternative' f => 'Prism'' s (f a)     -> s -> f a
 -- @
 asumOf :: Alternative f => Getting (Endo (f a)) s t (f a) b -> s -> f a
 asumOf l = foldrOf l (<|>) Applicative.empty
@@ -1003,12 +1005,12 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 -- @
 --
 -- @
--- 'msumOf' :: 'MonadPlus' m => 'Getter' s a     -> s -> m a
--- 'msumOf' :: 'MonadPlus' m => 'Fold' s a       -> s -> m a
--- 'msumOf' :: 'MonadPlus' m => 'Lens'' s a      -> s -> m a
--- 'msumOf' :: 'MonadPlus' m => 'Iso'' s a       -> s -> m a
--- 'msumOf' :: 'MonadPlus' m => 'Traversal'' s a -> s -> m a
--- 'msumOf' :: 'MonadPlus' m => 'Prism'' s a     -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Getter' s (m a)     -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Fold' s (m a)       -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Lens'' s (m a)      -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Iso'' s (m a)       -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Traversal'' s (m a) -> s -> m a
+-- 'msumOf' :: 'MonadPlus' m => 'Prism'' s (m a)     -> s -> m a
 -- @
 msumOf :: MonadPlus m => Getting (Endo (m a)) s t (m a) b -> s -> m a
 msumOf l = foldrOf l mplus mzero
@@ -1164,7 +1166,7 @@ concatOf l = runAccessor #. l Accessor
 -- 6
 --
 -- @
--- 'lengthOf' ('folded' '.' 'folded') :: 'Foldable' f => f (g a) -> 'Int'
+-- 'lengthOf' ('folded' '.' 'folded') :: ('Foldable' f, 'Foldable' g) => f (g a) -> 'Int'
 -- @
 --
 -- @
@@ -1315,7 +1317,7 @@ lastOf l = getRightmost . foldMapOf l RLeaf
 -- True
 --
 -- @
--- 'nullOf' ('folded' '.' '_1' '.' 'folded') :: 'Foldable' f => f (g a, b) -> 'Bool'
+-- 'nullOf' ('folded' '.' '_1' '.' 'folded') :: ('Foldable' f, 'Foldable' g) => f (g a, b) -> 'Bool'
 -- @
 --
 -- @
@@ -1354,7 +1356,7 @@ nullOf = hasn't
 -- False
 --
 -- @
--- 'notNullOf' ('folded' '.' '_1' '.' 'folded') :: 'Foldable' f => f (g a, b) -> 'Bool'
+-- 'notNullOf' ('folded' '.' '_1' '.' 'folded') :: ('Foldable' f, 'Foldable' g) => f (g a, b) -> 'Bool'
 -- @
 --
 -- @
@@ -1959,10 +1961,10 @@ previews l f = asks (getFirst . foldMapOf l (First #. Just . f))
 -- a 'Control.Monad.Monad' transformer stack:
 --
 -- @
--- 'ipreviews' :: 'MonadReader' s m => 'IndexedGetter' s a     -> (i -> a -> r) -> m ('Maybe' r)
--- 'ipreviews' :: 'MonadReader' s m => 'IndexedFold' s a       -> (i -> a -> r) -> m ('Maybe' r)
--- 'ipreviews' :: 'MonadReader' s m => 'IndexedLens'' s a      -> (i -> a -> r) -> m ('Maybe' r)
--- 'ipreviews' :: 'MonadReader' s m => 'IndexedTraversal'' s a -> (i -> a -> r) -> m ('Maybe' r)
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedGetter' i s a     -> (i -> a -> r) -> m ('Maybe' r)
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedFold' i s a       -> (i -> a -> r) -> m ('Maybe' r)
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedLens'' i s a      -> (i -> a -> r) -> m ('Maybe' r)
+-- 'ipreviews' :: 'MonadReader' s m => 'IndexedTraversal'' i s a -> (i -> a -> r) -> m ('Maybe' r)
 -- @
 ipreviews :: MonadReader s m => IndexedGetting i (First r) s t a b -> (i -> a -> r) -> m (Maybe r)
 ipreviews l f = asks (getFirst . ifoldMapOf l (\i -> First #. Just . f i))
@@ -2274,10 +2276,10 @@ iconcatMapOf = ifoldMapOf
 -- @
 --
 -- @
--- 'ifindOf' :: 'IndexedGetter' s a     -> (i -> a -> 'Bool') -> s -> 'Maybe' a
--- 'ifindOf' :: 'IndexedFold' s a       -> (i -> a -> 'Bool') -> s -> 'Maybe' a
--- 'ifindOf' :: 'IndexedLens'' s a      -> (i -> a -> 'Bool') -> s -> 'Maybe' a
--- 'ifindOf' :: 'IndexedTraversal'' s a -> (i -> a -> 'Bool') -> s -> 'Maybe' a
+-- 'ifindOf' :: 'IndexedGetter' i s a     -> (i -> a -> 'Bool') -> s -> 'Maybe' a
+-- 'ifindOf' :: 'IndexedFold' i s a       -> (i -> a -> 'Bool') -> s -> 'Maybe' a
+-- 'ifindOf' :: 'IndexedLens'' i s a      -> (i -> a -> 'Bool') -> s -> 'Maybe' a
+-- 'ifindOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Maybe' a
 -- @
 ifindOf :: IndexedGetting i (Endo (Maybe a)) s t a b -> (i -> a -> Bool) -> s -> Maybe a
 ifindOf l = findOf l .# Indexed
@@ -2330,10 +2332,10 @@ ifoldlOf' l f z0 xs = ifoldrOf l f' id xs z0
 -- @
 --
 -- @
--- 'ifoldrMOf' :: 'Monad' m => 'IndexedGetter' i s a     -> (i -> a -> r -> m r) -> r -> s -> r
--- 'ifoldrMOf' :: 'Monad' m => 'IndexedFold' i s a       -> (i -> a -> r -> m r) -> r -> s -> r
--- 'ifoldrMOf' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> a -> r -> m r) -> r -> s -> r
--- 'ifoldrMOf' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> a -> r -> m r) -> r -> s -> r
+-- 'ifoldrMOf' :: 'Monad' m => 'IndexedGetter' i s a     -> (i -> a -> r -> m r) -> r -> s -> m r
+-- 'ifoldrMOf' :: 'Monad' m => 'IndexedFold' i s a       -> (i -> a -> r -> m r) -> r -> s -> m r
+-- 'ifoldrMOf' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> a -> r -> m r) -> r -> s -> m r
+-- 'ifoldrMOf' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> a -> r -> m r) -> r -> s -> m r
 -- @
 ifoldrMOf :: Monad m => IndexedGetting i (Dual (Endo (r -> m r))) s t a b -> (i -> a -> r -> m r) -> r -> s -> m r
 ifoldrMOf l f z0 xs = ifoldlOf l f' return xs z0
@@ -2349,10 +2351,10 @@ ifoldrMOf l f z0 xs = ifoldlOf l f' return xs z0
 -- @
 --
 -- @
--- 'ifoldlOf'' :: 'Monad' m => 'IndexedGetter' i s a     -> (i -> r -> a -> m r) -> r -> s -> r
--- 'ifoldlOf'' :: 'Monad' m => 'IndexedFold' i s a       -> (i -> r -> a -> m r) -> r -> s -> r
--- 'ifoldlOf'' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> r -> a -> m r) -> r -> s -> r
--- 'ifoldlOf'' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> r -> a -> m r) -> r -> s -> r
+-- 'ifoldlMOf' :: 'Monad' m => 'IndexedGetter' i s a     -> (i -> r -> a -> m r) -> r -> s -> m r
+-- 'ifoldlMOf' :: 'Monad' m => 'IndexedFold' i s a       -> (i -> r -> a -> m r) -> r -> s -> m r
+-- 'ifoldlMOf' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> r -> a -> m r) -> r -> s -> m r
+-- 'ifoldlMOf' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> r -> a -> m r) -> r -> s -> m r
 -- @
 ifoldlMOf :: Monad m => IndexedGetting i (Endo (r -> m r)) s t a b -> (i -> r -> a -> m r) -> r -> s -> m r
 ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
@@ -2396,11 +2398,10 @@ s ^@.. l = ifoldrOf l (\i a -> ((i,a):)) [] s
 -- way to extract the optional value.
 --
 -- @
--- ('^@?') :: s -> 'IndexedGetter' i s a -> 'Maybe' (i, a)
--- ('^@?') :: s -> 'IndexedFold' i s a   -> 'Maybe' (i, a)
--- ('^@?') :: s -> 'IndexedLens'' i s a  -> 'Maybe' (i, a)
--- ('^@?') :: s -> 'Iso'' i s a          -> 'Maybe' (i, a)
--- ('^@?') :: s -> 'Traversal'' i s a    -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'IndexedGetter' i s a     -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'IndexedFold' i s a       -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'IndexedLens'' i s a      -> 'Maybe' (i, a)
+-- ('^@?') :: s -> 'IndexedTraversal'' i s a -> 'Maybe' (i, a)
 -- @
 (^@?) :: s -> IndexedGetting i (Endo (Maybe (i, a))) s t a b -> Maybe (i, a)
 s ^@? l = ifoldrOf l (\i x _ -> Just (i,x)) Nothing s
@@ -2409,11 +2410,10 @@ s ^@? l = ifoldrOf l (\i x _ -> Just (i,x)) Nothing s
 -- | Perform an *UNSAFE* 'head' (with index) of an 'IndexedFold' or 'IndexedTraversal' assuming that it is there.
 --
 -- @
--- ('^@?!') :: s -> 'IndexedGetter' i s a -> (i, a)
--- ('^@?!') :: s -> 'IndexedFold' i s a   -> (i, a)
--- ('^@?!') :: s -> 'Lens'' i s a         -> (i, a)
--- ('^@?!') :: s -> 'Iso'' i s a          -> (i, a)
--- ('^@?!') :: s -> 'Traversal'' i s a    -> (i, a)
+-- ('^@?!') :: s -> 'IndexedGetter' i s a     -> (i, a)
+-- ('^@?!') :: s -> 'IndexedFold' i s a       -> (i, a)
+-- ('^@?!') :: s -> 'IndexedLens'' i s a      -> (i, a)
+-- ('^@?!') :: s -> 'IndexedTraversal'' i s a -> (i, a)
 -- @
 (^@?!) :: s -> IndexedGetting i (Endo (i, a)) s t a b -> (i, a)
 s ^@?! l = ifoldrOf l (\i x _ -> (i,x)) (error "(^@?!): empty Fold") s

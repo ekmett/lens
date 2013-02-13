@@ -87,7 +87,9 @@ import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
+#ifdef USE_RULES
 import Data.Traversable
+#endif
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 

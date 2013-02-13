@@ -119,7 +119,6 @@ import Control.Lens.Fold
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Indexed
-import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy
 import Data.Functor.Compose
@@ -132,6 +131,9 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Prelude hiding ((.),id)
+#ifdef USE_RULES
+import Control.Lens.Setter
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -210,9 +212,9 @@ type Traversing' p f s a = Traversing p f s s a a
 -- @
 --
 -- @
--- 'traverseOf' :: 'Iso' s t a b       -> (a -> f b) -> s -> f t
--- 'traverseOf' :: 'Lens' s t a b      -> (a -> f b) -> s -> f t
--- 'traverseOf' :: 'Traversal' s t a b -> (a -> f b) -> s -> f t
+-- 'traverseOf' :: 'Functor' f => 'Iso' s t a b       -> (a -> f b) -> s -> f t
+-- 'traverseOf' :: 'Functor' f => 'Lens' s t a b      -> (a -> f b) -> s -> f t
+-- 'traverseOf' :: 'Applicative' f => 'Traversal' s t a b -> (a -> f b) -> s -> f t
 -- @
 traverseOf :: Over p f s t a b -> p a (f b) -> s -> f t
 traverseOf = id
@@ -239,9 +241,9 @@ traverseOf = id
 -- @
 --
 -- @
--- 'forOf' :: 'Iso' s t a b -> s -> (a -> f b) -> f t
--- 'forOf' :: 'Lens' s t a b -> s -> (a -> f b) -> f t
--- 'forOf' :: 'Traversal' s t a b -> s -> (a -> f b) -> f t
+-- 'forOf' :: 'Functor' f => 'Iso' s t a b -> s -> (a -> f b) -> f t
+-- 'forOf' :: 'Functor' f => 'Lens' s t a b -> s -> (a -> f b) -> f t
+-- 'forOf' :: 'Applicative' f => 'Traversal' s t a b -> s -> (a -> f b) -> f t
 -- @
 forOf :: Over p f s t a b -> s -> p a (f b) -> f t
 forOf = flip
@@ -259,8 +261,8 @@ forOf = flip
 -- @
 --
 -- @
--- 'sequenceAOf' ::                  'Iso' s t (f b) b       -> s -> f t
--- 'sequenceAOf' ::                  'Lens' s t (f b) b      -> s -> f t
+-- 'sequenceAOf' :: 'Functor' f => 'Iso' s t (f b) b       -> s -> f t
+-- 'sequenceAOf' :: 'Functor' f => 'Lens' s t (f b) b      -> s -> f t
 -- 'sequenceAOf' :: 'Applicative' f => 'Traversal' s t (f b) b -> s -> f t
 -- @
 sequenceAOf :: LensLike f s t (f b) b -> s -> f t
@@ -279,8 +281,8 @@ sequenceAOf l = l id
 -- @
 --
 -- @
--- 'mapMOf' ::            'Iso' s t a b       -> (a -> m b) -> s -> m t
--- 'mapMOf' ::            'Lens' s t a b      -> (a -> m b) -> s -> m t
+-- 'mapMOf' :: 'Monad' m => 'Iso' s t a b       -> (a -> m b) -> s -> m t
+-- 'mapMOf' :: 'Monad' m => 'Lens' s t a b      -> (a -> m b) -> s -> m t
 -- 'mapMOf' :: 'Monad' m => 'Traversal' s t a b -> (a -> m b) -> s -> m t
 -- @
 mapMOf :: Profunctor p => Over p (WrappedMonad m) s t a b -> p a (m b) -> s -> m t
@@ -299,8 +301,8 @@ mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
 -- @
 --
 -- @
--- 'forMOf' ::            'Iso' s t a b       -> s -> (a -> m b) -> m t
--- 'forMOf' ::            'Lens' s t a b      -> s -> (a -> m b) -> m t
+-- 'forMOf' :: 'Monad' m => 'Iso' s t a b       -> s -> (a -> m b) -> m t
+-- 'forMOf' :: 'Monad' m => 'Lens' s t a b      -> s -> (a -> m b) -> m t
 -- 'forMOf' :: 'Monad' m => 'Traversal' s t a b -> s -> (a -> m b) -> m t
 -- @
 forMOf :: Profunctor p => Over p (WrappedMonad m) s t a b -> s -> p a (m b) -> m t
@@ -319,8 +321,8 @@ forMOf l a cmd = unwrapMonad (l (WrapMonad #. cmd) a)
 -- @
 --
 -- @
--- 'sequenceOf' ::            'Iso' s t (m b) b       -> s -> m t
--- 'sequenceOf' ::            'Lens' s t (m b) b      -> s -> m t
+-- 'sequenceOf' :: 'Monad' m => 'Iso' s t (m b) b       -> s -> m t
+-- 'sequenceOf' :: 'Monad' m => 'Lens' s t (m b) b      -> s -> m t
 -- 'sequenceOf' :: 'Monad' m => 'Traversal' s t (m b) b -> s -> m t
 -- @
 sequenceOf :: LensLike (WrappedMonad m) s t (m b) b -> s -> m t
@@ -649,7 +651,7 @@ both f ~(a,a') = (,) <$> f a <*> f a'
 -- 'beside' :: 'Traversal' s t a b                -> 'Traversal' s' t' a b                -> 'Traversal' (s,s') (t,t') a b
 -- 'beside' :: 'Lens' s t a b                     -> 'Lens' s' t' a b                     -> 'Traversal' (s,s') (t,t') a b
 -- 'beside' :: 'Fold' s a                         -> 'Fold' s' a                          -> 'Fold' (s,s') a
--- 'beside' :: 'Getter' s a                       -> 'Getter' s' a                        -> 'Traversal' (s,s') a
+-- 'beside' :: 'Getter' s a                       -> 'Getter' s' a                        -> 'Fold' (s,s') a
 -- 'beside' :: 'Action' m s a                     -> 'Action' m s' a                      -> 'MonadicFold' m (s,s') a
 -- 'beside' :: 'MonadicFold' m s a                -> 'MonadicFold' m s' a                 -> 'MonadicFold' m (s,s') a
 -- @
@@ -658,7 +660,7 @@ both f ~(a,a') = (,) <$> f a <*> f a'
 -- 'beside' :: 'IndexedTraversal' i s t a b       -> 'IndexedTraversal' i s' t' a b       -> 'IndexedTraversal' i (s,s') (t,t') a b
 -- 'beside' :: 'IndexedLens' i s t a b            -> 'IndexedLens' i s' t' a b            -> 'IndexedTraversal' i (s,s') (t,t') a b
 -- 'beside' :: 'IndexedFold' i s a                -> 'IndexedFold' i s' a                 -> 'IndexedFold' i (s,s') a
--- 'beside' :: 'IndexedGetter' i s a              -> 'IndexedGetter' i s' a               -> 'IndexedTraversal' i (s,s') a
+-- 'beside' :: 'IndexedGetter' i s a              -> 'IndexedGetter' i s' a               -> 'IndexedFold' i (s,s') a
 -- 'beside' :: 'IndexedAction' i m s a            -> 'IndexedAction' i m s' a             -> 'IndexedMonadicFold' i m (s,s') a
 -- 'beside' :: 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s' a        -> 'IndexedMonadicFold' i m (s,s') a
 -- @
@@ -667,7 +669,7 @@ both f ~(a,a') = (,) <$> f a <*> f a'
 -- 'beside' :: 'IndexPreservingTraversal' s t a b -> 'IndexPreservingTraversal' s' t' a b -> 'IndexPreservingTraversal' (s,s') (t,t') a b
 -- 'beside' :: 'IndexPreservingLens' s t a b      -> 'IndexPreservingLens' s' t' a b      -> 'IndexPreservingTraversal' (s,s') (t,t') a b
 -- 'beside' :: 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s' a           -> 'IndexPreservingFold' (s,s') a
--- 'beside' :: 'IndexPreservingGetter' s a        -> 'IndexPreservingGetter' s' a         -> 'IndexPreservingTraversal' (s,s') a
+-- 'beside' :: 'IndexPreservingGetter' s a        -> 'IndexPreservingGetter' s' a         -> 'IndexPreservingFold' (s,s') a
 -- 'beside' :: 'IndexPreservingAction' m s a      -> 'IndexPreservingAction' m s' a       -> 'IndexPreservingMonadicFold' m (s,s') a
 -- 'beside' :: 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s' a  -> 'IndexPreservingMonadicFold' m (s,s') a
 -- @
@@ -769,7 +771,7 @@ dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
 -- ("helloworld",(10,10))
 --
 -- @
--- 'cloneTraversal' :: 'LensLike' ('Bazaar' a b) s t a b -> 'Traversal' s t a b
+-- 'cloneTraversal' :: 'LensLike' ('Bazaar' (->) a b) s t a b -> 'Traversal' s t a b
 -- @
 cloneTraversal :: ATraversal s t a b -> Traversal s t a b
 cloneTraversal l f = bazaar f . l sell
@@ -801,8 +803,8 @@ cloneIndexedTraversal l f = bazaar (Indexed (indexed f)) . l sell
 -- @
 --
 -- @
--- 'itraverseOf' :: 'IndexedLens' i s t a b      -> (i -> a -> f b) -> s -> f t
--- 'itraverseOf' :: 'IndexedTraversal' i s t a b -> (i -> a -> f b) -> s -> f t
+-- 'itraverseOf' :: 'Functor' f     => 'IndexedLens' i s t a b      -> (i -> a -> f b) -> s -> f t
+-- 'itraverseOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b -> (i -> a -> f b) -> s -> f t
 -- @
 itraverseOf :: (Indexed i a (f b) -> s -> f t) -> (i -> a -> f b) -> s -> f t
 itraverseOf l = l .# Indexed
@@ -816,8 +818,8 @@ itraverseOf l = l .# Indexed
 -- @
 --
 -- @
--- 'iforOf' :: 'IndexedLens' i s t a b      -> s -> (i -> a -> f b) -> f t
--- 'iforOf' :: 'IndexedTraversal' i s t a b -> s -> (i -> a -> f b) -> f t
+-- 'iforOf' :: 'Functor' f => 'IndexedLens' i s t a b      -> s -> (i -> a -> f b) -> f t
+-- 'iforOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b -> s -> (i -> a -> f b) -> f t
 -- @
 iforOf :: (Indexed i a (f b) -> s -> f t) -> s -> (i -> a -> f b) -> f t
 iforOf = flip . itraverseOf

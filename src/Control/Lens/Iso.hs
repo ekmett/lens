@@ -179,7 +179,7 @@ auf k = case runIso k of
 -- @
 --
 -- @
--- 'under' :: 'Iso' s t a b -> (s -> t) -> a -> b
+-- 'under' :: 'Iso' s t a b -> (t -> s) -> b -> a
 -- @
 under :: AnIso s t a b -> (t -> s) -> b -> a
 under k = case runIso k of
