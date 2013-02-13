@@ -159,9 +159,9 @@ flag lib-Werror
   default: False
   manual: True
 
--- Enable RULES pragmas. Disable with -f-rules
+-- Enable experimental RULES pragmas with -f-rules
 flag rules
-  default: True
+  default: False
   manual: True
 
 library
