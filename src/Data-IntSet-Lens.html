@@ -67,7 +67,7 @@
 <a name="line-58"></a><span class='hs-comment'>-- 'setOf' :: 'Lens'' s 'Int'      -&gt; s -&gt; 'IntSet'</span>
 <a name="line-59"></a><span class='hs-comment'>-- 'setOf' :: 'Traversal'' s 'Int' -&gt; s -&gt; 'IntSet'</span>
 <a name="line-60"></a><span class='hs-comment'>-- @</span>
-<a name="line-61"></a><span class='hs-definition'>setOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getting</span> <span class='hs-conid'>IntSet</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IntSet</span>
+<a name="line-61"></a><span class='hs-definition'>setOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getting</span> <span class='hs-conid'>IntSet</span> <span class='hs-varid'>s</span> <span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IntSet</span>
 <a name="line-62"></a><span class='hs-definition'>setOf</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>views</span> <span class='hs-varid'>l</span> <span class='hs-conid'>IntSet</span><span class='hs-varop'>.</span><span class='hs-varid'>singleton</span>
 <a name="line-63"></a><span class='hs-comment'>{-# INLINE setOf #-}</span>
 </pre></body>

@@ -316,15 +316,15 @@
 <a name="line-307"></a><a name="Prism"></a><span class='hs-comment'>--</span>
 <a name="line-308"></a><a name="Prism"></a><span class='hs-comment'>-- There are two laws that a 'Prism' should satisfy:</span>
 <a name="line-309"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-310"></a><a name="Prism"></a><span class='hs-comment'>-- First, if I 'Control.Lens.Review.re' or 'Control.Lens.Prism.review' a value with a 'Prism' and then 'Control.Lens.Prism.preview' or use ('Control.Lens.Fold.^?'), I will get it back:</span>
+<a name="line-310"></a><a name="Prism"></a><span class='hs-comment'>-- First, if I 'Control.Lens.Review.re' or 'Control.Lens.Prism.review' a value with a 'Prism' and then 'Control.Lens.Fold.preview' or use ('Control.Lens.Fold.^?'), I will get it back:</span>
 <a name="line-311"></a><a name="Prism"></a><span class='hs-comment'>--</span>
 <a name="line-312"></a><a name="Prism"></a><span class='hs-comment'>-- @</span>
-<a name="line-313"></a><a name="Prism"></a><span class='hs-comment'>-- 'Control.Lens.Prism.preview' l ('Control.Lens.Prism.review' l b) ≡ 'Just' b</span>
+<a name="line-313"></a><a name="Prism"></a><span class='hs-comment'>-- 'Control.Lens.Fold.preview' l ('Control.Lens.Prism.review' l b) ≡ 'Just' b</span>
 <a name="line-314"></a><a name="Prism"></a><span class='hs-comment'>-- @</span>
 <a name="line-315"></a><a name="Prism"></a><span class='hs-comment'>--</span>
 <a name="line-316"></a><a name="Prism"></a><span class='hs-comment'>-- Second, if you can extract a value @a@ using a 'Prism' @l@ from a value @s@, then the value @s@ is completely described my @l@ and @a@:</span>
 <a name="line-317"></a><a name="Prism"></a><span class='hs-comment'>--</span>
-<a name="line-318"></a><a name="Prism"></a><span class='hs-comment'>-- If @'Control.Lens.Prism.preview' l s ≡ 'Just' a@ then @'Control.Lens.Prism.review' l a ≡ s@</span>
+<a name="line-318"></a><a name="Prism"></a><span class='hs-comment'>-- If @'Control.Lens.Fold.preview' l s ≡ 'Just' a@ then @'Control.Lens.Prism.review' l a ≡ s@</span>
 <a name="line-319"></a><a name="Prism"></a><span class='hs-comment'>--</span>
 <a name="line-320"></a><a name="Prism"></a><span class='hs-comment'>-- These two laws imply that the 'Traversal' laws hold for every 'Prism' and that we 'Data.Traversable.traverse' at most 1 element:</span>
 <a name="line-321"></a><a name="Prism"></a><span class='hs-comment'>--</span>
@@ -506,8 +506,8 @@
 <a name="line-497"></a><a name="Simple"></a><span class='hs-comment'>-- whenever the type variables don't change upon setting a value.</span>
 <a name="line-498"></a><a name="Simple"></a><span class='hs-comment'>--</span>
 <a name="line-499"></a><a name="Simple"></a><span class='hs-comment'>-- @</span>
-<a name="line-500"></a><a name="Simple"></a><span class='hs-comment'>-- 'Data.Complex.Lens.imaginary' :: 'Simple' 'Lens' ('Data.Complex.Complex' a) a</span>
-<a name="line-501"></a><a name="Simple"></a><span class='hs-comment'>-- 'Data.List.Lens._head' :: 'Simple' 'IndexedTraversal' 'Int' [a] a</span>
+<a name="line-500"></a><a name="Simple"></a><span class='hs-comment'>-- 'Data.Complex.Lens._imagPart' :: 'Simple' 'Lens' ('Data.Complex.Complex' a) a</span>
+<a name="line-501"></a><a name="Simple"></a><span class='hs-comment'>-- 'Control.Lens.Traversal.traversed' :: 'Simple' ('IndexedTraversal' 'Int') [a] a</span>
 <a name="line-502"></a><a name="Simple"></a><span class='hs-comment'>-- @</span>
 <a name="line-503"></a><a name="Simple"></a><span class='hs-comment'>--</span>
 <a name="line-504"></a><a name="Simple"></a><span class='hs-comment'>-- Note: To use this alias in your own code with @'LensLike' f@ or</span>

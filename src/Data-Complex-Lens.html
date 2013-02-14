@@ -138,7 +138,7 @@
 <a name="line-129"></a><span class='hs-comment'>-- &gt;&gt;&gt; (mkPolar 10.0 2.0 ^. _conjugate . _phase) ≈ (-2.0)</span>
 <a name="line-130"></a><span class='hs-comment'>-- True</span>
 <a name="line-131"></a><span class='hs-sel'>_conjugate</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>RealFloat</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Iso'</span> <span class='hs-layout'>(</span><span class='hs-conid'>Complex</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Complex</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-132"></a><span class='hs-sel'>_conjugate</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>conjugate</span> <span class='hs-varid'>conjugate</span>
+<a name="line-132"></a><span class='hs-sel'>_conjugate</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>involuted</span> <span class='hs-varid'>conjugate</span>
 <a name="line-133"></a><span class='hs-comment'>{-# INLINE _conjugate #-}</span>
 </pre></body>
 </html>

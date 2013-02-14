@@ -284,7 +284,7 @@
 <a name="line-275"></a>  <span class='hs-comment'>-- | Most of the time this is a 'Prism'.</span>
 <a name="line-276"></a>  <span class='hs-comment'>--</span>
 <a name="line-277"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-278"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism' [a] [b] (a, [a]) (b, [b])</span>
+<a name="line-278"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism' [a] [b] ([a], a) ([b], b)</span>
 <a name="line-279"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism' ('Seq' a) ('Seq' b) ('Seq' a, a) ('Seq' b, b)</span>
 <a name="line-280"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism' ('Vector' a) ('Vector' b) ('Vector' a, a) ('Vector' b, b)</span>
 <a name="line-281"></a>  <span class='hs-comment'>-- '_Snoc' :: 'Prism'' 'String' ('String', 'Char')</span>
@@ -386,9 +386,9 @@
 <a name="line-377"></a><span class='hs-comment'>-- ""</span>
 <a name="line-378"></a><span class='hs-comment'>--</span>
 <a name="line-379"></a><span class='hs-comment'>-- @</span>
-<a name="line-380"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' [a] a</span>
-<a name="line-381"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' ('Seq' a) a</span>
-<a name="line-382"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' ('Vector' a) a</span>
+<a name="line-380"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' [a] [a]</span>
+<a name="line-381"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' ('Seq' a) ('Seq' a)</span>
+<a name="line-382"></a><span class='hs-comment'>-- '_init' :: 'Traversal'' ('Vector' a) ('Vector' a)</span>
 <a name="line-383"></a><span class='hs-comment'>-- @</span>
 <a name="line-384"></a><span class='hs-sel'>_init</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span>
 <a name="line-385"></a><span class='hs-sel'>_init</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_Snoc</span><span class='hs-varop'>.</span><span class='hs-sel'>_1</span>
@@ -429,9 +429,9 @@
 <a name="line-420"></a><span class='hs-comment'>-- fromList "abcdQ"</span>
 <a name="line-421"></a><span class='hs-comment'>--</span>
 <a name="line-422"></a><span class='hs-comment'>-- @</span>
-<a name="line-423"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' [a] [a]</span>
-<a name="line-424"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' ('Seq' a) ('Seq' a)</span>
-<a name="line-425"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' ('Vector' a) ('Vector' a)</span>
+<a name="line-423"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' [a] a</span>
+<a name="line-424"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' ('Seq' a) a</span>
+<a name="line-425"></a><span class='hs-comment'>-- '_last' :: 'Traversal'' ('Vector' a) a</span>
 <a name="line-426"></a><span class='hs-comment'>-- @</span>
 <a name="line-427"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Snoc</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
 <a name="line-428"></a><span class='hs-sel'>_last</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_Snoc</span><span class='hs-varop'>.</span><span class='hs-sel'>_2</span>
