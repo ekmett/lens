@@ -145,6 +145,7 @@ import Control.Lens.Setter
 -- >>> import Control.DeepSeq (NFData (..), force)
 -- >>> import Control.Exception (evaluate)
 -- >>> import Data.Maybe (fromMaybe)
+-- >>> import Data.Void
 -- >>> import System.Timeout (timeout)
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
 
@@ -930,7 +931,6 @@ traversed64 = conjoined traverse (indexing64 traverse)
 -- 'ignored' ≡ 'const' 'pure'
 -- @
 --
--- >>> import Data.Void
 -- >>> 6 & ignored %~ absurd
 -- 6
 ignored :: Applicative f => pafb -> s -> f s
