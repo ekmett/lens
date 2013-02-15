@@ -1,6 +1,6 @@
-3.8.7 [maintenance release]
+3.8.7.0-3.8.7.2 [maintenance release]
 -----
-* Fixed dependencies to build with `base < 4.4`.
+* Fixes to dependencies and pragmas to build with `base < 4.4`.
 
 3.8.6 [maintenance release]
 -----
