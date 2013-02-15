@@ -31,11 +31,8 @@ module Control.Lens.Prism
   , _Left
   , _Right
   , _Just
-<<<<<<< HEAD
-=======
   , _Nothing
   , _Void
->>>>>>> 28024f8... Looked into the _Void
   -- * Prismatic profunctors
   , Choice(..)
   ) where
@@ -235,8 +232,6 @@ _Right = prism Right $ either (Left . Left) Right
 _Just :: Prism (Maybe a) (Maybe b) a b
 _Just = prism Just $ maybe (Left Nothing) Right
 {-# INLINE _Just #-}
-<<<<<<< HEAD
-=======
 
 -- | This 'Prism' provides the 'Traversal' of a 'Nothing' in a 'Maybe'.
 --
@@ -260,4 +255,3 @@ _Nothing = prism' (const Nothing) $ maybe (Just ()) (const Nothing)
 _Void :: Prism s s a Void
 _Void = prism absurd Left
 {-# INLINE _Void #-}
->>>>>>> 28024f8... Looked into the _Void
