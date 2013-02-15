@@ -1,3 +1,7 @@
+3.8.6
+-----
+* Fixed an issue with `DefaultSignatures` being used outside of the appropriate `#ifdef` that caused compilation issues on GHC 7.0.2.
+
 3.8.5
 -----
 * Fixed more sporadic issues in doctests, caused by carrying flags from `$setup` between modules.
