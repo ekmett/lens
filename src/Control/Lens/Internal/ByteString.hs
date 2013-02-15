@@ -39,7 +39,7 @@ import Data.Int (Int64)
 import Data.Word (Word8)
 import Foreign.Ptr
 import Foreign.Storable
-#ifdef MIN_VERSION_base(4,4,0)
+#if MIN_VERSION_base(4,4,0)
 import Foreign.ForeignPtr.Safe
 import Foreign.ForeignPtr.Unsafe
 #else
