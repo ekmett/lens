@@ -1,16 +1,21 @@
 3.9
 -----
-* Added `_Nothing` to `Control.Lens.Prism`.
 * Added `involuted` to `Control.Lens.Iso`.
 * New `RULES` pragmas now avoid performing work for features you aren't using in a given `Traversal`, such as the index, etc.
 * Factored out a common `reversed` definition from all the various forms of it around the library and placed it in `Control.Lens.Iso`.
 * Added `binary`, `octal`, `decimal` and `hex` to `Numeric.Lens`.
-* Added `_Void` and `only` to `Control.Lens.Prism`.
-* Added `devoid` and `united` to `Control.Lens.Lens`.
 * Improved interoperability:
   * Removed `Gettable`. We now use `Contravariant` and `Functor` together to derive `Getter` and `Fold`.
   * Removed `Reviewable`. We now use `Bifunctor` and `Profunctor` together to derive `Review`.
   * These changes enables more types to be defined without incurring a dependency on the `lens` package!
+
+3.8.6 [maintenance release]
+-----
+* Fixed an issue with `DefaultSignatures` being used outside of the appropriate `#ifdef` that caused compilation issues on GHC 7.0.2.
+* Generalized the signature of `prism'`
+* Added `\_Void` and `only` to `Control.Lens.Prism` and `devoid` to `Control.Lens.Lens`.
+* Added `\_Nothing` to `Control.Lens.Prism`.
+* Added `devoid` and `united` to `Control.Lens.Lens`.
 
 3.8.5
 -----
