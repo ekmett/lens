@@ -790,7 +790,7 @@ underscoreFields = FieldRules prefix rawLens niceLens classNaming
     prefix ('_':xs) | '_' `List.elem` xs = Just (takeWhile (/= '_') xs)
     prefix _                             = Nothing
     rawLens     x = x ++ "_lens"
-    niceLens    x = prefix   x <&> \n -> drop (length n + 2) n
+    niceLens    x = prefix   x <&> \n -> drop (length n + 2) x
     classNaming x = niceLens x <&> ("Has_" ++)
 
 -- | Field rules for fields in the form @ prefixFieldname @
