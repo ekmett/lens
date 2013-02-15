@@ -9,6 +9,10 @@
   * Removed `Reviewable`. We now use `Bifunctor` and `Profunctor` together to derive `Review`.
   * These changes enables more types to be defined without incurring a dependency on the `lens` package!
 
+3.8.7 [maintenance release]
+-----
+* Fixed dependencies to build with `base < 4.4`.
+
 3.8.6 [maintenance release]
 -----
 * Fixed an issue with `DefaultSignatures` being used outside of the appropriate `#ifdef` that caused compilation issues on GHC 7.0.2.
