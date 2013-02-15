@@ -118,7 +118,7 @@ instance (a ~ a2, a ~ a3, a ~ a4, a ~ a5, a ~ a6, a ~ a7, a ~ a8, a ~ a9, b ~ b2
   each = Lens.indexed $ \ f ~(a,b,c,d,e,g,h,i,j) -> (,,,,,,,,) <$> f (0 :: Int) a <*> f 1 b <*> f 2 c <*> f 3 d <*> f 4 e <*> f 5 g <*> f 6 h <*> f 7 i <*> f 8 j
   {-# INLINE each #-}
 
-#if MIN_VERSION_base(4,4,0)
+#if !(MIN_VERSION_base(4,4,0))
 instance (RealFloat a, RealFloat b) => Each Int (Complex a) (Complex b) a b where
   each = Lens.indexed $ \ f (a :+ b) -> (:+) <$> f (0 :: Int) a <*> f 1 b
   {-# INLINE each #-}

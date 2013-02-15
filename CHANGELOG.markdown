@@ -1,3 +1,11 @@
+3.7.6 [maintenance release]
+-----
+* Fixed an issue with the `Complex` `Each` instance.
+
+3.7.5 [maintenance release]
+-----
+* Fixed an errant `LANGUAGE` pragma
+
 3.7.4 [maintenance release]
 -----
 * Backported the API for `ALens` and `ALens'` to support `snap` builds on old platforms.
