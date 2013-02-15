@@ -1,3 +1,7 @@
+3.7.4 [maintenance release]
+-----
+* Backported the API for `ALens` and `ALens'` to support `snap` builds on old platforms.
+
 3.7.3 [maintenance release]
 -----
 * Removed my intra-package dependency upper bounds for my own packages. In particular this enables us to work with `semigroups` 0.9.

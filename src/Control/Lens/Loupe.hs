@@ -30,6 +30,11 @@ module Control.Lens.Loupe
 
   -- * Simplified
   , SimpleLoupe
+
+  -- * ALens forward compatibility
+  , ALens
+  , ALens'
+  , cloneLens
   ) where
 
 import Control.Applicative              as Applicative
@@ -73,8 +78,13 @@ infix  4 <#=, #=, #%=, <#%=, #%%=
 
 type Loupe s t a b = LensLike (Context a b) s t a b
 
+
 -- | @type 'SimpleLoupe' = 'Simple' 'Loupe'@
 type SimpleLoupe s a = Loupe s s a a
+
+type ALens s t a b = Loupe s t a b
+
+type ALens' s t a b = Loupe s s a a
 
 -- | A 'Loupe'-specific version of ('Control.Lens.Getter.^.')
 --
