@@ -29,6 +29,7 @@ module Control.Lens.Iso
   -- * Consuming Isomorphisms
   , from
   , cloneIso
+  , withIso
   -- * Working with isomorphisms
   , au
   , auf
@@ -114,9 +115,13 @@ iso sa bt = dimap sa (fmap bt)
 -- 'from' ('from' l) ≡ l
 -- @
 from :: AnIso s t a b -> Iso b a t s
-from k = case runIso k of
+from l = case runIso l of
   Exchange sa bt -> iso bt sa
 {-# INLINE from #-}
+
+withIso :: AnIso s t a b -> ((s -> a) -> (b -> t) -> r) -> r
+withIso l k = case runIso l of
+  Exchange sa bt -> k sa bt
 
 -- | Convert from 'AnIso' back to any 'Iso'.
 --
