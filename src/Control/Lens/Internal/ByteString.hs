@@ -3,6 +3,9 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE FlexibleContexts #-}
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ByteString.Strict.Lens
@@ -36,8 +39,12 @@ import Data.Int (Int64)
 import Data.Word (Word8)
 import Foreign.Ptr
 import Foreign.Storable
+#ifdef MIN_VERSION_base(4,4,0)
 import Foreign.ForeignPtr.Safe
 import Foreign.ForeignPtr.Unsafe
+#else
+import Foreign.ForeignPtr
+#endif
 import GHC.Base (unsafeChr)
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 import GHC.IO (unsafeDupablePerformIO)
