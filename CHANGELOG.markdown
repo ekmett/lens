@@ -9,9 +9,9 @@
   * Removed `Reviewable`. We now use `Bifunctor` and `Profunctor` together to derive `Review`.
   * These changes enables more types to be defined without incurring a dependency on the `lens` package!
 
-3.8.7 [maintenance release]
+3.8.7.0-3.8.7.3 [maintenance releases]
 -----
-* Fixed dependencies to build with `base < 4.4`.
+* Fixes to dependencies and pragmas.
 
 3.8.6 [maintenance release]
 -----
@@ -124,6 +124,18 @@
   * The `Traversal` for strict `ByteStrings` now construct a balanced tree up to a given grain size. This permits zipper based seeking to operate in logarithmic time and speeds up many traversals.
 * `Numeric.Lens`
   * Created. `base` shows and reads integers at base-2 through base-36. `integral` can be used as a safe `fromInteger`/`toInteger`.
+
+3.7.6 [maintenance release]
+-----
+* Fixed an issue with the `Complex` `Each` instance.
+
+3.7.5 [maintenance release]
+-----
+* Fixed an errant `LANGUAGE` pragma
+
+3.7.4 [maintenance release]
+-----
+* Backported the API for `ALens` and `ALens'` to support `snap` builds on old platforms.
 
 3.7.3 [maintenance release]
 -----
