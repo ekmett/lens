@@ -790,7 +790,7 @@ underscoreFields = FieldRules prefix rawLens niceLens classNaming
     prefix ('_':xs) | '_' `List.elem` xs = Just (takeWhile (/= '_') xs)
     prefix _                             = Nothing
     rawLens     x = x ++ "_lens"
-    niceLens    x = prefix   x <&> \n -> drop (length n + 2) n
+    niceLens    x = prefix   x <&> \n -> drop (length n + 2) x
     classNaming x = niceLens x <&> ("Has_" ++)
 
 -- | Field rules for fields in the form @ prefixFieldname @
@@ -807,7 +807,12 @@ camelCaseFields = FieldRules prefix rawLens niceLens classNaming
 
 verboseLenses :: FieldRules -> Name -> Q [Dec]
 verboseLenses c src = do
-    TyConI (DataD _ _ _ [RecC _ rs] _) <- reify src
+    rs <- do
+        TyConI dec <- reify src
+        case dec of
+            DataD    _ _ _ [RecC _ rs] _ -> return rs
+            NewtypeD _ _ _ (RecC _ rs) _ -> return rs
+            _                            -> error "verboseLenses: invalid type."
     flip makeLensesFor src
         $ mkFields c rs
         & map (\(Field n _ l _ _) -> (show n, show l))
@@ -832,7 +837,12 @@ hasClassAndInstance :: FieldRules -> Name -> Q [Dec]
 hasClassAndInstance cfg src = do
     c <- newName "c"
     e <- newName "e"
-    TyConI (DataD _ _ vs [RecC _ rs] _) <- reify src
+    (vs,rs) <- do
+        TyConI dec <- reify src
+        case dec of
+            DataD    _ _ vs [RecC _ rs] _ -> return (vs,rs)
+            NewtypeD _ _ vs (RecC _ rs) _ -> return (vs,rs)
+            _                             -> error "hasClassAndInstance: invalid type."
     fmap concat . forM (mkFields cfg rs) $ \(Field field _ fullLensName className lensName) -> do
         classHas <- classD
             (return [])
