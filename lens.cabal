@@ -37,7 +37,7 @@ description:
   .
   The core of the hierarchy of lens-like constructions looks like:
   .
-  <<http://i.imgur.com/RFi75.png>>
+  <<Hierarchy.png>>
   .
   You can compose any two elements of the hierarchy above using @(.)@ from the @Prelude@, and you can
   use any element of the hierarchy as any type it linked to above it.
@@ -91,6 +91,7 @@ extra-source-files:
   examples/*.hs
   examples/*.lhs
   examples/bf-examples/*.bf
+  images/*.png
   includes/*.x
   travis/cabal-apt-install
   travis/config
