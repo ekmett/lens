@@ -6,7 +6,7 @@
 * Added `binary`, `octal`, `decimal` and `hex` to `Numeric.Lens`.
 * Added `sans` to `Control.Lens.At`.
 * Improved interoperability:
-  * Removed `Gettable`. We now use `Contravariant` and `Functor` together to derive `Getter` and `Fold`.
+  * Reimplemented `Gettable` as an alias for `Contravariant` and `Functor` together to derive `Getter` and `Fold`.
   * Removed `Reviewable`. We now use `Bifunctor` and `Profunctor` together to derive `Review`.
   * These changes enables more types to be defined without incurring a dependency on the `lens` package!
 
