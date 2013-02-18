@@ -32,7 +32,7 @@
 module Control.Lens.At
   (
   -- * At
-    At(at)
+    At(at), sans
   -- * Ixed
   , IxValue
   , Ixed(ix)
@@ -48,6 +48,7 @@ import Control.Lens.Each
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed as Lens
+import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Lens.Traversal
 import Data.Array.IArray as Array
@@ -522,6 +523,10 @@ class At m where
   -- /Note:/ 'Map'-like containers form a reasonable instance, but not 'Array'-like ones, where
   -- you cannot satisfy the 'Lens' laws.
   at :: Index m -> IndexedLens' (Index m) m (Maybe (IxValue m))
+
+sans :: At m => Index m -> m -> m
+sans k m = m & at k .~ Nothing
+{-# INLINE sans #-}
 
 instance At (IntMap a) where
   at k f m = Lens.indexed f k mv <&> \r -> case r of
