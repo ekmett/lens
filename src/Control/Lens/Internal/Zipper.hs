@@ -629,7 +629,7 @@ moveTo i z = case moveToward i z of
 
 -- | Construct an 'IndexedLens' from 'ALens' where the index is fixed to @0@.
 lensed :: ALens' s a -> IndexedLens' Int s a
-lensed l f = cloneLens l (indexed f (0 :: Int))
+lensed l f = cloneLens l (indexed f 0)
 {-# INLINE lensed #-}
 
 -- | Step down into a 'Lens'. This is a constrained form of 'fromWithin' for when you know
