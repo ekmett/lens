@@ -21,11 +21,9 @@ module Control.Lens.Internal.Getter
   ) where
 
 import Control.Applicative
-import Data.Foldable
 import Data.Functor.Apply
 import Data.Functor.Contravariant
 import Data.Semigroup
-import Data.Traversable
 import Data.Void
 
 -- | This class is provided mostly for backwards compatibility with lens 3.8,
@@ -68,16 +66,8 @@ noEffect = coerce $ pure ()
 newtype Accessor r a = Accessor { runAccessor :: r }
 
 instance Functor (Accessor r) where
-  fmap _ = Accessor . runAccessor
+  fmap _ (Accessor m) = Accessor m
   {-# INLINE fmap #-}
-
-instance Foldable (Accessor r) where
-  foldMap _ _ = mempty
-  {-# INLINE foldMap #-}
-
-instance Traversable (Accessor r) where
-  traverse _ = pure . Accessor . runAccessor
-  {-# INLINE traverse #-}
 
 instance Contravariant (Accessor r) where
   contramap _ (Accessor m) = Accessor m

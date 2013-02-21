@@ -672,31 +672,6 @@ instance (Eq k, Hashable k) => TraversableWithIndex k (HashMap k) where
   itraverse = HashMap.traverseWithKey
   {-# INLINE itraverse #-}
 
-instance FunctorWithIndex i (Accessor r) where
-  imap _ = Accessor . runAccessor
-  {-# INLINE imap #-}
-
-instance FoldableWithIndex i (Accessor r) where
-  ifoldMap _ = mempty . runAccessor
-  {-# INLINE ifoldMap #-}
-
-instance TraversableWithIndex i (Accessor r) where
-  itraverse _ = pure . Accessor . runAccessor
-  {-# INLINE itraverse #-}
-
-
-instance FunctorWithIndex i (Const r) where
-  imap _ = Const . getConst
-  {-# INLINE imap #-}
-
-instance FoldableWithIndex i (Const r) where
-  ifoldMap _ = mempty . getConst
-  {-# INLINE ifoldMap #-}
-
-instance TraversableWithIndex i (Const r) where
-  itraverse _ = pure . Const . getConst
-  {-# INLINE itraverse #-}
-
 instance FunctorWithIndex r ((->) r) where
   imap f g x = f x (g x)
   {-# INLINE imap #-}
