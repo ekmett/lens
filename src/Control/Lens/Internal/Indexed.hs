@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -50,6 +51,7 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Traversable
+import GHC.Exts
 import Prelude hiding ((.),id)
 #ifndef SAFE
 import Unsafe.Coerce
@@ -97,13 +99,18 @@ instance Conjoined (->) where
 -- Indexable
 ----------------------------------------------------------------------------
 
+
 -- | This class permits overloading of function application for things that
 -- also admit a notion of a key or index.
-class Conjoined p => Indexable i p | p -> i where
+class (Conjoined p, IndexableBy i p) => Indexable i p | p -> i where
+  type IndexableBy i p :: Constraint
+
   -- | Build a function from an 'indexed' function.
   indexed :: p a b -> i -> a -> b
 
+
 instance Indexable i (->) where
+  type IndexableBy i (->) = ()
   indexed = const
   {-# INLINE indexed #-}
 
@@ -219,7 +226,8 @@ instance Conjoined (Indexed i) where
   distrib (Indexed iab) = Indexed $ \i fa -> iab i <$> fa
   {-# INLINE distrib #-}
 
-instance Indexable i (Indexed i) where
+instance i ~ j => Indexable i (Indexed j) where
+  type IndexableBy i (Indexed j) = i ~ j
   indexed = runIndexed
   {-# INLINE indexed #-}
 
