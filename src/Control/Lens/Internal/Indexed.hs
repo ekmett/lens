@@ -4,6 +4,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE UndecidableInstances #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -97,7 +99,7 @@ instance Conjoined (->) where
 
 -- | This class permits overloading of function application for things that
 -- also admit a notion of a key or index.
-class Conjoined p => Indexable i p where
+class Conjoined p => Indexable i p | p -> i where
   -- | Build a function from an 'indexed' function.
   indexed :: p a b -> i -> a -> b
 
@@ -217,7 +219,7 @@ instance Conjoined (Indexed i) where
   distrib (Indexed iab) = Indexed $ \i fa -> iab i <$> fa
   {-# INLINE distrib #-}
 
-instance i ~ j => Indexable i (Indexed j) where
+instance Indexable i (Indexed i) where
   indexed = runIndexed
   {-# INLINE indexed #-}
 
