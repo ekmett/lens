@@ -137,62 +137,62 @@ class (Functor f, Index s ~ Index t) => Each f s t a b | s -> a, t -> b, s b -> 
 
 -- | @'each' :: 'IndexedTraversal' 'Int' (a,a) (b,b) a b@
 instance (Applicative f, a~a', b~b') => Each f (a,a') (b,b') a b where
-  each f ~(a,b) = (,) <$> f' (0 :: Int) a <*> f' 1 b
+  each f ~(a,b) = (,) <$> f' 0 a <*> f' 1 b
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a) (b,b,b) a b@
 instance (Applicative f, a~a2, a~a3, b~b2, b~b3) => Each f (a,a2,a3) (b,b2,b3) a b where
-  each f ~(a,b,c) = (,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c
+  each f ~(a,b,c) = (,,) <$> f' 0 a <*> f' 1 b <*> f' 2 c
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a) (b,b,b,b) a b@
 instance (Applicative f, a~a2, a~a3, a~a4, b~b2, b~b3, b~b4) => Each f (a,a2,a3,a4) (b,b2,b3,b4) a b where
-  each f ~(a,b,c,d) = (,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d
+  each f ~(a,b,c,d) = (,,,) <$> f' 0 a <*> f' 1 b <*> f' 2 c <*> f' 3 d
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a,a) (b,b,b,b,b) a b@
 instance (Applicative f, a~a2, a~a3, a~a4, a~a5, b~b2, b~b3, b~b4, b~b5) => Each f (a,a2,a3,a4,a5) (b,b2,b3,b4,b5) a b where
-  each f ~(a,b,c,d,e) = (,,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e
+  each f ~(a,b,c,d,e) = (,,,,) <$> f' 0 a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a,a,a) (b,b,b,b,b,b) a b@
 instance (Applicative f, a~a2, a~a3, a~a4, a~a5, a~a6, b~b2, b~b3, b~b4, b~b5, b~b6) => Each f (a,a2,a3,a4,a5,a6) (b,b2,b3,b4,b5,b6) a b where
-  each f ~(a,b,c,d,e,g) = (,,,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g
+  each f ~(a,b,c,d,e,g) = (,,,,,) <$> f' 0 a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a,a,a,a) (b,b,b,b,b,b,b) a b@
 instance (Applicative f, a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, b~b2, b~b3, b~b4, b~b5, b~b6, b~b7) => Each f (a,a2,a3,a4,a5,a6,a7) (b,b2,b3,b4,b5,b6,b7) a b where
-  each f ~(a,b,c,d,e,g,h) = (,,,,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g <*> f' 6 h
+  each f ~(a,b,c,d,e,g,h) = (,,,,,,) <$> f' 0 a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g <*> f' 6 h
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a,a,a,a,a) (b,b,b,b,b,b,b,b) a b@
 instance (Applicative f, a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, a~a8, b~b2, b~b3, b~b4, b~b5, b~b6, b~b7, b~b8) => Each f (a,a2,a3,a4,a5,a6,a7,a8) (b,b2,b3,b4,b5,b6,b7,b8) a b where
-  each f ~(a,b,c,d,e,g,h,i) = (,,,,,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g <*> f' 6 h <*> f' 7 i
+  each f ~(a,b,c,d,e,g,h,i) = (,,,,,,,) <$> f' 0 a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g <*> f' 6 h <*> f' 7 i
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a,a,a,a,a,a) (b,b,b,b,b,b,b,b,b) a b@
 instance (Applicative f, a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, a~a8, a~a9, b~b2, b~b3, b~b4, b~b5, b~b6, b~b7, b~b8, b~b9) => Each f (a,a2,a3,a4,a5,a6,a7,a8,a9) (b,b2,b3,b4,b5,b6,b7,b8,b9) a b where
-  each f ~(a,b,c,d,e,g,h,i,j) = (,,,,,,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g <*> f' 6 h <*> f' 7 i <*> f' 8 j
+  each f ~(a,b,c,d,e,g,h,i,j) = (,,,,,,,,) <$> f' 0 a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g <*> f' 6 h <*> f' 7 i <*> f' 8 j
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
 #if MIN_VERSION_base(4,4,0)
 -- | @'each' :: ('RealFloat' a, 'RealFloat' b) => 'IndexedTraversal' 'Int' ('Complex' a) ('Complex' b) a b@
 instance Applicative f => Each f (Complex a) (Complex b) a b where
-  each f (a :+ b) = (:+) <$> f' (0 :: Int) a <*> f' (1 :: Int) b
+  each f (a :+ b) = (:+) <$> f' 0 a <*> f' 1 b
     where f' = Lens.indexed f
   {-# INLINE each #-}
 #else
 -- | @'each' :: 'IndexedTraversal' 'Int' ('Complex' a) ('Complex' b) a b@
 instance (Applicative f, RealFloat a, RealFloat b) => Each f (Complex a) (Complex b) a b where
-  each f (a :+ b) = (:+) <$> f' (0 :: Int) a <*> f' 1 b
+  each f (a :+ b) = (:+) <$> f' 0 a <*> f' 1 b
     where f' = Lens.indexed f
   {-# INLINE each #-}
 #endif
