@@ -809,7 +809,7 @@ collectRecords :: [Con] -> [VarStrictType]
 collectRecords cons = rs
   where
     recs = filter (\r -> case r of RecC{} -> True; _ -> False) cons
-    rs' = List.concatMap (\(RecC _ rs) -> rs) recs
+    rs' = List.concatMap (\(RecC _ _rs) -> _rs) recs
     rs = nubBy ((==) `on` (^._1)) rs'
 
 verboseLenses :: FieldRules -> Name -> Q [Dec]
@@ -823,6 +823,7 @@ verboseLenses c src = do
               if List.null rs
                 then fail "verboseLenses: Expected the name of a record type"
                 else return rs
+            _ -> fail "verboseLenses: Unsupported data type"
           _ -> fail "verboseLenses: Expected the name of a data type or newtype"
     flip makeLenses' src
         $ mkFields c rs
