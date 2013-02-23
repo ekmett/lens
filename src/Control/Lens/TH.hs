@@ -805,19 +805,34 @@ camelCaseFields = FieldRules prefix rawLens niceLens classNaming
     niceLens    x = overHead toLower . snd <$> sep x
     classNaming x = niceLens x <&> \ (n:ns) -> "Has" ++ toUpper n : ns
 
+collectRecords :: [Con] -> [VarStrictType]
+collectRecords cons = rs
+  where
+    recs = filter (\r -> case r of RecC{} -> True; _ -> False) cons
+    rs' = List.concatMap (\(RecC _ rs) -> rs) recs
+    rs = nubBy ((==) `on` (^._1)) rs'
+
 verboseLenses :: FieldRules -> Name -> Q [Dec]
 verboseLenses c src = do
     rs <- do
         inf <- reify src
         case inf of
           TyConI decl -> case deNewtype decl of
-            DataD _ _ _ [RecC _ rs] _ -> return rs
-            DataD _ _ _ _ _           -> fail "verboseLenses: Expected single-constructor record type"
-            _                         -> fail "verboseLenses: Unsupported data type"
+            DataD _ _ _ cons _ -> do
+              let rs = collectRecords cons
+              if List.null rs
+                then fail "verboseLenses: Expected the name of a record type"
+                else return rs
           _ -> fail "verboseLenses: Expected the name of a data type or newtype"
-    flip makeLensesFor src
+    flip makeLenses' src
         $ mkFields c rs
         & map (\(Field n _ l _ _) -> (show n, show l))
+  where
+    makeLenses' fields' =
+        makeLensesWith $ lensRules
+            & lensField .~ (`Prelude.lookup` fields')
+            & buildTraversals .~ False
+            & partialLenses .~ True
 
 mkFields :: FieldRules -> [VarStrictType] -> [Field]
 mkFields (FieldRules prefix' raw' nice' clas') rs
@@ -843,9 +858,12 @@ hasClassAndInstance cfg src = do
         inf <- reify src
         case inf of
           TyConI decl -> case deNewtype decl of
-            DataD _ _ vs [RecC _ rs] _ -> return (vs,rs)
-            DataD _ _ _ _ _            -> fail "hasClassAndInstance: Expected single-constructor record type"
-            _                          -> fail "hasClassAndInstance: Unsupported data type"
+            DataD _ _ vs cons _ -> do
+                let rs = collectRecords cons
+                if List.null rs
+                  then fail "hasClassAndInstance: Expected the name of a record type"
+                  else return (vs,rs)
+            _ -> fail "hasClassAndInstance: Unsupported data type"
           _ -> fail "hasClassAndInstance: Expected the name of a data type or newtype"
     fmap concat . forM (mkFields cfg rs) $ \(Field field _ fullLensName className lensName) -> do
         classHas <- classD
