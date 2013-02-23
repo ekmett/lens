@@ -808,10 +808,13 @@ camelCaseFields = FieldRules prefix rawLens niceLens classNaming
 verboseLenses :: FieldRules -> Name -> Q [Dec]
 verboseLenses c src = do
     rs <- do
-        TyConI dec <- reify src
-        case deNewtype dec of
-            DataD    _ _ _ [RecC _ rs] _ -> return rs
-            _                            -> error "verboseLenses: invalid type."
+        inf <- reify src
+        case inf of
+          TyConI decl -> case deNewtype decl of
+            DataD _ _ _ [RecC _ rs] _ -> return rs
+            DataD _ _ _ _ _           -> fail "verboseLenses: Expected single-constructor record type"
+            _                         -> fail "verboseLenses: Unsupported data type"
+          _ -> fail "verboseLenses: Expected the name of a data type or newtype"
     flip makeLensesFor src
         $ mkFields c rs
         & map (\(Field n _ l _ _) -> (show n, show l))
@@ -837,10 +840,13 @@ hasClassAndInstance cfg src = do
     c <- newName "c"
     e <- newName "e"
     (vs,rs) <- do
-        TyConI dec <- reify src
-        case deNewtype dec of
-            DataD    _ _ vs [RecC _ rs] _ -> return (vs,rs)
-            _                             -> error "hasClassAndInstance: invalid type."
+        inf <- reify src
+        case inf of
+          TyConI decl -> case deNewtype decl of
+            DataD _ _ vs [RecC _ rs] _ -> return (vs,rs)
+            DataD _ _ _ _ _            -> fail "hasClassAndInstance: Expected single-constructor record type"
+            _                          -> fail "hasClassAndInstance: Unsupported data type"
+          _ -> fail "hasClassAndInstance: Expected the name of a data type or newtype"
     fmap concat . forM (mkFields cfg rs) $ \(Field field _ fullLensName className lensName) -> do
         classHas <- classD
             (return [])
