@@ -809,9 +809,8 @@ verboseLenses :: FieldRules -> Name -> Q [Dec]
 verboseLenses c src = do
     rs <- do
         TyConI dec <- reify src
-        case dec of
+        case deNewtype dec of
             DataD    _ _ _ [RecC _ rs] _ -> return rs
-            NewtypeD _ _ _ (RecC _ rs) _ -> return rs
             _                            -> error "verboseLenses: invalid type."
     flip makeLensesFor src
         $ mkFields c rs
@@ -839,9 +838,8 @@ hasClassAndInstance cfg src = do
     e <- newName "e"
     (vs,rs) <- do
         TyConI dec <- reify src
-        case dec of
+        case deNewtype dec of
             DataD    _ _ vs [RecC _ rs] _ -> return (vs,rs)
-            NewtypeD _ _ vs (RecC _ rs) _ -> return (vs,rs)
             _                             -> error "hasClassAndInstance: invalid type."
     fmap concat . forM (mkFields cfg rs) $ \(Field field _ fullLensName className lensName) -> do
         classHas <- classD
