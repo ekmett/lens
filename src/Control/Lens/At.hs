@@ -175,9 +175,11 @@ instance (Contravariant f, Functor f) => Contains f (Tree a) where
   contains xs0 pafb = coerce . Lens.indexed pafb xs0 . go xs0 where
     go [] (Node _ _) = True
     go (i:is) (Node _ as) = goto i is as
-    goto 0 is (a:_) = go is a
     goto _ _  []     = False
-    goto n is (_:as) = (goto $! n - 1) is as
+    goto n is (a:as)
+      | n == 0    = go is a
+      | n > 0     = (goto $! n - 1) is as
+      | otherwise = False
   {-# INLINE contains #-}
 
 instance (Contravariant k, Functor k) => Contains k (Identity a) where
@@ -315,8 +317,10 @@ type instance IxValue [a] = a
 instance Applicative f => Ixed f [a] where
   ix k f xs0 = go xs0 k where
     go [] _ = pure []
-    go (a:as) 0 = Lens.indexed f k a <&> (:as)
-    go (a:as) i = (a:) <$> (go as $! i - 1)
+    go (a:as) i
+      | i == 0    = Lens.indexed f k a <&> (:as)
+      | i > 0     = (a:) <$> (go as $! i - 1)
+      | otherwise = pure []
   {-# INLINE ix #-}
 
 type instance IxValue (Identity a) = a
@@ -329,9 +333,11 @@ instance Applicative f => Ixed f (Tree a) where
   ix xs0 f = go xs0 where
     go [] (Node a as) = Lens.indexed f xs0 a <&> \a' -> Node a' as
     go (i:is) (Node a as) = Node a <$> goto is as i
-    goto is (a:as) 0 = go is a <&> (:as)
-    goto is (_:as) n = goto is as $! n - 1
     goto _  []     _ = pure []
+    goto is (a:as) n
+      | n == 0    = go is a <&> (:as)
+      | n > 0     = goto is as $! n - 1
+      | otherwise = pure []
   {-# INLINE ix #-}
 
 type instance IxValue (Seq a) = a
