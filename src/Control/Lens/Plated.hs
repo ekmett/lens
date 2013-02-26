@@ -104,7 +104,7 @@ import           Data.Tree
 -- @
 -- import Control.Applicative
 -- import Control.Lens
--- import Control.Plated
+-- import Control.Lens.Plated
 -- import Data.Data
 -- import Data.Data.Lens ('Data.Data.Lens.uniplate')
 -- @
@@ -136,7 +136,7 @@ import           Data.Tree
 -- @
 -- import Control.Applicative
 -- import Control.Lens
--- import Control.Plated
+-- import Control.Lens.Plated
 -- import Data.Data
 -- import Data.Data.Lens ('Data.Data.Lens.uniplate')
 -- @
