@@ -111,7 +111,7 @@ updatePaddles time = do
   p <- get
 
   let paddleMovement = time * paddleSpeed
-      keyPressed key = p^.keys.ix (SpecialKey key)
+      keyPressed key = p^.keys.contains (SpecialKey key)
 
   -- Update the player's paddle based on keys
   when (keyPressed KeyUp)   $ paddle1 += paddleMovement
@@ -205,7 +205,7 @@ drawScore (x, y) = scale textSize textSize . text $ show x ++ " " ++ show y
 -- Handle input by simply updating the keys set
 
 handle :: Event -> Pong -> Pong
-handle (EventKey k s _ _) = keys.ix k .~ (s == Down)
+handle (EventKey k s _ _) = keys.contains k .~ (s == Down)
 handle _ = id
 
 -- The main program action
