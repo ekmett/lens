@@ -26,6 +26,8 @@ module Control.Lens.Review
   , reuse, reuses
   , ( # )
   , Bifunctor(bimap)
+  , retagged
+  , Reviewable
   ) where
 
 import Control.Monad.Reader as Reader

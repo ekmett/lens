@@ -19,7 +19,11 @@
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Review
-  ( Reviewed(..)
+  ( 
+  -- * Internal Classes
+    Reviewable,
+  -- * Reviews
+    Reviewed(..)
   ) where
 
 import Control.Applicative
@@ -36,9 +40,15 @@ import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Proxy
 import Data.Traversable
+import Data.Void
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
+
+-- | This class is provided mostly for backwards compatibility with lens 3.8,
+-- but it can also shorten type signatures.
+class (Profunctor p, Bifunctor p) => Reviewable p
+instance (Profunctor p, Bifunctor p) => Reviewable p
 
 ------------------------------------------------------------------------------
 -- Review: Reviewed
@@ -48,6 +58,9 @@ import Unsafe.Coerce
 --
 -- It plays a role similar to that of 'Control.Lens.Internal.Getter.Accessor'
 -- or 'Const' do for "Control.Lens.Getter"
+retagged :: (Profunctor p, Bifunctor p) => p a b -> p s b
+retagged = first absurd . lmap absurd
+
 newtype Reviewed a b = Reviewed { runReviewed :: b }
 
 instance Functor (Reviewed a) where
