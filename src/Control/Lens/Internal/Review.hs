@@ -23,6 +23,7 @@ module Control.Lens.Internal.Review
   -- * Internal Classes
     Reviewable,
   -- * Reviews
+    retagged,
     Reviewed(..)
   ) where
 
