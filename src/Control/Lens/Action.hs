@@ -91,6 +91,9 @@ a ^! l = getEffect (l (Effect #. return) a)
 {-# INLINE (^!) #-}
 
 -- | Perform a 'MonadicFold' and collect all of the results in a list.
+--
+-- >>> ["ab","cd","ef"]^!!folded.acts
+-- ["ace","acf","ade","adf","bce","bcf","bde","bdf"]
 (^!!) :: Monad m => s -> Acting m [a] s t a b -> m [a]
 a ^!! l = getEffect (l (Effect #. return . return) a)
 {-# INLINE (^!!) #-}
