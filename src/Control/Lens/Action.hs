@@ -101,6 +101,11 @@ a ^!! l = getEffect (l (Effect #. return . return) a)
 -- | Perform a 'MonadicFold' and collect the leftmost result.
 --
 -- /Note:/ this still causes all effects for all elements.
+--
+-- >>> [Just 1, Just 2, Just 3]^!?folded.acts
+-- Just (Just 1)
+-- >>> [Just 1, Nothing]^!?folded.acts
+-- Nothing
 (^!?) :: Monad m => s -> Acting m (Leftmost a) s t a b -> m (Maybe a)
 a ^!?  l = liftM getLeftmost .# getEffect $ l (Effect #. return . LLeaf) a
 {-# INLINE (^!?) #-}
