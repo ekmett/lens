@@ -26,6 +26,7 @@ import Data.Distributive
 import Data.Foldable
 import Data.Functor.Bind
 import Data.Functor.Compose
+import Data.Functor.Extend
 import Data.Functor.Identity
 import Data.Profunctor
 import Data.Profunctor.Unsafe
@@ -98,6 +99,12 @@ instance Monad Mutator where
   {-# INLINE return #-}
   Mutator x >>= f = f x
   {-# INLINE (>>=) #-}
+
+instance Extend Mutator where
+  extended f w = Mutator (f w)
+  {-# INLINE extended #-}
+  duplicated = Mutator
+  {-# INLINE duplicated #-}
 
 instance Comonad Mutator where
   extract = runMutator
