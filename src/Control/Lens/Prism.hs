@@ -27,6 +27,7 @@ module Control.Lens.Prism
   , aside
   , without
   , isn't
+  , overM
   -- * Common Prisms
   , _Left
   , _Right
@@ -43,6 +44,7 @@ import Control.Lens.Combinators
 import Control.Lens.Internal.Prism
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
+import Control.Lens.Setter
 import Control.Monad
 import Data.Bifunctor
 import Data.Profunctor
@@ -154,6 +156,15 @@ isn't k s = case runPrism k of
     Left _ -> True
     Right _ -> False
 {-# INLINE isn't #-}
+
+-- | Try to map a function over this prism, failing if needed
+--
+-- >>> overM nat (2*) 10 :: Maybe Int
+-- Just 20
+-- >>> overM nat (2*) (-10) :: Maybe Int
+-- Nothing
+overM :: Prism s t a b -> (a -> b) -> s -> Maybe t
+overM k f s = if isn't k s then Nothing else Just $ over k f s
 
 ------------------------------------------------------------------------------
 -- Common Prisms
