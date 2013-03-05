@@ -117,7 +117,7 @@ instance Comonad Mutator where
   {-# INLINE duplicate #-}
 
 instance ComonadApply Mutator where
-  Mutator f <@> Mutator a = Mutator (f aa)
+  Mutator f <@> Mutator a = Mutator (f a)
   {-# INLINE (<@>) #-}
 
 instance Distributive Mutator where
