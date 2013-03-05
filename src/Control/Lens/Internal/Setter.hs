@@ -93,6 +93,8 @@ instance Applicative Mutator where
 instance Bind Mutator where
   Mutator x >>- f = f x
   {-# INLINE (>>-) #-}
+  join = runMutator
+  {-# INLINE join #-}
 
 instance Monad Mutator where
   return = Mutator
@@ -115,7 +117,7 @@ instance Comonad Mutator where
   {-# INLINE duplicate #-}
 
 instance ComonadApply Mutator where
-  (<@>) = (<*>)
+  Mutator f <@> Mutator a = Mutator (f aa)
   {-# INLINE (<@>) #-}
 
 instance Distributive Mutator where
