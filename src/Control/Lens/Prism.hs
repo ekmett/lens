@@ -27,7 +27,7 @@ module Control.Lens.Prism
   , aside
   , without
   , isn't
-  , overM
+  , tryOver, (%%~?)
   -- * Common Prisms
   , _Left
   , _Right
@@ -44,11 +44,11 @@ import Control.Lens.Combinators
 import Control.Lens.Internal.Prism
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
-import Control.Lens.Setter
 import Control.Monad
 import Data.Bifunctor
 import Data.Profunctor
 import Data.Void
+import Data.Monoid (Any (..))
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
@@ -157,14 +157,21 @@ isn't k s = case runPrism k of
     Right _ -> False
 {-# INLINE isn't #-}
 
--- | Try to map a function over this prism, failing if needed
+-- | Try to map a function over this 'Prism', failing if the 'Prism' does. This
+-- actually can more generally be applied to any 'Traversal'.
 --
--- >>> overM nat (2*) 10 :: Maybe Int
+-- >>> let { nat :: Prism' Int Int; nat = prism' id $ \i -> if (i >= 0) then Just i else Nothing }
+-- >>> tryOver nat (2*) 10 :: Maybe Int
 -- Just 20
--- >>> overM nat (2*) (-10) :: Maybe Int
+-- >>> tryOver nat (2*) (-10) :: Maybe Int
 -- Nothing
-overM :: Prism s t a b -> (a -> b) -> s -> Maybe t
-overM k f s = if isn't k s then Nothing else Just $ over k f s
+tryOver :: MonadPlus m => LensLike ((,) Any) s t a b -> (a -> b) -> s -> m t
+tryOver prsm f s = case (prsm $ (,) (Any True) . f) s of
+  (Any True, t)  -> return t
+  (Any False, _) -> mzero
+
+(%%~?) :: MonadPlus m => LensLike ((,) Any) s t a b -> (a -> b) -> s -> m t
+(%%~?) = tryOver
 
 ------------------------------------------------------------------------------
 -- Common Prisms
