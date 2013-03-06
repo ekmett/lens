@@ -59,6 +59,7 @@ module Control.Lens.Traversal
   , transposeOf
   , mapAccumLOf, mapAccumROf
   , scanr1Of, scanl1Of
+  , failover
 
   -- * Monomorphic Traversals
   , cloneTraversal
@@ -114,6 +115,7 @@ import Control.Applicative as Applicative
 import Control.Applicative.Backwards
 import Control.Category
 import Control.Comonad
+import Control.Monad
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter (coerced)
@@ -126,6 +128,7 @@ import Data.Functor.Compose
 import Data.Int
 import Data.IntMap as IntMap
 import Data.Map as Map
+import Data.Monoid
 import Data.Traversable
 import Data.Tuple (swap)
 import Data.Profunctor
@@ -1032,3 +1035,19 @@ elementsOf l p iafb s = snd $ runIndexing (l (\a -> Indexing (\i -> i `seq` (i +
 elements :: Traversable t => (Int -> Bool) -> IndexedTraversal' Int (t a) a
 elements = elementsOf traverse
 {-# INLINE elements #-}
+
+-- | Try to map a function over this 'Traversal', failing if the 'Traversal' has no targets.
+--
+-- >>> failover (element 3) (*2) [1,2] :: Maybe Int
+-- Nothing
+--
+-- >>> failover _Left (*2) (Right 4) :: Maybe (Either Int Int)
+-- Nothing
+--
+-- >>> failover _Right (*2) (Right 4) :: Maybe (Either Int Int)
+-- Just (Right 8)
+failover :: MonadPlus m => LensLike ((,) Any) s t a b -> (a -> b) -> s -> m t
+failover l f s = case l ((,) (Any True) . f) s of
+  (Any True, t)  -> return t
+  (Any False, _) -> mzero
+{-# INLINE failover #-}
