@@ -158,7 +158,8 @@ isn't k s = case runPrism k of
 {-# INLINE isn't #-}
 
 -- | Try to map a function over this 'Prism', failing if the 'Prism' does. This
--- actually can more generally be applied to any 'Traversal'.
+-- actually can more generally be applied to any 'Traversal', failing unless at
+-- least one traversal succeeds.
 --
 -- >>> let { nat :: Prism' Int Int; nat = prism' id $ \i -> if (i >= 0) then Just i else Nothing }
 -- >>> tryOver nat (2*) 10 :: Maybe Int
