@@ -60,6 +60,12 @@ import Control.Lens.Internal.Iso as Iso
 import Control.Lens.Internal.Magma
 import Control.Lens.Internal.Setter
 import Control.Lens.Type
+import Control.Monad.State.Lazy as Lazy
+import Control.Monad.State.Strict as Strict
+import Control.Monad.Writer.Lazy as Lazy
+import Control.Monad.Writer.Strict as Strict
+import Control.Monad.RWS.Lazy as Lazy
+import Control.Monad.RWS.Strict as Strict
 import Data.Bifunctor
 import Data.ByteString as StrictB hiding (reverse)
 import Data.ByteString.Lazy as LazyB hiding (reverse)
@@ -351,6 +357,19 @@ instance Strict LazyB.ByteString StrictB.ByteString where
 instance Strict LazyT.Text StrictT.Text where
   strict = iso LazyT.toStrict LazyT.fromStrict
   {-# INLINE strict #-}
+
+instance Strict (Lazy.StateT s m a) (Strict.StateT s m a) where
+  strict = iso (Strict.StateT . Lazy.runStateT) (Lazy.StateT . Strict.runStateT)
+  {-# INLINE strict #-}
+
+instance Strict (Lazy.WriterT w m a) (Strict.WriterT w m a) where
+  strict = iso (Strict.WriterT . Lazy.runWriterT) (Lazy.WriterT . Strict.runWriterT)
+  {-# INLINE strict #-}
+
+instance Strict (Lazy.RWST r w s m a) (Strict.RWST r w s m a) where
+  strict = iso (Strict.RWST . Lazy.runRWST) (Lazy.RWST . Strict.runRWST)
+  {-# INLINE strict #-}
+
 
 -- | An 'Iso' between a list, 'ByteString', 'Text' fragment, etc. and its reversal.
 --
