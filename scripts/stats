@@ -5,9 +5,11 @@ cd "$(git rev-parse --show-toplevel)"
 
 unsafe="$(g -e '\(#\.\|\.#\)' --and --not \
 	\( -e INLINE --or -e '^\s*(\s*\(#\.\|\.#\)\s*)' \))"
-doc="$(g -e '--\s\+>>>\s\+[^:]' --and --not -e '--\s\+>>>\s\+\(import\|let\)')"
+doc="$(g -e '--\s\+>>>\s\+[^:]' --and --not -e '--\s\+>>>\s\+\(import\|let\)' \
+	--or -e '--\s\+>>>\s\+let\s\+.*\<in\>')"
 ops="$(g '^(.\+)\s*::')"
 mod="$(find src -name '*.hs' | wc -l)"
 
+((ops+=3)) # :@ :> :>> from Control.Lens.Internal.Zipper
 echo "unsafeCoerces: $unsafe | doctests: $doc | operators: $ops | modules: $mod"
 
