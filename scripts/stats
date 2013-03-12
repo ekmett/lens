@@ -3,7 +3,8 @@
 g() { git grep --basic-regexp "$@" src | wc -l ; }
 cd "$(git rev-parse --show-toplevel)"
 
-unsafe="$(g '\<unsafeCoerce\>')"
+unsafe="$(g -e '\(#\.\|\.#\)' --and --not \
+	\( -e INLINE --or -e '^\s*(\s*\(#\.\|\.#\)\s*)' \))"
 doc="$(g -e '--\s\+>>>\s\+[^:]' --and --not -e '--\s\+>>>\s\+\(import\|let\)')"
 ops="$(g '^(.\+)\s*::')"
 mod="$(find src -name '*.hs' | wc -l)"
