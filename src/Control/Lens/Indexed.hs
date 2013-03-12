@@ -605,6 +605,16 @@ instance TraversableWithIndex Int [] where
   itraverse = itraverseOf traversed
   {-# INLINE itraverse #-}
 
+instance FunctorWithIndex () Maybe where
+  imap f = fmap (f ())
+  {-# INLINE imap #-}
+instance FoldableWithIndex () Maybe where
+  ifoldMap f = foldMap (f ())
+  {-# INLINE ifoldMap #-}
+instance TraversableWithIndex () Maybe where
+  itraverse f = traverse (f ())
+  {-# INLINE itraverse #-}
+
 -- | The position in the 'Seq' is available as the index.
 instance FunctorWithIndex Int Seq where
   imap = iover itraversed
