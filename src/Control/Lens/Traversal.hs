@@ -1038,7 +1038,7 @@ elements = elementsOf traverse
 
 -- | Try to map a function over this 'Traversal', failing if the 'Traversal' has no targets.
 --
--- >>> failover (element 3) (*2) [1,2] :: Maybe Int
+-- >>> failover (element 3) (*2) [1,2] :: Maybe [Int]
 -- Nothing
 --
 -- >>> failover _Left (*2) (Right 4) :: Maybe (Either Int Int)
