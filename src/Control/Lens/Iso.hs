@@ -81,9 +81,6 @@ import Data.Tuple (swap)
 import Data.Maybe
 import Data.Profunctor
 import Data.Profunctor.Unsafe
-#ifndef SAFE
-import Unsafe.Coerce
-#endif
 
 {-# ANN module "HLint: ignore Use on" #-}
 
@@ -130,9 +127,12 @@ from :: AnIso s t a b -> Iso b a t s
 from l = withIso l $ \ sa bt -> iso bt sa
 {-# INLINE from #-}
 
+-- | Extract the two functions, one from @s -> a@ and
+-- one from @b -> t@ that characterize an 'Iso'.
 withIso :: AnIso s t a b -> ((s -> a) -> (b -> t) -> r) -> r
-withIso l k = case runIso l of
-  Exchange sa bt -> k sa bt
+withIso ai k = case ai (Exchange id Mutator) of
+  Exchange sa bt -> k sa (runMutator #. bt)
+{-# INLINE withIso #-}
 
 -- | Convert from 'AnIso' back to any 'Iso'.
 --
@@ -147,18 +147,6 @@ cloneIso k = withIso k $ \ sa bt -> iso sa bt
 -----------------------------------------------------------------------------
 -- Isomorphisms families as Lenses
 -----------------------------------------------------------------------------
-
--- | Extract the two functions, one from @s -> a@ and one from @b -> t@ that characterize
--- an 'Iso'.
-runIso :: AnIso s t a b -> Exchange a b s t
-#ifdef SAFE
-runIso ai = case ai (Exchange id Mutator) of
-  Exchange sa bt -> Exchange sa (runMutator #. bt)
-#else
-runIso ai = unsafeCoerce $ ai $ Exchange id Mutator
-#endif
-
-{-# INLINE runIso #-}
 
 -- | Based on 'Control.Lens.Wrapped.ala' from Conor McBride's work on Epigram.
 --
