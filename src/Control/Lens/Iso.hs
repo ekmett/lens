@@ -127,8 +127,7 @@ iso sa bt = dimap sa (fmap bt)
 -- 'from' ('from' l) ≡ l
 -- @
 from :: AnIso s t a b -> Iso b a t s
-from l = case runIso l of
-  Exchange sa bt -> iso bt sa
+from l = withIso l $ \ sa bt -> iso bt sa
 {-# INLINE from #-}
 
 withIso :: AnIso s t a b -> ((s -> a) -> (b -> t) -> r) -> r
@@ -142,8 +141,7 @@ withIso l k = case runIso l of
 --
 -- See 'Control.Lens.Lens.cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
 cloneIso :: AnIso s t a b -> Iso s t a b
-cloneIso k = case runIso k of
-  Exchange sa bt -> iso sa bt
+cloneIso k = withIso k $ \ sa bt -> iso sa bt
 {-# INLINE cloneIso #-}
 
 -----------------------------------------------------------------------------
@@ -169,8 +167,7 @@ runIso ai = unsafeCoerce $ ai $ Exchange id Mutator
 -- >>> au (wrapping Sum) foldMap [1,2,3,4]
 -- 10
 au :: AnIso s t a b -> ((s -> a) -> e -> b) -> e -> t
-au k = case runIso k of
-  Exchange sa bt -> \ f e -> bt (f sa e)
+au k = withIso k $ \ sa bt f e -> bt (f sa e)
 {-# INLINE au #-}
 
 -- | Based on @ala'@ from Conor McBride's work on Epigram.
@@ -185,8 +182,7 @@ au k = case runIso k of
 -- >>> auf (wrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
 -- 10
 auf :: AnIso s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
-auf k = case runIso k of
-  Exchange sa bt -> \ f g e -> bt (f (sa . g) e)
+auf k = withIso k $ \ sa bt f g e -> bt (f (sa . g) e)
 {-# INLINE auf #-}
 
 -- | The opposite of working 'Control.Lens.Setter.over' a 'Setter' is working 'under' an isomorphism.
@@ -199,8 +195,7 @@ auf k = case runIso k of
 -- 'under' :: 'Iso' s t a b -> (t -> s) -> b -> a
 -- @
 under :: AnIso s t a b -> (t -> s) -> b -> a
-under k = case runIso k of
-  Exchange sa bt -> \ts -> sa . ts . bt
+under k = withIso k $ \ sa bt ts -> sa . ts . bt
 {-# INLINE under #-}
 
 -----------------------------------------------------------------------------
@@ -226,8 +221,7 @@ enum = iso toEnum fromEnum
 
 -- | This can be used to lift any 'Iso' into an arbitrary 'Functor'.
 mapping :: Functor f => AnIso s t a b -> Iso (f s) (f t) (f a) (f b)
-mapping k = case runIso k of
-  Exchange sa bt -> iso (fmap sa) (fmap bt)
+mapping k = withIso k $ \ sa bt -> iso (fmap sa) (fmap bt)
 {-# INLINE mapping #-}
 
 -- | Composition with this isomorphism is occasionally useful when your 'Lens',
@@ -431,8 +425,7 @@ imagma l = iso (runMolten #. l sell) (iextract .# Molten)
 -- contramapping :: 'Contravariant' f => 'Iso'' s a -> 'Iso'' (f a) (f s)
 -- @
 contramapping :: Contravariant f => AnIso s t a b -> Iso (f a) (f b) (f s) (f t)
-contramapping f = case runIso f of
-  Exchange sa bt -> iso (contramap sa) (contramap bt)
+contramapping f = withIso f $ \ sa bt -> iso (contramap sa) (contramap bt)
 {-# INLINE contramapping #-}
 
 ------------------------------------------------------------------------------
@@ -446,9 +439,8 @@ contramapping f = case runIso f of
 -- dimapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' s' a' -> 'Iso'' (p a s') (p s a')
 -- @
 dimapping :: Profunctor p => AnIso s t a b -> AnIso s' t' a' b' -> Iso (p a s') (p b t') (p s a') (p t b')
-dimapping f g = iso (dimap s'a' sa) (dimap b't' bt) where
-  Exchange s'a' b't' = runIso f
-  Exchange sa   bt   = runIso g
+dimapping f g = withIso f $ \ s'a' b't' -> withIso g $ \ sa bt ->
+  iso (dimap s'a' sa) (dimap b't' bt)
 {-# INLINE dimapping #-}
 
 -- | Lift an 'Iso' contravariantly into the left argument of a 'Profunctor'.
@@ -458,8 +450,7 @@ dimapping f g = iso (dimap s'a' sa) (dimap b't' bt) where
 -- lmapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' (p a x) (p s x)
 -- @
 lmapping :: Profunctor p => AnIso s t a b -> Iso (p a x) (p b y) (p s x) (p t y)
-lmapping f = case runIso f of
-  Exchange sa bt -> iso (lmap sa) (lmap bt)
+lmapping f = withIso f $ \ sa bt -> iso (lmap sa) (lmap bt)
 {-# INLINE lmapping #-}
 
 -- | Lift an 'Iso' covariantly into the right argument of a 'Profunctor'.
@@ -469,6 +460,5 @@ lmapping f = case runIso f of
 -- rmapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' (p x s) (p x a)
 -- @
 rmapping :: Profunctor p => AnIso s t a b -> Iso (p x s) (p y t) (p x a) (p y b)
-rmapping g = case runIso g of
-  Exchange sa bt -> iso (rmap sa) (rmap bt)
+rmapping g = withIso g $ \ sa bt -> iso (rmap sa) (rmap bt)
 {-# INLINE rmapping #-}
