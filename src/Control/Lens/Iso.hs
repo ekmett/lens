@@ -50,6 +50,8 @@ module Control.Lens.Iso
   , magma
   , imagma
   , Magma
+  -- ** Contravariant functors
+  , contramapping
   -- * Profunctors
   , Profunctor(dimap,rmap,lmap)
   , dimapping
@@ -72,6 +74,7 @@ import Control.Monad.RWS.Strict as Strict
 import Data.Bifunctor
 import Data.ByteString as StrictB hiding (reverse)
 import Data.ByteString.Lazy as LazyB hiding (reverse)
+import Data.Functor.Contravariant
 import Data.Text as StrictT hiding (reverse)
 import Data.Text.Lazy as LazyT hiding (reverse)
 import Data.Tuple (swap)
@@ -416,6 +419,21 @@ magma l = iso (runMafic `rmap` l sell) runMagma
 imagma :: Overloading (Indexed i) (->) (Molten i a b) s t a b -> Iso s t' (Magma i t b a) (Magma j t' c c)
 imagma l = iso (runMolten #. l sell) (iextract .# Molten)
 {-# INLINE imagma #-}
+
+------------------------------------------------------------------------------
+-- Contravariant
+------------------------------------------------------------------------------
+
+-- | Lift an 'Iso' into a 'Contravariant' functor.
+--
+-- @
+-- contramapping :: 'Contravariant' f => 'Iso' s t a b -> 'Iso' (f a) (f b) (f s) (f t)
+-- contramapping :: 'Contravariant' f => 'Iso'' s a -> 'Iso'' (f a) (f s)
+-- @
+contramapping :: Contravariant f => AnIso s t a b -> Iso (f a) (f b) (f s) (f t)
+contramapping f = case runIso f of
+  Exchange sa bt -> iso (contramap sa) (contramap bt)
+{-# INLINE contramapping #-}
 
 ------------------------------------------------------------------------------
 -- Profunctor
