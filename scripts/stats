@@ -1,0 +1,12 @@
+#! /bin/bash
+
+g() { git grep --basic-regexp "$@" src | wc -l ; }
+cd "$(git rev-parse --show-toplevel)"
+
+unsafe="$(g '\<unsafeCoerce\>')"
+doc="$(g -e '--\s\+>>>\s\+[^:]' --and --not -e '--\s\+>>>\s\+\(import\|let\)')"
+ops="$(g '^(.\+)\s*::')"
+mod="$(find src -name '*.hs' | wc -l)"
+
+echo "unsafeCoerces: $unsafe | doctests: $doc | operators: $ops | modules: $mod"
+

@@ -13,6 +13,7 @@ install:
 
 script:
   - $script && hlint src --cpp-define HLINT
+  - scripts/stats
 
 notifications:
   irc:
