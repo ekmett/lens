@@ -52,6 +52,9 @@ module Control.Lens.Iso
   , Magma
   -- * Profunctors
   , Profunctor(dimap,rmap,lmap)
+  , dimapping
+  , lmapping
+  , rmapping
   ) where
 
 import Control.Lens.Internal.Context
@@ -413,3 +416,41 @@ magma l = iso (runMafic `rmap` l sell) runMagma
 imagma :: Overloading (Indexed i) (->) (Molten i a b) s t a b -> Iso s t' (Magma i t b a) (Magma j t' c c)
 imagma l = iso (runMolten #. l sell) (iextract .# Molten)
 {-# INLINE imagma #-}
+
+------------------------------------------------------------------------------
+-- Profunctor
+------------------------------------------------------------------------------
+
+-- | Lift two 'Iso's into both arguments of a 'Profunctor' simultaneously.
+--
+-- @
+-- dimapping :: 'Profunctor' p => 'Iso' s t a b -> 'Iso' s' t' a' b' -> 'Iso' (p a s') (p b t') (p s a') (p t b')
+-- dimapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' s' a' -> 'Iso'' (p a s') (p s a')
+-- @
+dimapping :: Profunctor p => AnIso s t a b -> AnIso s' t' a' b' -> Iso (p a s') (p b t') (p s a') (p t b')
+dimapping f g = iso (dimap s'a' sa) (dimap b't' bt) where
+  Exchange s'a' b't' = runIso f
+  Exchange sa   bt   = runIso g
+{-# INLINE dimapping #-}
+
+-- | Lift an 'Iso' contravariantly into the left argument of a 'Profunctor'.
+--
+-- @
+-- lmapping :: 'Profunctor' p => 'Iso' s t a b -> 'Iso' (p a x) (p b y) (p s x) (p t y)
+-- lmapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' (p a x) (p s x)
+-- @
+lmapping :: Profunctor p => AnIso s t a b -> Iso (p a x) (p b y) (p s x) (p t y)
+lmapping f = case runIso f of
+  Exchange sa bt -> iso (lmap sa) (lmap bt)
+{-# INLINE lmapping #-}
+
+-- | Lift an 'Iso' covariantly into the right argument of a 'Profunctor'.
+--
+-- @
+-- rmapping :: 'Profunctor' p => 'Iso' s t a b -> 'Iso' (p x s) (p y t) (p x a) (p y b)
+-- rmapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' (p x s) (p x a)
+-- @
+rmapping :: Profunctor p => AnIso s t a b -> Iso (p x s) (p y t) (p x a) (p y b)
+rmapping g = case runIso g of
+  Exchange sa bt -> iso (rmap sa) (rmap bt)
+{-# INLINE rmapping #-}
