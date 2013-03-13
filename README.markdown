@@ -71,7 +71,7 @@ As we saw above, you can write to lenses and these writes can change the type of
 
 ```haskell
 ghci> _1 .~ "hello" $ ((),"world")
-("hello","world)
+("hello","world")
 ```
 
 Conversely `view`, can be used as a prefix alias for `(^.)`.
