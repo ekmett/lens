@@ -135,9 +135,6 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Prelude hiding ((.),id)
-#ifdef USE_RULES
-import Control.Lens.Setter
-#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -904,21 +901,11 @@ imapAccumLOf l = mapAccumLOf l .# Indexed
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
 traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b
 traversed = conjoined traverse (indexing traverse)
-#ifdef USE_RULES
-{-# RULES
-"traversed/mapped"   [2] traversed = (mapped :: Functor f => (a -> Mutator b) -> f a -> Mutator (f b))
-"traversed/traverse" [1] traversed = traverse #-}
-#endif
 {-# INLINE [0] traversed #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
 traversed64 :: Traversable f => IndexedTraversal Int64 (f a) (f b) a b
 traversed64 = conjoined traverse (indexing64 traverse)
-#ifdef USE_RULES
-{-# RULES
-"traversed/mapped"     [2] traversed = (mapped :: Functor f => (a -> Mutator b) -> f a -> Mutator (f b))
-"traversed64/traverse" [1] traversed64 = traverse #-}
-#endif
 {-# INLINE[0] traversed64 #-}
 
 -- | This is the trivial empty 'Traversal'.

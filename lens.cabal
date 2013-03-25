@@ -160,11 +160,6 @@ flag lib-Werror
   default: False
   manual: True
 
--- Enable experimental RULES pragmas with -f-rules
-flag rules
-  default: False
-  manual: True
-
 library
   build-depends:
     array                     >= 0.3.0.2  && < 0.5,
@@ -279,10 +274,6 @@ library
     System.IO.Error.Lens
     Language.Haskell.TH.Lens
     Numeric.Lens
-
-  if flag(rules)
-    cpp-options: -DUSE_RULES=1
-    ghc-options: -fenable-rewrite-rules
 
   if flag(safe)
     cpp-options: -DSAFE=1

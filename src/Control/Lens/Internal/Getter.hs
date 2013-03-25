@@ -46,7 +46,7 @@ instance (Contravariant f, Functor f) => Gettable f
 -- @'id' = 'fmap' f = 'coerce' = 'contramap' g@
 coerce :: (Contravariant f, Functor f) => f a -> f b
 coerce a = absurd <$> contramap absurd a
-{-# INLINE [1] coerce #-} -- give RULES a chance to fire in "gentle" and [2]
+{-# INLINE coerce #-}
 
 -- | The 'mempty' equivalent for a 'Gettable' 'Applicative' 'Functor'.
 noEffect :: (Contravariant f, Applicative f) => f a

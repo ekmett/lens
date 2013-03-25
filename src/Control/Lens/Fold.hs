@@ -147,10 +147,6 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Traversable
-#ifdef USE_RULES
-import Data.Functor.Identity
-import Data.List as List
-#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -460,16 +456,7 @@ foldOf l = runAccessor #. l Accessor
 -- @
 foldrOf :: Profunctor p => Accessing p (Endo r) s a -> p a (r -> r) -> r -> s -> r
 foldrOf l f z = flip appEndo z `rmap` foldMapOf l (Endo #. f)
-#ifdef USE_RULES
-{-# RULES
-"foldrOf folded x3/foldr" foldrOf (folded.folded.folded) = Foldable.foldr . flip . Foldable.foldr . flip . Foldable.foldr
-"foldrOf folded x2/foldr" foldrOf (folded.folded) = Foldable.foldr . flip . Foldable.foldr
-"foldrOf folded/foldr" foldrOf folded = Foldable.foldr
-"foldr/foldr"          Foldable.foldr = Prelude.foldr #-}
-{-# INLINE [1] foldrOf #-}
-#else
 {-# INLINE foldrOf #-}
-#endif
 
 -- | Left-associative fold of the parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
 --
@@ -487,16 +474,7 @@ foldrOf l f z = flip appEndo z `rmap` foldMapOf l (Endo #. f)
 -- @
 foldlOf :: Getting (Dual (Endo r)) s a -> (r -> a -> r) -> r -> s -> r
 foldlOf l f z = (flip appEndo z .# getDual) `rmap` foldMapOf l (Dual #. Endo #. flip f)
-#ifdef USE_RULES
-{-# RULES
-"foldlOf folded x3/foldl" foldlOf (folded.folded.folded) = Foldable.foldl . Foldable.foldl . Foldable.foldl
-"foldlOf folded x2/foldl" foldlOf (folded.folded) = Foldable.foldl . Foldable.foldl
-"foldlOf folded/foldl" foldlOf folded = Foldable.foldl
-"foldl/foldl"          Foldable.foldl = Prelude.foldl #-}
-{-# INLINE [1] foldlOf #-}
-#else
 {-# INLINE foldlOf #-}
-#endif
 
 -- | Extract a list of the targets of a 'Fold'. See also ('^..').
 --
@@ -518,14 +496,7 @@ foldlOf l f z = (flip appEndo z .# getDual) `rmap` foldMapOf l (Dual #. Endo #. 
 -- @
 toListOf :: Getting (Endo [a]) s a -> s -> [a]
 toListOf l = foldrOf l (:) []
-#ifdef USE_RULES
-{-# RULES
-"toListOf folded/toList" toListOf folded = Foldable.toList
-"toList/id"              Foldable.toList = id #-}
-{-# INLINE [1] toListOf #-}
-#else
 {-# INLINE toListOf #-}
-#endif
 
 -- | A convenient infix (flipped) version of 'toListOf'.
 --
@@ -550,12 +521,7 @@ toListOf l = foldrOf l (:) []
 -- @
 (^..) :: s -> Getting (Endo [a]) s a -> [a]
 s ^.. l = toListOf l s
-#ifdef USE_RULES
-{-# RULES "^..folded/toList" forall x. x ^.. folded = Foldable.toList x #-}
-{-# INLINE [1] (^..) #-}
-#else
 {-# INLINE (^..) #-}
-#endif
 
 -- | Returns 'True' if every target of a 'Fold' is 'True'.
 --
@@ -578,14 +544,7 @@ s ^.. l = toListOf l s
 -- @
 andOf :: Getting All s Bool -> s -> Bool
 andOf l = getAll #. foldMapOf l All
-#ifdef USE_RULES
-{-# RULES
-"andOf folded/and" andOf folded = Foldable.and
-"and/and"          Foldable.and = Prelude.and #-}
-{-# INLINE [1] andOf #-}
-#else
 {-# INLINE andOf #-}
-#endif
 
 -- | Returns 'True' if any target of a 'Fold' is 'True'.
 --
@@ -608,14 +567,7 @@ andOf l = getAll #. foldMapOf l All
 -- @
 orOf :: Getting Any s Bool -> s -> Bool
 orOf l = getAny #. foldMapOf l Any
-#ifdef USE_RULES
-{-# RULES
-"orOf folded/or" orOf folded = Foldable.or
-"or/or"          Foldable.or = Prelude.or #-}
-{-# INLINE [1] orOf #-}
-#else
 {-# INLINE orOf #-}
-#endif
 
 -- | Returns 'True' if any target of a 'Fold' satisfies a predicate.
 --
@@ -643,16 +595,7 @@ orOf l = getAny #. foldMapOf l Any
 -- @
 anyOf :: Profunctor p => Accessing p Any s a -> p a Bool -> s -> Bool
 anyOf l f = getAny #. foldMapOf l (Any #. f)
-#ifdef USE_RULES
-{-# RULES
-"anyOf folded x3/any" anyOf (folded.folded.folded) = Foldable.any . Foldable.any . Foldable.any
-"anyOf folded x2/any" anyOf (folded.folded)        = Foldable.any . Foldable.any
-"anyOf folded/any" anyOf folded = Foldable.any
-"any/any"          Foldable.any = Prelude.any #-}
-{-# INLINE [1] anyOf #-}
-#else
 {-# INLINE anyOf #-}
-#endif
 
 -- | Returns 'True' if every target of a 'Fold' satisfies a predicate.
 --
@@ -679,16 +622,7 @@ anyOf l f = getAny #. foldMapOf l (Any #. f)
 -- @
 allOf :: Profunctor p => Accessing p All s a -> p a Bool -> s -> Bool
 allOf l f = getAll #. foldMapOf l (All #. f)
-#ifdef USE_RULES
-{-# RULES
-"allOf folded x3/all" allOf (folded.folded.folded) = Foldable.all . Foldable.all . Foldable.all
-"allOf folded x2/all" allOf (folded.folded)        = Foldable.all . Foldable.all
-"allOf folded/all" allOf folded = Foldable.all
-"all/all"          Foldable.all = Prelude.all #-}
-{-# INLINE [1] allOf #-}
-#else
 {-# INLINE allOf #-}
-#endif
 
 -- | Calculate the 'Product' of every number targeted by a 'Fold'.
 --
@@ -714,14 +648,7 @@ allOf l f = getAll #. foldMapOf l (All #. f)
 -- @
 productOf :: Num a => Getting (Endo (Endo a)) s a -> s -> a
 productOf l = foldlOf' l (*) 1
-#ifdef USE_RULES
-{-# RULES
-"productOf folded/product" productOf folded = Foldable.product
-"product/product"          Foldable.product = Prelude.product #-}
-{-# INLINE [1] productOf #-}
-#else
 {-# INLINE productOf #-}
-#endif
 
 -- | Calculate the 'Sum' of every number targeted by a 'Fold'.
 --
@@ -757,14 +684,7 @@ productOf l = foldlOf' l (*) 1
 -- @
 sumOf :: Num a => Getting (Endo (Endo a)) s a -> s -> a
 sumOf l = foldlOf' l (+) 0
-#ifdef USE_RULES
-{-# RULES
-"sumOf folded/sum" sumOf folded = Foldable.sum
-"sum/sum"          Foldable.sum = Prelude.sum #-}
-{-# INLINE [1] sumOf #-}
-#else
 {-# INLINE sumOf #-}
-#endif
 
 -- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor')-based answer,
 -- but unlike 'Control.Lens.Traversal.traverseOf' do not construct a new structure. 'traverseOf_' generalizes
@@ -888,19 +808,7 @@ sequenceAOf_ l = void . getTraversed #. foldMapOf l Traversed
 -- @
 mapMOf_ :: (Profunctor p, Monad m) => Accessing p (Sequenced r m) s a -> p a (m r) -> s -> m ()
 mapMOf_ l f = liftM skip . getSequenced #. foldMapOf l (Sequenced #. f)
-#ifdef USE_RULES
-{-# RULES
-"mapMOf_ folded x3/mapM_" mapMOf_ (folded.folded.folded) = Prelude.mapM_.Prelude.mapM_.Prelude.mapM_
-"mapMOf_ folded x3/mapM_" mapMOf_ (folded.folded.folded) = Foldable.mapM_.Foldable.mapM_.Foldable.mapM_
-"mapMOf_ folded x2/mapM_" mapMOf_ (folded.folded) = Prelude.mapM_.Prelude.mapM_
-"mapMOf_ folded x2/mapM_" mapMOf_ (folded.folded) = Foldable.mapM_.Foldable.mapM_
-"mapMOf_ folded/mapM_" mapMOf_ folded = Prelude.mapM_
-"mapMOf_ folded/mapM_" mapMOf_ folded = Foldable.mapM_
-"mapM_/mapM_" Foldable.mapM_ = Prelude.mapM_ #-}
-{-# INLINE [1] mapMOf_ #-}
-#else
 {-# INLINE mapMOf_ #-}
-#endif
 
 -- | 'forMOf_' is 'mapMOf_' with two of its arguments flipped.
 --
@@ -922,17 +830,7 @@ mapMOf_ l f = liftM skip . getSequenced #. foldMapOf l (Sequenced #. f)
 -- @
 forMOf_ :: (Profunctor p, Monad m) => Accessing p (Sequenced r m) s a -> s -> p a (m r) -> m ()
 forMOf_ = flip . mapMOf_
-#ifdef USE_RULES
-{-# RULES
-"forMOf_ folded x3/forM_" forall s f. forMOf_ (folded.folded.folded) s f = Foldable.mapM_ (Foldable.mapM_ (Foldable.mapM_ f)) s
-"forMOf_ folded x2/forM_" forall s f. forMOf_ (folded.folded) s f = Foldable.mapM_ (Foldable.mapM_ f) s
-"forMOf_ folded/forM_" forMOf_ folded = Monad.forM_
-"forMOf_ folded/forM_" forMOf_ folded = Foldable.forM_
-"forM_/forM_" Foldable.forM_ = Monad.forM_ #-}
-{-# INLINE [1] forMOf_ #-}
-#else
 {-# INLINE forMOf_ #-}
-#endif
 
 -- | Evaluate each monadic action referenced by a 'Fold' on the structure from left to right, and ignore the results.
 --
@@ -954,17 +852,7 @@ forMOf_ = flip . mapMOf_
 -- @
 sequenceOf_ :: Monad m => Getting (Sequenced a m) s (m a) -> s -> m ()
 sequenceOf_ l = liftM skip . getSequenced #. foldMapOf l Sequenced
-#ifdef USE_RULES
-{-# RULES
-"sequenceOf_ folded x3/mapM_ (mapM_ sequence_)" sequenceOf_ (folded.folded.folded) = Foldable.mapM_ (Foldable.mapM_ Foldable.sequence_)
-"sequenceOf_ folded x2/mapM_ sequence_" sequenceOf_ (folded.folded) = Foldable.mapM_ Foldable.sequence_
-"sequenceOf_ folded/sequence_" sequenceOf_ folded = Prelude.sequence_
-"sequenceOf_ folded/sequence_" sequenceOf_ folded = Foldable.sequence_
-"sequence_/sequence_" Foldable.sequence_ = Prelude.sequence_ #-}
-{-# INLINE [1] sequenceOf_ #-}
-#else
 {-# INLINE sequenceOf_ #-}
-#endif
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
 --
@@ -988,12 +876,7 @@ sequenceOf_ l = liftM skip . getSequenced #. foldMapOf l Sequenced
 -- @
 asumOf :: Alternative f => Getting (Endo (f a)) s (f a) -> s -> f a
 asumOf l = foldrOf l (<|>) Applicative.empty
-#ifdef USE_RULES
-{-# RULES "asumOf folded/asum" asumOf folded = Foldable.asum #-}
-{-# INLINE [1] asumOf #-}
-#else
 {-# INLINE asumOf #-}
-#endif
 
 -- | The sum of a collection of actions, generalizing 'concatOf'.
 --
@@ -1017,15 +900,7 @@ asumOf l = foldrOf l (<|>) Applicative.empty
 -- @
 msumOf :: MonadPlus m => Getting (Endo (m a)) s (m a) -> s -> m a
 msumOf l = foldrOf l mplus mzero
-#ifdef USE_RULES
-{-# RULES
-"msumOf folded/msum" msumOf folded = Monad.msum
-"msumOf folded/msum" msumOf folded = Foldable.msum
-"msum/msum"          Foldable.msum = Monad.msum #-}
-{-# INLINE [1] msumOf #-}
-#else
 {-# INLINE msumOf #-}
-#endif
 
 -- | Does the element occur anywhere within a given 'Fold' of the structure?
 --
@@ -1046,15 +921,7 @@ msumOf l = foldrOf l mplus mzero
 -- @
 elemOf :: Eq a => Getting Any s a -> a -> s -> Bool
 elemOf l = anyOf l . (==)
-#if USE_RULES
-{-# RULES
-"elemOf folded/elem" elemOf folded = Foldable.elem
-"elemOf folded/elem" elemOf folded = Prelude.elem
-"elem/elem"          Foldable.elem = Prelude.elem #-}
-{-# INLINE [1] elemOf #-}
-#else
 {-# INLINE elemOf #-}
-#endif
 
 -- | Does the element not occur anywhere within a given 'Fold' of the structure?
 --
@@ -1078,15 +945,7 @@ elemOf l = anyOf l . (==)
 -- @
 notElemOf :: Eq a => Getting All s a -> a -> s -> Bool
 notElemOf l = allOf l . (/=)
-#if USE_RULES
-{-# RULES
-"notElemOf folded/notElem" notElemOf folded = Foldable.notElem
-"notElemOf folded/notElem" notElemOf folded = Prelude.notElem
-"notElem/notElem"          Foldable.notElem = Prelude.notElem #-}
-{-# INLINE [1] notElemOf #-}
-#else
 {-# INLINE notElemOf #-}
-#endif
 
 -- | Map a function over all the targets of a 'Fold' of a container and concatenate the resulting lists.
 --
@@ -1106,17 +965,7 @@ notElemOf l = allOf l . (/=)
 -- @
 concatMapOf :: Profunctor p => Accessing p [r] s a -> p a [r] -> s -> [r]
 concatMapOf l ces = runAccessor #. l (Accessor #. ces)
-#if USE_RULES
-{-# RULES
-"concatMapOf folded x3/concatMap" concatMapOf (folded.folded.folded) = Foldable.concatMap.Foldable.concatMap.Foldable.concatMap
-"concatMapOf folded x2/concatMap" concatMapOf (folded.folded) = Foldable.concatMap.Foldable.concatMap
-"concatMapOf folded/concatMap" concatMapOf folded = Foldable.concatMap
-"concatMapOf folded/concatMap" concatMapOf folded = Prelude.concatMap
-"concatMap/concatMap"          Foldable.concatMap = Prelude.concatMap #-}
-{-# INLINE [1] concatMapOf #-}
-#else
 {-# INLINE concatMapOf #-}
-#endif
 
 -- | Concatenate all of the lists targeted by a 'Fold' into a longer list.
 --
@@ -1137,17 +986,7 @@ concatMapOf l ces = runAccessor #. l (Accessor #. ces)
 -- @
 concatOf :: Getting [r] s [r] -> s -> [r]
 concatOf l = runAccessor #. l Accessor
-#if USE_RULES
-{-# RULES
-"concatOf folded x3/concat" concatOf (folded.folded.folded) = Foldable.concatMap (Foldable.concatMap Foldable.concat)
-"concatOf folded x2/concat" concatOf (folded.folded) = Foldable.concatMap Foldable.concat
-"concatOf folded/concat" concatOf folded = Foldable.concat
-"concatOf folded/concat" concatOf folded = Prelude.concat
-"concat/concat"          Foldable.concat = Prelude.concat #-}
-{-# INLINE [1] concatOf #-}
-#else
 {-# INLINE concatOf #-}
-#endif
 
 
 -- | Calculate the number of targets there are for a 'Fold' in a given container.
@@ -1181,12 +1020,7 @@ concatOf l = runAccessor #. l Accessor
 -- @
 lengthOf :: Getting (Endo (Endo Int)) s a -> s -> Int
 lengthOf l = foldlOf' l (\a _ -> a + 1) 0
-#if USE_RULES
-{-# RULES "lengthOf folded/length" lengthOf folded = Prelude.length #-} -- do more of these!
-{-# INLINE [1] lengthOf #-}
-#else
 {-# INLINE lengthOf #-}
-#endif
 
 -- | Perform a safe 'head' of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
@@ -1521,15 +1355,7 @@ minimumByOf l cmp = foldlOf' l mf Nothing where
 -- @
 findOf :: Conjoined p => Accessing p (Endo (Maybe a)) s a -> p a Bool -> s -> Maybe a
 findOf l p = foldrOf l (cotabulate $ \wa y -> if corep p wa then Just (extract wa) else y) Nothing
-#if USE_RULES
-{-# RULES
-"findOf folded/find" findOf folded = List.find
-"findOf folded/find" findOf folded = Foldable.find
-"find/find"          Foldable.find = List.find #-}
-{-# INLINE [1] findOf #-}
-#else
 {-# INLINE findOf #-}
-#endif
 
 -- | A variant of 'foldrOf' that has no base case and thus may only be applied
 -- to lenses and structures such that the 'Lens' views at least one element of
@@ -1556,15 +1382,7 @@ foldr1Of l f xs = fromMaybe (error "foldr1Of: empty structure")
   mf x my = Just $ case my of
     Nothing -> x
     Just y -> f x y
-#if USE_RULES
-{-# RULES
-"foldr1Of folded/foldr1" foldr1Of folded = Prelude.foldr1
-"foldr1Of folded/foldr1" foldr1Of folded = Foldable.foldr1
-"foldr1/foldr1"          Foldable.foldr1 = Prelude.foldr1 #-}
-{-# INLINE [1] foldr1Of #-}
-#else
 {-# INLINE foldr1Of #-}
-#endif
 
 -- | A variant of 'foldlOf' that has no base case and thus may only be applied to lenses and structures such
 -- that the 'Lens' views at least one element of the structure.
@@ -1589,15 +1407,7 @@ foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf No
   mf mx y = Just $ case mx of
     Nothing -> y
     Just x  -> f x y
-#if USE_RULES
-{-# RULES
-"foldl1Of folded/foldl1" foldl1Of folded = Prelude.foldl1
-"foldl1Of folded/foldl1" foldl1Of folded = Foldable.foldl1
-"foldl1/foldl1"          Foldable.foldl1 = Prelude.foldl1 #-}
-{-# INLINE [1] foldl1Of #-}
-#else
 {-# INLINE foldl1Of #-}
-#endif
 
 -- | Strictly fold right over the elements of a structure.
 --
@@ -1615,15 +1425,7 @@ foldl1Of l f xs = fromMaybe (error "foldl1Of: empty structure") (foldlOf l mf No
 foldrOf' :: Getting (Dual (Endo (Endo r))) s a -> (a -> r -> r) -> r -> s -> r
 foldrOf' l f z0 xs = foldlOf l f' (Endo id) xs `appEndo` z0
   where f' (Endo k) x = Endo $ \ z -> k $! f x z
-#if USE_RULES
-{-# RULES
-"foldrOf' folded/foldr' x3" foldrOf' (folded.folded.folded) = Foldable.foldr'.flip.Foldable.foldr'.flip.Foldable.foldr'
-"foldrOf' folded/foldr' x2" foldrOf' (folded.folded)        = Foldable.foldr'.flip.Foldable.foldr'
-"foldrOf' folded/foldr'"    foldrOf' folded                 = Foldable.foldr' #-}
-{-# INLINE [1] foldrOf' #-}
-#else
 {-# INLINE foldrOf' #-}
-#endif
 
 -- | Fold over the elements of a structure, associating to the left, but strictly.
 --
@@ -1641,17 +1443,7 @@ foldrOf' l f z0 xs = foldlOf l f' (Endo id) xs `appEndo` z0
 foldlOf' :: Getting (Endo (Endo r)) s a -> (r -> a -> r) -> r -> s -> r
 foldlOf' l f z0 xs = foldrOf l f' (Endo id) xs `appEndo` z0
   where f' x (Endo k) = Endo $ \z -> k $! f z x
-#if USE_RULES
-{-# RULES
-"foldlOf' folded x3/foldl'" foldlOf' (folded.folded.folded) = Foldable.foldl'.Foldable.foldl'.Foldable.foldl'
-"foldlOf' folded x2/foldl'" foldlOf' (folded.folded) = Foldable.foldl'.Foldable.foldl'
-"foldlOf' folded/foldl'" foldlOf' folded = Foldable.foldl'
-"foldlOf' folded/foldl'" foldlOf' folded = List.foldl'
-"foldl'/foldl'"          Foldable.foldl' = List.foldl' #-}
-{-# INLINE [1] foldlOf' #-}
-#else
 {-# INLINE foldlOf' #-}
-#endif
 
 -- | A variant of 'foldrOf'' that has no base case and thus may only be applied
 -- to folds and structures such that the fold views at least one element of the
@@ -1714,15 +1506,7 @@ foldrMOf :: Monad m
          -> (a -> r -> m r) -> r -> s -> m r
 foldrMOf l f z0 xs = foldlOf l f' return xs z0
   where f' k x z = f x z >>= k
-#if USE_RULES
-{-# RULES
-"foldrMOf folded x3/foldrM" foldrMOf (folded.folded.folded) = Foldable.foldrM.flip.Foldable.foldrM.flip.Foldable.foldrM
-"foldrMOf folded x2/foldrM" foldrMOf (folded.folded) = Foldable.foldrM.flip.Foldable.foldrM
-"foldrMOf folded/foldrM"    foldrMOf folded = Foldable.foldrM #-}
-{-# INLINE [1] foldrMOf #-}
-#else
 {-# INLINE foldrMOf #-}
-#endif
 
 -- | Monadic fold over the elements of a structure, associating to the left,
 -- i.e. from left to right.
@@ -1743,17 +1527,7 @@ foldlMOf :: Monad m
          -> (r -> a -> m r) -> r -> s -> m r
 foldlMOf l f z0 xs = foldrOf l f' return xs z0
   where f' x k z = f z x >>= k
-#if USE_RULES
-{-# RULES
-"foldlMOf folded x3/foldlM" foldlMOf (folded.folded.folded) = Foldable.foldlM.Foldable.foldlM.Foldable.foldlM
-"foldlMOf folded x2/foldlM" foldlMOf (folded.folded) = Foldable.foldlM.Foldable.foldlM
-"foldlMOf folded/foldlM" foldlMOf folded = Foldable.foldlM
-"foldlMOf folded/foldM"  foldlMOf folded = Monad.foldM
-"foldlM/foldM"           Foldable.foldlM = Monad.foldM #-}
-{-# INLINE [1] foldlMOf #-}
-#else
 {-# INLINE foldlMOf #-}
-#endif
 
 -- | Check to see if this 'Fold' or 'Traversal' matches 1 or more entries.
 --
@@ -1780,12 +1554,7 @@ foldlMOf l f z0 xs = foldrOf l f' return xs z0
 -- @
 has :: Getting Any s a -> s -> Bool
 has l = getAny #. foldMapOf l (\_ -> Any True)
-#if USE_RULES
-{-# RULES "has folded/not.null" has folded = not . Prelude.null #-} -- do more of these!
-{-# INLINE [1] has #-}
-#else
 {-# INLINE has #-}
-#endif
 
 
 
@@ -1798,15 +1567,7 @@ has l = getAny #. foldMapOf l (\_ -> Any True)
 -- False
 hasn't :: Getting All s a -> s -> Bool
 hasn't l = getAll #. foldMapOf l (\_ -> All False)
-#if USE_RULES
-{-# RULES
-"hasn't folded/null" hasn't (folded.folded.folded) = Foldable.all (Foldable.all Prelude.null)
-"hasn't folded/null" hasn't (folded.folded) = Foldable.all Prelude.null
-"hasn't folded/null" hasn't folded = Prelude.null #-} -- do more of these!
-{-# INLINE [1] hasn't #-}
-#else
 {-# INLINE hasn't #-}
-#endif
 
 ------------------------------------------------------------------------------
 -- Pre
