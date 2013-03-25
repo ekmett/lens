@@ -196,9 +196,6 @@ folding sfa agb = coerce . traverse_ agb . sfa
 folded :: Foldable f => Fold (f a) a
 folded f = coerce . getFolding . foldMap (Folding #. f)
 {-# INLINE [0] folded #-}
-#define X(Mon) "traverse/folded/#Mon" traverse = folded :: Foldable f => LensLike' (Accessor Mon) (f a) a
-#include "monoids.x"
-#undef X
 
 -- | 'Fold' by repeating the input forever.
 --
@@ -405,9 +402,6 @@ droppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
 foldMapOf :: Profunctor p => Accessing p r s a -> p a r -> s -> r
 foldMapOf l f = runAccessor #. l (Accessor #. f)
 {-# INLINE [1] foldMapOf #-}
-#define X(Mon) "foldMapOf folded/foldMap/#Mon" foldMapOf folded = Foldable.foldMap :: Foldable f => (a -> Mon) -> f a -> Mon
-#include "monoids.x"
-#undef X
 
 -- | @
 -- 'Data.Foldable.fold' = 'foldOf' 'folded'
@@ -428,9 +422,6 @@ foldMapOf l f = runAccessor #. l (Accessor #. f)
 foldOf :: Getting a s a -> s -> a
 foldOf l = runAccessor #. l Accessor
 {-# INLINE [1] foldOf #-}
-#define X(Mon) "foldOf folded/fold/#Mon" foldOf folded = Foldable.fold :: Foldable f => f Mon -> Mon
-#include "monoids.x"
-#undef X
 
 -- | Right-associative fold of parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
 --
@@ -722,9 +713,6 @@ sumOf l = foldlOf' l (+) 0
 -- @
 traverseOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed r f) s a -> p a (f r) -> s -> f ()
 traverseOf_ l f = void . getTraversed #. foldMapOf l (Traversed #. f)
-#define Y(APP) "traverseOf_ folded/traverse_#APP" traverseOf_ folded = traverse_ :: Foldable f => (a -> APP b) -> f a -> APP ()
-#include "applicatives.x"
-#undef Y
 {-# INLINE [0] traverseOf_ #-}
 
 -- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor')-based answer,
@@ -758,9 +746,6 @@ traverseOf_ l f = void . getTraversed #. foldMapOf l (Traversed #. f)
 -- @
 forOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed r f) s a -> s -> p a (f r) -> f ()
 forOf_ = flip . traverseOf_
-#define Y(APP) "forOf_ folded/for_#APP" forOf_ folded = for_ :: Foldable f => f a -> (a -> APP b) -> APP ()
-#include "applicatives.x"
-#undef Y
 {-# INLINE [0] forOf_ #-}
 
 -- | Evaluate each action in observed by a 'Fold' on a structure from left to right, ignoring the results.
@@ -783,9 +768,6 @@ forOf_ = flip . traverseOf_
 -- @
 sequenceAOf_ :: Functor f => Getting (Traversed a f) s (f a) -> s -> f ()
 sequenceAOf_ l = void . getTraversed #. foldMapOf l Traversed
-#define Y(APP) "sequenceAOf_ folded/sequenceA_#APP" sequenceAOf_ folded = sequenceA_ :: Foldable f => f (APP a) -> APP ()
-#include "applicatives.x"
-#undef Y
 {-# INLINE [1] sequenceAOf_ #-}
 
 -- | Map each target of a 'Fold' on a structure to a monadic action, evaluate these actions from left to right, and ignore the results.
