@@ -2487,10 +2487,10 @@ idroppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
 ------------------------------------------------------------------------------
 
 -- | A deprecated alias for 'firstOf'.
-headOf :: Getting (First a) s t a b -> s -> Maybe a
+headOf :: Getting (First a) s a -> s -> Maybe a
 headOf l = getFirst #. foldMapOf l (First #. Just)
 {-# INLINE headOf #-}
-{-# DEPRECATED headOf "`headOf' will be removed in 3.9. (Use `preview' or `firstOf')" #-}
+{-# DEPRECATED headOf "`headOf' will be removed after GHC 7.8 is released. (Use `preview' or `firstOf')" #-}
 
 ------------------------------------------------------------------------------
 -- Misc.

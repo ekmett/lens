@@ -91,7 +91,7 @@ import Data.Word
 _at, resultAt :: Ixed f m => Index m -> IndexedLensLike' (Index m) f m (IxValue m)
 _at      = ix
 resultAt = ix
-{-# DEPRECATED _at, resultAt "use 'ix'. This function will be removed in version 3.9" #-}
+{-# DEPRECATED _at, resultAt "use 'ix'. This function will be removed after GHC 7.8 is released." #-}
 
 -- |
 -- This class provides a simple 'IndexedFold' (or 'IndexedTraversal') that lets you view (and modify)
