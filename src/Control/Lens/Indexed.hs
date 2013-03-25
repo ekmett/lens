@@ -214,7 +214,7 @@ class Functor f => FunctorWithIndex i f | f -> i where
   -- If you don't need access to the index, then 'mapped' is more flexible in what it accepts.
   imapped :: FunctorWithIndex i f => IndexedSetter i (f a) (f b) a b
   imapped = conjoined mapped (isets imap)
-  {-# INLINE [0] imapped #-}
+  {-# INLINE imapped #-}
 
 -------------------------------------------------------------------------------
 -- FoldableWithIndex
@@ -454,7 +454,7 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
   -- | The 'IndexedTraversal' of a 'TraversableWithIndex' container.
   itraversed :: IndexedTraversal i (t a) (t b) a b
   itraversed = conjoined traverse (itraverse . indexed)
-  {-# INLINE[0] itraversed #-}
+  {-# INLINE itraversed #-}
 
 -- | Traverse with an index (and the arguments flipped).
 --

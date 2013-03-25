@@ -195,7 +195,7 @@ folding sfa agb = coerce . traverse_ agb . sfa
 -- [1,2,3,4]
 folded :: Foldable f => Fold (f a) a
 folded f = coerce . getFolding . foldMap (Folding #. f)
-{-# INLINE [0] folded #-}
+{-# INLINE folded #-}
 
 -- | 'Fold' by repeating the input forever.
 --
@@ -401,7 +401,7 @@ droppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
 -- @
 foldMapOf :: Profunctor p => Accessing p r s a -> p a r -> s -> r
 foldMapOf l f = runAccessor #. l (Accessor #. f)
-{-# INLINE [1] foldMapOf #-}
+{-# INLINE foldMapOf #-}
 
 -- | @
 -- 'Data.Foldable.fold' = 'foldOf' 'folded'
@@ -421,7 +421,7 @@ foldMapOf l f = runAccessor #. l (Accessor #. f)
 -- @
 foldOf :: Getting a s a -> s -> a
 foldOf l = runAccessor #. l Accessor
-{-# INLINE [1] foldOf #-}
+{-# INLINE foldOf #-}
 
 -- | Right-associative fold of parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
 --
@@ -713,7 +713,7 @@ sumOf l = foldlOf' l (+) 0
 -- @
 traverseOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed r f) s a -> p a (f r) -> s -> f ()
 traverseOf_ l f = void . getTraversed #. foldMapOf l (Traversed #. f)
-{-# INLINE [0] traverseOf_ #-}
+{-# INLINE traverseOf_ #-}
 
 -- | Traverse over all of the targets of a 'Fold' (or 'Getter'), computing an 'Applicative' (or 'Functor')-based answer,
 -- but unlike 'Control.Lens.Traversal.forOf' do not construct a new structure. 'forOf_' generalizes
@@ -746,7 +746,7 @@ traverseOf_ l f = void . getTraversed #. foldMapOf l (Traversed #. f)
 -- @
 forOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed r f) s a -> s -> p a (f r) -> f ()
 forOf_ = flip . traverseOf_
-{-# INLINE [0] forOf_ #-}
+{-# INLINE forOf_ #-}
 
 -- | Evaluate each action in observed by a 'Fold' on a structure from left to right, ignoring the results.
 --
@@ -768,7 +768,7 @@ forOf_ = flip . traverseOf_
 -- @
 sequenceAOf_ :: Functor f => Getting (Traversed a f) s (f a) -> s -> f ()
 sequenceAOf_ l = void . getTraversed #. foldMapOf l Traversed
-{-# INLINE [1] sequenceAOf_ #-}
+{-# INLINE sequenceAOf_ #-}
 
 -- | Map each target of a 'Fold' on a structure to a monadic action, evaluate these actions from left to right, and ignore the results.
 --
@@ -2123,7 +2123,7 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 -- @
 itoListOf :: IndexedGetting i (Endo [(i,a)]) s a -> s -> [(i,a)]
 itoListOf l = ifoldrOf l (\i a -> ((i,a):)) []
-{-# INLINE [1] itoListOf #-}
+{-# INLINE itoListOf #-}
 
 -- | An infix version of 'itoListOf'.
 
