@@ -58,6 +58,7 @@ module Control.Lens
   , module Control.Lens.Reified
   , module Control.Lens.Review
   , module Control.Lens.Setter
+  , module Control.Lens.Simple
 #ifndef DISABLE_TEMPLATE_HASKELL
   , module Control.Lens.TH
 #endif
@@ -87,6 +88,7 @@ import Control.Lens.Prism
 import Control.Lens.Reified
 import Control.Lens.Review
 import Control.Lens.Setter
+import Control.Lens.Simple
 #ifndef DISABLE_TEMPLATE_HASKELL
 import Control.Lens.TH
 #endif

@@ -240,6 +240,7 @@ library
     Control.Lens.Reified
     Control.Lens.Review
     Control.Lens.Setter
+    Control.Lens.Simple
     Control.Lens.TH
     Control.Lens.Traversal
     Control.Lens.Tuple
