@@ -119,7 +119,7 @@ myParserMode = defaultParseMode
                ]
   }
 
-processCpp = readProcess "cpp" ["-P","-include","dist/build/autogen/cabal_macros.h","-Iincludes","-DHLINT"]
+processCpp = readProcess "cpp" ["-P","-include","dist/build/autogen/cabal_macros.h","-DHLINT"]
 
 main :: IO ()
 main = do
