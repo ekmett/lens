@@ -7,9 +7,11 @@
 * Added `binary`, `octal`, `decimal` and `hex` to `Numeric.Lens`.
 * Added `sans` to `Control.Lens.At`.
 * Improved interoperability:
-  * Reimplemented `Gettable` as an alias for `Contravariant` and `Functor` together to derive `Getter` and `Fold`.
-  * Removed `Reviewable`. We now use `Bifunctor` and `Profunctor` together to derive `Review`.
-  * These changes enables more types to be defined without incurring a dependency on the `lens` package!
+  * Reimplemented `Gettable` as an alias for `Contravariant` and `Functor` together to derive `Getter` and `Fold`. This means you can now
+    implement a `Getter` or `Fold` with only a Haskell 98 dependency (`contravariant`).
+  * Removed `Reviewable`. We now use `Bifunctor` and `Profunctor` together to derive `Review`. This means you can now implement a `Review`
+    with Haskell 98 dependencies (`profunctors` and `bifunctors`).
+  * These changes enables more types to be defined without incurring a dependency on the `lens` package.
 
 3.8.7.0-3.8.7.3 [maintenance releases]
 -----
