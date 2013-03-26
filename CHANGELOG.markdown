@@ -1,5 +1,7 @@
 3.9
 -----
+* Changed `Getting` to take 3 arguments instead of 5. If you need the old behavior for portability you can use
+  `Overloaded (Accessor r) s t a b` instead of `Getting r s t a b` and it'll work consistently back through the last few releases.
 * Added `involuted` to `Control.Lens.Iso`.
 * New `RULES` pragmas now avoid performing work for features you aren't using in a given `Traversal`, such as the index, etc.
 * Factored out a common `reversed` definition from all the various forms of it around the library and placed it in `Control.Lens.Iso`.
