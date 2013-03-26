@@ -111,5 +111,7 @@ data Lebowski a = Lebowski
 makeFields ''Dude
 makeFields ''Lebowski
 
+makeTuples [1,9,2,8,3,7,4,6,5]
+
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"

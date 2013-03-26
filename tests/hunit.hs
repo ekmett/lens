@@ -78,6 +78,8 @@ trig =
                , _high = Point { _x = 8, _y = 7 } }
   }
 
+makeTuples [2,6,4]
+
 case_read_record_field =
   (trig^.box.high.y)
     @?= 7
@@ -274,6 +276,9 @@ case_write_through_list_entry =
     @?= trig { _points = [ Point { _x = 2, _y = 0 }
                          , Point { _x = 4, _y = 7 }
                          , Point { _x = 8, _y = 0 } ] }
+                         
+case_make_tuples_gets = (2,6,4) @?= (1,2,3,4,5,6)^._264
+case_make_tuples_sets = (1,20,3,60,5,40) @?= (_264 .~ (20,40,60) $ (1,2,3,4,5,6))
 
 main :: IO ()
 main = defaultMain [$testGroupGenerator]
