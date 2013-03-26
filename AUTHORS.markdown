@@ -35,6 +35,7 @@ Many people have contributed patches, documentation, wiki pages, bug reports, te
 * Yair Chuchem [@yairchu](https://github.com/yairchu)
 * [Michael Thompson](mailto:what_is_it_to_do_anything@yahoo.com) [@michaelt](https://github.com/michaelt)
 * [John Wiegley](mailto:johnw@newartisans.com) [@jwiegley](https://github.com/jwiegley)
+* [Jonathan Fischoff](mailto:jfischoff@yahoo.com) [@jfischoff](https://github.com/jfischoff)
 
 You can watch them carry on the quest for bragging rights in the [contributors graph](https://github.com/ekmett/lens/graphs/contributors).
 
