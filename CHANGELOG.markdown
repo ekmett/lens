@@ -1,3 +1,7 @@
+3.9.0.1
+-------
+* Updated the field guide image to link to imgur. Sadly the overview haddock and the haddocks are not generated in the same directory, so the haddock hook for copying the image only works locally.
+
 3.9
 -----
 * Changed `Getting` to take 3 arguments instead of 5. If you need the old behavior for portability you can use
