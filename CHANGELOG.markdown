@@ -1,3 +1,7 @@
+3.9.0.2
+-------
+* Bumped dependency on `generic-deriving` to enable building on GHC HEAD.
+
 3.9.0.1
 -------
 * Updated the field guide image to link to imgur. Sadly the overview haddock and the haddocks are not generated in the same directory, so the haddock hook for copying the image only works locally.
