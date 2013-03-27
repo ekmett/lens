@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       3.9
+version:       3.9.0.1
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -37,7 +37,10 @@ description:
   .
   The core of the hierarchy of lens-like constructions looks like:
   .
-  <<Hierarchy.png>>
+  .
+  <<http://i.imgur.com/4fHw3Fd.png>>
+  .
+  Local copy (<Hierarchy.png>)
   .
   You can compose any two elements of the hierarchy above using @(.)@ from the @Prelude@, and you can
   use any element of the hierarchy as any type it linked to above it.
