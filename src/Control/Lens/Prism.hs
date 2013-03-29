@@ -40,6 +40,7 @@ module Control.Lens.Prism
   , _Void
   , AsEmpty(..)
   , only
+  , nearly
   -- * Prismatic profunctors
   , Choice(..)
   ) where
@@ -287,6 +288,15 @@ only :: Eq a => a -> Prism' a ()
 only a = prism' (\() -> a) $ guard . (a ==)
 {-# INLINE only #-}
 
+
+-- | This 'Prism' compares for approximate equality with a given value and a predicate for testing.
+--
+-- To comply with the 'Prism' laws the arguments you supply to @nearly a p@ are somewhat constrained.
+--
+-- We assume @p x@ holds iff @x ≡ a@. Under that assumption then this is a valid 'Prism'.
+--
+-- This is useful when working with a type where you can test equality for only a subset of its
+-- values, and the prism selects such a value.
 nearly :: a -> (a -> Bool) -> Prism' a ()
 nearly a p = prism' (\() -> a) $ guard . p
 {-# INLINE nearly #-}
