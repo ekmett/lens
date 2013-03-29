@@ -369,6 +369,16 @@ instance (AsEmpty a, AsEmpty b) => AsEmpty (a,b) where
     Right t -> Left (t, _Empty # ())
   {-# INLINE _Empty #-}
 
+instance (AsEmpty a, AsEmpty b, AsEmpty c) => AsEmpty (a,b,c) where
+  _Empty = prism (\() -> (_Empty # (), _Empty # (), _Empty # ())) $ \(s,s',s'') -> case _Empty Left s of
+    Left () -> case _Empty Left s' of
+      Left () -> case _Empty Left s'' of
+        Left () -> Right ()
+        Right t'' -> Left (_Empty # (), _Empty # (), t'')
+      Right t'    -> Left (_Empty # (), t', _Empty # ())
+    Right t       -> Left (t, _Empty # (), _Empty # ())
+  {-# INLINE _Empty #-}
+
 instance AsEmpty [a] where
   _Empty = nearly [] Prelude.null
   {-# INLINE _Empty #-}
