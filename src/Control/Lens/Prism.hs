@@ -172,6 +172,9 @@ without k = case runPrism k of
 --
 -- >>> isn't _Left (Left 12)
 -- False
+--
+-- >>> isn't _Empty []
+-- False
 isn't :: APrism s t a b -> s -> Bool
 isn't k s = case runPrism k of
   Market _ seta -> case seta s of
@@ -309,6 +312,10 @@ nearly a p = prism' (\() -> a) $ guard . p
 {-# INLINE nearly #-}
 
 class AsEmpty a where
+  -- |
+  --
+  -- >>> isn't _Empty [1,2,3]
+  -- True
   _Empty :: Prism' a ()
 #ifndef HLINT
 #ifdef DEFAULT_SIGNATURES
