@@ -205,6 +205,7 @@ library
     Control.Lens.Combinators
     Control.Lens.Cons
     Control.Lens.Each
+    Control.Lens.Empty
     Control.Lens.Equality
     Control.Lens.Fold
     Control.Lens.Getter
