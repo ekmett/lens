@@ -59,11 +59,14 @@ module Control.Lens.Iso
   , rmapping
   ) where
 
+import Control.Lens.Fold
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Iso as Iso
 import Control.Lens.Internal.Magma
 import Control.Lens.Internal.Setter
+import Control.Lens.Prism
+import Control.Lens.Review
 import Control.Lens.Type
 import Control.Monad.State.Lazy as Lazy
 import Control.Monad.State.Strict as Strict
@@ -252,22 +255,25 @@ simple = id
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
 -- fromList []
 non :: Eq a => a -> Iso' (Maybe a) a
-non a = anon a (a==)
+non a = iso (fromMaybe a) go where
+  go b | a == b    = Nothing
+       | otherwise = Just b
 {-# INLINE non #-}
 
--- | @'anon' a p@ generalizes @'non' a@ to take any value and a predicate.
+-- | @'anon' p@ generalizes @'non' (p # ())@ to take any unit 'Prism'
 --
--- This function assumes that @p a@ holds @'True'@ and generates an isomorphism between @'Maybe' (a | 'not' (p a))@ and @a@.
+-- This function generates an isomorphism between @'Maybe' (a | 'isn't' p a)@ and @a@.
 --
--- >>> Map.empty & at "hello" . anon Map.empty Map.null . at "world" ?~ "!!!"
+-- >>> Map.empty & at "hello" . anon _Empty . at "world" ?~ "!!!"
 -- fromList [("hello",fromList [("world","!!!")])]
 --
--- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . anon Map.empty Map.null . at "world" .~ Nothing
+-- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . anon _Empty . at "world" .~ Nothing
 -- fromList []
-anon :: a -> (a -> Bool) -> Iso' (Maybe a) a
-anon a p = iso (fromMaybe a) go where
-  go b | p b       = Nothing
-       | otherwise = Just b
+anon :: APrism' a () -> Iso' (Maybe a) a
+anon p = iso (fromMaybe def) go where
+  def                           = review (clonePrism p) ()
+  go b | has (clonePrism p) b   = Nothing
+       | otherwise              = Just b
 {-# INLINE anon #-}
 
 -- | The canonical isomorphism for currying and uncurrying a function.
