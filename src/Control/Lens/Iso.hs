@@ -74,7 +74,6 @@ import Control.Monad.Writer.Lazy as Lazy
 import Control.Monad.Writer.Strict as Strict
 import Control.Monad.RWS.Lazy as Lazy
 import Control.Monad.RWS.Strict as Strict
-import Data.Bifunctor
 import Data.ByteString as StrictB hiding (reverse)
 import Data.ByteString.Lazy as LazyB hiding (reverse)
 import Data.Functor.Contravariant

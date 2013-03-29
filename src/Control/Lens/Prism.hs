@@ -1,7 +1,12 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
+
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
+#endif
+
+#ifdef DEFAULT_SIGNATURES
+{-# LANGUAGE DefaultSignatures #-}
 #endif
 -------------------------------------------------------------------------------
 -- |
@@ -33,6 +38,7 @@ module Control.Lens.Prism
   , _Just
   , _Nothing
   , _Void
+  , AsEmpty(..)
   , only
   -- * Prismatic profunctors
   , Choice(..)
@@ -42,14 +48,24 @@ import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Internal.Prism
 import Control.Lens.Internal.Setter
+import Control.Lens.Review
 import Control.Lens.Type
 import Control.Monad
-import Data.Bifunctor
+import Data.HashMap.Lazy as HashMap
+import Data.HashSet as HashSet
+import Data.IntMap as IntMap
+import Data.IntSet as IntSet
+import Data.Map as Map
+import Data.Maybe
+import Data.Monoid
 import Data.Profunctor
+import Data.Set as Set
+import Data.Vector as Vector
 import Data.Void
 #ifndef SAFE
 import Unsafe.Coerce
 #endif
+import GHC.Event
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -270,3 +286,100 @@ _Void = prism absurd Left
 only :: Eq a => a -> Prism' a ()
 only a = prism' (\() -> a) $ guard . (a ==)
 {-# INLINE only #-}
+
+nearly :: a -> (a -> Bool) -> Prism' a ()
+nearly a p = prism' (\() -> a) $ guard . p
+{-# INLINE nearly #-}
+
+class AsEmpty a where
+  _Empty :: Prism' a ()
+#ifndef HLINT
+#ifdef DEFAULT_SIGNATURES
+  default _Empty :: (Monoid a, Eq a) => Prism' a ()
+  _Empty = only mempty
+#endif
+#endif
+
+instance AsEmpty Ordering where
+  _Empty = only mempty
+  {-# INLINE _Empty #-}
+
+instance AsEmpty () where
+  _Empty = only mempty
+  {-# INLINE _Empty #-}
+
+instance AsEmpty Any where
+  _Empty = only mempty
+  {-# INLINE _Empty #-}
+
+instance AsEmpty All where
+  _Empty = only mempty
+  {-# INLINE _Empty #-}
+
+instance AsEmpty Event where
+  _Empty = only mempty
+  {-# INLINE _Empty #-}
+
+instance AsEmpty (Maybe a) where
+  _Empty = _Nothing
+  {-# INLINE _Empty #-}
+
+instance AsEmpty (Last a) where
+  _Empty = nearly (Last Nothing) (isNothing . getLast)
+  {-# INLINE _Empty #-}
+
+instance AsEmpty (First a) where
+  _Empty = nearly (First Nothing) (isNothing . getFirst)
+  {-# INLINE _Empty #-}
+
+instance (Eq a, Num a) => AsEmpty (Product a) where
+  _Empty = only mempty
+  {-# INLINE _Empty #-}
+
+instance (Eq a, Num a) => AsEmpty (Sum a) where
+  _Empty = only mempty
+  {-# INLINE _Empty #-}
+
+instance AsEmpty a => AsEmpty (Dual a) where
+  _Empty = dimap getDual (fmap Dual) . _Empty
+  {-# INLINE _Empty #-}
+
+instance (AsEmpty a, AsEmpty b) => AsEmpty (a,b) where
+  _Empty = prism (\() -> (_Empty # (), _Empty # ())) $ \(s,s') -> case _Empty Left s of
+    Left () -> case _Empty Left s' of
+      Left () -> Right ()
+      Right t' -> Left (_Empty # (), t')
+    Right t -> Left (t, _Empty # ())
+  {-# INLINE _Empty #-}
+
+instance AsEmpty [a] where
+  _Empty = nearly [] Prelude.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty (Map k a) where
+  _Empty = nearly Map.empty Map.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty (HashMap k a) where
+  _Empty = nearly HashMap.empty HashMap.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty (IntMap a) where
+  _Empty = nearly IntMap.empty IntMap.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty (Set a) where
+  _Empty = nearly Set.empty Set.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty (HashSet a) where
+  _Empty = nearly HashSet.empty HashSet.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty IntSet where
+  _Empty = nearly IntSet.empty IntSet.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty (Vector a) where
+  _Empty = nearly Vector.empty Vector.null
+  {-# INLINE _Empty #-}
