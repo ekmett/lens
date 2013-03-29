@@ -1,7 +1,8 @@
 3.10
 ----
 * Changed `anon` to take a `Prism`.
-* Added `nearly` and `_Empty` to `Control.Lens.Prism`.
+* Added `nearly` to `Control.Lens.Prism`.
+* Added `Control.Lens.Empty`, exporting `_Empty`.
 
 3.9.0.2
 -------
