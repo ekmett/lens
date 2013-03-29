@@ -62,6 +62,8 @@ import Data.Monoid
 import Data.Profunctor
 import Data.Set as Set
 import Data.Vector as Vector
+import Data.Vector.Unboxed as Unboxed
+import Data.Vector.Storable as Storable
 import Data.Void
 #ifndef SAFE
 import Unsafe.Coerce
@@ -390,6 +392,14 @@ instance AsEmpty IntSet where
   _Empty = nearly IntSet.empty IntSet.null
   {-# INLINE _Empty #-}
 
-instance AsEmpty (Vector a) where
+instance AsEmpty (Vector.Vector a) where
   _Empty = nearly Vector.empty Vector.null
+  {-# INLINE _Empty #-}
+
+instance Unbox a => AsEmpty (Unboxed.Vector a) where
+  _Empty = nearly Unboxed.empty Unboxed.null
+  {-# INLINE _Empty #-}
+
+instance Storable a => AsEmpty (Storable.Vector a) where
+  _Empty = nearly Storable.empty Storable.null
   {-# INLINE _Empty #-}
