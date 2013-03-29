@@ -98,8 +98,9 @@ extra-source-files:
   travis/cabal-apt-install
   travis/config
   AUTHORS.markdown
-  README.markdown
   CHANGELOG.markdown
+  README.markdown
+  SUPPORT.markdown
 
 source-repository head
   type: git
