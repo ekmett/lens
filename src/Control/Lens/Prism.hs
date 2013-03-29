@@ -52,6 +52,8 @@ import Control.Lens.Internal.Setter
 import Control.Lens.Review
 import Control.Lens.Type
 import Control.Monad
+import Data.ByteString as StrictB
+import Data.ByteString.Lazy as LazyB
 import Data.HashMap.Lazy as HashMap
 import Data.HashSet as HashSet
 import Data.IntMap as IntMap
@@ -61,6 +63,9 @@ import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
 import Data.Set as Set
+import Data.Sequence as Seq
+import Data.Text as StrictT
+import Data.Text.Lazy as LazyT
 import Data.Vector as Vector
 import Data.Vector.Unboxed as Unboxed
 import Data.Vector.Storable as Storable
@@ -402,4 +407,24 @@ instance Unbox a => AsEmpty (Unboxed.Vector a) where
 
 instance Storable a => AsEmpty (Storable.Vector a) where
   _Empty = nearly Storable.empty Storable.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty (Seq a) where
+  _Empty = nearly Seq.empty Seq.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty StrictB.ByteString where
+  _Empty = nearly StrictB.empty StrictB.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty LazyB.ByteString where
+  _Empty = nearly LazyB.empty LazyB.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty StrictT.Text where
+  _Empty = nearly StrictT.empty StrictT.null
+  {-# INLINE _Empty #-}
+
+instance AsEmpty LazyT.Text where
+  _Empty = nearly LazyT.empty LazyT.null
   {-# INLINE _Empty #-}
