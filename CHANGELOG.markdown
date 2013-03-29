@@ -1,3 +1,8 @@
+3.10
+----
+* Changed `anon` to take a `Prism`.
+* Added `nearly` and `_Empty` to `Control.Lens.Prism`.
+
 3.9.0.2
 -------
 * Bumped dependency on `generic-deriving` to enable building on GHC HEAD.
