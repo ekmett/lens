@@ -265,7 +265,7 @@ non = anon . only
 --
 -- This function generates an isomorphism between @'Maybe' (a | 'isn't' p a)@ and @a@.
 --
--- >>> Map.empty & at "hello" . anon _Empty . at "world" ?~ "!!!"
+-- >>> Map.singleton "hello" Map.empty & at "hello" . anon _Empty . at "world" ?~ "!!!"
 -- fromList [("hello",fromList [("world","!!!")])]
 --
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . anon _Empty . at "world" .~ Nothing
