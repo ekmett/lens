@@ -298,9 +298,6 @@ library
   if impl(ghc<7.4)
     ghc-options: -fno-spec-constr-count
 
-  if impl(ghc>=7.2)
-    cpp-options: -DDEFAULT_SIGNATURES=1
-
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields -fmax-simplifier-iterations=10
   hs-source-dirs: src
 

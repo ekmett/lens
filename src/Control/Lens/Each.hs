@@ -3,13 +3,10 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-
-#ifdef DEFAULT_SIGNATURES
-{-# LANGUAGE DefaultSignatures #-}
-#endif
 
 #ifndef MIN_VERSION_base
 #define MIN_VERSION_base(x,y,z) 1
@@ -129,11 +126,9 @@ type instance Index LazyB.ByteString = Int64
 -- ("HELLO","WORLD")
 class (Functor f, Index s ~ Index t) => Each f s t a b | s -> a, t -> b, s b -> t, t a -> s where
   each :: IndexedLensLike (Index s) f s t a b
-#ifdef DEFAULT_SIGNATURES
   default each :: (Applicative f, Traversable g, s ~ g a, t ~ g b, Index s ~ Int, Index t ~ Int) => IndexedLensLike Int f s t a b
   each = traversed
   {-# INLINE each #-}
-#endif
 
 -- | @'each' :: 'IndexedTraversal' 'Int' (a,a) (b,b) a b@
 instance (Applicative f, a~a', b~b') => Each f (a,a') (b,b') a b where
@@ -215,9 +210,8 @@ instance Applicative f => Each f (HashMap c a) (HashMap c b) a b where
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' [a] [b] a b@
-instance Applicative f => Each f [a] [b] a b where
-  each = traversed
-  {-# INLINE each #-}
+instance Applicative f => Each f [a] [b] a b
+  {- default each -}
 
 -- | @'each' :: 'IndexedTraversal' () ('Identity' a) ('Identity' b) a b@
 instance Functor f => Each f (Identity a) (Identity b) a b where
@@ -231,9 +225,8 @@ instance Applicative f => Each f (Maybe a) (Maybe b) a b where
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' ('Seq' a) ('Seq' b) a b@
-instance Applicative f => Each f (Seq a) (Seq b) a b where
-  each = traversed
-  {-# INLINE each #-}
+instance Applicative f => Each f (Seq a) (Seq b) a b
+  {- default each -}
 
 -- | @'each' :: 'IndexedTraversal' ['Int'] ('Tree' a) ('Tree' b) a b@
 instance Applicative f => Each f (Tree a) (Tree b) a b where
@@ -242,9 +235,8 @@ instance Applicative f => Each f (Tree a) (Tree b) a b where
   {-# INLINE each #-}
 
 -- | @'each' :: 'IndexedTraversal' 'Int' ('Vector.Vector' a) ('Vector.Vector' b) a b@
-instance Applicative f => Each f (Vector.Vector a) (Vector.Vector b) a b where
-  each = traversed
-  {-# INLINE each #-}
+instance Applicative f => Each f (Vector.Vector a) (Vector.Vector b) a b
+  {- default each -}
 
 -- | @'each' :: ('Prim' a, 'Prim' b) => 'IndexedTraversal' 'Int' ('Prim.Vector' a) ('Prim.Vector' b) a b@
 instance (Applicative f, Prim a, Prim b) => Each f (Prim.Vector a) (Prim.Vector b) a b where

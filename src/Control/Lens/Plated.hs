@@ -1,11 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-#ifdef DEFAULT_SIGNATURES
-{-# LANGUAGE DefaultSignatures #-}
-#endif
+
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-} -- template-haskell
 #endif
@@ -88,9 +87,7 @@ import           Control.Lens.Type
 import           Control.Lens.Setter
 import           Control.Lens.Traversal
 import qualified Language.Haskell.TH as TH
-#ifdef DEFAULT_SIGNATURES
 import           Data.Data
-#endif
 import           Data.Data.Lens
 import           Data.Monoid
 import           Data.Tree
@@ -192,10 +189,8 @@ class Plated a where
   -- 'plate' will default to 'uniplate' and you can choose to not override
   -- it with your own definition.
   plate :: Traversal' a a
-#ifdef DEFAULT_SIGNATURES
   default plate :: Data a => Traversal' a a
   plate = uniplate
-#endif
 
 instance Plated [a] where
   plate f (x:xs) = (x:) <$> f xs
@@ -204,15 +199,16 @@ instance Plated [a] where
 instance Plated (Tree a) where
   plate f (Node a as) = Node a <$> traverse f as
 
-instance Plated TH.Exp where plate = uniplate
-instance Plated TH.Dec where plate = uniplate
-instance Plated TH.Con where plate = uniplate
-instance Plated TH.Type where plate = uniplate
+{- Default uniplate instances -}
+instance Plated TH.Exp
+instance Plated TH.Dec
+instance Plated TH.Con
+instance Plated TH.Type
 #if !(MIN_VERSION_template_haskell(2,8,0))
-instance Plated TH.Kind where plate = uniplate -- in 2.8 Kind is an alias for Type
+instance Plated TH.Kind -- in 2.8 Kind is an alias for Type
 #endif
-instance Plated TH.Stmt where plate = uniplate
-instance Plated TH.Pat where plate = uniplate
+instance Plated TH.Stmt
+instance Plated TH.Pat
 
 -------------------------------------------------------------------------------
 -- Children

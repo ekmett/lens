@@ -3,14 +3,11 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
-
-#ifdef DEFAULT_SIGNATURES
-{-# LANGUAGE DefaultSignatures #-}
-#endif
 
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
@@ -107,10 +104,8 @@ class Functor f => Contains f m where
   -- >>> IntSet.fromList [1,2,3,4] & contains 3 .~ False
   -- fromList [1,2,4]
   contains :: Index m -> IndexedLensLike' (Index m) f m Bool
-#ifdef DEFAULT_SIGNATURES
   default contains :: (Contravariant f, Functor f, At m) => Index m -> IndexedLensLike' (Index m) f m Bool
   contains = containsAt
-#endif
 
 -- | A definition of 'contains' for types with an 'Ix' instance.
 containsIx :: (Contravariant f, Functor f, Ixed (Accessor Any) m) => Index m -> IndexedLensLike' (Index m) f m Bool

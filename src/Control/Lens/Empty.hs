@@ -1,9 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
-
-#ifdef DEFAULT_SIGNATURES
 {-# LANGUAGE DefaultSignatures #-}
-#endif
+
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Empty
@@ -31,6 +29,7 @@ import Data.Map as Map
 import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
+import Data.Profunctor.Unsafe
 import Data.Sequence as Seq
 import Data.Set as Set
 import Data.Text as StrictT
@@ -47,50 +46,30 @@ class AsEmpty a where
   -- True
   _Empty :: Prism' a ()
 #ifndef HLINT
-#ifdef DEFAULT_SIGNATURES
   default _Empty :: (Monoid a, Eq a) => Prism' a ()
   _Empty = only mempty
+  {-# INLINE _Empty #-}
 #endif
-#endif
 
-instance AsEmpty Ordering where
-  _Empty = only mempty
-  {-# INLINE _Empty #-}
-
-instance AsEmpty () where
-  _Empty = only mempty
-  {-# INLINE _Empty #-}
-
-instance AsEmpty Any where
-  _Empty = only mempty
-  {-# INLINE _Empty #-}
-
-instance AsEmpty All where
-  _Empty = only mempty
-  {-# INLINE _Empty #-}
-
-instance AsEmpty Event where
-  _Empty = only mempty
-  {-# INLINE _Empty #-}
+{- Default Monoid instances -}
+instance AsEmpty Ordering
+instance AsEmpty ()
+instance AsEmpty Any
+instance AsEmpty All
+instance AsEmpty Event
+instance (Eq a, Num a) => AsEmpty (Product a)
+instance (Eq a, Num a) => AsEmpty (Sum a)
 
 instance AsEmpty (Maybe a) where
   _Empty = _Nothing
   {-# INLINE _Empty #-}
 
 instance AsEmpty (Last a) where
-  _Empty = nearly (Last Nothing) (isNothing . getLast)
+  _Empty = nearly (Last Nothing) (isNothing .# getLast)
   {-# INLINE _Empty #-}
 
 instance AsEmpty (First a) where
-  _Empty = nearly (First Nothing) (isNothing . getFirst)
-  {-# INLINE _Empty #-}
-
-instance (Eq a, Num a) => AsEmpty (Product a) where
-  _Empty = only mempty
-  {-# INLINE _Empty #-}
-
-instance (Eq a, Num a) => AsEmpty (Sum a) where
-  _Empty = only mempty
+  _Empty = nearly (First Nothing) (isNothing .# getFirst)
   {-# INLINE _Empty #-}
 
 instance AsEmpty a => AsEmpty (Dual a) where
