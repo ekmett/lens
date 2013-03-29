@@ -225,6 +225,10 @@ simple = id
 -- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @'non' v@ is an isomorphism from
 -- @'Maybe' a'@ to @a@.
 --
+-- @
+-- 'non' ≡ 'anon' '.' 'only'
+-- @
+--
 -- Keep in mind this is only a real isomorphism if you treat the domain as being @'Maybe' (a sans v)@.
 --
 -- This is practically quite useful when you want to have a 'Data.Map.Map' where all the entries should have non-zero values.
@@ -254,9 +258,7 @@ simple = id
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
 -- fromList []
 non :: Eq a => a -> Iso' (Maybe a) a
-non a = iso (fromMaybe a) go where
-  go b | a == b    = Nothing
-       | otherwise = Just b
+non = anon . only
 {-# INLINE non #-}
 
 -- | @'anon' p@ generalizes @'non' (p # ())@ to take any unit 'Prism'
