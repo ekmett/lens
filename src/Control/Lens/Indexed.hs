@@ -562,10 +562,8 @@ instance TraversableWithIndex k ((,) k) where
   {-# INLINE itraverse #-}
 
 -- | The position in the list is available as the index.
-instance FunctorWithIndex Int [] where
-  {- default imap -}
-instance FoldableWithIndex Int [] where
-  {- default ifoldMap -}
+instance FunctorWithIndex Int []
+instance FoldableWithIndex Int []
 instance TraversableWithIndex Int [] where
   itraverse = itraverseOf traversed
   {-# INLINE itraverse #-}
@@ -581,8 +579,8 @@ instance TraversableWithIndex () Maybe where
   {-# INLINE itraverse #-}
 
 -- | The position in the 'Seq' is available as the index.
-instance FunctorWithIndex Int Seq where {- default imap -}
-instance FoldableWithIndex Int Seq where {- default ifoldMap -}
+instance FunctorWithIndex Int Seq
+instance FoldableWithIndex Int Seq
 instance TraversableWithIndex Int Seq where
   itraverse = itraverseOf traversed
   {-# INLINE itraverse #-}
@@ -591,7 +589,6 @@ instance FunctorWithIndex Int Vector where
   imap = V.imap
   {-# INLINE imap #-}
 instance FoldableWithIndex Int Vector where
-  {- default ifoldMap -}
   ifoldr = V.ifoldr
   {-# INLINE ifoldr #-}
   ifoldl = V.ifoldl . flip
@@ -604,8 +601,8 @@ instance TraversableWithIndex Int Vector where
   itraverse f = sequenceA . V.imap f
   {-# INLINE itraverse #-}
 
-instance FunctorWithIndex Int IntMap where {- default imap -}
-instance FoldableWithIndex Int IntMap where {- default ifoldMap -}
+instance FunctorWithIndex Int IntMap
+instance FoldableWithIndex Int IntMap
 instance TraversableWithIndex Int IntMap where
 #if MIN_VERSION_containers(0,5,0)
   itraverse = IntMap.traverseWithKey
@@ -614,8 +611,8 @@ instance TraversableWithIndex Int IntMap where
 #endif
   {-# INLINE itraverse #-}
 
-instance FunctorWithIndex k (Map k) where {- default imap -}
-instance FoldableWithIndex k (Map k) where {- default ifoldMap -}
+instance FunctorWithIndex k (Map k)
+instance FoldableWithIndex k (Map k)
 instance TraversableWithIndex k (Map k) where
 #if MIN_VERSION_containers(0,5,0)
   itraverse = Map.traverseWithKey
@@ -624,8 +621,8 @@ instance TraversableWithIndex k (Map k) where
 #endif
   {-# INLINE itraverse #-}
 
-instance (Eq k, Hashable k) => FunctorWithIndex k (HashMap k) where {- default imap -}
-instance (Eq k, Hashable k) => FoldableWithIndex k (HashMap k) where {- default ifoldMap -}
+instance (Eq k, Hashable k) => FunctorWithIndex k (HashMap k)
+instance (Eq k, Hashable k) => FoldableWithIndex k (HashMap k)
 instance (Eq k, Hashable k) => TraversableWithIndex k (HashMap k) where
   itraverse = HashMap.traverseWithKey
   {-# INLINE itraverse #-}
