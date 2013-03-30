@@ -126,9 +126,11 @@ type instance Index LazyB.ByteString = Int64
 -- ("HELLO","WORLD")
 class (Functor f, Index s ~ Index t) => Each f s t a b | s -> a, t -> b, s b -> t, t a -> s where
   each :: IndexedLensLike (Index s) f s t a b
+#ifndef HLINT
   default each :: (Applicative f, Traversable g, s ~ g a, t ~ g b, Index s ~ Int, Index t ~ Int) => IndexedLensLike Int f s t a b
   each = traversed
   {-# INLINE each #-}
+#endif
 
 -- | @'each' :: 'IndexedTraversal' 'Int' (a,a) (b,b) a b@
 instance (Applicative f, a~a', b~b') => Each f (a,a') (b,b') a b where

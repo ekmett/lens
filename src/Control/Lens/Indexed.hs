@@ -199,9 +199,11 @@ index j f = Indexed $ \i a -> if j == i then indexed f i a else pure a
 class Functor f => FunctorWithIndex i f | f -> i where
   -- | Map with access to the index.
   imap :: (i -> a -> b) -> f a -> f b
+#ifndef HLINT
   default imap :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
   imap = iover itraversed
   {-# INLINE imap #-}
+#endif
 
   -- | The 'IndexedSetter' for a 'FunctorWithIndex'.
   --
@@ -225,9 +227,11 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- 'foldMap' ≡ 'ifoldMap' '.' 'const'
   -- @
   ifoldMap :: Monoid m => (i -> a -> m) -> f a -> m
+#ifndef HLINT
   default ifoldMap :: (TraversableWithIndex i f, Monoid m) => (i -> a -> m) -> f a -> m
   ifoldMap = ifoldMapOf itraversed
   {-# INLINE ifoldMap #-}
+#endif
 
   -- | The 'IndexedFold' of a 'FoldableWithIndex' container.
   ifolded :: IndexedFold i (f a) a
@@ -437,9 +441,11 @@ itoList = ifoldr (\i c -> ((i,c):)) []
 class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => TraversableWithIndex i t | t -> i where
   -- | Traverse an indexed container.
   itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
+#ifndef HLINT
   default itraverse :: Applicative f => (Int -> a -> f b) -> t a -> f (t b)
   itraverse = traversed .# Indexed
   {-# INLINE itraverse #-}
+#endif
 
   -- | The 'IndexedTraversal' of a 'TraversableWithIndex' container.
   itraversed :: IndexedTraversal i (t a) (t b) a b

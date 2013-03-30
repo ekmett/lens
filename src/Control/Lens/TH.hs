@@ -385,7 +385,7 @@ makePrismForCon ctx tyConName args canModifyTypeVar allCons con = do
       sigD resName . forallT
         (args ++ (PlainTV <$> Map.elems altArgs))
         (return $ List.nub (ctx ++ substTypeVars altArgs ctx)) $
-         if altArgsList == [] then
+         if List.null altArgsList then
           conT ''Prism' `appsT`
             [ appsT (conT tyConName) $ varT . view name <$> args
             , toTupleT $ pure <$> fieldTypes
