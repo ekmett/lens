@@ -3,6 +3,7 @@
 * Changed `anon` to take a `Prism`.
 * Added `nearly` to `Control.Lens.Prism`.
 * Added `Control.Lens.Empty`, exporting `_Empty`.
+* We now require `DefaultSignatures`.
 
 3.9.0.2
 -------
