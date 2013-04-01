@@ -17,6 +17,7 @@ module Control.Lens.Empty
     AsEmpty(..)
   ) where
 
+import Control.Lens.Iso
 import Control.Lens.Prism
 import Control.Lens.Review
 import Data.ByteString as StrictB
@@ -28,7 +29,6 @@ import Data.IntSet as IntSet
 import Data.Map as Map
 import Data.Maybe
 import Data.Monoid
-import Data.Profunctor
 import Data.Profunctor.Unsafe
 import Data.Sequence as Seq
 import Data.Set as Set
@@ -73,25 +73,25 @@ instance AsEmpty (First a) where
   {-# INLINE _Empty #-}
 
 instance AsEmpty a => AsEmpty (Dual a) where
-  _Empty = dimap getDual (fmap Dual) . _Empty
+  _Empty = iso getDual Dual . _Empty
   {-# INLINE _Empty #-}
 
 instance (AsEmpty a, AsEmpty b) => AsEmpty (a,b) where
-  _Empty = prism (\() -> (_Empty # (), _Empty # ())) $ \(s,s') -> case _Empty Left s of
+  _Empty = prism' (\() -> (_Empty # (), _Empty # ())) $ \(s,s') -> case _Empty Left s of
     Left () -> case _Empty Left s' of
-      Left () -> Right ()
-      Right t' -> Left (_Empty # (), t')
-    Right t -> Left (t, _Empty # ())
+      Left () -> Just ()
+      _       -> Nothing
+    _         -> Nothing
   {-# INLINE _Empty #-}
 
 instance (AsEmpty a, AsEmpty b, AsEmpty c) => AsEmpty (a,b,c) where
-  _Empty = prism (\() -> (_Empty # (), _Empty # (), _Empty # ())) $ \(s,s',s'') -> case _Empty Left s of
+  _Empty = prism' (\() -> (_Empty # (), _Empty # (), _Empty # ())) $ \(s,s',s'') -> case _Empty Left s of
     Left () -> case _Empty Left s' of
       Left () -> case _Empty Left s'' of
-        Left () -> Right ()
-        Right t'' -> Left (_Empty # (), _Empty # (), t'')
-      Right t'    -> Left (_Empty # (), t', _Empty # ())
-    Right t       -> Left (t, _Empty # (), _Empty # ())
+        Left () -> Just ()
+        Right _ -> Nothing
+      Right _   -> Nothing
+    Right _     -> Nothing
   {-# INLINE _Empty #-}
 
 instance AsEmpty [a] where
