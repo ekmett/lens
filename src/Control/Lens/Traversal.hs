@@ -78,6 +78,7 @@ module Control.Lens.Traversal
   , beside
   , taking
   , dropping
+  , failing
 
   -- * Indexed Traversals
 
@@ -91,6 +92,7 @@ module Control.Lens.Traversal
   , element
   , elementsOf
   , elements
+  , ifailing
 
   -- ** Combinators
   , ipartsOf
@@ -1038,3 +1040,55 @@ failover l f s = case l ((,) (Any True) . f) s of
   (Any True, t)  -> return t
   (Any False, _) -> mzero
 {-# INLINE failover #-}
+
+-- | Try the first 'Traversal' (or 'Fold'), falling back on the second 'Traversal' (or 'Fold') if it returns no entries.
+--
+-- This is only a valid 'Traversal' if the second 'Traversal' is disjoint from the result of the first or returns
+-- exactly the same results. These conditions are trivially met when given a 'Lens', 'Iso', 'Getter', 'Prism' or \"affine\" Traversal -- one that
+-- has 0 or 1 target.
+--
+-- Mutatis mutandis for 'Fold'.
+--
+-- @
+-- 'failing' :: 'Traversal' s t a b -> 'Traversal' s t a b -> 'Traversal' s t a b
+-- 'failing' :: 'Prism' s t a b     -> 'Prism' s t a b     -> 'Traversal' s t a b
+-- 'failing' :: 'Fold' s a          -> 'Fold' s a          -> 'Fold' s a
+-- @
+--
+-- These cases are also supported, trivially, but are boring, because the left hand side always succeeds.
+--
+-- @
+-- 'failing' :: 'Lens' s t a b      -> 'Traversal' s t a b -> 'Traversal' s t a b
+-- 'failing' :: 'Iso' s t a b       -> 'Traversal' s t a b -> 'Traversal' s t a b
+-- 'failing' :: 'Equality' s t a b  -> 'Traversal' s t a b -> 'Traversal' s t a b
+-- 'failing' :: 'Getter' s t a b    -> 'Fold' s t a b      -> 'Fold' s t a b
+-- @
+failing :: Applicative f => Traversing (->) f s t a b -> Traversing (->) f s t a b -> Over (->) f s t a b
+failing l r f s = case ins b of
+  [] -> runBazaarT (r sell s) f
+  xs -> unsafeOuts b <$> traverse f xs
+  where b = l sell s
+
+-- | Try the first 'IndexedTraversal' (or 'IndexedFold'), falling back on the second 'IndexedTraversal' (or 'IndexedFold') if it returns no entries.
+--
+-- This is only a valid 'IndexedTraversal' if the second 'IndexedTraversal' is disjoint from the result of the first or returns
+-- exactly the same results! These conditions are trivially met when given only indexed lenses, indexed getters, affine indexed folds
+-- and affine indexed traversals.
+--
+-- @
+-- 'ifailing' :: 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
+-- 'ifailing' :: 'IndexedFold' i s a          -> 'IndexedFold' i s a          -> 'IndexedFold' i s a
+-- @
+--
+-- These cases are also supported, trivially, but are boring, because the left hand side always succeeds.
+--
+-- @
+-- 'ifailing' :: 'IndexedLens' i s t a b      -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
+-- 'ifailing' :: 'IndexedGetter' i s t a b    -> 'IndexedGetter' i s t a b    -> 'IndexedFold' i s t a b
+-- @
+
+ifailing :: (Indexable i p, Applicative f) => Traversing (Indexed i) f s t a b -> Traversing (Indexed i) f s t a b -> Over p f s t a b
+ifailing l r f s = case pins b of
+  [] -> runBazaarT (r sell s) (Indexed (indexed f))
+  xs -> unsafeOuts b <$> traverse (uncurry (indexed f)) xs
+  where b = l sell s
