@@ -4,6 +4,7 @@
 * Added `nearly` to `Control.Lens.Prism`.
 * Added `Control.Lens.Empty`, exporting `_Empty`.
 * We now require `DefaultSignatures`.
+* Added `failing` and `ifailing` to `Control.Lens.Traversal`.
 
 3.9.0.2
 -------
