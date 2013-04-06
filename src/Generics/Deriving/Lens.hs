@@ -13,15 +13,13 @@
 --
 -- Note: @Generics.Deriving@ exports a number of names that collide with @Control.Lens@.
 --
--- You can use hiding or imports to mitigate this to an extent, and the following imports,
--- represent a fair compromise for user code:
+-- You can use hiding to mitigate this to an extent, and the following import
+-- represents a fair compromise for user code:
 --
--- > import Control.Lens hiding (Rep)
 -- > import Generics.Deriving hiding (from, to)
 --
--- You can use 'generic' to replace 'Generics.Deriving.from' and 'Generics.Deriving.to' from @Generics.Deriving@,
--- and probably won't be explicitly referencing 'Control.Lens.Representable.Rep' from @Control.Lens@
--- in code that uses generics.
+-- You can use 'generic' to replace 'Generics.Deriving.from' and
+-- 'Generics.Deriving.to' from @Generics.Deriving@.
 ----------------------------------------------------------------------------
 module Generics.Deriving.Lens
   (
