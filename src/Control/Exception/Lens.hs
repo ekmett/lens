@@ -44,6 +44,8 @@ module Control.Exception.Lens
   , throwing
   , throwingM
   , throwingTo
+  -- * Mapping
+  , mappedException, mappedException'
   -- * Exceptions
   , exception
   -- * Exception Handlers
@@ -317,6 +319,39 @@ throwingM l = reviews l (liftIO . throwIO)
 throwingTo :: MonadIO m => ThreadId -> AReview s SomeException a b -> b -> m ()
 throwingTo tid l = reviews l (liftIO . throwTo tid)
 {-# INLINE throwingTo #-}
+
+----------------------------------------------------------------------------
+-- Mapping
+----------------------------------------------------------------------------
+
+-- | This 'Setter' can be used to purely map over the 'Exception's an
+-- arbitrary expression might throw; it is a variant of 'mapException' in
+-- the same way that 'mapped' is a variant of 'fmap'.
+--
+-- > 'mapException' ≡ 'over' 'mappedException'
+--
+-- This view that every Haskell expression can be regarded as carrying a bag
+-- of 'Exception's is detailed in “A Semantics for Imprecise Exceptions” by
+-- Peyton Jones & al. at PLDI ’99.
+--
+-- The following maps failed assertions to arithmetic overflow:
+--
+-- >>> handling _Overflow (\_ -> return "caught") $ assert False (return "uncaught") & mappedException %~ \ (AssertionFailed _) -> Overflow
+-- "caught"
+mappedException :: (Exception e, Exception e') => Setter s s e e'
+mappedException = sets mapException
+{-# INLINE mappedException #-}
+
+-- | This is a type restricted version of 'mappedException', which avoids
+-- the type ambiguity in the input 'Exception' when using 'set'.
+--
+-- The following maps any exception to arithmetic overflow:
+--
+-- >>> handling _Overflow (\_ -> return "caught") $ assert False (return "uncaught") & mappedException' .~ Overflow
+-- "caught"
+mappedException' :: (Exception e') => Setter s s SomeException e'
+mappedException' = mappedException
+{-# INLINE mappedException' #-}
 
 ----------------------------------------------------------------------------
 -- IOException
