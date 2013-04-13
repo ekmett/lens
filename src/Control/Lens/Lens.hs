@@ -571,14 +571,14 @@ l <<*~ b = l $ \a -> (a, a * b)
 
 (<<//~) :: Fractional a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
 l <<//~ b = l $ \a -> (a, a / b)
-{-# INLINE (<</.~) #-}
+{-# INLINE (<<//~) #-}
 
 (<<^~) :: (Num a, Integral e) => Overloading' (->) q ((,) a) s a -> e -> q s (a, s)
-l <<^~ e = l $ \a -> (a, a ^ b)
+l <<^~ e = l $ \a -> (a, a ^ e)
 {-# INLINE (<<^~) #-}
 
 (<<^^~) :: (Fractional a, Integral e) => Overloading' (->) q ((,) a) s a -> e -> q s (a, s)
-l <<^^~ e = l $ \a -> (a, a ^^ b)
+l <<^^~ e = l $ \a -> (a, a ^^ e)
 {-# INLINE (<<^^~) #-}
 
 (<<**~) :: Floating a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
