@@ -30,8 +30,8 @@
 --
 -- @type 'Getter' s a = forall r. 'Getting' r s s a a@
 --
--- But we actually hide the use of 'Accessor' behind a class 'Gettable'
--- to error messages from type class resolution rather than at unification
+-- But we actually hide the use of 'Accessor' behind a class 'Gettable' to
+-- report error messages from type class resolution rather than at unification
 -- time, where they are much uglier.
 --
 -- @type 'Getter' s a = forall f. 'Gettable' f => (a -> f a) -> s -> f s@
