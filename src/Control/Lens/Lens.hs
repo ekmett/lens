@@ -557,6 +557,46 @@ l <&&~ b = l <%~ (&& b)
 l <<.~ b = l $ \a -> (a, b)
 {-# INLINE (<<.~) #-}
 
+(<<+~) :: Num a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
+l <<+~ b = l $ \a -> (a, a + b)
+{-# INLINE (<<+~) #-}
+
+(<<-~) :: Num a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
+l <<-~ b = l $ \a -> (a, a - b)
+{-# INLINE (<<-~) #-}
+
+(<<*~) :: Num a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
+l <<*~ b = l $ \a -> (a, a * b)
+{-# INLINE (<<*~) #-}
+
+(<<//~) :: Fractional a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
+l <<//~ b = l $ \a -> (a, a / b)
+{-# INLINE (<</.~) #-}
+
+(<<^~) :: (Num a, Integral e) => Overloading' (->) q ((,) a) s a -> e -> q s (a, s)
+l <<^~ e = l $ \a -> (a, a ^ b)
+{-# INLINE (<<^~) #-}
+
+(<<^^~) :: (Fractional a, Integral e) => Overloading' (->) q ((,) a) s a -> e -> q s (a, s)
+l <<^^~ e = l $ \a -> (a, a ^^ b)
+{-# INLINE (<<^^~) #-}
+
+(<<**~) :: Floating a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
+l <<**~ e = l $ \a -> (a, a ** e)
+{-# INLINE (<<**~) #-}
+
+(<<||~) :: Overloading' (->) q ((,) Bool) s Bool -> Bool -> q s (Bool, s)
+l <<||~ b = l $ \a -> (a, b || a)
+{-# INLINE (<<||~) #-}
+
+(<<&&~) :: Overloading' (->) q ((,) Bool) s Bool -> Bool -> q s (Bool, s)
+l <<&&~ b = l $ \a -> (a, b && a)
+{-# INLINE (<<&&~) #-}
+
+(<<<>~) :: Monoid r => Overloading' (->) q ((,) r) s r -> r -> q s (r, s)
+l <<<>~ b = l $ \a -> (a, a `mappend` b)
+{-# INLINE (<<<>~) #-}
+
 -------------------------------------------------------------------------------
 -- Setting and Remembering State
 -------------------------------------------------------------------------------
@@ -734,6 +774,46 @@ l <<%= f = l %%= lmap (\a -> (a,a)) (second' f)
 (<<.=) :: MonadState s m => LensLike ((,)a) s s a b -> b -> m a
 l <<.= b = l %%= \a -> (a,b)
 {-# INLINE (<<.=) #-}
+
+(<<+=) :: (MonadState s m, Num a) => LensLike' ((,) a) s a -> a -> m a
+l <<+= n = l %%= \a -> (a, a + n)
+{-# INLINE (<<+=) #-}
+
+(<<-=) :: (MonadState s m, Num a) => LensLike' ((,) a) s a -> a -> m a
+l <<-= n = l %%= \a -> (a, a - n)
+{-# INLINE (<<-=) #-}
+
+(<<*=) :: (MonadState s m, Num a) => LensLike' ((,) a) s a -> a -> m a
+l <<*= n = l %%= \a -> (a, a * n)
+{-# INLINE (<<*=) #-}
+
+(<<//=) :: (MonadState s m, Fractional a) => LensLike' ((,) a) s a -> a -> m a
+l <<//= n = l %%= \a -> (a, a / n)
+{-# INLINE (<<//=) #-}
+
+(<<^=) :: (MonadState s m, Num a, Integral e) => LensLike' ((,) a) s a -> e -> m a
+l <<^= n = l %%= \a -> (a, a ^ n)
+{-# INLINE (<<^=) #-}
+
+(<<^^=) :: (MonadState s m, Fractional a, Integral e) => LensLike' ((,) a) s a -> e -> m a
+l <<^^= n = l %%= \a -> (a, a ^^ n)
+{-# INLINE (<<^^=) #-}
+
+(<<**=) :: (MonadState s m, Floating a) => LensLike' ((,) a) s a -> a -> m a
+l <<**= n = l %%= \a -> (a, a ** n)
+{-# INLINE (<<**=) #-}
+
+(<<||=) :: MonadState s m => LensLike' ((,) Bool) s Bool -> Bool -> m Bool
+l <<||= b = l %%= \a -> (a, a || b)
+{-# INLINE (<<||=) #-}
+
+(<<&&=) :: MonadState s m => LensLike' ((,) Bool) s Bool -> Bool -> m Bool
+l <<&&= b = l %%= \a -> (a, a && b)
+{-# INLINE (<<&&=) #-}
+
+(<<<>=) :: (MonadState s m, Monoid r) => LensLike' ((,) r) s r -> r -> m r
+l <<<>= b = l %%= \a -> (a, a `mappend` b)
+{-# INLINE (<<<>=) #-}
 
 -- | Run a monadic action, and set the target of 'Lens' to its result.
 --
