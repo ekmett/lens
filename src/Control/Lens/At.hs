@@ -159,6 +159,10 @@ instance (Functor f, Eq a, Hashable a) => Contains f (HashSet a) where
     if b then HashSet.insert k s else HashSet.delete k s
   {-# INLINE contains #-}
 
+instance (Contravariant f, Functor f) => Contains f (Maybe a) where
+  contains () f s = coerce $ Lens.indexed f () (isJust s)
+  {-# INLINE contains #-}
+
 instance (Contravariant f, Functor f) => Contains f [a] where
   contains = containsLength Prelude.length
   {-# INLINE contains #-}
@@ -317,6 +321,12 @@ ixAt i = at i <. traverse
 ixEach :: (Applicative f, Eq (Index m), Each f m m (IxValue m) (IxValue m)) => Index m -> IndexedLensLike' (Index m) f m (IxValue m)
 ixEach i = each . Lens.index i
 {-# INLINE ixEach #-}
+
+type instance IxValue (Maybe a) = a
+instance Applicative f => Ixed f (Maybe a) where
+  ix () f (Just a) = Just <$> Lens.indexed f () a
+  ix () _ Nothing  = pure Nothing
+  {-# INLINE ix #-}
 
 type instance IxValue [a] = a
 instance Applicative f => Ixed f [a] where
@@ -536,6 +546,10 @@ class At m where
 sans :: At m => Index m -> m -> m
 sans k m = m & at k .~ Nothing
 {-# INLINE sans #-}
+
+instance At (Maybe a) where
+  at () f = Lens.indexed f ()
+  {-# INLINE at #-}
 
 instance At (IntMap a) where
   at k f m = Lens.indexed f k mv <&> \r -> case r of
