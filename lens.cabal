@@ -227,7 +227,6 @@ library
     Control.Lens.Internal.Prism
     Control.Lens.Internal.Review
     Control.Lens.Internal.Setter
-    Control.Lens.Internal.Zipper
     Control.Lens.Internal.Zoom
     Control.Lens.Iso
     Control.Lens.Lens
@@ -245,7 +244,6 @@ library
     Control.Lens.Tuple
     Control.Lens.Type
     Control.Lens.Wrapped
-    Control.Lens.Zipper
     Control.Lens.Zoom
     Control.Monad.Error.Lens
     Control.Parallel.Strategies.Lens

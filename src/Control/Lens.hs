@@ -67,7 +67,6 @@ module Control.Lens
   , module Control.Lens.Tuple
   , module Control.Lens.Type
   , module Control.Lens.Wrapped
-  , module Control.Lens.Zipper
   , module Control.Lens.Zoom
   ) where
 
@@ -98,7 +97,6 @@ import Control.Lens.Traversal
 import Control.Lens.Tuple
 import Control.Lens.Type
 import Control.Lens.Wrapped
-import Control.Lens.Zipper
 import Control.Lens.Zoom
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}

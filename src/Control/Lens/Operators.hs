@@ -90,9 +90,6 @@ module Control.Lens.Operators
   -- * Monadic Assignment
   , (<~), (<<~)
 
-  -- * Zippers
-  , (:>)(), (:>>)()
-
   -- * Cons and Snoc
   , (<|), (|>)
   ) where
@@ -106,6 +103,5 @@ import Control.Lens.Indexed
 import Control.Lens.Lens
 import Control.Lens.Review
 import Control.Lens.Setter
-import Control.Lens.Zipper
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
