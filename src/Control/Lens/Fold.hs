@@ -1339,6 +1339,46 @@ findOf :: Conjoined p => Accessing p (Endo (Maybe a)) s a -> p a Bool -> s -> Ma
 findOf l p = foldrOf l (cotabulate $ \wa y -> if corep p wa then Just (extract wa) else y) Nothing
 {-# INLINE findOf #-}
 
+-- | The 'findMOf' function takes a 'Lens' (or 'Getter', 'Iso', 'Fold', or 'Traversal'),
+-- a monadic predicate and a structure and returns in the monad the leftmost element of the structure
+-- matching the predicate, or 'Nothing' if there is no such element.
+--
+-- >>>  findMOf each ( \x -> print ("Checking " ++ show x) >> return (even x)) (1,3,4,6)
+-- "Checking 1"
+-- "Checking 3"
+-- "Checking 4"
+-- Just 4
+--
+-- >>>  findMOf each ( \x -> print ("Checking " ++ show x) >> return (even x)) (1,3,5,7)
+-- "Checking 1"
+-- "Checking 3"
+-- "Checking 5"
+-- "Checking 7"
+-- Nothing
+--
+-- @
+-- 'findMOf' :: ('Monad' m, 'Getter' s a)     -> (a -> m 'Bool') -> s -> m ('Maybe' a)
+-- 'findMOf' :: ('Monad' m, 'Fold' s a)       -> (a -> m 'Bool') -> s -> m ('Maybe' a)
+-- 'findMOf' :: ('Monad' m, 'Iso'' s a)       -> (a -> m 'Bool') -> s -> m ('Maybe' a)
+-- 'findMOf' :: ('Monad' m, 'Lens'' s a)      -> (a -> m 'Bool') -> s -> m ('Maybe' a)
+-- 'findMOf' :: ('Monad' m, 'Traversal'' s a) -> (a -> m 'Bool') -> s -> m ('Maybe' a)
+-- @
+--
+-- @
+-- 'findMOf' 'folded' :: (Monad m, Foldable f) => (a -> m Bool) -> f a -> m (Maybe a)
+-- 'ifindMOf' l ≡ 'findMOf' l '.' 'Indexed'
+-- @
+--
+-- A simpler version that didn't permit indexing, would be:
+--
+-- @
+-- 'findMOf' :: Monad m => 'Getting' ('Endo' (m ('Maybe' a))) s a -> (a -> m 'Bool') -> s -> m ('Maybe' a)
+-- 'findMOf' l p = 'foldrOf' l (\a y -> p a >>= \x -> if x then return ('Just' a) else y) $ return 'Nothing'
+-- @
+findMOf :: (Monad m, Conjoined p) => Accessing p (Endo (m (Maybe a))) s a -> p a (m Bool) -> s -> m (Maybe a)
+findMOf l p = foldrOf l (cotabulate $ \wa y -> corep p wa >>= \r -> if r then return (Just (extract wa)) else y) $ return Nothing
+{-# INLINE findMOf #-}
+
 -- | A variant of 'foldrOf' that has no base case and thus may only be applied
 -- to lenses and structures such that the 'Lens' views at least one element of
 -- the structure.
@@ -2011,7 +2051,7 @@ iconcatMapOf :: IndexedGetting i [r] s a -> (i -> a -> [r]) -> s -> [r]
 iconcatMapOf = ifoldMapOf
 {-# INLINE iconcatMapOf #-}
 
--- | The 'findOf' function takes an 'IndexedFold' or 'IndexedTraversal', a predicate that is also
+-- | The 'ifindOf' function takes an 'IndexedFold' or 'IndexedTraversal', a predicate that is also
 -- supplied the index, a structure and returns the left-most element of the structure
 -- matching the predicate, or 'Nothing' if there is no such element.
 --
@@ -2030,6 +2070,26 @@ iconcatMapOf = ifoldMapOf
 ifindOf :: IndexedGetting i (Endo (Maybe a)) s a -> (i -> a -> Bool) -> s -> Maybe a
 ifindOf l = findOf l .# Indexed
 {-# INLINE ifindOf #-}
+
+-- | The 'ifindMOf' function takes an 'IndexedFold' or 'IndexedTraversal', a monadic predicate that is also
+-- supplied the index, a structure and returns in the monad the left-most element of the structure
+-- matching the predicate, or 'Nothing' if there is no such element.
+--
+-- When you don't need access to the index then 'findMOf' is more flexible in what it accepts.
+--
+-- @
+-- 'findMOf' l ≡ 'ifindMOf' l '.' 'const'
+-- @
+--
+-- @
+-- 'ifindMOf' :: 'Monad' m => 'IndexedGetter' i s a     -> (i -> a -> m 'Bool') -> s -> m ('Maybe' a)
+-- 'ifindMOf' :: 'Monad' m => 'IndexedFold' i s a       -> (i -> a -> m 'Bool') -> s -> m ('Maybe' a)
+-- 'ifindMOf' :: 'Monad' m => 'IndexedLens'' i s a      -> (i -> a -> m 'Bool') -> s -> m ('Maybe' a)
+-- 'ifindMOf' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> a -> m 'Bool') -> s -> m ('Maybe' a)
+-- @
+ifindMOf :: Monad m => IndexedGetting i (Endo (m (Maybe a))) s a -> (i -> a -> m Bool) -> s -> m (Maybe a)
+ifindMOf l = findMOf l .# Indexed
+{-# INLINE ifindMOf #-}
 
 -- | /Strictly/ fold right over the elements of a structure with an index.
 --
