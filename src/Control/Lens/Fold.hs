@@ -84,6 +84,7 @@ module Control.Lens.Fold
   , maximumOf, minimumOf
   , maximumByOf, minimumByOf
   , findOf
+  , findMOf
   , foldrOf', foldlOf'
   , foldr1Of, foldl1Of
   , foldr1Of', foldl1Of'
@@ -106,6 +107,7 @@ module Control.Lens.Fold
   , iforMOf_
   , iconcatMapOf
   , ifindOf
+  , ifindMOf
   , ifoldrOf'
   , ifoldlOf'
   , ifoldrMOf
