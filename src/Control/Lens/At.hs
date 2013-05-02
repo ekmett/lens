@@ -164,7 +164,10 @@ instance (Contravariant f, Functor f) => Contains f (Maybe a) where
   {-# INLINE contains #-}
 
 instance (Contravariant f, Functor f) => Contains f [a] where
-  contains = containsLength Prelude.length
+  contains = containsTest (\i xs -> i >= 0 && test i xs)
+    where test _ [] = False
+          test 0 (_:_) = True
+          test n (_:xs) = test (n - 1) xs
   {-# INLINE contains #-}
 
 instance (Contravariant f, Functor f) => Contains f (Seq a) where
