@@ -221,4 +221,3 @@ catchJust f m k = catchError m $ \ e -> case f e of
   Nothing -> throwError e
   Just x  -> k x
 {-# INLINE catchJust #-}
-
