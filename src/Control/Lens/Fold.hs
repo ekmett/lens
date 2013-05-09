@@ -56,6 +56,7 @@ module Control.Lens.Fold
   -- ** Building Folds
   , folding
   , folded
+  , folded64
   , unfolded
   , iterated
   , filtered
@@ -141,6 +142,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Foldable as Foldable
 import Data.Functor.Compose
+import Data.Int (Int64)
 import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
@@ -183,7 +185,7 @@ folding :: (Foldable f, Contravariant g, Applicative g) => (s -> f a) -> LensLik
 folding sfa agb = coerce . traverse_ agb . sfa
 {-# INLINE folding #-}
 
--- | Obtain a 'Fold' from any 'Foldable'.
+-- | Obtain a 'Fold' from any 'Foldable' indexed by ordinal position.
 --
 -- >>> Just 3^..folded
 -- [3]
@@ -193,9 +195,18 @@ folding sfa agb = coerce . traverse_ agb . sfa
 --
 -- >>> [(1,2),(3,4)]^..folded.both
 -- [1,2,3,4]
-folded :: Foldable f => Fold (f a) a
-folded f = coerce . getFolding . foldMap (Folding #. f)
+folded :: Foldable f => IndexedFold Int (f a) a
+folded = conjoined folded' (indexing folded')
 {-# INLINE folded #-}
+
+-- | Obtain a 'Fold' from any 'Foldable' indexed by ordinal position.
+folded64 :: Foldable f => IndexedFold Int64 (f a) a
+folded64 = conjoined folded' (indexing64 folded')
+{-# INLINE folded64 #-}
+
+folded' :: Foldable f => Fold (f a) a
+folded' f = coerce . getFolding . foldMap (Folding #. f)
+{-# INLINE folded' #-}
 
 -- | 'Fold' by repeating the input forever.
 --
