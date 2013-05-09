@@ -61,21 +61,21 @@ import Data.Profunctor.Unsafe
 infixr 8 ^!, ^!!, ^@!, ^@!!, ^!?, ^@!?
 
 -- | Used to evaluate an 'Action'.
-type Acting m r s t a b = LensLike (Effect m r) s t a b
+type Acting m r s a = LensLike (Effect m r) s s a a
 
 -- | Perform an 'Action'.
 --
 -- @
 -- 'perform' ≡ 'flip' ('^!')
 -- @
-perform :: Monad m => Acting m a s t a b -> s -> m a
+perform :: Monad m => Acting m a s a -> s -> m a
 perform l = getEffect #. l (Effect #. return)
 {-# INLINE perform #-}
 
 -- | Perform an 'Action' and modify the result.
 --
 -- @
--- 'performs' :: 'Monad' m => 'Acting' m e s t a b -> (a -> e) -> s -> m e
+-- 'performs' :: 'Monad' m => 'Acting' m e s a -> (a -> e) -> s -> m e
 -- @
 performs :: (Profunctor p, Monad m) => Over p (Effect m e) s t a b -> p a e -> s -> m e
 performs l f = getEffect #. l (rmap (Effect #. return) f)
@@ -86,7 +86,7 @@ performs l f = getEffect #. l (rmap (Effect #. return) f)
 -- >>> ["hello","world"]^!folded.act putStrLn
 -- hello
 -- world
-(^!) :: Monad m => s -> Acting m a s t a b -> m a
+(^!) :: Monad m => s -> Acting m a s a -> m a
 a ^! l = getEffect (l (Effect #. return) a)
 {-# INLINE (^!) #-}
 
@@ -94,7 +94,7 @@ a ^! l = getEffect (l (Effect #. return) a)
 --
 -- >>> ["ab","cd","ef"]^!!folded.acts
 -- ["ace","acf","ade","adf","bce","bcf","bde","bdf"]
-(^!!) :: Monad m => s -> Acting m [a] s t a b -> m [a]
+(^!!) :: Monad m => s -> Acting m [a] s a -> m [a]
 a ^!! l = getEffect (l (Effect #. return . return) a)
 {-# INLINE (^!!) #-}
 
@@ -106,7 +106,7 @@ a ^!! l = getEffect (l (Effect #. return . return) a)
 -- Just (Just 1)
 -- >>> [Just 1, Nothing]^!?folded.acts
 -- Nothing
-(^!?) :: Monad m => s -> Acting m (Leftmost a) s t a b -> m (Maybe a)
+(^!?) :: Monad m => s -> Acting m (Leftmost a) s a -> m (Maybe a)
 a ^!?  l = liftM getLeftmost .# getEffect $ l (Effect #. return . LLeaf) a
 {-# INLINE (^!?) #-}
 
@@ -138,7 +138,7 @@ acts = act id
 {-# INLINE acts #-}
 
 -- | Apply a 'Monad' transformer to an 'Action'.
-liftAct :: (MonadTrans trans, Monad m) => Acting m a s t a b -> Action (trans m) s a
+liftAct :: (MonadTrans trans, Monad m) => Acting m a s a -> Action (trans m) s a
 liftAct l = act (lift . perform l)
 {-# INLINE liftAct #-}
 
@@ -147,36 +147,36 @@ liftAct l = act (lift . perform l)
 ----------------------------------------------------------------------------
 
 -- | Used to evaluate an 'IndexedAction'.
-type IndexedActing i m r s t a b = Over (Indexed i) (Effect m r) s t a b
+type IndexedActing i m r s a = Over (Indexed i) (Effect m r) s s a a
 
 -- | Perform an 'IndexedAction'.
 --
 -- @
 -- 'iperform' ≡ 'flip' ('^@!')
 -- @
-iperform :: Monad m => IndexedActing i m (i, a) s t a b -> s -> m (i, a)
+iperform :: Monad m => IndexedActing i m (i, a) s a -> s -> m (i, a)
 iperform l = getEffect #. l (Indexed $ \i a -> Effect (return (i, a)))
 {-# INLINE iperform #-}
 
 -- | Perform an 'IndexedAction' and modify the result.
-iperforms :: Monad m => IndexedActing i m e s t a b -> (i -> a -> e) -> s -> m e
+iperforms :: Monad m => IndexedActing i m e s a -> (i -> a -> e) -> s -> m e
 iperforms l = performs l .# Indexed
 {-# INLINE iperforms #-}
 
 -- | Perform an 'IndexedAction'.
-(^@!) :: Monad m => s -> IndexedActing i m (i, a) s t a b -> m (i, a)
+(^@!) :: Monad m => s -> IndexedActing i m (i, a) s a -> m (i, a)
 s ^@! l = getEffect (l (Indexed $ \i a -> Effect (return (i, a))) s)
 {-# INLINE (^@!) #-}
 
 -- | Obtain a list of all of the results of an 'IndexedMonadicFold'.
-(^@!!) :: Monad m => s -> IndexedActing i m [(i, a)] s t a b -> m [(i, a)]
+(^@!!) :: Monad m => s -> IndexedActing i m [(i, a)] s a -> m [(i, a)]
 s ^@!! l = getEffect (l (Indexed $ \i a -> Effect (return [(i, a)])) s)
 {-# INLINE (^@!!) #-}
 
 -- | Perform an 'IndexedMonadicFold' and collect the 'Leftmost' result.
 --
 -- /Note:/ this still causes all effects for all elements.
-(^@!?) :: Monad m => s -> IndexedActing i m (Leftmost (i, a)) s t a b -> m (Maybe (i, a))
+(^@!?) :: Monad m => s -> IndexedActing i m (Leftmost (i, a)) s a -> m (Maybe (i, a))
 a ^@!?  l = liftM getLeftmost .# getEffect $ l (Indexed $ \i -> Effect #. return . LLeaf . (,) i) a
 {-# INLINE (^@!?) #-}
 
