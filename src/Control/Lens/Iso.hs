@@ -338,8 +338,8 @@ instance Swapped Either where
 
 -- | Ad hoc conversion between \"strict\" and \"lazy\" versions of a structure,
 -- such as 'StrictT.Text' or 'StrictB.ByteString'.
-class Strict s a | s -> a, a -> s where
-  strict :: Iso' s a
+class Strict lazy strict | lazy -> strict, strict -> lazy where
+  strict :: Iso' lazy strict
 
 instance Strict LazyB.ByteString StrictB.ByteString where
 #if MIN_VERSION_bytestring(0,10,0)
