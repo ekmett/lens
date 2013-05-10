@@ -44,6 +44,7 @@ module Control.Lens.Iso
   , flipped
   , Swapped(..)
   , Strict(..)
+  , lazy
   , Reversing(..), reversed
   , involuted
   -- ** Uncommon Isomorphisms
@@ -365,6 +366,17 @@ instance Strict (Lazy.RWST r w s m a) (Strict.RWST r w s m a) where
   strict = iso (Strict.RWST . Lazy.runRWST) (Lazy.RWST . Strict.runRWST)
   {-# INLINE strict #-}
 
+-- | An 'Iso' between the strict variant of a structure and its lazy
+-- counterpart.
+--
+-- @
+-- 'lazy' = 'from' 'strict'
+-- @
+--
+-- See <http://hackage.haskell.org/package/strict-base-types> for an example
+-- use.
+lazy :: Strict lazy strict => Iso' strict lazy
+lazy = from strict
 
 -- | An 'Iso' between a list, 'ByteString', 'Text' fragment, etc. and its reversal.
 --
