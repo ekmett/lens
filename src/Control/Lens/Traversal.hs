@@ -1061,7 +1061,7 @@ failover l f s = case l ((,) (Any True) . f) s of
 -- 'failing' :: 'Lens' s t a b      -> 'Traversal' s t a b -> 'Traversal' s t a b
 -- 'failing' :: 'Iso' s t a b       -> 'Traversal' s t a b -> 'Traversal' s t a b
 -- 'failing' :: 'Equality' s t a b  -> 'Traversal' s t a b -> 'Traversal' s t a b
--- 'failing' :: 'Getter' s t a b    -> 'Fold' s t a b      -> 'Fold' s t a b
+-- 'failing' :: 'Getter' s a        -> 'Fold' s a          -> 'Fold' s a
 -- @
 failing :: Applicative f => Traversing (->) f s t a b -> Traversing (->) f s t a b -> Over (->) f s t a b
 failing l r f s = case ins b of
@@ -1084,7 +1084,7 @@ failing l r f s = case ins b of
 --
 -- @
 -- 'ifailing' :: 'IndexedLens' i s t a b      -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
--- 'ifailing' :: 'IndexedGetter' i s t a b    -> 'IndexedGetter' i s t a b    -> 'IndexedFold' i s t a b
+-- 'ifailing' :: 'IndexedGetter' i s a        -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
 -- @
 
 ifailing :: (Indexable i p, Applicative f) => Traversing (Indexed i) f s t a b -> Traversing (Indexed i) f s t a b -> Over p f s t a b
