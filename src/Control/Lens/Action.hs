@@ -133,12 +133,12 @@ act sma pafb = cotabulate $ \ws -> effective $ do
 --
 -- >>> (1,"hello")^!_2.acts.to succ
 -- "ifmmp"
-acts :: Action m (m a) a
+acts :: IndexPreservingAction m (m a) a
 acts = act id
 {-# INLINE acts #-}
 
 -- | Apply a 'Monad' transformer to an 'Action'.
-liftAct :: (MonadTrans trans, Monad m) => Acting m a s a -> Action (trans m) s a
+liftAct :: (MonadTrans trans, Monad m) => Acting m a s a -> IndexPreservingAction (trans m) s a
 liftAct l = act (lift . perform l)
 {-# INLINE liftAct #-}
 
