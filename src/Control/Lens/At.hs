@@ -384,6 +384,27 @@ instance (Applicative f, Eq k, Hashable k) => Ixed f (HashMap k a) where
      Nothing -> pure m
   {-# INLINE ix #-}
 
+type instance IxValue (Set k) = ()
+instance (Applicative f, Ord k) => Ixed f (Set k) where
+  ix k f m = if Set.member k m
+     then Lens.indexed f k () <&> \() -> Set.insert k m
+     else pure m
+  {-# INLINE ix #-}
+
+type instance IxValue IntSet = ()
+instance (Applicative f) => Ixed f IntSet where
+  ix k f m = if IntSet.member k m
+     then Lens.indexed f k () <&> \() -> IntSet.insert k m
+     else pure m
+  {-# INLINE ix #-}
+
+type instance IxValue (HashSet k) = ()
+instance (Applicative f, Eq k, Hashable k) => Ixed f (HashSet k) where
+  ix k f m = if HashSet.member k m
+     then Lens.indexed f k () <&> \() -> HashSet.insert k m
+     else pure m
+  {-# INLINE ix #-}
+
 type instance IxValue (Array i e) = e
 -- |
 -- @
