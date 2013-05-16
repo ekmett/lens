@@ -595,3 +595,24 @@ instance (Eq k, Hashable k) => At (HashMap k a) where
     Just v' -> HashMap.insert k v' m
     where mv = HashMap.lookup k m
   {-# INLINE at #-}
+
+instance At IntSet where
+  at k f m = Lens.indexed f k mv <&> \r -> case r of
+    Nothing -> maybe m (const (IntSet.delete k m)) mv
+    Just () -> IntSet.insert k m
+    where mv = if IntSet.member k m then Just () else Nothing
+  {-# INLINE at #-}
+
+instance Ord k => At (Set k) where
+  at k f m = Lens.indexed f k mv <&> \r -> case r of
+    Nothing -> maybe m (const (Set.delete k m)) mv
+    Just () -> Set.insert k m
+    where mv = if Set.member k m then Just () else Nothing
+  {-# INLINE at #-}
+
+instance (Eq k, Hashable k) => At (HashSet k) where
+  at k f m = Lens.indexed f k mv <&> \r -> case r of
+    Nothing -> maybe m (const (HashSet.delete k m)) mv
+    Just () -> HashSet.insert k m
+    where mv = if HashSet.member k m then Just () else Nothing
+  {-# INLINE at #-}
