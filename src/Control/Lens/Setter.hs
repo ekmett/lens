@@ -762,7 +762,7 @@ assign l b = State.modify (set l b)
 -- ('.=') :: 'MonadState' s m => 'Setter'' s a    -> a -> m ()
 -- @
 --
--- "It puts the state in the monad or it gets the hose again."
+-- \"It puts the state in the monad or it gets the hose again.\"
 (.=) :: MonadState s m => ASetter s s a b -> b -> m ()
 l .= b = State.modify (l .~ b)
 {-# INLINE (.=) #-}
