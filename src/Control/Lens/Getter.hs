@@ -23,12 +23,11 @@
 -- into continuation passing style, @(a -> r) -> s -> r@ and decorated
 -- with 'Accessor' to obtain:
 --
--- @type 'Getting' r s t a b = (a -> 'Accessor' r b) -> s -> 'Accessor' r t@
+-- @type 'Getting' r s a = (a -> 'Accessor' r a) -> s -> 'Accessor' r s@
 --
--- If we restrict access to knowledge about the type 'r' and can work for
--- any b and t, we could get:
+-- If we restrict access to knowledge about the type 'r', we could get:
 --
--- @type 'Getter' s a = forall r. 'Getting' r s s a a@
+-- @type 'Getter' s a = forall r. 'Getting' r s a@
 --
 -- But we actually hide the use of 'Accessor' behind a class 'Gettable' to
 -- report error messages from type class resolution rather than at unification
@@ -133,7 +132,7 @@ to f = dimap f coerce
 -- 'Control.Lens.Iso.Iso' we also restricted choices of the irrelevant @t@ and
 -- @b@ parameters.
 --
--- If a function accepts a @'Getting' r s t a b@, then when @r@ is a 'Data.Monoid.Monoid', then
+-- If a function accepts a @'Getting' r s a@, then when @r@ is a 'Data.Monoid.Monoid', then
 -- you can pass a 'Control.Lens.Fold.Fold' (or
 -- 'Control.Lens.Traversal.Traversal'), otherwise you can only pass this a
 -- 'Getter' or 'Lens'.
