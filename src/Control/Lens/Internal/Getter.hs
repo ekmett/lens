@@ -85,7 +85,10 @@ instance Monoid r => Applicative (Accessor r) where
 
 instance Semigroup r => Semigroup (Accessor r a) where
   Accessor a <> Accessor b = Accessor $ a <> b
+  {-# INLINE (<>) #-}
 
 instance Monoid r => Monoid (Accessor r a) where
   mempty = Accessor mempty
+  {-# INLINE mempty #-}
   mappend (Accessor a) (Accessor b) = Accessor $ mappend a b
+  {-# INLINE mappend #-}
