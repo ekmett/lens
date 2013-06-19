@@ -68,6 +68,9 @@ module Control.Lens.Indexed
   , iforM
   , imapAccumR
   , imapAccumL
+  -- * Indexed Folds with Reified Monoid
+  , ifoldMapBy
+  , ifoldMapByOf
   ) where
 
 import Control.Applicative
@@ -75,8 +78,8 @@ import Control.Applicative.Backwards
 import Control.Monad (void, liftM)
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Lens.Fold
+import Control.Lens.Getter
 import Control.Lens.Internal.Fold
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Level
 import Control.Lens.Internal.Magma
@@ -84,7 +87,6 @@ import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.Foldable
-import Data.Functor.Contravariant
 import Data.Functor.Identity
 import Data.Functor.Reverse
 import Data.Hashable
@@ -681,3 +683,12 @@ skip :: a -> ()
 skip _ = ()
 {-# INLINE skip #-}
 
+-------------------------------------------------------------------------------
+-- Indexed Folds with Reified Monoid
+-------------------------------------------------------------------------------
+
+ifoldMapBy :: FoldableWithIndex i t => (r -> r -> r) -> r -> (i -> a -> r) -> t a -> r
+ifoldMapBy f z g = reifyFold f z (ifoldMap (\i a -> M (g i a)))
+
+ifoldMapByOf :: (forall s. IndexedGetting i (M r s) t a) -> (r -> r -> r) -> r -> (i -> a -> r) -> t -> r
+ifoldMapByOf l f z g = reifyFold f z (ifoldMapOf l (\i a -> M (g i a)))

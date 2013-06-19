@@ -126,6 +126,12 @@ module Control.Lens.Fold
   , Rightmost
   , Traversed
   , Sequenced
+
+  -- * Fold with Reified Monoid
+  , foldBy
+  , foldByOf
+  , foldMapBy
+  , foldMapByOf
   ) where
 
 import Control.Applicative as Applicative
@@ -2253,3 +2259,19 @@ headOf l = getFirst #. foldMapOf l (First #. Just)
 skip :: a -> ()
 skip _ = ()
 {-# INLINE skip #-}
+
+------------------------------------------------------------------------------
+-- Folds with Reified Monoid
+------------------------------------------------------------------------------
+
+foldBy :: Foldable t => (a -> a -> a) -> a -> t a -> a
+foldBy f z = reifyFold f z (foldMap M)
+
+foldByOf :: (forall i. Getting (M a i) s a) -> (a -> a -> a) -> a -> s -> a
+foldByOf l f z = reifyFold f z (foldMapOf l M)
+
+foldMapBy :: Foldable t => (r -> r -> r) -> r -> (a -> r) -> t a -> r
+foldMapBy f z g = reifyFold f z (foldMap (M #. g))
+
+foldMapByOf :: (forall s. Getting (M r s) t a) -> (r -> r -> r) -> r -> (a -> r) -> t -> r
+foldMapByOf l f z g = reifyFold f z (foldMapOf l (M #. g))
