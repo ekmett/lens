@@ -68,16 +68,19 @@ import qualified Data.ByteString.Lazy as L (ByteString)
 -- The 'zlib' compression format.
 zlib :: Format
 zlib = zlibFormat
+{-# INLINE zlib #-}
 
 -- |
 -- The 'gzip' compression format.
 gzip :: Format
 gzip = gzipFormat
+{-# INLINE zlib #-}
 
 -- |
 -- The 'deflate' compression format.
 deflate :: Format
 deflate = rawFormat
+{-# INLINE zlib #-}
 
 -- |
 -- Compresses a 'L.ByteString' using the 'gzip' compression format.
