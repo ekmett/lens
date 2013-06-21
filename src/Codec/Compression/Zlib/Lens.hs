@@ -74,13 +74,13 @@ zlib = zlibFormat
 -- The 'gzip' compression format.
 gzip :: Format
 gzip = gzipFormat
-{-# INLINE zlib #-}
+{-# INLINE gzip #-}
 
 -- |
 -- The 'deflate' compression format.
 deflate :: Format
 deflate = rawFormat
-{-# INLINE zlib #-}
+{-# INLINE deflate #-}
 
 -- |
 -- Compresses a 'L.ByteString' using the 'gzip' compression format.
