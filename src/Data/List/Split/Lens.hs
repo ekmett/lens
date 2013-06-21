@@ -166,12 +166,8 @@ delimiting f s@Splitter { delimPolicy = p } = f p <&> \p' -> s { delimPolicy = p
 {-# INLINE delimiting #-}
 
 -- | Modify or retrieve the policy for what a 'Splitter' should about consecutive delimiters.
-condensing :: Lens' (Splitter a) Bool
-condensing f s@Splitter { condensePolicy = p } = f (o p) <&> \p' -> s { condensePolicy = i p' } where
-  i True = Condense
-  i False = KeepBlankFields
-  o Condense = True
-  o KeepBlankFields = False
+condensing :: Lens' (Splitter a) CondensePolicy
+condensing f s@Splitter { condensePolicy = p } = f p <&> \p' -> s { condensePolicy = p' }
 {-# INLINE condensing #-}
 
 -- | Modify or retrieve the policy for whether a 'Splitter' should drop an initial blank.

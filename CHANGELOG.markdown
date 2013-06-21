@@ -5,6 +5,7 @@
 * Added `Control.Lens.Empty`, exporting `_Empty`.
 * We now require `DefaultSignatures`.
 * Added `failing` and `ifailing` to `Control.Lens.Traversal`.
+* Changed the signature of `Data.List.Split.Lens.condensing` due to the addition of `DropBlankFields` to `Data.List.Split.CondensePolicy` in `split`.
 
 3.9.0.2
 -------
