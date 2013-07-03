@@ -148,16 +148,46 @@ instance (Choice p, Applicative f, Unbox a, Unbox b) => Cons p f (Unbox.Vector a
 -- | 'cons' an element onto a container.
 --
 -- This is an infix alias for 'cons'.
+--
+-- >>> a <| []
+-- [a]
+--
+-- >>> a <| [b, c]
+-- [a,b,c]
+--
+-- >>> a <| Seq.fromList []
+-- fromList [a]
+--
+-- >>> a <| Seq.fromList [b, c]
+-- fromList [a,b,c]
 (<|) :: Cons Reviewed Identity s s a a => a -> s -> s
 (<|) = curry (simply review _Cons)
 {-# INLINE (<|) #-}
 
 -- | 'cons' an element onto a container.
+--
+-- >>> cons a []
+-- [a]
+--
+-- >>> cons a [b, c]
+-- [a,b,c]
+--
+-- >>> cons a (Seq.fromList [])
+-- fromList [a]
+--
+-- >>> cons a (Seq.fromList [b, c])
+-- fromList [a,b,c]
 cons :: Cons Reviewed Identity s s a a => a -> s -> s
 cons = curry (simply review _Cons)
 {-# INLINE cons #-}
 
 -- | Attempt to extract the left-most element from a container, and a version of the container without that element.
+--
+-- >>> uncons []
+-- Nothing
+--
+-- >>> uncons [a, b, c]
+-- Just (a,[b,c])
 uncons :: Cons (->) (Accessor (First (a, s))) s s a a => s -> Maybe (a, s)
 uncons = simply preview _Cons
 {-# INLINE uncons #-}
@@ -431,16 +461,46 @@ _last = _Snoc._2
 -- | 'snoc' an element onto the end of a container.
 --
 -- This is an infix alias for 'snoc'.
+--
+-- >>> Seq.fromList [] |> a
+-- fromList [a]
+--
+-- >>> Seq.fromList [b, c] |> a
+-- fromList [b,c,a]
+--
+-- >>> LazyT.pack "hello" |> '!'
+-- "hello!"
 (|>) :: Snoc Reviewed Identity s s a a => s -> a -> s
 (|>) = curry (simply review _Snoc)
 {-# INLINE (|>) #-}
 
 -- | 'snoc' an element onto the end of a container.
+--
+-- >>> snoc (Seq.fromList []) a
+-- fromList [a]
+--
+-- >>> snoc (Seq.fromList [b, c]) a
+-- fromList [b,c,a]
+--
+-- >>> snoc (LazyT.pack "hello") '!'
+-- "hello!"
 snoc  :: Snoc Reviewed Identity s s a a => s -> a -> s
 snoc = curry (simply review _Snoc)
 {-# INLINE snoc #-}
 
 -- | Attempt to extract the right-most element from a container, and a version of the container without that element.
+--
+-- >>> unsnoc (LazyT.pack "hello!")
+-- Just ("hello",'!')
+--
+-- >>> unsnoc (LazyT.pack "")
+-- Nothing
+--
+-- >>> unsnoc (Seq.fromList [b,c,a])
+-- Just (fromList [b,c],a)
+--
+-- >>> unsnoc (Seq.fromList [])
+-- Nothing
 unsnoc :: Snoc (->) (Accessor (First (s, a))) s s a a => s -> Maybe (s, a)
 unsnoc s = simply preview _Snoc s
 {-# INLINE unsnoc #-}
