@@ -159,8 +159,15 @@ instance (Functor f, Eq a, Hashable a) => Contains f (HashSet a) where
     if b then HashSet.insert k s else HashSet.delete k s
   {-# INLINE contains #-}
 
+instance (Contravariant f, Functor f) => Contains f (Maybe a) where
+  contains () f s = coerce $ Lens.indexed f () (isJust s)
+  {-# INLINE contains #-}
+
 instance (Contravariant f, Functor f) => Contains f [a] where
-  contains = containsLength Prelude.length
+  contains = containsTest (\i xs -> i >= 0 && test i xs)
+    where test _ [] = False
+          test 0 (_:_) = True
+          test n (_:xs) = test (n - 1) xs
   {-# INLINE contains #-}
 
 instance (Contravariant f, Functor f) => Contains f (Seq a) where
@@ -318,6 +325,12 @@ ixEach :: (Applicative f, Eq (Index m), Each f m m (IxValue m) (IxValue m)) => I
 ixEach i = each . Lens.index i
 {-# INLINE ixEach #-}
 
+type instance IxValue (Maybe a) = a
+instance Applicative f => Ixed f (Maybe a) where
+  ix () f (Just a) = Just <$> Lens.indexed f () a
+  ix () _ Nothing  = pure Nothing
+  {-# INLINE ix #-}
+
 type instance IxValue [a] = a
 instance Applicative f => Ixed f [a] where
   ix k f xs0 | k < 0     = pure xs0
@@ -369,6 +382,27 @@ instance (Applicative f, Eq k, Hashable k) => Ixed f (HashMap k a) where
   ix k f m = case HashMap.lookup k m of
      Just v  -> Lens.indexed f k v <&> \v' -> HashMap.insert k v' m
      Nothing -> pure m
+  {-# INLINE ix #-}
+
+type instance IxValue (Set k) = ()
+instance (Applicative f, Ord k) => Ixed f (Set k) where
+  ix k f m = if Set.member k m
+     then Lens.indexed f k () <&> \() -> Set.insert k m
+     else pure m
+  {-# INLINE ix #-}
+
+type instance IxValue IntSet = ()
+instance (Applicative f) => Ixed f IntSet where
+  ix k f m = if IntSet.member k m
+     then Lens.indexed f k () <&> \() -> IntSet.insert k m
+     else pure m
+  {-# INLINE ix #-}
+
+type instance IxValue (HashSet k) = ()
+instance (Applicative f, Eq k, Hashable k) => Ixed f (HashSet k) where
+  ix k f m = if HashSet.member k m
+     then Lens.indexed f k () <&> \() -> HashSet.insert k m
+     else pure m
   {-# INLINE ix #-}
 
 type instance IxValue (Array i e) = e
@@ -537,6 +571,10 @@ sans :: At m => Index m -> m -> m
 sans k m = m & at k .~ Nothing
 {-# INLINE sans #-}
 
+instance At (Maybe a) where
+  at () f = Lens.indexed f ()
+  {-# INLINE at #-}
+
 instance At (IntMap a) where
   at k f m = Lens.indexed f k mv <&> \r -> case r of
     Nothing -> maybe m (const (IntMap.delete k m)) mv
@@ -556,4 +594,25 @@ instance (Eq k, Hashable k) => At (HashMap k a) where
     Nothing -> maybe m (const (HashMap.delete k m)) mv
     Just v' -> HashMap.insert k v' m
     where mv = HashMap.lookup k m
+  {-# INLINE at #-}
+
+instance At IntSet where
+  at k f m = Lens.indexed f k mv <&> \r -> case r of
+    Nothing -> maybe m (const (IntSet.delete k m)) mv
+    Just () -> IntSet.insert k m
+    where mv = if IntSet.member k m then Just () else Nothing
+  {-# INLINE at #-}
+
+instance Ord k => At (Set k) where
+  at k f m = Lens.indexed f k mv <&> \r -> case r of
+    Nothing -> maybe m (const (Set.delete k m)) mv
+    Just () -> Set.insert k m
+    where mv = if Set.member k m then Just () else Nothing
+  {-# INLINE at #-}
+
+instance (Eq k, Hashable k) => At (HashSet k) where
+  at k f m = Lens.indexed f k mv <&> \r -> case r of
+    Nothing -> maybe m (const (HashSet.delete k m)) mv
+    Just () -> HashSet.insert k m
+    where mv = if HashSet.member k m then Just () else Nothing
   {-# INLINE at #-}

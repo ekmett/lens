@@ -669,8 +669,8 @@ l ^^~ n = over l (^^ n)
 -- >>> (a,b) & both **~ c
 -- (a**c,b**c)
 --
--- >>> _2 **~ pi $ (1,3)
--- (1,31.54428070019754)
+-- >>> _2 **~ 10 $ (3,2)
+-- (3,1024.0)
 --
 -- @
 -- ('**~') :: 'Floating' a => 'Setter'' s a    -> a -> s -> s
@@ -762,7 +762,7 @@ assign l b = State.modify (set l b)
 -- ('.=') :: 'MonadState' s m => 'Setter'' s a    -> a -> m ()
 -- @
 --
--- "It puts the state in the monad or it gets the hose again."
+-- \"It puts the state in the monad or it gets the hose again.\"
 (.=) :: MonadState s m => ASetter s s a b -> b -> m ()
 l .= b = State.modify (l .~ b)
 {-# INLINE (.=) #-}

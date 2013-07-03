@@ -182,12 +182,13 @@ library
     MonadCatchIO-transformers >= 0.3      && < 0.4,
     mtl                       >= 2.0.1    && < 2.2,
     parallel                  >= 3.1.0.1  && < 3.3,
+    primitive                 >= 0.4.0.1  && < 0.6,
     profunctors               >= 3.2      && < 4,
     profunctor-extras         >= 3.3      && < 4,
     reflection                >= 1.1.6    && < 2,
     semigroupoids             >= 3.0.2    && < 4,
     semigroups                >= 0.8.4    && < 1,
-    split                     == 0.2.*,
+    split                     >= 0.2      && < 0.3,
     tagged                    >= 0.4.4    && < 1,
     template-haskell          >= 2.4      && < 2.10,
     text                      >= 0.11     && < 0.12,
@@ -227,7 +228,6 @@ library
     Control.Lens.Internal.Prism
     Control.Lens.Internal.Review
     Control.Lens.Internal.Setter
-    Control.Lens.Internal.Zipper
     Control.Lens.Internal.Zoom
     Control.Lens.Iso
     Control.Lens.Lens
@@ -245,9 +245,9 @@ library
     Control.Lens.Tuple
     Control.Lens.Type
     Control.Lens.Wrapped
-    Control.Lens.Zipper
     Control.Lens.Zoom
     Control.Monad.Error.Lens
+    Control.Monad.Primitive.Lens
     Control.Parallel.Strategies.Lens
     Control.Seq.Lens
     Data.Array.Lens

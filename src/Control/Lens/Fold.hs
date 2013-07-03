@@ -56,6 +56,7 @@ module Control.Lens.Fold
   -- ** Building Folds
   , folding
   , folded
+  , folded64
   , unfolded
   , iterated
   , filtered
@@ -125,6 +126,12 @@ module Control.Lens.Fold
   , Rightmost
   , Traversed
   , Sequenced
+
+  -- * Fold with Reified Monoid
+  , foldBy
+  , foldByOf
+  , foldMapBy
+  , foldMapByOf
   ) where
 
 import Control.Applicative as Applicative
@@ -141,6 +148,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Foldable as Foldable
 import Data.Functor.Compose
+import Data.Int (Int64)
 import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
@@ -183,7 +191,7 @@ folding :: (Foldable f, Contravariant g, Applicative g) => (s -> f a) -> LensLik
 folding sfa agb = coerce . traverse_ agb . sfa
 {-# INLINE folding #-}
 
--- | Obtain a 'Fold' from any 'Foldable'.
+-- | Obtain a 'Fold' from any 'Foldable' indexed by ordinal position.
 --
 -- >>> Just 3^..folded
 -- [3]
@@ -193,9 +201,18 @@ folding sfa agb = coerce . traverse_ agb . sfa
 --
 -- >>> [(1,2),(3,4)]^..folded.both
 -- [1,2,3,4]
-folded :: Foldable f => Fold (f a) a
-folded f = coerce . getFolding . foldMap (Folding #. f)
+folded :: Foldable f => IndexedFold Int (f a) a
+folded = conjoined folded' (indexing folded')
 {-# INLINE folded #-}
+
+-- | Obtain a 'Fold' from any 'Foldable' indexed by ordinal position.
+folded64 :: Foldable f => IndexedFold Int64 (f a) a
+folded64 = conjoined folded' (indexing64 folded')
+{-# INLINE folded64 #-}
+
+folded' :: Foldable f => Fold (f a) a
+folded' f = coerce . getFolding . foldMap (Folding #. f)
+{-# INLINE folded' #-}
 
 -- | 'Fold' by repeating the input forever.
 --
@@ -2242,3 +2259,19 @@ headOf l = getFirst #. foldMapOf l (First #. Just)
 skip :: a -> ()
 skip _ = ()
 {-# INLINE skip #-}
+
+------------------------------------------------------------------------------
+-- Folds with Reified Monoid
+------------------------------------------------------------------------------
+
+foldBy :: Foldable t => (a -> a -> a) -> a -> t a -> a
+foldBy f z = reifyFold f z (foldMap M)
+
+foldByOf :: (forall i. Getting (M a i) s a) -> (a -> a -> a) -> a -> s -> a
+foldByOf l f z = reifyFold f z (foldMapOf l M)
+
+foldMapBy :: Foldable t => (r -> r -> r) -> r -> (a -> r) -> t a -> r
+foldMapBy f z g = reifyFold f z (foldMap (M #. g))
+
+foldMapByOf :: (forall s. Getting (M r s) t a) -> (r -> r -> r) -> r -> (a -> r) -> t -> r
+foldMapByOf l f z g = reifyFold f z (foldMapOf l (M #. g))
