@@ -144,6 +144,7 @@ import Prelude hiding ((.),id)
 -- >>> import Control.DeepSeq (NFData (..), force)
 -- >>> import Control.Exception (evaluate)
 -- >>> import Data.Maybe (fromMaybe)
+-- >>> import Debug.SimpleReflect.Vars
 -- >>> import Data.Void
 -- >>> import System.Timeout (timeout)
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
@@ -453,7 +454,16 @@ iloci f w = getCompose (runBazaar w (Compose #. Indexed (\i -> fmap (indexed sel
 --
 -- /Note:/ You should really try to maintain the invariant of the number of children in the list.
 --
+-- >>> (a,b,c) & partsOf each .~ [x,y,z]
+-- (x,y,z)
+--
 -- Any extras will be lost. If you do not supply enough, then the remainder will come from the original structure.
+--
+-- >>> (a,b,c) & partsOf each .~ [w,x,y,z]
+-- (w,x,y)
+--
+-- >>> (a,b,c) & partsOf each .~ [x,y]
+-- (x,y,c)
 --
 -- So technically, this is only a 'Lens' if you do not change the number of results it returns.
 --
