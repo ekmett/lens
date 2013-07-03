@@ -7,6 +7,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE GADTs #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -97,10 +98,10 @@ tinplate :: (Data s, Typeable a) => Traversal' s a
 tinplate f = gfoldl (step f) pure
 {-# INLINE tinplate #-}
 
-step :: (Applicative f, Typeable a, Data s) => (a -> f a) -> f (s -> r) -> s -> f r
-step f w s = w <*> case cast s of
-  Just a  -> unsafeCoerce <$> f a
-  Nothing -> tinplate f s
+step :: forall s a f r. (Applicative f, Typeable a, Data s) => (a -> f a) -> f (s -> r) -> s -> f r
+step f w s = w <*> case mightBe :: Maybe (Is s a) of
+  Just Refl -> f s
+  Nothing   -> tinplate f s
 {-# INLINE step #-}
 
 -------------------------------------------------------------------------------
@@ -267,6 +268,16 @@ onceUpon' :: forall s a. (Data s, Typeable a) => (s -> a) -> IndexedLens' Int s 
 onceUpon' field f s = k <$> indexed f i (field s) where
   ~(i, Context k _) = fromMaybe (error "upon': no index, not a member") (lookupon template field s)
 {-# INLINE onceUpon' #-}
+
+-------------------------------------------------------------------------------
+-- Type equality
+-------------------------------------------------------------------------------
+
+data Is a b where
+  Refl :: Is a a
+
+mightBe :: (Typeable a, Typeable b) => Maybe (Is a b)
+mightBe = gcast Refl
 
 #ifndef SAFE
 
