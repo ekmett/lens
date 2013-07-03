@@ -107,15 +107,19 @@ instance (Choice p, Applicative f) => Cons p f (Seq a) (Seq b) a b where
 
 instance (Choice p, Applicative f) => Cons p f StrictB.ByteString StrictB.ByteString Word8 Word8 where
   _Cons = prism' (uncurry StrictB.cons) StrictB.uncons
+  {-# INLINE _Cons #-}
 
 instance (Choice p, Applicative f) => Cons p f LazyB.ByteString LazyB.ByteString Word8 Word8 where
   _Cons = prism' (uncurry LazyB.cons) LazyB.uncons
+  {-# INLINE _Cons #-}
 
 instance (Choice p, Applicative f) => Cons p f StrictT.Text StrictT.Text Char Char where
   _Cons = prism' (uncurry StrictT.cons) StrictT.uncons
+  {-# INLINE _Cons #-}
 
 instance (Choice p, Applicative f) => Cons p f LazyT.Text LazyT.Text Char Char where
   _Cons = prism' (uncurry LazyT.cons) LazyT.uncons
+  {-# INLINE _Cons #-}
 
 instance (Choice p, Applicative f) => Cons p f (Vector a) (Vector b) a b where
   _Cons = prism (uncurry Vector.cons) $ \v ->
