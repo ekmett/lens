@@ -2028,7 +2028,7 @@ iconcatMapOf :: IndexedGetting i [r] s a -> (i -> a -> [r]) -> s -> [r]
 iconcatMapOf = ifoldMapOf
 {-# INLINE iconcatMapOf #-}
 
--- | The 'findOf' function takes an 'IndexedFold' or 'IndexedTraversal', a predicate that is also
+-- | The 'ifindOf' function takes an 'IndexedFold' or 'IndexedTraversal', a predicate that is also
 -- supplied the index, a structure and returns the left-most element of the structure
 -- matching the predicate, or 'Nothing' if there is no such element.
 --
