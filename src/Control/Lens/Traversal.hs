@@ -1045,10 +1045,10 @@ elements = elementsOf traverse
 --
 -- >>> failover _Right (*2) (Right 4) :: Maybe (Either Int Int)
 -- Just (Right 8)
-failover :: MonadPlus m => LensLike ((,) Any) s t a b -> (a -> b) -> s -> m t
+failover :: Alternative m => LensLike ((,) Any) s t a b -> (a -> b) -> s -> m t
 failover l f s = case l ((,) (Any True) . f) s of
-  (Any True, t)  -> return t
-  (Any False, _) -> mzero
+  (Any True, t)  -> pure t
+  (Any False, _) -> Applicative.empty
 {-# INLINE failover #-}
 
 -- | Try the first 'Traversal' (or 'Fold'), falling back on the second 'Traversal' (or 'Fold') if it returns no entries.
