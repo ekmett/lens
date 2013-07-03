@@ -52,7 +52,6 @@ import           Control.Lens.Traversal
 import           Control.Lens.Type
 import           Data.Data
 import           GHC.IO
-import           Unsafe.Coerce as Unsafe
 import           Data.Maybe
 
 #ifndef SAFE
@@ -384,63 +383,49 @@ readCacheHitMap b@(DataBox kb _) = inlinePerformIO $
 -- Answers
 -------------------------------------------------------------------------------
 
-data Answer a
-  = Hit a
+data Answer b a
+  = b ~ a => Hit a
   | Follow
   | Miss
-  deriving (Eq,Ord,Show,Read)
-
-instance Functor Answer where
-  fmap f (Hit a) = Hit (f a)
-  fmap _ Follow  = Follow
-  fmap _ Miss    = Miss
-  {-# INLINE fmap #-}
 
 -------------------------------------------------------------------------------
 -- Oracles
 -------------------------------------------------------------------------------
 
-newtype Oracle a = Oracle { fromOracle :: forall t. Typeable t => t -> Answer a }
+newtype Oracle a = Oracle { fromOracle :: forall t. Typeable t => t -> Answer t a }
 
-instance Functor Oracle where
-  fmap f (Oracle g) = Oracle (fmap f . g)
-  {-# INLINE fmap #-}
-
-hitTest :: (Data a, Typeable b) => a -> b -> Oracle b
-hitTest a b
-  | kb <- typeOf b = case readCacheFollower (dataBox a) kb of
-    Nothing -> Oracle $ \c ->
-      if typeOf c == kb
-      then Hit (unsafeCoerce c)
-      else Follow
-    Just p -> Oracle $ \c -> let kc = typeOf c in
-      if kc == kb then Hit (unsafeCoerce c)
-      else if p kc then Follow
-      else Miss
+hitTest :: forall a b. (Data a, Typeable b) => a -> b -> Oracle b
+hitTest a b = Oracle $ \(c :: c) ->
+  case mightBe :: Maybe (Is c b) of
+    Just Refl -> Hit c
+    Nothing ->
+      case readCacheFollower (dataBox a) (typeOf b) of
+        Just p | not (p (typeOf c)) -> Miss
+        _ -> Follow
 
 -------------------------------------------------------------------------------
 -- Traversals
 -------------------------------------------------------------------------------
 
 
-biplateData :: forall f s a. (Applicative f, Data s, Typeable a) => (forall c. Typeable c => c -> Answer a) -> (a -> f a) -> s -> f s
+biplateData :: forall f s a. (Applicative f, Data s, Typeable a) => (forall c. Typeable c => c -> Answer c a) -> (a -> f a) -> s -> f s
 biplateData o f a0 = go2 a0 where
   go :: Data d => d -> f d
   go s = gfoldl (\x y -> x <*> go2 y) pure s
   go2 :: Data d => d -> f d
   go2 s = case o s of
-    Hit a  -> Unsafe.unsafeCoerce <$> f a
+    Hit a  -> f a
     Follow -> go s
     Miss   -> pure s
 {-# INLINE biplateData #-}
 
-uniplateData :: forall f s a. (Applicative f, Data s, Typeable a) => (forall c. Typeable c => c -> Answer a) -> (a -> f a) -> s -> f s
+uniplateData :: forall f s a. (Applicative f, Data s, Typeable a) => (forall c. Typeable c => c -> Answer c a) -> (a -> f a) -> s -> f s
 uniplateData o f a0 = go a0 where
   go :: Data d => d -> f d
   go s = gfoldl (\x y -> x <*> go2 y) pure s
   go2 :: Data d => d -> f d
   go2 s = case o s of
-    Hit a  -> Unsafe.unsafeCoerce <$> f a
+    Hit a  -> f a
     Follow -> go s
     Miss   -> pure s
 {-# INLINE uniplateData #-}
