@@ -53,8 +53,6 @@ import           Control.Lens.Type
 import           Data.Data
 import           GHC.IO
 import           Data.Maybe
-
-#ifndef SAFE
 import           Data.Foldable
 import qualified Data.HashMap.Strict as M
 import           Data.HashMap.Strict (HashMap, (!))
@@ -63,7 +61,6 @@ import           Data.HashSet (HashSet)
 import           Data.IORef
 import           Data.Monoid
 import           GHC.Exts (realWorld#)
-#endif
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
 {-# ANN module "HLint: ignore Use foldl" #-}
@@ -113,12 +110,8 @@ step f w s = w <*> case mightBe :: Maybe (Is s a) of
 --
 -- This is 'uniplate' with a more liberal signature.
 template :: forall s a. (Data s, Typeable a) => Traversal' s a
-#ifdef SAFE
-template = tinplate
-#else
 template = uniplateData (fromOracle answer) where
   answer = hitTest (undefined :: s) (undefined :: a)
-#endif
 {-# INLINE template #-}
 
 -- | Find descendants of type @a@ non-transitively, while avoiding computation of areas that cannot contain values of
@@ -131,14 +124,8 @@ uniplate = template
 
 -- | 'biplate' performs like 'template', except when @s ~ a@, it returns itself and nothing else.
 biplate :: forall s a. (Data s, Typeable a) => Traversal' s a
-#ifdef SAFE
-biplate f s
-  | typeOf (undefined :: s) == typeOf (undefined :: a) = pure s
-  | otherwise                                          = template f s
-#else
 biplate = biplateData (fromOracle answer) where
   answer = hitTest (undefined :: s) (undefined :: a)
-#endif
 {-# INLINE biplate #-}
 
 ------------------------------------------------------------------------------
@@ -278,8 +265,6 @@ data Is a b where
 mightBe :: (Typeable a, Typeable b) => Maybe (Is a b)
 mightBe = gcast Refl
 {-# INLINE mightBe #-}
-
-#ifndef SAFE
 
 -------------------------------------------------------------------------------
 -- Data Box
@@ -448,5 +433,3 @@ follower a b m
   | S.size hit < S.size miss = S.member ?? hit
   | otherwise = \k -> not (S.member k miss)
   where (hit, miss) = part (\x -> S.member b (m ! x)) (S.insert a (m ! a))
-
-#endif
