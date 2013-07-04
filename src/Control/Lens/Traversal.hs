@@ -570,6 +570,18 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 -- The resulting 'Lens', 'Getter', or 'Action' will be partial if the supplied 'Traversal' returns
 -- no results.
 --
+-- >>> [1,2,3] ^. singular _head
+-- 1
+--
+-- >>> [] ^. singular _head
+-- *** Exception: singular: empty traversal
+--
+-- >>> Left 4 ^. singular _Left
+-- 4
+--
+-- >>> [1..10] ^. singular (ix 7)
+-- 8
+--
 -- @
 -- 'singular' :: 'Traversal' s t a a          -> 'Lens' s t a a
 -- 'singular' :: 'Fold' s a                   -> 'Getter' s a
