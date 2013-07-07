@@ -144,6 +144,7 @@ import Prelude hiding ((.),id)
 -- >>> import Control.DeepSeq (NFData (..), force)
 -- >>> import Control.Exception (evaluate)
 -- >>> import Data.Maybe (fromMaybe)
+-- >>> import Debug.SimpleReflect.Vars
 -- >>> import Data.Void
 -- >>> import System.Timeout (timeout)
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
@@ -453,7 +454,16 @@ iloci f w = getCompose (runBazaar w (Compose #. Indexed (\i -> fmap (indexed sel
 --
 -- /Note:/ You should really try to maintain the invariant of the number of children in the list.
 --
+-- >>> (a,b,c) & partsOf each .~ [x,y,z]
+-- (x,y,z)
+--
 -- Any extras will be lost. If you do not supply enough, then the remainder will come from the original structure.
+--
+-- >>> (a,b,c) & partsOf each .~ [w,x,y,z]
+-- (w,x,y)
+--
+-- >>> (a,b,c) & partsOf each .~ [x,y]
+-- (x,y,c)
 --
 -- So technically, this is only a 'Lens' if you do not change the number of results it returns.
 --
@@ -559,6 +569,18 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 --
 -- The resulting 'Lens', 'Getter', or 'Action' will be partial if the supplied 'Traversal' returns
 -- no results.
+--
+-- >>> [1,2,3] ^. singular _head
+-- 1
+--
+-- >>> [] ^. singular _head
+-- *** Exception: singular: empty traversal
+--
+-- >>> Left 4 ^. singular _Left
+-- 4
+--
+-- >>> [1..10] ^. singular (ix 7)
+-- 8
 --
 -- @
 -- 'singular' :: 'Traversal' s t a a          -> 'Lens' s t a a
@@ -1035,10 +1057,10 @@ elements = elementsOf traverse
 --
 -- >>> failover _Right (*2) (Right 4) :: Maybe (Either Int Int)
 -- Just (Right 8)
-failover :: MonadPlus m => LensLike ((,) Any) s t a b -> (a -> b) -> s -> m t
+failover :: Alternative m => LensLike ((,) Any) s t a b -> (a -> b) -> s -> m t
 failover l f s = case l ((,) (Any True) . f) s of
-  (Any True, t)  -> return t
-  (Any False, _) -> mzero
+  (Any True, t)  -> pure t
+  (Any False, _) -> Applicative.empty
 {-# INLINE failover #-}
 
 -- | Try the first 'Traversal' (or 'Fold'), falling back on the second 'Traversal' (or 'Fold') if it returns no entries.

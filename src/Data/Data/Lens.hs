@@ -277,6 +277,7 @@ data Is a b where
 
 mightBe :: (Typeable a, Typeable b) => Maybe (Is a b)
 mightBe = gcast Refl
+{-# INLINE mightBe #-}
 
 #ifndef SAFE
 
