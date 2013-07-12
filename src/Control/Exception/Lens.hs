@@ -102,7 +102,7 @@ module Control.Exception.Lens
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.CatchIO as CatchIO hiding (try, tryJust)
+import Control.Monad.Catch as Catch
 import Control.Exception as Exception hiding (try, tryJust, catchJust)
 import Control.Lens
 import Control.Lens.Internal.Exception
@@ -152,7 +152,7 @@ exception = prism' toException fromException
 -- 'catching' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> (a -> m r) -> m r
 -- 'catching' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> (a -> m r) -> m r
 -- @
-catching :: MonadCatchIO m => Getting (First a) SomeException a -> m r -> (a -> m r) -> m r
+catching :: MonadCatch m => Getting (First a) SomeException a -> m r -> (a -> m r) -> m r
 catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
@@ -172,16 +172,9 @@ catching l = catchJust (preview l)
 -- 'catching_' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> m r -> m r
 -- 'catching_' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> m r -> m r
 -- @
-catching_ :: MonadCatchIO m => Getting (First a) SomeException a -> m r -> m r -> m r
+catching_ :: MonadCatch m => Getting (First a) SomeException a -> m r -> m r -> m r
 catching_ l a b = catchJust (preview l) a (const b)
 {-# INLINE catching_ #-}
-
--- | A helper function to provide conditional catch behavior.
-catchJust :: (MonadCatchIO m, Exception e) => (e -> Maybe t) -> m a -> (t -> m a) -> m a
-catchJust f m k = CatchIO.catch m $ \ e -> case f e of
-  Nothing -> liftIO (throwIO e)
-  Just x  -> k x
-{-# INLINE catchJust #-}
 
 ------------------------------------------------------------------------------
 -- Handling
@@ -201,7 +194,7 @@ catchJust f m k = CatchIO.catch m $ \ e -> case f e of
 -- 'handling' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> (a -> m r) -> m r -> m r
 -- 'handling' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> (a -> m r) -> m r -> m r
 -- @
-handling :: MonadCatchIO m => Getting (First a) SomeException a -> (a -> m r) -> m r -> m r
+handling :: MonadCatch m => Getting (First a) SomeException a -> (a -> m r) -> m r -> m r
 handling l = flip (catching l)
 {-# INLINE handling #-}
 
@@ -219,7 +212,7 @@ handling l = flip (catching l)
 -- 'handling_' :: 'MonadCatchIO' m => 'Getter' 'SomeException' a     -> m r -> m r -> m r
 -- 'handling_' :: 'MonadCatchIO' m => 'Fold' 'SomeException' a       -> m r -> m r -> m r
 -- @
-handling_ :: MonadCatchIO m => Getting (First a) SomeException a -> m r -> m r -> m r
+handling_ :: MonadCatch m => Getting (First a) SomeException a -> m r -> m r -> m r
 handling_ l = flip (catching_ l)
 {-# INLINE handling_ #-}
 
@@ -239,22 +232,8 @@ handling_ l = flip (catching_ l)
 -- 'trying' :: 'MonadCatchIO' m => 'Getter'     'SomeException' a -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadCatchIO' m => 'Fold'       'SomeException' a -> m r -> m ('Either' a r)
 -- @
-trying :: MonadCatchIO m => Getting (First a) SomeException a -> m r -> m (Either a r)
+trying :: MonadCatch m => Getting (First a) SomeException a -> m r -> m (Either a r)
 trying l = tryJust (preview l)
-
--- | A helper version of 'Control.Exception.try' that doesn't needlessly require 'Functor'.
-try :: (MonadCatchIO m, Exception e) => m a -> m (Either e a)
-try a = CatchIO.catch (liftM Right a) (return . Left)
-
--- | A helper version of 'Control.Exception.tryJust' that doesn't needlessly require 'Functor'.
-tryJust :: (MonadCatchIO m, Exception e) => (e -> Maybe b) -> m a -> m (Either b a)
-tryJust p a = do
-  r <- try a
-  case r of
-    Right v -> return (Right v)
-    Left  e -> case p e of
-      Nothing -> CatchIO.throw e `asTypeOf` return (Left undefined)
-      Just b  -> return (Left b)
 
 ------------------------------------------------------------------------------
 -- Throwing
@@ -302,8 +281,8 @@ throwing l = reviews l Exception.throw
 -- 'throwingM' :: 'MonadCatchIO' m => 'Prism'' 'SomeException' t -> t -> m a
 -- 'throwingM' :: 'MonadCatchIO' m => 'Iso'' 'SomeException' t   -> t -> m a
 -- @
-throwingM :: MonadCatchIO m => AReview s SomeException a b -> b -> m a
-throwingM l = reviews l (liftIO . throwIO)
+throwingM :: MonadCatch m => AReview s SomeException a b -> b -> m a
+throwingM l = reviews l throwM
 {-# INLINE throwingM #-}
 
 -- | 'throwingTo' raises an 'Exception' specified by a 'Prism' in the target thread.

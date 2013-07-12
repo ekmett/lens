@@ -30,7 +30,7 @@ module Control.Lens.Internal.Exception
 import Control.Exception as Exception
 import Control.Lens.Fold
 import Control.Lens.Getter
-import Control.Monad.CatchIO as CatchIO
+import Control.Monad.Catch as Catch
 import Data.IORef
 import Data.Monoid
 import Data.Proxy
@@ -131,14 +131,14 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
 instance Handleable SomeException IO Exception.Handler where
   handler = handlerIO
 
-instance Handleable SomeException m (CatchIO.Handler m) where
+instance Handleable SomeException m (Catch.Handler m) where
   handler = handlerCatchIO
 
 handlerIO :: forall a r. Getting (First a) SomeException a -> (a -> IO r) -> Exception.Handler r
 handlerIO l f = reify (preview l) $ \ (_ :: Proxy s) -> Exception.Handler (\(Handling a :: Handling a s IO) -> f a)
 
-handlerCatchIO :: forall m a r. Getting (First a) SomeException a -> (a -> m r) -> CatchIO.Handler m r
-handlerCatchIO l f = reify (preview l) $ \ (_ :: Proxy s) -> CatchIO.Handler (\(Handling a :: Handling a s m) -> f a)
+handlerCatchIO :: forall m a r. Getting (First a) SomeException a -> (a -> m r) -> Catch.Handler m r
+handlerCatchIO l f = reify (preview l) $ \ (_ :: Proxy s) -> Catch.Handler (\(Handling a :: Handling a s m) -> f a)
 
 ------------------------------------------------------------------------------
 -- Helpers
