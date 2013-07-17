@@ -111,5 +111,31 @@ data Lebowski a = Lebowski
 makeFields ''Dude
 makeFields ''Lebowski
 
+declareLenses [d|
+  data Quark1 a = Qualified1   { gaffer1 :: a }
+                | Unqualified1 { gaffer1 :: a, tape1 :: a }
+  |]
+-- data Quark1 a = Qualified1 a | Unqualified1 a a
+-- gaffer1 :: Lens' (Quark1 a) a
+-- tape1 :: Traversal (Quark1 a) (Quark1 b) a b
+
+declareIso [d|
+  newtype WrappedInt = Wrap { unwrap :: Int }
+  data New = New Int
+  |]
+-- newtype WrappedInt = Wrap Int
+-- data New = New Int
+-- wrap :: Iso' Int WrappedInt
+-- unwrap :: Iso' WrappedInt Int
+-- new :: Iso' Int New
+
+declarePrisms [d|
+  data Exp = Lit Int | Var String | Lambda { bound::String, body::Exp }
+  |]
+-- data Exp = Lit Int | Var String | Lambda { bound::String, body::Exp }
+-- _Lit :: Prism' Exp Int
+-- _Var :: Prism' Exp String
+-- _Lambda :: Prism' Exp (String, Exp)
+
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
