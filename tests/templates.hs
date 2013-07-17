@@ -4,6 +4,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main (templates)
@@ -38,11 +39,11 @@ makeLenses ''Quark
 -- gaffer :: Simple Lens (Quark a) a
 -- tape :: Simple Traversal (Quark a) a
 
-data Hadron a b = Science { _a1 :: a, _a2 :: a, _b :: b }
+data Hadron a b = Science { _a1 :: a, _a2 :: a, _c :: b }
 makeLenses ''Hadron
 -- a1 :: Simple Lens (Hadron a b) a
 -- a2 :: Simple Lens (Hadron a b) a
--- b :: Lens (Hadron a b) (Hadron a b') b b'
+-- c :: Lens (Hadron a b) (Hadron a b') b b'
 
 data Perambulation a b
   = Mountains { _terrain :: a, _altitude :: b }
@@ -140,12 +141,14 @@ declarePrisms [d|
 
 data family Family a b c
 
+#if __GLASGOW_HASKELL >= 706
 declareLenses [d|
   data instance Family Int (a, b) a = FamilyInt { fm0 :: (b, a), fm1 :: Int }
   |]
 -- data instance Family Int (a, b) a = FamilyInt a b
 -- fm0 :: Lens (Family Int (a, b) a) (Family Int (a', b') a') (b, a) (b', a')
 -- fm1 :: Lens' (Family Int (a, b) a) Int
+#endif
 
 class Class a where
   data Associated a
