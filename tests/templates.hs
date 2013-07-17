@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main (templates)
@@ -136,6 +137,29 @@ declarePrisms [d|
 -- _Lit :: Prism' Exp Int
 -- _Var :: Prism' Exp String
 -- _Lambda :: Prism' Exp (String, Exp)
+
+data family Family a b c
+
+declareLenses [d|
+  data instance Family Int (a, b) a = FamilyInt { fm0 :: (b, a), fm1 :: Int }
+  |]
+-- data instance Family Int (a, b) a = FamilyInt a b
+-- fm0 :: Lens (Family Int (a, b) a) (Family Int (a', b') a') (b, a) (b', a')
+-- fm1 :: Lens' (Family Int (a, b) a) Int
+
+class Class a where
+  data Associated a
+  method :: a -> Int
+
+declareLenses [d|
+  instance Class Int where
+    data Associated Int = AssociatedInt { mochi :: Double }
+    method = id
+  |]
+-- instance Class Int where
+--   data Associated Int = AssociatedInt Double
+--   method = id
+-- mochi :: Iso' (Associated Int) Double
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"

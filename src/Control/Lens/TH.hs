@@ -70,6 +70,7 @@ import Control.Applicative
 #if !(MIN_VERSION_template_haskell(2,7,0))
 import Control.Monad (ap)
 #endif
+import Control.Monad (when)
 import qualified Control.Monad.Trans as Trans
 import Control.Monad.Trans.Writer
 import Control.Lens.At
@@ -498,38 +499,41 @@ declareFieldsWith rules = declareWith $ \dec -> do
 -- Internal TH Implementation
 -----------------------------------------------------------------------------
 
--- | Transform @NewtypeD@s declarations to @DataD@s.
+-- | Transform @NewtypeD@s declarations to @DataD@s and @NewtypeInstD@s to
+-- @DataInstD@s.
 deNewtype :: Dec -> Dec
-deNewtype (NewtypeD ctx tyConName args c d) = DataD ctx tyConName args [c] d
+deNewtype (NewtypeD ctx tyName args c d) = DataD ctx tyName args [c] d
+deNewtype (NewtypeInstD ctx tyName args c d) = DataInstD ctx tyName args [c] d
 deNewtype d = d
 
 makePrismsForDec :: Dec -> Q [Dec]
-makePrismsForDec decl = case deNewtype decl of
-  DataD ctx tyConName args cons _ -> makePrismsForCons ctx tyConName args cons
+makePrismsForDec decl = case makeDataDecl decl of
+  Just dataDecl -> makePrismsForCons dataDecl
   _ -> fail "makePrisms: Unsupported data type"
 
-makePrismsForCons :: [Pred] -> Name -> [TyVarBndr] -> [Con] -> Q [Dec]
-makePrismsForCons ctx tyConName args cons =
-  concat <$> mapM (makePrismForCon ctx tyConName args canModifyTypeVar cons) cons
+makePrismsForCons :: DataDecl -> Q [Dec]
+makePrismsForCons dataDecl =
+  concat <$> mapM (makePrismForCon dataDecl canModifyTypeVar ) (constructors dataDecl)
   where
-    conTypeVars = map (Set.fromList . toListOf typeVars) cons
+    conTypeVars = map (Set.fromList . toListOf typeVars) (constructors dataDecl)
     canModifyTypeVar = (`Set.member` typeVarsOnlyInOneCon) . view name
     typeVarsOnlyInOneCon = Set.fromList . concat . filter (\xs -> length xs == 1) .  List.group . List.sort $ conTypeVars >>= toList
 
-makePrismForCon :: [Pred] -> Name -> [TyVarBndr] -> (TyVarBndr -> Bool) -> [Con] -> Con -> Q [Dec]
-makePrismForCon ctx tyConName args canModifyTypeVar allCons con = do
+makePrismForCon :: DataDecl -> (TyVarBndr -> Bool) -> Con -> Q [Dec]
+makePrismForCon dataDecl canModifyTypeVar con = do
     remitterName <- newName "remitter"
     reviewerName <- newName "reviewer"
     xName <- newName "x"
     let resName = mkName $ '_': nameBase dataConName
     varNames <- for [0..length fieldTypes -1] $ \i -> newName ('x' : show i)
+    let args = dataParameters dataDecl
     altArgsList <- forM (view name <$> filter isAltArg args) $ \arg ->
       (,) arg <$> newName (nameBase arg)
     let altArgs = Map.fromList altArgsList
         hitClause =
           clause [conP dataConName (fmap varP varNames)]
           (normalB $ appE (conE 'Right) $ toTupleE $ varE <$> varNames) []
-        otherCons = filter (/= con) allCons
+        otherCons = filter (/= con) (constructors dataDecl)
         missClauses
           | List.null otherCons   = []
           | Map.null altArgs = [clause [varP xName] (normalB (appE (conE 'Left) (varE xName))) []]
@@ -537,16 +541,16 @@ makePrismForCon ctx tyConName args canModifyTypeVar allCons con = do
     Prelude.sequence [
       sigD resName . forallT
         (args ++ (PlainTV <$> Map.elems altArgs))
-        (return $ List.nub (ctx ++ substTypeVars altArgs ctx)) $
+        (return $ List.nub (dataContext dataDecl ++ substTypeVars altArgs (dataContext dataDecl))) $
          if List.null altArgsList then
           conT ''Prism' `appsT`
-            [ appsT (conT tyConName) $ varT . view name <$> args
+            [ return $ fullType dataDecl $ VarT . view name <$> args
             , toTupleT $ pure <$> fieldTypes
             ]
          else
           conT ''Prism `appsT`
-            [ appsT (conT tyConName) $ varT . view name <$> args
-            , appsT (conT tyConName) $ varT . view name <$> substTypeVars altArgs args
+            [ return $ fullType dataDecl $ VarT . view name <$> args
+            , return $ fullType dataDecl $ VarT . view name <$> substTypeVars altArgs args
             , toTupleT $ pure <$> fieldTypes
             , toTupleT $ pure <$> substTypeVars altArgs fieldTypes
             ]
@@ -628,10 +632,6 @@ plain :: TyVarBndr -> TyVarBndr
 plain (KindedTV t _) = PlainTV t
 plain (PlainTV t) = PlainTV t
 
-appArgs :: Type -> [TyVarBndr] -> Type
-appArgs t [] = t
-appArgs t (x:xs) = appArgs (AppT t (VarT (x^.name))) xs
-
 apps :: Type -> [Type] -> Type
 apps = Prelude.foldl AppT
 
@@ -639,36 +639,76 @@ appsT :: TypeQ -> [TypeQ] -> TypeQ
 appsT = Prelude.foldl appT
 
 makeLensesForDec :: LensRules -> Dec -> Q [Dec]
-makeLensesForDec cfg decl = case deNewtype decl of
-  DataD ctx tyConName args cons _ -> case cons of
+makeLensesForDec cfg decl = case makeDataDecl decl of
+  Just dataDecl -> case constructors dataDecl of
     [NormalC dataConName [(    _,ty)]]
       | cfg^.handleSingletons  ->
-        makeIsoLenses cfg ctx tyConName args dataConName Nothing ty
+        makeIsoLenses cfg dataDecl dataConName Nothing ty
     [RecC    dataConName [(fld,_,ty)]]
       | cfg^.handleSingletons  ->
-        makeIsoLenses cfg ctx tyConName args dataConName (Just fld) ty
+        makeIsoLenses cfg dataDecl dataConName (Just fld) ty
     _ | cfg^.singletonRequired ->
         fail "makeLensesWith: A single-constructor single-argument data type is required"
       | otherwise              ->
-        makeFieldLenses cfg ctx tyConName args cons
-  _ -> fail "makeLensesWith: Unsupported data type"
+        makeFieldLenses cfg dataDecl
+  Nothing -> fail "makeLensesWith: Unsupported data type"
+
+makeDataDecl :: Dec -> Maybe DataDecl
+makeDataDecl dec = case deNewtype dec of
+  DataD ctx tyName args cons _ -> Just DataDecl
+    { dataContext = ctx
+    , tyConName = Just tyName
+    , dataParameters = args
+    , fullType = apps $ ConT tyName
+    , constructors = cons
+    }
+  DataInstD ctx familyName args cons _ -> Just DataDecl
+    { dataContext = ctx
+    , tyConName = Nothing
+    , dataParameters = map PlainTV vars
+    , fullType = \tys -> apps (ConT familyName) $
+        substType (Map.fromList $ zip vars tys) args
+    , constructors = cons
+    }
+    where
+      -- The list of "type parameters" to a data family instance is not
+      -- explicitly specified in the source. Here we define it to be
+      -- the set of distinct type variables that appear in the LHS. e.g.
+      --
+      -- data instance F a Int (Maybe (a, b)) = G
+      --
+      -- has 2 type parameters: a and b.
+      vars = toList $ setOf typeVars args
+  _ -> Nothing
+
+-- | A data, newtype, data instance or newtype instance declaration.
+data DataDecl = DataDecl
+  { dataContext :: Cxt -- ^ Datatype context.
+  , tyConName :: Maybe Name
+    -- ^ Type constructor name, or Nothing for a data family instance.
+  , dataParameters :: [TyVarBndr] -- ^ List of type parameters
+  , fullType :: [Type] -> Type
+    -- ^ Create a concrete record type given a substitution to
+    -- 'detaParameters'.
+  , constructors :: [Con] -- ^ Constructors
+  -- , derivings :: [Name] -- currently not needed
+  }
 
 makeIsoLenses :: LensRules
-              -> Cxt
-              -> Name
-              -> [TyVarBndr]
+              -> DataDecl
               -> Name
               -> Maybe Name
               -> Type
               -> Q [Dec]
-makeIsoLenses cfg ctx tyConName tyArgs0 dataConName maybeFieldName partTy = do
-  let tyArgs = map plain tyArgs0
+makeIsoLenses cfg dataDecl dataConName maybeFieldName partTy = do
+  let tyArgs = map plain (dataParameters dataDecl)
   m <- freshMap $ setOf typeVars tyArgs
   let aty = partTy
       bty = substTypeVars m aty
-      cty = appArgs (ConT tyConName) tyArgs
+      cty = fullType dataDecl $ map (VarT . view name) tyArgs
       dty = substTypeVars m cty
-      quantified = ForallT (tyArgs ++ substTypeVars m tyArgs) (ctx ++ substTypeVars m ctx)
+      quantified = ForallT (tyArgs ++ substTypeVars m tyArgs)
+        (dataContext dataDecl ++ substTypeVars m (dataContext dataDecl))
       maybeIsoName = mkName <$> view lensIso cfg (nameBase dataConName)
       lensOnly = not $ cfg^.singletonIso
       isoCon   | lensOnly  = ConT ''Lens
@@ -742,15 +782,13 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
       clause [varP f, conP conName cpats] (normalB expr) []
 
 makeFieldLenses :: LensRules
-                -> Cxt         -- ^ surrounding cxt driven by the data type context
-                -> Name        -- ^ data/newtype constructor name
-                -> [TyVarBndr] -- ^ args
-                -> [Con]
+                -> DataDecl
                 -> Q [Dec]
-makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
-  let tyArgs = map plain tyArgs0
-      maybeLensClass = view lensClass cfg $ nameBase tyConName
+makeFieldLenses cfg dataDecl = do
+  let tyArgs = map plain $ dataParameters dataDecl
+      maybeLensClass = view lensClass cfg . nameBase =<< tyConName dataDecl
       maybeClassName = fmap (^._1.to mkName) maybeLensClass
+      cons = constructors dataDecl
   t <- newName "t"
   a <- newName "a"
 
@@ -773,7 +811,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
     -- Map for the polymorphic variables that are only involved in these fields, to new names for them.
     m <- freshMap . Set.difference varSet $ Set.fromList otherVars
     let aty | isJust maybeClassName = VarT t
-            | otherwise             = appArgs (ConT tyConName) tyArgs'
+            | otherwise             = fullType dataDecl $ map (VarT . view name) tyArgs'
         bty = substTypeVars m aty
         dty = substTypeVars m cty
 
@@ -781,6 +819,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
         relevantBndr b = s^.contains (b^.name)
         relevantCtx = not . Set.null . Set.intersection s . setOf typeVars
         tvs = tyArgs' ++ filter relevantBndr (substTypeVars m tyArgs')
+        ctx = dataContext dataDecl
         ps = filter relevantCtx (substTypeVars m ctx)
         qs = case maybeClassName of
            Just n | not (cfg^.createClass) -> ClassP n [VarT t] : (ctx ++ ps)
@@ -835,7 +874,7 @@ makeFieldLenses cfg ctx tyConName tyArgs0 cons = do
       let clsName    = mkName clsNameString
           methodName = mkName methodNameString
           varArgs    = varT . view name <$> tyArgs
-          appliedCon = conT tyConName `appsT` varArgs
+          appliedCon = fullType dataDecl <$> sequenceA varArgs
       Prelude.sequence $
         filter (\_ -> cfg^.createClass) [
           classD (return []) clsName (PlainTV t : tyArgs) (if List.null tyArgs then [] else [FunDep [t] (view name <$> tyArgs)]) (
@@ -877,14 +916,14 @@ makeWrapped nm = do
     _ -> fail "makeWrapped: Expected the name of a newtype or datatype"
 
 makeWrappedForDec :: Dec -> Q (Maybe [Dec])
-makeWrappedForDec decl = case deNewtype decl of
-  DataD _ tyConName args [con] _
-    -> Just <$> makeWrappedInstance tyConName args con
+makeWrappedForDec decl = case makeDataDecl decl of
+  Just dataDecl@DataDecl{ constructors = [con] }
+    -> Just <$> makeWrappedInstance dataDecl con
   _ -> return Nothing
 
-makeWrappedInstance :: Name -> [TyVarBndr] -> Con -> DecsQ
-makeWrappedInstance tyConName tyArgs con = do
-  let tyNames = view name <$> tyArgs
+makeWrappedInstance :: DataDecl-> Con -> DecsQ
+makeWrappedInstance dataDecl con = do
+  let tyNames = view name <$> dataParameters dataDecl
 
   tyNameRemap <- makeNameRemap tyNames
 
@@ -892,10 +931,10 @@ makeWrappedInstance tyConName tyArgs con = do
     (a,[b]) -> return (a,b)
     _       -> fail "makeWrappedInstance: Constructor must have a single field"
 
-  let outer1 = conT tyConName `appsT` fmap varT tyNames
+  let outer1 = return $ fullType dataDecl $ fmap VarT tyNames
       inner1 = return fieldType
 
-      outer2 = conT tyConName `appsT` fmap (varT . snd) tyNameRemap
+      outer2 = return $ fullType dataDecl $ fmap (VarT . snd) tyNameRemap
       inner2 = return $ substTypeVars (Map.fromList tyNameRemap) fieldType
 
   dec <- instanceD (cxt [])
@@ -989,6 +1028,7 @@ verboseLenses :: FieldRules -> Dec -> Q [Dec]
 verboseLenses c decl = do
   cons <- case deNewtype decl of
     DataD _ _ _ cons _ -> return cons
+    DataInstD _ _ _ cons _ -> return cons
     _ -> fail "verboseLenses: Unsupported data type"
   let rs = collectRecords cons
   if List.null rs
@@ -1023,13 +1063,12 @@ hasClassAndInstance :: FieldRules -> Dec -> Q [Dec]
 hasClassAndInstance cfg decl = do
     c <- newName "c"
     e <- newName "e"
-    (tyConName,vs,rs) <- case deNewtype decl of
-      DataD _ tyConName vs cons _ -> do
-        let rs = collectRecords cons
-        if List.null rs
-          then fail "hasClassAndInstance: Expected the name of a record type"
-          else return (tyConName, vs, rs)
-      _ -> fail "hasClassAndInstance: Unsupported data type"
+    dataDecl <- case makeDataDecl decl of
+        Just dataDecl -> return dataDecl
+        _ -> fail "hasClassAndInstance: Unsupported data type"
+    let rs = collectRecords $ constructors dataDecl
+    when (List.null rs) $
+      fail "hasClassAndInstance: Expected the name of a record type"
     fmap concat . forM (mkFields cfg rs) $ \(Field field _ fullLensName className lensName) -> do
         classHas <- classD
             (return [])
@@ -1045,7 +1084,9 @@ hasClassAndInstance cfg decl = do
                 _                               -> error "Cannot get fieldType"
         instanceHas <- instanceD
             (return [])
-            (conT className `appsT` [conT tyConName `appsT` map (varT.view name) vs, return fieldType])
+            (return $ ConT className `apps`
+              [fullType dataDecl $ map (VarT . view name) (dataParameters dataDecl)
+              , fieldType])
             [
 #ifdef INLINING
               inlinePragma lensName,
@@ -1100,6 +1141,13 @@ traverseDataAndNewtype f decs = traverse go decs
     go dec = case dec of
       DataD{} -> f dec
       NewtypeD{} -> f dec
+      DataInstD{} -> f dec
+      NewtypeInstD{} -> f dec
+
+      -- Recurse into instance declarations because they main contain
+      -- associated data family instances.
+      InstanceD ctx inst body -> InstanceD ctx inst <$> traverse go body
+
       _ -> pure dec
 
 stripFields :: Dec -> Dec
@@ -1108,6 +1156,10 @@ stripFields dec = case dec of
     DataD ctx tyName tyArgs (map deRecord cons) derivings
   NewtypeD ctx tyName tyArgs con derivings ->
     NewtypeD ctx tyName tyArgs (deRecord con) derivings
+  DataInstD ctx tyName tyArgs cons derivings ->
+    DataInstD ctx tyName tyArgs (map deRecord cons) derivings
+  NewtypeInstD ctx tyName tyArgs con derivings ->
+    NewtypeInstD ctx tyName tyArgs (deRecord con) derivings
   _ -> dec
 
 deRecord :: Con -> Con
