@@ -3,6 +3,8 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main (templates)
@@ -37,11 +39,11 @@ makeLenses ''Quark
 -- gaffer :: Simple Lens (Quark a) a
 -- tape :: Simple Traversal (Quark a) a
 
-data Hadron a b = Science { _a1 :: a, _a2 :: a, _b :: b }
+data Hadron a b = Science { _a1 :: a, _a2 :: a, _c :: b }
 makeLenses ''Hadron
 -- a1 :: Simple Lens (Hadron a b) a
 -- a2 :: Simple Lens (Hadron a b) a
--- b :: Lens (Hadron a b) (Hadron a b') b b'
+-- c :: Lens (Hadron a b) (Hadron a b') b b'
 
 data Perambulation a b
   = Mountains { _terrain :: a, _altitude :: b }
@@ -110,6 +112,57 @@ data Lebowski a = Lebowski
 
 makeFields ''Dude
 makeFields ''Lebowski
+
+declareLenses [d|
+  data Quark1 a = Qualified1   { gaffer1 :: a }
+                | Unqualified1 { gaffer1 :: a, tape1 :: a }
+  |]
+-- data Quark1 a = Qualified1 a | Unqualified1 a a
+-- gaffer1 :: Lens' (Quark1 a) a
+-- tape1 :: Traversal (Quark1 a) (Quark1 b) a b
+
+declareIso [d|
+  newtype WrappedInt = Wrap { unwrap :: Int }
+  data New = New Int
+  |]
+-- newtype WrappedInt = Wrap Int
+-- data New = New Int
+-- wrap :: Iso' Int WrappedInt
+-- unwrap :: Iso' WrappedInt Int
+-- new :: Iso' Int New
+
+declarePrisms [d|
+  data Exp = Lit Int | Var String | Lambda { bound::String, body::Exp }
+  |]
+-- data Exp = Lit Int | Var String | Lambda { bound::String, body::Exp }
+-- _Lit :: Prism' Exp Int
+-- _Var :: Prism' Exp String
+-- _Lambda :: Prism' Exp (String, Exp)
+
+data family Family a b c
+
+#if __GLASGOW_HASKELL >= 706
+declareLenses [d|
+  data instance Family Int (a, b) a = FamilyInt { fm0 :: (b, a), fm1 :: Int }
+  |]
+-- data instance Family Int (a, b) a = FamilyInt a b
+-- fm0 :: Lens (Family Int (a, b) a) (Family Int (a', b') a') (b, a) (b', a')
+-- fm1 :: Lens' (Family Int (a, b) a) Int
+#endif
+
+class Class a where
+  data Associated a
+  method :: a -> Int
+
+declareLenses [d|
+  instance Class Int where
+    data Associated Int = AssociatedInt { mochi :: Double }
+    method = id
+  |]
+-- instance Class Int where
+--   data Associated Int = AssociatedInt Double
+--   method = id
+-- mochi :: Iso' (Associated Int) Double
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
