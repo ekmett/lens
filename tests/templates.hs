@@ -113,7 +113,9 @@ data Lebowski a = Lebowski
 makeFields ''Dude
 makeFields ''Lebowski
 
+dudeDrink :: String
 dudeDrink      = (Dude 9 "El Duderino" () "white russian")      ^. thing 
+lebowskiCarpet :: Maybe String
 lebowskiCarpet = (Lebowski "Mr. Lebowski" 0 "" (Just "carpet")) ^. thing
 
 declareLenses [d|
