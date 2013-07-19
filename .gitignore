@@ -1,4 +1,5 @@
-dist
+dist/
+.hsenv/
 docs
 wiki
 TAGS
