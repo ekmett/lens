@@ -98,10 +98,10 @@ makeClassy ''Foo
 
 
 data Dude a = Dude
-    { _dudeLevel        :: Int
-    , _dudeAlias        :: String
-    , _dudeLife         :: ()
-    , _dudeThing        :: a
+    { dudeLevel        :: Int
+    , dudeAlias        :: String
+    , dudeLife         :: ()
+    , dudeThing        :: a
     }
 data Lebowski a = Lebowski
     { _lebowskiAlias    :: String
@@ -112,6 +112,9 @@ data Lebowski a = Lebowski
 
 makeFields ''Dude
 makeFields ''Lebowski
+
+dudeDrink      = (Dude 9 "El Duderino" () "white russian")      ^. thing 
+lebowskiCarpet = (Lebowski "Mr. Lebowski" 0 "" (Just "carpet")) ^. thing
 
 declareLenses [d|
   data Quark1 a = Qualified1   { gaffer1 :: a }

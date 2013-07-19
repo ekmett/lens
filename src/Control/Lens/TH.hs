@@ -1005,16 +1005,22 @@ underscoreFields = FieldRules prefix rawLens niceLens classNaming
     niceLens    x = prefix   x <&> \n -> drop (length n + 2) x
     classNaming x = niceLens x <&> ("Has_" ++)
 
--- | Field rules for fields in the form @ prefixFieldname @
+drop_ :: String -> String
+drop_ ('_':xs) = xs
+drop_       xs = xs
+
+-- | Field rules for fields in the form @ prefixFieldname or _prefixFieldname @
 camelCaseFields :: FieldRules
 camelCaseFields = FieldRules prefix rawLens niceLens classNaming
   where
-    sep x = case break isUpper x of
+    sepUpper x = case break isUpper x of
         (p, s) | List.null p || List.null s -> Nothing
                | otherwise                  -> Just (p,s)
-    prefix      x = do ('_':xs,_) <- sep x; return xs
+
+    prefix = fmap fst . sepUpper . drop_
+
     rawLens     x = x ++ "Lens"
-    niceLens    x = overHead toLower . snd <$> sep x
+    niceLens    x = overHead toLower . snd <$> sepUpper x
     classNaming x = niceLens x <&> \ (n:ns) -> "Has" ++ toUpper n : ns
 
 collectRecords :: [Con] -> [VarStrictType]
