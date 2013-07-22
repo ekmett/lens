@@ -67,6 +67,7 @@ module Control.Lens.TH
   ) where
 
 import Control.Applicative
+import Control.Monad ((<=<))
 #if !(MIN_VERSION_template_haskell(2,7,0))
 import Control.Monad (ap)
 #endif
@@ -86,7 +87,7 @@ import Control.Lens.Traversal
 import Control.Lens.Wrapped
 import Data.Char (toLower, toUpper, isUpper)
 import Data.Either (lefts)
-import Data.Foldable hiding (concat)
+import Data.Foldable hiding (concat, any)
 import Data.Function (on)
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
@@ -977,7 +978,7 @@ inlinePragma methodName = pragInlD methodName $ inlineSpecNoPhase True False
 #endif
 
 data FieldRules = FieldRules
-    { _getPrefix          :: String -> Maybe String
+    { _getPrefix          :: [String] -> String -> Maybe String
     , _rawLensNaming      :: String -> String
     , _niceLensNaming     :: String -> Maybe String
     , _classNaming        :: String -> Maybe String
@@ -999,23 +1000,37 @@ overHead f (x:xs) = f x : xs
 underscoreFields :: FieldRules
 underscoreFields = FieldRules prefix rawLens niceLens classNaming
   where
-    prefix ('_':xs) | '_' `List.elem` xs = Just (takeWhile (/= '_') xs)
-    prefix _                             = Nothing
+    prefix _ ('_':xs) | '_' `List.elem` xs = Just (takeWhile (/= '_') xs)
+    prefix _ _                             = Nothing
     rawLens     x = x ++ "_lens"
-    niceLens    x = prefix   x <&> \n -> drop (length n + 2) x
+    niceLens    x = prefix [] x <&> \n -> drop (length n + 2) x
     classNaming x = niceLens x <&> ("Has_" ++)
 
--- | Field rules for fields in the form @ prefixFieldname @
+-- | Field rules for fields in the form @ prefixFieldname or _prefixFieldname @
+-- If you want all fields to be lensed, then there is no reason to use an @_@ before the prefix.
+-- If any of the record fields leads with an @_@ then it is assume a field without an @_@ should not have a lens created.
 camelCaseFields :: FieldRules
 camelCaseFields = FieldRules prefix rawLens niceLens classNaming
   where
-    sep x = case break isUpper x of
+    sepUpper x = case break isUpper x of
         (p, s) | List.null p || List.null s -> Nothing
                | otherwise                  -> Just (p,s)
-    prefix      x = do ('_':xs,_) <- sep x; return xs
+
+    prefix fields = fmap fst . sepUpper <=< dealWith_ fields
+
     rawLens     x = x ++ "Lens"
-    niceLens    x = overHead toLower . snd <$> sep x
+    niceLens    x = overHead toLower . snd <$> sepUpper x
     classNaming x = niceLens x <&> \ (n:ns) -> "Has" ++ toUpper n : ns
+
+    dealWith_ :: [String] -> String -> Maybe String
+    dealWith_ fields field | not $ any (fst . leading_) fields = Just field
+                           | otherwise = if leading then Just trailing else Nothing
+      where
+        leading_ ('_':xs) = (True, xs)
+        leading_      xs  = (False, xs)
+        (leading, trailing) = leading_ field
+
+
 
 collectRecords :: [Con] -> [VarStrictType]
 collectRecords cons = rs
@@ -1045,16 +1060,17 @@ verboseLenses c decl = do
 
 mkFields :: FieldRules -> [VarStrictType] -> [Field]
 mkFields (FieldRules prefix' raw' nice' clas') rs
-    = Maybe.mapMaybe namer rs
+    = Maybe.mapMaybe namer fields
     & List.groupBy (on (==) _fieldLensPrefix)
     & (\ gs -> case gs of 
         x:_ -> x
         _   -> [])
   where
-    namer (n', _, _) = do
-        let field   = nameBase n'
-            rawlens = mkName (raw' field)
-        prefix <- prefix' field
+    fields = map (nameBase . fst3) rs
+    fst3 (x,_,_) = x
+    namer field = do
+        let rawlens = mkName (raw' field)
+        prefix <- prefix' fields field
         nice   <- mkName <$> nice' field
         clas   <- mkName <$> clas' field
         return (Field (mkName field) prefix rawlens clas nice)
