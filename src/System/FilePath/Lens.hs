@@ -127,7 +127,7 @@ l <<.>~ m = l <%~ (<.> m)
 -- | Add an extension onto the end of the target of a 'Lens' into
 -- your monad's state and return the result.
 --
--- >>> evalState (_1 <<.>= "txt") $("hello","world")
+-- >>> evalState (_1 <<.>= "txt") ("hello","world")
 -- "hello.txt"
 --
 -- When you do not need the result of the operation, ('<.>=') is more flexible.
