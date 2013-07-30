@@ -62,6 +62,7 @@ import Data.HashMap.Lazy as HashMap
 import Data.HashSet as HashSet
 import Data.IntMap as IntMap
 import Data.IntSet as IntSet
+import Data.List.NonEmpty as NonEmpty
 import Data.Map as Map
 import Data.Maybe
 import Data.Monoid
@@ -168,6 +169,12 @@ instance (Contravariant f, Functor f) => Contains f [a] where
     where test _ [] = False
           test 0 (_:_) = True
           test n (_:xs) = test (n - 1) xs
+  {-# INLINE contains #-}
+
+instance (Contravariant f, Functor f) => Contains f (NonEmpty a) where
+  contains = containsTest test
+   where
+    test i s = i >= 0 && not (Prelude.null (NonEmpty.drop i s))
   {-# INLINE contains #-}
 
 instance (Contravariant f, Functor f) => Contains f (Seq a) where
@@ -338,6 +345,14 @@ instance Applicative f => Ixed f [a] where
     go [] _ = pure []
     go (a:as) 0 = Lens.indexed f k a <&> (:as)
     go (a:as) i = (a:) <$> (go as $! i - 1)
+  {-# INLINE ix #-}
+
+type instance IxValue (NonEmpty a) = a
+instance Applicative f => Ixed f (NonEmpty a) where
+  ix k f xs0 | k < 0 = pure xs0
+             | otherwise = go xs0 k where
+    go (a:|as) 0 = Lens.indexed f k a <&> (:|as)
+    go (a:|as) i = (a:|) <$> ix (i - 1) f as
   {-# INLINE ix #-}
 
 type instance IxValue (Identity a) = a
