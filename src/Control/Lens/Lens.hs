@@ -191,6 +191,9 @@ type AnIndexedLens' i s a  = AnIndexedLens i s s a a
 -- >>> s & lens getter setter %~ f
 -- setter s (f (getter s))
 --
+-- @
+-- 'lens' :: (s -> a) -> (s -> a -> s) -> 'Lens'' s a
+-- @
 lens :: (s -> a) -> (s -> b -> t) -> Lens s t a b
 lens sa sbt afb s = sbt s <$> afb (sa s)
 {-# INLINE lens #-}
