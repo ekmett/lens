@@ -198,13 +198,9 @@ lens :: (s -> a) -> (s -> b -> t) -> Lens s t a b
 lens sa sbt afb s = sbt s <$> afb (sa s)
 {-# INLINE lens #-}
 
--- | Build an index-preserving 'Lens' from a 'Control.Lens.Getter.Getter' and a 'Control.Lens.Setter.Setter'.
---
--- @
--- 'lens' :: (s -> a) -> (s -> b -> t) -> 'Lens' s t a b
--- 'lens' sa sbt afb s = sbt s '<$>' afb (sa s)
--- @
-iplens :: (Conjoined p, Functor f) => (s -> a) -> (s -> b -> t) -> Overloaded p f s t a b
+-- | Build an index-preserving 'Lens' from a 'Control.Lens.Getter.Getter' and a
+-- 'Control.Lens.Setter.Setter'.
+iplens :: (s -> a) -> (s -> b -> t) -> IndexPreservingLens s t a b
 iplens sa sbt pafb = cotabulate $ \ws -> sbt (extract ws) <$> corep pafb (sa <$> ws)
 {-# INLINE iplens #-}
 
