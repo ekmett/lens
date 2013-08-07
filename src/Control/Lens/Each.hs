@@ -49,6 +49,7 @@ import Data.HashSet
 import Data.Int
 import Data.IntMap as IntMap
 import Data.IntSet
+import Data.List.NonEmpty as NonEmpty
 import Data.Map as Map
 import Data.Set
 import Data.Sequence as Seq
@@ -72,6 +73,7 @@ type instance Index IntSet = Int
 type instance Index (Set a) = a
 type instance Index (HashSet a) = a
 type instance Index [a] = Int
+type instance Index (NonEmpty a) = Int
 type instance Index (Seq a) = Int
 type instance Index (a,b) = Int
 type instance Index (a,b,c) = Int

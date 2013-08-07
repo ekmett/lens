@@ -31,13 +31,10 @@ import Control.Exception as Exception
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal.Reflection
-import Control.Monad.CatchIO as CatchIO
--- import Data.IORef
+import Control.Monad.Catch as Catch
 import Data.Monoid
 import Data.Proxy
--- import Data.Reflection
 import Data.Typeable
--- import System.IO.Unsafe
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
 type Typeable1 = Typeable
@@ -136,14 +133,14 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
 instance Handleable SomeException IO Exception.Handler where
   handler = handlerIO
 
-instance Typeable1 m => Handleable SomeException m (CatchIO.Handler m) where
+instance Typeable1 m => Handleable SomeException m (Catch.Handler m) where
   handler = handlerCatchIO
 
 handlerIO :: forall a r. Typeable a => Getting (First a) SomeException a -> (a -> IO r) -> Exception.Handler r
 handlerIO l f = reifyTypeable (preview l) $ \ (_ :: Proxy s) -> Exception.Handler (\(Handling a :: Handling a s IO) -> f a)
 
-handlerCatchIO :: forall m a r. (Typeable a, Typeable1 m) => Getting (First a) SomeException a -> (a -> m r) -> CatchIO.Handler m r
-handlerCatchIO l f = reifyTypeable (preview l) $ \ (_ :: Proxy s) -> CatchIO.Handler (\(Handling a :: Handling a s m) -> f a)
+handlerCatchIO :: forall m a r. (Typeable a, Typeable1 m) => Getting (First a) SomeException a -> (a -> m r) -> Catch.Handler m r
+handlerCatchIO l f = reifyTypeable (preview l) $ \ (_ :: Proxy s) -> Catch.Handler (\(Handling a :: Handling a s m) -> f a)
 
 ------------------------------------------------------------------------------
 -- Helpers

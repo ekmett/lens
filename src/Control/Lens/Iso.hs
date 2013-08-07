@@ -110,8 +110,8 @@ type AnIso' s a = AnIso s s a a
 -- @
 -- 'Control.Lens.Getter.view' ('iso' f g) ≡ f
 -- 'Control.Lens.Getter.view' ('Control.Lens.Iso.from' ('iso' f g)) ≡ g
--- 'Control.Lens.Setter.set' ('iso' f g) h ≡ g '.' h '.' f
--- 'Control.Lens.Setter.set' ('Control.Lens.Iso.from' ('iso' f g)) h ≡ f '.' h '.' g
+-- 'Control.Lens.Setter.over' ('iso' f g) h ≡ g '.' h '.' f
+-- 'Control.Lens.Setter.over' ('Control.Lens.Iso.from' ('iso' f g)) h ≡ f '.' h '.' g
 -- @
 iso :: (s -> a) -> (b -> t) -> Iso s t a b
 iso sa bt = dimap sa (fmap bt)
@@ -144,7 +144,7 @@ withIso ai k = case ai (Exchange id Mutator) of
 --
 -- See 'Control.Lens.Lens.cloneLens' or 'Control.Lens.Traversal.cloneTraversal' for more information on why you might want to do this.
 cloneIso :: AnIso s t a b -> Iso s t a b
-cloneIso k = withIso k $ \ sa bt -> iso sa bt
+cloneIso k = withIso k iso
 {-# INLINE cloneIso #-}
 
 -----------------------------------------------------------------------------

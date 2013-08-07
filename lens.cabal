@@ -179,7 +179,7 @@ library
     generic-deriving          >= 1.4      && < 1.6,
     ghc-prim,
     hashable                  >= 1.1.2.3  && < 1.3,
-    MonadCatchIO-transformers >= 0.3      && < 0.4,
+    exceptions                >= 0.1.1    && < 0.2,
     mtl                       >= 2.0.1    && < 2.2,
     parallel                  >= 3.1.0.1  && < 3.3,
     primitive                 >= 0.4.0.1  && < 0.6,
@@ -196,9 +196,11 @@ library
     transformers-compat       >= 0.1      && < 1,
     unordered-containers      >= 0.2      && < 0.3,
     vector                    >= 0.9      && < 0.11,
-    void                      >= 0.5      && < 1
+    void                      >= 0.5      && < 1,
+    zlib                      >= 0.5.4    && < 0.6
 
   exposed-modules:
+    Codec.Compression.Zlib.Lens
     Control.Exception.Lens
     Control.Lens
     Control.Lens.Action

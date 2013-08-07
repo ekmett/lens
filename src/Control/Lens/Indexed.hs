@@ -92,6 +92,7 @@ import Data.Functor.Reverse
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.IntMap as IntMap
+import Data.List.NonEmpty as NonEmpty
 import Data.Map as Map
 import Data.Monoid
 import Data.Profunctor.Unsafe
@@ -567,6 +568,12 @@ instance TraversableWithIndex k ((,) k) where
 instance FunctorWithIndex Int []
 instance FoldableWithIndex Int []
 instance TraversableWithIndex Int [] where
+  itraverse = itraverseOf traversed
+  {-# INLINE itraverse #-}
+
+instance FunctorWithIndex Int NonEmpty
+instance FoldableWithIndex Int NonEmpty
+instance TraversableWithIndex Int NonEmpty where
   itraverse = itraverseOf traversed
   {-# INLINE itraverse #-}
 
