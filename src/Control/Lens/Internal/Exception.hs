@@ -30,13 +30,18 @@ module Control.Lens.Internal.Exception
 import Control.Exception as Exception
 import Control.Lens.Fold
 import Control.Lens.Getter
+import Control.Lens.Internal.Reflection
 import Control.Monad.CatchIO as CatchIO
-import Data.IORef
+-- import Data.IORef
 import Data.Monoid
 import Data.Proxy
-import Data.Reflection
+-- import Data.Reflection
 import Data.Typeable
-import System.IO.Unsafe
+-- import System.IO.Unsafe
+
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
+type Typeable1 = Typeable
+#endif
 
 ------------------------------------------------------------------------------
 -- Handlers
@@ -84,7 +89,7 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
   -- 'handler' :: 'Control.Lens.Lens.Lens''      e a -> (a -> m r) -> 'Control.Monad.Error.Lens.Handler' e m r
   -- 'handler' :: 'Control.Lens.Traversal.Traversal'' e a -> (a -> m r) -> 'Control.Monad.Error.Lens.Handler' e m r
   -- @
-  handler :: Getting (First a) e a -> (a -> m r) -> h r
+  handler :: Typeable a => Getting (First a) e a -> (a -> m r) -> h r
 
   -- | This builds a 'Handler' for just the targets of a given 'Control.Lens.Prism.Prism' (or any 'Getter', really).
   -- that ignores its input and just recovers with the stated monadic action.
@@ -124,21 +129,21 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
   -- 'handler_' :: 'Control.Lens.Lens.Lens''      e a -> m r -> 'Control.Monad.Error.Lens.Handler' e m r
   -- 'handler_' :: 'Control.Lens.Traversal.Traversal'' e a -> m r -> 'Control.Monad.Error.Lens.Handler' e m r
   -- @
-  handler_ :: Getting (First a) e a -> m r -> h r
+  handler_ :: Typeable a => Getting (First a) e a -> m r -> h r
   handler_ l = handler l . const
   {-# INLINE handler_ #-}
 
 instance Handleable SomeException IO Exception.Handler where
   handler = handlerIO
 
-instance Handleable SomeException m (CatchIO.Handler m) where
+instance Typeable1 m => Handleable SomeException m (CatchIO.Handler m) where
   handler = handlerCatchIO
 
-handlerIO :: forall a r. Getting (First a) SomeException a -> (a -> IO r) -> Exception.Handler r
-handlerIO l f = reify (preview l) $ \ (_ :: Proxy s) -> Exception.Handler (\(Handling a :: Handling a s IO) -> f a)
+handlerIO :: forall a r. Typeable a => Getting (First a) SomeException a -> (a -> IO r) -> Exception.Handler r
+handlerIO l f = reifyTypeable (preview l) $ \ (_ :: Proxy s) -> Exception.Handler (\(Handling a :: Handling a s IO) -> f a)
 
-handlerCatchIO :: forall m a r. Getting (First a) SomeException a -> (a -> m r) -> CatchIO.Handler m r
-handlerCatchIO l f = reify (preview l) $ \ (_ :: Proxy s) -> CatchIO.Handler (\(Handling a :: Handling a s m) -> f a)
+handlerCatchIO :: forall m a r. (Typeable a, Typeable1 m) => Getting (First a) SomeException a -> (a -> m r) -> CatchIO.Handler m r
+handlerCatchIO l f = reifyTypeable (preview l) $ \ (_ :: Proxy s) -> CatchIO.Handler (\(Handling a :: Handling a s m) -> f a)
 
 ------------------------------------------------------------------------------
 -- Helpers
@@ -149,30 +154,41 @@ data HandlingException = HandlingException deriving (Show,Typeable)
 
 instance Exception HandlingException
 
+{-
 -- | This supplies a globally unique set of IDs so we can hack around the default use of 'cast' in 'SomeException'
 -- if someone, somehow, somewhere decides to reach in and catch and rethrow a @Handling@ 'Exception' by existentially
 -- opening a 'Handler' that uses it.
 supply :: IORef Int
 supply = unsafePerformIO $ newIORef 0
 {-# NOINLINE supply #-}
+-}
 
 -- | This permits the construction of an \"impossible\" 'Control.Exception.Handler' that matches only if some function does.
 newtype Handling a s (m :: * -> *) = Handling a
-
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
+  deriving Typeable
+#else
 -- the m parameter exists simply to break the Typeable1 pattern, so we can provide this without overlap.
 -- here we simply generate a fresh TypeRep so we'll fail to compare as equal to any other TypeRep.
-instance Typeable (Handling a s m) where
-  typeOf _ = unsafePerformIO $ do
-    i <- atomicModifyIORef supply $ \a -> let a' = a + 1 in a' `seq` (a', a)
-    return $ mkTyConApp (mkTyCon3 "lens" "Control.Lens.Internal.Exception" ("Handling" ++ show i)) []
+instance (Typeable a, Typeable s, Typeable1 m) => Typeable (Handling a s m) where
+  typeOf _ = mkTyConApp handlingTyCon [typeOf (undefined :: a), typeOf (undefined :: s), typeOf1 (undefined :: m a)]
   {-# INLINE typeOf #-}
+
+handlingTyCon :: TyCon
+#if MIN_VERSION_base(4,4,0)
+handlingTyCon = mkTyCon3 "lens" "Control.Lens.Internal.Exception" "Handling"
+#else
+handlingTyCon = mkTyCon "Control.Lns.Internal.Exception.Handling"
+#endif
+{-# NOINLINE handlingTyCon #-}
+#endif
 
 -- The @Handling@ wrapper is uninteresting, and should never be thrown, so you won't get much benefit here.
 instance Show (Handling a s m) where
   showsPrec d _ = showParen (d > 10) $ showString "Handling ..."
   {-# INLINE showsPrec #-}
 
-instance Reifies s (SomeException -> Maybe a) => Exception (Handling a s m) where
+instance (Reifies s (SomeException -> Maybe a), Typeable a, Typeable1 m, Typeable s) => Exception (Handling a s m) where
   toException _ = SomeException HandlingException
   {-# INLINE toException #-}
   fromException = fmap Handling . reflect (Proxy :: Proxy s)

@@ -226,6 +226,7 @@ library
     Control.Lens.Internal.Level
     Control.Lens.Internal.Magma
     Control.Lens.Internal.Prism
+    Control.Lens.Internal.Reflection
     Control.Lens.Internal.Review
     Control.Lens.Internal.Setter
     Control.Lens.Internal.Zoom
