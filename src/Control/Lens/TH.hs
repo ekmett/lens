@@ -1145,7 +1145,38 @@ makeFieldsForDec cfg decl = liftA2 (++)
   (verboseLenses cfg decl)
   (hasClassAndInstance cfg decl)
 
--- | @ makeFields = 'makeFieldsWith' 'defaultFieldRules' @
+-- | Generate overloaded field accessors.
+--
+-- /e.g/
+--
+-- @
+-- data Foo a = Foo { _fooX :: 'Int', _fooY : a }
+-- newtype Bar = Bar { _barX :: 'Char' }
+-- makeFields ''Foo
+-- makeFields ''Bar
+-- @
+--
+-- will create
+--
+-- @
+-- _fooXLens :: Lens' (Foo a) Int
+-- _fooYLens :: Lens (Foo a) (Foo b) a b
+-- class HasX s a | s -> a where
+--   x :: Lens' s a
+-- instance HasX (Foo a) Int where
+--   x = _fooXLens
+-- class HasY s a | s -> a where
+--   y :: Lens' s a
+-- instance HasY (Foo a) a where
+--   y = _fooYLens
+-- _barXLens :: Iso' Bar Char
+-- instance HasX Bar Char where
+--   x = _barXLens
+-- @
+--
+-- @
+-- makeFields = 'makeFieldsWith' 'defaultFieldRules'
+-- @
 makeFields :: Name -> Q [Dec]
 makeFields = makeFieldsWith defaultFieldRules
 
