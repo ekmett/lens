@@ -259,6 +259,26 @@ isoRules = defaultRules
 
 -- | Build lenses (and traversals) with a sensible default configuration.
 --
+-- /e.g./
+--
+-- @
+-- data FooBar
+--   = Foo { _x, _y :: 'Int' }
+--   | Bar { _x :: 'Int' }
+-- 'makeLenses' ''FooBar
+-- @
+--
+-- will create
+--
+-- @
+-- x :: 'Lens'' FooBar 'Int'
+-- x f (Foo a b) = (\a\' -> Foo a\' b) \<$\> f a
+-- x f (Bar a)   = Bar \<$\> f a
+-- y :: 'Traversal'' FooBar 'Int'
+-- y f (Foo a b) = (\b\' -> Foo a  b\') \<$\> f b
+-- y _ c\@(Bar _) = pure c
+-- @
+--
 -- @
 -- 'makeLenses' = 'makeLensesWith' 'lensRules'
 -- @
