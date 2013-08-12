@@ -370,6 +370,24 @@ makeLensesWith cfg nm = do
       _ -> fail "makeLensesWith: Expected the name of a data type or newtype"
 
 -- | Generate a 'Prism' for each constructor of a data type.
+--
+-- /e.g./
+--
+-- @
+-- data FooBarBaz a
+--   = Foo Int
+--   | Bar a
+--   | Baz Int Char
+-- makePrisms ''FooBarBaz
+-- @
+--
+-- will create
+--
+-- @
+-- _Foo :: Prism' (FooBarBaz a) Int
+-- _Bar :: Prism (FooBarBaz a) (FooBarBaz b) a b
+-- _Baz :: Prism' (FooBarBaz a) (Int, Char)
+-- @
 makePrisms :: Name -> Q [Dec]
 makePrisms nm = do
     inf <- reify nm
