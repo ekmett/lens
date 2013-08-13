@@ -30,6 +30,7 @@ module Control.Lens.At
   (
   -- * At
     At(at), sans
+  , AtM(..)
   -- * Ixed
   , IxValue
   , Ixed(ix)
@@ -631,3 +632,45 @@ instance (Eq k, Hashable k) => At (HashSet k) where
     Just () -> HashSet.insert k m
     where mv = if HashSet.member k m then Just () else Nothing
   {-# INLINE at #-}
+
+class AtM m where
+  -- | A version of 'at' for containers over monoidic values, which operates on the
+  -- values themselves instead of them wrapped in a 'Maybe'. 
+  -- 
+  -- >>> IntMap.fromList [(1, IntSet.fromList [1,2,3])] ^. atM 1
+  -- fromList [1,2,3]
+  -- 
+  -- >>> IntMap.fromList [(1, IntSet.fromList [1,2,3])] ^. atM 2
+  -- fromList []
+  -- 
+  -- Besides removing the redundant wrapper this also greatly simplifies the insertion
+  -- of nested values:
+  -- 
+  -- >>> IntMap.fromList [(1, IntSet.fromList [1,2,3])] & atM 2 . contains 4 .~ True
+  -- fromList [(1,fromList [1,2,3]),(2,fromList [4])]
+  -- 
+  -- And makes the deletion cleaner:
+  -- 
+  -- >>> IntMap.fromList [(1, IntSet.fromList [1,2,3]), (2, IntSet.fromList [4])] & atM 2 . contains 4 .~ False
+  -- fromList [(1,fromList [1,2,3])]
+  -- 
+  atM :: Index m -> IndexedLens' (Index m) m (IxValue m)
+
+instance (Ord k, Monoid v, Eq v) => AtM (Map.Map k v) where
+  atM k f m = Lens.indexed f k mv <&> \r -> if r == mempty
+    then Map.delete k m
+    else Map.insertWith mappend k r m
+    where mv = fromMaybe mempty $ Map.lookup k m
+
+instance (Monoid v, Eq v) => AtM (IntMap.IntMap v) where
+  atM k f m = Lens.indexed f k mv <&> \r -> if r == mempty
+    then IntMap.delete k m
+    else IntMap.insertWith mappend k r m
+    where mv = fromMaybe mempty $ IntMap.lookup k m
+
+instance (Eq k, Hashable k, Monoid v, Eq v) => AtM (HashMap.HashMap k v) where
+  atM k f m = Lens.indexed f k mv <&> \r -> if r == mempty
+    then HashMap.delete k m
+    else HashMap.insertWith mappend k r m
+    where mv = fromMaybe mempty $ HashMap.lookup k m
+
