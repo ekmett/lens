@@ -316,7 +316,9 @@ insertHitMap box hit = fixEq trans (populate box) `mappend` hit where
   trans :: HitMap -> HitMap
   trans m = M.map f m where
     f x = x `mappend` foldMap g x
-    g x = M.lookupDefault (hit ! x) x m
+    g x = case M.lookup x m of
+      Nothing -> hit ! x
+      Just r -> r
 
 fixEq :: Eq a => (a -> a) -> a -> a
 fixEq f = go where
