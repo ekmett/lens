@@ -85,8 +85,10 @@ deflate = rawFormat
 -- |
 -- Compresses a 'L.ByteString' using the 'gzip' compression format.
 --
--- @'gzipped' = 'compressed' 'gzip'@
--- @'gzipped' = 'gzipped\'' 'defaultParams'
+-- @
+-- 'gzipped' = 'compressed' 'gzip'
+-- 'gzipped' = 'gzipped'' 'defaultParams'
+-- @
 gzipped :: Iso' L.ByteString L.ByteString
 gzipped = compressed gzip
 {-# INLINE gzipped #-}
@@ -94,8 +96,10 @@ gzipped = compressed gzip
 -- |
 -- Compresses a 'L.ByteString' using the 'zlib' compression format.
 --
--- @'zlibbed' = 'compressed' 'zlib'@
--- @'zlibbed' = 'zlibbed\'' 'defaultParams'
+-- @
+-- 'zlibbed' = 'compressed' 'zlib'
+-- 'zlibbed' = 'zlibbed\'' 'defaultParams'
+-- @
 zlibbed :: Iso' L.ByteString L.ByteString
 zlibbed = compressed zlib
 {-# INLINE zlibbed #-}
@@ -103,8 +107,10 @@ zlibbed = compressed zlib
 -- |
 -- Compresses a 'L.ByteString' using the 'deflate' compression format.
 --
--- @'deflated' = 'compressed' 'deflate'@
--- @'deflated' = 'deflated\'' 'defaultParams'
+-- @
+-- 'deflated' = 'compressed' 'deflate'
+-- 'deflated' = 'deflated'' 'defaultParams'
+-- @
 deflated :: Iso' L.ByteString L.ByteString
 deflated = compressed deflate
 {-# INLINE deflated #-}
@@ -112,7 +118,9 @@ deflated = compressed deflate
 -- |
 -- Compresses a 'L.ByteString' using the given compression format.
 --
--- @'compressed' fmt = 'compressed\'' fmt 'defaultParams'@
+-- @
+-- 'compressed' fmt = 'compressed'' fmt 'defaultParams'
+-- @
 compressed :: Format -> Iso' L.ByteString L.ByteString
 compressed fmt = compressed' fmt defaultParams
 {-# INLINE compressed #-}
@@ -120,8 +128,10 @@ compressed fmt = compressed' fmt defaultParams
 -- |
 -- Compresses a 'L.ByteString' using the 'gzip' compression format and the given advanced parameters.
 --
--- @'gzipped' = 'compressed' 'gzip'@
--- @'gzipped' = 'gzipped\'' 'defaultParams'
+-- @
+-- 'gzipped' = 'compressed' 'gzip'
+-- 'gzipped' = 'gzipped'' 'defaultParams'
+-- @
 gzipped' :: Params -> Iso' L.ByteString L.ByteString
 gzipped' = compressed' gzip
 {-# INLINE gzipped' #-}
@@ -129,8 +139,10 @@ gzipped' = compressed' gzip
 -- |
 -- Compresses a 'L.ByteString' using the 'zlib' compression format and the given advanced parameters.
 --
--- @'zlibbed' = 'compressed' 'zlib'@
--- @'zlibbed' = 'zlibbed\'' 'defaultParams'
+-- @
+-- 'zlibbed' = 'compressed' 'zlib'
+-- 'zlibbed' = 'zlibbed'' 'defaultParams'
+-- @
 zlibbed' :: Params -> Iso' L.ByteString L.ByteString
 zlibbed' = compressed' zlib
 {-# INLINE zlibbed' #-}
@@ -138,8 +150,10 @@ zlibbed' = compressed' zlib
 -- |
 -- Compresses a 'L.ByteString' using the 'deflate' compression format and the given advanced parameters.
 --
--- @'deflated' = 'compressed' 'deflate'@
--- @'deflated' = 'deflated\'' 'defaultParams'
+-- @
+-- 'deflated' = 'compressed' 'deflate'
+-- 'deflated' = 'deflated'' 'defaultParams'
+-- @
 deflated' :: Params -> Iso' L.ByteString L.ByteString
 deflated' = compressed' deflate
 {-# INLINE deflated' #-}
@@ -151,7 +165,7 @@ compressed' fmt (Params c d) = iso (compress fmt c) (decompress fmt d)
 {-# INLINE compressed' #-}
 
 -- |
--- The advanced parameters needed by 'gzipped\'', 'zlibbed\'', 'deflated\'', and 'compressed\''.
+-- The advanced parameters needed by 'gzipped'', 'zlibbed'', 'deflated'', and 'compressed''.
 --
 -- Use 'defaultParams' and the provided 'Lens'es to construct custom 'Params'.
 data Params = Params !CompressParams !DecompressParams

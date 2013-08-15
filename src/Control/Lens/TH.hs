@@ -259,6 +259,26 @@ isoRules = defaultRules
 
 -- | Build lenses (and traversals) with a sensible default configuration.
 --
+-- /e.g./
+--
+-- @
+-- data FooBar
+--   = Foo { _x, _y :: 'Int' }
+--   | Bar { _x :: 'Int' }
+-- 'makeLenses' ''FooBar
+-- @
+--
+-- will create
+--
+-- @
+-- x :: 'Lens'' FooBar 'Int'
+-- x f (Foo a b) = (\a\' -> Foo a\' b) \<$\> f a
+-- x f (Bar a)   = Bar \<$\> f a
+-- y :: 'Traversal'' FooBar 'Int'
+-- y f (Foo a b) = (\b\' -> Foo a  b\') \<$\> f b
+-- y _ c\@(Bar _) = pure c
+-- @
+--
 -- @
 -- 'makeLenses' = 'makeLensesWith' 'lensRules'
 -- @
@@ -350,6 +370,24 @@ makeLensesWith cfg nm = do
       _ -> fail "makeLensesWith: Expected the name of a data type or newtype"
 
 -- | Generate a 'Prism' for each constructor of a data type.
+--
+-- /e.g./
+--
+-- @
+-- data FooBarBaz a
+--   = Foo Int
+--   | Bar a
+--   | Baz Int Char
+-- makePrisms ''FooBarBaz
+-- @
+--
+-- will create
+--
+-- @
+-- _Foo :: Prism' (FooBarBaz a) Int
+-- _Bar :: Prism (FooBarBaz a) (FooBarBaz b) a b
+-- _Baz :: Prism' (FooBarBaz a) (Int, Char)
+-- @
 makePrisms :: Name -> Q [Dec]
 makePrisms nm = do
     inf <- reify nm
@@ -1125,7 +1163,38 @@ makeFieldsForDec cfg decl = liftA2 (++)
   (verboseLenses cfg decl)
   (hasClassAndInstance cfg decl)
 
--- | @ makeFields = 'makeFieldsWith' 'defaultFieldRules' @
+-- | Generate overloaded field accessors.
+--
+-- /e.g/
+--
+-- @
+-- data Foo a = Foo { _fooX :: 'Int', _fooY : a }
+-- newtype Bar = Bar { _barX :: 'Char' }
+-- makeFields ''Foo
+-- makeFields ''Bar
+-- @
+--
+-- will create
+--
+-- @
+-- _fooXLens :: Lens' (Foo a) Int
+-- _fooYLens :: Lens (Foo a) (Foo b) a b
+-- class HasX s a | s -> a where
+--   x :: Lens' s a
+-- instance HasX (Foo a) Int where
+--   x = _fooXLens
+-- class HasY s a | s -> a where
+--   y :: Lens' s a
+-- instance HasY (Foo a) a where
+--   y = _fooYLens
+-- _barXLens :: Iso' Bar Char
+-- instance HasX Bar Char where
+--   x = _barXLens
+-- @
+--
+-- @
+-- makeFields = 'makeFieldsWith' 'defaultFieldRules'
+-- @
 makeFields :: Name -> Q [Dec]
 makeFields = makeFieldsWith defaultFieldRules
 
