@@ -51,10 +51,12 @@ instance Profunctor (Exchange a b) where
   {-# INLINE lmap #-}
   rmap f (Exchange sa bt) = Exchange sa (f . bt)
   {-# INLINE rmap #-}
+#ifndef SAFE
   ( #. ) _ = unsafeCoerce
   {-# INLINE ( #. ) #-}
   ( .# ) p _ = unsafeCoerce p
   {-# INLINE ( .# ) #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- Reversible

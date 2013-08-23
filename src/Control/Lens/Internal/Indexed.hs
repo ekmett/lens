@@ -146,10 +146,12 @@ instance Profunctor (Indexed i) where
   {-# INLINE lmap #-}
   rmap bc iab = Indexed $ \i -> bc . runIndexed iab i
   {-# INLINE rmap #-}
+#ifndef SAFE
   ( .# ) ibc _ = unsafeCoerce ibc
   {-# INLINE ( .# ) #-}
   ( #. ) _ = unsafeCoerce
   {-# INLINE ( #. ) #-}
+#endif
 
 instance Corepresentable (Indexed i) where
   type Corep (Indexed i) = (,) i

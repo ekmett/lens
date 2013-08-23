@@ -46,6 +46,7 @@ import Control.Lens.Type
 import Control.Monad
 import Data.Bifunctor
 import Data.Profunctor
+import Data.Profunctor.Unsafe
 import Data.Void
 #ifndef SAFE
 import Unsafe.Coerce
