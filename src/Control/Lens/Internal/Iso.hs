@@ -18,8 +18,8 @@ module Control.Lens.Internal.Iso
   ) where
 
 import Data.Profunctor
-import Data.Profunctor.Unsafe
 #ifndef SAFE
+import Data.Profunctor.Unsafe
 import Unsafe.Coerce
 #endif
 import Data.ByteString       as StrictB

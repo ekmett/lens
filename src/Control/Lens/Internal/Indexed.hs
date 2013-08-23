@@ -46,10 +46,10 @@ import Data.Functor.Contravariant
 import Data.Int
 import Data.Profunctor
 import Data.Profunctor.Rep
-import Data.Profunctor.Unsafe
 import Data.Traversable
 import Prelude hiding ((.),id)
 #ifndef SAFE
+import Data.Profunctor.Unsafe
 import Unsafe.Coerce
 #endif
 
