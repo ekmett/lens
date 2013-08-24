@@ -12,7 +12,7 @@ install:
   - cabal build
 
 script:
-  - $script && hlint src --cpp-define HLINT
+  - $script
   - scripts/stats
 
 notifications:

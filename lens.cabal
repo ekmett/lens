@@ -97,6 +97,7 @@ extra-source-files:
   images/*.png
   travis/cabal-apt-install
   travis/config
+  HLint.hs
   AUTHORS.markdown
   CHANGELOG.markdown
   README.markdown
@@ -132,6 +133,11 @@ flag old-inline-pragmas
 -- Make the test suites dump their template-haskell splices.
 flag dump-splices
   default: False
+  manual: True
+
+-- You can disable the hlint test suite with -f-test-hlint
+flag test-hlint
+  default: True
   manual: True
 
 -- You can disable the doctests test suite with -f-test-doctests
@@ -389,6 +395,18 @@ test-suite doctests
   if impl(ghc<7.6.1)
     ghc-options: -Werror
 
+test-suite hlint
+  type: exitcode-stdio-1.0
+  main-is: hlint.hs
+  ghc-options: -w -threaded -rtsopts -with-rtsopts=-N
+  hs-source-dirs: tests
+
+  if !flag(test-hlint)
+    buildable: False
+  else
+    build-depends:
+      base,
+      hlint >= 1.7
 
 -- Basic benchmarks for the uniplate-style combinators
 benchmark plated
