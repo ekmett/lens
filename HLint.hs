@@ -1,5 +1,8 @@
 import "hint" HLint.Default
 
+ignore "Use >=>"
+ignore "Use const"
+
 -- Used hlint --find src/ in the lens repo to generate this:
 infixl 9 :>
 
