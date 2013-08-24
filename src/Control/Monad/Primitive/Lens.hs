@@ -20,6 +20,8 @@ import Control.Lens
 import Control.Monad.Primitive (PrimMonad(..))
 import GHC.Prim (State#)
 
+{-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-}
+
 prim :: (PrimMonad m) => Iso' (m a) (State# (PrimState m) -> (# State# (PrimState m), a #))
 prim = iso internal primitive
 {-# INLINE prim #-}

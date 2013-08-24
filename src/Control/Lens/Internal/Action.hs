@@ -62,7 +62,7 @@ instance Effective Identity r (Accessor r) where
 
 instance Effective m r f => Effective (ReaderT Int m) r (Indexing f) where
   effective m = Indexing (\i -> (i+1, effective (runReaderT m i)))
-  ineffective i = ReaderT (\n -> ineffective (snd (runIndexing i n)))
+  ineffective i = ReaderT (ineffective . snd . runIndexing i)
 
 ------------------------------------------------------------------------------
 -- Effect

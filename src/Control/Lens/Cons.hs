@@ -60,6 +60,8 @@ import           Data.Vector.Unboxed (Unbox)
 import qualified Data.Vector.Unboxed as Unbox
 import           Data.Word
 
+{-# ANN module "HLint: ignore Eta reduce" #-}
+
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens

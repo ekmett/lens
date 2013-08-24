@@ -67,11 +67,10 @@ module Control.Lens.TH
   ) where
 
 import Control.Applicative
-import Control.Monad ((<=<))
+import Control.Monad ((<=<), when)
 #if !(MIN_VERSION_template_haskell(2,7,0))
 import Control.Monad (ap)
 #endif
-import Control.Monad (when)
 import qualified Control.Monad.Trans as Trans
 import Control.Monad.Trans.Writer
 import Control.Lens.At
@@ -101,6 +100,8 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.Lens
 
+{-# ANN module "HLint: ignore Eta reduce" #-}
+{-# ANN module "HLint: ignore Use fewer imports" #-}
 {-# ANN module "HLint: ignore Use foldl" #-}
 
 -- | Flags for 'Lens' construction

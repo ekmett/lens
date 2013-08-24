@@ -37,6 +37,8 @@ import Data.Maybe
 import Data.Semigroup hiding (Min, getMin, Max, getMax)
 import Data.Reflection
 
+{-# ANN module "HLint: ignore Avoid lambda" #-}
+
 ------------------------------------------------------------------------------
 -- Folding
 ------------------------------------------------------------------------------

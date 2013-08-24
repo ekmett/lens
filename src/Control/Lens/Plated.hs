@@ -92,8 +92,6 @@ import           Data.Data.Lens
 import           Data.Monoid
 import           Data.Tree
 
-{-# ANN module "HLint: ignore Reduce duplication" #-}
-
 -- | A 'Plated' type is one where we know how to extract its immediate self-similar children.
 --
 -- /Example 1/:

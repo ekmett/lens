@@ -6,7 +6,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
 {-# OPTIONS_GHC -fno-cse #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-float-in #-}
@@ -64,6 +63,8 @@ import Data.Bits
 import Data.Word
 import Data.Typeable
 import Data.Reflection
+
+{-# ANN module "HLint: ignore Avoid lambda" #-}
 
 class Typeable s => B s where
   reflectByte :: proxy s -> IntPtr
