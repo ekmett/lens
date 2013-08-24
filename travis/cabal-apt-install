@@ -17,6 +17,6 @@ deps()
 	grep-aptavail -n -sPackage \( -FNone -X None \) $E | sort -u
 }
 
-$APT install $(deps "$@") libghc-quickcheck2-dev hlint # QuickCheck and HLint are special
+$APT install $(deps "$@") libghc-quickcheck2-dev # QuickCheck is special
 $CABAL_INSTALL_DEPS "$@" # Install the rest via Hackage
 
