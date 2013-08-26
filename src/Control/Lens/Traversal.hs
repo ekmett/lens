@@ -126,6 +126,7 @@ import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Type
 import Control.Monad.Trans.State.Lazy
+import Data.Bitraversable
 import Data.Functor.Compose
 import Data.Int
 import Data.IntMap as IntMap
@@ -657,9 +658,11 @@ unconsWithDefault _ (x:xs) = (x,xs)
 -- Traversals
 ------------------------------------------------------------------------------
 
--- | Traverse both parts of a tuple with matching types.
+-- | Traverse both parts of a 'Bitraversable' container with matching types.
 --
--- >>> both *~ 10 $ (1,2)
+-- Usually that type will be a pair.
+--
+-- >>> (1,2) & both *~ 10
 -- (10,20)
 --
 -- >>> over both length ("hello","world")
@@ -667,8 +670,13 @@ unconsWithDefault _ (x:xs) = (x,xs)
 --
 -- >>> ("hello","world")^.both
 -- "helloworld"
-both :: Traversal (a,a) (b,b) a b
-both f ~(a,a') = (,) <$> f a <*> f a'
+--
+-- @
+-- 'both' :: 'Traversal' (a, a)       (b, b)       a b
+-- 'both' :: 'Traversal' ('Either' a a) ('Either' b b) a b
+-- @
+both :: Bitraversable t => Traversal (t a a) (t b b) a b
+both f = bitraverse f f
 {-# INLINE both #-}
 
 -- | Apply a different 'Traversal' or 'Fold' to each side of a tuple.
