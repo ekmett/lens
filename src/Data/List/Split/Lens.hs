@@ -129,6 +129,9 @@ liningBy s l f = coerce . traverse f . linesBy s . toListOf l
 
 -- | Obtain a 'Fold' by splitting another 'Fold', 'Lens', 'Getter' or 'Traversal' into length-@n@ pieces.
 --
+-- >>> "48656c6c6f20776f726c64"^..chunking 2 folded.hex.to chr
+-- "Hello world"
+--
 -- @
 -- 'chunking' :: 'Int' -> 'Fold' s a -> 'Fold' s [a]
 -- @
