@@ -18,5 +18,5 @@ deps()
 }
 
 $APT install $(deps "$@") libghc-quickcheck2-dev # QuickCheck is special
-$CABAL_INSTALL_DEPS "$@" # Install the rest via Hackage
+$CABAL_INSTALL_DEPS --constraint='hlint installed' "$@" # Install the rest via Hackage
 
