@@ -1064,12 +1064,21 @@ elements = elementsOf traverse
 --
 -- >>> failover _Right (*2) (Right 4) :: Maybe (Either Int Int)
 -- Just (Right 8)
+--
+-- @
+-- 'failover' :: Alternative m => Traversal s t a b -> (a -> b) -> s -> m t
+-- @
 failover :: (Profunctor p, Alternative m) => Over p ((,) Any) s t a b -> p a b -> s -> m t
 failover l pafb s = case l ((,) (Any True) `rmap` pafb) s of
   (Any True, t)  -> pure t
   (Any False, _) -> Applicative.empty
 {-# INLINE failover #-}
 
+-- | Try to map a function which uses the index over this 'IndexedTraversal', failing if the 'IndexedTraversal' has no targets.
+--
+-- @
+-- 'ifailover' :: Alternative m => IndexedTraversal i s t a b -> (i -> a -> b) -> s -> m t
+-- @
 ifailover :: (Profunctor p, Alternative m) => Over (Indexed i) ((,) Any) s t a b -> (i -> a -> b) -> s -> m t
 ifailover l f = failover l (Indexed f)
 {-# INLINE ifailover #-}
