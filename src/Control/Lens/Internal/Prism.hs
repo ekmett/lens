@@ -18,8 +18,8 @@ module Control.Lens.Internal.Prism
   ) where
 
 import Data.Profunctor
-import Data.Profunctor.Unsafe
 #ifndef SAFE
+import Data.Profunctor.Unsafe
 import Unsafe.Coerce
 #endif
 
@@ -45,10 +45,13 @@ instance Profunctor (Market a b) where
   {-# INLINE lmap #-}
   rmap f (Market bt seta) = Market (f . bt) (either (Left . f) Right . seta)
   {-# INLINE rmap #-}
+
+#ifndef SAFE
   ( #. ) _ = unsafeCoerce
   {-# INLINE ( #. ) #-}
   ( .# ) p _ = unsafeCoerce p
   {-# INLINE ( .# ) #-}
+#endif
 
 instance Choice (Market a b) where
   left' (Market bt seta) = Market (Left . bt) $ \sc -> case sc of
