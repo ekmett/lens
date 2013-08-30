@@ -1064,8 +1064,8 @@ elements = elementsOf traverse
 --
 -- >>> failover _Right (*2) (Right 4) :: Maybe (Either Int Int)
 -- Just (Right 8)
-failover :: Alternative m => LensLike ((,) Any) s t a b -> (a -> b) -> s -> m t
-failover l f s = case l ((,) (Any True) . f) s of
+failover :: (Profunctor p, Alternative m) => Over p ((,) Any) s t a b -> p a b -> s -> m t
+failover l pafb s = case l ((,) (Any True) `rmap` pafb) s of
   (Any True, t)  -> pure t
   (Any False, _) -> Applicative.empty
 {-# INLINE failover #-}
