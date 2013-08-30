@@ -1079,7 +1079,7 @@ failover l pafb s = case l ((,) (Any True) `rmap` pafb) s of
 -- @
 -- 'ifailover' :: Alternative m => IndexedTraversal i s t a b -> (i -> a -> b) -> s -> m t
 -- @
-ifailover :: (Profunctor p, Alternative m) => Over (Indexed i) ((,) Any) s t a b -> (i -> a -> b) -> s -> m t
+ifailover :: Alternative m => Over (Indexed i) ((,) Any) s t a b -> (i -> a -> b) -> s -> m t
 ifailover l f = failover l (Indexed f)
 {-# INLINE ifailover #-}
 
