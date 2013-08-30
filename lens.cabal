@@ -216,6 +216,7 @@ library
     Control.Lens.Each
     Control.Lens.Empty
     Control.Lens.Equality
+    Control.Lens.Extras
     Control.Lens.Fold
     Control.Lens.Getter
     Control.Lens.Indexed
