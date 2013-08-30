@@ -21,6 +21,7 @@ module Control.Lens.Review
     Review, Review'
   , AReview, AReview'
   , unto
+  , un
   , re
   , review, reviews
   , reuse, reuses
@@ -78,9 +79,25 @@ type AReview' t b = AReview t t b b
 -- @
 -- 'unto' :: (b -> t) -> 'Review'' t b
 -- @
+--
+-- @
+-- 'unto' = 'un' . 'to'
+-- @
 unto :: (Profunctor p, Bifunctor p, Functor f) => (b -> t) -> Overloaded p f s t a b
 unto f = first absurd . lmap absurd . rmap (fmap f)
 {-# INLINE unto #-}
+
+-- | Turn a 'Getter' around to get a 'Review'
+--
+-- @
+-- 'un' = 'unto . view'
+-- 'unto' = 'un' . 'to'
+-- @
+--
+-- > un (to length) # [1,2,3]
+-- 3
+un :: (Profunctor p, Bifunctor p, Functor f) => Getting a s a -> Overloaded' p f a s
+un = unto . view
 
 -- | Turn a 'Prism' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.
 --
