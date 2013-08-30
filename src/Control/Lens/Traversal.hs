@@ -92,7 +92,6 @@ module Control.Lens.Traversal
   , element
   , elementsOf
   , elements
-  , ifailing
 
   -- ** Combinators
   , ipartsOf
