@@ -59,7 +59,7 @@ module Control.Lens.Traversal
   , transposeOf
   , mapAccumLOf, mapAccumROf
   , scanr1Of, scanl1Of
-  , failover
+  , failover, ifailover
 
   -- * Monomorphic Traversals
   , cloneTraversal
@@ -1069,6 +1069,10 @@ failover l pafb s = case l ((,) (Any True) `rmap` pafb) s of
   (Any True, t)  -> pure t
   (Any False, _) -> Applicative.empty
 {-# INLINE failover #-}
+
+ifailover :: (Profunctor p, Alternative m) => Over (Indexed i) ((,) Any) s t a b -> (i -> a -> b) -> s -> m t
+ifailover l f = failover l (Indexed f)
+{-# INLINE ifailover #-}
 
 -- | Try the first 'Traversal' (or 'Fold'), falling back on the second 'Traversal' (or 'Fold') if it returns no entries.
 --
