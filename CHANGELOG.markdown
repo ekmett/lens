@@ -1,3 +1,7 @@
+3.9.0.3
+-------
+* Bumped dependency on `generic-deriving` again.
+
 3.9.0.2
 -------
 * Bumped dependency on `generic-deriving` to enable building on GHC HEAD.
