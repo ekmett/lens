@@ -592,7 +592,7 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 -- 'singular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
 singular :: (Conjoined p, Functor f)
-         => Over p (BazaarT p f a a) s t a a
+         => Traversing p f s t a a
          -> Over p f s t a a
 singular l pafb s = case pins b of
   (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> corep pafb w
@@ -615,7 +615,7 @@ singular l pafb s = case pins b of
 -- 'unsafeSingular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
 unsafeSingular :: (Conjoined p, Functor f)
-               => Over p (BazaarT p f a b) s t a b
+               => Traversing p f s t a b
                -> Over p f s t a b
 unsafeSingular l pafb s = case pins b of
   [w] -> unsafeOuts b . return <$> corep pafb w
@@ -746,7 +746,7 @@ beside l r f = tabulate $ \ ~(s,s') -> liftA2 (,) <$> rep (l f) s <*> rep (r f) 
 -- @
 taking :: (Conjoined p, Applicative f)
         => Int
-       -> Over p (BazaarT p f a a) s t a a
+       -> Traversing p f s t a a
        -> Over p f s t a a
 taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where b = l sell s
 {-# INLINE taking #-}
@@ -1093,17 +1093,9 @@ failover l f s = case l ((,) (Any True) . f) s of
 -- 'failing' :: 'Equality' s t a b  -> 'Traversal' s t a b -> 'Traversal' s t a b
 -- 'failing' :: 'Getter' s a        -> 'Fold' s a          -> 'Fold' s a
 -- @
-failing :: Applicative f => Traversing (->) f s t a b -> Traversing (->) f s t a b -> Over (->) f s t a b
-failing l r f s = case ins b of
-  [] -> runBazaarT (r sell s) f
-  xs -> unsafeOuts b <$> traverse f xs
-  where b = l sell s
-
--- | Try the first 'IndexedTraversal' (or 'IndexedFold'), falling back on the second 'IndexedTraversal' (or 'IndexedFold') if it returns no entries.
 --
--- This is only a valid 'IndexedTraversal' if the second 'IndexedTraversal' is disjoint from the result of the first or returns
--- exactly the same results! These conditions are trivially met when given only indexed lenses, indexed getters, affine indexed folds
--- and affine indexed traversals.
+-- If both of the inputs are indexed, the result is also indexed, so you can apply this to a pair of indexed 
+-- traversals or indexed folds, obtaining an indexed traversal or indexed fold.
 --
 -- @
 -- 'ifailing' :: 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
@@ -1116,9 +1108,8 @@ failing l r f s = case ins b of
 -- 'ifailing' :: 'IndexedLens' i s t a b      -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
 -- 'ifailing' :: 'IndexedGetter' i s a        -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
 -- @
-
-ifailing :: (Indexable i p, Applicative f) => Traversing (Indexed i) f s t a b -> Traversing (Indexed i) f s t a b -> Over p f s t a b
-ifailing l r f s = case pins b of
-  [] -> runBazaarT (r sell s) (Indexed (indexed f))
-  xs -> unsafeOuts b <$> traverse (uncurry (indexed f)) xs
+failing :: (Conjoined p, Applicative f) => Traversing p f s t a b -> Traversing p f s t a b -> Over p f s t a b
+failing l r pafb s = case pins b of
+  [] -> runBazaarT (r sell s) pafb
+  xs -> unsafeOuts b <$> traverse (corep pafb) xs
   where b = l sell s
