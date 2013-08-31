@@ -162,6 +162,7 @@ import Data.Traversable
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Control.Lens.Extras (is)
 -- >>> import Data.Function
 -- >>> import Data.List.Lens
 -- >>> import Debug.SimpleReflect.Expr

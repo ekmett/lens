@@ -39,7 +39,10 @@ import Data.List.Split
 import Data.List.Split.Internals
 
 -- $setup
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Numeric.Lens (hex)
+-- >>> import Data.Char (chr)
 
 -- | Obtain a 'Fold' by splitting another 'Fold', 'Lens', 'Getter' or 'Traversal' according to the given splitting strategy.
 --

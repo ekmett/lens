@@ -18,6 +18,10 @@ module Control.Lens.Extras
 import Control.Lens
 import Data.Data.Lens
 
+-- $setup
+-- >>> import Control.Lens
+-- >>> import Numeric.Lens (hex)
+
 -- | Check to see if this 'Prism' matches.
 --
 -- >>> is _Left (Right 12)
