@@ -45,6 +45,7 @@ module Control.Lens.Indexed
   -- ** Indexed Foldable Combinators
   , iany
   , iall
+  , inone, none
   , itraverse_
   , ifor_
   , imapM_
@@ -315,6 +316,27 @@ iany f = getAny #. ifoldMap (\i -> Any #. f i)
 iall :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
 iall f = getAll #. ifoldMap (\i -> All #. f i)
 {-# INLINE iall #-}
+
+-- | Return whether or not none of the elements in a container satisfy a predicate, with access to the index @i@.
+--
+-- When you don't need access to the index then 'none' is more flexible in what it accepts.
+--
+-- @
+-- 'none' ≡ 'inone' '.' 'const'
+-- 'inone' f ≡ 'not' '.' 'iany' f
+-- @
+inone :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
+inone f = not . iany f
+{-# INLINE inone #-}
+
+-- | Determines whether no elements of the structure satisfy the predicate.
+--
+-- @
+-- 'none' f ≡ 'not' '.' 'any' f
+-- @
+none :: Foldable f => (a -> Bool) -> f a -> Bool
+none f = not . Data.Foldable.any f
+{-# INLINE none #-}
 
 -- | Traverse elements with access to the index @i@, discarding the results.
 --
