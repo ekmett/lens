@@ -71,7 +71,7 @@ module Control.Lens.Fold
   , foldMapOf, foldOf
   , foldrOf, foldlOf
   , toListOf
-  , anyOf, allOf
+  , anyOf, allOf, noneOf
   , andOf, orOf
   , productOf, sumOf
   , traverseOf_, forOf_, sequenceAOf_
@@ -102,6 +102,7 @@ module Control.Lens.Fold
   , ifoldlOf
   , ianyOf
   , iallOf
+  , inoneOf
   , itraverseOf_
   , iforOf_
   , imapMOf_
@@ -633,6 +634,29 @@ anyOf l f = getAny #. foldMapOf l (Any #. f)
 allOf :: Profunctor p => Accessing p All s a -> p a Bool -> s -> Bool
 allOf l f = getAll #. foldMapOf l (All #. f)
 {-# INLINE allOf #-}
+
+-- | Returns 'True' only if no targets of a 'Fold' satisfy a predicate.
+--
+-- >>> noneOf each (is _Nothing) (Just 3, Just 4, Just 5)
+-- True
+-- >>> noneOf (folded.folded) (<10) [[13,99,20],[3,71,42]]
+-- False
+--
+-- @
+-- 'inoneOf' l = 'noneOf' l '.' 'Indexed'
+-- @
+--
+-- @
+-- 'noneOf' :: 'Getter' s a     -> (a -> 'Bool') -> s -> 'Bool'
+-- 'noneOf' :: 'Fold' s a       -> (a -> 'Bool') -> s -> 'Bool'
+-- 'noneOf' :: 'Lens'' s a      -> (a -> 'Bool') -> s -> 'Bool'
+-- 'noneOf' :: 'Iso'' s a       -> (a -> 'Bool') -> s -> 'Bool'
+-- 'noneOf' :: 'Traversal'' s a -> (a -> 'Bool') -> s -> 'Bool'
+-- 'noneOf' :: 'Prism'' s a     -> (a -> 'Bool') -> s -> 'Bool'
+-- @
+noneOf :: Profunctor p => Accessing p Any s a -> p a Bool -> s -> Bool
+noneOf l f = not . anyOf l f
+{-# INLINE noneOf #-}
 
 -- | Calculate the 'Product' of every number targeted by a 'Fold'.
 --
@@ -1966,6 +1990,25 @@ ianyOf l = anyOf l .# Indexed
 iallOf :: IndexedGetting i All s a -> (i -> a -> Bool) -> s -> Bool
 iallOf l = allOf l .# Indexed
 {-# INLINE iallOf #-}
+
+-- | Return whether or not none of the elements viewed through an 'IndexedFold' or 'IndexedTraversal'
+-- satisfy a predicate, with access to the @i@.
+--
+-- When you don't need access to the index then 'noneOf' is more flexible in what it accepts.
+--
+-- @
+-- 'noneOf' l ≡ 'inoneOf' l '.' 'const'
+-- @
+--
+-- @
+-- 'inoneOf' :: 'IndexedGetter' i s a     -> (i -> a -> 'Bool') -> s -> 'Bool'
+-- 'inoneOf' :: 'IndexedFold' i s a       -> (i -> a -> 'Bool') -> s -> 'Bool'
+-- 'inoneOf' :: 'IndexedLens'' i s a      -> (i -> a -> 'Bool') -> s -> 'Bool'
+-- 'inoneOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
+-- @
+inoneOf :: IndexedGetting i Any s a -> (i -> a -> Bool) -> s -> Bool
+inoneOf l = noneOf l .# Indexed
+{-# INLINE inoneOf #-}
 
 -- | Traverse the targets of an 'IndexedFold' or 'IndexedTraversal' with access to the @i@, discarding the results.
 --
