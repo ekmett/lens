@@ -272,6 +272,7 @@ library
     Data.IntSet.Lens
     Data.List.Lens
     Data.List.Split.Lens
+    Data.Map.Lens
     Data.Sequence.Lens
     Data.Set.Lens
     Data.Text.Lens
