@@ -16,6 +16,12 @@ module Numeric.Lens
   , octal
   , decimal
   , hex
+    -- * Arithmetic lenses
+  , adding
+  , subtracting
+  , multiplying
+  , dividing
+  , exponentiating
   ) where
 
 import Control.Lens
@@ -25,6 +31,7 @@ import Numeric (readInt, showIntAtBase)
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
+-- >>> import Data.Monoid (Sum(..))
 
 -- | This 'Prism' extracts can be used to model the fact that every 'Integral'
 -- type is a subset of 'Integer'.
@@ -111,3 +118,49 @@ decimal = base 10
 -- | @'hex' = 'base' 16@
 hex :: Integral a => Prism' String a
 hex = base 16
+
+-- | @'adding' n = 'iso' (+n) (subtract n)@
+--
+-- >>> [1..3]^..traverse.adding 1000
+-- [1001,1002,1003]
+adding :: Num a => a -> Iso' a a
+adding n = iso (+n) (subtract n)
+
+-- | @
+-- 'subtracting' n = 'iso' (subtract n) ((+n)
+-- 'subtracting' n = 'from' ('adding' n)
+-- @
+subtracting :: Num a => a -> Iso' a a
+subtracting n = iso (subtract n) (+n)
+
+-- | @'multiplying' n = iso (*n) (/n)@
+--
+-- Note: This errors for n = 0
+--
+-- >>> 5 & multiplying 1000 +~ 3
+-- 5.003
+--
+-- >>> let fahrenheit = multiplying (9/5).adding 32 in 230^.from fahrenheit
+-- 110.0
+multiplying :: (Fractional a, Eq a) => a -> Iso' a a
+multiplying 0 = error "Numeric.Lens.multiplying: factor 0"
+multiplying n = iso (*n) (/n)
+
+-- | @
+-- 'dividing' n = 'iso' (/n) (*n)
+-- 'dividing' n = 'from' ('multiplying' n)@
+--
+-- Note: This errors for n = 0
+dividing :: (Fractional a, Eq a) => a -> Iso' a a
+dividing 0 = error "Numeric.Lens.dividing: divisor 0"
+dividing n = iso (/n) (*n)
+
+-- | @'exponentiating' n = 'iso' (**n) (**recip n)@
+--
+-- Note: This errors for n = 0
+--
+-- >>> au (exponentiating 2.wrapping Sum) (foldMapOf each) (3,4)
+-- 5.0
+exponentiating :: (Floating a, Eq a) => a -> Iso' a a
+exponentiating 0 = error "Numeric.Lens.exponentiating: exponent 0"
+exponentiating n = iso (**n) (**recip n)
