@@ -22,7 +22,7 @@
 module Control.Lens.Type
   (
   -- * Other
-    Equality, Equality'
+    Equality, Equality', As
   , Iso, Iso'
   , Prism , Prism'
   -- * Lenses, Folds and Traversals
@@ -395,6 +395,10 @@ type Equality s t a b = forall p (f :: * -> *). p a (f b) -> p s (f t)
 
 -- | A 'Simple' 'Equality'.
 type Equality' s a = Equality s s a a
+
+-- | Composable `asTypeOf`. Useful for constraining excess
+-- polymorphism, @foo . (id :: As Int) . bar@.
+type As a = Equality' a a
 
 -------------------------------------------------------------------------------
 -- Getters
