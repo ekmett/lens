@@ -1,0 +1,65 @@
+-- | One of most commonly-asked questions about this package is whether
+-- it provides lenses for working with 'Map'. It does, but their uses
+-- are perhaps obscured by their genericity. This module exists to provide
+-- documentation for them.
+--
+-- 'Map' is an instance of 'At', so we have a lenses on values at keys:
+--
+-- >>> Map.fromList [(1, "world")] ^.at 1
+-- Just "world"
+--
+-- >>> at 1 .~ Just "world" $ Map.empty
+-- fromList [(1,"world")]
+--
+-- >>> at 0 ?~ "hello" $ Map.empty
+-- fromList [(0,"hello")]
+--
+-- 'Map' is an instance of 'Contains', and so we can test for membership.
+--
+-- >>> Map.empty ^. contains 12
+-- False
+--
+-- >>> Map.fromList [(0, "Mercury")] ^. contains 0
+-- True
+--
+-- We can traverse, fold over, and map over key-value pairs in a 'Map', 
+-- thanks to its 'TraversableWithIndex', 'FoldableWithIndex', and
+-- 'FunctorWithIndex' instances.
+--
+-- >>> imap const $ Map.fromList [(1, "Venus")]
+-- fromList [(1,1)]
+--
+-- >>> ifoldMap (\i _ -> Sum i) $ Map.fromList [(2, "Earth"), (3, "Mars")]
+-- Sum {getSum = 5}
+--
+-- >>> itraverse_ (curry print) $ Map.fromList [(4, "Jupiter")]
+-- (4,"Jupiter")
+--
+-- >>> itoList $ Map.fromList [(5, "Saturn")]
+-- [(5,"Saturn")]
+--
+-- A related class, 'Ixed', allows us to use 'ix' to traverse a value at a
+-- particular key.
+--
+-- >>> ix 2 %~ ("New " ++) $ Map.fromList [(2, "Earth")]
+-- fromList [(2,"New Earth")]
+--
+-- >>> preview (ix 8) $ Map.empty
+-- Nothing
+--
+-- Additionally, 'Map' has 'TraverseMin' and 'TraverseMax' instances, which let
+-- us traverse over the value at the least and greatest keys, respectively.
+--
+-- >>> preview traverseMin $ Map.fromList [(5, "Saturn"), (6, "Uranus")]
+-- Just "Saturn"
+--
+-- >>> preview traverseMax $ Map.fromList [(5, "Saturn"), (6, "Uranus")]
+-- Just "Uranus"
+module Data.Map.Lens where
+-- base
+import Data.Monoid
+-- containers
+import Data.Map (Map)
+import qualified Data.Map as Map
+-- lens
+import Control.Lens
