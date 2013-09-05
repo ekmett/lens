@@ -31,6 +31,7 @@ module Control.Lens.At
   -- * At
     At(at), sans
   -- * Ixed
+  , Index
   , IxValue
   , Ixed(ix)
   , ixAt, ixEach
@@ -60,6 +61,7 @@ import Data.Functor.Identity
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.HashSet as HashSet
+import Data.Int
 import Data.IntMap as IntMap
 import Data.IntSet as IntSet
 import Data.List.NonEmpty as NonEmpty
@@ -77,6 +79,40 @@ import Data.Vector.Storable as Storable
 import Data.Vector.Unboxed as Unboxed
 import Data.Word
 
+type family Index (s :: *) :: *
+type instance Index (e -> a) = e
+type instance Index IntSet = Int
+type instance Index (Set a) = a
+type instance Index (HashSet a) = a
+type instance Index [a] = Int
+type instance Index (NonEmpty a) = Int
+type instance Index (Seq a) = Int
+type instance Index (a,b) = Int
+type instance Index (a,b,c) = Int
+type instance Index (a,b,c,d) = Int
+type instance Index (a,b,c,d,e) = Int
+type instance Index (a,b,c,d,e,f) = Int
+type instance Index (a,b,c,d,e,f,g) = Int
+type instance Index (a,b,c,d,e,f,g,h) = Int
+type instance Index (a,b,c,d,e,f,g,h,i) = Int
+type instance Index (IntMap a) = Int
+type instance Index (Map k a) = k
+type instance Index (HashMap k a) = k
+type instance Index (Array i e) = i
+type instance Index (UArray i e) = i
+type instance Index (Vector.Vector a) = Int
+type instance Index (Prim.Vector a) = Int
+type instance Index (Storable.Vector a) = Int
+type instance Index (Unboxed.Vector a) = Int
+type instance Index (Complex a) = Int
+type instance Index (Identity a) = ()
+type instance Index (Maybe a) = ()
+type instance Index (Tree a) = [Int]
+type instance Index StrictT.Text = Int
+type instance Index LazyT.Text = Int64
+type instance Index StrictB.ByteString = Int
+type instance Index LazyB.ByteString = Int64
+
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
@@ -86,7 +122,7 @@ import Data.Word
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 
 -- | Deprecated aliases for 'ix'.
-_at, resultAt :: Ixed f m => Index m -> IndexedLensLike' (Index m) f m (IxValue m)
+_at, resultAt :: Ixed f m => Index m -> LensLike' f m (IxValue m)
 _at      = ix
 resultAt = ix
 {-# DEPRECATED _at, resultAt "use 'ix'. This function will be removed after GHC 7.8 is released." #-}
@@ -94,7 +130,7 @@ resultAt = ix
 -- |
 -- This class provides a simple 'IndexedFold' (or 'IndexedTraversal') that lets you view (and modify)
 -- information about whether or not a container contains a given 'Index'.
-class Functor f => Contains f m where
+class Contains f m where
   -- |
   -- >>> IntSet.fromList [1,2,3,4] ^. contains 3
   -- True
@@ -104,64 +140,64 @@ class Functor f => Contains f m where
   --
   -- >>> IntSet.fromList [1,2,3,4] & contains 3 .~ False
   -- fromList [1,2,4]
-  contains :: Index m -> IndexedLensLike' (Index m) f m Bool
+  contains :: Index m -> LensLike' f m Bool
 #ifndef HLINT
-  default contains :: (Contravariant f, Functor f, At m) => Index m -> IndexedLensLike' (Index m) f m Bool
+  default contains :: (Contravariant f, Functor f, At m) => Index m -> LensLike' f m Bool
   contains = containsAt
 #endif
 
 -- | A definition of 'contains' for types with an 'Ix' instance.
-containsIx :: (Contravariant f, Functor f, Ixed (Accessor Any) m) => Index m -> IndexedLensLike' (Index m) f m Bool
-containsIx i f = coerce . Lens.indexed f i . has (ix i)
+containsIx :: (Contravariant f, Functor f, Ixed (Accessor Any) m) => Index m -> LensLike' f m Bool
+containsIx i f = coerce . f . has (ix i)
 {-# INLINE containsIx #-}
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'contains' and you are on GHC >= 7.0.2
-containsAt :: (Contravariant f, Functor f, At m) => Index m -> IndexedLensLike' (Index m) f m Bool
-containsAt i f = coerce . Lens.indexed f i . views (at i) isJust
+containsAt :: (Contravariant f, Functor f, At m) => Index m -> LensLike' f m Bool
+containsAt i f = coerce . f . views (at i) isJust
 {-# INLINE containsAt #-}
 
 -- | Construct a 'contains' check based on some notion of 'Prelude.length' for the container.
-containsLength :: forall i s. (Ord i, Num i) => (s -> i) -> i -> IndexedGetter i s Bool
-containsLength sn = \ i pafb s -> coerce $ Lens.indexed pafb (i :: i) (0 <= i && i < sn s)
+containsLength :: (Ord i, Num i) => (s -> i) -> i -> Getter s Bool
+containsLength sn = \ i pafb s -> coerce $ pafb (0 <= i && i < sn s)
 {-# INLINE containsLength #-}
 
 -- | Construct a 'contains' check for a fixed number of elements.
-containsN :: Int -> Int -> IndexedGetter Int s Bool
-containsN n = \ i pafb _ -> coerce $ Lens.indexed pafb (i :: Int) (0 <= i && i < n)
+containsN :: Int -> Int -> Getter s Bool
+containsN n = \ i pafb _ -> coerce $ pafb (0 <= i && i < n)
 {-# INLINE containsN #-}
 
 -- | Construct a 'contains' check that uses an arbitrary test.
-containsTest :: forall i s. (i -> s -> Bool) -> i -> IndexedGetter i s Bool
-containsTest isb = \i pafb s -> coerce $ Lens.indexed pafb (i :: i) (isb i s)
+containsTest :: (i -> s -> Bool) -> i -> Getter s Bool
+containsTest isb = \i pafb s -> coerce $ pafb (isb i s)
 {-# INLINE containsTest #-}
 
 -- | Construct a 'contains' check that uses an arbitrary 'Map.lookup' function.
-containsLookup :: forall i s a. (i -> s -> Maybe a) -> i -> IndexedGetter i s Bool
-containsLookup isb = \i pafb s -> coerce $ Lens.indexed pafb (i :: i) (isJust (isb i s))
+containsLookup :: (i -> s -> Maybe a) -> i -> Getter s Bool
+containsLookup isb = \i pafb s -> coerce $ pafb (isJust (isb i s))
 {-# INLINE containsLookup #-}
 
 instance (Functor f, Contravariant f) => Contains f (e -> a) where
-  contains i f _ = coerce (Lens.indexed f i True)
+  contains _ f _ = coerce (f True)
   {-# INLINE contains #-}
 
 instance Functor f => Contains f IntSet where
-  contains k f s = Lens.indexed f k (IntSet.member k s) <&> \b ->
+  contains k f s = f (IntSet.member k s) <&> \b ->
     if b then IntSet.insert k s else IntSet.delete k s
   {-# INLINE contains #-}
 
 instance (Functor f, Ord a) => Contains f (Set a) where
-  contains k f s = Lens.indexed f k (Set.member k s) <&> \b ->
+  contains k f s = f (Set.member k s) <&> \b ->
     if b then Set.insert k s else Set.delete k s
   {-# INLINE contains #-}
 
 instance (Functor f, Eq a, Hashable a) => Contains f (HashSet a) where
-  contains k f s = Lens.indexed f k (HashSet.member k s) <&> \b ->
+  contains k f s = f (HashSet.member k s) <&> \b ->
     if b then HashSet.insert k s else HashSet.delete k s
   {-# INLINE contains #-}
 
 instance (Contravariant f, Functor f) => Contains f (Maybe a) where
-  contains () f s = coerce $ Lens.indexed f () (isJust s)
+  contains () f s = coerce $ f (isJust s)
   {-# INLINE contains #-}
 
 instance (Contravariant f, Functor f) => Contains f [a] where
@@ -192,7 +228,7 @@ instance (Contravariant f, Functor f, RealFloat a) => Contains f (Complex a) whe
 #endif
 
 instance (Contravariant f, Functor f) => Contains f (Tree a) where
-  contains xs0 pafb = coerce . Lens.indexed pafb xs0 . go xs0 where
+  contains xs0 pafb = coerce . pafb . go xs0 where
     go [] (Node _ _) = True
     go (i:is) (Node _ as) | i < 0     = False
                           | otherwise = goto i is as
@@ -202,7 +238,7 @@ instance (Contravariant f, Functor f) => Contains f (Tree a) where
   {-# INLINE contains #-}
 
 instance (Contravariant k, Functor k) => Contains k (Identity a) where
-  contains () f _ = coerce (Lens.indexed f () True)
+  contains () f _ = coerce (f True)
   {-# INLINE contains #-}
 
 instance (Contravariant k, Functor k) => Contains k (a,b) where
@@ -314,27 +350,27 @@ class Functor f => Ixed f m where
   --
   -- >>> Seq.fromList [] ^? ix 2
   -- Nothing
-  ix :: Index m -> IndexedLensLike' (Index m) f m (IxValue m)
+  ix :: Index m -> LensLike' f m (IxValue m)
 #ifdef DEFAULT_SIGNATURES
-  default ix :: (Applicative f, At m) => Index m -> IndexedLensLike' (Index m) f m (IxValue m)
+  default ix :: (Applicative f, At m) => Index m -> LensLike' f m (IxValue m)
   ix = ixAt
   {-# INLINE ix #-}
 #endif
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
-ixAt :: (Applicative f, At m) => Index m -> IndexedLensLike' (Index m) f m (IxValue m)
-ixAt i = at i <. traverse
+ixAt :: (Applicative f, At m) => Index m -> LensLike' f m (IxValue m)
+ixAt i = at i . traverse
 {-# INLINE ixAt #-}
 
 -- | A definition of 'ix' for types with an 'Each' instance.
-ixEach :: (Applicative f, Eq (Index m), Each f m m (IxValue m) (IxValue m)) => Index m -> IndexedLensLike' (Index m) f m (IxValue m)
+ixEach :: (Applicative f, Eq (Index m), Each (Indexed (Index m)) f m m (IxValue m) (IxValue m)) => Index m -> LensLike' f m (IxValue m)
 ixEach i = each . Lens.index i
 {-# INLINE ixEach #-}
 
 type instance IxValue (Maybe a) = a
 instance Applicative f => Ixed f (Maybe a) where
-  ix () f (Just a) = Just <$> Lens.indexed f () a
+  ix () f (Just a) = Just <$> f a
   ix () _ Nothing  = pure Nothing
   {-# INLINE ix #-}
 
@@ -343,7 +379,7 @@ instance Applicative f => Ixed f [a] where
   ix k f xs0 | k < 0     = pure xs0
              | otherwise = go xs0 k where
     go [] _ = pure []
-    go (a:as) 0 = Lens.indexed f k a <&> (:as)
+    go (a:as) 0 = f a <&> (:as)
     go (a:as) i = (a:) <$> (go as $! i - 1)
   {-# INLINE ix #-}
 
@@ -351,19 +387,19 @@ type instance IxValue (NonEmpty a) = a
 instance Applicative f => Ixed f (NonEmpty a) where
   ix k f xs0 | k < 0 = pure xs0
              | otherwise = go xs0 k where
-    go (a:|as) 0 = Lens.indexed f k a <&> (:|as)
+    go (a:|as) 0 = f a <&> (:|as)
     go (a:|as) i = (a:|) <$> ix (i - 1) f as
   {-# INLINE ix #-}
 
 type instance IxValue (Identity a) = a
 instance Functor f => Ixed f (Identity a) where
-  ix () f (Identity a) = Identity <$> Lens.indexed f () a
+  ix () f (Identity a) = Identity <$> f a
   {-# INLINE ix #-}
 
 type instance IxValue (Tree a) = a
 instance Applicative f => Ixed f (Tree a) where
   ix xs0 f = go xs0 where
-    go [] (Node a as) = Lens.indexed f xs0 a <&> \a' -> Node a' as
+    go [] (Node a as) = f a <&> \a' -> Node a' as
     go (i:is) t@(Node a as) | i < 0     = pure t
                             | otherwise = Node a <$> goto is as i
     goto is (a:as) 0 = go is a <&> (:as)
@@ -374,49 +410,49 @@ instance Applicative f => Ixed f (Tree a) where
 type instance IxValue (Seq a) = a
 instance Applicative f => Ixed f (Seq a) where
   ix i f m
-    | 0 <= i && i < Seq.length m = Lens.indexed f i (Seq.index m i) <&> \a -> Seq.update i a m
+    | 0 <= i && i < Seq.length m = f (Seq.index m i) <&> \a -> Seq.update i a m
     | otherwise                  = pure m
   {-# INLINE ix #-}
 
 type instance IxValue (IntMap a) = a
 instance Applicative f => Ixed f (IntMap a) where
   ix k f m = case IntMap.lookup k m of
-     Just v -> Lens.indexed f k v <&> \v' -> IntMap.insert k v' m
+     Just v -> f v <&> \v' -> IntMap.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
 type instance IxValue (Map k a) = a
 instance (Applicative f, Ord k) => Ixed f (Map k a) where
   ix k f m = case Map.lookup k m of
-     Just v  -> Lens.indexed f k v <&> \v' -> Map.insert k v' m
+     Just v  -> f v <&> \v' -> Map.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
 type instance IxValue (HashMap k a) = a
 instance (Applicative f, Eq k, Hashable k) => Ixed f (HashMap k a) where
   ix k f m = case HashMap.lookup k m of
-     Just v  -> Lens.indexed f k v <&> \v' -> HashMap.insert k v' m
+     Just v  -> f v <&> \v' -> HashMap.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
 type instance IxValue (Set k) = ()
 instance (Applicative f, Ord k) => Ixed f (Set k) where
   ix k f m = if Set.member k m
-     then Lens.indexed f k () <&> \() -> Set.insert k m
+     then f () <&> \() -> Set.insert k m
      else pure m
   {-# INLINE ix #-}
 
 type instance IxValue IntSet = ()
 instance (Applicative f) => Ixed f IntSet where
   ix k f m = if IntSet.member k m
-     then Lens.indexed f k () <&> \() -> IntSet.insert k m
+     then f () <&> \() -> IntSet.insert k m
      else pure m
   {-# INLINE ix #-}
 
 type instance IxValue (HashSet k) = ()
 instance (Applicative f, Eq k, Hashable k) => Ixed f (HashSet k) where
   ix k f m = if HashSet.member k m
-     then Lens.indexed f k () <&> \() -> HashSet.insert k m
+     then f () <&> \() -> HashSet.insert k m
      else pure m
   {-# INLINE ix #-}
 
@@ -428,7 +464,7 @@ type instance IxValue (Array i e) = e
 -- @
 instance (Applicative f, Ix i) => Ixed f (Array i e) where
   ix i f arr
-    | inRange (bounds arr) i = Lens.indexed f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
+    | inRange (bounds arr) i = f (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
     | otherwise              = pure arr
   {-# INLINE ix #-}
 
@@ -440,35 +476,35 @@ type instance IxValue (UArray i e) = e
 -- @
 instance (Applicative f, IArray UArray e, Ix i) => Ixed f (UArray i e) where
   ix i f arr
-    | inRange (bounds arr) i = Lens.indexed f i (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
+    | inRange (bounds arr) i = f (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
     | otherwise              = pure arr
   {-# INLINE ix #-}
 
 type instance IxValue (Vector.Vector a) = a
 instance Applicative f => Ixed f (Vector.Vector a) where
   ix i f v
-    | 0 <= i && i < Vector.length v = Lens.indexed f i (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
+    | 0 <= i && i < Vector.length v = f (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
     | otherwise                     = pure v
   {-# INLINE ix #-}
 
 type instance IxValue (Prim.Vector a) = a
 instance (Applicative f, Prim a) => Ixed f (Prim.Vector a) where
   ix i f v
-    | 0 <= i && i < Prim.length v = Lens.indexed f i (v Prim.! i) <&> \a -> v Prim.// [(i, a)]
+    | 0 <= i && i < Prim.length v = f (v Prim.! i) <&> \a -> v Prim.// [(i, a)]
     | otherwise                   = pure v
   {-# INLINE ix #-}
 
 type instance IxValue (Storable.Vector a) = a
 instance (Applicative f, Storable a) => Ixed f (Storable.Vector a) where
   ix i f v
-    | 0 <= i && i < Storable.length v = Lens.indexed f i (v Storable.! i) <&> \a -> v Storable.// [(i, a)]
+    | 0 <= i && i < Storable.length v = f (v Storable.! i) <&> \a -> v Storable.// [(i, a)]
     | otherwise                       = pure v
   {-# INLINE ix #-}
 
 type instance IxValue (Unboxed.Vector a) = a
 instance (Applicative f, Unbox a) => Ixed f (Unboxed.Vector a) where
   ix i f v
-    | 0 <= i && i < Unboxed.length v = Lens.indexed f i (v Unboxed.! i) <&> \a -> v Unboxed.// [(i, a)]
+    | 0 <= i && i < Unboxed.length v = f (v Unboxed.! i) <&> \a -> v Unboxed.// [(i, a)]
     | otherwise                      = pure v
   {-# INLINE ix #-}
 
@@ -477,7 +513,7 @@ instance Applicative f => Ixed f StrictT.Text where
   ix e f s = case StrictT.splitAt e s of
      (l, mr) -> case StrictT.uncons mr of
        Nothing      -> pure s
-       Just (c, xs) -> Lens.indexed f e c <&> \d -> StrictT.concat [l, StrictT.singleton d, xs]
+       Just (c, xs) -> f c <&> \d -> StrictT.concat [l, StrictT.singleton d, xs]
   {-# INLINE ix #-}
 
 type instance IxValue LazyT.Text = Char
@@ -485,7 +521,7 @@ instance Applicative f => Ixed f LazyT.Text where
   ix e f s = case LazyT.splitAt e s of
      (l, mr) -> case LazyT.uncons mr of
        Nothing      -> pure s
-       Just (c, xs) -> Lens.indexed f e c <&> \d -> LazyT.append l (LazyT.cons d xs)
+       Just (c, xs) -> f c <&> \d -> LazyT.append l (LazyT.cons d xs)
   {-# INLINE ix #-}
 
 type instance IxValue StrictB.ByteString = Word8
@@ -493,7 +529,7 @@ instance Applicative f => Ixed f StrictB.ByteString where
   ix e f s = case StrictB.splitAt e s of
      (l, mr) -> case StrictB.uncons mr of
        Nothing      -> pure s
-       Just (c, xs) -> Lens.indexed f e c <&> \d -> StrictB.concat [l, StrictB.singleton d, xs]
+       Just (c, xs) -> f c <&> \d -> StrictB.concat [l, StrictB.singleton d, xs]
   {-# INLINE ix #-}
 
 type instance IxValue LazyB.ByteString = Word8
@@ -502,12 +538,12 @@ instance Applicative f => Ixed f LazyB.ByteString where
   ix e f s = case LazyB.splitAt e s of
      (l, mr) -> case LazyB.uncons mr of
        Nothing      -> pure s
-       Just (c, xs) -> Lens.indexed f e c <&> \d -> LazyB.append l (LazyB.cons d xs)
+       Just (c, xs) -> f c <&> \d -> LazyB.append l (LazyB.cons d xs)
   {-# INLINE ix #-}
 
 type instance IxValue (k -> a) = a
 instance (Functor f, Eq k) => Ixed f (k -> a) where
-  ix e g f = Lens.indexed g e (f e) <&> \a' e' -> if e == e' then a' else f e'
+  ix e g f = g (f e) <&> \a' e' -> if e == e' then a' else f e'
   {-# INLINE ix #-}
 
 #if MIN_VERSION_base(4,4,0)
@@ -580,53 +616,53 @@ class At m where
   --
   -- /Note:/ 'Map'-like containers form a reasonable instance, but not 'Array'-like ones, where
   -- you cannot satisfy the 'Lens' laws.
-  at :: Index m -> IndexedLens' (Index m) m (Maybe (IxValue m))
+  at :: Index m -> Lens' m (Maybe (IxValue m))
 
 sans :: At m => Index m -> m -> m
 sans k m = m & at k .~ Nothing
 {-# INLINE sans #-}
 
 instance At (Maybe a) where
-  at () f = Lens.indexed f ()
+  at () f = f
   {-# INLINE at #-}
 
 instance At (IntMap a) where
-  at k f m = Lens.indexed f k mv <&> \r -> case r of
+  at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (IntMap.delete k m)) mv
     Just v' -> IntMap.insert k v' m
     where mv = IntMap.lookup k m
   {-# INLINE at #-}
 
 instance Ord k => At (Map k a) where
-  at k f m = Lens.indexed f k mv <&> \r -> case r of
+  at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (Map.delete k m)) mv
     Just v' -> Map.insert k v' m
     where mv = Map.lookup k m
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At (HashMap k a) where
-  at k f m = Lens.indexed f k mv <&> \r -> case r of
+  at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (HashMap.delete k m)) mv
     Just v' -> HashMap.insert k v' m
     where mv = HashMap.lookup k m
   {-# INLINE at #-}
 
 instance At IntSet where
-  at k f m = Lens.indexed f k mv <&> \r -> case r of
+  at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (IntSet.delete k m)) mv
     Just () -> IntSet.insert k m
     where mv = if IntSet.member k m then Just () else Nothing
   {-# INLINE at #-}
 
 instance Ord k => At (Set k) where
-  at k f m = Lens.indexed f k mv <&> \r -> case r of
+  at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (Set.delete k m)) mv
     Just () -> Set.insert k m
     where mv = if Set.member k m then Just () else Nothing
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At (HashSet k) where
-  at k f m = Lens.indexed f k mv <&> \r -> case r of
+  at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (HashSet.delete k m)) mv
     Just () -> HashSet.insert k m
     where mv = if HashSet.member k m then Just () else Nothing
