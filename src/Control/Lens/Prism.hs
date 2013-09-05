@@ -34,6 +34,7 @@ module Control.Lens.Prism
   , _Just
   , _Nothing
   , _Void
+  , _Show
   , only
   , nearly
   -- * Prismatic profunctors
@@ -288,3 +289,23 @@ only a = prism' (\() -> a) $ guard . (a ==)
 nearly :: a -> (a -> Bool) -> Prism' a ()
 nearly a p = prism' (\() -> a) $ guard . p
 {-# INLINE nearly #-}
+
+-- | This is an improper prism for text formatting based on 'Read' and 'Show'.
+--
+-- This 'Prism' is \"improper\" in the sense that it normalizes the text formatting, but round tripping
+-- is idempotent given sane 'Read'/'Show' instances.
+--
+-- >>> _Show # 2
+-- "2"
+--
+-- >>> "EQ" ^? _Show :: Maybe Ordering
+-- Just EQ
+--
+-- @
+-- '_Show' ≡ 'prism'' 'show' 'readMaybe'
+-- @
+_Show :: (Read a, Show a) => Prism' String a
+_Show = prism show $ \s -> case readsPrec 0 s of
+  [(a,"")] -> Right a
+  _ -> Left s
+{-# INLINE _Show #-}
