@@ -38,9 +38,6 @@ module Control.Lens.At
   -- * Contains
   , Contains(..)
   , containsIx, containsAt, containsLength, containsN, containsTest, containsLookup
-  -- * Deprecated
-  , _at
-  , resultAt
   ) where
 
 import Control.Applicative
@@ -120,12 +117,6 @@ type instance Index LazyB.ByteString = Int64
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
-
--- | Deprecated aliases for 'ix'.
-_at, resultAt :: Ixed f m => Index m -> LensLike' f m (IxValue m)
-_at      = ix
-resultAt = ix
-{-# DEPRECATED _at, resultAt "use 'ix'. This function will be removed after GHC 7.8 is released." #-}
 
 -- |
 -- This class provides a simple 'IndexedFold' (or 'IndexedTraversal') that lets you view (and modify)
