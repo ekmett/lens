@@ -90,11 +90,11 @@ unto f = first absurd . lmap absurd . rmap (fmap f)
 -- | Turn a 'Getter' around to get a 'Review'
 --
 -- @
--- 'un' = 'unto . view'
+-- 'un' = 'unto' . 'view'
 -- 'unto' = 'un' . 'to'
 -- @
 --
--- > un (to length) # [1,2,3]
+-- >>> un (to length) # [1,2,3]
 -- 3
 un :: (Profunctor p, Bifunctor p, Functor f) => Getting a s a -> Overloaded' p f a s
 un = unto . view
