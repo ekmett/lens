@@ -213,8 +213,9 @@ instance Plated TH.Pat
 
 
 infixr 9 ...
+-- | Compose through a plate
 (...) :: (Applicative f, Plated c) => LensLike f s t c c -> Over p f c c a b -> Over p f s t a b
-l ... m = l . plated . m
+l ... m = l . plate . m
 {-# INLINE (...) #-}
 
 -------------------------------------------------------------------------------
