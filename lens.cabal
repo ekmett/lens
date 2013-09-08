@@ -186,7 +186,7 @@ library
     reflection                >= 1.1.6    && < 2,
     semigroupoids             >= 3.0.2    && < 4,
     semigroups                >= 0.8.4    && < 1,
-    split                     >= 0.2      && < 0.2.2,
+    split                     >= 0.2      && < 0.3,
     tagged                    >= 0.4.4    && < 1,
     template-haskell          >= 2.4      && < 2.10,
     text                      >= 0.11     && < 0.12,

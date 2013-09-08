@@ -1,3 +1,7 @@
+3.9.1
+-----
+* 'condensingPolicy' was updated to work with 'split' 0.2.2
+
 3.9.0.3
 -------
 * Bumped dependency on `generic-deriving` again.
