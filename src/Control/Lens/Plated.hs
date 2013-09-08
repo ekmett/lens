@@ -68,6 +68,7 @@ module Control.Lens.Plated
   , contexts, contextsOf, contextsOn, contextsOnOf
   , holes, holesOn, holesOnOf
   , para, paraOf
+  , (...)
 
   -- * Compos
   -- $compos
@@ -209,6 +210,12 @@ instance Plated TH.Kind -- in 2.8 Kind is an alias for Type
 #endif
 instance Plated TH.Stmt
 instance Plated TH.Pat
+
+
+infixr 9 ...
+(...) :: (Applicative f, Plated c) => LensLike f s t c c -> Over p f c c a b -> Over p f s t a b
+l ... m = l . plated . m
+{-# INLINE (...) #-}
 
 -------------------------------------------------------------------------------
 -- Children

@@ -8,7 +8,7 @@ ignore "Use const"
 -- Used hlint --find src/ in the lens repo to generate this:
 infixl 9 :>
 
-infixr 9 <.>, <., .>
+infixr 9 <.>, <., .>, ...
 infixr 9 #.
 
 infixl 8 ^.., ^?, ^?!, ^@.., ^@?, ^@?!
