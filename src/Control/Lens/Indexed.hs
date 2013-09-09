@@ -212,7 +212,7 @@ class Functor f => FunctorWithIndex i f | f -> i where
   -- | The 'IndexedSetter' for a 'FunctorWithIndex'.
   --
   -- If you don't need access to the index, then 'mapped' is more flexible in what it accepts.
-  imapped :: FunctorWithIndex i f => IndexedSetter i (f a) (f b) a b
+  imapped :: IndexedSetter i (f a) (f b) a b
   imapped = conjoined mapped (isets imap)
   {-# INLINE imapped #-}
 
