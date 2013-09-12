@@ -38,7 +38,7 @@ module Control.Lens.At
   , Ixed(ix)
   , ixAt
   -- * Contains
-  , Contains(..)
+  , Contains(..), contains'
   , containsIx, containsAt, containsLength, containsN, containsTest, containsLookup
   ) where
 
@@ -65,6 +65,7 @@ import Data.IntSet as IntSet
 import Data.List.NonEmpty as NonEmpty
 import Data.Map as Map
 import Data.Maybe
+import Data.Proxy
 import Data.Set as Set
 import Data.Sequence as Seq
 import Data.Text as StrictT
@@ -141,9 +142,18 @@ class Contains m where
 #endif
 
   -- | Every instance of Contains is at least a 'Getter'
-  containsProof :: p m -> (Contravariant f, Functor f) :- Containing m f
-  default containsProof :: (Containing m f ~ (Contravariant f, Functor f)) => p m -> (Contravariant f, Functor f) :- Containing m f
-  containsProof _ = Sub Dict
+  containsProof :: p m -> q f -> (Contravariant f, Functor f) :- Containing m f
+  default containsProof :: (Containing m f ~ (Contravariant f, Functor f)) => p m -> q f -> (Contravariant f, Functor f) :- Containing m f
+  containsProof _ _ = Sub Dict
+
+-- |
+-- @
+-- 'contains'' :: 'Contains' m => 'Index' m -> 'Getter' m 'Bool'
+-- @
+contains' :: forall m f. (Contains m, Contravariant f, Functor f) => Index m -> LensLike' f m Bool
+contains' = case containsProof (Proxy :: Proxy m) (Proxy :: Proxy f) of
+  Sub Dict -> contains
+{-# INLINE contains' #-}
 
 -- | A definition of 'contains' for types with an 'Ix' instance.
 containsIx :: (Contravariant f, Functor f, Ixed m) => Index m -> LensLike' f m Bool
@@ -185,21 +195,21 @@ instance Contains IntSet where
   contains k f s = f (IntSet.member k s) <&> \b ->
     if b then IntSet.insert k s else IntSet.delete k s
   {-# INLINE contains #-}
-  containsProof _ = Sub Dict
+  containsProof _ _ = Sub Dict
 
 instance Ord a => Contains (Set a) where
   type Containing (Set a) f = Functor f
   contains k f s = f (Set.member k s) <&> \b ->
     if b then Set.insert k s else Set.delete k s
   {-# INLINE contains #-}
-  containsProof _ = Sub Dict
+  containsProof _ _ = Sub Dict
 
 instance (Eq a, Hashable a) => Contains (HashSet a) where
   type Containing (HashSet a) f = Functor f
   contains k f s = f (HashSet.member k s) <&> \b ->
     if b then HashSet.insert k s else HashSet.delete k s
   {-# INLINE contains #-}
-  containsProof _ = Sub Dict
+  containsProof _ _ = Sub Dict
 
 instance Contains (Maybe a) where
   contains () f s = coerce $ f (isJust s)
