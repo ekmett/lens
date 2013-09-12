@@ -8,6 +8,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
@@ -52,6 +54,7 @@ import Data.Array.Unboxed
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Complex
+import Data.Constraint
 import Data.Functor.Identity
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
@@ -118,7 +121,10 @@ type instance Index LazyB.ByteString = Int64
 -- |
 -- This class provides a simple 'IndexedFold' (or 'IndexedTraversal') that lets you view (and modify)
 -- information about whether or not a container contains a given 'Index'.
-class Contains f m where
+class Contains m where
+  type Containing m (f :: * -> *) :: Constraint
+  type Containing m f = (Contravariant f, Functor f)
+
   -- |
   -- >>> IntSet.fromList [1,2,3,4] ^. contains 3
   -- True
@@ -128,11 +134,16 @@ class Contains f m where
   --
   -- >>> IntSet.fromList [1,2,3,4] & contains 3 .~ False
   -- fromList [1,2,4]
-  contains :: Index m -> LensLike' f m Bool
+  contains :: Containing m f => Index m -> LensLike' f m Bool
 #ifndef HLINT
   default contains :: (Contravariant f, Functor f, At m) => Index m -> LensLike' f m Bool
   contains = containsAt
 #endif
+
+  -- | Every instance of Contains is at least a 'Getter'
+  containsProof :: p m -> (Contravariant f, Functor f) :- Containing m f
+  default containsProof :: (Containing m f ~ (Contravariant f, Functor f)) => p m -> (Contravariant f, Functor f) :- Containing m f
+  containsProof _ = Sub Dict
 
 -- | A definition of 'contains' for types with an 'Ix' instance.
 containsIx :: (Contravariant f, Functor f, Ixed m) => Index m -> LensLike' f m Bool
@@ -165,57 +176,63 @@ containsLookup :: (i -> s -> Maybe a) -> i -> Getter s Bool
 containsLookup isb = \i pafb s -> coerce $ pafb (isJust (isb i s))
 {-# INLINE containsLookup #-}
 
-instance (Functor f, Contravariant f) => Contains f (e -> a) where
+instance Contains (e -> a) where
   contains _ f _ = coerce (f True)
   {-# INLINE contains #-}
 
-instance Functor f => Contains f IntSet where
+instance Contains IntSet where
+  type Containing IntSet f = Functor f
   contains k f s = f (IntSet.member k s) <&> \b ->
     if b then IntSet.insert k s else IntSet.delete k s
   {-# INLINE contains #-}
+  containsProof _ = Sub Dict
 
-instance (Functor f, Ord a) => Contains f (Set a) where
+instance Ord a => Contains (Set a) where
+  type Containing (Set a) f = Functor f
   contains k f s = f (Set.member k s) <&> \b ->
     if b then Set.insert k s else Set.delete k s
   {-# INLINE contains #-}
+  containsProof _ = Sub Dict
 
-instance (Functor f, Eq a, Hashable a) => Contains f (HashSet a) where
+instance (Eq a, Hashable a) => Contains (HashSet a) where
+  type Containing (HashSet a) f = Functor f
   contains k f s = f (HashSet.member k s) <&> \b ->
     if b then HashSet.insert k s else HashSet.delete k s
   {-# INLINE contains #-}
+  containsProof _ = Sub Dict
 
-instance (Contravariant f, Functor f) => Contains f (Maybe a) where
+instance Contains (Maybe a) where
   contains () f s = coerce $ f (isJust s)
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f) => Contains f [a] where
+instance Contains [a] where
   contains = containsTest (\i xs -> i >= 0 && test i xs)
     where test _ [] = False
           test 0 (_:_) = True
           test n (_:xs) = test (n - 1) xs
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f) => Contains f (NonEmpty a) where
+instance Contains (NonEmpty a) where
   contains = containsTest test
    where
     test i s = i >= 0 && not (Prelude.null (NonEmpty.drop i s))
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f) => Contains f (Seq a) where
+instance Contains (Seq a) where
   contains = containsLength Seq.length
   {-# INLINE contains #-}
 
 #if MIN_VERSION_base(4,4,0)
-instance (Contravariant f, Functor f) => Contains f (Complex a) where
+instance Contains (Complex a) where
   contains = containsN 2
   {-# INLINE contains #-}
 #else
-instance (Contravariant f, Functor f, RealFloat a) => Contains f (Complex a) where
+instance RealFloat a => Contains (Complex a) where
   contains = containsN 2
   {-# INLINE contains #-}
 #endif
 
-instance (Contravariant f, Functor f) => Contains f (Tree a) where
+instance Contains (Tree a) where
   contains xs0 pafb = coerce . pafb . go xs0 where
     go [] (Node _ _) = True
     go (i:is) (Node _ as) | i < 0     = False
@@ -225,91 +242,91 @@ instance (Contravariant f, Functor f) => Contains f (Tree a) where
     goto n is (_:as) = (goto $! n - 1) is as
   {-# INLINE contains #-}
 
-instance (Contravariant k, Functor k) => Contains k (Identity a) where
+instance Contains (Identity a) where
   contains () f _ = coerce (f True)
   {-# INLINE contains #-}
 
-instance (Contravariant k, Functor k) => Contains k (a,b) where
+instance Contains (a,b) where
   contains = containsN 2
   {-# INLINE contains #-}
 
-instance (Contravariant k, Functor k) => Contains k (a,b,c) where
+instance Contains (a,b,c) where
   contains = containsN 3
   {-# INLINE contains #-}
 
-instance (Contravariant k, Functor k) => Contains k (a,b,c,d) where
+instance Contains (a,b,c,d) where
   contains = containsN 4
   {-# INLINE contains #-}
 
-instance (Contravariant k, Functor k) => Contains k (a,b,c,d,e) where
+instance Contains (a,b,c,d,e) where
   contains = containsN 5
   {-# INLINE contains #-}
 
-instance (Contravariant k, Functor k) => Contains k (a,b,c,d,e,f) where
+instance Contains (a,b,c,d,e,f) where
   contains = containsN 6
   {-# INLINE contains #-}
 
-instance (Contravariant k, Functor k) => Contains k (a,b,c,d,e,f,g) where
+instance Contains (a,b,c,d,e,f,g) where
   contains = containsN 7
   {-# INLINE contains #-}
 
-instance (Contravariant k, Functor k) => Contains k (a,b,c,d,e,f,g,h) where
+instance Contains (a,b,c,d,e,f,g,h) where
   contains = containsN 8
   {-# INLINE contains #-}
 
-instance (Contravariant k, Functor k) => Contains k (a,b,c,d,e,f,g,h,i) where
+instance Contains (a,b,c,d,e,f,g,h,i) where
   contains = containsN 9
   {-# INLINE contains #-}
 
-instance (Contravariant k, Functor k) => Contains k (IntMap a) where
+instance Contains (IntMap a) where
   contains = containsLookup IntMap.lookup
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f, Ord k) => Contains f (Map k a) where
+instance Ord k => Contains (Map k a) where
   contains = containsLookup Map.lookup
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f, Eq k, Hashable k) => Contains f (HashMap k a) where
+instance (Eq k, Hashable k) => Contains (HashMap k a) where
   contains = containsLookup HashMap.lookup
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f, Ix i) => Contains f (Array i e) where
+instance Ix i => Contains (Array i e) where
   contains = containsTest $ \i s -> inRange (bounds s) i
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f, IArray UArray e, Ix i) => Contains f (UArray i e) where
+instance (IArray UArray e, Ix i) => Contains (UArray i e) where
   contains = containsTest $ \i s -> inRange (bounds s) i
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f) => Contains f (Vector.Vector a) where
+instance Contains (Vector.Vector a) where
   contains = containsLength Vector.length
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f, Prim a) => Contains f (Prim.Vector a) where
+instance Prim a => Contains (Prim.Vector a) where
   contains = containsLength Prim.length
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f, Storable a) => Contains f (Storable.Vector a) where
+instance Storable a => Contains (Storable.Vector a) where
   contains = containsLength Storable.length
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f, Unbox a) => Contains f (Unboxed.Vector a) where
+instance Unbox a => Contains (Unboxed.Vector a) where
   contains = containsLength Unboxed.length
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f) => Contains f StrictT.Text where
+instance Contains StrictT.Text where
   contains = containsTest $ \i s -> StrictT.compareLength s i == GT
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f) => Contains f LazyT.Text where
+instance Contains LazyT.Text where
   contains = containsTest $ \i s -> LazyT.compareLength s i == GT
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f) => Contains f StrictB.ByteString where
+instance Contains StrictB.ByteString where
   contains = containsLength StrictB.length
   {-# INLINE contains #-}
 
-instance (Contravariant f, Functor f) => Contains f LazyB.ByteString where
+instance Contains LazyB.ByteString where
   contains = containsTest $ \i s -> not (LazyB.null (LazyB.drop i s))
   {-# INLINE contains #-}
 

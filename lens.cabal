@@ -178,6 +178,7 @@ library
     comonad                   >= 3        && < 4,
     comonad-transformers      >= 3        && < 4,
     comonads-fd               >= 3        && < 4,
+    constraints               >= 0.3.3    && < 1,
     contravariant             >= 0.3      && < 1,
     containers                >= 0.4.0    && < 0.6,
     distributive              >= 0.3      && < 1,
