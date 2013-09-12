@@ -124,6 +124,8 @@ import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Type
 import Control.Monad.State as State
+import Data.Functor.Representable as Functor
+import Data.Key (Indexable(..))
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
@@ -284,10 +286,18 @@ l %%= f = do
 
 -- | Lift a 'Lens' so it can run under a function.
 --
-inside :: ALens s t a b -> Lens (e -> s) (e -> t) (e -> a) (e -> b)
+-- @
+-- 'inside' :: 'Lens' s t a b -> 'Lens' (e -> s) (e -> t) (e -> a) (e -> b)
+-- @
+inside :: Functor.Representable f => ALens s t a b -> Lens (f s) (f t) (f a) (f b)
+inside l f es = o <$> f i where
+  i = Functor.tabulate $ \ e -> ipos (l sell (index es e))
+  o ea = Functor.tabulate $ \ e -> ipeek (index ea e) (l sell (index es e))
+{-
 inside l f es = o <$> f i where
   i e = ipos (l sell (es e))
   o ea e = ipeek (ea e) (l sell (es e))
+-}
 --  i e = case l (Context id) (es e) of Context _ a -> a
 --  o ea e = case l (Context id) (es e) of Context k _ -> k (ea e)
 {-# INLINE inside #-}
