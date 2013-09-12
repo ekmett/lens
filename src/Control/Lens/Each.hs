@@ -45,7 +45,6 @@ import Data.Map as Map
 import Data.Sequence as Seq
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
-import Data.Traversable
 import Data.Tree as Tree
 import qualified Data.Vector as Vector
 import qualified Data.Vector.Primitive as Prim
@@ -137,40 +136,25 @@ instance (RealFloat a, RealFloat b) => Each (Complex a) (Complex b) a b where
 #endif
 
 -- | @'each' :: 'Traversal' ('Map' c a) ('Map' c b) a b@
-instance (c ~ d) => Each (Map c a) (Map d b) a b where
-  each f m = sequenceA $ Map.mapWithKey f' m
-    where f' = Lens.indexed f
-  {-# INLINE each #-}
+instance (c ~ d) => Each (Map c a) (Map d b) a b
 
 -- | @'each' :: 'Traversal' ('Map' c a) ('Map' c b) a b@
-instance Each (IntMap a) (IntMap b) a b where
-  each f m = sequenceA $ IntMap.mapWithKey f' m
-    where f' = Lens.indexed f
-  {-# INLINE each #-}
+instance Each (IntMap a) (IntMap b) a b
 
 -- | @'each' :: 'Traversal' ('HashMap' c a) ('HashMap' c b) a b@
-instance (c ~ d) => Each (HashMap c a) (HashMap d b) a b where
-  each = HashMap.traverseWithKey . Lens.indexed
-  {-# INLINE each #-}
+instance (c ~ d) => Each (HashMap c a) (HashMap d b) a b
 
 -- | @'each' :: 'Traversal' [a] [b] a b@
 instance Each [a] [b] a b
-  {- default each -}
 
 -- | @'each' :: 'Traversal' (NonEmpty a) (NonEmpty b) a b@
 instance Each (NonEmpty a) (NonEmpty b) a b
-  {- default each -}
 
 -- | @'each' :: 'Traversal' ('Identity' a) ('Identity' b) a b@
-instance Each (Identity a) (Identity b) a b where
-  each f (Identity a) = Identity <$> Lens.indexed f () a
-  {-# INLINE each #-}
+instance Each (Identity a) (Identity b) a b
 
 -- | @'each' :: 'Traversal' ('Maybe' a) ('Maybe' b) a b@
-instance Each (Maybe a) (Maybe b) a b where
-  each f (Just a) = Just <$> Lens.indexed f () a
-  each _ Nothing  = pure Nothing
-  {-# INLINE each #-}
+instance Each (Maybe a) (Maybe b) a b
 
 -- | @'each' :: 'Traversal' ('Seq' a) ('Seq' b) a b@
 instance Each (Seq a) (Seq b) a b
