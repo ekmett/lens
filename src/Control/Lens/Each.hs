@@ -28,9 +28,6 @@ module Control.Lens.Each
   ) where
 
 import Control.Applicative
-import Control.Lens.Cons as Lens
-import Control.Lens.Internal.Deque
-import Control.Lens.Internal.Setter
 import Control.Lens.Indexed as Lens
 import Control.Lens.Iso
 import Control.Lens.Type
@@ -40,10 +37,8 @@ import Data.Array.IArray as IArray
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Complex
-import Data.Foldable as Foldable
 import Data.Functor.Identity
 import Data.HashMap.Lazy as HashMap
-import Data.Int
 import Data.IntMap as IntMap
 import Data.List.NonEmpty
 import Data.Map as Map
@@ -79,182 +74,154 @@ import Data.Word
 -- >>> over each Char.toUpper ("hello"^.Text.packed)
 -- "HELLO"
 --
--- 'each' is an 'IndexedTraversal', so it can be used to access keys in many containers:
---
--- >>> itoListOf each $ Map.fromList [("hello",2),("world",4)]
--- [("hello",2),("world",4)]
---
 -- >>> ("hello","world") & each.each %~ Char.toUpper
 -- ("HELLO","WORLD")
-class Functor f => Each p f s t a b | s -> a, t -> b, s b -> t, t a -> s where
-  each :: Over p f s t a b
+class Each s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  each :: Traversal s t a b
 #ifndef HLINT
-  default each :: (Indexable Int p, Applicative f, Traversable g, s ~ g a, t ~ g b) => Over p f s t a b
-  each = traversed
+  default each :: (Applicative f, Traversable g, s ~ g a, t ~ g b) => LensLike f s t a b
+  each = traverse
   {-# INLINE each #-}
 #endif
 
--- | @'each' :: 'IndexedTraversal' 'Int' (a,a) (b,b) a b@
-instance (Indexable Int p, Applicative f, a~a', b~b') => Each p f (a,a') (b,b') a b where
-  each f ~(a,b) = (,) <$> f' (0 :: Int) a <*> f' 1 b
-    where f' = Lens.indexed f
+-- | @'each' :: 'Traversal' (a,a) (b,b) a b@
+instance (a~a', b~b') => Each (a,a') (b,b') a b where
+  each f ~(a,b) = (,) <$> f a <*> f b
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a) (b,b,b) a b@
-instance (Indexable Int p, Applicative f, a~a2, a~a3, b~b2, b~b3) => Each p f (a,a2,a3) (b,b2,b3) a b where
-  each f ~(a,b,c) = (,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c
-    where f' = Lens.indexed f
+-- | @'each' :: 'Traversal' (a,a,a) (b,b,b) a b@
+instance (a~a2, a~a3, b~b2, b~b3) => Each (a,a2,a3) (b,b2,b3) a b where
+  each f ~(a,b,c) = (,,) <$> f a <*> f b <*> f c
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a) (b,b,b,b) a b@
-instance (Indexable Int p, Applicative f, a~a2, a~a3, a~a4, b~b2, b~b3, b~b4) => Each p f (a,a2,a3,a4) (b,b2,b3,b4) a b where
-  each f ~(a,b,c,d) = (,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d
-    where f' = Lens.indexed f
+-- | @'each' :: 'Traversal' (a,a,a,a) (b,b,b,b) a b@
+instance (a~a2, a~a3, a~a4, b~b2, b~b3, b~b4) => Each (a,a2,a3,a4) (b,b2,b3,b4) a b where
+  each f ~(a,b,c,d) = (,,,) <$> f a <*> f b <*> f c <*> f d
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a,a) (b,b,b,b,b) a b@
-instance (Indexable Int p, Applicative f, a~a2, a~a3, a~a4, a~a5, b~b2, b~b3, b~b4, b~b5) => Each p f (a,a2,a3,a4,a5) (b,b2,b3,b4,b5) a b where
-  each f ~(a,b,c,d,e) = (,,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e
-    where f' = Lens.indexed f
+-- | @'each' :: 'Traversal' (a,a,a,a,a) (b,b,b,b,b) a b@
+instance (a~a2, a~a3, a~a4, a~a5, b~b2, b~b3, b~b4, b~b5) => Each (a,a2,a3,a4,a5) (b,b2,b3,b4,b5) a b where
+  each f ~(a,b,c,d,e) = (,,,,) <$> f a <*> f b <*> f c <*> f d <*> f e
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a,a,a) (b,b,b,b,b,b) a b@
-instance (Indexable Int p, Applicative f, a~a2, a~a3, a~a4, a~a5, a~a6, b~b2, b~b3, b~b4, b~b5, b~b6) => Each p f (a,a2,a3,a4,a5,a6) (b,b2,b3,b4,b5,b6) a b where
-  each f ~(a,b,c,d,e,g) = (,,,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g
-    where f' = Lens.indexed f
+-- | @'each' :: 'Traversal' (a,a,a,a,a,a) (b,b,b,b,b,b) a b@
+instance (a~a2, a~a3, a~a4, a~a5, a~a6, b~b2, b~b3, b~b4, b~b5, b~b6) => Each (a,a2,a3,a4,a5,a6) (b,b2,b3,b4,b5,b6) a b where
+  each f ~(a,b,c,d,e,g) = (,,,,,) <$> f a <*> f b <*> f c <*> f d <*> f e <*> f g
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a,a,a,a) (b,b,b,b,b,b,b) a b@
-instance (Indexable Int p, Applicative f, a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, b~b2, b~b3, b~b4, b~b5, b~b6, b~b7) => Each p f (a,a2,a3,a4,a5,a6,a7) (b,b2,b3,b4,b5,b6,b7) a b where
-  each f ~(a,b,c,d,e,g,h) = (,,,,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g <*> f' 6 h
-    where f' = Lens.indexed f
+-- | @'each' :: 'Traversal' (a,a,a,a,a,a,a) (b,b,b,b,b,b,b) a b@
+instance (a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, b~b2, b~b3, b~b4, b~b5, b~b6, b~b7) => Each (a,a2,a3,a4,a5,a6,a7) (b,b2,b3,b4,b5,b6,b7) a b where
+  each f ~(a,b,c,d,e,g,h) = (,,,,,,) <$> f a <*> f b <*> f c <*> f d <*> f e <*> f g <*> f h
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a,a,a,a,a) (b,b,b,b,b,b,b,b) a b@
-instance (Indexable Int p, Applicative f, a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, a~a8, b~b2, b~b3, b~b4, b~b5, b~b6, b~b7, b~b8) => Each p f (a,a2,a3,a4,a5,a6,a7,a8) (b,b2,b3,b4,b5,b6,b7,b8) a b where
-  each f ~(a,b,c,d,e,g,h,i) = (,,,,,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g <*> f' 6 h <*> f' 7 i
-    where f' = Lens.indexed f
+-- | @'each' :: 'Traversal' (a,a,a,a,a,a,a,a) (b,b,b,b,b,b,b,b) a b@
+instance (a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, a~a8, b~b2, b~b3, b~b4, b~b5, b~b6, b~b7, b~b8) => Each (a,a2,a3,a4,a5,a6,a7,a8) (b,b2,b3,b4,b5,b6,b7,b8) a b where
+  each f ~(a,b,c,d,e,g,h,i) = (,,,,,,,) <$> f a <*> f b <*> f c <*> f d <*> f e <*> f g <*> f h <*> f i
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' (a,a,a,a,a,a,a,a,a) (b,b,b,b,b,b,b,b,b) a b@
-instance (Indexable Int p, Applicative f, a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, a~a8, a~a9, b~b2, b~b3, b~b4, b~b5, b~b6, b~b7, b~b8, b~b9) => Each p f (a,a2,a3,a4,a5,a6,a7,a8,a9) (b,b2,b3,b4,b5,b6,b7,b8,b9) a b where
-  each f ~(a,b,c,d,e,g,h,i,j) = (,,,,,,,,) <$> f' (0 :: Int) a <*> f' 1 b <*> f' 2 c <*> f' 3 d <*> f' 4 e <*> f' 5 g <*> f' 6 h <*> f' 7 i <*> f' 8 j
-    where f' = Lens.indexed f
+-- | @'each' :: 'Traversal' (a,a,a,a,a,a,a,a,a) (b,b,b,b,b,b,b,b,b) a b@
+instance (a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, a~a8, a~a9, b~b2, b~b3, b~b4, b~b5, b~b6, b~b7, b~b8, b~b9) => Each (a,a2,a3,a4,a5,a6,a7,a8,a9) (b,b2,b3,b4,b5,b6,b7,b8,b9) a b where
+  each f ~(a,b,c,d,e,g,h,i,j) = (,,,,,,,,) <$> f a <*> f b <*> f c <*> f d <*> f e <*> f g <*> f h <*> f i <*> f j
   {-# INLINE each #-}
 
 #if MIN_VERSION_base(4,4,0)
--- | @'each' :: ('RealFloat' a, 'RealFloat' b) => 'IndexedTraversal' 'Int' ('Complex' a) ('Complex' b) a b@
-instance (Indexable Int p, Applicative f) => Each p f (Complex a) (Complex b) a b where
-  each f (a :+ b) = (:+) <$> f' (0 :: Int) a <*> f' (1 :: Int) b
-    where f' = Lens.indexed f
+-- | @'each' :: ('RealFloat' a, 'RealFloat' b) => 'Traversal' ('Complex' a) ('Complex' b) a b@
+instance Each (Complex a) (Complex b) a b where
+  each f (a :+ b) = (:+) <$> f a <*> f b
   {-# INLINE each #-}
 #else
--- | @'each' :: 'IndexedTraversal' 'Int' ('Complex' a) ('Complex' b) a b@
-instance (Indexable Int p, Applicative f, RealFloat a, RealFloat b) => Each p f (Complex a) (Complex b) a b where
-  each f (a :+ b) = (:+) <$> f' (0 :: Int) a <*> f' 1 b
-    where f' = Lens.indexed f
+-- | @'each' :: 'Traversal' ('Complex' a) ('Complex' b) a b@
+instance (RealFloat a, RealFloat b) => Each (Complex a) (Complex b) a b where
+  each f (a :+ b) = (:+) <$> f a <*> f b
   {-# INLINE each #-}
 #endif
 
--- | @'each' :: 'IndexedTraversal' c ('Map' c a) ('Map' c b) a b@
-instance (Indexable c p, Applicative f, c ~ d) => Each p f (Map c a) (Map d b) a b where
+-- | @'each' :: 'Traversal' ('Map' c a) ('Map' c b) a b@
+instance (c ~ d) => Each (Map c a) (Map d b) a b where
   each f m = sequenceA $ Map.mapWithKey f' m
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' c ('Map' c a) ('Map' c b) a b@
-instance (Indexable Int p, Applicative f) => Each p f (IntMap a) (IntMap b) a b where
+-- | @'each' :: 'Traversal' ('Map' c a) ('Map' c b) a b@
+instance Each (IntMap a) (IntMap b) a b where
   each f m = sequenceA $ IntMap.mapWithKey f' m
     where f' = Lens.indexed f
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' c ('HashMap' c a) ('HashMap' c b) a b@
-instance (Indexable c p, Applicative f, c ~ d) => Each p f (HashMap c a) (HashMap d b) a b where
+-- | @'each' :: 'Traversal' ('HashMap' c a) ('HashMap' c b) a b@
+instance (c ~ d) => Each (HashMap c a) (HashMap d b) a b where
   each = HashMap.traverseWithKey . Lens.indexed
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' [a] [b] a b@
-instance (Indexable Int p, Applicative f) => Each p f [a] [b] a b
+-- | @'each' :: 'Traversal' [a] [b] a b@
+instance Each [a] [b] a b
   {- default each -}
 
--- | @'each' :: 'IndexedTraversal' 'Int' (NonEmpty a) (NonEmpty b) a b@
-instance (Indexable Int p, Applicative f) => Each p f (NonEmpty a) (NonEmpty b) a b
+-- | @'each' :: 'Traversal' (NonEmpty a) (NonEmpty b) a b@
+instance Each (NonEmpty a) (NonEmpty b) a b
   {- default each -}
 
--- | @'each' :: 'IndexedTraversal' () ('Identity' a) ('Identity' b) a b@
-instance (Indexable () p, Functor f) => Each p f (Identity a) (Identity b) a b where
+-- | @'each' :: 'Traversal' ('Identity' a) ('Identity' b) a b@
+instance Each (Identity a) (Identity b) a b where
   each f (Identity a) = Identity <$> Lens.indexed f () a
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' () ('Maybe' a) ('Maybe' b) a b@
-instance (Indexable () p, Applicative f) => Each p f (Maybe a) (Maybe b) a b where
+-- | @'each' :: 'Traversal' ('Maybe' a) ('Maybe' b) a b@
+instance Each (Maybe a) (Maybe b) a b where
   each f (Just a) = Just <$> Lens.indexed f () a
   each _ Nothing  = pure Nothing
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' ('Seq' a) ('Seq' b) a b@
-instance (Indexable Int p, Applicative f) => Each p f (Seq a) (Seq b) a b
-  {- default each -}
+-- | @'each' :: 'Traversal' ('Seq' a) ('Seq' b) a b@
+instance Each (Seq a) (Seq b) a b
 
--- | @'each' :: 'IndexedTraversal' ['Int'] ('Tree' a) ('Tree' b) a b@
-instance (Indexable [Int] p, Applicative f) => Each p f (Tree a) (Tree b) a b where
-  each pafb = go (BD 0 [] 0 []) where
-    go dq (Node a as) = Node <$> Lens.indexed pafb (Foldable.toList dq) a <*> itraverse (\i n -> go (Lens.snoc dq i) n) as
+-- | @'each' :: 'Traversal' ('Tree' a) ('Tree' b) a b@
+instance Each (Tree a) (Tree b) a b
+
+-- | @'each' :: 'Traversal' ('Vector.Vector' a) ('Vector.Vector' b) a b@
+instance Each (Vector.Vector a) (Vector.Vector b) a b
+
+-- | @'each' :: ('Prim' a, 'Prim' b) => 'Traversal' ('Prim.Vector' a) ('Prim.Vector' b) a b@
+instance (Prim a, Prim b) => Each (Prim.Vector a) (Prim.Vector b) a b where
+  each f v = Prim.fromListN (Prim.length v) <$> traverse f (Prim.toList v)
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' ('Vector.Vector' a) ('Vector.Vector' b) a b@
-instance (Indexable Int p, Applicative f) => Each p f (Vector.Vector a) (Vector.Vector b) a b
-  {- default each -}
-
--- | @'each' :: ('Prim' a, 'Prim' b) => 'IndexedTraversal' 'Int' ('Prim.Vector' a) ('Prim.Vector' b) a b@
-instance (Indexable Int p, Applicative f, Prim a, Prim b) => Each p f (Prim.Vector a) (Prim.Vector b) a b where
-  each f v = Prim.fromListN (Prim.length v) <$> traversed (Indexed f') (Prim.toList v)
-    where f' = Lens.indexed f
+-- | @'each' :: ('Storable' a, 'Storable' b) => 'Traversal' ('Storable.Vector' a) ('Storable.Vector' b) a b@
+instance (Storable a, Storable b) => Each (Storable.Vector a) (Storable.Vector b) a b where
+  each f v = Storable.fromListN (Storable.length v) <$> traverse f (Storable.toList v)
   {-# INLINE each #-}
 
--- | @'each' :: ('Storable' a, 'Storable' b) => 'IndexedTraversal' 'Int' ('Storable.Vector' a) ('Storable.Vector' b) a b@
-instance (Indexable Int p, Applicative f, Storable a, Storable b) => Each p f (Storable.Vector a) (Storable.Vector b) a b where
-  each f v = Storable.fromListN (Storable.length v) <$> traversed (Indexed f') (Storable.toList v)
-    where f' = Lens.indexed f
+-- | @'each' :: ('Unbox' a, 'Unbox' b) => 'Traversal' ('Unboxed.Vector' a) ('Unboxed.Vector' b) a b@
+instance (Indexable Int p, Applicative f, Unbox a, Unbox b) => Each (Unboxed.Vector a) (Unboxed.Vector b) a b where
+  each f v = Unboxed.fromListN (Unboxed.length v) <$> traverse f (Unboxed.toList v)
   {-# INLINE each #-}
 
--- | @'each' :: ('Unbox' a, 'Unbox' b) => 'IndexedTraversal' 'Int' ('Unboxed.Vector' a) ('Unboxed.Vector' b) a b@
-instance (Indexable Int p, Applicative f, Unbox a, Unbox b) => Each p f (Unboxed.Vector a) (Unboxed.Vector b) a b where
-  each f v = Unboxed.fromListN (Unboxed.length v) <$> traversed (Indexed f') (Unboxed.toList v)
-    where f' = Lens.indexed f
-  {-# INLINE each #-}
-
--- | @'each' :: 'IndexedTraversal' 'Int' 'StrictT.Text' 'StrictT.Text' 'Char' 'Char'@
-instance (Indexable Int p, Applicative f) => Each p f StrictT.Text StrictT.Text Char Char where
+-- | @'each' :: 'Traversal' 'StrictT.Text' 'StrictT.Text' 'Char' 'Char'@
+instance (a ~ Char, b ~ Char) => Each StrictT.Text StrictT.Text a b where
   each = iso StrictT.unpack StrictT.pack . traversed
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int64' 'LazyT.Text' 'LazyT.Text' 'Char' 'Char'@
-instance (Indexable Int64 p, Applicative f) => Each p f LazyT.Text LazyT.Text Char Char where
-  each = iso LazyT.unpack LazyT.pack . traversed64
+-- | @'each' :: 'Traversal' 'LazyT.Text' 'LazyT.Text' 'Char' 'Char'@
+instance (a ~ Char, b ~ Char) => Each LazyT.Text LazyT.Text a b where
+  each = iso LazyT.unpack LazyT.pack . traverse
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int' 'StrictB.ByteString' 'StrictB.ByteString' 'Word8' 'Word8'@
-instance (Indexable Int p, Applicative f) => Each p f StrictB.ByteString StrictB.ByteString Word8 Word8 where
-  each = iso StrictB.unpack StrictB.pack . traversed
+-- | @'each' :: 'Traversal' 'StrictB.ByteString' 'StrictB.ByteString' 'Word8' 'Word8'@
+instance (a ~ Word8, b ~ Word8) => Each StrictB.ByteString StrictB.ByteString a b where
+  each = iso StrictB.unpack StrictB.pack . traverse
   {-# INLINE each #-}
 
--- | @'each' :: 'IndexedTraversal' 'Int64' 'LazyB.ByteString' 'LazyB.ByteString' 'Word8' 'Word8'@
-instance (Indexable Int64 p, Applicative f) => Each p f LazyB.ByteString LazyB.ByteString Word8 Word8 where
-  each = iso LazyB.unpack LazyB.pack . traversed64
+-- | @'each' :: 'Traversal' 'LazyB.ByteString' 'LazyB.ByteString' 'Word8' 'Word8'@
+instance (a ~ Word8, b ~ Word8) => Each LazyB.ByteString LazyB.ByteString a b where
+  each = iso LazyB.unpack LazyB.pack . traverse
   {-# INLINE each #-}
 
--- | @'each' :: 'Ix' i => 'IndexedTraversal' i ('Array' i a) ('Array' i b) a b@
-instance (Indexable i p, Applicative f, Ix i, i ~ j) => Each p f (Array i a) (Array j b) a b where
-  each f arr = array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> Lens.indexed f i a) (IArray.assocs arr)
+-- | @'each' :: 'Ix' i => 'Traversal' ('Array' i a) ('Array' i b) a b@
+instance (Indexable i p, Applicative f, Ix i, i ~ j) => Each (Array i a) (Array j b) a b where
+  each f arr = array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f a) (IArray.assocs arr)
   {-# INLINE each #-}
 
--- | @'each' :: ('Ix' i, 'IArray' 'UArray' a, 'IArray' 'UArray' b) => 'IndexedTraversal' i ('Array' i a) ('Array' i b) a b@
-instance (Indexable i p, Applicative f, Ix i, IArray UArray a, IArray UArray b, i ~ j) => Each p f (UArray i a) (UArray j b) a b where
-  each f arr = array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> Lens.indexed f i a) (IArray.assocs arr)
-  {-# INLINE each #-}
-
--- | @'each' :: 'Control.Lens.IndexedSetter' i (i -> a) (i -> b) a b@
-instance (Indexable i p, Settable f, i ~ j) => Each p f (i -> a) (j -> b) a b where
-  each f g = pure (\i -> untaintedDot (Lens.indexed f i) (g i))
+-- | @'each' :: ('Ix' i, 'IArray' 'UArray' a, 'IArray' 'UArray' b) => 'Traversal' ('Array' i a) ('Array' i b) a b@
+instance (Ix i, IArray UArray a, IArray UArray b, i ~ j) => Each (UArray i a) (UArray j b) a b where
+  each f arr = array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f a) (IArray.assocs arr)
   {-# INLINE each #-}

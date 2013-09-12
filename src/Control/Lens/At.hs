@@ -34,7 +34,7 @@ module Control.Lens.At
   , Index
   , IxValue
   , Ixed(ix)
-  , ixAt, ixEach
+  , ixAt
   -- * Contains
   , Contains(..)
   , containsIx, containsAt, containsLength, containsN, containsTest, containsLookup
@@ -42,10 +42,8 @@ module Control.Lens.At
 
 import Control.Applicative
 import Control.Lens.Combinators
-import Control.Lens.Each
 import Control.Lens.Fold
 import Control.Lens.Getter
-import Control.Lens.Indexed as Lens
 import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Lens.Traversal
@@ -64,7 +62,6 @@ import Data.IntSet as IntSet
 import Data.List.NonEmpty as NonEmpty
 import Data.Map as Map
 import Data.Maybe
-import Data.Monoid
 import Data.Set as Set
 import Data.Sequence as Seq
 import Data.Text as StrictT
@@ -138,7 +135,7 @@ class Contains f m where
 #endif
 
 -- | A definition of 'contains' for types with an 'Ix' instance.
-containsIx :: (Contravariant f, Functor f, Ixed (Accessor Any) m) => Index m -> LensLike' f m Bool
+containsIx :: (Contravariant f, Functor f, Ixed m) => Index m -> LensLike' f m Bool
 containsIx i f = coerce . f . has (ix i)
 {-# INLINE containsIx #-}
 
@@ -321,7 +318,7 @@ type family IxValue (m :: *) :: *
 
 -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
 -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
-class Functor f => Ixed f m where
+class Ixed m where
   -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
   -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
   --
@@ -341,7 +338,7 @@ class Functor f => Ixed f m where
   --
   -- >>> Seq.fromList [] ^? ix 2
   -- Nothing
-  ix :: Index m -> LensLike' f m (IxValue m)
+  ix :: Index m -> Traversal' m (IxValue m)
 #ifdef DEFAULT_SIGNATURES
   default ix :: (Applicative f, At m) => Index m -> LensLike' f m (IxValue m)
   ix = ixAt
@@ -350,23 +347,18 @@ class Functor f => Ixed f m where
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
-ixAt :: (Applicative f, At m) => Index m -> LensLike' f m (IxValue m)
+ixAt :: At m => Index m -> Traversal' m (IxValue m)
 ixAt i = at i . traverse
 {-# INLINE ixAt #-}
 
--- | A definition of 'ix' for types with an 'Each' instance.
-ixEach :: (Applicative f, Eq (Index m), Each (Indexed (Index m)) f m m (IxValue m) (IxValue m)) => Index m -> LensLike' f m (IxValue m)
-ixEach i = each . Lens.index i
-{-# INLINE ixEach #-}
-
 type instance IxValue (Maybe a) = a
-instance Applicative f => Ixed f (Maybe a) where
+instance Ixed (Maybe a) where
   ix () f (Just a) = Just <$> f a
   ix () _ Nothing  = pure Nothing
   {-# INLINE ix #-}
 
 type instance IxValue [a] = a
-instance Applicative f => Ixed f [a] where
+instance Ixed [a] where
   ix k f xs0 | k < 0     = pure xs0
              | otherwise = go xs0 k where
     go [] _ = pure []
@@ -375,7 +367,7 @@ instance Applicative f => Ixed f [a] where
   {-# INLINE ix #-}
 
 type instance IxValue (NonEmpty a) = a
-instance Applicative f => Ixed f (NonEmpty a) where
+instance Ixed (NonEmpty a) where
   ix k f xs0 | k < 0 = pure xs0
              | otherwise = go xs0 k where
     go (a:|as) 0 = f a <&> (:|as)
@@ -383,12 +375,12 @@ instance Applicative f => Ixed f (NonEmpty a) where
   {-# INLINE ix #-}
 
 type instance IxValue (Identity a) = a
-instance Functor f => Ixed f (Identity a) where
+instance Ixed (Identity a) where
   ix () f (Identity a) = Identity <$> f a
   {-# INLINE ix #-}
 
 type instance IxValue (Tree a) = a
-instance Applicative f => Ixed f (Tree a) where
+instance Ixed (Tree a) where
   ix xs0 f = go xs0 where
     go [] (Node a as) = f a <&> \a' -> Node a' as
     go (i:is) t@(Node a as) | i < 0     = pure t
@@ -399,49 +391,49 @@ instance Applicative f => Ixed f (Tree a) where
   {-# INLINE ix #-}
 
 type instance IxValue (Seq a) = a
-instance Applicative f => Ixed f (Seq a) where
+instance Ixed (Seq a) where
   ix i f m
     | 0 <= i && i < Seq.length m = f (Seq.index m i) <&> \a -> Seq.update i a m
     | otherwise                  = pure m
   {-# INLINE ix #-}
 
 type instance IxValue (IntMap a) = a
-instance Applicative f => Ixed f (IntMap a) where
+instance Ixed (IntMap a) where
   ix k f m = case IntMap.lookup k m of
      Just v -> f v <&> \v' -> IntMap.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
 type instance IxValue (Map k a) = a
-instance (Applicative f, Ord k) => Ixed f (Map k a) where
+instance Ord k => Ixed (Map k a) where
   ix k f m = case Map.lookup k m of
      Just v  -> f v <&> \v' -> Map.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
 type instance IxValue (HashMap k a) = a
-instance (Applicative f, Eq k, Hashable k) => Ixed f (HashMap k a) where
+instance (Eq k, Hashable k) => Ixed (HashMap k a) where
   ix k f m = case HashMap.lookup k m of
      Just v  -> f v <&> \v' -> HashMap.insert k v' m
      Nothing -> pure m
   {-# INLINE ix #-}
 
 type instance IxValue (Set k) = ()
-instance (Applicative f, Ord k) => Ixed f (Set k) where
+instance Ord k => Ixed (Set k) where
   ix k f m = if Set.member k m
      then f () <&> \() -> Set.insert k m
      else pure m
   {-# INLINE ix #-}
 
 type instance IxValue IntSet = ()
-instance (Applicative f) => Ixed f IntSet where
+instance Ixed IntSet where
   ix k f m = if IntSet.member k m
      then f () <&> \() -> IntSet.insert k m
      else pure m
   {-# INLINE ix #-}
 
 type instance IxValue (HashSet k) = ()
-instance (Applicative f, Eq k, Hashable k) => Ixed f (HashSet k) where
+instance (Eq k, Hashable k) => Ixed (HashSet k) where
   ix k f m = if HashSet.member k m
      then f () <&> \() -> HashSet.insert k m
      else pure m
@@ -453,7 +445,7 @@ type instance IxValue (Array i e) = e
 -- arr '!' i ≡ arr 'Control.Lens.Getter.^.' 'ix' i
 -- arr '//' [(i,e)] ≡ 'ix' i 'Control.Lens.Setter..~' e '$' arr
 -- @
-instance (Applicative f, Ix i) => Ixed f (Array i e) where
+instance Ix i => Ixed (Array i e) where
   ix i f arr
     | inRange (bounds arr) i = f (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
     | otherwise              = pure arr
@@ -465,42 +457,42 @@ type instance IxValue (UArray i e) = e
 -- arr '!' i ≡ arr 'Control.Lens.Getter.^.' 'ix' i
 -- arr '//' [(i,e)] ≡ 'ix' i 'Control.Lens.Setter..~' e '$' arr
 -- @
-instance (Applicative f, IArray UArray e, Ix i) => Ixed f (UArray i e) where
+instance (IArray UArray e, Ix i) => Ixed (UArray i e) where
   ix i f arr
     | inRange (bounds arr) i = f (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
     | otherwise              = pure arr
   {-# INLINE ix #-}
 
 type instance IxValue (Vector.Vector a) = a
-instance Applicative f => Ixed f (Vector.Vector a) where
+instance Ixed (Vector.Vector a) where
   ix i f v
     | 0 <= i && i < Vector.length v = f (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
     | otherwise                     = pure v
   {-# INLINE ix #-}
 
 type instance IxValue (Prim.Vector a) = a
-instance (Applicative f, Prim a) => Ixed f (Prim.Vector a) where
+instance Prim a => Ixed (Prim.Vector a) where
   ix i f v
     | 0 <= i && i < Prim.length v = f (v Prim.! i) <&> \a -> v Prim.// [(i, a)]
     | otherwise                   = pure v
   {-# INLINE ix #-}
 
 type instance IxValue (Storable.Vector a) = a
-instance (Applicative f, Storable a) => Ixed f (Storable.Vector a) where
+instance Storable a => Ixed (Storable.Vector a) where
   ix i f v
     | 0 <= i && i < Storable.length v = f (v Storable.! i) <&> \a -> v Storable.// [(i, a)]
     | otherwise                       = pure v
   {-# INLINE ix #-}
 
 type instance IxValue (Unboxed.Vector a) = a
-instance (Applicative f, Unbox a) => Ixed f (Unboxed.Vector a) where
+instance Unbox a => Ixed (Unboxed.Vector a) where
   ix i f v
     | 0 <= i && i < Unboxed.length v = f (v Unboxed.! i) <&> \a -> v Unboxed.// [(i, a)]
     | otherwise                      = pure v
   {-# INLINE ix #-}
 
 type instance IxValue StrictT.Text = Char
-instance Applicative f => Ixed f StrictT.Text where
+instance Ixed StrictT.Text where
   ix e f s = case StrictT.splitAt e s of
      (l, mr) -> case StrictT.uncons mr of
        Nothing      -> pure s
@@ -508,7 +500,7 @@ instance Applicative f => Ixed f StrictT.Text where
   {-# INLINE ix #-}
 
 type instance IxValue LazyT.Text = Char
-instance Applicative f => Ixed f LazyT.Text where
+instance Ixed LazyT.Text where
   ix e f s = case LazyT.splitAt e s of
      (l, mr) -> case LazyT.uncons mr of
        Nothing      -> pure s
@@ -516,7 +508,7 @@ instance Applicative f => Ixed f LazyT.Text where
   {-# INLINE ix #-}
 
 type instance IxValue StrictB.ByteString = Word8
-instance Applicative f => Ixed f StrictB.ByteString where
+instance Ixed StrictB.ByteString where
   ix e f s = case StrictB.splitAt e s of
      (l, mr) -> case StrictB.uncons mr of
        Nothing      -> pure s
@@ -524,7 +516,7 @@ instance Applicative f => Ixed f StrictB.ByteString where
   {-# INLINE ix #-}
 
 type instance IxValue LazyB.ByteString = Word8
-instance Applicative f => Ixed f LazyB.ByteString where
+instance Ixed LazyB.ByteString where
   -- TODO: we could be lazier, returning each chunk as it is passed
   ix e f s = case LazyB.splitAt e s of
      (l, mr) -> case LazyB.uncons mr of
@@ -532,61 +524,6 @@ instance Applicative f => Ixed f LazyB.ByteString where
        Just (c, xs) -> f c <&> \d -> LazyB.append l (LazyB.cons d xs)
   {-# INLINE ix #-}
 
-type instance IxValue (k -> a) = a
-instance (Functor f, Eq k) => Ixed f (k -> a) where
-  ix e g f = g (f e) <&> \a' e' -> if e == e' then a' else f e'
-  {-# INLINE ix #-}
-
-#if MIN_VERSION_base(4,4,0)
-type instance IxValue (Complex a) = a
-instance Applicative f => Ixed f (Complex a) where
-  ix = ixEach
-  {-# INLINE ix #-}
-#else
-instance (Applicative f, RealFloat a) => Ixed f (Complex a) where
-  ix = ixEach
-  {-# INLINE ix #-}
-#endif
-
-type instance IxValue (a,a) = a
-instance (Applicative f, a ~ b) => Ixed f (a,b) where
-  ix = ixEach
-  {-# INLINE ix #-}
-
-type instance IxValue (a,a,a) = a
-instance (Applicative f, a ~ b, b ~ c) => Ixed f (a,b,c) where
-  ix = ixEach
-  {-# INLINE ix #-}
-
-type instance IxValue (a,a,a,a) = a
-instance (Applicative f, a ~ b, b ~ c, c ~ d) => Ixed f (a,b,c,d) where
-  ix = ixEach
-  {-# INLINE ix #-}
-
-type instance IxValue (a,a,a,a,a) = a
-instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e) => Ixed f (a,b,c,d,e) where
-  ix = ixEach
-  {-# INLINE ix #-}
-
-type instance IxValue (a,a,a,a,a,a) = a
-instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f') => Ixed f (a,b,c,d,e,f') where
-  ix = ixEach
-  {-# INLINE ix #-}
-
-type instance IxValue (a,a,a,a,a,a,a) = a
-instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g) => Ixed f (a,b,c,d,e,f',g) where
-  ix = ixEach
-  {-# INLINE ix #-}
-
-type instance IxValue (a,a,a,a,a,a,a,a) = a
-instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h) => Ixed f (a,b,c,d,e,f',g,h) where
-  ix = ixEach
-  {-# INLINE ix #-}
-
-type instance IxValue (a,a,a,a,a,a,a,a,a) = a
-instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h, h ~ i) => Ixed f (a,b,c,d,e,f',g,h,i) where
-  ix = ixEach
-  {-# INLINE ix #-}
 
 -- | 'At' provides a 'Lens' that can be used to read,
 -- write or delete the value associated with a key in a 'Map'-like
@@ -595,9 +532,9 @@ instance (Applicative f, a ~ b, b ~ c, c ~ d, d ~ e, e ~ f', f' ~ g, g ~ h, h ~ 
 -- An instance of 'At' should satisfy:
 --
 -- @
--- 'ix' k ≡ 'at' k '<.' 'traverse'
+-- 'ix' k ≡ 'at' k '.' 'traverse'
 -- @
-class At m where
+class Ixed m => At m where
   -- |
   -- >>> Map.fromList [(1,"world")] ^.at 1
   -- Just "world"
