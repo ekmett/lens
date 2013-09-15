@@ -35,7 +35,6 @@ module Control.Lens.Cons
 import Control.Applicative
 import Control.Lens.Equality (simply)
 import Control.Lens.Fold
-import Control.Lens.Internal.Review
 import Control.Lens.Prism
 import Control.Lens.Review
 import Control.Lens.Tuple
@@ -47,6 +46,7 @@ import           Data.Monoid
 import           Data.Profunctor
 import qualified Data.Sequence as Seq
 import           Data.Sequence hiding ((<|), (|>))
+import           Data.Tagged
 import qualified Data.Text      as StrictT
 import qualified Data.Text.Lazy as LazyT
 import           Data.Vector (Vector)
@@ -165,7 +165,7 @@ instance (Choice p, Applicative f, Unbox a, Unbox b) => Cons p f (Unbox.Vector a
 --
 -- >>> a <| Seq.fromList [b, c]
 -- fromList [a,b,c]
-(<|) :: Cons Reviewed Identity s s a a => a -> s -> s
+(<|) :: Cons Tagged Identity s s a a => a -> s -> s
 (<|) = curry (simply review _Cons)
 {-# INLINE (<|) #-}
 
@@ -182,7 +182,7 @@ instance (Choice p, Applicative f, Unbox a, Unbox b) => Cons p f (Unbox.Vector a
 --
 -- >>> cons a (Seq.fromList [b, c])
 -- fromList [a,b,c]
-cons :: Cons Reviewed Identity s s a a => a -> s -> s
+cons :: Cons Tagged Identity s s a a => a -> s -> s
 cons = curry (simply review _Cons)
 {-# INLINE cons #-}
 
@@ -475,7 +475,7 @@ _last = _Snoc._2
 --
 -- >>> LazyT.pack "hello" |> '!'
 -- "hello!"
-(|>) :: Snoc Reviewed Identity s s a a => s -> a -> s
+(|>) :: Snoc Tagged Identity s s a a => s -> a -> s
 (|>) = curry (simply review _Snoc)
 {-# INLINE (|>) #-}
 
@@ -489,7 +489,7 @@ _last = _Snoc._2
 --
 -- >>> snoc (LazyT.pack "hello") '!'
 -- "hello!"
-snoc  :: Snoc Reviewed Identity s s a a => s -> a -> s
+snoc  :: Snoc Tagged Identity s s a a => s -> a -> s
 snoc = curry (simply review _Snoc)
 {-# INLINE snoc #-}
 

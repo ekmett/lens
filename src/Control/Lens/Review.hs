@@ -41,6 +41,7 @@ import Data.Bifunctor
 import Data.Functor.Identity
 import Data.Profunctor
 import Data.Profunctor.Unsafe
+import Data.Tagged
 import Data.Void
 
 -- $setup
@@ -69,7 +70,7 @@ type Review' t b = Review t t b b
 
 -- | If you see this in a signature for a function, the function is expecting a 'Review'
 -- (in practice, this usually means a 'Prism').
-type AReview s t a b = Overloaded Reviewed Identity s t a b
+type AReview s t a b = Overloaded Tagged Identity s t a b
 
 -- | A 'Simple' 'AReview'
 type AReview' t b = AReview t t b b
@@ -122,7 +123,7 @@ un = unto . view
 -- 're' :: 'Iso' s t a b   -> 'Getter' b t
 -- @
 re :: AReview s t a b -> Getter b t
-re p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
+re p = to (runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE re #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way.
@@ -154,7 +155,7 @@ re p = to (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- 'review' :: 'MonadReader' a m => 'Prism'' s a -> m s
 -- @
 review :: MonadReader b m => AReview s t a b -> m t
-review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
+review p = asks (runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE review #-}
 
 -- | An infix alias for 'review'.
@@ -181,7 +182,7 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- (#) :: 'Equality'' s a -> a -> s
 -- @
 ( # ) :: AReview s t a b -> b -> t
-( # ) p = runIdentity #. runReviewed #. p .# Reviewed .# Identity
+( # ) p = runIdentity #. unTagged #. p .# Tagged .# Identity
 {-# INLINE ( # ) #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'view' a value (or the current environment) through it the other way,
@@ -214,7 +215,7 @@ review p = asks (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- 'reviews' :: 'MonadReader' a m => 'Prism'' s a -> (s -> r) -> m r
 -- @
 reviews :: MonadReader b m => AReview s t a b -> (t -> r) -> m r
-reviews p tr = asks (tr . runIdentity #. runReviewed #. p .# Reviewed .# Identity)
+reviews p tr = asks (tr . runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE reviews #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' a value (or the current environment) through it the other way.
@@ -235,7 +236,7 @@ reviews p tr = asks (tr . runIdentity #. runReviewed #. p .# Reviewed .# Identit
 -- 'reuse' :: 'MonadState' a m => 'Iso'' s a   -> m s
 -- @
 reuse :: MonadState b m => AReview s t a b -> m t
-reuse p = gets (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
+reuse p = gets (runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE reuse #-}
 
 -- | This can be used to turn an 'Control.Lens.Iso.Iso' or 'Prism' around and 'use' the current state through it the other way,
@@ -254,5 +255,5 @@ reuse p = gets (runIdentity #. runReviewed #. p .# Reviewed .# Identity)
 -- 'reuses' :: 'MonadState' a m => 'Iso'' s a   -> (s -> r) -> m r
 -- @
 reuses :: MonadState b m => AReview s t a b -> (t -> r) -> m r
-reuses p tr = gets (tr . runIdentity #. runReviewed #. p .# Reviewed .# Identity)
+reuses p tr = gets (tr . runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE reuses #-}
