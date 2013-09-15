@@ -42,11 +42,11 @@
 <a name="line-33"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-34"></a>  <span class='hs-sel'>_Dynamic</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Typeable</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Prism'</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span>
 <a name="line-35"></a>
-<a name="line-36"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>AsDynamic</span> <span class='hs-conid'>Dynamic</span> <span class='hs-keyword'>where</span>
+<a name="line-36"></a><a name="instance%20AsDynamic%20Dynamic"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>AsDynamic</span> <span class='hs-conid'>Dynamic</span> <span class='hs-keyword'>where</span>
 <a name="line-37"></a>  <span class='hs-sel'>_Dynamic</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism'</span> <span class='hs-varid'>toDyn</span> <span class='hs-varid'>fromDynamic</span>
 <a name="line-38"></a>  <span class='hs-comment'>{-# INLINE _Dynamic #-}</span>
 <a name="line-39"></a>
-<a name="line-40"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>AsDynamic</span> <span class='hs-conid'>SomeException</span> <span class='hs-keyword'>where</span>
+<a name="line-40"></a><a name="instance%20AsDynamic%20SomeException"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>AsDynamic</span> <span class='hs-conid'>SomeException</span> <span class='hs-keyword'>where</span>
 <a name="line-41"></a>  <span class='hs-sel'>_Dynamic</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>exception</span><span class='hs-varop'>.</span><span class='hs-varid'>prism'</span> <span class='hs-varid'>toDyn</span> <span class='hs-varid'>fromDynamic</span>
 <a name="line-42"></a>  <span class='hs-comment'>{-# INLINE _Dynamic #-}</span>
 </pre></body>

@@ -129,7 +129,7 @@
 <a name="line-120"></a><span class='hs-definition'>unpackedChars</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedChars</span>
 <a name="line-121"></a><span class='hs-comment'>{-# INLINE unpackedChars #-}</span>
 <a name="line-122"></a>
-<a name="line-123"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsByteString</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyword'>where</span>
+<a name="line-123"></a><a name="instance%20IsByteString%20Strict.ByteString"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsByteString</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyword'>where</span>
 <a name="line-124"></a>  <span class='hs-varid'>packedBytes</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>packedBytes</span>
 <a name="line-125"></a>  <span class='hs-comment'>{-# INLINE packedBytes #-}</span>
 <a name="line-126"></a>  <span class='hs-varid'>packedChars</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>packedChars</span>
@@ -139,7 +139,7 @@
 <a name="line-130"></a>  <span class='hs-varid'>chars</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>chars</span>
 <a name="line-131"></a>  <span class='hs-comment'>{-# INLINE chars #-}</span>
 <a name="line-132"></a>
-<a name="line-133"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsByteString</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyword'>where</span>
+<a name="line-133"></a><a name="instance%20IsByteString%20Lazy.ByteString"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsByteString</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-keyword'>where</span>
 <a name="line-134"></a>  <span class='hs-varid'>packedBytes</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-varid'>packedBytes</span>
 <a name="line-135"></a>  <span class='hs-comment'>{-# INLINE packedBytes #-}</span>
 <a name="line-136"></a>  <span class='hs-varid'>packedChars</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-varid'>packedChars</span>

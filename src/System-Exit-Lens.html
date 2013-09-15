@@ -41,11 +41,11 @@
 <a name="line-32"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-33"></a>  <span class='hs-sel'>_ExitCode</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Overloaded'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>t</span> <span class='hs-conid'>ExitCode</span>
 <a name="line-34"></a>
-<a name="line-35"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>AsExitCode</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>ExitCode</span> <span class='hs-keyword'>where</span>
+<a name="line-35"></a><a name="instance%20AsExitCode%20p%20f%20ExitCode"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>AsExitCode</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>ExitCode</span> <span class='hs-keyword'>where</span>
 <a name="line-36"></a>  <span class='hs-sel'>_ExitCode</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>id</span>
 <a name="line-37"></a>  <span class='hs-comment'>{-# INLINE _ExitCode #-}</span>
 <a name="line-38"></a>
-<a name="line-39"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AsExitCode</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>SomeException</span> <span class='hs-keyword'>where</span>
+<a name="line-39"></a><a name="instance%20AsExitCode%20p%20f%20SomeException"></a><span class='hs-keyword'>instance</span> <span class='hs-layout'>(</span><span class='hs-conid'>Choice</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AsExitCode</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-conid'>SomeException</span> <span class='hs-keyword'>where</span>
 <a name="line-40"></a>  <span class='hs-sel'>_ExitCode</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>exception</span>
 <a name="line-41"></a>  <span class='hs-comment'>{-# INLINE _ExitCode #-}</span>
 <a name="line-42"></a>

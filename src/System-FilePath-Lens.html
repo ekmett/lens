@@ -136,7 +136,7 @@
 <a name="line-127"></a><a name="%3c%3c.%3e="></a><span class='hs-comment'>-- | Add an extension onto the end of the target of a 'Lens' into</span>
 <a name="line-128"></a><span class='hs-comment'>-- your monad's state and return the result.</span>
 <a name="line-129"></a><span class='hs-comment'>--</span>
-<a name="line-130"></a><span class='hs-comment'>-- &gt;&gt;&gt; evalState (_1 &lt;&lt;.&gt;= "txt") $("hello","world")</span>
+<a name="line-130"></a><span class='hs-comment'>-- &gt;&gt;&gt; evalState (_1 &lt;&lt;.&gt;= "txt") ("hello","world")</span>
 <a name="line-131"></a><span class='hs-comment'>-- "hello.txt"</span>
 <a name="line-132"></a><span class='hs-comment'>--</span>
 <a name="line-133"></a><span class='hs-comment'>-- When you do not need the result of the operation, ('&lt;.&gt;=') is more flexible.</span>

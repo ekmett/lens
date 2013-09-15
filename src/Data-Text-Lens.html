@@ -77,7 +77,7 @@
 <a name="line-68"></a><span class='hs-definition'>unpacked</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packed</span>
 <a name="line-69"></a><span class='hs-comment'>{-# INLINE unpacked #-}</span>
 <a name="line-70"></a>
-<a name="line-71"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsText</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>where</span>
+<a name="line-71"></a><a name="instance%20IsText%20Strict.Text"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsText</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>where</span>
 <a name="line-72"></a>  <span class='hs-varid'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>packed</span>
 <a name="line-73"></a>  <span class='hs-comment'>{-# INLINE packed #-}</span>
 <a name="line-74"></a>  <span class='hs-varid'>builder</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>builder</span>
@@ -85,7 +85,7 @@
 <a name="line-76"></a>  <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>text</span>
 <a name="line-77"></a>  <span class='hs-comment'>{-# INLINE text #-}</span>
 <a name="line-78"></a>
-<a name="line-79"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsText</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>where</span>
+<a name="line-79"></a><a name="instance%20IsText%20Lazy.Text"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IsText</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>where</span>
 <a name="line-80"></a>  <span class='hs-varid'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-varid'>packed</span>
 <a name="line-81"></a>  <span class='hs-comment'>{-# INLINE packed #-}</span>
 <a name="line-82"></a>  <span class='hs-varid'>builder</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-varid'>builder</span>

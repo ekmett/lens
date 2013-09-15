@@ -77,550 +77,556 @@
 <a name="line-68"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>contexts</span><span class='hs-layout'>,</span> <span class='hs-varid'>contextsOf</span><span class='hs-layout'>,</span> <span class='hs-varid'>contextsOn</span><span class='hs-layout'>,</span> <span class='hs-varid'>contextsOnOf</span>
 <a name="line-69"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>holes</span><span class='hs-layout'>,</span> <span class='hs-varid'>holesOn</span><span class='hs-layout'>,</span> <span class='hs-varid'>holesOnOf</span>
 <a name="line-70"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>para</span><span class='hs-layout'>,</span> <span class='hs-varid'>paraOf</span>
-<a name="line-71"></a>
-<a name="line-72"></a>  <span class='hs-comment'>-- * Compos</span>
-<a name="line-73"></a>  <span class='hs-comment'>-- $compos</span>
-<a name="line-74"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>composOpFold</span>
-<a name="line-75"></a>
-<a name="line-76"></a>  <span class='hs-comment'>-- * Parts</span>
-<a name="line-77"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>parts</span>
-<a name="line-78"></a>  <span class='hs-layout'>)</span>
-<a name="line-79"></a>  <span class='hs-keyword'>where</span>
-<a name="line-80"></a>
-<a name="line-81"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
-<a name="line-82"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Fold</span>
-<a name="line-83"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Getter</span>
-<a name="line-84"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Indexed</span>
-<a name="line-85"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Context</span>
-<a name="line-86"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
-<a name="line-87"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Setter</span>
-<a name="line-88"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Traversal</span>
-<a name="line-89"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Language</span><span class='hs-varop'>.</span><span class='hs-conid'>Haskell</span><span class='hs-varop'>.</span><span class='hs-conid'>TH</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>TH</span>
-<a name="line-90"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Data</span>
-<a name="line-91"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-92"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Monoid</span>
-<a name="line-93"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Tree</span>
-<a name="line-94"></a>
-<a name="line-95"></a><span class='hs-comment'>{-# ANN module "HLint: ignore Reduce duplication" #-}</span>
-<a name="line-96"></a>
-<a name="line-97"></a><span class='hs-comment'>-- | A 'Plated' type is one where we know how to extract its immediate self-similar children.</span>
-<a name="line-98"></a><span class='hs-comment'>--</span>
-<a name="line-99"></a><span class='hs-comment'>-- /Example 1/:</span>
-<a name="line-100"></a><span class='hs-comment'>--</span>
-<a name="line-101"></a><span class='hs-comment'>-- @</span>
-<a name="line-102"></a><span class='hs-comment'>-- import Control.Applicative</span>
-<a name="line-103"></a><span class='hs-comment'>-- import Control.Lens</span>
-<a name="line-104"></a><span class='hs-comment'>-- import Control.Lens.Plated</span>
-<a name="line-105"></a><span class='hs-comment'>-- import Data.Data</span>
-<a name="line-106"></a><span class='hs-comment'>-- import Data.Data.Lens ('Data.Data.Lens.uniplate')</span>
-<a name="line-107"></a><span class='hs-comment'>-- @</span>
-<a name="line-108"></a><span class='hs-comment'>--</span>
-<a name="line-109"></a><span class='hs-comment'>-- @</span>
-<a name="line-110"></a><span class='hs-comment'>-- data Expr</span>
-<a name="line-111"></a><span class='hs-comment'>--   = Val 'Int'</span>
-<a name="line-112"></a><span class='hs-comment'>--   | Neg Expr</span>
-<a name="line-113"></a><span class='hs-comment'>--   | Add Expr Expr</span>
-<a name="line-114"></a><span class='hs-comment'>--   deriving ('Eq','Ord','Show','Read','Data','Typeable')</span>
-<a name="line-115"></a><span class='hs-comment'>-- @</span>
-<a name="line-116"></a><span class='hs-comment'>--</span>
-<a name="line-117"></a><span class='hs-comment'>-- @</span>
-<a name="line-118"></a><span class='hs-comment'>-- instance 'Plated' Expr where</span>
-<a name="line-119"></a><span class='hs-comment'>--   'plate' f (Neg e) = Neg '&lt;$&gt;' f e</span>
-<a name="line-120"></a><span class='hs-comment'>--   'plate' f (Add a b) = Add '&lt;$&gt;' f a '&lt;*&gt;' f b</span>
-<a name="line-121"></a><span class='hs-comment'>--   'plate' _ a = 'pure' a</span>
-<a name="line-122"></a><span class='hs-comment'>-- @</span>
-<a name="line-123"></a><span class='hs-comment'>--</span>
-<a name="line-124"></a><span class='hs-comment'>-- /or/</span>
-<a name="line-125"></a><span class='hs-comment'>--</span>
-<a name="line-126"></a><span class='hs-comment'>-- @</span>
-<a name="line-127"></a><span class='hs-comment'>-- instance 'Plated' Expr where</span>
-<a name="line-128"></a><span class='hs-comment'>--   'plate' = 'Data.Data.Lens.uniplate'</span>
-<a name="line-129"></a><span class='hs-comment'>-- @</span>
-<a name="line-130"></a><span class='hs-comment'>--</span>
-<a name="line-131"></a><span class='hs-comment'>-- /Example 2/:</span>
-<a name="line-132"></a><span class='hs-comment'>--</span>
-<a name="line-133"></a><span class='hs-comment'>-- @</span>
-<a name="line-134"></a><span class='hs-comment'>-- import Control.Applicative</span>
-<a name="line-135"></a><span class='hs-comment'>-- import Control.Lens</span>
-<a name="line-136"></a><span class='hs-comment'>-- import Control.Lens.Plated</span>
-<a name="line-137"></a><span class='hs-comment'>-- import Data.Data</span>
-<a name="line-138"></a><span class='hs-comment'>-- import Data.Data.Lens ('Data.Data.Lens.uniplate')</span>
-<a name="line-139"></a><span class='hs-comment'>-- @</span>
-<a name="line-140"></a><span class='hs-comment'>--</span>
-<a name="line-141"></a><span class='hs-comment'>-- @</span>
-<a name="line-142"></a><span class='hs-comment'>-- data Tree a</span>
-<a name="line-143"></a><span class='hs-comment'>--   = Bin (Tree a) (Tree a)</span>
-<a name="line-144"></a><span class='hs-comment'>--   | Tip a</span>
-<a name="line-145"></a><span class='hs-comment'>--   deriving ('Eq','Ord','Show','Read','Data','Typeable')</span>
-<a name="line-146"></a><span class='hs-comment'>-- @</span>
-<a name="line-147"></a><span class='hs-comment'>--</span>
-<a name="line-148"></a><span class='hs-comment'>-- @</span>
-<a name="line-149"></a><span class='hs-comment'>-- instance 'Plated' (Tree a) where</span>
-<a name="line-150"></a><span class='hs-comment'>--   'plate' f (Bin l r) = Bin '&lt;$&gt;' f l '&lt;*&gt;' f r</span>
-<a name="line-151"></a><span class='hs-comment'>--   'plate' _ t = 'pure' t</span>
-<a name="line-152"></a><span class='hs-comment'>-- @</span>
-<a name="line-153"></a><span class='hs-comment'>--</span>
-<a name="line-154"></a><span class='hs-comment'>-- /or/</span>
-<a name="line-155"></a><span class='hs-comment'>--</span>
-<a name="line-156"></a><span class='hs-comment'>-- @</span>
-<a name="line-157"></a><span class='hs-comment'>-- instance 'Data' a =&gt; 'Plated' (Tree a) where</span>
-<a name="line-158"></a><span class='hs-comment'>--   'plate' = 'uniplate'</span>
-<a name="line-159"></a><span class='hs-comment'>-- @</span>
-<a name="line-160"></a><span class='hs-comment'>--</span>
-<a name="line-161"></a><span class='hs-comment'>-- Note the big distinction between these two implementations.</span>
-<a name="line-162"></a><span class='hs-comment'>--</span>
-<a name="line-163"></a><span class='hs-comment'>-- The former will only treat children directly in this tree as descendents,</span>
-<a name="line-164"></a><span class='hs-comment'>-- the latter will treat trees contained in the values under the tips also</span>
-<a name="line-165"></a><span class='hs-comment'>-- as descendants!</span>
-<a name="line-166"></a><span class='hs-comment'>--</span>
-<a name="line-167"></a><span class='hs-comment'>-- When in doubt, pick a 'Traversal' and just use the various @...Of@ combinators</span>
-<a name="line-168"></a><span class='hs-comment'>-- rather than pollute 'Plated' with orphan instances!</span>
-<a name="line-169"></a><span class='hs-comment'>--</span>
-<a name="line-170"></a><span class='hs-comment'>-- If you want to find something unplated and non-recursive with 'Data.Data.Lens.biplate'</span>
-<a name="line-171"></a><span class='hs-comment'>-- use the @...OnOf@ variant with 'ignored', though those usecases are much better served</span>
-<a name="line-172"></a><span class='hs-comment'>-- in most cases by using the existing 'Lens' combinators! e.g.</span>
-<a name="line-173"></a><span class='hs-comment'>--</span>
-<a name="line-174"></a><span class='hs-comment'>-- @</span>
-<a name="line-175"></a><span class='hs-comment'>-- 'toListOf' 'biplate' ≡ 'universeOnOf' 'biplate' 'ignored'</span>
-<a name="line-176"></a><span class='hs-comment'>-- @</span>
-<a name="line-177"></a><span class='hs-comment'>--</span>
-<a name="line-178"></a><span class='hs-comment'>-- This same ability to explicitly pass the 'Traversal' in question is why there is no</span>
-<a name="line-179"></a><span class='hs-comment'>-- analogue to uniplate's @Biplate@.</span>
-<a name="line-180"></a><span class='hs-comment'>--</span>
-<a name="line-181"></a><span class='hs-comment'>-- Moreover, since we can allow custom traversals, we implement reasonable defaults for</span>
-<a name="line-182"></a><span class='hs-comment'>-- polymorphic data types, that only 'Control.Traversable.traverse' into themselves, and /not/ their</span>
-<a name="line-183"></a><span class='hs-comment'>-- polymorphic arguments.</span>
-<a name="line-184"></a>
-<a name="line-185"></a><a name="Traversal'"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>where</span>
-<a name="line-186"></a>  <span class='hs-comment'>-- | 'Traversal' of the immediate children of this structure.</span>
-<a name="line-187"></a>  <span class='hs-comment'>--</span>
-<a name="line-188"></a>  <span class='hs-comment'>-- If you're using GHC 7.2 or newer and your type has a 'Data' instance,</span>
-<a name="line-189"></a>  <span class='hs-comment'>-- 'plate' will default to 'uniplate' and you can choose to not override</span>
-<a name="line-190"></a>  <span class='hs-comment'>-- it with your own definition.</span>
-<a name="line-191"></a>  <span class='hs-varid'>plate</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Traversal'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
-<a name="line-192"></a><span class='hs-cpp'>#ifndef HLINT</span>
-<a name="line-193"></a>  <span class='hs-keyword'>default</span> <span class='hs-varid'>plate</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Data</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Traversal'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
-<a name="line-194"></a>  <span class='hs-varid'>plate</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>uniplate</span>
-<a name="line-195"></a><span class='hs-cpp'>#endif</span>
-<a name="line-196"></a>
-<a name="line-197"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyword'>where</span>
-<a name="line-198"></a>  <span class='hs-varid'>plate</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>x</span><span class='hs-conop'>:</span><span class='hs-varid'>xs</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>x</span><span class='hs-conop'>:</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>xs</span>
-<a name="line-199"></a>  <span class='hs-varid'>plate</span> <span class='hs-keyword'>_</span> <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pure</span> <span class='hs-conid'>[]</span>
-<a name="line-200"></a>
-<a name="line-201"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-layout'>(</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-202"></a>  <span class='hs-varid'>plate</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>traverse</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
-<a name="line-203"></a>
-<a name="line-204"></a><span class='hs-comment'>{- Default uniplate instances -}</span>
-<a name="line-205"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Exp</span>
-<a name="line-206"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Dec</span>
-<a name="line-207"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Con</span>
-<a name="line-208"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
-<a name="line-209"></a><span class='hs-cpp'>#if !(MIN_VERSION_template_haskell(2,8,0))</span>
-<a name="line-210"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Kind</span> <span class='hs-comment'>-- in 2.8 Kind is an alias for Type</span>
-<a name="line-211"></a><span class='hs-cpp'>#endif</span>
-<a name="line-212"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Stmt</span>
-<a name="line-213"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Pat</span>
+<a name="line-71"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>...</span><span class='hs-layout'>)</span>
+<a name="line-72"></a>
+<a name="line-73"></a>  <span class='hs-comment'>-- * Compos</span>
+<a name="line-74"></a>  <span class='hs-comment'>-- $compos</span>
+<a name="line-75"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>composOpFold</span>
+<a name="line-76"></a>
+<a name="line-77"></a>  <span class='hs-comment'>-- * Parts</span>
+<a name="line-78"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>parts</span>
+<a name="line-79"></a>  <span class='hs-layout'>)</span>
+<a name="line-80"></a>  <span class='hs-keyword'>where</span>
+<a name="line-81"></a>
+<a name="line-82"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Applicative</span>
+<a name="line-83"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Fold</span>
+<a name="line-84"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Getter</span>
+<a name="line-85"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Indexed</span>
+<a name="line-86"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Context</span>
+<a name="line-87"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
+<a name="line-88"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Setter</span>
+<a name="line-89"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Traversal</span>
+<a name="line-90"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Language</span><span class='hs-varop'>.</span><span class='hs-conid'>Haskell</span><span class='hs-varop'>.</span><span class='hs-conid'>TH</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>TH</span>
+<a name="line-91"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Data</span>
+<a name="line-92"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-93"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Monoid</span>
+<a name="line-94"></a><span class='hs-keyword'>import</span>           <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Tree</span>
+<a name="line-95"></a>
+<a name="line-96"></a><span class='hs-comment'>-- | A 'Plated' type is one where we know how to extract its immediate self-similar children.</span>
+<a name="line-97"></a><span class='hs-comment'>--</span>
+<a name="line-98"></a><span class='hs-comment'>-- /Example 1/:</span>
+<a name="line-99"></a><span class='hs-comment'>--</span>
+<a name="line-100"></a><span class='hs-comment'>-- @</span>
+<a name="line-101"></a><span class='hs-comment'>-- import Control.Applicative</span>
+<a name="line-102"></a><span class='hs-comment'>-- import Control.Lens</span>
+<a name="line-103"></a><span class='hs-comment'>-- import Control.Lens.Plated</span>
+<a name="line-104"></a><span class='hs-comment'>-- import Data.Data</span>
+<a name="line-105"></a><span class='hs-comment'>-- import Data.Data.Lens ('Data.Data.Lens.uniplate')</span>
+<a name="line-106"></a><span class='hs-comment'>-- @</span>
+<a name="line-107"></a><span class='hs-comment'>--</span>
+<a name="line-108"></a><span class='hs-comment'>-- @</span>
+<a name="line-109"></a><span class='hs-comment'>-- data Expr</span>
+<a name="line-110"></a><span class='hs-comment'>--   = Val 'Int'</span>
+<a name="line-111"></a><span class='hs-comment'>--   | Neg Expr</span>
+<a name="line-112"></a><span class='hs-comment'>--   | Add Expr Expr</span>
+<a name="line-113"></a><span class='hs-comment'>--   deriving ('Eq','Ord','Show','Read','Data','Typeable')</span>
+<a name="line-114"></a><span class='hs-comment'>-- @</span>
+<a name="line-115"></a><span class='hs-comment'>--</span>
+<a name="line-116"></a><span class='hs-comment'>-- @</span>
+<a name="line-117"></a><span class='hs-comment'>-- instance 'Plated' Expr where</span>
+<a name="line-118"></a><span class='hs-comment'>--   'plate' f (Neg e) = Neg '&lt;$&gt;' f e</span>
+<a name="line-119"></a><span class='hs-comment'>--   'plate' f (Add a b) = Add '&lt;$&gt;' f a '&lt;*&gt;' f b</span>
+<a name="line-120"></a><span class='hs-comment'>--   'plate' _ a = 'pure' a</span>
+<a name="line-121"></a><span class='hs-comment'>-- @</span>
+<a name="line-122"></a><span class='hs-comment'>--</span>
+<a name="line-123"></a><span class='hs-comment'>-- /or/</span>
+<a name="line-124"></a><span class='hs-comment'>--</span>
+<a name="line-125"></a><span class='hs-comment'>-- @</span>
+<a name="line-126"></a><span class='hs-comment'>-- instance 'Plated' Expr where</span>
+<a name="line-127"></a><span class='hs-comment'>--   'plate' = 'Data.Data.Lens.uniplate'</span>
+<a name="line-128"></a><span class='hs-comment'>-- @</span>
+<a name="line-129"></a><span class='hs-comment'>--</span>
+<a name="line-130"></a><span class='hs-comment'>-- /Example 2/:</span>
+<a name="line-131"></a><span class='hs-comment'>--</span>
+<a name="line-132"></a><span class='hs-comment'>-- @</span>
+<a name="line-133"></a><span class='hs-comment'>-- import Control.Applicative</span>
+<a name="line-134"></a><span class='hs-comment'>-- import Control.Lens</span>
+<a name="line-135"></a><span class='hs-comment'>-- import Control.Lens.Plated</span>
+<a name="line-136"></a><span class='hs-comment'>-- import Data.Data</span>
+<a name="line-137"></a><span class='hs-comment'>-- import Data.Data.Lens ('Data.Data.Lens.uniplate')</span>
+<a name="line-138"></a><span class='hs-comment'>-- @</span>
+<a name="line-139"></a><span class='hs-comment'>--</span>
+<a name="line-140"></a><span class='hs-comment'>-- @</span>
+<a name="line-141"></a><span class='hs-comment'>-- data Tree a</span>
+<a name="line-142"></a><span class='hs-comment'>--   = Bin (Tree a) (Tree a)</span>
+<a name="line-143"></a><span class='hs-comment'>--   | Tip a</span>
+<a name="line-144"></a><span class='hs-comment'>--   deriving ('Eq','Ord','Show','Read','Data','Typeable')</span>
+<a name="line-145"></a><span class='hs-comment'>-- @</span>
+<a name="line-146"></a><span class='hs-comment'>--</span>
+<a name="line-147"></a><span class='hs-comment'>-- @</span>
+<a name="line-148"></a><span class='hs-comment'>-- instance 'Plated' (Tree a) where</span>
+<a name="line-149"></a><span class='hs-comment'>--   'plate' f (Bin l r) = Bin '&lt;$&gt;' f l '&lt;*&gt;' f r</span>
+<a name="line-150"></a><span class='hs-comment'>--   'plate' _ t = 'pure' t</span>
+<a name="line-151"></a><span class='hs-comment'>-- @</span>
+<a name="line-152"></a><span class='hs-comment'>--</span>
+<a name="line-153"></a><span class='hs-comment'>-- /or/</span>
+<a name="line-154"></a><span class='hs-comment'>--</span>
+<a name="line-155"></a><span class='hs-comment'>-- @</span>
+<a name="line-156"></a><span class='hs-comment'>-- instance 'Data' a =&gt; 'Plated' (Tree a) where</span>
+<a name="line-157"></a><span class='hs-comment'>--   'plate' = 'uniplate'</span>
+<a name="line-158"></a><span class='hs-comment'>-- @</span>
+<a name="line-159"></a><span class='hs-comment'>--</span>
+<a name="line-160"></a><span class='hs-comment'>-- Note the big distinction between these two implementations.</span>
+<a name="line-161"></a><span class='hs-comment'>--</span>
+<a name="line-162"></a><span class='hs-comment'>-- The former will only treat children directly in this tree as descendents,</span>
+<a name="line-163"></a><span class='hs-comment'>-- the latter will treat trees contained in the values under the tips also</span>
+<a name="line-164"></a><span class='hs-comment'>-- as descendants!</span>
+<a name="line-165"></a><span class='hs-comment'>--</span>
+<a name="line-166"></a><span class='hs-comment'>-- When in doubt, pick a 'Traversal' and just use the various @...Of@ combinators</span>
+<a name="line-167"></a><span class='hs-comment'>-- rather than pollute 'Plated' with orphan instances!</span>
+<a name="line-168"></a><span class='hs-comment'>--</span>
+<a name="line-169"></a><span class='hs-comment'>-- If you want to find something unplated and non-recursive with 'Data.Data.Lens.biplate'</span>
+<a name="line-170"></a><span class='hs-comment'>-- use the @...OnOf@ variant with 'ignored', though those usecases are much better served</span>
+<a name="line-171"></a><span class='hs-comment'>-- in most cases by using the existing 'Lens' combinators! e.g.</span>
+<a name="line-172"></a><span class='hs-comment'>--</span>
+<a name="line-173"></a><span class='hs-comment'>-- @</span>
+<a name="line-174"></a><span class='hs-comment'>-- 'toListOf' 'biplate' ≡ 'universeOnOf' 'biplate' 'ignored'</span>
+<a name="line-175"></a><span class='hs-comment'>-- @</span>
+<a name="line-176"></a><span class='hs-comment'>--</span>
+<a name="line-177"></a><span class='hs-comment'>-- This same ability to explicitly pass the 'Traversal' in question is why there is no</span>
+<a name="line-178"></a><span class='hs-comment'>-- analogue to uniplate's @Biplate@.</span>
+<a name="line-179"></a><span class='hs-comment'>--</span>
+<a name="line-180"></a><span class='hs-comment'>-- Moreover, since we can allow custom traversals, we implement reasonable defaults for</span>
+<a name="line-181"></a><span class='hs-comment'>-- polymorphic data types, that only 'Control.Traversable.traverse' into themselves, and /not/ their</span>
+<a name="line-182"></a><span class='hs-comment'>-- polymorphic arguments.</span>
+<a name="line-183"></a>
+<a name="line-184"></a><a name="Traversal'"></a><span class='hs-keyword'>class</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>where</span>
+<a name="line-185"></a>  <span class='hs-comment'>-- | 'Traversal' of the immediate children of this structure.</span>
+<a name="line-186"></a>  <span class='hs-comment'>--</span>
+<a name="line-187"></a>  <span class='hs-comment'>-- If you're using GHC 7.2 or newer and your type has a 'Data' instance,</span>
+<a name="line-188"></a>  <span class='hs-comment'>-- 'plate' will default to 'uniplate' and you can choose to not override</span>
+<a name="line-189"></a>  <span class='hs-comment'>-- it with your own definition.</span>
+<a name="line-190"></a>  <span class='hs-varid'>plate</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Traversal'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
+<a name="line-191"></a><span class='hs-cpp'>#ifndef HLINT</span>
+<a name="line-192"></a>  <span class='hs-keyword'>default</span> <span class='hs-varid'>plate</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Data</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Traversal'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
+<a name="line-193"></a>  <span class='hs-varid'>plate</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>uniplate</span>
+<a name="line-194"></a><span class='hs-cpp'>#endif</span>
+<a name="line-195"></a>
+<a name="line-196"></a><a name="instance%20Plated%20%5ba%5d"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyword'>where</span>
+<a name="line-197"></a>  <span class='hs-varid'>plate</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>x</span><span class='hs-conop'>:</span><span class='hs-varid'>xs</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>x</span><span class='hs-conop'>:</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>xs</span>
+<a name="line-198"></a>  <span class='hs-varid'>plate</span> <span class='hs-keyword'>_</span> <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pure</span> <span class='hs-conid'>[]</span>
+<a name="line-199"></a>
+<a name="line-200"></a><a name="instance%20Plated%20(Tree%20a)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-layout'>(</span><span class='hs-conid'>Tree</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-201"></a>  <span class='hs-varid'>plate</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-keyword'>as</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Node</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>traverse</span> <span class='hs-varid'>f</span> <span class='hs-keyword'>as</span>
+<a name="line-202"></a>
+<a name="line-203"></a><a name="instance%20LensLike%20f%20s%20t%20c%20c%20-%3e%20Over%20p%20f%20c%20c%20a%20b%20-%3e%20Over%20p%20f%20s%20t%20a%20b%20l%20...%20m%20=%20l%20.%20plate%20.%20m%20%7b-%23%20INLINE%20(...)%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Children%20-------------------------------------------------------------------------------%20--%20%7c%20Extract%20the%20immediate%20descendants%20of%20a%20'Plated'%20container.%20--%20--%20@%20--%20'children'%20≡%20'toListOf'%20'plate'%20--%20@%20children%20::%20Plated%20a%20=%3e%20a%20-%3e%20%5ba%5d%20children%20=%20toListOf%20plate%20%7b-%23%20INLINE%20children%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Rewriting%20-------------------------------------------------------------------------------%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewrite%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universe'%20('rewrite'%20r%20x))%20--%20@%20--%20--%20Usually%20'transform'%20is%20more%20appropriate,%20but%20'rewrite'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20rewrite%20::%20Plated%20a%20=%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewrite%20=%20rewriteOf%20plate%20%7b-%23%20INLINE%20rewrite%20%23-%7d%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewriteOf%20l%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universeOf'%20l%20('rewriteOf'%20l%20r%20x))%20--%20@%20--%20--%20Usually%20'transformOf'%20is%20more%20appropriate,%20but%20'rewriteOf'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20--%20--%20@%20--%20'rewriteOf'%20::%20'Control.Lens.Iso.Iso''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Lens''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Traversal''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Setter''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20@%20rewriteOf%20::%20ASetter'%20a%20a%20-%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewriteOf%20l%20f%20=%20go"></a><span class='hs-comment'>{- Default uniplate instances -}</span>
+<a name="line-204"></a><a name="instance%20LensLike%20f%20s%20t%20c%20c%20-%3e%20Over%20p%20f%20c%20c%20a%20b%20-%3e%20Over%20p%20f%20s%20t%20a%20b%20l%20...%20m%20=%20l%20.%20plate%20.%20m%20%7b-%23%20INLINE%20(...)%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Children%20-------------------------------------------------------------------------------%20--%20%7c%20Extract%20the%20immediate%20descendants%20of%20a%20'Plated'%20container.%20--%20--%20@%20--%20'children'%20≡%20'toListOf'%20'plate'%20--%20@%20children%20::%20Plated%20a%20=%3e%20a%20-%3e%20%5ba%5d%20children%20=%20toListOf%20plate%20%7b-%23%20INLINE%20children%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Rewriting%20-------------------------------------------------------------------------------%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewrite%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universe'%20('rewrite'%20r%20x))%20--%20@%20--%20--%20Usually%20'transform'%20is%20more%20appropriate,%20but%20'rewrite'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20rewrite%20::%20Plated%20a%20=%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewrite%20=%20rewriteOf%20plate%20%7b-%23%20INLINE%20rewrite%20%23-%7d%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewriteOf%20l%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universeOf'%20l%20('rewriteOf'%20l%20r%20x))%20--%20@%20--%20--%20Usually%20'transformOf'%20is%20more%20appropriate,%20but%20'rewriteOf'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20--%20--%20@%20--%20'rewriteOf'%20::%20'Control.Lens.Iso.Iso''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Lens''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Traversal''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Setter''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20@%20rewriteOf%20::%20ASetter'%20a%20a%20-%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewriteOf%20l%20f%20=%20go"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Exp</span>
+<a name="line-205"></a><a name="instance%20LensLike%20f%20s%20t%20c%20c%20-%3e%20Over%20p%20f%20c%20c%20a%20b%20-%3e%20Over%20p%20f%20s%20t%20a%20b%20l%20...%20m%20=%20l%20.%20plate%20.%20m%20%7b-%23%20INLINE%20(...)%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Children%20-------------------------------------------------------------------------------%20--%20%7c%20Extract%20the%20immediate%20descendants%20of%20a%20'Plated'%20container.%20--%20--%20@%20--%20'children'%20≡%20'toListOf'%20'plate'%20--%20@%20children%20::%20Plated%20a%20=%3e%20a%20-%3e%20%5ba%5d%20children%20=%20toListOf%20plate%20%7b-%23%20INLINE%20children%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Rewriting%20-------------------------------------------------------------------------------%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewrite%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universe'%20('rewrite'%20r%20x))%20--%20@%20--%20--%20Usually%20'transform'%20is%20more%20appropriate,%20but%20'rewrite'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20rewrite%20::%20Plated%20a%20=%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewrite%20=%20rewriteOf%20plate%20%7b-%23%20INLINE%20rewrite%20%23-%7d%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewriteOf%20l%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universeOf'%20l%20('rewriteOf'%20l%20r%20x))%20--%20@%20--%20--%20Usually%20'transformOf'%20is%20more%20appropriate,%20but%20'rewriteOf'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20--%20--%20@%20--%20'rewriteOf'%20::%20'Control.Lens.Iso.Iso''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Lens''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Traversal''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Setter''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20@%20rewriteOf%20::%20ASetter'%20a%20a%20-%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewriteOf%20l%20f%20=%20go"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Dec</span>
+<a name="line-206"></a><a name="instance%20LensLike%20f%20s%20t%20c%20c%20-%3e%20Over%20p%20f%20c%20c%20a%20b%20-%3e%20Over%20p%20f%20s%20t%20a%20b%20l%20...%20m%20=%20l%20.%20plate%20.%20m%20%7b-%23%20INLINE%20(...)%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Children%20-------------------------------------------------------------------------------%20--%20%7c%20Extract%20the%20immediate%20descendants%20of%20a%20'Plated'%20container.%20--%20--%20@%20--%20'children'%20≡%20'toListOf'%20'plate'%20--%20@%20children%20::%20Plated%20a%20=%3e%20a%20-%3e%20%5ba%5d%20children%20=%20toListOf%20plate%20%7b-%23%20INLINE%20children%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Rewriting%20-------------------------------------------------------------------------------%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewrite%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universe'%20('rewrite'%20r%20x))%20--%20@%20--%20--%20Usually%20'transform'%20is%20more%20appropriate,%20but%20'rewrite'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20rewrite%20::%20Plated%20a%20=%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewrite%20=%20rewriteOf%20plate%20%7b-%23%20INLINE%20rewrite%20%23-%7d%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewriteOf%20l%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universeOf'%20l%20('rewriteOf'%20l%20r%20x))%20--%20@%20--%20--%20Usually%20'transformOf'%20is%20more%20appropriate,%20but%20'rewriteOf'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20--%20--%20@%20--%20'rewriteOf'%20::%20'Control.Lens.Iso.Iso''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Lens''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Traversal''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Setter''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20@%20rewriteOf%20::%20ASetter'%20a%20a%20-%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewriteOf%20l%20f%20=%20go"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Con</span>
+<a name="line-207"></a><a name="instance%20LensLike%20f%20s%20t%20c%20c%20-%3e%20Over%20p%20f%20c%20c%20a%20b%20-%3e%20Over%20p%20f%20s%20t%20a%20b%20l%20...%20m%20=%20l%20.%20plate%20.%20m%20%7b-%23%20INLINE%20(...)%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Children%20-------------------------------------------------------------------------------%20--%20%7c%20Extract%20the%20immediate%20descendants%20of%20a%20'Plated'%20container.%20--%20--%20@%20--%20'children'%20≡%20'toListOf'%20'plate'%20--%20@%20children%20::%20Plated%20a%20=%3e%20a%20-%3e%20%5ba%5d%20children%20=%20toListOf%20plate%20%7b-%23%20INLINE%20children%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Rewriting%20-------------------------------------------------------------------------------%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewrite%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universe'%20('rewrite'%20r%20x))%20--%20@%20--%20--%20Usually%20'transform'%20is%20more%20appropriate,%20but%20'rewrite'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20rewrite%20::%20Plated%20a%20=%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewrite%20=%20rewriteOf%20plate%20%7b-%23%20INLINE%20rewrite%20%23-%7d%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewriteOf%20l%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universeOf'%20l%20('rewriteOf'%20l%20r%20x))%20--%20@%20--%20--%20Usually%20'transformOf'%20is%20more%20appropriate,%20but%20'rewriteOf'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20--%20--%20@%20--%20'rewriteOf'%20::%20'Control.Lens.Iso.Iso''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Lens''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Traversal''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Setter''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20@%20rewriteOf%20::%20ASetter'%20a%20a%20-%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewriteOf%20l%20f%20=%20go"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
+<a name="line-208"></a><span class='hs-cpp'>#if !(MIN_VERSION_template_haskell(2,8,0))</span>
+<a name="line-209"></a><a name="instance%20LensLike%20f%20s%20t%20c%20c%20-%3e%20Over%20p%20f%20c%20c%20a%20b%20-%3e%20Over%20p%20f%20s%20t%20a%20b%20l%20...%20m%20=%20l%20.%20plate%20.%20m%20%7b-%23%20INLINE%20(...)%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Children%20-------------------------------------------------------------------------------%20--%20%7c%20Extract%20the%20immediate%20descendants%20of%20a%20'Plated'%20container.%20--%20--%20@%20--%20'children'%20≡%20'toListOf'%20'plate'%20--%20@%20children%20::%20Plated%20a%20=%3e%20a%20-%3e%20%5ba%5d%20children%20=%20toListOf%20plate%20%7b-%23%20INLINE%20children%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Rewriting%20-------------------------------------------------------------------------------%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewrite%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universe'%20('rewrite'%20r%20x))%20--%20@%20--%20--%20Usually%20'transform'%20is%20more%20appropriate,%20but%20'rewrite'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20rewrite%20::%20Plated%20a%20=%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewrite%20=%20rewriteOf%20plate%20%7b-%23%20INLINE%20rewrite%20%23-%7d%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewriteOf%20l%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universeOf'%20l%20('rewriteOf'%20l%20r%20x))%20--%20@%20--%20--%20Usually%20'transformOf'%20is%20more%20appropriate,%20but%20'rewriteOf'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20--%20--%20@%20--%20'rewriteOf'%20::%20'Control.Lens.Iso.Iso''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Lens''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Traversal''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Setter''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20@%20rewriteOf%20::%20ASetter'%20a%20a%20-%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewriteOf%20l%20f%20=%20go"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Kind</span> <span class='hs-comment'>-- in 2.8 Kind is an alias for Type</span>
+<a name="line-210"></a><span class='hs-cpp'>#endif</span>
+<a name="line-211"></a><a name="instance%20LensLike%20f%20s%20t%20c%20c%20-%3e%20Over%20p%20f%20c%20c%20a%20b%20-%3e%20Over%20p%20f%20s%20t%20a%20b%20l%20...%20m%20=%20l%20.%20plate%20.%20m%20%7b-%23%20INLINE%20(...)%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Children%20-------------------------------------------------------------------------------%20--%20%7c%20Extract%20the%20immediate%20descendants%20of%20a%20'Plated'%20container.%20--%20--%20@%20--%20'children'%20≡%20'toListOf'%20'plate'%20--%20@%20children%20::%20Plated%20a%20=%3e%20a%20-%3e%20%5ba%5d%20children%20=%20toListOf%20plate%20%7b-%23%20INLINE%20children%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Rewriting%20-------------------------------------------------------------------------------%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewrite%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universe'%20('rewrite'%20r%20x))%20--%20@%20--%20--%20Usually%20'transform'%20is%20more%20appropriate,%20but%20'rewrite'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20rewrite%20::%20Plated%20a%20=%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewrite%20=%20rewriteOf%20plate%20%7b-%23%20INLINE%20rewrite%20%23-%7d%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewriteOf%20l%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universeOf'%20l%20('rewriteOf'%20l%20r%20x))%20--%20@%20--%20--%20Usually%20'transformOf'%20is%20more%20appropriate,%20but%20'rewriteOf'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20--%20--%20@%20--%20'rewriteOf'%20::%20'Control.Lens.Iso.Iso''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Lens''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Traversal''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Setter''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20@%20rewriteOf%20::%20ASetter'%20a%20a%20-%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewriteOf%20l%20f%20=%20go"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Stmt</span>
+<a name="line-212"></a><a name="instance%20LensLike%20f%20s%20t%20c%20c%20-%3e%20Over%20p%20f%20c%20c%20a%20b%20-%3e%20Over%20p%20f%20s%20t%20a%20b%20l%20...%20m%20=%20l%20.%20plate%20.%20m%20%7b-%23%20INLINE%20(...)%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Children%20-------------------------------------------------------------------------------%20--%20%7c%20Extract%20the%20immediate%20descendants%20of%20a%20'Plated'%20container.%20--%20--%20@%20--%20'children'%20≡%20'toListOf'%20'plate'%20--%20@%20children%20::%20Plated%20a%20=%3e%20a%20-%3e%20%5ba%5d%20children%20=%20toListOf%20plate%20%7b-%23%20INLINE%20children%20%23-%7d%20-------------------------------------------------------------------------------%20--%20Rewriting%20-------------------------------------------------------------------------------%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewrite%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universe'%20('rewrite'%20r%20x))%20--%20@%20--%20--%20Usually%20'transform'%20is%20more%20appropriate,%20but%20'rewrite'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20rewrite%20::%20Plated%20a%20=%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewrite%20=%20rewriteOf%20plate%20%7b-%23%20INLINE%20rewrite%20%23-%7d%20--%20%7c%20Rewrite%20by%20applying%20a%20rule%20everywhere%20you%20can.%20Ensures%20that%20the%20rule%20cannot%20--%20be%20applied%20anywhere%20in%20the%20result:%20--%20--%20@%20--%20propRewriteOf%20l%20r%20x%20=%20'all'%20('Data.Just.isNothing'%20'.'%20r)%20('universeOf'%20l%20('rewriteOf'%20l%20r%20x))%20--%20@%20--%20--%20Usually%20'transformOf'%20is%20more%20appropriate,%20but%20'rewriteOf'%20can%20give%20better%20--%20compositionality.%20Given%20two%20single%20transformations%20@f@%20and%20@g@,%20you%20can%20--%20construct%20@%5ca%20-%3e%20f%20a%20%60mplus%60%20g%20a@%20which%20performs%20both%20rewrites%20until%20a%20fixed%20point.%20--%20--%20@%20--%20'rewriteOf'%20::%20'Control.Lens.Iso.Iso''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Lens''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Traversal''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20'rewriteOf'%20::%20'Setter''%20a%20a%20-%3e%20(a%20-%3e%20'Maybe'%20a)%20-%3e%20a%20-%3e%20a%20--%20@%20rewriteOf%20::%20ASetter'%20a%20a%20-%3e%20(a%20-%3e%20Maybe%20a)%20-%3e%20a%20-%3e%20a%20rewriteOf%20l%20f%20=%20go"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Plated</span> <span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Pat</span>
+<a name="line-213"></a>
 <a name="line-214"></a>
-<a name="line-215"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-216"></a><span class='hs-comment'>-- Children</span>
-<a name="line-217"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-218"></a>
-<a name="line-219"></a><a name="children"></a><span class='hs-comment'>-- | Extract the immediate descendants of a 'Plated' container.</span>
-<a name="line-220"></a><span class='hs-comment'>--</span>
-<a name="line-221"></a><span class='hs-comment'>-- @</span>
-<a name="line-222"></a><span class='hs-comment'>-- 'children' ≡ 'toListOf' 'plate'</span>
-<a name="line-223"></a><span class='hs-comment'>-- @</span>
-<a name="line-224"></a><span class='hs-definition'>children</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-225"></a><span class='hs-definition'>children</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>toListOf</span> <span class='hs-varid'>plate</span>
-<a name="line-226"></a><span class='hs-comment'>{-# INLINE children #-}</span>
-<a name="line-227"></a>
-<a name="line-228"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-229"></a><span class='hs-comment'>-- Rewriting</span>
-<a name="line-230"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-231"></a>
-<a name="line-232"></a><a name="rewrite"></a><span class='hs-comment'>-- | Rewrite by applying a rule everywhere you can. Ensures that the rule cannot</span>
-<a name="line-233"></a><span class='hs-comment'>-- be applied anywhere in the result:</span>
-<a name="line-234"></a><span class='hs-comment'>--</span>
-<a name="line-235"></a><span class='hs-comment'>-- @</span>
-<a name="line-236"></a><span class='hs-comment'>-- propRewrite r x = 'all' ('Data.Just.isNothing' '.' r) ('universe' ('rewrite' r x))</span>
-<a name="line-237"></a><span class='hs-comment'>-- @</span>
-<a name="line-238"></a><span class='hs-comment'>--</span>
-<a name="line-239"></a><span class='hs-comment'>-- Usually 'transform' is more appropriate, but 'rewrite' can give better</span>
-<a name="line-240"></a><span class='hs-comment'>-- compositionality. Given two single transformations @f@ and @g@, you can</span>
-<a name="line-241"></a><span class='hs-comment'>-- construct @\a -&gt; f a `mplus` g a@ which performs both rewrites until a fixed point.</span>
-<a name="line-242"></a><span class='hs-definition'>rewrite</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
-<a name="line-243"></a><span class='hs-definition'>rewrite</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>rewriteOf</span> <span class='hs-varid'>plate</span>
-<a name="line-244"></a><span class='hs-comment'>{-# INLINE rewrite #-}</span>
-<a name="line-245"></a>
-<a name="line-246"></a><a name="rewriteOf"></a><span class='hs-comment'>-- | Rewrite by applying a rule everywhere you can. Ensures that the rule cannot</span>
-<a name="line-247"></a><span class='hs-comment'>-- be applied anywhere in the result:</span>
-<a name="line-248"></a><span class='hs-comment'>--</span>
-<a name="line-249"></a><span class='hs-comment'>-- @</span>
-<a name="line-250"></a><span class='hs-comment'>-- propRewriteOf l r x = 'all' ('Data.Just.isNothing' '.' r) ('universeOf' l ('rewriteOf' l r x))</span>
-<a name="line-251"></a><span class='hs-comment'>-- @</span>
-<a name="line-252"></a><span class='hs-comment'>--</span>
-<a name="line-253"></a><span class='hs-comment'>-- Usually 'transformOf' is more appropriate, but 'rewriteOf' can give better</span>
-<a name="line-254"></a><span class='hs-comment'>-- compositionality. Given two single transformations @f@ and @g@, you can</span>
-<a name="line-255"></a><span class='hs-comment'>-- construct @\a -&gt; f a `mplus` g a@ which performs both rewrites until a fixed point.</span>
-<a name="line-256"></a><span class='hs-comment'>--</span>
+<a name="line-215"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>9</span> <span class='hs-varop'>...</span>
+<a name="line-216"></a><a name="..."></a><span class='hs-comment'>-- | Compose through a plate</span>
+<a name="line-217"></a><span class='hs-layout'>(</span><span class='hs-varop'>...</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Applicative</span> <span class='hs-varid'>f</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>c</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Over</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>c</span> <span class='hs-varid'>c</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Over</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-218"></a><a name="l"></a><span class='hs-definition'>l</span> <span class='hs-varop'>...</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>.</span> <span class='hs-varid'>plate</span> <span class='hs-varop'>.</span> <span class='hs-varid'>m</span>
+<a name="line-219"></a><span class='hs-comment'>{-# INLINE (...) #-}</span>
+<a name="line-220"></a>
+<a name="line-221"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-222"></a><span class='hs-comment'>-- Children</span>
+<a name="line-223"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-224"></a>
+<a name="line-225"></a><a name="children"></a><span class='hs-comment'>-- | Extract the immediate descendants of a 'Plated' container.</span>
+<a name="line-226"></a><span class='hs-comment'>--</span>
+<a name="line-227"></a><span class='hs-comment'>-- @</span>
+<a name="line-228"></a><span class='hs-comment'>-- 'children' ≡ 'toListOf' 'plate'</span>
+<a name="line-229"></a><span class='hs-comment'>-- @</span>
+<a name="line-230"></a><span class='hs-definition'>children</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-231"></a><span class='hs-definition'>children</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>toListOf</span> <span class='hs-varid'>plate</span>
+<a name="line-232"></a><span class='hs-comment'>{-# INLINE children #-}</span>
+<a name="line-233"></a>
+<a name="line-234"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-235"></a><span class='hs-comment'>-- Rewriting</span>
+<a name="line-236"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-237"></a>
+<a name="line-238"></a><a name="rewrite"></a><span class='hs-comment'>-- | Rewrite by applying a rule everywhere you can. Ensures that the rule cannot</span>
+<a name="line-239"></a><span class='hs-comment'>-- be applied anywhere in the result:</span>
+<a name="line-240"></a><span class='hs-comment'>--</span>
+<a name="line-241"></a><span class='hs-comment'>-- @</span>
+<a name="line-242"></a><span class='hs-comment'>-- propRewrite r x = 'all' ('Data.Just.isNothing' '.' r) ('universe' ('rewrite' r x))</span>
+<a name="line-243"></a><span class='hs-comment'>-- @</span>
+<a name="line-244"></a><span class='hs-comment'>--</span>
+<a name="line-245"></a><span class='hs-comment'>-- Usually 'transform' is more appropriate, but 'rewrite' can give better</span>
+<a name="line-246"></a><span class='hs-comment'>-- compositionality. Given two single transformations @f@ and @g@, you can</span>
+<a name="line-247"></a><span class='hs-comment'>-- construct @\a -&gt; f a `mplus` g a@ which performs both rewrites until a fixed point.</span>
+<a name="line-248"></a><span class='hs-definition'>rewrite</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
+<a name="line-249"></a><span class='hs-definition'>rewrite</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>rewriteOf</span> <span class='hs-varid'>plate</span>
+<a name="line-250"></a><span class='hs-comment'>{-# INLINE rewrite #-}</span>
+<a name="line-251"></a>
+<a name="line-252"></a><a name="rewriteOf"></a><span class='hs-comment'>-- | Rewrite by applying a rule everywhere you can. Ensures that the rule cannot</span>
+<a name="line-253"></a><span class='hs-comment'>-- be applied anywhere in the result:</span>
+<a name="line-254"></a><span class='hs-comment'>--</span>
+<a name="line-255"></a><span class='hs-comment'>-- @</span>
+<a name="line-256"></a><span class='hs-comment'>-- propRewriteOf l r x = 'all' ('Data.Just.isNothing' '.' r) ('universeOf' l ('rewriteOf' l r x))</span>
 <a name="line-257"></a><span class='hs-comment'>-- @</span>
-<a name="line-258"></a><span class='hs-comment'>-- 'rewriteOf' :: 'Control.Lens.Iso.Iso'' a a       -&gt; (a -&gt; 'Maybe' a) -&gt; a -&gt; a</span>
-<a name="line-259"></a><span class='hs-comment'>-- 'rewriteOf' :: 'Lens'' a a      -&gt; (a -&gt; 'Maybe' a) -&gt; a -&gt; a</span>
-<a name="line-260"></a><span class='hs-comment'>-- 'rewriteOf' :: 'Traversal'' a a -&gt; (a -&gt; 'Maybe' a) -&gt; a -&gt; a</span>
-<a name="line-261"></a><span class='hs-comment'>-- 'rewriteOf' :: 'Setter'' a a    -&gt; (a -&gt; 'Maybe' a) -&gt; a -&gt; a</span>
-<a name="line-262"></a><span class='hs-comment'>-- @</span>
-<a name="line-263"></a><span class='hs-definition'>rewriteOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ASetter'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
-<a name="line-264"></a><span class='hs-definition'>rewriteOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
-<a name="line-265"></a>  <span class='hs-varid'>go</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>transformOf</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>x</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>maybe</span> <span class='hs-varid'>x</span> <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-266"></a><span class='hs-comment'>{-# INLINE rewriteOf #-}</span>
-<a name="line-267"></a>
-<a name="line-268"></a><a name="rewriteOn"></a><span class='hs-comment'>-- | Rewrite recursively over part of a larger structure.</span>
-<a name="line-269"></a><span class='hs-comment'>--</span>
-<a name="line-270"></a><span class='hs-comment'>-- @</span>
-<a name="line-271"></a><span class='hs-comment'>-- 'rewriteOn' :: 'Plated' a =&gt; 'Control.Lens.Iso.Iso'' s a       -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
-<a name="line-272"></a><span class='hs-comment'>-- 'rewriteOn' :: 'Plated' a =&gt; 'Lens'' s a      -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
-<a name="line-273"></a><span class='hs-comment'>-- 'rewriteOn' :: 'Plated' a =&gt; 'Traversal'' s a -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
-<a name="line-274"></a><span class='hs-comment'>-- 'rewriteOn' :: 'Plated' a =&gt; 'ASetter'' s a   -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
-<a name="line-275"></a><span class='hs-comment'>-- @</span>
-<a name="line-276"></a><span class='hs-definition'>rewriteOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>ASetter</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span>
-<a name="line-277"></a><span class='hs-definition'>rewriteOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>rewrite</span>
-<a name="line-278"></a><span class='hs-comment'>{-# INLINE rewriteOn #-}</span>
-<a name="line-279"></a>
-<a name="line-280"></a><a name="rewriteOnOf"></a><span class='hs-comment'>-- | Rewrite recursively over part of a larger structure using a specified 'Setter'.</span>
-<a name="line-281"></a><span class='hs-comment'>--</span>
-<a name="line-282"></a><span class='hs-comment'>-- @</span>
-<a name="line-283"></a><span class='hs-comment'>-- 'rewriteOnOf' :: 'Plated' a =&gt; 'Control.Lens.Iso.Iso'' s a       -&gt; 'Control.Lens.Iso.Iso'' a a       -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
-<a name="line-284"></a><span class='hs-comment'>-- 'rewriteOnOf' :: 'Plated' a =&gt; 'Lens'' s a      -&gt; 'Lens'' a a      -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
-<a name="line-285"></a><span class='hs-comment'>-- 'rewriteOnOf' :: 'Plated' a =&gt; 'Traversal'' s a -&gt; 'Traversal'' a a -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
-<a name="line-286"></a><span class='hs-comment'>-- 'rewriteOnOf' :: 'Plated' a =&gt; 'Setter'' s a    -&gt; 'Setter'' a a    -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
-<a name="line-287"></a><span class='hs-comment'>-- @</span>
-<a name="line-288"></a><span class='hs-definition'>rewriteOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ASetter</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ASetter'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span>
-<a name="line-289"></a><span class='hs-definition'>rewriteOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>rewriteOf</span> <span class='hs-varid'>l</span>
-<a name="line-290"></a><span class='hs-comment'>{-# INLINE rewriteOnOf #-}</span>
-<a name="line-291"></a>
-<a name="line-292"></a><a name="rewriteM"></a><span class='hs-comment'>-- | Rewrite by applying a monadic rule everywhere you can. Ensures that the rule cannot</span>
-<a name="line-293"></a><span class='hs-comment'>-- be applied anywhere in the result.</span>
-<a name="line-294"></a><span class='hs-definition'>rewriteM</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
-<a name="line-295"></a><span class='hs-definition'>rewriteM</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>rewriteMOf</span> <span class='hs-varid'>plate</span>
-<a name="line-296"></a><span class='hs-comment'>{-# INLINE rewriteM #-}</span>
+<a name="line-258"></a><span class='hs-comment'>--</span>
+<a name="line-259"></a><span class='hs-comment'>-- Usually 'transformOf' is more appropriate, but 'rewriteOf' can give better</span>
+<a name="line-260"></a><span class='hs-comment'>-- compositionality. Given two single transformations @f@ and @g@, you can</span>
+<a name="line-261"></a><span class='hs-comment'>-- construct @\a -&gt; f a `mplus` g a@ which performs both rewrites until a fixed point.</span>
+<a name="line-262"></a><span class='hs-comment'>--</span>
+<a name="line-263"></a><span class='hs-comment'>-- @</span>
+<a name="line-264"></a><span class='hs-comment'>-- 'rewriteOf' :: 'Control.Lens.Iso.Iso'' a a       -&gt; (a -&gt; 'Maybe' a) -&gt; a -&gt; a</span>
+<a name="line-265"></a><span class='hs-comment'>-- 'rewriteOf' :: 'Lens'' a a      -&gt; (a -&gt; 'Maybe' a) -&gt; a -&gt; a</span>
+<a name="line-266"></a><span class='hs-comment'>-- 'rewriteOf' :: 'Traversal'' a a -&gt; (a -&gt; 'Maybe' a) -&gt; a -&gt; a</span>
+<a name="line-267"></a><span class='hs-comment'>-- 'rewriteOf' :: 'Setter'' a a    -&gt; (a -&gt; 'Maybe' a) -&gt; a -&gt; a</span>
+<a name="line-268"></a><span class='hs-comment'>-- @</span>
+<a name="line-269"></a><span class='hs-definition'>rewriteOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ASetter'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
+<a name="line-270"></a><span class='hs-definition'>rewriteOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
+<a name="line-271"></a>  <span class='hs-varid'>go</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>transformOf</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>x</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>maybe</span> <span class='hs-varid'>x</span> <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-272"></a><span class='hs-comment'>{-# INLINE rewriteOf #-}</span>
+<a name="line-273"></a>
+<a name="line-274"></a><a name="rewriteOn"></a><span class='hs-comment'>-- | Rewrite recursively over part of a larger structure.</span>
+<a name="line-275"></a><span class='hs-comment'>--</span>
+<a name="line-276"></a><span class='hs-comment'>-- @</span>
+<a name="line-277"></a><span class='hs-comment'>-- 'rewriteOn' :: 'Plated' a =&gt; 'Control.Lens.Iso.Iso'' s a       -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
+<a name="line-278"></a><span class='hs-comment'>-- 'rewriteOn' :: 'Plated' a =&gt; 'Lens'' s a      -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
+<a name="line-279"></a><span class='hs-comment'>-- 'rewriteOn' :: 'Plated' a =&gt; 'Traversal'' s a -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
+<a name="line-280"></a><span class='hs-comment'>-- 'rewriteOn' :: 'Plated' a =&gt; 'ASetter'' s a   -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
+<a name="line-281"></a><span class='hs-comment'>-- @</span>
+<a name="line-282"></a><span class='hs-definition'>rewriteOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>ASetter</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span>
+<a name="line-283"></a><span class='hs-definition'>rewriteOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>rewrite</span>
+<a name="line-284"></a><span class='hs-comment'>{-# INLINE rewriteOn #-}</span>
+<a name="line-285"></a>
+<a name="line-286"></a><a name="rewriteOnOf"></a><span class='hs-comment'>-- | Rewrite recursively over part of a larger structure using a specified 'Setter'.</span>
+<a name="line-287"></a><span class='hs-comment'>--</span>
+<a name="line-288"></a><span class='hs-comment'>-- @</span>
+<a name="line-289"></a><span class='hs-comment'>-- 'rewriteOnOf' :: 'Plated' a =&gt; 'Control.Lens.Iso.Iso'' s a       -&gt; 'Control.Lens.Iso.Iso'' a a       -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
+<a name="line-290"></a><span class='hs-comment'>-- 'rewriteOnOf' :: 'Plated' a =&gt; 'Lens'' s a      -&gt; 'Lens'' a a      -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
+<a name="line-291"></a><span class='hs-comment'>-- 'rewriteOnOf' :: 'Plated' a =&gt; 'Traversal'' s a -&gt; 'Traversal'' a a -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
+<a name="line-292"></a><span class='hs-comment'>-- 'rewriteOnOf' :: 'Plated' a =&gt; 'Setter'' s a    -&gt; 'Setter'' a a    -&gt; (a -&gt; 'Maybe' a) -&gt; s -&gt; s</span>
+<a name="line-293"></a><span class='hs-comment'>-- @</span>
+<a name="line-294"></a><span class='hs-definition'>rewriteOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ASetter</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ASetter'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span>
+<a name="line-295"></a><span class='hs-definition'>rewriteOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>rewriteOf</span> <span class='hs-varid'>l</span>
+<a name="line-296"></a><span class='hs-comment'>{-# INLINE rewriteOnOf #-}</span>
 <a name="line-297"></a>
-<a name="line-298"></a><a name="rewriteMOf"></a><span class='hs-comment'>-- | Rewrite by applying a monadic rule everywhere you recursing with a user-specified 'Traversal'.</span>
-<a name="line-299"></a><span class='hs-comment'>-- Ensures that the rule cannot be applied anywhere in the result.</span>
-<a name="line-300"></a><span class='hs-definition'>rewriteMOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
-<a name="line-301"></a><span class='hs-definition'>rewriteMOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
-<a name="line-302"></a>  <span class='hs-varid'>go</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>transformMOf</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>x</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>x</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-varid'>maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>return</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span> <span class='hs-varid'>go</span><span class='hs-layout'>)</span>
-<a name="line-303"></a><span class='hs-comment'>{-# INLINE rewriteMOf #-}</span>
-<a name="line-304"></a>
-<a name="line-305"></a><a name="rewriteMOn"></a><span class='hs-comment'>-- | Rewrite by applying a monadic rule everywhere inside of a structure located by a user-specified 'Traversal'.</span>
-<a name="line-306"></a><span class='hs-comment'>-- Ensures that the rule cannot be applied anywhere in the result.</span>
-<a name="line-307"></a><span class='hs-definition'>rewriteMOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
-<a name="line-308"></a><span class='hs-definition'>rewriteMOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>rewriteM</span>
-<a name="line-309"></a><span class='hs-comment'>{-# INLINE rewriteMOn #-}</span>
+<a name="line-298"></a><a name="rewriteM"></a><span class='hs-comment'>-- | Rewrite by applying a monadic rule everywhere you can. Ensures that the rule cannot</span>
+<a name="line-299"></a><span class='hs-comment'>-- be applied anywhere in the result.</span>
+<a name="line-300"></a><span class='hs-definition'>rewriteM</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
+<a name="line-301"></a><span class='hs-definition'>rewriteM</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>rewriteMOf</span> <span class='hs-varid'>plate</span>
+<a name="line-302"></a><span class='hs-comment'>{-# INLINE rewriteM #-}</span>
+<a name="line-303"></a>
+<a name="line-304"></a><a name="rewriteMOf"></a><span class='hs-comment'>-- | Rewrite by applying a monadic rule everywhere you recursing with a user-specified 'Traversal'.</span>
+<a name="line-305"></a><span class='hs-comment'>-- Ensures that the rule cannot be applied anywhere in the result.</span>
+<a name="line-306"></a><span class='hs-definition'>rewriteMOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
+<a name="line-307"></a><span class='hs-definition'>rewriteMOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
+<a name="line-308"></a>  <span class='hs-varid'>go</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>transformMOf</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>x</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>x</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-varid'>maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>return</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span> <span class='hs-varid'>go</span><span class='hs-layout'>)</span>
+<a name="line-309"></a><span class='hs-comment'>{-# INLINE rewriteMOf #-}</span>
 <a name="line-310"></a>
-<a name="line-311"></a><a name="rewriteMOnOf"></a><span class='hs-comment'>-- | Rewrite by applying a monadic rule everywhere inside of a structure located by a user-specified 'Traversal',</span>
-<a name="line-312"></a><span class='hs-comment'>-- using a user-specified 'Traversal' for recursion. Ensures that the rule cannot be applied anywhere in the result.</span>
-<a name="line-313"></a><span class='hs-definition'>rewriteMOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
-<a name="line-314"></a><span class='hs-definition'>rewriteMOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>rewriteMOf</span> <span class='hs-varid'>l</span>
-<a name="line-315"></a><span class='hs-comment'>{-# INLINE rewriteMOnOf #-}</span>
+<a name="line-311"></a><a name="rewriteMOn"></a><span class='hs-comment'>-- | Rewrite by applying a monadic rule everywhere inside of a structure located by a user-specified 'Traversal'.</span>
+<a name="line-312"></a><span class='hs-comment'>-- Ensures that the rule cannot be applied anywhere in the result.</span>
+<a name="line-313"></a><span class='hs-definition'>rewriteMOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
+<a name="line-314"></a><span class='hs-definition'>rewriteMOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>rewriteM</span>
+<a name="line-315"></a><span class='hs-comment'>{-# INLINE rewriteMOn #-}</span>
 <a name="line-316"></a>
-<a name="line-317"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-318"></a><span class='hs-comment'>-- Universe</span>
-<a name="line-319"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-320"></a>
-<a name="line-321"></a><a name="universe"></a><span class='hs-comment'>-- | Retrieve all of the transitive descendants of a 'Plated' container, including itself.</span>
-<a name="line-322"></a><span class='hs-definition'>universe</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-323"></a><span class='hs-definition'>universe</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>universeOf</span> <span class='hs-varid'>plate</span>
-<a name="line-324"></a><span class='hs-comment'>{-# INLINE universe #-}</span>
-<a name="line-325"></a>
-<a name="line-326"></a><a name="universeOf"></a><span class='hs-comment'>-- | Given a 'Fold' that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself.</span>
-<a name="line-327"></a><span class='hs-comment'>--</span>
-<a name="line-328"></a><span class='hs-comment'>-- @</span>
-<a name="line-329"></a><span class='hs-comment'>-- 'universeOf' :: 'Fold' a a -&gt; a -&gt; [a]</span>
-<a name="line-330"></a><span class='hs-comment'>-- @</span>
-<a name="line-331"></a><span class='hs-definition'>universeOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getting</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-332"></a><span class='hs-definition'>universeOf</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
-<a name="line-333"></a>  <span class='hs-varid'>go</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>a</span> <span class='hs-conop'>:</span> <span class='hs-varid'>foldMapOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>go</span> <span class='hs-varid'>a</span>
-<a name="line-334"></a><span class='hs-comment'>{-# INLINE universeOf #-}</span>
-<a name="line-335"></a>
-<a name="line-336"></a><a name="universeOn"></a><span class='hs-comment'>-- | Given a 'Fold' that knows how to find 'Plated' parts of a container retrieve them and all of their descendants, recursively.</span>
-<a name="line-337"></a><span class='hs-definition'>universeOn</span> <span class='hs-keyglyph'>::</span>  <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-338"></a><span class='hs-definition'>universeOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>universeOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>plate</span>
-<a name="line-339"></a><span class='hs-comment'>{-# INLINE universeOn #-}</span>
-<a name="line-340"></a>
-<a name="line-341"></a><a name="universeOnOf"></a><span class='hs-comment'>-- | Given a 'Fold' that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself that lie</span>
-<a name="line-342"></a><span class='hs-comment'>-- in a region indicated by another 'Fold'.</span>
-<a name="line-343"></a><span class='hs-comment'>--</span>
-<a name="line-344"></a><span class='hs-comment'>-- @</span>
-<a name="line-345"></a><span class='hs-comment'>-- 'toListOf' l ≡ 'universeOnOf' l 'ignored'</span>
-<a name="line-346"></a><span class='hs-comment'>-- @</span>
-<a name="line-347"></a><span class='hs-definition'>universeOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getting</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-348"></a><span class='hs-definition'>universeOnOf</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldMapOf</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>universeOf</span>
-<a name="line-349"></a><span class='hs-comment'>{-# INLINE universeOnOf #-}</span>
-<a name="line-350"></a>
-<a name="line-351"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-352"></a><span class='hs-comment'>-- Transformation</span>
-<a name="line-353"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-354"></a>
-<a name="line-355"></a><a name="transform"></a><span class='hs-comment'>-- | Transform every element in the tree, in a bottom-up manner.</span>
-<a name="line-356"></a><span class='hs-comment'>--</span>
-<a name="line-357"></a><span class='hs-comment'>-- For example, replacing negative literals with literals:</span>
-<a name="line-358"></a><span class='hs-comment'>--</span>
-<a name="line-359"></a><span class='hs-comment'>-- @</span>
-<a name="line-360"></a><span class='hs-comment'>-- negLits = 'transform' $ \\x -&gt; case x of</span>
-<a name="line-361"></a><span class='hs-comment'>--   Neg (Lit i) -&gt; Lit ('negate' i)</span>
-<a name="line-362"></a><span class='hs-comment'>--   _           -&gt; x</span>
-<a name="line-363"></a><span class='hs-comment'>-- @</span>
-<a name="line-364"></a><span class='hs-definition'>transform</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
-<a name="line-365"></a><span class='hs-definition'>transform</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>transformOf</span> <span class='hs-varid'>plate</span>
-<a name="line-366"></a><span class='hs-comment'>{-# INLINE transform #-}</span>
-<a name="line-367"></a>
-<a name="line-368"></a><a name="transformOn"></a><span class='hs-comment'>-- | Transform every element in the tree in a bottom-up manner over a region indicated by a 'Setter'.</span>
-<a name="line-369"></a><span class='hs-comment'>--</span>
-<a name="line-370"></a><span class='hs-comment'>-- @</span>
-<a name="line-371"></a><span class='hs-comment'>-- 'transformOn' :: 'Plated' a =&gt; 'Traversal'' s a -&gt; (a -&gt; a) -&gt; s -&gt; s</span>
-<a name="line-372"></a><span class='hs-comment'>-- 'transformOn' :: 'Plated' a =&gt; 'Setter'' s a    -&gt; (a -&gt; a) -&gt; s -&gt; s</span>
-<a name="line-373"></a><span class='hs-comment'>-- @</span>
-<a name="line-374"></a><span class='hs-definition'>transformOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>ASetter</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span>
-<a name="line-375"></a><span class='hs-definition'>transformOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>transform</span>
-<a name="line-376"></a><span class='hs-comment'>{-# INLINE transformOn #-}</span>
-<a name="line-377"></a>
-<a name="line-378"></a><a name="transformOf"></a><span class='hs-comment'>-- | Transform every element by recursively applying a given 'Setter' in a bottom-up manner.</span>
-<a name="line-379"></a><span class='hs-comment'>--</span>
-<a name="line-380"></a><span class='hs-comment'>-- @</span>
-<a name="line-381"></a><span class='hs-comment'>-- 'transformOf' :: 'Traversal'' a a -&gt; (a -&gt; a) -&gt; a -&gt; a</span>
-<a name="line-382"></a><span class='hs-comment'>-- 'transformOf' :: 'Setter'' a a    -&gt; (a -&gt; a) -&gt; a -&gt; a</span>
-<a name="line-383"></a><span class='hs-comment'>-- @</span>
-<a name="line-384"></a><span class='hs-definition'>transformOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ASetter'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
-<a name="line-385"></a><span class='hs-definition'>transformOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
-<a name="line-386"></a>  <span class='hs-varid'>go</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-varid'>go</span>
-<a name="line-387"></a><span class='hs-comment'>{-# INLINE transformOf #-}</span>
-<a name="line-388"></a>
-<a name="line-389"></a><a name="transformOnOf"></a><span class='hs-comment'>-- | Transform every element in a region indicated by a 'Setter' by recursively applying another 'Setter'</span>
-<a name="line-390"></a><span class='hs-comment'>-- in a bottom-up manner.</span>
-<a name="line-391"></a><span class='hs-comment'>--</span>
-<a name="line-392"></a><span class='hs-comment'>-- @</span>
-<a name="line-393"></a><span class='hs-comment'>-- 'transformOnOf' :: 'Setter'' s a -&gt; 'Traversal'' a a -&gt; (a -&gt; a) -&gt; s -&gt; s</span>
-<a name="line-394"></a><span class='hs-comment'>-- 'transformOnOf' :: 'Setter'' s a -&gt; 'Setter'' a a    -&gt; (a -&gt; a) -&gt; s -&gt; s</span>
-<a name="line-395"></a><span class='hs-comment'>-- @</span>
-<a name="line-396"></a><span class='hs-definition'>transformOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ASetter</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ASetter'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span>
-<a name="line-397"></a><span class='hs-definition'>transformOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>transformOf</span> <span class='hs-varid'>l</span>
-<a name="line-398"></a><span class='hs-comment'>{-# INLINE transformOnOf #-}</span>
-<a name="line-399"></a>
-<a name="line-400"></a><a name="transformM"></a><span class='hs-comment'>-- | Transform every element in the tree, in a bottom-up manner, monadically.</span>
-<a name="line-401"></a><span class='hs-definition'>transformM</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
-<a name="line-402"></a><span class='hs-definition'>transformM</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>transformMOf</span> <span class='hs-varid'>plate</span>
-<a name="line-403"></a><span class='hs-comment'>{-# INLINE transformM #-}</span>
-<a name="line-404"></a>
-<a name="line-405"></a><a name="transformMOn"></a><span class='hs-comment'>-- | Transform every element in the tree in a region indicated by a supplied 'Traversal', in a bottom-up manner, monadically.</span>
-<a name="line-406"></a><span class='hs-comment'>--</span>
-<a name="line-407"></a><span class='hs-comment'>-- @</span>
-<a name="line-408"></a><span class='hs-comment'>-- 'transformMOn' :: ('Monad' m, 'Plated' a) =&gt; 'Traversal'' s a -&gt; (a -&gt; m a) -&gt; s -&gt; m s</span>
-<a name="line-409"></a><span class='hs-comment'>-- @</span>
-<a name="line-410"></a><span class='hs-definition'>transformMOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
-<a name="line-411"></a><span class='hs-definition'>transformMOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>transformM</span>
-<a name="line-412"></a><span class='hs-comment'>{-# INLINE transformMOn #-}</span>
-<a name="line-413"></a>
-<a name="line-414"></a><a name="transformMOf"></a><span class='hs-comment'>-- | Transform every element in a tree using a user supplied 'Traversal' in a bottom-up manner with a monadic effect.</span>
-<a name="line-415"></a><span class='hs-comment'>--</span>
-<a name="line-416"></a><span class='hs-comment'>-- @</span>
-<a name="line-417"></a><span class='hs-comment'>-- 'transformMOf' :: 'Monad' m =&gt; 'Traversal'' a a -&gt; (a -&gt; m a) -&gt; a -&gt; m a</span>
-<a name="line-418"></a><span class='hs-comment'>-- @</span>
-<a name="line-419"></a><span class='hs-definition'>transformMOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
-<a name="line-420"></a><span class='hs-definition'>transformMOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
-<a name="line-421"></a>  <span class='hs-varid'>go</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>go</span> <span class='hs-varid'>t</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-varid'>f</span>
-<a name="line-422"></a><span class='hs-comment'>{-# INLINE transformMOf #-}</span>
-<a name="line-423"></a>
-<a name="line-424"></a><a name="transformMOnOf"></a><span class='hs-comment'>-- | Transform every element in a tree that lies in a region indicated by a supplied 'Traversal', walking with a user supplied 'Traversal' in</span>
-<a name="line-425"></a><span class='hs-comment'>-- a bottom-up manner with a monadic effect.</span>
-<a name="line-426"></a><span class='hs-comment'>--</span>
-<a name="line-427"></a><span class='hs-comment'>-- @</span>
-<a name="line-428"></a><span class='hs-comment'>-- 'transformMOnOf' :: 'Monad' m =&gt; 'Traversal'' s a -&gt; 'Traversal'' a a -&gt; (a -&gt; m a) -&gt; s -&gt; m s</span>
-<a name="line-429"></a><span class='hs-comment'>-- @</span>
-<a name="line-430"></a><span class='hs-definition'>transformMOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
-<a name="line-431"></a><span class='hs-definition'>transformMOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>transformMOf</span> <span class='hs-varid'>l</span>
-<a name="line-432"></a><span class='hs-comment'>{-# INLINE transformMOnOf #-}</span>
-<a name="line-433"></a>
-<a name="line-434"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-435"></a><span class='hs-comment'>-- Holes and Contexts</span>
-<a name="line-436"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-437"></a>
-<a name="line-438"></a><a name="contexts"></a><span class='hs-comment'>-- | Return a list of all of the editable contexts for every location in the structure, recursively.</span>
-<a name="line-439"></a><span class='hs-comment'>--</span>
-<a name="line-440"></a><span class='hs-comment'>-- @</span>
-<a name="line-441"></a><span class='hs-comment'>-- propUniverse x = 'universe' x '==' 'map' 'Control.Comonad.Store.Class.pos' ('contexts' x)</span>
-<a name="line-442"></a><span class='hs-comment'>-- propId x = 'all' ('==' x) ['Control.Lens.Internal.Context.extract' w | w &lt;- 'contexts' x]</span>
-<a name="line-443"></a><span class='hs-comment'>-- @</span>
-<a name="line-444"></a><span class='hs-comment'>--</span>
-<a name="line-445"></a><span class='hs-comment'>-- @</span>
-<a name="line-446"></a><span class='hs-comment'>-- 'contexts' ≡ 'contextsOf' 'plate'</span>
-<a name="line-447"></a><span class='hs-comment'>-- @</span>
-<a name="line-448"></a><span class='hs-definition'>contexts</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Context</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-449"></a><span class='hs-definition'>contexts</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>contextsOf</span> <span class='hs-varid'>plate</span>
-<a name="line-450"></a><span class='hs-comment'>{-# INLINE contexts #-}</span>
-<a name="line-451"></a>
-<a name="line-452"></a><a name="contextsOf"></a><span class='hs-comment'>-- | Return a list of all of the editable contexts for every location in the structure, recursively, using a user-specified 'Traversal' to walk each layer.</span>
-<a name="line-453"></a><span class='hs-comment'>--</span>
-<a name="line-454"></a><span class='hs-comment'>-- @</span>
-<a name="line-455"></a><span class='hs-comment'>-- propUniverse l x = 'universeOf' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('contextsOf' l x)</span>
-<a name="line-456"></a><span class='hs-comment'>-- propId l x = 'all' ('==' x) ['Control.Lens.Internal.Context.extract' w | w &lt;- 'contextsOf' l x]</span>
-<a name="line-457"></a><span class='hs-comment'>-- @</span>
-<a name="line-458"></a><span class='hs-comment'>--</span>
-<a name="line-459"></a><span class='hs-comment'>-- @</span>
-<a name="line-460"></a><span class='hs-comment'>-- 'contextsOf' :: 'Traversal'' a a -&gt; a -&gt; ['Context' a a a]</span>
-<a name="line-461"></a><span class='hs-comment'>-- @</span>
-<a name="line-462"></a><span class='hs-definition'>contextsOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ATraversal'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Context</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-463"></a><span class='hs-definition'>contextsOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sell</span> <span class='hs-varid'>x</span> <span class='hs-conop'>:</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>map</span> <span class='hs-varid'>context</span> <span class='hs-layout'>(</span><span class='hs-varid'>holesOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-464"></a>  <span class='hs-varid'>f</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
-<a name="line-465"></a>    <span class='hs-conid'>Context</span> <span class='hs-varid'>ctx</span> <span class='hs-varid'>child</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>xs</span>
-<a name="line-466"></a>    <span class='hs-conid'>Context</span> <span class='hs-varid'>cont</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>contextsOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>child</span>
-<a name="line-467"></a>    <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Context</span> <span class='hs-layout'>(</span><span class='hs-varid'>ctx</span> <span class='hs-varop'>.</span> <span class='hs-varid'>cont</span><span class='hs-layout'>)</span> <span class='hs-varid'>y</span>
-<a name="line-468"></a><span class='hs-comment'>{-# INLINE contextsOf #-}</span>
-<a name="line-469"></a>
-<a name="line-470"></a><a name="contextsOn"></a><span class='hs-comment'>-- | Return a list of all of the editable contexts for every location in the structure in an areas indicated by a user supplied 'Traversal', recursively using 'plate'.</span>
-<a name="line-471"></a><span class='hs-comment'>--</span>
-<a name="line-472"></a><span class='hs-comment'>-- @</span>
-<a name="line-473"></a><span class='hs-comment'>-- 'contextsOn' b ≡ 'contextsOnOf' b 'plate'</span>
-<a name="line-474"></a><span class='hs-comment'>-- @</span>
-<a name="line-475"></a><span class='hs-comment'>--</span>
-<a name="line-476"></a><span class='hs-comment'>-- @</span>
-<a name="line-477"></a><span class='hs-comment'>-- 'contextsOn' :: 'Plated' a =&gt; 'Traversal'' s a -&gt; s -&gt; ['Context' a a s]</span>
+<a name="line-317"></a><a name="rewriteMOnOf"></a><span class='hs-comment'>-- | Rewrite by applying a monadic rule everywhere inside of a structure located by a user-specified 'Traversal',</span>
+<a name="line-318"></a><span class='hs-comment'>-- using a user-specified 'Traversal' for recursion. Ensures that the rule cannot be applied anywhere in the result.</span>
+<a name="line-319"></a><span class='hs-definition'>rewriteMOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
+<a name="line-320"></a><span class='hs-definition'>rewriteMOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>rewriteMOf</span> <span class='hs-varid'>l</span>
+<a name="line-321"></a><span class='hs-comment'>{-# INLINE rewriteMOnOf #-}</span>
+<a name="line-322"></a>
+<a name="line-323"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-324"></a><span class='hs-comment'>-- Universe</span>
+<a name="line-325"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-326"></a>
+<a name="line-327"></a><a name="universe"></a><span class='hs-comment'>-- | Retrieve all of the transitive descendants of a 'Plated' container, including itself.</span>
+<a name="line-328"></a><span class='hs-definition'>universe</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-329"></a><span class='hs-definition'>universe</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>universeOf</span> <span class='hs-varid'>plate</span>
+<a name="line-330"></a><span class='hs-comment'>{-# INLINE universe #-}</span>
+<a name="line-331"></a>
+<a name="line-332"></a><a name="universeOf"></a><span class='hs-comment'>-- | Given a 'Fold' that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself.</span>
+<a name="line-333"></a><span class='hs-comment'>--</span>
+<a name="line-334"></a><span class='hs-comment'>-- @</span>
+<a name="line-335"></a><span class='hs-comment'>-- 'universeOf' :: 'Fold' a a -&gt; a -&gt; [a]</span>
+<a name="line-336"></a><span class='hs-comment'>-- @</span>
+<a name="line-337"></a><span class='hs-definition'>universeOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getting</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-338"></a><span class='hs-definition'>universeOf</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
+<a name="line-339"></a>  <span class='hs-varid'>go</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>a</span> <span class='hs-conop'>:</span> <span class='hs-varid'>foldMapOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>go</span> <span class='hs-varid'>a</span>
+<a name="line-340"></a><span class='hs-comment'>{-# INLINE universeOf #-}</span>
+<a name="line-341"></a>
+<a name="line-342"></a><a name="universeOn"></a><span class='hs-comment'>-- | Given a 'Fold' that knows how to find 'Plated' parts of a container retrieve them and all of their descendants, recursively.</span>
+<a name="line-343"></a><span class='hs-definition'>universeOn</span> <span class='hs-keyglyph'>::</span>  <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-344"></a><span class='hs-definition'>universeOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>universeOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>plate</span>
+<a name="line-345"></a><span class='hs-comment'>{-# INLINE universeOn #-}</span>
+<a name="line-346"></a>
+<a name="line-347"></a><a name="universeOnOf"></a><span class='hs-comment'>-- | Given a 'Fold' that knows how to locate immediate children, retrieve all of the transitive descendants of a node, including itself that lie</span>
+<a name="line-348"></a><span class='hs-comment'>-- in a region indicated by another 'Fold'.</span>
+<a name="line-349"></a><span class='hs-comment'>--</span>
+<a name="line-350"></a><span class='hs-comment'>-- @</span>
+<a name="line-351"></a><span class='hs-comment'>-- 'toListOf' l ≡ 'universeOnOf' l 'ignored'</span>
+<a name="line-352"></a><span class='hs-comment'>-- @</span>
+<a name="line-353"></a><span class='hs-definition'>universeOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getting</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-354"></a><span class='hs-definition'>universeOnOf</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldMapOf</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>universeOf</span>
+<a name="line-355"></a><span class='hs-comment'>{-# INLINE universeOnOf #-}</span>
+<a name="line-356"></a>
+<a name="line-357"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-358"></a><span class='hs-comment'>-- Transformation</span>
+<a name="line-359"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-360"></a>
+<a name="line-361"></a><a name="transform"></a><span class='hs-comment'>-- | Transform every element in the tree, in a bottom-up manner.</span>
+<a name="line-362"></a><span class='hs-comment'>--</span>
+<a name="line-363"></a><span class='hs-comment'>-- For example, replacing negative literals with literals:</span>
+<a name="line-364"></a><span class='hs-comment'>--</span>
+<a name="line-365"></a><span class='hs-comment'>-- @</span>
+<a name="line-366"></a><span class='hs-comment'>-- negLits = 'transform' $ \\x -&gt; case x of</span>
+<a name="line-367"></a><span class='hs-comment'>--   Neg (Lit i) -&gt; Lit ('negate' i)</span>
+<a name="line-368"></a><span class='hs-comment'>--   _           -&gt; x</span>
+<a name="line-369"></a><span class='hs-comment'>-- @</span>
+<a name="line-370"></a><span class='hs-definition'>transform</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
+<a name="line-371"></a><span class='hs-definition'>transform</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>transformOf</span> <span class='hs-varid'>plate</span>
+<a name="line-372"></a><span class='hs-comment'>{-# INLINE transform #-}</span>
+<a name="line-373"></a>
+<a name="line-374"></a><a name="transformOn"></a><span class='hs-comment'>-- | Transform every element in the tree in a bottom-up manner over a region indicated by a 'Setter'.</span>
+<a name="line-375"></a><span class='hs-comment'>--</span>
+<a name="line-376"></a><span class='hs-comment'>-- @</span>
+<a name="line-377"></a><span class='hs-comment'>-- 'transformOn' :: 'Plated' a =&gt; 'Traversal'' s a -&gt; (a -&gt; a) -&gt; s -&gt; s</span>
+<a name="line-378"></a><span class='hs-comment'>-- 'transformOn' :: 'Plated' a =&gt; 'Setter'' s a    -&gt; (a -&gt; a) -&gt; s -&gt; s</span>
+<a name="line-379"></a><span class='hs-comment'>-- @</span>
+<a name="line-380"></a><span class='hs-definition'>transformOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>ASetter</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span>
+<a name="line-381"></a><span class='hs-definition'>transformOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>transform</span>
+<a name="line-382"></a><span class='hs-comment'>{-# INLINE transformOn #-}</span>
+<a name="line-383"></a>
+<a name="line-384"></a><a name="transformOf"></a><span class='hs-comment'>-- | Transform every element by recursively applying a given 'Setter' in a bottom-up manner.</span>
+<a name="line-385"></a><span class='hs-comment'>--</span>
+<a name="line-386"></a><span class='hs-comment'>-- @</span>
+<a name="line-387"></a><span class='hs-comment'>-- 'transformOf' :: 'Traversal'' a a -&gt; (a -&gt; a) -&gt; a -&gt; a</span>
+<a name="line-388"></a><span class='hs-comment'>-- 'transformOf' :: 'Setter'' a a    -&gt; (a -&gt; a) -&gt; a -&gt; a</span>
+<a name="line-389"></a><span class='hs-comment'>-- @</span>
+<a name="line-390"></a><span class='hs-definition'>transformOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ASetter'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
+<a name="line-391"></a><span class='hs-definition'>transformOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
+<a name="line-392"></a>  <span class='hs-varid'>go</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-varid'>go</span>
+<a name="line-393"></a><span class='hs-comment'>{-# INLINE transformOf #-}</span>
+<a name="line-394"></a>
+<a name="line-395"></a><a name="transformOnOf"></a><span class='hs-comment'>-- | Transform every element in a region indicated by a 'Setter' by recursively applying another 'Setter'</span>
+<a name="line-396"></a><span class='hs-comment'>-- in a bottom-up manner.</span>
+<a name="line-397"></a><span class='hs-comment'>--</span>
+<a name="line-398"></a><span class='hs-comment'>-- @</span>
+<a name="line-399"></a><span class='hs-comment'>-- 'transformOnOf' :: 'Setter'' s a -&gt; 'Traversal'' a a -&gt; (a -&gt; a) -&gt; s -&gt; s</span>
+<a name="line-400"></a><span class='hs-comment'>-- 'transformOnOf' :: 'Setter'' s a -&gt; 'Setter'' a a    -&gt; (a -&gt; a) -&gt; s -&gt; s</span>
+<a name="line-401"></a><span class='hs-comment'>-- @</span>
+<a name="line-402"></a><span class='hs-definition'>transformOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ASetter</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ASetter'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span>
+<a name="line-403"></a><span class='hs-definition'>transformOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>transformOf</span> <span class='hs-varid'>l</span>
+<a name="line-404"></a><span class='hs-comment'>{-# INLINE transformOnOf #-}</span>
+<a name="line-405"></a>
+<a name="line-406"></a><a name="transformM"></a><span class='hs-comment'>-- | Transform every element in the tree, in a bottom-up manner, monadically.</span>
+<a name="line-407"></a><span class='hs-definition'>transformM</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
+<a name="line-408"></a><span class='hs-definition'>transformM</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>transformMOf</span> <span class='hs-varid'>plate</span>
+<a name="line-409"></a><span class='hs-comment'>{-# INLINE transformM #-}</span>
+<a name="line-410"></a>
+<a name="line-411"></a><a name="transformMOn"></a><span class='hs-comment'>-- | Transform every element in the tree in a region indicated by a supplied 'Traversal', in a bottom-up manner, monadically.</span>
+<a name="line-412"></a><span class='hs-comment'>--</span>
+<a name="line-413"></a><span class='hs-comment'>-- @</span>
+<a name="line-414"></a><span class='hs-comment'>-- 'transformMOn' :: ('Monad' m, 'Plated' a) =&gt; 'Traversal'' s a -&gt; (a -&gt; m a) -&gt; s -&gt; m s</span>
+<a name="line-415"></a><span class='hs-comment'>-- @</span>
+<a name="line-416"></a><span class='hs-definition'>transformMOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>,</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
+<a name="line-417"></a><span class='hs-definition'>transformMOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>transformM</span>
+<a name="line-418"></a><span class='hs-comment'>{-# INLINE transformMOn #-}</span>
+<a name="line-419"></a>
+<a name="line-420"></a><a name="transformMOf"></a><span class='hs-comment'>-- | Transform every element in a tree using a user supplied 'Traversal' in a bottom-up manner with a monadic effect.</span>
+<a name="line-421"></a><span class='hs-comment'>--</span>
+<a name="line-422"></a><span class='hs-comment'>-- @</span>
+<a name="line-423"></a><span class='hs-comment'>-- 'transformMOf' :: 'Monad' m =&gt; 'Traversal'' a a -&gt; (a -&gt; m a) -&gt; a -&gt; m a</span>
+<a name="line-424"></a><span class='hs-comment'>-- @</span>
+<a name="line-425"></a><span class='hs-definition'>transformMOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
+<a name="line-426"></a><span class='hs-definition'>transformMOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
+<a name="line-427"></a>  <span class='hs-varid'>go</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>go</span> <span class='hs-varid'>t</span> <span class='hs-varop'>&gt;&gt;=</span> <span class='hs-varid'>f</span>
+<a name="line-428"></a><span class='hs-comment'>{-# INLINE transformMOf #-}</span>
+<a name="line-429"></a>
+<a name="line-430"></a><a name="transformMOnOf"></a><span class='hs-comment'>-- | Transform every element in a tree that lies in a region indicated by a supplied 'Traversal', walking with a user supplied 'Traversal' in</span>
+<a name="line-431"></a><span class='hs-comment'>-- a bottom-up manner with a monadic effect.</span>
+<a name="line-432"></a><span class='hs-comment'>--</span>
+<a name="line-433"></a><span class='hs-comment'>-- @</span>
+<a name="line-434"></a><span class='hs-comment'>-- 'transformMOnOf' :: 'Monad' m =&gt; 'Traversal'' s a -&gt; 'Traversal'' a a -&gt; (a -&gt; m a) -&gt; s -&gt; m s</span>
+<a name="line-435"></a><span class='hs-comment'>-- @</span>
+<a name="line-436"></a><span class='hs-definition'>transformMOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-layout'>(</span><span class='hs-conid'>WrappedMonad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>t</span>
+<a name="line-437"></a><span class='hs-definition'>transformMOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mapMOf</span> <span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>transformMOf</span> <span class='hs-varid'>l</span>
+<a name="line-438"></a><span class='hs-comment'>{-# INLINE transformMOnOf #-}</span>
+<a name="line-439"></a>
+<a name="line-440"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-441"></a><span class='hs-comment'>-- Holes and Contexts</span>
+<a name="line-442"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-443"></a>
+<a name="line-444"></a><a name="contexts"></a><span class='hs-comment'>-- | Return a list of all of the editable contexts for every location in the structure, recursively.</span>
+<a name="line-445"></a><span class='hs-comment'>--</span>
+<a name="line-446"></a><span class='hs-comment'>-- @</span>
+<a name="line-447"></a><span class='hs-comment'>-- propUniverse x = 'universe' x '==' 'map' 'Control.Comonad.Store.Class.pos' ('contexts' x)</span>
+<a name="line-448"></a><span class='hs-comment'>-- propId x = 'all' ('==' x) ['Control.Lens.Internal.Context.extract' w | w &lt;- 'contexts' x]</span>
+<a name="line-449"></a><span class='hs-comment'>-- @</span>
+<a name="line-450"></a><span class='hs-comment'>--</span>
+<a name="line-451"></a><span class='hs-comment'>-- @</span>
+<a name="line-452"></a><span class='hs-comment'>-- 'contexts' ≡ 'contextsOf' 'plate'</span>
+<a name="line-453"></a><span class='hs-comment'>-- @</span>
+<a name="line-454"></a><span class='hs-definition'>contexts</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Context</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-455"></a><span class='hs-definition'>contexts</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>contextsOf</span> <span class='hs-varid'>plate</span>
+<a name="line-456"></a><span class='hs-comment'>{-# INLINE contexts #-}</span>
+<a name="line-457"></a>
+<a name="line-458"></a><a name="contextsOf"></a><span class='hs-comment'>-- | Return a list of all of the editable contexts for every location in the structure, recursively, using a user-specified 'Traversal' to walk each layer.</span>
+<a name="line-459"></a><span class='hs-comment'>--</span>
+<a name="line-460"></a><span class='hs-comment'>-- @</span>
+<a name="line-461"></a><span class='hs-comment'>-- propUniverse l x = 'universeOf' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('contextsOf' l x)</span>
+<a name="line-462"></a><span class='hs-comment'>-- propId l x = 'all' ('==' x) ['Control.Lens.Internal.Context.extract' w | w &lt;- 'contextsOf' l x]</span>
+<a name="line-463"></a><span class='hs-comment'>-- @</span>
+<a name="line-464"></a><span class='hs-comment'>--</span>
+<a name="line-465"></a><span class='hs-comment'>-- @</span>
+<a name="line-466"></a><span class='hs-comment'>-- 'contextsOf' :: 'Traversal'' a a -&gt; a -&gt; ['Context' a a a]</span>
+<a name="line-467"></a><span class='hs-comment'>-- @</span>
+<a name="line-468"></a><span class='hs-definition'>contextsOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ATraversal'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Context</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-469"></a><span class='hs-definition'>contextsOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>sell</span> <span class='hs-varid'>x</span> <span class='hs-conop'>:</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>map</span> <span class='hs-varid'>context</span> <span class='hs-layout'>(</span><span class='hs-varid'>holesOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-470"></a>  <span class='hs-varid'>f</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
+<a name="line-471"></a>    <span class='hs-conid'>Context</span> <span class='hs-varid'>ctx</span> <span class='hs-varid'>child</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>xs</span>
+<a name="line-472"></a>    <span class='hs-conid'>Context</span> <span class='hs-varid'>cont</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>contextsOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>child</span>
+<a name="line-473"></a>    <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Context</span> <span class='hs-layout'>(</span><span class='hs-varid'>ctx</span> <span class='hs-varop'>.</span> <span class='hs-varid'>cont</span><span class='hs-layout'>)</span> <span class='hs-varid'>y</span>
+<a name="line-474"></a><span class='hs-comment'>{-# INLINE contextsOf #-}</span>
+<a name="line-475"></a>
+<a name="line-476"></a><a name="contextsOn"></a><span class='hs-comment'>-- | Return a list of all of the editable contexts for every location in the structure in an areas indicated by a user supplied 'Traversal', recursively using 'plate'.</span>
+<a name="line-477"></a><span class='hs-comment'>--</span>
 <a name="line-478"></a><span class='hs-comment'>-- @</span>
-<a name="line-479"></a><span class='hs-definition'>contextsOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>ATraversal</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Context</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>t</span><span class='hs-keyglyph'>]</span>
-<a name="line-480"></a><span class='hs-definition'>contextsOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>contextsOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>plate</span>
-<a name="line-481"></a><span class='hs-comment'>{-# INLINE contextsOn #-}</span>
-<a name="line-482"></a>
-<a name="line-483"></a><a name="contextsOnOf"></a><span class='hs-comment'>-- | Return a list of all of the editable contexts for every location in the structure in an areas indicated by a user supplied 'Traversal', recursively using</span>
-<a name="line-484"></a><span class='hs-comment'>-- another user-supplied 'Traversal' to walk each layer.</span>
-<a name="line-485"></a><span class='hs-comment'>--</span>
-<a name="line-486"></a><span class='hs-comment'>-- @</span>
-<a name="line-487"></a><span class='hs-comment'>-- 'contextsOnOf' :: 'Traversal'' s a -&gt; 'Traversal'' a a -&gt; s -&gt; ['Context' a a s]</span>
-<a name="line-488"></a><span class='hs-comment'>-- @</span>
-<a name="line-489"></a><span class='hs-definition'>contextsOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ATraversal</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ATraversal'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Context</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>t</span><span class='hs-keyglyph'>]</span>
-<a name="line-490"></a><span class='hs-definition'>contextsOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>map</span> <span class='hs-varid'>context</span> <span class='hs-varop'>.</span> <span class='hs-varid'>holesOf</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
-<a name="line-491"></a>  <span class='hs-varid'>f</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
-<a name="line-492"></a>    <span class='hs-conid'>Context</span> <span class='hs-varid'>ctx</span> <span class='hs-varid'>child</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>xs</span>
-<a name="line-493"></a>    <span class='hs-conid'>Context</span> <span class='hs-varid'>cont</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>contextsOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>child</span>
-<a name="line-494"></a>    <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Context</span> <span class='hs-layout'>(</span><span class='hs-varid'>ctx</span> <span class='hs-varop'>.</span> <span class='hs-varid'>cont</span><span class='hs-layout'>)</span> <span class='hs-varid'>y</span>
-<a name="line-495"></a><span class='hs-comment'>{-# INLINE contextsOnOf #-}</span>
-<a name="line-496"></a>
-<a name="line-497"></a><a name="holes"></a><span class='hs-comment'>-- | The one-level version of 'context'. This extracts a list of the immediate children as editable contexts.</span>
-<a name="line-498"></a><span class='hs-comment'>--</span>
-<a name="line-499"></a><span class='hs-comment'>-- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the values, 'Control.Comonad.Store.Class.peek' at what the structure would be like with an edited result, or simply 'Control.Lens.Internal.Context.extract' the original structure.</span>
-<a name="line-500"></a><span class='hs-comment'>--</span>
-<a name="line-501"></a><span class='hs-comment'>-- @</span>
-<a name="line-502"></a><span class='hs-comment'>-- propChildren x = 'children' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holes' l x)</span>
-<a name="line-503"></a><span class='hs-comment'>-- propId x = 'all' ('==' x) ['Control.Lens.Internal.Context.extract' w | w &lt;- 'holes' l x]</span>
-<a name="line-504"></a><span class='hs-comment'>-- @</span>
-<a name="line-505"></a><span class='hs-comment'>--</span>
-<a name="line-506"></a><span class='hs-comment'>-- @</span>
-<a name="line-507"></a><span class='hs-comment'>-- 'holes' = 'holesOf' 'plate'</span>
-<a name="line-508"></a><span class='hs-comment'>-- @</span>
-<a name="line-509"></a><span class='hs-definition'>holes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Pretext</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-510"></a><span class='hs-definition'>holes</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>holesOf</span> <span class='hs-varid'>plate</span>
-<a name="line-511"></a><span class='hs-comment'>{-# INLINE holes #-}</span>
-<a name="line-512"></a>
-<a name="line-513"></a><a name="holesOn"></a><span class='hs-comment'>-- | An alias for 'holesOf', provided for consistency with the other combinators.</span>
-<a name="line-514"></a><span class='hs-comment'>--</span>
-<a name="line-515"></a><span class='hs-comment'>-- @</span>
-<a name="line-516"></a><span class='hs-comment'>-- 'holesOn' ≡ 'holesOf'</span>
-<a name="line-517"></a><span class='hs-comment'>-- @</span>
-<a name="line-518"></a><span class='hs-comment'>--</span>
-<a name="line-519"></a><span class='hs-comment'>-- @</span>
-<a name="line-520"></a><span class='hs-comment'>-- 'holesOn' :: 'Iso'' s a                -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
-<a name="line-521"></a><span class='hs-comment'>-- 'holesOn' :: 'Lens'' s a               -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
-<a name="line-522"></a><span class='hs-comment'>-- 'holesOn' :: 'Traversal'' s a          -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
-<a name="line-523"></a><span class='hs-comment'>-- 'holesOn' :: 'IndexedLens'' i s a      -&gt; s -&gt; ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]</span>
-<a name="line-524"></a><span class='hs-comment'>-- 'holesOn' :: 'IndexedTraversal'' i s a -&gt; s -&gt; ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]</span>
+<a name="line-479"></a><span class='hs-comment'>-- 'contextsOn' b ≡ 'contextsOnOf' b 'plate'</span>
+<a name="line-480"></a><span class='hs-comment'>-- @</span>
+<a name="line-481"></a><span class='hs-comment'>--</span>
+<a name="line-482"></a><span class='hs-comment'>-- @</span>
+<a name="line-483"></a><span class='hs-comment'>-- 'contextsOn' :: 'Plated' a =&gt; 'Traversal'' s a -&gt; s -&gt; ['Context' a a s]</span>
+<a name="line-484"></a><span class='hs-comment'>-- @</span>
+<a name="line-485"></a><span class='hs-definition'>contextsOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>ATraversal</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Context</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>t</span><span class='hs-keyglyph'>]</span>
+<a name="line-486"></a><span class='hs-definition'>contextsOn</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>contextsOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>plate</span>
+<a name="line-487"></a><span class='hs-comment'>{-# INLINE contextsOn #-}</span>
+<a name="line-488"></a>
+<a name="line-489"></a><a name="contextsOnOf"></a><span class='hs-comment'>-- | Return a list of all of the editable contexts for every location in the structure in an areas indicated by a user supplied 'Traversal', recursively using</span>
+<a name="line-490"></a><span class='hs-comment'>-- another user-supplied 'Traversal' to walk each layer.</span>
+<a name="line-491"></a><span class='hs-comment'>--</span>
+<a name="line-492"></a><span class='hs-comment'>-- @</span>
+<a name="line-493"></a><span class='hs-comment'>-- 'contextsOnOf' :: 'Traversal'' s a -&gt; 'Traversal'' a a -&gt; s -&gt; ['Context' a a s]</span>
+<a name="line-494"></a><span class='hs-comment'>-- @</span>
+<a name="line-495"></a><span class='hs-definition'>contextsOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ATraversal</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ATraversal'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Context</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>t</span><span class='hs-keyglyph'>]</span>
+<a name="line-496"></a><span class='hs-definition'>contextsOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>map</span> <span class='hs-varid'>context</span> <span class='hs-varop'>.</span> <span class='hs-varid'>holesOf</span> <span class='hs-varid'>b</span> <span class='hs-keyword'>where</span>
+<a name="line-497"></a>  <span class='hs-varid'>f</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>do</span>
+<a name="line-498"></a>    <span class='hs-conid'>Context</span> <span class='hs-varid'>ctx</span> <span class='hs-varid'>child</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>xs</span>
+<a name="line-499"></a>    <span class='hs-conid'>Context</span> <span class='hs-varid'>cont</span> <span class='hs-varid'>y</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>contextsOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>child</span>
+<a name="line-500"></a>    <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Context</span> <span class='hs-layout'>(</span><span class='hs-varid'>ctx</span> <span class='hs-varop'>.</span> <span class='hs-varid'>cont</span><span class='hs-layout'>)</span> <span class='hs-varid'>y</span>
+<a name="line-501"></a><span class='hs-comment'>{-# INLINE contextsOnOf #-}</span>
+<a name="line-502"></a>
+<a name="line-503"></a><a name="holes"></a><span class='hs-comment'>-- | The one-level version of 'context'. This extracts a list of the immediate children as editable contexts.</span>
+<a name="line-504"></a><span class='hs-comment'>--</span>
+<a name="line-505"></a><span class='hs-comment'>-- Given a context you can use 'Control.Comonad.Store.Class.pos' to see the values, 'Control.Comonad.Store.Class.peek' at what the structure would be like with an edited result, or simply 'Control.Lens.Internal.Context.extract' the original structure.</span>
+<a name="line-506"></a><span class='hs-comment'>--</span>
+<a name="line-507"></a><span class='hs-comment'>-- @</span>
+<a name="line-508"></a><span class='hs-comment'>-- propChildren x = 'children' l x '==' 'map' 'Control.Comonad.Store.Class.pos' ('holes' l x)</span>
+<a name="line-509"></a><span class='hs-comment'>-- propId x = 'all' ('==' x) ['Control.Lens.Internal.Context.extract' w | w &lt;- 'holes' l x]</span>
+<a name="line-510"></a><span class='hs-comment'>-- @</span>
+<a name="line-511"></a><span class='hs-comment'>--</span>
+<a name="line-512"></a><span class='hs-comment'>-- @</span>
+<a name="line-513"></a><span class='hs-comment'>-- 'holes' = 'holesOf' 'plate'</span>
+<a name="line-514"></a><span class='hs-comment'>-- @</span>
+<a name="line-515"></a><span class='hs-definition'>holes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Pretext</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-516"></a><span class='hs-definition'>holes</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>holesOf</span> <span class='hs-varid'>plate</span>
+<a name="line-517"></a><span class='hs-comment'>{-# INLINE holes #-}</span>
+<a name="line-518"></a>
+<a name="line-519"></a><a name="holesOn"></a><span class='hs-comment'>-- | An alias for 'holesOf', provided for consistency with the other combinators.</span>
+<a name="line-520"></a><span class='hs-comment'>--</span>
+<a name="line-521"></a><span class='hs-comment'>-- @</span>
+<a name="line-522"></a><span class='hs-comment'>-- 'holesOn' ≡ 'holesOf'</span>
+<a name="line-523"></a><span class='hs-comment'>-- @</span>
+<a name="line-524"></a><span class='hs-comment'>--</span>
 <a name="line-525"></a><span class='hs-comment'>-- @</span>
-<a name="line-526"></a><span class='hs-definition'>holesOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Conjoined</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Overloading</span> <span class='hs-varid'>p</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Bazaar</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Pretext</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>t</span><span class='hs-keyglyph'>]</span>
-<a name="line-527"></a><span class='hs-definition'>holesOn</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>holesOf</span>
-<a name="line-528"></a><span class='hs-comment'>{-# INLINE holesOn #-}</span>
-<a name="line-529"></a>
-<a name="line-530"></a><a name="holesOnOf"></a><span class='hs-comment'>-- | Extract one level of 'holes' from a container in a region specified by one 'Traversal', using another.</span>
-<a name="line-531"></a><span class='hs-comment'>--</span>
-<a name="line-532"></a><span class='hs-comment'>-- @</span>
-<a name="line-533"></a><span class='hs-comment'>-- 'holesOnOf' b l ≡ 'holesOf' (b '.' l)</span>
-<a name="line-534"></a><span class='hs-comment'>-- @</span>
-<a name="line-535"></a><span class='hs-comment'>--</span>
-<a name="line-536"></a><span class='hs-comment'>-- @</span>
-<a name="line-537"></a><span class='hs-comment'>-- 'holesOnOf' :: 'Iso'' s a       -&gt; 'Iso'' a a                -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
-<a name="line-538"></a><span class='hs-comment'>-- 'holesOnOf' :: 'Lens'' s a      -&gt; 'Lens'' a a               -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
-<a name="line-539"></a><span class='hs-comment'>-- 'holesOnOf' :: 'Traversal'' s a -&gt; 'Traversal'' a a          -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
-<a name="line-540"></a><span class='hs-comment'>-- 'holesOnOf' :: 'Lens'' s a      -&gt; 'IndexedLens'' i a a      -&gt; s -&gt; ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]</span>
-<a name="line-541"></a><span class='hs-comment'>-- 'holesOnOf' :: 'Traversal'' s a -&gt; 'IndexedTraversal'' i a a -&gt; s -&gt; ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]</span>
+<a name="line-526"></a><span class='hs-comment'>-- 'holesOn' :: 'Iso'' s a                -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
+<a name="line-527"></a><span class='hs-comment'>-- 'holesOn' :: 'Lens'' s a               -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
+<a name="line-528"></a><span class='hs-comment'>-- 'holesOn' :: 'Traversal'' s a          -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
+<a name="line-529"></a><span class='hs-comment'>-- 'holesOn' :: 'IndexedLens'' i s a      -&gt; s -&gt; ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]</span>
+<a name="line-530"></a><span class='hs-comment'>-- 'holesOn' :: 'IndexedTraversal'' i s a -&gt; s -&gt; ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]</span>
+<a name="line-531"></a><span class='hs-comment'>-- @</span>
+<a name="line-532"></a><span class='hs-definition'>holesOn</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Conjoined</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Overloading</span> <span class='hs-varid'>p</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Bazaar</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Pretext</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-varid'>t</span><span class='hs-keyglyph'>]</span>
+<a name="line-533"></a><span class='hs-definition'>holesOn</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>holesOf</span>
+<a name="line-534"></a><span class='hs-comment'>{-# INLINE holesOn #-}</span>
+<a name="line-535"></a>
+<a name="line-536"></a><a name="holesOnOf"></a><span class='hs-comment'>-- | Extract one level of 'holes' from a container in a region specified by one 'Traversal', using another.</span>
+<a name="line-537"></a><span class='hs-comment'>--</span>
+<a name="line-538"></a><span class='hs-comment'>-- @</span>
+<a name="line-539"></a><span class='hs-comment'>-- 'holesOnOf' b l ≡ 'holesOf' (b '.' l)</span>
+<a name="line-540"></a><span class='hs-comment'>-- @</span>
+<a name="line-541"></a><span class='hs-comment'>--</span>
 <a name="line-542"></a><span class='hs-comment'>-- @</span>
-<a name="line-543"></a><span class='hs-definition'>holesOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Conjoined</span> <span class='hs-varid'>p</span>
-<a name="line-544"></a>          <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>Bazaar</span> <span class='hs-varid'>p</span>  <span class='hs-varid'>r</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-545"></a>          <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Overloading</span> <span class='hs-varid'>p</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Bazaar</span> <span class='hs-varid'>p</span> <span class='hs-varid'>r</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>r</span> <span class='hs-varid'>r</span>
-<a name="line-546"></a>          <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Pretext</span> <span class='hs-varid'>p</span> <span class='hs-varid'>r</span> <span class='hs-varid'>r</span> <span class='hs-varid'>t</span><span class='hs-keyglyph'>]</span>
-<a name="line-547"></a><span class='hs-definition'>holesOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>holesOf</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
-<a name="line-548"></a><span class='hs-comment'>{-# INLINE holesOnOf #-}</span>
-<a name="line-549"></a>
-<a name="line-550"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-551"></a><span class='hs-comment'>-- Paramorphisms</span>
-<a name="line-552"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-553"></a>
-<a name="line-554"></a><a name="paraOf"></a><span class='hs-comment'>-- | Perform a fold-like computation on each value, technically a paramorphism.</span>
-<a name="line-555"></a><span class='hs-comment'>--</span>
-<a name="line-556"></a><span class='hs-comment'>-- @</span>
-<a name="line-557"></a><span class='hs-comment'>-- 'paraOf' :: 'Fold' a a -&gt; (a -&gt; [r] -&gt; r) -&gt; a -&gt; r</span>
-<a name="line-558"></a><span class='hs-comment'>-- @</span>
-<a name="line-559"></a><span class='hs-definition'>paraOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Endo</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>r</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
-<a name="line-560"></a><span class='hs-definition'>paraOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
-<a name="line-561"></a>  <span class='hs-varid'>go</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-varid'>go</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>toListOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-562"></a><span class='hs-comment'>{-# INLINE paraOf #-}</span>
-<a name="line-563"></a>
-<a name="line-564"></a><a name="para"></a><span class='hs-comment'>-- | Perform a fold-like computation on each value, technically a paramorphism.</span>
-<a name="line-565"></a><span class='hs-comment'>--</span>
-<a name="line-566"></a><span class='hs-comment'>-- @</span>
-<a name="line-567"></a><span class='hs-comment'>-- 'para' ≡ 'paraOf' 'plate'</span>
-<a name="line-568"></a><span class='hs-comment'>-- @</span>
-<a name="line-569"></a><span class='hs-definition'>para</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>r</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
-<a name="line-570"></a><span class='hs-definition'>para</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>paraOf</span> <span class='hs-varid'>plate</span>
-<a name="line-571"></a><span class='hs-comment'>{-# INLINE para #-}</span>
-<a name="line-572"></a>
-<a name="line-573"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-574"></a><span class='hs-comment'>-- Compos</span>
-<a name="line-575"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-576"></a>
-<a name="line-577"></a><span class='hs-comment'>-- $compos</span>
-<a name="line-578"></a><span class='hs-comment'>--</span>
-<a name="line-579"></a><span class='hs-comment'>-- Provided for compatibility with Björn Bringert's @compos@ library.</span>
-<a name="line-580"></a><span class='hs-comment'>--</span>
-<a name="line-581"></a><span class='hs-comment'>-- Note: Other operations from compos that were inherited by @uniplate@ are /not/ included</span>
-<a name="line-582"></a><span class='hs-comment'>-- to avoid having even more redundant names for the same operators. For comparison:</span>
-<a name="line-583"></a><span class='hs-comment'>--</span>
-<a name="line-584"></a><span class='hs-comment'>-- @</span>
-<a name="line-585"></a><span class='hs-comment'>-- 'composOpMonoid' ≡ 'foldMapOf' 'plate'</span>
-<a name="line-586"></a><span class='hs-comment'>-- 'composOpMPlus' f ≡ 'msumOf' ('plate' '.' 'to' f)</span>
-<a name="line-587"></a><span class='hs-comment'>-- 'composOp' ≡ 'descend' ≡ 'over' 'plate'</span>
-<a name="line-588"></a><span class='hs-comment'>-- 'composOpM' ≡ 'descendM' ≡ 'mapMOf' 'plate'</span>
-<a name="line-589"></a><span class='hs-comment'>-- 'composOpM_' ≡ 'descendM_' ≡ 'mapMOf_' 'plate'</span>
+<a name="line-543"></a><span class='hs-comment'>-- 'holesOnOf' :: 'Iso'' s a       -&gt; 'Iso'' a a                -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
+<a name="line-544"></a><span class='hs-comment'>-- 'holesOnOf' :: 'Lens'' s a      -&gt; 'Lens'' a a               -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
+<a name="line-545"></a><span class='hs-comment'>-- 'holesOnOf' :: 'Traversal'' s a -&gt; 'Traversal'' a a          -&gt; s -&gt; ['Pretext' (-&gt;) a a s]</span>
+<a name="line-546"></a><span class='hs-comment'>-- 'holesOnOf' :: 'Lens'' s a      -&gt; 'IndexedLens'' i a a      -&gt; s -&gt; ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]</span>
+<a name="line-547"></a><span class='hs-comment'>-- 'holesOnOf' :: 'Traversal'' s a -&gt; 'IndexedTraversal'' i a a -&gt; s -&gt; ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]</span>
+<a name="line-548"></a><span class='hs-comment'>-- @</span>
+<a name="line-549"></a><span class='hs-definition'>holesOnOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Conjoined</span> <span class='hs-varid'>p</span>
+<a name="line-550"></a>          <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>Bazaar</span> <span class='hs-varid'>p</span>  <span class='hs-varid'>r</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-551"></a>          <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Overloading</span> <span class='hs-varid'>p</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Bazaar</span> <span class='hs-varid'>p</span> <span class='hs-varid'>r</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>r</span> <span class='hs-varid'>r</span>
+<a name="line-552"></a>          <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Pretext</span> <span class='hs-varid'>p</span> <span class='hs-varid'>r</span> <span class='hs-varid'>r</span> <span class='hs-varid'>t</span><span class='hs-keyglyph'>]</span>
+<a name="line-553"></a><span class='hs-definition'>holesOnOf</span> <span class='hs-varid'>b</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>holesOf</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-varop'>.</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
+<a name="line-554"></a><span class='hs-comment'>{-# INLINE holesOnOf #-}</span>
+<a name="line-555"></a>
+<a name="line-556"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-557"></a><span class='hs-comment'>-- Paramorphisms</span>
+<a name="line-558"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-559"></a>
+<a name="line-560"></a><a name="paraOf"></a><span class='hs-comment'>-- | Perform a fold-like computation on each value, technically a paramorphism.</span>
+<a name="line-561"></a><span class='hs-comment'>--</span>
+<a name="line-562"></a><span class='hs-comment'>-- @</span>
+<a name="line-563"></a><span class='hs-comment'>-- 'paraOf' :: 'Fold' a a -&gt; (a -&gt; [r] -&gt; r) -&gt; a -&gt; r</span>
+<a name="line-564"></a><span class='hs-comment'>-- @</span>
+<a name="line-565"></a><span class='hs-definition'>paraOf</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>Endo</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>r</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
+<a name="line-566"></a><span class='hs-definition'>paraOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
+<a name="line-567"></a>  <span class='hs-varid'>go</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-varid'>go</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>toListOf</span> <span class='hs-varid'>l</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-568"></a><span class='hs-comment'>{-# INLINE paraOf #-}</span>
+<a name="line-569"></a>
+<a name="line-570"></a><a name="para"></a><span class='hs-comment'>-- | Perform a fold-like computation on each value, technically a paramorphism.</span>
+<a name="line-571"></a><span class='hs-comment'>--</span>
+<a name="line-572"></a><span class='hs-comment'>-- @</span>
+<a name="line-573"></a><span class='hs-comment'>-- 'para' ≡ 'paraOf' 'plate'</span>
+<a name="line-574"></a><span class='hs-comment'>-- @</span>
+<a name="line-575"></a><span class='hs-definition'>para</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>r</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
+<a name="line-576"></a><span class='hs-definition'>para</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>paraOf</span> <span class='hs-varid'>plate</span>
+<a name="line-577"></a><span class='hs-comment'>{-# INLINE para #-}</span>
+<a name="line-578"></a>
+<a name="line-579"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-580"></a><span class='hs-comment'>-- Compos</span>
+<a name="line-581"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-582"></a>
+<a name="line-583"></a><span class='hs-comment'>-- $compos</span>
+<a name="line-584"></a><span class='hs-comment'>--</span>
+<a name="line-585"></a><span class='hs-comment'>-- Provided for compatibility with Björn Bringert's @compos@ library.</span>
+<a name="line-586"></a><span class='hs-comment'>--</span>
+<a name="line-587"></a><span class='hs-comment'>-- Note: Other operations from compos that were inherited by @uniplate@ are /not/ included</span>
+<a name="line-588"></a><span class='hs-comment'>-- to avoid having even more redundant names for the same operators. For comparison:</span>
+<a name="line-589"></a><span class='hs-comment'>--</span>
 <a name="line-590"></a><span class='hs-comment'>-- @</span>
-<a name="line-591"></a>
-<a name="line-592"></a><a name="composOpFold"></a><span class='hs-comment'>-- | Fold the immediate children of a 'Plated' container.</span>
-<a name="line-593"></a><span class='hs-comment'>--</span>
-<a name="line-594"></a><span class='hs-comment'>-- @</span>
-<a name="line-595"></a><span class='hs-comment'>-- 'composOpFold' z c f = 'foldrOf' 'plate' (c '.' f) z</span>
+<a name="line-591"></a><span class='hs-comment'>-- 'composOpMonoid' ≡ 'foldMapOf' 'plate'</span>
+<a name="line-592"></a><span class='hs-comment'>-- 'composOpMPlus' f ≡ 'msumOf' ('plate' '.' 'to' f)</span>
+<a name="line-593"></a><span class='hs-comment'>-- 'composOp' ≡ 'descend' ≡ 'over' 'plate'</span>
+<a name="line-594"></a><span class='hs-comment'>-- 'composOpM' ≡ 'descendM' ≡ 'mapMOf' 'plate'</span>
+<a name="line-595"></a><span class='hs-comment'>-- 'composOpM_' ≡ 'descendM_' ≡ 'mapMOf_' 'plate'</span>
 <a name="line-596"></a><span class='hs-comment'>-- @</span>
-<a name="line-597"></a><span class='hs-definition'>composOpFold</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
-<a name="line-598"></a><span class='hs-definition'>composOpFold</span> <span class='hs-varid'>z</span> <span class='hs-varid'>c</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldrOf</span> <span class='hs-varid'>plate</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-varop'>.</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>z</span>
-<a name="line-599"></a><span class='hs-comment'>{-# INLINE composOpFold #-}</span>
-<a name="line-600"></a>
-<a name="line-601"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-602"></a><span class='hs-comment'>-- Parts</span>
-<a name="line-603"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
-<a name="line-604"></a>
-<a name="line-605"></a><a name="parts"></a><span class='hs-comment'>-- | The original @uniplate@ combinator, implemented in terms of 'Plated' as a 'Lens'.</span>
-<a name="line-606"></a><span class='hs-comment'>--</span>
-<a name="line-607"></a><span class='hs-comment'>-- @</span>
-<a name="line-608"></a><span class='hs-comment'>-- 'parts' ≡ 'partsOf' 'plate'</span>
-<a name="line-609"></a><span class='hs-comment'>-- @</span>
-<a name="line-610"></a><span class='hs-comment'>--</span>
-<a name="line-611"></a><span class='hs-comment'>-- The resulting 'Lens' is safer to use as it ignores 'over-application' and deals gracefully with under-application,</span>
-<a name="line-612"></a><span class='hs-comment'>-- but it is only a proper 'Lens' if you don't change the list 'length'!</span>
-<a name="line-613"></a><span class='hs-definition'>parts</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Lens'</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-614"></a><span class='hs-definition'>parts</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>partsOf</span> <span class='hs-varid'>plate</span>
-<a name="line-615"></a><span class='hs-comment'>{-# INLINE parts #-}</span>
+<a name="line-597"></a>
+<a name="line-598"></a><a name="composOpFold"></a><span class='hs-comment'>-- | Fold the immediate children of a 'Plated' container.</span>
+<a name="line-599"></a><span class='hs-comment'>--</span>
+<a name="line-600"></a><span class='hs-comment'>-- @</span>
+<a name="line-601"></a><span class='hs-comment'>-- 'composOpFold' z c f = 'foldrOf' 'plate' (c '.' f) z</span>
+<a name="line-602"></a><span class='hs-comment'>-- @</span>
+<a name="line-603"></a><span class='hs-definition'>composOpFold</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
+<a name="line-604"></a><span class='hs-definition'>composOpFold</span> <span class='hs-varid'>z</span> <span class='hs-varid'>c</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldrOf</span> <span class='hs-varid'>plate</span> <span class='hs-layout'>(</span><span class='hs-varid'>c</span> <span class='hs-varop'>.</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-varid'>z</span>
+<a name="line-605"></a><span class='hs-comment'>{-# INLINE composOpFold #-}</span>
+<a name="line-606"></a>
+<a name="line-607"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-608"></a><span class='hs-comment'>-- Parts</span>
+<a name="line-609"></a><span class='hs-comment'>-------------------------------------------------------------------------------</span>
+<a name="line-610"></a>
+<a name="line-611"></a><a name="parts"></a><span class='hs-comment'>-- | The original @uniplate@ combinator, implemented in terms of 'Plated' as a 'Lens'.</span>
+<a name="line-612"></a><span class='hs-comment'>--</span>
+<a name="line-613"></a><span class='hs-comment'>-- @</span>
+<a name="line-614"></a><span class='hs-comment'>-- 'parts' ≡ 'partsOf' 'plate'</span>
+<a name="line-615"></a><span class='hs-comment'>-- @</span>
+<a name="line-616"></a><span class='hs-comment'>--</span>
+<a name="line-617"></a><span class='hs-comment'>-- The resulting 'Lens' is safer to use as it ignores 'over-application' and deals gracefully with under-application,</span>
+<a name="line-618"></a><span class='hs-comment'>-- but it is only a proper 'Lens' if you don't change the list 'length'!</span>
+<a name="line-619"></a><span class='hs-definition'>parts</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Plated</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Lens'</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-620"></a><span class='hs-definition'>parts</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>partsOf</span> <span class='hs-varid'>plate</span>
+<a name="line-621"></a><span class='hs-comment'>{-# INLINE parts #-}</span>
 </pre></body>
 </html>
