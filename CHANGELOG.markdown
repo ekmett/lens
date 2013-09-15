@@ -7,6 +7,7 @@
 * Added `failing` and `ifailing` to `Control.Lens.Traversal`.
 * Changed the signature of `Data.List.Split.Lens.condensing` due to the addition of `DropBlankFields` to `Data.List.Split.CondensePolicy` in `split`.
 * Replaced the use of `Accessor` with `Const`.
+* Replaced the use of `Mutator` with `Identity`.
 
 3.9.0.2
 -------

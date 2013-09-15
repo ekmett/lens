@@ -68,7 +68,7 @@ module Control.Lens.Setter
   , (%@~), (%@=)
   -- * Exported for legible error messages
   , Settable
-  , Mutator
+  , Identity(..)
   -- * Deprecated
   , mapOf
   ) where
@@ -82,6 +82,7 @@ import Control.Monad (liftM)
 import Control.Monad.State.Class as State
 import Control.Monad.Writer.Class as Writer
 import Data.Functor.Contravariant
+import Data.Functor.Identity
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
@@ -116,8 +117,8 @@ infixr 2 <~
 -- When consuming a setter directly to perform a mapping, you can use this type, but most
 -- user code will not need to use this type.
 --
--- By choosing 'Mutator' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
-type ASetter s t a b = (a -> Mutator b) -> s -> Mutator t
+-- By choosing 'Identity' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
+type ASetter s t a b = (a -> Identity b) -> s -> Identity t
 
 -- | This is a useful alias for use when consuming a 'Setter''.
 --
@@ -133,8 +134,8 @@ type ASetter' s a = ASetter s s a a
 -- When consuming a setter directly to perform a mapping, you can use this type, but most
 -- user code will not need to use this type.
 --
--- By choosing 'Mutator' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
-type AnIndexedSetter i s t a b = Indexed i a (Mutator b) -> s -> Mutator t
+-- By choosing 'Identity' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
+type AnIndexedSetter i s t a b = Indexed i a (Identity b) -> s -> Identity t
 
 -- | @
 -- type 'AnIndexedSetter'' i = 'Simple' ('AnIndexedSetter' i)
@@ -144,7 +145,7 @@ type AnIndexedSetter' i s a = AnIndexedSetter i s s a a
 -- | This is a convenient alias when defining highly polymorphic code that takes both
 -- 'ASetter' and 'AnIndexedSetter' as appropriate. If a function takes this it is
 -- expecting one of those two things based on context.
-type Setting p s t a b = p a (Mutator b) -> s -> Mutator t
+type Setting p s t a b = p a (Identity b) -> s -> Identity t
 
 -- | This is a convenient alias when defining highly polymorphic code that takes both
 -- 'ASetter'' and 'AnIndexedSetter'' as appropriate. If a function takes this it is
@@ -289,18 +290,18 @@ sets f g = taintedDot (f (untaintedDot g))
 
 -- | Restore 'ASetter' to a full 'Setter'.
 cloneSetter :: ASetter s t a b -> Setter s t a b
-cloneSetter l afb = taintedDot $ runMutator #. l (Mutator #. untaintedDot afb)
+cloneSetter l afb = taintedDot $ runIdentity #. l (Identity #. untaintedDot afb)
 {-# INLINE cloneSetter #-}
 
 -- | Build an 'IndexPreservingSetter' from any 'Setter'.
 cloneIndexPreservingSetter :: ASetter s t a b -> IndexPreservingSetter s t a b
 cloneIndexPreservingSetter l pafb = cotabulate $ \ws ->
-    taintedDot runMutator $ l (\a -> Mutator (untainted (corep pafb (a <$ ws)))) (extract ws)
+    taintedDot runIdentity $ l (\a -> Identity (untainted (corep pafb (a <$ ws)))) (extract ws)
 {-# INLINE cloneIndexPreservingSetter #-}
 
 -- | Clone an 'IndexedSetter'.
 cloneIndexedSetter :: AnIndexedSetter i s t a b -> IndexedSetter i s t a b
-cloneIndexedSetter l pafb = taintedDot (runMutator #. l (Indexed $ \i -> Mutator #. untaintedDot (indexed pafb i)))
+cloneIndexedSetter l pafb = taintedDot (runIdentity #. l (Indexed $ \i -> Identity #. untaintedDot (indexed pafb i)))
 {-# INLINE cloneIndexedSetter #-}
 
 -----------------------------------------------------------------------------
@@ -348,7 +349,7 @@ cloneIndexedSetter l pafb = taintedDot (runMutator #. l (Indexed $ \i -> Mutator
 -- 'over' :: 'ASetter' s t a b -> (a -> b) -> s -> t
 -- @
 over :: Profunctor p => Setting p s t a b -> p a b -> s -> t
-over l f = runMutator #. l (Mutator #. f)
+over l f = runIdentity #. l (Identity #. f)
 {-# INLINE over #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter'
@@ -374,7 +375,7 @@ over l f = runMutator #. l (Mutator #. f)
 -- 'set' :: 'Traversal' s t a b -> b -> s -> t
 -- @
 set :: ASetter s t a b -> b -> s -> t
-set l b = runMutator #. l (\_ -> Mutator b)
+set l b = runIdentity #. l (\_ -> Identity b)
 {-# INLINE set #-}
 
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter''
@@ -401,7 +402,7 @@ set l b = runMutator #. l (\_ -> Mutator b)
 -- 'set'' :: 'Traversal'' s a -> a -> s -> s
 -- @
 set' :: ASetter' s a -> a -> s -> s
-set' l b = runMutator #. l (\_ -> Mutator b)
+set' l b = runIdentity #. l (\_ -> Identity b)
 {-# INLINE set' #-}
 
 -- | Modifies the target of a 'Lens' or all of the targets of a 'Setter' or

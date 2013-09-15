@@ -65,7 +65,6 @@ import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Iso as Iso
 import Control.Lens.Internal.Magma
-import Control.Lens.Internal.Setter
 import Control.Lens.Prism
 import Control.Lens.Review
 import Control.Lens.Type
@@ -78,6 +77,7 @@ import Control.Monad.RWS.Strict as Strict
 import Data.ByteString as StrictB hiding (reverse)
 import Data.ByteString.Lazy as LazyB hiding (reverse)
 import Data.Functor.Contravariant
+import Data.Functor.Identity
 import Data.Text as StrictT hiding (reverse)
 import Data.Text.Lazy as LazyT hiding (reverse)
 import Data.Tuple (swap)
@@ -99,7 +99,7 @@ import Data.Profunctor.Unsafe
 -----------------------------------------------------------------------------
 
 -- | When you see this as an argument to a function, it expects an 'Iso'.
-type AnIso s t a b = Exchange a b a (Mutator b) -> Exchange a b s (Mutator t)
+type AnIso s t a b = Exchange a b a (Identity b) -> Exchange a b s (Identity t)
 
 -- | A 'Simple' 'AnIso'.
 type AnIso' s a = AnIso s s a a
@@ -133,8 +133,8 @@ from l = withIso l $ \ sa bt -> iso bt sa
 -- | Extract the two functions, one from @s -> a@ and
 -- one from @b -> t@ that characterize an 'Iso'.
 withIso :: AnIso s t a b -> ((s -> a) -> (b -> t) -> r) -> r
-withIso ai k = case ai (Exchange id Mutator) of
-  Exchange sa bt -> k sa (runMutator #. bt)
+withIso ai k = case ai (Exchange id Identity) of
+  Exchange sa bt -> k sa (runIdentity #. bt)
 {-# INLINE withIso #-}
 
 -- | Convert from 'AnIso' back to any 'Iso'.

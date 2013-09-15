@@ -44,10 +44,10 @@ module Control.Lens.Prism
 import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Internal.Prism
-import Control.Lens.Internal.Setter
 import Control.Lens.Review
 import Control.Lens.Type
 import Control.Monad
+import Data.Functor.Identity
 import Data.Profunctor
 import Data.Void
 #ifndef SAFE
@@ -72,7 +72,7 @@ import Unsafe.Coerce
 ------------------------------------------------------------------------------
 
 -- | If you see this in a signature for a function, the function is expecting a 'Prism'.
-type APrism s t a b = Market a b a (Mutator b) -> Market a b s (Mutator t)
+type APrism s t a b = Market a b a (Identity b) -> Market a b s (Identity t)
 
 -- | @
 -- type APrism' = 'Simple' 'APrism'
@@ -82,10 +82,10 @@ type APrism' s a = APrism s s a a
 -- | Convert 'APrism' to the pair of functions that characterize it.
 runPrism :: APrism s t a b -> Market a b s t
 #ifdef SAFE
-runPrism k = case k (Market Mutator Right) of
-  Market bt seta -> Market (runMutator #. bt) (either (Left . runMutator) Right . seta)
+runPrism k = case k (Market Identity Right) of
+  Market bt seta -> Market (runIdentity #. bt) (either (Left . runIdentity) Right . seta)
 #else
-runPrism k = unsafeCoerce (k (Market Mutator Right))
+runPrism k = unsafeCoerce (k (Market Identity Right))
 #endif
 {-# INLINE runPrism #-}
 

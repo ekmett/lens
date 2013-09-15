@@ -25,8 +25,8 @@ module Control.Lens.Equality
   , Identical(..)
   ) where
 
-import Control.Lens.Internal.Setter
 import Control.Lens.Type
+import Data.Functor.Identity
 
 {-# ANN module "HLint: ignore Use id" #-}
 {-# ANN module "HLint: ignore Eta reduce" #-}
@@ -43,7 +43,7 @@ data Identical a b s t where
   Identical :: Identical a b a b
 
 -- | When you see this as an argument to a function, it expects an 'Equality'.
-type AnEquality s t a b = Identical a (Mutator b) a (Mutator b) -> Identical a (Mutator b) s (Mutator t)
+type AnEquality s t a b = Identical a (Identity b) a (Identity b) -> Identical a (Identity b) s (Identity t)
 
 -- | A 'Simple' 'AnEquality'.
 type AnEquality' s a = AnEquality s s a a

@@ -16,7 +16,6 @@ module Control.Lens.Internal.Setter
   (
   -- ** Setters
     Settable(..)
-  , Mutator(..)
   ) where
 
 import Control.Applicative
@@ -66,76 +65,3 @@ instance (Settable f, Settable g) => Settable (Compose f g) where
   untainted = untaintedDot (untaintedDot getCompose)
   {-# INLINE untainted #-}
 
------------------------------------------------------------------------------
--- Mutator
------------------------------------------------------------------------------
-
--- | 'Mutator' is just a renamed 'Identity' 'Functor' to give better error
--- messages when someone attempts to use a 'Control.Lens.Getter.Getter' as a 'Control.Lens.Setter.Setter'.
---
--- Most user code will never need to see this type.
-newtype Mutator a = Mutator { runMutator :: a }
-
-instance Functor Mutator where
-  fmap f (Mutator a) = Mutator (f a)
-  {-# INLINE fmap #-}
-
-instance Apply Mutator where
-  Mutator f <.> Mutator a = Mutator (f a)
-  {-# INLINE (<.>) #-}
-
-instance Applicative Mutator where
-  pure = Mutator
-  {-# INLINE pure #-}
-  Mutator f <*> Mutator a = Mutator (f a)
-  {-# INLINE (<*>) #-}
-
-instance Bind Mutator where
-  Mutator x >>- f = f x
-  {-# INLINE (>>-) #-}
-  join = runMutator
-  {-# INLINE join #-}
-
-instance Monad Mutator where
-  return = Mutator
-  {-# INLINE return #-}
-  Mutator x >>= f = f x
-  {-# INLINE (>>=) #-}
-
-instance Extend Mutator where
-  extended f w = Mutator (f w)
-  {-# INLINE extended #-}
-  duplicated = Mutator
-  {-# INLINE duplicated #-}
-
-instance Comonad Mutator where
-  extract = runMutator
-  {-# INLINE extract #-}
-  extend f w = Mutator (f w)
-  {-# INLINE extend #-}
-  duplicate = Mutator
-  {-# INLINE duplicate #-}
-
-instance ComonadApply Mutator where
-  Mutator f <@> Mutator a = Mutator (f a)
-  {-# INLINE (<@>) #-}
-
-instance Distributive Mutator where
-  distribute = Mutator . fmap runMutator
-  {-# INLINE distribute #-}
-
-instance Foldable Mutator where
-  foldMap f (Mutator a) = f a
-  {-# INLINE foldMap #-}
-
-instance Traversable Mutator where
-  traverse f (Mutator a) = Mutator <$> f a
-  {-# INLINE traverse #-}
-
-instance Settable Mutator where
-  untainted = runMutator
-  {-# INLINE untainted #-}
-  untaintedDot = (runMutator #.)
-  {-# INLINE untaintedDot #-}
-  taintedDot = (Mutator #.)
-  {-# INLINE taintedDot #-}

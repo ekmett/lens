@@ -139,7 +139,7 @@ instance Show (FieldException a) where
 
 instance Typeable a => Exception (FieldException a)
 
-lookupon :: Typeable a => LensLike' (Indexing Mutator) s a -> (s -> a) -> s -> Maybe (Int, Context a a s)
+lookupon :: Typeable a => LensLike' (Indexing Identity) s a -> (s -> a) -> s -> Maybe (Int, Context a a s)
 lookupon l field s = case unsafePerformIO $ E.try $ evaluate $ field $ s & indexing l %@~ \i (a::a) -> E.throw (FieldException i a) of
   Right _ -> Nothing
   Left e -> case fromException e of

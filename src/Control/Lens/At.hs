@@ -55,7 +55,6 @@ import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Complex
 import Data.Constraint
-import Data.Functor.Identity
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.HashSet as HashSet

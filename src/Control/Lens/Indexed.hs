@@ -88,7 +88,6 @@ import Control.Lens.Setter
 import Control.Lens.Traversal
 import Control.Lens.Type
 import Data.Foldable
-import Data.Functor.Identity
 import Data.Functor.Reverse
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
