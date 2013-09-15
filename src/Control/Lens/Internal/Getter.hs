@@ -17,13 +17,10 @@ module Control.Lens.Internal.Getter
   -- ** Getters
   , coerce
   , noEffect
-  , Accessor(..)
   ) where
 
 import Control.Applicative
-import Data.Functor.Apply
 import Data.Functor.Contravariant
-import Data.Semigroup
 import Data.Void
 
 -- | This class is provided mostly for backwards compatibility with lens 3.8,
@@ -52,43 +49,3 @@ coerce a = absurd <$> contramap absurd a
 noEffect :: (Contravariant f, Applicative f) => f a
 noEffect = coerce $ pure ()
 {-# INLINE noEffect #-}
-
--------------------------------------------------------------------------------
--- Accessors
--------------------------------------------------------------------------------
-
--- | Used instead of 'Const' to report
---
--- @No instance for ('Control.Lens.Setter.Internal.Settable' 'Accessor')@
---
--- when the user attempts to misuse a 'Control.Lens.Setter.Setter' as a
--- 'Control.Lens.Getter.Getter', rather than a monolithic unification error.
-newtype Accessor r a = Accessor { runAccessor :: r }
-
-instance Functor (Accessor r) where
-  fmap _ (Accessor m) = Accessor m
-  {-# INLINE fmap #-}
-
-instance Contravariant (Accessor r) where
-  contramap _ (Accessor m) = Accessor m
-  {-# INLINE contramap #-}
-
-instance Semigroup r => Apply (Accessor r) where
-  Accessor a <.> Accessor b = Accessor (a <> b)
-  {-# INLINE (<.>) #-}
-
-instance Monoid r => Applicative (Accessor r) where
-  pure _ = Accessor mempty
-  {-# INLINE pure #-}
-  Accessor a <*> Accessor b = Accessor (mappend a b)
-  {-# INLINE (<*>) #-}
-
-instance Semigroup r => Semigroup (Accessor r a) where
-  Accessor a <> Accessor b = Accessor $ a <> b
-  {-# INLINE (<>) #-}
-
-instance Monoid r => Monoid (Accessor r a) where
-  mempty = Accessor mempty
-  {-# INLINE mempty #-}
-  mappend (Accessor a) (Accessor b) = Accessor $ mappend a b
-  {-# INLINE mappend #-}

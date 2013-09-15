@@ -23,7 +23,7 @@
 -- @'Data.Foldable.foldMap' :: ('Foldable' t, 'Monoid' m) => (a -> m) -> t a -> m@.
 -- Since we want to be able to work with monomorphic containers, we could
 -- generalize this signature to @forall m. 'Monoid' m => (a -> m) -> s -> m@,
--- and then decorate it with 'Accessor' to obtain
+-- and then decorate it with 'Const' to obtain
 --
 -- @type 'Fold' s a = forall m. 'Monoid' m => 'Getting' m s a@
 --
@@ -421,7 +421,7 @@ droppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
 -- 'foldMapOf' :: 'Getting' r s a -> (a -> r) -> s -> r
 -- @
 foldMapOf :: Profunctor p => Accessing p r s a -> p a r -> s -> r
-foldMapOf l f = runAccessor #. l (Accessor #. f)
+foldMapOf l f = getConst #. l (Const #. f)
 {-# INLINE foldMapOf #-}
 
 -- | @
@@ -441,7 +441,7 @@ foldMapOf l f = runAccessor #. l (Accessor #. f)
 -- 'foldOf' :: 'Monoid' m => 'Prism'' s m     -> s -> m
 -- @
 foldOf :: Getting a s a -> s -> a
-foldOf l = runAccessor #. l Accessor
+foldOf l = getConst #. l Const
 {-# INLINE foldOf #-}
 
 -- | Right-associative fold of parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
@@ -990,7 +990,7 @@ notElemOf l = allOf l . (/=)
 -- 'concatMapOf' :: 'Traversal'' s a -> (a -> [r]) -> s -> [r]
 -- @
 concatMapOf :: Profunctor p => Accessing p [r] s a -> p a [r] -> s -> [r]
-concatMapOf l ces = runAccessor #. l (Accessor #. ces)
+concatMapOf l ces = getConst #. l (Const #. ces)
 {-# INLINE concatMapOf #-}
 
 -- | Concatenate all of the lists targeted by a 'Fold' into a longer list.
@@ -1011,7 +1011,7 @@ concatMapOf l ces = runAccessor #. l (Accessor #. ces)
 -- 'concatOf' :: 'Traversal'' s [r] -> s -> [r]
 -- @
 concatOf :: Getting [r] s [r] -> s -> [r]
-concatOf l = runAccessor #. l Accessor
+concatOf l = getConst #. l Const
 {-# INLINE concatOf #-}
 
 
@@ -1651,7 +1651,7 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 -- 'pre' :: 'Simple' 'Prism' s a     -> 'IndexPreservingGetter' s ('Maybe' a)
 -- @
 pre :: Getting (First a) s a -> IndexPreservingGetter s (Maybe a)
-pre l = dimap (getFirst . runAccessor #. l (Accessor #. First #. Just)) coerce
+pre l = dimap (getFirst . getConst #. l (Const #. First #. Just)) coerce
 {-# INLINE pre #-}
 
 -- | This converts an 'IndexedFold' to an 'IndexPreservingGetter' that returns the first index
@@ -1664,7 +1664,7 @@ pre l = dimap (getFirst . runAccessor #. l (Accessor #. First #. Just)) coerce
 -- 'ipre' :: 'Simple' ('IndexedLens' i) s a      -> 'IndexPreservingGetter' s ('Maybe' (i, a))
 -- @
 ipre :: IndexedGetting i (First (i, a)) s a -> IndexPreservingGetter s (Maybe (i, a))
-ipre l = dimap (getFirst . runAccessor #. l (Indexed $ \i a -> Accessor (First (Just (i, a))))) coerce
+ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (i, a))))) coerce
 {-# INLINE ipre #-}
 
 ------------------------------------------------------------------------------
@@ -2318,10 +2318,10 @@ ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 -- @
 itakingWhile :: (Indexable i p, Profunctor q, Contravariant f, Applicative f)
          => (i -> a -> Bool)
-         -> Overloading (Indexed i) q (Accessor (Endo (f s))) s s a a
+         -> Overloading (Indexed i) q (Const (Endo (f s))) s s a a
          -> Overloading p q f s s a a
-itakingWhile p l f = (flip appEndo noEffect .# runAccessor) `rmap` l g where
-  g = Indexed $ \i a -> Accessor . Endo $ if p i a then (indexed f i a *>) else const noEffect
+itakingWhile p l f = (flip appEndo noEffect .# getConst) `rmap` l g where
+  g = Indexed $ \i a -> Const . Endo $ if p i a then (indexed f i a *>) else const noEffect
 {-# INLINE itakingWhile #-}
 
 -- | Obtain an 'IndexedFold' by dropping elements from another 'IndexedFold', 'IndexedLens', 'IndexedGetter' or 'IndexedTraversal' while a predicate holds.

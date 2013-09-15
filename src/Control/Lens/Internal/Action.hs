@@ -27,7 +27,6 @@ module Control.Lens.Internal.Action
 
 import Control.Applicative
 import Control.Applicative.Backwards
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Monad
 import Control.Monad.Reader
@@ -54,10 +53,10 @@ instance Effective m r f => Effective m (Dual r) (Backwards f) where
   ineffective = liftM Dual . ineffective . forwards
   {-# INLINE ineffective #-}
 
-instance Effective Identity r (Accessor r) where
-  effective = Accessor #. runIdentity
+instance Effective Identity r (Const r) where
+  effective = Const #. runIdentity
   {-# INLINE effective #-}
-  ineffective = Identity #. runAccessor
+  ineffective = Identity #. getConst
   {-# INLINE ineffective #-}
 
 instance Effective m r f => Effective (ReaderT Int m) r (Indexing f) where

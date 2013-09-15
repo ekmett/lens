@@ -21,15 +21,15 @@
 --
 -- A @'Getter' s a@ is just any function @(s -> a)@, which we've flipped
 -- into continuation passing style, @(a -> r) -> s -> r@ and decorated
--- with 'Accessor' to obtain:
+-- with 'Const' to obtain:
 --
--- @type 'Getting' r s a = (a -> 'Accessor' r a) -> s -> 'Accessor' r s@
+-- @type 'Getting' r s a = (a -> 'Const' r a) -> s -> 'Const' r s@
 --
 -- If we restrict access to knowledge about the type 'r', we could get:
 --
 -- @type 'Getter' s a = forall r. 'Getting' r s a@
 --
--- But we actually hide the use of 'Accessor' behind a class 'Gettable' to
+-- But we actually hide the use of 'Const' behind a class 'Gettable' to
 -- report error messages from type class resolution rather than at unification
 -- time, where they are much uglier.
 --
@@ -65,10 +65,11 @@ module Control.Lens.Getter
   -- * Implementation Details
   , Contravariant(..)
   , coerce, coerced
-  , Accessor(..)
+  , Const(..)
   , Gettable
   ) where
 
+import Control.Applicative
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Lens.Type
@@ -136,14 +137,14 @@ to f = dimap f coerce
 -- you can pass a 'Control.Lens.Fold.Fold' (or
 -- 'Control.Lens.Traversal.Traversal'), otherwise you can only pass this a
 -- 'Getter' or 'Lens'.
-type Getting r s a = (a -> Accessor r a) -> s -> Accessor r s
+type Getting r s a = (a -> Const r a) -> s -> Const r s
 
 -- | Used to consume an 'Control.Lens.Fold.IndexedFold'.
-type IndexedGetting i m s a = Indexed i a (Accessor m a) -> s -> Accessor m s
+type IndexedGetting i m s a = Indexed i a (Const m a) -> s -> Const m s
 
 -- | This is a convenient alias used when consuming (indexed) getters and (indexed) folds
 -- in a highly general fashion.
-type Accessing p m s a = p a (Accessor m a) -> s -> Accessor m s
+type Accessing p m s a = p a (Const m a) -> s -> Const m s
 
 -------------------------------------------------------------------------------
 -- Getting Values
@@ -192,7 +193,7 @@ type Accessing p m s a = p a (Accessor m a) -> s -> Accessor m s
 -- 'view' :: ('MonadReader' s m, 'Data.Monoid.Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> m a
 -- @
 view :: MonadReader s m => Getting a s a -> m a
-view l = Reader.asks (runAccessor #. l Accessor)
+view l = Reader.asks (getConst #. l Const)
 {-# INLINE view #-}
 
 -- | View a function of the value pointed to by a 'Getter' or 'Lens' or the result of
@@ -233,8 +234,8 @@ view l = Reader.asks (runAccessor #. l Accessor)
 -- @
 -- 'views' :: 'MonadReader' s m => 'Getting' r s a -> (a -> r) -> m r
 -- @
-views :: (Profunctor p, MonadReader s m) => Overloading p (->) (Accessor r) s s a a -> p a r -> m r
-views l f = Reader.asks (runAccessor #. l (Accessor #. f))
+views :: (Profunctor p, MonadReader s m) => Overloading p (->) (Const r) s s a a -> p a r -> m r
+views l f = Reader.asks (getConst #. l (Const #. f))
 {-# INLINE views #-}
 
 -- | View the value pointed to by a 'Getter' or 'Lens' or the
@@ -264,7 +265,7 @@ views l f = Reader.asks (runAccessor #. l (Accessor #. f))
 -- ('^.') :: 'Data.Monoid.Monoid' m => s -> 'Control.Lens.Traversal.Traversal'' s m -> m
 -- @
 (^.) :: s -> Getting a s a -> a
-s ^. l = runAccessor (l Accessor s)
+s ^. l = getConst (l Const s)
 {-# INLINE (^.) #-}
 
 -------------------------------------------------------------------------------
@@ -312,7 +313,7 @@ use l = State.gets (view l)
 -- @
 -- 'uses' :: 'MonadState' s m => 'Getting' r s t a b -> (a -> r) -> m r
 -- @
-uses :: (Profunctor p, MonadState s m) => Overloading p (->) (Accessor r) s s a a -> p a r -> m r
+uses :: (Profunctor p, MonadState s m) => Overloading p (->) (Const r) s s a a -> p a r -> m r
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}
 
@@ -397,7 +398,7 @@ ilistenings l iuv m = do
 -- When applied to an 'IndexedFold' the result will most likely be a nonsensical monoidal summary of
 -- the indices tupled with a monoidal summary of the values and probably not whatever it is you wanted.
 iview :: MonadReader s m => IndexedGetting i (i,a) s a -> m (i,a)
-iview l = asks (runAccessor #. l (Indexed $ \i -> Accessor #. (,) i))
+iview l = asks (getConst #. l (Indexed $ \i -> Const #. (,) i))
 {-# INLINE iview #-}
 
 -- | View a function of the index and value of an 'IndexedGetter' into the current environment.
@@ -416,7 +417,7 @@ iviews l = views l .# Indexed
 -- When applied to an 'IndexedFold' the result will most likely be a nonsensical monoidal summary of
 -- the indices tupled with a monoidal summary of the values and probably not whatever it is you wanted.
 iuse :: MonadState s m => IndexedGetting i (i,a) s a -> m (i,a)
-iuse l = gets (runAccessor #. l (Indexed $ \i -> Accessor #. (,) i))
+iuse l = gets (getConst #. l (Indexed $ \i -> Const #. (,) i))
 {-# INLINE iuse #-}
 
 -- | Use a function of the index and value of an 'IndexedGetter' into the current state.
@@ -446,7 +447,7 @@ iuses l = uses l .# Indexed
 --
 -- The result probably doesn't have much meaning when applied to an 'IndexedFold'.
 (^@.) :: s -> IndexedGetting i (i, a) s a -> (i, a)
-s ^@. l = runAccessor $ l (Indexed $ \i -> Accessor #. (,) i) s
+s ^@. l = getConst $ l (Indexed $ \i -> Const #. (,) i) s
 {-# INLINE (^@.) #-}
 
 -- | Coerce a 'Gettable' 'LensLike' to a 'Simple' 'LensLike'. This is useful

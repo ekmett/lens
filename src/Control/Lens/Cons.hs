@@ -35,7 +35,6 @@ module Control.Lens.Cons
 import Control.Applicative
 import Control.Lens.Equality (simply)
 import Control.Lens.Fold
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Review
 import Control.Lens.Prism
 import Control.Lens.Review
@@ -194,7 +193,7 @@ cons = curry (simply review _Cons)
 --
 -- >>> uncons [a, b, c]
 -- Just (a,[b,c])
-uncons :: Cons (->) (Accessor (First (a, s))) s s a a => s -> Maybe (a, s)
+uncons :: Cons (->) (Const (First (a, s))) s s a a => s -> Maybe (a, s)
 uncons = simply preview _Cons
 {-# INLINE uncons #-}
 
@@ -507,6 +506,6 @@ snoc = curry (simply review _Snoc)
 --
 -- >>> unsnoc (Seq.fromList [])
 -- Nothing
-unsnoc :: Snoc (->) (Accessor (First (s, a))) s s a a => s -> Maybe (s, a)
+unsnoc :: Snoc (->) (Const (First (s, a))) s s a a => s -> Maybe (s, a)
 unsnoc s = simply preview _Snoc s
 {-# INLINE unsnoc #-}

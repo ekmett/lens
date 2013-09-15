@@ -262,7 +262,7 @@ instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
 -- | This type family is used by 'Control.Lens.Zoom.Magnify' to describe the common effect type.
 type family Magnified (m :: * -> *) :: * -> * -> *
 type instance Magnified (ReaderT b m) = Effect m
-type instance Magnified ((->)b) = Accessor
+type instance Magnified ((->)b) = Const
 type instance Magnified (Strict.RWST a w s m) = EffectRWS w s m
 type instance Magnified (Lazy.RWST a w s m) = EffectRWS w s m
 type instance Magnified (IdentityT m) = Magnified m

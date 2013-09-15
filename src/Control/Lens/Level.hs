@@ -21,7 +21,6 @@ module Control.Lens.Level
 import Control.Applicative
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Level
 import Control.Lens.Traversal
@@ -33,7 +32,7 @@ import Data.Profunctor.Unsafe
 -- >>> import Data.Char
 
 levelIns :: Bazaar (->) a b t -> [Level () a]
-levelIns = go 0 . (runAccessor #. bazaar (Accessor #. deepening ())) where
+levelIns = go 0 . (getConst #. bazaar (Const #. deepening ())) where
   go k z = k `seq` runDeepening z k $ \ xs b ->
     xs : if b then (go $! k + 1) z else []
 {-# INLINE levelIns #-}
@@ -81,7 +80,7 @@ levels l f s = levelOuts bz <$> traversed f (levelIns bz) where
 {-# INLINE levels #-}
 
 ilevelIns :: Bazaar (Indexed i) a b t -> [Level i a]
-ilevelIns = go 0 . (runAccessor #. bazaar (Indexed $ \ i -> Accessor #. deepening i)) where
+ilevelIns = go 0 . (getConst #. bazaar (Indexed $ \ i -> Const #. deepening i)) where
   go k z = k `seq` runDeepening z k $ \ xs b ->
     xs : if b then (go $! k + 1) z else []
 {-# INLINE ilevelIns #-}
