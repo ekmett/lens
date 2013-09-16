@@ -20,12 +20,8 @@ module Control.Lens.Internal.Setter
 
 import Control.Applicative
 import Control.Applicative.Backwards
-import Control.Comonad
 import Data.Distributive
-import Data.Foldable
-import Data.Functor.Bind
 import Data.Functor.Compose
-import Data.Functor.Extend
 import Data.Functor.Identity
 import Data.Profunctor
 import Data.Profunctor.Unsafe

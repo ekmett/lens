@@ -36,7 +36,6 @@ import Control.Applicative
 import Control.Category
 import Control.Comonad
 import Control.Lens.Internal.Action
-import Control.Lens.Internal.Getter
 import Control.Monad.Reader as Reader
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict

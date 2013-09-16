@@ -128,7 +128,6 @@ prop_mapped                          = isSetter (mapped :: Setter' [Int] Int)
 prop_mapped_mapped                   = isSetter (mapped.mapped :: Setter' [Maybe Int] Int)
 
 prop_both                            = isTraversal (both           :: Traversal' (Int,Int) Int)
-prop_value (Fun _ k :: Fun Int Bool) = isTraversal (each.indices k :: Traversal' (Int, Int) Int)
 prop_traverseLeft                    = isTraversal (_Left          :: Traversal' (Either Int Bool) Int)
 prop_traverseRight                   = isTraversal (_Right         :: Traversal' (Either Int Bool) Bool)
 
