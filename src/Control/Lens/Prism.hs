@@ -305,7 +305,7 @@ nearly a p = prism' (\() -> a) $ guard . p
 -- '_Show' ≡ 'prism'' 'show' 'readMaybe'
 -- @
 _Show :: (Read a, Show a) => Prism' String a
-_Show = prism show $ \s -> case readsPrec 0 s of
+_Show = prism show $ \s -> case reads s of
   [(a,"")] -> Right a
   _ -> Left s
 {-# INLINE _Show #-}
