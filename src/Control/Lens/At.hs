@@ -122,8 +122,10 @@ type instance Index LazyB.ByteString = Int64
 -- This class provides a simple 'IndexedFold' (or 'IndexedTraversal') that lets you view (and modify)
 -- information about whether or not a container contains a given 'Index'.
 class Contains m where
+#ifndef HLINT
   type Containing m (f :: * -> *) :: Constraint
   type Containing m f = (Contravariant f, Functor f)
+#endif
 
   -- |
   -- >>> IntSet.fromList [1,2,3,4] ^. contains 3
