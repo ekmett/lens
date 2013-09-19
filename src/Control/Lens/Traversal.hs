@@ -674,11 +674,17 @@ unconsWithDefault _ (x:xs) = (x,xs)
 -- 'both' :: 'Traversal' (a, a)       (b, b)       a b
 -- 'both' :: 'Traversal' ('Either' a a) ('Either' b b) a b
 -- @
-both :: Bitraversable t => Traversal (t a a) (t b b) a b
+both :: Bitraversable t => Traversal (r a a) (r b b) a b
 both f = bitraverse f f
 {-# INLINE both #-}
 
--- | Apply a different 'Traversal' or 'Fold' to each side of a tuple.
+-- | Apply a different 'Traversal' or 'Fold' to each side of a 'Bitraversable' container.
+--
+-- @
+-- 'beside' :: 'Traversal' s t a b                -> 'Traversal' s' t' a b                -> 'Traversal' (r s s') (r t t') a b
+-- 'beside' :: 'IndexedTraversal' i s t a b       -> 'IndexedTraversal' i s' t' a b       -> 'IndexedTraversal' i (r s s') (r t t') a b
+-- 'beside' :: 'IndexPreservingTraversal' s t a b -> 'IndexPreservingTraversal' s' t' a b -> 'IndexPreservingTraversal' (r s s') (r t t') a b
+-- @
 --
 -- @
 -- 'beside' :: 'Traversal' s t a b                -> 'Traversal' s' t' a b                -> 'Traversal' (s,s') (t,t') a b
@@ -709,11 +715,11 @@ both f = bitraverse f f
 --
 -- >>> ("hello",["world","!!!"])^..beside id traverse
 -- ["hello","world","!!!"]
-beside :: (Representable q, Applicative (Rep q), Applicative f)
+beside :: (Representable q, Applicative (Rep q), Applicative f, Bitraversable r)
        => Overloading p q f s t a b
        -> Overloading p q f s' t' a b
-       -> Overloading p q f (s,s') (t,t') a b
-beside l r f = tabulate $ \ ~(s,s') -> liftA2 (,) <$> rep (l f) s <*> rep (r f) s'
+       -> Overloading p q f (r s s') (r t t') a b
+beside l r f = tabulate $ getCompose #. bitraverse (Compose #. rep (l f)) (Compose #. rep (r f))
 {-# INLINE beside #-}
 
 -- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
