@@ -674,7 +674,7 @@ unconsWithDefault _ (x:xs) = (x,xs)
 -- 'both' :: 'Traversal' (a, a)       (b, b)       a b
 -- 'both' :: 'Traversal' ('Either' a a) ('Either' b b) a b
 -- @
-both :: Bitraversable t => Traversal (r a a) (r b b) a b
+both :: Bitraversable r => Traversal (r a a) (r b b) a b
 both f = bitraverse f f
 {-# INLINE both #-}
 
