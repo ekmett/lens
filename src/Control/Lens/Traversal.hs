@@ -1116,15 +1116,15 @@ ifailover l f = failover l (Indexed f)
 -- traversals or indexed folds, obtaining an indexed traversal or indexed fold.
 --
 -- @
--- 'ifailing' :: 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
--- 'ifailing' :: 'IndexedFold' i s a          -> 'IndexedFold' i s a          -> 'IndexedFold' i s a
+-- 'failing' :: 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
+-- 'failing' :: 'IndexedFold' i s a          -> 'IndexedFold' i s a          -> 'IndexedFold' i s a
 -- @
 --
 -- These cases are also supported, trivially, but are boring, because the left hand side always succeeds.
 --
 -- @
--- 'ifailing' :: 'IndexedLens' i s t a b      -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
--- 'ifailing' :: 'IndexedGetter' i s a        -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
+-- 'failing' :: 'IndexedLens' i s t a b      -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
+-- 'failing' :: 'IndexedGetter' i s a        -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
 -- @
 failing :: (Conjoined p, Applicative f) => Traversing p f s t a b -> Traversing p f s t a b -> Over p f s t a b
 failing l r pafb s = case pins b of
