@@ -1131,3 +1131,4 @@ failing l r pafb s = case pins b of
   [] -> runBazaarT (r sell s) pafb
   xs -> unsafeOuts b <$> traverse (corep pafb) xs
   where b = l sell s
+infixl 5 `failing`
