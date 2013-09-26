@@ -144,8 +144,10 @@ class Contains m where
 
   -- | Every instance of Contains is at least a 'Getter'
   containsProof :: p m -> q f -> (Contravariant f, Functor f) :- Containing m f
+#ifndef HLINT
   default containsProof :: (Containing m f ~ (Contravariant f, Functor f)) => p m -> q f -> (Contravariant f, Functor f) :- Containing m f
   containsProof _ _ = Sub Dict
+#endif
 
 -- |
 -- @
