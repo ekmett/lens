@@ -175,7 +175,7 @@ instance (Storable a, Storable b) => Each (Storable.Vector a) (Storable.Vector b
   {-# INLINE each #-}
 
 -- | @'each' :: ('Unbox' a, 'Unbox' b) => 'Traversal' ('Unboxed.Vector' a) ('Unboxed.Vector' b) a b@
-instance (Applicative f, Unbox a, Unbox b) => Each (Unboxed.Vector a) (Unboxed.Vector b) a b where
+instance (Unbox a, Unbox b) => Each (Unboxed.Vector a) (Unboxed.Vector b) a b where
   each f v = Unboxed.fromListN (Unboxed.length v) <$> traverse f (Unboxed.toList v)
   {-# INLINE each #-}
 
@@ -200,7 +200,7 @@ instance (a ~ Word8, b ~ Word8) => Each LazyB.ByteString LazyB.ByteString a b wh
   {-# INLINE each #-}
 
 -- | @'each' :: 'Ix' i => 'Traversal' ('Array' i a) ('Array' i b) a b@
-instance (Applicative f, Ix i, i ~ j) => Each (Array i a) (Array j b) a b where
+instance (Ix i, i ~ j) => Each (Array i a) (Array j b) a b where
   each f arr = array (bounds arr) <$> traverse (\(i,a) -> (,) i <$> f a) (IArray.assocs arr)
   {-# INLINE each #-}
 
