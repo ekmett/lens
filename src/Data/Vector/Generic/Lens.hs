@@ -21,8 +21,10 @@ module Data.Vector.Generic.Lens
   -- * Isomorphisms
   , forced
   , vector
+#if !MIN_VERSION_vector(0,10,9)
   , asStream
   , asStreamR
+#endif
   , cloned
   -- * Lenses
   , sliced
@@ -35,7 +37,9 @@ import Control.Lens
 import Data.List (nub)
 import Data.Monoid
 import Data.Vector.Generic as V hiding (zip, filter, indexed)
+#if !MIN_VERSION_vector(0,10,9)
 import Data.Vector.Fusion.Stream (Stream)
+#endif
 import Data.Vector.Generic.New (New)
 import Prelude hiding ((++), length, null, head, tail, init, last, map, reverse)
 
@@ -81,7 +85,7 @@ toVectorOf l s = fromList (toListOf l s)
 vector :: Vector v a => Iso' [a] (v a)
 vector = iso fromList V.toList
 {-# INLINE vector #-}
-
+#if !MIN_VERSION_vector(0,10,9)
 -- | Convert a 'Vector' to a finite 'Stream' (or back.)
 asStream :: Vector v a => Iso' (v a) (Stream a)
 asStream = iso stream unstream
@@ -92,7 +96,7 @@ asStream = iso stream unstream
 asStreamR :: Vector v a => Iso' (v a) (Stream a)
 asStreamR = iso streamR unstreamR
 {-# INLINE asStreamR #-}
-
+#endif
 -- | Convert a 'Vector' back and forth to an initializer that when run
 -- produces a copy of the 'Vector'.
 cloned :: Vector v a => Iso' (v a) (New v a)
