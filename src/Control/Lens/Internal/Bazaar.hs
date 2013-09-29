@@ -33,6 +33,7 @@ import Data.Functor.Apply
 import Data.Functor.Compose
 import Data.Functor.Contravariant
 import Data.Functor.Identity
+import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
@@ -180,3 +181,9 @@ instance (a ~ b, Conjoined p) => ComonadApply (BazaarT p g a b) where
 instance (Profunctor p, Contravariant g) => Contravariant (BazaarT p g a b) where
   contramap _ = (<$) (error "contramap: BazaarT")
   {-# INLINE contramap #-}
+
+instance Contravariant g => Monoid (BazaarT p g a b t) where
+  mempty = BazaarT $ \_ -> pure (error "mempty: BazaarT")
+  {-# INLINE mempty #-}
+  BazaarT a `mappend` BazaarT b = BazaarT $ \f -> a f <* b f
+  {-# INLINE mappend #-}
