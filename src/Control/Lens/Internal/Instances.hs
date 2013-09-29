@@ -49,3 +49,7 @@ instance Foldable (Const m) where
 
 instance Traversable (Const m) where
   traverse _ (Const m) = pure $ Const m
+
+instance Monoid a => Monoid (Const a b) where
+  mempty = Const mempty
+  mappend (Const a) (Const b) = Const (mappend a b)
