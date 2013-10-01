@@ -490,6 +490,6 @@ ala = au . wrapping
 --
 -- >>> alaf Sum foldMap length ["hello","world"]
 -- 10
-alaf :: Profunctor p => Wrapped s s a a => (s -> a) -> (p r a -> e -> a) -> p r s -> e -> s
+alaf :: (Profunctor p, Wrapped s s a a) => (s -> a) -> (p r a -> e -> a) -> p r s -> e -> s
 alaf = auf . wrapping
 {-# INLINE alaf #-}
