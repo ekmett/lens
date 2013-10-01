@@ -150,10 +150,12 @@ import Control.Monad as Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Foldable as Foldable
+import Data.Functor.Apply
 import Data.Functor.Compose
 import Data.Int (Int64)
 import Data.Maybe
 import Data.Monoid
+import Data.Pointed
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
@@ -218,7 +220,7 @@ folded' :: Foldable f => Fold (f a) a
 folded' f = coerce . getFolding . foldMap (Folding #. f)
 {-# INLINE folded' #-}
 
--- | 'Fold' by repeating the input forever.
+-- | Form a 'RelevantFold' by repeating the input forever.
 --
 -- @
 -- 'repeat' ≡ 'toListOf' 'repeated'
@@ -226,8 +228,8 @@ folded' f = coerce . getFolding . foldMap (Folding #. f)
 --
 -- >>> timingOut $ 5^..taking 20 repeated
 -- [5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5]
-repeated :: Fold a a
-repeated f a = as where as = f a *> as
+repeated :: RelevantFold a a
+repeated f a = as where as = f a .> as
 {-# INLINE repeated #-}
 
 -- | A 'Fold' that replicates its input @n@ times.
@@ -245,12 +247,12 @@ replicated n0 f a = go n0 where
   go n = m *> go (n - 1)
 {-# INLINE replicated #-}
 
--- | Transform a 'Fold' into a 'Fold' that loops over its elements over and over.
+-- | Transform a non-empty 'Fold' into a 'RelevantFold' that loops over its elements over and over.
 --
 -- >>> timingOut $ [1,2,3]^..taking 7 (cycled traverse)
 -- [1,2,3,1,2,3,1]
-cycled :: (Contravariant f, Applicative f) => LensLike f s t a b -> LensLike f s t a b
-cycled l f a = as where as = l f a *> as
+cycled :: (Contravariant f, Apply f) => LensLike f s t a b -> LensLike f s t a b
+cycled l f a = as where as = l f a .> as
 {-# INLINE cycled #-}
 
 -- | Build a 'Fold' that unfolds its values from a seed.
@@ -268,19 +270,19 @@ unfolded f g b0 = go b0 where
     Nothing      -> noEffect
 {-# INLINE unfolded #-}
 
--- | @x '^.' 'iterated' f@ returns an infinite 'Fold' of repeated applications of @f@ to @x@.
+-- | @x '^.' 'iterated' f@ returns an infinite 'RelevantFold' of repeated applications of @f@ to @x@.
 --
 -- @
 -- 'toListOf' ('iterated' f) a ≡ 'iterate' f a
 -- @
-iterated :: (a -> a) -> Fold a a
+iterated :: (a -> a) -> RelevantFold a a
 iterated f g a0 = go a0 where
-  go a = g a *> go (f a)
+  go a = g a .> go (f a)
 {-# INLINE iterated #-}
 
--- | Obtain a 'Fold' that can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal').
+-- | Obtain an 'AffineFold' that can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal').
 --
--- Note: This is /not/ a legal 'Traversal', unless you are very careful not to invalidate the predicate on the target.
+-- Note: This is /not/ a legal 'AffineTraversal', unless you are very careful not to invalidate the predicate on the target.
 --
 -- Note: This is also /not/ a legal 'Prism', unless you are very careful not to inject a value that matches the predicate.
 --
@@ -290,14 +292,14 @@ iterated f g a0 = go a0 where
 -- 'Control.Lens.Setter.over' evens 'succ' '.' 'Control.Lens.Setter.over' evens 'succ' '/=' 'Control.Lens.Setter.over' evens ('succ' '.' 'succ')
 -- @
 --
--- So, in order for this to qualify as a legal 'Traversal' you can only use it for actions that preserve the result of the predicate!
+-- So, in order for this to qualify as a legal 'AffineTraversal' you can only use it for actions that preserve the result of the predicate!
 --
 -- >>> [1..10]^..folded.filtered even
 -- [2,4,6,8,10]
 --
 -- This will preserve an index if it is present.
-filtered :: (Choice p, Applicative f) => (a -> Bool) -> Overloaded' p f a a
-filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . right'
+filtered :: (Choice p, Pointed f, Functor f) => (a -> Bool) -> Overloaded' p f a a
+filtered p = dimap (\x -> if p x then Right x else Left x) (either point id) . right'
 {-# INLINE filtered #-}
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.
