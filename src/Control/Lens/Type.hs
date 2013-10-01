@@ -409,7 +409,7 @@ type As a = Equality' a a
 --
 -- Unlike a 'Lens' a 'Getter' is read-only. Since a 'Getter'
 -- cannot be used to write back there are no 'Lens' laws that can be applied to
--- it. In fact, it is isomorphic to an arbitrary function from @(a -> s)@.
+-- it. In fact, it is isomorphic to an arbitrary function from @(s -> a)@.
 --
 -- Moreover, a 'Getter' can be used directly as a 'Control.Lens.Fold.Fold',
 -- since it just ignores the 'Applicative'.

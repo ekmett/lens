@@ -46,10 +46,10 @@ import Data.Functor.Contravariant
 import Data.Int
 import Data.Profunctor
 import Data.Profunctor.Rep
-import Data.Profunctor.Unsafe
 import Data.Traversable
 import Prelude hiding ((.),id)
 #ifndef SAFE
+import Data.Profunctor.Unsafe
 import Unsafe.Coerce
 #endif
 
@@ -146,10 +146,12 @@ instance Profunctor (Indexed i) where
   {-# INLINE lmap #-}
   rmap bc iab = Indexed $ \i -> bc . runIndexed iab i
   {-# INLINE rmap #-}
+#ifndef SAFE
   ( .# ) ibc _ = unsafeCoerce ibc
   {-# INLINE ( .# ) #-}
   ( #. ) _ = unsafeCoerce
   {-# INLINE ( #. ) #-}
+#endif
 
 instance Corepresentable (Indexed i) where
   type Corep (Indexed i) = (,) i
