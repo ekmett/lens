@@ -28,21 +28,33 @@ module Control.Lens.Type
   -- * Lenses, Folds and Traversals
   , Lens, Lens'
   , Traversal, Traversal'
+  , AffineTraversal, AffineTraversal'
+  , RelevantTraversal, RelevantTraversal'
   , Setter, Setter'
   , Getter, Fold
+  , AffineFold, RelevantFold
   , Action, MonadicFold
+  , AffineMonadicFold, RelevantMonadicFold
   -- * Indexed
   , IndexedLens, IndexedLens'
   , IndexedTraversal, IndexedTraversal'
+  , IndexedAffineTraversal, IndexedAffineTraversal'
+  , IndexedRelevantTraversal, IndexedRelevantTraversal'
   , IndexedSetter, IndexedSetter'
   , IndexedGetter, IndexedFold
+  , IndexedAffineFold, IndexedRelevantFold
   , IndexedAction, IndexedMonadicFold
+  , IndexedAffineMonadicFold, IndexedRelevantMonadicFold
   -- * Index-Preserving
   , IndexPreservingLens, IndexPreservingLens'
   , IndexPreservingTraversal, IndexPreservingTraversal'
+  , IndexPreservingAffineTraversal, IndexPreservingAffineTraversal'
+  , IndexPreservingRelevantTraversal, IndexPreservingRelevantTraversal'
   , IndexPreservingSetter, IndexPreservingSetter'
   , IndexPreservingGetter, IndexPreservingFold
+  , IndexPreservingAffineFold, IndexPreservingRelevantFold
   , IndexPreservingAction, IndexPreservingMonadicFold
+  , IndexPreservingAffineMonadicFold, IndexPreservingRelevantMonadicFold
   -- * Common
   , Simple
   , LensLike, LensLike'
@@ -57,6 +69,8 @@ import Control.Lens.Internal.Action
 import Control.Lens.Internal.Setter
 import Control.Lens.Internal.Indexed
 import Data.Functor.Contravariant
+import Data.Functor.Apply
+import Data.Pointed
 import Data.Profunctor
 
 -- $setup
@@ -183,6 +197,12 @@ type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
 -- @
 type Traversal' s a = Traversal s s a a
 
+type AffineTraversal s t a b = forall f. (Pointed f, Functor f) => (a -> f b) -> s -> f t
+type AffineTraversal' s a = AffineTraversal s s a a
+
+type RelevantTraversal s t a b = forall f. Apply f => (a -> f b) -> s -> f t
+type RelevantTraversal' s a = RelevantTraversal s s a a
+
 -- | Every 'IndexedTraversal' is a valid 'Control.Lens.Traversal.Traversal' or
 -- 'Control.Lens.Fold.IndexedFold'.
 --
@@ -197,6 +217,12 @@ type IndexedTraversal i s t a b = forall p f. (Indexable i p, Applicative f) => 
 -- @
 type IndexedTraversal' i s a = IndexedTraversal i s s a a
 
+type IndexedAffineTraversal i s t a b = forall p f. (Indexable i p, Pointed f, Functor f) => p a (f b) -> s -> f t
+type IndexedAffineTraversal' i s a = IndexedAffineTraversal i s s a a
+
+type IndexedRelevantTraversal i s t a b = forall p f. (Indexable i p, Apply f) => p a (f b) -> s -> f t
+type IndexedRelevantTraversal' i s a = IndexedRelevantTraversal i s s a a
+
 -- | An 'IndexPreservingLens' leaves any index it is composed with alone.
 type IndexPreservingTraversal s t a b = forall p f. (Conjoined p, Applicative f) => p a (f b) -> p s (f t)
 
@@ -204,6 +230,12 @@ type IndexPreservingTraversal s t a b = forall p f. (Conjoined p, Applicative f)
 -- type 'IndexPreservingTraversal'' = 'Simple' 'IndexPreservingTraversal'
 -- @
 type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
+
+type IndexPreservingAffineTraversal s t a b = forall p f. (Conjoined p, Pointed f, Functor f) => p a (f b) -> p s (f t)
+type IndexPreservingAffineTraversal' s a = IndexPreservingAffineTraversal s s a a
+
+type IndexPreservingRelevantTraversal s t a b = forall p f. (Conjoined p, Apply f) => p a (f b) -> p s (f t)
+type IndexPreservingRelevantTraversal' s a = IndexPreservingRelevantTraversal s s a a
 
 ------------------------------------------------------------------------------
 -- Setters
@@ -448,6 +480,14 @@ type IndexedFold i s a = forall p f.  (Indexable i p, Contravariant f, Applicati
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
 type IndexPreservingFold s a = forall p f. (Conjoined p, Contravariant f, Applicative f) => p a (f a) -> p s (f s)
 
+type AffineFold s a = forall f. (Contravariant f, Pointed f, Functor f) => (a -> f a) -> s -> f s
+type IndexedAffineFold i s a = forall p f.  (Indexable i p, Contravariant f, Pointed f, Functor f) => p a (f a) -> s -> f s
+type IndexPreservingAffineFold s a = forall p f. (Conjoined p, Contravariant f, Pointed f, Functor f) => p a (f a) -> p s (f s)
+
+type RelevantFold s a = forall f. (Contravariant f, Apply f) => (a -> f a) -> s -> f s
+type IndexedRelevantFold i s a = forall p f.  (Indexable i p, Contravariant f, Apply f) => p a (f a) -> s -> f s
+type IndexPreservingRelevantFold s a = forall p f. (Conjoined p, Contravariant f, Apply f) => p a (f a) -> p s (f s)
+
 -------------------------------------------------------------------------------
 -- Actions
 -------------------------------------------------------------------------------
@@ -480,6 +520,8 @@ type IndexPreservingAction m s a = forall p f r. (Conjoined p, Effective m r f) 
 --
 -- You can compose a 'MonadicFold' with another 'MonadicFold' using ('Prelude..') from the @Prelude@.
 type MonadicFold m s a = forall f r. (Effective m r f, Applicative f) => (a -> f a) -> s -> f s
+type AffineMonadicFold m s a = forall f r. (Effective m r f, Pointed f, Functor f) => (a -> f a) -> s -> f s
+type RelevantMonadicFold m s a = forall f r. (Effective m r f, Apply f) => (a -> f a) -> s -> f s
 
 -- | An 'IndexedMonadicFold' is an 'IndexedFold' enriched with access to a 'Monad' for side-effects.
 --
@@ -487,10 +529,14 @@ type MonadicFold m s a = forall f r. (Effective m r f, Applicative f) => (a -> f
 --
 -- You can compose an 'IndexedMonadicFold' with another 'IndexedMonadicFold' using ('Prelude..') from the @Prelude@.
 type IndexedMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f, Applicative f) => p a (f a) -> s -> f s
+type IndexedAffineMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f, Pointed f, Functor f) => p a (f a) -> s -> f s
+type IndexedRelevantMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f, Apply f) => p a (f a) -> s -> f s
 
 -- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
 type IndexPreservingMonadicFold m s a = forall p f r. (Conjoined p, Effective m r f, Applicative f) => p a (f a) -> p s (f s)
+type IndexPreservingAffineMonadicFold m s a = forall p f r. (Conjoined p, Effective m r f, Pointed f, Functor f) => p a (f a) -> p s (f s)
+type IndexPreservingRelevantMonadicFold m s a = forall p f r. (Conjoined p, Effective m r f, Apply f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- Simple Overloading
