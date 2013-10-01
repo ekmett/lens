@@ -86,6 +86,7 @@ import           Data.HashSet as HashSet
 import           Data.HashMap.Lazy as HashMap
 import           Data.Map as Map
 import           Data.Monoid
+import qualified Data.Semigroup as S
 import           Data.Sequence as Seq hiding (length)
 import           Data.Set as Set
 import           Data.Tagged
@@ -276,6 +277,32 @@ instance (Ord a, Ord b) => Wrapped [a] [b] (Set a) (Set b) where
 
 instance Wrapped [a] [b] (Seq a) (Seq b) where
   wrapped = iso Seq.fromList Foldable.toList
+  {-# INLINE wrapped #-}
+
+-- * semigroups
+
+instance Wrapped a b (S.Min a) (S.Min b) where
+  wrapped = iso S.Min S.getMin
+  {-# INLINE wrapped #-}
+
+instance Wrapped a b (S.Max a) (S.Max b) where
+  wrapped = iso S.Max S.getMax
+  {-# INLINE wrapped #-}
+
+instance Wrapped a b (S.First a) (S.First b) where
+  wrapped = iso S.First S.getFirst
+  {-# INLINE wrapped #-}
+
+instance Wrapped a b (S.Last a) (S.Last b) where
+  wrapped = iso S.Last S.getLast
+  {-# INLINE wrapped #-}
+
+instance Wrapped a b (S.WrappedMonoid a) (S.WrappedMonoid b) where
+  wrapped = iso S.WrapMonoid S.unwrapMonoid
+  {-# INLINE wrapped #-}
+
+instance Wrapped (Maybe a) (Maybe b) (S.Option a) (S.Option b) where
+  wrapped = iso S.Option S.getOption
   {-# INLINE wrapped #-}
 
 -- * contravariant
