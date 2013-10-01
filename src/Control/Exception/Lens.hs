@@ -266,10 +266,10 @@ tryJust p a = do
 -- @
 --
 -- @
--- 'throwing' :: 'Prism'' 'SomeException' t -> t -> a
--- 'throwing' :: 'Iso'' 'SomeException' t   -> t -> a
+-- 'throwing' :: 'Prism'' 'SomeException' t -> t -> r
+-- 'throwing' :: 'Iso'' 'SomeException' t   -> t -> r
 -- @
-throwing :: AReview s SomeException a b -> b -> a
+throwing :: AReview s SomeException a b -> b -> r
 throwing l = reviews l Exception.throw
 {-# INLINE throwing #-}
 
@@ -297,10 +297,10 @@ throwing l = reviews l Exception.throw
 -- @
 --
 -- @
--- 'throwingM' :: 'MonadCatchIO' m => 'Prism'' 'SomeException' t -> t -> m a
--- 'throwingM' :: 'MonadCatchIO' m => 'Iso'' 'SomeException' t   -> t -> m a
+-- 'throwingM' :: 'MonadIO' m => 'Prism'' 'SomeException' t -> t -> m r
+-- 'throwingM' :: 'MonadIO' m => 'Iso'' 'SomeException' t   -> t -> m r
 -- @
-throwingM :: MonadCatchIO m => AReview s SomeException a b -> b -> m a
+throwingM :: MonadIO m => AReview s SomeException a b -> b -> m r
 throwingM l = reviews l (liftIO . throwIO)
 {-# INLINE throwingM #-}
 
