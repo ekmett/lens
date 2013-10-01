@@ -276,8 +276,8 @@ throwing l = reviews l Exception.throw
 -- @
 --
 -- @
--- 'throwingM' :: 'MonadCatchIO' m => 'Prism'' 'SomeException' t -> t -> m r
--- 'throwingM' :: 'MonadCatchIO' m => 'Iso'' 'SomeException' t   -> t -> m r
+-- 'throwingM' :: 'MonadCatch' m => 'Prism'' 'SomeException' t -> t -> m r
+-- 'throwingM' :: 'MonadCatch' m => 'Iso'' 'SomeException' t   -> t -> m r
 -- @
 throwingM :: MonadCatch m => AReview s SomeException a b -> b -> m r
 throwingM l = reviews l throwM

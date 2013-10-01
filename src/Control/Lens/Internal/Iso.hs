@@ -18,8 +18,8 @@ module Control.Lens.Internal.Iso
   ) where
 
 import Data.Profunctor
-import Data.Profunctor.Unsafe
 #ifndef SAFE
+import Data.Profunctor.Unsafe
 import Unsafe.Coerce
 #endif
 import Data.ByteString       as StrictB
@@ -51,10 +51,12 @@ instance Profunctor (Exchange a b) where
   {-# INLINE lmap #-}
   rmap f (Exchange sa bt) = Exchange sa (f . bt)
   {-# INLINE rmap #-}
+#ifndef SAFE
   ( #. ) _ = unsafeCoerce
   {-# INLINE ( #. ) #-}
   ( .# ) p _ = unsafeCoerce p
   {-# INLINE ( .# ) #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- Reversible
