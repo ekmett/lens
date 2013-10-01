@@ -105,7 +105,6 @@ import Control.Exception as Exception hiding (try, tryJust, catchJust)
 import Control.Lens
 import Control.Lens.Internal.Exception
 import Data.Monoid
-import Data.Pointed
 import GHC.Conc (ThreadId)
 import Prelude
   ( asTypeOf, const, either, flip, id, maybe, undefined
@@ -358,7 +357,7 @@ instance AsIOException p f IOException where
   _IOException = id
   {-# INLINE _IOException #-}
 
-instance (Choice p, Pointed f, Functor f) => AsIOException p f SomeException where
+instance (Choice p, Applicative f) => AsIOException p f SomeException where
   _IOException = exception
   {-# INLINE _IOException #-}
 
@@ -376,7 +375,7 @@ instance AsArithException p f ArithException where
   _ArithException = id
   {-# INLINE _ArithException #-}
 
-instance (Choice p, Pointed f, Functor f) => AsArithException p f SomeException where
+instance (Choice p, Applicative f) => AsArithException p f SomeException where
   _ArithException = exception
   {-# INLINE _ArithException #-}
 
@@ -390,10 +389,10 @@ instance (Choice p, Pointed f, Functor f) => AsArithException p f SomeException 
 -- '_Overflow' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Overflow' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Overflow :: (AsArithException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t ()
+_Overflow :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
 _Overflow = _ArithException . dimap seta (either id id) . right' . rmap (Overflow <$) where
   seta Overflow = Right ()
-  seta t        = Left  (point t)
+  seta t        = Left  (pure t)
 {-# INLINE _Overflow #-}
 
 -- | Handle arithmetic '_Underflow'.
@@ -406,10 +405,10 @@ _Overflow = _ArithException . dimap seta (either id id) . right' . rmap (Overflo
 -- '_Underflow' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Underflow' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Underflow :: (AsArithException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t ()
+_Underflow :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
 _Underflow = _ArithException . dimap seta (either id id) . right' . rmap (Underflow <$) where
   seta Underflow = Right ()
-  seta t        = Left  (point t)
+  seta t        = Left  (pure t)
 {-# INLINE _Underflow #-}
 
 -- | Handle arithmetic loss of precision.
@@ -422,10 +421,10 @@ _Underflow = _ArithException . dimap seta (either id id) . right' . rmap (Underf
 -- '_LossOfPrecision' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_LossOfPrecision' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_LossOfPrecision :: (AsArithException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t ()
+_LossOfPrecision :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
 _LossOfPrecision = _ArithException . dimap seta (either id id) . right' . rmap (LossOfPrecision <$) where
   seta LossOfPrecision = Right ()
-  seta t        = Left  (point t)
+  seta t        = Left  (pure t)
 {-# INLINE _LossOfPrecision #-}
 
 -- | Handle division by zero.
@@ -438,13 +437,13 @@ _LossOfPrecision = _ArithException . dimap seta (either id id) . right' . rmap (
 -- '_DivideByZero' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_DivideByZero' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_DivideByZero :: (AsArithException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t ()
+_DivideByZero :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
 _DivideByZero = _ArithException . dimap seta (either id id) . right' . rmap (DivideByZero <$) where
   seta DivideByZero = Right ()
-  seta t        = Left  (point t)
+  seta t        = Left  (pure t)
 {-# INLINE _DivideByZero #-}
 
--- | Handle exceptional _Denormalized floating point.
+-- | Handle exceptional _Denormalized floating pure.
 --
 -- @
 -- '_Denormal' ≡ '_ArithException' '.' '_Denormal'
@@ -454,10 +453,10 @@ _DivideByZero = _ArithException . dimap seta (either id id) . right' . rmap (Div
 -- '_Denormal' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Denormal' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Denormal :: (AsArithException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t ()
+_Denormal :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
 _Denormal = _ArithException . dimap seta (either id id) . right' . rmap (Denormal <$) where
   seta Denormal = Right ()
-  seta t        = Left  (point t)
+  seta t        = Left  (pure t)
 {-# INLINE _Denormal #-}
 
 #if MIN_VERSION_base(4,6,0)
@@ -473,10 +472,10 @@ _Denormal = _ArithException . dimap seta (either id id) . right' . rmap (Denorma
 -- '_RatioZeroDenominator' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_RatioZeroDenominator' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_RatioZeroDenominator :: (AsArithException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t ()
+_RatioZeroDenominator :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
 _RatioZeroDenominator = _ArithException . dimap seta (either id id) . right' . rmap (RatioZeroDenominator <$) where
   seta RatioZeroDenominator = Right ()
-  seta t        = Left  (point t)
+  seta t        = Left  (pure t)
 {-# INLINE _RatioZeroDenominator #-}
 
 #endif
@@ -499,7 +498,7 @@ instance AsArrayException p f ArrayException where
   _ArrayException = id
   {-# INLINE _ArrayException #-}
 
-instance (Choice p, Pointed f, Functor f) => AsArrayException p f SomeException where
+instance (Choice p, Applicative f) => AsArrayException p f SomeException where
   _ArrayException = exception
   {-# INLINE _ArrayException #-}
 
@@ -513,10 +512,10 @@ instance (Choice p, Pointed f, Functor f) => AsArrayException p f SomeException 
 -- '_IndexOutOfBounds' :: 'Prism'' 'ArrayException' 'String'
 -- '_IndexOutOfBounds' :: 'Prism'' 'SomeException'  'String'
 -- @
-_IndexOutOfBounds :: (AsArrayException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t String
+_IndexOutOfBounds :: (AsArrayException p f t, Choice p, Applicative f) => Overloaded' p f t String
 _IndexOutOfBounds = _ArrayException . dimap seta (either id id) . right' . rmap (fmap IndexOutOfBounds) where
   seta (IndexOutOfBounds r) = Right r
-  seta t                    = Left  (point t)
+  seta t                    = Left  (pure t)
 {-# INLINE _IndexOutOfBounds #-}
 
 -- | An attempt was made to evaluate an element of an array that had not been initialized.
@@ -529,10 +528,10 @@ _IndexOutOfBounds = _ArrayException . dimap seta (either id id) . right' . rmap 
 -- '_UndefinedElement' :: 'Prism'' 'ArrayException' 'String'
 -- '_UndefinedElement' :: 'Prism'' 'SomeException'  'String'
 -- @
-_UndefinedElement :: (AsArrayException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t String
+_UndefinedElement :: (AsArrayException p f t, Choice p, Applicative f) => Overloaded' p f t String
 _UndefinedElement = _ArrayException . dimap seta (either id id) . right' . rmap (fmap UndefinedElement) where
   seta (UndefinedElement r) = Right r
-  seta t                    = Left  (point t)
+  seta t                    = Left  (pure t)
 {-# INLINE _UndefinedElement #-}
 
 ----------------------------------------------------------------------------
@@ -556,7 +555,7 @@ instance (Profunctor p, Functor f) => AsAssertionFailed p f AssertionFailed wher
   _AssertionFailed = unwrapping AssertionFailed
   {-# INLINE _AssertionFailed #-}
 
-instance (Choice p, Pointed f, Functor f) => AsAssertionFailed p f SomeException where
+instance (Choice p, Applicative f) => AsAssertionFailed p f SomeException where
   _AssertionFailed = exception.unwrapping AssertionFailed
   {-# INLINE _AssertionFailed #-}
 
@@ -578,7 +577,7 @@ instance AsAsyncException p f AsyncException where
   _AsyncException = id
   {-# INLINE _AsyncException #-}
 
-instance (Choice p, Pointed f, Functor f) => AsAsyncException p f SomeException where
+instance (Choice p, Applicative f) => AsAsyncException p f SomeException where
   _AsyncException = exception
   {-# INLINE _AsyncException #-}
 
@@ -590,10 +589,10 @@ instance (Choice p, Pointed f, Functor f) => AsAsyncException p f SomeException 
 -- '_StackOverflow' :: 'Prism'' 'AsyncException' ()
 -- '_StackOverflow' :: 'Prism'' 'SomeException'  ()
 -- @
-_StackOverflow :: (AsAsyncException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t ()
+_StackOverflow :: (AsAsyncException p f t, Choice p, Applicative f) => Overloaded' p f t ()
 _StackOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (StackOverflow <$) where
   seta StackOverflow = Right ()
-  seta t             = Left  (point t)
+  seta t             = Left  (pure t)
 {-# INLINE _StackOverflow #-}
 
 -- | The program's heap is reaching its limit, and the program should take action
@@ -609,10 +608,10 @@ _StackOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (St
 -- '_HeapOverflow' :: 'Prism'' 'AsyncException' ()
 -- '_HeapOverflow' :: 'Prism'' 'SomeException'  ()
 -- @
-_HeapOverflow :: (AsAsyncException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t ()
+_HeapOverflow :: (AsAsyncException p f t, Choice p, Applicative f) => Overloaded' p f t ()
 _HeapOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (HeapOverflow <$) where
   seta HeapOverflow = Right ()
-  seta t             = Left  (point t)
+  seta t             = Left  (pure t)
 {-# INLINE _HeapOverflow #-}
 
 -- | This 'Exception' is raised by another thread calling
@@ -623,10 +622,10 @@ _HeapOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (Hea
 -- '_ThreadKilled' :: 'Prism'' 'AsyncException' ()
 -- '_ThreadKilled' :: 'Prism'' 'SomeException'  ()
 -- @
-_ThreadKilled :: (AsAsyncException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t ()
+_ThreadKilled :: (AsAsyncException p f t, Choice p, Applicative f) => Overloaded' p f t ()
 _ThreadKilled = _AsyncException . dimap seta (either id id) . right' . rmap (ThreadKilled <$) where
   seta ThreadKilled = Right ()
-  seta t             = Left  (point t)
+  seta t             = Left  (pure t)
 {-# INLINE _ThreadKilled #-}
 
 -- | This 'Exception' is raised by default in the main thread of the program when
@@ -637,10 +636,10 @@ _ThreadKilled = _AsyncException . dimap seta (either id id) . right' . rmap (Thr
 -- '_UserInterrupt' :: 'Prism'' 'AsyncException' ()
 -- '_UserInterrupt' :: 'Prism'' 'SomeException'  ()
 -- @
-_UserInterrupt :: (AsAsyncException p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t ()
+_UserInterrupt :: (AsAsyncException p f t, Choice p, Applicative f) => Overloaded' p f t ()
 _UserInterrupt = _AsyncException . dimap seta (either id id) . right' . rmap (UserInterrupt <$) where
   seta UserInterrupt = Right ()
-  seta t             = Left  (point t)
+  seta t             = Left  (pure t)
 {-# INLINE _UserInterrupt #-}
 
 ----------------------------------------------------------------------------
@@ -663,7 +662,7 @@ instance (Profunctor p, Functor f) => AsNonTermination p f NonTermination where
   _NonTermination = trivial NonTermination
   {-# INLINE _NonTermination #-}
 
-instance (Choice p, Pointed f, Functor f) => AsNonTermination p f SomeException where
+instance (Choice p, Applicative f) => AsNonTermination p f SomeException where
   _NonTermination = exception.trivial NonTermination
   {-# INLINE _NonTermination #-}
 
@@ -686,7 +685,7 @@ instance (Profunctor p, Functor f) => AsNestedAtomically p f NestedAtomically wh
   _NestedAtomically = trivial NestedAtomically
   {-# INLINE _NestedAtomically #-}
 
-instance (Choice p, Pointed f, Functor f) => AsNestedAtomically p f SomeException where
+instance (Choice p, Applicative f) => AsNestedAtomically p f SomeException where
   _NestedAtomically = exception.trivial NestedAtomically
   {-# INLINE _NestedAtomically #-}
 
@@ -710,7 +709,7 @@ instance (Profunctor p, Functor f) => AsBlockedIndefinitelyOnMVar p f BlockedInd
   _BlockedIndefinitelyOnMVar = trivial BlockedIndefinitelyOnMVar
   {-# INLINE _BlockedIndefinitelyOnMVar #-}
 
-instance (Choice p, Pointed f, Functor f) => AsBlockedIndefinitelyOnMVar p f SomeException where
+instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnMVar p f SomeException where
   _BlockedIndefinitelyOnMVar = exception.trivial BlockedIndefinitelyOnMVar
   {-# INLINE _BlockedIndefinitelyOnMVar #-}
 
@@ -734,7 +733,7 @@ instance (Profunctor p, Functor f) => AsBlockedIndefinitelyOnSTM p f BlockedInde
   _BlockedIndefinitelyOnSTM = trivial BlockedIndefinitelyOnSTM
   {-# INLINE _BlockedIndefinitelyOnSTM #-}
 
-instance (Choice p, Pointed f, Functor f) => AsBlockedIndefinitelyOnSTM p f SomeException where
+instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnSTM p f SomeException where
   _BlockedIndefinitelyOnSTM = exception.trivial BlockedIndefinitelyOnSTM
   {-# INLINE _BlockedIndefinitelyOnSTM #-}
 
@@ -757,7 +756,7 @@ instance (Profunctor p, Functor f) => AsDeadlock p f Deadlock where
   _Deadlock = trivial Deadlock
   {-# INLINE _Deadlock #-}
 
-instance (Choice p, Pointed f, Functor f) => AsDeadlock p f SomeException where
+instance (Choice p, Applicative f) => AsDeadlock p f SomeException where
   _Deadlock = exception.trivial Deadlock
   {-# INLINE _Deadlock #-}
 
@@ -780,7 +779,7 @@ instance (Profunctor p, Functor f) => AsNoMethodError p f NoMethodError where
   _NoMethodError = unwrapping NoMethodError
   {-# INLINE _NoMethodError #-}
 
-instance (Choice p, Pointed f, Functor f) => AsNoMethodError p f SomeException where
+instance (Choice p, Applicative f) => AsNoMethodError p f SomeException where
   _NoMethodError = exception.unwrapping NoMethodError
   {-# INLINE _NoMethodError #-}
 
@@ -802,7 +801,7 @@ instance (Profunctor p, Functor f) => AsPatternMatchFail p f PatternMatchFail wh
   _PatternMatchFail = unwrapping PatternMatchFail
   {-# INLINE _PatternMatchFail #-}
 
-instance (Choice p, Pointed f, Functor f) => AsPatternMatchFail p f SomeException where
+instance (Choice p, Applicative f) => AsPatternMatchFail p f SomeException where
   _PatternMatchFail = exception.unwrapping PatternMatchFail
   {-# INLINE _PatternMatchFail #-}
 
@@ -825,7 +824,7 @@ instance (Profunctor p, Functor f) => AsRecConError p f RecConError where
   _RecConError = unwrapping RecConError
   {-# INLINE _RecConError #-}
 
-instance (Choice p, Pointed f, Functor f) => AsRecConError p f SomeException where
+instance (Choice p, Applicative f) => AsRecConError p f SomeException where
   _RecConError = exception.unwrapping RecConError
   {-# INLINE _RecConError #-}
 
@@ -844,7 +843,7 @@ instance (Profunctor p, Functor f) => AsRecSelError p f RecSelError where
   _RecSelError = unwrapping RecSelError
   {-# INLINE _RecSelError #-}
 
-instance (Choice p, Pointed f, Functor f) => AsRecSelError p f SomeException where
+instance (Choice p, Applicative f) => AsRecSelError p f SomeException where
   _RecSelError = exception.unwrapping RecSelError
   {-# INLINE _RecSelError #-}
 
@@ -863,7 +862,7 @@ instance (Profunctor p, Functor f) => AsRecUpdError p f RecUpdError where
   _RecUpdError = unwrapping RecUpdError
   {-# INLINE _RecUpdError #-}
 
-instance (Choice p, Pointed f, Functor f) => AsRecUpdError p f SomeException where
+instance (Choice p, Applicative f) => AsRecUpdError p f SomeException where
   _RecUpdError = exception.unwrapping RecUpdError
   {-# INLINE _RecUpdError #-}
 
@@ -885,7 +884,7 @@ instance (Profunctor p, Functor f) => AsErrorCall p f ErrorCall where
   _ErrorCall = unwrapping ErrorCall
   {-# INLINE _ErrorCall #-}
 
-instance (Choice p, Pointed f, Functor f) => AsErrorCall p f SomeException where
+instance (Choice p, Applicative f) => AsErrorCall p f SomeException where
   _ErrorCall = exception.unwrapping ErrorCall
   {-# INLINE _ErrorCall #-}
 
@@ -908,7 +907,7 @@ instance (Profunctor p, Functor f) => AsHandlingException p f HandlingException 
   _HandlingException = trivial HandlingException
   {-# INLINE _HandlingException #-}
 
-instance (Choice p, Pointed f, Functor f) => AsHandlingException p f SomeException where
+instance (Choice p, Applicative f) => AsHandlingException p f SomeException where
   _HandlingException = exception.trivial HandlingException
   {-# INLINE _HandlingException #-}
 

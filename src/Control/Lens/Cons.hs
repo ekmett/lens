@@ -43,7 +43,6 @@ import qualified Data.ByteString      as StrictB
 import qualified Data.ByteString.Lazy as LazyB
 import           Data.Functor.Identity
 import           Data.Monoid
-import           Data.Pointed
 import           Data.Profunctor
 import qualified Data.Sequence as Seq
 import           Data.Sequence hiding ((<|), (|>))
@@ -95,56 +94,56 @@ class (Profunctor p, Functor f) => Cons p f s t a b | s -> a, t -> b, s b -> t, 
   -- or which only permit 'cons', or where '_head' and '_tail' are lenses and not traversals.
   _Cons :: Overloaded p f s t (a,s) (b,t)
 
-instance (Choice p, Pointed f, Functor f) => Cons p f [a] [b] a b where
+instance (Choice p, Applicative f) => Cons p f [a] [b] a b where
   _Cons = prism (uncurry (:)) $ \ aas -> case aas of
     (a:as) -> Right (a, as)
     []     -> Left  []
   {-# INLINE _Cons #-}
 
-instance (Choice p, Pointed f, Functor f) => Cons p f (Seq a) (Seq b) a b where
+instance (Choice p, Applicative f) => Cons p f (Seq a) (Seq b) a b where
   _Cons = prism (uncurry (Seq.<|)) $ \aas -> case viewl aas of
     a :< as -> Right (a, as)
     EmptyL  -> Left mempty
   {-# INLINE _Cons #-}
 
-instance (Choice p, Pointed f, Functor f) => Cons p f StrictB.ByteString StrictB.ByteString Word8 Word8 where
+instance (Choice p, Applicative f) => Cons p f StrictB.ByteString StrictB.ByteString Word8 Word8 where
   _Cons = prism' (uncurry StrictB.cons) StrictB.uncons
   {-# INLINE _Cons #-}
 
-instance (Choice p, Pointed f, Functor f) => Cons p f LazyB.ByteString LazyB.ByteString Word8 Word8 where
+instance (Choice p, Applicative f) => Cons p f LazyB.ByteString LazyB.ByteString Word8 Word8 where
   _Cons = prism' (uncurry LazyB.cons) LazyB.uncons
   {-# INLINE _Cons #-}
 
-instance (Choice p, Pointed f, Functor f) => Cons p f StrictT.Text StrictT.Text Char Char where
+instance (Choice p, Applicative f) => Cons p f StrictT.Text StrictT.Text Char Char where
   _Cons = prism' (uncurry StrictT.cons) StrictT.uncons
   {-# INLINE _Cons #-}
 
-instance (Choice p, Pointed f, Functor f) => Cons p f LazyT.Text LazyT.Text Char Char where
+instance (Choice p, Applicative f) => Cons p f LazyT.Text LazyT.Text Char Char where
   _Cons = prism' (uncurry LazyT.cons) LazyT.uncons
   {-# INLINE _Cons #-}
 
-instance (Choice p, Pointed f, Functor f) => Cons p f (Vector a) (Vector b) a b where
+instance (Choice p, Applicative f) => Cons p f (Vector a) (Vector b) a b where
   _Cons = prism (uncurry Vector.cons) $ \v ->
     if Vector.null v
     then Left Vector.empty
     else Right (Vector.unsafeHead v, Vector.unsafeTail v)
   {-# INLINE _Cons #-}
 
-instance (Choice p, Pointed f, Functor f, Prim a, Prim b) => Cons p f (Prim.Vector a) (Prim.Vector b) a b where
+instance (Choice p, Applicative f, Prim a, Prim b) => Cons p f (Prim.Vector a) (Prim.Vector b) a b where
   _Cons = prism (uncurry Prim.cons) $ \v ->
     if Prim.null v
     then Left Prim.empty
     else Right (Prim.unsafeHead v, Prim.unsafeTail v)
   {-# INLINE _Cons #-}
 
-instance (Choice p, Pointed f, Functor f, Storable a, Storable b) => Cons p f (Storable.Vector a) (Storable.Vector b) a b where
+instance (Choice p, Applicative f, Storable a, Storable b) => Cons p f (Storable.Vector a) (Storable.Vector b) a b where
   _Cons = prism (uncurry Storable.cons) $ \v ->
     if Storable.null v
     then Left Storable.empty
     else Right (Storable.unsafeHead v, Storable.unsafeTail v)
   {-# INLINE _Cons #-}
 
-instance (Choice p, Pointed f, Functor f, Unbox a, Unbox b) => Cons p f (Unbox.Vector a) (Unbox.Vector b) a b where
+instance (Choice p, Applicative f, Unbox a, Unbox b) => Cons p f (Unbox.Vector a) (Unbox.Vector b) a b where
   _Cons = prism (uncurry Unbox.cons) $ \v ->
     if Unbox.null v
     then Left Unbox.empty
@@ -323,61 +322,61 @@ class (Profunctor p, Functor f) => Snoc p f s t a b | s -> a, t -> b, s b -> t, 
   -- or which only permit 'snoc' or where '_init' and '_last' are lenses and not traversals.
   _Snoc :: Overloaded p f s t (s,a) (t,b)
 
-instance (Choice p, Pointed f, Functor f) => Snoc p f [a] [b] a b where
+instance (Choice p, Applicative f) => Snoc p f [a] [b] a b where
   _Snoc = prism (\(as,a) -> as Prelude.++ [a]) $ \aas -> if Prelude.null aas
     then Left []
     else Right (Prelude.init aas, Prelude.last aas)
   {-# INLINE _Snoc #-}
 
-instance (Choice p, Pointed f, Functor f) => Snoc p f (Seq a) (Seq b) a b where
+instance (Choice p, Applicative f) => Snoc p f (Seq a) (Seq b) a b where
   _Snoc = prism (uncurry (Seq.|>)) $ \aas -> case viewr aas of
     as :> a -> Right (as, a)
     EmptyR  -> Left mempty
   {-# INLINE _Snoc #-}
 
-instance (Choice p, Pointed f, Functor f) => Snoc p f (Vector a) (Vector b) a b where
+instance (Choice p, Applicative f) => Snoc p f (Vector a) (Vector b) a b where
   _Snoc = prism (uncurry Vector.snoc) $ \v -> if Vector.null v
     then Left Vector.empty
     else Right (Vector.unsafeInit v, Vector.unsafeLast v)
   {-# INLINE _Snoc #-}
 
-instance (Choice p, Pointed f, Functor f, Prim a, Prim b) => Snoc p f (Prim.Vector a) (Prim.Vector b) a b where
+instance (Choice p, Applicative f, Prim a, Prim b) => Snoc p f (Prim.Vector a) (Prim.Vector b) a b where
   _Snoc = prism (uncurry Prim.snoc) $ \v -> if Prim.null v
     then Left Prim.empty
     else Right (Prim.unsafeInit v, Prim.unsafeLast v)
   {-# INLINE _Snoc #-}
 
-instance (Choice p, Pointed f, Functor f, Storable a, Storable b) => Snoc p f (Storable.Vector a) (Storable.Vector b) a b where
+instance (Choice p, Applicative f, Storable a, Storable b) => Snoc p f (Storable.Vector a) (Storable.Vector b) a b where
   _Snoc = prism (uncurry Storable.snoc) $ \v -> if Storable.null v
     then Left Storable.empty
     else Right (Storable.unsafeInit v, Storable.unsafeLast v)
   {-# INLINE _Snoc #-}
 
-instance (Choice p, Pointed f, Functor f, Unbox a, Unbox b) => Snoc p f (Unbox.Vector a) (Unbox.Vector b) a b where
+instance (Choice p, Applicative f, Unbox a, Unbox b) => Snoc p f (Unbox.Vector a) (Unbox.Vector b) a b where
   _Snoc = prism (uncurry Unbox.snoc) $ \v -> if Unbox.null v
     then Left Unbox.empty
     else Right (Unbox.unsafeInit v, Unbox.unsafeLast v)
   {-# INLINE _Snoc #-}
 
-instance (Choice p, Pointed f, Functor f) => Snoc p f StrictB.ByteString StrictB.ByteString Word8 Word8 where
+instance (Choice p, Applicative f) => Snoc p f StrictB.ByteString StrictB.ByteString Word8 Word8 where
   _Snoc = prism (uncurry StrictB.snoc) $ \v -> if StrictB.null v
     then Left StrictB.empty
     else Right (StrictB.init v, StrictB.last v)
   {-# INLINE _Snoc #-}
 
-instance (Choice p, Pointed f, Functor f) => Snoc p f LazyB.ByteString LazyB.ByteString Word8 Word8 where
+instance (Choice p, Applicative f) => Snoc p f LazyB.ByteString LazyB.ByteString Word8 Word8 where
   _Snoc = prism (uncurry LazyB.snoc) $ \v -> if LazyB.null v
     then Left LazyB.empty
     else Right (LazyB.init v, LazyB.last v)
   {-# INLINE _Snoc #-}
 
-instance (Choice p, Pointed f, Functor f) => Snoc p f StrictT.Text StrictT.Text Char Char where
+instance (Choice p, Applicative f) => Snoc p f StrictT.Text StrictT.Text Char Char where
   _Snoc = prism (uncurry StrictT.snoc) $ \v -> if StrictT.null v
     then Left StrictT.empty
     else Right (StrictT.init v, StrictT.last v)
   {-# INLINE _Snoc #-}
 
-instance (Choice p, Pointed f, Functor f) => Snoc p f LazyT.Text LazyT.Text Char Char where
+instance (Choice p, Applicative f) => Snoc p f LazyT.Text LazyT.Text Char Char where
   _Snoc = prism (uncurry LazyT.snoc) $ \v -> if LazyT.null v
     then Left LazyT.empty
     else Right (LazyT.init v, LazyT.last v)

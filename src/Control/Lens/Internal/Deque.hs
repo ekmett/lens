@@ -38,7 +38,6 @@ import Data.Function
 import Data.Functor.Bind
 import Data.Functor.Plus
 import Data.Functor.Reverse
-import Data.Pointed
 import Data.Traversable as Traversable
 import Data.Semigroup
 import Data.Profunctor.Unsafe
@@ -187,7 +186,7 @@ check lf f lr r
   | otherwise = BD lf f lr r
 {-# INLINE check #-}
 
-instance (Choice p, Pointed f, Functor f) => Cons p f (Deque a) (Deque b) a b where
+instance (Choice p, Applicative f) => Cons p f (Deque a) (Deque b) a b where
   _Cons = prism (\(x,BD lf f lr r) -> check (lf + 1) (x : f) lr r) $ \ (BD lf f lr r) ->
     if lf + lr == 0
     then Left empty
@@ -196,7 +195,7 @@ instance (Choice p, Pointed f, Functor f) => Cons p f (Deque a) (Deque b) a b wh
       (x:xs) -> (x, check (lf - 1) xs lr r)
   {-# INLINE _Cons #-}
 
-instance (Choice p, Pointed f, Functor f) => Snoc p f (Deque a) (Deque b) a b where
+instance (Choice p, Applicative f) => Snoc p f (Deque a) (Deque b) a b where
   _Snoc = prism (\(BD lf f lr r,x) -> check lf f (lr + 1) (x : r)) $ \ (BD lf f lr r) ->
     if lf + lr == 0
     then Left empty
