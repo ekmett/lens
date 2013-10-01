@@ -1,3 +1,7 @@
+3.9.2
+-----
+* Generalized signatures for `throwing` and `throwingM`.
+
 3.9.1
 -----
 * 'condensingPolicy' was updated to work with 'split' 0.2.2
