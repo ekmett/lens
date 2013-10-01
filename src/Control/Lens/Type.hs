@@ -333,7 +333,7 @@ type Iso' s a = Iso s s a a
 -- Prism Internals
 ------------------------------------------------------------------------------
 
--- | A 'Prism' @l@ is a 0-or-1 target 'Traversal' that can also be turned
+-- | A 'Prism' @l@ is an 'AffineTraversal' that can also be turned
 -- around with 'Control.Lens.Review.re' to obtain a 'Getter' in the
 -- opposite direction.
 --
@@ -357,7 +357,7 @@ type Iso' s a = Iso s s a a
 --
 -- It may help to think of this as a 'Iso' that can be partial in one direction.
 --
--- Every 'Prism' is a valid 'Traversal'.
+-- Every 'Prism' is a valid 'AffineTraversal'.
 --
 -- Every 'Iso' is a valid 'Prism'.
 --
@@ -411,7 +411,7 @@ type Iso' s a = Iso s s a a
 -- -- a co-'Lens', so to speak. This is what permits the construction of 'Control.Lens.Prism.outside'.
 --
 -- Note: Composition with a 'Prism' is index-preserving.
-type Prism s t a b = forall p f. (Choice p, Applicative f) => p a (f b) -> p s (f t)
+type Prism s t a b = forall p f. (Choice p, Pointed f, Functor f) => p a (f b) -> p s (f t)
 
 -- | A 'Simple' 'Prism'.
 type Prism' s a = Prism s s a a

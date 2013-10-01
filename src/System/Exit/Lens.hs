@@ -21,6 +21,7 @@ import Control.Applicative
 import Control.Exception
 import Control.Exception.Lens
 import Control.Lens
+import Data.Pointed
 import System.Exit
 
 -- | Exit codes that a program can return with:
@@ -36,7 +37,7 @@ instance AsExitCode p f ExitCode where
   _ExitCode = id
   {-# INLINE _ExitCode #-}
 
-instance (Choice p, Applicative f) => AsExitCode p f SomeException where
+instance (Choice p, Pointed f, Functor f) => AsExitCode p f SomeException where
   _ExitCode = exception
   {-# INLINE _ExitCode #-}
 
@@ -46,10 +47,10 @@ instance (Choice p, Applicative f) => AsExitCode p f SomeException where
 -- '_ExitSuccess' :: 'Prism'' 'ExitCode'      ()
 -- '_ExitSuccess' :: 'Prism'' 'SomeException' ()
 -- @
-_ExitSuccess :: (AsExitCode p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_ExitSuccess :: (AsExitCode p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t ()
 _ExitSuccess = _ExitCode . dimap seta (either id id) . right' . rmap (ExitSuccess <$) where
   seta ExitSuccess = Right ()
-  seta t           = Left  (pure t)
+  seta t           = Left  (point t)
 {-# INLINE _ExitSuccess #-}
 
 -- | indicates program failure with an exit code. The exact interpretation of the code is operating-system dependent. In particular, some values may be prohibited (e.g. 0 on a POSIX-compliant system).
@@ -58,8 +59,8 @@ _ExitSuccess = _ExitCode . dimap seta (either id id) . right' . rmap (ExitSucces
 -- '_ExitFailure' :: 'Prism'' 'ExitCode'      'Int'
 -- '_ExitFailure' :: 'Prism'' 'SomeException' 'Int'
 -- @
-_ExitFailure :: (AsExitCode p f t, Choice p, Applicative f) => Overloaded' p f t Int
+_ExitFailure :: (AsExitCode p f t, Choice p, Pointed f, Functor f) => Overloaded' p f t Int
 _ExitFailure = _ExitCode . dimap seta (either id id) . right' . rmap (fmap ExitFailure) where
   seta (ExitFailure i) = Right i
-  seta t               = Left  (pure t)
+  seta t               = Left  (point t)
 {-# INLINE _ExitFailure #-}

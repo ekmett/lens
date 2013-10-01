@@ -48,7 +48,6 @@ import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Setter
 import Control.Lens.Type
-import Control.Lens.Traversal
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
 import Data.ByteString as StrictB
@@ -64,6 +63,7 @@ import Data.IntSet as IntSet
 import Data.List.NonEmpty as NonEmpty
 import Data.Map as Map
 import Data.Maybe
+import Data.Pointed
 import Data.Proxy
 import Data.Set as Set
 import Data.Sequence as Seq
@@ -346,13 +346,13 @@ instance Contains LazyB.ByteString where
 -- | This provides a common notion of a value at an index that is shared by both 'Ixed' and 'At'.
 type family IxValue (m :: *) :: *
 
--- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
+-- | This simple 'AffineTraversal' lets you 'traverse' the value at a given
 -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
 class Ixed m where
-  -- | This simple 'IndexedTraversal' lets you 'traverse' the value at a given
+  -- | This simple 'AffineTraversal' lets you 'traverse' the value at a given
   -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
   --
-  -- /NB:/ Setting the value of this 'Traversal' will only set the value in the
+  -- /NB:/ Setting the value of this 'AffineTraversal' will only set the value in the
   -- 'Lens' if it is already present.
   --
   -- If you want to be able to insert /missing/ values, you want 'at'.
@@ -368,37 +368,37 @@ class Ixed m where
   --
   -- >>> Seq.fromList [] ^? ix 2
   -- Nothing
-  ix :: Index m -> Traversal' m (IxValue m)
+  ix :: Index m -> AffineTraversal' m (IxValue m)
 #ifdef DEFAULT_SIGNATURES
-  default ix :: (Applicative f, At m) => Index m -> LensLike' f m (IxValue m)
+  default ix :: (Pointed f, Functor f, At m) => Index m -> LensLike' f m (IxValue m)
   ix = ixAt
   {-# INLINE ix #-}
 #endif
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
-ixAt :: At m => Index m -> Traversal' m (IxValue m)
-ixAt i = at i . traverse
+ixAt :: At m => Index m -> AffineTraversal' m (IxValue m)
+ixAt i = at i . just where just f = maybe (point Nothing) (fmap Just . f)
 {-# INLINE ixAt #-}
 
 type instance IxValue (Maybe a) = a
 instance Ixed (Maybe a) where
   ix () f (Just a) = Just <$> f a
-  ix () _ Nothing  = pure Nothing
+  ix () _ Nothing  = point Nothing
   {-# INLINE ix #-}
 
 type instance IxValue [a] = a
 instance Ixed [a] where
-  ix k f xs0 | k < 0     = pure xs0
+  ix k f xs0 | k < 0     = point xs0
              | otherwise = go xs0 k where
-    go [] _ = pure []
+    go [] _ = point []
     go (a:as) 0 = f a <&> (:as)
     go (a:as) i = (a:) <$> (go as $! i - 1)
   {-# INLINE ix #-}
 
 type instance IxValue (NonEmpty a) = a
 instance Ixed (NonEmpty a) where
-  ix k f xs0 | k < 0 = pure xs0
+  ix k f xs0 | k < 0 = point xs0
              | otherwise = go xs0 k where
     go (a:|as) 0 = f a <&> (:|as)
     go (a:|as) i = (a:|) <$> ix (i - 1) f as
@@ -413,60 +413,60 @@ type instance IxValue (Tree a) = a
 instance Ixed (Tree a) where
   ix xs0 f = go xs0 where
     go [] (Node a as) = f a <&> \a' -> Node a' as
-    go (i:is) t@(Node a as) | i < 0     = pure t
+    go (i:is) t@(Node a as) | i < 0     = point t
                             | otherwise = Node a <$> goto is as i
     goto is (a:as) 0 = go is a <&> (:as)
     goto is (_:as) n = goto is as $! n - 1
-    goto _  []     _ = pure []
+    goto _  []     _ = point []
   {-# INLINE ix #-}
 
 type instance IxValue (Seq a) = a
 instance Ixed (Seq a) where
   ix i f m
     | 0 <= i && i < Seq.length m = f (Seq.index m i) <&> \a -> Seq.update i a m
-    | otherwise                  = pure m
+    | otherwise                  = point m
   {-# INLINE ix #-}
 
 type instance IxValue (IntMap a) = a
 instance Ixed (IntMap a) where
   ix k f m = case IntMap.lookup k m of
      Just v -> f v <&> \v' -> IntMap.insert k v' m
-     Nothing -> pure m
+     Nothing -> point m
   {-# INLINE ix #-}
 
 type instance IxValue (Map k a) = a
 instance Ord k => Ixed (Map k a) where
   ix k f m = case Map.lookup k m of
      Just v  -> f v <&> \v' -> Map.insert k v' m
-     Nothing -> pure m
+     Nothing -> point m
   {-# INLINE ix #-}
 
 type instance IxValue (HashMap k a) = a
 instance (Eq k, Hashable k) => Ixed (HashMap k a) where
   ix k f m = case HashMap.lookup k m of
      Just v  -> f v <&> \v' -> HashMap.insert k v' m
-     Nothing -> pure m
+     Nothing -> point m
   {-# INLINE ix #-}
 
 type instance IxValue (Set k) = ()
 instance Ord k => Ixed (Set k) where
   ix k f m = if Set.member k m
      then f () <&> \() -> Set.insert k m
-     else pure m
+     else point m
   {-# INLINE ix #-}
 
 type instance IxValue IntSet = ()
 instance Ixed IntSet where
   ix k f m = if IntSet.member k m
      then f () <&> \() -> IntSet.insert k m
-     else pure m
+     else point m
   {-# INLINE ix #-}
 
 type instance IxValue (HashSet k) = ()
 instance (Eq k, Hashable k) => Ixed (HashSet k) where
   ix k f m = if HashSet.member k m
      then f () <&> \() -> HashSet.insert k m
-     else pure m
+     else point m
   {-# INLINE ix #-}
 
 type instance IxValue (Array i e) = e
@@ -478,7 +478,7 @@ type instance IxValue (Array i e) = e
 instance Ix i => Ixed (Array i e) where
   ix i f arr
     | inRange (bounds arr) i = f (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
-    | otherwise              = pure arr
+    | otherwise              = point arr
   {-# INLINE ix #-}
 
 type instance IxValue (UArray i e) = e
@@ -490,42 +490,42 @@ type instance IxValue (UArray i e) = e
 instance (IArray UArray e, Ix i) => Ixed (UArray i e) where
   ix i f arr
     | inRange (bounds arr) i = f (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
-    | otherwise              = pure arr
+    | otherwise              = point arr
   {-# INLINE ix #-}
 
 type instance IxValue (Vector.Vector a) = a
 instance Ixed (Vector.Vector a) where
   ix i f v
     | 0 <= i && i < Vector.length v = f (v Vector.! i) <&> \a -> v Vector.// [(i, a)]
-    | otherwise                     = pure v
+    | otherwise                     = point v
   {-# INLINE ix #-}
 
 type instance IxValue (Prim.Vector a) = a
 instance Prim a => Ixed (Prim.Vector a) where
   ix i f v
     | 0 <= i && i < Prim.length v = f (v Prim.! i) <&> \a -> v Prim.// [(i, a)]
-    | otherwise                   = pure v
+    | otherwise                   = point v
   {-# INLINE ix #-}
 
 type instance IxValue (Storable.Vector a) = a
 instance Storable a => Ixed (Storable.Vector a) where
   ix i f v
     | 0 <= i && i < Storable.length v = f (v Storable.! i) <&> \a -> v Storable.// [(i, a)]
-    | otherwise                       = pure v
+    | otherwise                       = point v
   {-# INLINE ix #-}
 
 type instance IxValue (Unboxed.Vector a) = a
 instance Unbox a => Ixed (Unboxed.Vector a) where
   ix i f v
     | 0 <= i && i < Unboxed.length v = f (v Unboxed.! i) <&> \a -> v Unboxed.// [(i, a)]
-    | otherwise                      = pure v
+    | otherwise                      = point v
   {-# INLINE ix #-}
 
 type instance IxValue StrictT.Text = Char
 instance Ixed StrictT.Text where
   ix e f s = case StrictT.splitAt e s of
      (l, mr) -> case StrictT.uncons mr of
-       Nothing      -> pure s
+       Nothing      -> point s
        Just (c, xs) -> f c <&> \d -> StrictT.concat [l, StrictT.singleton d, xs]
   {-# INLINE ix #-}
 
@@ -533,7 +533,7 @@ type instance IxValue LazyT.Text = Char
 instance Ixed LazyT.Text where
   ix e f s = case LazyT.splitAt e s of
      (l, mr) -> case LazyT.uncons mr of
-       Nothing      -> pure s
+       Nothing      -> point s
        Just (c, xs) -> f c <&> \d -> LazyT.append l (LazyT.cons d xs)
   {-# INLINE ix #-}
 
@@ -541,7 +541,7 @@ type instance IxValue StrictB.ByteString = Word8
 instance Ixed StrictB.ByteString where
   ix e f s = case StrictB.splitAt e s of
      (l, mr) -> case StrictB.uncons mr of
-       Nothing      -> pure s
+       Nothing      -> point s
        Just (c, xs) -> f c <&> \d -> StrictB.concat [l, StrictB.singleton d, xs]
   {-# INLINE ix #-}
 
@@ -550,7 +550,7 @@ instance Ixed LazyB.ByteString where
   -- TODO: we could be lazier, returning each chunk as it is passed
   ix e f s = case LazyB.splitAt e s of
      (l, mr) -> case LazyB.uncons mr of
-       Nothing      -> pure s
+       Nothing      -> point s
        Just (c, xs) -> f c <&> \d -> LazyB.append l (LazyB.cons d xs)
   {-# INLINE ix #-}
 

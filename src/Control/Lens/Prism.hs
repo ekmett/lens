@@ -41,13 +41,13 @@ module Control.Lens.Prism
   , Choice(..)
   ) where
 
-import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Internal.Prism
 import Control.Lens.Review
 import Control.Lens.Type
 import Control.Monad
 import Data.Functor.Identity
+import Data.Pointed
 import Data.Profunctor
 import Data.Void
 #ifndef SAFE
@@ -108,7 +108,7 @@ clonePrism k = case runPrism k of
 -- @'Either' t a@ is used instead of @'Maybe' a@ to permit the types of @s@ and @t@ to differ.
 --
 prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
-prism bt seta = dimap seta (either pure (fmap bt)) . right'
+prism bt seta = dimap seta (either point (fmap bt)) . right'
 {-# INLINE prism #-}
 
 -- | This is usually used to build a 'Prism'', when you have to use an operation like
