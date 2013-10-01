@@ -172,8 +172,8 @@ au k = withIso k $ \ sa bt f e -> bt (f sa e)
 --
 -- >>> auf (wrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
 -- 10
-auf :: AnIso s t a b -> ((r -> a) -> e -> b) -> (r -> s) -> e -> t
-auf k = withIso k $ \ sa bt f g e -> bt (f (sa . g) e)
+auf :: Profunctor p => AnIso s t a b -> (p r a -> e -> b) -> p r s -> e -> t
+auf k = withIso k $ \ sa bt f g e -> bt (f (rmap sa g) e)
 {-# INLINE auf #-}
 
 -- | The opposite of working 'Control.Lens.Setter.over' a 'Setter' is working 'under' an isomorphism.
