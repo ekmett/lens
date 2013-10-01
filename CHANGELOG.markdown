@@ -12,6 +12,7 @@
   * Replaced the use of `Mutator` with `Identity`.
   * Replaced the use of `Reviewed` with `Tagged`.
 * Removed the deprecated `Control.Lens.Simple` module.
+* Generalized `throwing` and `throwingM`. The type signatures were needlessly restrictive due to accidental variable reuse.
 
 3.9.0.2
 -------
