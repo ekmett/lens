@@ -28,27 +28,27 @@ module Control.Lens.Type
   -- * Lenses, Folds and Traversals
   , Lens, Lens'
   , Traversal, Traversal'
-  , RelevantTraversal, RelevantTraversal'
+  , Traversal1, Traversal1'
   , Setter, Setter'
   , Getter, Fold
-  , RelevantFold
+  , Fold1
   , Action, MonadicFold, RelevantMonadicFold
   -- * Indexed
   , IndexedLens, IndexedLens'
   , IndexedTraversal, IndexedTraversal'
-  , IndexedRelevantTraversal, IndexedRelevantTraversal'
+  , IndexedTraversal1, IndexedTraversal1'
   , IndexedSetter, IndexedSetter'
   , IndexedGetter, IndexedFold
-  , IndexedRelevantFold
+  , IndexedFold1
   , IndexedAction, IndexedMonadicFold
   , IndexedRelevantMonadicFold
   -- * Index-Preserving
   , IndexPreservingLens, IndexPreservingLens'
   , IndexPreservingTraversal, IndexPreservingTraversal'
-  , IndexPreservingRelevantTraversal, IndexPreservingRelevantTraversal'
+  , IndexPreservingTraversal1, IndexPreservingTraversal1'
   , IndexPreservingSetter, IndexPreservingSetter'
   , IndexPreservingGetter, IndexPreservingFold
-  , IndexPreservingRelevantFold
+  , IndexPreservingFold1
   , IndexPreservingAction, IndexPreservingMonadicFold
   , IndexPreservingRelevantMonadicFold
   -- * Common
@@ -192,8 +192,8 @@ type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
 -- @
 type Traversal' s a = Traversal s s a a
 
-type RelevantTraversal s t a b = forall f. Apply f => (a -> f b) -> s -> f t
-type RelevantTraversal' s a = RelevantTraversal s s a a
+type Traversal1 s t a b = forall f. Apply f => (a -> f b) -> s -> f t
+type Traversal1' s a = Traversal1 s s a a
 
 -- | Every 'IndexedTraversal' is a valid 'Control.Lens.Traversal.Traversal' or
 -- 'Control.Lens.Fold.IndexedFold'.
@@ -209,8 +209,8 @@ type IndexedTraversal i s t a b = forall p f. (Indexable i p, Applicative f) => 
 -- @
 type IndexedTraversal' i s a = IndexedTraversal i s s a a
 
-type IndexedRelevantTraversal i s t a b = forall p f. (Indexable i p, Apply f) => p a (f b) -> s -> f t
-type IndexedRelevantTraversal' i s a = IndexedRelevantTraversal i s s a a
+type IndexedTraversal1 i s t a b = forall p f. (Indexable i p, Apply f) => p a (f b) -> s -> f t
+type IndexedTraversal1' i s a = IndexedTraversal1 i s s a a
 
 -- | An 'IndexPreservingLens' leaves any index it is composed with alone.
 type IndexPreservingTraversal s t a b = forall p f. (Conjoined p, Applicative f) => p a (f b) -> p s (f t)
@@ -220,8 +220,8 @@ type IndexPreservingTraversal s t a b = forall p f. (Conjoined p, Applicative f)
 -- @
 type IndexPreservingTraversal' s a = IndexPreservingTraversal s s a a
 
-type IndexPreservingRelevantTraversal s t a b = forall p f. (Conjoined p, Apply f) => p a (f b) -> p s (f t)
-type IndexPreservingRelevantTraversal' s a = IndexPreservingRelevantTraversal s s a a
+type IndexPreservingTraversal1 s t a b = forall p f. (Conjoined p, Apply f) => p a (f b) -> p s (f t)
+type IndexPreservingTraversal1' s a = IndexPreservingTraversal1 s s a a
 
 ------------------------------------------------------------------------------
 -- Setters
@@ -466,9 +466,10 @@ type IndexedFold i s a = forall p f.  (Indexable i p, Contravariant f, Applicati
 -- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
 type IndexPreservingFold s a = forall p f. (Conjoined p, Contravariant f, Applicative f) => p a (f a) -> p s (f s)
 
-type RelevantFold s a = forall f. (Contravariant f, Apply f) => (a -> f a) -> s -> f s
-type IndexedRelevantFold i s a = forall p f.  (Indexable i p, Contravariant f, Apply f) => p a (f a) -> s -> f s
-type IndexPreservingRelevantFold s a = forall p f. (Conjoined p, Contravariant f, Apply f) => p a (f a) -> p s (f s)
+-- | A relevant Fold (aka 'Fold1') has one or more targets.
+type Fold1 s a = forall f. (Contravariant f, Apply f) => (a -> f a) -> s -> f s
+type IndexedFold1 i s a = forall p f.  (Indexable i p, Contravariant f, Apply f) => p a (f a) -> s -> f s
+type IndexPreservingFold1 s a = forall p f. (Conjoined p, Contravariant f, Apply f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- Actions

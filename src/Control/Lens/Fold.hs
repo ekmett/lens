@@ -220,7 +220,7 @@ folded' :: Foldable f => Fold (f a) a
 folded' f = coerce . getFolding . foldMap (Folding #. f)
 {-# INLINE folded' #-}
 
--- | Form a 'RelevantFold' by repeating the input forever.
+-- | Form a 'Fold1' by repeating the input forever.
 --
 -- @
 -- 'repeat' ≡ 'toListOf' 'repeated'
@@ -228,7 +228,7 @@ folded' f = coerce . getFolding . foldMap (Folding #. f)
 --
 -- >>> timingOut $ 5^..taking 20 repeated
 -- [5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5]
-repeated :: RelevantFold a a
+repeated :: Fold1 a a
 repeated f a = as where as = f a .> as
 {-# INLINE repeated #-}
 
@@ -247,7 +247,7 @@ replicated n0 f a = go n0 where
   go n = m *> go (n - 1)
 {-# INLINE replicated #-}
 
--- | Transform a non-empty 'Fold' into a 'RelevantFold' that loops over its elements over and over.
+-- | Transform a non-empty 'Fold' into a 'Fold1' that loops over its elements over and over.
 --
 -- >>> timingOut $ [1,2,3]^..taking 7 (cycled traverse)
 -- [1,2,3,1,2,3,1]
@@ -270,12 +270,12 @@ unfolded f g b0 = go b0 where
     Nothing      -> noEffect
 {-# INLINE unfolded #-}
 
--- | @x '^.' 'iterated' f@ returns an infinite 'RelevantFold' of repeated applications of @f@ to @x@.
+-- | @x '^.' 'iterated' f@ returns an infinite 'Fold1' of repeated applications of @f@ to @x@.
 --
 -- @
 -- 'toListOf' ('iterated' f) a ≡ 'iterate' f a
 -- @
-iterated :: (a -> a) -> RelevantFold a a
+iterated :: (a -> a) -> Fold1 a a
 iterated f g a0 = go a0 where
   go a = g a .> go (f a)
 {-# INLINE iterated #-}
