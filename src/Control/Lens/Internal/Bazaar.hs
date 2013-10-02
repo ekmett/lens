@@ -21,6 +21,9 @@ module Control.Lens.Internal.Bazaar
   ( Bizarre(..)
   , Bazaar(..), Bazaar'
   , BazaarT(..), BazaarT'
+  , Bizarre1(..)
+  , Bazaar1(..), Bazaar1'
+  , BazaarT1(..), BazaarT1'
   ) where
 
 import Control.Applicative
@@ -33,7 +36,7 @@ import Data.Functor.Apply
 import Data.Functor.Compose
 import Data.Functor.Contravariant
 import Data.Functor.Identity
-import Data.Monoid
+import Data.Semigroup
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
@@ -182,8 +185,146 @@ instance (Profunctor p, Contravariant g) => Contravariant (BazaarT p g a b) wher
   contramap _ = (<$) (error "contramap: BazaarT")
   {-# INLINE contramap #-}
 
+instance Contravariant g => Semigroup (BazaarT p g a b t) where
+  BazaarT a <> BazaarT b = BazaarT $ \f -> a f <* b f
+  {-# INLINE (<>) #-}
+
 instance Contravariant g => Monoid (BazaarT p g a b t) where
   mempty = BazaarT $ \_ -> pure (error "mempty: BazaarT")
   {-# INLINE mempty #-}
   BazaarT a `mappend` BazaarT b = BazaarT $ \f -> a f <* b f
   {-# INLINE mappend #-}
+
+
+------------------------------------------------------------------------------
+-- Bizarre1
+------------------------------------------------------------------------------
+
+class Profunctor p => Bizarre1 p w | w -> p where
+  bazaar1 :: Apply f => p a (f b) -> w a b t -> f t
+
+------------------------------------------------------------------------------
+-- Bazaar1
+------------------------------------------------------------------------------
+
+-- | This is used to characterize a 'Control.Lens.Traversal.Traversal'.
+--
+-- a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed 'FunList'.
+--
+-- <http://twanvl.nl/blog/haskell/non-regular1>
+--
+-- A 'Bazaar1' is like a 'Control.Lens.Traversal.Traversal' that has already been applied to some structure.
+--
+-- Where a @'Context' a b t@ holds an @a@ and a function from @b@ to
+-- @t@, a @'Bazaar1' a b t@ holds @N@ @a@s and a function from @N@
+-- @b@s to @t@, (where @N@ might be infinite).
+--
+-- Mnemonically, a 'Bazaar1' holds many stores and you can easily add more.
+--
+-- This is a final encoding of 'Bazaar1'.
+newtype Bazaar1 p a b t = Bazaar1 { runBazaar1 :: forall f. Apply f => p a (f b) -> f t }
+
+-- | This alias is helpful when it comes to reducing repetition in type signatures.
+--
+-- @
+-- type 'Bazaar1'' p a t = 'Bazaar1' p a a t
+-- @
+type Bazaar1' p a = Bazaar1 p a a
+
+instance IndexedFunctor (Bazaar1 p) where
+  ifmap f (Bazaar1 k) = Bazaar1 (fmap f . k)
+  {-# INLINE ifmap #-}
+
+instance Conjoined p => IndexedComonad (Bazaar1 p) where
+  iextract (Bazaar1 m) = runIdentity $ m (arr Identity)
+  {-# INLINE iextract #-}
+  iduplicate (Bazaar1 m) = getCompose $ m (Compose #. distrib sell . sell)
+  {-# INLINE iduplicate #-}
+
+instance Corepresentable p => Sellable p (Bazaar1 p) where
+  sell = cotabulate $ \ w -> Bazaar1 $ tabulate $ \k -> pure (corep k w)
+  {-# INLINE sell #-}
+
+instance Profunctor p => Bizarre1 p (Bazaar1 p) where
+  bazaar1 g (Bazaar1 f) = f g
+  {-# INLINE bazaar1 #-}
+
+instance Functor (Bazaar1 p a b) where
+  fmap = ifmap
+  {-# INLINE fmap #-}
+
+instance Apply (Bazaar1 p a b) where
+  Bazaar1 mf <.> Bazaar1 ma = Bazaar1 $ \ pafb -> mf pafb <.> ma pafb
+  {-# INLINE (<.>) #-}
+
+instance (a ~ b, Conjoined p) => Comonad (Bazaar1 p a b) where
+  extract = iextract
+  {-# INLINE extract #-}
+  duplicate = iduplicate
+  {-# INLINE duplicate #-}
+
+instance (a ~ b, Conjoined p) => ComonadApply (Bazaar1 p a b) where
+  Bazaar1 mf <@> Bazaar1 ma = Bazaar1 $ \ pafb -> mf pafb <.> ma pafb
+  {-# INLINE (<@>) #-}
+
+------------------------------------------------------------------------------
+-- BazaarT1
+------------------------------------------------------------------------------
+
+-- | 'BazaarT1' is like 'Bazaar1', except that it provides a questionable 'Contravariant' instance
+-- To protect this instance it relies on the soundness of another 'Contravariant' type, and usage conventions.
+--
+-- For example. This lets us write a suitably polymorphic and lazy 'Control.Lens.Traversal.taking', but there
+-- must be a better way!
+newtype BazaarT1 p (g :: * -> *) a b t = BazaarT1 { runBazaarT1 :: forall f. Apply f => p a (f b) -> f t }
+
+-- | This alias is helpful when it comes to reducing repetition in type signatures.
+--
+-- @
+-- type 'BazaarT1'' p g a t = 'BazaarT1' p g a a t
+-- @
+type BazaarT1' p g a = BazaarT1 p g a a
+
+instance IndexedFunctor (BazaarT1 p g) where
+  ifmap f (BazaarT1 k) = BazaarT1 (fmap f . k)
+  {-# INLINE ifmap #-}
+
+instance Conjoined p => IndexedComonad (BazaarT1 p g) where
+  iextract (BazaarT1 m) = runIdentity $ m (arr Identity)
+  {-# INLINE iextract #-}
+  iduplicate (BazaarT1 m) = getCompose $ m (Compose #. distrib sell . sell)
+  {-# INLINE iduplicate #-}
+
+instance Corepresentable p => Sellable p (BazaarT1 p g) where
+  sell = cotabulate $ \ w -> BazaarT1 (`corep` w)
+  {-# INLINE sell #-}
+
+instance Profunctor p => Bizarre1 p (BazaarT1 p g) where
+  bazaar1 g (BazaarT1 f) = f g
+  {-# INLINE bazaar1 #-}
+
+instance Functor (BazaarT1 p g a b) where
+  fmap = ifmap
+  {-# INLINE fmap #-}
+
+instance Apply (BazaarT1 p g a b) where
+  BazaarT1 mf <.> BazaarT1 ma = BazaarT1 $ \ pafb -> mf pafb <.> ma pafb
+  {-# INLINE (<.>) #-}
+
+instance (a ~ b, Conjoined p) => Comonad (BazaarT1 p g a b) where
+  extract = iextract
+  {-# INLINE extract #-}
+  duplicate = iduplicate
+  {-# INLINE duplicate #-}
+
+instance (a ~ b, Conjoined p) => ComonadApply (BazaarT1 p g a b) where
+  BazaarT1 mf <@> BazaarT1 ma = BazaarT1 $ \ pafb -> mf pafb <.> ma pafb
+  {-# INLINE (<@>) #-}
+
+instance (Profunctor p, Contravariant g) => Contravariant (BazaarT1 p g a b) where
+  contramap _ = (<$) (error "contramap: BazaarT1")
+  {-# INLINE contramap #-}
+
+instance Contravariant g => Semigroup (BazaarT1 p g a b t) where
+  BazaarT1 a <> BazaarT1 b = BazaarT1 $ \f -> a f <. b f
+  {-# INLINE (<>) #-}

@@ -74,6 +74,7 @@ module Control.Lens.Traversal
 
   -- * Common Traversals
   , Traversable(traverse)
+  , Traversable1(traverse1)
   , both
   , beside
   , taking
@@ -131,11 +132,12 @@ import Data.Int
 import Data.IntMap as IntMap
 import Data.Map as Map
 import Data.Monoid
-import Data.Traversable
-import Data.Tuple (swap)
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
+import Data.Semigroup.Traversable
+import Data.Traversable
+import Data.Tuple (swap)
 import Prelude hiding ((.),id)
 
 -- $setup
