@@ -48,10 +48,15 @@ module Control.Lens.Traversal
   (
   -- * Traversals
     Traversal, Traversal'
+  , Traversal1, Traversal1'
   , IndexedTraversal, IndexedTraversal'
+  , IndexedTraversal1, IndexedTraversal1'
   , ATraversal, ATraversal'
+  , ATraversal1, ATraversal1'
   , AnIndexedTraversal, AnIndexedTraversal'
+  , AnIndexedTraversal1, AnIndexedTraversal1'
   , Traversing, Traversing'
+  , Traversing1, Traversing1'
 
   -- * Traversing and Lensing
   , traverseOf, forOf, sequenceAOf
@@ -65,6 +70,9 @@ module Control.Lens.Traversal
   , cloneTraversal
   , cloneIndexPreservingTraversal
   , cloneIndexedTraversal
+  , cloneTraversal1
+  , cloneIndexPreservingTraversal1
+  , cloneIndexedTraversal1
 
   -- * Parts and Holes
   , partsOf, partsOf'
@@ -88,6 +96,7 @@ module Control.Lens.Traversal
   , TraverseMin(..)
   , TraverseMax(..)
   , traversed
+  , traversed1
   , traversed64
   , elementOf
   , element
@@ -107,8 +116,8 @@ module Control.Lens.Traversal
   , imapAccumLOf
 
   -- * Implementation Details
-  , Bazaar(..)
-  , Bazaar'
+  , Bazaar(..), Bazaar'
+  , Bazaar1(..), Bazaar1'
   , loci
   , iloci
   ) where
@@ -163,13 +172,31 @@ type ATraversal s t a b = LensLike (Bazaar (->) a b) s t a b
 -- @
 type ATraversal' s a = ATraversal s s a a
 
+
+-- | When you see this as an argument to a function, it expects a 'Traversal1'.
+type ATraversal1 s t a b = LensLike (Bazaar1 (->) a b) s t a b
+
+-- | @
+-- type 'ATraversal1'' = 'Simple' 'ATraversal1'
+-- @
+type ATraversal1' s a = ATraversal1 s s a a
+
 -- | When you see this as an argument to a function, it expects an 'IndexedTraversal'.
 type AnIndexedTraversal i s t a b = Over (Indexed i) (Bazaar (Indexed i) a b) s t a b
+
+-- | When you see this as an argument to a function, it expects an 'IndexedTraversal1'.
+type AnIndexedTraversal1 i s t a b = Over (Indexed i) (Bazaar1 (Indexed i) a b) s t a b
 
 -- | @
 -- type 'AnIndexedTraversal'' = 'Simple' ('AnIndexedTraversal' i)
 -- @
 type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
+
+-- | @
+-- type 'AnIndexedTraversal1'' = 'Simple' ('AnIndexedTraversal1' i)
+-- @
+type AnIndexedTraversal1' i s a = AnIndexedTraversal1 i s s a a
+
 
 -- | When you see this as an argument to a function, it expects
 --
@@ -186,10 +213,13 @@ type AnIndexedTraversal' i s a = AnIndexedTraversal i s s a a
 --  * a 'Fold' if 'f' is 'Gettable' and 'Applicative'.
 type Traversing p f s t a b = Over p (BazaarT p f a b) s t a b
 
+type Traversing1 p f s t a b = Over p (BazaarT1 p f a b) s t a b
+
 -- | @
 -- type 'Traversing'' f = 'Simple' ('Traversing' f)
 -- @
 type Traversing' p f s a = Traversing p f s s a a
+type Traversing1' p f s a = Traversing1 p f s s a a
 
 --------------------------
 -- Traversal Combinators
@@ -829,6 +859,22 @@ cloneIndexedTraversal :: AnIndexedTraversal i s t a b -> IndexedTraversal i s t 
 cloneIndexedTraversal l f = bazaar (Indexed (indexed f)) . l sell
 {-# INLINE cloneIndexedTraversal #-}
 
+-- | A 'Traversal1' is completely characterized by its behavior on a 'Bazaar1'.
+cloneTraversal1 :: ATraversal1 s t a b -> Traversal1 s t a b
+cloneTraversal1 l f = bazaar1 f . l sell
+{-# INLINE cloneTraversal1 #-}
+
+-- | Clone a 'Traversal1' yielding an 'IndexPreservingTraversal1' that passes through
+-- whatever index it is composed with.
+cloneIndexPreservingTraversal1 :: ATraversal1 s t a b -> IndexPreservingTraversal1 s t a b
+cloneIndexPreservingTraversal1 l pafb = cotabulate $ \ws -> runBazaar1 (l sell (extract ws)) $ \a -> corep pafb (a <$ ws)
+{-# INLINE cloneIndexPreservingTraversal1 #-}
+
+-- | Clone an 'IndexedTraversal1' yielding an 'IndexedTraversal1' with the same index.
+cloneIndexedTraversal1 :: AnIndexedTraversal1 i s t a b -> IndexedTraversal1 i s t a b
+cloneIndexedTraversal1 l f = bazaar1 (Indexed (indexed f)) . l sell
+{-# INLINE cloneIndexedTraversal1 #-}
+
 ------------------------------------------------------------------------------
 -- Indexed Traversals
 ------------------------------------------------------------------------------
@@ -844,8 +890,9 @@ cloneIndexedTraversal l f = bazaar (Indexed (indexed f)) . l sell
 -- @
 --
 -- @
--- 'itraverseOf' :: 'Functor' f     => 'IndexedLens' i s t a b      -> (i -> a -> f b) -> s -> f t
--- 'itraverseOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b -> (i -> a -> f b) -> s -> f t
+-- 'itraverseOf' :: 'Functor' f     => 'IndexedLens' i s t a b       -> (i -> a -> f b) -> s -> f t
+-- 'itraverseOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b  -> (i -> a -> f b) -> s -> f t
+-- 'itraverseOf' :: 'Apply' f       => 'IndexedTraversal1' i s t a b -> (i -> a -> f b) -> s -> f t
 -- @
 itraverseOf :: (Indexed i a (f b) -> s -> f t) -> (i -> a -> f b) -> s -> f t
 itraverseOf l = l .# Indexed
@@ -859,8 +906,9 @@ itraverseOf l = l .# Indexed
 -- @
 --
 -- @
--- 'iforOf' :: 'Functor' f => 'IndexedLens' i s t a b      -> s -> (i -> a -> f b) -> f t
--- 'iforOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b -> s -> (i -> a -> f b) -> f t
+-- 'iforOf' :: 'Functor' f     => 'IndexedLens' i s t a b       -> s -> (i -> a -> f b) -> f t
+-- 'iforOf' :: 'Applicative' f => 'IndexedTraversal' i s t a b  -> s -> (i -> a -> f b) -> f t
+-- 'iforOf' :: 'Apply' f       => 'IndexedTraversal1' i s t a b -> s -> (i -> a -> f b) -> f t
 -- @
 iforOf :: (Indexed i a (f b) -> s -> f t) -> s -> (i -> a -> f b) -> f t
 iforOf = flip . itraverseOf
@@ -877,8 +925,9 @@ iforOf = flip . itraverseOf
 -- @
 --
 -- @
--- 'imapMOf' :: 'Monad' m => 'IndexedLens'      i s t a b -> (i -> a -> m b) -> s -> m t
--- 'imapMOf' :: 'Monad' m => 'IndexedTraversal' i s t a b -> (i -> a -> m b) -> s -> m t
+-- 'imapMOf' :: 'Monad' m => 'IndexedLens'       i s t a b -> (i -> a -> m b) -> s -> m t
+-- 'imapMOf' :: 'Monad' m => 'IndexedTraversal'  i s t a b -> (i -> a -> m b) -> s -> m t
+-- 'imapMOf' :: 'Bind'  m => 'IndexedTraversal1' i s t a b -> (i -> a -> m b) -> s -> m t
 -- @
 imapMOf :: (Indexed i a (WrappedMonad m b) -> s -> WrappedMonad m t) -> (i -> a -> m b) -> s -> m t
 imapMOf l = mapMOf l .# Indexed
@@ -941,6 +990,11 @@ imapAccumLOf l = mapAccumLOf l .# Indexed
 traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b
 traversed = conjoined traverse (indexing traverse)
 {-# INLINE traversed #-}
+
+-- | Traverse any 'Traversable1' container. This is an 'IndexedTraversal1' that is indexed by ordinal position.
+traversed1 :: Traversable1 f => IndexedTraversal1 Int (f a) (f b) a b
+traversed1 = conjoined traverse1 (indexing traverse1)
+{-# INLINE traversed1 #-}
 
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
 traversed64 :: Traversable f => IndexedTraversal Int64 (f a) (f b) a b
