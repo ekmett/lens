@@ -795,7 +795,7 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
     Nothing -> funD lensName clauses
   where
     clauses = map buildClause conList
-    buildClause (con, fields) = do
+    buildClause (con@RecC{}, fields) = do
       f <- newName "_f"
       vars <- for (con^..conNamedFields._1) $ \fld ->
           if fld `List.elem` fields
@@ -820,6 +820,19 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
                 in  fromJust $ List.foldl step Nothing fvals
               -- = infixE (Just $ lamE fpats recon) (varE '(<$>)) $ Just $ List.foldl1 (\l r -> infixE (Just l) (varE '(<*>)) (Just r)) fvals
       clause [varP f, conP conName cpats] (normalB expr) []
+
+    -- Non-record are never the target of a generated field lens body
+    buildClause (con, fields) = do
+      c <- newName "c"
+      let conName = con^.name
+          expr
+            | isTraversal       = [| pure $(varE c) |]
+            | otherwise         = [| error errorMsg |]
+            where errorMsg = show lensName ++ ": non-record constructors require traversals to be generated"
+
+      -- clause:  _ c@Con{} = expr
+      -- expr:    pure c
+      clause [wildP, asP c (recP conName [])] (normalB expr) []
 
 makeFieldLenses :: LensRules
                 -> DataDecl
