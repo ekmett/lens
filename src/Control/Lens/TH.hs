@@ -85,11 +85,12 @@ import Control.Lens.Tuple
 import Control.Lens.Traversal
 import Control.Lens.Wrapped
 import Data.Char (toLower, toUpper, isUpper)
+import Data.Either (lefts)
 import Data.Foldable hiding (concat, any)
 import Data.Function (on)
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
-import Data.Maybe as Maybe (isNothing,isJust,catMaybes,mapMaybe)
+import Data.Maybe as Maybe (isNothing,isJust,catMaybes,fromJust,mapMaybe)
 import Data.Monoid
 import Data.Ord (comparing)
 import Data.Set as Set hiding (toList,map,filter)
@@ -794,54 +795,44 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
     Nothing -> funD lensName clauses
   where
     clauses = map buildClause conList
+    buildClause (con@RecC{}, fields) = do
+      f <- newName "_f"
+      vars <- for (con^..conNamedFields._1) $ \fld ->
+          if fld `List.elem` fields
+        then Left  <$> ((,) <$> newName ('_':(nameBase fld++"'")) <*> newName ('_':nameBase fld))
+        else Right <$> newName ('_':nameBase fld)
+      let cpats = map (varP . either fst id) vars               -- Deconstruction
+          cvals = map (varE . either snd id) vars               -- Reconstruction
+          fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
+          fvals = map (appE (varE f) . varE . fst) $ lefts vars -- Functor applications
+          conName = con^.name
+          recon = appsE $ conE conName : cvals
+
+          expr
+            | not isTraversal && length fields /= 1
+              = appE (varE 'error) . litE . stringL
+              $ show lensName ++ ": expected a single matching field in " ++ show conName ++ ", found " ++ show (length fields)
+            | List.null fields
+              = appE (varE 'pure) recon
+            | otherwise
+              = let step Nothing r = Just $ infixE (Just $ lamE fpats recon) (varE '(<$>)) (Just r)
+                    step (Just l) r = Just $ infixE (Just l) (varE '(<*>)) (Just r)
+                in  fromJust $ List.foldl step Nothing fvals
+              -- = infixE (Just $ lamE fpats recon) (varE '(<$>)) $ Just $ List.foldl1 (\l r -> infixE (Just l) (varE '(<*>)) (Just r)) fvals
+      clause [varP f, conP conName cpats] (normalB expr) []
+
+    -- Non-record are never the target of a generated field lens body
     buildClause (con, fields) = do
+      c <- newName "c"
+      let conName = con^.name
+          expr
+            | isTraversal       = [| pure $(varE c) |]
+            | otherwise         = [| error errorMsg |]
+            where errorMsg = show lensName ++ ": non-record constructors require traversals to be generated"
 
-      -- clause0: f x@Con{} = pure x
-      -- clauseN: f x@Con{patterns} = (\lambdavars -> x{updateExprs}) <$> f fieldVal1 [<*> f fieldValN]...
-
-      funVar <- newName "f"
-      conVar <- newName "x"
-
-      let fieldP field   = field `List.elem` fields
-          selectedFields = con^..conNamedFields._1.filtered fieldP
-          conName        = con^.name
-
-      (patterns, lambdaVars, updateExprs, fieldVals)
-           <- fmap unzip4
-            $ for selectedFields $ \fld ->
-           do lambdaVar     <- newName (nameBase fld) -- name of updated value in lambda expression
-              fieldVar      <- newName (nameBase fld) -- name of original value in pattern match
-              let pattern    = fieldPat fld (varP fieldVar) -- pattern binding field name to fieldVar
-              let updateExpr = return (fld, VarE lambdaVar) -- update expression used inside lambda in record update
-              let fieldVal   = [| $(varE funVar) $(varE fieldVar) |] -- expression applying given function to field value
-              return (pattern, lambdaVar, updateExpr, fieldVal)
-
-      let expr = case fieldVals of
-
-                  -- If we don't have access to pure and (<*>) we'll need to return an error
-                  -- when trying to generate a Lens
-                  _ | not isTraversal && length fields /= 1
-                      -> let msg = show lensName ++ ": expected a single matching field in " ++
-                                   show conName ++ ", found " ++ show (length fields)
-                         in [| error msg |]
-
-                  -- When no updates are occurring we can return an unmodifed pure value
-                  [] -> [| pure $(varE conVar) |]
-
-                  -- One or more fields are being updated using a chain of <$> <*>...
-                  x:xs -> List.foldl addField base xs
-                   where
-                   base   = [| $lambda <$> $x |]
-                   lambda = lamE (map varP lambdaVars)
-                                 (recUpdE (varE conVar) updateExprs)
-                   addField e fieldVal = [| $e <*> $fieldVal |]
-
-
-      -- avoid naming the function if it isn't going to be used
-      let funPat | not isTraversal && length fields /= 1 || List.null fieldVals = wildP
-                 | otherwise = varP funVar
-
-      clause [funPat, asP conVar (recP conName patterns)] (normalB expr) []
+      -- clause:  _ c@Con{} = expr
+      -- expr:    pure c
+      clause [wildP, asP c (recP conName [])] (normalB expr) []
 
 makeFieldLenses :: LensRules
                 -> DataDecl
