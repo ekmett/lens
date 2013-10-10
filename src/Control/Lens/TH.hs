@@ -67,7 +67,7 @@ module Control.Lens.TH
   ) where
 
 import Control.Applicative
-import Control.Monad ((<=<), when)
+import Control.Monad ((<=<), when, replicateM)
 #if !(MIN_VERSION_template_haskell(2,7,0))
 import Control.Monad (ap)
 #endif
@@ -823,16 +823,17 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
 
     -- Non-record are never the target of a generated field lens body
     buildClause (con, fields) = do
-      c <- newName "c"
+      let fieldCount = lengthOf conFields con
+      vars <- replicateM fieldCount (newName "x")
       let conName = con^.name
           expr
-            | isTraversal       = [| pure $(varE c) |]
+            | isTraversal       = [| pure $(appsE (conE conName : map varE vars)) |] -- We must rebuild the value to support type changing
             | otherwise         = [| error errorMsg |]
             where errorMsg = show lensName ++ ": non-record constructors require traversals to be generated"
 
       -- clause:  _ c@Con{} = expr
       -- expr:    pure c
-      clause [wildP, asP c (recP conName [])] (normalB expr) []
+      clause [wildP, conP conName (map varP vars)] (normalB expr) []
 
 makeFieldLenses :: LensRules
                 -> DataDecl
