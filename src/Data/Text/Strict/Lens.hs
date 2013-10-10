@@ -91,6 +91,9 @@ text = unpacked . traversed
 {-# INLINE text #-}
 
 -- | Encode/Decode a strict 'Text' to/from strict 'ByteString', via UTF-8.
+--
+-- >>> utf8 # "☃"
+-- "\226\152\131"
 utf8 :: Prism' ByteString Text
 utf8 = prism' encodeUtf8 (preview _Right . decodeUtf8')
 {-# INLINE utf8 #-}

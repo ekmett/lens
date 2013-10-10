@@ -95,6 +95,9 @@ text = unpacked . traversed
 --
 -- Note: This function does not decode lazily, as it must consume the entire
 -- input before deciding whether or not it fails.
+--
+-- >>> utf8 # "☃"
+-- "\226\152\131"
 utf8 :: Prism' ByteString Text
 utf8 = prism' encodeUtf8 (preview _Right . decodeUtf8')
 {-# INLINE utf8 #-}
