@@ -95,7 +95,7 @@ tinplate f = gfoldl (step f) pure
 
 step :: forall s a f r. (Applicative f, Typeable a, Data s) => (a -> f a) -> f (s -> r) -> s -> f r
 step f w s = w <*> case mightBe :: Maybe (Is s a) of
-  Just Refl -> f s
+  Just Data.Data.Lens.Refl -> f s
   Nothing   -> tinplate f s
 {-# INLINE step #-}
 
@@ -262,7 +262,7 @@ data Is a b where
   Refl :: Is a a
 
 mightBe :: (Typeable a, Typeable b) => Maybe (Is a b)
-mightBe = gcast Refl
+mightBe = gcast Data.Data.Lens.Refl
 {-# INLINE mightBe #-}
 
 -------------------------------------------------------------------------------
@@ -382,7 +382,7 @@ newtype Oracle a = Oracle { fromOracle :: forall t. Typeable t => t -> Answer t 
 hitTest :: forall a b. (Data a, Typeable b) => a -> b -> Oracle b
 hitTest a b = Oracle $ \(c :: c) ->
   case mightBe :: Maybe (Is c b) of
-    Just Refl -> Hit c
+    Just Data.Data.Lens.Refl -> Hit c
     Nothing ->
       case readCacheFollower (dataBox a) (typeOf b) of
         Just p | not (p (typeOf c)) -> Miss
