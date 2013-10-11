@@ -331,8 +331,8 @@ instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeFC f g a) (Contrav
   wrapped = iso Contravariant.ComposeFC Contravariant.getComposeFC
   {-# INLINE wrapped #-}
 
-instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeCF f g a) (Contravariant.ComposeFC f' g' a') where
-  wrapped = iso Contravariant.ComposeCF Contravariant.getComposeFC
+instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeCF f g a) (Contravariant.ComposeCF f' g' a') where
+  wrapped = iso Contravariant.ComposeCF Contravariant.getComposeCF
   {-# INLINE wrapped #-}
 
 -- * tagged
