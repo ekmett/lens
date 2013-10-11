@@ -137,7 +137,7 @@ instance Wrapped [a] [b] (ZipList a) (ZipList b) where
   wrapped = iso ZipList getZipList
   {-# INLINE wrapped #-}
 
-instance Wrapped a b (Const a x) (Const b y) where
+instance Wrapped a b (Const a x) (Const b x) where
   wrapped = iso Const getConst
   {-# INLINE wrapped #-}
 
@@ -171,7 +171,7 @@ instance Wrapped (f (g a)) (f' (g' a')) (Compose f g a) (Compose f' g' a') where
   wrapped = iso Compose getCompose
   {-# INLINE wrapped #-}
 
-instance Wrapped a a' (Constant a b) (Constant a' b') where
+instance Wrapped a a' (Constant a b) (Constant a' b) where
   wrapped = iso Constant getConstant
   {-# INLINE wrapped #-}
 
@@ -337,7 +337,7 @@ instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeCF f g a) (Contrav
 
 -- * tagged
 
-instance Wrapped a b (Tagged s a) (Tagged t b) where
+instance Wrapped a b (Tagged s a) (Tagged s b) where
   wrapped = iso Tagged unTagged
   {-# INLINE wrapped #-}
 
