@@ -97,7 +97,7 @@ import           Data.Tagged
 
 -- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes or
 -- data types with one constructor.
-class Wrapped s t a b | a -> s, b -> t, a s -> t, b t -> s where
+class Wrapped s t a b | a -> s, b -> t, a t -> b, b s -> a where
   -- | An isomorphism between s and @a@ and a related one between @t@ and @b@, such that when @a = b@, @s = t@.
   --
   -- This is often used via 'wrapping' to aid type inference.
