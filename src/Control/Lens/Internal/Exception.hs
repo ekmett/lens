@@ -7,6 +7,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE KindSignatures #-}
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
+{-# LANGUAGE ConstraintKinds #-}
+#endif
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -37,7 +40,9 @@ import Data.Proxy
 import Data.Typeable
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
-type Typeable1 = Typeable
+import Data.Constraint
+
+type Typeable1 = (Typeable :: (* -> *) -> Constraint)
 #endif
 
 ------------------------------------------------------------------------------
