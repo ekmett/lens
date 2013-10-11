@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Instances
@@ -14,28 +15,35 @@
 module Control.Lens.Internal.Instances () where
 
 import Control.Applicative
-import Data.Foldable
 import Data.Monoid
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
+#if __GLASGOW_HASKELL__ < 707
+import Data.Foldable
 import Data.Traversable
+#endif
 
 -------------------------------------------------------------------------------
 -- Orphan Instances
 -------------------------------------------------------------------------------
 
+#if __GLASGOW_HASKELL__ < 707
 instance Foldable ((,) b) where
   foldMap f (_, a) = f a
+#endif
 
 instance Foldable1 ((,) b) where
   foldMap1 f (_, a) = f a
 
+#if __GLASGOW_HASKELL__ < 707
 instance Traversable ((,) b) where
   traverse f (b, a) = (,) b <$> f a
+#endif
 
 instance Traversable1 ((,) b) where
   traverse1 f (b, a) = (,) b <$> f a
 
+#if __GLASGOW_HASKELL__ < 707
 instance Foldable (Either a) where
   foldMap _ (Left _) = mempty
   foldMap f (Right a) = f a
@@ -49,6 +57,7 @@ instance Foldable (Const m) where
 
 instance Traversable (Const m) where
   traverse _ (Const m) = pure $ Const m
+#endif
 
 instance Monoid a => Monoid (Const a b) where
   mempty = Const mempty
