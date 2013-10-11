@@ -427,7 +427,7 @@ op f = review (wrapping f)
 --
 -- >>> Const "hello" & unwrapped %~ length & getConst
 -- 5
-unwrapped :: Wrapped t s b a => Iso a b s t
+unwrapped :: Wrapped b a t s => Iso s t a b
 unwrapped = from wrapped
 {-# INLINE unwrapped #-}
 
