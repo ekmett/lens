@@ -51,6 +51,9 @@ import           Control.Lens.Setter
 import           Control.Lens.Traversal
 import           Control.Lens.Type
 import           Data.Data
+#if __GLASGOW_HASKELL__ >= 707
+                 hiding (Refl)
+#endif
 import           GHC.IO
 import           Data.Maybe
 import           Data.Foldable
