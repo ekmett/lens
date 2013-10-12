@@ -71,6 +71,6 @@ fromEq l = substEq l id
 
 -- | This is an adverb that can be used to modify many other 'Lens' combinators to make them require
 -- simple lenses, simple traversals, simple prisms or simple isos as input.
-simply :: (Overloaded' p f s a -> r) -> Overloaded' p f s a -> r
+simply :: (Optic' p f s a -> r) -> Optic' p f s a -> r
 simply = id
 {-# INLINE simply #-}

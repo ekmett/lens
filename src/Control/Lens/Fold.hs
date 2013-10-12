@@ -298,7 +298,7 @@ iterated f g a0 = go a0 where
 -- [2,4,6,8,10]
 --
 -- This will preserve an index if it is present.
-filtered :: (Choice p, Pointed f, Functor f) => (a -> Bool) -> Overloaded' p f a a
+filtered :: (Choice p, Pointed f, Functor f) => (a -> Bool) -> Optic' p f a a
 filtered p = dimap (\x -> if p x then Right x else Left x) (either point id) . right'
 {-# INLINE filtered #-}
 
@@ -388,8 +388,8 @@ takingWhile p l pafb = fmap runMagma . traverse (corep pafb) . runTakingWhile . 
 -- and 'Traversal' fusion is not sound.
 droppingWhile :: (Conjoined p, Profunctor q, Applicative f)
               => (a -> Bool)
-              -> Overloading p q (Compose (State Bool) f) s t a a
-              -> Overloading p q f s t a a
+              -> Optical p q (Compose (State Bool) f) s t a a
+              -> Optical p q f s t a a
 droppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
   g = cotabulate $ \wa -> Compose $ state $ \b -> let
       a = extract wa
@@ -1890,7 +1890,7 @@ ipreuses l f = gets (ipreviews l f)
 --
 -- /NB:/ To write back through an 'Iso', you want to use 'Control.Lens.Isomorphic.from'.
 -- Similarly, to write back through an 'Prism', you want to use 'Control.Lens.Review.re'.
-backwards :: (Profunctor p, Profunctor q) => Overloading p q (Backwards f) s t a b -> Overloading p q f s t a b
+backwards :: (Profunctor p, Profunctor q) => Optical p q (Backwards f) s t a b -> Optical p q f s t a b
 backwards l f = forwards #. l (Backwards #. f)
 {-# INLINE backwards #-}
 
@@ -2303,7 +2303,7 @@ s ^@?! l = ifoldrOf l (\i x _ -> (i,x)) (error "(^@?!): empty Fold") s
 -- access to both the value and the index.
 --
 -- Note: As with 'filtered', this is /not/ a legal 'IndexedTraversal', unless you are very careful not to invalidate the predicate on the target!
-ifiltered :: (Indexable i p, Applicative f) => (i -> a -> Bool) -> Overloading' p (Indexed i) f a a
+ifiltered :: (Indexable i p, Applicative f) => (i -> a -> Bool) -> Optical' p (Indexed i) f a a
 ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 {-# INLINE ifiltered #-}
 
@@ -2320,8 +2320,8 @@ ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 -- @
 itakingWhile :: (Indexable i p, Profunctor q, Contravariant f, Applicative f)
          => (i -> a -> Bool)
-         -> Overloading (Indexed i) q (Const (Endo (f s))) s s a a
-         -> Overloading p q f s s a a
+         -> Optical (Indexed i) q (Const (Endo (f s))) s s a a
+         -> Optical p q f s s a a
 itakingWhile p l f = (flip appEndo noEffect .# getConst) `rmap` l g where
   g = Indexed $ \i a -> Const . Endo $ if p i a then (indexed f i a *>) else const noEffect
 {-# INLINE itakingWhile #-}
@@ -2342,8 +2342,8 @@ itakingWhile p l f = (flip appEndo noEffect .# getConst) `rmap` l g where
 -- 'True', then you will break the 'Traversal' laws and 'Traversal' fusion will no longer be sound.
 idroppingWhile :: (Indexable i p, Profunctor q, Applicative f)
               => (i -> a -> Bool)
-              -> Overloading (Indexed i) q (Compose (State Bool) f) s t a a
-              -> Overloading p q f s t a a
+              -> Optical (Indexed i) q (Compose (State Bool) f) s t a a
+              -> Optical p q f s t a a
 idroppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
   g = Indexed $ \ i a -> Compose $ state $ \b -> let
       b' = b && p i a

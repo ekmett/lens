@@ -165,7 +165,7 @@ type ALens s t a b = LensLike (Pretext (->) a b) s t a b
 type ALens' s a = ALens s s a a
 
 -- | When you see this as an argument to a function, it expects an 'IndexedLens'
-type AnIndexedLens i s t a b = Overloading (Indexed i) (->) (Pretext (Indexed i) a b) s t a b
+type AnIndexedLens i s t a b = Optical (Indexed i) (->) (Pretext (Indexed i) a b) s t a b
 
 -- | @
 -- type 'AnIndexedLens'' = 'Simple' ('AnIndexedLens' i)
@@ -243,7 +243,7 @@ ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 -- ('%%~') ::             'Lens' s t a b      -> (a -> (r, b)) -> s -> (r, t)
 -- ('%%~') :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> (m, b)) -> s -> (m, t)
 -- @
-(%%~) :: Overloading p q f s t a b -> p a (f b) -> q s (f t)
+(%%~) :: Optical p q f s t a b -> p a (f b) -> q s (f t)
 (%%~) = id
 {-# INLINE (%%~) #-}
 
@@ -267,7 +267,7 @@ ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 -- ('%%=') :: 'MonadState' s m             => 'Lens' s s a b      -> (a -> (r, b)) -> m r
 -- ('%%=') :: ('MonadState' s m, 'Monoid' r) => 'Control.Lens.Traversal.Traversal' s s a b -> (a -> (r, b)) -> m r
 -- @
-(%%=) :: MonadState s m => Overloading p (->) ((,) r) s s a b -> p a (r, b) -> m r
+(%%=) :: MonadState s m => Over p ((,) r) s s a b -> p a (r, b) -> m r
 #if MIN_VERSION_mtl(2,1,1)
 l %%= f = State.state (l f)
 #else
@@ -418,7 +418,7 @@ cloneIndexedLens l f s = runPretext (l sell s) (Indexed (indexed f))
 -- ('<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> (a -> b) -> s -> (b, t)
 -- ('<%~') :: 'Monoid' b => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> b) -> s -> (b, t)
 -- @
-(<%~) :: Profunctor p => Overloading p q ((,) b) s t a b -> p a b -> q s (b, t)
+(<%~) :: Profunctor p => Optical p q ((,) b) s t a b -> p a b -> q s (b, t)
 l <%~ f = l $ rmap (\t -> (t, t)) f
 {-# INLINE (<%~) #-}
 
@@ -430,7 +430,7 @@ l <%~ f = l $ rmap (\t -> (t, t)) f
 -- ('<+~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
 -- ('<+~') :: 'Num' a => 'Control.Lens.Iso.Iso'' s a  -> a -> s -> (a, s)
 -- @
-(<+~) :: Num a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
+(<+~) :: Num a => Optical (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <+~ a = l <%~ (+ a)
 {-# INLINE (<+~) #-}
 
@@ -442,7 +442,7 @@ l <+~ a = l <%~ (+ a)
 -- ('<-~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
 -- ('<-~') :: 'Num' a => 'Control.Lens.Iso.Iso'' s a  -> a -> s -> (a, s)
 -- @
-(<-~) :: Num a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
+(<-~) :: Num a => Optical (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <-~ a = l <%~ subtract a
 {-# INLINE (<-~) #-}
 
@@ -455,7 +455,7 @@ l <-~ a = l <%~ subtract a
 -- ('<*~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
 -- ('<*~') :: 'Num' a => 'Control.Lens.Iso.Iso''  s a -> a -> s -> (a, s)
 -- @
-(<*~) :: Num a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
+(<*~) :: Num a => Optical (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <*~ a = l <%~ (* a)
 {-# INLINE (<*~) #-}
 
@@ -467,7 +467,7 @@ l <*~ a = l <%~ (* a)
 -- ('<//~') :: 'Fractional' a => 'Lens'' s a -> a -> s -> (a, s)
 -- ('<//~') :: 'Fractional' a => 'Control.Lens.Iso.Iso''  s a -> a -> s -> (a, s)
 -- @
-(<//~) :: Fractional a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
+(<//~) :: Fractional a => Optical (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <//~ a = l <%~ (/ a)
 {-# INLINE (<//~) #-}
 
@@ -480,7 +480,7 @@ l <//~ a = l <%~ (/ a)
 -- ('<^~') :: ('Num' a, 'Integral' e) => 'Lens'' s a -> e -> s -> (a, s)
 -- ('<^~') :: ('Num' a, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a -> e -> s -> (a, s)
 -- @
-(<^~) :: (Num a, Integral e) => Overloading (->) q ((,)a) s t a a -> e -> q s (a, t)
+(<^~) :: (Num a, Integral e) => Optical (->) q ((,)a) s t a a -> e -> q s (a, t)
 l <^~ e = l <%~ (^ e)
 {-# INLINE (<^~) #-}
 
@@ -493,7 +493,7 @@ l <^~ e = l <%~ (^ e)
 -- ('<^^~') :: ('Fractional' a, 'Integral' e) => 'Lens'' s a -> e -> s -> (a, s)
 -- ('<^^~') :: ('Fractional' a, 'Integral' e) => 'Control.Lens.Iso.Iso'' s a -> e -> s -> (a, s)
 -- @
-(<^^~) :: (Fractional a, Integral e) => Overloading (->) q ((,)a) s t a a -> e -> q s (a, t)
+(<^^~) :: (Fractional a, Integral e) => Optical (->) q ((,)a) s t a a -> e -> q s (a, t)
 l <^^~ e = l <%~ (^^ e)
 {-# INLINE (<^^~) #-}
 
@@ -506,7 +506,7 @@ l <^^~ e = l <%~ (^^ e)
 -- ('<**~') :: 'Floating' a => 'Lens'' s a -> a -> s -> (a, s)
 -- ('<**~') :: 'Floating' a => 'Control.Lens.Iso.Iso'' s a  -> a -> s -> (a, s)
 -- @
-(<**~) :: Floating a => Overloading (->) q ((,)a) s t a a -> a -> q s (a, t)
+(<**~) :: Floating a => Optical (->) q ((,)a) s t a a -> a -> q s (a, t)
 l <**~ a = l <%~ (** a)
 {-# INLINE (<**~) #-}
 
@@ -518,7 +518,7 @@ l <**~ a = l <%~ (** a)
 -- ('<||~') :: 'Lens'' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
 -- ('<||~') :: 'Control.Lens.Iso.Iso'' s 'Bool'  -> 'Bool' -> s -> ('Bool', s)
 -- @
-(<||~) :: Overloading (->) q ((,)Bool) s t Bool Bool -> Bool -> q s (Bool, t)
+(<||~) :: Optical (->) q ((,)Bool) s t Bool Bool -> Bool -> q s (Bool, t)
 l <||~ b = l <%~ (|| b)
 {-# INLINE (<||~) #-}
 
@@ -530,7 +530,7 @@ l <||~ b = l <%~ (|| b)
 -- ('<&&~') :: 'Lens'' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
 -- ('<&&~') :: 'Control.Lens.Iso.Iso'' s 'Bool'  -> 'Bool' -> s -> ('Bool', s)
 -- @
-(<&&~) :: Overloading (->) q ((,)Bool) s t Bool Bool -> Bool -> q s (Bool, t)
+(<&&~) :: Optical (->) q ((,)Bool) s t Bool Bool -> Bool -> q s (Bool, t)
 l <&&~ b = l <%~ (&& b)
 {-# INLINE (<&&~) #-}
 
@@ -543,7 +543,7 @@ l <&&~ b = l <%~ (&& b)
 -- ('<<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> (a -> b) -> s -> (a, t)
 -- ('<<%~') :: 'Monoid' a => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> b) -> s -> (a, t)
 -- @
-(<<%~) :: Strong p => Overloading p q ((,)a) s t a b -> p a b -> q s (a, t)
+(<<%~) :: Strong p => Optical p q ((,)a) s t a b -> p a b -> q s (a, t)
 (<<%~) l = l . lmap (\a -> (a, a)) . second'
 {-# INLINE (<<%~) #-}
 
@@ -556,47 +556,47 @@ l <&&~ b = l <%~ (&& b)
 -- ('<<.~') ::             'Control.Lens.Iso.Iso' s t a b       -> b -> s -> (a, t)
 -- ('<<.~') :: 'Monoid' a => 'Control.Lens.Traversal.Traversal' s t a b -> b -> s -> (a, t)
 -- @
-(<<.~) :: Overloading (->) q ((,)a) s t a b -> b -> q s (a, t)
+(<<.~) :: Optical (->) q ((,)a) s t a b -> b -> q s (a, t)
 l <<.~ b = l $ \a -> (a, b)
 {-# INLINE (<<.~) #-}
 
-(<<+~) :: Num a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
+(<<+~) :: Num a => Optical' (->) q ((,) a) s a -> a -> q s (a, s)
 l <<+~ b = l $ \a -> (a, a + b)
 {-# INLINE (<<+~) #-}
 
-(<<-~) :: Num a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
+(<<-~) :: Num a => Optical' (->) q ((,) a) s a -> a -> q s (a, s)
 l <<-~ b = l $ \a -> (a, a - b)
 {-# INLINE (<<-~) #-}
 
-(<<*~) :: Num a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
+(<<*~) :: Num a => Optical' (->) q ((,) a) s a -> a -> q s (a, s)
 l <<*~ b = l $ \a -> (a, a * b)
 {-# INLINE (<<*~) #-}
 
-(<<//~) :: Fractional a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
+(<<//~) :: Fractional a => Optical' (->) q ((,) a) s a -> a -> q s (a, s)
 l <<//~ b = l $ \a -> (a, a / b)
 {-# INLINE (<<//~) #-}
 
-(<<^~) :: (Num a, Integral e) => Overloading' (->) q ((,) a) s a -> e -> q s (a, s)
+(<<^~) :: (Num a, Integral e) => Optical' (->) q ((,) a) s a -> e -> q s (a, s)
 l <<^~ e = l $ \a -> (a, a ^ e)
 {-# INLINE (<<^~) #-}
 
-(<<^^~) :: (Fractional a, Integral e) => Overloading' (->) q ((,) a) s a -> e -> q s (a, s)
+(<<^^~) :: (Fractional a, Integral e) => Optical' (->) q ((,) a) s a -> e -> q s (a, s)
 l <<^^~ e = l $ \a -> (a, a ^^ e)
 {-# INLINE (<<^^~) #-}
 
-(<<**~) :: Floating a => Overloading' (->) q ((,) a) s a -> a -> q s (a, s)
+(<<**~) :: Floating a => Optical' (->) q ((,) a) s a -> a -> q s (a, s)
 l <<**~ e = l $ \a -> (a, a ** e)
 {-# INLINE (<<**~) #-}
 
-(<<||~) :: Overloading' (->) q ((,) Bool) s Bool -> Bool -> q s (Bool, s)
+(<<||~) :: Optical' (->) q ((,) Bool) s Bool -> Bool -> q s (Bool, s)
 l <<||~ b = l $ \a -> (a, b || a)
 {-# INLINE (<<||~) #-}
 
-(<<&&~) :: Overloading' (->) q ((,) Bool) s Bool -> Bool -> q s (Bool, s)
+(<<&&~) :: Optical' (->) q ((,) Bool) s Bool -> Bool -> q s (Bool, s)
 l <<&&~ b = l $ \a -> (a, b && a)
 {-# INLINE (<<&&~) #-}
 
-(<<<>~) :: Monoid r => Overloading' (->) q ((,) r) s r -> r -> q s (r, s)
+(<<<>~) :: Monoid r => Optical' (->) q ((,) r) s r -> r -> q s (r, s)
 l <<<>~ b = l $ \a -> (a, a `mappend` b)
 {-# INLINE (<<<>~) #-}
 
@@ -617,7 +617,7 @@ l <<<>~ b = l $ \a -> (a, a `mappend` b)
 -- ('<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> (a -> a) -> m a
 -- ('<%=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
 -- @
-(<%=) :: (Profunctor p, MonadState s m) => Overloading p (->) ((,)b) s s a b -> p a b -> m b
+(<%=) :: (Profunctor p, MonadState s m) => Over p ((,)b) s s a b -> p a b -> m b
 l <%= f = l %%= rmap (\b -> (b, b)) f
 {-# INLINE (<%=) #-}
 
@@ -757,7 +757,7 @@ l <&&= b = l <%= (&& b)
 -- @
 --
 -- @('<<%=') :: 'MonadState' s m => 'LensLike' ((,)a) s s a b -> (a -> b) -> m a@
-(<<%=) :: (Strong p, MonadState s m) => Overloading p (->) ((,)a) s s a b -> p a b -> m a
+(<<%=) :: (Strong p, MonadState s m) => Over p ((,)a) s s a b -> p a b -> m a
 l <<%= f = l %%= lmap (\a -> (a,a)) (second' f)
 {-# INLINE (<<%=) #-}
 
@@ -838,7 +838,7 @@ l <<~ mb = do
 -- return the result.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.<>~') is more flexible.
-(<<>~) :: Monoid m => Overloading (->) q ((,)m) s t m m -> m -> q s (m, t)
+(<<>~) :: Monoid m => Optical (->) q ((,)m) s t m m -> m -> q s (m, t)
 l <<>~ m = l <%~ (`mappend` m)
 {-# INLINE (<<>~) #-}
 
@@ -868,7 +868,7 @@ l <<>= r = l <%= (`mappend` r)
 -- ('<%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> (b, t)
 -- ('<%@~') :: 'Monoid' b => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> (b, t)
 -- @
-(<%@~) :: Overloading (Indexed i) q ((,) b) s t a b -> (i -> a -> b) -> q s (b, t)
+(<%@~) :: Optical (Indexed i) q ((,) b) s t a b -> (i -> a -> b) -> q s (b, t)
 l <%@~ f = l (Indexed $ \i a -> let b = f i a in (b, b))
 {-# INLINE (<%@~) #-}
 
@@ -880,7 +880,7 @@ l <%@~ f = l (Indexed $ \i a -> let b = f i a in (b, b))
 -- ('<<%@~') ::             'IndexedLens' i s t a b      -> (i -> a -> b) -> s -> (a, t)
 -- ('<<%@~') :: 'Monoid' a => 'Control.Lens.Traversal.IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> (a, t)
 -- @
-(<<%@~) :: Overloading (Indexed i) q ((,) a) s t a b -> (i -> a -> b) -> q s (a, t)
+(<<%@~) :: Optical (Indexed i) q ((,) a) s t a b -> (i -> a -> b) -> q s (a, t)
 l <<%@~ f = l $ Indexed $ \i a -> second' (f i) (a,a)
 
 {-# INLINE (<<%@~) #-}

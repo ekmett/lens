@@ -30,7 +30,7 @@ class AsExitCode p f t where
   -- '_ExitCode' :: 'Equality'' 'ExitCode'      'ExitCode'
   -- '_ExitCode' :: 'Prism''    'SomeException' 'ExitCode'
   -- @
-  _ExitCode :: Overloaded' p f t ExitCode
+  _ExitCode :: Optic' p f t ExitCode
 
 instance AsExitCode p f ExitCode where
   _ExitCode = id
@@ -46,7 +46,7 @@ instance (Choice p, Applicative f) => AsExitCode p f SomeException where
 -- '_ExitSuccess' :: 'Prism'' 'ExitCode'      ()
 -- '_ExitSuccess' :: 'Prism'' 'SomeException' ()
 -- @
-_ExitSuccess :: (AsExitCode p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_ExitSuccess :: (AsExitCode p f t, Choice p, Applicative f) => Optic' p f t ()
 _ExitSuccess = _ExitCode . dimap seta (either id id) . right' . rmap (ExitSuccess <$) where
   seta ExitSuccess = Right ()
   seta t           = Left  (pure t)
@@ -58,7 +58,7 @@ _ExitSuccess = _ExitCode . dimap seta (either id id) . right' . rmap (ExitSucces
 -- '_ExitFailure' :: 'Prism'' 'ExitCode'      'Int'
 -- '_ExitFailure' :: 'Prism'' 'SomeException' 'Int'
 -- @
-_ExitFailure :: (AsExitCode p f t, Choice p, Applicative f) => Overloaded' p f t Int
+_ExitFailure :: (AsExitCode p f t, Choice p, Applicative f) => Optic' p f t Int
 _ExitFailure = _ExitCode . dimap seta (either id id) . right' . rmap (fmap ExitFailure) where
   seta (ExitFailure i) = Right i
   seta t               = Left  (pure t)

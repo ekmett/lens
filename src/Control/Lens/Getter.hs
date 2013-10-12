@@ -234,7 +234,7 @@ view l = Reader.asks (getConst #. l Const)
 -- @
 -- 'views' :: 'MonadReader' s m => 'Getting' r s a -> (a -> r) -> m r
 -- @
-views :: (Profunctor p, MonadReader s m) => Overloading p (->) (Const r) s s a a -> p a r -> m r
+views :: (Profunctor p, MonadReader s m) => Optical p (->) (Const r) s s a a -> p a r -> m r
 views l f = Reader.asks (getConst #. l (Const #. f))
 {-# INLINE views #-}
 
@@ -313,7 +313,7 @@ use l = State.gets (view l)
 -- @
 -- 'uses' :: 'MonadState' s m => 'Getting' r s t a b -> (a -> r) -> m r
 -- @
-uses :: (Profunctor p, MonadState s m) => Overloading p (->) (Const r) s s a a -> p a r -> m r
+uses :: (Profunctor p, MonadState s m) => Optical p (->) (Const r) s s a a -> p a r -> m r
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}
 

@@ -63,14 +63,14 @@ infixr 8 #
 --
 -- You can generate a 'Review' by using 'unto'. You can also use any 'Prism' or 'Iso'
 -- directly as a 'Review'.
-type Review s t a b = forall p f. (Profunctor p, Bifunctor p, Settable f) => Overloaded p f s t a b
+type Review s t a b = forall p f. (Profunctor p, Bifunctor p, Settable f) => Optic p f s t a b
 
 -- | A 'Simple' 'Review'
 type Review' t b = Review t t b b
 
 -- | If you see this in a signature for a function, the function is expecting a 'Review'
 -- (in practice, this usually means a 'Prism').
-type AReview s t a b = Overloaded Tagged Identity s t a b
+type AReview s t a b = Optic Tagged Identity s t a b
 
 -- | A 'Simple' 'AReview'
 type AReview' t b = AReview t t b b
@@ -84,7 +84,7 @@ type AReview' t b = AReview t t b b
 -- @
 -- 'unto' = 'un' . 'to'
 -- @
-unto :: (Profunctor p, Bifunctor p, Functor f) => (b -> t) -> Overloaded p f s t a b
+unto :: (Profunctor p, Bifunctor p, Functor f) => (b -> t) -> Optic p f s t a b
 unto f = first absurd . lmap absurd . rmap (fmap f)
 {-# INLINE unto #-}
 
@@ -97,7 +97,7 @@ unto f = first absurd . lmap absurd . rmap (fmap f)
 --
 -- >>> un (to length) # [1,2,3]
 -- 3
-un :: (Profunctor p, Bifunctor p, Functor f) => Getting a s a -> Overloaded' p f a s
+un :: (Profunctor p, Bifunctor p, Functor f) => Getting a s a -> Optic' p f a s
 un = unto . view
 
 -- | Turn a 'Prism' or 'Control.Lens.Iso.Iso' around to build a 'Getter'.

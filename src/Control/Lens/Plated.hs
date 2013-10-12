@@ -529,7 +529,7 @@ holes = holesOf plate
 -- 'holesOn' :: 'IndexedLens'' i s a      -> s -> ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]
 -- 'holesOn' :: 'IndexedTraversal'' i s a -> s -> ['Pretext' ('Control.Lens.Internal.Indexed.Indexed' i) a a s]
 -- @
-holesOn :: Conjoined p => Overloading p (->) (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
+holesOn :: Conjoined p => Optical p (->) (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
 holesOn = holesOf
 {-# INLINE holesOn #-}
 
@@ -548,7 +548,7 @@ holesOn = holesOf
 -- @
 holesOnOf :: Conjoined p
           => LensLike (Bazaar p  r r) s t a b
-          -> Overloading p (->) (Bazaar p r r) a b r r
+          -> Optical p (->) (Bazaar p r r) a b r r
           -> s -> [Pretext p r r t]
 holesOnOf b l = holesOf (b . l)
 {-# INLINE holesOnOf #-}

@@ -92,7 +92,7 @@ class (Profunctor p, Functor f) => Cons p f s t a b | s -> a, t -> b, s b -> t, 
   --
   -- However, by including @p@ and @f@ in the class you can write instances that only permit 'uncons'
   -- or which only permit 'cons', or where '_head' and '_tail' are lenses and not traversals.
-  _Cons :: Overloaded p f s t (a,s) (b,t)
+  _Cons :: Optic p f s t (a,s) (b,t)
 
 instance (Choice p, Applicative f) => Cons p f [a] [b] a b where
   _Cons = prism (uncurry (:)) $ \ aas -> case aas of
@@ -320,7 +320,7 @@ class (Profunctor p, Functor f) => Snoc p f s t a b | s -> a, t -> b, s b -> t, 
   --
   -- However, by including @p@ and @f@ in the class you can write instances that only permit 'unsnoc'
   -- or which only permit 'snoc' or where '_init' and '_last' are lenses and not traversals.
-  _Snoc :: Overloaded p f s t (s,a) (t,b)
+  _Snoc :: Optic p f s t (s,a) (t,b)
 
 instance (Choice p, Applicative f) => Snoc p f [a] [b] a b where
   _Snoc = prism (\(as,a) -> as Prelude.++ [a]) $ \aas -> if Prelude.null aas

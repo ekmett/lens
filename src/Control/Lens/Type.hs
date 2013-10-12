@@ -56,8 +56,8 @@ module Control.Lens.Type
   , LensLike, LensLike'
   , Over, Over'
   , IndexedLensLike, IndexedLensLike'
-  , Overloading, Overloading'
-  , Overloaded, Overloaded'
+  , Optical, Optical'
+  , Optic, Optic'
   ) where
 
 import Control.Applicative
@@ -69,7 +69,7 @@ import Data.Functor.Apply
 import Data.Profunctor
 
 -- $setup
--- >>> :set -XNoOverloadedStrings
+-- >>> :set -XNoOpticStrings
 -- >>> import Control.Lens
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)
@@ -538,24 +538,24 @@ type IndexPreservingRelevantMonadicFold m s a = forall p f r. (Conjoined p, Effe
 type Simple f s a = f s s a a
 
 -- | @
--- type 'LensLike' f s t a b = 'Overloading' (->) (->) f s t a b
+-- type 'LensLike' f s t a b = 'Optical' (->) (->) f s t a b
 -- @
-type Overloading p q f s t a b = p a (f b) -> q s (f t)
+type Optical p q f s t a b = p a (f b) -> q s (f t)
 
 -- | @
--- type 'Overloading'' p q f s a = 'Simple' ('Overloading' p q f) s a
+-- type 'Optical'' p q f s a = 'Simple' ('Optical' p q f) s a
 -- @
-type Overloading' p q f s a = Overloading p q f s s a a
+type Optical' p q f s a = Optical p q f s s a a
 
 -- | @
--- type 'LensLike' f s t a b = 'Overloaded' (->) f s t a b
+-- type 'LensLike' f s t a b = 'Optic' (->) f s t a b
 -- @
-type Overloaded p f s t a b = p a (f b) -> p s (f t)
+type Optic p f s t a b = p a (f b) -> p s (f t)
 
 -- | @
--- type 'Overloaded'' p q f s a = 'Simple' ('Overloaded' p q f) s a
+-- type 'Optic'' p q f s a = 'Simple' ('Optic' p q f) s a
 -- @
-type Overloaded' p f s a = Overloaded p f s s a a
+type Optic' p f s a = Optic p f s s a a
 
 -- | Many combinators that accept a 'Lens' can also accept a
 -- 'Traversal' in limited situations.

@@ -748,9 +748,9 @@ both f = bitraverse f f
 -- >>> ("hello",["world","!!!"])^..beside id traverse
 -- ["hello","world","!!!"]
 beside :: (Representable q, Applicative (Rep q), Applicative f, Bitraversable r)
-       => Overloading p q f s t a b
-       -> Overloading p q f s' t' a b
-       -> Overloading p q f (r s s') (r t t') a b
+       => Optical p q f s t a b
+       -> Optical p q f s' t' a b
+       -> Optical p q f (r s s') (r t t') a b
 beside l r f = tabulate $ getCompose #. bitraverse (Compose #. rep (l f)) (Compose #. rep (r f))
 {-# INLINE beside #-}
 

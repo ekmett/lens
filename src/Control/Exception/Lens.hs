@@ -351,7 +351,7 @@ class AsIOException p f t where
   --
   -- Many combinators for working with an 'IOException' are available
   -- in "System.IO.Error.Lens".
-  _IOException :: Overloaded' p f t IOException
+  _IOException :: Optic' p f t IOException
 
 instance AsIOException p f IOException where
   _IOException = id
@@ -369,7 +369,7 @@ instance (Choice p, Applicative f) => AsIOException p f SomeException where
 class AsArithException p f t where
   -- '_ArithException' :: 'Equality'' 'ArithException' 'ArithException'
   -- '_ArithException' :: 'Prism''    'SomeException'  'ArithException'
-  _ArithException :: Overloaded' p f t ArithException
+  _ArithException :: Optic' p f t ArithException
 
 instance AsArithException p f ArithException where
   _ArithException = id
@@ -389,7 +389,7 @@ instance (Choice p, Applicative f) => AsArithException p f SomeException where
 -- '_Overflow' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Overflow' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Overflow :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_Overflow :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
 _Overflow = _ArithException . dimap seta (either id id) . right' . rmap (Overflow <$) where
   seta Overflow = Right ()
   seta t        = Left  (pure t)
@@ -405,7 +405,7 @@ _Overflow = _ArithException . dimap seta (either id id) . right' . rmap (Overflo
 -- '_Underflow' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Underflow' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Underflow :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_Underflow :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
 _Underflow = _ArithException . dimap seta (either id id) . right' . rmap (Underflow <$) where
   seta Underflow = Right ()
   seta t        = Left  (pure t)
@@ -421,7 +421,7 @@ _Underflow = _ArithException . dimap seta (either id id) . right' . rmap (Underf
 -- '_LossOfPrecision' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_LossOfPrecision' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_LossOfPrecision :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_LossOfPrecision :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
 _LossOfPrecision = _ArithException . dimap seta (either id id) . right' . rmap (LossOfPrecision <$) where
   seta LossOfPrecision = Right ()
   seta t        = Left  (pure t)
@@ -437,7 +437,7 @@ _LossOfPrecision = _ArithException . dimap seta (either id id) . right' . rmap (
 -- '_DivideByZero' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_DivideByZero' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_DivideByZero :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_DivideByZero :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
 _DivideByZero = _ArithException . dimap seta (either id id) . right' . rmap (DivideByZero <$) where
   seta DivideByZero = Right ()
   seta t        = Left  (pure t)
@@ -453,7 +453,7 @@ _DivideByZero = _ArithException . dimap seta (either id id) . right' . rmap (Div
 -- '_Denormal' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Denormal' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Denormal :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_Denormal :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
 _Denormal = _ArithException . dimap seta (either id id) . right' . rmap (Denormal <$) where
   seta Denormal = Right ()
   seta t        = Left  (pure t)
@@ -472,7 +472,7 @@ _Denormal = _ArithException . dimap seta (either id id) . right' . rmap (Denorma
 -- '_RatioZeroDenominator' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_RatioZeroDenominator' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_RatioZeroDenominator :: (AsArithException p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_RatioZeroDenominator :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
 _RatioZeroDenominator = _ArithException . dimap seta (either id id) . right' . rmap (RatioZeroDenominator <$) where
   seta RatioZeroDenominator = Right ()
   seta t        = Left  (pure t)
@@ -492,7 +492,7 @@ class AsArrayException p f t where
   -- '_ArrayException' :: 'Equality'' 'ArrayException' 'ArrayException'
   -- '_ArrayException' :: 'Prism''    'SomeException'  'ArrayException'
   -- @
-  _ArrayException :: Overloaded' p f t ArrayException
+  _ArrayException :: Optic' p f t ArrayException
 
 instance AsArrayException p f ArrayException where
   _ArrayException = id
@@ -512,7 +512,7 @@ instance (Choice p, Applicative f) => AsArrayException p f SomeException where
 -- '_IndexOutOfBounds' :: 'Prism'' 'ArrayException' 'String'
 -- '_IndexOutOfBounds' :: 'Prism'' 'SomeException'  'String'
 -- @
-_IndexOutOfBounds :: (AsArrayException p f t, Choice p, Applicative f) => Overloaded' p f t String
+_IndexOutOfBounds :: (AsArrayException p f t, Choice p, Applicative f) => Optic' p f t String
 _IndexOutOfBounds = _ArrayException . dimap seta (either id id) . right' . rmap (fmap IndexOutOfBounds) where
   seta (IndexOutOfBounds r) = Right r
   seta t                    = Left  (pure t)
@@ -528,7 +528,7 @@ _IndexOutOfBounds = _ArrayException . dimap seta (either id id) . right' . rmap 
 -- '_UndefinedElement' :: 'Prism'' 'ArrayException' 'String'
 -- '_UndefinedElement' :: 'Prism'' 'SomeException'  'String'
 -- @
-_UndefinedElement :: (AsArrayException p f t, Choice p, Applicative f) => Overloaded' p f t String
+_UndefinedElement :: (AsArrayException p f t, Choice p, Applicative f) => Optic' p f t String
 _UndefinedElement = _ArrayException . dimap seta (either id id) . right' . rmap (fmap UndefinedElement) where
   seta (UndefinedElement r) = Right r
   seta t                    = Left  (pure t)
@@ -549,7 +549,7 @@ class AsAssertionFailed p f t where
   -- '_AssertionFailed' :: 'Iso''   'AssertionFailed' 'String'
   -- '_AssertionFailed' :: 'Prism'' 'SomeException'   'String'
   -- @
-  _AssertionFailed :: Overloaded' p f t String
+  _AssertionFailed :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsAssertionFailed p f AssertionFailed where
   _AssertionFailed = unwrapping AssertionFailed
@@ -571,7 +571,7 @@ class AsAsyncException p f t where
   -- '_AsyncException' :: 'Equality'' 'AsyncException' 'AsyncException'
   -- '_AsyncException' :: 'Prism''    'SomeException'  'AsyncException'
   -- @
-  _AsyncException :: Overloaded' p f t AsyncException
+  _AsyncException :: Optic' p f t AsyncException
 
 instance AsAsyncException p f AsyncException where
   _AsyncException = id
@@ -589,7 +589,7 @@ instance (Choice p, Applicative f) => AsAsyncException p f SomeException where
 -- '_StackOverflow' :: 'Prism'' 'AsyncException' ()
 -- '_StackOverflow' :: 'Prism'' 'SomeException'  ()
 -- @
-_StackOverflow :: (AsAsyncException p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_StackOverflow :: (AsAsyncException p f t, Choice p, Applicative f) => Optic' p f t ()
 _StackOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (StackOverflow <$) where
   seta StackOverflow = Right ()
   seta t             = Left  (pure t)
@@ -608,7 +608,7 @@ _StackOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (St
 -- '_HeapOverflow' :: 'Prism'' 'AsyncException' ()
 -- '_HeapOverflow' :: 'Prism'' 'SomeException'  ()
 -- @
-_HeapOverflow :: (AsAsyncException p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_HeapOverflow :: (AsAsyncException p f t, Choice p, Applicative f) => Optic' p f t ()
 _HeapOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (HeapOverflow <$) where
   seta HeapOverflow = Right ()
   seta t             = Left  (pure t)
@@ -622,7 +622,7 @@ _HeapOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (Hea
 -- '_ThreadKilled' :: 'Prism'' 'AsyncException' ()
 -- '_ThreadKilled' :: 'Prism'' 'SomeException'  ()
 -- @
-_ThreadKilled :: (AsAsyncException p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_ThreadKilled :: (AsAsyncException p f t, Choice p, Applicative f) => Optic' p f t ()
 _ThreadKilled = _AsyncException . dimap seta (either id id) . right' . rmap (ThreadKilled <$) where
   seta ThreadKilled = Right ()
   seta t             = Left  (pure t)
@@ -636,7 +636,7 @@ _ThreadKilled = _AsyncException . dimap seta (either id id) . right' . rmap (Thr
 -- '_UserInterrupt' :: 'Prism'' 'AsyncException' ()
 -- '_UserInterrupt' :: 'Prism'' 'SomeException'  ()
 -- @
-_UserInterrupt :: (AsAsyncException p f t, Choice p, Applicative f) => Overloaded' p f t ()
+_UserInterrupt :: (AsAsyncException p f t, Choice p, Applicative f) => Optic' p f t ()
 _UserInterrupt = _AsyncException . dimap seta (either id id) . right' . rmap (UserInterrupt <$) where
   seta UserInterrupt = Right ()
   seta t             = Left  (pure t)
@@ -656,7 +656,7 @@ class (Profunctor p, Functor f) => AsNonTermination p f t where
   -- '_NonTermination' :: 'Iso''   'NonTermination' ()
   -- '_NonTermination' :: 'Prism'' 'SomeException'  ()
   -- @
-  _NonTermination :: Overloaded' p f t ()
+  _NonTermination :: Optic' p f t ()
 
 instance (Profunctor p, Functor f) => AsNonTermination p f NonTermination where
   _NonTermination = trivial NonTermination
@@ -679,7 +679,7 @@ class (Profunctor p, Functor f) => AsNestedAtomically p f t where
   -- '_NestedAtomically' :: 'Iso''   'NestedAtomically' ()
   -- '_NestedAtomically' :: 'Prism'' 'SomeException'    ()
   -- @
-  _NestedAtomically :: Overloaded' p f t ()
+  _NestedAtomically :: Optic' p f t ()
 
 instance (Profunctor p, Functor f) => AsNestedAtomically p f NestedAtomically where
   _NestedAtomically = trivial NestedAtomically
@@ -703,7 +703,7 @@ class (Profunctor p, Functor f) => AsBlockedIndefinitelyOnMVar p f t where
   -- '_BlockedIndefinitelyOnMVar' :: 'Iso''   'BlockedIndefinitelyOnMVar' ()
   -- '_BlockedIndefinitelyOnMVar' :: 'Prism'' 'SomeException'             ()
   -- @
-  _BlockedIndefinitelyOnMVar :: Overloaded' p f t ()
+  _BlockedIndefinitelyOnMVar :: Optic' p f t ()
 
 instance (Profunctor p, Functor f) => AsBlockedIndefinitelyOnMVar p f BlockedIndefinitelyOnMVar where
   _BlockedIndefinitelyOnMVar = trivial BlockedIndefinitelyOnMVar
@@ -727,7 +727,7 @@ class (Profunctor p, Functor f) => AsBlockedIndefinitelyOnSTM p f t where
   -- '_BlockedIndefinitelyOnSTM' :: 'Iso''   'BlockedIndefinitelyOnSTM' ()
   -- '_BlockedIndefinitelyOnSTM' :: 'Prism'' 'SomeException'            ()
   -- @
-  _BlockedIndefinitelyOnSTM :: Overloaded' p f t ()
+  _BlockedIndefinitelyOnSTM :: Optic' p f t ()
 
 instance (Profunctor p, Functor f) => AsBlockedIndefinitelyOnSTM p f BlockedIndefinitelyOnSTM where
   _BlockedIndefinitelyOnSTM = trivial BlockedIndefinitelyOnSTM
@@ -750,7 +750,7 @@ class (Profunctor p, Functor f) => AsDeadlock p f t where
   -- '_Deadlock' :: 'Iso''   'Deadlock'      ()
   -- '_Deadlock' :: 'Prism'' 'SomeException' ()
   -- @
-  _Deadlock :: Overloaded' p f t ()
+  _Deadlock :: Optic' p f t ()
 
 instance (Profunctor p, Functor f) => AsDeadlock p f Deadlock where
   _Deadlock = trivial Deadlock
@@ -773,7 +773,7 @@ class (Profunctor p, Functor f) => AsNoMethodError p f t where
   -- '_NoMethodError' :: 'Iso''   'NoMethodError' 'String'
   -- '_NoMethodError' :: 'Prism'' 'SomeException' 'String'
   -- @
-  _NoMethodError :: Overloaded' p f t String
+  _NoMethodError :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsNoMethodError p f NoMethodError where
   _NoMethodError = unwrapping NoMethodError
@@ -795,7 +795,7 @@ class (Profunctor p, Functor f) => AsPatternMatchFail p f t where
   -- '_PatternMatchFail' :: 'Iso''   'PatternMatchFail' 'String'
   -- '_PatternMatchFail' :: 'Prism'' 'SomeException'    'String'
   -- @
-  _PatternMatchFail :: Overloaded' p f t String
+  _PatternMatchFail :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsPatternMatchFail p f PatternMatchFail where
   _PatternMatchFail = unwrapping PatternMatchFail
@@ -818,7 +818,7 @@ class (Profunctor p, Functor f) => AsRecConError p f t where
   -- '_RecConError' :: 'Iso''   'RecConError'   'String'
   -- '_RecConError' :: 'Prism'' 'SomeException' 'String'
   -- @
-  _RecConError :: Overloaded' p f t String
+  _RecConError :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsRecConError p f RecConError where
   _RecConError = unwrapping RecConError
@@ -837,7 +837,7 @@ instance (Choice p, Applicative f) => AsRecConError p f SomeException where
 -- where some fields are in one constructor but not another.
 class (Profunctor p, Functor f) => AsRecSelError p f t where
   -- | Information about the source location where the record selection occurred.
-  _RecSelError :: Overloaded' p f t String
+  _RecSelError :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsRecSelError p f RecSelError where
   _RecSelError = unwrapping RecSelError
@@ -856,7 +856,7 @@ instance (Choice p, Applicative f) => AsRecSelError p f SomeException where
 -- constructors, where some fields are in one constructor but not another.
 class (Profunctor p, Functor f) => AsRecUpdError p f t where
   -- | Information about the source location where the record was updated.
-  _RecUpdError :: Overloaded' p f t String
+  _RecUpdError :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsRecUpdError p f RecUpdError where
   _RecUpdError = unwrapping RecUpdError
@@ -878,7 +878,7 @@ class (Profunctor p, Functor f) => AsErrorCall p f t where
   --
   -- >>> catching _ErrorCall (error "touch down!") return
   -- "touch down!"
-  _ErrorCall :: Overloaded' p f t String
+  _ErrorCall :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsErrorCall p f ErrorCall where
   _ErrorCall = unwrapping ErrorCall
@@ -901,7 +901,7 @@ class (Profunctor p, Functor f) => AsHandlingException p f t where
   -- '_HandlingException' :: 'Iso''   'HandlingException' ()
   -- '_HandlingException' :: 'Prism'' 'SomeException'     ()
   -- @
-  _HandlingException :: Overloaded' p f t ()
+  _HandlingException :: Optic' p f t ()
 
 instance (Profunctor p, Functor f) => AsHandlingException p f HandlingException where
   _HandlingException = trivial HandlingException

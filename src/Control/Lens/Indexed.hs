@@ -152,13 +152,13 @@ icompose ijk istr jabst cab = istr . Indexed $ \i -> jabst . Indexed $ \j -> ind
 --
 -- The result is only valid to compose in a 'Traversal', if you don't edit the
 -- index as edits to the index have no effect.
-withIndex :: (Indexable i p, Functor f) => Overloading p (Indexed i) f s t (i, s) (j, t)
+withIndex :: (Indexable i p, Functor f) => Optical p (Indexed i) f s t (i, s) (j, t)
 withIndex f = Indexed $ \i a -> snd <$> indexed f i (i, a)
 {-# INLINE withIndex #-}
 
 -- | When composed with an 'IndexedFold' or 'IndexedTraversal' this yields an
 -- ('Indexed') 'Fold' of the indices.
-asIndex :: (Indexable i p, Contravariant f, Functor f) => Overloading' p (Indexed i) f s i
+asIndex :: (Indexable i p, Contravariant f, Functor f) => Optical' p (Indexed i) f s i
 asIndex f = Indexed $ \i _ -> coerce (indexed f i i)
 {-# INLINE asIndex #-}
 
@@ -174,7 +174,7 @@ asIndex f = Indexed $ \i _ -> coerce (indexed f i i)
 --
 -- >>> over (traversed.indices (>0)) Prelude.reverse $ ["He","was","stressed","o_O"]
 -- ["He","saw","desserts","O_o"]
-indices :: (Indexable i p, Applicative f) => (i -> Bool) -> Overloading' p (Indexed i) f a a
+indices :: (Indexable i p, Applicative f) => (i -> Bool) -> Optical' p (Indexed i) f a a
 indices p f = Indexed $ \i a -> if p i then indexed f i a else pure a
 {-# INLINE indices #-}
 
@@ -182,7 +182,7 @@ indices p f = Indexed $ \i a -> if p i then indexed f i a else pure a
 --
 -- >>> ["hello","the","world","!!!"]^?traversed.index 2
 -- Just "world"
-index :: (Indexable i p, Eq i, Applicative f) => i -> Overloading' p (Indexed i) f a a
+index :: (Indexable i p, Eq i, Applicative f) => i -> Optical' p (Indexed i) f a a
 index j f = Indexed $ \i a -> if j == i then indexed f i a else pure a
 {-# INLINE index #-}
 
