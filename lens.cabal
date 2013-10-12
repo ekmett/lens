@@ -171,7 +171,7 @@ flag lib-Werror
 
 library
   build-depends:
-    array                     >= 0.3.0.2  && < 0.5,
+    array                     >= 0.3.0.2  && < 0.6,
     base                      >= 4.3      && < 5,
     bifunctors                >= 3        && < 4,
     bytestring                >= 0.9.1.10 && < 0.11,
