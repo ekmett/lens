@@ -155,7 +155,6 @@ import Data.Functor.Compose
 import Data.Int (Int64)
 import Data.Maybe
 import Data.Monoid
-import Data.Pointed
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
@@ -298,8 +297,8 @@ iterated f g a0 = go a0 where
 -- [2,4,6,8,10]
 --
 -- This will preserve an index if it is present.
-filtered :: (Choice p, Pointed f, Functor f) => (a -> Bool) -> Optic' p f a a
-filtered p = dimap (\x -> if p x then Right x else Left x) (either point id) . right'
+filtered :: (Choice p, Applicative f) => (a -> Bool) -> Optic' p f a a
+filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . right'
 {-# INLINE filtered #-}
 
 -- | Obtain a 'Fold' by taking elements from another 'Fold', 'Lens', 'Iso', 'Getter' or 'Traversal' while a predicate holds.

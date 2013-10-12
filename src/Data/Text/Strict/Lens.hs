@@ -17,10 +17,13 @@ module Data.Text.Strict.Lens
   ( packed, unpacked
   , builder
   , text
+  , utf8
   ) where
 
 import Control.Lens
+import Data.ByteString (ByteString)
 import Data.Text
+import Data.Text.Encoding
 import Data.Text.Lazy (toStrict)
 import Data.Text.Lazy.Builder
 
@@ -86,3 +89,11 @@ builder = iso fromText (toStrict . toLazyText)
 text :: IndexedTraversal' Int Text Char
 text = unpacked . traversed
 {-# INLINE text #-}
+
+-- | Encode/Decode a strict 'Text' to/from strict 'ByteString', via UTF-8.
+--
+-- >>> utf8 # "☃"
+-- "\226\152\131"
+utf8 :: Prism' ByteString Text
+utf8 = prism' encodeUtf8 (preview _Right . decodeUtf8')
+{-# INLINE utf8 #-}

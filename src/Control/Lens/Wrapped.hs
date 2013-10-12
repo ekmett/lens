@@ -97,7 +97,7 @@ import           Data.Tagged
 
 -- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes or
 -- data types with one constructor.
-class Wrapped s t a b | a -> s, b -> t, a s -> t, b t -> s where
+class Wrapped s t a b | a -> s, b -> t, a t -> b, b s -> a where
   -- | An isomorphism between s and @a@ and a related one between @t@ and @b@, such that when @a = b@, @s = t@.
   --
   -- This is often used via 'wrapping' to aid type inference.
@@ -137,7 +137,7 @@ instance Wrapped [a] [b] (ZipList a) (ZipList b) where
   wrapped = iso ZipList getZipList
   {-# INLINE wrapped #-}
 
-instance Wrapped a b (Const a x) (Const b y) where
+instance Wrapped a b (Const a x) (Const b x) where
   wrapped = iso Const getConst
   {-# INLINE wrapped #-}
 
@@ -171,7 +171,7 @@ instance Wrapped (f (g a)) (f' (g' a')) (Compose f g a) (Compose f' g' a') where
   wrapped = iso Compose getCompose
   {-# INLINE wrapped #-}
 
-instance Wrapped a a' (Constant a b) (Constant a' b') where
+instance Wrapped a a' (Constant a b) (Constant a' b) where
   wrapped = iso Constant getConstant
   {-# INLINE wrapped #-}
 
@@ -331,13 +331,13 @@ instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeFC f g a) (Contrav
   wrapped = iso Contravariant.ComposeFC Contravariant.getComposeFC
   {-# INLINE wrapped #-}
 
-instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeCF f g a) (Contravariant.ComposeFC f' g' a') where
-  wrapped = iso Contravariant.ComposeCF Contravariant.getComposeFC
+instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeCF f g a) (Contravariant.ComposeCF f' g' a') where
+  wrapped = iso Contravariant.ComposeCF Contravariant.getComposeCF
   {-# INLINE wrapped #-}
 
 -- * tagged
 
-instance Wrapped a b (Tagged s a) (Tagged t b) where
+instance Wrapped a b (Tagged s a) (Tagged s b) where
   wrapped = iso Tagged unTagged
   {-# INLINE wrapped #-}
 
@@ -427,7 +427,7 @@ op f = review (wrapping f)
 --
 -- >>> Const "hello" & unwrapped %~ length & getConst
 -- 5
-unwrapped :: Wrapped t s b a => Iso a b s t
+unwrapped :: Wrapped b a t s => Iso s t a b
 unwrapped = from wrapped
 {-# INLINE unwrapped #-}
 

@@ -18,11 +18,14 @@ module Data.Text.Lazy.Lens
   ( packed, unpacked
   , text
   , builder
+  , utf8
   ) where
 
 import Control.Lens
+import Data.ByteString.Lazy (ByteString)
 import Data.Text.Lazy
 import Data.Text.Lazy.Builder
+import Data.Text.Lazy.Encoding
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -87,3 +90,14 @@ builder = iso fromLazyText toLazyText
 text :: IndexedTraversal' Int Text Char
 text = unpacked . traversed
 {-# INLINE text #-}
+
+-- | Encode/Decode a lazy 'Text' to/from lazy 'ByteString', via UTF-8.
+--
+-- Note: This function does not decode lazily, as it must consume the entire
+-- input before deciding whether or not it fails.
+--
+-- >>> utf8 # "☃"
+-- "\226\152\131"
+utf8 :: Prism' ByteString Text
+utf8 = prism' encodeUtf8 (preview _Right . decodeUtf8')
+{-# INLINE utf8 #-}
