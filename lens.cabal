@@ -173,7 +173,7 @@ library
   build-depends:
     array                     >= 0.3.0.2  && < 0.6,
     base                      >= 4.3      && < 5,
-    bifunctors                >= 3        && < 4,
+    bifunctors                >= 4        && < 5,
     bytestring                >= 0.9.1.10 && < 0.11,
     comonad                   >= 4        && < 5,
     constraints               >= 0.3.3    && < 1,
