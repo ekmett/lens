@@ -130,14 +130,6 @@ outside k = case runPrism k of
   Market bt seta -> \f ft -> f (lmap bt ft) <&> \fa -> tabulate $ either (rep ft) (rep fa) . seta
 {-# INLINE outside #-}
 
--- | Use a 'Prism' to work over part of a structure.
-aside :: APrism s t a b -> Prism (e, s) (e, t) (e, a) (e, b)
-aside k = case runPrism k of
-  Market bt seta -> prism (fmap bt) $ \(e,s) -> case seta s of
-    Left t -> Left (e,t)
-    Right a -> Right (e,a)
-{-# INLINE aside #-}
-
 -- | Given a pair of prisms, project sums.
 --
 -- Viewing a 'Prism' as a co-'Lens', this combinator can be seen to be dual to 'Control.Lens.Lens.alongside'.
@@ -151,12 +143,22 @@ without k = case runPrism k of
       Right u -> bimap Right Right (uevc u)
 {-# INLINE without #-}
 
+-- | Use a 'Prism' to work over part of a structure.
+--
+aside :: APrism s t a b -> Prism (e, s) (e, t) (e, a) (e, b)
+aside k = case runPrism k of
+  Market bt seta -> prism (fmap bt) $ \(e,s) -> case seta s of
+    Left t  -> Left  (e,t)
+    Right a -> Right (e,a)
+{-# INLINE aside #-}
+
 -- | 'lift' a 'Prism' through a 'Traversable' functor, giving a Prism that matches only if all the elements of the container match the 'Prism'.
-below :: Traversable f => APrism s s a b -> Prism (f s) (f s) (f a) (f b)
+below :: Traversable f => APrism' s a -> Prism' (f s) (f a)
 below k = case runPrism k of
   Market bt seta -> prism (fmap bt) $ \s -> case traverse seta s of
     Left _  -> Left s
     Right t -> Right t
+{-# INLINE below #-}
 
 -- | Check to see if this 'Prism' doesn't match.
 --
