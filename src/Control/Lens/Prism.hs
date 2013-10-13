@@ -27,6 +27,7 @@ module Control.Lens.Prism
   , outside
   , aside
   , without
+  , below
   , isn't
   -- * Common Prisms
   , _Left
@@ -49,6 +50,7 @@ import Control.Lens.Type
 import Control.Monad
 import Data.Functor.Identity
 import Data.Profunctor
+import Data.Traversable
 import Data.Void
 #ifndef SAFE
 import Unsafe.Coerce
@@ -145,6 +147,13 @@ without k = case runPrism k of
       Left s  -> bimap Left Left (seta s)
       Right u -> bimap Right Right (uevc u)
 {-# INLINE without #-}
+
+-- | 'lift' a 'Prism' through a 'Traversable' functor, giving a Prism that matches only if all the elements of the container match the 'Prism'.
+below :: Traversable f => APrism s s a b -> Prism (f s) (f s) (f a) (f b)
+below k = case runPrism k of
+  Market bt seta -> prism (fmap bt) $ \s -> case traverse seta s of
+    Left _  -> Left s
+    Right t -> Right t
 
 -- | Check to see if this 'Prism' doesn't match.
 --
