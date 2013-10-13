@@ -50,6 +50,7 @@ import Control.Lens.Type
 import Control.Monad
 import Data.Functor.Identity
 import Data.Profunctor
+import Data.Profunctor.Rep
 import Data.Traversable
 import Data.Void
 #ifndef SAFE
