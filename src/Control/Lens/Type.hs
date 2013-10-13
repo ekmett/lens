@@ -537,6 +537,31 @@ type IndexPreservingRelevantMonadicFold m s a = forall p f r. (Conjoined p, Effe
 -- This is commonly abbreviated as a \"prime\" marker, /e.g./ 'Lens'' = 'Simple' 'Lens'.
 type Simple f s a = f s s a a
 
+-------------------------------------------------------------------------------
+-- Optics
+-------------------------------------------------------------------------------
+
+-- | A valid 'Optic' @l@ should satisfy the laws:
+--
+-- @
+-- l 'pure' ≡ 'pure'
+-- l ('Procompose' f g) = 'Procompose' (l f) (l g)
+-- @
+--
+-- This gives rise to the laws for 'Equality', 'Iso', 'Prism', 'Lens',
+-- 'Traversal', 'Traversal1', 'Setter', 'Fold', 'Fold1', and 'Getter' as well
+-- along with their index-preserving variants.
+--
+-- @
+-- type 'LensLike' f s t a b = 'Optic' (->) f s t a b
+-- @
+type Optic p f s t a b = p a (f b) -> p s (f t)
+
+-- | @
+-- type 'Optic'' p q f s a = 'Simple' ('Optic' p q f) s a
+-- @
+type Optic' p f s a = Optic p f s s a a
+
 -- | @
 -- type 'LensLike' f s t a b = 'Optical' (->) (->) f s t a b
 -- @
@@ -547,15 +572,6 @@ type Optical p q f s t a b = p a (f b) -> q s (f t)
 -- @
 type Optical' p q f s a = Optical p q f s s a a
 
--- | @
--- type 'LensLike' f s t a b = 'Optic' (->) f s t a b
--- @
-type Optic p f s t a b = p a (f b) -> p s (f t)
-
--- | @
--- type 'Optic'' p q f s a = 'Simple' ('Optic' p q f) s a
--- @
-type Optic' p f s a = Optic p f s s a a
 
 -- | Many combinators that accept a 'Lens' can also accept a
 -- 'Traversal' in limited situations.
