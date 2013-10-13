@@ -287,11 +287,21 @@ l %%= f = do
 -- @
 -- 'inside' :: 'Lens' s t a b -> 'Lens' (e -> s) (e -> t) (e -> a) (e -> b)
 -- @
+--
 inside :: Corepresentable p => ALens s t a b -> Lens (p e s) (p e t) (p e a) (p e b)
-inside l f es = o <$> f (cotabulate i) where
-  i e = ipos (l sell (corep es e))
-  o ea = cotabulate $ \ e -> ipeek (corep ea e) (l sell (corep es e))
+inside l f es = o <$> f i where
+  i = cotabulate $ \ e -> ipos $ l sell (corep es e)
+  o ea = cotabulate $ \ e -> ipeek (corep ea e) $ l sell (corep es e)
 {-# INLINE inside #-}
+
+{-
+-- | Lift a 'Lens' so it can run under a function (or any other corepresentable functor).
+insideF :: F.Representable f => ALens s t a b -> Lens (f s) (f t) (f a) (f b)
+insideF l f es = o <$> f i where
+  i = F.tabulate $ \e -> ipos $ l sell (F.index es e)
+  o ea = F.tabulate $ \ e -> ipeek (F.index ea e) $ l sell (F.index es e)
+{-# INLINE inside #-}
+-}
 
 -- | Merge two lenses, getters, setters, folds or traversals.
 --
