@@ -282,14 +282,15 @@ l %%= f = do
 -- Common Lenses
 -------------------------------------------------------------------------------
 
--- | Lift a 'Lens' so it can run under a function.
+-- | Lift a 'Lens' so it can run under a function (or other corepresentable profunctor).
 --
-inside :: ALens s t a b -> Lens (e -> s) (e -> t) (e -> a) (e -> b)
-inside l f es = o <$> f i where
-  i e = ipos (l sell (es e))
-  o ea e = ipeek (ea e) (l sell (es e))
---  i e = case l (Context id) (es e) of Context _ a -> a
---  o ea e = case l (Context id) (es e) of Context k _ -> k (ea e)
+-- @
+-- 'inside' :: 'Lens' s t a b -> 'Lens' (e -> s) (e -> t) (e -> a) (e -> b)
+-- @
+inside :: Corepresentable p => ALens s t a b -> Lens (p e s) (p e t) (p e a) (p e b)
+inside l f es = o <$> f (cotabulate i) where
+  i e = ipos (l sell (corep es e))
+  o ea = cotabulate $ \ e -> ipeek (corep ea e) (l sell (corep es e))
 {-# INLINE inside #-}
 
 -- | Merge two lenses, getters, setters, folds or traversals.
