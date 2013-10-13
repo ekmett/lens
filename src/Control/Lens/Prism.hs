@@ -122,9 +122,11 @@ prism' bs sma = prism bs (\s -> maybe (Left s) Right (sma s))
 -- | Use a 'Prism' as a kind of first-class pattern.
 --
 -- @'outside' :: 'Prism' s t a b -> 'Lens' (t -> r) (s -> r) (b -> r) (a -> r)@
-outside :: APrism s t a b -> Lens (t -> r) (s -> r) (b -> r) (a -> r)
+
+-- TODO: can we make this work with merely Strong?
+outside :: Representable p => APrism s t a b -> Lens (p t r) (p s r) (p b r) (p a r)
 outside k = case runPrism k of
-  Market bt seta -> \f tr -> f (tr.bt) <&> \ar -> either tr ar . seta
+  Market bt seta -> \f ft -> f (lmap bt ft) <&> \fa -> tabulate $ either (rep ft) (rep fa) . seta
 {-# INLINE outside #-}
 
 -- | Use a 'Prism' to work over part of a structure.
