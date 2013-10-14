@@ -552,11 +552,11 @@ class AsAssertionFailed p f t where
   _AssertionFailed :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsAssertionFailed p f AssertionFailed where
-  _AssertionFailed = unwrapping AssertionFailed
+  _AssertionFailed = _Wrapping AssertionFailed
   {-# INLINE _AssertionFailed #-}
 
 instance (Choice p, Applicative f) => AsAssertionFailed p f SomeException where
-  _AssertionFailed = exception.unwrapping AssertionFailed
+  _AssertionFailed = exception._Wrapping AssertionFailed
   {-# INLINE _AssertionFailed #-}
 
 ----------------------------------------------------------------------------
@@ -776,11 +776,11 @@ class (Profunctor p, Functor f) => AsNoMethodError p f t where
   _NoMethodError :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsNoMethodError p f NoMethodError where
-  _NoMethodError = unwrapping NoMethodError
+  _NoMethodError = _Wrapping NoMethodError
   {-# INLINE _NoMethodError #-}
 
 instance (Choice p, Applicative f) => AsNoMethodError p f SomeException where
-  _NoMethodError = exception.unwrapping NoMethodError
+  _NoMethodError = exception._Wrapping NoMethodError
   {-# INLINE _NoMethodError #-}
 
 ----------------------------------------------------------------------------
@@ -798,11 +798,11 @@ class (Profunctor p, Functor f) => AsPatternMatchFail p f t where
   _PatternMatchFail :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsPatternMatchFail p f PatternMatchFail where
-  _PatternMatchFail = unwrapping PatternMatchFail
+  _PatternMatchFail = _Wrapping PatternMatchFail
   {-# INLINE _PatternMatchFail #-}
 
 instance (Choice p, Applicative f) => AsPatternMatchFail p f SomeException where
-  _PatternMatchFail = exception.unwrapping PatternMatchFail
+  _PatternMatchFail = exception._Wrapping PatternMatchFail
   {-# INLINE _PatternMatchFail #-}
 
 ----------------------------------------------------------------------------
@@ -821,11 +821,11 @@ class (Profunctor p, Functor f) => AsRecConError p f t where
   _RecConError :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsRecConError p f RecConError where
-  _RecConError = unwrapping RecConError
+  _RecConError = _Wrapping RecConError
   {-# INLINE _RecConError #-}
 
 instance (Choice p, Applicative f) => AsRecConError p f SomeException where
-  _RecConError = exception.unwrapping RecConError
+  _RecConError = exception._Wrapping RecConError
   {-# INLINE _RecConError #-}
 
 ----------------------------------------------------------------------------
@@ -840,11 +840,11 @@ class (Profunctor p, Functor f) => AsRecSelError p f t where
   _RecSelError :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsRecSelError p f RecSelError where
-  _RecSelError = unwrapping RecSelError
+  _RecSelError = _Wrapping RecSelError
   {-# INLINE _RecSelError #-}
 
 instance (Choice p, Applicative f) => AsRecSelError p f SomeException where
-  _RecSelError = exception.unwrapping RecSelError
+  _RecSelError = exception._Wrapping RecSelError
   {-# INLINE _RecSelError #-}
 
 ----------------------------------------------------------------------------
@@ -859,11 +859,11 @@ class (Profunctor p, Functor f) => AsRecUpdError p f t where
   _RecUpdError :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsRecUpdError p f RecUpdError where
-  _RecUpdError = unwrapping RecUpdError
+  _RecUpdError = _Wrapping RecUpdError
   {-# INLINE _RecUpdError #-}
 
 instance (Choice p, Applicative f) => AsRecUpdError p f SomeException where
-  _RecUpdError = exception.unwrapping RecUpdError
+  _RecUpdError = exception._Wrapping RecUpdError
   {-# INLINE _RecUpdError #-}
 
 ----------------------------------------------------------------------------
@@ -881,11 +881,11 @@ class (Profunctor p, Functor f) => AsErrorCall p f t where
   _ErrorCall :: Optic' p f t String
 
 instance (Profunctor p, Functor f) => AsErrorCall p f ErrorCall where
-  _ErrorCall = unwrapping ErrorCall
+  _ErrorCall = _Wrapping ErrorCall
   {-# INLINE _ErrorCall #-}
 
 instance (Choice p, Applicative f) => AsErrorCall p f SomeException where
-  _ErrorCall = exception.unwrapping ErrorCall
+  _ErrorCall = exception._Wrapping ErrorCall
   {-# INLINE _ErrorCall #-}
 
 ------------------------------------------------------------------------------

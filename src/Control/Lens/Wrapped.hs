@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -43,13 +44,18 @@
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Wrapped
-  ( Wrapped(..)
-  , unwrapped
-  , wrapped', unwrapped'
-  , wrapping, unwrapping
-  , wrappings, unwrappings
+  (
+  -- * Wrapping and Unwrapping monomorphically
+    Wrapped(..)
+  , _Unwrapped'
+  , _Wrapping', _Unwrapping'
+  -- * Wrapping and unwrapping polymorphically
+  , Rewrapped
+  , _Wrapped, _Unwrapped
+  , _Wrapping, _Unwrapping
+  -- * Operations
   , op
-  , ala, alaf
+  -- , ala, alaf
   ) where
 
 import           Control.Applicative
@@ -57,6 +63,7 @@ import           Control.Arrow
 import           Control.Applicative.Backwards
 import           Control.Comonad.Trans.Traced
 import           Control.Exception
+import           Control.Lens.Getter
 import           Control.Lens.Iso
 import           Control.Lens.Review
 import           Control.Monad.Trans.Cont
@@ -97,279 +104,422 @@ import           Data.Tagged
 
 -- | 'Wrapped' provides isomorphisms to wrap and unwrap newtypes or
 -- data types with one constructor.
-class Wrapped s t a b | a -> s, b -> t, a t -> b, b s -> a where
-  -- | An isomorphism between s and @a@ and a related one between @t@ and @b@, such that when @a = b@, @s = t@.
-  --
-  -- This is often used via 'wrapping' to aid type inference.
-  wrapped   :: Iso s t a b
+class Wrapped s where
+  type Unwrapped s :: *
+  -- | An isomorphism between @s@ and @a@.
+  _Wrapped' :: Iso' s (Unwrapped s)
+
+-- This can be used to help inference between the wrappers
+class Wrapped s => Rewrapped s t
+
+class    (Rewrapped s t, Rewrapped t s) => Rewrapping s t
+instance (Rewrapped s t, Rewrapped t s) => Rewrapping s t
+
+_Unwrapped' :: Wrapped s => Iso' (Unwrapped s) s
+_Unwrapped' = from _Wrapped'
+
+-- | Work under a newtype wrapper.
+--
+-- >>> Const "hello" & _Wrapped %~ length & getConst
+-- 5
+--
+-- @
+-- '_Wrapped'   ≡ 'from' '_Unwrapped'
+-- '_Unwrapped' ≡ 'from' '_Wrapped'
+-- @
+_Wrapped :: Rewrapping s t => Iso s t (Unwrapped s) (Unwrapped t)
+_Wrapped = withIso _Wrapped' $ \ sa _ -> withIso _Wrapped' $ \ _ bt -> iso sa bt
+{-# INLINE _Wrapped #-}
+
+_Unwrapped :: Rewrapping s t => Iso (Unwrapped t) (Unwrapped s) t s
+_Unwrapped = from _Wrapped
+{-# INLINE _Unwrapped #-}
 
 -- * base
 
-instance Wrapped Bool Bool All All where
-  wrapped = iso All getAll
-  {-# INLINE wrapped #-}
+instance (t ~ All) => Rewrapped All t
+instance Wrapped All where
+  type Unwrapped All = Bool
+  _Wrapped' = iso getAll All
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped Bool Bool Any Any where
-  wrapped = iso Any getAny
-  {-# INLINE wrapped #-}
+instance (t ~ Any) => Rewrapped Any t
+instance Wrapped Any where
+  type Unwrapped Any = Bool
+  _Wrapped' = iso getAny Any
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped a b (Sum a) (Sum b) where
-  wrapped = iso Sum getSum
-  {-# INLINE wrapped #-}
+instance (t ~ Sum b) => Rewrapped (Sum a) t
+instance Wrapped (Sum a) where
+  type Unwrapped (Sum a) = a
+  _Wrapped' = iso getSum Sum
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped a b (Product a) (Product b) where
-  wrapped = iso Product getProduct
-  {-# INLINE wrapped #-}
+instance (t ~ Product b) => Rewrapped (Product a) t
+instance Wrapped (Product a) where
+  type Unwrapped (Product a) = a
+  _Wrapped' = iso getProduct Product
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (a -> m b) (u -> n v) (Kleisli m a b) (Kleisli n u v) where
-  wrapped = iso Kleisli runKleisli
-  {-# INLINE wrapped #-}
+instance (t ~ Kleisli m' a' b') => Rewrapped (Kleisli m a b) t
+instance Wrapped (Kleisli m a b) where
+  type Unwrapped (Kleisli m a b) = a -> m b
+  _Wrapped' = iso runKleisli Kleisli
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (m a) (n b) (WrappedMonad m a) (WrappedMonad n b) where
-  wrapped = iso WrapMonad unwrapMonad
-  {-# INLINE wrapped #-}
+instance (t ~ WrappedMonad m' a') => Rewrapped (WrappedMonad m a) t
+instance Wrapped (WrappedMonad m a) where
+  type Unwrapped (WrappedMonad m a) = m a
+  _Wrapped' = iso unwrapMonad WrapMonad
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (a b c) (u v w) (WrappedArrow a b c) (WrappedArrow u v w) where
-  wrapped = iso WrapArrow unwrapArrow
-  {-# INLINE wrapped #-}
+instance (t ~ WrappedArrow a' b' c') => Rewrapped (WrappedArrow a b c) t
+instance Wrapped (WrappedArrow a b c) where
+  type Unwrapped (WrappedArrow a b c) = a b c
+  _Wrapped' = iso unwrapArrow WrapArrow
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped [a] [b] (ZipList a) (ZipList b) where
-  wrapped = iso ZipList getZipList
-  {-# INLINE wrapped #-}
+instance (t ~ ZipList b) => Rewrapped (ZipList a) t
+instance Wrapped (ZipList a) where
+  type Unwrapped (ZipList a) = [a]
+  _Wrapped' = iso getZipList ZipList
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped a b (Const a x) (Const b x) where
-  wrapped = iso Const getConst
-  {-# INLINE wrapped #-}
+instance (t ~ Const a' x') => Rewrapped (Const a x) t
+instance Wrapped (Const a x) where
+  type Unwrapped (Const a x) = a
+  _Wrapped' = iso getConst Const
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped a b (Dual a) (Dual b) where
-  wrapped = iso Dual getDual
-  {-# INLINE wrapped #-}
+instance (t ~ Dual b) => Rewrapped (Dual a) t
+instance Wrapped (Dual a) where
+  type Unwrapped (Dual a) = a
+  _Wrapped' = iso getDual Dual
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (a -> a) (b -> b) (Endo a) (Endo b) where
-  wrapped = iso Endo appEndo
-  {-# INLINE wrapped #-}
+instance (t ~ Endo b) => Rewrapped (Endo b) t
+instance Wrapped (Endo a) where
+  type Unwrapped (Endo a) = a -> a
+  _Wrapped' = iso appEndo Endo
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (Maybe a) (Maybe b) (First a) (First b) where
-  wrapped = iso First getFirst
-  {-# INLINE wrapped #-}
+instance (t ~ First b) => Rewrapped (First a) t
+instance Wrapped (First a) where
+  type Unwrapped (First a) = Maybe a
+  _Wrapped' = iso getFirst First
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (Maybe a) (Maybe b) (Last a) (Last b) where
-  wrapped = iso Last getLast
-  {-# INLINE wrapped #-}
+instance (t ~ Last b) => Rewrapped (Last b) t
+instance Wrapped (Last a) where
+  type Unwrapped (Last a) = Maybe a
+  _Wrapped' = iso getLast Last
+  {-# INLINE _Wrapped' #-}
 
-instance (ArrowApply m, ArrowApply n) => Wrapped (m () a) (n () b) (ArrowMonad m a) (ArrowMonad n b) where
-  wrapped = iso ArrowMonad getArrowMonad
-  {-# INLINE wrapped #-}
+instance (t ~ ArrowMonad m' a', ArrowApply m, ArrowApply m') => Rewrapped (ArrowMonad m a) t
+instance ArrowApply m => Wrapped (ArrowMonad m a) where
+  type Unwrapped (ArrowMonad m a) = m () a
+  _Wrapped' = iso getArrowMonad ArrowMonad
+  {-# INLINE _Wrapped' #-}
 
 -- * transformers
 
-instance Wrapped (f a) (f' a') (Backwards f a) (Backwards f' a') where
-  wrapped = iso Backwards forwards
-  {-# INLINE wrapped #-}
+instance (t ~ Backwards g b) => Rewrapped (Backwards f a) t
+instance Wrapped (Backwards f a) where
+  type Unwrapped (Backwards f a) = f a
+  _Wrapped' = iso forwards Backwards
 
-instance Wrapped (f (g a)) (f' (g' a')) (Compose f g a) (Compose f' g' a') where
-  wrapped = iso Compose getCompose
-  {-# INLINE wrapped #-}
+instance (t ~ Compose f' g' a') => Rewrapped (Compose f g a) t
+instance Wrapped (Compose f g a) where
+  type Unwrapped (Compose f g a) = f (g a)
+  _Wrapped' = iso getCompose Compose
 
-instance Wrapped a a' (Constant a b) (Constant a' b) where
-  wrapped = iso Constant getConstant
-  {-# INLINE wrapped #-}
+instance (t ~ Constant a' b') => Rewrapped (Constant a b) t
+instance Wrapped (Constant a b) where
+  type Unwrapped (Constant a b) = a
+  _Wrapped' = iso getConstant Constant
 
-instance Wrapped ((a -> m r) -> m r) ((a' -> m' r') -> m' r') (ContT r m a) (ContT r' m' a') where
-  wrapped = iso ContT runContT
-  {-# INLINE wrapped #-}
+instance (t ~ ContT r' m' a') => Rewrapped (ContT r m a) t
+instance Wrapped (ContT r m a) where
+  type Unwrapped (ContT r m a) = (a -> m r) -> m r
+  _Wrapped' = iso runContT ContT
 
-instance Wrapped (m (Either e a)) (m' (Either e' a')) (ErrorT e m a) (ErrorT e' m' a') where
-  wrapped = iso ErrorT runErrorT
-  {-# INLINE wrapped #-}
+instance (t ~ ErrorT e' m' a') => Rewrapped (ErrorT e m a) t
+instance Wrapped (ErrorT e m a) where
+  type Unwrapped (ErrorT e m a) = m (Either e a)
+  _Wrapped' = iso runErrorT ErrorT
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped a a' (Identity a) (Identity a') where
-  wrapped = iso Identity runIdentity
-  {-# INLINE wrapped #-}
+instance (t ~ Identity b) => Rewrapped (Identity a) t
+instance Wrapped (Identity a) where
+  type Unwrapped (Identity a) = a
+  _Wrapped' = iso runIdentity Identity
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (m a) (m' a') (IdentityT m a) (IdentityT m' a') where
-  wrapped = iso IdentityT runIdentityT
-  {-# INLINE wrapped #-}
+instance (t ~ IdentityT n b) => Rewrapped (IdentityT m a) t
+instance Wrapped (IdentityT m a) where
+  type Unwrapped (IdentityT m a) = m a
+  _Wrapped' = iso runIdentityT IdentityT
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (m [a]) (m' [a']) (ListT m a) (ListT m' a') where
-  wrapped = iso ListT runListT
-  {-# INLINE wrapped #-}
+instance (t ~ ListT n b) => Rewrapped (ListT m a) t
+instance Wrapped (ListT m a) where
+  type Unwrapped (ListT m a) = m [a]
+  _Wrapped' = iso runListT ListT
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (m (Maybe a)) (m' (Maybe a')) (MaybeT m a) (MaybeT m' a') where
-  wrapped = iso MaybeT runMaybeT
-  {-# INLINE wrapped #-}
+instance (t ~ MaybeT n b) => Rewrapped (MaybeT m a) t
+instance Wrapped (MaybeT m a) where
+  type Unwrapped (MaybeT m a) = m (Maybe a)
+  _Wrapped' = iso runMaybeT MaybeT
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (r -> m a) (r' -> m' a') (ReaderT r m a) (ReaderT r' m' a') where
-  wrapped = iso ReaderT runReaderT
-  {-# INLINE wrapped #-}
+instance (t ~ ReaderT r n b) => Rewrapped (ReaderT r m a) t
+instance Wrapped (ReaderT r m a) where
+  type Unwrapped (ReaderT r m a) = r -> m a
+  _Wrapped' = iso runReaderT ReaderT
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (f a) (f' a') (Reverse f a) (Reverse f' a') where
-  wrapped = iso Reverse getReverse
-  {-# INLINE wrapped #-}
+instance (t ~ Reverse g b) => Rewrapped (Reverse f a) t
+instance Wrapped (Reverse f a) where
+  type Unwrapped (Reverse f a) = f a
+  _Wrapped' = iso getReverse Reverse
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (r -> s -> m (a, s, w)) (r' -> s' -> m' (a', s', w')) (Lazy.RWST r w s m a) (Lazy.RWST r' w' s' m' a') where
-  wrapped = iso Lazy.RWST Lazy.runRWST
-  {-# INLINE wrapped #-}
+instance (t ~ Lazy.RWST r' w' s' m' a') => Rewrapped (Lazy.RWST r w s m a) t
+instance Wrapped (Lazy.RWST r w s m a) where
+  type Unwrapped (Lazy.RWST r w s m a) = r -> s -> m (a, s, w)
+  _Wrapped' = iso Lazy.runRWST Lazy.RWST
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (r -> s -> m (a, s, w)) (r' -> s' -> m' (a', s', w')) (Strict.RWST r w s m a) (Strict.RWST r' w' s' m' a') where
-  wrapped = iso Strict.RWST Strict.runRWST
-  {-# INLINE wrapped #-}
+instance (t ~ Strict.RWST r' w' s' m' a') => Rewrapped (Strict.RWST r w s m a) t
+instance Wrapped (Strict.RWST r w s m a) where
+  type Unwrapped (Strict.RWST r w s m a) = r -> s -> m (a, s, w)
+  _Wrapped' = iso Strict.runRWST Strict.RWST
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (s -> m (a, s)) (s' -> m' (a', s')) (Lazy.StateT s m a) (Lazy.StateT s' m' a') where
-  wrapped = iso Lazy.StateT Lazy.runStateT
-  {-# INLINE wrapped #-}
+instance (t ~ Lazy.StateT s' m' a') => Rewrapped (Lazy.StateT s m a) t
+instance Wrapped (Lazy.StateT s m a) where
+  type Unwrapped (Lazy.StateT s m a) = s -> m (a, s)
+  _Wrapped' = iso Lazy.runStateT Lazy.StateT
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (s -> m (a, s)) (s' -> m' (a', s')) (Strict.StateT s m a) (Strict.StateT s' m' a') where
-  wrapped = iso Strict.StateT Strict.runStateT
-  {-# INLINE wrapped #-}
+instance (t ~ Strict.StateT s' m' a') => Rewrapped (Strict.StateT s m a) t
+instance Wrapped (Strict.StateT s m a) where
+  type Unwrapped (Strict.StateT s m a) = s -> m (a, s)
+  _Wrapped' = iso Strict.runStateT Strict.StateT
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (m (a, w)) (m' (a', w')) (Lazy.WriterT w m a) (Lazy.WriterT w' m' a') where
-  wrapped = iso Lazy.WriterT Lazy.runWriterT
-  {-# INLINE wrapped #-}
+instance (t ~ Lazy.WriterT w' m' a') => Rewrapped (Lazy.WriterT w m a) t
+instance Wrapped (Lazy.WriterT w m a) where
+  type Unwrapped (Lazy.WriterT w m a) = m (a, w)
+  _Wrapped' = iso Lazy.runWriterT Lazy.WriterT
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (m (a, w)) (m' (a', w')) (Strict.WriterT w m a) (Strict.WriterT w' m' a') where
-  wrapped = iso Strict.WriterT Strict.runWriterT
-  {-# INLINE wrapped #-}
+instance (t ~ Strict.WriterT w' m' a') => Rewrapped (Strict.WriterT w m a) t
+instance Wrapped (Strict.WriterT w m a) where
+  type Unwrapped (Strict.WriterT w m a) = m (a, w)
+  _Wrapped' = iso Strict.runWriterT Strict.WriterT
+  {-# INLINE _Wrapped' #-}
 
 -- * comonad-transformers
 
-instance Wrapped (Either (f a) (g a)) (Either (f' a') (g' a')) (Coproduct f g a) (Coproduct f' g' a') where
-  wrapped = iso Coproduct getCoproduct
-  {-# INLINE wrapped #-}
+instance (t ~ Coproduct f' g' a') => Rewrapped (Coproduct f g a) t
+instance Wrapped (Coproduct f g a) where
+  type Unwrapped (Coproduct f g a) = Either (f a) (g a)
+  _Wrapped' = iso getCoproduct Coproduct
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (w (m -> a)) (w' (m' -> a')) (TracedT m w a) (TracedT m' w' a') where
-  wrapped = iso TracedT runTracedT
-  {-# INLINE wrapped #-}
+instance (t ~ TracedT m' w' a') => Rewrapped (TracedT m w a) t
+instance Wrapped (TracedT m w a) where
+  type Unwrapped (TracedT m w a) = w (m -> a)
+  _Wrapped' = iso runTracedT TracedT
+  {-# INLINE _Wrapped' #-}
 
 -- * unordered-containers
 
 -- | Use @'wrapping' 'HashMap.fromList'@. Unwrapping returns some permutation of the list.
-instance (Hashable k, Eq k, Hashable k', Eq k') => Wrapped [(k, a)] [(k', b)] (HashMap k a) (HashMap k' b) where
-  wrapped = iso HashMap.fromList HashMap.toList
-  {-# INLINE wrapped #-}
+instance (t ~ HashMap k' a', Hashable k, Eq k) => Rewrapped (HashMap k a) t
+instance (Hashable k, Eq k) => Wrapped (HashMap k a) where
+  type Unwrapped (HashMap k a) = [(k, a)]
+  _Wrapped' = iso HashMap.toList HashMap.fromList
+  {-# INLINE _Wrapped' #-}
 
 -- | Use @'wrapping' 'HashSet.fromList'@. Unwrapping returns some permutation of the list.
-instance (Hashable a, Eq a, Hashable b, Eq b) => Wrapped [a] [b] (HashSet a) (HashSet b) where
-  wrapped = iso HashSet.fromList HashSet.toList
-  {-# INLINE wrapped #-}
+instance (t ~ HashMap a', Hashable a, Eq a) => Rewrapped (HashSet a) t
+instance (Hashable a, Eq a) => Wrapped (HashSet a) where
+  type Unwrapped (HashSet a) = [a]
+  _Wrapped' = iso HashSet.toList HashSet.fromList
+  {-# INLINE _Wrapped' #-}
 
 -- * containers
 
 -- | Use @'wrapping' 'IntMap.fromList'@. unwrapping returns a /sorted/ list.
-instance Wrapped [(Int, a)] [(Int, b)] (IntMap a) (IntMap b) where
-  wrapped = iso IntMap.fromList IntMap.toAscList
-  {-# INLINE wrapped #-}
+instance (t ~ IntMap a') => Rewrapped (IntMap a) t
+instance Wrapped (IntMap a) where
+  type Unwrapped (IntMap a) = [(Int, a)]
+  _Wrapped' = iso IntMap.toAscList IntMap.fromList
+  {-# INLINE _Wrapped' #-}
 
 -- | Use @'wrapping' 'IntSet.fromList'@. unwrapping returns a /sorted/ list.
-instance Wrapped [Int] [Int] IntSet IntSet where
-  wrapped = iso IntSet.fromList IntSet.toAscList
-  {-# INLINE wrapped #-}
+instance (t ~ IntSet) => Rewrapped IntSet t
+instance Wrapped IntSet where
+  type Unwrapped IntSet = [Int]
+  _Wrapped' = iso IntSet.toAscList IntSet.fromList
+  {-# INLINE _Wrapped' #-}
 
 -- | Use @'wrapping' 'Map.fromList'@. unwrapping returns a /sorted/ list.
-instance (Ord k, Ord k') => Wrapped [(k, a)] [(k', b)] (Map k a) (Map k' b) where
-  wrapped = iso Map.fromList Map.toAscList
-  {-# INLINE wrapped #-}
+instance (t ~ Map k' a', Ord k) => Rewrapped (Map k a) t
+instance Ord k => Wrapped (Map k a) where
+  type Unwrapped (Map k a) = [(k, a)]
+  _Wrapped' = iso Map.toAscList Map.fromList
+  {-# INLINE _Wrapped' #-}
 
 -- | Use @'wrapping' 'Set.fromList'@. unwrapping returns a /sorted/ list.
-instance (Ord a, Ord b) => Wrapped [a] [b] (Set a) (Set b) where
-  wrapped = iso Set.fromList Set.toAscList
-  {-# INLINE wrapped #-}
+instance (t ~ Set a', Ord a) => Rewrapped (Set a) t
+instance Ord a => Wrapped (Set a) where
+  type Unwrapped (Set a) = [a]
+  _Wrapped' = iso Set.toAscList Set.fromList
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped [a] [b] (Seq a) (Seq b) where
-  wrapped = iso Seq.fromList Foldable.toList
-  {-# INLINE wrapped #-}
+instance (t ~ Seq a') => Rewrapped (Seq a) t
+instance Wrapped (Seq a) where
+  type Unwrapped (Seq a) = [a]
+  _Wrapped' = iso Foldable.toList Seq.fromList
+  {-# INLINE _Wrapped' #-}
 
 -- * semigroups
 
-instance Wrapped a b (S.Min a) (S.Min b) where
-  wrapped = iso S.Min S.getMin
-  {-# INLINE wrapped #-}
+instance (t ~ S.Min b) => Rewrapped (S.Min a) t
+instance Wrapped (S.Min a) where
+  type Unwrapped (S.Min a) = a
+  _Wrapped' = iso S.getMin S.Min
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped a b (S.Max a) (S.Max b) where
-  wrapped = iso S.Max S.getMax
-  {-# INLINE wrapped #-}
+instance (t ~ S.Max b) => Rewrapped (S.Max a) t
+instance Wrapped (S.Max a) where
+  type Unwrapped (S.Max a) = a
+  _Wrapped' = iso S.getMax S.Max
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped a b (S.First a) (S.First b) where
-  wrapped = iso S.First S.getFirst
-  {-# INLINE wrapped #-}
+instance (t ~ S.First b) => Rewrapped (S.First a) t
+instance Wrapped (S.First a) where
+  type Unwrapped (S.First a) = a
+  _Wrapped' = iso S.getFirst S.First
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped a b (S.Last a) (S.Last b) where
-  wrapped = iso S.Last S.getLast
-  {-# INLINE wrapped #-}
+instance (t ~ S.Last b) => Rewrapped (S.Last a) t
+instance Wrapped (S.Last a) where
+  type Unwrapped (S.Last a) = a
+  _Wrapped' = iso S.getLast S.Last
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped a b (S.WrappedMonoid a) (S.WrappedMonoid b) where
-  wrapped = iso S.WrapMonoid S.unwrapMonoid
-  {-# INLINE wrapped #-}
+instance (t ~ S.WrappedMonoid b) => Rewrapped (S.WrappedMonoid a) t
+instance Wrapped (S.WrappedMonoid a) where
+  type Unwrapped (S.WrappedMonoid a) = a
+  _Wrapped' = iso S.unwrapMonoid S.WrapMonoid
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (Maybe a) (Maybe b) (S.Option a) (S.Option b) where
-  wrapped = iso S.Option S.getOption
-  {-# INLINE wrapped #-}
+instance (t ~ S.Option b) => Rewrapped (S.Option a) t
+instance Wrapped (S.Option a) where
+  type Unwrapped (S.Option a) = Maybe a
+  _Wrapped' = iso S.getOption S.Option
+  {-# INLINE _Wrapped' #-}
 
 -- * contravariant
 
-instance Wrapped (a -> Bool) (a' -> Bool) (Predicate a) (Predicate a') where
-  wrapped = iso Predicate getPredicate
-  {-# INLINE wrapped #-}
+instance (t ~ Predicate b) => Rewrapped (Predicate a) t
+instance Wrapped (Predicate a) where
+  type Unwrapped (Predicate a) = a -> Bool
+  _Wrapped' = iso getPredicate Predicate
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (a -> a -> Ordering) (a' -> a' -> Ordering) (Comparison a) (Comparison a') where
-  wrapped = iso Comparison getComparison
-  {-# INLINE wrapped #-}
+instance (t ~ Comparison b) => Rewrapped (Comparison a) t
+instance Wrapped (Comparison a) where
+  type Unwrapped (Comparison a) = a -> a -> Ordering
+  _Wrapped' = iso getComparison Comparison
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (a -> a -> Bool) (a' -> a' -> Bool) (Equivalence a) (Equivalence a') where
-  wrapped = iso Equivalence getEquivalence
-  {-# INLINE wrapped #-}
+instance (t ~ Equivalence b) => Rewrapped (Equivalence a) t
+instance Wrapped (Equivalence a) where
+  type Unwrapped (Equivalence a) = a -> a -> Bool
+  _Wrapped' = iso getEquivalence Equivalence
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (b -> a) (b' -> a') (Op a b) (Op a' b') where
-  wrapped = iso Op getOp
-  {-# INLINE wrapped #-}
+instance (t ~ Op a' b') => Rewrapped (Op a b) t
+instance Wrapped (Op a b) where
+  type Unwrapped (Op a b) = b -> a
+  _Wrapped' = iso getOp Op
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.Compose f g a) (Contravariant.Compose f' g' a') where
-  wrapped = iso Contravariant.Compose Contravariant.getCompose
-  {-# INLINE wrapped #-}
+instance (t ~ Contravariant.Compose f' g' a') => Rewrapped (Contravariant.Compose f g a) t
+instance Wrapped (Contravariant.Compose f g a) where
+  type Unwrapped (Contravariant.Compose f g a) = f (g a)
+  _Wrapped' = iso Contravariant.getCompose Contravariant.Compose
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeFC f g a) (Contravariant.ComposeFC f' g' a') where
-  wrapped = iso Contravariant.ComposeFC Contravariant.getComposeFC
-  {-# INLINE wrapped #-}
+instance (t ~ Contravariant.ComposeFC f' g' a') => Rewrapped (Contravariant.ComposeFC f g a) t
+instance Wrapped (Contravariant.ComposeFC f g a) where
+  type Unwrapped (Contravariant.ComposeFC f g a) = f (g a)
+  _Wrapped' = iso Contravariant.getComposeFC Contravariant.ComposeFC
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped (f (g a)) (f' (g' a')) (Contravariant.ComposeCF f g a) (Contravariant.ComposeCF f' g' a') where
-  wrapped = iso Contravariant.ComposeCF Contravariant.getComposeCF
-  {-# INLINE wrapped #-}
+instance (t ~ Contravariant.ComposeCF f' g' a') => Rewrapped (Contravariant.ComposeCF f g a) t
+instance Wrapped (Contravariant.ComposeCF f g a) where
+  type Unwrapped (Contravariant.ComposeCF f g a) = f (g a)
+  _Wrapped' = iso Contravariant.getComposeCF Contravariant.ComposeCF
+  {-# INLINE _Wrapped' #-}
 
 -- * tagged
 
-instance Wrapped a b (Tagged s a) (Tagged s b) where
-  wrapped = iso Tagged unTagged
-  {-# INLINE wrapped #-}
+instance (t ~ Tagged s' a') => Rewrapped (Tagged s a) t
+instance Wrapped (Tagged s a) where
+  type Unwrapped (Tagged s a) = a
+  _Wrapped' = iso unTagged Tagged
+  {-# INLINE _Wrapped' #-}
 
 -- * Control.Exception
 
-instance Wrapped String String AssertionFailed AssertionFailed where
-  wrapped = iso AssertionFailed failedAssertion
-  {-# INLINE wrapped #-}
+instance (t ~ AssertionFailed) => Rewrapped AssertionFailed t
+instance Wrapped AssertionFailed where
+  type Unwrapped AssertionFailed = String
+  _Wrapped' = iso failedAssertion AssertionFailed
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped String String NoMethodError NoMethodError where
-  wrapped = iso NoMethodError getNoMethodError
-  {-# INLINE wrapped #-}
+instance (t ~ NoMethodError) => Rewrapped NoMethodError t
+instance Wrapped NoMethodError where
+  type Unwrapped NoMethodError = String
+  _Wrapped' = iso getNoMethodError NoMethodError
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped String String PatternMatchFail PatternMatchFail where
-  wrapped = iso PatternMatchFail getPatternMatchFail
-  {-# INLINE wrapped #-}
+instance (t ~ PatternMatchFail) => Rewrapped PatternMatchFail t
+instance Wrapped PatternMatchFail where
+  type Unwrapped PatternMatchFail = String
+  _Wrapped' = iso getPatternMatchFail PatternMatchFail
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped String String RecConError RecConError where
-  wrapped = iso RecConError getRecConError
-  {-# INLINE wrapped #-}
+instance (t ~ RecConError) => Rewrapped RecConError t
+instance Wrapped RecConError where
+  type Unwrapped RecConError = String
+  _Wrapped' = iso getRecConError RecConError
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped String String RecSelError RecSelError where
-  wrapped = iso RecSelError getRecSelError
-  {-# INLINE wrapped #-}
+instance (t ~ RecSelError) => Rewrapped RecSelError t
+instance Wrapped RecSelError where
+  type Unwrapped RecSelError = String
+  _Wrapped' = iso getRecSelError RecSelError
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped String String RecUpdError RecUpdError where
-  wrapped = iso RecUpdError getRecUpdError
-  {-# INLINE wrapped #-}
+instance (t ~ RecUpdError) => Rewrapped RecUpdError t
+instance Wrapped RecUpdError where
+  type Unwrapped RecUpdError = String
+  _Wrapped' = iso getRecUpdError RecUpdError
+  {-# INLINE _Wrapped' #-}
 
-instance Wrapped String String ErrorCall ErrorCall where
-  wrapped = iso ErrorCall getErrorCall
-  {-# INLINE wrapped #-}
+instance (t ~ ErrorCall) => Rewrapped ErrorCall t
+instance Wrapped ErrorCall where
+  type Unwrapped ErrorCall = String
+  _Wrapped' = iso getErrorCall ErrorCall
+  {-# INLINE _Wrapped' #-}
 
 getErrorCall :: ErrorCall -> String
 getErrorCall (ErrorCall x) = x
@@ -419,73 +569,42 @@ getArrowMonad (ArrowMonad x) = x
 --
 -- >>> op Const (Const "hello")
 -- "hello"
-op :: Wrapped s s a a => (s -> a) -> a -> s
-op f = review (wrapping f)
+op :: Wrapped s => (Unwrapped s -> s) -> s -> Unwrapped s
+op _ = view _Wrapped'
 {-# INLINE op #-}
 
--- | This is a convenient alias for @'from' 'wrapped'@.
---
--- >>> Const "hello" & unwrapped %~ length & getConst
--- 5
-unwrapped :: Wrapped b a t s => Iso s t a b
-unwrapped = from wrapped
-{-# INLINE unwrapped #-}
-
--- | A convenient type-restricted version of 'wrapped' for aiding type inference.
-wrapped' :: Wrapped s s a a => Iso' s a
-wrapped' = wrapped
-{-# INLINE wrapped' #-}
-
--- | A convenient type-restricted version of 'unwrapped' for aiding type inference.
-unwrapped' :: Wrapped s s a a => Iso' a s
-unwrapped' = unwrapped
-{-# INLINE unwrapped' #-}
-
--- | This is a convenient version of 'wrapped' with an argument that's ignored.
---
--- The argument is used to specify which newtype the user intends to wrap
--- by using the constructor for that newtype.
+-- | This is a convenient version of '_Wrapped' with an argument that's ignored.
 --
 -- The user supplied function is /ignored/, merely its type is used.
-wrapping :: Wrapped s s a a => (s -> a) -> Iso s s a a
-wrapping _ = wrapped
-{-# INLINE wrapping #-}
+_Wrapping' :: Wrapped s => (Unwrapped s -> s) -> Iso' s (Unwrapped s)
+_Wrapping' _ = _Wrapped'
+{-# INLINE _Wrapping' #-}
 
--- | This is a convenient version of 'unwrapped' with an argument that's ignored.
---
--- The argument is used to specify which newtype the user intends to /remove/
--- by using the constructor for that newtype.
+-- | This is a convenient version of '_Wrapped' with an argument that's ignored.
 --
 -- The user supplied function is /ignored/, merely its type is used.
-unwrapping :: Wrapped s s a a => (s -> a) -> Iso a a s s
-unwrapping _ = unwrapped
-{-# INLINE unwrapping #-}
+_Unwrapping' :: Wrapped s => (Unwrapped s -> s) -> Iso' (Unwrapped s) s
+_Unwrapping' _ = from _Wrapped'
+{-# INLINE _Unwrapping' #-}
 
--- | This is a convenient version of 'wrapped' with two arguments that are ignored.
+-- | This is a convenient version of '_Wrapped' with an argument that's ignored.
 --
--- These arguments are used to which newtype the user intends to wrap and
--- should both be the same constructor.  This redundancy is necessary
--- in order to find the full polymorphic isomorphism family.
---
--- The user supplied functions are /ignored/, merely their types are used.
-wrappings :: Wrapped s t a b => (s -> a) -> (t -> b) -> Iso s t a b
-wrappings _ _ = wrapped
-{-# INLINE wrappings #-}
+-- The user supplied function is /ignored/, merely its types are used.
+_Wrapping :: Rewrapping s t => (Unwrapped s -> s) -> Iso s t (Unwrapped s) (Unwrapped t)
+_Wrapping _ = _Wrapped
+{-# INLINE _Wrapping #-}
 
--- | This is a convenient version of 'unwrapped' with two arguments that are ignored.
+-- | This is a convenient version of '_Unwrapped' with an argument that's ignored.
 --
--- These arguments are used to which newtype the user intends to remove and
--- should both be the same constructor. This redundancy is necessary
--- in order to find the full polymorphic isomorphism family.
---
--- The user supplied functions are /ignored/, merely their types are used.
-unwrappings :: Wrapped t s b a => (s -> a) -> (t -> b) -> Iso a b s t
-unwrappings _ _ = unwrapped
-{-# INLINE unwrappings #-}
+-- The user supplied function is /ignored/, merely its types are used.
+_Unwrapping :: Rewrapping s t => (Unwrapped s -> s) -> Iso (Unwrapped t) (Unwrapped s) t s
+_Unwrapping _ = from _Wrapped
+{-# INLINE _Unwrapping #-}
 
+{-
 -- | This combinator is based on @ala@ from Conor McBride's work on Epigram.
 --
--- As with 'wrapping', the user supplied function for the newtype is /ignored/.
+-- As with '_Wrapping', the user supplied function for the newtype is /ignored/.
 --
 -- >>> ala Sum foldMap [1,2,3,4]
 -- 10
@@ -507,16 +626,17 @@ unwrappings _ _ = unwrapped
 --
 -- >>> ala Product foldMap [1,2,3,4]
 -- 24
-ala :: Wrapped s s a a => (s -> a) -> ((s -> a) -> e -> a) -> e -> s
-ala = au . wrapping
+ala :: Wrapped s => (Unwrapped s -> s) -> ((Unwrapped s -> s) -> e -> s) -> e -> Unwrapped s
+ala = au . _Unwrapped'
 {-# INLINE ala #-}
 
 -- | This combinator is based on @ala'@ from Conor McBride's work on Epigram.
 --
--- As with 'wrapping', the user supplied function for the newtype is /ignored/.
+-- As with '_Wrapping', the user supplied function for the newtype is /ignored/.
 --
 -- >>> alaf Sum foldMap length ["hello","world"]
 -- 10
-alaf :: (Profunctor p, Wrapped s s a a) => (s -> a) -> (p r a -> e -> a) -> p r s -> e -> s
-alaf = auf . wrapping
+alaf :: (Profunctor p, Wrapped s) => (Unwrapped s -> Unwrapped s) -> (p r s -> e -> s) -> p r (Unwrapped s) -> e -> Unwrapped s
+alaf = auf . _Unwrapped'
 {-# INLINE alaf #-}
+-}

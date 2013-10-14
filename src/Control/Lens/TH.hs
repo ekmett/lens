@@ -25,14 +25,14 @@ module Control.Lens.TH
   , makeClassy, makeClassyFor
   , makeIso
   , makePrisms
-  , makeWrapped
+  -- , makeWrapped
   , makeFields
   -- * Constructing Lenses Given a Declaretion Quote
   , declareLenses, declareLensesFor
   , declareClassy, declareClassyFor
   , declareIso
   , declarePrisms
-  , declareWrapped
+  -- , declareWrapped
   , declareFields
   -- * Configuring Lenses
   , makeLensesWith
@@ -508,12 +508,14 @@ declarePrisms = declareWith $ \dec -> do
   emit =<< Trans.lift (makePrismsForDec dec)
   return dec
 
+{-
 -- | Build 'Wrapped' instance for each newtype.
 declareWrapped :: Q [Dec] -> Q [Dec]
 declareWrapped = declareWith $ \dec -> do
   maybeDecs <- Trans.lift (makeWrappedForDec dec)
   forM_ maybeDecs emit
   return dec
+-}
 
 -- | @ declareFields = 'declareFieldsWith' 'defaultFieldRules' @
 declareFields :: Q [Dec] -> Q [Dec]
@@ -959,6 +961,7 @@ getLensFields _ _
 unifyTypes :: [TyVarBndr] -> [Type] -> Q ([TyVarBndr], Type)
 unifyTypes tvs tys = return (tvs, head tys)
 
+{-
 -- | Build 'Wrapped' instance for a given newtype
 makeWrapped :: Name -> DecsQ
 makeWrapped nm = do
@@ -1002,6 +1005,7 @@ makeWrappedInstance dataDecl con = do
     = for tyNames $ \ tyName -> do
         tyName1 <- newName (show tyName)
         return (tyName, tyName1)
+-}
 
 #if !(MIN_VERSION_template_haskell(2,7,0))
 -- | The orphan instance for old versions is bad, but programming without 'Applicative' is worse.
