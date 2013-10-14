@@ -1,4 +1,4 @@
-3.11
+4.0
 ----
 * Changed `anon` to take a `Prism`.
 * Added `nearly` to `Control.Lens.Prism`.
