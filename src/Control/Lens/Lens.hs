@@ -485,7 +485,7 @@ l <//~ a = l <%~ (/ a)
 -- | Raise the target of a numerically valued 'Lens' to a non-negative
 -- 'Integral' power and return the result.
 --
--- When you do not need the result of the division, ('Control.Lens.Setter.^~') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.^~') is more flexible.
 --
 -- @
 -- ('<^~') :: ('Num' a, 'Integral' e) => 'Lens'' s a -> e -> s -> (a, s)
@@ -498,7 +498,7 @@ l <^~ e = l <%~ (^ e)
 -- | Raise the target of a fractionally valued 'Lens' to an 'Integral' power
 -- and return the result.
 --
--- When you do not need the result of the division, ('Control.Lens.Setter.^^~') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.^^~') is more flexible.
 --
 -- @
 -- ('<^^~') :: ('Fractional' a, 'Integral' e) => 'Lens'' s a -> e -> s -> (a, s)
@@ -511,7 +511,7 @@ l <^^~ e = l <%~ (^^ e)
 -- | Raise the target of a floating-point valued 'Lens' to an arbitrary power
 -- and return the result.
 --
--- When you do not need the result of the division, ('Control.Lens.Setter.**~') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.**~') is more flexible.
 --
 -- @
 -- ('<**~') :: 'Floating' a => 'Lens'' s a -> a -> s -> (a, s)
@@ -691,7 +691,7 @@ l <//= a = l <%= (/ a)
 -- | Raise the target of a numerically valued 'Lens' into your 'Monad'\'s state
 -- to a non-negative 'Integral' power and return the result.
 --
--- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.^=') is more flexible.
 --
 -- @
 -- ('<^=') :: ('MonadState' s m, 'Num' a, 'Integral' e) => 'Lens'' s a -> e -> m a
