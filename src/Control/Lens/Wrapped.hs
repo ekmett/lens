@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -55,7 +56,7 @@ module Control.Lens.Wrapped
   , _Wrapping, _Unwrapping
   -- * Operations
   , op
-  -- , ala, alaf
+  , ala, alaf
   ) where
 
 import           Control.Applicative
@@ -110,7 +111,7 @@ class Wrapped s where
   _Wrapped' :: Iso' s (Unwrapped s)
 
 -- This can be used to help inference between the wrappers
-class Wrapped s => Rewrapped s t
+class Wrapped s => Rewrapped (s :: *) (t :: *)
 
 class    (Rewrapped s t, Rewrapped t s) => Rewrapping s t
 instance (Rewrapped s t, Rewrapped t s) => Rewrapping s t
@@ -345,7 +346,7 @@ instance (Hashable k, Eq k) => Wrapped (HashMap k a) where
   {-# INLINE _Wrapped' #-}
 
 -- | Use @'wrapping' 'HashSet.fromList'@. Unwrapping returns some permutation of the list.
-instance (t ~ HashMap a', Hashable a, Eq a) => Rewrapped (HashSet a) t
+instance (t ~ HashSet a', Hashable a, Eq a) => Rewrapped (HashSet a) t
 instance (Hashable a, Eq a) => Wrapped (HashSet a) where
   type Unwrapped (HashSet a) = [a]
   _Wrapped' = iso HashSet.toList HashSet.fromList
@@ -601,7 +602,6 @@ _Unwrapping :: Rewrapping s t => (Unwrapped s -> s) -> Iso (Unwrapped t) (Unwrap
 _Unwrapping _ = from _Wrapped
 {-# INLINE _Unwrapping #-}
 
-{-
 -- | This combinator is based on @ala@ from Conor McBride's work on Epigram.
 --
 -- As with '_Wrapping', the user supplied function for the newtype is /ignored/.
@@ -626,8 +626,8 @@ _Unwrapping _ = from _Wrapped
 --
 -- >>> ala Product foldMap [1,2,3,4]
 -- 24
-ala :: Wrapped s => (Unwrapped s -> s) -> ((Unwrapped s -> s) -> e -> s) -> e -> Unwrapped s
-ala = au . _Unwrapped'
+ala :: Rewrapping s t => (Unwrapped s -> s) -> ((Unwrapped t -> t) -> e -> s) -> e -> Unwrapped s
+ala = au . _Unwrapping
 {-# INLINE ala #-}
 
 -- | This combinator is based on @ala'@ from Conor McBride's work on Epigram.
@@ -636,7 +636,6 @@ ala = au . _Unwrapped'
 --
 -- >>> alaf Sum foldMap length ["hello","world"]
 -- 10
-alaf :: (Profunctor p, Wrapped s) => (Unwrapped s -> Unwrapped s) -> (p r s -> e -> s) -> p r (Unwrapped s) -> e -> Unwrapped s
-alaf = auf . _Unwrapped'
+alaf :: (Profunctor p, Rewrapping s t) => (Unwrapped s -> s) -> (p r t -> e -> s) -> p r (Unwrapped t) -> e -> Unwrapped s
+alaf = auf . _Unwrapping
 {-# INLINE alaf #-}
--}
