@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       3.9.2
+version:       3.10
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -11,7 +11,7 @@ homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012-2013 Edward A. Kmett
 build-type:    Custom
-tested-with:   GHC == 7.0.4, GHC == 7.4.1, GHC == 7.4.2, GHC == 7.6.1, GHC == 7.7.20121213, GHC == 7.7.20130117
+tested-with:   GHC == 7.6.3
 synopsis:      Lenses, Folds and Traversals
 description:
   This package comes \"Batteries Included\" with many useful lenses for the types
@@ -164,13 +164,11 @@ flag lib-Werror
 
 library
   build-depends:
-    array                     >= 0.3.0.2  && < 0.5,
+    array                     >= 0.3.0.2  && < 0.6,
     base                      >= 4.3      && < 5,
-    bifunctors                >= 3        && < 4,
+    bifunctors                >= 4        && < 5,
     bytestring                >= 0.9.1.10 && < 0.11,
-    comonad                   >= 3        && < 4,
-    comonad-transformers      >= 3        && < 4,
-    comonads-fd               >= 3        && < 4,
+    comonad                   >= 4        && < 5,
     contravariant             >= 0.3      && < 1,
     containers                >= 0.4.0    && < 0.6,
     distributive              >= 0.3      && < 1,
@@ -181,10 +179,9 @@ library
     MonadCatchIO-transformers >= 0.3      && < 0.4,
     mtl                       >= 2.0.1    && < 2.2,
     parallel                  >= 3.1.0.1  && < 3.3,
-    profunctors               >= 3.2      && < 4,
-    profunctor-extras         >= 3.3      && < 4,
+    profunctors               >= 4        && < 5,
     reflection                >= 1.1.6    && < 2,
-    semigroupoids             >= 3.0.2    && < 4,
+    semigroupoids             >= 4        && < 5,
     semigroups                >= 0.8.4    && < 1,
     split                     >= 0.2      && < 0.3,
     tagged                    >= 0.4.4    && < 1,
