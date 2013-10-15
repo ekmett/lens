@@ -514,9 +514,9 @@ unsafePartsOf l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 
 -- | An indexed version of 'unsafePartsOf' that receives the entire list of indices as its index.
 iunsafePartsOf :: forall i p f s t a b. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a b -> Over p f s t [a] [b]
-iunsafePartsOf l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (pins b)
-  b = l sell s
+iunsafePartsOf l = conjoined
+  (\f s -> let b = inline l sell s                           in unsafeOuts b <$> f (wins b))
+  (\f s -> let b = inline l sell s; (is,as) = unzip (pins b) in unsafeOuts b <$> indexed f (is :: [i]) as)
 {-# INLINE iunsafePartsOf #-}
 
 unsafePartsOf' :: ATraversal s t a b -> Lens s t [a] [b]
