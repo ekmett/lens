@@ -482,9 +482,9 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 
 -- | A type-restricted version of 'ipartsOf' that can only be used with an 'IndexedTraversal'.
 ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Over (Indexed i) (Bazaar' (Indexed i) a) s t a a -> Over p f s t [a] [a]
-ipartsOf' l f s = outs b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (pins b)
-  b = l sell s
+ipartsOf' l = conjoined
+  (\f s -> let b = l sell s                            in outs b <$> f (wins b))
+  (\f s -> let b = l sell s; (is, as) = unzip (pins b) in outs b <$> indexed f (is :: [i]) as)
 {-# INLINE ipartsOf' #-}
 
 -- | 'unsafePartsOf' turns a 'Traversal' into a 'Data.Data.Lens.uniplate' (or 'Data.Data.Lens.biplate') family.
