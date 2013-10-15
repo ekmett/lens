@@ -145,10 +145,12 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- 'Control.Lens.Fold.foldMapOf' ('Data.Traversable.traverse' '.' '_2') :: ('Data.Traversable.Traversable' t, 'Data.Monoid.Monoid' m) => (s -> m) -> t (b, s) -> m
   -- @
   _2 :: Lens s t a b
+#ifndef HLINT
   default _2 :: (Generic s, Generic t, GAt N1 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _2 #-}
   _2 f = fmap to . gat proxyN1 f . from
+#endif
 
 -- | @
 -- '_2' k ~(a,b) = (\\b' -> (a,b')) 'Data.Functor.<$>' k b
@@ -189,10 +191,12 @@ instance Field2 (a,b,c,d,e,f,g,h,i) (a,b',c,d,e,f,g,h,i) b b' where
 class Field3 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 3rd field of a tuple.
   _3 :: Lens s t a b
+#ifndef HLINT
   default _3 :: (Generic s, Generic t, GAt N2 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _3 #-}
   _3 f = fmap to . gat proxyN2 f . from
+#endif
 
 instance Field3 (a,b,c) (a,b,c') c c' where
   _3 k ~(a,b,c) = k c <&> \c' -> (a,b,c')
@@ -226,10 +230,12 @@ instance Field3 (a,b,c,d,e,f,g,h,i) (a,b,c',d,e,f,g,h,i) c c' where
 class Field4 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 4th field of a tuple.
   _4 :: Lens s t a b
+#ifndef HLINT
   default _4 :: (Generic s, Generic t, GAt N3 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _4 #-}
   _4 f = fmap to . gat proxyN3 f . from
+#endif
 
 instance Field4 (a,b,c,d) (a,b,c,d') d d' where
   _4 k ~(a,b,c,d) = k d <&> \d' -> (a,b,c,d')
@@ -259,10 +265,12 @@ instance Field4 (a,b,c,d,e,f,g,h,i) (a,b,c,d',e,f,g,h,i) d d' where
 class Field5 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 5th field of a tuple.
   _5 :: Lens s t a b
+#ifndef HLINT
   default _5 :: (Generic s, Generic t, GAt N4 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _5 #-}
   _5 f = fmap to . gat proxyN4 f . from
+#endif
 
 instance Field5 (a,b,c,d,e) (a,b,c,d,e') e e' where
   _5 k ~(a,b,c,d,e) = k e <&> \e' -> (a,b,c,d,e')
@@ -288,10 +296,12 @@ instance Field5 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e',f,g,h,i) e e' where
 class Field6 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 6th field of a tuple.
   _6 :: Lens s t a b
+#ifndef HLINT
   default _6 :: (Generic s, Generic t, GAt N5 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _6 #-}
   _6 f = fmap to . gat proxyN5 f . from
+#endif
 
 instance Field6 (a,b,c,d,e,f) (a,b,c,d,e,f') f f' where
   _6 k ~(a,b,c,d,e,f) = k f <&> \f' -> (a,b,c,d,e,f')
@@ -313,10 +323,12 @@ instance Field6 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f',g,h,i) f f' where
 class Field7 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 7th field of a tuple.
   _7 :: Lens s t a b
+#ifndef HLINT
   default _7 :: (Generic s, Generic t, GAt N6 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _7 #-}
   _7 f = fmap to . gat proxyN6 f . from
+#endif
 
 instance Field7 (a,b,c,d,e,f,g) (a,b,c,d,e,f,g') g g' where
   _7 k ~(a,b,c,d,e,f,g) = k g <&> \g' -> (a,b,c,d,e,f,g')
@@ -334,10 +346,12 @@ instance Field7 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g',h,i) g g' where
 class Field8 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 8th field of a tuple.
   _8 :: Lens s t a b
+#ifndef HLINT
   default _8 :: (Generic s, Generic t, GAt N7 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _8 #-}
   _8 f = fmap to . gat proxyN7 f . from
+#endif
 
 instance Field8 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f,g,h') h h' where
   _8 k ~(a,b,c,d,e,f,g,h) = k h <&> \h' -> (a,b,c,d,e,f,g,h')
@@ -351,36 +365,48 @@ instance Field8 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h',i) h h' where
 class Field9 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 9th field of a tuple.
   _9 :: Lens s t a b
+#ifndef HLINT
   default _9 :: (Generic s, Generic t, GAt N8 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _9 #-}
   _9 f = fmap to . gat proxyN8 f . from
+#endif
 
 instance Field9 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h,i') i i' where
   _9 k ~(a,b,c,d,e,f,g,h,i) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i')
   {-# INLINE _9 #-}
 
+#ifndef HLINT
 type family GSize (f :: * -> *) :: Nat
+#endif
 type instance GSize U1 = Z
 type instance GSize (K1 i c) = S Z
 type instance GSize (M1 i c f) = GSize f
 type instance GSize (a :*: b) = GSize a + GSize b
 
+#ifndef HLINT
 type family (x :: Nat) + (y :: Nat) :: Nat
+#endif
 type instance Z + y = y
 type instance S x + y = S (x + y)
 
+#ifndef HLINT
 type family Subtract (x :: Nat) (y :: Nat) :: Nat
+#endif
 type instance Subtract Z x = x
 type instance Subtract (S x) (S y) = Subtract x y
 
+#ifndef HLINT
 type family (x :: Nat) > (y :: Nat) :: Bool
+#endif
 type instance Z > x = False
 type instance S x > Z = True
 type instance S x > S y = x > y
 
+#ifndef HLINT
 class GAt (n :: Nat) s t a b | n s -> a, n t -> b, n s b -> t, n t a -> s where
   gat :: f n -> Lens (s x) (t x) a b
+#endif
 
 instance GAt N0 (K1 i a) (K1 i b) a b where
   {-# INLINE gat #-}
@@ -398,8 +424,10 @@ proxySizeGT :: s x -> p n -> Proxy (GSize s > n)
 {-# INLINE proxySizeGT #-}
 proxySizeGT _ _ = Proxy
 
+#ifndef HLINT
 class GAt' (p :: Bool) (n :: Nat) s s' t t' a b where
   gat' :: f p -> g n -> Lens ((s :*: s') x) ((t :*: t') x) a b
+#endif
 
 instance GAt n s t a b => GAt' True n s s' t s' a b where
   {-# INLINE gat' #-}

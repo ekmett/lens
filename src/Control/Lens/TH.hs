@@ -1000,8 +1000,11 @@ makeRewrappedInstance dataDecl = do
        -- Con a' b' c'... ~ t
        eq = equalP appliedType' tVar
 
+       -- Rewrapped (Con a b c...) t
+       klass = conT ''Rewrapped `appsT` [appliedType, tVar]
+
    -- instance (Con a' b' c'... ~ t) => Rewrapped (Con a b c...) t
-   instanceD (cxt [eq]) [t|Rewrapped $appliedType $tVar|] []
+   instanceD (cxt [eq]) klass []
 
 makeWrappedInstance :: DataDecl-> Con -> Type -> DecQ
 makeWrappedInstance dataDecl con fieldType = do
@@ -1015,6 +1018,9 @@ makeWrappedInstance dataDecl con fieldType = do
   -- type Unwrapped (Con a b c...) = $fieldType
   let unwrappedATF = tySynInstD ''Unwrapped [appliedType] (return fieldType)
 
+  -- Wrapped (Con a b c...)
+  let klass        = conT ''Wrapped `appT` appliedType
+
   -- _Wrapped' = iso (\(Con x) -> x) Con
   let wrapFun      = conE conName
   let unwrapFun    = newName "x" >>= \x -> lam1E (conP conName [varP x]) (varE x)
@@ -1023,7 +1029,7 @@ makeWrappedInstance dataDecl con fieldType = do
   -- instance Wrapped (Con a b c...) where
   --   type Unwrapped (Con a b c...) = fieldType
   --   _Wrapped' = iso (\(Con x) -> x) Con
-  instanceD (cxt []) [t|Wrapped $appliedType|] [unwrappedATF, isoMethod]
+  instanceD (cxt []) klass [unwrappedATF, isoMethod]
 
 #if !(MIN_VERSION_template_haskell(2,7,0))
 -- | The orphan instance for old versions is bad, but programming without 'Applicative' is worse.
