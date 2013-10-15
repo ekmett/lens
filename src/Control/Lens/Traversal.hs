@@ -524,9 +524,9 @@ unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 {-# INLINE unsafePartsOf' #-}
 
 iunsafePartsOf' :: forall i s t a b. Over (Indexed i) (Bazaar (Indexed i) a b) s t a b -> IndexedLens [i] s t [a] [b]
-iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (pins b)
-  b = l sell s
+iunsafePartsOf' l = conjoined
+  (\f s -> let b = inline l sell s                            in unsafeOuts b <$> f (wins b))
+  (\f s -> let b = inline l sell s; (is, as) = unzip (pins b) in unsafeOuts b <$> indexed f (is :: [i]) as)
 {-# INLINE iunsafePartsOf' #-}
 
 -- | The one-level version of 'Control.Lens.Plated.contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
