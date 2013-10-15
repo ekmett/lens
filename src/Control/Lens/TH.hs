@@ -25,7 +25,7 @@ module Control.Lens.TH
   , makeClassy, makeClassyFor
   , makeIso
   , makePrisms
-  -- , makeWrapped
+  , makeWrapped
   , makeFields
   -- * Constructing Lenses Given a Declaretion Quote
   , declareLenses, declareLensesFor
@@ -961,7 +961,6 @@ getLensFields _ _
 unifyTypes :: [TyVarBndr] -> [Type] -> Q ([TyVarBndr], Type)
 unifyTypes tvs tys = return (tvs, head tys)
 
-{-
 -- | Build 'Wrapped' instance for a given newtype
 makeWrapped :: Name -> DecsQ
 makeWrapped nm = do
@@ -975,37 +974,60 @@ makeWrapped nm = do
 makeWrappedForDec :: Dec -> Q (Maybe [Dec])
 makeWrappedForDec decl = case makeDataDecl decl of
   Just dataDecl@DataDecl{ constructors = [con] }
-    -> Just <$> makeWrappedInstance dataDecl con
+    -> do wrapped <- makeWrappedInstance dataDecl con
+          rewrapped <- makeRewrappedInstance dataDecl
+          return (Just [rewrapped, wrapped])
   _ -> return Nothing
 
-makeWrappedInstance :: DataDecl-> Con -> DecsQ
+makeRewrappedInstance :: DataDecl -> DecQ
+makeRewrappedInstance dataDecl = do
+
+   t <- newName "t"
+   let tVar = varT t
+
+   let typeArgs = dataParameters dataDecl ^.. typeVars
+
+   typeArgs' <- do
+     m <- freshMap (setOf typeVars typeArgs)
+     return (substTypeVars m typeArgs)
+
+       -- Con a b c...
+   let appliedType  = return (fullType dataDecl (map VarT typeArgs))
+
+       -- Con a' b' c'...
+       appliedType' = return (fullType dataDecl (map VarT typeArgs'))
+
+       -- Con a' b' c'... ~ t
+       eq = equalP appliedType' tVar
+
+   -- instance (Con a' b' c'... ~ t) => Rewrapped (Con a b c...) t
+   instanceD (cxt [eq]) [t|Rewrapped $appliedType $tVar|] []
+
+makeWrappedInstance :: DataDecl-> Con -> DecQ
 makeWrappedInstance dataDecl con = do
-  let tyNames = view name <$> dataParameters dataDecl
 
-  tyNameRemap <- makeNameRemap tyNames
+  let conName = view name con
+  fieldType <- case toListOf conFields con of
+    [(_,fieldType)] -> return fieldType
+    _ -> fail "makeWrappedInstances: too many fields"
 
-  (newtypeConName, fieldType) <- case ctrNameAndFieldTypes con of
-    (a,[b]) -> return (a,b)
-    _       -> fail "makeWrappedInstance: Constructor must have a single field"
+  let typeArgs = dataParameters dataDecl ^.. typeVars
 
-  let outer1 = return $ fullType dataDecl $ fmap VarT tyNames
-      inner1 = return fieldType
+  -- Con a b c...
+  let appliedType  = return (fullType dataDecl (map VarT typeArgs))
 
-      outer2 = return $ fullType dataDecl $ fmap (VarT . snd) tyNameRemap
-      inner2 = return $ substTypeVars (Map.fromList tyNameRemap) fieldType
+  -- type Unwrapped (Con a b c...) = $fieldType
+  let unwrappedATF = tySynInstD ''Unwrapped [appliedType] (return fieldType)
 
-  dec <- instanceD (cxt [])
-             (conT ''Wrapped `appsT` [inner1, inner2, outer1, outer2])
-             [makeIsoBody 'wrapped newtypeConName makeIsoFrom makeIsoTo]
+  -- _Wrapped' = iso (\(Con x) -> x) Con
+  let wrapFun      = conE conName
+  let unwrapFun    = newName "x" >>= \x -> lam1E (conP conName [varP x]) (varE x)
+  let isoMethod    = funD '_Wrapped' [clause [] (normalB [|iso $unwrapFun $wrapFun|]) []]
 
-  return [dec]
-  where
-  -- Return list to preserve order, convert to Map later
-  makeNameRemap tyNames
-    = for tyNames $ \ tyName -> do
-        tyName1 <- newName (show tyName)
-        return (tyName, tyName1)
--}
+  -- instance Wrapped (Con a b c...) where
+  --   type Unwrapped (Con a b c...) = fieldType
+  --   _Wrapped' = iso (\(Con x) -> x) Con
+  instanceD (cxt []) [t| Wrapped $appliedType |] [unwrappedATF, isoMethod]
 
 #if !(MIN_VERSION_template_haskell(2,7,0))
 -- | The orphan instance for old versions is bad, but programming without 'Applicative' is worse.
