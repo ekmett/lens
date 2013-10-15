@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FunctionalDependencies #-}
 #ifdef TRUSTWORTHY
@@ -32,7 +33,7 @@ module Control.Lens.TH
   , declareClassy, declareClassyFor
   , declareIso
   , declarePrisms
-  -- , declareWrapped
+  , declareWrapped
   , declareFields
   -- * Configuring Lenses
   , makeLensesWith
@@ -508,14 +509,12 @@ declarePrisms = declareWith $ \dec -> do
   emit =<< Trans.lift (makePrismsForDec dec)
   return dec
 
-{-
 -- | Build 'Wrapped' instance for each newtype.
 declareWrapped :: Q [Dec] -> Q [Dec]
 declareWrapped = declareWith $ \dec -> do
   maybeDecs <- Trans.lift (makeWrappedForDec dec)
   forM_ maybeDecs emit
   return dec
--}
 
 -- | @ declareFields = 'declareFieldsWith' 'defaultFieldRules' @
 declareFields :: Q [Dec] -> Q [Dec]
@@ -973,8 +972,9 @@ makeWrapped nm = do
 
 makeWrappedForDec :: Dec -> Q (Maybe [Dec])
 makeWrappedForDec decl = case makeDataDecl decl of
-  Just dataDecl@DataDecl{ constructors = [con] }
-    -> do wrapped <- makeWrappedInstance dataDecl con
+  Just dataDecl | [con]   <- constructors dataDecl
+                , [field] <- toListOf (conFields._2) con
+    -> do wrapped   <- makeWrappedInstance dataDecl con field
           rewrapped <- makeRewrappedInstance dataDecl
           return (Just [rewrapped, wrapped])
   _ -> return Nothing
@@ -985,7 +985,7 @@ makeRewrappedInstance dataDecl = do
    t <- newName "t"
    let tVar = varT t
 
-   let typeArgs = dataParameters dataDecl ^.. typeVars
+   let typeArgs = toListOf typeVars (dataParameters dataDecl)
 
    typeArgs' <- do
      m <- freshMap (setOf typeVars typeArgs)
@@ -1003,15 +1003,11 @@ makeRewrappedInstance dataDecl = do
    -- instance (Con a' b' c'... ~ t) => Rewrapped (Con a b c...) t
    instanceD (cxt [eq]) [t|Rewrapped $appliedType $tVar|] []
 
-makeWrappedInstance :: DataDecl-> Con -> DecQ
-makeWrappedInstance dataDecl con = do
+makeWrappedInstance :: DataDecl-> Con -> Type -> DecQ
+makeWrappedInstance dataDecl con fieldType = do
 
   let conName = view name con
-  fieldType <- case toListOf conFields con of
-    [(_,fieldType)] -> return fieldType
-    _ -> fail "makeWrappedInstances: too many fields"
-
-  let typeArgs = dataParameters dataDecl ^.. typeVars
+  let typeArgs = toListOf typeVars (dataParameters dataDecl)
 
   -- Con a b c...
   let appliedType  = return (fullType dataDecl (map VarT typeArgs))
@@ -1027,7 +1023,7 @@ makeWrappedInstance dataDecl con = do
   -- instance Wrapped (Con a b c...) where
   --   type Unwrapped (Con a b c...) = fieldType
   --   _Wrapped' = iso (\(Con x) -> x) Con
-  instanceD (cxt []) [t| Wrapped $appliedType |] [unwrappedATF, isoMethod]
+  instanceD (cxt []) [t|Wrapped $appliedType|] [unwrappedATF, isoMethod]
 
 #if !(MIN_VERSION_template_haskell(2,7,0))
 -- | The orphan instance for old versions is bad, but programming without 'Applicative' is worse.
