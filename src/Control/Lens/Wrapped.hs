@@ -5,7 +5,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE PolyKinds #-}
@@ -66,7 +65,6 @@ import           Control.Comonad.Trans.Traced
 import           Control.Exception
 import           Control.Lens.Getter
 import           Control.Lens.Iso
-import           Control.Lens.Review
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
 import           Control.Monad.Trans.Identity
