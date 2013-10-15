@@ -10,6 +10,7 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+{-# OPTIONS_GHC -fno-full-laziness #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Data.Lens
