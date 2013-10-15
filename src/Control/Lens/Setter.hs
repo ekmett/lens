@@ -87,7 +87,9 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Avoid lambda" #-}
+#endif
 
 -- $setup
 -- >>> import Control.Lens

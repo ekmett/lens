@@ -53,7 +53,9 @@ import Data.Profunctor.Unsafe
 -- >>> import Control.Lens
 -- >>> import Data.Char
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Use foldl" #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- * Jacket

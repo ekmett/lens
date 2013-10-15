@@ -163,9 +163,11 @@ import Data.Traversable
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Eta reduce" #-}
 {-# ANN module "HLint: ignore Use camelCase" #-}
 {-# ANN module "HLint: ignore Use curry" #-}
+#endif
 
 infixl 8 ^.., ^?, ^?!, ^@.., ^@?, ^@?!
 

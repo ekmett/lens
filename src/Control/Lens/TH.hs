@@ -87,7 +87,9 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.Lens
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Use foldl" #-}
+#endif
 
 -- | Flags for 'Lens' construction
 data LensFlag

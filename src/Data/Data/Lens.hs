@@ -66,9 +66,11 @@ import           Data.Monoid
 import           GHC.Exts (realWorld#)
 #endif
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Eta reduce" #-}
 {-# ANN module "HLint: ignore Use foldl" #-}
 {-# ANN module "HLint: ignore Reduce duplication" #-}
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

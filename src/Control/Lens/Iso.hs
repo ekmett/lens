@@ -82,7 +82,9 @@ import Data.Maybe
 import Data.Profunctor
 import Data.Profunctor.Unsafe
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Use on" #-}
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
