@@ -134,6 +134,7 @@ import Data.Tuple (swap)
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
+import GHC.Magic (inline)
 import Prelude hiding ((.),id)
 
 -- $setup
@@ -471,8 +472,8 @@ partsOf l f s = outs b <$> f (ins b) where b = l sell s
 -- | An indexed version of 'partsOf' that receives the entire list of indices as its index.
 ipartsOf :: forall i p f s t a. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a a -> Over p f s t [a] [a]
 ipartsOf l = conjoined
-  (\f s -> let b = l sell s                            in outs b <$> f (wins b))
-  (\f s -> let b = l sell s; (is, as) = unzip (pins b) in outs b <$> indexed f (is :: [i]) as)
+  (\f s -> let b = inline l sell s                            in outs b <$> f (wins b))
+  (\f s -> let b = inline l sell s; (is, as) = unzip (pins b) in outs b <$> indexed f (is :: [i]) as)
 {-# INLINE ipartsOf #-}
 
 -- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
@@ -483,8 +484,8 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 -- | A type-restricted version of 'ipartsOf' that can only be used with an 'IndexedTraversal'.
 ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Over (Indexed i) (Bazaar' (Indexed i) a) s t a a -> Over p f s t [a] [a]
 ipartsOf' l = conjoined
-  (\f s -> let b = l sell s                            in outs b <$> f (wins b))
-  (\f s -> let b = l sell s; (is, as) = unzip (pins b) in outs b <$> indexed f (is :: [i]) as)
+  (\f s -> let b = inline l sell s                            in outs b <$> f (wins b))
+  (\f s -> let b = inline l sell s; (is, as) = unzip (pins b) in outs b <$> indexed f (is :: [i]) as)
 {-# INLINE ipartsOf' #-}
 
 -- | 'unsafePartsOf' turns a 'Traversal' into a 'Data.Data.Lens.uniplate' (or 'Data.Data.Lens.biplate') family.
@@ -721,8 +722,8 @@ taking :: (Conjoined p, Applicative f)
        -> Over p (BazaarT p f a a) s t a a
        -> Over p f s t a a
 taking n l = conjoined
-  (\ afb s  -> let b = l sell s in outs b <$> traverse afb          (take n $ ins b))
-  (\ pafb s -> let b = l sell s in outs b <$> traverse (corep pafb) (take n $ pins b))
+  (\ afb s  -> let b = inline l sell s in outs b <$> traverse afb          (take n $ ins b))
+  (\ pafb s -> let b = inline l sell s in outs b <$> traverse (corep pafb) (take n $ pins b))
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
