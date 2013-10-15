@@ -593,11 +593,17 @@ singular l pafb s = case pins b of
 unsafeSingular :: (Conjoined p, Functor f)
                => Over p (BazaarT p f a b) s t a b
                -> Over p f s t a b
-unsafeSingular l pafb s = case pins b of
-  [w] -> unsafeOuts b . return <$> corep pafb w
-  []  -> error "unsafeSingular: empty traversal"
-  _   -> error "unsafeSingular: traversing multiple results"
-  where b = l sell s
+unsafeSingular l = conjoined
+  (\afb s -> let b = inline l sell s in case ins b of
+    [w] -> unsafeOuts b . return <$> afb w
+    []  -> error "unsafeSingular: empty traversal"
+    _   -> error "unsafeSingular: traversing multiple results"
+  )
+  (\pafb s -> let b = inline l sell s in case pins b of
+    [w] -> unsafeOuts b . return <$> corep pafb w
+    []  -> error "unsafeSingular: empty traversal"
+    _   -> error "unsafeSingular: traversing multiple results"
+  )
 {-# INLINE unsafeSingular #-}
 
 ------------------------------------------------------------------------------
