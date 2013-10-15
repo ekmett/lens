@@ -115,7 +115,6 @@ import Control.Applicative as Applicative
 import Control.Applicative.Backwards
 import Control.Category
 import Control.Comonad
-import Control.Monad
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter (coerced)
@@ -123,17 +122,19 @@ import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Type
+import Control.Monad
 import Control.Monad.Trans.State.Lazy
 import Data.Functor.Compose
 import Data.Int
 import Data.IntMap as IntMap
 import Data.Map as Map
 import Data.Monoid
-import Data.Traversable
-import Data.Tuple (swap)
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
+import Data.Tagged
+import Data.Traversable
+import Data.Tuple (swap)
 import GHC.Magic (inline)
 import Prelude hiding ((.),id)
 
@@ -545,11 +546,19 @@ iunsafePartsOf' l = conjoined
 -- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
 -- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
 -- @
-holesOf :: Conjoined p => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
-holesOf l s = f (pins b) (unsafeOuts b) where
-  b = l sell s
-  f [] _ = []
-  f (wx:xs) g = Pretext (\wxfy -> g . (:Prelude.map extract xs) <$> corep wxfy wx) : f xs (g . (extract wx:))
+holesOf :: forall p s t a. Conjoined p => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
+holesOf l s = unTagged
+  ( conjoined
+     (Tagged $ let
+        f [] _ = []
+        f (x:xs) g = Pretext (\xfy -> g . (:xs) <$> xfy x) : f xs (g . (x:))
+      in f (ins b) (unsafeOuts b))
+     (Tagged $ let
+        f [] _ = []
+        f (wx:xs) g = Pretext (\wxfy -> g . (:Prelude.map extract xs) <$> corep wxfy wx) : f xs (g . (extract wx:))
+      in f (pins b) (unsafeOuts b))
+    :: Tagged (p a b) [Pretext p a a t]
+  ) where b = l sell s
 {-# INLINE holesOf #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can
