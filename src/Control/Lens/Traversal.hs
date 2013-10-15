@@ -470,9 +470,9 @@ partsOf l f s = outs b <$> f (ins b) where b = l sell s
 
 -- | An indexed version of 'partsOf' that receives the entire list of indices as its index.
 ipartsOf :: forall i p f s t a. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a a -> Over p f s t [a] [a]
-ipartsOf l f s = outs b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (pins b)
-  b = l sell s
+ipartsOf l = conjoined
+  (\f s -> let b = l sell s                            in outs b <$> f (wins b))
+  (\f s -> let b = l sell s; (is, as) = unzip (pins b) in outs b <$> indexed f (is :: [i]) as)
 {-# INLINE ipartsOf #-}
 
 -- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
@@ -606,6 +606,10 @@ unsafeSingular l pafb s = case pins b of
 ins :: Bizarre (->) w => w a b t -> [a]
 ins = toListOf (coerced bazaar)
 {-# INLINE ins #-}
+
+wins :: (Bizarre p w, Corepresentable p, Comonad (Corep p)) => w a b t -> [a]
+wins = getConst #. bazaar (cotabulate $ \ra -> Const [extract ra])
+{-# INLINE wins #-}
 
 pins :: (Bizarre p w, Corepresentable p) => w a b t -> [Corep p a]
 pins = getConst #. bazaar (cotabulate $ \ra -> Const [ra])
