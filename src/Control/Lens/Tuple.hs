@@ -80,10 +80,12 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- '_1' :: 'Lens' (a,b,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a'
   -- @
   _1 :: Lens s t a b
+#ifndef HLINT
   default _1 :: (Generic s, Generic t, GAt N0 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _1 #-}
   _1 f = fmap to . gat proxyN0 f . from
+#endif
 
 instance Field1 (Identity a) (Identity b) a b where
   _1 f (Identity a) = Identity <$> indexed f (0 :: Int) a

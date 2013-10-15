@@ -116,8 +116,6 @@ infixr 2 <~
 --
 -- When consuming a setter directly to perform a mapping, you can use this type, but most
 -- user code will not need to use this type.
---
--- By choosing 'Identity' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
 type ASetter s t a b = (a -> Identity b) -> s -> Identity t
 
 -- | This is a useful alias for use when consuming a 'Setter''.
@@ -133,8 +131,6 @@ type ASetter' s a = ASetter s s a a
 --
 -- When consuming a setter directly to perform a mapping, you can use this type, but most
 -- user code will not need to use this type.
---
--- By choosing 'Identity' rather than 'Data.Functor.Identity.Identity', we get nicer error messages.
 type AnIndexedSetter i s t a b = Indexed i a (Identity b) -> s -> Identity t
 
 -- | @

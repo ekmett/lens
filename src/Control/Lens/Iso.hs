@@ -155,7 +155,7 @@ cloneIso k = withIso k iso
 --
 -- This version is generalized to accept any 'Iso', not just a @newtype@.
 --
--- >>> au (wrapping Sum) foldMap [1,2,3,4]
+-- >>> au (_Unwrapping Sum) foldMap [1,2,3,4]
 -- 10
 au :: AnIso s t a b -> ((s -> a) -> e -> b) -> e -> t
 au k = withIso k $ \ sa bt f e -> bt (f sa e)
@@ -170,7 +170,7 @@ au k = withIso k $ \ sa bt f e -> bt (f sa e)
 -- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator
 -- is 'au' with an extra function argument.
 --
--- >>> auf (wrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
+-- >>> auf (_Unwrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
 -- 10
 auf :: Profunctor p => AnIso s t a b -> (p r a -> e -> b) -> p r s -> e -> t
 auf k = withIso k $ \ sa bt f g e -> bt (f (rmap sa g) e)

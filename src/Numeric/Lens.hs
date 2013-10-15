@@ -159,7 +159,7 @@ dividing n = iso (/n) (*n)
 --
 -- Note: This errors for n = 0
 --
--- >>> au (exponentiating 2.wrapping Sum) (foldMapOf each) (3,4)
+-- >>> au (exponentiating 2._Unwrapping Sum) (foldMapOf each) (3,4)
 -- 5.0
 exponentiating :: (Floating a, Eq a) => a -> Iso' a a
 exponentiating 0 = error "Numeric.Lens.exponentiating: exponent 0"

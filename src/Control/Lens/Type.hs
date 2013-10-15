@@ -69,7 +69,7 @@ import Data.Functor.Apply
 import Data.Profunctor
 
 -- $setup
--- >>> :set -XNoOpticStrings
+-- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)
