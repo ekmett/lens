@@ -716,7 +716,9 @@ taking :: (Conjoined p, Applicative f)
         => Int
        -> Over p (BazaarT p f a a) s t a a
        -> Over p f s t a a
-taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where b = l sell s
+taking n l = conjoined
+  (\ afb s  -> let b = l sell s in outs b <$> traverse afb          (take n $ ins b))
+  (\ pafb s -> let b = l sell s in outs b <$> traverse (corep pafb) (take n $ pins b))
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
