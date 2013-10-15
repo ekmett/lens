@@ -570,10 +570,13 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 singular :: (Conjoined p, Functor f)
          => Over p (BazaarT p f a a) s t a a
          -> Over p f s t a a
-singular l pafb s = case pins b of
-  (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> corep pafb w
-  []     -> unsafeOuts b . return                    <$> corep pafb (error "singular: empty traversal")
-  where b = l sell s
+singular l = conjoined
+  (\afb s -> let b = l sell s in case ins b of
+    (w:ws) -> unsafeOuts b . (:ws) <$> afb w
+    []     -> unsafeOuts b . return <$> afb (error "singular: empty traversal"))
+  (\pafb s -> let b = l sell s in case pins b of
+    (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> corep pafb w
+    []     -> unsafeOuts b . return                    <$> corep pafb (error "singular: empty traversal"))
 {-# INLINE singular #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be
@@ -597,13 +600,11 @@ unsafeSingular l = conjoined
   (\afb s -> let b = inline l sell s in case ins b of
     [w] -> unsafeOuts b . return <$> afb w
     []  -> error "unsafeSingular: empty traversal"
-    _   -> error "unsafeSingular: traversing multiple results"
-  )
+    _   -> error "unsafeSingular: traversing multiple results")
   (\pafb s -> let b = inline l sell s in case pins b of
     [w] -> unsafeOuts b . return <$> corep pafb w
     []  -> error "unsafeSingular: empty traversal"
-    _   -> error "unsafeSingular: traversing multiple results"
-  )
+    _   -> error "unsafeSingular: traversing multiple results")
 {-# INLINE unsafeSingular #-}
 
 ------------------------------------------------------------------------------
