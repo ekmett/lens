@@ -154,9 +154,11 @@ class Contains m where
 -- 'contains'' :: 'Contains' m => 'Index' m -> 'Getter' m 'Bool'
 -- @
 contains' :: forall m f. (Contains m, Contravariant f, Functor f) => Index m -> LensLike' f m Bool
-contains' = case containsProof (Proxy :: Proxy m) (Proxy :: Proxy f) of
+contains' = case containsProof (Proxy :: Proxy m) (ArrP :: ArrP f) of
   Sub Dict -> contains
 {-# INLINE contains' #-}
+
+data ArrP (f :: * -> *) = ArrP
 
 -- | A definition of 'contains' for types with an 'Ix' instance.
 containsIx :: (Contravariant f, Functor f, Ixed m) => Index m -> LensLike' f m Bool
