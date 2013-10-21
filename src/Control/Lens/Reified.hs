@@ -60,6 +60,21 @@ type ReifiedTraversal' s a = ReifiedTraversal s s a a
 -- | Reify a 'Getter' so it can be stored safely in a container.
 newtype ReifiedGetter s a = Getter { runGetter :: Getter s a }
 
+instance Functor (ReifiedGetter s) where
+  fmap f (Getter l) = Getter (l.to f)
+
+instance Applicative (ReifiedGetter s) where
+  pure a = Getter $ to $ \_ -> a
+  Getter mf <*> Getter ma = Getter $ to $ \s -> view mf s (view ma s)
+
+instance Monad (ReifiedGetter s) where
+  return a = Getter $ to $ \_ -> a
+  Getter ma >>= f = Getter $ to $ \s -> view (runGetter (f (view ma s))) s
+
+instance MonadReader s (ReifiedGetter s) where
+  ask = Getter id
+  local f (Getter m) = Getter (to f . m)
+
 -- | Reify an 'IndexedGetter' so it can be stored safely in a container.
 newtype ReifiedIndexedGetter i s a = IndexedGetter { runIndexedGetter :: IndexedGetter i s a }
 
@@ -88,6 +103,8 @@ instance MonadPlus (ReifiedFold s) where
 instance MonadReader s (ReifiedFold s) where
   ask = Fold $ folding $ \s -> [s]
   local f (Fold m) = Fold (to f . m)
+
+newtype ReifiedIndexedFold i s a = IndexedFold { runIndexedFold :: IndexedFold i s a }
 
 -- | Reify a 'Setter' so it can be stored safely in a container.
 newtype ReifiedSetter s t a b = Setter { runSetter :: Setter s t a b }
