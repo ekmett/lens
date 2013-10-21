@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Operators
@@ -104,4 +105,6 @@ import Control.Lens.Lens
 import Control.Lens.Review
 import Control.Lens.Setter
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
+#endif
