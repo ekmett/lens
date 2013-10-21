@@ -1,4 +1,6 @@
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
 ------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Reified
@@ -11,7 +13,13 @@
 ------------------------------------------------------------------------------
 module Control.Lens.Reified where
 
+import Control.Monad
+import Control.Monad.Reader.Class
+import Control.Applicative
+import Control.Lens.Getter
+import Control.Lens.Fold
 import Control.Lens.Type
+import Control.Lens.Traversal (ignored)
 
 ------------------------------------------------------------------------------
 -- Reifying
@@ -57,6 +65,29 @@ newtype ReifiedIndexedGetter i s a = IndexedGetter { runIndexedGetter :: Indexed
 
 -- | Reify a 'Fold' so it can be stored safely in a container.
 newtype ReifiedFold s a = Fold { runFold :: Fold s a }
+
+instance Functor (ReifiedFold s) where
+  fmap f (Fold l) = Fold (l.to f)
+
+instance Applicative (ReifiedFold s) where
+  pure a = Fold $ folding $ \_ -> [a]
+  Fold mf <*> Fold ma = Fold $ folding $ \s -> toListOf mf s <*> toListOf ma s
+
+instance Alternative (ReifiedFold s) where
+  empty = Fold ignored
+  Fold ma <|> Fold mb = Fold $ folding (\s -> toListOf ma s ++ toListOf mb s)
+
+instance Monad (ReifiedFold s) where
+  return a = Fold $ folding $ \_ -> [a]
+  Fold ma >>= f = Fold $ folding $ \s -> toListOf ma s >>= \a -> toListOf (runFold (f a)) s
+
+instance MonadPlus (ReifiedFold s) where
+  mzero = empty
+  mplus = (<|>)
+
+instance MonadReader s (ReifiedFold s) where
+  ask = Fold $ folding $ \s -> [s]
+  local f (Fold m) = Fold (to f . m)
 
 -- | Reify a 'Setter' so it can be stored safely in a container.
 newtype ReifiedSetter s t a b = Setter { runSetter :: Setter s t a b }
