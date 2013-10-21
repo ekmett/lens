@@ -561,6 +561,7 @@ makePrismsForCons dataDecl =
     typeVarsOnlyInOneCon = Set.fromList . concat . filter (\xs -> length xs == 1) .  List.group . List.sort $ conTypeVars >>= toList
 
 makePrismForCon :: DataDecl -> (TyVarBndr -> Bool) -> Con -> Q [Dec]
+makePrismForCon _ _ ForallC{} = return [] -- skip existentially quantified constructors
 makePrismForCon dataDecl canModifyTypeVar con = do
     remitterName <- newName "remitter"
     reviewerName <- newName "reviewer"
@@ -982,13 +983,12 @@ makeWrappedForDec decl = case makeDataDecl decl of
 makeRewrappedInstance :: DataDecl -> DecQ
 makeRewrappedInstance dataDecl = do
 
-   t <- newName "t"
-   let tVar = varT t
+   t <- varT <$> newName "t"
 
-   let typeArgs = toListOf typeVars (dataParameters dataDecl)
+   let typeArgs = map (view name) (dataParameters dataDecl)
 
    typeArgs' <- do
-     m <- freshMap (setOf typeVars typeArgs)
+     m <- freshMap (Set.fromList typeArgs)
      return (substTypeVars m typeArgs)
 
        -- Con a b c...
@@ -998,10 +998,10 @@ makeRewrappedInstance dataDecl = do
        appliedType' = return (fullType dataDecl (map VarT typeArgs'))
 
        -- Con a' b' c'... ~ t
-       eq = equalP appliedType' tVar
+       eq = equalP appliedType' t
 
        -- Rewrapped (Con a b c...) t
-       klass = conT ''Rewrapped `appsT` [appliedType, tVar]
+       klass = conT ''Rewrapped `appsT` [appliedType, t]
 
    -- instance (Con a' b' c'... ~ t) => Rewrapped (Con a b c...) t
    instanceD (cxt [eq]) klass []
