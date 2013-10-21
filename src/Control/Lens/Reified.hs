@@ -18,7 +18,7 @@ import Control.Lens.Type
 ------------------------------------------------------------------------------
 
 -- | Reify a 'Lens' so it can be stored safely in a container.
-newtype ReifiedLens s t a b = ReifyLens { reflectLens :: Lens s t a b }
+newtype ReifiedLens s t a b = Lens { runLens :: Lens s t a b }
 
 -- | @
 -- type 'ReifiedLens'' = 'Simple' 'ReifiedLens'
@@ -26,7 +26,7 @@ newtype ReifiedLens s t a b = ReifyLens { reflectLens :: Lens s t a b }
 type ReifiedLens' s a = ReifiedLens s s a a
 
 -- | Reify an 'IndexedLens' so it can be stored safely in a container.
-newtype ReifiedIndexedLens i s t a b = ReifyIndexedLens { reflectIndexedLens :: IndexedLens i s t a b }
+newtype ReifiedIndexedLens i s t a b = IndexedLens { runIndexedLens :: IndexedLens i s t a b }
 
 -- | @
 -- type 'ReifiedIndexedLens'' i = 'Simple' ('ReifiedIndexedLens' i)
@@ -34,7 +34,7 @@ newtype ReifiedIndexedLens i s t a b = ReifyIndexedLens { reflectIndexedLens :: 
 type ReifiedIndexedLens' i s a = ReifiedIndexedLens i s s a a
 
 -- | Reify an 'IndexedTraversal' so it can be stored safely in a container.
-newtype ReifiedIndexedTraversal i s t a b = ReifyIndexedTraversal { reflectIndexedTraversal :: IndexedTraversal i s t a b }
+newtype ReifiedIndexedTraversal i s t a b = IndexedTraversal { runIndexedTraversal :: IndexedTraversal i s t a b }
 
 -- | @
 -- type 'ReifiedIndexedTraversal'' i = 'Simple' ('ReifiedIndexedTraversal' i)
@@ -42,7 +42,7 @@ newtype ReifiedIndexedTraversal i s t a b = ReifyIndexedTraversal { reflectIndex
 type ReifiedIndexedTraversal' i s a = ReifiedIndexedTraversal i s s a a
 
 -- | A form of 'Traversal' that can be stored monomorphically in a container.
-data ReifiedTraversal s t a b = ReifyTraversal { reflectTraversal :: Traversal s t a b }
+newtype ReifiedTraversal s t a b = Traversal { runTraversal :: Traversal s t a b }
 
 -- | @
 -- type 'ReifiedTraversal'' = 'Simple' 'ReifiedTraversal'
@@ -50,16 +50,16 @@ data ReifiedTraversal s t a b = ReifyTraversal { reflectTraversal :: Traversal s
 type ReifiedTraversal' s a = ReifiedTraversal s s a a
 
 -- | Reify a 'Getter' so it can be stored safely in a container.
-newtype ReifiedGetter s a = ReifyGetter { reflectGetter :: Getter s a }
+newtype ReifiedGetter s a = Getter { runGetter :: Getter s a }
 
 -- | Reify an 'IndexedGetter' so it can be stored safely in a container.
-newtype ReifiedIndexedGetter i s a = ReifyIndexedGetter { reflectIndexedGetter :: IndexedGetter i s a }
+newtype ReifiedIndexedGetter i s a = IndexedGetter { runIndexedGetter :: IndexedGetter i s a }
 
 -- | Reify a 'Fold' so it can be stored safely in a container.
-newtype ReifiedFold s a = ReifyFold { reflectFold :: Fold s a }
+newtype ReifiedFold s a = Fold { runFold :: Fold s a }
 
 -- | Reify a 'Setter' so it can be stored safely in a container.
-newtype ReifiedSetter s t a b = ReifySetter { reflectSetter :: Setter s t a b }
+newtype ReifiedSetter s t a b = Setter { runSetter :: Setter s t a b }
 
 -- | @
 -- type 'ReifiedSetter'' = 'Simple' 'ReifiedSetter'
@@ -68,7 +68,7 @@ type ReifiedSetter' s a = ReifiedSetter s s a a
 
 -- | Reify an 'IndexedSetter' so it can be stored safely in a container.
 newtype ReifiedIndexedSetter i s t a b =
-  ReifyIndexedSetter { reflectIndexedSetter :: IndexedSetter i s t a b }
+  IndexedSetter { runIndexedSetter :: IndexedSetter i s t a b }
 
 -- | @
 -- type 'ReifiedIndexedSetter'' i = 'Simple' ('ReifiedIndexedSetter' i)
@@ -76,7 +76,7 @@ newtype ReifiedIndexedSetter i s t a b =
 type ReifiedIndexedSetter' i s a = ReifiedIndexedSetter i s s a a
 
 -- | Reify an 'Iso' so it can be stored safely in a container.
-newtype ReifiedIso s t a b = ReifyIso { reflectIso :: Iso s t a b }
+newtype ReifiedIso s t a b = Iso { runIso :: Iso s t a b }
 
 -- | @
 -- type 'ReifiedIso'' = 'Simple' 'ReifiedIso'
@@ -84,7 +84,7 @@ newtype ReifiedIso s t a b = ReifyIso { reflectIso :: Iso s t a b }
 type ReifiedIso' s a = ReifiedIso s s a a
 
 -- | Reify a 'Prism' so it can be stored safely in a container.
-newtype ReifiedPrism s t a b = ReifyPrism { reflectPrism :: Prism s t a b }
+newtype ReifiedPrism s t a b = Prism { runPrism :: Prism s t a b }
 
 -- | @
 -- type 'ReifiedPrism'' = 'Simple' 'ReifiedPrism'
