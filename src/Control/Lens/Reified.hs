@@ -16,10 +16,11 @@ module Control.Lens.Reified where
 import Control.Monad
 import Control.Monad.Reader.Class
 import Control.Applicative
-import Control.Lens.Getter
 import Control.Lens.Fold
+import Control.Lens.Getter
 import Control.Lens.Type
 import Control.Lens.Traversal (ignored)
+import Data.Profunctor
 
 ------------------------------------------------------------------------------
 -- Reifying
@@ -59,6 +60,19 @@ type ReifiedTraversal' s a = ReifiedTraversal s s a a
 
 -- | Reify a 'Getter' so it can be stored safely in a container.
 newtype ReifiedGetter s a = Getter { runGetter :: Getter s a }
+
+instance Profunctor ReifiedGetter where
+  dimap f g (Getter l) = Getter (to f.l.to g)
+  lmap g (Getter l)    = Getter (to g.l)
+  rmap f (Getter l)    = Getter (l.to f)
+
+instance Strong ReifiedGetter where
+  first' (Getter l)  = Getter $ to $ first' $ view l
+  second' (Getter l) = Getter $ to $ second' $ view l
+
+instance Choice ReifiedGetter where
+  left' (Getter l) = Getter $ to $ left' $ view l
+  right' (Getter l) = Getter $ to $ right' $ view l
 
 instance Functor (ReifiedGetter s) where
   fmap f (Getter l) = Getter (l.to f)
