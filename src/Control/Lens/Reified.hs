@@ -221,6 +221,13 @@ instance Profunctor (ReifiedIndexedGetter i) where
   dimap f g l = IndexedGetter (to f . runIndexedGetter l . to g)
   {-# INLINE dimap #-}
 
+instance Representable (ReifiedIndexedGetter i) where
+  type Rep (ReifiedIndexedGetter i) = (,) i
+  tabulate f = IndexedGetter $ ito f
+  {-# INLINE tabulate #-}
+  rep = iview . runIndexedGetter
+  {-# INLINE rep #-}
+
 instance Strong (ReifiedIndexedGetter i) where
   first' l = IndexedGetter $ \f (s,c) ->
     coerce $ runIndexedGetter l (dimap (flip (,) c) coerce f) s
