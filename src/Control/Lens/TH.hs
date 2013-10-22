@@ -596,7 +596,7 @@ makeReviewForCon dataDecl con = do
 
     -- Compute expression: unto (\(fields) -> Con fields)
     let pat  = toTupleP (map varP fieldNames)
-        lam  = lam1E pat (appsE (conE (view name con) : map varE fieldNames))
+        lam  = lam1E pat (appsE (conE dataConName : map varE fieldNames))
         body = varE 'unto `appE` lam
 
     Prelude.sequence
