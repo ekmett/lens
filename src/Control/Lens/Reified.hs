@@ -20,6 +20,7 @@ import qualified Control.Category as Cat
 import Control.Comonad
 import Control.Lens.Fold
 import Control.Lens.Getter
+import Control.Lens.Internal.Indexed
 import Control.Lens.Traversal (ignored)
 import Control.Lens.Type
 import Control.Monad
@@ -157,6 +158,8 @@ instance Representable ReifiedGetter where
   type Rep ReifiedGetter = Identity
   tabulate f = Getter $ to (runIdentity . f)
   rep (Getter l) = Identity . view l
+
+instance Conjoined ReifiedGetter
 
 instance Strong ReifiedGetter where
   first' l = Getter $ \f (s,c) ->
