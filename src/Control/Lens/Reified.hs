@@ -36,6 +36,9 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Semigroup
 
+-- $setup
+-- >>> import Control.Lens
+
 ------------------------------------------------------------------------------
 -- Lens
 ------------------------------------------------------------------------------
