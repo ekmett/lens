@@ -1,6 +1,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 ------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Reified
@@ -26,7 +27,9 @@ import Control.Monad.Reader.Class
 import Data.Distributive
 import Data.Functor.Bind
 import Data.Functor.Extend
+import Data.Functor.Identity
 import Data.Profunctor
+import Data.Profunctor.Rep
 import Data.Semigroup
 
 ------------------------------------------------------------------------------
@@ -144,6 +147,16 @@ instance Profunctor ReifiedGetter where
   {-# INLINE lmap #-}
   rmap f l    = Getter $ runGetter l.to f
   {-# INLINE rmap #-}
+
+instance Corepresentable ReifiedGetter where
+  type Corep ReifiedGetter = Identity
+  cotabulate f = Getter $ to (f . Identity)
+  corep (Getter l) = view l . runIdentity
+
+instance Representable ReifiedGetter where
+  type Rep ReifiedGetter = Identity
+  tabulate f = Getter $ to (runIdentity . f)
+  rep (Getter l) = Identity . view l
 
 instance Strong ReifiedGetter where
   first' l = Getter $ \f (s,c) ->
