@@ -137,6 +137,10 @@ instance Choice ReifiedFold where
     Left c -> [Left c]
     Right s -> Right <$> toListOf l s
 
+instance Cat.Category ReifiedFold where
+  id = Fold id
+  Fold l . Fold r = Fold (r.l)
+
 instance Arrow ReifiedFold where
   arr f = Fold (to f)
   first = first'
@@ -147,10 +151,6 @@ instance Arrow ReifiedFold where
 instance ArrowChoice ReifiedFold where
   left = left'
   right = right'
-
-instance Cat.Category ReifiedFold where
-  id = Fold id
-  Fold l . Fold r = Fold (r.l)
 
 instance ArrowApply ReifiedFold where
   app = Fold $ folding $ \(Fold bc, b) -> toListOf bc b
