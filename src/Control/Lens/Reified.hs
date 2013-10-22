@@ -26,6 +26,8 @@ import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader.Class
 import Data.Distributive
+import Data.Foldable
+import Data.Functor.Compose
 import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Functor.Identity
@@ -371,6 +373,13 @@ instance Profunctor (ReifiedIndexedFold i) where
   {-# INLINE lmap #-}
   rmap g l = IndexedFold (runIndexedFold l . to g)
   {-# INLINE rmap #-}
+
+instance Representable (ReifiedIndexedFold i) where
+  type Rep (ReifiedIndexedFold i) = Compose [] ((,) i)
+  tabulate k = IndexedFold $ \f s -> coerce $ traverse_ (coerce . uncurry (indexed f)) $ getCompose (k s)
+  {-# INLINE tabulate #-}
+  rep (IndexedFold l) = Compose . itoListOf l
+  {-# INLINE rep #-}
 
 instance Strong (ReifiedIndexedFold i) where
   first' l  = IndexedFold $ \f (s,c) ->
