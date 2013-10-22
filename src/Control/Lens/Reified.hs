@@ -24,8 +24,9 @@ import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader.Class
 import Data.Distributive
-import Data.Monoid
+import Data.Functor.Extend
 import Data.Profunctor
+import Data.Semigroup
 
 ------------------------------------------------------------------------------
 -- Lens
@@ -94,6 +95,10 @@ instance Distributive (ReifiedGetter s) where
 instance Functor (ReifiedGetter s) where
   fmap f l = Getter (runGetter l.to f)
   {-# INLINE fmap #-}
+
+instance Semigroup s => Extend (ReifiedGetter s) where
+  duplicated (Getter l) = Getter $ to $ \m -> Getter $ to $ \n -> view l (m <> n)
+  {-# INLINE duplicated #-}
 
 instance Monoid s => Comonad (ReifiedGetter s) where
   extract (Getter l) = view l mempty
