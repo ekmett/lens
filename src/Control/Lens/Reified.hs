@@ -145,6 +145,12 @@ instance MonadReader s (ReifiedFold s) where
 
 newtype ReifiedIndexedFold i s a = IndexedFold { runIndexedFold :: IndexedFold i s a }
 
+instance Functor (ReifiedIndexedFold i s) where
+  fmap f (IndexedFold l) = IndexedFold (l.to f)
+
+instance Profunctor (ReifiedIndexedFold i) where
+  dimap f g (IndexedFold l) = IndexedFold (to f.l.to g)
+
 -- | Reify a 'Setter' so it can be stored safely in a container.
 newtype ReifiedSetter s t a b = Setter { runSetter :: Setter s t a b }
 
