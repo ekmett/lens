@@ -334,12 +334,20 @@ instance Functor (ReifiedFold s) where
 instance Apply (ReifiedFold s) where
   Fold mf <.> Fold ma = Fold $ folding $ \s -> toListOf mf s <.> toListOf ma s
   {-# INLINE (<.>) #-}
+  Fold mf <. Fold ma = Fold $ folding $ \s -> toListOf mf s <. toListOf ma s
+  {-# INLINE (<.) #-}
+  Fold mf .> Fold ma = Fold $ folding $ \s -> toListOf mf s .> toListOf ma s
+  {-# INLINE (.>) #-}
 
 instance Applicative (ReifiedFold s) where
   pure a = Fold $ folding $ \_ -> [a]
   {-# INLINE pure #-}
   Fold mf <*> Fold ma = Fold $ folding $ \s -> toListOf mf s <*> toListOf ma s
   {-# INLINE (<*>) #-}
+  Fold mf <* Fold ma = Fold $ folding $ \s -> toListOf mf s <* toListOf ma s
+  {-# INLINE (<*) #-}
+  Fold mf *> Fold ma = Fold $ folding $ \s -> toListOf mf s *> toListOf ma s
+  {-# INLINE (*>) #-}
 
 instance Alternative (ReifiedFold s) where
   empty = Fold ignored
@@ -375,6 +383,7 @@ instance Semigroup (ReifiedFold s a) where
 
 instance Monoid (ReifiedFold s a) where
   mempty = Fold ignored
+  {-# INLINE mempty #-}
   mappend = (<|>)
   {-# INLINE mappend #-}
 
