@@ -441,7 +441,7 @@ instance Profunctor (ReifiedIndexedFold i) where
 
 instance Representable (ReifiedIndexedFold i) where
   type Rep (ReifiedIndexedFold i) = Compose [] ((,) i)
-  tabulate k = IndexedFold $ \f s -> coerce $ traverse_ (coerce . uncurry (indexed f)) $ getCompose (k s)
+  tabulate k = IndexedFold $ \f -> coerce . traverse_ (coerce . uncurry (indexed f)) . getCompose . k
   {-# INLINE tabulate #-}
   rep (IndexedFold l) = Compose . itoListOf l
   {-# INLINE rep #-}
