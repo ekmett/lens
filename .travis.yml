@@ -1,40 +1,41 @@
 language: haskell
 
 env:
-  - >
-    GHCVER=7.4.2
-    mode="--enable-tests"
-    script="cabal-1.18 test --show-details=always"
-  - >
-    GHCVER=7.6.3
-    mode="--enable-tests"
-    script="cabal-1.18 test --show-details=always"
-  # - mode="--enable-tests -fsafe" script="cabal test"
-  # - mode="--enable-tests -fdump-splices" script="cabal test --show-details=always"
-  # - mode="--enable-benchmarks -fdump-splices" script="cabal bench"
+  - GHCVER=7.4.2
+  - GHCVER=7.6.3
+  # - >
+  #   GHCVER=7.4.2
+  #   MODE="-fsafe"
 
 before_install:
+  # If $GHCVER is the one travis has, don't bother reinstalling it.
+  # We can also have faster builds by installing some libraries with
+  # `apt`. If it isn't, install the GHC we want from hvr's PPA along
+  # with cabal-1.18.
+  - |
+    if [ $GHCVER = `ghc --numeric-version` ]; then
+      # Try installing some of the build-deps with apt-get for speed.
+      travis/cabal-apt-install $MODE
+      export CABAL=cabal
+    else
+      # Install the GHC we want from hvr's PPA
+      sudo add-apt-repository -y ppa:hvr/ghc
+      sudo apt-get update
+      sudo apt-get install cabal-install-1.18 ghc-$GHCVER
+      export CABAL=cabal-1.18
+      export PATH=/opt/ghc/$GHCVER/bin:$PATH
+    fi
   # Uncomment whenever hackage is down.
-  # - mkdir -p ~/.cabal && cp travis/config ~/.cabal/config && cabal update
-  - cabal update
-
-  # Try installing some of the build-deps with apt-get for speed.
-  - travis/cabal-apt-install $mode
-  
-  # Install the GHC we want from hvr's PPA.
-  - sudo add-apt-repository -y ppa:hvr/ghc
-  - sudo apt-get update
-  - sudo apt-get install cabal-install-1.18 ghc-$GHCVER
-  - export PATH=/opt/ghc/$GHCVER/bin:$PATH
+  # - mkdir -p ~/.cabal && cp travis/config ~/.cabal/config && $CABAL update
+  - $CABAL update
 
 install:
-  - cabal-1.18 update
-  - cabal-1.18 install --dependencies-only --enable-tests
-  - cabal-1.18 configure -flib-Werror $mode
+  - $CABAL install --dependencies-only --enable-tests
+  - $CABAL configure -flib-Werror --enable-tests $MODE
 
 script:
-  - cabal-1.18 build
-  - $script
+  - $CABAL build
+  - $CABAL test --show-details=always
   - scripts/stats
 
 notifications:
