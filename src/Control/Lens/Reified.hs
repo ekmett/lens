@@ -16,6 +16,7 @@ module Control.Lens.Reified where
 import Control.Applicative
 import Control.Arrow
 import qualified Control.Category as Cat
+import Control.Comonad
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Traversal (ignored)
@@ -23,6 +24,7 @@ import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader.Class
 import Data.Profunctor
+import Data.Monoid
 
 ------------------------------------------------------------------------------
 -- Lens
@@ -85,6 +87,25 @@ type ReifiedTraversal' s a = ReifiedTraversal s s a a
 -- ("world",5)
 newtype ReifiedGetter s a = Getter { runGetter :: Getter s a }
 
+instance Functor (ReifiedGetter s) where
+  fmap f l = Getter (runGetter l.to f)
+
+instance Monoid s => Comonad (ReifiedGetter s) where
+  extract (Getter l) = view l mempty
+  duplicate (Getter l) = Getter $ to $ \m -> Getter $ to $ \n -> view l (mappend m n)
+
+instance Applicative (ReifiedGetter s) where
+  pure a = Getter $ to $ \_ -> a
+  Getter mf <*> Getter ma = Getter $ to $ \s -> view mf s (view ma s)
+
+instance Monad (ReifiedGetter s) where
+  return a = Getter $ to $ \_ -> a
+  Getter ma >>= f = Getter $ to $ \s -> view (runGetter (f (view ma s))) s
+
+instance MonadReader s (ReifiedGetter s) where
+  ask = Getter id
+  local f m = Getter (to f . runGetter m)
+
 instance Profunctor ReifiedGetter where
   dimap f g l = Getter $ to f.runGetter l.to g
   lmap g l    = Getter $ to g.runGetter l
@@ -120,21 +141,6 @@ instance ArrowChoice ReifiedGetter where
 
 instance ArrowLoop ReifiedGetter where
   loop l = Getter $ to $ loop $ view $ runGetter l
-
-instance Functor (ReifiedGetter s) where
-  fmap f l = Getter (runGetter l.to f)
-
-instance Applicative (ReifiedGetter s) where
-  pure a = Getter $ to $ \_ -> a
-  Getter mf <*> Getter ma = Getter $ to $ \s -> view mf s (view ma s)
-
-instance Monad (ReifiedGetter s) where
-  return a = Getter $ to $ \_ -> a
-  Getter ma >>= f = Getter $ to $ \s -> view (runGetter (f (view ma s))) s
-
-instance MonadReader s (ReifiedGetter s) where
-  ask = Getter id
-  local f m = Getter (to f . runGetter m)
 
 ------------------------------------------------------------------------------
 -- IndexedGetter
