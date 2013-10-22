@@ -15,7 +15,7 @@ before_install:
   - |
     if [ $GHCVER = `ghc --numeric-version` ]; then
       # Try installing some of the build-deps with apt-get for speed.
-      travis/cabal-apt-install $MODE
+      travis/cabal-apt-install --enable-tests $MODE
       export CABAL=cabal
     else
       # Install the GHC we want from hvr's PPA
