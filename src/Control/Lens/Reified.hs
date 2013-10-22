@@ -148,6 +148,9 @@ instance Cat.Category ReifiedFold where
   id = Fold id
   Fold l . Fold r = Fold (r.l)
 
+instance ArrowApply ReifiedFold where
+  app = Fold $ folding $ \(Fold bc, b) -> toListOf bc b
+
 instance Functor (ReifiedFold s) where
   fmap f (Fold l) = Fold (l.to f)
 
