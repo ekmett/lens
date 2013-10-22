@@ -255,6 +255,13 @@ instance Functor (ReifiedIndexedGetter i s) where
   fmap f l = IndexedGetter (runIndexedGetter l.to f)
   {-# INLINE fmap #-}
 
+instance Semigroup i => Apply (ReifiedIndexedGetter i s) where
+  IndexedGetter mf <.> IndexedGetter ma = IndexedGetter $ \k s ->
+    case iview mf s of
+      (i, f) -> case iview ma s of
+        (j, a) -> coerce $ indexed k (i <> j) (f a)
+  {-# INLINE (<.>) #-}
+
 ------------------------------------------------------------------------------
 -- Fold
 ------------------------------------------------------------------------------
