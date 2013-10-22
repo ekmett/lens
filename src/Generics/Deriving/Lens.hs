@@ -35,8 +35,8 @@ import           Control.Applicative
 import           Control.Lens
 import           Data.Maybe (fromJust)
 import           Data.Typeable
-import qualified Generics.Deriving as Generic
-import           Generics.Deriving hiding (from, to)
+import qualified GHC.Generics as Generic
+import           GHC.Generics hiding (from, to)
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

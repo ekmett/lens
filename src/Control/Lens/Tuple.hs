@@ -42,7 +42,7 @@ import Control.Lens.Combinators
 import Control.Lens.Indexed
 import Control.Lens.Type
 import Data.Functor.Identity
-import Generics.Deriving (Generic (..), (:*:) (..), K1 (..), M1 (..), U1 (..))
+import GHC.Generics (Generic (..), (:*:) (..), K1 (..), M1 (..), U1 (..))
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
