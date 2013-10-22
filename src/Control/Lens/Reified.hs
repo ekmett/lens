@@ -77,6 +77,12 @@ type ReifiedTraversal' s a = ReifiedTraversal s s a a
 ------------------------------------------------------------------------------
 
 -- | Reify a 'Getter' so it can be stored safely in a container.
+--
+-- This can also be useful when combining getters in novel ways, as
+-- 'ReifiedGetter' is isomorphic to '(->)' and provides similar instances.
+--
+-- >>> ("hello","world","!!!")^.runGetter ((,) <$> Getter _2 <*> Getter (_1.to length))
+-- ("world",5)
 newtype ReifiedGetter s a = Getter { runGetter :: Getter s a }
 
 instance Profunctor ReifiedGetter where
@@ -154,6 +160,13 @@ instance Functor (ReifiedIndexedGetter i s) where
 ------------------------------------------------------------------------------
 
 -- | Reify a 'Fold' so it can be stored safely in a container.
+--
+-- This can also be useful for creatively combining folds as
+-- @'ReifiedFold' s@ is isomorphic to @ReaderT s []@ and provides similar
+-- instances.
+--
+-- >>> ("hello","world")^..runFold ((,) <$> Fold _2 <*> Fold both)
+-- [("world","hello"),("world","world")]
 newtype ReifiedFold s a = Fold { runFold :: Fold s a }
 
 instance Profunctor ReifiedFold where
