@@ -31,6 +31,7 @@ import Data.Functor.Compose
 import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Functor.Identity
+import Data.Functor.Plus
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Semigroup
@@ -365,16 +366,38 @@ instance Monoid (ReifiedFold s a) where
   mappend = (<|>)
   {-# INLINE mappend #-}
 
+instance Alt (ReifiedFold s) where
+  (<!>) = (<|>)
+  {-# INLINE (<!>) #-}
+
+instance Plus (ReifiedFold s) where
+  zero = Fold ignored
+  {-# INLINE zero #-}
+
 ------------------------------------------------------------------------------
 -- IndexedFold
 ------------------------------------------------------------------------------
 
 newtype ReifiedIndexedFold i s a = IndexedFold { runIndexedFold :: IndexedFold i s a }
 
+instance Semigroup (ReifiedIndexedFold i s a) where
+  (<>) = (<!>)
+  {-# INLINE (<>) #-}
+
 instance Monoid (ReifiedIndexedFold i s a) where
   mempty = IndexedFold ignored
-  mappend (IndexedFold ma) (IndexedFold mb) = IndexedFold $
+  {-# INLINE mempty #-}
+  mappend = (<!>)
+  {-# INLINE mappend #-}
+
+instance Alt (ReifiedIndexedFold i s) where
+  IndexedFold ma <!> IndexedFold mb = IndexedFold $
     ifolding $ \s -> itoListOf ma s ++ itoListOf mb s
+  {-# INLINE (<!>) #-}
+
+instance Plus (ReifiedIndexedFold i s) where
+  zero = IndexedFold ignored
+  {-# INLINE zero #-}
 
 instance Functor (ReifiedIndexedFold i s) where
   fmap f l = IndexedFold (runIndexedFold l . to f)
