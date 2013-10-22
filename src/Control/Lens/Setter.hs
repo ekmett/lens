@@ -218,7 +218,7 @@ lifted = sets liftM
 -- >>> getOp (over contramapped (*5) (Op show)) 100
 -- "500"
 --
--- >>> Prelude.map ($ 1) $ over (mapped . wrapping Op . contramapped) (*12) [(*2),(+1),(^3)]
+-- >>> Prelude.map ($ 1) $ over (mapped . _Unwrapping' Op . contramapped) (*12) [(*2),(+1),(^3)]
 -- [24,13,1728]
 --
 contramapped :: Contravariant f => Setter (f b) (f a) a b
