@@ -51,6 +51,7 @@ module Control.Lens.Getter
   , Accessing
   -- * Building Getters
   , to
+  , ito
   -- * Combinators for Getters and Folds
   , (^.)
   , view, views
@@ -117,8 +118,12 @@ infixl 8 ^., ^@.
 -- >>> (0, -5)^._2.to abs
 -- 5
 to :: (s -> a) -> IndexPreservingGetter s a
-to f = dimap f coerce
+to k = dimap k coerce
 {-# INLINE to #-}
+
+ito :: (s -> (i, a)) -> IndexedGetter i s a
+ito k = dimap k coerce . uncurry . indexed
+{-# INLINE ito #-}
 
 -- | When you see this in a type signature it indicates that you can
 -- pass the function a 'Lens', 'Getter',
