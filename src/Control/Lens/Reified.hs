@@ -144,6 +144,10 @@ instance Arrow ReifiedFold where
   Fold l *** Fold r = Fold $ folding $ \(x,y) -> (,) <$> toListOf l x <*> toListOf r y
   Fold l &&& Fold r = Fold $ folding $ \x -> (,) <$> toListOf l x <*> toListOf r x
 
+instance ArrowChoice ReifiedFold where
+  left = left'
+  right = right'
+
 instance Cat.Category ReifiedFold where
   id = Fold id
   Fold l . Fold r = Fold (r.l)
