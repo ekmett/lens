@@ -225,6 +225,8 @@ instance Functor (ReifiedIndexedFold i s) where
 
 instance Profunctor (ReifiedIndexedFold i) where
   dimap f g l = IndexedFold (to f . runIndexedFold l . to g)
+  lmap f l = IndexedFold (to f . runIndexedFold l)
+  rmap g l = IndexedFold (runIndexedFold l . to g)
 
 instance Strong (ReifiedIndexedFold i) where
   first' l  = IndexedFold $ \f (s,c) ->
