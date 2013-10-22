@@ -18,6 +18,7 @@ import Control.Arrow
 import qualified Control.Category as Cat
 import Control.Lens.Fold
 import Control.Lens.Getter
+import Control.Lens.Indexed
 import Control.Lens.Traversal (ignored)
 import Control.Lens.Type
 import Control.Monad
@@ -116,6 +117,22 @@ instance MonadReader s (ReifiedGetter s) where
 
 -- | Reify an 'IndexedGetter' so it can be stored safely in a container.
 newtype ReifiedIndexedGetter i s a = IndexedGetter { runIndexedGetter :: IndexedGetter i s a }
+
+instance Profunctor (ReifiedIndexedGetter i) where
+  dimap f g (IndexedGetter l) = IndexedGetter (to f.l.to g)
+
+instance Strong (ReifiedIndexedGetter i) where
+  -- use conjoin?
+  first' (IndexedGetter l)  = IndexedGetter $ \f (s,c) ->
+    flip (,) c <$> l (Indexed $ \ i t -> coerce $ indexed f i (t, c)) s
+  second' (IndexedGetter l)  = IndexedGetter $ \f (c,s) ->
+    (,) c      <$> l (Indexed $ \ i t -> coerce $ indexed f i (c, t)) s
+
+-- instance Choice (ReifiedIndexedGetter i) where
+  -- use conjoin?
+
+instance Functor (ReifiedIndexedGetter i s) where
+  fmap f (IndexedGetter l) = IndexedGetter (l.to f)
 
 -- | Reify a 'Fold' so it can be stored safely in a container.
 newtype ReifiedFold s a = Fold { runFold :: Fold s a }
