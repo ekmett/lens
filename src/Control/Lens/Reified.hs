@@ -23,8 +23,9 @@ import Control.Lens.Traversal (ignored)
 import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader.Class
-import Data.Profunctor
+import Data.Distributive
 import Data.Monoid
+import Data.Profunctor
 
 ------------------------------------------------------------------------------
 -- Lens
@@ -86,6 +87,9 @@ type ReifiedTraversal' s a = ReifiedTraversal s s a a
 -- >>> ("hello","world","!!!")^.runGetter ((,) <$> Getter _2 <*> Getter (_1.to length))
 -- ("world",5)
 newtype ReifiedGetter s a = Getter { runGetter :: Getter s a }
+
+instance Distributive (ReifiedGetter s) where
+  distribute as = Getter $ to $ \s -> fmap (\(Getter l) -> view l s) as
 
 instance Functor (ReifiedGetter s) where
   fmap f l = Getter (runGetter l.to f)
