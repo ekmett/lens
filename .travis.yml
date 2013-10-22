@@ -7,6 +7,11 @@ env:
   #   GHCVER=7.4.2
   #   MODE="-fsafe"
 
+# Ingore 7.4.2 failures for now because of the doctest GHC panic.
+matrix:
+  allow_failures:
+    - env: GHCVER=7.4.2
+
 before_install:
   # If $GHCVER is the one travis has, don't bother reinstalling it.
   # We can also have faster builds by installing some libraries with
