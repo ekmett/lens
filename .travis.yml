@@ -29,6 +29,7 @@ before_install:
 
 install:
   - cabal-1.18 update
+  - cabal-1.18 install --dependencies-only --enable-tests
   - cabal-1.18 configure -flib-Werror $mode
 
 script:
