@@ -89,58 +89,86 @@ newtype ReifiedGetter s a = Getter { runGetter :: Getter s a }
 
 instance Functor (ReifiedGetter s) where
   fmap f l = Getter (runGetter l.to f)
+  {-# INLINE fmap #-}
 
 instance Monoid s => Comonad (ReifiedGetter s) where
   extract (Getter l) = view l mempty
+  {-# INLINE extract #-}
   duplicate (Getter l) = Getter $ to $ \m -> Getter $ to $ \n -> view l (mappend m n)
+  {-# INLINE duplicate #-}
 
 instance Applicative (ReifiedGetter s) where
   pure a = Getter $ to $ \_ -> a
+  {-# INLINE pure #-}
   Getter mf <*> Getter ma = Getter $ to $ \s -> view mf s (view ma s)
+  {-# INLINE (<*>) #-}
 
 instance Monad (ReifiedGetter s) where
   return a = Getter $ to $ \_ -> a
+  {-# INLINE return #-}
   Getter ma >>= f = Getter $ to $ \s -> view (runGetter (f (view ma s))) s
+  {-# INLINE (>>=) #-}
 
 instance MonadReader s (ReifiedGetter s) where
   ask = Getter id
+  {-# INLINE ask #-}
   local f m = Getter (to f . runGetter m)
+  {-# INLINE local #-}
 
 instance Profunctor ReifiedGetter where
   dimap f g l = Getter $ to f.runGetter l.to g
+  {-# INLINE dimap #-}
   lmap g l    = Getter $ to g.runGetter l
+  {-# INLINE lmap #-}
   rmap f l    = Getter $ runGetter l.to f
+  {-# INLINE rmap #-}
 
 instance Strong ReifiedGetter where
   first' l  = Getter $ to $ first' $ view $ runGetter l
+  {-# INLINE first' #-}
   second' l = Getter $ to $ second' $ view $ runGetter l
+  {-# INLINE second' #-}
 
 instance Choice ReifiedGetter where
   left' l = Getter $ to $ left' $ view $ runGetter l
+  {-# INLINE left' #-}
   right' l = Getter $ to $ right' $ view $ runGetter l
+  {-# INLINE right' #-}
 
 instance Cat.Category ReifiedGetter where
   id = Getter id
   l . r = Getter (runGetter r.runGetter l)
+  {-# INLINE (.) #-}
 
 instance Arrow ReifiedGetter where
   arr f = Getter (to f)
+  {-# INLINE arr #-}
   first l = Getter $ to $ first $ view $ runGetter l
+  {-# INLINE first #-}
   second l = Getter $ to $ second $ view $ runGetter l
+  {-# INLINE second #-}
   Getter l *** Getter r = Getter $ to $ view l *** view r
+  {-# INLINE (***) #-}
   Getter l &&& Getter r = Getter $ to $ view l &&& view r
+  {-# INLINE (&&&) #-}
 
 instance ArrowApply ReifiedGetter where
   app = Getter $ to $ \(Getter bc, b) -> view bc b
+  {-# INLINE app #-}
 
 instance ArrowChoice ReifiedGetter where
   left l = Getter $ to $ left $ view $ runGetter l
+  {-# INLINE left #-}
   right l = Getter $ to $ right $ view $ runGetter l
+  {-# INLINE right #-}
   Getter l +++ Getter r = Getter $ to $ view l +++ view r
+  {-# INLINE (+++) #-}
   Getter l ||| Getter r = Getter $ to $ view l ||| view r
+  {-# INLINE (|||) #-}
 
 instance ArrowLoop ReifiedGetter where
   loop l = Getter $ to $ loop $ view $ runGetter l
+  {-# INLINE loop #-}
 
 ------------------------------------------------------------------------------
 -- IndexedGetter
@@ -151,15 +179,19 @@ newtype ReifiedIndexedGetter i s a = IndexedGetter { runIndexedGetter :: Indexed
 
 instance Profunctor (ReifiedIndexedGetter i) where
   dimap f g l = IndexedGetter (to f . runIndexedGetter l . to g)
+  {-# INLINE dimap #-}
 
 instance Strong (ReifiedIndexedGetter i) where
   first' l = IndexedGetter $ \f (s,c) ->
     coerce $ runIndexedGetter l (dimap (flip (,) c) coerce f) s
+  {-# INLINE first' #-}
   second' l = IndexedGetter $ \f (c,s) ->
     coerce $ runIndexedGetter l (dimap ((,) c) coerce f) s
+  {-# INLINE second' #-}
 
 instance Functor (ReifiedIndexedGetter i s) where
   fmap f l = IndexedGetter (runIndexedGetter l.to f)
+  {-# INLINE fmap #-}
 
 ------------------------------------------------------------------------------
 -- Fold
@@ -177,61 +209,88 @@ newtype ReifiedFold s a = Fold { runFold :: Fold s a }
 
 instance Profunctor ReifiedFold where
   dimap f g l = Fold (to f . runFold l . to g)
+  {-# INLINE dimap #-}
   rmap g l = Fold (runFold l . to g)
+  {-# INLINE rmap #-}
   lmap f l = Fold (to f . runFold l)
+  {-# INLINE lmap #-}
 
 instance Strong ReifiedFold where
   first' (Fold l) = Fold $ folding $ \(s,c) -> fmap (\s' -> (s', c)) (toListOf l s)
+  {-# INLINE first' #-}
   second' (Fold l) = Fold $ folding $ \(c,s) -> (,) c <$> toListOf l s
+  {-# INLINE second' #-}
 
 instance Choice ReifiedFold where
   left' (Fold l) = Fold $ folding $ \esc -> case esc of
     Left s -> Left <$> toListOf l s
     Right c -> [Right c]
+  {-# INLINE left' #-}
   right' (Fold l) = Fold $ folding $ \ecs -> case ecs of
     Left c -> [Left c]
     Right s -> Right <$> toListOf l s
+  {-# INLINE right' #-}
 
 instance Cat.Category ReifiedFold where
   id = Fold id
   l . r = Fold (runFold r . runFold l)
+  {-# INLINE (.) #-}
 
 instance Arrow ReifiedFold where
   arr f = Fold (to f)
+  {-# INLINE arr #-}
   first = first'
+  {-# INLINE first #-}
   second = second'
+  {-# INLINE second #-}
   Fold l *** Fold r = Fold $ folding $ \(x,y) -> (,) <$> toListOf l x <*> toListOf r y
+  {-# INLINE (***) #-}
   Fold l &&& Fold r = Fold $ folding $ \x -> (,) <$> toListOf l x <*> toListOf r x
+  {-# INLINE (&&&) #-}
 
 instance ArrowChoice ReifiedFold where
   left = left'
+  {-# INLINE left #-}
   right = right'
+  {-# INLINE right #-}
 
 instance ArrowApply ReifiedFold where
   app = Fold $ folding $ \(Fold bc, b) -> toListOf bc b
+  {-# INLINE app #-}
 
 instance Functor (ReifiedFold s) where
   fmap f l = Fold (runFold l.to f)
+  {-# INLINE fmap #-}
 
 instance Applicative (ReifiedFold s) where
   pure a = Fold $ folding $ \_ -> [a]
+  {-# INLINE pure #-}
   Fold mf <*> Fold ma = Fold $ folding $ \s -> toListOf mf s <*> toListOf ma s
+  {-# INLINE (<*>) #-}
 
 instance Alternative (ReifiedFold s) where
   empty = Fold ignored
+  {-# INLINE empty #-}
   Fold ma <|> Fold mb = Fold $ folding (\s -> toListOf ma s ++ toListOf mb s)
+  {-# INLINE (<|>) #-}
 
 instance Monad (ReifiedFold s) where
   return a = Fold $ folding $ \_ -> [a]
+  {-# INLINE return #-}
   Fold ma >>= f = Fold $ folding $ \s -> toListOf ma s >>= \a -> toListOf (runFold (f a)) s
+  {-# INLINE (>>=) #-}
 
 instance MonadPlus (ReifiedFold s) where
   mzero = empty
+  {-# INLINE mzero #-}
   mplus = (<|>)
+  {-# INLINE mplus #-}
 
 instance MonadReader s (ReifiedFold s) where
-  ask = Fold $ folding $ \s -> [s]
+  ask = Fold id
+  {-# INLINE ask #-}
   local f m = Fold (to f . runFold m)
+  {-# INLINE local #-}
 
 ------------------------------------------------------------------------------
 -- IndexedFold
@@ -241,17 +300,23 @@ newtype ReifiedIndexedFold i s a = IndexedFold { runIndexedFold :: IndexedFold i
 
 instance Functor (ReifiedIndexedFold i s) where
   fmap f l = IndexedFold (runIndexedFold l . to f)
+  {-# INLINE fmap #-}
 
 instance Profunctor (ReifiedIndexedFold i) where
   dimap f g l = IndexedFold (to f . runIndexedFold l . to g)
+  {-# INLINE dimap #-}
   lmap f l = IndexedFold (to f . runIndexedFold l)
+  {-# INLINE lmap #-}
   rmap g l = IndexedFold (runIndexedFold l . to g)
+  {-# INLINE rmap #-}
 
 instance Strong (ReifiedIndexedFold i) where
   first' l  = IndexedFold $ \f (s,c) ->
     coerce $ runIndexedFold l (dimap (flip (,) c) coerce f) s
+  {-# INLINE first' #-}
   second' l = IndexedFold $ \f (c,s) ->
     coerce $ runIndexedFold l (dimap ((,) c) coerce f) s
+  {-# INLINE second' #-}
 
 ------------------------------------------------------------------------------
 -- Setter
