@@ -120,6 +120,34 @@ newtype ReifiedIndexedGetter i s a = IndexedGetter { runIndexedGetter :: Indexed
 -- | Reify a 'Fold' so it can be stored safely in a container.
 newtype ReifiedFold s a = Fold { runFold :: Fold s a }
 
+instance Profunctor ReifiedFold where
+  dimap f g (Fold l) = Fold (to f.l.to g)
+  rmap g (Fold l) = Fold (l.to g)
+  lmap f (Fold l) = Fold (to f.l)
+
+instance Strong ReifiedFold where
+  first' (Fold l) = Fold $ folding $ \(s,c) -> fmap (\s' -> (s', c)) (toListOf l s)
+  second' (Fold l) = Fold $ folding $ \(c,s) -> (,) c <$> toListOf l s
+
+instance Choice ReifiedFold where
+  left' (Fold l) = Fold $ folding $ \esc -> case esc of
+    Left s -> Left <$> toListOf l s
+    Right c -> [Right c]
+  right' (Fold l) = Fold $ folding $ \ecs -> case ecs of
+    Left c -> [Left c]
+    Right s -> Right <$> toListOf l s
+
+instance Arrow ReifiedFold where
+  arr f = Fold (to f)
+  first = first'
+  second = second'
+  Fold l *** Fold r = Fold $ folding $ \(x,y) -> (,) <$> toListOf l x <*> toListOf r y
+  Fold l &&& Fold r = Fold $ folding $ \x -> (,) <$> toListOf l x <*> toListOf r x
+
+instance Cat.Category ReifiedFold where
+  id = Fold id
+  Fold l . Fold r = Fold (r.l)
+
 instance Functor (ReifiedFold s) where
   fmap f (Fold l) = Fold (l.to f)
 
