@@ -128,9 +128,11 @@ instance Profunctor ReifiedGetter where
   {-# INLINE rmap #-}
 
 instance Strong ReifiedGetter where
-  first' l  = Getter $ to $ first' $ view $ runGetter l
+  first' l = Getter $ \f (s,c) ->
+    coerce $ runGetter l (dimap (flip (,) c) coerce f) s
   {-# INLINE first' #-}
-  second' l = Getter $ to $ second' $ view $ runGetter l
+  second' l = Getter $ \f (c,s) ->
+    coerce $ runGetter l (dimap ((,) c) coerce f) s
   {-# INLINE second' #-}
 
 instance Choice ReifiedGetter where
