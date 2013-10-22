@@ -362,6 +362,11 @@ instance MonadReader s (ReifiedFold s) where
 
 newtype ReifiedIndexedFold i s a = IndexedFold { runIndexedFold :: IndexedFold i s a }
 
+instance Monoid (ReifiedIndexedFold i s a) where
+  mempty = IndexedFold ignored
+  mappend (IndexedFold ma) (IndexedFold mb) = IndexedFold $
+    ifolding $ \s -> itoListOf ma s ++ itoListOf mb s
+
 instance Functor (ReifiedIndexedFold i s) where
   fmap f l = IndexedFold (runIndexedFold l . to f)
   {-# INLINE fmap #-}

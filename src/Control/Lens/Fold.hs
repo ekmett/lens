@@ -54,7 +54,7 @@ module Control.Lens.Fold
   , has, hasn't
 
   -- ** Building Folds
-  , folding
+  , folding, ifolding
   , folded
   , folded64
   , unfolded
@@ -197,6 +197,10 @@ infixl 8 ^.., ^?, ^?!, ^@.., ^@?, ^@?!
 folding :: (Foldable f, Contravariant g, Applicative g) => (s -> f a) -> LensLike g s t a b
 folding sfa agb = coerce . traverse_ agb . sfa
 {-# INLINE folding #-}
+
+ifolding :: (Foldable f, Indexable i p, Contravariant g, Applicative g) => (s -> f (i, a)) -> Over p g s t a b
+ifolding sfa f = coerce . traverse_ (coerce . uncurry (indexed f)) . sfa
+{-# INLINE ifolding #-}
 
 -- | Obtain a 'Fold' from any 'Foldable' indexed by ordinal position.
 --
