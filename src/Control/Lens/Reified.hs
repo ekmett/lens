@@ -18,7 +18,6 @@ import Control.Arrow
 import qualified Control.Category as Cat
 import Control.Lens.Fold
 import Control.Lens.Getter
-import Control.Lens.Indexed
 import Control.Lens.Traversal (ignored)
 import Control.Lens.Type
 import Control.Monad
@@ -81,26 +80,26 @@ type ReifiedTraversal' s a = ReifiedTraversal s s a a
 newtype ReifiedGetter s a = Getter { runGetter :: Getter s a }
 
 instance Profunctor ReifiedGetter where
-  dimap f g (Getter l) = Getter (to f.l.to g)
-  lmap g (Getter l)    = Getter (to g.l)
-  rmap f (Getter l)    = Getter (l.to f)
+  dimap f g l = Getter $ to f.runGetter l.to g
+  lmap g l    = Getter $ to g.runGetter l
+  rmap f l    = Getter $ runGetter l.to f
 
 instance Strong ReifiedGetter where
-  first' (Getter l)  = Getter $ to $ first' $ view l
-  second' (Getter l) = Getter $ to $ second' $ view l
+  first' l  = Getter $ to $ first' $ view $ runGetter l
+  second' l = Getter $ to $ second' $ view $ runGetter l
 
 instance Choice ReifiedGetter where
-  left' (Getter l) = Getter $ to $ left' $ view l
-  right' (Getter l) = Getter $ to $ right' $ view l
+  left' l = Getter $ to $ left' $ view $ runGetter l
+  right' l = Getter $ to $ right' $ view $ runGetter l
 
 instance Cat.Category ReifiedGetter where
   id = Getter id
-  Getter l . Getter r = Getter (r.l)
+  l . r = Getter (runGetter r.runGetter l)
 
 instance Arrow ReifiedGetter where
   arr f = Getter (to f)
-  first (Getter l) = Getter $ to $ first $ view l
-  second (Getter l) = Getter $ to $ second $ view l
+  first l = Getter $ to $ first $ view $ runGetter l
+  second l = Getter $ to $ second $ view $ runGetter l
   Getter l *** Getter r = Getter $ to $ view l *** view r
   Getter l &&& Getter r = Getter $ to $ view l &&& view r
 
@@ -108,16 +107,16 @@ instance ArrowApply ReifiedGetter where
   app = Getter $ to $ \(Getter bc, b) -> view bc b
 
 instance ArrowChoice ReifiedGetter where
-  left (Getter l) = Getter $ to $ left $ view l
-  right (Getter l) = Getter $ to $ right $ view l
+  left l = Getter $ to $ left $ view $ runGetter l
+  right l = Getter $ to $ right $ view $ runGetter l
   Getter l +++ Getter r = Getter $ to $ view l +++ view r
   Getter l ||| Getter r = Getter $ to $ view l ||| view r
 
 instance ArrowLoop ReifiedGetter where
-  loop (Getter l) = Getter $ to $ loop $ view l
+  loop l = Getter $ to $ loop $ view $ runGetter l
 
 instance Functor (ReifiedGetter s) where
-  fmap f (Getter l) = Getter (l.to f)
+  fmap f l = Getter (runGetter l.to f)
 
 instance Applicative (ReifiedGetter s) where
   pure a = Getter $ to $ \_ -> a
@@ -129,7 +128,7 @@ instance Monad (ReifiedGetter s) where
 
 instance MonadReader s (ReifiedGetter s) where
   ask = Getter id
-  local f (Getter m) = Getter (to f . m)
+  local f m = Getter (to f . runGetter m)
 
 ------------------------------------------------------------------------------
 -- IndexedGetter
@@ -139,20 +138,16 @@ instance MonadReader s (ReifiedGetter s) where
 newtype ReifiedIndexedGetter i s a = IndexedGetter { runIndexedGetter :: IndexedGetter i s a }
 
 instance Profunctor (ReifiedIndexedGetter i) where
-  dimap f g (IndexedGetter l) = IndexedGetter (to f.l.to g)
+  dimap f g l = IndexedGetter (to f . runIndexedGetter l . to g)
 
 instance Strong (ReifiedIndexedGetter i) where
-  -- use conjoin?
-  first' (IndexedGetter l)  = IndexedGetter $ \f (s,c) ->
-    flip (,) c <$> l (Indexed $ \ i t -> coerce $ indexed f i (t, c)) s
-  second' (IndexedGetter l)  = IndexedGetter $ \f (c,s) ->
-    (,) c      <$> l (Indexed $ \ i t -> coerce $ indexed f i (c, t)) s
-
--- instance Choice (ReifiedIndexedGetter i) where
-  -- use conjoin?
+  first' l = IndexedGetter $ \f (s,c) ->
+    coerce $ runIndexedGetter l (dimap (flip (,) c) coerce f) s
+  second' l = IndexedGetter $ \f (c,s) ->
+    coerce $ runIndexedGetter l (dimap ((,) c) coerce f) s
 
 instance Functor (ReifiedIndexedGetter i s) where
-  fmap f (IndexedGetter l) = IndexedGetter (l.to f)
+  fmap f l = IndexedGetter (runIndexedGetter l.to f)
 
 ------------------------------------------------------------------------------
 -- Fold
@@ -162,9 +157,9 @@ instance Functor (ReifiedIndexedGetter i s) where
 newtype ReifiedFold s a = Fold { runFold :: Fold s a }
 
 instance Profunctor ReifiedFold where
-  dimap f g (Fold l) = Fold (to f.l.to g)
-  rmap g (Fold l) = Fold (l.to g)
-  lmap f (Fold l) = Fold (to f.l)
+  dimap f g l = Fold (to f . runFold l . to g)
+  rmap g l = Fold (runFold l . to g)
+  lmap f l = Fold (to f . runFold l)
 
 instance Strong ReifiedFold where
   first' (Fold l) = Fold $ folding $ \(s,c) -> fmap (\s' -> (s', c)) (toListOf l s)
@@ -180,7 +175,7 @@ instance Choice ReifiedFold where
 
 instance Cat.Category ReifiedFold where
   id = Fold id
-  Fold l . Fold r = Fold (r.l)
+  l . r = Fold (runFold r . runFold l)
 
 instance Arrow ReifiedFold where
   arr f = Fold (to f)
@@ -197,7 +192,7 @@ instance ArrowApply ReifiedFold where
   app = Fold $ folding $ \(Fold bc, b) -> toListOf bc b
 
 instance Functor (ReifiedFold s) where
-  fmap f (Fold l) = Fold (l.to f)
+  fmap f l = Fold (runFold l.to f)
 
 instance Applicative (ReifiedFold s) where
   pure a = Fold $ folding $ \_ -> [a]
@@ -217,7 +212,7 @@ instance MonadPlus (ReifiedFold s) where
 
 instance MonadReader s (ReifiedFold s) where
   ask = Fold $ folding $ \s -> [s]
-  local f (Fold m) = Fold (to f . m)
+  local f m = Fold (to f . runFold m)
 
 ------------------------------------------------------------------------------
 -- IndexedFold
@@ -226,10 +221,16 @@ instance MonadReader s (ReifiedFold s) where
 newtype ReifiedIndexedFold i s a = IndexedFold { runIndexedFold :: IndexedFold i s a }
 
 instance Functor (ReifiedIndexedFold i s) where
-  fmap f (IndexedFold l) = IndexedFold (l.to f)
+  fmap f l = IndexedFold (runIndexedFold l . to f)
 
 instance Profunctor (ReifiedIndexedFold i) where
-  dimap f g (IndexedFold l) = IndexedFold (to f.l.to g)
+  dimap f g l = IndexedFold (to f . runIndexedFold l . to g)
+
+instance Strong (ReifiedIndexedFold i) where
+  first' l  = IndexedFold $ \f (s,c) ->
+    coerce $ runIndexedFold l (dimap (flip (,) c) coerce f) s
+  second' l = IndexedFold $ \f (c,s) ->
+    coerce $ runIndexedFold l (dimap ((,) c) coerce f) s
 
 ------------------------------------------------------------------------------
 -- Setter
