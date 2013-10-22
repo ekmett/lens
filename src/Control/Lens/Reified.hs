@@ -13,13 +13,15 @@
 ------------------------------------------------------------------------------
 module Control.Lens.Reified where
 
-import Control.Monad
-import Control.Monad.Reader.Class
 import Control.Applicative
+import Control.Arrow
+import qualified Control.Category as Cat
 import Control.Lens.Fold
 import Control.Lens.Getter
-import Control.Lens.Type
 import Control.Lens.Traversal (ignored)
+import Control.Lens.Type
+import Control.Monad
+import Control.Monad.Reader.Class
 import Data.Profunctor
 
 ------------------------------------------------------------------------------
@@ -73,6 +75,29 @@ instance Strong ReifiedGetter where
 instance Choice ReifiedGetter where
   left' (Getter l) = Getter $ to $ left' $ view l
   right' (Getter l) = Getter $ to $ right' $ view l
+
+instance Cat.Category ReifiedGetter where
+  id = Getter id
+  Getter l . Getter r = Getter (r.l)
+
+instance Arrow ReifiedGetter where
+  arr f = Getter (to f)
+  first (Getter l) = Getter $ to $ first $ view l
+  second (Getter l) = Getter $ to $ second $ view l
+  Getter l *** Getter r = Getter $ to $ view l *** view r
+  Getter l &&& Getter r = Getter $ to $ view l &&& view r
+
+instance ArrowApply ReifiedGetter where
+  app = Getter $ to $ \(Getter bc, b) -> view bc b
+
+instance ArrowChoice ReifiedGetter where
+  left (Getter l) = Getter $ to $ left $ view l
+  right (Getter l) = Getter $ to $ right $ view l
+  Getter l +++ Getter r = Getter $ to $ view l +++ view r
+  Getter l ||| Getter r = Getter $ to $ view l ||| view r
+
+instance ArrowLoop ReifiedGetter where
+  loop (Getter l) = Getter $ to $ loop $ view l
 
 instance Functor (ReifiedGetter s) where
   fmap f (Getter l) = Getter (l.to f)
