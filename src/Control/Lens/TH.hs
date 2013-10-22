@@ -81,6 +81,7 @@ import Control.Lens.Getter
 import Control.Lens.Iso
 import Control.Lens.Lens
 import Control.Lens.Prism
+import Control.Lens.Review
 import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
@@ -556,14 +557,54 @@ makePrismsForDec decl = case makeDataDecl decl of
 
 makePrismsForCons :: DataDecl -> Q [Dec]
 makePrismsForCons dataDecl =
-  concat <$> mapM (makePrismForCon dataDecl canModifyTypeVar ) (constructors dataDecl)
+  concat <$> mapM (makePrismOrReviewForCon dataDecl canModifyTypeVar ) (constructors dataDecl)
   where
     conTypeVars = map (Set.fromList . toListOf typeVars) (constructors dataDecl)
     canModifyTypeVar = (`Set.member` typeVarsOnlyInOneCon) . view name
     typeVarsOnlyInOneCon = Set.fromList . concat . filter (\xs -> length xs == 1) .  List.group . List.sort $ conTypeVars >>= toList
 
+onlyBuildReview :: Con -> Bool
+onlyBuildReview ForallC{} = True
+onlyBuildReview _         = False
+
+makePrismOrReviewForCon :: DataDecl -> (TyVarBndr -> Bool) -> Con -> Q [Dec]
+makePrismOrReviewForCon dataDecl canModifyTypeVar con
+  | onlyBuildReview con = makeReviewForCon dataDecl con
+  | otherwise           = makePrismForCon dataDecl canModifyTypeVar con
+
+makeReviewForCon :: DataDecl -> Con -> Q [Dec]
+makeReviewForCon dataDecl con = do
+    let functionName                    = mkName ('_': nameBase dataConName)
+        (dataConName, fieldTypes)       = ctrNameAndFieldTypes con
+
+    sName       <- newName "s"
+    aName       <- newName "a"
+    fieldNames  <- replicateM (length fieldTypes) (newName "x")
+
+    -- Compute the type: Constructor Constraints => Review s (Type x y z) a fieldTypes
+    let s                = varT sName
+        t                = return (fullType dataDecl (map (VarT . view name) (dataParameters dataDecl)))
+        a                = varT aName
+        b                = toTupleT (map return fieldTypes)
+
+        (conTyVars, conCxt) = case con of ForallC x y _ -> (x,y)
+                                          _             -> ([],[])
+
+        functionType     = forallT (map PlainTV [sName, aName] ++ conTyVars ++ dataParameters dataDecl)
+                                   (return conCxt)
+                                   (conT ''Review `appsT` [s,t,a,b])
+
+    -- Compute expression: unto (\(fields) -> Con fields)
+    let pat  = toTupleP (map varP fieldNames)
+        lam  = lam1E pat (appsE (conE (view name con) : map varE fieldNames))
+        body = varE 'unto `appE` lam
+
+    Prelude.sequence
+      [ sigD functionName functionType
+      , funD functionName [clause [] (normalB body) []]
+      ]
+
 makePrismForCon :: DataDecl -> (TyVarBndr -> Bool) -> Con -> Q [Dec]
-makePrismForCon _ _ ForallC{} = return [] -- skip existentially quantified constructors
 makePrismForCon dataDecl canModifyTypeVar con = do
     remitterName <- newName "remitter"
     reviewerName <- newName "reviewer"
