@@ -220,9 +220,11 @@ instance Profunctor ReifiedFold where
   {-# INLINE lmap #-}
 
 instance Strong ReifiedFold where
-  first' (Fold l) = Fold $ folding $ \(s,c) -> fmap (\s' -> (s', c)) (toListOf l s)
+  first' l = Fold $ \f (s,c) ->
+    coerce $ runFold l (dimap (flip (,) c) coerce f) s
   {-# INLINE first' #-}
-  second' (Fold l) = Fold $ folding $ \(c,s) -> (,) c <$> toListOf l s
+  second' l = Fold $ \f (c,s) ->
+    coerce $ runFold l (dimap ((,) c) coerce f) s
   {-# INLINE second' #-}
 
 instance Choice ReifiedFold where
