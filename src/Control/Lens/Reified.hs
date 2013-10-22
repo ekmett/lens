@@ -101,7 +101,7 @@ instance MonadPlus (ReifiedFold s) where
   mplus = (<|>)
 
 instance MonadReader s (ReifiedFold s) where
-  ask = Fold $ folding $ \s -> [s]
+  ask = Fold $ folding (: [])
   local f (Fold m) = Fold (to f . m)
 
 newtype ReifiedIndexedFold i s a = IndexedFold { runIndexedFold :: IndexedFold i s a }
