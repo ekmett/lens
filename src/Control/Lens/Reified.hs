@@ -24,6 +24,7 @@ import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader.Class
 import Data.Distributive
+import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Profunctor
 import Data.Semigroup
@@ -106,11 +107,23 @@ instance Monoid s => Comonad (ReifiedGetter s) where
   duplicate (Getter l) = Getter $ to $ \m -> Getter $ to $ \n -> view l (mappend m n)
   {-# INLINE duplicate #-}
 
+instance Monoid s => ComonadApply (ReifiedGetter s) where
+  Getter mf <@> Getter ma = Getter $ to $ \s -> view mf s (view ma s)
+  {-# INLINE (<@>) #-}
+
+instance Apply (ReifiedGetter s) where
+  Getter mf <.> Getter ma = Getter $ to $ \s -> view mf s (view ma s)
+  {-# INLINE (<.>) #-}
+
 instance Applicative (ReifiedGetter s) where
   pure a = Getter $ to $ \_ -> a
   {-# INLINE pure #-}
   Getter mf <*> Getter ma = Getter $ to $ \s -> view mf s (view ma s)
   {-# INLINE (<*>) #-}
+
+instance Bind (ReifiedGetter s) where
+  Getter ma >>- f = Getter $ to $ \s -> view (runGetter (f (view ma s))) s
+  {-# INLINE (>>-) #-}
 
 instance Monad (ReifiedGetter s) where
   return a = Getter $ to $ \_ -> a
@@ -275,6 +288,10 @@ instance Functor (ReifiedFold s) where
   fmap f l = Fold (runFold l.to f)
   {-# INLINE fmap #-}
 
+instance Apply (ReifiedFold s) where
+  Fold mf <.> Fold ma = Fold $ folding $ \s -> toListOf mf s <.> toListOf ma s
+  {-# INLINE (<.>) #-}
+
 instance Applicative (ReifiedFold s) where
   pure a = Fold $ folding $ \_ -> [a]
   {-# INLINE pure #-}
@@ -286,6 +303,10 @@ instance Alternative (ReifiedFold s) where
   {-# INLINE empty #-}
   Fold ma <|> Fold mb = Fold $ folding (\s -> toListOf ma s ++ toListOf mb s)
   {-# INLINE (<|>) #-}
+
+instance Bind (ReifiedFold s) where
+  Fold ma >>- f = Fold $ folding $ \s -> toListOf ma s >>- \a -> toListOf (runFold (f a)) s
+  {-# INLINE (>>-) #-}
 
 instance Monad (ReifiedFold s) where
   return a = Fold $ folding $ \_ -> [a]
