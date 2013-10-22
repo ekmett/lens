@@ -356,6 +356,15 @@ instance MonadReader s (ReifiedFold s) where
   local f m = Fold (to f . runFold m)
   {-# INLINE local #-}
 
+instance Semigroup (ReifiedFold s a) where
+  (<>) = (<|>)
+  {-# INLINE (<>) #-}
+
+instance Monoid (ReifiedFold s a) where
+  mempty = Fold ignored
+  mappend = (<|>)
+  {-# INLINE mappend #-}
+
 ------------------------------------------------------------------------------
 -- IndexedFold
 ------------------------------------------------------------------------------
