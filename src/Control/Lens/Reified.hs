@@ -262,6 +262,11 @@ instance Profunctor ReifiedFold where
   lmap f l = Fold (to f . runFold l)
   {-# INLINE lmap #-}
 
+instance Representable ReifiedFold where
+  type Rep ReifiedFold = []
+  tabulate f = Fold (folding f)
+  rep = toListOf . runFold
+
 instance Strong ReifiedFold where
   first' l = Fold $ \f (s,c) ->
     coerce $ runFold l (dimap (flip (,) c) coerce f) s
