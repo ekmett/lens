@@ -26,7 +26,7 @@ import Control.Monad.Reader.Class
 import Data.Profunctor
 
 ------------------------------------------------------------------------------
--- Reifying
+-- Lens
 ------------------------------------------------------------------------------
 
 -- | Reify a 'Lens' so it can be stored safely in a container.
@@ -37,6 +37,10 @@ newtype ReifiedLens s t a b = Lens { runLens :: Lens s t a b }
 -- @
 type ReifiedLens' s a = ReifiedLens s s a a
 
+------------------------------------------------------------------------------
+-- IndexedLens
+------------------------------------------------------------------------------
+
 -- | Reify an 'IndexedLens' so it can be stored safely in a container.
 newtype ReifiedIndexedLens i s t a b = IndexedLens { runIndexedLens :: IndexedLens i s t a b }
 
@@ -44,6 +48,10 @@ newtype ReifiedIndexedLens i s t a b = IndexedLens { runIndexedLens :: IndexedLe
 -- type 'ReifiedIndexedLens'' i = 'Simple' ('ReifiedIndexedLens' i)
 -- @
 type ReifiedIndexedLens' i s a = ReifiedIndexedLens i s s a a
+
+------------------------------------------------------------------------------
+-- IndexedTraversal
+------------------------------------------------------------------------------
 
 -- | Reify an 'IndexedTraversal' so it can be stored safely in a container.
 newtype ReifiedIndexedTraversal i s t a b = IndexedTraversal { runIndexedTraversal :: IndexedTraversal i s t a b }
@@ -53,6 +61,10 @@ newtype ReifiedIndexedTraversal i s t a b = IndexedTraversal { runIndexedTravers
 -- @
 type ReifiedIndexedTraversal' i s a = ReifiedIndexedTraversal i s s a a
 
+------------------------------------------------------------------------------
+-- Traversal
+------------------------------------------------------------------------------
+
 -- | A form of 'Traversal' that can be stored monomorphically in a container.
 newtype ReifiedTraversal s t a b = Traversal { runTraversal :: Traversal s t a b }
 
@@ -60,6 +72,10 @@ newtype ReifiedTraversal s t a b = Traversal { runTraversal :: Traversal s t a b
 -- type 'ReifiedTraversal'' = 'Simple' 'ReifiedTraversal'
 -- @
 type ReifiedTraversal' s a = ReifiedTraversal s s a a
+
+------------------------------------------------------------------------------
+-- Getter
+------------------------------------------------------------------------------
 
 -- | Reify a 'Getter' so it can be stored safely in a container.
 newtype ReifiedGetter s a = Getter { runGetter :: Getter s a }
@@ -115,6 +131,10 @@ instance MonadReader s (ReifiedGetter s) where
   ask = Getter id
   local f (Getter m) = Getter (to f . m)
 
+------------------------------------------------------------------------------
+-- IndexedGetter
+------------------------------------------------------------------------------
+
 -- | Reify an 'IndexedGetter' so it can be stored safely in a container.
 newtype ReifiedIndexedGetter i s a = IndexedGetter { runIndexedGetter :: IndexedGetter i s a }
 
@@ -133,6 +153,10 @@ instance Strong (ReifiedIndexedGetter i) where
 
 instance Functor (ReifiedIndexedGetter i s) where
   fmap f (IndexedGetter l) = IndexedGetter (l.to f)
+
+------------------------------------------------------------------------------
+-- Fold
+------------------------------------------------------------------------------
 
 -- | Reify a 'Fold' so it can be stored safely in a container.
 newtype ReifiedFold s a = Fold { runFold :: Fold s a }
@@ -195,6 +219,10 @@ instance MonadReader s (ReifiedFold s) where
   ask = Fold $ folding $ \s -> [s]
   local f (Fold m) = Fold (to f . m)
 
+------------------------------------------------------------------------------
+-- IndexedFold
+------------------------------------------------------------------------------
+
 newtype ReifiedIndexedFold i s a = IndexedFold { runIndexedFold :: IndexedFold i s a }
 
 instance Functor (ReifiedIndexedFold i s) where
@@ -203,6 +231,10 @@ instance Functor (ReifiedIndexedFold i s) where
 instance Profunctor (ReifiedIndexedFold i) where
   dimap f g (IndexedFold l) = IndexedFold (to f.l.to g)
 
+------------------------------------------------------------------------------
+-- Setter
+------------------------------------------------------------------------------
+
 -- | Reify a 'Setter' so it can be stored safely in a container.
 newtype ReifiedSetter s t a b = Setter { runSetter :: Setter s t a b }
 
@@ -210,6 +242,10 @@ newtype ReifiedSetter s t a b = Setter { runSetter :: Setter s t a b }
 -- type 'ReifiedSetter'' = 'Simple' 'ReifiedSetter'
 -- @
 type ReifiedSetter' s a = ReifiedSetter s s a a
+
+------------------------------------------------------------------------------
+-- IndexedSetter
+------------------------------------------------------------------------------
 
 -- | Reify an 'IndexedSetter' so it can be stored safely in a container.
 newtype ReifiedIndexedSetter i s t a b =
@@ -220,6 +256,10 @@ newtype ReifiedIndexedSetter i s t a b =
 -- @
 type ReifiedIndexedSetter' i s a = ReifiedIndexedSetter i s s a a
 
+------------------------------------------------------------------------------
+-- Iso
+------------------------------------------------------------------------------
+
 -- | Reify an 'Iso' so it can be stored safely in a container.
 newtype ReifiedIso s t a b = Iso { runIso :: Iso s t a b }
 
@@ -227,6 +267,10 @@ newtype ReifiedIso s t a b = Iso { runIso :: Iso s t a b }
 -- type 'ReifiedIso'' = 'Simple' 'ReifiedIso'
 -- @
 type ReifiedIso' s a = ReifiedIso s s a a
+
+------------------------------------------------------------------------------
+-- Prism
+------------------------------------------------------------------------------
 
 -- | Reify a 'Prism' so it can be stored safely in a container.
 newtype ReifiedPrism s t a b = Prism { runPrism :: Prism s t a b }
