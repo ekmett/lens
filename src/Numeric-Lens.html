@@ -168,7 +168,7 @@
 <a name="line-159"></a><span class='hs-comment'>--</span>
 <a name="line-160"></a><span class='hs-comment'>-- Note: This errors for n = 0</span>
 <a name="line-161"></a><span class='hs-comment'>--</span>
-<a name="line-162"></a><span class='hs-comment'>-- &gt;&gt;&gt; au (exponentiating 2.wrapping Sum) (foldMapOf each) (3,4)</span>
+<a name="line-162"></a><span class='hs-comment'>-- &gt;&gt;&gt; au (exponentiating 2._Unwrapping Sum) (foldMapOf each) (3,4)</span>
 <a name="line-163"></a><span class='hs-comment'>-- 5.0</span>
 <a name="line-164"></a><span class='hs-definition'>exponentiating</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Floating</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Iso'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
 <a name="line-165"></a><span class='hs-definition'>exponentiating</span> <span class='hs-num'>0</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>error</span> <span class='hs-str'>"Numeric.Lens.exponentiating: exponent 0"</span>
