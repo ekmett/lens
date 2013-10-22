@@ -117,16 +117,28 @@ instance Monoid s => Comonad (ReifiedGetter s) where
 instance Monoid s => ComonadApply (ReifiedGetter s) where
   Getter mf <@> Getter ma = Getter $ to $ \s -> view mf s (view ma s)
   {-# INLINE (<@>) #-}
+  m <@ _ = m
+  {-# INLINE (<@) #-}
+  _ @> m = m
+  {-# INLINE (@>) #-}
 
 instance Apply (ReifiedGetter s) where
   Getter mf <.> Getter ma = Getter $ to $ \s -> view mf s (view ma s)
   {-# INLINE (<.>) #-}
+  m <. _ = m
+  {-# INLINE (<.) #-}
+  _ .> m = m
+  {-# INLINE (.>) #-}
 
 instance Applicative (ReifiedGetter s) where
   pure a = Getter $ to $ \_ -> a
   {-# INLINE pure #-}
   Getter mf <*> Getter ma = Getter $ to $ \s -> view mf s (view ma s)
   {-# INLINE (<*>) #-}
+  m <* _ = m
+  {-# INLINE (<*) #-}
+  _ *> m = m
+  {-# INLINE (*>) #-}
 
 instance Bind (ReifiedGetter s) where
   Getter ma >>- f = Getter $ to $ \s -> view (runGetter (f (view ma s))) s
