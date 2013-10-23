@@ -11,8 +11,8 @@
 --
 ----------------------------------------------------------------------------
 module Data.Bits.Lens
-  ( (.|.~), (.&.~), (<.|.~), (<.&.~)
-  , (.|.=), (.&.=), (<.|.=), (<.&.=)
+  ( (.|.~), (.&.~), (<.|.~), (<.&.~), (<<.|.~), (<<.&.~)
+  , (.|.=), (.&.=), (<.|.=), (<.&.=), (<<.|.=), (<<.&.=)
   , bitAt
   , bits
   , byteAt
@@ -148,6 +148,22 @@ l <.&.= b = l <%= (.&. b)
 (<.|.=) :: (MonadState s m, Bits a) => LensLike' ((,)a) s a -> a -> m a
 l <.|.= b = l <%= (.|. b)
 {-# INLINE (<.|.=) #-}
+
+(<<.&.~) :: Bits a => Optical' (->) q ((,)a) s a -> a -> q s (a, s)
+l <<.&.~ b = l $ \a -> (a, a .&. b)
+{-# INLINE (<<.&.~) #-}
+
+(<<.|.~) :: Bits a => Optical' (->) q ((,)a) s a -> a -> q s (a, s)
+l <<.|.~ b = l $ \a -> (a, a .|. b)
+{-# INLINE (<<.|.~) #-}
+
+(<<.&.=) :: (MonadState s m, Bits a) => LensLike' ((,) a) s a -> a -> m a
+l <<.&.= b = l %%= \a -> (a, a .&. b)
+{-# INLINE (<<.&.=) #-}
+
+(<<.|.=) :: (MonadState s m, Bits a) => LensLike' ((,) a) s a -> a -> m a
+l <<.|.= b = l %%= \a -> (a, a .|. b)
+{-# INLINE (<<.|.=) #-}
 
 -- | This 'Lens' can be used to access the value of the nth bit in a number.
 --

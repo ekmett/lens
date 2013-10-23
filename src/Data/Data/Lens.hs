@@ -11,6 +11,7 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+{-# OPTIONS_GHC -fno-full-laziness #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Data.Lens
@@ -62,8 +63,11 @@ import           Data.IORef
 import           Data.Monoid
 import           GHC.Exts (realWorld#)
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Eta reduce" #-}
 {-# ANN module "HLint: ignore Use foldl" #-}
+{-# ANN module "HLint: ignore Reduce duplication" #-}
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

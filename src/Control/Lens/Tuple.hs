@@ -3,7 +3,6 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE EmptyDataDecls #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -40,11 +39,10 @@ module Control.Lens.Tuple
 
 import Control.Applicative
 import Control.Lens.Combinators
-import Control.Lens.Indexed
 import Control.Lens.Type
 import Data.Functor.Identity
 import Data.Proxy (Proxy (Proxy))
-import Generics.Deriving (Generic (..), (:*:) (..), K1 (..), M1 (..), U1 (..))
+import GHC.Generics (Generic (..), (:*:) (..), K1 (..), M1 (..), U1 (..))
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -88,7 +86,7 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 #endif
 
 instance Field1 (Identity a) (Identity b) a b where
-  _1 f (Identity a) = Identity <$> indexed f (0 :: Int) a
+  _1 f (Identity a) = Identity <$> f a
 
 -- | @
 -- '_1' k ~(a,b) = (\\a' -> (a',b)) 'Data.Functor.<$>' k a

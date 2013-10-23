@@ -112,7 +112,9 @@ import Prelude
   ,  Maybe(..), Either(..), Functor(..), String, IO
   )
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Use Control.Exception.catch" #-}
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

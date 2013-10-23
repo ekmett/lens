@@ -1,18 +1,46 @@
 language: haskell
-before_install:
-  # Uncomment whenever hackage is down.
-  # - mkdir -p ~/.cabal && cp travis/config ~/.cabal/config && cabal update
-  - cabal update
 
-  # Try installing some of the build-deps with apt-get for speed.
-  - travis/cabal-apt-install $mode
+env:
+  - GHCVER=7.4.2
+  - GHCVER=7.6.3
+  # - >
+  #   GHCVER=7.4.2
+  #   MODE="-fsafe"
+
+# Ingore 7.4.2 failures for now because of the doctest GHC panic.
+matrix:
+  allow_failures:
+    - env: GHCVER=7.4.2
+
+before_install:
+  # If $GHCVER is the one travis has, don't bother reinstalling it.
+  # We can also have faster builds by installing some libraries with
+  # `apt`. If it isn't, install the GHC we want from hvr's PPA along
+  # with cabal-1.18.
+  - |
+    if [ $GHCVER = `ghc --numeric-version` ]; then
+      # Try installing some of the build-deps with apt-get for speed.
+      travis/cabal-apt-install --enable-tests $MODE
+      export CABAL=cabal
+    else
+      # Install the GHC we want from hvr's PPA
+      sudo add-apt-repository -y ppa:hvr/ghc
+      sudo apt-get update
+      sudo apt-get install cabal-install-1.18 ghc-$GHCVER
+      export CABAL=cabal-1.18
+      export PATH=/opt/ghc/$GHCVER/bin:$PATH
+    fi
+  # Uncomment whenever hackage is down.
+  # - mkdir -p ~/.cabal && cp travis/config ~/.cabal/config && $CABAL update
+  - $CABAL update
 
 install:
-  - cabal configure -flib-Werror $mode
-  - cabal build
+  - $CABAL install --dependencies-only --enable-tests
+  - $CABAL configure -flib-Werror --enable-tests $MODE
 
 script:
-  - $script
+  - $CABAL build
+  - $CABAL test --show-details=always
   - scripts/stats
 
 notifications:
@@ -22,9 +50,3 @@ notifications:
     skip_join: true
     template:
       - "\x0313lens\x03/\x0306%{branch}\x03 \x0314%{commit}\x03 %{build_url} %{message}"
-
-env:
-  - mode="--enable-tests" script="cabal test --show-details=always"
-  # - mode="--enable-tests -fsafe" script="cabal test"
-  # - mode="--enable-tests -fdump-splices" script="cabal test --show-details=always"
-  # - mode="--enable-benchmarks -fdump-splices" script="cabal bench"

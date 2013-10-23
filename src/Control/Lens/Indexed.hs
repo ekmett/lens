@@ -41,7 +41,6 @@ module Control.Lens.Indexed
   , FunctorWithIndex(..)
   -- * Indexed Foldables
   , FoldableWithIndex(..)
-  , ifolding
   -- ** Indexed Foldable Combinators
   , iany
   , iall
@@ -286,13 +285,6 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   ifoldl' f z0 xs = ifoldr f' id xs z0
     where f' i x k z = k $! f i z x
   {-# INLINE ifoldl' #-}
-
--- | Obtain a 'Fold' by lifting an operation that returns a 'Foldable' result.
---
--- This can be useful to lift operations from @'Data.List'@ and elsewhere into a 'Fold'.
-ifolding :: FoldableWithIndex i f => (s -> f a) -> IndexedFold i s a
-ifolding sfa iagb = coerce . itraverse_ (indexed iagb) . sfa
-{-# INLINE ifolding #-}
 
 -- | Return whether or not any element in a container satisfies a predicate, with access to the index @i@.
 --

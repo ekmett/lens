@@ -13,6 +13,10 @@
   * Replaced the use of `Reviewed` with `Tagged`.
 * Removed the deprecated `Control.Lens.Simple` module.
 
+3.10
+----
+* Switched to `bifunctors`, `comonad`, `profunctors`, and `semigroupoids` 4.0.
+
 3.9.2
 -----
 * Generalized signatures for `throwing` and `throwingM`.

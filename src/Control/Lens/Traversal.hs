@@ -126,7 +126,6 @@ import Control.Applicative as Applicative
 import Control.Applicative.Backwards
 import Control.Category
 import Control.Comonad
-import Control.Monad
 import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter (coerced)
@@ -134,6 +133,7 @@ import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Type
+import Control.Monad
 import Control.Monad.Trans.State.Lazy
 import Data.Bitraversable
 import Data.Functor.Compose
@@ -145,8 +145,10 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Semigroup.Traversable
+import Data.Tagged
 import Data.Traversable
 import Data.Tuple (swap)
+import GHC.Magic (inline)
 import Prelude hiding ((.),id)
 
 -- $setup
@@ -514,9 +516,9 @@ partsOf l f s = outs b <$> f (ins b) where b = l sell s
 
 -- | An indexed version of 'partsOf' that receives the entire list of indices as its index.
 ipartsOf :: forall i p f s t a. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a a -> Over p f s t [a] [a]
-ipartsOf l f s = outs b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (pins b)
-  b = l sell s
+ipartsOf l = conjoined
+  (\f s -> let b = inline l sell s                            in outs b <$> f (wins b))
+  (\f s -> let b = inline l sell s; (is, as) = unzip (pins b) in outs b <$> indexed f (is :: [i]) as)
 {-# INLINE ipartsOf #-}
 
 -- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
@@ -526,9 +528,9 @@ partsOf' l f s = outs b <$> f (ins b) where b = l sell s
 
 -- | A type-restricted version of 'ipartsOf' that can only be used with an 'IndexedTraversal'.
 ipartsOf' :: forall i p f s t a. (Indexable [i] p, Functor f) => Over (Indexed i) (Bazaar' (Indexed i) a) s t a a -> Over p f s t [a] [a]
-ipartsOf' l f s = outs b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (pins b)
-  b = l sell s
+ipartsOf' l = conjoined
+  (\f s -> let b = inline l sell s                            in outs b <$> f (wins b))
+  (\f s -> let b = inline l sell s; (is, as) = unzip (pins b) in outs b <$> indexed f (is :: [i]) as)
 {-# INLINE ipartsOf' #-}
 
 -- | 'unsafePartsOf' turns a 'Traversal' into a 'Data.Data.Lens.uniplate' (or 'Data.Data.Lens.biplate') family.
@@ -557,9 +559,9 @@ unsafePartsOf l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 
 -- | An indexed version of 'unsafePartsOf' that receives the entire list of indices as its index.
 iunsafePartsOf :: forall i p f s t a b. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a b -> Over p f s t [a] [b]
-iunsafePartsOf l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (pins b)
-  b = l sell s
+iunsafePartsOf l = conjoined
+  (\f s -> let b = inline l sell s                           in unsafeOuts b <$> f (wins b))
+  (\f s -> let b = inline l sell s; (is,as) = unzip (pins b) in unsafeOuts b <$> indexed f (is :: [i]) as)
 {-# INLINE iunsafePartsOf #-}
 
 unsafePartsOf' :: ATraversal s t a b -> Lens s t [a] [b]
@@ -567,9 +569,9 @@ unsafePartsOf' l f s = unsafeOuts b <$> f (ins b) where b = l sell s
 {-# INLINE unsafePartsOf' #-}
 
 iunsafePartsOf' :: forall i s t a b. Over (Indexed i) (Bazaar (Indexed i) a b) s t a b -> IndexedLens [i] s t [a] [b]
-iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
-  (is,as) = unzip (pins b)
-  b = l sell s
+iunsafePartsOf' l = conjoined
+  (\f s -> let b = inline l sell s                            in unsafeOuts b <$> f (wins b))
+  (\f s -> let b = inline l sell s; (is, as) = unzip (pins b) in unsafeOuts b <$> indexed f (is :: [i]) as)
 {-# INLINE iunsafePartsOf' #-}
 
 -- | The one-level version of 'Control.Lens.Plated.contextsOf'. This extracts a list of the immediate children according to a given 'Traversal' as editable contexts.
@@ -588,11 +590,19 @@ iunsafePartsOf' l f s = unsafeOuts b <$> indexed f (is :: [i]) as where
 -- 'holesOf' :: 'IndexedLens'' i s a      -> s -> ['Pretext'' ('Indexed' i) a s]
 -- 'holesOf' :: 'IndexedTraversal'' i s a -> s -> ['Pretext'' ('Indexed' i) a s]
 -- @
-holesOf :: Conjoined p => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
-holesOf l s = f (pins b) (unsafeOuts b) where
-  b = l sell s
-  f [] _ = []
-  f (wx:xs) g = Pretext (\wxfy -> g . (:Prelude.map extract xs) <$> corep wxfy wx) : f xs (g . (extract wx:))
+holesOf :: forall p s t a. Conjoined p => Over p (Bazaar p a a) s t a a -> s -> [Pretext p a a t]
+holesOf l s = unTagged
+  ( conjoined
+     (Tagged $ let
+        f [] _ = []
+        f (x:xs) g = Pretext (\xfy -> g . (:xs) <$> xfy x) : f xs (g . (x:))
+      in f (ins b) (unsafeOuts b))
+     (Tagged $ let
+        f [] _ = []
+        f (wx:xs) g = Pretext (\wxfy -> g . (:Prelude.map extract xs) <$> corep wxfy wx) : f xs (g . (extract wx:))
+      in f (pins b) (unsafeOuts b))
+    :: Tagged (p a b) [Pretext p a a t]
+  ) where b = l sell s
 {-# INLINE holesOf #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can
@@ -625,10 +635,13 @@ holesOf l s = f (pins b) (unsafeOuts b) where
 singular :: (Conjoined p, Functor f)
          => Traversing p f s t a a
          -> Over p f s t a a
-singular l pafb s = case pins b of
-  (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> corep pafb w
-  []     -> unsafeOuts b . return                    <$> corep pafb (error "singular: empty traversal")
-  where b = l sell s
+singular l = conjoined
+  (\afb s -> let b = l sell s in case ins b of
+    (w:ws) -> unsafeOuts b . (:ws) <$> afb w
+    []     -> unsafeOuts b . return <$> afb (error "singular: empty traversal"))
+  (\pafb s -> let b = l sell s in case pins b of
+    (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> corep pafb w
+    []     -> unsafeOuts b . return                    <$> corep pafb (error "singular: empty traversal"))
 {-# INLINE singular #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be
@@ -648,11 +661,15 @@ singular l pafb s = case pins b of
 unsafeSingular :: (Conjoined p, Functor f)
                => Traversing p f s t a b
                -> Over p f s t a b
-unsafeSingular l pafb s = case pins b of
-  [w] -> unsafeOuts b . return <$> corep pafb w
-  []  -> error "unsafeSingular: empty traversal"
-  _   -> error "unsafeSingular: traversing multiple results"
-  where b = l sell s
+unsafeSingular l = conjoined
+  (\afb s -> let b = inline l sell s in case ins b of
+    [w] -> unsafeOuts b . return <$> afb w
+    []  -> error "unsafeSingular: empty traversal"
+    _   -> error "unsafeSingular: traversing multiple results")
+  (\pafb s -> let b = inline l sell s in case pins b of
+    [w] -> unsafeOuts b . return <$> corep pafb w
+    []  -> error "unsafeSingular: empty traversal"
+    _   -> error "unsafeSingular: traversing multiple results")
 {-# INLINE unsafeSingular #-}
 
 ------------------------------------------------------------------------------
@@ -662,6 +679,10 @@ unsafeSingular l pafb s = case pins b of
 ins :: Bizarre (->) w => w a b t -> [a]
 ins = toListOf (coerced bazaar)
 {-# INLINE ins #-}
+
+wins :: (Bizarre p w, Corepresentable p, Comonad (Corep p)) => w a b t -> [a]
+wins = getConst #. bazaar (cotabulate $ \ra -> Const [extract ra])
+{-# INLINE wins #-}
 
 pins :: (Bizarre p w, Corepresentable p) => w a b t -> [Corep p a]
 pins = getConst #. bazaar (cotabulate $ \ra -> Const [ra])
@@ -785,7 +806,9 @@ taking :: (Conjoined p, Applicative f)
         => Int
        -> Traversing p f s t a a
        -> Over p f s t a a
-taking n l pafb s = outs b <$> traverse (corep pafb) (take n $ pins b) where b = l sell s
+taking n l = conjoined
+  (\ afb s  -> let b = inline l sell s in outs b <$> traverse afb          (take n $ ins b))
+  (\ pafb s -> let b = inline l sell s in outs b <$> traverse (corep pafb) (take n $ pins b))
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.

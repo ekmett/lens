@@ -81,6 +81,7 @@ import Control.Lens.Getter
 import Control.Lens.Iso
 import Control.Lens.Lens
 import Control.Lens.Prism
+import Control.Lens.Review
 import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
@@ -101,9 +102,11 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.Lens
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Eta reduce" #-}
 {-# ANN module "HLint: ignore Use fewer imports" #-}
 {-# ANN module "HLint: ignore Use foldl" #-}
+#endif
 
 -- | Flags for 'Lens' construction
 data LensFlag
@@ -554,11 +557,52 @@ makePrismsForDec decl = case makeDataDecl decl of
 
 makePrismsForCons :: DataDecl -> Q [Dec]
 makePrismsForCons dataDecl =
-  concat <$> mapM (makePrismForCon dataDecl canModifyTypeVar ) (constructors dataDecl)
+  concat <$> mapM (makePrismOrReviewForCon dataDecl canModifyTypeVar ) (constructors dataDecl)
   where
     conTypeVars = map (Set.fromList . toListOf typeVars) (constructors dataDecl)
     canModifyTypeVar = (`Set.member` typeVarsOnlyInOneCon) . view name
     typeVarsOnlyInOneCon = Set.fromList . concat . filter (\xs -> length xs == 1) .  List.group . List.sort $ conTypeVars >>= toList
+
+onlyBuildReview :: Con -> Bool
+onlyBuildReview ForallC{} = True
+onlyBuildReview _         = False
+
+makePrismOrReviewForCon :: DataDecl -> (TyVarBndr -> Bool) -> Con -> Q [Dec]
+makePrismOrReviewForCon dataDecl canModifyTypeVar con
+  | onlyBuildReview con = makeReviewForCon dataDecl con
+  | otherwise           = makePrismForCon dataDecl canModifyTypeVar con
+
+makeReviewForCon :: DataDecl -> Con -> Q [Dec]
+makeReviewForCon dataDecl con = do
+    let functionName                    = mkName ('_': nameBase dataConName)
+        (dataConName, fieldTypes)       = ctrNameAndFieldTypes con
+
+    sName       <- newName "s"
+    aName       <- newName "a"
+    fieldNames  <- replicateM (length fieldTypes) (newName "x")
+
+    -- Compute the type: Constructor Constraints => Review s (Type x y z) a fieldTypes
+    let s                = varT sName
+        t                = return (fullType dataDecl (map (VarT . view name) (dataParameters dataDecl)))
+        a                = varT aName
+        b                = toTupleT (map return fieldTypes)
+
+        (conTyVars, conCxt) = case con of ForallC x y _ -> (x,y)
+                                          _             -> ([],[])
+
+        functionType     = forallT (map PlainTV [sName, aName] ++ conTyVars ++ dataParameters dataDecl)
+                                   (return conCxt)
+                                   (conT ''Review `appsT` [s,t,a,b])
+
+    -- Compute expression: unto (\(fields) -> Con fields)
+    let pat  = toTupleP (map varP fieldNames)
+        lam  = lam1E pat (appsE (conE dataConName : map varE fieldNames))
+        body = varE 'unto `appE` lam
+
+    Prelude.sequence
+      [ sigD functionName functionType
+      , funD functionName [clause [] (normalB body) []]
+      ]
 
 makePrismForCon :: DataDecl -> (TyVarBndr -> Bool) -> Con -> Q [Dec]
 makePrismForCon dataDecl canModifyTypeVar con = do
@@ -982,13 +1026,12 @@ makeWrappedForDec decl = case makeDataDecl decl of
 makeRewrappedInstance :: DataDecl -> DecQ
 makeRewrappedInstance dataDecl = do
 
-   t <- newName "t"
-   let tVar = varT t
+   t <- varT <$> newName "t"
 
-   let typeArgs = toListOf typeVars (dataParameters dataDecl)
+   let typeArgs = map (view name) (dataParameters dataDecl)
 
    typeArgs' <- do
-     m <- freshMap (setOf typeVars typeArgs)
+     m <- freshMap (Set.fromList typeArgs)
      return (substTypeVars m typeArgs)
 
        -- Con a b c...
@@ -998,10 +1041,10 @@ makeRewrappedInstance dataDecl = do
        appliedType' = return (fullType dataDecl (map VarT typeArgs'))
 
        -- Con a' b' c'... ~ t
-       eq = equalP appliedType' tVar
+       eq = equalP appliedType' t
 
        -- Rewrapped (Con a b c...) t
-       klass = conT ''Rewrapped `appsT` [appliedType, tVar]
+       klass = conT ''Rewrapped `appsT` [appliedType, t]
 
    -- instance (Con a' b' c'... ~ t) => Rewrapped (Con a b c...) t
    instanceD (cxt [eq]) klass []

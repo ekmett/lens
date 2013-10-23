@@ -130,7 +130,9 @@ import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Void
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Use ***" #-}
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

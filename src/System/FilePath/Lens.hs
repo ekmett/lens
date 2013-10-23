@@ -138,6 +138,10 @@ l <<.>= r = l <%= (<.> r)
 
 -- | A 'Lens' for reading and writing to the basename
 --
+-- Note: This is 'not' a legal 'Lens' unless the outer 'FilePath' has both a directory
+-- and filename component and the generated basenames are not null and contain no directory
+-- separators.
+--
 -- >>> basename .~ "filename" $ "path/name.png"
 -- "path/filename.png"
 basename :: Lens' FilePath FilePath
@@ -147,6 +151,9 @@ basename f p = (<.> takeExtension p) . (takeDirectory p </>) <$> f (takeBaseName
 
 -- | A 'Lens' for reading and writing to the directory
 --
+-- Note: this is /not/ a legal 'Lens' unless the outer 'FilePath' already has a directory component,
+-- and generated directories are not null.
+--
 -- >>> "long/path/name.txt" ^. directory
 -- "long/path"
 directory :: Lens' FilePath FilePath
@@ -155,6 +162,10 @@ directory f p = (</> takeFileName p) <$> f (takeDirectory p)
 
 
 -- | A 'Lens' for reading and writing to the extension
+--
+-- Note: This is /not/ a legal 'Lens', unless you are careful to ensure that generated
+-- extension 'FilePath' components are either null or start with 'System.FilePath.extSeparator'
+-- and do not contain any internal 'System.FilePath.extSeparator's.
 --
 -- >>> extension .~ ".png" $ "path/name.txt"
 -- "path/name.png"
@@ -166,6 +177,10 @@ extension f p = (n <.>) <$> f e
 
 
 -- | A 'Lens' for reading and writing to the full filename
+--
+-- Note: This is /not/ a legal 'Lens', unless you are careful to ensure that generated
+-- filename 'FilePath' components are not null and do not contain any
+-- elements of 'System.FilePath.pathSeparators's.
 --
 -- >>> filename .~ "name.txt" $ "path/name.png"
 -- "path/name.txt"

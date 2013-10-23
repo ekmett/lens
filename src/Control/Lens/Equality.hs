@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -28,8 +29,10 @@ module Control.Lens.Equality
 import Control.Lens.Type
 import Data.Functor.Identity
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Use id" #-}
 {-# ANN module "HLint: ignore Eta reduce" #-}
+#endif
 
 -- $setup
 -- >>> import Control.Lens
