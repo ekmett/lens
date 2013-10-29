@@ -250,6 +250,7 @@ library
     Control.Lens.Traversal
     Control.Lens.Tuple
     Control.Lens.Type
+    Control.Lens.Union
     Control.Lens.Wrapped
     Control.Lens.Zoom
     Control.Monad.Error.Lens
