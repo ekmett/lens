@@ -11,6 +11,17 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+
+-------------------------------------------------------------------------------
+-- |
+-- Module      :  Control.Lens.Tuple
+-- Copyright   :  (C) 2012-13 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  provisional
+-- Portability :  Rank2Types
+--
+-------------------------------------------------------------------------------
 module Control.Lens.Union
        ( VariantA (..)
        , VariantB (..)
@@ -29,7 +40,9 @@ import Data.Profunctor
 import Data.Proxy (Proxy (Proxy))
 import GHC.Generics (Generic (..), (:+:) (..), (:*:) (..), K1 (..), M1 (..), U1 (..))
 
+-- | Provides access to 1st variant of a tagged union.
 class VariantA s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 1st variant of a tagged union (and possibly change its type).
   _A :: Prism s t a b
 #ifndef HLINT
   default _A :: (Generic s, Generic t, GIxed N0 (Rep s) (Rep t) a b)
@@ -38,7 +51,9 @@ class VariantA s t a b | s -> a, t -> b, s b -> t, t a -> s where
   _A = ix (Proxy :: Proxy N0)
 #endif
 
+-- | Provides access to the 2nd variant of a tagged union.
 class VariantB s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 2nd variant of a tagged union.
   _B :: Prism s t a b
 #ifndef HLINT
   default _B :: (Generic s, Generic t, GIxed N1 (Rep s) (Rep t) a b)
@@ -47,7 +62,9 @@ class VariantB s t a b | s -> a, t -> b, s b -> t, t a -> s where
   _B = ix (Proxy :: Proxy N1)
 #endif
 
+-- | Provides access to the 3rd variant of a tagged union.
 class VariantC s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 3rd variant of a tagged union.
   _C :: Prism s t a b
 #ifndef HLINT
   default _C :: (Generic s, Generic t, GIxed N2 (Rep s) (Rep t) a b)
@@ -56,7 +73,9 @@ class VariantC s t a b | s -> a, t -> b, s b -> t, t a -> s where
   _C = ix (Proxy :: Proxy N2)
 #endif
 
+-- | Provides access to the 4th variant of a tagged union.
 class VariantD s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 4th variant of a tagged union.
   _D :: Prism s t a b
 #ifndef HLINT
   default _D :: (Generic s, Generic t, GIxed N3 (Rep s) (Rep t) a b)
@@ -65,7 +84,9 @@ class VariantD s t a b | s -> a, t -> b, s b -> t, t a -> s where
   _D = ix (Proxy :: Proxy N3)
 #endif
 
+-- | Provides access to the 5th variant of a tagged union.
 class VariantE s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 5th variant of a tagged union.
   _E :: Prism s t a b
 #ifndef HLINT
   default _E :: (Generic s, Generic t, GIxed N4 (Rep s) (Rep t) a b)
@@ -74,7 +95,9 @@ class VariantE s t a b | s -> a, t -> b, s b -> t, t a -> s where
   _E = ix (Proxy :: Proxy N4)
 #endif
 
+-- | Provides access to the 6th variant of a tagged union.
 class VariantF s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 6th variant of a tagged union.
   _F :: Prism s t a b
 #ifndef HLINT
   default _F :: (Generic s, Generic t, GIxed N5 (Rep s) (Rep t) a b)
@@ -83,7 +106,9 @@ class VariantF s t a b | s -> a, t -> b, s b -> t, t a -> s where
   _F = ix (Proxy :: Proxy N5)
 #endif
 
+-- | Provides access to the 7th variant of a tagged union.
 class VariantG s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 7th variant of a tagged union.
   _G :: Prism s t a b
 #ifndef HLINT
   default _G :: (Generic s, Generic t, GIxed N6 (Rep s) (Rep t) a b)
@@ -92,7 +117,9 @@ class VariantG s t a b | s -> a, t -> b, s b -> t, t a -> s where
   _G = ix (Proxy :: Proxy N6)
 #endif
 
+-- | Provides access to the 8th variant of a tagged union.
 class VariantH s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 8th variant of a tagged union.
   _H :: Prism s t a b
 #ifndef HLINT
   default _H :: (Generic s, Generic t, GIxed N7 (Rep s) (Rep t) a b)
@@ -101,7 +128,9 @@ class VariantH s t a b | s -> a, t -> b, s b -> t, t a -> s where
   _H = ix (Proxy :: Proxy N7)
 #endif
 
+-- | Provides access to the 9th variant of a tagged union.
 class VariantI s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 9th variant of a tagged union.
   _I :: Prism s t a b
 #ifndef HLINT
   default _I :: (Generic s, Generic t, GIxed N8 (Rep s) (Rep t) a b)
@@ -110,8 +139,17 @@ class VariantI s t a b | s -> a, t -> b, s b -> t, t a -> s where
   _I = ix (Proxy :: Proxy N8)
 #endif
 
+instance VariantA Bool Bool () ()
+instance VariantB Bool Bool () ()
+instance VariantA Ordering Ordering () ()
+instance VariantB Ordering Ordering () ()
+instance VariantC Ordering Ordering () ()
+instance VariantA (Maybe a) (Maybe a) () ()
+instance VariantB (Maybe a) (Maybe b) a b
 instance VariantA (Either a c) (Either b c) a b
 instance VariantB (Either c a) (Either c b) a b
+instance VariantA [a] [a] () ()
+instance VariantB [a] [b] (a, [a]) (b, [b])
 
 ix :: (Generic s, Generic t, GIxed n (Rep s) (Rep t) a b)
    => f n -> Prism s t a b
