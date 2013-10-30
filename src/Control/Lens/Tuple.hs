@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -41,6 +41,7 @@ import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Type
 import Data.Functor.Identity
+import Data.Proxy (Proxy (Proxy))
 import GHC.Generics (Generic (..), (:*:) (..), K1 (..), M1 (..), U1 (..))
 
 -- $setup
@@ -377,18 +378,14 @@ ix :: (Generic s, Generic t, GIxed n (Rep s) (Rep t) a b) => f n -> Lens s t a b
 {-# INLINE ix #-}
 ix n f = fmap to . gix n f . from
 
-#ifndef HLINT
-type family GSize (f :: * -> *) :: Nat
-#endif
+type family GSize (f :: * -> *)
 type instance GSize U1 = Z
 type instance GSize (K1 i c) = S Z
 type instance GSize (M1 i c f) = GSize f
 type instance GSize (a :*: b) = Add (GSize a) (GSize b)
 
-#ifndef HLINT
-class GIxed (n :: Nat) s t a b | n s -> a, n t -> b, n s b -> t, n t a -> s where
+class GIxed n s t a b | n s -> a, n t -> b, n s b -> t, n t a -> s where
   gix :: f n -> Lens (s x) (t x) a b
-#endif
 
 instance GIxed N0 (K1 i a) (K1 i b) a b where
   {-# INLINE gix #-}
@@ -401,49 +398,49 @@ instance GIxed n s t a b => GIxed n (M1 i c s) (M1 i c t) a b where
 instance GIxed' (GT (GSize s) n) n s s' t t' a b
       => GIxed n (s :*: s') (t :*: t') a b where
   {-# INLINE gix #-}
-  gix n = \ f ~s@(a :*: _) -> gix' (proxySizeGT a n) n f s
+  gix n = \ f s -> gix' (proxySizeGT (fst' s) n) n f s
 
-proxySizeGT :: s x -> p n -> BoolP (GT (GSize s) n)
+fst' :: (a :*: b) x -> a x
+{-# INLINE fst' #-}
+fst' (a :*: _) = a
+
+proxySizeGT :: s x -> p n -> Proxy (GT (GSize s) n)
 {-# INLINE proxySizeGT #-}
-proxySizeGT _ _ = BoolP
+proxySizeGT _ _ = Proxy
 
-#ifndef HLINT
-class GIxed' (p :: Bool) (n :: Nat) s s' t t' a b where
+class GIxed' p n s s' t t' a b where
   gix' :: f p -> g n -> Lens ((s :*: s') x) ((t :*: t') x) a b
-#endif
 
-instance GIxed n s t a b => GIxed' True n s s' t s' a b where
+instance GIxed n s t a b => GIxed' T n s s' t s' a b where
   {-# INLINE gix' #-}
   gix' _ n = \ f (s :*: s') -> fmap (:*: s') $ gix n f s
 
 instance GIxed (Subtract (GSize s) n) s' t' a b
-      => GIxed' False n s s' s t' a b where
+      => GIxed' F n s s' s t' a b where
   {-# INLINE gix' #-}
   gix' _ n = \ f (s :*: s') -> fmap (s :*:) $ gix (proxySubtractSize s n) f s'
 
-proxySubtractSize :: s x -> p n -> NatP (Subtract (GSize s) n)
+proxySubtractSize :: s x -> p n -> Proxy (Subtract (GSize s) n)
 {-# INLINE proxySubtractSize #-}
-proxySubtractSize _ _ = NatP
+proxySubtractSize _ _ = Proxy
 
-data Nat = Z | S Nat
+data Z
+data S a
 
-#ifndef HLINT
-type family Add (x :: Nat) (y :: Nat) :: Nat
-#endif
+data T
+data F
+
+type family Add x y
 type instance Add Z y = y
 type instance Add (S x) y = S (Add x y)
 
-#ifndef HLINT
-type family Subtract (x :: Nat) (y :: Nat) :: Nat
-#endif
+type family Subtract x y
 type instance Subtract Z x = x
 type instance Subtract (S x) (S y) = Subtract x y
 
-#ifndef HLINT
-type family GT (x :: Nat) (y :: Nat) :: Bool
-#endif
-type instance GT Z x = False
-type instance GT (S x) Z = True
+type family GT x y
+type instance GT Z x = F
+type instance GT (S x) Z = T
 type instance GT (S x) (S y) = GT x y
 
 type N0 = Z
@@ -456,46 +453,38 @@ type N6 = S N5
 type N7 = S N6
 type N8 = S N7
 
-#ifndef HLINT
-data NatP (n :: Nat) = NatP
-#endif
-
-proxyN0 :: NatP N0
+proxyN0 :: Proxy N0
 {-# INLINE proxyN0 #-}
-proxyN0 = NatP
+proxyN0 = Proxy
 
-proxyN1 :: NatP N1
+proxyN1 :: Proxy N1
 {-# INLINE proxyN1 #-}
-proxyN1 = NatP
+proxyN1 = Proxy
 
-proxyN2 :: NatP N2
+proxyN2 :: Proxy N2
 {-# INLINE proxyN2 #-}
-proxyN2 = NatP
+proxyN2 = Proxy
 
-proxyN3 :: NatP N3
+proxyN3 :: Proxy N3
 {-# INLINE proxyN3 #-}
-proxyN3 = NatP
+proxyN3 = Proxy
 
-proxyN4 :: NatP N4
+proxyN4 :: Proxy N4
 {-# INLINE proxyN4 #-}
-proxyN4 = NatP
+proxyN4 = Proxy
 
-proxyN5 :: NatP N5
+proxyN5 :: Proxy N5
 {-# INLINE proxyN5 #-}
-proxyN5 = NatP
+proxyN5 = Proxy
 
-proxyN6 :: NatP N6
+proxyN6 :: Proxy N6
 {-# INLINE proxyN6 #-}
-proxyN6 = NatP
+proxyN6 = Proxy
 
-proxyN7 :: NatP N7
+proxyN7 :: Proxy N7
 {-# INLINE proxyN7 #-}
-proxyN7 = NatP
+proxyN7 = Proxy
 
-proxyN8 :: NatP N8
+proxyN8 :: Proxy N8
 {-# INLINE proxyN8 #-}
-proxyN8 = NatP
-
-#ifndef HLINT
-data BoolP (b :: Bool) = BoolP
-#endif
+proxyN8 = Proxy

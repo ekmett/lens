@@ -10,6 +10,7 @@
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-float-in #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
+{-# OPTIONS_GHC -pgmPcpphs -optP--cpp -optP-ansi #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module     : Control.Lens.Internal.Reflection
@@ -69,7 +70,7 @@ import Data.Reflection
 class Typeable s => B s where
   reflectByte :: proxy s -> IntPtr
 
-#define CAT(a,b) a/**/b
+#define CAT(a, b) a##b
 
 #define BYTES(GO) \
   GO(0) GO(1) GO(2) GO(3) GO(4) GO(5) GO(6) GO(7) GO(8) GO(9) GO(10) GO(11) \

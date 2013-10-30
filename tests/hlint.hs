@@ -19,5 +19,5 @@ import System.Exit
 main :: IO ()
 main = do
     args <- getArgs
-    hints <- hlint $ ["src", "--cpp-define=HLINT"] ++ args
+    hints <- hlint $ ["src", "--cpp-define=HLINT", "--cpp-ansi"] ++ args
     unless (null hints) exitFailure
