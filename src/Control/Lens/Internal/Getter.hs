@@ -86,7 +86,7 @@ instance Foldable1 f => Foldable1 (AlongsideLeft f b) where
   {-# INLINE foldMap1 #-}
 
 instance Traversable1 f => Traversable1 (AlongsideLeft f b) where
-  traverse1 f (AlongsideLeft as) = AlongsideLeft <$> traverse1 (\(a,b) -> flip (,) b <$> f a) as where
+  traverse1 f (AlongsideLeft as) = AlongsideLeft <$> traverse1 (\(a,b) -> flip (,) b <$> f a) as
   {-# INLINE traverse1 #-}
 
 instance Functor f => Bifunctor (AlongsideLeft f) where
@@ -127,7 +127,7 @@ instance Foldable1 f => Foldable1 (AlongsideRight f a) where
   {-# INLINE foldMap1 #-}
 
 instance Traversable1 f => Traversable1 (AlongsideRight f a) where
-  traverse1 f (AlongsideRight as) = AlongsideRight <$> traverse1 (\(a,b) -> (,) a <$> f b) as where
+  traverse1 f (AlongsideRight as) = AlongsideRight <$> traverse1 (\(a,b) -> (,) a <$> f b) as
   {-# INLINE traverse1 #-}
 
 instance Functor f => Bifunctor (AlongsideRight f) where
