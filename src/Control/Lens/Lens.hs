@@ -101,6 +101,10 @@ module Control.Lens.Lens
   , cloneIndexPreservingLens
   , cloneIndexedLens
 
+  -- * Arrow operators
+  , overA
+  , (%~<)
+
   -- * ALens Combinators
   , storing
   , (^#)
@@ -118,6 +122,7 @@ module Control.Lens.Lens
   ) where
 
 import Control.Applicative
+import Control.Arrow
 import Control.Comonad
 import Control.Lens.Combinators
 import Control.Lens.Internal.Context
@@ -870,6 +875,30 @@ l <<>= r = l <%= (`mappend` r)
 {-# INLINE (<<>=) #-}
 
 ------------------------------------------------------------------------------
+-- Arrow operators
+------------------------------------------------------------------------------
+
+-- | 'Control.Lens.Setter.over' for Arrows.
+--
+-- Unlike 'Control.Lens.Setter.over', 'overA' can't accept a simple
+-- 'Control.Lens.Setter.Setter', but requires a full lens, or close
+-- enough.
+--
+-- @
+-- overA :: Arrow ar => Lens s t a b -> ar a b -> ar s t
+-- @
+overA :: Arrow ar => LensLike (Context a b) s t a b -> ar a b -> ar s t
+overA l p = arr (\s -> let (Context f a) = l sell s in (f, a))
+            >>> second p
+            >>> arr (uncurry id)
+
+-- | Inline 'overA'.
+infixr 4 %~<
+(%~<) :: Arrow ar => LensLike (Context a b) s t a b -> ar a b -> ar s t
+l %~< p = overA l p
+{-# INLINE (%~<) #-}
+
+------------------------------------------------------------------------------
 -- Indexed
 ------------------------------------------------------------------------------
 
@@ -1066,7 +1095,7 @@ l #%%= f = do
 l <#~ b = \s -> (b, storing l b s)
 {-# INLINE (<#~) #-}
 
--- | A version of ('Control.Lens.Setter.<#=') that works on 'ALens'.
+-- | A version of ('Control.Lens.Setter.<.=') that works on 'ALens'.
 (<#=) :: MonadState s m => ALens s s a b -> b -> m b
 l <#= b = do
   l #= b
