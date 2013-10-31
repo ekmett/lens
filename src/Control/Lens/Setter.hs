@@ -68,7 +68,6 @@ module Control.Lens.Setter
   , (%@~), (%@=)
   -- * Arrow operators
   , assignA
-  , (<~<)
   -- * Exported for legible error messages
   , Settable
   , Identity(..)
@@ -1192,28 +1191,17 @@ l %@= f = State.modify (l %@~ f)
 -- Arrows
 ------------------------------------------------------------------------------
 
--- | 'assignA' is a prefix version of '<~<'
-assignA :: Arrow p => ASetter s t a b -> p s b -> p s t
-assignA setter arrval = arr (flip $ set setter) &&& arrval >>> arr (uncurry id)
-
 -- | Run an arrow command and use the output to set all the targets of
 -- a 'Lens', 'Setter' or 'Traversal' to the result.
 --
--- @
--- ('<~<') :: 'Arrow' p => 'Iso' s t a b -> p s b -> p s t
--- ('<~<') :: 'Arrow' p => 'Lens' s t a b -> p s b -> p s t
--- ('<~<') :: 'Arrow' p => 'Traversal' s t a b -> p s b -> p s t
--- ('<~<') :: 'Arrow' p => 'Setter' s t a b -> p s b -> p s t
--- @
---
--- '<~<' can be used very similarly to '<~', except that the type of
--- the object being modified can change; for example, this:
+-- 'assignA' can be used very similarly to ('<~'), except that the type of
+-- the object being modified can change; for example:
 --
 -- @
 -- runKleisli action ((), (), ()) where
---   action =     _1 <~< Kleisli (const getVal1)
---            \>>> _2 <~< Kleisli (const getVal2)
---            \>>> _3 <~< Kleisli (const getVal3)
+--   action =      assignA _1 (Kleisli (const getVal1))
+--            \>>> assignA _2 (Kleisli (const getVal2))
+--            \>>> assignA _3 (Kleisli (const getVal3))
 --   getVal1 :: Either String Int
 --   getVal1 = ...
 --   getVal2 :: Either String Bool
@@ -1223,11 +1211,16 @@ assignA setter arrval = arr (flip $ set setter) &&& arrval >>> arr (uncurry id)
 -- @
 --
 -- has the type @'Either' 'String' ('Int', 'Bool', 'Char')@
-(<~<) :: Arrow p => ASetter s t a b -> p s b -> p s t
-(<~<) = assignA
-
-infixr 2 <~<
-{-# INLINE (<~<) #-}
+--
+-- @
+-- 'assignA' :: 'Arrow' p => 'Iso' s t a b       -> p s b -> p s t
+-- 'assignA' :: 'Arrow' p => 'Lens' s t a b      -> p s b -> p s t
+-- 'assignA' :: 'Arrow' p => 'Traversal' s t a b -> p s b -> p s t
+-- 'assignA' :: 'Arrow' p => 'Setter' s t a b    -> p s b -> p s t
+-- @
+assignA :: Arrow p => ASetter s t a b -> p s b -> p s t
+assignA l p = arr (flip $ set l) &&& p >>> arr (uncurry id)
+{-# INLINE assignA #-}
 
 ------------------------------------------------------------------------------
 -- Deprecated

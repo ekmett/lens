@@ -103,7 +103,6 @@ module Control.Lens.Lens
 
   -- * Arrow operators
   , overA
-  , (%~<)
 
   -- * ALens Combinators
   , storing
@@ -891,12 +890,6 @@ overA :: Arrow ar => LensLike (Context a b) s t a b -> ar a b -> ar s t
 overA l p = arr (\s -> let (Context f a) = l sell s in (f, a))
             >>> second p
             >>> arr (uncurry id)
-
--- | Inline 'overA'.
-infixr 4 %~<
-(%~<) :: Arrow ar => LensLike (Context a b) s t a b -> ar a b -> ar s t
-l %~< p = overA l p
-{-# INLINE (%~<) #-}
 
 ------------------------------------------------------------------------------
 -- Indexed
