@@ -1196,7 +1196,8 @@ l %@= f = State.modify (l %@~ f)
 assignA :: Arrow p => ASetter s t a b -> p s b -> p s t
 assignA setter arrval = arr (flip $ set setter) &&& arrval >>> arr (uncurry id)
 
--- | Run an arrow command and use the output to set all the targets of a 'Lens', 'Setter' or 'Traversal' to the result.
+-- | Run an arrow command and use the output to set all the targets of
+-- a 'Lens', 'Setter' or 'Traversal' to the result.
 --
 -- @
 -- ('<~<') :: 'Arrow' p => 'Iso' s t a b -> p s b -> p s t
@@ -1211,8 +1212,8 @@ assignA setter arrval = arr (flip $ set setter) &&& arrval >>> arr (uncurry id)
 -- @
 -- runKleisli action ((), (), ()) where
 --   action =     _1 <~< Kleisli (const getVal1)
---            >>> _2 <~< Kleisli (const getVal2)
---            >>> _3 <~< Kleisli (const getVal3)
+--            \>>> _2 <~< Kleisli (const getVal2)
+--            \>>> _3 <~< Kleisli (const getVal3)
 --   getVal1 :: Either String Int
 --   getVal1 = ...
 --   getVal2 :: Either String Bool
