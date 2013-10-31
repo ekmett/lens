@@ -177,7 +177,7 @@ instance GIxed n s t a b => GIxed n (M1 i c s) (M1 i c t) a b where
 instance GIxed' (GT (GSize s) n) n s s' t t' a b
       => GIxed n (s :+: s') (t :+: t') a b where
   {-# INLINE gix #-}
-  gix n = gix' (reproxySizeGT (Proxy :: Proxy s) n) n
+  gix n = gix' (reproxySizeGT (Proxy :: Proxy (s x)) n) n
 
 instance (IsGTuple s, IsGTuple s', IsGTuple t, IsGTuple t',
           IsTuple (GList (s :*: s')), IsTuple (GList (t :*: t')),
@@ -199,7 +199,7 @@ instance (GIxed (Subtract (GSize s) n) s' t' a b, s ~ t)
       => GIxed' False n s s' t t' a b where
   {-# INLINE gix' #-}
   gix' _ n = dimap (gsum Left Right) (either (pure . L1) (fmap R1)) . right' .
-    gix (reproxySubtractSize (Proxy :: Proxy s) n)
+    gix (reproxySubtractSize (Proxy :: Proxy (s x)) n)
 
 #ifndef HLINT
 data GTuple xs where
@@ -433,10 +433,10 @@ type instance GSize (M1 i c f) = GSize f
 type instance GSize (a :+: b) = Add (GSize a) (GSize b)
 type instance GSize (a :*: b) = S Z
 
-reproxySubtractSize :: f s -> g n -> Proxy (Subtract (GSize s) n)
+reproxySubtractSize :: f (s x) -> g n -> Proxy (Subtract (GSize s) n)
 {-# INLINE reproxySubtractSize #-}
 reproxySubtractSize _ _ = Proxy
 
-reproxySizeGT :: f s -> g n -> Proxy (GT (GSize s) n)
+reproxySizeGT :: f (s x) -> g n -> Proxy (GT (GSize s) n)
 {-# INLINE reproxySizeGT #-}
 reproxySizeGT _ _ = Proxy
