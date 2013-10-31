@@ -66,6 +66,9 @@ module Control.Lens.Setter
   , imapOf, iover
   , isets
   , (%@~), (%@=)
+  -- * Arrow operators
+  , assignA
+  , (<~<)
   -- * Exported for legible error messages
   , Settable
   , Identity(..)
@@ -74,6 +77,7 @@ module Control.Lens.Setter
   ) where
 
 import Control.Applicative
+import Control.Arrow
 import Control.Comonad
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Setter
@@ -1183,6 +1187,47 @@ l %@~ f = l %~ Indexed f
 (%@=) :: MonadState s m => AnIndexedSetter i s s a b -> (i -> a -> b) -> m ()
 l %@= f = State.modify (l %@~ f)
 {-# INLINE (%@=) #-}
+
+------------------------------------------------------------------------------
+-- Arrows
+------------------------------------------------------------------------------
+
+-- | 'assignA' is a prefix version of '<~<'
+assignA :: Arrow p => ASetter s t a b -> p s b -> p s t
+assignA setter arrval = arr (flip $ set setter) &&& arrval >>> arr (uncurry id)
+
+-- | Run an arrow command and use the output to set all the targets of
+-- a 'Lens', 'Setter' or 'Traversal' to the result.
+--
+-- @
+-- ('<~<') :: 'Arrow' p => 'Iso' s t a b -> p s b -> p s t
+-- ('<~<') :: 'Arrow' p => 'Lens' s t a b -> p s b -> p s t
+-- ('<~<') :: 'Arrow' p => 'Traversal' s t a b -> p s b -> p s t
+-- ('<~<') :: 'Arrow' p => 'Setter' s t a b -> p s b -> p s t
+-- @
+--
+-- '<~<' can be used very similarly to '<~', except that the type of
+-- the object being modified can change; for example, this:
+--
+-- @
+-- runKleisli action ((), (), ()) where
+--   action =     _1 <~< Kleisli (const getVal1)
+--            \>>> _2 <~< Kleisli (const getVal2)
+--            \>>> _3 <~< Kleisli (const getVal3)
+--   getVal1 :: Either String Int
+--   getVal1 = ...
+--   getVal2 :: Either String Bool
+--   getVal2 = ...
+--   getVal3 :: Either String Char
+--   getVal3 = ...
+-- @
+--
+-- has the type @'Either' 'String' ('Int', 'Bool', 'Char')@
+(<~<) :: Arrow p => ASetter s t a b -> p s b -> p s t
+(<~<) = assignA
+
+infixr 2 <~<
+{-# INLINE (<~<) #-}
 
 ------------------------------------------------------------------------------
 -- Deprecated
