@@ -373,7 +373,7 @@ instance IsTuple [a, b, c, d, e, f, g, h, i] where
 type ToTuple s = Tuple (GList s)
 
 class IsGTuple s where
-  type GCons s xs
+  type GCons s xs :: [*]
   gcons :: s x -> GTuple xs -> GTuple (GCons s xs)
   guncons :: (s x -> GTuple xs -> r) -> GTuple (GCons s xs) -> r
 
