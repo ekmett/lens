@@ -2,7 +2,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -39,6 +38,7 @@ module Control.Lens.Tuple
 
 import Control.Applicative
 import Control.Lens.Combinators
+import Control.Lens.Internal.Nat
 import Control.Lens.Type
 import Data.Functor.Identity
 import Data.Proxy (Proxy (Proxy))
@@ -82,7 +82,7 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   default _1 :: (Generic s, Generic t, GIxed N0 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _1 #-}
-  _1 = ix proxyN0
+  _1 = ix (Proxy :: Proxy N0)
 #endif
 
 instance Field1 (Identity a) (Identity b) a b where
@@ -147,7 +147,7 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   default _2 :: (Generic s, Generic t, GIxed N1 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _2 #-}
-  _2 = ix proxyN1
+  _2 = ix (Proxy :: Proxy N1)
 #endif
 
 -- | @
@@ -193,7 +193,7 @@ class Field3 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   default _3 :: (Generic s, Generic t, GIxed N2 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _3 #-}
-  _3 = ix proxyN2
+  _3 = ix (Proxy :: Proxy N2)
 #endif
 
 instance Field3 (a,b,c) (a,b,c') c c' where
@@ -232,7 +232,7 @@ class Field4 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   default _4 :: (Generic s, Generic t, GIxed N3 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _4 #-}
-  _4 = ix proxyN3
+  _4 = ix (Proxy :: Proxy N3)
 #endif
 
 instance Field4 (a,b,c,d) (a,b,c,d') d d' where
@@ -267,7 +267,7 @@ class Field5 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   default _5 :: (Generic s, Generic t, GIxed N4 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _5 #-}
-  _5 = ix proxyN4
+  _5 = ix (Proxy :: Proxy N4)
 #endif
 
 instance Field5 (a,b,c,d,e) (a,b,c,d,e') e e' where
@@ -298,7 +298,7 @@ class Field6 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   default _6 :: (Generic s, Generic t, GIxed N5 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _6 #-}
-  _6 = ix proxyN5
+  _6 = ix (Proxy :: Proxy N5)
 #endif
 
 instance Field6 (a,b,c,d,e,f) (a,b,c,d,e,f') f f' where
@@ -325,7 +325,7 @@ class Field7 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   default _7 :: (Generic s, Generic t, GIxed N6 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _7 #-}
-  _7 = ix proxyN6
+  _7 = ix (Proxy :: Proxy N6)
 #endif
 
 instance Field7 (a,b,c,d,e,f,g) (a,b,c,d,e,f,g') g g' where
@@ -348,7 +348,7 @@ class Field8 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   default _8 :: (Generic s, Generic t, GIxed N7 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _8 #-}
-  _8 = ix proxyN7
+  _8 = ix (Proxy :: Proxy N7)
 #endif
 
 instance Field8 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f,g,h') h h' where
@@ -367,7 +367,7 @@ class Field9 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   default _9 :: (Generic s, Generic t, GIxed N8 (Rep s) (Rep t) a b)
              => Lens s t a b
   {-# INLINE _9 #-}
-  _9 = ix proxyN8
+  _9 = ix (Proxy :: Proxy N8)
 #endif
 
 instance Field9 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h,i') i i' where
@@ -411,80 +411,15 @@ proxySizeGT _ _ = Proxy
 class GIxed' p n s s' t t' a b where
   gix' :: f p -> g n -> Lens ((s :*: s') x) ((t :*: t') x) a b
 
-instance GIxed n s t a b => GIxed' T n s s' t s' a b where
+instance GIxed n s t a b => GIxed' True n s s' t s' a b where
   {-# INLINE gix' #-}
   gix' _ n = \ f (s :*: s') -> fmap (:*: s') $ gix n f s
 
 instance GIxed (Subtract (GSize s) n) s' t' a b
-      => GIxed' F n s s' s t' a b where
+      => GIxed' False n s s' s t' a b where
   {-# INLINE gix' #-}
   gix' _ n = \ f (s :*: s') -> fmap (s :*:) $ gix (proxySubtractSize s n) f s'
 
 proxySubtractSize :: s x -> p n -> Proxy (Subtract (GSize s) n)
 {-# INLINE proxySubtractSize #-}
 proxySubtractSize _ _ = Proxy
-
-data Z
-data S a
-
-data T
-data F
-
-type family Add x y
-type instance Add Z y = y
-type instance Add (S x) y = S (Add x y)
-
-type family Subtract x y
-type instance Subtract Z x = x
-type instance Subtract (S x) (S y) = Subtract x y
-
-type family GT x y
-type instance GT Z x = F
-type instance GT (S x) Z = T
-type instance GT (S x) (S y) = GT x y
-
-type N0 = Z
-type N1 = S N0
-type N2 = S N1
-type N3 = S N2
-type N4 = S N3
-type N5 = S N4
-type N6 = S N5
-type N7 = S N6
-type N8 = S N7
-
-proxyN0 :: Proxy N0
-{-# INLINE proxyN0 #-}
-proxyN0 = Proxy
-
-proxyN1 :: Proxy N1
-{-# INLINE proxyN1 #-}
-proxyN1 = Proxy
-
-proxyN2 :: Proxy N2
-{-# INLINE proxyN2 #-}
-proxyN2 = Proxy
-
-proxyN3 :: Proxy N3
-{-# INLINE proxyN3 #-}
-proxyN3 = Proxy
-
-proxyN4 :: Proxy N4
-{-# INLINE proxyN4 #-}
-proxyN4 = Proxy
-
-proxyN5 :: Proxy N5
-{-# INLINE proxyN5 #-}
-proxyN5 = Proxy
-
-proxyN6 :: Proxy N6
-{-# INLINE proxyN6 #-}
-proxyN6 = Proxy
-
-proxyN7 :: Proxy N7
-{-# INLINE proxyN7 #-}
-proxyN7 = Proxy
-
-proxyN8 :: Proxy N8
-{-# INLINE proxyN8 #-}
-proxyN8 = Proxy

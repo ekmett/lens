@@ -35,6 +35,7 @@ module Control.Lens.Union
        ) where
 
 import Control.Applicative
+import Control.Lens.Internal.Nat
 import Control.Lens.Prism
 import Data.Profunctor
 import Data.Proxy (Proxy (Proxy))
@@ -157,7 +158,7 @@ ix :: (Generic s, Generic t, GIxed n (Rep s) (Rep t) a b)
 ix n = dimap from (fmap to) . gix n
 
 #ifndef HLINT
-class GIxed (n :: Nat) s t a b | n s -> a, n t -> b, n s b -> t, n t a -> s where
+class GIxed n s t a b | n s -> a, n t -> b, n s b -> t, n t a -> s where
   gix :: f n -> Prism (s x) (t x) a b
 #endif
 
@@ -173,7 +174,7 @@ instance GIxed n s t a b => GIxed n (M1 i c s) (M1 i c t) a b where
   {-# INLINE gix #-}
   gix n = dimap unM1 (fmap M1) . gix n
 
-instance GIxed' (GSize s > n) n s s' t t' a b
+instance GIxed' (GT (GSize s) n) n s s' t t' a b
       => GIxed n (s :+: s') (t :+: t') a b where
   {-# INLINE gix #-}
   gix n = gix' (reproxySizeGT (Proxy :: Proxy s) n) n
@@ -186,7 +187,7 @@ instance (IsGTuple s, IsGTuple s', IsGTuple t, IsGTuple t',
   gix _ = dimap (toTuple . toGTuple) (fmap $ fromGTuple . fromTuple)
 
 #ifndef HLINT
-class GIxed' (p :: Bool) (n :: Nat) s s' t t' a b where
+class GIxed' p n s s' t t' a b where
   gix' :: f p -> g n -> Prism ((s :+: s') x) ((t :+: t') x) a b
 #endif
 
@@ -423,50 +424,17 @@ gsum :: (a x -> r) -> (b x -> r) -> (a :+: b) x -> r
 gsum f _ (L1 a) = f a
 gsum _ f (R1 a) = f a
 
-#ifndef HLINT
-type family GSize (f :: * -> *) :: Nat
-#endif
+type family GSize (f :: * -> *)
 type instance GSize U1 = S Z
 type instance GSize (K1 i c) = S Z
 type instance GSize (M1 i c f) = GSize f
-type instance GSize (a :+: b) = GSize a + GSize b
+type instance GSize (a :+: b) = Add (GSize a) (GSize b)
 type instance GSize (a :*: b) = S Z
 
 reproxySubtractSize :: f s -> g n -> Proxy (Subtract (GSize s) n)
 {-# INLINE reproxySubtractSize #-}
 reproxySubtractSize _ _ = Proxy
 
-reproxySizeGT :: f s -> g n -> Proxy (GSize s > n)
+reproxySizeGT :: f s -> g n -> Proxy (GT (GSize s) n)
 {-# INLINE reproxySizeGT #-}
 reproxySizeGT _ _ = Proxy
-
-data Nat = Z | S Nat
-
-#ifndef HLINT
-type family (x :: Nat) + (y :: Nat) :: Nat
-#endif
-type instance Z + y = y
-type instance S x + y = S (x + y)
-
-#ifndef HLINT
-type family Subtract (x :: Nat) (y :: Nat) :: Nat
-#endif
-type instance Subtract Z x = x
-type instance Subtract (S x) (S y) = Subtract x y
-
-#ifndef HLINT
-type family (x :: Nat) > (y :: Nat) :: Bool
-#endif
-type instance Z > x = False
-type instance S x > Z = True
-type instance S x > S y = x > y
-
-type N0 = Z
-type N1 = S N0
-type N2 = S N1
-type N3 = S N2
-type N4 = S N3
-type N5 = S N4
-type N6 = S N5
-type N7 = S N6
-type N8 = S N7
