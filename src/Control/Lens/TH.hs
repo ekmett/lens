@@ -1056,13 +1056,17 @@ makeWrappedInstance dataDecl con fieldType = do
   let typeArgs = toListOf typeVars (dataParameters dataDecl)
 
   -- Con a b c...
-  let appliedType  = return (fullType dataDecl (map VarT typeArgs))
+  let appliedType  = fullType dataDecl (map VarT typeArgs)
 
   -- type Unwrapped (Con a b c...) = $fieldType
-  let unwrappedATF = tySynInstD ''Unwrapped [appliedType] (return fieldType)
+#if MIN_VERSION_template_haskell(2,9,0)
+  let unwrappedATF = tySynInstD ''Unwrapped (return (TySynEqn [appliedType] fieldType))
+#else
+  let unwrappedATF = tySynInstD ''Unwrapped [return appliedType] (return fieldType)
+#endif
 
   -- Wrapped (Con a b c...)
-  let klass        = conT ''Wrapped `appT` appliedType
+  let klass        = conT ''Wrapped `appT` return appliedType
 
   -- _Wrapped' = iso (\(Con x) -> x) Con
   let wrapFun      = conE conName
