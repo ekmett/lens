@@ -121,6 +121,7 @@ import Control.Applicative
 import Control.Comonad
 import Control.Lens.Combinators
 import Control.Lens.Internal.Context
+import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Lens.Type
 import Control.Monad.State as State
@@ -355,7 +356,8 @@ chosen pafb = cotabulate $ \weaa -> corep (either id id `lmap` pafb) weaa <&> \b
   Right _ -> Right b
 {-# INLINE chosen #-}
 
--- | 'alongside' makes a 'Lens' from two other lenses.
+-- | 'alongside' makes a 'Lens' from two other lenses or a 'Getter' from two other getters
+-- by executing them on their respective halves of a product.
 --
 -- >>> (Left a, Right b)^.alongside chosen chosen
 -- (a,b)
@@ -364,12 +366,16 @@ chosen pafb = cotabulate $ \weaa -> corep (either id id `lmap` pafb) weaa <&> \b
 -- (Left c,Right d)
 --
 -- @
--- 'alongside' :: 'Lens' s t a b -> 'Lens' s' t' a' b' -> 'Lens' (s,s') (t,t') (a,a') (b,b')
+-- 'alongside' :: 'Lens'   s t a b -> 'Lens'   s' t' a' b' -> 'Lens'   (s,s') (t,t') (a,a') (b,b')
+-- 'alongside' :: 'Getter' s t a b -> 'Getter' s' t' a' b' -> 'Getter' (s,s') (t,t') (a,a') (b,b')
 -- @
-alongside :: ALens s t a b -> ALens s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
-alongside l r f (s, s') = f (ipos ls, ipos rs) <&> \(b, b') -> (ipeek b ls, ipeek b' rs) where
-  ls = l sell s
-  rs = r sell s'
+alongside :: LensLike (AlongsideLeft f b') s  t  a  b
+          -> LensLike (AlongsideRight f t) s' t' a' b'
+          -> LensLike f (s, s') (t, t') (a, a') (b, b')
+alongside l1 l2 f (a1, a2)
+  = getAlongsideRight $ l2 ?? a2 $ \b2 -> AlongsideRight
+  $ getAlongsideLeft  $ l1 ?? a1 $ \b1 -> AlongsideLeft
+  $ f (b1,b2)
 {-# INLINE alongside #-}
 
 -- | This 'Lens' lets you 'view' the current 'pos' of any indexed
