@@ -408,7 +408,7 @@ proxySizeGT :: s x -> p n -> Proxy (GT (GSize s) n)
 {-# INLINE proxySizeGT #-}
 proxySizeGT _ _ = Proxy
 
-class GIxed' p n s s' t t' a b where
+class GIxed' p n s s' t t' a b | n s s' -> a, n t t' -> b, n s s' b -> t t', n t t' a -> s s' where
   gix' :: f p -> g n -> Lens ((s :*: s') x) ((t :*: t') x) a b
 
 instance GIxed n s t a b => GIxed' True n s s' t s' a b where
