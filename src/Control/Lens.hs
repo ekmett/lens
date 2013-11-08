@@ -65,7 +65,6 @@ module Control.Lens
   , module Control.Lens.Traversal
   , module Control.Lens.Tuple
   , module Control.Lens.Type
-  , module Control.Lens.Union
   , module Control.Lens.Wrapped
   , module Control.Lens.Zoom
   ) where
@@ -95,7 +94,6 @@ import Control.Lens.TH
 import Control.Lens.Traversal
 import Control.Lens.Tuple
 import Control.Lens.Type
-import Control.Lens.Union
 import Control.Lens.Wrapped
 import Control.Lens.Zoom
 
