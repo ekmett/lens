@@ -14,7 +14,7 @@
 
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Control.Lens.Tuple
+-- Module      :  Control.Lens.Union
 -- Copyright   :  (C) 2012-13 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
@@ -147,8 +147,8 @@ instance VariantB Ordering Ordering () ()
 instance VariantC Ordering Ordering () ()
 instance VariantA (Maybe a) (Maybe a) () ()
 instance VariantB (Maybe a) (Maybe b) a b
-instance VariantA (Either a c) (Either b c) a b
-instance VariantB (Either c a) (Either c b) a b
+instance VariantA (Either a b) (Either a' b) a a'
+instance VariantB (Either a b) (Either a b') b b'
 instance VariantA [a] [a] () ()
 instance VariantB [a] [b] (a, [a]) (b, [b])
 
@@ -179,7 +179,7 @@ instance GIxed' (GT (GSize s) n) n s s' t t' a b
   {-# INLINE gix #-}
   gix n = gix' (reproxySizeGT (Proxy :: Proxy (s x)) n) n
 
-instance (IsGTuple s, IsGTuple s', IsGTuple t, IsGTuple t',
+instance (IsGTuple (s :*: s'), IsGTuple (t :*: t'),
           IsTuple (GList (s :*: s')), IsTuple (GList (t :*: t')),
           a ~ ToTuple (s :*: s'), b ~ ToTuple (t :*: t'))
       => GIxed N0 (s :*: s') (t :*: t') a b where
@@ -194,13 +194,14 @@ class GIxed' p n s s' t t' a b | n s s' -> a
 
 instance (GIxed n s t a b, s' ~ t') => GIxed' True n s s' t t' a b where
   {-# INLINE gix' #-}
-  gix' _ n = dimap (gsum Left Right) (either (fmap L1) (pure . R1)) . left' . gix n
+  gix' _ n = dimap (gsum Left Right) (either (fmap L1) (pure . R1)) . left' .
+             gix n
 
 instance (GIxed (Subtract (GSize s) n) s' t' a b, s ~ t)
       => GIxed' False n s s' t t' a b where
   {-# INLINE gix' #-}
   gix' _ n = dimap (gsum Left Right) (either (pure . L1) (fmap R1)) . right' .
-    gix (reproxySubtractSize (Proxy :: Proxy (s x)) n)
+             gix (reproxySubtractSize (Proxy :: Proxy (s x)) n)
 
 #ifndef HLINT
 data GTuple xs where
