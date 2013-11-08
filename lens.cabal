@@ -231,6 +231,7 @@ library
     Control.Lens.Internal.Iso
     Control.Lens.Internal.Level
     Control.Lens.Internal.Magma
+    Control.Lens.Internal.Nat
     Control.Lens.Internal.Prism
     Control.Lens.Internal.Reflection
     Control.Lens.Internal.Review
@@ -250,6 +251,7 @@ library
     Control.Lens.Traversal
     Control.Lens.Tuple
     Control.Lens.Type
+    Control.Lens.Union
     Control.Lens.Wrapped
     Control.Lens.Zoom
     Control.Monad.Error.Lens
