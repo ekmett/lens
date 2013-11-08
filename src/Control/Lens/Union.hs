@@ -186,10 +186,10 @@ instance (IsGTuple (s :*: s'), IsGTuple (t :*: t'),
   {-# INLINE gix #-}
   gix _ = dimap (toTuple . toGTuple) (fmap $ fromGTuple . fromTuple)
 
-class GIxed' p n s s' t t' a b | n s s' -> a
-                               , n t t' -> b
-                               , n s s' b -> t t'
-                               , n t t' a -> s s' where
+class GIxed' p n s s' t t' a b | p n s s' -> a
+                               , p n t t' -> b
+                               , p n s s' b -> t t'
+                               , p n t t' a -> s s' where
   gix' :: f p -> g n -> Prism ((s :+: s') x) ((t :+: t') x) a b
 
 instance (GIxed n s t a b, s' ~ t') => GIxed' True n s s' t t' a b where
