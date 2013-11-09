@@ -1,5 +1,11 @@
 {-# LANGUAGE CPP #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
+#endif
 
+#ifndef MIN_VERSION_template_haskell
+#define MIN_VERSION_template_haskell(x,y,z) (defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706)
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.TH
@@ -19,7 +25,7 @@ tySynInstD' :: Name -> [TypeQ] -> TypeQ -> DecQ
 #if MIN_VERSION_template_haskell(2,9,0)
 tySynInstD' fam ts r = tySynInstD fam (tySynEqn ts r)
 #else
-tySynInstD' fam ts r = tySynInstD fam ts r
+tySynInstD' = tySynInstD
 #endif
 
 appsT :: TypeQ -> [TypeQ] -> TypeQ
