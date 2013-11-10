@@ -408,7 +408,17 @@ proxySizeGT :: s x -> p n -> Proxy (GT (GSize s) n)
 {-# INLINE proxySizeGT #-}
 proxySizeGT _ _ = Proxy
 
-class GIxed' p n s s' t t' a b | n s s' -> a, n t t' -> b, n s s' b -> t t', n t t' a -> s s' where
+-- $gixed-fundeps
+-- >>> :set -XDeriveGeneric -XFlexibleInstances -XMultiParamTypeClasses
+-- >>> import GHC.Generics (Generic)
+-- >>> data Product a b = a :* b deriving Generic
+-- >>> instance Field1 (Product a b) (Product a' b) a a'
+-- >>> instance Field2 (Product a b) (Product a b') b b'
+
+class GIxed' p n s s' t t' a b | p n s s' -> a
+                               , p n t t' -> b
+                               , p n s s' b -> t t'
+                               , p n t t' a -> s s' where
   gix' :: f p -> g n -> Lens ((s :*: s') x) ((t :*: t') x) a b
 
 instance GIxed n s t a b => GIxed' T n s s' t s' a b where
