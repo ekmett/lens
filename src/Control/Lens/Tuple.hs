@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -395,44 +396,43 @@ instance GIxed n s t a b => GIxed n (M1 i c s) (M1 i c t) a b where
   {-# INLINE gix #-}
   gix n = \ f -> fmap M1 . gix n f . unM1
 
-instance GIxed' (GT (GSize s) n) n s s' t t' a b
+instance (p ~ GT (GSize s) n,
+          p ~ GT (GSize t) n,
+          GIxed' p n s s' t t' a b)
       => GIxed n (s :*: s') (t :*: t') a b where
   {-# INLINE gix #-}
-  gix n = \ f s -> gix' (proxySizeGT (fst' s) n) n f s
+  gix n = \ f s -> gix' (Proxy :: Proxy p) n f s
 
-fst' :: (a :*: b) x -> a x
-{-# INLINE fst' #-}
-fst' (a :*: _) = a
-
-proxySizeGT :: s x -> p n -> Proxy (GT (GSize s) n)
-{-# INLINE proxySizeGT #-}
-proxySizeGT _ _ = Proxy
-
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706
 -- $gixed-fundeps
 -- >>> :set -XDeriveGeneric -XFlexibleInstances -XMultiParamTypeClasses
 -- >>> import GHC.Generics (Generic)
 -- >>> data Product a b = a :* b deriving Generic
 -- >>> instance Field1 (Product a b) (Product a' b) a a'
 -- >>> instance Field2 (Product a b) (Product a b') b b'
+#endif
 
-class GIxed' p n s s' t t' a b | p n s s' -> a
+class (p ~ GT (GSize s) n,
+       p ~ GT (GSize t) n)
+   => GIxed' p n s s' t t' a b | p n s s' -> a
                                , p n t t' -> b
                                , p n s s' b -> t t'
                                , p n t t' a -> s s' where
   gix' :: f p -> g n -> Lens ((s :*: s') x) ((t :*: t') x) a b
 
-instance GIxed n s t a b => GIxed' T n s s' t s' a b where
+instance (GT (GSize s) n ~ T,
+          GT (GSize t) n ~ T,
+          GIxed n s t a b)
+      => GIxed' T n s s' t s' a b where
   {-# INLINE gix' #-}
   gix' _ n = \ f (s :*: s') -> fmap (:*: s') $ gix n f s
 
-instance GIxed (Subtract (GSize s) n) s' t' a b
+instance (GT (GSize s) n ~ F,
+          n' ~ Subtract (GSize s) n,
+          GIxed n' s' t' a b)
       => GIxed' F n s s' s t' a b where
   {-# INLINE gix' #-}
-  gix' _ n = \ f (s :*: s') -> fmap (s :*:) $ gix (proxySubtractSize s n) f s'
-
-proxySubtractSize :: s x -> p n -> Proxy (Subtract (GSize s) n)
-{-# INLINE proxySubtractSize #-}
-proxySubtractSize _ _ = Proxy
+  gix' _ _ = \ f (s :*: s') -> fmap (s :*:) $ gix (Proxy :: Proxy n') f s'
 
 data Z
 data S a
