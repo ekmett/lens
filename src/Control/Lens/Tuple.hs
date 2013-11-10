@@ -42,6 +42,7 @@ import Control.Applicative
 import Control.Lens.Combinators
 import Control.Lens.Type
 import Data.Functor.Identity
+import Data.Profunctor (dimap)
 import Data.Proxy (Proxy (Proxy))
 import GHC.Generics (Generic (..), (:*:) (..), K1 (..), M1 (..), U1 (..))
 
@@ -390,18 +391,18 @@ class GIxed n s t a b | n s -> a, n t -> b, n s b -> t, n t a -> s where
 
 instance GIxed N0 (K1 i a) (K1 i b) a b where
   {-# INLINE gix #-}
-  gix _ = \ f -> fmap K1 . f . unK1
+  gix _ = dimap unK1 (fmap K1)
 
 instance GIxed n s t a b => GIxed n (M1 i c s) (M1 i c t) a b where
   {-# INLINE gix #-}
-  gix n = \ f -> fmap M1 . gix n f . unM1
+  gix n = dimap unM1 (fmap M1) . gix n
 
 instance (p ~ GT (GSize s) n,
           p ~ GT (GSize t) n,
           GIxed' p n s s' t t' a b)
       => GIxed n (s :*: s') (t :*: t') a b where
   {-# INLINE gix #-}
-  gix n = \ f s -> gix' (Proxy :: Proxy p) n f s
+  gix = gix' (Proxy :: Proxy p)
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706
 -- $gixed-fundeps
@@ -425,14 +426,14 @@ instance (GT (GSize s) n ~ T,
           GIxed n s t a b)
       => GIxed' T n s s' t s' a b where
   {-# INLINE gix' #-}
-  gix' _ n = \ f (s :*: s') -> fmap (:*: s') $ gix n f s
+  gix' _ n f (s :*: s') = fmap (:*: s') $ gix n f s
 
 instance (GT (GSize s) n ~ F,
           n' ~ Subtract (GSize s) n,
           GIxed n' s' t' a b)
       => GIxed' F n s s' s t' a b where
   {-# INLINE gix' #-}
-  gix' _ _ = \ f (s :*: s') -> fmap (s :*:) $ gix (Proxy :: Proxy n') f s'
+  gix' _ _  f (s :*: s') = fmap (s :*:) $ gix (Proxy :: Proxy n') f s'
 
 data Z
 data S a
