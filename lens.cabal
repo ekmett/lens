@@ -208,6 +208,7 @@ library
     Control.Lens
     Control.Lens.Action
     Control.Lens.At
+    Control.Lens.Combinators
     Control.Lens.Cons
     Control.Lens.Each
     Control.Lens.Empty

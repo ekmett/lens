@@ -1,0 +1,22 @@
+#! /bin/bash
+
+cd "$(git rev-parse --show-toplevel)"
+
+heading()
+{
+	declare -g MODULE
+	test "$1" = "$MODULE" && return
+	echo "  -- * \"$1\""
+	MODULE="$1"
+}
+test "$1" != "-h" && heading() { echo -n ; } # default to no headings
+
+INDENT="    "
+git grep --basic-regexp '^(.\+)\s*::' src/Control/Lens/ \
+		| sed -e 's#^src/\(.*\)\.hs:\(.*\S\)\s*::.*$#\1 \2#' \
+		| while read FILE OPER ; do
+	heading "${FILE////.}"
+	echo "$INDENT$OPER"
+	INDENT="  , "
+done
+
