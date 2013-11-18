@@ -10,6 +10,5 @@ doc="$(g -e '--\s\+>>>\s\+[^:]' --and --not -e '--\s\+>>>\s\+\(import\|let\)' \
 ops="$(g '^(.\+)\s*::')"
 mod="$(find src -name '*.hs' | wc -l)"
 
-((ops+=3)) # :@ :> :>> from Control.Lens.Internal.Zipper
 echo "unsafeCoerces: $unsafe | doctests: $doc | operators: $ops | modules: $mod"
 

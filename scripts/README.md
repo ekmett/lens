@@ -31,3 +31,12 @@
   [Aspell][] against them. (TODO: only spellcheck comments from Haskell files.)
 
 [Aspell]: http://aspell.net/
+
+## IRC Topic Stats
+
+```console
+% scripts/stats
+```
+
+* Generates a fragment for the `#haskell-lens` channel topic summarising the
+  number of `unsafeCoerce`s, doctests, operators and modules.
