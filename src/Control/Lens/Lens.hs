@@ -72,6 +72,8 @@ module Control.Lens.Lens
   , (%%@~), (%%@=)
   , (<%@~), (<%@=)
   , (<<%@~), (<<%@=)
+  -- ** General Purpose Combinators
+  , (&), (<&>), (??)
 
   -- * Lateral Composition
   , choosing
@@ -123,7 +125,6 @@ module Control.Lens.Lens
 import Control.Applicative
 import Control.Arrow
 import Control.Comonad
-import Control.Lens.Combinators
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
@@ -142,6 +143,7 @@ import Data.Void
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Control.Monad.State
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
@@ -154,6 +156,7 @@ infixl 8 ^#
 infixr 4 %%@~, <%@~, <<%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <%~, <<%~, <<.~, <#~, #~, #%~, <#%~, #%%~
 infix  4 %%@=, <%@=, <<%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=, <#=, #=, #%=, <#%=, #%%=
 infixr 2 <<~
+infixl 1 &, <&>, ??
 
 -------------------------------------------------------------------------------
 -- Lenses
@@ -284,6 +287,55 @@ l %%= f = do
   return r
 #endif
 {-# INLINE (%%=) #-}
+
+-------------------------------------------------------------------------------
+-- General Purpose Combinators
+-------------------------------------------------------------------------------
+
+-- | Passes the result of the left side to the function on the right side (forward pipe operator).
+--
+-- This is the flipped version of ('$'), which is more common in languages like F# as (@|>@) where it is needed
+-- for inference. Here it is supplied for notational convenience and given a precedence that allows it
+-- to be nested inside uses of ('$').
+--
+-- >>> a & f
+-- f a
+--
+-- >>> "hello" & length & succ
+-- 6
+--
+-- This combinator is commonly used when applying multiple 'Lens' operations in sequence.
+--
+-- >>> ("hello","world") & _1.element 0 .~ 'j' & _1.element 4 .~ 'y'
+-- ("jelly","world")
+--
+-- This reads somewhat similar to:
+--
+-- >>> flip execState ("hello","world") $ do _1.element 0 .= 'j'; _1.element 4 .= 'y'
+-- ("jelly","world")
+(&) :: a -> (a -> b) -> b
+a & f = f a
+{-# INLINE (&) #-}
+
+-- | Infix flipped 'fmap'.
+--
+-- @
+-- ('<&>') = 'flip' 'fmap'
+-- @
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+as <&> f = f <$> as
+{-# INLINE (<&>) #-}
+
+-- | This is convenient to 'flip' argument order of composite functions.
+--
+-- >>> over _2 ?? ("hello","world") $ length
+-- ("hello",5)
+--
+-- >>> over ?? length ?? ("hello","world") $ _2
+-- ("hello",5)
+(??) :: Functor f => f (a -> b) -> a -> f b
+fab ?? a = fmap ($ a) fab
+{-# INLINE (??) #-}
 
 -------------------------------------------------------------------------------
 -- Common Lenses

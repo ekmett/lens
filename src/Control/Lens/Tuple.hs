@@ -39,8 +39,7 @@ module Control.Lens.Tuple
   ) where
 
 import Control.Applicative
-import Control.Lens.Combinators
-import Control.Lens.Type
+import Control.Lens.Lens
 import Data.Functor.Identity
 import Data.Profunctor (dimap)
 import Data.Proxy (Proxy (Proxy))

@@ -96,7 +96,6 @@ module Control.Lens.Operators
   ) where
 
 import Control.Lens.Action
-import Control.Lens.Combinators
 import Control.Lens.Cons
 import Control.Lens.Fold
 import Control.Lens.Getter

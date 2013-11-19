@@ -44,9 +44,9 @@ module Control.Lens.At
   ) where
 
 import Control.Applicative
-import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
+import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Lens.Internal.TupleIxedTH (makeAllTupleIxed)

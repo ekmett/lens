@@ -75,7 +75,6 @@ import Control.Monad (ap)
 import qualified Control.Monad.Trans as Trans
 import Control.Monad.Trans.Writer
 import Control.Lens.At
-import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Iso

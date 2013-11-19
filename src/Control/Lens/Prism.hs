@@ -43,8 +43,8 @@ module Control.Lens.Prism
   ) where
 
 import Control.Applicative
-import Control.Lens.Combinators
 import Control.Lens.Internal.Prism
+import Control.Lens.Lens
 import Control.Lens.Review
 import Control.Lens.Type
 import Control.Monad
