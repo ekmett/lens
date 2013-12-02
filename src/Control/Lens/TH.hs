@@ -23,7 +23,7 @@ module Control.Lens.TH
   (
   -- * Constructing Lenses Automatically
     makeLenses, makeLensesFor
-  , makeClassy, makeClassyFor
+  , makeClassy, makeClassyFor, makeClassy_
   , makeIso
   , makePrisms
   , makeWrapped
@@ -48,6 +48,7 @@ module Control.Lens.TH
   , FieldRules(FieldRules)
   , lensRules
   , classyRules
+  , classyRules_
   , isoRules
   , lensIso
   , lensField
@@ -255,6 +256,26 @@ classyRulesFor classFun fields = classyRules
   & lensClass .~ classFun
   & lensField .~ (`Prelude.lookup` fields)
 
+underscorePrefixRules :: LensRules
+underscorePrefixRules = LensRules mLowerName fld (const Nothing) $
+    Set.fromList [SingletonIso, SingletonAndField, CreateClass,
+                  CreateInstance, BuildTraversals, GenerateSignatures]
+  where
+    fld cs = Just ('_':cs)
+
+classyRules_ :: LensRules
+classyRules_ = underscorePrefixRules
+  & lensIso .~ const Nothing
+  & handleSingletons .~ False
+  & lensClass .~ classy
+  & classRequired .~ True
+  & partialLenses .~ False
+  & buildTraversals .~ True
+  where
+    classy :: String -> Maybe (String, String)
+    classy n@(a:as) = Just ("Has" ++ n, toLower a:as)
+    classy _ = Nothing
+
 -- | Rules for making an isomorphism from a data type.
 isoRules :: LensRules
 isoRules = defaultRules
@@ -314,6 +335,14 @@ makeLenses = makeLensesWith lensRules
 -- @
 makeClassy :: Name -> Q [Dec]
 makeClassy = makeLensesWith classyRules
+
+-- | Make lenses and traversals for a type, and create a class when the type
+-- has no arguments.  Works the same as 'makeClassy' except that (a) it
+-- expects that record field names do not begin with an underscore, (b) all
+-- record fields are made into lenses, and (c) the resulting lens is prefixed
+-- with an underscore.
+makeClassy_ :: Name -> Q [Dec]
+makeClassy_ = makeLensesWith classyRules_
 
 -- | Make a top level isomorphism injecting /into/ the type.
 --
