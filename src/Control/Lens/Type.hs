@@ -94,19 +94,19 @@ import Data.Profunctor
 -- 1) You get back what you put in:
 --
 -- @
--- 'Control.Lens.Getter.view' l ('Control.Lens.Setter.set' l b a)  ≡ b
+-- 'Control.Lens.Getter.view' l ('Control.Lens.Setter.set' l v s)  ≡ v
 -- @
 --
 -- 2) Putting back what you got doesn't change anything:
 --
 -- @
--- 'Control.Lens.Setter.set' l ('Control.Lens.Getter.view' l a) a  ≡ a
+-- 'Control.Lens.Setter.set' l ('Control.Lens.Getter.view' l s) s  ≡ s
 -- @
 --
 -- 3) Setting twice is the same as setting once:
 --
 -- @
--- 'Control.Lens.Setter.set' l c ('Control.Lens.Setter.set' l b a) ≡ 'Control.Lens.Setter.set' l c a
+-- 'Control.Lens.Setter.set' l v' ('Control.Lens.Setter.set' l v s) ≡ 'Control.Lens.Setter.set' l v' s
 -- @
 --
 -- These laws are strong enough that the 4 type parameters of a 'Lens' cannot
@@ -114,8 +114,19 @@ import Data.Profunctor
 -- it a Lens Family?\" section of
 -- <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
--- Every 'Lens' can be used directly as a 'Control.Lens.Setter.Setter' or
--- 'Traversal'.
+-- There are some emergent propertes of these laws:
+--
+-- 1) @'Control.Lens.Setter.set' l s@ must be injective for every @s@ This is a consequence of law #1
+--
+-- 2) @'Control.Lens.Setter.set' l@ must be surjective, because of law #2, which indicates that it is possible to obtain any 'v' from some 's' such that @'Control.Lens.Setter.set' s v = s@
+--
+-- 3) Given just the first two laws you can prove a weaker form of law #3 where the values @v@ that you are setting match:
+--
+-- @
+-- 'Control.Lens.Setter.set' l v ('Control.Lens.Setter.set' l v s) ≡ 'Control.Lens.Setter.set' l v s
+-- @
+--
+-- Every 'Lens' can be used directly as a 'Control.Lens.Setter.Setter' or 'Traversal'.
 --
 -- You can also use a 'Lens' for 'Control.Lens.Getter.Getting' as if it were a
 -- 'Fold' or 'Getter'.
