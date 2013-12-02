@@ -2,6 +2,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -43,11 +44,12 @@ module Control.Lens.At
   ) where
 
 import Control.Applicative
-import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
+import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Type
+import Control.Lens.Internal.TupleIxedTH (makeAllTupleIxed)
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
 import Data.ByteString as StrictB
@@ -627,3 +629,5 @@ instance (Eq k, Hashable k) => At (HashSet k) where
     Just () -> HashSet.insert k m
     where mv = if HashSet.member k m then Just () else Nothing
   {-# INLINE at #-}
+
+makeAllTupleIxed

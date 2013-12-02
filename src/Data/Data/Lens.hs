@@ -45,9 +45,9 @@ module Data.Data.Lens
 
 import           Control.Applicative
 import           Control.Exception as E
-import           Control.Lens.Combinators
 import           Control.Lens.Internal.Context
 import           Control.Lens.Internal.Indexed
+import           Control.Lens.Lens
 import           Control.Lens.Setter
 import           Control.Lens.Traversal
 import           Control.Lens.Type

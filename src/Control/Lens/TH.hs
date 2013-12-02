@@ -23,7 +23,7 @@ module Control.Lens.TH
   (
   -- * Constructing Lenses Automatically
     makeLenses, makeLensesFor
-  , makeClassy, makeClassyFor
+  , makeClassy, makeClassyFor, makeClassy_
   , makeIso
   , makePrisms
   , makeWrapped
@@ -48,6 +48,7 @@ module Control.Lens.TH
   , FieldRules(FieldRules)
   , lensRules
   , classyRules
+  , classyRules_
   , isoRules
   , lensIso
   , lensField
@@ -75,7 +76,6 @@ import Control.Monad (ap)
 import qualified Control.Monad.Trans as Trans
 import Control.Monad.Trans.Writer
 import Control.Lens.At
-import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Iso
@@ -86,6 +86,7 @@ import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Lens.Traversal
 import Control.Lens.Wrapped
+import Control.Lens.Internal.TH
 import Data.Char (toLower, toUpper, isUpper)
 import Data.Either (lefts)
 import Data.Foldable hiding (concat, any)
@@ -255,6 +256,26 @@ classyRulesFor classFun fields = classyRules
   & lensClass .~ classFun
   & lensField .~ (`Prelude.lookup` fields)
 
+underscorePrefixRules :: LensRules
+underscorePrefixRules = LensRules mLowerName fld (const Nothing) $
+    Set.fromList [SingletonIso, SingletonAndField, CreateClass,
+                  CreateInstance, BuildTraversals, GenerateSignatures]
+  where
+    fld cs = Just ('_':cs)
+
+classyRules_ :: LensRules
+classyRules_ = underscorePrefixRules
+  & lensIso .~ const Nothing
+  & handleSingletons .~ False
+  & lensClass .~ classy
+  & classRequired .~ True
+  & partialLenses .~ False
+  & buildTraversals .~ True
+  where
+    classy :: String -> Maybe (String, String)
+    classy n@(a:as) = Just ("Has" ++ n, toLower a:as)
+    classy _ = Nothing
+
 -- | Rules for making an isomorphism from a data type.
 isoRules :: LensRules
 isoRules = defaultRules
@@ -314,6 +335,14 @@ makeLenses = makeLensesWith lensRules
 -- @
 makeClassy :: Name -> Q [Dec]
 makeClassy = makeLensesWith classyRules
+
+-- | Make lenses and traversals for a type, and create a class when the type
+-- has no arguments.  Works the same as 'makeClassy' except that (a) it
+-- expects that record field names do not begin with an underscore, (b) all
+-- record fields are made into lenses, and (c) the resulting lens is prefixed
+-- with an underscore.
+makeClassy_ :: Name -> Q [Dec]
+makeClassy_ = makeLensesWith classyRules_
 
 -- | Make a top level isomorphism injecting /into/ the type.
 --
@@ -596,7 +625,7 @@ makeReviewForCon dataDecl con = do
 
     -- Compute expression: unto (\(fields) -> Con fields)
     let pat  = toTupleP (map varP fieldNames)
-        lam  = lam1E pat (appsE (conE dataConName : map varE fieldNames))
+        lam  = lam1E pat (conE dataConName `appsE1` map varE fieldNames)
         body = varE 'unto `appE` lam
 
     Prelude.sequence
@@ -643,7 +672,7 @@ makePrismForCon dataDecl canModifyTypeVar con = do
         [ clause []
           (normalB (appsE [varE 'prism, varE remitterName, varE reviewerName]))
           [ funD remitterName
-            [ clause [toTupleP (varP <$> varNames)] (normalB (appsE (conE dataConName : fmap varE varNames))) [] ]
+            [ clause [toTupleP (varP <$> varNames)] (normalB (conE dataConName `appsE1` fmap varE varNames)) [] ]
           , funD reviewerName $ hitClause : missClauses
           ]
         ]
@@ -667,20 +696,8 @@ reviewerIdClause con = do
   varNames <- for [0 .. length fieldTypes - 1] $ \i ->
                 newName ('x' : show i)
   clause [conP dataConName (fmap varP varNames)]
-         (normalB $ appE (conE 'Left) $ appsE (conE dataConName : fmap varE varNames))
+         (normalB (appE (conE 'Left) (conE dataConName `appsE1` fmap varE varNames)))
          []
-
-toTupleT :: [TypeQ] -> TypeQ
-toTupleT [x] = x
-toTupleT xs = appsT (tupleT (length xs)) xs
-
-toTupleE :: [ExpQ] -> ExpQ
-toTupleE [x] = x
-toTupleE xs = tupE xs
-
-toTupleP :: [PatQ] -> PatQ
-toTupleP [x] = x
-toTupleP xs = tupP xs
 
 -- | Given a set of names, build a map from those names to a set of fresh names
 -- based on them.
@@ -719,9 +736,6 @@ plain (PlainTV t) = PlainTV t
 
 apps :: Type -> [Type] -> Type
 apps = Prelude.foldl AppT
-
-appsT :: TypeQ -> [TypeQ] -> TypeQ
-appsT = Prelude.foldl appT
 
 makeLensesForDec :: LensRules -> Dec -> Q [Dec]
 makeLensesForDec cfg decl = case makeDataDecl decl of
@@ -851,7 +865,7 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
           fpats = map (varP . snd)                 $ lefts vars -- Lambda patterns
           fvals = map (appE (varE f) . varE . fst) $ lefts vars -- Functor applications
           conName = con^.name
-          recon = appsE $ conE conName : cvals
+          recon = conE conName `appsE1` cvals
 
           expr
             | not isTraversal && length fields /= 1
@@ -867,12 +881,12 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
       clause [varP f, conP conName cpats] (normalB expr) []
 
     -- Non-record are never the target of a generated field lens body
-    buildClause (con, fields) = do
+    buildClause (con, _fields) = do
       let fieldCount = lengthOf conFields con
       vars <- replicateM fieldCount (newName "x")
       let conName = con^.name
           expr
-            | isTraversal       = [| pure $(appsE (conE conName : map varE vars)) |] -- We must rebuild the value to support type changing
+            | isTraversal       = [| pure $(conE conName `appsE1` map varE vars) |] -- We must rebuild the value to support type changing
             | otherwise         = [| error errorMsg |]
             where errorMsg = show lensName ++ ": non-record constructors require traversals to be generated"
 
@@ -1056,13 +1070,13 @@ makeWrappedInstance dataDecl con fieldType = do
   let typeArgs = toListOf typeVars (dataParameters dataDecl)
 
   -- Con a b c...
-  let appliedType  = return (fullType dataDecl (map VarT typeArgs))
+  let appliedType  = fullType dataDecl (map VarT typeArgs)
 
   -- type Unwrapped (Con a b c...) = $fieldType
-  let unwrappedATF = tySynInstD ''Unwrapped [appliedType] (return fieldType)
+  let unwrappedATF = tySynInstD' ''Unwrapped [return appliedType] (return fieldType)
 
   -- Wrapped (Con a b c...)
-  let klass        = conT ''Wrapped `appT` appliedType
+  let klass        = conT ''Wrapped `appT` return appliedType
 
   -- _Wrapped' = iso (\(Con x) -> x) Con
   let wrapFun      = conE conName

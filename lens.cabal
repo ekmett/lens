@@ -235,6 +235,7 @@ library
     Control.Lens.Internal.Reflection
     Control.Lens.Internal.Review
     Control.Lens.Internal.Setter
+    Control.Lens.Internal.TH
     Control.Lens.Internal.Zoom
     Control.Lens.Iso
     Control.Lens.Lens
@@ -285,6 +286,9 @@ library
     System.IO.Error.Lens
     Language.Haskell.TH.Lens
     Numeric.Lens
+
+  other-modules:
+    Control.Lens.Internal.TupleIxedTH
 
   if flag(safe)
     cpp-options: -DSAFE=1

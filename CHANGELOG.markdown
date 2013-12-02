@@ -12,6 +12,7 @@
   * Replaced the use of `Mutator` with `Identity`.
   * Replaced the use of `Reviewed` with `Tagged`.
 * Removed the deprecated `Control.Lens.Simple` module.
+* Repurposed `Control.Lens.Combinators` to reëxport `Control.Lens` sans any operators; previous residents rehomed to `Control.Lens.Lens`.
 
 3.10
 ----

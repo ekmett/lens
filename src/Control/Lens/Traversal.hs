@@ -126,12 +126,12 @@ import Control.Applicative as Applicative
 import Control.Applicative.Backwards
 import Control.Category
 import Control.Comonad
-import Control.Lens.Combinators
 import Control.Lens.Fold
 import Control.Lens.Getter (coerced)
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
+import Control.Lens.Lens
 import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Trans.State.Lazy

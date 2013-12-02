@@ -1,15 +1,15 @@
 #! /bin/bash
 
-g() { git grep --basic-regexp "$@" src | wc -l ; }
+g() { local D="$1" && shift ; git grep --basic-regexp "$@" "$D" | wc -l ; }
 cd "$(git rev-parse --show-toplevel)"
 
-unsafe="$(g -e '\(#\.\|\.#\)' --and --not \
+unsafe="$(g src -e '\(#\.\|\.#\)' --and --not \
 	\( -e INLINE --or -e '^\s*(\s*\(#\.\|\.#\)\s*)' \))"
-doc="$(g -e '--\s\+>>>\s\+[^:]' --and --not -e '--\s\+>>>\s\+\(import\|let\)' \
+doc="$(g src -e '--\s\+>>>\s\+[^:]' --and --not -e '--\s\+>>>\s\+\(import\|let\)' \
 	--or -e '--\s\+>>>\s\+let\s\+.*\<in\>')"
-ops="$(g '^(.\+)\s*::')"
+opsLens="$(g src/Control/Lens '^(.\+)\s*::')"
+opsAll="$(g src '^(.\+)\s*::')"
 mod="$(find src -name '*.hs' | wc -l)"
 
-((ops+=3)) # :@ :> :>> from Control.Lens.Internal.Zipper
-echo "unsafeCoerces: $unsafe | doctests: $doc | operators: $ops | modules: $mod"
+echo "unsafeCoerces: $unsafe | doctests: $doc | operators: $opsAll (Control.Lens: $opsLens) | modules: $mod"
 

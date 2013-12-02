@@ -26,11 +26,11 @@ module Control.Lens.Internal.Deque
   ) where
 
 import Control.Applicative
-import Control.Lens.Combinators
 import Control.Lens.Cons
 import Control.Lens.Fold
 import Control.Lens.Indexed hiding ((<.>))
 import Control.Lens.Iso
+import Control.Lens.Lens
 import Control.Lens.Prism
 import Control.Monad
 import Data.Foldable as Foldable
