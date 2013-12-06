@@ -37,7 +37,7 @@ module Control.Exception.Lens
     catching, catching_
   , handling, handling_
   -- * Trying
-  , trying
+  , trying, trying_
   -- * Throwing
   , throwing
   , throwingM
@@ -234,6 +234,21 @@ handling_ l = flip (catching_ l)
 -- @
 trying :: MonadCatch m => Getting (First a) SomeException a -> m r -> m (Either a r)
 trying l = tryJust (preview l)
+{-# INLINE trying #-}
+
+-- | A version of 'trying' that discards the specific exception thrown.
+--
+-- @
+-- 'trying_' :: 'MonadCatchIO' m => 'Prism''     'SomeException' a -> m r -> m (Maybe r)
+-- 'trying_' :: 'MonadCatchIO' m => 'Lens''      'SomeException' a -> m r -> m (Maybe r)
+-- 'trying_' :: 'MonadCatchIO' m => 'Traversal'' 'SomeException' a -> m r -> m (Maybe r)
+-- 'trying_' :: 'MonadCatchIO' m => 'Iso''       'SomeException' a -> m r -> m (Maybe r)
+-- 'trying_' :: 'MonadCatchIO' m => 'Getter'     'SomeException' a -> m r -> m (Maybe r)
+-- 'trying_' :: 'MonadCatchIO' m => 'Fold'       'SomeException' a -> m r -> m (Maybe r)
+-- @
+trying_ :: MonadCatch m => Getting (First a) SomeException a -> m r -> m (Maybe r)
+trying_ l m = preview _Right `liftM` trying l m
+{-# INLINE trying_ #-}
 
 ------------------------------------------------------------------------------
 -- Throwing
