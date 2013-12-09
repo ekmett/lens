@@ -1,3 +1,7 @@
+3.10.0.1 [maintenance release]
+--------
+* Compatibility with `text` 1.0
+
 3.10
 ----
 * Switched to `bifunctors`, `comonad`, `profunctors`, and `semigroupoids` 4.0.
