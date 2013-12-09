@@ -194,7 +194,7 @@ library
     split                     >= 0.2      && < 0.3,
     tagged                    >= 0.4.4    && < 1,
     template-haskell          >= 2.4      && < 2.10,
-    text                      >= 0.11     && < 0.12,
+    text                      >= 0.11     && < 1.2,
     transformers              >= 0.2      && < 0.4,
     transformers-compat       >= 0.1      && < 1,
     unordered-containers      >= 0.2      && < 0.3,
