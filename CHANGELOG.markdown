@@ -1,3 +1,7 @@
+3.10.1 [maintenance release]
+------
+* Compatibility with `base` 4.7
+
 3.10.0.1 [maintenance release]
 --------
 * Compatibility with `text` 1.0
