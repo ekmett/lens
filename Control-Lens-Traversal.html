@@ -216,7 +216,7 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Traversal
  something weaker, such as a <code><a href="Control-Lens-Type.html#t:Fold">Fold</a></code> and can be
  used as a way to pass around traversals that have to be monomorphic in <code>f</code>.
 </p><p>Note: This only accepts a proper <code><a href="Control-Lens-Traversal.html#t:Traversal">Traversal</a></code> (or <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>). To clone a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code>
- as such, use <code><a href="Control-Lens-Lens.html#t:cloneLens">cloneLens</a></code>.
+ as such, use <code><a href="Control-Lens-Lens.html#v:cloneLens">cloneLens</a></code>.
 </p><p>Note: It is usually better to use <code><a href="Control-Lens-Reified.html#t:ReifiedTraversal">ReifiedTraversal</a></code> and
  <code><a href="Control-Lens-Reified.html#t:reflectTraversal">reflectTraversal</a></code> than to <code><a href="Control-Lens-Traversal.html#v:cloneTraversal">cloneTraversal</a></code>. The
  former can execute at full speed, while the latter needs to round trip through

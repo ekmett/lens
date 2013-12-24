@@ -74,19 +74,24 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Type.html
  three common sense <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> laws:
 </p><p>1) You get back what you put in:
 </p><pre>
- <code><a href="Control-Lens-Getter.html#t:view">view</a></code> l (<code><a href="Control-Lens-Setter.html#t:set">set</a></code> l b a)  &#8801; b
+ <code><a href="Control-Lens-Getter.html#t:view">view</a></code> l (<code><a href="Control-Lens-Setter.html#t:set">set</a></code> l v s)  &#8801; v
 </pre><p>2) Putting back what you got doesn't change anything:
 </p><pre>
- <code><a href="Control-Lens-Setter.html#t:set">set</a></code> l (<code><a href="Control-Lens-Getter.html#t:view">view</a></code> l a) a  &#8801; a
+ <code><a href="Control-Lens-Setter.html#t:set">set</a></code> l (<code><a href="Control-Lens-Getter.html#t:view">view</a></code> l s) s  &#8801; s
 </pre><p>3) Setting twice is the same as setting once:
 </p><pre>
- <code><a href="Control-Lens-Setter.html#t:set">set</a></code> l c (<code><a href="Control-Lens-Setter.html#t:set">set</a></code> l b a) &#8801; <code><a href="Control-Lens-Setter.html#t:set">set</a></code> l c a
+ <code><a href="Control-Lens-Setter.html#t:set">set</a></code> l v' (<code><a href="Control-Lens-Setter.html#t:set">set</a></code> l v s) &#8801; <code><a href="Control-Lens-Setter.html#t:set">set</a></code> l v' s
 </pre><p>These laws are strong enough that the 4 type parameters of a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> cannot
  vary fully independently. For more on how they interact, read the &quot;Why is
  it a Lens Family?&quot; section of
  <a href="http://comonad.com/reader/2012/mirrored-lenses/">http://comonad.com/reader/2012/mirrored-lenses/</a>.
-</p><p>Every <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> can be used directly as a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or
- <code><a href="Control-Lens-Type.html#t:Traversal">Traversal</a></code>.
+</p><p>There are some emergent propertes of these laws:
+</p><p>1) <code><code><a href="Control-Lens-Setter.html#t:set">set</a></code> l s</code> must be injective for every <code>s</code> This is a consequence of law #1
+</p><p>2) <code><code><a href="Control-Lens-Setter.html#t:set">set</a></code> l</code> must be surjective, because of law #2, which indicates that it is possible to obtain any <code>v</code> from some <code>s</code> such that <code><code><a href="Control-Lens-Setter.html#t:set">set</a></code> s v = s</code>
+</p><p>3) Given just the first two laws you can prove a weaker form of law #3 where the values <code>v</code> that you are setting match:
+</p><pre>
+ <code><a href="Control-Lens-Setter.html#t:set">set</a></code> l v (<code><a href="Control-Lens-Setter.html#t:set">set</a></code> l v s) &#8801; <code><a href="Control-Lens-Setter.html#t:set">set</a></code> l v s
+</pre><p>Every <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> can be used directly as a <code><a href="Control-Lens-Setter.html#t:Setter">Setter</a></code> or <code><a href="Control-Lens-Type.html#t:Traversal">Traversal</a></code>.
 </p><p>You can also use a <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> for <code><a href="Control-Lens-Getter.html#t:Getting">Getting</a></code> as if it were a
  <code><a href="Control-Lens-Type.html#t:Fold">Fold</a></code> or <code><a href="Control-Lens-Type.html#t:Getter">Getter</a></code>.
 </p><p>Since every <code><a href="Control-Lens-Type.html#t:Lens">Lens</a></code> is a valid <code><a href="Control-Lens-Type.html#t:Traversal">Traversal</a></code>, the
