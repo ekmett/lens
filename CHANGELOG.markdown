@@ -14,6 +14,14 @@
 * Removed the deprecated `Control.Lens.Simple` module.
 * Repurposed `Control.Lens.Combinators` to reëxport `Control.Lens` sans any operators; previous residents rehomed to `Control.Lens.Lens`.
 
+3.10.1 [maintenance release]
+------
+* Compatibility with `base` 4.7
+
+3.10.0.1 [maintenance release]
+--------
+* Compatibility with `text` 1.0
+
 3.10
 ----
 * Switched to `bifunctors`, `comonad`, `profunctors`, and `semigroupoids` 4.0.
