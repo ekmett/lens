@@ -402,8 +402,8 @@ funDepInputs = lens g s where
 
 funDepOutputs :: Lens' FunDep [Name]
 funDepOutputs = lens g s where
-   g (FunDep _ xs)    = xs
-   s (FunDep ys _) xs = FunDep ys xs
+   g (FunDep _ xs) = xs
+   s (FunDep ys _) = FunDep ys
 
 fieldExpName :: Lens' FieldExp Name
 fieldExpName = _1
@@ -429,8 +429,8 @@ matchBody = lens g s where
 
 matchDeclarations :: Lens' Match [Dec]
 matchDeclarations = lens g s where
-   g (Match _ _ ds)    = ds
-   s (Match x y _ ) ds = Match x y ds
+   g (Match _ _ ds) = ds
+   s (Match x y _ ) = Match x y 
 
 fixityPrecedence :: Lens' Fixity Int
 fixityPrecedence = lens g s where
@@ -439,8 +439,8 @@ fixityPrecedence = lens g s where
 
 fixityDirection :: Lens' Fixity FixityDirection
 fixityDirection = lens g s where
-   g (Fixity _ d)   = d
-   s (Fixity i _) d = Fixity i d
+   g (Fixity _ d) = d
+   s (Fixity i _) = Fixity i
 
 clausePattern :: Lens' Clause [Pat]
 clausePattern = lens g s where
@@ -454,8 +454,8 @@ clauseBody = lens g s where
 
 clauseDecs :: Lens' Clause [Dec]
 clauseDecs = lens g s where
-   g (Clause _ _ ds)    = ds
-   s (Clause x y _ ) ds = Clause x y ds
+   g (Clause _ _ ds) = ds
+   s (Clause x y _ ) = Clause x y
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _ClassI :: Prism' Info (Dec, [InstanceDec])
@@ -470,10 +470,8 @@ _ClassOpI :: Prism' Info (Name, Type, ParentName, Fixity)
 _ClassOpI
   = prism remitter reviewer
   where
-      remitter (x, y, z, w)
-        = ClassOpI x y z w
-      reviewer (ClassOpI x y z w)
-        = Right (x, y, z, w)
+      remitter (x, y, z, w) = ClassOpI x y z w
+      reviewer (ClassOpI x y z w) = Right (x, y, z, w)
       reviewer x = Left x
       
 #else
@@ -489,10 +487,8 @@ _ClassOpI :: Prism' Info (Name, Type, Name, Fixity)
 _ClassOpI
   = prism remitter reviewer
   where
-      remitter (x, y, z, w)
-        = ClassOpI x y z w
-      reviewer (ClassOpI x y z w)
-        = Right (x, y, z, w)
+      remitter (x, y, z, w) = ClassOpI x y z w
+      reviewer (ClassOpI x y z w) = Right (x, y, z, w)
       reviewer x = Left x
 #endif
 
@@ -500,7 +496,7 @@ _TyConI :: Prism' Info Dec
 _TyConI
   = prism remitter reviewer
   where
-      remitter x = TyConI x
+      remitter = TyConI
       reviewer (TyConI x) = Right x
       reviewer x = Left x
 
@@ -517,20 +513,16 @@ _PrimTyConI :: Prism' Info (Name, Arity, Unlifted)
 _PrimTyConI
   = prism remitter reviewer
   where
-      remitter (x, y, z)
-        = PrimTyConI x y z
-      reviewer (PrimTyConI x y z)
-        = Right (x, y, z)
+      remitter (x, y, z) = PrimTyConI x y z
+      reviewer (PrimTyConI x y z) = Right (x, y, z)
       reviewer x = Left x
 
 _DataConI :: Prism' Info (Name, Type, ParentName, Fixity)
 _DataConI
   = prism remitter reviewer
   where
-      remitter (x, y, z, w)
-        = DataConI x y z w
-      reviewer (DataConI x y z w)
-        = Right (x, y, z, w)
+      remitter (x, y, z, w) = DataConI x y z w
+      reviewer (DataConI x y z w) = Right (x, y, z, w)
       reviewer x = Left x
 #else
 _FamilyI :: Prism' Info (Dec, [Dec])
@@ -545,20 +537,16 @@ _PrimTyConI :: Prism' Info (Name, Int, Bool)
 _PrimTyConI
   = prism remitter reviewer
   where
-      remitter (x, y, z)
-        = PrimTyConI x y z
-      reviewer (PrimTyConI x y z)
-        = Right (x, y, z)
+      remitter (x, y, z) = PrimTyConI x y z
+      reviewer (PrimTyConI x y z) = Right (x, y, z)
       reviewer x = Left x
       
 _DataConI :: Prism' Info (Name, Type, Name, Fixity)
 _DataConI
   = prism remitter reviewer
   where
-      remitter (x, y, z, w)
-        = DataConI x y z w
-      reviewer (DataConI x y z w)
-        = Right (x, y, z, w)
+      remitter (x, y, z, w) = DataConI x y z w
+      reviewer (DataConI x y z w) = Right (x, y, z, w)
       reviewer x = Left x
 
 #endif
@@ -567,10 +555,8 @@ _VarI :: Prism' Info (Name, Type, Maybe Dec, Fixity)
 _VarI
   = prism remitter reviewer
   where
-      remitter (x, y, z, w)
-        = VarI x y z w
-      reviewer (VarI x y z w)
-        = Right (x, y, z, w)
+      remitter (x, y, z, w) = VarI x y z w
+      reviewer (VarI x y z w) = Right (x, y, z, w)
       reviewer x = Left x
 
 _TyVarI :: Prism' Info (Name, Type)
@@ -593,60 +579,48 @@ _ValD :: Prism' Dec (Pat, Body, [Dec])
 _ValD
   = prism remitter reviewer
   where
-      remitter (x, y, z)
-        = ValD x y z
-      reviewer (ValD x y z)
-        = Right (x, y, z)
+      remitter (x, y, z) = ValD x y z
+      reviewer (ValD x y z) = Right (x, y, z)
       reviewer x = Left x
 
 _DataD :: Prism' Dec (Cxt, Name, [TyVarBndr], [Con], [Name])
 _DataD
   = prism remitter reviewer
   where
-      remitter (x, y, z, w, u)
-        = DataD x y z w u
-      reviewer (DataD x y z w u)
-        = Right (x, y, z, w, u)
+      remitter (x, y, z, w, u) = DataD x y z w u
+      reviewer (DataD x y z w u) = Right (x, y, z, w, u)
       reviewer x = Left x
 
 _NewtypeD :: Prism' Dec (Cxt, Name, [TyVarBndr], Con, [Name])
 _NewtypeD
   = prism remitter reviewer
   where
-      remitter (x, y, z, w, u)
-        = NewtypeD x y z w u
-      reviewer (NewtypeD x y z w u)
-        = Right (x, y, z, w, u)
+      remitter (x, y, z, w, u) = NewtypeD x y z w u
+      reviewer (NewtypeD x y z w u) = Right (x, y, z, w, u)
       reviewer x = Left x
 
 _TySynD :: Prism' Dec (Name, [TyVarBndr], Type)
 _TySynD
   = prism remitter reviewer
   where
-      remitter (x, y, z)
-        = TySynD x y z
-      reviewer (TySynD x y z)
-        = Right (x, y, z)
+      remitter (x, y, z) = TySynD x y z
+      reviewer (TySynD x y z) = Right (x, y, z)
       reviewer x = Left x
 
 _ClassD :: Prism' Dec (Cxt, Name, [TyVarBndr], [FunDep], [Dec])
 _ClassD
   = prism remitter reviewer
   where
-      remitter (x, y, z, w, u)
-        = ClassD x y z w u
-      reviewer (ClassD x y z w u)
-        = Right (x, y, z, w, u)
+      remitter (x, y, z, w, u) = ClassD x y z w u
+      reviewer (ClassD x y z w u) = Right (x, y, z, w, u)
       reviewer x = Left x
 
 _InstanceD :: Prism' Dec (Cxt, Type, [Dec])
 _InstanceD
   = prism remitter reviewer
   where
-      remitter (x, y, z)
-        = InstanceD x y z
-      reviewer (InstanceD x y z)
-        = Right (x, y, z)
+      remitter (x, y, z) = InstanceD x y z
+      reviewer (InstanceD x y z) = Right (x, y, z)
       reviewer x = Left x
 
 _SigD :: Prism' Dec (Name, Type)
@@ -661,7 +635,7 @@ _ForeignD :: Prism' Dec Foreign
 _ForeignD
   = prism remitter reviewer
   where
-      remitter x = ForeignD x
+      remitter = ForeignD
       reviewer (ForeignD x) = Right x
       reviewer x = Left x
 
@@ -679,7 +653,7 @@ _PragmaD :: Prism' Dec Pragma
 _PragmaD
   = prism remitter reviewer
   where
-      remitter x = PragmaD x
+      remitter = PragmaD
       reviewer (PragmaD x) = Right x
       reviewer x = Left x
 
@@ -687,31 +661,24 @@ _FamilyD :: Prism' Dec (FamFlavour, Name, [TyVarBndr], Maybe Kind)
 _FamilyD
   = prism remitter reviewer
   where
-      remitter (x, y, z, w)
-        = FamilyD x y z w
-      reviewer (FamilyD x y z w)
-        = Right (x, y, z, w)
+      remitter (x, y, z, w) = FamilyD x y z w
+      reviewer (FamilyD x y z w) = Right (x, y, z, w)
       reviewer x = Left x
 
 _DataInstD :: Prism' Dec (Cxt, Name, [Type], [Con], [Name])
 _DataInstD
   = prism remitter reviewer
   where
-      remitter (x, y, z, w, u)
-        = DataInstD x y z w u
-      reviewer (DataInstD x y z w u)
-        = Right (x, y, z, w, u)
+      remitter (x, y, z, w, u) = DataInstD x y z w u
+      reviewer (DataInstD x y z w u) = Right (x, y, z, w, u)
       reviewer x = Left x
 
 _NewtypeInstD :: Prism' Dec (Cxt, Name, [Type], Con, [Name])
 _NewtypeInstD
   = prism remitter reviewer
   where
-      remitter (x, y, z, w, u)
-        = NewtypeInstD x y z w u
-      reviewer
-        (NewtypeInstD x y z w u)
-        = Right (x, y, z, w, u)
+      remitter (x, y, z, w, u) = NewtypeInstD x y z w u
+      reviewer (NewtypeInstD x y z w u) = Right (x, y, z, w, u)
       reviewer x = Left x
 
 #if MIN_VERSION_template_haskell(2,9,0)
@@ -719,30 +686,24 @@ _TySynInstD :: Prism' Dec (Name, TySynEqn)
 _TySynInstD
   = prism remitter reviewer
   where
-      remitter (x, y)
-        = TySynInstD x y
-      reviewer (TySynInstD x y)
-        = Right (x, y)
+      remitter (x, y) = TySynInstD x y
+      reviewer (TySynInstD x y) = Right (x, y)
       reviewer x = Left x
 
 _ClosedTypeFamilyD :: Prism' Dec (Name, [TyVarBndr], Maybe Kind, [TySynEqn])
 _ClosedTypeFamilyD
   = prism remitter reviewer
   where
-      remitter (x, y, z, w)
-        = ClosedTypeFamilyD x y z w
-      reviewer (ClosedTypeFamilyD x y z w)
-        = Right (x, y, z, w)
+      remitter (x, y, z, w) = ClosedTypeFamilyD x y z w
+      reviewer (ClosedTypeFamilyD x y z w) = Right (x, y, z, w)
       reviewer x = Left x
 
 _RoleAnnotD :: Prism' Dec (Name, [Role])
 _RoleAnnotD
   = prism remitter reviewer
   where
-      remitter (x, y)
-        = RoleAnnotD x y
-      reviewer (RoleAnnotD x y)
-        = Right (x, y)
+      remitter (x, y) = RoleAnnotD x y
+      reviewer (RoleAnnotD x y) = Right (x, y)
       reviewer x = Left x
 
 #else
@@ -750,10 +711,8 @@ _TySynInstD :: Prism' Dec (Name, [Type], Type)
 _TySynInstD
   = prism remitter reviewer
   where
-      remitter (x, y, z)
-        = TySynInstD x y z
-      reviewer (TySynInstD x y z)
-        = Right (x, y, z)
+      remitter (x, y, z) = TySynInstD x y z
+      reviewer (TySynInstD x y z) = Right (x, y, z)
       reviewer x = Left x
 #endif
 
@@ -950,10 +909,8 @@ _AnnP :: Prism' Pragma (AnnTarget, Exp)
 _AnnP
   = prism remitter reviewer
   where
-      remitter (x, y)
-        = AnnP x y
-      reviewer (AnnP x y)
-        = Right (x, y)
+      remitter (x, y) = AnnP x y
+      reviewer (AnnP x y) = Right (x, y)
       reviewer x = Left x
 #endif
 
@@ -1009,7 +966,7 @@ _FromPhase :: Prism' Phases Int
 _FromPhase
   = prism remitter reviewer
   where
-      remitter x = FromPhase x
+      remitter = FromPhase
       reviewer (FromPhase x) = Right x
       reviewer x = Left x
 
@@ -1017,7 +974,7 @@ _BeforePhase :: Prism' Phases Int
 _BeforePhase
   = prism remitter reviewer
   where
-      remitter x = BeforePhase x
+      remitter = BeforePhase
       reviewer (BeforePhase x) = Right x
       reviewer x = Left x
 
@@ -1025,7 +982,7 @@ _RuleVar :: Prism' RuleBndr Name
 _RuleVar
   = prism remitter reviewer
   where
-      remitter x = RuleVar x
+      remitter = RuleVar
       reviewer (RuleVar x) = Right x
       reviewer x = Left x
 
@@ -1034,8 +991,7 @@ _TypedRuleVar
   = prism remitter reviewer
   where
       remitter (x, y) = TypedRuleVar x y
-      reviewer (TypedRuleVar x y)
-        = Right (x, y)
+      reviewer (TypedRuleVar x y) = Right (x, y)
       reviewer x = Left x
 #endif
 
@@ -1053,7 +1009,7 @@ _TypeAnnotation :: Prism' AnnTarget Name
 _TypeAnnotation
   = prism remitter reviewer
   where
-      remitter x = TypeAnnotation x
+      remitter = TypeAnnotation
       reviewer (TypeAnnotation x)
         = Right x
       reviewer x = Left x
@@ -1062,11 +1018,9 @@ _ValueAnnotation :: Prism' AnnTarget Name
 _ValueAnnotation
   = prism remitter reviewer
   where
-      remitter x = ValueAnnotation x
-      reviewer (ValueAnnotation x)
-        = Right x
+      remitter = ValueAnnotation
+      reviewer (ValueAnnotation x) = Right x
       reviewer x = Left x
-
 #endif
 
 _FunDep :: Prism' FunDep ([Name], [Name])
@@ -1100,8 +1054,8 @@ tySynEqnPatterns = lens g s where
    
 tySynEqnResult :: Lens' TySynEqn Type
 tySynEqnResult = lens g s where
-   g (TySynEqn _  x)   = x
-   s (TySynEqn xs _) x = (TySynEqn xs x)
+   g (TySynEqn _  x) = x
+   s (TySynEqn xs _) = TySynEqn xs 
 #endif
 
 _InfixL :: Prism' FixityDirection ()
@@ -1132,7 +1086,7 @@ _VarE :: Prism' Exp Name
 _VarE
   = prism remitter reviewer
   where
-      remitter x = VarE x
+      remitter = VarE 
       reviewer (VarE x) = Right x
       reviewer x = Left x
 
@@ -1140,7 +1094,7 @@ _ConE :: Prism' Exp Name
 _ConE
   = prism remitter reviewer
   where
-      remitter x = ConE x
+      remitter = ConE
       reviewer (ConE x) = Right x
       reviewer x = Left x
 
@@ -1148,7 +1102,7 @@ _LitE :: Prism' Exp Lit
 _LitE
   = prism remitter reviewer
   where
-      remitter x = LitE x
+      remitter = LitE
       reviewer (LitE x) = Right x
       reviewer x = Left x
 
@@ -1184,7 +1138,7 @@ _ParensE :: Prism' Exp Exp
 _ParensE
   = prism remitter reviewer
   where
-      remitter x = ParensE x
+      remitter = ParensE
       reviewer (ParensE x) = Right x
       reviewer x = Left x
 
@@ -1201,7 +1155,7 @@ _LamCaseE :: Prism' Exp [Match]
 _LamCaseE
   = prism remitter reviewer
   where
-      remitter x = LamCaseE x
+      remitter = LamCaseE
       reviewer (LamCaseE x) = Right x
       reviewer x = Left x
 #endif
@@ -1210,7 +1164,7 @@ _TupE :: Prism' Exp [Exp]
 _TupE
   = prism remitter reviewer
   where
-      remitter x = TupE x
+      remitter = TupE
       reviewer (TupE x) = Right x
       reviewer x = Left x
 
@@ -1218,7 +1172,7 @@ _UnboxedTupE :: Prism' Exp [Exp]
 _UnboxedTupE
   = prism remitter reviewer
   where
-      remitter x = UnboxedTupE x
+      remitter = UnboxedTupE
       reviewer (UnboxedTupE x) = Right x
       reviewer x = Left x
 
@@ -1237,7 +1191,7 @@ _MultiIfE :: Prism' Exp [(Guard, Exp)]
 _MultiIfE
   = prism remitter reviewer
   where
-      remitter x = MultiIfE x
+      remitter = MultiIfE
       reviewer (MultiIfE x) = Right x
       reviewer x = Left x
 #endif
@@ -1262,7 +1216,7 @@ _DoE :: Prism' Exp [Stmt]
 _DoE
   = prism remitter reviewer
   where
-      remitter x = DoE x
+      remitter = DoE
       reviewer (DoE x) = Right x
       reviewer x = Left x
 
@@ -1270,7 +1224,7 @@ _CompE :: Prism' Exp [Stmt]
 _CompE
   = prism remitter reviewer
   where
-      remitter x = CompE x
+      remitter = CompE
       reviewer (CompE x) = Right x
       reviewer x = Left x
 
@@ -1278,7 +1232,7 @@ _ArithSeqE :: Prism' Exp Range
 _ArithSeqE
   = prism remitter reviewer
   where
-      remitter x = ArithSeqE x
+      remitter = ArithSeqE
       reviewer (ArithSeqE x) = Right x
       reviewer x = Left x
 
@@ -1286,7 +1240,7 @@ _ListE :: Prism' Exp [Exp]
 _ListE
   = prism remitter reviewer
   where
-      remitter x = ListE x
+      remitter = ListE
       reviewer (ListE x) = Right x
       reviewer x = Left x
 
@@ -1318,7 +1272,7 @@ _GuardedB :: Prism' Body [(Guard, Exp)]
 _GuardedB
   = prism remitter reviewer
   where
-      remitter x = GuardedB x
+      remitter = GuardedB
       reviewer (GuardedB x) = Right x
       reviewer x = Left x
 
@@ -1326,7 +1280,7 @@ _NormalB :: Prism' Body Exp
 _NormalB
   = prism remitter reviewer
   where
-      remitter x = NormalB x
+      remitter = NormalB
       reviewer (NormalB x) = Right x
       reviewer x = Left x
 
@@ -1334,7 +1288,7 @@ _NormalG :: Prism' Guard Exp
 _NormalG
   = prism remitter reviewer
   where
-      remitter x = NormalG x
+      remitter = NormalG 
       reviewer (NormalG x) = Right x
       reviewer x = Left x
 
@@ -1342,7 +1296,7 @@ _PatG :: Prism' Guard [Stmt]
 _PatG
   = prism remitter reviewer
   where
-      remitter x = PatG x
+      remitter = PatG
       reviewer (PatG x) = Right x
       reviewer x = Left x
 
@@ -1358,7 +1312,7 @@ _LetS :: Prism' Stmt [Dec]
 _LetS
   = prism remitter reviewer
   where
-      remitter x = LetS x
+      remitter = LetS
       reviewer (LetS x) = Right x
       reviewer x = Left x
 
@@ -1366,7 +1320,7 @@ _NoBindS :: Prism' Stmt Exp
 _NoBindS
   = prism remitter reviewer
   where
-      remitter x = NoBindS x
+      remitter = NoBindS
       reviewer (NoBindS x) = Right x
       reviewer x = Left x
 
@@ -1374,7 +1328,7 @@ _ParS :: Prism' Stmt [[Stmt]]
 _ParS
   = prism remitter reviewer
   where
-      remitter x = ParS x
+      remitter = ParS
       reviewer (ParS x) = Right x
       reviewer x = Left x
 
@@ -1382,7 +1336,7 @@ _FromR :: Prism' Range Exp
 _FromR
   = prism remitter reviewer
   where
-      remitter x = FromR x
+      remitter = FromR
       reviewer (FromR x) = Right x
       reviewer x = Left x
 
@@ -1417,7 +1371,7 @@ _CharL :: Prism' Lit Char
 _CharL
   = prism remitter reviewer
   where
-      remitter x = CharL x
+      remitter = CharL
       reviewer (CharL x) = Right x
       reviewer x = Left x
 
@@ -1425,7 +1379,7 @@ _StringL :: Prism' Lit String
 _StringL
   = prism remitter reviewer
   where
-      remitter x = StringL x
+      remitter = StringL
       reviewer (StringL x) = Right x
       reviewer x = Left x
 
@@ -1433,7 +1387,7 @@ _IntegerL :: Prism' Lit Integer
 _IntegerL
   = prism remitter reviewer
   where
-      remitter x = IntegerL x
+      remitter = IntegerL
       reviewer (IntegerL x) = Right x
       reviewer x = Left x
 
@@ -1441,7 +1395,7 @@ _RationalL :: Prism' Lit Rational
 _RationalL
   = prism remitter reviewer
   where
-      remitter x = RationalL x
+      remitter = RationalL
       reviewer (RationalL x) = Right x
       reviewer x = Left x
 
@@ -1449,15 +1403,15 @@ _IntPrimL :: Prism' Lit Integer
 _IntPrimL
   = prism remitter reviewer
   where
-      remitter x = IntPrimL x
+      remitter = IntPrimL
       reviewer (IntPrimL x) = Right x
-      reviewer x = Left x
+      reviewer x = Left x 
 
 _WordPrimL :: Prism' Lit Integer
 _WordPrimL
   = prism remitter reviewer
   where
-      remitter x = WordPrimL x
+      remitter = WordPrimL
       reviewer (WordPrimL x) = Right x
       reviewer x = Left x
 
@@ -1465,7 +1419,7 @@ _FloatPrimL :: Prism' Lit Rational
 _FloatPrimL
   = prism remitter reviewer
   where
-      remitter x = FloatPrimL x
+      remitter = FloatPrimL
       reviewer (FloatPrimL x) = Right x
       reviewer x = Left x
 
@@ -1473,7 +1427,7 @@ _DoublePrimL :: Prism' Lit Rational
 _DoublePrimL
   = prism remitter reviewer
   where
-      remitter x = DoublePrimL x
+      remitter = DoublePrimL
       reviewer (DoublePrimL x) = Right x
       reviewer x = Left x
 
@@ -1482,7 +1436,7 @@ _StringPrimL :: Prism' Lit [Word8]
 _StringPrimL
   = prism remitter reviewer
   where
-      remitter x = StringPrimL x
+      remitter = StringPrimL
       reviewer (StringPrimL x) = Right x
       reviewer x = Left x
 #else
@@ -1490,7 +1444,7 @@ _StringPrimL :: Prism' Lit String
 _StringPrimL
   = prism remitter reviewer
   where
-      remitter x = StringPrimL x
+      remitter = StringPrimL
       reviewer (StringPrimL x) = Right x
       reviewer x = Left x
 #endif
@@ -1499,7 +1453,7 @@ _LitP :: Prism' Pat Lit
 _LitP
   = prism remitter reviewer
   where
-      remitter x = LitP x
+      remitter = LitP
       reviewer (LitP x) = Right x
       reviewer x = Left x
 
@@ -1507,7 +1461,7 @@ _VarP :: Prism' Pat Name
 _VarP
   = prism remitter reviewer
   where
-      remitter x = VarP x
+      remitter = VarP
       reviewer (VarP x) = Right x
       reviewer x = Left x
       
@@ -1515,7 +1469,7 @@ _TupP :: Prism' Pat [Pat]
 _TupP
   = prism remitter reviewer
   where
-      remitter x = TupP x
+      remitter = TupP
       reviewer (TupP x) = Right x
       reviewer x = Left x
 
@@ -1523,7 +1477,7 @@ _UnboxedTupP :: Prism' Pat [Pat]
 _UnboxedTupP
   = prism remitter reviewer
   where
-      remitter x = UnboxedTupP x
+      remitter = UnboxedTupP
       reviewer (UnboxedTupP x) = Right x
       reviewer x = Left x
 
@@ -1552,13 +1506,13 @@ _UInfixP
         = UInfixP x y z
       reviewer (UInfixP x y z)
         = Right (x, y, z)
-      reviewer x = Left x
+      reviewer x = Left x 
 
 _ParensP :: Prism' Pat Pat
 _ParensP
   = prism remitter reviewer
   where
-      remitter x = ParensP x
+      remitter = ParensP
       reviewer (ParensP x) = Right x
       reviewer x = Left x
 
@@ -1566,7 +1520,7 @@ _TildeP :: Prism' Pat Pat
 _TildeP
   = prism remitter reviewer
   where
-      remitter x = TildeP x
+      remitter = TildeP
       reviewer (TildeP x) = Right x
       reviewer x = Left x
 
@@ -1574,7 +1528,7 @@ _BangP :: Prism' Pat Pat
 _BangP
   = prism remitter reviewer
   where
-      remitter x = BangP x
+      remitter = BangP
       reviewer (BangP x) = Right x
       reviewer x = Left x
 
@@ -1606,7 +1560,7 @@ _ListP :: Prism' Pat [Pat]
 _ListP
   = prism remitter reviewer
   where
-      remitter x = ListP x
+      remitter = ListP
       reviewer (ListP x) = Right x
       reviewer x = Left x
 
@@ -1656,7 +1610,7 @@ _VarT :: Prism' Type Name
 _VarT
   = prism remitter reviewer
   where
-      remitter x = VarT x
+      remitter = VarT
       reviewer (VarT x) = Right x
       reviewer x = Left x
 
@@ -1664,7 +1618,7 @@ _ConT :: Prism' Type Name
 _ConT
   = prism remitter reviewer
   where
-      remitter x = ConT x
+      remitter = ConT
       reviewer (ConT x) = Right x
       reviewer x = Left x
 
@@ -1673,7 +1627,7 @@ _PromotedT :: Prism' Type Name
 _PromotedT
   = prism remitter reviewer
   where
-      remitter x = PromotedT x
+      remitter = PromotedT
       reviewer (PromotedT x) = Right x
       reviewer x = Left x
 #endif
@@ -1682,7 +1636,7 @@ _TupleT :: Prism' Type Int
 _TupleT
   = prism remitter reviewer
   where
-      remitter x = TupleT x
+      remitter = TupleT
       reviewer (TupleT x) = Right x
       reviewer x = Left x
 
@@ -1690,7 +1644,7 @@ _UnboxedTupleT :: Prism' Type Int
 _UnboxedTupleT
   = prism remitter reviewer
   where
-      remitter x = UnboxedTupleT x
+      remitter = UnboxedTupleT
       reviewer (UnboxedTupleT x) = Right x
       reviewer x = Left x
 
@@ -1715,7 +1669,7 @@ _PromotedTupleT :: Prism' Type Int
 _PromotedTupleT
   = prism remitter reviewer
   where
-      remitter x = PromotedTupleT x
+      remitter = PromotedTupleT
       reviewer (PromotedTupleT x) = Right x
       reviewer x = Left x
 
@@ -1764,7 +1718,7 @@ _PlainTV :: Prism' TyVarBndr Name
 _PlainTV
   = prism remitter reviewer
   where
-      remitter x = PlainTV x
+      remitter = PlainTV
       reviewer (PlainTV x) = Right x
       reviewer x = Left x
 
@@ -1781,7 +1735,7 @@ _NumTyLit :: Prism' TyLit Integer
 _NumTyLit
   = prism remitter reviewer
   where
-      remitter x = NumTyLit x
+      remitter = NumTyLit
       reviewer (NumTyLit x) = Right x
       reviewer x = Left x
 
@@ -1789,7 +1743,7 @@ _StrTyLit :: Prism' TyLit String
 _StrTyLit
   = prism remitter reviewer
   where
-      remitter x = StrTyLit x
+      remitter = StrTyLit
       reviewer (StrTyLit x) = Right x
       reviewer x = Left x
 #endif
