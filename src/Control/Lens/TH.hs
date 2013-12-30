@@ -739,18 +739,21 @@ apps = Prelude.foldl AppT
 
 makeLensesForDec :: LensRules -> Dec -> Q [Dec]
 makeLensesForDec cfg decl = case makeDataDecl decl of
-  Just dataDecl -> case constructors dataDecl of
-    [NormalC dataConName [(    _,ty)]]
-      | cfg^.handleSingletons  ->
-        makeIsoLenses cfg dataDecl dataConName Nothing ty
-    [RecC    dataConName [(fld,_,ty)]]
-      | cfg^.handleSingletons  ->
-        makeIsoLenses cfg dataDecl dataConName (Just fld) ty
-    _ | cfg^.singletonRequired ->
-        fail "makeLensesWith: A single-constructor single-argument data type is required"
-      | otherwise              ->
-        makeFieldLenses cfg dataDecl
+  Just dataDecl -> makeLensesForCons cfg dataDecl
   Nothing -> fail "makeLensesWith: Unsupported data type"
+
+makeLensesForCons :: LensRules -> DataDecl -> Q [Dec]
+makeLensesForCons cfg dataDecl = case constructors dataDecl of
+  [NormalC dataConName [(    _,ty)]]
+    | cfg^.handleSingletons  ->
+      makeIsoLenses cfg dataDecl dataConName Nothing ty
+  [RecC    dataConName [(fld,_,ty)]]
+    | cfg^.handleSingletons  ->
+      makeIsoLenses cfg dataDecl dataConName (Just fld) ty
+  _ | cfg^.singletonRequired ->
+      fail "makeLensesWith: A single-constructor single-argument data type is required"
+    | otherwise              ->
+      makeFieldLenses cfg dataDecl
 
 makeDataDecl :: Dec -> Maybe DataDecl
 makeDataDecl dec = case deNewtype dec of
