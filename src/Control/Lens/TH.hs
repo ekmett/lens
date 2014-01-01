@@ -721,9 +721,8 @@ makeIsoFrom ty conName = lam <$> deCom ty
     deCom (TupleT _) = return ([], ConE conName)
     deCom (AppT l r) = do
       (ln, l') <- deCom l
-      (rn, r') <- deCom r
-      return (ln ++ rn, AppE l' r')
-    deCom (ConT _) = newName "x" >>= \x -> return ([x], VarE x)
+      x <- newName "x"
+      return (ln ++ [x], AppE l' (VarE x))
     deCom t = fail $ "unable to create isomorphism for: " ++ show t
 
 -- i.e. AppT (AppT (TupleT 2) (ConT GHC.Types.Int)) (ConT GHC.Base.String)
