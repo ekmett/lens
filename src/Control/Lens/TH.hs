@@ -719,7 +719,7 @@ makeIsoFrom ty conName = lam <$> deCom ty
   where
     lam (ns, e) = (ns, LamE [TupP (map VarP ns)] e)
     deCom (TupleT _) = return ([], ConE conName)
-    deCom (AppT l r) = do
+    deCom (AppT l _) = do
       (ln, l') <- deCom l
       x <- newName "x"
       return (ln ++ [x], AppE l' (VarE x))
