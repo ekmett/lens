@@ -27,6 +27,8 @@ import Control.Lens
 data Bar a b c = Bar { _baz :: (a, b) }
 makeLenses ''Bar
 -- baz :: Lens (Bar a b c) (Bar a' b' c) (a,b) (a',b')
+-- upgrades to:
+-- baz :: Iso (Bar a b c) (Bar a' b' c') (a, b) (a', b')
 
 data Quux a b = Quux { _quaffle :: Int, _quartz :: Double }
 makeLenses ''Quux
@@ -143,6 +145,14 @@ declarePrisms [d|
 -- _Lit :: Prism' Exp Int
 -- _Var :: Prism' Exp String
 -- _Lambda :: Prism' Exp (String, Exp)
+
+declarePrisms [d|
+  data Banana = Banana Int String
+  |]
+-- data Banana = Banana Int String
+-- banana :: Iso' (Int, String) Banana
+cavendish :: Banana
+cavendish = view banana (4, "Cavendish")
 
 data family Family a b c
 
