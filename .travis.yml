@@ -3,6 +3,7 @@ language: haskell
 env:
   - GHCVER=7.4.2
   - GHCVER=7.6.3
+  - GHCVER=head
   # - >
   #   GHCVER=7.4.2
   #   MODE="-fsafe"
@@ -11,6 +12,7 @@ env:
 matrix:
   allow_failures:
     - env: GHCVER=7.4.2
+    - env: GHCVER=head
 
 before_install:
   # If $GHCVER is the one travis has, don't bother reinstalling it.
