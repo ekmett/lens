@@ -36,6 +36,14 @@ before_install:
   # - mkdir -p ~/.cabal && cp travis/config ~/.cabal/config && $CABAL update
   - $CABAL update
 
+  # Update happy when building with GHC head
+  - | 
+    if [ $GHCVER = "head" ]; then
+      $CABAL install happy
+      export PATH=$HOME/.cabal/bin:$PATH
+    fi
+    
+
 install:
   - $CABAL install --dependencies-only --enable-tests
   - $CABAL configure -flib-Werror --enable-tests $MODE
