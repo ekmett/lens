@@ -1,7 +1,9 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
+#ifndef HLINT
 {-# LANGUAGE UnboxedTuples #-}
+#endif
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveDataTypeable #-}
