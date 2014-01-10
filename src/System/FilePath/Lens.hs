@@ -83,7 +83,7 @@ l <</>= r = l <%= (</> r)
 {-# INLINE (<</>=) #-}
 
 
-(<<</>~) :: Optical q ((,)FilePath) s FilePath -> FilePath -> q s (FilePath, s)
+(<<</>~) :: Optical (->) q ((,)FilePath) s FilePath -> FilePath -> q s (FilePath, s)
 l <<</>~ b = l $ \a -> (a, a </> b)
 {-# INLINE (<<</>~) #-}
 
@@ -144,7 +144,7 @@ l <<.>= r = l <%= (<.> r)
 {-# INLINE (<<.>=) #-}
 
 
-(<<<.>~) :: Optical' p ((,)FilePath) s FilePath -> String -> q s (FilePath, s)
+(<<<.>~) :: Optical' (->) q ((,)FilePath) s FilePath -> String -> q s (FilePath, s)
 l <<<.>~ b = l $ \a -> (a, a <.> b)
 {-# INLINE (<<<.>~) #-}
 
