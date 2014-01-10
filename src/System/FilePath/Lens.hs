@@ -11,8 +11,8 @@
 module System.FilePath.Lens
   (
   -- * Operators
-    (</>~), (<</>~), (<<</>~), (<.>~), (<<.>~)
-  , (</>=), (<</>=), (<<</>=), (<.>=), (<<.>=)
+    (</>~), (<</>~), (<<</>~), (<.>~), (<<.>~), (<<<.>~)
+  , (</>=), (<</>=), (<<</>=), (<.>=), (<<.>=), (<<<.>=)
   -- * Lenses
   , basename, directory, extension, filename
   ) where
@@ -31,8 +31,8 @@ import Control.Lens hiding ((<.>))
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 
-infixr 4 </>~, <</>~, <<</>~, <.>~, <<.>~
-infix 4 </>=, <</>=, <<</>=, <.>=, <<.>=
+infixr 4 </>~, <</>~, <<</>~, <.>~, <<.>~, <<<.>~
+infix 4 </>=, <</>=, <<</>=, <.>=, <<.>=, <<<.>=
 
 -- | Modify the path by adding another path.
 --
@@ -143,6 +143,14 @@ l <<.>~ m = l <%~ (<.> m)
 l <<.>= r = l <%= (<.> r)
 {-# INLINE (<<.>=) #-}
 
+
+(<<<.>~) :: Optical' p ((,)FilePath) s FilePath -> String -> q s (FilePath, s)
+l <<<.>~ b = l $ \a -> (a, a <.> b)
+{-# INLINE (<<<.>~) #-}
+
+(<<<.>=) :: MonadState s m => LensLike' ((,)FilePath) s FilePath -> String -> m FilePath
+l <<<.>= b = l %%= \a -> (a, a <.> b)
+{-# INLINE (<<<.>=) #-}
 
 -- | A 'Lens' for reading and writing to the basename
 --
