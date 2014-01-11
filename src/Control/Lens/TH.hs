@@ -12,7 +12,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.TH
--- Copyright   :  (C) 2012-13 Edward Kmett, Michael Sloan
+-- Copyright   :  (C) 2012-13 Edward Kmett, Michael Sloan, Maxwell Swadling
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental
@@ -28,6 +28,7 @@ module Control.Lens.TH
   , makePrisms
   , makeWrapped
   , makeFields
+  , makeInferableLenses, (???)
   -- * Constructing Lenses Given a Declaretion Quote
   , declareLenses, declareLensesFor
   , declareClassy, declareClassyFor
@@ -1288,6 +1289,51 @@ makeFieldsForDec :: FieldRules -> Dec -> Q [Dec]
 makeFieldsForDec cfg decl = liftA2 (++)
   (verboseLenses cfg decl)
   (hasClassAndInstance cfg decl)
+
+-- | Generate lenses which can be inferred.
+--
+-- If the same type is used twice in a constructor, then it will produce
+-- duplicate instances, which can not be compiled.
+--
+-- For example: data Foo = Foo { _bar :: String, _baz :: Int }
+--
+-- instance Functor f => IsLens Foo String f where
+--   (???) = bar
+-- 
+-- instance Functor f => IsLens Foo Int f where
+--   (???) = baz
+makeInferableLenses :: Name -> Q [Dec]
+makeInferableLenses nm = do
+  ls <- makeLenses nm
+  r <- reify nm
+  case r of
+    (TyConI (DataD _ n _ cs _)) -> do
+      inst <- forM (tysOf cs) $ \t -> do
+        f <- newName "f"
+        instanceD (cxt [classP ''Functor [varT f]])
+                  (appT (appT (appT (conT ''IsInferable) (conT n)) (return t)) (varT f))
+                  [fromN t ls]
+      return (ls ++ inst)
+    _ -> fail "only inferable on constructors"
+
+  where
+    tysOf :: [Con] -> [Type]
+    tysOf [NormalC _ xs] = map snd xs
+    tysOf [RecC _ xs] = map (\(_, _, x) -> x) xs
+    tysOf _ = fail "only supports types with a single constructor"
+    
+    fromN :: Type -> [Dec] -> Q Dec
+    fromN a ls = case d of
+        Just (SigD n _) -> funD '(???) [clause [] (normalB (varE n)) []]
+        _ -> fail "makeLenses' derived something I can't use"
+      where
+        d = flip List.find ls $ \x -> case x of
+          (SigD _ (ForallT [] [] (AppT _ t))) -> t == a
+          _ -> False
+
+-- Helper class for makeInferableLenses
+class IsInferable a b f | a b -> f where
+  (???) :: Functor f => (b -> f b) -> a -> f a
 
 -- | Generate overloaded field accessors.
 --

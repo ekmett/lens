@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE UndecidableInstances #-} -- for makeInferableLenses
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main (templates)
@@ -178,6 +179,33 @@ declareLenses [d|
 --   data Associated Int = AssociatedInt Double
 --   method = id
 -- mochi :: Iso' (Associated Int) Double
+
+data Food = Food { _name :: String, _serveSize :: Int } deriving Show
+makeInferableLenses ''Food
+
+-- | natto
+-- >>> natto
+-- Food {_name = "Natto", _serveSize = 50}
+natto :: Food
+natto = Food "Natto" 50
+
+-- | nattoName
+-- >>> nattoName
+-- "Natto"
+nattoName :: String
+nattoName = view (???) natto
+
+-- | nattoServeSize
+-- >>> nattoServeSize
+-- 50
+nattoServeSize :: Int
+nattoServeSize = view (???) natto
+
+-- | notNatto
+-- >>> notNatto
+-- Food {_name = "Banana", _serveSize = 50}
+notNatto :: Food
+notNatto = set (???) "Banana" natto
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
