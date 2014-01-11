@@ -1329,8 +1329,12 @@ makeInferableLenses nm = do
         _ -> fail "makeLenses' derived something I can't use"
       where
         d = flip List.find ls $ \x -> case x of
-          (SigD _ (ForallT [] [] (AppT _ t))) -> t == a
+          (SigD _ (ForallT [] [] t)) -> farRight t == a
           _ -> False
+    
+    farRight :: Type -> Type
+    farRight (AppT _ r) = farRight r
+    farRight t = t
 
 -- Helper class for makeInferableLenses
 class IsInferable a b f | a b -> f where
