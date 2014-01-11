@@ -1308,7 +1308,8 @@ makeInferableLenses nm = do
   r <- reify nm
   case r of
     (TyConI (DataD _ n _ cs _)) -> do
-      inst <- forM (tysOf cs) $ \t -> do
+      ts <- tysOf cs
+      inst <- forM ts $ \t -> do
         f <- newName "f"
         instanceD (cxt [classP ''Functor [varT f]])
                   (appT (appT (appT (conT ''IsInferable) (conT n)) (return t)) (varT f))
@@ -1317,9 +1318,9 @@ makeInferableLenses nm = do
     _ -> fail "only inferable on constructors"
 
   where
-    tysOf :: [Con] -> [Type]
-    tysOf [NormalC _ xs] = map snd xs
-    tysOf [RecC _ xs] = map (\(_, _, x) -> x) xs
+    tysOf :: [Con] -> Q [Type]
+    tysOf [NormalC _ xs] = return $ map snd xs
+    tysOf [RecC _ xs] = return $ map (\(_, _, x) -> x) xs
     tysOf _ = fail "only supports types with a single constructor"
     
     fromN :: Type -> [Dec] -> Q Dec
