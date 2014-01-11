@@ -88,6 +88,7 @@ import Control.Lens.Tuple
 import Control.Lens.Traversal
 import Control.Lens.Wrapped
 import Control.Lens.Internal.TH
+import Control.Lens.Internal.Iso
 import Data.Char (toLower, toUpper, isUpper)
 import Data.Either (lefts)
 import Data.Foldable hiding (concat, any)
@@ -1335,10 +1336,6 @@ makeInferableLenses nm = do
     farRight :: Type -> Type
     farRight (AppT _ r) = farRight r
     farRight t = t
-
--- Helper class for makeInferableLenses
-class IsInferable a b f | a b -> f where
-  (???) :: Functor f => (b -> f b) -> a -> f a
 
 -- | Generate overloaded field accessors.
 --

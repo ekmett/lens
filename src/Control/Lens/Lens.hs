@@ -115,6 +115,9 @@ module Control.Lens.Lens
   -- * Common Lenses
   , devoid
   , united
+  
+  -- * Lens Inference
+  , (???)
 
   -- * Context
   , Context(..)
@@ -128,6 +131,7 @@ import Control.Comonad
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
+import Control.Lens.Internal.Iso
 import Control.Lens.Type
 import Control.Monad.State as State
 import Data.Monoid
