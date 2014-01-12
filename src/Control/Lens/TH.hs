@@ -1271,7 +1271,7 @@ hasClassAndInstance cfg decl = do
 #ifdef INLINING
               inlinePragma lensName,
 #endif
-              funD lensName [ clause [] (normalB (global fullLensName)) [] ]
+              funD lensName [ clause [] (normalB (varE fullLensName)) [] ]
             ]
         classAlreadyExists <- isJust `fmap` lookupTypeName (show className)
         return (if classAlreadyExists then [instanceHas] else [classHas, instanceHas])
