@@ -107,9 +107,9 @@ import Control.Lens.Internal.Exception
 import Data.Monoid
 import GHC.Conc (ThreadId)
 import Prelude
-  ( asTypeOf, const, either, flip, id, maybe, undefined
-  , ($), (.)
-  ,  Maybe(..), Either(..), Functor(..), String, IO
+  ( const, either, flip, id
+  , (.)
+  , Maybe(..), Either(..), String
   )
 
 #ifdef HLINT
