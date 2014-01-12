@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Getter
@@ -23,14 +24,15 @@ module Control.Lens.Internal.Getter
   ) where
 
 import Control.Applicative
-import Data.Functor.Contravariant
+import Control.Lens.Internal.Action
+import Data.Bifoldable
+import Data.Bifunctor
+import Data.Bitraversable
 import Data.Foldable
-import Data.Traversable
+import Data.Functor.Contravariant
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
-import Data.Bifunctor
-import Data.Bifoldable
-import Data.Bitraversable
+import Data.Traversable
 import Data.Void
 
 -- | This class is provided mostly for backwards compatibility with lens 3.8,
@@ -101,6 +103,12 @@ instance Traversable f => Bitraversable (AlongsideLeft f) where
   bitraverse f g (AlongsideLeft as) = AlongsideLeft <$> traverse (bitraverse g f) as
   {-# INLINE bitraverse #-}
 
+instance Effective m r f => Effective m r (AlongsideLeft f b) where
+  effective = AlongsideLeft . effective
+  {-# INLINE effective #-}
+  ineffective = ineffective . getAlongsideLeft
+  {-# INLINE ineffective #-}
+
 newtype AlongsideRight f a b = AlongsideRight { getAlongsideRight :: f (a, b) }
 
 deriving instance Show (f (a, b)) => Show (AlongsideRight f a b)
@@ -141,3 +149,9 @@ instance Foldable f => Bifoldable (AlongsideRight f) where
 instance Traversable f => Bitraversable (AlongsideRight f) where
   bitraverse f g (AlongsideRight as) = AlongsideRight <$> traverse (bitraverse f g) as
   {-# INLINE bitraverse #-}
+
+instance Effective m r f => Effective m r (AlongsideRight f b) where
+  effective = AlongsideRight . effective
+  {-# INLINE effective #-}
+  ineffective = ineffective . getAlongsideRight
+  {-# INLINE ineffective #-}
