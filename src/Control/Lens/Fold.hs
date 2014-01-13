@@ -162,6 +162,7 @@ import Data.Traversable
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
+-- >>> :set -XExtendedDefaultRules
 -- >>> import Control.Lens
 -- >>> import Control.Lens.Extras (is)
 -- >>> import Data.Function
@@ -593,7 +594,7 @@ orOf l = getAny #. foldMapOf l Any
 -- >>> anyOf both (=='x') ('x','y')
 -- True
 -- >>> import Data.Data.Lens
--- >>> anyOf biplate (== "world") (((),2::Int),"hello",("world",11::Int))
+-- >>> anyOf biplate (== "world") (((),2::Int),"hello",("world",11))
 -- True
 --
 -- @
