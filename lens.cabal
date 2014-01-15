@@ -175,9 +175,8 @@ flag lib-Werror
 
 library
   build-depends:
-    aeson                     >= 0.6      && < 0.8,
+    aeson                     >= 0.7      && < 0.8,
     array                     >= 0.3.0.2  && < 0.6,
-    attoparsec                >= 0.10     && < 0.12,
     base                      >= 4.3      && < 5,
     bifunctors                >= 4        && < 5,
     bytestring                >= 0.9.1.10 && < 0.11,
@@ -195,6 +194,7 @@ library
     primitive                 >= 0.4.0.1  && < 0.6,
     profunctors               >= 4        && < 5,
     reflection                >= 1.1.6    && < 2,
+    scientific                >= 0.2      && < 0.3,
     semigroupoids             >= 4        && < 5,
     semigroups                >= 0.8.4    && < 1,
     split                     >= 0.2      && < 0.3,
