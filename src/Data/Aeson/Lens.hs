@@ -213,7 +213,7 @@ nonNull = prism id (\v -> if isn't _Null v then Right v else Left v)
 class AsPrimitive t => AsValue t where
   -- |
   -- >>>"[1,2,3]" ^? _Value
-  -- Just (Array (fromList [Scientific 1,Scientific 2,Scientific 3]))
+  -- Just (Array (fromList [Number 1,Number 2,Number 3]))
   _Value :: Prism' t Value
 
   -- |
@@ -227,7 +227,7 @@ class AsPrimitive t => AsValue t where
 
   -- |
   -- >>> "[1,2,3]" ^? _Array
-  -- Just (fromList [Scientific 1,Scientific 2,Scientific 3])
+  -- Just (fromList [Number 1,Number 2,Number 3])
   _Array :: Prism' t (Vector Value)
   _Array = _Value.prism Array (\v -> case v of Array a -> Right a; _ -> Left v)
 
@@ -245,7 +245,7 @@ instance AsValue String where
 -- inference than 'ix' when used with OverloadedStrings.
 --
 -- >>> "{\"a\": 100, \"b\": 200}" ^? key "a"
--- Just (Scientific 100)
+-- Just (Number 100)
 --
 -- >>> "[1,2,3]" ^? key "a"
 -- Nothing
@@ -258,12 +258,12 @@ members = _Object . itraversed
 -- | Like 'ix', but for Arrays with Int indexes
 --
 -- >>> "[1,2,3]" ^? nth 1
--- Just (Scientific 2)
+-- Just (Number 2)
 --
 -- >>> "\"a\": 100, \"b\": 200}" ^? nth 1
 -- Nothing
 --
--- >>> "[1,2,3]" & nth 1 .~ (Scientific 20)
+-- >>> "[1,2,3]" & nth 1 .~ Number 20
 -- "[1,20,3]"
 nth :: AsValue t => Int -> Traversal' t Value
 nth i = _Array . ix i
