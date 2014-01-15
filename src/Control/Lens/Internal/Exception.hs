@@ -48,7 +48,7 @@ type Typeable1 = Typeable
 -- Handlers
 ------------------------------------------------------------------------------
 
--- | Both @MonadCatchIO-transformers@ and "Control.Exception" provide a 'Handler' type.
+-- | Both @exceptions@ and "Control.Exception" provide a 'Handler' type.
 --
 -- This lets us write combinators to build handlers that are agnostic about the choice of
 -- which of these they use.
@@ -71,14 +71,14 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
   -- 'handler' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -> (a -> 'IO' r) -> 'Exception.Handler' r
   -- @
   --
-  -- and with the 'CatchIO.Handler' type provided by @Control.Monad.CatchIO@:
+  -- and with the 'Catch.Handler' type provided by @Control.Monad.Catch@:
   --
   -- @
-  -- 'handler' :: 'Getter'     'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
-  -- 'handler' :: 'Fold'       'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
-  -- 'handler' :: 'Control.Lens.Prism.Prism''     'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
-  -- 'handler' :: 'Control.Lens.Lens.Lens''      'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
-  -- 'handler' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -> (a -> m r) -> 'CatchIO.Handler' m r
+  -- 'handler' :: 'Getter'     'SomeException' a -> (a -> m r) -> 'Catch.Handler' m r
+  -- 'handler' :: 'Fold'       'SomeException' a -> (a -> m r) -> 'Catch.Handler' m r
+  -- 'handler' :: 'Control.Lens.Prism.Prism''     'SomeException' a -> (a -> m r) -> 'Catch.Handler' m r
+  -- 'handler' :: 'Control.Lens.Lens.Lens''      'SomeException' a -> (a -> m r) -> 'Catch.Handler' m r
+  -- 'handler' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -> (a -> m r) -> 'Catch.Handler' m r
   -- @
   --
   -- and with the 'Control.Monad.Error.Lens.Handler' type provided by @Control.Monad.Error.Lens@:
@@ -111,14 +111,14 @@ class Handleable e (m :: * -> *) (h :: * -> *) | h -> e m where
   -- 'handler_' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -> 'IO' r -> 'Exception.Handler' r
   -- @
   --
-  -- and with the 'CatchIO.Handler' type provided by @Control.Monad.CatchIO@:
+  -- and with the 'Catch.Handler' type provided by @Control.Monad.Catch@:
   --
   -- @
-  -- 'handler_' :: 'Getter'     'SomeException' a -> m r -> 'CatchIO.Handler' m r
-  -- 'handler_' :: 'Fold'       'SomeException' a -> m r -> 'CatchIO.Handler' m r
-  -- 'handler_' :: 'Control.Lens.Prism.Prism''     'SomeException' a -> m r -> 'CatchIO.Handler' m r
-  -- 'handler_' :: 'Control.Lens.Lens.Lens''      'SomeException' a -> m r -> 'CatchIO.Handler' m r
-  -- 'handler_' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -> m r -> 'CatchIO.Handler' m r
+  -- 'handler_' :: 'Getter'     'SomeException' a -> m r -> 'Catch.Handler' m r
+  -- 'handler_' :: 'Fold'       'SomeException' a -> m r -> 'Catch.Handler' m r
+  -- 'handler_' :: 'Control.Lens.Prism.Prism''     'SomeException' a -> m r -> 'Catch.Handler' m r
+  -- 'handler_' :: 'Control.Lens.Lens.Lens''      'SomeException' a -> m r -> 'Catch.Handler' m r
+  -- 'handler_' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -> m r -> 'Catch.Handler' m r
   -- @
   --
   -- and with the 'Control.Monad.Error.Lens.Handler' type provided by @Control.Monad.Error.Lens@:

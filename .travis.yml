@@ -3,6 +3,7 @@ language: haskell
 env:
   - GHCVER=7.4.2
   - GHCVER=7.6.3
+  - GHCVER=head
   # - >
   #   GHCVER=7.4.2
   #   MODE="-fsafe"
@@ -11,6 +12,7 @@ env:
 matrix:
   allow_failures:
     - env: GHCVER=7.4.2
+    - env: GHCVER=head
 
 before_install:
   # If $GHCVER is the one travis has, don't bother reinstalling it.
@@ -33,6 +35,14 @@ before_install:
   # Uncomment whenever hackage is down.
   # - mkdir -p ~/.cabal && cp travis/config ~/.cabal/config && $CABAL update
   - $CABAL update
+
+  # Update happy when building with GHC head
+  - | 
+    if [ $GHCVER = "head" ]; then
+      $CABAL install happy
+      export PATH=$HOME/.cabal/bin:$PATH
+    fi
+    
 
 install:
   - $CABAL install --dependencies-only --enable-tests

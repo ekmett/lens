@@ -585,6 +585,14 @@ makePrismsForDec decl = case makeDataDecl decl of
   _ -> fail "makePrisms: Unsupported data type"
 
 makePrismsForCons :: DataDecl -> Q [Dec]
+makePrismsForCons dataDecl@(DataDecl _ _ _ _ [_]) = case constructors dataDecl of
+  -- Iso promotion via tuples
+  [NormalC dataConName xs] ->
+    makeIsoLenses isoRules dataDecl dataConName Nothing $ map (view _2) xs
+  [RecC    dataConName xs] ->
+    makeIsoLenses isoRules dataDecl dataConName Nothing $ map (view _3) xs
+  _                        ->
+    fail "makePrismsForCons: A single-constructor data type is required"
 makePrismsForCons dataDecl =
   concat <$> mapM (makePrismOrReviewForCon dataDecl canModifyTypeVar ) (constructors dataDecl)
   where
@@ -704,30 +712,41 @@ reviewerIdClause con = do
 freshMap :: Set Name -> Q (Map Name Name)
 freshMap ns = Map.fromList <$> for (toList ns) (\ n -> (,) n <$> newName (nameBase n))
 
-makeIsoTo :: Name -> ExpQ
-makeIsoTo = conE
+-- i.e. AppT (AppT (TupleT 2) (ConT GHC.Types.Int)) (ConT GHC.Base.String)
+-- --> (\(x, y) -> Rect x y)
+makeIsoFrom :: Type -> Name -> Q ([Name], Exp)
+makeIsoFrom ty conName = lam <$> deCom ty
+  where
+    lam (ns, e) = (ns, LamE [TupP (map VarP ns)] e)
+    deCom (TupleT _) = return ([], ConE conName)
+    deCom (AppT l _) = do
+      (ln, l') <- deCom l
+      x <- newName "x"
+      return (ln ++ [x], AppE l' (VarE x))
+    deCom t = fail $ "unable to create isomorphism for: " ++ show t
 
-makeIsoFrom :: Name -> ExpQ
-makeIsoFrom conName = do
-  b <- newName "b"
-  lamE [conP conName [varP b]] $ varE b
+-- i.e. AppT (AppT (TupleT 2) (ConT GHC.Types.Int)) (ConT GHC.Base.String)
+-- --> (\(Rect x y) -> (x, y))
+makeIsoTo :: [Name] -> Name -> ExpQ
+makeIsoTo ns conName = lamE [conP conName (map varP ns)]
+                          $ tupE $ map varE ns
 
-makeIsoBody :: Name -> Name -> (Name -> ExpQ) -> (Name -> ExpQ) -> DecQ
-makeIsoBody lensName conName f g = funD lensName [clause [] (normalB body) []] where
+makeIsoBody :: Name -> Exp -> Exp -> DecQ
+makeIsoBody lensName f t = funD lensName [clause [] (normalB body) []] where
   body = appsE [ varE 'iso
-               , g conName
-               , f conName
+               , return f
+               , return t
                ]
 
-makeLensBody :: Name -> Name -> (Name -> ExpQ) -> (Name -> ExpQ) -> DecQ
-makeLensBody lensName conName i o = do
+makeLensBody :: Name -> Exp -> Exp -> DecQ
+makeLensBody lensName i o = do
   f <- newName "f"
   a <- newName "a"
   funD lensName [clause [] (normalB (
     lamE [varP f, varP a] $
       appsE [ varE 'fmap
-            , o conName
-            , varE f `appE` (i conName `appE` varE a)
+            , return o
+            , varE f `appE` (return i `appE` varE a)
             ])) []]
 
 plain :: TyVarBndr -> TyVarBndr
@@ -739,18 +758,21 @@ apps = Prelude.foldl AppT
 
 makeLensesForDec :: LensRules -> Dec -> Q [Dec]
 makeLensesForDec cfg decl = case makeDataDecl decl of
-  Just dataDecl -> case constructors dataDecl of
-    [NormalC dataConName [(    _,ty)]]
-      | cfg^.handleSingletons  ->
-        makeIsoLenses cfg dataDecl dataConName Nothing ty
-    [RecC    dataConName [(fld,_,ty)]]
-      | cfg^.handleSingletons  ->
-        makeIsoLenses cfg dataDecl dataConName (Just fld) ty
-    _ | cfg^.singletonRequired ->
-        fail "makeLensesWith: A single-constructor single-argument data type is required"
-      | otherwise              ->
-        makeFieldLenses cfg dataDecl
+  Just dataDecl -> makeLensesForCons cfg dataDecl
   Nothing -> fail "makeLensesWith: Unsupported data type"
+
+makeLensesForCons :: LensRules -> DataDecl -> Q [Dec]
+makeLensesForCons cfg dataDecl = case constructors dataDecl of
+  [NormalC dataConName [(    _,ty)]]
+    | cfg^.handleSingletons  ->
+      makeIsoLenses cfg dataDecl dataConName Nothing [ty]
+  [RecC    dataConName [(fld,_,ty)]]
+    | cfg^.handleSingletons  ->
+      makeIsoLenses cfg dataDecl dataConName (Just fld) [ty]
+  _ | cfg^.singletonRequired ->
+      fail "makeLensesWith: A single-constructor single-argument data type is required"
+    | otherwise              ->
+      makeFieldLenses cfg dataDecl
 
 makeDataDecl :: Dec -> Maybe DataDecl
 makeDataDecl dec = case deNewtype dec of
@@ -797,12 +819,12 @@ makeIsoLenses :: LensRules
               -> DataDecl
               -> Name
               -> Maybe Name
-              -> Type
+              -> [Type]
               -> Q [Dec]
 makeIsoLenses cfg dataDecl dataConName maybeFieldName partTy = do
   let tyArgs = map plain (dataParameters dataDecl)
   m <- freshMap $ setOf typeVars tyArgs
-  let aty = partTy
+  let aty = List.foldl' AppT (TupleT $ length partTy) partTy
       bty = substTypeVars m aty
       cty = fullType dataDecl $ map (VarT . view name) tyArgs
       dty = substTypeVars m cty
@@ -821,7 +843,9 @@ makeIsoLenses cfg dataDecl dataConName maybeFieldName partTy = do
           if cfg^.simpleLenses || Map.null m
           then isoCon' `apps` [aty,cty]
           else isoCon `apps` [aty,bty,cty,dty]
-    body <- makeBody isoName dataConName makeIsoFrom makeIsoTo
+    (ns, f) <- makeIsoFrom aty dataConName
+    t <- makeIsoTo ns dataConName
+    body <- makeBody isoName f t
 #ifndef INLINING
     return $ if cfg^.generateSignatures then [decl, body] else [body]
 #else
@@ -835,7 +859,9 @@ makeIsoLenses cfg dataDecl dataConName maybeFieldName partTy = do
             if cfg^.simpleLenses || Map.null m
             then isoCon' `apps` [cty,aty]
             else isoCon `apps` [cty,dty,aty,bty]
-      body <- makeBody lensName dataConName makeIsoTo makeIsoFrom
+      (ns, f) <- makeIsoFrom aty dataConName
+      t <- makeIsoTo ns dataConName
+      body <- makeBody lensName t f
 #ifndef INLINING
       return $ if cfg^.generateSignatures then [decl, body] else [body]
 #else
@@ -1245,7 +1271,7 @@ hasClassAndInstance cfg decl = do
 #ifdef INLINING
               inlinePragma lensName,
 #endif
-              funD lensName [ clause [] (normalB (global fullLensName)) [] ]
+              funD lensName [ clause [] (normalB (varE fullLensName)) [] ]
             ]
         classAlreadyExists <- isJust `fmap` lookupTypeName (show className)
         return (if classAlreadyExists then [instanceHas] else [classHas, instanceHas])

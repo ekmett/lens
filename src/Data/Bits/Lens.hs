@@ -28,8 +28,8 @@ import Data.Word
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Data.Word
 
-infixr 4 .|.~, .&.~, <.|.~, <.&.~
-infix 4 .|.=, .&.=, <.|.=, <.&.=
+infixr 4 .|.~, .&.~, <.|.~, <.&.~, <<.|.~, <<.&.~
+infix 4 .|.=, .&.=, <.|.=, <.&.=, <<.|.=, <<.&.=
 
 -- | Bitwise '.|.' the target(s) of a 'Lens' or 'Setter'.
 --

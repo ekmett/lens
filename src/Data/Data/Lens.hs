@@ -1,7 +1,9 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
+#ifndef HLINT
 {-# LANGUAGE UnboxedTuples #-}
+#endif
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveDataTypeable #-}
@@ -67,6 +69,7 @@ import           GHC.Exts (realWorld#)
 {-# ANN module "HLint: ignore Eta reduce" #-}
 {-# ANN module "HLint: ignore Use foldl" #-}
 {-# ANN module "HLint: ignore Reduce duplication" #-}
+{-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-}
 #endif
 
 -- $setup

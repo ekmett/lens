@@ -842,12 +842,12 @@ l <<%= f = l %%= lmap (\a -> (a,a)) (second' f)
 -- When applied to a 'Control.Lens.Traversal.Traversal', it this will return a monoidal summary of all of the old values
 -- present.
 --
--- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter..=') is more flexible.
 --
 -- @
--- ('<<%=') :: 'MonadState' s m             => 'Lens'' s a      -> (a -> a) -> m a
--- ('<<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> (a -> a) -> m a
--- ('<<%=') :: ('MonadState' s m, 'Monoid' t) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
+-- ('<<.=') :: 'MonadState' s m             => 'Lens'' s a      -> a -> m a
+-- ('<<.=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> a -> m a
+-- ('<<.=') :: ('MonadState' s m, 'Monoid' t) => 'Control.Lens.Traversal.Traversal'' s a -> a -> m a
 -- @
 (<<.=) :: MonadState s m => LensLike ((,)a) s s a b -> b -> m a
 l <<.= b = l %%= \a -> (a,b)
