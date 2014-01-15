@@ -19,7 +19,7 @@ Many people have contributed patches, documentation, wiki pages, bug reports, te
 * [Simon Hengel](mailto:sol@typeful.net) [@sol](https://github.com/sol)
 * [@startling](https://github.com/startling)
 * [Mike Ledger](mailto:eleventynine@gmail.com) [@mikeplus64](https://github.com/mikeplus64)
-* \`nand\` [@nandykins](https://github.com/nandykins)
+* [Niklas Haas](mailto:niklas.haas@uni-ulm.de) [@nandykins](https://github.com/nandykins)
 * [Adrian Keet](mailto:arkeet@gmail.com) [@arkeet](https://github.com/arkeet)
 * [Matvey B. Aksenov](mailto:matvey.aksenov@gmail.com) [@supki](https://github.com/supki)
 * [Eyal Lotem](mailto:eyal.lotem+github@gmail.com) [@Peaker](https://github.com/Peaker)
