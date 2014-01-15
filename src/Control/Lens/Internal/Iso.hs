@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -15,6 +16,7 @@
 module Control.Lens.Internal.Iso
   ( Exchange(..)
   , Reversing(..)
+  , IsInferable(..)
   ) where
 
 import Data.Profunctor
@@ -95,3 +97,12 @@ instance Unbox a => Reversing (Unbox.Vector a) where
 
 instance Storable a => Reversing (Storable.Vector a) where
   reversing = Storable.reverse
+
+------------------------------------------------------------------------------
+-- Inferable
+------------------------------------------------------------------------------
+
+-- | This class provides inference of a lens from the types
+class IsInferable a b f where
+  -- | We can infer a lens from the types.
+  (???) :: Functor f => (b -> f b) -> a -> f a
