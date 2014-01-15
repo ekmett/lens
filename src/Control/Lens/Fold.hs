@@ -594,7 +594,7 @@ orOf l = getAny #. foldMapOf l Any
 -- >>> anyOf both (=='x') ('x','y')
 -- True
 -- >>> import Data.Data.Lens
--- >>> anyOf biplate (== "world") (((),2::Int),"hello",("world",11))
+-- >>> anyOf biplate (== "world") (((),2::Int),"hello",("world",11::Int))
 -- True
 --
 -- @
