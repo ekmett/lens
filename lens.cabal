@@ -36,7 +36,7 @@ description:
   .
   /Lenses, Folds and Traversals/
   .
-  The core of the hierarchy of lens-like constructions looks like:
+  With some signatures simplified, the core of the hierarchy of lens-like constructions looks like:
   .
   .
   <<http://i.imgur.com/4fHw3Fd.png>>
