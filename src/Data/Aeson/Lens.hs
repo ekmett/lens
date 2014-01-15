@@ -2,7 +2,6 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveDataTypeable #-}
@@ -176,7 +175,7 @@ instance AsPrimitive Value where
       toPrim (String s) = Right $ StringPrim s
       toPrim (Number n) = Right $ NumberPrim n
       toPrim (Bool b)   = Right $ BoolPrim b
-      toPrim Null       = Right $ NullPrim
+      toPrim Null       = Right NullPrim
       toPrim v          = Left v
       fromPrim (StringPrim s) = String s
       fromPrim (NumberPrim n) = Number n
