@@ -1226,7 +1226,7 @@ mkFields :: FieldRules -> [VarStrictType] -> [Field]
 mkFields (FieldRules prefix' raw' nice' clas') rs
     = Maybe.mapMaybe namer fields
     & List.groupBy (on (==) _fieldLensPrefix)
-    & (\ gs -> case gs of 
+    & (\ gs -> case gs of
         x:_ -> x
         _   -> [])
   where

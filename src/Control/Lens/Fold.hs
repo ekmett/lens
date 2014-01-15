@@ -1830,7 +1830,7 @@ preuse :: MonadState s m => Getting (First a) s a -> m (Maybe a)
 preuse l = gets (preview l)
 {-# INLINE preuse #-}
 
--- | Retrieve the first index and value targeted by an 'IndexedFold' or 'IndexedTraversal' (or 'Just' the index 
+-- | Retrieve the first index and value targeted by an 'IndexedFold' or 'IndexedTraversal' (or 'Just' the index
 -- and result from an 'IndexedGetter' or 'IndexedLens') into the current state.
 --
 -- @

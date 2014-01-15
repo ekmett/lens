@@ -1191,7 +1191,7 @@ ifailover l f = failover l (Indexed f)
 -- 'failing' :: 'Getter' s a        -> 'Fold' s a          -> 'Fold' s a
 -- @
 --
--- If both of the inputs are indexed, the result is also indexed, so you can apply this to a pair of indexed 
+-- If both of the inputs are indexed, the result is also indexed, so you can apply this to a pair of indexed
 -- traversals or indexed folds, obtaining an indexed traversal or indexed fold.
 --
 -- @

@@ -84,7 +84,7 @@ class IndexedFunctor w => IndexedComonad w where
 -- IndexedComonadStore
 ------------------------------------------------------------------------------
 
--- | This is an indexed analogue to 'ComonadStore' for when you are working with an 
+-- | This is an indexed analogue to 'ComonadStore' for when you are working with an
 -- 'IndexedComonad'.
 class IndexedComonad w => IndexedComonadStore w where
   -- | This is the generalization of 'pos' to an indexed comonad store.

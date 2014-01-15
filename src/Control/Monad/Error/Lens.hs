@@ -108,7 +108,7 @@ handling_ l = flip (catching_ l)
 -- Trying
 ------------------------------------------------------------------------------
 
--- | 'trying' takes a 'Prism' (or any 'Getter') to select which exceptions are caught 
+-- | 'trying' takes a 'Prism' (or any 'Getter') to select which exceptions are caught
 -- If the 'Exception' does not match the predicate, it is re-thrown.
 --
 -- @

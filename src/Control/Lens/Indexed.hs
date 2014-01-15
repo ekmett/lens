@@ -118,7 +118,7 @@ infixr 9 <.>, <., .>
 --
 -- Mnemonically, the @>@ points to the indexing we want to preserve.
 --
--- This is the same as @('.')@. 
+-- This is the same as @('.')@.
 --
 -- @f '.' g@ (and @f '.>' g@) gives you the index of @g@ unless @g@ is index-preserving, like a
 -- 'Prism', 'Iso' or 'Equality', in which case it'll pass through the index of @f@.

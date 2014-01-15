@@ -15,7 +15,7 @@
 -- Lenses, Prisms, and Traversals for working with Template Haskell
 ----------------------------------------------------------------------------
 module Language.Haskell.TH.Lens
-  ( 
+  (
   -- * Traversals
     HasName(..)
   , HasTypeVars(..)
@@ -58,7 +58,7 @@ module Language.Haskell.TH.Lens
 #endif
   -- * Prisms
   -- ** Info Prisms
-  , _ClassI 
+  , _ClassI
   , _ClassOpI
   , _TyConI
   , _FamilyI
@@ -135,11 +135,11 @@ module Language.Haskell.TH.Lens
   -- ** AnnTarget Prisms
   , _ModuleAnnotation
   , _TypeAnnotation
-  , _ValueAnnotation  
+  , _ValueAnnotation
 #endif
   -- ** FunDep Prisms TODO make a lens
   , _FunDep
-  -- ** FamFlavour Prisms 
+  -- ** FamFlavour Prisms
   , _TypeFam
   , _DataFam
   -- ** FixityDirection Prisms
@@ -376,23 +376,23 @@ conNamedFields _ c = pure c
 
 -- Lenses and Prisms
 locFileName :: Lens' Loc String
-locFileName = lens loc_filename 
+locFileName = lens loc_filename
             $ \loc fn -> loc { loc_filename = fn }
 
 locPackage :: Lens' Loc String
-locPackage = lens loc_package 
+locPackage = lens loc_package
            $ \loc fn -> loc { loc_package = fn }
 
 locModule :: Lens' Loc String
-locModule = lens loc_module 
+locModule = lens loc_module
           $ \loc fn -> loc { loc_module = fn }
 
 locStart :: Lens' Loc CharPos
-locStart = lens loc_start 
+locStart = lens loc_start
          $ \loc fn -> loc { loc_start = fn }
 
 locEnd :: Lens' Loc CharPos
-locEnd = lens loc_end 
+locEnd = lens loc_end
        $ \loc fn -> loc { loc_end = fn }
 
 funDepInputs :: Lens' FunDep [Name]
@@ -430,7 +430,7 @@ matchBody = lens g s where
 matchDeclarations :: Lens' Match [Dec]
 matchDeclarations = lens g s where
    g (Match _ _ ds) = ds
-   s (Match x y _ ) = Match x y 
+   s (Match x y _ ) = Match x y
 
 fixityPrecedence :: Lens' Fixity Int
 fixityPrecedence = lens g s where
@@ -473,7 +473,7 @@ _ClassOpI
       remitter (x, y, z, w) = ClassOpI x y z w
       reviewer (ClassOpI x y z w) = Right (x, y, z, w)
       reviewer x = Left x
-      
+
 #else
 _ClassI :: Prism' Info (Dec, [Dec])
 _ClassI
@@ -482,7 +482,7 @@ _ClassI
       remitter (x, y) = ClassI x y
       reviewer (ClassI x y) = Right (x, y)
       reviewer x = Left x
-      
+
 _ClassOpI :: Prism' Info (Name, Type, Name, Fixity)
 _ClassOpI
   = prism remitter reviewer
@@ -540,7 +540,7 @@ _PrimTyConI
       remitter (x, y, z) = PrimTyConI x y z
       reviewer (PrimTyConI x y z) = Right (x, y, z)
       reviewer x = Left x
-      
+
 _DataConI :: Prism' Info (Name, Type, Name, Fixity)
 _DataConI
   = prism remitter reviewer
@@ -851,7 +851,7 @@ _InlineP
       reviewer (InlineP x y z w)
         = Right (x, y, z, w)
       reviewer x = Left x
-      
+
 _SpecialiseP :: Prism' Pragma (Name, Type, Maybe Inline, Phases)
 _SpecialiseP
   = prism remitter reviewer
@@ -867,11 +867,11 @@ _InlineP
   = prism remitter reviewer
   where
       remitter (x, y)
-        = InlineP x y 
+        = InlineP x y
       reviewer (InlineP x y)
         = Right (x, y)
       reviewer x = Left x
-      
+
 _SpecialiseP :: Prism' Pragma (Name, Type, Maybe InlineSpec)
 _SpecialiseP
   = prism remitter reviewer
@@ -903,7 +903,7 @@ _RuleP
       reviewer (RuleP x y z w u)
         = Right (x, y, z, w, u)
       reviewer x = Left x
-      
+
 #if MIN_VERSION_template_haskell(2,9,0)
 _AnnP :: Prism' Pragma (AnnTarget, Exp)
 _AnnP
@@ -1000,7 +1000,7 @@ _ModuleAnnotation :: Prism' AnnTarget ()
 _ModuleAnnotation
   = prism remitter reviewer
   where
-      remitter () = ModuleAnnotation 
+      remitter () = ModuleAnnotation
       reviewer ModuleAnnotation
         = Right ()
       reviewer x = Left x
@@ -1013,7 +1013,7 @@ _TypeAnnotation
       reviewer (TypeAnnotation x)
         = Right x
       reviewer x = Left x
-      
+
 _ValueAnnotation :: Prism' AnnTarget Name
 _ValueAnnotation
   = prism remitter reviewer
@@ -1051,11 +1051,11 @@ tySynEqnPatterns :: Lens' TySynEqn [Type]
 tySynEqnPatterns = lens g s where
    g (TySynEqn xs _)    = xs
    s (TySynEqn _  y) xs = (TySynEqn xs y)
-   
+
 tySynEqnResult :: Lens' TySynEqn Type
 tySynEqnResult = lens g s where
    g (TySynEqn _  x) = x
-   s (TySynEqn xs _) = TySynEqn xs 
+   s (TySynEqn xs _) = TySynEqn xs
 #endif
 
 _InfixL :: Prism' FixityDirection ()
@@ -1086,7 +1086,7 @@ _VarE :: Prism' Exp Name
 _VarE
   = prism remitter reviewer
   where
-      remitter = VarE 
+      remitter = VarE
       reviewer (VarE x) = Right x
       reviewer x = Left x
 
@@ -1288,7 +1288,7 @@ _NormalG :: Prism' Guard Exp
 _NormalG
   = prism remitter reviewer
   where
-      remitter = NormalG 
+      remitter = NormalG
       reviewer (NormalG x) = Right x
       reviewer x = Left x
 
@@ -1405,7 +1405,7 @@ _IntPrimL
   where
       remitter = IntPrimL
       reviewer (IntPrimL x) = Right x
-      reviewer x = Left x 
+      reviewer x = Left x
 
 _WordPrimL :: Prism' Lit Integer
 _WordPrimL
@@ -1464,7 +1464,7 @@ _VarP
       remitter = VarP
       reviewer (VarP x) = Right x
       reviewer x = Left x
-      
+
 _TupP :: Prism' Pat [Pat]
 _TupP
   = prism remitter reviewer
@@ -1506,7 +1506,7 @@ _UInfixP
         = UInfixP x y z
       reviewer (UInfixP x y z)
         = Right (x, y, z)
-      reviewer x = Left x 
+      reviewer x = Left x
 
 _ParensP :: Prism' Pat Pat
 _ParensP
@@ -1763,7 +1763,7 @@ _EqualP
       remitter (x, y) = EqualP x y
       reviewer (EqualP x y) = Right (x, y)
       reviewer x = Left x
-      
+
 #if MIN_VERSION_template_haskell(2,9,0)
 _NominalR :: Prism' Role ()
 _NominalR
@@ -1780,7 +1780,7 @@ _RepresentationalR
       remitter () = RepresentationalR
       reviewer RepresentationalR = Right ()
       reviewer x = Left x
-      
+
 _PhantomR :: Prism' Role ()
 _PhantomR
   = prism remitter reviewer
