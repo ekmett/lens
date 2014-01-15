@@ -96,6 +96,9 @@ extra-source-files:
   examples/*.lhs
   examples/bf-examples/*.bf
   images/*.png
+  lens-properties/CHANGELOG.markdown
+  lens-properties/LICENSE
+  lens-properties/Setup.hs
   travis/cabal-apt-install
   travis/config
   HLint.hs
