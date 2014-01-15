@@ -172,7 +172,9 @@ flag lib-Werror
 
 library
   build-depends:
+    aeson                     >= 0.6      && < 0.8,
     array                     >= 0.3.0.2  && < 0.6,
+    attoparsec                >= 0.10     && < 0.11,
     base                      >= 4.3      && < 5,
     bifunctors                >= 4        && < 5,
     bytestring                >= 0.9.1.10 && < 0.11,
@@ -199,6 +201,7 @@ library
     transformers              >= 0.2      && < 0.4,
     transformers-compat       >= 0.1      && < 1,
     unordered-containers      >= 0.2      && < 0.3,
+    utf8-string               >= 0.3.7    && < 0.4,
     vector                    >= 0.9      && < 0.11,
     void                      >= 0.5      && < 1,
     zlib                      >= 0.5.4    && < 0.6
@@ -258,6 +261,7 @@ library
     Control.Monad.Primitive.Lens
     Control.Parallel.Strategies.Lens
     Control.Seq.Lens
+    Data.Aeson.Lens
     Data.Array.Lens
     Data.Bits.Lens
     Data.ByteString.Lens
