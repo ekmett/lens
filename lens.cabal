@@ -177,7 +177,7 @@ library
   build-depends:
     aeson                     >= 0.6      && < 0.8,
     array                     >= 0.3.0.2  && < 0.6,
-    attoparsec                >= 0.10     && < 0.11,
+    attoparsec                >= 0.10     && < 0.12,
     base                      >= 4.3      && < 5,
     bifunctors                >= 4        && < 5,
     bytestring                >= 0.9.1.10 && < 0.11,
