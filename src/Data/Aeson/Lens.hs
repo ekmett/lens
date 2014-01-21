@@ -56,7 +56,7 @@ import Prelude hiding (null)
 class AsNumber t where
   -- |
   -- >>> "[1, \"x\"]" ^? nth 0 . _Number
-  -- Just 1
+  -- Just 1.0
   --
   -- >>> "[1, \"x\"]" ^? nth 1 . _Number
   -- Nothing
@@ -81,7 +81,7 @@ class AsNumber t where
   -- Just 10
   --
   -- >>> "[10.5]" ^? nth 0 . _Integer
-  -- Nothing
+  -- Just 10
   _Integer :: Prism' t Integer
   _Integer = _Number.iso floor fromIntegral
 
@@ -104,7 +104,7 @@ instance AsNumber String
 -- Just 10
 --
 -- >>> "[10.5]" ^? nth 0 . _Integral
--- Nothing
+-- Just 10
 _Integral :: (AsNumber t, Integral a) => Prism' t a
 _Integral = _Number . iso floor fromIntegral
 
@@ -126,7 +126,7 @@ instance AsNumber Primitive where
 class AsNumber t => AsPrimitive t where
   -- |
   -- >>> "[1, \"x\", null, true, false]" ^? nth 0 . _Primitive
-  -- Just (ScientificPrim 1)
+  -- Just (NumberPrim 1.0)
   --
   -- >>> "[1, \"x\", null, true, false]" ^? nth 1 . _Primitive
   -- Just (StringPrim "x")
@@ -211,8 +211,8 @@ nonNull = prism id (\v -> if isn't _Null v then Right v else Left v)
 
 class AsPrimitive t => AsValue t where
   -- |
-  -- >>>"[1,2,3]" ^? _Value
-  -- Just (Array (fromList [Number 1,Number 2,Number 3]))
+  -- >>> "[1,2,3]" ^? _Value
+  -- Just (Array (fromList [Number 1.0,Number 2.0,Number 3.0]))
   _Value :: Prism' t Value
 
   -- |
@@ -226,7 +226,7 @@ class AsPrimitive t => AsValue t where
 
   -- |
   -- >>> "[1,2,3]" ^? _Array
-  -- Just (fromList [Number 1,Number 2,Number 3])
+  -- Just (fromList [Number 1.0,Number 2.0,Number 3.0])
   _Array :: Prism' t (Vector Value)
   _Array = _Value.prism Array (\v -> case v of Array a -> Right a; _ -> Left v)
 
@@ -244,7 +244,7 @@ instance AsValue String where
 -- inference than 'ix' when used with OverloadedStrings.
 --
 -- >>> "{\"a\": 100, \"b\": 200}" ^? key "a"
--- Just (Number 100)
+-- Just (Number 100.0)
 --
 -- >>> "[1,2,3]" ^? key "a"
 -- Nothing
@@ -257,7 +257,7 @@ members = _Object . itraversed
 -- | Like 'ix', but for Arrays with Int indexes
 --
 -- >>> "[1,2,3]" ^? nth 1
--- Just (Number 2)
+-- Just (Number 2.0)
 --
 -- >>> "\"a\": 100, \"b\": 200}" ^? nth 1
 -- Nothing
