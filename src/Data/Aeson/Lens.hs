@@ -276,6 +276,13 @@ key :: AsValue t => Text -> Traversal' t Value
 key i = _Object . ix i
 {-# INLINE key #-}
 
+-- | An indexed Traversal into Object properties
+--
+-- >>> "{\"a\": 4, \"b\": 7}" ^@.. members
+-- [("a",Number 4.0),("b",Number 7.0)]
+--
+-- >>> "{\"a\": 4, \"b\": 7}" & members . _Number *~ 10
+-- "{\"a\":40,\"b\":70}"
 members :: AsValue t => IndexedTraversal' Text t Value
 members = _Object . itraversed
 {-# INLINE members #-}
@@ -294,6 +301,13 @@ nth :: AsValue t => Int -> Traversal' t Value
 nth i = _Array . ix i
 {-# INLINE nth #-}
 
+-- | An indexed Traversal into Array elements
+--
+-- >>> "[1,2,3]" ^.. values
+-- [Number 1.0,Number 2,0,Number 3.0]
+--
+-- >>> "[1,2,3]" & values . _Number *~ 10
+-- "[10,20,30]"
 values :: AsValue t => IndexedTraversal' Int t Value
 values = _Array . traversed
 {-# INLINE values #-}
