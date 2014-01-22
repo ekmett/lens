@@ -304,7 +304,7 @@ nth i = _Array . ix i
 -- | An indexed Traversal into Array elements
 --
 -- >>> "[1,2,3]" ^.. values
--- [Number 1.0,Number 2,0,Number 3.0]
+-- [Number 1.0,Number 2.0,Number 3.0]
 --
 -- >>> "[1,2,3]" & values . _Number *~ 10
 -- "[10,20,30]"
