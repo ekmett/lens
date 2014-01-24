@@ -357,24 +357,24 @@ mappedException' = mappedException
 --
 -- Due to their richer structure relative to other exceptions, these have
 -- a more carefully overloaded signature.
-class AsIOException p f t where
+class AsIOException t where
   -- | Unfortunately the name 'ioException' is taken by @base@ for
   -- throwing IOExceptions.
   --
   -- @
-  -- '_IOException' :: 'Equality'' 'IOException' 'IOException'
+  -- '_IOException' :: 'Prism'' 'IOException' 'IOException'
   -- '_IOException' :: 'Prism'' 'SomeException' 'IOException'
   -- @
   --
   -- Many combinators for working with an 'IOException' are available
   -- in "System.IO.Error.Lens".
-  _IOException :: Optic' p f t IOException
+  _IOException :: Prism' t IOException
 
-instance AsIOException p f IOException where
+instance AsIOException IOException where
   _IOException = id
   {-# INLINE _IOException #-}
 
-instance (Choice p, Applicative f) => AsIOException p f SomeException where
+instance AsIOException SomeException where
   _IOException = exception
   {-# INLINE _IOException #-}
 
@@ -383,16 +383,16 @@ instance (Choice p, Applicative f) => AsIOException p f SomeException where
 ----------------------------------------------------------------------------
 
 -- | Arithmetic exceptions.
-class AsArithException p f t where
-  -- '_ArithException' :: 'Equality'' 'ArithException' 'ArithException'
-  -- '_ArithException' :: 'Prism''    'SomeException'  'ArithException'
-  _ArithException :: Optic' p f t ArithException
+class AsArithException t where
+  -- '_ArithException' :: 'Prism'' 'ArithException' 'ArithException'
+  -- '_ArithException' :: 'Prism'' 'SomeException'  'ArithException'
+  _ArithException :: Prism' t ArithException
 
-instance AsArithException p f ArithException where
+instance AsArithException ArithException where
   _ArithException = id
   {-# INLINE _ArithException #-}
 
-instance (Choice p, Applicative f) => AsArithException p f SomeException where
+instance AsArithException SomeException where
   _ArithException = exception
   {-# INLINE _ArithException #-}
 
@@ -406,7 +406,7 @@ instance (Choice p, Applicative f) => AsArithException p f SomeException where
 -- '_Overflow' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Overflow' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Overflow :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
+_Overflow :: AsArithException t => Prism' t ()
 _Overflow = _ArithException . dimap seta (either id id) . right' . rmap (Overflow <$) where
   seta Overflow = Right ()
   seta t        = Left  (pure t)
@@ -422,7 +422,7 @@ _Overflow = _ArithException . dimap seta (either id id) . right' . rmap (Overflo
 -- '_Underflow' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Underflow' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Underflow :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
+_Underflow :: AsArithException t => Prism' t ()
 _Underflow = _ArithException . dimap seta (either id id) . right' . rmap (Underflow <$) where
   seta Underflow = Right ()
   seta t        = Left  (pure t)
@@ -438,7 +438,7 @@ _Underflow = _ArithException . dimap seta (either id id) . right' . rmap (Underf
 -- '_LossOfPrecision' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_LossOfPrecision' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_LossOfPrecision :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
+_LossOfPrecision :: AsArithException t => Prism' t ()
 _LossOfPrecision = _ArithException . dimap seta (either id id) . right' . rmap (LossOfPrecision <$) where
   seta LossOfPrecision = Right ()
   seta t        = Left  (pure t)
@@ -454,7 +454,7 @@ _LossOfPrecision = _ArithException . dimap seta (either id id) . right' . rmap (
 -- '_DivideByZero' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_DivideByZero' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_DivideByZero :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
+_DivideByZero :: AsArithException t => Prism' t ()
 _DivideByZero = _ArithException . dimap seta (either id id) . right' . rmap (DivideByZero <$) where
   seta DivideByZero = Right ()
   seta t        = Left  (pure t)
@@ -470,7 +470,7 @@ _DivideByZero = _ArithException . dimap seta (either id id) . right' . rmap (Div
 -- '_Denormal' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_Denormal' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_Denormal :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
+_Denormal :: AsArithException t => Prism' t ()
 _Denormal = _ArithException . dimap seta (either id id) . right' . rmap (Denormal <$) where
   seta Denormal = Right ()
   seta t        = Left  (pure t)
@@ -489,7 +489,7 @@ _Denormal = _ArithException . dimap seta (either id id) . right' . rmap (Denorma
 -- '_RatioZeroDenominator' :: 'Prism'' 'ArithException' 'ArithException'
 -- '_RatioZeroDenominator' :: 'Prism'' 'SomeException'  'ArithException'
 -- @
-_RatioZeroDenominator :: (AsArithException p f t, Choice p, Applicative f) => Optic' p f t ()
+_RatioZeroDenominator :: AsArithException t => Prism' t ()
 _RatioZeroDenominator = _ArithException . dimap seta (either id id) . right' . rmap (RatioZeroDenominator <$) where
   seta RatioZeroDenominator = Right ()
   seta t        = Left  (pure t)
@@ -502,20 +502,20 @@ _RatioZeroDenominator = _ArithException . dimap seta (either id id) . right' . r
 ----------------------------------------------------------------------------
 
 -- | Exceptions generated by array operations.
-class AsArrayException p f t where
+class AsArrayException t where
   -- | Extract information about an 'ArrayException'.
   --
   -- @
-  -- '_ArrayException' :: 'Equality'' 'ArrayException' 'ArrayException'
-  -- '_ArrayException' :: 'Prism''    'SomeException'  'ArrayException'
+  -- '_ArrayException' :: 'Prism'' 'ArrayException' 'ArrayException'
+  -- '_ArrayException' :: 'Prism'' 'SomeException'  'ArrayException'
   -- @
-  _ArrayException :: Optic' p f t ArrayException
+  _ArrayException :: Prism' t ArrayException
 
-instance AsArrayException p f ArrayException where
+instance AsArrayException ArrayException where
   _ArrayException = id
   {-# INLINE _ArrayException #-}
 
-instance (Choice p, Applicative f) => AsArrayException p f SomeException where
+instance AsArrayException SomeException where
   _ArrayException = exception
   {-# INLINE _ArrayException #-}
 
@@ -529,7 +529,7 @@ instance (Choice p, Applicative f) => AsArrayException p f SomeException where
 -- '_IndexOutOfBounds' :: 'Prism'' 'ArrayException' 'String'
 -- '_IndexOutOfBounds' :: 'Prism'' 'SomeException'  'String'
 -- @
-_IndexOutOfBounds :: (AsArrayException p f t, Choice p, Applicative f) => Optic' p f t String
+_IndexOutOfBounds :: AsArrayException t => Prism' t String
 _IndexOutOfBounds = _ArrayException . dimap seta (either id id) . right' . rmap (fmap IndexOutOfBounds) where
   seta (IndexOutOfBounds r) = Right r
   seta t                    = Left  (pure t)
@@ -545,7 +545,7 @@ _IndexOutOfBounds = _ArrayException . dimap seta (either id id) . right' . rmap 
 -- '_UndefinedElement' :: 'Prism'' 'ArrayException' 'String'
 -- '_UndefinedElement' :: 'Prism'' 'SomeException'  'String'
 -- @
-_UndefinedElement :: (AsArrayException p f t, Choice p, Applicative f) => Optic' p f t String
+_UndefinedElement :: AsArrayException t => Prism' t String
 _UndefinedElement = _ArrayException . dimap seta (either id id) . right' . rmap (fmap UndefinedElement) where
   seta (UndefinedElement r) = Right r
   seta t                    = Left  (pure t)
@@ -556,23 +556,23 @@ _UndefinedElement = _ArrayException . dimap seta (either id id) . right' . rmap 
 ----------------------------------------------------------------------------
 
 -- | 'assert' was applied to 'Prelude.False'.
-class AsAssertionFailed p f t where
+class AsAssertionFailed t where
   -- | This 'Exception' contains provides information about what assertion failed in the 'String'.
   --
   -- >>> handling _AssertionFailed (\ xs -> "caught" <$ guard ("<interactive>" `isInfixOf` xs) ) $ assert False (return "uncaught")
   -- "caught"
   --
   -- @
-  -- '_AssertionFailed' :: 'Iso''   'AssertionFailed' 'String'
+  -- '_AssertionFailed' :: 'Prism'' 'AssertionFailed' 'String'
   -- '_AssertionFailed' :: 'Prism'' 'SomeException'   'String'
   -- @
-  _AssertionFailed :: Optic' p f t String
+  _AssertionFailed :: Prism' t String
 
-instance (Profunctor p, Functor f) => AsAssertionFailed p f AssertionFailed where
+instance AsAssertionFailed AssertionFailed where
   _AssertionFailed = _Wrapping AssertionFailed
   {-# INLINE _AssertionFailed #-}
 
-instance (Choice p, Applicative f) => AsAssertionFailed p f SomeException where
+instance AsAssertionFailed SomeException where
   _AssertionFailed = exception._Wrapping AssertionFailed
   {-# INLINE _AssertionFailed #-}
 
@@ -581,20 +581,20 @@ instance (Choice p, Applicative f) => AsAssertionFailed p f SomeException where
 ----------------------------------------------------------------------------
 
 -- | Asynchronous exceptions.
-class AsAsyncException p f t where
+class AsAsyncException t where
   -- | There are several types of 'AsyncException'.
   --
   -- @
   -- '_AsyncException' :: 'Equality'' 'AsyncException' 'AsyncException'
   -- '_AsyncException' :: 'Prism''    'SomeException'  'AsyncException'
   -- @
-  _AsyncException :: Optic' p f t AsyncException
+  _AsyncException :: Prism' t AsyncException
 
-instance AsAsyncException p f AsyncException where
+instance AsAsyncException AsyncException where
   _AsyncException = id
   {-# INLINE _AsyncException #-}
 
-instance (Choice p, Applicative f) => AsAsyncException p f SomeException where
+instance AsAsyncException SomeException where
   _AsyncException = exception
   {-# INLINE _AsyncException #-}
 
@@ -606,7 +606,7 @@ instance (Choice p, Applicative f) => AsAsyncException p f SomeException where
 -- '_StackOverflow' :: 'Prism'' 'AsyncException' ()
 -- '_StackOverflow' :: 'Prism'' 'SomeException'  ()
 -- @
-_StackOverflow :: (AsAsyncException p f t, Choice p, Applicative f) => Optic' p f t ()
+_StackOverflow :: AsAsyncException t => Prism' t ()
 _StackOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (StackOverflow <$) where
   seta StackOverflow = Right ()
   seta t             = Left  (pure t)
@@ -625,10 +625,10 @@ _StackOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (St
 -- '_HeapOverflow' :: 'Prism'' 'AsyncException' ()
 -- '_HeapOverflow' :: 'Prism'' 'SomeException'  ()
 -- @
-_HeapOverflow :: (AsAsyncException p f t, Choice p, Applicative f) => Optic' p f t ()
+_HeapOverflow :: AsAsyncException t => Prism' t ()
 _HeapOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (HeapOverflow <$) where
   seta HeapOverflow = Right ()
-  seta t             = Left  (pure t)
+  seta t            = Left  (pure t)
 {-# INLINE _HeapOverflow #-}
 
 -- | This 'Exception' is raised by another thread calling
@@ -639,10 +639,10 @@ _HeapOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (Hea
 -- '_ThreadKilled' :: 'Prism'' 'AsyncException' ()
 -- '_ThreadKilled' :: 'Prism'' 'SomeException'  ()
 -- @
-_ThreadKilled :: (AsAsyncException p f t, Choice p, Applicative f) => Optic' p f t ()
+_ThreadKilled :: AsAsyncException t => Prism' t ()
 _ThreadKilled = _AsyncException . dimap seta (either id id) . right' . rmap (ThreadKilled <$) where
   seta ThreadKilled = Right ()
-  seta t             = Left  (pure t)
+  seta t            = Left  (pure t)
 {-# INLINE _ThreadKilled #-}
 
 -- | This 'Exception' is raised by default in the main thread of the program when
@@ -653,7 +653,7 @@ _ThreadKilled = _AsyncException . dimap seta (either id id) . right' . rmap (Thr
 -- '_UserInterrupt' :: 'Prism'' 'AsyncException' ()
 -- '_UserInterrupt' :: 'Prism'' 'SomeException'  ()
 -- @
-_UserInterrupt :: (AsAsyncException p f t, Choice p, Applicative f) => Optic' p f t ()
+_UserInterrupt :: AsAsyncException t => Prism' t ()
 _UserInterrupt = _AsyncException . dimap seta (either id id) . right' . rmap (UserInterrupt <$) where
   seta UserInterrupt = Right ()
   seta t             = Left  (pure t)
@@ -666,20 +666,20 @@ _UserInterrupt = _AsyncException . dimap seta (either id id) . right' . rmap (Us
 -- | Thrown when the runtime system detects that the computation is guaranteed
 -- not to terminate. Note that there is no guarantee that the runtime system
 -- will notice whether any given computation is guaranteed to terminate or not.
-class (Profunctor p, Functor f) => AsNonTermination p f t where
+class AsNonTermination t where
   -- | There is no additional information carried in a 'NonTermination' 'Exception'.
   --
   -- @
-  -- '_NonTermination' :: 'Iso''   'NonTermination' ()
+  -- '_NonTermination' :: 'Prism'' 'NonTermination' ()
   -- '_NonTermination' :: 'Prism'' 'SomeException'  ()
   -- @
-  _NonTermination :: Optic' p f t ()
+  _NonTermination :: Prism' t ()
 
-instance (Profunctor p, Functor f) => AsNonTermination p f NonTermination where
+instance AsNonTermination NonTermination where
   _NonTermination = trivial NonTermination
   {-# INLINE _NonTermination #-}
 
-instance (Choice p, Applicative f) => AsNonTermination p f SomeException where
+instance AsNonTermination SomeException where
   _NonTermination = exception.trivial NonTermination
   {-# INLINE _NonTermination #-}
 
@@ -689,20 +689,20 @@ instance (Choice p, Applicative f) => AsNonTermination p f SomeException where
 
 -- | Thrown when the program attempts to call atomically, from the
 -- 'Control.Monad.STM' package, inside another call to atomically.
-class (Profunctor p, Functor f) => AsNestedAtomically p f t where
+class AsNestedAtomically t where
   -- | There is no additional information carried in a 'NestedAtomically' 'Exception'.
   --
   -- @
-  -- '_NestedAtomically' :: 'Iso''   'NestedAtomically' ()
+  -- '_NestedAtomically' :: 'Prism'' 'NestedAtomically' ()
   -- '_NestedAtomically' :: 'Prism'' 'SomeException'    ()
   -- @
-  _NestedAtomically :: Optic' p f t ()
+  _NestedAtomically :: Prism' t ()
 
-instance (Profunctor p, Functor f) => AsNestedAtomically p f NestedAtomically where
+instance AsNestedAtomically NestedAtomically where
   _NestedAtomically = trivial NestedAtomically
   {-# INLINE _NestedAtomically #-}
 
-instance (Choice p, Applicative f) => AsNestedAtomically p f SomeException where
+instance AsNestedAtomically SomeException where
   _NestedAtomically = exception.trivial NestedAtomically
   {-# INLINE _NestedAtomically #-}
 
@@ -713,20 +713,20 @@ instance (Choice p, Applicative f) => AsNestedAtomically p f SomeException where
 -- | The thread is blocked on an 'Control.Concurrent.MVar.MVar', but there
 -- are no other references to the 'Control.Concurrent.MVar.MVar' so it can't
 -- ever continue.
-class (Profunctor p, Functor f) => AsBlockedIndefinitelyOnMVar p f t where
+class AsBlockedIndefinitelyOnMVar t where
   -- | There is no additional information carried in a 'BlockedIndefinitelyOnMVar' 'Exception'.
   --
   -- @
-  -- '_BlockedIndefinitelyOnMVar' :: 'Iso''   'BlockedIndefinitelyOnMVar' ()
+  -- '_BlockedIndefinitelyOnMVar' :: 'Prism'' 'BlockedIndefinitelyOnMVar' ()
   -- '_BlockedIndefinitelyOnMVar' :: 'Prism'' 'SomeException'             ()
   -- @
-  _BlockedIndefinitelyOnMVar :: Optic' p f t ()
+  _BlockedIndefinitelyOnMVar :: Prism' t ()
 
-instance (Profunctor p, Functor f) => AsBlockedIndefinitelyOnMVar p f BlockedIndefinitelyOnMVar where
+instance AsBlockedIndefinitelyOnMVar BlockedIndefinitelyOnMVar where
   _BlockedIndefinitelyOnMVar = trivial BlockedIndefinitelyOnMVar
   {-# INLINE _BlockedIndefinitelyOnMVar #-}
 
-instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnMVar p f SomeException where
+instance AsBlockedIndefinitelyOnMVar SomeException where
   _BlockedIndefinitelyOnMVar = exception.trivial BlockedIndefinitelyOnMVar
   {-# INLINE _BlockedIndefinitelyOnMVar #-}
 
@@ -737,20 +737,20 @@ instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnMVar p f SomeExcept
 -- | The thread is waiting to retry an 'Control.Monad.STM.STM' transaction,
 -- but there are no other references to any TVars involved, so it can't ever
 -- continue.
-class (Profunctor p, Functor f) => AsBlockedIndefinitelyOnSTM p f t where
+class AsBlockedIndefinitelyOnSTM t where
   -- | There is no additional information carried in a 'BlockedIndefinitelyOnSTM' 'Exception'.
   --
   -- @
-  -- '_BlockedIndefinitelyOnSTM' :: 'Iso''   'BlockedIndefinitelyOnSTM' ()
+  -- '_BlockedIndefinitelyOnSTM' :: 'Prism'' 'BlockedIndefinitelyOnSTM' ()
   -- '_BlockedIndefinitelyOnSTM' :: 'Prism'' 'SomeException'            ()
   -- @
-  _BlockedIndefinitelyOnSTM :: Optic' p f t ()
+  _BlockedIndefinitelyOnSTM :: Prism' t ()
 
-instance (Profunctor p, Functor f) => AsBlockedIndefinitelyOnSTM p f BlockedIndefinitelyOnSTM where
+instance AsBlockedIndefinitelyOnSTM BlockedIndefinitelyOnSTM where
   _BlockedIndefinitelyOnSTM = trivial BlockedIndefinitelyOnSTM
   {-# INLINE _BlockedIndefinitelyOnSTM #-}
 
-instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnSTM p f SomeException where
+instance AsBlockedIndefinitelyOnSTM SomeException where
   _BlockedIndefinitelyOnSTM = exception.trivial BlockedIndefinitelyOnSTM
   {-# INLINE _BlockedIndefinitelyOnSTM #-}
 
@@ -760,20 +760,20 @@ instance (Choice p, Applicative f) => AsBlockedIndefinitelyOnSTM p f SomeExcepti
 
 -- | There are no runnable threads, so the program is deadlocked. The
 -- 'Deadlock' 'Exception' is raised in the main thread only.
-class (Profunctor p, Functor f) => AsDeadlock p f t where
+class AsDeadlock t where
   -- | There is no information carried in a 'Deadlock' 'Exception'.
   --
   -- @
-  -- '_Deadlock' :: 'Iso''   'Deadlock'      ()
+  -- '_Deadlock' :: 'Prism'' 'Deadlock'      ()
   -- '_Deadlock' :: 'Prism'' 'SomeException' ()
   -- @
-  _Deadlock :: Optic' p f t ()
+  _Deadlock :: Prism' t ()
 
-instance (Profunctor p, Functor f) => AsDeadlock p f Deadlock where
+instance AsDeadlock Deadlock where
   _Deadlock = trivial Deadlock
   {-# INLINE _Deadlock #-}
 
-instance (Choice p, Applicative f) => AsDeadlock p f SomeException where
+instance AsDeadlock SomeException where
   _Deadlock = exception.trivial Deadlock
   {-# INLINE _Deadlock #-}
 
@@ -783,20 +783,20 @@ instance (Choice p, Applicative f) => AsDeadlock p f SomeException where
 
 -- | A class method without a definition (neither a default definition,
 -- nor a definition in the appropriate instance) was called.
-class (Profunctor p, Functor f) => AsNoMethodError p f t where
+class AsNoMethodError t where
   -- | Extract a description of the missing method.
   --
   -- @
-  -- '_NoMethodError' :: 'Iso''   'NoMethodError' 'String'
+  -- '_NoMethodError' :: 'Prism'' 'NoMethodError' 'String'
   -- '_NoMethodError' :: 'Prism'' 'SomeException' 'String'
   -- @
-  _NoMethodError :: Optic' p f t String
+  _NoMethodError :: Prism' t String
 
-instance (Profunctor p, Functor f) => AsNoMethodError p f NoMethodError where
+instance AsNoMethodError NoMethodError where
   _NoMethodError = _Wrapping NoMethodError
   {-# INLINE _NoMethodError #-}
 
-instance (Choice p, Applicative f) => AsNoMethodError p f SomeException where
+instance AsNoMethodError SomeException where
   _NoMethodError = exception._Wrapping NoMethodError
   {-# INLINE _NoMethodError #-}
 
@@ -805,20 +805,20 @@ instance (Choice p, Applicative f) => AsNoMethodError p f SomeException where
 ----------------------------------------------------------------------------
 
 -- | A pattern match failed.
-class (Profunctor p, Functor f) => AsPatternMatchFail p f t where
+class AsPatternMatchFail t where
   -- | Information about the source location of the pattern.
   --
   -- @
-  -- '_PatternMatchFail' :: 'Iso''   'PatternMatchFail' 'String'
+  -- '_PatternMatchFail' :: 'Prism'' 'PatternMatchFail' 'String'
   -- '_PatternMatchFail' :: 'Prism'' 'SomeException'    'String'
   -- @
-  _PatternMatchFail :: Optic' p f t String
+  _PatternMatchFail :: Prism' t String
 
-instance (Profunctor p, Functor f) => AsPatternMatchFail p f PatternMatchFail where
+instance AsPatternMatchFail PatternMatchFail where
   _PatternMatchFail = _Wrapping PatternMatchFail
   {-# INLINE _PatternMatchFail #-}
 
-instance (Choice p, Applicative f) => AsPatternMatchFail p f SomeException where
+instance AsPatternMatchFail SomeException where
   _PatternMatchFail = exception._Wrapping PatternMatchFail
   {-# INLINE _PatternMatchFail #-}
 
@@ -827,21 +827,21 @@ instance (Choice p, Applicative f) => AsPatternMatchFail p f SomeException where
 ----------------------------------------------------------------------------
 
 -- | An uninitialised record field was used.
-class (Profunctor p, Functor f) => AsRecConError p f t where
+class AsRecConError t where
   -- | Information about the source location where the record was
   -- constructed.
   --
   -- @
-  -- '_RecConError' :: 'Iso''   'RecConError'   'String'
+  -- '_RecConError' :: 'Prism'' 'RecConError'   'String'
   -- '_RecConError' :: 'Prism'' 'SomeException' 'String'
   -- @
-  _RecConError :: Optic' p f t String
+  _RecConError :: Prism' t String
 
-instance (Profunctor p, Functor f) => AsRecConError p f RecConError where
+instance AsRecConError RecConError where
   _RecConError = _Wrapping RecConError
   {-# INLINE _RecConError #-}
 
-instance (Choice p, Applicative f) => AsRecConError p f SomeException where
+instance AsRecConError SomeException where
   _RecConError = exception._Wrapping RecConError
   {-# INLINE _RecConError #-}
 
@@ -852,15 +852,15 @@ instance (Choice p, Applicative f) => AsRecConError p f SomeException where
 -- | A record selector was applied to a constructor without the appropriate
 -- field. This can only happen with a datatype with multiple constructors,
 -- where some fields are in one constructor but not another.
-class (Profunctor p, Functor f) => AsRecSelError p f t where
+class AsRecSelError t where
   -- | Information about the source location where the record selection occurred.
-  _RecSelError :: Optic' p f t String
+  _RecSelError :: Prism' t String
 
-instance (Profunctor p, Functor f) => AsRecSelError p f RecSelError where
+instance AsRecSelError RecSelError where
   _RecSelError = _Wrapping RecSelError
   {-# INLINE _RecSelError #-}
 
-instance (Choice p, Applicative f) => AsRecSelError p f SomeException where
+instance AsRecSelError SomeException where
   _RecSelError = exception._Wrapping RecSelError
   {-# INLINE _RecSelError #-}
 
@@ -871,15 +871,15 @@ instance (Choice p, Applicative f) => AsRecSelError p f SomeException where
 -- | A record update was performed on a constructor without the
 -- appropriate field. This can only happen with a datatype with multiple
 -- constructors, where some fields are in one constructor but not another.
-class (Profunctor p, Functor f) => AsRecUpdError p f t where
+class AsRecUpdError t where
   -- | Information about the source location where the record was updated.
-  _RecUpdError :: Optic' p f t String
+  _RecUpdError :: Prism' t String
 
-instance (Profunctor p, Functor f) => AsRecUpdError p f RecUpdError where
+instance AsRecUpdError RecUpdError where
   _RecUpdError = _Wrapping RecUpdError
   {-# INLINE _RecUpdError #-}
 
-instance (Choice p, Applicative f) => AsRecUpdError p f SomeException where
+instance AsRecUpdError SomeException where
   _RecUpdError = exception._Wrapping RecUpdError
   {-# INLINE _RecUpdError #-}
 
@@ -888,20 +888,20 @@ instance (Choice p, Applicative f) => AsRecUpdError p f SomeException where
 ----------------------------------------------------------------------------
 
 -- | This is thrown when the user calls 'Prelude.error'.
-class (Profunctor p, Functor f) => AsErrorCall p f t where
+class AsErrorCall t where
   -- | Retrieve the argument given to 'Prelude.error'.
   --
   -- 'ErrorCall' is isomorphic to a 'String'.
   --
   -- >>> catching _ErrorCall (error "touch down!") return
   -- "touch down!"
-  _ErrorCall :: Optic' p f t String
+  _ErrorCall :: Prism' t String
 
-instance (Profunctor p, Functor f) => AsErrorCall p f ErrorCall where
+instance AsErrorCall ErrorCall where
   _ErrorCall = _Wrapping ErrorCall
   {-# INLINE _ErrorCall #-}
 
-instance (Choice p, Applicative f) => AsErrorCall p f SomeException where
+instance AsErrorCall SomeException where
   _ErrorCall = exception._Wrapping ErrorCall
   {-# INLINE _ErrorCall #-}
 
@@ -911,20 +911,20 @@ instance (Choice p, Applicative f) => AsErrorCall p f SomeException where
 
 -- | This 'Exception' is thrown by @lens@ when the user somehow manages to rethrow
 -- an internal 'HandlingException'.
-class (Profunctor p, Functor f) => AsHandlingException p f t where
+class AsHandlingException t where
   -- | There is no information carried in a 'HandlingException'.
   --
   -- @
-  -- '_HandlingException' :: 'Iso''   'HandlingException' ()
+  -- '_HandlingException' :: 'Prism'' 'HandlingException' ()
   -- '_HandlingException' :: 'Prism'' 'SomeException'     ()
   -- @
-  _HandlingException :: Optic' p f t ()
+  _HandlingException :: Prism' t ()
 
-instance (Profunctor p, Functor f) => AsHandlingException p f HandlingException where
+instance AsHandlingException HandlingException where
   _HandlingException = trivial HandlingException
   {-# INLINE _HandlingException #-}
 
-instance (Choice p, Applicative f) => AsHandlingException p f SomeException where
+instance AsHandlingException SomeException where
   _HandlingException = exception.trivial HandlingException
   {-# INLINE _HandlingException #-}
 
