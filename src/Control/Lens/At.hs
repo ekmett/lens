@@ -10,7 +10,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE ConstraintKinds #-}
 
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
@@ -39,13 +38,10 @@ module Control.Lens.At
   , Ixed(ix)
   , ixAt
   -- * Contains
-  , Contains(..), contains'
-  , containsIx, containsAt, containsLength, containsN, containsTest, containsLookup
+  , Contains(..)
   ) where
 
 import Control.Applicative
-import Control.Lens.Fold
-import Control.Lens.Getter
 import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Type
@@ -55,7 +51,6 @@ import Data.Array.Unboxed
 import Data.ByteString as StrictB
 import Data.ByteString.Lazy as LazyB
 import Data.Complex
-import Data.Constraint
 import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.HashSet as HashSet
@@ -64,8 +59,6 @@ import Data.IntMap as IntMap
 import Data.IntSet as IntSet
 import Data.List.NonEmpty as NonEmpty
 import Data.Map as Map
-import Data.Maybe
-import Data.Proxy
 import Data.Set as Set
 import Data.Sequence as Seq
 import Data.Text as StrictT
@@ -124,11 +117,6 @@ type instance Index LazyB.ByteString = Int64
 -- This class provides a simple 'IndexedFold' (or 'IndexedTraversal') that lets you view (and modify)
 -- information about whether or not a container contains a given 'Index'.
 class Contains m where
-#ifndef HLINT
-  type Containing m (f :: * -> *) :: Constraint
-  type Containing m f = (Contravariant f, Functor f)
-#endif
-
   -- |
   -- >>> IntSet.fromList [1,2,3,4] ^. contains 3
   -- True
@@ -138,213 +126,21 @@ class Contains m where
   --
   -- >>> IntSet.fromList [1,2,3,4] & contains 3 .~ False
   -- fromList [1,2,4]
-  contains :: Containing m f => Index m -> LensLike' f m Bool
-#ifndef HLINT
-  default contains :: (Contravariant f, Functor f, At m) => Index m -> LensLike' f m Bool
-  contains = containsAt
-#endif
-
-  -- | Every instance of Contains is at least a 'Getter'
-  containsProof :: p m -> q f -> (Contravariant f, Functor f) :- Containing m f
-#ifndef HLINT
-  default containsProof :: (Containing m f ~ (Contravariant f, Functor f)) => p m -> q f -> (Contravariant f, Functor f) :- Containing m f
-  containsProof _ _ = Sub Dict
-#endif
-
--- |
--- @
--- 'contains'' :: 'Contains' m => 'Index' m -> 'Getter' m 'Bool'
--- @
-contains' :: forall m f. (Contains m, Contravariant f, Functor f) => Index m -> LensLike' f m Bool
-contains' = case containsProof (Proxy :: Proxy m) (ArrP :: ArrP f) of
-  Sub Dict -> contains
-{-# INLINE contains' #-}
-
-data ArrP (f :: * -> *) = ArrP
-
--- | A definition of 'contains' for types with an 'Ix' instance.
-containsIx :: (Contravariant f, Functor f, Ixed m) => Index m -> LensLike' f m Bool
-containsIx i f = coerce . f . has (ix i)
-{-# INLINE containsIx #-}
-
--- | A definition of 'ix' for types with an 'At' instance. This is the default
--- if you don't specify a definition for 'contains' and you are on GHC >= 7.0.2
-containsAt :: (Contravariant f, Functor f, At m) => Index m -> LensLike' f m Bool
-containsAt i f = coerce . f . views (at i) isJust
-{-# INLINE containsAt #-}
-
--- | Construct a 'contains' check based on some notion of 'Prelude.length' for the container.
-containsLength :: (Ord i, Num i) => (s -> i) -> i -> Getter s Bool
-containsLength sn = \ i pafb s -> coerce $ pafb (0 <= i && i < sn s)
-{-# INLINE containsLength #-}
-
--- | Construct a 'contains' check for a fixed number of elements.
-containsN :: Int -> Int -> Getter s Bool
-containsN n = \ i pafb _ -> coerce $ pafb (0 <= i && i < n)
-{-# INLINE containsN #-}
-
--- | Construct a 'contains' check that uses an arbitrary test.
-containsTest :: (i -> s -> Bool) -> i -> Getter s Bool
-containsTest isb = \i pafb s -> coerce $ pafb (isb i s)
-{-# INLINE containsTest #-}
-
--- | Construct a 'contains' check that uses an arbitrary 'Map.lookup' function.
-containsLookup :: (i -> s -> Maybe a) -> i -> Getter s Bool
-containsLookup isb = \i pafb s -> coerce $ pafb (isJust (isb i s))
-{-# INLINE containsLookup #-}
-
-instance Contains (e -> a) where
-  contains _ f _ = coerce (f True)
-  {-# INLINE contains #-}
+  contains :: Index m -> Lens' m Bool
 
 instance Contains IntSet where
-  type Containing IntSet f = Functor f
   contains k f s = f (IntSet.member k s) <&> \b ->
     if b then IntSet.insert k s else IntSet.delete k s
   {-# INLINE contains #-}
-  containsProof _ _ = Sub Dict
 
 instance Ord a => Contains (Set a) where
-  type Containing (Set a) f = Functor f
   contains k f s = f (Set.member k s) <&> \b ->
     if b then Set.insert k s else Set.delete k s
   {-# INLINE contains #-}
-  containsProof _ _ = Sub Dict
 
 instance (Eq a, Hashable a) => Contains (HashSet a) where
-  type Containing (HashSet a) f = Functor f
   contains k f s = f (HashSet.member k s) <&> \b ->
     if b then HashSet.insert k s else HashSet.delete k s
-  {-# INLINE contains #-}
-  containsProof _ _ = Sub Dict
-
-instance Contains (Maybe a) where
-  contains () f s = coerce $ f (isJust s)
-  {-# INLINE contains #-}
-
-instance Contains [a] where
-  contains = containsTest (\i xs -> i >= 0 && test i xs)
-    where test _ [] = False
-          test 0 (_:_) = True
-          test n (_:xs) = test (n - 1) xs
-  {-# INLINE contains #-}
-
-instance Contains (NonEmpty a) where
-  contains = containsTest test
-   where
-    test i s = i >= 0 && not (Prelude.null (NonEmpty.drop i s))
-  {-# INLINE contains #-}
-
-instance Contains (Seq a) where
-  contains = containsLength Seq.length
-  {-# INLINE contains #-}
-
-#if MIN_VERSION_base(4,4,0)
-instance Contains (Complex a) where
-  contains = containsN 2
-  {-# INLINE contains #-}
-#else
-instance RealFloat a => Contains (Complex a) where
-  contains = containsN 2
-  {-# INLINE contains #-}
-#endif
-
-instance Contains (Tree a) where
-  contains xs0 pafb = coerce . pafb . go xs0 where
-    go [] (Node _ _) = True
-    go (i:is) (Node _ as) | i < 0     = False
-                          | otherwise = goto i is as
-    goto 0 is (a:_) = go is a
-    goto _ _  []     = False
-    goto n is (_:as) = (goto $! n - 1) is as
-  {-# INLINE contains #-}
-
-instance Contains (Identity a) where
-  contains () f _ = coerce (f True)
-  {-# INLINE contains #-}
-
-instance Contains (a,b) where
-  contains = containsN 2
-  {-# INLINE contains #-}
-
-instance Contains (a,b,c) where
-  contains = containsN 3
-  {-# INLINE contains #-}
-
-instance Contains (a,b,c,d) where
-  contains = containsN 4
-  {-# INLINE contains #-}
-
-instance Contains (a,b,c,d,e) where
-  contains = containsN 5
-  {-# INLINE contains #-}
-
-instance Contains (a,b,c,d,e,f) where
-  contains = containsN 6
-  {-# INLINE contains #-}
-
-instance Contains (a,b,c,d,e,f,g) where
-  contains = containsN 7
-  {-# INLINE contains #-}
-
-instance Contains (a,b,c,d,e,f,g,h) where
-  contains = containsN 8
-  {-# INLINE contains #-}
-
-instance Contains (a,b,c,d,e,f,g,h,i) where
-  contains = containsN 9
-  {-# INLINE contains #-}
-
-instance Contains (IntMap a) where
-  contains = containsLookup IntMap.lookup
-  {-# INLINE contains #-}
-
-instance Ord k => Contains (Map k a) where
-  contains = containsLookup Map.lookup
-  {-# INLINE contains #-}
-
-instance (Eq k, Hashable k) => Contains (HashMap k a) where
-  contains = containsLookup HashMap.lookup
-  {-# INLINE contains #-}
-
-instance Ix i => Contains (Array i e) where
-  contains = containsTest $ \i s -> inRange (bounds s) i
-  {-# INLINE contains #-}
-
-instance (IArray UArray e, Ix i) => Contains (UArray i e) where
-  contains = containsTest $ \i s -> inRange (bounds s) i
-  {-# INLINE contains #-}
-
-instance Contains (Vector.Vector a) where
-  contains = containsLength Vector.length
-  {-# INLINE contains #-}
-
-instance Prim a => Contains (Prim.Vector a) where
-  contains = containsLength Prim.length
-  {-# INLINE contains #-}
-
-instance Storable a => Contains (Storable.Vector a) where
-  contains = containsLength Storable.length
-  {-# INLINE contains #-}
-
-instance Unbox a => Contains (Unboxed.Vector a) where
-  contains = containsLength Unboxed.length
-  {-# INLINE contains #-}
-
-instance Contains StrictT.Text where
-  contains = containsTest $ \i s -> StrictT.compareLength s i == GT
-  {-# INLINE contains #-}
-
-instance Contains LazyT.Text where
-  contains = containsTest $ \i s -> LazyT.compareLength s i == GT
-  {-# INLINE contains #-}
-
-instance Contains StrictB.ByteString where
-  contains = containsLength StrictB.length
-  {-# INLINE contains #-}
-
-instance Contains LazyB.ByteString where
-  contains = containsTest $ \i s -> not (LazyB.null (LazyB.drop i s))
   {-# INLINE contains #-}
 
 -- | This provides a common notion of a value at an index that is shared by both 'Ixed' and 'At'.

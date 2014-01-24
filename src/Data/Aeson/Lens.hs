@@ -290,10 +290,6 @@ type instance IxValue Value = Value
 instance Ixed Value where
   ix i = _Object.ix i
 
-instance Contains Value where
-  contains i f (Object o) = coerce (contains i f o)
-  contains i f _ = coerce (indexed f i False)
-
 instance Plated Value where
   plate f (Object o) = Object <$> traverse f o
   plate f (Array a) = Array <$> traverse f a
