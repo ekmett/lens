@@ -343,7 +343,7 @@ mappedException = sets mapException
 --
 -- >>> handling _Overflow (\_ -> return "caught") $ assert False (return "uncaught") & mappedException' .~ Overflow
 -- "caught"
-mappedException' :: (Exception e') => Setter s s SomeException e'
+mappedException' :: Exception e' => Setter s s SomeException e'
 mappedException' = mappedException
 {-# INLINE mappedException' #-}
 
