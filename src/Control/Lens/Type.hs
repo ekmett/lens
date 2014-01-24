@@ -114,7 +114,7 @@ import Data.Profunctor
 -- it a Lens Family?\" section of
 -- <http://comonad.com/reader/2012/mirrored-lenses/>.
 --
--- There are some emergent propertes of these laws:
+-- There are some emergent properties of these laws:
 --
 -- 1) @'Control.Lens.Setter.set' l s@ must be injective for every @s@ This is a consequence of law #1
 --
