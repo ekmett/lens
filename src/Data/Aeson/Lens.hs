@@ -324,6 +324,12 @@ instance AsJSON String where
   _JSON = iso UTF8.fromString UTF8.toString._JSON
   {-# INLINE _JSON #-}
 
+instance AsJSON Value where
+  _JSON = prism toJSON $ \x -> case fromJSON x of
+    Success y -> Right y;
+    _         -> Left x
+  {-# INLINE _JSON #-}
+
 ------------------------------------------------------------------------------
 -- Orphan instances
 ------------------------------------------------------------------------------
