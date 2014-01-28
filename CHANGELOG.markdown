@@ -1,3 +1,8 @@
+3.10.2 [maintenance release]
+------
+* Explicitly disallow `MonadCatchIO-transformers` 0.3.1 as it imports
+`monads-tf`, making for a bad user experience requiring package hiding.
+
 3.10.1 [maintenance release]
 ------
 * Compatibility with `base` 4.7
