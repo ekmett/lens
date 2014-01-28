@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses
-version:       3.10.1
+version:       3.10.2
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -176,7 +176,7 @@ library
     generic-deriving          >= 1.4      && < 1.7,
     ghc-prim,
     hashable                  >= 1.1.2.3  && < 1.3,
-    MonadCatchIO-transformers >= 0.3      && < 0.4,
+    MonadCatchIO-transformers >= 0.3      && < 0.3.1,
     mtl                       >= 2.0.1    && < 2.2,
     parallel                  >= 3.1.0.1  && < 3.3,
     profunctors               >= 4        && < 5,
