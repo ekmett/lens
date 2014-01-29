@@ -37,7 +37,7 @@ module Control.Lens.Iso
   , mapping
   -- ** Common Isomorphisms
   , simple
-  , non
+  , non, non'
   , anon
   , enum
   , curried, uncurried
@@ -261,23 +261,38 @@ simple = id
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
 -- fromList []
 non :: Eq a => a -> Iso' (Maybe a) a
-non = anon . only
+non = non' . only
 {-# INLINE non #-}
 
--- | @'anon' p@ generalizes @'non' (p # ())@ to take any unit 'Prism'
+-- | @'non_' p@ generalizes @'non' (p # ())@ to take any unit 'Prism'
 --
 -- This function generates an isomorphism between @'Maybe' (a | 'isn't' p a)@ and @a@.
 --
--- >>> Map.singleton "hello" Map.empty & at "hello" . anon _Empty . at "world" ?~ "!!!"
+-- >>> Map.singleton "hello" Map.empty & at "hello" . non' _Empty . at "world" ?~ "!!!"
 -- fromList [("hello",fromList [("world","!!!")])]
 --
--- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . anon _Empty . at "world" .~ Nothing
+-- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non' _Empty . at "world" .~ Nothing
 -- fromList []
-anon :: APrism' a () -> Iso' (Maybe a) a
-anon p = iso (fromMaybe def) go where
+non' :: APrism' a () -> Iso' (Maybe a) a
+non' p = iso (fromMaybe def) go where
   def                           = review (clonePrism p) ()
   go b | has (clonePrism p) b   = Nothing
        | otherwise              = Just b
+{-# INLINE non' #-}
+
+-- | @'anon' a p@ generalizes @'non' a@ to take any value and a predicate.
+--
+-- This function assumes that @p a@ holds @'True'@ and generates an isomorphism between @'Maybe' (a | 'not' (p a))@ and @a@.
+--
+-- >>> Map.empty & at "hello" . anon Map.empty Map.null . at "world" ?~ "!!!"
+-- fromList [("hello",fromList [("world","!!!")])]
+--
+-- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . anon Map.empty Map.null . at "world" .~ Nothing
+-- fromList []
+anon :: a -> (a -> Bool) -> Iso' (Maybe a) a
+anon a p = iso (fromMaybe a) go where
+  go b | p b       = Nothing
+       | otherwise = Just b
 {-# INLINE anon #-}
 
 -- | The canonical isomorphism for currying and uncurrying a function.
