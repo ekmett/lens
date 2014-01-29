@@ -4,14 +4,17 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.TupleIxedTH
--- Copyright   :  (C) 2012-13 Eric Mertens
+-- Copyright   :  (C) 2014 Edward Kmett
+--                (C) 2012-13 Eric Mertens
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
 ----------------------------------------------------------------------------
-module Control.Lens.Internal.TupleIxedTH (makeAllTupleIxed) where
+module Control.Lens.Internal.TupleIxedTH
+  ( makeAllTupleIxed
+  ) where
 
 import Control.Applicative
 import Data.Traversable (traverse)

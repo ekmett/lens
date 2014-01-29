@@ -17,7 +17,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Exception
--- Copyright   :  (C) 2013 Edward Kmett
+-- Copyright   :  (C) 2013-2014 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental

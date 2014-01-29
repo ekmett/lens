@@ -2,7 +2,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.List.Split.Lens
--- Copyright   :  (C) 2012-2013 Edward Kmett, Alexander Altman
+-- Copyright   :  (C) 2012-2014 Edward Kmett, Alexander Altman
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional

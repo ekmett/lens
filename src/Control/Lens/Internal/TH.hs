@@ -9,7 +9,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.TH
--- Copyright   :  (C) 2013 Edward Kmett, 2013 Eric Mertens
+-- Copyright   :  (C) 2013-2014 Edward Kmett, 2013 Eric Mertens
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental
