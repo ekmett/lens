@@ -773,7 +773,7 @@
 <a name="line-764"></a><span class='hs-comment'>-- ('.=') :: 'MonadState' s m =&gt; 'Setter'' s a    -&gt; a -&gt; m ()</span>
 <a name="line-765"></a><span class='hs-comment'>-- @</span>
 <a name="line-766"></a><span class='hs-comment'>--</span>
-<a name="line-767"></a><span class='hs-comment'>-- \"It puts the state in the monad or it gets the hose again.\"</span>
+<a name="line-767"></a><span class='hs-comment'>-- /It puts the state in the monad or it gets the hose again./</span>
 <a name="line-768"></a><span class='hs-layout'>(</span><span class='hs-varop'>.=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>ASetter</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
 <a name="line-769"></a><span class='hs-definition'>l</span> <span class='hs-varop'>.=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>State</span><span class='hs-varop'>.</span><span class='hs-varid'>modify</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-varop'>.~</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
 <a name="line-770"></a><span class='hs-comment'>{-# INLINE (.=) #-}</span>

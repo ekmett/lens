@@ -13,12 +13,6 @@ window.onload = function () {pageLoad();setSynopsis("mini_Data-Map-Lens.html");}
 </code></strong>fromList [(1,&quot;world&quot;)]
 </pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>at 0 ?~ &quot;hello&quot; $ Map.empty
 </code></strong>fromList [(0,&quot;hello&quot;)]
-</pre><p><code><a href="/usr/local/share/doc/ghc/html/libraries/containers-0.5.0.0/Data-Map.html#t:Map">Map</a></code> is an instance of <code><a href="Control-Lens-At.html#t:Contains">Contains</a></code>, and so we can
- test for membership.
-</p><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>Map.empty ^. contains 12
-</code></strong>False
-</pre><pre class="screen"><code class="prompt">&gt;&gt;&gt; </code><strong class="userinput"><code>Map.fromList [(0, &quot;Mercury&quot;)] ^. contains 0
-</code></strong>True
 </pre><p>We can traverse, fold over, and map over key-value pairs in a
  <code><a href="/usr/local/share/doc/ghc/html/libraries/containers-0.5.0.0/Data-Map.html#t:Map">Map</a></code>, thanks to its <code><a href="Control-Lens-Indexed.html#t:TraversableWithIndex">TraversableWithIndex</a></code>,
  <code><a href="Control-Lens-Indexed.html#t:FoldableWithIndex">FoldableWithIndex</a></code>, and

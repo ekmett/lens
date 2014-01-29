@@ -57,7 +57,7 @@
 <a name="line-48"></a><span class='hs-comment'>-- Handlers</span>
 <a name="line-49"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-50"></a>
-<a name="line-51"></a><a name="Getting"></a><span class='hs-comment'>-- | Both @MonadCatchIO-transformers@ and "Control.Exception" provide a 'Handler' type.</span>
+<a name="line-51"></a><a name="Getting"></a><span class='hs-comment'>-- | Both @exceptions@ and "Control.Exception" provide a 'Handler' type.</span>
 <a name="line-52"></a><a name="Getting"></a><span class='hs-comment'>--</span>
 <a name="line-53"></a><a name="Getting"></a><span class='hs-comment'>-- This lets us write combinators to build handlers that are agnostic about the choice of</span>
 <a name="line-54"></a><a name="Getting"></a><span class='hs-comment'>-- which of these they use.</span>
@@ -80,14 +80,14 @@
 <a name="line-71"></a>  <span class='hs-comment'>-- 'handler' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -&gt; (a -&gt; 'IO' r) -&gt; 'Exception.Handler' r</span>
 <a name="line-72"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-73"></a>  <span class='hs-comment'>--</span>
-<a name="line-74"></a>  <span class='hs-comment'>-- and with the 'CatchIO.Handler' type provided by @Control.Monad.CatchIO@:</span>
+<a name="line-74"></a>  <span class='hs-comment'>-- and with the 'Catch.Handler' type provided by @Control.Monad.Catch@:</span>
 <a name="line-75"></a>  <span class='hs-comment'>--</span>
 <a name="line-76"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-77"></a>  <span class='hs-comment'>-- 'handler' :: 'Getter'     'SomeException' a -&gt; (a -&gt; m r) -&gt; 'CatchIO.Handler' m r</span>
-<a name="line-78"></a>  <span class='hs-comment'>-- 'handler' :: 'Fold'       'SomeException' a -&gt; (a -&gt; m r) -&gt; 'CatchIO.Handler' m r</span>
-<a name="line-79"></a>  <span class='hs-comment'>-- 'handler' :: 'Control.Lens.Prism.Prism''     'SomeException' a -&gt; (a -&gt; m r) -&gt; 'CatchIO.Handler' m r</span>
-<a name="line-80"></a>  <span class='hs-comment'>-- 'handler' :: 'Control.Lens.Lens.Lens''      'SomeException' a -&gt; (a -&gt; m r) -&gt; 'CatchIO.Handler' m r</span>
-<a name="line-81"></a>  <span class='hs-comment'>-- 'handler' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -&gt; (a -&gt; m r) -&gt; 'CatchIO.Handler' m r</span>
+<a name="line-77"></a>  <span class='hs-comment'>-- 'handler' :: 'Getter'     'SomeException' a -&gt; (a -&gt; m r) -&gt; 'Catch.Handler' m r</span>
+<a name="line-78"></a>  <span class='hs-comment'>-- 'handler' :: 'Fold'       'SomeException' a -&gt; (a -&gt; m r) -&gt; 'Catch.Handler' m r</span>
+<a name="line-79"></a>  <span class='hs-comment'>-- 'handler' :: 'Control.Lens.Prism.Prism''     'SomeException' a -&gt; (a -&gt; m r) -&gt; 'Catch.Handler' m r</span>
+<a name="line-80"></a>  <span class='hs-comment'>-- 'handler' :: 'Control.Lens.Lens.Lens''      'SomeException' a -&gt; (a -&gt; m r) -&gt; 'Catch.Handler' m r</span>
+<a name="line-81"></a>  <span class='hs-comment'>-- 'handler' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -&gt; (a -&gt; m r) -&gt; 'Catch.Handler' m r</span>
 <a name="line-82"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-83"></a>  <span class='hs-comment'>--</span>
 <a name="line-84"></a>  <span class='hs-comment'>-- and with the 'Control.Monad.Error.Lens.Handler' type provided by @Control.Monad.Error.Lens@:</span>
@@ -120,14 +120,14 @@
 <a name="line-111"></a>  <span class='hs-comment'>-- 'handler_' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -&gt; 'IO' r -&gt; 'Exception.Handler' r</span>
 <a name="line-112"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-113"></a>  <span class='hs-comment'>--</span>
-<a name="line-114"></a>  <span class='hs-comment'>-- and with the 'CatchIO.Handler' type provided by @Control.Monad.CatchIO@:</span>
+<a name="line-114"></a>  <span class='hs-comment'>-- and with the 'Catch.Handler' type provided by @Control.Monad.Catch@:</span>
 <a name="line-115"></a>  <span class='hs-comment'>--</span>
 <a name="line-116"></a>  <span class='hs-comment'>-- @</span>
-<a name="line-117"></a>  <span class='hs-comment'>-- 'handler_' :: 'Getter'     'SomeException' a -&gt; m r -&gt; 'CatchIO.Handler' m r</span>
-<a name="line-118"></a>  <span class='hs-comment'>-- 'handler_' :: 'Fold'       'SomeException' a -&gt; m r -&gt; 'CatchIO.Handler' m r</span>
-<a name="line-119"></a>  <span class='hs-comment'>-- 'handler_' :: 'Control.Lens.Prism.Prism''     'SomeException' a -&gt; m r -&gt; 'CatchIO.Handler' m r</span>
-<a name="line-120"></a>  <span class='hs-comment'>-- 'handler_' :: 'Control.Lens.Lens.Lens''      'SomeException' a -&gt; m r -&gt; 'CatchIO.Handler' m r</span>
-<a name="line-121"></a>  <span class='hs-comment'>-- 'handler_' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -&gt; m r -&gt; 'CatchIO.Handler' m r</span>
+<a name="line-117"></a>  <span class='hs-comment'>-- 'handler_' :: 'Getter'     'SomeException' a -&gt; m r -&gt; 'Catch.Handler' m r</span>
+<a name="line-118"></a>  <span class='hs-comment'>-- 'handler_' :: 'Fold'       'SomeException' a -&gt; m r -&gt; 'Catch.Handler' m r</span>
+<a name="line-119"></a>  <span class='hs-comment'>-- 'handler_' :: 'Control.Lens.Prism.Prism''     'SomeException' a -&gt; m r -&gt; 'Catch.Handler' m r</span>
+<a name="line-120"></a>  <span class='hs-comment'>-- 'handler_' :: 'Control.Lens.Lens.Lens''      'SomeException' a -&gt; m r -&gt; 'Catch.Handler' m r</span>
+<a name="line-121"></a>  <span class='hs-comment'>-- 'handler_' :: 'Control.Lens.Traversal.Traversal'' 'SomeException' a -&gt; m r -&gt; 'Catch.Handler' m r</span>
 <a name="line-122"></a>  <span class='hs-comment'>-- @</span>
 <a name="line-123"></a>  <span class='hs-comment'>--</span>
 <a name="line-124"></a>  <span class='hs-comment'>-- and with the 'Control.Monad.Error.Lens.Handler' type provided by @Control.Monad.Error.Lens@:</span>

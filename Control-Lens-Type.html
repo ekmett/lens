@@ -85,7 +85,7 @@ window.onload = function () {pageLoad();setSynopsis("mini_Control-Lens-Type.html
  vary fully independently. For more on how they interact, read the &quot;Why is
  it a Lens Family?&quot; section of
  <a href="http://comonad.com/reader/2012/mirrored-lenses/">http://comonad.com/reader/2012/mirrored-lenses/</a>.
-</p><p>There are some emergent propertes of these laws:
+</p><p>There are some emergent properties of these laws:
 </p><p>1) <code><code><a href="Control-Lens-Setter.html#t:set">set</a></code> l s</code> must be injective for every <code>s</code> This is a consequence of law #1
 </p><p>2) <code><code><a href="Control-Lens-Setter.html#t:set">set</a></code> l</code> must be surjective, because of law #2, which indicates that it is possible to obtain any <code>v</code> from some <code>s</code> such that <code><code><a href="Control-Lens-Setter.html#t:set">set</a></code> s v = s</code>
 </p><p>3) Given just the first two laws you can prove a weaker form of law #3 where the values <code>v</code> that you are setting match:
