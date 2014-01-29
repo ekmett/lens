@@ -1,18 +1,35 @@
 4.0
 ----
-* Changed `anon` to take a `Prism`.
 * Added `nearly` to `Control.Lens.Prism`.
 * Added `Control.Lens.Empty`, exporting `_Empty`.
 * We now require `DefaultSignatures`.
 * Added `failing` and `ifailing` to `Control.Lens.Traversal`.
 * Changed the signature of `Data.List.Split.Lens.condensing` due to the addition of `DropBlankFields` to `Data.List.Split.CondensePolicy` in `split`.
 * Simplified `Each`, `Ixed`, and `Contains`. They are no longer indexed. The previous design was actively getting in the way of user-defined instances.
-* Replaced more of our home-grown types with standard ones. They had previously been defined to help make more intelligible error messages, but when we switched to using `(Contravariant f, Functor f)` instead of `(Gettable f)`, these no ceased to really help.
+* Replaced more of our home-grown types with standard ones. They had previously been defined to help make more intelligible error messages, but when we switched to using `(Contravariant f, Functor f)` instead of `(Gettable f)`, these no ceased to really help. Now you can define even more `lens`-compatible types (e.g. `Getter` and `Fold`) without depending on `lens`.
   * Replaced the use of `Accessor` with `Const`.
   * Replaced the use of `Mutator` with `Identity`.
   * Replaced the use of `Reviewed` with `Tagged`.
 * Removed the deprecated `Control.Lens.Simple` module.
 * Repurposed `Control.Lens.Combinators` to reëxport `Control.Lens` sans any operators; previous residents rehomed to `Control.Lens.Lens`.
+* Added `Control.Lens.Operators` to export just the operators. Varying your import styles between these supports many qualified usage scenarios.
+* Simplified `Cons` and `Snoc`. Now they must be a `Prism`.
+* Simplified `Contains`. This necessitated losing many instancs of `Contains`, but makes it much easier and more consistent to use and instantiate.
+* Simplified the various `AsFoo` types in `Control.Exception.Lens`
+* Simplified the types in `System.IO.Error.Lens`.
+* Merged `lens-aeson` into `lens`.
+* We're exiling `Control.Lens.Zipper` to a separate package. This will let the design for it iterate faster and let us explore the trade-offs between the 3.8 style and the 3.9 style of zippers.
+* Generalized `alongside`, `inside`, `both`.
+* Switched to a new `Typeable` version of `reflection` for the harder combinators in `Control.Exception.Lens`. This enables us to comply with GHC 7.7's ban on hand-written `Typeable` instances.
+* Added a `_Show` `Prism`.
+* Added `Control.Lens.Extras` for the combinator names we don't have the gall to claim outright, but which are consistent with the rest.
+* Renamed the constructors for `ReifiedLens`, etc. to just be the name of their base type.
+* Added many many missing instances for `ReifiedFold` and `ReifiedGetter`. This permits things like `runFold ((,) <$> Fold (traverse._1) <*> Fold (traverse._2))` to be a `Fold`
+  and `ReifiedFold` can be used as a `Monad`, `Profunctor`, etc.
+* Many performance optimizations.
+* Switched to `exceptions` from `MonadCatchIO-transformers`
+* Added types for working with `RelevantFold` and `RelevantTraversal`. These are a `Fold` or `Traversal` that always has at least one target. Since `Apply` isn't a superclass of `Applicative`, you occasionally need to convert between them, but it lets you more readily work with less unsafety.
+* There are about 15,000 lines of patches over the last year, so I'm sure we missed a few big changes.
 
 3.10.1 [maintenance release]
 ------
