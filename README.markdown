@@ -95,13 +95,13 @@ makeLenses ''Foo
 This will automatically generate the following lenses:
 
 ```haskell
-bar, baz :: Simple Lens (Foo a) Int
+bar, baz :: Lens' (Foo a) Int
 quux :: Lens (Foo a) (Foo b) a b
 ```
 
 A `Lens` takes 4 parameters because it can change the types of the whole when you change the type of the part.
 
-Often you won't need this flexibility, a `Simple Lens` takes 2 parameters, and can be used directly as a `Lens`.
+Often you won't need this flexibility, a `Lens'` takes 2 parameters, and can be used directly as a `Lens`.
 
 You can also write to setters that target multiple parts of a structure, or their composition with other
 lenses or setters. The canonical example of a setter is 'mapped':
