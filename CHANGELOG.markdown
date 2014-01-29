@@ -6,7 +6,7 @@
 * Added `failing` and `ifailing` to `Control.Lens.Traversal`.
 * Changed the signature of `Data.List.Split.Lens.condensing` due to the addition of `DropBlankFields` to `Data.List.Split.CondensePolicy` in `split`.
 * Simplified `Each`, `Ixed`, and `Contains`. They are no longer indexed. The previous design was actively getting in the way of user-defined instances.
-* Replaced more of our home-grown types with standard ones. They had previously been defined to help make more intelligible error messages, but when we switched to using `(Contravariant f, Functor f)` instead of `(Gettable f)`, these no ceased to really help. Now you can define even more `lens`-compatible types (e.g. `Getter` and `Fold`) without depending on `lens`.
+* Replaced more of our home-grown types with standard ones. They had previously been defined to help make more intelligible error messages, but when we switched to using `(Contravariant f, Functor f)` instead of `(Gettable f)`, these ceased to really help. Now you can define even more `lens`-compatible types (e.g. `Getter` and `Fold`) without depending on `lens`.
   * Replaced the use of `Accessor` with `Const`.
   * Replaced the use of `Mutator` with `Identity`.
   * Replaced the use of `Reviewed` with `Tagged`.
