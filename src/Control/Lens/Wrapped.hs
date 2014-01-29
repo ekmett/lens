@@ -28,15 +28,15 @@
 -- they can be done with the 'Iso' directly:
 --
 -- @
--- Control.Newtype.over 'Sum' f ≡ 'wrapping' 'Sum' 'Control.Lens.Setter.%~' f
--- Control.Newtype.under 'Sum' f ≡ 'unwrapping' 'Sum' 'Control.Lens.Setter.%~' f
--- Control.Newtype.overF 'Sum' f ≡ 'mapping' ('wrapping' 'Sum') 'Control.Lens.Setter.%~' f
--- Control.Newtype.underF 'Sum' f ≡ 'mapping' ('unwrapping' 'Sum') 'Control.Lens.Setter.%~' f
+-- Control.Newtype.over 'Sum' f ≡ '_Unwrapping' 'Sum' 'Control.Lens.Setter.%~' f
+-- Control.Newtype.under 'Sum' f ≡ '_Wrapping' 'Sum' 'Control.Lens.Setter.%~' f
+-- Control.Newtype.overF 'Sum' f ≡ 'mapping' ('_Unwrapping' 'Sum') 'Control.Lens.Setter.%~' f
+-- Control.Newtype.underF 'Sum' f ≡ 'mapping' ('_Wrapping' 'Sum') 'Control.Lens.Setter.%~' f
 -- @
 --
--- 'under' can also be used with 'wrapping' to provide the equivalent of
+-- 'under' can also be used with '_Unwrapping' to provide the equivalent of
 -- @Control.Newtype.under@.  Also, most use cases don't need full polymorphism,
--- so only the single constructor 'wrapping' functions would be needed.
+-- so only the single constructor '_Wrapping' functions would be needed.
 --
 -- These equivalences aren't 100% honest, because @newtype@'s operators
 -- need to rely on two @Newtype@ constraints.  This means that the wrapper used
