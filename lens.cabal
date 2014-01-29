@@ -11,7 +11,7 @@ homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
 copyright:     Copyright (C) 2012-2014 Edward A. Kmett
 build-type:    Custom
-build-tools:   cpphs
+-- build-tools:   cpphs
 tested-with:   GHC == 7.6.3
 synopsis:      Lenses, Folds and Traversals
 description:
