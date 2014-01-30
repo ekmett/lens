@@ -1,3 +1,8 @@
+4.0.1
+-----
+* Typo fixes
+* Exporting `Rewrapping` from `Control.Lens.Wrapped`.
+
 4.0
 ----
 * Added `nearly` to `Control.Lens.Prism`.
