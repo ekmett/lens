@@ -50,7 +50,7 @@ module Control.Lens.Wrapped
   , _Unwrapped'
   , _Wrapping', _Unwrapping'
   -- * Wrapping and unwrapping polymorphically
-  , Rewrapped
+  , Rewrapped, Rewrapping
   , _Wrapped, _Unwrapped
   , _Wrapping, _Unwrapping
   -- * Operations
