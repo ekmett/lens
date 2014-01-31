@@ -22,8 +22,8 @@ module Data.Text.Lazy.Lens
   ) where
 
 import Control.Lens
-import Data.ByteString.Lazy (ByteString)
-import Data.Text.Lazy
+import Data.ByteString.Lazy as ByteString
+import Data.Text.Lazy as Text
 import Data.Text.Lazy.Builder
 import Data.Text.Lazy.Encoding
 
@@ -41,7 +41,7 @@ import Data.Text.Lazy.Encoding
 -- 'packed' ≡ 'from' 'unpacked'
 -- @
 packed :: Iso' String Text
-packed = iso pack unpack
+packed = iso Text.pack Text.unpack
 {-# INLINE packed #-}
 
 -- | This isomorphism can be used to 'unpack' (or 'pack') lazy 'Text'.
@@ -60,7 +60,7 @@ packed = iso pack unpack
 -- 'unpacked' ≡ 'from' 'packed'
 -- @
 unpacked :: Iso' Text String
-unpacked = iso unpack pack
+unpacked = iso Text.unpack Text.pack
 {-# INLINE unpacked #-}
 
 -- | Convert between lazy 'Text' and 'Builder' .
@@ -96,8 +96,8 @@ text = unpacked . traversed
 -- Note: This function does not decode lazily, as it must consume the entire
 -- input before deciding whether or not it fails.
 --
--- >>> utf8 # "☃"
--- "\226\152\131"
+-- >>> ByteString.unpack (utf8 # "☃")
+-- [226,152,131]
 utf8 :: Prism' ByteString Text
 utf8 = prism' encodeUtf8 (preview _Right . decodeUtf8')
 {-# INLINE utf8 #-}
