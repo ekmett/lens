@@ -425,14 +425,14 @@ instance (GT (GSize s) n ~ T,
           GIxed n s t a b)
       => GIxed' T n s s' t s' a b where
   {-# INLINE gix' #-}
-  gix' _ n f (s :*: s') = fmap (:*: s') $ gix n f s
+  gix' _ n f (s :*: s') = (:*: s') <$> gix n f s
 
 instance (GT (GSize s) n ~ F,
           n' ~ Subtract (GSize s) n,
           GIxed n' s' t' a b)
       => GIxed' F n s s' s t' a b where
   {-# INLINE gix' #-}
-  gix' _ _  f (s :*: s') = fmap (s :*:) $ gix (Proxy :: Proxy n') f s'
+  gix' _ _  f (s :*: s') = (s :*:) <$> gix (Proxy :: Proxy n') f s'
 
 data Z
 data S a
