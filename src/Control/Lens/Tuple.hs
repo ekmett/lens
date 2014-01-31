@@ -82,8 +82,8 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 #ifndef HLINT
   default _1 :: (Generic s, Generic t, GIxed N0 (Rep s) (Rep t) a b)
              => Lens s t a b
-  {-# INLINE _1 #-}
   _1 = ix proxyN0
+  {-# INLINE _1 #-}
 #endif
 
 instance Field1 (Identity a) (Identity b) a b where
@@ -147,8 +147,8 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 #ifndef HLINT
   default _2 :: (Generic s, Generic t, GIxed N1 (Rep s) (Rep t) a b)
              => Lens s t a b
-  {-# INLINE _2 #-}
   _2 = ix proxyN1
+  {-# INLINE _2 #-}
 #endif
 
 -- | @
@@ -193,8 +193,8 @@ class Field3 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 #ifndef HLINT
   default _3 :: (Generic s, Generic t, GIxed N2 (Rep s) (Rep t) a b)
              => Lens s t a b
-  {-# INLINE _3 #-}
   _3 = ix proxyN2
+  {-# INLINE _3 #-}
 #endif
 
 instance Field3 (a,b,c) (a,b,c') c c' where
@@ -232,8 +232,8 @@ class Field4 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 #ifndef HLINT
   default _4 :: (Generic s, Generic t, GIxed N3 (Rep s) (Rep t) a b)
              => Lens s t a b
-  {-# INLINE _4 #-}
   _4 = ix proxyN3
+  {-# INLINE _4 #-}
 #endif
 
 instance Field4 (a,b,c,d) (a,b,c,d') d d' where
@@ -267,8 +267,8 @@ class Field5 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 #ifndef HLINT
   default _5 :: (Generic s, Generic t, GIxed N4 (Rep s) (Rep t) a b)
              => Lens s t a b
-  {-# INLINE _5 #-}
   _5 = ix proxyN4
+  {-# INLINE _5 #-}
 #endif
 
 instance Field5 (a,b,c,d,e) (a,b,c,d,e') e e' where
@@ -298,8 +298,8 @@ class Field6 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 #ifndef HLINT
   default _6 :: (Generic s, Generic t, GIxed N5 (Rep s) (Rep t) a b)
              => Lens s t a b
-  {-# INLINE _6 #-}
   _6 = ix proxyN5
+  {-# INLINE _6 #-}
 #endif
 
 instance Field6 (a,b,c,d,e,f) (a,b,c,d,e,f') f f' where
@@ -325,8 +325,8 @@ class Field7 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 #ifndef HLINT
   default _7 :: (Generic s, Generic t, GIxed N6 (Rep s) (Rep t) a b)
              => Lens s t a b
-  {-# INLINE _7 #-}
   _7 = ix proxyN6
+  {-# INLINE _7 #-}
 #endif
 
 instance Field7 (a,b,c,d,e,f,g) (a,b,c,d,e,f,g') g g' where
@@ -348,8 +348,8 @@ class Field8 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 #ifndef HLINT
   default _8 :: (Generic s, Generic t, GIxed N7 (Rep s) (Rep t) a b)
              => Lens s t a b
-  {-# INLINE _8 #-}
   _8 = ix proxyN7
+  {-# INLINE _8 #-}
 #endif
 
 instance Field8 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f,g,h') h h' where
@@ -367,8 +367,8 @@ class Field9 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 #ifndef HLINT
   default _9 :: (Generic s, Generic t, GIxed N8 (Rep s) (Rep t) a b)
              => Lens s t a b
-  {-# INLINE _9 #-}
   _9 = ix proxyN8
+  {-# INLINE _9 #-}
 #endif
 
 instance Field9 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h,i') i i' where
@@ -376,8 +376,8 @@ instance Field9 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h,i') i i' where
   {-# INLINE _9 #-}
 
 ix :: (Generic s, Generic t, GIxed n (Rep s) (Rep t) a b) => f n -> Lens s t a b
-{-# INLINE ix #-}
 ix n f = fmap to . gix n f . from
+{-# INLINE ix #-}
 
 type family GSize (f :: * -> *)
 type instance GSize U1 = Z
@@ -389,19 +389,19 @@ class GIxed n s t a b | n s -> a, n t -> b, n s b -> t, n t a -> s where
   gix :: f n -> Lens (s x) (t x) a b
 
 instance GIxed N0 (K1 i a) (K1 i b) a b where
-  {-# INLINE gix #-}
   gix _ = dimap unK1 (fmap K1)
+  {-# INLINE gix #-}
 
 instance GIxed n s t a b => GIxed n (M1 i c s) (M1 i c t) a b where
-  {-# INLINE gix #-}
   gix n = dimap unM1 (fmap M1) . gix n
+  {-# INLINE gix #-}
 
 instance (p ~ GT (GSize s) n,
           p ~ GT (GSize t) n,
           GIxed' p n s s' t t' a b)
       => GIxed n (s :*: s') (t :*: t') a b where
-  {-# INLINE gix #-}
   gix = gix' (Proxy :: Proxy p)
+  {-# INLINE gix #-}
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706
 -- $gixed-fundeps
@@ -424,15 +424,15 @@ instance (GT (GSize s) n ~ T,
           GT (GSize t) n ~ T,
           GIxed n s t a b)
       => GIxed' T n s s' t s' a b where
-  {-# INLINE gix' #-}
   gix' _ n f (s :*: s') = (:*: s') <$> gix n f s
+  {-# INLINE gix' #-}
 
 instance (GT (GSize s) n ~ F,
           n' ~ Subtract (GSize s) n,
           GIxed n' s' t' a b)
       => GIxed' F n s s' s t' a b where
-  {-# INLINE gix' #-}
   gix' _ _  f (s :*: s') = (s :*:) <$> gix (Proxy :: Proxy n') f s'
+  {-# INLINE gix' #-}
 
 data Z
 data S a
@@ -464,37 +464,37 @@ type N7 = S N6
 type N8 = S N7
 
 proxyN0 :: Proxy N0
-{-# INLINE proxyN0 #-}
 proxyN0 = Proxy
+{-# INLINE proxyN0 #-}
 
 proxyN1 :: Proxy N1
-{-# INLINE proxyN1 #-}
 proxyN1 = Proxy
+{-# INLINE proxyN1 #-}
 
 proxyN2 :: Proxy N2
-{-# INLINE proxyN2 #-}
 proxyN2 = Proxy
+{-# INLINE proxyN2 #-}
 
 proxyN3 :: Proxy N3
-{-# INLINE proxyN3 #-}
 proxyN3 = Proxy
+{-# INLINE proxyN3 #-}
 
 proxyN4 :: Proxy N4
-{-# INLINE proxyN4 #-}
 proxyN4 = Proxy
+{-# INLINE proxyN4 #-}
 
 proxyN5 :: Proxy N5
-{-# INLINE proxyN5 #-}
 proxyN5 = Proxy
+{-# INLINE proxyN5 #-}
 
 proxyN6 :: Proxy N6
-{-# INLINE proxyN6 #-}
 proxyN6 = Proxy
+{-# INLINE proxyN6 #-}
 
 proxyN7 :: Proxy N7
-{-# INLINE proxyN7 #-}
 proxyN7 = Proxy
+{-# INLINE proxyN7 #-}
 
 proxyN8 :: Proxy N8
-{-# INLINE proxyN8 #-}
 proxyN8 = Proxy
+{-# INLINE proxyN8 #-}
