@@ -16,7 +16,7 @@
   * Replaced the use of `Mutator` with `Identity`.
   * Replaced the use of `Reviewed` with `Tagged`.
 * Removed the deprecated `Control.Lens.Simple` module.
-* Repurposed `Control.Lens.Combinators` to reëxport `Control.Lens` sans any operators; previous residents rehomed to `Control.Lens.Lens`.
+* Repurposed `Control.Lens.Combinators` to re-export `Control.Lens` sans any operators; previous residents rehomed to `Control.Lens.Lens`.
 * Added `Control.Lens.Operators` to export just the operators. Varying your import styles between these supports many qualified usage scenarios.
 * Simplified `Cons` and `Snoc`. Now they must be a `Prism`.
 * Simplified `Contains`. This necessitated losing many instancs of `Contains`, but makes it much easier and more consistent to use and instantiate.
