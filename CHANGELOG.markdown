@@ -2,6 +2,7 @@
 -----
 * Typo fixes
 * Exporting `Rewrapping` from `Control.Lens.Wrapped`.
+* Removed the dependency on `cpphs`.
 
 4.0
 ----
