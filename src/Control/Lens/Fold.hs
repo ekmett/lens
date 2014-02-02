@@ -66,6 +66,7 @@ module Control.Lens.Fold
   , cycled
   , takingWhile
   , droppingWhile
+  , worded, lined
 
   -- ** Folding
   , foldMapOf, foldOf
@@ -153,6 +154,7 @@ import Data.Foldable as Foldable
 import Data.Functor.Apply
 import Data.Functor.Compose
 import Data.Int (Int64)
+import Data.List (intercalate)
 import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
@@ -401,6 +403,44 @@ droppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
       b' = b && p a
     in (if b' then pure a else corep f wa, b')
 {-# INLINE droppingWhile #-}
+
+-- | A 'Fold' over the individual 'words' of a 'String'.
+--
+-- @
+-- 'worded' :: 'Fold' 'String' 'String'
+-- 'worded' :: 'Traversal'' 'String' 'String'
+-- @
+--
+-- @
+-- 'worded' :: 'IndexedFold' 'Int' 'String' 'String'
+-- 'worded' :: 'IndexedTraversal'' 'Int' 'String' 'String'
+-- @
+--
+-- Note: This function type-checks as a 'Traversal' but it doesn't satisfy the laws. It's only valid to use it
+-- when you don't insert any whitespace characters while traversing, and if your original 'String' contains only
+-- isolated space characters (and no other characters that count as space, such as non-breaking spaces).
+worded :: Applicative f => IndexedLensLike' Int f String String
+worded f = fmap unwords . conjoined traverse (indexing traverse) f . words
+{-# INLINE worded #-}
+
+-- | A 'Fold' over the individual 'lines' of a 'String'.
+--
+-- @
+-- 'lined' :: 'Fold' 'String' 'String'
+-- 'lined' :: 'Traversal'' 'String' 'String'
+-- @
+--
+-- @
+-- 'lined' :: 'IndexedFold' 'Int' 'String' 'String'
+-- 'lined' :: 'IndexedTraversal'' 'Int' 'String' 'String'
+-- @
+--
+-- Note: This function type-checks as a 'Traversal' but it doesn't satisfy the laws. It's only valid to use it
+-- when you don't insert any newline characters while traversing, and if your original 'String' contains only
+-- isolated newline characters.
+lined :: Applicative f => IndexedLensLike' Int f String String
+lined f = fmap (intercalate "\n") . conjoined traverse (indexing traverse) f . lines
+{-# INLINE lined #-}
 
 --------------------------
 -- Fold/Getter combinators
