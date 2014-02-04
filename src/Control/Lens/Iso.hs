@@ -229,7 +229,7 @@ simple = id
 -- @'Maybe' a'@ to @a@.
 --
 -- @
--- 'non' ≡ 'anon' '.' 'only'
+-- 'non' ≡ 'non'' '.' 'only'
 -- @
 --
 -- Keep in mind this is only a real isomorphism if you treat the domain as being @'Maybe' (a sans v)@.
@@ -264,7 +264,7 @@ non :: Eq a => a -> Iso' (Maybe a) a
 non = non' . only
 {-# INLINE non #-}
 
--- | @'non_' p@ generalizes @'non' (p # ())@ to take any unit 'Prism'
+-- | @'non'' p@ generalizes @'non' (p # ())@ to take any unit 'Prism'
 --
 -- This function generates an isomorphism between @'Maybe' (a | 'isn't' p a)@ and @a@.
 --
