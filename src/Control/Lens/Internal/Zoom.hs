@@ -74,7 +74,7 @@ type instance Zoomed (ErrorT e m) = FocusingErr e (Zoomed m)
 -- Focusing
 ------------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.State.StateT'.
+-- | Used by 'Control.Lens.Zoom.Zoom' to 'Control.Lens.Zoom.zoom' into 'Control.Monad.State.StateT'.
 newtype Focusing m s a = Focusing { unfocusing :: m (s, a) }
 
 instance Monad m => Functor (Focusing m s) where
@@ -103,7 +103,7 @@ instance (Monad m, Monoid s) => Applicative (Focusing m s) where
 -- FocusingWith
 ------------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.RWS.RWST'.
+-- | Used by 'Control.Lens.Zoom.Zoom' to 'Control.Lens.Zoom.zoom' into 'Control.Monad.RWS.RWST'.
 newtype FocusingWith w m s a = FocusingWith { unfocusingWith :: m (s, a, w) }
 
 instance Monad m => Functor (FocusingWith w m s) where
@@ -132,7 +132,7 @@ instance (Monad m, Monoid s, Monoid w) => Applicative (FocusingWith w m s) where
 -- FocusingPlus
 ------------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Writer.WriterT'.
+-- | Used by 'Control.Lens.Zoom.Zoom' to 'Control.Lens.Zoom.zoom' into 'Control.Monad.Writer.WriterT'.
 newtype FocusingPlus w k s a = FocusingPlus { unfocusingPlus :: k (s, w) a }
 
 instance Functor (k (s, w)) => Functor (FocusingPlus w k s) where
@@ -153,7 +153,7 @@ instance Applicative (k (s, w)) => Applicative (FocusingPlus w k s) where
 -- FocusingOn
 ------------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'.
+-- | Used by 'Control.Lens.Zoom.Zoom' to 'Control.Lens.Zoom.zoom' into 'Control.Monad.Trans.Maybe.MaybeT' or 'Control.Monad.Trans.List.ListT'.
 newtype FocusingOn f k s a = FocusingOn { unfocusingOn :: k (f s) a }
 
 instance Functor (k (f s)) => Functor (FocusingOn f k s) where
@@ -195,7 +195,7 @@ instance Monoid a => Monoid (May a) where
 -- FocusingMay
 ------------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'.
+-- | Used by 'Control.Lens.Zoom.Zoom' to 'Control.Lens.Zoom.zoom' into 'Control.Monad.Error.ErrorT'.
 newtype FocusingMay k s a = FocusingMay { unfocusingMay :: k (May s) a }
 
 instance Functor (k (May s)) => Functor (FocusingMay k s) where
@@ -237,7 +237,7 @@ instance Monoid a => Monoid (Err e a) where
 -- FocusingErr
 ------------------------------------------------------------------------------
 
--- | Used by 'Control.Lens.Lens.Zoom' to 'Control.Lens.Lens.zoom' into 'Control.Monad.Error.ErrorT'.
+-- | Used by 'Control.Lens.Zoom.Zoom' to 'Control.Lens.Zoom.zoom' into 'Control.Monad.Error.ErrorT'.
 newtype FocusingErr e k s a = FocusingErr { unfocusingErr :: k (Err e s) a }
 
 instance Functor (k (Err e s)) => Functor (FocusingErr e k s) where
