@@ -86,6 +86,9 @@ builder = iso fromText (toStrict . toLazyText)
 -- 'text' ≡ 'unpacked' . 'traversed'
 -- 'text' ≡ 'each'
 -- @
+--
+-- Note that when just using this as a 'Setter', @'setting' 'Data.Text.map'@ can
+-- be more efficient.
 text :: IndexedTraversal' Int Text Char
 text = unpacked . traversed
 {-# INLINE text #-}

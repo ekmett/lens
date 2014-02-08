@@ -67,6 +67,9 @@ unpackedBytes = from packedBytes
 --
 -- >>> anyOf bytes (== 0x80) (Char8.pack "hello")
 -- False
+--
+-- Note that when just using this as a 'Setter', @'setting' 'Data.ByteString.Lazy.map'@
+-- can be more efficient.
 bytes :: IndexedTraversal' Int64 ByteString Word8
 bytes = traversedLazy
 {-# INLINE bytes #-}
