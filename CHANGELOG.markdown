@@ -1,3 +1,7 @@
+4.0.2
+-----
+* Properly bundled the modules needed for the properties test suite into the tarball for hackage.
+
 4.0.1
 -----
 * Typo fixes
