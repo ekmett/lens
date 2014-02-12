@@ -223,7 +223,7 @@ instance Reifies s (ReifiedMonoid a) => Monoid (M a s) where
 reflectResult :: Reifies s a => (a -> f s) -> f s
 reflectResult f = let r = f (reflect r) in r
 
-data M a s = M a
+newtype M a s = M a
 
 unM :: M a s -> proxy s -> a
 unM (M a) _ = a

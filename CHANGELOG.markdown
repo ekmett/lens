@@ -1,3 +1,7 @@
+4.0.3
+-----
+* Fixed random segfaulting when using `foldMapBy`.
+
 4.0.2
 -----
 * Properly bundled the modules needed for the properties test suite into the tarball for hackage.
