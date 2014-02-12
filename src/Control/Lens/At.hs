@@ -182,7 +182,7 @@ ixAt i = at i . traverse
 {-# INLINE ixAt #-}
 
 type instance IxValue (e -> a) = a
-instance Ixed (e -> a) where
+instance Eq e => Ixed (e -> a) where
   ix e p f = p (f e) <&> \a e' -> if e == e' then a else f e'
   {-# INLINE ix #-}
 
