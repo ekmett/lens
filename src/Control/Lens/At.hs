@@ -181,6 +181,11 @@ ixAt :: At m => Index m -> Traversal' m (IxValue m)
 ixAt i = at i . traverse
 {-# INLINE ixAt #-}
 
+type instance IxValue (e -> a) = a
+instance Eq e => Ixed (e -> a) where
+  ix e p f = p (f e) <&> \a e' -> if e == e' then a else f e'
+  {-# INLINE ix #-}
+
 type instance IxValue (Maybe a) = a
 instance Ixed (Maybe a) where
   ix () f (Just a) = Just <$> f a

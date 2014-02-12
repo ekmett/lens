@@ -87,6 +87,9 @@ builder = iso fromLazyText toLazyText
 -- @
 -- 'text' ≡ 'each'
 -- @
+--
+-- Note that when just using this as a 'Setter', @'setting' 'Data.Text.Lazy.map'@
+-- can be more efficient.
 text :: IndexedTraversal' Int Text Char
 text = unpacked . traversed
 {-# INLINE text #-}

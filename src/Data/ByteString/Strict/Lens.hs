@@ -66,6 +66,9 @@ unpackedBytes = from packedBytes
 --
 -- >>> anyOf bytes (== 0x80) (Char8.pack "hello")
 -- False
+--
+-- Note that when just using this as a 'Setter', @'setting' 'Data.ByteString.map'@
+-- can be more efficient.
 bytes :: IndexedTraversal' Int ByteString Word8
 bytes = traversedStrictTree 0
 {-# INLINE bytes #-}
