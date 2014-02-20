@@ -28,7 +28,7 @@ module Control.Lens.TH
   , makePrisms
   , makeWrapped
   , makeFields
-  -- * Constructing Lenses Given a Declaretion Quote
+  -- * Constructing Lenses Given a Declaration Quote
   , declareLenses, declareLensesFor
   , declareClassy, declareClassyFor
   , declareIso
@@ -1154,6 +1154,7 @@ data Field = Field
     , _fieldLensName      :: Name
     , _fieldClassName     :: Name
     , _fieldClassLensName :: Name
+    , _fieldNameType      :: Type
     }
 
 overHead :: (a -> a) -> [a] -> [a]
@@ -1197,11 +1198,10 @@ camelCaseFields = FieldRules prefix rawLens niceLens classNaming
 
 
 collectRecords :: [Con] -> [VarStrictType]
-collectRecords cons = rs
+collectRecords cons = nubBy varEq allRecordFields
   where
-    recs = filter (\r -> case r of RecC{} -> True; _ -> False) cons
-    rs' = List.concatMap (\(RecC _ _rs) -> _rs) recs
-    rs = nubBy ((==) `on` (^._1)) rs'
+    varEq (name1,_,_) (name2,_,_) = name1 == name2
+    allRecordFields = [ field | RecC _ fields <- cons , field <- fields ]
 
 verboseLenses :: FieldRules -> Dec -> Q [Dec]
 verboseLenses c decl = do
@@ -1214,7 +1214,7 @@ verboseLenses c decl = do
     then fail "verboseLenses: Expected the name of a record type"
     else flip makeLenses' decl
             $ mkFields c rs
-            & map (\(Field n _ l _ _) -> (show n, show l))
+            & map (\(Field n _ l _ _ _) -> (show n, show l))
   where
     makeLenses' fields' =
         makeLensesForDec $ lensRules
@@ -1224,20 +1224,21 @@ verboseLenses c decl = do
 
 mkFields :: FieldRules -> [VarStrictType] -> [Field]
 mkFields (FieldRules prefix' raw' nice' clas') rs
-    = Maybe.mapMaybe namer fields
+    = Maybe.mapMaybe namer fieldNamesAndTypes
     & List.groupBy (on (==) _fieldLensPrefix)
     & (\ gs -> case gs of
         x:_ -> x
         _   -> [])
   where
-    fields = map (nameBase . fst3) rs
-    fst3 (x,_,_) = x
-    namer field = do
+    fieldNamesAndTypes = [(nameBase name, fieldType) | (name,_strict,fieldType) <- rs]
+    fieldNames = map fst fieldNamesAndTypes
+
+    namer (field, fieldType) = do
         let rawlens = mkName (raw' field)
-        prefix <- prefix' fields field
+        prefix <- prefix' fieldNames field
         nice   <- mkName <$> nice' field
         clas   <- mkName <$> clas' field
-        return (Field (mkName field) prefix rawlens clas nice)
+        return (Field (mkName field) prefix rawlens clas nice fieldType)
 
 hasClassAndInstance :: FieldRules -> Dec -> Q [Dec]
 hasClassAndInstance cfg decl = do
@@ -1249,19 +1250,13 @@ hasClassAndInstance cfg decl = do
     let rs = collectRecords $ constructors dataDecl
     when (List.null rs) $
       fail "hasClassAndInstance: Expected the name of a record type"
-    fmap concat . forM (mkFields cfg rs) $ \(Field field _ fullLensName className lensName) -> do
+    fmap concat . forM (mkFields cfg rs) $ \(Field field _ fullLensName className lensName fieldType) -> do
         classHas <- classD
             (return [])
             className
             [ PlainTV c, PlainTV e ]
             [ FunDep [c] [e] ]
             [ sigD lensName (conT ''Lens' `appsT` [varT c, varT e])]
-        fieldType <- do
-            VarI _ t _ _ <- reify field
-            case t of
-                AppT    _    fieldType          -> return fieldType
-                ForallT _ [] (AppT _ fieldType) -> return fieldType
-                _                               -> error "Cannot get fieldType"
         instanceHas <- instanceD
             (return [])
             (return $ ConT className `apps`
@@ -1328,7 +1323,7 @@ makeFields = makeFieldsWith defaultFieldRules
 defaultFieldRules :: FieldRules
 defaultFieldRules = camelCaseFields
 
--- Declaretion quote stuff
+-- Declaration quote stuff
 
 declareWith :: (Dec -> Declare Dec) -> Q [Dec] -> Q [Dec]
 declareWith fun = (runDeclare . traverseDataAndNewtype fun =<<)
