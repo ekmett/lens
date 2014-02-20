@@ -1230,7 +1230,7 @@ mkFields (FieldRules prefix' raw' nice' clas') rs
         x:_ -> x
         _   -> [])
   where
-    fieldNamesAndTypes = [(nameBase name, fieldType) | (name,_strict,fieldType) <- rs]
+    fieldNamesAndTypes = [(nameBase n, t) | (n,_,t) <- rs]
     fieldNames = map fst fieldNamesAndTypes
 
     namer (field, fieldType) = do
@@ -1250,7 +1250,7 @@ hasClassAndInstance cfg decl = do
     let rs = collectRecords $ constructors dataDecl
     when (List.null rs) $
       fail "hasClassAndInstance: Expected the name of a record type"
-    fmap concat . forM (mkFields cfg rs) $ \(Field field _ fullLensName className lensName fieldType) -> do
+    fmap concat . forM (mkFields cfg rs) $ \(Field _ _ fullLensName className lensName fieldType) -> do
         classHas <- classD
             (return [])
             className
