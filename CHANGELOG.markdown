@@ -1,3 +1,7 @@
+4.0.4
+-----
+* Made `declareFields` work again.
+
 4.0.3
 -----
 * Fixed random segfaulting when using `foldMapBy`.
