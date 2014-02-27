@@ -34,7 +34,6 @@ module Data.Aeson.Lens
   , AsJSON(..)
   ) where
 
-import Control.Applicative
 import Control.Lens
 import Data.Aeson
 import Data.Scientific
@@ -329,20 +328,3 @@ instance AsJSON Value where
     Success y -> Right y;
     _         -> Left x
   {-# INLINE _JSON #-}
-
-------------------------------------------------------------------------------
--- Orphan instances
-------------------------------------------------------------------------------
-
-type instance Index Value = Text
-type instance IxValue Value = Value
-
-instance Ixed Value where
-  ix i = _Object.ix i
-  {-# INLINE ix #-}
-
-instance Plated Value where
-  plate f (Object o) = Object <$> traverse f o
-  plate f (Array a) = Array <$> traverse f a
-  plate _ xs = pure xs
-  {-# INLINE plate #-}

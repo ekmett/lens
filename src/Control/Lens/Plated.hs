@@ -88,6 +88,7 @@ import           Control.Lens.Type
 import           Control.Lens.Setter
 import           Control.Lens.Traversal
 import qualified Language.Haskell.TH as TH
+import           Data.Aeson
 import           Data.Data
 import           Data.Data.Lens
 import           Data.Monoid
@@ -203,6 +204,12 @@ instance Plated [a] where
 
 instance Plated (Tree a) where
   plate f (Node a as) = Node a <$> traverse f as
+
+instance Plated Value where
+  plate f (Object o) = Object <$> traverse f o
+  plate f (Array a) = Array <$> traverse f a
+  plate _ xs = pure xs
+  {-# INLINE plate #-}
 
 {- Default uniplate instances -}
 instance Plated TH.Exp

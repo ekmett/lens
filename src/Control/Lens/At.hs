@@ -46,6 +46,7 @@ import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Lens.Internal.TupleIxedTH (makeAllTupleIxed)
+import Data.Aeson as Aeson
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
 import Data.ByteString as StrictB
@@ -90,7 +91,7 @@ type instance Index (a,b,c,d,e,f,g,h,i) = Int
 type instance Index (IntMap a) = Int
 type instance Index (Map k a) = k
 type instance Index (HashMap k a) = k
-type instance Index (Array i e) = i
+type instance Index (Array.Array i e) = i
 type instance Index (UArray i e) = i
 type instance Index (Vector.Vector a) = Int
 type instance Index (Prim.Vector a) = Int
@@ -104,6 +105,7 @@ type instance Index StrictT.Text = Int
 type instance Index LazyT.Text = Int64
 type instance Index StrictB.ByteString = Int
 type instance Index LazyB.ByteString = Int64
+type instance Index Aeson.Value = StrictT.Text
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -274,13 +276,13 @@ instance (Eq k, Hashable k) => Ixed (HashSet k) where
      else pure m
   {-# INLINE ix #-}
 
-type instance IxValue (Array i e) = e
+type instance IxValue (Array.Array i e) = e
 -- |
 -- @
 -- arr '!' i ≡ arr 'Control.Lens.Getter.^.' 'ix' i
 -- arr '//' [(i,e)] ≡ 'ix' i 'Control.Lens.Setter..~' e '$' arr
 -- @
-instance Ix i => Ixed (Array i e) where
+instance Ix i => Ixed (Array.Array i e) where
   ix i f arr
     | inRange (bounds arr) i = f (arr Array.! i) <&> \e -> arr Array.// [(i,e)]
     | otherwise              = pure arr
@@ -358,6 +360,14 @@ instance Ixed LazyB.ByteString where
        Nothing      -> pure s
        Just (c, xs) -> f c <&> \d -> LazyB.append l (LazyB.cons d xs)
   {-# INLINE ix #-}
+
+
+type instance IxValue Aeson.Value = Aeson.Value
+instance Ixed Aeson.Value where
+  ix i f (Object o) = Object <$> ix i f o
+  ix _ _ v          = pure v
+  {-# INLINE ix #-}
+
 
 
 -- | 'At' provides a 'Lens' that can be used to read,
