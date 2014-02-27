@@ -38,10 +38,12 @@ import Control.Lens.Internal.Reflection
 import Control.Monad.Catch as Catch
 import Data.Monoid
 import Data.Proxy
-import Data.Typeable
 
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
+import Data.Typeable hiding (Typeable1)
 type Typeable1 = Typeable
+#else
+import Data.Typeable
 #endif
 
 ------------------------------------------------------------------------------
