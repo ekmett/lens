@@ -40,8 +40,9 @@ import Data.Monoid
 import Data.Proxy
 import Data.Typeable
 
+-- This is needed because ghc 7.8-rc2 has Typeable1 as a type alias.
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
-type Typeable1 = Typeable
+#define Typeable1 Typeable
 #endif
 
 ------------------------------------------------------------------------------
