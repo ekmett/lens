@@ -58,6 +58,8 @@ module Control.Lens.Iso
   , dimapping
   , lmapping
   , rmapping
+  -- * Bifunctors
+  , bimapping
   ) where
 
 import Control.Lens.Fold
@@ -463,8 +465,8 @@ contramapping f = withIso f $ \ sa bt -> iso (contramap sa) (contramap bt)
 -- dimapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' s' a' -> 'Iso'' (p a s') (p s a')
 -- @
 dimapping :: Profunctor p => AnIso s t a b -> AnIso s' t' a' b' -> Iso (p a s') (p b t') (p s a') (p t b')
-dimapping f g = withIso f $ \ s'a' b't' -> withIso g $ \ sa bt ->
-  iso (dimap s'a' sa) (dimap b't' bt)
+dimapping f g = withIso f $ \ sa bt -> withIso g $ \ s'a' b't' ->
+  iso (dimap sa s'a') (dimap bt b't')
 {-# INLINE dimapping #-}
 
 -- | Lift an 'Iso' contravariantly into the left argument of a 'Profunctor'.
@@ -486,3 +488,18 @@ lmapping f = withIso f $ \ sa bt -> iso (lmap sa) (lmap bt)
 rmapping :: Profunctor p => AnIso s t a b -> Iso (p x s) (p y t) (p x a) (p y b)
 rmapping g = withIso g $ \ sa bt -> iso (rmap sa) (rmap bt)
 {-# INLINE rmapping #-}
+
+------------------------------------------------------------------------------
+-- Bifunctor
+------------------------------------------------------------------------------
+
+-- | Lift two 'Iso's into both arguments of a 'Bifunctor'.
+--
+-- @
+-- bimapping :: 'Profunctor' p => 'Iso' s t a b -> 'Iso' s' t' a' b' -> 'Iso' (p s s') (p t t') (p a a') (p b b')
+-- bimapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' s' a' -> 'Iso'' (p s s') (p a a')
+-- @
+bimapping :: Bifunctor f => AnIso s t a b -> AnIso s' t' a' b' -> Iso (f s s') (f t t') (f a a') (f b b')
+bimapping f g = withIso f $ \ sa bt -> withIso g $ \s'a' b't' ->
+  iso (bimap sa s'a') (bimap bt b't')
+{-# INLINE bimapping #-}

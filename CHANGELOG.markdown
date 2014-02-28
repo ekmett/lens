@@ -1,3 +1,7 @@
+4.0.5
+-----
+* Added `bimapping` to `Control.Lens.Iso`
+
 4.0.4
 -----
 * Made `declareFields` work again.
