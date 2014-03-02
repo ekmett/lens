@@ -38,7 +38,7 @@ import Data.Vector as Vector
 import Data.Vector.Unboxed as Unboxed
 import Data.Vector.Storable as Storable
 
-#ifndef mingw32_HOST_OS
+#if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS)
 import GHC.Event
 #endif
 
@@ -59,7 +59,7 @@ instance AsEmpty Ordering
 instance AsEmpty ()
 instance AsEmpty Any
 instance AsEmpty All
-#ifndef mingw32_HOST_OS
+#if !defined(mingw32_HOST_OS) && !defined(ghcjs_HOST_OS)
 instance AsEmpty Event
 #endif
 instance (Eq a, Num a) => AsEmpty (Product a)
