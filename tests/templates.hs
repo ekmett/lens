@@ -150,9 +150,12 @@ declarePrisms [d|
   data Banana = Banana Int String
   |]
 -- data Banana = Banana Int String
--- banana :: Iso' (Int, String) Banana
+-- _Banana :: Iso' Banana (Int, String)
 cavendish :: Banana
-cavendish = view banana (4, "Cavendish")
+cavendish = _Banana # (4, "Cavendish")
+
+banana :: Iso' (Int, String) Banana
+banana = from _Banana
 
 data family Family a b c
 
@@ -178,6 +181,19 @@ declareLenses [d|
 --   data Associated Int = AssociatedInt Double
 --   method = id
 -- mochi :: Iso' (Associated Int) Double
+
+declareFields [d|
+  data DeclaredFields f a
+    = DeclaredField1 { declaredFieldsA :: f a    , declaredFieldsB :: Int }
+    | DeclaredField2 { declaredFieldsC :: String , declaredFieldsB :: Int }
+    deriving (Show)
+  |]
+
+declaredFieldsUse1 :: [Bool]
+declaredFieldsUse1 = view fieldsA (DeclaredField1 [True] 0)
+
+declaredFieldsUse2 :: [DeclaredFields [] ()]
+declaredFieldsUse2 = over (traverse.fieldsB) (+1) [DeclaredField1 [()] 0, DeclaredField2 "" 1]
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"

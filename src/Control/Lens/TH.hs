@@ -60,6 +60,7 @@ module Control.Lens.TH
   , buildTraversals
   , handleSingletons
   , singletonIso
+  , backwardIso
   , singletonRequired
   , createClass
   , createInstance
@@ -116,6 +117,7 @@ data LensFlag
   | BuildTraversals
   | SingletonAndField
   | SingletonIso
+  | BackwardIso
   | HandleSingletons
   | SingletonRequired
   | CreateClass
@@ -153,6 +155,10 @@ singletonAndField  = lensFlags.contains SingletonAndField
 -- | Use 'Iso' for singleton constructors.
 singletonIso      :: Lens' LensRules Bool
 singletonIso       = lensFlags.contains SingletonIso
+
+-- | When generating an 'Iso' put the field type as the "outer" type.
+backwardIso      :: Lens' LensRules Bool
+backwardIso       = lensFlags.contains BackwardIso
 
 -- | Expect a single constructor, single field newtype or data type.
 singletonRequired :: Lens' LensRules Bool
@@ -282,6 +288,7 @@ isoRules = defaultRules
   & handleSingletons  .~ True
   & singletonRequired .~ True
   & singletonAndField .~ True
+  & backwardIso       .~ True
 
 -- | Build lenses (and traversals) with a sensible default configuration.
 --
@@ -588,11 +595,15 @@ makePrismsForCons :: DataDecl -> Q [Dec]
 makePrismsForCons dataDecl@(DataDecl _ _ _ _ [_]) = case constructors dataDecl of
   -- Iso promotion via tuples
   [NormalC dataConName xs] ->
-    makeIsoLenses isoRules dataDecl dataConName Nothing $ map (view _2) xs
+    makeIsoLenses rules dataDecl dataConName Nothing $ map (view _2) xs
   [RecC    dataConName xs] ->
-    makeIsoLenses isoRules dataDecl dataConName Nothing $ map (view _3) xs
+    makeIsoLenses rules dataDecl dataConName Nothing $ map (view _3) xs
   _                        ->
     fail "makePrismsForCons: A single-constructor data type is required"
+  where
+  rules = isoRules & lensIso     .~ (Just . ('_':))
+                   & backwardIso .~ False
+
 makePrismsForCons dataDecl =
   concat <$> mapM (makePrismOrReviewForCon dataDecl canModifyTypeVar ) (constructors dataDecl)
   where
@@ -826,8 +837,8 @@ makeIsoLenses cfg dataDecl dataConName maybeFieldName partTy = do
   m <- freshMap $ setOf typeVars tyArgs
   let aty = List.foldl' AppT (TupleT $ length partTy) partTy
       bty = substTypeVars m aty
-      cty = fullType dataDecl $ map (VarT . view name) tyArgs
-      dty = substTypeVars m cty
+      sty = fullType dataDecl $ map (VarT . view name) tyArgs
+      tty = substTypeVars m sty
       quantified = ForallT (tyArgs ++ substTypeVars m tyArgs)
         (dataContext dataDecl ++ substTypeVars m (dataContext dataDecl))
       maybeIsoName = mkName <$> view lensIso cfg (nameBase dataConName)
@@ -839,13 +850,18 @@ makeIsoLenses cfg dataDecl dataConName maybeFieldName partTy = do
       makeBody | lensOnly  = makeLensBody
                | otherwise = makeIsoBody
   isoDecls <- flip (maybe (return [])) maybeIsoName $ \isoName -> do
+    let backward = cfg^.backwardIso
     let decl = SigD isoName $ quantified $
-          if cfg^.simpleLenses || Map.null m
-          then isoCon' `apps` [aty,cty]
-          else isoCon `apps` [aty,bty,cty,dty]
+          case (cfg^.simpleLenses || Map.null m, backward) of
+            (True , False) -> isoCon' `apps` [sty,aty]
+            (False, False) -> isoCon  `apps` [sty,tty,aty,bty]
+            (True , True ) -> isoCon' `apps` [aty,sty]
+            (False, True ) -> isoCon  `apps` [aty,bty,sty,tty]
     (ns, f) <- makeIsoFrom aty dataConName
     t <- makeIsoTo ns dataConName
-    body <- makeBody isoName f t
+    body <- if backward
+             then makeBody isoName f t
+             else makeBody isoName t f
 #ifndef INLINING
     return $ if cfg^.generateSignatures then [decl, body] else [body]
 #else
@@ -857,8 +873,8 @@ makeIsoLenses cfg dataDecl dataConName maybeFieldName partTy = do
       | (jfn /= maybeIsoName) && (isNothing maybeIsoName || cfg^.singletonAndField) -> do
       let decl = SigD lensName $ quantified $
             if cfg^.simpleLenses || Map.null m
-            then isoCon' `apps` [cty,aty]
-            else isoCon `apps` [cty,dty,aty,bty]
+            then isoCon' `apps` [sty,aty]
+            else isoCon `apps` [sty,tty,aty,bty]
       (ns, f) <- makeIsoFrom aty dataConName
       t <- makeIsoTo ns dataConName
       body <- makeBody lensName t f
