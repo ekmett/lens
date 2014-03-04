@@ -1,6 +1,8 @@
 4.0.5
 -----
 * Added `bimapping` to `Control.Lens.Iso`
+* Restored correct behavior of `makePrism` on types with a single constructor.
+* `makeLenses` now generates `Getter`s and `Fold`s on universally quantified fields.
 
 4.0.4
 -----
