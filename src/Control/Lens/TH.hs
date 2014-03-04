@@ -920,7 +920,7 @@ makeFieldGetterBody isFold lensName conList maybeMethodName
       clause [varP f, conP conName cpats] (normalB expr) []
 
     -- Non-record are never the target of a generated field lens body
-    buildClause (con, _fields) = do
+    buildClause (con, _fields) =
       -- clause:  _ c@Con{} = expr
       -- expr:    pure c
       clause [wildP, recP (con^.name) []] (normalB [| coerce (pure ()) |]) []
