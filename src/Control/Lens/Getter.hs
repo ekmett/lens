@@ -432,7 +432,7 @@ iuses :: MonadState s m => IndexedGetting i r s a -> (i -> a -> r) -> m r
 iuses l = uses l .# Indexed
 {-# INLINE iuses #-}
 
--- | View the value pointed to by a 'Getter' or 'Lens'.
+-- | View the index and value of an 'IndexedGetter' or 'IndexedLens'.
 --
 -- This is the same operation as 'iview' with the arguments flipped.
 --
