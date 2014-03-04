@@ -887,6 +887,45 @@ makeIsoLenses cfg dataDecl dataConName maybeFieldName partTy = do
     _ -> return []
   return $ isoDecls ++ accessorDecls
 
+makeFieldGetterBody :: Bool -> Name -> [(Con, [Name])] -> Maybe Name -> Q Dec
+makeFieldGetterBody isFold lensName conList maybeMethodName
+  = case maybeMethodName of
+      Just methodName -> do
+         go <- newName "go"
+         let expr = infixApp (varE methodName) (varE '(Prelude..)) (varE go)
+         funD lensName [ clause [] (normalB expr) [funD go clauses] ]
+      Nothing -> funD lensName clauses
+  where
+    clauses = map buildClause conList
+
+    buildClause (con@RecC{}, fields) = do
+      f <- newName "_f"
+      vars <- for (con^..conNamedFields._1) $ \fld ->
+          if fld `List.elem` fields
+        then Just  <$> newName ('_':(nameBase fld++""))
+        else return Nothing
+      let cpats = maybe wildP varP <$> vars               -- Deconstruction
+          fvals = map (appE (varE f) . varE) (catMaybes vars) -- Functor applications
+          conName = con^.name
+
+          expr
+            | not isFold && length fields /= 1
+              = appE (varE 'error) . litE . stringL
+              $ show lensName ++ ": expected a single matching field in " ++ show conName ++ ", found " ++ show (length fields)
+            | List.null fields
+              = [| coerce (pure ()) |]
+            | otherwise
+              = let add x y = [| $x *> $y |]
+                in [| coerce $(List.foldl1 add fvals) |]
+      clause [varP f, conP conName cpats] (normalB expr) []
+
+    -- Non-record are never the target of a generated field lens body
+    buildClause (con, _fields) = do
+      -- clause:  _ c@Con{} = expr
+      -- expr:    pure c
+      clause [wildP, recP (con^.name) []] (normalB [| coerce (pure ()) |]) []
+
+
 makeFieldLensBody :: Bool -> Name -> [(Con, [Name])] -> Maybe Name -> Q Dec
 makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMethodName of
     Just methodName -> do
@@ -1007,15 +1046,20 @@ makeFieldLenses cfg dataDecl = do
             else "The following constructors failed this criterion for the " ++ pprint lensName ++ " lens:"
           ] ++ map showCon conList
 
-    let decl = SigD lensName $ ForallT tvs' qs vars
-          where
-          vars
-            | aty == bty && cty == dty || cfg^.simpleLenses || isJust maybeClassName
-               = apps (ConT (if isTraversal then ''Traversal' else ''Lens')) [aty,cty]
-            | otherwise
-               = apps (ConT (if isTraversal then ''Traversal else ''Lens)) [aty,bty,cty,dty]
+    let decl = SigD lensName
+             $ case cty of
+                 ForallT innerTys innerCxt cty' ->
+                   ForallT (tvs'++innerTys) (qs++innerCxt)
+                    $ apps (ConT (if isTraversal then ''Fold else ''Getter)) [aty,cty']
+                 _ ->
+                   ForallT tvs' qs
+                    $ if aty == bty && cty == dty || cfg^.simpleLenses || isJust maybeClassName
+                      then apps (ConT (if isTraversal then ''Traversal' else ''Lens')) [aty,cty]
+                      else apps (ConT (if isTraversal then ''Traversal else ''Lens)) [aty,bty,cty,dty]
 
-    body <- makeFieldLensBody isTraversal lensName conList maybeMethodName
+    body <- case cty of
+              ForallT {} -> makeFieldGetterBody isTraversal lensName conList maybeMethodName
+              _          -> makeFieldLensBody isTraversal lensName conList maybeMethodName
 #ifndef INLINING
     return $ if cfg^.generateSignatures then [decl, body] else [body]
 #else

@@ -4,6 +4,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
@@ -22,6 +23,7 @@
 module Main where
 
 import Control.Lens
+import Data.List (nub)
 -- import Test.QuickCheck (quickCheck)
 
 data Bar a b c = Bar { _baz :: (a, b) }
@@ -194,6 +196,21 @@ declaredFieldsUse1 = view fieldsA (DeclaredField1 [True] 0)
 
 declaredFieldsUse2 :: [DeclaredFields [] ()]
 declaredFieldsUse2 = over (traverse.fieldsB) (+1) [DeclaredField1 [()] 0, DeclaredField2 "" 1]
+
+data Rank2Tests
+  = C1 { _r2length :: forall a. [a] -> Int
+       , _r2nub    :: forall a. Eq a=> [a] -> [a]
+       }
+  | C2 { _r2length :: forall a. [a] -> Int }
+
+makeLenses ''Rank2Tests
+
+useFold1 :: Maybe [Bool]
+useFold1  = C1 length nub ^? r2nub . to ($ [False,True,True])
+useFold2 :: Maybe [Bool]
+useFold2  = C2 length     ^? r2nub . to ($ [False,True,True])
+useLength :: Int
+useLength = C1 length nub ^. r2length . to ($ [False,True,True])
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
