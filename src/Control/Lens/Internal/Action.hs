@@ -59,10 +59,6 @@ instance Effective Identity r (Const r) where
   ineffective = Identity #. getConst
   {-# INLINE ineffective #-}
 
-instance Effective m r f => Effective (ReaderT Int m) r (Indexing f) where
-  effective m = Indexing (\i -> (i+1, effective (runReaderT m i)))
-  ineffective i = ReaderT (ineffective . snd . runIndexing i)
-
 ------------------------------------------------------------------------------
 -- Effect
 ------------------------------------------------------------------------------
