@@ -27,9 +27,7 @@ module Control.Lens.Internal.Action
 
 import Control.Applicative
 import Control.Applicative.Backwards
-import Control.Lens.Internal.Indexed
 import Control.Monad
-import Control.Monad.Reader
 import Data.Functor.Bind
 import Data.Functor.Contravariant
 import Data.Functor.Identity
