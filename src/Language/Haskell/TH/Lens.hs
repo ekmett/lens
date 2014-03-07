@@ -3,6 +3,10 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 {-# LANGUAGE Rank2Types #-}
+
+#ifndef MIN_VERSION_template_haskell
+#define MIN_VERSION_template_haskell(x,y,z) 1
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Language.Haskell.TH.Lens
