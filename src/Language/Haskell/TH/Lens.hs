@@ -894,7 +894,7 @@ _SpecialiseInstP :: Prism' Pragma Type
 _SpecialiseInstP
   = prism remitter reviewer
   where
-      remitter x = SpecialiseInstP x
+      remitter = SpecialiseInstP
       reviewer (SpecialiseInstP x) = Right x
       reviewer x = Left x
 
@@ -1054,7 +1054,7 @@ _DataFam
 tySynEqnPatterns :: Lens' TySynEqn [Type]
 tySynEqnPatterns = lens g s where
    g (TySynEqn xs _)    = xs
-   s (TySynEqn _  y) xs = (TySynEqn xs y)
+   s (TySynEqn _  y) xs = TySynEqn xs y
 
 tySynEqnResult :: Lens' TySynEqn Type
 tySynEqnResult = lens g s where
@@ -1713,7 +1713,7 @@ _LitT :: Prism' Type TyLit
 _LitT
   = prism remitter reviewer
   where
-      remitter x = LitT x
+      remitter = LitT
       reviewer (LitT x) = Right x
       reviewer x = Left x
 #endif
