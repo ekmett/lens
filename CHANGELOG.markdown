@@ -1,7 +1,7 @@
 4.0.6
 -----
 * Added `(&~)`.
-* Use parallel builds on GHC 7.8.
+* Experimental support for parallel builds on GHC 7.8 with `cabal install lens -fj`
 
 4.0.5
 -----
