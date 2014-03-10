@@ -9,10 +9,8 @@ env:
   #   GHCVER=7.4.2
   #   MODE="-fsafe"
 
-# Ingore 7.4.2 failures for now because of the doctest GHC panic.
 matrix:
   allow_failures:
-    - env: GHCVER=7.4.2
     - env: GHCVER=head
 
 before_install:
