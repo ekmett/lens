@@ -175,6 +175,11 @@ flag lib-Werror
   default: False
   manual: True
 
+-- Attempt a parallel build with GHC 7.8
+flag j
+  default: False
+  manual: True
+
 library
   build-depends:
     aeson                     >= 0.7      && < 0.8,
@@ -319,7 +324,7 @@ library
   if impl(ghc<7.4)
     ghc-options: -fno-spec-constr-count
 
-  if impl(ghc>=7.8)
+  if flag(j) && impl(ghc>=7.8)
     ghc-options: -j4
 
   ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields -fmax-simplifier-iterations=10
