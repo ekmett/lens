@@ -898,8 +898,7 @@ makeFieldGetterBody isFold lensName conList maybeMethodName
   where
     clauses = map buildClause conList
 
-    buildClause (con, fields)
-     | isRecord con = do
+    buildClause (con, fields) | isRecord con = do
       f <- newName "_f"
       vars <- for (con^..conNamedFields._1) $ \fld ->
           if fld `List.elem` fields
@@ -926,8 +925,7 @@ makeFieldGetterBody isFold lensName conList maybeMethodName
       clause [fpat, conP conName cpats] (normalB expr) []
 
     -- Non-record are never the target of a generated field lens body
-    buildClause (con, _fields)
-      | otherwise =
+    buildClause (con, _fields) =
       -- clause:  _ c@Con{} = expr
       -- expr:    pure c
       clause [wildP, recP (con^.name) []] (normalB [| coerce (pure ()) |]) []
@@ -947,8 +945,8 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
     Nothing -> funD lensName clauses
   where
     clauses = map buildClause conList
-    buildClause (con, fields)
-      | isRecord con = do
+
+    buildClause (con, fields) | isRecord con = do
       f <- newName "_f"
       vars <- for (con^..conNamedFields._1) $ \fld ->
           if fld `List.elem` fields
@@ -978,8 +976,7 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
       clause [fpat, conP conName cpats] (normalB expr) []
 
     -- Non-record are never the target of a generated field lens body
-    buildClause (con, _fields)
-      | otherwise = do
+    buildClause (con, _fields) = do
       let fieldCount = lengthOf conFields con
       vars <- replicateM fieldCount (newName "x")
       let conName = con^.name
