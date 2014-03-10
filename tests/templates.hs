@@ -184,6 +184,7 @@ declareLenses [d|
 --   method = id
 -- mochi :: Iso' (Associated Int) Double
 
+#if __GLASGOW_HASKELL >= 706
 declareFields [d|
   data DeclaredFields f a
     = DeclaredField1 { declaredFieldsA :: f a    , declaredFieldsB :: Int }
@@ -196,6 +197,7 @@ declaredFieldsUse1 = view fieldsA (DeclaredField1 [True] 0)
 
 declaredFieldsUse2 :: [DeclaredFields [] ()]
 declaredFieldsUse2 = over (traverse.fieldsB) (+1) [DeclaredField1 [()] 0, DeclaredField2 "" 1]
+#endif
 
 data Rank2Tests
   = C1 { _r2length :: forall a. [a] -> Int
