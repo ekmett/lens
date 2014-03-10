@@ -1,5 +1,6 @@
 4.0.6
 -----
+* `makeLenses` attempt to make the accessors it can under existential quantification.
 * Added `(&~)`.
 * Use parallel builds on GHC 7.8.
 
