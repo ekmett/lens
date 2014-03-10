@@ -606,10 +606,9 @@ holesOf l s = unTagged
 {-# INLINE holesOf #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target one or more elements to a 'Lens'. It can
--- also be used to transform a non-empty 'Fold' into a 'Getter' or a non-empty 'MonadicFold' into an
--- 'Action'.
+-- also be used to transform a non-empty 'Fold' into a 'Getter'.
 --
--- The resulting 'Lens', 'Getter', or 'Action' will be partial if the supplied 'Traversal' returns
+-- The resulting 'Lens' or 'Getter' will be partial if the supplied 'Traversal' returns
 -- no results.
 --
 -- >>> [1,2,3] ^. singular _head
@@ -627,10 +626,8 @@ holesOf l s = unTagged
 -- @
 -- 'singular' :: 'Traversal' s t a a          -> 'Lens' s t a a
 -- 'singular' :: 'Fold' s a                   -> 'Getter' s a
--- 'singular' :: 'MonadicFold' m s a          -> 'Action' m s a
 -- 'singular' :: 'IndexedTraversal' i s t a a -> 'IndexedLens' i s t a a
 -- 'singular' :: 'IndexedFold' i s a          -> 'IndexedGetter' i s a
--- 'singular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
 singular :: (Conjoined p, Functor f)
          => Traversing p f s t a a
@@ -645,18 +642,16 @@ singular l = conjoined
 {-# INLINE singular #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be
--- used to transform a 'Fold' into a 'Getter' or a 'MonadicFold' into an 'Action'.
+-- used to transform a 'Fold' into a 'Getter'.
 --
--- The resulting 'Lens', 'Getter', or 'Action' will be partial if the 'Traversal' targets nothing
+-- The resulting 'Lens' or 'Getter' will be partial if the 'Traversal' targets nothing
 -- or more than one element.
 --
 -- @
 -- 'unsafeSingular' :: 'Traversal' s t a b          -> 'Lens' s t a b
 -- 'unsafeSingular' :: 'Fold' s a                   -> 'Getter' s a
--- 'unsafeSingular' :: 'MonadicFold' m s a          -> 'Action' m s a
 -- 'unsafeSingular' :: 'IndexedTraversal' i s t a b -> 'IndexedLens' i s t a b
 -- 'unsafeSingular' :: 'IndexedFold' i s a          -> 'IndexedGetter' i s a
--- 'unsafeSingular' :: 'IndexedMonadicFold' i m s a -> 'IndexedAction' i m s a
 -- @
 unsafeSingular :: (Conjoined p, Functor f)
                => Traversing p f s t a b
@@ -793,14 +788,10 @@ beside l r f = tabulate $ getCompose #. bitraverse (Compose #. rep (l f)) (Compo
 -- 'taking' :: 'Int' -> 'Prism'' s a                       -> 'Traversal'' s a
 -- 'taking' :: 'Int' -> 'Getter' s a                       -> 'Fold' s a
 -- 'taking' :: 'Int' -> 'Fold' s a                         -> 'Fold' s a
--- 'taking' :: 'Int' -> 'Action' m s a                     -> 'MonadicFold' m s a
--- 'taking' :: 'Int' -> 'MonadicFold' m s a                -> 'MonadicFold' m s a
 -- 'taking' :: 'Int' -> 'IndexedTraversal'' i s a          -> 'IndexedTraversal'' i s a
 -- 'taking' :: 'Int' -> 'IndexedLens'' i s a               -> 'IndexedTraversal'' i s a
 -- 'taking' :: 'Int' -> 'IndexedGetter' i s a              -> 'IndexedFold' i s a
 -- 'taking' :: 'Int' -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
--- 'taking' :: 'Int' -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold' i m s a
--- 'taking' :: 'Int' -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- @
 taking :: (Conjoined p, Applicative f)
         => Int
@@ -828,14 +819,10 @@ taking n l = conjoined
 -- 'dropping' :: 'Int' -> 'Prism'' s a                       -> 'Traversal'' s a
 -- 'dropping' :: 'Int' -> 'Getter' s a                       -> 'Fold' s a
 -- 'dropping' :: 'Int' -> 'Fold' s a                         -> 'Fold' s a
--- 'dropping' :: 'Int' -> 'Action' m s a                     -> 'MonadicFold' m s a
--- 'dropping' :: 'Int' -> 'MonadicFold' m s a                -> 'MonadicFold' m s a
 -- 'dropping' :: 'Int' -> 'IndexedTraversal'' i s a          -> 'IndexedTraversal'' i s a
 -- 'dropping' :: 'Int' -> 'IndexedLens'' i s a               -> 'IndexedTraversal'' i s a
 -- 'dropping' :: 'Int' -> 'IndexedGetter' i s a              -> 'IndexedFold' i s a
 -- 'dropping' :: 'Int' -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
--- 'dropping' :: 'Int' -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold' i m s a
--- 'dropping' :: 'Int' -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- @
 dropping :: (Conjoined p, Applicative f) => Int -> Over p (Indexing f) s t a a -> Over p f s t a a
 dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where

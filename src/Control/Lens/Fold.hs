@@ -325,14 +325,10 @@ filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . ri
 -- 'takingWhile' :: (a -> 'Bool') -> 'Lens'' s a                        -> 'Fold' s a -- * See note below
 -- 'takingWhile' :: (a -> 'Bool') -> 'Prism'' s a                       -> 'Fold' s a -- * See note below
 -- 'takingWhile' :: (a -> 'Bool') -> 'Iso'' s a                         -> 'Fold' s a -- * See note below
--- 'takingWhile' :: (a -> 'Bool') -> 'Action' m s a                     -> 'MonadicFold' m s a
--- 'takingWhile' :: (a -> 'Bool') -> 'MonadicFold' m s a                -> 'MonadicFold' m s a
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexedTraversal'' i s a          -> 'IndexedFold' i s a -- * See note below
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a               -> 'IndexedFold' i s a -- * See note below
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
 -- 'takingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a              -> 'IndexedFold' i s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a            -> 'IndexedMonadicFold' i m s a
--- 'takingWhile' :: (a -> 'Bool') -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- @
 --
 -- /Note:/ When applied to a 'Traversal', 'takingWhile' yields something that can be used as if it were a 'Traversal', but
@@ -370,11 +366,6 @@ takingWhile p l pafb = fmap runMagma . traverse (corep pafb) . runTakingWhile . 
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingLens'' s a         -> 'IndexPreservingFold' s a -- see notes
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingGetter' s a        -> 'IndexPreservingFold' s a
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingFold' s a          -> 'IndexPreservingFold' s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingAction' m s a      -> 'IndexPreservingFold' s a
--- @
---
--- @
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexPreservingMonadicFold' m s a -> 'IndexPreservingMonadicFold' m s a
 -- @
 --
 -- @
@@ -382,11 +373,6 @@ takingWhile p l pafb = fmap runMagma . traverse (corep pafb) . runTakingWhile . 
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedLens'' i s a               -> 'IndexedFold' i s a       -- see notes
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedGetter' i s a              -> 'IndexedFold' i s a
 -- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedFold' i s a                -> 'IndexedFold' i s a
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedAction' i m s a            -> 'IndexedFold' i s a
--- @
---
--- @
--- 'droppingWhile' :: (a -> 'Bool') -> 'IndexedMonadicFold' i m s a       -> 'IndexedMonadicFold' i m s a
 -- @
 --
 -- Note: Many uses of this combinator will yield something that meets the types, but not the laws of a valid
@@ -2360,8 +2346,6 @@ ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 -- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedTraversal'' i s a    -> 'IndexedFold' i s a
 -- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedLens'' i s a         -> 'IndexedFold' i s a
 -- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
--- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold' i m s a
--- 'itakingWhile' :: (i -> a -> 'Bool') -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold' i m s a
 -- @
 itakingWhile :: (Indexable i p, Profunctor q, Contravariant f, Applicative f)
          => (i -> a -> Bool)
@@ -2378,8 +2362,6 @@ itakingWhile p l f = (flip appEndo noEffect .# getConst) `rmap` l g where
 -- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedTraversal'' i s a    -> 'IndexedFold' i s a -- see notes
 -- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedLens'' i s a         -> 'IndexedFold' i s a -- see notes
 -- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
--- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedMonadicFold' i m s a -> 'IndexedMonadicFold' i m s a
--- 'idroppingWhile' :: (i -> a -> 'Bool') -> 'IndexedAction' i m s a      -> 'IndexedMonadicFold' i m s a
 -- @
 --
 -- Applying 'idroppingWhile' to an 'IndexedLens' or 'IndexedTraversal' will still allow you to use it as a
