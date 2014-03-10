@@ -1,3 +1,8 @@
+4.0.6
+-----
+* Added `(&~)`.
+* Use parallel builds on GHC 7.8.
+
 4.0.5
 -----
 * Added `bimapping` to `Control.Lens.Iso`

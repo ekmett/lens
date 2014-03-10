@@ -34,4 +34,4 @@ infixr 2 `zoom`, `magnify`
 infixr 2 <~
 infixr 2 <<~
 
-infixl 1 &, <&>, ??
+infixl 1 &, &~, <&>, ??

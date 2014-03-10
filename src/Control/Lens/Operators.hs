@@ -43,6 +43,7 @@ module Control.Lens.Operators
   , (%%~)
   , (%%=)
   , (&)
+  , (&~)
   , (<&>)
   , (??)
   , (<%~)

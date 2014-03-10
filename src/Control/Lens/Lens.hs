@@ -74,7 +74,7 @@ module Control.Lens.Lens
   , (<<%@~), (<<%@=)
   -- ** General Purpose Combinators
   , (&), (<&>), (??)
-
+  , (&~)
   -- * Lateral Composition
   , choosing
   , chosen
@@ -156,7 +156,7 @@ infixl 8 ^#
 infixr 4 %%@~, <%@~, <<%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <%~, <<%~, <<.~, <#~, #~, #%~, <#%~, #%%~
 infix  4 %%@=, <%@=, <<%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=, <#=, #=, #%=, <#%=, #%%=
 infixr 2 <<~
-infixl 1 &, <&>, ??
+infixl 1 &, <&>, ??, &~
 
 -------------------------------------------------------------------------------
 -- Lenses
@@ -219,6 +219,23 @@ iplens sa sbt pafb = cotabulate $ \ws -> sbt (extract ws) <$> corep pafb (sa <$>
 ilens :: (s -> (i, a)) -> (s -> b -> t) -> IndexedLens i s t a b
 ilens sia sbt iafb s = sbt s <$> uncurry (indexed iafb) (sia s)
 {-# INLINE ilens #-}
+
+-- | This can be used to chain lens operations using @op=@ syntax
+-- rather than @op~@ syntax for simple non-type-changing cases.
+--
+-- >>> (10,20) & _1 .~ 30 & _2 .~ 40
+-- (30,40)
+--
+-- >>> (10,20) &~ do _1 .= 30; _2 .= 40
+-- (30,40)
+--
+-- This does not support type-changing assignment, /e.g./
+--
+-- >>> (10,20) & _1 .~ "hello"
+-- ("hello",20)
+(&~) :: s -> State s a -> s
+s &~ l = execState l s
+{-# INLINE (&~) #-}
 
 -- | ('%%~') can be used in one of two scenarios:
 --
