@@ -376,6 +376,7 @@ conFields f (ForallC bds ctx c) = ForallC bds ctx <$> conFields f c
 -- | 'Traversal' of the types of the /named/ fields of a constructor.
 conNamedFields :: Traversal' Con VarStrictType
 conNamedFields f (RecC n fs) = RecC n <$> traverse f fs
+conNamedFields f (ForallC a b fs) = ForallC a b <$> conNamedFields f fs
 conNamedFields _ c = pure c
 
 -- Lenses and Prisms

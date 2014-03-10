@@ -898,7 +898,8 @@ makeFieldGetterBody isFold lensName conList maybeMethodName
   where
     clauses = map buildClause conList
 
-    buildClause (con@RecC{}, fields) = do
+    buildClause (con, fields)
+     | isRecord con = do
       f <- newName "_f"
       vars <- for (con^..conNamedFields._1) $ \fld ->
           if fld `List.elem` fields
@@ -908,23 +909,34 @@ makeFieldGetterBody isFold lensName conList maybeMethodName
           fvals = map (appE (varE f) . varE) (catMaybes vars) -- Functor applications
           conName = con^.name
 
+          fpat
+            | List.null fvals = wildP
+            | otherwise       = varP f
+
           expr
             | not isFold && length fields /= 1
               = appE (varE 'error) . litE . stringL
               $ show lensName ++ ": expected a single matching field in " ++ show conName ++ ", found " ++ show (length fields)
             | List.null fields
               = [| coerce (pure ()) |]
+            | List.null fvals = [| coerce (pure ()) |]
             | otherwise
               = let add x y = [| $x *> $y |]
                 in [| coerce $(List.foldl1 add fvals) |]
-      clause [varP f, conP conName cpats] (normalB expr) []
+      clause [fpat, conP conName cpats] (normalB expr) []
 
     -- Non-record are never the target of a generated field lens body
-    buildClause (con, _fields) =
+    buildClause (con, _fields)
+      | otherwise =
       -- clause:  _ c@Con{} = expr
       -- expr:    pure c
       clause [wildP, recP (con^.name) []] (normalB [| coerce (pure ()) |]) []
 
+isRecord :: Con -> Bool
+isRecord RecC{}          = True
+isRecord NormalC{}       = False
+isRecord InfixC{}        = False
+isRecord (ForallC _ _ c) = isRecord c
 
 makeFieldLensBody :: Bool -> Name -> [(Con, [Name])] -> Maybe Name -> Q Dec
 makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMethodName of
@@ -935,7 +947,8 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
     Nothing -> funD lensName clauses
   where
     clauses = map buildClause conList
-    buildClause (con@RecC{}, fields) = do
+    buildClause (con, fields)
+      | isRecord con = do
       f <- newName "_f"
       vars <- for (con^..conNamedFields._1) $ \fld ->
           if fld `List.elem` fields
@@ -948,6 +961,9 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
           conName = con^.name
           recon = conE conName `appsE1` cvals
 
+          fpat
+            | List.null fields = wildP
+            | otherwise        = varP f
           expr
             | not isTraversal && length fields /= 1
               = appE (varE 'error) . litE . stringL
@@ -959,10 +975,11 @@ makeFieldLensBody isTraversal lensName conList maybeMethodName = case maybeMetho
                     step (Just l) r = Just $ infixE (Just l) (varE '(<*>)) (Just r)
                 in  fromJust $ List.foldl step Nothing fvals
               -- = infixE (Just $ lamE fpats recon) (varE '(<$>)) $ Just $ List.foldl1 (\l r -> infixE (Just l) (varE '(<*>)) (Just r)) fvals
-      clause [varP f, conP conName cpats] (normalB expr) []
+      clause [fpat, conP conName cpats] (normalB expr) []
 
     -- Non-record are never the target of a generated field lens body
-    buildClause (con, _fields) = do
+    buildClause (con, _fields)
+      | otherwise = do
       let fieldCount = lengthOf conFields con
       vars <- replicateM fieldCount (newName "x")
       let conName = con^.name
@@ -1093,6 +1110,13 @@ getLensFields :: (String -> Maybe String) -> Con -> Q [(Name, (Name, Name, Type)
 getLensFields f (RecC cn fs)
   = return . catMaybes
   $ fs <&> \(fn,_,t) -> f (nameBase fn) <&> \ln -> (mkName ln, (cn,fn,t))
+getLensFields f (ForallC tvs cxts con) = fmap (filter p) (getLensFields f con)
+  where
+  -- Only select fields which do not mention existentially
+  -- quantified type variables or variables mentioned in internal class constraints
+  prohibitedTypes = tvs^..typeVars ++ cxts^..typeVars
+  p field = not (any (\t -> elemOf (_2._3.typeVars) t field) prohibitedTypes)
+
 getLensFields _ _
   = return []
 
