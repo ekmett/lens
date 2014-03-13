@@ -10,6 +10,9 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+#if __GLASGOW_HASKELL__ >= 707
+{-# LANGUAGE RoleAnnotations #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Magma
@@ -61,6 +64,11 @@ data Magma i t b a where
   MagmaPure :: x -> Magma i x b a
   MagmaFmap :: (x -> y) -> Magma i x b a -> Magma i y b a
   Magma :: i -> a -> Magma i b b a
+
+#if __GLASGOW_HASKELL__ >= 707
+-- note the 3rd argument infers as phantom, but that would be unsound
+type role Magma representational nominal nominal nominal
+#endif
 
 instance Functor (Magma i t b) where
   fmap f (MagmaAp x y)    = MagmaAp (fmap f x) (fmap f y)
@@ -208,7 +216,13 @@ instance IndexedFunctor Mafic where
 -- | This is used to generate an indexed magma from an unindexed source
 --
 -- By constructing it this way we avoid infinite reassociations where possible.
+--
+-- In @'TakingWhile' p g a b t@, @g@ has a @nominal@ role to avoid exposing an illegal _|_ via 'Contravariant',
+-- while the remaining arguments are degraded to a @nominal@ role by the invariants of 'Magma'
 data TakingWhile p (g :: * -> *) a b t = TakingWhile Bool t (Bool -> Magma () t b (Corep p a))
+#if __GLASGOW_HASKELL__ >= 707
+type role TakingWhile nominal nominal nominal nominal nominal
+#endif
 
 -- | Generate a 'Magma' with leaves only while the predicate holds from left to right.
 runTakingWhile :: Corepresentable p => TakingWhile p f a b t -> Magma () t b (Corep p a)
