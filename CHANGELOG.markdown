@@ -4,6 +4,7 @@
 * Added `(&~)`.
 * Experimental support for parallel builds on GHC 7.8 with `cabal install lens -fj`
 * Added `RoleAnnotations` for GHC 7.8.1. These rule out a few user-accessible bottoms that could be caused by creative abuse of the new `Coercible` machinery. However, there was no `unsafeCoerce` exposed.
+* Removed some impossible cases that required unwritable instances from the example doctypes.
 
 4.0.5
 -----
