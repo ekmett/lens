@@ -63,6 +63,7 @@ instance Effective Identity r (Const r) where
 
 -- | Wrap a monadic effect with a phantom type argument.
 newtype Effect m r a = Effect { getEffect :: m r }
+-- type role Effect representational nominal phantom
 
 instance Functor (Effect m r) where
   fmap _ (Effect m) = Effect m
