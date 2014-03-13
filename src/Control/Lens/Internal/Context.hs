@@ -6,6 +6,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+#if __GLASGOW_HASKELL__ >= 707
+{-# LANGUAGE RoleAnnotations #-}
+#endif
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -271,6 +274,8 @@ instance Corepresentable p => Sellable p (Pretext p) where
 -- PretextT
 ------------------------------------------------------------------------------
 
+
+
 -- | This is a generalized form of 'Context' that can be repeatedly cloned with less
 -- impact on its performance, and which permits the use of an arbitrary 'Conjoined'
 -- 'Profunctor'.
@@ -280,6 +285,12 @@ instance Corepresentable p => Sellable p (Pretext p) where
 -- gracefully degrade when applied to a 'Control.Lens.Fold.Fold', 'Control.Lens.Getter.Getter'
 -- or 'Control.Lens.Action.Action'.
 newtype PretextT p (g :: * -> *) a b t = PretextT { runPretextT :: forall f. Functor f => p a (f b) -> f t }
+
+#if __GLASGOW_HASKELL__ >= 707
+-- really we want PretextT p g a b t to permit the last 3 arguments to be representational iff p and f accept representational arguments
+-- but that isn't currently an option in GHC
+type role PretextT representational nominal nominal nominal nominal
+#endif
 
 -- | @type 'PretextT'' p g a s = 'PretextT' p g a a s@
 type PretextT' p g a = PretextT p g a a
