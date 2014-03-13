@@ -1,3 +1,7 @@
+4.0.7
+-----
+* Removed dependency on `constraints`. It was used in a pre-release version of 4.0 but never made it into 4.0, but the dependency had remained around complicating builds for GHC 7.4.
+
 4.0.6
 -----
 * `makeLenses` attempt to make the accessors it can under existential quantification.
