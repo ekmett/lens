@@ -1030,7 +1030,11 @@ makeFieldLenses cfg dataDecl = do
         ctx = dataContext dataDecl
         ps = filter relevantCtx (substTypeVars m ctx)
         qs = case maybeClassName of
+#if __GLASGOW_HASKELL__ >= 709
+           Just n | not (cfg^.createClass) -> AppT (ConT n) (VarT t) : (ctx ++ ps)
+#else
            Just n | not (cfg^.createClass) -> ClassP n [VarT t] : (ctx ++ ps)
+#endif
                   | otherwise              -> ps
            _                               -> ctx ++ ps
         tvs' = case maybeClassName of
@@ -1162,7 +1166,11 @@ makeRewrappedInstance dataDecl = do
        appliedType' = return (fullType dataDecl (map VarT typeArgs'))
 
        -- Con a' b' c'... ~ t
+#if __GLASGOW_HASKELL__ >= 709
+       eq = AppT. AppT EqualityT <$> appliedType' <*> t
+#else
        eq = equalP appliedType' t
+#endif
 
        -- Rewrapped (Con a b c...) t
        klass = conT ''Rewrapped `appsT` [appliedType, t]

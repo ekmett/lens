@@ -63,7 +63,11 @@ tupleIxed :: Int -> DecQ
 tupleIxed n = instanceD (cxt eqs) (conT ixedN `appT` fullTupleT n) [funD ixN clauses]
   where
   ty0:tyN = take n tupleVarTypes
+#if __GLASGOW_HASKELL__ >= 709
+  eqs     = [AppT . AppT EqualityT <$> ty0 <*> ty | ty <- tyN]
+#else
   eqs     = [ty0 `equalP` ty | ty <- tyN]
+#endif
   clauses = map nClause [0..n-1] ++ [otherClause]
 
   -- ix i f (a,..) = fmap (\x->(a,..x..)) (f z)
