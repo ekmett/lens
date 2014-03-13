@@ -2,7 +2,7 @@
 -----
 * `makeLenses` attempt to make the accessors it can under existential quantification.
 * Added `(&~)`.
-* Experimental support for parallel builds on GHC 7.8 with `cabal install lens -fj`
+* _Experimental_ support for parallel builds on GHC 7.8 with `cabal install lens -fj`. Due to at last one known issue with GHC, it isn't recommended to use this option when rebuilding lens, as a race condition on at least one platform has been seen in the wild.
 * Added `RoleAnnotations` for GHC 7.8.1. These rule out a few user-accessible bottoms that could be caused by creative abuse of the new `Coercible` machinery. However, there was no `unsafeCoerce` exposed.
 * Removed some impossible cases that required unwritable instances from the example doctypes.
 
