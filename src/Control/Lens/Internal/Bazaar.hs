@@ -74,6 +74,7 @@ class Profunctor p => Bizarre p w | w -> p where
 --
 -- This is a final encoding of 'Bazaar'.
 newtype Bazaar p a b t = Bazaar { runBazaar :: forall f. Applicative f => p a (f b) -> f t }
+-- type role Bazaar representatonal nominal nominal nominal
 
 -- | This alias is helpful when it comes to reducing repetition in type signatures.
 --
@@ -229,6 +230,7 @@ class Profunctor p => Bizarre1 p w | w -> p where
 --
 -- This is a final encoding of 'Bazaar1'.
 newtype Bazaar1 p a b t = Bazaar1 { runBazaar1 :: forall f. Apply f => p a (f b) -> f t }
+-- type role Bazaar1 representatonal nominal nominal nominal
 
 -- | This alias is helpful when it comes to reducing repetition in type signatures.
 --

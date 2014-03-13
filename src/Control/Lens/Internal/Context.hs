@@ -142,6 +142,7 @@ class Corepresentable p => Sellable p w | w -> p where
 --
 -- A 'Context' is like a 'Control.Lens.Lens.Lens' that has already been applied to a some structure.
 data Context a b t = Context (b -> t) a
+-- type role Context representational representational representational
 
 instance IndexedFunctor Context where
   ifmap f (Context g t) = Context (f . g) t
@@ -212,6 +213,7 @@ type Context' a = Context a a
 -- impact on its performance, and which permits the use of an arbitrary 'Conjoined'
 -- 'Profunctor'
 newtype Pretext p a b t = Pretext { runPretext :: forall f. Functor f => p a (f b) -> f t }
+-- type role Pretext representational nominal nominal nominal
 
 -- | @type 'Pretext'' p a s = 'Pretext' p a a s@
 type Pretext' p a = Pretext p a a
