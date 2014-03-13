@@ -13,6 +13,7 @@
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RoleAnnotations #-}
 #endif
 
 #ifndef MIN_VERSION_base
@@ -173,6 +174,8 @@ supply = unsafePerformIO $ newIORef 0
 newtype Handling a s (m :: * -> *) = Handling a
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 707
   deriving Typeable
+
+type role Handling representational nominal nominal
 #else
 -- the m parameter exists simply to break the Typeable1 pattern, so we can provide this without overlap.
 -- here we simply generate a fresh TypeRep so we'll fail to compare as equal to any other TypeRep.
