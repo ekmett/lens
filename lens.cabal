@@ -188,7 +188,6 @@ library
     bifunctors                >= 4        && < 5,
     bytestring                >= 0.9.1.10 && < 0.11,
     comonad                   >= 4        && < 5,
-    constraints               >= 0.3.3    && < 1,
     contravariant             >= 0.3      && < 1,
     containers                >= 0.4.0    && < 0.6,
     distributive              >= 0.3      && < 1,
