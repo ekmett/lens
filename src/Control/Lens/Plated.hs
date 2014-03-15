@@ -80,6 +80,7 @@ module Control.Lens.Plated
   where
 
 import           Control.Applicative
+import           Control.Comonad.Cofree
 import           Control.Lens.Fold
 import           Control.Lens.Getter
 import           Control.Lens.Indexed
@@ -87,6 +88,9 @@ import           Control.Lens.Internal.Context
 import           Control.Lens.Type
 import           Control.Lens.Setter
 import           Control.Lens.Traversal
+import           Control.Monad.Free as Monad
+import           Control.Monad.Free.Church as Church
+import           Control.MonadPlus.Free as MonadPlus
 import qualified Language.Haskell.TH as TH
 import           Data.Aeson
 import           Data.Data
@@ -201,6 +205,21 @@ class Plated a where
 instance Plated [a] where
   plate f (x:xs) = (x:) <$> f xs
   plate _ [] = pure []
+
+instance Traversable f => Plated (Monad.Free f a) where
+  plate f (Monad.Free as) = Monad.Free <$> traverse f as
+  plate _ x         = pure x
+
+instance Traversable f => Plated (MonadPlus.Free f a) where
+  plate f (MonadPlus.Free as) = MonadPlus.Free <$> traverse f as
+  plate f (MonadPlus.Plus as) = MonadPlus.Plus <$> traverse f as
+  plate _ x         = pure x
+
+instance Traversable f => Plated (Church.F f a) where
+  plate f = fmap toF . plate (fmap fromF . f . toF) . fromF
+
+instance Traversable f => Plated (Cofree f a) where
+  plate f (a :< as) = (:<) a <$> traverse f as
 
 instance Plated (Tree a) where
   plate f (Node a as) = Node a <$> traverse f as
