@@ -89,8 +89,9 @@ import           Control.Lens.Type
 import           Control.Lens.Setter
 import           Control.Lens.Traversal
 import           Control.Monad.Free as Monad
-import           Control.Monad.Trans.Free as Trans
 import           Control.Monad.Free.Church as Church
+import           Control.Monad.Trans.Free as Trans
+-- import           Control.Monad.Trans.Free.Church as ChurchT
 import           Control.MonadPlus.Free as MonadPlus
 import qualified Language.Haskell.TH as TH
 import           Data.Aeson
@@ -221,7 +222,12 @@ instance Traversable f => Plated (MonadPlus.Free f a) where
   plate _ x         = pure x
 
 instance Traversable f => Plated (Church.F f a) where
-  plate f = fmap toF . plate (fmap fromF . f . toF) . fromF
+  plate f = fmap Church.toF . plate (fmap Church.fromF . f . Church.toF) . Church.fromF
+
+-- -- This one can't work
+--
+-- instance (Traversable f, Traversable m) => Plated (ChurchT.FT f m a) where
+--   plate f = fmap ChurchT.toFT . plate (fmap ChurchT.fromFT . f . ChurchT.toFT) . ChurchT.fromFT
 
 instance Traversable f => Plated (Cofree f a) where
   plate f (a :< as) = (:<) a <$> traverse f as
