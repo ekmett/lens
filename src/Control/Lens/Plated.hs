@@ -79,27 +79,27 @@ module Control.Lens.Plated
   )
   where
 
-import           Control.Applicative
-import           Control.Comonad.Cofree
-import           Control.Lens.Fold
-import           Control.Lens.Getter
-import           Control.Lens.Indexed
-import           Control.Lens.Internal.Context
-import           Control.Lens.Type
-import           Control.Lens.Setter
-import           Control.Lens.Traversal
-import           Control.Monad.Free as Monad
-import           Control.Monad.Free.Church as Church
-import           Control.Monad.Trans.Free as Trans
--- import           Control.Monad.Trans.Free.Church as ChurchT
-import           Control.MonadPlus.Free as MonadPlus
+import Control.Applicative
+import Control.Comonad.Cofree
+import Control.Lens.Fold
+import Control.Lens.Getter
+import Control.Lens.Indexed
+import Control.Lens.Internal.Context
+import Control.Lens.Type
+import Control.Lens.Setter
+import Control.Lens.Traversal
+import Control.Monad.Free as Monad
+import Control.Monad.Free.Church as Church
+import Control.Monad.Trans.Free as Trans
+-- import Control.Monad.Trans.Free.Church as ChurchT
+import Control.MonadPlus.Free as MonadPlus
 import qualified Language.Haskell.TH as TH
-import           Data.Aeson
-import           Data.Bitraversable
-import           Data.Data
-import           Data.Data.Lens
-import           Data.Monoid
-import           Data.Tree
+import Data.Aeson
+import Data.Bitraversable
+import Data.Data
+import Data.Data.Lens
+import Data.Monoid
+import Data.Tree
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Reduce duplication" #-}
