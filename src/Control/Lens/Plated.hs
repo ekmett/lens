@@ -89,10 +89,12 @@ import           Control.Lens.Type
 import           Control.Lens.Setter
 import           Control.Lens.Traversal
 import           Control.Monad.Free as Monad
+import           Control.Monad.Trans.Free as Trans
 import           Control.Monad.Free.Church as Church
 import           Control.MonadPlus.Free as MonadPlus
 import qualified Language.Haskell.TH as TH
 import           Data.Aeson
+import           Data.Bitraversable
 import           Data.Data
 import           Data.Data.Lens
 import           Data.Monoid
@@ -209,6 +211,9 @@ instance Plated [a] where
 instance Traversable f => Plated (Monad.Free f a) where
   plate f (Monad.Free as) = Monad.Free <$> traverse f as
   plate _ x         = pure x
+
+instance (Traversable f, Traversable m) => Plated (Trans.FreeT f m a) where
+  plate f (Trans.FreeT xs) = Trans.FreeT <$> traverse (bitraverse pure f) xs
 
 instance Traversable f => Plated (MonadPlus.Free f a) where
   plate f (MonadPlus.Free as) = MonadPlus.Free <$> traverse f as
