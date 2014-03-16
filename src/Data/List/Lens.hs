@@ -49,7 +49,7 @@ prefixed ps = prism' (ps ++) (stripPrefix ps)
 {-# INLINE prefixed #-}
 
 -- | A 'Prism' stripping a suffix from a list when used as a 'Traversal', or
--- prepending that prefix when run backwards:
+-- appending that suffix when run backwards:
 --
 -- >>> "review" ^? suffixed "view"
 -- Just "re"
