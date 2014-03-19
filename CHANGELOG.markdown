@@ -1,3 +1,8 @@
+4.1
+---
+* Added `Plated` instances for various free monad variants.
+* Compatibility with GHC HEAD (7.9+)
+
 4.0.7
 -----
 * Removed dependency on `constraints`. It was used in a pre-release version of 4.0 but never made it into 4.0, but the dependency had remained around complicating builds for GHC 7.4.
