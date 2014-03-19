@@ -1,3 +1,7 @@
+4.1.1
+----
+* Generalized the types of `mapping`, `bimapping`, `contramapping`, `dimapping`, `lmapping`, `rmapping` to support changing the `Functor`, `Bifunctor`, `Contravariant`, and `Profunctor` respectively.
+
 4.1
 ---
 * Added `Plated` instances for various free monad variants.
