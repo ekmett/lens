@@ -305,6 +305,8 @@ library
   other-modules:
     Control.Lens.Internal.TupleIxedTH
 
+  cpp-options: -traditional
+
   if flag(safe)
     cpp-options: -DSAFE=1
 
