@@ -215,7 +215,7 @@ enum = iso toEnum fromEnum
 {-# INLINE enum #-}
 
 -- | This can be used to lift any 'Iso' into an arbitrary 'Functor'.
-mapping :: Functor f => AnIso s t a b -> Iso (f s) (f t) (f a) (f b)
+mapping :: (Functor f, Functor g) => AnIso s t a b -> Iso (f s) (g t) (f a) (g b)
 mapping k = withIso k $ \ sa bt -> iso (fmap sa) (fmap bt)
 {-# INLINE mapping #-}
 
@@ -464,7 +464,7 @@ contramapping f = withIso f $ \ sa bt -> iso (contramap sa) (contramap bt)
 -- dimapping :: 'Profunctor' p => 'Iso' s t a b -> 'Iso' s' t' a' b' -> 'Iso' (p a s') (p b t') (p s a') (p t b')
 -- dimapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' s' a' -> 'Iso'' (p a s') (p s a')
 -- @
-dimapping :: Profunctor p => AnIso s t a b -> AnIso s' t' a' b' -> Iso (p a s') (p b t') (p s a') (p t b')
+dimapping :: (Profunctor p, Profunctor q) => AnIso s t a b -> AnIso s' t' a' b' -> Iso (p a s') (q b t') (p s a') (q t b')
 dimapping f g = withIso f $ \ sa bt -> withIso g $ \ s'a' b't' ->
   iso (dimap sa s'a') (dimap bt b't')
 {-# INLINE dimapping #-}
@@ -475,7 +475,7 @@ dimapping f g = withIso f $ \ sa bt -> withIso g $ \ s'a' b't' ->
 -- lmapping :: 'Profunctor' p => 'Iso' s t a b -> 'Iso' (p a x) (p b y) (p s x) (p t y)
 -- lmapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' (p a x) (p s x)
 -- @
-lmapping :: Profunctor p => AnIso s t a b -> Iso (p a x) (p b y) (p s x) (p t y)
+lmapping :: (Profunctor p, Profunctor q) => AnIso s t a b -> Iso (p a x) (q b y) (p s x) (q t y)
 lmapping f = withIso f $ \ sa bt -> iso (lmap sa) (lmap bt)
 {-# INLINE lmapping #-}
 
@@ -485,7 +485,7 @@ lmapping f = withIso f $ \ sa bt -> iso (lmap sa) (lmap bt)
 -- rmapping :: 'Profunctor' p => 'Iso' s t a b -> 'Iso' (p x s) (p y t) (p x a) (p y b)
 -- rmapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' (p x s) (p x a)
 -- @
-rmapping :: Profunctor p => AnIso s t a b -> Iso (p x s) (p y t) (p x a) (p y b)
+rmapping :: (Profunctor p, Profunctor q) => AnIso s t a b -> Iso (p x s) (q y t) (p x a) (q y b)
 rmapping g = withIso g $ \ sa bt -> iso (rmap sa) (rmap bt)
 {-# INLINE rmapping #-}
 
@@ -499,7 +499,7 @@ rmapping g = withIso g $ \ sa bt -> iso (rmap sa) (rmap bt)
 -- bimapping :: 'Profunctor' p => 'Iso' s t a b -> 'Iso' s' t' a' b' -> 'Iso' (p s s') (p t t') (p a a') (p b b')
 -- bimapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' s' a' -> 'Iso'' (p s s') (p a a')
 -- @
-bimapping :: Bifunctor f => AnIso s t a b -> AnIso s' t' a' b' -> Iso (f s s') (f t t') (f a a') (f b b')
+bimapping :: (Bifunctor f, Bifunctor g) => AnIso s t a b -> AnIso s' t' a' b' -> Iso (f s s') (g t t') (f a a') (g b b')
 bimapping f g = withIso f $ \ sa bt -> withIso g $ \s'a' b't' ->
   iso (bimap sa s'a') (bimap bt b't')
 {-# INLINE bimapping #-}
