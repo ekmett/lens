@@ -12,6 +12,10 @@
 #ifndef MIN_VERSION_template_haskell
 #define MIN_VERSION_template_haskell(x,y,z) 1
 #endif
+
+#ifndef MIN_VERSION_free
+#define MIN_VERSION_free(x,y,z) 1
+#endif
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Plated
@@ -91,8 +95,9 @@ import Control.Lens.Traversal
 import Control.Monad.Free as Monad
 import Control.Monad.Free.Church as Church
 import Control.Monad.Trans.Free as Trans
--- import Control.Monad.Trans.Free.Church as ChurchT
+#if !(MIN_VERSION_free(4,6,0))
 import Control.MonadPlus.Free as MonadPlus
+#endif
 import qualified Language.Haskell.TH as TH
 import Data.Aeson
 import Data.Bitraversable
@@ -216,10 +221,12 @@ instance Traversable f => Plated (Monad.Free f a) where
 instance (Traversable f, Traversable m) => Plated (Trans.FreeT f m a) where
   plate f (Trans.FreeT xs) = Trans.FreeT <$> traverse (bitraverse pure f) xs
 
+#if !(MIN_VERSION_free(4,6,0))
 instance Traversable f => Plated (MonadPlus.Free f a) where
   plate f (MonadPlus.Free as) = MonadPlus.Free <$> traverse f as
   plate f (MonadPlus.Plus as) = MonadPlus.Plus <$> traverse f as
   plate _ x         = pure x
+#endif
 
 instance Traversable f => Plated (Church.F f a) where
   plate f = fmap Church.toF . plate (fmap Church.fromF . f . Church.toF) . Church.fromF
