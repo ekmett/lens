@@ -62,6 +62,7 @@ module Control.Lens.Iso
   , bimapping
   ) where
 
+import Control.Lens.Equality (simple)
 import Control.Lens.Fold
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
@@ -218,14 +219,6 @@ enum = iso toEnum fromEnum
 mapping :: (Functor f, Functor g) => AnIso s t a b -> Iso (f s) (g t) (f a) (g b)
 mapping k = withIso k $ \ sa bt -> iso (fmap sa) (fmap bt)
 {-# INLINE mapping #-}
-
--- | Composition with this isomorphism is occasionally useful when your 'Lens',
--- 'Control.Lens.Traversal.Traversal' or 'Iso' has a constraint on an unused
--- argument to force that argument to agree with the
--- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.
-simple :: Iso' a a
-simple = id
-{-# INLINE simple #-}
 
 -- | If @v@ is an element of a type @a@, and @a'@ is @a@ sans the element @v@, then @'non' v@ is an isomorphism from
 -- @'Maybe' a'@ to @a@.

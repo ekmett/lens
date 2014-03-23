@@ -22,6 +22,8 @@ module Control.Lens.Equality
   , mapEq
   , fromEq
   , simply
+  -- * The Trivial Equality
+  , simple
   -- * Implementation Details
   , Identical(..)
   ) where
@@ -77,3 +79,11 @@ fromEq l = substEq l id
 simply :: (Optic' p f s a -> r) -> Optic' p f s a -> r
 simply = id
 {-# INLINE simply #-}
+
+-- | Composition with this isomorphism is occasionally useful when your 'Lens',
+-- 'Control.Lens.Traversal.Traversal' or 'Iso' has a constraint on an unused
+-- argument to force that argument to agree with the
+-- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.
+simple :: Equality' a a
+simple = id
+{-# INLINE simple #-}
