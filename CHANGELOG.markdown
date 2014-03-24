@@ -1,6 +1,7 @@
 4.1.1
 ----
 * Generalized the types of `mapping`, `bimapping`, `contramapping`, `dimapping`, `lmapping`, `rmapping` to support changing the `Functor`, `Bifunctor`, `Contravariant`, and `Profunctor` respectively.
+* Compatibility with `free` 4.6
 
 4.1
 ---
