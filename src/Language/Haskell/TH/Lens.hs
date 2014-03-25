@@ -249,7 +249,7 @@ module Language.Haskell.TH.Lens
   , _NumTyLit
   , _StrTyLit
 #endif
-#if __GLASGOW_HASKELL__ < 709
+#if !MIN_VERSION_template_haskell(2,10,0)
   -- ** Pred Prisms
   , _ClassP
   , _EqualP
@@ -324,7 +324,7 @@ instance HasTypeVars Type where
        where s' = s `Set.union` setOf typeVars bs
   typeVarsEx _ _ t                   = pure t
 
-#if __GLASGOW_HASKELL__ < 709
+#if !MIN_VERSION_template_haskell(2,10,0)
 instance HasTypeVars Pred where
   typeVarsEx s f (ClassP n ts) = ClassP n <$> typeVarsEx s f ts
   typeVarsEx s f (EqualP l r)  = EqualP <$> typeVarsEx s f l <*> typeVarsEx s f r
@@ -365,7 +365,7 @@ instance SubstType Type where
 instance SubstType t => SubstType [t] where
   substType = map . substType
 
-#if __GLASGOW_HASKELL__ < 709
+#if !MIN_VERSION_template_haskell(2,10,0)
 instance SubstType Pred where
   substType m (ClassP n ts) = ClassP n (substType m ts)
   substType m (EqualP l r)  = substType m (EqualP l r)
@@ -1759,7 +1759,7 @@ _StrTyLit
       reviewer x = Left x
 #endif
 
-#if __GLASGOW_HASKELL__ < 709
+#if !MIN_VERSION_template_haskell(2,10,0)
 _ClassP :: Prism' Pred (Name, [Type])
 _ClassP
   = prism remitter reviewer
