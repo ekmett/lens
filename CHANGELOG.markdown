@@ -1,3 +1,7 @@
+4.1.2
+-----
+* When used with `exceptions` 0.4, `throwingM` will permit use with a mere `MonadThrow`.
+
 4.1.1
 ----
 * Generalized the types of `mapping`, `bimapping`, `contramapping`, `dimapping`, `lmapping`, `rmapping` to support changing the `Functor`, `Bifunctor`, `Contravariant`, and `Profunctor` respectively.
