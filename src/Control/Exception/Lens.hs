@@ -12,6 +12,13 @@
 #define MIN_VERSION_base(x,y,z) 1
 #endif
 
+#ifndef MIN_VERSION_exceptions
+#define MIN_VERSION_exceptions 1
+#endif
+
+#if !(MIN_VERSION_exceptions(0,4,0))
+#define MonadThrow MonadCatch
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Exception.Lens
@@ -293,10 +300,10 @@ throwing l = reviews l Exception.throw
 -- @
 --
 -- @
--- 'throwingM' :: 'MonadCatch' m => 'Prism'' 'SomeException' t -> t -> m r
--- 'throwingM' :: 'MonadCatch' m => 'Iso'' 'SomeException' t   -> t -> m r
+-- 'throwingM' :: 'MonadThrow' m => 'Prism'' 'SomeException' t -> t -> m r
+-- 'throwingM' :: 'MonadThrow' m => 'Iso'' 'SomeException' t   -> t -> m r
 -- @
-throwingM :: MonadCatch m => AReview s SomeException a b -> b -> m r
+throwingM :: MonadThrow m => AReview s SomeException a b -> b -> m r
 throwingM l = reviews l throwM
 {-# INLINE throwingM #-}
 
