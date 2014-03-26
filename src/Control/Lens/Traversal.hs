@@ -241,6 +241,7 @@ type Traversing1' p f s a = Traversing1 p f s s a a
 -- @
 -- 'traverseOf' ≡ 'id'
 -- 'itraverseOf' l ≡ 'traverseOf' l '.' 'Indexed'
+-- 'itraverseOf' 'itraversed' ≡ 'itraverse'
 -- @
 --
 --

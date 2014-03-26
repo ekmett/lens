@@ -236,6 +236,11 @@ class Foldable f => FoldableWithIndex i f | f -> i where
 #endif
 
   -- | The 'IndexedFold' of a 'FoldableWithIndex' container.
+  --
+  -- 'ifolded'.'asIndex' is a fold over the keys of a 'FoldableWithIndex'.
+  --
+  -- >>> Data.Map.fromList [(2, "hello"), (1, "world")]^..ifolded.asIndex
+  -- [1,2]
   ifolded :: IndexedFold i (f a) a
   ifolded = conjoined folded $ \f -> coerce . getFolding . ifoldMap (\i -> Folding #. indexed f i)
   {-# INLINE ifolded #-}
@@ -456,6 +461,10 @@ itoList = ifoldr (\i c -> ((i,c):)) []
 -- @
 class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => TraversableWithIndex i t | t -> i where
   -- | Traverse an indexed container.
+  --
+  -- @
+  -- 'itraverse' ≡ 'itraverseOf' 'itraversed'
+  -- @
   itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
 #ifndef HLINT
   default itraverse :: Applicative f => (Int -> a -> f b) -> t a -> f (t b)
