@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+#ifndef MIN_VERSION_template_haskell
+#define MIN_VERSION_template_haskell(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.TupleIxedTH
@@ -63,7 +67,7 @@ tupleIxed :: Int -> DecQ
 tupleIxed n = instanceD (cxt eqs) (conT ixedN `appT` fullTupleT n) [funD ixN clauses]
   where
   ty0:tyN = take n tupleVarTypes
-#if __GLASGOW_HASKELL__ >= 709
+#if MIN_VERSION_template_haskell(2,10,0)
   eqs     = [AppT . AppT EqualityT <$> ty0 <*> ty | ty <- tyN]
 #else
   eqs     = [ty0 `equalP` ty | ty <- tyN]
