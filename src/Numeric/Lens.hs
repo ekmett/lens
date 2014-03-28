@@ -46,6 +46,8 @@ integral = prism toInteger $ \ i -> let a = fromInteger i in
 
 -- | A prism that shows and reads integers in base-2 through base-36
 --
+-- Note: This is an improper prism, since leading 0s are stripped when reading.
+--
 -- >>> "100" ^? base 16
 -- Just 256
 --
