@@ -110,6 +110,10 @@ infixr 9 <.>, <., .>
 -- | Compose an 'Indexed' function with a non-indexed function.
 --
 -- Mnemonically, the @<@ points to the indexing we want to preserve.
+--
+-- >>> let nestedMap = (fmap fromList . fromList) [(1, [(10, "one,ten"), (20, "one,twenty")]), (2, [(30, "two,thirty"), (40,"two,forty")])]
+-- >>> nestedMap^..(itraversed<.itraversed).withIndex
+-- [(1,"one,ten"),(1,"one,twenty"),(2,"two,thirty"),(2,"two,forty")]
 (<.) :: Indexable i p => (Indexed i s t -> r) -> ((a -> b) -> s -> t) -> p a b -> r
 (<.) f g h = f . Indexed $ g . indexed h
 {-# INLINE (<.) #-}
@@ -122,6 +126,9 @@ infixr 9 <.>, <., .>
 --
 -- @f '.' g@ (and @f '.>' g@) gives you the index of @g@ unless @g@ is index-preserving, like a
 -- 'Prism', 'Iso' or 'Equality', in which case it'll pass through the index of @f@.
+--
+-- >>> nestedMap^..(itraversed.>itraversed).withIndex
+-- [(10,"one,ten"),(20,"one,twenty"),(30,"two,thirty"),(40,"two,forty")]
 (.>) :: (st -> r) -> (kab -> st) -> kab -> r
 (.>) = (.)
 {-# INLINE (.>) #-}
@@ -134,6 +141,9 @@ reindexed ij f g = f . Indexed $ indexed g . ij
 -- | Composition of 'Indexed' functions.
 --
 -- Mnemonically, the @\<@ and @\>@ points to the fact that we want to preserve the indices.
+--
+-- >>> nestedMap^..(itraversed<.>itraversed).withIndex
+-- [((1,10),"one,ten"),((1,20),"one,twenty"),((2,30),"two,thirty"),((2,40),"two,forty")]
 (<.>) :: Indexable (i, j) p => (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> p a b -> r
 f <.> g = icompose (,) f g
 {-# INLINE (<.>) #-}
@@ -236,6 +246,11 @@ class Foldable f => FoldableWithIndex i f | f -> i where
 #endif
 
   -- | The 'IndexedFold' of a 'FoldableWithIndex' container.
+  --
+  -- 'ifolded'.'asIndex' is a fold over the keys of a 'FoldableWithIndex'.
+  --
+  -- >>> Data.Map.fromList [(2, "hello"), (1, "world")]^..ifolded.asIndex
+  -- [1,2]
   ifolded :: IndexedFold i (f a) a
   ifolded = conjoined folded $ \f -> coerce . getFolding . ifoldMap (\i -> Folding #. indexed f i)
   {-# INLINE ifolded #-}
@@ -456,6 +471,10 @@ itoList = ifoldr (\i c -> ((i,c):)) []
 -- @
 class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => TraversableWithIndex i t | t -> i where
   -- | Traverse an indexed container.
+  --
+  -- @
+  -- 'itraverse' ≡ 'itraverseOf' 'itraversed'
+  -- @
   itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
 #ifndef HLINT
   default itraverse :: Applicative f => (Int -> a -> f b) -> t a -> f (t b)
