@@ -157,6 +157,9 @@ class AsNumber t => AsPrimitive t where
   --
   -- >>> "{\"a\": \"xyz\", \"b\": true}" ^? key "b" . _String
   -- Nothing
+  --
+  -- >>> _Object._Wrapped # [("key",_String # "value")]
+  -- "{\"key\":\"value\"}"
   _String :: Prism' t Text
   _String = _Primitive.prism StringPrim (\v -> case v of StringPrim s -> Right s; _ -> Left v)
   {-# INLINE _String #-}
@@ -166,6 +169,12 @@ class AsNumber t => AsPrimitive t where
   --
   -- "{\"a\": \"xyz\", \"b\": true}" ^? key "a" . _Bool
   -- Nothing
+  --
+  -- >>> _Bool # True
+  -- "true"
+  --
+  -- >>> _Bool # False
+  -- "false"
   _Bool :: Prism' t Bool
   _Bool = _Primitive.prism BoolPrim (\v -> case v of BoolPrim b -> Right b; _ -> Left v)
   {-# INLINE _Bool #-}
@@ -175,6 +184,9 @@ class AsNumber t => AsPrimitive t where
   --
   -- >>> "{\"a\": \"xyz\", \"b\": null}" ^? key "a" . _Null
   -- Nothing
+  --
+  -- >>> _Null # ()
+  -- "null"
   _Null :: Prism' t ()
   _Null = _Primitive.prism (const NullPrim) (\v -> case v of NullPrim -> Right (); _ -> Left v)
   {-# INLINE _Null #-}
@@ -239,6 +251,9 @@ class AsPrimitive t => AsValue t where
   --
   -- >>> "{\"a\": {}, \"b\": null}" ^? key "b" . _Object
   -- Nothing
+  --
+  -- >>> _Object._Wrapped # [("key",_String # "value")]
+  -- "{\"key\":\"value\"}"
   _Object :: Prism' t (HashMap Text Value)
   _Object = _Value.prism Object (\v -> case v of Object o -> Right o; _ -> Left v)
   {-# INLINE _Object #-}
@@ -312,7 +327,7 @@ values = _Array . traversed
 {-# INLINE values #-}
 
 class AsJSON t where
-  -- | A Prism into 'Value' on lazy 'ByteString's.
+  -- | '_JSON' is a 'Prism' from something containing JSON to something encoded in that structure
   _JSON :: (FromJSON a, ToJSON a) => Prism' t a
 
 instance AsJSON Lazy.ByteString where
