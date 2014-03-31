@@ -14,7 +14,9 @@
 --
 ----------------------------------------------------------------------------
 module Data.Text.Lens
-  ( IsText(..), unpacked
+  ( IsText(..)
+  , unpacked
+  , _Text
   ) where
 
 import           Control.Lens
@@ -67,6 +69,18 @@ class IsText t where
 unpacked :: IsText t => Iso' t String
 unpacked = from packed
 {-# INLINE unpacked #-}
+
+-- | This is an alias for 'unpacked' that makes it clearer how to use it with @('#')@.
+--
+-- @
+-- '_Text' = 'from' 'packed'
+-- @
+--
+-- >>> _Text # "hello" -- :: Text
+-- "hello"
+_Text :: IsText t => Iso' t String
+_Text = from packed
+{-# INLINE _Text #-}
 
 instance IsText Strict.Text where
   packed = Strict.packed

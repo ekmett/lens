@@ -18,6 +18,7 @@ module Data.Text.Strict.Lens
   , builder
   , text
   , utf8
+  , _Text
   ) where
 
 import Control.Lens
@@ -64,6 +65,15 @@ packed = iso pack unpack
 -- @
 unpacked :: Iso' Text String
 unpacked = iso unpack pack
+{-# INLINE unpacked #-}
+
+-- | This is an alias for 'unpacked' that makes it more obvious how to use it with '#'
+--
+-- >> _Text # "hello" -- :: Text
+-- "hello"
+_Text :: Iso' Text String
+_Text = unpacked
+{-# INLINE _Text #-}
 
 -- | Convert between strict 'Text' and 'Builder' .
 --

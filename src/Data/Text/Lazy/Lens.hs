@@ -16,6 +16,7 @@
 ----------------------------------------------------------------------------
 module Data.Text.Lazy.Lens
   ( packed, unpacked
+  , _Text
   , text
   , builder
   , utf8
@@ -62,6 +63,18 @@ packed = iso Text.pack Text.unpack
 unpacked :: Iso' Text String
 unpacked = iso Text.unpack Text.pack
 {-# INLINE unpacked #-}
+
+-- | This is an alias for 'unpacked' that makes it clearer how to use it with @('#')@.
+--
+-- @
+-- '_Text' = 'from' 'packed'
+-- @
+--
+-- >>> _Text # "hello" -- :: Text
+-- "hello"
+_Text :: Iso' Text String
+_Text = from packed
+{-# INLINE _Text #-}
 
 -- | Convert between lazy 'Text' and 'Builder' .
 --
