@@ -96,6 +96,10 @@ import qualified Data.Semigroup as S
 import           Data.Sequence as Seq hiding (length)
 import           Data.Set as Set
 import           Data.Tagged
+import           Data.Vector as Vector
+import           Data.Vector.Primitive as Prim
+import           Data.Vector.Unboxed as Unboxed
+import           Data.Vector.Storable as Storable
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -384,6 +388,32 @@ instance (t ~ Seq a') => Rewrapped (Seq a) t
 instance Wrapped (Seq a) where
   type Unwrapped (Seq a) = [a]
   _Wrapped' = iso Foldable.toList Seq.fromList
+  {-# INLINE _Wrapped' #-}
+
+-- * vector
+
+instance (t ~ Vector.Vector a') => Rewrapped (Vector.Vector a) t
+instance Wrapped (Vector.Vector a) where
+  type Unwrapped (Vector.Vector a) = [a]
+  _Wrapped' = iso Vector.toList Vector.fromList
+  {-# INLINE _Wrapped' #-}
+
+instance (Prim a, t ~ Prim.Vector a') => Rewrapped (Prim.Vector a) t
+instance Prim a => Wrapped (Prim.Vector a) where
+  type Unwrapped (Prim.Vector a) = [a]
+  _Wrapped' = iso Prim.toList Prim.fromList
+  {-# INLINE _Wrapped' #-}
+
+instance (Unbox a, t ~ Unboxed.Vector a') => Rewrapped (Unboxed.Vector a) t
+instance Unbox a => Wrapped (Unboxed.Vector a) where
+  type Unwrapped (Unboxed.Vector a) = [a]
+  _Wrapped' = iso Unboxed.toList Unboxed.fromList
+  {-# INLINE _Wrapped' #-}
+
+instance (Storable a, t ~ Storable.Vector a') => Rewrapped (Storable.Vector a) t
+instance Storable a => Wrapped (Storable.Vector a) where
+  type Unwrapped (Storable.Vector a) = [a]
+  _Wrapped' = iso Storable.toList Storable.fromList
   {-# INLINE _Wrapped' #-}
 
 -- * semigroups
