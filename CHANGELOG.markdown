@@ -1,3 +1,7 @@
+4.1.3
+-----
+* Added `_Text` isomorphisms to make the proper use with `(#)` more obvious and fit newer convention.
+
 4.1.2
 -----
 * When used with `exceptions` 0.4, `throwingM` will permit use with a mere `MonadThrow`.
