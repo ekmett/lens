@@ -1,6 +1,7 @@
-4.1.3
------
+4.2
+---
 * Added `_Text` isomorphisms to make the proper use with `(#)` more obvious and fit newer convention.
+* Added `Wrapped` instances for `Vector` types
 
 4.1.2
 -----
