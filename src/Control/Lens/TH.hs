@@ -506,7 +506,7 @@ declareClassyFor classes fields = declareLensesWith $
 --
 -- @
 -- declareIso [d|
---   newtype WrappedInt = Wrap { unrwap :: 'Int' }
+--   newtype WrappedInt = Wrap { unwrap :: 'Int' }
 --   newtype 'List' a = 'List' [a]
 --   |]
 -- @
