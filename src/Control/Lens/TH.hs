@@ -305,10 +305,10 @@ isoRules = defaultRules
 --
 -- @
 -- x :: 'Lens'' FooBar 'Int'
--- x f (Foo a b) = (\a\' -> Foo a\' b) \<$\> f a
+-- x f (Foo a b) = (\\a\' -> Foo a\' b) \<$\> f a
 -- x f (Bar a)   = Bar \<$\> f a
 -- y :: 'Traversal'' FooBar 'Int'
--- y f (Foo a b) = (\b\' -> Foo a  b\') \<$\> f b
+-- y f (Foo a b) = (\\b\' -> Foo a  b\') \<$\> f b
 -- y _ c\@(Bar _) = pure c
 -- @
 --
@@ -332,9 +332,13 @@ makeLenses = makeLensesWith lensRules
 --
 -- @
 -- class HasFoo t where
---   foo :: 'Control.Lens.Type.Simple' 'Lens' t Foo
--- instance HasFoo Foo where foo = 'id'
--- fooX, fooY :: HasFoo t => 'Control.Lens.Type.Simple' 'Lens' t 'Int'
+--   foo :: 'Lens'' t Foo
+--   fooX :: 'Lens'' t 'Int'
+--   fooX = foo . go where go f (Foo x y) = (\\x\' -> Foo x' y) \<$\> f x
+--   fooY :: 'Lens'' t 'Int'
+--   fooY = foo . go where go f (Foo x y) = (\\y\' -> Foo x y') \<$\> f y
+-- instance HasFoo Foo where
+--   foo = id
 -- @
 --
 -- @
