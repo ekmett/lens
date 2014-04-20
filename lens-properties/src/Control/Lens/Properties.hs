@@ -44,8 +44,8 @@ isTraversal l = isSetter l .&. traverse_pureMaybe l .&. traverse_pureList l
                   .&. do as <- arbitrary
                          bs <- arbitrary
                          t <- arbitrary
-                         property $ traverse_compose l (\x -> as++[x]++bs)
-                                                       (\x -> if t then Just x else Nothing)
+                         return $ traverse_compose l (\x -> as++[x]++bs)
+                                                     (\x -> if t then Just x else Nothing)
 
 
 --------------------------------------------------------------------------------
