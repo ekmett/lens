@@ -252,7 +252,7 @@ class AsPrimitive t => AsValue t where
   -- >>> "{\"a\": {}, \"b\": null}" ^? key "b" . _Object
   -- Nothing
   --
-  -- >>> _Object._Wrapped # [("key" :: Text, _String # "value")]
+  -- >>> _Object._Wrapped # [("key" :: Text, _String # "value")] :: String
   -- "{\"key\":\"value\"}"
   _Object :: Prism' t (HashMap Text Value)
   _Object = _Value.prism Object (\v -> case v of Object o -> Right o; _ -> Left v)
