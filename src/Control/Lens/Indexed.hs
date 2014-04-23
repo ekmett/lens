@@ -111,7 +111,7 @@ infixr 9 <.>, <., .>
 --
 -- Mnemonically, the @<@ points to the indexing we want to preserve.
 --
--- >>> let nestedMap = (fmap fromList . fromList) [(1, [(10, "one,ten"), (20, "one,twenty")]), (2, [(30, "two,thirty"), (40,"two,forty")])]
+-- >>> let nestedMap = (fmap Map.fromList . Map.fromList) [(1, [(10, "one,ten"), (20, "one,twenty")]), (2, [(30, "two,thirty"), (40,"two,forty")])]
 -- >>> nestedMap^..(itraversed<.itraversed).withIndex
 -- [(1,"one,ten"),(1,"one,twenty"),(2,"two,thirty"),(2,"two,forty")]
 (<.) :: Indexable i p => (Indexed i s t -> r) -> ((a -> b) -> s -> t) -> p a b -> r
@@ -127,6 +127,7 @@ infixr 9 <.>, <., .>
 -- @f '.' g@ (and @f '.>' g@) gives you the index of @g@ unless @g@ is index-preserving, like a
 -- 'Prism', 'Iso' or 'Equality', in which case it'll pass through the index of @f@.
 --
+-- >>> let nestedMap = (fmap Map.fromList . Map.fromList) [(1, [(10, "one,ten"), (20, "one,twenty")]), (2, [(30, "two,thirty"), (40,"two,forty")])]
 -- >>> nestedMap^..(itraversed.>itraversed).withIndex
 -- [(10,"one,ten"),(20,"one,twenty"),(30,"two,thirty"),(40,"two,forty")]
 (.>) :: (st -> r) -> (kab -> st) -> kab -> r
@@ -142,6 +143,7 @@ reindexed ij f g = f . Indexed $ indexed g . ij
 --
 -- Mnemonically, the @\<@ and @\>@ points to the fact that we want to preserve the indices.
 --
+-- >>> let nestedMap = (fmap Map.fromList . Map.fromList) [(1, [(10, "one,ten"), (20, "one,twenty")]), (2, [(30, "two,thirty"), (40,"two,forty")])]
 -- >>> nestedMap^..(itraversed<.>itraversed).withIndex
 -- [((1,10),"one,ten"),((1,20),"one,twenty"),((2,30),"two,thirty"),((2,40),"two,forty")]
 (<.>) :: Indexable (i, j) p => (Indexed i s t -> r) -> (Indexed j a b -> s -> t) -> p a b -> r

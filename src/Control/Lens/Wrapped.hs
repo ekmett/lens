@@ -123,7 +123,7 @@ _Unwrapped' = from _Wrapped'
 
 -- | Work under a newtype wrapper.
 --
--- >>> Const "hello" & _Wrapped %~ length & getConst
+-- >>> Const "hello" & _Wrapped %~ Prelude.length & getConst
 -- 5
 --
 -- @
@@ -662,7 +662,7 @@ ala = au . _Unwrapping
 --
 -- As with '_Wrapping', the user supplied function for the newtype is /ignored/.
 --
--- >>> alaf Sum foldMap length ["hello","world"]
+-- >>> alaf Sum foldMap Prelude.length ["hello","world"]
 -- 10
 alaf :: (Profunctor p, Rewrapping s t) => (Unwrapped s -> s) -> (p r t -> e -> s) -> p r (Unwrapped t) -> e -> Unwrapped s
 alaf = auf . _Unwrapping
