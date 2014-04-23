@@ -86,7 +86,7 @@ unpacked = from packed
 -- '_Text' = 'from' 'packed'
 -- @
 --
--- >>> _Text # "hello" -- :: Text
+-- >>> _Text # "hello" :: Strict.Text
 -- "hello"
 _Text :: IsText t => Iso' t String
 _Text = from packed
