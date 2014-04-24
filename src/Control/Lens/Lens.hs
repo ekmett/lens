@@ -639,9 +639,9 @@ l <&&~ b = l <%~ (&& b)
 (<<%~) l = l . lmap (\a -> (a, a)) . second'
 {-# INLINE (<<%~) #-}
 
--- | Modify the target of a 'Lens', but return the old value.
+-- | Replace the target of a 'Lens', but return the old value.
 --
--- When you do not need the old value, ('Control.Lens.Setter.%~') is more flexible.
+-- When you do not need the old value, ('Control.Lens.Setter..~') is more flexible.
 --
 -- @
 -- ('<<.~') ::             'Lens' s t a b      -> b -> s -> (a, t)
