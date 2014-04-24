@@ -652,6 +652,14 @@ l <&&~ b = l <%~ (&& b)
 l <<.~ b = l $ \a -> (a, b)
 {-# INLINE (<<.~) #-}
 
+-- | Increment the target of a numerically valued 'Lens' and return the old value.
+--
+-- When you do not need the old value, ('Control.Lens.Setter.+~') is more flexible.
+--
+-- @
+-- ('<<+~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
+-- ('<<+~') :: 'Num' a => 'Iso'' s a -> a -> s -> (a, s)
+-- @
 (<<+~) :: Num a => Optical' (->) q ((,) a) s a -> a -> q s (a, s)
 l <<+~ b = l $ \a -> (a, a + b)
 {-# INLINE (<<+~) #-}
