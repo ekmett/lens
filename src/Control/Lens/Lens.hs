@@ -656,6 +656,11 @@ l <<.~ b = l $ \a -> (a, b)
 --
 -- When you do not need the old value, ('Control.Lens.Setter.+~') is more flexible.
 --
+-- >>> (a,b) & _1 <<+~ c
+-- (a,(a + c,b))
+--
+-- >>> (a,b) & _2 <<+~ c
+-- (b,(a,b + c))
 -- @
 -- ('<<+~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
 -- ('<<+~') :: 'Num' a => 'Iso'' s a -> a -> s -> (a, s)
@@ -664,14 +669,56 @@ l <<.~ b = l $ \a -> (a, b)
 l <<+~ b = l $ \a -> (a, a + b)
 {-# INLINE (<<+~) #-}
 
+-- | Decrement the target of a numerically valued 'Lens' and return the old value.
+--
+-- When you do not need the old value, ('Control.Lens.Setter.-~') is more flexible.
+--
+-- >>> (a,b) & _1 <<-~ c
+-- (a,(a-c,b))
+--
+-- >>> (a,b) & _2 <<-~ c
+-- (b,(a,b-c))
+--
+-- @
+-- ('<<-~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
+-- ('<<-~') :: 'Num' a => 'Iso'' s a -> a -> s -> (a, s)
+-- @
 (<<-~) :: Num a => Optical' (->) q ((,) a) s a -> a -> q s (a, s)
 l <<-~ b = l $ \a -> (a, a - b)
 {-# INLINE (<<-~) #-}
 
+-- | Multiply the target of a numerically valued 'Lens' and return the old value.
+--
+-- When you do not need the old value, ('Control.Lens.Setter.-~') is more flexible.
+--
+-- >>> (a,b) & _1 <<*~ c
+-- (a,(a * c,b))
+--
+-- >>> (a,b) & _2 <<*~ c
+-- (b,(a,b * c))
+--
+-- @
+-- ('<<*~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
+-- ('<<*~') :: 'Num' a => 'Iso'' s a -> a -> s -> (a, s)
+-- @
 (<<*~) :: Num a => Optical' (->) q ((,) a) s a -> a -> q s (a, s)
 l <<*~ b = l $ \a -> (a, a * b)
 {-# INLINE (<<*~) #-}
 
+-- | Divide the target of a numerically valued 'Lens' and return the old value.
+--
+-- When you do not need the old value, ('Control.Lens.Setter.//~') is more flexible.
+--
+-- >>> (a,b) & _1 <<//~ c
+-- (a,(a / c, b))
+--
+-- >>> ("Hawaii",10) & _2 <<//~ 2
+-- (10.0,("Hawaii,5.0))
+--
+-- @
+-- ('<<//~') :: Fractional a => 'Lens'' s a -> a -> s -> (a, s)
+-- ('<<//~') :: Fractional a => 'Iso'' s a -> a -> s -> (a, s)
+-- @
 (<<//~) :: Fractional a => Optical' (->) q ((,) a) s a -> a -> q s (a, s)
 l <<//~ b = l $ \a -> (a, a / b)
 {-# INLINE (<<//~) #-}
