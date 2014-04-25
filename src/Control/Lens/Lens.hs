@@ -776,17 +776,45 @@ l <<**~ e = l $ \a -> (a, a ** e)
 -- (True,("hello",True))
 --
 -- @
--- ('<<||~') :: 'Lens'' s Bool -> Bool -> s -> (Bool, s)
--- ('<<||~') :: 'Iso'' s Bool -> Bool -> s -> (Bool, s)
+-- ('<<||~') :: 'Lens'' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
+-- ('<<||~') :: 'Iso'' s 'Bool' -> 'Bool' -> s -> ('Bool', s)
 -- @
 (<<||~) :: Optical' (->) q ((,) Bool) s Bool -> Bool -> q s (Bool, s)
 l <<||~ b = l $ \a -> (a, b || a)
 {-# INLINE (<<||~) #-}
 
+-- | Logically '&&' the target of a 'Bool'-valued 'Lens' and return the old value.
+--
+-- When you do not need the old value, ('Control.Lens.Setter.&&~') is more flexible.
+--
+-- >>> (False,6) & _1 <<&&~ True
+-- (False,(False,6))
+--
+-- >>> ("hello",True) & _2 <<&&~ False
+-- (True,("hello",False)
+--
+-- @
+-- ('<<&&~') :: 'Lens'' s Bool -> Bool -> s -> (Bool, s)
+-- ('<<&&~') :: 'Iso'' s Bool -> Bool -> s -> (Bool, s)
+-- @
 (<<&&~) :: Optical' (->) q ((,) Bool) s Bool -> Bool -> q s (Bool, s)
 l <<&&~ b = l $ \a -> (a, b && a)
 {-# INLINE (<<&&~) #-}
 
+-- | Modify the target of a monoidally valued 'Lens' by 'mappend'ing a new value and return the old value.
+--
+-- When you do not need the old value, ('Control.Lens.Setter.<>~') is more flexible.
+--
+-- >>> (Sum a,b) & _1 <<<>~ Sum c
+-- (Sum {getSum = a},(Sum {getSum = a + b},b)
+--
+-- >>> _2 <<<>~ ", 007" $ ("James", "Bond")
+-- ("Bond",("James","Bond, 007"))
+--
+-- @
+-- ('<<<>~') :: 'Monoid' r => 'Lens'' s r -> r -> s -> (r, s)
+-- ('<<<>~') :: 'Monoid' r => 'Iso'' s r -> r -> s -> (r, s)
+-- @
 (<<<>~) :: Monoid r => Optical' (->) q ((,) r) s r -> r -> q s (r, s)
 l <<<>~ b = l $ \a -> (a, a `mappend` b)
 {-# INLINE (<<<>~) #-}
@@ -952,8 +980,8 @@ l <&&= b = l <%= (&& b)
 l <<%= f = l %%= lmap (\a -> (a,a)) (second' f)
 {-# INLINE (<<%=) #-}
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by a user supplied
--- function and return the /old/ value that was replaced.
+-- | Replace the target of a 'Lens' into your 'Monad'\'s state with a user supplied
+-- value and return the /old/ value that was replaced.
 --
 -- When applied to a 'Control.Lens.Traversal.Traversal', it this will return a monoidal summary of all of the old values
 -- present.
@@ -969,10 +997,27 @@ l <<%= f = l %%= lmap (\a -> (a,a)) (second' f)
 l <<.= b = l %%= \a -> (a,b)
 {-# INLINE (<<.=) #-}
 
+-- | Modify the target of a 'Lens' into your 'Monad'\'s state by adding a value
+-- and return the /old/ value that was replaced.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.+=') is more flexible.
+--
+-- @
+-- ('<<+=') :: ('MonadState' s m, 'Num' a) => 'Lens'' s a -> a -> m a
+-- ('<<+=') :: ('MonadState' s m, 'Num' a) => 'Iso'' s a -> a -> m a
+-- @
 (<<+=) :: (MonadState s m, Num a) => LensLike' ((,) a) s a -> a -> m a
 l <<+= n = l %%= \a -> (a, a + n)
 {-# INLINE (<<+=) #-}
 
+-- | Modify the target of a 'Lens' into your 'Monad'\'s state by subtracting a value
+-- and return the /old/ value that was replaced.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.-=') is more flexible.
+--
+-- @
+-- ('<<-=') :: ('MonadState' s m, 'Num' a) => 'Lens'' s a -> a -> m a
+-- ('<<+=') :: ('MonadState' s m, 'Num' a) => 'Iso'' s a -> a -> m a
 (<<-=) :: (MonadState s m, Num a) => LensLike' ((,) a) s a -> a -> m a
 l <<-= n = l %%= \a -> (a, a - n)
 {-# INLINE (<<-=) #-}
