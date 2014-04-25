@@ -1017,39 +1017,112 @@ l <<+= n = l %%= \a -> (a, a + n)
 --
 -- @
 -- ('<<-=') :: ('MonadState' s m, 'Num' a) => 'Lens'' s a -> a -> m a
--- ('<<+=') :: ('MonadState' s m, 'Num' a) => 'Iso'' s a -> a -> m a
+-- ('<<-=') :: ('MonadState' s m, 'Num' a) => 'Iso'' s a -> a -> m a
+-- @
 (<<-=) :: (MonadState s m, Num a) => LensLike' ((,) a) s a -> a -> m a
 l <<-= n = l %%= \a -> (a, a - n)
 {-# INLINE (<<-=) #-}
 
+-- | Modify the target of a 'Lens' into your 'Monad'\'s state by multipling a value
+-- and return the /old/ value that was replaced.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.*=') is more flexible.
+--
+-- @
+-- ('<<*=') :: ('MonadState' s m, 'Num' a) => 'Lens'' s a -> a -> m a
+-- ('<<*=') :: ('MonadState' s m, 'Num' a) => 'Iso'' s a -> a -> m a
+-- @
 (<<*=) :: (MonadState s m, Num a) => LensLike' ((,) a) s a -> a -> m a
 l <<*= n = l %%= \a -> (a, a * n)
 {-# INLINE (<<*=) #-}
 
+-- | Modify the target of a 'Lens' into your 'Monad'\s state by dividing by a value
+-- and return the /old/ value that was replaced.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.//=') is more flexible.
+--
+-- @
+-- ('<<//=') :: ('MonadState' s m, 'Fractional' a) => 'Lens'' s a -> a -> m a
+-- ('<<//=') :: ('MonadState' s m, 'Fractional' a) => 'Iso'' s a -> a -> m a
+-- @
 (<<//=) :: (MonadState s m, Fractional a) => LensLike' ((,) a) s a -> a -> m a
 l <<//= n = l %%= \a -> (a, a / n)
 {-# INLINE (<<//=) #-}
 
+-- | Modify the target of a 'Lens' into your 'Monad'\'s state by raising it by a non-negative power
+-- and return the /old/ value that was replaced.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.^=') is more flexible.
+--
+-- @
+-- ('<<^=') :: ('MonadState' s m, 'Num' a, 'Integral' e) => 'Lens'' s a -> e -> m a
+-- ('<<^=') :: ('MonadState' s m, 'Num' a, 'Integral' e) => 'Iso'' s a -> a -> m a
+-- @
 (<<^=) :: (MonadState s m, Num a, Integral e) => LensLike' ((,) a) s a -> e -> m a
 l <<^= n = l %%= \a -> (a, a ^ n)
 {-# INLINE (<<^=) #-}
 
+-- | Modify the target of a 'Lens' into your 'Monad'\'s state by raising it by an integral power
+-- and return the /old/ value that was replaced.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.^^=') is more flexible.
+--
+-- @
+-- ('<<^^=') :: ('MonadState' s m, 'Fractional' a, 'Integral' e) => 'Lens'' s a -> e -> m a
+-- ('<<^^=') :: ('MonadState' s m, 'Fractional' a, 'Integral' e) => 'Iso'' s a -> e -> m a
+-- @
 (<<^^=) :: (MonadState s m, Fractional a, Integral e) => LensLike' ((,) a) s a -> e -> m a
 l <<^^= n = l %%= \a -> (a, a ^^ n)
 {-# INLINE (<<^^=) #-}
 
+-- | Modify the target of a 'Lens' into your 'Monad'\'s state by raising it by an arbitrary power
+-- and return the /old/ value that was replaced.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.
+--
+-- @
+-- ('<<**=') :: ('MonadState' s m, 'Floating' a) => 'Lens'' s a -> a -> m a
+-- ('<<**=') :: ('MonadState' s m, 'Floating' a) => 'Iso'' s a -> a -> m a
+-- @
 (<<**=) :: (MonadState s m, Floating a) => LensLike' ((,) a) s a -> a -> m a
 l <<**= n = l %%= \a -> (a, a ** n)
 {-# INLINE (<<**=) #-}
 
+-- | Modify the target of a 'Lens' into your 'Monad'\'s state by taking its logical '||' with a value
+-- and return the /old/ value that was replaced.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.||=') is more flexible.
+--
+-- @
+-- ('<<||=') :: 'MonadState' s m => 'Lens'' s 'Bool' -> 'Bool' -> m 'Bool'
+-- ('<<||=') :: 'MonadState' s m => 'Iso'' s 'Bool' -> 'Bool' -> m 'Bool'
+-- @
 (<<||=) :: MonadState s m => LensLike' ((,) Bool) s Bool -> Bool -> m Bool
 l <<||= b = l %%= \a -> (a, a || b)
 {-# INLINE (<<||=) #-}
 
+-- | Modify the target of a 'Lens' into your 'Monad'\'s state by taking its logical '&&' with a value
+-- and return the /old/ value that was replaced.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.&&=') is more flexible.
+--
+-- @
+-- ('<<&&=') :: 'MonadState' s m => 'Lens'' s 'Bool' -> 'Bool' -> m 'Bool'
+-- ('<<&&=') :: 'MonadState' s m => 'Iso'' s 'Bool' -> 'Bool' -> m 'Bool'
+-- @
 (<<&&=) :: MonadState s m => LensLike' ((,) Bool) s Bool -> Bool -> m Bool
 l <<&&= b = l %%= \a -> (a, a && b)
 {-# INLINE (<<&&=) #-}
 
+-- | Modify the target of a 'Lens' into your 'Monad'\'s state by 'mappend'ing a value
+-- and return the /old/ value that was replaced.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.<>=') is more flexible.
+--
+-- @
+-- ('<<<>=') :: ('MonadState' s m, 'Monoid' r) => 'Lens'' s r -> r -> m r
+-- ('<<<>=') :: ('MonadState' s m, 'Monoid' r) => 'Iso'' s r -> r -> m r
+-- @
 (<<<>=) :: (MonadState s m, Monoid r) => LensLike' ((,) r) s r -> r -> m r
 l <<<>= b = l %%= \a -> (a, a `mappend` b)
 {-# INLINE (<<<>=) #-}
