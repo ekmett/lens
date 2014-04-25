@@ -714,7 +714,7 @@ l <<*~ b = l $ \a -> (a, a * b)
 -- (a,(a / c,b))
 --
 -- >>> ("Hawaii",10) & _2 <<//~ 2
--- (10.0,("Hawaii,5.0))
+-- (10.0,("Hawaii",5.0))
 --
 -- @
 -- ('<<//~') :: Fractional a => 'Lens'' s a -> a -> s -> (a, s)
@@ -807,7 +807,7 @@ l <<&&~ b = l $ \a -> (a, b && a)
 -- When you do not need the old value, ('Control.Lens.Setter.<>~') is more flexible.
 --
 -- >>> (Sum a,b) & _1 <<<>~ Sum c
--- (Sum {getSum = a},(Sum {getSum = a + c},b)
+-- (Sum {getSum = a},(Sum {getSum = a + c},b))
 --
 -- >>> _2 <<<>~ ", 007" $ ("James", "Bond")
 -- ("Bond",("James","Bond, 007"))
