@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -53,6 +55,14 @@ class IsText t where
   text = unpacked . traversed
   {-# INLINE text #-}
 
+instance IsText String where
+  packed = id
+  {-# INLINE packed #-}
+  text = indexing traverse
+  {-# INLINE text #-}
+  builder = Lazy.packed . builder
+  {-# INLINE builder #-}
+
 -- | This isomorphism can be used to 'unpack' (or 'pack') both strict or lazy 'Text'.
 --
 -- @
@@ -76,7 +86,7 @@ unpacked = from packed
 -- '_Text' = 'from' 'packed'
 -- @
 --
--- >>> _Text # "hello" -- :: Text
+-- >>> _Text # "hello" :: Strict.Text
 -- "hello"
 _Text :: IsText t => Iso' t String
 _Text = from packed
@@ -97,4 +107,3 @@ instance IsText Lazy.Text where
   {-# INLINE builder #-}
   text = Lazy.text
   {-# INLINE text #-}
-
