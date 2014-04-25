@@ -628,7 +628,7 @@ l <&&~ b = l <%~ (&& b)
 
 -- | Modify the target of a 'Lens', but return the old value.
 --
--- When you do not need the result of the addition, ('Control.Lens.Setter.%~') is more flexible.
+-- When you do not need the old value, ('Control.Lens.Setter.%~') is more flexible.
 --
 -- @
 -- ('<<%~') ::             'Lens' s t a b      -> (a -> b) -> s -> (a, t)
@@ -723,18 +723,62 @@ l <<*~ b = l $ \a -> (a, a * b)
 l <<//~ b = l $ \a -> (a, a / b)
 {-# INLINE (<<//~) #-}
 
+-- | Raise the target of a numerically valued 'Lens' to a non-negative power and return the old value.
+--
+-- When you do not need the old value, ('Control.Lens.Setter.^~') is more flexible.
+--
+-- @
+-- ('<<^~') :: ('Num' a, 'Integral' e) => 'Lens'' s a -> e -> s -> (a, s)
+-- ('<<^~') :: ('Num' a, 'Integral' e) => 'Iso'' s a -> e -> s -> (a, s)
+-- @
 (<<^~) :: (Num a, Integral e) => Optical' (->) q ((,) a) s a -> e -> q s (a, s)
 l <<^~ e = l $ \a -> (a, a ^ e)
 {-# INLINE (<<^~) #-}
 
+-- | Raise the target of a fractionally valued 'Lens' to an integral power and return the old value.
+--
+-- When you do not need the old value, ('Control.Lens.Setter.^^~') is more flexible.
+--
+-- @
+-- ('<<^^~') :: ('Fractional' a, 'Integral' e) => 'Lens'' s a -> e -> s -> (a, s)
+-- ('<<^^~') :: ('Fractional' a, 'Integral' e) => 'Iso'' s a -> e -> S -> (a, s)
+-- @
 (<<^^~) :: (Fractional a, Integral e) => Optical' (->) q ((,) a) s a -> e -> q s (a, s)
 l <<^^~ e = l $ \a -> (a, a ^^ e)
 {-# INLINE (<<^^~) #-}
 
+-- | Raise the target of a floating-point valued 'Lens' to an arbitrary power and return the old value.
+--
+-- When you do not need the old value, ('Control.Lens.Setter.**~') is more flexible.
+--
+-- >>> (a,b) & _1 <<**~ c
+-- (a,(a**c,b))
+--
+-- >>> (a,b) & _2 <<**~ c
+-- (b,(a,b**c))
+--
+-- @
+-- ('<<**~') :: 'Floating' a => 'Lens'' s a -> a -> s -> (a, s)
+-- ('<<**~') :: 'Floating' a => 'Iso'' s a -> a -> s -> (a, s)
+-- @
 (<<**~) :: Floating a => Optical' (->) q ((,) a) s a -> a -> q s (a, s)
 l <<**~ e = l $ \a -> (a, a ** e)
 {-# INLINE (<<**~) #-}
 
+-- | Logically '||' the target of a 'Bool'-valued 'Lens' and return the old value.
+--
+-- When you do not need the old value, ('Control.Lens.Setter.||~') is more flexible.
+--
+-- >>> (False,6) & _1 <<||~ True
+-- (False,(True,6))
+--
+-- >>> ("hello",True) & _2 <<||~ False
+-- (True,("hello",True))
+--
+-- @
+-- ('<<||~') :: 'Lens'' s Bool -> Bool -> s -> (Bool, s)
+-- ('<<||~') :: 'Iso'' s Bool -> Bool -> s -> (Bool, s)
+-- @
 (<<||~) :: Optical' (->) q ((,) Bool) s Bool -> Bool -> q s (Bool, s)
 l <<||~ b = l $ \a -> (a, b || a)
 {-# INLINE (<<||~) #-}
