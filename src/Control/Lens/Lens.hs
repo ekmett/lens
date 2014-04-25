@@ -661,6 +661,7 @@ l <<.~ b = l $ \a -> (a, b)
 --
 -- >>> (a,b) & _2 <<+~ c
 -- (b,(a,b + c))
+--
 -- @
 -- ('<<+~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
 -- ('<<+~') :: 'Num' a => 'Iso'' s a -> a -> s -> (a, s)
@@ -674,10 +675,10 @@ l <<+~ b = l $ \a -> (a, a + b)
 -- When you do not need the old value, ('Control.Lens.Setter.-~') is more flexible.
 --
 -- >>> (a,b) & _1 <<-~ c
--- (a,(a-c,b))
+-- (a,(a - c,b))
 --
 -- >>> (a,b) & _2 <<-~ c
--- (b,(a,b-c))
+-- (b,(a,b - c))
 --
 -- @
 -- ('<<-~') :: 'Num' a => 'Lens'' s a -> a -> s -> (a, s)
@@ -710,7 +711,7 @@ l <<*~ b = l $ \a -> (a, a * b)
 -- When you do not need the old value, ('Control.Lens.Setter.//~') is more flexible.
 --
 -- >>> (a,b) & _1 <<//~ c
--- (a,(a / c, b))
+-- (a,(a / c,b))
 --
 -- >>> ("Hawaii",10) & _2 <<//~ 2
 -- (10.0,("Hawaii,5.0))
@@ -791,7 +792,7 @@ l <<||~ b = l $ \a -> (a, b || a)
 -- (False,(False,6))
 --
 -- >>> ("hello",True) & _2 <<&&~ False
--- (True,("hello",False)
+-- (True,("hello",False))
 --
 -- @
 -- ('<<&&~') :: 'Lens'' s Bool -> Bool -> s -> (Bool, s)
@@ -806,7 +807,7 @@ l <<&&~ b = l $ \a -> (a, b && a)
 -- When you do not need the old value, ('Control.Lens.Setter.<>~') is more flexible.
 --
 -- >>> (Sum a,b) & _1 <<<>~ Sum c
--- (Sum {getSum = a},(Sum {getSum = a + b},b)
+-- (Sum {getSum = a},(Sum {getSum = a + c},b)
 --
 -- >>> _2 <<<>~ ", 007" $ ("James", "Bond")
 -- ("Bond",("James","Bond, 007"))
