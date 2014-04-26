@@ -576,6 +576,14 @@ type Optic' p f s a = Optic p f s s a a
 -- | @
 -- type 'LensLike' f s t a b = 'Optical' (->) (->) f s t a b
 -- @
+--
+-- @
+-- type 'Over' p f s t a b = 'Optical' p (->) f s t a b
+-- @
+--
+-- @
+-- type 'Optic' p f s t a b = 'Optical' p p f s t a b
+-- @
 type Optical p q f s t a b = p a (f b) -> q s (f t)
 
 -- | @
