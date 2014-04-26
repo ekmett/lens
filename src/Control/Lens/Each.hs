@@ -7,6 +7,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
+#endif
 
 #ifndef MIN_VERSION_base
 #define MIN_VERSION_base(x,y,z) 1
