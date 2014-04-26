@@ -77,6 +77,7 @@ import Control.Applicative
 import Control.Applicative.Backwards
 import Control.Monad (void, liftM)
 import Control.Monad.Trans.State.Lazy as Lazy
+import Control.Monad.Free
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal.Fold
@@ -714,6 +715,21 @@ instance TraversableWithIndex i (Magma i t b) where
   itraverse _ (MagmaPure x)    = pure (MagmaPure x)
   itraverse f (MagmaFmap xy x) = MagmaFmap xy <$> itraverse f x
   itraverse f (Magma i a)      = Magma i <$> f i a
+  {-# INLINE itraverse #-}
+
+instance FunctorWithIndex i f => FunctorWithIndex [i] (Free f) where
+  imap f (Pure a) = Pure $ f [] a
+  imap f (Free s) = Free $ imap (\i -> imap (f . (:) i)) s 
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex i f => FoldableWithIndex [i] (Free f) where
+  ifoldMap f (Pure a) = f [] a
+  ifoldMap f (Free s) = ifoldMap (\i -> ifoldMap (f . (:) i)) s
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex i f => TraversableWithIndex [i] (Free f) where
+  itraverse f (Pure a) = Pure <$> f [] a
+  itraverse f (Free s) = Free <$> itraverse (\i -> itraverse (f . (:) i)) s
   {-# INLINE itraverse #-}
 
 -------------------------------------------------------------------------------
