@@ -453,7 +453,7 @@ ifoldlM f z0 xs = ifoldr f' return xs z0
 -- When you don't need access to the indices in the result, then 'Data.Foldable.toList' is more flexible in what it accepts.
 --
 -- @
--- 'Data.Foldable.toList' ≡ 'Data.List.map' 'fst' '.' 'itoList'
+-- 'Data.Foldable.toList' ≡ 'Data.List.map' 'snd' '.' 'itoList'
 -- @
 itoList :: FoldableWithIndex i f => f a -> [(i,a)]
 itoList = ifoldr (\i c -> ((i,c):)) []
