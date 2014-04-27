@@ -510,6 +510,8 @@ type IndexPreservingAction m s a = forall p f r. (Conjoined p, Effective m r f) 
 
 -- | A 'MonadicFold' is a 'Fold' enriched with access to a 'Monad' for side-effects.
 --
+-- A 'MonadicFold' can use side-effects to produce parts of the structure being folded (e.g. reading them from file).
+--
 -- Every 'Fold' can be used as a 'MonadicFold', that simply ignores the access to the 'Monad'.
 --
 -- You can compose a 'MonadicFold' with another 'MonadicFold' using ('Prelude..') from the @Prelude@.
