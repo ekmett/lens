@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
@@ -32,12 +33,12 @@ module GHC.Generics.Lens
   ) where
 
 import Control.Lens
-import Data.Void (Void)
 import Generics.Deriving.Lens
 import GHC.Generics
 
-_V1 :: Prism (V1 p) (V1 p) a Void
-_V1 = _Void
+_V1 :: Over p f (V1 s) (V1 t) a b
+_V1 _ = absurd where
+  absurd !_a = undefined
 {-# INLINE _V1 #-}
 
 _U1 :: Iso' (U1 p) ()
