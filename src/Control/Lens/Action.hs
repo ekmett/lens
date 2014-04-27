@@ -98,6 +98,11 @@ a ^! l = getEffect (l (Effect #. return) a)
 --
 -- >>> ["ab","cd","ef"]^!!folded.acts
 -- ["ace","acf","ade","adf","bce","bcf","bde","bdf"]
+--
+-- >>> [1,2]^!!folded.act (\i -> putStr (show i ++ ": ") >> getLine).each.to succ
+-- 1: aa
+-- 2: bb
+-- "bbcc"
 (^!!) :: Monad m => s -> Acting m [a] s a -> m [a]
 a ^!! l = getEffect (l (Effect #. return . return) a)
 {-# INLINE (^!!) #-}
@@ -137,6 +142,10 @@ act sma pafb = cotabulate $ \ws -> effective $ do
 --
 -- >>> (1,"hello")^!_2.acts.to succ
 -- "ifmmp"
+--
+-- >>> (1,getLine)^!!_2.acts.folded.to succ
+-- aa
+-- "bb"
 acts :: IndexPreservingAction m (m a) a
 acts = act id
 {-# INLINE acts #-}
