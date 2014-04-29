@@ -1,7 +1,7 @@
 Lens: Lenses, Folds, and Traversals
 ==================================
 
-[![Build Status](https://secure.travis-ci.org/ekmett/lens.png)](http://travis-ci.org/ekmett/lens)
+[![Build Status](https://secure.travis-ci.org/ekmett/lens.svg)](http://travis-ci.org/ekmett/lens)
 
 This package provides families of [lenses](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Type.hs), [isomorphisms](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Iso.hs), [folds](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Fold.hs), [traversals](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Traversal.hs), [getters](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Getter.hs) and [setters](https://github.com/ekmett/lens/blob/master/src/Control/Lens/Setter.hs).
 
