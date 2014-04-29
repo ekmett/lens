@@ -18,6 +18,7 @@ import Control.Applicative
 import Control.Arrow
 import qualified Control.Category as Cat
 import Control.Comonad
+import Control.Lens.Action
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal.Indexed
@@ -456,6 +457,47 @@ instance Strong (ReifiedIndexedFold i) where
   second' l = IndexedFold $ \f (c,s) ->
     coerce $ runIndexedFold l (dimap ((,) c) coerce f) s
   {-# INLINE second' #-}
+
+------------------------------------------------------------------------------
+-- MonadicFold
+------------------------------------------------------------------------------
+
+-- | Reify a 'MonadicFold' so it can be stored safely in a container.
+--
+newtype ReifiedMonadicFold m s a = MonadicFold { runMonadicFold :: MonadicFold m s a }
+
+instance Profunctor (ReifiedMonadicFold m) where
+  dimap f g l = MonadicFold (to f . runMonadicFold l . to g)
+  {-# INLINE dimap #-}
+  rmap g l = MonadicFold (runMonadicFold l . to g)
+  {-# INLINE rmap #-}
+  lmap f l = MonadicFold (to f . runMonadicFold l)
+  {-# INLINE lmap #-}
+
+instance Monad m => Strong (ReifiedMonadicFold m) where
+  first' l = MonadicFold $ \f (s,c) ->
+    coerce $ runMonadicFold l (dimap (flip (,) c) coerce f) s
+  {-# INLINE first' #-}
+  second' l = MonadicFold $ \f (c,s) ->
+    coerce $ runMonadicFold l (dimap ((,) c) coerce f) s
+  {-# INLINE second' #-}
+
+instance Cat.Category (ReifiedMonadicFold m) where
+  id = MonadicFold id
+  l . r = MonadicFold (runMonadicFold r . runMonadicFold l)
+  {-# INLINE (.) #-}
+
+instance Monad m => Arrow (ReifiedMonadicFold m) where
+  arr f = MonadicFold (to f)
+  {-# INLINE arr #-}
+  first = first'
+  {-# INLINE first #-}
+  second = second'
+  {-# INLINE second #-}
+
+instance Functor (ReifiedMonadicFold m s) where
+  fmap f l = MonadicFold (runMonadicFold l.to f)
+  {-# INLINE fmap #-}
 
 ------------------------------------------------------------------------------
 -- Setter
