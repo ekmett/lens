@@ -22,7 +22,7 @@ import Control.Lens.Action
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal.Indexed
-import Control.Lens.Traversal (ignored)
+import Control.Lens.Traversal (ignored,beside)
 import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader.Class
@@ -498,6 +498,37 @@ instance Monad m => Arrow (ReifiedMonadicFold m) where
 instance Functor (ReifiedMonadicFold m s) where
   fmap f l = MonadicFold (runMonadicFold l.to f)
   {-# INLINE fmap #-}
+
+instance Applicative (ReifiedMonadicFold m s) where
+  pure a = MonadicFold $ folding $ \_ -> [a]
+  {-# INLINE pure #-}
+  MonadicFold mf <*> MonadicFold ma = MonadicFold $ 
+      (runMonadicFold $ MonadicFold mf &&& MonadicFold ma).to (uncurry ($))      
+  {-# INLINE (<*>) #-}
+
+instance Alternative (ReifiedMonadicFold m s) where
+  empty = MonadicFold ignored
+  {-# INLINE empty #-}
+  MonadicFold ma <|> MonadicFold mb = MonadicFold $ to (\x->(x,x)).beside ma mb
+  {-# INLINE (<|>) #-}
+
+instance Semigroup (ReifiedMonadicFold m s a) where
+  (<>) = (<|>)
+  {-# INLINE (<>) #-}
+
+instance Monoid (ReifiedMonadicFold m s a) where
+  mempty = MonadicFold ignored
+  {-# INLINE mempty #-}
+  mappend = (<|>)
+  {-# INLINE mappend #-}
+
+instance Alt (ReifiedMonadicFold m s) where
+  (<!>) = (<|>)
+  {-# INLINE (<!>) #-}
+
+instance Plus (ReifiedMonadicFold m s) where
+  zero = MonadicFold ignored
+  {-# INLINE zero #-}    
 
 ------------------------------------------------------------------------------
 -- Setter
