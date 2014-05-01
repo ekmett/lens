@@ -474,7 +474,7 @@ instance Profunctor (ReifiedMonadicFold m) where
   lmap f l = MonadicFold (to f . runMonadicFold l)
   {-# INLINE lmap #-}
 
-instance Monad m => Strong (ReifiedMonadicFold m) where
+instance Strong (ReifiedMonadicFold m) where
   first' l = MonadicFold $ \f (s,c) ->
     coerce $ runMonadicFold l (dimap (flip (,) c) coerce f) s
   {-# INLINE first' #-}
@@ -482,18 +482,32 @@ instance Monad m => Strong (ReifiedMonadicFold m) where
     coerce $ runMonadicFold l (dimap ((,) c) coerce f) s
   {-# INLINE second' #-}
 
+instance Choice (ReifiedMonadicFold m) where
+  left' (MonadicFold l) = MonadicFold $ 
+    to tuplify.beside (folded.l.to Left) (folded.to Right) 
+    where 
+      tuplify (Left lval) = (Just lval,Nothing)        
+      tuplify (Right rval) = (Nothing,Just rval)       
+  {-# INLINE left' #-}
+
 instance Cat.Category (ReifiedMonadicFold m) where
   id = MonadicFold id
   l . r = MonadicFold (runMonadicFold r . runMonadicFold l)
   {-# INLINE (.) #-}
 
-instance Monad m => Arrow (ReifiedMonadicFold m) where
+instance Arrow (ReifiedMonadicFold m) where
   arr f = MonadicFold (to f)
   {-# INLINE arr #-}
   first = first'
   {-# INLINE first #-}
   second = second'
   {-# INLINE second #-}
+
+instance ArrowChoice (ReifiedMonadicFold m) where
+  left = left'
+  {-# INLINE left #-}
+  right = right'
+  {-# INLINE right #-}
 
 instance Functor (ReifiedMonadicFold m s) where
   fmap f l = MonadicFold (runMonadicFold l.to f)
@@ -502,8 +516,7 @@ instance Functor (ReifiedMonadicFold m s) where
 instance Applicative (ReifiedMonadicFold m s) where
   pure a = MonadicFold $ folding $ \_ -> [a]
   {-# INLINE pure #-}
-  MonadicFold mf <*> MonadicFold ma = MonadicFold $ 
-      (runMonadicFold $ MonadicFold mf &&& MonadicFold ma).to (uncurry ($))      
+  mf <*> ma = mf &&& ma >>> (MonadicFold $ to (uncurry ($)))
   {-# INLINE (<*>) #-}
 
 instance Alternative (ReifiedMonadicFold m s) where
