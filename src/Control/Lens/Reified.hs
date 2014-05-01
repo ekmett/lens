@@ -18,10 +18,11 @@ import Control.Applicative
 import Control.Arrow
 import qualified Control.Category as Cat
 import Control.Comonad
+import Control.Lens.Action
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal.Indexed
-import Control.Lens.Traversal (ignored)
+import Control.Lens.Traversal (ignored,beside)
 import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Reader.Class
@@ -456,6 +457,91 @@ instance Strong (ReifiedIndexedFold i) where
   second' l = IndexedFold $ \f (c,s) ->
     coerce $ runIndexedFold l (dimap ((,) c) coerce f) s
   {-# INLINE second' #-}
+
+------------------------------------------------------------------------------
+-- MonadicFold
+------------------------------------------------------------------------------
+
+-- | Reify a 'MonadicFold' so it can be stored safely in a container.
+--
+newtype ReifiedMonadicFold m s a = MonadicFold { runMonadicFold :: MonadicFold m s a }
+
+instance Profunctor (ReifiedMonadicFold m) where
+  dimap f g l = MonadicFold (to f . runMonadicFold l . to g)
+  {-# INLINE dimap #-}
+  rmap g l = MonadicFold (runMonadicFold l . to g)
+  {-# INLINE rmap #-}
+  lmap f l = MonadicFold (to f . runMonadicFold l)
+  {-# INLINE lmap #-}
+
+instance Strong (ReifiedMonadicFold m) where
+  first' l = MonadicFold $ \f (s,c) ->
+    coerce $ runMonadicFold l (dimap (flip (,) c) coerce f) s
+  {-# INLINE first' #-}
+  second' l = MonadicFold $ \f (c,s) ->
+    coerce $ runMonadicFold l (dimap ((,) c) coerce f) s
+  {-# INLINE second' #-}
+
+instance Choice (ReifiedMonadicFold m) where
+  left' (MonadicFold l) = MonadicFold $ 
+    to tuplify.beside (folded.l.to Left) (folded.to Right) 
+    where 
+      tuplify (Left lval) = (Just lval,Nothing)        
+      tuplify (Right rval) = (Nothing,Just rval)       
+  {-# INLINE left' #-}
+
+instance Cat.Category (ReifiedMonadicFold m) where
+  id = MonadicFold id
+  l . r = MonadicFold (runMonadicFold r . runMonadicFold l)
+  {-# INLINE (.) #-}
+
+instance Arrow (ReifiedMonadicFold m) where
+  arr f = MonadicFold (to f)
+  {-# INLINE arr #-}
+  first = first'
+  {-# INLINE first #-}
+  second = second'
+  {-# INLINE second #-}
+
+instance ArrowChoice (ReifiedMonadicFold m) where
+  left = left'
+  {-# INLINE left #-}
+  right = right'
+  {-# INLINE right #-}
+
+instance Functor (ReifiedMonadicFold m s) where
+  fmap f l = MonadicFold (runMonadicFold l.to f)
+  {-# INLINE fmap #-}
+
+instance Applicative (ReifiedMonadicFold m s) where
+  pure a = MonadicFold $ folding $ \_ -> [a]
+  {-# INLINE pure #-}
+  mf <*> ma = mf &&& ma >>> (MonadicFold $ to (uncurry ($)))
+  {-# INLINE (<*>) #-}
+
+instance Alternative (ReifiedMonadicFold m s) where
+  empty = MonadicFold ignored
+  {-# INLINE empty #-}
+  MonadicFold ma <|> MonadicFold mb = MonadicFold $ to (\x->(x,x)).beside ma mb
+  {-# INLINE (<|>) #-}
+
+instance Semigroup (ReifiedMonadicFold m s a) where
+  (<>) = (<|>)
+  {-# INLINE (<>) #-}
+
+instance Monoid (ReifiedMonadicFold m s a) where
+  mempty = MonadicFold ignored
+  {-# INLINE mempty #-}
+  mappend = (<|>)
+  {-# INLINE mappend #-}
+
+instance Alt (ReifiedMonadicFold m s) where
+  (<!>) = (<|>)
+  {-# INLINE (<!>) #-}
+
+instance Plus (ReifiedMonadicFold m s) where
+  zero = MonadicFold ignored
+  {-# INLINE zero #-}    
 
 ------------------------------------------------------------------------------
 -- Setter
