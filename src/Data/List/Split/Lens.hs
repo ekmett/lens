@@ -25,6 +25,9 @@ module Data.List.Split.Lens
   , chunking
   , splittingPlaces
   , splittingPlacesBlanks
+  -- * Splitting Traversals for lists
+  , splittingOnList
+  , chunkingList
   -- * Lenses for 'Splitter' Internals
   , delimiters
   , delimiting
@@ -37,6 +40,7 @@ import Control.Lens
 import Data.Monoid
 import Data.List.Split
 import Data.List.Split.Internals
+import Data.List (intercalate)
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -160,6 +164,17 @@ splittingPlaces s l f = coerce . traverse f . splitPlaces s . toListOf l
 splittingPlacesBlanks :: Integral n => [n] -> Getting (Endo [a]) s a -> Fold s [a]
 splittingPlacesBlanks s l f = coerce . traverse f . splitPlacesBlanks s . toListOf l
 {-# INLINE splittingPlacesBlanks #-}
+
+-- | Traverse chunks of a list split by the given delimiter. For example :
+--
+-- > "a,b,cd,,fgh" & separatingOn "," . _head %~ toUpper
+--
+splittingOnList :: Eq a => [a] -> Traversal' [a] [a]
+splittingOnList sep f = fmap (intercalate sep) . traverse f . splitOn sep
+
+-- | Traverse chunks of a list.
+chunkingList :: Int -> Traversal' [a] [a]
+chunkingList n f = fmap concat . traverse f . chunksOf n
 
 -- | Modify or retrieve the list of delimiters for a 'Splitter'.
 delimiters :: Lens (Splitter a) (Splitter b) [a -> Bool] [b -> Bool]
