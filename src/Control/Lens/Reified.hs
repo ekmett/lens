@@ -509,14 +509,23 @@ instance ArrowChoice (ReifiedMonadicFold m) where
   right = right'
   {-# INLINE right #-}
 
+instance ArrowApply (ReifiedMonadicFold m) where
+  app = MonadicFold $ \cHandler (argFold,b) -> 
+     runMonadicFold (pure b >>> argFold) cHandler (argFold,b)
+  {-# INLINE app #-}
+
 instance Functor (ReifiedMonadicFold m s) where
   fmap f l = MonadicFold (runMonadicFold l.to f)
   {-# INLINE fmap #-}
 
+instance Apply (ReifiedMonadicFold m s) where
+  mf <.> ma = mf &&& ma >>> (MonadicFold $ to (uncurry ($)))
+  {-# INLINE (<.>) #-}
+
 instance Applicative (ReifiedMonadicFold m s) where
   pure a = MonadicFold $ folding $ \_ -> [a]
   {-# INLINE pure #-}
-  mf <*> ma = mf &&& ma >>> (MonadicFold $ to (uncurry ($)))
+  mf <*> ma = mf <.> ma
   {-# INLINE (<*>) #-}
 
 instance Alternative (ReifiedMonadicFold m s) where
