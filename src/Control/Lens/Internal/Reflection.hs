@@ -6,6 +6,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-cse #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-float-in #-}
@@ -163,6 +164,7 @@ argument _ = Proxy
 instance (B b0, B b1, B b2, B b3, B b4, B b5, B b6, B b7, w0 ~ W b0 b1 b2 b3, w1 ~ W b4 b5 b6 b7)
     => Reifies (Stable w0 w1 a) a where
   reflect = r where
+      r :: proxy (Stable w0 w1 a) -> a
       r = unsafePerformIO $ const <$> deRefStablePtr p <* freeStablePtr p
       s = argument r
       p = intPtrToStablePtr $
