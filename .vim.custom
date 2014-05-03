@@ -15,7 +15,7 @@ endfunction
 syntax on
 
 " search for the tags file anywhere between here and /
-set tags=TAGS;/
+set tags=TAGS;/,codex.tags;/
 
 " highlight tabs and trailing spaces
 set listchars=tab:‗‗,trail:‗

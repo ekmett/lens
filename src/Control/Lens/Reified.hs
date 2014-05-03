@@ -483,11 +483,11 @@ instance Strong (ReifiedMonadicFold m) where
   {-# INLINE second' #-}
 
 instance Choice (ReifiedMonadicFold m) where
-  left' (MonadicFold l) = MonadicFold $ 
-    to tuplify.beside (folded.l.to Left) (folded.to Right) 
-    where 
-      tuplify (Left lval) = (Just lval,Nothing)        
-      tuplify (Right rval) = (Nothing,Just rval)       
+  left' (MonadicFold l) = MonadicFold $
+    to tuplify.beside (folded.l.to Left) (folded.to Right)
+    where
+      tuplify (Left lval) = (Just lval,Nothing)
+      tuplify (Right rval) = (Nothing,Just rval)
   {-# INLINE left' #-}
 
 instance Cat.Category (ReifiedMonadicFold m) where
@@ -510,7 +510,7 @@ instance ArrowChoice (ReifiedMonadicFold m) where
   {-# INLINE right #-}
 
 instance ArrowApply (ReifiedMonadicFold m) where
-  app = MonadicFold $ \cHandler (argFold,b) -> 
+  app = MonadicFold $ \cHandler (argFold,b) ->
      runMonadicFold (pure b >>> argFold) cHandler (argFold,b)
   {-# INLINE app #-}
 
@@ -550,7 +550,7 @@ instance Alt (ReifiedMonadicFold m s) where
 
 instance Plus (ReifiedMonadicFold m s) where
   zero = MonadicFold ignored
-  {-# INLINE zero #-}    
+  {-# INLINE zero #-}
 
 ------------------------------------------------------------------------------
 -- Setter
