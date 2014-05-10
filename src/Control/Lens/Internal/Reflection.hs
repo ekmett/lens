@@ -64,7 +64,9 @@ import Data.Word
 import Data.Typeable
 import Data.Reflection
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Avoid lambda" #-}
+#endif
 
 class Typeable s => B s where
   reflectByte :: proxy s -> IntPtr
