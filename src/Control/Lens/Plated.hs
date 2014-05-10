@@ -72,7 +72,7 @@ module Control.Lens.Plated
   , contexts, contextsOf, contextsOn, contextsOnOf
   , holes, holesOn, holesOnOf
   , para, paraOf
-  , (...)
+  , (...), deep
 
   -- * Compos
   -- $compos
@@ -265,6 +265,19 @@ infixr 9 ...
 (...) :: (Applicative f, Plated c) => LensLike f s t c c -> Over p f c c a b -> Over p f s t a b
 l ... m = l . plate . m
 {-# INLINE (...) #-}
+
+
+-- | Try to apply a traversal to all transitive descendants of a 'Plated' container, but
+-- do not recurse through matching descendants.
+--
+-- @
+-- 'deep' :: 'Plated' s => 'Fold s a' -> 'Fold s a'
+-- 'deep' :: 'Plated' s => 'IndexedFold s a' -> 'IndexedFold s a'
+-- 'deep' :: 'Plated' s => 'Traversal s s a b' -> 'Traversal s s a b'
+-- 'deep' :: 'Plated' s => 'IndexedTraversal s s a b' -> 'IndexedTraversal s s a b'
+-- @
+deep :: (Conjoined p, Applicative f, Plated s) => Traversing p f s s a b -> Over p f s s a b
+deep = deepOf plate
 
 -------------------------------------------------------------------------------
 -- Children
