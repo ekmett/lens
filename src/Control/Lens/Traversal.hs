@@ -88,6 +88,7 @@ module Control.Lens.Traversal
   , taking
   , dropping
   , failing
+  , deepOf
 
   -- * Indexed Traversals
 
@@ -1199,3 +1200,19 @@ failing l r pafb s = case pins b of
   xs -> unsafeOuts b <$> traverse (corep pafb) xs
   where b = l sell s
 infixl 5 `failing`
+
+-- | Try the second traversal. If it returns no entries, try again with for all entries from the second traversal, recursively.
+--
+-- @
+-- 'deepOf' :: 'Fold' s s          -> 'Fold' s a                   -> 'Fold' s a
+-- 'deepOf' :: 'Traversal'' s s    -> 'Traversal'' s a             -> 'Traversal'' s a
+-- 'deepOf' :: 'Traversal' s t s t -> 'Traversal' s t a b          -> 'Traversal' s t a b
+-- 'deepOf' :: 'Fold' s s          -> 'IndexedFold' i s a          -> 'IndexedFold' i s a
+-- 'deepOf' :: 'Traversal' s t s t -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
+-- @
+deepOf :: (Conjoined p, Applicative f) => LensLike f s t s t -> Traversing p f s t a b -> Over p f s t a b
+deepOf r l pafb = go
+  where go s = case pins b of
+          [] -> r go s
+          xs -> unsafeOuts b <$> traverse (corep pafb) xs
+          where b = l sell s
