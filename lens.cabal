@@ -180,9 +180,12 @@ flag j
   default: False
   manual: True
 
+flag aeson
+  default: True
+  manual: True
+
 library
   build-depends:
-    aeson                     >= 0.7      && < 0.8,
     array                     >= 0.3.0.2  && < 0.6,
     base                      >= 4.3      && < 5,
     bifunctors                >= 4        && < 5,
@@ -215,6 +218,9 @@ library
     vector                    >= 0.9      && < 0.11,
     void                      >= 0.5      && < 1,
     zlib                      >= 0.5.4    && < 0.6
+
+  if flag(aeson)
+    aeson                     >= 0.7      && < 0.8
 
   exposed-modules:
     Codec.Compression.Zlib.Lens
@@ -271,7 +277,6 @@ library
     Control.Monad.Primitive.Lens
     Control.Parallel.Strategies.Lens
     Control.Seq.Lens
-    Data.Aeson.Lens
     Data.Array.Lens
     Data.Bits.Lens
     Data.ByteString.Lens
@@ -301,6 +306,9 @@ library
     System.IO.Error.Lens
     Language.Haskell.TH.Lens
     Numeric.Lens
+
+  if flag(aeson)
+    Data.Aeson.Lens
 
   other-modules:
     Control.Lens.Internal.TupleIxedTH
