@@ -37,11 +37,12 @@ module Data.Aeson.Lens
 import Control.Lens
 import Data.Aeson
 import Data.Scientific
+import qualified Data.ByteString as Strict
 import Data.ByteString.Lazy.Char8 as Lazy hiding (putStrLn)
-import Data.ByteString.Lazy.UTF8 as UTF8 hiding (decode)
 import Data.Data
 import Data.HashMap.Strict (HashMap)
-import Data.Text
+import Data.Text as Text
+import Data.Text.Encoding
 import Data.Vector (Vector)
 import Prelude hiding (null)
 
@@ -95,7 +96,8 @@ instance AsNumber Scientific where
   _Number = id
   {-# INLINE _Number #-}
 
-instance AsNumber ByteString
+instance AsNumber Strict.ByteString
+instance AsNumber Lazy.ByteString
 instance AsNumber String
 
 ------------------------------------------------------------------------------
@@ -214,7 +216,8 @@ instance AsPrimitive Value where
   _Null = prism (const Null) (\v -> case v of Null -> Right (); _ -> Left v)
   {-# INLINE _Null #-}
 
-instance AsPrimitive ByteString
+instance AsPrimitive Strict.ByteString
+instance AsPrimitive Lazy.ByteString
 instance AsPrimitive String
 
 instance AsPrimitive Primitive where
@@ -269,12 +272,16 @@ instance AsValue Value where
   _Value = id
   {-# INLINE _Value #-}
 
-instance AsValue ByteString where
+instance AsValue Strict.ByteString where
+  _Value = _JSON
+  {-# INLINE _Value #-}
+
+instance AsValue Lazy.ByteString where
   _Value = _JSON
   {-# INLINE _Value #-}
 
 instance AsValue String where
-  _Value = iso UTF8.fromString UTF8.toString._Value
+  _Value = utf8._JSON
   {-# INLINE _Value #-}
 
 -- |
@@ -326,16 +333,23 @@ values :: AsValue t => IndexedTraversal' Int t Value
 values = _Array . traversed
 {-# INLINE values #-}
 
+utf8 :: Iso' String Strict.ByteString
+utf8 = iso (encodeUtf8 . Text.pack) (Text.unpack . decodeUtf8)
+
 class AsJSON t where
   -- | '_JSON' is a 'Prism' from something containing JSON to something encoded in that structure
   _JSON :: (FromJSON a, ToJSON a) => Prism' t a
+
+instance AsJSON Strict.ByteString where
+  _JSON = lazy._JSON
+  {-# INLINE _JSON #-}
 
 instance AsJSON Lazy.ByteString where
   _JSON = prism' encode decode
   {-# INLINE _JSON #-}
 
 instance AsJSON String where
-  _JSON = iso UTF8.fromString UTF8.toString._JSON
+  _JSON = utf8._JSON
   {-# INLINE _JSON #-}
 
 instance AsJSON Value where
