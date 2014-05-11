@@ -1201,7 +1201,7 @@ failing l r pafb s = case pins b of
   where b = l sell s
 infixl 5 `failing`
 
--- | Try the second traversal. If it returns no entries, try again with for all entries from the second traversal, recursively.
+-- | Try the second traversal. If it returns no entries, try again with for all entries from the first traversal, recursively.
 --
 -- @
 -- 'deepOf' :: 'Fold' s s          -> 'Fold' s a                   -> 'Fold' s a
