@@ -99,7 +99,9 @@ import Control.Monad.Trans.Free as Trans
 import Control.MonadPlus.Free as MonadPlus
 #endif
 import qualified Language.Haskell.TH as TH
+#if VERSION_aeson
 import Data.Aeson
+#endif
 import Data.Bitraversable
 import Data.Data
 import Data.Data.Lens
@@ -242,11 +244,13 @@ instance Traversable f => Plated (Cofree f a) where
 instance Plated (Tree a) where
   plate f (Node a as) = Node a <$> traverse f as
 
+#if VERSION_aeson
 instance Plated Value where
   plate f (Object o) = Object <$> traverse f o
   plate f (Array a) = Array <$> traverse f a
   plate _ xs = pure xs
   {-# INLINE plate #-}
+#endif
 
 {- Default uniplate instances -}
 instance Plated TH.Exp

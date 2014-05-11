@@ -60,8 +60,15 @@ main = withUnicode $ getSources >>= \sources -> doctest $
   : "-hide-all-packages"
   : map ("-package="++) deps ++ sources
 
+blacklist :: [String]
+blacklist =
+#ifndef VERSION_aeson
+  "src/Data/Aeson/Lens.hs" :
+#endif
+  []
+
 getSources :: IO [FilePath]
-getSources = filter (isSuffixOf ".hs") <$> go "src"
+getSources = filter (\x -> isSuffixOf ".hs" x && notElem x blacklist) <$> go "src"
   where
     go dir = do
       (dirs, files) <- getFilesAndDirectories dir
