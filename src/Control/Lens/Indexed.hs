@@ -719,7 +719,7 @@ instance TraversableWithIndex i (Magma i t b) where
 
 instance FunctorWithIndex i f => FunctorWithIndex [i] (Free f) where
   imap f (Pure a) = Pure $ f [] a
-  imap f (Free s) = Free $ imap (\i -> imap (f . (:) i)) s 
+  imap f (Free s) = Free $ imap (\i -> imap (f . (:) i)) s
   {-# INLINE imap #-}
 
 instance FoldableWithIndex i f => FoldableWithIndex [i] (Free f) where
