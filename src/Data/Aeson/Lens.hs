@@ -36,6 +36,8 @@ module Data.Aeson.Lens
 
 import Control.Lens
 import Data.Aeson
+import Data.Aeson.Parser (value)
+import Data.Attoparsec.ByteString.Lazy (maybeResult, parse)
 import Data.Scientific
 import qualified Data.ByteString as Strict
 import Data.ByteString.Lazy.Char8 as Lazy hiding (putStrLn)
@@ -47,6 +49,7 @@ import Data.Vector (Vector)
 import Prelude hiding (null)
 
 -- $setup
+-- >>> import Data.ByteString.Char8 as Strict.Char8
 -- >>> :set -XOverloadedStrings
 
 ------------------------------------------------------------------------------
@@ -84,6 +87,9 @@ class AsNumber t where
   --
   -- >>> "[10.5]" ^? nth 0 . _Integer
   -- Just 10
+  --
+  -- >>> "42" ^? _Integer
+  -- Just 42
   _Integer :: Prism' t Integer
   _Integer = _Number.iso floor fromIntegral
   {-# INLINE _Integer #-}
@@ -345,7 +351,12 @@ instance AsJSON Strict.ByteString where
   {-# INLINE _JSON #-}
 
 instance AsJSON Lazy.ByteString where
-  _JSON = prism' encode decode
+  _JSON = prism' encode decodeValue
+    where
+      decodeValue :: (FromJSON a) => Lazy.ByteString -> Maybe a
+      decodeValue s = maybeResult (parse value s) >>= \x -> case fromJSON x of
+        Success v -> Just v
+        _         -> Nothing
   {-# INLINE _JSON #-}
 
 instance AsJSON String where
@@ -357,3 +368,37 @@ instance AsJSON Value where
     Success y -> Right y;
     _         -> Left x
   {-# INLINE _JSON #-}
+
+------------------------------------------------------------------------------
+-- Some additional tests for prismhood; see https://github.com/ekmett/lens/issues/439.
+------------------------------------------------------------------------------
+
+-- $LazyByteStringTests
+-- >>> "42" ^? (_JSON :: Prism' Lazy.ByteString Value)
+-- Just (Number 42.0)
+--
+-- >>> preview (_Integer :: Prism' Lazy.ByteString Integer) "42"
+-- Just 42
+--
+-- >>> Lazy.unpack (review (_Integer :: Prism' Lazy.ByteString Integer) 42)
+-- "42"
+
+-- $StrictByteStringTests
+-- >>> "42" ^? (_JSON :: Prism' Strict.ByteString Value)
+-- Just (Number 42.0)
+--
+-- >>> preview (_Integer :: Prism' Strict.ByteString Integer) "42"
+-- Just 42
+--
+-- >>> Strict.Char8.unpack (review (_Integer :: Prism' Strict.ByteString Integer) 42)
+-- "42"
+
+-- $StringTests
+-- >>> "42" ^? (_JSON :: Prism' String Value)
+-- Just (Number 42.0)
+--
+-- >>> preview (_Integer :: Prism' String Integer) "42"
+-- Just 42
+--
+-- >>> review (_Integer :: Prism' String Integer) 42
+-- "42"
