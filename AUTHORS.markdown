@@ -36,6 +36,7 @@ Many people have contributed patches, documentation, wiki pages, bug reports, te
 * [Michael Thompson](mailto:what_is_it_to_do_anything@yahoo.com) [@michaelt](https://github.com/michaelt)
 * [John Wiegley](mailto:johnw@newartisans.com) [@jwiegley](https://github.com/jwiegley)
 * [Jonathan Fischoff](mailto:jfischoff@yahoo.com) [@jfischoff](https://github.com/jfischoff)
+* [Bradford Larsen](mailto:brad.larsen@gmail.com) [@bradlarsen](https://github.com/bradlarsen)
 
 You can watch them carry on the quest for bragging rights in the [contributors graph](https://github.com/ekmett/lens/graphs/contributors).
 
