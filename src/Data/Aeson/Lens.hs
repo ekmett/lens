@@ -299,10 +299,10 @@ key i = _Object . ix i
 
 -- | An indexed Traversal into Object properties
 --
--- >>> "{\"a\": 4, \"b\": 7}" ^@.. members
+-- > "{\"a\": 4, \"b\": 7}" ^@.. members
 -- [("a",Number 4.0),("b",Number 7.0)]
 --
--- >>> "{\"a\": 4, \"b\": 7}" & members . _Number *~ 10
+-- > "{\"a\": 4, \"b\": 7}" & members . _Number *~ 10
 -- "{\"a\":40,\"b\":70}"
 members :: AsValue t => IndexedTraversal' Text t Value
 members = _Object . itraversed
