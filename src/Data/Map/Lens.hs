@@ -55,3 +55,4 @@ module Data.Map.Lens () where
 -- >>> import Control.Lens
 -- >>> import Data.Monoid
 -- >>> import qualified Data.Map as Map
+-- >>> :set -XNoOverloadedStrings
