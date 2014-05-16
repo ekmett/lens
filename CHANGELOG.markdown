@@ -1,3 +1,7 @@
+4.1.2.1
+-----
+* Bump `scientific` upper bound to < 0.4
+
 4.1.2
 -----
 * When used with `exceptions` 0.4, `throwingM` will permit use with a mere `MonadThrow`.
