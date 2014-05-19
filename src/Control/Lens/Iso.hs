@@ -255,6 +255,14 @@ mapping k = withIso k $ \ sa bt -> iso (fmap sa) (fmap bt)
 --
 -- >>> fromList [("hello",fromList [("world","!!!")])] & at "hello" . non Map.empty . at "world" .~ Nothing
 -- fromList []
+--
+-- It can also be used in reverse to exclude a given value:
+--
+-- >>> non 0 # rem 10 4
+-- Just 2
+--
+-- >>> non 0 # rem 10 5
+-- Nothing
 non :: Eq a => a -> Iso' (Maybe a) a
 non = non' . only
 {-# INLINE non #-}
