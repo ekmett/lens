@@ -38,7 +38,8 @@ import Control.Lens
 import Data.Aeson
 import Data.Aeson.Parser (value)
 import Data.Attoparsec.ByteString.Lazy (maybeResult, parse)
-import Data.Scientific
+import Data.Scientific (Scientific)
+import qualified Data.Scientific as Scientific
 import qualified Data.ByteString as Strict
 import Data.ByteString.Lazy.Char8 as Lazy hiding (putStrLn)
 import Data.Data
@@ -76,7 +77,7 @@ class AsNumber t where
   -- >>> "[10.2]" ^? nth 0 . _Double
   -- Just 10.2
   _Double :: Prism' t Double
-  _Double = _Number.iso realToFrac realToFrac
+  _Double = _Number.iso Scientific.toRealFloat realToFrac
   {-# INLINE _Double #-}
 
   -- |
