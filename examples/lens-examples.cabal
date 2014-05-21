@@ -4,7 +4,7 @@ version:       0.1
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
-author:        nand
+author:        Niklas Haas
 maintainer:    Edward A. Kmett <ekmett@gmail.com>
 stability:     provisional
 homepage:      http://github.com/ekmett/lens/
