@@ -183,7 +183,7 @@ flag j
 library
   build-depends:
     aeson                     >= 0.7      && < 0.8,
-    attoparsec                >= 0.10     && < 0.12,
+    attoparsec                >= 0.10     && < 0.13,
     array                     >= 0.3.0.2  && < 0.6,
     base                      >= 4.3      && < 5,
     bifunctors                >= 4        && < 5,
