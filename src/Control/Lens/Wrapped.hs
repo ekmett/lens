@@ -12,7 +12,7 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
-{-# OPTIONS_GHC -fno-warn-orphans -fno-warn-warnings-deprecations #-}
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Wrapped
