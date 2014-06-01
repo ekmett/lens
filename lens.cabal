@@ -96,7 +96,6 @@ extra-source-files:
   examples/lens-examples.cabal
   examples/*.hs
   examples/*.lhs
-  examples/bf-examples/*.bf
   images/*.png
   lens-properties/CHANGELOG.markdown
   lens-properties/LICENSE
