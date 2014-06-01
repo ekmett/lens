@@ -36,16 +36,21 @@ module Data.Aeson.Lens
 
 import Control.Lens
 import Data.Aeson
-import Data.Scientific
+import Data.Aeson.Parser (value)
+import Data.Attoparsec.ByteString.Lazy (maybeResult, parse)
+import Data.Scientific (Scientific)
+import qualified Data.Scientific as Scientific
+import qualified Data.ByteString as Strict
 import Data.ByteString.Lazy.Char8 as Lazy hiding (putStrLn)
-import Data.ByteString.Lazy.UTF8 as UTF8 hiding (decode)
 import Data.Data
 import Data.HashMap.Strict (HashMap)
-import Data.Text
+import Data.Text as Text
+import Data.Text.Encoding
 import Data.Vector (Vector)
 import Prelude hiding (null)
 
 -- $setup
+-- >>> import Data.ByteString.Char8 as Strict.Char8
 -- >>> :set -XOverloadedStrings
 
 ------------------------------------------------------------------------------
@@ -72,7 +77,7 @@ class AsNumber t where
   -- >>> "[10.2]" ^? nth 0 . _Double
   -- Just 10.2
   _Double :: Prism' t Double
-  _Double = _Number.iso realToFrac realToFrac
+  _Double = _Number.iso Scientific.toRealFloat realToFrac
   {-# INLINE _Double #-}
 
   -- |
@@ -83,6 +88,9 @@ class AsNumber t where
   --
   -- >>> "[10.5]" ^? nth 0 . _Integer
   -- Just 10
+  --
+  -- >>> "42" ^? _Integer
+  -- Just 42
   _Integer :: Prism' t Integer
   _Integer = _Number.iso floor fromIntegral
   {-# INLINE _Integer #-}
@@ -95,7 +103,8 @@ instance AsNumber Scientific where
   _Number = id
   {-# INLINE _Number #-}
 
-instance AsNumber ByteString
+instance AsNumber Strict.ByteString
+instance AsNumber Lazy.ByteString
 instance AsNumber String
 
 ------------------------------------------------------------------------------
@@ -214,7 +223,8 @@ instance AsPrimitive Value where
   _Null = prism (const Null) (\v -> case v of Null -> Right (); _ -> Left v)
   {-# INLINE _Null #-}
 
-instance AsPrimitive ByteString
+instance AsPrimitive Strict.ByteString
+instance AsPrimitive Lazy.ByteString
 instance AsPrimitive String
 
 instance AsPrimitive Primitive where
@@ -269,12 +279,16 @@ instance AsValue Value where
   _Value = id
   {-# INLINE _Value #-}
 
-instance AsValue ByteString where
+instance AsValue Strict.ByteString where
+  _Value = _JSON
+  {-# INLINE _Value #-}
+
+instance AsValue Lazy.ByteString where
   _Value = _JSON
   {-# INLINE _Value #-}
 
 instance AsValue String where
-  _Value = iso UTF8.fromString UTF8.toString._Value
+  _Value = utf8._JSON
   {-# INLINE _Value #-}
 
 -- |
@@ -292,10 +306,10 @@ key i = _Object . ix i
 
 -- | An indexed Traversal into Object properties
 --
--- >>> "{\"a\": 4, \"b\": 7}" ^@.. members
+-- > "{\"a\": 4, \"b\": 7}" ^@.. members
 -- [("a",Number 4.0),("b",Number 7.0)]
 --
--- >>> "{\"a\": 4, \"b\": 7}" & members . _Number *~ 10
+-- > "{\"a\": 4, \"b\": 7}" & members . _Number *~ 10
 -- "{\"a\":40,\"b\":70}"
 members :: AsValue t => IndexedTraversal' Text t Value
 members = _Object . itraversed
@@ -326,16 +340,28 @@ values :: AsValue t => IndexedTraversal' Int t Value
 values = _Array . traversed
 {-# INLINE values #-}
 
+utf8 :: Iso' String Strict.ByteString
+utf8 = iso (encodeUtf8 . Text.pack) (Text.unpack . decodeUtf8)
+
 class AsJSON t where
   -- | '_JSON' is a 'Prism' from something containing JSON to something encoded in that structure
   _JSON :: (FromJSON a, ToJSON a) => Prism' t a
 
+instance AsJSON Strict.ByteString where
+  _JSON = lazy._JSON
+  {-# INLINE _JSON #-}
+
 instance AsJSON Lazy.ByteString where
-  _JSON = prism' encode decode
+  _JSON = prism' encode decodeValue
+    where
+      decodeValue :: (FromJSON a) => Lazy.ByteString -> Maybe a
+      decodeValue s = maybeResult (parse value s) >>= \x -> case fromJSON x of
+        Success v -> Just v
+        _         -> Nothing
   {-# INLINE _JSON #-}
 
 instance AsJSON String where
-  _JSON = iso UTF8.fromString UTF8.toString._JSON
+  _JSON = utf8._JSON
   {-# INLINE _JSON #-}
 
 instance AsJSON Value where
@@ -343,3 +369,37 @@ instance AsJSON Value where
     Success y -> Right y;
     _         -> Left x
   {-# INLINE _JSON #-}
+
+------------------------------------------------------------------------------
+-- Some additional tests for prismhood; see https://github.com/ekmett/lens/issues/439.
+------------------------------------------------------------------------------
+
+-- $LazyByteStringTests
+-- >>> "42" ^? (_JSON :: Prism' Lazy.ByteString Value)
+-- Just (Number 42.0)
+--
+-- >>> preview (_Integer :: Prism' Lazy.ByteString Integer) "42"
+-- Just 42
+--
+-- >>> Lazy.unpack (review (_Integer :: Prism' Lazy.ByteString Integer) 42)
+-- "42"
+
+-- $StrictByteStringTests
+-- >>> "42" ^? (_JSON :: Prism' Strict.ByteString Value)
+-- Just (Number 42.0)
+--
+-- >>> preview (_Integer :: Prism' Strict.ByteString Integer) "42"
+-- Just 42
+--
+-- >>> Strict.Char8.unpack (review (_Integer :: Prism' Strict.ByteString Integer) 42)
+-- "42"
+
+-- $StringTests
+-- >>> "42" ^? (_JSON :: Prism' String Value)
+-- Just (Number 42.0)
+--
+-- >>> preview (_Integer :: Prism' String Integer) "42"
+-- Just 42
+--
+-- >>> review (_Integer :: Prism' String Integer) 42
+-- "42"

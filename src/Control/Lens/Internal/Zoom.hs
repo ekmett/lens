@@ -44,6 +44,7 @@ import Control.Monad.Trans.Writer.Strict as Strict
 import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Error
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
@@ -69,6 +70,7 @@ type instance Zoomed (Lazy.WriterT w m) = FocusingPlus w (Zoomed m)
 type instance Zoomed (ListT m) = FocusingOn [] (Zoomed m)
 type instance Zoomed (MaybeT m) = FocusingMay (Zoomed m)
 type instance Zoomed (ErrorT e m) = FocusingErr e (Zoomed m)
+type instance Zoomed (ExceptT e m) = FocusingErr e (Zoomed m)
 
 ------------------------------------------------------------------------------
 -- Focusing

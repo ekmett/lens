@@ -4,7 +4,7 @@ version:       0.1
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
-author:        nand
+author:        Niklas Haas
 maintainer:    Edward A. Kmett <ekmett@gmail.com>
 stability:     provisional
 homepage:      http://github.com/ekmett/lens/
@@ -23,9 +23,6 @@ source-repository head
 flag pong
   default: True
 
-flag brainfuck
-  default: True
-
 executable lens-pong
   if !flag(pong)
     buildable: False
@@ -38,29 +35,3 @@ executable lens-pong
     mtl        >= 2.0.1 && < 2.2,
     random     == 1.0.*
   main-is: Pong.hs
-
-executable lens-brainfuck
-  if !flag(brainfuck)
-    buildable: False
-
-  build-depends:
-    base,
-    lens,
-    free       >= 3.0,
-    bytestring,
-    mtl        >= 2.0.1 && < 2.2,
-    streams    >= 3.0
-  main-is: Brainfuck.hs
-
-executable lens-brainfuck-final
-  if !flag(brainfuck)
-    buildable: False
-
-  build-depends:
-    base,
-    lens,
-    free       >= 3.0,
-    bytestring,
-    mtl        >= 2.0.1 && < 2.2,
-    streams    >= 3.0
-  main-is: BrainfuckFinal.hs

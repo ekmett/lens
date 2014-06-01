@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Main
--- Copyright   :  (C) 2012 Edward Kmett, nand`
+-- Copyright   :  (C) 2012 Edward Kmett, Niklas Haas
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional

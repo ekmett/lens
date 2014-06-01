@@ -37,6 +37,9 @@ import Control.Monad.Trans.Writer.Strict as Strict
 import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Error
+#if MIN_VERSION_mtl(2,2,0)
+import Control.Monad.Trans.Except
+#endif
 import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
@@ -141,6 +144,12 @@ instance Zoom m n s t => Zoom (MaybeT m) (MaybeT n) s t where
 instance (Error e, Zoom m n s t) => Zoom (ErrorT e m) (ErrorT e n) s t where
   zoom l = ErrorT . liftM getErr . zoom (\afb -> unfocusingErr #. l (FocusingErr #. afb)) . liftM Err . runErrorT
   {-# INLINE zoom #-}
+
+#if MIN_VERSION_mtl(2,2,0)
+instance Zoom m n s t => Zoom (ExceptT e m) (ExceptT e n) s t where
+  zoom l = ExceptT . liftM getErr . zoom (\afb -> unfocusingErr #. l (FocusingErr #. afb)) . liftM Err . runExceptT
+  {-# INLINE zoom #-}
+#endif
 
 -- TODO: instance Zoom m m a a => Zoom (ContT r m) (ContT r m) a a where
 
