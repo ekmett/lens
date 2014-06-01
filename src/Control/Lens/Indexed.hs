@@ -33,6 +33,7 @@ module Control.Lens.Indexed
   , Conjoined(..)
   , Indexed(..)
   , (<.), (<.>), (.>)
+  , selfIndex
   , reindexed
   , icompose
   , indexing
@@ -134,6 +135,20 @@ infixr 9 <.>, <., .>
 (.>) :: (st -> r) -> (kab -> st) -> kab -> r
 (.>) = (.)
 {-# INLINE (.>) #-}
+
+-- | Use a value itself as its own index. This is essentially an indexed version of 'id'.
+--
+-- Note: When used to modify the value, this can break the index requirements assumed by 'indices' and similar.
+--
+-- @
+-- 'selfIndex' :: 'IndexedGetter' a a b
+-- 'selfIndex' :: 'IndexedFold' a a b
+-- 'selfIndex' :: 'IndexedTraversal' a a b a b
+-- 'selfIndex' :: 'IndexedLens' a a b a b
+-- @
+selfIndex :: Indexable a p => p a b -> a -> b
+selfIndex f a = indexed f a a
+{-# INLINE selfIndex #-}
 
 -- | Remap the index.
 reindexed :: Indexable j p => (i -> j) -> (Indexed i a b -> r) -> p a b -> r
