@@ -89,6 +89,9 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 instance Field1 (Identity a) (Identity b) a b where
   _1 f (Identity a) = Identity <$> f a
 
+instance Field1 ((f :*: g) p) ((f' :*: g) p) (f p) (f' p) where
+  _1 f (l :*: r) = (:*: r) <$> f l
+
 -- | @
 -- '_1' k ~(a,b) = (\\a' -> (a',b)) 'Data.Functor.<$>' k a
 -- @
@@ -150,6 +153,9 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   _2 = ix proxyN1
   {-# INLINE _2 #-}
 #endif
+
+instance Field2 ((f :*: g) p) ((f :*: g') p) (g p) (g' p) where
+  _2 f (l :*: r) = (l :*:) <$> f r
 
 -- | @
 -- '_2' k ~(a,b) = (\\b' -> (a,b')) 'Data.Functor.<$>' k b
