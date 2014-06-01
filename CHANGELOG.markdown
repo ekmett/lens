@@ -4,6 +4,7 @@
 * Added `Wrapped` instances for `Vector` types
 * Resolved issue #439.  The various `Prism`s for string-like types in `Data.Aeson.Lens` are now law-abiding `Prism`s "up to quotient."
 * Added `selfIndex`.
+* Support `attoparsec` 0.12.
 
 4.1.2
 -----
