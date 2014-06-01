@@ -213,6 +213,10 @@ type Traversal1' s a = Traversal1 s s a a
 -- directly as a 'Control.Lens.Traversal.Traversal'.
 --
 -- The 'Control.Lens.Traversal.Traversal' laws are still required to hold.
+--
+-- In addition, the index @i@ should satisfy the requirement that it stays
+-- unchanged even when modifying the value @a@, otherwise traversals like
+-- 'indices' break the 'Traversal' laws.
 type IndexedTraversal i s t a b = forall p f. (Indexable i p, Applicative f) => p a (f b) -> s -> f t
 
 -- | @
