@@ -138,15 +138,13 @@ infixr 9 <.>, <., .>
 
 -- | Use a value itself as its own index. This is essentially an indexed version of 'id'.
 --
--- Note: When used to modify the value, this can break the index requirements assumed by 'indices' and similar.
+-- Note: When used to modify the value, this can break the index requirements assumed by 'indices' and similar,
+-- so this is only properly an 'IndexedGetter', but it can be used as more.
 --
 -- @
 -- 'selfIndex' :: 'IndexedGetter' a a b
--- 'selfIndex' :: 'IndexedFold' a a b
--- 'selfIndex' :: 'IndexedTraversal' a a b a b
--- 'selfIndex' :: 'IndexedLens' a a b a b
 -- @
-selfIndex :: Indexable a p => p a b -> a -> b
+selfIndex :: Indexable a p => p a fb -> a -> fb
 selfIndex f a = indexed f a a
 {-# INLINE selfIndex #-}
 
