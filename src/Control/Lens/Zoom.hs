@@ -7,6 +7,7 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 #ifndef MIN_VERSION_mtl
 #define MIN_VERSION_mtl(x,y,z) 1
