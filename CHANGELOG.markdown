@@ -3,6 +3,7 @@
 * Added `_Text` isomorphisms to make the proper use with `(#)` more obvious and fit newer convention.
 * Added `Wrapped` instances for `Vector` types
 * Resolved issue #439.  The various `Prism`s for string-like types in `Data.Aeson.Lens` are now law-abiding `Prism`s "up to quotient."
+* Added `selfIndex`.
 
 4.1.2
 -----
