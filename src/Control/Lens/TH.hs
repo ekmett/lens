@@ -24,14 +24,12 @@ module Control.Lens.TH
   -- * Constructing Lenses Automatically
     makeLenses, makeLensesFor
   , makeClassy, makeClassyFor, makeClassy_
-  , makeIso
   , makePrisms
   , makeWrapped
   , makeFields
   -- * Constructing Lenses Given a Declaration Quote
   , declareLenses, declareLensesFor
   , declareClassy, declareClassyFor
-  , declareIso
   , declarePrisms
   , declareWrapped
   , declareFields
@@ -49,7 +47,6 @@ module Control.Lens.TH
   , lensRules
   , classyRules
   , classyRules_
-  , isoRules
   , lensIso
   , lensField
   , lensClass
@@ -60,7 +57,6 @@ module Control.Lens.TH
   , buildTraversals
   , handleSingletons
   , singletonIso
-  , backwardIso
   , singletonRequired
   , createClass
   , createInstance
@@ -117,7 +113,6 @@ data LensFlag
   | BuildTraversals
   | SingletonAndField
   | SingletonIso
-  | BackwardIso
   | HandleSingletons
   | SingletonRequired
   | CreateClass
@@ -155,10 +150,6 @@ singletonAndField  = lensFlags.contains SingletonAndField
 -- | Use 'Iso' for singleton constructors.
 singletonIso      :: Lens' LensRules Bool
 singletonIso       = lensFlags.contains SingletonIso
-
--- | When generating an 'Iso' put the field type as the "outer" type.
-backwardIso      :: Lens' LensRules Bool
-backwardIso       = lensFlags.contains BackwardIso
 
 -- | Expect a single constructor, single field newtype or data type.
 singletonRequired :: Lens' LensRules Bool
@@ -282,14 +273,6 @@ classyRules_ = underscorePrefixRules
     classy n@(a:as) = Just ("Has" ++ n, toLower a:as)
     classy _ = Nothing
 
--- | Rules for making an isomorphism from a data type.
-isoRules :: LensRules
-isoRules = defaultRules
-  & handleSingletons  .~ True
-  & singletonRequired .~ True
-  & singletonAndField .~ True
-  & backwardIso       .~ True
-
 -- | Build lenses (and traversals) with a sensible default configuration.
 --
 -- /e.g./
@@ -354,30 +337,6 @@ makeClassy = makeLensesWith classyRules
 -- with an underscore.
 makeClassy_ :: Name -> Q [Dec]
 makeClassy_ = makeLensesWith classyRules_
-
--- | Make a top level isomorphism injecting /into/ the type.
---
--- The supplied name is required to be for a type with a single constructor
--- that has a single argument.
---
--- /e.g./
---
--- @
--- newtype 'List' a = 'List' [a]
--- 'makeIso' ''List
--- @
---
--- will create
---
--- @
--- 'list' :: 'Iso' [a] [b] ('List' a) ('List' b)
--- @
---
--- @
--- 'makeIso' = 'makeLensesWith' 'isoRules'
--- @
-makeIso :: Name -> Q [Dec]
-makeIso = makeLensesWith isoRules
 
 -- | Derive lenses and traversals, specifying explicit pairings
 -- of @(fieldName, lensName)@.
@@ -500,35 +459,6 @@ declareClassyFor :: [(String, (String, String))] -> [(String, String)] -> Q [Dec
 declareClassyFor classes fields = declareLensesWith $
   classyRulesFor (`Prelude.lookup`classes) fields & lensField .~ Just
 
--- | For each datatype declaration, make a top level isomorphism injecting
--- /into/ the type. The types are required to be for a type with a single
--- constructor that has a single argument.
---
--- All record syntax in the input will be stripped off.
---
--- /e.g./
---
--- @
--- declareIso [d|
---   newtype WrappedInt = Wrap { unwrap :: 'Int' }
---   newtype 'List' a = 'List' [a]
---   |]
--- @
---
--- will create
---
--- @
--- newtype WrappedList = Wrap 'Int'
--- newtype List a = List [a]
--- 'wrap' :: 'Iso'' Int WrappedInt
--- 'unwrap' :: 'Iso'' WrappedInt Int
--- 'list' :: 'Iso' [a] [b] ('List' a) ('List' b)
--- @
---
--- @ declareIso = 'declareLensesWith' ('isoRules' '&' 'lensField' '.~' 'Just') @
-declareIso :: Q [Dec] -> Q [Dec]
-declareIso = declareLensesWith $ isoRules & lensField .~ Just
-
 -- | Generate a 'Prism' for each constructor of each data type.
 --
 -- /e.g./
@@ -605,8 +535,11 @@ makePrismsForCons dataDecl@(DataDecl _ _ _ _ [_]) = case constructors dataDecl o
   _                        ->
     fail "makePrismsForCons: A single-constructor data type is required"
   where
-  rules = isoRules & lensIso     .~ (Just . ('_':))
-                   & backwardIso .~ False
+  rules = defaultRules
+        & handleSingletons  .~ True
+        & singletonRequired .~ True
+        & singletonAndField .~ True
+        & lensIso     .~ (Just . ('_':))
 
 makePrismsForCons dataDecl =
   concat <$> mapM (makePrismOrReviewForCon dataDecl canModifyTypeVar ) (constructors dataDecl)
@@ -854,18 +787,13 @@ makeIsoLenses cfg dataDecl dataConName maybeFieldName partTy = do
       makeBody | lensOnly  = makeLensBody
                | otherwise = makeIsoBody
   isoDecls <- flip (maybe (return [])) maybeIsoName $ \isoName -> do
-    let backward = cfg^.backwardIso
     let decl = SigD isoName $ quantified $
-          case (cfg^.simpleLenses || Map.null m, backward) of
-            (True , False) -> isoCon' `apps` [sty,aty]
-            (False, False) -> isoCon  `apps` [sty,tty,aty,bty]
-            (True , True ) -> isoCon' `apps` [aty,sty]
-            (False, True ) -> isoCon  `apps` [aty,bty,sty,tty]
+          if cfg^.simpleLenses || Map.null m
+            then isoCon' `apps` [sty,aty]
+            else isoCon  `apps` [sty,tty,aty,bty]
     (ns, f) <- makeIsoFrom aty dataConName
     t <- makeIsoTo ns dataConName
-    body <- if backward
-             then makeBody isoName f t
-             else makeBody isoName t f
+    body <- makeBody isoName t f
 #ifndef INLINING
     return $ if cfg^.generateSignatures then [decl, body] else [body]
 #else

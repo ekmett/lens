@@ -162,8 +162,8 @@ cloneIso k = withIso k iso
 --
 -- >>> au (_Unwrapping Sum) foldMap [1,2,3,4]
 -- 10
-au :: AnIso s t a b -> ((s -> a) -> e -> b) -> e -> t
-au k = withIso k $ \ sa bt f e -> bt (f sa e)
+au :: AnIso s t a b -> ((b -> t) -> e -> s) -> e -> a
+au k = withIso k $ \ sa bt f e -> sa (f bt e)
 {-# INLINE au #-}
 
 -- | Based on @ala'@ from Conor McBride's work on Epigram.

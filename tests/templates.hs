@@ -130,16 +130,6 @@ declareLenses [d|
 -- gaffer1 :: Lens' (Quark1 a) a
 -- tape1 :: Traversal (Quark1 a) (Quark1 b) a b
 
-declareIso [d|
-  newtype WrappedInt = Wrap { unwrap :: Int }
-  data New = New Int
-  |]
--- newtype WrappedInt = Wrap Int
--- data New = New Int
--- wrap :: Iso' Int WrappedInt
--- unwrap :: Iso' WrappedInt Int
--- new :: Iso' Int New
-
 declarePrisms [d|
   data Exp = Lit Int | Var String | Lambda { bound::String, body::Exp }
   |]

@@ -656,7 +656,7 @@ _Unwrapping _ = from _Wrapped
 -- >>> ala Product foldMap [1,2,3,4]
 -- 24
 ala :: Rewrapping s t => (Unwrapped s -> s) -> ((Unwrapped t -> t) -> e -> s) -> e -> Unwrapped s
-ala = au . _Unwrapping
+ala = au . _Wrapping
 {-# INLINE ala #-}
 
 -- | This combinator is based on @ala'@ from Conor McBride's work on Epigram.
