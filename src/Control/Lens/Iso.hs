@@ -160,7 +160,7 @@ cloneIso k = withIso k iso
 --
 -- This version is generalized to accept any 'Iso', not just a @newtype@.
 --
--- >>> au (_Unwrapping Sum) foldMap [1,2,3,4]
+-- >>> au (_Wrapping Sum) foldMap [1,2,3,4]
 -- 10
 au :: AnIso s t a b -> ((b -> t) -> e -> s) -> e -> a
 au k = withIso k $ \ sa bt f e -> sa (f bt e)
