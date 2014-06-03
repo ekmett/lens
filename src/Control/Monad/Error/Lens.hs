@@ -30,7 +30,8 @@ module Control.Monad.Error.Lens
 import Control.Applicative
 import Control.Lens
 import Control.Lens.Internal.Exception
-import Control.Monad.Error
+import Control.Monad
+import Control.Monad.Error.Class
 import Data.Functor.Plus
 import Data.Monoid
 import Data.Semigroup (Semigroup(..))
