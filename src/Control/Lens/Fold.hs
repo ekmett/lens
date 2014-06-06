@@ -702,9 +702,9 @@ noneOf l f = not . anyOf l f
 -- @
 -- 'Data.Foldable.product' ≡ 'productOf' 'folded'
 -- @
-
+--
 -- This operation may be more strict than you would expect. If you
--- want a lazier version use @'ala' 'Sum' '.' 'foldMapOf'@
+-- want a lazier version use @'ala' 'Product' '.' 'foldMapOf'@
 --
 -- @
 -- 'productOf' :: 'Num' a => 'Getter' s a     -> s -> a
