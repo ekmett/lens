@@ -23,6 +23,7 @@ module Control.Lens.Prism
   , prism
   , prism'
   -- * Consuming Prisms
+  , withPrism
   , clonePrism
   , outside
   , aside
@@ -86,21 +87,21 @@ type APrism s t a b = Market a b a (Identity b) -> Market a b s (Identity t)
 type APrism' s a = APrism s s a a
 
 -- | Convert 'APrism' to the pair of functions that characterize it.
-runPrism :: APrism s t a b -> Market a b s t
+withPrism :: APrism s t a b -> ((b -> t) -> (s -> Either t a) -> r) -> r
 #ifdef SAFE
-runPrism k = case k (Market Identity Right) of
-  Market bt seta -> Market (runIdentity #. bt) (either (Left . runIdentity) Right . seta)
+withPrism k f = case k (Market Identity Right) of
+  Market bt seta -> f (runIdentity #. bt) (either (Left . runIdentity) Right . seta)
 #else
-runPrism k = unsafeCoerce (k (Market Identity Right))
+withPrism k f = case unsafeCoerce (k (Market Identity Right)) of
+  Market bt seta -> f bt seta
 #endif
-{-# INLINE runPrism #-}
+{-# INLINE withPrism #-}
 
 -- | Clone a 'Prism' so that you can reuse the same monomorphically typed 'Prism' for different purposes.
 --
 -- See 'Control.Lens.Lens.cloneLens' and 'Control.Lens.Traversal.cloneTraversal' for examples of why you might want to do this.
 clonePrism :: APrism s t a b -> Prism s t a b
-clonePrism k = case runPrism k of
-  Market bt seta -> prism bt seta
+clonePrism k = withPrism k prism
 {-# INLINE clonePrism #-}
 
 ------------------------------------------------------------------------------
@@ -127,8 +128,8 @@ prism' bs sma = prism bs (\s -> maybe (Left s) Right (sma s))
 
 -- TODO: can we make this work with merely Strong?
 outside :: Representable p => APrism s t a b -> Lens (p t r) (p s r) (p b r) (p a r)
-outside k = case runPrism k of
-  Market bt seta -> \f ft -> f (lmap bt ft) <&> \fa -> tabulate $ either (rep ft) (rep fa) . seta
+outside k = withPrism k $ \bt seta f ft ->
+  f (lmap bt ft) <&> \fa -> tabulate $ either (rep ft) (rep fa) . seta
 {-# INLINE outside #-}
 
 -- | Given a pair of prisms, project sums.
@@ -137,26 +138,32 @@ outside k = case runPrism k of
 without :: APrism s t a b
         -> APrism u v c d
         -> Prism (Either s u) (Either t v) (Either a c) (Either b d)
-without k = case runPrism k of
-  Market bt seta -> \ k' -> case runPrism k' of
-    Market dv uevc -> prism (bimap bt dv) $ \su -> case su of
-      Left s  -> bimap Left Left (seta s)
-      Right u -> bimap Right Right (uevc u)
+without k =
+  withPrism k         $ \bt seta k' ->
+  withPrism k'        $ \dv uevc    ->
+  prism (bimap bt dv) $ \su ->
+  case su of
+    Left s  -> bimap Left Left (seta s)
+    Right u -> bimap Right Right (uevc u)
 {-# INLINE without #-}
 
 -- | Use a 'Prism' to work over part of a structure.
 --
 aside :: APrism s t a b -> Prism (e, s) (e, t) (e, a) (e, b)
-aside k = case runPrism k of
-  Market bt seta -> prism (fmap bt) $ \(e,s) -> case seta s of
+aside k =
+  withPrism k     $ \bt seta ->
+  prism (fmap bt) $ \(e,s) ->
+  case seta s of
     Left t  -> Left  (e,t)
     Right a -> Right (e,a)
 {-# INLINE aside #-}
 
 -- | 'lift' a 'Prism' through a 'Traversable' functor, giving a Prism that matches only if all the elements of the container match the 'Prism'.
 below :: Traversable f => APrism' s a -> Prism' (f s) (f a)
-below k = case runPrism k of
-  Market bt seta -> prism (fmap bt) $ \s -> case traverse seta s of
+below k =
+  withPrism k     $ \bt seta ->
+  prism (fmap bt) $ \s ->
+  case traverse seta s of
     Left _  -> Left s
     Right t -> Right t
 {-# INLINE below #-}
@@ -172,9 +179,9 @@ below k = case runPrism k of
 -- >>> isn't _Empty []
 -- False
 isn't :: APrism s t a b -> s -> Bool
-isn't k s = case runPrism k of
-  Market _ seta -> case seta s of
-    Left _ -> True
+isn't k s =
+  case matching k s of
+    Left  _ -> True
     Right _ -> False
 {-# INLINE isn't #-}
 
@@ -188,8 +195,7 @@ isn't k s = case runPrism k of
 -- >>> matching _Just (Nothing :: Maybe Int) :: Either (Maybe Bool) Int
 -- Left Nothing
 matching :: APrism s t a b -> s -> Either t a
-matching k = case runPrism k of
-  Market _ seta -> seta
+matching k = withPrism k $ \_ seta -> seta
 {-# INLINE matching #-}
 
 ------------------------------------------------------------------------------
