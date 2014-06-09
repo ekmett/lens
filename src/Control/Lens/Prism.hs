@@ -29,6 +29,7 @@ module Control.Lens.Prism
   , without
   , below
   , isn't
+  , matching
   -- * Common Prisms
   , _Left
   , _Right
@@ -176,6 +177,20 @@ isn't k s = case runPrism k of
     Left _ -> True
     Right _ -> False
 {-# INLINE isn't #-}
+
+-- | Retrieve the value targeted by a 'Prism' or return the
+-- original value while allowing the type to change if it does
+-- not match.
+--
+-- >>> matching _Just (Just 12)
+-- Right 12
+--
+-- >>> matching _Just (Nothing :: Maybe Int)
+-- Left (Nothing :: Maybe Bool)
+matching :: APrism s t a b -> s -> Either t a
+matching k = case runPrism k of
+  Market _ seta -> seta
+{-# INLINE matching #-}
 
 ------------------------------------------------------------------------------
 -- Common Prisms
