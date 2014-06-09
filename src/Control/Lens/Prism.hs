@@ -185,8 +185,8 @@ isn't k s = case runPrism k of
 -- >>> matching _Just (Just 12)
 -- Right 12
 --
--- >>> matching _Just (Nothing :: Maybe Int)
--- Left (Nothing :: Maybe Bool)
+-- >>> matching _Just (Nothing :: Maybe Int) :: Either (Maybe Bool) Int
+-- Left Nothing
 matching :: APrism s t a b -> s -> Either t a
 matching k = case runPrism k of
   Market _ seta -> seta
