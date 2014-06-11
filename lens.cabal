@@ -209,7 +209,7 @@ library
     template-haskell          >= 2.4      && < 2.11,
     text                      >= 0.11     && < 1.2,
     transformers              >= 0.2      && < 0.5,
-    transformers-compat       >= 0.1      && < 1,
+    transformers-compat       >= 0.2      && < 1,
     unordered-containers      >= 0.2      && < 0.3,
     vector                    >= 0.9      && < 0.11,
     void                      >= 0.5      && < 1,
