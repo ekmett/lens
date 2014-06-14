@@ -22,6 +22,7 @@ module Numeric.Lens
   , multiplying
   , dividing
   , exponentiating
+  , negated
   ) where
 
 import Control.Lens
@@ -166,3 +167,11 @@ dividing n = iso (/n) (*n)
 exponentiating :: (Floating a, Eq a) => a -> Iso' a a
 exponentiating 0 = error "Numeric.Lens.exponentiating: exponent 0"
 exponentiating n = iso (**n) (**recip n)
+
+
+-- | @'negated' = 'iso' 'negate' 'negate'@
+--
+-- >>> au (negated._Unwrapping Sum) (foldMapOf each) (3,4) == -7
+-- True
+negated :: Num a => Iso' a a
+negated = iso negate negate
