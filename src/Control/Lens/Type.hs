@@ -346,7 +346,7 @@ type Iso' s a = Iso s s a a
 -- 'Control.Lens.Fold.preview' l ('Control.Lens.Prism.review' l b) ≡ 'Just' b
 -- @
 --
--- Second, if you can extract a value @a@ using a 'Prism' @l@ from a value @s@, then the value @s@ is completely described my @l@ and @a@:
+-- Second, if you can extract a value @a@ using a 'Prism' @l@ from a value @s@, then the value @s@ is completely described by @l@ and @a@:
 --
 -- If @'Control.Lens.Fold.preview' l s ≡ 'Just' a@ then @'Control.Lens.Prism.review' l a ≡ s@
 --
