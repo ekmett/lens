@@ -237,7 +237,7 @@ instance AsPrimitive Primitive where
 -- Just (String "xyz")
 --
 -- >>> "{\"a\": {}, \"b\": null}" ^? key "a" . nonNull
--- Just (Object fromList [])
+-- Just (Object (fromList []))
 --
 -- >>> "{\"a\": \"xyz\", \"b\": null}" ^? key "b" . nonNull
 -- Nothing
@@ -257,7 +257,7 @@ class AsPrimitive t => AsValue t where
 
   -- |
   -- >>> "{\"a\": {}, \"b\": null}" ^? key "a" . _Object
-  -- Just fromList []
+  -- Just (fromList [])
   --
   -- >>> "{\"a\": {}, \"b\": null}" ^? key "b" . _Object
   -- Nothing

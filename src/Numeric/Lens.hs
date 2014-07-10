@@ -171,7 +171,10 @@ exponentiating n = iso (**n) (**recip n)
 
 -- | @'negated' = 'iso' 'negate' 'negate'@
 --
--- >>> au (_Wrapping Sum . negated) (foldMapOf each) (3,4) == -7
+-- >>> au (_Wrapping Sum . negated) (foldMapOf each) (3,4) == 7
+-- True
+--
+-- >>> au (_Wrapping Sum) (foldMapOf (each.negated)) (3,4) == -7
 -- True
 negated :: Num a => Iso' a a
 negated = iso negate negate
