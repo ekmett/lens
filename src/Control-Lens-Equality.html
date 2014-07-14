@@ -14,7 +14,7 @@
 <a name="line-5"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-6"></a><span class='hs-comment'>-- |</span>
 <a name="line-7"></a><span class='hs-comment'>-- Module      :  Control.Lens.Equality</span>
-<a name="line-8"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-13 Edward Kmett</span>
+<a name="line-8"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-14 Edward Kmett</span>
 <a name="line-9"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
 <a name="line-10"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
 <a name="line-11"></a><span class='hs-comment'>-- Stability   :  provisional</span>
@@ -31,60 +31,70 @@
 <a name="line-22"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>mapEq</span>
 <a name="line-23"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>fromEq</span>
 <a name="line-24"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>simply</span>
-<a name="line-25"></a>  <span class='hs-comment'>-- * Implementation Details</span>
-<a name="line-26"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Identical</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
-<a name="line-27"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-28"></a>
-<a name="line-29"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
-<a name="line-30"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Functor</span><span class='hs-varop'>.</span><span class='hs-conid'>Identity</span>
-<a name="line-31"></a>
-<a name="line-32"></a><span class='hs-cpp'>#ifdef HLINT</span>
-<a name="line-33"></a><span class='hs-comment'>{-# ANN module "HLint: ignore Use id" #-}</span>
-<a name="line-34"></a><span class='hs-comment'>{-# ANN module "HLint: ignore Eta reduce" #-}</span>
-<a name="line-35"></a><span class='hs-cpp'>#endif</span>
-<a name="line-36"></a>
-<a name="line-37"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-38"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
-<a name="line-39"></a>
-<a name="line-40"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-41"></a><span class='hs-comment'>-- Equality</span>
+<a name="line-25"></a>  <span class='hs-comment'>-- * The Trivial Equality</span>
+<a name="line-26"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>simple</span>
+<a name="line-27"></a>  <span class='hs-comment'>-- * Implementation Details</span>
+<a name="line-28"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Identical</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span>
+<a name="line-29"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-30"></a>
+<a name="line-31"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
+<a name="line-32"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Functor</span><span class='hs-varop'>.</span><span class='hs-conid'>Identity</span>
+<a name="line-33"></a>
+<a name="line-34"></a><span class='hs-cpp'>#ifdef HLINT</span>
+<a name="line-35"></a><span class='hs-comment'>{-# ANN module "HLint: ignore Use id" #-}</span>
+<a name="line-36"></a><span class='hs-comment'>{-# ANN module "HLint: ignore Eta reduce" #-}</span>
+<a name="line-37"></a><span class='hs-cpp'>#endif</span>
+<a name="line-38"></a>
+<a name="line-39"></a><span class='hs-comment'>-- $setup</span>
+<a name="line-40"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
+<a name="line-41"></a>
 <a name="line-42"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-43"></a>
-<a name="line-44"></a><a name="Identical"></a><span class='hs-comment'>-- | Provides witness that @(s ~ a, b ~ t)@ holds.</span>
-<a name="line-45"></a><a name="Identical"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-keyword'>where</span>
-<a name="line-46"></a>  <span class='hs-conid'>Identical</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-47"></a>
-<a name="line-48"></a><a name="AnEquality"></a><span class='hs-comment'>-- | When you see this as an argument to a function, it expects an 'Equality'.</span>
-<a name="line-49"></a><a name="AnEquality"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
-<a name="line-50"></a>
-<a name="line-51"></a><a name="AnEquality'"></a><span class='hs-comment'>-- | A 'Simple' 'AnEquality'.</span>
-<a name="line-52"></a><a name="AnEquality'"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>AnEquality'</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
-<a name="line-53"></a>
-<a name="line-54"></a><a name="runEq"></a><span class='hs-comment'>-- | Extract a witness of type 'Equality'.</span>
-<a name="line-55"></a><span class='hs-definition'>runEq</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
-<a name="line-56"></a><span class='hs-definition'>runEq</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>l</span> <span class='hs-conid'>Identical</span> <span class='hs-keyword'>of</span> <span class='hs-conid'>Identical</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Identical</span>
-<a name="line-57"></a><span class='hs-comment'>{-# INLINE runEq #-}</span>
-<a name="line-58"></a>
-<a name="line-59"></a><a name="substEq"></a><span class='hs-comment'>-- | Substituting types with 'Equality'.</span>
-<a name="line-60"></a><span class='hs-definition'>substEq</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>~</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>~</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
-<a name="line-61"></a><span class='hs-definition'>substEq</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>runEq</span> <span class='hs-varid'>l</span> <span class='hs-keyword'>of</span>
-<a name="line-62"></a>  <span class='hs-conid'>Identical</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
-<a name="line-63"></a><span class='hs-comment'>{-# INLINE substEq #-}</span>
-<a name="line-64"></a>
-<a name="line-65"></a><a name="mapEq"></a><span class='hs-comment'>-- | We can use 'Equality' to do substitution into anything.</span>
-<a name="line-66"></a><span class='hs-definition'>mapEq</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
-<a name="line-67"></a><span class='hs-definition'>mapEq</span> <span class='hs-varid'>l</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>substEq</span> <span class='hs-varid'>l</span> <span class='hs-varid'>r</span>
-<a name="line-68"></a><span class='hs-comment'>{-# INLINE mapEq #-}</span>
-<a name="line-69"></a>
-<a name="line-70"></a><a name="fromEq"></a><span class='hs-comment'>-- | 'Equality' is symmetric.</span>
-<a name="line-71"></a><span class='hs-definition'>fromEq</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Equality</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span> <span class='hs-varid'>t</span> <span class='hs-varid'>s</span>
-<a name="line-72"></a><span class='hs-definition'>fromEq</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>substEq</span> <span class='hs-varid'>l</span> <span class='hs-varid'>id</span>
-<a name="line-73"></a><span class='hs-comment'>{-# INLINE fromEq #-}</span>
-<a name="line-74"></a>
-<a name="line-75"></a><a name="simply"></a><span class='hs-comment'>-- | This is an adverb that can be used to modify many other 'Lens' combinators to make them require</span>
-<a name="line-76"></a><span class='hs-comment'>-- simple lenses, simple traversals, simple prisms or simple isos as input.</span>
-<a name="line-77"></a><span class='hs-definition'>simply</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Optic'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Optic'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
-<a name="line-78"></a><span class='hs-definition'>simply</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>id</span>
-<a name="line-79"></a><span class='hs-comment'>{-# INLINE simply #-}</span>
+<a name="line-43"></a><span class='hs-comment'>-- Equality</span>
+<a name="line-44"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-45"></a>
+<a name="line-46"></a><a name="Identical"></a><span class='hs-comment'>-- | Provides witness that @(s ~ a, b ~ t)@ holds.</span>
+<a name="line-47"></a><a name="Identical"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-keyword'>where</span>
+<a name="line-48"></a>  <span class='hs-conid'>Identical</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-49"></a>
+<a name="line-50"></a><a name="AnEquality"></a><span class='hs-comment'>-- | When you see this as an argument to a function, it expects an 'Equality'.</span>
+<a name="line-51"></a><a name="AnEquality"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-layout'>(</span><span class='hs-conid'>Identity</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span>
+<a name="line-52"></a>
+<a name="line-53"></a><a name="AnEquality'"></a><span class='hs-comment'>-- | A 'Simple' 'AnEquality'.</span>
+<a name="line-54"></a><a name="AnEquality'"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>AnEquality'</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
+<a name="line-55"></a>
+<a name="line-56"></a><a name="runEq"></a><span class='hs-comment'>-- | Extract a witness of type 'Equality'.</span>
+<a name="line-57"></a><span class='hs-definition'>runEq</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Identical</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span>
+<a name="line-58"></a><span class='hs-definition'>runEq</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>l</span> <span class='hs-conid'>Identical</span> <span class='hs-keyword'>of</span> <span class='hs-conid'>Identical</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Identical</span>
+<a name="line-59"></a><span class='hs-comment'>{-# INLINE runEq #-}</span>
+<a name="line-60"></a>
+<a name="line-61"></a><a name="substEq"></a><span class='hs-comment'>-- | Substituting types with 'Equality'.</span>
+<a name="line-62"></a><span class='hs-definition'>substEq</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>~</span> <span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>~</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
+<a name="line-63"></a><span class='hs-definition'>substEq</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>runEq</span> <span class='hs-varid'>l</span> <span class='hs-keyword'>of</span>
+<a name="line-64"></a>  <span class='hs-conid'>Identical</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
+<a name="line-65"></a><span class='hs-comment'>{-# INLINE substEq #-}</span>
+<a name="line-66"></a>
+<a name="line-67"></a><a name="mapEq"></a><span class='hs-comment'>-- | We can use 'Equality' to do substitution into anything.</span>
+<a name="line-68"></a><span class='hs-definition'>mapEq</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span>
+<a name="line-69"></a><span class='hs-definition'>mapEq</span> <span class='hs-varid'>l</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>substEq</span> <span class='hs-varid'>l</span> <span class='hs-varid'>r</span>
+<a name="line-70"></a><span class='hs-comment'>{-# INLINE mapEq #-}</span>
+<a name="line-71"></a>
+<a name="line-72"></a><a name="fromEq"></a><span class='hs-comment'>-- | 'Equality' is symmetric.</span>
+<a name="line-73"></a><span class='hs-definition'>fromEq</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AnEquality</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Equality</span> <span class='hs-varid'>b</span> <span class='hs-varid'>a</span> <span class='hs-varid'>t</span> <span class='hs-varid'>s</span>
+<a name="line-74"></a><span class='hs-definition'>fromEq</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>substEq</span> <span class='hs-varid'>l</span> <span class='hs-varid'>id</span>
+<a name="line-75"></a><span class='hs-comment'>{-# INLINE fromEq #-}</span>
+<a name="line-76"></a>
+<a name="line-77"></a><a name="simply"></a><span class='hs-comment'>-- | This is an adverb that can be used to modify many other 'Lens' combinators to make them require</span>
+<a name="line-78"></a><span class='hs-comment'>-- simple lenses, simple traversals, simple prisms or simple isos as input.</span>
+<a name="line-79"></a><span class='hs-definition'>simply</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Optic'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Optic'</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
+<a name="line-80"></a><span class='hs-definition'>simply</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>id</span>
+<a name="line-81"></a><span class='hs-comment'>{-# INLINE simply #-}</span>
+<a name="line-82"></a>
+<a name="line-83"></a><a name="simple"></a><span class='hs-comment'>-- | Composition with this isomorphism is occasionally useful when your 'Lens',</span>
+<a name="line-84"></a><span class='hs-comment'>-- 'Control.Lens.Traversal.Traversal' or 'Iso' has a constraint on an unused</span>
+<a name="line-85"></a><span class='hs-comment'>-- argument to force that argument to agree with the</span>
+<a name="line-86"></a><span class='hs-comment'>-- type of a used argument and avoid @ScopedTypeVariables@ or other ugliness.</span>
+<a name="line-87"></a><span class='hs-definition'>simple</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Equality'</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
+<a name="line-88"></a><span class='hs-definition'>simple</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>id</span>
+<a name="line-89"></a><span class='hs-comment'>{-# INLINE simple #-}</span>
 </pre></body>
 </html>

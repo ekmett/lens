@@ -12,7 +12,7 @@
 <a name="line-3"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-4"></a><span class='hs-comment'>-- |</span>
 <a name="line-5"></a><span class='hs-comment'>-- Module      :  Data.ByteString.Strict.Lens</span>
-<a name="line-6"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-2013 Edward Kmett</span>
+<a name="line-6"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-2014 Edward Kmett</span>
 <a name="line-7"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
 <a name="line-8"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
 <a name="line-9"></a><span class='hs-comment'>-- Stability   :  experimental</span>
@@ -75,62 +75,65 @@
 <a name="line-66"></a><span class='hs-comment'>--</span>
 <a name="line-67"></a><span class='hs-comment'>-- &gt;&gt;&gt; anyOf bytes (== 0x80) (Char8.pack "hello")</span>
 <a name="line-68"></a><span class='hs-comment'>-- False</span>
-<a name="line-69"></a><span class='hs-definition'>bytes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>ByteString</span> <span class='hs-conid'>Word8</span>
-<a name="line-70"></a><span class='hs-definition'>bytes</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>traversedStrictTree</span> <span class='hs-num'>0</span>
-<a name="line-71"></a><span class='hs-comment'>{-# INLINE bytes #-}</span>
-<a name="line-72"></a>
-<a name="line-73"></a><a name="packedChars"></a><span class='hs-comment'>-- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a 'ByteString'</span>
-<a name="line-74"></a><span class='hs-comment'>--</span>
-<a name="line-75"></a><span class='hs-comment'>-- When writing back to the 'ByteString' it is assumed that every 'Char'</span>
-<a name="line-76"></a><span class='hs-comment'>-- lies between @'\x00'@ and @'\xff'@.</span>
+<a name="line-69"></a><span class='hs-comment'>--</span>
+<a name="line-70"></a><span class='hs-comment'>-- Note that when just using this as a 'Setter', @'setting' 'Data.ByteString.map'@</span>
+<a name="line-71"></a><span class='hs-comment'>-- can be more efficient.</span>
+<a name="line-72"></a><span class='hs-definition'>bytes</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>ByteString</span> <span class='hs-conid'>Word8</span>
+<a name="line-73"></a><span class='hs-definition'>bytes</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>traversedStrictTree</span> <span class='hs-num'>0</span>
+<a name="line-74"></a><span class='hs-comment'>{-# INLINE bytes #-}</span>
+<a name="line-75"></a>
+<a name="line-76"></a><a name="packedChars"></a><span class='hs-comment'>-- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a 'ByteString'</span>
 <a name="line-77"></a><span class='hs-comment'>--</span>
-<a name="line-78"></a><span class='hs-comment'>-- @</span>
-<a name="line-79"></a><span class='hs-comment'>-- 'packedChars' ≡ 'from' 'unpackedChars'</span>
-<a name="line-80"></a><span class='hs-comment'>-- 'Data.ByteString.Char8.pack' x ≡ x '^.' 'packedChars'</span>
-<a name="line-81"></a><span class='hs-comment'>-- 'Data.ByteString.Char8.unpack' x ≡ x '^.' 'from' 'packedChars'</span>
-<a name="line-82"></a><span class='hs-comment'>-- @</span>
-<a name="line-83"></a><span class='hs-comment'>--</span>
-<a name="line-84"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello"^.packedChars.each.re (base 16 . enum).to (\x -&gt; if Prelude.length x == 1 then '0':x else x)</span>
-<a name="line-85"></a><span class='hs-comment'>-- "68656c6c6f"</span>
-<a name="line-86"></a><span class='hs-definition'>packedChars</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>String</span> <span class='hs-conid'>ByteString</span>
-<a name="line-87"></a><span class='hs-definition'>packedChars</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-conid'>Char8</span><span class='hs-varop'>.</span><span class='hs-varid'>pack</span> <span class='hs-varid'>unpackStrict8</span>
-<a name="line-88"></a><span class='hs-comment'>{-# INLINE packedChars #-}</span>
-<a name="line-89"></a>
-<a name="line-90"></a><a name="unpackedChars"></a><span class='hs-comment'>-- | 'Data.ByteString.Char8.unpack' (or 'Data.ByteString.Char8.pack') a list of characters into a 'ByteString'</span>
-<a name="line-91"></a><span class='hs-comment'>--</span>
-<a name="line-92"></a><span class='hs-comment'>-- When writing back to the 'ByteString' it is assumed that every 'Char'</span>
-<a name="line-93"></a><span class='hs-comment'>-- lies between @'\x00'@ and @'\xff'@.</span>
+<a name="line-78"></a><span class='hs-comment'>-- When writing back to the 'ByteString' it is assumed that every 'Char'</span>
+<a name="line-79"></a><span class='hs-comment'>-- lies between @'\x00'@ and @'\xff'@.</span>
+<a name="line-80"></a><span class='hs-comment'>--</span>
+<a name="line-81"></a><span class='hs-comment'>-- @</span>
+<a name="line-82"></a><span class='hs-comment'>-- 'packedChars' ≡ 'from' 'unpackedChars'</span>
+<a name="line-83"></a><span class='hs-comment'>-- 'Data.ByteString.Char8.pack' x ≡ x '^.' 'packedChars'</span>
+<a name="line-84"></a><span class='hs-comment'>-- 'Data.ByteString.Char8.unpack' x ≡ x '^.' 'from' 'packedChars'</span>
+<a name="line-85"></a><span class='hs-comment'>-- @</span>
+<a name="line-86"></a><span class='hs-comment'>--</span>
+<a name="line-87"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello"^.packedChars.each.re (base 16 . enum).to (\x -&gt; if Prelude.length x == 1 then '0':x else x)</span>
+<a name="line-88"></a><span class='hs-comment'>-- "68656c6c6f"</span>
+<a name="line-89"></a><span class='hs-definition'>packedChars</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>String</span> <span class='hs-conid'>ByteString</span>
+<a name="line-90"></a><span class='hs-definition'>packedChars</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-conid'>Char8</span><span class='hs-varop'>.</span><span class='hs-varid'>pack</span> <span class='hs-varid'>unpackStrict8</span>
+<a name="line-91"></a><span class='hs-comment'>{-# INLINE packedChars #-}</span>
+<a name="line-92"></a>
+<a name="line-93"></a><a name="unpackedChars"></a><span class='hs-comment'>-- | 'Data.ByteString.Char8.unpack' (or 'Data.ByteString.Char8.pack') a list of characters into a 'ByteString'</span>
 <a name="line-94"></a><span class='hs-comment'>--</span>
-<a name="line-95"></a><span class='hs-comment'>-- @</span>
-<a name="line-96"></a><span class='hs-comment'>-- 'unpackedChars' ≡ 'from' 'packedChars'</span>
-<a name="line-97"></a><span class='hs-comment'>-- 'Data.ByteString.Char8.unpack' x ≡ x '^.' 'unpackedChars'</span>
-<a name="line-98"></a><span class='hs-comment'>-- 'Data.ByteString.Char8.pack' x ≡ x '^.' 'from' 'unpackedChars'</span>
-<a name="line-99"></a><span class='hs-comment'>-- @</span>
-<a name="line-100"></a><span class='hs-comment'>--</span>
-<a name="line-101"></a><span class='hs-comment'>-- &gt;&gt;&gt; [104,101,108,108,111]^.packedBytes.unpackedChars</span>
-<a name="line-102"></a><span class='hs-comment'>-- "hello"</span>
-<a name="line-103"></a><span class='hs-definition'>unpackedChars</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>ByteString</span> <span class='hs-conid'>String</span>
-<a name="line-104"></a><span class='hs-definition'>unpackedChars</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedChars</span>
-<a name="line-105"></a><span class='hs-comment'>{-# INLINE unpackedChars #-}</span>
-<a name="line-106"></a>
-<a name="line-107"></a><a name="chars"></a><span class='hs-comment'>-- | Traverse the individual bytes in a 'ByteString' as characters.</span>
-<a name="line-108"></a><span class='hs-comment'>--</span>
-<a name="line-109"></a><span class='hs-comment'>-- When writing back to the 'ByteString' it is assumed that every 'Char'</span>
-<a name="line-110"></a><span class='hs-comment'>-- lies between @'\x00'@ and @'\xff'@.</span>
+<a name="line-95"></a><span class='hs-comment'>-- When writing back to the 'ByteString' it is assumed that every 'Char'</span>
+<a name="line-96"></a><span class='hs-comment'>-- lies between @'\x00'@ and @'\xff'@.</span>
+<a name="line-97"></a><span class='hs-comment'>--</span>
+<a name="line-98"></a><span class='hs-comment'>-- @</span>
+<a name="line-99"></a><span class='hs-comment'>-- 'unpackedChars' ≡ 'from' 'packedChars'</span>
+<a name="line-100"></a><span class='hs-comment'>-- 'Data.ByteString.Char8.unpack' x ≡ x '^.' 'unpackedChars'</span>
+<a name="line-101"></a><span class='hs-comment'>-- 'Data.ByteString.Char8.pack' x ≡ x '^.' 'from' 'unpackedChars'</span>
+<a name="line-102"></a><span class='hs-comment'>-- @</span>
+<a name="line-103"></a><span class='hs-comment'>--</span>
+<a name="line-104"></a><span class='hs-comment'>-- &gt;&gt;&gt; [104,101,108,108,111]^.packedBytes.unpackedChars</span>
+<a name="line-105"></a><span class='hs-comment'>-- "hello"</span>
+<a name="line-106"></a><span class='hs-definition'>unpackedChars</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>ByteString</span> <span class='hs-conid'>String</span>
+<a name="line-107"></a><span class='hs-definition'>unpackedChars</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>from</span> <span class='hs-varid'>packedChars</span>
+<a name="line-108"></a><span class='hs-comment'>{-# INLINE unpackedChars #-}</span>
+<a name="line-109"></a>
+<a name="line-110"></a><a name="chars"></a><span class='hs-comment'>-- | Traverse the individual bytes in a 'ByteString' as characters.</span>
 <a name="line-111"></a><span class='hs-comment'>--</span>
-<a name="line-112"></a><span class='hs-comment'>-- This 'Traversal' walks the 'ByteString' in a tree-like fashion</span>
-<a name="line-113"></a><span class='hs-comment'>-- enable zippers to seek to locations in logarithmic time and accelerating</span>
-<a name="line-114"></a><span class='hs-comment'>-- many monoidal queries, but up to associativity (and constant factors)</span>
-<a name="line-115"></a><span class='hs-comment'>-- it is equivalent to the much slower:</span>
-<a name="line-116"></a><span class='hs-comment'>--</span>
-<a name="line-117"></a><span class='hs-comment'>-- @</span>
-<a name="line-118"></a><span class='hs-comment'>-- 'chars' = 'unpackedChars' '.' 'traverse'</span>
-<a name="line-119"></a><span class='hs-comment'>-- @</span>
-<a name="line-120"></a><span class='hs-comment'>--</span>
-<a name="line-121"></a><span class='hs-comment'>-- &gt;&gt;&gt; anyOf chars (== 'h') "hello"</span>
-<a name="line-122"></a><span class='hs-comment'>-- True</span>
-<a name="line-123"></a><span class='hs-definition'>chars</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>ByteString</span> <span class='hs-conid'>Char</span>
-<a name="line-124"></a><span class='hs-definition'>chars</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>traversedStrictTree8</span> <span class='hs-num'>0</span>
-<a name="line-125"></a><span class='hs-comment'>{-# INLINE chars #-}</span>
+<a name="line-112"></a><span class='hs-comment'>-- When writing back to the 'ByteString' it is assumed that every 'Char'</span>
+<a name="line-113"></a><span class='hs-comment'>-- lies between @'\x00'@ and @'\xff'@.</span>
+<a name="line-114"></a><span class='hs-comment'>--</span>
+<a name="line-115"></a><span class='hs-comment'>-- This 'Traversal' walks the 'ByteString' in a tree-like fashion</span>
+<a name="line-116"></a><span class='hs-comment'>-- enable zippers to seek to locations in logarithmic time and accelerating</span>
+<a name="line-117"></a><span class='hs-comment'>-- many monoidal queries, but up to associativity (and constant factors)</span>
+<a name="line-118"></a><span class='hs-comment'>-- it is equivalent to the much slower:</span>
+<a name="line-119"></a><span class='hs-comment'>--</span>
+<a name="line-120"></a><span class='hs-comment'>-- @</span>
+<a name="line-121"></a><span class='hs-comment'>-- 'chars' = 'unpackedChars' '.' 'traverse'</span>
+<a name="line-122"></a><span class='hs-comment'>-- @</span>
+<a name="line-123"></a><span class='hs-comment'>--</span>
+<a name="line-124"></a><span class='hs-comment'>-- &gt;&gt;&gt; anyOf chars (== 'h') "hello"</span>
+<a name="line-125"></a><span class='hs-comment'>-- True</span>
+<a name="line-126"></a><span class='hs-definition'>chars</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>ByteString</span> <span class='hs-conid'>Char</span>
+<a name="line-127"></a><span class='hs-definition'>chars</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>traversedStrictTree8</span> <span class='hs-num'>0</span>
+<a name="line-128"></a><span class='hs-comment'>{-# INLINE chars #-}</span>
 </pre></body>
 </html>

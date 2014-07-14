@@ -7,193 +7,206 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE Rank2Types #-}</span>
-<a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE FlexibleContexts #-}</span>
-<a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE MultiParamTypeClasses #-}</span>
-<a name="line-4"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-5"></a><span class='hs-comment'>-- |</span>
-<a name="line-6"></a><span class='hs-comment'>-- Module      :  Control.Lens.Action</span>
-<a name="line-7"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-13 Edward Kmett</span>
-<a name="line-8"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
-<a name="line-9"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
-<a name="line-10"></a><span class='hs-comment'>-- Stability   :  experimental</span>
-<a name="line-11"></a><span class='hs-comment'>-- Portability :  non-portable</span>
-<a name="line-12"></a><span class='hs-comment'>--</span>
-<a name="line-13"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
-<a name="line-14"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span>
-<a name="line-15"></a>  <span class='hs-layout'>(</span>
-<a name="line-16"></a>  <span class='hs-comment'>-- * Composable Actions</span>
-<a name="line-17"></a>    <span class='hs-conid'>Action</span>
-<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>act</span>
-<a name="line-19"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>acts</span>
-<a name="line-20"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>perform</span>
-<a name="line-21"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>performs</span>
-<a name="line-22"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>liftAct</span>
-<a name="line-23"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^!</span><span class='hs-layout'>)</span>
-<a name="line-24"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^!!</span><span class='hs-layout'>)</span>
-<a name="line-25"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^!?</span><span class='hs-layout'>)</span>
-<a name="line-26"></a>
-<a name="line-27"></a>  <span class='hs-comment'>-- * Indexed Actions</span>
-<a name="line-28"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>IndexedAction</span>
-<a name="line-29"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>iact</span>
-<a name="line-30"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>iperform</span>
-<a name="line-31"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>iperforms</span>
-<a name="line-32"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^@!</span><span class='hs-layout'>)</span>
-<a name="line-33"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^@!!</span><span class='hs-layout'>)</span>
-<a name="line-34"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^@!?</span><span class='hs-layout'>)</span>
-<a name="line-35"></a>
-<a name="line-36"></a>  <span class='hs-comment'>-- * Folds with Effects</span>
-<a name="line-37"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>MonadicFold</span>
-<a name="line-38"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>IndexedMonadicFold</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE CPP #-}</span>
+<a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE Rank2Types #-}</span>
+<a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE FlexibleContexts #-}</span>
+<a name="line-4"></a><span class='hs-comment'>{-# LANGUAGE MultiParamTypeClasses #-}</span>
+<a name="line-5"></a><span class='hs-cpp'>#ifdef TRUSTWORTHY</span>
+<a name="line-6"></a><span class='hs-comment'>{-# LANGUAGE Trustworthy #-}</span>
+<a name="line-7"></a><span class='hs-cpp'>#endif</span>
+<a name="line-8"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-9"></a><span class='hs-comment'>-- |</span>
+<a name="line-10"></a><span class='hs-comment'>-- Module      :  Control.Lens.Action</span>
+<a name="line-11"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-14 Edward Kmett</span>
+<a name="line-12"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
+<a name="line-13"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
+<a name="line-14"></a><span class='hs-comment'>-- Stability   :  experimental</span>
+<a name="line-15"></a><span class='hs-comment'>-- Portability :  non-portable</span>
+<a name="line-16"></a><span class='hs-comment'>--</span>
+<a name="line-17"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
+<a name="line-18"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span>
+<a name="line-19"></a>  <span class='hs-layout'>(</span>
+<a name="line-20"></a>  <span class='hs-comment'>-- * Composable Actions</span>
+<a name="line-21"></a>    <span class='hs-conid'>Action</span>
+<a name="line-22"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>act</span>
+<a name="line-23"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>acts</span>
+<a name="line-24"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>perform</span>
+<a name="line-25"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>performs</span>
+<a name="line-26"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>liftAct</span>
+<a name="line-27"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^!</span><span class='hs-layout'>)</span>
+<a name="line-28"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^!!</span><span class='hs-layout'>)</span>
+<a name="line-29"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^!?</span><span class='hs-layout'>)</span>
+<a name="line-30"></a>
+<a name="line-31"></a>  <span class='hs-comment'>-- * Indexed Actions</span>
+<a name="line-32"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>IndexedAction</span>
+<a name="line-33"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>iact</span>
+<a name="line-34"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>iperform</span>
+<a name="line-35"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>iperforms</span>
+<a name="line-36"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^@!</span><span class='hs-layout'>)</span>
+<a name="line-37"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^@!!</span><span class='hs-layout'>)</span>
+<a name="line-38"></a>  <span class='hs-layout'>,</span> <span class='hs-layout'>(</span><span class='hs-varop'>^@!?</span><span class='hs-layout'>)</span>
 <a name="line-39"></a>
-<a name="line-40"></a>  <span class='hs-comment'>-- * Implementation Details</span>
-<a name="line-41"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Acting</span>
-<a name="line-42"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>IndexedActing</span>
-<a name="line-43"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Effective</span>
-<a name="line-44"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-45"></a>
-<a name="line-46"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Comonad</span>
-<a name="line-47"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span>
-<a name="line-48"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Fold</span>
-<a name="line-49"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Indexed</span>
-<a name="line-50"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
-<a name="line-51"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span> <span class='hs-layout'>(</span><span class='hs-varid'>liftM</span><span class='hs-layout'>)</span>
-<a name="line-52"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span><span class='hs-varop'>.</span><span class='hs-conid'>Trans</span><span class='hs-varop'>.</span><span class='hs-conid'>Class</span>
-<a name="line-53"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Profunctor</span>
-<a name="line-54"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Profunctor</span><span class='hs-varop'>.</span><span class='hs-conid'>Rep</span>
-<a name="line-55"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Profunctor</span><span class='hs-varop'>.</span><span class='hs-conid'>Unsafe</span>
-<a name="line-56"></a>
-<a name="line-57"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-58"></a><span class='hs-comment'>-- &gt;&gt;&gt; :set -XNoOverloadedStrings</span>
-<a name="line-59"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
+<a name="line-40"></a>  <span class='hs-comment'>-- * Folds with Effects</span>
+<a name="line-41"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>MonadicFold</span>
+<a name="line-42"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>IndexedMonadicFold</span>
+<a name="line-43"></a>
+<a name="line-44"></a>  <span class='hs-comment'>-- * Implementation Details</span>
+<a name="line-45"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Acting</span>
+<a name="line-46"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>IndexedActing</span>
+<a name="line-47"></a>  <span class='hs-layout'>,</span> <span class='hs-conid'>Effective</span>
+<a name="line-48"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-49"></a>
+<a name="line-50"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Comonad</span>
+<a name="line-51"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Action</span>
+<a name="line-52"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Fold</span>
+<a name="line-53"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Indexed</span>
+<a name="line-54"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
+<a name="line-55"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span> <span class='hs-layout'>(</span><span class='hs-varid'>liftM</span><span class='hs-layout'>)</span>
+<a name="line-56"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span><span class='hs-varop'>.</span><span class='hs-conid'>Trans</span><span class='hs-varop'>.</span><span class='hs-conid'>Class</span>
+<a name="line-57"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Profunctor</span>
+<a name="line-58"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Profunctor</span><span class='hs-varop'>.</span><span class='hs-conid'>Rep</span>
+<a name="line-59"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Profunctor</span><span class='hs-varop'>.</span><span class='hs-conid'>Unsafe</span>
 <a name="line-60"></a>
-<a name="line-61"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>8</span> <span class='hs-varop'>^!</span><span class='hs-layout'>,</span> <span class='hs-varop'>^!!</span><span class='hs-layout'>,</span> <span class='hs-varop'>^@!</span><span class='hs-layout'>,</span> <span class='hs-varop'>^@!!</span><span class='hs-layout'>,</span> <span class='hs-varop'>^!?</span><span class='hs-layout'>,</span> <span class='hs-varop'>^@!?</span>
-<a name="line-62"></a>
-<a name="line-63"></a><a name="Acting"></a><span class='hs-comment'>-- | Used to evaluate an 'Action'.</span>
-<a name="line-64"></a><a name="Acting"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
-<a name="line-65"></a>
-<a name="line-66"></a><a name="perform"></a><span class='hs-comment'>-- | Perform an 'Action'.</span>
-<a name="line-67"></a><span class='hs-comment'>--</span>
-<a name="line-68"></a><span class='hs-comment'>-- @</span>
-<a name="line-69"></a><span class='hs-comment'>-- 'perform' ≡ 'flip' ('^!')</span>
-<a name="line-70"></a><span class='hs-comment'>-- @</span>
-<a name="line-71"></a><span class='hs-definition'>perform</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
-<a name="line-72"></a><span class='hs-definition'>perform</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span><span class='hs-layout'>)</span>
-<a name="line-73"></a><span class='hs-comment'>{-# INLINE perform #-}</span>
-<a name="line-74"></a>
-<a name="line-75"></a><a name="performs"></a><span class='hs-comment'>-- | Perform an 'Action' and modify the result.</span>
-<a name="line-76"></a><span class='hs-comment'>--</span>
-<a name="line-77"></a><span class='hs-comment'>-- @</span>
-<a name="line-78"></a><span class='hs-comment'>-- 'performs' :: 'Monad' m =&gt; 'Acting' m e s a -&gt; (a -&gt; e) -&gt; s -&gt; m e</span>
-<a name="line-79"></a><span class='hs-comment'>-- @</span>
-<a name="line-80"></a><span class='hs-definition'>performs</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Profunctor</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Over</span> <span class='hs-varid'>p</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-varid'>m</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>e</span>
-<a name="line-81"></a><span class='hs-definition'>performs</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>rmap</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span>
-<a name="line-82"></a><span class='hs-comment'>{-# INLINE performs #-}</span>
-<a name="line-83"></a>
-<a name="line-84"></a><a name="%5e!"></a><span class='hs-comment'>-- | Perform an 'Action'.</span>
-<a name="line-85"></a><span class='hs-comment'>--</span>
-<a name="line-86"></a><span class='hs-comment'>-- &gt;&gt;&gt; ["hello","world"]^!folded.act putStrLn</span>
-<a name="line-87"></a><span class='hs-comment'>-- hello</span>
-<a name="line-88"></a><span class='hs-comment'>-- world</span>
-<a name="line-89"></a><span class='hs-layout'>(</span><span class='hs-varop'>^!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
-<a name="line-90"></a><a name="a"></a><span class='hs-definition'>a</span> <span class='hs-varop'>^!</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-91"></a><span class='hs-comment'>{-# INLINE (^!) #-}</span>
-<a name="line-92"></a>
-<a name="line-93"></a><a name="%5e!!"></a><span class='hs-comment'>-- | Perform a 'MonadicFold' and collect all of the results in a list.</span>
-<a name="line-94"></a><span class='hs-comment'>--</span>
-<a name="line-95"></a><span class='hs-comment'>-- &gt;&gt;&gt; ["ab","cd","ef"]^!!folded.acts</span>
-<a name="line-96"></a><span class='hs-comment'>-- ["ace","acf","ade","adf","bce","bcf","bde","bdf"]</span>
-<a name="line-97"></a><span class='hs-layout'>(</span><span class='hs-varop'>^!!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-98"></a><span class='hs-definition'>a</span> <span class='hs-varop'>^!!</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span> <span class='hs-varop'>.</span> <span class='hs-varid'>return</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-99"></a><span class='hs-comment'>{-# INLINE (^!!) #-}</span>
-<a name="line-100"></a>
-<a name="line-101"></a><a name="%5e!?"></a><span class='hs-comment'>-- | Perform a 'MonadicFold' and collect the leftmost result.</span>
-<a name="line-102"></a><span class='hs-comment'>--</span>
-<a name="line-103"></a><span class='hs-comment'>-- /Note:/ this still causes all effects for all elements.</span>
-<a name="line-104"></a><span class='hs-comment'>--</span>
-<a name="line-105"></a><span class='hs-comment'>-- &gt;&gt;&gt; [Just 1, Just 2, Just 3]^!?folded.acts</span>
-<a name="line-106"></a><span class='hs-comment'>-- Just (Just 1)</span>
-<a name="line-107"></a><span class='hs-comment'>-- &gt;&gt;&gt; [Just 1, Nothing]^!?folded.acts</span>
-<a name="line-108"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-109"></a><span class='hs-layout'>(</span><span class='hs-varop'>^!?</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Leftmost</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-110"></a><span class='hs-definition'>a</span> <span class='hs-varop'>^!?</span>  <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>liftM</span> <span class='hs-varid'>getLeftmost</span> <span class='hs-varop'>.#</span> <span class='hs-varid'>getEffect</span> <span class='hs-varop'>$</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span> <span class='hs-varop'>.</span> <span class='hs-conid'>LLeaf</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-111"></a><span class='hs-comment'>{-# INLINE (^!?) #-}</span>
-<a name="line-112"></a>
-<a name="line-113"></a><a name="act"></a><span class='hs-comment'>-- | Construct an 'Action' from a monadic side-effect.</span>
-<a name="line-114"></a><span class='hs-comment'>--</span>
-<a name="line-115"></a><span class='hs-comment'>-- &gt;&gt;&gt; ["hello","world"]^!folded.act (\x -&gt; [x,x ++ "!"])</span>
-<a name="line-116"></a><span class='hs-comment'>-- ["helloworld","helloworld!","hello!world","hello!world!"]</span>
-<a name="line-117"></a><span class='hs-comment'>--</span>
-<a name="line-118"></a><span class='hs-comment'>-- @</span>
-<a name="line-119"></a><span class='hs-comment'>-- 'act' :: 'Monad' m =&gt; (s -&gt; m a) -&gt; 'Action' m s a</span>
-<a name="line-120"></a><span class='hs-comment'>-- 'act' sma afb a = 'effective' (sma a '&gt;&gt;=' 'ineffective' '.' afb)</span>
-<a name="line-121"></a><span class='hs-comment'>-- @</span>
-<a name="line-122"></a><span class='hs-definition'>act</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexPreservingAction</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
-<a name="line-123"></a><span class='hs-definition'>act</span> <span class='hs-varid'>sma</span> <span class='hs-varid'>pafb</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>cotabulate</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>ws</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>effective</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
-<a name="line-124"></a>   <span class='hs-varid'>a</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>sma</span> <span class='hs-layout'>(</span><span class='hs-varid'>extract</span> <span class='hs-varid'>ws</span><span class='hs-layout'>)</span>
-<a name="line-125"></a>   <span class='hs-varid'>ineffective</span> <span class='hs-layout'>(</span><span class='hs-varid'>corep</span> <span class='hs-varid'>pafb</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varop'>&lt;$</span> <span class='hs-varid'>ws</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-126"></a><span class='hs-comment'>{-# INLINE act #-}</span>
-<a name="line-127"></a>
-<a name="line-128"></a><a name="acts"></a><span class='hs-comment'>-- | A self-running 'Action', analogous to 'Control.Monad.join'.</span>
-<a name="line-129"></a><span class='hs-comment'>--</span>
+<a name="line-61"></a><span class='hs-comment'>-- $setup</span>
+<a name="line-62"></a><span class='hs-comment'>-- &gt;&gt;&gt; :set -XNoOverloadedStrings</span>
+<a name="line-63"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
+<a name="line-64"></a>
+<a name="line-65"></a><span class='hs-keyword'>infixr</span> <span class='hs-num'>8</span> <span class='hs-varop'>^!</span><span class='hs-layout'>,</span> <span class='hs-varop'>^!!</span><span class='hs-layout'>,</span> <span class='hs-varop'>^@!</span><span class='hs-layout'>,</span> <span class='hs-varop'>^@!!</span><span class='hs-layout'>,</span> <span class='hs-varop'>^!?</span><span class='hs-layout'>,</span> <span class='hs-varop'>^@!?</span>
+<a name="line-66"></a>
+<a name="line-67"></a><a name="Acting"></a><span class='hs-comment'>-- | Used to evaluate an 'Action'.</span>
+<a name="line-68"></a><a name="Acting"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>LensLike</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
+<a name="line-69"></a>
+<a name="line-70"></a><a name="perform"></a><span class='hs-comment'>-- | Perform an 'Action'.</span>
+<a name="line-71"></a><span class='hs-comment'>--</span>
+<a name="line-72"></a><span class='hs-comment'>-- @</span>
+<a name="line-73"></a><span class='hs-comment'>-- 'perform' ≡ 'flip' ('^!')</span>
+<a name="line-74"></a><span class='hs-comment'>-- @</span>
+<a name="line-75"></a><span class='hs-definition'>perform</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
+<a name="line-76"></a><span class='hs-definition'>perform</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span><span class='hs-layout'>)</span>
+<a name="line-77"></a><span class='hs-comment'>{-# INLINE perform #-}</span>
+<a name="line-78"></a>
+<a name="line-79"></a><a name="performs"></a><span class='hs-comment'>-- | Perform an 'Action' and modify the result.</span>
+<a name="line-80"></a><span class='hs-comment'>--</span>
+<a name="line-81"></a><span class='hs-comment'>-- @</span>
+<a name="line-82"></a><span class='hs-comment'>-- 'performs' :: 'Monad' m =&gt; 'Acting' m e s a -&gt; (a -&gt; e) -&gt; s -&gt; m e</span>
+<a name="line-83"></a><span class='hs-comment'>-- @</span>
+<a name="line-84"></a><span class='hs-definition'>performs</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Profunctor</span> <span class='hs-varid'>p</span><span class='hs-layout'>,</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Over</span> <span class='hs-varid'>p</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-varid'>m</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>t</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>e</span>
+<a name="line-85"></a><span class='hs-definition'>performs</span> <span class='hs-varid'>l</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>rmap</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span><span class='hs-layout'>)</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span>
+<a name="line-86"></a><span class='hs-comment'>{-# INLINE performs #-}</span>
+<a name="line-87"></a>
+<a name="line-88"></a><a name="%5e!"></a><span class='hs-comment'>-- | Perform an 'Action'.</span>
+<a name="line-89"></a><span class='hs-comment'>--</span>
+<a name="line-90"></a><span class='hs-comment'>-- &gt;&gt;&gt; ["hello","world"]^!folded.act putStrLn</span>
+<a name="line-91"></a><span class='hs-comment'>-- hello</span>
+<a name="line-92"></a><span class='hs-comment'>-- world</span>
+<a name="line-93"></a><span class='hs-layout'>(</span><span class='hs-varop'>^!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
+<a name="line-94"></a><a name="a"></a><span class='hs-definition'>a</span> <span class='hs-varop'>^!</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-95"></a><span class='hs-comment'>{-# INLINE (^!) #-}</span>
+<a name="line-96"></a>
+<a name="line-97"></a><a name="%5e!!"></a><span class='hs-comment'>-- | Perform a 'MonadicFold' and collect all of the results in a list.</span>
+<a name="line-98"></a><span class='hs-comment'>--</span>
+<a name="line-99"></a><span class='hs-comment'>-- &gt;&gt;&gt; ["ab","cd","ef"]^!!folded.acts</span>
+<a name="line-100"></a><span class='hs-comment'>-- ["ace","acf","ade","adf","bce","bcf","bde","bdf"]</span>
+<a name="line-101"></a><span class='hs-comment'>--</span>
+<a name="line-102"></a><span class='hs-comment'>-- [1,2]^!!folded.act (\i -&gt; putStr (show i ++ ": ") &gt;&gt; getLine).each.to succ</span>
+<a name="line-103"></a><span class='hs-comment'>-- 1: aa</span>
+<a name="line-104"></a><span class='hs-comment'>-- 2: bb</span>
+<a name="line-105"></a><span class='hs-comment'>-- "bbcc"</span>
+<a name="line-106"></a><span class='hs-layout'>(</span><span class='hs-varop'>^!!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-107"></a><span class='hs-definition'>a</span> <span class='hs-varop'>^!!</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span> <span class='hs-varop'>.</span> <span class='hs-varid'>return</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-108"></a><span class='hs-comment'>{-# INLINE (^!!) #-}</span>
+<a name="line-109"></a>
+<a name="line-110"></a><a name="%5e!?"></a><span class='hs-comment'>-- | Perform a 'MonadicFold' and collect the leftmost result.</span>
+<a name="line-111"></a><span class='hs-comment'>--</span>
+<a name="line-112"></a><span class='hs-comment'>-- /Note:/ this still causes all effects for all elements.</span>
+<a name="line-113"></a><span class='hs-comment'>--</span>
+<a name="line-114"></a><span class='hs-comment'>-- &gt;&gt;&gt; [Just 1, Just 2, Just 3]^!?folded.acts</span>
+<a name="line-115"></a><span class='hs-comment'>-- Just (Just 1)</span>
+<a name="line-116"></a><span class='hs-comment'>-- &gt;&gt;&gt; [Just 1, Nothing]^!?folded.acts</span>
+<a name="line-117"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-118"></a><span class='hs-layout'>(</span><span class='hs-varop'>^!?</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Leftmost</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-119"></a><span class='hs-definition'>a</span> <span class='hs-varop'>^!?</span>  <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>liftM</span> <span class='hs-varid'>getLeftmost</span> <span class='hs-varop'>.#</span> <span class='hs-varid'>getEffect</span> <span class='hs-varop'>$</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span> <span class='hs-varop'>.</span> <span class='hs-conid'>LLeaf</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-120"></a><span class='hs-comment'>{-# INLINE (^!?) #-}</span>
+<a name="line-121"></a>
+<a name="line-122"></a><a name="act"></a><span class='hs-comment'>-- | Construct an 'Action' from a monadic side-effect.</span>
+<a name="line-123"></a><span class='hs-comment'>--</span>
+<a name="line-124"></a><span class='hs-comment'>-- &gt;&gt;&gt; ["hello","world"]^!folded.act (\x -&gt; [x,x ++ "!"])</span>
+<a name="line-125"></a><span class='hs-comment'>-- ["helloworld","helloworld!","hello!world","hello!world!"]</span>
+<a name="line-126"></a><span class='hs-comment'>--</span>
+<a name="line-127"></a><span class='hs-comment'>-- @</span>
+<a name="line-128"></a><span class='hs-comment'>-- 'act' :: 'Monad' m =&gt; (s -&gt; m a) -&gt; 'Action' m s a</span>
+<a name="line-129"></a><span class='hs-comment'>-- 'act' sma afb a = 'effective' (sma a '&gt;&gt;=' 'ineffective' '.' afb)</span>
 <a name="line-130"></a><span class='hs-comment'>-- @</span>
-<a name="line-131"></a><span class='hs-comment'>-- 'acts' ≡ 'act' 'id'</span>
-<a name="line-132"></a><span class='hs-comment'>-- @</span>
-<a name="line-133"></a><span class='hs-comment'>--</span>
-<a name="line-134"></a><span class='hs-comment'>-- &gt;&gt;&gt; (1,"hello")^!_2.acts.to succ</span>
-<a name="line-135"></a><span class='hs-comment'>-- "ifmmp"</span>
-<a name="line-136"></a><span class='hs-definition'>acts</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexPreservingAction</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-137"></a><span class='hs-definition'>acts</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-varid'>id</span>
-<a name="line-138"></a><span class='hs-comment'>{-# INLINE acts #-}</span>
-<a name="line-139"></a>
-<a name="line-140"></a><a name="liftAct"></a><span class='hs-comment'>-- | Apply a 'Monad' transformer to an 'Action'.</span>
-<a name="line-141"></a><span class='hs-definition'>liftAct</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadTrans</span> <span class='hs-varid'>trans</span><span class='hs-layout'>,</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexPreservingAction</span> <span class='hs-layout'>(</span><span class='hs-varid'>trans</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
-<a name="line-142"></a><span class='hs-definition'>liftAct</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-varid'>lift</span> <span class='hs-varop'>.</span> <span class='hs-varid'>perform</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
-<a name="line-143"></a><span class='hs-comment'>{-# INLINE liftAct #-}</span>
-<a name="line-144"></a>
-<a name="line-145"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-146"></a><span class='hs-comment'>-- Indexed Actions</span>
-<a name="line-147"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
-<a name="line-148"></a>
-<a name="line-149"></a><a name="IndexedActing"></a><span class='hs-comment'>-- | Used to evaluate an 'IndexedAction'.</span>
-<a name="line-150"></a><a name="IndexedActing"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Over</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
-<a name="line-151"></a>
-<a name="line-152"></a><a name="iperform"></a><span class='hs-comment'>-- | Perform an 'IndexedAction'.</span>
-<a name="line-153"></a><span class='hs-comment'>--</span>
-<a name="line-154"></a><span class='hs-comment'>-- @</span>
-<a name="line-155"></a><span class='hs-comment'>-- 'iperform' ≡ 'flip' ('^@!')</span>
-<a name="line-156"></a><span class='hs-comment'>-- @</span>
-<a name="line-157"></a><span class='hs-definition'>iperform</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-158"></a><span class='hs-definition'>iperform</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Effect</span> <span class='hs-layout'>(</span><span class='hs-varid'>return</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-159"></a><span class='hs-comment'>{-# INLINE iperform #-}</span>
-<a name="line-160"></a>
-<a name="line-161"></a><a name="iperforms"></a><span class='hs-comment'>-- | Perform an 'IndexedAction' and modify the result.</span>
-<a name="line-162"></a><span class='hs-definition'>iperforms</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-varid'>e</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>e</span>
-<a name="line-163"></a><span class='hs-definition'>iperforms</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>performs</span> <span class='hs-varid'>l</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Indexed</span>
-<a name="line-164"></a><span class='hs-comment'>{-# INLINE iperforms #-}</span>
-<a name="line-165"></a>
-<a name="line-166"></a><a name="%5e@!"></a><span class='hs-comment'>-- | Perform an 'IndexedAction'.</span>
-<a name="line-167"></a><span class='hs-layout'>(</span><span class='hs-varop'>^@!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-168"></a><a name="s"></a><span class='hs-definition'>s</span> <span class='hs-varop'>^@!</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Effect</span> <span class='hs-layout'>(</span><span class='hs-varid'>return</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
-<a name="line-169"></a><span class='hs-comment'>{-# INLINE (^@!) #-}</span>
-<a name="line-170"></a>
-<a name="line-171"></a><a name="%5e@!!"></a><span class='hs-comment'>-- | Obtain a list of all of the results of an 'IndexedMonadicFold'.</span>
-<a name="line-172"></a><span class='hs-layout'>(</span><span class='hs-varop'>^@!!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span>
-<a name="line-173"></a><span class='hs-definition'>s</span> <span class='hs-varop'>^@!!</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Effect</span> <span class='hs-layout'>(</span><span class='hs-varid'>return</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
-<a name="line-174"></a><span class='hs-comment'>{-# INLINE (^@!!) #-}</span>
-<a name="line-175"></a>
-<a name="line-176"></a><a name="%5e@!?"></a><span class='hs-comment'>-- | Perform an 'IndexedMonadicFold' and collect the 'Leftmost' result.</span>
-<a name="line-177"></a><span class='hs-comment'>--</span>
-<a name="line-178"></a><span class='hs-comment'>-- /Note:/ this still causes all effects for all elements.</span>
-<a name="line-179"></a><span class='hs-layout'>(</span><span class='hs-varop'>^@!?</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Leftmost</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-180"></a><span class='hs-definition'>a</span> <span class='hs-varop'>^@!?</span>  <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>liftM</span> <span class='hs-varid'>getLeftmost</span> <span class='hs-varop'>.#</span> <span class='hs-varid'>getEffect</span> <span class='hs-varop'>$</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span> <span class='hs-varop'>.</span> <span class='hs-conid'>LLeaf</span> <span class='hs-varop'>.</span> <span class='hs-conid'>(,)</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
-<a name="line-181"></a><span class='hs-comment'>{-# INLINE (^@!?) #-}</span>
-<a name="line-182"></a>
-<a name="line-183"></a><a name="iact"></a><span class='hs-comment'>-- | Construct an 'IndexedAction' from a monadic side-effect.</span>
-<a name="line-184"></a><span class='hs-definition'>iact</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedAction</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
-<a name="line-185"></a><span class='hs-definition'>iact</span> <span class='hs-varid'>smia</span> <span class='hs-varid'>iafb</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>effective</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
-<a name="line-186"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>smia</span> <span class='hs-varid'>s</span>
-<a name="line-187"></a>  <span class='hs-varid'>ineffective</span> <span class='hs-layout'>(</span><span class='hs-varid'>indexed</span> <span class='hs-varid'>iafb</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
-<a name="line-188"></a><span class='hs-comment'>{-# INLINE iact #-}</span>
+<a name="line-131"></a><span class='hs-definition'>act</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexPreservingAction</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
+<a name="line-132"></a><span class='hs-definition'>act</span> <span class='hs-varid'>sma</span> <span class='hs-varid'>pafb</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>cotabulate</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>ws</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>effective</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
+<a name="line-133"></a>   <span class='hs-varid'>a</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>sma</span> <span class='hs-layout'>(</span><span class='hs-varid'>extract</span> <span class='hs-varid'>ws</span><span class='hs-layout'>)</span>
+<a name="line-134"></a>   <span class='hs-varid'>ineffective</span> <span class='hs-layout'>(</span><span class='hs-varid'>corep</span> <span class='hs-varid'>pafb</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-varop'>&lt;$</span> <span class='hs-varid'>ws</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-135"></a><span class='hs-comment'>{-# INLINE act #-}</span>
+<a name="line-136"></a>
+<a name="line-137"></a><a name="acts"></a><span class='hs-comment'>-- | A self-running 'Action', analogous to 'Control.Monad.join'.</span>
+<a name="line-138"></a><span class='hs-comment'>--</span>
+<a name="line-139"></a><span class='hs-comment'>-- @</span>
+<a name="line-140"></a><span class='hs-comment'>-- 'acts' ≡ 'act' 'id'</span>
+<a name="line-141"></a><span class='hs-comment'>-- @</span>
+<a name="line-142"></a><span class='hs-comment'>--</span>
+<a name="line-143"></a><span class='hs-comment'>-- &gt;&gt;&gt; (1,"hello")^!_2.acts.to succ</span>
+<a name="line-144"></a><span class='hs-comment'>-- "ifmmp"</span>
+<a name="line-145"></a><span class='hs-comment'>--</span>
+<a name="line-146"></a><span class='hs-comment'>-- (1,getLine)^!!_2.acts.folded.to succ</span>
+<a name="line-147"></a><span class='hs-comment'>-- aa</span>
+<a name="line-148"></a><span class='hs-comment'>-- "bb"</span>
+<a name="line-149"></a><span class='hs-definition'>acts</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexPreservingAction</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-150"></a><span class='hs-definition'>acts</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-varid'>id</span>
+<a name="line-151"></a><span class='hs-comment'>{-# INLINE acts #-}</span>
+<a name="line-152"></a>
+<a name="line-153"></a><a name="liftAct"></a><span class='hs-comment'>-- | Apply a 'Monad' transformer to an 'Action'.</span>
+<a name="line-154"></a><span class='hs-definition'>liftAct</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>MonadTrans</span> <span class='hs-varid'>trans</span><span class='hs-layout'>,</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Acting</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexPreservingAction</span> <span class='hs-layout'>(</span><span class='hs-varid'>trans</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
+<a name="line-155"></a><span class='hs-definition'>liftAct</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>act</span> <span class='hs-layout'>(</span><span class='hs-varid'>lift</span> <span class='hs-varop'>.</span> <span class='hs-varid'>perform</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
+<a name="line-156"></a><span class='hs-comment'>{-# INLINE liftAct #-}</span>
+<a name="line-157"></a>
+<a name="line-158"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-159"></a><span class='hs-comment'>-- Indexed Actions</span>
+<a name="line-160"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
+<a name="line-161"></a>
+<a name="line-162"></a><a name="IndexedActing"></a><span class='hs-comment'>-- | Used to evaluate an 'IndexedAction'.</span>
+<a name="line-163"></a><a name="IndexedActing"></a><span class='hs-keyword'>type</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Over</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>Effect</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-varid'>a</span>
+<a name="line-164"></a>
+<a name="line-165"></a><a name="iperform"></a><span class='hs-comment'>-- | Perform an 'IndexedAction'.</span>
+<a name="line-166"></a><span class='hs-comment'>--</span>
+<a name="line-167"></a><span class='hs-comment'>-- @</span>
+<a name="line-168"></a><span class='hs-comment'>-- 'iperform' ≡ 'flip' ('^@!')</span>
+<a name="line-169"></a><span class='hs-comment'>-- @</span>
+<a name="line-170"></a><span class='hs-definition'>iperform</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-171"></a><span class='hs-definition'>iperform</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Effect</span> <span class='hs-layout'>(</span><span class='hs-varid'>return</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-172"></a><span class='hs-comment'>{-# INLINE iperform #-}</span>
+<a name="line-173"></a>
+<a name="line-174"></a><a name="iperforms"></a><span class='hs-comment'>-- | Perform an 'IndexedAction' and modify the result.</span>
+<a name="line-175"></a><span class='hs-definition'>iperforms</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-varid'>e</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>e</span>
+<a name="line-176"></a><span class='hs-definition'>iperforms</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>performs</span> <span class='hs-varid'>l</span> <span class='hs-varop'>.#</span> <span class='hs-conid'>Indexed</span>
+<a name="line-177"></a><span class='hs-comment'>{-# INLINE iperforms #-}</span>
+<a name="line-178"></a>
+<a name="line-179"></a><a name="%5e@!"></a><span class='hs-comment'>-- | Perform an 'IndexedAction'.</span>
+<a name="line-180"></a><span class='hs-layout'>(</span><span class='hs-varop'>^@!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-181"></a><a name="s"></a><span class='hs-definition'>s</span> <span class='hs-varop'>^@!</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Effect</span> <span class='hs-layout'>(</span><span class='hs-varid'>return</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
+<a name="line-182"></a><span class='hs-comment'>{-# INLINE (^@!) #-}</span>
+<a name="line-183"></a>
+<a name="line-184"></a><a name="%5e@!!"></a><span class='hs-comment'>-- | Obtain a list of all of the results of an 'IndexedMonadicFold'.</span>
+<a name="line-185"></a><span class='hs-layout'>(</span><span class='hs-varop'>^@!!</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span>
+<a name="line-186"></a><span class='hs-definition'>s</span> <span class='hs-varop'>^@!!</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>getEffect</span> <span class='hs-layout'>(</span><span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Effect</span> <span class='hs-layout'>(</span><span class='hs-varid'>return</span> <span class='hs-keyglyph'>[</span><span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-keyglyph'>]</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
+<a name="line-187"></a><span class='hs-comment'>{-# INLINE (^@!!) #-}</span>
+<a name="line-188"></a>
+<a name="line-189"></a><a name="%5e@!?"></a><span class='hs-comment'>-- | Perform an 'IndexedMonadicFold' and collect the 'Leftmost' result.</span>
+<a name="line-190"></a><span class='hs-comment'>--</span>
+<a name="line-191"></a><span class='hs-comment'>-- /Note:/ this still causes all effects for all elements.</span>
+<a name="line-192"></a><span class='hs-layout'>(</span><span class='hs-varop'>^@!?</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedActing</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Leftmost</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
+<a name="line-193"></a><span class='hs-definition'>a</span> <span class='hs-varop'>^@!?</span>  <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>liftM</span> <span class='hs-varid'>getLeftmost</span> <span class='hs-varop'>.#</span> <span class='hs-varid'>getEffect</span> <span class='hs-varop'>$</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-conid'>Indexed</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Effect</span> <span class='hs-cpp'>#.</span> <span class='hs-varid'>return</span> <span class='hs-varop'>.</span> <span class='hs-conid'>LLeaf</span> <span class='hs-varop'>.</span> <span class='hs-conid'>(,)</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span>
+<a name="line-194"></a><span class='hs-comment'>{-# INLINE (^@!?) #-}</span>
+<a name="line-195"></a>
+<a name="line-196"></a><a name="iact"></a><span class='hs-comment'>-- | Construct an 'IndexedAction' from a monadic side-effect.</span>
+<a name="line-197"></a><span class='hs-definition'>iact</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>IndexedAction</span> <span class='hs-varid'>i</span> <span class='hs-varid'>m</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span>
+<a name="line-198"></a><span class='hs-definition'>iact</span> <span class='hs-varid'>smia</span> <span class='hs-varid'>iafb</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>effective</span> <span class='hs-varop'>$</span> <span class='hs-keyword'>do</span>
+<a name="line-199"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>smia</span> <span class='hs-varid'>s</span>
+<a name="line-200"></a>  <span class='hs-varid'>ineffective</span> <span class='hs-layout'>(</span><span class='hs-varid'>indexed</span> <span class='hs-varid'>iafb</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-201"></a><span class='hs-comment'>{-# INLINE iact #-}</span>
 </pre></body>
 </html>

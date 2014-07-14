@@ -17,7 +17,7 @@
 <a name="line-8"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-9"></a><span class='hs-comment'>-- |</span>
 <a name="line-10"></a><span class='hs-comment'>-- Module      :  Control.Lens.Internal.Fold</span>
-<a name="line-11"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-2013 Edward Kmett</span>
+<a name="line-11"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-2014 Edward Kmett</span>
 <a name="line-12"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
 <a name="line-13"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
 <a name="line-14"></a><span class='hs-comment'>-- Stability   :  experimental</span>
@@ -232,7 +232,7 @@
 <a name="line-223"></a><a name="reflectResult"></a><span class='hs-definition'>reflectResult</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Reifies</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span>
 <a name="line-224"></a><span class='hs-definition'>reflectResult</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>let</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>reflect</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyword'>in</span> <span class='hs-varid'>r</span>
 <a name="line-225"></a>
-<a name="line-226"></a><a name="M"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>M</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>M</span> <span class='hs-varid'>a</span>
+<a name="line-226"></a><a name="M"></a><span class='hs-keyword'>newtype</span> <span class='hs-conid'>M</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>M</span> <span class='hs-varid'>a</span>
 <a name="line-227"></a>
 <a name="line-228"></a><a name="unM"></a><span class='hs-definition'>unM</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>M</span> <span class='hs-varid'>a</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>proxy</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
 <a name="line-229"></a><span class='hs-definition'>unM</span> <span class='hs-layout'>(</span><span class='hs-conid'>M</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>a</span>
