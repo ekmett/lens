@@ -223,3 +223,23 @@ bits f b = Prelude.foldr step 0 <$> traverse g bs where
   step (n,True) r = setBit r n
   step _        r = r
 {-# INLINE bits #-}
+
+-- | Traverse over all the bytes in an integral type, from the low end.
+--
+-- The byte position is available as the index.
+--
+-- >>> toListOf bytes (1127752294 :: Word32)
+-- [12,34,56,67]
+--
+-- If you supply this an 'Integer', the result will be an infinite 'Traversal',
+-- which can be productively consumed, but not reassembled.
+--
+-- Why is this function called @bytes@ to match 'bits'? Alas, there is already
+-- a function by that name in "Data.ByteString.Lens".
+bytewise :: (Integral b, Bits b) => IndexedTraversal' Int b Word8
+bytewise f b = Prelude.foldr step 0 <$> traverse g bs where
+  g n = (,) n <$> indexed f n (fromIntegral $ b `shiftR` (n*8))
+  bs = Prelude.takeWhile hasByte [0..]
+  hasByte n = complementBit b (n*8) /= b
+  step (n,x) r = r .|. (fromIntegral x `shiftL` (n*8))
+{-# INLINE bytewise #-}
