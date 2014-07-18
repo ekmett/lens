@@ -229,7 +229,7 @@ bits f b = Prelude.foldr step 0 <$> traverse g bs where
 --
 -- The byte position is available as the index.
 --
--- >>> toListOf bytes (1127752294 :: Word32)
+-- >>> toListOf bytewise (1127752294 :: Word32)
 -- [12,34,56,67]
 --
 -- If you supply this an 'Integer', the result will be an infinite 'Traversal',
