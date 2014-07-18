@@ -497,8 +497,8 @@ rmapping g = withIso g $ \ sa bt -> iso (rmap sa) (rmap bt)
 -- | Lift two 'Iso's into both arguments of a 'Bifunctor'.
 --
 -- @
--- bimapping :: 'Profunctor' p => 'Iso' s t a b -> 'Iso' s' t' a' b' -> 'Iso' (p s s') (p t t') (p a a') (p b b')
--- bimapping :: 'Profunctor' p => 'Iso'' s a -> 'Iso'' s' a' -> 'Iso'' (p s s') (p a a')
+-- bimapping :: 'Bifunctor' p => 'Iso' s t a b -> 'Iso' s' t' a' b' -> 'Iso' (p s s') (p t t') (p a a') (p b b')
+-- bimapping :: 'Bifunctor' p => 'Iso'' s a -> 'Iso'' s' a' -> 'Iso'' (p s s') (p a a')
 -- @
 bimapping :: (Bifunctor f, Bifunctor g) => AnIso s t a b -> AnIso s' t' a' b' -> Iso (f s s') (g t t') (f a a') (g b b')
 bimapping f g = withIso f $ \ sa bt -> withIso g $ \s'a' b't' ->
