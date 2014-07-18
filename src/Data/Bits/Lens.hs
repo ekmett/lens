@@ -16,7 +16,7 @@ module Data.Bits.Lens
   , bitAt
   , bits
   , byteAt
-  , byteWise
+  , bytewise
   ) where
 
 import Control.Lens
