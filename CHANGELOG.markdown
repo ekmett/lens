@@ -1,6 +1,7 @@
 4.3.1
 -----
 * `contravariant` 1.0 support
+* Added `bytewise` to `Data.Bits`
 
 4.3
 ---
