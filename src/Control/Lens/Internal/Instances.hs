@@ -4,6 +4,10 @@
 #ifndef MIN_VERSION_base
 #define MIN_VERSION_base(x,y,z) 1
 #endif
+
+#ifndef MIN_VERSION_semigroupoids
+#define MIN_VERSION_semigroupoids(x,y,z) 1
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Instances
@@ -14,13 +18,18 @@
 -- Portability :  non-portable
 --
 -- This module includes orphan instances for @(,)@, 'Either' and 'Const' that
--- should be supplied by base.
+-- should be supplied by base. These have moved to @semigroupoids@ as of 4.2.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Instances () where
+
+import Data.Traversable.Instances ()
+
+#if !(MIN_VERSION_semigroupoids(0,4,2))
 
 import Control.Applicative
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
+
 
 #if !(MIN_VERSION_base(4,7,0))
 import Data.Monoid
@@ -60,3 +69,4 @@ instance Foldable1 ((,) b) where
 instance Traversable1 ((,) b) where
   traverse1 f (b, a) = (,) b <$> f a
 
+#endif
