@@ -22,7 +22,7 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Instances () where
 
-import Data.Traversable.Instances
+import Data.Traversable.Instances ()
 
 #if !(MIN_VERSION_semigroupoids(0,4,2))
 
