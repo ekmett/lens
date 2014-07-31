@@ -1,3 +1,7 @@
+4.3.3
+-----
+* `semigroupoids` 4.2 support
+
 4.3.2
 -----
 * `contravariant` 1.0 support
