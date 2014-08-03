@@ -30,6 +30,8 @@ module Control.Lens.Cons
   , snoc
   , unsnoc
   , _init, _last
+  -- * Utility
+  , _middle
   ) where
 
 import Control.Lens.Equality (simply)
@@ -372,7 +374,7 @@ instance Snoc LazyT.Text LazyT.Text Char Char where
     else Right (LazyT.init v, LazyT.last v)
   {-# INLINE _Snoc #-}
 
--- | A 'Traversal' reading and replacing all but the a last element of a /non-empty/ container.
+-- | A 'Traversal' reading and replacing all but the last element of a /non-empty/ container.
 --
 -- >>> [a,b,c,d]^?_init
 -- Just [a,b,c]
@@ -499,3 +501,44 @@ snoc = curry (simply review _Snoc)
 unsnoc :: Snoc s s a a => s -> Maybe (s, a)
 unsnoc s = simply preview _Snoc s
 {-# INLINE unsnoc #-}
+
+
+-- | A 'Traversal' reading and replacing all but the first and last element of a /non-empty/ container.
+--
+-- >>> [a,b,c,d]^?_middle
+-- Just [b,c]
+--
+-- >>> []^?_middle
+-- Nothing
+--
+-- >>> [a,b] & _middle .~ [c,d,e]
+-- [a,c,d,e,b]
+--
+-- >>> [] & _middle .~ [a,b]
+-- []
+--
+-- >>> [a] & _middle .~ [b,c]
+-- [a]
+--
+-- >>> [a,b,c,d] & _middle.traverse %~ f
+-- a,f b,f c,d]
+--
+-- >>> [1,2,3]^?_middle
+-- Just [2]
+--
+-- >>> [1,2,3,4]^?!_middle
+-- [2,3]
+--
+-- >>> "hello"^._middle
+-- "ell"
+--
+-- >>> ""^._middle
+-- ""
+--
+-- @
+-- '_middle' :: 'Traversal'' [a] [a]
+-- '_middle' :: 'Traversal'' ('Seq' a) ('Seq' a)
+-- '_middle' :: 'Traversal'' ('Vector' a) ('Vector' a)
+-- @
+_middle :: (Snoc s s a a, Cons s s b b) => Traversal' s s
+_middle = _tail . _init
