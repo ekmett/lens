@@ -45,7 +45,10 @@ import Data.ByteString.Lazy.Char8 as Lazy hiding (putStrLn)
 import Data.Data
 import Data.HashMap.Strict (HashMap)
 import Data.Text as Text
-import Data.Text.Encoding
+import qualified Data.Text.Lazy as LazyText
+import Data.Text.Lens (packed)
+import qualified Data.Text.Encoding as StrictText
+import qualified Data.Text.Lazy.Encoding as LazyText
 import Data.Vector (Vector)
 import Prelude hiding (null)
 
@@ -105,6 +108,8 @@ instance AsNumber Scientific where
 
 instance AsNumber Strict.ByteString
 instance AsNumber Lazy.ByteString
+instance AsNumber Text
+instance AsNumber LazyText.Text
 instance AsNumber String
 
 ------------------------------------------------------------------------------
@@ -225,6 +230,8 @@ instance AsPrimitive Value where
 
 instance AsPrimitive Strict.ByteString
 instance AsPrimitive Lazy.ByteString
+instance AsPrimitive Text.Text
+instance AsPrimitive LazyText.Text
 instance AsPrimitive String
 
 instance AsPrimitive Primitive where
@@ -288,7 +295,15 @@ instance AsValue Lazy.ByteString where
   {-# INLINE _Value #-}
 
 instance AsValue String where
-  _Value = utf8._JSON
+  _Value = strictUtf8._JSON
+  {-# INLINE _Value #-}
+
+instance AsValue Text where
+  _Value = strictTextUtf8._JSON
+  {-# INLINE _Value #-}
+
+instance AsValue LazyText.Text where
+  _Value = lazyTextUtf8._JSON
   {-# INLINE _Value #-}
 
 -- |
@@ -340,8 +355,14 @@ values :: AsValue t => IndexedTraversal' Int t Value
 values = _Array . traversed
 {-# INLINE values #-}
 
-utf8 :: Iso' String Strict.ByteString
-utf8 = iso (encodeUtf8 . Text.pack) (Text.unpack . decodeUtf8)
+strictUtf8 :: Iso' String Strict.ByteString
+strictUtf8 = packed . strictTextUtf8
+
+strictTextUtf8 :: Iso' Text.Text Strict.ByteString
+strictTextUtf8 = iso StrictText.encodeUtf8 StrictText.decodeUtf8
+
+lazyTextUtf8 :: Iso' LazyText.Text Lazy.ByteString
+lazyTextUtf8 = iso LazyText.encodeUtf8 LazyText.decodeUtf8
 
 class AsJSON t where
   -- | '_JSON' is a 'Prism' from something containing JSON to something encoded in that structure
@@ -361,7 +382,15 @@ instance AsJSON Lazy.ByteString where
   {-# INLINE _JSON #-}
 
 instance AsJSON String where
-  _JSON = utf8._JSON
+  _JSON = strictUtf8._JSON
+  {-# INLINE _JSON #-}
+
+instance AsJSON Text where
+  _JSON = strictTextUtf8._JSON
+  {-# INLINE _JSON #-}
+
+instance AsJSON LazyText.Text where
+  _JSON = lazyTextUtf8._JSON
   {-# INLINE _JSON #-}
 
 instance AsJSON Value where
