@@ -24,7 +24,7 @@ module Control.Lens.Internal.Instances () where
 
 import Data.Traversable.Instances ()
 
-#if !(MIN_VERSION_semigroupoids(0,4,2))
+#if !(MIN_VERSION_semigroupoids(4,2,0))
 
 import Control.Applicative
 import Data.Semigroup.Foldable
