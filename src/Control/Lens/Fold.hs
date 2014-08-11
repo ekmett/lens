@@ -287,9 +287,9 @@ iterated f g a0 = go a0 where
   go a = g a .> go (f a)
 {-# INLINE iterated #-}
 
--- | Obtain an 'AffineFold' that can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal').
+-- | Obtain an 'Fold' that can be composed with to filter another 'Lens', 'Iso', 'Getter', 'Fold' (or 'Traversal').
 --
--- Note: This is /not/ a legal 'AffineTraversal', unless you are very careful not to invalidate the predicate on the target.
+-- Note: This is /not/ a legal 'Traversal', unless you are very careful not to invalidate the predicate on the target.
 --
 -- Note: This is also /not/ a legal 'Prism', unless you are very careful not to inject a value that matches the predicate.
 --
@@ -299,7 +299,7 @@ iterated f g a0 = go a0 where
 -- 'Control.Lens.Setter.over' evens 'succ' '.' 'Control.Lens.Setter.over' evens 'succ' '/=' 'Control.Lens.Setter.over' evens ('succ' '.' 'succ')
 -- @
 --
--- So, in order for this to qualify as a legal 'AffineTraversal' you can only use it for actions that preserve the result of the predicate!
+-- So, in order for this to qualify as a legal 'Traversal' you can only use it for actions that preserve the result of the predicate!
 --
 -- >>> [1..10]^..folded.filtered even
 -- [2,4,6,8,10]
