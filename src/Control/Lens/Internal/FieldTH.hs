@@ -18,14 +18,12 @@ import Control.Applicative
 import Control.Monad
 import Language.Haskell.TH.Lens
 import Language.Haskell.TH
-import Data.Traversable (traverse, sequenceA)
+import Data.Traversable (sequenceA)
 import Data.Foldable (toList)
-import Data.Maybe (maybeToList)
+import Data.Maybe (isJust,maybeToList)
 import Data.List (nub, findIndices)
 import Data.Either (partitionEithers)
-import Data.Char (toLower, toUpper)
 import Data.Set.Lens
-import           Data.Set ( Set )
 import           Data.Map ( Map )
 import qualified Data.Set as Set
 import qualified Data.Map as Map
@@ -42,32 +40,42 @@ makeFieldOptics :: LensRules -> Name -> DecsQ
 makeFieldOptics rules tyName =
   do info <- reify tyName
      case info of
-       TyConI (DataD    _ _ vars cons _) ->
-         makeFieldOpticsForDec rules tyName vars cons
-       TyConI (NewtypeD _ _ vars con  _) ->
-         makeFieldOpticsForDec rules tyName vars [con]
-       _ -> fail "makeFieldOptics: Expected type constructor name"
+       TyConI dec -> makeFieldOpticsForDec rules dec
+       _          -> fail "makeFieldOptics: Expected type constructor name"
+
+
+makeFieldOpticsForDec :: LensRules -> Dec -> DecsQ
+makeFieldOpticsForDec rules dec = case dec of
+  DataD    _ tyName vars cons _ ->
+    makeFieldOpticsForDec' rules tyName (mkS tyName vars) cons
+  NewtypeD _ tyName vars con  _ ->
+    makeFieldOpticsForDec' rules tyName (mkS tyName vars) [con]
+  DataInstD _ tyName args cons _ ->
+    makeFieldOpticsForDec' rules tyName (tyName `conAppsT` args) cons
+  NewtypeInstD _ tyName args con _ ->
+    makeFieldOpticsForDec' rules tyName (tyName `conAppsT` args) [con]
+  _ -> fail "makeFieldOptics: Expected data or newtype type-constructor"
+  where
+  mkS tyName vars = tyName `conAppsT` map VarT (toListOf typeVars vars)
 
 
 -- | Compute the field optics for a deconstructed Dec
 -- When possible build an Iso otherwise build one optic per field.
-makeFieldOpticsForDec :: LensRules -> Name -> [TyVarBndr] -> [Con] -> DecsQ
-makeFieldOpticsForDec rules tyName vars cons =
+makeFieldOpticsForDec' :: LensRules -> Name -> Type -> [Con] -> DecsQ
+makeFieldOpticsForDec' rules tyName s cons =
   do fieldCons <- traverse normalizeConstructor cons
      let defCons    = over normFieldLabels expandName fieldCons
          allDefs    = setOf (normFieldLabels . folded) defCons
      perDef <- sequenceA (Map.fromSet (buildScaffold rules s defCons) allDefs)
 
      let defs = Map.toList perDef
-     case _classyLenses rules of
-       Just f -> let (className, methodName) = f tyName
-                 in makeClassyDriver rules className methodName defs
+     case _classyLenses rules tyName of
+       Just (className, methodName) ->
+         makeClassyDriver rules className methodName defs
        Nothing -> do decss  <- traverse (makeFieldOptic rules) defs
                      return (concat decss)
 
   where
-  -- Initial "outer" 'Type' for all of the generated optics for this Dec
-  s = tyName `conAppsT` map VarT (toListOf typeVars vars)
 
   -- Traverse the field labels of a normalized constructor
   normFieldLabels :: Traversal [(Name,[(a,Type)])] [(Name,[(b,Type)])] a b
@@ -123,13 +131,13 @@ buildScaffold rules s cons defName =
                in OpticSa cx optic s' a'
 
            | _simpleLenses rules || s' == t && a == b =
-               let optic | isoCase   = ''Iso'
+               let optic | isoCase && _allowIsos rules = ''Iso'
                          | lensCase  = ''Lens'
                          | otherwise = ''Traversal'
                in OpticSa [] optic s' a
 
            | otherwise =
-               let optic | isoCase   = ''Iso
+               let optic | isoCase && _allowIsos rules = ''Iso
                          | lensCase  = ''Lens
                          | otherwise = ''Traversal
                in OpticStab optic s' t a b
@@ -212,16 +220,20 @@ makeFieldOptic ::
   LensRules ->
   (DefName, (OpticType, OpticStab, [(Name, Int, [Int])])) ->
   DecsQ
-makeFieldOptic rules (defName, (opticType, defType, cons)) = sequenceA (cls ++ sig ++ def)
+makeFieldOptic rules (defName, (opticType, defType, cons)) =
+  do cls <- mkCls
+     sequenceA (cls ++ sig ++ def)
   where
-  cls = case defName of
-          MethodName c n | _generateClasses rules -> [makeFieldClass defType c n]
-          _ -> []
+  mkCls = case defName of
+          MethodName c n | _generateClasses rules ->
+            do classExists <- isJust <$> lookupTypeName (show c)
+               return (if classExists then [] else [makeFieldClass defType c n])
+          _ -> return []
 
   sig = case defName of
           _ | not (_generateSigs rules) -> []
           TopName n -> [sigD n (return (stabToType defType))]
-          MethodName c n -> []
+          MethodName{} -> []
 
   def = case defName of
           TopName n      -> [funD n clauses]
@@ -244,19 +256,18 @@ makeClassyDriver ::
 makeClassyDriver rules className methodName defs = sequenceA (cls ++ inst)
 
   where
-  cls | _generateClasses rules = [makeClassyClass rules className methodName defs]
+  cls | _generateClasses rules = [makeClassyClass className methodName defs]
       | otherwise = []
 
   inst = [makeClassyInstance rules className methodName defs]
 
 
 makeClassyClass ::
-  LensRules ->
   Name ->
   Name ->
   [(DefName, (OpticType, OpticStab, [(Name, Int, [Int])]))] ->
   DecQ
-makeClassyClass rules className methodName defs = do
+makeClassyClass className methodName defs = do
   let ss   = map (stabToS . view (_2 . _2)) defs
   (sub,s') <- unifyTypes ss
   c <- newName "c"
@@ -301,6 +312,7 @@ makeClassyInstance rules className methodName defs = do
 -- Field class generation
 ------------------------------------------------------------------------
 
+-- XXX : TODO : Don't generate classes that already exist
 makeFieldClass :: OpticStab -> Name -> Name -> DecQ
 makeFieldClass defType className methodName =
   classD (cxt []) className [PlainTV s, PlainTV a] [FunDep [s] [a]]
@@ -359,11 +371,10 @@ makeGetterClause conName fieldCount fields =
   do f  <- newName "f"
      xs <- replicateM (length fields) (newName "x")
 
-     let pats (x:xs) (y:ys)
-           | x `elem` fields = varP y : pats xs ys
-           | otherwise = wildP : pats xs (y:ys)
-         pats (x:xs) _ = wildP : pats xs []
-         pats []     _ = []
+     let pats (i:is) (y:ys)
+           | i `elem` fields = varP y : pats is ys
+           | otherwise = wildP : pats is (y:ys)
+         pats is     _  = map (const wildP) is
 
          fxs   = [ [| $(varE f) $(varE x) |] | x <- xs ]
          body  = foldl (\a b -> [| $a <*> $b |])
@@ -460,6 +471,7 @@ unify1 _ x y = fail ("Failed to unify types: " ++ show (x,y))
 
 -- | Perform a limited substitution on type variables. This is used
 -- when unifying rank-2 fields when trying to achieve a Getter or Fold.
+limitedSubst :: Map Name Type -> TyVarBndr -> Q TyVarBndr
 limitedSubst sub (PlainTV n)
   | Just r <- Map.lookup n sub =
        case r of
@@ -470,7 +482,7 @@ limitedSubst sub (KindedTV n k)
        case r of
          VarT m -> limitedSubst sub (KindedTV m k)
          _ -> fail "Unable to unify exotic higher-rank type"
-limitedSubst sub tv = return tv
+limitedSubst _ tv = return tv
 
 
 -- | Apply a substitution to a type. This is used after unifying
@@ -491,78 +503,16 @@ data LensRules = LensRules
   { _simpleLenses :: Bool
   , _generateSigs :: Bool
   , _generateClasses :: Bool
+  , _allowIsos    :: Bool
   , _fieldToDef   :: Name -> [DefName]
-  , _classyLenses :: Maybe (Name -> (Name,Name)) -- type name to class name and top method
+  , _classyLenses :: Name -> Maybe (Name,Name) -- type name to class name and top method
   }
 
-simpleLenses :: Lens' LensRules Bool
-simpleLenses f r = fmap (\x -> r { _simpleLenses = x}) (f (_simpleLenses r))
-
-generateSignatures :: Lens' LensRules Bool
-generateSignatures f r = fmap (\x -> r { _generateSigs = x}) (f (_generateSigs r))
-
-generateClasses :: Lens' LensRules Bool
-generateClasses f r = fmap (\x -> r { _generateClasses = x}) (f (_generateClasses r))
-
-fieldToDef :: Lens' LensRules (Name -> [DefName])
-fieldToDef f r = fmap (\x -> r { _fieldToDef = x}) (f (_fieldToDef r))
 
 data DefName
   = TopName Name
   | MethodName Name Name
   deriving (Show, Eq, Ord)
-
-defName :: Lens' DefName Name
-defName f (TopName      x) = fmap TopName        (f x)
-defName f (MethodName c x) = fmap (MethodName c) (f x)
-
-lensRules :: LensRules
-lensRules = LensRules
-  { _simpleLenses = False
-  , _generateSigs = True
-  , _generateClasses = False
-  , _classyLenses = Nothing
-  , _fieldToDef      = \n -> case nameBase n of
-                               '_':x:xs -> [TopName (mkName (toLower x:xs))]
-                               _        -> []
-  }
-
-fieldRules :: LensRules
-fieldRules = LensRules
-  { _simpleLenses = True
-  , _generateSigs = True
-  , _generateClasses = True
-  , _classyLenses = Nothing
-  , _fieldToDef      = \n -> case nameBase n of
-                               '_':x:xs -> [MethodName (mkName ("Has"++toUpper x:xs))
-                                                       (mkName (x:xs))]
-                               _ -> []
-  }
-
-classyRules :: LensRules
-classyRules = LensRules
-  { _simpleLenses = True
-  , _generateSigs = True
-  , _generateClasses = True
-  , _classyLenses = Just $ \n -> case nameBase n of
-                                   x:xs -> (mkName ("Has" ++ x:xs), mkName (toLower x:xs))
-                                   []   -> undefined
-  , _fieldToDef   = \n -> case nameBase n of
-                            '_':x:xs -> [TopName (mkName (toLower x:xs))]
-                            _        -> []
-  }
-classyRules' :: LensRules
-classyRules' = LensRules
-  { _simpleLenses = True
-  , _generateSigs = True
-  , _generateClasses = True
-  , _classyLenses = Just $ \n -> case nameBase n of
-                                   x:xs -> (mkName ("Has" ++ x:xs), mkName (toLower x:xs))
-                                   []   -> undefined
-  , _fieldToDef   = \n -> case nameBase n of
-                            '_':x:xs -> [TopName (mkName "broken")]
-                            _        -> []
-  }
 
 ------------------------------------------------------------------------
 -- Miscellaneous utility functions

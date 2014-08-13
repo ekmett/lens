@@ -66,7 +66,7 @@ makeLenses ''LensCrafted
 
 data Danger a = Zone { _highway :: a }
               | Twilight
-makeLensesWith (partialLenses .~ True $ buildTraversals .~ False $ lensRules) ''Danger
+--makeLensesWith (partialLenses .~ True $ buildTraversals .~ False $ lensRules) ''Danger
 -- highway :: Lens (Danger a) (Danger a') a a'
 
 data Task a = Task
@@ -169,6 +169,7 @@ declareLenses [d|
     data Associated Int = AssociatedInt { mochi :: Double }
     method = id
   |]
+
 -- instance Class Int where
 --   data Associated Int = AssociatedInt Double
 --   method = id
