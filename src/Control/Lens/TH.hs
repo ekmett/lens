@@ -694,26 +694,6 @@ instance Applicative Q where
   (<*>) = ap
 #endif
 
-#ifdef INLINING
-
-inlinePragma :: Name -> Q Dec
-#if MIN_VERSION_template_haskell(2,8,0)
-
-# ifdef OLD_INLINE_PRAGMAS
--- 7.6rc1?
-inlinePragma methodName = pragInlD methodName $ inlineSpecNoPhase Inline False
-# else
--- 7.7.20120830
-inlinePragma methodName = pragInlD methodName Inline FunLike AllPhases
-# endif
-
-#else
--- GHC <7.6, TH <2.8.0
-inlinePragma methodName = pragInlD methodName $ inlineSpecNoPhase True False
-#endif
-
-#endif
-
 overHead :: (a -> a) -> [a] -> [a]
 overHead _ []     = []
 overHead f (x:xs) = f x : xs

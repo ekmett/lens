@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Control.Lens.Internal.FieldTH
@@ -235,9 +236,11 @@ makeFieldOptic rules (defName, (opticType, defType, cons)) =
           TopName n -> [sigD n (return (stabToType defType))]
           MethodName{} -> []
 
+  fun n = [funD n clauses] ++ inlinePragma n
+
   def = case defName of
-          TopName n      -> [funD n clauses]
-          MethodName c n -> [makeFieldInstance defType c (funD n clauses)]
+          TopName n      -> fun n
+          MethodName c n -> [makeFieldInstance defType c (fun n)]
 
   clauses = makeFieldClauses opticType cons
 
@@ -281,7 +284,8 @@ makeClassyClass className methodName defs = do
     : concat
       [ [sigD defName (return (stabToOptic stab `conAppsT` [VarT c, applyTypeSubst sub (stabToA stab)]))
         ,valD (varP defName) (normalB [| $(varE methodName) . $(varE defName) |]) []
-        ]
+        ] ++
+        inlinePragma defName
       | (TopName defName, (_, stab, _)) <- defs ]
 
   where
@@ -312,7 +316,6 @@ makeClassyInstance rules className methodName defs = do
 -- Field class generation
 ------------------------------------------------------------------------
 
--- XXX : TODO : Don't generate classes that already exist
 makeFieldClass :: OpticStab -> Name -> Name -> DecQ
 makeFieldClass defType className methodName =
   classD (cxt []) className [PlainTV s, PlainTV a] [FunDep [s] [a]]
@@ -321,11 +324,10 @@ makeFieldClass defType className methodName =
   s = mkName "s"
   a = mkName "a"
 
-makeFieldInstance :: OpticStab -> Name -> DecQ -> DecQ
-makeFieldInstance defType className method =
+makeFieldInstance :: OpticStab -> Name -> [DecQ] -> DecQ
+makeFieldInstance defType className =
   instanceD (cxt [])
     (return (className `conAppsT` [stabToS defType, stabToA defType]))
-    [method]
 
 ------------------------------------------------------------------------
 -- Optic clause generators
@@ -531,6 +533,31 @@ quantifyType c t = ForallT vs c t
 conAppsT :: Name -> [Type] -> Type
 conAppsT conName ts = foldl AppT (ConT conName) ts
 
--- | Testing function for generating definition names.
-constName :: String -> Name -> [Name]
-constName n _ = [mkName n]
+------------------------------------------------------------------------
+-- Support for generating inline pragmas
+------------------------------------------------------------------------
+
+inlinePragma :: Name -> [DecQ]
+
+#ifdef INLINING
+
+#if MIN_VERSION_template_haskell(2,8,0)
+
+# ifdef OLD_INLINE_PRAGMAS
+-- 7.6rc1?
+inlinePragma methodName = [pragInlD methodName (inlineSpecNoPhase Inline False)]
+# else
+-- 7.7.20120830
+inlinePragma methodName = [pragInlD methodName Inline FunLike AllPhases]
+# endif
+
+#else
+-- GHC <7.6, TH <2.8.0
+inlinePragma methodName = [pragInlD methodName (inlineSpecNoPhase True False)]
+#endif
+
+#else
+
+inlinePragma _ = []
+
+#endif
