@@ -236,7 +236,7 @@ makeFieldOptic rules (defName, (opticType, defType, cons)) =
           TopName n -> [sigD n (return (stabToType defType))]
           MethodName{} -> []
 
-  fun n = [funD n clauses] ++ inlinePragma n
+  fun n = funD n clauses : inlinePragma n
 
   def = case defName of
           TopName n      -> fun n
@@ -438,7 +438,7 @@ makeIsoClause conName = clause [] (normalB [| iso $destruct $construct |]) []
 -- substitution used to unify the types for unifying the outer
 -- type when building a definition's type signature.
 unifyTypes :: [Type] -> Q (Map Name Type, Type)
-unifyTypes (x:xs) = do foldM (uncurry unify1) (Map.empty, x) xs
+unifyTypes (x:xs) = foldM (uncurry unify1) (Map.empty, x) xs
 unifyTypes []     = fail "unifyTypes: Bug: Unexpected empty list"
 
 
@@ -531,7 +531,7 @@ quantifyType c t = ForallT vs c t
 
 -- | Apply arguments to a type constructor.
 conAppsT :: Name -> [Type] -> Type
-conAppsT conName ts = foldl AppT (ConT conName) ts
+conAppsT conName = foldl AppT (ConT conName)
 
 ------------------------------------------------------------------------
 -- Support for generating inline pragmas

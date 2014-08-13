@@ -154,7 +154,7 @@ classyRules = LensRules
 classyRulesFor
   :: (String -> Maybe (String, String)) -> [(String, String)] -> LensRules
 classyRulesFor classFun fields = classyRules
-  & lensClass .~ (\n -> classFun (nameBase n) <&> \(a,b) -> (mkName a, mkName b))
+  & lensClass .~ (over (mapped . both) mkName . classFun . nameBase)
   & lensField .~ mkNameLookup fields
 
 classyRules_ :: LensRules
@@ -552,19 +552,20 @@ makePrismIso dataDecl n ts = do
   let svars = toListOf typeVars (dataParameters dataDecl)
   m <- freshMap (Set.fromList svars)
   let tvars = substTypeVars m svars
+      ty = ''Iso `conAppsT`
+               [ fullType dataDecl (map VarT svars)
+               , fullType dataDecl (map VarT tvars)
+               , makeIsoInnerType ts
+               , makeIsoInnerType (substTypeVars m ts)]
 
   sequenceA
-    [ sigD isoName [t| Iso
-                        $(return (fullType dataDecl (map VarT svars)))
-                        $(return  (fullType dataDecl (map VarT tvars)))
-                        $(makeIsoInnerType ts)
-                        $(makeIsoInnerType (substTypeVars m ts)) |]
+    [ sigD isoName (return ty)
     , valD (varP isoName) (normalB [| iso $sa $bt |]) []
     ]
 
-makeIsoInnerType :: [Type] -> TypeQ
-makeIsoInnerType [x] = return x
-makeIsoInnerType xs = tupleT (length xs) `appsT` map return xs
+makeIsoInnerType :: [Type] -> Type
+makeIsoInnerType [x] = x
+makeIsoInnerType xs = TupleT (length xs) `apps` xs
 
 apps :: Type -> [Type] -> Type
 apps = Prelude.foldl AppT
