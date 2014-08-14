@@ -46,3 +46,6 @@ toTupleP :: [PatQ] -> PatQ
 toTupleP [x] = x
 toTupleP xs = tupP xs
 
+-- | Apply arguments to a type constructor.
+conAppsT :: Name -> [Type] -> Type
+conAppsT conName = foldl AppT (ConT conName)

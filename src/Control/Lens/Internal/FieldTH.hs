@@ -1,12 +1,29 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE TemplateHaskell #-}
+
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Control.Lens.Internal.FieldTH
+-- Copyright   :  (C) 2014 Edward Kmett, (C) 2014 Eric Mertens
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-----------------------------------------------------------------------------
+
 module Control.Lens.Internal.FieldTH
-   where
+  ( LensRules(..)
+  , DefName(..)
+  , makeFieldOptics
+  , makeFieldOpticsForDec
+  ) where
 
 import Control.Lens.At
 import Control.Lens.Fold
 import Control.Lens.Internal.Getter
+import Control.Lens.Internal.TH
 import Control.Lens.Iso
 import Control.Lens.Plated
 import Control.Lens.Prism
@@ -531,11 +548,6 @@ quantifyType :: Cxt -> Type -> Type
 quantifyType c t = ForallT vs c t
   where
   vs = map PlainTV (toList (setOf typeVars t))
-
-
--- | Apply arguments to a type constructor.
-conAppsT :: Name -> [Type] -> Type
-conAppsT conName = foldl AppT (ConT conName)
 
 
 fromSet :: Ord k => (k -> v) -> Set.Set k -> Map k v
