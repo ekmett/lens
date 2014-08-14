@@ -30,6 +30,10 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 
 
+#ifndef MIN_VERSION_containers
+#define MIN_VERSION_containers(x,y,z) 1
+#endif
+
 ------------------------------------------------------------------------
 -- Field generation entry point
 ------------------------------------------------------------------------
@@ -67,7 +71,7 @@ makeFieldOpticsForDec' rules tyName s cons =
   do fieldCons <- traverse normalizeConstructor cons
      let defCons    = over normFieldLabels expandName fieldCons
          allDefs    = setOf (normFieldLabels . folded) defCons
-     perDef <- sequenceA (Map.fromSet (buildScaffold rules s defCons) allDefs)
+     perDef <- sequenceA (fromSet (buildScaffold rules s defCons) allDefs)
 
      let defs = Map.toList perDef
      case _classyLenses rules tyName of
@@ -203,7 +207,7 @@ buildStab s categorizedFields =
      let s' = applyTypeSubst subA s
 
      -- compute possible type changes
-     sub <- sequenceA (Map.fromSet (newName . nameBase) unfixedTypeVars)
+     sub <- sequenceA (fromSet (newName . nameBase) unfixedTypeVars)
      let (t,b) = over both (substTypeVars sub) (s',a)
 
      return (s',t,a,b)
@@ -532,6 +536,14 @@ quantifyType c t = ForallT vs c t
 -- | Apply arguments to a type constructor.
 conAppsT :: Name -> [Type] -> Type
 conAppsT conName = foldl AppT (ConT conName)
+
+
+fromSet :: Ord k => (k -> v) -> Set.Set k -> Map k v
+#if MIN_VERSION_containers(0,5,0)
+fromSet = Map.fromSet
+#else
+fromSet f x = Map.fromList [ (k,f k) | k <- Set.toList x ]
+#endif
 
 ------------------------------------------------------------------------
 -- Support for generating inline pragmas
