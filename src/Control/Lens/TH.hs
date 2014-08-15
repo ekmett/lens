@@ -806,9 +806,9 @@ camelCaseNamer fields field = maybeToList $ do
 makeFields :: Name -> DecsQ
 makeFields = makeFieldOptics fieldRules
 
-makeFieldsWith :: LensRules -> DecsQ
+makeFieldsWith :: LensRules -> Name -> DecsQ
 makeFieldsWith = makeLensesWith
-{-# DEPRECATED makeFieldsWith "Use `makeLensesWith`" #-}
+{-# DEPRECATED makeFieldsWith "Use `makeLensesWith`, functionality merged" #-}
 
 fieldRules :: LensRules
 fieldRules = LensRules
