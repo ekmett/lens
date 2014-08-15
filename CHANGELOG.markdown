@@ -1,3 +1,13 @@
+4.4
+----
+* Internals of Template Haskell code generation rewritten. makeLenses,
+  makeClassy, and makeFields have been unified into the same generator.
+* TH generated single constructor Lens use irrefutable pattern matching to
+  enable construction starting with undefined.
+* TH generated traverals unify their field arguments (type synonyms not
+  currently expanded) enabling exotic traversals to be generated.
+* Added instances for `Text` to `Data.Aeson.Lens`
+
 4.3.3
 -----
 * `semigroupoids` 4.2 support
