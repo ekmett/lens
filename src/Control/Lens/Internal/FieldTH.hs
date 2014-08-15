@@ -86,7 +86,8 @@ makeFieldOpticsForDec rules dec = case dec of
 makeFieldOpticsForDec' :: LensRules -> Name -> Type -> [Con] -> DecsQ
 makeFieldOpticsForDec' rules tyName s cons =
   do fieldCons <- traverse normalizeConstructor cons
-     let defCons    = over normFieldLabels expandName fieldCons
+     let allFields  = toListOf (folded . _2 . folded . _1 . folded) fieldCons
+     let defCons    = over normFieldLabels (expandName allFields) fieldCons
          allDefs    = setOf (normFieldLabels . folded) defCons
      perDef <- sequenceA (fromSet (buildScaffold rules s defCons) allDefs)
 
@@ -104,8 +105,8 @@ makeFieldOpticsForDec' rules tyName s cons =
   normFieldLabels = traverse . _2 . traverse . _1
 
   -- Map a (possibly missing) field's name to zero-to-many optic definitions
-  expandName :: Maybe Name -> [DefName]
-  expandName = concatMap (_fieldToDef rules) . maybeToList
+  expandName :: [Name] -> Maybe Name -> [DefName]
+  expandName allFields = concatMap (_fieldToDef rules allFields) . maybeToList
 
 -- | Normalized the Con type into a uniform positional representation,
 -- eliminating the variance between records, infix constructors, and normal
@@ -136,10 +137,10 @@ data OpticType = GetterType | LensType | IsoType
 -- type of clauses to generate and the type to annotate the declaration
 -- with.
 buildScaffold ::
-  LensRules                                                                    ->
-  Type                              {- ^ outer type                         -} ->
-  [(Name, [([DefName], Type)])]     {- ^ normalized constructors            -} ->
-  DefName                           {- ^ target definition                  -} ->
+  LensRules                                                                  ->
+  Type                              {- ^ outer type                       -} ->
+  [(Name, [([DefName], Type)])]     {- ^ normalized constructors          -} ->
+  DefName                           {- ^ target definition                -} ->
   Q (OpticType, OpticStab, [(Name, Int, [Int])])
               {- ^ optic type, definition type, field count, target fields -}
 buildScaffold rules s cons defName =
@@ -340,8 +341,9 @@ makeClassyInstance rules className methodName defs = do
 makeFieldClass :: OpticStab -> Name -> Name -> DecQ
 makeFieldClass defType className methodName =
   classD (cxt []) className [PlainTV s, PlainTV a] [FunDep [s] [a]]
-         [sigD methodName (return (stabToOptic defType `conAppsT` [VarT s,VarT a]))]
+         [sigD methodName (return methodType)]
   where
+  methodType = stabToOptic defType `conAppsT` [VarT s,VarT a]
   s = mkName "s"
   a = mkName "a"
 
@@ -527,8 +529,9 @@ data LensRules = LensRules
   , _generateSigs :: Bool
   , _generateClasses :: Bool
   , _allowIsos    :: Bool
-  , _fieldToDef   :: Name -> [DefName]
-  , _classyLenses :: Name -> Maybe (Name,Name) -- type name to class name and top method
+  , _fieldToDef   :: [Name] -> Name -> [DefName]
+  , _classyLenses :: Name -> Maybe (Name,Name)
+       -- type name to class name and top method
   }
 
 
