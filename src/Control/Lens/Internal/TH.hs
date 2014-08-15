@@ -28,20 +28,25 @@ tySynInstD' fam ts r = tySynInstD fam (tySynEqn ts r)
 tySynInstD' = tySynInstD
 #endif
 
+-- | Apply arguments to a type constructor
 appsT :: TypeQ -> [TypeQ] -> TypeQ
 appsT = foldl appT
 
+-- | Apply arguments to a function
 appsE1 :: ExpQ -> [ExpQ] -> ExpQ
 appsE1 = foldl appE
 
+-- | Construct a tuple type given a list of types.
 toTupleT :: [TypeQ] -> TypeQ
 toTupleT [x] = x
 toTupleT xs = appsT (tupleT (length xs)) xs
 
+-- | Construct a tuple value given a list of expressions.
 toTupleE :: [ExpQ] -> ExpQ
 toTupleE [x] = x
 toTupleE xs = tupE xs
 
+-- | Construct a tuple pattern given a list of patterns.
 toTupleP :: [PatQ] -> PatQ
 toTupleP [x] = x
 toTupleP xs = tupP xs

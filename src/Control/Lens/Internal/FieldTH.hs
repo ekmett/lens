@@ -535,9 +535,10 @@ data LensRules = LensRules
   }
 
 
+-- | Name to give to generated field optics.
 data DefName
-  = TopName Name
-  | MethodName Name Name
+  = TopName Name -- ^ Simple top-level definiton name
+  | MethodName Name Name -- ^ makeFields-style class name and method name
   deriving (Show, Eq, Ord)
 
 ------------------------------------------------------------------------

@@ -40,8 +40,10 @@ module Control.Lens.TH
   , fieldRules
   , camelCaseFields
   , underscoreFields
-  , LensRules(LensRules)
+  , LensRules
+  , DefName(..)
   , lensRules
+  , lensRulesFor
   , classyRules
   , classyRules_
   , lensField
@@ -139,7 +141,11 @@ lensRules = LensRules
          _        -> []
   }
 
-lensRulesFor :: [(String, String)] -> LensRules
+-- | Construct a 'LensRules' value for generating top-level definitions
+-- using the given map from field names to definition names.
+lensRulesFor ::
+  [(String, String)] {- ^ [(Field Name, Definition Name)] -} ->
+  LensRules
 lensRulesFor fields = lensRules & lensField .~ mkNameLookup fields
 
 mkNameLookup :: [(String,String)] -> [Name] -> Name -> [DefName]
@@ -163,8 +169,13 @@ classyRules = LensRules
           _        -> []
   }
 
+-- | Rules for making lenses and traversals that precompose another 'Lens'
+-- using a custom function for naming the class, main class method, and a
+-- mapping from field names to definition names.
 classyRulesFor
-  :: (String -> Maybe (String, String)) -> [(String, String)] -> LensRules
+  :: (String -> Maybe (String, String)) {- ^ Type Name -> Maybe (Class Name, Method Name) -} ->
+  [(String, String)] {- ^ [(Field Name, Method Name)] -} ->
+  LensRules
 classyRulesFor classFun fields = classyRules
   & lensClass .~ (over (mapped . both) mkName . classFun . nameBase)
   & lensField .~ mkNameLookup fields
@@ -349,8 +360,6 @@ declareLensesFor fields
 -- instance HasFoo Foo where foo = 'id'
 -- fooX, fooY :: HasFoo t => 'Lens'' t 'Int'
 -- @
---
--- @ declareClassy = 'declareLensesWith' ('classyRules' '&' 'lensField' '.~' 'Just') @
 declareClassy :: DecsQ -> DecsQ
 declareClassy
   = declareLensesWith
