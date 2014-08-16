@@ -25,6 +25,7 @@ module Control.Lens.TH
     makeLenses, makeLensesFor
   , makeClassy, makeClassyFor, makeClassy_
   , makePrisms
+  , makeClassyPrisms
   , makeWrapped
   , makeFields
   , makeFieldsWith
@@ -54,25 +55,22 @@ module Control.Lens.TH
   ) where
 
 import Control.Applicative
-import Control.Monad (replicateM)
 #if !(MIN_VERSION_template_haskell(2,7,0))
 import Control.Monad (ap)
 #endif
 import qualified Control.Monad.Trans as Trans
 import Control.Monad.Trans.Writer
-import Control.Lens.At
 import Control.Lens.Fold
 import Control.Lens.Getter
-import Control.Lens.Iso
 import Control.Lens.Lens
-import Control.Lens.Prism
-import Control.Lens.Review
 import Control.Lens.Setter
 import Control.Lens.Tuple
+import Control.Lens.Iso
 import Control.Lens.Traversal
 import Control.Lens.Wrapped
 import Control.Lens.Internal.TH
 import Control.Lens.Internal.FieldTH
+import Control.Lens.Internal.PrismTH
 import Data.Char (toLower, toUpper, isUpper)
 import Data.Foldable hiding (concat, any)
 import Data.List as List
@@ -281,31 +279,6 @@ makeLensesWith :: LensRules -> Name -> DecsQ
 makeLensesWith = makeFieldOptics
 
 
--- | Generate a 'Prism' for each constructor of a data type.
---
--- /e.g./
---
--- @
--- data FooBarBaz a
---   = Foo Int
---   | Bar a
---   | Baz Int Char
--- makePrisms ''FooBarBaz
--- @
---
--- will create
---
--- @
--- _Foo :: Prism' (FooBarBaz a) Int
--- _Bar :: Prism (FooBarBaz a) (FooBarBaz b) a b
--- _Baz :: Prism' (FooBarBaz a) (Int, Char)
--- @
-makePrisms :: Name -> DecsQ
-makePrisms nm = do
-    inf <- reify nm
-    case inf of
-      TyConI decl -> makePrismsForDec decl
-      _ -> fail "makePrisms: Expected the name of a data type or newtype"
 
 -- | Make lenses for all records in the given declaration quote. All record
 -- syntax in the input will be stripped off.
@@ -394,7 +367,7 @@ declareClassyFor classes fields
 -- @
 declarePrisms :: DecsQ -> DecsQ
 declarePrisms = declareWith $ \dec -> do
-  emit =<< Trans.lift (makePrismsForDec dec)
+  emit =<< Trans.lift (makeDecPrisms True dec)
   return dec
 
 -- | Build 'Wrapped' instance for each newtype.
@@ -427,176 +400,12 @@ deNewtype (NewtypeD ctx tyName args c d) = DataD ctx tyName args [c] d
 deNewtype (NewtypeInstD ctx tyName args c d) = DataInstD ctx tyName args [c] d
 deNewtype d = d
 
-makePrismsForDec :: Dec -> DecsQ
-makePrismsForDec decl = case makeDataDecl decl of
-  Just dataDecl -> makePrismsForCons dataDecl
-  _ -> fail "makePrisms: Unsupported data type"
-
-makePrismsForCons :: DataDecl -> DecsQ
-makePrismsForCons dataDecl@(DataDecl _ _ _ _ [_]) = case constructors dataDecl of
-  -- Iso promotion via tuples
-  [NormalC dataConName xs] -> makePrismIso dataDecl dataConName (map snd xs)
-  [RecC    dataConName xs] -> makePrismIso dataDecl dataConName (map (view _3) xs)
-  _                        ->
-    fail "makePrismsForCons: A single-constructor data type is required"
-
-makePrismsForCons dataDecl =
-  concat <$> mapM (makePrismOrReviewForCon dataDecl canModifyTypeVar ) (constructors dataDecl)
-  where
-    conTypeVars = map (Set.fromList . toListOf typeVars) (constructors dataDecl)
-    canModifyTypeVar = (`Set.member` typeVarsOnlyInOneCon) . view name
-    typeVarsOnlyInOneCon = Set.fromList . concat . filter (\xs -> length xs == 1) .  List.group . List.sort $ conTypeVars >>= toList
-
-onlyBuildReview :: Con -> Bool
-onlyBuildReview ForallC{} = True
-onlyBuildReview _         = False
-
-makePrismOrReviewForCon :: DataDecl -> (TyVarBndr -> Bool) -> Con -> DecsQ
-makePrismOrReviewForCon dataDecl canModifyTypeVar con
-  | onlyBuildReview con = makeReviewForCon dataDecl con
-  | otherwise           = makePrismForCon dataDecl canModifyTypeVar con
-
-makeReviewForCon :: DataDecl -> Con -> DecsQ
-makeReviewForCon dataDecl con = do
-    let functionName                    = mkName ('_': nameBase dataConName)
-        (dataConName, fieldTypes)       = ctrNameAndFieldTypes con
-
-    sName       <- newName "s"
-    aName       <- newName "a"
-    fieldNames  <- replicateM (length fieldTypes) (newName "x")
-
-    -- Compute the type: Constructor Constraints => Review s (Type x y z) a fieldTypes
-    let s                = varT sName
-        t                = return (fullType dataDecl (map (VarT . view name) (dataParameters dataDecl)))
-        a                = varT aName
-        b                = toTupleT (map return fieldTypes)
-
-        (conTyVars, conCxt) = case con of ForallC x y _ -> (x,y)
-                                          _             -> ([],[])
-
-        functionType     = forallT (map PlainTV [sName, aName] ++ conTyVars ++ dataParameters dataDecl)
-                                   (return conCxt)
-                                   (conT ''Review `appsT` [s,t,a,b])
-
-    -- Compute expression: unto (\(fields) -> Con fields)
-    let pat  = toTupleP (map varP fieldNames)
-        lam  = lam1E pat (conE dataConName `appsE1` map varE fieldNames)
-        body = varE 'unto `appE` lam
-
-    Prelude.sequence
-      [ sigD functionName functionType
-      , funD functionName [clause [] (normalB body) []]
-      ]
-
-makePrismForCon :: DataDecl -> (TyVarBndr -> Bool) -> Con -> DecsQ
-makePrismForCon dataDecl canModifyTypeVar con = do
-    remitterName <- newName "remitter"
-    reviewerName <- newName "reviewer"
-    xName <- newName "x"
-    let resName = mkName $ '_': nameBase dataConName
-    varNames <- for [0..length fieldTypes -1] $ \i -> newName ('x' : show i)
-    let args = dataParameters dataDecl
-    altArgsList <- forM (view name <$> filter isAltArg args) $ \arg ->
-      (,) arg <$> newName (nameBase arg)
-    let altArgs = Map.fromList altArgsList
-        hitClause =
-          clause [conP dataConName (fmap varP varNames)]
-          (normalB $ appE (conE 'Right) $ toTupleE $ varE <$> varNames) []
-        otherCons = filter (/= con) (constructors dataDecl)
-        missClauses
-          | List.null otherCons   = []
-          | Map.null altArgs = [clause [varP xName] (normalB (appE (conE 'Left) (varE xName))) []]
-          | otherwise        = reviewerIdClause <$> otherCons
-    Prelude.sequence [
-      sigD resName . forallT
-        (args ++ (PlainTV <$> Map.elems altArgs))
-        (return $ List.nub (dataContext dataDecl ++ substTypeVars altArgs (dataContext dataDecl))) $
-         if List.null altArgsList then
-          conT ''Prism' `appsT`
-            [ return $ fullType dataDecl $ VarT . view name <$> args
-            , toTupleT $ pure <$> fieldTypes
-            ]
-         else
-          conT ''Prism `appsT`
-            [ return $ fullType dataDecl $ VarT . view name <$> args
-            , return $ fullType dataDecl $ VarT . view name <$> substTypeVars altArgs args
-            , toTupleT $ pure <$> fieldTypes
-            , toTupleT $ pure <$> substTypeVars altArgs fieldTypes
-            ]
-      , funD resName
-        [ clause []
-          (normalB (appsE [varE 'prism, varE remitterName, varE reviewerName]))
-          [ funD remitterName
-            [ clause [toTupleP (varP <$> varNames)] (normalB (conE dataConName `appsE1` fmap varE varNames)) [] ]
-          , funD reviewerName $ hitClause : missClauses
-          ]
-        ]
-      ]
-  where
-    (dataConName, fieldTypes) = ctrNameAndFieldTypes con
-    conArgs = setOf typeVars fieldTypes
-    isAltArg arg = canModifyTypeVar arg && conArgs^.contains(arg^.name)
-
-ctrNameAndFieldTypes :: Con -> (Name, [Type])
-ctrNameAndFieldTypes (NormalC n ts) = (n, snd <$> ts)
-ctrNameAndFieldTypes (RecC n ts) = (n, view _3 <$> ts)
-ctrNameAndFieldTypes (InfixC l n r) = (n, [snd l, snd r])
-ctrNameAndFieldTypes (ForallC _ _ c) = ctrNameAndFieldTypes c
-
--- When a 'Prism' can change type variables it needs to pattern match on all
--- other data constructors and rebuild the data so it will have the new type.
-reviewerIdClause :: Con -> ClauseQ
-reviewerIdClause con = do
-  let (dataConName, fieldTypes) = ctrNameAndFieldTypes con
-  varNames <- for [0 .. length fieldTypes - 1] $ \i ->
-                newName ('x' : show i)
-  clause [conP dataConName (fmap varP varNames)]
-         (normalB (appE (conE 'Left) (conE dataConName `appsE1` fmap varE varNames)))
-         []
 
 -- | Given a set of names, build a map from those names to a set of fresh names
 -- based on them.
 freshMap :: Set Name -> Q (Map Name Name)
 freshMap ns = Map.fromList <$> for (toList ns) (\ n -> (,) n <$> newName (nameBase n))
 
--- --> (\(x, y) -> Rect x y)
-makeIsoFrom :: Int -> Name -> ExpQ
-makeIsoFrom n conName = do
-  ns <- replicateM n (newName "x")
-  lam1E (tupP (map varP ns)) (appsE1 (conE conName) (map varE ns))
-
--- --> (\(Rect x y) -> (x, y))
-makeIsoTo :: Int -> Name -> ExpQ
-makeIsoTo n conName = do
-  ns <- replicateM n (newName "x")
-  lamE [conP conName (map varP ns)]
-       (tupE (map varE ns))
-
-
-makePrismIso :: DataDecl -> Name -> [Type] -> DecsQ
-makePrismIso dataDecl n ts = do
-  let isoName = mkName ('_':nameBase n)
-
-      sa = makeIsoTo (length ts) n
-      bt = makeIsoFrom (length ts) n
-
-  let svars = toListOf typeVars (dataParameters dataDecl)
-  m <- freshMap (Set.fromList svars)
-  let tvars = substTypeVars m svars
-      ty = ''Iso `conAppsT`
-               [ fullType dataDecl (map VarT svars)
-               , fullType dataDecl (map VarT tvars)
-               , makeIsoInnerType ts
-               , makeIsoInnerType (substTypeVars m ts)]
-
-  sequenceA
-    [ sigD isoName (return ty)
-    , valD (varP isoName) (normalB [| iso $sa $bt |]) []
-    ]
-
-makeIsoInnerType :: [Type] -> Type
-makeIsoInnerType [x] = x
-makeIsoInnerType xs = TupleT (length xs) `apps` xs
 
 apps :: Type -> [Type] -> Type
 apps = Prelude.foldl AppT

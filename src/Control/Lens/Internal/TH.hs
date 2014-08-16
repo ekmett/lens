@@ -54,3 +54,9 @@ toTupleP xs = tupP xs
 -- | Apply arguments to a type constructor.
 conAppsT :: Name -> [Type] -> Type
 conAppsT conName = foldl AppT (ConT conName)
+
+
+-- | Return 'Name' contained in a 'TyVarBndr'.
+bndrName :: TyVarBndr -> Name
+bndrName (PlainTV  n  ) = n
+bndrName (KindedTV n _) = n

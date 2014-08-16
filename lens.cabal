@@ -238,6 +238,7 @@ library
     Control.Lens.Internal.Deque
     Control.Lens.Internal.Exception
     Control.Lens.Internal.FieldTH
+    Control.Lens.Internal.PrismTH
     Control.Lens.Internal.Fold
     Control.Lens.Internal.Getter
     Control.Lens.Internal.Indexed
