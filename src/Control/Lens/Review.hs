@@ -63,7 +63,7 @@ infixr 8 #
 --
 -- You can generate a 'Review' by using 'unto'. You can also use any 'Prism' or 'Iso'
 -- directly as a 'Review'.
-type Review s t a b = forall p f. (Profunctor p, Bifunctor p, Settable f) => Optic p f s t a b
+type Review s t a b = forall p f. (Choice p, Bifunctor p, Settable f) => Optic p f s t a b
 
 -- | A 'Simple' 'Review'
 type Review' t b = Review t t b b
