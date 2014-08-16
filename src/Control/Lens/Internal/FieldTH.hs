@@ -47,10 +47,6 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 
 
-#ifndef MIN_VERSION_containers
-#define MIN_VERSION_containers(x,y,z) 1
-#endif
-
 ------------------------------------------------------------------------
 -- Field generation entry point
 ------------------------------------------------------------------------
@@ -553,13 +549,6 @@ quantifyType c t = ForallT vs c t
   where
   vs = map PlainTV (toList (setOf typeVars t))
 
-
-fromSet :: Ord k => (k -> v) -> Set.Set k -> Map k v
-#if MIN_VERSION_containers(0,5,0)
-fromSet = Map.fromSet
-#else
-fromSet f x = Map.fromList [ (k,f k) | k <- Set.toList x ]
-#endif
 
 ------------------------------------------------------------------------
 -- Support for generating inline pragmas

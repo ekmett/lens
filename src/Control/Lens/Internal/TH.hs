@@ -6,6 +6,10 @@
 #ifndef MIN_VERSION_template_haskell
 #define MIN_VERSION_template_haskell(x,y,z) (defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706)
 #endif
+
+#ifndef MIN_VERSION_containers
+#define MIN_VERSION_containers(x,y,z) 1
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.TH
@@ -19,6 +23,8 @@
 module Control.Lens.Internal.TH where
 
 import Language.Haskell.TH
+import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 -- | Compatibility shim for recent changes to template haskell's 'tySynInstD'
 tySynInstD' :: Name -> [TypeQ] -> TypeQ -> DecQ
@@ -60,3 +66,10 @@ conAppsT conName = foldl AppT (ConT conName)
 bndrName :: TyVarBndr -> Name
 bndrName (PlainTV  n  ) = n
 bndrName (KindedTV n _) = n
+
+fromSet :: Ord k => (k -> v) -> Set.Set k -> Map.Map k v
+#if MIN_VERSION_containers(0,5,0)
+fromSet = Map.fromSet
+#else
+fromSet f x = Map.fromList [ (k,f k) | k <- Set.toList x ]
+#endif

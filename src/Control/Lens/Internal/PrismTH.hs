@@ -39,6 +39,8 @@ import qualified Data.Set as Set
 
 -- | Generate a 'Prism' for each constructor of a data type.
 -- Isos generated when possible.
+-- Reviews are created for constructors with existentially
+-- quantified constructors and GADTs.
 --
 -- /e.g./
 --
@@ -63,6 +65,8 @@ makePrisms = makePrisms' True
 
 -- | Generate a 'Prism' for each constructor of a data type
 -- and combine them into a single class. No Isos are created.
+-- Reviews are created for constructors with existentially
+-- quantified constructors and GADTs.
 --
 -- /e.g./
 --
@@ -204,7 +208,7 @@ computePrismType :: Type -> [NCon] -> NCon -> Q Stab
 computePrismType t cons con =
   do let ts      = view nconTypes con
          unbound = setOf typeVars t Set.\\ setOf (folded . nconTypes . typeVars) cons
-     sub <- sequenceA (Map.fromSet (newName . nameBase) unbound)
+     sub <- sequenceA (fromSet (newName . nameBase) unbound)
      b   <- toTupleT (map return ts)
      a   <- toTupleT (map return (substTypeVars sub ts))
      let s = substTypeVars sub t
@@ -213,7 +217,7 @@ computePrismType t cons con =
 
 computeIsoType :: Type -> [Type] -> TypeQ
 computeIsoType t' fields =
-  do sub <- sequenceA (Map.fromSet (newName . nameBase) (setOf typeVars t'))
+  do sub <- sequenceA (fromSet (newName . nameBase) (setOf typeVars t'))
      let t = return                    t'
          s = return (substTypeVars sub t')
          b = toTupleT (map return                    fields)
@@ -228,6 +232,7 @@ computeIsoType t' fields =
 
 
 
+-- | Construct either a Review or Prism as appropriate
 makeConOpticExp :: Stab -> [NCon] -> NCon -> ExpQ
 makeConOpticExp stab cons con =
   case stabType stab of
@@ -235,6 +240,7 @@ makeConOpticExp stab cons con =
     ReviewType -> makeConReviewExp con
 
 
+-- | Construct an iso declaration
 makeConIso :: Type -> NCon -> DecsQ
 makeConIso s con =
   do let ty      = computeIsoType s (view nconTypes con)
@@ -277,6 +283,9 @@ makeConIsoExp con = [| iso $remitter $reviewer |]
   remitter = makeIsoRemitter conName fields
 
 
+-- | Construct a Review expression
+--
+-- unto (\(x,y,z) -> Con x y z)
 makeConReviewExp :: NCon -> ExpQ
 makeConReviewExp con = [| unto $reviewer |]
   where
