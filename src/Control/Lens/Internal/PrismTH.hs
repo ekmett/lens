@@ -24,7 +24,6 @@ import Control.Lens.Internal.TH
 import Control.Lens.Iso
 import Control.Lens.Review
 import Control.Lens.Lens
-import Control.Lens.Fold
 import Control.Lens.Prism
 import Control.Lens.Setter
 import Control.Lens.Tuple
