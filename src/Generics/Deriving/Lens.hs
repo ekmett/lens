@@ -87,6 +87,10 @@ instance GTraversal U1 where
   tinplated _ _ U1 = pure U1
   {-# INLINE tinplated #-}
 
+instance GTraversal V1 where
+  tinplated _ _ v = v `seq` undefined
+  {-# INLINE tinplated #-}
+
 instance (GTraversal f, GTraversal g) => GTraversal (f :*: g) where
   tinplated _ f (x :*: y) = (:*:) <$> tinplated Nothing f x <*> tinplated Nothing f y
   {-# INLINE tinplated #-}
