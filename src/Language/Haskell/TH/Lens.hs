@@ -341,6 +341,9 @@ instance HasTypeVars Con where
 instance HasTypeVars t => HasTypeVars [t] where
   typeVarsEx s = traverse . typeVarsEx s
 
+instance HasTypeVars t => HasTypeVars (Maybe t) where
+  typeVarsEx s = traverse . typeVarsEx s
+
 -- | Traverse /free/ type variables
 typeVars :: HasTypeVars t => Traversal' t Name
 typeVars = typeVarsEx mempty

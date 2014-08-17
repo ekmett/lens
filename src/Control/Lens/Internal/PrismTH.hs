@@ -18,6 +18,7 @@ module Control.Lens.Internal.PrismTH
   , makeDecPrisms
   ) where
 
+import Control.Applicative
 import Control.Lens.Getter
 import Control.Lens.Internal.TH
 import Control.Lens.Iso
@@ -207,7 +208,7 @@ computeReviewType s' cx tys =
 computePrismType :: Type -> [NCon] -> NCon -> Q Stab
 computePrismType t cons con =
   do let ts      = view nconTypes con
-         unbound = setOf typeVars t Set.\\ setOf (folded . nconTypes . typeVars) cons
+         unbound = setOf typeVars t Set.\\ setOf typeVars cons
      sub <- sequenceA (fromSet (newName . nameBase) unbound)
      b   <- toTupleT (map return ts)
      a   <- toTupleT (map return (substTypeVars sub ts))
@@ -448,6 +449,9 @@ data NCon = NCon
   }
   deriving (Eq)
 
+instance HasTypeVars NCon where
+  typeVarsEx s f (NCon x y z) = NCon x <$> typeVarsEx s f y <*> typeVarsEx s f z
+
 nconName :: Lens' NCon Name
 nconName f x = fmap (\y -> x {_nconName = y}) (f (_nconName x))
 
@@ -463,6 +467,7 @@ normalizeCon :: Con -> NCon
 normalizeCon (RecC    conName xs) = NCon conName Nothing (map (view _3) xs)
 normalizeCon (NormalC conName xs) = NCon conName Nothing (map (view _2) xs)
 normalizeCon (InfixC (_,x) conName (_,y)) = NCon conName Nothing [x,y]
+normalizeCon (ForallC [] [] con) = normalizeCon con -- happens in GADTs
 normalizeCon (ForallC _ cx con) = NCon n (cx1 <> cx2) tys
   where
   cx1 = Just cx
