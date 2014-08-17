@@ -46,7 +46,6 @@ import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Lens.Internal.TupleIxedTH (makeAllTupleIxed)
-import Data.Aeson as Aeson
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
 import Data.ByteString as StrictB
@@ -105,7 +104,6 @@ type instance Index StrictT.Text = Int
 type instance Index LazyT.Text = Int64
 type instance Index StrictB.ByteString = Int
 type instance Index LazyB.ByteString = Int64
-type instance Index Aeson.Value = StrictT.Text
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -359,13 +357,6 @@ instance Ixed LazyB.ByteString where
      (l, mr) -> case LazyB.uncons mr of
        Nothing      -> pure s
        Just (c, xs) -> f c <&> \d -> LazyB.append l (LazyB.cons d xs)
-  {-# INLINE ix #-}
-
-
-type instance IxValue Aeson.Value = Aeson.Value
-instance Ixed Aeson.Value where
-  ix i f (Object o) = Object <$> ix i f o
-  ix _ _ v          = pure v
   {-# INLINE ix #-}
 
 
