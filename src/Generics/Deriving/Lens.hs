@@ -103,9 +103,3 @@ instance (GTraversal f, GTraversal g) => GTraversal (f :+: g) where
 instance GTraversal a => GTraversal (M1 i c a) where
   tinplated rec f (M1 x) = M1 <$> tinplated rec f x
   {-# INLINE tinplated #-}
-
-
--- ?
-instance (Traversable f, GTraversal g) => GTraversal (f :.: g) where
-  tinplated _ f (Comp1 fgp) = Comp1 <$> traverse (tinplated Nothing f) fgp
-  {-# INLINE tinplated #-}
