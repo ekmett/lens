@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
@@ -64,7 +65,7 @@ generic1 = iso from1 to1
 -- hello
 -- world!
 tinplate :: (Generic a, GTraversal (Generic.Rep a), Typeable b) => Traversal' a b
-tinplate = generic . tinplated True
+tinplate = generic . tinplated Nothing
 {-# INLINE tinplate #-}
 
 maybeArg1Of :: Maybe c -> (c -> d) -> Maybe c
@@ -73,13 +74,14 @@ maybeArg1Of = const
 
 -- | Used to traverse 'Generic' data by 'uniplate'.
 class GTraversal f where
-  tinplated :: Typeable b => Bool -> Traversal' (f a) b
+  tinplated :: Typeable b => Maybe TypeRep -> Traversal' (f a) b
 
 instance (Generic a, GTraversal (Generic.Rep a), Typeable a) => GTraversal (K1 i a) where
   tinplated rec f (K1 a) = case cast a `maybeArg1Of` f of
     Just b  -> K1 . fromJust . cast <$> f b
-    Nothing | rec       -> K1 <$> fmap generic (tinplated False) f a
-            | otherwise -> pure $ K1 a
+    Nothing -> case rec of
+                 Just rep | rep == typeRep (Just a) -> pure (K1 a)
+                 _ -> K1 <$> fmap generic (tinplated (Just (typeRep (Just a)))) f a
   {-# INLINE tinplated #-}
 
 instance GTraversal U1 where
@@ -87,19 +89,20 @@ instance GTraversal U1 where
   {-# INLINE tinplated #-}
 
 instance (GTraversal f, GTraversal g) => GTraversal (f :*: g) where
-  tinplated _ f (x :*: y) = (:*:) <$> tinplated True f x <*> tinplated True f y
+  tinplated _ f (x :*: y) = (:*:) <$> tinplated Nothing f x <*> tinplated Nothing f y
   {-# INLINE tinplated #-}
 
 instance (GTraversal f, GTraversal g) => GTraversal (f :+: g) where
-  tinplated _ f (L1 x) = L1 <$> tinplated True f x
-  tinplated _ f (R1 x) = R1 <$> tinplated True f x
+  tinplated _ f (L1 x) = L1 <$> tinplated Nothing f x
+  tinplated _ f (R1 x) = R1 <$> tinplated Nothing f x
   {-# INLINE tinplated #-}
 
 instance GTraversal a => GTraversal (M1 i c a) where
   tinplated rec f (M1 x) = M1 <$> tinplated rec f x
   {-# INLINE tinplated #-}
 
+
 -- ?
 instance (Traversable f, GTraversal g) => GTraversal (f :.: g) where
-  tinplated _ f (Comp1 fgp) = Comp1 <$> traverse (tinplated True f) fgp
+  tinplated _ f (Comp1 fgp) = Comp1 <$> traverse (tinplated Nothing f) fgp
   {-# INLINE tinplated #-}
