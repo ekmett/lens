@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
@@ -80,8 +79,8 @@ instance (Generic a, GTraversal (Generic.Rep a), Typeable a) => GTraversal (K1 i
   tinplated rec f (K1 a) = case cast a `maybeArg1Of` f of
     Just b  -> K1 . fromJust . cast <$> f b
     Nothing -> case rec of
-                 Just rep | rep == typeRep (Just a) -> pure (K1 a)
-                 _ -> K1 <$> fmap generic (tinplated (Just (typeRep (Just a)))) f a
+                 Just rep | rep == typeOf a -> pure (K1 a)
+                 _ -> K1 <$> fmap generic (tinplated (Just (typeOf a))) f a
   {-# INLINE tinplated #-}
 
 instance GTraversal U1 where
