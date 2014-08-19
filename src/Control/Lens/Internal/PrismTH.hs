@@ -22,14 +22,15 @@ import Control.Applicative
 import Control.Lens.Getter
 import Control.Lens.Internal.TH
 import Control.Lens.Iso
-import Control.Lens.Review
 import Control.Lens.Lens
 import Control.Lens.Prism
+import Control.Lens.Review
 import Control.Lens.Setter
 import Control.Lens.Tuple
 import Control.Monad
-import Data.Monoid
+import Data.Char (isUpper)
 import Data.List
+import Data.Monoid
 import Data.Set.Lens
 import Data.Traversable (for,sequenceA,traverse)
 import Language.Haskell.TH
@@ -473,9 +474,13 @@ normalizeCon (ForallC _ cx con) = NCon n (cx1 <> cx2) tys
   NCon n cx2 tys = normalizeCon con
 
 
--- | Compute a prism's name by prefixing an underscore
+-- | Compute a prism's name by prefixing an underscore for normal
+-- constructors and period for operators.
 prismName :: Name -> Name
-prismName = mkName . ('_':) . nameBase
+prismName x = case nameBase x of
+                [] -> error "prismName: empty name base?"
+                x:xs | isUpper x -> mkName ('_':x:xs)
+                     | otherwise -> mkName ('.':x:xs) -- operator
 
 
 -- | Quantify all the free variables in a type.
