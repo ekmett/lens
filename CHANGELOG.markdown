@@ -7,7 +7,7 @@
 * TH generated traverals unify their field arguments (type synonyms not
   currently expanded) enabling exotic traversals to be generated.
 * Added instances for `Text` to `Data.Aeson.Lens`
-* Reimplemented `makePrisms`, adding support for `makeClassyPrisms`
+* Reimplemented `makePrisms`, adding support for `makeClassyPrisms`, infix constructrs generate periods (.) prefixed prisms.
 * Added `Choice` to `Review` so that `Prism` is a proper subtype of `Review`
 * Migrated `Data.Aeson.Lens` to `lens-aeson` package.
 * Fixed `GHC.Generics.Lens.tinplate` behavior on single-field data types and empty data types.

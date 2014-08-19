@@ -477,7 +477,7 @@ normalizeCon (ForallC _ cx con) = NCon n (cx1 <> cx2) tys
 -- | Compute a prism's name by prefixing an underscore for normal
 -- constructors and period for operators.
 prismName :: Name -> Name
-prismName x = case nameBase x of
+prismName n = case nameBase n of
                 [] -> error "prismName: empty name base?"
                 x:xs | isUpper x -> mkName ('_':x:xs)
                      | otherwise -> mkName ('.':x:xs) -- operator
