@@ -1,3 +1,7 @@
+4.4.0.1
+----
+* Restore previous default of `makeFields` using the camel case field namer.
+
 4.4
 ----
 * Internals of Template Haskell code generation rewritten. makeLenses,

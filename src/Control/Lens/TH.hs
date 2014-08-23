@@ -38,7 +38,7 @@ module Control.Lens.TH
   -- * Configuring Lenses
   , makeLensesWith
   , declareLensesWith
-  , fieldRules
+  , defaultFieldRules
   , camelCaseFields
   , underscoreFields
   , LensRules
@@ -377,9 +377,9 @@ declareWrapped = declareWith $ \dec -> do
   forM_ maybeDecs emit
   return dec
 
--- | @ declareFields = 'declareFieldsWith' 'fieldRules' @
+-- | @ declareFields = 'declareFieldsWith' 'defaultFieldRules' @
 declareFields :: DecsQ -> DecsQ
-declareFields = declareLensesWith fieldRules
+declareFields = declareLensesWith defaultFieldRules
 
 -- | Declare lenses for each records in the given declarations, using the
 -- specified 'LensRules'. Any record syntax in the input will be stripped
@@ -541,7 +541,7 @@ overHead f (x:xs) = f x : xs
 
 -- | Field rules for fields in the form @ _prefix_fieldname @
 underscoreFields :: LensRules
-underscoreFields = fieldRules & lensField .~ underscoreNamer
+underscoreFields = defaultFieldRules & lensField .~ underscoreNamer
 
 underscoreNamer :: [Name] -> Name -> [DefName]
 underscoreNamer _ field = maybeToList $ do
@@ -560,7 +560,7 @@ underscoreNamer _ field = maybeToList $ do
 -- If you want all fields to be lensed, then there is no reason to use an @_@ before the prefix.
 -- If any of the record fields leads with an @_@ then it is assume a field without an @_@ should not have a lens created.
 camelCaseFields :: LensRules
-camelCaseFields = fieldRules & lensField .~ camelCaseNamer
+camelCaseFields = defaultFieldRules
 
 camelCaseNamer :: [Name] -> Name -> [DefName]
 camelCaseNamer fields field = maybeToList $ do
@@ -619,25 +619,24 @@ camelCaseNamer fields field = maybeToList $ do
 -- @
 --
 -- @
--- makeFields = 'makeLensesWith' 'fieldRules'
+-- makeFields = 'makeLensesWith' 'defaultFieldRules'
 -- @
 makeFields :: Name -> DecsQ
-makeFields = makeFieldOptics fieldRules
+makeFields = makeFieldOptics camelCaseFields
 
+-- | Deprecated alias for 'makeLensesWith'
 makeFieldsWith :: LensRules -> Name -> DecsQ
 makeFieldsWith = makeLensesWith
 {-# DEPRECATED makeFieldsWith "Use `makeLensesWith`, functionality merged" #-}
 
-fieldRules :: LensRules
-fieldRules = LensRules
+defaultFieldRules :: LensRules
+defaultFieldRules = LensRules
   { _simpleLenses    = True
   , _generateSigs    = True
   , _generateClasses = True  -- classes will still be skipped if they already exist
   , _allowIsos       = False -- generating Isos would hinder field class reuse
   , _classyLenses    = const Nothing
-  , _fieldToDef      = \_ n -> let rest = dropWhile (not.isUpper) (nameBase n)
-                             in [MethodName (mkName ("Has"++rest))
-                                            (mkName (overHead toLower rest))]
+  , _fieldToDef      = camelCaseNamer
   }
 
 
