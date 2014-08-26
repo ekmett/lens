@@ -299,9 +299,6 @@ library
     Language.Haskell.TH.Lens
     Numeric.Lens
 
-  other-modules:
-    Control.Lens.Internal.TupleIxedTH
-
   cpp-options: -traditional
 
   if flag(safe)

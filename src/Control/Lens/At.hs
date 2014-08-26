@@ -42,6 +42,8 @@ module Control.Lens.At
   ) where
 
 import Control.Applicative
+import Control.Lens.Each
+import Control.Lens.Traversal
 import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Type
@@ -432,4 +434,43 @@ instance (Eq k, Hashable k) => At (HashSet k) where
     where mv = if HashSet.member k m then Just () else Nothing
   {-# INLINE at #-}
 
-makeAllTupleIxed
+
+-- | @'ix' :: Int -> 'Traversal' (a,a) a@
+type instance IxValue (a,a2) = a
+instance (a~a2) => Ixed (a,a2) where
+  ix = elementOf each
+
+-- | @'ix' :: Int -> 'Traversal' (a,a,a) a@
+type instance IxValue (a,a2,a3) = a
+instance (a~a2, a~a3) => Ixed (a,a2,a3) where
+  ix = elementOf each
+
+-- | @'ix' :: Int -> 'Traversal' (a,a,a,a) a@
+type instance IxValue (a,a2,a3,a4) = a
+instance (a~a2, a~a3, a~a4) => Ixed (a,a2,a3,a4) where
+  ix = elementOf each
+
+-- | @'ix' :: Int -> 'Traversal' (a,a,a,a,a) a@
+type instance IxValue (a,a2,a3,a4,a5) = a
+instance (a~a2, a~a3, a~a4, a~a5) => Ixed (a,a2,a3,a4,a5) where
+  ix = elementOf each
+
+-- | @'ix' :: Int -> 'Traversal' (a,a,a,a,a,a) a@
+type instance IxValue (a,a2,a3,a4,a5,a6) = a
+instance (a~a2, a~a3, a~a4, a~a5, a~a6) => Ixed (a,a2,a3,a4,a5,a6) where
+  ix = elementOf each
+
+-- | @'ix' :: Int -> 'Traversal' (a,a,a,a,a,a,a) a@
+type instance IxValue (a,a2,a3,a4,a5,a6,a7) = a
+instance (a~a2, a~a3, a~a4, a~a5, a~a6, a~a7) => Ixed (a,a2,a3,a4,a5,a6,a7) where
+  ix = elementOf each
+
+-- | @'ix' :: Int -> 'Traversal' (a,a,a,a,a,a,a,a) a@
+type instance IxValue (a,a2,a3,a4,a5,a6,a7,a8) = a
+instance (a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, a~a8) => Ixed (a,a2,a3,a4,a5,a6,a7,a8) where
+  ix = elementOf each
+
+-- | @'ix' :: Int -> 'Traversal' (a,a,a,a,a,a,a,a,a) a@
+type instance IxValue (a,a2,a3,a4,a5,a6,a7,a8,a9) = a
+instance (a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, a~a8, a~a9) => Ixed (a,a2,a3,a4,a5,a6,a7,a8,a9) where
+  ix = elementOf each
