@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -60,6 +59,60 @@ errorType f s = f (ioe_type s) <&> \e -> s { ioe_type = e }
 
 -- * IOErrorType Prisms
 --
--- (These prisms are generated automatically)
 
-makePrisms ''IOErrorType
+_AlreadyExists :: Prism' IOErrorType ()
+_AlreadyExists = only AlreadyExists
+
+_NoSuchThing :: Prism' IOErrorType ()
+_NoSuchThing = only NoSuchThing
+
+_ResourceBusy :: Prism' IOErrorType ()
+_ResourceBusy = only ResourceBusy
+
+_ResourceExhausted :: Prism' IOErrorType ()
+_ResourceExhausted = only ResourceExhausted
+
+_EOF :: Prism' IOErrorType ()
+_EOF = only EOF
+
+_IllegalOperation :: Prism' IOErrorType ()
+_IllegalOperation = only IllegalOperation
+
+_PermissionDenied :: Prism' IOErrorType ()
+_PermissionDenied = only PermissionDenied
+
+_UserError :: Prism' IOErrorType ()
+_UserError = only UserError
+
+_UnsatisfiedConstraints :: Prism' IOErrorType ()
+_UnsatisfiedConstraints = only UnsatisfiedConstraints
+
+_SystemError :: Prism' IOErrorType ()
+_SystemError = only SystemError
+
+_ProtocolError :: Prism' IOErrorType ()
+_ProtocolError = only ProtocolError
+
+_OtherError :: Prism' IOErrorType ()
+_OtherError = only OtherError
+
+_InvalidArgument :: Prism' IOErrorType ()
+_InvalidArgument = only InvalidArgument
+
+_InappropriateType :: Prism' IOErrorType ()
+_InappropriateType = only InappropriateType
+
+_HardwareFault :: Prism' IOErrorType ()
+_HardwareFault = only HardwareFault
+
+_UnsupportedOperation :: Prism' IOErrorType ()
+_UnsupportedOperation = only UnsupportedOperation
+
+_TimeExpired :: Prism' IOErrorType ()
+_TimeExpired = only TimeExpired
+
+_ResourceVanished :: Prism' IOErrorType ()
+_ResourceVanished = only ResourceVanished
+
+_Interrupted :: Prism' IOErrorType ()
+_Interrupted = only Interrupted
