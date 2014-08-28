@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -22,16 +21,13 @@ module Control.Lens.Internal.FieldTH
 
 import Control.Lens.At
 import Control.Lens.Fold
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.TH
-import Control.Lens.Iso
 import Control.Lens.Plated
 import Control.Lens.Prism
 import Control.Lens.Setter
 import Control.Lens.Getter
 import Control.Lens.Traversal
 import Control.Lens.Tuple
-import Control.Lens.Type
 import Control.Applicative
 import Control.Monad
 import Language.Haskell.TH.Lens
@@ -145,20 +141,20 @@ buildScaffold rules s cons defName =
 
      let defType
            | Just (_,cx,a') <- preview _ForallT a =
-               let optic | lensCase  = ''Getter
-                         | otherwise = ''Fold
+               let optic | lensCase  = getterTypeName
+                         | otherwise = foldTypeName
                in OpticSa cx optic s' a'
 
            | _simpleLenses rules || s' == t && a == b =
-               let optic | isoCase && _allowIsos rules = ''Iso'
-                         | lensCase  = ''Lens'
-                         | otherwise = ''Traversal'
+               let optic | isoCase && _allowIsos rules = iso'TypeName
+                         | lensCase  = lens'TypeName
+                         | otherwise = traversal'TypeName
                in OpticSa [] optic s' a
 
            | otherwise =
-               let optic | isoCase && _allowIsos rules = ''Iso
-                         | lensCase  = ''Lens
-                         | otherwise = ''Traversal
+               let optic | isoCase && _allowIsos rules = isoTypeName
+                         | lensCase  = lensTypeName
+                         | otherwise = traversalTypeName
                in OpticStab optic s' t a b
 
          opticType | has _ForallT a = GetterType
@@ -298,15 +294,15 @@ makeClassyClass className methodName defs = do
 
 
   classD (cxt[]) className (map PlainTV (c:vars)) fd
-    $ sigD methodName (return (''Lens' `conAppsT` [VarT c, s']))
+    $ sigD methodName (return (lens'TypeName `conAppsT` [VarT c, s']))
     : concat
       [ [sigD defName (return (stabToOptic stab `conAppsT` [VarT c, applyTypeSubst sub (stabToA stab)]))
-        ,valD (varP defName) (normalB [| $(varE methodName) . $(varE defName) |]) []
+        ,valD (varP defName) (normalB body) []
         ] ++
         inlinePragma defName
-      | (TopName defName, (_, stab, _)) <- defs ]
-
-  where
+      | (TopName defName, (_, stab, _)) <- defs
+      , let body = appsE [varE composeValName, varE methodName, varE defName]
+      ]
 
 
 makeClassyInstance ::
@@ -319,7 +315,7 @@ makeClassyInstance rules className methodName defs = do
   methodss <- traverse (makeFieldOptic rules') defs
 
   instanceD (cxt[]) (return instanceHead)
-    $ valD (varP methodName) (normalB [|id|]) []
+    $ valD (varP methodName) (normalB (varE idValName)) []
     : map return (concat methodss)
 
   where
@@ -374,13 +370,13 @@ makePureClause :: Name -> Int -> ClauseQ
 
 makePureClause conName 0 =
   -- clause: _ _ = pure Con
-  clause [wildP, wildP] (normalB [| pure $(conE conName) |]) []
+  clause [wildP, wildP] (normalB (appE (varE pureValName) (conE conName))) []
 
 makePureClause conName fieldCount =
   do xs <- replicateM fieldCount (newName "x")
      -- clause: _ (Con x1..xn) = pure (Con x1..xn)
      clause [wildP, conP conName (map varP xs)]
-            (normalB [| pure $(appsE (conE conName : map varE xs)) |])
+            (normalB (appE (varE pureValName) (appsE (conE conName : map varE xs))))
             []
 
 
@@ -397,9 +393,9 @@ makeGetterClause conName fieldCount fields =
            | otherwise = wildP : pats is (y:ys)
          pats is     _  = map (const wildP) is
 
-         fxs   = [ [| $(varE f) $(varE x) |] | x <- xs ]
-         body  = foldl (\a b -> [| $a <*> $b |])
-                       [| coerce $(head fxs) |]
+         fxs   = [ appE (varE f) (varE x) | x <- xs ]
+         body  = foldl (\a b -> appsE [varE apValName, a, b])
+                       (appE (varE coerceValName) (head fxs))
                        (tail fxs)
 
      -- clause f (Con x1..xn) = coerce (f x1) <*> ... <*> f xn
@@ -420,12 +416,14 @@ makeFieldOpticClause conName fieldCount (field:fields) irref =
 
      let xs' = foldr (\(i,x) -> set (ix i) x) xs (zip (field:fields) ys)
 
-         mkFx i = [| $(varE f) $(varE (xs !! i)) |]
+         mkFx i = appE (varE f) (varE (xs !! i))
 
-         body0 = [| $(lamE (map varP ys) (appsE (conE conName : map varE xs')))
-                <$> $(mkFx field) |]
+         body0 = appsE [ varE fmapValName
+                       , lamE (map varP ys) (appsE (conE conName : map varE xs'))
+                       , mkFx field
+                       ]
 
-         body = foldl (\a b -> [| $a <*> $(mkFx b) |]) body0 fields
+         body = foldl (\a b -> appsE [varE apValName, a, mkFx b]) body0 fields
 
      let wrap = if irref then tildeP else id
 
@@ -436,7 +434,7 @@ makeFieldOpticClause conName fieldCount (field:fields) irref =
 
 -- | Build a clause that constructs an Iso
 makeIsoClause :: Name -> ClauseQ
-makeIsoClause conName = clause [] (normalB [| iso $destruct $construct |]) []
+makeIsoClause conName = clause [] (normalB (appsE [varE isoValName, destruct, construct])) []
   where
   destruct  = do x <- newName "x"
                  lam1E (conP conName [varP x]) (varE x)

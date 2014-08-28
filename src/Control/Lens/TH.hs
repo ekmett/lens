@@ -1,7 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FunctionalDependencies #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -65,9 +63,7 @@ import Control.Lens.Getter
 import Control.Lens.Lens
 import Control.Lens.Setter
 import Control.Lens.Tuple
-import Control.Lens.Iso
 import Control.Lens.Traversal
-import Control.Lens.Wrapped
 import Control.Lens.Internal.TH
 import Control.Lens.Internal.FieldTH
 import Control.Lens.Internal.PrismTH
@@ -498,7 +494,7 @@ makeRewrappedInstance dataDecl = do
 #endif
 
        -- Rewrapped (Con a b c...) t
-       klass = conT ''Rewrapped `appsT` [appliedType, t]
+       klass = conT rewrappedTypeName `appsT` [appliedType, t]
 
    -- instance (Con a' b' c'... ~ t) => Rewrapped (Con a b c...) t
    instanceD (cxt [eq]) klass []
@@ -513,15 +509,16 @@ makeWrappedInstance dataDecl con fieldType = do
   let appliedType  = fullType dataDecl (map VarT typeArgs)
 
   -- type Unwrapped (Con a b c...) = $fieldType
-  let unwrappedATF = tySynInstD' ''Unwrapped [return appliedType] (return fieldType)
+  let unwrappedATF = tySynInstD' unwrappedTypeName [return appliedType] (return fieldType)
 
   -- Wrapped (Con a b c...)
-  let klass        = conT ''Wrapped `appT` return appliedType
+  let klass        = conT wrappedTypeName `appT` return appliedType
 
   -- _Wrapped' = iso (\(Con x) -> x) Con
   let wrapFun      = conE conName
   let unwrapFun    = newName "x" >>= \x -> lam1E (conP conName [varP x]) (varE x)
-  let isoMethod    = funD '_Wrapped' [clause [] (normalB [|iso $unwrapFun $wrapFun|]) []]
+  let body         = appsE [varE isoValName, unwrapFun, wrapFun]
+  let isoMethod    = funD _wrapped'ValName [clause [] (normalB body) []]
 
   -- instance Wrapped (Con a b c...) where
   --   type Unwrapped (Con a b c...) = fieldType

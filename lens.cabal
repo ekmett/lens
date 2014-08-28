@@ -299,6 +299,9 @@ library
     Language.Haskell.TH.Lens
     Numeric.Lens
 
+  other-modules:
+    Paths_lens
+
   cpp-options: -traditional
 
   if flag(safe)
