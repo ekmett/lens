@@ -85,6 +85,8 @@ import Language.Haskell.TH.Lens
 {-# ANN module "HLint: ignore Use foldl" #-}
 #endif
 
+-- | Generate "simple" optics even when type-changing optics are possible.
+-- (e.g. 'Lens'' instead of 'Lens')
 simpleLenses :: Lens' LensRules Bool
 simpleLenses f r = fmap (\x -> r { _simpleLenses = x}) (f (_simpleLenses r))
 
