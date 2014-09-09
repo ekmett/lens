@@ -1,3 +1,8 @@
+4.4.0.2
+---
+* `text` 1.2.0.0 support
+* Remove the use of the TemplateHaskell extension from the library to enable lens to be used on stage1 cross-compilers
+
 4.4.0.1
 ----
 * Restore previous default of `makeFields` using the camel case field namer.
