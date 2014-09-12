@@ -1,19 +1,31 @@
 #!/bin/bash
 set -e
 
-if [ "$#" -ne 2 ]; then
-  echo "Usage: scripts/hackage-docs.sh VERSION_NUMBER HACKAGE_USER"
+if [ "$#" -ne 1 ]; then
+  echo "Usage: scripts/hackage-docs.sh HACKAGE_USER"
   exit 1
 fi
 
-pkg=lens
-ver=$1
-user=$2
-
-if [ ! -f "$pkg.cabal" ]; then
+cabal_file=$(find . -name "*.cabal" -maxdepth 1 -print -quit)
+if [ ! -f "$cabal_file" ]; then
   echo "Run this script in the top-level package directory"
   exit 1
 fi
+
+pkg=$(awk -F ":[[:space:]]*" '$1=="name"    { print $2 }' < "$cabal_file")
+ver=$(awk -F ":[[:space:]]*" '$1=="version" { print $2 }' < "$cabal_file")
+
+if [ -z "$pkg" ]; then
+  echo "Unable to determine package name"
+  exit 1
+fi
+
+if [ -z "$ver" ]; then
+  echo "Unable to determine package version"
+  exit 1
+fi
+
+user=$1
 
 dir=$(mktemp -d build-docs.XXXXXX)
 trap 'rm -r "$dir"' EXIT
