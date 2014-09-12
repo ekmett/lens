@@ -37,7 +37,7 @@ before_install:
 
   # Update happy when building with GHC head
   - |
-    if [ $GHCVER = "head" ] || [ $GHCVER = "7.8.2" ]; then
+    if [ $GHCVER = "head" ] || [ $GHCVER = "7.8.3" ]; then
       $CABAL install happy alex
       export PATH=$HOME/.cabal/bin:$PATH
     fi
