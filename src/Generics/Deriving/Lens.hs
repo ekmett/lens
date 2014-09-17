@@ -76,9 +76,9 @@ class GTraversal f where
   tinplated :: Typeable b => Maybe TypeRep -> Traversal' (f a) b
 
 instance (Generic a, GTraversal (Generic.Rep a), Typeable a) => GTraversal (K1 i a) where
-  tinplated rec f (K1 a) = case cast a `maybeArg1Of` f of
+  tinplated prev f (K1 a) = case cast a `maybeArg1Of` f of
     Just b  -> K1 . fromJust . cast <$> f b
-    Nothing -> case rec of
+    Nothing -> case prev of
                  Just rep | rep == typeOf a -> pure (K1 a)
                  _ -> K1 <$> fmap generic (tinplated (Just (typeOf a))) f a
   {-# INLINE tinplated #-}
@@ -101,5 +101,5 @@ instance (GTraversal f, GTraversal g) => GTraversal (f :+: g) where
   {-# INLINE tinplated #-}
 
 instance GTraversal a => GTraversal (M1 i c a) where
-  tinplated rec f (M1 x) = M1 <$> tinplated rec f x
+  tinplated prev f (M1 x) = M1 <$> tinplated prev f x
   {-# INLINE tinplated #-}
