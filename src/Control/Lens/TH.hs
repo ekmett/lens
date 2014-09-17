@@ -375,7 +375,7 @@ declareWrapped = declareWith $ \dec -> do
   forM_ maybeDecs emit
   return dec
 
--- | @ declareFields = 'declareFieldsWith' 'defaultFieldRules' @
+-- | @ declareFields = 'declareLensesWith' 'defaultFieldRules' @
 declareFields :: DecsQ -> DecsQ
 declareFields = declareLensesWith defaultFieldRules
 
