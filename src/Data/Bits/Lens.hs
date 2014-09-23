@@ -11,8 +11,8 @@
 --
 ----------------------------------------------------------------------------
 module Data.Bits.Lens
-  ( (.|.~), (.^|.~), (.&.~), (<.|.~), (<.^|.~), (<.&.~), (<<.|.~), (<<.^|.~), (<<.&.~)
-  , (.|.=), (.^|.=), (.&.=), (<.|.=), (<.^|.=), (<.&.=), (<<.|.=), (<<.^|.=), (<<.&.=)
+  ( (.|.~), (.^.~), (.&.~), (<.|.~), (<.^.~), (<.&.~), (<<.|.~), (<<.^.~), (<<.&.~)
+  , (.|.=), (.^.=), (.&.=), (<.|.=), (<.^.=), (<.&.=), (<<.|.=), (<<.^.=), (<<.&.=)
   , bitAt
   , bits
   , byteAt
@@ -29,8 +29,8 @@ import Data.Word
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Data.Word
 
-infixr 4 .|.~, .^|.~, .&.~, <.|.~, <.^|.~, <.&.~, <<.|.~, <<.^|.~, <<.&.~
-infix 4 .|.=, .^|.=, .&.=, <.|.=, <.^|.=, <.&.=, <<.|.=, <<.^|.=, <<.&.=
+infixr 4 .|.~, .^.~, .&.~, <.|.~, <.^.~, <.&.~, <<.|.~, <<.^.~, <<.&.~
+infix 4 .|.=, .^.=, .&.=, <.|.=, <.^.=, <.&.=, <<.|.=, <<.^.=, <<.&.=
 
 -- | Bitwise '.|.' the target(s) of a 'Lens' or 'Setter'.
 --
@@ -49,18 +49,18 @@ l .|.~ n = over l (.|. n)
 
 -- | Bitwise 'xor' the target(s) of a 'Lens' or 'Setter'.
 --
--- >>> _2 .^|.~ 6 $ ("hello",3)
+-- >>> _2 .^.~ 6 $ ("hello",3)
 -- ("hello",5)
 --
 -- @
--- ('.^|.~') :: 'Bits' a             => 'Setter' s t a a    -> a -> s -> t
--- ('.^|.~') :: 'Bits' a             => 'Iso' s t a a       -> a -> s -> t
--- ('.^|.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> t
--- ('.^|.~') :: ('Data.Monoid.Monoid' a, 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
+-- ('.^.~') :: 'Bits' a             => 'Setter' s t a a    -> a -> s -> t
+-- ('.^.~') :: 'Bits' a             => 'Iso' s t a a       -> a -> s -> t
+-- ('.^.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> t
+-- ('.^.~') :: ('Data.Monoid.Monoid' a, 'Bits' a) => 'Traversal' s t a a -> a -> s -> t
 -- @
-(.^|.~):: Bits a => ASetter s t a a -> a -> s -> t
-l .^|.~ n = over l (xor n)
-{-# INLINE (.^|.~) #-}
+(.^.~):: Bits a => ASetter s t a a -> a -> s -> t
+l .^.~ n = over l (xor n)
+{-# INLINE (.^.~) #-}
 
 -- | Bitwise '.&.' the target(s) of a 'Lens' or 'Setter'.
 --
@@ -109,18 +109,18 @@ l .|.= a = modify (l .|.~ a)
 
 -- | Modify the target(s) of a 'Lens'', 'Setter' or 'Traversal' by computing its bitwise 'xor' with another value.
 --
--- >>> execState (do _1 .^|.= 15; _2 .^|.= 3) (7,7)
--- (8,0)
+-- >>> execState (do _1 .^.= 15; _2 .^.= 3) (7,7)
+-- (8,4)
 --
 -- @
--- ('.^|.=') :: ('MonadState' s m, 'Bits' a) => 'Setter'' s a    -> a -> m ()
--- ('.^|.=') :: ('MonadState' s m, 'Bits' a) => 'Iso'' s a       -> a -> m ()
--- ('.^|.=') :: ('MonadState' s m, 'Bits' a) => 'Lens'' s a      -> a -> m ()
--- ('.^|.=') :: ('MonadState' s m, 'Bits' a) => 'Traversal'' s a -> a -> m ()
+-- ('.^.=') :: ('MonadState' s m, 'Bits' a) => 'Setter'' s a    -> a -> m ()
+-- ('.^.=') :: ('MonadState' s m, 'Bits' a) => 'Iso'' s a       -> a -> m ()
+-- ('.^.=') :: ('MonadState' s m, 'Bits' a) => 'Lens'' s a      -> a -> m ()
+-- ('.^.=') :: ('MonadState' s m, 'Bits' a) => 'Traversal'' s a -> a -> m ()
 -- @
-(.^|.=) :: (MonadState s m, Bits a) => ASetter' s a -> a -> m ()
-l .^|.= a = modify (l .^|.~ a)
-{-# INLINE (.^|.=) #-}
+(.^.=) :: (MonadState s m, Bits a) => ASetter' s a -> a -> m ()
+l .^.= a = modify (l .^.~ a)
+{-# INLINE (.^.=) #-}
 
 -- | Bitwise '.|.' the target(s) of a 'Lens' (or 'Traversal'), returning the result
 -- (or a monoidal summary of all of the results).
@@ -140,17 +140,17 @@ l <.|.~ n = l <%~ (.|. n)
 -- | Bitwise 'xor' the target(s) of a 'Lens' (or 'Traversal'), returning the result
 -- (or a monoidal summary of all of the results).
 --
--- >>> _2 <.^|.~ 6 $ ("hello",3)
+-- >>> _2 <.^.~ 6 $ ("hello",3)
 -- (5,("hello",5))
 --
 -- @
--- ('<.^|.~') :: 'Bits' a             => 'Iso' s t a a       -> a -> s -> (a, t)
--- ('<.^|.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> (a, t)
--- ('<.^|.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
+-- ('<.^.~') :: 'Bits' a             => 'Iso' s t a a       -> a -> s -> (a, t)
+-- ('<.^.~') :: 'Bits' a             => 'Lens' s t a a      -> a -> s -> (a, t)
+-- ('<.^.~') :: ('Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal' s t a a -> a -> s -> (a, t)
 -- @
-(<.^|.~):: Bits a => LensLike ((,) a) s t a a -> a -> s -> (a, t)
-l <.^|.~ n = l <%~ (xor n)
-{-# INLINE (<.^|.~) #-}
+(<.^.~):: Bits a => LensLike ((,) a) s t a a -> a -> s -> (a, t)
+l <.^.~ n = l <%~ xor n
+{-# INLINE (<.^.~) #-}
 
 -- | Bitwise '.&.' the target(s) of a 'Lens' or 'Traversal', returning the result
 -- (or a monoidal summary of all of the results).
@@ -198,16 +198,16 @@ l <.|.= b = l <%= (.|. b)
 -- | Modify the target(s) of a 'Lens'', (or 'Traversal') by computing its bitwise 'xor' with another value,
 -- returning the result (or a monoidal summary of all of the results traversed).
 --
--- >>> runState (_1 <.^|.= 7) (28,0)
+-- >>> runState (_1 <.^.= 7) (28,0)
 -- (27,(27,0))
 --
 -- @
--- ('<.^|.=') :: ('MonadState' s m, 'Bits' a)           => 'Lens'' s a      -> a -> m a
--- ('<.^|.=') :: ('MonadState' s m, 'Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal'' s a -> a -> m a
+-- ('<.^.=') :: ('MonadState' s m, 'Bits' a)           => 'Lens'' s a      -> a -> m a
+-- ('<.^.=') :: ('MonadState' s m, 'Bits' a, 'Data.Monoid.Monoid' a) => 'Traversal'' s a -> a -> m a
 -- @
-(<.^|.=) :: (MonadState s m, Bits a) => LensLike' ((,)a) s a -> a -> m a
-l <.^|.= b = l <%= (xor b)
-{-# INLINE (<.^|.=) #-}
+(<.^.=) :: (MonadState s m, Bits a) => LensLike' ((,)a) s a -> a -> m a
+l <.^.= b = l <%= xor b
+{-# INLINE (<.^.=) #-}
 
 (<<.&.~) :: Bits a => Optical' (->) q ((,)a) s a -> a -> q s (a, s)
 l <<.&.~ b = l $ \a -> (a, a .&. b)
@@ -217,9 +217,9 @@ l <<.&.~ b = l $ \a -> (a, a .&. b)
 l <<.|.~ b = l $ \a -> (a, a .|. b)
 {-# INLINE (<<.|.~) #-}
 
-(<<.^|.~) :: Bits a => Optical' (->) q ((,)a) s a -> a -> q s (a, s)
-l <<.^|.~ b = l $ \a -> (a, xor a b)
-{-# INLINE (<<.^|.~) #-}
+(<<.^.~) :: Bits a => Optical' (->) q ((,)a) s a -> a -> q s (a, s)
+l <<.^.~ b = l $ \a -> (a, xor a b)
+{-# INLINE (<<.^.~) #-}
 
 (<<.&.=) :: (MonadState s m, Bits a) => LensLike' ((,) a) s a -> a -> m a
 l <<.&.= b = l %%= \a -> (a, a .&. b)
@@ -229,9 +229,9 @@ l <<.&.= b = l %%= \a -> (a, a .&. b)
 l <<.|.= b = l %%= \a -> (a, a .|. b)
 {-# INLINE (<<.|.=) #-}
 
-(<<.^|.=) :: (MonadState s m, Bits a) => LensLike' ((,) a) s a -> a -> m a
-l <<.^|.= b = l %%= \a -> (a, xor a b)
-{-# INLINE (<<.^|.=) #-}
+(<<.^.=) :: (MonadState s m, Bits a) => LensLike' ((,) a) s a -> a -> m a
+l <<.^.= b = l %%= \a -> (a, xor a b)
+{-# INLINE (<<.^.=) #-}
 
 -- | This 'Lens' can be used to access the value of the nth bit in a number.
 --
