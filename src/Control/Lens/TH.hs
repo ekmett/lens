@@ -67,7 +67,7 @@ import Control.Lens.Traversal
 import Control.Lens.Internal.TH
 import Control.Lens.Internal.FieldTH
 import Control.Lens.Internal.PrismTH
-import Data.Char (toLower, toUpper, isUpper)
+import Data.Char (toLower, isUpper)
 import Data.Foldable hiding (concat, any)
 import Data.List as List
 import Data.Map as Map hiding (toList,map,filter)
@@ -112,7 +112,13 @@ createClass f r =
 -- provides the names of all fields in the type as well as the current field.
 -- This extra generality enables field naming conventions that depend on the
 -- full set of names in a type.
-lensField :: Lens' LensRules ([Name] -> Name -> [DefName])
+--
+-- The field naming rule has access to the type name, the names of all the field
+-- of that type (including the field being named), and the name of the field
+-- being named.
+--
+-- TypeName -> FieldNames -> FieldName -> DefinitionNames
+lensField :: Lens' LensRules (Name -> [Name] -> Name -> [DefName])
 lensField f r = fmap (\x -> r { _fieldToDef = x}) (f (_fieldToDef r))
 
 -- | Retrieve options such as the name of the class and method to put in it to
@@ -131,7 +137,7 @@ lensRules = LensRules
   , _generateClasses = False
   , _allowIsos       = True
   , _classyLenses    = const Nothing
-  , _fieldToDef      = \_ n ->
+  , _fieldToDef      = \_ _ n ->
        case nameBase n of
          '_':x:xs -> [TopName (mkName (toLower x:xs))]
          _        -> []
@@ -144,8 +150,8 @@ lensRulesFor ::
   LensRules
 lensRulesFor fields = lensRules & lensField .~ mkNameLookup fields
 
-mkNameLookup :: [(String,String)] -> [Name] -> Name -> [DefName]
-mkNameLookup kvs _ field =
+mkNameLookup :: [(String,String)] -> Name -> [Name] -> Name -> [DefName]
+mkNameLookup kvs _ _ field =
   [ TopName (mkName v) | (k,v) <- kvs, k == nameBase field]
 
 -- | Rules for making lenses and traversals that precompose another 'Lens'.
@@ -159,7 +165,7 @@ classyRules = LensRules
         case nameBase n of
           x:xs -> Just (mkName ("Has" ++ x:xs), mkName (toLower x:xs))
           []   -> Nothing
-  , _fieldToDef      = \_ n ->
+  , _fieldToDef      = \_ _ n ->
         case nameBase n of
           '_':x:xs -> [TopName (mkName (toLower x:xs))]
           _        -> []
@@ -178,7 +184,7 @@ classyRulesFor classFun fields = classyRules
 
 classyRules_ :: LensRules
 classyRules_
-  = classyRules & lensField .~ \_ n -> [TopName (mkName ('_':nameBase n))]
+  = classyRules & lensField .~ \_ _ n -> [TopName (mkName ('_':nameBase n))]
 
 -- | Build lenses (and traversals) with a sensible default configuration.
 --
@@ -300,14 +306,14 @@ declareLenses :: DecsQ -> DecsQ
 declareLenses
   = declareLensesWith
   $ lensRules
-  & lensField .~ \_ n -> [TopName n]
+  & lensField .~ \_ _ n -> [TopName n]
 
 -- | Similar to 'makeLensesFor', but takes a declaration quote.
 declareLensesFor :: [(String, String)] -> DecsQ -> DecsQ
 declareLensesFor fields
   = declareLensesWith
   $ lensRulesFor fields
-  & lensField .~ \_ n -> [TopName n]
+  & lensField .~ \_ _ n -> [TopName n]
 
 -- | For each record in the declaration quote, make lenses and traversals for
 -- it, and create a class when the type has no arguments. All record syntax
@@ -335,7 +341,7 @@ declareClassy :: DecsQ -> DecsQ
 declareClassy
   = declareLensesWith
   $ classyRules
-  & lensField .~ \_ n -> [TopName n]
+  & lensField .~ \_ _ n -> [TopName n]
 
 -- | Similar to 'makeClassyFor', but takes a declaration quote.
 declareClassyFor ::
@@ -343,7 +349,7 @@ declareClassyFor ::
 declareClassyFor classes fields
   = declareLensesWith
   $ classyRulesFor (`Prelude.lookup`classes) fields
-  & lensField .~ \_ n -> [TopName n]
+  & lensField .~ \_ _ n -> [TopName n]
 
 -- | Generate a 'Prism' for each constructor of each data type.
 --
@@ -542,8 +548,8 @@ overHead f (x:xs) = f x : xs
 underscoreFields :: LensRules
 underscoreFields = defaultFieldRules & lensField .~ underscoreNamer
 
-underscoreNamer :: [Name] -> Name -> [DefName]
-underscoreNamer _ field = maybeToList $ do
+underscoreNamer :: Name -> [Name] -> Name -> [DefName]
+underscoreNamer _ _ field = maybeToList $ do
   _      <- prefix field'
   method <- niceLens
   cls    <- classNaming
@@ -561,31 +567,21 @@ underscoreNamer _ field = maybeToList $ do
 camelCaseFields :: LensRules
 camelCaseFields = defaultFieldRules
 
-camelCaseNamer :: [Name] -> Name -> [DefName]
-camelCaseNamer fields field = maybeToList $ do
-  _      <- prefix
-  method <- niceLens
-  cls    <- classNaming
+camelCaseNamer :: Name -> [Name] -> Name -> [DefName]
+camelCaseNamer tyName fields field = maybeToList $ do
+
+  fieldPart <- stripPrefix expectedPrefix (nameBase field)
+  method    <- computeMethod fieldPart
+  let cls = "Has" ++ fieldPart
   return (MethodName (mkName cls) (mkName method))
+
   where
-    field'  = nameBase field
-    fields' = map nameBase fields
-    sepUpper x = case break isUpper x of
-        (p, s) | List.null p || List.null s -> Nothing
-               | otherwise                  -> Just (p,s)
+  expectedPrefix = optUnderscore ++ overHead toLower (nameBase tyName)
 
-    prefix = fmap fst . sepUpper =<< dealWith_
+  optUnderscore  = ['_' | any (isPrefixOf "_" . nameBase) fields ]
 
-    niceLens    = overHead toLower . snd <$> sepUpper field'
-    classNaming = niceLens <&> \ (n:ns) -> "Has" ++ toUpper n : ns
-
-    dealWith_ :: Maybe String
-    dealWith_ | not $ any (fst . leading_) fields' = Just field'
-              | otherwise = if leading then Just trailing else Nothing
-      where
-        leading_ ('_':xs) = (True, xs)
-        leading_      xs  = (False, xs)
-        (leading, trailing) = leading_ field'
+  computeMethod (x:xs) | isUpper x = Just (toLower x : xs)
+  computeMethod _                  = Nothing
 
 
 -- | Generate overloaded field accessors.

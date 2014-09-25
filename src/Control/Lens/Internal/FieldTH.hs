@@ -98,7 +98,7 @@ makeFieldOpticsForDec' rules tyName s cons =
 
   -- Map a (possibly missing) field's name to zero-to-many optic definitions
   expandName :: [Name] -> Maybe Name -> [DefName]
-  expandName allFields = concatMap (_fieldToDef rules allFields) . maybeToList
+  expandName allFields = concatMap (_fieldToDef rules tyName allFields) . maybeToList
 
 -- | Normalized the Con type into a uniform positional representation,
 -- eliminating the variance between records, infix constructors, and normal
@@ -523,7 +523,8 @@ data LensRules = LensRules
   , _generateSigs :: Bool
   , _generateClasses :: Bool
   , _allowIsos    :: Bool
-  , _fieldToDef   :: [Name] -> Name -> [DefName]
+  , _fieldToDef   :: Name -> [Name] -> Name -> [DefName]
+       -- ^ Type Name -> Field Names -> Target Field Name -> Definition Names
   , _classyLenses :: Name -> Maybe (Name,Name)
        -- type name to class name and top method
   }
