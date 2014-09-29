@@ -21,7 +21,7 @@ module Control.Lens.Internal.Deque
   ( Deque(..)
   , size
   , fromList
-  , null
+  , Control.Lens.Internal.Deque.null
   , singleton
   ) where
 
@@ -41,7 +41,6 @@ import Data.Functor.Reverse
 import Data.Traversable as Traversable
 import Data.Semigroup
 import Data.Profunctor.Unsafe
-import Prelude hiding (null)
 
 -- | A Banker's deque based on Chris Okasaki's \"Purely Functional Data Structures\"
 data Deque a = BD !Int [a] !Int [a]
