@@ -6,6 +6,10 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Deque
@@ -21,7 +25,7 @@ module Control.Lens.Internal.Deque
   ( Deque(..)
   , size
   , fromList
-  , Control.Lens.Internal.Deque.null
+  , null
   , singleton
   ) where
 
@@ -33,7 +37,12 @@ import Control.Lens.Iso
 import Control.Lens.Lens
 import Control.Lens.Prism
 import Control.Monad
+#if MIN_VERSION_base(4,8,0)
+import Data.Foldable hiding (null)
+import qualified Data.Foldable as Foldable
+#else
 import Data.Foldable as Foldable
+#endif
 import Data.Function
 import Data.Functor.Bind
 import Data.Functor.Plus
@@ -41,6 +50,7 @@ import Data.Functor.Reverse
 import Data.Traversable as Traversable
 import Data.Semigroup
 import Data.Profunctor.Unsafe
+import Prelude hiding (null)
 
 -- | A Banker's deque based on Chris Okasaki's \"Purely Functional Data Structures\"
 data Deque a = BD !Int [a] !Int [a]
