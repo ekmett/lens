@@ -6,7 +6,9 @@ if [ "$#" -ne 1 ]; then
   exit 1
 fi
 
-cabal_file=$(find . -name "*.cabal" -maxdepth 1 -print -quit)
+user=$1
+
+cabal_file=$(find . -maxdepth 1 -name "*.cabal" -print -quit)
 if [ ! -f "$cabal_file" ]; then
   echo "Run this script in the top-level package directory"
   exit 1
@@ -25,7 +27,7 @@ if [ -z "$ver" ]; then
   exit 1
 fi
 
-user=$1
+echo "Detected package: $pkg-$ver"
 
 dir=$(mktemp -d build-docs.XXXXXX)
 trap 'rm -r "$dir"' EXIT
