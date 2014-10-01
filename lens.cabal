@@ -210,10 +210,8 @@ library
     unordered-containers      >= 0.2      && < 0.3,
     vector                    >= 0.9      && < 0.11,
     void                      >= 0.5      && < 1,
-    zlib                      >= 0.5.4    && < 0.6
 
   exposed-modules:
-    Codec.Compression.Zlib.Lens
     Control.Exception.Lens
     Control.Lens
     Control.Lens.Action
