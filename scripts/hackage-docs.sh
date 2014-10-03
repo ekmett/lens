@@ -14,8 +14,8 @@ if [ ! -f "$cabal_file" ]; then
   exit 1
 fi
 
-pkg=$(awk -F ":[[:space:]]*" '$1=="name"    { print $2 }' < "$cabal_file")
-ver=$(awk -F ":[[:space:]]*" '$1=="version" { print $2 }' < "$cabal_file")
+pkg=$(awk -F ":[[:space:]]*" 'tolower($1)=="name"    { print $2 }' < "$cabal_file")
+ver=$(awk -F ":[[:space:]]*" 'tolower($1)=="version" { print $2 }' < "$cabal_file")
 
 if [ -z "$pkg" ]; then
   echo "Unable to determine package name"
