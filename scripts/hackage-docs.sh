@@ -32,7 +32,7 @@ echo "Detected package: $pkg-$ver"
 dir=$(mktemp -d build-docs.XXXXXX)
 trap 'rm -r "$dir"' EXIT
 
-cabal haddock --hoogle --hyperlink-source --html-location='http://hackage.haskell.org/package/$pkg/docs' --contents-location='http://hackage.haskell.org/package/$pkg'
+cabal haddock --hoogle --hyperlink-source --html-location='/package/$pkg-$version/docs' --contents-location='/package/$pkg-$version'
 
 cp -R dist/doc/html/$pkg/ $dir/$pkg-$ver-docs
 
