@@ -32,7 +32,6 @@ module Control.Lens.Each
 
 import Control.Applicative
 import Control.Lens.Iso
-import Control.Lens.Type
 import Control.Lens.Traversal
 import Data.Array.Unboxed as Unboxed
 import Data.Array.IArray as IArray
@@ -80,7 +79,7 @@ import Data.Word
 class Each s t a b | s -> a, t -> b, s b -> t, t a -> s where
   each :: Traversal s t a b
 #ifndef HLINT
-  default each :: (Applicative f, Traversable g, s ~ g a, t ~ g b) => LensLike f s t a b
+  default each :: (Traversable g, s ~ g a, t ~ g b) => Traversal s t a b
   each = traverse
   {-# INLINE each #-}
 #endif
