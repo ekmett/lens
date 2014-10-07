@@ -14,20 +14,24 @@
 --
 -- @
 -- import Control.Lens
--- data Foo a = Foo { _fooArgs :: ['String'], _fooValue :: a }
--- 'makeLenses' ''Foo
+-- 
+-- data FooBar a
+--   = Foo { _x :: ['Int'], _y :: a }
+--   | Bar { _x :: ['Int'] }
+-- 'makeLenses' ''FooBar
 -- @
 --
 -- This defines the following lenses:
 --
 -- @
--- fooArgs :: 'Lens'' (Foo a) ['String']
--- fooValue :: 'Lens' (Foo a) (Foo b) a b
+-- x :: 'Lens'' (FooBar a) ['Int']
+-- y :: 'Traversal' (FooBar a) (FooBar b) a b
 -- @
 --
--- You can then access the value with ('^.') and set the value of the field
--- with ('.~') and can use almost any other combinator that is re-exported
--- here on those fields.
+-- You can then access the value of @_x@ with ('^.'), the value of @_y@ –
+-- with ('^?') or ('^?!') (since it can fail), set the values with ('.~'),
+-- modify them with ('%~'), and use almost any other combinator that is
+-- re-exported here on those fields.
 --
 -- The combinators here have unusually specific type signatures, so for
 -- particularly tricky ones, the simpler type signatures you might want to
