@@ -534,6 +534,16 @@ instance Alternative (ReifiedMonadicFold m s) where
   MonadicFold ma <|> MonadicFold mb = MonadicFold $ to (\x->(x,x)).beside ma mb
   {-# INLINE (<|>) #-}
 
+instance Bind (ReifiedMonadicFold m s) where
+  ma >>- f = ((ma >>^ f) &&& returnA) >>> app 
+  {-# INLINE (>>-) #-}
+
+instance Monad (ReifiedMonadicFold m s) where
+  return a = MonadicFold $ folding $ \_ -> [a]
+  {-# INLINE return #-}
+  ma >>= f = ((ma >>^ f) &&& returnA) >>> app 
+  {-# INLINE (>>=) #-}
+
 instance Semigroup (ReifiedMonadicFold m s a) where
   (<>) = (<|>)
   {-# INLINE (<>) #-}
