@@ -544,6 +544,12 @@ instance Monad (ReifiedMonadicFold m s) where
   ma >>= f = ((ma >>^ f) &&& returnA) >>> app 
   {-# INLINE (>>=) #-}
 
+instance MonadPlus (ReifiedMonadicFold m s) where
+  mzero = empty
+  {-# INLINE mzero #-}
+  mplus = (<|>)
+  {-# INLINE mplus #-}
+
 instance Semigroup (ReifiedMonadicFold m s a) where
   (<>) = (<|>)
   {-# INLINE (<>) #-}
