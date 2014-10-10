@@ -99,7 +99,7 @@ a ^! l = getEffect (l (Effect #. return) a)
 -- >>> ["ab","cd","ef"]^!!folded.acts
 -- ["ace","acf","ade","adf","bce","bcf","bde","bdf"]
 --
--- [1,2]^!!folded.act (\i -> putStr (show i ++ ": ") >> getLine).each.to succ
+-- >>> [1,2]^!!folded.act (\i -> putStr (show i ++ ": ") >> getLine).each.to succ
 -- 1: aa
 -- 2: bb
 -- "bbcc"
@@ -143,7 +143,7 @@ act sma pafb = cotabulate $ \ws -> effective $ do
 -- >>> (1,"hello")^!_2.acts.to succ
 -- "ifmmp"
 --
--- (1,getLine)^!!_2.acts.folded.to succ
+-- >>> (1,getLine)^!!_2.acts.folded.to succ
 -- aa
 -- "bb"
 acts :: IndexPreservingAction m (m a) a
