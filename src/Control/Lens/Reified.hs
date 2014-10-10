@@ -544,6 +544,12 @@ instance Monad (ReifiedMonadicFold m s) where
   ma >>= f = ((ma >>^ f) &&& returnA) >>> app 
   {-# INLINE (>>=) #-}
 
+instance MonadReader s (ReifiedMonadicFold m s) where
+  ask = returnA
+  {-# INLINE ask #-}
+  local f ma = f ^>> ma 
+  {-# INLINE local #-}
+
 instance MonadPlus (ReifiedMonadicFold m s) where
   mzero = empty
   {-# INLINE mzero #-}
