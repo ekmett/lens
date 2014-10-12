@@ -18,6 +18,7 @@ module Main where
 import Build_doctests (deps)
 import Control.Applicative
 import Control.Monad
+import Control.Monad.Reader
 import Data.List
 import System.Directory
 import System.FilePath
