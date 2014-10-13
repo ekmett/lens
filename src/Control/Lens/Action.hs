@@ -61,6 +61,7 @@ import Data.Profunctor.Unsafe
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
+-- >>> import Control.Monad.Reader
 
 infixr 8 ^!, ^!!, ^@!, ^@!!, ^!?, ^@!?
 
