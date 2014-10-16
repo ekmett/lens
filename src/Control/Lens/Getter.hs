@@ -29,11 +29,13 @@
 --
 -- @type 'Getter' s a = forall r. 'Getting' r s a@
 --
--- But we actually hide the use of 'Const' behind a class 'Gettable' to
--- report error messages from type class resolution rather than at unification
--- time, where they are much uglier.
+-- However, for 'Getter' (but not for 'Getting') we actually permit any
+-- functor @f@ which is an instance of both 'Functor' and 'Contravariant':
 --
--- @type 'Getter' s a = forall f. 'Gettable' f => (a -> f a) -> s -> f s@
+-- @type 'Getter' s a = forall f. ('Contravariant' f, 'Functor' f) => (a -> f a) -> s -> f s@
+--
+-- (Both @'Const' r@ and @'Control.Lens.Internal.Action.Effect' m r@ satisfy
+-- this constraint, which allows using any 'Getter' as 'Action'.)
 --
 -- Everything you can do with a function, you can do with a 'Getter', but
 -- note that because of the continuation passing style ('.') composes them
