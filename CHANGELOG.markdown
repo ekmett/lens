@@ -1,7 +1,11 @@
 4.5
 ---
-* Provide access to the typename in lensRules naming function.
+* Provide access to the typename in `lensRules` naming function.
 * `makeFields` camelcasing rules now properly support types with camelcasing. `MyType` with field `myTypeFieldA` generates `fieldA` now. Previously the prefix ignore capitalization and the field would need to be named `mytypeFieldA`.
+* `makeClassy` works on types even when none of the fields would generate optics.
+* Added `Monad`, `MonadReader`, `MonadPlus` and `Bind` instances for `ReifiedMonadicFold`
+* Added missing fixity declarations on many operators.
+* Migrated `Codec.Compression.Zlib.Lens` to `zlib-lens` package.
 
 4.4.0.2
 ---
