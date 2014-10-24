@@ -369,11 +369,6 @@ makeFieldClauses opticType cons =
 -- given a constructor name and the number of fields on that
 -- constructor.
 makePureClause :: Name -> Int -> ClauseQ
-
-makePureClause conName 0 =
-  -- clause: _ _ = pure Con
-  clause [wildP, wildP] (normalB (appE (varE pureValName) (conE conName))) []
-
 makePureClause conName fieldCount =
   do xs <- replicateM fieldCount (newName "x")
      -- clause: _ (Con x1..xn) = pure (Con x1..xn)

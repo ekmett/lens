@@ -205,5 +205,8 @@ useFold2  = C2 length     ^? r2nub . to ($ [False,True,True])
 useLength :: Int
 useLength = C1 length nub ^. r2length . to ($ [False,True,True])
 
+data PureNoFields = PureNoFieldsA | PureNoFieldsB { _pureNoFields :: Int }
+makeLenses ''PureNoFields
+
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
