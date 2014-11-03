@@ -90,7 +90,8 @@ makePrisms = makePrisms' True
 --
 -- instance AsFooBarBaz (FooBarBaz a) a
 -- @
--- | Generate an "As" class of prisms. Names are selected by prefixing the constructor
+-- 
+-- Generate an "As" class of prisms. Names are selected by prefixing the constructor
 -- name with an underscore.  Constructors with multiple fields will
 -- construct Prisms to tuples of those fields.
 makeClassyPrisms :: Name {- ^ Type constructor name -} -> DecsQ
