@@ -113,14 +113,22 @@ data Lebowski a = Lebowski
     , _lebowskiMansion  :: String
     , _lebowskiThing    :: Maybe a
     }
+data AbideConfiguration a = AbideConfiguration
+    { _acLocation       :: String
+    , _acDuration       :: Int
+    , _acThing          :: a
+    }
 
 makeFields ''Dude
 makeFields ''Lebowski
+makeFields ''AbideConfiguration
 
 dudeDrink :: String
 dudeDrink      = (Dude 9 "El Duderino" () "white russian")      ^. thing 
 lebowskiCarpet :: Maybe String
 lebowskiCarpet = (Lebowski "Mr. Lebowski" 0 "" (Just "carpet")) ^. thing
+abideAnnoyance :: String
+abideAnnoyance = (AbideConfiguration "the tree" 10 "the wind")  ^. thing
 
 declareLenses [d|
   data Quark1 a = Qualified1   { gaffer1 :: a }

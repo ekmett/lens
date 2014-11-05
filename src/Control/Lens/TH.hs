@@ -70,8 +70,8 @@ import Control.Lens.Internal.PrismTH
 import Data.Char (toLower, isUpper)
 import Data.Foldable hiding (concat, any)
 import Data.List as List
-import Data.Map as Map hiding (toList,map,filter)
-import Data.Maybe (maybeToList)
+import Data.Map as Map hiding (toList,map,filter,mapMaybe)
+import Data.Maybe (maybeToList,mapMaybe)
 import Data.Monoid
 import Data.Set as Set hiding (toList,map,filter)
 import Data.Set.Lens
@@ -563,21 +563,42 @@ underscoreNamer _ _ field = maybeToList $ do
 
 -- | Field rules for fields in the form @ prefixFieldname or _prefixFieldname @
 -- If you want all fields to be lensed, then there is no reason to use an @_@ before the prefix.
--- If any of the record fields leads with an @_@ then it is assume a field without an @_@ should not have a lens created.
+-- If any of the record fields leads with an @_@ then it is assumed a field without an @_@ should not have a lens created.
+--
+-- @prefix@ is identical for all record fields in a given type.
+-- If any of the fields to be lensed begins with the type name (with first
+-- letter lowercased), then that is @prefix@, and fields not beginning with
+-- the first-letter-lowercased type name will not be lensed. Otherwise, all
+-- fields to be lensed must begin with an identical all-lowercase @prefix@.
+-- (Otherwise, no lenses are created)
 camelCaseFields :: LensRules
 camelCaseFields = defaultFieldRules
 
 camelCaseNamer :: Name -> [Name] -> Name -> [DefName]
 camelCaseNamer tyName fields field = maybeToList $ do
 
-  fieldPart <- stripPrefix expectedPrefix (nameBase field)
+  fieldPart <- liftA2 (<|>)
+               (stripPrefix expectedPrefix) altStrip (nameBase field)
   method    <- computeMethod fieldPart
   let cls = "Has" ++ fieldPart
   return (MethodName (mkName cls) (mkName method))
 
   where
   expectedPrefix = optUnderscore ++ overHead toLower (nameBase tyName)
-
+  altStrip fldName = altPrefix >>=
+                     \x -> stripPrefix (optUnderscore ++ x) fldName
+  altPrefix = unify $ mapMaybe (findLowerPrefix . nameBase) fields
+    where
+    unify []  = Nothing
+    unify [x] = Just x
+    unify (x:y:ys) | x == y    = unify (y:ys)
+                   | otherwise = Nothing
+  findLowerPrefix fldName =
+     if expectedPrefix `isPrefixOf` fldName then Just expectedPrefix
+     else do k <- stripPrefix optUnderscore fldName
+             case break isUpper k of
+               (p, s) | List.null p || List.null s -> Nothing
+                      | otherwise                  -> Just p
   optUnderscore  = ['_' | any (isPrefixOf "_" . nameBase) fields ]
 
   computeMethod (x:xs) | isUpper x = Just (toLower x : xs)
