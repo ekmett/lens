@@ -332,15 +332,11 @@ test-suite templates
   type: exitcode-stdio-1.0
   main-is: templates.hs
   build-depends: base, lens
-  ghc-options: -Wall -threaded
+  ghc-options: -Wall -Werror -threaded
   hs-source-dirs: tests
 
   if flag(dump-splices)
     ghc-options: -ddump-splices
-
-  if impl(ghc<7.6.1)
-    ghc-options: -Werror
-
 
 -- Verify the properties of lenses with QuickCheck
 test-suite properties

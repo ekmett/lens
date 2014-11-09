@@ -86,7 +86,7 @@ makeFieldOpticsForDec' rules tyName s cons =
      let defs = Map.toList perDef
      case _classyLenses rules tyName of
        Just (className, methodName) ->
-         makeClassyDriver rules className methodName defs
+         makeClassyDriver rules className methodName s defs
        Nothing -> do decss  <- traverse (makeFieldOptic rules) defs
                      return (concat decss)
 
@@ -268,25 +268,27 @@ makeClassyDriver ::
   LensRules ->
   Name ->
   Name ->
+  Type {- ^ Outer 's' type -} ->
   [(DefName, (OpticType, OpticStab, [(Name, Int, [Int])]))] ->
   DecsQ
-makeClassyDriver rules className methodName defs = sequenceA (cls ++ inst)
+makeClassyDriver rules className methodName s defs = sequenceA (cls ++ inst)
 
   where
-  cls | _generateClasses rules = [makeClassyClass className methodName defs]
+  cls | _generateClasses rules = [makeClassyClass className methodName s defs]
       | otherwise = []
 
-  inst = [makeClassyInstance rules className methodName defs]
+  inst = [makeClassyInstance rules className methodName s defs]
 
 
 makeClassyClass ::
   Name ->
   Name ->
+  Type {- ^ Outer 's' type -} ->
   [(DefName, (OpticType, OpticStab, [(Name, Int, [Int])]))] ->
   DecQ
-makeClassyClass className methodName defs = do
+makeClassyClass className methodName s defs = do
   let ss   = map (stabToS . view (_2 . _2)) defs
-  (sub,s') <- unifyTypes ss
+  (sub,s') <- unifyTypes (s : ss)
   c <- newName "c"
   let vars = toListOf typeVars s'
       fd   | null vars = []
@@ -309,9 +311,10 @@ makeClassyInstance ::
   LensRules ->
   Name ->
   Name ->
+  Type {- ^ Outer 's' type -} ->
   [(DefName, (OpticType, OpticStab, [(Name, Int, [Int])]))] ->
   DecQ
-makeClassyInstance rules className methodName defs = do
+makeClassyInstance rules className methodName s defs = do
   methodss <- traverse (makeFieldOptic rules') defs
 
   instanceD (cxt[]) (return instanceHead)
@@ -320,7 +323,6 @@ makeClassyInstance rules className methodName defs = do
 
   where
   instanceHead = className `conAppsT` (s : map VarT vars)
-  s            = stabToS (view (_2 . _2) (head defs))
   vars         = toListOf typeVars s
   rules'       = rules { _generateSigs    = False
                        , _generateClasses = False
@@ -367,11 +369,6 @@ makeFieldClauses opticType cons =
 -- given a constructor name and the number of fields on that
 -- constructor.
 makePureClause :: Name -> Int -> ClauseQ
-
-makePureClause conName 0 =
-  -- clause: _ _ = pure Con
-  clause [wildP, wildP] (normalB (appE (varE pureValName) (conE conName))) []
-
 makePureClause conName fieldCount =
   do xs <- replicateM fieldCount (newName "x")
      -- clause: _ (Con x1..xn) = pure (Con x1..xn)
