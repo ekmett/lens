@@ -96,7 +96,7 @@ infixl 8 ^., ^@.
 -- Getters
 -------------------------------------------------------------------------------
 
--- | Build a 'Getter' from an arbitrary Haskell function.
+-- | Build an (index-preserving) 'Getter' from an arbitrary Haskell function.
 --
 -- @
 -- 'to' f '.' 'to' g ≡ 'to' (g '.' f)
@@ -117,12 +117,20 @@ infixl 8 ^., ^@.
 --
 -- >>> (0, -5)^._2.to abs
 -- 5
-to :: (s -> a) -> IndexPreservingGetter s a
-to k = dimap k coerce
+--
+-- @
+-- 'to' :: (s -> a) -> 'IndexPreservingGetter' s a
+-- @
+to :: (Profunctor p, Contravariant f) => (s -> a) -> Optical' p p f s a 
+to k = dimap k (contramap k)
 {-# INLINE to #-}
 
-ito :: (s -> (i, a)) -> IndexedGetter i s a
-ito k = dimap k coerce . uncurry . indexed
+-- |
+-- @
+-- 'ito' :: (s -> (i, a)) -> 'IndexedGetter' i s a
+-- @
+ito :: (Indexable i p, Contravariant f) => (s -> (i, a)) -> Optical' p (->) f s a
+ito k = dimap k (contramap (snd . k)) . uncurry . indexed
 {-# INLINE ito #-}
 
 -- | When you see this in a type signature it indicates that you can
