@@ -39,6 +39,7 @@ module Control.Lens.TH
   , defaultFieldRules
   , camelCaseFields
   , underscoreFields
+  , abbreviatedFields
   , LensRules
   , DefName(..)
   , lensRules
@@ -564,6 +565,10 @@ underscoreNamer _ _ field = maybeToList $ do
 -- | Field rules for fields in the form @ prefixFieldname or _prefixFieldname @
 -- If you want all fields to be lensed, then there is no reason to use an @_@ before the prefix.
 -- If any of the record fields leads with an @_@ then it is assume a field without an @_@ should not have a lens created.
+--
+-- __Note__: The @prefix@ must be the same as the typename (with the first
+-- letter lowercased). This is a change from lens versions before lens 4.5.
+-- If you want the old behaviour, use 'makeLensesWith' 'abbreviatedFields'
 camelCaseFields :: LensRules
 camelCaseFields = defaultFieldRules
 
@@ -578,6 +583,36 @@ camelCaseNamer tyName fields field = maybeToList $ do
   where
   expectedPrefix = optUnderscore ++ overHead toLower (nameBase tyName)
 
+  optUnderscore  = ['_' | any (isPrefixOf "_" . nameBase) fields ]
+
+  computeMethod (x:xs) | isUpper x = Just (toLower x : xs)
+  computeMethod _                  = Nothing
+
+
+-- | Field rules fields in the form @ prefixFieldname or _prefixFieldname @
+-- If you want all fields to be lensed, then there is no reason to use an @_@ before the prefix.
+-- If any of the record fields leads with an @_@ then it is assume a field without an @_@ should not have a lens created.
+--
+-- Note that @prefix@ may be any string of characters that are not uppercase
+-- letters. (In particular, it may be arbitrary string of lowercase letters
+-- and numbers) This is the behavior that 'defaultFieldRules' had in lens
+-- 4.4 and earlier.
+abbreviatedFields :: LensRules
+abbreviatedFields = defaultFieldRules { _fieldToDef = abbreviatedNamer }
+
+abbreviatedNamer :: Name -> [Name] -> Name -> [DefName]
+abbreviatedNamer _ fields field = maybeToList $ do
+
+  fieldPart <- stripMaxLc (nameBase field)
+  method    <- computeMethod fieldPart
+  let cls = "Has" ++ fieldPart
+  return (MethodName (mkName cls) (mkName method))
+
+  where
+  stripMaxLc f = do x <- stripPrefix optUnderscore f
+                    case break isUpper x of
+                      (p,s) | List.null p || List.null s -> Nothing
+                            | otherwise                  -> Just s
   optUnderscore  = ['_' | any (isPrefixOf "_" . nameBase) fields ]
 
   computeMethod (x:xs) | isUpper x = Just (toLower x : xs)
@@ -612,6 +647,8 @@ camelCaseNamer tyName fields field = maybeToList $ do
 -- instance HasX Bar Char where
 --   x = _barXLens
 -- @
+--
+-- For details, see 'camelCaseFields'.
 --
 -- @
 -- makeFields = 'makeLensesWith' 'defaultFieldRules'
