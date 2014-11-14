@@ -1,3 +1,7 @@
+4.6
+---
+* Reduced 'Review' to two arguments, like 'Getter'.
+
 4.5
 ---
 * Provide access to the typename in `lensRules` naming function.

@@ -127,9 +127,6 @@ prism'TypeName          = mkLensName_tc "Control.Lens.Type" "Prism'"
 reviewTypeName          :: Name
 reviewTypeName           = mkLensName_tc "Control.Lens.Type" "Review"
 
-review'TypeName         :: Name
-review'TypeName          = mkLensName_tc "Control.Lens.Type" "Review'"
-
 wrappedTypeName         :: Name
 wrappedTypeName          = mkLensName_tc "Control.Lens.Wrapped" "Wrapped"
 

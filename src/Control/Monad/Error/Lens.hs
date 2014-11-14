@@ -208,7 +208,7 @@ instance Handleable e m (Handler e m) where
 -- 'throwing' :: 'MonadError' e m => 'Prism'' e t -> t -> a
 -- 'throwing' :: 'MonadError' e m => 'Iso'' e t   -> t -> a
 -- @
-throwing :: MonadError e m => AReview e e t t -> t -> m x
+throwing :: MonadError e m => AReview e t -> t -> m x
 throwing l = reviews l throwError
 {-# INLINE throwing #-}
 

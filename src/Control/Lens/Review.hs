@@ -18,8 +18,8 @@
 module Control.Lens.Review
   (
   -- * Reviewing
-    Review, Review'
-  , AReview, AReview'
+    Review
+  , AReview
   , unto
   , un
   , re
@@ -63,17 +63,11 @@ infixr 8 #
 --
 -- You can generate a 'Review' by using 'unto'. You can also use any 'Prism' or 'Iso'
 -- directly as a 'Review'.
-type Review s t a b = forall p f. (Choice p, Bifunctor p, Settable f) => Optic p f s t a b
-
--- | A 'Simple' 'Review'
-type Review' t b = Review t t b b
+type Review t b = forall p f. (Choice p, Bifunctor p, Settable f) => Optic' p f t b
 
 -- | If you see this in a signature for a function, the function is expecting a 'Review'
 -- (in practice, this usually means a 'Prism').
-type AReview s t a b = Optic Tagged Identity s t a b
-
--- | A 'Simple' 'AReview'
-type AReview' t b = AReview t t b b
+type AReview t b = Optic' Tagged Identity t b
 
 -- | An analogue of 'to' for 'review'.
 --
@@ -122,7 +116,7 @@ un = unto . view
 -- 're' :: 'Prism' s t a b -> 'Getter' b t
 -- 're' :: 'Iso' s t a b   -> 'Getter' b t
 -- @
-re :: AReview s t a b -> Getter b t
+re :: AReview t b -> Getter b t
 re p = to (runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE re #-}
 
@@ -154,7 +148,7 @@ re p = to (runIdentity #. unTagged #. p .# Tagged .# Identity)
 -- 'review' :: 'MonadReader' a m => 'Iso'' s a   -> m s
 -- 'review' :: 'MonadReader' a m => 'Prism'' s a -> m s
 -- @
-review :: MonadReader b m => AReview s t a b -> m t
+review :: MonadReader b m => AReview t b -> m t
 review p = asks (runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE review #-}
 
@@ -178,10 +172,10 @@ review p = asks (runIdentity #. unTagged #. p .# Tagged .# Identity)
 -- @
 -- (#) :: 'Iso''      s a -> a -> s
 -- (#) :: 'Prism''    s a -> a -> s
--- (#) :: 'Review''   s a -> a -> s
+-- (#) :: 'Review'    s a -> a -> s
 -- (#) :: 'Equality'' s a -> a -> s
 -- @
-( # ) :: AReview s t a b -> b -> t
+( # ) :: AReview t b -> b -> t
 ( # ) p = runIdentity #. unTagged #. p .# Tagged .# Identity
 {-# INLINE ( # ) #-}
 
@@ -214,7 +208,7 @@ review p = asks (runIdentity #. unTagged #. p .# Tagged .# Identity)
 -- 'reviews' :: 'MonadReader' a m => 'Iso'' s a   -> (s -> r) -> m r
 -- 'reviews' :: 'MonadReader' a m => 'Prism'' s a -> (s -> r) -> m r
 -- @
-reviews :: MonadReader b m => AReview s t a b -> (t -> r) -> m r
+reviews :: MonadReader b m => AReview t b -> (t -> r) -> m r
 reviews p tr = asks (tr . runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE reviews #-}
 
@@ -235,7 +229,7 @@ reviews p tr = asks (tr . runIdentity #. unTagged #. p .# Tagged .# Identity)
 -- 'reuse' :: 'MonadState' a m => 'Prism'' s a -> m s
 -- 'reuse' :: 'MonadState' a m => 'Iso'' s a   -> m s
 -- @
-reuse :: MonadState b m => AReview s t a b -> m t
+reuse :: MonadState b m => AReview t b -> m t
 reuse p = gets (runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE reuse #-}
 
@@ -254,6 +248,6 @@ reuse p = gets (runIdentity #. unTagged #. p .# Tagged .# Identity)
 -- 'reuses' :: 'MonadState' a m => 'Prism'' s a -> (s -> r) -> m r
 -- 'reuses' :: 'MonadState' a m => 'Iso'' s a   -> (s -> r) -> m r
 -- @
-reuses :: MonadState b m => AReview s t a b -> (t -> r) -> m r
+reuses :: MonadState b m => AReview t b -> (t -> r) -> m r
 reuses p tr = gets (tr . runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE reuses #-}

@@ -173,8 +173,7 @@ stabToType stab@(Stab cx ty s t a b) = ForallT vs cx $
   case ty of
     PrismType  | stabSimple stab -> prism'TypeName  `conAppsT` [t,b]
                | otherwise       -> prismTypeName   `conAppsT` [s,t,a,b]
-    ReviewType | stabSimple stab -> review'TypeName `conAppsT` [t,b]
-               | otherwise       -> reviewTypeName  `conAppsT` [s,t,a,b]
+    ReviewType                   -> reviewTypeName  `conAppsT` [t,b]
 
   where
   vs = map PlainTV (Set.toList (setOf typeVars cx))

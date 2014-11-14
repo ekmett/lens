@@ -272,7 +272,7 @@ trying_ l m = preview _Right `liftM` trying l m
 -- 'throwing' :: 'Prism'' 'SomeException' t -> t -> r
 -- 'throwing' :: 'Iso'' 'SomeException' t   -> t -> r
 -- @
-throwing :: AReview s SomeException a b -> b -> r
+throwing :: AReview SomeException b -> b -> r
 throwing l = reviews l Exception.throw
 {-# INLINE throwing #-}
 
@@ -303,7 +303,7 @@ throwing l = reviews l Exception.throw
 -- 'throwingM' :: 'MonadThrow' m => 'Prism'' 'SomeException' t -> t -> m r
 -- 'throwingM' :: 'MonadThrow' m => 'Iso'' 'SomeException' t   -> t -> m r
 -- @
-throwingM :: MonadThrow m => AReview s SomeException a b -> b -> m r
+throwingM :: MonadThrow m => AReview SomeException b -> b -> m r
 throwingM l = reviews l throwM
 {-# INLINE throwingM #-}
 
@@ -317,7 +317,7 @@ throwingM l = reviews l throwM
 -- 'throwingTo' :: 'ThreadId' -> 'Prism'' 'SomeException' t -> t -> m a
 -- 'throwingTo' :: 'ThreadId' -> 'Iso'' 'SomeException' t   -> t -> m a
 -- @
-throwingTo :: MonadIO m => ThreadId -> AReview s SomeException a b -> b -> m ()
+throwingTo :: MonadIO m => ThreadId -> AReview SomeException b -> b -> m ()
 throwingTo tid l = reviews l (liftIO . throwTo tid)
 {-# INLINE throwingTo #-}
 
