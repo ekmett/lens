@@ -1,6 +1,7 @@
 4.6
 ---
-* Reduced 'Review' to two arguments, like 'Getter'.
+* Reduced `Review` to two arguments, like `Getter`.
+* Added `abbreviatedFields` to permit `makeFieldsWith` to be invoked with an argument that lets it act like it did pre-4.5 and accept arbitrary common prefixes.
 
 4.5
 ---
