@@ -406,7 +406,8 @@ test-suite doctests
       split,
       text,
       unordered-containers,
-      vector
+      vector,
+      transformers
 
   if impl(ghc<7.6.1)
     ghc-options: -Werror
