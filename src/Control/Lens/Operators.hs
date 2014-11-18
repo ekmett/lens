@@ -15,15 +15,8 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Operators
   ( -- output from scripts/operators -h
-  -- * "Control.Lens.Action"
-    (^!)
-  , (^!!)
-  , (^!?)
-  , (^@!)
-  , (^@!!)
-  , (^@!?)
   -- * "Control.Lens.Cons"
-  , (<|)
+    (<|)
   , (|>)
   -- * "Control.Lens.Fold"
   , (^..)

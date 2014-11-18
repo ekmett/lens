@@ -24,7 +24,6 @@ module Control.Lens.Internal.Getter
   ) where
 
 import Control.Applicative
-import Control.Lens.Internal.Action
 import Data.Bifoldable
 import Data.Bifunctor
 import Data.Bitraversable
@@ -103,12 +102,6 @@ instance Traversable f => Bitraversable (AlongsideLeft f) where
   bitraverse f g (AlongsideLeft as) = AlongsideLeft <$> traverse (bitraverse g f) as
   {-# INLINE bitraverse #-}
 
-instance Effective m r f => Effective m r (AlongsideLeft f b) where
-  effective = AlongsideLeft . effective
-  {-# INLINE effective #-}
-  ineffective = ineffective . getAlongsideLeft
-  {-# INLINE ineffective #-}
-
 newtype AlongsideRight f a b = AlongsideRight { getAlongsideRight :: f (a, b) }
 
 deriving instance Show (f (a, b)) => Show (AlongsideRight f a b)
@@ -149,9 +142,3 @@ instance Foldable f => Bifoldable (AlongsideRight f) where
 instance Traversable f => Bitraversable (AlongsideRight f) where
   bitraverse f g (AlongsideRight as) = AlongsideRight <$> traverse (bitraverse f g) as
   {-# INLINE bitraverse #-}
-
-instance Effective m r f => Effective m r (AlongsideRight f b) where
-  effective = AlongsideRight . effective
-  {-# INLINE effective #-}
-  ineffective = ineffective . getAlongsideRight
-  {-# INLINE ineffective #-}

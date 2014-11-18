@@ -14,8 +14,7 @@
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Internal
-  ( module Control.Lens.Internal.Action
-  , module Control.Lens.Internal.Bazaar
+  ( module Control.Lens.Internal.Bazaar
   , module Control.Lens.Internal.Context
   , module Control.Lens.Internal.Fold
   , module Control.Lens.Internal.Getter
@@ -29,7 +28,6 @@ module Control.Lens.Internal
   , module Control.Lens.Internal.Zoom
   ) where
 
-import Control.Lens.Internal.Action
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Fold

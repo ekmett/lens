@@ -29,7 +29,6 @@ module Control.Lens.Zoom
   ) where
 
 import Control.Lens.Getter
-import Control.Lens.Internal.Action
 import Control.Lens.Internal.Zoom
 import Control.Lens.Type
 import Control.Monad

@@ -1,3 +1,7 @@
+4.7
+---
+* Migrated `Control.Lens.Action` to `lens-action`.
+
 4.6
 ---
 * Reduced `Review` to two arguments, like `Getter`.

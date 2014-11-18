@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses, Generics
-version:       4.6
+version:       4.7
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -214,7 +214,6 @@ library
   exposed-modules:
     Control.Exception.Lens
     Control.Lens
-    Control.Lens.Action
     Control.Lens.At
     Control.Lens.Combinators
     Control.Lens.Cons
@@ -226,7 +225,6 @@ library
     Control.Lens.Getter
     Control.Lens.Indexed
     Control.Lens.Internal
-    Control.Lens.Internal.Action
     Control.Lens.Internal.Bazaar
     Control.Lens.Internal.ByteString
     Control.Lens.Internal.Context

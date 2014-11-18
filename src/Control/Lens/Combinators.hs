@@ -19,13 +19,7 @@ module Control.Lens.Combinators
 
 import Control.Lens hiding
   ( -- output from scripts/operators
-    (^!)
-  , (^!!)
-  , (^!?)
-  , (^@!)
-  , (^@!!)
-  , (^@!?)
-  , (<|)
+    (<|)
   , (|>)
   , (^..)
   , (^?)

@@ -44,8 +44,7 @@
 -- <<Hierarchy.png>>
 ----------------------------------------------------------------------------
 module Control.Lens
-  ( module Control.Lens.Action
-  , module Control.Lens.At
+  ( module Control.Lens.At
   , module Control.Lens.Cons
   , module Control.Lens.Each
   , module Control.Lens.Empty
@@ -72,7 +71,6 @@ module Control.Lens
   , module Control.Lens.Zoom
   ) where
 
-import Control.Lens.Action
 import Control.Lens.At
 import Control.Lens.Cons
 import Control.Lens.Each

@@ -32,7 +32,6 @@ module Control.Lens.Type
   , Setter, Setter'
   , Getter, Fold
   , Fold1
-  , Action, MonadicFold, RelevantMonadicFold
   -- * Indexed
   , IndexedLens, IndexedLens'
   , IndexedTraversal, IndexedTraversal'
@@ -40,8 +39,6 @@ module Control.Lens.Type
   , IndexedSetter, IndexedSetter'
   , IndexedGetter, IndexedFold
   , IndexedFold1
-  , IndexedAction, IndexedMonadicFold
-  , IndexedRelevantMonadicFold
   -- * Index-Preserving
   , IndexPreservingLens, IndexPreservingLens'
   , IndexPreservingTraversal, IndexPreservingTraversal'
@@ -49,8 +46,6 @@ module Control.Lens.Type
   , IndexPreservingSetter, IndexPreservingSetter'
   , IndexPreservingGetter, IndexPreservingFold
   , IndexPreservingFold1
-  , IndexPreservingAction, IndexPreservingMonadicFold
-  , IndexPreservingRelevantMonadicFold
   -- * Common
   , Simple
   , LensLike, LensLike'
@@ -61,7 +56,6 @@ module Control.Lens.Type
   ) where
 
 import Control.Applicative
-import Control.Lens.Internal.Action
 import Control.Lens.Internal.Setter
 import Control.Lens.Internal.Indexed
 import Data.Functor.Contravariant
@@ -485,55 +479,6 @@ type IndexPreservingFold s a = forall p f. (Conjoined p, Contravariant f, Applic
 type Fold1 s a = forall f. (Contravariant f, Apply f) => (a -> f a) -> s -> f s
 type IndexedFold1 i s a = forall p f.  (Indexable i p, Contravariant f, Apply f) => p a (f a) -> s -> f s
 type IndexPreservingFold1 s a = forall p f. (Conjoined p, Contravariant f, Apply f) => p a (f a) -> p s (f s)
-
--------------------------------------------------------------------------------
--- Actions
--------------------------------------------------------------------------------
-
--- | An 'Action' is a 'Getter' enriched with access to a 'Monad' for side-effects.
---
--- Every 'Getter' can be used as an 'Action'.
---
--- You can compose an 'Action' with another 'Action' using ('Prelude..') from the @Prelude@.
-type Action m s a = forall f r. Effective m r f => (a -> f a) -> s -> f s
-
--- | An 'IndexedAction' is an 'IndexedGetter' enriched with access to a 'Monad' for side-effects.
---
--- Every 'Getter' can be used as an 'Action'.
---
--- You can compose an 'Action' with another 'Action' using ('Prelude..') from the @Prelude@.
-type IndexedAction i m s a = forall p f r. (Indexable i p, Effective m r f) => p a (f a) -> s -> f s
-
--- | An 'IndexPreservingAction' can be used as a 'Action', but when composed with an 'IndexedTraversal',
--- 'IndexedFold', or 'IndexedLens' yields an 'IndexedMonadicFold', 'IndexedMonadicFold' or 'IndexedAction' respectively.
-type IndexPreservingAction m s a = forall p f r. (Conjoined p, Effective m r f) => p a (f a) -> p s (f s)
-
--------------------------------------------------------------------------------
--- MonadicFolds
--------------------------------------------------------------------------------
-
--- | A 'MonadicFold' is a 'Fold' enriched with access to a 'Monad' for side-effects.
---
--- A 'MonadicFold' can use side-effects to produce parts of the structure being folded (e.g. reading them from file).
---
--- Every 'Fold' can be used as a 'MonadicFold', that simply ignores the access to the 'Monad'.
---
--- You can compose a 'MonadicFold' with another 'MonadicFold' using ('Prelude..') from the @Prelude@.
-type MonadicFold m s a = forall f r. (Effective m r f, Applicative f) => (a -> f a) -> s -> f s
-type RelevantMonadicFold m s a = forall f r. (Effective m r f, Apply f) => (a -> f a) -> s -> f s
-
--- | An 'IndexedMonadicFold' is an 'IndexedFold' enriched with access to a 'Monad' for side-effects.
---
--- Every 'IndexedFold' can be used as an 'IndexedMonadicFold', that simply ignores the access to the 'Monad'.
---
--- You can compose an 'IndexedMonadicFold' with another 'IndexedMonadicFold' using ('Prelude..') from the @Prelude@.
-type IndexedMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f, Applicative f) => p a (f a) -> s -> f s
-type IndexedRelevantMonadicFold i m s a = forall p f r. (Indexable i p, Effective m r f, Apply f) => p a (f a) -> s -> f s
-
--- | An 'IndexPreservingFold' can be used as a 'Fold', but when composed with an 'IndexedTraversal',
--- 'IndexedFold', or 'IndexedLens' yields an 'IndexedFold' respectively.
-type IndexPreservingMonadicFold m s a = forall p f r. (Conjoined p, Effective m r f, Applicative f) => p a (f a) -> p s (f s)
-type IndexPreservingRelevantMonadicFold m s a = forall p f r. (Conjoined p, Effective m r f, Apply f) => p a (f a) -> p s (f s)
 
 -------------------------------------------------------------------------------
 -- Simple Overloading

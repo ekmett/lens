@@ -30,13 +30,13 @@ module Control.Lens.Internal.Zoom
   , FocusingErr(..), Err(..)
   -- * Magnify
   , Magnified
+  , Effect(..)
   , EffectRWS(..)
   ) where
 
 import Control.Applicative
 import Control.Category
 import Control.Comonad
-import Control.Lens.Internal.Action
 import Control.Monad.Reader as Reader
 import Control.Monad.Trans.State.Lazy as Lazy
 import Control.Monad.Trans.State.Strict as Strict
@@ -268,6 +268,42 @@ type instance Magnified ((->)b) = Const
 type instance Magnified (Strict.RWST a w s m) = EffectRWS w s m
 type instance Magnified (Lazy.RWST a w s m) = EffectRWS w s m
 type instance Magnified (IdentityT m) = Magnified m
+
+-----------------------------------------------------------------------------
+--- Effect
+-------------------------------------------------------------------------------
+
+-- | Wrap a monadic effect with a phantom type argument.
+newtype Effect m r a = Effect { getEffect :: m r }
+-- type role Effect representational nominal phantom
+
+instance Functor (Effect m r) where
+  fmap _ (Effect m) = Effect m
+  {-# INLINE fmap #-}
+
+instance Contravariant (Effect m r) where
+  contramap _ (Effect m) = Effect m
+  {-# INLINE contramap #-}
+
+instance (Apply m, Semigroup r) => Semigroup (Effect m r a) where
+  Effect ma <> Effect mb = Effect (liftF2 (<>) ma mb)
+  {-# INLINE (<>) #-}
+
+instance (Monad m, Monoid r) => Monoid (Effect m r a) where
+  mempty = Effect (return mempty)
+  {-# INLINE mempty #-}
+  Effect ma `mappend` Effect mb = Effect (liftM2 mappend ma mb)
+  {-# INLINE mappend #-}
+
+instance (Apply m, Semigroup r) => Apply (Effect m r) where
+  Effect ma <.> Effect mb = Effect (liftF2 (<>) ma mb)
+  {-# INLINE (<.>) #-}
+
+instance (Monad m, Monoid r) => Applicative (Effect m r) where
+  pure _ = Effect (return mempty)
+  {-# INLINE pure #-}
+  Effect ma <*> Effect mb = Effect (liftM2 mappend ma mb)
+  {-# INLINE (<*>) #-}
 
 ------------------------------------------------------------------------------
 -- EffectRWS
