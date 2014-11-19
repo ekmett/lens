@@ -41,6 +41,7 @@ module Control.Lens.Tuple
 import Control.Applicative
 import Control.Lens.Lens
 import Data.Functor.Identity
+import Data.Functor.Product
 import Data.Profunctor (dimap)
 import Data.Proxy (Proxy (Proxy))
 import GHC.Generics (Generic (..), (:*:) (..), K1 (..), M1 (..), U1 (..))
@@ -88,6 +89,9 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
 
 instance Field1 (Identity a) (Identity b) a b where
   _1 f (Identity a) = Identity <$> f a
+
+instance Field1 (Product f g a) (Product f' g a) (f a) (f' a) where
+  _1 f (Pair a b) = flip Pair b <$> f a
 
 instance Field1 ((f :*: g) p) ((f' :*: g) p) (f p) (f' p) where
   _1 f (l :*: r) = (:*: r) <$> f l
@@ -153,6 +157,9 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   _2 = ix proxyN1
   {-# INLINE _2 #-}
 #endif
+
+instance Field2 (Product f g a) (Product f g' a) (g a) (g' a) where
+  _2 f (Pair a b) = Pair a <$> f b
 
 instance Field2 ((f :*: g) p) ((f :*: g') p) (g p) (g' p) where
   _2 f (l :*: r) = (l :*:) <$> f r
