@@ -34,9 +34,6 @@
 --
 -- @type 'Getter' s a = forall f. ('Contravariant' f, 'Functor' f) => (a -> f a) -> s -> f s@
 --
--- (Both @'Const' r@ and @'Control.Lens.Internal.Action.Effect' m r@ satisfy
--- this constraint, which allows using any 'Getter' as 'Action'.)
---
 -- Everything you can do with a function, you can do with a 'Getter', but
 -- note that because of the continuation passing style ('.') composes them
 -- in the opposite order.
