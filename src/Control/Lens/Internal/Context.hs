@@ -282,10 +282,11 @@ instance Corepresentable p => Sellable p (Pretext p) where
 -- impact on its performance, and which permits the use of an arbitrary 'Conjoined'
 -- 'Profunctor'.
 --
--- The extra phantom 'Functor' is used to let us lie and claim a 'Gettable' instance under
--- limited circumstances. This is used internally to permit a number of combinators to
--- gracefully degrade when applied to a 'Control.Lens.Fold.Fold', 'Control.Lens.Getter.Getter'
--- or 'Control.Lens.Action.Action'.
+-- The extra phantom 'Functor' is used to let us lie and claim
+-- 'Control.Lens.Getter.Getter'-compatibility under limited circumstances.
+-- This is used internally to permit a number of combinators to gracefully
+-- degrade when applied to a 'Control.Lens.Fold.Fold',
+-- 'Control.Lens.Getter.Getter' or 'Control.Lens.Action.Action'.
 newtype PretextT p (g :: * -> *) a b t = PretextT { runPretextT :: forall f. Functor f => p a (f b) -> f t }
 
 #if __GLASGOW_HASKELL__ >= 707

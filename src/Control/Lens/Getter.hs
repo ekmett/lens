@@ -66,7 +66,6 @@ module Control.Lens.Getter
   , Contravariant(..)
   , coerce, coerced
   , Const(..)
-  , Gettable
   ) where
 
 import Control.Applicative
@@ -456,7 +455,8 @@ iuses l = uses l .# Indexed
 s ^@. l = getConst $ l (Indexed $ \i -> Const #. (,) i) s
 {-# INLINE (^@.) #-}
 
--- | Coerce a 'Gettable' 'LensLike' to a 'Simple' 'LensLike'. This is useful
--- when using a 'Traversal' that is not simple as a 'Getter' or a 'Fold'.
+-- | Coerce a 'Getter'-compatible 'LensLike' to a 'Simple' 'LensLike'. This
+-- is useful when using a 'Traversal' that is not simple as a 'Getter' or a
+-- 'Fold'.
 coerced :: (Functor f, Contravariant f) => LensLike f s t a b -> LensLike' f s a
 coerced l f = coerce . l (coerce . f)
