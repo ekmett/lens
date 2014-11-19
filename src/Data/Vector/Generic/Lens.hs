@@ -28,6 +28,7 @@ module Data.Vector.Generic.Lens
   , sliced
   -- * Traversal of individual indices
   , ordinals
+  , vectorIx
   ) where
 
 import Control.Applicative
@@ -114,3 +115,10 @@ ordinals :: Vector v a => [Int] -> IndexedTraversal' Int (v a) a
 ordinals is f v = fmap (v //) $ traverse (\i -> (,) i <$> indexed f i (v ! i)) $ nub $ filter (\i -> 0 <= i && i < l) is where
   l = length v
 {-# INLINE ordinals #-}
+
+-- | Like 'ix' but polymorphic in the vector type.
+vectorIx :: V.Vector v a => Int -> Traversal' (v a) a
+vectorIx i f v
+  | 0 <= i && i < V.length v = f (v V.! i) <&> \a -> v V.// [(i, a)]
+  | otherwise                = pure v
+{-# INLINE vectorIx #-}
