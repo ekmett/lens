@@ -24,11 +24,11 @@
 -- A @'Lens' s t a b@ is a purely functional reference.
 --
 -- While a 'Control.Lens.Traversal.Traversal' could be used for
--- 'Control.Lens.Getter.Getting' like a valid 'Control.Lens.Fold.Fold',
--- it wasn't a valid 'Control.Lens.Getter.Getter' as 'Applicative' wasn't a superclass of
--- 'Control.Lens.Getter.Gettable'.
+-- 'Control.Lens.Getter.Getting' like a valid 'Control.Lens.Fold.Fold', it
+-- wasn't a valid 'Control.Lens.Getter.Getter' as a
+-- 'Control.Lens.Getter.Getter' can't require an 'Applicative' constraint.
 --
--- 'Functor', however is the superclass of both.
+-- 'Functor', however, is a constraint on both.
 --
 -- @
 -- type 'Lens' s t a b = forall f. 'Functor' f => (a -> f b) -> s -> f t
@@ -38,13 +38,13 @@
 --
 -- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a
 -- 'Control.Lens.Fold.Fold' that doesn't use the 'Applicative' or
--- 'Control.Lens.Getter.Gettable'.
+-- 'Contravariant'.
 --
 -- Every 'Lens' is a valid 'Control.Lens.Traversal.Traversal' that only uses
 -- the 'Functor' part of the 'Applicative' it is supplied.
 --
 -- Every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a valid
--- 'Control.Lens.Getter.Getter', since 'Functor' is a superclass of 'Control.Lens.Getter.Gettable'.
+-- 'Control.Lens.Getter.Getter'.
 --
 -- Since every 'Lens' can be used for 'Control.Lens.Getter.Getting' like a
 -- valid 'Control.Lens.Getter.Getter' it follows that it must view exactly one element in the
