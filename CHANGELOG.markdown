@@ -1,6 +1,9 @@
 4.7
 ---
 * Migrated `Control.Lens.Action` to `lens-action`.
+* Added `Data.Vector.Generic.Lens.vectorIx` function for indexing vectors with only `Vector` constraint.
+* Added `Field1` and `Field2` instances for `Data.Functor.Product.Product`.
+* Removed the "typeclass synonym" `Gettable`.
 
 4.6.0.1 [maintenance release]
 -------
