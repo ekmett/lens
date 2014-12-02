@@ -2,6 +2,10 @@
 ---
 * Migrated `Control.Lens.Action` to `lens-action`.
 
+4.6.0.1 [maintenance release]
+-------
+* Compatibility with `base` 4.8
+
 4.6
 ---
 * Reduced `Review` to two arguments, like `Getter`.
