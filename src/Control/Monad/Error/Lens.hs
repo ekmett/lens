@@ -33,7 +33,7 @@ import Control.Lens.Internal.Exception
 import Control.Monad
 import Control.Monad.Error.Class
 import Data.Functor.Plus
-import Data.Monoid
+import Data.Monoid (Monoid(..), First(..))
 import Data.Semigroup (Semigroup(..))
 
 ------------------------------------------------------------------------------
