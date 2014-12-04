@@ -91,7 +91,7 @@ l <<</>~ b = l $ \a -> (a, a </> b)
 l <<</>= b = l %%= \a -> (a, a </> b)
 {-# INLINE (<<</>=) #-}
 
--- | Modify the path by adding extension.
+-- | Modify the path by adding an extension.
 --
 -- >>> both <.>~ "txt" $ ("hello","world")
 -- ("hello.txt","world.txt")
@@ -143,7 +143,13 @@ l <<.>~ m = l <%~ (<.> m)
 l <<.>= r = l <%= (<.> r)
 {-# INLINE (<<.>=) #-}
 
-
+-- | Add an extension onto the end of the target of a 'Lens' but
+-- return the old value
+--
+-- >>> _1 <<<.>~ "txt" $ ("hello","world")
+-- ("hello",("hello.txt","world"))
+--
+-- When you do not need the old value, ('<.>~') is more flexible.
 (<<<.>~) :: Optical' (->) q ((,)FilePath) s FilePath -> String -> q s (FilePath, s)
 l <<<.>~ b = l $ \a -> (a, a <.> b)
 {-# INLINE (<<<.>~) #-}

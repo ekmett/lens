@@ -826,7 +826,7 @@ l <<<>~ b = l $ \a -> (a, a `mappend` b)
 -- Setting and Remembering State
 -------------------------------------------------------------------------------
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by a user supplied
+-- | Modify the target of a 'Lens' into your 'Monad''s state by a user supplied
 -- function and return the result.
 --
 -- When applied to a 'Control.Lens.Traversal.Traversal', it this will return a monoidal summary of all of the intermediate
@@ -844,7 +844,7 @@ l <%= f = l %%= rmap (\b -> (b, b)) f
 {-# INLINE (<%=) #-}
 
 
--- | Add to the target of a numerically valued 'Lens' into your 'Monad'\'s state
+-- | Add to the target of a numerically valued 'Lens' into your 'Monad''s state
 -- and return the result.
 --
 -- When you do not need the result of the addition, ('Control.Lens.Setter.+=') is more
@@ -858,7 +858,7 @@ l <%= f = l %%= rmap (\b -> (b, b)) f
 l <+= a = l <%= (+ a)
 {-# INLINE (<+=) #-}
 
--- | Subtract from the target of a numerically valued 'Lens' into your 'Monad'\'s
+-- | Subtract from the target of a numerically valued 'Lens' into your 'Monad''s
 -- state and return the result.
 --
 -- When you do not need the result of the subtraction, ('Control.Lens.Setter.-=') is more
@@ -872,7 +872,7 @@ l <+= a = l <%= (+ a)
 l <-= a = l <%= subtract a
 {-# INLINE (<-=) #-}
 
--- | Multiply the target of a numerically valued 'Lens' into your 'Monad'\'s
+-- | Multiply the target of a numerically valued 'Lens' into your 'Monad''s
 -- state and return the result.
 --
 -- When you do not need the result of the multiplication, ('Control.Lens.Setter.*=') is more
@@ -886,7 +886,7 @@ l <-= a = l <%= subtract a
 l <*= a = l <%= (* a)
 {-# INLINE (<*=) #-}
 
--- | Divide the target of a fractionally valued 'Lens' into your 'Monad'\'s state
+-- | Divide the target of a fractionally valued 'Lens' into your 'Monad''s state
 -- and return the result.
 --
 -- When you do not need the result of the division, ('Control.Lens.Setter.//=') is more flexible.
@@ -899,7 +899,7 @@ l <*= a = l <%= (* a)
 l <//= a = l <%= (/ a)
 {-# INLINE (<//=) #-}
 
--- | Raise the target of a numerically valued 'Lens' into your 'Monad'\'s state
+-- | Raise the target of a numerically valued 'Lens' into your 'Monad''s state
 -- to a non-negative 'Integral' power and return the result.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.^=') is more flexible.
@@ -912,7 +912,7 @@ l <//= a = l <%= (/ a)
 l <^= e = l <%= (^ e)
 {-# INLINE (<^=) #-}
 
--- | Raise the target of a fractionally valued 'Lens' into your 'Monad'\'s state
+-- | Raise the target of a fractionally valued 'Lens' into your 'Monad''s state
 -- to an 'Integral' power and return the result.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.^^=') is more flexible.
@@ -925,7 +925,7 @@ l <^= e = l <%= (^ e)
 l <^^= e = l <%= (^^ e)
 {-# INLINE (<^^=) #-}
 
--- | Raise the target of a floating-point valued 'Lens' into your 'Monad'\'s
+-- | Raise the target of a floating-point valued 'Lens' into your 'Monad''s
 -- state to an arbitrary power and return the result.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.
@@ -938,7 +938,7 @@ l <^^= e = l <%= (^^ e)
 l <**= a = l <%= (** a)
 {-# INLINE (<**=) #-}
 
--- | Logically '||' a Boolean valued 'Lens' into your 'Monad'\'s state and return
+-- | Logically '||' a Boolean valued 'Lens' into your 'Monad''s state and return
 -- the result.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.||=') is more flexible.
@@ -951,7 +951,7 @@ l <**= a = l <%= (** a)
 l <||= b = l <%= (|| b)
 {-# INLINE (<||=) #-}
 
--- | Logically '&&' a Boolean valued 'Lens' into your 'Monad'\'s state and return
+-- | Logically '&&' a Boolean valued 'Lens' into your 'Monad''s state and return
 -- the result.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.&&=') is more flexible.
@@ -964,7 +964,7 @@ l <||= b = l <%= (|| b)
 l <&&= b = l <%= (&& b)
 {-# INLINE (<&&=) #-}
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by a user supplied
+-- | Modify the target of a 'Lens' into your 'Monad''s state by a user supplied
 -- function and return the /old/ value that was replaced.
 --
 -- When applied to a 'Control.Lens.Traversal.Traversal', it this will return a monoidal summary of all of the old values
@@ -983,7 +983,7 @@ l <&&= b = l <%= (&& b)
 l <<%= f = l %%= lmap (\a -> (a,a)) (second' f)
 {-# INLINE (<<%=) #-}
 
--- | Replace the target of a 'Lens' into your 'Monad'\'s state with a user supplied
+-- | Replace the target of a 'Lens' into your 'Monad''s state with a user supplied
 -- value and return the /old/ value that was replaced.
 --
 -- When applied to a 'Control.Lens.Traversal.Traversal', it this will return a monoidal summary of all of the old values
@@ -1000,7 +1000,7 @@ l <<%= f = l %%= lmap (\a -> (a,a)) (second' f)
 l <<.= b = l %%= \a -> (a,b)
 {-# INLINE (<<.=) #-}
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by adding a value
+-- | Modify the target of a 'Lens' into your 'Monad''s state by adding a value
 -- and return the /old/ value that was replaced.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.+=') is more flexible.
@@ -1013,7 +1013,7 @@ l <<.= b = l %%= \a -> (a,b)
 l <<+= n = l %%= \a -> (a, a + n)
 {-# INLINE (<<+=) #-}
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by subtracting a value
+-- | Modify the target of a 'Lens' into your 'Monad''s state by subtracting a value
 -- and return the /old/ value that was replaced.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.-=') is more flexible.
@@ -1026,7 +1026,7 @@ l <<+= n = l %%= \a -> (a, a + n)
 l <<-= n = l %%= \a -> (a, a - n)
 {-# INLINE (<<-=) #-}
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by multipling a value
+-- | Modify the target of a 'Lens' into your 'Monad''s state by multipling a value
 -- and return the /old/ value that was replaced.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.*=') is more flexible.
@@ -1052,7 +1052,7 @@ l <<*= n = l %%= \a -> (a, a * n)
 l <<//= n = l %%= \a -> (a, a / n)
 {-# INLINE (<<//=) #-}
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by raising it by a non-negative power
+-- | Modify the target of a 'Lens' into your 'Monad''s state by raising it by a non-negative power
 -- and return the /old/ value that was replaced.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.^=') is more flexible.
@@ -1065,7 +1065,7 @@ l <<//= n = l %%= \a -> (a, a / n)
 l <<^= n = l %%= \a -> (a, a ^ n)
 {-# INLINE (<<^=) #-}
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by raising it by an integral power
+-- | Modify the target of a 'Lens' into your 'Monad''s state by raising it by an integral power
 -- and return the /old/ value that was replaced.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.^^=') is more flexible.
@@ -1078,7 +1078,7 @@ l <<^= n = l %%= \a -> (a, a ^ n)
 l <<^^= n = l %%= \a -> (a, a ^^ n)
 {-# INLINE (<<^^=) #-}
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by raising it by an arbitrary power
+-- | Modify the target of a 'Lens' into your 'Monad''s state by raising it by an arbitrary power
 -- and return the /old/ value that was replaced.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.**=') is more flexible.
@@ -1091,7 +1091,7 @@ l <<^^= n = l %%= \a -> (a, a ^^ n)
 l <<**= n = l %%= \a -> (a, a ** n)
 {-# INLINE (<<**=) #-}
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by taking its logical '||' with a value
+-- | Modify the target of a 'Lens' into your 'Monad''s state by taking its logical '||' with a value
 -- and return the /old/ value that was replaced.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.||=') is more flexible.
@@ -1104,7 +1104,7 @@ l <<**= n = l %%= \a -> (a, a ** n)
 l <<||= b = l %%= \a -> (a, a || b)
 {-# INLINE (<<||=) #-}
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by taking its logical '&&' with a value
+-- | Modify the target of a 'Lens' into your 'Monad''s state by taking its logical '&&' with a value
 -- and return the /old/ value that was replaced.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.&&=') is more flexible.
@@ -1117,7 +1117,7 @@ l <<||= b = l %%= \a -> (a, a || b)
 l <<&&= b = l %%= \a -> (a, a && b)
 {-# INLINE (<<&&=) #-}
 
--- | Modify the target of a 'Lens' into your 'Monad'\'s state by 'mappend'ing a value
+-- | Modify the target of a 'Lens' into your 'Monad''s state by 'mappend'ing a value
 -- and return the /old/ value that was replaced.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.<>=') is more flexible.
@@ -1155,7 +1155,7 @@ l <<>~ m = l <%~ (`mappend` m)
 {-# INLINE (<<>~) #-}
 
 -- | 'mappend' a monoidal value onto the end of the target of a 'Lens' into
--- your 'Monad'\'s state and return the result.
+-- your 'Monad''s state and return the result.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.<>=') is more flexible.
 (<<>=) :: (MonadState s m, Monoid r) => LensLike' ((,)r) s r -> r -> m r
