@@ -34,7 +34,7 @@ import Numeric (readInt, showIntAtBase)
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Data.Monoid (Sum(..))
 
--- | This 'Prism' extracts can be used to model the fact that every 'Integral'
+-- | This 'Prism' can be used to model the fact that every 'Integral'
 -- type is a subset of 'Integer'.
 --
 -- Embedding through the 'Prism' only succeeds if the 'Integer' would pass
