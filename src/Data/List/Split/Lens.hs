@@ -166,12 +166,12 @@ delimiters :: Lens (Splitter a) (Splitter b) [a -> Bool] [b -> Bool]
 delimiters f s@Splitter { delimiter = Delimiter ds } = f ds <&> \ds' -> s { delimiter = Delimiter ds' }
 {-# INLINE delimiters #-}
 
--- | Modify or retrieve the policy for what a 'Splitter' to do with delimiters.
+-- | Modify or retrieve the policy for what a 'Splitter' should do with delimiters.
 delimiting :: Lens' (Splitter a) DelimPolicy
 delimiting f s@Splitter { delimPolicy = p } = f p <&> \p' -> s { delimPolicy = p' }
 {-# INLINE delimiting #-}
 
--- | Modify or retrieve the policy for what a 'Splitter' should about consecutive delimiters.
+-- | Modify or retrieve the policy for what a 'Splitter' should do about consecutive delimiters.
 condensing :: Lens' (Splitter a) CondensePolicy
 condensing f s@Splitter { condensePolicy = p } = f p <&> \p' -> s { condensePolicy = p' }
 {-# INLINE condensing #-}
