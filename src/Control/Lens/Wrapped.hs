@@ -112,7 +112,7 @@ class Wrapped s where
   type Unwrapped s :: *
   -- | An isomorphism between @s@ and @a@.
   _Wrapped' :: Iso' s (Unwrapped s)
-  #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 708
+  #ifdef defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 708
   {-# MINIMAL _Wrapped' #-}
   #endif
 
