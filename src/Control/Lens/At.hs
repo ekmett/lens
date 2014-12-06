@@ -380,6 +380,11 @@ class Ixed m => At m where
   -- you cannot satisfy the 'Lens' laws.
   at :: Index m -> Lens' m (Maybe (IxValue m))
 
+-- | Delete the value associated with a key in a 'Map'-like container
+--
+-- @
+-- 'sans' k = 'at' k .~ Nothing
+-- @
 sans :: At m => Index m -> m -> m
 sans k m = m & at k .~ Nothing
 {-# INLINE sans #-}
