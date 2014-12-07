@@ -432,7 +432,13 @@ lined f = fmap (intercalate "\n") . conjoined traverse (indexing traverse) f . l
 -- Fold/Getter combinators
 --------------------------
 
--- | @
+-- | Map each part of a structure viewed through a 'Lens', 'Getter',
+-- 'Fold' or 'Traversal' to a monoid and combine the results.
+--
+-- >>> foldMapOf (folded . both . _Just) Sum [(Just 21, Just 21)]
+-- Sum {getSum = 42}
+--
+-- @
 -- 'Data.Foldable.foldMap' = 'foldMapOf' 'folded'
 -- @
 --
@@ -457,7 +463,13 @@ foldMapOf :: Profunctor p => Accessing p r s a -> p a r -> s -> r
 foldMapOf l f = getConst #. l (Const #. f)
 {-# INLINE foldMapOf #-}
 
--- | @
+-- | Combine the elements of a structure viewed through a 'Lens', 'Getter',
+-- 'Fold' or 'Traversal' using a monoid.
+--
+-- >>> foldOf (folded.folded) [[Sum 1,Sum 4],[Sum 8, Sum 8],[Sum 21]]
+-- Sum {getSum = 42}
+--
+-- @
 -- 'Data.Foldable.fold' = 'foldOf' 'folded'
 -- @
 --
