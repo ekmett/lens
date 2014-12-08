@@ -1160,6 +1160,14 @@ ifailover l f = failover l (Indexed f)
 -- Mutatis mutandis for 'Fold'.
 --
 -- @
+-- >>> [0,1,2,3] ^? failing (ix 1) (ix 2)
+-- Just 1
+--
+-- >>> [0,1,2,3] ^? failing (ix 42) (ix 2)
+-- Just 2
+-- @
+--
+-- @
 -- 'failing' :: 'Traversal' s t a b -> 'Traversal' s t a b -> 'Traversal' s t a b
 -- 'failing' :: 'Prism' s t a b     -> 'Prism' s t a b     -> 'Traversal' s t a b
 -- 'failing' :: 'Fold' s a          -> 'Fold' s a          -> 'Fold' s a
