@@ -366,6 +366,13 @@ fab ?? a = fmap ($ a) fab
 -- 'inside' :: 'Lens' s t a b -> 'Lens' (e -> s) (e -> t) (e -> a) (e -> b)
 -- @
 --
+-- @
+-- >>> (\x -> (x-1,x+1)) ^. inside _1 $ 5
+-- 4
+--
+-- >>> runState (modify (1:) >> modify (2:)) ^. (inside _2) $ []
+-- [2,1]
+-- @
 inside :: Corepresentable p => ALens s t a b -> Lens (p e s) (p e t) (p e a) (p e b)
 inside l f es = o <$> f i where
   i = cotabulate $ \ e -> ipos $ l sell (corep es e)
