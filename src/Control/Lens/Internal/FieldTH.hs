@@ -145,21 +145,30 @@ buildScaffold rules s cons defName =
                          | otherwise = foldTypeName
                in OpticSa cx optic s' a'
 
-           | _simpleLenses rules || s' == t && a == b =
-               let optic | isoCase && _allowIsos rules = iso'TypeName
-                         | lensCase  = lens'TypeName
-                         | otherwise = traversal'TypeName
+           -- Getter and Fold are always simple
+           | not (_allowUpdates rules) =
+               let optic | lensCase  = getterTypeName
+                         | otherwise = foldTypeName
                in OpticSa [] optic s' a
 
+           -- Generate simple Lens and Traversal where possible
+           | _simpleLenses rules || s' == t && a == b =
+               let optic | isoCase && _allowIsos rules = iso'TypeName
+                         | lensCase                    = lens'TypeName
+                         | otherwise                   = traversal'TypeName
+               in OpticSa [] optic s' a
+
+           -- Generate type-changing Lens and Traversal otherwise
            | otherwise =
                let optic | isoCase && _allowIsos rules = isoTypeName
-                         | lensCase  = lensTypeName
-                         | otherwise = traversalTypeName
+                         | lensCase                    = lensTypeName
+                         | otherwise                   = traversalTypeName
                in OpticStab optic s' t a b
 
-         opticType | has _ForallT a = GetterType
-                   | isoCase        = IsoType
-                   | otherwise      = LensType
+         opticType | has _ForallT a            = GetterType
+                   | not (_allowUpdates rules) = GetterType
+                   | isoCase                   = IsoType
+                   | otherwise                 = LensType
 
      return (opticType, defType, scaffolds)
   where
@@ -516,13 +525,14 @@ applyTypeSubst sub = rewrite aux
 
 
 data LensRules = LensRules
-  { _simpleLenses :: Bool
-  , _generateSigs :: Bool
+  { _simpleLenses    :: Bool
+  , _generateSigs    :: Bool
   , _generateClasses :: Bool
-  , _allowIsos    :: Bool
-  , _fieldToDef   :: Name -> [Name] -> Name -> [DefName]
+  , _allowIsos       :: Bool
+  , _allowUpdates    :: Bool -- ^ Allow Lens/Traversal (otherwise Getter/Fold)
+  , _fieldToDef      :: Name -> [Name] -> Name -> [DefName]
        -- ^ Type Name -> Field Names -> Target Field Name -> Definition Names
-  , _classyLenses :: Name -> Maybe (Name,Name)
+  , _classyLenses    :: Name -> Maybe (Name,Name)
        -- type name to class name and top method
   }
 
