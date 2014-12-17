@@ -54,15 +54,33 @@ toTupleT :: [TypeQ] -> TypeQ
 toTupleT [x] = x
 toTupleT xs = appsT (tupleT (length xs)) xs
 
+-- | Construct a pair representation of a list of types.
+toPairListT:: [TypeQ] -> TypeQ
+toPairListT [] = tupleT 0
+toPairListT [x] = x
+toPairListT xs = foldr1 (appT . appT (tupleT 2)) xs
+
 -- | Construct a tuple value given a list of expressions.
 toTupleE :: [ExpQ] -> ExpQ
 toTupleE [x] = x
 toTupleE xs = tupE xs
 
+-- | Construct a pair representation of a list of expressions.
+toPairListE :: [ExpQ] -> ExpQ
+toPairListE [] = tupE []
+toPairListE [x] = x
+toPairListE xs = foldr1 (\e acc -> tupE [e,acc]) xs
+
 -- | Construct a tuple pattern given a list of patterns.
 toTupleP :: [PatQ] -> PatQ
 toTupleP [x] = x
 toTupleP xs = tupP xs
+
+-- | Construct a pair representation of a list of patterns.
+toPairListP :: [PatQ] -> PatQ
+toPairListP [] = tupP []
+toPairListP [x] = x
+toPairListP xs = foldr1 (\e acc -> tupP [e,acc]) xs
 
 -- | Apply arguments to a type constructor.
 conAppsT :: Name -> [Type] -> Type
