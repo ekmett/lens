@@ -8,6 +8,7 @@
   the generation of only `Getter`s and `Fold`s. This feature is intended
   to be used when the constructors are hidden behind validating, "smart"
   constructors.
+* Fixed Template Haskell name generation when using GHC 7.10
 
 4.6.0.1 [maintenance release]
 -------

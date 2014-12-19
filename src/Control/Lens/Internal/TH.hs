@@ -14,6 +14,10 @@
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.TH
@@ -167,11 +171,19 @@ idValName                = mkNameG_v "base" "GHC.Base" "id"
 fmapValName             :: Name
 fmapValName              = mkNameG_v "base" "GHC.Base" "fmap"
 
+#if MIN_VERSION_base(4,8,0)
+pureValName             :: Name
+pureValName              = mkNameG_v "base" "GHC.Base" "pure"
+
+apValName               :: Name
+apValName                = mkNameG_v "base" "GHC.Base" "<*>"
+#else
 pureValName             :: Name
 pureValName              = mkNameG_v "base" "Control.Applicative" "pure"
 
 apValName               :: Name
 apValName                = mkNameG_v "base" "Control.Applicative" "<*>"
+#endif
 
 rightDataName           :: Name
 rightDataName            = mkNameG_d "base" "Data.Either" "Right"
