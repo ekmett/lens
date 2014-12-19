@@ -4,6 +4,10 @@
 * Added `Data.Vector.Generic.Lens.vectorIx` function for indexing vectors with only `Vector` constraint.
 * Added `Field1` and `Field2` instances for `Data.Functor.Product.Product`.
 * Removed the "typeclass synonym" `Gettable`.
+* Added new flag to `makeLenses`, `generateUpdateableOptics`, which allows
+  the generation of only `Getter`s and `Fold`s. This feature is intended
+  to be used when the constructors are hidden behind validating, "smart"
+  constructors.
 
 4.6.0.1 [maintenance release]
 -------
