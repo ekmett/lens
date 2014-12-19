@@ -88,11 +88,18 @@ fromSet f x = Map.fromList [ (k,f k) | k <- Set.toList x ]
 -- TemplateHaskell language extension when compiling the lens library.
 -- This allows the library to be used in stage1 cross-compilers.
 
+lensPackageKey         :: String
+#ifdef CURRENT_PACKAGE_KEY
+lensPackageKey          = CURRENT_PACKAGE_KEY
+#else
+lensPackageKey          = "lens-" ++ showVersion version
+#endif
+
 mkLensName_tc          :: String -> String -> Name
-mkLensName_tc           = mkNameG_tc ("lens-" ++ showVersion version)
+mkLensName_tc           = mkNameG_tc lensPackageKey
 
 mkLensName_v           :: String -> String -> Name
-mkLensName_v            = mkNameG_v ("lens-" ++ showVersion version)
+mkLensName_v            = mkNameG_v lensPackageKey
 
 traversalTypeName      :: Name
 traversalTypeName       = mkLensName_tc "Control.Lens.Type" "Traversal"
