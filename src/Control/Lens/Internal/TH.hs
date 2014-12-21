@@ -34,8 +34,10 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+#ifndef CURRENT_PACKAGE_KEY
 import Data.Version (showVersion)
 import Paths_lens (version)
+#endif
 
 -- | Compatibility shim for recent changes to template haskell's 'tySynInstD'
 tySynInstD' :: Name -> [TypeQ] -> TypeQ -> DecQ
