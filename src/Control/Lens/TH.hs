@@ -585,12 +585,11 @@ camelCaseFields = defaultFieldRules
 
 camelCaseNamer :: Name -> [Name] -> Name -> [DefName]
 camelCaseNamer tyName fields field = maybeToList $ do
-
-  fieldPart <- stripPrefix expectedPrefix (nameBase field)
+  fieldPart <- stripPrefix expectedPrefix base
+               <|> stripBeforeUpper base
   method    <- computeMethod fieldPart
   let cls = "Has" ++ fieldPart
   return (MethodName (mkName cls) (mkName method))
-
   where
   expectedPrefix = optUnderscore ++ overHead toLower (nameBase tyName)
 
@@ -598,7 +597,9 @@ camelCaseNamer tyName fields field = maybeToList $ do
 
   computeMethod (x:xs) | isUpper x = Just (toLower x : xs)
   computeMethod _                  = Nothing
-
+  base = nameBase field
+  stripBeforeUpper str = let suff = dropWhile (not . isUpper) str
+                         in if suff == str then Nothing else Just suff
 
 -- | Field rules fields in the form @ prefixFieldname or _prefixFieldname @
 -- If you want all fields to be lensed, then there is no reason to use an @_@ before the prefix.
