@@ -1,6 +1,9 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE Safe #-}
 {-# LANGUAGE Rank2Types #-}
+#ifdef TRUSTWORTHY
+-- Safety depends on importing trustworthy modules
+{-# LANGUAGE Safe #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Typeable.Lens
