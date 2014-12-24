@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE Safe #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
@@ -11,6 +10,10 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+#ifdef TRUSTWORTHY
+-- Relies on Control.Lens.Lens being Trustworthy
+{-# LANGUAGE Safe #-}
+#endif
 
 -------------------------------------------------------------------------------
 -- |
