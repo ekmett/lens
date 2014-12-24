@@ -49,6 +49,7 @@ import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Data.Monoid
 import Data.Profunctor.Unsafe
+import Prelude
 
 -- $setup
 -- >>> import Control.Lens

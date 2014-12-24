@@ -64,6 +64,7 @@ import           Data.HashSet (HashSet)
 import           Data.IORef
 import           Data.Monoid
 import           GHC.Exts (realWorld#)
+import           Prelude
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Eta reduce" #-}

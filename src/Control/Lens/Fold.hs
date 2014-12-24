@@ -161,6 +161,7 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Traversable
+import Prelude
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

@@ -32,7 +32,6 @@ import Control.Applicative
 import Control.Monad
 import Language.Haskell.TH.Lens
 import Language.Haskell.TH
-import Data.Traversable (sequenceA)
 import Data.Foldable (toList)
 import Data.Maybe (isJust,maybeToList)
 import Data.List (nub, findIndices)
@@ -41,6 +40,8 @@ import Data.Set.Lens
 import           Data.Map ( Map )
 import qualified Data.Set as Set
 import qualified Data.Map as Map
+import qualified Data.Traversable as T
+import Prelude
 
 
 ------------------------------------------------------------------------
@@ -81,7 +82,7 @@ makeFieldOpticsForDec' rules tyName s cons =
      let allFields  = toListOf (folded . _2 . folded . _1 . folded) fieldCons
      let defCons    = over normFieldLabels (expandName allFields) fieldCons
          allDefs    = setOf (normFieldLabels . folded) defCons
-     perDef <- sequenceA (fromSet (buildScaffold rules s defCons) allDefs)
+     perDef <- T.sequenceA (fromSet (buildScaffold rules s defCons) allDefs)
 
      let defs = Map.toList perDef
      case _classyLenses rules tyName of
@@ -226,7 +227,7 @@ buildStab s categorizedFields =
      let s' = applyTypeSubst subA s
 
      -- compute possible type changes
-     sub <- sequenceA (fromSet (newName . nameBase) unfixedTypeVars)
+     sub <- T.sequenceA (fromSet (newName . nameBase) unfixedTypeVars)
      let (t,b) = over both (substTypeVars sub) (s',a)
 
      return (s',t,a,b)
@@ -246,7 +247,7 @@ makeFieldOptic ::
   DecsQ
 makeFieldOptic rules (defName, (opticType, defType, cons)) =
   do cls <- mkCls
-     sequenceA (cls ++ sig ++ def)
+     T.sequenceA (cls ++ sig ++ def)
   where
   mkCls = case defName of
           MethodName c n | _generateClasses rules ->
@@ -280,7 +281,7 @@ makeClassyDriver ::
   Type {- ^ Outer 's' type -} ->
   [(DefName, (OpticType, OpticStab, [(Name, Int, [Int])]))] ->
   DecsQ
-makeClassyDriver rules className methodName s defs = sequenceA (cls ++ inst)
+makeClassyDriver rules className methodName s defs = T.sequenceA (cls ++ inst)
 
   where
   cls | _generateClasses rules = [makeClassyClass className methodName s defs]

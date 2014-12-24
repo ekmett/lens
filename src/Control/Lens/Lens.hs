@@ -135,6 +135,7 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Void
+import Prelude
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use ***" #-}

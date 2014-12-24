@@ -60,6 +60,7 @@ import Unsafe.Coerce
 #else
 import Data.Profunctor.Unsafe
 #endif
+import Prelude
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 

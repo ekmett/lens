@@ -36,6 +36,7 @@ import Data.Functor.Contravariant
 import Data.Maybe
 import Data.Semigroup hiding (Min, getMin, Max, getMax)
 import Data.Reflection
+import Prelude
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 

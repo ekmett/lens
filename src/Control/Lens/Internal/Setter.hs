@@ -26,6 +26,7 @@ import Data.Functor.Identity
 import Data.Profunctor
 import Data.Profunctor.Unsafe
 import Data.Traversable
+import Prelude
 
 -----------------------------------------------------------------------------
 -- Settable

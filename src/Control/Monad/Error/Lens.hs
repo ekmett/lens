@@ -33,8 +33,9 @@ import Control.Lens.Internal.Exception
 import Control.Monad
 import Control.Monad.Error.Class
 import Data.Functor.Plus
-import Data.Monoid (Monoid(..), First(..))
+import qualified Data.Monoid as M
 import Data.Semigroup (Semigroup(..))
+import Prelude
 
 ------------------------------------------------------------------------------
 -- Catching
@@ -50,7 +51,7 @@ import Data.Semigroup (Semigroup(..))
 -- 'catching' :: 'MonadError' e m => 'Getter' e a     -> m r -> (a -> m r) -> m r
 -- 'catching' :: 'MonadError' e m => 'Fold' e a       -> m r -> (a -> m r) -> m r
 -- @
-catching :: MonadError e m => Getting (First a) e a -> m r -> (a -> m r) -> m r
+catching :: MonadError e m => Getting (M.First a) e a -> m r -> (a -> m r) -> m r
 catching l = catchJust (preview l)
 {-# INLINE catching #-}
 
@@ -67,7 +68,7 @@ catching l = catchJust (preview l)
 -- 'catching_' :: 'MonadError' e m => 'Getter' e a     -> m r -> m r -> m r
 -- 'catching_' :: 'MonadError' e m => 'Fold' e a       -> m r -> m r -> m r
 -- @
-catching_ :: MonadError e m => Getting (First a) e a -> m r -> m r -> m r
+catching_ :: MonadError e m => Getting (M.First a) e a -> m r -> m r -> m r
 catching_ l a b = catchJust (preview l) a (const b)
 {-# INLINE catching_ #-}
 
@@ -86,7 +87,7 @@ catching_ l a b = catchJust (preview l) a (const b)
 -- 'handling' :: 'MonadError' e m => 'Fold' e a       -> (a -> m r) -> m r -> m r
 -- 'handling' :: 'MonadError' e m => 'Getter' e a     -> (a -> m r) -> m r -> m r
 -- @
-handling :: MonadError e m => Getting (First a) e a -> (a -> m r) -> m r -> m r
+handling :: MonadError e m => Getting (M.First a) e a -> (a -> m r) -> m r -> m r
 handling l = flip (catching l)
 {-# INLINE handling #-}
 
@@ -101,7 +102,7 @@ handling l = flip (catching l)
 -- 'handling_' :: 'MonadError' e m => 'Getter' e a     -> m r -> m r -> m r
 -- 'handling_' :: 'MonadError' e m => 'Fold' e a       -> m r -> m r -> m r
 -- @
-handling_ :: MonadError e m => Getting (First a) e a -> m r -> m r -> m r
+handling_ :: MonadError e m => Getting (M.First a) e a -> m r -> m r -> m r
 handling_ l = flip (catching_ l)
 {-# INLINE handling_ #-}
 
@@ -120,7 +121,7 @@ handling_ l = flip (catching_ l)
 -- 'trying' :: 'MonadError' e m => 'Getter' e a     -> m r -> m ('Either' a r)
 -- 'trying' :: 'MonadError' e m => 'Fold' e a       -> m r -> m ('Either' a r)
 -- @
-trying :: MonadError e m => Getting (First a) e a -> m r -> m (Either a r)
+trying :: MonadError e m => Getting (M.First a) e a -> m r -> m (Either a r)
 trying l m = catching l (liftM Right m) (return . Left)
 
 ------------------------------------------------------------------------------
@@ -173,7 +174,7 @@ instance Monad m => Functor (Handler e m) where
   {-# INLINE fmap #-}
 
 instance Monad m => Semigroup (Handler e m a) where
-  (<>) = mappend
+  (<>) = M.mappend
   {-# INLINE (<>) #-}
 
 instance Monad m => Alt (Handler e m) where
@@ -186,7 +187,7 @@ instance Monad m => Plus (Handler e m) where
   zero = Handler (const Nothing) undefined
   {-# INLINE zero #-}
 
-instance Monad m => Monoid (Handler e m a) where
+instance Monad m => M.Monoid (Handler e m a) where
   mempty = zero
   {-# INLINE mempty #-}
   mappend = (<!>)

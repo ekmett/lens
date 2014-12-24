@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
 #ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE Safe #-}
 #endif
 
 {-# OPTIONS_GHC -fno-warn-orphans -fno-warn-warnings-deprecations #-}

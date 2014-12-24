@@ -61,6 +61,7 @@ import Control.Lens.Internal.Indexed
 import Data.Functor.Contravariant
 import Data.Functor.Apply
 import Data.Profunctor
+import Prelude ()
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
