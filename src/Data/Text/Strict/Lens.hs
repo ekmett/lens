@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE Safe #-}
 {-# LANGUAGE FlexibleContexts #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Text.Strict.Lens

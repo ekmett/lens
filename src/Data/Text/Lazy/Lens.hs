@@ -1,7 +1,9 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE Safe #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Text.Lazy.Lens

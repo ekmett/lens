@@ -11,8 +11,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 #ifdef TRUSTWORTHY
--- Relies on Control.Lens.Lens being Trustworthy
-{-# LANGUAGE Safe #-}
+{-# LANGUAGE Trustworthy #-}
 #endif
 
 -------------------------------------------------------------------------------
