@@ -1,13 +1,11 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE Safe #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Level

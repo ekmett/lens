@@ -1,10 +1,8 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE Safe #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Fold
