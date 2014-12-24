@@ -68,6 +68,7 @@ import Prelude ()
 -- >>> import Control.Lens
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)
+-- >>> import Prelude
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 -- >>> let h :: Expr -> Expr -> Expr; h = Debug.SimpleReflect.Vars.h
