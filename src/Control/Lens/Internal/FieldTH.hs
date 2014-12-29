@@ -38,6 +38,7 @@ import Data.List (nub, findIndices)
 import Data.Either (partitionEithers)
 import Data.Set.Lens
 import           Data.Map ( Map )
+import           Data.Set ( Set )
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.Traversable as T
@@ -205,6 +206,10 @@ stabToType :: OpticStab -> Type
 stabToType (OpticStab  c s t a b) = quantifyType [] (c `conAppsT` [s,t,a,b])
 stabToType (OpticSa cx c s   a  ) = quantifyType cx (c `conAppsT` [s,a])
 
+stabToContext :: OpticStab -> Cxt
+stabToContext (OpticStab _ _ _ _ _) = []
+stabToContext (OpticSa cx _ _ _)    = cx
+
 stabToOptic :: OpticStab -> Name
 stabToOptic (OpticStab c _ _ _ _) = c
 stabToOptic (OpticSa _ c _ _) = c
@@ -308,12 +313,16 @@ makeClassyClass className methodName s defs = do
   classD (cxt[]) className (map PlainTV (c:vars)) fd
     $ sigD methodName (return (lens'TypeName `conAppsT` [VarT c, s']))
     : concat
-      [ [sigD defName (return (stabToOptic stab `conAppsT` [VarT c, applyTypeSubst sub (stabToA stab)]))
+      [ [sigD defName (return ty)
         ,valD (varP defName) (normalB body) []
         ] ++
         inlinePragma defName
       | (TopName defName, (_, stab, _)) <- defs
       , let body = appsE [varE composeValName, varE methodName, varE defName]
+      , let ty   = quantifyType' (Set.fromList (c:vars))
+                                 (stabToContext stab)
+                 $ stabToOptic stab `conAppsT`
+                       [VarT c, applyTypeSubst sub (stabToA stab)]
       ]
 
 
@@ -347,7 +356,9 @@ makeFieldClass defType className methodName =
   classD (cxt []) className [PlainTV s, PlainTV a] [FunDep [s] [a]]
          [sigD methodName (return methodType)]
   where
-  methodType = stabToOptic defType `conAppsT` [VarT s,VarT a]
+  methodType = quantifyType' (Set.fromList [s,a])
+                             (stabToContext defType)
+             $ stabToOptic defType `conAppsT` [VarT s,VarT a]
   s = mkName "s"
   a = mkName "a"
 
@@ -555,6 +566,13 @@ quantifyType :: Cxt -> Type -> Type
 quantifyType c t = ForallT vs c t
   where
   vs = map PlainTV (toList (setOf typeVars t))
+
+-- | This function works like 'quantifyType' except that it takes
+-- a list of variables to exclude from quantification.
+quantifyType' :: Set Name -> Cxt -> Type -> Type
+quantifyType' exclude c t = ForallT vs c t
+  where
+  vs = map PlainTV (toList (setOf typeVars t Set.\\ exclude))
 
 
 ------------------------------------------------------------------------
