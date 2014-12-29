@@ -207,8 +207,8 @@ stabToType (OpticStab  c s t a b) = quantifyType [] (c `conAppsT` [s,t,a,b])
 stabToType (OpticSa cx c s   a  ) = quantifyType cx (c `conAppsT` [s,a])
 
 stabToContext :: OpticStab -> Cxt
-stabToContext (OpticStab _ _ _ _ _) = []
-stabToContext (OpticSa cx _ _ _)    = cx
+stabToContext OpticStab{}        = []
+stabToContext (OpticSa cx _ _ _) = cx
 
 stabToOptic :: OpticStab -> Name
 stabToOptic (OpticStab c _ _ _ _) = c
