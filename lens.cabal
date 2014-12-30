@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses, Generics
-version:       4.7
+version:       4.8
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -248,7 +248,6 @@ library
     Control.Lens.Iso
     Control.Lens.Lens
     Control.Lens.Level
-    Control.Lens.Loupe
     Control.Lens.Operators
     Control.Lens.Plated
     Control.Lens.Prism

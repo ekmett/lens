@@ -122,9 +122,6 @@ module Control.Lens.Fold
   , itakingWhile
   , idroppingWhile
 
-  -- * Deprecated
-  , headOf
-
   -- * Internal types
   , Leftmost
   , Rightmost
@@ -2389,16 +2386,6 @@ idroppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
       b' = b && p i a
     in (if b' then pure a else indexed f i a, b')
 {-# INLINE idroppingWhile #-}
-
-------------------------------------------------------------------------------
--- Deprecated
-------------------------------------------------------------------------------
-
--- | A deprecated alias for 'firstOf'.
-headOf :: Getting (First a) s a -> s -> Maybe a
-headOf l = getFirst #. foldMapOf l (First #. Just)
-{-# INLINE headOf #-}
-{-# DEPRECATED headOf "`headOf' will be removed after GHC 7.8 is released. (Use `preview' or `firstOf')" #-}
 
 ------------------------------------------------------------------------------
 -- Misc.

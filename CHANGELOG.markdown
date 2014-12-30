@@ -1,3 +1,8 @@
+4.8
+---
+* Remove deprecated stuff: Control.Lens.Loupe, headOf, makeFieldsWith,
+  strippingPrefix, strippingSuffix
+
 4.7
 ---
 * Migrated `Control.Lens.Action` to `lens-action`.

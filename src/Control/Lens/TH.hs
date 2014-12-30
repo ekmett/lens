@@ -26,7 +26,6 @@ module Control.Lens.TH
   , makeClassyPrisms
   , makeWrapped
   , makeFields
-  , makeFieldsWith
   -- * Constructing Lenses Given a Declaration Quote
   , declareLenses, declareLensesFor
   , declareClassy, declareClassyFor
@@ -666,11 +665,6 @@ abbreviatedNamer _ fields field = maybeToList $ do
 -- @
 makeFields :: Name -> DecsQ
 makeFields = makeFieldOptics camelCaseFields
-
--- | Deprecated alias for 'makeLensesWith'
-makeFieldsWith :: LensRules -> Name -> DecsQ
-makeFieldsWith = makeLensesWith
-{-# DEPRECATED makeFieldsWith "Use `makeLensesWith`, functionality merged" #-}
 
 defaultFieldRules :: LensRules
 defaultFieldRules = LensRules
