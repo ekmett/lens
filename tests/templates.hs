@@ -23,7 +23,6 @@
 module Main where
 
 import Control.Lens
-import Data.List (nub)
 -- import Test.QuickCheck (quickCheck)
 
 data Bar a b c = Bar { _baz :: (a, b) }
