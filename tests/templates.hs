@@ -28,46 +28,66 @@ import Data.List (nub)
 
 data Bar a b c = Bar { _baz :: (a, b) }
 makeLenses ''Bar
--- baz :: Lens (Bar a b c) (Bar a' b' c) (a,b) (a',b')
--- upgrades to:
--- baz :: Iso (Bar a b c) (Bar a' b' c') (a, b) (a', b')
+
+checkBaz :: Iso (Bar a b c) (Bar a' b' c') (a, b) (a', b')
+checkBaz = baz
 
 data Quux a b = Quux { _quaffle :: Int, _quartz :: Double }
 makeLenses ''Quux
--- quaffle :: Lens (Quux a b) (Quux a' b') Int Int
--- quartz :: Lens (Quux a b) (Quux a' b') Double Double
+
+checkQuaffle :: Lens (Quux a b) (Quux a' b') Int Int
+checkQuaffle = quaffle
+
+checkQuartz :: Lens (Quux a b) (Quux a' b') Double Double
+checkQuartz = quartz
 
 data Quark a = Qualified   { _gaffer :: a }
              | Unqualified { _gaffer :: a, _tape :: a }
 makeLenses ''Quark
--- gaffer :: Simple Lens (Quark a) a
--- tape :: Simple Traversal (Quark a) a
+
+checkGaffer :: Lens' (Quark a) a
+checkGaffer = gaffer
+
+checkTape :: Traversal' (Quark a) a
+checkTape = tape
 
 data Hadron a b = Science { _a1 :: a, _a2 :: a, _c :: b }
 makeLenses ''Hadron
--- a1 :: Simple Lens (Hadron a b) a
--- a2 :: Simple Lens (Hadron a b) a
--- c :: Lens (Hadron a b) (Hadron a b') b b'
+
+checkA1 :: Lens' (Hadron a b) a
+checkA1 = a1
+
+checkA2 :: Lens' (Hadron a b) a
+checkA2 = a2 
+
+checkC :: Lens (Hadron a b) (Hadron a b') b b'
+checkC = c
 
 data Perambulation a b
   = Mountains { _terrain :: a, _altitude :: b }
   | Beaches   { _terrain :: a, _dunes :: a }
 makeLenses ''Perambulation
--- terrain :: Simple Lens (Perambulation a b) a
--- altitude :: Traversal (Perambulation a b) (Parambulation a b') b b'
--- dunes :: Simple Traversal (Perambulation a b) a
+
+checkTerrain :: Lens' (Perambulation a b) a
+checkTerrain = terrain
+
+checkAltitude :: Traversal (Perambulation a b) (Perambulation a b') b b'
+checkAltitude = altitude
+
+checkDunes :: Traversal' (Perambulation a b) a
+checkDunes = dunes
+
 makeLensesFor [("_terrain", "allTerrain"), ("_dunes", "allTerrain")] ''Perambulation
--- allTerrain :: Traversal (Perambulation a b) (Perambulation a' b) a a'
+
+checkAllTerrain :: Traversal (Perambulation a b) (Perambulation a' b) a a'
+checkAllTerrain = allTerrain
 
 data LensCrafted a = Still { _still :: a }
                    | Works { _still :: a }
 makeLenses ''LensCrafted
--- still :: Lens (LensCrafted a) (LensCrafted b) a b
 
-data Danger a = Zone { _highway :: a }
-              | Twilight
---makeLensesWith (partialLenses .~ True $ buildTraversals .~ False $ lensRules) ''Danger
--- highway :: Lens (Danger a) (Danger a') a a'
+checkStill :: Lens (LensCrafted a) (LensCrafted b) a b
+checkStill = still
 
 data Task a = Task
   { taskOutput :: a -> IO ()
@@ -77,21 +97,48 @@ data Task a = Task
 
 makeLensesFor [("taskOutput", "outputLens"), ("taskState", "stateLens"), ("taskStop", "stopLens")] ''Task
 
+checkOutputLens :: Lens' (Task a) (a -> IO ())
+checkOutputLens = outputLens
+
+checkStateLens :: Lens' (Task a) a
+checkStateLens = stateLens
+
+checkStopLens :: Lens' (Task a) (IO ())
+checkStopLens = stopLens
+
 data Mono a = Mono { _monoFoo :: a, _monoBar :: Int }
 makeClassy ''Mono
 -- class HasMono t where
 --   mono :: Simple Lens t Mono
 -- instance HasMono Mono where
 --   mono = id
--- monoFoo :: HasMono t => Simple Lens t Int
--- monoBar :: HasMono t => Simple Lens t Int
+
+checkMono :: HasMono t a => Lens' t (Mono a)
+checkMono = mono
+
+checkMono' :: Lens' (Mono a) (Mono a)
+checkMono' = mono
+
+checkMonoFoo :: HasMono t a => Lens' t a
+checkMonoFoo = monoFoo
+
+checkMonoBar :: HasMono t a => Lens' t Int
+checkMonoBar = monoBar
 
 data Nucleosis = Nucleosis { _nuclear :: Mono Int }
 makeClassy ''Nucleosis
 -- class HasNucleosis t where
 --   nucleosis :: Simple Lens t Nucleosis
 -- instance HasNucleosis Nucleosis
--- nuclear :: HasNucleosis t => Simple Lens t Mono
+
+checkNucleosis :: HasNucleosis t => Lens' t Nucleosis
+checkNucleosis = nucleosis
+
+checkNucleosis' :: Lens' Nucleosis Nucleosis
+checkNucleosis' = nucleosis
+
+checkNuclear :: HasNucleosis t => Lens' t (Mono Int)
+checkNuclear = nuclear
 
 instance HasMono Nucleosis Int where
   mono = nuclear
@@ -100,6 +147,17 @@ instance HasMono Nucleosis Int where
 data Foo = Foo { _fooX, _fooY :: Int }
 makeClassy ''Foo
 
+checkFoo :: HasFoo t => Lens' t Foo
+checkFoo = foo
+
+checkFoo' :: Lens' Foo Foo
+checkFoo' = foo
+
+checkFooX :: HasFoo t => Lens' t Int
+checkFooX = fooX
+
+checkFooY :: HasFoo t => Lens' t Int
+checkFooY = fooY
 
 data Dude a = Dude
     { dudeLevel        :: Int
@@ -107,22 +165,76 @@ data Dude a = Dude
     , dudeLife         :: ()
     , dudeThing        :: a
     }
+makeFields ''Dude
+
+checkLevel :: HasLevel t a => Lens' t a
+checkLevel = level
+
+checkLevel' :: Lens' (Dude a) Int
+checkLevel' = level
+
+checkAlias :: HasAlias t a => Lens' t a
+checkAlias = alias
+
+checkAlias' :: Lens' (Dude a) String
+checkAlias' = alias
+
+checkLife :: HasLife t a => Lens' t a
+checkLife = life
+
+checkLife' :: Lens' (Dude a) ()
+checkLife' = life
+
+checkThing :: HasThing t a => Lens' t a
+checkThing = thing
+
+checkThing' :: Lens' (Dude a) a
+checkThing' = thing
+
 data Lebowski a = Lebowski
     { _lebowskiAlias    :: String
     , _lebowskiLife     :: Int
     , _lebowskiMansion  :: String
     , _lebowskiThing    :: Maybe a
     }
+makeFields ''Lebowski
+
+checkAlias2 :: Lens' (Lebowski a) String
+checkAlias2 = alias
+
+checkLife2 :: Lens' (Lebowski a) Int
+checkLife2 = life
+
+checkMansion :: HasMansion t a => Lens' t a
+checkMansion = mansion
+
+checkMansion' :: Lens' (Lebowski a) String
+checkMansion' = mansion
+
+checkThing2 :: Lens' (Lebowski a) (Maybe a)
+checkThing2 = thing
+
 data AbideConfiguration a = AbideConfiguration
     { _acLocation       :: String
     , _acDuration       :: Int
     , _acThing          :: a
     }
-
-
-makeFields ''Dude
-makeFields ''Lebowski
 makeLensesWith abbreviatedFields ''AbideConfiguration
+
+checkLocation :: HasLocation t a => Lens' t a
+checkLocation = location
+
+checkLocation' :: Lens' (AbideConfiguration a) String
+checkLocation' = location
+
+checkDuration :: HasDuration t a => Lens' t a
+checkDuration = duration
+
+checkDuration' :: Lens' (AbideConfiguration a) Int
+checkDuration' = duration
+
+checkThing3 :: Lens' (AbideConfiguration a) a
+checkThing3 = thing
 
 dudeDrink :: String
 dudeDrink      = (Dude 9 "El Duderino" () "white russian")      ^. thing 
@@ -136,27 +248,47 @@ declareLenses [d|
                 | Unqualified1 { gaffer1 :: a, tape1 :: a }
   |]
 -- data Quark1 a = Qualified1 a | Unqualified1 a a
--- gaffer1 :: Lens' (Quark1 a) a
--- tape1 :: Traversal (Quark1 a) (Quark1 b) a b
+
+checkGaffer1 :: Lens' (Quark1 a) a
+checkGaffer1 = gaffer1
+
+checkTape1 :: Traversal' (Quark1 a) a
+checkTape1 = tape1
 
 declarePrisms [d|
   data Exp = Lit Int | Var String | Lambda { bound::String, body::Exp }
   |]
 -- data Exp = Lit Int | Var String | Lambda { bound::String, body::Exp }
--- _Lit :: Prism' Exp Int
--- _Var :: Prism' Exp String
--- _Lambda :: Prism' Exp (String, Exp)
+
+checkLit :: Int -> Exp
+checkLit = Lit
+
+checkVar :: String -> Exp
+checkVar = Var
+
+checkLambda :: String -> Exp -> Exp
+checkLambda = Lambda
+
+check_Lit :: Prism' Exp Int
+check_Lit = _Lit
+
+check_Var :: Prism' Exp String
+check_Var = _Var
+
+check_Lambda :: Prism' Exp (String, Exp)
+check_Lambda = _Lambda
+
 
 declarePrisms [d|
   data Banana = Banana Int String
   |]
 -- data Banana = Banana Int String
--- _Banana :: Iso' Banana (Int, String)
+
+check_Banana :: Iso' Banana (Int, String)
+check_Banana = _Banana
+
 cavendish :: Banana
 cavendish = _Banana # (4, "Cavendish")
-
-banana :: Iso' (Int, String) Banana
-banana = from _Banana
 
 data family Family a b c
 
@@ -165,8 +297,12 @@ declareLenses [d|
   data instance Family Int (a, b) a = FamilyInt { fm0 :: (b, a), fm1 :: Int }
   |]
 -- data instance Family Int (a, b) a = FamilyInt a b
--- fm0 :: Lens (Family Int (a, b) a) (Family Int (a', b') a') (b, a) (b', a')
--- fm1 :: Lens' (Family Int (a, b) a) Int
+checkFm0 :: Lens (Family Int (a, b) a) (Family Int (a', b') a') (b, a) (b', a')
+checkFm0 = fm0
+
+checkFm1 :: Lens' (Family Int (a, b) a) Int
+checkFm1 = fm1
+
 #endif
 
 class Class a where
@@ -182,37 +318,50 @@ declareLenses [d|
 -- instance Class Int where
 --   data Associated Int = AssociatedInt Double
 --   method = id
--- mochi :: Iso' (Associated Int) Double
 
-#if __GLASGOW_HASKELL >= 706
+checkMochi :: Iso' (Associated Int) Double
+checkMochi = mochi
+
+#if __GLASGOW_HASKELL__ >= 706
 declareFields [d|
   data DeclaredFields f a
-    = DeclaredField1 { declaredFieldsA :: f a    , declaredFieldsB :: Int }
-    | DeclaredField2 { declaredFieldsC :: String , declaredFieldsB :: Int }
+    = DeclaredField1 { declaredFieldsA0 :: f a    , declaredFieldsB0 :: Int }
+    | DeclaredField2 { declaredFieldsC0 :: String , declaredFieldsB0 :: Int }
     deriving (Show)
   |]
 
-declaredFieldsUse1 :: [Bool]
-declaredFieldsUse1 = view fieldsA (DeclaredField1 [True] 0)
+checkA0 :: HasA0 t a => Traversal' t a
+checkA0 = a0
 
-declaredFieldsUse2 :: [DeclaredFields [] ()]
-declaredFieldsUse2 = over (traverse.fieldsB) (+1) [DeclaredField1 [()] 0, DeclaredField2 "" 1]
+checkB0 :: HasB0 t a => Lens' t a
+checkB0 = b0
+
+checkC0 :: HasC0 t a => Traversal' t a
+checkC0 = c0
+
+checkA0' :: Traversal' (DeclaredFields f a) (f a)
+checkA0' = a0
+
+checkB0' :: Lens' (DeclaredFields f a) Int
+checkB0' = b0
+
+checkC0' :: Traversal' (DeclaredFields f a) String
+checkC0' = c0
 #endif
 
 data Rank2Tests
   = C1 { _r2length :: forall a. [a] -> Int
-       , _r2nub    :: forall a. Eq a=> [a] -> [a]
+       , _r2nub    :: forall a. Eq a => [a] -> [a]
        }
   | C2 { _r2length :: forall a. [a] -> Int }
 
 makeLenses ''Rank2Tests
 
-useFold1 :: Maybe [Bool]
-useFold1  = C1 length nub ^? r2nub . to ($ [False,True,True])
-useFold2 :: Maybe [Bool]
-useFold2  = C2 length     ^? r2nub . to ($ [False,True,True])
-useLength :: Int
-useLength = C1 length nub ^. r2length . to ($ [False,True,True])
+checkR2length :: Getter Rank2Tests ([a] -> Int)
+checkR2length = r2length
+
+checkR2nub :: Eq a => Fold Rank2Tests ([a] -> [a])
+checkR2nub = r2nub
 
 data PureNoFields = PureNoFieldsA | PureNoFieldsB { _pureNoFields :: Int }
 makeLenses ''PureNoFields

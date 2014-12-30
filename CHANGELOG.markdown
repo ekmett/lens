@@ -9,6 +9,8 @@
   to be used when the constructors are hidden behind validating, "smart"
   constructors.
 * Fixed Template Haskell name generation when using GHC 7.10
+* Fixed Template Haskell generation of classes methods where field types used
+  existential quantification
 
 4.6.0.1 [maintenance release]
 -------
