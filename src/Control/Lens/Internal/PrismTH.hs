@@ -1,4 +1,7 @@
 {-# LANGUAGE CPP #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
+#endif
 
 -----------------------------------------------------------------------------
 -- |

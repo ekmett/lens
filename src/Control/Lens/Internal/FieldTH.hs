@@ -1,5 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
+#endif
 
 -----------------------------------------------------------------------------
 -- |
