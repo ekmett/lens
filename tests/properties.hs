@@ -70,7 +70,7 @@ prop__Right                          = isPrism (_Right :: Prism' (Either Int Boo
 prop__Just                           = isPrism (_Just :: Prism' (Maybe Int) Int)
 
 -- Data.List.Lens
-prop_strippingPrefix s               = isPrism (strippingPrefix s :: Prism' String String)
+prop_prefixed s                      = isPrism (prefixed s :: Prism' String String)
 
 -- Data.Text.Lens
 prop_text s                          = s^.packed.from packed == s
