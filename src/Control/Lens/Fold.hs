@@ -1686,12 +1686,12 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 -- exists, as a 'Maybe'.
 --
 -- @
--- 'pre' :: 'Getter' s a           -> 'IndexPreservingGetter' s ('Maybe' a)
--- 'pre' :: 'Fold' s a             -> 'IndexPreservingGetter' s ('Maybe' a)
--- 'pre' :: 'Simple' 'Traversal' s a -> 'IndexPreservingGetter' s ('Maybe' a)
--- 'pre' :: 'Simple' 'Lens' s a      -> 'IndexPreservingGetter' s ('Maybe' a)
--- 'pre' :: 'Simple' 'Iso' s a       -> 'IndexPreservingGetter' s ('Maybe' a)
--- 'pre' :: 'Simple' 'Prism' s a     -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Getter' s a     -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Fold' s a       -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Traversal'' s a -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Lens'' s a      -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Iso'' s a       -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Prism'' s a     -> 'IndexPreservingGetter' s ('Maybe' a)
 -- @
 pre :: Getting (First a) s a -> IndexPreservingGetter s (Maybe a)
 pre l = dimap (getFirst . getConst #. l (Const #. First #. Just)) coerce
@@ -1701,10 +1701,10 @@ pre l = dimap (getFirst . getConst #. l (Const #. First #. Just)) coerce
 -- and element, if they exist, as a 'Maybe'.
 --
 -- @
--- 'ipre' :: 'IndexedGetter' i s a             -> 'IndexPreservingGetter' s ('Maybe' (i, a))
--- 'ipre' :: 'IndexedFold' i s a               -> 'IndexPreservingGetter' s ('Maybe' (i, a))
--- 'ipre' :: 'Simple' ('IndexedTraversal' i) s a -> 'IndexPreservingGetter' s ('Maybe' (i, a))
--- 'ipre' :: 'Simple' ('IndexedLens' i) s a      -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- 'ipre' :: 'IndexedGetter' i s a     -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- 'ipre' :: 'IndexedFold' i s a       -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- 'ipre' :: 'IndexedTraversal'' i s a -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- 'ipre' :: 'IndexedLens'' i s a      -> 'IndexPreservingGetter' s ('Maybe' (i, a))
 -- @
 ipre :: IndexedGetting i (First (i, a)) s a -> IndexPreservingGetter s (Maybe (i, a))
 ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (i, a))))) coerce

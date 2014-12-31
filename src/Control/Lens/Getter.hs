@@ -455,7 +455,7 @@ iuses l = uses l .# Indexed
 s ^@. l = getConst $ l (Indexed $ \i -> Const #. (,) i) s
 {-# INLINE (^@.) #-}
 
--- | Coerce a 'Getter'-compatible 'LensLike' to a 'Simple' 'LensLike'. This
+-- | Coerce a 'Getter'-compatible 'LensLike' to a 'LensLike''. This
 -- is useful when using a 'Traversal' that is not simple as a 'Getter' or a
 -- 'Fold'.
 coerced :: (Functor f, Contravariant f) => LensLike f s t a b -> LensLike' f s a

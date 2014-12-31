@@ -50,7 +50,7 @@ l </>~ n = over l (</> n)
 {-# INLINE (</>~) #-}
 
 
--- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by adding a path.
+-- | Modify the target(s) of a 'Lens'', 'Iso'', 'Setter'' or 'Traversal'' by adding a path.
 --
 -- >>> execState (both </>= "bin") ("hello","world")
 -- ("hello/bin","world/bin")
@@ -106,7 +106,7 @@ l <<</>= b = l %%= \a -> (a, a </> b)
 l <.>~ n = over l (<.> n)
 {-# INLINE (<.>~) #-}
 
--- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by adding an extension.
+-- | Modify the target(s) of a 'Lens'', 'Iso'', 'Setter'' or 'Traversal'' by adding an extension.
 --
 -- >>> execState (both <.>= "txt") ("hello","world")
 -- ("hello.txt","world.txt")
