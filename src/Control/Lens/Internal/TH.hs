@@ -14,6 +14,10 @@
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.TH
@@ -30,8 +34,10 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+#ifndef CURRENT_PACKAGE_KEY
 import Data.Version (showVersion)
 import Paths_lens (version)
+#endif
 
 -- | Compatibility shim for recent changes to template haskell's 'tySynInstD'
 tySynInstD' :: Name -> [TypeQ] -> TypeQ -> DecQ
@@ -88,11 +94,18 @@ fromSet f x = Map.fromList [ (k,f k) | k <- Set.toList x ]
 -- TemplateHaskell language extension when compiling the lens library.
 -- This allows the library to be used in stage1 cross-compilers.
 
+lensPackageKey         :: String
+#ifdef CURRENT_PACKAGE_KEY
+lensPackageKey          = CURRENT_PACKAGE_KEY
+#else
+lensPackageKey          = "lens-" ++ showVersion version
+#endif
+
 mkLensName_tc          :: String -> String -> Name
-mkLensName_tc           = mkNameG_tc ("lens-" ++ showVersion version)
+mkLensName_tc           = mkNameG_tc lensPackageKey
 
 mkLensName_v           :: String -> String -> Name
-mkLensName_v            = mkNameG_v ("lens-" ++ showVersion version)
+mkLensName_v            = mkNameG_v lensPackageKey
 
 traversalTypeName      :: Name
 traversalTypeName       = mkLensName_tc "Control.Lens.Type" "Traversal"
@@ -160,11 +173,19 @@ idValName                = mkNameG_v "base" "GHC.Base" "id"
 fmapValName             :: Name
 fmapValName              = mkNameG_v "base" "GHC.Base" "fmap"
 
+#if MIN_VERSION_base(4,8,0)
+pureValName             :: Name
+pureValName              = mkNameG_v "base" "GHC.Base" "pure"
+
+apValName               :: Name
+apValName                = mkNameG_v "base" "GHC.Base" "<*>"
+#else
 pureValName             :: Name
 pureValName              = mkNameG_v "base" "Control.Applicative" "pure"
 
 apValName               :: Name
 apValName                = mkNameG_v "base" "Control.Applicative" "<*>"
+#endif
 
 rightDataName           :: Name
 rightDataName            = mkNameG_d "base" "Data.Either" "Right"

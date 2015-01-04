@@ -16,9 +16,6 @@ module Data.List.Lens
   ( prefixed
   , suffixed
   , stripSuffix
-  -- * Deprecated
-  , strippingPrefix
-  , strippingSuffix
   ) where
 
 import Control.Monad (guard)
@@ -78,16 +75,3 @@ stripSuffix qs xs0 = go xs0 zs
     go xs [] = zipWith const xs0 zs <$ guard (xs == qs)
     go [] _  = Nothing -- impossible
 {-# INLINE stripSuffix #-}
-
--- | This is a deprecated alias for 'prefixed'.
-strippingPrefix :: Eq a => [a] -> Prism' [a] [a]
-strippingPrefix = prefixed
-{-# INLINE strippingPrefix #-}
-{-# DEPRECATED strippingPrefix "Use 'prefixed'." #-}
-
--- | This is a deprecated alias for 'suffixed'.
-strippingSuffix :: Eq a => [a] -> Prism' [a] [a]
-strippingSuffix = suffixed
-{-# INLINE strippingSuffix #-}
-{-# DEPRECATED strippingSuffix "Use 'suffixed'." #-}
-

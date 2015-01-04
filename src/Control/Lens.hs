@@ -55,7 +55,6 @@ module Control.Lens
   , module Control.Lens.Iso
   , module Control.Lens.Lens
   , module Control.Lens.Level
-  , module Control.Lens.Loupe
   , module Control.Lens.Plated
   , module Control.Lens.Prism
   , module Control.Lens.Reified
@@ -82,7 +81,6 @@ import Control.Lens.Indexed
 import Control.Lens.Iso
 import Control.Lens.Lens
 import Control.Lens.Level
-import Control.Lens.Loupe
 import Control.Lens.Plated
 import Control.Lens.Prism
 import Control.Lens.Reified

@@ -61,12 +61,14 @@ import Control.Lens.Internal.Indexed
 import Data.Functor.Contravariant
 import Data.Functor.Apply
 import Data.Profunctor
+import Prelude ()
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)
+-- >>> import Prelude
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
 -- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
 -- >>> let h :: Expr -> Expr -> Expr; h = Debug.SimpleReflect.Vars.h

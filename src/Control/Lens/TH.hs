@@ -26,7 +26,6 @@ module Control.Lens.TH
   , makeClassyPrisms
   , makeWrapped
   , makeFields
-  , makeFieldsWith
   -- * Constructing Lenses Given a Declaration Quote
   , declareLenses, declareLensesFor
   , declareClassy, declareClassyFor
@@ -51,6 +50,8 @@ module Control.Lens.TH
   , simpleLenses
   , createClass
   , generateSignatures
+  , generateUpdateableOptics
+  , generateLazyPatterns
   ) where
 
 import Control.Applicative
@@ -100,6 +101,21 @@ generateSignatures :: Lens' LensRules Bool
 generateSignatures f r =
   fmap (\x -> r { _generateSigs = x}) (f (_generateSigs r))
 
+-- | Generate "updateable" optics when 'True'. When 'False', 'Fold's will be
+-- generated instead of 'Traversal's and 'Getter's will be generated instead
+-- of 'Lens'es. This mode is intended to be used for types with invariants
+-- which must be maintained by "smart" constructors.
+generateUpdateableOptics :: Lens' LensRules Bool
+generateUpdateableOptics f r =
+  fmap (\x -> r { _allowUpdates = x}) (f (_allowUpdates r))
+
+-- | Generate optics using lazy pattern matches. This can
+-- allow fields of an undefined value to be initialized with lenses,
+-- and is the default behavior.
+generateLazyPatterns :: Lens' LensRules Bool
+generateLazyPatterns f r =
+  fmap (\x -> r { _lazyPatterns = x}) (f (_lazyPatterns r))
+
 -- | Create the class if the constructor is 'Control.Lens.Type.Simple' and the
 -- 'lensClass' rule matches.
 createClass :: Lens' LensRules Bool
@@ -137,6 +153,8 @@ lensRules = LensRules
   , _generateSigs    = True
   , _generateClasses = False
   , _allowIsos       = True
+  , _allowUpdates    = True
+  , _lazyPatterns    = True
   , _classyLenses    = const Nothing
   , _fieldToDef      = \_ _ n ->
        case nameBase n of
@@ -162,6 +180,8 @@ classyRules = LensRules
   , _generateSigs    = True
   , _generateClasses = True
   , _allowIsos       = False -- generating Isos would hinder "subtyping"
+  , _allowUpdates    = True
+  , _lazyPatterns    = True
   , _classyLenses    = \n ->
         case nameBase n of
           x:xs -> Just (mkName ("Has" ++ x:xs), mkName (toLower x:xs))
@@ -656,17 +676,14 @@ abbreviatedNamer _ fields field = maybeToList $ do
 makeFields :: Name -> DecsQ
 makeFields = makeFieldOptics camelCaseFields
 
--- | Deprecated alias for 'makeLensesWith'
-makeFieldsWith :: LensRules -> Name -> DecsQ
-makeFieldsWith = makeLensesWith
-{-# DEPRECATED makeFieldsWith "Use `makeLensesWith`, functionality merged" #-}
-
 defaultFieldRules :: LensRules
 defaultFieldRules = LensRules
   { _simpleLenses    = True
   , _generateSigs    = True
   , _generateClasses = True  -- classes will still be skipped if they already exist
   , _allowIsos       = False -- generating Isos would hinder field class reuse
+  , _allowUpdates    = True
+  , _lazyPatterns    = True
   , _classyLenses    = const Nothing
   , _fieldToDef      = camelCaseNamer
   }

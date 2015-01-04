@@ -1,6 +1,26 @@
+4.8
+---
+* Remove deprecated stuff: Control.Lens.Loupe, headOf, makeFieldsWith,
+  strippingPrefix, strippingSuffix
+* Add `generateLazyPatterns` configuration flag to `makeLenses` rules.
+
 4.7
 ---
 * Migrated `Control.Lens.Action` to `lens-action`.
+* Added `Data.Vector.Generic.Lens.vectorIx` function for indexing vectors with only `Vector` constraint.
+* Added `Field1` and `Field2` instances for `Data.Functor.Product.Product`.
+* Removed the "typeclass synonym" `Gettable`.
+* Added new flag to `makeLenses`, `generateUpdateableOptics`, which allows
+  the generation of only `Getter`s and `Fold`s. This feature is intended
+  to be used when the constructors are hidden behind validating, "smart"
+  constructors.
+* Fixed Template Haskell name generation when using GHC 7.10
+* Fixed Template Haskell generation of classes methods where field types used
+  existential quantification
+
+4.6.0.1 [maintenance release]
+-------
+* Compatibility with `base` 4.8
 
 4.6
 ---

@@ -20,6 +20,7 @@ import Control.Applicative
 import Control.Lens
 import Data.Monoid
 import Data.Sequence as Seq
+import Prelude
 
 -- $setup
 -- >>> import Debug.SimpleReflect.Expr

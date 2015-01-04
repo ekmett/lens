@@ -49,6 +49,7 @@ import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Data.Monoid
 import Data.Profunctor.Unsafe
+import Prelude
 
 -- $setup
 -- >>> import Control.Lens
@@ -73,7 +74,7 @@ class (Zoomed m ~ Zoomed n, MonadState s m, MonadState t n) => Zoom m n s t | m 
   -- This is commonly used to lift actions in a simpler 'State'
   -- 'Monad' into a 'State' 'Monad' with a larger 'State' type.
   --
-  -- When applied to a 'Simple' 'Control.Lens.Traversal.Traversal' over
+  -- When applied to a 'Control.Lens.Traversal.Traversal'' over
   -- multiple values, the actions for each target are executed sequentially
   -- and the results are aggregated.
   --

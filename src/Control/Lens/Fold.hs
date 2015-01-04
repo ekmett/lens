@@ -122,9 +122,6 @@ module Control.Lens.Fold
   , itakingWhile
   , idroppingWhile
 
-  -- * Deprecated
-  , headOf
-
   -- * Internal types
   , Leftmost
   , Rightmost
@@ -161,6 +158,7 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Traversable
+import Prelude
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -432,7 +430,13 @@ lined f = fmap (intercalate "\n") . conjoined traverse (indexing traverse) f . l
 -- Fold/Getter combinators
 --------------------------
 
--- | @
+-- | Map each part of a structure viewed through a 'Lens', 'Getter',
+-- 'Fold' or 'Traversal' to a monoid and combine the results.
+--
+-- >>> foldMapOf (folded . both . _Just) Sum [(Just 21, Just 21)]
+-- Sum {getSum = 42}
+--
+-- @
 -- 'Data.Foldable.foldMap' = 'foldMapOf' 'folded'
 -- @
 --
@@ -457,7 +461,13 @@ foldMapOf :: Profunctor p => Accessing p r s a -> p a r -> s -> r
 foldMapOf l f = getConst #. l (Const #. f)
 {-# INLINE foldMapOf #-}
 
--- | @
+-- | Combine the elements of a structure viewed through a 'Lens', 'Getter',
+-- 'Fold' or 'Traversal' using a monoid.
+--
+-- >>> foldOf (folded.folded) [[Sum 1,Sum 4],[Sum 8, Sum 8],[Sum 21]]
+-- Sum {getSum = 42}
+--
+-- @
 -- 'Data.Foldable.fold' = 'foldOf' 'folded'
 -- @
 --
@@ -1676,12 +1686,12 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 -- exists, as a 'Maybe'.
 --
 -- @
--- 'pre' :: 'Getter' s a           -> 'IndexPreservingGetter' s ('Maybe' a)
--- 'pre' :: 'Fold' s a             -> 'IndexPreservingGetter' s ('Maybe' a)
--- 'pre' :: 'Simple' 'Traversal' s a -> 'IndexPreservingGetter' s ('Maybe' a)
--- 'pre' :: 'Simple' 'Lens' s a      -> 'IndexPreservingGetter' s ('Maybe' a)
--- 'pre' :: 'Simple' 'Iso' s a       -> 'IndexPreservingGetter' s ('Maybe' a)
--- 'pre' :: 'Simple' 'Prism' s a     -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Getter' s a     -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Fold' s a       -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Traversal'' s a -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Lens'' s a      -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Iso'' s a       -> 'IndexPreservingGetter' s ('Maybe' a)
+-- 'pre' :: 'Prism'' s a     -> 'IndexPreservingGetter' s ('Maybe' a)
 -- @
 pre :: Getting (First a) s a -> IndexPreservingGetter s (Maybe a)
 pre l = dimap (getFirst . getConst #. l (Const #. First #. Just)) coerce
@@ -1691,10 +1701,10 @@ pre l = dimap (getFirst . getConst #. l (Const #. First #. Just)) coerce
 -- and element, if they exist, as a 'Maybe'.
 --
 -- @
--- 'ipre' :: 'IndexedGetter' i s a             -> 'IndexPreservingGetter' s ('Maybe' (i, a))
--- 'ipre' :: 'IndexedFold' i s a               -> 'IndexPreservingGetter' s ('Maybe' (i, a))
--- 'ipre' :: 'Simple' ('IndexedTraversal' i) s a -> 'IndexPreservingGetter' s ('Maybe' (i, a))
--- 'ipre' :: 'Simple' ('IndexedLens' i) s a      -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- 'ipre' :: 'IndexedGetter' i s a     -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- 'ipre' :: 'IndexedFold' i s a       -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- 'ipre' :: 'IndexedTraversal'' i s a -> 'IndexPreservingGetter' s ('Maybe' (i, a))
+-- 'ipre' :: 'IndexedLens'' i s a      -> 'IndexPreservingGetter' s ('Maybe' (i, a))
 -- @
 ipre :: IndexedGetting i (First (i, a)) s a -> IndexPreservingGetter s (Maybe (i, a))
 ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (i, a))))) coerce
@@ -2376,16 +2386,6 @@ idroppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
       b' = b && p i a
     in (if b' then pure a else indexed f i a, b')
 {-# INLINE idroppingWhile #-}
-
-------------------------------------------------------------------------------
--- Deprecated
-------------------------------------------------------------------------------
-
--- | A deprecated alias for 'firstOf'.
-headOf :: Getting (First a) s a -> s -> Maybe a
-headOf l = getFirst #. foldMapOf l (First #. Just)
-{-# INLINE headOf #-}
-{-# DEPRECATED headOf "`headOf' will be removed after GHC 7.8 is released. (Use `preview' or `firstOf')" #-}
 
 ------------------------------------------------------------------------------
 -- Misc.

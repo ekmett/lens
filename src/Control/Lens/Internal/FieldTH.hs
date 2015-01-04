@@ -1,5 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
+#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -32,15 +35,17 @@ import Control.Applicative
 import Control.Monad
 import Language.Haskell.TH.Lens
 import Language.Haskell.TH
-import Data.Traversable (sequenceA)
 import Data.Foldable (toList)
 import Data.Maybe (isJust,maybeToList)
 import Data.List (nub, findIndices)
 import Data.Either (partitionEithers)
 import Data.Set.Lens
 import           Data.Map ( Map )
+import           Data.Set ( Set )
 import qualified Data.Set as Set
 import qualified Data.Map as Map
+import qualified Data.Traversable as T
+import Prelude
 
 
 ------------------------------------------------------------------------
@@ -81,7 +86,7 @@ makeFieldOpticsForDec' rules tyName s cons =
      let allFields  = toListOf (folded . _2 . folded . _1 . folded) fieldCons
      let defCons    = over normFieldLabels (expandName allFields) fieldCons
          allDefs    = setOf (normFieldLabels . folded) defCons
-     perDef <- sequenceA (fromSet (buildScaffold rules s defCons) allDefs)
+     perDef <- T.sequenceA (fromSet (buildScaffold rules s defCons) allDefs)
 
      let defs = Map.toList perDef
      case _classyLenses rules tyName of
@@ -145,21 +150,30 @@ buildScaffold rules s cons defName =
                          | otherwise = foldTypeName
                in OpticSa cx optic s' a'
 
-           | _simpleLenses rules || s' == t && a == b =
-               let optic | isoCase && _allowIsos rules = iso'TypeName
-                         | lensCase  = lens'TypeName
-                         | otherwise = traversal'TypeName
+           -- Getter and Fold are always simple
+           | not (_allowUpdates rules) =
+               let optic | lensCase  = getterTypeName
+                         | otherwise = foldTypeName
                in OpticSa [] optic s' a
 
+           -- Generate simple Lens and Traversal where possible
+           | _simpleLenses rules || s' == t && a == b =
+               let optic | isoCase && _allowIsos rules = iso'TypeName
+                         | lensCase                    = lens'TypeName
+                         | otherwise                   = traversal'TypeName
+               in OpticSa [] optic s' a
+
+           -- Generate type-changing Lens and Traversal otherwise
            | otherwise =
                let optic | isoCase && _allowIsos rules = isoTypeName
-                         | lensCase  = lensTypeName
-                         | otherwise = traversalTypeName
+                         | lensCase                    = lensTypeName
+                         | otherwise                   = traversalTypeName
                in OpticStab optic s' t a b
 
-         opticType | has _ForallT a = GetterType
-                   | isoCase        = IsoType
-                   | otherwise      = LensType
+         opticType | has _ForallT a            = GetterType
+                   | not (_allowUpdates rules) = GetterType
+                   | isoCase                   = IsoType
+                   | otherwise                 = LensType
 
      return (opticType, defType, scaffolds)
   where
@@ -195,6 +209,10 @@ stabToType :: OpticStab -> Type
 stabToType (OpticStab  c s t a b) = quantifyType [] (c `conAppsT` [s,t,a,b])
 stabToType (OpticSa cx c s   a  ) = quantifyType cx (c `conAppsT` [s,a])
 
+stabToContext :: OpticStab -> Cxt
+stabToContext OpticStab{}        = []
+stabToContext (OpticSa cx _ _ _) = cx
+
 stabToOptic :: OpticStab -> Name
 stabToOptic (OpticStab c _ _ _ _) = c
 stabToOptic (OpticSa _ c _ _) = c
@@ -217,7 +235,7 @@ buildStab s categorizedFields =
      let s' = applyTypeSubst subA s
 
      -- compute possible type changes
-     sub <- sequenceA (fromSet (newName . nameBase) unfixedTypeVars)
+     sub <- T.sequenceA (fromSet (newName . nameBase) unfixedTypeVars)
      let (t,b) = over both (substTypeVars sub) (s',a)
 
      return (s',t,a,b)
@@ -237,7 +255,7 @@ makeFieldOptic ::
   DecsQ
 makeFieldOptic rules (defName, (opticType, defType, cons)) =
   do cls <- mkCls
-     sequenceA (cls ++ sig ++ def)
+     T.sequenceA (cls ++ sig ++ def)
   where
   mkCls = case defName of
           MethodName c n | _generateClasses rules ->
@@ -256,7 +274,7 @@ makeFieldOptic rules (defName, (opticType, defType, cons)) =
           TopName n      -> fun n
           MethodName c n -> [makeFieldInstance defType c (fun n)]
 
-  clauses = makeFieldClauses opticType cons
+  clauses = makeFieldClauses rules opticType cons
 
 
 ------------------------------------------------------------------------
@@ -271,7 +289,7 @@ makeClassyDriver ::
   Type {- ^ Outer 's' type -} ->
   [(DefName, (OpticType, OpticStab, [(Name, Int, [Int])]))] ->
   DecsQ
-makeClassyDriver rules className methodName s defs = sequenceA (cls ++ inst)
+makeClassyDriver rules className methodName s defs = T.sequenceA (cls ++ inst)
 
   where
   cls | _generateClasses rules = [makeClassyClass className methodName s defs]
@@ -298,12 +316,16 @@ makeClassyClass className methodName s defs = do
   classD (cxt[]) className (map PlainTV (c:vars)) fd
     $ sigD methodName (return (lens'TypeName `conAppsT` [VarT c, s']))
     : concat
-      [ [sigD defName (return (stabToOptic stab `conAppsT` [VarT c, applyTypeSubst sub (stabToA stab)]))
+      [ [sigD defName (return ty)
         ,valD (varP defName) (normalB body) []
         ] ++
         inlinePragma defName
       | (TopName defName, (_, stab, _)) <- defs
       , let body = appsE [varE composeValName, varE methodName, varE defName]
+      , let ty   = quantifyType' (Set.fromList (c:vars))
+                                 (stabToContext stab)
+                 $ stabToOptic stab `conAppsT`
+                       [VarT c, applyTypeSubst sub (stabToA stab)]
       ]
 
 
@@ -337,7 +359,9 @@ makeFieldClass defType className methodName =
   classD (cxt []) className [PlainTV s, PlainTV a] [FunDep [s] [a]]
          [sigD methodName (return methodType)]
   where
-  methodType = stabToOptic defType `conAppsT` [VarT s,VarT a]
+  methodType = quantifyType' (Set.fromList [s,a])
+                             (stabToContext defType)
+             $ stabToOptic defType `conAppsT` [VarT s,VarT a]
   s = mkName "s"
   a = mkName "a"
 
@@ -351,8 +375,8 @@ makeFieldInstance defType className =
 ------------------------------------------------------------------------
 
 
-makeFieldClauses :: OpticType -> [(Name, Int, [Int])] -> [ClauseQ]
-makeFieldClauses opticType cons =
+makeFieldClauses :: LensRules -> OpticType -> [(Name, Int, [Int])] -> [ClauseQ]
+makeFieldClauses rules opticType cons =
   case opticType of
 
     IsoType    -> [ makeIsoClause conName | (conName, _, _) <- cons ]
@@ -360,9 +384,12 @@ makeFieldClauses opticType cons =
     GetterType -> [ makeGetterClause conName fieldCount fields
                     | (conName, fieldCount, fields) <- cons ]
 
-    LensType   -> let irref = length cons == 1 in
-                  [ makeFieldOpticClause conName fieldCount fields irref
+    LensType   -> [ makeFieldOpticClause conName fieldCount fields irref
                     | (conName, fieldCount, fields) <- cons ]
+      where
+      irref = _lazyPatterns rules
+           && length cons == 1
+
 
 
 -- | Construct an optic clause that returns an unmodified value
@@ -516,13 +543,15 @@ applyTypeSubst sub = rewrite aux
 
 
 data LensRules = LensRules
-  { _simpleLenses :: Bool
-  , _generateSigs :: Bool
+  { _simpleLenses    :: Bool
+  , _generateSigs    :: Bool
   , _generateClasses :: Bool
-  , _allowIsos    :: Bool
-  , _fieldToDef   :: Name -> [Name] -> Name -> [DefName]
+  , _allowIsos       :: Bool
+  , _allowUpdates    :: Bool -- ^ Allow Lens/Traversal (otherwise Getter/Fold)
+  , _lazyPatterns    :: Bool
+  , _fieldToDef      :: Name -> [Name] -> Name -> [DefName]
        -- ^ Type Name -> Field Names -> Target Field Name -> Definition Names
-  , _classyLenses :: Name -> Maybe (Name,Name)
+  , _classyLenses    :: Name -> Maybe (Name,Name)
        -- type name to class name and top method
   }
 
@@ -544,6 +573,13 @@ quantifyType :: Cxt -> Type -> Type
 quantifyType c t = ForallT vs c t
   where
   vs = map PlainTV (toList (setOf typeVars t))
+
+-- | This function works like 'quantifyType' except that it takes
+-- a list of variables to exclude from quantification.
+quantifyType' :: Set Name -> Cxt -> Type -> Type
+quantifyType' exclude c t = ForallT vs c t
+  where
+  vs = map PlainTV (toList (setOf typeVars t Set.\\ exclude))
 
 
 ------------------------------------------------------------------------

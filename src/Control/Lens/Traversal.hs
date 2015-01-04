@@ -1065,7 +1065,7 @@ instance Ord k => TraverseMax k (Map k) where
     Nothing          -> pure m
   {-# INLINE traverseMax #-}
 
--- | Traverse the /nth/ element 'elementOf' a 'Traversal', 'Lens' or
+-- | Traverse the /nth/ 'elementOf' a 'Traversal', 'Lens' or
 -- 'Iso' if it exists.
 --
 -- >>> [[1],[3,4]] & elementOf (traverse.traverse) 1 .~ 5
@@ -1113,7 +1113,7 @@ elementsOf :: Applicative f
 elementsOf l p iafb s = snd $ runIndexing (l (\a -> Indexing (\i -> i `seq` (i + 1, if p i then indexed iafb i a else pure a))) s) 0
 {-# INLINE elementsOf #-}
 
--- | Traverse elements of a 'Traversable' container where their ordinal positions matches a predicate.
+-- | Traverse elements of a 'Traversable' container where their ordinal positions match a predicate.
 --
 -- @
 -- 'elements' ≡ 'elementsOf' 'traverse'
@@ -1159,6 +1159,12 @@ ifailover l f = failover l (Indexed f)
 --
 -- Mutatis mutandis for 'Fold'.
 --
+-- >>> [0,1,2,3] ^? failing (ix 1) (ix 2)
+-- Just 1
+--
+-- >>> [0,1,2,3] ^? failing (ix 42) (ix 2)
+-- Just 2
+--
 -- @
 -- 'failing' :: 'Traversal' s t a b -> 'Traversal' s t a b -> 'Traversal' s t a b
 -- 'failing' :: 'Prism' s t a b     -> 'Prism' s t a b     -> 'Traversal' s t a b
@@ -1195,7 +1201,7 @@ failing l r pafb s = case pins b of
   where b = l sell s
 infixl 5 `failing`
 
--- | Try the second traversal. If it returns no entries, try again with for all entries from the first traversal, recursively.
+-- | Try the second traversal. If it returns no entries, try again with all entries from the first traversal, recursively.
 --
 -- @
 -- 'deepOf' :: 'Fold' s s          -> 'Fold' s a                   -> 'Fold' s a

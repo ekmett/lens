@@ -56,7 +56,7 @@ import Prelude hiding (null)
 data Deque a = BD !Int [a] !Int [a]
   deriving Show
 
--- | /O(1)/. Determine of a 'Deque' is 'empty'.
+-- | /O(1)/. Determine if a 'Deque' is 'empty'.
 --
 -- >>> null empty
 -- True

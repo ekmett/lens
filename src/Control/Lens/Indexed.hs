@@ -102,6 +102,7 @@ import Data.Traversable
 import Data.Tuple (swap)
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import Prelude
 
 infixr 9 <.>, <., .>
 

@@ -54,6 +54,7 @@ import qualified Data.Vector.Primitive as Prim
 import           Data.Vector.Unboxed (Unbox)
 import qualified Data.Vector.Unboxed as Unbox
 import           Data.Word
+import           Prelude
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
 

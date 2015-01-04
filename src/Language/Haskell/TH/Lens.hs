@@ -280,6 +280,7 @@ import Language.Haskell.TH.Syntax
 #if MIN_VERSION_template_haskell(2,8,0)
 import Data.Word
 #endif
+import Prelude
 
 -- | Has a 'Name'
 class HasName t where

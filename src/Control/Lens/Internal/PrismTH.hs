@@ -1,4 +1,7 @@
 {-# LANGUAGE CPP #-}
+#ifdef TRUSTWORTHY
+{-# LANGUAGE Trustworthy #-}
+#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -28,11 +31,12 @@ import Data.Char (isUpper)
 import Data.List
 import Data.Monoid
 import Data.Set.Lens
-import Data.Traversable (for,sequenceA,traverse)
+import Data.Traversable
 import Language.Haskell.TH
 import Language.Haskell.TH.Lens
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import Prelude
 
 -- | Generate a 'Prism' for each constructor of a data type.
 -- Isos generated when possible.
@@ -140,7 +144,7 @@ makeConsPrisms t cons Nothing =
     do let conName = view nconName con
        stab <- computeOpticType t cons con
        let n = prismName conName
-       sequence
+       sequenceA
          [ sigD n (close (stabToType stab))
          , valD (varP n) (normalB (makeConOpticExp stab cons con)) []
          ]
@@ -148,7 +152,7 @@ makeConsPrisms t cons Nothing =
 
 -- classy prism class and instance
 makeConsPrisms t cons (Just typeName) =
-  sequence
+  sequenceA
     [ makeClassyPrismClass t className methodName cons
     , makeClassyPrismInstance t className methodName cons
     ]
@@ -242,7 +246,7 @@ makeConIso :: Type -> NCon -> DecsQ
 makeConIso s con =
   do let ty      = computeIsoType s (view nconTypes con)
          defName = prismName (view nconName con)
-     sequence
+     sequenceA
        [ sigD       defName  ty
        , valD (varP defName) (normalB (makeConIsoExp con)) []
        ]
@@ -392,7 +396,7 @@ makeClassyPrismClass t className methodName cons =
        let stab' = Stab cx o r r b b
            defName = view nconName con
            body    = appsE [varE composeValName, varE methodName, varE defName]
-       sequence
+       sequenceA
          [ sigD defName        (return (stabToType stab'))
          , valD (varP defName) (normalB body) []
          ]

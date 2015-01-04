@@ -2,9 +2,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Fold
@@ -36,6 +33,7 @@ import Data.Functor.Contravariant
 import Data.Maybe
 import Data.Semigroup hiding (Min, getMin, Max, getMax)
 import Data.Reflection
+import Prelude
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 

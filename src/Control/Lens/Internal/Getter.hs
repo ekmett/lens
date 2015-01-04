@@ -30,6 +30,7 @@ import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
 import Data.Traversable
 import Data.Void
+import Prelude
 
 -- | A 'Functor' you can 'coerce' ignores its argument, which it carries
 -- solely as a phantom type parameter.
