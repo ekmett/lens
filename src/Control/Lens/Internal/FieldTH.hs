@@ -274,7 +274,7 @@ makeFieldOptic rules (defName, (opticType, defType, cons)) =
           TopName n      -> fun n
           MethodName c n -> [makeFieldInstance defType c (fun n)]
 
-  clauses = makeFieldClauses opticType cons
+  clauses = makeFieldClauses rules opticType cons
 
 
 ------------------------------------------------------------------------
@@ -375,8 +375,8 @@ makeFieldInstance defType className =
 ------------------------------------------------------------------------
 
 
-makeFieldClauses :: OpticType -> [(Name, Int, [Int])] -> [ClauseQ]
-makeFieldClauses opticType cons =
+makeFieldClauses :: LensRules -> OpticType -> [(Name, Int, [Int])] -> [ClauseQ]
+makeFieldClauses rules opticType cons =
   case opticType of
 
     IsoType    -> [ makeIsoClause conName | (conName, _, _) <- cons ]
@@ -384,9 +384,12 @@ makeFieldClauses opticType cons =
     GetterType -> [ makeGetterClause conName fieldCount fields
                     | (conName, fieldCount, fields) <- cons ]
 
-    LensType   -> let irref = length cons == 1 in
-                  [ makeFieldOpticClause conName fieldCount fields irref
+    LensType   -> [ makeFieldOpticClause conName fieldCount fields irref
                     | (conName, fieldCount, fields) <- cons ]
+      where
+      irref = _lazyPatterns rules
+           && length cons == 1
+
 
 
 -- | Construct an optic clause that returns an unmodified value
@@ -545,6 +548,7 @@ data LensRules = LensRules
   , _generateClasses :: Bool
   , _allowIsos       :: Bool
   , _allowUpdates    :: Bool -- ^ Allow Lens/Traversal (otherwise Getter/Fold)
+  , _lazyPatterns    :: Bool
   , _fieldToDef      :: Name -> [Name] -> Name -> [DefName]
        -- ^ Type Name -> Field Names -> Target Field Name -> Definition Names
   , _classyLenses    :: Name -> Maybe (Name,Name)

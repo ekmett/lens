@@ -2,6 +2,7 @@
 ---
 * Remove deprecated stuff: Control.Lens.Loupe, headOf, makeFieldsWith,
   strippingPrefix, strippingSuffix
+* Add `generateLazyPatterns` configuration flag to `makeLenses` rules.
 
 4.7
 ---

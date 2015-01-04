@@ -51,6 +51,7 @@ module Control.Lens.TH
   , createClass
   , generateSignatures
   , generateUpdateableOptics
+  , generateLazyPatterns
   ) where
 
 import Control.Applicative
@@ -108,6 +109,13 @@ generateUpdateableOptics :: Lens' LensRules Bool
 generateUpdateableOptics f r =
   fmap (\x -> r { _allowUpdates = x}) (f (_allowUpdates r))
 
+-- | Generate optics using lazy pattern matches. This can
+-- allow fields of an undefined value to be initialized with lenses,
+-- and is the default behavior.
+generateLazyPatterns :: Lens' LensRules Bool
+generateLazyPatterns f r =
+  fmap (\x -> r { _lazyPatterns = x}) (f (_lazyPatterns r))
+
 -- | Create the class if the constructor is 'Control.Lens.Type.Simple' and the
 -- 'lensClass' rule matches.
 createClass :: Lens' LensRules Bool
@@ -146,6 +154,7 @@ lensRules = LensRules
   , _generateClasses = False
   , _allowIsos       = True
   , _allowUpdates    = True
+  , _lazyPatterns    = True
   , _classyLenses    = const Nothing
   , _fieldToDef      = \_ _ n ->
        case nameBase n of
@@ -172,6 +181,7 @@ classyRules = LensRules
   , _generateClasses = True
   , _allowIsos       = False -- generating Isos would hinder "subtyping"
   , _allowUpdates    = True
+  , _lazyPatterns    = True
   , _classyLenses    = \n ->
         case nameBase n of
           x:xs -> Just (mkName ("Has" ++ x:xs), mkName (toLower x:xs))
@@ -673,6 +683,7 @@ defaultFieldRules = LensRules
   , _generateClasses = True  -- classes will still be skipped if they already exist
   , _allowIsos       = False -- generating Isos would hinder field class reuse
   , _allowUpdates    = True
+  , _lazyPatterns    = True
   , _classyLenses    = const Nothing
   , _fieldToDef      = camelCaseNamer
   }
