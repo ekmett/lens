@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -40,6 +41,8 @@ import Control.Lens.Tuple
 import Control.Lens.Type
 import qualified Data.ByteString      as StrictB
 import qualified Data.ByteString.Lazy as LazyB
+import           Data.List.NonEmpty   (NonEmpty(..))
+import qualified Data.List.NonEmpty   as NonEmpty
 import           Data.Monoid
 import qualified Data.Sequence as Seq
 import           Data.Sequence hiding ((<|), (|>))
@@ -92,6 +95,12 @@ instance Cons [a] [b] a b where
   _Cons = prism (uncurry (:)) $ \ aas -> case aas of
     (a:as) -> Right (a, as)
     []     -> Left  []
+  {-# INLINE _Cons #-}
+
+instance a~b => Cons (NonEmpty a) (NonEmpty b) a b where
+  _Cons = prism' (uncurry NonEmpty.cons) $ \ xyz -> case xyz of
+    (x:|y:z) -> Just (x,y:|z)
+    _        -> Nothing
   {-# INLINE _Cons #-}
 
 instance Cons (Seq a) (Seq b) a b where
@@ -318,6 +327,12 @@ instance Snoc [a] [b] a b where
     then Left []
     else Right (Prelude.init aas, Prelude.last aas)
   {-# INLINE _Snoc #-}
+
+instance a~b => Snoc (NonEmpty a) (NonEmpty b) a b where
+  _Snoc = prism' (\(x:|y,z) -> x:|y++[z]) $ \xyz -> case xyz of
+    x:|y
+      | Prelude.null y -> Nothing
+      | otherwise      -> Just (x :| Prelude.init y, Prelude.last y)
 
 instance Snoc (Seq a) (Seq b) a b where
   _Snoc = prism (uncurry (Seq.|>)) $ \aas -> case viewr aas of
