@@ -160,6 +160,12 @@ aside k =
 {-# INLINE aside #-}
 
 -- | 'lift' a 'Prism' through a 'Traversable' functor, giving a Prism that matches only if all the elements of the container match the 'Prism'.
+--
+-- >>> [Left 1, Right "foo", Left 4, Right "woot"]^..below _Right
+-- []
+--
+-- >>> [Right "hail hydra!", Right "foo", Right "blah", Right "woot"]^..below _Right
+-- [["hail hydra!","foo","blah","woot"]]
 below :: Traversable f => APrism' s a -> Prism' (f s) (f a)
 below k =
   withPrism k     $ \bt seta ->
