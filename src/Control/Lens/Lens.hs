@@ -136,6 +136,9 @@ import Data.Profunctor.Rep
 import Data.Profunctor.Unsafe
 import Data.Void
 import Prelude
+#if __GLASGOW_HASKELL__ >= 710
+import Data.Function ((&))
+#endif
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use ***" #-}
@@ -312,6 +315,8 @@ l %%= f = do
 -- General Purpose Combinators
 -------------------------------------------------------------------------------
 
+
+#if __GLASGOW_HASKELL__ < 710
 -- | Passes the result of the left side to the function on the right side (forward pipe operator).
 --
 -- This is the flipped version of ('$'), which is more common in languages like F# as (@|>@) where it is needed
@@ -336,6 +341,7 @@ l %%= f = do
 (&) :: a -> (a -> b) -> b
 a & f = f a
 {-# INLINE (&) #-}
+#endif
 
 -- | Infix flipped 'fmap'.
 --
