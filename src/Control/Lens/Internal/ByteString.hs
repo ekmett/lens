@@ -26,7 +26,7 @@
 -- Haskell Platforms and to improve constant and asymptotic factors in our performance.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.ByteString
-  ( unpackStrict, traversedStrictTree, traversedStrictTreeOld
+  ( unpackStrict, traversedStrictTree
   , unpackStrict8, traversedStrictTree8
   , unpackLazy, traversedLazy
   , unpackLazy8, traversedLazy8
@@ -36,7 +36,6 @@ import Control.Applicative
 import Control.Lens
 import qualified Data.ByteString               as B
 import qualified Data.ByteString.Lazy          as BL
-import qualified Data.ByteString.Lazy.Internal as BLI
 import qualified Data.ByteString.Lazy.Char8    as BL8
 import qualified Data.ByteString.Internal      as BI
 import qualified Data.ByteString.Unsafe        as BU
@@ -78,22 +77,6 @@ traversedStrictTree pafb bs = unsafeCreate len <$> go 0 len
                    in (\y ys !q -> pokeByteOff q i y >> ys q) <$> indexed pafb (i :: Int) x <*> run (i + 1) j
 {-# INLINE traversedStrictTree #-}
 
-traversedStrictTreeOld :: Int -> IndexedTraversal' Int B.ByteString Word8
-traversedStrictTreeOld i0 pafb (BI.PS fp off len) = rebuild len <$> go (unsafeForeignPtrToPtr fp `plusPtr` (off - i0)) i0 (i0 + len)
- where
-   rebuild n f = unsafeCreate n $ \q -> f $! (q `plusPtr` (off - i0))
-   go !p !i !j
-     | i + grain < j, k <- i + shiftR (j - i) 1 = (\l r q -> l q >> r q) <$> go p i k <*> go p k j
-     | otherwise = run p i j
-   run !p !i !j
-     | i == j    = pure (\_ -> return ())
-     | otherwise = let !x = BI.inlinePerformIO $ do
-                          x' <- peekByteOff p i
-                          touchForeignPtr fp
-                          return x'
-                   in (\y ys !q -> pokeByteOff q i y >> ys q) <$> indexed pafb (i :: Int) x <*> run p (i + 1) j
-{-# INLINE traversedStrictTreeOld #-}
-
 
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
 -- elements at the leaves, pretending the bytes are chars.
@@ -117,10 +100,14 @@ unpackLazy = BL.unpack
 
 -- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString'
 traversedLazy :: IndexedTraversal' Int64 BL.ByteString Word8
-traversedLazy pafb = go 0 where
-  go _ BLI.Empty        = pure BLI.Empty
-  go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (\x -> i + fromIntegral x :: Int64) traversedStrictTree pafb b <*> go i' bs
-    where !i' = i + fromIntegral (B.length b)
+traversedLazy pafb lbs = BL.foldrChunks go (\_ -> pure BL.empty) lbs 0
+  where
+  go c fcs acc = BL.append . BL.fromStrict
+             <$> reindexed (\x -> acc + fromIntegral x :: Int64) traversedStrictTree pafb c
+             <*> fcs acc'
+    where
+    acc' :: Int64
+    !acc' = acc + fromIntegral (B.length c)
 {-# INLINE traversedLazy #-}
 
 
@@ -131,10 +118,14 @@ unpackLazy8 = BL8.unpack
 
 -- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString' pretending the bytes are chars.
 traversedLazy8 :: IndexedTraversal' Int64 BL.ByteString Char
-traversedLazy8 pafb = go 0 where
-  go _ BLI.Empty = pure BLI.Empty
-  go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (\x -> i + fromIntegral x :: Int64) traversedStrictTree8 pafb b <*> go i' bs
-    where !i' = i + fromIntegral (B.length b)
+traversedLazy8 pafb lbs = BL.foldrChunks go (\_ -> pure BL.empty) lbs 0
+  where
+  go c fcs acc = BL.append . BL.fromStrict
+             <$> reindexed (\x -> acc + fromIntegral x :: Int64) traversedStrictTree8 pafb c
+             <*> fcs acc'
+    where
+    acc' :: Int64
+    !acc' = acc + fromIntegral (B.length c)
 {-# INLINE traversedLazy8 #-}
 
 ------------------------------------------------------------------------------
