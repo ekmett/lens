@@ -26,8 +26,8 @@
 -- Haskell Platforms and to improve constant and asymptotic factors in our performance.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.ByteString
-  ( unpackStrict, traversedStrict, traversedStrictTree, traversedStrictTreeOld
-  , unpackStrict8, traversedStrict8, traversedStrictTree8
+  ( unpackStrict, traversedStrictTree, traversedStrictTreeOld
+  , unpackStrict8, traversedStrictTree8
   , unpackLazy, traversedLazy
   , unpackLazy8, traversedLazy8
   ) where
@@ -58,45 +58,6 @@ import Foreign.ForeignPtr
 import GHC.Base (unsafeChr)
 import GHC.ForeignPtr (mallocPlainForeignPtrBytes)
 import GHC.IO (unsafeDupablePerformIO)
-
--- | Traverse a strict 'B.ByteString' from left to right in a biased fashion.
-traversedStrict :: Int -> IndexedTraversal' Int B.ByteString Word8
-traversedStrict i0 pafb (BI.PS fp off len) =
-  let p = unsafeForeignPtrToPtr fp
-   in fmap (rebuild len) (go i0 (p `plusPtr` off) (p `plusPtr` (off+len)))
- where
-   rebuild n = \xs -> unsafeCreate n $ \p -> go2 p xs
-   go2 !p (x:xs) = poke p x >> go2 (p `plusPtr` 1) xs
-   go2 _  []     = return ()
-   -- TODO: use a balanced tree (up to some grain size)
-   go !i !p !q
-     | p == q = pure []
-     | otherwise = let !x = BI.inlinePerformIO $ do
-                              x' <- peek p
-                              touchForeignPtr fp
-                              return x'
-                   in (:) <$> indexed pafb (i :: Int) x <*> go (i + 1) (p `plusPtr` 1) q
-{-# INLINE traversedStrict #-}
-
--- | Traverse a strict 'B.ByteString' from left to right in a biased fashion
--- pretending the bytes are characters.
-traversedStrict8 :: Int -> IndexedTraversal' Int B.ByteString Char
-traversedStrict8 i0 pafb (BI.PS fp off len) =
-  let p = unsafeForeignPtrToPtr fp
-   in fmap (rebuild len) (go i0 (p `plusPtr` off) (p `plusPtr` (off+len)))
- where
-   rebuild n = \xs -> unsafeCreate n $ \p -> go2 p xs
-   go2 !p (x:xs) = poke p (c2w x) >> go2 (p `plusPtr` 1) xs
-   go2 _  []     = return ()
-   -- TODO: use a balanced tree (up to some grain size)
-   go !i !p !q
-     | p == q = pure []
-     | otherwise = let !x = BI.inlinePerformIO $ do
-                              x' <- peek p
-                              touchForeignPtr fp
-                              return x'
-                   in (:) <$> indexed pafb (i :: Int) (w2c x) <*> go (i + 1) (p `plusPtr` 1) q
-{-# INLINE traversedStrict8 #-}
 
 grain :: Int
 grain = 32
