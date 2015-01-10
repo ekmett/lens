@@ -105,9 +105,9 @@ grain = 32
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
 -- elements at the leaves.
 traversedStrictTree :: Int -> IndexedTraversal' Int B.ByteString Word8
-traversedStrictTree i0 pafb bs = unsafeCreate len <$> go bs 0 len
+traversedStrictTree i0 pafb bs0 = unsafeCreate len <$> go bs0 0 len
  where
-   len = B.length bs
+   len = B.length bs0
    go !bs !i !j
      | i + grain < j, k <- i + shiftR (j - i) 1 = (\l r q -> l q >> r q) <$> go bs i k <*> go bs k j
      | otherwise = run bs i j
