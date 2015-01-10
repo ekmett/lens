@@ -133,7 +133,7 @@ unpackLazy8 = BL8.unpack
 traversedLazy8 :: IndexedTraversal' Int64 BL.ByteString Char
 traversedLazy8 pafb = go 0 where
   go _ BLI.Empty = pure BLI.Empty
-  go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (\x -> i + fromIntegral x :: Int64) (traversedStrictTree8) pafb b <*> go i' bs
+  go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (\x -> i + fromIntegral x :: Int64) traversedStrictTree8 pafb b <*> go i' bs
     where !i' = i + fromIntegral (B.length b)
 {-# INLINE traversedLazy8 #-}
 
