@@ -137,20 +137,16 @@ traversedStrictTreeOld i0 pafb (BI.PS fp off len) = rebuild len <$> go (unsafeFo
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
 -- elements at the leaves, pretending the bytes are chars.
 traversedStrictTree8 :: Int -> IndexedTraversal' Int B.ByteString Char
-traversedStrictTree8 i0 pafb (BI.PS fp off len) = rebuild len <$> go i0 (i0 + len)
+traversedStrictTree8 i0 pafb bs = unsafeCreate len <$> go 0 len
  where
-   p = unsafeForeignPtrToPtr fp `plusPtr` (off - i0)
-   rebuild n f = unsafeCreate n $ \q -> f (q `plusPtr` (off - i0))
+   len = B.length bs
    go !i !j
      | i + grain < j, k <- i + shiftR (j - i) 1 = (\l r q -> l q >> r q) <$> go i k <*> go k j
      | otherwise = run i j
    run !i !j
      | i == j    = pure (\_ -> return ())
-     | otherwise = let !x = BI.inlinePerformIO $ do
-                          x' <- peekByteOff p i
-                          touchForeignPtr fp
-                          return x'
-                   in (\y ys q -> poke (q `plusPtr` i) (c2w y) >> ys q) <$> indexed pafb (i :: Int) (w2c x) <*> run (i + 1) j
+     | otherwise = let !x = BU.unsafeIndex bs i
+                   in (\y ys q -> poke (q `plusPtr` i) (c2w y) >> ys q) <$> indexed pafb (i0 + i :: Int) (w2c x) <*> run (i + 1) j
 {-# INLINE traversedStrictTree8 #-}
 
 -- | Unpack a lazy 'Bytestring'
