@@ -123,7 +123,7 @@ unpackLazy8 = BL8.unpack
 
 -- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString' pretending the bytes are chars.
 traversedLazy8 :: IndexedTraversal' Int64 BL.ByteString Char
-traversedLazy8 pafb lbs = foldrChunks go (\_ -> pure BL.empty) lbs 0
+traversedLazy8 pafb = \lbs -> foldrChunks go (\_ -> pure BL.empty) lbs 0
   where
   go c fcs acc = BL.append . BL.fromStrict
              <$> reindexed (\x -> acc + fromIntegral x :: Int64) traversedStrictTree8 pafb c
