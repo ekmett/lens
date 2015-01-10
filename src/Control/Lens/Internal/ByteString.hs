@@ -65,8 +65,8 @@ grain = 32
 
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
 -- elements at the leaves.
-traversedStrictTree :: Int -> IndexedTraversal' Int B.ByteString Word8
-traversedStrictTree i0 pafb bs = unsafeCreate len <$> go 0 len
+traversedStrictTree :: IndexedTraversal' Int B.ByteString Word8
+traversedStrictTree pafb bs = unsafeCreate len <$> go 0 len
  where
    len = B.length bs
    go !i !j
@@ -75,7 +75,7 @@ traversedStrictTree i0 pafb bs = unsafeCreate len <$> go 0 len
    run !i !j
      | i == j    = pure (\_ -> return ())
      | otherwise = let !x = BU.unsafeIndex bs i
-                   in (\y ys !q -> pokeByteOff q i y >> ys q) <$> indexed pafb (i0 + i :: Int) x <*> run (i + 1) j
+                   in (\y ys !q -> pokeByteOff q i y >> ys q) <$> indexed pafb (i :: Int) x <*> run (i + 1) j
 {-# INLINE traversedStrictTree #-}
 
 traversedStrictTreeOld :: Int -> IndexedTraversal' Int B.ByteString Word8
@@ -97,8 +97,8 @@ traversedStrictTreeOld i0 pafb (BI.PS fp off len) = rebuild len <$> go (unsafeFo
 
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
 -- elements at the leaves, pretending the bytes are chars.
-traversedStrictTree8 :: Int -> IndexedTraversal' Int B.ByteString Char
-traversedStrictTree8 i0 pafb bs = unsafeCreate len <$> go 0 len
+traversedStrictTree8 :: IndexedTraversal' Int B.ByteString Char
+traversedStrictTree8 pafb bs = unsafeCreate len <$> go 0 len
  where
    len = B.length bs
    go !i !j
@@ -107,7 +107,7 @@ traversedStrictTree8 i0 pafb bs = unsafeCreate len <$> go 0 len
    run !i !j
      | i == j    = pure (\_ -> return ())
      | otherwise = let !x = BU.unsafeIndex bs i
-                   in (\y ys q -> poke (q `plusPtr` i) (c2w y) >> ys q) <$> indexed pafb (i0 + i :: Int) (w2c x) <*> run (i + 1) j
+                   in (\y ys q -> poke (q `plusPtr` i) (c2w y) >> ys q) <$> indexed pafb (i :: Int) (w2c x) <*> run (i + 1) j
 {-# INLINE traversedStrictTree8 #-}
 
 -- | Unpack a lazy 'Bytestring'
@@ -119,8 +119,8 @@ unpackLazy = BL.unpack
 traversedLazy :: IndexedTraversal' Int64 BL.ByteString Word8
 traversedLazy pafb = go 0 where
   go _ BLI.Empty        = pure BLI.Empty
-  go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (fromIntegral :: Int -> Int64) (traversedStrictTree (fromIntegral i)) pafb b <*> go i' bs
-    where !i' = i + B.length b
+  go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (\x -> i + fromIntegral x :: Int64) traversedStrictTree pafb b <*> go i' bs
+    where !i' = i + fromIntegral (B.length b)
 {-# INLINE traversedLazy #-}
 
 
@@ -133,8 +133,8 @@ unpackLazy8 = BL8.unpack
 traversedLazy8 :: IndexedTraversal' Int64 BL.ByteString Char
 traversedLazy8 pafb = go 0 where
   go _ BLI.Empty = pure BLI.Empty
-  go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (fromIntegral :: Int -> Int64) (traversedStrictTree8 (fromIntegral i)) pafb b <*> go i' bs
-    where !i' = i + B.length b
+  go i (BLI.Chunk b bs) = BLI.Chunk <$> reindexed (\x -> i + fromIntegral x :: Int64) (traversedStrictTree8) pafb b <*> go i' bs
+    where !i' = i + fromIntegral (B.length b)
 {-# INLINE traversedLazy8 #-}
 
 ------------------------------------------------------------------------------

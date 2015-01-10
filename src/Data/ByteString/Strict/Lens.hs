@@ -70,7 +70,7 @@ unpackedBytes = from packedBytes
 -- Note that when just using this as a 'Setter', @'setting' 'Data.ByteString.map'@
 -- can be more efficient.
 bytes :: IndexedTraversal' Int ByteString Word8
-bytes = traversedStrictTree 0
+bytes = traversedStrictTree
 {-# INLINE bytes #-}
 
 -- | 'Data.ByteString.Char8.pack' (or 'Data.ByteString.Char8.unpack') a list of characters into a 'ByteString'
@@ -124,5 +124,5 @@ unpackedChars = from packedChars
 -- >>> anyOf chars (== 'h') "hello"
 -- True
 chars :: IndexedTraversal' Int ByteString Char
-chars = traversedStrictTree8 0
+chars = traversedStrictTree8
 {-# INLINE chars #-}
