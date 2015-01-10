@@ -6,8 +6,13 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+
 #ifndef MIN_VERSION_base
 #define MIN_VERSION_base(x,y,z) 1
+#endif
+
+#ifndef MIN_VERSION_bytestring
+#define MIN_VERSION_bytestring(x,y,z) 1
 #endif
 
 {-# OPTIONS_GHC -fno-warn-deprecations #-} -- for inlinePerformIO
@@ -100,7 +105,7 @@ unpackLazy = BL.unpack
 
 -- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString'
 traversedLazy :: IndexedTraversal' Int64 BL.ByteString Word8
-traversedLazy pafb lbs = BL.foldrChunks go (\_ -> pure BL.empty) lbs 0
+traversedLazy pafb = \lbs -> foldrChunks go (\_ -> pure BL.empty) lbs 0
   where
   go c fcs acc = BL.append . BL.fromStrict
              <$> reindexed (\x -> acc + fromIntegral x :: Int64) traversedStrictTree pafb c
@@ -118,7 +123,7 @@ unpackLazy8 = BL8.unpack
 
 -- | An 'IndexedTraversal' of the individual bytes in a lazy 'BL.ByteString' pretending the bytes are chars.
 traversedLazy8 :: IndexedTraversal' Int64 BL.ByteString Char
-traversedLazy8 pafb lbs = BL.foldrChunks go (\_ -> pure BL.empty) lbs 0
+traversedLazy8 pafb lbs = foldrChunks go (\_ -> pure BL.empty) lbs 0
   where
   go c fcs acc = BL.append . BL.fromStrict
              <$> reindexed (\x -> acc + fromIntegral x :: Int64) traversedStrictTree8 pafb c
@@ -131,6 +136,14 @@ traversedLazy8 pafb lbs = BL.foldrChunks go (\_ -> pure BL.empty) lbs 0
 ------------------------------------------------------------------------------
 -- ByteString guts
 ------------------------------------------------------------------------------
+
+foldrChunks :: (B.ByteString -> r -> r) -> r -> BL.ByteString -> r
+#if MIN_VERSION_bytestring(0,10,0)
+foldrChunks = BL.foldrChunks
+#else
+foldrChunks f z b = foldr f z (BL.toList b)
+#endif
+{-# INLINE foldrChunks #-}
 
 -- | Conversion between 'Word8' and 'Char'. Should compile to a no-op.
 w2c :: Word8 -> Char
