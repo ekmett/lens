@@ -107,7 +107,7 @@ unpackLazy = BL.unpack
 traversedLazy :: IndexedTraversal' Int64 BL.ByteString Word8
 traversedLazy pafb = \lbs -> foldrChunks go (\_ -> pure BL.empty) lbs 0
   where
-  go c fcs acc = BL.append . BL.fromStrict
+  go c fcs acc = BL.append . fromStrict
              <$> reindexed (\x -> acc + fromIntegral x :: Int64) traversedStrictTree pafb c
              <*> fcs acc'
     where
@@ -125,7 +125,7 @@ unpackLazy8 = BL8.unpack
 traversedLazy8 :: IndexedTraversal' Int64 BL.ByteString Char
 traversedLazy8 pafb = \lbs -> foldrChunks go (\_ -> pure BL.empty) lbs 0
   where
-  go c fcs acc = BL.append . BL.fromStrict
+  go c fcs acc = BL.append . fromStrict
              <$> reindexed (\x -> acc + fromIntegral x :: Int64) traversedStrictTree8 pafb c
              <*> fcs acc'
     where
@@ -137,11 +137,19 @@ traversedLazy8 pafb = \lbs -> foldrChunks go (\_ -> pure BL.empty) lbs 0
 -- ByteString guts
 ------------------------------------------------------------------------------
 
+fromStrict :: B.ByteString -> BL.ByteString
+#if MIN_VERSION_bytestring(0,10,0)
+fromStrict = BL.fromStrict
+#else
+fromStrict = \x -> BL.fromChunks [x]
+#endif
+{-# INLINE fromStrict #-}
+
 foldrChunks :: (B.ByteString -> r -> r) -> r -> BL.ByteString -> r
 #if MIN_VERSION_bytestring(0,10,0)
 foldrChunks = BL.foldrChunks
 #else
-foldrChunks f z b = foldr f z (BL.toList b)
+foldrChunks f z b = foldr f z (BL.toChunks b)
 #endif
 {-# INLINE foldrChunks #-}
 
