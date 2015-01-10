@@ -41,9 +41,7 @@ import qualified Data.ByteString               as B
 import qualified Data.ByteString.Char8         as B8
 import qualified Data.ByteString.Lazy          as BL
 import qualified Data.ByteString.Lazy.Char8    as BL8
-#if !MIN_VERSION_bytestring(0,10,4)
 import qualified Data.ByteString.Internal      as BI
-#endif
 import qualified Data.ByteString.Unsafe        as BU
 import Data.Bits
 import Data.Char
@@ -53,10 +51,11 @@ import Foreign.Ptr
 import Foreign.Storable
 #if MIN_VERSION_base(4,8,0)
 import Foreign.ForeignPtr
-import Foreign.ForeignPtr.Unsafe
 #elif MIN_VERSION_base(4,4,0)
 import Foreign.ForeignPtr.Safe
-import Foreign.ForeignPtr.Unsafe
+#if !MIN_VERSION_bytestring(0,10,4)
+import Foreign.ForeignPtr.Unsafe (unsafeForeignPtrToPtr)
+#endif
 #else
 import Foreign.ForeignPtr
 #endif
@@ -186,9 +185,9 @@ unpackStrict (BI.PS fp off len) =
 
 -- | Unpack a strict 'B.Bytestring', pretending the bytes are chars.
 unpackStrict8 :: B.ByteString -> String
-#if MIN_VERSION(0,10,4)
+#if MIN_VERSION_bytestring(0,10,4)
 unpackStrict8 = B8.unpack
-#endif
+#else
 unpackStrict8 (BI.PS fp off len) =
       let p = unsafeForeignPtrToPtr fp
        in go (p `plusPtr` off) (p `plusPtr` (off+len))
