@@ -15,8 +15,6 @@
 #define MIN_VERSION_bytestring(x,y,z) 1
 #endif
 
-{-# OPTIONS_GHC -fno-warn-deprecations #-} -- for inlinePerformIO
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ByteString.Strict.Lens
@@ -40,9 +38,12 @@ module Control.Lens.Internal.ByteString
 import Control.Applicative
 import Control.Lens
 import qualified Data.ByteString               as B
+import qualified Data.ByteString.Char8         as B8
 import qualified Data.ByteString.Lazy          as BL
 import qualified Data.ByteString.Lazy.Char8    as BL8
+#if !MIN_VERSION_bytestring(0,10,4)
 import qualified Data.ByteString.Internal      as BI
+#endif
 import qualified Data.ByteString.Unsafe        as BU
 import Data.Bits
 import Data.Char
@@ -165,10 +166,11 @@ c2w :: Char -> Word8
 c2w = fromIntegral . ord
 {-# INLINE c2w #-}
 
--- TODO: Should this create the list in chunks, like unpackBytes does in 0.10?
-
 -- | Unpack a strict 'B.Bytestring'
 unpackStrict :: B.ByteString -> [Word8]
+#if MIN_VERSION_bytestring(0,10,4)
+unpackStrict = B.unpack
+#else
 unpackStrict (BI.PS fp off len) =
       let p = unsafeForeignPtrToPtr fp
        in go (p `plusPtr` off) (p `plusPtr` (off+len))
@@ -179,12 +181,14 @@ unpackStrict (BI.PS fp off len) =
                                         touchForeignPtr fp
                                         return x'
                              in x : go (p `plusPtr` 1) q
+#endif
 {-# INLINE unpackStrict #-}
-
--- TODO: Should this create the list in chunks, like unpackBytes does in 0.10?
 
 -- | Unpack a strict 'B.Bytestring', pretending the bytes are chars.
 unpackStrict8 :: B.ByteString -> String
+#if MIN_VERSION(0,10,4)
+unpackStrict8 = B8.unpack
+#endif
 unpackStrict8 (BI.PS fp off len) =
       let p = unsafeForeignPtrToPtr fp
        in go (p `plusPtr` off) (p `plusPtr` (off+len))
@@ -195,6 +199,7 @@ unpackStrict8 (BI.PS fp off len) =
                                         touchForeignPtr fp
                                         return x'
                              in w2c x : go (p `plusPtr` 1) q
+#endif
 {-# INLINE unpackStrict8 #-}
 
 
