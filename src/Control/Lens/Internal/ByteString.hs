@@ -38,7 +38,9 @@ module Control.Lens.Internal.ByteString
 import Control.Applicative
 import Control.Lens
 import qualified Data.ByteString               as B
+#if MIN_VERSION_bytestring(0,10,4)
 import qualified Data.ByteString.Char8         as B8
+#endif
 import qualified Data.ByteString.Lazy          as BL
 import qualified Data.ByteString.Lazy.Char8    as BL8
 import qualified Data.ByteString.Internal      as BI
