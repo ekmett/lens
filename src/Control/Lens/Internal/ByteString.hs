@@ -26,7 +26,7 @@
 -- Haskell Platforms and to improve constant and asymptotic factors in our performance.
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.ByteString
-  ( unpackStrict, traversedStrict, traversedStrictTree
+  ( unpackStrict, traversedStrict, traversedStrictTree, traversedStrictTreeOld
   , unpackStrict8, traversedStrict8, traversedStrictTree8
   , unpackLazy, traversedLazy
   , unpackLazy8, traversedLazy8
@@ -39,6 +39,7 @@ import qualified Data.ByteString.Lazy          as BL
 import qualified Data.ByteString.Lazy.Internal as BLI
 import qualified Data.ByteString.Lazy.Char8    as BL8
 import qualified Data.ByteString.Internal      as BI
+import qualified Data.ByteString.Unsafe        as BU
 import Data.Bits
 import Data.Char
 import Data.Int (Int64)
@@ -104,7 +105,20 @@ grain = 32
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
 -- elements at the leaves.
 traversedStrictTree :: Int -> IndexedTraversal' Int B.ByteString Word8
-traversedStrictTree i0 pafb (BI.PS fp off len) = rebuild len <$> go (unsafeForeignPtrToPtr fp `plusPtr` (off - i0)) i0 (i0 + len)
+traversedStrictTree i0 pafb bs = unsafeCreate len <$> go bs 0 len
+ where
+   len = B.length bs
+   go !bs !i !j
+     | i + grain < j, k <- i + shiftR (j - i) 1 = (\l r q -> l q >> r q) <$> go bs i k <*> go bs k j
+     | otherwise = run bs i j
+   run !bs !i !j
+     | i == j    = pure (\_ -> return ())
+     | otherwise = let !x = BU.unsafeIndex bs i
+                   in (\y ys !q -> pokeByteOff q i y >> ys q) <$> indexed pafb (i0 + i :: Int) x <*> run bs (i + 1) j
+{-# INLINE traversedStrictTree #-}
+
+traversedStrictTreeOld :: Int -> IndexedTraversal' Int B.ByteString Word8
+traversedStrictTreeOld i0 pafb (BI.PS fp off len) = rebuild len <$> go (unsafeForeignPtrToPtr fp `plusPtr` (off - i0)) i0 (i0 + len)
  where
    rebuild n f = unsafeCreate n $ \q -> f $! (q `plusPtr` (off - i0))
    go !p !i !j
@@ -117,7 +131,8 @@ traversedStrictTree i0 pafb (BI.PS fp off len) = rebuild len <$> go (unsafeForei
                           touchForeignPtr fp
                           return x'
                    in (\y ys !q -> pokeByteOff q i y >> ys q) <$> indexed pafb (i :: Int) x <*> run p (i + 1) j
-{-# INLINE traversedStrictTree #-}
+{-# INLINE traversedStrictTreeOld #-}
+
 
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
 -- elements at the leaves, pretending the bytes are chars.
