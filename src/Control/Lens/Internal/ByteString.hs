@@ -81,7 +81,7 @@ traversedStrictTree pafb bs = unsafeCreate len <$> go 0 len
    run !i !j
      | i == j    = pure (\_ -> return ())
      | otherwise = let !x = BU.unsafeIndex bs i
-                   in (\y ys !q -> pokeByteOff q i y >> ys q) <$> indexed pafb (i :: Int) x <*> run (i + 1) j
+                   in (\y ys q -> pokeByteOff q i y >> ys q) <$> indexed pafb (i :: Int) x <*> run (i + 1) j
 {-# INLINE traversedStrictTree #-}
 
 
@@ -92,12 +92,15 @@ traversedStrictTree8 pafb bs = unsafeCreate len <$> go 0 len
  where
    len = B.length bs
    go !i !j
-     | i + grain < j, k <- i + shiftR (j - i) 1 = (\l r q -> l q >> r q) <$> go i k <*> go k j
-     | otherwise = run i j
+     | i + grain < j    = let k = i + shiftR (j - i) 1
+                          in (\l r q -> l q >> r q) <$> go i k <*> go k j
+     | otherwise        = run i j
    run !i !j
-     | i == j    = pure (\_ -> return ())
-     | otherwise = let !x = BU.unsafeIndex bs i
-                   in (\y ys q -> poke (q `plusPtr` i) (c2w y) >> ys q) <$> indexed pafb (i :: Int) (w2c x) <*> run (i + 1) j
+     | i == j           = pure (\_ -> return ())
+     | otherwise        = let !x = BU.unsafeIndex bs i
+                          in (\y ys q -> pokeByteOff q i (c2w y) >> ys q)
+                         <$> indexed pafb (i :: Int) (w2c x)
+                         <*> run (i + 1) j
 {-# INLINE traversedStrictTree8 #-}
 
 -- | Unpack a lazy 'Bytestring'
