@@ -108,8 +108,6 @@ import qualified Language.Haskell.TH as TH
 import Data.Bitraversable
 import Data.Data
 import Data.Data.Lens
-import Data.Functor.Kan.Rift
-import Data.Functor.Yoneda
 import Data.Monoid
 import Data.Tree
 import GHC.Generics
@@ -692,8 +690,12 @@ parts = partsOf plate
 -- With sufficient inlining this operation will compile without generics
 -- overhead.
 genericPlate :: (Generic a, GPlated a (Rep a)) => Traversal' a a
-genericPlate f x = lowerYoneda (pure GHC.Generics.to <*>^ gplate (liftRiftYoneda . f) (GHC.Generics.from x))
+genericPlate = fusingTraversal genericPlate'
 {-# INLINE genericPlate #-}
+
+genericPlate' :: (Generic a, GPlated a (Rep a)) => Traversal' a a
+genericPlate' f x = GHC.Generics.to <$> gplate f (GHC.Generics.from x)
+{-# INLINE genericPlate' #-}
 
 class GPlated a g where
   gplate :: Traversal' (g p) a
@@ -726,19 +728,3 @@ instance GPlated a U1 where
 instance GPlated a V1 where
   gplate _ v = v `seq` error "GPlated/V1"
   {-# INLINE gplate #-}
-
--- Transformation to give Generics oportunity to optimize away
-
-liftRiftYoneda :: Applicative f => f a -> Rift (Yoneda f) (Yoneda f) a
-liftRiftYoneda fa = Rift (`yap` fa)
-{-# INLINE liftRiftYoneda #-}
-
-yap :: Applicative f => Yoneda f (a -> b) -> f a -> Yoneda f b
-yap (Yoneda k) fa = Yoneda (\ab_r -> k (ab_r .) <*> fa )
-{-# INLINE yap #-}
-
--- | Run function for 'Rift'
-(<*>^) :: f (a -> b) -> Rift f g a -> g b
-x <*>^ Rift y = y x
-infixl 4 <*>^
-{-# INLINE (<*>^) #-}

@@ -121,6 +121,9 @@ module Control.Lens.Traversal
   , Bazaar1(..), Bazaar1'
   , loci
   , iloci
+
+  -- * Fusion
+  , fusingTraversal
   ) where
 
 import Control.Applicative as Applicative
@@ -138,6 +141,8 @@ import Control.Monad
 import Control.Monad.Trans.State.Lazy
 import Data.Bitraversable
 import Data.Functor.Compose
+import Data.Functor.Kan.Rift
+import Data.Functor.Yoneda
 import Data.Int
 import Data.IntMap as IntMap
 import Data.Map as Map
@@ -1216,3 +1221,23 @@ deepOf r l pafb = go
           [] -> r go s
           xs -> unsafeOuts b <$> traverse (corep pafb) xs
           where b = l sell s
+
+fusingTraversal :: Applicative f => LensLike (Rift (Yoneda f) (Yoneda f)) s t a b -> LensLike f s t a b
+fusingTraversal t f x = lowerYoneda (pure id <*>^ t (liftRiftYoneda . f) x)
+{-# INLINE fusingTraversal #-}
+
+-- Transformation to give Generics oportunity to optimize away
+
+liftRiftYoneda :: Applicative f => f a -> Rift (Yoneda f) (Yoneda f) a
+liftRiftYoneda fa = Rift (`yap` fa)
+{-# INLINE liftRiftYoneda #-}
+
+yap :: Applicative f => Yoneda f (a -> b) -> f a -> Yoneda f b
+yap (Yoneda k) fa = Yoneda (\ab_r -> k (ab_r .) <*> fa )
+{-# INLINE yap #-}
+
+-- | Run function for 'Rift'
+(<*>^) :: f (a -> b) -> Rift f g a -> g b
+x <*>^ Rift y = y x
+infixl 4 <*>^
+{-# INLINE (<*>^) #-}
