@@ -1222,22 +1222,21 @@ deepOf r l pafb = go
           xs -> unsafeOuts b <$> traverse (corep pafb) xs
           where b = l sell s
 
+-- | "Fuse" a 'Traversal' by reassociating all of the '<*>' operations to the
+-- left and fusing all of the 'fmap' calls into one. This is particularly
+-- useful when constructing a 'Traversal' using operations from GHC.Generics.
 fusingTraversal :: Applicative f => LensLike (Rift (Yoneda f) (Yoneda f)) s t a b -> LensLike f s t a b
-fusingTraversal t f x = lowerYoneda (pure id <*>^ t (liftRiftYoneda . f) x)
+fusingTraversal t f = lowerYoneda . lowerRift . t (liftRiftYoneda . f)
+  where
+  liftRiftYoneda :: Applicative f => f a -> Rift (Yoneda f) (Yoneda f) a
+  liftRiftYoneda fa = Rift (`yap` fa)
+  {-# INLINE liftRiftYoneda #-}
+
+  yap :: Applicative f => Yoneda f (a -> b) -> f a -> Yoneda f b
+  yap (Yoneda k) fa = Yoneda (\ab_r -> k (ab_r .) <*> fa)
+  {-# INLINE yap #-}
+
+  -- | Run function for 'Rift'
+  lowerRift :: Applicative f => Rift f g a -> g a
+  lowerRift (Rift y) = y (pure id)
 {-# INLINE fusingTraversal #-}
-
--- Transformation to give Generics oportunity to optimize away
-
-liftRiftYoneda :: Applicative f => f a -> Rift (Yoneda f) (Yoneda f) a
-liftRiftYoneda fa = Rift (`yap` fa)
-{-# INLINE liftRiftYoneda #-}
-
-yap :: Applicative f => Yoneda f (a -> b) -> f a -> Yoneda f b
-yap (Yoneda k) fa = Yoneda (\ab_r -> k (ab_r .) <*> fa )
-{-# INLINE yap #-}
-
--- | Run function for 'Rift'
-(<*>^) :: f (a -> b) -> Rift f g a -> g b
-x <*>^ Rift y = y x
-infixl 4 <*>^
-{-# INLINE (<*>^) #-}
