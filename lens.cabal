@@ -193,6 +193,7 @@ library
     free                      >= 4        && < 5,
     ghc-prim,
     hashable                  >= 1.1.2.3  && < 1.3,
+    kan-extensions            >= 4.2      && < 5,
     exceptions                >= 0.1.1    && < 1,
     mtl                       >= 2.0.1    && < 2.3,
     parallel                  >= 3.1.0.1  && < 3.3,

@@ -3,7 +3,9 @@
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverlappingInstances #-}
 
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-} -- template-haskell
@@ -80,6 +82,10 @@ module Control.Lens.Plated
 
   -- * Parts
   , parts
+
+  -- * Generics
+  , genericPlate
+  , GPlated
   )
   where
 
@@ -102,8 +108,11 @@ import qualified Language.Haskell.TH as TH
 import Data.Bitraversable
 import Data.Data
 import Data.Data.Lens
+import Data.Functor.Kan.Rift
+import Data.Functor.Yoneda
 import Data.Monoid
 import Data.Tree
+import GHC.Generics
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Reduce duplication" #-}
@@ -673,3 +682,63 @@ composOpFold z c f = foldrOf plate (c . f) z
 parts :: Plated a => Lens' a [a]
 parts = partsOf plate
 {-# INLINE parts #-}
+
+
+-------------------------------------------------------------------------------
+-- Generics
+-------------------------------------------------------------------------------
+
+-- | Implement 'plate' operation for a type using its 'Generic' instance.
+-- With sufficient inlining this operation will compile without generics
+-- overhead.
+genericPlate :: (Generic a, GPlated a (Rep a)) => Traversal' a a
+genericPlate f x = lowerYoneda (pure GHC.Generics.to <*>^ gplate (liftRiftYoneda . f) (GHC.Generics.from x))
+{-# INLINE genericPlate #-}
+
+class GPlated a g where
+  gplate :: Traversal' (g p) a
+
+instance GPlated a f => GPlated a (M1 i c f) where
+  gplate f (M1 x) = M1 <$> gplate f x
+  {-# INLINE gplate #-}
+
+instance (GPlated a f, GPlated a g) => GPlated a (f :+: g) where
+  gplate f (L1 x) = L1 <$> gplate f x
+  gplate f (R1 x) = R1 <$> gplate f x
+  {-# INLINE gplate #-}
+
+instance (GPlated a f, GPlated a g) => GPlated a (f :*: g) where
+  gplate f (x :*: y) = (:*:) <$> gplate f x <*> gplate f y
+  {-# INLINE gplate #-}
+
+instance GPlated a (K1 i a) where
+  gplate f (K1 x) = K1 <$> f x
+  {-# INLINE gplate #-}
+
+instance GPlated a (K1 i b) where
+  gplate _ = pure
+  {-# INLINE gplate #-}
+
+instance GPlated a U1 where
+  gplate _ = pure
+  {-# INLINE gplate #-}
+
+instance GPlated a V1 where
+  gplate _ v = v `seq` error "GPlated/V1"
+  {-# INLINE gplate #-}
+
+-- Transformation to give Generics oportunity to optimize away
+
+liftRiftYoneda :: Applicative f => f a -> Rift (Yoneda f) (Yoneda f) a
+liftRiftYoneda fa = Rift (`yap` fa)
+{-# INLINE liftRiftYoneda #-}
+
+yap :: Applicative f => Yoneda f (a -> b) -> f a -> Yoneda f b
+yap (Yoneda k) fa = Yoneda (\ab_r -> k (ab_r .) <*> fa )
+{-# INLINE yap #-}
+
+-- | Run function for 'Rift'
+(<*>^) :: f (a -> b) -> Rift f g a -> g b
+x <*>^ Rift y = y x
+infixl 4 <*>^
+{-# INLINE (<*>^) #-}
