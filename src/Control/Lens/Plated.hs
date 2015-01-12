@@ -5,7 +5,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+
+#if __GLASGOW_HASKELL__ < 710
 {-# LANGUAGE OverlappingInstances #-}
+#define OVERLAPS
+#else
+#define OVERLAPS {-# OVERLAPS #-}
+#endif
 
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-} -- template-haskell
@@ -713,7 +719,7 @@ instance (GPlated a f, GPlated a g) => GPlated a (f :*: g) where
   gplate f (x :*: y) = (:*:) <$> gplate f x <*> gplate f y
   {-# INLINE gplate #-}
 
-instance GPlated a (K1 i a) where
+instance OVERLAPS GPlated a (K1 i a) where
   gplate f (K1 x) = K1 <$> f x
   {-# INLINE gplate #-}
 
