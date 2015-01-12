@@ -4,6 +4,10 @@
   strippingPrefix, strippingSuffix
 * Add `generateLazyPatterns` configuration flag to `makeLenses` rules.
 * Added `Cons` and `Snoc` instances for `NonEmpty`
+* Removed `Data.List.Split.Lens` module
+* Reimplemented bytestring traversals to avoid internal modules
+* Added `fusingLens` and `fusingTraversal`
+* Added `genericPlate`, an implementation of `plate` for any type implementing `Generic`
 
 4.7
 ---
