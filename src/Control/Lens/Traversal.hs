@@ -1236,7 +1236,4 @@ fusingTraversal t f = lowerYoneda . lowerRift . t (liftRiftYoneda . f)
   yap (Yoneda k) fa = Yoneda (\ab_r -> k (ab_r .) <*> fa)
   {-# INLINE yap #-}
 
-  -- | Run function for 'Rift'
-  lowerRift :: Applicative f => Rift f g a -> g a
-  lowerRift (Rift y) = y (pure id)
 {-# INLINE fusingTraversal #-}
