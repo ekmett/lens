@@ -693,14 +693,8 @@ parts = partsOf plate
 -------------------------------------------------------------------------------
 
 -- | Implement 'plate' operation for a type using its 'Generic' instance.
--- With sufficient inlining this operation will compile without generics
--- overhead.
 genericPlate :: (Generic a, GPlated a (Rep a)) => Traversal' a a
-genericPlate = fusingTraversal genericPlate'
-{-# INLINE genericPlate #-}
-
-genericPlate' :: (Generic a, GPlated a (Rep a)) => Traversal' a a
-genericPlate' f x = GHC.Generics.to <$> gplate f (GHC.Generics.from x)
+genericPlate f x = GHC.Generics.to <$> gplate f (GHC.Generics.from x)
 {-# INLINE genericPlate' #-}
 
 class GPlated a g where
