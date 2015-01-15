@@ -33,7 +33,7 @@ import Data.Hashable
 --
 -- Sadly, you can't create a valid 'Traversal' for a 'Set', but you can
 -- manipulate it by reading using 'Control.Lens.Fold.folded' and reindexing it via 'setmapped'.
-setmapped :: (Eq i, Hashable i, Eq j, Hashable j) => IndexPreservingSetter (HashSet i) (HashSet j) i j
+setmapped :: (Eq j, Hashable j) => IndexPreservingSetter (HashSet i) (HashSet j) i j
 setmapped = setting HashSet.map
 {-# INLINE setmapped #-}
 

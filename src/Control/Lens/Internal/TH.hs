@@ -80,11 +80,11 @@ bndrName :: TyVarBndr -> Name
 bndrName (PlainTV  n  ) = n
 bndrName (KindedTV n _) = n
 
-fromSet :: Ord k => (k -> v) -> Set.Set k -> Map.Map k v
+fromSet :: (k -> v) -> Set.Set k -> Map.Map k v
 #if MIN_VERSION_containers(0,5,0)
 fromSet = Map.fromSet
 #else
-fromSet f x = Map.fromList [ (k,f k) | k <- Set.toList x ]
+fromSet f x = Map.fromDistinctAscList [ (k,f k) | k <- Set.toAscList x ]
 #endif
 
 ------------------------------------------------------------------------
