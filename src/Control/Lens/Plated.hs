@@ -8,9 +8,9 @@
 
 #if __GLASGOW_HASKELL__ < 710
 {-# LANGUAGE OverlappingInstances #-}
-#define OVERLAPS
+#define OVERLAPPING
 #else
-#define OVERLAPS {-# OVERLAPS #-}
+#define OVERLAPPING {-# OVERLAPPING #-}
 #endif
 
 #ifdef TRUSTWORTHY
@@ -713,7 +713,7 @@ instance (GPlated a f, GPlated a g) => GPlated a (f :*: g) where
   gplate f (x :*: y) = (:*:) <$> gplate f x <*> gplate f y
   {-# INLINE gplate #-}
 
-instance OVERLAPS GPlated a (K1 i a) where
+instance OVERLAPPING GPlated a (K1 i a) where
   gplate f (K1 x) = K1 <$> f x
   {-# INLINE gplate #-}
 
