@@ -32,7 +32,7 @@ import Data.Set as Set
 --
 -- >>> over setmapped (+1) (fromList [1,2,3,4])
 -- fromList [2,3,4,5]
-setmapped :: (Ord i, Ord j) => IndexPreservingSetter (Set i) (Set j) i j
+setmapped :: Ord j => IndexPreservingSetter (Set i) (Set j) i j
 setmapped = setting Set.map
 {-# INLINE setmapped #-}
 

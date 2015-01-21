@@ -401,7 +401,7 @@ hitTest a b = Oracle $ \(c :: c) ->
 -------------------------------------------------------------------------------
 
 
-biplateData :: forall f s a. (Applicative f, Data s, Typeable a) => (forall c. Typeable c => c -> Answer c a) -> (a -> f a) -> s -> f s
+biplateData :: forall f s a. (Applicative f, Data s) => (forall c. Typeable c => c -> Answer c a) -> (a -> f a) -> s -> f s
 biplateData o f a0 = go2 a0 where
   go :: Data d => d -> f d
   go s = gfoldl (\x y -> x <*> go2 y) pure s
@@ -412,7 +412,7 @@ biplateData o f a0 = go2 a0 where
     Miss   -> pure s
 {-# INLINE biplateData #-}
 
-uniplateData :: forall f s a. (Applicative f, Data s, Typeable a) => (forall c. Typeable c => c -> Answer c a) -> (a -> f a) -> s -> f s
+uniplateData :: forall f s a. (Applicative f, Data s) => (forall c. Typeable c => c -> Answer c a) -> (a -> f a) -> s -> f s
 uniplateData o f a0 = go a0 where
   go :: Data d => d -> f d
   go s = gfoldl (\x y -> x <*> go2 y) pure s

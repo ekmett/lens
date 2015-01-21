@@ -225,7 +225,7 @@ type role TakingWhile nominal nominal nominal nominal nominal
 #endif
 
 -- | Generate a 'Magma' with leaves only while the predicate holds from left to right.
-runTakingWhile :: Corepresentable p => TakingWhile p f a b t -> Magma () t b (Corep p a)
+runTakingWhile :: TakingWhile p f a b t -> Magma () t b (Corep p a)
 runTakingWhile (TakingWhile _ _ k) = k True
 
 instance Functor (TakingWhile p f a b) where
@@ -253,6 +253,7 @@ instance Corepresentable p => Bizarre p (TakingWhile p g) where
     go (Magma _ wa) = corep pafb wa
   {-# INLINE bazaar #-}
 
+-- This constraint is unused intentionally, it protects TakingWhile
 instance Contravariant f => Contravariant (TakingWhile p f a b) where
   contramap _ = (<$) (error "contramap: TakingWhile")
   {-# INLINE contramap #-}

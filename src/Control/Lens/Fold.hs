@@ -233,7 +233,11 @@ folded' f = coerce . getFolding . foldMap (Folding #. f)
 --
 -- >>> timingOut $ 5^..taking 20 repeated
 -- [5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5]
-repeated :: Fold1 a a
+--
+-- @
+-- 'repeated' :: 'Fold1' a a
+-- @
+repeated :: Apply f => LensLike' f a a
 repeated f a = as where as = f a .> as
 {-# INLINE repeated #-}
 
@@ -256,7 +260,11 @@ replicated n0 f a = go n0 where
 --
 -- >>> timingOut $ [1,2,3]^..taking 7 (cycled traverse)
 -- [1,2,3,1,2,3,1]
-cycled :: (Contravariant f, Apply f) => LensLike f s t a b -> LensLike f s t a b
+--
+-- @
+-- 'cycled' :: 'Fold1' s a -> 'Fold1' s a
+-- @
+cycled :: Apply f => LensLike f s t a b -> LensLike f s t a b
 cycled l f a = as where as = l f a .> as
 {-# INLINE cycled #-}
 
@@ -280,7 +288,11 @@ unfolded f g b0 = go b0 where
 -- @
 -- 'toListOf' ('iterated' f) a ≡ 'iterate' f a
 -- @
-iterated :: (a -> a) -> Fold1 a a
+--
+-- @
+-- 'iterated' :: (a -> a) -> 'Fold1' a a
+-- @
+iterated :: Apply f => (a -> a) -> LensLike' f a a
 iterated f g a0 = go a0 where
   go a = g a .> go (f a)
 {-# INLINE iterated #-}

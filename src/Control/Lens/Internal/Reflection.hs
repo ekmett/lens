@@ -180,7 +180,7 @@ instance (B b0, B b1, B b2, B b3, B b4, B b5, B b6, B b7, w0 ~ W b0 b1 b2 b3, w1
 
 -- This had to be moved to the top level, due to an apparent bug in
 -- the ghc inliner introduced in ghc 7.0.x
-reflectBefore :: Reifies s a => (Proxy s -> b) -> proxy s -> b
+reflectBefore :: (Proxy s -> b) -> proxy s -> b
 reflectBefore f = const $! f Proxy
 {-# NOINLINE reflectBefore #-}
 

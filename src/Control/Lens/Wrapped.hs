@@ -579,7 +579,7 @@ failedAssertion :: AssertionFailed -> String
 failedAssertion (AssertionFailed x) = x
 {-# INLINE failedAssertion #-}
 
-getArrowMonad :: ArrowApply m  => ArrowMonad m a -> m () a
+getArrowMonad :: ArrowMonad m a -> m () a
 getArrowMonad (ArrowMonad x) = x
 {-# INLINE getArrowMonad #-}
 
