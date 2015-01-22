@@ -1,14 +1,16 @@
 4.8
 ---
-* Remove deprecated stuff: Control.Lens.Loupe, headOf, makeFieldsWith,
-  strippingPrefix, strippingSuffix
-* Add `generateLazyPatterns` configuration flag to `makeLenses` rules.
-* Make the default `makeLenses` behavior to generate STRICT optics
+* Remove deprecated stuff: `Control.Lens.Loupe`, `headOf`, `makeFieldsWith`,
+  `strippingPrefix`, `strippingSuffix`
 * Added `Cons` and `Snoc` instances for `NonEmpty`
 * Removed `Data.List.Split.Lens` module
 * Reimplemented bytestring traversals to avoid internal modules
 * Added `fusingLens` and `fusingTraversal`
 * Added `genericPlate`, an implementation of `plate` for any type implementing `Generic`
+* Strictness revisited
+  * Add `generateLazyPatterns` configuration flag to `makeLenses` rules.
+  * Make the default `makeLenses` behavior to generate STRICT optics
+  * Add strict variants of `_1` .. `_9` named `_1'` .. `_9'`
 
 4.7
 ---
