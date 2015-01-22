@@ -112,6 +112,16 @@ generateUpdateableOptics f r =
 -- | Generate optics using lazy pattern matches. This can
 -- allow fields of an undefined value to be initialized with lenses,
 -- and is the default behavior.
+--
+-- The downside of this flag is that it can lead to space-leaks and
+-- code-size/compile-time increases when generated for large records.
+--
+-- When using lazy optics the strict optic can be recovered by composing
+-- with '$!'
+--
+-- @
+-- strictOptic = ($!) . lazyOptic
+-- @
 generateLazyPatterns :: Lens' LensRules Bool
 generateLazyPatterns f r =
   fmap (\x -> r { _lazyPatterns = x}) (f (_lazyPatterns r))
@@ -154,7 +164,7 @@ lensRules = LensRules
   , _generateClasses = False
   , _allowIsos       = True
   , _allowUpdates    = True
-  , _lazyPatterns    = True
+  , _lazyPatterns    = False
   , _classyLenses    = const Nothing
   , _fieldToDef      = \_ _ n ->
        case nameBase n of
@@ -181,7 +191,7 @@ classyRules = LensRules
   , _generateClasses = True
   , _allowIsos       = False -- generating Isos would hinder "subtyping"
   , _allowUpdates    = True
-  , _lazyPatterns    = True
+  , _lazyPatterns    = False
   , _classyLenses    = \n ->
         case nameBase n of
           x:xs -> Just (mkName ("Has" ++ x:xs), mkName (toLower x:xs))
@@ -683,7 +693,7 @@ defaultFieldRules = LensRules
   , _generateClasses = True  -- classes will still be skipped if they already exist
   , _allowIsos       = False -- generating Isos would hinder field class reuse
   , _allowUpdates    = True
-  , _lazyPatterns    = True
+  , _lazyPatterns    = False
   , _classyLenses    = const Nothing
   , _fieldToDef      = camelCaseNamer
   }
