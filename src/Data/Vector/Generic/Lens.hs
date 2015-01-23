@@ -79,18 +79,18 @@ toVectorOf l s = fromList (toListOf l s)
 --
 -- >>> Vector.fromList [0,8,15] ^. from vector
 -- [0,8,15]
-vector :: Vector v a => Iso' [a] (v a)
+vector :: (Vector v a, Vector v b) => Iso [a] [b] (v a) (v b)
 vector = iso fromList V.toList
 {-# INLINE vector #-}
 
 -- | Convert a 'Vector' to a finite 'Stream' (or back.)
-asStream :: Vector v a => Iso' (v a) (Stream a)
+asStream :: (Vector v a, Vector v b) => Iso (v a) (v b) (Stream a) (Stream b)
 asStream = iso stream unstream
 {-# INLINE asStream #-}
 
 -- | Convert a 'Vector' to a finite 'Stream' from right to left (or
 -- back.)
-asStreamR :: Vector v a => Iso' (v a) (Stream a)
+asStreamR :: (Vector v a, Vector v b) => Iso (v a) (v b) (Stream a) (Stream b)
 asStreamR = iso streamR unstreamR
 {-# INLINE asStreamR #-}
 
