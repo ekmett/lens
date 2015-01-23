@@ -29,6 +29,8 @@ module Data.Vector.Generic.Lens
   -- * Traversal of individual indices
   , ordinals
   , vectorIx
+  -- * Traversal with restricted polymorphism
+  , vectorItraversed
   ) where
 
 import Control.Applicative
@@ -122,3 +124,9 @@ vectorIx i f v
   | 0 <= i && i < V.length v = f (v V.! i) <&> \a -> v V.// [(i, a)]
   | otherwise                = pure v
 {-# INLINE vectorIx #-}
+
+-- | Like 'itraversed', but can be used with vectors that are not
+-- fully polymorphic (eg. 'Data.Vector.Unboxed.Vector').
+vectorItraversed :: (V.Vector v a, V.Vector v b) => IndexedTraversal Int (v a) (v b) a b
+vectorItraversed f v = V.fromListN (V.length v) <$> itraversed f (V.toList v)
+{-# INLINE vectorItraversed #-}
