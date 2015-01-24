@@ -11,6 +11,7 @@
   * Add `generateLazyPatterns` configuration flag to `makeLenses` rules.
   * Make the default `makeLenses` behavior to generate STRICT optics
   * Add strict variants of `_1` .. `_9` named `_1'` .. `_9'`
+* Generalized some combinators in `Data.Vector.Generic.Lens` and added `converted`
 
 4.7
 ---

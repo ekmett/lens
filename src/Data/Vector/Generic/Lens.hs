@@ -24,6 +24,7 @@ module Data.Vector.Generic.Lens
   , asStream
   , asStreamR
   , cloned
+  , converted
   -- * Lenses
   , sliced
   -- * Traversal of individual indices
@@ -122,3 +123,7 @@ vectorIx i f v
   | 0 <= i && i < V.length v = f (v V.! i) <&> \a -> v V.// [(i, a)]
   | otherwise                = pure v
 {-# INLINE vectorIx #-}
+
+-- | Different vector implementations are isomorphic to each other.
+converted :: (Vector v a, Vector w a, Vector v b, Vector w b) => Iso (v a) (v b) (w a) (w b)
+converted = iso convert convert
