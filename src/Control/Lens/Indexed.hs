@@ -758,8 +758,12 @@ skip _ = ()
 -- Indexed Folds with Reified Monoid
 -------------------------------------------------------------------------------
 
-ifoldMapBy :: FoldableWithIndex i t => (r -> r -> r) -> r -> (i -> a -> r) -> t a -> r
-ifoldMapBy f z g = reifyFold f z (ifoldMap (\i a -> M (g i a)))
+-- | Fold a structure like 'ifoldMap' but use a manually provided implementation
+-- of 'Monoid' rather than requiring a 'Monoid' @a@ constraint.
+ifoldMapBy :: FoldableWithIndex i t => (r -> r -> r) {- ^ 'mappend' -} -> r {- ^ 'mempty' -} -> (i -> a -> r) -> t a -> r
+ifoldMapBy f z g x = runMonoid (ifoldMap (\i a -> msingleton (g i a)) x) f z
 
-ifoldMapByOf :: (forall s. IndexedGetting i (M r s) t a) -> (r -> r -> r) -> r -> (i -> a -> r) -> t -> r
-ifoldMapByOf l f z g = reifyFold f z (ifoldMapOf l (\i a -> M (g i a)))
+-- | Fold a structure like 'ifoldMapOf' but use a manually provided
+-- implementation of 'Monoid' rather than requiring a 'Monoid' @a@ constraint.
+ifoldMapByOf :: IndexedGetting i (M r) t a -> (r -> r -> r) {- ^ 'mappend' -} -> r {- ^ 'mempty' -} -> (i -> a -> r) -> t -> r
+ifoldMapByOf l f z g x = runMonoid (ifoldMapOf l (\i a -> msingleton (g i a)) x) f z
