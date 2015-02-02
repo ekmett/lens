@@ -2411,22 +2411,14 @@ skip _ = ()
 -- Folds with Reified Monoid
 ------------------------------------------------------------------------------
 
--- | Fold a structure like 'fold' but use a manually provided implementation
--- of 'Monoid' rather than requiring a 'Monoid' @a@ constraint.
-foldBy :: Foldable t => (a -> a -> a) {- ^ 'mappend' -} -> a {- ^ 'mempty' -} -> t a -> a
-foldBy f z x = runMonoid (foldMap msingleton x) f z
+foldBy :: Foldable t => (a -> a -> a) -> a -> t a -> a
+foldBy f z = reifyFold f z (foldMap M)
 
--- | Fold a structure like 'foldOf' but use a manually provided implementation
--- of 'Monoid' rather than requiring a 'Monoid' @a@ constraint.
-foldByOf :: Getting (M a) s a -> (a -> a -> a) {- ^ 'mappend' -} -> a {- ^ 'mempty' -} -> s -> a
-foldByOf l f z x = runMonoid (foldMapOf l msingleton x) f z
+foldByOf :: (forall i. Getting (M a i) s a) -> (a -> a -> a) -> a -> s -> a
+foldByOf l f z = reifyFold f z (foldMapOf l M)
 
--- | Fold a structure like 'foldMap' but use a manually provided implementation
--- of 'Monoid' rather than requiring a 'Monoid' @a@ constraint.
-foldMapBy :: Foldable t => (r -> r -> r) {- ^ 'mappend' -} -> r {- ^ 'mempty' -} -> (a -> r) -> t a -> r
-foldMapBy f z g x = runMonoid (foldMap (msingleton . g) x) f z
+foldMapBy :: Foldable t => (r -> r -> r) -> r -> (a -> r) -> t a -> r
+foldMapBy f z g = reifyFold f z (foldMap (M #. g))
 
--- | Fold a structure like 'foldMapOf' but use a manually provided implementation
--- of 'Monoid' rather than requiring a 'Monoid' @a@ constraint.
-foldMapByOf :: Getting (M r) t a -> (r -> r -> r) {- ^ 'mappend' -} -> r {- ^ 'mempty' -} -> (a -> r) -> t -> r
-foldMapByOf l f z g x = runMonoid (foldMapOf l (msingleton . g) x) f z
+foldMapByOf :: (forall s. Getting (M r s) t a) -> (r -> r -> r) -> r -> (a -> r) -> t -> r
+foldMapByOf l f z g = reifyFold f z (foldMapOf l (M #. g))
