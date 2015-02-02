@@ -4,6 +4,11 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Prism
@@ -55,10 +60,12 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Traversable
 import Data.Void
-#ifndef SAFE
-import Unsafe.Coerce
-#else
+#if MIN_VERSION_base(4,7,0)
+import Data.Coerce
+#elif defined(SAFE)
 import Data.Profunctor.Unsafe
+#else
+import Unsafe.Coerce
 #endif
 import Prelude
 
@@ -89,7 +96,10 @@ type APrism' s a = APrism s s a a
 
 -- | Convert 'APrism' to the pair of functions that characterize it.
 withPrism :: APrism s t a b -> ((b -> t) -> (s -> Either t a) -> r) -> r
-#ifdef SAFE
+#if MIN_VERSION_base(4,7,0)
+withPrism k f = case coerce (k (Market Identity Right)) of
+  Market bt seta -> f bt seta
+#elif defined(SAFE)
 withPrism k f = case k (Market Identity Right) of
   Market bt seta -> f (runIdentity #. bt) (either (Left . runIdentity) Right . seta)
 #else
