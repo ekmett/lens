@@ -27,7 +27,7 @@ import Test.QuickCheck.Function
 --
 -- 3. @over l f . over l g ≡ over l (f . g)@
 isSetter :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Function a)
-         => Simple Setter s a -> Property
+         => Setter' s a -> Property
 isSetter l = setter_id l .&. setter_composition l .&. setter_set_set l
 
 
@@ -39,7 +39,7 @@ isSetter l = setter_id l .&. setter_composition l .&. setter_set_set l
 --
 -- 2. @fmap (t f) . t g ≡ getCompose . t (Compose . fmap f . g)@
 isTraversal :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Function a)
-         => Simple Traversal s a -> Property
+         => Traversal' s a -> Property
 isTraversal l = isSetter l .&. traverse_pureMaybe l .&. traverse_pureList l
                   .&. do as <- arbitrary
                          bs <- arbitrary
@@ -58,50 +58,50 @@ isTraversal l = isSetter l .&. traverse_pureMaybe l .&. traverse_pureList l
 --
 -- 3. @set l c (set l b a) ≡ set l c a@
 isLens :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Eq a, Function a)
-       => Simple Lens s a -> Property
+       => Lens' s a -> Property
 isLens l = lens_set_view l .&. lens_view_set l .&. isTraversal l
 
 
 --------------------------------------------------------------------------------
 isIso :: (Arbitrary s, Arbitrary a, CoArbitrary s, CoArbitrary a, Show s, Show a, Eq s, Eq a, Function s, Function a)
-      => Simple Iso s a -> Property
+      => Iso' s a -> Property
 isIso l = iso_hither l .&. iso_yon l .&. isLens l .&. isLens (from l)
 
 
 --------------------------------------------------------------------------------
 isPrism :: (Arbitrary s, Arbitrary a, CoArbitrary a, Show s, Show a, Eq s, Eq a, Function a)
-      => Simple Prism s a -> Property
+      => Prism' s a -> Property
 isPrism l = isTraversal l .&. prism_yin l .&. prism_yang l
 
 
 --------------------------------------------------------------------------------
 -- The first setter law:
-setter_id :: Eq s => Simple Setter s a -> s -> Bool
+setter_id :: Eq s => Setter' s a -> s -> Bool
 setter_id l s = over l id s == s
 
 --  The second setter law:
-setter_composition :: Eq s => Simple Setter s a -> s -> Fun a a -> Fun a a -> Bool
+setter_composition :: Eq s => Setter' s a -> s -> Fun a a -> Fun a a -> Bool
 setter_composition l s (Fun _ f) (Fun _ g) = over l f (over l g s) == over l (f . g) s
 
-lens_set_view :: Eq s => Simple Lens s a -> s -> Bool
+lens_set_view :: Eq s => Lens' s a -> s -> Bool
 lens_set_view l s = set l (view l s) s == s
 
-lens_view_set :: Eq a => Simple Lens s a -> s -> a -> Bool
+lens_view_set :: Eq a => Lens' s a -> s -> a -> Bool
 lens_view_set l s a = view l (set l a s) == a
 
-setter_set_set :: Eq s => Simple Setter s a -> s -> a -> a -> Bool
+setter_set_set :: Eq s => Setter' s a -> s -> a -> a -> Bool
 setter_set_set l s a b = set l b (set l a s) == set l b s
 
-iso_hither :: Eq s => Simple AnIso s a -> s -> Bool
+iso_hither :: Eq s => AnIso' s a -> s -> Bool
 iso_hither l s = s ^.cloneIso l.from l == s
 
-iso_yon :: Eq a => Simple AnIso s a -> a -> Bool
+iso_yon :: Eq a => AnIso' s a -> a -> Bool
 iso_yon l a = a^.from l.cloneIso l == a
 
-prism_yin :: Eq a => Simple Prism s a -> a -> Bool
+prism_yin :: Eq a => Prism' s a -> a -> Bool
 prism_yin l a = preview l (review l a) == Just a
 
-prism_yang :: Eq s => Simple Prism s a -> s -> Bool
+prism_yang :: Eq s => Prism' s a -> s -> Bool
 prism_yang l s = maybe s (review l) (preview l s) == s
 
 traverse_pure :: forall f s a. (Applicative f, Eq (f s)) => LensLike' f s a -> s -> Bool
@@ -114,5 +114,5 @@ traverse_pureList :: Eq s => LensLike' [] s a -> s -> Bool
 traverse_pureList = traverse_pure
 
 traverse_compose :: (Applicative f, Applicative g, Eq (f (g s)))
-                    => Simple Traversal s a -> (a -> g a) -> (a -> f a) -> s -> Bool
+                    => Traversal' s a -> (a -> g a) -> (a -> f a) -> s -> Bool
 traverse_compose t f g s = (fmap (t f) . t g) s == (getCompose . t (Compose . fmap f . g)) s
