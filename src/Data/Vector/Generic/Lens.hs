@@ -34,7 +34,7 @@ module Data.Vector.Generic.Lens
 
 import Control.Applicative
 import Control.Lens
-import Data.List (nub)
+import Control.Lens.Internal.List (ordinalNub)
 import Data.Monoid
 import Data.Vector.Generic as V hiding (zip, filter, indexed)
 import Data.Vector.Fusion.Stream (Stream)
@@ -113,8 +113,7 @@ forced = involuted force
 -- >>> toListOf (ordinals [1,3,2,5,9,10]) $ Vector.fromList [2,4..40]
 -- [4,8,6,12,20,22]
 ordinals :: Vector v a => [Int] -> IndexedTraversal' Int (v a) a
-ordinals is f v = fmap (v //) $ traverse (\i -> (,) i <$> indexed f i (v ! i)) $ nub $ filter (\i -> 0 <= i && i < l) is where
-  l = length v
+ordinals is f v = fmap (v //) $ traverse (\i -> (,) i <$> indexed f i (v ! i)) $ ordinalNub (length v) is
 {-# INLINE ordinals #-}
 
 -- | Like 'ix' but polymorphic in the vector type.

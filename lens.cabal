@@ -238,6 +238,7 @@ library
     Control.Lens.Internal.Instances
     Control.Lens.Internal.Iso
     Control.Lens.Internal.Level
+    Control.Lens.Internal.List
     Control.Lens.Internal.Magma
     Control.Lens.Internal.Prism
     Control.Lens.Internal.Reflection
