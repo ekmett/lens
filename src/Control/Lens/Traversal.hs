@@ -1226,7 +1226,7 @@ deepOf r l pafb = go
 -- left and fusing all of the 'fmap' calls into one. This is particularly
 -- useful when constructing a 'Traversal' using operations from GHC.Generics.
 fusingTraversal :: Applicative f => LensLike (Rift (Yoneda f) (Yoneda f)) s t a b -> LensLike f s t a b
-fusingTraversal t f = lowerYoneda . lowerRift . t (liftRiftYoneda . f)
+fusingTraversal t = \f -> lowerYoneda . lowerRift . t (liftRiftYoneda . f)
   where
   liftRiftYoneda :: Applicative f => f a -> Rift (Yoneda f) (Yoneda f) a
   liftRiftYoneda fa = Rift (`yap` fa)

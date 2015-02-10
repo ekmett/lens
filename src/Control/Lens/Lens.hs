@@ -1430,5 +1430,5 @@ united f v = f () <&> \ () -> v
 
 -- | Fuse a composition of lenses using Yoneda to provide 'fmap' fusion.
 fusingLens :: Functor f => LensLike (Yoneda f) s t a b -> LensLike f s t a b
-fusingLens t f = lowerYoneda . t (liftYoneda . f)
+fusingLens t = \f -> lowerYoneda . t (liftYoneda . f)
 {-# INLINE fusingLens #-}
