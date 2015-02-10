@@ -17,6 +17,8 @@ module Control.Lens.Internal.List
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
 
+{-# ANN module "HLint: ignore Redundant bracket" #-}
+
 -- | Return the the subset of given ordinals within a given bound
 -- and in order of the first occurrence seen.
 --
