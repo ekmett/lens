@@ -36,7 +36,7 @@ import Data.Profunctor.Unsafe
 -- >>> import Data.Char
 
 levelIns :: Bazaar (->) a b t -> [Level () a]
-levelIns = go 0 . (getConst #. bazaar (Const #. deepening ())) where
+levelIns = go 0 . (getConst #. bazaar (rmapConst (deepening ()))) where
   go k z = k `seq` runDeepening z k $ \ xs b ->
     xs : if b then (go $! k + 1) z else []
 {-# INLINE levelIns #-}
@@ -83,8 +83,14 @@ levels l f s = levelOuts bz <$> traversed f (levelIns bz) where
   bz = l sell s
 {-# INLINE levels #-}
 
+-- This is only a temporary work around added to deal with a bug in an unreleased version
+-- of GHC 7.10. We should remove it as soon as we're able.
+rmapConst :: Profunctor p => p a b -> p a (Const b x)
+rmapConst p = Const #. p
+{-# INLINE rmapConst #-}
+
 ilevelIns :: Bazaar (Indexed i) a b t -> [Level i a]
-ilevelIns = go 0 . (getConst #. bazaar (Indexed $ \ i -> Const #. deepening i)) where
+ilevelIns = go 0 . (getConst #. bazaar (Indexed $ \ i -> rmapConst (deepening i))) where
   go k z = k `seq` runDeepening z k $ \ xs b ->
     xs : if b then (go $! k + 1) z else []
 {-# INLINE ilevelIns #-}
