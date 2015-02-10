@@ -51,6 +51,8 @@ module Control.Lens.Getter
   -- * Building Getters
   , to
   , ito
+  , like
+  , ilike
   -- * Combinators for Getters and Folds
   , (^.)
   , view, views
@@ -130,6 +132,33 @@ to k = dimap k (contramap k)
 ito :: (Indexable i p, Contravariant f) => (s -> (i, a)) -> Optical' p (->) f s a
 ito k = dimap k (contramap (snd . k)) . uncurry . indexed
 {-# INLINE ito #-}
+
+
+-- | Build an constant-valued (index-preserving) 'Getter' from an arbitrary Haskell value.
+--
+-- @
+-- 'like' a '.' 'like' b ≡ 'like' b
+-- a '^.' 'like' b ≡ b
+-- a '^.' 'like' b ≡ a '^.' 'to' ('const' b)
+-- @
+--
+-- This can be useful as a second case 'failing' a 'Fold'
+-- e.g. @foo `failing` 'like' 0@
+--
+-- @
+-- 'like' :: a -> 'IndexPreservingGetter' s a
+-- @
+like :: (Profunctor p, Contravariant f) => a -> Optical' p p f s a
+like a = to (const a)
+{-# INLINE like #-}
+
+-- |
+-- @
+-- 'ilike' :: i -> a -> 'IndexedGetter' i s a
+-- @
+ilike :: (Indexable i p, Contravariant f) => i -> a -> Optical' p (->) f s a
+ilike i a = ito (const (i, a))
+{-# INLINE ilike #-}
 
 -- | When you see this in a type signature it indicates that you can
 -- pass the function a 'Lens', 'Getter',
