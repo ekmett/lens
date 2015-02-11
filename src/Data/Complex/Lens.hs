@@ -1,8 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
-#ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 1
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Complex.Lens
@@ -41,11 +38,7 @@ import Data.Complex
 -- a * 2 :+ b
 --
 -- @'_realPart' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
-#if MIN_VERSION_base(4,4,0)
 _realPart :: Lens' (Complex a) a
-#else
-_realPart :: RealFloat a => Lens' (Complex a) a
-#endif
 _realPart f (a :+ b) = (:+ b) <$> f a
 {-# INLINE _realPart #-}
 
@@ -58,11 +51,7 @@ _realPart f (a :+ b) = (:+ b) <$> f a
 -- a :+ b * 2
 --
 -- @'_imagPart' :: 'Functor' f => (a -> f a) -> 'Complex' a -> f ('Complex' a)@
-#if MIN_VERSION_base(4,4,0)
 _imagPart :: Lens' (Complex a) a
-#else
-_imagPart :: RealFloat a => Lens' (Complex a) a
-#endif
 _imagPart f (a :+ b) = (a :+) <$> f b
 {-# INLINE _imagPart #-}
 

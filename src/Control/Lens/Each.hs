@@ -10,10 +10,6 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
-
-#ifndef MIN_VERSION_base
-#define MIN_VERSION_base(x,y,z) 1
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Each
@@ -124,17 +120,10 @@ instance (a~a2, a~a3, a~a4, a~a5, a~a6, a~a7, a~a8, a~a9, b~b2, b~b3, b~b4, b~b5
   each f ~(a,b,c,d,e,g,h,i,j) = (,,,,,,,,) <$> f a <*> f b <*> f c <*> f d <*> f e <*> f g <*> f h <*> f i <*> f j
   {-# INLINE each #-}
 
-#if MIN_VERSION_base(4,4,0)
 -- | @'each' :: ('RealFloat' a, 'RealFloat' b) => 'Traversal' ('Complex' a) ('Complex' b) a b@
 instance Each (Complex a) (Complex b) a b where
   each f (a :+ b) = (:+) <$> f a <*> f b
   {-# INLINE each #-}
-#else
--- | @'each' :: 'Traversal' ('Complex' a) ('Complex' b) a b@
-instance (RealFloat a, RealFloat b) => Each (Complex a) (Complex b) a b where
-  each f (a :+ b) = (:+) <$> f a <*> f b
-  {-# INLINE each #-}
-#endif
 
 -- | @'each' :: 'Traversal' ('Map' c a) ('Map' c b) a b@
 instance (c ~ d) => Each (Map c a) (Map d b) a b

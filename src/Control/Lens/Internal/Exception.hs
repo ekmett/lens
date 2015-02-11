@@ -181,11 +181,7 @@ instance (Typeable a, Typeable s, Typeable1 m) => Typeable (Handling a s m) wher
   {-# INLINE typeOf #-}
 
 handlingTyCon :: TyCon
-#if MIN_VERSION_base(4,4,0)
 handlingTyCon = mkTyCon3 "lens" "Control.Lens.Internal.Exception" "Handling"
-#else
-handlingTyCon = mkTyCon "Control.Lns.Internal.Exception.Handling"
-#endif
 {-# NOINLINE handlingTyCon #-}
 #endif
 
