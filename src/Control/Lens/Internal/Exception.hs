@@ -190,7 +190,7 @@ instance Show (Handling a s m) where
   showsPrec d _ = showParen (d > 10) $ showString "Handling ..."
   {-# INLINE showsPrec #-}
 
-instance (Reifies s (SomeException -> Maybe a), Typeable a, Typeable1 m, Typeable s) => Exception (Handling a s m) where
+instance (Reifies s (SomeException -> Maybe a), Typeable (Handling a s m)) => Exception (Handling a s m) where
   toException _ = SomeException HandlingException
   {-# INLINE toException #-}
   fromException = fmap Handling . reflect (Proxy :: Proxy s)
