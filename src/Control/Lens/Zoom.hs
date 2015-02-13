@@ -41,11 +41,10 @@ import Control.Monad.Trans.Writer.Strict as Strict
 import Control.Monad.Trans.RWS.Lazy as Lazy
 import Control.Monad.Trans.RWS.Strict as Strict
 import Control.Monad.Trans.Error
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
--- When using mtl-compat we need to import this module to get the MonadState ExceptT instance.
-import Control.Monad.Except
 import Data.Monoid
 import Data.Profunctor.Unsafe
 import Prelude

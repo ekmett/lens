@@ -196,7 +196,6 @@ library
     kan-extensions            >= 4.2.1    && < 5,
     exceptions                >= 0.1.1    && < 1,
     mtl                       >= 2.0.1    && < 2.3,
-    mtl-compat                == 0.1.*,
     parallel                  >= 3.1.0.1  && < 3.3,
     primitive                 >= 0.4.0.1  && < 0.6,
     profunctors               >= 4        && < 5,
@@ -207,7 +206,7 @@ library
     template-haskell          >= 2.4      && < 2.11,
     text                      >= 0.11     && < 1.3,
     transformers              >= 0.2      && < 0.5,
-    transformers-compat       >= 0.3      && < 1,
+    transformers-compat       >= 0.4      && < 1,
     unordered-containers      >= 0.2      && < 0.3,
     vector                    >= 0.9      && < 0.11,
     void                      >= 0.5      && < 1
