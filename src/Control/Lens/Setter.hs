@@ -1169,10 +1169,10 @@ isets f = sets (f . indexed)
 -- with access to the index.
 --
 -- @
--- ('%@~') ≡ 'imapOf'
+-- ('%@~') ≡ 'iover'
 -- @
 --
--- When you do not need access to the index then ('%@~') is more liberal in what it can accept.
+-- When you do not need access to the index then ('%~') is more liberal in what it can accept.
 --
 -- @
 -- l '%~' f ≡ l '%@~' 'const' f
