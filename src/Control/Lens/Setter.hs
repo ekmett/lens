@@ -63,9 +63,9 @@ module Control.Lens.Setter
   -- * Simplified State Setting
   , set'
   -- * Indexed Setters
-  , imapOf, iover
+  , imapOf, iover, iset
   , isets
-  , (%@~), (%@=)
+  , (%@~), (.@~), (%@=), (.@=)
   -- * Arrow operators
   , assignA
   -- * Exported for legible error messages
@@ -110,8 +110,8 @@ import Prelude
 -- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
 -- >>> :set -XNoOverloadedStrings
 
-infixr 4 %@~, .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, ||~, %~, <.~, ?~, <?~
-infix  4 %@=, .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, <>=, ||=, %=, <.=, ?=, <?=
+infixr 4 %@~, .@~, .~, +~, *~, -~, //~, ^~, ^^~, **~, &&~, <>~, ||~, %~, <.~, ?~, <?~
+infix  4 %@=, .@=, .=, +=, *=, -=, //=, ^=, ^^=, **=, &&=, <>=, ||=, %=, <.=, ?=, <?=
 infixr 2 <~
 
 ------------------------------------------------------------------------------
@@ -1126,6 +1126,23 @@ iover :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
 iover l = over l .# Indexed
 {-# INLINE iover #-}
 
+-- | Set with index. Equivalent to 'iover' with the current value ignored.
+--
+-- When you do not need access to the index, then 'set' is more liberal in what it can accept.
+--
+-- @
+-- 'set' l ≡ 'iset' l '.' 'const'
+-- @
+--
+-- @
+-- 'iset' :: 'IndexedSetter' i s t a b    -> (i -> b) -> s -> t
+-- 'iset' :: 'IndexedLens' i s t a b      -> (i -> b) -> s -> t
+-- 'iset' :: 'IndexedTraversal' i s t a b -> (i -> b) -> s -> t
+-- @
+iset :: AnIndexedSetter i s t a b -> (i -> b) -> s -> t
+iset l = iover l . (const .)
+{-# INLINE iset #-}
+
 -- | Build an 'IndexedSetter' from an 'Control.Lens.Indexed.imap'-like function.
 --
 -- Your supplied function @f@ is required to satisfy:
@@ -1170,6 +1187,28 @@ isets f = sets (f . indexed)
 l %@~ f = l %~ Indexed f
 {-# INLINE (%@~) #-}
 
+-- | Replace every target of an 'IndexedSetter', 'IndexedLens' or 'IndexedTraversal'
+-- with access to the index.
+--
+-- @
+-- ('.@~') ≡ 'iset'
+-- @
+--
+-- When you do not need access to the index then ('.~') is more liberal in what it can accept.
+--
+-- @
+-- l '.~' b ≡ l '.@~' 'const' b
+-- @
+--
+-- @
+-- ('.@~') :: 'IndexedSetter' i s t a b    -> (i -> b) -> s -> t
+-- ('.@~') :: 'IndexedLens' i s t a b      -> (i -> b) -> s -> t
+-- ('.@~') :: 'IndexedTraversal' i s t a b -> (i -> b) -> s -> t
+-- @
+(.@~) :: AnIndexedSetter i s t a b -> (i -> b) -> s -> t
+l .@~ f = l %~ Indexed (const . f)
+{-# INLINE (.@~) #-}
+
 -- | Adjust every target in the current state of an 'IndexedSetter', 'IndexedLens' or 'IndexedTraversal'
 -- with access to the index.
 --
@@ -1187,6 +1226,24 @@ l %@~ f = l %~ Indexed f
 (%@=) :: MonadState s m => AnIndexedSetter i s s a b -> (i -> a -> b) -> m ()
 l %@= f = State.modify (l %@~ f)
 {-# INLINE (%@=) #-}
+
+-- | Replace every target in the current state of an 'IndexedSetter', 'IndexedLens' or 'IndexedTraversal'
+-- with access to the index.
+--
+-- When you do not need access to the index then ('.=') is more liberal in what it can accept.
+--
+-- @
+-- l '.=' b ≡ l '.@=' 'const' b
+-- @
+--
+-- @
+-- ('.@=') :: 'MonadState' s m => 'IndexedSetter' i s s a b    -> (i -> b) -> m ()
+-- ('.@=') :: 'MonadState' s m => 'IndexedLens' i s s a b      -> (i -> b) -> m ()
+-- ('.@=') :: 'MonadState' s m => 'IndexedTraversal' i s t a b -> (i -> b) -> m ()
+-- @
+(.@=) :: MonadState s m => AnIndexedSetter i s s a b -> (i -> b) -> m ()
+l .@= f = State.modify (l .@~ f)
+{-# INLINE (.@=) #-}
 
 ------------------------------------------------------------------------------
 -- Arrows
