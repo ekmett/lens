@@ -146,7 +146,7 @@ exception = prism' toException fromException
 -- Catching
 ------------------------------------------------------------------------------
 
--- | Catch exceptions that match a given 'Prism' (or any 'Getter', really).
+-- | Catch exceptions that match a given 'Prism' (or any 'Fold', really).
 --
 -- >>> catching _AssertionFailed (assert False (return "uncaught")) $ \ _ -> return "caught"
 -- "caught"
@@ -227,7 +227,7 @@ handling_ l = flip (catching_ l)
 -- Trying
 ------------------------------------------------------------------------------
 
--- | A variant of 'Control.Exception.try' that takes a 'Prism' (or any 'Getter') to select which
+-- | A variant of 'Control.Exception.try' that takes a 'Prism' (or any 'Fold') to select which
 -- exceptions are caught (c.f. 'Control.Exception.tryJust', 'Control.Exception.catchJust'). If the
 -- 'Exception' does not match the predicate, it is re-thrown.
 --
