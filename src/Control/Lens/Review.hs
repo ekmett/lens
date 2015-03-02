@@ -142,7 +142,7 @@ re p = to (runIdentity #. unTagged #. p .# Tagged .# Identity)
 -- @
 --
 -- However, when working with a 'Monad' transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case
--- it may be beneficial to think of it as having one of these more slightly more liberal type signatures:
+-- it may be beneficial to think of it as having one of these slightly more liberal type signatures:
 --
 -- @
 -- 'review' :: 'MonadReader' a m => 'Iso'' s a   -> m s
@@ -202,7 +202,7 @@ review p = asks (runIdentity #. unTagged #. p .# Tagged .# Identity)
 -- @
 --
 -- However, when working with a 'Monad' transformer stack, it is sometimes useful to be able to 'review' the current environment, in which case
--- it may be beneficial to think of it as having one of these more slightly more liberal type signatures:
+-- it may be beneficial to think of it as having one of these slightly more liberal type signatures:
 --
 -- @
 -- 'reviews' :: 'MonadReader' a m => 'Iso'' s a   -> (s -> r) -> m r
