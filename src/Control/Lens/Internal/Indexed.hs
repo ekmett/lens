@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
@@ -50,7 +51,11 @@ import Data.Traversable
 import Prelude hiding ((.),id)
 #ifndef SAFE
 import Data.Profunctor.Unsafe
+#if (MIN_VERSION_profunctors(4,4,0)) && __GLASGOW_HASKELL__ >= 708
+import Data.Coerce
+#else
 import Unsafe.Coerce
+#endif
 #endif
 
 ------------------------------------------------------------------------------
@@ -147,11 +152,25 @@ instance Profunctor (Indexed i) where
   rmap bc iab = Indexed $ \i -> bc . runIndexed iab i
   {-# INLINE rmap #-}
 #ifndef SAFE
+#if (MIN_VERSION_profunctors(4,4,0)) && __GLASGOW_HASKELL__ >= 708
+  ( .# ) ibc _ = coerce ibc
+  {-# INLINE ( .# ) #-}
+  ( #. ) _ = coerce'
+  {-# INLINE ( #. ) #-}
+
+#else
   ( .# ) ibc _ = unsafeCoerce ibc
   {-# INLINE ( .# ) #-}
   ( #. ) _ = unsafeCoerce
   {-# INLINE ( #. ) #-}
 #endif
+#endif
+
+#if !defined(SAFE) && (MIN_VERSION_profunctors(4,4,0)) && __GLASGOW_HASKELL__ >= 708
+coerce' :: forall a b. Coercible a b => b -> a
+coerce' = coerce (id :: a -> a)
+#endif
+
 
 instance Corepresentable (Indexed i) where
   type Corep (Indexed i) = (,) i

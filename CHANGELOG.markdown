@@ -12,6 +12,7 @@
   * Make the default `makeLenses` behavior to generate STRICT optics
   * Add strict variants of `_1` .. `_9` named `_1'` .. `_9'`
 * Generalized some combinators in `Data.Vector.Generic.Lens` and added `converted`
+* When built with `profunctors 4.4 we no longer need to use `unsafeCoerce` all over the place.
 
 4.7
 ---
