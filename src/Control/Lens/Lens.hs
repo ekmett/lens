@@ -1443,6 +1443,10 @@ united f v = f () <&> \ () -> v
 -- This is particularly effective when the choice of functor 'f' is unknown at compile
 -- time or when the 'Lens' @foo.bar@ in the above description is recursive or complex
 -- enough to prevent inlining.
+--
+-- @
+-- 'fusing' :: 'Lens' s t a b -> 'Lens' s t a b
+-- @
 fusing :: Functor f => LensLike (Yoneda f) s t a b -> LensLike f s t a b
 fusing t = \f -> lowerYoneda . t (liftYoneda . f)
 {-# INLINE fusing #-}

@@ -1245,7 +1245,7 @@ deepOf r l pafb = go
 -- 'Control.Lens.Lens.fusing' is a version of this combinator suitable for fusing lenses.
 --
 -- @
--- 'confusing' :: Traversal s t a b -> Traversal s t a b
+-- 'confusing' :: 'Traversal' s t a b -> 'Traversal' s t a b
 -- @
 confusing :: Applicative f => LensLike (Rift (Yoneda f) (Yoneda f)) s t a b -> LensLike f s t a b
 confusing t = \f -> lowerYoneda . lowerRift . t (liftRiftYoneda . f)
