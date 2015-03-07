@@ -15,7 +15,7 @@
 <a name="line-6"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-7"></a><span class='hs-comment'>-- |</span>
 <a name="line-8"></a><span class='hs-comment'>-- Module      :  Data.HashSet.Lens</span>
-<a name="line-9"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-14 Edward Kmett</span>
+<a name="line-9"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-15 Edward Kmett</span>
 <a name="line-10"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
 <a name="line-11"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
 <a name="line-12"></a><span class='hs-comment'>-- Stability   :  provisional</span>
@@ -42,7 +42,7 @@
 <a name="line-33"></a><span class='hs-comment'>--</span>
 <a name="line-34"></a><span class='hs-comment'>-- Sadly, you can't create a valid 'Traversal' for a 'Set', but you can</span>
 <a name="line-35"></a><span class='hs-comment'>-- manipulate it by reading using 'Control.Lens.Fold.folded' and reindexing it via 'setmapped'.</span>
-<a name="line-36"></a><span class='hs-definition'>setmapped</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span> <span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-conid'>Hashable</span> <span class='hs-varid'>i</span><span class='hs-layout'>,</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>j</span><span class='hs-layout'>,</span> <span class='hs-conid'>Hashable</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>IndexPreservingSetter</span> <span class='hs-layout'>(</span><span class='hs-conid'>HashSet</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>HashSet</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-varid'>i</span> <span class='hs-varid'>j</span>
+<a name="line-36"></a><span class='hs-definition'>setmapped</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Eq</span> <span class='hs-varid'>j</span><span class='hs-layout'>,</span> <span class='hs-conid'>Hashable</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>IndexPreservingSetter</span> <span class='hs-layout'>(</span><span class='hs-conid'>HashSet</span> <span class='hs-varid'>i</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-conid'>HashSet</span> <span class='hs-varid'>j</span><span class='hs-layout'>)</span> <span class='hs-varid'>i</span> <span class='hs-varid'>j</span>
 <a name="line-37"></a><span class='hs-definition'>setmapped</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>setting</span> <span class='hs-conid'>HashSet</span><span class='hs-varop'>.</span><span class='hs-varid'>map</span>
 <a name="line-38"></a><span class='hs-comment'>{-# INLINE setmapped #-}</span>
 <a name="line-39"></a>

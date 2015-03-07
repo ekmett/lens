@@ -31,7 +31,7 @@
 <a name="line-22"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-23"></a><span class='hs-comment'>-- |</span>
 <a name="line-24"></a><span class='hs-comment'>-- Module      :  Control.Exception.Lens</span>
-<a name="line-25"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-14 Edward Kmett</span>
+<a name="line-25"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-15 Edward Kmett</span>
 <a name="line-26"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
 <a name="line-27"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
 <a name="line-28"></a><span class='hs-comment'>-- Stability   :  provisional</span>
@@ -155,7 +155,7 @@
 <a name="line-146"></a><span class='hs-comment'>-- Catching</span>
 <a name="line-147"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-148"></a>
-<a name="line-149"></a><a name="catching"></a><span class='hs-comment'>-- | Catch exceptions that match a given 'Prism' (or any 'Getter', really).</span>
+<a name="line-149"></a><a name="catching"></a><span class='hs-comment'>-- | Catch exceptions that match a given 'Prism' (or any 'Fold', really).</span>
 <a name="line-150"></a><span class='hs-comment'>--</span>
 <a name="line-151"></a><span class='hs-comment'>-- &gt;&gt;&gt; catching _AssertionFailed (assert False (return "uncaught")) $ \ _ -&gt; return "caught"</span>
 <a name="line-152"></a><span class='hs-comment'>-- "caught"</span>
@@ -236,7 +236,7 @@
 <a name="line-227"></a><span class='hs-comment'>-- Trying</span>
 <a name="line-228"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
 <a name="line-229"></a>
-<a name="line-230"></a><a name="trying"></a><span class='hs-comment'>-- | A variant of 'Control.Exception.try' that takes a 'Prism' (or any 'Getter') to select which</span>
+<a name="line-230"></a><a name="trying"></a><span class='hs-comment'>-- | A variant of 'Control.Exception.try' that takes a 'Prism' (or any 'Fold') to select which</span>
 <a name="line-231"></a><span class='hs-comment'>-- exceptions are caught (c.f. 'Control.Exception.tryJust', 'Control.Exception.catchJust'). If the</span>
 <a name="line-232"></a><span class='hs-comment'>-- 'Exception' does not match the predicate, it is re-thrown.</span>
 <a name="line-233"></a><span class='hs-comment'>--</span>
@@ -281,7 +281,7 @@
 <a name="line-272"></a><span class='hs-comment'>-- 'throwing' :: 'Prism'' 'SomeException' t -&gt; t -&gt; r</span>
 <a name="line-273"></a><span class='hs-comment'>-- 'throwing' :: 'Iso'' 'SomeException' t   -&gt; t -&gt; r</span>
 <a name="line-274"></a><span class='hs-comment'>-- @</span>
-<a name="line-275"></a><span class='hs-definition'>throwing</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-conid'>SomeException</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
+<a name="line-275"></a><span class='hs-definition'>throwing</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>AReview</span> <span class='hs-conid'>SomeException</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>r</span>
 <a name="line-276"></a><span class='hs-definition'>throwing</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>reviews</span> <span class='hs-varid'>l</span> <span class='hs-conid'>Exception</span><span class='hs-varop'>.</span><span class='hs-varid'>throw</span>
 <a name="line-277"></a><span class='hs-comment'>{-# INLINE throwing #-}</span>
 <a name="line-278"></a>
@@ -312,7 +312,7 @@
 <a name="line-303"></a><span class='hs-comment'>-- 'throwingM' :: 'MonadThrow' m =&gt; 'Prism'' 'SomeException' t -&gt; t -&gt; m r</span>
 <a name="line-304"></a><span class='hs-comment'>-- 'throwingM' :: 'MonadThrow' m =&gt; 'Iso'' 'SomeException' t   -&gt; t -&gt; m r</span>
 <a name="line-305"></a><span class='hs-comment'>-- @</span>
-<a name="line-306"></a><span class='hs-definition'>throwingM</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadThrow</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-conid'>SomeException</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
+<a name="line-306"></a><span class='hs-definition'>throwingM</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadThrow</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-conid'>SomeException</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
 <a name="line-307"></a><span class='hs-definition'>throwingM</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>reviews</span> <span class='hs-varid'>l</span> <span class='hs-varid'>throwM</span>
 <a name="line-308"></a><span class='hs-comment'>{-# INLINE throwingM #-}</span>
 <a name="line-309"></a>
@@ -326,7 +326,7 @@
 <a name="line-317"></a><span class='hs-comment'>-- 'throwingTo' :: 'ThreadId' -&gt; 'Prism'' 'SomeException' t -&gt; t -&gt; m a</span>
 <a name="line-318"></a><span class='hs-comment'>-- 'throwingTo' :: 'ThreadId' -&gt; 'Iso'' 'SomeException' t   -&gt; t -&gt; m a</span>
 <a name="line-319"></a><span class='hs-comment'>-- @</span>
-<a name="line-320"></a><span class='hs-definition'>throwingTo</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadIO</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>ThreadId</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>s</span> <span class='hs-conid'>SomeException</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
+<a name="line-320"></a><span class='hs-definition'>throwingTo</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadIO</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>ThreadId</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-conid'>SomeException</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span>
 <a name="line-321"></a><span class='hs-definition'>throwingTo</span> <span class='hs-varid'>tid</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>reviews</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>liftIO</span> <span class='hs-varop'>.</span> <span class='hs-varid'>throwTo</span> <span class='hs-varid'>tid</span><span class='hs-layout'>)</span>
 <a name="line-322"></a><span class='hs-comment'>{-# INLINE throwingTo #-}</span>
 <a name="line-323"></a>

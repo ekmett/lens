@@ -10,7 +10,7 @@
 <pre><a name="line-1"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-2"></a><span class='hs-comment'>-- |</span>
 <a name="line-3"></a><span class='hs-comment'>-- Module      :  System.FilePath.Lens</span>
-<a name="line-4"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-14 Edward Kmett</span>
+<a name="line-4"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-15 Edward Kmett</span>
 <a name="line-5"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
 <a name="line-6"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
 <a name="line-7"></a><span class='hs-comment'>-- Stability   :  experimental</span>
@@ -59,7 +59,7 @@
 <a name="line-50"></a><span class='hs-comment'>{-# INLINE (&lt;/&gt;~) #-}</span>
 <a name="line-51"></a>
 <a name="line-52"></a>
-<a name="line-53"></a><a name="%3c/%3e="></a><span class='hs-comment'>-- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by adding a path.</span>
+<a name="line-53"></a><a name="%3c/%3e="></a><span class='hs-comment'>-- | Modify the target(s) of a 'Lens'', 'Iso'', 'Setter'' or 'Traversal'' by adding a path.</span>
 <a name="line-54"></a><span class='hs-comment'>--</span>
 <a name="line-55"></a><span class='hs-comment'>-- &gt;&gt;&gt; execState (both &lt;/&gt;= "bin") ("hello","world")</span>
 <a name="line-56"></a><span class='hs-comment'>-- ("hello/bin","world/bin")</span>
@@ -100,7 +100,7 @@
 <a name="line-91"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&lt;&lt;/&gt;=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>%%=</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;/&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
 <a name="line-92"></a><span class='hs-comment'>{-# INLINE (&lt;&lt;&lt;/&gt;=) #-}</span>
 <a name="line-93"></a>
-<a name="line-94"></a><a name="%3c.%3e~"></a><span class='hs-comment'>-- | Modify the path by adding extension.</span>
+<a name="line-94"></a><a name="%3c.%3e~"></a><span class='hs-comment'>-- | Modify the path by adding an extension.</span>
 <a name="line-95"></a><span class='hs-comment'>--</span>
 <a name="line-96"></a><span class='hs-comment'>-- &gt;&gt;&gt; both &lt;.&gt;~ "txt" $ ("hello","world")</span>
 <a name="line-97"></a><span class='hs-comment'>-- ("hello.txt","world.txt")</span>
@@ -115,7 +115,7 @@
 <a name="line-106"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;.&gt;~</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>over</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;.&gt;</span> <span class='hs-varid'>n</span><span class='hs-layout'>)</span>
 <a name="line-107"></a><span class='hs-comment'>{-# INLINE (&lt;.&gt;~) #-}</span>
 <a name="line-108"></a>
-<a name="line-109"></a><a name="%3c.%3e="></a><span class='hs-comment'>-- | Modify the target(s) of a 'Simple' 'Lens', 'Iso', 'Setter' or 'Traversal' by adding an extension.</span>
+<a name="line-109"></a><a name="%3c.%3e="></a><span class='hs-comment'>-- | Modify the target(s) of a 'Lens'', 'Iso'', 'Setter'' or 'Traversal'' by adding an extension.</span>
 <a name="line-110"></a><span class='hs-comment'>--</span>
 <a name="line-111"></a><span class='hs-comment'>-- &gt;&gt;&gt; execState (both &lt;.&gt;= "txt") ("hello","world")</span>
 <a name="line-112"></a><span class='hs-comment'>-- ("hello.txt","world.txt")</span>
@@ -152,65 +152,71 @@
 <a name="line-143"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&lt;.&gt;=</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>&lt;%=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;.&gt;</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
 <a name="line-144"></a><span class='hs-comment'>{-# INLINE (&lt;&lt;.&gt;=) #-}</span>
 <a name="line-145"></a>
-<a name="line-146"></a>
-<a name="line-147"></a><a name="%3c%3c%3c.%3e~"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&lt;&lt;.&gt;~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Optical'</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>q</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>FilePath</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-conid'>FilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>q</span> <span class='hs-varid'>s</span> <span class='hs-layout'>(</span><span class='hs-conid'>FilePath</span><span class='hs-layout'>,</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
-<a name="line-148"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&lt;&lt;.&gt;~</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;.&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-149"></a><span class='hs-comment'>{-# INLINE (&lt;&lt;&lt;.&gt;~) #-}</span>
-<a name="line-150"></a>
-<a name="line-151"></a><a name="%3c%3c%3c.%3e="></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&lt;&lt;.&gt;=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>FilePath</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-conid'>FilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>FilePath</span>
-<a name="line-152"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&lt;&lt;.&gt;=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>%%=</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;.&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-153"></a><span class='hs-comment'>{-# INLINE (&lt;&lt;&lt;.&gt;=) #-}</span>
-<a name="line-154"></a>
-<a name="line-155"></a><a name="basename"></a><span class='hs-comment'>-- | A 'Lens' for reading and writing to the basename</span>
-<a name="line-156"></a><span class='hs-comment'>--</span>
-<a name="line-157"></a><span class='hs-comment'>-- Note: This is 'not' a legal 'Lens' unless the outer 'FilePath' has both a directory</span>
-<a name="line-158"></a><span class='hs-comment'>-- and filename component and the generated basenames are not null and contain no directory</span>
-<a name="line-159"></a><span class='hs-comment'>-- separators.</span>
-<a name="line-160"></a><span class='hs-comment'>--</span>
-<a name="line-161"></a><span class='hs-comment'>-- &gt;&gt;&gt; basename .~ "filename" $ "path/name.png"</span>
-<a name="line-162"></a><span class='hs-comment'>-- "path/filename.png"</span>
-<a name="line-163"></a><span class='hs-definition'>basename</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
-<a name="line-164"></a><span class='hs-definition'>basename</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;.&gt;</span> <span class='hs-varid'>takeExtension</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeDirectory</span> <span class='hs-varid'>p</span> <span class='hs-varop'>&lt;/&gt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeBaseName</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span>
-<a name="line-165"></a><span class='hs-comment'>{-# INLINE basename #-}</span>
-<a name="line-166"></a>
-<a name="line-167"></a>
-<a name="line-168"></a><a name="directory"></a><span class='hs-comment'>-- | A 'Lens' for reading and writing to the directory</span>
-<a name="line-169"></a><span class='hs-comment'>--</span>
-<a name="line-170"></a><span class='hs-comment'>-- Note: this is /not/ a legal 'Lens' unless the outer 'FilePath' already has a directory component,</span>
-<a name="line-171"></a><span class='hs-comment'>-- and generated directories are not null.</span>
-<a name="line-172"></a><span class='hs-comment'>--</span>
-<a name="line-173"></a><span class='hs-comment'>-- &gt;&gt;&gt; "long/path/name.txt" ^. directory</span>
-<a name="line-174"></a><span class='hs-comment'>-- "long/path"</span>
-<a name="line-175"></a><span class='hs-definition'>directory</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
-<a name="line-176"></a><span class='hs-definition'>directory</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;/&gt;</span> <span class='hs-varid'>takeFileName</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeDirectory</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span>
-<a name="line-177"></a><span class='hs-comment'>{-# INLINE directory #-}</span>
-<a name="line-178"></a>
-<a name="line-179"></a>
-<a name="line-180"></a><a name="extension"></a><span class='hs-comment'>-- | A 'Lens' for reading and writing to the extension</span>
-<a name="line-181"></a><span class='hs-comment'>--</span>
-<a name="line-182"></a><span class='hs-comment'>-- Note: This is /not/ a legal 'Lens', unless you are careful to ensure that generated</span>
-<a name="line-183"></a><span class='hs-comment'>-- extension 'FilePath' components are either null or start with 'System.FilePath.extSeparator'</span>
-<a name="line-184"></a><span class='hs-comment'>-- and do not contain any internal 'System.FilePath.extSeparator's.</span>
-<a name="line-185"></a><span class='hs-comment'>--</span>
-<a name="line-186"></a><span class='hs-comment'>-- &gt;&gt;&gt; extension .~ ".png" $ "path/name.txt"</span>
-<a name="line-187"></a><span class='hs-comment'>-- "path/name.png"</span>
-<a name="line-188"></a><span class='hs-definition'>extension</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
-<a name="line-189"></a><span class='hs-definition'>extension</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>n</span> <span class='hs-varop'>&lt;.&gt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span>
-<a name="line-190"></a> <span class='hs-keyword'>where</span>
-<a name="line-191"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>n</span><span class='hs-layout'>,</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>splitExtension</span> <span class='hs-varid'>p</span>
-<a name="line-192"></a><span class='hs-comment'>{-# INLINE extension #-}</span>
-<a name="line-193"></a>
-<a name="line-194"></a>
-<a name="line-195"></a><a name="filename"></a><span class='hs-comment'>-- | A 'Lens' for reading and writing to the full filename</span>
-<a name="line-196"></a><span class='hs-comment'>--</span>
-<a name="line-197"></a><span class='hs-comment'>-- Note: This is /not/ a legal 'Lens', unless you are careful to ensure that generated</span>
-<a name="line-198"></a><span class='hs-comment'>-- filename 'FilePath' components are not null and do not contain any</span>
-<a name="line-199"></a><span class='hs-comment'>-- elements of 'System.FilePath.pathSeparators's.</span>
-<a name="line-200"></a><span class='hs-comment'>--</span>
-<a name="line-201"></a><span class='hs-comment'>-- &gt;&gt;&gt; filename .~ "name.txt" $ "path/name.png"</span>
-<a name="line-202"></a><span class='hs-comment'>-- "path/name.txt"</span>
-<a name="line-203"></a><span class='hs-definition'>filename</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
-<a name="line-204"></a><span class='hs-definition'>filename</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeDirectory</span> <span class='hs-varid'>p</span> <span class='hs-varop'>&lt;/&gt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeFileName</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span>
-<a name="line-205"></a><span class='hs-comment'>{-# INLINE filename #-}</span>
+<a name="line-146"></a><a name="%3c%3c%3c.%3e~"></a><span class='hs-comment'>-- | Add an extension onto the end of the target of a 'Lens' but</span>
+<a name="line-147"></a><span class='hs-comment'>-- return the old value</span>
+<a name="line-148"></a><span class='hs-comment'>--</span>
+<a name="line-149"></a><span class='hs-comment'>-- &gt;&gt;&gt; _1 &lt;&lt;&lt;.&gt;~ "txt" $ ("hello","world")</span>
+<a name="line-150"></a><span class='hs-comment'>-- ("hello",("hello.txt","world"))</span>
+<a name="line-151"></a><span class='hs-comment'>--</span>
+<a name="line-152"></a><span class='hs-comment'>-- When you do not need the old value, ('&lt;.&gt;~') is more flexible.</span>
+<a name="line-153"></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&lt;&lt;.&gt;~</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Optical'</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>-&gt;</span><span class='hs-layout'>)</span> <span class='hs-varid'>q</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>FilePath</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-conid'>FilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>q</span> <span class='hs-varid'>s</span> <span class='hs-layout'>(</span><span class='hs-conid'>FilePath</span><span class='hs-layout'>,</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span>
+<a name="line-154"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&lt;&lt;.&gt;~</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;.&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-155"></a><span class='hs-comment'>{-# INLINE (&lt;&lt;&lt;.&gt;~) #-}</span>
+<a name="line-156"></a>
+<a name="line-157"></a><a name="%3c%3c%3c.%3e="></a><span class='hs-layout'>(</span><span class='hs-varop'>&lt;&lt;&lt;.&gt;=</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadState</span> <span class='hs-varid'>s</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>LensLike'</span> <span class='hs-layout'>(</span><span class='hs-conid'>(,)</span><span class='hs-conid'>FilePath</span><span class='hs-layout'>)</span> <span class='hs-varid'>s</span> <span class='hs-conid'>FilePath</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>FilePath</span>
+<a name="line-158"></a><span class='hs-definition'>l</span> <span class='hs-varop'>&lt;&lt;&lt;.&gt;=</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>l</span> <span class='hs-varop'>%%=</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span><span class='hs-layout'>,</span> <span class='hs-varid'>a</span> <span class='hs-varop'>&lt;.&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-159"></a><span class='hs-comment'>{-# INLINE (&lt;&lt;&lt;.&gt;=) #-}</span>
+<a name="line-160"></a>
+<a name="line-161"></a><a name="basename"></a><span class='hs-comment'>-- | A 'Lens' for reading and writing to the basename</span>
+<a name="line-162"></a><span class='hs-comment'>--</span>
+<a name="line-163"></a><span class='hs-comment'>-- Note: This is 'not' a legal 'Lens' unless the outer 'FilePath' has both a directory</span>
+<a name="line-164"></a><span class='hs-comment'>-- and filename component and the generated basenames are not null and contain no directory</span>
+<a name="line-165"></a><span class='hs-comment'>-- separators.</span>
+<a name="line-166"></a><span class='hs-comment'>--</span>
+<a name="line-167"></a><span class='hs-comment'>-- &gt;&gt;&gt; basename .~ "filename" $ "path/name.png"</span>
+<a name="line-168"></a><span class='hs-comment'>-- "path/filename.png"</span>
+<a name="line-169"></a><span class='hs-definition'>basename</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
+<a name="line-170"></a><span class='hs-definition'>basename</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;.&gt;</span> <span class='hs-varid'>takeExtension</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span> <span class='hs-varop'>.</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeDirectory</span> <span class='hs-varid'>p</span> <span class='hs-varop'>&lt;/&gt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeBaseName</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span>
+<a name="line-171"></a><span class='hs-comment'>{-# INLINE basename #-}</span>
+<a name="line-172"></a>
+<a name="line-173"></a>
+<a name="line-174"></a><a name="directory"></a><span class='hs-comment'>-- | A 'Lens' for reading and writing to the directory</span>
+<a name="line-175"></a><span class='hs-comment'>--</span>
+<a name="line-176"></a><span class='hs-comment'>-- Note: this is /not/ a legal 'Lens' unless the outer 'FilePath' already has a directory component,</span>
+<a name="line-177"></a><span class='hs-comment'>-- and generated directories are not null.</span>
+<a name="line-178"></a><span class='hs-comment'>--</span>
+<a name="line-179"></a><span class='hs-comment'>-- &gt;&gt;&gt; "long/path/name.txt" ^. directory</span>
+<a name="line-180"></a><span class='hs-comment'>-- "long/path"</span>
+<a name="line-181"></a><span class='hs-definition'>directory</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
+<a name="line-182"></a><span class='hs-definition'>directory</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;/&gt;</span> <span class='hs-varid'>takeFileName</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeDirectory</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span>
+<a name="line-183"></a><span class='hs-comment'>{-# INLINE directory #-}</span>
+<a name="line-184"></a>
+<a name="line-185"></a>
+<a name="line-186"></a><a name="extension"></a><span class='hs-comment'>-- | A 'Lens' for reading and writing to the extension</span>
+<a name="line-187"></a><span class='hs-comment'>--</span>
+<a name="line-188"></a><span class='hs-comment'>-- Note: This is /not/ a legal 'Lens', unless you are careful to ensure that generated</span>
+<a name="line-189"></a><span class='hs-comment'>-- extension 'FilePath' components are either null or start with 'System.FilePath.extSeparator'</span>
+<a name="line-190"></a><span class='hs-comment'>-- and do not contain any internal 'System.FilePath.extSeparator's.</span>
+<a name="line-191"></a><span class='hs-comment'>--</span>
+<a name="line-192"></a><span class='hs-comment'>-- &gt;&gt;&gt; extension .~ ".png" $ "path/name.txt"</span>
+<a name="line-193"></a><span class='hs-comment'>-- "path/name.png"</span>
+<a name="line-194"></a><span class='hs-definition'>extension</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
+<a name="line-195"></a><span class='hs-definition'>extension</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>n</span> <span class='hs-varop'>&lt;.&gt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span>
+<a name="line-196"></a> <span class='hs-keyword'>where</span>
+<a name="line-197"></a>  <span class='hs-layout'>(</span><span class='hs-varid'>n</span><span class='hs-layout'>,</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>splitExtension</span> <span class='hs-varid'>p</span>
+<a name="line-198"></a><span class='hs-comment'>{-# INLINE extension #-}</span>
+<a name="line-199"></a>
+<a name="line-200"></a>
+<a name="line-201"></a><a name="filename"></a><span class='hs-comment'>-- | A 'Lens' for reading and writing to the full filename</span>
+<a name="line-202"></a><span class='hs-comment'>--</span>
+<a name="line-203"></a><span class='hs-comment'>-- Note: This is /not/ a legal 'Lens', unless you are careful to ensure that generated</span>
+<a name="line-204"></a><span class='hs-comment'>-- filename 'FilePath' components are not null and do not contain any</span>
+<a name="line-205"></a><span class='hs-comment'>-- elements of 'System.FilePath.pathSeparators's.</span>
+<a name="line-206"></a><span class='hs-comment'>--</span>
+<a name="line-207"></a><span class='hs-comment'>-- &gt;&gt;&gt; filename .~ "name.txt" $ "path/name.png"</span>
+<a name="line-208"></a><span class='hs-comment'>-- "path/name.txt"</span>
+<a name="line-209"></a><span class='hs-definition'>filename</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>FilePath</span> <span class='hs-conid'>FilePath</span>
+<a name="line-210"></a><span class='hs-definition'>filename</span> <span class='hs-varid'>f</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeDirectory</span> <span class='hs-varid'>p</span> <span class='hs-varop'>&lt;/&gt;</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>takeFileName</span> <span class='hs-varid'>p</span><span class='hs-layout'>)</span>
+<a name="line-211"></a><span class='hs-comment'>{-# INLINE filename #-}</span>
 </pre></body>
 </html>

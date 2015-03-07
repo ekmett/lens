@@ -14,7 +14,7 @@
 <a name="line-5"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-6"></a><span class='hs-comment'>-- |</span>
 <a name="line-7"></a><span class='hs-comment'>-- Module      :  Control.Lens.Internal.Iso</span>
-<a name="line-8"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-2014 Edward Kmett</span>
+<a name="line-8"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-2015 Edward Kmett</span>
 <a name="line-9"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
 <a name="line-10"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
 <a name="line-11"></a><span class='hs-comment'>-- Stability   :  experimental</span>
@@ -29,7 +29,7 @@
 <a name="line-20"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Profunctor</span>
 <a name="line-21"></a><span class='hs-cpp'>#ifndef SAFE</span>
 <a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Profunctor</span><span class='hs-varop'>.</span><span class='hs-conid'>Unsafe</span>
-<a name="line-23"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Unsafe</span><span class='hs-varop'>.</span><span class='hs-conid'>Coerce</span>
+<a name="line-23"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>Coerce</span>
 <a name="line-24"></a><span class='hs-cpp'>#endif</span>
 <a name="line-25"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span>       <span class='hs-keyword'>as</span> <span class='hs-conid'>StrictB</span>
 <a name="line-26"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span>  <span class='hs-keyword'>as</span> <span class='hs-conid'>LazyB</span>
@@ -61,9 +61,9 @@
 <a name="line-52"></a>  <span class='hs-varid'>rmap</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Exchange</span> <span class='hs-varid'>sa</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Exchange</span> <span class='hs-varid'>sa</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varop'>.</span> <span class='hs-varid'>bt</span><span class='hs-layout'>)</span>
 <a name="line-53"></a>  <span class='hs-comment'>{-# INLINE rmap #-}</span>
 <a name="line-54"></a><span class='hs-cpp'>#ifndef SAFE</span>
-<a name="line-55"></a>  <span class='hs-layout'>(</span> <span class='hs-cpp'>#.</span> <span class='hs-layout'>)</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unsafeCoerce</span>
+<a name="line-55"></a>  <span class='hs-layout'>(</span> <span class='hs-cpp'>#.</span> <span class='hs-layout'>)</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>coerce'</span>
 <a name="line-56"></a>  <span class='hs-comment'>{-# INLINE ( #. ) #-}</span>
-<a name="line-57"></a>  <span class='hs-layout'>(</span> <span class='hs-varop'>.#</span> <span class='hs-layout'>)</span> <span class='hs-varid'>p</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unsafeCoerce</span> <span class='hs-varid'>p</span>
+<a name="line-57"></a>  <span class='hs-layout'>(</span> <span class='hs-varop'>.#</span> <span class='hs-layout'>)</span> <span class='hs-varid'>p</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>coerce</span> <span class='hs-varid'>p</span>
 <a name="line-58"></a>  <span class='hs-comment'>{-# INLINE ( .# ) #-}</span>
 <a name="line-59"></a><span class='hs-cpp'>#endif</span>
 <a name="line-60"></a>

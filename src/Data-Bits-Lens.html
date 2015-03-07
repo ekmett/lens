@@ -12,7 +12,7 @@
 <a name="line-3"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-4"></a><span class='hs-comment'>-- |</span>
 <a name="line-5"></a><span class='hs-comment'>-- Module      :  Data.Bits.Lens</span>
-<a name="line-6"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-14 Edward Kmett</span>
+<a name="line-6"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-15 Edward Kmett</span>
 <a name="line-7"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
 <a name="line-8"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
 <a name="line-9"></a><span class='hs-comment'>-- Stability   :  experimental</span>
@@ -244,8 +244,8 @@
 <a name="line-235"></a><span class='hs-comment'>-- If you supply this an 'Integer', the result will be an infinite 'Traversal',</span>
 <a name="line-236"></a><span class='hs-comment'>-- which can be productively consumed, but not reassembled.</span>
 <a name="line-237"></a><span class='hs-comment'>--</span>
-<a name="line-238"></a><span class='hs-comment'>-- Why is this function called @bytes@ to match 'bits'? Alas, there is already</span>
-<a name="line-239"></a><span class='hs-comment'>-- a function by that name in "Data.ByteString.Lens".</span>
+<a name="line-238"></a><span class='hs-comment'>-- Why is'nt this function called @bytes@ to match 'bits'? Alas, there</span>
+<a name="line-239"></a><span class='hs-comment'>-- is already a function by that name in "Data.ByteString.Lens".</span>
 <a name="line-240"></a><span class='hs-definition'>bytewise</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Integral</span> <span class='hs-varid'>b</span><span class='hs-layout'>,</span> <span class='hs-conid'>Bits</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-varid'>b</span> <span class='hs-conid'>Word8</span>
 <a name="line-241"></a><span class='hs-definition'>bytewise</span> <span class='hs-varid'>f</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Prelude</span><span class='hs-varop'>.</span><span class='hs-varid'>foldr</span> <span class='hs-varid'>step</span> <span class='hs-num'>0</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>traverse</span> <span class='hs-varid'>g</span> <span class='hs-varid'>bs</span> <span class='hs-keyword'>where</span>
 <a name="line-242"></a>  <span class='hs-varid'>g</span> <span class='hs-varid'>n</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>(,)</span> <span class='hs-varid'>n</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>indexed</span> <span class='hs-varid'>f</span> <span class='hs-varid'>n</span> <span class='hs-layout'>(</span><span class='hs-varid'>fromIntegral</span> <span class='hs-varop'>$</span> <span class='hs-varid'>b</span> <span class='hs-varop'>`shiftR`</span> <span class='hs-layout'>(</span><span class='hs-varid'>n</span><span class='hs-varop'>*</span><span class='hs-num'>8</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>

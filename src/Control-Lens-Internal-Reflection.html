@@ -22,7 +22,7 @@
 <a name="line-13"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
 <a name="line-14"></a><span class='hs-comment'>-- |</span>
 <a name="line-15"></a><span class='hs-comment'>-- Module     : Control.Lens.Internal.Reflection</span>
-<a name="line-16"></a><span class='hs-comment'>-- Copyright  : 2009-2014 Edward Kmett,</span>
+<a name="line-16"></a><span class='hs-comment'>-- Copyright  : 2009-2015 Edward Kmett,</span>
 <a name="line-17"></a><span class='hs-comment'>--              2012 Elliott Hird,</span>
 <a name="line-18"></a><span class='hs-comment'>--              2004 Oleg Kiselyov and Chung-chieh Shan</span>
 <a name="line-19"></a><span class='hs-comment'>-- License    : BSD3</span>
@@ -189,7 +189,7 @@
 <a name="line-180"></a>
 <a name="line-181"></a><a name="reflectBefore"></a><span class='hs-comment'>-- This had to be moved to the top level, due to an apparent bug in</span>
 <a name="line-182"></a><span class='hs-comment'>-- the ghc inliner introduced in ghc 7.0.x</span>
-<a name="line-183"></a><span class='hs-definition'>reflectBefore</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Reifies</span> <span class='hs-varid'>s</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-conid'>Proxy</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>proxy</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
+<a name="line-183"></a><span class='hs-definition'>reflectBefore</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Proxy</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>proxy</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>b</span>
 <a name="line-184"></a><span class='hs-definition'>reflectBefore</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>const</span> <span class='hs-varop'>$!</span> <span class='hs-varid'>f</span> <span class='hs-conid'>Proxy</span>
 <a name="line-185"></a><span class='hs-comment'>{-# NOINLINE reflectBefore #-}</span>
 <a name="line-186"></a>

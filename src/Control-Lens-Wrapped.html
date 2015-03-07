@@ -25,7 +25,7 @@
 <a name="line-16"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-17"></a><span class='hs-comment'>-- |</span>
 <a name="line-18"></a><span class='hs-comment'>-- Module      :  Control.Lens.Wrapped</span>
-<a name="line-19"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-14 Edward Kmett, Michael Sloan</span>
+<a name="line-19"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-15 Edward Kmett, Michael Sloan</span>
 <a name="line-20"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
 <a name="line-21"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
 <a name="line-22"></a><span class='hs-comment'>-- Stability   :  experimental</span>
@@ -588,7 +588,7 @@
 <a name="line-579"></a><span class='hs-definition'>failedAssertion</span> <span class='hs-layout'>(</span><span class='hs-conid'>AssertionFailed</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
 <a name="line-580"></a><span class='hs-comment'>{-# INLINE failedAssertion #-}</span>
 <a name="line-581"></a>
-<a name="line-582"></a><a name="getArrowMonad"></a><span class='hs-definition'>getArrowMonad</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ArrowApply</span> <span class='hs-varid'>m</span>  <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>ArrowMonad</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span> <span class='hs-varid'>a</span>
+<a name="line-582"></a><a name="getArrowMonad"></a><span class='hs-definition'>getArrowMonad</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ArrowMonad</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-conid'>()</span> <span class='hs-varid'>a</span>
 <a name="line-583"></a><span class='hs-definition'>getArrowMonad</span> <span class='hs-layout'>(</span><span class='hs-conid'>ArrowMonad</span> <span class='hs-varid'>x</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
 <a name="line-584"></a><span class='hs-comment'>{-# INLINE getArrowMonad #-}</span>
 <a name="line-585"></a>

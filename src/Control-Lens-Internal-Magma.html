@@ -25,7 +25,7 @@
 <a name="line-16"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-17"></a><span class='hs-comment'>-- |</span>
 <a name="line-18"></a><span class='hs-comment'>-- Module      :  Control.Lens.Internal.Magma</span>
-<a name="line-19"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-2014 Edward Kmett</span>
+<a name="line-19"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-2015 Edward Kmett</span>
 <a name="line-20"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
 <a name="line-21"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
 <a name="line-22"></a><span class='hs-comment'>-- Stability   :  experimental</span>
@@ -234,7 +234,7 @@
 <a name="line-225"></a><span class='hs-cpp'>#endif</span>
 <a name="line-226"></a>
 <a name="line-227"></a><a name="runTakingWhile"></a><span class='hs-comment'>-- | Generate a 'Magma' with leaves only while the predicate holds from left to right.</span>
-<a name="line-228"></a><span class='hs-definition'>runTakingWhile</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Corepresentable</span> <span class='hs-varid'>p</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>TakingWhile</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Magma</span> <span class='hs-conid'>()</span> <span class='hs-varid'>t</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Corep</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
+<a name="line-228"></a><span class='hs-definition'>runTakingWhile</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>TakingWhile</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Magma</span> <span class='hs-conid'>()</span> <span class='hs-varid'>t</span> <span class='hs-varid'>b</span> <span class='hs-layout'>(</span><span class='hs-conid'>Corep</span> <span class='hs-varid'>p</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span>
 <a name="line-229"></a><span class='hs-definition'>runTakingWhile</span> <span class='hs-layout'>(</span><span class='hs-conid'>TakingWhile</span> <span class='hs-keyword'>_</span> <span class='hs-keyword'>_</span> <span class='hs-varid'>k</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>k</span> <span class='hs-conid'>True</span>
 <a name="line-230"></a>
 <a name="line-231"></a><a name="instance%20Functor%20(TakingWhile%20p%20f%20a%20b)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>TakingWhile</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
@@ -262,12 +262,13 @@
 <a name="line-253"></a>    <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-conid'>Magma</span> <span class='hs-keyword'>_</span> <span class='hs-varid'>wa</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>corep</span> <span class='hs-varid'>pafb</span> <span class='hs-varid'>wa</span>
 <a name="line-254"></a>  <span class='hs-comment'>{-# INLINE bazaar #-}</span>
 <a name="line-255"></a>
-<a name="line-256"></a><a name="instance%20Contravariant%20(TakingWhile%20p%20f%20a%20b)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Contravariant</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Contravariant</span> <span class='hs-layout'>(</span><span class='hs-conid'>TakingWhile</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-257"></a>  <span class='hs-varid'>contramap</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>error</span> <span class='hs-str'>"contramap: TakingWhile"</span><span class='hs-layout'>)</span>
-<a name="line-258"></a>  <span class='hs-comment'>{-# INLINE contramap #-}</span>
-<a name="line-259"></a>
-<a name="line-260"></a><a name="instance%20IndexedFunctor%20(TakingWhile%20p%20f)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IndexedFunctor</span> <span class='hs-layout'>(</span><span class='hs-conid'>TakingWhile</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-261"></a>  <span class='hs-varid'>ifmap</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>fmap</span>
-<a name="line-262"></a>  <span class='hs-comment'>{-# INLINE ifmap #-}</span>
+<a name="line-256"></a><a name="instance%20Contravariant%20(TakingWhile%20p%20f%20a%20b)"></a><span class='hs-comment'>-- This constraint is unused intentionally, it protects TakingWhile</span>
+<a name="line-257"></a><a name="instance%20Contravariant%20(TakingWhile%20p%20f%20a%20b)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Contravariant</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Contravariant</span> <span class='hs-layout'>(</span><span class='hs-conid'>TakingWhile</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-258"></a>  <span class='hs-varid'>contramap</span> <span class='hs-keyword'>_</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;$</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>error</span> <span class='hs-str'>"contramap: TakingWhile"</span><span class='hs-layout'>)</span>
+<a name="line-259"></a>  <span class='hs-comment'>{-# INLINE contramap #-}</span>
+<a name="line-260"></a>
+<a name="line-261"></a><a name="instance%20IndexedFunctor%20(TakingWhile%20p%20f)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>IndexedFunctor</span> <span class='hs-layout'>(</span><span class='hs-conid'>TakingWhile</span> <span class='hs-varid'>p</span> <span class='hs-varid'>f</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-262"></a>  <span class='hs-varid'>ifmap</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>fmap</span>
+<a name="line-263"></a>  <span class='hs-comment'>{-# INLINE ifmap #-}</span>
 </pre></body>
 </html>

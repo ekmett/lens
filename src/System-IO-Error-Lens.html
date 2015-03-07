@@ -7,70 +7,123 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE TemplateHaskell #-}</span>
-<a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE FlexibleContexts #-}</span>
-<a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE FlexibleInstances #-}</span>
-<a name="line-4"></a><span class='hs-comment'>{-# LANGUAGE MultiParamTypeClasses #-}</span>
-<a name="line-5"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-6"></a><span class='hs-comment'>-- |</span>
-<a name="line-7"></a><span class='hs-comment'>-- Module      :  System.IO.Error.Lens</span>
-<a name="line-8"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-2014 Edward Kmett</span>
-<a name="line-9"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
-<a name="line-10"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
-<a name="line-11"></a><span class='hs-comment'>-- Stability   :  experimental</span>
-<a name="line-12"></a><span class='hs-comment'>-- Portability :  Rank2Types</span>
-<a name="line-13"></a><span class='hs-comment'>--</span>
-<a name="line-14"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
-<a name="line-15"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>System</span><span class='hs-varop'>.</span><span class='hs-conid'>IO</span><span class='hs-varop'>.</span><span class='hs-conid'>Error</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span> <span class='hs-keyword'>where</span>
-<a name="line-16"></a>
-<a name="line-17"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>GHC</span><span class='hs-varop'>.</span><span class='hs-conid'>IO</span><span class='hs-varop'>.</span><span class='hs-conid'>Exception</span>
-<a name="line-19"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>System</span><span class='hs-varop'>.</span><span class='hs-conid'>IO</span>
-<a name="line-20"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Foreign</span><span class='hs-varop'>.</span><span class='hs-conid'>C</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
-<a name="line-21"></a>
-<a name="line-22"></a><span class='hs-comment'>-- * IOException Lenses</span>
-<a name="line-23"></a>
-<a name="line-24"></a><a name="location"></a><span class='hs-comment'>-- | Where the error happened.</span>
-<a name="line-25"></a><span class='hs-definition'>location</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-conid'>String</span>
-<a name="line-26"></a><span class='hs-definition'>location</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_location</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_location</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
-<a name="line-27"></a><span class='hs-comment'>{-# INLINE location #-}</span>
-<a name="line-28"></a>
-<a name="line-29"></a><a name="description"></a><span class='hs-comment'>-- | Error type specific information.</span>
-<a name="line-30"></a><span class='hs-definition'>description</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-conid'>String</span>
-<a name="line-31"></a><span class='hs-definition'>description</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_description</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_description</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
-<a name="line-32"></a><span class='hs-comment'>{-# INLINE description #-}</span>
-<a name="line-33"></a>
-<a name="line-34"></a><a name="handle"></a><span class='hs-comment'>-- | The handle used by the action flagging this error.</span>
-<a name="line-35"></a><span class='hs-definition'>handle</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>Handle</span><span class='hs-layout'>)</span>
-<a name="line-36"></a><span class='hs-definition'>handle</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_handle</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_handle</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
-<a name="line-37"></a><span class='hs-comment'>{-# INLINE handle #-}</span>
-<a name="line-38"></a>
-<a name="line-39"></a><a name="fileName"></a><span class='hs-comment'>-- | 'fileName' the error is related to.</span>
-<a name="line-40"></a><span class='hs-comment'>--</span>
-<a name="line-41"></a><span class='hs-definition'>fileName</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>FilePath</span><span class='hs-layout'>)</span>
-<a name="line-42"></a><span class='hs-definition'>fileName</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_filename</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_filename</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
-<a name="line-43"></a><span class='hs-comment'>{-# INLINE fileName #-}</span>
-<a name="line-44"></a>
-<a name="line-45"></a><a name="errno"></a><span class='hs-comment'>-- | 'errno' leading to this error, if any.</span>
-<a name="line-46"></a><span class='hs-comment'>--</span>
-<a name="line-47"></a><span class='hs-definition'>errno</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>CInt</span><span class='hs-layout'>)</span>
-<a name="line-48"></a><span class='hs-definition'>errno</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_errno</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_errno</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
-<a name="line-49"></a><span class='hs-comment'>{-# INLINE errno #-}</span>
-<a name="line-50"></a>
-<a name="line-51"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-52"></a><span class='hs-comment'>-- Error Types</span>
-<a name="line-53"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-54"></a>
-<a name="line-55"></a><span class='hs-comment'>-- | What type of error it is</span>
-<a name="line-56"></a>
-<a name="line-57"></a><a name="errorType"></a><span class='hs-definition'>errorType</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-conid'>IOErrorType</span>
-<a name="line-58"></a><span class='hs-definition'>errorType</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_type</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_type</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
-<a name="line-59"></a><span class='hs-comment'>{-# INLINE errorType #-}</span>
-<a name="line-60"></a>
-<a name="line-61"></a><span class='hs-comment'>-- * IOErrorType Prisms</span>
-<a name="line-62"></a><span class='hs-comment'>--</span>
-<a name="line-63"></a><span class='hs-comment'>-- (These prisms are generated automatically)</span>
-<a name="line-64"></a>
-<a name="line-65"></a><a name="makePrisms"></a><span class='hs-definition'>makePrisms</span> <span class='hs-chr'>'</span><span class='hs-chr'>'</span><span class='hs-conid'>IOErrorType</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE FlexibleContexts #-}</span>
+<a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE FlexibleInstances #-}</span>
+<a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE MultiParamTypeClasses #-}</span>
+<a name="line-4"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-5"></a><span class='hs-comment'>-- |</span>
+<a name="line-6"></a><span class='hs-comment'>-- Module      :  System.IO.Error.Lens</span>
+<a name="line-7"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-2015 Edward Kmett</span>
+<a name="line-8"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
+<a name="line-9"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
+<a name="line-10"></a><span class='hs-comment'>-- Stability   :  experimental</span>
+<a name="line-11"></a><span class='hs-comment'>-- Portability :  Rank2Types</span>
+<a name="line-12"></a><span class='hs-comment'>--</span>
+<a name="line-13"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
+<a name="line-14"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>System</span><span class='hs-varop'>.</span><span class='hs-conid'>IO</span><span class='hs-varop'>.</span><span class='hs-conid'>Error</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span> <span class='hs-keyword'>where</span>
+<a name="line-15"></a>
+<a name="line-16"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-17"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>GHC</span><span class='hs-varop'>.</span><span class='hs-conid'>IO</span><span class='hs-varop'>.</span><span class='hs-conid'>Exception</span>
+<a name="line-18"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>System</span><span class='hs-varop'>.</span><span class='hs-conid'>IO</span>
+<a name="line-19"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Foreign</span><span class='hs-varop'>.</span><span class='hs-conid'>C</span><span class='hs-varop'>.</span><span class='hs-conid'>Types</span>
+<a name="line-20"></a>
+<a name="line-21"></a><span class='hs-comment'>-- * IOException Lenses</span>
+<a name="line-22"></a>
+<a name="line-23"></a><a name="location"></a><span class='hs-comment'>-- | Where the error happened.</span>
+<a name="line-24"></a><span class='hs-definition'>location</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-conid'>String</span>
+<a name="line-25"></a><span class='hs-definition'>location</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_location</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_location</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
+<a name="line-26"></a><span class='hs-comment'>{-# INLINE location #-}</span>
+<a name="line-27"></a>
+<a name="line-28"></a><a name="description"></a><span class='hs-comment'>-- | Error type specific information.</span>
+<a name="line-29"></a><span class='hs-definition'>description</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-conid'>String</span>
+<a name="line-30"></a><span class='hs-definition'>description</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_description</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_description</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
+<a name="line-31"></a><span class='hs-comment'>{-# INLINE description #-}</span>
+<a name="line-32"></a>
+<a name="line-33"></a><a name="handle"></a><span class='hs-comment'>-- | The handle used by the action flagging this error.</span>
+<a name="line-34"></a><span class='hs-definition'>handle</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>Handle</span><span class='hs-layout'>)</span>
+<a name="line-35"></a><span class='hs-definition'>handle</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_handle</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_handle</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
+<a name="line-36"></a><span class='hs-comment'>{-# INLINE handle #-}</span>
+<a name="line-37"></a>
+<a name="line-38"></a><a name="fileName"></a><span class='hs-comment'>-- | 'fileName' the error is related to.</span>
+<a name="line-39"></a><span class='hs-comment'>--</span>
+<a name="line-40"></a><span class='hs-definition'>fileName</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>FilePath</span><span class='hs-layout'>)</span>
+<a name="line-41"></a><span class='hs-definition'>fileName</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_filename</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_filename</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
+<a name="line-42"></a><span class='hs-comment'>{-# INLINE fileName #-}</span>
+<a name="line-43"></a>
+<a name="line-44"></a><a name="errno"></a><span class='hs-comment'>-- | 'errno' leading to this error, if any.</span>
+<a name="line-45"></a><span class='hs-comment'>--</span>
+<a name="line-46"></a><span class='hs-definition'>errno</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-layout'>(</span><span class='hs-conid'>Maybe</span> <span class='hs-conid'>CInt</span><span class='hs-layout'>)</span>
+<a name="line-47"></a><span class='hs-definition'>errno</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_errno</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_errno</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
+<a name="line-48"></a><span class='hs-comment'>{-# INLINE errno #-}</span>
+<a name="line-49"></a>
+<a name="line-50"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-51"></a><span class='hs-comment'>-- Error Types</span>
+<a name="line-52"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-53"></a>
+<a name="line-54"></a><span class='hs-comment'>-- | What type of error it is</span>
+<a name="line-55"></a>
+<a name="line-56"></a><a name="errorType"></a><span class='hs-definition'>errorType</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Lens'</span> <span class='hs-conid'>IOException</span> <span class='hs-conid'>IOErrorType</span>
+<a name="line-57"></a><span class='hs-definition'>errorType</span> <span class='hs-varid'>f</span> <span class='hs-varid'>s</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-varid'>ioe_type</span> <span class='hs-varid'>s</span><span class='hs-layout'>)</span> <span class='hs-varop'>&lt;&amp;&gt;</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>s</span> <span class='hs-layout'>{</span> <span class='hs-varid'>ioe_type</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>e</span> <span class='hs-layout'>}</span>
+<a name="line-58"></a><span class='hs-comment'>{-# INLINE errorType #-}</span>
+<a name="line-59"></a>
+<a name="line-60"></a><span class='hs-comment'>-- * IOErrorType Prisms</span>
+<a name="line-61"></a><span class='hs-comment'>--</span>
+<a name="line-62"></a>
+<a name="line-63"></a><span class='hs-sel'>_AlreadyExists</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-64"></a><span class='hs-sel'>_AlreadyExists</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>AlreadyExists</span>
+<a name="line-65"></a>
+<a name="line-66"></a><span class='hs-sel'>_NoSuchThing</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-67"></a><span class='hs-sel'>_NoSuchThing</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>NoSuchThing</span>
+<a name="line-68"></a>
+<a name="line-69"></a><span class='hs-sel'>_ResourceBusy</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-70"></a><span class='hs-sel'>_ResourceBusy</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>ResourceBusy</span>
+<a name="line-71"></a>
+<a name="line-72"></a><span class='hs-sel'>_ResourceExhausted</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-73"></a><span class='hs-sel'>_ResourceExhausted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>ResourceExhausted</span>
+<a name="line-74"></a>
+<a name="line-75"></a><span class='hs-sel'>_EOF</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-76"></a><span class='hs-sel'>_EOF</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>EOF</span>
+<a name="line-77"></a>
+<a name="line-78"></a><span class='hs-sel'>_IllegalOperation</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-79"></a><span class='hs-sel'>_IllegalOperation</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>IllegalOperation</span>
+<a name="line-80"></a>
+<a name="line-81"></a><span class='hs-sel'>_PermissionDenied</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-82"></a><span class='hs-sel'>_PermissionDenied</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>PermissionDenied</span>
+<a name="line-83"></a>
+<a name="line-84"></a><span class='hs-sel'>_UserError</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-85"></a><span class='hs-sel'>_UserError</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>UserError</span>
+<a name="line-86"></a>
+<a name="line-87"></a><span class='hs-sel'>_UnsatisfiedConstraints</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-88"></a><span class='hs-sel'>_UnsatisfiedConstraints</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>UnsatisfiedConstraints</span>
+<a name="line-89"></a>
+<a name="line-90"></a><span class='hs-sel'>_SystemError</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-91"></a><span class='hs-sel'>_SystemError</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>SystemError</span>
+<a name="line-92"></a>
+<a name="line-93"></a><span class='hs-sel'>_ProtocolError</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-94"></a><span class='hs-sel'>_ProtocolError</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>ProtocolError</span>
+<a name="line-95"></a>
+<a name="line-96"></a><span class='hs-sel'>_OtherError</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-97"></a><span class='hs-sel'>_OtherError</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>OtherError</span>
+<a name="line-98"></a>
+<a name="line-99"></a><span class='hs-sel'>_InvalidArgument</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-100"></a><span class='hs-sel'>_InvalidArgument</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>InvalidArgument</span>
+<a name="line-101"></a>
+<a name="line-102"></a><span class='hs-sel'>_InappropriateType</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-103"></a><span class='hs-sel'>_InappropriateType</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>InappropriateType</span>
+<a name="line-104"></a>
+<a name="line-105"></a><span class='hs-sel'>_HardwareFault</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-106"></a><span class='hs-sel'>_HardwareFault</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>HardwareFault</span>
+<a name="line-107"></a>
+<a name="line-108"></a><span class='hs-sel'>_UnsupportedOperation</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-109"></a><span class='hs-sel'>_UnsupportedOperation</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>UnsupportedOperation</span>
+<a name="line-110"></a>
+<a name="line-111"></a><span class='hs-sel'>_TimeExpired</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-112"></a><span class='hs-sel'>_TimeExpired</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>TimeExpired</span>
+<a name="line-113"></a>
+<a name="line-114"></a><span class='hs-sel'>_ResourceVanished</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-115"></a><span class='hs-sel'>_ResourceVanished</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>ResourceVanished</span>
+<a name="line-116"></a>
+<a name="line-117"></a><span class='hs-sel'>_Interrupted</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>IOErrorType</span> <span class='hs-conid'>()</span>
+<a name="line-118"></a><span class='hs-sel'>_Interrupted</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>only</span> <span class='hs-conid'>Interrupted</span>
 </pre></body>
 </html>

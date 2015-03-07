@@ -12,48 +12,194 @@
 <a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE Trustworthy #-}</span>
 <a name="line-4"></a><span class='hs-cpp'>#endif</span>
 <a name="line-5"></a>
-<a name="line-6"></a><span class='hs-cpp'>#ifndef MIN_VERSION_template_haskell</span>
-<a name="line-7"></a><span class='hs-cpp'>#define MIN_VERSION_template_haskell(x,y,z) (defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 706)</span>
+<a name="line-6"></a><span class='hs-cpp'>#ifdef HLINT</span>
+<a name="line-7"></a><span class='hs-comment'>{-# ANN module "HLint: ignore Use camelCase" #-}</span>
 <a name="line-8"></a><span class='hs-cpp'>#endif</span>
-<a name="line-9"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-10"></a><span class='hs-comment'>-- |</span>
-<a name="line-11"></a><span class='hs-comment'>-- Module      :  Control.Lens.Internal.TH</span>
-<a name="line-12"></a><span class='hs-comment'>-- Copyright   :  (C) 2013-2014 Edward Kmett, 2013 Eric Mertens</span>
-<a name="line-13"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
-<a name="line-14"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
-<a name="line-15"></a><span class='hs-comment'>-- Stability   :  experimental</span>
-<a name="line-16"></a><span class='hs-comment'>-- Portability :  non-portable</span>
-<a name="line-17"></a><span class='hs-comment'>--</span>
-<a name="line-18"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
-<a name="line-19"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>TH</span> <span class='hs-keyword'>where</span>
-<a name="line-20"></a>
-<a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Language</span><span class='hs-varop'>.</span><span class='hs-conid'>Haskell</span><span class='hs-varop'>.</span><span class='hs-conid'>TH</span>
-<a name="line-22"></a>
-<a name="line-23"></a><a name="tySynInstD'"></a><span class='hs-comment'>-- | Compatibility shim for recent changes to template haskell's 'tySynInstD'</span>
-<a name="line-24"></a><span class='hs-definition'>tySynInstD'</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>TypeQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>TypeQ</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>DecQ</span>
-<a name="line-25"></a><span class='hs-cpp'>#if MIN_VERSION_template_haskell(2,9,0)</span>
-<a name="line-26"></a><span class='hs-definition'>tySynInstD'</span> <span class='hs-varid'>fam</span> <span class='hs-varid'>ts</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>tySynInstD</span> <span class='hs-varid'>fam</span> <span class='hs-layout'>(</span><span class='hs-varid'>tySynEqn</span> <span class='hs-varid'>ts</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
-<a name="line-27"></a><span class='hs-cpp'>#else</span>
-<a name="line-28"></a><span class='hs-definition'>tySynInstD'</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>tySynInstD</span>
-<a name="line-29"></a><span class='hs-cpp'>#endif</span>
-<a name="line-30"></a>
-<a name="line-31"></a><a name="appsT"></a><span class='hs-definition'>appsT</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>TypeQ</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>TypeQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>TypeQ</span>
-<a name="line-32"></a><span class='hs-definition'>appsT</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldl</span> <span class='hs-varid'>appT</span>
-<a name="line-33"></a>
-<a name="line-34"></a><a name="appsE1"></a><span class='hs-definition'>appsE1</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ExpQ</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>ExpQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ExpQ</span>
-<a name="line-35"></a><span class='hs-definition'>appsE1</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldl</span> <span class='hs-varid'>appE</span>
-<a name="line-36"></a>
-<a name="line-37"></a><a name="toTupleT"></a><span class='hs-definition'>toTupleT</span> <span class='hs-keyglyph'>::</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>TypeQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>TypeQ</span>
-<a name="line-38"></a><span class='hs-definition'>toTupleT</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>x</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
-<a name="line-39"></a><span class='hs-definition'>toTupleT</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>appsT</span> <span class='hs-layout'>(</span><span class='hs-varid'>tupleT</span> <span class='hs-layout'>(</span><span class='hs-varid'>length</span> <span class='hs-varid'>xs</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>xs</span>
-<a name="line-40"></a>
-<a name="line-41"></a><a name="toTupleE"></a><span class='hs-definition'>toTupleE</span> <span class='hs-keyglyph'>::</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>ExpQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ExpQ</span>
-<a name="line-42"></a><span class='hs-definition'>toTupleE</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>x</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
-<a name="line-43"></a><span class='hs-definition'>toTupleE</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>tupE</span> <span class='hs-varid'>xs</span>
-<a name="line-44"></a>
-<a name="line-45"></a><a name="toTupleP"></a><span class='hs-definition'>toTupleP</span> <span class='hs-keyglyph'>::</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>PatQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PatQ</span>
-<a name="line-46"></a><span class='hs-definition'>toTupleP</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>x</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
-<a name="line-47"></a><span class='hs-definition'>toTupleP</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>tupP</span> <span class='hs-varid'>xs</span>
-<a name="line-48"></a>
+<a name="line-9"></a>
+<a name="line-10"></a><span class='hs-cpp'>#ifndef MIN_VERSION_template_haskell</span>
+<a name="line-11"></a><span class='hs-cpp'>#define MIN_VERSION_template_haskell(x,y,z) (defined(__GLASGOW_HASKELL__) &amp;&amp; __GLASGOW_HASKELL__ &gt;= 706)</span>
+<a name="line-12"></a><span class='hs-cpp'>#endif</span>
+<a name="line-13"></a>
+<a name="line-14"></a><span class='hs-cpp'>#ifndef MIN_VERSION_containers</span>
+<a name="line-15"></a><span class='hs-cpp'>#define MIN_VERSION_containers(x,y,z) 1</span>
+<a name="line-16"></a><span class='hs-cpp'>#endif</span>
+<a name="line-17"></a>
+<a name="line-18"></a><span class='hs-cpp'>#ifndef MIN_VERSION_base</span>
+<a name="line-19"></a><span class='hs-cpp'>#define MIN_VERSION_base(x,y,z) 1</span>
+<a name="line-20"></a><span class='hs-cpp'>#endif</span>
+<a name="line-21"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-22"></a><span class='hs-comment'>-- |</span>
+<a name="line-23"></a><span class='hs-comment'>-- Module      :  Control.Lens.Internal.TH</span>
+<a name="line-24"></a><span class='hs-comment'>-- Copyright   :  (C) 2013-2015 Edward Kmett and Eric Mertens</span>
+<a name="line-25"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
+<a name="line-26"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
+<a name="line-27"></a><span class='hs-comment'>-- Stability   :  experimental</span>
+<a name="line-28"></a><span class='hs-comment'>-- Portability :  non-portable</span>
+<a name="line-29"></a><span class='hs-comment'>--</span>
+<a name="line-30"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
+<a name="line-31"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Internal</span><span class='hs-varop'>.</span><span class='hs-conid'>TH</span> <span class='hs-keyword'>where</span>
+<a name="line-32"></a>
+<a name="line-33"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Language</span><span class='hs-varop'>.</span><span class='hs-conid'>Haskell</span><span class='hs-varop'>.</span><span class='hs-conid'>TH</span>
+<a name="line-34"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Language</span><span class='hs-varop'>.</span><span class='hs-conid'>Haskell</span><span class='hs-varop'>.</span><span class='hs-conid'>TH</span><span class='hs-varop'>.</span><span class='hs-conid'>Syntax</span>
+<a name="line-35"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Map</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Map</span>
+<a name="line-36"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Set</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Set</span>
+<a name="line-37"></a><span class='hs-cpp'>#ifndef CURRENT_PACKAGE_KEY</span>
+<a name="line-38"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Version</span> <span class='hs-layout'>(</span><span class='hs-varid'>showVersion</span><span class='hs-layout'>)</span>
+<a name="line-39"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Paths_lens</span> <span class='hs-layout'>(</span><span class='hs-varid'>version</span><span class='hs-layout'>)</span>
+<a name="line-40"></a><span class='hs-cpp'>#endif</span>
+<a name="line-41"></a>
+<a name="line-42"></a><a name="tySynInstD'"></a><span class='hs-comment'>-- | Compatibility shim for recent changes to template haskell's 'tySynInstD'</span>
+<a name="line-43"></a><span class='hs-definition'>tySynInstD'</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>TypeQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>TypeQ</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>DecQ</span>
+<a name="line-44"></a><span class='hs-cpp'>#if MIN_VERSION_template_haskell(2,9,0)</span>
+<a name="line-45"></a><span class='hs-definition'>tySynInstD'</span> <span class='hs-varid'>fam</span> <span class='hs-varid'>ts</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>tySynInstD</span> <span class='hs-varid'>fam</span> <span class='hs-layout'>(</span><span class='hs-varid'>tySynEqn</span> <span class='hs-varid'>ts</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
+<a name="line-46"></a><span class='hs-cpp'>#else</span>
+<a name="line-47"></a><span class='hs-definition'>tySynInstD'</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>tySynInstD</span>
+<a name="line-48"></a><span class='hs-cpp'>#endif</span>
+<a name="line-49"></a>
+<a name="line-50"></a><a name="appsT"></a><span class='hs-comment'>-- | Apply arguments to a type constructor</span>
+<a name="line-51"></a><span class='hs-definition'>appsT</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>TypeQ</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>TypeQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>TypeQ</span>
+<a name="line-52"></a><span class='hs-definition'>appsT</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldl</span> <span class='hs-varid'>appT</span>
+<a name="line-53"></a>
+<a name="line-54"></a><a name="appsE1"></a><span class='hs-comment'>-- | Apply arguments to a function</span>
+<a name="line-55"></a><span class='hs-definition'>appsE1</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>ExpQ</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>ExpQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ExpQ</span>
+<a name="line-56"></a><span class='hs-definition'>appsE1</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldl</span> <span class='hs-varid'>appE</span>
+<a name="line-57"></a>
+<a name="line-58"></a><a name="toTupleT"></a><span class='hs-comment'>-- | Construct a tuple type given a list of types.</span>
+<a name="line-59"></a><span class='hs-definition'>toTupleT</span> <span class='hs-keyglyph'>::</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>TypeQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>TypeQ</span>
+<a name="line-60"></a><span class='hs-definition'>toTupleT</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>x</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
+<a name="line-61"></a><span class='hs-definition'>toTupleT</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>appsT</span> <span class='hs-layout'>(</span><span class='hs-varid'>tupleT</span> <span class='hs-layout'>(</span><span class='hs-varid'>length</span> <span class='hs-varid'>xs</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-varid'>xs</span>
+<a name="line-62"></a>
+<a name="line-63"></a><a name="toTupleE"></a><span class='hs-comment'>-- | Construct a tuple value given a list of expressions.</span>
+<a name="line-64"></a><span class='hs-definition'>toTupleE</span> <span class='hs-keyglyph'>::</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>ExpQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>ExpQ</span>
+<a name="line-65"></a><span class='hs-definition'>toTupleE</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>x</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
+<a name="line-66"></a><span class='hs-definition'>toTupleE</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>tupE</span> <span class='hs-varid'>xs</span>
+<a name="line-67"></a>
+<a name="line-68"></a><a name="toTupleP"></a><span class='hs-comment'>-- | Construct a tuple pattern given a list of patterns.</span>
+<a name="line-69"></a><span class='hs-definition'>toTupleP</span> <span class='hs-keyglyph'>::</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>PatQ</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>PatQ</span>
+<a name="line-70"></a><span class='hs-definition'>toTupleP</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>x</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>x</span>
+<a name="line-71"></a><span class='hs-definition'>toTupleP</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>tupP</span> <span class='hs-varid'>xs</span>
+<a name="line-72"></a>
+<a name="line-73"></a><a name="conAppsT"></a><span class='hs-comment'>-- | Apply arguments to a type constructor.</span>
+<a name="line-74"></a><span class='hs-definition'>conAppsT</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Type</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Type</span>
+<a name="line-75"></a><span class='hs-definition'>conAppsT</span> <span class='hs-varid'>conName</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldl</span> <span class='hs-conid'>AppT</span> <span class='hs-layout'>(</span><span class='hs-conid'>ConT</span> <span class='hs-varid'>conName</span><span class='hs-layout'>)</span>
+<a name="line-76"></a>
+<a name="line-77"></a>
+<a name="line-78"></a><a name="bndrName"></a><span class='hs-comment'>-- | Return 'Name' contained in a 'TyVarBndr'.</span>
+<a name="line-79"></a><span class='hs-definition'>bndrName</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>TyVarBndr</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Name</span>
+<a name="line-80"></a><span class='hs-definition'>bndrName</span> <span class='hs-layout'>(</span><span class='hs-conid'>PlainTV</span>  <span class='hs-varid'>n</span>  <span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>n</span>
+<a name="line-81"></a><span class='hs-definition'>bndrName</span> <span class='hs-layout'>(</span><span class='hs-conid'>KindedTV</span> <span class='hs-varid'>n</span> <span class='hs-keyword'>_</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>n</span>
+<a name="line-82"></a>
+<a name="line-83"></a><a name="fromSet"></a><span class='hs-definition'>fromSet</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-varid'>k</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>v</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Set</span><span class='hs-varop'>.</span><span class='hs-conid'>Set</span> <span class='hs-varid'>k</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Map</span><span class='hs-varop'>.</span><span class='hs-conid'>Map</span> <span class='hs-varid'>k</span> <span class='hs-varid'>v</span>
+<a name="line-84"></a><span class='hs-cpp'>#if MIN_VERSION_containers(0,5,0)</span>
+<a name="line-85"></a><span class='hs-definition'>fromSet</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Map</span><span class='hs-varop'>.</span><span class='hs-varid'>fromSet</span>
+<a name="line-86"></a><span class='hs-cpp'>#else</span>
+<a name="line-87"></a><span class='hs-definition'>fromSet</span> <span class='hs-varid'>f</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Map</span><span class='hs-varop'>.</span><span class='hs-varid'>fromDistinctAscList</span> <span class='hs-keyglyph'>[</span> <span class='hs-layout'>(</span><span class='hs-varid'>k</span><span class='hs-layout'>,</span><span class='hs-varid'>f</span> <span class='hs-varid'>k</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>|</span> <span class='hs-varid'>k</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-conid'>Set</span><span class='hs-varop'>.</span><span class='hs-varid'>toAscList</span> <span class='hs-varid'>x</span> <span class='hs-keyglyph'>]</span>
+<a name="line-88"></a><span class='hs-cpp'>#endif</span>
+<a name="line-89"></a>
+<a name="line-90"></a><span class='hs-comment'>------------------------------------------------------------------------</span>
+<a name="line-91"></a><span class='hs-comment'>-- Manually quoted names</span>
+<a name="line-92"></a><span class='hs-comment'>------------------------------------------------------------------------</span>
+<a name="line-93"></a><span class='hs-comment'>-- By manually generating these names we avoid needing to use the</span>
+<a name="line-94"></a><span class='hs-comment'>-- TemplateHaskell language extension when compiling the lens library.</span>
+<a name="line-95"></a><span class='hs-comment'>-- This allows the library to be used in stage1 cross-compilers.</span>
+<a name="line-96"></a>
+<a name="line-97"></a><a name="lensPackageKey"></a><span class='hs-definition'>lensPackageKey</span>         <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span>
+<a name="line-98"></a><span class='hs-cpp'>#ifdef CURRENT_PACKAGE_KEY</span>
+<a name="line-99"></a><span class='hs-definition'>lensPackageKey</span>          <span class='hs-keyglyph'>=</span> <span class='hs-conid'>CURRENT_PACKAGE_KEY</span>
+<a name="line-100"></a><span class='hs-cpp'>#else</span>
+<a name="line-101"></a><span class='hs-definition'>lensPackageKey</span>          <span class='hs-keyglyph'>=</span> <span class='hs-str'>"lens-"</span> <span class='hs-varop'>++</span> <span class='hs-varid'>showVersion</span> <span class='hs-varid'>version</span>
+<a name="line-102"></a><span class='hs-cpp'>#endif</span>
+<a name="line-103"></a>
+<a name="line-104"></a><a name="mkLensName_tc"></a><span class='hs-definition'>mkLensName_tc</span>          <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Name</span>
+<a name="line-105"></a><span class='hs-definition'>mkLensName_tc</span>           <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkNameG_tc</span> <span class='hs-varid'>lensPackageKey</span>
+<a name="line-106"></a>
+<a name="line-107"></a><a name="mkLensName_v"></a><span class='hs-definition'>mkLensName_v</span>           <span class='hs-keyglyph'>::</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>String</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Name</span>
+<a name="line-108"></a><span class='hs-definition'>mkLensName_v</span>            <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkNameG_v</span> <span class='hs-varid'>lensPackageKey</span>
+<a name="line-109"></a>
+<a name="line-110"></a><a name="traversalTypeName"></a><span class='hs-definition'>traversalTypeName</span>      <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-111"></a><span class='hs-definition'>traversalTypeName</span>       <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Type"</span> <span class='hs-str'>"Traversal"</span>
+<a name="line-112"></a>
+<a name="line-113"></a><a name="traversal'TypeName"></a><span class='hs-definition'>traversal'TypeName</span>     <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-114"></a><span class='hs-definition'>traversal'TypeName</span>      <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Type"</span> <span class='hs-str'>"Traversal'"</span>
+<a name="line-115"></a>
+<a name="line-116"></a><a name="lensTypeName"></a><span class='hs-definition'>lensTypeName</span>           <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-117"></a><span class='hs-definition'>lensTypeName</span>            <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Type"</span> <span class='hs-str'>"Lens"</span>
+<a name="line-118"></a>
+<a name="line-119"></a><a name="lens'TypeName"></a><span class='hs-definition'>lens'TypeName</span>          <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-120"></a><span class='hs-definition'>lens'TypeName</span>           <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Type"</span> <span class='hs-str'>"Lens'"</span>
+<a name="line-121"></a>
+<a name="line-122"></a><a name="isoTypeName"></a><span class='hs-definition'>isoTypeName</span>            <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-123"></a><span class='hs-definition'>isoTypeName</span>             <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Type"</span> <span class='hs-str'>"Iso"</span>
+<a name="line-124"></a>
+<a name="line-125"></a><a name="iso'TypeName"></a><span class='hs-definition'>iso'TypeName</span>           <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-126"></a><span class='hs-definition'>iso'TypeName</span>            <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Type"</span> <span class='hs-str'>"Iso'"</span>
+<a name="line-127"></a>
+<a name="line-128"></a><a name="getterTypeName"></a><span class='hs-definition'>getterTypeName</span>         <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-129"></a><span class='hs-definition'>getterTypeName</span>          <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Type"</span> <span class='hs-str'>"Getter"</span>
+<a name="line-130"></a>
+<a name="line-131"></a><a name="foldTypeName"></a><span class='hs-definition'>foldTypeName</span>           <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-132"></a><span class='hs-definition'>foldTypeName</span>            <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Type"</span> <span class='hs-str'>"Fold"</span>
+<a name="line-133"></a>
+<a name="line-134"></a><a name="prismTypeName"></a><span class='hs-definition'>prismTypeName</span>          <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-135"></a><span class='hs-definition'>prismTypeName</span>           <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Type"</span> <span class='hs-str'>"Prism"</span>
+<a name="line-136"></a>
+<a name="line-137"></a><a name="prism'TypeName"></a><span class='hs-definition'>prism'TypeName</span>         <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-138"></a><span class='hs-definition'>prism'TypeName</span>          <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Type"</span> <span class='hs-str'>"Prism'"</span>
+<a name="line-139"></a>
+<a name="line-140"></a><a name="reviewTypeName"></a><span class='hs-definition'>reviewTypeName</span>          <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-141"></a><span class='hs-definition'>reviewTypeName</span>           <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Type"</span> <span class='hs-str'>"Review"</span>
+<a name="line-142"></a>
+<a name="line-143"></a><a name="wrappedTypeName"></a><span class='hs-definition'>wrappedTypeName</span>         <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-144"></a><span class='hs-definition'>wrappedTypeName</span>          <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Wrapped"</span> <span class='hs-str'>"Wrapped"</span>
+<a name="line-145"></a>
+<a name="line-146"></a><a name="unwrappedTypeName"></a><span class='hs-definition'>unwrappedTypeName</span>       <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-147"></a><span class='hs-definition'>unwrappedTypeName</span>        <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Wrapped"</span> <span class='hs-str'>"Unwrapped"</span>
+<a name="line-148"></a>
+<a name="line-149"></a><a name="rewrappedTypeName"></a><span class='hs-definition'>rewrappedTypeName</span>       <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-150"></a><span class='hs-definition'>rewrappedTypeName</span>        <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_tc</span> <span class='hs-str'>"Control.Lens.Wrapped"</span> <span class='hs-str'>"Rewrapped"</span>
+<a name="line-151"></a>
+<a name="line-152"></a><span class='hs-sel'>_wrapped'ValName</span>        <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-153"></a><span class='hs-sel'>_wrapped'ValName</span>         <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_v</span> <span class='hs-str'>"Control.Lens.Wrapped"</span> <span class='hs-str'>"_Wrapped'"</span>
+<a name="line-154"></a>
+<a name="line-155"></a><a name="isoValName"></a><span class='hs-definition'>isoValName</span>              <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-156"></a><span class='hs-definition'>isoValName</span>               <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_v</span> <span class='hs-str'>"Control.Lens.Iso"</span> <span class='hs-str'>"iso"</span>
+<a name="line-157"></a>
+<a name="line-158"></a><a name="prismValName"></a><span class='hs-definition'>prismValName</span>            <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-159"></a><span class='hs-definition'>prismValName</span>             <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_v</span> <span class='hs-str'>"Control.Lens.Prism"</span> <span class='hs-str'>"prism"</span>
+<a name="line-160"></a>
+<a name="line-161"></a><a name="untoValName"></a><span class='hs-definition'>untoValName</span>             <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-162"></a><span class='hs-definition'>untoValName</span>              <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_v</span> <span class='hs-str'>"Control.Lens.Review"</span> <span class='hs-str'>"unto"</span>
+<a name="line-163"></a>
+<a name="line-164"></a><a name="coerceValName"></a><span class='hs-definition'>coerceValName</span>           <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-165"></a><span class='hs-definition'>coerceValName</span>            <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkLensName_v</span> <span class='hs-str'>"Control.Lens.Internal.Getter"</span> <span class='hs-str'>"coerce"</span>
+<a name="line-166"></a>
+<a name="line-167"></a><a name="composeValName"></a><span class='hs-definition'>composeValName</span>          <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-168"></a><span class='hs-definition'>composeValName</span>           <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkNameG_v</span> <span class='hs-str'>"base"</span> <span class='hs-str'>"GHC.Base"</span> <span class='hs-str'>"."</span>
+<a name="line-169"></a>
+<a name="line-170"></a><a name="idValName"></a><span class='hs-definition'>idValName</span>               <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-171"></a><span class='hs-definition'>idValName</span>                <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkNameG_v</span> <span class='hs-str'>"base"</span> <span class='hs-str'>"GHC.Base"</span> <span class='hs-str'>"id"</span>
+<a name="line-172"></a>
+<a name="line-173"></a><a name="fmapValName"></a><span class='hs-definition'>fmapValName</span>             <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-174"></a><span class='hs-definition'>fmapValName</span>              <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkNameG_v</span> <span class='hs-str'>"base"</span> <span class='hs-str'>"GHC.Base"</span> <span class='hs-str'>"fmap"</span>
+<a name="line-175"></a>
+<a name="line-176"></a><span class='hs-cpp'>#if MIN_VERSION_base(4,8,0)</span>
+<a name="line-177"></a><a name="pureValName"></a><span class='hs-definition'>pureValName</span>             <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-178"></a><span class='hs-definition'>pureValName</span>              <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkNameG_v</span> <span class='hs-str'>"base"</span> <span class='hs-str'>"GHC.Base"</span> <span class='hs-str'>"pure"</span>
+<a name="line-179"></a>
+<a name="line-180"></a><a name="apValName"></a><span class='hs-definition'>apValName</span>               <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-181"></a><span class='hs-definition'>apValName</span>                <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkNameG_v</span> <span class='hs-str'>"base"</span> <span class='hs-str'>"GHC.Base"</span> <span class='hs-str'>"&lt;*&gt;"</span>
+<a name="line-182"></a><span class='hs-cpp'>#else</span>
+<a name="line-183"></a><span class='hs-definition'>pureValName</span>             <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-184"></a><span class='hs-definition'>pureValName</span>              <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkNameG_v</span> <span class='hs-str'>"base"</span> <span class='hs-str'>"Control.Applicative"</span> <span class='hs-str'>"pure"</span>
+<a name="line-185"></a>
+<a name="line-186"></a><span class='hs-definition'>apValName</span>               <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-187"></a><span class='hs-definition'>apValName</span>                <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkNameG_v</span> <span class='hs-str'>"base"</span> <span class='hs-str'>"Control.Applicative"</span> <span class='hs-str'>"&lt;*&gt;"</span>
+<a name="line-188"></a><span class='hs-cpp'>#endif</span>
+<a name="line-189"></a>
+<a name="line-190"></a><a name="rightDataName"></a><span class='hs-definition'>rightDataName</span>           <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-191"></a><span class='hs-definition'>rightDataName</span>            <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkNameG_d</span> <span class='hs-str'>"base"</span> <span class='hs-str'>"Data.Either"</span> <span class='hs-str'>"Right"</span>
+<a name="line-192"></a>
+<a name="line-193"></a><a name="leftDataName"></a><span class='hs-definition'>leftDataName</span>            <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Name</span>
+<a name="line-194"></a><span class='hs-definition'>leftDataName</span>             <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mkNameG_d</span> <span class='hs-str'>"base"</span> <span class='hs-str'>"Data.Either"</span> <span class='hs-str'>"Left"</span>
 </pre></body>
 </html>

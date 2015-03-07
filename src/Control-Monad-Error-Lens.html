@@ -13,7 +13,7 @@
 <a name="line-4"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
 <a name="line-5"></a><span class='hs-comment'>-- |</span>
 <a name="line-6"></a><span class='hs-comment'>-- Module      :  Control.Monad.Error.Lens</span>
-<a name="line-7"></a><span class='hs-comment'>-- Copyright   :  (C) 2014 Edward Kmett</span>
+<a name="line-7"></a><span class='hs-comment'>-- Copyright   :  (C) 2014-2015 Edward Kmett</span>
 <a name="line-8"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
 <a name="line-9"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
 <a name="line-10"></a><span class='hs-comment'>-- Stability   :  provisional</span>
@@ -42,194 +42,195 @@
 <a name="line-33"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span>
 <a name="line-34"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span><span class='hs-varop'>.</span><span class='hs-conid'>Error</span><span class='hs-varop'>.</span><span class='hs-conid'>Class</span>
 <a name="line-35"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Functor</span><span class='hs-varop'>.</span><span class='hs-conid'>Plus</span>
-<a name="line-36"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Monoid</span>
+<a name="line-36"></a><span class='hs-keyword'>import</span> <span class='hs-keyword'>qualified</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Monoid</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>M</span>
 <a name="line-37"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Semigroup</span> <span class='hs-layout'>(</span><span class='hs-conid'>Semigroup</span><span class='hs-layout'>(</span><span class='hs-keyglyph'>..</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span>
-<a name="line-38"></a>
-<a name="line-39"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-40"></a><span class='hs-comment'>-- Catching</span>
-<a name="line-41"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-42"></a>
-<a name="line-43"></a><a name="catching"></a><span class='hs-comment'>-- | Catch exceptions that match a given 'Prism' (or any 'Getter', really).</span>
-<a name="line-44"></a><span class='hs-comment'>--</span>
-<a name="line-45"></a><span class='hs-comment'>-- @</span>
-<a name="line-46"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Prism'' e a     -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
-<a name="line-47"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Lens'' e a      -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
-<a name="line-48"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Traversal'' e a -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
-<a name="line-49"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Iso'' e a       -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
-<a name="line-50"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Getter' e a     -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
-<a name="line-51"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Fold' e a       -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
-<a name="line-52"></a><span class='hs-comment'>-- @</span>
-<a name="line-53"></a><span class='hs-definition'>catching</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
-<a name="line-54"></a><span class='hs-definition'>catching</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>catchJust</span> <span class='hs-layout'>(</span><span class='hs-varid'>preview</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
-<a name="line-55"></a><span class='hs-comment'>{-# INLINE catching #-}</span>
-<a name="line-56"></a>
-<a name="line-57"></a><a name="catching_"></a><span class='hs-comment'>-- | Catch exceptions that match a given 'Prism' (or any 'Getter'), discarding</span>
-<a name="line-58"></a><span class='hs-comment'>-- the information about the match. This is particuarly useful when you have</span>
-<a name="line-59"></a><span class='hs-comment'>-- a @'Prism'' e ()@ where the result of the 'Prism' or 'Fold' isn't</span>
-<a name="line-60"></a><span class='hs-comment'>-- particularly valuable, just the fact that it matches.</span>
-<a name="line-61"></a><span class='hs-comment'>--</span>
-<a name="line-62"></a><span class='hs-comment'>-- @</span>
-<a name="line-63"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Prism'' e a     -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-64"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Lens'' e a      -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-65"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Traversal'' e a -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-66"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Iso'' e a       -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-67"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Getter' e a     -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-68"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Fold' e a       -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-69"></a><span class='hs-comment'>-- @</span>
-<a name="line-70"></a><span class='hs-definition'>catching_</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
-<a name="line-71"></a><span class='hs-definition'>catching_</span> <span class='hs-varid'>l</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>catchJust</span> <span class='hs-layout'>(</span><span class='hs-varid'>preview</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-varid'>const</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
-<a name="line-72"></a><span class='hs-comment'>{-# INLINE catching_ #-}</span>
-<a name="line-73"></a>
-<a name="line-74"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-75"></a><span class='hs-comment'>-- Handling</span>
-<a name="line-76"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-77"></a>
-<a name="line-78"></a><a name="handling"></a><span class='hs-comment'>-- | A version of 'catching' with the arguments swapped around; useful in</span>
-<a name="line-79"></a><span class='hs-comment'>-- situations where the code for the handler is shorter.</span>
-<a name="line-80"></a><span class='hs-comment'>--</span>
-<a name="line-81"></a><span class='hs-comment'>-- @</span>
-<a name="line-82"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Prism'' e a     -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
-<a name="line-83"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Lens'' e a      -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
-<a name="line-84"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Traversal'' e a -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
-<a name="line-85"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Iso'' e a       -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
-<a name="line-86"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Fold' e a       -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
-<a name="line-87"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Getter' e a     -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
-<a name="line-88"></a><span class='hs-comment'>-- @</span>
-<a name="line-89"></a><span class='hs-definition'>handling</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
-<a name="line-90"></a><span class='hs-definition'>handling</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>flip</span> <span class='hs-layout'>(</span><span class='hs-varid'>catching</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
-<a name="line-91"></a><span class='hs-comment'>{-# INLINE handling #-}</span>
-<a name="line-92"></a>
-<a name="line-93"></a><a name="handling_"></a><span class='hs-comment'>-- | A version of 'catching_' with the arguments swapped around; useful in</span>
-<a name="line-94"></a><span class='hs-comment'>-- situations where the code for the handler is shorter.</span>
-<a name="line-95"></a><span class='hs-comment'>--</span>
-<a name="line-96"></a><span class='hs-comment'>-- @</span>
-<a name="line-97"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Prism'' e a     -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-98"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Lens'' e a      -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-99"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Traversal'' e a -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-100"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Iso'' e a       -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-101"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Getter' e a     -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-102"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Fold' e a       -&gt; m r -&gt; m r -&gt; m r</span>
-<a name="line-103"></a><span class='hs-comment'>-- @</span>
-<a name="line-104"></a><span class='hs-definition'>handling_</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
-<a name="line-105"></a><span class='hs-definition'>handling_</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>flip</span> <span class='hs-layout'>(</span><span class='hs-varid'>catching_</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
-<a name="line-106"></a><span class='hs-comment'>{-# INLINE handling_ #-}</span>
-<a name="line-107"></a>
-<a name="line-108"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-109"></a><span class='hs-comment'>-- Trying</span>
-<a name="line-110"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-111"></a>
-<a name="line-112"></a><a name="trying"></a><span class='hs-comment'>-- | 'trying' takes a 'Prism' (or any 'Getter') to select which exceptions are caught</span>
-<a name="line-113"></a><span class='hs-comment'>-- If the 'Exception' does not match the predicate, it is re-thrown.</span>
-<a name="line-114"></a><span class='hs-comment'>--</span>
-<a name="line-115"></a><span class='hs-comment'>-- @</span>
-<a name="line-116"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Prism'' e a     -&gt; m r -&gt; m ('Either' a r)</span>
-<a name="line-117"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Lens'' e a      -&gt; m r -&gt; m ('Either' a r)</span>
-<a name="line-118"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Traversal'' e a -&gt; m r -&gt; m ('Either' a r)</span>
-<a name="line-119"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Iso'' e a       -&gt; m r -&gt; m ('Either' a r)</span>
-<a name="line-120"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Getter' e a     -&gt; m r -&gt; m ('Either' a r)</span>
-<a name="line-121"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Fold' e a       -&gt; m r -&gt; m ('Either' a r)</span>
-<a name="line-122"></a><span class='hs-comment'>-- @</span>
-<a name="line-123"></a><span class='hs-definition'>trying</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>a</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
-<a name="line-124"></a><span class='hs-definition'>trying</span> <span class='hs-varid'>l</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>catching</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>liftM</span> <span class='hs-conid'>Right</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>return</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Left</span><span class='hs-layout'>)</span>
-<a name="line-125"></a>
-<a name="line-126"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-127"></a><span class='hs-comment'>-- Catches</span>
-<a name="line-128"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-129"></a>
-<a name="line-130"></a><a name="catches"></a><span class='hs-comment'>-- |</span>
-<a name="line-131"></a><span class='hs-comment'>-- This function exists to remedy a gap between the functionality of @Control.Exception@</span>
-<a name="line-132"></a><span class='hs-comment'>-- and @Control.Monad.Error@. @Control.Exception@ supplies 'Control.Exception.catches' and</span>
-<a name="line-133"></a><span class='hs-comment'>-- a notion of 'Control.Exception.Handler', which we duplicate here in a form suitable for</span>
-<a name="line-134"></a><span class='hs-comment'>-- working with any 'MonadError' instance.</span>
-<a name="line-135"></a><span class='hs-comment'>--</span>
-<a name="line-136"></a><span class='hs-comment'>-- Sometimes you want to catch two different sorts of error. You could</span>
-<a name="line-137"></a><span class='hs-comment'>-- do something like</span>
-<a name="line-138"></a><span class='hs-comment'>--</span>
-<a name="line-139"></a><span class='hs-comment'>-- @</span>
-<a name="line-140"></a><span class='hs-comment'>-- f = 'handling' _Foo handleFoo ('handling' _Bar handleBar expr)</span>
-<a name="line-141"></a><span class='hs-comment'>-- @</span>
-<a name="line-142"></a><span class='hs-comment'>--</span>
+<a name="line-38"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Prelude</span>
+<a name="line-39"></a>
+<a name="line-40"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-41"></a><span class='hs-comment'>-- Catching</span>
+<a name="line-42"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-43"></a>
+<a name="line-44"></a><a name="catching"></a><span class='hs-comment'>-- | Catch exceptions that match a given 'Prism' (or any 'Getter', really).</span>
+<a name="line-45"></a><span class='hs-comment'>--</span>
+<a name="line-46"></a><span class='hs-comment'>-- @</span>
+<a name="line-47"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Prism'' e a     -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
+<a name="line-48"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Lens'' e a      -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
+<a name="line-49"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Traversal'' e a -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
+<a name="line-50"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Iso'' e a       -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
+<a name="line-51"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Getter' e a     -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
+<a name="line-52"></a><span class='hs-comment'>-- 'catching' :: 'MonadError' e m =&gt; 'Fold' e a       -&gt; m r -&gt; (a -&gt; m r) -&gt; m r</span>
+<a name="line-53"></a><span class='hs-comment'>-- @</span>
+<a name="line-54"></a><span class='hs-definition'>catching</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>M</span><span class='hs-varop'>.</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
+<a name="line-55"></a><span class='hs-definition'>catching</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>catchJust</span> <span class='hs-layout'>(</span><span class='hs-varid'>preview</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
+<a name="line-56"></a><span class='hs-comment'>{-# INLINE catching #-}</span>
+<a name="line-57"></a>
+<a name="line-58"></a><a name="catching_"></a><span class='hs-comment'>-- | Catch exceptions that match a given 'Prism' (or any 'Getter'), discarding</span>
+<a name="line-59"></a><span class='hs-comment'>-- the information about the match. This is particuarly useful when you have</span>
+<a name="line-60"></a><span class='hs-comment'>-- a @'Prism'' e ()@ where the result of the 'Prism' or 'Fold' isn't</span>
+<a name="line-61"></a><span class='hs-comment'>-- particularly valuable, just the fact that it matches.</span>
+<a name="line-62"></a><span class='hs-comment'>--</span>
+<a name="line-63"></a><span class='hs-comment'>-- @</span>
+<a name="line-64"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Prism'' e a     -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-65"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Lens'' e a      -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-66"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Traversal'' e a -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-67"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Iso'' e a       -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-68"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Getter' e a     -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-69"></a><span class='hs-comment'>-- 'catching_' :: 'MonadError' e m =&gt; 'Fold' e a       -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-70"></a><span class='hs-comment'>-- @</span>
+<a name="line-71"></a><span class='hs-definition'>catching_</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>M</span><span class='hs-varop'>.</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
+<a name="line-72"></a><span class='hs-definition'>catching_</span> <span class='hs-varid'>l</span> <span class='hs-varid'>a</span> <span class='hs-varid'>b</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>catchJust</span> <span class='hs-layout'>(</span><span class='hs-varid'>preview</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span> <span class='hs-varid'>a</span> <span class='hs-layout'>(</span><span class='hs-varid'>const</span> <span class='hs-varid'>b</span><span class='hs-layout'>)</span>
+<a name="line-73"></a><span class='hs-comment'>{-# INLINE catching_ #-}</span>
+<a name="line-74"></a>
+<a name="line-75"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-76"></a><span class='hs-comment'>-- Handling</span>
+<a name="line-77"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-78"></a>
+<a name="line-79"></a><a name="handling"></a><span class='hs-comment'>-- | A version of 'catching' with the arguments swapped around; useful in</span>
+<a name="line-80"></a><span class='hs-comment'>-- situations where the code for the handler is shorter.</span>
+<a name="line-81"></a><span class='hs-comment'>--</span>
+<a name="line-82"></a><span class='hs-comment'>-- @</span>
+<a name="line-83"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Prism'' e a     -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
+<a name="line-84"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Lens'' e a      -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
+<a name="line-85"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Traversal'' e a -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
+<a name="line-86"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Iso'' e a       -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
+<a name="line-87"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Fold' e a       -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
+<a name="line-88"></a><span class='hs-comment'>-- 'handling' :: 'MonadError' e m =&gt; 'Getter' e a     -&gt; (a -&gt; m r) -&gt; m r -&gt; m r</span>
+<a name="line-89"></a><span class='hs-comment'>-- @</span>
+<a name="line-90"></a><span class='hs-definition'>handling</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>M</span><span class='hs-varop'>.</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
+<a name="line-91"></a><span class='hs-definition'>handling</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>flip</span> <span class='hs-layout'>(</span><span class='hs-varid'>catching</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
+<a name="line-92"></a><span class='hs-comment'>{-# INLINE handling #-}</span>
+<a name="line-93"></a>
+<a name="line-94"></a><a name="handling_"></a><span class='hs-comment'>-- | A version of 'catching_' with the arguments swapped around; useful in</span>
+<a name="line-95"></a><span class='hs-comment'>-- situations where the code for the handler is shorter.</span>
+<a name="line-96"></a><span class='hs-comment'>--</span>
+<a name="line-97"></a><span class='hs-comment'>-- @</span>
+<a name="line-98"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Prism'' e a     -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-99"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Lens'' e a      -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-100"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Traversal'' e a -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-101"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Iso'' e a       -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-102"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Getter' e a     -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-103"></a><span class='hs-comment'>-- 'handling_' :: 'MonadError' e m =&gt; 'Fold' e a       -&gt; m r -&gt; m r -&gt; m r</span>
+<a name="line-104"></a><span class='hs-comment'>-- @</span>
+<a name="line-105"></a><span class='hs-definition'>handling_</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>M</span><span class='hs-varop'>.</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span>
+<a name="line-106"></a><span class='hs-definition'>handling_</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>flip</span> <span class='hs-layout'>(</span><span class='hs-varid'>catching_</span> <span class='hs-varid'>l</span><span class='hs-layout'>)</span>
+<a name="line-107"></a><span class='hs-comment'>{-# INLINE handling_ #-}</span>
+<a name="line-108"></a>
+<a name="line-109"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-110"></a><span class='hs-comment'>-- Trying</span>
+<a name="line-111"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-112"></a>
+<a name="line-113"></a><a name="trying"></a><span class='hs-comment'>-- | 'trying' takes a 'Prism' (or any 'Getter') to select which exceptions are caught</span>
+<a name="line-114"></a><span class='hs-comment'>-- If the 'Exception' does not match the predicate, it is re-thrown.</span>
+<a name="line-115"></a><span class='hs-comment'>--</span>
+<a name="line-116"></a><span class='hs-comment'>-- @</span>
+<a name="line-117"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Prism'' e a     -&gt; m r -&gt; m ('Either' a r)</span>
+<a name="line-118"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Lens'' e a      -&gt; m r -&gt; m ('Either' a r)</span>
+<a name="line-119"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Traversal'' e a -&gt; m r -&gt; m ('Either' a r)</span>
+<a name="line-120"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Iso'' e a       -&gt; m r -&gt; m ('Either' a r)</span>
+<a name="line-121"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Getter' e a     -&gt; m r -&gt; m ('Either' a r)</span>
+<a name="line-122"></a><span class='hs-comment'>-- 'trying' :: 'MonadError' e m =&gt; 'Fold' e a       -&gt; m r -&gt; m ('Either' a r)</span>
+<a name="line-123"></a><span class='hs-comment'>-- @</span>
+<a name="line-124"></a><span class='hs-definition'>trying</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Getting</span> <span class='hs-layout'>(</span><span class='hs-conid'>M</span><span class='hs-varop'>.</span><span class='hs-conid'>First</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-varid'>e</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Either</span> <span class='hs-varid'>a</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
+<a name="line-125"></a><span class='hs-definition'>trying</span> <span class='hs-varid'>l</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>catching</span> <span class='hs-varid'>l</span> <span class='hs-layout'>(</span><span class='hs-varid'>liftM</span> <span class='hs-conid'>Right</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>return</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Left</span><span class='hs-layout'>)</span>
+<a name="line-126"></a>
+<a name="line-127"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-128"></a><span class='hs-comment'>-- Catches</span>
+<a name="line-129"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-130"></a>
+<a name="line-131"></a><a name="catches"></a><span class='hs-comment'>-- |</span>
+<a name="line-132"></a><span class='hs-comment'>-- This function exists to remedy a gap between the functionality of @Control.Exception@</span>
+<a name="line-133"></a><span class='hs-comment'>-- and @Control.Monad.Error@. @Control.Exception@ supplies 'Control.Exception.catches' and</span>
+<a name="line-134"></a><span class='hs-comment'>-- a notion of 'Control.Exception.Handler', which we duplicate here in a form suitable for</span>
+<a name="line-135"></a><span class='hs-comment'>-- working with any 'MonadError' instance.</span>
+<a name="line-136"></a><span class='hs-comment'>--</span>
+<a name="line-137"></a><span class='hs-comment'>-- Sometimes you want to catch two different sorts of error. You could</span>
+<a name="line-138"></a><span class='hs-comment'>-- do something like</span>
+<a name="line-139"></a><span class='hs-comment'>--</span>
+<a name="line-140"></a><span class='hs-comment'>-- @</span>
+<a name="line-141"></a><span class='hs-comment'>-- f = 'handling' _Foo handleFoo ('handling' _Bar handleBar expr)</span>
+<a name="line-142"></a><span class='hs-comment'>-- @</span>
 <a name="line-143"></a><span class='hs-comment'>--</span>
-<a name="line-144"></a><span class='hs-comment'>-- However, there are a couple of problems with this approach. The first is</span>
-<a name="line-145"></a><span class='hs-comment'>-- that having two exception handlers is inefficient. However, the more</span>
-<a name="line-146"></a><span class='hs-comment'>-- serious issue is that the second exception handler will catch exceptions</span>
-<a name="line-147"></a><span class='hs-comment'>-- in the first, e.g. in the example above, if @handleFoo@ uses 'throwError'</span>
-<a name="line-148"></a><span class='hs-comment'>-- then the second exception handler will catch it.</span>
-<a name="line-149"></a><span class='hs-comment'>--</span>
-<a name="line-150"></a><span class='hs-comment'>-- Instead, we provide a function 'catches', which would be used thus:</span>
-<a name="line-151"></a><span class='hs-comment'>--</span>
-<a name="line-152"></a><span class='hs-comment'>-- @</span>
-<a name="line-153"></a><span class='hs-comment'>-- f = 'catches' expr [ 'handler' _Foo handleFoo</span>
-<a name="line-154"></a><span class='hs-comment'>--                  , 'handler' _Bar handleBar</span>
-<a name="line-155"></a><span class='hs-comment'>--                  ]</span>
-<a name="line-156"></a><span class='hs-comment'>-- @</span>
-<a name="line-157"></a><span class='hs-definition'>catches</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
-<a name="line-158"></a><span class='hs-definition'>catches</span> <span class='hs-varid'>m</span> <span class='hs-varid'>hs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>catchError</span> <span class='hs-varid'>m</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
-<a name="line-159"></a>  <span class='hs-varid'>go</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldr</span> <span class='hs-varid'>tryHandler</span> <span class='hs-layout'>(</span><span class='hs-varid'>throwError</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-varid'>hs</span> <span class='hs-keyword'>where</span>
-<a name="line-160"></a>    <span class='hs-varid'>tryHandler</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>ema</span> <span class='hs-varid'>amr</span><span class='hs-layout'>)</span> <span class='hs-varid'>res</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>maybe</span> <span class='hs-varid'>res</span> <span class='hs-varid'>amr</span> <span class='hs-layout'>(</span><span class='hs-varid'>ema</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span>
-<a name="line-161"></a>
-<a name="line-162"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-163"></a><span class='hs-comment'>-- Handlers</span>
-<a name="line-164"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-165"></a>
-<a name="line-166"></a><a name="Handler"></a><span class='hs-comment'>-- | You need this when using 'catches'.</span>
-<a name="line-167"></a><a name="Handler"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>forall</span> <span class='hs-varid'>a</span><span class='hs-varop'>.</span> <span class='hs-conid'>Handler</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
-<a name="line-168"></a>
-<a name="line-169"></a><a name="instance%20Functor%20(Handler%20e%20m)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-170"></a>  <span class='hs-varid'>fmap</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>ema</span> <span class='hs-varid'>amr</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>ema</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>do</span>
-<a name="line-171"></a>     <span class='hs-varid'>r</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>amr</span> <span class='hs-varid'>a</span>
-<a name="line-172"></a>     <span class='hs-varid'>return</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
-<a name="line-173"></a>  <span class='hs-comment'>{-# INLINE fmap #-}</span>
-<a name="line-174"></a>
-<a name="line-175"></a><a name="instance%20Semigroup%20(Handler%20e%20m%20a)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Semigroup</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-176"></a>  <span class='hs-layout'>(</span><span class='hs-varop'>&lt;&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>mappend</span>
-<a name="line-177"></a>  <span class='hs-comment'>{-# INLINE (&lt;&gt;) #-}</span>
-<a name="line-178"></a>
-<a name="line-179"></a><a name="instance%20Alt%20(Handler%20e%20m)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Alt</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-180"></a>  <span class='hs-conid'>Handler</span> <span class='hs-varid'>ema</span> <span class='hs-varid'>amr</span> <span class='hs-varop'>&lt;!&gt;</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>emb</span> <span class='hs-varid'>bmr</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>emab</span> <span class='hs-varid'>abmr</span> <span class='hs-keyword'>where</span>
-<a name="line-181"></a>    <span class='hs-varid'>emab</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Left</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>ema</span> <span class='hs-varid'>e</span> <span class='hs-varop'>&lt;|&gt;</span> <span class='hs-conid'>Right</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>emb</span> <span class='hs-varid'>e</span>
-<a name="line-182"></a>    <span class='hs-varid'>abmr</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>either</span> <span class='hs-varid'>amr</span> <span class='hs-varid'>bmr</span>
-<a name="line-183"></a>  <span class='hs-comment'>{-# INLINE (&lt;!&gt;) #-}</span>
-<a name="line-184"></a>
-<a name="line-185"></a><a name="instance%20Plus%20(Handler%20e%20m)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Plus</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-186"></a>  <span class='hs-varid'>zero</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Handler</span> <span class='hs-layout'>(</span><span class='hs-varid'>const</span> <span class='hs-conid'>Nothing</span><span class='hs-layout'>)</span> <span class='hs-varid'>undefined</span>
-<a name="line-187"></a>  <span class='hs-comment'>{-# INLINE zero #-}</span>
-<a name="line-188"></a>
-<a name="line-189"></a><a name="instance%20Monoid%20(Handler%20e%20m%20a)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Monoid</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-190"></a>  <span class='hs-varid'>mempty</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>zero</span>
-<a name="line-191"></a>  <span class='hs-comment'>{-# INLINE mempty #-}</span>
-<a name="line-192"></a>  <span class='hs-varid'>mappend</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;!&gt;</span><span class='hs-layout'>)</span>
-<a name="line-193"></a>  <span class='hs-comment'>{-# INLINE mappend #-}</span>
-<a name="line-194"></a>
-<a name="line-195"></a><a name="instance%20Handleable%20e%20m%20(Handler%20e%20m)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Handleable</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-196"></a>  <span class='hs-varid'>handler</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Handler</span> <span class='hs-varop'>.</span> <span class='hs-varid'>preview</span>
-<a name="line-197"></a>  <span class='hs-comment'>{-# INLINE handler #-}</span>
-<a name="line-198"></a>
-<a name="line-199"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-200"></a><span class='hs-comment'>-- Throwing</span>
-<a name="line-201"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-202"></a>
-<a name="line-203"></a><a name="throwing"></a><span class='hs-comment'>-- | Throw an 'Exception' described by a 'Prism'.</span>
-<a name="line-204"></a><span class='hs-comment'>--</span>
-<a name="line-205"></a><span class='hs-comment'>-- @'throwing' l ≡ 'reviews' l 'throwError'@</span>
-<a name="line-206"></a><span class='hs-comment'>--</span>
-<a name="line-207"></a><span class='hs-comment'>-- @</span>
-<a name="line-208"></a><span class='hs-comment'>-- 'throwing' :: 'MonadError' e m =&gt; 'Prism'' e t -&gt; t -&gt; a</span>
-<a name="line-209"></a><span class='hs-comment'>-- 'throwing' :: 'MonadError' e m =&gt; 'Iso'' e t   -&gt; t -&gt; a</span>
-<a name="line-210"></a><span class='hs-comment'>-- @</span>
-<a name="line-211"></a><span class='hs-definition'>throwing</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>e</span> <span class='hs-varid'>e</span> <span class='hs-varid'>t</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>x</span>
-<a name="line-212"></a><span class='hs-definition'>throwing</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>reviews</span> <span class='hs-varid'>l</span> <span class='hs-varid'>throwError</span>
-<a name="line-213"></a><span class='hs-comment'>{-# INLINE throwing #-}</span>
-<a name="line-214"></a>
-<a name="line-215"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-216"></a><span class='hs-comment'>-- Misc.</span>
-<a name="line-217"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-218"></a>
-<a name="line-219"></a><a name="catchJust"></a><span class='hs-comment'>-- | Helper function to provide conditional catch behavior.</span>
-<a name="line-220"></a><span class='hs-definition'>catchJust</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
-<a name="line-221"></a><span class='hs-definition'>catchJust</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-varid'>k</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>catchError</span> <span class='hs-varid'>m</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span> <span class='hs-keyword'>of</span>
-<a name="line-222"></a>  <span class='hs-conid'>Nothing</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>throwError</span> <span class='hs-varid'>e</span>
-<a name="line-223"></a>  <span class='hs-conid'>Just</span> <span class='hs-varid'>x</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-varid'>x</span>
-<a name="line-224"></a><span class='hs-comment'>{-# INLINE catchJust #-}</span>
+<a name="line-144"></a><span class='hs-comment'>--</span>
+<a name="line-145"></a><span class='hs-comment'>-- However, there are a couple of problems with this approach. The first is</span>
+<a name="line-146"></a><span class='hs-comment'>-- that having two exception handlers is inefficient. However, the more</span>
+<a name="line-147"></a><span class='hs-comment'>-- serious issue is that the second exception handler will catch exceptions</span>
+<a name="line-148"></a><span class='hs-comment'>-- in the first, e.g. in the example above, if @handleFoo@ uses 'throwError'</span>
+<a name="line-149"></a><span class='hs-comment'>-- then the second exception handler will catch it.</span>
+<a name="line-150"></a><span class='hs-comment'>--</span>
+<a name="line-151"></a><span class='hs-comment'>-- Instead, we provide a function 'catches', which would be used thus:</span>
+<a name="line-152"></a><span class='hs-comment'>--</span>
+<a name="line-153"></a><span class='hs-comment'>-- @</span>
+<a name="line-154"></a><span class='hs-comment'>-- f = 'catches' expr [ 'handler' _Foo handleFoo</span>
+<a name="line-155"></a><span class='hs-comment'>--                  , 'handler' _Bar handleBar</span>
+<a name="line-156"></a><span class='hs-comment'>--                  ]</span>
+<a name="line-157"></a><span class='hs-comment'>-- @</span>
+<a name="line-158"></a><span class='hs-definition'>catches</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
+<a name="line-159"></a><span class='hs-definition'>catches</span> <span class='hs-varid'>m</span> <span class='hs-varid'>hs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>catchError</span> <span class='hs-varid'>m</span> <span class='hs-varid'>go</span> <span class='hs-keyword'>where</span>
+<a name="line-160"></a>  <span class='hs-varid'>go</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>foldr</span> <span class='hs-varid'>tryHandler</span> <span class='hs-layout'>(</span><span class='hs-varid'>throwError</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span> <span class='hs-varid'>hs</span> <span class='hs-keyword'>where</span>
+<a name="line-161"></a>    <span class='hs-varid'>tryHandler</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>ema</span> <span class='hs-varid'>amr</span><span class='hs-layout'>)</span> <span class='hs-varid'>res</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>maybe</span> <span class='hs-varid'>res</span> <span class='hs-varid'>amr</span> <span class='hs-layout'>(</span><span class='hs-varid'>ema</span> <span class='hs-varid'>e</span><span class='hs-layout'>)</span>
+<a name="line-162"></a>
+<a name="line-163"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-164"></a><span class='hs-comment'>-- Handlers</span>
+<a name="line-165"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-166"></a>
+<a name="line-167"></a><a name="Handler"></a><span class='hs-comment'>-- | You need this when using 'catches'.</span>
+<a name="line-168"></a><a name="Handler"></a><span class='hs-keyword'>data</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span> <span class='hs-keyglyph'>=</span> <span class='hs-keyword'>forall</span> <span class='hs-varid'>a</span><span class='hs-varop'>.</span> <span class='hs-conid'>Handler</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
+<a name="line-169"></a>
+<a name="line-170"></a><a name="instance%20Functor%20(Handler%20e%20m)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Functor</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-171"></a>  <span class='hs-varid'>fmap</span> <span class='hs-varid'>f</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>ema</span> <span class='hs-varid'>amr</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>ema</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span><span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>do</span>
+<a name="line-172"></a>     <span class='hs-varid'>r</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>amr</span> <span class='hs-varid'>a</span>
+<a name="line-173"></a>     <span class='hs-varid'>return</span> <span class='hs-layout'>(</span><span class='hs-varid'>f</span> <span class='hs-varid'>r</span><span class='hs-layout'>)</span>
+<a name="line-174"></a>  <span class='hs-comment'>{-# INLINE fmap #-}</span>
+<a name="line-175"></a>
+<a name="line-176"></a><a name="instance%20Semigroup%20(Handler%20e%20m%20a)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Semigroup</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-177"></a>  <span class='hs-layout'>(</span><span class='hs-varop'>&lt;&gt;</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>M</span><span class='hs-varop'>.</span><span class='hs-varid'>mappend</span>
+<a name="line-178"></a>  <span class='hs-comment'>{-# INLINE (&lt;&gt;) #-}</span>
+<a name="line-179"></a>
+<a name="line-180"></a><a name="instance%20Alt%20(Handler%20e%20m)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Alt</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-181"></a>  <span class='hs-conid'>Handler</span> <span class='hs-varid'>ema</span> <span class='hs-varid'>amr</span> <span class='hs-varop'>&lt;!&gt;</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>emb</span> <span class='hs-varid'>bmr</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Handler</span> <span class='hs-varid'>emab</span> <span class='hs-varid'>abmr</span> <span class='hs-keyword'>where</span>
+<a name="line-182"></a>    <span class='hs-varid'>emab</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Left</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>ema</span> <span class='hs-varid'>e</span> <span class='hs-varop'>&lt;|&gt;</span> <span class='hs-conid'>Right</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>emb</span> <span class='hs-varid'>e</span>
+<a name="line-183"></a>    <span class='hs-varid'>abmr</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>either</span> <span class='hs-varid'>amr</span> <span class='hs-varid'>bmr</span>
+<a name="line-184"></a>  <span class='hs-comment'>{-# INLINE (&lt;!&gt;) #-}</span>
+<a name="line-185"></a>
+<a name="line-186"></a><a name="instance%20Plus%20(Handler%20e%20m)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>Plus</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-187"></a>  <span class='hs-varid'>zero</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Handler</span> <span class='hs-layout'>(</span><span class='hs-varid'>const</span> <span class='hs-conid'>Nothing</span><span class='hs-layout'>)</span> <span class='hs-varid'>undefined</span>
+<a name="line-188"></a>  <span class='hs-comment'>{-# INLINE zero #-}</span>
+<a name="line-189"></a>
+<a name="line-190"></a><a name="instance%20M.Monoid%20(Handler%20e%20m%20a)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Monad</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>M</span><span class='hs-varop'>.</span><span class='hs-conid'>Monoid</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-191"></a>  <span class='hs-varid'>mempty</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>zero</span>
+<a name="line-192"></a>  <span class='hs-comment'>{-# INLINE mempty #-}</span>
+<a name="line-193"></a>  <span class='hs-varid'>mappend</span> <span class='hs-keyglyph'>=</span> <span class='hs-layout'>(</span><span class='hs-varop'>&lt;!&gt;</span><span class='hs-layout'>)</span>
+<a name="line-194"></a>  <span class='hs-comment'>{-# INLINE mappend #-}</span>
+<a name="line-195"></a>
+<a name="line-196"></a><a name="instance%20Handleable%20e%20m%20(Handler%20e%20m)"></a><span class='hs-keyword'>instance</span> <span class='hs-conid'>Handleable</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-layout'>(</span><span class='hs-conid'>Handler</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span><span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-197"></a>  <span class='hs-varid'>handler</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Handler</span> <span class='hs-varop'>.</span> <span class='hs-varid'>preview</span>
+<a name="line-198"></a>  <span class='hs-comment'>{-# INLINE handler #-}</span>
+<a name="line-199"></a>
+<a name="line-200"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-201"></a><span class='hs-comment'>-- Throwing</span>
+<a name="line-202"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-203"></a>
+<a name="line-204"></a><a name="throwing"></a><span class='hs-comment'>-- | Throw an 'Exception' described by a 'Prism'.</span>
+<a name="line-205"></a><span class='hs-comment'>--</span>
+<a name="line-206"></a><span class='hs-comment'>-- @'throwing' l ≡ 'reviews' l 'throwError'@</span>
+<a name="line-207"></a><span class='hs-comment'>--</span>
+<a name="line-208"></a><span class='hs-comment'>-- @</span>
+<a name="line-209"></a><span class='hs-comment'>-- 'throwing' :: 'MonadError' e m =&gt; 'Prism'' e t -&gt; t -&gt; a</span>
+<a name="line-210"></a><span class='hs-comment'>-- 'throwing' :: 'MonadError' e m =&gt; 'Iso'' e t   -&gt; t -&gt; a</span>
+<a name="line-211"></a><span class='hs-comment'>-- @</span>
+<a name="line-212"></a><span class='hs-definition'>throwing</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-conid'>AReview</span> <span class='hs-varid'>e</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>x</span>
+<a name="line-213"></a><span class='hs-definition'>throwing</span> <span class='hs-varid'>l</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>reviews</span> <span class='hs-varid'>l</span> <span class='hs-varid'>throwError</span>
+<a name="line-214"></a><span class='hs-comment'>{-# INLINE throwing #-}</span>
+<a name="line-215"></a>
+<a name="line-216"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-217"></a><span class='hs-comment'>-- Misc.</span>
+<a name="line-218"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-219"></a>
+<a name="line-220"></a><a name="catchJust"></a><span class='hs-comment'>-- | Helper function to provide conditional catch behavior.</span>
+<a name="line-221"></a><span class='hs-definition'>catchJust</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>MonadError</span> <span class='hs-varid'>e</span> <span class='hs-varid'>m</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-varid'>t</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-layout'>(</span><span class='hs-varid'>t</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>m</span> <span class='hs-varid'>a</span>
+<a name="line-222"></a><span class='hs-definition'>catchJust</span> <span class='hs-varid'>f</span> <span class='hs-varid'>m</span> <span class='hs-varid'>k</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>catchError</span> <span class='hs-varid'>m</span> <span class='hs-varop'>$</span> <span class='hs-keyglyph'>\</span> <span class='hs-varid'>e</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyword'>case</span> <span class='hs-varid'>f</span> <span class='hs-varid'>e</span> <span class='hs-keyword'>of</span>
+<a name="line-223"></a>  <span class='hs-conid'>Nothing</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>throwError</span> <span class='hs-varid'>e</span>
+<a name="line-224"></a>  <span class='hs-conid'>Just</span> <span class='hs-varid'>x</span>  <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>k</span> <span class='hs-varid'>x</span>
+<a name="line-225"></a><span class='hs-comment'>{-# INLINE catchJust #-}</span>
 </pre></body>
 </html>
