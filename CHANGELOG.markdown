@@ -5,14 +5,15 @@
 * Added `Cons` and `Snoc` instances for `NonEmpty`
 * Removed `Data.List.Split.Lens` module
 * Reimplemented bytestring traversals to avoid internal modules
-* Added `fusingLens` and `fusingTraversal`
+* Added `fusingLens` and `fusingTraversal`. These can be used to optimize long `Lens` and `Traversal` chains by enfocing a form of lens fusion. They are especially useful when the lens or traversal definition is recursive and cannot be inlined.
 * Added `genericPlate`, an implementation of `plate` for any type implementing `Generic`
 * Strictness revisited
   * Add `generateLazyPatterns` configuration flag to `makeLenses` rules.
   * Make the default `makeLenses` behavior to generate STRICT optics
   * Add strict variants of `_1` .. `_9` named `_1'` .. `_9'`
 * Generalized some combinators in `Data.Vector.Generic.Lens` and added `converted`
-* When built with `profunctors 4.4 we no longer need to use `unsafeCoerce` all over the place.
+* When built with `profunctors` 4.4 on GHC 7.8+ we no longer need to use `unsafeCoerce` at all!
+  This drastically reduces the level of trust involved in the way we have optimized `lens`.
 
 4.7
 ---
