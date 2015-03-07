@@ -264,7 +264,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
 
   -- | The 'IndexedFold' of a 'FoldableWithIndex' container.
   --
-  -- 'ifolded'.'asIndex' is a fold over the keys of a 'FoldableWithIndex'.
+  -- @'ifolded' '.' 'asIndex'@ is a fold over the keys of a 'FoldableWithIndex'.
   --
   -- >>> Data.Map.fromList [(2, "hello"), (1, "world")]^..ifolded.asIndex
   -- [1,2]

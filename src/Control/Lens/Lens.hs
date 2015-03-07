@@ -1206,7 +1206,9 @@ overA l p = arr (\s -> let (Context f a) = l sell s in (f, a))
 -- adjust all of the targets of an 'Control.Lens.Traversal.IndexedTraversal' and return a monoidal summary
 -- along with the answer.
 --
--- @l '<%~' f ≡ l '<%@~' 'const' f@
+-- @
+-- l '<%~' f ≡ l '<%@~' 'const' f
+-- @
 --
 -- When you do not need access to the index then ('<%~') is more liberal in what it can accept.
 --
@@ -1237,7 +1239,9 @@ l <<%@~ f = l $ Indexed $ \i a -> second' (f i) (a,a)
 -- adjust all of the targets of an 'Control.Lens.Traversal.IndexedTraversal' and return a monoidal summary
 -- of the supplementary results and the answer.
 --
--- @('%%@~') ≡ 'Control.Lens.Indexed.withIndex'@
+-- @
+-- ('%%@~') ≡ 'Control.Lens.Indexed.withIndex'
+-- @
 --
 -- @
 -- ('%%@~') :: 'Functor' f => 'IndexedLens' i s t a b      -> (i -> a -> f b) -> s -> f t
@@ -1259,7 +1263,9 @@ l <<%@~ f = l $ Indexed $ \i a -> second' (f i) (a,a)
 -- adjust all of the targets of an 'Control.Lens.Traversal.IndexedTraversal' within the current state, and
 -- return a monoidal summary of the supplementary results.
 --
--- @l '%%@=' f ≡ 'state' (l '%%@~' f)@
+-- @
+-- l '%%@=' f ≡ 'state' (l '%%@~' f)
+-- @
 --
 -- @
 -- ('%%@=') :: 'MonadState' s m                 => 'IndexedLens' i s s a b      -> (i -> a -> (r, b)) -> s -> m r
