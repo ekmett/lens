@@ -1428,7 +1428,21 @@ united :: Lens' a ()
 united f v = f () <&> \ () -> v
 {-# INLINE united #-}
 
--- | Fuse a composition of lenses using Yoneda to provide 'fmap' fusion.
+-- | Fuse a composition of lenses using 'Yoneda' to provide 'fmap' fusion.
+--
+-- In general, given a pair of lenses 'foo' and 'bar'
+--
+-- @
+-- fusing (foo.bar) = foo.bar
+-- @
+--
+-- however, @foo@ and @bar@ are either going to 'fmap' internally or they are trivial.
+--
+-- 'fusing' exploits the 'Yoneda' lemma to merge these separate uses into a single 'fmap'.
+--
+-- This is particularly effective when the choice of functor 'f' is unknown at compile
+-- time or when the 'Lens' @foo.bar@ in the above description is recursive or complex
+-- enough to prevent inlining.
 fusing :: Functor f => LensLike (Yoneda f) s t a b -> LensLike f s t a b
 fusing t = \f -> lowerYoneda . t (liftYoneda . f)
 {-# INLINE fusing #-}
