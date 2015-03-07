@@ -20,7 +20,7 @@ module Control.Lens.Internal.Prism
 import Data.Profunctor
 #ifndef SAFE
 import Data.Profunctor.Unsafe
-import Unsafe.Coerce
+import Control.Lens.Internal.Coerce
 #endif
 
 ------------------------------------------------------------------------------
@@ -47,9 +47,9 @@ instance Profunctor (Market a b) where
   {-# INLINE rmap #-}
 
 #ifndef SAFE
-  ( #. ) _ = unsafeCoerce
+  ( #. ) _ = coerce'
   {-# INLINE ( #. ) #-}
-  ( .# ) p _ = unsafeCoerce p
+  ( .# ) p _ = coerce p
   {-# INLINE ( .# ) #-}
 #endif
 
