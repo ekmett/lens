@@ -1,4 +1,12 @@
--- | One of most commonly-asked questions about this package is whether
+-----------------------------------------------------------------------------
+-- |
+-- Copyright   :  (C) 2014-2015 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- One of most commonly-asked questions about this package is whether
 -- it provides lenses for working with 'Data.Map.Map'. It does, but their uses
 -- are perhaps obscured by their genericity. This module exists to provide
 -- documentation for them.
@@ -50,6 +58,8 @@
 --
 -- >>> preview traverseMax $ Map.fromList [(5, "Saturn"), (6, "Uranus")]
 -- Just "Uranus"
+--
+-----------------------------------------------------------------------------
 module Data.Map.Lens () where
 -- $setup
 -- >>> import Control.Lens

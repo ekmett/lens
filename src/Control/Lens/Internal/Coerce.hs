@@ -12,8 +12,17 @@
 #else
 {-# LANGUAGE Unsafe #-}
 #endif
-
--- | This module provides a shim around 'coerce' that defaults to 'unsafeCoerce' on GHC < 7.8
+-----------------------------------------------------------------------------
+-- |
+-- Copyright   :  (C) 2015 Edward Kmett and Eric Mertens
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- This module provides a shim around 'coerce' that defaults to 'unsafeCoerce'
+-- on GHC < 7.8
+-----------------------------------------------------------------------------
 module Control.Lens.Internal.Coerce
   ( coerce
   , coerce'
