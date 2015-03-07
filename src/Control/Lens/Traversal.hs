@@ -1225,6 +1225,28 @@ deepOf r l pafb = go
 -- | "Fuse" a 'Traversal' by reassociating all of the '<*>' operations to the
 -- left and fusing all of the 'fmap' calls into one. This is particularly
 -- useful when constructing a 'Traversal' using operations from GHC.Generics.
+--
+-- Given a pair of 'Traversal's 'foo' and 'bar',
+--
+-- @
+-- 'confusing' (foo.bar) = foo.bar
+-- @
+--
+-- However, @foo@ and @bar@ are each going to use the 'Applicative' they are given.
+--
+-- 'confusing' exploits the 'Yoneda' lemma to merge their separate uses of 'fmap' into a single 'fmap'.
+-- and it further exploits an interesting property of the right Kan lift (or 'Rift') to left associate
+-- all of the uses of '(<*>)' to make it possible to fuse together more fmaps.
+--
+-- This is particularly effective when the choice of functor 'f' is unknown at compile
+-- time or when the 'Traversal' @foo.bar@ in the above description is recursive or complex
+-- enough to prevent inlining.
+--
+-- 'Control.Lens.Lens.fusing' is a version of this combinator suitable for fusing lenses.
+--
+-- @
+-- 'confusing' :: Traversal s t a b -> Traversal s t a b
+-- @
 confusing :: Applicative f => LensLike (Rift (Yoneda f) (Yoneda f)) s t a b -> LensLike f s t a b
 confusing t = \f -> lowerYoneda . lowerRift . t (liftRiftYoneda . f)
   where
