@@ -123,7 +123,7 @@ module Control.Lens.Traversal
   , iloci
 
   -- * Fusion
-  , fusingTraversal
+  , confusing
   ) where
 
 import Control.Applicative as Applicative
@@ -1225,8 +1225,8 @@ deepOf r l pafb = go
 -- | "Fuse" a 'Traversal' by reassociating all of the '<*>' operations to the
 -- left and fusing all of the 'fmap' calls into one. This is particularly
 -- useful when constructing a 'Traversal' using operations from GHC.Generics.
-fusingTraversal :: Applicative f => LensLike (Rift (Yoneda f) (Yoneda f)) s t a b -> LensLike f s t a b
-fusingTraversal t = \f -> lowerYoneda . lowerRift . t (liftRiftYoneda . f)
+confusing :: Applicative f => LensLike (Rift (Yoneda f) (Yoneda f)) s t a b -> LensLike f s t a b
+confusing t = \f -> lowerYoneda . lowerRift . t (liftRiftYoneda . f)
   where
   liftRiftYoneda :: Applicative f => f a -> Rift (Yoneda f) (Yoneda f) a
   liftRiftYoneda fa = Rift (`yap` fa)
@@ -1236,4 +1236,4 @@ fusingTraversal t = \f -> lowerYoneda . lowerRift . t (liftRiftYoneda . f)
   yap (Yoneda k) fa = Yoneda (\ab_r -> k (ab_r .) <*> fa)
   {-# INLINE yap #-}
 
-{-# INLINE fusingTraversal #-}
+{-# INLINE confusing #-}

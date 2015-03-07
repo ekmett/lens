@@ -5,7 +5,8 @@
 * Added `Cons` and `Snoc` instances for `NonEmpty`
 * Removed `Data.List.Split.Lens` module
 * Reimplemented bytestring traversals to avoid internal modules
-* Added `fusingLens` and `fusingTraversal`. These can be used to optimize long `Lens` and `Traversal` chains by enfocing a form of lens fusion. They are especially useful when the lens or traversal definition is recursive and cannot be inlined.
+* Added `fusing` and `confusing`.
+  These can be used to optimize long `Lens` and `Traversal` chains respectively by enfocing a form of lens fusion. They are especially useful when the `Lens` or `Traversal` definition is recursive and cannot be inlined.
 * Added `gplate`, an implementation of `plate` for any type implementing `Generic`
 * Strictness revisited
   * Add `generateLazyPatterns` configuration flag to `makeLenses` rules.

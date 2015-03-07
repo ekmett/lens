@@ -122,7 +122,7 @@ module Control.Lens.Lens
   , locus
 
   -- * Lens fusion
-  , fusingLens
+  , fusing
   ) where
 
 import Control.Applicative
@@ -1429,6 +1429,6 @@ united f v = f () <&> \ () -> v
 {-# INLINE united #-}
 
 -- | Fuse a composition of lenses using Yoneda to provide 'fmap' fusion.
-fusingLens :: Functor f => LensLike (Yoneda f) s t a b -> LensLike f s t a b
-fusingLens t = \f -> lowerYoneda . t (liftYoneda . f)
-{-# INLINE fusingLens #-}
+fusing :: Functor f => LensLike (Yoneda f) s t a b -> LensLike f s t a b
+fusing t = \f -> lowerYoneda . t (liftYoneda . f)
+{-# INLINE fusing #-}
