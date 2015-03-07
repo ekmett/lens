@@ -1,20 +1,20 @@
 4.8
 ---
+* When built with `profunctors` 4.4 on GHC 7.8+ we no longer need to use `unsafeCoerce` at all!
+  This drastically reduces the level of trust involved in the way we have optimized `lens`.
+* Added `fusing`. This optimizes long `Lens` chains, by enfocing a form of `fmap` fusion based on the Yoneda lemma. This is particularly effective at making faster lenses the definition is recursive or complex enough that it cannot be inlined.
+* Added `confusing`. This optimizes long `Traversal` chains. As with `fusing` it is best used when the definition for the `Traversal` chain in question is recursive or complex enough that it cannot be inlined, but the implementation is much more confusing.
 * Remove deprecated stuff: `Control.Lens.Loupe`, `headOf`, `makeFieldsWith`,
   `strippingPrefix`, `strippingSuffix`
 * Added `Cons` and `Snoc` instances for `NonEmpty`
 * Removed `Data.List.Split.Lens` module
-* Reimplemented bytestring traversals to avoid internal modules
-* Added `fusing` and `confusing`.
-  These can be used to optimize long `Lens` and `Traversal` chains respectively by enfocing a form of lens fusion. They are especially useful when the `Lens` or `Traversal` definition is recursive and cannot be inlined.
+* Reimplemented `bytestring` traversals to avoid internal modules
 * Added `gplate`, an implementation of `plate` for any type implementing `Generic`
 * Strictness revisited
   * Add `generateLazyPatterns` configuration flag to `makeLenses` rules.
   * Make the default `makeLenses` behavior to generate STRICT optics
   * Add strict variants of `_1` .. `_9` named `_1'` .. `_9'`
 * Generalized some combinators in `Data.Vector.Generic.Lens` and added `converted`
-* When built with `profunctors` 4.4 on GHC 7.8+ we no longer need to use `unsafeCoerce` at all!
-  This drastically reduces the level of trust involved in the way we have optimized `lens`.
 
 4.7
 ---
