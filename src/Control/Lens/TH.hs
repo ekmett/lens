@@ -10,7 +10,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.TH
--- Copyright   :  (C) 2012-14 Edward Kmett, Michael Sloan
+-- Copyright   :  (C) 2012-15 Edward Kmett, 2012-13 Michael Sloan
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental

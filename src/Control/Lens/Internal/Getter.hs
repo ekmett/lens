@@ -5,7 +5,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Getter
--- Copyright   :  (C) 2012-2014 Edward Kmett
+-- Copyright   :  (C) 2012-2015 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional

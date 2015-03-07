@@ -6,7 +6,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.PrismTH
--- Copyright   :  (C) 2014 Edward Kmett, (C) 2014 Eric Mertens
+-- Copyright   :  (C) 2014-2015 Edward Kmett and Eric Mertens
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental
