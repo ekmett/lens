@@ -1,6 +1,6 @@
 name:          lens-properties
 category:      Data, Lenses
-version:       4.7
+version:       4.8
 license:       BSD3
 cabal-version: >= 1.8
 author:        Edward Kmett and Oliver Charles
@@ -8,7 +8,7 @@ maintainer:    Edward Kmett <ekmett@gmail.com>
 stability:     provisional
 homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
-copyright:     Copyright (C) 2012-2014 Edward A. Kmett, Copyright (C) 2014 Oliver Charles
+copyright:     Copyright (C) 2012-2015 Edward A. Kmett, Copyright (C) 2014 Oliver Charles
 synopsis:      QuickCheck properties for lens
 build-type:    Simple
 
