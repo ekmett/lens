@@ -90,7 +90,7 @@ module Control.Lens.Plated
   , parts
 
   -- * Generics
-  , genericPlate
+  , gplate
   , GPlated
   )
   where
@@ -687,44 +687,43 @@ parts :: Plated a => Lens' a [a]
 parts = partsOf plate
 {-# INLINE parts #-}
 
-
 -------------------------------------------------------------------------------
 -- Generics
 -------------------------------------------------------------------------------
 
 -- | Implement 'plate' operation for a type using its 'Generic' instance.
-genericPlate :: (Generic a, GPlated a (Rep a)) => Traversal' a a
-genericPlate f x = GHC.Generics.to <$> gplate f (GHC.Generics.from x)
-{-# INLINE genericPlate #-}
+gplate :: (Generic a, GPlated a (Rep a)) => Traversal' a a
+gplate f x = GHC.Generics.to <$> gplate' f (GHC.Generics.from x)
+{-# INLINE gplate #-}
 
 class GPlated a g where
-  gplate :: Traversal' (g p) a
+  gplate' :: Traversal' (g p) a
 
 instance GPlated a f => GPlated a (M1 i c f) where
-  gplate f (M1 x) = M1 <$> gplate f x
-  {-# INLINE gplate #-}
+  gplate' f (M1 x) = M1 <$> gplate' f x
+  {-# INLINE gplate' #-}
 
 instance (GPlated a f, GPlated a g) => GPlated a (f :+: g) where
-  gplate f (L1 x) = L1 <$> gplate f x
-  gplate f (R1 x) = R1 <$> gplate f x
-  {-# INLINE gplate #-}
+  gplate' f (L1 x) = L1 <$> gplate' f x
+  gplate' f (R1 x) = R1 <$> gplate' f x
+  {-# INLINE gplate' #-}
 
 instance (GPlated a f, GPlated a g) => GPlated a (f :*: g) where
-  gplate f (x :*: y) = (:*:) <$> gplate f x <*> gplate f y
-  {-# INLINE gplate #-}
+  gplate' f (x :*: y) = (:*:) <$> gplate' f x <*> gplate' f y
+  {-# INLINE gplate' #-}
 
 instance OVERLAPPING_PRAGMA GPlated a (K1 i a) where
-  gplate f (K1 x) = K1 <$> f x
-  {-# INLINE gplate #-}
+  gplate' f (K1 x) = K1 <$> f x
+  {-# INLINE gplate' #-}
 
 instance GPlated a (K1 i b) where
-  gplate _ = pure
-  {-# INLINE gplate #-}
+  gplate' _ = pure
+  {-# INLINE gplate' #-}
 
 instance GPlated a U1 where
-  gplate _ = pure
-  {-# INLINE gplate #-}
+  gplate' _ = pure
+  {-# INLINE gplate' #-}
 
 instance GPlated a V1 where
-  gplate _ v = v `seq` error "GPlated/V1"
-  {-# INLINE gplate #-}
+  gplate' _ v = v `seq` error "GPlated/V1"
+  {-# INLINE gplate' #-}

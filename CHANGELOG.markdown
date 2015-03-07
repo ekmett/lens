@@ -6,7 +6,7 @@
 * Removed `Data.List.Split.Lens` module
 * Reimplemented bytestring traversals to avoid internal modules
 * Added `fusingLens` and `fusingTraversal`. These can be used to optimize long `Lens` and `Traversal` chains by enfocing a form of lens fusion. They are especially useful when the lens or traversal definition is recursive and cannot be inlined.
-* Added `genericPlate`, an implementation of `plate` for any type implementing `Generic`
+* Added `gplate`, an implementation of `plate` for any type implementing `Generic`
 * Strictness revisited
   * Add `generateLazyPatterns` configuration flag to `makeLenses` rules.
   * Make the default `makeLenses` behavior to generate STRICT optics
