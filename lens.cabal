@@ -1,6 +1,6 @@
 name:          lens
 category:      Data, Lenses, Generics
-version:       4.8
+version:       4.8.0.1
 license:       BSD3
 cabal-version: >= 1.8
 license-file:  LICENSE
@@ -189,7 +189,7 @@ library
     contravariant             >= 0.3      && < 2,
     containers                >= 0.4.0    && < 0.6,
     distributive              >= 0.3      && < 1,
-    filepath                  >= 1.2.0.0  && < 1.4,
+    filepath                  >= 1.2.0.0  && < 1.5,
     free                      >= 4        && < 5,
     ghc-prim,
     hashable                  >= 1.1.2.3  && < 1.3,
