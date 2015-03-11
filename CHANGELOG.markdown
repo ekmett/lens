@@ -1,3 +1,7 @@
+4.8.0.1
+-------
+* `filepath` 1.4 support
+
 4.8
 ---
 * When built with `profunctors` 4.4 on GHC 7.8+ we no longer need to use `unsafeCoerce` at all!
