@@ -1222,7 +1222,7 @@ deepOf r l pafb = go
           xs -> unsafeOuts b <$> traverse (corep pafb) xs
           where b = l sell s
 
--- | "Fuse" a 'Traversal' by reassociating all of the '<*>' operations to the
+-- | "Fuse" a 'Traversal' by reassociating all of the '\<*\>' operations to the
 -- left and fusing all of the 'fmap' calls into one. This is particularly
 -- useful when constructing a 'Traversal' using operations from GHC.Generics.
 --
