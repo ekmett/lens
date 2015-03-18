@@ -194,7 +194,7 @@ infixl 8 ^.., ^?, ^?!, ^@.., ^@?, ^@?!
 --
 -- >>> [1,2,3,4]^..folding tail
 -- [2,3,4]
-folding :: (Foldable f, Contravariant g, Applicative g) => (s -> f a) -> LensLike g s t a b
+folding :: Foldable f => (s -> f a) -> Fold s a
 folding sfa agb = coerce . traverse_ agb . sfa
 {-# INLINE folding #-}
 
