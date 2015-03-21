@@ -51,10 +51,23 @@ script:
   - $CABAL test --show-details=always
   - scripts/stats
 
+  # tests that a source-distribution can be generated
+  - cabal sdist
+
+  # check that the generated source-distribution can be built & installed
+  - export SRC_TGZ=$(cabal info . | awk '{print $2 ".tar.gz";exit}') ;
+    cd dist/;
+    if [ -f "$SRC_TGZ" ]; then
+       cabal install --force-reinstalls "$SRC_TGZ";
+    else
+       echo "expected '$SRC_TGZ' not found";
+       exit 1;
+    fi
+
 notifications:
   irc:
     channels:
       - "irc.freenode.org#haskell-lens"
     skip_join: true
     template:
-      - "\x0313lens\x03/\x0306%{branch}\x03 \x0314%{commit}\x03 %{build_url} %{message}"
+      - "\x0313lens\x0f/\x0306%{branch}\x0f \x0314%{commit}\x0f %{message} \x0302\x1f%{build_url}\x0f"
