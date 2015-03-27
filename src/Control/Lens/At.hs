@@ -40,7 +40,6 @@ module Control.Lens.At
   , Contains(..)
   ) where
 
-import Control.Applicative
 import Control.Lens.Each
 import Control.Lens.Traversal
 import Control.Lens.Lens
@@ -68,6 +67,10 @@ import Data.Vector.Primitive as Prim
 import Data.Vector.Storable as Storable
 import Data.Vector.Unboxed as Unboxed
 import Data.Word
+
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative
+#endif
 
 type family Index (s :: *) :: *
 type instance Index (e -> a) = e

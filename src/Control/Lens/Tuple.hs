@@ -12,6 +12,10 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Tuple
@@ -38,13 +42,16 @@ module Control.Lens.Tuple
   , _1', _2', _3', _4', _5', _6', _7', _8', _9'
   ) where
 
-import Control.Applicative
 import Control.Lens.Lens
 import Data.Functor.Identity
 import Data.Functor.Product
 import Data.Profunctor (dimap)
 import Data.Proxy (Proxy (Proxy))
 import GHC.Generics (Generic (..), (:*:) (..), K1 (..), M1 (..), U1 (..))
+
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

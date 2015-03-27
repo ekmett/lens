@@ -1,5 +1,11 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE FlexibleContexts #-}
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.List.Lens
@@ -20,8 +26,11 @@ module Data.List.Lens
 
 import Control.Monad (guard)
 import Control.Lens
-import Data.Functor
 import Data.List
+
+#if !MIN_VERSION_base(4,8,0)
+import Data.Functor
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

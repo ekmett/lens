@@ -1,3 +1,9 @@
+{-# LANGUAGE CPP #-}
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  System.FilePath.Lens
@@ -17,7 +23,9 @@ module System.FilePath.Lens
   , basename, directory, extension, filename
   ) where
 
+#if !MIN_VERSION_base(4,8,0)
 import Control.Applicative ((<$>))
+#endif
 
 import Control.Monad.State as State
 import System.FilePath

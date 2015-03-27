@@ -1,5 +1,11 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  System.Exit.Lens
@@ -17,11 +23,14 @@ module System.Exit.Lens
   , _ExitSuccess
   ) where
 
-import Control.Applicative
 import Control.Exception
 import Control.Exception.Lens
 import Control.Lens
 import System.Exit
+
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative
+#endif
 
 -- | Exit codes that a program can return with:
 class AsExitCode p f t where

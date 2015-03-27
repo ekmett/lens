@@ -10,6 +10,10 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Each
@@ -26,7 +30,6 @@ module Control.Lens.Each
     Each(..)
   ) where
 
-import Control.Applicative
 import Control.Lens.Iso
 import Control.Lens.Traversal
 import Data.Array.Unboxed as Unboxed
@@ -51,6 +54,10 @@ import Data.Vector.Storable (Storable)
 import qualified Data.Vector.Unboxed as Unboxed
 import Data.Vector.Unboxed (Unbox)
 import Data.Word
+
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

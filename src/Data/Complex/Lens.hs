@@ -1,5 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Complex.Lens
@@ -21,9 +26,12 @@ module Data.Complex.Lens
   , _conjugate
   ) where
 
-import Control.Applicative
 import Control.Lens
 import Data.Complex
+
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative
+#endif
 
 -- $setup
 -- >>> import Debug.SimpleReflect

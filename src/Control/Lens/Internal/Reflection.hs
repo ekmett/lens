@@ -10,6 +10,11 @@
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-float-in #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 ----------------------------------------------------------------------------
 -- |
 -- Module     : Control.Lens.Internal.Reflection
@@ -57,12 +62,15 @@ module Control.Lens.Internal.Reflection
 import Foreign.Ptr
 import Foreign.StablePtr
 import System.IO.Unsafe
-import Control.Applicative
 import Data.Proxy
 import Data.Bits
 import Data.Word
 import Data.Typeable
 import Data.Reflection
+
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative
+#endif
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Avoid lambda" #-}
