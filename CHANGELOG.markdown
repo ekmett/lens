@@ -1,6 +1,8 @@
 4.8.0.1
 -------
 * `filepath` 1.4 support
+* `primitive` 0.6 support
+* Add missing `_WithIndex` instances from `keys` package
 
 4.8
 ---
