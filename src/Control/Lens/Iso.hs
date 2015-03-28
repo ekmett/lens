@@ -2,9 +2,6 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-}
-#endif
 
 #ifndef MIN_VERSION_bytestring
 #define MIN_VERSION_bytestring(x,y,z) 1

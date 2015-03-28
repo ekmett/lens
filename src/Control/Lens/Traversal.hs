@@ -7,10 +7,6 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-}
-#endif
-
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
