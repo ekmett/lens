@@ -1,3 +1,7 @@
+4.7.0.1 [maintenance release]
+---
+* `primitive` 0.6 support
+
 4.7
 ---
 * Migrated `Control.Lens.Action` to `lens-action`.
