@@ -1,7 +1,8 @@
-4.8.0.1
+4.9
 -------
 * `filepath` 1.4 support
-* `primitive` 0.6 support
+* `primitive` 0.6 support. Adds new `PrimBase` constraint to
+  `Control.Monad.Primitive.Lens.prim`
 * Add missing `_WithIndex` instances from `keys` package
 
 4.8
