@@ -29,7 +29,7 @@ import GHC.Prim (State#)
 {-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-}
 
 #if MIN_VERSION_primitive(0,6,0)
-prim :: (PrimMonad m, PrimBase m) => Iso' (m a) (State# (PrimState m) -> (# State# (PrimState m), a #))
+prim :: PrimBase m => Iso' (m a) (State# (PrimState m) -> (# State# (PrimState m), a #))
 #else
 prim :: PrimMonad m => Iso' (m a) (State# (PrimState m) -> (# State# (PrimState m), a #))
 #endif
