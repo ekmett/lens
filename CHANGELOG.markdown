@@ -36,7 +36,7 @@
 
 4.6.0.1 [maintenance release]
 -------
-* Compatibility with `base` 4.8
+* Compatibility with `base` 4.8 [Edit: this turned out to not work for the final release of GHC 7.10]
 
 4.6
 ---
