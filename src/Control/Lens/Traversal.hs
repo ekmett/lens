@@ -7,10 +7,6 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-}
-#endif
-
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
@@ -630,6 +626,9 @@ holesOf l s = unTagged
 -- >>> [1..10] ^. singular (ix 7)
 -- 8
 --
+-- >>> [] & singular traverse .~ 0
+-- []
+--
 -- @
 -- 'singular' :: 'Traversal' s t a a          -> 'Lens' s t a a
 -- 'singular' :: 'Fold' s a                   -> 'Getter' s a
@@ -653,6 +652,9 @@ singular l = conjoined
 --
 -- The resulting 'Lens' or 'Getter' will be partial if the 'Traversal' targets nothing
 -- or more than one element.
+--
+-- >>> [] & unsafeSingular traverse .~ 0
+-- *** Exception: unsafeSingular: empty traversal
 --
 -- @
 -- 'unsafeSingular' :: 'Traversal' s t a b          -> 'Lens' s t a b

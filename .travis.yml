@@ -3,7 +3,8 @@ language: haskell
 env:
   - GHCVER=7.4.2
   - GHCVER=7.6.3
-  - GHCVER=7.8.3
+  - GHCVER=7.8.4
+  - GHCVER=7.10.1
   - GHCVER=head
   # - >
   #   GHCVER=7.4.2
@@ -37,8 +38,8 @@ before_install:
 
   # Update happy when building with GHC head
   - |
-    if [ $GHCVER = "head" ] || [ $GHCVER = "7.8.3" ]; then
-      $CABAL install happy alex
+    if [ $GHCVER = "head" ] || [ $GHCVER = "7.8.4" ] || [ $GHCVER = "7.10.1" ]; then
+      $CABAL install --constraint=transformers\ installed happy alex
       export PATH=$HOME/.cabal/bin:$PATH
     fi
 

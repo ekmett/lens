@@ -1,4 +1,10 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Tree.Lens
@@ -16,8 +22,11 @@ module Data.Tree.Lens
   ) where
 
 import Control.Lens
-import Data.Functor
 import Data.Tree
+
+#if !MIN_VERSION_base(4,8,0)
+import Data.Functor
+#endif
 
 -- | A 'Lens' that focuses on the root of a 'Tree'.
 --

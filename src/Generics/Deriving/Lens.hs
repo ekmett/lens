@@ -3,6 +3,11 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Generics.Deriving.Lens
@@ -32,12 +37,15 @@ module Generics.Deriving.Lens
   , GTraversal
   ) where
 
-import           Control.Applicative
 import           Control.Lens
 import           Data.Maybe (fromJust)
 import           Data.Typeable
 import qualified GHC.Generics as Generic
 import           GHC.Generics hiding (from, to)
+
+#if !MIN_VERSION_base(4,8,0)
+import           Control.Applicative
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

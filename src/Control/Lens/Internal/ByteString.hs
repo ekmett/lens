@@ -35,7 +35,10 @@ module Control.Lens.Internal.ByteString
   , unpackLazy8, traversedLazy8
   ) where
 
+#if !MIN_VERSION_base(4,8,0)
 import Control.Applicative
+#endif
+
 import Control.Lens
 import qualified Data.ByteString               as B
 #if MIN_VERSION_bytestring(0,10,4)

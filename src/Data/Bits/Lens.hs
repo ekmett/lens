@@ -1,5 +1,11 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE FlexibleContexts #-}
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Bits.Lens
@@ -22,8 +28,11 @@ module Data.Bits.Lens
 import Control.Lens
 import Control.Monad.State
 import Data.Bits
-import Data.Functor
 import Data.Word
+
+#if !MIN_VERSION_base(4,8,0)
+import Data.Functor
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

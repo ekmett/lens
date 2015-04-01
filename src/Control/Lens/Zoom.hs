@@ -4,9 +4,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
-#ifdef TRUSTWORTHY
-{-# LANGUAGE Trustworthy #-}
-#endif
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 #ifndef MIN_VERSION_mtl

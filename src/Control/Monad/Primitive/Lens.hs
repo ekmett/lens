@@ -1,6 +1,12 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE TypeFamilies #-}
+
+#ifndef MIN_VERSION_primitive
+#define MIN_VERSION_primitive(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Monad.Primitive.Lens
@@ -17,11 +23,15 @@ module Control.Monad.Primitive.Lens
   ) where
 
 import Control.Lens
-import Control.Monad.Primitive (PrimMonad(..))
+import Control.Monad.Primitive
 import GHC.Prim (State#)
 
 {-# ANN module "HLint: ignore Unused LANGUAGE pragma" #-}
 
-prim :: (PrimMonad m) => Iso' (m a) (State# (PrimState m) -> (# State# (PrimState m), a #))
+#if MIN_VERSION_primitive(0,6,0)
+prim :: PrimBase m => Iso' (m a) (State# (PrimState m) -> (# State# (PrimState m), a #))
+#else
+prim :: PrimMonad m => Iso' (m a) (State# (PrimState m) -> (# State# (PrimState m), a #))
+#endif
 prim = iso internal primitive
 {-# INLINE prim #-}
