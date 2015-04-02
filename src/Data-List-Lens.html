@@ -7,82 +7,91 @@
 <link type='text/css' rel='stylesheet' href='hscolour.css' />
 </head>
 <body>
-<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE FlexibleContexts #-}</span>
+<pre><a name="line-1"></a><span class='hs-comment'>{-# LANGUAGE CPP #-}</span>
 <a name="line-2"></a><span class='hs-comment'>{-# LANGUAGE Rank2Types #-}</span>
-<a name="line-3"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
-<a name="line-4"></a><span class='hs-comment'>-- |</span>
-<a name="line-5"></a><span class='hs-comment'>-- Module      :  Data.List.Lens</span>
-<a name="line-6"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-15 Edward Kmett</span>
-<a name="line-7"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
-<a name="line-8"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
-<a name="line-9"></a><span class='hs-comment'>-- Stability   :  provisional</span>
-<a name="line-10"></a><span class='hs-comment'>-- Portability :  portable</span>
-<a name="line-11"></a><span class='hs-comment'>--</span>
-<a name="line-12"></a><span class='hs-comment'>-- Traversals for manipulating parts of a list.</span>
-<a name="line-13"></a><span class='hs-comment'>--</span>
-<a name="line-14"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
-<a name="line-15"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>List</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-16"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>prefixed</span>
-<a name="line-17"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>suffixed</span>
-<a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>stripSuffix</span>
-<a name="line-19"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
-<a name="line-20"></a>
-<a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span> <span class='hs-layout'>(</span><span class='hs-varid'>guard</span><span class='hs-layout'>)</span>
-<a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-23"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Functor</span>
-<a name="line-24"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>List</span>
-<a name="line-25"></a>
-<a name="line-26"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-27"></a><span class='hs-comment'>-- &gt;&gt;&gt; :set -XNoOverloadedStrings</span>
-<a name="line-28"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Expr</span>
-<a name="line-29"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Vars as Vars hiding (f,g)</span>
-<a name="line-30"></a><span class='hs-comment'>-- &gt;&gt;&gt; let f :: Expr -&gt; Expr; f = Debug.SimpleReflect.Vars.f</span>
-<a name="line-31"></a><span class='hs-comment'>-- &gt;&gt;&gt; let g :: Expr -&gt; Expr; g = Debug.SimpleReflect.Vars.g</span>
-<a name="line-32"></a>
-<a name="line-33"></a><a name="prefixed"></a><span class='hs-comment'>-- | A 'Prism' stripping a prefix from a list when used as a 'Traversal', or</span>
-<a name="line-34"></a><span class='hs-comment'>-- prepending that prefix when run backwards:</span>
-<a name="line-35"></a><span class='hs-comment'>--</span>
-<a name="line-36"></a><span class='hs-comment'>-- &gt;&gt;&gt; "preview" ^? prefixed "pre"</span>
-<a name="line-37"></a><span class='hs-comment'>-- Just "view"</span>
-<a name="line-38"></a><span class='hs-comment'>--</span>
-<a name="line-39"></a><span class='hs-comment'>-- &gt;&gt;&gt; "review" ^? prefixed "pre"</span>
-<a name="line-40"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-41"></a><span class='hs-comment'>--</span>
-<a name="line-42"></a><span class='hs-comment'>-- &gt;&gt;&gt; prefixed "pre" # "amble"</span>
-<a name="line-43"></a><span class='hs-comment'>-- "preamble"</span>
-<a name="line-44"></a><span class='hs-definition'>prefixed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism'</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-45"></a><span class='hs-definition'>prefixed</span> <span class='hs-varid'>ps</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism'</span> <span class='hs-layout'>(</span><span class='hs-varid'>ps</span> <span class='hs-varop'>++</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>stripPrefix</span> <span class='hs-varid'>ps</span><span class='hs-layout'>)</span>
-<a name="line-46"></a><span class='hs-comment'>{-# INLINE prefixed #-}</span>
-<a name="line-47"></a>
-<a name="line-48"></a><a name="suffixed"></a><span class='hs-comment'>-- | A 'Prism' stripping a suffix from a list when used as a 'Traversal', or</span>
-<a name="line-49"></a><span class='hs-comment'>-- appending that suffix when run backwards:</span>
+<a name="line-3"></a><span class='hs-comment'>{-# LANGUAGE FlexibleContexts #-}</span>
+<a name="line-4"></a>
+<a name="line-5"></a><span class='hs-cpp'>#ifndef MIN_VERSION_base</span>
+<a name="line-6"></a><span class='hs-cpp'>#define MIN_VERSION_base(x,y,z) 1</span>
+<a name="line-7"></a><span class='hs-cpp'>#endif</span>
+<a name="line-8"></a>
+<a name="line-9"></a><span class='hs-comment'>-----------------------------------------------------------------------------</span>
+<a name="line-10"></a><span class='hs-comment'>-- |</span>
+<a name="line-11"></a><span class='hs-comment'>-- Module      :  Data.List.Lens</span>
+<a name="line-12"></a><span class='hs-comment'>-- Copyright   :  (C) 2012-15 Edward Kmett</span>
+<a name="line-13"></a><span class='hs-comment'>-- License     :  BSD-style (see the file LICENSE)</span>
+<a name="line-14"></a><span class='hs-comment'>-- Maintainer  :  Edward Kmett &lt;ekmett@gmail.com&gt;</span>
+<a name="line-15"></a><span class='hs-comment'>-- Stability   :  provisional</span>
+<a name="line-16"></a><span class='hs-comment'>-- Portability :  portable</span>
+<a name="line-17"></a><span class='hs-comment'>--</span>
+<a name="line-18"></a><span class='hs-comment'>-- Traversals for manipulating parts of a list.</span>
+<a name="line-19"></a><span class='hs-comment'>--</span>
+<a name="line-20"></a><span class='hs-comment'>----------------------------------------------------------------------------</span>
+<a name="line-21"></a><span class='hs-keyword'>module</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>List</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-22"></a>  <span class='hs-layout'>(</span> <span class='hs-varid'>prefixed</span>
+<a name="line-23"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>suffixed</span>
+<a name="line-24"></a>  <span class='hs-layout'>,</span> <span class='hs-varid'>stripSuffix</span>
+<a name="line-25"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
+<a name="line-26"></a>
+<a name="line-27"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Monad</span> <span class='hs-layout'>(</span><span class='hs-varid'>guard</span><span class='hs-layout'>)</span>
+<a name="line-28"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
+<a name="line-29"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>List</span>
+<a name="line-30"></a>
+<a name="line-31"></a><span class='hs-cpp'>#if !MIN_VERSION_base(4,8,0)</span>
+<a name="line-32"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Functor</span>
+<a name="line-33"></a><span class='hs-cpp'>#endif</span>
+<a name="line-34"></a>
+<a name="line-35"></a><span class='hs-comment'>-- $setup</span>
+<a name="line-36"></a><span class='hs-comment'>-- &gt;&gt;&gt; :set -XNoOverloadedStrings</span>
+<a name="line-37"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Expr</span>
+<a name="line-38"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Debug.SimpleReflect.Vars as Vars hiding (f,g)</span>
+<a name="line-39"></a><span class='hs-comment'>-- &gt;&gt;&gt; let f :: Expr -&gt; Expr; f = Debug.SimpleReflect.Vars.f</span>
+<a name="line-40"></a><span class='hs-comment'>-- &gt;&gt;&gt; let g :: Expr -&gt; Expr; g = Debug.SimpleReflect.Vars.g</span>
+<a name="line-41"></a>
+<a name="line-42"></a><a name="prefixed"></a><span class='hs-comment'>-- | A 'Prism' stripping a prefix from a list when used as a 'Traversal', or</span>
+<a name="line-43"></a><span class='hs-comment'>-- prepending that prefix when run backwards:</span>
+<a name="line-44"></a><span class='hs-comment'>--</span>
+<a name="line-45"></a><span class='hs-comment'>-- &gt;&gt;&gt; "preview" ^? prefixed "pre"</span>
+<a name="line-46"></a><span class='hs-comment'>-- Just "view"</span>
+<a name="line-47"></a><span class='hs-comment'>--</span>
+<a name="line-48"></a><span class='hs-comment'>-- &gt;&gt;&gt; "review" ^? prefixed "pre"</span>
+<a name="line-49"></a><span class='hs-comment'>-- Nothing</span>
 <a name="line-50"></a><span class='hs-comment'>--</span>
-<a name="line-51"></a><span class='hs-comment'>-- &gt;&gt;&gt; "review" ^? suffixed "view"</span>
-<a name="line-52"></a><span class='hs-comment'>-- Just "re"</span>
-<a name="line-53"></a><span class='hs-comment'>--</span>
-<a name="line-54"></a><span class='hs-comment'>-- &gt;&gt;&gt; "review" ^? suffixed "tire"</span>
-<a name="line-55"></a><span class='hs-comment'>-- Nothing</span>
-<a name="line-56"></a><span class='hs-comment'>--</span>
-<a name="line-57"></a><span class='hs-comment'>-- &gt;&gt;&gt; suffixed ".o" # "hello"</span>
-<a name="line-58"></a><span class='hs-comment'>-- "hello.o"</span>
-<a name="line-59"></a><span class='hs-definition'>suffixed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism'</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-60"></a><span class='hs-definition'>suffixed</span> <span class='hs-varid'>qs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism'</span> <span class='hs-layout'>(</span><span class='hs-varop'>++</span> <span class='hs-varid'>qs</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>stripSuffix</span> <span class='hs-varid'>qs</span><span class='hs-layout'>)</span>
-<a name="line-61"></a><span class='hs-comment'>{-# INLINE suffixed #-}</span>
-<a name="line-62"></a>
-<a name="line-63"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-64"></a><span class='hs-comment'>-- Util</span>
-<a name="line-65"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
-<a name="line-66"></a>
-<a name="line-67"></a><a name="stripSuffix"></a><span class='hs-definition'>stripSuffix</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
-<a name="line-68"></a><span class='hs-definition'>stripSuffix</span> <span class='hs-varid'>qs</span> <span class='hs-varid'>xs0</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-varid'>xs0</span> <span class='hs-varid'>zs</span>
-<a name="line-69"></a>  <span class='hs-keyword'>where</span>
-<a name="line-70"></a>    <span class='hs-varid'>zs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>drp</span> <span class='hs-varid'>qs</span> <span class='hs-varid'>xs0</span>
-<a name="line-71"></a>    <span class='hs-varid'>drp</span> <span class='hs-layout'>(</span><span class='hs-keyword'>_</span><span class='hs-conop'>:</span><span class='hs-varid'>ps</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-keyword'>_</span><span class='hs-conop'>:</span><span class='hs-varid'>xs</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>drp</span> <span class='hs-varid'>ps</span> <span class='hs-varid'>xs</span>
-<a name="line-72"></a>    <span class='hs-varid'>drp</span> <span class='hs-conid'>[]</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>xs</span>
-<a name="line-73"></a>    <span class='hs-varid'>drp</span> <span class='hs-keyword'>_</span>  <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>[]</span>
-<a name="line-74"></a>    <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-keyword'>_</span><span class='hs-conop'>:</span><span class='hs-varid'>xs</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-keyword'>_</span><span class='hs-conop'>:</span><span class='hs-varid'>ys</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-varid'>xs</span> <span class='hs-varid'>ys</span>
-<a name="line-75"></a>    <span class='hs-varid'>go</span> <span class='hs-varid'>xs</span> <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>zipWith</span> <span class='hs-varid'>const</span> <span class='hs-varid'>xs0</span> <span class='hs-varid'>zs</span> <span class='hs-varop'>&lt;$</span> <span class='hs-varid'>guard</span> <span class='hs-layout'>(</span><span class='hs-varid'>xs</span> <span class='hs-varop'>==</span> <span class='hs-varid'>qs</span><span class='hs-layout'>)</span>
-<a name="line-76"></a>    <span class='hs-varid'>go</span> <span class='hs-conid'>[]</span> <span class='hs-keyword'>_</span>  <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span> <span class='hs-comment'>-- impossible</span>
-<a name="line-77"></a><span class='hs-comment'>{-# INLINE stripSuffix #-}</span>
+<a name="line-51"></a><span class='hs-comment'>-- &gt;&gt;&gt; prefixed "pre" # "amble"</span>
+<a name="line-52"></a><span class='hs-comment'>-- "preamble"</span>
+<a name="line-53"></a><span class='hs-definition'>prefixed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism'</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-54"></a><span class='hs-definition'>prefixed</span> <span class='hs-varid'>ps</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism'</span> <span class='hs-layout'>(</span><span class='hs-varid'>ps</span> <span class='hs-varop'>++</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>stripPrefix</span> <span class='hs-varid'>ps</span><span class='hs-layout'>)</span>
+<a name="line-55"></a><span class='hs-comment'>{-# INLINE prefixed #-}</span>
+<a name="line-56"></a>
+<a name="line-57"></a><a name="suffixed"></a><span class='hs-comment'>-- | A 'Prism' stripping a suffix from a list when used as a 'Traversal', or</span>
+<a name="line-58"></a><span class='hs-comment'>-- appending that suffix when run backwards:</span>
+<a name="line-59"></a><span class='hs-comment'>--</span>
+<a name="line-60"></a><span class='hs-comment'>-- &gt;&gt;&gt; "review" ^? suffixed "view"</span>
+<a name="line-61"></a><span class='hs-comment'>-- Just "re"</span>
+<a name="line-62"></a><span class='hs-comment'>--</span>
+<a name="line-63"></a><span class='hs-comment'>-- &gt;&gt;&gt; "review" ^? suffixed "tire"</span>
+<a name="line-64"></a><span class='hs-comment'>-- Nothing</span>
+<a name="line-65"></a><span class='hs-comment'>--</span>
+<a name="line-66"></a><span class='hs-comment'>-- &gt;&gt;&gt; suffixed ".o" # "hello"</span>
+<a name="line-67"></a><span class='hs-comment'>-- "hello.o"</span>
+<a name="line-68"></a><span class='hs-definition'>suffixed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Prism'</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-69"></a><span class='hs-definition'>suffixed</span> <span class='hs-varid'>qs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism'</span> <span class='hs-layout'>(</span><span class='hs-varop'>++</span> <span class='hs-varid'>qs</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>stripSuffix</span> <span class='hs-varid'>qs</span><span class='hs-layout'>)</span>
+<a name="line-70"></a><span class='hs-comment'>{-# INLINE suffixed #-}</span>
+<a name="line-71"></a>
+<a name="line-72"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-73"></a><span class='hs-comment'>-- Util</span>
+<a name="line-74"></a><span class='hs-comment'>------------------------------------------------------------------------------</span>
+<a name="line-75"></a>
+<a name="line-76"></a><a name="stripSuffix"></a><span class='hs-definition'>stripSuffix</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Eq</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>=&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Maybe</span> <span class='hs-keyglyph'>[</span><span class='hs-varid'>a</span><span class='hs-keyglyph'>]</span>
+<a name="line-77"></a><span class='hs-definition'>stripSuffix</span> <span class='hs-varid'>qs</span> <span class='hs-varid'>xs0</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-varid'>xs0</span> <span class='hs-varid'>zs</span>
+<a name="line-78"></a>  <span class='hs-keyword'>where</span>
+<a name="line-79"></a>    <span class='hs-varid'>zs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>drp</span> <span class='hs-varid'>qs</span> <span class='hs-varid'>xs0</span>
+<a name="line-80"></a>    <span class='hs-varid'>drp</span> <span class='hs-layout'>(</span><span class='hs-keyword'>_</span><span class='hs-conop'>:</span><span class='hs-varid'>ps</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-keyword'>_</span><span class='hs-conop'>:</span><span class='hs-varid'>xs</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>drp</span> <span class='hs-varid'>ps</span> <span class='hs-varid'>xs</span>
+<a name="line-81"></a>    <span class='hs-varid'>drp</span> <span class='hs-conid'>[]</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>xs</span>
+<a name="line-82"></a>    <span class='hs-varid'>drp</span> <span class='hs-keyword'>_</span>  <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>[]</span>
+<a name="line-83"></a>    <span class='hs-varid'>go</span> <span class='hs-layout'>(</span><span class='hs-keyword'>_</span><span class='hs-conop'>:</span><span class='hs-varid'>xs</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-keyword'>_</span><span class='hs-conop'>:</span><span class='hs-varid'>ys</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>go</span> <span class='hs-varid'>xs</span> <span class='hs-varid'>ys</span>
+<a name="line-84"></a>    <span class='hs-varid'>go</span> <span class='hs-varid'>xs</span> <span class='hs-conid'>[]</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>zipWith</span> <span class='hs-varid'>const</span> <span class='hs-varid'>xs0</span> <span class='hs-varid'>zs</span> <span class='hs-varop'>&lt;$</span> <span class='hs-varid'>guard</span> <span class='hs-layout'>(</span><span class='hs-varid'>xs</span> <span class='hs-varop'>==</span> <span class='hs-varid'>qs</span><span class='hs-layout'>)</span>
+<a name="line-85"></a>    <span class='hs-varid'>go</span> <span class='hs-conid'>[]</span> <span class='hs-keyword'>_</span>  <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Nothing</span> <span class='hs-comment'>-- impossible</span>
+<a name="line-86"></a><span class='hs-comment'>{-# INLINE stripSuffix #-}</span>
 </pre></body>
 </html>
