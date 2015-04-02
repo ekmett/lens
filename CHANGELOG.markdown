@@ -1,9 +1,12 @@
 4.9
 -------
 * `filepath` 1.4 support
-* `primitive` 0.6 support. Adds new `PrimBase` constraint to
-  `Control.Monad.Primitive.Lens.prim`
+* `primitive` 0.6 support. Adds new `PrimBase` constraint to `Control.Monad.Primitive.Lens.prim`
 * Add missing `_WithIndex` instances from `keys` package
+* Much more code is inferred `Safe` rather than `Trustworthy`.
+* Documented the difference between `unsafeSingular` and `singular`.
+* `folding` now produces an actual `Fold`.
+* Cleaned up builds for GHC 7.10 to get rid of redundant import warnings.
 
 4.8
 ---
