@@ -1,7 +1,7 @@
 4.9
 -------
 * `filepath` 1.4 support
-* `primitive` 0.6 support. Adds new `PrimBase` constraint to `Control.Monad.Primitive.Lens.prim`
+* Removed `Control.Monad.Primitive.Lens` and shed the `primitive` dependency.
 * Add missing `_WithIndex` instances from `keys` package
 * Much more code is inferred `Safe` rather than `Trustworthy`.
 * Documented the difference between `unsafeSingular` and `singular`.
