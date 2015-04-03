@@ -1,3 +1,7 @@
+4.9.1
+-----
+* Added `_Wrapped` support for `NonEmpty`.
+
 4.9
 -------
 * `filepath` 1.4 support

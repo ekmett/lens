@@ -91,6 +91,7 @@ import           Data.IntSet as IntSet
 import           Data.IntMap as IntMap
 import           Data.HashSet as HashSet
 import           Data.HashMap.Lazy as HashMap
+import           Data.List.NonEmpty
 import           Data.Map as Map
 import           Data.Monoid
 import qualified Data.Semigroup as S
@@ -187,6 +188,12 @@ instance (t ~ ZipList b) => Rewrapped (ZipList a) t
 instance Wrapped (ZipList a) where
   type Unwrapped (ZipList a) = [a]
   _Wrapped' = iso getZipList ZipList
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ NonEmpty b) => Rewrapped (NonEmpty a) (a, [a])
+instance Wrapped (NonEmpty a) where
+  type Unwrapped (NonEmpty a) = (a, [a])
+  _Wrapped' = iso (\(a :| as) -> (a, as)) (\(a,as) -> a :| as))
   {-# INLINE _Wrapped' #-}
 
 instance (t ~ Const a' x') => Rewrapped (Const a x) t
