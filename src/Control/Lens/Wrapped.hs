@@ -103,6 +103,10 @@ import           Data.Vector.Primitive as Prim
 import           Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Storable as Storable
 
+#ifdef HLINT
+{-# ANN module "HLint: ignore Use curry" #-}
+#endif
+
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
