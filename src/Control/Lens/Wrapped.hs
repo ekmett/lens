@@ -104,7 +104,7 @@ import           Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Storable as Storable
 
 #ifdef HLINT
-{-# ANN module "HLint: ignore Use curry" #-}
+{-# ANN module "HLint: ignore Use uncurry" #-}
 #endif
 
 -- $setup
