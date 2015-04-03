@@ -193,7 +193,7 @@ instance Wrapped (ZipList a) where
 instance (t ~ NonEmpty b) => Rewrapped (NonEmpty a) (a, [a])
 instance Wrapped (NonEmpty a) where
   type Unwrapped (NonEmpty a) = (a, [a])
-  _Wrapped' = iso (\(a :| as) -> (a, as)) (\(a,as) -> a :| as))
+  _Wrapped' = iso (\(a :| as) -> (a, as)) (\(a,as) -> a :| as)
   {-# INLINE _Wrapped' #-}
 
 instance (t ~ Const a' x') => Rewrapped (Const a x) t
