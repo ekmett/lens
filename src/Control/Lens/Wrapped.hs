@@ -194,7 +194,7 @@ instance Wrapped (ZipList a) where
   _Wrapped' = iso getZipList ZipList
   {-# INLINE _Wrapped' #-}
 
-instance (t ~ NonEmpty b) => Rewrapped (NonEmpty a) (a, [a])
+instance (t ~ NonEmpty b) => Rewrapped (NonEmpty a) t
 instance Wrapped (NonEmpty a) where
   type Unwrapped (NonEmpty a) = (a, [a])
   _Wrapped' = iso (\(a :| as) -> (a, as)) (\(a,as) -> a :| as)
