@@ -183,6 +183,7 @@ library
   build-depends:
     array                     >= 0.3.0.2  && < 0.6,
     base                      >= 4.5      && < 5,
+    base-compat               >= 0.4      && < 1,
     bifunctors                >= 4        && < 5,
     bytestring                >= 0.9.1.10 && < 0.11,
     comonad                   >= 4        && < 5,
