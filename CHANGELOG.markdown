@@ -1,6 +1,8 @@
 4.9.1
 -----
 * Added `_Wrapped` support for `NonEmpty`.
+* Added dependency on `base-compat`, which contains orphan `Foldable` and `Traversable` instances for `Either`, `Const`, and `(,)`.
+* The `Control.Lens.Internal.Instances` module now reexports the orphan instances from `base-compat`.
 
 4.9
 -------
