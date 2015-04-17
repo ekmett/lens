@@ -224,7 +224,7 @@ instance Wrapped (First a) where
   _Wrapped' = iso getFirst First
   {-# INLINE _Wrapped' #-}
 
-instance (t ~ Last b) => Rewrapped (Last b) t
+instance (t ~ Last b) => Rewrapped (Last a) t
 instance Wrapped (Last a) where
   type Unwrapped (Last a) = Maybe a
   _Wrapped' = iso getLast Last
