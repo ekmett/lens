@@ -13,6 +13,11 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
+
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Wrapped
@@ -230,11 +235,13 @@ instance Wrapped (Last a) where
   _Wrapped' = iso getLast Last
   {-# INLINE _Wrapped' #-}
 
+#if MIN_VERSION_base(4,8,0)
 instance (t ~ Alt g b) => Rewrapped (Alt f a) t
 instance Wrapped (Alt f a) where
   type Unwrapped (Alt f a) = f a
   _Wrapped' = iso getAlt Alt
   {-# INLINE _Wrapped' #-}
+#endif
 
 instance (t ~ ArrowMonad m' a', ArrowApply m, ArrowApply m') => Rewrapped (ArrowMonad m a) t
 instance ArrowApply m => Wrapped (ArrowMonad m a) where
