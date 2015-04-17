@@ -1,6 +1,7 @@
 4.9.1
 -----
 * Added `_Wrapped` support for `NonEmpty`.
+* Added `_Wrapped` support for `Alt`.
 
 4.9
 -------
