@@ -2,6 +2,7 @@
 -----
 * Added `_Wrapped` support for `NonEmpty`.
 * Added `_Wrapped` support for `Alt`.
+* Fixed `Rewrapped` instance for `Last`.
 
 4.9
 -------
