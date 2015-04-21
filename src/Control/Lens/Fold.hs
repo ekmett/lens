@@ -2351,11 +2351,11 @@ s ^@?! l = ifoldrOf l (\i x _ -> (i,x)) (error "(^@?!): empty Fold") s
 -- @
 --
 -- @
--- 'elemIndexOf' :: 'Eq' a => 'IndexedFold' i s a      -> a -> s -> Maybe i
--- 'elemIndexOf' :: 'Eq' a => 'IndexedTraversal' i s a -> a -> s -> Maybe i
+-- 'elemIndexOf' :: 'Eq' a => 'IndexedFold' i s a       -> a -> s -> 'Maybe' i
+-- 'elemIndexOf' :: 'Eq' a => 'IndexedTraversal'' i s a -> a -> s -> 'Maybe' i
 -- @
 elemIndexOf :: Eq a => IndexedGetting i (First i) s a -> a -> s -> Maybe i
-elemIndexOf l a = findIndexOf l (== a)
+elemIndexOf l a = findIndexOf l (a ==)
 {-# INLINE elemIndexOf #-}
 
 -- | Retrieve the indices of the values targeted by a 'IndexedFold' or 'IndexedTraversal' which are equal to a given value.
@@ -2365,11 +2365,11 @@ elemIndexOf l a = findIndexOf l (== a)
 -- @
 --
 -- @
--- 'elemIndicesOf' :: 'Eq' a => 'IndexedFold' i s a      -> a -> s -> [i]
--- 'elemIndicesOf' :: 'Eq' a => 'IndexedTraversal' i s a -> a -> s -> [i]
+-- 'elemIndicesOf' :: 'Eq' a => 'IndexedFold' i s a       -> a -> s -> [i]
+-- 'elemIndicesOf' :: 'Eq' a => 'IndexedTraversal'' i s a -> a -> s -> [i]
 -- @
 elemIndicesOf :: Eq a => IndexedGetting i (Endo [i]) s a -> a -> s -> [i]
-elemIndicesOf l a = findIndicesOf l (== a)
+elemIndicesOf l a = findIndicesOf l (a ==)
 {-# INLINE elemIndicesOf #-}
 
 -- | Retrieve the index of the first value targeted by a 'IndexedFold' or 'IndexedTraversal' which satisfies a predicate.
@@ -2379,8 +2379,8 @@ elemIndicesOf l a = findIndicesOf l (== a)
 -- @
 --
 -- @
--- 'findIndexOf' :: 'IndexedFold' i s a      -> (a -> Bool) -> s -> Maybe i
--- 'findIndexOf' :: 'IndexedTraversal' i s a -> (a -> Bool) -> s -> Maybe i
+-- 'findIndexOf' :: 'IndexedFold' i s a       -> (a -> 'Bool') -> s -> 'Maybe' i
+-- 'findIndexOf' :: 'IndexedTraversal'' i s a -> (a -> 'Bool') -> s -> 'Maybe' i
 -- @
 findIndexOf :: IndexedGetting i (First i) s a -> (a -> Bool) -> s -> Maybe i
 findIndexOf l p = preview (l . filtered p . asIndex)
@@ -2393,8 +2393,8 @@ findIndexOf l p = preview (l . filtered p . asIndex)
 -- @
 --
 -- @
--- 'findIndicesOf' :: 'IndexedFold' i s a      -> (a -> Bool) -> s -> [i]
--- 'findIndicesOf' :: 'IndexedTraversal' i s a -> (a -> Bool) -> s -> [i]
+-- 'findIndicesOf' :: 'IndexedFold' i s a       -> (a -> 'Bool') -> s -> [i]
+-- 'findIndicesOf' :: 'IndexedTraversal'' i s a -> (a -> 'Bool') -> s -> [i]
 -- @
 findIndicesOf :: IndexedGetting i (Endo [i]) s a -> (a -> Bool) -> s -> [i]
 findIndicesOf l p = toListOf (l . filtered p . asIndex)
