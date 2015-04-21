@@ -113,6 +113,10 @@ module Control.Lens.Fold
   , ifoldrMOf
   , ifoldlMOf
   , itoListOf
+  , elemIndexOf
+  , elemIndicesOf
+  , findIndexOf
+  , findIndicesOf
 
   -- ** Building Indexed Folds
   , ifiltered
@@ -2339,6 +2343,62 @@ s ^@? l = ifoldrOf l (\i x _ -> Just (i,x)) Nothing s
 (^@?!) :: s -> IndexedGetting i (Endo (i, a)) s a -> (i, a)
 s ^@?! l = ifoldrOf l (\i x _ -> (i,x)) (error "(^@?!): empty Fold") s
 {-# INLINE (^@?!) #-}
+
+-- | Retrieve the index of the first value targeted by a 'IndexedFold' or 'IndexedTraversal' which is equal to a given value.
+--
+-- @
+-- 'Data.List.elemIndex' ≡ 'elemIndexOf' 'folded'
+-- @
+--
+-- @
+-- 'elemIndexOf' :: 'Eq' a => 'IndexedFold' i s a      -> a -> s -> Maybe i
+-- 'elemIndexOf' :: 'Eq' a => 'IndexedTraversal' i s a -> a -> s -> Maybe i
+-- @
+elemIndexOf :: Eq a => IndexedGetting i (First i) s a -> a -> s -> Maybe i
+elemIndexOf l a = findIndexOf l (== a)
+{-# INLINE elemIndexOf #-}
+
+-- | Retrieve the indices of the values targeted by a 'IndexedFold' or 'IndexedTraversal' which are equal to a given value.
+--
+-- @
+-- 'Data.List.elemIndices' ≡ 'elemIndicesOf' 'folded'
+-- @
+--
+-- @
+-- 'elemIndicesOf' :: 'Eq' a => 'IndexedFold' i s a      -> a -> s -> [i]
+-- 'elemIndicesOf' :: 'Eq' a => 'IndexedTraversal' i s a -> a -> s -> [i]
+-- @
+elemIndicesOf :: Eq a => IndexedGetting i (Endo [i]) s a -> a -> s -> [i]
+elemIndicesOf l a = findIndicesOf l (== a)
+{-# INLINE elemIndicesOf #-}
+
+-- | Retrieve the index of the first value targeted by a 'IndexedFold' or 'IndexedTraversal' which satisfies a predicate.
+--
+-- @
+-- 'Data.List.findIndex' ≡ 'findIndexOf' 'folded'
+-- @
+--
+-- @
+-- 'findIndexOf' :: 'IndexedFold' i s a      -> (a -> Bool) -> s -> Maybe i
+-- 'findIndexOf' :: 'IndexedTraversal' i s a -> (a -> Bool) -> s -> Maybe i
+-- @
+findIndexOf :: IndexedGetting i (First i) s a -> (a -> Bool) -> s -> Maybe i
+findIndexOf l p = preview (l . filtered p . asIndex)
+{-# INLINE findIndexOf #-}
+
+-- | Retrieve the indices of the values targeted by a 'IndexedFold' or 'IndexedTraversal' which satisfy a predicate.
+--
+-- @
+-- 'Data.List.findIndices' ≡ 'findIndicesOf' 'folded'
+-- @
+--
+-- @
+-- 'findIndicesOf' :: 'IndexedFold' i s a      -> (a -> Bool) -> s -> [i]
+-- 'findIndicesOf' :: 'IndexedTraversal' i s a -> (a -> Bool) -> s -> [i]
+-- @
+findIndicesOf :: IndexedGetting i (Endo [i]) s a -> (a -> Bool) -> s -> [i]
+findIndicesOf l p = toListOf (l . filtered p . asIndex)
+{-# INLINE findIndicesOf #-}
 
 -------------------------------------------------------------------------------
 -- Converting to Folds

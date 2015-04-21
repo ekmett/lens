@@ -181,24 +181,6 @@ icompose ijk istr jabst cab = istr . Indexed $ \i -> jabst . Indexed $ \j -> ind
 {-# INLINE icompose #-}
 
 -------------------------------------------------------------------------------
--- Converting to Folds
--------------------------------------------------------------------------------
-
--- | Fold a container with indices returning both the indices and the values.
---
--- The result is only valid to compose in a 'Traversal', if you don't edit the
--- index as edits to the index have no effect.
-withIndex :: (Indexable i p, Functor f) => Optical p (Indexed i) f s t (i, s) (j, t)
-withIndex f = Indexed $ \i a -> snd <$> indexed f i (i, a)
-{-# INLINE withIndex #-}
-
--- | When composed with an 'IndexedFold' or 'IndexedTraversal' this yields an
--- ('Indexed') 'Fold' of the indices.
-asIndex :: (Indexable i p, Contravariant f, Functor f) => Optical' p (Indexed i) f s i
-asIndex f = Indexed $ \i _ -> coerce (indexed f i i)
-{-# INLINE asIndex #-}
-
--------------------------------------------------------------------------------
 -- Restricting by index
 -------------------------------------------------------------------------------
 

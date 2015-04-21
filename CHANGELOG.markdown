@@ -1,3 +1,7 @@
+4.9.2
+-----
+* Added `elemIndexOf`, `elemIndicesOf`, `findIndexOf`, and `findIndicesOf`.
+
 4.9.1
 -----
 * Added `_Wrapped` support for `NonEmpty`.

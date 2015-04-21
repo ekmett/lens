@@ -29,6 +29,9 @@ module Control.Lens.Internal.Indexed
   -- * 64-bit Indexing
   , Indexing64(..)
   , indexing64
+  -- * Converting to Folds
+  , withIndex
+  , asIndex
   ) where
 
 import Control.Applicative
@@ -36,6 +39,7 @@ import Control.Arrow as Arrow
 import Control.Category
 import Control.Comonad
 import Control.Lens.Internal.Instances ()
+import qualified Control.Lens.Internal.Getter as Getter
 import Control.Monad
 import Control.Monad.Fix
 import Data.Distributive
@@ -316,3 +320,22 @@ instance Contravariant f => Contravariant (Indexing64 f) where
 indexing64 :: Indexable Int64 p => ((a -> Indexing64 f b) -> s -> Indexing64 f t) -> p a (f b) -> s -> f t
 indexing64 l iafb s = snd $ runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (i + 1, indexed iafb i a))) s) 0
 {-# INLINE indexing64 #-}
+
+-------------------------------------------------------------------------------
+-- Converting to Folds
+-------------------------------------------------------------------------------
+
+-- | Fold a container with indices returning both the indices and the values.
+--
+-- The result is only valid to compose in a 'Traversal', if you don't edit the
+-- index as edits to the index have no effect.
+withIndex :: (Indexable i p, Functor f) => p (i, s) (f (j, t)) -> Indexed i s (f t)
+withIndex f = Indexed $ \i a -> snd <$> indexed f i (i, a)
+{-# INLINE withIndex #-}
+
+-- | When composed with an 'IndexedFold' or 'IndexedTraversal' this yields an
+-- ('Indexed') 'Fold' of the indices.
+--asIndex :: (Indexable i p, Contravariant f, Functor f) => Optical' p (Indexed i) f s i
+asIndex :: (Indexable i p, Contravariant f, Functor f) => p i (f i) -> Indexed i s (f s)
+asIndex f = Indexed $ \i _ -> Getter.coerce (indexed f i i)
+{-# INLINE asIndex #-}
