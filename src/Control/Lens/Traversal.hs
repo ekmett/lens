@@ -846,7 +846,7 @@ dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
 -- as such, use 'Control.Lens.Lens.cloneLens'.
 --
 -- Note: It is usually better to use 'Control.Lens.Reified.ReifiedTraversal' and
--- 'Control.Lens.Reified.reflectTraversal' than to 'cloneTraversal'. The
+-- 'Control.Lens.Reified.runTraversal' than to 'cloneTraversal'. The
 -- former can execute at full speed, while the latter needs to round trip through
 -- the 'Bazaar'.
 --
