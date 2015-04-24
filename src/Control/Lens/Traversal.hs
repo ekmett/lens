@@ -1201,11 +1201,12 @@ ifailover l f = failover l (Indexed f)
 -- 'failing' :: 'IndexedLens' i s t a b      -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
 -- 'failing' :: 'IndexedGetter' i s a        -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
 -- @
-failing :: (Conjoined p, Applicative f) => Traversing p f s t a b -> Traversing p f s t a b -> Over p f s t a b
-failing l r pafb s = case pins b of
-  [] -> runBazaarT (r sell s) pafb
-  xs -> unsafeOuts b <$> traverse (corep pafb) xs
-  where b = l sell s
+failing :: (Conjoined p, Applicative f) => Traversing p f s t a b -> Over p f s t a b -> Over p f s t a b
+failing l r pafb s
+  | b <- l sell s = case pins b of
+    [] -> r pafb s
+    xs -> bazaar pafb b
+
 infixl 5 `failing`
 
 -- | Try the second traversal. If it returns no entries, try again with all entries from the first traversal, recursively.
