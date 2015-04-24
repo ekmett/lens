@@ -1202,10 +1202,10 @@ ifailover l f = failover l (Indexed f)
 -- 'failing' :: 'IndexedGetter' i s a        -> 'IndexedGetter' i s a        -> 'IndexedFold' i s a
 -- @
 failing :: (Conjoined p, Applicative f) => Traversing p f s t a b -> Over p f s t a b -> Over p f s t a b
-failing l r pafb s
-  | b <- l sell s = case pins b of
-    [] -> r pafb s
-    xs -> bazaar pafb b
+failing l r pafb s = case pins b of
+  [] -> r pafb s
+  _  -> bazaar pafb b
+  where b = l sell s
 
 infixl 5 `failing`
 
