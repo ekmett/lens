@@ -349,13 +349,6 @@ Operators
   <td/><td/><td/>
   <td>Return a list of the target(s)</td>
 </tr>
-<tr>
-  <td><a href="http://ekmett.github.com/lens/Control-Lens-Action.html#v:perform"><code>perform</code></a>,<a href="http://ekmett.github.com/lens/Control-Lens-Action.html#v:performs"><code>performs</code></a><a href="http://ekmett.github.com/lens/Control-Lens-Action.html#v:-94-!"><code>^!</code></a></td>
-  <td/>
-  <td/>
-  <td/>
-  <td>Perform monadic action(s)</td>
-</tr>
 <tr><th colspan=5><a href="http://ekmett.github.com/lens/Control-Lens.html">Control.Lens</a> (Indexed)</th></tr>
 <tr>
   <td><a href="http://ekmett.github.com/lens/Control-Lens-IndexedSetter.html#v:iover"><code>iover</code></a>,<a href="http://ekmett.github.com/lens/Control-Lens-IndexedSetter.html#v:imapOf"><code>imapOf</code></a>,<a href="http://ekmett.github.com/lens/Control-Lens-IndexedSetter.html#v:-37--64--126-"><code>%@~</code></a></td>
