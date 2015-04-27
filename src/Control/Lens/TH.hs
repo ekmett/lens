@@ -24,7 +24,7 @@
 module Control.Lens.TH
   (
   -- * Constructing Lenses Automatically
-    makeLenses, makeLensesFor
+    makeLenses, makeLensesFor, makeLenses_
   , makeClassy, makeClassyFor, makeClassy_
   , makePrisms
   , makeClassyPrisms
@@ -45,10 +45,8 @@ module Control.Lens.TH
   , abbreviatedFields
   , LensRules
   , DefName(..)
-  , lensRules
-  , lensRulesFor
-  , classyRules
-  , classyRules_
+  , lensRules, lensRulesFor, lensRules_
+  , classyRules, classyRules_
   , lensField
   , lensClass
   , simpleLenses
@@ -202,6 +200,11 @@ mkNameLookup :: [(String,String)] -> Name -> [Name] -> Name -> [DefName]
 mkNameLookup kvs _ _ field =
   [ TopName (mkName v) | (k,v) <- kvs, k == nameBase field]
 
+-- | Same as 'lensRules', but all lenses will be prefixed with @_@.
+lensRules_ :: LensRules
+lensRules_
+  = lensRules & lensField .~ \_ _ n -> [TopName (mkName ('_':nameBase n))]
+
 -- | Rules for making lenses and traversals that precompose another 'Lens'.
 classyRules :: LensRules
 classyRules = LensRules
@@ -229,6 +232,7 @@ classyRulesFor classFun fields = classyRules
   & lensClass .~ (over (mapped . both) mkName . classFun . nameBase)
   & lensField .~ mkNameLookup fields
 
+-- | Same as 'classyRules', but all lenses will be prefixed with @_@.
 classyRules_ :: LensRules
 classyRules_
   = classyRules & lensField .~ \_ _ n -> [TopName (mkName ('_':nameBase n))]
@@ -262,6 +266,11 @@ classyRules_
 -- @
 makeLenses :: Name -> DecsQ
 makeLenses = makeFieldOptics lensRules
+
+-- | Works the same as 'makeLenses' except that it makes lenses for /all/
+-- fields and the resulting lenses are prefixed with @_@.
+makeLenses_ :: Name -> DecsQ
+makeLenses_ = makeFieldOptics lensRules_
 
 -- | Make lenses and traversals for a type, and create a class when the
 -- type has no arguments.
