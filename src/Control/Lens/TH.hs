@@ -46,7 +46,7 @@ module Control.Lens.TH
   , LensRules
   , DefName(..)
   , lensRules, lensRulesFor, lensRules_
-  , classyRules, classyRules_
+  , classyRules, classyRulesFor, classyRules_
   , lensField
   , lensClass
   , simpleLenses
