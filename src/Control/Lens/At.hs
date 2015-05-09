@@ -219,11 +219,9 @@ type instance IxValue (Tree a) = a
 instance Ixed (Tree a) where
   ix xs0 f = go xs0 where
     go [] (Node a as) = f a <&> \a' -> Node a' as
-    go (i:is) t@(Node a as) | i < 0     = pure t
-                            | otherwise = Node a <$> goto is as i
-    goto is (a:as) 0 = go is a <&> (:as)
-    goto is (_:as) n = goto is as $! n - 1
-    goto _  []     _ = pure []
+    go (i:is) t@(Node a as)
+      | i < 0     = pure t
+      | otherwise = Node a <$> ix i (go is) as
   {-# INLINE ix #-}
 
 type instance IxValue (Seq a) = a

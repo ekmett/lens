@@ -1,6 +1,7 @@
 4.9.2
 -----
 * Added `elemIndexOf`, `elemIndicesOf`, `findIndexOf`, and `findIndicesOf`.
+* Fixed `Ixed` instance for `Tree`. It no longer drops nodes prior to the traversed node.
 
 4.9.1
 -----
