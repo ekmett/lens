@@ -93,12 +93,6 @@ import Language.Haskell.TH.Lens
 {-# ANN module "HLint: ignore Use foldl" #-}
 #endif
 
--- $setup
---
--- >>> :set -XTemplateHaskell
--- >>> data Foo = Foo {_x :: Int, _y :: Bool} deriving Show
--- >>> $(makeLensesWith (lensRules & generateLazyPatterns .~ True) ''Foo)
-
 -- | Generate "simple" optics even when type-changing optics are possible.
 -- (e.g. 'Lens'' instead of 'Lens')
 simpleLenses :: Lens' LensRules Bool
@@ -132,7 +126,7 @@ generateUpdateableOptics f r =
 -- @
 --
 -- @
--- >>> undefined & x .~ 8 & y .~ True
+-- > undefined & x .~ 8 & y .~ True
 -- Foo {_x = 8, _y = True}
 -- @
 -- 
