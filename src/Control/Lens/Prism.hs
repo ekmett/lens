@@ -58,6 +58,7 @@ import Control.Monad
 import Data.Functor.Identity
 import Data.Profunctor
 import Data.Profunctor.Rep
+import Data.Profunctor.Sieve
 import Data.Traversable
 import Data.Void
 #if MIN_VERSION_base(4,7,0)
@@ -140,7 +141,7 @@ prism' bs sma = prism bs (\s -> maybe (Left s) Right (sma s))
 -- TODO: can we make this work with merely Strong?
 outside :: Representable p => APrism s t a b -> Lens (p t r) (p s r) (p b r) (p a r)
 outside k = withPrism k $ \bt seta f ft ->
-  f (lmap bt ft) <&> \fa -> tabulate $ either (rep ft) (rep fa) . seta
+  f (lmap bt ft) <&> \fa -> tabulate $ either (sieve ft) (sieve fa) . seta
 {-# INLINE outside #-}
 
 -- | Given a pair of prisms, project sums.

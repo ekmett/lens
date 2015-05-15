@@ -39,6 +39,7 @@ import Data.Functor.Identity
 import Data.Semigroup
 import Data.Profunctor
 import Data.Profunctor.Rep
+import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Prelude hiding ((.),id)
 
@@ -91,7 +92,7 @@ instance Conjoined p => IndexedComonad (Bazaar p) where
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (Bazaar p) where
-  sell = cotabulate $ \ w -> Bazaar $ tabulate $ \k -> pure (corep k w)
+  sell = cotabulate $ \ w -> Bazaar $ tabulate $ \k -> pure (cosieve k w)
   {-# INLINE sell #-}
 
 instance Profunctor p => Bizarre p (Bazaar p) where
@@ -154,7 +155,7 @@ instance Conjoined p => IndexedComonad (BazaarT p g) where
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (BazaarT p g) where
-  sell = cotabulate $ \ w -> BazaarT (`corep` w)
+  sell = cotabulate $ \ w -> BazaarT (`cosieve` w)
   {-# INLINE sell #-}
 
 instance Profunctor p => Bizarre p (BazaarT p g) where
@@ -247,7 +248,7 @@ instance Conjoined p => IndexedComonad (Bazaar1 p) where
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (Bazaar1 p) where
-  sell = cotabulate $ \ w -> Bazaar1 $ tabulate $ \k -> pure (corep k w)
+  sell = cotabulate $ \ w -> Bazaar1 $ tabulate $ \k -> pure (cosieve k w)
   {-# INLINE sell #-}
 
 instance Profunctor p => Bizarre1 p (Bazaar1 p) where
@@ -304,7 +305,7 @@ instance Conjoined p => IndexedComonad (BazaarT1 p g) where
   {-# INLINE iduplicate #-}
 
 instance Corepresentable p => Sellable p (BazaarT1 p g) where
-  sell = cotabulate $ \ w -> BazaarT1 (`corep` w)
+  sell = cotabulate $ \ w -> BazaarT1 (`cosieve` w)
   {-# INLINE sell #-}
 
 instance Profunctor p => Bizarre1 p (BazaarT1 p g) where

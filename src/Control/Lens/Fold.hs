@@ -157,6 +157,7 @@ import Data.Maybe
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
+import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Data.Traversable
 import Prelude
@@ -346,7 +347,7 @@ filtered p = dimap (\x -> if p x then Right x else Left x) (either pure id) . ri
 -- which is not a 'Traversal' per the laws, unless you are careful to ensure that you do not invalidate the predicate when
 -- writing back through it.
 takingWhile :: (Conjoined p, Applicative f) => (a -> Bool) -> Over p (TakingWhile p f a a) s t a a -> Over p f s t a a
-takingWhile p l pafb = fmap runMagma . traverse (corep pafb) . runTakingWhile . l flag where
+takingWhile p l pafb = fmap runMagma . traverse (cosieve pafb) . runTakingWhile . l flag where
   flag = cotabulate $ \wa -> let a = extract wa; r = p a in TakingWhile r a $ \pr ->
     if pr && r then Magma () wa else MagmaPure a
 {-# INLINE takingWhile #-}
@@ -398,7 +399,7 @@ droppingWhile p l f = (flip evalState True .# getCompose) `rmap` l g where
   g = cotabulate $ \wa -> Compose $ state $ \b -> let
       a = extract wa
       b' = b && p a
-    in (if b' then pure a else corep f wa, b')
+    in (if b' then pure a else cosieve f wa, b')
 {-# INLINE droppingWhile #-}
 
 -- | A 'Fold' over the individual 'words' of a 'String'.
@@ -1436,7 +1437,7 @@ minimumByOf l cmp = foldlOf' l mf Nothing where
 -- 'findOf' l p = 'foldrOf' l (\a y -> if p a then 'Just' a else y) 'Nothing'
 -- @
 findOf :: Conjoined p => Accessing p (Endo (Maybe a)) s a -> p a Bool -> s -> Maybe a
-findOf l p = foldrOf l (cotabulate $ \wa y -> if corep p wa then Just (extract wa) else y) Nothing
+findOf l p = foldrOf l (cotabulate $ \wa y -> if cosieve p wa then Just (extract wa) else y) Nothing
 {-# INLINE findOf #-}
 
 -- | The 'findMOf' function takes a 'Lens' (or 'Getter', 'Iso', 'Fold', or 'Traversal'),
@@ -1476,7 +1477,7 @@ findOf l p = foldrOf l (cotabulate $ \wa y -> if corep p wa then Just (extract w
 -- 'findMOf' l p = 'foldrOf' l (\a y -> p a >>= \x -> if x then return ('Just' a) else y) $ return 'Nothing'
 -- @
 findMOf :: (Monad m, Conjoined p) => Accessing p (Endo (m (Maybe a))) s a -> p a (m Bool) -> s -> m (Maybe a)
-findMOf l p = foldrOf l (cotabulate $ \wa y -> corep p wa >>= \r -> if r then return (Just (extract wa)) else y) $ return Nothing
+findMOf l p = foldrOf l (cotabulate $ \wa y -> cosieve p wa >>= \r -> if r then return (Just (extract wa)) else y) $ return Nothing
 {-# INLINE findMOf #-}
 
 -- | A variant of 'foldrOf' that has no base case and thus may only be applied

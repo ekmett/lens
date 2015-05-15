@@ -86,6 +86,7 @@ import Data.Functor.Identity
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
+import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Prelude
 
@@ -275,7 +276,7 @@ argument = sets lmap
 -- 'setting' :: ((a -> b) -> s -> t) -> 'Setter' s t a b
 -- @
 setting :: ((a -> b) -> s -> t) -> IndexPreservingSetter s t a b
-setting l pafb = cotabulate $ \ws -> pure $ l (\a -> untainted (corep pafb (a <$ ws))) (extract ws)
+setting l pafb = cotabulate $ \ws -> pure $ l (\a -> untainted (cosieve pafb (a <$ ws))) (extract ws)
 {-# INLINE setting #-}
 
 -- | Build a 'Setter', 'IndexedSetter' or 'IndexPreservingSetter' depending on your choice of 'Profunctor'.
@@ -295,7 +296,7 @@ cloneSetter l afb = taintedDot $ runIdentity #. l (Identity #. untaintedDot afb)
 -- | Build an 'IndexPreservingSetter' from any 'Setter'.
 cloneIndexPreservingSetter :: ASetter s t a b -> IndexPreservingSetter s t a b
 cloneIndexPreservingSetter l pafb = cotabulate $ \ws ->
-    taintedDot runIdentity $ l (\a -> Identity (untainted (corep pafb (a <$ ws)))) (extract ws)
+    taintedDot runIdentity $ l (\a -> Identity (untainted (cosieve pafb (a <$ ws)))) (extract ws)
 {-# INLINE cloneIndexPreservingSetter #-}
 
 -- | Clone an 'IndexedSetter'.

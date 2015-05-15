@@ -48,6 +48,7 @@ import Data.Functor.Contravariant
 import Data.Int
 import Data.Profunctor
 import Data.Profunctor.Rep
+import Data.Profunctor.Sieve
 import Data.Traversable
 import Prelude hiding ((.),id)
 #ifndef SAFE
@@ -72,7 +73,7 @@ class
   -- 'Profunctor' over every Haskell 'Functor'. This is effectively a
   -- generalization of 'fmap'.
   distrib :: Functor f => p a b -> p (f a) (f b)
-  distrib = tabulate . collect . rep
+  distrib = tabulate . collect . sieve
   {-# INLINE distrib #-}
 
   -- | This permits us to make a decision at an outermost point about whether or not we use an index.
@@ -155,19 +156,23 @@ instance Profunctor (Indexed i) where
   {-# INLINE ( #. ) #-}
 #endif
 
-instance Corepresentable (Indexed i) where
-  type Corep (Indexed i) = (,) i
-  cotabulate = Indexed . curry
-  {-# INLINE cotabulate #-}
-  corep = uncurry . runIndexed
-  {-# INLINE corep #-}
+instance Sieve (Indexed i) ((->) i) where
+  sieve = flip . runIndexed
+  {-# INLINE sieve #-}
 
 instance Representable (Indexed i) where
   type Rep (Indexed i) = (->) i
   tabulate = Indexed . flip
   {-# INLINE tabulate #-}
-  rep = flip . runIndexed
-  {-# INLINE rep #-}
+
+instance Cosieve (Indexed i) ((,) i) where
+  cosieve = uncurry . runIndexed
+  {-# INLINE cosieve #-}
+
+instance Corepresentable (Indexed i) where
+  type Corep (Indexed i) = (,) i
+  cotabulate = Indexed . curry
+  {-# INLINE cotabulate #-}
 
 instance Choice (Indexed i) where
   right' = right

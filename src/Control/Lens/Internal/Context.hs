@@ -40,6 +40,7 @@ import Data.Functor.Contravariant
 import Data.Functor.Identity
 import Data.Profunctor
 import Data.Profunctor.Rep
+import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Prelude hiding ((.),id)
 
@@ -266,7 +267,7 @@ instance (a ~ b, Conjoined p) => ComonadStore a (Pretext p a b) where
   {-# INLINE experiment #-}
 
 instance Corepresentable p => Sellable p (Pretext p) where
-  sell = cotabulate $ \ w -> Pretext (`corep` w)
+  sell = cotabulate $ \ w -> Pretext (`cosieve` w)
   {-# INLINE sell #-}
 
 ------------------------------------------------------------------------------
@@ -346,7 +347,7 @@ instance (a ~ b, Conjoined p) => ComonadStore a (PretextT p g a b) where
   {-# INLINE experiment #-}
 
 instance Corepresentable p => Sellable p (PretextT p g) where
-  sell = cotabulate $ \ w -> PretextT (`corep` w)
+  sell = cotabulate $ \ w -> PretextT (`cosieve` w)
   {-# INLINE sell #-}
 
 instance (Profunctor p, Contravariant g) => Contravariant (PretextT p g a b) where
@@ -360,5 +361,5 @@ instance (Profunctor p, Contravariant g) => Contravariant (PretextT p g a b) whe
 -- | We can convert any 'Conjoined' 'Profunctor' to a function,
 -- possibly losing information about an index in the process.
 coarr :: (Representable q, Comonad (Rep q)) => q a b -> a -> b
-coarr qab = extract . rep qab
+coarr qab = extract . sieve qab
 {-# INLINE coarr #-}

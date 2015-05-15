@@ -46,6 +46,7 @@ import Data.Functor.Apply
 import Data.Functor.Contravariant
 import Data.Monoid
 import Data.Profunctor.Rep
+import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Data.Traversable
 import Prelude hiding ((.),id)
@@ -247,7 +248,7 @@ instance Corepresentable p => Bizarre p (TakingWhile p g) where
     go (MagmaAp x y)  = go x <*> go y
     go (MagmaFmap f x)  = f <$> go x
     go (MagmaPure x)    = pure x
-    go (Magma _ wa) = corep pafb wa
+    go (Magma _ wa) = cosieve pafb wa
   {-# INLINE bazaar #-}
 
 -- This constraint is unused intentionally, it protects TakingWhile

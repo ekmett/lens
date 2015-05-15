@@ -134,6 +134,7 @@ import Data.Functor.Yoneda
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
+import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Data.Void
 import Prelude
@@ -218,7 +219,7 @@ lens sa sbt afb s = sbt s <$> afb (sa s)
 -- | Build an index-preserving 'Lens' from a 'Control.Lens.Getter.Getter' and a
 -- 'Control.Lens.Setter.Setter'.
 iplens :: (s -> a) -> (s -> b -> t) -> IndexPreservingLens s t a b
-iplens sa sbt pafb = cotabulate $ \ws -> sbt (extract ws) <$> corep pafb (sa <$> ws)
+iplens sa sbt pafb = cotabulate $ \ws -> sbt (extract ws) <$> cosieve pafb (sa <$> ws)
 {-# INLINE iplens #-}
 
 -- | Build an 'IndexedLens' from a 'Control.Lens.Getter.Getter' and
@@ -383,8 +384,8 @@ fab ?? a = fmap ($ a) fab
 -- [2,1]
 inside :: Corepresentable p => ALens s t a b -> Lens (p e s) (p e t) (p e a) (p e b)
 inside l f es = o <$> f i where
-  i = cotabulate $ \ e -> ipos $ l sell (corep es e)
-  o ea = cotabulate $ \ e -> ipeek (corep ea e) $ l sell (corep es e)
+  i = cotabulate $ \ e -> ipos $ l sell (cosieve es e)
+  o ea = cotabulate $ \ e -> ipeek (cosieve ea e) $ l sell (cosieve es e)
 {-# INLINE inside #-}
 
 {-
@@ -441,7 +442,7 @@ choosing _ r f (Right a') = Right <$> r f a'
 -- 'chosen' f ('Right' a) = 'Right' '<$>' f a
 -- @
 chosen :: IndexPreservingLens (Either a a) (Either b b) a b
-chosen pafb = cotabulate $ \weaa -> corep (either id id `lmap` pafb) weaa <&> \b -> case extract weaa of
+chosen pafb = cotabulate $ \weaa -> cosieve (either id id `lmap` pafb) weaa <&> \b -> case extract weaa of
   Left _  -> Left  b
   Right _ -> Right b
 {-# INLINE chosen #-}
@@ -506,7 +507,7 @@ cloneLens l afb s = runPretext (l sell s) afb
 -- | Clone a 'Lens' as an 'IndexedPreservingLens' that just passes through whatever
 -- index is on any 'IndexedLens', 'IndexedFold', 'IndexedGetter' or  'IndexedTraversal' it is composed with.
 cloneIndexPreservingLens :: ALens s t a b -> IndexPreservingLens s t a b
-cloneIndexPreservingLens l pafb = cotabulate $ \ws -> runPretext (l sell (extract ws)) $ \a -> corep pafb (a <$ ws)
+cloneIndexPreservingLens l pafb = cotabulate $ \ws -> runPretext (l sell (extract ws)) $ \a -> cosieve pafb (a <$ ws)
 {-# INLINE cloneIndexPreservingLens #-}
 
 -- | Clone an 'IndexedLens' as an 'IndexedLens' with the same index.

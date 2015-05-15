@@ -145,6 +145,7 @@ import Data.Map as Map
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
+import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Data.Semigroup.Traversable
 import Data.Tagged
@@ -434,7 +435,7 @@ mapAccumROf = mapAccumLOf . backwards
 --
 mapAccumLOf :: Conjoined p => Over p (State acc) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumLOf l f acc0 s = swap (runState (l g s) acc0) where
-   g = cotabulate $ \wa -> state $ \acc -> swap (corep f (acc <$ wa) (extract wa))
+   g = cotabulate $ \wa -> state $ \acc -> swap (cosieve f (acc <$ wa) (extract wa))
 -- This would be much cleaner if the argument order for the function was swapped.
 {-# INLINE mapAccumLOf #-}
 
@@ -602,7 +603,7 @@ holesOf l s = unTagged
       in f (ins b) (unsafeOuts b))
      (Tagged $ let
         f [] _ = []
-        f (wx:xs) g = Pretext (\wxfy -> g . (:Prelude.map extract xs) <$> corep wxfy wx) : f xs (g . (extract wx:))
+        f (wx:xs) g = Pretext (\wxfy -> g . (:Prelude.map extract xs) <$> cosieve wxfy wx) : f xs (g . (extract wx:))
       in f (pins b) (unsafeOuts b))
     :: Tagged (p a b) [Pretext p a a t]
   ) where b = l sell s
@@ -643,8 +644,8 @@ singular l = conjoined
     (w:ws) -> unsafeOuts b . (:ws) <$> afb w
     []     -> unsafeOuts b . return <$> afb (error "singular: empty traversal"))
   (\pafb s -> let b = l sell s in case pins b of
-    (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> corep pafb w
-    []     -> unsafeOuts b . return                    <$> corep pafb (error "singular: empty traversal"))
+    (w:ws) -> unsafeOuts b . (:Prelude.map extract ws) <$> cosieve pafb w
+    []     -> unsafeOuts b . return                    <$> cosieve pafb (error "singular: empty traversal"))
 {-# INLINE singular #-}
 
 -- | This converts a 'Traversal' that you \"know\" will target only one element to a 'Lens'. It can also be
@@ -671,7 +672,7 @@ unsafeSingular l = conjoined
     []  -> error "unsafeSingular: empty traversal"
     _   -> error "unsafeSingular: traversing multiple results")
   (\pafb s -> let b = inline l sell s in case pins b of
-    [w] -> unsafeOuts b . return <$> corep pafb w
+    [w] -> unsafeOuts b . return <$> cosieve pafb w
     []  -> error "unsafeSingular: empty traversal"
     _   -> error "unsafeSingular: traversing multiple results")
 {-# INLINE unsafeSingular #-}
@@ -770,7 +771,7 @@ beside :: (Representable q, Applicative (Rep q), Applicative f, Bitraversable r)
        => Optical p q f s t a b
        -> Optical p q f s' t' a b
        -> Optical p q f (r s s') (r t t') a b
-beside l r f = tabulate $ getCompose #. bitraverse (Compose #. rep (l f)) (Compose #. rep (r f))
+beside l r f = tabulate $ getCompose #. bitraverse (Compose #. sieve (l f)) (Compose #. sieve (r f))
 {-# INLINE beside #-}
 
 -- | Visit the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
@@ -802,7 +803,7 @@ taking :: (Conjoined p, Applicative f)
        -> Over p f s t a a
 taking n l = conjoined
   (\ afb s  -> let b = inline l sell s in outs b <$> traverse afb          (take n $ ins b))
-  (\ pafb s -> let b = inline l sell s in outs b <$> traverse (corep pafb) (take n $ pins b))
+  (\ pafb s -> let b = inline l sell s in outs b <$> traverse (cosieve pafb) (take n $ pins b))
 {-# INLINE taking #-}
 
 -- | Visit all but the first /n/ targets of a 'Traversal', 'Fold', 'Getter' or 'Lens'.
@@ -829,7 +830,7 @@ taking n l = conjoined
 -- @
 dropping :: (Conjoined p, Applicative f) => Int -> Over p (Indexing f) s t a a -> Over p f s t a a
 dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
-  paifb = cotabulate $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (i', if i < n then pure (extract wa) else corep pafb wa)
+  paifb = cotabulate $ \wa -> Indexing $ \i -> let i' = i + 1 in i' `seq` (i', if i < n then pure (extract wa) else cosieve pafb wa)
 {-# INLINE dropping #-}
 
 ------------------------------------------------------------------------------
@@ -864,7 +865,7 @@ cloneTraversal l f = bazaar f . l sell
 -- | Clone a 'Traversal' yielding an 'IndexPreservingTraversal' that passes through
 -- whatever index it is composed with.
 cloneIndexPreservingTraversal :: ATraversal s t a b -> IndexPreservingTraversal s t a b
-cloneIndexPreservingTraversal l pafb = cotabulate $ \ws -> runBazaar (l sell (extract ws)) $ \a -> corep pafb (a <$ ws)
+cloneIndexPreservingTraversal l pafb = cotabulate $ \ws -> runBazaar (l sell (extract ws)) $ \a -> cosieve pafb (a <$ ws)
 {-# INLINE cloneIndexPreservingTraversal #-}
 
 -- | Clone an 'IndexedTraversal' yielding an 'IndexedTraversal' with the same index.
@@ -880,7 +881,7 @@ cloneTraversal1 l f = bazaar1 f . l sell
 -- | Clone a 'Traversal1' yielding an 'IndexPreservingTraversal1' that passes through
 -- whatever index it is composed with.
 cloneIndexPreservingTraversal1 :: ATraversal1 s t a b -> IndexPreservingTraversal1 s t a b
-cloneIndexPreservingTraversal1 l pafb = cotabulate $ \ws -> runBazaar1 (l sell (extract ws)) $ \a -> corep pafb (a <$ ws)
+cloneIndexPreservingTraversal1 l pafb = cotabulate $ \ws -> runBazaar1 (l sell (extract ws)) $ \a -> cosieve pafb (a <$ ws)
 {-# INLINE cloneIndexPreservingTraversal1 #-}
 
 -- | Clone an 'IndexedTraversal1' yielding an 'IndexedTraversal1' with the same index.
@@ -1222,7 +1223,7 @@ deepOf :: (Conjoined p, Applicative f) => LensLike f s t s t -> Traversing p f s
 deepOf r l pafb = go
   where go s = case pins b of
           [] -> r go s
-          xs -> unsafeOuts b <$> traverse (corep pafb) xs
+          xs -> unsafeOuts b <$> traverse (cosieve pafb) xs
           where b = l sell s
 
 -- | "Fuse" a 'Traversal' by reassociating all of the '\<*\>' operations to the

@@ -34,6 +34,7 @@ import Data.Functor.Identity
 import Data.Functor.Plus
 import Data.Profunctor
 import Data.Profunctor.Rep
+import Data.Profunctor.Sieve
 import Data.Semigroup
 
 -- $setup
@@ -167,15 +168,19 @@ instance Profunctor ReifiedGetter where
   rmap f l    = Getter $ runGetter l.to f
   {-# INLINE rmap #-}
 
+instance Cosieve ReifiedGetter Identity where
+  cosieve (Getter l) = view l . runIdentity
+
 instance Corepresentable ReifiedGetter where
   type Corep ReifiedGetter = Identity
   cotabulate f = Getter $ to (f . Identity)
-  corep (Getter l) = view l . runIdentity
+
+instance Sieve ReifiedGetter Identity where
+  sieve (Getter l) = Identity . view l
 
 instance Representable ReifiedGetter where
   type Rep ReifiedGetter = Identity
   tabulate f = Getter $ to (runIdentity . f)
-  rep (Getter l) = Identity . view l
 
 instance Conjoined ReifiedGetter
 
@@ -239,12 +244,14 @@ instance Profunctor (ReifiedIndexedGetter i) where
   dimap f g l = IndexedGetter (to f . runIndexedGetter l . to g)
   {-# INLINE dimap #-}
 
+instance Sieve (ReifiedIndexedGetter i) ((,) i) where
+  sieve = iview . runIndexedGetter
+  {-# INLINE sieve #-}
+
 instance Representable (ReifiedIndexedGetter i) where
   type Rep (ReifiedIndexedGetter i) = (,) i
   tabulate f = IndexedGetter $ ito f
   {-# INLINE tabulate #-}
-  rep = iview . runIndexedGetter
-  {-# INLINE rep #-}
 
 instance Strong (ReifiedIndexedGetter i) where
   first' l = IndexedGetter $ \f (s,c) ->
@@ -287,10 +294,12 @@ instance Profunctor ReifiedFold where
   lmap f l = Fold (to f . runFold l)
   {-# INLINE lmap #-}
 
+instance Sieve ReifiedFold [] where
+  sieve = toListOf . runFold
+
 instance Representable ReifiedFold where
   type Rep ReifiedFold = []
   tabulate f = Fold (folding f)
-  rep = toListOf . runFold
 
 instance Strong ReifiedFold where
   first' l = Fold $ \f (s,c) ->
@@ -442,12 +451,14 @@ instance Profunctor (ReifiedIndexedFold i) where
   rmap g l = IndexedFold (runIndexedFold l . to g)
   {-# INLINE rmap #-}
 
+instance Sieve (ReifiedIndexedFold i) (Compose [] ((,) i)) where
+  sieve (IndexedFold l) = Compose . itoListOf l
+  {-# INLINE sieve #-}
+
 instance Representable (ReifiedIndexedFold i) where
   type Rep (ReifiedIndexedFold i) = Compose [] ((,) i)
   tabulate k = IndexedFold $ \f -> coerce . traverse_ (coerce . uncurry (indexed f)) . getCompose . k
   {-# INLINE tabulate #-}
-  rep (IndexedFold l) = Compose . itoListOf l
-  {-# INLINE rep #-}
 
 instance Strong (ReifiedIndexedFold i) where
   first' l  = IndexedFold $ \f (s,c) ->
