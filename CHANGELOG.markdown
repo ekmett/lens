@@ -2,6 +2,7 @@
 -----
 * Added `elemIndexOf`, `elemIndicesOf`, `findIndexOf`, and `findIndicesOf`.
 * Fixed `Ixed` instance for `Tree`. It no longer drops nodes prior to the traversed node.
+* `bifunctors` 5, `profunctors` 5 and `semigroupoids` 5 support.
 
 4.9.1
 -----
