@@ -170,10 +170,6 @@ flag trustworthy
   default: True
   manual: True
 
-flag lib-Werror
-  default: False
-  manual: True
-
 -- Attempt a parallel build with GHC 7.8
 flag j
   default: False
@@ -310,9 +306,6 @@ library
 
   if flag(inlining)
     cpp-options: -DINLINING
-
-  if flag(lib-Werror)
-    ghc-options: -Werror
 
   if impl(ghc<7.4)
     ghc-options: -fno-spec-constr-count
