@@ -1,3 +1,7 @@
+4.11
+----
+* Proper `profunctors` 5.1 support. This extended the superclass constraints for `Conjoined`, so it resulted in a major version bump.
+
 4.10
 ----
 * Added `elemIndexOf`, `elemIndicesOf`, `findIndexOf`, and `findIndicesOf`.

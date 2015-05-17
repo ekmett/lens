@@ -182,6 +182,9 @@ instance Representable ReifiedGetter where
   type Rep ReifiedGetter = Identity
   tabulate f = Getter $ to (runIdentity . f)
 
+instance Costrong ReifiedGetter where
+  unfirst l = Getter $ to $ unfirst $ view (runGetter l)
+
 instance Conjoined ReifiedGetter
 
 instance Strong ReifiedGetter where

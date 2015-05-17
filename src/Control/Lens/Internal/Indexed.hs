@@ -66,7 +66,7 @@ import Control.Lens.Internal.Coerce
 class
   ( Choice p, Corepresentable p, Comonad (Corep p), Traversable (Corep p)
   , Strong p, Representable p, Monad (Rep p), MonadFix (Rep p), Distributive (Rep p)
-  , ArrowLoop p, ArrowApply p, ArrowChoice p
+  , Costrong p, ArrowLoop p, ArrowApply p, ArrowChoice p
   ) => Conjoined p where
 
   -- | 'Conjoined' is strong enough to let us distribute every 'Conjoined'
@@ -155,6 +155,11 @@ instance Profunctor (Indexed i) where
   ( #. ) _ = coerce'
   {-# INLINE ( #. ) #-}
 #endif
+
+instance Costrong (Indexed i) where
+  unfirst (Indexed iadbd) = Indexed $ \i a -> let
+      (b, d) = iadbd i (a, d)
+    in b
 
 instance Sieve (Indexed i) ((->) i) where
   sieve = flip . runIndexed
