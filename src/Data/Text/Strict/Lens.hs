@@ -18,9 +18,16 @@ module Data.Text.Strict.Lens
   , _Text
   ) where
 
-import Control.Lens
+import Control.Lens.Type
+import Control.Lens.Getter
+import Control.Lens.Fold
+import Control.Lens.Iso
+import Control.Lens.Prism
+import Control.Lens.Setter
+import Control.Lens.Traversal
 import Data.ByteString (ByteString)
-import Data.Text
+import Data.Monoid
+import Data.Text as Strict
 import Data.Text.Encoding
 import Data.Text.Lazy (toStrict)
 import Data.Text.Lazy.Builder
@@ -98,7 +105,22 @@ builder = iso fromText (toStrict . toLazyText)
 -- be more efficient.
 text :: IndexedTraversal' Int Text Char
 text = unpacked . traversed
-{-# INLINE text #-}
+{-# INLINE [0] text #-}
+
+{-# RULES
+"strict text -> map"    text = sets Strict.map        :: ASetter' Text Char;
+"strict text -> imap"   text = isets imapStrict       :: AnIndexedSetter' Int Text Char;
+"strict text -> foldr"  text = foldring Strict.foldr  :: Getting (Endo r) Text Char;
+"strict text -> ifoldr" text = ifoldring ifoldrStrict :: IndexedGetting Int (Endo r) Text Char;
+ #-}
+
+imapStrict :: (Int -> Char -> Char) -> Text -> Text
+imapStrict f = snd . Strict.mapAccumL (\i a -> i `seq` (i + 1, f i a)) 0
+{-# INLINE imapStrict #-}
+
+ifoldrStrict :: (Int -> Char -> a -> a) -> a -> Text -> a
+ifoldrStrict f z xs = Strict.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+{-# INLINE ifoldrStrict #-}
 
 -- | Encode/Decode a strict 'Text' to/from strict 'ByteString', via UTF-8.
 --

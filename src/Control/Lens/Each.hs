@@ -30,7 +30,6 @@ module Control.Lens.Each
     Each(..)
   ) where
 
-import Control.Lens.Iso
 import Control.Lens.Traversal
 import Control.Lens.Internal.ByteString
 import Data.Array.Unboxed as Unboxed
@@ -44,6 +43,7 @@ import Data.IntMap as IntMap
 import Data.List.NonEmpty
 import Data.Map as Map
 import Data.Sequence as Seq
+import Data.Text.Lens (text)
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Tree as Tree
@@ -183,12 +183,12 @@ instance (Unbox a, Unbox b) => Each (Unboxed.Vector a) (Unboxed.Vector b) a b wh
 
 -- | @'each' :: 'Traversal' 'StrictT.Text' 'StrictT.Text' 'Char' 'Char'@
 instance (a ~ Char, b ~ Char) => Each StrictT.Text StrictT.Text a b where
-  each = iso StrictT.unpack StrictT.pack . traversed
+  each = text
   {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' 'LazyT.Text' 'LazyT.Text' 'Char' 'Char'@
 instance (a ~ Char, b ~ Char) => Each LazyT.Text LazyT.Text a b where
-  each = iso LazyT.unpack LazyT.pack . traverse
+  each = text
   {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' 'StrictB.ByteString' 'StrictB.ByteString' 'Word8' 'Word8'@

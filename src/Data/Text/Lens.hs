@@ -18,7 +18,9 @@ module Data.Text.Lens
   , _Text
   ) where
 
-import           Control.Lens
+import           Control.Lens.Type
+import           Control.Lens.Iso
+import           Control.Lens.Traversal
 import           Data.Text as Strict
 import qualified Data.Text.Strict.Lens as Strict
 import           Data.Text.Lazy as Lazy
@@ -55,7 +57,7 @@ class IsText t where
 instance IsText String where
   packed = id
   {-# INLINE packed #-}
-  text = indexing traverse
+  text = traversed
   {-# INLINE text #-}
   builder = Lazy.packed . builder
   {-# INLINE builder #-}
@@ -104,3 +106,4 @@ instance IsText Lazy.Text where
   {-# INLINE builder #-}
   text = Lazy.text
   {-# INLINE text #-}
+
