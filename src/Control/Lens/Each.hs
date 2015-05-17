@@ -46,6 +46,7 @@ import Data.Sequence as Seq
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Tree as Tree
+import Data.Vector.Generic.Lens (vectorTraverse)
 import qualified Data.Vector as Vector
 import qualified Data.Vector.Primitive as Prim
 import Data.Vector.Primitive (Prim)
@@ -160,21 +161,23 @@ instance Each (Seq a) (Seq b) a b
 instance Each (Tree a) (Tree b) a b
 
 -- | @'each' :: 'Traversal' ('Vector.Vector' a) ('Vector.Vector' b) a b@
-instance Each (Vector.Vector a) (Vector.Vector b) a b
+instance Each (Vector.Vector a) (Vector.Vector b) a b where
+  each = vectorTraverse
+  {-# INLINE each #-}
 
 -- | @'each' :: ('Prim' a, 'Prim' b) => 'Traversal' ('Prim.Vector' a) ('Prim.Vector' b) a b@
 instance (Prim a, Prim b) => Each (Prim.Vector a) (Prim.Vector b) a b where
-  each f v = Prim.fromListN (Prim.length v) <$> traverse f (Prim.toList v)
+  each = vectorTraverse
   {-# INLINE each #-}
 
 -- | @'each' :: ('Storable' a, 'Storable' b) => 'Traversal' ('Storable.Vector' a) ('Storable.Vector' b) a b@
 instance (Storable a, Storable b) => Each (Storable.Vector a) (Storable.Vector b) a b where
-  each f v = Storable.fromListN (Storable.length v) <$> traverse f (Storable.toList v)
+  each = vectorTraverse
   {-# INLINE each #-}
 
 -- | @'each' :: ('Unbox' a, 'Unbox' b) => 'Traversal' ('Unboxed.Vector' a) ('Unboxed.Vector' b) a b@
 instance (Unbox a, Unbox b) => Each (Unboxed.Vector a) (Unboxed.Vector b) a b where
-  each f v = Unboxed.fromListN (Unboxed.length v) <$> traverse f (Unboxed.toList v)
+  each = vectorTraverse
   {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' 'StrictT.Text' 'StrictT.Text' 'Char' 'Char'@
