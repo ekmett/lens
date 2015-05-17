@@ -127,11 +127,13 @@ import Control.Applicative.Backwards
 import Control.Category
 import Control.Comonad
 import Control.Lens.Fold
-import Control.Lens.Getter (coerced)
+import Control.Lens.Getter (Getting, IndexedGetting, coerced)
+import Control.Lens.Setter (isets, sets)
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Lens
+import Control.Lens.Setter (ASetter, AnIndexedSetter)
 import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Trans.State.Lazy
@@ -142,6 +144,8 @@ import Data.Functor.Yoneda
 import Data.Int
 import Data.IntMap as IntMap
 import Data.Map as Map
+import Data.Sequence (Seq, mapWithIndex)
+import Data.Vector as Vector (Vector, imap)
 import Data.Monoid
 import Data.Profunctor
 import Data.Profunctor.Rep
@@ -1003,7 +1007,23 @@ imapAccumLOf l = mapAccumLOf l .# Indexed
 -- | Traverse any 'Traversable' container. This is an 'IndexedTraversal' that is indexed by ordinal position.
 traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b
 traversed = conjoined traverse (indexing traverse)
-{-# INLINE traversed #-}
+{-# INLINE [0] traversed #-}
+
+imapList :: (Int -> a -> b) -> [a] -> [b]
+imapList f = go 0
+  where
+    go i (x:xs) = f i x : go (i+1) xs
+    go _ []     = []
+{-# INLINE imapList #-}
+
+{-# RULES
+"traversed -> mapped"     traversed = sets fmap          :: Functor f => ASetter (f a) (f b) a b;
+"traversed -> folded"     traversed = folded             :: Foldable f => Getting (Endo r) (f a) a;
+"traversed -> ifolded"    traversed = folded             :: Foldable f => IndexedGetting Int (Endo r) (f a) a;
+"traversed -> imapList"   traversed = isets imapList     :: AnIndexedSetter Int [a] [b] a b;
+"traversed -> imapSeq"    traversed = isets mapWithIndex :: AnIndexedSetter Int (Seq a) (Seq b) a b;
+"traversed -> imapVector" traversed = isets Vector.imap  :: AnIndexedSetter Int (Vector a) (Vector b) a b;
+ #-}
 
 -- | Traverse any 'Traversable1' container. This is an 'IndexedTraversal1' that is indexed by ordinal position.
 traversed1 :: Traversable1 f => IndexedTraversal1 Int (f a) (f b) a b
