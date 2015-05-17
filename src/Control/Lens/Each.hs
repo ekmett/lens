@@ -32,6 +32,7 @@ module Control.Lens.Each
 
 import Control.Lens.Iso
 import Control.Lens.Traversal
+import Control.Lens.Internal.ByteString
 import Data.Array.Unboxed as Unboxed
 import Data.Array.IArray as IArray
 import Data.ByteString as StrictB
@@ -192,12 +193,12 @@ instance (a ~ Char, b ~ Char) => Each LazyT.Text LazyT.Text a b where
 
 -- | @'each' :: 'Traversal' 'StrictB.ByteString' 'StrictB.ByteString' 'Word8' 'Word8'@
 instance (a ~ Word8, b ~ Word8) => Each StrictB.ByteString StrictB.ByteString a b where
-  each = iso StrictB.unpack StrictB.pack . traverse
+  each = traversedStrictTree
   {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' 'LazyB.ByteString' 'LazyB.ByteString' 'Word8' 'Word8'@
 instance (a ~ Word8, b ~ Word8) => Each LazyB.ByteString LazyB.ByteString a b where
-  each = iso LazyB.unpack LazyB.pack . traverse
+  each = traversedLazy
   {-# INLINE each #-}
 
 -- | @'each' :: 'Ix' i => 'Traversal' ('Array' i a) ('Array' i b) a b@

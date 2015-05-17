@@ -39,7 +39,11 @@ module Control.Lens.Internal.ByteString
 import Control.Applicative
 #endif
 
-import Control.Lens
+import Control.Lens.Type
+import Control.Lens.Getter
+import Control.Lens.Fold
+import Control.Lens.Indexed
+import Control.Lens.Setter
 import qualified Data.ByteString               as B
 #if MIN_VERSION_bytestring(0,10,4)
 import qualified Data.ByteString.Char8         as B8
@@ -52,6 +56,7 @@ import Data.Bits
 import Data.Char
 import Data.Int (Int64)
 import Data.Word (Word8)
+import Data.Monoid
 import Foreign.Ptr
 import Foreign.Storable
 #if MIN_VERSION_base(4,8,0)
@@ -85,8 +90,22 @@ traversedStrictTree pafb bs = unsafeCreate len <$> go 0 len
      | i == j    = pure (\_ -> return ())
      | otherwise = let !x = BU.unsafeIndex bs i
                    in (\y ys q -> pokeByteOff q i y >> ys q) <$> indexed pafb (i :: Int) x <*> run (i + 1) j
-{-# INLINE traversedStrictTree #-}
+{-# INLINE [0] traversedStrictTree #-}
 
+{-# RULES
+"bytes -> map"    traversedStrictTree = sets B.map        :: ASetter' B.ByteString Word8;
+"bytes -> imap"   traversedStrictTree = isets imapB       :: AnIndexedSetter' Int B.ByteString Word8;
+"bytes -> foldr"  traversedStrictTree = foldring B.foldr  :: Getting (Endo r) B.ByteString Word8;
+"bytes -> ifoldr" traversedStrictTree = ifoldring ifoldrB :: IndexedGetting Int (Endo r) B.ByteString Word8;
+ #-}
+
+imapB :: (Int -> Word8 -> Word8) -> B.ByteString -> B.ByteString
+imapB f = snd . B.mapAccumL (\i a -> i `seq` (i + 1, f i a)) 0
+{-# INLINE imapB #-}
+
+ifoldrB :: (Int -> Word8 -> a -> a) -> a -> B.ByteString -> a
+ifoldrB f z xs = B.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+{-# INLINE ifoldrB #-}
 
 -- | Traverse a strict 'B.ByteString' in a relatively balanced fashion, as a balanced tree with biased runs of
 -- elements at the leaves, pretending the bytes are chars.
@@ -104,7 +123,22 @@ traversedStrictTree8 pafb bs = unsafeCreate len <$> go 0 len
                           in (\y ys q -> pokeByteOff q i (c2w y) >> ys q)
                          <$> indexed pafb (i :: Int) (w2c x)
                          <*> run (i + 1) j
-{-# INLINE traversedStrictTree8 #-}
+{-# INLINE [0] traversedStrictTree8 #-}
+
+{-# RULES
+"chars -> map"    traversedStrictTree8 = sets B8.map        :: ASetter' B.ByteString Char;
+"chars -> imap"   traversedStrictTree8 = isets imapB8       :: AnIndexedSetter' Int B.ByteString Char;
+"chars -> foldr"  traversedStrictTree8 = foldring B8.foldr  :: Getting (Endo r) B.ByteString Char;
+"chars -> ifoldr" traversedStrictTree8 = ifoldring ifoldrB8 :: IndexedGetting Int (Endo r) B.ByteString Char;
+ #-}
+
+imapB8 :: (Int -> Char -> Char) -> B.ByteString -> B.ByteString
+imapB8 f = snd . B8.mapAccumL (\i a -> i `seq` (i + 1, f i a)) 0
+{-# INLINE imapB8 #-}
+
+ifoldrB8 :: (Int -> Char -> a -> a) -> a -> B.ByteString -> a
+ifoldrB8 f z xs = B8.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+{-# INLINE ifoldrB8 #-}
 
 -- | Unpack a lazy 'Bytestring'
 unpackLazy :: BL.ByteString -> [Word8]
@@ -121,8 +155,26 @@ traversedLazy pafb = \lbs -> foldrChunks go (\_ -> pure BL.empty) lbs 0
     where
     acc' :: Int64
     !acc' = acc + fromIntegral (B.length c)
-{-# INLINE traversedLazy #-}
+{-# INLINE [1] traversedLazy #-}
 
+{-# RULES
+  "sets lazy bytestring"
+    traversedLazy = sets BL.map :: ASetter' BL.ByteString Word8;
+  "isets lazy bytestring"
+    traversedLazy = isets imapBL :: AnIndexedSetter' Int BL.ByteString Word8;
+  "gets lazy bytestring"
+    traversedLazy = foldring BL.foldr :: Getting (Endo r) BL.ByteString Word8;
+  "igets lazy bytestring"
+    traversedLazy = ifoldring ifoldrBL :: IndexedGetting Int (Endo r) BL.ByteString Word8;
+ #-}
+
+imapBL :: (Int -> Word8 -> Word8) -> BL.ByteString -> BL.ByteString
+imapBL f = snd . BL.mapAccumL (\i a -> i `seq` (i + 1, f i a)) 0
+{-# INLINE imapBL #-}
+
+ifoldrBL :: (Int -> Word8 -> a -> a) -> a -> BL.ByteString -> a
+ifoldrBL f z xs = BL.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+{-# INLINE ifoldrBL #-}
 
 -- | Unpack a lazy 'BL.ByteString' pretending the bytes are chars.
 unpackLazy8 :: BL.ByteString -> String
@@ -139,7 +191,26 @@ traversedLazy8 pafb = \lbs -> foldrChunks go (\_ -> pure BL.empty) lbs 0
     where
     acc' :: Int64
     !acc' = acc + fromIntegral (B.length c)
-{-# INLINE traversedLazy8 #-}
+{-# INLINE [1] traversedLazy8 #-}
+
+{-# RULES
+  "sets lazy bytestring"
+    traversedLazy8 = sets BL8.map :: ASetter' BL8.ByteString Char;
+  "isets lazy bytestring"
+    traversedLazy8 = isets imapBL8 :: AnIndexedSetter' Int BL8.ByteString Char;
+  "gets lazy bytestring"
+    traversedLazy8 = foldring BL8.foldr :: Getting (Endo r) BL8.ByteString Char;
+  "igets lazy bytestring"
+    traversedLazy8 = ifoldring ifoldrBL8 :: IndexedGetting Int (Endo r) BL8.ByteString Char;
+ #-}
+
+imapBL8 :: (Int -> Char -> Char) -> BL8.ByteString -> BL8.ByteString
+imapBL8 f = snd . BL8.mapAccumL (\i a -> i `seq` (i + 1, f i a)) 0
+{-# INLINE imapBL8 #-}
+
+ifoldrBL8 :: (Int -> Char -> a -> a) -> a -> BL8.ByteString -> a
+ifoldrBL8 f z xs = BL8.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+{-# INLINE ifoldrBL8 #-}
 
 ------------------------------------------------------------------------------
 -- ByteString guts
