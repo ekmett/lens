@@ -135,16 +135,24 @@ instance Each (Complex a) (Complex b) a b where
   {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' ('Map' c a) ('Map' c b) a b@
-instance (c ~ d) => Each (Map c a) (Map d b) a b
+instance (c ~ d) => Each (Map c a) (Map d b) a b where
+  each = traversed
+  {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' ('Map' c a) ('Map' c b) a b@
-instance Each (IntMap a) (IntMap b) a b
+instance Each (IntMap a) (IntMap b) a b where
+  each = traversed
+  {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' ('HashMap' c a) ('HashMap' c b) a b@
-instance (c ~ d) => Each (HashMap c a) (HashMap d b) a b
+instance (c ~ d) => Each (HashMap c a) (HashMap d b) a b where
+  each = traversed
+  {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' [a] [b] a b@
-instance Each [a] [b] a b
+instance Each [a] [b] a b where
+  each = traversed
+  {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' (NonEmpty a) (NonEmpty b) a b@
 instance Each (NonEmpty a) (NonEmpty b) a b
@@ -156,7 +164,9 @@ instance Each (Identity a) (Identity b) a b
 instance Each (Maybe a) (Maybe b) a b
 
 -- | @'each' :: 'Traversal' ('Seq' a) ('Seq' b) a b@
-instance Each (Seq a) (Seq b) a b
+instance Each (Seq a) (Seq b) a b where
+  each = traversed
+  {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' ('Tree' a) ('Tree' b) a b@
 instance Each (Tree a) (Tree b) a b
