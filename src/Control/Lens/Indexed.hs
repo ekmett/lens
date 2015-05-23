@@ -107,7 +107,6 @@ import Data.Map as Map
 import Data.Monoid hiding (Product)
 import Data.Profunctor.Unsafe
 import Data.Sequence hiding ((:<), index)
-import Data.Traversable
 import Data.Tree
 import Data.Tuple (swap)
 import Data.Vector (Vector)
@@ -609,8 +608,8 @@ instance TraversableWithIndex k ((,) k) where
 instance FunctorWithIndex Int []
 instance FoldableWithIndex Int []
 instance TraversableWithIndex Int [] where
-  itraverse = itraverseOf traversed
-  {-# INLINE itraverse #-}
+  itraversed = traversed
+  {-# INLINE itraversed #-}
 
 instance FunctorWithIndex Int NonEmpty
 instance FoldableWithIndex Int NonEmpty
@@ -632,8 +631,8 @@ instance TraversableWithIndex () Maybe where
 instance FunctorWithIndex Int Seq
 instance FoldableWithIndex Int Seq
 instance TraversableWithIndex Int Seq where
-  itraverse = itraverseOf traversed
-  {-# INLINE itraverse #-}
+  itraversed = traversed
+  {-# INLINE itraversed #-}
 
 instance FunctorWithIndex Int Vector where
   imap = V.imap
@@ -648,8 +647,8 @@ instance FoldableWithIndex Int Vector where
   ifoldl' = V.ifoldl' . flip
   {-# INLINE ifoldl' #-}
 instance TraversableWithIndex Int Vector where
-  itraverse f = sequenceA . V.imap f
-  {-# INLINE itraverse #-}
+  itraversed = traversed
+  {-# INLINE itraversed #-}
 
 instance FunctorWithIndex Int IntMap
 instance FoldableWithIndex Int IntMap
@@ -659,7 +658,14 @@ instance TraversableWithIndex Int IntMap where
 #else
   itraverse f = sequenceA . IntMap.mapWithKey f
 #endif
-  {-# INLINE itraverse #-}
+  {-# INLINE [0] itraverse #-}
+
+{-# RULES
+"itraversed -> mapIntMap"    itraversed = sets IntMap.map               :: ASetter (IntMap a) (IntMap b) a b;
+"itraversed -> imapIntMap"   itraversed = isets IntMap.mapWithKey       :: AnIndexedSetter Int (IntMap a) (IntMap b) a b;
+"itraversed -> foldrIntMap"  itraversed = foldring IntMap.foldr         :: Getting (Endo r) (IntMap a) a;
+"itraversed -> ifoldrIntMap" itraversed = ifoldring IntMap.foldrWithKey :: IndexedGetting Int (Endo r) (IntMap a) a;
+ #-}
 
 instance FunctorWithIndex k (Map k)
 instance FoldableWithIndex k (Map k)
@@ -669,13 +675,27 @@ instance TraversableWithIndex k (Map k) where
 #else
   itraverse f = sequenceA . Map.mapWithKey f
 #endif
-  {-# INLINE itraverse #-}
+  {-# INLINE [0] itraverse #-}
+
+{-# RULES
+"itraversed -> mapMap"    itraversed = sets Map.map               :: ASetter (Map k a) (Map k b) a b;
+"itraversed -> imapMap"   itraversed = isets Map.mapWithKey       :: AnIndexedSetter k (Map k a) (Map k b) a b;
+"itraversed -> foldrMap"  itraversed = foldring Map.foldr         :: Getting (Endo r) (Map k a) a;
+"itraversed -> ifoldrMap" itraversed = ifoldring Map.foldrWithKey :: IndexedGetting k (Endo r) (Map k a) a;
+ #-}
 
 instance (Eq k, Hashable k) => FunctorWithIndex k (HashMap k)
 instance (Eq k, Hashable k) => FoldableWithIndex k (HashMap k)
 instance (Eq k, Hashable k) => TraversableWithIndex k (HashMap k) where
   itraverse = HashMap.traverseWithKey
-  {-# INLINE itraverse #-}
+  {-# INLINE [0] itraverse #-}
+
+{-# RULES
+"itraversed -> mapHashMap"    itraversed = sets HashMap.map               :: ASetter (HashMap k a) (HashMap k b) a b;
+"itraversed -> imapHashMap"   itraversed = isets HashMap.mapWithKey       :: AnIndexedSetter k (HashMap k a) (HashMap k b) a b;
+"itraversed -> foldrHashMap"  itraversed = foldring HashMap.foldr         :: Getting (Endo r) (HashMap k a) a;
+"itraversed -> ifoldrHashMap" itraversed = ifoldring HashMap.foldrWithKey :: IndexedGetting k (Endo r) (HashMap k a) a;
+ #-}
 
 instance FunctorWithIndex r ((->) r) where
   imap f g x = f x (g x)
