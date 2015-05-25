@@ -52,6 +52,7 @@ module Control.Lens.Fold
 
   -- ** Building Folds
   , folding, ifolding
+  , foldring, ifoldring
   , folded
   , folded64
   , unfolded
@@ -204,6 +205,19 @@ ifolding :: (Foldable f, Indexable i p, Contravariant g, Applicative g) => (s ->
 ifolding sfa f = coerce . traverse_ (coerce . uncurry (indexed f)) . sfa
 {-# INLINE ifolding #-}
 
+-- | Obtain a 'Fold' by lifting 'foldr' like function.
+--
+-- >>> [1,2,3,4]^..foldring foldr
+-- [1,2,3,4]
+foldring :: (Contravariant f, Applicative f) => ((a -> f a -> f a) -> f a -> s -> f a) -> LensLike f s t a b
+foldring fr f = coerce . fr (\a fa -> f a *> fa) noEffect
+{-# INLINE foldring #-}
+
+-- | Obtain 'FoldWithIndex' by lifting 'ifoldr' like function.
+ifoldring :: (Indexable i p, Contravariant f, Applicative f) => ((i -> a -> f a -> f a) -> f a -> s -> f a) -> Over p f s t a b
+ifoldring ifr f = coerce . ifr (\i a fa -> indexed f i a *> fa) noEffect
+{-# INLINE ifoldring #-}
+
 -- | Obtain a 'Fold' from any 'Foldable' indexed by ordinal position.
 --
 -- >>> Just 3^..folded
@@ -215,17 +229,21 @@ ifolding sfa f = coerce . traverse_ (coerce . uncurry (indexed f)) . sfa
 -- >>> [(1,2),(3,4)]^..folded.both
 -- [1,2,3,4]
 folded :: Foldable f => IndexedFold Int (f a) a
-folded = conjoined folded' (indexing folded')
+folded = conjoined (foldring Foldable.foldr) (ifoldring ifoldr)
 {-# INLINE folded #-}
+
+ifoldr :: Foldable f => (Int -> a -> b -> b) -> b -> f a -> b
+ifoldr f z xs = Foldable.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+{-# INLINE ifoldr #-}
 
 -- | Obtain a 'Fold' from any 'Foldable' indexed by ordinal position.
 folded64 :: Foldable f => IndexedFold Int64 (f a) a
-folded64 = conjoined folded' (indexing64 folded')
+folded64 = conjoined (foldring Foldable.foldr) (ifoldring ifoldr64)
 {-# INLINE folded64 #-}
 
-folded' :: Foldable f => Fold (f a) a
-folded' f = coerce . getFolding . foldMap (Folding #. f)
-{-# INLINE folded' #-}
+ifoldr64 :: Foldable f => (Int64 -> a -> b -> b) -> b -> f a -> b
+ifoldr64 f z xs = Foldable.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+{-# INLINE ifoldr64 #-}
 
 -- | Form a 'Fold1' by repeating the input forever.
 --

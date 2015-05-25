@@ -30,10 +30,18 @@ module Data.Vector.Generic.Lens
   -- * Traversal of individual indices
   , ordinals
   , vectorIx
+  , vectorTraverse
   ) where
 
 import Control.Applicative
-import Control.Lens
+import Control.Lens.Type
+import Control.Lens.Lens
+import Control.Lens.Getter
+import Control.Lens.Fold
+import Control.Lens.Iso
+import Control.Lens.Indexed
+import Control.Lens.Setter
+import Control.Lens.Traversal
 import Control.Lens.Internal.List (ordinalNub)
 import Data.Monoid
 import Data.Vector.Generic as V hiding (zip, filter, indexed)
@@ -122,6 +130,18 @@ vectorIx i f v
   | 0 <= i && i < V.length v = f (v V.! i) <&> \a -> v V.// [(i, a)]
   | otherwise                = pure v
 {-# INLINE vectorIx #-}
+
+-- | Indexed vector traversal for a generic vector.
+vectorTraverse :: (V.Vector v a, V.Vector w b) => IndexedTraversal Int (v a) (w b) a b
+vectorTraverse f v = V.fromListN (V.length v) <$> traversed f (V.toList v)
+{-# INLINE [0] vectorTraverse #-}
+
+{-# RULES
+"vectorTraverse -> mapped" vectorTraverse  = sets V.map         :: (V.Vector v a, V.Vector v b) => ASetter (v a) (v b) a b;
+"vectorTraverse -> imapped" vectorTraverse = isets V.imap       :: (V.Vector v a, V.Vector v b) => AnIndexedSetter Int (v a) (v b) a b;
+"vectorTraverse -> foldr"  vectorTraverse  = foldring V.foldr   :: V.Vector v a => Getting (Endo r) (v a) a;
+"vectorTraverse -> ifoldr" vectorTraverse  = ifoldring V.ifoldr :: V.Vector v a => IndexedGetting Int (Endo r) (v a) a;
+ #-}
 
 -- | Different vector implementations are isomorphic to each other.
 converted :: (Vector v a, Vector w a, Vector v b, Vector w b) => Iso (v a) (v b) (w a) (w b)

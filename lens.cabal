@@ -447,6 +447,36 @@ benchmark alongside
     lens,
     transformers
 
+-- Benchmarking folds
+benchmark folds
+  type:           exitcode-stdio-1.0
+  main-is:        folds.hs
+  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs: benchmarks
+  build-depends:
+    base,
+    criterion,
+    containers,
+    bytestring,
+    unordered-containers,
+    vector,
+    lens
+
+-- Benchmarking traversals
+benchmark traversals
+  type:           exitcode-stdio-1.0
+  main-is:        traversals.hs
+  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs: benchmarks
+  build-depends:
+    base,
+    criterion,
+    containers,
+    bytestring,
+    unordered-containers,
+    vector,
+    lens
+
 -- Benchmarking unsafe implementation strategies
 benchmark unsafe
   type:           exitcode-stdio-1.0
@@ -462,7 +492,6 @@ benchmark unsafe
     generic-deriving,
     lens,
     transformers
-
 
 -- Benchmarking zipper usage
 benchmark zipper

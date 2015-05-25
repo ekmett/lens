@@ -19,14 +19,22 @@ module Data.Text.Lazy.Lens
   , utf8
   ) where
 
-import Control.Lens
+import Control.Lens.Type
+import Control.Lens.Getter
+import Control.Lens.Fold
+import Control.Lens.Iso
+import Control.Lens.Prism
+import Control.Lens.Setter
+import Control.Lens.Traversal
 import Data.ByteString.Lazy as ByteString
+import Data.Monoid
 import Data.Text.Lazy as Text
 import Data.Text.Lazy.Builder
 import Data.Text.Lazy.Encoding
 
 -- $setup
 -- >>> :set -XOverloadedStrings
+-- >>> import Control.Lens
 
 -- | This isomorphism can be used to 'pack' (or 'unpack') lazy 'Text'.
 --
@@ -102,7 +110,22 @@ builder = iso fromLazyText toLazyText
 -- can be more efficient.
 text :: IndexedTraversal' Int Text Char
 text = unpacked . traversed
-{-# INLINE text #-}
+{-# INLINE [0] text #-}
+
+{-# RULES
+"lazy text -> map"    text = sets Text.map        :: ASetter' Text Char;
+"lazy text -> imap"   text = isets imapLazy       :: AnIndexedSetter' Int Text Char;
+"lazy text -> foldr"  text = foldring Text.foldr  :: Getting (Endo r) Text Char;
+"lazy text -> ifoldr" text = ifoldring ifoldrLazy :: IndexedGetting Int (Endo r) Text Char;
+ #-}
+
+imapLazy :: (Int -> Char -> Char) -> Text -> Text
+imapLazy f = snd . Text.mapAccumL (\i a -> i `seq` (i + 1, f i a)) 0
+{-# INLINE imapLazy #-}
+
+ifoldrLazy :: (Int -> Char -> a -> a) -> a -> Text -> a
+ifoldrLazy f z xs = Text.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+{-# INLINE ifoldrLazy #-}
 
 -- | Encode/Decode a lazy 'Text' to/from lazy 'ByteString', via UTF-8.
 --

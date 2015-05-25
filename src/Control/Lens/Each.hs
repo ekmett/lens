@@ -30,8 +30,8 @@ module Control.Lens.Each
     Each(..)
   ) where
 
-import Control.Lens.Iso
 import Control.Lens.Traversal
+import Control.Lens.Internal.ByteString
 import Data.Array.Unboxed as Unboxed
 import Data.Array.IArray as IArray
 import Data.ByteString as StrictB
@@ -43,9 +43,11 @@ import Data.IntMap as IntMap
 import Data.List.NonEmpty
 import Data.Map as Map
 import Data.Sequence as Seq
+import Data.Text.Lens (text)
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
 import Data.Tree as Tree
+import Data.Vector.Generic.Lens (vectorTraverse)
 import qualified Data.Vector as Vector
 import qualified Data.Vector.Primitive as Prim
 import Data.Vector.Primitive (Prim)
@@ -133,16 +135,24 @@ instance Each (Complex a) (Complex b) a b where
   {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' ('Map' c a) ('Map' c b) a b@
-instance (c ~ d) => Each (Map c a) (Map d b) a b
+instance (c ~ d) => Each (Map c a) (Map d b) a b where
+  each = traversed
+  {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' ('Map' c a) ('Map' c b) a b@
-instance Each (IntMap a) (IntMap b) a b
+instance Each (IntMap a) (IntMap b) a b where
+  each = traversed
+  {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' ('HashMap' c a) ('HashMap' c b) a b@
-instance (c ~ d) => Each (HashMap c a) (HashMap d b) a b
+instance (c ~ d) => Each (HashMap c a) (HashMap d b) a b where
+  each = traversed
+  {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' [a] [b] a b@
-instance Each [a] [b] a b
+instance Each [a] [b] a b where
+  each = traversed
+  {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' (NonEmpty a) (NonEmpty b) a b@
 instance Each (NonEmpty a) (NonEmpty b) a b
@@ -154,47 +164,51 @@ instance Each (Identity a) (Identity b) a b
 instance Each (Maybe a) (Maybe b) a b
 
 -- | @'each' :: 'Traversal' ('Seq' a) ('Seq' b) a b@
-instance Each (Seq a) (Seq b) a b
+instance Each (Seq a) (Seq b) a b where
+  each = traversed
+  {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' ('Tree' a) ('Tree' b) a b@
 instance Each (Tree a) (Tree b) a b
 
 -- | @'each' :: 'Traversal' ('Vector.Vector' a) ('Vector.Vector' b) a b@
-instance Each (Vector.Vector a) (Vector.Vector b) a b
+instance Each (Vector.Vector a) (Vector.Vector b) a b where
+  each = vectorTraverse
+  {-# INLINE each #-}
 
 -- | @'each' :: ('Prim' a, 'Prim' b) => 'Traversal' ('Prim.Vector' a) ('Prim.Vector' b) a b@
 instance (Prim a, Prim b) => Each (Prim.Vector a) (Prim.Vector b) a b where
-  each f v = Prim.fromListN (Prim.length v) <$> traverse f (Prim.toList v)
+  each = vectorTraverse
   {-# INLINE each #-}
 
 -- | @'each' :: ('Storable' a, 'Storable' b) => 'Traversal' ('Storable.Vector' a) ('Storable.Vector' b) a b@
 instance (Storable a, Storable b) => Each (Storable.Vector a) (Storable.Vector b) a b where
-  each f v = Storable.fromListN (Storable.length v) <$> traverse f (Storable.toList v)
+  each = vectorTraverse
   {-# INLINE each #-}
 
 -- | @'each' :: ('Unbox' a, 'Unbox' b) => 'Traversal' ('Unboxed.Vector' a) ('Unboxed.Vector' b) a b@
 instance (Unbox a, Unbox b) => Each (Unboxed.Vector a) (Unboxed.Vector b) a b where
-  each f v = Unboxed.fromListN (Unboxed.length v) <$> traverse f (Unboxed.toList v)
+  each = vectorTraverse
   {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' 'StrictT.Text' 'StrictT.Text' 'Char' 'Char'@
 instance (a ~ Char, b ~ Char) => Each StrictT.Text StrictT.Text a b where
-  each = iso StrictT.unpack StrictT.pack . traversed
+  each = text
   {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' 'LazyT.Text' 'LazyT.Text' 'Char' 'Char'@
 instance (a ~ Char, b ~ Char) => Each LazyT.Text LazyT.Text a b where
-  each = iso LazyT.unpack LazyT.pack . traverse
+  each = text
   {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' 'StrictB.ByteString' 'StrictB.ByteString' 'Word8' 'Word8'@
 instance (a ~ Word8, b ~ Word8) => Each StrictB.ByteString StrictB.ByteString a b where
-  each = iso StrictB.unpack StrictB.pack . traverse
+  each = traversedStrictTree
   {-# INLINE each #-}
 
 -- | @'each' :: 'Traversal' 'LazyB.ByteString' 'LazyB.ByteString' 'Word8' 'Word8'@
 instance (a ~ Word8, b ~ Word8) => Each LazyB.ByteString LazyB.ByteString a b where
-  each = iso LazyB.unpack LazyB.pack . traverse
+  each = traversedLazy
   {-# INLINE each #-}
 
 -- | @'each' :: 'Ix' i => 'Traversal' ('Array' i a) ('Array' i b) a b@
