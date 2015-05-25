@@ -137,6 +137,7 @@ import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Trans.State.Lazy
 import Data.Bitraversable
+import Data.Foldable (Foldable)
 import Data.Functor.Compose
 import Data.Functor.Kan.Rift
 import Data.Functor.Yoneda
