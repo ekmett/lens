@@ -208,7 +208,7 @@ ifolding sfa f = coerce . traverse_ (coerce . uncurry (indexed f)) . sfa
 -- | Obtain a 'Fold' by lifting 'foldr' like function.
 --
 -- >>> [1,2,3,4]^..foldring foldr
--- [2,3,4]
+-- [1,2,3,4]
 foldring :: (Contravariant f, Applicative f) => ((a -> f a -> f a) -> f a -> s -> f a) -> LensLike f s t a b
 foldring fr f = coerce . fr (\a fa -> f a *> fa) noEffect
 {-# INLINE foldring #-}
@@ -229,20 +229,20 @@ ifoldring ifr f = coerce . ifr (\i a fa -> indexed f i a *> fa) noEffect
 -- >>> [(1,2),(3,4)]^..folded.both
 -- [1,2,3,4]
 folded :: Foldable f => IndexedFold Int (f a) a
-folded = conjoined (foldring foldr) (ifoldring ifoldr)
+folded = conjoined (foldring Foldable.foldr) (ifoldring ifoldr)
 {-# INLINE folded #-}
 
 ifoldr :: Foldable f => (Int -> a -> b -> b) -> b -> f a -> b
-ifoldr f z xs = foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+ifoldr f z xs = Foldable.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
 {-# INLINE ifoldr #-}
 
 -- | Obtain a 'Fold' from any 'Foldable' indexed by ordinal position.
 folded64 :: Foldable f => IndexedFold Int64 (f a) a
-folded64 = conjoined (foldring foldr) (ifoldring ifoldr64)
+folded64 = conjoined (foldring Foldable.foldr) (ifoldring ifoldr64)
 {-# INLINE folded64 #-}
 
 ifoldr64 :: Foldable f => (Int64 -> a -> b -> b) -> b -> f a -> b
-ifoldr64 f z xs = foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+ifoldr64 f z xs = Foldable.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
 {-# INLINE ifoldr64 #-}
 
 -- | Form a 'Fold1' by repeating the input forever.

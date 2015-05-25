@@ -128,12 +128,11 @@ import Control.Category
 import Control.Comonad
 import Control.Lens.Fold
 import Control.Lens.Getter (Getting, IndexedGetting, coerced)
-import Control.Lens.Setter (isets, sets)
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Lens
-import Control.Lens.Setter (ASetter, AnIndexedSetter)
+import Control.Lens.Setter (ASetter, AnIndexedSetter, isets, sets)
 import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Trans.State.Lazy

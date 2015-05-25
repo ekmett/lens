@@ -27,6 +27,9 @@ import           Data.Text.Lazy as Lazy
 import qualified Data.Text.Lazy.Lens as Lazy
 import           Data.Text.Lazy.Builder
 
+-- $setup
+-- >>> import Control.Lens
+
 -- | Traversals for strict or lazy 'Text'
 class IsText t where
   -- | This isomorphism can be used to 'pack' (or 'unpack') strict or lazy 'Text'.
