@@ -45,9 +45,7 @@ import Control.Lens.Fold
 import Control.Lens.Indexed
 import Control.Lens.Setter
 import qualified Data.ByteString               as B
-#if MIN_VERSION_bytestring(0,10,4)
 import qualified Data.ByteString.Char8         as B8
-#endif
 import qualified Data.ByteString.Lazy          as BL
 import qualified Data.ByteString.Lazy.Char8    as BL8
 import qualified Data.ByteString.Internal      as BI
