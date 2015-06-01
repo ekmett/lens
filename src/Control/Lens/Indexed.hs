@@ -107,6 +107,9 @@ import Data.Map as Map
 import Data.Monoid hiding (Product)
 import Data.Profunctor.Unsafe
 import Data.Sequence hiding ((:<), index)
+#if !(MIN_VERSION_containers(0,5,0))
+import Data.Traversable (sequenceA)
+#endif
 import Data.Tree
 import Data.Tuple (swap)
 import Data.Vector (Vector)
