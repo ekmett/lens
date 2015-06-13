@@ -391,49 +391,55 @@ sans k m = m & at k .~ Nothing
 {-# INLINE sans #-}
 
 instance At (Maybe a) where
-  at () f = f
+  at () = \f -> f
   {-# INLINE at #-}
 
 instance At (IntMap a) where
-  at k f m = f mv <&> \r -> case r of
+  at k = \f m ->
+    let mv = IntMap.lookup k m
+    in f mv <&> \r -> case r of
     Nothing -> maybe m (const (IntMap.delete k m)) mv
     Just v' -> IntMap.insert k v' m
-    where mv = IntMap.lookup k m
   {-# INLINE at #-}
 
 instance Ord k => At (Map k a) where
-  at k f m = f mv <&> \r -> case r of
+  at k = \f m ->
+    let mv = Map.lookup k m
+    in f mv <&> \r -> case r of
     Nothing -> maybe m (const (Map.delete k m)) mv
     Just v' -> Map.insert k v' m
-    where mv = Map.lookup k m
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At (HashMap k a) where
-  at k f m = f mv <&> \r -> case r of
+  at k = \f m ->
+    let mv = HashMap.lookup k m
+    in f mv <&> \r -> case r of
     Nothing -> maybe m (const (HashMap.delete k m)) mv
     Just v' -> HashMap.insert k v' m
-    where mv = HashMap.lookup k m
   {-# INLINE at #-}
 
 instance At IntSet where
-  at k f m = f mv <&> \r -> case r of
+  at k = \f m ->
+    let mv = if IntSet.member k m then Just () else Nothing
+    in f mv <&> \r -> case r of
     Nothing -> maybe m (const (IntSet.delete k m)) mv
     Just () -> IntSet.insert k m
-    where mv = if IntSet.member k m then Just () else Nothing
   {-# INLINE at #-}
 
 instance Ord k => At (Set k) where
-  at k f m = f mv <&> \r -> case r of
+  at k = \f m ->
+    let mv = if Set.member k m then Just () else Nothing
+    in f mv <&> \r -> case r of
     Nothing -> maybe m (const (Set.delete k m)) mv
     Just () -> Set.insert k m
-    where mv = if Set.member k m then Just () else Nothing
   {-# INLINE at #-}
 
 instance (Eq k, Hashable k) => At (HashSet k) where
-  at k f m = f mv <&> \r -> case r of
+  at k = \f m ->
+    let mv = if HashSet.member k m then Just () else Nothing
+    in f mv <&> \r -> case r of
     Nothing -> maybe m (const (HashSet.delete k m)) mv
     Just () -> HashSet.insert k m
-    where mv = if HashSet.member k m then Just () else Nothing
   {-# INLINE at #-}
 
 
