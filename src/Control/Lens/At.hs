@@ -130,17 +130,17 @@ class Contains m where
   contains :: Index m -> Lens' m Bool
 
 instance Contains IntSet where
-  contains k f s = f (IntSet.member k s) <&> \b ->
+  contains k = \f s -> f (IntSet.member k s) <&> \b ->
     if b then IntSet.insert k s else IntSet.delete k s
   {-# INLINE contains #-}
 
 instance Ord a => Contains (Set a) where
-  contains k f s = f (Set.member k s) <&> \b ->
+  contains k = \f s -> f (Set.member k s) <&> \b ->
     if b then Set.insert k s else Set.delete k s
   {-# INLINE contains #-}
 
 instance (Eq a, Hashable a) => Contains (HashSet a) where
-  contains k f s = f (HashSet.member k s) <&> \b ->
+  contains k = \f s -> f (HashSet.member k s) <&> \b ->
     if b then HashSet.insert k s else HashSet.delete k s
   {-# INLINE contains #-}
 
