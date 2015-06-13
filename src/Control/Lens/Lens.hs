@@ -150,6 +150,7 @@ import Data.Function ((&))
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State
+-- >>> import Data.Char (chr)
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
@@ -253,6 +254,9 @@ s &~ l = execState l s
 -- When applied to a 'Traversal', it can edit the
 -- targets of the traversals, extracting an applicative summary of its
 -- actions.
+--
+-- >>> [66,97,116,109,97,110] & each %%~ \a -> ("na", chr a)
+-- ("nananananana","Batman")
 --
 -- For all that the definition of this combinator is just:
 --
