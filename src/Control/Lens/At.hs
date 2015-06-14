@@ -404,7 +404,7 @@ sans k m = m & at k .~ Nothing
 {-# INLINE sans #-}
 
 instance At (Maybe a) where
-  at () = \f -> f
+  at () = id
   {-# INLINE at #-}
 
 instance At (IntMap a) where
