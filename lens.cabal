@@ -322,7 +322,7 @@ test-suite templates
   type: exitcode-stdio-1.0
   main-is: templates.hs
   build-depends: base, lens
-  ghc-options: -Wall -Werror -threaded
+  ghc-options: -Wall -threaded
   hs-source-dirs: tests
 
   if flag(dump-splices)
@@ -396,9 +396,6 @@ test-suite doctests
       text,
       unordered-containers,
       vector
-
-  if impl(ghc<7.6.1)
-    ghc-options: -Werror
 
 test-suite hlint
   type: exitcode-stdio-1.0
