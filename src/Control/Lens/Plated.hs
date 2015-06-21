@@ -422,22 +422,22 @@ universeOnOf :: Getting [a] s a -> Getting [a] a a -> s -> [a]
 universeOnOf b = foldMapOf b . universeOf
 {-# INLINE universeOnOf #-}
 
--- | Traverse over all transitive descendants of a 'Plated' container, including itself.
+-- | Fold over all transitive descendants of a 'Plated' container, including itself.
 cosmos :: Plated a => Fold a a
 cosmos = cosmosOf plate
 {-# INLINE cosmos #-}
 
--- | Given a 'Fold' that knows how to locate immediate children, traverse all of the transitive descendants of a node, including itself.
+-- | Given a 'Fold' that knows how to locate immediate children, fold all of the transitive descendants of a node, including itself.
 cosmosOf :: Fold a a -> Fold a a
 cosmosOf d f s = f s *> d (cosmosOf d f) s
 {-# INLINE cosmosOf #-}
 
--- | Given a 'Fold' that knows how to find 'Plated' parts of a container traverse them and all of their descendants, recursively.
+-- | Given a 'Fold' that knows how to find 'Plated' parts of a container fold them and all of their descendants, recursively.
 cosmosOn :: Plated a => Fold s a -> Fold s a
 cosmosOn d = cosmosOnOf d plate
 {-# INLINE cosmosOn #-}
 
--- | Given a 'Fold' that knows how to locate immediate children, traverse all of the transitive descendants of a node, including itself that lie
+-- | Given a 'Fold' that knows how to locate immediate children, fold all of the transitive descendants of a node, including itself that lie
 -- in a region indicated by another 'Fold'.
 cosmosOnOf :: Fold s a -> Fold a a -> Fold s a
 cosmosOnOf d p = d . cosmosOf p
