@@ -1,3 +1,7 @@
+4.11.1
+------
+* Added `cosmos`, `cosmosOf`, `cosmosOn`, `cosmosOnOf` to `Control.Lens.Plated`.
+
 4.11
 ----
 * Proper `profunctors` 5.1 support. This extended the superclass constraints for `Conjoined`, so it resulted in a major version bump.
