@@ -428,18 +428,30 @@ cosmos = cosmosOf plate
 {-# INLINE cosmos #-}
 
 -- | Given a 'Fold' that knows how to locate immediate children, fold all of the transitive descendants of a node, including itself.
-cosmosOf :: Fold a a -> Fold a a
+--
+-- @
+-- 'cosmosOf' :: 'Fold' a a -> 'Fold' a a
+-- @
+cosmosOf :: (Applicative f, Contravariant f) => LensLike' f a a -> LensLike' f a a
 cosmosOf d f s = f s *> d (cosmosOf d f) s
 {-# INLINE cosmosOf #-}
 
 -- | Given a 'Fold' that knows how to find 'Plated' parts of a container fold them and all of their descendants, recursively.
-cosmosOn :: Plated a => Fold s a -> Fold s a
+--
+-- @
+-- 'cosmosOn' :: 'Plated' a => 'Fold' s a -> 'Fold' s a
+-- @
+cosmosOn :: (Applicative f, Contravariant f, Plated a) => LensLike' f a a -> LensLike' f a a
 cosmosOn d = cosmosOnOf d plate
 {-# INLINE cosmosOn #-}
 
 -- | Given a 'Fold' that knows how to locate immediate children, fold all of the transitive descendants of a node, including itself that lie
 -- in a region indicated by another 'Fold'.
-cosmosOnOf :: Fold s a -> Fold a a -> Fold s a
+--
+-- @
+-- 'cosmosOnOf' :: 'Fold' s a -> 'Fold' a a -> 'Fold' s a
+-- @
+cosmosOnOf :: (Applicative f, Contravariant f) => LensLike' f s a -> LensLike' f a a -> LensLike' f s a
 cosmosOnOf d p = d . cosmosOf p
 {-# INLINE cosmosOnOf #-}
 
