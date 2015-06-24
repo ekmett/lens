@@ -166,6 +166,7 @@ import Prelude hiding ((.),id)
 -- >>> import Data.Maybe (fromMaybe)
 -- >>> import Debug.SimpleReflect.Vars
 -- >>> import Data.Void
+-- >>> import Data.List (sort)
 -- >>> import System.Timeout (timeout)
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
 
@@ -529,7 +530,8 @@ partsOf l f s = outs b <$> f (ins b) where b = l sell s
 ipartsOf :: forall i p f s t a. (Indexable [i] p, Functor f) => Traversing (Indexed i) f s t a a -> Over p f s t [a] [a]
 ipartsOf l = conjoined
   (\f s -> let b = inline l sell s                            in outs b <$> f (wins b))
-  (\f s -> let b = inline l sell s; (is, as) = unzip (pins b) in outs b <$> indexed f (is :: [i]) as)
+  (\f s -> let b = inline l sell s; (is, as) = unzip (pins b) in outs b <$> indexed
+ f (is :: [i]) as)
 {-# INLINE ipartsOf #-}
 
 -- | A type-restricted version of 'partsOf' that can only be used with a 'Traversal'.
