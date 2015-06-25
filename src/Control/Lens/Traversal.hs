@@ -509,7 +509,7 @@ iloci f w = getCompose (runBazaar w (Compose #. Indexed (\i -> fmap (indexed sel
 -- (x,y,c)
 --
 -- >>> ('b', 'a', 'd', 'c') & partsOf each %~ sort
--- ('a', 'b', 'c', 'd')
+-- ('a','b','c','d')
 --
 -- So technically, this is only a 'Lens' if you do not change the number of results it returns.
 --
