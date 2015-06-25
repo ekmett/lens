@@ -24,7 +24,7 @@
 module Control.Lens.TH
   (
   -- * Constructing Lenses Automatically
-    makeLenses, makeLensesFor
+    makeLenses, makeLensesFor, makeLenses_
   , makeClassy, makeClassyFor, makeClassy_
   , makePrisms
   , makeClassyPrisms
@@ -45,10 +45,8 @@ module Control.Lens.TH
   , abbreviatedFields
   , LensRules
   , DefName(..)
-  , lensRules
-  , lensRulesFor
-  , classyRules
-  , classyRules_
+  , lensRules, lensRulesFor, lensRules_
+  , classyRules, classyRulesFor, classyRules_
   , lensField
   , lensClass
   , simpleLenses
@@ -152,29 +150,32 @@ createClass f r =
 
 -- | 'Lens'' to access the convention for naming fields in our 'LensRules'.
 --
--- Defaults to stripping the _ off of the field name, lowercasing the name, and
--- skipping the field if it doesn't start with an '_'. The field naming rule
--- provides the names of all fields in the type as well as the current field.
--- This extra generality enables field naming conventions that depend on the
--- full set of names in a type.
+-- Defaults to stripping the @_@ off of the field name, lowercasing the first
+-- letter, and skipping the field if it doesn't start with an @_@ (however,
+-- if /no/ fields start with an @_@, it will do the opposite thing and add
+-- @_@ to all of them).
 --
--- The field naming rule has access to the type name, the names of all the field
--- of that type (including the field being named), and the name of the field
--- being named.
+-- The field naming rule has access to the type name, the names of all the
+-- field of that type (including the field being named), and the name of the
+-- field being named. This extra generality enables field naming conventions
+-- that depend on the full set of names in a type.
 --
--- TypeName -> FieldNames -> FieldName -> DefinitionNames
+-- @TypeName -> FieldNames -> FieldName -> DefinitionNames@
 lensField :: Lens' LensRules (Name -> [Name] -> Name -> [DefName])
 lensField f r = fmap (\x -> r { _fieldToDef = x}) (f (_fieldToDef r))
 
--- | Retrieve options such as the name of the class and method to put in it to
--- build a class around monomorphic data types. "Classy" lenses are generated
--- when this naming convention is provided.
--- TypeName -> Maybe (ClassName, MainMethodName)
+-- | Retrieve options such as the name of the class and method to put in
+-- it to build a class around monomorphic data types. \"Classy\" lenses are
+-- generated when this naming convention is provided.
+--
+-- @TypeName -> Maybe (ClassName, MainMethodName)@
 lensClass :: Lens' LensRules (Name -> Maybe (Name, Name))
 lensClass f r = fmap (\x -> r { _classyLenses = x }) (f (_classyLenses r))
 
--- | Rules for making fairly simple partial lenses, ignoring the special cases
--- for isomorphisms and traversals, and not making any classes.
+-- | Rules for making fairly simple partial lenses, ignoring the special
+-- cases for isomorphisms and traversals, and not making any classes.
+--
+-- See 'lensField' for a description of default rules used to name lenses.
 lensRules :: LensRules
 lensRules = LensRules
   { _simpleLenses    = False
@@ -184,11 +185,21 @@ lensRules = LensRules
   , _allowUpdates    = True
   , _lazyPatterns    = False
   , _classyLenses    = const Nothing
-  , _fieldToDef      = \_ _ n ->
-       case nameBase n of
-         '_':x:xs -> [TopName (mkName (toLower x:xs))]
-         _        -> []
+  , _fieldToDef      = simpleNamer
   }
+
+simpleNamer :: Name -> [Name] -> Name -> [DefName]
+simpleNamer _ fields
+  | any hasUnderscore fields = delUnderscore
+  | otherwise                = addUnderscore
+  where
+    hasUnderscore n = case nameBase n of
+      '_':_ -> True
+      _     -> False
+    addUnderscore n = [TopName (mkName ('_' : nameBase n))]
+    delUnderscore n = case nameBase n of
+      '_':x:xs -> [TopName (mkName (toLower x:xs))]
+      _        -> []    
 
 -- | Construct a 'LensRules' value for generating top-level definitions
 -- using the given map from field names to definition names.
@@ -200,6 +211,11 @@ lensRulesFor fields = lensRules & lensField .~ mkNameLookup fields
 mkNameLookup :: [(String,String)] -> Name -> [Name] -> Name -> [DefName]
 mkNameLookup kvs _ _ field =
   [ TopName (mkName v) | (k,v) <- kvs, k == nameBase field]
+
+-- | Same as 'lensRules', but all lenses will be prefixed with @_@.
+lensRules_ :: LensRules
+lensRules_
+  = lensRules & lensField .~ \_ _ n -> [TopName (mkName ('_':nameBase n))]
 
 -- | Rules for making lenses and traversals that precompose another 'Lens'.
 classyRules :: LensRules
@@ -214,10 +230,7 @@ classyRules = LensRules
         case nameBase n of
           x:xs -> Just (mkName ("Has" ++ x:xs), mkName (toLower x:xs))
           []   -> Nothing
-  , _fieldToDef      = \_ _ n ->
-        case nameBase n of
-          '_':x:xs -> [TopName (mkName (toLower x:xs))]
-          _        -> []
+  , _fieldToDef      = simpleNamer
   }
 
 -- | Rules for making lenses and traversals that precompose another 'Lens'
@@ -231,6 +244,7 @@ classyRulesFor classFun fields = classyRules
   & lensClass .~ (over (mapped . both) mkName . classFun . nameBase)
   & lensField .~ mkNameLookup fields
 
+-- | Same as 'classyRules', but all lenses will be prefixed with @_@.
 classyRules_ :: LensRules
 classyRules_
   = classyRules & lensField .~ \_ _ n -> [TopName (mkName ('_':nameBase n))]
@@ -257,11 +271,18 @@ classyRules_
 -- y _ c\@(Bar _) = pure c
 -- @
 --
+-- See 'lensRules' for details.
+--
 -- @
 -- 'makeLenses' = 'makeLensesWith' 'lensRules'
 -- @
 makeLenses :: Name -> DecsQ
 makeLenses = makeFieldOptics lensRules
+
+-- | Works the same as 'makeLenses' except that it makes lenses for /all/
+-- fields and the resulting lenses are prefixed with @_@.
+makeLenses_ :: Name -> DecsQ
+makeLenses_ = makeFieldOptics lensRules_
 
 -- | Make lenses and traversals for a type, and create a class when the
 -- type has no arguments.
