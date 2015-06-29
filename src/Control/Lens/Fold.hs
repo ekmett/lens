@@ -2310,7 +2310,7 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 -- When you don't need access to the indices in the result, then 'toListOf' is more flexible in what it accepts.
 --
 -- @
--- 'toListOf' l ≡ 'map' 'fst' '.' 'itoListOf' l
+-- 'toListOf' l ≡ 'map' 'snd' '.' 'itoListOf' l
 -- @
 --
 -- @
