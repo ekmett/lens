@@ -359,8 +359,20 @@ infixl 1 &
 as <&> f = f <$> as
 {-# INLINE (<&>) #-}
 
--- | This is convenient to 'flip' argument order of composite functions.
+-- | This is convenient to 'flip' argument order of composite functions defined as:
 --
+-- @
+-- fab ?? a = fmap ($ a) fab
+-- @
+-- 
+-- For the 'Functor' instance @f = ((->) r)@ you can reason about this function as if the definition was @('??') ≡ 'flip'@:
+-- 
+-- >>> (h ?? x) a
+-- h a x
+-- 
+-- >>> execState ?? [] $ modify (1:)
+-- [1]
+-- 
 -- >>> over _2 ?? ("hello","world") $ length
 -- ("hello",5)
 --

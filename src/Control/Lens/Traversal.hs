@@ -166,6 +166,7 @@ import Prelude hiding ((.),id)
 -- >>> import Data.Maybe (fromMaybe)
 -- >>> import Debug.SimpleReflect.Vars
 -- >>> import Data.Void
+-- >>> import Data.List (sort)
 -- >>> import System.Timeout (timeout)
 -- >>> let timingOut :: NFData a => a -> IO a; timingOut = fmap (fromMaybe (error "timeout")) . timeout (5*10^6) . evaluate . force
 
@@ -506,6 +507,9 @@ iloci f w = getCompose (runBazaar w (Compose #. Indexed (\i -> fmap (indexed sel
 --
 -- >>> (a,b,c) & partsOf each .~ [x,y]
 -- (x,y,c)
+--
+-- >>> ('b', 'a', 'd', 'c') & partsOf each %~ sort
+-- ('a','b','c','d')
 --
 -- So technically, this is only a 'Lens' if you do not change the number of results it returns.
 --
