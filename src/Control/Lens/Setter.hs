@@ -495,7 +495,7 @@ l ?~ b = set l (Just b)
 
 -- | Set with pass-through.
 --
--- This is mostly present for consistency, but may be useful for for chaining assignments.
+-- This is mostly present for consistency, but may be useful for chaining assignments.
 --
 -- If you do not need a copy of the intermediate result, then using @l '.~' t@ directly is a good idea.
 --
