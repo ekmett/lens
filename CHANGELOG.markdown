@@ -1,3 +1,7 @@
+4.11.2
+------
+* Give `cosmosOn` a more general type.
+
 4.11.1
 ------
 * Added `cosmos`, `cosmosOf`, `cosmosOn`, `cosmosOnOf` to `Control.Lens.Plated`.
