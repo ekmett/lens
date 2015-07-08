@@ -441,7 +441,7 @@ cosmosOf d f s = f s *> d (cosmosOf d f) s
 -- @
 -- 'cosmosOn' :: 'Plated' a => 'Fold' s a -> 'Fold' s a
 -- @
-cosmosOn :: (Applicative f, Contravariant f, Plated a) => LensLike' f a a -> LensLike' f a a
+cosmosOn :: (Applicative f, Contravariant f, Plated a) => LensLike' f s a -> LensLike' f s a
 cosmosOn d = cosmosOnOf d plate
 {-# INLINE cosmosOn #-}
 
