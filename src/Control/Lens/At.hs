@@ -151,6 +151,7 @@ class Contains m where
 -- fromList [1,2,3,4]
 icontains :: Contains m => Index m -> IndexedLens' (Index m) m Bool
 icontains i f = contains i (indexed f i)
+{-# INLINE icontains #-}
 
 instance Contains IntSet where
   contains k f s = f (IntSet.member k s) <&> \b ->
@@ -214,6 +215,7 @@ class Ixed m where
 -- Nothing
 iix :: Ixed m => Index m -> IndexedTraversal' (Index m) m (IxValue m)
 iix i f = ix i (indexed f i)
+{-# INLINE iix #-}
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
@@ -442,6 +444,7 @@ sans k m = m & at k .~ Nothing
 --
 iat :: At m => Index m -> IndexedLens' (Index m) m (Maybe (IxValue m))
 iat i f = at i (indexed f i)
+{-# INLINE iat #-}
 
 instance At (Maybe a) where
   at () f = f
