@@ -30,20 +30,25 @@
 module Control.Lens.At
   (
   -- * At
-    At(at), sans
+    At(at)
+    , sans
+    , iat
   -- * Ixed
   , Index
   , IxValue
   , Ixed(ix)
   , ixAt
+  , iix
   -- * Contains
-  , Contains(..)
+  , Contains(contains)
+  , icontains
   ) where
 
 import Control.Lens.Each
 import Control.Lens.Traversal
 import Control.Lens.Lens
 import Control.Lens.Setter
+import Control.Lens.Indexed
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
 import Data.ByteString as StrictB
@@ -65,7 +70,7 @@ import Data.Tree
 import Data.Vector as Vector hiding (indexed)
 import Data.Vector.Primitive as Prim
 import Data.Vector.Storable as Storable
-import Data.Vector.Unboxed as Unboxed
+import Data.Vector.Unboxed as Unboxed hiding (indexed)
 import Data.Word
 
 #if !MIN_VERSION_base(4,8,0)
@@ -111,11 +116,13 @@ type instance Index LazyB.ByteString = Int64
 -- >>> import Control.Lens
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g)
--- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
--- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
+-- >>> let f  :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
+-- >>> let g  :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
+-- >>> let f' :: Int -> Expr -> Expr; f' = Debug.SimpleReflect.Vars.f'
+-- >>> let h  :: Int -> Expr; h = Debug.SimpleReflect.Vars.h
 
 -- |
--- This class provides a simple 'IndexedFold' (or 'IndexedTraversal') that lets you view (and modify)
+-- This class provides a simple 'Lens' that lets you view (and modify)
 -- information about whether or not a container contains a given 'Index'.
 class Contains m where
   -- |
@@ -128,6 +135,22 @@ class Contains m where
   -- >>> IntSet.fromList [1,2,3,4] & contains 3 .~ False
   -- fromList [1,2,4]
   contains :: Index m -> Lens' m Bool
+
+-- | An indexed version of 'contains'.
+--
+-- >>> IntSet.fromList [1,2,3,4] ^@. icontains 3
+-- (3,True)
+--
+-- >>> IntSet.fromList [1,2,3,4] ^@. icontains 5
+-- (5,False)
+--
+-- >>> IntSet.fromList [1,2,3,4] & icontains 3 %@~ \i x -> if odd i then not x else x
+-- fromList [1,2,4]
+--
+-- >>> IntSet.fromList [1,2,3,4] & icontains 3 %@~ \i x -> if even i then not x else x
+-- fromList [1,2,3,4]
+icontains :: Contains m => Index m -> IndexedLens' (Index m) m Bool
+icontains i f = contains i (indexed f i)
 
 instance Contains IntSet where
   contains k f s = f (IntSet.member k s) <&> \b ->
@@ -175,6 +198,22 @@ class Ixed m where
   ix = ixAt
   {-# INLINE ix #-}
 #endif
+
+-- | An indexed version of 'ix'.
+--
+-- >>> Seq.fromList [a,b,c,d] & iix 2 %@~ f'
+-- fromList [a,b,f' 2 c,d]
+--
+-- >>> Seq.fromList [a,b,c,d] & iix 2 .@~ h
+-- fromList [a,b,h 2,d]
+--
+-- >>> Seq.fromList [a,b,c,d] ^@? iix 2
+-- Just (2,c)
+--
+-- >>> Seq.fromList [] ^@? iix 2
+-- Nothing
+iix :: Ixed m => Index m -> IndexedTraversal' (Index m) m (IxValue m)
+iix i f = ix i (indexed f i)
 
 -- | A definition of 'ix' for types with an 'At' instance. This is the default
 -- if you don't specify a definition for 'ix'.
@@ -389,6 +428,20 @@ class Ixed m => At m where
 sans :: At m => Index m -> m -> m
 sans k m = m & at k .~ Nothing
 {-# INLINE sans #-}
+
+-- | An indexed version of 'at'.
+--
+-- >>> Map.fromList [(1,"world")] ^@. iat 1
+-- (1,Just "world")
+--
+-- >>> iat 1 %@~ (\i x -> if odd i then Just "hello" else Nothing) $ Map.empty
+-- fromList [(1,"hello")]
+--
+-- >>> iat 2 %@~ (\i x -> if odd i then Just "hello" else Nothing) $ Map.empty
+-- fromList []
+--
+iat :: At m => Index m -> IndexedLens' (Index m) m (Maybe (IxValue m))
+iat i f = at i (indexed f i)
 
 instance At (Maybe a) where
   at () f = f
