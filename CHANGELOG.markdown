@@ -3,6 +3,7 @@
 * Added `cosmos`, `cosmosOf`, `cosmosOn`, `cosmosOnOf` to `Control.Lens.Plated`.
 * Added `icontains`, `iat`, `iix`.
 * Made various documentation improvements.
+* Added a `test-templates` flag.
 
 4.11
 ----
