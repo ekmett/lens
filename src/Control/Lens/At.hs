@@ -137,7 +137,7 @@ class Contains m where
   contains :: Index m -> Lens' m Bool
 
 -- | An indexed version of 'contains'.
--- |
+--
 -- >>> IntSet.fromList [1,2,3,4] ^@. icontains 3
 -- (3,True)
 --
@@ -200,6 +200,7 @@ class Ixed m where
 #endif
 
 -- | An indexed version of 'ix'.
+--
 -- >>> Seq.fromList [a,b,c,d] & iix 2 %@~ f'
 -- fromList [a,b,f' 2 c,d]
 --
@@ -429,6 +430,7 @@ sans k m = m & at k .~ Nothing
 {-# INLINE sans #-}
 
 -- | An indexed version of 'at'.
+--
 -- >>> Map.fromList [(1,"world")] ^@. iat 1
 -- (1,Just "world")
 --
