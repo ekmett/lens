@@ -1,15 +1,8 @@
-4.11.2.1
---------
-* More aggressively inline `icontains`, `iat`, and `iix`.
-
-4.11.2
-------
-* Added `icontains`, `iat`, `iix`.
-* Made various documentation improvements.
-
 4.11.1
 ------
 * Added `cosmos`, `cosmosOf`, `cosmosOn`, `cosmosOnOf` to `Control.Lens.Plated`.
+* Added `icontains`, `iat`, `iix`.
+* Made various documentation improvements.
 
 4.11
 ----
