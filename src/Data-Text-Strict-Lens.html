@@ -27,94 +27,117 @@
 <a name="line-18"></a>  <span class='hs-layout'>,</span> <span class='hs-sel'>_Text</span>
 <a name="line-19"></a>  <span class='hs-layout'>)</span> <span class='hs-keyword'>where</span>
 <a name="line-20"></a>
-<a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span>
-<a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-layout'>(</span><span class='hs-conid'>ByteString</span><span class='hs-layout'>)</span>
-<a name="line-23"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span>
-<a name="line-24"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Encoding</span>
-<a name="line-25"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span> <span class='hs-layout'>(</span><span class='hs-varid'>toStrict</span><span class='hs-layout'>)</span>
-<a name="line-26"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span>
-<a name="line-27"></a>
-<a name="line-28"></a><span class='hs-comment'>-- $setup</span>
-<a name="line-29"></a><span class='hs-comment'>-- &gt;&gt;&gt; :set -XOverloadedStrings</span>
-<a name="line-30"></a>
-<a name="line-31"></a><a name="packed"></a><span class='hs-comment'>-- | This isomorphism can be used to 'pack' (or 'unpack') strict 'Text'.</span>
-<a name="line-32"></a><span class='hs-comment'>--</span>
-<a name="line-33"></a><span class='hs-comment'>--</span>
-<a name="line-34"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello"^.packed -- :: Text</span>
-<a name="line-35"></a><span class='hs-comment'>-- "hello"</span>
-<a name="line-36"></a><span class='hs-comment'>--</span>
-<a name="line-37"></a><span class='hs-comment'>-- @</span>
-<a name="line-38"></a><span class='hs-comment'>-- 'pack' x ≡ x '^.' 'packed'</span>
-<a name="line-39"></a><span class='hs-comment'>-- 'unpack' x ≡ x '^.' 'from' 'packed'</span>
-<a name="line-40"></a><span class='hs-comment'>-- 'packed' ≡ 'from' 'unpacked'</span>
-<a name="line-41"></a><span class='hs-comment'>-- 'packed' ≡ 'iso' 'pack' 'unpack'</span>
-<a name="line-42"></a><span class='hs-comment'>-- @</span>
-<a name="line-43"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>String</span> <span class='hs-conid'>Text</span>
-<a name="line-44"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>pack</span> <span class='hs-varid'>unpack</span>
-<a name="line-45"></a><span class='hs-comment'>{-# INLINE packed #-}</span>
-<a name="line-46"></a>
-<a name="line-47"></a><a name="unpacked"></a><span class='hs-comment'>-- | This isomorphism can be used to 'unpack' (or 'pack') lazy 'Text'.</span>
-<a name="line-48"></a><span class='hs-comment'>--</span>
-<a name="line-49"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello"^.unpacked -- :: String</span>
-<a name="line-50"></a><span class='hs-comment'>-- "hello"</span>
-<a name="line-51"></a><span class='hs-comment'>--</span>
-<a name="line-52"></a><span class='hs-comment'>-- This 'Iso' is provided for notational convenience rather than out of great need, since</span>
-<a name="line-53"></a><span class='hs-comment'>--</span>
-<a name="line-54"></a><span class='hs-comment'>-- @</span>
-<a name="line-55"></a><span class='hs-comment'>-- 'unpacked' ≡ 'from' 'packed'</span>
-<a name="line-56"></a><span class='hs-comment'>-- @</span>
-<a name="line-57"></a><span class='hs-comment'>--</span>
-<a name="line-58"></a><span class='hs-comment'>-- @</span>
-<a name="line-59"></a><span class='hs-comment'>-- 'pack' x ≡ x '^.' 'from' 'unpacked'</span>
-<a name="line-60"></a><span class='hs-comment'>-- 'unpack' x ≡ x '^.' 'packed'</span>
-<a name="line-61"></a><span class='hs-comment'>-- 'unpacked' ≡ 'iso' 'unpack' 'pack'</span>
+<a name="line-21"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Type</span>
+<a name="line-22"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Getter</span>
+<a name="line-23"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Fold</span>
+<a name="line-24"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Iso</span>
+<a name="line-25"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Prism</span>
+<a name="line-26"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Setter</span>
+<a name="line-27"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Control</span><span class='hs-varop'>.</span><span class='hs-conid'>Lens</span><span class='hs-varop'>.</span><span class='hs-conid'>Traversal</span>
+<a name="line-28"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>ByteString</span> <span class='hs-layout'>(</span><span class='hs-conid'>ByteString</span><span class='hs-layout'>)</span>
+<a name="line-29"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Monoid</span>
+<a name="line-30"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span> <span class='hs-keyword'>as</span> <span class='hs-conid'>Strict</span>
+<a name="line-31"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Encoding</span>
+<a name="line-32"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span> <span class='hs-layout'>(</span><span class='hs-varid'>toStrict</span><span class='hs-layout'>)</span>
+<a name="line-33"></a><span class='hs-keyword'>import</span> <span class='hs-conid'>Data</span><span class='hs-varop'>.</span><span class='hs-conid'>Text</span><span class='hs-varop'>.</span><span class='hs-conid'>Lazy</span><span class='hs-varop'>.</span><span class='hs-conid'>Builder</span>
+<a name="line-34"></a>
+<a name="line-35"></a><span class='hs-comment'>-- $setup</span>
+<a name="line-36"></a><span class='hs-comment'>-- &gt;&gt;&gt; :set -XOverloadedStrings</span>
+<a name="line-37"></a><span class='hs-comment'>-- &gt;&gt;&gt; import Control.Lens</span>
+<a name="line-38"></a>
+<a name="line-39"></a><a name="packed"></a><span class='hs-comment'>-- | This isomorphism can be used to 'pack' (or 'unpack') strict 'Text'.</span>
+<a name="line-40"></a><span class='hs-comment'>--</span>
+<a name="line-41"></a><span class='hs-comment'>--</span>
+<a name="line-42"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello"^.packed -- :: Text</span>
+<a name="line-43"></a><span class='hs-comment'>-- "hello"</span>
+<a name="line-44"></a><span class='hs-comment'>--</span>
+<a name="line-45"></a><span class='hs-comment'>-- @</span>
+<a name="line-46"></a><span class='hs-comment'>-- 'pack' x ≡ x '^.' 'packed'</span>
+<a name="line-47"></a><span class='hs-comment'>-- 'unpack' x ≡ x '^.' 'from' 'packed'</span>
+<a name="line-48"></a><span class='hs-comment'>-- 'packed' ≡ 'from' 'unpacked'</span>
+<a name="line-49"></a><span class='hs-comment'>-- 'packed' ≡ 'iso' 'pack' 'unpack'</span>
+<a name="line-50"></a><span class='hs-comment'>-- @</span>
+<a name="line-51"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>String</span> <span class='hs-conid'>Text</span>
+<a name="line-52"></a><span class='hs-definition'>packed</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>pack</span> <span class='hs-varid'>unpack</span>
+<a name="line-53"></a><span class='hs-comment'>{-# INLINE packed #-}</span>
+<a name="line-54"></a>
+<a name="line-55"></a><a name="unpacked"></a><span class='hs-comment'>-- | This isomorphism can be used to 'unpack' (or 'pack') lazy 'Text'.</span>
+<a name="line-56"></a><span class='hs-comment'>--</span>
+<a name="line-57"></a><span class='hs-comment'>-- &gt;&gt;&gt; "hello"^.unpacked -- :: String</span>
+<a name="line-58"></a><span class='hs-comment'>-- "hello"</span>
+<a name="line-59"></a><span class='hs-comment'>--</span>
+<a name="line-60"></a><span class='hs-comment'>-- This 'Iso' is provided for notational convenience rather than out of great need, since</span>
+<a name="line-61"></a><span class='hs-comment'>--</span>
 <a name="line-62"></a><span class='hs-comment'>-- @</span>
-<a name="line-63"></a><span class='hs-definition'>unpacked</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>String</span>
-<a name="line-64"></a><span class='hs-definition'>unpacked</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>unpack</span> <span class='hs-varid'>pack</span>
-<a name="line-65"></a><span class='hs-comment'>{-# INLINE unpacked #-}</span>
-<a name="line-66"></a>
-<a name="line-67"></a><span class='hs-comment'>-- | This is an alias for 'unpacked' that makes it more obvious how to use it with '#'</span>
-<a name="line-68"></a><span class='hs-comment'>--</span>
-<a name="line-69"></a><span class='hs-comment'>-- &gt;&gt; _Text # "hello" -- :: Text</span>
-<a name="line-70"></a><span class='hs-comment'>-- "hello"</span>
-<a name="line-71"></a><span class='hs-sel'>_Text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>String</span>
-<a name="line-72"></a><span class='hs-sel'>_Text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unpacked</span>
-<a name="line-73"></a><span class='hs-comment'>{-# INLINE _Text #-}</span>
+<a name="line-63"></a><span class='hs-comment'>-- 'unpacked' ≡ 'from' 'packed'</span>
+<a name="line-64"></a><span class='hs-comment'>-- @</span>
+<a name="line-65"></a><span class='hs-comment'>--</span>
+<a name="line-66"></a><span class='hs-comment'>-- @</span>
+<a name="line-67"></a><span class='hs-comment'>-- 'pack' x ≡ x '^.' 'from' 'unpacked'</span>
+<a name="line-68"></a><span class='hs-comment'>-- 'unpack' x ≡ x '^.' 'packed'</span>
+<a name="line-69"></a><span class='hs-comment'>-- 'unpacked' ≡ 'iso' 'unpack' 'pack'</span>
+<a name="line-70"></a><span class='hs-comment'>-- @</span>
+<a name="line-71"></a><span class='hs-definition'>unpacked</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>String</span>
+<a name="line-72"></a><span class='hs-definition'>unpacked</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>unpack</span> <span class='hs-varid'>pack</span>
+<a name="line-73"></a><span class='hs-comment'>{-# INLINE unpacked #-}</span>
 <a name="line-74"></a>
-<a name="line-75"></a><a name="builder"></a><span class='hs-comment'>-- | Convert between strict 'Text' and 'Builder' .</span>
+<a name="line-75"></a><span class='hs-comment'>-- | This is an alias for 'unpacked' that makes it more obvious how to use it with '#'</span>
 <a name="line-76"></a><span class='hs-comment'>--</span>
-<a name="line-77"></a><span class='hs-comment'>-- @</span>
-<a name="line-78"></a><span class='hs-comment'>-- 'fromText' x ≡ x '^.' 'builder'</span>
-<a name="line-79"></a><span class='hs-comment'>-- 'toStrict' ('toLazyText' x) ≡ x '^.' 'from' 'builder'</span>
-<a name="line-80"></a><span class='hs-comment'>-- @</span>
-<a name="line-81"></a><span class='hs-definition'>builder</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>Builder</span>
-<a name="line-82"></a><span class='hs-definition'>builder</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>fromText</span> <span class='hs-layout'>(</span><span class='hs-varid'>toStrict</span> <span class='hs-varop'>.</span> <span class='hs-varid'>toLazyText</span><span class='hs-layout'>)</span>
-<a name="line-83"></a><span class='hs-comment'>{-# INLINE builder #-}</span>
-<a name="line-84"></a>
-<a name="line-85"></a><a name="text"></a><span class='hs-comment'>-- | Traverse the individual characters in strict 'Text'.</span>
-<a name="line-86"></a><span class='hs-comment'>--</span>
-<a name="line-87"></a><span class='hs-comment'>-- &gt;&gt;&gt; anyOf text (=='o') "hello"</span>
-<a name="line-88"></a><span class='hs-comment'>-- True</span>
-<a name="line-89"></a><span class='hs-comment'>--</span>
-<a name="line-90"></a><span class='hs-comment'>-- When the type is unambiguous, you can also use the more general 'each'.</span>
-<a name="line-91"></a><span class='hs-comment'>--</span>
-<a name="line-92"></a><span class='hs-comment'>-- @</span>
-<a name="line-93"></a><span class='hs-comment'>-- 'text' ≡ 'unpacked' . 'traversed'</span>
-<a name="line-94"></a><span class='hs-comment'>-- 'text' ≡ 'each'</span>
-<a name="line-95"></a><span class='hs-comment'>-- @</span>
-<a name="line-96"></a><span class='hs-comment'>--</span>
-<a name="line-97"></a><span class='hs-comment'>-- Note that when just using this as a 'Setter', @'setting' 'Data.Text.map'@ can</span>
-<a name="line-98"></a><span class='hs-comment'>-- be more efficient.</span>
-<a name="line-99"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>Char</span>
-<a name="line-100"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unpacked</span> <span class='hs-varop'>.</span> <span class='hs-varid'>traversed</span>
-<a name="line-101"></a><span class='hs-comment'>{-# INLINE text #-}</span>
-<a name="line-102"></a>
-<a name="line-103"></a><a name="utf8"></a><span class='hs-comment'>-- | Encode/Decode a strict 'Text' to/from strict 'ByteString', via UTF-8.</span>
+<a name="line-77"></a><span class='hs-comment'>-- &gt;&gt; _Text # "hello" -- :: Text</span>
+<a name="line-78"></a><span class='hs-comment'>-- "hello"</span>
+<a name="line-79"></a><span class='hs-sel'>_Text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>String</span>
+<a name="line-80"></a><span class='hs-sel'>_Text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unpacked</span>
+<a name="line-81"></a><span class='hs-comment'>{-# INLINE _Text #-}</span>
+<a name="line-82"></a>
+<a name="line-83"></a><a name="builder"></a><span class='hs-comment'>-- | Convert between strict 'Text' and 'Builder' .</span>
+<a name="line-84"></a><span class='hs-comment'>--</span>
+<a name="line-85"></a><span class='hs-comment'>-- @</span>
+<a name="line-86"></a><span class='hs-comment'>-- 'fromText' x ≡ x '^.' 'builder'</span>
+<a name="line-87"></a><span class='hs-comment'>-- 'toStrict' ('toLazyText' x) ≡ x '^.' 'from' 'builder'</span>
+<a name="line-88"></a><span class='hs-comment'>-- @</span>
+<a name="line-89"></a><span class='hs-definition'>builder</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Iso'</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>Builder</span>
+<a name="line-90"></a><span class='hs-definition'>builder</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>iso</span> <span class='hs-varid'>fromText</span> <span class='hs-layout'>(</span><span class='hs-varid'>toStrict</span> <span class='hs-varop'>.</span> <span class='hs-varid'>toLazyText</span><span class='hs-layout'>)</span>
+<a name="line-91"></a><span class='hs-comment'>{-# INLINE builder #-}</span>
+<a name="line-92"></a>
+<a name="line-93"></a><a name="text"></a><span class='hs-comment'>-- | Traverse the individual characters in strict 'Text'.</span>
+<a name="line-94"></a><span class='hs-comment'>--</span>
+<a name="line-95"></a><span class='hs-comment'>-- &gt;&gt;&gt; anyOf text (=='o') "hello"</span>
+<a name="line-96"></a><span class='hs-comment'>-- True</span>
+<a name="line-97"></a><span class='hs-comment'>--</span>
+<a name="line-98"></a><span class='hs-comment'>-- When the type is unambiguous, you can also use the more general 'each'.</span>
+<a name="line-99"></a><span class='hs-comment'>--</span>
+<a name="line-100"></a><span class='hs-comment'>-- @</span>
+<a name="line-101"></a><span class='hs-comment'>-- 'text' ≡ 'unpacked' . 'traversed'</span>
+<a name="line-102"></a><span class='hs-comment'>-- 'text' ≡ 'each'</span>
+<a name="line-103"></a><span class='hs-comment'>-- @</span>
 <a name="line-104"></a><span class='hs-comment'>--</span>
-<a name="line-105"></a><span class='hs-comment'>-- &gt;&gt;&gt; utf8 # "☃"</span>
-<a name="line-106"></a><span class='hs-comment'>-- "\226\152\131"</span>
-<a name="line-107"></a><span class='hs-definition'>utf8</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>ByteString</span> <span class='hs-conid'>Text</span>
-<a name="line-108"></a><span class='hs-definition'>utf8</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism'</span> <span class='hs-varid'>encodeUtf8</span> <span class='hs-layout'>(</span><span class='hs-varid'>preview</span> <span class='hs-sel'>_Right</span> <span class='hs-varop'>.</span> <span class='hs-varid'>decodeUtf8'</span><span class='hs-layout'>)</span>
-<a name="line-109"></a><span class='hs-comment'>{-# INLINE utf8 #-}</span>
+<a name="line-105"></a><span class='hs-comment'>-- Note that when just using this as a 'Setter', @'setting' 'Data.Text.map'@ can</span>
+<a name="line-106"></a><span class='hs-comment'>-- be more efficient.</span>
+<a name="line-107"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>IndexedTraversal'</span> <span class='hs-conid'>Int</span> <span class='hs-conid'>Text</span> <span class='hs-conid'>Char</span>
+<a name="line-108"></a><span class='hs-definition'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>unpacked</span> <span class='hs-varop'>.</span> <span class='hs-varid'>traversed</span>
+<a name="line-109"></a><span class='hs-comment'>{-# INLINE [0] text #-}</span>
+<a name="line-110"></a>
+<a name="line-111"></a><span class='hs-comment'>{-# RULES
+<a name="line-112"></a>"strict text -&gt; map"    text = sets Strict.map        :: ASetter' Text Char;
+<a name="line-113"></a>"strict text -&gt; imap"   text = isets imapStrict       :: AnIndexedSetter' Int Text Char;
+<a name="line-114"></a>"strict text -&gt; foldr"  text = foldring Strict.foldr  :: Getting (Endo r) Text Char;
+<a name="line-115"></a>"strict text -&gt; ifoldr" text = ifoldring ifoldrStrict :: IndexedGetting Int (Endo r) Text Char;
+<a name="line-116"></a> #-}</span>
+<a name="line-117"></a>
+<a name="line-118"></a><a name="imapStrict"></a><span class='hs-definition'>imapStrict</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Char</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Char</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Text</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Text</span>
+<a name="line-119"></a><span class='hs-definition'>imapStrict</span> <span class='hs-varid'>f</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>snd</span> <span class='hs-varop'>.</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>mapAccumL</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span><span class='hs-varid'>i</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>i</span> <span class='hs-varop'>`seq`</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span> <span class='hs-varop'>+</span> <span class='hs-num'>1</span><span class='hs-layout'>,</span> <span class='hs-varid'>f</span> <span class='hs-varid'>i</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-num'>0</span>
+<a name="line-120"></a><span class='hs-comment'>{-# INLINE imapStrict #-}</span>
+<a name="line-121"></a>
+<a name="line-122"></a><a name="ifoldrStrict"></a><span class='hs-definition'>ifoldrStrict</span> <span class='hs-keyglyph'>::</span> <span class='hs-layout'>(</span><span class='hs-conid'>Int</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Char</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span><span class='hs-layout'>)</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-conid'>Text</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>a</span>
+<a name="line-123"></a><span class='hs-definition'>ifoldrStrict</span> <span class='hs-varid'>f</span> <span class='hs-varid'>z</span> <span class='hs-varid'>xs</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>Strict</span><span class='hs-varop'>.</span><span class='hs-varid'>foldr</span> <span class='hs-layout'>(</span><span class='hs-keyglyph'>\</span> <span class='hs-varid'>x</span> <span class='hs-varid'>g</span> <span class='hs-varid'>i</span> <span class='hs-keyglyph'>-&gt;</span> <span class='hs-varid'>i</span> <span class='hs-varop'>`seq`</span> <span class='hs-varid'>f</span> <span class='hs-varid'>i</span> <span class='hs-varid'>x</span> <span class='hs-layout'>(</span><span class='hs-varid'>g</span> <span class='hs-layout'>(</span><span class='hs-varid'>i</span><span class='hs-varop'>+</span><span class='hs-num'>1</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span><span class='hs-layout'>)</span> <span class='hs-layout'>(</span><span class='hs-varid'>const</span> <span class='hs-varid'>z</span><span class='hs-layout'>)</span> <span class='hs-varid'>xs</span> <span class='hs-num'>0</span>
+<a name="line-124"></a><span class='hs-comment'>{-# INLINE ifoldrStrict #-}</span>
+<a name="line-125"></a>
+<a name="line-126"></a><a name="utf8"></a><span class='hs-comment'>-- | Encode/Decode a strict 'Text' to/from strict 'ByteString', via UTF-8.</span>
+<a name="line-127"></a><span class='hs-comment'>--</span>
+<a name="line-128"></a><span class='hs-comment'>-- &gt;&gt;&gt; utf8 # "☃"</span>
+<a name="line-129"></a><span class='hs-comment'>-- "\226\152\131"</span>
+<a name="line-130"></a><span class='hs-definition'>utf8</span> <span class='hs-keyglyph'>::</span> <span class='hs-conid'>Prism'</span> <span class='hs-conid'>ByteString</span> <span class='hs-conid'>Text</span>
+<a name="line-131"></a><span class='hs-definition'>utf8</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>prism'</span> <span class='hs-varid'>encodeUtf8</span> <span class='hs-layout'>(</span><span class='hs-varid'>preview</span> <span class='hs-sel'>_Right</span> <span class='hs-varop'>.</span> <span class='hs-varid'>decodeUtf8'</span><span class='hs-layout'>)</span>
+<a name="line-132"></a><span class='hs-comment'>{-# INLINE utf8 #-}</span>
 </pre></body>
 </html>

@@ -318,6 +318,7 @@ div#style-menu-holder {
   height: 80%;
   top: 10%;
   padding: 0;
+  max-width: 75%;
 }
 
 #synopsis .caption {
@@ -370,6 +371,15 @@ div#style-menu-holder {
  	margin-top: 1em;
 }
 #interface p.src .link {
+  float: right;
+  color: #919191;
+  border-left: 1px solid #919191;
+  background: #f0f0f0;
+  padding: 0 0.5em 0.2em;
+  margin: 0 -0.5em 0 0.5em;
+}
+
+#interface td.src .link {
   float: right;
   color: #919191;
   border-left: 1px solid #919191;
