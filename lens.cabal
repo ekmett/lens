@@ -160,6 +160,10 @@ flag test-properties
   default: True
   manual: True
 
+flag test-templates
+  default: True
+  manual: True
+
 -- Disallow unsafeCoerce
 flag safe
   default: False
@@ -321,12 +325,16 @@ library
 test-suite templates
   type: exitcode-stdio-1.0
   main-is: templates.hs
-  build-depends: base, lens
   ghc-options: -Wall -threaded
   hs-source-dirs: tests
 
   if flag(dump-splices)
     ghc-options: -ddump-splices
+
+  if !flag(test-templates)
+    buildable: False
+  else
+    build-depends: base, lens
 
 -- Verify the properties of lenses with QuickCheck
 test-suite properties
