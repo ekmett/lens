@@ -1,3 +1,7 @@
+4.11.2.1
+--------
+* More aggressively inline `icontains`, `iat`, and `iix`.
+
 4.11.2
 ------
 * Added `icontains`, `iat`, `iix`.
