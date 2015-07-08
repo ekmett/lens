@@ -137,7 +137,9 @@ import Control.Lens.Type
 import Control.Monad
 import Control.Monad.Trans.State.Lazy
 import Data.Bitraversable
+#if __GLASGOW_HASKELL__ < 710
 import Data.Foldable (Foldable)
+#endif
 import Data.Functor.Compose
 import Data.Functor.Kan.Rift
 import Data.Functor.Yoneda
