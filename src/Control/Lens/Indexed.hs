@@ -12,6 +12,10 @@
 {-# LANGUAGE Trustworthy #-} -- vector, hashable
 #endif
 
+#if __GLASGOW_HASKELL__ >= 711
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+#endif
+
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
