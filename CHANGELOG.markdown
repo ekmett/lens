@@ -1,3 +1,7 @@
+4.12
+----
+* `reflection 2` support.
+
 4.11.2
 ------
 * Give `cosmosOn` a more general type.
