@@ -306,6 +306,28 @@ instance HasName (Name, a, b) where
   name f (n, s, t) = (,,) <$> f n <*> pure s <*> pure t
 
 
+-- | Contains some amount of `Type`s inside
+class HasType t where
+  -- | Traverse all the types
+  typeVal :: Traversal' t Type
+
+instance HasType Con where
+  typeVal f (NormalC name typ)      = NormalC name <$> typeVal f typ
+  typeVal f (RecC name typ)         = RecC name <$> typeVal f typ
+  typeVal f (InfixC typ1 name typ2) = InfixC <$> typeVal f typ1
+                                       <*> pure name <*> typeVal f typ2
+  typeVal f (ForallC vb ctx con)    = ForallC vb ctx <$> typeVal f con
+
+instance HasType t => HasType [t] where
+  typeVal = traverse . typeVal
+
+instance HasType (a, b, Type) where
+  typeVal f (a, b, typ) = (,,) a b <$> f typ
+
+instance HasType (a, Type) where
+  typeVal f (a, typ) = (,) a <$> f typ
+
+
 -- | Provides for the extraction of free type variables, and alpha renaming.
 class HasTypeVars t where
   -- | When performing substitution into this traversal you're not allowed
