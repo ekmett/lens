@@ -3,6 +3,7 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 #ifndef MIN_VERSION_template_haskell
 #define MIN_VERSION_template_haskell(x,y,z) 1
@@ -299,6 +300,11 @@ instance HasName Con where
   name f (RecC n tys)          = (`RecC` tys) <$> f n
   name f (InfixC l n r)        = (\n' -> InfixC l n' r) <$> f n
   name f (ForallC bds ctx con) = ForallC bds ctx <$> name f con
+
+-- type VarStrictType = (Name, Strict, Type)
+instance HasName (Name, a, b) where
+  name f (n, s, t) = (,,) <$> f n <*> pure s <*> pure t
+
 
 -- | Provides for the extraction of free type variables, and alpha renaming.
 class HasTypeVars t where
