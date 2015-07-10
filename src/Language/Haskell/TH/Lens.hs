@@ -305,21 +305,18 @@ class HasType t where
   -- | Traverse all the types
   typeVal :: Traversal' t Type
 
+instance HasType Type where
+  typeVal = id
+
 instance HasType Con where
-  typeVal f (NormalC name typ)      = NormalC name <$> typeVal f typ
-  typeVal f (RecC name typ)         = RecC name <$> typeVal f typ
-  typeVal f (InfixC typ1 name typ2) = InfixC <$> typeVal f typ1
-                                       <*> pure name <*> typeVal f typ2
+  typeVal f (NormalC n t)      = NormalC n <$> traverse (_2 (typeVal f)) t
+  typeVal f (RecC n t)         = RecC n <$> traverse (_3 (typeVal f)) t
+  typeVal f (InfixC t1 n t2) = InfixC <$> _2 (typeVal f) t1
+                                       <*> pure n <*> _2 (typeVal f) t2
   typeVal f (ForallC vb ctx con)    = ForallC vb ctx <$> typeVal f con
 
 instance HasType t => HasType [t] where
   typeVal = traverse . typeVal
-
-instance HasType (a, b, Type) where
-  typeVal f (a, b, typ) = (,,) a b <$> f typ
-
-instance HasType (a, Type) where
-  typeVal f (a, typ) = (,) a <$> f typ
 
 -- | Provides for the extraction of free type variables, and alpha renaming.
 class HasTypeVars t where
