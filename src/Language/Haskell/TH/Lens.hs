@@ -301,22 +301,22 @@ instance HasName Con where
   name f (ForallC bds ctx con) = ForallC bds ctx <$> name f con
 
 -- | Contains some amount of `Type`s inside
-class HasType t where
+class HasTypes t where
   -- | Traverse all the types
-  typeVal :: Traversal' t Type
+  types :: Traversal' t Type
 
-instance HasType Type where
-  typeVal = id
+instance HasTypes Type where
+  types = id
 
-instance HasType Con where
-  typeVal f (NormalC n t)      = NormalC n <$> traverse (_2 (typeVal f)) t
-  typeVal f (RecC n t)         = RecC n <$> traverse (_3 (typeVal f)) t
-  typeVal f (InfixC t1 n t2) = InfixC <$> _2 (typeVal f) t1
-                                       <*> pure n <*> _2 (typeVal f) t2
-  typeVal f (ForallC vb ctx con)    = ForallC vb ctx <$> typeVal f con
+instance HasTypes Con where
+  types f (NormalC n t)      = NormalC n <$> traverse (_2 (types f)) t
+  types f (RecC n t)         = RecC n <$> traverse (_3 (types f)) t
+  types f (InfixC t1 n t2) = InfixC <$> _2 (types f) t1
+                                       <*> pure n <*> _2 (types f) t2
+  types f (ForallC vb ctx con)    = ForallC vb ctx <$> types f con
 
-instance HasType t => HasType [t] where
-  typeVal = traverse . typeVal
+instance HasTypes t => HasTypes [t] where
+  types = traverse . types
 
 -- | Provides for the extraction of free type variables, and alpha renaming.
 class HasTypeVars t where
