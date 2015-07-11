@@ -6,6 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE Trustworthy #-}
 
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
