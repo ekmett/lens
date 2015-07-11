@@ -3,13 +3,11 @@
 g() { local D="$1" && shift ; git grep --basic-regexp "$@" "$D" | wc -l ; }
 cd "$(git rev-parse --show-toplevel)"
 
-unsafe="$(g src -e '\(#\.\|\.#\)' --and --not \
-	\( -e INLINE --or -e '^\s*(\s*\(#\.\|\.#\)\s*)' \))"
 doc="$(g src -e '--\s\+>>>\s\+[^:]' --and --not -e '--\s\+>>>\s\+\(import\|let\)' \
 	--or -e '--\s\+>>>\s\+let\s\+.*\<in\>')"
 opsLens="$(g src/Control/Lens '^(.\+)\s*::')"
 opsAll="$(g src '^(.\+)\s*::')"
 mod="$(find src -name '*.hs' | wc -l)"
 
-echo "unsafeCoerces: $unsafe | doctests: $doc | operators: $opsAll (Control.Lens: $opsLens) | modules: $mod"
+echo "doctests: $doc | operators: $opsAll (Control.Lens: $opsLens) | modules: $mod"
 
