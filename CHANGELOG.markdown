@@ -1,3 +1,9 @@
+4.12.1
+------
+* `Control.Lens` is once again `Safe` for SafeHaskell.
+* The `Simple` type alias is now poly-kinded. This lets you use `Simple Field1 s a` and the like in constraints.
+* Added `HasTypes` to `Language.Haskell.TH.Lens`.
+
 4.12
 ----
 * `reflection 2` support.
