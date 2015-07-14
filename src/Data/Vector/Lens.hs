@@ -47,7 +47,7 @@ import Data.Monoid
 -- >>> Vector.fromList [1..10] ^. sliced 2 5 == Vector.fromList [3,4,5,6,7]
 -- True
 --
--- >>> (Vector.fromList [1..10] & sliced 2 5 . mapped .~ 0) == Vector.fromList [1,2,0,0,0,0,0,8,9,10]]
+-- >>> (Vector.fromList [1..10] & sliced 2 5 . mapped .~ 0) == Vector.fromList [1,2,0,0,0,0,0,8,9,10]
 -- True
 sliced :: Int -- ^ @i@ starting index
        -> Int -- ^ @n@ length
@@ -68,8 +68,8 @@ toVectorOf l s = fromList (toListOf l s)
 -- >>> [1,2,3] ^. vector == Vector.fromList [1,2,3]
 -- True
 --
--- >>> [1,2,3] ^. vector . from vector == Vector.fromList [1,2,3]
--- True
+-- >>> [1,2,3] ^. vector . from vector
+-- [1,2,3]
 --
 -- >>> Vector.fromList [0,8,15] ^. from vector . vector == Vector.fromList [0,8,15]
 -- True
