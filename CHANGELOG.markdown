@@ -2,6 +2,7 @@
 ------
 * The `Simple` type alias is now poly-kinded. This lets you use `Simple Field1 s a` and the like in constraints.
 * Added `HasTypes` to `Language.Haskell.TH.Lens`.
+* Support for `vector-0.11.0` which changes `Stream` to `Bundle`
 
 4.12
 ----

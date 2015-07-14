@@ -208,7 +208,7 @@ library
     transformers              >= 0.2      && < 0.5,
     transformers-compat       >= 0.4      && < 1,
     unordered-containers      >= 0.2      && < 0.3,
-    vector                    >= 0.9      && < 0.11,
+    vector                    >= 0.9      && < 0.12,
     void                      >= 0.5      && < 1
 
   exposed-modules:
