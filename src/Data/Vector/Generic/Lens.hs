@@ -70,11 +70,11 @@ import Data.Vector.Fusion.Stream (Stream)
 -- Attempting to return a longer or shorter vector will result in
 -- violations of the 'Lens' laws.
 --
--- >>> Vector.fromList [1..10] ^. sliced 2 5
--- fromList [3,4,5,6,7]
+-- >>> Vector.fromList [1..10] ^. sliced 2 5 == Vector.fromList [3,4,5,6,7]
+-- True
 --
--- >>> Vector.fromList [1..10] & sliced 2 5 . mapped .~ 0
--- fromList [1,2,0,0,0,0,0,8,9,10]
+-- >>> (Vector.fromList [1..10] & sliced 2 5 . mapped .~ 0) == Vector.fromList [1,2,0,0,0,0,0,8,9,10]
+-- True
 sliced :: Vector v a
        => Int -- ^ @i@ starting index
        -> Int -- ^ @n@ length
@@ -84,16 +84,16 @@ sliced i n f v = f (slice i n v) <&> \ v0 -> v // zip [i..i+n-1] (V.toList v0)
 
 -- | Similar to 'toListOf', but returning a 'Vector'.
 --
--- >>> toVectorOf both (8,15) :: Vector.Vector Int
--- fromList [8,15]
+-- >>> (toVectorOf both (8,15) :: Vector.Vector Int) == Vector.fromList [8,15]
+-- True
 toVectorOf :: Vector v a => Getting (Endo [a]) s a -> s -> v a
 toVectorOf l s = fromList (toListOf l s)
 {-# INLINE toVectorOf #-}
 
 -- | Convert a list to a 'Vector' (or back.)
 --
--- >>> [1,2,3] ^. vector :: Vector.Vector Int
--- fromList [1,2,3]
+-- >>> ([1,2,3] ^. vector :: Vector.Vector Int) == Vector.fromList [1,2,3]
+-- True
 --
 -- >>> Vector.fromList [0,8,15] ^. from vector
 -- [0,8,15]
