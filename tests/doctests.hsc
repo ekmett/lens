@@ -60,6 +60,9 @@ main = withUnicode $ getSources >>= \sources -> doctest $
   : "-optP-include"
   : "-optPdist/build/autogen/cabal_macros.h"
   : "-hide-all-packages"
+#ifdef TRUSTWORTHY
+  : "-DTRUSTWORTHY=1"
+#endif
   : map ("-package="++) deps ++ sources
 
 getSources :: IO [FilePath]

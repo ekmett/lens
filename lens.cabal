@@ -383,6 +383,10 @@ test-suite doctests
   ghc-options:    -Wall -threaded
   hs-source-dirs: tests
 
+  if flag(trustworthy) && impl(ghc>=7.2)
+    other-extensions: Trustworthy
+    cpp-options: -DTRUSTWORTHY=1
+
   if !flag(test-doctests)
     buildable: False
   else
