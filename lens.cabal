@@ -207,7 +207,7 @@ library
     text                      >= 0.11     && < 1.3,
     transformers              >= 0.2      && < 0.5,
     transformers-compat       >= 0.4      && < 1,
-    unordered-containers      >= 0.2      && < 0.3,
+    unordered-containers      >= 0.2.4    && < 0.3,
     vector                    >= 0.9      && < 0.12,
     void                      >= 0.5      && < 1
 
