@@ -587,6 +587,10 @@ toListOf l = foldrOf l (:) []
 
 -- | A convenient infix (flipped) version of 'toListOf'.
 --
+-- >>> [[1,2],[3]]^..id
+-- [[[1,2],[3]]]
+-- >>> [[1,2],[3]]^..traverse
+-- [[1,2],[3]]
 -- >>> [[1,2],[3]]^..traverse.traverse
 -- [1,2,3]
 --
