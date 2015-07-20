@@ -113,7 +113,6 @@ import Control.Monad.Trans.Free as Trans
 import Control.MonadPlus.Free as MonadPlus
 #endif
 import qualified Language.Haskell.TH as TH
-import Data.Bitraversable
 import Data.Data
 import Data.Data.Lens
 import Data.Monoid
