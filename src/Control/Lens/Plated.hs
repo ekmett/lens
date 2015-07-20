@@ -98,6 +98,7 @@ module Control.Lens.Plated
 
 import Control.Applicative
 import Control.Comonad.Cofree
+import qualified Control.Comonad.Trans.Cofree as CoTrans
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed
@@ -248,6 +249,9 @@ instance Traversable f => Plated (Church.F f a) where
 --
 -- instance (Traversable f, Traversable m) => Plated (ChurchT.FT f m a) where
 --   plate f = fmap ChurchT.toFT . plate (fmap ChurchT.fromFT . f . ChurchT.toFT) . ChurchT.fromFT
+
+instance (Traversable f, Traversable w) => Plated (CoTrans.CofreeT f w a) where
+  plate f (CoTrans.CofreeT xs) = CoTrans.CofreeT <$> traverse (bitraverse pure f) xs
 
 instance Traversable f => Plated (Cofree f a) where
   plate f (a :< as) = (:<) a <$> traverse f as
