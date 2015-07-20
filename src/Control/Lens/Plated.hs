@@ -233,7 +233,7 @@ instance Traversable f => Plated (Monad.Free f a) where
   plate _ x         = pure x
 
 instance (Traversable f, Traversable m) => Plated (Trans.FreeT f m a) where
-  plate f (Trans.FreeT xs) = Trans.FreeT <$> traverse (bitraverse pure f) xs
+  plate f (Trans.FreeT xs) = Trans.FreeT <$> traverse (traverse f) xs
 
 #if !(MIN_VERSION_free(4,6,0))
 instance Traversable f => Plated (MonadPlus.Free f a) where
@@ -251,7 +251,7 @@ instance Traversable f => Plated (Church.F f a) where
 --   plate f = fmap ChurchT.toFT . plate (fmap ChurchT.fromFT . f . ChurchT.toFT) . ChurchT.fromFT
 
 instance (Traversable f, Traversable w) => Plated (CoTrans.CofreeT f w a) where
-  plate f (CoTrans.CofreeT xs) = CoTrans.CofreeT <$> traverse (bitraverse pure f) xs
+  plate f (CoTrans.CofreeT xs) = CoTrans.CofreeT <$> traverse (traverse f) xs
 
 instance Traversable f => Plated (Cofree f a) where
   plate f (a :< as) = (:<) a <$> traverse f as
