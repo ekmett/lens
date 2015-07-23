@@ -258,7 +258,6 @@ library
     Control.Lens.TH
     Control.Lens.Traversal
     Control.Lens.Tuple
-    Control.Lens.Tutorial
     Control.Lens.Type
     Control.Lens.Wrapped
     Control.Lens.Zoom
