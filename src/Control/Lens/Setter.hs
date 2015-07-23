@@ -3,6 +3,14 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
+
+#ifndef MIN_VERSION_profunctors
+#define MIN_VERSION_profunctors(x,y,z) 1
+#endif
+
+#if __GLASGOW_HASKELL__ < 708 || !(MIN_VERSION_profunctors(4,4,0))
+{-# LANGUAGE Trustworthy #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Setter
@@ -495,7 +503,7 @@ l ?~ b = set l (Just b)
 
 -- | Set with pass-through.
 --
--- This is mostly present for consistency, but may be useful for for chaining assignments.
+-- This is mostly present for consistency, but may be useful for chaining assignments.
 --
 -- If you do not need a copy of the intermediate result, then using @l '.~' t@ directly is a good idea.
 --

@@ -1,3 +1,24 @@
+4.12.1
+------
+* The `Simple` type alias is now poly-kinded. This lets you use `Simple Field1 s a` and the like in constraints.
+* Added `HasTypes` to `Language.Haskell.TH.Lens`.
+* Support for `vector-0.11.0` which changes `Stream` to `Bundle`
+
+4.12
+----
+* `reflection 2` support.
+
+4.11.2
+------
+* Give `cosmosOn` a more general type.
+
+4.11.1
+------
+* Added `cosmos`, `cosmosOf`, `cosmosOn`, `cosmosOnOf` to `Control.Lens.Plated`.
+* Added `icontains`, `iat`, `iix`.
+* Made various documentation improvements.
+* Added a `test-templates` flag.
+
 4.11
 ----
 * Proper `profunctors` 5.1 support. This extended the superclass constraints for `Conjoined`, so it resulted in a major version bump.

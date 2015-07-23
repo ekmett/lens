@@ -75,6 +75,7 @@ module Control.Lens.Plated
   , rewrite, rewriteOf, rewriteOn, rewriteOnOf
   , rewriteM, rewriteMOf, rewriteMOn, rewriteMOnOf
   , universe, universeOf, universeOn, universeOnOf
+  , cosmos, cosmosOf, cosmosOn, cosmosOnOf
   , transform, transformOf, transformOn, transformOnOf
   , transformM, transformMOf, transformMOn, transformMOnOf
   , contexts, contextsOf, contextsOn, contextsOnOf
@@ -97,6 +98,7 @@ module Control.Lens.Plated
 
 import Control.Applicative
 import Control.Comonad.Cofree
+import qualified Control.Comonad.Trans.Cofree as CoTrans
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Indexed
@@ -111,7 +113,6 @@ import Control.Monad.Trans.Free as Trans
 import Control.MonadPlus.Free as MonadPlus
 #endif
 import qualified Language.Haskell.TH as TH
-import Data.Bitraversable
 import Data.Data
 import Data.Data.Lens
 import Data.Monoid
@@ -231,7 +232,7 @@ instance Traversable f => Plated (Monad.Free f a) where
   plate _ x         = pure x
 
 instance (Traversable f, Traversable m) => Plated (Trans.FreeT f m a) where
-  plate f (Trans.FreeT xs) = Trans.FreeT <$> traverse (bitraverse pure f) xs
+  plate f (Trans.FreeT xs) = Trans.FreeT <$> traverse (traverse f) xs
 
 #if !(MIN_VERSION_free(4,6,0))
 instance Traversable f => Plated (MonadPlus.Free f a) where
@@ -247,6 +248,9 @@ instance Traversable f => Plated (Church.F f a) where
 --
 -- instance (Traversable f, Traversable m) => Plated (ChurchT.FT f m a) where
 --   plate f = fmap ChurchT.toFT . plate (fmap ChurchT.fromFT . f . ChurchT.toFT) . ChurchT.fromFT
+
+instance (Traversable f, Traversable w) => Plated (CoTrans.CofreeT f w a) where
+  plate f (CoTrans.CofreeT xs) = CoTrans.CofreeT <$> traverse (traverse f) xs
 
 instance Traversable f => Plated (Cofree f a) where
   plate f (a :< as) = (:<) a <$> traverse f as
@@ -420,6 +424,39 @@ universeOn b = universeOnOf b plate
 universeOnOf :: Getting [a] s a -> Getting [a] a a -> s -> [a]
 universeOnOf b = foldMapOf b . universeOf
 {-# INLINE universeOnOf #-}
+
+-- | Fold over all transitive descendants of a 'Plated' container, including itself.
+cosmos :: Plated a => Fold a a
+cosmos = cosmosOf plate
+{-# INLINE cosmos #-}
+
+-- | Given a 'Fold' that knows how to locate immediate children, fold all of the transitive descendants of a node, including itself.
+--
+-- @
+-- 'cosmosOf' :: 'Fold' a a -> 'Fold' a a
+-- @
+cosmosOf :: (Applicative f, Contravariant f) => LensLike' f a a -> LensLike' f a a
+cosmosOf d f s = f s *> d (cosmosOf d f) s
+{-# INLINE cosmosOf #-}
+
+-- | Given a 'Fold' that knows how to find 'Plated' parts of a container fold them and all of their descendants, recursively.
+--
+-- @
+-- 'cosmosOn' :: 'Plated' a => 'Fold' s a -> 'Fold' s a
+-- @
+cosmosOn :: (Applicative f, Contravariant f, Plated a) => LensLike' f s a -> LensLike' f s a
+cosmosOn d = cosmosOnOf d plate
+{-# INLINE cosmosOn #-}
+
+-- | Given a 'Fold' that knows how to locate immediate children, fold all of the transitive descendants of a node, including itself that lie
+-- in a region indicated by another 'Fold'.
+--
+-- @
+-- 'cosmosOnOf' :: 'Fold' s a -> 'Fold' a a -> 'Fold' s a
+-- @
+cosmosOnOf :: (Applicative f, Contravariant f) => LensLike' f s a -> LensLike' f a a -> LensLike' f s a
+cosmosOnOf d p = d . cosmosOf p
+{-# INLINE cosmosOnOf #-}
 
 -------------------------------------------------------------------------------
 -- Transformation

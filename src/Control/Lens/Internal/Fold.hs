@@ -2,6 +2,10 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
+#if __GLASGOW_HASKELL__ >= 711
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+#endif
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Fold
@@ -35,7 +39,9 @@ import Data.Semigroup hiding (Min, getMin, Max, getMax)
 import Data.Reflection
 import Prelude
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Avoid lambda" #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- Folding

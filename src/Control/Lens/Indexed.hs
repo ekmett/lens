@@ -12,6 +12,10 @@
 {-# LANGUAGE Trustworthy #-} -- vector, hashable
 #endif
 
+#if __GLASGOW_HASKELL__ >= 711
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+#endif
+
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
@@ -107,6 +111,9 @@ import Data.Map as Map
 import Data.Monoid hiding (Product)
 import Data.Profunctor.Unsafe
 import Data.Sequence hiding ((:<), index)
+#if !(MIN_VERSION_containers(0,5,0))
+import Data.Traversable (sequenceA)
+#endif
 import Data.Tree
 import Data.Tuple (swap)
 import Data.Vector (Vector)

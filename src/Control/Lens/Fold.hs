@@ -4,6 +4,14 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
+#ifndef MIN_VERSION_profunctors
+#define MIN_VERSION_profunctors(x,y,z) 1
+#endif
+
+#if __GLASGOW_HASKELL__ < 708 || !(MIN_VERSION_profunctors(4,4,0))
+{-# LANGUAGE Trustworthy #-}
+#endif
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 ----------------------------------------------------------------------------
 -- |
@@ -149,7 +157,7 @@ import Control.Lens.Type
 import Control.Monad as Monad
 import Control.Monad.Reader
 import Control.Monad.State
-import Data.Foldable as Foldable
+import Data.Foldable
 import Data.Functor.Apply
 import Data.Functor.Compose
 import Data.Int (Int64)
@@ -161,7 +169,7 @@ import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Data.Traversable
-import Prelude
+import Prelude hiding (foldr)
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -229,20 +237,20 @@ ifoldring ifr f = coerce . ifr (\i a fa -> indexed f i a *> fa) noEffect
 -- >>> [(1,2),(3,4)]^..folded.both
 -- [1,2,3,4]
 folded :: Foldable f => IndexedFold Int (f a) a
-folded = conjoined (foldring Foldable.foldr) (ifoldring ifoldr)
+folded = conjoined (foldring foldr) (ifoldring ifoldr)
 {-# INLINE folded #-}
 
 ifoldr :: Foldable f => (Int -> a -> b -> b) -> b -> f a -> b
-ifoldr f z xs = Foldable.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+ifoldr f z xs = foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
 {-# INLINE ifoldr #-}
 
 -- | Obtain a 'Fold' from any 'Foldable' indexed by ordinal position.
 folded64 :: Foldable f => IndexedFold Int64 (f a) a
-folded64 = conjoined (foldring Foldable.foldr) (ifoldring ifoldr64)
+folded64 = conjoined (foldring foldr) (ifoldring ifoldr64)
 {-# INLINE folded64 #-}
 
 ifoldr64 :: Foldable f => (Int64 -> a -> b -> b) -> b -> f a -> b
-ifoldr64 f z xs = Foldable.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
+ifoldr64 f z xs = foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
 {-# INLINE ifoldr64 #-}
 
 -- | Form a 'Fold1' by repeating the input forever.
@@ -2310,7 +2318,7 @@ ifoldlMOf l f z0 xs = ifoldrOf l f' return xs z0
 -- When you don't need access to the indices in the result, then 'toListOf' is more flexible in what it accepts.
 --
 -- @
--- 'toListOf' l ≡ 'map' 'fst' '.' 'itoListOf' l
+-- 'toListOf' l ≡ 'map' 'snd' '.' 'itoListOf' l
 -- @
 --
 -- @

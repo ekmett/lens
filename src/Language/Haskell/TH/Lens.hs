@@ -300,6 +300,24 @@ instance HasName Con where
   name f (InfixC l n r)        = (\n' -> InfixC l n' r) <$> f n
   name f (ForallC bds ctx con) = ForallC bds ctx <$> name f con
 
+-- | Contains some amount of `Type`s inside
+class HasTypes t where
+  -- | Traverse all the types
+  types :: Traversal' t Type
+
+instance HasTypes Type where
+  types = id
+
+instance HasTypes Con where
+  types f (NormalC n t)      = NormalC n <$> traverse (_2 (types f)) t
+  types f (RecC n t)         = RecC n <$> traverse (_3 (types f)) t
+  types f (InfixC t1 n t2) = InfixC <$> _2 (types f) t1
+                                       <*> pure n <*> _2 (types f) t2
+  types f (ForallC vb ctx con)    = ForallC vb ctx <$> types f con
+
+instance HasTypes t => HasTypes [t] where
+  types = traverse . types
+
 -- | Provides for the extraction of free type variables, and alpha renaming.
 class HasTypeVars t where
   -- | When performing substitution into this traversal you're not allowed

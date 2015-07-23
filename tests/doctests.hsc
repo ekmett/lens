@@ -16,7 +16,9 @@
 module Main where
 
 import Build_doctests (deps)
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
+#endif
 import Control.Monad
 import Data.List
 import System.Directory
@@ -58,6 +60,9 @@ main = withUnicode $ getSources >>= \sources -> doctest $
   : "-optP-include"
   : "-optPdist/build/autogen/cabal_macros.h"
   : "-hide-all-packages"
+#ifdef TRUSTWORTHY
+  : "-DTRUSTWORTHY=1"
+#endif
   : map ("-package="++) deps ++ sources
 
 getSources :: IO [FilePath]

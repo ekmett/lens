@@ -243,8 +243,8 @@ instance Wrapped (Alt f a) where
   {-# INLINE _Wrapped' #-}
 #endif
 
-instance (t ~ ArrowMonad m' a', ArrowApply m, ArrowApply m') => Rewrapped (ArrowMonad m a) t
-instance ArrowApply m => Wrapped (ArrowMonad m a) where
+instance (t ~ ArrowMonad m' a', ArrowApply m) => Rewrapped (ArrowMonad m a) t
+instance Wrapped (ArrowMonad m a) where
   type Unwrapped (ArrowMonad m a) = m () a
   _Wrapped' = iso getArrowMonad ArrowMonad
   {-# INLINE _Wrapped' #-}

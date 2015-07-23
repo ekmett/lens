@@ -77,6 +77,8 @@ _L1 = prism remitter reviewer
   reviewer x = Left x
 {-# INLINE _L1 #-}
 
+-- | You can access fields of `data (f :*: g) p` by using it's `Field1` and `Field2` instances
+
 _R1 :: Prism' ((f :+: g) a) (g a)
 _R1 = prism remitter reviewer
   where

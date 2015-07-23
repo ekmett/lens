@@ -9,6 +9,14 @@
 #ifndef MIN_VERSION_mtl
 #define MIN_VERSION_mtl(x,y,z) 1
 #endif
+
+#ifndef MIN_VERSION_profunctors
+#define MIN_VERSION_profunctors(x,y,z) 1
+#endif
+
+#if __GLASGOW_HASKELL__ < 708 || !(MIN_VERSION_profunctors(4,4,0))
+{-# LANGUAGE Trustworthy #-}
+#endif
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Lens
@@ -150,6 +158,7 @@ import Data.Function ((&))
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State
+-- >>> import Data.Char (chr)
 -- >>> import Debug.SimpleReflect.Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars hiding (f,g,h)
 -- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
@@ -254,6 +263,9 @@ s &~ l = execState l s
 -- targets of the traversals, extracting an applicative summary of its
 -- actions.
 --
+-- >>> [66,97,116,109,97,110] & each %%~ \a -> ("na", chr a)
+-- ("nananananana","Batman")
+--
 -- For all that the definition of this combinator is just:
 --
 -- @
@@ -355,8 +367,20 @@ infixl 1 &
 as <&> f = f <$> as
 {-# INLINE (<&>) #-}
 
--- | This is convenient to 'flip' argument order of composite functions.
+-- | This is convenient to 'flip' argument order of composite functions defined as:
 --
+-- @
+-- fab ?? a = fmap ($ a) fab
+-- @
+-- 
+-- For the 'Functor' instance @f = ((->) r)@ you can reason about this function as if the definition was @('??') ≡ 'flip'@:
+-- 
+-- >>> (h ?? x) a
+-- h a x
+-- 
+-- >>> execState ?? [] $ modify (1:)
+-- [1]
+-- 
 -- >>> over _2 ?? ("hello","world") $ length
 -- ("hello",5)
 --

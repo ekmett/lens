@@ -457,8 +457,8 @@ _init = _Snoc._1
 -- >>> Vector.empty ^? _last
 -- Nothing
 --
--- >>> Vector.fromList "abcde" & _last .~ 'Q'
--- fromList "abcdQ"
+-- >>> (Vector.fromList "abcde" & _last .~ 'Q') == Vector.fromList "abcdQ"
+-- True
 --
 -- @
 -- '_last' :: 'Traversal'' [a] a

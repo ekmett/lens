@@ -196,7 +196,7 @@ instance Sellable (->) Mafic where
 
 instance Bizarre (Indexed Int) Mafic where
   bazaar (pafb :: Indexed Int a (f b)) (Mafic _ k) = go (k 0) where
-    go :: Applicative f => Magma Int t b a -> f t
+    go :: Magma Int t b a -> f t
     go (MagmaAp x y)   = go x <*> go y
     go (MagmaFmap f x) = f <$> go x
     go (MagmaPure x)   = pure x
@@ -244,7 +244,7 @@ instance Applicative (TakingWhile p f a b) where
 
 instance Corepresentable p => Bizarre p (TakingWhile p g) where
   bazaar (pafb :: p a (f b)) ~(TakingWhile _ _ k) = go (k True) where
-    go :: Applicative f => Magma () t b (Corep p a) -> f t
+    go :: Magma () t b (Corep p a) -> f t
     go (MagmaAp x y)  = go x <*> go y
     go (MagmaFmap f x)  = f <$> go x
     go (MagmaPure x)    = pure x

@@ -36,10 +36,10 @@ module Control.Lens.Internal.Exception
 import Control.Exception as Exception
 import Control.Lens.Fold
 import Control.Lens.Getter
-import Control.Lens.Internal.Reflection
 import Control.Monad.Catch as Catch
 import Data.Monoid
 import Data.Proxy
+import Data.Reflection
 import Data.Typeable
 
 -- This is needed because ghc 7.8-rc2 has Typeable1 as a type alias.
