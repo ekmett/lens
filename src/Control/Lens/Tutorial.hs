@@ -81,10 +81,10 @@ import Control.Lens
 -- 
 --     Let's convince ourselves that this works:
 -- 
--- >>> :load atom.hs
--- >>> let atom = Atom { _element = "C", _point = Point { _x = 1.0, _y = 2.0 } }
--- >>> shiftAtomX atom
--- Atom {_element = "C", _point = Point {_x = 2.0, _y = 2.0}}
+-- > >>> :load atom.hs
+-- > >>> let atom = Atom { _element = "C", _point = Point { _x = 1.0, _y = 2.0 } }
+-- > >>> shiftAtomX atom
+-- > Atom {_element = "C", _point = Point {_x = 2.0, _y = 2.0}}
 -- 
 --     The above solution does not change no matter how many fields we add to
 --     @Atom@ or @Point@.
@@ -102,17 +102,17 @@ import Control.Lens
 -- 
 --     Again, this works the way we expect:
 -- 
--- >>> :load atom.hs
--- >>> let atom1 = Atom { _element = "C", _point = Point { _x = 1.0, _y = 2.0 } }
--- >>> let atom2 = Atom { _element = "O", _point = Point { _x = 3.0, _y = 4.0 } }
--- >>> let molecule = Molecule { _atoms = [atom1, atom2] }
--- >>> shiftMoleculeX molecule  -- Output formatted for clarity
--- Molecule
---     { _atoms =
---         [ Atom { _element = "C", _point = Point { _x = 2.0, _y = 2.0 } }
---         , Atom { _element = ")", _point = Point { _x = 4.0, _y = 4.0 } }
---         ]
---     }
+-- > >>> :load atom.hs
+-- > >>> let atom1 = Atom { _element = "C", _point = Point { _x = 1.0, _y = 2.0 } }
+-- > >>> let atom2 = Atom { _element = "O", _point = Point { _x = 3.0, _y = 4.0 } }
+-- > >>> let molecule = Molecule { _atoms = [atom1, atom2] }
+-- > >>> shiftMoleculeX molecule  -- Output formatted for clarity
+-- > Molecule
+-- >     { _atoms =
+-- >         [ Atom { _element = "C", _point = Point { _x = 2.0, _y = 2.0 } }
+-- >         , Atom { _element = ")", _point = Point { _x = 4.0, _y = 4.0 } }
+-- >         ]
+-- >     }
 -- 
 --     Many people stumble across lenses while trying to solve this common problem
 --     of working with data structures with a large number of fields or deeply
@@ -141,10 +141,10 @@ import Control.Lens
     We already saw how to use lenses to update values using `over`, but we can
     also use lenses to retrieve values using `view`:
 
->>> :load atom.hs
->>> let atom = Atom { _element = "C", _point = Point { _x = 1.0, _y = 2.0 } }
->>> view (point . x) atom
-1
+> >>> :load atom.hs
+> >>> let atom = Atom { _element = "C", _point = Point { _x = 1.0, _y = 2.0 } }
+> >>> view (point . x) atom
+> 1
 
     In other words, lenses package both \"get\" and \"set\" functionality into
     a single value (the lens).  You could pretend that a lens is a record
@@ -348,10 +348,10 @@ import Control.Lens
     You can do almost the exact same thing using the @lens@ library, except
     that the first dot will have a @^@ right before the dot:
 
->>> :load atom.hs
->>> let atom = Atom { _element = "C", _point = Point { _x = 1.0, _y = 2.0 } }
->>> atom^.point.x
-1.0
+> >>> :load atom.hs
+> >>> let atom = Atom { _element = "C", _point = Point { _x = 1.0, _y = 2.0 } }
+> >>> atom^.point.x
+> 1.0
 
     You can better understand why this works, by adding whitespace and
     explicit parentheses:
@@ -592,8 +592,8 @@ import Control.Lens
 -- You can also use (`^..`), which is an infix operator equivalent to
 -- `toListOf`:
 --
--- >>> Pair 3 4 ^.. traverse
--- [3,4]
+-- > >>> Pair 3 4 ^.. traverse
+-- > [3,4]
 
 {- $types
     You might wonder why you can use `over` on both a `Lens'` and a
@@ -707,12 +707,12 @@ import Control.Lens
     This implies that we *can* use `view` on a `Traversal'`, but only if the
     value that we extract is a `Monoid`.  Let's try this out:
 
->>> :load atom.hs
->>> let atom1 = Atom { _element = "C", _point = Point { _x = 1.0, _y = 2.0 } }
->>> let atom2 = Atom { _element = "O", _point = Point { _x = 3.0, _y = 4.0 } }
->>> let molecule = Molecule { _atoms = [atom1, atom2] }
->>> view (atoms . traverse . element) molecule
-"CO"
+> >>> :load atom.hs
+> >>> let atom1 = Atom { _element = "C", _point = Point { _x = 1.0, _y = 2.0 } }
+> >>> let atom2 = Atom { _element = "O", _point = Point { _x = 3.0, _y = 4.0 } }
+> >>> let molecule = Molecule { _atoms = [atom1, atom2] }
+> >>> view (atoms . traverse . element) molecule
+> "CO"
 
     This works because our traversal's result is a `String`:
 
@@ -724,8 +724,8 @@ import Control.Lens
 
     If you try to extract the element from an empty molecule:
 
->>> view (atoms . traverse . element) (Molecule { _atoms = [] })
-""
+> >>> view (atoms . traverse . element) (Molecule { _atoms = [] })
+> ""
 
     You get the empty string (i.e. `Data.Monoid.mempty`).
 
@@ -738,15 +738,15 @@ import Control.Lens
     If you try to `view` a `Traversal'` that doesn't point to a
     `Data.Monoid.Monoid`, you will get the following type error:
 
->>> view (atoms . traverse . point . x) molecule
-    No instance for (Data.Monoid.Monoid Double)
-      arising from a use of `traverse'
-    Possible fix:
-      add an instance declaration for (Data.Monoid.Monoid Double)
-    In the first argument of `(.)', namely `traverse'
-    In the second argument of `(.)', namely `traverse . point . x'
-    In the first argument of `view', namely
-      `(atoms . traverse . point . x)'
+> >>> view (atoms . traverse . point . x) molecule
+>     No instance for (Data.Monoid.Monoid Double)
+>       arising from a use of `traverse'
+>     Possible fix:
+>       add an instance declaration for (Data.Monoid.Monoid Double)
+>     In the first argument of `(.)', namely `traverse'
+>     In the second argument of `(.)', namely `traverse . point . x'
+>     In the first argument of `view', namely
+>       `(atoms . traverse . point . x)'
 
     The compiler complains that `Double` does not implement the
     `Data.Monoid.Monoid` type class, so there is no sensible way to merge all
@@ -761,15 +761,15 @@ import Control.Lens
     understand how `Traversal'`s work you will probably not understand this
     error message:
 
->>> view (atoms . traverse . point . x) molecule
-    No instance for (Data.Monoid.Monoid Double)
-      arising from a use of `traverse'
-    Possible fix:
-      add an instance declaration for (Data.Monoid.Monoid Double)
-    In the first argument of `(.)', namely `traverse'
-    In the second argument of `(.)', namely `traverse . point . x'
-    In the first argument of `view', namely
-      `(atoms . traverse . point . x)'
+> >>> view (atoms . traverse . point . x) molecule
+>     No instance for (Data.Monoid.Monoid Double)
+>       arising from a use of `traverse'
+>     Possible fix:
+>       add an instance declaration for (Data.Monoid.Monoid Double)
+>     In the first argument of `(.)', namely `traverse'
+>     In the second argument of `(.)', namely `traverse . point . x'
+>     In the first argument of `view', namely
+>       `(atoms . traverse . point . x)'
 
     Also, lenses increase the learning curve for new Haskell programmers, so
     you should consider avoiding them in tutorial code targeting novice
