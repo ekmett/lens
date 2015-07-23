@@ -1,3 +1,8 @@
+4.12.2
+------
+* Incorporated a bug fix for `foldByOf` and `foldMapByOf` to actually let them work on folds.
+* Added a `Plated` instance for `CofreeT`
+
 4.12.1
 ------
 * The `Simple` type alias is now poly-kinded. This lets you use `Simple Field1 s a` and the like in constraints.
