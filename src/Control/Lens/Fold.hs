@@ -2496,14 +2496,70 @@ skip _ = ()
 -- Folds with Reified Monoid
 ------------------------------------------------------------------------------
 
+-- | Fold a value using its 'Foldable' instance using
+-- explicitly provided 'Monoid' operations. This is like 'fold'
+-- where the 'Monoid' instance can be manually specified.
+--
+-- @
+-- 'foldBy' 'mappend' 'mempty' ≡ 'fold'
+-- @
+--
+-- >>> foldBy (++) [] ["hello","world"]
+-- "helloworld"
 foldBy :: Foldable t => (a -> a -> a) -> a -> t a -> a
 foldBy f z = reifyFold f z (foldMap M)
 
+-- | Fold a value using a specified 'Fold' and 'Monoid' operations.
+-- This is like 'foldBy' where the 'Foldable' instance can be
+-- manually specified.
+--
+-- @
+-- 'foldByOf' 'folded' ≡ 'foldBy'
+-- @
+--
+-- @
+-- 'foldByOf' :: 'Getter' s a     -> (a -> a -> a) -> a -> s -> a
+-- 'foldByOf' :: 'Fold' s a       -> (a -> a -> a) -> a -> s -> a
+-- 'foldByOf' :: 'Lens'' s a      -> (a -> a -> a) -> a -> s -> a
+-- 'foldByOf' :: 'Traversal'' s a -> (a -> a -> a) -> a -> s -> a
+-- 'foldByOf' :: 'Iso'' s a       -> (a -> a -> a) -> a -> s -> a
+-- @
+--
+-- >>> foldByOf both (++) [] ("hello","world")
+-- "helloworld"
 foldByOf :: (forall i. Reifies i (ReifiedMonoid a) => Getting (M a i) s a) -> (a -> a -> a) -> a -> s -> a
 foldByOf l f z = reifyFold f z (foldMapOf l M)
 
+-- | Fold a value using its 'Foldable' instance using
+-- explicitly provided 'Monoid' operations. This is like 'foldMap'
+-- where the 'Monoid' instance can be manually specified.
+--
+-- @
+-- 'foldMapBy' 'mappend' 'mempty' ≡ 'foldMap'
+-- @
+--
+-- >>> foldMapBy (+) 0 length ["hello","world"]
+-- 10
 foldMapBy :: Foldable t => (r -> r -> r) -> r -> (a -> r) -> t a -> r
 foldMapBy f z g = reifyFold f z (foldMap (M #. g))
 
+-- | Fold a value using a specified 'Fold' and 'Monoid' operations.
+-- This is like 'foldMapBy' where the 'Foldable' instance can be
+-- manually specified.
+--
+-- @
+-- 'foldMapByOf' 'folded' ≡ 'foldMapBy'
+-- @
+--
+-- @
+-- 'foldMapByOf' :: 'Getter' s a     -> (r -> r -> r) -> r -> (a -> r) -> s -> r
+-- 'foldMapByOf' :: 'Fold' s a       -> (r -> r -> r) -> r -> (a -> r) -> s -> r
+-- 'foldMapByOf' :: 'Traversal'' s a -> (r -> r -> r) -> r -> (a -> r) -> s -> r
+-- 'foldMapByOf' :: 'Lens'' s a      -> (r -> r -> r) -> r -> (a -> r) -> s -> r
+-- 'foldMapByOf' :: 'Iso'' s a       -> (r -> r -> r) -> r -> (a -> r) -> s -> r
+-- @
+--
+-- >>> foldMapByOf both (+) 0 length ("hello","world")
+-- 10
 foldMapByOf :: (forall i. Reifies i (ReifiedMonoid r) => Getting (M r i) s a) -> (r -> r -> r) -> r -> (a -> r) -> s -> r
 foldMapByOf l f z g = reifyFold f z (foldMapOf l (M #. g))
