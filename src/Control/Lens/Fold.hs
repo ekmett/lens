@@ -2531,7 +2531,7 @@ foldBy f z = reifyFold f z (foldMap M)
 --
 -- >>> foldByOf both (++) [] ("hello","world")
 -- "helloworld"
-foldByOf :: (forall i. Reifies i (ReifiedMonoid a) => Getting (M a i) s a) -> (a -> a -> a) -> a -> s -> a
+foldByOf :: Fold s a -> (a -> a -> a) -> a -> s -> a
 foldByOf l f z = reifyFold f z (foldMapOf l M)
 
 -- | Fold a value using its 'Foldable' instance using
@@ -2565,5 +2565,5 @@ foldMapBy f z g = reifyFold f z (foldMap (M #. g))
 --
 -- >>> foldMapByOf both (+) 0 length ("hello","world")
 -- 10
-foldMapByOf :: (forall i. Reifies i (ReifiedMonoid r) => Getting (M r i) s a) -> (r -> r -> r) -> r -> (a -> r) -> s -> r
+foldMapByOf :: Fold s a -> (r -> r -> r) -> r -> (a -> r) -> s -> r
 foldMapByOf l f z g = reifyFold f z (foldMapOf l (M #. g))
