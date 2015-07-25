@@ -22,6 +22,7 @@ module Language.Haskell.TH.Lens
   (
   -- * Traversals
     HasName(..)
+  , HasType(..)
   , HasTypeVars(..)
   , SubstType(..)
   , typeVars      -- :: HasTypeVars t => Traversal' t Name
