@@ -168,7 +168,6 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
-import Data.Reflection
 import Data.Traversable
 import Prelude hiding (foldr)
 
