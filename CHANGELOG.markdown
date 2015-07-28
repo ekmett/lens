@@ -3,6 +3,7 @@
 * Move `Review` and `AReview` to `Control.Lens.Type` fixing a bug in `makePrisms`
 * Expose `HasTypes` class in `Language.Haskell.TH.Lens`
 * Make types of `foldByOf` and `foldMapByOf` more specific to hide implementation details
+* Add Prisms to `Language.Haskell.TH` for new constructors in `template-haskell-2.10`
 
 4.12.2
 ------
