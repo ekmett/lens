@@ -287,6 +287,7 @@ import Control.Lens.At
 import Control.Lens.Getter
 import Control.Lens.Setter
 import Control.Lens.Fold
+import Control.Lens.Iso (Iso', iso)
 import Control.Lens.Lens
 import Control.Lens.Prism
 import Control.Lens.Tuple
@@ -1131,12 +1132,12 @@ _ValueAnnotation
       reviewer x = Left x
 #endif
 
-_FunDep :: Prism' FunDep ([Name], [Name])
+_FunDep :: Iso' FunDep ([Name], [Name])
 _FunDep
-  = prism remitter reviewer
+  = iso remitter reviewer
   where
-      remitter (x, y) = FunDep x y
-      reviewer (FunDep x y) = Right (x, y)
+      reviewer (x, y) = FunDep x y
+      remitter (FunDep x y) = (x, y)
 
 _TypeFam :: Prism' FamFlavour ()
 _TypeFam
