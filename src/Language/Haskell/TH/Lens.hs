@@ -93,6 +93,10 @@ module Language.Haskell.TH.Lens
   , _ClosedTypeFamilyD
   , _RoleAnnotD
 #endif
+#if MIN_VERSION_template_haskell(2,10,0)
+  , _StandaloneDerivD
+  , _DefaultSigD
+#endif
   -- ** Con Prisms
   , _NormalC
   , _RecC
@@ -108,6 +112,11 @@ module Language.Haskell.TH.Lens
   -- ** Callconv Prisms
   , _CCall
   , _StdCall
+#if MIN_VERSION_template_haskell(2,10,0)
+  , _CApi
+  , _Prim
+  , _JavaScript
+#endif
   -- ** Safety Prisms
   , _Unsafe
   , _Safe
@@ -120,6 +129,9 @@ module Language.Haskell.TH.Lens
   , _RuleP
 #if MIN_VERSION_template_haskell(2,9,0)
   , _AnnP
+#endif
+#if MIN_VERSION_template_haskell(2,10,0)
+  , _LineP
 #endif
   -- ** Inline Prisms
   , _NoInline
@@ -178,6 +190,9 @@ module Language.Haskell.TH.Lens
   , _SigE
   , _RecConE
   , _RecUpdE
+#if MIN_VERSION_template_haskell(2,10,0)
+  , _StaticE
+#endif
   -- ** Body Prisms
   , _GuardedB
   , _NormalB
@@ -233,6 +248,9 @@ module Language.Haskell.TH.Lens
   , _TupleT
   , _UnboxedTupleT
   , _ArrowT
+#if MIN_VERSION_template_haskell(2,10,0)
+  , _EqualityT
+#endif
   , _ListT
 #if MIN_VERSION_template_haskell(2,8,0)
   , _PromotedTupleT
@@ -259,6 +277,8 @@ module Language.Haskell.TH.Lens
   -- ** Role Prisms
   , _NominalR
   , _RepresentationalR
+  , _PhantomR
+  , _InferR
 #endif
   ) where
 
@@ -750,6 +770,24 @@ _TySynInstD
       reviewer x = Left x
 #endif
 
+#if MIN_VERSION_template_haskell(2,10,0)
+_StandaloneDerivD :: Prism' Dec (Cxt, Type)
+_StandaloneDerivD
+  = prism remitter reviewer
+  where
+      remitter (x, y) = StandaloneDerivD x y
+      reviewer (StandaloneDerivD x y) = Right (x, y)
+      reviewer x = Left x
+
+_DefaultSigD :: Prism' Dec (Name, Type)
+_DefaultSigD
+  = prism remitter reviewer
+  where
+      remitter (x, y) = DefaultSigD x y
+      reviewer (DefaultSigD x y) = Right (x, y)
+      reviewer x = Left x
+#endif
+
 _NormalC ::
   Prism' Con (Name, [StrictType])
 _NormalC
@@ -851,6 +889,32 @@ _StdCall
       reviewer StdCall = Right ()
       reviewer x = Left x
 
+#if MIN_VERSION_template_haskell(2,10,0)
+_CApi :: Prism' Callconv ()
+_CApi
+  = prism remitter reviewer
+  where
+      remitter () = CApi
+      reviewer CApi = Right ()
+      reviewer x = Left x
+
+_Prim :: Prism' Callconv ()
+_Prim
+  = prism remitter reviewer
+  where
+      remitter () = Prim
+      reviewer Prim = Right ()
+      reviewer x = Left x
+
+_JavaScript :: Prism' Callconv ()
+_JavaScript
+  = prism remitter reviewer
+  where
+      remitter () = JavaScript
+      reviewer JavaScript = Right ()
+      reviewer x = Left x
+#endif
+
 _Unsafe :: Prism' Safety ()
 _Unsafe
   = prism remitter reviewer
@@ -945,6 +1009,16 @@ _AnnP
   where
       remitter (x, y) = AnnP x y
       reviewer (AnnP x y) = Right (x, y)
+      reviewer x = Left x
+#endif
+
+#if MIN_VERSION_template_haskell(2,10,0)
+_LineP :: Prism' Pragma (Int, String)
+_LineP
+  = prism remitter reviewer
+  where
+      remitter (x, y) = LineP x y
+      reviewer (LineP x y) = Right (x, y)
       reviewer x = Left x
 #endif
 
@@ -1301,6 +1375,16 @@ _RecUpdE
       remitter (x, y) = RecUpdE x y
       reviewer (RecUpdE x y) = Right (x, y)
       reviewer x = Left x
+
+#if MIN_VERSION_template_haskell(2,10,0)
+_StaticE :: Prism' Exp Exp
+_StaticE
+  = prism remitter reviewer
+  where
+      remitter = StaticE
+      reviewer (StaticE x) = Right x
+      reviewer x = Left x
+#endif
 
 _GuardedB :: Prism' Body [(Guard, Exp)]
 _GuardedB
@@ -1689,6 +1773,16 @@ _ArrowT
       remitter () = ArrowT
       reviewer ArrowT = Right ()
       reviewer x = Left x
+
+#if MIN_VERSION_template_haskell(2,10,0)
+_EqualityT :: Prism' Type ()
+_EqualityT
+  = prism remitter reviewer
+  where
+      remitter () = EqualityT
+      reviewer EqualityT = Right ()
+      reviewer x = Left x
+#endif
 
 _ListT :: Prism' Type ()
 _ListT
