@@ -2459,8 +2459,8 @@ ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 -- @
 itakingWhile :: (Indexable i p, Profunctor q, Contravariant f, Applicative f)
          => (i -> a -> Bool)
-         -> Optical (Indexed i) q (Const (Endo (f s))) s s a a
-         -> Optical p q f s s a a
+         -> Optical' (Indexed i) q (Const (Endo (f s))) s a
+         -> Optical' p q f s a
 itakingWhile p l f = (flip appEndo noEffect .# getConst) `rmap` l g where
   g = Indexed $ \i a -> Const . Endo $ if p i a then (indexed f i a *>) else const noEffect
 {-# INLINE itakingWhile #-}

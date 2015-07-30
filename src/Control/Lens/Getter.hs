@@ -128,7 +128,7 @@ infixl 8 ^., ^@.
 -- @
 -- 'to' :: (s -> a) -> 'IndexPreservingGetter' s a
 -- @
-to :: (Profunctor p, Contravariant f) => (s -> a) -> Optical' p p f s a 
+to :: (Profunctor p, Contravariant f) => (s -> a) -> Optic' p f s a
 to k = dimap k (contramap k)
 {-# INLINE to #-}
 
@@ -136,7 +136,7 @@ to k = dimap k (contramap k)
 -- @
 -- 'ito' :: (s -> (i, a)) -> 'IndexedGetter' i s a
 -- @
-ito :: (Indexable i p, Contravariant f) => (s -> (i, a)) -> Optical' p (->) f s a
+ito :: (Indexable i p, Contravariant f) => (s -> (i, a)) -> Over' p f s a
 ito k = dimap k (contramap (snd . k)) . uncurry . indexed
 {-# INLINE ito #-}
 
@@ -155,7 +155,7 @@ ito k = dimap k (contramap (snd . k)) . uncurry . indexed
 -- @
 -- 'like' :: a -> 'IndexPreservingGetter' s a
 -- @
-like :: (Profunctor p, Contravariant f) => a -> Optical' p p f s a
+like :: (Profunctor p, Contravariant f) => a -> Optic' p f s a
 like a = to (const a)
 {-# INLINE like #-}
 
@@ -163,7 +163,7 @@ like a = to (const a)
 -- @
 -- 'ilike' :: i -> a -> 'IndexedGetter' i s a
 -- @
-ilike :: (Indexable i p, Contravariant f) => i -> a -> Optical' p (->) f s a
+ilike :: (Indexable i p, Contravariant f) => i -> a -> Over' p f s a
 ilike i a = ito (const (i, a))
 {-# INLINE ilike #-}
 
@@ -281,7 +281,7 @@ view l = Reader.asks (getConst #. l Const)
 -- @
 -- 'views' :: 'MonadReader' s m => 'Getting' r s a -> (a -> r) -> m r
 -- @
-views :: (Profunctor p, MonadReader s m) => Optical p (->) (Const r) s s a a -> p a r -> m r
+views :: (Profunctor p, MonadReader s m) => Over' p (Const r) s a -> p a r -> m r
 views l f = Reader.asks (getConst #. l (Const #. f))
 {-# INLINE views #-}
 
@@ -360,7 +360,7 @@ use l = State.gets (view l)
 -- @
 -- 'uses' :: 'MonadState' s m => 'Getting' r s t a b -> (a -> r) -> m r
 -- @
-uses :: (Profunctor p, MonadState s m) => Optical p (->) (Const r) s s a a -> p a r -> m r
+uses :: (Profunctor p, MonadState s m) => Over' p (Const r) s a -> p a r -> m r
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}
 
