@@ -271,11 +271,11 @@ view l = Reader.asks (getConst #. l Const)
 -- In a more general setting, such as when working with a 'Monad' transformer stack you can use:
 --
 -- @
--- 'view' :: 'MonadReader' s m             => 'Getter' s a     -> m a
--- 'view' :: ('MonadReader' s m, 'Data.Monoid.Monoid' a) => 'Control.Lens.Fold.Fold' s a       -> m a
--- 'view' :: 'MonadReader' s m             => 'Control.Lens.Iso.Iso'' s a       -> m a
--- 'view' :: 'MonadReader' s m             => 'Lens'' s a      -> m a
--- 'view' :: ('MonadReader' s m, 'Data.Monoid.Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> m a
+-- 'views' :: 'MonadReader' s m             => 'Getter' s a     -> (a -> r) -> m r
+-- 'views' :: ('MonadReader' s m, 'Data.Monoid.Monoid' r) => 'Control.Lens.Fold.Fold' s a       -> (a -> r) -> m r
+-- 'views' :: 'MonadReader' s m             => 'Control.Lens.Iso.Iso'' s a       -> (a -> r) -> m r
+-- 'views' :: 'MonadReader' s m             => 'Lens'' s a      -> (a -> r) -> m r
+-- 'views' :: ('MonadReader' s m, 'Data.Monoid.Monoid' r) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> r) -> m r
 -- @
 --
 -- @
