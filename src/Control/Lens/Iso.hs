@@ -3,6 +3,11 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
+#endif
+
 #ifndef MIN_VERSION_bytestring
 #define MIN_VERSION_bytestring(x,y,z) 1
 #endif
@@ -48,9 +53,20 @@ module Control.Lens.Iso
   , curried, uncurried
   , flipped
   , Swapped(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern Swapped
+#endif
   , Strict(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern Strict
+  , pattern Lazy
+#endif
   , lazy
-  , Reversing(..), reversed
+  , Reversing(..)
+  , reversed
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern Reversed
+#endif
   , involuted
   -- ** Uncommon Isomorphisms
   , magma
@@ -68,6 +84,7 @@ module Control.Lens.Iso
   ) where
 
 import Control.Lens.Equality (simple)
+import Control.Lens.Getter
 import Control.Lens.Fold
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
@@ -84,7 +101,6 @@ import Control.Monad.RWS.Lazy as Lazy
 import Control.Monad.RWS.Strict as Strict
 import Data.ByteString as StrictB hiding (reverse)
 import Data.ByteString.Lazy as LazyB hiding (reverse)
-import Data.Functor.Contravariant
 import Data.Functor.Identity
 import Data.Text as StrictT hiding (reverse)
 import Data.Text.Lazy as LazyT hiding (reverse)
@@ -366,6 +382,20 @@ instance Swapped Either where
 -- such as 'StrictT.Text' or 'StrictB.ByteString'.
 class Strict lazy strict | lazy -> strict, strict -> lazy where
   strict :: Iso' lazy strict
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern Strict a <- (view strict -> a) where
+  Strict a = review strict a
+
+pattern Lazy a <- (view lazy -> a) where
+  Lazy a = review lazy a
+
+pattern Swapped a <- (view swapped -> a) where
+  Swapped a = review swapped a
+
+pattern Reversed a <- (view reversed -> a) where
+  Reversed a = review reversed a
+#endif
 
 instance Strict LazyB.ByteString StrictB.ByteString where
 #if MIN_VERSION_bytestring(0,10,0)
