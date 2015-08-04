@@ -6,12 +6,20 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 706
+
+#if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE PolyKinds #-}
 #endif
+
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+
+#if __GLASGOW_HASKELL__ >= 710
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
+#endif
+
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 #ifndef MIN_VERSION_base
@@ -62,7 +70,13 @@ module Control.Lens.Wrapped
   -- * Operations
   , op
   , ala, alaf
+#if __GLASGOW_HASKELL__ >= 710
+  -- * Pattern Synonyms
+  , pattern Wrapped
+  , pattern Unwrapped
+#endif
   ) where
+
 
 import           Control.Applicative
 import           Control.Arrow
@@ -71,6 +85,7 @@ import           Control.Comonad.Trans.Traced
 import           Control.Exception
 import           Control.Lens.Getter
 import           Control.Lens.Iso
+import           Control.Lens.Review
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
 import           Control.Monad.Trans.Identity
@@ -122,6 +137,16 @@ class Wrapped s where
   type Unwrapped s :: *
   -- | An isomorphism between @s@ and @a@.
   _Wrapped' :: Iso' s (Unwrapped s)
+
+#if __GLASGOW_HASKELL__ >= 710
+
+pattern Wrapped a <- (view _Wrapped -> a) where
+  Wrapped a = review _Wrapped a
+
+pattern Unwrapped a <- (view _Unwrapped -> a) where
+  Unwrapped a = review _Unwrapped a
+
+#endif
 
 -- This can be used to help inference between the wrappers
 class Wrapped s => Rewrapped (s :: *) (t :: *)
