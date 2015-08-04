@@ -1,5 +1,11 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Dynamic.Lens
@@ -12,6 +18,9 @@
 ----------------------------------------------------------------------------
 module Data.Dynamic.Lens
   ( AsDynamic(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern Dynamic
+#endif
   ) where
 
 import Control.Exception
@@ -40,3 +49,8 @@ instance AsDynamic Dynamic where
 instance AsDynamic SomeException where
   _Dynamic = exception.prism' toDyn fromDynamic
   {-# INLINE _Dynamic #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern Dynamic a <- (preview _Dynamic -> Just a) where
+  Dynamic a = review _Dynamic a
+#endif
