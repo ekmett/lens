@@ -68,6 +68,9 @@ module Control.Lens.Iso
   , pattern Reversed
 #endif
   , involuted
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern List
+#endif
   -- ** Uncommon Isomorphisms
   , magma
   , imagma
@@ -108,6 +111,7 @@ import Data.Tuple (swap)
 import Data.Maybe
 import Data.Profunctor
 import Data.Profunctor.Unsafe
+import qualified GHC.Exts as Exts
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use on" #-}
@@ -457,6 +461,11 @@ reversed = involuted Iso.reversing
 involuted :: (a -> a) -> Iso' a a
 involuted a = iso a a
 {-# INLINE involuted #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern List a <- (Exts.toList -> a) where
+  List a = Exts.fromList a
+#endif
 
 ------------------------------------------------------------------------------
 -- Magma
