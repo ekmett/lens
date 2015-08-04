@@ -28,6 +28,7 @@ module Control.Lens.Type
     Equality, Equality', As
   , Iso, Iso'
   , Prism , Prism'
+  , Review , AReview
   -- * Lenses, Folds and Traversals
   , Lens, Lens'
   , Traversal, Traversal'
@@ -61,9 +62,12 @@ module Control.Lens.Type
 import Control.Applicative
 import Control.Lens.Internal.Setter
 import Control.Lens.Internal.Indexed
+import Data.Bifunctor
+import Data.Functor.Identity
 import Data.Functor.Contravariant
 import Data.Functor.Apply
 import Data.Profunctor
+import Data.Tagged
 import Prelude ()
 
 -- $setup
@@ -328,6 +332,22 @@ type Iso s t a b = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f 
 -- type 'Iso'' = 'Control.Lens.Type.Simple' 'Iso'
 -- @
 type Iso' s a = Iso s s a a
+
+------------------------------------------------------------------------------
+-- Review Internals
+------------------------------------------------------------------------------
+
+-- | This is a limited form of a 'Prism' that can only be used for 're' operations.
+--
+-- Like with a 'Getter', there are no laws to state for a 'Review'.
+--
+-- You can generate a 'Review' by using 'unto'. You can also use any 'Prism' or 'Iso'
+-- directly as a 'Review'.
+type Review t b = forall p f. (Choice p, Bifunctor p, Settable f) => Optic' p f t b
+
+-- | If you see this in a signature for a function, the function is expecting a 'Review'
+-- (in practice, this usually means a 'Prism').
+type AReview t b = Optic' Tagged Identity t b
 
 ------------------------------------------------------------------------------
 -- Prism Internals

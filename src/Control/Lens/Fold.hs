@@ -168,7 +168,6 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
-import Data.Reflection
 import Data.Traversable
 import Prelude hiding (foldr)
 
@@ -596,6 +595,10 @@ toListOf l = foldrOf l (:) []
 
 -- | A convenient infix (flipped) version of 'toListOf'.
 --
+-- >>> [[1,2],[3]]^..id
+-- [[[1,2],[3]]]
+-- >>> [[1,2],[3]]^..traverse
+-- [[1,2],[3]]
 -- >>> [[1,2],[3]]^..traverse.traverse
 -- [1,2,3]
 --
@@ -2456,8 +2459,8 @@ ifiltered p f = Indexed $ \i a -> if p i a then indexed f i a else pure a
 -- @
 itakingWhile :: (Indexable i p, Profunctor q, Contravariant f, Applicative f)
          => (i -> a -> Bool)
-         -> Optical (Indexed i) q (Const (Endo (f s))) s s a a
-         -> Optical p q f s s a a
+         -> Optical' (Indexed i) q (Const (Endo (f s))) s a
+         -> Optical' p q f s a
 itakingWhile p l f = (flip appEndo noEffect .# getConst) `rmap` l g where
   g = Indexed $ \i a -> Const . Endo $ if p i a then (indexed f i a *>) else const noEffect
 {-# INLINE itakingWhile #-}
@@ -2527,7 +2530,7 @@ foldBy f z = reifyFold f z (foldMap M)
 --
 -- >>> foldByOf both (++) [] ("hello","world")
 -- "helloworld"
-foldByOf :: (forall i. Reifies i (ReifiedMonoid a) => Getting (M a i) s a) -> (a -> a -> a) -> a -> s -> a
+foldByOf :: Fold s a -> (a -> a -> a) -> a -> s -> a
 foldByOf l f z = reifyFold f z (foldMapOf l M)
 
 -- | Fold a value using its 'Foldable' instance using
@@ -2561,5 +2564,5 @@ foldMapBy f z g = reifyFold f z (foldMap (M #. g))
 --
 -- >>> foldMapByOf both (+) 0 length ("hello","world")
 -- 10
-foldMapByOf :: (forall i. Reifies i (ReifiedMonoid r) => Getting (M r i) s a) -> (r -> r -> r) -> r -> (a -> r) -> s -> r
+foldMapByOf :: Fold s a -> (r -> r -> r) -> r -> (a -> r) -> s -> r
 foldMapByOf l f z g = reifyFold f z (foldMapOf l (M #. g))

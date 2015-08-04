@@ -1,3 +1,11 @@
+4.12.3
+------
+* Move `Review` and `AReview` to `Control.Lens.Type` fixing a bug in `makePrisms`
+* Expose `HasTypes` class in `Language.Haskell.TH.Lens`
+* Make types of `foldByOf` and `foldMapByOf` more specific to hide implementation details
+* Add Prisms to `Language.Haskell.TH` for new constructors in `template-haskell-2.10`
+* Generalize type of `_FunDep` to an `Iso`
+
 4.12.2
 ------
 * Incorporated a bug fix for `foldByOf` and `foldMapByOf` to actually let them work on folds.

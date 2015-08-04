@@ -22,6 +22,7 @@ module Language.Haskell.TH.Lens
   (
   -- * Traversals
     HasName(..)
+  , HasTypes(..)
   , HasTypeVars(..)
   , SubstType(..)
   , typeVars      -- :: HasTypeVars t => Traversal' t Name
@@ -92,6 +93,10 @@ module Language.Haskell.TH.Lens
   , _ClosedTypeFamilyD
   , _RoleAnnotD
 #endif
+#if MIN_VERSION_template_haskell(2,10,0)
+  , _StandaloneDerivD
+  , _DefaultSigD
+#endif
   -- ** Con Prisms
   , _NormalC
   , _RecC
@@ -107,6 +112,11 @@ module Language.Haskell.TH.Lens
   -- ** Callconv Prisms
   , _CCall
   , _StdCall
+#if MIN_VERSION_template_haskell(2,10,0)
+  , _CApi
+  , _Prim
+  , _JavaScript
+#endif
   -- ** Safety Prisms
   , _Unsafe
   , _Safe
@@ -119,6 +129,9 @@ module Language.Haskell.TH.Lens
   , _RuleP
 #if MIN_VERSION_template_haskell(2,9,0)
   , _AnnP
+#endif
+#if MIN_VERSION_template_haskell(2,10,0)
+  , _LineP
 #endif
   -- ** Inline Prisms
   , _NoInline
@@ -177,6 +190,9 @@ module Language.Haskell.TH.Lens
   , _SigE
   , _RecConE
   , _RecUpdE
+#if MIN_VERSION_template_haskell(2,10,0)
+  , _StaticE
+#endif
   -- ** Body Prisms
   , _GuardedB
   , _NormalB
@@ -232,6 +248,9 @@ module Language.Haskell.TH.Lens
   , _TupleT
   , _UnboxedTupleT
   , _ArrowT
+#if MIN_VERSION_template_haskell(2,10,0)
+  , _EqualityT
+#endif
   , _ListT
 #if MIN_VERSION_template_haskell(2,8,0)
   , _PromotedTupleT
@@ -258,6 +277,8 @@ module Language.Haskell.TH.Lens
   -- ** Role Prisms
   , _NominalR
   , _RepresentationalR
+  , _PhantomR
+  , _InferR
 #endif
   ) where
 
@@ -266,6 +287,7 @@ import Control.Lens.At
 import Control.Lens.Getter
 import Control.Lens.Setter
 import Control.Lens.Fold
+import Control.Lens.Iso (Iso', iso)
 import Control.Lens.Lens
 import Control.Lens.Prism
 import Control.Lens.Tuple
@@ -493,427 +515,455 @@ clauseDecs = lens g s where
 #if MIN_VERSION_template_haskell(2,8,0)
 _ClassI :: Prism' Info (Dec, [InstanceDec])
 _ClassI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = ClassI x y
-      reviewer (ClassI x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = ClassI x y
+      remitter (ClassI x y) = Just (x, y)
+      remitter _ = Nothing
 
 _ClassOpI :: Prism' Info (Name, Type, ParentName, Fixity)
 _ClassOpI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w) = ClassOpI x y z w
-      reviewer (ClassOpI x y z w) = Right (x, y, z, w)
-      reviewer x = Left x
+      reviewer (x, y, z, w) = ClassOpI x y z w
+      remitter (ClassOpI x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
 
 #else
 _ClassI :: Prism' Info (Dec, [Dec])
 _ClassI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = ClassI x y
-      reviewer (ClassI x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = ClassI x y
+      remitter (ClassI x y) = Just (x, y)
+      remitter _ = Nothing
 
 _ClassOpI :: Prism' Info (Name, Type, Name, Fixity)
 _ClassOpI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w) = ClassOpI x y z w
-      reviewer (ClassOpI x y z w) = Right (x, y, z, w)
-      reviewer x = Left x
+      reviewer (x, y, z, w) = ClassOpI x y z w
+      remitter (ClassOpI x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
 #endif
 
 _TyConI :: Prism' Info Dec
 _TyConI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = TyConI
-      reviewer (TyConI x) = Right x
-      reviewer x = Left x
+      reviewer = TyConI
+      remitter (TyConI x) = Just x
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _FamilyI :: Prism' Info (Dec, [InstanceDec])
 _FamilyI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = FamilyI x y
-      reviewer (FamilyI x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = FamilyI x y
+      remitter (FamilyI x y) = Just (x, y)
+      remitter _ = Nothing
 
 _PrimTyConI :: Prism' Info (Name, Arity, Unlifted)
 _PrimTyConI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z) = PrimTyConI x y z
-      reviewer (PrimTyConI x y z) = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = PrimTyConI x y z
+      remitter (PrimTyConI x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _DataConI :: Prism' Info (Name, Type, ParentName, Fixity)
 _DataConI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w) = DataConI x y z w
-      reviewer (DataConI x y z w) = Right (x, y, z, w)
-      reviewer x = Left x
+      reviewer (x, y, z, w) = DataConI x y z w
+      remitter (DataConI x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
 #else
 _FamilyI :: Prism' Info (Dec, [Dec])
 _FamilyI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = FamilyI x y
-      reviewer (FamilyI x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = FamilyI x y
+      remitter (FamilyI x y) = Just (x, y)
+      remitter _ = Nothing
 
 _PrimTyConI :: Prism' Info (Name, Int, Bool)
 _PrimTyConI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z) = PrimTyConI x y z
-      reviewer (PrimTyConI x y z) = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = PrimTyConI x y z
+      remitter (PrimTyConI x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _DataConI :: Prism' Info (Name, Type, Name, Fixity)
 _DataConI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w) = DataConI x y z w
-      reviewer (DataConI x y z w) = Right (x, y, z, w)
-      reviewer x = Left x
+      reviewer (x, y, z, w) = DataConI x y z w
+      remitter (DataConI x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
 
 #endif
 
 _VarI :: Prism' Info (Name, Type, Maybe Dec, Fixity)
 _VarI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w) = VarI x y z w
-      reviewer (VarI x y z w) = Right (x, y, z, w)
-      reviewer x = Left x
+      reviewer (x, y, z, w) = VarI x y z w
+      remitter (VarI x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
 
 _TyVarI :: Prism' Info (Name, Type)
 _TyVarI
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = TyVarI x y
-      reviewer (TyVarI x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = TyVarI x y
+      remitter (TyVarI x y) = Just (x, y)
+      remitter _ = Nothing
 
 _FunD :: Prism' Dec (Name, [Clause])
 _FunD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = FunD x y
-      reviewer (FunD x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = FunD x y
+      remitter (FunD x y) = Just (x,y)
+      remitter _ = Nothing
 
 _ValD :: Prism' Dec (Pat, Body, [Dec])
 _ValD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z) = ValD x y z
-      reviewer (ValD x y z) = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = ValD x y z
+      remitter (ValD x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _DataD :: Prism' Dec (Cxt, Name, [TyVarBndr], [Con], [Name])
 _DataD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w, u) = DataD x y z w u
-      reviewer (DataD x y z w u) = Right (x, y, z, w, u)
-      reviewer x = Left x
+      reviewer (x, y, z, w, u) = DataD x y z w u
+      remitter (DataD x y z w u) = Just (x, y, z, w, u)
+      remitter _ = Nothing
 
 _NewtypeD :: Prism' Dec (Cxt, Name, [TyVarBndr], Con, [Name])
 _NewtypeD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w, u) = NewtypeD x y z w u
-      reviewer (NewtypeD x y z w u) = Right (x, y, z, w, u)
-      reviewer x = Left x
+      reviewer (x, y, z, w, u) = NewtypeD x y z w u
+      remitter (NewtypeD x y z w u) = Just (x, y, z, w, u)
+      remitter _ = Nothing
 
 _TySynD :: Prism' Dec (Name, [TyVarBndr], Type)
 _TySynD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z) = TySynD x y z
-      reviewer (TySynD x y z) = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = TySynD x y z
+      remitter (TySynD x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _ClassD :: Prism' Dec (Cxt, Name, [TyVarBndr], [FunDep], [Dec])
 _ClassD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w, u) = ClassD x y z w u
-      reviewer (ClassD x y z w u) = Right (x, y, z, w, u)
-      reviewer x = Left x
+      reviewer (x, y, z, w, u) = ClassD x y z w u
+      remitter (ClassD x y z w u) = Just (x, y, z, w, u)
+      remitter _ = Nothing
 
 _InstanceD :: Prism' Dec (Cxt, Type, [Dec])
 _InstanceD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z) = InstanceD x y z
-      reviewer (InstanceD x y z) = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = InstanceD x y z
+      remitter (InstanceD x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _SigD :: Prism' Dec (Name, Type)
 _SigD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = SigD x y
-      reviewer (SigD x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = SigD x y
+      remitter (SigD x y) = Just (x, y)
+      remitter _ = Nothing
 
 _ForeignD :: Prism' Dec Foreign
 _ForeignD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = ForeignD
-      reviewer (ForeignD x) = Right x
-      reviewer x = Left x
+      reviewer = ForeignD
+      remitter (ForeignD x) = Just x
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _InfixD :: Prism' Dec (Fixity, Name)
 _InfixD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = InfixD x y
-      reviewer (InfixD x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = InfixD x y
+      remitter (InfixD x y) = Just (x, y)
+      remitter _ = Nothing
 #endif
 
 _PragmaD :: Prism' Dec Pragma
 _PragmaD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = PragmaD
-      reviewer (PragmaD x) = Right x
-      reviewer x = Left x
+      reviewer = PragmaD
+      remitter (PragmaD x) = Just x
+      remitter _ = Nothing
 
 _FamilyD :: Prism' Dec (FamFlavour, Name, [TyVarBndr], Maybe Kind)
 _FamilyD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w) = FamilyD x y z w
-      reviewer (FamilyD x y z w) = Right (x, y, z, w)
-      reviewer x = Left x
+      reviewer (x, y, z, w) = FamilyD x y z w
+      remitter (FamilyD x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
 
 _DataInstD :: Prism' Dec (Cxt, Name, [Type], [Con], [Name])
 _DataInstD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w, u) = DataInstD x y z w u
-      reviewer (DataInstD x y z w u) = Right (x, y, z, w, u)
-      reviewer x = Left x
+      reviewer (x, y, z, w, u) = DataInstD x y z w u
+      remitter (DataInstD x y z w u) = Just (x, y, z, w, u)
+      remitter _ = Nothing
 
 _NewtypeInstD :: Prism' Dec (Cxt, Name, [Type], Con, [Name])
 _NewtypeInstD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w, u) = NewtypeInstD x y z w u
-      reviewer (NewtypeInstD x y z w u) = Right (x, y, z, w, u)
-      reviewer x = Left x
+      reviewer (x, y, z, w, u) = NewtypeInstD x y z w u
+      remitter (NewtypeInstD x y z w u) = Just (x, y, z, w, u)
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,9,0)
 _TySynInstD :: Prism' Dec (Name, TySynEqn)
 _TySynInstD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = TySynInstD x y
-      reviewer (TySynInstD x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = TySynInstD x y
+      remitter (TySynInstD x y) = Just (x, y)
+      remitter _ = Nothing
 
 _ClosedTypeFamilyD :: Prism' Dec (Name, [TyVarBndr], Maybe Kind, [TySynEqn])
 _ClosedTypeFamilyD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w) = ClosedTypeFamilyD x y z w
-      reviewer (ClosedTypeFamilyD x y z w) = Right (x, y, z, w)
-      reviewer x = Left x
+      reviewer (x, y, z, w) = ClosedTypeFamilyD x y z w
+      remitter (ClosedTypeFamilyD x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
 
 _RoleAnnotD :: Prism' Dec (Name, [Role])
 _RoleAnnotD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = RoleAnnotD x y
-      reviewer (RoleAnnotD x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = RoleAnnotD x y
+      remitter (RoleAnnotD x y) = Just (x, y)
+      remitter _ = Nothing
 
 #else
 _TySynInstD :: Prism' Dec (Name, [Type], Type)
 _TySynInstD
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z) = TySynInstD x y z
-      reviewer (TySynInstD x y z) = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = TySynInstD x y z
+      remitter (TySynInstD x y z) = Just (x, y, z)
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,10,0)
+_StandaloneDerivD :: Prism' Dec (Cxt, Type)
+_StandaloneDerivD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = StandaloneDerivD x y
+      remitter (StandaloneDerivD x y) = Just (x, y)
+      remitter _ = Nothing
+
+_DefaultSigD :: Prism' Dec (Name, Type)
+_DefaultSigD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = DefaultSigD x y
+      remitter (DefaultSigD x y) = Just (x, y)
+      remitter _ = Nothing
 #endif
 
 _NormalC ::
   Prism' Con (Name, [StrictType])
 _NormalC
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = NormalC x y
-      reviewer (NormalC x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = NormalC x y
+      remitter (NormalC x y) = Just (x, y)
+      remitter _ = Nothing
 
 _RecC ::
   Prism' Con (Name, [VarStrictType])
 _RecC
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = RecC x y
-      reviewer (RecC x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = RecC x y
+      remitter (RecC x y) = Just (x, y)
+      remitter _ = Nothing
 
 _InfixC ::
   Prism' Con (StrictType,
               Name,
               StrictType)
 _InfixC
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z)
-        = InfixC x y z
-      reviewer (InfixC x y z)
-        = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = InfixC x y z
+      remitter (InfixC x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _ForallC :: Prism' Con ([TyVarBndr], Cxt, Con)
 _ForallC
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z)
-        = ForallC x y z
-      reviewer (ForallC x y z)
-        = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = ForallC x y z
+      remitter (ForallC x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _IsStrict :: Prism' Strict ()
 _IsStrict
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = IsStrict
-      reviewer IsStrict = Right ()
-      reviewer x = Left x
+      reviewer () = IsStrict
+      remitter IsStrict = Just ()
+      remitter _ = Nothing
 
 _NotStrict :: Prism' Strict ()
 _NotStrict
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = NotStrict
-      reviewer NotStrict = Right ()
-      reviewer x = Left x
+      reviewer () = NotStrict
+      remitter NotStrict = Just ()
+      remitter _ = Nothing
 
 _Unpacked :: Prism' Strict ()
 _Unpacked
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = Unpacked
-      reviewer Unpacked = Right ()
-      reviewer x = Left x
+      reviewer () = Unpacked
+      remitter Unpacked = Just ()
+      remitter _ = Nothing
 
 _ImportF :: Prism' Foreign (Callconv, Safety, String, Name, Type)
 _ImportF
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w, u)
-        = ImportF x y z w u
-      reviewer (ImportF x y z w u)
-        = Right (x, y, z, w, u)
-      reviewer x = Left x
+      reviewer (x, y, z, w, u) = ImportF x y z w u
+      remitter (ImportF x y z w u) = Just (x,y,z,w,u)
+      remitter _ = Nothing
 
 _ExportF :: Prism' Foreign (Callconv, String, Name, Type)
 _ExportF
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w)
-        = ExportF x y z w
-      reviewer (ExportF x y z w)
-        = Right (x, y, z, w)
-      reviewer x = Left x
+      reviewer (x, y, z, w) = ExportF x y z w
+      remitter (ExportF x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
 
 _CCall :: Prism' Callconv ()
 _CCall
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = CCall
-      reviewer CCall = Right ()
-      reviewer x = Left x
+      reviewer () = CCall
+      remitter CCall = Just ()
+      remitter _ = Nothing
 
 _StdCall :: Prism' Callconv ()
 _StdCall
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = StdCall
-      reviewer StdCall = Right ()
-      reviewer x = Left x
+      reviewer () = StdCall
+      remitter StdCall = Just ()
+      remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,10,0)
+_CApi :: Prism' Callconv ()
+_CApi
+  = prism' reviewer remitter
+  where
+      reviewer () = CApi
+      remitter CApi = Just ()
+      remitter _ = Nothing
+
+_Prim :: Prism' Callconv ()
+_Prim
+  = prism' reviewer remitter
+  where
+      reviewer () = Prim
+      remitter Prim = Just ()
+      remitter _ = Nothing
+
+_JavaScript :: Prism' Callconv ()
+_JavaScript
+  = prism' reviewer remitter
+  where
+      reviewer () = JavaScript
+      remitter JavaScript = Just ()
+      remitter _ = Nothing
+#endif
 
 _Unsafe :: Prism' Safety ()
 _Unsafe
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = Unsafe
-      reviewer Unsafe = Right ()
-      reviewer x = Left x
+      reviewer () = Unsafe
+      remitter Unsafe = Just ()
+      remitter _ = Nothing
 
 _Safe :: Prism' Safety ()
 _Safe
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = Safe
-      reviewer Safe = Right ()
-      reviewer x = Left x
+      reviewer () = Safe
+      remitter Safe = Just ()
+      remitter _ = Nothing
 
 _Interruptible :: Prism' Safety ()
 _Interruptible
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = Interruptible
-      reviewer Interruptible = Right ()
-      reviewer x = Left x
+      reviewer () = Interruptible
+      remitter Interruptible = Just ()
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _InlineP :: Prism' Pragma (Name, Inline, RuleMatch, Phases)
 _InlineP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w)
-        = InlineP x y z w
-      reviewer (InlineP x y z w)
-        = Right (x, y, z, w)
-      reviewer x = Left x
+      reviewer (x, y, z, w) = InlineP x y z w
+      remitter (InlineP x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
 
 _SpecialiseP :: Prism' Pragma (Name, Type, Maybe Inline, Phases)
 _SpecialiseP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w)
-        = SpecialiseP x y z w
-      reviewer (SpecialiseP x y z w)
-        = Right (x, y, z, w)
-      reviewer x = Left x
+      reviewer (x, y, z, w) = SpecialiseP x y z w
+      remitter (SpecialiseP x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
 #else
 _InlineP :: Prism' Pragma (Name, InlineSpec)
 _InlineP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y)
-        = InlineP x y
-      reviewer (InlineP x y)
-        = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = InlineP x y
+      remitter (InlineP x y) = Just (x, y)
+      remitter _ = Nothing
 
 _SpecialiseP :: Prism' Pragma (Name, Type, Maybe InlineSpec)
 _SpecialiseP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z)
-        = SpecialiseP x y z
-      reviewer (SpecialiseP x y z)
-        = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = SpecialiseP x y z
+      remitter (SpecialiseP x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 -- TODO add lenses for InlineSpec
 #endif
@@ -921,163 +971,169 @@ _SpecialiseP
 #if MIN_VERSION_template_haskell(2,8,0)
 _SpecialiseInstP :: Prism' Pragma Type
 _SpecialiseInstP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = SpecialiseInstP
-      reviewer (SpecialiseInstP x) = Right x
-      reviewer x = Left x
+      reviewer = SpecialiseInstP
+      remitter (SpecialiseInstP x) = Just x
+      remitter _ = Nothing
 
 _RuleP :: Prism' Pragma (String, [RuleBndr], Exp, Exp, Phases)
 _RuleP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z, w, u)
-        = RuleP x y z w u
-      reviewer (RuleP x y z w u)
-        = Right (x, y, z, w, u)
-      reviewer x = Left x
+      reviewer (x, y, z, w, u) = RuleP x y z w u
+      remitter (RuleP x y z w u) = Just (x, y, z, w, u)
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,9,0)
 _AnnP :: Prism' Pragma (AnnTarget, Exp)
 _AnnP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = AnnP x y
-      reviewer (AnnP x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = AnnP x y
+      remitter (AnnP x y) = Just (x, y)
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,10,0)
+_LineP :: Prism' Pragma (Int, String)
+_LineP
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = LineP x y
+      remitter (LineP x y) = Just (x, y)
+      remitter _ = Nothing
 #endif
 
 _NoInline :: Prism' Inline ()
 _NoInline
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = NoInline
-      reviewer NoInline = Right ()
-      reviewer x = Left x
+      reviewer () = NoInline
+      remitter NoInline = Just ()
+      remitter _ = Nothing
 
 _Inline :: Prism' Inline ()
 _Inline
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = Inline
-      reviewer Inline = Right ()
-      reviewer x = Left x
+      reviewer () = Inline
+      remitter Inline = Just ()
+      remitter _ = Nothing
 
 _Inlinable :: Prism' Inline ()
 _Inlinable
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = Inlinable
-      reviewer Inlinable = Right ()
-      reviewer x = Left x
+      reviewer () = Inlinable
+      remitter Inlinable = Just ()
+      remitter _ = Nothing
 
 _ConLike :: Prism' RuleMatch ()
 _ConLike
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = ConLike
-      reviewer ConLike = Right ()
-      reviewer x = Left x
+      reviewer () = ConLike
+      remitter ConLike = Just ()
+      remitter _ = Nothing
 
 _FunLike :: Prism' RuleMatch ()
 _FunLike
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = FunLike
-      reviewer FunLike = Right ()
-      reviewer x = Left x
+      reviewer () = FunLike
+      remitter FunLike = Just ()
+      remitter _ = Nothing
 
 _AllPhases :: Prism' Phases ()
 _AllPhases
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = AllPhases
-      reviewer AllPhases = Right ()
-      reviewer x = Left x
+      reviewer () = AllPhases
+      remitter AllPhases = Just ()
+      remitter _ = Nothing
 
 _FromPhase :: Prism' Phases Int
 _FromPhase
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = FromPhase
-      reviewer (FromPhase x) = Right x
-      reviewer x = Left x
+      reviewer = FromPhase
+      remitter (FromPhase x) = Just x
+      remitter _ = Nothing
 
 _BeforePhase :: Prism' Phases Int
 _BeforePhase
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = BeforePhase
-      reviewer (BeforePhase x) = Right x
-      reviewer x = Left x
+      reviewer = BeforePhase
+      remitter (BeforePhase x) = Just x
+      remitter _ = Nothing
 
 _RuleVar :: Prism' RuleBndr Name
 _RuleVar
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = RuleVar
-      reviewer (RuleVar x) = Right x
-      reviewer x = Left x
+      reviewer = RuleVar
+      remitter (RuleVar x) = Just x
+      remitter _ = Nothing
 
 _TypedRuleVar :: Prism' RuleBndr (Name, Type)
 _TypedRuleVar
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = TypedRuleVar x y
-      reviewer (TypedRuleVar x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = TypedRuleVar x y
+      remitter (TypedRuleVar x y) = Just (x, y)
+      remitter _ = Nothing
 #endif
 
 #if MIN_VERSION_template_haskell(2,9,0)
 _ModuleAnnotation :: Prism' AnnTarget ()
 _ModuleAnnotation
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = ModuleAnnotation
-      reviewer ModuleAnnotation
-        = Right ()
-      reviewer x = Left x
+      reviewer () = ModuleAnnotation
+      remitter ModuleAnnotation = Just ()
+      remitter _ = Nothing
 
 _TypeAnnotation :: Prism' AnnTarget Name
 _TypeAnnotation
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = TypeAnnotation
-      reviewer (TypeAnnotation x)
-        = Right x
-      reviewer x = Left x
+      reviewer = TypeAnnotation
+      remitter (TypeAnnotation x) = Just x
+      remitter _ = Nothing
 
 _ValueAnnotation :: Prism' AnnTarget Name
 _ValueAnnotation
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = ValueAnnotation
-      reviewer (ValueAnnotation x) = Right x
-      reviewer x = Left x
+      reviewer = ValueAnnotation
+      remitter (ValueAnnotation x) = Just x
+      remitter _ = Nothing
 #endif
 
-_FunDep :: Prism' FunDep ([Name], [Name])
+_FunDep :: Iso' FunDep ([Name], [Name])
 _FunDep
-  = prism remitter reviewer
+  = iso remitter reviewer
   where
-      remitter (x, y) = FunDep x y
-      reviewer (FunDep x y) = Right (x, y)
+      reviewer (x, y) = FunDep x y
+      remitter (FunDep x y) = (x, y)
 
 _TypeFam :: Prism' FamFlavour ()
 _TypeFam
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = TypeFam
-      reviewer TypeFam = Right ()
-      reviewer x = Left x
+      reviewer () = TypeFam
+      remitter TypeFam = Just ()
+      remitter _ = Nothing
 
 _DataFam :: Prism' FamFlavour ()
 _DataFam
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = DataFam
-      reviewer DataFam = Right ()
-      reviewer x = Left x
+      reviewer () = DataFam
+      remitter DataFam = Just ()
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,9,0)
 tySynEqnPatterns :: Lens' TySynEqn [Type]
@@ -1093,742 +1149,748 @@ tySynEqnResult = lens g s where
 
 _InfixL :: Prism' FixityDirection ()
 _InfixL
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = InfixL
-      reviewer InfixL = Right ()
-      reviewer x = Left x
+      reviewer () = InfixL
+      remitter InfixL = Just ()
+      remitter _ = Nothing
 
 _InfixR :: Prism' FixityDirection ()
 _InfixR
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = InfixR
-      reviewer InfixR = Right ()
-      reviewer x = Left x
+      reviewer () = InfixR
+      remitter InfixR = Just ()
+      remitter _ = Nothing
 
 _InfixN :: Prism' FixityDirection ()
 _InfixN
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = InfixN
-      reviewer InfixN = Right ()
-      reviewer x = Left x
+      reviewer () = InfixN
+      remitter InfixN = Just ()
+      remitter _ = Nothing
 
 _VarE :: Prism' Exp Name
 _VarE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = VarE
-      reviewer (VarE x) = Right x
-      reviewer x = Left x
+      reviewer = VarE
+      remitter (VarE x) = Just x
+      remitter _ = Nothing
 
 _ConE :: Prism' Exp Name
 _ConE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = ConE
-      reviewer (ConE x) = Right x
-      reviewer x = Left x
+      reviewer = ConE
+      remitter (ConE x) = Just x
+      remitter _ = Nothing
 
 _LitE :: Prism' Exp Lit
 _LitE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = LitE
-      reviewer (LitE x) = Right x
-      reviewer x = Left x
+      reviewer = LitE
+      remitter (LitE x) = Just x
+      remitter _ = Nothing
 
 _AppE :: Prism' Exp (Exp, Exp)
 _AppE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = AppE x y
-      reviewer (AppE x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = AppE x y
+      remitter (AppE x y) = Just (x, y)
+      remitter _ = Nothing
 
 _InfixE :: Prism' Exp (Maybe Exp, Exp, Maybe Exp)
 _InfixE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z)
-        = InfixE x y z
-      reviewer (InfixE x y z)
-        = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = InfixE x y z
+      remitter (InfixE x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _UInfixE :: Prism' Exp (Exp, Exp, Exp)
 _UInfixE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z)
-        = UInfixE x y z
-      reviewer (UInfixE x y z)
-        = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = UInfixE x y z
+      remitter (UInfixE x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _ParensE :: Prism' Exp Exp
 _ParensE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = ParensE
-      reviewer (ParensE x) = Right x
-      reviewer x = Left x
+      reviewer = ParensE
+      remitter (ParensE x) = Just x
+      remitter _ = Nothing
 
 _LamE :: Prism' Exp ([Pat], Exp)
 _LamE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = LamE x y
-      reviewer (LamE x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = LamE x y
+      remitter (LamE x y) = Just (x, y)
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _LamCaseE :: Prism' Exp [Match]
 _LamCaseE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = LamCaseE
-      reviewer (LamCaseE x) = Right x
-      reviewer x = Left x
+      reviewer = LamCaseE
+      remitter (LamCaseE x) = Just x
+      remitter _ = Nothing
 #endif
 
 _TupE :: Prism' Exp [Exp]
 _TupE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = TupE
-      reviewer (TupE x) = Right x
-      reviewer x = Left x
+      reviewer = TupE
+      remitter (TupE x) = Just x
+      remitter _ = Nothing
 
 _UnboxedTupE :: Prism' Exp [Exp]
 _UnboxedTupE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = UnboxedTupE
-      reviewer (UnboxedTupE x) = Right x
-      reviewer x = Left x
+      reviewer = UnboxedTupE
+      remitter (UnboxedTupE x) = Just x
+      remitter _ = Nothing
 
 _CondE :: Prism' Exp (Exp, Exp, Exp)
 _CondE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z)
-        = CondE x y z
-      reviewer (CondE x y z)
-        = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = CondE x y z
+      remitter (CondE x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _MultiIfE :: Prism' Exp [(Guard, Exp)]
 _MultiIfE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = MultiIfE
-      reviewer (MultiIfE x) = Right x
-      reviewer x = Left x
+      reviewer = MultiIfE
+      remitter (MultiIfE x) = Just x
+      remitter _ = Nothing
 #endif
 
 _LetE :: Prism' Exp ([Dec], Exp)
 _LetE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = LetE x y
-      reviewer (LetE x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = LetE x y
+      remitter (LetE x y) = Just (x, y)
+      remitter _ = Nothing
 
 _CaseE :: Prism' Exp (Exp, [Match])
 _CaseE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = CaseE x y
-      reviewer (CaseE x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = CaseE x y
+      remitter (CaseE x y) = Just (x, y)
+      remitter _ = Nothing
 
 _DoE :: Prism' Exp [Stmt]
 _DoE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = DoE
-      reviewer (DoE x) = Right x
-      reviewer x = Left x
+      reviewer = DoE
+      remitter (DoE x) = Just x
+      remitter _ = Nothing
 
 _CompE :: Prism' Exp [Stmt]
 _CompE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = CompE
-      reviewer (CompE x) = Right x
-      reviewer x = Left x
+      reviewer = CompE
+      remitter (CompE x) = Just x
+      remitter _ = Nothing
 
 _ArithSeqE :: Prism' Exp Range
 _ArithSeqE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = ArithSeqE
-      reviewer (ArithSeqE x) = Right x
-      reviewer x = Left x
+      reviewer = ArithSeqE
+      remitter (ArithSeqE x) = Just x
+      remitter _ = Nothing
 
 _ListE :: Prism' Exp [Exp]
 _ListE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = ListE
-      reviewer (ListE x) = Right x
-      reviewer x = Left x
+      reviewer = ListE
+      remitter (ListE x) = Just x
+      remitter _ = Nothing
 
 _SigE :: Prism' Exp (Exp, Type)
 _SigE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = SigE x y
-      reviewer (SigE x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = SigE x y
+      remitter (SigE x y) = Just (x, y)
+      remitter _ = Nothing
 
 _RecConE :: Prism' Exp (Name, [FieldExp])
 _RecConE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = RecConE x y
-      reviewer (RecConE x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = RecConE x y
+      remitter (RecConE x y) = Just (x, y)
+      remitter _ = Nothing
 
 _RecUpdE :: Prism' Exp (Exp, [FieldExp])
 _RecUpdE
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = RecUpdE x y
-      reviewer (RecUpdE x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = RecUpdE x y
+      remitter (RecUpdE x y) = Just (x, y)
+      remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,10,0)
+_StaticE :: Prism' Exp Exp
+_StaticE
+  = prism' reviewer remitter
+  where
+      reviewer = StaticE
+      remitter (StaticE x) = Just x
+      remitter _ = Nothing
+#endif
 
 _GuardedB :: Prism' Body [(Guard, Exp)]
 _GuardedB
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = GuardedB
-      reviewer (GuardedB x) = Right x
-      reviewer x = Left x
+      reviewer = GuardedB
+      remitter (GuardedB x) = Just x
+      remitter _ = Nothing
 
 _NormalB :: Prism' Body Exp
 _NormalB
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = NormalB
-      reviewer (NormalB x) = Right x
-      reviewer x = Left x
+      reviewer = NormalB
+      remitter (NormalB x) = Just x
+      remitter _ = Nothing
 
 _NormalG :: Prism' Guard Exp
 _NormalG
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = NormalG
-      reviewer (NormalG x) = Right x
-      reviewer x = Left x
+      reviewer = NormalG
+      remitter (NormalG x) = Just x
+      remitter _ = Nothing
 
 _PatG :: Prism' Guard [Stmt]
 _PatG
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = PatG
-      reviewer (PatG x) = Right x
-      reviewer x = Left x
+      reviewer = PatG
+      remitter (PatG x) = Just x
+      remitter _ = Nothing
 
 _BindS :: Prism' Stmt (Pat, Exp)
 _BindS
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = BindS x y
-      reviewer (BindS x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = BindS x y
+      remitter (BindS x y) = Just (x, y)
+      remitter _ = Nothing
 
 _LetS :: Prism' Stmt [Dec]
 _LetS
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = LetS
-      reviewer (LetS x) = Right x
-      reviewer x = Left x
+      reviewer = LetS
+      remitter (LetS x) = Just x
+      remitter _ = Nothing
 
 _NoBindS :: Prism' Stmt Exp
 _NoBindS
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = NoBindS
-      reviewer (NoBindS x) = Right x
-      reviewer x = Left x
+      reviewer = NoBindS
+      remitter (NoBindS x) = Just x
+      remitter _ = Nothing
 
 _ParS :: Prism' Stmt [[Stmt]]
 _ParS
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = ParS
-      reviewer (ParS x) = Right x
-      reviewer x = Left x
+      reviewer = ParS
+      remitter (ParS x) = Just x
+      remitter _ = Nothing
 
 _FromR :: Prism' Range Exp
 _FromR
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = FromR
-      reviewer (FromR x) = Right x
-      reviewer x = Left x
+      reviewer = FromR
+      remitter (FromR x) = Just x
+      remitter _ = Nothing
 
 _FromThenR :: Prism' Range (Exp, Exp)
 _FromThenR
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = FromThenR x y
-      reviewer (FromThenR x y)
-        = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = FromThenR x y
+      remitter (FromThenR x y) = Just (x, y)
+      remitter _ = Nothing
 
 _FromToR :: Prism' Range (Exp, Exp)
 _FromToR
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = FromToR x y
-      reviewer (FromToR x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = FromToR x y
+      remitter (FromToR x y) = Just (x, y)
+      remitter _ = Nothing
 
 _FromThenToR :: Prism' Range (Exp, Exp, Exp)
 _FromThenToR
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z)
-        = FromThenToR x y z
-      reviewer (FromThenToR x y z)
-        = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = FromThenToR x y z
+      remitter (FromThenToR x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _CharL :: Prism' Lit Char
 _CharL
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = CharL
-      reviewer (CharL x) = Right x
-      reviewer x = Left x
+      reviewer = CharL
+      remitter (CharL x) = Just x
+      remitter _ = Nothing
 
 _StringL :: Prism' Lit String
 _StringL
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = StringL
-      reviewer (StringL x) = Right x
-      reviewer x = Left x
+      reviewer = StringL
+      remitter (StringL x) = Just x
+      remitter _ = Nothing
 
 _IntegerL :: Prism' Lit Integer
 _IntegerL
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = IntegerL
-      reviewer (IntegerL x) = Right x
-      reviewer x = Left x
+      reviewer = IntegerL
+      remitter (IntegerL x) = Just x
+      remitter _ = Nothing
 
 _RationalL :: Prism' Lit Rational
 _RationalL
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = RationalL
-      reviewer (RationalL x) = Right x
-      reviewer x = Left x
+      reviewer = RationalL
+      remitter (RationalL x) = Just x
+      remitter _ = Nothing
 
 _IntPrimL :: Prism' Lit Integer
 _IntPrimL
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = IntPrimL
-      reviewer (IntPrimL x) = Right x
-      reviewer x = Left x
+      reviewer = IntPrimL
+      remitter (IntPrimL x) = Just x
+      remitter _ = Nothing
 
 _WordPrimL :: Prism' Lit Integer
 _WordPrimL
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = WordPrimL
-      reviewer (WordPrimL x) = Right x
-      reviewer x = Left x
+      reviewer = WordPrimL
+      remitter (WordPrimL x) = Just x
+      remitter _ = Nothing
 
 _FloatPrimL :: Prism' Lit Rational
 _FloatPrimL
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = FloatPrimL
-      reviewer (FloatPrimL x) = Right x
-      reviewer x = Left x
+      reviewer = FloatPrimL
+      remitter (FloatPrimL x) = Just x
+      remitter _ = Nothing
 
 _DoublePrimL :: Prism' Lit Rational
 _DoublePrimL
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = DoublePrimL
-      reviewer (DoublePrimL x) = Right x
-      reviewer x = Left x
+      reviewer = DoublePrimL
+      remitter (DoublePrimL x) = Just x
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _StringPrimL :: Prism' Lit [Word8]
 _StringPrimL
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = StringPrimL
-      reviewer (StringPrimL x) = Right x
-      reviewer x = Left x
+      reviewer = StringPrimL
+      remitter (StringPrimL x) = Just x
+      remitter _ = Nothing
 #else
 _StringPrimL :: Prism' Lit String
 _StringPrimL
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = StringPrimL
-      reviewer (StringPrimL x) = Right x
-      reviewer x = Left x
+      reviewer = StringPrimL
+      remitter (StringPrimL x) = Just x
+      remitter _ = Nothing
 #endif
 
 _LitP :: Prism' Pat Lit
 _LitP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = LitP
-      reviewer (LitP x) = Right x
-      reviewer x = Left x
+      reviewer = LitP
+      remitter (LitP x) = Just x
+      remitter _ = Nothing
 
 _VarP :: Prism' Pat Name
 _VarP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = VarP
-      reviewer (VarP x) = Right x
-      reviewer x = Left x
+      reviewer = VarP
+      remitter (VarP x) = Just x
+      remitter _ = Nothing
 
 _TupP :: Prism' Pat [Pat]
 _TupP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = TupP
-      reviewer (TupP x) = Right x
-      reviewer x = Left x
+      reviewer = TupP
+      remitter (TupP x) = Just x
+      remitter _ = Nothing
 
 _UnboxedTupP :: Prism' Pat [Pat]
 _UnboxedTupP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = UnboxedTupP
-      reviewer (UnboxedTupP x) = Right x
-      reviewer x = Left x
+      reviewer = UnboxedTupP
+      remitter (UnboxedTupP x) = Just x
+      remitter _ = Nothing
 
 _ConP :: Prism' Pat (Name, [Pat])
 _ConP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = ConP x y
-      reviewer (ConP x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = ConP x y
+      remitter (ConP x y) = Just (x, y)
+      remitter _ = Nothing
 
 _InfixP :: Prism' Pat (Pat, Name, Pat)
 _InfixP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z)
-        = InfixP x y z
-      reviewer (InfixP x y z)
-        = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = InfixP x y z
+      remitter (InfixP x y z) = Just (x, y, z)
+      remitter _ = Nothing
+
 _UInfixP :: Prism' Pat (Pat, Name, Pat)
 _UInfixP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z)
-        = UInfixP x y z
-      reviewer (UInfixP x y z)
-        = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = UInfixP x y z
+      remitter (UInfixP x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _ParensP :: Prism' Pat Pat
 _ParensP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = ParensP
-      reviewer (ParensP x) = Right x
-      reviewer x = Left x
+      reviewer = ParensP
+      remitter (ParensP x) = Just x
+      remitter _ = Nothing
 
 _TildeP :: Prism' Pat Pat
 _TildeP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = TildeP
-      reviewer (TildeP x) = Right x
-      reviewer x = Left x
+      reviewer = TildeP
+      remitter (TildeP x) = Just x
+      remitter _ = Nothing
 
 _BangP :: Prism' Pat Pat
 _BangP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = BangP
-      reviewer (BangP x) = Right x
-      reviewer x = Left x
+      reviewer = BangP
+      remitter (BangP x) = Just x
+      remitter _ = Nothing
 
 _AsP :: Prism' Pat (Name, Pat)
 _AsP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = AsP x y
-      reviewer (AsP x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = AsP x y
+      remitter (AsP x y) = Just (x, y)
+      remitter _ = Nothing
 
 _WildP :: Prism' Pat ()
 _WildP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = WildP
-      reviewer WildP = Right ()
-      reviewer x = Left x
+      reviewer () = WildP
+      remitter WildP = Just ()
+      remitter _ = Nothing
 
 _RecP :: Prism' Pat (Name, [FieldPat])
 _RecP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = RecP x y
-      reviewer (RecP x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = RecP x y
+      remitter (RecP x y) = Just (x, y)
+      remitter _ = Nothing
 
 _ListP :: Prism' Pat [Pat]
 _ListP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = ListP
-      reviewer (ListP x) = Right x
-      reviewer x = Left x
+      reviewer = ListP
+      remitter (ListP x) = Just x
+      remitter _ = Nothing
 
 _SigP :: Prism' Pat (Pat, Type)
 _SigP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = SigP x y
-      reviewer (SigP x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = SigP x y
+      remitter (SigP x y) = Just (x, y)
+      remitter _ = Nothing
 
 _ViewP :: Prism' Pat (Exp, Pat)
 _ViewP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = ViewP x y
-      reviewer (ViewP x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = ViewP x y
+      remitter (ViewP x y) = Just (x, y)
+      remitter _ = Nothing
 
 _ForallT :: Prism' Type ([TyVarBndr], Cxt, Type)
 _ForallT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y, z)
-        = ForallT x y z
-      reviewer (ForallT x y z)
-        = Right (x, y, z)
-      reviewer x = Left x
+      reviewer (x, y, z) = ForallT x y z
+      remitter (ForallT x y z) = Just (x, y, z)
+      remitter _ = Nothing
 
 _AppT :: Prism' Type (Type, Type)
 _AppT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = AppT x y
-      reviewer (AppT x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = AppT x y
+      remitter (AppT x y) = Just (x, y)
+      remitter _ = Nothing
 
 _SigT :: Prism' Type (Type, Kind)
 _SigT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = SigT x y
-      reviewer (SigT x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = SigT x y
+      remitter (SigT x y) = Just (x, y)
+      remitter _ = Nothing
 
 _VarT :: Prism' Type Name
 _VarT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = VarT
-      reviewer (VarT x) = Right x
-      reviewer x = Left x
+      reviewer = VarT
+      remitter (VarT x) = Just x
+      remitter _ = Nothing
 
 _ConT :: Prism' Type Name
 _ConT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = ConT
-      reviewer (ConT x) = Right x
-      reviewer x = Left x
+      reviewer = ConT
+      remitter (ConT x) = Just x
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _PromotedT :: Prism' Type Name
 _PromotedT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = PromotedT
-      reviewer (PromotedT x) = Right x
-      reviewer x = Left x
+      reviewer = PromotedT
+      remitter (PromotedT x) = Just x
+      remitter _ = Nothing
 #endif
 
 _TupleT :: Prism' Type Int
 _TupleT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = TupleT
-      reviewer (TupleT x) = Right x
-      reviewer x = Left x
+      reviewer = TupleT
+      remitter (TupleT x) = Just x
+      remitter _ = Nothing
 
 _UnboxedTupleT :: Prism' Type Int
 _UnboxedTupleT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = UnboxedTupleT
-      reviewer (UnboxedTupleT x) = Right x
-      reviewer x = Left x
+      reviewer = UnboxedTupleT
+      remitter (UnboxedTupleT x) = Just x
+      remitter _ = Nothing
 
 _ArrowT :: Prism' Type ()
 _ArrowT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = ArrowT
-      reviewer ArrowT = Right ()
-      reviewer x = Left x
+      reviewer () = ArrowT
+      remitter ArrowT = Just ()
+      remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,10,0)
+_EqualityT :: Prism' Type ()
+_EqualityT
+  = prism' reviewer remitter
+  where
+      reviewer () = EqualityT
+      remitter EqualityT = Just ()
+      remitter _ = Nothing
+#endif
 
 _ListT :: Prism' Type ()
 _ListT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = ListT
-      reviewer ListT = Right ()
-      reviewer x = Left x
+      reviewer () = ListT
+      remitter ListT = Just ()
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _PromotedTupleT :: Prism' Type Int
 _PromotedTupleT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = PromotedTupleT
-      reviewer (PromotedTupleT x) = Right x
-      reviewer x = Left x
+      reviewer = PromotedTupleT
+      remitter (PromotedTupleT x) = Just x
+      remitter _ = Nothing
 
 _PromotedNilT :: Prism' Type ()
 _PromotedNilT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = PromotedNilT
-      reviewer PromotedNilT = Right ()
-      reviewer x = Left x
+      reviewer () = PromotedNilT
+      remitter PromotedNilT = Just ()
+      remitter _ = Nothing
 
 _PromotedConsT :: Prism' Type ()
 _PromotedConsT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = PromotedConsT
-      reviewer PromotedConsT = Right ()
-      reviewer x = Left x
+      reviewer () = PromotedConsT
+      remitter PromotedConsT = Just ()
+      remitter _ = Nothing
 
 _StarT :: Prism' Type ()
 _StarT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = StarT
-      reviewer StarT = Right ()
-      reviewer x = Left x
+      reviewer () = StarT
+      remitter StarT = Just ()
+      remitter _ = Nothing
 
 _ConstraintT :: Prism' Type ()
 _ConstraintT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = ConstraintT
-      reviewer ConstraintT = Right ()
-      reviewer x = Left x
+      reviewer () = ConstraintT
+      remitter ConstraintT = Just ()
+      remitter _ = Nothing
 
 _LitT :: Prism' Type TyLit
 _LitT
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = LitT
-      reviewer (LitT x) = Right x
-      reviewer x = Left x
+      reviewer = LitT
+      remitter (LitT x) = Just x
+      remitter _ = Nothing
 #endif
 
 _PlainTV :: Prism' TyVarBndr Name
 _PlainTV
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = PlainTV
-      reviewer (PlainTV x) = Right x
-      reviewer x = Left x
+      reviewer = PlainTV
+      remitter (PlainTV x) = Just x
+      remitter _ = Nothing
 
 _KindedTV :: Prism' TyVarBndr (Name, Kind)
 _KindedTV
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = KindedTV x y
-      reviewer (KindedTV x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = KindedTV x y
+      remitter (KindedTV x y) = Just (x, y)
+      remitter _ = Nothing
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _NumTyLit :: Prism' TyLit Integer
 _NumTyLit
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = NumTyLit
-      reviewer (NumTyLit x) = Right x
-      reviewer x = Left x
+      reviewer = NumTyLit
+      remitter (NumTyLit x) = Just x
+      remitter _ = Nothing
 
 _StrTyLit :: Prism' TyLit String
 _StrTyLit
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter = StrTyLit
-      reviewer (StrTyLit x) = Right x
-      reviewer x = Left x
+      reviewer = StrTyLit
+      remitter (StrTyLit x) = Just x
+      remitter _ = Nothing
 #endif
 
 #if !MIN_VERSION_template_haskell(2,10,0)
 _ClassP :: Prism' Pred (Name, [Type])
 _ClassP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = ClassP x y
-      reviewer (ClassP x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = ClassP x y
+      remitter (ClassP x y) = Just (x, y)
+      remitter _ = Nothing
 
 _EqualP :: Prism' Pred (Type, Type)
 _EqualP
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter (x, y) = EqualP x y
-      reviewer (EqualP x y) = Right (x, y)
-      reviewer x = Left x
+      reviewer (x, y) = EqualP x y
+      remitter (EqualP x y) = Just (x, y)
+      remitter _ = Nothing
 #endif
 
 #if MIN_VERSION_template_haskell(2,9,0)
 _NominalR :: Prism' Role ()
 _NominalR
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = NominalR
-      reviewer NominalR = Right ()
-      reviewer x = Left x
+      reviewer () = NominalR
+      remitter NominalR = Just ()
+      remitter _ = Nothing
 
 _RepresentationalR :: Prism' Role ()
 _RepresentationalR
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = RepresentationalR
-      reviewer RepresentationalR = Right ()
-      reviewer x = Left x
+      reviewer () = RepresentationalR
+      remitter RepresentationalR = Just ()
+      remitter _ = Nothing
 
 _PhantomR :: Prism' Role ()
 _PhantomR
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = PhantomR
-      reviewer PhantomR = Right ()
-      reviewer x = Left x
+      reviewer () = PhantomR
+      remitter PhantomR = Just ()
+      remitter _ = Nothing
 
 _InferR :: Prism' Role ()
 _InferR
-  = prism remitter reviewer
+  = prism' reviewer remitter
   where
-      remitter () = InferR
-      reviewer InferR = Right ()
-      reviewer x = Left x
+      reviewer () = InferR
+      remitter InferR = Just ()
+      remitter _ = Nothing
 #endif

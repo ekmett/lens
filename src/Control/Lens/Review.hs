@@ -40,7 +40,6 @@ import Control.Monad.Reader as Reader
 import Control.Monad.State as State
 import Control.Lens.Getter
 import Control.Lens.Internal.Review
-import Control.Lens.Internal.Setter
 import Control.Lens.Type
 import Data.Bifunctor
 import Data.Functor.Identity
@@ -61,18 +60,6 @@ infixr 8 #
 ------------------------------------------------------------------------------
 -- Review
 ------------------------------------------------------------------------------
-
--- | This is a limited form of a 'Prism' that can only be used for 're' operations.
---
--- Like with a 'Getter', there are no laws to state for a 'Review'.
---
--- You can generate a 'Review' by using 'unto'. You can also use any 'Prism' or 'Iso'
--- directly as a 'Review'.
-type Review t b = forall p f. (Choice p, Bifunctor p, Settable f) => Optic' p f t b
-
--- | If you see this in a signature for a function, the function is expecting a 'Review'
--- (in practice, this usually means a 'Prism').
-type AReview t b = Optic' Tagged Identity t b
 
 -- | An analogue of 'to' for 'review'.
 --

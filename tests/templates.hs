@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
@@ -364,6 +365,9 @@ checkR2nub = r2nub
 
 data PureNoFields = PureNoFieldsA | PureNoFieldsB { _pureNoFields :: Int }
 makeLenses ''PureNoFields
+
+data ReviewTest where ReviewTest :: a -> ReviewTest
+makePrisms ''ReviewTest
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
