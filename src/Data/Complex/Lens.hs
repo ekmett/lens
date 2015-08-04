@@ -1,5 +1,9 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
+#if __GLASGOW_HASKELL__ >= 710
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE PatternSynonyms #-}
+#endif
 
 #ifndef MIN_VERSION_base
 #define MIN_VERSION_base(x,y,z) 1
@@ -24,6 +28,13 @@ module Data.Complex.Lens
   , _magnitude
   , _phase
   , _conjugate
+#if __GLASGOW_HASKELL__ >= 710
+  -- * Pattern Synonyms
+  , pattern Polar
+  , pattern Real
+  , pattern Imaginary
+  , pattern Conjugate
+#endif
   ) where
 
 import Control.Lens
@@ -77,6 +88,14 @@ _polar :: RealFloat a => Iso' (Complex a) (a,a)
 _polar = iso polar (uncurry mkPolar)
 {-# INLINE _polar #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern Polar m theta <- (view _polar -> (m, theta)) where
+  Polar m theta = review _polar (m, theta)
+
+pattern Real r      = r :+ 0
+pattern Imaginary i = 0 :+ i
+#endif
+
 -- | Access the 'magnitude' of a 'Complex' number.
 --
 -- >>> (10.0 :+ 20.0) & _magnitude *~ 2
@@ -128,3 +147,8 @@ _phase f c = setPhase <$> f theta
 _conjugate :: RealFloat a => Iso' (Complex a) (Complex a)
 _conjugate = involuted conjugate
 {-# INLINE _conjugate #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern Conjugate a <- (conjugate -> a) where
+  Conjugate a = conjugate a
+#endif
