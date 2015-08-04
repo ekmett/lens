@@ -48,7 +48,7 @@ import Prelude
 viewL :: Iso (Seq a) (Seq b) (ViewL a) (ViewL b)
 viewL = iso viewl $ \ xs -> case xs of
   EmptyL ->  mempty
-  a :< as -> a Seq.<| as
+  a Seq.:< as -> a Seq.<| as
 {-# INLINE viewL #-}
 
 -- | A 'Seq' is isomorphic to a 'ViewR'
@@ -69,7 +69,7 @@ viewL = iso viewl $ \ xs -> case xs of
 viewR :: Iso (Seq a) (Seq b) (ViewR a) (ViewR b)
 viewR = iso viewr $ \xs -> case xs of
   EmptyR  -> mempty
-  as :> a -> as Seq.|> a
+  as Seq.:> a -> as Seq.|> a
 {-# INLINE viewR #-}
 
 -- | Traverse the first @n@ elements of a 'Seq'
