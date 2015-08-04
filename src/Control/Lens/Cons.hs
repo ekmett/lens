@@ -7,6 +7,10 @@
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
 #endif
+#if __GLASGOW_HASKELL__ >= 710
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Cons
@@ -25,12 +29,19 @@ module Control.Lens.Cons
   , cons
   , uncons
   , _head, _tail
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern (:>)
+#endif
   -- * Snoc
   , Snoc(..)
   , (|>)
   , snoc
   , unsnoc
   , _init, _last
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern (:<)
+#endif
+
   ) where
 
 import Control.Lens.Equality (simply)
@@ -45,7 +56,7 @@ import           Data.List.NonEmpty   (NonEmpty(..))
 import qualified Data.List.NonEmpty   as NonEmpty
 import           Data.Monoid
 import qualified Data.Sequence as Seq
-import           Data.Sequence hiding ((<|), (|>))
+import           Data.Sequence hiding ((<|), (|>), (:<), (:>))
 import qualified Data.Text      as StrictT
 import qualified Data.Text.Lazy as LazyT
 import           Data.Vector (Vector)
@@ -71,6 +82,19 @@ import           Prelude
 
 infixr 5 <|, `cons`
 infixl 5 |>, `snoc`
+
+#if __GLASGOW_HASKELL__ >= 710
+
+pattern (:<) a s <- (preview _Cons -> Just (a,s)) where
+  (:<) a s = _Cons # (a,s)
+
+infixr 5 :<
+infixl 5 :>
+
+pattern (:>) s a <- (preview _Snoc -> Just (s,a)) where
+  (:>) a s = _Snoc # (a,s)
+
+#endif
 
 ------------------------------------------------------------------------------
 -- Cons
@@ -105,7 +129,7 @@ instance a~b => Cons (NonEmpty a) (NonEmpty b) a b where
 
 instance Cons (Seq a) (Seq b) a b where
   _Cons = prism (uncurry (Seq.<|)) $ \aas -> case viewl aas of
-    a :< as -> Right (a, as)
+    a Seq.:< as -> Right (a, as)
     EmptyL  -> Left mempty
   {-# INLINE _Cons #-}
 
@@ -336,7 +360,7 @@ instance a~b => Snoc (NonEmpty a) (NonEmpty b) a b where
 
 instance Snoc (Seq a) (Seq b) a b where
   _Snoc = prism (uncurry (Seq.|>)) $ \aas -> case viewr aas of
-    as :> a -> Right (as, a)
+    as Seq.:> a -> Right (as, a)
     EmptyR  -> Left mempty
   {-# INLINE _Snoc #-}
 
