@@ -1,3 +1,7 @@
+4.13
+----
+* Pattern synonyms
+
 4.12.3
 ------
 * Move `Review` and `AReview` to `Control.Lens.Type` fixing a bug in `makePrisms`
