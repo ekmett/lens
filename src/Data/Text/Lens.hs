@@ -2,6 +2,11 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE PatternSynonyms #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Text.Lens
@@ -16,10 +21,15 @@ module Data.Text.Lens
   ( IsText(..)
   , unpacked
   , _Text
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern Text
+#endif
   ) where
 
 import           Control.Lens.Type
+import           Control.Lens.Getter
 import           Control.Lens.Iso
+import           Control.Lens.Review
 import           Control.Lens.Traversal
 import           Data.Text as Strict
 import qualified Data.Text.Strict.Lens as Strict
@@ -93,6 +103,11 @@ unpacked = from packed
 _Text :: IsText t => Iso' t String
 _Text = from packed
 {-# INLINE _Text #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern Text a <- (view _Text -> a) where
+  Text a = review _Text a
+#endif
 
 instance IsText Strict.Text where
   packed = Strict.packed
