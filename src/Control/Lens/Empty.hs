@@ -1,8 +1,14 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE DefaultSignatures #-}
+
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
+#endif
+
+#if __GLASGOW_HASKELL__ >= 710
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
 #endif
 
 -------------------------------------------------------------------------------
@@ -18,9 +24,13 @@
 module Control.Lens.Empty
   (
     AsEmpty(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern Empty
+#endif
   ) where
 
 import Control.Lens.Iso
+import Control.Lens.Fold
 import Control.Lens.Prism
 import Control.Lens.Review
 import Data.ByteString as StrictB
@@ -55,6 +65,11 @@ class AsEmpty a where
   default _Empty :: (Monoid a, Eq a) => Prism' a ()
   _Empty = only mempty
   {-# INLINE _Empty #-}
+#endif
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern Empty <- (has _Empty -> True) where
+  Empty = review _Empty ()
 #endif
 
 {- Default Monoid instances -}
