@@ -2,6 +2,11 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
+#endif
+
 #ifndef MIN_VERSION_base
 #define MIN_VERSION_base(x,y,z) 1
 #endif
@@ -21,6 +26,10 @@ module System.Exit.Lens
   ( AsExitCode(..)
   , _ExitFailure
   , _ExitSuccess
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern ExitFailure_
+  , pattern ExitSuccess_
+#endif
   ) where
 
 import Control.Exception
@@ -33,19 +42,14 @@ import Control.Applicative
 #endif
 
 -- | Exit codes that a program can return with:
-class AsExitCode p f t where
-  -- |
-  -- @
-  -- '_ExitCode' :: 'Equality'' 'ExitCode'      'ExitCode'
-  -- '_ExitCode' :: 'Prism''    'SomeException' 'ExitCode'
-  -- @
-  _ExitCode :: Optic' p f t ExitCode
+class AsExitCode t where
+  _ExitCode :: Prism' t ExitCode
 
-instance AsExitCode p f ExitCode where
+instance AsExitCode ExitCode where
   _ExitCode = id
   {-# INLINE _ExitCode #-}
 
-instance (Choice p, Applicative f) => AsExitCode p f SomeException where
+instance AsExitCode SomeException where
   _ExitCode = exception
   {-# INLINE _ExitCode #-}
 
@@ -55,11 +59,12 @@ instance (Choice p, Applicative f) => AsExitCode p f SomeException where
 -- '_ExitSuccess' :: 'Prism'' 'ExitCode'      ()
 -- '_ExitSuccess' :: 'Prism'' 'SomeException' ()
 -- @
-_ExitSuccess :: (AsExitCode p f t, Choice p, Applicative f) => Optic' p f t ()
+_ExitSuccess :: AsExitCode t => Prism' t ()
 _ExitSuccess = _ExitCode . dimap seta (either id id) . right' . rmap (ExitSuccess <$) where
   seta ExitSuccess = Right ()
   seta t           = Left  (pure t)
 {-# INLINE _ExitSuccess #-}
+
 
 -- | indicates program failure with an exit code. The exact interpretation of the code is operating-system dependent. In particular, some values may be prohibited (e.g. 0 on a POSIX-compliant system).
 --
@@ -67,8 +72,16 @@ _ExitSuccess = _ExitCode . dimap seta (either id id) . right' . rmap (ExitSucces
 -- '_ExitFailure' :: 'Prism'' 'ExitCode'      'Int'
 -- '_ExitFailure' :: 'Prism'' 'SomeException' 'Int'
 -- @
-_ExitFailure :: (AsExitCode p f t, Choice p, Applicative f) => Optic' p f t Int
+_ExitFailure :: AsExitCode t => Prism' t Int
 _ExitFailure = _ExitCode . dimap seta (either id id) . right' . rmap (fmap ExitFailure) where
   seta (ExitFailure i) = Right i
   seta t               = Left  (pure t)
 {-# INLINE _ExitFailure #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern ExitSuccess_ <- (has _ExitSuccess -> True) where
+  ExitSuccess_ = review _ExitSuccess ()
+
+pattern ExitFailure_ a <- (preview _ExitFailure -> Just a) where
+  ExitFailure_ a = review _ExitFailure a
+#endif
