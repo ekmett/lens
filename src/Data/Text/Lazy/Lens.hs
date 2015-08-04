@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+#if __GLASGOW_HASKELL__ >= 710
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Text.Lazy.Lens
@@ -17,6 +21,9 @@ module Data.Text.Lazy.Lens
   , text
   , builder
   , utf8
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern Text
+#endif
   ) where
 
 import Control.Lens.Type
@@ -24,6 +31,7 @@ import Control.Lens.Getter
 import Control.Lens.Fold
 import Control.Lens.Iso
 import Control.Lens.Prism
+import Control.Lens.Review
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Data.ByteString.Lazy as ByteString
@@ -137,3 +145,8 @@ ifoldrLazy f z xs = Text.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs
 utf8 :: Prism' ByteString Text
 utf8 = prism' encodeUtf8 (preview _Right . decodeUtf8')
 {-# INLINE utf8 #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern Text a <- (view _Text -> a) where
+  Text a = review _Text a
+#endif
