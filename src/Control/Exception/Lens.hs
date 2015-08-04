@@ -4,8 +4,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+
 #ifdef TRUSTWORTHY
 {-# LANGUAGE Trustworthy #-}
+#endif
+
+#if __GLASGOW_HASKELL__ >= 710
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
 #endif
 
 #ifndef MIN_VERSION_base
@@ -53,55 +59,113 @@ module Control.Exception.Lens
   , mappedException, mappedException'
   -- * Exceptions
   , exception
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern Exception
+#endif
   -- * Exception Handlers
   , Handleable(..)
   -- ** IOExceptions
   , AsIOException(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern IOException_
+#endif
   -- ** Arithmetic Exceptions
   , AsArithException(..)
-  , _Overflow
-  , _Underflow
-  , _LossOfPrecision
-  , _DivideByZero
-  , _Denormal
+  , _Overflow, _Underflow, _LossOfPrecision, _DivideByZero, _Denormal
 #if MIN_VERSION_base(4,6,0)
   , _RatioZeroDenominator
+#endif
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern ArithException_
+  , pattern Overflow_
+  , pattern Underflow_
+  , pattern LossOfPrecision_
+  , pattern DivideByZero_
+  , pattern Denormal_
+  , pattern RatioZeroDenominator_
 #endif
   -- ** Array Exceptions
   , AsArrayException(..)
   , _IndexOutOfBounds
   , _UndefinedElement
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern ArrayException_
+  , pattern IndexOutOfBounds_
+  , pattern UndefinedElement_
+#endif
   -- ** Assertion Failed
   , AsAssertionFailed(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern AssertionFailed_
+#endif
   -- ** Async Exceptions
   , AsAsyncException(..)
   , _StackOverflow
   , _HeapOverflow
   , _ThreadKilled
   , _UserInterrupt
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern AsyncException_
+  , pattern StackOverflow_
+  , pattern HeapOverflow_
+  , pattern ThreadKilled_
+  , pattern UserInterrupt_
+#endif
   -- ** Non-Termination
   , AsNonTermination(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern NonTermination_
+#endif
   -- ** Nested Atomically
   , AsNestedAtomically(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern NestedAtomically_
+#endif
   -- ** Blocked Indefinitely
   -- *** on MVar
   , AsBlockedIndefinitelyOnMVar(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern BlockedIndefinitelyOnMVar_
+#endif
   -- *** on STM
   , AsBlockedIndefinitelyOnSTM(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern BlockedIndefinitelyOnSTM_
+#endif
   -- ** Deadlock
   , AsDeadlock(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern Deadlock_
+#endif
   -- ** No Such Method
   , AsNoMethodError(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern NoMethodError_
+#endif
   -- ** Pattern Match Failure
   , AsPatternMatchFail(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern PatternMatchFail_
+#endif
   -- ** Record
   , AsRecConError(..)
   , AsRecSelError(..)
   , AsRecUpdError(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern RecConError_
+  , pattern RecSelError_
+  , pattern RecUpdError_
+#endif
   -- ** Error Call
   , AsErrorCall(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern ErrorCall_
+#endif
   -- * Handling Exceptions
   , AsHandlingException(..)
+#if __GLASGOW_HASKELL__ >= 710
+  , pattern HandlingException_
+#endif
   ) where
 
 import Control.Applicative
@@ -117,6 +181,9 @@ import Prelude
   ( const, either, flip, id
   , (.)
   , Maybe(..), Either(..), String
+#if __GLASGOW_HASKELL__ >= 710
+  , Bool(..)
+#endif
   )
 
 #ifdef HLINT
@@ -141,6 +208,11 @@ import Prelude
 exception :: Exception a => Prism' SomeException a
 exception = prism' toException fromException
 {-# INLINE exception #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern Exception e <- (preview exception -> Just e) where
+  Exception e = review exception e
+#endif
 
 ------------------------------------------------------------------------------
 -- Catching
@@ -385,6 +457,11 @@ instance AsIOException SomeException where
   _IOException = exception
   {-# INLINE _IOException #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern IOException_ a <- (preview _IOException -> Just a) where
+  IOException_ a = review _IOException a
+#endif
+
 ----------------------------------------------------------------------------
 -- ArithException
 ----------------------------------------------------------------------------
@@ -394,6 +471,11 @@ class AsArithException t where
   -- '_ArithException' :: 'Prism'' 'ArithException' 'ArithException'
   -- '_ArithException' :: 'Prism'' 'SomeException'  'ArithException'
   _ArithException :: Prism' t ArithException
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern ArithException_ a <- (preview _ArithException -> Just a) where
+  ArithException_ a = review _ArithException a
+#endif
 
 instance AsArithException ArithException where
   _ArithException = id
@@ -419,6 +501,11 @@ _Overflow = _ArithException . dimap seta (either id id) . right' . rmap (Overflo
   seta t        = Left  (pure t)
 {-# INLINE _Overflow #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern Overflow_ <- (has _Overflow -> True) where
+  Overflow_ = review _Overflow ()
+#endif
+
 -- | Handle arithmetic '_Underflow'.
 --
 -- @
@@ -434,6 +521,11 @@ _Underflow = _ArithException . dimap seta (either id id) . right' . rmap (Underf
   seta Underflow = Right ()
   seta t        = Left  (pure t)
 {-# INLINE _Underflow #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern Underflow_ <- (has _Underflow -> True) where
+  Underflow_ = review _Underflow ()
+#endif
 
 -- | Handle arithmetic loss of precision.
 --
@@ -451,6 +543,11 @@ _LossOfPrecision = _ArithException . dimap seta (either id id) . right' . rmap (
   seta t        = Left  (pure t)
 {-# INLINE _LossOfPrecision #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern LossOfPrecision_ <- (has _LossOfPrecision -> True) where
+  LossOfPrecision_ = review _LossOfPrecision ()
+#endif
+
 -- | Handle division by zero.
 --
 -- @
@@ -467,6 +564,11 @@ _DivideByZero = _ArithException . dimap seta (either id id) . right' . rmap (Div
   seta t        = Left  (pure t)
 {-# INLINE _DivideByZero #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern DivideByZero_ <- (has _DivideByZero -> True) where
+  DivideByZero_ = review _DivideByZero ()
+#endif
+
 -- | Handle exceptional _Denormalized floating pure.
 --
 -- @
@@ -482,6 +584,11 @@ _Denormal = _ArithException . dimap seta (either id id) . right' . rmap (Denorma
   seta Denormal = Right ()
   seta t        = Left  (pure t)
 {-# INLINE _Denormal #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern Denormal_ <- (has _Denormal -> True) where
+  Denormal_ = review _Denormal ()
+#endif
 
 #if MIN_VERSION_base(4,6,0)
 -- | Added in @base@ 4.6 in response to this libraries discussion:
@@ -501,6 +608,11 @@ _RatioZeroDenominator = _ArithException . dimap seta (either id id) . right' . r
   seta RatioZeroDenominator = Right ()
   seta t        = Left  (pure t)
 {-# INLINE _RatioZeroDenominator #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern RatioZeroDenominator_ <- (has _RatioZeroDenominator -> True) where
+  RatioZeroDenominator_ = review _RatioZeroDenominator ()
+#endif
 
 #endif
 
@@ -526,6 +638,11 @@ instance AsArrayException SomeException where
   _ArrayException = exception
   {-# INLINE _ArrayException #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern ArrayException_ e <- (preview _ArrayException -> Just e) where
+  ArrayException_ e = review _ArrayException e
+#endif
+
 -- | An attempt was made to index an array outside its declared bounds.
 --
 -- @
@@ -542,6 +659,11 @@ _IndexOutOfBounds = _ArrayException . dimap seta (either id id) . right' . rmap 
   seta t                    = Left  (pure t)
 {-# INLINE _IndexOutOfBounds #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern IndexOutOfBounds_ e <- (preview _IndexOutOfBounds -> Just e) where
+  IndexOutOfBounds_ e = review _IndexOutOfBounds e
+#endif
+
 -- | An attempt was made to evaluate an element of an array that had not been initialized.
 --
 -- @
@@ -557,6 +679,11 @@ _UndefinedElement = _ArrayException . dimap seta (either id id) . right' . rmap 
   seta (UndefinedElement r) = Right r
   seta t                    = Left  (pure t)
 {-# INLINE _UndefinedElement #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern UndefinedElement_ e <- (preview _UndefinedElement -> Just e) where
+  UndefinedElement_ e = review _UndefinedElement e
+#endif
 
 ----------------------------------------------------------------------------
 -- AssertionFailed
@@ -583,6 +710,11 @@ instance AsAssertionFailed SomeException where
   _AssertionFailed = exception._Wrapping AssertionFailed
   {-# INLINE _AssertionFailed #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern AssertionFailed_ e <- (preview _AssertionFailed -> Just e) where
+  AssertionFailed_ e = review _AssertionFailed e
+#endif
+
 ----------------------------------------------------------------------------
 -- AsyncException
 ----------------------------------------------------------------------------
@@ -605,6 +737,11 @@ instance AsAsyncException SomeException where
   _AsyncException = exception
   {-# INLINE _AsyncException #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern AsyncException_ e <- (preview _AsyncException -> Just e) where
+  AsyncException_ e = review _AsyncException e
+#endif
+
 -- | The current thread's stack exceeded its limit. Since an 'Exception' has
 -- been raised, the thread's stack will certainly be below its limit again,
 -- but the programmer should take remedial action immediately.
@@ -618,6 +755,11 @@ _StackOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (St
   seta StackOverflow = Right ()
   seta t             = Left  (pure t)
 {-# INLINE _StackOverflow #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern StackOverflow_ <- (has _StackOverflow -> True) where
+  StackOverflow_ = review _StackOverflow ()
+#endif
 
 -- | The program's heap is reaching its limit, and the program should take action
 -- to reduce the amount of live data it has.
@@ -638,6 +780,11 @@ _HeapOverflow = _AsyncException . dimap seta (either id id) . right' . rmap (Hea
   seta t            = Left  (pure t)
 {-# INLINE _HeapOverflow #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern HeapOverflow_ <- (has _HeapOverflow -> True) where
+  HeapOverflow_ = review _HeapOverflow ()
+#endif
+
 -- | This 'Exception' is raised by another thread calling
 -- 'Control.Concurrent.killThread', or by the system if it needs to terminate
 -- the thread for some reason.
@@ -652,6 +799,11 @@ _ThreadKilled = _AsyncException . dimap seta (either id id) . right' . rmap (Thr
   seta t            = Left  (pure t)
 {-# INLINE _ThreadKilled #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern ThreadKilled_ <- (has _ThreadKilled -> True) where
+  ThreadKilled_ = review _ThreadKilled ()
+#endif
+
 -- | This 'Exception' is raised by default in the main thread of the program when
 -- the user requests to terminate the program via the usual mechanism(s)
 -- (/e.g./ Control-C in the console).
@@ -665,6 +817,11 @@ _UserInterrupt = _AsyncException . dimap seta (either id id) . right' . rmap (Us
   seta UserInterrupt = Right ()
   seta t             = Left  (pure t)
 {-# INLINE _UserInterrupt #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern UserInterrupt_ <- (has _UserInterrupt -> True) where
+  UserInterrupt_ = review _UserInterrupt ()
+#endif
 
 ----------------------------------------------------------------------------
 -- AsyncException
@@ -690,6 +847,11 @@ instance AsNonTermination SomeException where
   _NonTermination = exception.trivial NonTermination
   {-# INLINE _NonTermination #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern NonTermination_ <- (has _NonTermination -> True) where
+  NonTermination_ = review _NonTermination ()
+#endif
+
 ----------------------------------------------------------------------------
 -- NestedAtomically
 ----------------------------------------------------------------------------
@@ -712,6 +874,11 @@ instance AsNestedAtomically NestedAtomically where
 instance AsNestedAtomically SomeException where
   _NestedAtomically = exception.trivial NestedAtomically
   {-# INLINE _NestedAtomically #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern NestedAtomically_ <- (has _NestedAtomically -> True) where
+  NestedAtomically_ = review _NestedAtomically ()
+#endif
 
 ----------------------------------------------------------------------------
 -- BlockedIndefinitelyOnMVar
@@ -737,6 +904,11 @@ instance AsBlockedIndefinitelyOnMVar SomeException where
   _BlockedIndefinitelyOnMVar = exception.trivial BlockedIndefinitelyOnMVar
   {-# INLINE _BlockedIndefinitelyOnMVar #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern BlockedIndefinitelyOnMVar_ <- (has _BlockedIndefinitelyOnMVar -> True) where
+  BlockedIndefinitelyOnMVar_ = review _BlockedIndefinitelyOnMVar ()
+#endif
+
 ----------------------------------------------------------------------------
 -- BlockedIndefinitelyOnSTM
 ----------------------------------------------------------------------------
@@ -761,6 +933,11 @@ instance AsBlockedIndefinitelyOnSTM SomeException where
   _BlockedIndefinitelyOnSTM = exception.trivial BlockedIndefinitelyOnSTM
   {-# INLINE _BlockedIndefinitelyOnSTM #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern BlockedIndefinitelyOnSTM_ <- (has _BlockedIndefinitelyOnSTM -> True) where
+  BlockedIndefinitelyOnSTM_ = review _BlockedIndefinitelyOnSTM ()
+#endif
+
 ----------------------------------------------------------------------------
 -- Deadlock
 ----------------------------------------------------------------------------
@@ -783,6 +960,11 @@ instance AsDeadlock Deadlock where
 instance AsDeadlock SomeException where
   _Deadlock = exception.trivial Deadlock
   {-# INLINE _Deadlock #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern Deadlock_ <- (has _Deadlock -> True) where
+  Deadlock_ = review _Deadlock ()
+#endif
 
 ----------------------------------------------------------------------------
 -- NoMethodError
@@ -807,6 +989,11 @@ instance AsNoMethodError SomeException where
   _NoMethodError = exception._Wrapping NoMethodError
   {-# INLINE _NoMethodError #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern NoMethodError_ e <- (preview _NoMethodError -> Just e) where
+  NoMethodError_ e = review _NoMethodError e
+#endif
+
 ----------------------------------------------------------------------------
 -- PatternMatchFail
 ----------------------------------------------------------------------------
@@ -828,6 +1015,11 @@ instance AsPatternMatchFail PatternMatchFail where
 instance AsPatternMatchFail SomeException where
   _PatternMatchFail = exception._Wrapping PatternMatchFail
   {-# INLINE _PatternMatchFail #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern PatternMatchFail_ e <- (preview _PatternMatchFail -> Just e) where
+  PatternMatchFail_ e = review _PatternMatchFail e
+#endif
 
 ----------------------------------------------------------------------------
 -- RecConError
@@ -852,6 +1044,11 @@ instance AsRecConError SomeException where
   _RecConError = exception._Wrapping RecConError
   {-# INLINE _RecConError #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern RecConError_ e <- (preview _RecConError -> Just e) where
+  RecConError_ e = review _RecConError e
+#endif
+
 ----------------------------------------------------------------------------
 -- RecSelError
 ----------------------------------------------------------------------------
@@ -871,6 +1068,11 @@ instance AsRecSelError SomeException where
   _RecSelError = exception._Wrapping RecSelError
   {-# INLINE _RecSelError #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern RecSelError_ e <- (preview _RecSelError -> Just e) where
+  RecSelError_ e = review _RecSelError e
+#endif
+
 ----------------------------------------------------------------------------
 -- RecUpdError
 ----------------------------------------------------------------------------
@@ -889,6 +1091,11 @@ instance AsRecUpdError RecUpdError where
 instance AsRecUpdError SomeException where
   _RecUpdError = exception._Wrapping RecUpdError
   {-# INLINE _RecUpdError #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern RecUpdError_ e <- (preview _RecUpdError -> Just e) where
+  RecUpdError_ e = review _RecUpdError e
+#endif
 
 ----------------------------------------------------------------------------
 -- ErrorCall
@@ -912,6 +1119,11 @@ instance AsErrorCall SomeException where
   _ErrorCall = exception._Wrapping ErrorCall
   {-# INLINE _ErrorCall #-}
 
+#if __GLASGOW_HASKELL__ >= 710
+pattern ErrorCall_ e <- (preview _ErrorCall -> Just e) where
+  ErrorCall_ e = review _ErrorCall e
+#endif
+
 ------------------------------------------------------------------------------
 -- HandlingException
 ------------------------------------------------------------------------------
@@ -934,6 +1146,11 @@ instance AsHandlingException HandlingException where
 instance AsHandlingException SomeException where
   _HandlingException = exception.trivial HandlingException
   {-# INLINE _HandlingException #-}
+
+#if __GLASGOW_HASKELL__ >= 710
+pattern HandlingException_ <- (has _HandlingException -> True) where
+  HandlingException_ = review _HandlingException ()
+#endif
 
 ------------------------------------------------------------------------------
 -- Helper Functions
