@@ -545,7 +545,7 @@ type Simple f s a = f s s a a
 type Optic p f s t a b = p a (f b) -> p s (f t)
 
 -- | @
--- type 'Optic'' p q f s a = 'Simple' ('Optic' p q f) s a
+-- type 'Optic'' p f s a = 'Simple' ('Optic' p f) s a
 -- @
 type Optic' p f s a = Optic p f s s a a
 
