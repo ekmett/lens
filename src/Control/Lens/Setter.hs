@@ -356,7 +356,7 @@ cloneIndexedSetter l pafb = taintedDot (runIdentity #. l (Indexed $ \i -> Identi
 -- 'over' :: 'Setter' s t a b -> (a -> b) -> s -> t
 -- 'over' :: 'ASetter' s t a b -> (a -> b) -> s -> t
 -- @
-over :: Profunctor p => Setting p s t a b -> p a b -> s -> t
+over :: ASetter s t a b -> (a -> b) -> s -> t
 over l f = runIdentity #. l (Identity #. f)
 {-# INLINE over #-}
 
@@ -447,7 +447,7 @@ set' l b = runIdentity #. l (\_ -> Identity b)
 -- ('%~') :: 'Lens' s t a b      -> (a -> b) -> s -> t
 -- ('%~') :: 'Traversal' s t a b -> (a -> b) -> s -> t
 -- @
-(%~) :: Profunctor p => Setting p s t a b -> p a b -> s -> t
+(%~) :: ASetter s t a b -> (a -> b) -> s -> t
 (%~) = over
 {-# INLINE (%~) #-}
 
@@ -794,7 +794,7 @@ l .= b = State.modify (l .~ b)
 -- @
 -- ('%=') :: 'MonadState' s m => 'ASetter' s s a b -> (a -> b) -> m ()
 -- @
-(%=) :: (Profunctor p, MonadState s m) => Setting p s s a b -> p a b -> m ()
+(%=) :: MonadState s m => ASetter s s a b -> (a -> b) -> m ()
 l %= f = State.modify (l %~ f)
 {-# INLINE (%=) #-}
 
@@ -1129,7 +1129,7 @@ icensoring l uv = censor (iover l uv)
 -- 'iover' :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
 iover :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
-iover l = over l .# Indexed
+iover l f = runIdentity #. l (Identity #. Indexed f)
 {-# INLINE iover #-}
 
 -- | Set with index. Equivalent to 'iover' with the current value ignored.
@@ -1190,7 +1190,7 @@ isets f = sets (f . indexed)
 -- ('%@~') :: 'IndexedTraversal' i s t a b -> (i -> a -> b) -> s -> t
 -- @
 (%@~) :: AnIndexedSetter i s t a b -> (i -> a -> b) -> s -> t
-l %@~ f = l %~ Indexed f
+(%@~) = iover
 {-# INLINE (%@~) #-}
 
 -- | Replace every target of an 'IndexedSetter', 'IndexedLens' or 'IndexedTraversal'
@@ -1212,7 +1212,7 @@ l %@~ f = l %~ Indexed f
 -- ('.@~') :: 'IndexedTraversal' i s t a b -> (i -> b) -> s -> t
 -- @
 (.@~) :: AnIndexedSetter i s t a b -> (i -> b) -> s -> t
-l .@~ f = l %~ Indexed (const . f)
+l .@~ f = runIdentity #. l (Identity #. Indexed (const . f))
 {-# INLINE (.@~) #-}
 
 -- | Adjust every target in the current state of an 'IndexedSetter', 'IndexedLens' or 'IndexedTraversal'
@@ -1291,7 +1291,7 @@ assignA l p = arr (flip $ set l) &&& p >>> arr (uncurry id)
 ------------------------------------------------------------------------------
 
 -- | 'mapOf' is a deprecated alias for 'over'.
-mapOf :: Profunctor p => Setting p s t a b -> p a b -> s -> t
+mapOf :: ASetter s t a b -> (a -> b) -> s -> t
 mapOf = over
 {-# INLINE mapOf #-}
 {-# DEPRECATED mapOf "Use `over`" #-}

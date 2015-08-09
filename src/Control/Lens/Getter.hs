@@ -281,7 +281,7 @@ view l = Reader.asks (getConst #. l Const)
 -- @
 -- 'views' :: 'MonadReader' s m => 'Getting' r s a -> (a -> r) -> m r
 -- @
-views :: (Profunctor p, MonadReader s m) => Over' p (Const r) s a -> p a r -> m r
+views :: MonadReader s m => LensLike' (Const r) s a -> (a -> r) -> m r
 views l f = Reader.asks (getConst #. l (Const #. f))
 {-# INLINE views #-}
 
@@ -360,7 +360,7 @@ use l = State.gets (view l)
 -- @
 -- 'uses' :: 'MonadState' s m => 'Getting' r s t a b -> (a -> r) -> m r
 -- @
-uses :: (Profunctor p, MonadState s m) => Over' p (Const r) s a -> p a r -> m r
+uses :: MonadState s m => LensLike' (Const r) s a -> (a -> r) -> m r
 uses l f = State.gets (views l f)
 {-# INLINE uses #-}
 
@@ -456,7 +456,7 @@ iview l = asks (getConst #. l (Indexed $ \i -> Const #. (,) i))
 -- 'iviews' ≡ 'Control.Lens.Fold.ifoldMapOf'
 -- @
 iviews :: MonadReader s m => IndexedGetting i r s a -> (i -> a -> r) -> m r
-iviews l = views l .# Indexed
+iviews l f = asks (getConst #. l (Const #. Indexed f))
 {-# INLINE iviews #-}
 
 -- | Use the index and value of an 'IndexedGetter' into the current state as a pair.
@@ -471,7 +471,7 @@ iuse l = gets (getConst #. l (Indexed $ \i -> Const #. (,) i))
 --
 -- When applied to an 'IndexedFold' the result will be a monoidal summary instead of a single answer.
 iuses :: MonadState s m => IndexedGetting i r s a -> (i -> a -> r) -> m r
-iuses l = uses l .# Indexed
+iuses l f = gets (getConst #. l (Const #. Indexed f))
 {-# INLINE iuses #-}
 
 -- | View the index and value of an 'IndexedGetter' or 'IndexedLens'.
