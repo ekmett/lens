@@ -57,7 +57,7 @@ module Control.Lens.Setter
   , (.~), (%~)
   , (+~), (-~), (*~), (//~), (^~), (^^~), (**~), (||~), (<>~), (&&~), (<.~), (?~), (<?~)
   -- * State Combinators
-  , assign
+  , assign, modifying
   , (.=), (%=)
   , (+=), (-=), (*=), (//=), (^=), (^^=), (**=), (||=), (<>=), (&&=), (<.=), (?=), (<?=)
   , (<~)
@@ -68,7 +68,7 @@ module Control.Lens.Setter
   -- * Simplified State Setting
   , set'
   -- * Indexed Setters
-  , imapOf, iover, iset
+  , imapOf, iover, iset, imodifying
   , isets
   , (%@~), (.@~), (%@=), (.@=)
   -- * Arrow operators
@@ -798,6 +798,11 @@ l .= b = State.modify (l .~ b)
 l %= f = State.modify (l %~ f)
 {-# INLINE (%=) #-}
 
+-- | This is an alias for ('%=').
+modifying :: MonadState s m => ASetter s s a b -> (a -> b) -> m ()
+modifying l f = State.modify (over l f)
+{-# INLINE modifying #-}
+
 -- | Replace the target of a 'Lens' or all of the targets of a 'Setter' or 'Traversal' in our monadic
 -- state with 'Just' a new value, irrespective of the old.
 --
@@ -1232,6 +1237,11 @@ l .@~ f = runIdentity #. l (Identity #. Indexed (const . f))
 (%@=) :: MonadState s m => AnIndexedSetter i s s a b -> (i -> a -> b) -> m ()
 l %@= f = State.modify (l %@~ f)
 {-# INLINE (%@=) #-}
+
+-- | This is an alias for ('%@=').
+imodifying :: MonadState s m => AnIndexedSetter i s s a b -> (i -> a -> b) -> m ()
+imodifying l f = State.modify (iover l f)
+{-# INLINE imodifying #-}
 
 -- | Replace every target in the current state of an 'IndexedSetter', 'IndexedLens' or 'IndexedTraversal'
 -- with access to the index.
