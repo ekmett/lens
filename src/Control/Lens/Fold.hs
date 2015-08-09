@@ -504,7 +504,7 @@ lined f = fmap (intercalate "\n") . conjoined traverse (indexing traverse) f . l
 -- @
 -- 'foldMapOf' :: 'Getting' r s a -> (a -> r) -> s -> r
 -- @
-foldMapOf :: Profunctor p => Accessing p r s a -> p a r -> s -> r
+foldMapOf :: Getting r s a -> (a -> r) -> s -> r
 foldMapOf l f = getConst #. l (Const #. f)
 {-# INLINE foldMapOf #-}
 
@@ -556,8 +556,8 @@ foldOf l = getConst #. l Const
 -- @
 -- 'foldrOf' :: 'Getting' ('Endo' r) s a -> (a -> r -> r) -> r -> s -> r
 -- @
-foldrOf :: Profunctor p => Accessing p (Endo r) s a -> p a (r -> r) -> r -> s -> r
-foldrOf l f z = flip appEndo z `rmap` foldMapOf l (Endo #. f)
+foldrOf :: Getting (Endo r) s a -> (a -> r -> r) -> r -> s -> r
+foldrOf l f z = flip appEndo z . foldMapOf l (Endo #. f)
 {-# INLINE foldrOf #-}
 
 -- | Left-associative fold of the parts of a structure that are viewed through a 'Lens', 'Getter', 'Fold' or 'Traversal'.
@@ -699,7 +699,7 @@ orOf l = getAny #. foldMapOf l Any
 -- 'anyOf' :: 'Traversal'' s a -> (a -> 'Bool') -> s -> 'Bool'
 -- 'anyOf' :: 'Prism'' s a     -> (a -> 'Bool') -> s -> 'Bool'
 -- @
-anyOf :: Profunctor p => Accessing p Any s a -> p a Bool -> s -> Bool
+anyOf :: Getting Any s a -> (a -> Bool) -> s -> Bool
 anyOf l f = getAny #. foldMapOf l (Any #. f)
 {-# INLINE anyOf #-}
 
@@ -726,7 +726,7 @@ anyOf l f = getAny #. foldMapOf l (Any #. f)
 -- 'allOf' :: 'Traversal'' s a -> (a -> 'Bool') -> s -> 'Bool'
 -- 'allOf' :: 'Prism'' s a     -> (a -> 'Bool') -> s -> 'Bool'
 -- @
-allOf :: Profunctor p => Accessing p All s a -> p a Bool -> s -> Bool
+allOf :: Getting All s a -> (a -> Bool) -> s -> Bool
 allOf l f = getAll #. foldMapOf l (All #. f)
 {-# INLINE allOf #-}
 
@@ -749,7 +749,7 @@ allOf l f = getAll #. foldMapOf l (All #. f)
 -- 'noneOf' :: 'Traversal'' s a -> (a -> 'Bool') -> s -> 'Bool'
 -- 'noneOf' :: 'Prism'' s a     -> (a -> 'Bool') -> s -> 'Bool'
 -- @
-noneOf :: Profunctor p => Accessing p Any s a -> p a Bool -> s -> Bool
+noneOf :: Getting Any s a -> (a -> Bool) -> s -> Bool
 noneOf l f = not . anyOf l f
 {-# INLINE noneOf #-}
 
@@ -849,7 +849,7 @@ sumOf l = foldlOf' l (+) 0
 -- 'traverseOf_' :: 'Applicative' f => 'Traversal'' s a -> (a -> f r) -> s -> f ()
 -- 'traverseOf_' :: 'Applicative' f => 'Prism'' s a     -> (a -> f r) -> s -> f ()
 -- @
-traverseOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed r f) s a -> p a (f r) -> s -> f ()
+traverseOf_ :: Functor f => Getting (Traversed r f) s a -> (a -> (f r)) -> s -> f ()
 traverseOf_ l f = void . getTraversed #. foldMapOf l (Traversed #. f)
 {-# INLINE traverseOf_ #-}
 
@@ -882,7 +882,7 @@ traverseOf_ l f = void . getTraversed #. foldMapOf l (Traversed #. f)
 -- 'forOf_' :: 'Applicative' f => 'Traversal'' s a -> s -> (a -> f r) -> f ()
 -- 'forOf_' :: 'Applicative' f => 'Prism'' s a     -> s -> (a -> f r) -> f ()
 -- @
-forOf_ :: (Profunctor p, Functor f) => Accessing p (Traversed r f) s a -> s -> p a (f r) -> f ()
+forOf_ :: Functor f => Getting (Traversed r f) s a -> s -> (a -> f r) -> f ()
 forOf_ = flip . traverseOf_
 {-# INLINE forOf_ #-}
 
@@ -926,7 +926,7 @@ sequenceAOf_ l = void . getTraversed #. foldMapOf l Traversed
 -- 'mapMOf_' :: 'Monad' m => 'Traversal'' s a -> (a -> m r) -> s -> m ()
 -- 'mapMOf_' :: 'Monad' m => 'Prism'' s a     -> (a -> m r) -> s -> m ()
 -- @
-mapMOf_ :: (Profunctor p, Monad m) => Accessing p (Sequenced r m) s a -> p a (m r) -> s -> m ()
+mapMOf_ :: Monad m => Getting (Sequenced r m) s a -> (a -> m r) -> s -> m ()
 mapMOf_ l f = liftM skip . getSequenced #. foldMapOf l (Sequenced #. f)
 {-# INLINE mapMOf_ #-}
 
@@ -948,7 +948,7 @@ mapMOf_ l f = liftM skip . getSequenced #. foldMapOf l (Sequenced #. f)
 -- 'forMOf_' :: 'Monad' m => 'Traversal'' s a -> s -> (a -> m r) -> m ()
 -- 'forMOf_' :: 'Monad' m => 'Prism'' s a     -> s -> (a -> m r) -> m ()
 -- @
-forMOf_ :: (Profunctor p, Monad m) => Accessing p (Sequenced r m) s a -> s -> p a (m r) -> m ()
+forMOf_ :: Monad m => Getting (Sequenced r m) s a -> s -> (a -> m r) -> m ()
 forMOf_ = flip . mapMOf_
 {-# INLINE forMOf_ #-}
 
@@ -1083,7 +1083,7 @@ notElemOf l = allOf l . (/=)
 -- 'concatMapOf' :: 'Iso'' s a       -> (a -> [r]) -> s -> [r]
 -- 'concatMapOf' :: 'Traversal'' s a -> (a -> [r]) -> s -> [r]
 -- @
-concatMapOf :: Profunctor p => Accessing p [r] s a -> p a [r] -> s -> [r]
+concatMapOf :: Getting [r] s a -> (a -> [r]) -> s -> [r]
 concatMapOf l ces = getConst #. l (Const #. ces)
 {-# INLINE concatMapOf #-}
 
@@ -1473,8 +1473,8 @@ minimumByOf l cmp = foldlOf' l mf Nothing where
 -- 'findOf' :: 'Getting' ('Endo' ('Maybe' a)) s a -> (a -> 'Bool') -> s -> 'Maybe' a
 -- 'findOf' l p = 'foldrOf' l (\a y -> if p a then 'Just' a else y) 'Nothing'
 -- @
-findOf :: Conjoined p => Accessing p (Endo (Maybe a)) s a -> p a Bool -> s -> Maybe a
-findOf l p = foldrOf l (cotabulate $ \wa y -> if cosieve p wa then Just (extract wa) else y) Nothing
+findOf :: Getting (Endo (Maybe a)) s a -> (a -> Bool) -> s -> Maybe a
+findOf l f = foldrOf l (\a y -> if f a then Just a else y) Nothing
 {-# INLINE findOf #-}
 
 -- | The 'findMOf' function takes a 'Lens' (or 'Getter', 'Iso', 'Fold', or 'Traversal'),
@@ -1513,8 +1513,8 @@ findOf l p = foldrOf l (cotabulate $ \wa y -> if cosieve p wa then Just (extract
 -- 'findMOf' :: Monad m => 'Getting' ('Endo' (m ('Maybe' a))) s a -> (a -> m 'Bool') -> s -> m ('Maybe' a)
 -- 'findMOf' l p = 'foldrOf' l (\a y -> p a >>= \x -> if x then return ('Just' a) else y) $ return 'Nothing'
 -- @
-findMOf :: (Monad m, Conjoined p) => Accessing p (Endo (m (Maybe a))) s a -> p a (m Bool) -> s -> m (Maybe a)
-findMOf l p = foldrOf l (cotabulate $ \wa y -> cosieve p wa >>= \r -> if r then return (Just (extract wa)) else y) $ return Nothing
+findMOf :: Monad m => Getting (Endo (m (Maybe a))) s a -> (a -> m Bool) -> s -> m (Maybe a)
+findMOf l f = foldrOf l (\a y -> f a >>= \r -> if r then return (Just a) else y) $ return Nothing
 {-# INLINE findMOf #-}
 
 -- | A variant of 'foldrOf' that has no base case and thus may only be applied
@@ -2007,7 +2007,7 @@ backwards l f = forwards #. l (Backwards #. f)
 -- @
 --
 ifoldMapOf :: IndexedGetting i m s a -> (i -> a -> m) -> s -> m
-ifoldMapOf l = foldMapOf l .# Indexed
+ifoldMapOf l f = getConst #. l (Const #. Indexed f)
 {-# INLINE ifoldMapOf #-}
 
 -- | Right-associative fold of parts of a structure that are viewed through an 'IndexedFold' or 'IndexedTraversal' with
@@ -2026,7 +2026,7 @@ ifoldMapOf l = foldMapOf l .# Indexed
 -- 'ifoldrOf' :: 'IndexedTraversal'' i s a -> (i -> a -> r -> r) -> r -> s -> r
 -- @
 ifoldrOf :: IndexedGetting i (Endo r) s a -> (i -> a -> r -> r) -> r -> s -> r
-ifoldrOf l = foldrOf l .# Indexed
+ifoldrOf l f z = flip appEndo z . getConst #. l (Const #. Endo #. Indexed f)
 {-# INLINE ifoldrOf #-}
 
 -- | Left-associative fold of the parts of a structure that are viewed through an 'IndexedFold' or 'IndexedTraversal' with
@@ -2064,7 +2064,7 @@ ifoldlOf l f z = (flip appEndo z .# getDual) `rmap` ifoldMapOf l (\i -> Dual #. 
 -- 'ianyOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
 ianyOf :: IndexedGetting i Any s a -> (i -> a -> Bool) -> s -> Bool
-ianyOf l = anyOf l .# Indexed
+ianyOf l f = getAny #. getConst #. l (Const #. Any #. Indexed f)
 {-# INLINE ianyOf #-}
 
 -- | Return whether or not all elements viewed through an 'IndexedFold' or 'IndexedTraversal'
@@ -2083,7 +2083,7 @@ ianyOf l = anyOf l .# Indexed
 -- 'iallOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
 iallOf :: IndexedGetting i All s a -> (i -> a -> Bool) -> s -> Bool
-iallOf l = allOf l .# Indexed
+iallOf l f = getAll #. getConst #. l (Const #. All #. Indexed f)
 {-# INLINE iallOf #-}
 
 -- | Return whether or not none of the elements viewed through an 'IndexedFold' or 'IndexedTraversal'
@@ -2102,7 +2102,7 @@ iallOf l = allOf l .# Indexed
 -- 'inoneOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Bool'
 -- @
 inoneOf :: IndexedGetting i Any s a -> (i -> a -> Bool) -> s -> Bool
-inoneOf l = noneOf l .# Indexed
+inoneOf l f = not . ianyOf l f
 {-# INLINE inoneOf #-}
 
 -- | Traverse the targets of an 'IndexedFold' or 'IndexedTraversal' with access to the @i@, discarding the results.
@@ -2120,7 +2120,7 @@ inoneOf l = noneOf l .# Indexed
 -- 'itraverseOf_' :: 'Applicative' f => 'IndexedTraversal'' i s a -> (i -> a -> f r) -> s -> f ()
 -- @
 itraverseOf_ :: Functor f => IndexedGetting i (Traversed r f) s a -> (i -> a -> f r) -> s -> f ()
-itraverseOf_ l = traverseOf_ l .# Indexed
+itraverseOf_ l f = void . getTraversed #. getConst #. l (Const #. Traversed #. Indexed f)
 {-# INLINE itraverseOf_ #-}
 
 -- | Traverse the targets of an 'IndexedFold' or 'IndexedTraversal' with access to the index, discarding the results
@@ -2162,7 +2162,7 @@ iforOf_ = flip . itraverseOf_
 -- 'imapMOf_' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> a -> m r) -> s -> m ()
 -- @
 imapMOf_ :: Monad m => IndexedGetting i (Sequenced r m) s a -> (i -> a -> m r) -> s -> m ()
-imapMOf_ l = mapMOf_ l .# Indexed
+imapMOf_ l f = liftM skip . getSequenced #. getConst #. l (Const #. Sequenced #. Indexed f)
 {-# INLINE imapMOf_ #-}
 
 -- | Run monadic actions for each target of an 'IndexedFold' or 'IndexedTraversal' with access to the index,
@@ -2225,7 +2225,7 @@ iconcatMapOf = ifoldMapOf
 -- 'ifindOf' :: 'IndexedTraversal'' i s a -> (i -> a -> 'Bool') -> s -> 'Maybe' a
 -- @
 ifindOf :: IndexedGetting i (Endo (Maybe a)) s a -> (i -> a -> Bool) -> s -> Maybe a
-ifindOf l = findOf l .# Indexed
+ifindOf l f = ifoldrOf l (\i a y -> if f i a then Just a else y) Nothing
 {-# INLINE ifindOf #-}
 
 -- | The 'ifindMOf' function takes an 'IndexedFold' or 'IndexedTraversal', a monadic predicate that is also
@@ -2245,7 +2245,7 @@ ifindOf l = findOf l .# Indexed
 -- 'ifindMOf' :: 'Monad' m => 'IndexedTraversal'' i s a -> (i -> a -> m 'Bool') -> s -> m ('Maybe' a)
 -- @
 ifindMOf :: Monad m => IndexedGetting i (Endo (m (Maybe a))) s a -> (i -> a -> m Bool) -> s -> m (Maybe a)
-ifindMOf l = findMOf l .# Indexed
+ifindMOf l f = ifoldrOf l (\i a y -> f i a >>= \r -> if r then return (Just a) else y) $ return Nothing
 {-# INLINE ifindMOf #-}
 
 -- | /Strictly/ fold right over the elements of a structure with an index.

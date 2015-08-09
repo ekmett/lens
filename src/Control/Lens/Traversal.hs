@@ -272,7 +272,7 @@ type Traversing1' p f s a = Traversing1 p f s s a a
 -- 'traverseOf' :: 'Functor' f => 'Lens' s t a b      -> (a -> f b) -> s -> f t
 -- 'traverseOf' :: 'Applicative' f => 'Traversal' s t a b -> (a -> f b) -> s -> f t
 -- @
-traverseOf :: Over p f s t a b -> p a (f b) -> s -> f t
+traverseOf :: Over p f s t a b -> (a -> f b) -> s -> f t
 traverseOf = id
 {-# INLINE traverseOf #-}
 
@@ -301,7 +301,7 @@ traverseOf = id
 -- 'forOf' :: 'Functor' f => 'Lens' s t a b -> s -> (a -> f b) -> f t
 -- 'forOf' :: 'Applicative' f => 'Traversal' s t a b -> s -> (a -> f b) -> f t
 -- @
-forOf :: Over p f s t a b -> s -> p a (f b) -> f t
+forOf :: LensLike f s t a b -> s -> (a -> f b) -> f t
 forOf = flip
 {-# INLINE forOf #-}
 
@@ -341,7 +341,7 @@ sequenceAOf l = l id
 -- 'mapMOf' :: 'Monad' m => 'Lens' s t a b      -> (a -> m b) -> s -> m t
 -- 'mapMOf' :: 'Monad' m => 'Traversal' s t a b -> (a -> m b) -> s -> m t
 -- @
-mapMOf :: Profunctor p => Over p (WrappedMonad m) s t a b -> p a (m b) -> s -> m t
+mapMOf :: LensLike (WrappedMonad m) s t a b -> (a -> m b) -> s -> m t
 mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
 {-# INLINE mapMOf #-}
 
@@ -361,7 +361,7 @@ mapMOf l cmd = unwrapMonad #. l (WrapMonad #. cmd)
 -- 'forMOf' :: 'Monad' m => 'Lens' s t a b      -> s -> (a -> m b) -> m t
 -- 'forMOf' :: 'Monad' m => 'Traversal' s t a b -> s -> (a -> m b) -> m t
 -- @
-forMOf :: Profunctor p => Over p (WrappedMonad m) s t a b -> s -> p a (m b) -> m t
+forMOf :: LensLike (WrappedMonad m) s t a b -> s -> (a -> m b) -> m t
 forMOf l a cmd = unwrapMonad (l (WrapMonad #. cmd) a)
 {-# INLINE forMOf #-}
 
@@ -423,7 +423,7 @@ transposeOf l = getZipList #. l ZipList
 -- @
 -- 'mapAccumROf' :: 'LensLike' ('Backwards' ('State' acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
-mapAccumROf :: Conjoined p => Over p (Backwards (State acc)) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumROf :: LensLike (Backwards (State acc)) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumROf = mapAccumLOf . backwards
 {-# INLINE mapAccumROf #-}
 
@@ -446,9 +446,9 @@ mapAccumROf = mapAccumLOf . backwards
 -- 'mapAccumLOf' l f acc0 s = 'swap' ('runState' (l (\a -> 'state' (\acc -> 'swap' (f acc a))) s) acc0)
 -- @
 --
-mapAccumLOf :: Conjoined p => Over p (State acc) s t a b -> p acc (a -> (acc, b)) -> acc -> s -> (acc, t)
+mapAccumLOf :: LensLike (State acc) s t a b -> (acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 mapAccumLOf l f acc0 s = swap (runState (l g s) acc0) where
-   g = cotabulate $ \wa -> state $ \acc -> swap (cosieve f (acc <$ wa) (extract wa))
+   g a = state $ \acc -> swap (f acc a)
 -- This would be much cleaner if the argument order for the function was swapped.
 {-# INLINE mapAccumLOf #-}
 
@@ -959,8 +959,8 @@ iforOf = flip . itraverseOf
 -- 'imapMOf' :: 'Monad' m => 'IndexedTraversal'  i s t a b -> (i -> a -> m b) -> s -> m t
 -- 'imapMOf' :: 'Bind'  m => 'IndexedTraversal1' i s t a b -> (i -> a -> m b) -> s -> m t
 -- @
-imapMOf :: (Indexed i a (WrappedMonad m b) -> s -> WrappedMonad m t) -> (i -> a -> m b) -> s -> m t
-imapMOf l = mapMOf l .# Indexed
+imapMOf :: Over (Indexed i) (WrappedMonad m) s t a b  -> (i -> a -> m b) -> s -> m t
+imapMOf l cmd = unwrapMonad #. l (WrapMonad #. Indexed cmd)
 {-# INLINE imapMOf #-}
 
 -- | Map each element of a structure targeted by a 'Lens' to a monadic action,
@@ -993,7 +993,7 @@ iforMOf = flip . imapMOf
 -- 'imapAccumROf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
 imapAccumROf :: Over (Indexed i) (Backwards (State acc)) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-imapAccumROf l = mapAccumROf l .# Indexed
+imapAccumROf = imapAccumLOf . backwards
 {-# INLINE imapAccumROf #-}
 
 -- | Generalizes 'Data.Traversable.mapAccumL' to an arbitrary 'IndexedTraversal' with access to the index.
@@ -1009,7 +1009,8 @@ imapAccumROf l = mapAccumROf l .# Indexed
 -- 'imapAccumLOf' :: 'IndexedTraversal' i s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
 -- @
 imapAccumLOf :: Over (Indexed i) (State acc) s t a b -> (i -> acc -> a -> (acc, b)) -> acc -> s -> (acc, t)
-imapAccumLOf l = mapAccumLOf l .# Indexed
+imapAccumLOf l f acc0 s = swap (runState (l (Indexed g) s) acc0) where
+  g i a = state $ \acc -> swap (f i acc a)
 {-# INLINE imapAccumLOf #-}
 
 ------------------------------------------------------------------------------
@@ -1176,8 +1177,8 @@ elements = elementsOf traverse
 -- @
 -- 'failover' :: Alternative m => Traversal s t a b -> (a -> b) -> s -> m t
 -- @
-failover :: (Profunctor p, Alternative m) => Over p ((,) Any) s t a b -> p a b -> s -> m t
-failover l pafb s = case l ((,) (Any True) `rmap` pafb) s of
+failover :: Alternative m => LensLike ((,) Any) s t a b -> (a -> b) -> s -> m t
+failover l afb s = case l ((,) (Any True) . afb) s of
   (Any True, t)  -> pure t
   (Any False, _) -> Applicative.empty
 {-# INLINE failover #-}
@@ -1188,7 +1189,9 @@ failover l pafb s = case l ((,) (Any True) `rmap` pafb) s of
 -- 'ifailover' :: Alternative m => IndexedTraversal i s t a b -> (i -> a -> b) -> s -> m t
 -- @
 ifailover :: Alternative m => Over (Indexed i) ((,) Any) s t a b -> (i -> a -> b) -> s -> m t
-ifailover l f = failover l (Indexed f)
+ifailover l iafb s = case l ((,) (Any True) `rmap` Indexed iafb) s of
+  (Any True, t) -> pure t
+  (Any False, _) -> Applicative.empty
 {-# INLINE ifailover #-}
 
 -- | Try the first 'Traversal' (or 'Fold'), falling back on the second 'Traversal' (or 'Fold') if it returns no entries.
