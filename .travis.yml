@@ -27,19 +27,19 @@ install:
  - cabal --version
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
  - travis_retry cabal update
- - cabal install --enable-tests --enable-benchmarks --dry -v
  # build reflection HEAD until reflection 2.1 is on hackage
  - git clone https://github.com/ekmett/reflection.git
  - cd reflection
  - cabal install
  - cd ..
- - cabal install --only-dependencies --enable-tests --enable-benchmarks
+ - cabal install --enable-tests --dry -v
+ - cabal install --only-dependencies --enable-tests
 
 # Here starts the actual work to be performed for the package under test;
 # any command which exits with a non-zero exit code causes the build to fail.
 script:
- - cabal configure --enable-tests --enable-benchmarks -v2  # -v2 provides useful information for debugging
- - cabal build   # this builds all libraries and executables (including tests/benchmarks)
+ - cabal configure --enable-tests -v2  # -v2 provides useful information for debugging
+ - cabal build   # this builds all libraries and executables (including tests)
  - cabal test
  - cabal check
  - cabal sdist   # tests that a source-distribution can be generated
