@@ -849,7 +849,7 @@ sumOf l = foldlOf' l (+) 0
 -- 'traverseOf_' :: 'Applicative' f => 'Traversal'' s a -> (a -> f r) -> s -> f ()
 -- 'traverseOf_' :: 'Applicative' f => 'Prism'' s a     -> (a -> f r) -> s -> f ()
 -- @
-traverseOf_ :: Functor f => Getting (Traversed r f) s a -> (a -> (f r)) -> s -> f ()
+traverseOf_ :: Functor f => Getting (Traversed r f) s a -> (a -> f r) -> s -> f ()
 traverseOf_ l f = void . getTraversed #. foldMapOf l (Traversed #. f)
 {-# INLINE traverseOf_ #-}
 

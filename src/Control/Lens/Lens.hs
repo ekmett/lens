@@ -290,7 +290,7 @@ s &~ l = execState l s
 -- ('%%~') ::             'Lens' s t a b      -> (a -> (r, b)) -> s -> (r, t)
 -- ('%%~') :: 'Monoid' m => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> (m, b)) -> s -> (m, t)
 -- @
-(%%~) :: LensLike f s t a b -> (a -> f b) -> s -> (f t)
+(%%~) :: LensLike f s t a b -> (a -> f b) -> s -> f t
 (%%~) = id
 {-# INLINE (%%~) #-}
 
@@ -552,7 +552,7 @@ cloneIndexedLens l f s = runPretext (l sell s) (Indexed (indexed f))
 -- ('<%~') ::             'Control.Lens.Iso.Iso' s t a b       -> (a -> b) -> s -> (b, t)
 -- ('<%~') :: 'Monoid' b => 'Control.Lens.Traversal.Traversal' s t a b -> (a -> b) -> s -> (b, t)
 -- @
-(<%~) :: LensLike ((,) b) s t a b -> (a -> b) -> (s -> (b, t))
+(<%~) :: LensLike ((,) b) s t a b -> (a -> b) -> s -> (b, t)
 l <%~ f = l $ (\t -> (t, t)) . f
 {-# INLINE (<%~) #-}
 
