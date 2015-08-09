@@ -1015,7 +1015,7 @@ l <&&= b = l <%= (&& b)
 -- @
 -- ('<<%=') :: 'MonadState' s m             => 'Lens'' s a      -> (a -> a) -> m a
 -- ('<<%=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> (a -> a) -> m a
--- ('<<%=') :: ('MonadState' s m, 'Monoid' b) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
+-- ('<<%=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> (a -> a) -> m a
 -- @
 --
 -- @('<<%=') :: 'MonadState' s m => 'LensLike' ((,)a) s s a b -> (a -> b) -> m a@
