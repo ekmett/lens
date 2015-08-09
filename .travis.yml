@@ -21,7 +21,9 @@ matrix:
     - env: CABALVER=1.23 GHCVER=head
 
 before_install:
- - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
+ - export HAPPYVER=1.19.5
+ - export ALEXVER=3.1.4
+ - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH
 
 install:
  - cabal --version
