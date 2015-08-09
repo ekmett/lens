@@ -272,7 +272,7 @@ type Traversing1' p f s a = Traversing1 p f s s a a
 -- 'traverseOf' :: 'Functor' f => 'Lens' s t a b      -> (a -> f b) -> s -> f t
 -- 'traverseOf' :: 'Applicative' f => 'Traversal' s t a b -> (a -> f b) -> s -> f t
 -- @
-traverseOf :: Over p f s t a b -> (a -> f b) -> s -> f t
+traverseOf :: LensLike f s t a b -> (a -> f b) -> s -> f t
 traverseOf = id
 {-# INLINE traverseOf #-}
 
