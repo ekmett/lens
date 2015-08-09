@@ -113,6 +113,10 @@ module Control.Lens.Traversal
   , imapAccumROf
   , imapAccumLOf
 
+  -- * Reflection
+  , traverseBy
+  , traverseByOf
+
   -- * Implementation Details
   , Bazaar(..), Bazaar'
   , Bazaar1(..), Bazaar1'
@@ -154,6 +158,7 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
+import Data.Reflection
 import Data.Semigroup.Traversable
 import Data.Tagged
 import Data.Traversable
@@ -1290,3 +1295,13 @@ confusing t = \f -> lowerYoneda . lowerRift . t (liftRiftYoneda . f)
   {-# INLINE yap #-}
 
 {-# INLINE confusing #-}
+
+-- | Traverse a container using a specified applicative
+--
+-- This is like 'traverseBy' where the 'Traversable' instance can be specified by any 'Traversal'
+--
+-- @
+-- 'traverseByOf' 'traverse' ≡ 'traverseBy'
+-- @
+traverseByOf :: Traversal s t a b -> (forall x. x -> f x) -> (forall x y. f (x -> y) -> f x -> f y) -> (a -> f b) -> s -> f t
+traverseByOf l pur app f = reifyApplicative pur app (l (ReflectedApplicative #. f))

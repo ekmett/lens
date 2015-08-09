@@ -44,7 +44,13 @@ before_install:
     fi
 
 install:
+  # fetch reflection HEAD until 2.1 is on hackage
+  - git clone https://github.com/ekmett/reflection.git
+  - cd reflection
+  - cabal install
+  - cd ..
   - $CABAL install --dependencies-only --enable-tests
+
   - $CABAL configure --enable-tests $MODE
 
 script:

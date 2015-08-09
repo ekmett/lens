@@ -8,6 +8,10 @@
 #define MIN_VERSION_profunctors(x,y,z) 1
 #endif
 
+#ifndef MIN_VERSION_reflection
+#define MIN_VERSION_reflection(x,y,z) 1
+#endif
+
 #if __GLASGOW_HASKELL__ < 708 || !(MIN_VERSION_profunctors(4,4,0))
 {-# LANGUAGE Trustworthy #-}
 #endif
@@ -168,6 +172,9 @@ import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
+#if MIN_VERSION_reflection(2,1,0)
+import Data.Reflection
+#endif
 import Data.Traversable
 import Prelude hiding (foldr)
 
@@ -2499,19 +2506,6 @@ skip _ = ()
 -- Folds with Reified Monoid
 ------------------------------------------------------------------------------
 
--- | Fold a value using its 'Foldable' instance using
--- explicitly provided 'Monoid' operations. This is like 'fold'
--- where the 'Monoid' instance can be manually specified.
---
--- @
--- 'foldBy' 'mappend' 'mempty' ≡ 'fold'
--- @
---
--- >>> foldBy (++) [] ["hello","world"]
--- "helloworld"
-foldBy :: Foldable t => (a -> a -> a) -> a -> t a -> a
-foldBy f z = reifyFold f z (foldMap M)
-
 -- | Fold a value using a specified 'Fold' and 'Monoid' operations.
 -- This is like 'foldBy' where the 'Foldable' instance can be
 -- manually specified.
@@ -2531,20 +2525,7 @@ foldBy f z = reifyFold f z (foldMap M)
 -- >>> foldByOf both (++) [] ("hello","world")
 -- "helloworld"
 foldByOf :: Fold s a -> (a -> a -> a) -> a -> s -> a
-foldByOf l f z = reifyFold f z (foldMapOf l M)
-
--- | Fold a value using its 'Foldable' instance using
--- explicitly provided 'Monoid' operations. This is like 'foldMap'
--- where the 'Monoid' instance can be manually specified.
---
--- @
--- 'foldMapBy' 'mappend' 'mempty' ≡ 'foldMap'
--- @
---
--- >>> foldMapBy (+) 0 length ["hello","world"]
--- 10
-foldMapBy :: Foldable t => (r -> r -> r) -> r -> (a -> r) -> t a -> r
-foldMapBy f z g = reifyFold f z (foldMap (M #. g))
+foldByOf l f z = reifyMonoid f z (foldMapOf l ReflectedMonoid)
 
 -- | Fold a value using a specified 'Fold' and 'Monoid' operations.
 -- This is like 'foldMapBy' where the 'Foldable' instance can be
@@ -2565,4 +2546,4 @@ foldMapBy f z g = reifyFold f z (foldMap (M #. g))
 -- >>> foldMapByOf both (+) 0 length ("hello","world")
 -- 10
 foldMapByOf :: Fold s a -> (r -> r -> r) -> r -> (a -> r) -> s -> r
-foldMapByOf l f z g = reifyFold f z (foldMapOf l (M #. g))
+foldMapByOf l f z g = reifyMonoid f z (foldMapOf l (ReflectedMonoid #. g))

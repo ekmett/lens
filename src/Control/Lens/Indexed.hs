@@ -76,6 +76,9 @@ module Control.Lens.Indexed
   -- * Indexed Folds with Reified Monoid
   , ifoldMapBy
   , ifoldMapByOf
+  -- * Indexed Traversals with Reified Applicative
+  , itraverseBy
+  , itraverseByOf
   ) where
 
 import Control.Applicative
@@ -110,6 +113,7 @@ import Data.List.NonEmpty as NonEmpty
 import Data.Map as Map
 import Data.Monoid hiding (Product)
 import Data.Profunctor.Unsafe
+import Data.Reflection
 import Data.Sequence hiding ((:<), index)
 #if !(MIN_VERSION_containers(0,5,0))
 import Data.Traversable (sequenceA)
@@ -858,7 +862,13 @@ skip _ = ()
 -------------------------------------------------------------------------------
 
 ifoldMapBy :: FoldableWithIndex i t => (r -> r -> r) -> r -> (i -> a -> r) -> t a -> r
-ifoldMapBy f z g = reifyFold f z (ifoldMap (\i a -> M (g i a)))
+ifoldMapBy f z g = reifyMonoid f z (ifoldMap (\i a -> ReflectedMonoid (g i a)))
 
-ifoldMapByOf :: (forall s. IndexedGetting i (M r s) t a) -> (r -> r -> r) -> r -> (i -> a -> r) -> t -> r
-ifoldMapByOf l f z g = reifyFold f z (ifoldMapOf l (\i a -> M (g i a)))
+ifoldMapByOf :: IndexedFold i t a -> (r -> r -> r) -> r -> (i -> a -> r) -> t -> r
+ifoldMapByOf l f z g = reifyMonoid f z (ifoldMapOf l (\i a -> ReflectedMonoid (g i a)))
+
+itraverseBy :: TraversableWithIndex i t => (forall x. x -> f x) -> (forall x y. f (x -> y) -> f x -> f y) -> (i -> a -> f b) -> t a -> f (t b)
+itraverseBy pur app f = reifyApplicative pur app (itraverse (\i a -> ReflectedApplicative (f i a)))
+
+itraverseByOf :: IndexedTraversal i s t a b -> (forall x. x -> f x) -> (forall x y. f (x -> y) -> f x -> f y) -> (i -> a -> f b) -> s -> f t
+itraverseByOf l pur app f = reifyApplicative pur app (itraverseOf l (\i a -> ReflectedApplicative (f i a)))

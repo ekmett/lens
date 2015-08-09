@@ -199,7 +199,7 @@ library
     mtl                       >= 2.0.1    && < 2.3,
     parallel                  >= 3.1.0.1  && < 3.3,
     profunctors               >= 5        && < 6,
-    reflection                >= 2        && < 3,
+    reflection                >= 2.1      && < 3,
     semigroupoids             >= 5        && < 6,
     semigroups                >= 0.8.4    && < 1,
     tagged                    >= 0.4.4    && < 1,

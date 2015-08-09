@@ -26,8 +26,7 @@ module Control.Lens.Internal.Fold
   , Min(..), getMin
   , Leftmost(..), getLeftmost
   , Rightmost(..), getRightmost
-  , ReifiedMonoid(..), M(..)
-  , reifyFold
+  , ReifiedMonoid(..)
   ) where
 
 import Control.Applicative
@@ -213,24 +212,3 @@ getRightmost :: Rightmost a -> Maybe a
 getRightmost RPure = Nothing
 getRightmost (RLeaf a) = Just a
 getRightmost (RStep x) = getRightmost x
-
-------------------------------------------------------------------------------
--- Folding with Reified Monoid
-------------------------------------------------------------------------------
-
-data ReifiedMonoid a = ReifiedMonoid { reifiedMappend :: a -> a -> a, reifiedMempty :: a }
-
-instance Reifies s (ReifiedMonoid a) => Monoid (M a s) where
-  mappend (M x) (M y) = reflectResult (\m -> M (reifiedMappend m x y))
-  mempty              = reflectResult (\m -> M (reifiedMempty  m    ))
-
-reflectResult :: Reifies s a => (a -> f s) -> f s
-reflectResult f = let r = f (reflect r) in r
-
-newtype M a s = M a
-
-unM :: M a s -> proxy s -> a
-unM (M a) _ = a
-
-reifyFold :: (a -> a -> a) -> a -> (forall s. Reifies s (ReifiedMonoid a) => t -> M a s) -> t -> a
-reifyFold f z m xs = reify (ReifiedMonoid f z) (unM (m xs))

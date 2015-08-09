@@ -1,6 +1,8 @@
 4.13
 ----
 * Pattern synonyms
+* Moved `foldMapBy` and `foldBy` into `reflection`.
+* Added `traverseByOf`.
 
 4.12.3
 ------
