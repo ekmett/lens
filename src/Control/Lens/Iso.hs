@@ -197,13 +197,19 @@ au k = withIso k $ \ sa bt f e -> sa (f bt e)
 --
 -- For a version you pass the name of the @newtype@ constructor to, see 'Control.Lens.Wrapped.alaf'.
 --
--- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator
--- is 'au' with an extra function argument.
---
 -- >>> auf (_Unwrapping Sum) (foldMapOf both) Prelude.length ("hello","world")
 -- 10
-auf :: Profunctor p => AnIso s t a b -> (p r a -> e -> b) -> p r s -> e -> t
-auf k = withIso k $ \ sa bt f g e -> bt (f (rmap sa g) e)
+--
+-- Mnemonically, the German /auf/ plays a similar role to /à la/, and the combinator
+-- is 'au' with an extra function argument:
+--
+-- @
+-- auf :: AnIso s t a b -> ((r ->  a) -> e -> b) -> (r -> s) -> e -> t
+-- @
+--
+-- but the signature is general.
+auf :: Functor f => AnIso s t a b -> (f a -> e -> b) -> f s -> e -> t
+auf k = withIso k $ \ sa bt f g e -> bt (f (fmap sa g) e)
 {-# INLINE auf #-}
 
 -- | The opposite of working 'Control.Lens.Setter.over' a 'Setter' is working 'under' an isomorphism.

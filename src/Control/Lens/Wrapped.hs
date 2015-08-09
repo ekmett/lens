@@ -712,8 +712,12 @@ ala = au . _Wrapping
 --
 -- As with '_Wrapping', the user supplied function for the newtype is /ignored/.
 --
+-- @
+-- alaf :: Rewrapping s t => (Unwrapped s -> s) -> ((r ->  t) -> e -> s) -> (r -> Unwrapped t) -> e -> Unwrapped s
+-- @
+--
 -- >>> alaf Sum foldMap Prelude.length ["hello","world"]
 -- 10
-alaf :: (Profunctor p, Rewrapping s t) => (Unwrapped s -> s) -> (p r t -> e -> s) -> p r (Unwrapped t) -> e -> Unwrapped s
+alaf :: (Functor f, Rewrapping s t) => (Unwrapped s -> s) -> (f t -> e -> s) -> f (Unwrapped t) -> e -> Unwrapped s
 alaf = auf . _Unwrapping
 {-# INLINE alaf #-}

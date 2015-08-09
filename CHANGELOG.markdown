@@ -3,6 +3,7 @@
 * Pattern synonyms
 * Moved `foldMapBy` and `foldBy` into `reflection`.
 * Added `traverseByOf`.
+* Modified the signatures of `alaf` and `auf` to work with a `Functor` rather than a `Profunctor`.
 
 4.12.3
 ------
