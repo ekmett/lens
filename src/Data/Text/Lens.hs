@@ -27,9 +27,11 @@ module Data.Text.Lens
   ) where
 
 import           Control.Lens.Type
+#if __GLASGOW_HASKELL__ >= 710
 import           Control.Lens.Getter
-import           Control.Lens.Iso
 import           Control.Lens.Review
+#endif
+import           Control.Lens.Iso
 import           Control.Lens.Traversal
 import           Data.Text as Strict
 import qualified Data.Text.Strict.Lens as Strict

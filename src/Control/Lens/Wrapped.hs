@@ -85,7 +85,9 @@ import           Control.Comonad.Trans.Traced
 import           Control.Exception
 import           Control.Lens.Getter
 import           Control.Lens.Iso
+#if __GLASGOW_HASKELL__ >= 710
 import           Control.Lens.Review
+#endif
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
 import           Control.Monad.Trans.Identity

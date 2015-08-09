@@ -30,7 +30,9 @@ module Control.Lens.Empty
   ) where
 
 import Control.Lens.Iso
+#if __GLASGOW_HASKELL__ >= 710
 import Control.Lens.Fold
+#endif
 import Control.Lens.Prism
 import Control.Lens.Review
 import Data.ByteString as StrictB

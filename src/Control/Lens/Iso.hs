@@ -111,7 +111,9 @@ import Data.Tuple (swap)
 import Data.Maybe
 import Data.Profunctor
 import Data.Profunctor.Unsafe
+#if __GLASGOW_HASKELL__ >= 710
 import qualified GHC.Exts as Exts
+#endif
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use on" #-}

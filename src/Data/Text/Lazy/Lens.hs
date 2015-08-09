@@ -31,7 +31,9 @@ import Control.Lens.Getter
 import Control.Lens.Fold
 import Control.Lens.Iso
 import Control.Lens.Prism
+#if __GLASGOW_HASKELL__ >= 710
 import Control.Lens.Review
+#endif
 import Control.Lens.Setter
 import Control.Lens.Traversal
 import Data.ByteString.Lazy as ByteString
