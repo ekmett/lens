@@ -30,6 +30,7 @@
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.TH where
 
+import Data.Functor.Contravariant
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import qualified Data.Map as Map
@@ -162,7 +163,11 @@ untoValName             :: Name
 untoValName              = mkLensName_v "Control.Lens.Review" "unto"
 
 phantomValName          :: Name
-phantomValName           = mkNameG_v "contravariant" "Data.Functor.Contravariant" "phantom"
+phantomValName           = mkLensName_v "Control.Lens.Internal.TH" "phantom2"
+
+phantom2 :: (Functor f, Contravariant f) => f a -> f b
+phantom2 = phantom
+{-# INLINE phantom2 #-}
 
 composeValName          :: Name
 composeValName           = mkNameG_v "base" "GHC.Base" "."
