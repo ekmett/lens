@@ -706,7 +706,15 @@ _Unwrapping _ = from _Wrapped
 --
 -- >>> ala Product foldMap [1,2,3,4]
 -- 24
-ala :: Rewrapping s t => (Unwrapped s -> s) -> ((Unwrapped t -> t) -> e -> s) -> e -> Unwrapped s
+--
+--
+-- You may want to think of this combinator as having the following, simpler, type.
+--
+-- @
+-- ala :: Rewrapping s t => (Unwrapped s -> s) -> ((Unwrapped t -> t) -> e -> s) -> e -> Unwrapped s
+-- @
+
+ala :: (Functor f, Rewrapping s t) => (Unwrapped s -> s) -> ((Unwrapped t -> t) -> f s) -> f (Unwrapped s)
 ala = au . _Wrapping
 {-# INLINE ala #-}
 

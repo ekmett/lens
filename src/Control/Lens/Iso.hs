@@ -189,8 +189,14 @@ cloneIso k = withIso k iso
 --
 -- >>> au (_Wrapping Sum) foldMap [1,2,3,4]
 -- 10
-au :: AnIso s t a b -> ((b -> t) -> e -> s) -> e -> a
-au k = withIso k $ \ sa bt f e -> sa (f bt e)
+--
+-- You may want to think of this combinator as having the following, simpler type:
+--
+-- @
+-- au :: AnIso s t a b -> ((b -> t) -> e -> s) -> e -> a
+-- @
+au :: Functor f => AnIso s t a b -> ((b -> t) -> f s) -> f a
+au k = withIso k $ \ sa bt f -> fmap sa (f bt)
 {-# INLINE au #-}
 
 -- | Based on @ala'@ from Conor McBride's work on Epigram.
