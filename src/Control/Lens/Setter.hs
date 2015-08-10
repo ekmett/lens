@@ -1170,8 +1170,8 @@ iset l = iover l . (const .)
 -- 'iover' '.' 'isets' ≡ 'id'
 -- @
 --
--- Another way to view 'sets' is that it takes a \"semantic editor combinator\"
--- and transforms it into a 'Setter'.
+-- Another way to view 'isets' is that it takes a \"semantic editor combinator\"
+-- which has been modified to carry an index and transforms it into a 'IndexedSetter'.
 isets :: ((i -> a -> b) -> s -> t) -> IndexedSetter i s t a b
 isets f = sets (f . indexed)
 {-# INLINE isets #-}
