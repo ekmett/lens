@@ -5,6 +5,7 @@
 * Added `traverseByOf`.
 * Modified the signatures of `alaf` and `auf` to work with a `Functor` rather than a `Profunctor` and rather drastically generalized them.
 * Removed `Control.Lens.Internal.Getter.coerce` in favor of the upstream `phantom` combinator in `contravariant` 1.3+
+* Renamed `coerced` to `phantasm` to get it out of the way.
 
 4.12.3
 ------
