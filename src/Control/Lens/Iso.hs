@@ -85,7 +85,7 @@ module Control.Lens.Iso
   , rmapping
   -- * Bifunctors
   , bimapping
-#if __GLASGOW_HASKELL__ >= 708
+#if __GLASGOW_HASKELL__ >= 710
   -- * Coercions
   , coerced
 #endif
@@ -96,7 +96,7 @@ import Control.Lens.Getter
 import Control.Lens.Fold
 import Control.Lens.Internal.Context
 
-#if __GLASGOW_HASKELL__ >= 708
+#if __GLASGOW_HASKELL__ >= 710
 import Control.Lens.Internal.Coerce
 #endif
 
@@ -579,12 +579,12 @@ bimapping f g = withIso f $ \ sa bt -> withIso g $ \s'a' b't' ->
   iso (bimap sa s'a') (bimap bt b't')
 {-# INLINE bimapping #-}
 
-#if __GLASGOW_HASKELL__ >= 708
+#if __GLASGOW_HASKELL__ >= 710
 -- | Data types that are representationally equal are isomorphic.
 --
--- This is only available on GHC 7.8+
+-- This is only available on GHC 7.10+
 --
 -- @since 4.13
 coerced :: forall s t a b. (Coercible s a, Coercible t b) => Iso s t a b
-coerced l = rmap (fmap (coerce' :: b -> t)) l .# (coerce :: s -> a)
+coerced l = rmap (fmap coerce') l .# coerce
 #endif
