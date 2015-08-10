@@ -132,7 +132,7 @@ import Control.Applicative.Backwards
 import Control.Category
 import Control.Comonad
 import Control.Lens.Fold
-import Control.Lens.Getter (Getting, IndexedGetting, coerced)
+import Control.Lens.Getter (Getting, IndexedGetting, phantasm)
 import Control.Lens.Internal.Bazaar
 import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
@@ -698,7 +698,7 @@ unsafeSingular l = conjoined
 ------------------------------------------------------------------------------
 
 ins :: Bizarre (->) w => w a b t -> [a]
-ins = toListOf (coerced bazaar)
+ins = toListOf (phantasm bazaar)
 {-# INLINE ins #-}
 
 wins :: (Bizarre p w, Corepresentable p, Comonad (Corep p)) => w a b t -> [a]
@@ -867,7 +867,7 @@ dropping n l pafb s = snd $ runIndexing (l paifb s) 0 where
 -- former can execute at full speed, while the latter needs to round trip through
 -- the 'Bazaar'.
 --
--- >>> let foo l a = (view (coerced (cloneTraversal l)) a, set (cloneTraversal l) 10 a)
+-- >>> let foo l a = (view (phantasm (cloneTraversal l)) a, set (cloneTraversal l) 10 a)
 -- >>> foo both ("hello","world")
 -- ("helloworld",(10,10))
 --

@@ -78,7 +78,6 @@ module Control.Lens.Getter
   ) where
 
 import Control.Applicative
-import Control.Lens.Internal.Getter
 import Control.Lens.Internal.Indexed
 import Control.Lens.Type
 import Control.Monad.Reader.Class as Reader

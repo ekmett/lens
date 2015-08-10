@@ -84,12 +84,21 @@ module Control.Lens.Iso
   , rmapping
   -- * Bifunctors
   , bimapping
+#if __GLASGOW_HASKELL__ >= 708
+  -- * Coercions
+  , coerced
+#endif
   ) where
 
 import Control.Lens.Equality (simple)
 import Control.Lens.Getter
 import Control.Lens.Fold
 import Control.Lens.Internal.Context
+
+#if __GLASGOW_HASKELL__ >= 708
+import Control.Lens.Internal.Coerce
+#endif
+
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Iso as Iso
 import Control.Lens.Internal.Magma
@@ -104,6 +113,11 @@ import Control.Monad.RWS.Lazy as Lazy
 import Control.Monad.RWS.Strict as Strict
 import Data.ByteString as StrictB hiding (reverse)
 import Data.ByteString.Lazy as LazyB hiding (reverse)
+
+#if __GLASGOW_HASKELL__ >= 708
+import Data.Coerce
+#endif
+
 import Data.Functor.Identity
 import Data.Text as StrictT hiding (reverse)
 import Data.Text.Lazy as LazyT hiding (reverse)
@@ -111,6 +125,7 @@ import Data.Tuple (swap)
 import Data.Maybe
 import Data.Profunctor
 import Data.Profunctor.Unsafe
+
 #if __GLASGOW_HASKELL__ >= 710
 import qualified GHC.Exts as Exts
 #endif
@@ -562,3 +577,13 @@ bimapping :: (Bifunctor f, Bifunctor g) => AnIso s t a b -> AnIso s' t' a' b' ->
 bimapping f g = withIso f $ \ sa bt -> withIso g $ \s'a' b't' ->
   iso (bimap sa s'a') (bimap bt b't')
 {-# INLINE bimapping #-}
+
+#if __GLASGOW_HASKELL__ >= 708
+-- | Data types that are representationally equal are isomorphic.
+--
+-- This is only available on GHC 7.8+
+--
+-- @since 4.13
+coerced :: (Coercible s a , Coercible t b) => Iso s t a b
+coerced l = rmap (fmap coerce') l .# coerce
+#endif
