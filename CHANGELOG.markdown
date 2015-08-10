@@ -2,7 +2,8 @@
 ----
 * Pattern synonyms
 * Moved `foldMapBy` and `foldBy` into `reflection` 2.1
-* Added `traverseByOf`.
+* Added `traverseByOf`, `sequenceByOf`.
+* Reexported `traverseBy` and `sequenceBy` from `reflection` 2.1.
 * Modified the signatures of `alaf` and `auf` to work with a `Functor` rather than a `Profunctor` and rather drastically generalized them.
 * Removed `Control.Lens.Internal.Getter.coerce` in favor of the upstream `phantom` combinator in `contravariant` 1.3+
 * Renamed `coerced` to `phantasm` to get it out of the way.
