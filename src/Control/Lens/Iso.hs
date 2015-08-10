@@ -2,6 +2,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 #if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE PatternSynonyms #-}
@@ -584,6 +585,6 @@ bimapping f g = withIso f $ \ sa bt -> withIso g $ \s'a' b't' ->
 -- This is only available on GHC 7.8+
 --
 -- @since 4.13
-coerced :: (Coercible s a , Coercible t b) => Iso s t a b
-coerced l = rmap (fmap coerce') l .# coerce
+coerced :: forall s t a b. (Coercible s a, Coercible t b) => Iso s t a b
+coerced l = rmap (fmap (coerce' :: b -> t)) l .# (coerce :: s -> a)
 #endif
