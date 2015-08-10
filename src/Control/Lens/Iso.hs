@@ -212,12 +212,12 @@ au k = withIso k $ \ sa bt f -> fmap sa (f bt)
 -- is 'au' with an extra function argument:
 --
 -- @
--- auf :: AnIso s t a b -> ((r ->  a) -> e -> b) -> (r -> s) -> e -> t
+-- 'auf' :: 'Iso' s t a b -> ((r ->  a) -> e -> b) -> (r -> s) -> e -> t
 -- @
 --
 -- but the signature is general.
-auf :: (Functor f, Functor g) => AnIso s t a b -> (f a -> g b) -> f s -> g t
-auf k = withIso k $ \ sa bt f -> fmap bt . f . fmap sa
+auf :: (Functor f, Functor g) => Optic (Costar f) g s t a b -> (f a -> g b) -> f s -> g t
+auf l f = runCostar (l (Costar f))
 {-# INLINE auf #-}
 
 -- | The opposite of working 'Control.Lens.Setter.over' a 'Setter' is working 'under' an isomorphism.
