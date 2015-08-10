@@ -95,11 +95,7 @@ import Control.Lens.Equality (simple)
 import Control.Lens.Getter
 import Control.Lens.Fold
 import Control.Lens.Internal.Context
-
-#if __GLASGOW_HASKELL__ >= 710
 import Control.Lens.Internal.Coerce
-#endif
-
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Iso as Iso
 import Control.Lens.Internal.Magma
@@ -233,7 +229,7 @@ au k = withIso k $ \ sa bt f -> fmap sa (f bt)
 --
 -- but the signature is general.
 auf :: (Functor f, Functor g) => Optic (Costar f) g s t a b -> (f a -> g b) -> f s -> g t
-auf l f = runCostar (l (Costar f))
+auf = coerce
 {-# INLINE auf #-}
 
 -- | The opposite of working 'Control.Lens.Setter.over' a 'Setter' is working 'under' an isomorphism.
