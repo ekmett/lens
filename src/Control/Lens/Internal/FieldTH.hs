@@ -419,7 +419,7 @@ makeGetterClause conName fieldCount fields =
 
          fxs   = [ appE (varE f) (varE x) | x <- xs ]
          body  = foldl (\a b -> appsE [varE apValName, a, b])
-                       (appE (varE coerceValName) (head fxs))
+                       (appE (varE phantomValName) (head fxs))
                        (tail fxs)
 
      -- clause f (Con x1..xn) = coerce (f x1) <*> ... <*> f xn

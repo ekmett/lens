@@ -28,6 +28,7 @@ import Control.Monad.Reader.Class
 import Data.Distributive
 import Data.Foldable
 import Data.Functor.Compose
+import Data.Functor.Contravariant
 import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Functor.Identity
@@ -189,10 +190,10 @@ instance Conjoined ReifiedGetter
 
 instance Strong ReifiedGetter where
   first' l = Getter $ \f (s,c) ->
-    coerce $ runGetter l (dimap (flip (,) c) coerce f) s
+    phantom $ runGetter l (dimap (flip (,) c) phantom f) s
   {-# INLINE first' #-}
   second' l = Getter $ \f (c,s) ->
-    coerce $ runGetter l (dimap ((,) c) coerce f) s
+    phantom $ runGetter l (dimap ((,) c) phantom f) s
   {-# INLINE second' #-}
 
 instance Choice ReifiedGetter where
@@ -258,10 +259,10 @@ instance Representable (ReifiedIndexedGetter i) where
 
 instance Strong (ReifiedIndexedGetter i) where
   first' l = IndexedGetter $ \f (s,c) ->
-    coerce $ runIndexedGetter l (dimap (flip (,) c) coerce f) s
+    phantom $ runIndexedGetter l (dimap (flip (,) c) phantom f) s
   {-# INLINE first' #-}
   second' l = IndexedGetter $ \f (c,s) ->
-    coerce $ runIndexedGetter l (dimap ((,) c) coerce f) s
+    phantom $ runIndexedGetter l (dimap ((,) c) phantom f) s
   {-# INLINE second' #-}
 
 instance Functor (ReifiedIndexedGetter i s) where
@@ -272,7 +273,7 @@ instance Semigroup i => Apply (ReifiedIndexedGetter i s) where
   IndexedGetter mf <.> IndexedGetter ma = IndexedGetter $ \k s ->
     case iview mf s of
       (i, f) -> case iview ma s of
-        (j, a) -> coerce $ indexed k (i <> j) (f a)
+        (j, a) -> phantom $ indexed k (i <> j) (f a)
   {-# INLINE (<.>) #-}
 
 ------------------------------------------------------------------------------
@@ -306,10 +307,10 @@ instance Representable ReifiedFold where
 
 instance Strong ReifiedFold where
   first' l = Fold $ \f (s,c) ->
-    coerce $ runFold l (dimap (flip (,) c) coerce f) s
+    phantom $ runFold l (dimap (flip (,) c) phantom f) s
   {-# INLINE first' #-}
   second' l = Fold $ \f (c,s) ->
-    coerce $ runFold l (dimap ((,) c) coerce f) s
+    phantom $ runFold l (dimap ((,) c) phantom f) s
   {-# INLINE second' #-}
 
 instance Choice ReifiedFold where
@@ -460,15 +461,15 @@ instance Sieve (ReifiedIndexedFold i) (Compose [] ((,) i)) where
 
 instance Representable (ReifiedIndexedFold i) where
   type Rep (ReifiedIndexedFold i) = Compose [] ((,) i)
-  tabulate k = IndexedFold $ \f -> coerce . traverse_ (coerce . uncurry (indexed f)) . getCompose . k
+  tabulate k = IndexedFold $ \f -> phantom . traverse_ (phantom . uncurry (indexed f)) . getCompose . k
   {-# INLINE tabulate #-}
 
 instance Strong (ReifiedIndexedFold i) where
   first' l  = IndexedFold $ \f (s,c) ->
-    coerce $ runIndexedFold l (dimap (flip (,) c) coerce f) s
+    phantom $ runIndexedFold l (dimap (flip (,) c) phantom f) s
   {-# INLINE first' #-}
   second' l = IndexedFold $ \f (c,s) ->
-    coerce $ runIndexedFold l (dimap ((,) c) coerce f) s
+    phantom $ runIndexedFold l (dimap ((,) c) phantom f) s
   {-# INLINE second' #-}
 
 ------------------------------------------------------------------------------

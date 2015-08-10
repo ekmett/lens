@@ -48,7 +48,6 @@ import Control.Arrow as Arrow
 import Control.Category
 import Control.Comonad
 import Control.Lens.Internal.Instances ()
-import qualified Control.Lens.Internal.Getter as Getter
 import Control.Monad
 import Control.Monad.Fix
 import Data.Distributive
@@ -355,5 +354,5 @@ withIndex f = Indexed $ \i a -> snd <$> indexed f i (i, a)
 -- | When composed with an 'IndexedFold' or 'IndexedTraversal' this yields an
 -- ('Indexed') 'Fold' of the indices.
 asIndex :: (Indexable i p, Contravariant f, Functor f) => p i (f i) -> Indexed i s (f s)
-asIndex f = Indexed $ \i _ -> Getter.coerce (indexed f i i)
+asIndex f = Indexed $ \i _ -> phantom (indexed f i i)
 {-# INLINE asIndex #-}

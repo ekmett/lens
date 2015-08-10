@@ -161,8 +161,8 @@ prismValName             = mkLensName_v "Control.Lens.Prism" "prism"
 untoValName             :: Name
 untoValName              = mkLensName_v "Control.Lens.Review" "unto"
 
-coerceValName           :: Name
-coerceValName            = mkLensName_v "Control.Lens.Internal.Getter" "coerce"
+phantomValName          :: Name
+phantomValName           = mkNameG_v "contravariant" "Data.Functor.Contravariant" "phantom"
 
 composeValName          :: Name
 composeValName           = mkNameG_v "base" "GHC.Base" "."

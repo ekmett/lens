@@ -73,7 +73,7 @@ module Control.Lens.Getter
   , ilistening, ilistenings
   -- * Implementation Details
   , Contravariant(..)
-  , coerce, coerced
+  , coerced
   , Const(..)
   ) where
 
@@ -495,4 +495,4 @@ s ^@. l = getConst $ l (Indexed $ \i -> Const #. (,) i) s
 -- is useful when using a 'Traversal' that is not simple as a 'Getter' or a
 -- 'Fold'.
 coerced :: (Functor f, Contravariant f) => LensLike f s t a b -> LensLike' f s a
-coerced l f = coerce . l (coerce . f)
+coerced l f = phantom . l (phantom . f)

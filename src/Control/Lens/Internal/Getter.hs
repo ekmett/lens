@@ -13,9 +13,7 @@
 --
 ----------------------------------------------------------------------------
 module Control.Lens.Internal.Getter
-  (
-    coerce
-  , noEffect
+  ( noEffect
   , AlongsideLeft(..)
   , AlongsideRight(..)
   ) where
@@ -29,23 +27,11 @@ import Data.Functor.Contravariant
 import Data.Semigroup.Foldable
 import Data.Semigroup.Traversable
 import Data.Traversable
-import Data.Void
 import Prelude
-
--- | A 'Functor' you can 'coerce' ignores its argument, which it carries
--- solely as a phantom type parameter.
---
--- By the 'Functor' and 'Contravariant' laws, an instance of both will
--- necessarily satisfy:
---
--- @'id' = 'fmap' f = 'coerce' = 'contramap' g@
-coerce :: (Contravariant f, Functor f) => f a -> f b
-coerce a = absurd <$> contramap absurd a
-{-# INLINE coerce #-}
 
 -- | The 'mempty' equivalent for a 'Contravariant' 'Applicative' 'Functor'.
 noEffect :: (Contravariant f, Applicative f) => f a
-noEffect = coerce $ pure ()
+noEffect = phantom $ pure ()
 {-# INLINE noEffect #-}
 
 newtype AlongsideLeft f b a = AlongsideLeft { getAlongsideLeft :: f (a, b) }

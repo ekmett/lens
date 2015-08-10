@@ -164,6 +164,7 @@ import Control.Monad.State
 import Data.Foldable
 import Data.Functor.Apply
 import Data.Functor.Compose
+import Data.Functor.Contravariant
 import Data.Int (Int64)
 import Data.List (intercalate)
 import Data.Maybe
@@ -213,11 +214,11 @@ infixl 8 ^.., ^?, ^?!, ^@.., ^@?, ^@?!
 -- >>> [1,2,3,4]^..folding tail
 -- [2,3,4]
 folding :: Foldable f => (s -> f a) -> Fold s a
-folding sfa agb = coerce . traverse_ agb . sfa
+folding sfa agb = phantom . traverse_ agb . sfa
 {-# INLINE folding #-}
 
 ifolding :: (Foldable f, Indexable i p, Contravariant g, Applicative g) => (s -> f (i, a)) -> Over p g s t a b
-ifolding sfa f = coerce . traverse_ (coerce . uncurry (indexed f)) . sfa
+ifolding sfa f = phantom . traverse_ (phantom . uncurry (indexed f)) . sfa
 {-# INLINE ifolding #-}
 
 -- | Obtain a 'Fold' by lifting 'foldr' like function.
@@ -225,12 +226,12 @@ ifolding sfa f = coerce . traverse_ (coerce . uncurry (indexed f)) . sfa
 -- >>> [1,2,3,4]^..foldring foldr
 -- [1,2,3,4]
 foldring :: (Contravariant f, Applicative f) => ((a -> f a -> f a) -> f a -> s -> f a) -> LensLike f s t a b
-foldring fr f = coerce . fr (\a fa -> f a *> fa) noEffect
+foldring fr f = phantom . fr (\a fa -> f a *> fa) noEffect
 {-# INLINE foldring #-}
 
 -- | Obtain 'FoldWithIndex' by lifting 'ifoldr' like function.
 ifoldring :: (Indexable i p, Contravariant f, Applicative f) => ((i -> a -> f a -> f a) -> f a -> s -> f a) -> Over p f s t a b
-ifoldring ifr f = coerce . ifr (\i a fa -> indexed f i a *> fa) noEffect
+ifoldring ifr f = phantom . ifr (\i a fa -> indexed f i a *> fa) noEffect
 {-# INLINE ifoldring #-}
 
 -- | Obtain a 'Fold' from any 'Foldable' indexed by ordinal position.
@@ -1745,7 +1746,7 @@ hasn't l = getAll #. foldMapOf l (\_ -> All False)
 -- 'pre' :: 'Prism'' s a     -> 'IndexPreservingGetter' s ('Maybe' a)
 -- @
 pre :: Getting (First a) s a -> IndexPreservingGetter s (Maybe a)
-pre l = dimap (getFirst . getConst #. l (Const #. First #. Just)) coerce
+pre l = dimap (getFirst . getConst #. l (Const #. First #. Just)) phantom
 {-# INLINE pre #-}
 
 -- | This converts an 'IndexedFold' to an 'IndexPreservingGetter' that returns the first index
@@ -1758,7 +1759,7 @@ pre l = dimap (getFirst . getConst #. l (Const #. First #. Just)) coerce
 -- 'ipre' :: 'IndexedLens'' i s a      -> 'IndexPreservingGetter' s ('Maybe' (i, a))
 -- @
 ipre :: IndexedGetting i (First (i, a)) s a -> IndexPreservingGetter s (Maybe (i, a))
-ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (i, a))))) coerce
+ipre l = dimap (getFirst . getConst #. l (Indexed $ \i a -> Const (First (Just (i, a))))) phantom
 {-# INLINE ipre #-}
 
 ------------------------------------------------------------------------------

@@ -103,6 +103,7 @@ import Data.Array (Array)
 import qualified Data.Array as Array
 import Data.Foldable
 import Data.Functor.Compose
+import Data.Functor.Contravariant
 import Data.Functor.Product
 import Data.Functor.Reverse
 import Data.Hashable
@@ -271,7 +272,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- >>> Data.Map.fromList [(2, "hello"), (1, "world")]^..ifolded.asIndex
   -- [1,2]
   ifolded :: IndexedFold i (f a) a
-  ifolded = conjoined folded $ \f -> coerce . getFolding . ifoldMap (\i -> Folding #. indexed f i)
+  ifolded = conjoined folded $ \f -> phantom . getFolding . ifoldMap (\i -> Folding #. indexed f i)
   {-# INLINE ifolded #-}
 
   -- | Right-associative fold of an indexed container with access to the index @i@.
