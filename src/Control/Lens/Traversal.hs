@@ -116,6 +116,8 @@ module Control.Lens.Traversal
   -- * Reflection
   , traverseBy
   , traverseByOf
+  , sequenceBy
+  , sequenceByOf
 
   -- * Implementation Details
   , Bazaar(..), Bazaar'
@@ -1299,7 +1301,7 @@ confusing t = \f -> lowerYoneda . lowerRift . t (liftRiftYoneda . f)
 
 {-# INLINE confusing #-}
 
--- | Traverse a container using a specified applicative
+-- | Traverse a container using a specified 'Applicative'.
 --
 -- This is like 'traverseBy' where the 'Traversable' instance can be specified by any 'Traversal'
 --
@@ -1308,3 +1310,13 @@ confusing t = \f -> lowerYoneda . lowerRift . t (liftRiftYoneda . f)
 -- @
 traverseByOf :: Traversal s t a b -> (forall x. x -> f x) -> (forall x y. f (x -> y) -> f x -> f y) -> (a -> f b) -> s -> f t
 traverseByOf l pur app f = reifyApplicative pur app (l (ReflectedApplicative #. f))
+
+-- | Sequence a container using a specified 'Applicative'.
+--
+-- This is like 'traverseBy' where the 'Traversable' instance can be specified by any 'Traversal'
+--
+-- @
+-- 'sequenceByOf' 'traverse' ≡ 'sequenceBy'
+-- @
+sequenceByOf :: Traversal s t (f b) b -> (forall x. x -> f x) -> (forall x y. f (x -> y) -> f x -> f y) -> s -> f t
+sequenceByOf l pur app = reifyApplicative pur app (l ReflectedApplicative)
