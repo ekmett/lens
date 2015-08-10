@@ -720,6 +720,6 @@ ala = au . _Wrapping
 --
 -- >>> alaf Sum foldMap Prelude.length ["hello","world"]
 -- 10
-alaf :: (Functor f, Rewrapping s t) => (Unwrapped s -> s) -> (f t -> e -> s) -> f (Unwrapped t) -> e -> Unwrapped s
+alaf :: (Functor f, Functor g, Rewrapping s t) => (Unwrapped s -> s) -> (f t -> g s) -> f (Unwrapped t) -> g (Unwrapped s)
 alaf = auf . _Unwrapping
 {-# INLINE alaf #-}

@@ -210,8 +210,8 @@ au k = withIso k $ \ sa bt f e -> sa (f bt e)
 -- @
 --
 -- but the signature is general.
-auf :: Functor f => AnIso s t a b -> (f a -> e -> b) -> f s -> e -> t
-auf k = withIso k $ \ sa bt f g e -> bt (f (fmap sa g) e)
+auf :: (Functor f, Functor g) => AnIso s t a b -> (f a -> g b) -> f s -> g t
+auf k = withIso k $ \ sa bt f -> fmap bt . f . fmap sa
 {-# INLINE auf #-}
 
 -- | The opposite of working 'Control.Lens.Setter.over' a 'Setter' is working 'under' an isomorphism.
