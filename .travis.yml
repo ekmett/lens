@@ -1,6 +1,7 @@
 # This file has been generated
 language: c
 
+sudo: required
 # sudo: false # turn this back on back when https://github.com/travis-ci/travis-ci/issues/4478 is resolved
 
 matrix:
