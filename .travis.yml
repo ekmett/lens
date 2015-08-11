@@ -1,8 +1,7 @@
 # This file has been generated
 language: c
 
-sudo: required
-# sudo: false # turn this back on back when https://github.com/travis-ci/travis-ci/issues/4478 is resolved
+sudo: false
 
 matrix:
   include:
@@ -12,13 +11,14 @@ matrix:
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.6.3,alex-3.1.4,happy-1.19.5], sources: [hvr-ghc]}}
     - env: CABALVER=1.18 GHCVER=7.8.4
       addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4,alex-3.1.4,happy-1.19.5], sources: [hvr-ghc]}}
-    - env: CABALVER=1.22 GHCVER=7.10.2
-      addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.2,alex-3.1.4,happy-1.19.5], sources: [hvr-ghc]}}
+    - env: CABALVER=1.22 GHCVER=7.10.1
+      addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.1,alex-3.1.4,happy-1.19.5], sources: [hvr-ghc]}}
 
 before_install:
  - export HAPPYVER=1.19.5
  - export ALEXVER=3.1.4
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH
+ - if [ "$CABALVER" = "1.22" ]; then cabal install Cabal-1.22.4.0; fi
 
 install:
  - cabal --version
