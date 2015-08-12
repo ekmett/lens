@@ -17,13 +17,13 @@ matrix:
 before_install:
  - export HAPPYVER=1.19.5
  - export ALEXVER=3.1.4
- - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH
+ - export PATH=~/.cabal/bin:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH
+ - travis_retry cabal update
  - if [ "$CABALVER" = "1.22" ]; then cabal install Cabal-1.22.4.0; fi
-
-install:
  - cabal --version
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
- - travis_retry cabal update
+
+install:
  # build reflection HEAD until reflection 2.1 is on hackage
  - git clone https://github.com/ekmett/reflection.git
  - cd reflection
