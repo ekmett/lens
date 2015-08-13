@@ -53,8 +53,8 @@ install:
    then
      echo "cabal build-cache HIT";
      rm -rfv .ghc;
-     cp -av $HOME/.cabsnap/ghc $HOME/.ghc;
-     cp -av $HOME/.cabsnap/lib $HOME/.cabsnap/share $HOME/.cabsnap/bin $HOME/.cabal/;
+     cp -a $HOME/.cabsnap/ghc $HOME/.ghc;
+     cp -a $HOME/.cabsnap/lib $HOME/.cabsnap/share $HOME/.cabsnap/bin $HOME/.cabal/;
    else
      echo "cabal build-cache MISS";
      rm -rf $HOME/.cabsnap;
@@ -68,8 +68,8 @@ install:
    then
       echo "snapshotting package-db to build-cache";
       mkdir $HOME/.cabsnap;
-      cp -av $HOME/.ghc $HOME/.cabsnap/ghc;
-      cp -av $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin installplan.txt $HOME/.cabsnap/;
+      cp -a $HOME/.ghc $HOME/.cabsnap/ghc;
+      cp -a $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin installplan.txt $HOME/.cabsnap/;
    fi
 
 # NB: we don't want reflection/ to be included in the cache
