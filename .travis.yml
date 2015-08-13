@@ -62,7 +62,7 @@ install:
      cabal install --only-dependencies --enable-tests lens.cabal reflection/;
      if [ "$GHCVER" = "7.10.1" ]; then cabal install Cabal-1.22.4.0; fi;
    fi
- 
+
 # snapshot package-db on cache miss
  - if [ ! -d $HOME/.cabsnap ];
    then
@@ -74,7 +74,7 @@ install:
 
 # NB: we don't want reflection/ to be included in the cache
  - cabal install reflection/
-   
+
 # Here starts the actual work to be performed for the package under test;
 # any command which exits with a non-zero exit code causes the build to fail.
 script:
