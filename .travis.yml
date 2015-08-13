@@ -33,9 +33,9 @@ before_install:
  - export PATH=~/.cabal/bin:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH
 
 install:
- # build reflection HEAD until reflection 2.1 is on hackage
+# build reflection HEAD until reflection 2.1 is on hackage
  - git clone https://github.com/ekmett/reflection.git
- 
+
  - cabal --version
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
  - if [ -f $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz ];
@@ -60,7 +60,6 @@ install:
      rm -rf $HOME/.cabsnap;
      mkdir -p $HOME/.ghc $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin;
      cabal install --only-dependencies --enable-tests lens.cabal reflection/;
-     # Hack for GHC 7.10.1
      if [ "$GHCVER" = "7.10.1" ]; then cabal install Cabal-1.22.4.0; fi;
    fi
  
