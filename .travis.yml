@@ -44,7 +44,7 @@ install:
           $HOME/.cabal/packages/hackage.haskell.org/00-index.tar;
    fi
  - travis_retry cabal update
- - sed -i 's/^jobs:.*$/jobs: 2/' ${HOME}/.cabal/config
+ - "sed -i  's/^jobs:.*$/jobs: 2/' $HOME/.cabal/config"
  - cabal install --only-dependencies --enable-tests --dry -v lens.cabal reflection/ > installplan.txt
  - sed -i -e '1,/^Resolving /d' installplan.txt; cat installplan.txt
 
