@@ -1,36 +1,79 @@
-# This file has been generated
+# This file has been generated -- see https://github.com/hvr/multi-ghc-travis
 language: c
-
 sudo: false
+
+cache:
+  directories:
+    - $HOME/.cabsnap
+    - $HOME/.cabal/packages
+
+before_cache:
+  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/build-reports.log
+  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/00-index.tar
 
 matrix:
   include:
     - env: CABALVER=1.16 GHCVER=7.4.2
+      compiler: ": #GHC 7.4.2"
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.2,alex-3.1.4,happy-1.19.5], sources: [hvr-ghc]}}
     - env: CABALVER=1.16 GHCVER=7.6.3
+      compiler: ": #GHC 7.6.3"
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.6.3,alex-3.1.4,happy-1.19.5], sources: [hvr-ghc]}}
     - env: CABALVER=1.18 GHCVER=7.8.4
+      compiler: ": #GHC 7.8.4"
       addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4,alex-3.1.4,happy-1.19.5], sources: [hvr-ghc]}}
     - env: CABALVER=1.22 GHCVER=7.10.1
+      compiler: ": #GHC 7.10.1"
       addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.1,alex-3.1.4,happy-1.19.5], sources: [hvr-ghc]}}
 
 before_install:
+ - unset CC
  - export HAPPYVER=1.19.5
  - export ALEXVER=3.1.4
  - export PATH=~/.cabal/bin:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH
- - travis_retry cabal update
- - if [ "$CABALVER" = "1.22" ]; then cabal install Cabal-1.22.4.0; fi
- - cabal --version
- - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
 
 install:
- # build reflection HEAD until reflection 2.1 is on hackage
+# build reflection HEAD until reflection 2.1 is on hackage
  - git clone https://github.com/ekmett/reflection.git
- - cd reflection
- - cabal install
- - cd ..
- - cabal install --enable-tests --dry -v
- - cabal install --only-dependencies --enable-tests
+
+ - cabal --version
+ - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
+ - if [ -f $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz ];
+   then
+     zcat $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz >
+          $HOME/.cabal/packages/hackage.haskell.org/00-index.tar;
+   fi
+ - travis_retry cabal update
+ - "sed -i  's/^jobs:.*$/jobs: 2/' $HOME/.cabal/config"
+ - cabal install --only-dependencies --enable-tests --dry -v lens.cabal reflection/ > installplan.txt
+ - sed -i -e '1,/^Resolving /d' installplan.txt; cat installplan.txt
+
+# check whether current requested install-plan matches cached package-db snapshot
+ - if diff -u installplan.txt $HOME/.cabsnap/installplan.txt;
+   then
+     echo "cabal build-cache HIT";
+     rm -rfv .ghc;
+     cp -a $HOME/.cabsnap/ghc $HOME/.ghc;
+     cp -a $HOME/.cabsnap/lib $HOME/.cabsnap/share $HOME/.cabsnap/bin $HOME/.cabal/;
+   else
+     echo "cabal build-cache MISS";
+     rm -rf $HOME/.cabsnap;
+     mkdir -p $HOME/.ghc $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin;
+     cabal install --only-dependencies --enable-tests lens.cabal reflection/;
+     if [ "$GHCVER" = "7.10.1" ]; then cabal install Cabal-1.22.4.0; fi;
+   fi
+
+# snapshot package-db on cache miss
+ - if [ ! -d $HOME/.cabsnap ];
+   then
+      echo "snapshotting package-db to build-cache";
+      mkdir $HOME/.cabsnap;
+      cp -a $HOME/.ghc $HOME/.cabsnap/ghc;
+      cp -a $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin installplan.txt $HOME/.cabsnap/;
+   fi
+
+# NB: we don't want reflection/ to be included in the cache
+ - cabal install reflection/
 
 # Here starts the actual work to be performed for the package under test;
 # any command which exits with a non-zero exit code causes the build to fail.
@@ -53,3 +96,4 @@ notifications:
     skip_join: true
     template:
       - "\x0313lens\x0f/\x0306%{branch}\x0f \x0314%{commit}\x0f %{message} \x0302\x1f%{build_url}\x0f"
+# EOF
