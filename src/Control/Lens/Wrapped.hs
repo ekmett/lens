@@ -158,6 +158,7 @@ instance (Rewrapped s t, Rewrapped t s) => Rewrapping s t
 
 _Unwrapped' :: Wrapped s => Iso' (Unwrapped s) s
 _Unwrapped' = from _Wrapped'
+{-# INLINE _Unwrapped' #-}
 
 -- | Work under a newtype wrapper.
 --
