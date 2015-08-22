@@ -125,6 +125,12 @@ import           Data.Vector.Primitive as Prim
 import           Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Storable as Storable
 
+#if MIN_VERSION_base(4,6,0)
+import           Data.Ord (Down(Down))
+#else
+import           GHC.Exts (Down(Down))
+#endif
+
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use uncurry" #-}
 #endif
@@ -276,6 +282,10 @@ instance Wrapped (ArrowMonad m a) where
   type Unwrapped (ArrowMonad m a) = m () a
   _Wrapped' = iso getArrowMonad ArrowMonad
   {-# INLINE _Wrapped' #-}
+
+instance Wrapped (Down a) where
+  type Unwrapped (Down a) = a
+  _Wrapped' = iso (\(Down a) -> a) Down
 
 -- * transformers
 
