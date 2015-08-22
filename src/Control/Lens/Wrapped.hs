@@ -283,6 +283,7 @@ instance Wrapped (ArrowMonad m a) where
   _Wrapped' = iso getArrowMonad ArrowMonad
   {-# INLINE _Wrapped' #-}
 
+instance t ~ Down a => Rewrapped (Down a) t
 instance Wrapped (Down a) where
   type Unwrapped (Down a) = a
   _Wrapped' = iso (\(Down a) -> a) Down
