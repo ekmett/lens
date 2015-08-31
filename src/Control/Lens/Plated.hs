@@ -357,10 +357,10 @@ rewriteOn b = over b . rewrite
 -- | Rewrite recursively over part of a larger structure using a specified 'Setter'.
 --
 -- @
--- 'rewriteOnOf' :: 'Plated' a => 'Control.Lens.Iso.Iso'' s a       -> 'Control.Lens.Iso.Iso'' a a       -> (a -> 'Maybe' a) -> s -> s
--- 'rewriteOnOf' :: 'Plated' a => 'Lens'' s a      -> 'Lens'' a a      -> (a -> 'Maybe' a) -> s -> s
--- 'rewriteOnOf' :: 'Plated' a => 'Traversal'' s a -> 'Traversal'' a a -> (a -> 'Maybe' a) -> s -> s
--- 'rewriteOnOf' :: 'Plated' a => 'Setter'' s a    -> 'Setter'' a a    -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOnOf' :: 'Control.Lens.Iso.Iso'' s a       -> 'Control.Lens.Iso.Iso'' a a       -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOnOf' :: 'Lens'' s a      -> 'Lens'' a a      -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOnOf' :: 'Traversal'' s a -> 'Traversal'' a a -> (a -> 'Maybe' a) -> s -> s
+-- 'rewriteOnOf' :: 'Setter'' s a    -> 'Setter'' a a    -> (a -> 'Maybe' a) -> s -> s
 -- @
 rewriteOnOf :: ASetter s t a a -> ASetter' a a -> (a -> Maybe a) -> s -> t
 rewriteOnOf b l = over b . rewriteOf l
