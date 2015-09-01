@@ -32,7 +32,17 @@ echo "Detected package: $pkg-$ver"
 dir=$(mktemp -d build-docs.XXXXXX)
 trap 'rm -r "$dir"' EXIT
 
-cabal haddock --hoogle --hyperlink-source --html-location='/package/$pkg-$version/docs' --contents-location='/package/$pkg-$version'
+
+if haddock --hyperlinked-source >/dev/null
+then
+  echo "Using fancy hyperlinked source"
+  HYPERLINK_FLAG="--haddock-option=--hyperlinked-source"
+else
+  echo "Using boring hyperlinked source"
+  HYPERLINK_FLAG="--hyperlink-source"
+fi
+
+cabal haddock --hoogle $HYPERLINK_FLAG --html-location='/package/$pkg-$version/docs' --contents-location='/package/$pkg-$version'
 
 cp -R dist/doc/html/$pkg/ $dir/$pkg-$ver-docs
 
