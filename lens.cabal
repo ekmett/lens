@@ -89,7 +89,6 @@ description:
 
 extra-source-files:
   .travis.yml
-  .ghci
   .gitignore
   .vim.custom
   examples/LICENSE
