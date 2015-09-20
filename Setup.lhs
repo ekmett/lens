@@ -41,6 +41,10 @@ generateBuildModule verbosity pkg lbi = do
     withTestLBI pkg lbi $ \suite suitecfg -> do
       rewriteFile (dir </> "Build_" ++ testName suite ++ ".hs") $ unlines
         [ "module Build_" ++ testName suite ++ " where"
+        , ""
+        , "autogen_dir :: String"
+        , "autogen_dir = " ++ show dir
+        , ""
         , "deps :: [String]"
         , "deps = " ++ (show $ formatdeps (testDeps libcfg suitecfg))
         ]

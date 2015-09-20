@@ -1,3 +1,8 @@
+4.13.1
+------
+* Modified to enable the `doctests` to build with `stack`.
+* Removed `.ghci`.
+
 4.13
 ----
 * Pattern synonyms
