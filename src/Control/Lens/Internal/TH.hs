@@ -88,6 +88,10 @@ fromSet = Map.fromSet
 fromSet f x = Map.fromDistinctAscList [ (k,f k) | k <- Set.toAscList x ]
 #endif
 
+-- | Generate many new names from a given base name.
+newNames :: String {- ^ base name -} -> Int {- ^ count -} -> Q [Name]
+newNames base n = sequence [ newName (base++show i) | i <- [1..n] ]
+
 ------------------------------------------------------------------------
 -- Manually quoted names
 ------------------------------------------------------------------------
