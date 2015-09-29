@@ -202,7 +202,7 @@ library
     semigroupoids             >= 5        && < 6,
     semigroups                >= 0.8.4    && < 1,
     tagged                    >= 0.4.4    && < 1,
-    template-haskell          >= 2.4      && < 2.11,
+    template-haskell          >= 2.4      && < 2.12,
     text                      >= 0.11     && < 1.3,
     transformers              >= 0.2      && < 0.5,
     transformers-compat       >= 0.4      && < 1,
