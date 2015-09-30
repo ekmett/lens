@@ -2,6 +2,9 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
+#if __GLASGOW_HASKELL__ >= 708
+{-# LANGUAGE PolyKinds #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Equality
@@ -29,7 +32,11 @@ module Control.Lens.Equality
   ) where
 
 import Control.Lens.Type
-import Data.Functor.Identity
+#if __GLASGOW_HASKELL__ >= 708
+import Data.Proxy (Proxy)
+#else
+import Data.Functor.Identity (Identity)
+#endif
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use id" #-}
@@ -43,12 +50,17 @@ import Data.Functor.Identity
 -- Equality
 -----------------------------------------------------------------------------
 
+-- Compatibility shim
+#if __GLASGOW_HASKELL__ < 708
+type Proxy = Identity
+#endif
+
 -- | Provides witness that @(s ~ a, b ~ t)@ holds.
 data Identical a b s t where
   Identical :: Identical a b a b
 
 -- | When you see this as an argument to a function, it expects an 'Equality'.
-type AnEquality s t a b = Identical a (Identity b) a (Identity b) -> Identical a (Identity b) s (Identity t)
+type AnEquality s t a b = Identical a (Proxy b) a (Proxy b) -> Identical a (Proxy b) s (Proxy t)
 
 -- | A 'Simple' 'AnEquality'.
 type AnEquality' s a = AnEquality s s a a
@@ -65,7 +77,11 @@ substEq l = case runEq l of
 {-# INLINE substEq #-}
 
 -- | We can use 'Equality' to do substitution into anything.
+#if __GLASGOW_HASKELL__ >= 708
+mapEq :: forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEquality s t a b -> f s -> f a
+#else
 mapEq :: AnEquality s t a b -> f s -> f a
+#endif
 mapEq l r = substEq l r
 {-# INLINE mapEq #-}
 
