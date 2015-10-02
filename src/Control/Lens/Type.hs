@@ -443,7 +443,11 @@ type Prism' s a = Prism s s a a
 -- | A witness that @(a ~ s, b ~ t)@.
 --
 -- Note: Composition with an 'Equality' is index-preserving.
-type Equality s t a b = forall p (f :: * -> *). p a (f b) -> p s (f t)
+#if __GLASGOW_HASKELL__ >= 706
+type Equality (s :: k1) (t :: k2) (a :: k1) (b :: k2) = forall (p :: k1 -> * -> *) (f :: k2 -> *) . p a (f b) -> p s (f t)
+#else
+type Equality s t a b = forall p (f :: * -> *) . p a (f b) -> p s (f t)
+#endif
 
 -- | A 'Simple' 'Equality'.
 type Equality' s a = Equality s s a a
