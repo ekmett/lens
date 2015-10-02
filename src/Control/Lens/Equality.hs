@@ -2,7 +2,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
-#if __GLASGOW_HASKELL__ >= 708
+#if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE PolyKinds #-}
 #endif
 -----------------------------------------------------------------------------
@@ -32,7 +32,7 @@ module Control.Lens.Equality
   ) where
 
 import Control.Lens.Type
-#if __GLASGOW_HASKELL__ >= 708
+#if __GLASGOW_HASKELL__ >= 706
 import Data.Proxy (Proxy)
 #else
 import Data.Functor.Identity (Identity)
@@ -51,7 +51,7 @@ import Data.Functor.Identity (Identity)
 -----------------------------------------------------------------------------
 
 -- Compatibility shim
-#if __GLASGOW_HASKELL__ < 708
+#if __GLASGOW_HASKELL__ < 706
 type Proxy = Identity
 #endif
 
@@ -77,7 +77,7 @@ substEq l = case runEq l of
 {-# INLINE substEq #-}
 
 -- | We can use 'Equality' to do substitution into anything.
-#if __GLASGOW_HASKELL__ >= 708
+#if __GLASGOW_HASKELL__ >= 706
 mapEq :: forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEquality s t a b -> f s -> f a
 #else
 mapEq :: AnEquality s t a b -> f s -> f a
