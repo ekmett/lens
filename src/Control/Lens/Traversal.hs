@@ -34,8 +34,8 @@
 -- type 'Traversal' s t a b = forall f. 'Applicative' f => (a -> f b) -> s -> f t
 -- @
 --
--- A 'Traversal' is a 'Fold' if and only if it is 'Simple'. However, _any_
--- 'Traversal' can be used for 'Control.Lens.Getter.Getting' like a 'Fold',
+-- A 'Traversal' can be used as a 'Fold'.
+-- Any 'Traversal' can be used for 'Control.Lens.Getter.Getting' like a 'Fold',
 -- because given a 'Data.Monoid.Monoid' @m@, we have an 'Applicative' for
 -- @('Const' m)@. Everything you know how to do with a 'Traversable' container,
 -- you can with a 'Traversal', and here we provide combinators that generalize
