@@ -2,6 +2,7 @@
 ------
 * Modified to enable the `doctests` to build with `stack`.
 * Removed `.ghci`.
+* Added `lookupOf`
 
 4.13
 ----

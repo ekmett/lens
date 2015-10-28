@@ -101,6 +101,7 @@ module Control.Lens.Fold
   , foldr1Of, foldl1Of
   , foldr1Of', foldl1Of'
   , foldrMOf, foldlMOf
+  , lookupOf
 
   -- * Indexed Folds
   , (^@..)
@@ -1517,6 +1518,28 @@ findOf l f = foldrOf l (\a y -> if f a then Just a else y) Nothing
 findMOf :: Monad m => Getting (Endo (m (Maybe a))) s a -> (a -> m Bool) -> s -> m (Maybe a)
 findMOf l f = foldrOf l (\a y -> f a >>= \r -> if r then return (Just a) else y) $ return Nothing
 {-# INLINE findMOf #-}
+
+-- | The 'lookupOf' function takes a 'Fold' (or 'Getter', 'Traversal',
+-- 'Lens', 'Iso', etc.), a key, and a structure containing key/value pairs.
+-- It returns the first value corresponding to the given key. This function
+-- generalizes 'lookup' to work on an arbitrary 'Fold' instead of lists.
+--
+-- >>> lookupOf folded 4 [(2, 'a'), (4, 'b'), (4, 'c')]
+-- Just 'b'
+--
+-- >>> lookupOf each 2 [(2, 'a'), (4, 'b'), (4, 'c')]
+-- Just 'a'
+--
+-- @
+-- 'lookupOf' :: ('Eq' k, 'Fold' s (k,v))       -> k -> s -> m ('Maybe' v)
+-- 'lookupOf' :: ('Eq' k, 'Getter' s (k,v))     -> k -> s -> m ('Maybe' v)
+-- 'lookupOf' :: ('Eq' k, 'Iso'' s (k,v))       -> k -> s -> m ('Maybe' v)
+-- 'lookupOf' :: ('Eq' k, 'Lens'' s (k,v))      -> k -> s -> m ('Maybe' v)
+-- 'lookupOf' :: ('Eq' k, 'Traversal'' s (k,v)) -> k -> s -> m ('Maybe' v)
+-- @
+lookupOf :: Eq k => Getting (Endo (Maybe v)) s (k,v) -> k -> s -> Maybe v
+lookupOf l k = foldrOf l (\(k',v) next -> if k == k' then Just v else next) Nothing
+{-# INLINE lookupOf #-}
 
 -- | A variant of 'foldrOf' that has no base case and thus may only be applied
 -- to lenses and structures such that the 'Lens' views at least one element of
