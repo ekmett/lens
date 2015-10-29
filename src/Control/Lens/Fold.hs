@@ -1531,11 +1531,7 @@ findMOf l f = foldrOf l (\a y -> f a >>= \r -> if r then return (Just a) else y)
 -- Just 'a'
 --
 -- @
--- 'lookupOf' :: ('Eq' k, 'Fold' s (k,v))       -> k -> s -> m ('Maybe' v)
--- 'lookupOf' :: ('Eq' k, 'Getter' s (k,v))     -> k -> s -> m ('Maybe' v)
--- 'lookupOf' :: ('Eq' k, 'Iso'' s (k,v))       -> k -> s -> m ('Maybe' v)
--- 'lookupOf' :: ('Eq' k, 'Lens'' s (k,v))      -> k -> s -> m ('Maybe' v)
--- 'lookupOf' :: ('Eq' k, 'Traversal'' s (k,v)) -> k -> s -> m ('Maybe' v)
+-- 'lookupOf' :: 'Eq' k => 'Fold' s (k,v) -> k -> s -> 'Maybe' v
 -- @
 lookupOf :: Eq k => Getting (Endo (Maybe v)) s (k,v) -> k -> s -> Maybe v
 lookupOf l k = foldrOf l (\(k',v) next -> if k == k' then Just v else next) Nothing
