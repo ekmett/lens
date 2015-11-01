@@ -1297,7 +1297,7 @@ nullOf = hasn't
 -- Note: 'notNullOf' on a valid 'Iso', 'Lens' or 'Getter' should always return 'True'.
 --
 -- @
--- 'null' ≡ 'notNullOf' 'folded'
+-- 'not' '.' 'null' ≡ 'notNullOf' 'folded'
 -- @
 --
 -- This may be rather inefficient compared to the @'not' '.' 'null'@ check of many containers.
