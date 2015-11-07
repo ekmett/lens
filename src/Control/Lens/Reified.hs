@@ -150,7 +150,7 @@ instance Bind (ReifiedGetter s) where
   {-# INLINE (>>-) #-}
 
 instance Monad (ReifiedGetter s) where
-  return a = Getter $ to $ \_ -> a
+  return = pure
   {-# INLINE return #-}
   Getter ma >>= f = Getter $ to $ \s -> view (runGetter (f (view ma s))) s
   {-# INLINE (>>=) #-}
@@ -383,7 +383,7 @@ instance Bind (ReifiedFold s) where
   {-# INLINE (>>-) #-}
 
 instance Monad (ReifiedFold s) where
-  return a = Fold $ folding $ \_ -> [a]
+  return = pure
   {-# INLINE return #-}
   Fold ma >>= f = Fold $ folding $ \s -> toListOf ma s >>= \a -> toListOf (runFold (f a)) s
   {-# INLINE (>>=) #-}
