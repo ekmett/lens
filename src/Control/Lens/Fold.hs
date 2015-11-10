@@ -2125,6 +2125,26 @@ inoneOf :: IndexedGetting i Any s a -> (i -> a -> Bool) -> s -> Bool
 inoneOf l f = not . ianyOf l f
 {-# INLINE inoneOf #-}
 
+iminimumByOf :: IndexedGetting i (Endo (Maybe (i,a))) s a -> (a -> a -> Ordering) -> s -> Maybe (i,a)
+iminimumByOf l cmp = ifoldrOf l step Nothing where
+  step i a Nothing      = Just (i,a)
+  step i a (Just (j,b)) = Just (if cmp a b == GT then (j,b) else (i,a))
+{-# INLINE iminimumByOf #-}
+
+imaximumByOf :: IndexedGetting i (Endo (Maybe (i,a))) s a -> (a -> a -> Ordering) -> s -> Maybe (i,a)
+imaximumByOf l cmp = ifoldrOf l step Nothing where
+  step i a Nothing      = Just (i,a)
+  step i a (Just (j,b)) = Just (if cmp a b == GT then (i,a) else (j,b))
+{-# INLINE imaximumByOf #-}
+
+iminimumOf :: (Ord a) => IndexedGetting i (Endo (Maybe (i,a))) s a -> s -> Maybe (i,a)
+iminimumOf l = iminimumByOf l compare
+{-# INLINE iminimumOf #-}
+
+imaximumOf :: (Ord a) => IndexedGetting i (Endo (Maybe (i,a))) s a -> s -> Maybe (i,a)
+imaximumOf l = imaximumByOf l compare
+{-# INLINE imaximumOf #-}
+
 -- | Traverse the targets of an 'IndexedFold' or 'IndexedTraversal' with access to the @i@, discarding the results.
 --
 -- When you don't need access to the index then 'traverseOf_' is more flexible in what it accepts.
