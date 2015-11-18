@@ -95,6 +95,8 @@ module Control.Lens.Fold
   , firstOf, lastOf
   , maximumOf, minimumOf
   , maximumByOf, minimumByOf
+  , imaximumOf, iminimumOf
+  , imaximumByOf, iminimumByOf
   , findOf
   , findMOf
   , foldrOf', foldlOf'
@@ -2125,24 +2127,24 @@ inoneOf :: IndexedGetting i Any s a -> (i -> a -> Bool) -> s -> Bool
 inoneOf l f = not . ianyOf l f
 {-# INLINE inoneOf #-}
 
-iminimumByOf :: IndexedGetting i (Endo (Maybe (i,a))) s a -> (a -> a -> Ordering) -> s -> Maybe (i,a)
+iminimumByOf :: IndexedGetting i (Endo (Maybe (i,a))) s a -> (i -> a -> i -> a -> Ordering) -> s -> Maybe (i,a)
 iminimumByOf l cmp = ifoldrOf l step Nothing where
   step i a Nothing      = Just (i,a)
-  step i a (Just (j,b)) = Just (if cmp a b == GT then (j,b) else (i,a))
+  step i a (Just (j,b)) = Just (if cmp i a j b == GT then (j,b) else (i,a))
 {-# INLINE iminimumByOf #-}
 
-imaximumByOf :: IndexedGetting i (Endo (Maybe (i,a))) s a -> (a -> a -> Ordering) -> s -> Maybe (i,a)
+imaximumByOf :: IndexedGetting i (Endo (Maybe (i,a))) s a -> (i -> a -> i -> a -> Ordering) -> s -> Maybe (i,a)
 imaximumByOf l cmp = ifoldrOf l step Nothing where
   step i a Nothing      = Just (i,a)
-  step i a (Just (j,b)) = Just (if cmp a b == GT then (i,a) else (j,b))
+  step i a (Just (j,b)) = Just (if cmp i a j b == GT then (i,a) else (j,b))
 {-# INLINE imaximumByOf #-}
 
 iminimumOf :: (Ord a) => IndexedGetting i (Endo (Maybe (i,a))) s a -> s -> Maybe (i,a)
-iminimumOf l = iminimumByOf l compare
+iminimumOf l = iminimumByOf l (\_ a _ b -> compare a b)
 {-# INLINE iminimumOf #-}
 
 imaximumOf :: (Ord a) => IndexedGetting i (Endo (Maybe (i,a))) s a -> s -> Maybe (i,a)
-imaximumOf l = imaximumByOf l compare
+imaximumOf l = imaximumByOf l (\_ a _ b -> compare a b)
 {-# INLINE imaximumOf #-}
 
 -- | Traverse the targets of an 'IndexedFold' or 'IndexedTraversal' with access to the @i@, discarding the results.
