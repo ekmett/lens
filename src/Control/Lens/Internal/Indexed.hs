@@ -141,7 +141,7 @@ instance Bind (Indexed i a) where
   {-# INLINE (>>-) #-}
 
 instance Monad (Indexed i a) where
-  return b = Indexed $ \_ _ -> b
+  return = pure
   {-# INLINE return #-}
   Indexed f >>= k = Indexed $ \i a -> runIndexed (k (f i a)) i a
   {-# INLINE (>>=) #-}

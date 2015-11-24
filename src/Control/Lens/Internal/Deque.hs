@@ -141,7 +141,7 @@ instance Bind Deque where
   {-# INLINE (>>-) #-}
 
 instance Monad Deque where
-  return a = BD 1 [a] 0 []
+  return = pure
   {-# INLINE return #-}
   ma >>= k = fromList (toList ma >>= toList . k)
   {-# INLINE (>>=) #-}
