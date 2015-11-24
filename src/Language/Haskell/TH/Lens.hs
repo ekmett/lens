@@ -61,6 +61,11 @@ module Language.Haskell.TH.Lens
   , tySynEqnPatterns
   , tySynEqnResult
 #endif
+#if MIN_VERSION_template_haskell(2,11,0)
+  -- ** InjectivityAnn Lenses
+  , injectivityAnnOutput
+  , injectivityAnnInputs
+#endif
   -- * Prisms
   -- ** Info Prisms
   , _ClassI
@@ -85,7 +90,6 @@ module Language.Haskell.TH.Lens
   , _InfixD
 #endif
   , _PragmaD
-  , _FamilyD
   , _DataInstD
   , _NewtypeInstD
   , _TySynInstD
@@ -96,6 +100,12 @@ module Language.Haskell.TH.Lens
 #if MIN_VERSION_template_haskell(2,10,0)
   , _StandaloneDerivD
   , _DefaultSigD
+#endif
+#if MIN_VERSION_template_haskell(2,11,0)
+  , _DataFamilyD
+  , _OpenTypeFamilyD
+#else
+  , _FamilyD
 #endif
   -- ** Con Prisms
   , _NormalC
@@ -193,6 +203,9 @@ module Language.Haskell.TH.Lens
 #if MIN_VERSION_template_haskell(2,10,0)
   , _StaticE
 #endif
+#if MIN_VERSION_template_haskell(2,11,0)
+  , _UnboundVarE
+#endif
   -- ** Body Prisms
   , _GuardedB
   , _NormalB
@@ -219,6 +232,9 @@ module Language.Haskell.TH.Lens
   , _FloatPrimL
   , _DoublePrimL
   , _StringPrimL
+#if MIN_VERSION_template_haskell(2,11,0)
+  , _CharPrimL
+#endif
   -- ** Pat Prisms
   , _LitP
   , _VarP
@@ -260,9 +276,21 @@ module Language.Haskell.TH.Lens
   , _ConstraintT
   , _LitT
 #endif
+#if MIN_VERSION_template_haskell(2,11,0)
+  , _InfixT
+  , _UInfixT
+  , _ParensT
+  , _WildCardT
+#endif
   -- ** TyVarBndr Prisms
   , _PlainTV
   , _KindedTV
+#if MIN_VERSION_template_haskell(2,11,0)
+  -- ** FamilyResultSig Prisms
+  , _NoSig
+  , _KindSig
+  , _TyVarSig
+#endif
 #if MIN_VERSION_template_haskell(2,8,0)
   -- ** TyLit Prisms
   , _NumTyLit
@@ -512,8 +540,23 @@ clauseDecs = lens g s where
    g (Clause _ _ ds) = ds
    s (Clause x y _ ) = Clause x y
 
+#if MIN_VERSION_template_haskell(2,11,0)
+injectivityAnnOutput :: Lens' InjectivityAnn Name
+injectivityAnnOutput = lens g s where
+   g (InjectivityAnn o _)   = o
+   s (InjectivityAnn _ i) o = InjectivityAnn o i
+
+injectivityAnnInputs :: Lens' InjectivityAnn [Name]
+injectivityAnnInputs = lens g s where
+   g (InjectivityAnn _ i) = i
+   s (InjectivityAnn o _) = InjectivityAnn o
+#endif
+
 #if MIN_VERSION_template_haskell(2,8,0)
 _ClassI :: Prism' Info (Dec, [InstanceDec])
+#else
+_ClassI :: Prism' Info (Dec, [Dec])
+#endif
 _ClassI
   = prism' reviewer remitter
   where
@@ -521,24 +564,20 @@ _ClassI
       remitter (ClassI x y) = Just (x, y)
       remitter _ = Nothing
 
-_ClassOpI :: Prism' Info (Name, Type, ParentName, Fixity)
+#if MIN_VERSION_template_haskell(2,11,0)
+_ClassOpI :: Prism' Info (Name, Type, ParentName)
 _ClassOpI
   = prism' reviewer remitter
   where
-      reviewer (x, y, z, w) = ClassOpI x y z w
-      remitter (ClassOpI x y z w) = Just (x, y, z, w)
+      reviewer (x, y, z) = ClassOpI x y z
+      remitter (ClassOpI x y z) = Just (x, y, z)
       remitter _ = Nothing
-
 #else
-_ClassI :: Prism' Info (Dec, [Dec])
-_ClassI
-  = prism' reviewer remitter
-  where
-      reviewer (x, y) = ClassI x y
-      remitter (ClassI x y) = Just (x, y)
-      remitter _ = Nothing
-
+# if MIN_VERSION_template_haskell(2,8,0)
+_ClassOpI :: Prism' Info (Name, Type, ParentName, Fixity)
+# else
 _ClassOpI :: Prism' Info (Name, Type, Name, Fixity)
+# endif
 _ClassOpI
   = prism' reviewer remitter
   where
@@ -555,32 +594,11 @@ _TyConI
       remitter (TyConI x) = Just x
       remitter _ = Nothing
 
-#if MIN_VERSION_template_haskell(2,8,0)
+#if MIN_VERSION_template_haskell(2,11,0)
 _FamilyI :: Prism' Info (Dec, [InstanceDec])
-_FamilyI
-  = prism' reviewer remitter
-  where
-      reviewer (x, y) = FamilyI x y
-      remitter (FamilyI x y) = Just (x, y)
-      remitter _ = Nothing
-
-_PrimTyConI :: Prism' Info (Name, Arity, Unlifted)
-_PrimTyConI
-  = prism' reviewer remitter
-  where
-      reviewer (x, y, z) = PrimTyConI x y z
-      remitter (PrimTyConI x y z) = Just (x, y, z)
-      remitter _ = Nothing
-
-_DataConI :: Prism' Info (Name, Type, ParentName, Fixity)
-_DataConI
-  = prism' reviewer remitter
-  where
-      reviewer (x, y, z, w) = DataConI x y z w
-      remitter (DataConI x y z w) = Just (x, y, z, w)
-      remitter _ = Nothing
 #else
 _FamilyI :: Prism' Info (Dec, [Dec])
+#endif
 _FamilyI
   = prism' reviewer remitter
   where
@@ -588,7 +606,11 @@ _FamilyI
       remitter (FamilyI x y) = Just (x, y)
       remitter _ = Nothing
 
+#if MIN_VERSION_template_haskell(2,8,0)
+_PrimTyConI :: Prism' Info (Name, Arity, Unlifted)
+#else
 _PrimTyConI :: Prism' Info (Name, Int, Bool)
+#endif
 _PrimTyConI
   = prism' reviewer remitter
   where
@@ -596,16 +618,37 @@ _PrimTyConI
       remitter (PrimTyConI x y z) = Just (x, y, z)
       remitter _ = Nothing
 
+#if MIN_VERSION_template_haskell(2,11,0)
+_DataConI :: Prism' Info (Name, Type, ParentName)
+_DataConI
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = DataConI x y z
+      remitter (DataConI x y z) = Just (x, y, z)
+      remitter _ = Nothing
+#else
+# if MIN_VERSION_template_haskell(2,8,0)
+_DataConI :: Prism' Info (Name, Type, ParentName, Fixity)
+# else
 _DataConI :: Prism' Info (Name, Type, Name, Fixity)
+# endif
 _DataConI
   = prism' reviewer remitter
   where
       reviewer (x, y, z, w) = DataConI x y z w
       remitter (DataConI x y z w) = Just (x, y, z, w)
       remitter _ = Nothing
-
 #endif
 
+#if MIN_VERSION_template_haskell(2,11,0)
+_VarI :: Prism' Info (Name, Type, Maybe Dec)
+_VarI
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = VarI x y z
+      remitter (VarI x y z) = Just (x, y, z)
+      remitter _ = Nothing
+#else
 _VarI :: Prism' Info (Name, Type, Maybe Dec, Fixity)
 _VarI
   = prism' reviewer remitter
@@ -613,6 +656,7 @@ _VarI
       reviewer (x, y, z, w) = VarI x y z w
       remitter (VarI x y z w) = Just (x, y, z, w)
       remitter _ = Nothing
+#endif
 
 _TyVarI :: Prism' Info (Name, Type)
 _TyVarI
@@ -712,14 +756,6 @@ _PragmaD
       remitter (PragmaD x) = Just x
       remitter _ = Nothing
 
-_FamilyD :: Prism' Dec (FamFlavour, Name, [TyVarBndr], Maybe Kind)
-_FamilyD
-  = prism' reviewer remitter
-  where
-      reviewer (x, y, z, w) = FamilyD x y z w
-      remitter (FamilyD x y z w) = Just (x, y, z, w)
-      remitter _ = Nothing
-
 _DataInstD :: Prism' Dec (Cxt, Name, [Type], [Con], [Name])
 _DataInstD
   = prism' reviewer remitter
@@ -743,14 +779,6 @@ _TySynInstD
   where
       reviewer (x, y) = TySynInstD x y
       remitter (TySynInstD x y) = Just (x, y)
-      remitter _ = Nothing
-
-_ClosedTypeFamilyD :: Prism' Dec (Name, [TyVarBndr], Maybe Kind, [TySynEqn])
-_ClosedTypeFamilyD
-  = prism' reviewer remitter
-  where
-      reviewer (x, y, z, w) = ClosedTypeFamilyD x y z w
-      remitter (ClosedTypeFamilyD x y z w) = Just (x, y, z, w)
       remitter _ = Nothing
 
 _RoleAnnotD :: Prism' Dec (Name, [Role])
@@ -786,6 +814,50 @@ _DefaultSigD
   where
       reviewer (x, y) = DefaultSigD x y
       remitter (DefaultSigD x y) = Just (x, y)
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,11,0)
+_ClosedTypeFamilyD :: Prism' Dec (Name, [TyVarBndr], FamilyResultSig, Maybe InjectivityAnn, [TySynEqn])
+_ClosedTypeFamilyD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w, u) = ClosedTypeFamilyD x y z w u
+      remitter (ClosedTypeFamilyD x y z w u) = Just (x, y, z, w, u)
+      remitter _ = Nothing
+#elif MIN_VERSION_template_haskell(2,9,0)
+_ClosedTypeFamilyD :: Prism' Dec (Name, [TyVarBndr], Maybe Kind, [TySynEqn])
+_ClosedTypeFamilyD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w) = ClosedTypeFamilyD x y z w
+      remitter (ClosedTypeFamilyD x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,11,0)
+_DataFamilyD :: Prism' Dec (Name, [TyVarBndr], Maybe Kind)
+_DataFamilyD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = DataFamilyD x y z
+      remitter (DataFamilyD x y z) = Just (x, y, z)
+      remitter _ = Nothing
+
+_OpenTypeFamilyD :: Prism' Dec (Name, [TyVarBndr], FamilyResultSig, Maybe InjectivityAnn)
+_OpenTypeFamilyD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w) = OpenTypeFamilyD x y z w
+      remitter (OpenTypeFamilyD x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
+#else
+_FamilyD :: Prism' Dec (FamFlavour, Name, [TyVarBndr], Maybe Kind)
+_FamilyD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w) = FamilyD x y z w
+      remitter (FamilyD x y z w) = Just (x, y, z, w)
       remitter _ = Nothing
 #endif
 
@@ -1361,6 +1433,16 @@ _StaticE
       remitter _ = Nothing
 #endif
 
+#if MIN_VERSION_template_haskell(2,11,0)
+_UnboundVarE :: Prism' Exp Name
+_UnboundVarE
+  = prism' reviewer remitter
+  where
+      reviewer = UnboundVarE
+      remitter (UnboundVarE x) = Just x
+      remitter _ = Nothing
+#endif
+
 _GuardedB :: Prism' Body [(Guard, Exp)]
 _GuardedB
   = prism' reviewer remitter
@@ -1536,6 +1618,16 @@ _StringPrimL
   where
       reviewer = StringPrimL
       remitter (StringPrimL x) = Just x
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,11,0)
+_CharPrimL :: Prism' Lit Char
+_CharPrimL
+  = prism' reviewer remitter
+  where
+      reviewer = CharPrimL
+      remitter (CharPrimL x) = Just x
       remitter _ = Nothing
 #endif
 
@@ -1809,6 +1901,40 @@ _LitT
       remitter _ = Nothing
 #endif
 
+#if MIN_VERSION_template_haskell(2,11,0)
+_InfixT :: Prism' Type (Type, Name, Type)
+_InfixT
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = InfixT x y z
+      remitter (InfixT x y z) = Just (x, y, z)
+      remitter _ = Nothing
+
+_UInfixT :: Prism' Type (Type, Name, Type)
+_UInfixT
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = UInfixT x y z
+      remitter (UInfixT x y z) = Just (x, y, z)
+      remitter _ = Nothing
+
+_ParensT :: Prism' Type Type
+_ParensT
+  = prism' reviewer remitter
+  where
+      reviewer = ParensT
+      remitter (ParensT x) = Just x
+      remitter _ = Nothing
+
+_WildCardT :: Prism' Type (Maybe Name)
+_WildCardT
+  = prism' reviewer remitter
+  where
+      reviewer = WildCardT
+      remitter (WildCardT x) = Just x
+      remitter _ = Nothing
+#endif
+
 _PlainTV :: Prism' TyVarBndr Name
 _PlainTV
   = prism' reviewer remitter
@@ -1824,6 +1950,32 @@ _KindedTV
       reviewer (x, y) = KindedTV x y
       remitter (KindedTV x y) = Just (x, y)
       remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,11,0)
+_NoSig :: Prism' FamilyResultSig ()
+_NoSig
+  = prism' reviewer remitter
+  where
+      reviewer () = NoSig
+      remitter NoSig = Just ()
+      remitter _ = Nothing
+
+_KindSig :: Prism' FamilyResultSig Kind
+_KindSig
+  = prism' reviewer remitter
+  where
+      reviewer = KindSig
+      remitter (KindSig x) = Just x
+      remitter _ = Nothing
+
+_TyVarSig :: Prism' FamilyResultSig TyVarBndr
+_TyVarSig
+  = prism' reviewer remitter
+  where
+      reviewer = TyVarSig
+      remitter (TyVarSig x) = Just x
+      remitter _ = Nothing
+#endif
 
 #if MIN_VERSION_template_haskell(2,8,0)
 _NumTyLit :: Prism' TyLit Integer
