@@ -193,7 +193,7 @@ ghci> hello^.from packed.to length
 5
 ```
 
-You can automatically derive isomorphisms for your own newtypes with `makeIso`. e.g.
+You can automatically derive isomorphisms for your own newtypes with `makePrisms`. e.g.
 
 ```haskell
 newtype Neither a b = Neither { _nor :: Either a b } deriving (Show)
