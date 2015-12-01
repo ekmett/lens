@@ -197,7 +197,7 @@ You can automatically derive isomorphisms for your own newtypes with `makeIso`. 
 
 ```haskell
 newtype Neither a b = Neither { _nor :: Either a b } deriving (Show)
-makeIso ''Neither
+makePrisms ''Neither
 ```
 
 will automatically derive
