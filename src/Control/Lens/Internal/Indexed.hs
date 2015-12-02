@@ -55,6 +55,7 @@ import Data.Functor.Bind
 import Data.Functor.Contravariant
 import Data.Int
 import Data.Profunctor
+import Data.Profunctor.Closed
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Traversable
@@ -74,7 +75,7 @@ import Control.Lens.Internal.Coerce
 class
   ( Choice p, Corepresentable p, Comonad (Corep p), Traversable (Corep p)
   , Strong p, Representable p, Monad (Rep p), MonadFix (Rep p), Distributive (Rep p)
-  , Costrong p, ArrowLoop p, ArrowApply p, ArrowChoice p
+  , Costrong p, ArrowLoop p, ArrowApply p, ArrowChoice p, Closed p
   ) => Conjoined p where
 
   -- | 'Conjoined' is strong enough to let us distribute every 'Conjoined'
@@ -163,6 +164,9 @@ instance Profunctor (Indexed i) where
   ( #. ) _ = coerce'
   {-# INLINE ( #. ) #-}
 #endif
+
+instance Closed (Indexed i) where
+  closed (Indexed iab) = Indexed $ \i xa x -> iab i (xa x)
 
 instance Costrong (Indexed i) where
   unfirst (Indexed iadbd) = Indexed $ \i a -> let
