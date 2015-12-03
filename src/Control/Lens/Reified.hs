@@ -33,6 +33,7 @@ import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Functor.Identity
 import Data.Functor.Plus
+import Data.Profunctor.Closed
 import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
@@ -169,6 +170,9 @@ instance Profunctor ReifiedGetter where
   rmap f l    = Getter $ runGetter l.to f
   {-# INLINE rmap #-}
 
+instance Closed ReifiedGetter where
+  closed l = Getter $ to $ \f -> view (runGetter l) . f
+
 instance Cosieve ReifiedGetter Identity where
   cosieve (Getter l) = view l . runIdentity
 
@@ -275,6 +279,7 @@ instance Semigroup i => Apply (ReifiedIndexedGetter i s) where
       (i, f) -> case iview ma s of
         (j, a) -> phantom $ indexed k (i <> j) (f a)
   {-# INLINE (<.>) #-}
+
 
 ------------------------------------------------------------------------------
 -- Fold
@@ -471,6 +476,7 @@ instance Strong (ReifiedIndexedFold i) where
   second' l = IndexedFold $ \f (c,s) ->
     phantom $ runIndexedFold l (dimap ((,) c) phantom f) s
   {-# INLINE second' #-}
+
 
 ------------------------------------------------------------------------------
 -- Setter

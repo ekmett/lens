@@ -54,8 +54,8 @@ import Data.Distributive
 import Data.Functor.Bind
 import Data.Functor.Contravariant
 import Data.Int
-import Data.Profunctor
 import Data.Profunctor.Closed
+import Data.Profunctor
 import Data.Profunctor.Rep
 import Data.Profunctor.Sieve
 import Data.Traversable
