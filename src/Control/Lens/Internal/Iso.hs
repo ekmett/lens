@@ -24,6 +24,7 @@ import Control.Lens.Internal.Coerce
 #endif
 import Data.ByteString       as StrictB
 import Data.ByteString.Lazy  as LazyB
+import Data.List.NonEmpty    as NonEmpty
 import Data.Text             as StrictT
 import Data.Text.Lazy        as LazyT
 import Data.Vector           as Vector
@@ -68,6 +69,9 @@ class Reversing t where
 
 instance Reversing [a] where
   reversing = Prelude.reverse
+
+instance Reversing (NonEmpty.NonEmpty a) where
+  reversing = NonEmpty.reverse
 
 instance Reversing StrictB.ByteString where
   reversing = StrictB.reverse
