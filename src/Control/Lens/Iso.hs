@@ -85,6 +85,8 @@ module Control.Lens.Iso
   , rmapping
   -- * Bifunctors
   , bimapping
+  , firsting
+  , seconding
 #if __GLASGOW_HASKELL__ >= 710
   -- * Coercions
   , coerced
@@ -108,6 +110,7 @@ import Control.Monad.Writer.Lazy as Lazy
 import Control.Monad.Writer.Strict as Strict
 import Control.Monad.RWS.Lazy as Lazy
 import Control.Monad.RWS.Strict as Strict
+import Data.Bifunctor
 import Data.ByteString as StrictB hiding (reverse)
 import Data.ByteString.Lazy as LazyB hiding (reverse)
 
@@ -574,6 +577,28 @@ bimapping :: (Bifunctor f, Bifunctor g) => AnIso s t a b -> AnIso s' t' a' b' ->
 bimapping f g = withIso f $ \ sa bt -> withIso g $ \s'a' b't' ->
   iso (bimap sa s'a') (bimap bt b't')
 {-# INLINE bimapping #-}
+
+-- | Lift an 'Iso' into the first argument of a 'Bifunctor'.
+--
+-- @
+-- firsting :: 'Bifunctor' p => 'Iso' s t a b -> 'Iso' (p s x) (p t y) (p a x) (p b y)
+-- firsting :: 'Bifunctor' p => 'Iso'' s a -> 'Iso'' (p s x) (p a x)
+-- @
+firsting :: (Bifunctor f, Bifunctor g) => AnIso s t a b -> Iso (f s x) (g t y) (f a x) (g b y)
+firsting p = withIso p $ \ sa bt -> iso (first sa) (first bt)
+{-# INLINE firsting #-}
+
+-- | Lift an 'Iso' into the second argument of a 'Bifunctor'. This is
+-- essentially the same as 'mapping', but it takes a 'Bifunctor p'
+-- constraint instead of a 'Functor (p a)' one.
+--
+-- @
+-- seconding :: 'Bifunctor' p => 'Iso' s t a b -> 'Iso' (p x s) (p y t) (p x a) (p y b)
+-- seconding :: 'Bifunctor' p => 'Iso'' s a -> 'Iso'' (p x s) (p x a)
+-- @
+seconding :: (Bifunctor f, Bifunctor g) => AnIso s t a b -> Iso (f x s) (g y t) (f x a) (g y b)
+seconding p = withIso p $ \ sa bt -> iso (second sa) (second bt)
+{-# INLINE seconding #-}
 
 #if __GLASGOW_HASKELL__ >= 710
 -- | Data types that are representationally equal are isomorphic.
