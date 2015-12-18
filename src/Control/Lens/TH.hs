@@ -75,6 +75,8 @@ import Control.Lens.Traversal
 import Control.Lens.Internal.TH
 import Control.Lens.Internal.FieldTH
 import Control.Lens.Internal.PrismTH
+import Control.Lens.Wrapped () -- haddocks
+import Control.Lens.Type () -- haddocks
 import Data.Char (toLower, isUpper)
 import Data.Foldable hiding (concat, any)
 import Data.List as List
@@ -400,7 +402,7 @@ declareClassyFor classes fields
   $ classyRulesFor (`Prelude.lookup`classes) fields
   & lensField .~ \_ _ n -> [TopName n]
 
--- | Generate a 'Prism' for each constructor of each data type.
+-- | Generate a 'Control.Lens.Type.Prism' for each constructor of each data type.
 --
 -- /e.g./
 --
@@ -423,7 +425,7 @@ declarePrisms = declareWith $ \dec -> do
   emit =<< Trans.lift (makeDecPrisms True dec)
   return dec
 
--- | Build 'Wrapped' instance for each newtype.
+-- | Build 'Control.Lens.Wrapped.Wrapped' instance for each newtype.
 declareWrapped :: DecsQ -> DecsQ
 declareWrapped = declareWith $ \dec -> do
   maybeDecs <- Trans.lift (makeWrappedForDec dec)
