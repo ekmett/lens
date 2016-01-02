@@ -68,6 +68,10 @@ module Control.Lens.TH
   , generateSignatures
   , generateUpdateableOptics
   , generateLazyPatterns
+  -- ** FieldNamers
+  , camelCaseNamer
+  , underscoreNamer
+  , abbreviatedNamer
   ) where
 
 #if !MIN_VERSION_base(4,8,0)
@@ -616,6 +620,7 @@ overHead f (x:xs) = f x : xs
 underscoreFields :: LensRules
 underscoreFields = defaultFieldRules & lensField .~ underscoreNamer
 
+-- | A 'FieldNamer' for 'underscoreFields'.
 underscoreNamer :: FieldNamer
 underscoreNamer _ _ field = maybeToList $ do
   _      <- prefix field'
@@ -639,6 +644,7 @@ underscoreNamer _ _ field = maybeToList $ do
 camelCaseFields :: LensRules
 camelCaseFields = defaultFieldRules
 
+-- | A 'FieldNamer' for 'camelCaseFields'.
 camelCaseNamer :: FieldNamer
 camelCaseNamer tyName fields field = maybeToList $ do
 
@@ -667,6 +673,7 @@ camelCaseNamer tyName fields field = maybeToList $ do
 abbreviatedFields :: LensRules
 abbreviatedFields = defaultFieldRules { _fieldToDef = abbreviatedNamer }
 
+-- | A 'FieldNamer' for 'abbreviatedFields'.
 abbreviatedNamer :: FieldNamer
 abbreviatedNamer _ fields field = maybeToList $ do
 
