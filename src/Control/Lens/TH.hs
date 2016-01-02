@@ -24,18 +24,24 @@
 module Control.Lens.TH
   (
   -- * Constructing Lenses Automatically
+  -- ** Lenses for data fields
     makeLenses, makeLensesFor
   , makeClassy, makeClassyFor, makeClassy_
+  , makeFields
+  -- ** Prisms
   , makePrisms
   , makeClassyPrisms
+  -- ** Wrapped
   , makeWrapped
-  , makeFields
   -- * Constructing Lenses Given a Declaration Quote
+  -- ** Lenses for data fields
   , declareLenses, declareLensesFor
   , declareClassy, declareClassyFor
-  , declarePrisms
-  , declareWrapped
   , declareFields
+  -- ** Prisms
+  , declarePrisms
+  -- ** Wrapped
+  , declareWrapped
   -- * Configuring Lenses
   , makeLensesWith
   , declareLensesWith
