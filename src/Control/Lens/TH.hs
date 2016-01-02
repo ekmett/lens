@@ -70,6 +70,7 @@ module Control.Lens.TH
   , generateLazyPatterns
   -- ** FieldNamers
   , underscoreNoPrefixNamer
+  , lookingupNamer
   , camelCaseNamer
   , underscoreNamer
   , abbreviatedNamer
@@ -222,10 +223,11 @@ underscoreNoPrefixNamer _ _ n =
 lensRulesFor ::
   [(String, String)] {- ^ [(Field Name, Definition Name)] -} ->
   LensRules
-lensRulesFor fields = lensRules & lensField .~ mkNameLookup fields
+lensRulesFor fields = lensRules & lensField .~ lookingupNamer fields
 
-mkNameLookup :: [(String,String)] -> FieldNamer
-mkNameLookup kvs _ _ field =
+-- | Create a 'FieldNamer' from explicit pairings of @(fieldName, lensName)@.
+lookingupNamer :: [(String,String)] -> FieldNamer
+lookingupNamer kvs _ _ field =
   [ TopName (mkName v) | (k,v) <- kvs, k == nameBase field]
 
 -- | Rules for making lenses and traversals that precompose another 'Lens'.
@@ -253,7 +255,7 @@ classyRulesFor
   LensRules
 classyRulesFor classFun fields = classyRules
   & lensClass .~ (over (mapped . both) mkName . classFun . nameBase)
-  & lensField .~ mkNameLookup fields
+  & lensField .~ lookingupNamer fields
 
 -- | A 'LensRules' used by 'makeClassy_'.
 classyRules_ :: LensRules
