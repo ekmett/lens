@@ -43,19 +43,23 @@ module Control.Lens.TH
   -- ** Wrapped
   , declareWrapped
   -- * Configuring Lenses
+  -- ** Running LensRules
   , makeLensesWith
   , declareLensesWith
-  , defaultFieldRules
-  , camelCaseFields
-  , underscoreFields
-  , abbreviatedFields
+  -- ** LensRules type
   , LensRules
-  , DefName(..)
+  -- ** Predefined LensRules
   , lensRules
   , lensRulesFor
   , classyRules
   , classyRules_
+  , defaultFieldRules
+  , camelCaseFields
+  , underscoreFields
+  , abbreviatedFields
+  -- ** LensRules configuration accessors
   , lensField
+  , DefName(..)
   , lensClass
   , simpleLenses
   , createClass
@@ -239,6 +243,7 @@ classyRulesFor classFun fields = classyRules
   & lensClass .~ (over (mapped . both) mkName . classFun . nameBase)
   & lensField .~ mkNameLookup fields
 
+-- | A 'LensRules' used by 'makeClassy_'.
 classyRules_ :: LensRules
 classyRules_
   = classyRules & lensField .~ \_ _ n -> [TopName (mkName ('_':nameBase n))]
