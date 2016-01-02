@@ -71,6 +71,7 @@ module Control.Lens.TH
   -- ** FieldNamers
   , underscoreNoPrefixNamer
   , lookingupNamer
+  , mappingNamer
   , camelCaseNamer
   , underscoreNamer
   , abbreviatedNamer
@@ -229,6 +230,12 @@ lensRulesFor fields = lensRules & lensField .~ lookingupNamer fields
 lookingupNamer :: [(String,String)] -> FieldNamer
 lookingupNamer kvs _ _ field =
   [ TopName (mkName v) | (k,v) <- kvs, k == nameBase field]
+
+-- | Create a 'FieldNamer' from a mapping function. If the function
+-- returns @[]@, it creates no lens for the field.
+mappingNamer :: (String -> [String]) -- ^ A function that maps a @fieldName@ to @lensName@s.
+             -> FieldNamer
+mappingNamer mapper _ _ = fmap (TopName . mkName) . mapper . nameBase
 
 -- | Rules for making lenses and traversals that precompose another 'Lens'.
 classyRules :: LensRules
