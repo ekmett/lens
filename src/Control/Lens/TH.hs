@@ -170,8 +170,8 @@ lensField f r = fmap (\x -> r { _fieldToDef = x}) (f (_fieldToDef r))
 
 -- | The rule to create function names of lenses for data fields.
 --
--- Most of the time you won't need the first two arguments. It's up to
--- you to use those arguments to define some smart 'LensRules'.
+-- Although it's sometimes useful, you won't need the first two
+-- arguments most of the time.
 type FieldNamer = Name -- ^ Name of the data type that lenses are being generated for.
                   -> [Name] -- ^ Names of all fields (including the field being named) in the data type.
                   -> Name -- ^ Name of the field being named.
