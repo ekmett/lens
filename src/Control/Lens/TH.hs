@@ -24,38 +24,57 @@
 module Control.Lens.TH
   (
   -- * Constructing Lenses Automatically
+  -- ** Lenses for data fields
     makeLenses, makeLensesFor
   , makeClassy, makeClassyFor, makeClassy_
+  , makeFields
+  -- ** Prisms
   , makePrisms
   , makeClassyPrisms
+  -- ** Wrapped
   , makeWrapped
-  , makeFields
   -- * Constructing Lenses Given a Declaration Quote
+  -- ** Lenses for data fields
   , declareLenses, declareLensesFor
   , declareClassy, declareClassyFor
-  , declarePrisms
-  , declareWrapped
   , declareFields
+  -- ** Prisms
+  , declarePrisms
+  -- ** Wrapped
+  , declareWrapped
   -- * Configuring Lenses
+  -- ** Running LensRules
   , makeLensesWith
   , declareLensesWith
-  , defaultFieldRules
-  , camelCaseFields
-  , underscoreFields
-  , abbreviatedFields
+  -- ** LensRules type
   , LensRules
-  , DefName(..)
+  -- ** Predefined LensRules
   , lensRules
   , lensRulesFor
   , classyRules
   , classyRules_
+  , defaultFieldRules
+  , camelCaseFields
+  , underscoreFields
+  , abbreviatedFields
+  -- ** LensRules configuration accessors
   , lensField
+  , FieldNamer
+  , DefName(..)
   , lensClass
+  , ClassyNamer
   , simpleLenses
   , createClass
   , generateSignatures
   , generateUpdateableOptics
   , generateLazyPatterns
+  -- ** FieldNamers
+  , underscoreNoPrefixNamer
+  , lookingupNamer
+  , mappingNamer
+  , camelCaseNamer
+  , underscoreNamer
+  , abbreviatedNamer
   ) where
 
 #if !MIN_VERSION_base(4,8,0)
@@ -153,30 +172,31 @@ createClass f r =
   fmap (\x -> r { _generateClasses = x}) (f (_generateClasses r))
 
 -- | 'Lens'' to access the convention for naming fields in our 'LensRules'.
---
--- Defaults to stripping the _ off of the field name, lowercasing the name, and
--- skipping the field if it doesn't start with an '_'. The field naming rule
--- provides the names of all fields in the type as well as the current field.
--- This extra generality enables field naming conventions that depend on the
--- full set of names in a type.
---
--- The field naming rule has access to the type name, the names of all the field
--- of that type (including the field being named), and the name of the field
--- being named.
---
--- TypeName -> FieldNames -> FieldName -> DefinitionNames
-lensField :: Lens' LensRules (Name -> [Name] -> Name -> [DefName])
+lensField :: Lens' LensRules FieldNamer
 lensField f r = fmap (\x -> r { _fieldToDef = x}) (f (_fieldToDef r))
 
--- | Retrieve options such as the name of the class and method to put in it to
--- build a class around monomorphic data types. "Classy" lenses are generated
--- when this naming convention is provided.
--- TypeName -> Maybe (ClassName, MainMethodName)
-lensClass :: Lens' LensRules (Name -> Maybe (Name, Name))
+-- | The rule to create function names of lenses for data fields.
+--
+-- Although it's sometimes useful, you won't need the first two
+-- arguments most of the time.
+type FieldNamer = Name -- ^ Name of the data type that lenses are being generated for.
+                  -> [Name] -- ^ Names of all fields (including the field being named) in the data type.
+                  -> Name -- ^ Name of the field being named.
+                  -> [DefName] -- ^ Name(s) of the lens functions. If empty, no lens is created for that field.
+
+-- | 'Lens'' to access the option for naming "classy" lenses.
+lensClass :: Lens' LensRules ClassyNamer
 lensClass f r = fmap (\x -> r { _classyLenses = x }) (f (_classyLenses r))
+
+-- | The optional rule to create a class and method around a
+-- monomorphic data type. If this naming convention is provided, it
+-- generates a "classy" lens.
+type ClassyNamer = Name -- ^ Name of the data type that lenses are being generated for.
+                   -> Maybe (Name, Name) -- ^ Names of the class and the main method it generates, respectively.
 
 -- | Rules for making fairly simple partial lenses, ignoring the special cases
 -- for isomorphisms and traversals, and not making any classes.
+-- It uses 'underscoreNoPrefixNamer'.
 lensRules :: LensRules
 lensRules = LensRules
   { _simpleLenses    = False
@@ -186,22 +206,36 @@ lensRules = LensRules
   , _allowUpdates    = True
   , _lazyPatterns    = False
   , _classyLenses    = const Nothing
-  , _fieldToDef      = \_ _ n ->
-       case nameBase n of
-         '_':x:xs -> [TopName (mkName (toLower x:xs))]
-         _        -> []
+  , _fieldToDef      = underscoreNoPrefixNamer
   }
+
+-- | A 'FieldNamer' that strips the _ off of the field name,
+-- lowercases the name, and skips the field if it doesn't start with
+-- an '_'.
+underscoreNoPrefixNamer :: FieldNamer
+underscoreNoPrefixNamer _ _ n =
+  case nameBase n of
+    '_':x:xs -> [TopName (mkName (toLower x:xs))]
+    _        -> []
+
 
 -- | Construct a 'LensRules' value for generating top-level definitions
 -- using the given map from field names to definition names.
 lensRulesFor ::
   [(String, String)] {- ^ [(Field Name, Definition Name)] -} ->
   LensRules
-lensRulesFor fields = lensRules & lensField .~ mkNameLookup fields
+lensRulesFor fields = lensRules & lensField .~ lookingupNamer fields
 
-mkNameLookup :: [(String,String)] -> Name -> [Name] -> Name -> [DefName]
-mkNameLookup kvs _ _ field =
+-- | Create a 'FieldNamer' from explicit pairings of @(fieldName, lensName)@.
+lookingupNamer :: [(String,String)] -> FieldNamer
+lookingupNamer kvs _ _ field =
   [ TopName (mkName v) | (k,v) <- kvs, k == nameBase field]
+
+-- | Create a 'FieldNamer' from a mapping function. If the function
+-- returns @[]@, it creates no lens for the field.
+mappingNamer :: (String -> [String]) -- ^ A function that maps a @fieldName@ to @lensName@s.
+             -> FieldNamer
+mappingNamer mapper _ _ = fmap (TopName . mkName) . mapper . nameBase
 
 -- | Rules for making lenses and traversals that precompose another 'Lens'.
 classyRules :: LensRules
@@ -216,10 +250,7 @@ classyRules = LensRules
         case nameBase n of
           x:xs -> Just (mkName ("Has" ++ x:xs), mkName (toLower x:xs))
           []   -> Nothing
-  , _fieldToDef      = \_ _ n ->
-        case nameBase n of
-          '_':x:xs -> [TopName (mkName (toLower x:xs))]
-          _        -> []
+  , _fieldToDef      = underscoreNoPrefixNamer
   }
 
 -- | Rules for making lenses and traversals that precompose another 'Lens'
@@ -231,8 +262,9 @@ classyRulesFor
   LensRules
 classyRulesFor classFun fields = classyRules
   & lensClass .~ (over (mapped . both) mkName . classFun . nameBase)
-  & lensField .~ mkNameLookup fields
+  & lensField .~ lookingupNamer fields
 
+-- | A 'LensRules' used by 'makeClassy_'.
 classyRules_ :: LensRules
 classyRules_
   = classyRules & lensField .~ \_ _ n -> [TopName (mkName ('_':nameBase n))]
@@ -599,7 +631,8 @@ overHead f (x:xs) = f x : xs
 underscoreFields :: LensRules
 underscoreFields = defaultFieldRules & lensField .~ underscoreNamer
 
-underscoreNamer :: Name -> [Name] -> Name -> [DefName]
+-- | A 'FieldNamer' for 'underscoreFields'.
+underscoreNamer :: FieldNamer
 underscoreNamer _ _ field = maybeToList $ do
   _      <- prefix field'
   method <- niceLens
@@ -622,7 +655,8 @@ underscoreNamer _ _ field = maybeToList $ do
 camelCaseFields :: LensRules
 camelCaseFields = defaultFieldRules
 
-camelCaseNamer :: Name -> [Name] -> Name -> [DefName]
+-- | A 'FieldNamer' for 'camelCaseFields'.
+camelCaseNamer :: FieldNamer
 camelCaseNamer tyName fields field = maybeToList $ do
 
   fieldPart <- stripPrefix expectedPrefix (nameBase field)
@@ -650,7 +684,8 @@ camelCaseNamer tyName fields field = maybeToList $ do
 abbreviatedFields :: LensRules
 abbreviatedFields = defaultFieldRules { _fieldToDef = abbreviatedNamer }
 
-abbreviatedNamer :: Name -> [Name] -> Name -> [DefName]
+-- | A 'FieldNamer' for 'abbreviatedFields'.
+abbreviatedNamer :: FieldNamer
 abbreviatedNamer _ fields field = maybeToList $ do
 
   fieldPart <- stripMaxLc (nameBase field)

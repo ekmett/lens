@@ -541,7 +541,7 @@ applyTypeSubst sub = rewrite aux
 -- Field generation parameters
 ------------------------------------------------------------------------
 
-
+-- | Rules to construct lenses for data fields.
 data LensRules = LensRules
   { _simpleLenses    :: Bool
   , _generateSigs    :: Bool
