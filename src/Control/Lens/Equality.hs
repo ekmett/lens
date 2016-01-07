@@ -68,7 +68,7 @@ runEq l = case l Identical of Identical -> Identical
 -- | Substituting types with 'Equality'.
 substEq :: AnEquality s t a b -> ((s ~ a, t ~ b) => r) -> r
 substEq l = case runEq l of
-  Identical -> id
+  Identical -> \r -> r
 {-# INLINE substEq #-}
 
 -- | We can use 'Equality' to do substitution into anything.
@@ -77,7 +77,7 @@ mapEq :: forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEqual
 #else
 mapEq :: AnEquality s t a b -> f s -> f a
 #endif
-mapEq = substEq
+mapEq l r = substEq l r
 {-# INLINE mapEq #-}
 
 -- | 'Equality' is symmetric.
