@@ -690,7 +690,7 @@ orOf l = getAny #. foldMapOf l Any
 -- @
 --
 -- @
--- 'ianyOf' l ≡ 'allOf' l '.' 'Indexed'
+-- 'ianyOf' l ≡ 'anyOf' l '.' 'Indexed'
 -- @
 --
 -- @
