@@ -204,7 +204,7 @@ library
     tagged                    >= 0.4.4    && < 1,
     template-haskell          >= 2.4      && < 2.12,
     text                      >= 0.11     && < 1.3,
-    transformers              >= 0.2      && < 0.5,
+    transformers              >= 0.2      && < 0.6,
     transformers-compat       >= 0.4      && < 1,
     unordered-containers      >= 0.2.4    && < 0.3,
     vector                    >= 0.9      && < 0.12,
