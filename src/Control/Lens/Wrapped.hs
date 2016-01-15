@@ -105,7 +105,6 @@ import           Data.Functor.Compose
 import           Data.Functor.Contravariant
 import qualified Data.Functor.Contravariant.Compose as Contravariant
 import           Data.Functor.Constant
-import           Data.Functor.Coproduct
 import           Data.Functor.Identity
 import           Data.Functor.Reverse
 import           Data.Hashable
@@ -389,12 +388,6 @@ instance Wrapped (Strict.WriterT w m a) where
   {-# INLINE _Wrapped' #-}
 
 -- * comonad-transformers
-
-instance (t ~ Coproduct f' g' a') => Rewrapped (Coproduct f g a) t
-instance Wrapped (Coproduct f g a) where
-  type Unwrapped (Coproduct f g a) = Either (f a) (g a)
-  _Wrapped' = iso getCoproduct Coproduct
-  {-# INLINE _Wrapped' #-}
 
 instance (t ~ TracedT m' w' a') => Rewrapped (TracedT m w a) t
 instance Wrapped (TracedT m w a) where
