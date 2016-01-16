@@ -4,6 +4,9 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
+#ifndef MIN_VERSION_template_haskell
+#define MIN_VERSION_template_haskell(x,y,z) 1
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.FieldTH

@@ -403,7 +403,7 @@ instance HasName TypeFamilyHead where
     (\n' -> TypeFamilyHead n' tvbs frs mia) <$> f n
 
 instance HasName InjectivityAnn where
-  name f (InjectivityAnn n deps) = (\n' -> InjectivityAnn n' deps) <$> f n
+  name f (InjectivityAnn n deps) = (`InjectivityAnn` deps) <$> f n
 #endif
 
 -- | Contains some amount of `Type`s inside
@@ -545,22 +545,22 @@ conFields :: Traversal' Con
                             StrictType
 #endif
 conFields f (NormalC n fs)      = NormalC n <$> traverse f fs
-conFields f (RecC n fs)         = RecC n <$> traverse (sans_var f) fs
+conFields f (RecC n fs)         = RecC n <$> traverse (sansVar f) fs
 conFields f (InfixC l n r)      = InfixC <$> f l <*> pure n <*> f r
 conFields f (ForallC bds ctx c) = ForallC bds ctx <$> conFields f c
 #if MIN_VERSION_template_haskell(2,11,0)
 conFields f (GadtC ns argTys retTy) =
   GadtC ns <$> traverse f argTys <*> pure retTy
 conFields f (RecGadtC ns argTys retTy) =
-  RecGadtC ns <$> traverse (sans_var f) argTys <*> pure retTy
+  RecGadtC ns <$> traverse (sansVar f) argTys <*> pure retTy
 #endif
 
 #if MIN_VERSION_template_haskell(2,11,0)
-sans_var :: Traversal' VarBangType   BangType
+sansVar :: Traversal' VarBangType   BangType
 #else
-sans_var :: Traversal' VarStrictType StrictType
+sansVar :: Traversal' VarStrictType StrictType
 #endif
-sans_var f (fn,s,t) = (\(s', t') -> (fn,s',t')) <$> f (s, t)
+sansVar f (fn,s,t) = (\(s', t') -> (fn,s',t')) <$> f (s, t)
 
 -- | 'Traversal' of the types of the /named/ fields of a constructor.
 conNamedFields :: Traversal' Con
