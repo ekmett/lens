@@ -148,7 +148,7 @@ import Data.Bitraversable
 import Data.Foldable (Foldable)
 #endif
 import Data.Functor.Compose
-import Data.Functor.Kan.Rift
+import Data.Functor.Day.Curried
 import Data.Functor.Yoneda
 import Data.Int
 import Data.IntMap as IntMap
@@ -1276,7 +1276,7 @@ deepOf r l pafb = go
 -- However, @foo@ and @bar@ are each going to use the 'Applicative' they are given.
 --
 -- 'confusing' exploits the 'Yoneda' lemma to merge their separate uses of 'fmap' into a single 'fmap'.
--- and it further exploits an interesting property of the right Kan lift (or 'Rift') to left associate
+-- and it further exploits an interesting property of the right Kan lift (or 'Curried') to left associate
 -- all of the uses of '(<*>)' to make it possible to fuse together more fmaps.
 --
 -- This is particularly effective when the choice of functor 'f' is unknown at compile
@@ -1288,12 +1288,12 @@ deepOf r l pafb = go
 -- @
 -- 'confusing' :: 'Traversal' s t a b -> 'Traversal' s t a b
 -- @
-confusing :: Applicative f => LensLike (Rift (Yoneda f) (Yoneda f)) s t a b -> LensLike f s t a b
-confusing t = \f -> lowerYoneda . lowerRift . t (liftRiftYoneda . f)
+confusing :: Applicative f => LensLike (Curried (Yoneda f) (Yoneda f)) s t a b -> LensLike f s t a b
+confusing t = \f -> lowerYoneda . lowerCurried . t (liftCurriedYoneda . f)
   where
-  liftRiftYoneda :: Applicative f => f a -> Rift (Yoneda f) (Yoneda f) a
-  liftRiftYoneda fa = Rift (`yap` fa)
-  {-# INLINE liftRiftYoneda #-}
+  liftCurriedYoneda :: Applicative f => f a -> Curried (Yoneda f) (Yoneda f) a
+  liftCurriedYoneda fa = Curried (`yap` fa)
+  {-# INLINE liftCurriedYoneda #-}
 
   yap :: Applicative f => Yoneda f (a -> b) -> f a -> Yoneda f b
   yap (Yoneda k) fa = Yoneda (\ab_r -> k (ab_r .) <*> fa)

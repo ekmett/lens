@@ -9,6 +9,9 @@
 #if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE PolyKinds #-}
 #endif
+#if __GLASGOW_HASKELL__ >= 800
+{-# LANGUAGE TypeInType #-}
+#endif
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Type
@@ -66,6 +69,9 @@ import Data.Bifunctor
 import Data.Functor.Identity
 import Data.Functor.Contravariant
 import Data.Functor.Apply
+#if __GLASGOW_HASKELL__ >= 800
+import Data.Kind
+#endif
 import Data.Profunctor
 import Data.Tagged
 import Prelude ()
@@ -443,13 +449,14 @@ type Prism' s a = Prism s s a a
 -- | A witness that @(a ~ s, b ~ t)@.
 --
 -- Note: Composition with an 'Equality' is index-preserving.
-#if __GLASGOW_HASKELL__ >= 708
-type Equality (s :: k1) (t :: k2) (a :: k1) (b :: k2) = forall (p :: k1 -> k3 -> *) (f :: k2 -> k3) . p a (f b) -> p s (f t)
+#if __GLASGOW_HASKELL__ >= 800
+type Equality (s :: k1) (t :: k2) (a :: k1) (b :: k2) = forall k3 (p :: k1 -> k3 -> *) (f :: k2 -> k3) .
 #elif __GLASGOW_HASKELL__ >= 706
-type Equality (s :: k1) (t :: k2) (a :: k1) (b :: k2) = forall (p :: k1 -> * -> *) (f :: k2 -> *) . p a (f b) -> p s (f t)
+type Equality (s :: k1) (t :: k2) (a :: k1) (b :: k2) = forall (p :: k1 -> * -> *) (f :: k2 -> *) .
 #else
-type Equality s t a b = forall p (f :: * -> *) . p a (f b) -> p s (f t)
+type Equality s t a b = forall p (f :: * -> *) .
 #endif
+    p a (f b) -> p s (f t)
 
 -- | A 'Simple' 'Equality'.
 type Equality' s a = Equality s s a a
