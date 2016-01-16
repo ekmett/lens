@@ -65,6 +65,16 @@ makeFieldOptics rules tyName =
 
 makeFieldOpticsForDec :: LensRules -> Dec -> DecsQ
 makeFieldOpticsForDec rules dec = case dec of
+#if MIN_VERSION_template_haskell(2,11,0)
+  DataD    _ tyName vars _ cons _ ->
+    makeFieldOpticsForDec' rules tyName (mkS tyName vars) cons
+  NewtypeD _ tyName vars _ con  _ ->
+    makeFieldOpticsForDec' rules tyName (mkS tyName vars) [con]
+  DataInstD _ tyName args _ cons _ ->
+    makeFieldOpticsForDec' rules tyName (tyName `conAppsT` args) cons
+  NewtypeInstD _ tyName args _ con _ ->
+    makeFieldOpticsForDec' rules tyName (tyName `conAppsT` args) [con]
+#else
   DataD    _ tyName vars cons _ ->
     makeFieldOpticsForDec' rules tyName (mkS tyName vars) cons
   NewtypeD _ tyName vars con  _ ->
@@ -73,6 +83,7 @@ makeFieldOpticsForDec rules dec = case dec of
     makeFieldOpticsForDec' rules tyName (tyName `conAppsT` args) cons
   NewtypeInstD _ tyName args con _ ->
     makeFieldOpticsForDec' rules tyName (tyName `conAppsT` args) [con]
+#endif
   _ -> fail "makeFieldOptics: Expected data or newtype type-constructor"
   where
   mkS tyName vars = tyName `conAppsT` map VarT (toListOf typeVars vars)
@@ -108,6 +119,8 @@ makeFieldOpticsForDec' rules tyName s cons =
 -- | Normalized the Con type into a uniform positional representation,
 -- eliminating the variance between records, infix constructors, and normal
 -- constructors.
+--
+-- For 'GadtC' and 'RecGadtC', the leftmost name is chosen.
 normalizeConstructor ::
   Con ->
   Q (Name, [(Maybe Name, Type)]) -- ^ constructor name, field name, field type
@@ -125,7 +138,13 @@ normalizeConstructor (ForallC _ _ con) =
   do con' <- normalizeConstructor con
      return (set (_2 . mapped . _1) Nothing con')
 
+#if MIN_VERSION_template_haskell(2,11,0)
+normalizeConstructor (GadtC ns xs _) =
+  return (head ns, [ (Nothing, ty) | (_,ty) <- xs])
 
+normalizeConstructor (RecGadtC ns xs _) =
+  return (head ns, [ (Just fieldName, ty) | (fieldName,_,ty) <- xs])
+#endif
 
 data OpticType = GetterType | LensType | IsoType
 

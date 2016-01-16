@@ -94,7 +94,7 @@ makePrisms = makePrisms' True
 --
 -- instance AsFooBarBaz (FooBarBaz a) a
 -- @
--- 
+--
 -- Generate an "As" class of prisms. Names are selected by prefixing the constructor
 -- name with an underscore.  Constructors with multiple fields will
 -- construct Prisms to tuples of those fields.
@@ -114,10 +114,17 @@ makePrisms' normal typeName =
 -- | Generate prisms for the given 'Dec'
 makeDecPrisms :: Bool {- ^ generate top-level definitions -} -> Dec -> DecsQ
 makeDecPrisms normal dec = case dec of
-  DataD        _ ty vars cons _ -> next ty (convertTVBs vars) cons
-  NewtypeD     _ ty vars con  _ -> next ty (convertTVBs vars) [con]
-  DataInstD    _ ty tys  cons _ -> next ty tys                cons
-  NewtypeInstD _ ty tys  con  _ -> next ty tys                [con]
+#if MIN_VERSION_template_haskell(2,11,0)
+  DataD        _ ty vars _ cons _ -> next ty (convertTVBs vars) cons
+  NewtypeD     _ ty vars _ con  _ -> next ty (convertTVBs vars) [con]
+  DataInstD    _ ty tys  _ cons _ -> next ty tys                cons
+  NewtypeInstD _ ty tys  _ con  _ -> next ty tys                [con]
+#else
+  DataD        _ ty vars   cons _ -> next ty (convertTVBs vars) cons
+  NewtypeD     _ ty vars   con  _ -> next ty (convertTVBs vars) [con]
+  DataInstD    _ ty tys    cons _ -> next ty tys                cons
+  NewtypeInstD _ ty tys    con  _ -> next ty tys                [con]
+#endif
   _                             -> fail "makePrisms: expected type constructor dec"
   where
   convertTVBs = map (VarT . bndrName)
@@ -463,7 +470,8 @@ nconTypes :: Lens' NCon [Type]
 nconTypes f x = fmap (\y -> x {_nconTypes = y}) (f (_nconTypes x))
 
 
--- | Normalize 'Con' to its constructor name and field types.
+-- | Normalize 'Con' to its constructor name and field types. For 'GadtC' and
+-- 'RecGadtC', it takes the leftmost name.
 normalizeCon :: Con -> NCon
 normalizeCon (RecC    conName xs) = NCon conName Nothing (map (view _3) xs)
 normalizeCon (NormalC conName xs) = NCon conName Nothing (map (view _2) xs)
@@ -473,7 +481,10 @@ normalizeCon (ForallC _ cx con) = NCon n (cx1 <> cx2) tys
   where
   cx1 = Just cx
   NCon n cx2 tys = normalizeCon con
-
+#if MIN_VERSION_template_haskell(2,11,0)
+normalizeCon (GadtC conNames xs _)    = NCon (head conNames) Nothing (map (view _2) xs)
+normalizeCon (RecGadtC conNames xs _) = NCon (head conNames) Nothing (map (view _3) xs)
+#endif
 
 -- | Compute a prism's name by prefixing an underscore for normal
 -- constructors and period for operators.

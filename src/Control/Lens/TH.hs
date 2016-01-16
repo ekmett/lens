@@ -107,6 +107,7 @@ import Data.Set.Lens
 import Data.Traversable hiding (mapM)
 import Language.Haskell.TH
 import Language.Haskell.TH.Lens
+import Language.Haskell.TH.Syntax
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Eta reduce" #-}
@@ -150,7 +151,7 @@ generateUpdateableOptics f r =
 -- > undefined & x .~ 8 & y .~ True
 -- Foo {_x = 8, _y = True}
 -- @
--- 
+--
 -- The downside of this flag is that it can lead to space-leaks and
 -- code-size/compile-time increases when generated for large records. By
 -- default this flag is turned off, and strict optics are generated.
@@ -483,8 +484,13 @@ declareLensesWith rules = declareWith $ \dec -> do
 -- | Transform @NewtypeD@s declarations to @DataD@s and @NewtypeInstD@s to
 -- @DataInstD@s.
 deNewtype :: Dec -> Dec
+#if MIN_VERSION_template_haskell(2,11,0)
+deNewtype (NewtypeD ctx tyName args kind c d) = DataD ctx tyName args kind [c] d
+deNewtype (NewtypeInstD ctx tyName args kind c d) = DataInstD ctx tyName args kind [c] d
+#else
 deNewtype (NewtypeD ctx tyName args c d) = DataD ctx tyName args [c] d
 deNewtype (NewtypeInstD ctx tyName args c d) = DataInstD ctx tyName args [c] d
+#endif
 deNewtype d = d
 
 
@@ -500,14 +506,22 @@ apps = Prelude.foldl AppT
 
 makeDataDecl :: Dec -> Maybe DataDecl
 makeDataDecl dec = case deNewtype dec of
-  DataD ctx tyName args cons _ -> Just DataDecl
+  DataD ctx tyName args
+#if MIN_VERSION_template_haskell(2,11,0)
+        _
+#endif
+        cons _ -> Just DataDecl
     { dataContext = ctx
     , tyConName = Just tyName
     , dataParameters = args
     , fullType = apps $ ConT tyName
     , constructors = cons
     }
-  DataInstD ctx familyName args cons _ -> Just DataDecl
+  DataInstD ctx familyName args
+#if MIN_VERSION_template_haskell(2,11,0)
+            _
+#endif
+            cons _ -> Just DataDecl
     { dataContext = ctx
     , tyConName = Nothing
     , dataParameters = map PlainTV vars
@@ -789,6 +803,16 @@ traverseDataAndNewtype f decs = traverse go decs
 
 stripFields :: Dec -> Dec
 stripFields dec = case dec of
+#if MIN_VERSION_template_haskell(2,11,0)
+  DataD ctx tyName tyArgs kind cons derivings ->
+    DataD ctx tyName tyArgs kind (map deRecord cons) derivings
+  NewtypeD ctx tyName tyArgs kind con derivings ->
+    NewtypeD ctx tyName tyArgs kind (deRecord con) derivings
+  DataInstD ctx tyName tyArgs kind cons derivings ->
+    DataInstD ctx tyName tyArgs kind (map deRecord cons) derivings
+  NewtypeInstD ctx tyName tyArgs kind con derivings ->
+    NewtypeInstD ctx tyName tyArgs kind (deRecord con) derivings
+#else
   DataD ctx tyName tyArgs cons derivings ->
     DataD ctx tyName tyArgs (map deRecord cons) derivings
   NewtypeD ctx tyName tyArgs con derivings ->
@@ -797,6 +821,7 @@ stripFields dec = case dec of
     DataInstD ctx tyName tyArgs (map deRecord cons) derivings
   NewtypeInstD ctx tyName tyArgs con derivings ->
     NewtypeInstD ctx tyName tyArgs (deRecord con) derivings
+#endif
   _ -> dec
 
 deRecord :: Con -> Con
@@ -804,4 +829,14 @@ deRecord con@NormalC{} = con
 deRecord con@InfixC{} = con
 deRecord (ForallC tyVars ctx con) = ForallC tyVars ctx $ deRecord con
 deRecord (RecC conName fields) = NormalC conName (map dropFieldName fields)
-  where dropFieldName (_, str, typ) = (str, typ)
+#if MIN_VERSION_template_haskell(2,11,0)
+deRecord con@GadtC{} = con
+deRecord (RecGadtC ns fields retTy) = GadtC ns (map dropFieldName fields) retTy
+#endif
+
+#if MIN_VERSION_template_haskell(2,11,0)
+dropFieldName :: VarBangType   -> BangType
+#else
+dropFieldName :: VarStrictType -> StrictType
+#endif
+dropFieldName (_, str, typ) = (str, typ)
