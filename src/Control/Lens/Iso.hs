@@ -231,7 +231,7 @@ au k = withIso k $ \ sa bt f -> fmap sa (f bt)
 -- @
 --
 -- but the signature is general.
-auf :: (Functor f, Functor g) => Optic (Costar f) g s t a b -> (f a -> g b) -> f s -> g t
+auf :: Optic (Costar f) g s t a b -> (f a -> g b) -> f s -> g t
 auf = coerce
 {-# INLINE auf #-}
 

@@ -276,7 +276,7 @@ instance Wrapped (Alt f a) where
   {-# INLINE _Wrapped' #-}
 #endif
 
-instance (t ~ ArrowMonad m' a', ArrowApply m) => Rewrapped (ArrowMonad m a) t
+instance t ~ ArrowMonad m' a' => Rewrapped (ArrowMonad m a) t
 instance Wrapped (ArrowMonad m a) where
   type Unwrapped (ArrowMonad m a) = m () a
   _Wrapped' = iso getArrowMonad ArrowMonad
@@ -608,7 +608,11 @@ instance Wrapped ErrorCall where
   {-# INLINE _Wrapped' #-}
 
 getErrorCall :: ErrorCall -> String
+#if __GLASGOW_HASKELL__ < 800
 getErrorCall (ErrorCall x) = x
+#else
+getErrorCall (ErrorCallWithLocation x _) = x
+#endif
 {-# INLINE getErrorCall #-}
 
 getRecUpdError :: RecUpdError -> String
