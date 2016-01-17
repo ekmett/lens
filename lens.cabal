@@ -391,7 +391,7 @@ test-suite doctests
     other-extensions: Trustworthy
     cpp-options: -DTRUSTWORTHY=1
 
-  if !flag(test-doctests)
+  if !flag(test-doctests) || impl(ghc>=8)
     buildable: False
   else
     build-depends:
