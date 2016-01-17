@@ -6,7 +6,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.HashSet.Lens
--- Copyright   :  (C) 2012-15 Edward Kmett
+-- Copyright   :  (C) 2012-16 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional

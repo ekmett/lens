@@ -17,7 +17,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Data.Lens
--- Copyright   :  (C) 2012-2015 Edward Kmett, (C) 2006-2012 Neil Mitchell
+-- Copyright   :  (C) 2012-2016 Edward Kmett, (C) 2006-2012 Neil Mitchell
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental

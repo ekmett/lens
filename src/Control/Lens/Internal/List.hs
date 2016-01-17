@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.List
--- Copyright   :  (C) 2014-2015 Edward Kmett and Eric Mertens
+-- Copyright   :  (C) 2014-2016 Edward Kmett and Eric Mertens
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  provisional

@@ -9,7 +9,7 @@ maintainer:    Edward A. Kmett <ekmett@gmail.com>
 stability:     provisional
 homepage:      http://github.com/ekmett/lens/
 bug-reports:   http://github.com/ekmett/lens/issues
-copyright:     Copyright (C) 2012-2015 Edward A. Kmett
+copyright:     Copyright (C) 2012-2016 Edward A. Kmett
 build-type:    Custom
 -- build-tools:   cpphs
 tested-with:   GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.1, GHC == 7.10.2, GHC == 8.0.1
