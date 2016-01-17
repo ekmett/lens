@@ -3,6 +3,11 @@
 * Modified to enable the `doctests` to build with `stack`.
 * Removed `.ghci`.
 * Added `lookupOf`
+* Support GHC 8
+* Support `transformers` 0.5
+* Support `kan-extensions` 5
+* Support `comonad` 5
+* Better support for `Closed` from `profunctors`.
 
 4.13
 ----
