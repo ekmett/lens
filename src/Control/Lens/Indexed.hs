@@ -116,9 +116,7 @@ import Data.Monoid hiding (Product)
 import Data.Profunctor.Unsafe
 import Data.Reflection
 import Data.Sequence hiding ((:<), index)
-#if !(MIN_VERSION_containers(0,5,0))
 import Data.Traversable (sequenceA)
-#endif
 import Data.Tree
 import Data.Tuple (swap)
 import Data.Vector (Vector)
@@ -640,11 +638,17 @@ instance TraversableWithIndex () Maybe where
   {-# INLINE itraverse #-}
 
 -- | The position in the 'Seq' is available as the index.
-instance FunctorWithIndex Int Seq
-instance FoldableWithIndex Int Seq
+instance FunctorWithIndex Int Seq where
+  imap = mapWithIndex
+instance FoldableWithIndex Int Seq where
+  ifoldMap f = Data.Foldable.fold . mapWithIndex f
+  ifoldr = foldrWithIndex
+  ifoldl f = foldlWithIndex (flip f)
+  {-# INLINE ifoldl #-}
 instance TraversableWithIndex Int Seq where
-  itraversed = traversed
-  {-# INLINE itraversed #-}
+-- The next version of containers will probably offer traverseWithIndex;
+-- when that comes out, it should be used for this.
+  itraverse f = sequenceA . mapWithIndex f
 
 instance FunctorWithIndex Int Vector where
   imap = V.imap
