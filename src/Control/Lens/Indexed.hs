@@ -16,6 +16,10 @@
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 #endif
 
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
