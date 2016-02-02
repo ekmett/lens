@@ -54,6 +54,10 @@ import Data.Monoid
 import Data.Profunctor.Unsafe
 import Prelude
 
+#ifdef HLINT
+{-# ANN module "HLint: ignore Use fmap" #-}
+#endif
+
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Control.Monad.State

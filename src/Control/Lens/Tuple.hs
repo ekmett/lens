@@ -87,12 +87,10 @@ class Field1 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- '_1' :: 'Lens' (a,b,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a'
   -- @
   _1 :: Lens s t a b
-#ifndef HLINT
   default _1 :: (Generic s, Generic t, GIxed N0 (Rep s) (Rep t) a b)
              => Lens s t a b
   _1 = ix proxyN0
   {-# INLINE _1 #-}
-#endif
 
 instance Field1 (Identity a) (Identity b) a b where
   _1 f (Identity a) = Identity <$> f a
@@ -158,12 +156,10 @@ class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- 'Control.Lens.Fold.foldMapOf' ('Data.Traversable.traverse' '.' '_2') :: ('Data.Traversable.Traversable' t, 'Data.Monoid.Monoid' m) => (s -> m) -> t (b, s) -> m
   -- @
   _2 :: Lens s t a b
-#ifndef HLINT
   default _2 :: (Generic s, Generic t, GIxed N1 (Rep s) (Rep t) a b)
              => Lens s t a b
   _2 = ix proxyN1
   {-# INLINE _2 #-}
-#endif
 
 instance Field2 (Product f g a) (Product f g' a) (g a) (g' a) where
   _2 f (Pair a b) = Pair a <$> f b
@@ -210,12 +206,10 @@ instance Field2 (a,b,c,d,e,f,g,h,i) (a,b',c,d,e,f,g,h,i) b b' where
 class Field3 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 3rd field of a tuple.
   _3 :: Lens s t a b
-#ifndef HLINT
   default _3 :: (Generic s, Generic t, GIxed N2 (Rep s) (Rep t) a b)
              => Lens s t a b
   _3 = ix proxyN2
   {-# INLINE _3 #-}
-#endif
 
 instance Field3 (a,b,c) (a,b,c') c c' where
   _3 k ~(a,b,c) = k c <&> \c' -> (a,b,c')
@@ -249,12 +243,10 @@ instance Field3 (a,b,c,d,e,f,g,h,i) (a,b,c',d,e,f,g,h,i) c c' where
 class Field4 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 4th field of a tuple.
   _4 :: Lens s t a b
-#ifndef HLINT
   default _4 :: (Generic s, Generic t, GIxed N3 (Rep s) (Rep t) a b)
              => Lens s t a b
   _4 = ix proxyN3
   {-# INLINE _4 #-}
-#endif
 
 instance Field4 (a,b,c,d) (a,b,c,d') d d' where
   _4 k ~(a,b,c,d) = k d <&> \d' -> (a,b,c,d')
@@ -284,12 +276,10 @@ instance Field4 (a,b,c,d,e,f,g,h,i) (a,b,c,d',e,f,g,h,i) d d' where
 class Field5 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 5th field of a tuple.
   _5 :: Lens s t a b
-#ifndef HLINT
   default _5 :: (Generic s, Generic t, GIxed N4 (Rep s) (Rep t) a b)
              => Lens s t a b
   _5 = ix proxyN4
   {-# INLINE _5 #-}
-#endif
 
 instance Field5 (a,b,c,d,e) (a,b,c,d,e') e e' where
   _5 k ~(a,b,c,d,e) = k e <&> \e' -> (a,b,c,d,e')
@@ -315,12 +305,10 @@ instance Field5 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e',f,g,h,i) e e' where
 class Field6 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 6th field of a tuple.
   _6 :: Lens s t a b
-#ifndef HLINT
   default _6 :: (Generic s, Generic t, GIxed N5 (Rep s) (Rep t) a b)
              => Lens s t a b
   _6 = ix proxyN5
   {-# INLINE _6 #-}
-#endif
 
 instance Field6 (a,b,c,d,e,f) (a,b,c,d,e,f') f f' where
   _6 k ~(a,b,c,d,e,f) = k f <&> \f' -> (a,b,c,d,e,f')
@@ -342,12 +330,10 @@ instance Field6 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f',g,h,i) f f' where
 class Field7 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 7th field of a tuple.
   _7 :: Lens s t a b
-#ifndef HLINT
   default _7 :: (Generic s, Generic t, GIxed N6 (Rep s) (Rep t) a b)
              => Lens s t a b
   _7 = ix proxyN6
   {-# INLINE _7 #-}
-#endif
 
 instance Field7 (a,b,c,d,e,f,g) (a,b,c,d,e,f,g') g g' where
   _7 k ~(a,b,c,d,e,f,g) = k g <&> \g' -> (a,b,c,d,e,f,g')
@@ -365,12 +351,10 @@ instance Field7 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g',h,i) g g' where
 class Field8 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 8th field of a tuple.
   _8 :: Lens s t a b
-#ifndef HLINT
   default _8 :: (Generic s, Generic t, GIxed N7 (Rep s) (Rep t) a b)
              => Lens s t a b
   _8 = ix proxyN7
   {-# INLINE _8 #-}
-#endif
 
 instance Field8 (a,b,c,d,e,f,g,h) (a,b,c,d,e,f,g,h') h h' where
   _8 k ~(a,b,c,d,e,f,g,h) = k h <&> \h' -> (a,b,c,d,e,f,g,h')
@@ -384,12 +368,10 @@ instance Field8 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h',i) h h' where
 class Field9 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 9th field of a tuple.
   _9 :: Lens s t a b
-#ifndef HLINT
   default _9 :: (Generic s, Generic t, GIxed N8 (Rep s) (Rep t) a b)
              => Lens s t a b
   _9 = ix proxyN8
   {-# INLINE _9 #-}
-#endif
 
 instance Field9 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h,i') i i' where
   _9 k ~(a,b,c,d,e,f,g,h,i) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i')

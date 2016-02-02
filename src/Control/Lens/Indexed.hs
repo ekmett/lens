@@ -116,12 +116,19 @@ import Data.Monoid hiding (Product)
 import Data.Profunctor.Unsafe
 import Data.Reflection
 import Data.Sequence hiding ((:<), index)
-import Data.Traversable (sequenceA)
 import Data.Tree
 import Data.Tuple (swap)
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 import Prelude
+
+#if !(MIN_VERSION_base(4,8,0))
+import Data.Traversable (sequenceA)
+#endif
+
+#ifdef HLINT
+{-# ANN module "HLint: ignore Use fmap" #-}
+#endif
 
 infixr 9 <.>, <., .>
 
@@ -229,11 +236,9 @@ index j f = Indexed $ \i a -> if j == i then indexed f i a else pure a
 class Functor f => FunctorWithIndex i f | f -> i where
   -- | Map with access to the index.
   imap :: (i -> a -> b) -> f a -> f b
-#ifndef HLINT
   default imap :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
   imap = iover itraversed
   {-# INLINE imap #-}
-#endif
 
   -- | The 'IndexedSetter' for a 'FunctorWithIndex'.
   --

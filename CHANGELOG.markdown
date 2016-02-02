@@ -1,3 +1,8 @@
+4.13.2
+------
+* Restore default signature for `Control.Lens.At.at`
+* Improve operations for `Data.Sequence.Seq`
+
 4.13.1
 ------
 * Modified to enable the `doctests` to build with `stack`.

@@ -52,6 +52,7 @@ import Control.Lens.Each
 import Control.Lens.Traversal
 import Control.Lens.Lens
 import Control.Lens.Setter
+import Control.Lens.Type
 import Control.Lens.Indexed
 import Data.Array.IArray as Array
 import Data.Array.Unboxed
@@ -198,11 +199,9 @@ class Ixed m where
   -- >>> Seq.fromList [] ^? ix 2
   -- Nothing
   ix :: Index m -> Traversal' m (IxValue m)
-#ifdef DEFAULT_SIGNATURES
   default ix :: (Applicative f, At m) => Index m -> LensLike' f m (IxValue m)
   ix = ixAt
   {-# INLINE ix #-}
-#endif
 
 -- | An indexed version of 'ix'.
 --

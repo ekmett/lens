@@ -200,6 +200,7 @@ import Prelude hiding (foldr)
 {-# ANN module "HLint: ignore Eta reduce" #-}
 {-# ANN module "HLint: ignore Use camelCase" #-}
 {-# ANN module "HLint: ignore Use curry" #-}
+{-# ANN module "HLint: ignore Use fmap" #-}
 #endif
 
 infixl 8 ^.., ^?, ^?!, ^@.., ^@?, ^@?!
