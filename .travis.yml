@@ -69,6 +69,7 @@ install:
      rm -rf $HOME/.cabsnap;
      mkdir -p $HOME/.ghc $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin;
      cabal install --only-dependencies --enable-tests lens.cabal reflection/;
+     if [ "$GHCVER" = "7.10.3" ]; then cabal install Cabal-1.22.4.0; fi;
    fi
 
 # snapshot package-db on cache miss
