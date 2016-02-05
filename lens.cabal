@@ -423,7 +423,7 @@ test-suite hlint
   else
     build-depends:
       base,
-      hlint >= 1.9.27 -- Earliest version supporting default signatures
+      hlint >= 1.9.27
 
 -- Basic benchmarks for the uniplate-style combinators
 benchmark plated
