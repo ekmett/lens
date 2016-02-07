@@ -473,8 +473,9 @@ nconTypes :: Lens' NCon [Type]
 nconTypes f x = fmap (\y -> x {_nconTypes = y}) (f (_nconTypes x))
 
 
--- | Normalize 'Con' to its constructor name and field types. For 'GadtC' and
--- 'RecGadtC', it takes the leftmost name.
+-- | Normalize a single 'Con' to its constructor name and field types.
+-- Because GADT syntax allows multiple constructors to be defined at
+-- the same time, this function can return multiple normalized results.
 normalizeCon :: Con -> [NCon]
 normalizeCon (RecC    conName xs) = [NCon conName Nothing (map (view _3) xs)]
 normalizeCon (NormalC conName xs) = [NCon conName Nothing (map (view _2) xs)]
