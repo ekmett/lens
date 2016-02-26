@@ -379,7 +379,7 @@ none f = not . Data.Foldable.any f
 -- 'traverse_' l = 'itraverse' '.' 'const'
 -- @
 itraverse_ :: (FoldableWithIndex i t, Applicative f) => (i -> a -> f b) -> t a -> f ()
-itraverse_ f = getTraversed #. ifoldMap (\i -> Traversed #. void . f i)
+itraverse_ f = void . getTraversed #. ifoldMap (\i -> Traversed #. void . f i)
 {-# INLINE itraverse_ #-}
 
 -- | Traverse elements with access to the index @i@, discarding the results (with the arguments flipped).

@@ -1,3 +1,7 @@
+4.13.2.1
+------
+* Fixed `itraverse_` returning bottom
+
 4.13.2
 ------
 * Restore default signature for `Control.Lens.At.at`
