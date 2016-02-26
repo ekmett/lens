@@ -1,6 +1,6 @@
 4.13.2.1
 ------
-* Fixed `itraverse_` returning bottom
+* Fixed `itraverse_` and `imapM_` returning bottom
 
 4.13.2
 ------

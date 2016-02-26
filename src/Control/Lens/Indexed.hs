@@ -406,7 +406,7 @@ ifor_ = flip itraverse_
 -- 'mapM_' ≡ 'imapM' '.' 'const'
 -- @
 imapM_ :: (FoldableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m ()
-imapM_ f = getSequenced #. ifoldMap (\i -> Sequenced #. liftM skip . f i)
+imapM_ f = liftM skip . getSequenced #. ifoldMap (\i -> Sequenced #. liftM skip . f i)
 {-# INLINE imapM_ #-}
 
 -- | Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
