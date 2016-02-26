@@ -379,7 +379,7 @@ none f = not . Data.Foldable.any f
 -- 'traverse_' l = 'itraverse' '.' 'const'
 -- @
 itraverse_ :: (FoldableWithIndex i t, Applicative f) => (i -> a -> f b) -> t a -> f ()
-itraverse_ f = void . getTraversed #. ifoldMap (\i -> Traversed #. void . f i)
+itraverse_ f = void . getTraversed #. ifoldMap (\i -> Traversed #. f i)
 {-# INLINE itraverse_ #-}
 
 -- | Traverse elements with access to the index @i@, discarding the results (with the arguments flipped).
@@ -406,7 +406,7 @@ ifor_ = flip itraverse_
 -- 'mapM_' ≡ 'imapM' '.' 'const'
 -- @
 imapM_ :: (FoldableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m ()
-imapM_ f = liftM skip . getSequenced #. ifoldMap (\i -> Sequenced #. liftM skip . f i)
+imapM_ f = liftM skip . getSequenced #. ifoldMap (\i -> Sequenced #. f i)
 {-# INLINE imapM_ #-}
 
 -- | Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
