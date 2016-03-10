@@ -545,7 +545,7 @@ cloneIndexedLens l f s = runPretext (l sell s) (Indexed (indexed f))
 
 -- | Modify the target of a 'Lens' and return the result.
 --
--- When you do not need the result of the addition, ('Control.Lens.Setter.%~') is more flexible.
+-- When you do not need the result of the operation, ('Control.Lens.Setter.%~') is more flexible.
 --
 -- @
 -- ('<%~') ::             'Lens' s t a b      -> (a -> b) -> s -> (b, t)
