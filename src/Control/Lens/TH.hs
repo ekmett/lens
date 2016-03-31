@@ -107,7 +107,6 @@ import Data.Set.Lens
 import Data.Traversable hiding (mapM)
 import Language.Haskell.TH
 import Language.Haskell.TH.Lens
-import Language.Haskell.TH.Syntax
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Eta reduce" #-}
