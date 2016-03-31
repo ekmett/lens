@@ -410,6 +410,45 @@ makeLensesWith (defaultFieldRules & lensField .~ abbreviatedNamer ) ''CheckAbbre
 checkAbbreviatedNamer :: Lens' CheckAbbreviatedNamer Int
 checkAbbreviatedNamer = fieldAbbreviatedNamer
 
+declareArgTypePrisms argTypesRulesSelector [d|
+  data ArgTypePrismTest a b =
+      ArgTypePrismTest1 {_w :: Int, _x :: Int }
+    | ArgTypePrismTest2 {_y :: Double, _z :: b}
+  |]
+
+checkArgTypePrism1Args :: ArgTypePrismTest1Args a b
+checkArgTypePrismTest1Args = ArgTypePrismTest1Args 0 0
+
+checkArgTypePrism2Args :: ArgTypePrismTest1Args a Bool
+checkArgTypePrismTest2Args = ArgTypePrismTest1Args 0 True
+
+checkArgTypePrism1 :: Prism
+  (ArgTypePrismTest a b)
+  (ArgTypePrismTest c d)
+  (ArgTypePrismTest1Args a b)
+  (ArgTypePrismTest1Args c d)
+checkArgTypePrism1 = _ArgTypePrismTest1
+
+checkArgTypePrism2 :: Prism
+  (ArgTypePrismTest a b)
+  (ArgTypePrismTest c d)
+  (ArgTypePrismTest1Args a b)
+  (ArgTypePrismTest1Args c d)
+checkArgTypePrism2 = _ArgTypePrismTest2
+
+checkArgTypePrism1LensW :: Lens
+  (ArgTypePrismTest1Args a b)
+  (ArgTypePrismTest1Args c d)
+  Int
+  Int
+checkArgTypePrism1LensW = w
+
+checkArgTypePrism1LensZ :: Lens
+  (ArgTypePrismTest1Args a b)
+  (ArgTypePrismTest1Args c d)
+  b
+  d
+checkArgTypePrism1LensZ = z
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"

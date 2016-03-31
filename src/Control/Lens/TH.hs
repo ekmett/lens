@@ -29,7 +29,7 @@ module Control.Lens.TH
   , makeClassy, makeClassyFor, makeClassy_
   , makeFields
   -- ** Prisms
-  , makePrisms
+  , makePrisms, makeArgTypePrisms
   , makeClassyPrisms
   -- ** Wrapped
   , makeWrapped
@@ -39,7 +39,8 @@ module Control.Lens.TH
   , declareClassy, declareClassyFor
   , declareFields
   -- ** Prisms
-  , declarePrisms
+  , declarePrisms, declareArgTypePrisms
+  , PrismRulesSelector, argTypesRulesSelector
   -- ** Wrapped
   , declareWrapped
   -- * Configuring Lenses
@@ -453,8 +454,11 @@ declareClassyFor classes fields
 -- _Lambda :: 'Prism'' Exp (String, Exp)
 -- @
 declarePrisms :: DecsQ -> DecsQ
-declarePrisms = declareWith $ \dec -> do
-  emit =<< Trans.lift (makeDecPrisms True dec)
+declarePrisms = declareArgTypePrisms (const Nothing)
+
+declareArgTypePrisms :: PrismRulesSelector -> DecsQ -> DecsQ
+declareArgTypePrisms prs = declareWith $ \dec -> do
+  emit =<< Trans.lift (makeArgTypeDecPrisms prs True dec)
   return dec
 
 -- | Build 'Control.Lens.Wrapped.Wrapped' instance for each newtype.
@@ -799,3 +803,7 @@ traverseDataAndNewtype f decs = traverse go decs
       InstanceD ctx inst body -> InstanceD ctx inst <$> traverse go body
 
       _ -> pure dec
+
+argTypesRulesSelector :: PrismRulesSelector
+argTypesRulesSelector n =
+  Just (mkName $ nameBase n ++ "Args", defaultFieldRules)
