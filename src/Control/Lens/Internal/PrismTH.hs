@@ -48,8 +48,6 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Prelude
 
-type PrismRulesSelector = Name -> Maybe (Name, LensRules)
-
 -- | Generate a 'Prism' for each constructor of a data type.
 -- Isos generated when possible.
 -- Reviews are created for constructors with existentially
@@ -113,7 +111,18 @@ makePrisms = makePrisms' (const Nothing) True
 makeClassyPrisms :: Name {- ^ Type constructor name -} -> DecsQ
 makeClassyPrisms = makePrisms' (const Nothing) False
 
-makeArgTypePrisms :: PrismRulesSelector -> Bool -> Name -> DecsQ
+type PrismRulesSelector = Name -> Maybe (Name, LensRules)
+
+-- | Generate prisms for the specified type, where the prism for each
+-- constructor with more than one argument targets either a tuple or a
+-- generated data type. This behavior is controlled by the 'PrismRulesSelector'.
+-- The function is passed the name of a constructor.
+-- A result of 'Nothing' will generate a prism targetting a tuple.
+-- A result of @Just (n, lr)@ will generate a data type named @n@, a prism to
+-- that data type and lenses for that data type using @lr@.
+makeArgTypePrisms :: PrismRulesSelector
+  -> Bool {- ^ generate top-level definitions -}
+  -> Name {- ^ Type constructor name -} -> DecsQ
 makeArgTypePrisms = makePrisms'
 
 -- | Main entry point into Prism generation for a given type constructor name.
@@ -187,14 +196,18 @@ makeConsPrisms prs t cons (Just typeName) =
 
 
 data OpticType = PrismType | ReviewType
-data PrismTarget = PrismTargetTuple [Type] |
-  PrismTargetDataType Name [TyVarBndr] [(Name, Type)] LensRules
+data PrismTarget = PrismTargetTuple [Type] -- the types of each tuple elements
+  | PrismTargetDataType
+      Name -- the name of the generate data type and of it's single constructor
+      [TyVarBndr] -- the type variables for the generated data type
+      [(Name, Type)] -- the name and type of each element
+      LensRules -- the lens rules to apply in generating lenses on the generated
+                -- data type
 
 instance HasTypeVars PrismTarget where
   typeVarsEx s f (PrismTargetTuple ts) = PrismTargetTuple <$> typeVarsEx s f ts
   typeVarsEx s f (PrismTargetDataType n tvs fs lr) =
     (\x -> PrismTargetDataType n x fs lr) <$> typeVarsEx s f tvs
-
 
 instance SubstType PrismTarget where
   substType m (PrismTargetTuple ts) = PrismTargetTuple (substType m ts)
@@ -289,7 +302,6 @@ computeReviewStab target s' cx =
      b <- targetType target
      return (Stab cx ReviewType target s t a b)
 
--- TODO: These two are definitely wrong, need to review
 -- | Compute the full type-changing Prism type given an outer type,
 -- list of constructors, and target constructor name. Additionally
 -- return 'True' if the resulting type is a "simple" prism.
