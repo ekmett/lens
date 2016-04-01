@@ -458,8 +458,9 @@ declarePrisms = declareArgTypePrisms (const Nothing)
 
 declareArgTypePrisms :: PrismRulesSelector -> DecsQ -> DecsQ
 declareArgTypePrisms prs = declareWith $ \dec -> do
-  emit =<< Trans.lift (makeArgTypeDecPrisms prs True dec)
-  return dec
+  emit =<< Trans.lift (do
+    makeArgTypeDecPrisms prs True dec)
+  return $ stripFields dec
 
 -- | Build 'Control.Lens.Wrapped.Wrapped' instance for each newtype.
 declareWrapped :: DecsQ -> DecsQ
@@ -806,4 +807,6 @@ traverseDataAndNewtype f decs = traverse go decs
 
 argTypesRulesSelector :: PrismRulesSelector
 argTypesRulesSelector n =
-  Just (mkName $ nameBase n ++ "Args", defaultFieldRules)
+  let argName = mkName $ nameBase n ++ "Args"
+      rules = lensRules & lensField .~ \_ _ m -> [TopName . mkName $ "_" ++ nameBase m]
+  in Just (argName, rules)
