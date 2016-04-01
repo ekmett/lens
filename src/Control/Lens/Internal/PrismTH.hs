@@ -27,6 +27,7 @@ module Control.Lens.Internal.PrismTH
   ) where
 
 import Control.Applicative
+import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal.FieldTH
 import Control.Lens.Internal.TH
@@ -159,7 +160,7 @@ makeConsPrisms :: PrismRulesSelector -> Type -> [NCon] -> Maybe Name -> DecsQ
 
 -- special case: single constructor, not classy -> make iso
 makeConsPrisms prs t [con@(NCon _ Nothing _)] Nothing =
-  makeConIso (computePrismTarget prs con) t con
+  makeConIso (computePrismTarget prs t con) t con
 
 -- top-level definitions
 makeConsPrisms prs t cons Nothing =
@@ -186,33 +187,49 @@ makeConsPrisms prs t cons (Just typeName) =
 
 
 data OpticType = PrismType | ReviewType
-data PrismTarget = PrismTargetTuple [Type] | PrismTargetNewtype Name [(Name, Type)] LensRules
+data PrismTarget = PrismTargetTuple [Type] |
+  PrismTargetDataType Name [TyVarBndr] [(Name, Type)] LensRules
+
+instance HasTypeVars PrismTarget where
+  typeVarsEx s f (PrismTargetTuple ts) = PrismTargetTuple <$> typeVarsEx s f ts
+  typeVarsEx s f (PrismTargetDataType n tvs fs lr) =
+    (\x -> PrismTargetDataType n x fs lr) <$> typeVarsEx s f tvs
+
+
+instance SubstType PrismTarget where
+  substType m (PrismTargetTuple ts) = PrismTargetTuple (substType m ts)
+  substType m (PrismTargetDataType n tvs fs lr) =
+    PrismTargetDataType n
+      (substType m tvs)
+      (fs & traverse . traverse %~ substType m)
+      lr
 
 targetNumFields :: PrismTarget -> Int
 targetNumFields (PrismTargetTuple ts) = length ts
-targetNumFields (PrismTargetNewtype _ ts _) = length ts
+targetNumFields (PrismTargetDataType _ _ ts _) = length ts
 
 targetType :: PrismTarget -> TypeQ
 targetType (PrismTargetTuple ts) = toTupleT (map return ts)
-targetType (PrismTargetNewtype n _ _) = varT n
+targetType (PrismTargetDataType n tvs _ _) =
+  return $ conAppsT n (tvs ^.. typeVars . to VarT)
 
 targetPattern :: [Name] -> PrismTarget  -> PatQ
 targetPattern xs (PrismTargetTuple _) = toTupleP (map varP xs)
-targetPattern xs (PrismTargetNewtype n _ _) = conP n [toTupleP (map varP xs)]
+targetPattern xs (PrismTargetDataType n _ _ _) = conP n (map varP xs)
 
 targetConExp :: [Name] -> PrismTarget ->  ExpQ
 targetConExp xs (PrismTargetTuple _) = toTupleE (map varE xs)
-targetConExp xs (PrismTargetNewtype n _ _) = appE (conE n) (toTupleE (map varE xs))
+targetConExp xs (PrismTargetDataType n _ _ _) = appsE1 (conE n) (map varE xs)
 
 targetDecs :: PrismTarget -> DecsQ
 targetDecs (PrismTargetTuple _) = return []
-targetDecs (PrismTargetNewtype n fs rules) = do
+targetDecs (PrismTargetDataType n tvs fs rules) = do
   lds <- lensDecs
-  return $ [strippedTypeDec] ++ fieldInstances ++ lds
+  return $ [strippedTypeDec] ++ lds
   where
-    typeDec = DataD [] n [] [RecC n [(n', NotStrict, t) | (n', t) <- fs]] []
+    typeDec = DataD [] n tvs
+      [RecC n [(n', NotStrict, t) | (n', t) <- fs]] []
     strippedTypeDec = stripFields typeDec
-    fieldInstances = []
     lensDecs = makeFieldOpticsForDec rules typeDec
 
 makeTargetNames :: PrismTarget -> Q [Name]
@@ -244,23 +261,25 @@ stabType (Stab _ o _ _ _ _ _) = o
 stabTarget :: Stab -> PrismTarget
 stabTarget (Stab _ _ ta _ _ _ _) = ta
 
-computePrismTarget :: PrismRulesSelector -> NCon -> PrismTarget
-computePrismTarget prs con =
-  let maybeFields = sequence [do { n <- mn; return (n, t);}
-        | (mn, t) <- view nconFields con]
-      tys = view nconTypes con
-  in fromMaybe (PrismTargetTuple tys) $ do
+computePrismTarget :: PrismRulesSelector -> Type -> NCon -> PrismTarget
+computePrismTarget prs t con =
+  let maybeFields = sequence [do { n <- mn; return (n, t');}
+        | (mn, t') <- view nconFields con]
+      conTys = view nconTypes con
+      conTyVars = toListOf typeVars conTys
+      sortedConTyVars = filter (`elem` conTyVars) (toListOf typeVars t)
+  in fromMaybe (PrismTargetTuple conTys) $ do
       (n, lr) <- prs (view nconName con)
       fields <- maybeFields
-      return $ PrismTargetNewtype n fields lr
+      return $ PrismTargetDataType n (fmap PlainTV sortedConTyVars) fields lr
 
 computeOpticStab :: PrismRulesSelector -> Type -> [NCon] -> NCon -> Q Stab
 computeOpticStab prs t cons con =
   do let cons' = delete con cons
-         target = computePrismTarget prs con
+         target = computePrismTarget prs t con
      case view nconCxt con of
        Just xs -> computeReviewStab target t xs
-       Nothing -> computePrismStab target t cons' con
+       Nothing -> computePrismStab target t cons'
 
 computeReviewStab :: PrismTarget -> Type -> Cxt -> Q Stab
 computeReviewStab target s' cx =
@@ -274,14 +293,13 @@ computeReviewStab target s' cx =
 -- | Compute the full type-changing Prism type given an outer type,
 -- list of constructors, and target constructor name. Additionally
 -- return 'True' if the resulting type is a "simple" prism.
-computePrismStab :: PrismTarget -> Type -> [NCon] -> NCon -> Q Stab
-computePrismStab target t cons con =
-  do let ts      = view nconTypes con
-         unbound = setOf typeVars t Set.\\ setOf typeVars cons
+computePrismStab :: PrismTarget -> Type -> [NCon] -> Q Stab
+computePrismStab target t cons =
+  do let unbound = setOf typeVars t Set.\\ setOf typeVars cons
      sub <- sequenceA (fromSet (newName . nameBase) unbound)
-     b   <- targetType target
-     a   <- toTupleT (map return (substTypeVars sub ts))
-     let s = substTypeVars sub t
+     b <- targetType target
+     let a = substTypeVars sub b
+         s = substTypeVars sub t
      return (Stab [] PrismType target s t a b)
 
 computeIsoType :: PrismTarget -> Type -> TypeQ
@@ -290,7 +308,7 @@ computeIsoType target t'=
      let t = return                    t'
          s = return (substTypeVars sub t')
          b = targetType target
-         a = targetType target
+         a = substTypeVars sub <$> b
 #ifndef HLINT
          ty | Map.null sub = appsT (conT iso'TypeName) [t,b]
             | otherwise    = appsT (conT isoTypeName) [s,t,a,b]
