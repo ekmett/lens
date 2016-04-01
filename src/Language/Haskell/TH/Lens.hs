@@ -531,6 +531,16 @@ instance SubstType Type where
 instance SubstType t => SubstType [t] where
   substType = map . substType
 
+instance SubstType TyVarBndr where
+  substType m b@(PlainTV n) =
+    case substType m (VarT n) of
+      VarT n' -> PlainTV n'
+      _ -> b
+  substType m b@(KindedTV n k) =\
+    case substType m (VarT n) of
+      VarT n' -> KindedTV n' k
+      _ -> b
+
 #if !MIN_VERSION_template_haskell(2,10,0)
 instance SubstType Pred where
   substType m (ClassP n ts) = ClassP n (substType m ts)
