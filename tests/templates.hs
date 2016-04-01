@@ -411,44 +411,41 @@ checkAbbreviatedNamer :: Lens' CheckAbbreviatedNamer Int
 checkAbbreviatedNamer = fieldAbbreviatedNamer
 
 declareArgTypePrisms argTypesRulesSelector [d|
-  data ArgTypePrismTest a b =
-      ArgTypePrismTest1 {_w :: Int, _x :: Int }
-    | ArgTypePrismTest2 {_y :: Double, _z :: b}
+  data ArgTypePrismTest a b c =
+      ArgTypePrismTest1 {z1 :: Int, z2 :: Int }
+    | ArgTypePrismTest2 {z3 :: Double, z4 :: b, z5 :: a}
+    | ArgTypePrismTest3 {z6 :: a}
   |]
 
-checkArgTypePrism1Args :: ArgTypePrismTest1Args a b
-checkArgTypePrismTest1Args = ArgTypePrismTest1Args 0 0
+checkArgTypePrism1Args :: ArgTypePrismTest1Args
+checkArgTypePrism1Args = ArgTypePrismTest1Args 0 0
 
-checkArgTypePrism2Args :: ArgTypePrismTest1Args a Bool
-checkArgTypePrismTest2Args = ArgTypePrismTest1Args 0 True
+checkArgTypePrism2Args :: ArgTypePrismTest2Args Integer Bool
+checkArgTypePrism2Args = ArgTypePrismTest2Args 0 True 1
 
 checkArgTypePrism1 :: Prism
-  (ArgTypePrismTest a b)
-  (ArgTypePrismTest c d)
-  (ArgTypePrismTest1Args a b)
-  (ArgTypePrismTest1Args c d)
+  (ArgTypePrismTest a b c)
+  (ArgTypePrismTest a b d)
+  ArgTypePrismTest1Args
+  ArgTypePrismTest1Args
 checkArgTypePrism1 = _ArgTypePrismTest1
 
 checkArgTypePrism2 :: Prism
-  (ArgTypePrismTest a b)
-  (ArgTypePrismTest c d)
-  (ArgTypePrismTest1Args a b)
-  (ArgTypePrismTest1Args c d)
+  (ArgTypePrismTest a b c)
+  (ArgTypePrismTest a d e)
+  (ArgTypePrismTest2Args a b)
+  (ArgTypePrismTest2Args a d)
 checkArgTypePrism2 = _ArgTypePrismTest2
 
-checkArgTypePrism1LensW :: Lens
-  (ArgTypePrismTest1Args a b)
-  (ArgTypePrismTest1Args c d)
-  Int
-  Int
-checkArgTypePrism1LensW = w
+checkArgTypePrismLensZ1 :: Lens'  ArgTypePrismTest1Args  Int
+checkArgTypePrismLensZ1 = _z1
 
-checkArgTypePrism1LensZ :: Lens
-  (ArgTypePrismTest1Args a b)
-  (ArgTypePrismTest1Args c d)
-  b
-  d
-checkArgTypePrism1LensZ = z
+checkArgTypePrismLensZ5 :: Lens
+  (ArgTypePrismTest2Args a b)
+  (ArgTypePrismTest2Args c b)
+  a
+  c
+checkArgTypePrismLensZ5 = _z5
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
