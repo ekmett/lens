@@ -238,10 +238,19 @@ targetDecs :: PrismTarget -> DecsQ
 targetDecs (PrismTargetTuple _) = return []
 targetDecs (PrismTargetDataType n tvs fs rules) = do
   lds <- lensDecs
-  return $ [strippedTypeDec] ++ lds
+  return $ strippedTypeDec : lds
   where
-    typeDec = DataD [] n tvs
-      [RecC n [(n', NotStrict, t) | (n', t) <- fs]] []
+    typeDec =
+#if MIN_VERSION_template_haskell(2,11,0)
+      DataD [] n tvs Nothing
+        [RecC n [(n', Bang NoSourceUnpackedness NoSourceStrictness, t)
+          | (n', t) <- fs]]
+      []
+#else
+      DataD [] n tvs
+        [RecC n [(n', NotStrict, t) | (n', t) <- fs]]
+        []
+#endif
     strippedTypeDec = stripFields typeDec
     lensDecs = makeFieldOpticsForDec rules typeDec
 

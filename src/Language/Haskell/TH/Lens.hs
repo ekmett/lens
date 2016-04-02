@@ -536,7 +536,7 @@ instance SubstType TyVarBndr where
     case substType m (VarT n) of
       VarT n' -> PlainTV n'
       _ -> b
-  substType m b@(KindedTV n k) =\
+  substType m b@(KindedTV n k) =
     case substType m (VarT n) of
       VarT n' -> KindedTV n' k
       _ -> b
