@@ -285,7 +285,7 @@ stabTarget (Stab _ _ ta _ _ _ _) = ta
 
 computePrismTarget :: PrismRulesSelector -> Type -> NCon -> PrismTarget
 computePrismTarget prs t con =
-  let maybeFields = sequence [do { n <- mn; return (n, t');}
+  let maybeFields = sequenceA [do { n <- mn; return (n, t');}
         | (mn, t') <- view nconFields con]
       conTys = view nconTypes con
       conTyVars = toListOf typeVars conTys
