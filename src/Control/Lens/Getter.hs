@@ -48,6 +48,16 @@
 -- Since it is only a function, every 'Getter' obviously only retrieves a
 -- single value for a given input.
 --
+-- A common question is whether you can combine multiple 'Getter's to
+-- retrieve multiple values. Recall that all 'Getter's are 'Fold's and that
+-- we have a @'Monoid' m => 'Applicative' ('Const' m)@ instance to play
+-- with. Knowing this, we can use @'Data.Monoid.<>'@ to glue 'Fold's
+-- together:
+--
+-- >>> import Data.Monoid
+-- >>> (1, 2, 3, 4, 5) ^.. (_2 <> _3 <> _5)
+-- [2,3,5]
+--
 -------------------------------------------------------------------------------
 module Control.Lens.Getter
   (
