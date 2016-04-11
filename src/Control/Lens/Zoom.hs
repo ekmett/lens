@@ -52,6 +52,7 @@ import Control.Monad.Trans.Except
 import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Free
 import Data.Monoid
 import Data.Profunctor.Unsafe
 import Prelude
@@ -91,6 +92,7 @@ type instance Zoomed (ListT m) = FocusingOn [] (Zoomed m)
 type instance Zoomed (MaybeT m) = FocusingMay (Zoomed m)
 type instance Zoomed (ErrorT e m) = FocusingErr e (Zoomed m)
 type instance Zoomed (ExceptT e m) = FocusingErr e (Zoomed m)
+type instance Zoomed (FreeT f m) = FocusingFree f m (Zoomed m)
 
 ------------------------------------------------------------------------------
 -- Magnified
@@ -111,7 +113,7 @@ type instance Magnified (IdentityT m) = Magnified m
 -- | This class allows us to use 'zoom' in, changing the 'State' supplied by
 -- many different 'Control.Monad.Monad' transformers, potentially quite
 -- deep in a 'Monad' transformer stack.
-class (Zoomed m ~ Zoomed n, MonadState s m, MonadState t n) => Zoom m n s t | m -> s, n -> t, m t -> n, n s -> m where
+class (MonadState s m, MonadState t n) => Zoom m n s t | m -> s, n -> t, m t -> n, n s -> m where
   -- | Run a monadic action in a larger 'State' than it was defined in,
   -- using a 'Lens'' or 'Control.Lens.Traversal.Traversal''.
   --
@@ -197,6 +199,9 @@ instance (Error e, Zoom m n s t) => Zoom (ErrorT e m) (ErrorT e n) s t where
 instance Zoom m n s t => Zoom (ExceptT e m) (ExceptT e n) s t where
   zoom l = ExceptT . liftM getErr . zoom (\afb -> unfocusingErr #. l (FocusingErr #. afb)) . liftM Err . runExceptT
   {-# INLINE zoom #-}
+
+instance (Functor f, Zoom m n s t) => Zoom (FreeT f m) (FreeT f n) s t where
+  zoom l = FreeT . fmap (fmap $ zoom l) . zoom (\afb -> unfocusingFree #. l (FocusingFree #. afb)) . runFreeT
 
 ------------------------------------------------------------------------------
 -- Magnify
