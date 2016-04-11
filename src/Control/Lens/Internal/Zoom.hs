@@ -232,6 +232,20 @@ instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
 -- 'Control.Monad.Trans.FreeT'
 newtype FocusingFree f m k s a = FocusingFree { unfocusingFree :: k (FreeF f s (FreeT f m s)) a }
 
+instance Functor (k (FreeF f s (FreeT f m s))) => Functor (FocusingFree f m k s) where
+  fmap f (FocusingFree as) = FocusingFree (fmap f as)
+  {-# INLINE fmap #-}
+
+instance Apply (k (FreeF f s (FreeT f m s))) => Apply (FocusingFree f m k s) where
+  FocusingFree kf <.> FocusingFree ka = FocusingFree (kf <.> ka)
+  {-# INLINE (<.>) #-}
+
+instance Applicative (k (FreeF f s (FreeT f m s))) => Applicative (FocusingFree f m k s) where
+  pure = FocusingFree . pure
+  {-# INLINE pure #-}
+  FocusingFree kf <*> FocusingFree ka = FocusingFree (kf <*> ka)
+  {-# INLINE (<*>) #-}
+
 -----------------------------------------------------------------------------
 --- Effect
 -------------------------------------------------------------------------------
