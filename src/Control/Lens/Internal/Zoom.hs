@@ -24,6 +24,7 @@ module Control.Lens.Internal.Zoom
   , FocusingOn(..)
   , FocusingMay(..), May(..)
   , FocusingErr(..), Err(..)
+  , FocusingFree(..)
   -- * Magnify
   , Effect(..)
   , EffectRWS(..)
@@ -33,6 +34,7 @@ import Control.Applicative
 import Control.Category
 import Control.Comonad
 import Control.Monad.Reader as Reader
+import Control.Monad.Trans.Free
 import Data.Functor.Bind
 import Data.Functor.Contravariant
 import Data.Semigroup
@@ -221,6 +223,14 @@ instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
   {-# INLINE pure #-}
   FocusingErr kf <*> FocusingErr ka = FocusingErr (kf <*> ka)
   {-# INLINE (<*>) #-}
+
+------------------------------------------------------------------------------
+-- FocusingFree
+------------------------------------------------------------------------------
+
+-- | Used by 'Control.Lens.Zoom.Zoom' to 'Control.Lens.Zoom.zoom' into
+-- 'Control.Monad.Trans.FreeT'
+newtype FocusingFree f m k s a = FocusingFree { unfocusingFree :: k (FreeF f s (FreeT f m s)) a }
 
 -----------------------------------------------------------------------------
 --- Effect
