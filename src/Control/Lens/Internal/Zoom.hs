@@ -24,7 +24,7 @@ module Control.Lens.Internal.Zoom
   , FocusingOn(..)
   , FocusingMay(..), May(..)
   , FocusingErr(..), Err(..)
-  , FocusingFree(..)
+  , FocusingFree(..), Freed(..)
   -- * Magnify
   , Effect(..)
   , EffectRWS(..)
@@ -225,22 +225,44 @@ instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
   {-# INLINE (<*>) #-}
 
 ------------------------------------------------------------------------------
+-- Freed
+------------------------------------------------------------------------------
+
+-- | Make a 'Monoid' out of 'FreeF' for result collection.
+
+newtype Freed f m a = Freed { getFreed :: FreeF f a (FreeT f m a) }
+
+instance (Applicative f, Semigroup a, Monad m) => Semigroup (Freed f m a) where
+  Freed (Pure a) <> Freed (Pure b) = Freed $ Pure $ a <> b
+  Freed (Pure a) <> Freed (Free g) = Freed $ Free $ liftA2 (liftM2 (<>)) (pure $ return a) g
+  Freed (Free f) <> Freed (Pure b) = Freed $ Free $ liftA2 (liftM2 (<>)) f (pure $ return b)
+  Freed (Free f) <> Freed (Free g) = Freed $ Free $ liftA2 (liftM2 (<>)) f g
+
+instance (Applicative f, Monoid a, Monad m) => Monoid (Freed f m a) where
+  mempty = Freed $ Pure $ mempty
+
+  Freed (Pure a) `mappend` Freed (Pure b) = Freed $ Pure $ a `mappend` b
+  Freed (Pure a) `mappend` Freed (Free g) = Freed $ Free $ liftA2 (liftM2 mappend) (pure $ return a) g
+  Freed (Free f) `mappend` Freed (Pure b) = Freed $ Free $ liftA2 (liftM2 mappend) f (pure $ return b)
+  Freed (Free f) `mappend` Freed (Free g) = Freed $ Free $ liftA2 (liftM2 mappend) f g
+
+------------------------------------------------------------------------------
 -- FocusingFree
 ------------------------------------------------------------------------------
 
 -- | Used by 'Control.Lens.Zoom.Zoom' to 'Control.Lens.Zoom.zoom' into
 -- 'Control.Monad.Trans.FreeT'
-newtype FocusingFree f m k s a = FocusingFree { unfocusingFree :: k (FreeF f s (FreeT f m s)) a }
+newtype FocusingFree f m k s a = FocusingFree { unfocusingFree :: k (Freed f m s) a }
 
-instance Functor (k (FreeF f s (FreeT f m s))) => Functor (FocusingFree f m k s) where
+instance Functor (k (Freed f m s)) => Functor (FocusingFree f m k s) where
   fmap f (FocusingFree as) = FocusingFree (fmap f as)
   {-# INLINE fmap #-}
 
-instance Apply (k (FreeF f s (FreeT f m s))) => Apply (FocusingFree f m k s) where
+instance Apply (k (Freed f m s)) => Apply (FocusingFree f m k s) where
   FocusingFree kf <.> FocusingFree ka = FocusingFree (kf <.> ka)
   {-# INLINE (<.>) #-}
 
-instance Applicative (k (FreeF f s (FreeT f m s))) => Applicative (FocusingFree f m k s) where
+instance Applicative (k (Freed f m s)) => Applicative (FocusingFree f m k s) where
   pure = FocusingFree . pure
   {-# INLINE pure #-}
   FocusingFree kf <*> FocusingFree ka = FocusingFree (kf <*> ka)

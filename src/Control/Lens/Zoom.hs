@@ -201,7 +201,7 @@ instance Zoom m n s t => Zoom (ExceptT e m) (ExceptT e n) s t where
   {-# INLINE zoom #-}
 
 instance (Functor f, Zoom m n s t) => Zoom (FreeT f m) (FreeT f n) s t where
-  zoom l = FreeT . fmap (fmap $ zoom l) . zoom (\afb -> unfocusingFree #. l (FocusingFree #. afb)) . runFreeT
+  zoom l = FreeT . fmap (fmap $ zoom l) . liftM getFreed . zoom (\afb -> unfocusingFree #. l (FocusingFree #. afb)) . liftM Freed . runFreeT
 
 ------------------------------------------------------------------------------
 -- Magnify
