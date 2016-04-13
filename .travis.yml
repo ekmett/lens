@@ -23,10 +23,7 @@ matrix:
     - env: CABALVER=1.24 GHCVER=7.8.4
       compiler: ": #GHC 7.8.4"
       addons: {apt: {packages: [cabal-install-1.24,ghc-7.8.4,alex-3.1.7,happy-1.19.5], sources: [hvr-ghc]}}
-    - env: CABALVER=1.24 GHCVER=7.10.1
-      compiler: ": #GHC 7.10.1"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-7.10.1,alex-3.1.7,happy-1.19.5], sources: [hvr-ghc]}}
-    - env: CABALVER=1.24 GHCVER=7.10.2
+    - env: CABALVER=1.24 GHCVER=7.10.3
       compiler: ": #GHC 7.10.2"
       addons: {apt: {packages: [cabal-install-1.24,ghc-7.10.2,alex-3.1.7,happy-1.19.5], sources: [hvr-ghc]}}
     - env: CABALVER=1.24 GHCVER=8.0.1
@@ -64,6 +61,7 @@ script:
  # there's no 'cabal new-test' yet, so let's emulate for now
  - TESTS=( $(awk 'tolower($0) ~ /^test-suite / { print $2 }' *.cabal) );
    RC=true; for T in ${TESTS[@]}; do echo "== $T ==";
+   [ -x dist-newstyle/build/*/build/$T/$T ] || continue;
    if dist-newstyle/build/*/build/$T/$T; then echo "= $T OK =";
    else echo "= $T FAILED ="; RC=false; fi; done; $RC
  - cabal sdist # test that a source-distribution can be generated
