@@ -42,6 +42,7 @@ before_install:
 install:
  - cabal --version
  - BENCH=${BENCH---enable-benchmarks}
+ - BENCH=--disable-benchmarks # seems broken
  - TEST=${TEST---enable-tests}
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
  - if [ -f $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz ];
