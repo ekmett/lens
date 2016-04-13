@@ -41,6 +41,7 @@ install:
  - BENCH=${BENCH---enable-benchmarks}
  - BENCH=--disable-benchmarks # seems broken
  - TEST=${TEST---enable-tests}
+ - TEST=--disable-tests
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
  - if [ -f $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz ];
    then
@@ -61,7 +62,7 @@ script:
  # there's no 'cabal new-test' yet, so let's emulate for now
  - TESTS=( $(awk 'tolower($0) ~ /^test-suite / { print $2 }' *.cabal) );
    RC=true; for T in ${TESTS[@]}; do echo "== $T ==";
-   [ -x dist-newstyle/build/*/build/$T/$T ] || continue;
+   if [ ! -x dist-newstyle/build/*/build/$T/$T ]; then echo "skipped"; continue; fi;
    if dist-newstyle/build/*/build/$T/$T; then echo "= $T OK =";
    else echo "= $T FAILED ="; RC=false; fi; done; $RC
  - cabal sdist # test that a source-distribution can be generated
@@ -72,7 +73,6 @@ script:
  - "echo 'packages: *.cabal' > dist/$SRC_BASENAME/cabal.project"
  - cd dist/$SRC_BASENAME/
  - cabal new-build --disable-tests --disable-benchmarks
- - rm -rf ./dist-newstyle
  - cabal new-build ${TEST} ${BENCH}
 
 # EOF
