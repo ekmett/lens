@@ -239,7 +239,7 @@ instance (Applicative f, Semigroup a, Monad m) => Semigroup (Freed f m a) where
   Freed (Free f) <> Freed (Free g) = Freed $ Free $ liftA2 (liftM2 (<>)) f g
 
 instance (Applicative f, Monoid a, Monad m) => Monoid (Freed f m a) where
-  mempty = Freed $ Pure $ mempty
+  mempty = Freed $ Pure mempty
 
   Freed (Pure a) `mappend` Freed (Pure b) = Freed $ Pure $ a `mappend` b
   Freed (Pure a) `mappend` Freed (Free g) = Freed $ Free $ liftA2 (liftM2 mappend) (pure $ return a) g
