@@ -50,6 +50,8 @@ install:
    fi
  - travis_retry cabal update -v
  - sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config
+ # workaround for older GHCs
+ - cabal new-configure --constraint 'Cabal >= 1.18'
  - cabal new-build ${TEST} ${BENCH} --dep -j3
 
 # Here starts the actual work to be performed for the package under test;
@@ -72,6 +74,7 @@ script:
  - tar -C dist/ -xf dist/$SRC_BASENAME.tar.gz
  - "echo 'packages: *.cabal' > dist/$SRC_BASENAME/cabal.project"
  - cd dist/$SRC_BASENAME/
+ - cabal new-configure --constraint 'Cabal >= 1.18'
  - cabal new-build --disable-tests --disable-benchmarks
  - cabal new-build ${TEST} ${BENCH}
 
