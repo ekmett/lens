@@ -848,12 +848,21 @@ _ClassD
       remitter (ClassD x y z w u) = Just (x, y, z, w, u)
       remitter _ = Nothing
 
-_InstanceD :: Prism' Dec (Cxt, Type, [Dec])
+#if MIN_VERSION_template_haskell(2,11,0)
+_InstanceD :: Prism' Dec (Maybe Overlap,Cxt, Type, [Dec])
+#else
+_InstanceD :: Prism' Dec (Maybe Overlap,Cxt, Type, [Dec])
+#endif
 _InstanceD
   = prism' reviewer remitter
   where
+#if MIN_VERSION_template_haskell(2,11,0)
+      reviewer (mov, x, y, z) = InstanceD mov x y z
+      remitter (InstanceD mov x y z) = Just (mov, x, y, z)
+#else
       reviewer (x, y, z) = InstanceD x y z
-      remitter (InstanceD x y z) = Just (x, y, z)
+      remitter (InstanceD x y z) = Just ( x, y, z)
+#endif
       remitter _ = Nothing
 
 _SigD :: Prism' Dec (Name, Type)
