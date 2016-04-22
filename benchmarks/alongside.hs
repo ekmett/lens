@@ -70,22 +70,20 @@ half l r pfq (s,s') = fmap (\(b,t') -> (peekContext b x,t')) (getCompose (r (\a'
 -- alongside' :: Lens s t a b -> Lens s' t' a' b' -> Lens (s,s') (t,t') (a,a') (b,b')
 -- {-# INLINE alongside'#-}
 
-compound :: Lens s t a b
-         -> Lens s' t' a' b'
-         -> Lens (s,s') (t,t') (a,a') (b,b')
+compound :: Lens' s a
+         -> Lens' s' a'
+         -> Lens' (s,s') (a,a')
 compound l r = lens (\(s, s') -> (view l s, view r s'))
                     (\(s, s') (t, t') -> (set l t s, set r t' s'))
 {-# INLINE compound #-}
 
-compound5 :: Lens s t a b
-          -> Lens s' t' a' b'
-          -> Lens s'' t'' a'' b''
-          -> Lens s''' t''' a''' b'''
-          -> Lens s'''' t'''' a'''' b''''
-          -> Lens (s, (s', (s'', (s''', s''''))))
-                  (t, (t', (t'', (t''', t''''))))
+compound5 :: Lens' s a
+          -> Lens' s' a'
+          -> Lens' s'' a''
+          -> Lens' s''' a'''
+          -> Lens' s'''' a''''
+          -> Lens' (s, (s', (s'', (s''', s''''))))
                   (a, (a', (a'', (a''', a''''))))
-                  (b, (b', (b'', (b''', b''''))))
 compound5 l l' l'' l''' l''''
   = lens (\(s, (s', (s'', (s''', s''''))))
            -> (view l s, (view l' s', (view l'' s'', (view l''' s''', view l'''' s'''')))) )

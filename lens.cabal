@@ -452,8 +452,7 @@ benchmark alongside
   hs-source-dirs: benchmarks
   build-depends:
     base,
-    comonad,
-    comonads-fd,
+    comonad >= 4,
     criterion,
     deepseq,
     lens,
@@ -497,25 +496,8 @@ benchmark unsafe
   hs-source-dirs: benchmarks
   build-depends:
     base,
-    comonad,
-    comonads-fd,
-    criterion,
-    deepseq,
-    generic-deriving,
-    lens,
-    transformers
-
--- Benchmarking zipper usage
-benchmark zipper
-  type:           exitcode-stdio-1.0
-  main-is:        zipper.hs
-  ghc-options:    -w -O2 -threaded -fdicts-cheap -funbox-strict-fields
-  hs-source-dirs: benchmarks
-  build-depends:
-    base,
-    comonad,
-    comonads-fd,
-    criterion,
+    comonad >= 4,
+    criterion >= 1,
     deepseq,
     generic-deriving,
     lens,

@@ -6,16 +6,18 @@ import Control.Lens.Internal
 import Control.Exception
 
 import Criterion.Main
-import Criterion.Config
+import Criterion.Types (Config(..))
+
+import Data.Functor.Identity (Identity(..))
 
 import GHC.Exts
 
 overS :: ASetter s t a b -> (a -> b) -> s -> t
-overS l f = runMutator . l (Mutator . f)
+overS l f = runIdentity . l (Identity . f)
 {-# INLINE overS #-}
 
 mappedS :: ASetter [a] [b] a b
-mappedS f = Mutator . map (runMutator . f)
+mappedS f = Identity . map (runIdentity . f)
 {-# INLINE mappedS #-}
 
 overU :: ASetter s t a b -> (a -> b) -> s -> t
@@ -53,11 +55,11 @@ main = do
         --l = replicate n ();   f = (\ _ -> ())
         --l = replicate n ();   f = (\ !_ -> ()) -- strange results
         --l = replicate n ();   f = lazy (\_ -> ())
-    defaultMainWith config (return ())
+    defaultMainWith config
         [ bench "map   safe noinline" $ nf (mapSN f) l
         , bench "map   safe   inline" $ nf (mapSI f) l
         , bench "map unsafe noinline" $ nf (mapUN f) l
         , bench "map unsafe   inline" $ nf (mapUI f) l
         ]
   where
-    config = defaultConfig { cfgSamples = ljust 1000 }
+    config = defaultConfig { resamples = 1000 }
