@@ -125,6 +125,13 @@ module Language.Haskell.TH.Lens
   , _RecGadtC
 #endif
 #if MIN_VERSION_template_haskell(2,11,0)
+  -- ** Overlap Prisms
+  ,_Overlappable
+  ,_Overlapping
+  ,_Overlaps
+  ,_Incoherent
+#endif
+#if MIN_VERSION_template_haskell(2,11,0)
   -- ** SourceUnpackedness Prisms
   , _NoSourceUnpackedness
   , _SourceNoUnpack
@@ -864,6 +871,39 @@ _InstanceD
       remitter (InstanceD x y z) = Just ( x, y, z)
 #endif
       remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,11,0)
+
+--data Overlap =
+_Overlappable  :: Prism' Overlap  ()
+_Overlappable  = prism' reviewer remitter
+  where
+      reviewer () = Overlappable
+      remitter Overlappable = Just  ()
+      remitter _ = Nothing  -- ^ May be overlapped by more specific instances
+
+_Overlapping :: Prism' Overlap ()
+_Overlapping = prism' reviewer remitter
+  where
+      reviewer () = Overlapping
+      remitter Overlapping = Just ()
+      remitter _ = Nothing
+   -- ^ May overlap a more general instance
+_Overlaps ::  Prism' Overlap  ()
+_Overlaps =  prism' reviewer remitter
+  where
+      reviewer () =  Overlaps
+      remitter Overlaps = Just ()
+      remitter _ = Nothing       -- ^ Both 'Overlapping' and 'Overlappable'
+_Incoherent  :: Prism' Overlap ()
+_Incoherent  = prism' reviewer remitter
+  where
+      reviewer () = Incoherent
+      remitter Incoherent = Just ()
+      remitter _ = Nothing
+
+#endif
+
 
 _SigD :: Prism' Dec (Name, Type)
 _SigD
