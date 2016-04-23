@@ -851,7 +851,7 @@ _ClassD
 #if MIN_VERSION_template_haskell(2,11,0)
 _InstanceD :: Prism' Dec (Maybe Overlap,Cxt, Type, [Dec])
 #else
-_InstanceD :: Prism' Dec (Maybe Overlap,Cxt, Type, [Dec])
+_InstanceD :: Prism' Dec (Cxt, Type, [Dec])
 #endif
 _InstanceD
   = prism' reviewer remitter
