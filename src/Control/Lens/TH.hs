@@ -797,8 +797,11 @@ traverseDataAndNewtype f decs = traverse go decs
 
       -- Recurse into instance declarations because they main contain
       -- associated data family instances.
-      InstanceD ctx inst body -> InstanceD ctx inst <$> traverse go body
-
+#if MIN_VERSION_template_haskell(2,11,0)
+      InstanceD moverlap ctx inst body -> InstanceD moverlap ctx inst <$> traverse go body
+#else
+      InstanceD ctx inst body -> InstanceD  ctx inst <$> traverse go body
+#endif
       _ -> pure dec
 
 stripFields :: Dec -> Dec
