@@ -1,3 +1,7 @@
+4.14
+----
+* Remove `Cons` and `Snoc` instances for `NonEmpty`.
+
 4.13.2.1
 ------
 * Fixed `itraverse_` and `imapM_` returning bottom
