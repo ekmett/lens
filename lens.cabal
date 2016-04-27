@@ -91,6 +91,7 @@ extra-source-files:
   .travis.yml
   .gitignore
   .vim.custom
+  cabal.project
   examples/LICENSE
   examples/lens-examples.cabal
   examples/*.hs
