@@ -100,6 +100,7 @@ import Prelude
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Avoid lambda" #-}
+{-# ANN module "HLint: ignore Use fmap" #-}
 #endif
 
 -- $setup

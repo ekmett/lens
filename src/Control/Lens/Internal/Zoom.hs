@@ -1,9 +1,11 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE Safe #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
+
+#if __GLASGOW_HASKELL__ < 708
+{-# LANGUAGE Trustworthy #-}
+#endif
 
 {-# OPTIONS_GHC -fno-warn-orphans -fno-warn-warnings-deprecations #-}
 -----------------------------------------------------------------------------
@@ -19,15 +21,14 @@
 module Control.Lens.Internal.Zoom
   (
   -- * Zoom
-    Zoomed
-  , Focusing(..)
+    Focusing(..)
   , FocusingWith(..)
   , FocusingPlus(..)
   , FocusingOn(..)
   , FocusingMay(..), May(..)
   , FocusingErr(..), Err(..)
+  , FocusingFree(..), Freed(..)
   -- * Magnify
-  , Magnified
   , Effect(..)
   , EffectRWS(..)
   ) where
@@ -36,40 +37,11 @@ import Control.Applicative
 import Control.Category
 import Control.Comonad
 import Control.Monad.Reader as Reader
-import Control.Monad.Trans.State.Lazy as Lazy
-import Control.Monad.Trans.State.Strict as Strict
-import Control.Monad.Trans.Writer.Lazy as Lazy
-import Control.Monad.Trans.Writer.Strict as Strict
-import Control.Monad.Trans.RWS.Lazy as Lazy
-import Control.Monad.Trans.RWS.Strict as Strict
-import Control.Monad.Trans.Error
-import Control.Monad.Trans.Except
-import Control.Monad.Trans.List
-import Control.Monad.Trans.Identity
-import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Free
 import Data.Functor.Bind
 import Data.Functor.Contravariant
 import Data.Semigroup
 import Prelude hiding ((.),id)
-
-------------------------------------------------------------------------------
--- Zoomed
-------------------------------------------------------------------------------
-
--- | This type family is used by 'Control.Lens.Zoom.Zoom' to describe the common effect type.
-type family Zoomed (m :: * -> *) :: * -> * -> *
-type instance Zoomed (Strict.StateT s z) = Focusing z
-type instance Zoomed (Lazy.StateT s z) = Focusing z
-type instance Zoomed (ReaderT e m) = Zoomed m
-type instance Zoomed (IdentityT m) = Zoomed m
-type instance Zoomed (Strict.RWST r w s z) = FocusingWith w z
-type instance Zoomed (Lazy.RWST r w s z) = FocusingWith w z
-type instance Zoomed (Strict.WriterT w m) = FocusingPlus w (Zoomed m)
-type instance Zoomed (Lazy.WriterT w m) = FocusingPlus w (Zoomed m)
-type instance Zoomed (ListT m) = FocusingOn [] (Zoomed m)
-type instance Zoomed (MaybeT m) = FocusingMay (Zoomed m)
-type instance Zoomed (ErrorT e m) = FocusingErr e (Zoomed m)
-type instance Zoomed (ExceptT e m) = FocusingErr e (Zoomed m)
 
 ------------------------------------------------------------------------------
 -- Focusing
@@ -256,16 +228,48 @@ instance Applicative (k (Err e s)) => Applicative (FocusingErr e k s) where
   {-# INLINE (<*>) #-}
 
 ------------------------------------------------------------------------------
--- Magnified
+-- Freed
 ------------------------------------------------------------------------------
 
--- | This type family is used by 'Control.Lens.Zoom.Magnify' to describe the common effect type.
-type family Magnified (m :: * -> *) :: * -> * -> *
-type instance Magnified (ReaderT b m) = Effect m
-type instance Magnified ((->)b) = Const
-type instance Magnified (Strict.RWST a w s m) = EffectRWS w s m
-type instance Magnified (Lazy.RWST a w s m) = EffectRWS w s m
-type instance Magnified (IdentityT m) = Magnified m
+-- | Make a 'Monoid' out of 'FreeF' for result collection.
+
+newtype Freed f m a = Freed { getFreed :: FreeF f a (FreeT f m a) }
+
+instance (Applicative f, Semigroup a, Monad m) => Semigroup (Freed f m a) where
+  Freed (Pure a) <> Freed (Pure b) = Freed $ Pure $ a <> b
+  Freed (Pure a) <> Freed (Free g) = Freed $ Free $ liftA2 (liftM2 (<>)) (pure $ return a) g
+  Freed (Free f) <> Freed (Pure b) = Freed $ Free $ liftA2 (liftM2 (<>)) f (pure $ return b)
+  Freed (Free f) <> Freed (Free g) = Freed $ Free $ liftA2 (liftM2 (<>)) f g
+
+instance (Applicative f, Monoid a, Monad m) => Monoid (Freed f m a) where
+  mempty = Freed $ Pure mempty
+
+  Freed (Pure a) `mappend` Freed (Pure b) = Freed $ Pure $ a `mappend` b
+  Freed (Pure a) `mappend` Freed (Free g) = Freed $ Free $ liftA2 (liftM2 mappend) (pure $ return a) g
+  Freed (Free f) `mappend` Freed (Pure b) = Freed $ Free $ liftA2 (liftM2 mappend) f (pure $ return b)
+  Freed (Free f) `mappend` Freed (Free g) = Freed $ Free $ liftA2 (liftM2 mappend) f g
+
+------------------------------------------------------------------------------
+-- FocusingFree
+------------------------------------------------------------------------------
+
+-- | Used by 'Control.Lens.Zoom.Zoom' to 'Control.Lens.Zoom.zoom' into
+-- 'Control.Monad.Trans.FreeT'
+newtype FocusingFree f m k s a = FocusingFree { unfocusingFree :: k (Freed f m s) a }
+
+instance Functor (k (Freed f m s)) => Functor (FocusingFree f m k s) where
+  fmap f (FocusingFree as) = FocusingFree (fmap f as)
+  {-# INLINE fmap #-}
+
+instance Apply (k (Freed f m s)) => Apply (FocusingFree f m k s) where
+  FocusingFree kf <.> FocusingFree ka = FocusingFree (kf <.> ka)
+  {-# INLINE (<.>) #-}
+
+instance Applicative (k (Freed f m s)) => Applicative (FocusingFree f m k s) where
+  pure = FocusingFree . pure
+  {-# INLINE pure #-}
+  FocusingFree kf <*> FocusingFree ka = FocusingFree (kf <*> ka)
+  {-# INLINE (<*>) #-}
 
 -----------------------------------------------------------------------------
 --- Effect

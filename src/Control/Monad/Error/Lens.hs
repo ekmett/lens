@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -36,6 +37,10 @@ import Data.Functor.Plus
 import qualified Data.Monoid as M
 import Data.Semigroup (Semigroup(..))
 import Prelude
+
+#ifdef HLINT
+{-# ANN module "HLint: ignore Use fmap" #-}
+#endif
 
 ------------------------------------------------------------------------------
 -- Catching

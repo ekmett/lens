@@ -133,7 +133,7 @@ makeDecPrisms normal dec = case dec of
   convertTVBs = map (VarT . bndrName)
 
   next ty args cons =
-    makeConsPrisms (conAppsT ty args) (map normalizeCon cons) cls
+    makeConsPrisms (conAppsT ty args) (concatMap normalizeCon cons) cls
     where
     cls | normal    = Nothing
         | otherwise = Just ty
@@ -473,20 +473,22 @@ nconTypes :: Lens' NCon [Type]
 nconTypes f x = fmap (\y -> x {_nconTypes = y}) (f (_nconTypes x))
 
 
--- | Normalize 'Con' to its constructor name and field types. For 'GadtC' and
--- 'RecGadtC', it takes the leftmost name.
-normalizeCon :: Con -> NCon
-normalizeCon (RecC    conName xs) = NCon conName Nothing (map (view _3) xs)
-normalizeCon (NormalC conName xs) = NCon conName Nothing (map (view _2) xs)
-normalizeCon (InfixC (_,x) conName (_,y)) = NCon conName Nothing [x,y]
+-- | Normalize a single 'Con' to its constructor name and field types.
+-- Because GADT syntax allows multiple constructors to be defined at
+-- the same time, this function can return multiple normalized results.
+normalizeCon :: Con -> [NCon]
+normalizeCon (RecC    conName xs) = [NCon conName Nothing (map (view _3) xs)]
+normalizeCon (NormalC conName xs) = [NCon conName Nothing (map (view _2) xs)]
+normalizeCon (InfixC (_,x) conName (_,y)) = [NCon conName Nothing [x,y]]
 normalizeCon (ForallC [] [] con) = normalizeCon con -- happens in GADTs
-normalizeCon (ForallC _ cx con) = NCon n (cx1 <> cx2) tys
-  where
-  cx1 = Just cx
-  NCon n cx2 tys = normalizeCon con
+normalizeCon (ForallC _ cx1 con) =
+  [NCon n (Just cx1 <> cx2) tys
+     | NCon n cx2 tys <- normalizeCon con ]
 #if MIN_VERSION_template_haskell(2,11,0)
-normalizeCon (GadtC conNames xs _)    = NCon (head conNames) Nothing (map (view _2) xs)
-normalizeCon (RecGadtC conNames xs _) = NCon (head conNames) Nothing (map (view _3) xs)
+normalizeCon (GadtC conNames xs _)    =
+  [ NCon conName Nothing (map (view _2) xs) | conName <- conNames ]
+normalizeCon (RecGadtC conNames xs _) =
+  [ NCon conName Nothing (map (view _3) xs) | conName <- conNames ]
 #endif
 
 -- | Compute a prism's name by prefixing an underscore for normal

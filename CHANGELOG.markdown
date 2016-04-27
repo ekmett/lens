@@ -1,3 +1,17 @@
+4.14
+----
+* Remove `Cons` and `Snoc` instances for `NonEmpty`.
+
+4.13.2.1
+------
+* Fixed `itraverse_` and `imapM_` returning bottom
+
+4.13.2
+------
+* Restore default signature for `Control.Lens.At.at`
+* Improve operations for `Data.Sequence.Seq`
+* Fix `declarePrisms` behavior on GHC 8 using GADT record syntax
+
 4.13.1
 ------
 * Modified to enable the `doctests` to build with `stack`.

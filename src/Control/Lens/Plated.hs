@@ -218,10 +218,8 @@ class Plated a where
   -- 'plate' will default to 'uniplate' and you can choose to not override
   -- it with your own definition.
   plate :: Traversal' a a
-#ifndef HLINT
   default plate :: Data a => Traversal' a a
   plate = uniplate
-#endif
 
 instance Plated [a] where
   plate f (x:xs) = (x:) <$> f xs

@@ -16,6 +16,10 @@
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 #endif
 
+#ifndef MIN_VERSION_base
+#define MIN_VERSION_base(x,y,z) 1
+#endif
+
 #ifndef MIN_VERSION_containers
 #define MIN_VERSION_containers(x,y,z) 1
 #endif
@@ -116,14 +120,19 @@ import Data.Monoid hiding (Product)
 import Data.Profunctor.Unsafe
 import Data.Reflection
 import Data.Sequence hiding ((:<), index)
-#if !(MIN_VERSION_containers(0,5,0))
-import Data.Traversable (sequenceA)
-#endif
 import Data.Tree
 import Data.Tuple (swap)
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 import Prelude
+
+#if !(MIN_VERSION_base(4,8,0))
+import Data.Traversable (sequenceA)
+#endif
+
+#ifdef HLINT
+{-# ANN module "HLint: ignore Use fmap" #-}
+#endif
 
 infixr 9 <.>, <., .>
 
@@ -231,11 +240,9 @@ index j f = Indexed $ \i a -> if j == i then indexed f i a else pure a
 class Functor f => FunctorWithIndex i f | f -> i where
   -- | Map with access to the index.
   imap :: (i -> a -> b) -> f a -> f b
-#ifndef HLINT
   default imap :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
   imap = iover itraversed
   {-# INLINE imap #-}
-#endif
 
   -- | The 'IndexedSetter' for a 'FunctorWithIndex'.
   --
@@ -372,7 +379,7 @@ none f = not . Data.Foldable.any f
 -- 'traverse_' l = 'itraverse' '.' 'const'
 -- @
 itraverse_ :: (FoldableWithIndex i t, Applicative f) => (i -> a -> f b) -> t a -> f ()
-itraverse_ f = getTraversed #. ifoldMap (\i -> Traversed #. void . f i)
+itraverse_ f = void . getTraversed #. ifoldMap (\i -> Traversed #. f i)
 {-# INLINE itraverse_ #-}
 
 -- | Traverse elements with access to the index @i@, discarding the results (with the arguments flipped).
@@ -399,7 +406,7 @@ ifor_ = flip itraverse_
 -- 'mapM_' ≡ 'imapM' '.' 'const'
 -- @
 imapM_ :: (FoldableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m ()
-imapM_ f = getSequenced #. ifoldMap (\i -> Sequenced #. liftM skip . f i)
+imapM_ f = liftM skip . getSequenced #. ifoldMap (\i -> Sequenced #. f i)
 {-# INLINE imapM_ #-}
 
 -- | Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
@@ -640,11 +647,17 @@ instance TraversableWithIndex () Maybe where
   {-# INLINE itraverse #-}
 
 -- | The position in the 'Seq' is available as the index.
-instance FunctorWithIndex Int Seq
-instance FoldableWithIndex Int Seq
+instance FunctorWithIndex Int Seq where
+  imap = mapWithIndex
+instance FoldableWithIndex Int Seq where
+  ifoldMap f = Data.Foldable.fold . mapWithIndex f
+  ifoldr = foldrWithIndex
+  ifoldl f = foldlWithIndex (flip f)
+  {-# INLINE ifoldl #-}
 instance TraversableWithIndex Int Seq where
-  itraversed = traversed
-  {-# INLINE itraversed #-}
+-- The next version of containers will probably offer traverseWithIndex;
+-- when that comes out, it should be used for this.
+  itraverse f = sequenceA . mapWithIndex f
 
 instance FunctorWithIndex Int Vector where
   imap = V.imap

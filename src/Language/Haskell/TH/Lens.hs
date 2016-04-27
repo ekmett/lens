@@ -125,6 +125,13 @@ module Language.Haskell.TH.Lens
   , _RecGadtC
 #endif
 #if MIN_VERSION_template_haskell(2,11,0)
+  -- ** Overlap Prisms
+  ,_Overlappable
+  ,_Overlapping
+  ,_Overlaps
+  ,_Incoherent
+#endif
+#if MIN_VERSION_template_haskell(2,11,0)
   -- ** SourceUnpackedness Prisms
   , _NoSourceUnpackedness
   , _SourceNoUnpack
@@ -848,13 +855,52 @@ _ClassD
       remitter (ClassD x y z w u) = Just (x, y, z, w, u)
       remitter _ = Nothing
 
+#if MIN_VERSION_template_haskell(2,11,0)
+_InstanceD :: Prism' Dec (Maybe Overlap, Cxt, Type, [Dec])
+#else
 _InstanceD :: Prism' Dec (Cxt, Type, [Dec])
+#endif
 _InstanceD
   = prism' reviewer remitter
   where
+#if MIN_VERSION_template_haskell(2,11,0)
+      reviewer (x, y, z, w) = InstanceD x y z w
+      remitter (InstanceD x y z w) = Just (x, y, z, w)
+#else
       reviewer (x, y, z) = InstanceD x y z
-      remitter (InstanceD x y z) = Just (x, y, z)
+      remitter (InstanceD x y z) = Just ( x, y, z)
+#endif
       remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,11,0)
+_Overlappable  :: Prism' Overlap  ()
+_Overlappable  = prism' reviewer remitter
+  where
+      reviewer () = Overlappable
+      remitter Overlappable = Just  ()
+      remitter _ = Nothing
+
+_Overlapping :: Prism' Overlap ()
+_Overlapping = prism' reviewer remitter
+  where
+      reviewer () = Overlapping
+      remitter Overlapping = Just ()
+      remitter _ = Nothing
+
+_Overlaps ::  Prism' Overlap  ()
+_Overlaps =  prism' reviewer remitter
+  where
+      reviewer () =  Overlaps
+      remitter Overlaps = Just ()
+      remitter _ = Nothing
+
+_Incoherent  :: Prism' Overlap ()
+_Incoherent  = prism' reviewer remitter
+  where
+      reviewer () = Incoherent
+      remitter Incoherent = Just ()
+      remitter _ = Nothing
+#endif
 
 _SigD :: Prism' Dec (Name, Type)
 _SigD

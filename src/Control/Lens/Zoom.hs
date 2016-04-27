@@ -29,8 +29,10 @@
 --
 -------------------------------------------------------------------------------
 module Control.Lens.Zoom
-  ( Magnify(..)
+  ( Magnified
+  , Magnify(..)
   , Zoom(..)
+  , Zoomed
   ) where
 
 import Control.Lens.Getter
@@ -50,9 +52,14 @@ import Control.Monad.Trans.Except
 import Control.Monad.Trans.List
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Free
 import Data.Monoid
 import Data.Profunctor.Unsafe
 import Prelude
+
+#ifdef HLINT
+{-# ANN module "HLint: ignore Use fmap" #-}
+#endif
 
 -- $setup
 -- >>> import Control.Lens
@@ -67,10 +74,46 @@ import Prelude
 -- Chosen so that they have lower fixity than ('%='), and to match ('<~').
 infixr 2 `zoom`, `magnify`
 
+------------------------------------------------------------------------------
+-- Zoomed
+------------------------------------------------------------------------------
+
+-- | This type family is used by 'Control.Lens.Zoom.Zoom' to describe the common effect type.
+type family Zoomed (m :: * -> *) :: * -> * -> *
+type instance Zoomed (Strict.StateT s z) = Focusing z
+type instance Zoomed (Lazy.StateT s z) = Focusing z
+type instance Zoomed (ReaderT e m) = Zoomed m
+type instance Zoomed (IdentityT m) = Zoomed m
+type instance Zoomed (Strict.RWST r w s z) = FocusingWith w z
+type instance Zoomed (Lazy.RWST r w s z) = FocusingWith w z
+type instance Zoomed (Strict.WriterT w m) = FocusingPlus w (Zoomed m)
+type instance Zoomed (Lazy.WriterT w m) = FocusingPlus w (Zoomed m)
+type instance Zoomed (ListT m) = FocusingOn [] (Zoomed m)
+type instance Zoomed (MaybeT m) = FocusingMay (Zoomed m)
+type instance Zoomed (ErrorT e m) = FocusingErr e (Zoomed m)
+type instance Zoomed (ExceptT e m) = FocusingErr e (Zoomed m)
+type instance Zoomed (FreeT f m) = FocusingFree f m (Zoomed m)
+
+------------------------------------------------------------------------------
+-- Magnified
+------------------------------------------------------------------------------
+
+-- | This type family is used by 'Control.Lens.Zoom.Magnify' to describe the common effect type.
+type family Magnified (m :: * -> *) :: * -> * -> *
+type instance Magnified (ReaderT b m) = Effect m
+type instance Magnified ((->)b) = Const
+type instance Magnified (Strict.RWST a w s m) = EffectRWS w s m
+type instance Magnified (Lazy.RWST a w s m) = EffectRWS w s m
+type instance Magnified (IdentityT m) = Magnified m
+
+------------------------------------------------------------------------------
+-- Zoom
+------------------------------------------------------------------------------
+
 -- | This class allows us to use 'zoom' in, changing the 'State' supplied by
 -- many different 'Control.Monad.Monad' transformers, potentially quite
 -- deep in a 'Monad' transformer stack.
-class (Zoomed m ~ Zoomed n, MonadState s m, MonadState t n) => Zoom m n s t | m -> s, n -> t, m t -> n, n s -> m where
+class (MonadState s m, MonadState t n) => Zoom m n s t | m -> s, n -> t, m t -> n, n s -> m where
   -- | Run a monadic action in a larger 'State' than it was defined in,
   -- using a 'Lens'' or 'Control.Lens.Traversal.Traversal''.
   --
@@ -156,6 +199,13 @@ instance (Error e, Zoom m n s t) => Zoom (ErrorT e m) (ErrorT e n) s t where
 instance Zoom m n s t => Zoom (ExceptT e m) (ExceptT e n) s t where
   zoom l = ExceptT . liftM getErr . zoom (\afb -> unfocusingErr #. l (FocusingErr #. afb)) . liftM Err . runExceptT
   {-# INLINE zoom #-}
+
+instance (Functor f, Zoom m n s t) => Zoom (FreeT f m) (FreeT f n) s t where
+  zoom l = FreeT . liftM (fmap $ zoom l) . liftM getFreed . zoom (\afb -> unfocusingFree #. l (FocusingFree #. afb)) . liftM Freed . runFreeT
+
+------------------------------------------------------------------------------
+-- Magnify
+------------------------------------------------------------------------------
 
 -- TODO: instance Zoom m m a a => Zoom (ContT r m) (ContT r m) a a where
 
