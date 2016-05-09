@@ -1,4 +1,5 @@
 dist/
+dist-newstyle/
 .hsenv/
 docs
 wiki
@@ -12,6 +13,7 @@ wip
 *.hi
 *~
 *#
+cabal.project.local
 .cabal-sandbox/
 cabal.sandbox.config
 .stack-work/
