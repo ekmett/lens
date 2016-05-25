@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -37,10 +38,21 @@ module GHC.Generics.Lens
   , _M1
   , _L1
   , _R1
+  , _UAddr
+  , _UChar
+  , _UDouble
+  , _UFloat
+  , _UInt
+  , _UWord
   ) where
 
 import Control.Lens
+import GHC.Exts (Char(..), Double(..), Float(..), Int(..), Ptr(..), Word(..))
 import GHC.Generics
+
+#ifdef MIN_VERSION_generic_deriving
+import Generics.Deriving.Base
+#endif
 
 _V1 :: Over p f (V1 s) (V1 t) a b
 _V1 _ = absurd where
@@ -84,3 +96,45 @@ _R1 = prism remitter reviewer
   reviewer (R1 l) = Right l
   reviewer x = Left x
 {-# INLINE _R1 #-}
+
+_UAddr :: Iso (UAddr p) (UAddr q) (Ptr c) (Ptr d)
+_UAddr = iso remitter reviewer
+  where
+  remitter (UAddr a) = Ptr a
+  reviewer (Ptr a) = UAddr a
+{-# INLINE _UAddr #-}
+
+_UChar :: Iso (UChar p) (UChar q) Char Char
+_UChar = iso remitter reviewer
+  where
+  remitter (UChar c) = C# c
+  reviewer (C# c) = UChar c
+{-# INLINE _UChar #-}
+
+_UDouble :: Iso (UDouble p) (UDouble q) Double Double
+_UDouble = iso remitter reviewer
+  where
+  remitter (UDouble d) = D# d
+  reviewer (D# d) = UDouble d
+{-# INLINE _UDouble #-}
+
+_UFloat :: Iso (UFloat p) (UFloat q) Float Float
+_UFloat = iso remitter reviewer
+  where
+  remitter (UFloat f) = F# f
+  reviewer (F# f) = UFloat f
+{-# INLINE _UFloat #-}
+
+_UInt :: Iso (UInt p) (UInt q) Int Int
+_UInt = iso remitter reviewer
+  where
+  remitter (UInt i) = I# i
+  reviewer (I# i) = UInt i
+{-# INLINE _UInt #-}
+
+_UWord :: Iso (UWord p) (UWord q) Word Word
+_UWord = iso remitter reviewer
+  where
+  remitter (UWord w) = W# w
+  reviewer (W# w) = UWord w
+{-# INLINE _UWord #-}

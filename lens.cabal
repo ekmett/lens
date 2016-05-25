@@ -211,6 +211,9 @@ library
     vector                    >= 0.9      && < 0.12,
     void                      >= 0.5      && < 1
 
+  if impl(ghc < 8.0)
+    build-depends: generic-deriving >= 1.10 && < 2
+
   exposed-modules:
     Control.Exception.Lens
     Control.Lens
