@@ -108,7 +108,7 @@ un = unto . view
 -- 're' :: 'Prism' s t a b -> 'Getter' b t
 -- 're' :: 'Iso' s t a b   -> 'Getter' b t
 -- @
-re :: Contravariant f => AReview t b -> LensLike' f b t
+re :: AReview t b -> Getter b t
 re p = to (runIdentity #. unTagged #. p .# Tagged .# Identity)
 {-# INLINE re #-}
 
