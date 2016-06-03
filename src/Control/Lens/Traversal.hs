@@ -673,7 +673,7 @@ singular l = conjoined
 -- or more than one element.
 --
 -- >>> try (evaluate ([] & unsafeSingular traverse .~ 0)) :: IO (Either ErrorCall [Integer])
--- Left singular: empty traversal
+-- Left unsafeSingular: empty traversal
 --
 -- @
 -- 'unsafeSingular' :: 'Traversal' s t a b          -> 'Lens' s t a b
