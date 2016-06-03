@@ -172,7 +172,7 @@ import Prelude hiding ((.),id)
 -- >>> :set -XNoOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Control.DeepSeq (NFData (..), force)
--- >>> import Control.Exception (evaluate)
+-- >>> import Control.Exception (evaluate,try,ErrorCall)
 -- >>> import Data.Maybe (fromMaybe)
 -- >>> import Debug.SimpleReflect.Vars
 -- >>> import Data.Void
@@ -636,8 +636,8 @@ holesOf l s = unTagged
 -- >>> [1,2,3] ^. singular _head
 -- 1
 --
--- >>> [] ^. singular _head
--- *** Exception: singular: empty traversal
+-- >>> try (evaluate ([] ^. singular _head)) :: IO (Either ErrorCall ())
+-- Left singular: empty traversal
 --
 -- >>> Left 4 ^. singular _Left
 -- 4
@@ -672,8 +672,8 @@ singular l = conjoined
 -- The resulting 'Lens' or 'Getter' will be partial if the 'Traversal' targets nothing
 -- or more than one element.
 --
--- >>> [] & unsafeSingular traverse .~ 0
--- *** Exception: unsafeSingular: empty traversal
+-- >>> try (evaluate ([] & unsafeSingular traverse .~ 0)) :: IO (Either ErrorCall ())
+-- Left singular: empty traversal
 --
 -- @
 -- 'unsafeSingular' :: 'Traversal' s t a b          -> 'Lens' s t a b
