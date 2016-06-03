@@ -285,7 +285,6 @@ library
     Data.Typeable.Lens
     Data.Vector.Lens
     Data.Vector.Generic.Lens
-    Generics.Deriving.Lens
     GHC.Generics.Lens
     System.Exit.Lens
     System.FilePath.Lens
@@ -392,7 +391,7 @@ test-suite doctests
     other-extensions: Trustworthy
     cpp-options: -DTRUSTWORTHY=1
 
-  if !flag(test-doctests) || impl(ghc>=8)
+  if !flag(test-doctests)
     buildable: False
   else
     build-depends:

@@ -29,8 +29,7 @@
 -- package.
 ----------------------------------------------------------------------------
 module GHC.Generics.Lens
-  ( module Generics.Deriving.Lens
-  , _V1
+  ( _V1
   , _U1
   , _Par1
   , _Rec1
@@ -41,7 +40,6 @@ module GHC.Generics.Lens
   ) where
 
 import Control.Lens
-import Generics.Deriving.Lens
 import GHC.Generics
 
 _V1 :: Over p f (V1 s) (V1 t) a b
