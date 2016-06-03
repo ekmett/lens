@@ -672,7 +672,7 @@ singular l = conjoined
 -- The resulting 'Lens' or 'Getter' will be partial if the 'Traversal' targets nothing
 -- or more than one element.
 --
--- >>> try (evaluate ([] & unsafeSingular traverse .~ 0)) :: IO (Either ErrorCall ())
+-- >>> try (evaluate ([] & unsafeSingular traverse .~ 0)) :: IO (Either ErrorCall [Integer])
 -- Left singular: empty traversal
 --
 -- @
