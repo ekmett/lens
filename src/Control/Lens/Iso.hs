@@ -108,10 +108,6 @@ import Data.Bifunctor
 import Data.ByteString as StrictB hiding (reverse)
 import Data.ByteString.Lazy as LazyB hiding (reverse)
 
-#if __GLASGOW_HASKELL__ >= 708
-import Data.Coerce
-#endif
-
 import Data.Functor.Identity
 import Data.Text as StrictT hiding (reverse)
 import Data.Text.Lazy as LazyT hiding (reverse)
