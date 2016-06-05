@@ -2,11 +2,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-#ifndef MIN_VERSION_profunctors
-#define MIN_VERSION_profunctors(x,y,z) 1
-#endif
-
-#if __GLASGOW_HASKELL__ < 708 || !(MIN_VERSION_profunctors(4,4,0))
+#if __GLASGOW_HASKELL__ < 708
 {-# LANGUAGE Trustworthy #-}
 #endif
 -----------------------------------------------------------------------------

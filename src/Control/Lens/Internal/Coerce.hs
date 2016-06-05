@@ -1,10 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-#ifndef MIN_VERSION_profunctors
-#define MIN_VERSION_profunctors(x,y,z) 0
-#endif
-
-#if (MIN_VERSION_profunctors(4,4,0)) && __GLASGOW_HASKELL__ >= 708
+#if __GLASGOW_HASKELL__ >= 708
 #define USE_COERCE
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE RankNTypes #-}
