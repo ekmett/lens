@@ -13,13 +13,7 @@
 #define MIN_VERSION_bytestring(x,y,z) 1
 #endif
 
-#ifndef MIN_VERSION_profunctors
-#define MIN_VERSION_profunctors(x,y,z) 1
-#endif
-
-#if __GLASGOW_HASKELL__ < 708 || !(MIN_VERSION_profunctors(4,4,0))
 {-# LANGUAGE Trustworthy #-}
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Iso
