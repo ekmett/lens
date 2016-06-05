@@ -7,13 +7,13 @@
 #if __GLASGOW_HASKELL__ >= 710
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE Trustworthy #-}
 #endif
 
 #ifndef MIN_VERSION_bytestring
 #define MIN_VERSION_bytestring(x,y,z) 1
 #endif
 
-{-# LANGUAGE Trustworthy #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Iso
@@ -117,6 +117,7 @@ import Data.Profunctor
 import Data.Profunctor.Unsafe
 
 #if __GLASGOW_HASKELL__ >= 710
+import Data.Coerce (Coercible)
 import qualified GHC.Exts as Exts
 #endif
 
