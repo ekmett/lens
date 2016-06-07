@@ -1,3 +1,7 @@
+4.15
+----
+* Remove `Generics.Deriving.Lens` module.
+
 4.14
 ----
 * Remove `Cons` and `Snoc` instances for `NonEmpty`.

@@ -22,7 +22,6 @@ import           Data.Generics.Uniplate.Direct ((|*))
 import qualified Data.Generics.Uniplate.DataOnly as UniDataOnly
 #endif
 import           Generics.Deriving hiding (universe)
-import           GHC.Generics.Lens as Generic
 
 data Expr  =  Val !Int
            |  Var String
@@ -67,7 +66,6 @@ main :: IO ()
 main = defaultMain
   [ bench "universe"                           $ nf (map universe) testsExpr
   , bench "universeOf plate"                   $ nf (map (universeOf plate)) testsExpr
-  , bench "universeOf Generic.tinplate"        $ nf (map (universeOf Generic.tinplate)) testsExpr
   , bench "universeOf Data.tinplate"           $ nf (map (universeOf Data.tinplate)) testsExpr
   , bench "universeOf Data.template"           $ nf (map (universeOf Data.template)) testsExpr
   , bench "universeOf Data.uniplate"           $ nf (map (universeOf Data.uniplate)) testsExpr
