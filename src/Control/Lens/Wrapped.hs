@@ -710,9 +710,6 @@ _Unwrapping _ = from _Wrapped
 -- >>> ala Any foldMap [True,False]
 -- True
 --
--- >>> ala Sum foldMap [1,2,3,4]
--- 10
---
 -- >>> ala Product foldMap [1,2,3,4]
 -- 24
 --
