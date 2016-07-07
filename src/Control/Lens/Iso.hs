@@ -81,7 +81,7 @@ module Control.Lens.Iso
   , bimapping
   , firsting
   , seconding
-#if __GLASGOW_HASKELL__ >= 710
+#if __GLASGOW_HASKELL__ >= 708
   -- * Coercions
   , coerced
 #endif
@@ -116,8 +116,14 @@ import Data.Maybe
 import Data.Profunctor
 import Data.Profunctor.Unsafe
 
-#if __GLASGOW_HASKELL__ >= 710
+#if __GLASGOW_HASKELL__ >= 708
 import Data.Coerce (Coercible)
+#if __GLASGOW_HASKELL__ <= 710
+import Data.Type.Coercion
+#endif
+#endif
+
+#if __GLASGOW_HASKELL__ >= 710
 import qualified GHC.Exts as Exts
 #endif
 
@@ -591,12 +597,17 @@ seconding :: (Bifunctor f, Bifunctor g) => AnIso s t a b -> Iso (f x s) (g y t) 
 seconding p = withIso p $ \ sa bt -> iso (second sa) (second bt)
 {-# INLINE seconding #-}
 
-#if __GLASGOW_HASKELL__ >= 710
+#if __GLASGOW_HASKELL__ >= 708
 -- | Data types that are representationally equal are isomorphic.
 --
--- This is only available on GHC 7.10+
+-- This is only available on GHC 7.8+
 --
 -- @since 4.13
 coerced :: forall s t a b. (Coercible s a, Coercible t b) => Iso s t a b
+#if __GLASGOW_HASKELL__ >= 710
 coerced l = rmap (fmap coerce') l .# coerce
+#else
+coerced l = case sym Coercion :: Coercion a s of
+              Coercion -> rmap (fmap coerce') l .# coerce
+#endif
 #endif
