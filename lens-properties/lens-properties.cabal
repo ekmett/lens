@@ -23,8 +23,8 @@ library
   build-depends:
     base         >= 4.3 && < 5,
     lens         >= 4   && < 5,
-    QuickCheck   >= 2.4 && < 2.9,
-    transformers >= 0.2 && < 0.5
+    QuickCheck   >= 2.4 && < 2.10,
+    transformers >= 0.2 && < 0.6
 
   exposed-modules:
     Control.Lens.Properties
