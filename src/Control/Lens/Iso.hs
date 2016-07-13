@@ -118,7 +118,7 @@ import Data.Profunctor.Unsafe
 
 #if __GLASGOW_HASKELL__ >= 708
 import Data.Coerce (Coercible)
-#if __GLASGOW_HASKELL__ <= 710
+#if __GLASGOW_HASKELL__ < 710
 import Data.Type.Coercion
 #endif
 #endif
