@@ -368,15 +368,15 @@ as <&> f = f <$> as
 -- @
 -- fab ?? a = fmap ($ a) fab
 -- @
--- 
+--
 -- For the 'Functor' instance @f = ((->) r)@ you can reason about this function as if the definition was @('??') ≡ 'flip'@:
--- 
+--
 -- >>> (h ?? x) a
 -- h a x
--- 
+--
 -- >>> execState ?? [] $ modify (1:)
 -- [1]
--- 
+--
 -- >>> over _2 ?? ("hello","world") $ length
 -- ("hello",5)
 --
@@ -1210,6 +1210,7 @@ l <<>= r = l <%= (`mappend` r)
 --
 -- >>> overA _1 ((+1) *** (+2)) ((1,2),6)
 -- ((2,4),6)
+--
 -- @
 -- overA :: Arrow ar => Lens s t a b -> ar a b -> ar s t
 -- @
