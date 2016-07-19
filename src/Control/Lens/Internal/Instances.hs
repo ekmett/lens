@@ -1,9 +1,3 @@
-{-# LANGUAGE CPP #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
-#ifndef MIN_VERSION_semigroupoids
-#define MIN_VERSION_semigroupoids(x,y,z) 1
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.Instances
