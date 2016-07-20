@@ -45,6 +45,7 @@ module Control.Lens.Prism
   , _Show
   , only
   , nearly
+  , (?.)
   -- * Prismatic profunctors
   , Choice(..)
   ) where
@@ -374,3 +375,22 @@ _Show = prism show $ \s -> case reads s of
   [(a,"")] -> Right a
   _ -> Left s
 {-# INLINE _Show #-}
+
+-- | Shortcut for @... . '_Just' . ...@ in a chain of optics.
+--
+-- Writing and semantics resembles "null-safe" access operator in languages
+-- such as Kotlin or Groovy.
+--
+-- @
+-- data Event = Event { _theDay :: Maybe Day {- ^ event may have no date scheduled -}, ... }
+-- makeLenses ''Event
+--
+-- >> Event Nothing ^? theDay ?. year
+-- Nothing
+-- >> Event (Just $ fromGregorian 2004 5 6) ^? theDay ?. year
+-- Just 2004
+-- @
+(?.) :: (Applicative f, Choice p) => (p (Maybe a) (f (Maybe b)) -> t) -> (s -> p a (f b)) -> s -> t
+l1 ?. l2 = l1 . _Just . l2
+infixr 9 ?.
+{-# INLINE (?.) #-}
