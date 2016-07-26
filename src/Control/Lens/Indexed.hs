@@ -626,6 +626,13 @@ instance TraversableWithIndex Int [] where
   itraversed = traversed
   {-# INLINE itraversed #-}
 
+-- | Same instance as for @[]@.
+instance FunctorWithIndex Int ZipList
+instance FoldableWithIndex Int ZipList
+instance TraversableWithIndex Int ZipList where
+  itraversed = traversed
+  {-# INLINE itraversed #-}
+
 instance FunctorWithIndex Int NonEmpty
 instance FoldableWithIndex Int NonEmpty
 instance TraversableWithIndex Int NonEmpty where
