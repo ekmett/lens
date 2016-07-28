@@ -1,6 +1,7 @@
 4.15
 ----
 * Remove `Generics.Deriving.Lens` module.
+* Incorporate `URec`, which was introduced in `GHC.Generics` in `base-4.9`. For compatibility with older versions of `base`, `lens` now conditionally depends on `generic-deriving`
 
 4.14
 ----
@@ -281,7 +282,7 @@
 * Many performance optimizations.
 * Switched to `exceptions` from `MonadCatchIO-transformers`
 * Added types for working with `RelevantFold` and `RelevantTraversal`. These are a `Fold` or `Traversal` that always has at least one target. Since `Apply` isn't a superclass of `Applicative`, you occasionally need to convert between them, but it lets you more readily work with less unsafety.
-* Changed `unwrapping` and `wrapping` to have the same constructor-oriented order as a `Prism` and renamed them t `_Wrapping` and `_Unwrapping` respectively. 
+* Changed `unwrapping` and `wrapping` to have the same constructor-oriented order as a `Prism` and renamed them t `_Wrapping` and `_Unwrapping` respectively.
 * Drastically changed the way `_Wrapping` and `_Unwrapping` are built to get much better inference.
 * There are about 15,000 lines of patches over the last year, so I'm sure we missed a few big changes.
 
