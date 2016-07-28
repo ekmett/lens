@@ -50,7 +50,7 @@ import Control.Lens
 import GHC.Exts (Char(..), Double(..), Float(..), Int(..), Ptr(..), Word(..))
 import GHC.Generics
 
-#ifdef MIN_VERSION_generic_deriving
+#if !(MIN_VERSION_base(4,9,0))
 import Generics.Deriving.Base
 #endif
 
