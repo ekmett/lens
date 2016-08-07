@@ -44,8 +44,8 @@ infix 4 </>=, <</>=, <<</>=, <.>=, <<.>=, <<<.>=
 
 -- | Modify the path by adding another path.
 --
--- >>> both </>~ "bin" $ ("hello","world")
--- ("hello/bin","world/bin")
+-- >>> (both </>~ "bin" $ ("hello","world")) == ("hello" </> "bin", "world" </> "bin")
+-- True
 --
 -- @
 -- ('</>~') :: 'Setter' s a 'FilePath' 'FilePath' -> 'FilePath' -> s -> a
@@ -60,8 +60,8 @@ l </>~ n = over l (</> n)
 
 -- | Modify the target(s) of a 'Lens'', 'Iso'', 'Setter'' or 'Traversal'' by adding a path.
 --
--- >>> execState (both </>= "bin") ("hello","world")
--- ("hello/bin","world/bin")
+-- >>> execState (both </>= "bin") ("hello","world") == ("hello" </> "bin", "world" </> "bin")
+-- True
 --
 -- @
 -- ('</>=') :: 'MonadState' s m => 'Setter'' s 'FilePath' -> 'FilePath' -> m ()
@@ -172,8 +172,8 @@ l <<<.>= b = l %%= \a -> (a, a <.> b)
 -- and filename component and the generated basenames are not null and contain no directory
 -- separators.
 --
--- >>> basename .~ "filename" $ "path/name.png"
--- "path/filename.png"
+-- >>> (basename .~ "filename" $ "path" </> "name.png") == "path" </> "filename.png"
+-- True
 basename :: Lens' FilePath FilePath
 basename f p = (<.> takeExtension p) . (takeDirectory p </>) <$> f (takeBaseName p)
 {-# INLINE basename #-}
@@ -184,8 +184,8 @@ basename f p = (<.> takeExtension p) . (takeDirectory p </>) <$> f (takeBaseName
 -- Note: this is /not/ a legal 'Lens' unless the outer 'FilePath' already has a directory component,
 -- and generated directories are not null.
 --
--- >>> "long/path/name.txt" ^. directory
--- "long/path"
+-- >>> (("long" </> "path" </> "name.txt") ^. directory) == "long" </> "path"
+-- True
 directory :: Lens' FilePath FilePath
 directory f p = (</> takeFileName p) <$> f (takeDirectory p)
 {-# INLINE directory #-}
@@ -197,8 +197,8 @@ directory f p = (</> takeFileName p) <$> f (takeDirectory p)
 -- extension 'FilePath' components are either null or start with 'System.FilePath.extSeparator'
 -- and do not contain any internal 'System.FilePath.extSeparator's.
 --
--- >>> extension .~ ".png" $ "path/name.txt"
--- "path/name.png"
+-- >>> (extension .~ ".png" $ "path" </> "name.txt") == "path" </> "name.png"
+-- True
 extension :: Lens' FilePath FilePath
 extension f p = (n <.>) <$> f e
  where
@@ -212,8 +212,8 @@ extension f p = (n <.>) <$> f e
 -- filename 'FilePath' components are not null and do not contain any
 -- elements of 'System.FilePath.pathSeparators's.
 --
--- >>> filename .~ "name.txt" $ "path/name.png"
--- "path/name.txt"
+-- >>> (filename .~ "name.txt" $ "path" </> "name.png") == "path" </> "name.txt"
+-- True
 filename :: Lens' FilePath FilePath
 filename f p = (takeDirectory p </>) <$> f (takeFileName p)
 {-# INLINE filename #-}
