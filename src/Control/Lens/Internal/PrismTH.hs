@@ -24,6 +24,7 @@ module Control.Lens.Internal.PrismTH
   ) where
 
 import Control.Applicative
+import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Internal.TH
 import Control.Lens.Lens
@@ -190,7 +191,9 @@ stabToType stab@(Stab cx ty s t a b) = ForallT vs cx $
     ReviewType                   -> reviewTypeName  `conAppsT` [t,b]
 
   where
-  vs = map PlainTV (Set.toList (setOf typeVars cx))
+  vs = map PlainTV
+     $ nub -- stable order
+     $ toListOf typeVars cx
 
 stabType :: Stab -> OpticType
 stabType (Stab _ o _ _ _ _) = o
