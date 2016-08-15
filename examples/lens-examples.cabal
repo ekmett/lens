@@ -29,9 +29,9 @@ executable lens-pong
 
   build-depends:
     base,
-    containers >= 0.4 && < 0.6,
-    gloss      == 1.7.*,
+    containers >= 0.4   && < 0.6,
+    gloss      >= 1.7   && < 1.11,
     lens,
-    mtl        >= 2.0.1 && < 2.2,
-    random     == 1.0.*
+    mtl        >= 2.0.1 && < 2.3,
+    random     >= 1.0   && < 1.2
   main-is: Pong.hs
