@@ -39,6 +39,23 @@ import Control.Lens hiding ((<.>))
 -- $setup
 -- >>> :set -XNoOverloadedStrings
 
+{- NB: Be very careful if you are planning to modify the doctest output in
+this module! Path separators are OS-dependent (\\ with Windows, / with Posix),
+so we take great care to avoid using separators in doctest output so that they
+will be valid on all operating systems.
+
+If you find yourself wanting to test a function that uses path separators in
+the output, it would be wise to:
+
+1. Compare the tested expression and the expected results explicitly using (==).
+2. Always use the </> function (and derived combinators) to construct path
+   separators instead of typing them manually. That is, don't type out
+   "foo/bar", but rather "foo" </> "bar".
+
+This way we can avoid leaking path separators into the output. See the doctest
+example for (</>~) for an example of how to do this.
+-}
+
 infixr 4 </>~, <</>~, <<</>~, <.>~, <<.>~, <<<.>~
 infix 4 </>=, <</>=, <<</>=, <.>=, <<.>=, <<<.>=
 
