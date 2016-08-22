@@ -335,8 +335,8 @@ type IndexPreservingSetter' s a = IndexPreservingSetter s s a a
 -- imply the following laws for 'Iso':
 --
 -- @
--- 'Control.Lens.Getter.view' (iso '.' 'Control.Lens.Iso.from' iso) ≡ 'id'
--- 'Control.Lens.Getter.view' ('Control.Lens.Iso.from' iso '.' iso) ≡ 'id'
+-- iso '.' 'Control.Lens.Iso.from' iso ≡ 'id'
+-- 'Control.Lens.Iso.from' iso '.' iso ≡ 'id'
 -- @
 --
 -- Note: Composition with an 'Iso' is index- and measure- preserving.
