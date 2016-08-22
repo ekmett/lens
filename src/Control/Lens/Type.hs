@@ -332,11 +332,11 @@ type IndexPreservingSetter' s a = IndexPreservingSetter s s a a
 -- | Isomorphism families can be composed with another 'Lens' using ('.') and 'id'.
 --
 -- Since every 'Iso' is both a valid 'Lens' and a valid 'Prism', the laws for those types
--- imply the following laws for 'Iso':
+-- imply the following laws for an 'Iso' 'f':
 --
 -- @
--- iso '.' 'Control.Lens.Iso.from' iso ≡ 'id'
--- 'Control.Lens.Iso.from' iso '.' iso ≡ 'id'
+-- f '.' 'Control.Lens.Iso.from' f ≡ 'id'
+-- 'Control.Lens.Iso.from' f '.' f ≡ 'id'
 -- @
 --
 -- Note: Composition with an 'Iso' is index- and measure- preserving.
