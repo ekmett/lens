@@ -99,11 +99,11 @@ import Control.Lens.Type () -- haddocks
 import Data.Char (toLower, isUpper)
 import Data.Foldable hiding (concat, any)
 import Data.List as List
-import qualified Data.Map as Map hiding (toList,map,filter)
+import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Maybe (maybeToList)
 import Data.Monoid
-import qualified Data.Set as Set hiding (toList,map,filter)
+import qualified Data.Set as Set
 import Data.Set (Set)
 import Data.Set.Lens
 import Data.Traversable hiding (mapM)
