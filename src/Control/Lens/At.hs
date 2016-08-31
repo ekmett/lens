@@ -459,7 +459,7 @@ instance At (Maybe a) where
 
 instance At (IntMap a) where
 #if MIN_VERSION_containers(0,5,8)
-  at k f m = IntMap.alterF f k m
+  at k f = IntMap.alterF f k
 #else
   at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (IntMap.delete k m)) mv
@@ -470,7 +470,7 @@ instance At (IntMap a) where
 
 instance Ord k => At (Map k a) where
 #if MIN_VERSION_containers(0,5,8)
-  at k f m = Map.alterF f k m
+  at k f = Map.alterF f k
 #else
   at k f m = f mv <&> \r -> case r of
     Nothing -> maybe m (const (Map.delete k m)) mv
