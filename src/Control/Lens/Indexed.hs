@@ -658,9 +658,11 @@ instance FoldableWithIndex Int Seq where
   ifoldl f = foldlWithIndex (flip f)
   {-# INLINE ifoldl #-}
 instance TraversableWithIndex Int Seq where
--- The next version of containers will probably offer traverseWithIndex;
--- when that comes out, it should be used for this.
+#if MIN_VERSION_containers(0,5,8)
+  itraverse = traverseWithIndex
+#else
   itraverse f = sequenceA . mapWithIndex f
+#endif
 
 instance FunctorWithIndex Int Vector where
   imap = V.imap
