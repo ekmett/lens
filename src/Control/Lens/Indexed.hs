@@ -653,7 +653,11 @@ instance TraversableWithIndex () Maybe where
 instance FunctorWithIndex Int Seq where
   imap = mapWithIndex
 instance FoldableWithIndex Int Seq where
+#if MIN_VERSION_containers(0,5,8)
+  ifoldMap = foldMapWithIndex
+#else
   ifoldMap f = Data.Foldable.fold . mapWithIndex f
+#endif
   ifoldr = foldrWithIndex
   ifoldl f = foldlWithIndex (flip f)
   {-# INLINE ifoldl #-}
