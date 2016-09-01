@@ -152,7 +152,8 @@ import Data.Functor.Day.Curried
 import Data.Functor.Yoneda
 import Data.Int
 import Data.IntMap as IntMap
-import Data.Map as Map
+import qualified Data.Map as Map
+import Data.Map (Map)
 import Data.Sequence (Seq, mapWithIndex)
 import Data.Vector as Vector (Vector, imap)
 import Data.Monoid
