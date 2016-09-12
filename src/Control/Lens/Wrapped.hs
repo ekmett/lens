@@ -90,6 +90,7 @@ import           Control.Lens.Review
 #endif
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
+import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Identity
 import           Control.Monad.Trans.List
 import           Control.Monad.Trans.Maybe
@@ -313,6 +314,12 @@ instance (t ~ ErrorT e' m' a') => Rewrapped (ErrorT e m a) t
 instance Wrapped (ErrorT e m a) where
   type Unwrapped (ErrorT e m a) = m (Either e a)
   _Wrapped' = iso runErrorT ErrorT
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ ExceptT e' m' a') => Rewrapped (ExceptT e m a) t
+instance Wrapped (ExceptT e m a) where
+  type Unwrapped (ExceptT e m a) = m (Either e a)
+  _Wrapped' = iso runExceptT ExceptT
   {-# INLINE _Wrapped' #-}
 
 instance (t ~ Identity b) => Rewrapped (Identity a) t

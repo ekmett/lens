@@ -2,6 +2,7 @@
 ----
 * Remove `Generics.Deriving.Lens` module.
 * Incorporate `URec`, which was introduced in `GHC.Generics` in `base-4.9`. For compatibility with older versions of `base`, `lens` now conditionally depends on `generic-deriving`
+* Add `Rewrapped` instance for `ExceptT`
 
 4.14
 ----
