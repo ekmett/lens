@@ -724,9 +724,9 @@ instance TraversableWithIndex k (Map k) where
 "itraversed -> ifoldrMap" itraversed = ifoldring Map.foldrWithKey :: IndexedGetting k (Endo r) (Map k a) a;
  #-}
 
-instance (Eq k, Hashable k) => FunctorWithIndex k (HashMap k)
-instance (Eq k, Hashable k) => FoldableWithIndex k (HashMap k)
-instance (Eq k, Hashable k) => TraversableWithIndex k (HashMap k) where
+instance FunctorWithIndex k (HashMap k)
+instance FoldableWithIndex k (HashMap k)
+instance TraversableWithIndex k (HashMap k) where
   itraverse = HashMap.traverseWithKey
   {-# INLINE [0] itraverse #-}
 
