@@ -4,6 +4,7 @@
 * Incorporate `URec`, which was introduced in `GHC.Generics` in `base-4.9`. For compatibility with older versions of `base`, `lens` now conditionally depends on `generic-deriving`
 * Add `Rewrapped` instance for `ExceptT`
 * Add `FunctorWithIndex`, `FoldableWithIndex`, and `TraversableWithIndex` instances for `Sum`, `Proxy`, `Tagged` and data types in `GHC.Generics`
+* Remove unneeded context from `*WithIndex HashMap` instances
 
 4.14
 ----
