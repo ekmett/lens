@@ -1,3 +1,7 @@
+next
+----
+* Restore the `generic` and `generic1` functions in `GHC.Generics.Lens`
+
 4.15
 ----
 * Remove `Generics.Deriving.Lens` module.
