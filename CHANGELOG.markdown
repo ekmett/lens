@@ -5,6 +5,9 @@
 * Add `Rewrapped` instance for `ExceptT`
 * Add `FunctorWithIndex`, `FoldableWithIndex`, and `TraversableWithIndex` instances for `Sum`, `Proxy`, `Tagged` and data types in `GHC.Generics`
 * Remove unneeded context from `*WithIndex HashMap` instances
+* Add `Data.Map.Lens.toMapOf`
+* Add moral `Functor` constraint for `to` `ito` `ilike` `ilike` to allow the
+  "indented" type signature using Getter with redundant warnings turned on.
 
 4.14
 ----
