@@ -108,7 +108,6 @@ import Data.Functor.Contravariant
 import Data.Functor.Product
 import Data.Functor.Reverse
 import Data.Functor.Sum
-import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.IntMap as IntMap
 import Data.Ix (Ix)
