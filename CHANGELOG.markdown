@@ -1,4 +1,4 @@
-next
+4.15.1
 ----
 * Restore the `generic` and `generic1` functions in `GHC.Generics.Lens`
 
