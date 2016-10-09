@@ -60,9 +60,38 @@
 -- Just "Uranus"
 --
 -----------------------------------------------------------------------------
-module Data.Map.Lens () where
+module Data.Map.Lens
+  ( toMapOf
+  ) where
+
+import Control.Lens.Getter ( IndexedGetting, iviews )
+import Control.Lens.Type
+import qualified Data.Map as Map
+
 -- $setup
 -- >>> import Control.Lens
 -- >>> import Data.Monoid
--- >>> import qualified Data.Map as Map
 -- >>> :set -XNoOverloadedStrings
+
+-- | Construct a map from a 'IndexedGetter', 'Control.Lens.Fold.IndexedFold', 'Control.Lens.Traversal.IndexedTraversal' or 'Control.Lens.Lens.IndexedLens'
+--
+-- The construction is left-biased (see 'Data.Map.Lazy.union'), i.e. the first
+-- occurences of keys in the fold or traversal order are preferred.
+--
+-- >>> toMapOf folded ["hello", "world"]
+-- fromList [(0,"hello"),(1,"world")]
+--
+-- >>> toMapOf (folded <.> folded) ["foo", "bar"]
+-- fromList [((0,0),'f'),((0,1),'o'),((0,2),'o'),((1,0),'b'),((1,1),'a'),((1,2),'r')]
+--
+-- >>> toMapOf ifolded $ Map.fromList [('a', "hello"), ('b', "world")]
+-- fromList [('a',"hello"),('b',"world")]
+--
+-- @
+-- 'toMapOf' ::          'IndexedGetter' i s a     -> s -> 'Map.Map' i a
+-- 'toMapOf' :: 'Ord' i => 'IndexedFold' i s a       -> s -> 'Map.Map' i a
+-- 'toMapOf' ::          'IndexedLens'' i s a      -> s -> 'Map.Map' i a
+-- 'toMapOf' :: 'Ord' i => 'IndexedTraversal'' i s a -> s -> 'Map.Map' i a
+-- @
+toMapOf :: IndexedGetting i (Map.Map i a) s a -> s -> Map.Map i a
+toMapOf l = iviews l Map.singleton
