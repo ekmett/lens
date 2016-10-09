@@ -30,7 +30,10 @@
 -- package.
 ----------------------------------------------------------------------------
 module GHC.Generics.Lens
-  ( _V1
+  (
+    generic
+  , generic1
+  , _V1
   , _U1
   , _Par1
   , _Rec1
@@ -46,13 +49,31 @@ module GHC.Generics.Lens
   , _UWord
   ) where
 
-import Control.Lens
-import GHC.Exts (Char(..), Double(..), Float(..), Int(..), Ptr(..), Word(..))
-import GHC.Generics
+import           Control.Lens
+import           GHC.Exts (Char(..), Double(..), Float(..),
+                           Int(..), Ptr(..), Word(..))
+import qualified GHC.Generics as Generic
+import           GHC.Generics hiding (from, to)
 
 #if !(MIN_VERSION_base(4,9,0))
-import Generics.Deriving.Base
+import           Generics.Deriving.Base hiding (from, to)
 #endif
+
+-- $setup
+-- >>> :set -XNoOverloadedStrings
+
+-- | Convert from the data type to its representation (or back)
+--
+-- >>> "hello"^.generic.from generic :: String
+-- "hello"
+generic :: Generic a => Iso' a (Rep a b)
+generic = iso Generic.from Generic.to
+{-# INLINE generic #-}
+
+-- | Convert from the data type to its representation (or back)
+generic1 :: Generic1 f => Iso' (f a) (Rep1 f a)
+generic1 = iso from1 to1
+{-# INLINE generic1 #-}
 
 _V1 :: Over p f (V1 s) (V1 t) a b
 _V1 _ = absurd where
