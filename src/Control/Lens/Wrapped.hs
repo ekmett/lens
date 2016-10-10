@@ -3,6 +3,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -76,6 +78,9 @@ module Control.Lens.Wrapped
   , pattern Wrapped
   , pattern Unwrapped
 #endif
+  -- * Generics
+  , _GWrapped'
+  , GWrapped
   ) where
 
 #include "HsBaseConfig.h"
@@ -153,6 +158,7 @@ import           Data.Vector.Storable as Storable
 import           Data.Word
 import           Foreign.C.Error
 import           Foreign.C.Types
+import qualified GHC.Generics as Generic
 import           GHC.Generics hiding (from, to)
 import           System.Posix.Types
 
@@ -178,8 +184,37 @@ import qualified Data.Monoid as Monoid
 -- data types with one constructor.
 class Wrapped s where
   type Unwrapped s :: *
+  type Unwrapped s = GUnwrapped (Rep s)
+
   -- | An isomorphism between @s@ and @a@.
+  --
+  -- If your type has a 'Generic' instance, '_Wrapped'' will default to '_GWrapped'',
+  -- and you can choose to not override it with your own definition.
   _Wrapped' :: Iso' s (Unwrapped s)
+  default _Wrapped' :: (Generic s, GWrapped (Rep s), Unwrapped s ~ GUnwrapped (Rep s))
+                    => Iso' s (Unwrapped s)
+  _Wrapped' = _GWrapped'
+  {-# INLINE _Wrapped' #-}
+
+-- | Implement the '_Wrapped' operation for a type using its 'Generic' instance.
+_GWrapped' :: (Generic s, GWrapped (Rep s), Unwrapped s ~ GUnwrapped (Rep s))
+           => Iso' s (Unwrapped s)
+_GWrapped' = iso Generic.from Generic.to . _GWrapped''
+{-# INLINE _GWrapped' #-}
+
+class GWrapped f where
+  type GUnwrapped f :: *
+  _GWrapped'' :: Iso' (f s) (GUnwrapped f)
+
+-- We only need one instance, as all newtypes (and data type with exactly one
+-- constructor with exactly one field) have the same shape to their Reps.
+instance GWrapped (D1 d (C1 c (S1 s (Rec0 a)))) where
+  type GUnwrapped (D1 d (C1 c (S1 s (Rec0 a)))) = a
+  _GWrapped'' = iso remitter reviewer
+    where
+      remitter (M1 (M1 (M1 (K1 x)))) = x
+      reviewer x = M1 (M1 (M1 (K1 x)))
+  {-# INLINE _GWrapped'' #-}
 
 #if __GLASGOW_HASKELL__ >= 710
 
