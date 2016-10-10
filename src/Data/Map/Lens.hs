@@ -65,7 +65,6 @@ module Data.Map.Lens
   ) where
 
 import Control.Lens.Getter ( IndexedGetting, iviews )
-import Control.Lens.Type
 import qualified Data.Map as Map
 
 -- $setup
