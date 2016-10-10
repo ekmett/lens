@@ -251,7 +251,7 @@ instance Wrapped (Dual a) where
   _Wrapped' = iso getDual Dual
   {-# INLINE _Wrapped' #-}
 
-instance (t ~ Endo b) => Rewrapped (Endo b) t
+instance (t ~ Endo b) => Rewrapped (Endo a) t
 instance Wrapped (Endo a) where
   type Unwrapped (Endo a) = a -> a
   _Wrapped' = iso appEndo Endo
