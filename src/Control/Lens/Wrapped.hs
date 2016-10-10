@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -77,10 +78,16 @@ module Control.Lens.Wrapped
 #endif
   ) where
 
+#include "HsBaseConfig.h"
 
-import           Control.Applicative
+import qualified Control.Alternative.Free as Free
+import qualified Control.Applicative as Applicative
+import           Control.Applicative hiding (WrappedArrow(..))
+import           Control.Applicative.Trans.Free
 import           Control.Arrow
 import           Control.Applicative.Backwards
+import           Control.Comonad.Trans.Cofree
+import           Control.Comonad.Trans.Coiter
 import           Control.Comonad.Trans.Traced
 import           Control.Exception
 import           Control.Lens.Getter
@@ -88,10 +95,13 @@ import           Control.Lens.Iso
 #if __GLASGOW_HASKELL__ >= 710
 import           Control.Lens.Review
 #endif
+import           Control.Monad.Catch.Pure
 import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Error
 import           Control.Monad.Trans.Except
+import           Control.Monad.Trans.Free
 import           Control.Monad.Trans.Identity
+import           Control.Monad.Trans.Iter
 import           Control.Monad.Trans.List
 import           Control.Monad.Trans.Maybe
 import           Control.Monad.Trans.Reader
@@ -101,7 +111,17 @@ import qualified Control.Monad.Trans.State.Lazy    as Lazy
 import qualified Control.Monad.Trans.State.Strict  as Strict
 import qualified Control.Monad.Trans.Writer.Lazy   as Lazy
 import qualified Control.Monad.Trans.Writer.Strict as Strict
+import           Data.Bifunctor.Biff
+import           Data.Bifunctor.Clown
+import           Data.Bifunctor.Fix
+import           Data.Bifunctor.Flip
+import           Data.Bifunctor.Join
+import           Data.Bifunctor.Joker
+import           Data.Bifunctor.Tannen
+import           Data.Bifunctor.Wrapped
+import           Data.Fixed
 import           Data.Foldable as Foldable
+import           Data.Functor.Bind
 import           Data.Functor.Compose
 import           Data.Functor.Contravariant
 import qualified Data.Functor.Contravariant.Compose as Contravariant
@@ -109,14 +129,22 @@ import           Data.Functor.Constant
 import           Data.Functor.Identity
 import           Data.Functor.Reverse
 import           Data.Hashable
+import           Data.Int
 import           Data.IntSet as IntSet
 import           Data.IntMap as IntMap
 import           Data.HashSet as HashSet
 import           Data.HashMap.Lazy as HashMap
 import           Data.List.NonEmpty
 import           Data.Map as Map
+import qualified Data.Monoid as Monoid
 import           Data.Monoid
+import qualified Data.Profunctor as Profunctor
+import           Data.Profunctor hiding (WrappedArrow(..))
+import           Data.Profunctor.Cayley
 import qualified Data.Semigroup as S
+import           Data.Semigroupoid
+import qualified Data.Semigroupoid.Dual as Semigroupoid
+import           Data.Semigroupoid.Static
 import           Data.Sequence as Seq hiding (length)
 import           Data.Set as Set
 import           Data.Tagged
@@ -124,6 +152,11 @@ import           Data.Vector as Vector
 import           Data.Vector.Primitive as Prim
 import           Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Storable as Storable
+import           Data.Word
+import           Foreign.C.Error
+import           Foreign.C.Types
+import           GHC.Generics hiding (from, to)
+import           System.Posix.Types
 
 #if MIN_VERSION_base(4,6,0)
 import           Data.Ord (Down(Down))
@@ -221,10 +254,10 @@ instance Wrapped (WrappedMonad m a) where
   _Wrapped' = iso unwrapMonad WrapMonad
   {-# INLINE _Wrapped' #-}
 
-instance (t ~ WrappedArrow a' b' c') => Rewrapped (WrappedArrow a b c) t
-instance Wrapped (WrappedArrow a b c) where
-  type Unwrapped (WrappedArrow a b c) = a b c
-  _Wrapped' = iso unwrapArrow WrapArrow
+instance (t ~ Applicative.WrappedArrow a' b' c') => Rewrapped (Applicative.WrappedArrow a b c) t
+instance Wrapped (Applicative.WrappedArrow a b c) where
+  type Unwrapped (Applicative.WrappedArrow a b c) = a b c
+  _Wrapped' = iso Applicative.unwrapArrow Applicative.WrapArrow
   {-# INLINE _Wrapped' #-}
 
 instance (t ~ ZipList b) => Rewrapped (ZipList a) t
@@ -270,10 +303,10 @@ instance Wrapped (Last a) where
   {-# INLINE _Wrapped' #-}
 
 #if MIN_VERSION_base(4,8,0)
-instance (t ~ Alt g b) => Rewrapped (Alt f a) t
-instance Wrapped (Alt f a) where
-  type Unwrapped (Alt f a) = f a
-  _Wrapped' = iso getAlt Alt
+instance (t ~ Monoid.Alt g b) => Rewrapped (Monoid.Alt f a) t
+instance Wrapped (Monoid.Alt f a) where
+  type Unwrapped (Monoid.Alt f a) = f a
+  _Wrapped' = iso Monoid.getAlt Monoid.Alt
   {-# INLINE _Wrapped' #-}
 #endif
 
@@ -287,6 +320,23 @@ instance t ~ Down a => Rewrapped (Down a) t
 instance Wrapped (Down a) where
   type Unwrapped (Down a) = a
   _Wrapped' = iso (\(Down a) -> a) Down
+  {-# INLINE _Wrapped' #-}
+
+instance t ~ Fixed b => Rewrapped (Fixed a) t
+instance Wrapped (Fixed a) where
+  type Unwrapped (Fixed a) = Integer
+  _Wrapped' = iso (\(MkFixed a) -> a) MkFixed
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped Errno t
+instance Wrapped Errno where
+  type Unwrapped Errno = CInt
+  _Wrapped' = iso (\(Errno x) -> x) Errno
+  {-# INLINE _Wrapped' #-}
+
+getArrowMonad :: ArrowMonad m a -> m () a
+getArrowMonad (ArrowMonad x) = x
+{-# INLINE getArrowMonad #-}
 
 -- * transformers
 
@@ -394,12 +444,108 @@ instance Wrapped (Strict.WriterT w m a) where
   _Wrapped' = iso Strict.runWriterT Strict.WriterT
   {-# INLINE _Wrapped' #-}
 
--- * comonad-transformers
+-- * bifunctors
+
+instance (t ~ Biff p' f' g' a' b') => Rewrapped (Biff p f g a b) t
+instance Wrapped (Biff p f g a b) where
+  type Unwrapped (Biff p f g a b) = p (f a) (g b)
+  _Wrapped' = iso runBiff Biff
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Clown f' a' b') => Rewrapped (Clown f a b) t
+instance Wrapped (Clown f a b) where
+  type Unwrapped (Clown f a b) = f a
+  _Wrapped' = iso runClown Clown
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Fix p' a') => Rewrapped (Fix p a) t
+instance Wrapped (Fix p a) where
+  type Unwrapped (Fix p a) = p (Fix p a) a
+  _Wrapped' = iso out In
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Flip p' a' b') => Rewrapped (Flip p a b) t
+instance Wrapped (Flip p a b) where
+  type Unwrapped (Flip p a b) = p b a
+  _Wrapped' = iso runFlip Flip
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Join p' a') => Rewrapped (Join p a) t
+instance Wrapped (Join p a) where
+  type Unwrapped (Join p a) = p a a
+  _Wrapped' = iso runJoin Join
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Joker g' a' b') => Rewrapped (Joker g a b) t
+instance Wrapped (Joker g a b) where
+  type Unwrapped (Joker g a b) = g b
+  _Wrapped' = iso runJoker Joker
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Tannen f' p' a' b') => Rewrapped (Tannen f p a b) t
+instance Wrapped (Tannen f p a b) where
+  type Unwrapped (Tannen f p a b) = f (p a b)
+  _Wrapped' = iso runTannen Tannen
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ WrappedBifunctor p' a' b') => Rewrapped (WrappedBifunctor p a b) t
+instance Wrapped (WrappedBifunctor p a b) where
+  type Unwrapped (WrappedBifunctor p a b) = p a b
+  _Wrapped' = iso unwrapBifunctor WrapBifunctor
+  {-# INLINE _Wrapped' #-}
+
+-- * comonad
 
 instance (t ~ TracedT m' w' a') => Rewrapped (TracedT m w a) t
 instance Wrapped (TracedT m w a) where
   type Unwrapped (TracedT m w a) = w (m -> a)
   _Wrapped' = iso runTracedT TracedT
+  {-# INLINE _Wrapped' #-}
+
+-- * exceptions
+
+instance (t ~ CatchT m' a') => Rewrapped (CatchT m a) t
+instance Wrapped (CatchT m a) where
+  type Unwrapped (CatchT m a) = m (Either SomeException a)
+  _Wrapped' = iso runCatchT CatchT
+  {-# INLINE _Wrapped' #-}
+
+-- * free
+
+instance (t ~ Free.Alt f' a') => Rewrapped (Free.Alt f a) t
+instance Wrapped (Free.Alt f a) where
+  type Unwrapped (Free.Alt f a) = [Free.AltF f a]
+  _Wrapped' = iso Free.alternatives Free.Alt
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ ApT f' g' a') => Rewrapped (ApT f g a) t
+instance Wrapped (ApT f g a) where
+  type Unwrapped (ApT f g a) = g (ApF f g a)
+  _Wrapped' = iso getApT ApT
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ CofreeT f' w' a') => Rewrapped (CofreeT f w a) t
+instance Wrapped (CofreeT f w a) where
+  type Unwrapped (CofreeT f w a) = w (CofreeF f a (CofreeT f w a))
+  _Wrapped' = iso runCofreeT CofreeT
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ CoiterT w' a') => Rewrapped (CoiterT w a) t
+instance Wrapped (CoiterT w a) where
+  type Unwrapped (CoiterT w a) = w (a, CoiterT w a)
+  _Wrapped' = iso runCoiterT CoiterT
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ FreeT f' m' a') => Rewrapped (FreeT f m a) t
+instance Wrapped (FreeT f m a) where
+  type Unwrapped (FreeT f m a) = m (FreeF f a (FreeT f m a))
+  _Wrapped' = iso runFreeT FreeT
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ IterT m' a') => Rewrapped (IterT m a) t
+instance Wrapped (IterT m a) where
+  type Unwrapped (IterT m a) = m (Either a (IterT m a))
+  _Wrapped' = iso runIterT IterT
   {-# INLINE _Wrapped' #-}
 
 -- * unordered-containers
@@ -454,6 +600,38 @@ instance Wrapped (Seq a) where
   _Wrapped' = iso Foldable.toList Seq.fromList
   {-# INLINE _Wrapped' #-}
 
+-- * profunctors
+
+instance (t ~ Star f' d' c') => Rewrapped (Star f d c) t
+instance Wrapped (Star f d c) where
+  type Unwrapped (Star f d c) = d -> f c
+  _Wrapped' = iso runStar Star
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Costar f' d' c') => Rewrapped (Costar f d c) t
+instance Wrapped (Costar f d c) where
+  type Unwrapped (Costar f d c) = f d -> c
+  _Wrapped' = iso runCostar Costar
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Profunctor.WrappedArrow p' a' b') => Rewrapped (Profunctor.WrappedArrow p a b) t
+instance Wrapped (Profunctor.WrappedArrow p a b) where
+  type Unwrapped (Profunctor.WrappedArrow p a b) = p a b
+  _Wrapped' = iso Profunctor.unwrapArrow Profunctor.WrapArrow
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Forget r' a' b') => Rewrapped (Forget r a b) t
+instance Wrapped (Forget r a b) where
+  type Unwrapped (Forget r a b) = a -> r
+  _Wrapped' = iso runForget Forget
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Cayley f' p' a' b') => Rewrapped (Cayley f p a b) t
+instance Wrapped (Cayley f p a b) where
+  type Unwrapped (Cayley f p a b) = f (p a b)
+  _Wrapped' = iso runCayley Cayley
+  {-# INLINE _Wrapped' #-}
+
 -- * vector
 
 instance (t ~ Vector.Vector a') => Rewrapped (Vector.Vector a) t
@@ -478,6 +656,44 @@ instance (Storable a, t ~ Storable.Vector a') => Rewrapped (Storable.Vector a) t
 instance Storable a => Wrapped (Storable.Vector a) where
   type Unwrapped (Storable.Vector a) = [a]
   _Wrapped' = iso Storable.toList Storable.fromList
+  {-# INLINE _Wrapped' #-}
+
+-- * semigroupoids
+
+instance (t ~ WrappedApplicative f' a') => Rewrapped (WrappedApplicative f a) t
+instance Wrapped (WrappedApplicative f a) where
+  type Unwrapped (WrappedApplicative f a) = f a
+  _Wrapped' = iso unwrapApplicative WrapApplicative
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ MaybeApply f' a') => Rewrapped (MaybeApply f a) t
+instance Wrapped (MaybeApply f a) where
+  type Unwrapped (MaybeApply f a) = Either (f a) a
+  _Wrapped' = iso runMaybeApply MaybeApply
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ WrappedCategory k' a' b') => Rewrapped (WrappedCategory k a b) t
+instance Wrapped (WrappedCategory k a b) where
+  type Unwrapped (WrappedCategory k a b) = k a b
+  _Wrapped' = iso unwrapCategory WrapCategory
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Semi m' a' b') => Rewrapped (Semi m a b) t
+instance Wrapped (Semi m a b) where
+  type Unwrapped (Semi m a b) = m
+  _Wrapped' = iso getSemi Semi
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Semigroupoid.Dual k' a' b') => Rewrapped (Semigroupoid.Dual k a b) t
+instance Wrapped (Semigroupoid.Dual k a b) where
+  type Unwrapped (Semigroupoid.Dual k a b) = k b a
+  _Wrapped' = iso Semigroupoid.getDual Semigroupoid.Dual
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Static f' a' b') => Rewrapped (Static f a b) t
+instance Wrapped (Static f a b) where
+  type Unwrapped (Static f a b) = f (a -> b)
+  _Wrapped' = iso runStatic Static
   {-# INLINE _Wrapped' #-}
 
 -- * semigroups
@@ -614,6 +830,18 @@ instance Wrapped ErrorCall where
   _Wrapped' = iso getErrorCall ErrorCall
   {-# INLINE _Wrapped' #-}
 
+#if MIN_VERSION_base(4,9,0)
+instance (t ~ TypeError) => Rewrapped TypeError t
+instance Wrapped TypeError where
+  type Unwrapped TypeError = String
+  _Wrapped' = iso getTypeError TypeError
+  {-# INLINE _Wrapped' #-}
+
+getTypeError :: TypeError -> String
+getTypeError (TypeError x) = x
+{-# INLINE getTypeError #-}
+#endif
+
 getErrorCall :: ErrorCall -> String
 #if __GLASGOW_HASKELL__ < 800
 getErrorCall (ErrorCall x) = x
@@ -646,9 +874,301 @@ failedAssertion :: AssertionFailed -> String
 failedAssertion (AssertionFailed x) = x
 {-# INLINE failedAssertion #-}
 
-getArrowMonad :: ArrowMonad m a -> m () a
-getArrowMonad (ArrowMonad x) = x
-{-# INLINE getArrowMonad #-}
+-- * Foreign.C.Types
+
+instance Rewrapped CChar t
+instance Wrapped CChar where
+  type Unwrapped CChar = HTYPE_CHAR
+  _Wrapped' = iso (\(CChar x) -> x) CChar
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CSChar t
+instance Wrapped CSChar where
+  type Unwrapped CSChar = HTYPE_SIGNED_CHAR
+  _Wrapped' = iso (\(CSChar x) -> x) CSChar
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CUChar t
+instance Wrapped CUChar where
+  type Unwrapped CUChar = HTYPE_UNSIGNED_CHAR
+  _Wrapped' = iso (\(CUChar x) -> x) CUChar
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CShort t
+instance Wrapped CShort where
+  type Unwrapped CShort = HTYPE_SHORT
+  _Wrapped' = iso (\(CShort x) -> x) CShort
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CUShort t
+instance Wrapped CUShort where
+  type Unwrapped CUShort = HTYPE_UNSIGNED_SHORT
+  _Wrapped' = iso (\(CUShort x) -> x) CUShort
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CInt t
+instance Wrapped CInt where
+  type Unwrapped CInt = HTYPE_INT
+  _Wrapped' = iso (\(CInt x) -> x) CInt
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CUInt t
+instance Wrapped CUInt where
+  type Unwrapped CUInt = HTYPE_UNSIGNED_INT
+  _Wrapped' = iso (\(CUInt x) -> x) CUInt
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CLong t
+instance Wrapped CLong where
+  type Unwrapped CLong = HTYPE_LONG
+  _Wrapped' = iso (\(CLong x) -> x) CLong
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CULong t
+instance Wrapped CULong where
+  type Unwrapped CULong = HTYPE_UNSIGNED_LONG
+  _Wrapped' = iso (\(CULong x) -> x) CULong
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CLLong t
+instance Wrapped CLLong where
+  type Unwrapped CLLong = HTYPE_LONG_LONG
+  _Wrapped' = iso (\(CLLong x) -> x) CLLong
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CULLong t
+instance Wrapped CULLong where
+  type Unwrapped CULLong = HTYPE_UNSIGNED_LONG_LONG
+  _Wrapped' = iso (\(CULLong x) -> x) CULLong
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CFloat t
+instance Wrapped CFloat where
+  type Unwrapped CFloat = HTYPE_FLOAT
+  _Wrapped' = iso (\(CFloat x) -> x) CFloat
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CDouble t
+instance Wrapped CDouble where
+  type Unwrapped CDouble = HTYPE_DOUBLE
+  _Wrapped' = iso (\(CDouble x) -> x) CDouble
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CPtrdiff t
+instance Wrapped CPtrdiff where
+  type Unwrapped CPtrdiff = HTYPE_PTRDIFF_T
+  _Wrapped' = iso (\(CPtrdiff x) -> x) CPtrdiff
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CSize t
+instance Wrapped CSize where
+  type Unwrapped CSize = HTYPE_SIZE_T
+  _Wrapped' = iso (\(CSize x) -> x) CSize
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CWchar t
+instance Wrapped CWchar where
+  type Unwrapped CWchar = HTYPE_WCHAR_T
+  _Wrapped' = iso (\(CWchar x) -> x) CWchar
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CSigAtomic t
+instance Wrapped CSigAtomic where
+  type Unwrapped CSigAtomic = HTYPE_SIG_ATOMIC_T
+  _Wrapped' = iso (\(CSigAtomic x) -> x) CSigAtomic
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CClock t
+instance Wrapped CClock where
+  type Unwrapped CClock = HTYPE_CLOCK_T
+  _Wrapped' = iso (\(CClock x) -> x) CClock
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CTime t
+instance Wrapped CTime where
+  type Unwrapped CTime = HTYPE_TIME_T
+  _Wrapped' = iso (\(CTime x) -> x) CTime
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CUSeconds t
+instance Wrapped CUSeconds where
+  type Unwrapped CUSeconds = HTYPE_USECONDS_T
+  _Wrapped' = iso (\(CUSeconds x) -> x) CUSeconds
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CSUSeconds t
+instance Wrapped CSUSeconds where
+  type Unwrapped CSUSeconds = HTYPE_SUSECONDS_T
+  _Wrapped' = iso (\(CSUSeconds x) -> x) CSUSeconds
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CIntPtr t
+instance Wrapped CIntPtr where
+  type Unwrapped CIntPtr = HTYPE_INTPTR_T
+  _Wrapped' = iso (\(CIntPtr x) -> x) CIntPtr
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CUIntPtr t
+instance Wrapped CUIntPtr where
+  type Unwrapped CUIntPtr = HTYPE_UINTPTR_T
+  _Wrapped' = iso (\(CUIntPtr x) -> x) CUIntPtr
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CIntMax t
+instance Wrapped CIntMax where
+  type Unwrapped CIntMax = HTYPE_INTMAX_T
+  _Wrapped' = iso (\(CIntMax x) -> x) CIntMax
+  {-# INLINE _Wrapped' #-}
+
+instance Rewrapped CUIntMax t
+instance Wrapped CUIntMax where
+  type Unwrapped CUIntMax = HTYPE_UINTMAX_T
+  _Wrapped' = iso (\(CUIntMax x) -> x) CUIntMax
+  {-# INLINE _Wrapped' #-}
+
+-- * GHC.Generics
+
+instance (t ~ Par1 p') => Rewrapped (Par1 p) t
+instance Wrapped (Par1 p) where
+  type Unwrapped (Par1 p) = p
+  _Wrapped' = iso unPar1 Par1
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ Rec1 f' p') => Rewrapped (Rec1 f p) t
+instance Wrapped (Rec1 f p) where
+  type Unwrapped (Rec1 f p) = f p
+  _Wrapped' = iso unRec1 Rec1
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ K1 i' c' p') => Rewrapped (K1 i c p) t
+instance Wrapped (K1 i c p) where
+  type Unwrapped (K1 i c p) = c
+  _Wrapped' = iso unK1 K1
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ M1 i' c' f' p') => Rewrapped (M1 i c f p) t
+instance Wrapped (M1 i c f p) where
+  type Unwrapped (M1 i c f p) = f p
+  _Wrapped' = iso unM1 M1
+  {-# INLINE _Wrapped' #-}
+
+instance (t ~ (f' :.: g') p') => Rewrapped ((f :.: g) p) t
+instance Wrapped ((f :.: g) p) where
+  type Unwrapped ((f :.: g) p) = f (g p)
+  _Wrapped' = iso unComp1 Comp1
+  {-# INLINE _Wrapped' #-}
+
+-- * System.Posix.Types
+
+#if defined(HTYPE_DEV_T)
+instance Rewrapped CDev t
+instance Wrapped CDev where
+  type Unwrapped CDev = HTYPE_DEV_T
+  _Wrapped' = iso (\(CDev x) -> x) CDev
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_INO_T)
+instance Rewrapped CIno t
+instance Wrapped CIno where
+  type Unwrapped CIno = HTYPE_INO_T
+  _Wrapped' = iso (\(CIno x) -> x) CIno
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_MODE_T)
+instance Rewrapped CMode t
+instance Wrapped CMode where
+  type Unwrapped CMode = HTYPE_MODE_T
+  _Wrapped' = iso (\(CMode x) -> x) CMode
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_OFF_T)
+instance Rewrapped COff t
+instance Wrapped COff where
+  type Unwrapped COff = HTYPE_OFF_T
+  _Wrapped' = iso (\(COff x) -> x) COff
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_PID_T)
+instance Rewrapped CPid t
+instance Wrapped CPid where
+  type Unwrapped CPid = HTYPE_PID_T
+  _Wrapped' = iso (\(CPid x) -> x) CPid
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_SSIZE_T)
+instance Rewrapped CSsize t
+instance Wrapped CSsize where
+  type Unwrapped CSsize = HTYPE_SSIZE_T
+  _Wrapped' = iso (\(CSsize x) -> x) CSsize
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_GID_T)
+instance Rewrapped CGid t
+instance Wrapped CGid where
+  type Unwrapped CGid = HTYPE_GID_T
+  _Wrapped' = iso (\(CGid x) -> x) CGid
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_NLINK_T)
+instance Rewrapped CNlink t
+instance Wrapped CNlink where
+  type Unwrapped CNlink = HTYPE_NLINK_T
+  _Wrapped' = iso (\(CNlink x) -> x) CNlink
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_UID_T)
+instance Rewrapped CUid t
+instance Wrapped CUid where
+  type Unwrapped CUid = HTYPE_UID_T
+  _Wrapped' = iso (\(CUid x) -> x) CUid
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_CC_T)
+instance Rewrapped CCc t
+instance Wrapped CCc where
+  type Unwrapped CCc = HTYPE_CC_T
+  _Wrapped' = iso (\(CCc x) -> x) CCc
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_SPEED_T)
+instance Rewrapped CSpeed t
+instance Wrapped CSpeed where
+  type Unwrapped CSpeed = HTYPE_SPEED_T
+  _Wrapped' = iso (\(CSpeed x) -> x) CSpeed
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_TCFLAG_T)
+instance Rewrapped CTcflag t
+instance Wrapped CTcflag where
+  type Unwrapped CTcflag = HTYPE_TCFLAG_T
+  _Wrapped' = iso (\(CTcflag x) -> x) CTcflag
+  {-# INLINE _Wrapped' #-}
+#endif
+
+#if defined(HTYPE_RLIM_T)
+instance Rewrapped CRLim t
+instance Wrapped CRLim where
+  type Unwrapped CRLim = HTYPE_RLIM_T
+  _Wrapped' = iso (\(CRLim x) -> x) CRLim
+  {-# INLINE _Wrapped' #-}
+#endif
+
+instance Rewrapped Fd t
+instance Wrapped Fd where
+  type Unwrapped Fd = CInt
+  _Wrapped' = iso (\(Fd x) -> x) Fd
+  {-# INLINE _Wrapped' #-}
 
 -- | Given the constructor for a 'Wrapped' type, return a
 -- deconstructor that is its inverse.
