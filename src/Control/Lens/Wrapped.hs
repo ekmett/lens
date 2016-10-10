@@ -283,7 +283,7 @@ instance Wrapped (ArrowMonad m a) where
   _Wrapped' = iso getArrowMonad ArrowMonad
   {-# INLINE _Wrapped' #-}
 
-instance t ~ Down a => Rewrapped (Down a) t
+instance t ~ Down b => Rewrapped (Down a) t
 instance Wrapped (Down a) where
   type Unwrapped (Down a) = a
   _Wrapped' = iso (\(Down a) -> a) Down
@@ -346,7 +346,7 @@ instance Wrapped (MaybeT m a) where
   _Wrapped' = iso runMaybeT MaybeT
   {-# INLINE _Wrapped' #-}
 
-instance (t ~ ReaderT r n b) => Rewrapped (ReaderT r m a) t
+instance (t ~ ReaderT s n b) => Rewrapped (ReaderT r m a) t
 instance Wrapped (ReaderT r m a) where
   type Unwrapped (ReaderT r m a) = r -> m a
   _Wrapped' = iso runReaderT ReaderT
