@@ -119,7 +119,6 @@ import           Data.Bifunctor.Join
 import           Data.Bifunctor.Joker
 import           Data.Bifunctor.Tannen
 import           Data.Bifunctor.Wrapped
-import           Data.Fixed
 import           Data.Foldable as Foldable
 import           Data.Functor.Bind
 import           Data.Functor.Compose
@@ -320,12 +319,6 @@ instance t ~ Down a => Rewrapped (Down a) t
 instance Wrapped (Down a) where
   type Unwrapped (Down a) = a
   _Wrapped' = iso (\(Down a) -> a) Down
-  {-# INLINE _Wrapped' #-}
-
-instance t ~ Fixed b => Rewrapped (Fixed a) t
-instance Wrapped (Fixed a) where
-  type Unwrapped (Fixed a) = Integer
-  _Wrapped' = iso (\(MkFixed a) -> a) MkFixed
   {-# INLINE _Wrapped' #-}
 
 instance Rewrapped Errno t
