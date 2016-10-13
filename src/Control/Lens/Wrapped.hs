@@ -135,7 +135,6 @@ import           Data.HashSet as HashSet
 import           Data.HashMap.Lazy as HashMap
 import           Data.List.NonEmpty
 import           Data.Map as Map
-import qualified Data.Monoid as Monoid
 import           Data.Monoid
 import qualified Data.Profunctor as Profunctor
 import           Data.Profunctor hiding (WrappedArrow(..))
@@ -161,6 +160,10 @@ import           System.Posix.Types
 import           Data.Ord (Down(Down))
 #else
 import           GHC.Exts (Down(Down))
+#endif
+
+#if MIN_VERSION_base(4,8,0)
+import qualified Data.Monoid as Monoid
 #endif
 
 #ifdef HLINT
