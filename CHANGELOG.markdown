@@ -1,6 +1,9 @@
 4.15.1
 ----
 * Restore the `generic` and `generic1` functions in `GHC.Generics.Lens`
+* Add more `Rewrapped` and `Wrapped` instances for data types from the `base`,
+  `bifunctors`, `exceptions`, `free`, `profunctors`, and `semigroupoids`
+  libraries
 
 4.15
 ----
