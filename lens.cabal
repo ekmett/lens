@@ -486,6 +486,7 @@ benchmark traversals
     base,
     criterion,
     containers,
+    deepseq,
     bytestring,
     unordered-containers,
     vector,
