@@ -366,9 +366,12 @@ checkR2nub = r2nub
 data PureNoFields = PureNoFieldsA | PureNoFieldsB { _pureNoFields :: Int }
 makeLenses ''PureNoFields
 
-data ReviewTest where ReviewTest :: a -> ReviewTest
+data ReviewTest a b where
+  MkReviewTest :: a -> a -> ReviewTest a Bool
 makePrisms ''ReviewTest
 
+data PrismTest a b = L a | R b
+makeClassyPrisms ''PrismTest
 
 -- test FieldNamers
 
