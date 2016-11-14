@@ -42,9 +42,6 @@ before_install:
  - export PATH=~/.cabal/bin:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/happy/$HAPPYVER/bin:/opt/alex/$ALEXVER/bin:$PATH
 
 install:
-# build reflection HEAD until reflection 2.1 is on hackage
- - git clone https://github.com/ekmett/reflection.git
-
  - cabal --version
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
  - if [ -f $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz ];
@@ -54,7 +51,7 @@ install:
    fi
  - travis_retry cabal update
  - "sed -i  's/^jobs:.*$/jobs: 2/' $HOME/.cabal/config"
- - cabal install --only-dependencies --enable-tests --enable-benchmarks --dry -v lens.cabal reflection/ > installplan.txt
+ - cabal install --only-dependencies --enable-tests --enable-benchmarks --dry -v > installplan.txt
  - sed -i -e '1,/^Resolving /d' installplan.txt; cat installplan.txt
 
 # check whether current requested install-plan matches cached package-db snapshot
@@ -68,7 +65,7 @@ install:
      echo "cabal build-cache MISS";
      rm -rf $HOME/.cabsnap;
      mkdir -p $HOME/.ghc $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin;
-     cabal install --only-dependencies --enable-tests --enable-benchmarks lens.cabal reflection/;
+     cabal install --only-dependencies --enable-tests --enable-benchmarks;
    fi
 
 # snapshot package-db on cache miss
@@ -79,9 +76,6 @@ install:
       cp -a $HOME/.ghc $HOME/.cabsnap/ghc;
       cp -a $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin installplan.txt $HOME/.cabsnap/;
    fi
-
-# NB: we don't want reflection/ to be included in the cache
- - cabal install reflection/
 
 # Here starts the actual work to be performed for the package under test;
 # any command which exits with a non-zero exit code causes the build to fail.
