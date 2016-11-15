@@ -4,6 +4,7 @@
 {-# LANGUAGE BangPatterns #-}
 
 import qualified Data.ByteString as BS
+import qualified Data.Foldable as F
 import qualified Data.HashMap.Lazy as HM
 import qualified Data.Map as M
 import qualified Data.Sequence as S
@@ -16,7 +17,6 @@ import Data.ByteString.Lens
 import Control.Lens
 import Criterion.Main
 import Criterion.Types
-import Data.Foldable
 
 main :: IO ()
 main = defaultMainWith config
@@ -43,11 +43,11 @@ main = defaultMainWith config
     ]
   , bgroup "sequence"
     [ bgroup "toList"
-      [ bench "native" $ nf toList s
+      [ bench "native" $ nf F.toList s
       , bench "each"   $ nf (toListOf each) s
       ]
     , bgroup "itoList"
-      [ bench "native"     $ nf (toList . S.mapWithIndex (,)) s
+      [ bench "native"     $ nf (F.toList . S.mapWithIndex (,)) s
       , bench "itraversed" $ nf (itoListOf itraversed) s
       ]
     ]
@@ -64,7 +64,7 @@ main = defaultMainWith config
     ]
   , bgroup "list"
     [ bgroup "toList"
-      [ bench "native" $ nf toList l
+      [ bench "native" $ nf F.toList l
       , bench "each"   $ nf (toListOf each) l
       ]
     , bgroup "itoList"
@@ -74,11 +74,11 @@ main = defaultMainWith config
     ]
   , bgroup "map"
     [ bgroup "toList"
-      [ bench "native" $ nf toList m
+      [ bench "native" $ nf F.toList m
       , bench "each"   $ nf itoList m
       ]
     , bgroup "itoList"
-      [ bench "native"     $ nf (zip [(0::Int)..] . toList) m
+      [ bench "native"     $ nf (zip [(0::Int)..] . F.toList) m
       , bench "itraversed" $ nf (itoListOf itraversed) m
       ]
     ]
@@ -93,7 +93,7 @@ main = defaultMainWith config
       , bench "itraversed" $ nf (itoListOf itraversed) h
       ]
     , bgroup "sum"
-      [ bench "native" $ nf (sum . id . toList) h
+      [ bench "native" $ nf (sum . id . F.toList) h
       , bench "each"   $ nf (sumOf each) h
       ]
     ]
