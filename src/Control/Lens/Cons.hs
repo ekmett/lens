@@ -30,7 +30,7 @@ module Control.Lens.Cons
   , uncons
   , _head, _tail
 #if __GLASGOW_HASKELL__ >= 710
-  , pattern (:>)
+  , pattern (:<)
 #endif
   -- * Snoc
   , Snoc(..)
@@ -39,7 +39,7 @@ module Control.Lens.Cons
   , unsnoc
   , _init, _last
 #if __GLASGOW_HASKELL__ >= 710
-  , pattern (:<)
+  , pattern (:>)
 #endif
 
   ) where
