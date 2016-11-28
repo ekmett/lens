@@ -426,6 +426,9 @@ test-suite hlint
   else
     build-depends:
       base,
+      -- Using haskell-src-exts-1.19 causes the hlint tests to run for an
+      -- unreasonably long time. See https://github.com/ekmett/lens/issues/693.
+      haskell-src-exts < 1.19,
       hlint >= 1.9.27
 
 -- Basic benchmarks for the uniplate-style combinators
