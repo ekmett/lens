@@ -41,6 +41,8 @@ module Control.Lens.At
     At(at)
     , sans
     , iat
+  -- * SurelyIxed
+  , SurelyIxed(ixSure)
   -- * Ixed
   , Index
   , IxValue
@@ -232,7 +234,7 @@ ixAt i = at i . traverse
 
 type instance IxValue (e -> a) = a
 instance Eq e => Ixed (e -> a) where
-  ix e p f = p (f e) <&> \a e' -> if e == e' then a else f e'
+  ix = ixSure
   {-# INLINE ix #-}
 
 type instance IxValue (Maybe a) = a
@@ -260,7 +262,7 @@ instance Ixed (NonEmpty a) where
 
 type instance IxValue (Identity a) = a
 instance Ixed (Identity a) where
-  ix () f (Identity a) = Identity <$> f a
+  ix = ixSure
   {-# INLINE ix #-}
 
 type instance IxValue (Tree a) = a
@@ -406,7 +408,19 @@ instance Ixed LazyB.ByteString where
        Just (c, xs) -> f c <&> \d -> LazyB.append l (LazyB.cons d xs)
   {-# INLINE ix #-}
 
+-- | This simple 'Lens' lets you access the value at a given
+-- position in a container with a fixed shape. In all such
+-- cases, 'ix' can simply be defined as 'ixSure'.
+class Ixed m => SurelyIxed m where
+  ixSure :: Index m -> Lens' m (IxValue m)
 
+instance SurelyIxed (Identity a) where
+  ixSure () f (Identity a) = Identity <$> f a
+  {-# INLINE ixSure #-}
+
+instance Eq a => SurelyIxed (a -> b) where
+  ixSure e p f = p (f e) <&> \a e' -> if e == e' then a else f e'
+  {-# INLINE ixSure #-}
 
 -- | 'At' provides a 'Lens' that can be used to read,
 -- write or delete the value associated with a key in a 'Map'-like
