@@ -31,6 +31,7 @@ import Data.ByteString.Char8 as Char8
 import Data.Word
 
 -- $setup
+-- >>> :set -XOverloadedStrings
 -- >>> import Control.Lens
 -- >>> import Numeric.Lens
 
