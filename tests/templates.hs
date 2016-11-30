@@ -58,7 +58,7 @@ checkA1 :: Lens' (Hadron a b) a
 checkA1 = a1
 
 checkA2 :: Lens' (Hadron a b) a
-checkA2 = a2 
+checkA2 = a2
 
 checkC :: Lens (Hadron a b) (Hadron a b') b b'
 checkC = c
@@ -237,7 +237,7 @@ checkThing3 :: Lens' (AbideConfiguration a) a
 checkThing3 = thing
 
 dudeDrink :: String
-dudeDrink      = (Dude 9 "El Duderino" () "white russian")      ^. thing 
+dudeDrink      = (Dude 9 "El Duderino" () "white russian")      ^. thing
 lebowskiCarpet :: Maybe String
 lebowskiCarpet = (Lebowski "Mr. Lebowski" 0 "" (Just "carpet")) ^. thing
 abideAnnoyance :: String
@@ -410,6 +410,42 @@ makeLensesWith (defaultFieldRules & lensField .~ abbreviatedNamer ) ''CheckAbbre
 checkAbbreviatedNamer :: Lens' CheckAbbreviatedNamer Int
 checkAbbreviatedNamer = fieldAbbreviatedNamer
 
+declareArgTypePrisms argTypesRulesSelector [d|
+  data ArgTypePrismTest a b c =
+      ArgTypePrismTest1 {z1 :: Int, z2 :: Int }
+    | ArgTypePrismTest2 {z3 :: Double, z4 :: b, z5 :: a}
+    | ArgTypePrismTest3 {z6 :: a}
+  |]
+
+checkArgTypePrism1Args :: ArgTypePrismTest1Args
+checkArgTypePrism1Args = ArgTypePrismTest1Args 0 0
+
+checkArgTypePrism2Args :: ArgTypePrismTest2Args Integer Bool
+checkArgTypePrism2Args = ArgTypePrismTest2Args 0 True 1
+
+checkArgTypePrism1 :: Prism
+  (ArgTypePrismTest a b c)
+  (ArgTypePrismTest a b d)
+  ArgTypePrismTest1Args
+  ArgTypePrismTest1Args
+checkArgTypePrism1 = _ArgTypePrismTest1
+
+checkArgTypePrism2 :: Prism
+  (ArgTypePrismTest a b c)
+  (ArgTypePrismTest a d e)
+  (ArgTypePrismTest2Args a b)
+  (ArgTypePrismTest2Args a d)
+checkArgTypePrism2 = _ArgTypePrismTest2
+
+checkArgTypePrismLensZ1 :: Lens'  ArgTypePrismTest1Args  Int
+checkArgTypePrismLensZ1 = _z1
+
+checkArgTypePrismLensZ5 :: Lens
+  (ArgTypePrismTest2Args a b)
+  (ArgTypePrismTest2Args c b)
+  a
+  c
+checkArgTypePrismLensZ5 = _z5
 
 main :: IO ()
 main = putStrLn "test/templates.hs: ok"
