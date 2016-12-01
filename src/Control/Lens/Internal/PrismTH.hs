@@ -319,7 +319,7 @@ makeConReviewExp con = appE (varE untoValName) reviewer
 -- (\(x,y,z) -> Con x y z) :: b -> t
 makeReviewer :: Name -> Int -> ExpQ
 makeReviewer conName fields =
-  do xs <- replicateM fields (newName "x")
+  do xs <- newNames "x" fields
      lam1E (toTupleP (map varP xs))
            (conE conName `appsE1` map varE xs)
 
