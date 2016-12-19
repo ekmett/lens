@@ -611,3 +611,4 @@ coerced l = case sym Coercion :: Coercion a s of
               Coercion -> rmap (fmap coerce') l .# coerce
 #endif
 #endif
+{-# INLINE coerced #-}
