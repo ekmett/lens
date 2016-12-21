@@ -45,7 +45,7 @@ import Data.Map as Map
 import Data.Maybe
 import Data.Monoid
 import Data.Profunctor.Unsafe
-import Data.Sequence as Seq
+import qualified Data.Sequence as Seq
 import Data.Set as Set
 import Data.Text as StrictT
 import Data.Text.Lazy as LazyT
@@ -157,7 +157,7 @@ instance Storable a => AsEmpty (Storable.Vector a) where
   _Empty = nearly Storable.empty Storable.null
   {-# INLINE _Empty #-}
 
-instance AsEmpty (Seq a) where
+instance AsEmpty (Seq.Seq a) where
   _Empty = nearly Seq.empty Seq.null
   {-# INLINE _Empty #-}
 
