@@ -604,11 +604,11 @@ seconding p = withIso p $ \ sa bt -> iso (second sa) (second bt)
 --
 -- @since 4.13
 coerced :: forall s t a b. (Coercible s a, Coercible t b) => Iso s t a b
-#if __GLASGOW_HASKELL__ >= 710
+# if __GLASGOW_HASKELL__ >= 710
 coerced l = rmap (fmap coerce') l .# coerce
-#else
+# else
 coerced l = case sym Coercion :: Coercion a s of
               Coercion -> rmap (fmap coerce') l .# coerce
-#endif
-#endif
+# endif
 {-# INLINE coerced #-}
+#endif
