@@ -70,9 +70,14 @@ module Language.Haskell.TH.Lens
   , typeFamilyHeadTyVarBndrs
   , typeFamilyHeadResultSig
   , typeFamilyHeadInjectivityAnn
-  -- ** Bang Prisms
+  -- ** Bang Lenses
   , bangSourceUnpackedness
   , bangSourceStrictness
+#endif
+#if MIN_VERSION_template_haskell(2,12,0)
+  -- ** DerivClause Lenses
+  , derivClauseStrategy
+  , derivClauseCxt
 #endif
   -- * Prisms
   -- ** Info Prisms
@@ -84,6 +89,9 @@ module Language.Haskell.TH.Lens
   , _DataConI
   , _VarI
   , _TyVarI
+#if MIN_VERSION_template_haskell(2,12,0)
+  , _PatSynI
+#endif
   -- ** Dec Prisms
   , _FunD
   , _ValD
@@ -114,6 +122,20 @@ module Language.Haskell.TH.Lens
   , _OpenTypeFamilyD
 #else
   , _FamilyD
+#endif
+#if MIN_VERSION_template_haskell(2,12,0)
+  , _PatSynD
+  , _PatSynSigD
+#endif
+#if MIN_VERSION_template_haskell(2,12,0)
+  -- ** PatSynDir Prisms
+  , _Unidir
+  , _ImplBidir
+  , _ExplBidir
+  -- ** PatSynArgs Prisms
+  , _PrefixPatSyn
+  , _InfixPatSyn
+  , _RecordPatSyn
 #endif
   -- ** Con Prisms
   , _NormalC
@@ -212,6 +234,9 @@ module Language.Haskell.TH.Lens
   , _ConE
   , _LitE
   , _AppE
+#if MIN_VERSION_template_haskell(2,12,0)
+  , _AppTypeE
+#endif
   , _InfixE
   , _UInfixE
   , _ParensE
@@ -221,6 +246,9 @@ module Language.Haskell.TH.Lens
 #endif
   , _TupE
   , _UnboxedTupE
+#if MIN_VERSION_template_haskell(2,12,0)
+  , _UnboxedSumE
+#endif
   , _CondE
 #if MIN_VERSION_template_haskell(2,8,0)
   , _MultiIfE
@@ -274,6 +302,9 @@ module Language.Haskell.TH.Lens
   , _VarP
   , _TupP
   , _UnboxedTupP
+#if MIN_VERSION_template_haskell(2,12,0)
+  , _UnboxedSumP
+#endif
   , _ConP
   , _InfixP
   , _UInfixP
@@ -297,6 +328,9 @@ module Language.Haskell.TH.Lens
 #endif
   , _TupleT
   , _UnboxedTupleT
+#if MIN_VERSION_template_haskell(2,12,0)
+  , _UnboxedSumT
+#endif
   , _ArrowT
 #if MIN_VERSION_template_haskell(2,10,0)
   , _EqualityT
@@ -341,6 +375,12 @@ module Language.Haskell.TH.Lens
   , _RepresentationalR
   , _PhantomR
   , _InferR
+#endif
+#if MIN_VERSION_template_haskell(2,12,0)
+  -- ** DerivStrategy Prisms
+  , _StockStrategy
+  , _AnyclassStrategy
+  , _NewtypeStrategy
 #endif
   ) where
 
@@ -709,6 +749,18 @@ bangSourceStrictness = lens g s where
   s (Bang ss _ ) = Bang ss
 #endif
 
+#if MIN_VERSION_template_haskell(2,12,0)
+derivClauseStrategy :: Lens' DerivClause (Maybe DerivStrategy)
+derivClauseStrategy = lens g s where
+  g (DerivClause mds _)     = mds
+  s (DerivClause _   c) mds = DerivClause mds c
+
+derivClauseCxt :: Lens' DerivClause Cxt
+derivClauseCxt = lens g s where
+  g (DerivClause _   c) = c
+  s (DerivClause mds _) = DerivClause mds
+#endif
+
 #if MIN_VERSION_template_haskell(2,8,0)
 _ClassI :: Prism' Info (Dec, [InstanceDec])
 #else
@@ -822,6 +874,16 @@ _TyVarI
       reviewer (x, y) = TyVarI x y
       remitter (TyVarI x y) = Just (x, y)
       remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,12,0)
+_PatSynI :: Prism' Info (Name, PatSynType)
+_PatSynI
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = PatSynI x y
+      remitter (PatSynI x y) = Just (x, y)
+      remitter _ = Nothing
+#endif
 
 _FunD :: Prism' Dec (Name, [Clause])
 _FunD
@@ -963,7 +1025,15 @@ _TySynInstD
       remitter _ = Nothing
 #endif
 
-#if MIN_VERSION_template_haskell(2,10,0)
+#if MIN_VERSION_template_haskell(2,12,0)
+_StandaloneDerivD :: Prism' Dec (Maybe DerivStrategy, Cxt, Type)
+_StandaloneDerivD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = StandaloneDerivD x y z
+      remitter (StandaloneDerivD x y z) = Just (x, y, z)
+      remitter _ = Nothing
+#elif MIN_VERSION_template_haskell(2,10,0)
 _StandaloneDerivD :: Prism' Dec (Cxt, Type)
 _StandaloneDerivD
   = prism' reviewer remitter
@@ -971,7 +1041,9 @@ _StandaloneDerivD
       reviewer (x, y) = StandaloneDerivD x y
       remitter (StandaloneDerivD x y) = Just (x, y)
       remitter _ = Nothing
+#endif
 
+#if MIN_VERSION_template_haskell(2,10,0)
 _DefaultSigD :: Prism' Dec (Name, Type)
 _DefaultSigD
   = prism' reviewer remitter
@@ -1000,7 +1072,13 @@ _ClosedTypeFamilyD
 #endif
 
 #if MIN_VERSION_template_haskell(2,11,0)
-_DataD :: Prism' Dec (Cxt, Name, [TyVarBndr], Maybe Kind, [Con], Cxt)
+# if MIN_VERSION_template_haskell(2,12,0)
+type DataPrism' tys cons = Prism' Dec (Cxt, Name, tys, Maybe Kind, cons, [DerivClause])
+# else
+type DataPrism' tys cons = Prism' Dec (Cxt, Name, tys, Maybe Kind, cons, Cxt)
+# endif
+
+_DataD :: DataPrism' [TyVarBndr] [Con]
 _DataD
   = prism' reviewer remitter
   where
@@ -1008,7 +1086,7 @@ _DataD
       remitter (DataD x y z w u v) = Just (x, y, z, w, u, v)
       remitter _ = Nothing
 
-_NewtypeD :: Prism' Dec (Cxt, Name, [TyVarBndr], Maybe Kind, Con, Cxt)
+_NewtypeD :: DataPrism' [TyVarBndr] Con
 _NewtypeD
   = prism' reviewer remitter
   where
@@ -1016,7 +1094,7 @@ _NewtypeD
       remitter (NewtypeD x y z w u v) = Just (x, y, z, w, u, v)
       remitter _ = Nothing
 
-_DataInstD :: Prism' Dec (Cxt, Name, [Type], Maybe Kind, [Con], Cxt)
+_DataInstD :: DataPrism' [Type] [Con]
 _DataInstD
   = prism' reviewer remitter
   where
@@ -1024,7 +1102,7 @@ _DataInstD
       remitter (DataInstD x y z w u v) = Just (x, y, z, w, u, v)
       remitter _ = Nothing
 
-_NewtypeInstD :: Prism' Dec (Cxt, Name, [Type], Maybe Kind, Con, Cxt)
+_NewtypeInstD :: DataPrism' [Type] Con
 _NewtypeInstD
   = prism' reviewer remitter
   where
@@ -1086,6 +1164,74 @@ _FamilyD
   where
       reviewer (x, y, z, w) = FamilyD x y z w
       remitter (FamilyD x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,12,0)
+_PatSynD :: Prism' Dec (Name, PatSynArgs, PatSynDir, Pat)
+_PatSynD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z, w) = PatSynD x y z w
+      remitter (PatSynD x y z w) = Just (x, y, z, w)
+      remitter _ = Nothing
+
+_PatSynSigD :: Prism' Dec (Name, PatSynType)
+_PatSynSigD
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = PatSynSigD x y
+      remitter (PatSynSigD x y) = Just (x, y)
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,12,0)
+_Unidir :: Prism' PatSynDir ()
+_Unidir
+  = prism' reviewer remitter
+  where
+      reviewer () = Unidir
+      remitter Unidir = Just ()
+      remitter _ = Nothing
+
+_ImplBidir :: Prism' PatSynDir ()
+_ImplBidir
+  = prism' reviewer remitter
+  where
+      reviewer () = ImplBidir
+      remitter ImplBidir = Just ()
+      remitter _ = Nothing
+
+_ExplBidir :: Prism' PatSynDir [Clause]
+_ExplBidir
+  = prism' reviewer remitter
+  where
+      reviewer = ExplBidir
+      remitter (ExplBidir x) = Just x
+      remitter _ = Nothing
+
+_PrefixPatSyn :: Prism' PatSynArgs [Name]
+_PrefixPatSyn
+  = prism' reviewer remitter
+  where
+      reviewer = PrefixPatSyn
+      remitter (PrefixPatSyn x) = Just x
+      remitter _ = Nothing
+
+_InfixPatSyn :: Prism' PatSynArgs (Name, Name)
+_InfixPatSyn
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = InfixPatSyn x y
+      remitter (InfixPatSyn x y) = Just (x, y)
+      remitter _ = Nothing
+
+_RecordPatSyn :: Prism' PatSynArgs [Name]
+_RecordPatSyn
+  = prism' reviewer remitter
+  where
+      reviewer = RecordPatSyn
+      remitter (RecordPatSyn x) = Just x
       remitter _ = Nothing
 #endif
 
@@ -1610,6 +1756,16 @@ _AppE
       remitter (AppE x y) = Just (x, y)
       remitter _ = Nothing
 
+#if MIN_VERSION_template_haskell(2,12,0)
+_AppTypeE :: Prism' Exp (Exp, Type)
+_AppTypeE
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = AppTypeE x y
+      remitter (AppTypeE x y) = Just (x, y)
+      remitter _ = Nothing
+#endif
+
 _InfixE :: Prism' Exp (Maybe Exp, Exp, Maybe Exp)
 _InfixE
   = prism' reviewer remitter
@@ -1667,6 +1823,16 @@ _UnboxedTupE
       reviewer = UnboxedTupE
       remitter (UnboxedTupE x) = Just x
       remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,12,0)
+_UnboxedSumE :: Prism' Exp (Exp, SumAlt, SumArity)
+_UnboxedSumE
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = UnboxedSumE x y z
+      remitter (UnboxedSumE x y z) = Just (x, y, z)
+      remitter _ = Nothing
+#endif
 
 _CondE :: Prism' Exp (Exp, Exp, Exp)
 _CondE
@@ -1998,6 +2164,16 @@ _UnboxedTupP
       remitter (UnboxedTupP x) = Just x
       remitter _ = Nothing
 
+#if MIN_VERSION_template_haskell(2,12,0)
+_UnboxedSumP :: Prism' Pat (Pat, SumAlt, SumArity)
+_UnboxedSumP
+  = prism' reviewer remitter
+  where
+      reviewer (x, y, z) = UnboxedSumP x y z
+      remitter (UnboxedSumP x y z) = Just (x, y, z)
+      remitter _ = Nothing
+#endif
+
 _ConP :: Prism' Pat (Name, [Pat])
 _ConP
   = prism' reviewer remitter
@@ -2159,6 +2335,16 @@ _UnboxedTupleT
       reviewer = UnboxedTupleT
       remitter (UnboxedTupleT x) = Just x
       remitter _ = Nothing
+
+#if MIN_VERSION_template_haskell(2,12,0)
+_UnboxedSumT :: Prism' Type SumArity
+_UnboxedSumT
+  = prism' reviewer remitter
+  where
+      reviewer = UnboxedSumT
+      remitter (UnboxedSumT x) = Just x
+      remitter _ = Nothing
+#endif
 
 _ArrowT :: Prism' Type ()
 _ArrowT
@@ -2379,5 +2565,31 @@ _InferR
   where
       reviewer () = InferR
       remitter InferR = Just ()
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,12,0)
+_StockStrategy :: Prism' DerivStrategy ()
+_StockStrategy
+  = prism' reviewer remitter
+  where
+      reviewer () = StockStrategy
+      remitter StockStrategy = Just ()
+      remitter _ = Nothing
+
+_AnyclassStrategy :: Prism' DerivStrategy ()
+_AnyclassStrategy
+  = prism' reviewer remitter
+  where
+      reviewer () = AnyclassStrategy
+      remitter AnyclassStrategy = Just ()
+      remitter _ = Nothing
+
+_NewtypeStrategy :: Prism' DerivStrategy ()
+_NewtypeStrategy
+  = prism' reviewer remitter
+  where
+      reviewer () = NewtypeStrategy
+      remitter NewtypeStrategy = Just ()
       remitter _ = Nothing
 #endif
