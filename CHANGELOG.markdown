@@ -1,3 +1,7 @@
+next
+----
+* Adds `throwing_` to `Control.Monad.Error.Lens` to handle the common case of zero argument constructors.
+
 4.15.1
 ----
 * Restore the `generic` and `generic1` functions in `GHC.Generics.Lens`

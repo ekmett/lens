@@ -1,7 +1,7 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP                       #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Monad.Error.Lens
@@ -25,18 +25,18 @@ module Control.Monad.Error.Lens
   , Handler(..)
   , Handleable(..)
   -- * Throwing
-  , throwing
+  , throwing, throwing_
   ) where
 
-import Control.Applicative
-import Control.Lens
-import Control.Lens.Internal.Exception
-import Control.Monad
-import Control.Monad.Error.Class
-import Data.Functor.Plus
-import qualified Data.Monoid as M
-import Data.Semigroup (Semigroup(..))
-import Prelude
+import           Control.Applicative
+import           Control.Lens
+import           Control.Lens.Internal.Exception
+import           Control.Monad
+import           Control.Monad.Error.Class
+import           Data.Functor.Plus
+import qualified Data.Monoid                     as M
+import           Data.Semigroup                  (Semigroup (..))
+import           Prelude
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use fmap" #-}
@@ -217,6 +217,18 @@ instance Handleable e m (Handler e m) where
 throwing :: MonadError e m => AReview e t -> t -> m x
 throwing l = reviews l throwError
 {-# INLINE throwing #-}
+
+-- | Similar to 'throwing' but specialised for the common case of
+--   error constructors with no arguments.
+--
+-- @
+-- data MyError = Foo | Bar
+-- makePrisms ''MyError
+-- 'throwing_' _Foo :: 'MonadError' MyError m => m a
+-- @
+throwing_ :: MonadError e m => AReview e () -> m x
+throwing_ l = throwing l ()
+{-# INLINE throwing_ #-}
 
 ------------------------------------------------------------------------------
 -- Misc.
