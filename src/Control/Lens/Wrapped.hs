@@ -3,6 +3,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -76,6 +78,8 @@ module Control.Lens.Wrapped
   , pattern Wrapped
   , pattern Unwrapped
 #endif
+  -- * Generics
+  , _GWrapped'
   ) where
 
 #include "HsBaseConfig.h"
@@ -153,6 +157,7 @@ import           Data.Vector.Storable as Storable
 import           Data.Word
 import           Foreign.C.Error
 import           Foreign.C.Types
+import qualified GHC.Generics as Generic
 import           GHC.Generics hiding (from, to)
 import           System.Posix.Types
 
@@ -178,8 +183,29 @@ import qualified Data.Monoid as Monoid
 -- data types with one constructor.
 class Wrapped s where
   type Unwrapped s :: *
+  type Unwrapped s = GUnwrapped (Rep s)
+
   -- | An isomorphism between @s@ and @a@.
+  --
+  -- If your type has a 'Generic' instance, '_Wrapped'' will default to '_GWrapped'',
+  -- and you can choose to not override it with your own definition.
   _Wrapped' :: Iso' s (Unwrapped s)
+  default _Wrapped' :: (Generic s, D1 d (C1 c (S1 s' (Rec0 a))) ~ Rep s, Unwrapped s ~ GUnwrapped (Rep s))
+                    => Iso' s (Unwrapped s)
+  _Wrapped' = _GWrapped'
+  {-# INLINE _Wrapped' #-}
+
+-- | Implement the '_Wrapped' operation for a type using its 'Generic' instance.
+_GWrapped' :: (Generic s, D1 d (C1 c (S1 s' (Rec0 a))) ~ Rep s, Unwrapped s ~ GUnwrapped (Rep s))
+           => Iso' s (Unwrapped s)
+_GWrapped' = iso Generic.from Generic.to . iso remitter reviewer
+  where
+    remitter (M1 (M1 (M1 (K1 x)))) = x
+    reviewer x = M1 (M1 (M1 (K1 x)))
+{-# INLINE _GWrapped' #-}
+
+type family GUnwrapped (rep :: * -> *) :: *
+type instance GUnwrapped (D1 d (C1 c (S1 s (Rec0 a)))) = a
 
 #if __GLASGOW_HASKELL__ >= 710
 
