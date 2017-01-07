@@ -244,7 +244,7 @@ bits f b = Prelude.foldr step 0 <$> traverse g bs where
 -- If you supply this an 'Integer', the result will be an infinite 'Traversal',
 -- which can be productively consumed, but not reassembled.
 --
--- Why is'nt this function called @bytes@ to match 'bits'? Alas, there
+-- Why isn't this function called @bytes@ to match 'bits'? Alas, there
 -- is already a function by that name in "Data.ByteString.Lens".
 bytewise :: (Integral b, Bits b) => IndexedTraversal' Int b Word8
 bytewise f b = Prelude.foldr step 0 <$> traverse g bs where
