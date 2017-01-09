@@ -27,6 +27,8 @@ module Control.Lens.Internal.Fold
   , Leftmost(..), getLeftmost
   , Rightmost(..), getRightmost
   , ReifiedMonoid(..)
+  -- * Semigroups for folding
+  , NonEmptyDList(..)
   ) where
 
 import Control.Applicative
@@ -37,6 +39,8 @@ import Data.Maybe
 import Data.Semigroup hiding (Min, getMin, Max, getMax)
 import Data.Reflection
 import Prelude
+
+import qualified Data.List.NonEmpty as NonEmpty
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Avoid lambda" #-}
@@ -150,6 +154,16 @@ getMax :: Max a -> Maybe a
 getMax NoMax   = Nothing
 getMax (Max a) = Just a
 {-# INLINE getMax #-}
+
+------------------------------------------------------------------------------
+-- NonEmptyDList
+------------------------------------------------------------------------------
+
+newtype NonEmptyDList a
+  = NonEmptyDList { getNonEmptyDList :: [a] -> NonEmpty.NonEmpty a }
+
+instance Semigroup (NonEmptyDList a) where
+  NonEmptyDList f <> NonEmptyDList g = NonEmptyDList (f . NonEmpty.toList . g)
 
 ------------------------------------------------------------------------------
 -- Leftmost and Rightmost
