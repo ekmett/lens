@@ -112,6 +112,13 @@ source-repository head
   type: git
   location: https://github.com/ekmett/lens.git
 
+custom-setup
+  setup-depends:
+    Cabal >= 1.6 && <2.0,
+    base  >= 4.5 && <5,
+    directory,
+    filepath
+
 -- Enable benchmarking against Neil Mitchell's uniplate library for comparative performance analysis. Defaults to being turned off to avoid
 -- the extra dependency.
 --
