@@ -15,7 +15,7 @@
 -----------------------------------------------------------------------------
 module Main where
 
-import Build_doctests (autogen_dir, deps)
+import Build_doctests (autogen_dir, build_dir, deps, depsFlag, compiler)
 #if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
 #endif
@@ -54,16 +54,33 @@ withUnicode m = m
 ##endif
 
 main :: IO ()
-main = withUnicode $ getSources >>= \sources -> doctest $
-    "-isrc"
-  : ("-i" ++ autogen_dir)
-  : "-optP-include"
-  : ("-optP" ++ autogen_dir ++ "/cabal_macros.h")
-  : "-hide-all-packages"
+main = withUnicode $ getSources >>= \sources -> do
+    -- Let us find potential databases, cabal new-build
+    home <- getHomeDirectory
+    cwd  <- getCurrentDirectory
+    let storedb   = home </> ".cabal" </> "store" </> compiler </> "package.db"
+    let localdb   = cwd </> "dist-newstyle" </> "packagedb" </> compiler
+    let inplacedb = build_dir </> "package.conf.inplace"
+    -- Note: we could add sandbox directories as well,
+    -- but let us assume everyone is switching to new-build
+    dbs <- filterM doesDirectoryExist [storedb,localdb,inplacedb]
+    -- Run doctests
+    doctest (args sources dbs)
+  where
+    args sources dbs
+      = "-isrc"
+      -- if there are not cabal new-build databases, we should use user db
+      : (if null dbs then [] else [ "-no-user-package-db" ])
+      ++ map ("-package-db="++) dbs
+      ++  ("-i" ++ autogen_dir)
+      : "-optP-include"
+      : ("-optP" ++ autogen_dir ++ "/cabal_macros.h")
+      : "-hide-all-packages"
 #ifdef TRUSTWORTHY
-  : "-DTRUSTWORTHY=1"
+      : "-DTRUSTWORTHY=1"
 #endif
-  : map ("-package="++) deps ++ sources
+      : map (depsFlag++) deps
+      ++ sources
 
 getSources :: IO [FilePath]
 getSources = filter (isSuffixOf ".hs") <$> go "src"
