@@ -1,48 +1,178 @@
 \begin{code}
 {-# LANGUAGE CPP #-}
--- If compiler doesn't give us cabal version, let's assume Cabal is old as well.
--- GHC-8.0.1 defines MIN_VERSION_ macros, and it's also the first GHC with
--- bundled Cabal >= 1.24
---
--- Luckily when setup-depends is specified, recent enough `cabal`
--- defines MIN_VERSION_ pragmas too.
+{-# LANGUAGE OverloadedStrings #-}
+module Main (main) where
+
+#ifndef MIN_VERSION_cabal_doctest
+#define MIN_VERSION_cabal_doctest(x,y,z) 0
+#endif
+
+-- haddock stuff
+import Distribution.Package ( Package (..), packageName )
+import Distribution.Simple ( defaultMainWithHooks, UserHooks(..), simpleUserHooks )
+import Distribution.Simple.Setup (Flag (..), HaddockFlags, haddockDistPref)
+import Distribution.Simple.Utils (copyFiles)
+import Distribution.Verbosity (normal)
+import Distribution.Text ( display )
+import System.FilePath ( (</>) )
+
+#if MIN_VERSION_cabal_doctest(1,0,0)
+import Distribution.Extra.Doctest (generateBuildModule )
+#else
+
 #ifndef MIN_VERSION_Cabal
 #define MIN_VERSION_Cabal(x,y,z) 0
 #endif
-{-# OPTIONS_GHC -Wall #-}
-module Main (main) where
-
-import Data.List ( nub )
-#if MIN_VERSION_Cabal(1,24,0)
-import Distribution.Package ( UnitId (..),  ComponentId (..) )
-#else
--- Unfortunately there aren't way to extract package-id from InstalledPackageId
--- across different Cabal versions (CPP macro isn't reliable).
--- So we have fallback to bare package name + version
-import Distribution.Package ( PackageName(PackageName), InstalledPackageId, packageVersion )
-import Data.Version ( showVersion )
+#ifndef MIN_VERSION_directory
+#define MIN_VERSION_directory(x,y,z) 0
 #endif
-import Distribution.Package ( PackageId, Package, packageName )
-import Distribution.PackageDescription ( PackageDescription(), TestSuite(..) )
-import Distribution.Simple ( defaultMainWithHooks, UserHooks(..), simpleUserHooks )
-import Distribution.Simple.Utils ( rewriteFile, createDirectoryIfMissingVerbose, copyFiles )
-import Distribution.Simple.BuildPaths ( autogenModulesDir )
-import Distribution.Simple.Setup ( BuildFlags(buildVerbosity), Flag(..), fromFlag, HaddockFlags(haddockDistPref))
-import Distribution.Simple.LocalBuildInfo ( withLibLBI, withTestLBI, LocalBuildInfo(), ComponentLocalBuildInfo(componentPackageDeps), compiler, buildDir )
-import Distribution.Simple.Compiler ( showCompilerId )
-import Distribution.Text ( display )
-import Distribution.Verbosity ( Verbosity, normal )
-import System.FilePath ( (</>) )
+#if MIN_VERSION_Cabal(1,24,0)
+#define InstalledPackageId UnitId
+#endif
 
-main :: IO ()
-main = defaultMainWithHooks simpleUserHooks
-  { buildHook = \pkg lbi hooks flags -> do
-     generateBuildModule (fromFlag (buildVerbosity flags)) pkg lbi
-     buildHook simpleUserHooks pkg lbi hooks flags
-  , postHaddock = \args flags pkg lbi -> do
-     copyFiles normal (haddockOutputDir flags pkg) [("images","Hierarchy.png")]
-     postHaddock simpleUserHooks args flags pkg lbi
-  }
+import Control.Monad ( when )
+import Data.List ( nub )
+import Distribution.Package ( InstalledPackageId )
+import Distribution.Package ( PackageId, Package (..), packageVersion )
+import Distribution.PackageDescription ( PackageDescription(), TestSuite(..) , Library (..), BuildInfo (..))
+import Distribution.Simple.Utils ( rewriteFile, createDirectoryIfMissingVerbose )
+import Distribution.Simple.BuildPaths ( autogenModulesDir )
+import Distribution.Simple.Setup ( BuildFlags(buildDistPref, buildVerbosity), fromFlag)
+import Distribution.Simple.LocalBuildInfo ( withPackageDB, withLibLBI, withTestLBI, LocalBuildInfo(), ComponentLocalBuildInfo(componentPackageDeps), compiler )
+import Distribution.Simple.Compiler ( showCompilerId , PackageDB (..))
+import Distribution.Text ( display , simpleParse )
+
+#if MIN_VERSION_Cabal(1,25,0)
+import Distribution.Simple.BuildPaths ( autogenComponentModulesDir )
+#endif
+
+#if MIN_VERSION_directory(1,2,2)
+import System.Directory (makeAbsolute)
+#else
+import System.Directory (getCurrentDirectory)
+import System.FilePath (isAbsolute)
+#endif
+
+#if !MIN_VERSION_directory(1,2,2)
+makeAbsolute :: FilePath -> IO FilePath
+makeAbsolute p | isAbsolute p = return p
+               | otherwise    = do
+    cwd <- getCurrentDirectory
+    return $ cwd </> p
+#endif
+
+generateBuildModule :: BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
+generateBuildModule flags pkg lbi = do
+  let verbosity = fromFlag (buildVerbosity flags)
+  let distPref = fromFlag (buildDistPref flags)
+
+  -- Package DBs
+  let dbStack = withPackageDB lbi ++ [ SpecificPackageDB $ distPref </> "package.conf.inplace" ]
+  let dbFlags = "-hide-all-packages" : packageDbArgs dbStack
+
+  withLibLBI pkg lbi $ \lib libcfg -> do
+    let libBI = libBuildInfo lib
+
+    -- modules
+    let modules = exposedModules lib ++ otherModules libBI
+    -- it seems that doctest is happy to take in module names, not actual files!
+    let module_sources = modules
+
+    -- We need the directory with library's cabal_macros.h!
+#if MIN_VERSION_Cabal(1,25,0)
+    let libAutogenDir = autogenComponentModulesDir lbi libcfg
+#else
+    let libAutogenDir = autogenModulesDir lbi
+#endif
+
+    -- Lib sources and includes
+    iArgs <- mapM (fmap ("-i"++) . makeAbsolute) $ libAutogenDir : hsSourceDirs libBI
+    includeArgs <- mapM (fmap ("-I"++) . makeAbsolute) $ includeDirs libBI
+
+    -- CPP includes, i.e. include cabal_macros.h
+    let cppFlags = map ("-optP"++) $
+            [ "-include", libAutogenDir ++ "/cabal_macros.h" ]
+            ++ cppOptions libBI
+
+    withTestLBI pkg lbi $ \suite suitecfg -> when (testName suite == "doctests") $ do
+
+      -- get and create autogen dir
+#if MIN_VERSION_Cabal(1,25,0)
+      let testAutogenDir = autogenComponentModulesDir lbi suitecfg
+#else
+      let testAutogenDir = autogenModulesDir lbi
+#endif
+      createDirectoryIfMissingVerbose verbosity True testAutogenDir
+
+      -- write autogen'd file
+      rewriteFile (testAutogenDir </> "Build_doctests.hs") $ unlines
+        [ "module Build_doctests where"
+        , ""
+        -- -package-id etc. flags
+        , "pkgs :: [String]"
+        , "pkgs = " ++ (show $ formatDeps $ testDeps libcfg suitecfg)
+        , ""
+        , "flags :: [String]"
+        , "flags = " ++ show (iArgs ++ includeArgs ++ dbFlags ++ cppFlags)
+        , ""
+        , "module_sources :: [String]"
+        , "module_sources = " ++ show (map display module_sources)
+        ]
+  where
+    -- we do this check in Setup, as then doctests don't need to depend on Cabal
+    isOldCompiler = maybe False id $ do
+      a <- simpleParse $ showCompilerId $ compiler lbi
+      b <- simpleParse "7.5"
+      return $ packageVersion (a :: PackageId) < b
+
+    formatDeps = map formatOne
+    formatOne (installedPkgId, pkgId)
+      -- The problem is how different cabal executables handle package databases
+      -- when doctests depend on the library
+      | packageId pkg == pkgId = "-package=" ++ display pkgId
+      | otherwise              = "-package-id=" ++ display installedPkgId
+
+    -- From Distribution.Simple.Program.GHC
+    packageDbArgs :: [PackageDB] -> [String]
+    packageDbArgs | isOldCompiler = packageDbArgsConf
+                  | otherwise     = packageDbArgsDb
+
+    -- GHC <7.6 uses '-package-conf' instead of '-package-db'.
+    packageDbArgsConf :: [PackageDB] -> [String]
+    packageDbArgsConf dbstack = case dbstack of
+      (GlobalPackageDB:UserPackageDB:dbs) -> concatMap specific dbs
+      (GlobalPackageDB:dbs)               -> ("-no-user-package-conf")
+                                           : concatMap specific dbs
+      _ -> ierror
+      where
+        specific (SpecificPackageDB db) = [ "-package-conf=" ++ db ]
+        specific _                      = ierror
+        ierror = error $ "internal error: unexpected package db stack: "
+                      ++ show dbstack
+
+    -- GHC >= 7.6 uses the '-package-db' flag. See
+    -- https://ghc.haskell.org/trac/ghc/ticket/5977.
+    packageDbArgsDb :: [PackageDB] -> [String]
+    -- special cases to make arguments prettier in common scenarios
+    packageDbArgsDb dbstack = case dbstack of
+      (GlobalPackageDB:UserPackageDB:dbs)
+        | all isSpecific dbs              -> concatMap single dbs
+      (GlobalPackageDB:dbs)
+        | all isSpecific dbs              -> "-no-user-package-db"
+                                           : concatMap single dbs
+      dbs                                 -> "-clear-package-db"
+                                           : concatMap single dbs
+     where
+       single (SpecificPackageDB db) = [ "-package-db=" ++ db ]
+       single GlobalPackageDB        = [ "-global-package-db" ]
+       single UserPackageDB          = [ "-user-package-db" ]
+       isSpecific (SpecificPackageDB _) = True
+       isSpecific _                     = False
+
+testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo -> [(InstalledPackageId, PackageId)]
+testDeps xs ys = nub $ componentPackageDeps xs ++ componentPackageDeps ys
+
+#endif
 
 haddockOutputDir :: Package p => HaddockFlags -> p -> FilePath
 haddockOutputDir flags pkg = destDir where
@@ -51,54 +181,14 @@ haddockOutputDir flags pkg = destDir where
     Flag x -> x
   destDir = baseDir </> "doc" </> "html" </> display (packageName pkg)
 
-generateBuildModule :: Verbosity -> PackageDescription -> LocalBuildInfo -> IO ()
-generateBuildModule verbosity pkg lbi = do
-  let dir = autogenModulesDir lbi
-  let bdir = buildDir lbi
-  createDirectoryIfMissingVerbose verbosity True dir
-  withLibLBI pkg lbi $ \_ libcfg -> do
-    withTestLBI pkg lbi $ \suite suitecfg -> do
-      rewriteFile (dir </> "Build_" ++ testName suite ++ ".hs") $ unlines
-        [ "module Build_" ++ testName suite ++ " where"
-        , ""
-        , "autogen_dir :: String"
-        , "autogen_dir = " ++ show dir
-        , ""
-        , "build_dir :: String"
-        , "build_dir = " ++ show bdir
-        , ""
-        , "deps :: [String]"
-        , "deps = " ++ (show $ formatDeps (testDeps libcfg suitecfg))
-        , ""
-        , "compiler :: String"
-        , "compiler = " ++ (show $ showCompilerId $ compiler lbi)
-        , ""
-        , "depsFlag :: String"
-#if MIN_VERSION_Cabal(1,24,0)
-        , "depsFlag = " ++ show "-package-id="
-#else
-        , "depsFlag = " ++ show "-package="
-#endif
-        ]
-
-
-#if MIN_VERSION_Cabal(1,24,0)
-testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo -> [(UnitId, PackageId)]
-testDeps xs ys = nub $ componentPackageDeps xs ++ componentPackageDeps ys
-
-formatDeps :: [(UnitId, a)] -> [String]
-formatDeps = map (formatone . fst)
-  where
-    formatone (SimpleUnitId (ComponentId i)) = i
-#else
-testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo -> [(InstalledPackageId, PackageId)]
-testDeps xs ys = nub $ componentPackageDeps xs ++ componentPackageDeps ys
-
-formatDeps :: [(a, PackageId)] -> [String]
-formatDeps = map (formatone . snd)
-  where
-    formatone p = case packageName p of
-      PackageName n -> n ++ "-" ++ showVersion (packageVersion p)
-#endif
+main :: IO ()
+main = defaultMainWithHooks simpleUserHooks
+  { buildHook = \pkg lbi hooks flags -> do
+     generateBuildModule "doctests" flags pkg lbi
+     buildHook simpleUserHooks pkg lbi hooks flags
+  , postHaddock = \args flags pkg lbi -> do
+     copyFiles normal (haddockOutputDir flags pkg) [("images","Hierarchy.png")]
+     postHaddock simpleUserHooks args flags pkg lbi
+  }
 
 \end{code}
