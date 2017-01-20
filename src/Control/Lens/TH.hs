@@ -28,6 +28,7 @@ module Control.Lens.TH
     makeLenses, makeLensesFor
   , makeClassy, makeClassyFor, makeClassy_
   , makeFields
+  , makeFieldsNoPrefix
   -- ** Prisms
   , makePrisms
   , makeClassyPrisms
@@ -55,6 +56,7 @@ module Control.Lens.TH
   , classyRules_
   , defaultFieldRules
   , camelCaseFields
+  , classUnderscoreNoPrefixFields
   , underscoreFields
   , abbreviatedFields
   -- ** LensRules configuration accessors
@@ -73,6 +75,7 @@ module Control.Lens.TH
   , lookingupNamer
   , mappingNamer
   , camelCaseNamer
+  , classUnderscoreNoPrefixNamer
   , underscoreNamer
   , abbreviatedNamer
   ) where
@@ -96,7 +99,7 @@ import Control.Lens.Internal.FieldTH
 import Control.Lens.Internal.PrismTH
 import Control.Lens.Wrapped () -- haddocks
 import Control.Lens.Type () -- haddocks
-import Data.Char (toLower, isUpper)
+import Data.Char (toLower, toUpper, isUpper)
 import Data.Foldable hiding (concat, any)
 import Data.List as List
 import qualified Data.Map as Map
@@ -688,6 +691,23 @@ camelCaseNamer tyName fields field = maybeToList $ do
   computeMethod (x:xs) | isUpper x = Just (toLower x : xs)
   computeMethod _                  = Nothing
 
+-- | Field rules for fields in the form @ _fieldname @ (the leading
+-- underscore is mandatory).
+--
+-- __Note__: The primary difference to 'camelCaseFields' is that for
+-- @classUnderscoreNoPrefixFields@ the field names are not expected to
+-- be prefixed with the type name. This might be the desired behaviour
+-- when the @DuplicateRecordFields@ extension is enabled.
+classUnderscoreNoPrefixFields =
+  defaultFieldRules & lensField .~ classUnderscoreNoPrefixNamer
+
+-- | A 'FieldNamer' for 'classUnderscoreNoPrefixFields'.
+classUnderscoreNoPrefixNamer :: FieldNamer
+classUnderscoreNoPrefixNamer tyName fields field = maybeToList $ do
+  fieldUnprefixed <- stripPrefix "_" (nameBase field)
+  let className  = "Has" ++ overHead toUpper fieldUnprefixed
+      methodName = fieldUnprefixed
+  return (MethodName (mkName className) (mkName methodName))
 
 -- | Field rules fields in the form @ prefixFieldname or _prefixFieldname @
 -- If you want all fields to be lensed, then there is no reason to use an @_@ before the prefix.
@@ -725,7 +745,7 @@ abbreviatedNamer _ fields field = maybeToList $ do
 -- /e.g/
 --
 -- @
--- data Foo a = Foo { _fooX :: 'Int', _fooY : a }
+-- data Foo a = Foo { _fooX :: 'Int', _fooY :: a }
 -- newtype Bar = Bar { _barX :: 'Char' }
 -- makeFields ''Foo
 -- makeFields ''Bar
@@ -756,6 +776,48 @@ abbreviatedNamer _ fields field = maybeToList $ do
 -- @
 makeFields :: Name -> DecsQ
 makeFields = makeFieldOptics camelCaseFields
+
+-- | Generate overloaded field accessors based on field names which
+-- are only prefixed with an underscore (e.g. '_name'), not
+-- additionally with the type name (e.g. '_fooName').
+--
+-- This might be the desired behaviour in case the
+-- @DuplicateRecordFields@ language extension is used in order to get
+-- rid of the necessity to prefix each field name with the type name.
+--
+-- As an example:
+--
+-- @
+-- data Foo a  = Foo { _x :: 'Int', _y :: a }
+-- newtype Bar = Bar { _x :: 'Char' }
+-- makeFieldsNoPrefix ''Foo
+-- makeFieldsNoPrefix ''Bar
+-- @
+--
+-- will create classes
+--
+-- @
+-- class HasX s a | s -> a where
+--   x :: Lens' s a
+-- class HasY s a | s -> a where
+--   y :: Lens' s a
+-- @
+--
+-- together with instances
+--
+-- @
+-- instance HasX (Foo a) Int
+-- instance HasY (Foo a) a where
+-- instance HasX Bar Char where
+-- @
+--
+-- For details, see 'classUnderscoreNoPrefixFields'.
+--
+-- @
+-- makeFieldsNoPrefix = 'makeLensesWith' 'classUnderscoreNoPrefixFields'
+-- @
+makeFieldsNoPrefix :: Name -> DecsQ
+makeFieldsNoPrefix = makeFieldOptics classUnderscoreNoPrefixFields
 
 defaultFieldRules :: LensRules
 defaultFieldRules = LensRules
