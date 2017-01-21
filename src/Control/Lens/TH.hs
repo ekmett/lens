@@ -698,12 +698,13 @@ camelCaseNamer tyName fields field = maybeToList $ do
 -- @classUnderscoreNoPrefixFields@ the field names are not expected to
 -- be prefixed with the type name. This might be the desired behaviour
 -- when the @DuplicateRecordFields@ extension is enabled.
+classUnderscoreNoPrefixFields :: LensRules
 classUnderscoreNoPrefixFields =
   defaultFieldRules & lensField .~ classUnderscoreNoPrefixNamer
 
 -- | A 'FieldNamer' for 'classUnderscoreNoPrefixFields'.
 classUnderscoreNoPrefixNamer :: FieldNamer
-classUnderscoreNoPrefixNamer tyName fields field = maybeToList $ do
+classUnderscoreNoPrefixNamer _ _ field = maybeToList $ do
   fieldUnprefixed <- stripPrefix "_" (nameBase field)
   let className  = "Has" ++ overHead toUpper fieldUnprefixed
       methodName = fieldUnprefixed
