@@ -114,9 +114,9 @@ source-repository head
 
 custom-setup
   setup-depends:
-    Cabal >= 1.6 && <2.0,
+    Cabal >= 1.10 && <2.0,
     base  >= 4.5 && <5,
-    directory,
+    cabal-doctest >= 1 && <1.1,
     filepath
 
 -- Enable benchmarking against Neil Mitchell's uniplate library for comparative performance analysis. Defaults to being turned off to avoid
@@ -410,7 +410,7 @@ test-suite doctests
       containers,
       directory      >= 1.0,
       deepseq,
-      doctest        >= 0.9.1,
+      doctest        >= 0.11.1 && <0.12,
       filepath,
       generic-deriving,
       mtl,
