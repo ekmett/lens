@@ -505,7 +505,7 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
   -- @
   itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
 #ifndef HLINT
-  default itraverse :: Applicative f => (Int -> a -> f b) -> t a -> f (t b)
+  default itraverse :: (i ~ Int) => Applicative f => (i -> a -> f b) -> t a -> f (t b)
   itraverse = traversed .# Indexed
   {-# INLINE itraverse #-}
 #endif
