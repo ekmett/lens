@@ -19,7 +19,7 @@
 module Data.Dynamic.Lens
   ( AsDynamic(..)
 #if __GLASGOW_HASKELL__ >= 710
-  , pattern Dynamic
+  , pattern Data.Dynamic.Lens.Dynamic
 #endif
   ) where
 
