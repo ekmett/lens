@@ -171,6 +171,10 @@ import           GHC.Exts (Down(Down))
 import qualified Data.Monoid as Monoid
 #endif
 
+#if MIN_VERSION_base(4,10,0)
+import           GHC.Exts (HTYPE_TIMER_T)
+#endif
+
 #ifdef HLINT
 {-# ANN module "HLint: ignore Use uncurry" #-}
 #endif
@@ -1191,6 +1195,78 @@ instance Wrapped Fd where
   type Unwrapped Fd = CInt
   _Wrapped' = iso (\(Fd x) -> x) Fd
   {-# INLINE _Wrapped' #-}
+
+#if MIN_VERSION_base(4,10,0)
+instance Rewrapped CBool t
+instance Wrapped CBool where
+  type Unwrapped CBool = HTYPE_BOOL
+  _Wrapped' = iso (\(CBool x) -> x) CBool
+  {-# INLINE _Wrapped' #-}
+
+# if defined(HTYPE_BLKSIZE_T)
+instance Rewrapped CBlkSize t
+instance Wrapped CBlkSize where
+  type Unwrapped CBlkSize = HTYPE_BLKSIZE_T
+  _Wrapped' = iso (\(CBlkSize x) -> x) CBlkSize
+  {-# INLINE _Wrapped' #-}
+# endif
+
+# if defined(HTYPE_BLKCNT_T)
+instance Rewrapped CBlkCnt t
+instance Wrapped CBlkCnt where
+  type Unwrapped CBlkCnt = HTYPE_BLKCNT_T
+  _Wrapped' = iso (\(CBlkCnt x) -> x) CBlkCnt
+  {-# INLINE _Wrapped' #-}
+# endif
+
+# if defined(HTYPE_CLOCKID_T)
+instance Rewrapped CClockId t
+instance Wrapped CClockId where
+  type Unwrapped CClockId = HTYPE_CLOCKID_T
+  _Wrapped' = iso (\(CClockId x) -> x) CClockId
+  {-# INLINE _Wrapped' #-}
+# endif
+
+# if defined(HTYPE_FSBLKCNT_T)
+instance Rewrapped CFsBlkCnt t
+instance Wrapped CFsBlkCnt where
+  type Unwrapped CFsBlkCnt = HTYPE_FSBLKCNT_T
+  _Wrapped' = iso (\(CFsBlkCnt x) -> x) CFsBlkCnt
+  {-# INLINE _Wrapped' #-}
+# endif
+
+# if defined(HTYPE_FSFILCNT_T)
+instance Rewrapped CFsFilCnt t
+instance Wrapped CFsFilCnt where
+  type Unwrapped CFsFilCnt = HTYPE_FSFILCNT_T
+  _Wrapped' = iso (\(CFsFilCnt x) -> x) CFsFilCnt
+  {-# INLINE _Wrapped' #-}
+# endif
+
+# if defined(HTYPE_ID_T)
+instance Rewrapped CId t
+instance Wrapped CId where
+  type Unwrapped CId = HTYPE_ID_T
+  _Wrapped' = iso (\(CId x) -> x) CId
+  {-# INLINE _Wrapped' #-}
+# endif
+
+# if defined(HTYPE_KEY_T)
+instance Rewrapped CKey t
+instance Wrapped CKey where
+  type Unwrapped CKey = HTYPE_KEY_T
+  _Wrapped' = iso (\(CKey x) -> x) CKey
+  {-# INLINE _Wrapped' #-}
+# endif
+
+# if defined(HTYPE_TIMER_T)
+instance Rewrapped CTimer t
+instance Wrapped CTimer where
+  type Unwrapped CTimer = HTYPE_TIMER_T
+  _Wrapped' = iso (\(CTimer x) -> x) CTimer
+  {-# INLINE _Wrapped' #-}
+# endif
+#endif
 
 -- | Given the constructor for a 'Wrapped' type, return a
 -- deconstructor that is its inverse.
