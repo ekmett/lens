@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
 #ifdef TRUSTWORTHY
+# if MIN_VERSION_template_haskell(2,12,0)
+{-# LANGUAGE Safe #-}
+# else
 {-# LANGUAGE Trustworthy #-}
+# endif
 #endif
 
 #ifdef HLINT

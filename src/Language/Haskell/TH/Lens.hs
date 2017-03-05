@@ -199,6 +199,9 @@ module Language.Haskell.TH.Lens
 #if MIN_VERSION_template_haskell(2,10,0)
   , _LineP
 #endif
+#if MIN_VERSION_template_haskell(2,12,0)
+  , _CompleteP
+#endif
   -- ** Inline Prisms
   , _NoInline
   , _Inline
@@ -1555,6 +1558,16 @@ _LineP
   where
       reviewer (x, y) = LineP x y
       remitter (LineP x y) = Just (x, y)
+      remitter _ = Nothing
+#endif
+
+#if MIN_VERSION_template_haskell(2,12,0)
+_CompleteP :: Prism' Pragma ([Name], Maybe Name)
+_CompleteP
+  = prism' reviewer remitter
+  where
+      reviewer (x, y) = CompleteP x y
+      remitter (CompleteP x y) = Just (x, y)
       remitter _ = Nothing
 #endif
 
