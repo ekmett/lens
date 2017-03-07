@@ -161,6 +161,21 @@ module Control.Exception.Lens
 #if __GLASGOW_HASKELL__ >= 710
   , pattern ErrorCall_
 #endif
+#if MIN_VERSION_base(4,8,0)
+  -- ** Allocation Limit Exceeded
+  , AsAllocationLimitExceeded(..)
+  , pattern AllocationLimitExceeded_
+#endif
+#if MIN_VERSION_base(4,9,0)
+  -- ** Type Error
+  , AsTypeError(..)
+  , pattern TypeError_
+#endif
+#if MIN_VERSION_base(4,10,0)
+  -- ** Compaction Failed
+  , AsCompactionFailed(..)
+  , pattern CompactionFailed_
+#endif
   -- * Handling Exceptions
   , AsHandlingException(..)
 #if __GLASGOW_HASKELL__ >= 710
@@ -1122,6 +1137,90 @@ instance AsErrorCall SomeException where
 #if __GLASGOW_HASKELL__ >= 710
 pattern ErrorCall_ e <- (preview _ErrorCall -> Just e) where
   ErrorCall_ e = review _ErrorCall e
+#endif
+
+#if MIN_VERSION_base(4,8,0)
+----------------------------------------------------------------------------
+-- AllocationLimitExceeded
+----------------------------------------------------------------------------
+
+-- | This thread has exceeded its allocation limit.
+class AsAllocationLimitExceeded t where
+  -- | There is no additional information carried in an
+  -- 'AllocationLimitExceeded' 'Exception'.
+  --
+  -- @
+  -- '_AllocationLimitExceeded' :: 'Prism'' 'AllocationLimitExceeded' ()
+  -- '_AllocationLimitExceeded' :: 'Prism'' 'SomeException'           ()
+  -- @
+  _AllocationLimitExceeded :: Prism' t ()
+
+instance AsAllocationLimitExceeded AllocationLimitExceeded where
+  _AllocationLimitExceeded = trivial AllocationLimitExceeded
+  {-# INLINE _AllocationLimitExceeded #-}
+
+instance AsAllocationLimitExceeded SomeException where
+  _AllocationLimitExceeded = exception.trivial AllocationLimitExceeded
+  {-# INLINE _AllocationLimitExceeded #-}
+
+pattern AllocationLimitExceeded_ <- (has _AllocationLimitExceeded -> True) where
+  AllocationLimitExceeded_ = review _AllocationLimitExceeded ()
+#endif
+
+#if MIN_VERSION_base(4,9,0)
+----------------------------------------------------------------------------
+-- TypeError
+----------------------------------------------------------------------------
+
+-- | An expression that didn't typecheck during compile time was called.
+-- This is only possible with @-fdefer-type-errors@.
+class AsTypeError t where
+  -- | Details about the failed type check.
+  --
+  -- @
+  -- '_TypeError' :: 'Prism'' 'TypeError'     ()
+  -- '_TypeError' :: 'Prism'' 'SomeException' ()
+  -- @
+  _TypeError :: Prism' t String
+
+instance AsTypeError TypeError where
+  _TypeError = _Wrapping TypeError
+  {-# INLINE _TypeError #-}
+
+instance AsTypeError SomeException where
+  _TypeError = exception._Wrapping TypeError
+  {-# INLINE _TypeError #-}
+
+pattern TypeError_ e <- (preview _TypeError -> Just e) where
+  TypeError_ e = review _TypeError e
+#endif
+
+#if MIN_VERSION_base(4,10,0)
+----------------------------------------------------------------------------
+-- CompactionFailed
+----------------------------------------------------------------------------
+
+-- | Compaction found an object that cannot be compacted.
+-- Functions cannot be compacted, nor can mutable objects or pinned objects.
+class AsCompactionFailed t where
+  -- | Information about why a compaction failed.
+  --
+  -- @
+  -- '_CompactionFailed' :: 'Prism'' 'CompactionFailed' ()
+  -- '_CompactionFailed' :: 'Prism'' 'SomeException'    ()
+  -- @
+  _CompactionFailed :: Prism' t String
+
+instance AsCompactionFailed CompactionFailed where
+  _CompactionFailed = _Wrapping CompactionFailed
+  {-# INLINE _CompactionFailed #-}
+
+instance AsCompactionFailed SomeException where
+  _CompactionFailed = exception._Wrapping CompactionFailed
+  {-# INLINE _CompactionFailed #-}
+
+pattern CompactionFailed_ e <- (preview _CompactionFailed -> Just e) where
+  CompactionFailed_ e = review _CompactionFailed e
 #endif
 
 ------------------------------------------------------------------------------

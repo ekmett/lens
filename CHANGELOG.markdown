@@ -2,6 +2,7 @@ next
 ----
 * Add `Wrapped` instances for data types introduced in `Foreign.C.Types` and
   `System.Posix.Types` in `base-4.10.0.0`
+* Add prisms for recently introduced data types in `Control.Exception`
 * Add a `Generic` default implementation for `Wrapped`
 * Revamp `Setup.hs` to use `cabal-doctest`. This makes it build
   with `Cabal-1.25`, and makes the `doctest`s work with `cabal new-build` and

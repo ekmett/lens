@@ -868,6 +868,18 @@ getTypeError (TypeError x) = x
 {-# INLINE getTypeError #-}
 #endif
 
+#if MIN_VERSION_base(4,10,0)
+instance (t ~ CompactionFailed) => Rewrapped CompactionFailed t
+instance Wrapped CompactionFailed where
+  type Unwrapped CompactionFailed = String
+  _Wrapped' = iso getCompactionFailed CompactionFailed
+  {-# INLINE _Wrapped' #-}
+
+getCompactionFailed :: CompactionFailed -> String
+getCompactionFailed (CompactionFailed x) = x
+{-# INLINE getCompactionFailed #-}
+#endif
+
 getErrorCall :: ErrorCall -> String
 #if __GLASGOW_HASKELL__ < 800
 getErrorCall (ErrorCall x) = x
