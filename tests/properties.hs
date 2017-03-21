@@ -55,6 +55,11 @@ prop_2                               = isLens (_2 :: Lens' (Int,Bool) Bool)
 prop_3                               = isLens (_3 :: Lens' (Int,Bool,()) ())
 prop_4                               = isLens (_4 :: Lens' (Int,Bool,(),Maybe Int) (Maybe Int))
 prop_5                               = isLens (_5 :: Lens' ((),(),(),(),Int) Int)
+prop_6                               = isLens (_6 :: Lens' ((),(),(),(),Int,Bool) Bool)
+prop_7                               = isLens (_7 :: Lens' ((),(),(),(),(),Int,Bool) Bool)
+prop_8                               = isLens (_8 :: Lens' ((),(),(),(),(),(),Int,Bool) Bool)
+prop_9                               = isLens (_9 :: Lens' ((),(),(),(),(),(),(),Int,Bool) Bool)
+prop_10                               = isLens (_10 :: Lens' ((),(),(),(),(),(),(),(),Int,Bool) Bool)
 
 prop_2_2                             = isLens (_2._2 :: Lens' (Int,(Int,Bool),Double) Bool)
 
