@@ -38,19 +38,32 @@ module Control.Lens.Tuple
   , Field7(..)
   , Field8(..)
   , Field9(..)
+  , Field10(..)
+  , Field11(..)
+  , Field12(..)
+  , Field13(..)
+  , Field14(..)
+  , Field15(..)
+  , Field16(..)
+  , Field17(..)
+  , Field18(..)
+  , Field19(..)
   -- * Strict variations
   , _1', _2', _3', _4', _5', _6', _7', _8', _9'
+  , _10', _11', _12', _13', _14', _15', _16'
+  , _17', _18', _19'
   ) where
 
-import Control.Lens.Lens
-import Data.Functor.Identity
-import Data.Functor.Product
-import Data.Profunctor (dimap)
-import Data.Proxy (Proxy (Proxy))
-import GHC.Generics (Generic (..), (:*:) (..), K1 (..), M1 (..), U1 (..))
+import           Control.Lens.Lens
+import           Data.Functor.Identity
+import           Data.Functor.Product
+import           Data.Profunctor       (dimap)
+import           Data.Proxy            (Proxy (Proxy))
+import           GHC.Generics          ((:*:) (..), Generic (..), K1 (..),
+                                        M1 (..), U1 (..))
 
 #if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
+import           Control.Applicative
 #endif
 
 -- $setup
@@ -136,6 +149,46 @@ instance Field1 (a,b,c,d,e,f,g,h,i) (a',b,c,d,e,f,g,h,i) a a' where
   _1 k ~(a,b,c,d,e,f,g,h,i) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i)
   {-# INLINE _1 #-}
 
+instance Field1 (a,b,c,d,e,f,g,h,i,j) (a',b,c,d,e,f,g,h,i,j) a a' where
+  _1 k ~(a,b,c,d,e,f,g,h,i,j) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i,j)
+  {-# INLINE _1 #-}
+
+instance Field1 (a,b,c,d,e,f,g,h,i,j,kk) (a',b,c,d,e,f,g,h,i,j,kk) a a' where
+  _1 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i,j,kk)
+  {-# INLINE _1 #-}
+
+instance Field1 (a,b,c,d,e,f,g,h,i,j,kk,l) (a',b,c,d,e,f,g,h,i,j,kk,l) a a' where
+  _1 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i,j,kk,l)
+  {-# INLINE _1 #-}
+
+instance Field1 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a',b,c,d,e,f,g,h,i,j,kk,l,m) a a' where
+  _1 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i,j,kk,l,m)
+  {-# INLINE _1 #-}
+
+instance Field1 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a',b,c,d,e,f,g,h,i,j,kk,l,m,n) a a' where
+  _1 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i,j,kk,l,m,n)
+  {-# INLINE _1 #-}
+
+instance Field1 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a',b,c,d,e,f,g,h,i,j,kk,l,m,n,o) a a' where
+  _1 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i,j,kk,l,m,n,o)
+  {-# INLINE _1 #-}
+
+instance Field1 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a',b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) a a' where
+  _1 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p)
+  {-# INLINE _1 #-}
+
+instance Field1 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a',b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) a a' where
+  _1 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q)
+  {-# INLINE _1 #-}
+
+instance Field1 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a',b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) a a' where
+  _1 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r)
+  {-# INLINE _1 #-}
+
+instance Field1 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a',b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) a a' where
+  _1 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k a <&> \a' -> (a',b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s)
+  {-# INLINE _1 #-}
+
 -- | Provides access to the 2nd field of a tuple.
 class Field2 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 2nd field of a tuple.
@@ -202,6 +255,47 @@ instance Field2 (a,b,c,d,e,f,g,h,i) (a,b',c,d,e,f,g,h,i) b b' where
   _2 k ~(a,b,c,d,e,f,g,h,i) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i)
   {-# INLINE _2 #-}
 
+instance Field2 (a,b,c,d,e,f,g,h,i,j) (a,b',c,d,e,f,g,h,i,j) b b' where
+  _2 k ~(a,b,c,d,e,f,g,h,i,j) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i,j)
+  {-# INLINE _2 #-}
+
+instance Field2 (a,b,c,d,e,f,g,h,i,j,kk) (a,b',c,d,e,f,g,h,i,j,kk) b b' where
+  _2 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i,j,kk)
+  {-# INLINE _2 #-}
+
+instance Field2 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b',c,d,e,f,g,h,i,j,kk,l) b b' where
+  _2 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i,j,kk,l)
+  {-# INLINE _2 #-}
+
+instance Field2 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b',c,d,e,f,g,h,i,j,kk,l,m) b b' where
+  _2 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i,j,kk,l,m)
+  {-# INLINE _2 #-}
+
+instance Field2 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b',c,d,e,f,g,h,i,j,kk,l,m,n) b b' where
+  _2 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i,j,kk,l,m,n)
+  {-# INLINE _2 #-}
+
+instance Field2 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b',c,d,e,f,g,h,i,j,kk,l,m,n,o) b b' where
+  _2 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i,j,kk,l,m,n,o)
+  {-# INLINE _2 #-}
+
+instance Field2 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b',c,d,e,f,g,h,i,j,kk,l,m,n,o,p) b b' where
+  _2 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i,j,kk,l,m,n,o,p)
+  {-# INLINE _2 #-}
+
+instance Field2 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b',c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) b b' where
+  _2 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q)
+  {-# INLINE _2 #-}
+
+instance Field2 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b',c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) b b' where
+  _2 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r)
+  {-# INLINE _2 #-}
+
+instance Field2 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b',c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) b b' where
+  _2 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k b <&> \b' -> (a,b',c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s)
+  {-# INLINE _2 #-}
+
+
 -- | Provides access to the 3rd field of a tuple.
 class Field3 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 3rd field of a tuple.
@@ -239,6 +333,46 @@ instance Field3 (a,b,c,d,e,f,g,h,i) (a,b,c',d,e,f,g,h,i) c c' where
   _3 k ~(a,b,c,d,e,f,g,h,i) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i)
   {-# INLINE _3 #-}
 
+instance Field3 (a,b,c,d,e,f,g,h,i,j) (a,b,c',d,e,f,g,h,i,j) c c' where
+  _3 k ~(a,b,c,d,e,f,g,h,i,j) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i,j)
+  {-# INLINE _3 #-}
+
+instance Field3 (a,b,c,d,e,f,g,h,i,j,kk) (a,b,c',d,e,f,g,h,i,j,kk) c c' where
+  _3 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i,j,kk)
+  {-# INLINE _3 #-}
+
+instance Field3 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b,c',d,e,f,g,h,i,j,kk,l) c c' where
+  _3 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i,j,kk,l)
+  {-# INLINE _3 #-}
+
+instance Field3 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c',d,e,f,g,h,i,j,kk,l,m) c c' where
+  _3 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i,j,kk,l,m)
+  {-# INLINE _3 #-}
+
+instance Field3 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c',d,e,f,g,h,i,j,kk,l,m,n) c c' where
+  _3 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i,j,kk,l,m,n)
+  {-# INLINE _3 #-}
+
+instance Field3 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c',d,e,f,g,h,i,j,kk,l,m,n,o) c c' where
+  _3 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i,j,kk,l,m,n,o)
+  {-# INLINE _3 #-}
+
+instance Field3 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c',d,e,f,g,h,i,j,kk,l,m,n,o,p) c c' where
+  _3 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i,j,kk,l,m,n,o,p)
+  {-# INLINE _3 #-}
+
+instance Field3 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c',d,e,f,g,h,i,j,kk,l,m,n,o,p,q) c c' where
+  _3 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i,j,kk,l,m,n,o,p,q)
+  {-# INLINE _3 #-}
+
+instance Field3 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c',d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) c c' where
+  _3 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r)
+  {-# INLINE _3 #-}
+
+instance Field3 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c',d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) c c' where
+  _3 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k c <&> \c' -> (a,b,c',d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s)
+  {-# INLINE _3 #-}
+
 -- | Provide access to the 4th field of a tuple.
 class Field4 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 4th field of a tuple.
@@ -272,6 +406,46 @@ instance Field4 (a,b,c,d,e,f,g,h,i) (a,b,c,d',e,f,g,h,i) d d' where
   _4 k ~(a,b,c,d,e,f,g,h,i) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i)
   {-# INLINE _4 #-}
 
+instance Field4 (a,b,c,d,e,f,g,h,i,j) (a,b,c,d',e,f,g,h,i,j) d d' where
+  _4 k ~(a,b,c,d,e,f,g,h,i,j) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i,j)
+  {-# INLINE _4 #-}
+
+instance Field4 (a,b,c,d,e,f,g,h,i,j,kk) (a,b,c,d',e,f,g,h,i,j,kk) d d' where
+  _4 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i,j,kk)
+  {-# INLINE _4 #-}
+
+instance Field4 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b,c,d',e,f,g,h,i,j,kk,l) d d' where
+  _4 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i,j,kk,l)
+  {-# INLINE _4 #-}
+
+instance Field4 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c,d',e,f,g,h,i,j,kk,l,m) d d' where
+  _4 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i,j,kk,l,m)
+  {-# INLINE _4 #-}
+
+instance Field4 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d',e,f,g,h,i,j,kk,l,m,n) d d' where
+  _4 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i,j,kk,l,m,n)
+  {-# INLINE _4 #-}
+
+instance Field4 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d',e,f,g,h,i,j,kk,l,m,n,o) d d' where
+  _4 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i,j,kk,l,m,n,o)
+  {-# INLINE _4 #-}
+
+instance Field4 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d',e,f,g,h,i,j,kk,l,m,n,o,p) d d' where
+  _4 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i,j,kk,l,m,n,o,p)
+  {-# INLINE _4 #-}
+
+instance Field4 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d',e,f,g,h,i,j,kk,l,m,n,o,p,q) d d' where
+  _4 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i,j,kk,l,m,n,o,p,q)
+  {-# INLINE _4 #-}
+
+instance Field4 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d',e,f,g,h,i,j,kk,l,m,n,o,p,q,r) d d' where
+  _4 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i,j,kk,l,m,n,o,p,q,r)
+  {-# INLINE _4 #-}
+
+instance Field4 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d',e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) d d' where
+  _4 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k d <&> \d' -> (a,b,c,d',e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s)
+  {-# INLINE _4 #-}
+
 -- | Provides access to the 5th field of a tuple.
 class Field5 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 5th field of a tuple.
@@ -301,6 +475,46 @@ instance Field5 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e',f,g,h,i) e e' where
   _5 k ~(a,b,c,d,e,f,g,h,i) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i)
   {-# INLINE _5 #-}
 
+instance Field5 (a,b,c,d,e,f,g,h,i,j) (a,b,c,d,e',f,g,h,i,j) e e' where
+  _5 k ~(a,b,c,d,e,f,g,h,i,j) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i,j)
+  {-# INLINE _5 #-}
+
+instance Field5 (a,b,c,d,e,f,g,h,i,j,kk) (a,b,c,d,e',f,g,h,i,j,kk) e e' where
+  _5 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i,j,kk)
+  {-# INLINE _5 #-}
+
+instance Field5 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b,c,d,e',f,g,h,i,j,kk,l) e e' where
+  _5 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i,j,kk,l)
+  {-# INLINE _5 #-}
+
+instance Field5 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c,d,e',f,g,h,i,j,kk,l,m) e e' where
+  _5 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i,j,kk,l,m)
+  {-# INLINE _5 #-}
+
+instance Field5 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d,e',f,g,h,i,j,kk,l,m,n) e e' where
+  _5 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i,j,kk,l,m,n)
+  {-# INLINE _5 #-}
+
+instance Field5 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e',f,g,h,i,j,kk,l,m,n,o) e e' where
+  _5 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i,j,kk,l,m,n,o)
+  {-# INLINE _5 #-}
+
+instance Field5 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e',f,g,h,i,j,kk,l,m,n,o,p) e e' where
+  _5 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i,j,kk,l,m,n,o,p)
+  {-# INLINE _5 #-}
+
+instance Field5 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e',f,g,h,i,j,kk,l,m,n,o,p,q) e e' where
+  _5 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i,j,kk,l,m,n,o,p,q)
+  {-# INLINE _5 #-}
+
+instance Field5 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e',f,g,h,i,j,kk,l,m,n,o,p,q,r) e e' where
+  _5 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i,j,kk,l,m,n,o,p,q,r)
+  {-# INLINE _5 #-}
+
+instance Field5 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e',f,g,h,i,j,kk,l,m,n,o,p,q,r,s) e e' where
+  _5 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k e <&> \e' -> (a,b,c,d,e',f,g,h,i,j,kk,l,m,n,o,p,q,r,s)
+  {-# INLINE _5 #-}
+
 -- | Provides access to the 6th element of a tuple.
 class Field6 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 6th field of a tuple.
@@ -326,6 +540,46 @@ instance Field6 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f',g,h,i) f f' where
   _6 k ~(a,b,c,d,e,f,g,h,i) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i)
   {-# INLINE _6 #-}
 
+instance Field6 (a,b,c,d,e,f,g,h,i,j) (a,b,c,d,e,f',g,h,i,j) f f' where
+  _6 k ~(a,b,c,d,e,f,g,h,i,j) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i,j)
+  {-# INLINE _6 #-}
+
+instance Field6 (a,b,c,d,e,f,g,h,i,j,kk) (a,b,c,d,e,f',g,h,i,j,kk) f f' where
+  _6 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i,j,kk)
+  {-# INLINE _6 #-}
+
+instance Field6 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b,c,d,e,f',g,h,i,j,kk,l) f f' where
+  _6 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i,j,kk,l)
+  {-# INLINE _6 #-}
+
+instance Field6 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c,d,e,f',g,h,i,j,kk,l,m) f f' where
+  _6 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i,j,kk,l,m)
+  {-# INLINE _6 #-}
+
+instance Field6 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d,e,f',g,h,i,j,kk,l,m,n) f f' where
+  _6 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i,j,kk,l,m,n)
+  {-# INLINE _6 #-}
+
+instance Field6 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e,f',g,h,i,j,kk,l,m,n,o) f f' where
+  _6 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i,j,kk,l,m,n,o)
+  {-# INLINE _6 #-}
+
+instance Field6 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f',g,h,i,j,kk,l,m,n,o,p) f f' where
+  _6 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i,j,kk,l,m,n,o,p)
+  {-# INLINE _6 #-}
+
+instance Field6 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f',g,h,i,j,kk,l,m,n,o,p,q) f f' where
+  _6 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i,j,kk,l,m,n,o,p,q)
+  {-# INLINE _6 #-}
+
+instance Field6 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f',g,h,i,j,kk,l,m,n,o,p,q,r) f f' where
+  _6 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i,j,kk,l,m,n,o,p,q,r)
+  {-# INLINE _6 #-}
+
+instance Field6 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f',g,h,i,j,kk,l,m,n,o,p,q,r,s) f f' where
+  _6 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k f <&> \f' -> (a,b,c,d,e,f',g,h,i,j,kk,l,m,n,o,p,q,r,s)
+  {-# INLINE _6 #-}
+
 -- | Provide access to the 7th field of a tuple.
 class Field7 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 7th field of a tuple.
@@ -347,6 +601,46 @@ instance Field7 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g',h,i) g g' where
   _7 k ~(a,b,c,d,e,f,g,h,i) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i)
   {-# INLINE _7 #-}
 
+instance Field7 (a,b,c,d,e,f,g,h,i,j) (a,b,c,d,e,f,g',h,i,j) g g' where
+  _7 k ~(a,b,c,d,e,f,g,h,i,j) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i,j)
+  {-# INLINE _7 #-}
+
+instance Field7 (a,b,c,d,e,f,g,h,i,j,kk) (a,b,c,d,e,f,g',h,i,j,kk) g g' where
+  _7 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i,j,kk)
+  {-# INLINE _7 #-}
+
+instance Field7 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b,c,d,e,f,g',h,i,j,kk,l) g g' where
+  _7 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i,j,kk,l)
+  {-# INLINE _7 #-}
+
+instance Field7 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c,d,e,f,g',h,i,j,kk,l,m) g g' where
+  _7 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i,j,kk,l,m)
+  {-# INLINE _7 #-}
+
+instance Field7 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d,e,f,g',h,i,j,kk,l,m,n) g g' where
+  _7 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i,j,kk,l,m,n)
+  {-# INLINE _7 #-}
+
+instance Field7 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e,f,g',h,i,j,kk,l,m,n,o) g g' where
+  _7 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i,j,kk,l,m,n,o)
+  {-# INLINE _7 #-}
+
+instance Field7 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f,g',h,i,j,kk,l,m,n,o,p) g g' where
+  _7 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i,j,kk,l,m,n,o,p)
+  {-# INLINE _7 #-}
+
+instance Field7 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g',h,i,j,kk,l,m,n,o,p,q) g g' where
+  _7 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i,j,kk,l,m,n,o,p,q)
+  {-# INLINE _7 #-}
+
+instance Field7 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g',h,i,j,kk,l,m,n,o,p,q,r) g g' where
+  _7 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i,j,kk,l,m,n,o,p,q,r)
+  {-# INLINE _7 #-}
+
+instance Field7 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g',h,i,j,kk,l,m,n,o,p,q,r,s) g g' where
+  _7 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k g <&> \g' -> (a,b,c,d,e,f,g',h,i,j,kk,l,m,n,o,p,q,r,s)
+  {-# INLINE _7 #-}
+
 -- | Provide access to the 8th field of a tuple.
 class Field8 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 8th field of a tuple.
@@ -364,6 +658,46 @@ instance Field8 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h',i) h h' where
   _8 k ~(a,b,c,d,e,f,g,h,i) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i)
   {-# INLINE _8 #-}
 
+instance Field8 (a,b,c,d,e,f,g,h,i,j) (a,b,c,d,e,f,g,h',i,j) h h' where
+  _8 k ~(a,b,c,d,e,f,g,h,i,j) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i,j)
+  {-# INLINE _8 #-}
+
+instance Field8 (a,b,c,d,e,f,g,h,i,j,kk) (a,b,c,d,e,f,g,h',i,j,kk) h h' where
+  _8 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i,j,kk)
+  {-# INLINE _8 #-}
+
+instance Field8 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b,c,d,e,f,g,h',i,j,kk,l) h h' where
+  _8 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i,j,kk,l)
+  {-# INLINE _8 #-}
+
+instance Field8 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c,d,e,f,g,h',i,j,kk,l,m) h h' where
+  _8 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i,j,kk,l,m)
+  {-# INLINE _8 #-}
+
+instance Field8 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d,e,f,g,h',i,j,kk,l,m,n) h h' where
+  _8 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i,j,kk,l,m,n)
+  {-# INLINE _8 #-}
+
+instance Field8 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e,f,g,h',i,j,kk,l,m,n,o) h h' where
+  _8 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i,j,kk,l,m,n,o)
+  {-# INLINE _8 #-}
+
+instance Field8 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f,g,h',i,j,kk,l,m,n,o,p) h h' where
+  _8 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i,j,kk,l,m,n,o,p)
+  {-# INLINE _8 #-}
+
+instance Field8 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g,h',i,j,kk,l,m,n,o,p,q) h h' where
+  _8 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i,j,kk,l,m,n,o,p,q)
+  {-# INLINE _8 #-}
+
+instance Field8 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h',i,j,kk,l,m,n,o,p,q,r) h h' where
+  _8 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i,j,kk,l,m,n,o,p,q,r)
+  {-# INLINE _8 #-}
+
+instance Field8 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h',i,j,kk,l,m,n,o,p,q,r,s) h h' where
+  _8 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k h <&> \h' -> (a,b,c,d,e,f,g,h',i,j,kk,l,m,n,o,p,q,r,s)
+  {-# INLINE _8 #-}
+
 -- | Provides access to the 9th field of a tuple.
 class Field9 s t a b | s -> a, t -> b, s b -> t, t a -> s where
   -- | Access the 9th field of a tuple.
@@ -377,7 +711,357 @@ instance Field9 (a,b,c,d,e,f,g,h,i) (a,b,c,d,e,f,g,h,i') i i' where
   _9 k ~(a,b,c,d,e,f,g,h,i) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i')
   {-# INLINE _9 #-}
 
--- Strict versions of the _1 .. _9 operations
+instance Field9 (a,b,c,d,e,f,g,h,i,j) (a,b,c,d,e,f,g,h,i',j) i i' where
+  _9 k ~(a,b,c,d,e,f,g,h,i,j) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i',j)
+  {-# INLINE _9 #-}
+
+instance Field9 (a,b,c,d,e,f,g,h,i,j,kk) (a,b,c,d,e,f,g,h,i',j,kk) i i' where
+  _9 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i',j,kk)
+  {-# INLINE _9 #-}
+
+instance Field9 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b,c,d,e,f,g,h,i',j,kk,l) i i' where
+  _9 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i',j,kk,l)
+  {-# INLINE _9 #-}
+
+instance Field9 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c,d,e,f,g,h,i',j,kk,l,m) i i' where
+  _9 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i',j,kk,l,m)
+  {-# INLINE _9 #-}
+
+instance Field9 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d,e,f,g,h,i',j,kk,l,m,n) i i' where
+  _9 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i',j,kk,l,m,n)
+  {-# INLINE _9 #-}
+
+instance Field9 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e,f,g,h,i',j,kk,l,m,n,o) i i' where
+  _9 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i',j,kk,l,m,n,o)
+  {-# INLINE _9 #-}
+
+instance Field9 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f,g,h,i',j,kk,l,m,n,o,p) i i' where
+  _9 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i',j,kk,l,m,n,o,p)
+  {-# INLINE _9 #-}
+
+instance Field9 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g,h,i',j,kk,l,m,n,o,p,q) i i' where
+  _9 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i',j,kk,l,m,n,o,p,q)
+  {-# INLINE _9 #-}
+
+instance Field9 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h,i',j,kk,l,m,n,o,p,q,r) i i' where
+  _9 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i',j,kk,l,m,n,o,p,q,r)
+  {-# INLINE _9 #-}
+
+instance Field9 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i',j,kk,l,m,n,o,p,q,r,s) i i' where
+  _9 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k i <&> \i' -> (a,b,c,d,e,f,g,h,i',j,kk,l,m,n,o,p,q,r,s)
+  {-# INLINE _9 #-}
+
+-- | Provides access to the 10th field of a tuple.
+class Field10 s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 10th field of a tuple.
+  _10 :: Lens s t a b
+  default _10 :: (Generic s, Generic t, GIxed N9 (Rep s) (Rep t) a b)
+             => Lens s t a b
+  _10 = ix proxyN9
+  {-# INLINE _10 #-}
+
+instance Field10 (a,b,c,d,e,f,g,h,i,j) (a,b,c,d,e,f,g,h,i,j') j j' where
+  _10 k ~(a,b,c,d,e,f,g,h,i,j) = k j <&> \j' -> (a,b,c,d,e,f,g,h,i,j')
+  {-# INLINE _10 #-}
+
+instance Field10 (a,b,c,d,e,f,g,h,i,j,kk) (a,b,c,d,e,f,g,h,i,j',kk) j j' where
+  _10 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k j <&> \j' -> (a,b,c,d,e,f,g,h,i,j',kk)
+  {-# INLINE _10 #-}
+
+instance Field10 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b,c,d,e,f,g,h,i,j',kk,l) j j' where
+  _10 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k j <&> \j' -> (a,b,c,d,e,f,g,h,i,j',kk,l)
+  {-# INLINE _10 #-}
+
+instance Field10 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c,d,e,f,g,h,i,j',kk,l,m) j j' where
+  _10 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k j <&> \j' -> (a,b,c,d,e,f,g,h,i,j',kk,l,m)
+  {-# INLINE _10 #-}
+
+instance Field10 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d,e,f,g,h,i,j',kk,l,m,n) j j' where
+  _10 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k j <&> \j' -> (a,b,c,d,e,f,g,h,i,j',kk,l,m,n)
+  {-# INLINE _10 #-}
+
+instance Field10 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e,f,g,h,i,j',kk,l,m,n,o) j j' where
+  _10 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k j <&> \j' -> (a,b,c,d,e,f,g,h,i,j',kk,l,m,n,o)
+  {-# INLINE _10 #-}
+
+instance Field10 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f,g,h,i,j',kk,l,m,n,o,p) j j' where
+  _10 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k j <&> \j' -> (a,b,c,d,e,f,g,h,i,j',kk,l,m,n,o,p)
+  {-# INLINE _10 #-}
+
+instance Field10 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g,h,i,j',kk,l,m,n,o,p,q) j j' where
+  _10 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k j <&> \j' -> (a,b,c,d,e,f,g,h,i,j',kk,l,m,n,o,p,q)
+  {-# INLINE _10 #-}
+
+instance Field10 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h,i,j',kk,l,m,n,o,p,q,r) j j' where
+  _10 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k j <&> \j' -> (a,b,c,d,e,f,g,h,i,j',kk,l,m,n,o,p,q,r)
+  {-# INLINE _10 #-}
+
+instance Field10 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j',kk,l,m,n,o,p,q,r,s) j j' where
+  _10 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k j <&> \j' -> (a,b,c,d,e,f,g,h,i,j',kk,l,m,n,o,p,q,r,s)
+  {-# INLINE _10 #-}
+
+-- | Provides access to the 11th field of a tuple.
+class Field11 s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 11th field of a tuple.
+  _11 :: Lens s t a b
+  default _11 :: (Generic s, Generic t, GIxed N10 (Rep s) (Rep t) a b)
+             => Lens s t a b
+  _11 = ix proxyN10
+  {-# INLINE _11 #-}
+
+instance Field11 (a,b,c,d,e,f,g,h,i,j,kk) (a,b,c,d,e,f,g,h,i,j,kk') kk kk' where
+  _11 k ~(a,b,c,d,e,f,g,h,i,j,kk) = k kk <&> \kk' -> (a,b,c,d,e,f,g,h,i,j,kk')
+  {-# INLINE _11 #-}
+
+instance Field11 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b,c,d,e,f,g,h,i,j,kk',l) kk kk' where
+  _11 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k kk <&> \kk' -> (a,b,c,d,e,f,g,h,i,j,kk',l)
+  {-# INLINE _11 #-}
+
+instance Field11 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c,d,e,f,g,h,i,j,kk',l,m) kk kk' where
+  _11 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k kk <&> \kk' -> (a,b,c,d,e,f,g,h,i,j,kk',l,m)
+  {-# INLINE _11 #-}
+
+instance Field11 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d,e,f,g,h,i,j,kk',l,m,n) kk kk' where
+  _11 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k kk <&> \kk' -> (a,b,c,d,e,f,g,h,i,j,kk',l,m,n)
+  {-# INLINE _11 #-}
+
+instance Field11 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e,f,g,h,i,j,kk',l,m,n,o) kk kk' where
+  _11 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k kk <&> \kk' -> (a,b,c,d,e,f,g,h,i,j,kk',l,m,n,o)
+  {-# INLINE _11 #-}
+
+instance Field11 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f,g,h,i,j,kk',l,m,n,o,p) kk kk' where
+  _11 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k kk <&> \kk' -> (a,b,c,d,e,f,g,h,i,j,kk',l,m,n,o,p)
+  {-# INLINE _11 #-}
+
+instance Field11 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g,h,i,j,kk',l,m,n,o,p,q) kk kk' where
+  _11 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k kk <&> \kk' -> (a,b,c,d,e,f,g,h,i,j,kk',l,m,n,o,p,q)
+  {-# INLINE _11 #-}
+
+instance Field11 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h,i,j,kk',l,m,n,o,p,q,r) kk kk' where
+  _11 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k kk <&> \kk' -> (a,b,c,d,e,f,g,h,i,j,kk',l,m,n,o,p,q,r)
+  {-# INLINE _11 #-}
+
+instance Field11 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,kk',l,m,n,o,p,q,r,s) kk kk' where
+  _11 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k kk <&> \kk' -> (a,b,c,d,e,f,g,h,i,j,kk',l,m,n,o,p,q,r,s)
+  {-# INLINE _11 #-}
+
+-- | Provides access to the 12th field of a tuple.
+class Field12 s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 12th field of a tuple.
+  _12 :: Lens s t a b
+  default _12 :: (Generic s, Generic t, GIxed N11 (Rep s) (Rep t) a b)
+             => Lens s t a b
+  _12 = ix proxyN11
+  {-# INLINE _12 #-}
+
+instance Field12 (a,b,c,d,e,f,g,h,i,j,kk,l) (a,b,c,d,e,f,g,h,i,j,kk,l') l l' where
+  _12 k ~(a,b,c,d,e,f,g,h,i,j,kk,l) = k l <&> \l' -> (a,b,c,d,e,f,g,h,i,j,kk,l')
+  {-# INLINE _12 #-}
+
+instance Field12 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c,d,e,f,g,h,i,j,kk,l',m) l l' where
+  _12 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k l <&> \l' -> (a,b,c,d,e,f,g,h,i,j,kk,l',m)
+  {-# INLINE _12 #-}
+
+instance Field12 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d,e,f,g,h,i,j,kk,l',m,n) l l' where
+  _12 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k l <&> \l' -> (a,b,c,d,e,f,g,h,i,j,kk,l',m,n)
+  {-# INLINE _12 #-}
+
+instance Field12 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e,f,g,h,i,j,kk,l',m,n,o) l l' where
+  _12 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k l <&> \l' -> (a,b,c,d,e,f,g,h,i,j,kk,l',m,n,o)
+  {-# INLINE _12 #-}
+
+instance Field12 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f,g,h,i,j,kk,l',m,n,o,p) l l' where
+  _12 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k l <&> \l' -> (a,b,c,d,e,f,g,h,i,j,kk,l',m,n,o,p)
+  {-# INLINE _12 #-}
+
+instance Field12 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g,h,i,j,kk,l',m,n,o,p,q) l l' where
+  _12 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k l <&> \l' -> (a,b,c,d,e,f,g,h,i,j,kk,l',m,n,o,p,q)
+  {-# INLINE _12 #-}
+
+instance Field12 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h,i,j,kk,l',m,n,o,p,q,r) l l' where
+  _12 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k l <&> \l' -> (a,b,c,d,e,f,g,h,i,j,kk,l',m,n,o,p,q,r)
+  {-# INLINE _12 #-}
+
+instance Field12 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,kk,l',m,n,o,p,q,r,s) l l' where
+  _12 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k l <&> \l' -> (a,b,c,d,e,f,g,h,i,j,kk,l',m,n,o,p,q,r,s)
+  {-# INLINE _12 #-}
+
+-- | Provides access to the 13th field of a tuple.
+class Field13 s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 13th field of a tuple.
+  _13 :: Lens s t a b
+  default _13 :: (Generic s, Generic t, GIxed N12 (Rep s) (Rep t) a b)
+             => Lens s t a b
+  _13 = ix proxyN12
+  {-# INLINE _13 #-}
+
+instance Field13 (a,b,c,d,e,f,g,h,i,j,kk,l,m) (a,b,c,d,e,f,g,h,i,j,kk,l,m') m m' where
+  _13 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m) = k m <&> \m' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m')
+  {-# INLINE _13 #-}
+
+instance Field13 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d,e,f,g,h,i,j,kk,l,m',n) m m' where
+  _13 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k m <&> \m' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m',n)
+  {-# INLINE _13 #-}
+
+instance Field13 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e,f,g,h,i,j,kk,l,m',n,o) m m' where
+  _13 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k m <&> \m' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m',n,o)
+  {-# INLINE _13 #-}
+
+instance Field13 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f,g,h,i,j,kk,l,m',n,o,p) m m' where
+  _13 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k m <&> \m' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m',n,o,p)
+  {-# INLINE _13 #-}
+
+instance Field13 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g,h,i,j,kk,l,m',n,o,p,q) m m' where
+  _13 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k m <&> \m' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m',n,o,p,q)
+  {-# INLINE _13 #-}
+
+instance Field13 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h,i,j,kk,l,m',n,o,p,q,r) m m' where
+  _13 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k m <&> \m' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m',n,o,p,q,r)
+  {-# INLINE _13 #-}
+
+instance Field13 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,kk,l,m',n,o,p,q,r,s) m m' where
+  _13 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k m <&> \m' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m',n,o,p,q,r,s)
+  {-# INLINE _13 #-}
+
+-- | Provides access to the 14th field of a tuple.
+class Field14 s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 14th field of a tuple.
+  _14 :: Lens s t a b
+  default _14 :: (Generic s, Generic t, GIxed N13 (Rep s) (Rep t) a b)
+             => Lens s t a b
+  _14 = ix proxyN13
+  {-# INLINE _14 #-}
+
+instance Field14 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n') n n' where
+  _14 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n) = k n <&> \n' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n')
+  {-# INLINE _14 #-}
+
+instance Field14 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n',o) n n' where
+  _14 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k n <&> \n' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n',o)
+  {-# INLINE _14 #-}
+
+instance Field14 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n',o,p) n n' where
+  _14 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k n <&> \n' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n',o,p)
+  {-# INLINE _14 #-}
+
+instance Field14 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n',o,p,q) n n' where
+  _14 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k n <&> \n' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n',o,p,q)
+  {-# INLINE _14 #-}
+
+instance Field14 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n',o,p,q,r) n n' where
+  _14 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k n <&> \n' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n',o,p,q,r)
+  {-# INLINE _14 #-}
+
+instance Field14 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n',o,p,q,r,s) n n' where
+  _14 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k n <&> \n' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n',o,p,q,r,s)
+  {-# INLINE _14 #-}
+
+-- | Provides access to the 15th field of a tuple.
+class Field15 s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 15th field of a tuple.
+  _15 :: Lens s t a b
+  default _15 :: (Generic s, Generic t, GIxed N14 (Rep s) (Rep t) a b)
+             => Lens s t a b
+  _15 = ix proxyN14
+  {-# INLINE _15 #-}
+
+instance Field15 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o') o o' where
+  _15 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o) = k o <&> \o' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o')
+  {-# INLINE _15 #-}
+
+instance Field15 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o',p) o o' where
+  _15 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k o <&> \o' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o',p)
+  {-# INLINE _15 #-}
+
+instance Field15 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o',p,q) o o' where
+  _15 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k o <&> \o' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o',p,q)
+  {-# INLINE _15 #-}
+
+instance Field15 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o',p,q,r) o o' where
+  _15 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k o <&> \o' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o',p,q,r)
+  {-# INLINE _15 #-}
+
+instance Field15 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o',p,q,r,s) o o' where
+  _15 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k o <&> \o' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o',p,q,r,s)
+  {-# INLINE _15 #-}
+
+-- | Provides access to the 16th field of a tuple.
+class Field16 s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 16th field of a tuple.
+  _16 :: Lens s t a b
+  default _16 :: (Generic s, Generic t, GIxed N15 (Rep s) (Rep t) a b)
+             => Lens s t a b
+  _16 = ix proxyN15
+  {-# INLINE _16 #-}
+
+instance Field16 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p') p p' where
+  _16 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p) = k p <&> \p' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p')
+  {-# INLINE _16 #-}
+
+instance Field16 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p',q) p p' where
+  _16 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k p <&> \p' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p',q)
+  {-# INLINE _16 #-}
+
+instance Field16 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p',q,r) p p' where
+  _16 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k p <&> \p' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p',q,r)
+  {-# INLINE _16 #-}
+
+instance Field16 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p',q,r,s) p p' where
+  _16 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k p <&> \p' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p',q,r,s)
+  {-# INLINE _16 #-}
+
+-- | Provides access to the 17th field of a tuple.
+class Field17 s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 17th field of a tuple.
+  _17 :: Lens s t a b
+  default _17 :: (Generic s, Generic t, GIxed N16 (Rep s) (Rep t) a b)
+             => Lens s t a b
+  _17 = ix proxyN16
+  {-# INLINE _17 #-}
+
+instance Field17 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q') q q' where
+  _17 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q) = k q <&> \q' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q')
+  {-# INLINE _17 #-}
+
+instance Field17 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q',r) q q' where
+  _17 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k q <&> \q' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q',r)
+  {-# INLINE _17 #-}
+
+instance Field17 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q',r,s) q q' where
+  _17 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k q <&> \q' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q',r,s)
+  {-# INLINE _17 #-}
+
+-- | Provides access to the 18th field of a tuple.
+class Field18 s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 18th field of a tuple.
+  _18 :: Lens s t a b
+  default _18 :: (Generic s, Generic t, GIxed N17 (Rep s) (Rep t) a b)
+             => Lens s t a b
+  _18 = ix proxyN17
+  {-# INLINE _18 #-}
+
+instance Field18 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r') r r' where
+  _18 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r) = k r <&> \r' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r')
+  {-# INLINE _18 #-}
+
+instance Field18 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r',s) r r' where
+  _18 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k r <&> \r' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r',s)
+  {-# INLINE _18 #-}
+
+-- | Provides access to the 19th field of a tuple.
+class Field19 s t a b | s -> a, t -> b, s b -> t, t a -> s where
+  -- | Access the 19th field of a tuple.
+  _19 :: Lens s t a b
+  default _19 :: (Generic s, Generic t, GIxed N18 (Rep s) (Rep t) a b)
+             => Lens s t a b
+  _19 = ix proxyN18
+  {-# INLINE _19 #-}
+
+instance Field19 (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s') s s' where
+  _19 k ~(a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s) = k s <&> \s' -> (a,b,c,d,e,f,g,h,i,j,kk,l,m,n,o,p,q,r,s')
+  {-# INLINE _19 #-}
+
+-- Strict versions of the _1 .. _19 operations
 
 -- | Strict version of '_1'
 _1' :: Field1 s t a b => Lens s t a b
@@ -423,6 +1107,56 @@ _8' = \f !x -> _8 f x
 _9' :: Field9 s t a b => Lens s t a b
 _9' = \f !x -> _9 f x
 {-# INLINE _9' #-}
+
+-- | Strict version of '_10'
+_10' :: Field10 s t a b => Lens s t a b
+_10' = \f !x -> _10 f x
+{-# INLINE _10' #-}
+
+-- | Strict version of '_11'
+_11' :: Field11 s t a b => Lens s t a b
+_11' = \f !x -> _11 f x
+{-# INLINE _11' #-}
+
+-- | Strict version of '_12'
+_12' :: Field12 s t a b => Lens s t a b
+_12' = \f !x -> _12 f x
+{-# INLINE _12' #-}
+
+-- | Strict version of '_13'
+_13' :: Field13 s t a b => Lens s t a b
+_13' = \f !x -> _13 f x
+{-# INLINE _13' #-}
+
+-- | Strict version of '_14'
+_14' :: Field14 s t a b => Lens s t a b
+_14' = \f !x -> _14 f x
+{-# INLINE _14' #-}
+
+-- | Strict version of '_15'
+_15' :: Field15 s t a b => Lens s t a b
+_15' = \f !x -> _15 f x
+{-# INLINE _15' #-}
+
+-- | Strict version of '_16'
+_16' :: Field16 s t a b => Lens s t a b
+_16' = \f !x -> _16 f x
+{-# INLINE _16' #-}
+
+-- | Strict version of '_17'
+_17' :: Field17 s t a b => Lens s t a b
+_17' = \f !x -> _17 f x
+{-# INLINE _17' #-}
+
+-- | Strict version of '_18'
+_18' :: Field18 s t a b => Lens s t a b
+_18' = \f !x -> _18 f x
+{-# INLINE _18' #-}
+
+-- | Strict version of '_19'
+_19' :: Field19 s t a b => Lens s t a b
+_19' = \f !x -> _19 f x
+{-# INLINE _19' #-}
 
 
 ix :: (Generic s, Generic t, GIxed n (Rep s) (Rep t) a b) => f n -> Lens s t a b
@@ -512,6 +1246,16 @@ type N5 = S N4
 type N6 = S N5
 type N7 = S N6
 type N8 = S N7
+type N9 = S N8
+type N10 = S N9
+type N11 = S N10
+type N12 = S N11
+type N13 = S N12
+type N14 = S N13
+type N15 = S N14
+type N16 = S N15
+type N17 = S N16
+type N18 = S N17
 
 proxyN0 :: Proxy N0
 proxyN0 = Proxy
@@ -548,3 +1292,43 @@ proxyN7 = Proxy
 proxyN8 :: Proxy N8
 proxyN8 = Proxy
 {-# INLINE proxyN8 #-}
+
+proxyN9 :: Proxy N9
+proxyN9 = Proxy
+{-# INLINE proxyN9 #-}
+
+proxyN10 :: Proxy N10
+proxyN10 = Proxy
+{-# INLINE proxyN10 #-}
+
+proxyN11 :: Proxy N11
+proxyN11 = Proxy
+{-# INLINE proxyN11 #-}
+
+proxyN12 :: Proxy N12
+proxyN12 = Proxy
+{-# INLINE proxyN12 #-}
+
+proxyN13 :: Proxy N13
+proxyN13 = Proxy
+{-# INLINE proxyN13 #-}
+
+proxyN14 :: Proxy N14
+proxyN14 = Proxy
+{-# INLINE proxyN14 #-}
+
+proxyN15 :: Proxy N15
+proxyN15 = Proxy
+{-# INLINE proxyN15 #-}
+
+proxyN16 :: Proxy N16
+proxyN16 = Proxy
+{-# INLINE proxyN16 #-}
+
+proxyN17 :: Proxy N17
+proxyN17 = Proxy
+{-# INLINE proxyN17 #-}
+
+proxyN18 :: Proxy N18
+proxyN18 = Proxy
+{-# INLINE proxyN18 #-}
