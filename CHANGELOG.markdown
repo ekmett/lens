@@ -1,9 +1,13 @@
 next
 ----
+* Expand tuple accessors to support up to 19-tuples
+* Add more `Rewrapped` and `Wrapped` instances for data types from the `base`,
+  `bifunctors`, `exceptions`, `free`, `profunctors`, and `semigroupoids`
+  libraries
+* Add a `Generic` default implementation for `Wrapped`
 * Add `Wrapped` instances for data types introduced in `Foreign.C.Types` and
   `System.Posix.Types` in `base-4.10.0.0`
 * Add prisms for recently introduced data types in `Control.Exception`
-* Add a `Generic` default implementation for `Wrapped`
 * Revamp `Setup.hs` to use `cabal-doctest`. This makes it build
   with `Cabal-1.25`, and makes the `doctest`s work with `cabal new-build` and
   sandboxes.
@@ -11,9 +15,6 @@ next
 4.15.1
 ----
 * Restore the `generic` and `generic1` functions in `GHC.Generics.Lens`
-* Add more `Rewrapped` and `Wrapped` instances for data types from the `base`,
-  `bifunctors`, `exceptions`, `free`, `profunctors`, and `semigroupoids`
-  libraries
 
 4.15
 ----
