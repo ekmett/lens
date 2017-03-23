@@ -86,9 +86,9 @@ levelOuts bz = runFlows $ runBazaarT bz $ \ _ -> Flows $ \t -> case t of
 --
 -- /Note:/ Internally this is implemented by using an illegal 'Applicative', as it extracts information
 -- in an order that violates the 'Applicative' laws.
-levels :: (Applicative f, Indexable Int p)
+levels :: Applicative f
        => Traversing (->) f s t a b
-       -> Over p f s t (Level () a) (Level () b)
+       -> IndexedLensLike Int f s t (Level () a) (Level () b)
 levels l f s = levelOuts bz <$> traversed f (levelIns bz) where
   bz = l sell s
 {-# INLINE levels #-}
@@ -133,9 +133,9 @@ ilevelOuts bz = runFlows $ runBazaarT bz $ Indexed $ \ _ _ -> Flows $ \t -> case
 --
 -- /Note:/ Internally this is implemented by using an illegal 'Applicative', as it extracts information
 -- in an order that violates the 'Applicative' laws.
-ilevels :: (Applicative f, Indexable Int p)
+ilevels :: Applicative f
         => Traversing (Indexed i) f s t a b
-        -> Over p f s t (Level i a) (Level j b)
+        -> IndexedLensLike Int f s t (Level i a) (Level j b)
 ilevels l f s = ilevelOuts bz <$> traversed f (ilevelIns bz) where
   bz = l sell s
 {-# INLINE ilevels #-}
