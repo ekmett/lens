@@ -133,7 +133,7 @@ class Corepresentable p => Sellable p w | w -> p where
 ------------------------------------------------------------------------------
 
 -- | The indexed store can be used to characterize a 'Control.Lens.Lens.Lens'
--- and is used by 'Control.Lens.Lens.clone'.
+-- and is used by 'Control.Lens.Lens.cloneLens'.
 --
 -- @'Context' a b t@ is isomorphic to
 -- @newtype 'Context' a b t = 'Context' { runContext :: forall f. 'Functor' f => (a -> f b) -> f t }@,
