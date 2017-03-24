@@ -502,8 +502,16 @@ iuses l f = gets (getConst #. l (Const #. Indexed f))
 s ^@. l = getConst $ l (Indexed $ \i -> Const #. (,) i) s
 {-# INLINE (^@.) #-}
 
--- | Coerce a 'Getter'-compatible 'LensLike' to a 'LensLike''. This
+-- | Coerce a 'Getter'-compatible 'Optical' to an 'Optical''. This
 -- is useful when using a 'Traversal' that is not simple as a 'Getter' or a
 -- 'Fold'.
-getting :: (Functor f, Contravariant f) => LensLike f s t a b -> LensLike' f s a
-getting l f = phantom . l (phantom . f)
+--
+-- @
+-- 'getting' :: 'Traversal' s t a b          -> 'Fold' s a
+-- 'getting' :: 'Lens' s t a b               -> 'Getter' s a
+-- 'getting' :: 'IndexedTraversal' i s t a b -> 'IndexedFold' i s a
+-- 'getting' :: 'IndexedLens' i s t a b      -> 'IndexedGetter' i s a
+-- @
+getting :: (Profunctor p, Profunctor q, Functor f, Contravariant f)
+        => Optical p q f s t a b -> Optical' p q f s a
+getting l f = rmap phantom . l $ rmap phantom f
