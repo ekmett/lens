@@ -29,6 +29,7 @@ import Control.Lens.Internal.Context
 import Control.Lens.Internal.Indexed
 import Control.Lens.Internal.Level
 import Control.Lens.Traversal
+import Control.Lens.Type
 import Data.Profunctor.Unsafe
 
 -- $setup
@@ -36,20 +37,21 @@ import Data.Profunctor.Unsafe
 -- >>> import Control.Lens
 -- >>> import Data.Char
 
-levelIns :: Bazaar (->) a b t -> [Level () a]
+levelIns :: BazaarT (->) f a b t -> [Level () a]
 levelIns = go 0 . (getConst #. bazaar (rmapConst (deepening ()))) where
   go k z = k `seq` runDeepening z k $ \ xs b ->
     xs : if b then (go $! k + 1) z else []
 {-# INLINE levelIns #-}
 
-levelOuts :: Bazaar (->) a b t -> [Level j b] -> t
-levelOuts bz = runFlows $ runBazaar bz $ \ _ -> Flows $ \t -> case t of
+levelOuts :: BazaarT (->) f a b t -> [Level j b] -> t
+levelOuts bz = runFlows $ runBazaarT bz $ \ _ -> Flows $ \t -> case t of
   One _ a : _ -> a
   _           -> error "levelOuts: wrong shape"
 {-# INLINE levelOuts #-}
 
--- | This provides a breadth-first 'Traversal' of the individual 'levels' of any other 'Traversal'
--- via iterative deepening depth-first search. The levels are returned to you in a compressed format.
+-- | This provides a breadth-first 'Traversal' or 'Fold' of the individual
+-- 'levels' of any other 'Traversal' or 'Fold' via iterative deepening
+-- depth-first search. The levels are returned to you in a compressed format.
 --
 -- This can permit us to extract the 'levels' directly:
 --
@@ -77,9 +79,16 @@ levelOuts bz = runFlows $ runBazaar bz $ \ _ -> Flows $ \t -> case t of
 -- >>> ["dog","cat"]^@..levels (traverse.traverse) <. traverse
 -- [(2,'d'),(3,'o'),(3,'c'),(4,'g'),(4,'a'),(5,'t')]
 --
+-- @
+-- 'levels' :: 'Traversal' s t a b      -> 'IndexedTraversal' 'Int' s t ('Level' () a) ('Level' () b)
+-- 'levels' :: 'Fold' s a               -> 'IndexedFold' 'Int' s ('Level' () a)
+-- @
+--
 -- /Note:/ Internally this is implemented by using an illegal 'Applicative', as it extracts information
 -- in an order that violates the 'Applicative' laws.
-levels :: ATraversal s t a b -> IndexedTraversal Int s t (Level () a) (Level () b)
+levels :: Applicative f
+       => Traversing (->) f s t a b
+       -> IndexedLensLike Int f s t (Level () a) (Level () b)
 levels l f s = levelOuts bz <$> traversed f (levelIns bz) where
   bz = l sell s
 {-# INLINE levels #-}
@@ -90,20 +99,21 @@ rmapConst :: Profunctor p => p a b -> p a (Const b x)
 rmapConst p = Const #. p
 {-# INLINE rmapConst #-}
 
-ilevelIns :: Bazaar (Indexed i) a b t -> [Level i a]
+ilevelIns :: BazaarT (Indexed i) f a b t -> [Level i a]
 ilevelIns = go 0 . (getConst #. bazaar (Indexed $ \ i -> rmapConst (deepening i))) where
   go k z = k `seq` runDeepening z k $ \ xs b ->
     xs : if b then (go $! k + 1) z else []
 {-# INLINE ilevelIns #-}
 
-ilevelOuts :: Bazaar (Indexed i) a b t -> [Level j b] -> t
-ilevelOuts bz = runFlows $ runBazaar bz $ Indexed $ \ _ _ -> Flows $ \t -> case t of
+ilevelOuts :: BazaarT (Indexed i) f a b t -> [Level j b] -> t
+ilevelOuts bz = runFlows $ runBazaarT bz $ Indexed $ \ _ _ -> Flows $ \t -> case t of
   One _ a : _ -> a
   _           -> error "ilevelOuts: wrong shape"
 {-# INLINE ilevelOuts #-}
 
--- | This provides a breadth-first 'Traversal' of the individual levels of any other 'Traversal'
--- via iterative deepening depth-first search. The levels are returned to you in a compressed format.
+-- | This provides a breadth-first 'Traversal' or 'Fold' of the individual
+-- levels of any other 'Traversal' or 'Fold' via iterative deepening depth-first
+-- search. The levels are returned to you in a compressed format.
 --
 -- This is similar to 'levels', but retains the index of the original 'IndexedTraversal', so you can
 -- access it when traversing the levels later on.
@@ -116,9 +126,16 @@ ilevelOuts bz = runFlows $ runBazaar bz $ Indexed $ \ _ _ -> Flows $ \t -> case 
 -- >>> ["dog","cat"]^@..ilevels (traversed<.>traversed)<.>itraversed
 -- [((2,(0,0)),'d'),((3,(0,1)),'o'),((3,(1,0)),'c'),((4,(0,2)),'g'),((4,(1,1)),'a'),((5,(1,2)),'t')]
 --
+-- @
+-- 'ilevels' :: 'IndexedTraversal' i s t a b      -> 'IndexedTraversal' 'Int' s t ('Level' i a) ('Level' i b)
+-- 'ilevels' :: 'IndexedFold' i s a               -> 'IndexedFold' 'Int' s ('Level' i a)
+-- @
+--
 -- /Note:/ Internally this is implemented by using an illegal 'Applicative', as it extracts information
 -- in an order that violates the 'Applicative' laws.
-ilevels :: AnIndexedTraversal i s t a b -> IndexedTraversal Int s t (Level i a) (Level j b)
+ilevels :: Applicative f
+        => Traversing (Indexed i) f s t a b
+        -> IndexedLensLike Int f s t (Level i a) (Level j b)
 ilevels l f s = ilevelOuts bz <$> traversed f (ilevelIns bz) where
   bz = l sell s
 {-# INLINE ilevels #-}
