@@ -171,13 +171,6 @@ generateBuildModule testsuiteName flags pkg lbi = do
 testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo -> [(InstalledPackageId, PackageId)]
 testDeps xs ys = nub $ componentPackageDeps xs ++ componentPackageDeps ys
 
-defaultMainWithDoctests :: String -> IO ()
-defaultMainWithDoctests testSuiteName = defaultMainWithHooks simpleUserHooks
-  { buildHook = \pkg lbi hooks flags -> do
-     generateBuildModule testSuiteName flags pkg lbi
-     buildHook simpleUserHooks pkg lbi hooks flags
-  }
-
 #endif
 
 haddockOutputDir :: Package p => HaddockFlags -> p -> FilePath
