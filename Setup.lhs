@@ -32,6 +32,7 @@ import Distribution.Extra.Doctest (generateBuildModule )
 
 import Control.Monad ( when )
 import Data.List ( nub )
+import Data.String ( fromString )
 import Distribution.Package ( InstalledPackageId )
 import Distribution.Package ( PackageId, Package (..), packageVersion )
 import Distribution.PackageDescription ( PackageDescription(), TestSuite(..) , Library (..), BuildInfo (..))
@@ -51,9 +52,7 @@ import System.Directory (makeAbsolute)
 #else
 import System.Directory (getCurrentDirectory)
 import System.FilePath (isAbsolute)
-#endif
 
-#if !MIN_VERSION_directory(1,2,2)
 makeAbsolute :: FilePath -> IO FilePath
 makeAbsolute p | isAbsolute p = return p
                | otherwise    = do
@@ -61,8 +60,8 @@ makeAbsolute p | isAbsolute p = return p
     return $ cwd </> p
 #endif
 
-generateBuildModule :: BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-generateBuildModule flags pkg lbi = do
+generateBuildModule :: String -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
+generateBuildModule testsuiteName flags pkg lbi = do
   let verbosity = fromFlag (buildVerbosity flags)
   let distPref = fromFlag (buildDistPref flags)
 
@@ -94,7 +93,7 @@ generateBuildModule flags pkg lbi = do
             [ "-include", libAutogenDir ++ "/cabal_macros.h" ]
             ++ cppOptions libBI
 
-    withTestLBI pkg lbi $ \suite suitecfg -> when (testName suite == "doctests") $ do
+    withTestLBI pkg lbi $ \suite suitecfg -> when (testName suite == fromString testsuiteName) $ do
 
       -- get and create autogen dir
 #if MIN_VERSION_Cabal(1,25,0)
@@ -171,6 +170,13 @@ generateBuildModule flags pkg lbi = do
 
 testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo -> [(InstalledPackageId, PackageId)]
 testDeps xs ys = nub $ componentPackageDeps xs ++ componentPackageDeps ys
+
+defaultMainWithDoctests :: String -> IO ()
+defaultMainWithDoctests testSuiteName = defaultMainWithHooks simpleUserHooks
+  { buildHook = \pkg lbi hooks flags -> do
+     generateBuildModule testSuiteName flags pkg lbi
+     buildHook simpleUserHooks pkg lbi hooks flags
+  }
 
 #endif
 
