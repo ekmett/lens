@@ -4,6 +4,7 @@ ignore "Reduce duplication"
 ignore "Redundant lambda"
 ignore "Use >=>"
 ignore "Use const"
+ignore "Use module export list"
 
 -- Used hlint --find src/ in the lens repo to generate this:
 infixl 9 :>
