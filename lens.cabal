@@ -433,7 +433,8 @@ test-suite hlint
   else
     build-depends:
       base,
-      hlint >= 1.9.27
+      -- Upper version bound is in place due to https://github.com/ekmett/lens/issues/723
+      hlint >= 1.9.27 && < 2
 
     -- Workaround for https://github.com/malcolmwallace/cpphs/issues/9
     if impl(ghc < 7.6)
