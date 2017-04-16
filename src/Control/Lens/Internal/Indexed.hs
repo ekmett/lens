@@ -61,6 +61,17 @@ import Data.Profunctor.Unsafe
 import Control.Lens.Internal.Coerce
 #endif
 
+#if __GLASGOW_HASKELL__ < 708
+import qualified Data.Foldable as F
+ 
+instance Traversable ((,) a) where
+    traverse f (x, y) = (,) x <$> f y
+ 
+instance F.Foldable ((,) a) where
+    foldMap f (_, y) = f y
+    foldr f z (_, y) = f y z
+#endif
+
 ------------------------------------------------------------------------------
 -- Conjoined
 ------------------------------------------------------------------------------
