@@ -114,7 +114,7 @@ source-repository head
 
 custom-setup
   setup-depends:
-    Cabal >= 1.10 && <2.0,
+    Cabal >= 1.10 && <2.1,
     base  >= 4.5 && <5,
     cabal-doctest >= 1 && <1.1,
     filepath
