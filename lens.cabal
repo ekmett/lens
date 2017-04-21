@@ -436,10 +436,6 @@ test-suite hlint
       -- Bounds are in place due to https://github.com/ekmett/lens/issues/723
       hlint >= 1.9.27 && < 2 || >= 2.0.1
 
-    -- Workaround for https://github.com/malcolmwallace/cpphs/issues/9
-    if impl(ghc < 7.6)
-      build-depends: cpphs < 1.20.4
-
 -- Basic benchmarks for the uniplate-style combinators
 benchmark plated
   type:           exitcode-stdio-1.0
