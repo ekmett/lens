@@ -139,7 +139,7 @@ infixl 8 ^., ^@.
 -- @
 -- 'to' :: (s -> a) -> 'IndexPreservingGetter' s a
 -- @
-to :: (Profunctor p, Contravariant f, Functor f) => (s -> a) -> Optic' p f s a
+to :: (Profunctor p, Contravariant f) => (s -> a) -> Optic' p f s a
 to k = dimap k (contramap k)
 {-# INLINE to #-}
 
@@ -147,7 +147,7 @@ to k = dimap k (contramap k)
 -- @
 -- 'ito' :: (s -> (i, a)) -> 'IndexedGetter' i s a
 -- @
-ito :: (Indexable i p, Contravariant f, Functor f) => (s -> (i, a)) -> Over' p f s a
+ito :: (Indexable i p, Contravariant f) => (s -> (i, a)) -> Over' p f s a
 ito k = dimap k (contramap (snd . k)) . uncurry . indexed
 {-# INLINE ito #-}
 
