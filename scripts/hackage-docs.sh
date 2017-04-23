@@ -13,6 +13,6 @@ set -e
 dir=$(mktemp -d dist-docs.XXXXXX)
 trap 'rm -r "$dir"' EXIT
 
-cabal configure --builddir="$dir" --extra-lib-dirs=/usr/local/Cellar/openssl/1.0.2j/lib --extra-include-dirs=/usr/local/Cellar/openssl/1.0.2j/include
+cabal configure --builddir="$dir"
 cabal haddock --builddir="$dir" --for-hackage --haddock-option=--hyperlinked-source
 cabal upload -d $dir/*-docs.tar.gz
