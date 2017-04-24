@@ -80,7 +80,7 @@ module Control.Lens.Traversal
   -- * Common Traversals
   , Traversable(traverse)
   , Traversable1(traverse1)
-  , both
+  , both, both1
   , beside
   , taking
   , dropping
@@ -163,6 +163,7 @@ import Data.Profunctor.Sieve
 import Data.Profunctor.Unsafe
 import Data.Reflection
 import Data.Semigroup.Traversable
+import Data.Semigroup.Bitraversable
 import Data.Tagged
 import Data.Traversable
 import Data.Tuple (swap)
@@ -752,6 +753,18 @@ unconsWithDefault _ (x:xs) = (x,xs)
 both :: Bitraversable r => Traversal (r a a) (r b b) a b
 both f = bitraverse f f
 {-# INLINE both #-}
+
+-- | Traverse both parts of a 'Bitraversable1' container with matching types.
+--
+-- Usually that type will be a pair.
+--
+-- @
+-- 'both1' :: 'Traversal1' (a, a)       (b, b)       a b
+-- 'both1' :: 'Traversal1' ('Either' a a) ('Either' b b) a b
+-- @
+both1 :: Bitraversable1 r => Traversal1 (r a a) (r b b) a b
+both1 f = bitraverse1 f f
+{-# INLINE both1 #-}
 
 -- | Apply a different 'Traversal' or 'Fold' to each side of a 'Bitraversable' container.
 --

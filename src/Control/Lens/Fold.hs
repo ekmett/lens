@@ -77,7 +77,7 @@ module Control.Lens.Fold
   -- ** Folding
   , foldMapOf, foldOf
   , foldrOf, foldlOf
-  , toListOf
+  , toListOf, toNonEmptyOf
   , anyOf, allOf, noneOf
   , andOf, orOf
   , productOf, sumOf
@@ -88,7 +88,7 @@ module Control.Lens.Fold
   , elemOf, notElemOf
   , lengthOf
   , nullOf, notNullOf
-  , firstOf, lastOf
+  , firstOf, firstOf1, lastOf, lastOf1
   , maximumOf, minimumOf
   , maximumByOf, minimumByOf
   , findOf
@@ -175,6 +175,9 @@ import Data.Reflection
 #endif
 import Data.Traversable
 import Prelude hiding (foldr)
+
+import qualified Data.Semigroup as Semi
+import Data.List.NonEmpty (NonEmpty(..))
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -492,12 +495,14 @@ lined f = fmap (intercalate "\n") . conjoined traverse (indexing traverse) f . l
 -- @
 --
 -- @
--- 'foldMapOf' ::             'Getter' s a     -> (a -> r) -> s -> r
--- 'foldMapOf' :: 'Monoid' r => 'Fold' s a       -> (a -> r) -> s -> r
--- 'foldMapOf' ::             'Lens'' s a      -> (a -> r) -> s -> r
--- 'foldMapOf' ::             'Iso'' s a       -> (a -> r) -> s -> r
--- 'foldMapOf' :: 'Monoid' r => 'Traversal'' s a -> (a -> r) -> s -> r
--- 'foldMapOf' :: 'Monoid' r => 'Prism'' s a     -> (a -> r) -> s -> r
+-- 'foldMapOf' ::                'Getter' s a      -> (a -> r) -> s -> r
+-- 'foldMapOf' :: 'Monoid' r    => 'Fold' s a        -> (a -> r) -> s -> r
+-- 'foldMapOf' :: 'Semigroup' r => 'Fold1' s a       -> (a -> r) -> s -> r
+-- 'foldMapOf' ::                'Lens'' s a       -> (a -> r) -> s -> r
+-- 'foldMapOf' ::                'Iso'' s a        -> (a -> r) -> s -> r
+-- 'foldMapOf' :: 'Monoid' r    => 'Traversal'' s a  -> (a -> r) -> s -> r
+-- 'foldMapOf' :: 'Semigroup' r => 'Traversal1'' s a -> (a -> r) -> s -> r
+-- 'foldMapOf' :: 'Monoid' r    => 'Prism'' s a      -> (a -> r) -> s -> r
 -- @
 --
 -- @
@@ -598,6 +603,22 @@ foldlOf l f z = (flip appEndo z .# getDual) `rmap` foldMapOf l (Dual #. Endo #. 
 toListOf :: Getting (Endo [a]) s a -> s -> [a]
 toListOf l = foldrOf l (:) []
 {-# INLINE toListOf #-}
+
+-- | Extract a 'NonEmpty' of the targets of 'Fold1'.
+--
+-- >>> toNonEmptyOf both1 ("hello", "world")
+-- "hello" :| ["world"]
+--
+-- @
+-- 'toNonEmptyOf' :: 'Getter' s a      -> s -> NonEmpty a
+-- 'toNonEmptyOf' :: 'Fold1' s a       -> s -> NonEmpty a
+-- 'toNonEmptyOf' :: 'Lens'' s a       -> s -> NonEmpty a
+-- 'toNonEmptyOf' :: 'Iso'' s a        -> s -> NonEmpty a
+-- 'toNonEmptyOf' :: 'Traversal1'' s a -> s -> NonEmpty a
+-- 'toNonEmptyOf' :: 'Prism'' s a      -> s -> NonEmpty a
+-- @
+toNonEmptyOf :: Getting (NonEmptyDList a) s a -> s -> NonEmpty a
+toNonEmptyOf l = flip getNonEmptyDList [] . foldMapOf l (NonEmptyDList #. (:|))
 
 -- | A convenient infix (flipped) version of 'toListOf'.
 --
@@ -1223,6 +1244,32 @@ firstOf :: Getting (Leftmost a) s a -> s -> Maybe a
 firstOf l = getLeftmost . foldMapOf l LLeaf
 {-# INLINE firstOf #-}
 
+-- | Retrieve the 'Data.Semigroup.First' entry of a 'Fold1' or 'Traversal1' or the result from a 'Getter' or 'Lens'.
+--
+-- >>> firstOf1 traverse1 (1 :| [2..10])
+-- 1
+--
+-- >>> firstOf1 both1 (1,2)
+-- 1
+--
+-- /Note:/ this is different from '^.'.
+--
+-- >>> firstOf1 traverse1 ([1,2] :| [[3,4],[5,6]])
+-- [1,2]
+--
+-- >>> ([1,2] :| [[3,4],[5,6]]) ^. traverse1
+-- [1,2,3,4,5,6]
+--
+-- @
+-- 'firstOf1' :: 'Getter' s a      -> s -> a
+-- 'firstOf1' :: 'Fold1' s a       -> s -> a
+-- 'firstOf1' :: 'Lens'' s a       -> s -> a
+-- 'firstOf1' :: 'Iso'' s a        -> s -> a
+-- 'firstOf1' :: 'Traversal1'' s a -> s -> a
+-- @
+firstOf1 :: Getting (Semi.First a) s a -> s -> a
+firstOf1 l = Semi.getFirst . foldMapOf l Semi.First
+
 -- | Retrieve the 'Last' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
 --
@@ -1249,6 +1296,25 @@ firstOf l = getLeftmost . foldMapOf l LLeaf
 lastOf :: Getting (Rightmost a) s a -> s -> Maybe a
 lastOf l = getRightmost . foldMapOf l RLeaf
 {-# INLINE lastOf #-}
+
+-- | Retrieve the 'Data.Semigroup.Last' entry of a 'Fold1' or 'Traversal1' or retrieve the result
+-- from a 'Getter' or 'Lens'.o
+--
+-- >>> lastOf1 traverse1 (1 :| [2..10])
+-- 10
+--
+-- >>> lastOf1 both1 (1,2)
+-- 2
+--
+-- @
+-- 'lastOf1' :: 'Getter' s a      -> s -> 'Maybe' a
+-- 'lastOf1' :: 'Fold1' s a       -> s -> 'Maybe' a
+-- 'lastOf1' :: 'Lens'' s a       -> s -> 'Maybe' a
+-- 'lastOf1' :: 'Iso'' s a        -> s -> 'Maybe' a
+-- 'lastOf1' :: 'Traversal1'' s a -> s -> 'Maybe' a
+-- @
+lastOf1 :: Getting (Semi.Last a) s a -> s -> a
+lastOf1 l = Semi.getLast . foldMapOf l Semi.Last
 
 -- | Returns 'True' if this 'Fold' or 'Traversal' has no targets in the given container.
 --
