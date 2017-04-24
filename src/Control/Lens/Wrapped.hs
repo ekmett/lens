@@ -171,7 +171,7 @@ import           GHC.Exts (Down(Down))
 import qualified Data.Monoid as Monoid
 #endif
 
-#if MIN_VERSION_base(4,10,0)
+#if MIN_VERSION_base(4,10,0) && defined(HTYPE_TIMER_T)
 import           GHC.Exts (HTYPE_TIMER_T)
 #endif
 
