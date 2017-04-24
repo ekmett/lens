@@ -25,7 +25,7 @@ module Control.Monad.Error.Lens
   , Handler(..)
   , Handleable(..)
   -- * Throwing
-  , throwing
+  , throwing, throwing_
   ) where
 
 import Control.Applicative
@@ -228,3 +228,15 @@ catchJust f m k = catchError m $ \ e -> case f e of
   Nothing -> throwError e
   Just x  -> k x
 {-# INLINE catchJust #-}
+
+-- | Similar to 'throwing' but specialised for the common case of
+--   error constructors with no arguments.
+--
+-- @
+-- data MyError = Foo | Bar
+-- makePrisms ''MyError
+-- 'throwing_' _Foo :: 'MonadError' MyError m => m a
+-- @
+throwing_ :: MonadError e m => AReview e () -> m x
+throwing_ l = throwing l ()
+{-# INLINE throwing_ #-}
