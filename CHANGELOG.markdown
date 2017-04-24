@@ -1,4 +1,4 @@
-next
+4.15.2
 ----
 * Expand tuple accessors to support up to 19-tuples
 * Add more `Rewrapped` and `Wrapped` instances for data types from the `base`,
