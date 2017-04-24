@@ -53,6 +53,7 @@ module Control.Exception.Lens
   , trying, trying_
   -- * Throwing
   , throwing
+  , throwing_
   , throwingM
   , throwingTo
   -- * Mapping
@@ -362,6 +363,18 @@ trying_ l m = preview _Right `liftM` trying l m
 throwing :: AReview SomeException b -> b -> r
 throwing l = reviews l Exception.throw
 {-# INLINE throwing #-}
+
+-- | Similar to 'throwing' but specialised for the common case of
+--   error constructors with no arguments.
+--
+-- @
+-- data MyError = Foo | Bar
+-- makePrisms ''MyError
+-- 'throwing_' _Foo :: 'MonadError' MyError m => m a
+-- @
+throwing_ :: AReview SomeException () -> m x
+throwing_ l = throwing l ()
+{-# INLINE throwing_ #-}
 
 -- | A variant of 'throwing' that can only be used within the 'IO' 'Monad'
 -- (or any other 'MonadCatch' instance) to throw an 'Exception' described
