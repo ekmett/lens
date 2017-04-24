@@ -12,6 +12,8 @@
   with `Cabal-1.25`, and makes the `doctest`s work with `cabal new-build` and
   sandboxes.
 * Added `throwing_` to `Control.Monad.Error.Lens` and `Control.Exception.Lens`
+* Fix the meta-data in the .cabal file to properly indicate that this project
+  has a BSD2 license
 
 4.15.1
 ----
