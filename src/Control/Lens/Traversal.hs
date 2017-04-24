@@ -1256,11 +1256,7 @@ infixl 5 `failing`
 -- 'deepOf' :: 'Traversal' s t s t -> 'IndexedTraversal' i s t a b -> 'IndexedTraversal' i s t a b
 -- @
 deepOf :: (Conjoined p, Applicative f) => LensLike f s t s t -> Traversing p f s t a b -> Over p f s t a b
-deepOf r l pafb = go
-  where go s = case pins b of
-          [] -> r go s
-          xs -> unsafeOuts b <$> traverse (cosieve pafb) xs
-          where b = l sell s
+deepOf r l = failing l (r . deepOf r l)
 
 -- | "Fuse" a 'Traversal' by reassociating all of the '\<*\>' operations to the
 -- left and fusing all of the 'fmap' calls into one. This is particularly
