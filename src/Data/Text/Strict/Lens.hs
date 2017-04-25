@@ -133,7 +133,7 @@ ifoldrStrict :: (Int -> Char -> a -> a) -> a -> Text -> a
 ifoldrStrict f z xs = Strict.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
 {-# INLINE ifoldrStrict #-}
 
--- | Encode/Decode a strict 'Text' to/from strict 'ByteString', via UTF-8.
+-- | Encode\/Decode a strict 'Text' to\/from strict 'ByteString', via UTF-8.
 --
 -- >>> utf8 # "☃"
 -- "\226\152\131"

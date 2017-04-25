@@ -137,7 +137,7 @@ ifoldrLazy :: (Int -> Char -> a -> a) -> a -> Text -> a
 ifoldrLazy f z xs = Text.foldr (\ x g i -> i `seq` f i x (g (i+1))) (const z) xs 0
 {-# INLINE ifoldrLazy #-}
 
--- | Encode/Decode a lazy 'Text' to/from lazy 'ByteString', via UTF-8.
+-- | Encode\/Decode a lazy 'Text' to\/from lazy 'ByteString', via UTF-8.
 --
 -- Note: This function does not decode lazily, as it must consume the entire
 -- input before deciding whether or not it fails.
