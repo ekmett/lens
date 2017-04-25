@@ -85,6 +85,9 @@ module Control.Lens.Iso
   -- * Coercions
   , coerced
 #endif
+  -- * Setters
+  , chimping
+  , chimping'
   ) where
 
 import Control.Lens.Equality (simple)
@@ -97,6 +100,7 @@ import Control.Lens.Internal.Iso as Iso
 import Control.Lens.Internal.Magma
 import Control.Lens.Prism
 import Control.Lens.Review
+import Control.Lens.Setter
 import Control.Lens.Type
 import Control.Monad.State.Lazy as Lazy
 import Control.Monad.State.Strict as Strict
@@ -612,3 +616,25 @@ coerced l = case sym Coercion :: Coercion a s of
 # endif
 {-# INLINE coerced #-}
 #endif
+
+-- | Lift an 'Iso' into the targets of 'Setter's.
+--
+-- @
+-- 'mapping' = 'chimping' 'mapped' 'mapped'
+-- 'contramapping' ≡ 'chimping' 'contramapped' 'contramapped'
+-- 'lmapping' ≡ 'chimping' 'argument' 'argument'
+-- @
+chimping :: ASetter s' a' s a
+    -> ASetter b' t' b t
+    -> AnIso s t a b
+    -> Iso s' t' a' b'
+chimping l m i = withIso i $ \f g -> iso (over l f) (over m g)
+{-# INLINE chimping #-}
+
+-- | Specialized version of 'chimping'. This can be used to lift an automorphic 'Iso'.
+-- @
+-- 'chimping'' ≡ 'Control.Monad.join' 'chimping'
+-- @
+chimping' :: ASetter s t a b -> AnIso a b b a -> Iso s t t s
+chimping' s = chimping s s
+{-# INLINE chimping' #-}
