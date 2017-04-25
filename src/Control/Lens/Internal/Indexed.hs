@@ -61,6 +61,11 @@ import Data.Profunctor.Unsafe
 import Control.Lens.Internal.Coerce
 #endif
 
+-- $setup
+-- >>> :set -XNoOverloadedStrings
+-- >>> import Control.Lens
+-- >>> import Numeric.Lens
+--
 ------------------------------------------------------------------------------
 -- Conjoined
 ------------------------------------------------------------------------------
@@ -347,6 +352,13 @@ indexing64 l iafb s = snd $ runIndexing64 (l (\a -> Indexing64 (\i -> i `seq` (i
 --
 -- The result is only valid to compose in a 'Traversal', if you don't edit the
 -- index as edits to the index have no effect.
+--
+-- >>> [10, 20, 30] ^.. ifolded . withIndex
+-- [(0,10),(1,20),(2,30)]
+--
+-- >>> [10, 20, 30] ^.. ifolded . withIndex . alongside negated (re _Show)
+-- [(0,"10"),(-1,"20"),(-2,"30")]
+--
 withIndex :: (Indexable i p, Functor f) => p (i, s) (f (j, t)) -> Indexed i s (f t)
 withIndex f = Indexed $ \i a -> snd <$> indexed f i (i, a)
 {-# INLINE withIndex #-}
