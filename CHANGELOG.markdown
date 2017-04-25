@@ -1,5 +1,6 @@
 4.15.2
 ----
+* Build with GHC 8.2
 * Expand tuple accessors to support up to 19-tuples
 * Add more `Rewrapped` and `Wrapped` instances for data types from the `base`,
   `bifunctors`, `exceptions`, `free`, `profunctors`, and `semigroupoids`
@@ -11,7 +12,17 @@
 * Revamp `Setup.hs` to use `cabal-doctest`. This makes it build
   with `Cabal-1.25`, and makes the `doctest`s work with `cabal new-build` and
   sandboxes.
-* Added `throwing_` to `Control.Monad.Error.Lens` and `Control.Exception.Lens`
+* Add `makeFieldsNoPrefix`, a variant of `makeFields` which gives the desired
+  behavior in the presence of `DuplicateRecordFields`. Also add
+  `classUnderscoreNoPrefixFields` and `classUnderscoreNoPrefixNamer`, the
+  corresponding `LensRules` and `FieldNamer`, respectively.
+* Add `toNonEmptyOf`, `firstOf1`, and `lastOf1` to `Control.Lens.Fold`
+* Add `both1` to `Control.Lens.Traversal`
+* Generalize the type of `levels` and `ilevels` in `Control.Lens.Level` to work
+  on `Fold`s
+* Generalize the type of `getting` in `Control.Lens.Getter` to work with any
+  `Optical`
+* Add `throwing_` to `Control.Monad.Error.Lens` and `Control.Exception.Lens`
 * Fix the meta-data in the .cabal file to properly indicate that this project
   has a BSD2 license
 
