@@ -88,8 +88,8 @@ module Control.Lens.Fold
   , elemOf, notElemOf
   , lengthOf
   , nullOf, notNullOf
-  , firstOf, firstOf1, lastOf, lastOf1
-  , maximumOf, minimumOf
+  , firstOf, first1Of, lastOf, last1Of
+  , maximumOf, maximum1Of, minimumOf, minimum1Of
   , maximumByOf, minimumByOf
   , findOf
   , findMOf
@@ -1224,6 +1224,8 @@ s ^?! l = foldrOf l const (error "(^?!): empty Fold") s
 -- and gives you back access to the outermost 'Just' constructor more quickly, but may have worse
 -- constant factors.
 --
+-- Note: this could been named `headOf`.
+--
 -- >>> firstOf traverse [1..10]
 -- Just 1
 --
@@ -1246,29 +1248,29 @@ firstOf l = getLeftmost . foldMapOf l LLeaf
 
 -- | Retrieve the 'Data.Semigroup.First' entry of a 'Fold1' or 'Traversal1' or the result from a 'Getter' or 'Lens'.
 --
--- >>> firstOf1 traverse1 (1 :| [2..10])
+-- >>> first1Of traverse1 (1 :| [2..10])
 -- 1
 --
--- >>> firstOf1 both1 (1,2)
+-- >>> first1Of both1 (1,2)
 -- 1
 --
 -- /Note:/ this is different from '^.'.
 --
--- >>> firstOf1 traverse1 ([1,2] :| [[3,4],[5,6]])
+-- >>> first1Of traverse1 ([1,2] :| [[3,4],[5,6]])
 -- [1,2]
 --
 -- >>> ([1,2] :| [[3,4],[5,6]]) ^. traverse1
 -- [1,2,3,4,5,6]
 --
 -- @
--- 'firstOf1' :: 'Getter' s a      -> s -> a
--- 'firstOf1' :: 'Fold1' s a       -> s -> a
--- 'firstOf1' :: 'Lens'' s a       -> s -> a
--- 'firstOf1' :: 'Iso'' s a        -> s -> a
--- 'firstOf1' :: 'Traversal1'' s a -> s -> a
+-- 'first1Of' :: 'Getter' s a      -> s -> a
+-- 'first1Of' :: 'Fold1' s a       -> s -> a
+-- 'first1Of' :: 'Lens'' s a       -> s -> a
+-- 'first1Of' :: 'Iso'' s a        -> s -> a
+-- 'first1Of' :: 'Traversal1'' s a -> s -> a
 -- @
-firstOf1 :: Getting (Semi.First a) s a -> s -> a
-firstOf1 l = Semi.getFirst . foldMapOf l Semi.First
+first1Of :: Getting (Semi.First a) s a -> s -> a
+first1Of l = Semi.getFirst . foldMapOf l Semi.First
 
 -- | Retrieve the 'Last' entry of a 'Fold' or 'Traversal' or retrieve 'Just' the result
 -- from a 'Getter' or 'Lens'.
@@ -1300,21 +1302,21 @@ lastOf l = getRightmost . foldMapOf l RLeaf
 -- | Retrieve the 'Data.Semigroup.Last' entry of a 'Fold1' or 'Traversal1' or retrieve the result
 -- from a 'Getter' or 'Lens'.o
 --
--- >>> lastOf1 traverse1 (1 :| [2..10])
+-- >>> last1Of traverse1 (1 :| [2..10])
 -- 10
 --
--- >>> lastOf1 both1 (1,2)
+-- >>> last1Of both1 (1,2)
 -- 2
 --
 -- @
--- 'lastOf1' :: 'Getter' s a      -> s -> 'Maybe' a
--- 'lastOf1' :: 'Fold1' s a       -> s -> 'Maybe' a
--- 'lastOf1' :: 'Lens'' s a       -> s -> 'Maybe' a
--- 'lastOf1' :: 'Iso'' s a        -> s -> 'Maybe' a
--- 'lastOf1' :: 'Traversal1'' s a -> s -> 'Maybe' a
+-- 'last1Of' :: 'Getter' s a      -> s -> 'Maybe' a
+-- 'last1Of' :: 'Fold1' s a       -> s -> 'Maybe' a
+-- 'last1Of' :: 'Lens'' s a       -> s -> 'Maybe' a
+-- 'last1Of' :: 'Iso'' s a        -> s -> 'Maybe' a
+-- 'last1Of' :: 'Traversal1'' s a -> s -> 'Maybe' a
 -- @
-lastOf1 :: Getting (Semi.Last a) s a -> s -> a
-lastOf1 l = Semi.getLast . foldMapOf l Semi.Last
+last1Of :: Getting (Semi.Last a) s a -> s -> a
+last1Of l = Semi.getLast . foldMapOf l Semi.Last
 
 -- | Returns 'True' if this 'Fold' or 'Traversal' has no targets in the given container.
 --
@@ -1425,6 +1427,22 @@ maximumOf l = foldlOf' l mf Nothing where
   mf (Just x) y = Just $! max x y
 {-# INLINE maximumOf #-}
 
+-- | Obtain the maximum element targeted by a 'Fold1' or 'Traversal1'.
+--
+-- >>> maximum1Of traverse1 (1 :| [2..10])
+-- 10
+--
+-- @
+-- 'maximum1Of' :: 'Ord' a => 'Getter' s a      -> s -> a
+-- 'maximum1Of' :: 'Ord' a => 'Fold1' s a       -> s -> a
+-- 'maximum1Of' :: 'Ord' a => 'Iso'' s a        -> s -> a
+-- 'maximum1Of' :: 'Ord' a => 'Lens'' s a       -> s -> a
+-- 'maximum1Of' :: 'Ord' a => 'Traversal1'' s a -> s -> a
+-- @
+maximum1Of :: Ord a => Getting (Semi.Max a) s a -> s -> a
+maximum1Of l = Semi.getMax . foldMapOf l Semi.Max
+{-# INLINE maximum1Of #-}
+
 -- | Obtain the minimum element (if any) targeted by a 'Fold' or 'Traversal' safely.
 --
 -- Note: 'minimumOf' on a valid 'Iso', 'Lens' or 'Getter' will always return 'Just' a value.
@@ -1458,6 +1476,22 @@ minimumOf l = foldlOf' l mf Nothing where
   mf Nothing y = Just $! y
   mf (Just x) y = Just $! min x y
 {-# INLINE minimumOf #-}
+
+-- | Obtain the minimum element targeted by a 'Fold1' or 'Traversal1'.
+--
+-- >>> minimum1Of traverse1 (1 :| [2..10])
+-- 1
+--
+-- @
+-- 'minimum1Of' :: 'Ord' a => 'Getter' s a      -> s -> a
+-- 'minimum1Of' :: 'Ord' a => 'Fold1' s a       -> s -> a
+-- 'minimum1Of' :: 'Ord' a => 'Iso'' s a        -> s -> a
+-- 'minimum1Of' :: 'Ord' a => 'Lens'' s a       -> s -> a
+-- 'minimum1Of' :: 'Ord' a => 'Traversal1'' s a -> s -> a
+-- @
+minimum1Of :: Ord a => Getting (Semi.Min a) s a -> s -> a
+minimum1Of l = Semi.getMin . foldMapOf l Semi.Min
+{-# INLINE minimum1Of #-}
 
 -- | Obtain the maximum element (if any) targeted by a 'Fold', 'Traversal', 'Lens', 'Iso',
 -- or 'Getter' according to a user supplied 'Ordering'.

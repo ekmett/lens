@@ -16,7 +16,8 @@
   behavior in the presence of `DuplicateRecordFields`. Also add
   `classUnderscoreNoPrefixFields` and `classUnderscoreNoPrefixNamer`, the
   corresponding `LensRules` and `FieldNamer`, respectively.
-* Add `toNonEmptyOf`, `firstOf1`, and `lastOf1` to `Control.Lens.Fold`
+* Add `toNonEmptyOf`, `first1Of`, `last1Of`, `minimum1Of`, and `maximum1Of`
+  to `Control.Lens.Fold`
 * Add `both1` to `Control.Lens.Traversal`
 * Generalize the type of `levels` and `ilevels` in `Control.Lens.Level` to work
   on `Fold`s
