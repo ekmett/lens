@@ -1,3 +1,7 @@
+next
+----
+* Generalized types of `transformMOf`, transformOf`, `transformMOnOf` and `transformOnOf`.
+
 4.15.2
 ----
 * Build with GHC 8.2

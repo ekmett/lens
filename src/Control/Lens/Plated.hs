@@ -489,7 +489,7 @@ transformOn b = over b . transform
 -- 'transformOf' :: 'Traversal'' a a -> (a -> a) -> a -> a
 -- 'transformOf' :: 'Setter'' a a    -> (a -> a) -> a -> a
 -- @
-transformOf :: ASetter' a a -> (a -> a) -> a -> a
+transformOf :: ASetter a b a b -> (b -> b) -> a -> b
 transformOf l f = go where
   go = f . over l go
 {-# INLINE transformOf #-}
@@ -501,7 +501,7 @@ transformOf l f = go where
 -- 'transformOnOf' :: 'Setter'' s a -> 'Traversal'' a a -> (a -> a) -> s -> s
 -- 'transformOnOf' :: 'Setter'' s a -> 'Setter'' a a    -> (a -> a) -> s -> s
 -- @
-transformOnOf :: ASetter s t a a -> ASetter' a a -> (a -> a) -> s -> t
+transformOnOf :: ASetter s t a b -> ASetter a b a b -> (b -> b) -> s -> t
 transformOnOf b l = over b . transformOf l
 {-# INLINE transformOnOf #-}
 
@@ -524,7 +524,7 @@ transformMOn b = mapMOf b . transformM
 -- @
 -- 'transformMOf' :: 'Monad' m => 'Traversal'' a a -> (a -> m a) -> a -> m a
 -- @
-transformMOf :: Monad m => LensLike' (WrappedMonad m) a a -> (a -> m a) -> a -> m a
+transformMOf :: Monad m => LensLike (WrappedMonad m) a b a b -> (b -> m b) -> a -> m b 
 transformMOf l f = go where
   go t = mapMOf l go t >>= f
 {-# INLINE transformMOf #-}
@@ -535,7 +535,7 @@ transformMOf l f = go where
 -- @
 -- 'transformMOnOf' :: 'Monad' m => 'Traversal'' s a -> 'Traversal'' a a -> (a -> m a) -> s -> m s
 -- @
-transformMOnOf :: Monad m => LensLike (WrappedMonad m) s t a a -> LensLike' (WrappedMonad m) a a -> (a -> m a) -> s -> m t
+transformMOnOf :: Monad m => LensLike (WrappedMonad m) s t a b -> LensLike (WrappedMonad m) a b a b -> (b -> m b) -> s -> m t
 transformMOnOf b l = mapMOf b . transformMOf l
 {-# INLINE transformMOnOf #-}
 
