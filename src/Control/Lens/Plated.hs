@@ -335,7 +335,7 @@ rewrite = rewriteOf plate
 -- 'rewriteOf' :: 'Traversal'' a a -> (a -> 'Maybe' a) -> a -> a
 -- 'rewriteOf' :: 'Setter'' a a    -> (a -> 'Maybe' a) -> a -> a
 -- @
-rewriteOf :: ASetter' a a -> (a -> Maybe a) -> a -> a
+rewriteOf :: ASetter a b a b -> (b -> Maybe a) -> a -> b
 rewriteOf l f = go where
   go = transformOf l (\x -> maybe x go (f x))
 {-# INLINE rewriteOf #-}
@@ -360,7 +360,7 @@ rewriteOn b = over b . rewrite
 -- 'rewriteOnOf' :: 'Traversal'' s a -> 'Traversal'' a a -> (a -> 'Maybe' a) -> s -> s
 -- 'rewriteOnOf' :: 'Setter'' s a    -> 'Setter'' a a    -> (a -> 'Maybe' a) -> s -> s
 -- @
-rewriteOnOf :: ASetter s t a a -> ASetter' a a -> (a -> Maybe a) -> s -> t
+rewriteOnOf :: ASetter s t a b -> ASetter a b a b -> (b -> Maybe a) -> s -> t
 rewriteOnOf b l = over b . rewriteOf l
 {-# INLINE rewriteOnOf #-}
 
@@ -372,7 +372,7 @@ rewriteM = rewriteMOf plate
 
 -- | Rewrite by applying a monadic rule everywhere you recursing with a user-specified 'Traversal'.
 -- Ensures that the rule cannot be applied anywhere in the result.
-rewriteMOf :: Monad m => LensLike' (WrappedMonad m) a a -> (a -> m (Maybe a)) -> a -> m a
+rewriteMOf :: Monad m => LensLike (WrappedMonad m) a b a b -> (b -> m (Maybe a)) -> a -> m b
 rewriteMOf l f = go where
   go = transformMOf l (\x -> f x >>= maybe (return x) go)
 {-# INLINE rewriteMOf #-}
@@ -385,7 +385,7 @@ rewriteMOn b = mapMOf b . rewriteM
 
 -- | Rewrite by applying a monadic rule everywhere inside of a structure located by a user-specified 'Traversal',
 -- using a user-specified 'Traversal' for recursion. Ensures that the rule cannot be applied anywhere in the result.
-rewriteMOnOf :: Monad m => LensLike (WrappedMonad m) s t a a -> LensLike' (WrappedMonad m) a a -> (a -> m (Maybe a)) -> s -> m t
+rewriteMOnOf :: Monad m => LensLike (WrappedMonad m) s t a b -> LensLike (WrappedMonad m) a b a b -> (b -> m (Maybe a)) -> s -> m t
 rewriteMOnOf b l = mapMOf b . rewriteMOf l
 {-# INLINE rewriteMOnOf #-}
 

@@ -1,6 +1,7 @@
 next
 ----
-* Generalized types of `transformMOf`, transformOf`, `transformMOnOf` and `transformOnOf`.
+* Generalized types of `transformMOf`, transformOf`, `transformMOnOf`,
+  `transformOnOf`, `rewriteMOf`, rewriteOf`, `rewriteMOnOf` and `rewriteOnOf`.
 
 4.15.2
 ----
