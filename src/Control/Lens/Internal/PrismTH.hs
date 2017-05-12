@@ -33,6 +33,7 @@ import Control.Lens.Tuple
 import Control.Monad
 import Data.Char (isUpper)
 import Data.List
+import Data.Maybe
 import Data.Monoid
 import Data.Set.Lens
 import Data.Traversable
@@ -134,8 +135,13 @@ makeDecPrisms normal dec = case dec of
   convertTVBs = map (VarT . bndrName)
 
   next ty args cons =
-    makeConsPrisms (conAppsT ty args) (concatMap normalizeCon cons) cls
+    makeConsPrisms
+      generalType
+      (map defaultTy $ concatMap normalizeCon cons)
+      cls
     where
+    defaultTy (c, t) = (c, fromMaybe generalType t)
+    generalType = conAppsT ty args
     cls | normal    = Nothing
         | otherwise = Just ty
 
@@ -144,28 +150,28 @@ makeDecPrisms normal dec = case dec of
 -- an optional name to be used for generating a prism class.
 -- This function dispatches between Iso generation, normal top-level
 -- prisms, and classy prisms.
-makeConsPrisms :: Type -> [NCon] -> Maybe Name -> DecsQ
+makeConsPrisms :: Type -> [(NCon, Type)] -> Maybe Name -> DecsQ
 
 -- special case: single constructor, not classy -> make iso
-makeConsPrisms t [con@(NCon _ Nothing _)] Nothing = makeConIso t con
+makeConsPrisms _ [(con@(NCon _ Nothing _), t)] Nothing = makeConIso t con
 
 -- top-level definitions
-makeConsPrisms t cons Nothing =
-  fmap concat $ for cons $ \con ->
+makeConsPrisms _ cons Nothing =
+  fmap concat $ for cons $ \(con, t) ->
     do let conName = view nconName con
-       stab <- computeOpticType t cons con
+       stab <- computeOpticType t (fst <$> cons) con
        let n = prismName conName
        sequenceA
          [ sigD n (close (stabToType stab))
-         , valD (varP n) (normalB (makeConOpticExp stab cons con)) []
+         , valD (varP n) (normalB (makeConOpticExp stab (fst <$> cons) con)) []
          ]
 
 
 -- classy prism class and instance
 makeConsPrisms t cons (Just typeName) =
   sequenceA
-    [ makeClassyPrismClass t className methodName cons
-    , makeClassyPrismInstance t className methodName cons
+    [ makeClassyPrismClass t className methodName (fst <$> cons)
+    , makeClassyPrismInstance t className methodName (fst <$> cons)
     ]
   where
   className = mkName ("As" ++ nameBase typeName)
@@ -479,19 +485,24 @@ nconTypes f x = fmap (\y -> x {_nconTypes = y}) (f (_nconTypes x))
 -- | Normalize a single 'Con' to its constructor name and field types.
 -- Because GADT syntax allows multiple constructors to be defined at
 -- the same time, this function can return multiple normalized results.
-normalizeCon :: Con -> [NCon]
-normalizeCon (RecC    conName xs) = [NCon conName Nothing (map (view _3) xs)]
-normalizeCon (NormalC conName xs) = [NCon conName Nothing (map (view _2) xs)]
-normalizeCon (InfixC (_,x) conName (_,y)) = [NCon conName Nothing [x,y]]
+-- Each 'Con' can have a different return type with GADTs so return that
+-- type for GADTs.
+normalizeCon :: Con -> [(NCon, Maybe Type)]
+normalizeCon (RecC conName xs) =
+  [(NCon conName Nothing (map (view _3) xs), Nothing)]
+normalizeCon (NormalC conName xs) =
+  [(NCon conName Nothing (map (view _2) xs), Nothing)]
+normalizeCon (InfixC (_, x) conName (_, y)) =
+  [(NCon conName Nothing [x, y], Nothing)]
 normalizeCon (ForallC [] [] con) = normalizeCon con -- happens in GADTs
 normalizeCon (ForallC _ cx1 con) =
-  [NCon n (Just cx1 <> cx2) tys
-     | NCon n cx2 tys <- normalizeCon con ]
+  [(NCon n (Just cx1 <> cx2) tys, ty)
+     | (NCon n cx2 tys, ty) <- normalizeCon con ]
 #if MIN_VERSION_template_haskell(2,11,0)
-normalizeCon (GadtC conNames xs _)    =
-  [ NCon conName Nothing (map (view _2) xs) | conName <- conNames ]
-normalizeCon (RecGadtC conNames xs _) =
-  [ NCon conName Nothing (map (view _3) xs) | conName <- conNames ]
+normalizeCon (GadtC conNames xs ty)    =
+  [ (NCon conName Nothing (map (view _2) xs), Just ty) | conName <- conNames ]
+normalizeCon (RecGadtC conNames xs ty) =
+  [ (NCon conName Nothing (map (view _3) xs), Just ty) | conName <- conNames ]
 #endif
 
 -- | Compute a prism's name by prefixing an underscore for normal
