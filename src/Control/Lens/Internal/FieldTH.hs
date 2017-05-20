@@ -56,23 +56,17 @@ import Prelude
 -- | Compute the field optics for the type identified by the given type name.
 -- Lenses will be computed when possible, Traversals otherwise.
 makeFieldOptics :: LensRules -> Name -> DecsQ
-makeFieldOptics rules tyName =
-  do info <- reify tyName
-     case info of
-       TyConI dec -> makeFieldOpticsForDec rules dec
-       _          -> fail "makeFieldOptics: Expected type constructor name"
+makeFieldOptics rules = makeFieldOpticsForDec' rules <=< D.reifyDatatype
 
 
 makeFieldOpticsForDec :: LensRules -> Dec -> DecsQ
-makeFieldOpticsForDec rules dec =
-  do info <- D.normalizeDec dec
-     makeFieldOpticsForDec' rules (D.datatypeName info) (D.datatypeType info) (D.datatypeCons info)
+makeFieldOpticsForDec rules = makeFieldOpticsForDec' rules <=< D.normalizeDec
 
 
 -- | Compute the field optics for a deconstructed Dec
 -- When possible build an Iso otherwise build one optic per field.
-makeFieldOpticsForDec' :: LensRules -> Name -> Type -> [D.ConstructorInfo] -> DecsQ
-makeFieldOpticsForDec' rules tyName s cons =
+makeFieldOpticsForDec' :: LensRules -> D.DatatypeInfo -> DecsQ
+makeFieldOpticsForDec' rules info =
   do fieldCons <- traverse normalizeConstructor cons
      let allFields  = toListOf (folded . _2 . folded . _1 . folded) fieldCons
      let defCons    = over normFieldLabels (expandName allFields) fieldCons
@@ -87,6 +81,9 @@ makeFieldOpticsForDec' rules tyName s cons =
                      return (concat decss)
 
   where
+  tyName = D.datatypeName info
+  s      = D.datatypeType info
+  cons   = D.datatypeCons info
 
   -- Traverse the field labels of a normalized constructor
   normFieldLabels :: Traversal [(Name,[(a,Type)])] [(Name,[(b,Type)])] a b

@@ -108,10 +108,11 @@ makeClassyPrisms = makePrisms' False
 -- | Main entry point into Prism generation for a given type constructor name.
 makePrisms' :: Bool -> Name -> DecsQ
 makePrisms' normal typeName =
-  do info <- reify typeName
-     case info of
-       TyConI dec -> makeDecPrisms normal dec
-       _          -> fail "makePrisms: expected type constructor name"
+  do info <- D.reifyDatatype typeName
+     let cls | normal    = Nothing
+             | otherwise = Just (D.datatypeName info)
+         cons = D.datatypeCons info
+     makeConsPrisms (D.datatypeType info) (map normalizeCon cons) cls
 
 
 -- | Generate prisms for the given 'Dec'
