@@ -2,6 +2,8 @@ next
 ----
 * Generalized types of `transformMOf`, transformOf`, `transformMOnOf`,
   `transformOnOf`, `rewriteMOf`, rewriteOf`, `rewriteMOnOf` and `rewriteOnOf`.
+* Depend on `th-abstraction` package for normalizing differences across
+  `template-haskell` versions
 
 4.15.2
 ----

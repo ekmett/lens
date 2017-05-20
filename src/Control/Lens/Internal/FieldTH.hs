@@ -4,9 +4,6 @@
 {-# LANGUAGE Trustworthy #-}
 #endif
 
-#ifndef MIN_VERSION_template_haskell
-#define MIN_VERSION_template_haskell(x,y,z) 1
-#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.FieldTH
@@ -32,12 +29,13 @@ import Control.Lens.Plated
 import Control.Lens.Prism
 import Control.Lens.Setter
 import Control.Lens.Getter
-import Control.Lens.Traversal
 import Control.Lens.Tuple
+import Control.Lens.Traversal
 import Control.Applicative
 import Control.Monad
 import Language.Haskell.TH.Lens
 import Language.Haskell.TH
+import qualified Language.Haskell.TH.Datatype as D
 import Data.Maybe (isJust,maybeToList)
 import Data.List (nub, findIndices)
 import Data.Either (partitionEithers)
@@ -66,34 +64,14 @@ makeFieldOptics rules tyName =
 
 
 makeFieldOpticsForDec :: LensRules -> Dec -> DecsQ
-makeFieldOpticsForDec rules dec = case dec of
-#if MIN_VERSION_template_haskell(2,11,0)
-  DataD    _ tyName vars _ cons _ ->
-    makeFieldOpticsForDec' rules tyName (mkS tyName vars) cons
-  NewtypeD _ tyName vars _ con  _ ->
-    makeFieldOpticsForDec' rules tyName (mkS tyName vars) [con]
-  DataInstD _ tyName args _ cons _ ->
-    makeFieldOpticsForDec' rules tyName (tyName `conAppsT` args) cons
-  NewtypeInstD _ tyName args _ con _ ->
-    makeFieldOpticsForDec' rules tyName (tyName `conAppsT` args) [con]
-#else
-  DataD    _ tyName vars cons _ ->
-    makeFieldOpticsForDec' rules tyName (mkS tyName vars) cons
-  NewtypeD _ tyName vars con  _ ->
-    makeFieldOpticsForDec' rules tyName (mkS tyName vars) [con]
-  DataInstD _ tyName args cons _ ->
-    makeFieldOpticsForDec' rules tyName (tyName `conAppsT` args) cons
-  NewtypeInstD _ tyName args con _ ->
-    makeFieldOpticsForDec' rules tyName (tyName `conAppsT` args) [con]
-#endif
-  _ -> fail "makeFieldOptics: Expected data or newtype type-constructor"
-  where
-  mkS tyName vars = tyName `conAppsT` map VarT (toListOf typeVars vars)
+makeFieldOpticsForDec rules dec =
+  do info <- D.normalizeDec dec
+     makeFieldOpticsForDec' rules (D.datatypeName info) (D.datatypeType info) (D.datatypeCons info)
 
 
 -- | Compute the field optics for a deconstructed Dec
 -- When possible build an Iso otherwise build one optic per field.
-makeFieldOpticsForDec' :: LensRules -> Name -> Type -> [Con] -> DecsQ
+makeFieldOpticsForDec' :: LensRules -> Name -> Type -> [D.ConstructorInfo] -> DecsQ
 makeFieldOpticsForDec' rules tyName s cons =
   do fieldCons <- traverse normalizeConstructor cons
      let allFields  = toListOf (folded . _2 . folded . _1 . folded) fieldCons
@@ -124,29 +102,16 @@ makeFieldOpticsForDec' rules tyName s cons =
 --
 -- For 'GadtC' and 'RecGadtC', the leftmost name is chosen.
 normalizeConstructor ::
-  Con ->
+  D.ConstructorInfo ->
   Q (Name, [(Maybe Name, Type)]) -- ^ constructor name, field name, field type
 
-normalizeConstructor (RecC n xs) =
-  return (n, [ (Just fieldName, ty) | (fieldName,_,ty) <- xs])
-
-normalizeConstructor (NormalC n xs) =
-  return (n, [ (Nothing, ty) | (_,ty) <- xs])
-
-normalizeConstructor (InfixC (_,ty1) n (_,ty2)) =
-  return (n, [ (Nothing, ty1), (Nothing, ty2) ])
-
-normalizeConstructor (ForallC _ _ con) =
-  do con' <- normalizeConstructor con
-     return (set (_2 . mapped . _1) Nothing con')
-
-#if MIN_VERSION_template_haskell(2,11,0)
-normalizeConstructor (GadtC ns xs _) =
-  return (head ns, [ (Nothing, ty) | (_,ty) <- xs])
-
-normalizeConstructor (RecGadtC ns xs _) =
-  return (head ns, [ (Just fieldName, ty) | (fieldName,_,ty) <- xs])
-#endif
+normalizeConstructor con =
+  return (D.constructorName con, zip fieldNames (D.constructorFields con))
+  where
+    fieldNames =
+      case D.constructorVariant con of
+        D.RecordConstructor xs -> fmap Just xs
+        D.NormalConstructor    -> repeat Nothing
 
 data OpticType = GetterType | LensType | IsoType
 
@@ -602,33 +567,3 @@ quantifyType' exclude c t = ForallT vs c t
      $ filter (`Set.notMember` exclude)
      $ nub -- stable order
      $ toListOf typeVars t
-
-
-------------------------------------------------------------------------
--- Support for generating inline pragmas
-------------------------------------------------------------------------
-
-inlinePragma :: Name -> [DecQ]
-
-#ifdef INLINING
-
-#if MIN_VERSION_template_haskell(2,8,0)
-
-# ifdef OLD_INLINE_PRAGMAS
--- 7.6rc1?
-inlinePragma methodName = [pragInlD methodName (inlineSpecNoPhase Inline False)]
-# else
--- 7.7.20120830
-inlinePragma methodName = [pragInlD methodName Inline FunLike AllPhases]
-# endif
-
-#else
--- GHC <7.6, TH <2.8.0
-inlinePragma methodName = [pragInlD methodName (inlineSpecNoPhase True False)]
-#endif
-
-#else
-
-inlinePragma _ = []
-
-#endif

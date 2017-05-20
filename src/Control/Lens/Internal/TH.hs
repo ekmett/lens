@@ -205,3 +205,33 @@ rightDataName            = mkNameG_d "base" "Data.Either" "Right"
 
 leftDataName            :: Name
 leftDataName             = mkNameG_d "base" "Data.Either" "Left"
+
+
+------------------------------------------------------------------------
+-- Support for generating inline pragmas
+------------------------------------------------------------------------
+
+inlinePragma :: Name -> [DecQ]
+
+#ifdef INLINING
+
+#if MIN_VERSION_template_haskell(2,8,0)
+
+# ifdef OLD_INLINE_PRAGMAS
+-- 7.6rc1?
+inlinePragma methodName = [pragInlD methodName (inlineSpecNoPhase Inline False)]
+# else
+-- 7.7.20120830
+inlinePragma methodName = [pragInlD methodName Inline FunLike AllPhases]
+# endif
+
+#else
+-- GHC <7.6, TH <2.8.0
+inlinePragma methodName = [pragInlD methodName (inlineSpecNoPhase True False)]
+#endif
+
+#else
+
+inlinePragma _ = []
+
+#endif

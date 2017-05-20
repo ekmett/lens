@@ -29,14 +29,13 @@ import Control.Lens.Getter
 import Control.Lens.Internal.TH
 import Control.Lens.Lens
 import Control.Lens.Setter
-import Control.Lens.Tuple
 import Control.Monad
 import Data.Char (isUpper)
 import Data.List
-import Data.Monoid
 import Data.Set.Lens
 import Data.Traversable
 import Language.Haskell.TH
+import qualified Language.Haskell.TH.Datatype as D
 import Language.Haskell.TH.Lens
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -117,27 +116,12 @@ makePrisms' normal typeName =
 
 -- | Generate prisms for the given 'Dec'
 makeDecPrisms :: Bool {- ^ generate top-level definitions -} -> Dec -> DecsQ
-makeDecPrisms normal dec = case dec of
-#if MIN_VERSION_template_haskell(2,11,0)
-  DataD        _ ty vars _ cons _ -> next ty (convertTVBs vars) cons
-  NewtypeD     _ ty vars _ con  _ -> next ty (convertTVBs vars) [con]
-  DataInstD    _ ty tys  _ cons _ -> next ty tys                cons
-  NewtypeInstD _ ty tys  _ con  _ -> next ty tys                [con]
-#else
-  DataD        _ ty vars   cons _ -> next ty (convertTVBs vars) cons
-  NewtypeD     _ ty vars   con  _ -> next ty (convertTVBs vars) [con]
-  DataInstD    _ ty tys    cons _ -> next ty tys                cons
-  NewtypeInstD _ ty tys    con  _ -> next ty tys                [con]
-#endif
-  _                             -> fail "makePrisms: expected type constructor dec"
-  where
-  convertTVBs = map (VarT . bndrName)
-
-  next ty args cons =
-    makeConsPrisms (conAppsT ty args) (concatMap normalizeCon cons) cls
-    where
-    cls | normal    = Nothing
-        | otherwise = Just ty
+makeDecPrisms normal dec =
+  do info <- D.normalizeDec dec
+     let cls | normal    = Nothing
+             | otherwise = Just (D.datatypeName info)
+         cons = D.datatypeCons info
+     makeConsPrisms (D.datatypeType info) (map normalizeCon cons) cls
 
 
 -- | Generate prisms for the given type, normalized constructors, and
@@ -147,7 +131,7 @@ makeDecPrisms normal dec = case dec of
 makeConsPrisms :: Type -> [NCon] -> Maybe Name -> DecsQ
 
 -- special case: single constructor, not classy -> make iso
-makeConsPrisms t [con@(NCon _ Nothing _)] Nothing = makeConIso t con
+makeConsPrisms t [con@(NCon _ [] [] _)] Nothing = makeConIso t con
 
 -- top-level definitions
 makeConsPrisms t cons Nothing =
@@ -201,9 +185,9 @@ stabType (Stab _ o _ _ _ _) = o
 computeOpticType :: Type -> [NCon] -> NCon -> Q Stab
 computeOpticType t cons con =
   do let cons' = delete con cons
-     case view nconCxt con of
-       Just xs -> computeReviewType t xs (view nconTypes con)
-       Nothing -> computePrismType t cons' con
+     if null (_nconCxt con) && null (_nconVars con)
+         then computePrismType t cons' con
+         else computeReviewType t (view nconCxt con) (view nconTypes con)
 
 
 computeReviewType :: Type -> Cxt -> [Type] -> Q Stab
@@ -355,7 +339,7 @@ makeFullRemitter cons target =
   do x <- newName "x"
      lam1E (varP x) (caseE (varE x) (map mkMatch cons))
   where
-  mkMatch (NCon conName _ n) =
+  mkMatch (NCon conName _ _ n) =
     do xs <- newNames "y" (length n)
        match (conP conName (map varP xs))
              (normalB
@@ -458,18 +442,20 @@ makeClassyPrismInstance s className methodName cons =
 -- | Normalized constructor
 data NCon = NCon
   { _nconName :: Name
-  , _nconCxt  :: Maybe Cxt
+  , _nconVars :: [Name]
+  , _nconCxt  :: Cxt
   , _nconTypes :: [Type]
   }
   deriving (Eq)
 
 instance HasTypeVars NCon where
-  typeVarsEx s f (NCon x y z) = NCon x <$> typeVarsEx s f y <*> typeVarsEx s f z
+  typeVarsEx s f (NCon x vars y z) = NCon x vars <$> typeVarsEx s' f y <*> typeVarsEx s' f z
+    where s' = foldl' (flip Set.insert) s vars
 
 nconName :: Lens' NCon Name
 nconName f x = fmap (\y -> x {_nconName = y}) (f (_nconName x))
 
-nconCxt :: Lens' NCon (Maybe Cxt)
+nconCxt :: Lens' NCon Cxt
 nconCxt f x = fmap (\y -> x {_nconCxt = y}) (f (_nconCxt x))
 
 nconTypes :: Lens' NCon [Type]
@@ -479,20 +465,12 @@ nconTypes f x = fmap (\y -> x {_nconTypes = y}) (f (_nconTypes x))
 -- | Normalize a single 'Con' to its constructor name and field types.
 -- Because GADT syntax allows multiple constructors to be defined at
 -- the same time, this function can return multiple normalized results.
-normalizeCon :: Con -> [NCon]
-normalizeCon (RecC    conName xs) = [NCon conName Nothing (map (view _3) xs)]
-normalizeCon (NormalC conName xs) = [NCon conName Nothing (map (view _2) xs)]
-normalizeCon (InfixC (_,x) conName (_,y)) = [NCon conName Nothing [x,y]]
-normalizeCon (ForallC [] [] con) = normalizeCon con -- happens in GADTs
-normalizeCon (ForallC _ cx1 con) =
-  [NCon n (Just cx1 <> cx2) tys
-     | NCon n cx2 tys <- normalizeCon con ]
-#if MIN_VERSION_template_haskell(2,11,0)
-normalizeCon (GadtC conNames xs _)    =
-  [ NCon conName Nothing (map (view _2) xs) | conName <- conNames ]
-normalizeCon (RecGadtC conNames xs _) =
-  [ NCon conName Nothing (map (view _3) xs) | conName <- conNames ]
-#endif
+normalizeCon :: D.ConstructorInfo -> NCon
+normalizeCon info = NCon (D.constructorName info)
+                         (D.tvName <$> D.constructorVars info)
+                         (D.constructorContext info)
+                         (D.constructorFields info)
+
 
 -- | Compute a prism's name by prefixing an underscore for normal
 -- constructors and period for operators.
