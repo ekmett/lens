@@ -186,8 +186,8 @@ stabType (Stab _ o _ _ _ _) = o
 computeOpticType :: Type -> [NCon] -> NCon -> Q Stab
 computeOpticType t cons con =
   do let cons' = delete con cons
-     if null (_nconCxt con) && null (_nconVars con)
-         then computePrismType t cons' con
+     if null (_nconVars con)
+         then computePrismType t (view nconCxt con) cons' con
          else computeReviewType t (view nconCxt con) (view nconTypes con)
 
 
@@ -203,15 +203,15 @@ computeReviewType s' cx tys =
 -- | Compute the full type-changing Prism type given an outer type,
 -- list of constructors, and target constructor name. Additionally
 -- return 'True' if the resulting type is a "simple" prism.
-computePrismType :: Type -> [NCon] -> NCon -> Q Stab
-computePrismType t cons con =
+computePrismType :: Type -> Cxt -> [NCon] -> NCon -> Q Stab
+computePrismType t cx cons con =
   do let ts      = view nconTypes con
          unbound = setOf typeVars t Set.\\ setOf typeVars cons
      sub <- sequenceA (fromSet (newName . nameBase) unbound)
      b   <- toTupleT (map return ts)
      a   <- toTupleT (map return (substTypeVars sub ts))
      let s = substTypeVars sub t
-     return (Stab [] PrismType s t a b)
+     return (Stab cx PrismType s t a b)
 
 
 computeIsoType :: Type -> [Type] -> TypeQ
