@@ -241,6 +241,7 @@ library
     Control.Lens.Internal.ByteString
     Control.Lens.Internal.Coerce
     Control.Lens.Internal.Context
+    Control.Lens.Internal.CTypes
     Control.Lens.Internal.Deque
     Control.Lens.Internal.Exception
     Control.Lens.Internal.FieldTH

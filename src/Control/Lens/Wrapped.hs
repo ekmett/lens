@@ -95,6 +95,7 @@ import           Control.Comonad.Trans.Coiter
 import           Control.Comonad.Trans.Traced
 import           Control.Exception
 import           Control.Lens.Getter
+import           Control.Lens.Internal.CTypes
 import           Control.Lens.Iso
 #if __GLASGOW_HASKELL__ >= 710
 import           Control.Lens.Review
@@ -132,7 +133,6 @@ import           Data.Functor.Constant
 import           Data.Functor.Identity
 import           Data.Functor.Reverse
 import           Data.Hashable
-import           Data.Int
 import           Data.IntSet as IntSet
 import           Data.IntMap as IntMap
 import           Data.HashSet as HashSet
@@ -154,7 +154,6 @@ import           Data.Vector as Vector
 import           Data.Vector.Primitive as Prim
 import           Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Storable as Storable
-import           Data.Word
 import           Foreign.C.Error
 import           Foreign.C.Types
 import qualified GHC.Generics as Generic
@@ -169,10 +168,6 @@ import           GHC.Exts (Down(Down))
 
 #if MIN_VERSION_base(4,8,0)
 import qualified Data.Monoid as Monoid
-#endif
-
-#if MIN_VERSION_base(4,10,0) && defined(HTYPE_TIMER_T)
-import           GHC.Exts (HTYPE_TIMER_T)
 #endif
 
 #ifdef HLINT
