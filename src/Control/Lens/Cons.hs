@@ -29,6 +29,8 @@ module Control.Lens.Cons
   , cons
   , uncons
   , _head, _tail
+  , recons
+  , unfoldr
 #if __GLASGOW_HASKELL__ >= 710
   , pattern (:<)
 #endif
@@ -44,8 +46,10 @@ module Control.Lens.Cons
 
   ) where
 
+import Control.Lens.Empty (AsEmpty(..))
 import Control.Lens.Equality (simply)
 import Control.Lens.Fold
+import Control.Lens.Getter (to)
 import Control.Lens.Prism
 import Control.Lens.Review
 import Control.Lens.Tuple
@@ -54,7 +58,7 @@ import qualified Data.ByteString      as StrictB
 import qualified Data.ByteString.Lazy as LazyB
 import           Data.Monoid
 import qualified Data.Sequence as Seq
-import           Data.Sequence hiding ((<|), (|>), (:<), (:>))
+import           Data.Sequence hiding ((<|), (|>), (:<), (:>), unfoldr)
 import qualified Data.Text      as StrictT
 import qualified Data.Text.Lazy as LazyT
 import           Data.Vector (Vector)
@@ -318,6 +322,54 @@ _head = _Cons._1
 _tail :: Cons s s a a => Traversal' s s
 _tail = _Cons._2
 {-# INLINE _tail #-}
+
+-- | Convert one type with a 'Cons' instance into the other.
+--
+-- Rewrite rules are provided for efficient conversion between
+-- 'String' and 'Text', between @['Word8']@ and 'ByteString',
+-- between lazy and strict 'Text', between lazy and strict
+-- 'ByteString' and where the two types are the same.  Programs must
+-- be compiled with @-O@ to make use of the rewrite rules.
+--
+-- > recons . recons ≡ recons
+-- > s1 ~ s2 → recons :: Getter s1 s2 ≡ id
+--
+-- @
+-- 'recons' :: 'Getter' Text String
+-- 'recons' :: 'Getter' [a] [a]
+-- 'recons' :: 'Getter' (Vector a) [a]
+-- 'recons' :: 'Getter' [Word8] ByteString
+-- @
+--
+recons :: (Cons s1 s1 a a, Cons s2 s2 a a, AsEmpty s2) => Getter s1 s2
+recons = to (unfoldr uncons)
+{-# NOINLINE [2] recons #-}
+
+{-# RULES
+"recons/id" recons = id
+"recons/string-text" recons = to StrictT.pack
+"recons/text-string" recons = to StrictT.unpack
+"recons/string-lazytext" recons = to LazyT.pack
+"recons/lazytext-string" recons = to LazyT.unpack
+"recons/text-strict" recons = to LazyT.toStrict
+"recons/text-lazy" recons = to LazyT.fromStrict
+"recons/list-bs" recons = to StrictB.pack
+"recons/bs-list" recons = to StrictB.unpack
+"recons/list-lazybs" recons = to LazyB.pack
+"recons/lazybs-list" recons = to LazyB.unpack
+#if MIN_VERSION_bytestring(0,10,0)
+"recons/bs-strict" recons = to LazyB.toStrict
+"recons/bs-lazy" recons = to LazyB.fromStrict
+#else
+"recons/bs-strict" recons = to (StrictB.concat . LazyB.toChunks)
+"recons/bs-lazy" recons = to (LazyB.fromChunks . return)
+#endif
+ #-}
+
+-- | > unfoldr f = foldrOf (unfolded f) cons (_Empty # ())
+--
+unfoldr :: (Cons s2 s2 a a, AsEmpty s2) => (s1 -> Maybe (a, s1)) -> s1 -> s2
+unfoldr f = foldrOf (unfolded f) cons (_Empty # ())
 
 ------------------------------------------------------------------------------
 -- Snoc
