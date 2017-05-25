@@ -642,7 +642,7 @@ type family GetConcreteFunctorType (k :: *) (x :: *) :: k
 type instance GetConcreteFunctorType (i -> o) (pafb -> p s ((f :: i -> o) t)) = f
 #else
 type family GetConcreteFunctor (x :: *) :: * -> *
-type instance GetConcreteFunctor (pafb -> p s (f t)) = f
+type instance GetConcreteFunctor (pafb -> (p :: * -> * -> *) s ((f :: * -> *) t)) = f
 #endif
 
 -- | Extract the concrete 'Profunctor' from a concrete 'ALens', 'AnIso', etc.
@@ -672,7 +672,7 @@ type family GetConcreteTransformedProfunctorType (k :: *) (x :: *) :: k
 type instance GetConcreteTransformedProfunctorType (i1 -> i2 -> *) (pafb -> (p :: i1 -> i2 -> *) s (f t)) = p
 #else
 type family GetConcreteArgProfunctor (x :: *) :: * -> * -> *
-type instance GetConcreteArgProfunctor (p a (f b) -> psft) = p
+type instance GetConcreteArgProfunctor ((p :: * -> * -> *) a ((f :: * -> *) b) -> psft) = p
 type family GetConcreteTransformedProfunctor (x :: *) :: * -> * -> *
-type instance GetConcreteTransformedProfunctor (pafb -> p s (f t)) = p
+type instance GetConcreteTransformedProfunctor (pafb -> (p :: * -> * -> *) s ((f :: * -> *) t)) = p
 #endif
