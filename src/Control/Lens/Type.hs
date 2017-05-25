@@ -6,6 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE TypeFamilies #-}
 #if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE PolyKinds #-}
 #endif
@@ -60,6 +61,7 @@ module Control.Lens.Type
   , IndexedLensLike, IndexedLensLike'
   , Optical, Optical'
   , Optic, Optic'
+  , GetConcreteFunctor, GetConcreteProfunctor
   ) where
 
 import Control.Applicative
@@ -622,3 +624,21 @@ type Over p f s t a b = p a (f b) -> s -> f t
 -- type 'Over'' p f = 'Simple' ('Over' p f)
 -- @
 type Over' p f s a = Over p f s s a a
+
+-- | Extract the concrete 'Functor' from a concrete 'ALens', 'AnIso', etc.
+--
+-- @
+-- GetConcreteFunctor (ALens s t a b) = Pretext (->) a b
+-- GetConcreteFunctor (AnIso s t a b) = Identity
+-- @
+type family GetConcreteFunctor (x :: *) :: * -> *
+type instance GetConcreteFunctor (p a (f b) -> p s (f t)) = f
+
+-- | Extract the concrete 'Profunctor' from a concrete 'ALens', 'AnIso', etc.
+--
+-- @
+-- GetConcreteProfunctor (ALens s t a b) = (->)
+-- GetConcreteProfunctor (AnIso s t a b) = Exchange a b
+-- @
+type family GetConcreteProfunctor (x :: *) :: * -> * -> *
+type instance GetConcreteProfunctor (p a (f b) -> p s (f t)) = p
