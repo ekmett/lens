@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 #if __GLASGOW_HASKELL__ >= 706
 {-# LANGUAGE PolyKinds #-}
 #endif
@@ -61,7 +62,8 @@ module Control.Lens.Type
   , IndexedLensLike, IndexedLensLike'
   , Optical, Optical'
   , Optic, Optic'
-  , GetConcreteFunctor, GetConcreteProfunctor
+  , GetConcreteFunctor, GetConcreteArgProfunctor
+  , GetConcreteTransformedProfunctor
   ) where
 
 import Control.Applicative
@@ -631,8 +633,17 @@ type Over' p f s a = Over p f s s a a
 -- GetConcreteFunctor (ALens s t a b) = Pretext (->) a b
 -- GetConcreteFunctor (AnIso s t a b) = Identity
 -- @
+#if __GLASGOW_HASKELL__ >= 800
+type family GetConcreteFunctor (x :: *) :: GetConcreteFunctorKind x
+type instance GetConcreteFunctor x = GetConcreteFunctorType (GetConcreteFunctorKind x) x
+type family GetConcreteFunctorKind (x :: *) :: *
+type instance GetConcreteFunctorKind (pafb -> p s ((f :: j -> k) t)) = j -> k
+type family GetConcreteFunctorType (k :: *) (x :: *) :: k
+type instance GetConcreteFunctorType (i -> o) (pafb -> p s ((f :: i -> o) t)) = f
+#else
 type family GetConcreteFunctor (x :: *) :: * -> *
-type instance GetConcreteFunctor (p a (f b) -> p s (f t)) = f
+type instance GetConcreteFunctor (pafb -> p s (f t)) = f
+#endif
 
 -- | Extract the concrete 'Profunctor' from a concrete 'ALens', 'AnIso', etc.
 --
@@ -640,5 +651,28 @@ type instance GetConcreteFunctor (p a (f b) -> p s (f t)) = f
 -- GetConcreteProfunctor (ALens s t a b) = (->)
 -- GetConcreteProfunctor (AnIso s t a b) = Exchange a b
 -- @
-type family GetConcreteProfunctor (x :: *) :: * -> * -> *
-type instance GetConcreteProfunctor (p a (f b) -> p s (f t)) = p
+#if __GLASGOW_HASKELL__ >= 800
+type family GetConcreteArgProfunctor (x :: *) :: GetConcreteArgProfunctorKind x
+type instance GetConcreteArgProfunctor x =
+  GetConcreteArgProfunctorType (GetConcreteArgProfunctorKind x) x
+
+type family GetConcreteTransformedProfunctor (x :: *) :: GetConcreteTransformedProfunctorKind x
+type instance GetConcreteTransformedProfunctor x =
+  GetConcreteTransformedProfunctorType (GetConcreteTransformedProfunctorKind x) x
+
+type family GetConcreteArgProfunctorKind (x :: *) :: *
+type instance GetConcreteArgProfunctorKind ((p :: j -> k -> *) a (f b) -> psft) = j -> k -> *
+type family GetConcreteArgProfunctorType (k :: *) (x :: *) :: k
+type instance GetConcreteArgProfunctorType (i1 -> i2 -> *) ((p :: i1 -> i2 -> *) a (f b) -> psft) = p
+
+type family GetConcreteTransformedProfunctorKind (x :: *) :: *
+type instance GetConcreteTransformedProfunctorKind (pafb -> (p :: j -> k -> *) s (f t)) = j -> k -> *
+
+type family GetConcreteTransformedProfunctorType (k :: *) (x :: *) :: k
+type instance GetConcreteTransformedProfunctorType (i1 -> i2 -> *) (pafb -> (p :: i1 -> i2 -> *) s (f t)) = p
+#else
+type family GetConcreteArgProfunctor (x :: *) :: * -> * -> *
+type instance GetConcreteArgProfunctor (p a (f b) -> psft) = p
+type family GetConcreteTransformedProfunctor (x :: *) :: * -> * -> *
+type instance GetConcreteTransformedProfunctor (pafb -> p s (f t)) = p
+#endif
