@@ -180,12 +180,10 @@ instance (Eq a, Hashable a) => Contains (HashSet a) where
 -- | This provides a common notion of a value at an index that is shared by both 'Ixed' and 'At'.
 type family IxValue (m :: *) :: *
 
--- | This simple 'Traversal' lets you 'traverse' the value at a given
+-- | Provides a simple 'Traversal' lets you 'traverse' the value at a given
 -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
 class Ixed m where
-  -- | This simple 'Traversal' lets you 'traverse' the value at a given
-  -- key in a 'Map' or element at an ordinal position in a list or 'Seq'.
-  --
+  -- |
   -- /NB:/ Setting the value of this 'Traversal' will only set the value in
   -- 'at' if it is already present.
   --
