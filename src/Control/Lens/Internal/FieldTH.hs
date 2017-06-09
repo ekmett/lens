@@ -109,6 +109,7 @@ normalizeConstructor con =
       case D.constructorVariant con of
         D.RecordConstructor xs -> fmap Just xs
         D.NormalConstructor    -> repeat Nothing
+        D.InfixConstructor     -> repeat Nothing
 
 data OpticType = GetterType | LensType | IsoType
 
