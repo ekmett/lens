@@ -1,4 +1,4 @@
-next
+4.15.3
 ----
 * Generalized types of `transformMOf`, `transformOf`, `transformMOnOf`,
   `transformOnOf`, `rewriteMOf`, `rewriteOf`, `rewriteMOnOf` and `rewriteOnOf`.
