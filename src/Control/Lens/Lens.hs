@@ -86,7 +86,7 @@ module Control.Lens.Lens
   , (<%~), (<+~), (<-~), (<*~), (<//~)
   , (<^~), (<^^~), (<**~)
   , (<||~), (<&&~), (<<>~)
-  , (<<%~), (<<.~), (<<+~), (<<-~), (<<*~)
+  , (<<%~), (<<.~), (<<?~), (<<+~), (<<-~), (<<*~)
   , (<<//~), (<<^~), (<<^^~), (<<**~)
   , (<<||~), (<<&&~), (<<<>~)
 
@@ -94,7 +94,7 @@ module Control.Lens.Lens
   , (<%=), (<+=), (<-=), (<*=), (<//=)
   , (<^=), (<^^=), (<**=)
   , (<||=), (<&&=), (<<>=)
-  , (<<%=), (<<.=), (<<+=), (<<-=), (<<*=)
+  , (<<%=), (<<.=), (<<?=), (<<+=), (<<-=), (<<*=)
   , (<<//=), (<<^=), (<<^^=), (<<**=)
   , (<<||=), (<<&&=), (<<<>=)
   , (<<~)
@@ -164,9 +164,9 @@ import Data.Function ((&))
 -- >>> let setter :: Expr -> Expr -> Expr; setter = fun "setter"
 
 infixl 8 ^#
-infixr 4 %%@~, <%@~, <<%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <%~, <<%~, <<.~, <#~, #~, #%~, <#%~, #%%~
+infixr 4 %%@~, <%@~, <<%@~, %%~, <+~, <*~, <-~, <//~, <^~, <^^~, <**~, <&&~, <||~, <<>~, <%~, <<%~, <<.~, <<?~, <#~, #~, #%~, <#%~, #%%~
        , <<+~, <<-~, <<*~, <<//~, <<^~, <<^^~, <<**~, <<||~, <<&&~, <<<>~
-infix  4 %%@=, <%@=, <<%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=, <#=, #=, #%=, <#%=, #%%=
+infix  4 %%@=, <%@=, <<%@=, %%=, <+=, <*=, <-=, <//=, <^=, <^^=, <**=, <&&=, <||=, <<>=, <%=, <<%=, <<.=, <<?=, <#=, #=, #%=, <#%=, #%%=
        , <<+=, <<-=, <<*=, <<//=, <<^=, <<^^=, <<**=, <<||=, <<&&=, <<<>=
 infixr 2 <<~
 infixl 1 <&>, ??, &~
@@ -690,6 +690,23 @@ l <&&~ b = l <%~ (&& b)
 l <<.~ b = l $ \a -> (a, b)
 {-# INLINE (<<.~) #-}
 
+-- | Replace the target of a 'Lens' with a 'Just' value, but return the old value.
+--
+-- If you do not need the old value ('Control.Lens.Setter.?~') is more flexible.
+--
+-- >>> import Data.Map as Map
+-- >>> _2.at "hello" <<?~ "world" $ (42,Map.fromList [("goodnight","gracie")])
+-- (Nothing,(42,fromList [("goodnight","gracie"),("hello","world")]))
+--
+-- @
+-- ('<<?~') :: 'Iso' s t a ('Maybe' b)       -> b -> s -> (a, t)
+-- ('<<?~') :: 'Lens' s t a ('Maybe' b)      -> b -> s -> (a, t)
+-- ('<<?~') :: 'Traversal' s t a ('Maybe' b) -> b -> s -> (a, t)
+-- @
+(<<?~) :: LensLike ((,)a) s t a (Maybe b) -> b -> s -> (a, t)
+l <<?~ b = l <<.~ Just b
+{-# INLINE (<<?~) #-}
+
 -- | Increment the target of a numerically valued 'Lens' and return the old value.
 --
 -- When you do not need the old value, ('Control.Lens.Setter.+~') is more flexible.
@@ -1003,7 +1020,7 @@ l <&&= b = l <%= (&& b)
 -- | Modify the target of a 'Lens' into your 'Monad''s state by a user supplied
 -- function and return the /old/ value that was replaced.
 --
--- When applied to a 'Control.Lens.Traversal.Traversal', it this will return a monoidal summary of all of the old values
+-- When applied to a 'Control.Lens.Traversal.Traversal', this will return a monoidal summary of all of the old values
 -- present.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter.%=') is more flexible.
@@ -1022,7 +1039,7 @@ l <<%= f = l %%= lmap (\a -> (a,a)) (second' f)
 -- | Replace the target of a 'Lens' into your 'Monad''s state with a user supplied
 -- value and return the /old/ value that was replaced.
 --
--- When applied to a 'Control.Lens.Traversal.Traversal', it this will return a monoidal summary of all of the old values
+-- When applied to a 'Control.Lens.Traversal.Traversal', this will return a monoidal summary of all of the old values
 -- present.
 --
 -- When you do not need the result of the operation, ('Control.Lens.Setter..=') is more flexible.
@@ -1030,11 +1047,28 @@ l <<%= f = l %%= lmap (\a -> (a,a)) (second' f)
 -- @
 -- ('<<.=') :: 'MonadState' s m             => 'Lens'' s a      -> a -> m a
 -- ('<<.=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso'' s a       -> a -> m a
--- ('<<.=') :: ('MonadState' s m, 'Monoid' t) => 'Control.Lens.Traversal.Traversal'' s a -> a -> m a
+-- ('<<.=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Traversal.Traversal'' s a -> a -> m a
 -- @
 (<<.=) :: MonadState s m => LensLike ((,)a) s s a b -> b -> m a
 l <<.= b = l %%= \a -> (a,b)
 {-# INLINE (<<.=) #-}
+
+-- | Replace the target of a 'Lens' into your 'Monad''s state with 'Just' a user supplied
+-- value and return the /old/ value that was replaced.
+--
+-- When applied to a 'Control.Lens.Traversal.Traversal', this will return a monoidal summary of all of the old values
+-- present.
+--
+-- When you do not need the result of the operation, ('Control.Lens.Setter.?=') is more flexible.
+--
+-- @
+-- ('<<?=') :: 'MonadState' s m             => 'Lens' s t a (Maybe b)      -> b -> m a
+-- ('<<?=') :: 'MonadState' s m             => 'Control.Lens.Iso.Iso' s t a (Maybe b)       -> b -> m a
+-- ('<<?=') :: ('MonadState' s m, 'Monoid' a) => 'Control.Lens.Traversal.Traversal' s t a (Maybe b) -> b -> m a
+-- @
+(<<?=) :: MonadState s m => LensLike ((,)a) s s a (Maybe b) -> b -> m a
+l <<?= b = l <<.= Just b
+{-# INLINE (<<?=) #-}
 
 -- | Modify the target of a 'Lens' into your 'Monad''s state by adding a value
 -- and return the /old/ value that was replaced.
