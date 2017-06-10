@@ -2564,7 +2564,7 @@ findIndicesOf l p = toListOf (l . filtered p . asIndex)
 -- >>> [0,0,0,5,5,5]^..traversed.ifiltered (\i a -> i <= a)
 -- [0,5,5,5]
 --
--- Compose with 'filtered' to filter another 'IndexedLens', 'IndexedIso', 'IndexedGetter', 'IndexedFold' (or 'IndexedTraversal') with
+-- Compose with 'ifiltered' to filter another 'IndexedLens', 'IndexedIso', 'IndexedGetter', 'IndexedFold' (or 'IndexedTraversal') with
 -- access to both the value and the index.
 --
 -- Note: As with 'filtered', this is /not/ a legal 'IndexedTraversal', unless you are very careful not to invalidate the predicate on the target!
