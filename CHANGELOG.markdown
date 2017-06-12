@@ -1,3 +1,8 @@
+4.15.4
+----
+* `declareFields` now avoids creating duplicate field classes that are shared
+  among multiple datatypes within the same invocation.
+
 4.15.3
 ----
 * Generalized types of `transformMOf`, `transformOf`, `transformMOnOf`,

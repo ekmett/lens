@@ -86,8 +86,8 @@ import Control.Applicative
 #if !(MIN_VERSION_template_haskell(2,7,0))
 import Control.Monad (ap)
 #endif
-import qualified Control.Monad.Trans as Trans
-import Control.Monad.Trans.Writer
+import Control.Monad.State
+import Control.Monad.Writer
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Lens
@@ -105,14 +105,13 @@ import Data.List as List
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Maybe (maybeToList)
-import Data.Monoid
 import qualified Data.Set as Set
 import Data.Set (Set)
 import Data.Set.Lens
 import Data.Traversable hiding (mapM)
 import Language.Haskell.TH
 import Language.Haskell.TH.Lens
-import Language.Haskell.TH.Syntax
+import Language.Haskell.TH.Syntax hiding (lift)
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Eta reduce" #-}
@@ -460,13 +459,13 @@ declareClassyFor classes fields
 -- @
 declarePrisms :: DecsQ -> DecsQ
 declarePrisms = declareWith $ \dec -> do
-  emit =<< Trans.lift (makeDecPrisms True dec)
+  emit =<< liftDeclare (makeDecPrisms True dec)
   return dec
 
 -- | Build 'Control.Lens.Wrapped.Wrapped' instance for each newtype.
 declareWrapped :: DecsQ -> DecsQ
 declareWrapped = declareWith $ \dec -> do
-  maybeDecs <- Trans.lift (makeWrappedForDec dec)
+  maybeDecs <- liftDeclare (makeWrappedForDec dec)
   forM_ maybeDecs emit
   return dec
 
@@ -479,7 +478,7 @@ declareFields = declareLensesWith defaultFieldRules
 -- off.
 declareLensesWith :: LensRules -> DecsQ -> DecsQ
 declareLensesWith rules = declareWith $ \dec -> do
-  emit =<< Trans.lift (makeFieldOpticsForDec rules dec)
+  emit =<< lift (makeFieldOpticsForDec' rules dec)
   return $ stripFields dec
 
 -----------------------------------------------------------------------------
@@ -838,12 +837,19 @@ defaultFieldRules = LensRules
 declareWith :: (Dec -> Declare Dec) -> DecsQ -> DecsQ
 declareWith fun = (runDeclare . traverseDataAndNewtype fun =<<)
 
--- | Monad for emitting top-level declarations as a side effect.
-type Declare = WriterT (Endo [Dec]) Q
+-- | Monad for emitting top-level declarations as a side effect. We also track
+-- the set of field class 'Name's that have been created and consult them to
+-- avoid creating duplicate classes.
+
+-- See #463 for more information.
+type Declare = WriterT (Endo [Dec]) (StateT (Set Name) Q)
+
+liftDeclare :: Q a -> Declare a
+liftDeclare = lift . lift
 
 runDeclare :: Declare [Dec] -> DecsQ
 runDeclare dec = do
-  (out, endo) <- runWriterT dec
+  (out, endo) <- evalStateT (runWriterT dec) Set.empty
   return $ out ++ appEndo endo []
 
 emit :: [Dec] -> Declare ()
