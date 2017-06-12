@@ -86,8 +86,9 @@ import Control.Applicative
 #if !(MIN_VERSION_template_haskell(2,7,0))
 import Control.Monad (ap)
 #endif
-import Control.Monad.State
-import Control.Monad.Writer
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.State
+import Control.Monad.Trans.Writer
 import Control.Lens.Fold
 import Control.Lens.Getter
 import Control.Lens.Lens
@@ -105,6 +106,7 @@ import Data.List as List
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.Maybe (maybeToList)
+import Data.Monoid
 import qualified Data.Set as Set
 import Data.Set (Set)
 import Data.Set.Lens
