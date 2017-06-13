@@ -1,0 +1,3 @@
+[submodule "doctest"]
+	path = doctest
+	url = https://github.com/RyanGlScott/doctest
