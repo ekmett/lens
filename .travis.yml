@@ -81,7 +81,6 @@ script:
  - cd "$SRC_BASENAME/"
 ## from here on, CWD is inside the extracted source-tarball
  - rm -fv cabal.project.local
- - "echo 'packages: .' > cabal.project"
  # this builds all libraries and executables (without tests/benchmarks)
  - rm -f cabal.project.freeze
  - cabal new-build -w ${HC} --disable-tests --disable-benchmarks
