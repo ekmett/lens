@@ -73,16 +73,16 @@ install:
 script:
  - if [ -f configure.ac ]; then autoreconf -i; fi
  - rm -rf .ghc.environment.* dist/
- - cabal sdist # test that a source-distribution can be generated
- - cd dist/
- - SRCTAR=(${PKGNAME}-*.tar.gz)
- - SRC_BASENAME="${SRCTAR/%.tar.gz}"
- - tar -xvf "./$SRC_BASENAME.tar.gz"
- - cd "$SRC_BASENAME/"
+ #- cabal sdist # test that a source-distribution can be generated
+ #- cd dist/
+ #- SRCTAR=(${PKGNAME}-*.tar.gz)
+ #- SRC_BASENAME="${SRCTAR/%.tar.gz}"
+ #- tar -xvf "./$SRC_BASENAME.tar.gz"
+ #- cd "$SRC_BASENAME/"
 ## from here on, CWD is inside the extracted source-tarball
- - rm -fv cabal.project.local
+ #- rm -fv cabal.project.local
  # this builds all libraries and executables (without tests/benchmarks)
- - rm -f cabal.project.freeze
+ #- rm -f cabal.project.freeze
  - cabal new-build -w ${HC} --disable-tests --disable-benchmarks
  # this builds all libraries and executables (including tests/benchmarks)
  # - rm -rf ./dist-newstyle
