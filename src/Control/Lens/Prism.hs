@@ -70,7 +70,9 @@ import Unsafe.Coerce
 #endif
 import Prelude
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Use camelCase" #-}
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings
@@ -333,15 +335,15 @@ only a = prism' (\() -> a) $ guard . (a ==)
 {-# INLINE only #-}
 
 
--- | This 'Prism' compares for approximate equality with a given value and a predicate for testing, 
+-- | This 'Prism' compares for approximate equality with a given value and a predicate for testing,
 -- an example where the value is the empty list and the predicate checks that a list is empty (same
 -- as 'Control.Lens.Empty._Empty' with the 'Control.Lens.Empty.AsEmpty' list instance):
--- 
+--
 -- >>> nearly [] null # ()
 -- []
 -- >>> [1,2,3,4] ^? nearly [] null
 -- Nothing
--- 
+--
 -- @'nearly' [] 'Prelude.null' :: 'Prism'' [a] ()@
 --
 -- To comply with the 'Prism' laws the arguments you supply to @nearly a p@ are somewhat constrained.
@@ -349,7 +351,7 @@ only a = prism' (\() -> a) $ guard . (a ==)
 -- We assume @p x@ holds iff @x ≡ a@. Under that assumption then this is a valid 'Prism'.
 --
 -- This is useful when working with a type where you can test equality for only a subset of its
--- values, and the prism selects such a value. 
+-- values, and the prism selects such a value.
 
 nearly :: a -> (a -> Bool) -> Prism' a ()
 nearly a p = prism' (\() -> a) $ guard . p
