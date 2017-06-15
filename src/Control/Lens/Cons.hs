@@ -68,7 +68,9 @@ import qualified Data.Vector.Unboxed as Unbox
 import           Data.Word
 import           Prelude
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Eta reduce" #-}
+#endif
 
 -- $setup
 -- >>> :set -XNoOverloadedStrings

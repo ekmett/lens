@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Lens.Internal.List
@@ -17,7 +18,9 @@ module Control.Lens.Internal.List
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Redundant bracket" #-}
+#endif HLINT
 
 -- | Return the the subset of given ordinals within a given bound
 -- and in order of the first occurrence seen.

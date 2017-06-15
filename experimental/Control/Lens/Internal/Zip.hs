@@ -50,7 +50,9 @@ import Data.Maybe
 --import Data.Monoid
 --import Data.Profunctor.Unsafe
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Use foldl" #-}
+#endif
 
 -----------------------------------------------------------------------------
 -- * Zippers

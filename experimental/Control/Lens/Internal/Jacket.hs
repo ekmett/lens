@@ -56,7 +56,9 @@ import Control.Lens.Type
 import Data.Foldable
 import Data.Monoid
 
+#ifdef HLINT
 {-# ANN module "HLint: ignore Use foldl" #-}
+#endif
 
 -- $setup
 -- >>> import Control.Lens
