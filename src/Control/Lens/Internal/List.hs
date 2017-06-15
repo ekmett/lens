@@ -20,7 +20,7 @@ import qualified Data.IntSet as IntSet
 
 #ifdef HLINT
 {-# ANN module "HLint: ignore Redundant bracket" #-}
-#endif HLINT
+#endif
 
 -- | Return the the subset of given ordinals within a given bound
 -- and in order of the first occurrence seen.
