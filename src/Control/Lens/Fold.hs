@@ -441,7 +441,7 @@ takingWhile p l pafb = fmap runMagma . traverse (cosieve pafb) . runTakingWhile 
 -- >>> [1,2,3] & l .~ 4
 -- [1,4,4]
 --
--- @l'@ on the other hand behaves lawful:
+-- @l'@ on the other hand behaves lawfully:
 --
 -- >>> [1,2,3] & l' .~ 0 & l' .~ 4
 -- [1,2,4]
