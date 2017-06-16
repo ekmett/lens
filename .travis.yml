@@ -83,7 +83,8 @@ script:
  # build tests and benchmarks, run tests
  - cabal new-build -w ${HC} ${TEST} ${BENCH}
  - if [ "x$TEST" = "x--enable-tests" ]; then cabal new-test -w ${HC} ${TEST} ${BENCH}; fi
- - hlint src --cpp-define=HLINT --cpp-ansi
+ # Run hlint
+ - wget https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh -O - --quiet | sh -s src --cpp-define=HLINT --cpp-ansi
 
 notifications:
   irc:
