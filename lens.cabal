@@ -395,10 +395,11 @@ test-suite hunit
 
 -- Verify the results of the examples
 test-suite doctests
-  type:           exitcode-stdio-1.0
-  main-is:        doctests.hs
-  ghc-options:    -Wall -threaded
-  hs-source-dirs: tests
+  type:              exitcode-stdio-1.0
+  main-is:           doctests.hs
+  ghc-options:       -Wall -threaded
+  hs-source-dirs:    tests
+  x-doctest-options: --fast
 
   if flag(trustworthy) && impl(ghc>=7.2)
     other-extensions: Trustworthy

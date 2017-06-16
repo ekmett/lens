@@ -63,9 +63,9 @@ import Prelude
 -- >>> import Data.Map as Map
 -- >>> import Debug.SimpleReflect.Expr as Expr
 -- >>> import Debug.SimpleReflect.Vars as Vars
--- >>> let f :: Expr -> Expr; f = Vars.f
--- >>> let g :: Expr -> Expr; g = Vars.g
--- >>> let h :: Expr -> Expr -> Expr; h = Vars.h
+-- >>> let f :: Expr -> Expr; f = Debug.SimpleReflect.Vars.f
+-- >>> let g :: Expr -> Expr; g = Debug.SimpleReflect.Vars.g
+-- >>> let h :: Expr -> Expr -> Expr; h = Debug.SimpleReflect.Vars.h
 
 -- Chosen so that they have lower fixity than ('%='), and to match ('<~').
 infixr 2 `zoom`, `magnify`
